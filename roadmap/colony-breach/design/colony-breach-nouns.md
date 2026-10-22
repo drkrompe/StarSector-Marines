@@ -699,7 +699,8 @@ for one job in the cycle, and reads that way on screen.
   then hunts as a Brute does (an emplacement first), and every blow is an
   action that holds the body and lands part-way through, so it is seen coming.
   Infantry is reaped: one scythe sweeps across its front, right then left on
-  the next, cutting a handful in the arc. An emplacement, a hull or a mech
+  the next, cutting a handful in the arc and throwing whoever lives through it
+  down and across the sweep. An emplacement, a hull or a mech
   takes the crown. It breaks walls a Brute cannot (a fort's buildings, not its
   curtain until something has worn that down), from further off, and never
   walks round to a door. It is not staggered and does not charge. Until it has

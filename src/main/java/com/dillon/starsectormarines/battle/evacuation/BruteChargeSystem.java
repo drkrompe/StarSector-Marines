@@ -76,6 +76,9 @@ public final class BruteChargeSystem {
     /** A blow posted by the behaviour: a trample on infantry, or the push behind a blow on anything else. */
     private record Trample(long brute, long target, boolean trample) {}
 
+    /** A body a Matriarch's scythe caught, thrown along {@code (dx, dy)} (a unit vector). */
+    private record Toss(long attacker, long body, float dx, float dy) {}
+
     private static final class Charge {
         Phase phase = Phase.IDLE;
         int phaseTicks;
@@ -95,6 +98,8 @@ public final class BruteChargeSystem {
 
     private final ConcurrentLinkedQueue<Request> requests = new ConcurrentLinkedQueue<>();
     private final ConcurrentLinkedQueue<Trample> tramples = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Toss> tosses = new ConcurrentLinkedQueue<>();
+    private final List<Toss> tossDrain = new ArrayList<>();
     private final List<Trample> trampleDrain = new ArrayList<>();
     private final Long2ObjectOpenHashMap<Slide> slides = new Long2ObjectOpenHashMap<>();
     private final LongArrayList slideOrder = new LongArrayList();
@@ -191,6 +196,7 @@ public final class BruteChargeSystem {
         int now = sim.getSimTickIndex();
         StaggerService stagger = sim.stagger();
         landTramples(sim, now);
+        landTosses(sim);
 
         drain.clear();
         for (Request r; (r = requests.poll()) != null; ) drain.add(r);
@@ -271,6 +277,30 @@ public final class BruteChargeSystem {
         float v = BruteChargeRules.launchSpeed(cells, decel);
         slides.put(body, new Slide(dx * v, dy * v, decel));
         sim.clearPath(body);
+    }
+
+    /**
+     * Thread-safe; posted by a Matriarch's reap for each body it cut. Lands next serial pass: a body that
+     * lived through the cut is knocked down for {@code holdSeconds} and thrown {@code cells} along
+     * {@code (dx, dy)}, sliding to rest as a trampled one does.
+     */
+    public void toss(long attacker, long body, float dx, float dy) {
+        tosses.add(new Toss(attacker, body, dx, dy));
+    }
+
+    /** How far a reap throws a body, cells, and how long it lies. */
+    static final float TOSS_CELLS = 1.6f, TOSS_HOLD = .8f;
+
+    private void landTosses(BattleSimulation sim) {
+        tossDrain.clear();
+        for (Toss t; (t = tosses.poll()) != null; ) tossDrain.add(t);
+        if (tossDrain.isEmpty()) return;
+        tossDrain.sort(Comparator.comparingLong(Toss::attacker).thenComparingLong(Toss::body));
+        for (Toss t : tossDrain) {
+            if (!sim.getRoster().isAliveById(t.body())) continue;
+            sim.stagger().stagger(t.body(), BruteChargeRules.ticks(TOSS_HOLD), Cause.KNOCKED_DOWN);
+            launch(t.body(), t.dx(), t.dy(), TOSS_CELLS, BruteChargeRules.BODY_SLIDE, sim);
+        }
     }
 
     /** Whether {@code body} is still sliding from a hit. */
