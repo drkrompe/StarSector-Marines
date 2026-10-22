@@ -40,14 +40,15 @@ public record SquadMuster(String squadId, String squadName, boolean stationed,
         public int teamIndex() { return index / MarineSquad.TEAM_SIZE; }
 
         public String hoverText() {
-            if (state == State.VACANT) return "Vacant billet";
-            String identity = rankLabel + " " + name;
+            if (state == State.VACANT) return Strings.get("battleMusterVacantBillet");
+            String identity = Strings.format("battleMusterIdentity", rankLabel, name);
             if (state == State.WOUNDED) {
-                return identity + " | WIA | Return in "
-                        + String.format(Strings.locale(), "%.1f days", recoveryDays);
+                return Strings.join("battleMusterSeparator", identity, Strings.get("battleMusterWounded"),
+                        Strings.format("battleMusterReturnIn", recoveryDays));
             }
-            return identity + " | Ready" + (leader ? " | Squad NCO" : "")
-                    + (medic ? " | Squad medic" : "");
+            return Strings.join("battleMusterSeparator", identity, Strings.get("battleMusterReady"),
+                    leader ? Strings.get("battleMusterNco") : null,
+                    medic ? Strings.get("battleMusterMedic") : null);
         }
     }
 
@@ -82,7 +83,7 @@ public record SquadMuster(String squadId, String squadName, boolean stationed,
             MarineSoldier marine = index < members.size()
                     ? roster.soldierById(members.get(index)) : null;
             if (marine == null) {
-                billets.add(new Billet(index, null, "Vacant", "", State.VACANT, -1f, false, false));
+                billets.add(new Billet(index, null, Strings.get("battleMusterVacant"), "", State.VACANT, -1f, false, false));
                 continue;
             }
             boolean recovering = marine.status() == MarineSoldierStatus.WIA;

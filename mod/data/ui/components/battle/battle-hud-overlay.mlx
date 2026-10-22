@@ -29,7 +29,7 @@
     </div>
 
     <div id="battle-mission-squads" class="{missionSquadClasses}" style="{missionSquadStyle}">
-      <div id="mission-squads-heading" class="label heading mission-heading">SQUAD ACTIVITY</div>
+      <div id="mission-squads-heading" class="label heading mission-heading">{i18n.battleHudSquadActivity}</div>
       <div id="mission-squads-summary" class="label mission-secondary">{missionSquadSummary}</div>
       <div id="battle-mission-squad-list" class="mission-squad-list">
         <div each="squad in missionSquads" key="{squad.id}" id="{squad.id}" class="mission-squad">
@@ -57,14 +57,14 @@
 
       <div id="battle-mission-objectives" class="{missionClasses}" style="{missionPanelStyle}">
         <div id="mission-heading-row" class="objective-header">
-          <div id="mission-heading" class="label heading objective-title">MISSION OBJECTIVES</div>
+          <div id="mission-heading" class="label heading objective-title">{i18n.battleHudMissionObjectives}</div>
           <div id="mission-score" class="label heading objective-score">{missionScore}</div>
         </div>
         <div id="battle-mission-list" class="mission-list" style="{missionListStyle}">
           <div each="card in missionCards" key="{card.id}" id="{card.id}" class="{card.classes}">
             <div id="{card.headerId}" class="mission-card-header">
               <div id="{card.nameId}" class="label heading mission-name">{card.name}</div>
-              <button id="{card.locateId}" class="objective-locate" disabled="{card.disabled}" onclick="{card.locate}">LOCATE</button>
+              <button id="{card.locateId}" class="objective-locate" disabled="{card.disabled}" onclick="{card.locate}">{i18n.battleHudLocate}</button>
             </div>
             <div id="{card.phaseId}" class="label heading mission-phase">{card.phase}</div>
             <div id="{card.stepsId}" class="label mission-steps">{card.steps}</div>
@@ -79,7 +79,7 @@
       <div id="battle-objectives" class="{objectivePanelClasses}">
         <div id="battle-objective-header" class="objective-header">
           <div id="battle-objective-title" class="label heading objective-title">{objectiveTitle}</div>
-          <button id="battle-objective-locate" class="{objectiveLocateClasses}" disabled="{objectiveLocateDisabled}" onclick="{objectiveLocateAction}">LOCATE</button>
+          <button id="battle-objective-locate" class="{objectiveLocateClasses}" disabled="{objectiveLocateDisabled}" onclick="{objectiveLocateAction}">{i18n.battleHudLocate}</button>
           <div id="battle-objective-score" class="label heading objective-score">{objectiveScore}</div>
         </div>
         <div id="battle-objective-chips" class="objective-chips">
