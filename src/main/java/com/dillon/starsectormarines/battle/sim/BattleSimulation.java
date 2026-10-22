@@ -120,6 +120,8 @@ import com.dillon.starsectormarines.battle.air.AirLoss;
 import com.dillon.starsectormarines.battle.air.BoatDamageLedger;
 import com.dillon.starsectormarines.battle.air.AirOrdnance;
 import com.dillon.starsectormarines.battle.air.HullTarget;
+import com.dillon.starsectormarines.battle.evacuation.HeartSequence;
+import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.evacuation.SurvivorPickupSystem;
 import com.dillon.starsectormarines.battle.air.AirStrikeSystem;
 import com.dillon.starsectormarines.battle.air.BoatSortieSystem;
@@ -848,6 +850,22 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         colonyBreach.setEruptionHandler((sim, site, tick) ->
                 sim.swarmBores().open(sim, site.number(), site.mother(), site.x(), site.y()));
         swarmReinforcements.beginSeepage();
+    }
+    private HeartSequence heart;
+    /** The heart's battle, or {@code null} when this is not the heart. */
+    public HeartSequence getHeart() { return heart; }
+
+    /**
+     * Installs the heart's battle (`heart-nouns.md`) over its opened bores: the
+     * mothers go to sleep and the heart's wake rules and beats take over.
+     */
+    public void installHeart(Form form) {
+        if (simTickIndex != 0 || heart != null || colonyBreach != null)
+            throw new IllegalStateException("Install the heart once at setup");
+        if (!swarmReinforcements.isConfigured())
+            throw new IllegalStateException("The heart needs a configured swarm director");
+        heart = new HeartSequence(form, storyBeats);
+        heart.install(this);
     }
     /** Ends the swarm director's opening seepage; the breach has begun. Idempotent. */
     public void endSwarmSeepage() { swarmReinforcements.endSeepage(); }
@@ -1820,6 +1838,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             CivilianEvacuationPlacement placement, int targetPopulation, long seed) {
         return swarmReinforcements.configure(placement, targetPopulation, seed,
                 this);
+    }
+    /** A battle with no civilians: the director spawns only out of this battle's bores, from the first tick. */
+    public boolean configureBoreDirector(long seed) {
+        return swarmReinforcements.configureBores(swarmBores, seed);
     }
     public boolean isSwarmReinforcementConfigured() {
         return swarmReinforcements.isConfigured();
@@ -3640,6 +3662,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // that starts bore sourcing spawns only from bores.
         swarmBores.tick(this);
         if (colonyBreach != null) colonyBreach.tick(this);
+        if (heart != null) heart.tick(this);
         // After the bores and the eruptions, so a body is delivered only into a
         // bore that still lives and harvest opens on the tick a bore does.
         swarmHarvest.tick(this);
@@ -3717,6 +3740,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (junctionStory != null) junctionStory.observe(this);
         if (relayNineStory != null) relayNineStory.observe(this);
         if (colonyBreach != null) colonyBreach.observe(this);
+        if (heart != null) heart.observe(this);
         if (thunderRun != null && isComplete()) thunderRun.freeze(this, false);
         if (lastLiftSequence != null) {
             lastLiftSequence.observe(this);

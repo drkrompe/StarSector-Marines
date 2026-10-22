@@ -61,6 +61,7 @@ public final class SwarmBore {
     private int feeds;
     private int surges;
     private int nextSurgeTick;
+    private boolean dormant;
     private int bodiesSpawned;
     private final int[] stagesReleased = new int[SwarmStage.values().length];
     private boolean matriarchReleased;
@@ -162,7 +163,18 @@ public final class SwarmBore {
 
     /** Whether a surge is due on {@code tick}. */
     boolean surgeDue(int tick) {
-        return !collapsed() && tick >= nextSurgeTick;
+        return !collapsed() && !dormant && tick >= nextSurgeTick;
+    }
+
+    /** Whether the bore is held quiet: it grows and feeds, but sends no surge until woken. */
+    public boolean dormant() { return dormant; }
+
+    void hold() { dormant = true; }
+
+    /** Wakes the bore with a surge due on {@code tick}. */
+    void surgeAt(int tick) {
+        dormant = false;
+        nextSurgeTick = Math.min(nextSurgeTick, tick);
     }
 
     /**

@@ -629,6 +629,33 @@ public final class BattleSetup {
         sim.setMarineLandingPads(lzCells);
     }
 
+    /**
+     * Brings a company down by shuttle on the map's landing berths, each boat
+     * flying its manifest's sorties with rolled player squads that land under
+     * {@code claim}: the shared landing of a story mission whose company comes
+     * in by air.
+     */
+    static void landCompany(BattleSimulation sim, MapResult map, List<ShuttleAssignment> manifest,
+                            SquadCommandClaim claim, long seed) {
+        Random rng = new Random(seed);
+        var pads = LandingPadSelector.select(map, manifest.size(), LZ_MIN_SEPARATION);
+        recordLzPads(sim, pads);
+        for (int i = 0; i < manifest.size(); i++) {
+            var assignment = manifest.get(i); var pad = pads.get(i);
+            float x = pad.centerX + .5f, y = pad.centerY + .5f;
+            float[] entry = shuttleEntryFor(x, y, map.grid.getWidth(), map.grid.getHeight(), pad.approach);
+            long air = sim.spawnShuttle(assignment.type, assignment.airframe, Faction.MARINE, x, y,
+                    entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            var mission = sim.world().mission(air);
+            mission.totalCycles = assignment.cycles; mission.manifestOrdinal = i;
+            mission.commandClaim = claim;
+            mission.cycleLoadouts = new MarineLoadout[assignment.cycles][];
+            for (int cycle = 0; cycle < assignment.cycles; cycle++)
+                mission.cycleLoadouts[cycle] = InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle), rng);
+            mission.marineLoadout = mission.cycleLoadouts[0];
+        }
+    }
+
     /** Dedicated Raid factory; target seizure and egress replace elimination. */
     public static BattleSimulation createRaid(
             long seed, List<ShuttleAssignment> manifest,

@@ -1,7 +1,13 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.command.HeartAssaultCommand;
+import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
+import com.dillon.starsectormarines.battle.command.objective.EliminateFactionObjective;
+import com.dillon.starsectormarines.battle.command.objective.HeartObjective;
 import com.dillon.starsectormarines.battle.evacuation.HeartBores;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -13,6 +19,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -62,6 +69,37 @@ public final class BloomHeartSetup {
         }
         throw new IllegalStateException("no heart country of form " + form + " seated its bores in "
                 + ATTEMPTS + " attempts from seed " + seed);
+    }
+
+    /** Broad Front's company lane: satellites this share of the map's width either side of its landing are its own. */
+    static final float BROAD_FRONT_LANE_HALF_WIDTH = 0.14f;
+
+    /**
+     * The heart as a mission: the country, bores and bloom of {@link #country},
+     * the company coming down by shuttle on the cordon's farmland under its
+     * Purge commander, the bores' director and the heart's wake rules, won when
+     * every mother has collapsed and lost when the company is broken.
+     */
+    public static BattleSimulation mission(Form form, long seed, List<ShuttleAssignment> manifest) {
+        if (manifest == null || manifest.isEmpty()) throw new IllegalArgumentException("the heart needs a company to land");
+        Built built = country(form, seed);
+        BattleSimulation sim = built.sim();
+        sim.getBattleResources().disableCompoundProduction();
+        sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
+        sim.addObjective(new HeartObjective());
+        BattleSetup.landCompany(sim, built.map(), manifest,
+                SquadCommandClaim.mission(HeartAssaultCommand.ISSUER, "Company lands for the push on the heart"), built.battleSeed());
+        sim.configureBoreDirector(built.battleSeed());
+        sim.installHeart(form);
+        Precinct landing = built.plan().landingPlace();
+        int laneAcross = form.advancesAlongY() ? landing.seedX() : landing.seedY();
+        int laneHalfWidth = form == Form.BROAD_FRONT
+                ? Math.round(BROAD_FRONT_LANE_HALF_WIDTH * form.scale.width)
+                : Math.max(form.scale.width, form.scale.height);
+        sim.setAutonomousCommander(Faction.MARINE, new HeartAssaultCommand(form.advancesAlongY(), laneAcross, laneHalfWidth),
+                HeartAssaultCommand.DISCLOSURE);
+        sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(HeartAssaultCommand.ISSUER, "Company support joins the push"));
+        return sim;
     }
 
     /** What setup made: the battle, its map and plan, the heart's sites and the seed the attempt used. */

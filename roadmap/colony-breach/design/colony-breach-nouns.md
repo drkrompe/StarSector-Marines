@@ -802,6 +802,14 @@ population. The snapshot carries each bore that has opened: its tier, whether
 it lives, integrity, growth, biomass fed, surges, bodies released, next surge,
 its living spore colonies and the ticks it opened and collapsed.
 
+A battle with no civilians to cover (the heart, `heart-nouns.md`) configures the
+director **bores-only**: it is bore-sourced from the first tick, and only the
+bores' collapse ends its work. A mission may hold a bore **asleep**: it grows
+and feeds but sends no surge until the mission wakes it with a surge due at
+once, and a sleeping bore adds nothing to the population target, so the bores
+awake never field bodies on its behalf. A woken surge still waits for room
+under the target, as any surge does.
+
 **Swarm strain.** A kind of swarm body with its own stats, appearance family and
 behaviour. A strain is a designed stage of the one organism (see *Origin*), not
 another animal: every strain is the Runner's body plan and chitin specialised

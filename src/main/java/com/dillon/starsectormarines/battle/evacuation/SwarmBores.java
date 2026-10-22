@@ -232,6 +232,23 @@ public final class SwarmBores {
         events.add(new Event(tick, EventKind.MATRIARCH, bore, bore.tier()));
     }
 
+    /**
+     * Holds {@code bore} quiet: it keeps growing and feeding but sends no surge
+     * until {@link #surgeNow} wakes it. A mission's sleeping bore (the heart's
+     * mothers before the push wakes them, `heart-nouns.md`).
+     */
+    public void hold(SwarmBore bore) {
+        bore.hold();
+    }
+
+    /**
+     * Wakes {@code bore} with a surge due now. The director still releases it
+     * only when it fits under the living bores' capacity, as any surge.
+     */
+    public void surgeNow(SwarmBore bore, int tick) {
+        if (!bore.collapsed()) bore.surgeAt(tick);
+    }
+
     /** Records that the director released a surge from {@code bore}. */
     void surged(SwarmBore bore, int tick) {
         events.add(new Event(tick, EventKind.SURGE, bore, bore.tier()));

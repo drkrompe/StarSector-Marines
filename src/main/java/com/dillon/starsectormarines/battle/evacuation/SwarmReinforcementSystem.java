@@ -98,6 +98,8 @@ public final class SwarmReinforcementSystem {
 
     private final CivilianEvacuationTracker tracker;
     private CivilianEvacuationPlacement placement;
+    /** No civilians to cover: bores only, and only their collapse ends the director's work. */
+    private boolean cohortless;
     private int targetPopulation;
     private int populationFloor;
     private int waveSize;
@@ -152,13 +154,31 @@ public final class SwarmReinforcementSystem {
         return true;
     }
 
+    /**
+     * Configures a battle with no civilians to cover: every body comes out of
+     * the battle's bores from the first tick, and nothing closes the director
+     * but the bores' own collapse (the heart, `heart-nouns.md`). One-shot, as
+     * {@link #configure}.
+     */
+    public boolean configureBores(SwarmBores bores, long seed) {
+        if (configured || bores == null) return false;
+        this.targetPopulation = Math.max(1, borePopulationTarget(bores.bores()));
+        this.populationFloor = 1;
+        this.waveSize = MIN_WAVE_SIZE;
+        this.seed = seed;
+        cohortless = true;
+        configured = true;
+        beginBoreSourcing(bores);
+        return true;
+    }
+
     public void tick(float dt, BattleSimulation sim) {
         if (!configured) return;
         if (snapshot == null) {
             ownedWave = captureOpeningWave(sim);
             refreshSnapshot(sim, "OPENING_PERIMETER");
         }
-        if (tracker.isSealed() || tracker.activeCount() == 0) {
+        if (!cohortless && (tracker.isSealed() || tracker.activeCount() == 0)) {
             refreshSnapshot(sim, "OBJECTIVE_TERMINAL");
             return;
         }
@@ -229,10 +249,14 @@ public final class SwarmReinforcementSystem {
         return boreSourcing;
     }
 
-    /** The population target the living bores hold the field at: their capacities summed. */
+    /**
+     * The population target the living bores hold the field at: their
+     * capacities summed. A sleeping bore holds none of the field: the bodies it
+     * would send are not on it yet, and the bores awake do not field them for it.
+     */
     public static int borePopulationTarget(List<SwarmBore> bores) {
         int target = 0;
-        for (SwarmBore bore : bores) if (!bore.collapsed()) target += bore.tier().capacity;
+        for (SwarmBore bore : bores) if (!bore.collapsed() && !bore.dormant()) target += bore.tier().capacity;
         return target;
     }
 
@@ -499,7 +523,9 @@ public final class SwarmReinforcementSystem {
     }
 
     private void refreshSnapshot(BattleSimulation sim, String reason) {
-        SwarmPressureSnapshot.Phase phase = tracker.isSealed()
+        SwarmPressureSnapshot.Phase phase = cohortless
+                ? SwarmPressureSnapshot.Phase.COHORT_RELEASED
+                : tracker.isSealed()
                 || tracker.activeCount() == 0
                 ? SwarmPressureSnapshot.Phase.TERMINAL
                 : sim.isCivilianShelterProtected()
