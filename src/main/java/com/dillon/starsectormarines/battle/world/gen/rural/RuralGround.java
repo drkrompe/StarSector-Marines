@@ -135,29 +135,81 @@ public final class RuralGround {
         };
     }
 
+    /** Cells over which the country road narrows to the street it carries into town. */
+    static final int TAPER = 4;
+
     /**
      * The roads as straight routes of constant width, flush at both ends, higher
      * grades first so a junction is the higher road's surface.
+     *
+     * <p>The country road is broader than most streets it carries on. Where one
+     * of the {@code streets} (the town's swept routes) starts at the country's
+     * edge on the country road's line, the road narrows to that street's asphalt
+     * over {@link #TAPER} cells short of the farm road and crosses it at the
+     * street's width, so the two meet flush at the town edge instead of in a
+     * square step.
      */
-    public static List<Route> routes(RuralLayout layout, long seed) {
+    public static List<Route> routes(RuralLayout layout, List<Route> streets, long seed) {
         List<Route> out = new ArrayList<>();
         for (Road road : layout.roads()) {
-            Point a, z;
-            if (road.alongX()) {
-                double cy = (road.y0() + road.y1()) / 2.0;
-                a = new Point(road.x0() - .5, cy);
-                z = new Point(road.x1() + .5, cy);
-            } else {
-                double cx = (road.x0() + road.x1()) / 2.0;
-                a = new Point(cx, road.y0() - .5);
-                z = new Point(cx, road.y1() + .5);
-            }
+            boolean alongX = road.alongX();
+            double centre = alongX ? (road.y0() + road.y1()) / 2.0 : (road.x0() + road.x1()) / 2.0;
+            double lo = (alongX ? road.x0() : road.y0()) - .5, hi = (alongX ? road.x1() : road.y1()) + .5;
             Grade grade = road.grade();
             double wear = grade == Grade.COUNTRY ? .4 : .6;
-            out.add(new Route("rural-" + grade.name().toLowerCase() + "-" + out.size(), List.of(a, z),
+            String id = "rural-" + grade.name().toLowerCase() + "-";
+            Route street = grade == Grade.COUNTRY ? arrival(layout, road, streets) : null;
+            if (street == null) {
+                out.add(new Route(id + out.size(), List.of(at(alongX, lo, centre), at(alongX, hi, centre)),
+                        grade.width, 0, wear, seed, grade.material, EndCap.BUTT));
+                continue;
+            }
+            // The town end, which way is towards it, and where the farm road along it begins.
+            boolean townHi = !layout.inCountry(alongX ? road.x1() + 1 : road.x0(), alongX ? road.y0() : road.y1() + 1);
+            int dir = townHi ? 1 : -1;
+            double edge = townHi ? hi : lo, farm = edge - dir * Grade.FARM.width, taper = farm - dir * TAPER;
+            double narrow = street.width(), to = alongX ? street.points().get(0).y() : street.points().get(0).x();
+            out.add(new Route(id + out.size(), List.of(at(alongX, townHi ? lo : hi, centre), at(alongX, taper, centre)),
                     grade.width, 0, wear, seed, grade.material, EndCap.BUTT));
+            // Two strokes of the street's width, one flush with each of the road's
+            // edges where the taper starts and both on the street at the farm road:
+            // together, a trapezoid from the road's width to the street's. Their
+            // ends are round: a flush end on a slanted stroke is cut square to the
+            // slant and leaves a notch, where a round one lies wholly inside the
+            // road behind it and the street ahead.
+            double shift = (grade.width - narrow) / 2;
+            for (int side : new int[]{-1, 1})
+                out.add(new Route(id + out.size(), List.of(at(alongX, taper, centre + side * shift),
+                        at(alongX, farm, to)), narrow, 0, wear, seed, grade.material, EndCap.ROUND));
+            out.add(new Route(id + out.size(), List.of(at(alongX, farm, to), at(alongX, edge, to)),
+                    narrow, 0, wear, seed, grade.material, EndCap.BUTT));
         }
         return out;
+    }
+
+    /**
+     * The street a country road carries into town: a straight swept route along
+     * the road's axis, narrower than the road, starting on the country's edge
+     * with its centre line inside the road. {@code null} when there is none.
+     */
+    private static Route arrival(RuralLayout layout, Road road, List<Route> streets) {
+        boolean alongX = road.alongX();
+        boolean townHi = !layout.inCountry(alongX ? road.x1() + 1 : road.x0(), alongX ? road.y0() : road.y1() + 1);
+        double edge = townHi ? (alongX ? road.x1() : road.y1()) + .5 : (alongX ? road.x0() : road.y0()) - .5;
+        int across0 = alongX ? road.y0() : road.x0(), across1 = alongX ? road.y1() : road.x1();
+        for (Route r : streets) {
+            if (r.points().size() != 2 || r.width() >= road.grade().width) continue;
+            Point a = r.points().get(0), b = r.points().get(1);
+            double c = alongX ? a.y() : a.x();
+            if ((alongX ? b.y() : b.x()) != c || c < across0 || c > across1) continue;
+            double s = alongX ? a.x() : a.y(), t = alongX ? b.x() : b.y();
+            if (Math.abs(Math.min(s, t) - edge) < 1e-6 || Math.abs(Math.max(s, t) - edge) < 1e-6) return r;
+        }
+        return null;
+    }
+
+    private static Point at(boolean alongX, double along, double across) {
+        return alongX ? new Point(along, across) : new Point(across, along);
     }
 
     /** The ground a road band's surface is laid over, for the road finish. */
