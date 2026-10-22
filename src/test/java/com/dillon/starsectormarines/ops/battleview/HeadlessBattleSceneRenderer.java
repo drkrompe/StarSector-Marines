@@ -617,7 +617,7 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
             float cellY = pass.screenToCellY(surfaceHeight - (y + 0.5f));
             for (int x = px0; x < px1; x++) {
                 float cellX = pass.screenToCellX(x + 0.5f);
-                if (!ScorchShading.shade(pass.field, cellX, cellY, pass.style, scratch, out)) continue;
+                if (!ScorchShading.shade(pass.layer(), cellX, cellY, scratch, out)) continue;
                 any = true;
                 multiply.setRGB(x - px0, y - row0, 0xFF000000 | channel(out[0]) << 16 | channel(out[1]) << 8 | channel(out[2]));
                 int oa = Math.round(clamp(out[6] * pass.alpha) * 255f);
