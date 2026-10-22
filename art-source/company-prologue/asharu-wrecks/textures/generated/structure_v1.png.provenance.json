@@ -1,0 +1,34 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16569-990e-7af0-b65a-0fcb8f4907b8",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16569-990e-7af0-b65a-0fcb8f4907b8\\exec-5bede73a-eb91-403d-b871-09915fae8dff.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "textures\\generated\\structure_v1.png",
+    "sha256": "3ffed014b084459fed2713e79f18f91ad26d8e3539a3967f8db4d6893d1db9cc",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "textures\\prompts\\structure.prompt.txt",
+  "promptSha256": "a7de75885d06b7ee104a6f1eddf7968d98f364513718e1e6a1fa7740f8dd9747",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nUse case: texture map generation for a 3D model. One square, seamless, tileable albedo (diffuse) texture of the bare structural steel inside a spaceship wreck that has been open to vacuum and hard sunlight for a century: frames, girders and torn plate edges.\n\nMaterial: unpainted structural steel, dull and dark grey-brown, with a thin dry oxide film in patches, fine even pitting, faint grinding and tool marks, small spatters of old weld, faint long streaks of fine dust, and a few small scraped spots that show brighter metal. Very old and dry: no wet rust, no flaking rust scale.\n\nRules:\n- Seen square-on, filling the whole square edge to edge; it will be tiled many times, so the detail is small and evenly spread, with no single large feature, nothing centred, and nothing running along an edge.\n- Albedo only: flat, even, shadowless lighting. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no vignette, no gradient, no border.\n- No bolts heads in rows, no plates, no markings, no letters, no soot, no scorch, no glow.\nOutput: one square 1:1 image.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one seamless steel albedo texture with fine, evenly distributed wear and flat lighting."
+  ],
+  "usage": {
+    "input_tokens": 36948,
+    "cached_input_tokens": 30720,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 362,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 41.5
+}
