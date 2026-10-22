@@ -24,46 +24,19 @@ import java.util.Map;
  * {@link #DEATH_HI} (about a minute and a half of climbing) the tree is dead,
  * and stays dead if the creep later withers.
  *
- * <p>What a dead tree does to the fight follows the {@link Style}: a
- * {@link Style#WITHERED} tree has dropped its leaves, so its crown no longer
- * hides anything and no longer shelters anyone (sight passes and it gives no
- * edge cover) while its trunk still does both, and its tangle of crusted limbs
- * still stops a body walking through it. A {@link Style#SHROUDED} tree is a
- * crusted mound in the crown's shape and goes on blocking as the tree did.
- * Felling still works as it does on a living tree.
+ * <p>A dead tree has dropped its leaves, so its crown no longer hides anything
+ * and no longer shelters anyone (sight passes and it gives no edge cover) while
+ * its trunk still does both, and its tangle of bare limbs still stops a body
+ * walking through it. Felling still works as it does on a living tree.
  *
  * <p>Reads the field and keeps its own per-tree state, so the field knows
  * nothing of trees. Looks every {@link #CHECK_TICKS}; deterministic in the seed.
- * {@code -Dbattle.swarm.creepTrees=false} is the control (trees never die), and
- * {@code -Dbattle.render.creepTreeStyle=withered|shrouded} chooses the look and
- * its rule.
+ * {@code -Dbattle.swarm.creepTrees=false} is the control (trees never die).
  */
 public final class CreepVegetation {
 
     /** Control-run switch; trees die unless it reads {@code false}. */
     public static final String PROPERTY = "battle.swarm.creepTrees";
-    /** The overgrown tree's look, and with it whether its dead crown still blocks. */
-    public static final String STYLE_PROPERTY = "battle.render.creepTreeStyle";
-
-    /** How a tree the creep has killed stands. */
-    public enum Style {
-        /** Leaves dropped, crust to the limb tips: sight and shelter only at the trunk. */
-        WITHERED(true),
-        /** Crown wrapped into a crusted mound: blocks as the tree did. */
-        SHROUDED(false);
-
-        /** Whether a dead crown, outside its trunk, stops blocking sight and giving cover. */
-        public final boolean opensCrown;
-
-        Style(boolean opensCrown) { this.opensCrown = opensCrown; }
-
-        /** The style this process plays and draws. */
-        public static Style active() {
-            String id = System.getProperty(STYLE_PROPERTY, WITHERED.name());
-            for (Style s : values()) if (s.name().equalsIgnoreCase(id)) return s;
-            return WITHERED;
-        }
-    }
 
     /** Ticks between looks: half a second. */
     public static final int CHECK_TICKS = 15;
@@ -73,20 +46,12 @@ public final class CreepVegetation {
     public static final float TRUNK_RADIUS = 0.75f;
 
     private final long seed;
-    private final Style style;
     private final boolean enabled = !"false".equalsIgnoreCase(System.getProperty(PROPERTY));
     private volatile Index index;
 
     public CreepVegetation(long seed) {
-        this(seed, Style.active());
-    }
-
-    CreepVegetation(long seed, Style style) {
         this.seed = seed;
-        this.style = style;
     }
-
-    public Style style() { return style; }
 
     /** One tree: where it stands, the crown cells it blocks and which of them are its trunk. */
     record Tree(int x, int y, int[] crown, boolean[] trunk, int threshold) { }
@@ -126,7 +91,6 @@ public final class CreepVegetation {
             if (!standing(tree, grid)) continue;
             if (livingCoverage(tree, field) < tree.threshold) continue;
             idx.diedAt[t] = tick;
-            if (!style.opensCrown) continue;
             for (int cell : tree.crown) {
                 if (opens(idx, cell)) wither.open(cell % grid.getWidth(), cell / grid.getWidth());
             }
@@ -157,7 +121,7 @@ public final class CreepVegetation {
         if (idx == null) return "no trees looked at";
         int dead = 0;
         for (int d : idx.diedAt) if (d >= 0) dead++;
-        return String.format(Locale.ROOT, "%d of %d trees dead (%s)", dead, idx.trees.size(), style);
+        return String.format(Locale.ROOT, "%d of %d trees dead", dead, idx.trees.size());
     }
 
     /** Mean coverage of living creep over the tree's crown, 0..255. */

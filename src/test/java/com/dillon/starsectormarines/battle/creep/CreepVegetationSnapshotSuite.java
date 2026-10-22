@@ -26,7 +26,7 @@ import java.util.Locale;
  * reach the groves in a few minutes, a bore opens at tick 0 under every
  * {@link #GROVE_STRIDE}th tree. Only the creep and the rules that read it
  * (roofs, trees) are advanced. Whole-map stills before, at three and at six
- * minutes, and the densest grove at play zoom. The same outbreak is
+ * minutes, and the densest grove at play zoom and close up. The same outbreak is
  * {@code renderEvidence}'s green colony.
  */
 public final class CreepVegetationSnapshotSuite implements SnapshotSuite {
@@ -51,6 +51,8 @@ public final class CreepVegetationSnapshotSuite implements SnapshotSuite {
         int[] grove = densestGrove(sim);
         BattleReviewFrameRenderer play = new BattleReviewFrameRenderer(context.modRoot(), FRAME_W, FRAME_H,
                 grove[0] + 0.5f, grove[1] + 0.5f, 60f);
+        BattleReviewFrameRenderer close = new BattleReviewFrameRenderer(context.modRoot(), FRAME_W, FRAME_H,
+                grove[0] + 0.5f, grove[1] + 0.5f, 20f);
         List<SnapshotArtifact> out = new ArrayList<>();
         out.add(new SnapshotArtifact("00-whole-map-before.png", whole.render(sim, outbreak.caption("whole map, before"))));
         outbreak.runTo(3 * TICKS_PER_MINUTE);
@@ -59,6 +61,7 @@ public final class CreepVegetationSnapshotSuite implements SnapshotSuite {
         outbreak.runTo(6 * TICKS_PER_MINUTE);
         out.add(new SnapshotArtifact("03-whole-map-6min.png", whole.render(sim, outbreak.caption("whole map"))));
         out.add(new SnapshotArtifact("04-grove-6min.png", play.render(sim, outbreak.caption("densest grove, 32 px a cell"))));
+        out.add(new SnapshotArtifact("05-grove-6min-close.png", close.render(sim, outbreak.caption("densest grove, 96 px a cell"))));
         return out;
     }
 

@@ -23,19 +23,12 @@ class CreepVegetationTest {
     void aHeldTreeDiesAndItsWitheredCrownOpensAroundTheTrunk() {
         Grove g = new Grove();
         Set<Integer> opened = new HashSet<>();
-        int died = g.grow(new CreepVegetation(5L, CreepVegetation.Style.WITHERED), opened);
+        int died = g.grow(new CreepVegetation(5L), opened);
         assertTrue(died > 0, "the tree died");
         boolean[] trunk = CreepVegetation.trunkOf(g.tree, g.crown, W);
         for (int i = 0; i < g.crown.length; i++) {
             assertEquals(!trunk[i], opened.contains(g.crown[i]), "crown cell " + i + (trunk[i] ? " is trunk" : " is crown"));
         }
-    }
-
-    @Test
-    void aShroudedTreeDiesButKeepsBlocking() {
-        Set<Integer> opened = new HashSet<>();
-        assertTrue(new Grove().grow(new CreepVegetation(5L, CreepVegetation.Style.SHROUDED), opened) > 0);
-        assertTrue(opened.isEmpty(), "a shrouded crown still blocks");
     }
 
     /** One small oak on open ground, a source beside it. */
