@@ -171,15 +171,18 @@ legibility.
   and swept along the screen's arc so the rim of light protrudes on the covered
   side and nowhere else. It reuses the suit's existing art rather than adding
   any, so a pattern that gets new armour art gets a halo shaped like it.
-- **Equipment template card** — permanent collected capability for one primary
-  family-and-grade, armor pattern, or special item. It gates authoring and issue,
-  is never consumed, and is distinct from a reusable squad definition.
-- **Loadout card** — the acquirable form of a squad loadout: one Weapon
-  Loadout or one Tactic Sheet, learned wholesale together with the equipment it
-  needs (every weapon and special item a loadout issues; a sheet plus the armor
-  patterns it is built around). Markets, licences, patrons and salvage offer loadout
-  cards, never single equipment templates; the template stays the permanent capability
-  an Armory owns beneath the card. A card's access tier is the scarcest tier it bundles;
+- **Equipment template card** — the catalog entry for one primary
+  family-and-grade, armor pattern, or special item: its tier, cost and copy. It is
+  content a loadout card names, never something the player acquires, holds or
+  assembles on its own, and owning one opens nothing.
+- **Loadout card** — the unit of access, play and reward: one Weapon Loadout or one
+  Tactic Sheet, collected whole. **The player only ever interacts with complete
+  cards**: they collect them and pick one of each for every squad; there is no
+  designer and no way to assemble a card from parts. The company's collection is the
+  Armory's known-card ledger, and a squad may be given only cards in it. Markets,
+  licences, patrons, salvage, warrants and victory milestones all deal in loadout
+  cards, never single equipment; learning a card records the equipment it names
+  beneath it as content, never as a separate way in. A card's access tier is the scarcest tier it bundles;
   a faction offers it through a channel when the faction fields any bundled equipment
   there. Starter issue and story-reserved equipment are never cards.
 - **Faction equipment source** — one campaign channel through which a faction
@@ -195,8 +198,9 @@ legibility.
   first three through shared company-history and reputation gates. Restricted is
   not a fourth threshold: no reputation or victory count reaches it.
 - **Military warrant** — a named, persistent authorisation from one tradition
-  that makes the Restricted templates it lists acquirable through that
-  tradition's own licence and patron channels, and through nothing else. It
+  that makes the Restricted **loadout cards** it lists acquirable through that
+  tradition's own licence and patron channels, and through nothing else. It names
+  cards, never a weapon, a suit or any other single piece of equipment, and it
   teaches nothing by itself. Always written in full: the Agreus contracts'
   *civil-security procurement warrant* is a contract term that opens no access
   tier, and neither noun stands for the other.
@@ -436,12 +440,11 @@ markets and faction mission-reward pools. Existing claimed bundles retain both
 paths; no learned technology is revoked. `company-view-nouns.md` owns the lesson.
 
 
-The armory has three deliberately separate layers. Equipment template cards are
-permanent collected capability. A **weapon definition** is reusable twelve-billet
-intent authored only from collected templates; a **tactic sheet** is the armour
-half and is *not* authored the same way — it names roles and a tradition, and the
-card's own patterns fill them, best for each job (`role-and-access.md`). The exact
-kit on a marine is the materialized result.
+The armory has three deliberately separate layers. The **collection** is the set
+of loadout cards the company holds. A **weapon card** is a developer-authored
+twelve-billet issue; a **tactic sheet** is the armour half — it names roles and a
+tradition, and the card's own patterns fill them, best for each job
+(`role-and-access.md`). The exact kit on a marine is the materialized result.
 
 **A card defines the whole squad.** The player's flexibility is the pairing of one
 Weapon Loadout with one Armor / Equipment sheet, not building either half from parts.
@@ -513,17 +516,23 @@ Legacy recipe ids remain save-migration input, not live Fleet Armory authority.
 The print-stock economy they fed — owned counts, per-soldier allocation against
 those counts, and fabrication materials — has been deleted along with the
 retired fire-team refit APIs that were its only readers. Equipment is owned as
-permanent template cards, and fitting is free. Existing victory milestones grant template cards, including the
-Shattercap after two victories. A deterministic safety net now keeps permanent
-collection breadth at or above 8 cards after five victories, 12 after fifteen,
-16 after thirty, and 17 after forty. The opening floor is three specs: surplus
-Rook, field fatigues, and Cordon security shell. New personnel receive only that
-baseline; save repair retains old acquisitions without seeding specialist gear. Cards already learned or still carried in
-cargo count toward that floor, so faction-shaped acquisition advances the same
-curve instead of being duplicated by it. When a company falls below a floor,
-the Armory grants the next bounded core fallback; the curve never revokes cards,
-never learns a carried card implicitly, and leaves at least four of the current
-34-card catalog to faction sources and active collection.
+cards, and fitting is free. **Victory milestones grant authored cards**, each paid
+once and recorded so a load never pays it again: Checkpoint Issue at two victories,
+the Sindrian Security sheet at three, Trench-Clearing Issue at four, and Line
+Infantry Issue at five victories with one of them high-risk
+(`VictoryMilestones`). Story copy may call such a reward access to military
+equipment; what the company receives is the card. The ladder is deliberately
+modest: a reward, not twelve marines with a delete button. A deterministic **safety
+net** keeps the collection at or above a floor of cards beyond the starter pair: one
+after two victories, three after five, six after fifteen, eight after thirty and
+nine after forty, topping up from an authored list of low-tier cards that leaves the
+Wayline refit sheets a choice and never includes a Restricted card. A new company
+holds only the starter pair (Dockside Issue and Watchman's Kit). Cards already
+learned or still carried in cargo count toward the floor, so faction-shaped
+acquisition advances the same curve instead of being duplicated by it; the net never
+revokes a card, never learns a carried card implicitly, and stops well short of the
+whole collection. A save from before the card ledger knows exactly the cards it
+could already field, once.
 
 Faction source pools author which cards may enter through market, license,
 patron, and recovery channels. Every card also authors an access tier. Open
@@ -641,18 +650,31 @@ Specter and Arbalest stay Advanced. The **issuer** of a Restricted template is t
 tradition its armour catalog entry already declares; it is never authored a
 second time.
 
-Every channel refuses Restricted kit unless the company holds a military warrant
-naming it, and even then only that tradition's licence and patron channels offer
-it. A card bundling Restricted kit is offered only by a faction that fields that
-kit itself, so an independent licence that fields a card's scout suits does not
-thereby sell Hegemony military issue. The collection safety net and victory
-milestones never grant Restricted kit. Polity release never lists it: a warrant
+**A card that carries Restricted equipment is a Restricted card**, and it is the
+card that a warrant names and a channel refuses. Its issuer is the tradition that
+builds that equipment. No channel offers Restricted equipment on its own, and no
+channel offers a Restricted card unless the company holds a military warrant naming
+that card; even then only the issuer's licence and patron channels offer it. A
+warrant opens the cards it names, not their equipment: warranting the Hegemony
+Shock card does not open another card that happens to carry the same XIV suits. A
+Restricted card is offered only by a faction that fields its Restricted kit itself,
+so an independent licence that fields a card's scout suits does not thereby sell
+Hegemony military issue. The collection safety net and victory milestones never
+grant a Restricted card. Polity release never lists Restricted kit: a warrant
 authorises the company, not whoever the company arms.
+
+A warrant may name many cards, and a later grant from the same tradition adds cards
+to it rather than rewriting it. Tiers of a tradition's cards opened by deepening
+reputation are a natural extension and not yet modelled; today a tradition's cards
+arrive by an authored warrant's stages or all at once by its standing warrant. A
+save from before warrants named cards held one row per warranted suit; on load each
+issuer's rows become exactly the cards whose every Restricted suit was warranted,
+keeping the original grant's reason and day.
 
 A tradition grants its **standing warrant** once the company is at the Prestige
 reputation band and its relationship with that faction is Cooperative, well above
 the Favorable a licence needs. The standing warrant opens every Restricted
-template the tradition builds that no earlier warrant already opened. This is the
+card the tradition issues that no earlier warrant already opened. This is the
 route that keeps every approved suit reachable, so the open routes could close
 without stranding anything. Authored warrants arrive earlier through story beats,
 and a later standing grant completes them without rewriting them.
@@ -666,10 +688,10 @@ rule's bar. It is correspondence answered at Company HQ, never a shop or a grant
 arrival. The terms state what the warrant opens, the obligations it carries, and what
 it does not grant: no other tradition's Restricted kit, no release to the company's
 polity, no Hegemony command authority and no immunity from Hegemony law. Acceptance
-opens the approved Arbalest (stage one); the Hegemony Auxiliary Section is the sheet
-that fields it, the recovered Arbalest section in approved suits, offered by the
-Hegemony licence and patron channels and by no one else. The XIV shock pattern
-(stage two) follows the warrant's first honoured obligation period. Declining is a
+opens the Hegemony Auxiliary Section card (stage one), the recovered Arbalest section
+in approved suits, offered by the Hegemony licence and patron channels and by no one
+else. The Hegemony Shock card, in XIV pattern (stage two), follows the warrant's
+first honoured obligation period. Declining is a
 real answer: the terms are never offered again and every other route, the standing
 warrant included, stays open. Every step is once-only, so a replayed answer or a
 repeated honoured period grants nothing further. Lion's Guard and Knights kit is therefore not "never". It
@@ -698,12 +720,12 @@ below the floor **suspends** the warrant at once. Ninety days is the length chos
 shorter makes the warrant a chore that dictates the campaign, longer makes the
 obligation a formality.
 
-A suspended warrant's templates are not warranted: they cannot be acquired again,
-and no marine can be **newly fitted** with one of its suits. Marines already
-wearing one keep it, but a casualty's suit is not reissued and a recruit cannot be
-put into one. Nothing learned is revoked and no fitted suit is taken away; the
-warrant squeezes replacement, which is where a powered section feels pressure over a
-long campaign. The issuer sends a suspended company a service call at once, and one
+A suspended warrant's cards are not warranted: they cannot be acquired again, and
+no squad can be **newly given** one. A squad already holding the card keeps it, and
+its replacements are dressed from it as from any card, because a squad's kit is
+always what its cards issue. Nothing learned is revoked and no squad's card is taken
+away; the warrant caps how many squads field its cards, which is where a powered
+company feels the pressure over a long campaign. The issuer sends a suspended company a service call at once, and one
 completed service with the relationship back at the floor restores the warrant and
 begins a fresh period.
 
@@ -715,14 +737,14 @@ the same tradition replaces the revoked one.
 The fitting check lives in the one place a sheet's billets are resolved for a
 squad (`MarineRoster.previewSquadEquipment`), not in the screens, so every route to
 fitting asks it, and a refused issue says which warrant withholds it. A
-template opened by a held warrant counts only while that warrant is active.
+card opened by a held warrant counts only while that warrant is active.
 
-The gate refuses new acquisition and revokes nothing. A save that learned an
-approved suit through the old open routes keeps it and fits it freely: no warrant
+The gate refuses new acquisition and revokes nothing. A save that learned a
+Restricted card through the old open routes keeps it and fits it freely: no warrant
 names it, so no obligation can withhold it. That is the compatibility promise, not
 a loophole to close later. Held warrants are not currently listed on
 any company page. The Company HQ's client-standing panel named each warrant's
-issuer, the suits it opens, how it was earned and its standing under its
+issuer, the cards it opens, how it was earned and its standing under its
 obligations (next service deadline, what restores it, revocation); it was removed
 when the HQ was simplified, and that readout has no home yet. A Restricted card's own
 tooltip and spec sheet name the tradition that issues it, in place of the
@@ -735,8 +757,8 @@ puts listed cards on a shelf of their own before it draws the rotation. Listings
 are additional slots that never displace a rotating card, and a listed card is left
 out of the rotating draw. A listing bypasses the reputation and victory thresholds,
 because the story is the permission. It never bypasses the Restricted tier: listing
-Restricted kit needs a military warrant naming it, and a shelf never shows Restricted
-kit the company is not warranted for. A listing is withdrawn while the company knows
+a Restricted card needs a military warrant naming it, and a shelf never shows a
+Restricted card the company is not warranted for. A listing is withdrawn while the company knows
 or carries the card and returns if it stops doing so; nothing else expires it.
 Creating one restocks the markets at once, so the debrief's promise is on the shelf
 now. The card's tooltip names the event that stocked it. Settlement code owns
@@ -1056,7 +1078,7 @@ opponents evade only when a squad member can honestly see the incoming body.
 The battle HUD shows FRG stock and an amber friendly/red observed-hostile
 landing ring, so unseen enemy throws provide no warning.
 
-The player template card unlocks after two victories. The built-in Fleet Assault
+The built-in Fleet Assault
 weapon doctrine issues exactly one
 frag carrier across its twelve billets. All built-in defender roster profiles
 author their own low/medium/high bulk and elite weights: the execution policy
@@ -1489,10 +1511,10 @@ The following are direction, not current behavior:
 - A heavy battlesuit remains a one-person infantry billet using infantry
   weapons, cover, pathing, and casualty authority. Mech chassis, mounts,
   lances, and support delivery remain Mechs authority.
-- A template card is permanent capability, a squad definition is reusable
-  intent, the Machine Shop fits learned kit for free, and materialized kit belongs
-  to the marine. None is a synonym for another.
-- A cargo loadout or template card is consumed only by successful Armory learning. It never
+- A loadout card is the unit of access, a template is catalog content a card names,
+  the Machine Shop fits a held card for free, and materialized kit belongs to the
+  marine. None is a synonym for another.
+- A cargo loadout card is consumed only by successful Armory learning. It never
   becomes player-faction ship-production knowledge.
 - A billet carries at most one special item; utilities do not become
   `WeaponDef` entries merely because they share that loadout slot with guns.

@@ -517,7 +517,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             case "ENGINE CORE" -> "CORE";
             case "L. SHOULDER" -> "L. SHLDR";
             case "R. SHOULDER" -> "R. SHLDR";
-            case "AMMO RESERVE" -> "AMMO";
+            case "CAPACITORS" -> "CAPS";
             default -> label;
         };
         return name + " [" + socket.gridColumns() + "×" + socket.gridRows() + "]";
@@ -529,7 +529,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             case ARMS -> "ARMS";
             case LEFT_SHOULDER -> "L. SHLDR";
             case RIGHT_SHOULDER -> "R. SHLDR";
-            case AMMO_RESERVE -> "AMMO";
+            case CAPACITORS -> "CAPS";
             case MINI_FAB -> "MINI-FAB";
         };
         return name + " [" + cols + "×" + rows + "]";
@@ -546,7 +546,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     private static boolean occupied(MechDeploymentSpec deployment, SocketId socket) {
         return switch (socket) {
-            case CORE, AMMO_RESERVE, MINI_FAB -> true;
+            case CORE, CAPACITORS, MINI_FAB -> true;
             case ARMS -> deployment.arms() != null;
             case LEFT_SHOULDER -> deployment.leftShoulder() != null;
             case RIGHT_SHOULDER -> deployment.rightShoulder() != null;
@@ -820,17 +820,6 @@ public final class MechLabDollCanvas implements CanvasProducer {
     record PadBounds(float left, float bottom, float right, float top) {
         float width() { return right - left; }
         float height() { return top - bottom; }
-    }
-
-    private static Color socketColor(SocketType type) {
-        return switch (type) {
-            case CORE -> new Color(0xF0, 0xC9, 0x52);
-            case BALLISTIC -> new Color(0xE5, 0x83, 0x45);
-            case MISSILE -> new Color(0x6D, 0xD5, 0xF2);
-            case OMNI -> new Color(0xB5, 0x87, 0xF4);
-            case AMMO -> new Color(0x9E, 0xBD, 0x6A);
-            case UTILITY -> new Color(0xB1, 0x8B, 0xE8);
-        };
     }
 
     private static Color withAlpha(Color color, int alpha) {

@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
+import com.dillon.starsectormarines.battle.fire.FireField;
+import com.dillon.starsectormarines.battle.power.WalkingBarrage;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog.Audience;
@@ -47,10 +49,19 @@ public final class HeartSequence {
     /** Beats the simulation half decided this tick, for the presentation half to write. */
     private final List<String> pending = new ArrayList<>();
 
-    public HeartSequence(Form form, StoryBeatLog log) {
+    private final WalkingBarrage barrage;
+    private int barrageCursor;
+    private boolean lineLit;
+
+    /** @param barrage the guns' timetable (The Burn), or {@code null} */
+    public HeartSequence(Form form, StoryBeatLog log, WalkingBarrage barrage) {
         this.form = form;
         this.log = log;
+        this.barrage = barrage;
     }
+
+    /** The walking barrage, or {@code null} when the heart has none. */
+    public WalkingBarrage barrage() { return barrage; }
 
     public Form form() { return form; }
 
@@ -78,6 +89,7 @@ public final class HeartSequence {
             }
         }
         if (form == Form.THE_BURN) hurtSurges(sim, bores, tick);
+        if (barrage != null) barrage.tick(sim);
     }
 
     /** Every living mother wakes and surges now. */
@@ -126,6 +138,19 @@ public final class HeartSequence {
                 case MATRIARCH -> emit(tick, "matriarch_emerged_" + bore.beatKey());
                 default -> { }
             }
+        }
+        if (barrage != null) {
+            List<WalkingBarrage.Event> shoot = barrage.events();
+            for (; barrageCursor < shoot.size(); barrageCursor++) {
+                WalkingBarrage.Event event = shoot.get(barrageCursor);
+                switch (event.kind()) {
+                    case OPENED -> emit(tick, "barrage_line_" + event.line());
+                    case LIFTED -> emit(tick, "barrage_lifted_" + event.line());
+                    case ENDED -> emit(tick, "barrage_ended");
+                }
+            }
+            FireField fire = sim.fireFieldIfPresent();
+            if (!lineLit && fire != null && fire.burningCount() > 0) { lineLit = true; emit(tick, "line_lit"); }
         }
         if (!ended && sim.isComplete()) {
             ended = true;

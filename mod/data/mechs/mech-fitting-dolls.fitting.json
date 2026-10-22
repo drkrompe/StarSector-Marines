@@ -8,7 +8,7 @@
         {
           "id": "CORE",
           "label": "@gearSocketEngineCore",
-          "type": "CORE",
+          "type": "ENGINE",
           "gridColumns": 2,
           "gridRows": 2,
           "anchor": [0.0, 0.0],
@@ -39,9 +39,9 @@
           "factoryLocked": false
         },
         {
-          "id": "AMMO_RESERVE",
-          "label": "@gearSocketAmmoReserve",
-          "type": "AMMO",
+          "id": "CAPACITORS",
+          "label": "@gearSocketCapacitors",
+          "type": "FLUX",
           "gridColumns": 2,
           "gridRows": 1,
           "anchor": [0.0, -0.26],
@@ -58,7 +58,7 @@
         {
           "id": "CORE",
           "label": "@gearSocketEngineCore",
-          "type": "CORE",
+          "type": "ENGINE",
           "gridColumns": 2,
           "gridRows": 2,
           "anchor": [0.0, 0.0],
@@ -100,9 +100,9 @@
           "factoryLocked": false
         },
         {
-          "id": "AMMO_RESERVE",
-          "label": "@gearSocketAmmoReserve",
-          "type": "AMMO",
+          "id": "CAPACITORS",
+          "label": "@gearSocketCapacitors",
+          "type": "FLUX",
           "gridColumns": 2,
           "gridRows": 2,
           "anchor": [0.0, -0.26],
@@ -130,7 +130,7 @@
         {
           "id": "CORE",
           "label": "@gearSocketEngineCore",
-          "type": "CORE",
+          "type": "ENGINE",
           "gridColumns": 2,
           "gridRows": 2,
           "anchor": [0.0, 0.03],
@@ -172,9 +172,9 @@
           "factoryLocked": false
         },
         {
-          "id": "AMMO_RESERVE",
-          "label": "@gearSocketAmmoReserve",
-          "type": "AMMO",
+          "id": "CAPACITORS",
+          "label": "@gearSocketCapacitors",
+          "type": "FLUX",
           "gridColumns": 3,
           "gridRows": 1,
           "anchor": [0.0, -0.26],

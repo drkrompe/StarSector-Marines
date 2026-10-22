@@ -238,7 +238,7 @@ final class FirstRefitModel {
         return switch (result) {
             case SQUAD_NOT_READY -> Strings.get("openingFirstRefitTheSquadChangedSelectItAgainTo");
             case STATIONED -> LessonCopy.text("refitStationed");
-            case MISSING_TEMPLATE -> LessonCopy.text("refitUnknownTechnology");
+            case UNKNOWN_CARD -> LessonCopy.text("refitUnknownTechnology");
             default -> LessonCopy.text("refitUnavailable");
         };
     }

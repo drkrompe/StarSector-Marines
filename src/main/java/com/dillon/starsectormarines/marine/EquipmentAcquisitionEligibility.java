@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractEligibility;
 import com.fs.starfarer.api.Global;
 
-import java.util.Collection;
 import java.util.Set;
 
 /** Shared access-tier policy for every faction equipment acquisition channel. */
@@ -17,13 +16,12 @@ public final class EquipmentAcquisitionEligibility {
 
     /**
      * Whether {@code source} may offer {@code card}. A Restricted card answers to a military
-     * warrant instead of to reputation or victories: only a warrant naming it opens it, and
-     * then only through licence and patron, the channels a tradition issues through.
+     * warrant instead of to reputation or victories: only a warrant naming the card opens it,
+     * and then only through licence and patron, the channels a tradition issues through.
+     * Any other card is on offer when the channel reaches its scarcest tier.
      */
-    public static boolean allows(EquipmentTemplateCard card,
-                                 FactionEquipmentSource source,
-                                 Progress progress) {
-        if (card == null || source == null || progress == null) return false;
+    public static boolean allows(LoadoutCard card, FactionEquipmentSource source, Progress progress) {
+        if (card == null || source == null || progress == null || !card.defined()) return false;
         if (card.accessTier() == EquipmentAccessTier.RESTRICTED) {
             return warrantChannel(source) && progress.warrants(card.id());
         }
@@ -31,8 +29,19 @@ public final class EquipmentAcquisitionEligibility {
     }
 
     /**
-     * Tier-only form, for callers that hold no template identity. It can never admit
-     * {@link EquipmentAccessTier#RESTRICTED}: a warrant names templates, not a tier.
+     * Whether {@code source} may offer one piece of equipment on its own. Restricted
+     * equipment never is: a warrant names cards, so it is reached only inside one.
+     */
+    public static boolean allows(EquipmentTemplateCard template,
+                                 FactionEquipmentSource source,
+                                 Progress progress) {
+        if (template == null) return false;
+        return allows(template.accessTier(), source, progress);
+    }
+
+    /**
+     * Tier-only form, for callers that hold no card identity. It can never admit
+     * {@link EquipmentAccessTier#RESTRICTED}: a warrant names cards, not a tier.
      */
     public static boolean allows(EquipmentAccessTier tier, FactionEquipmentSource source,
                                  Progress progress) {
@@ -44,16 +53,6 @@ public final class EquipmentAcquisitionEligibility {
             case RECOVERY -> recoveryTier(progress);
         };
         return tier.ordinal() <= available.ordinal();
-    }
-
-    /** A bundle is on offer when every template in it is: its scarcest tier gates the rest. */
-    public static boolean allowsAll(Collection<String> templateIds, FactionEquipmentSource source,
-                                    Progress progress) {
-        if (templateIds == null || source == null || progress == null) return false;
-        for (String id : templateIds) {
-            if (!allows(EquipmentTemplateCatalog.require(id), source, progress)) return false;
-        }
-        return true;
     }
 
     /** The channels a tradition issues warranted equipment through. */
@@ -98,7 +97,7 @@ public final class EquipmentAcquisitionEligibility {
         int victories = rosterScript != null ? rosterScript.roster().armory().victories() : 0;
         int mrbRep = campaignScript != null ? campaignScript.state().playerMrbRep : 0;
         Set<String> warranted = campaignScript != null
-                ? MilitaryWarrants.warrantedTemplateIds(campaignScript.state()) : Set.of();
+                ? MilitaryWarrants.warrantedCardIds(campaignScript.state()) : Set.of();
         return new Progress(victories, mrbRep, warranted);
     }
 
@@ -125,14 +124,14 @@ public final class EquipmentAcquisitionEligibility {
     /**
      * What the company has done, as acquisition reads it.
      *
-     * @param warrantedTemplateIds Restricted templates some held military warrant opens
+     * @param warrantedCardIds Restricted loadout cards some held military warrant opens
      */
-    public record Progress(int victories, int mrbRep, Set<String> warrantedTemplateIds) {
+    public record Progress(int victories, int mrbRep, Set<String> warrantedCardIds) {
         public static final Progress OPENING = new Progress(0, 0);
 
         public Progress {
             victories = Math.max(0, victories);
-            warrantedTemplateIds = warrantedTemplateIds != null ? Set.copyOf(warrantedTemplateIds) : Set.of();
+            warrantedCardIds = warrantedCardIds != null ? Set.copyOf(warrantedCardIds) : Set.of();
         }
 
         /** A company holding no military warrant. */
@@ -140,8 +139,8 @@ public final class EquipmentAcquisitionEligibility {
             this(victories, mrbRep, Set.of());
         }
 
-        public boolean warrants(String templateId) {
-            return templateId != null && warrantedTemplateIds.contains(templateId);
+        public boolean warrants(String cardId) {
+            return cardId != null && warrantedCardIds.contains(cardId);
         }
     }
 }

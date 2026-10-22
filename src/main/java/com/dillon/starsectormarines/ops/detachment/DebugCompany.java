@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.detachment;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.marine.LoadoutCard;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.MarineArmory;
@@ -135,6 +136,7 @@ public final class DebugCompany {
                                     List<SquadWeaponDoctrine> weapons) {
         for (int squad = 0; squad < weapons.size(); squad++) {
             SquadWeaponDoctrine weaponDoctrine = weapons.get(squad);
+            armory.learnLoadoutCard(new LoadoutCard(LoadoutCard.Kind.WEAPON, weaponDoctrine.id()));
             List<EquipmentGrade> grades = debugGrades(weaponDoctrine, stage.plan);
             for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
                 SquadWeaponIssue issue = weaponDoctrine.issue(billet);
@@ -210,6 +212,13 @@ public final class DebugCompany {
         if (catalog == null) return;
         for (MarineArmorCatalogDef pattern : catalog.all()) {
             if (pattern.tier() <= stage.plan.maxArmorTier()) armory.unlockArmor(pattern.id());
+        }
+        // Every sheet whose suits all sit under the ceiling is a card this company holds.
+        for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
+            List<String> suits = new LoadoutCard(LoadoutCard.Kind.SHEET, plan.id()).templateIds();
+            if (!suits.isEmpty() && armory.ownedEquipmentTemplateIds().containsAll(suits)) {
+                armory.acquireArmorPlan(plan.id());
+            }
         }
     }
 

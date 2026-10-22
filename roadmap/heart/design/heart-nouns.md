@@ -111,17 +111,25 @@ under them.
 **Barrage plan** (The Burn). The world's guns' timetable, frozen at the
 briefing: a sequence of **barrage lines** across the approach, each a depth
 into the map, with the second it opens and the seconds it fires before it
-**lifts** to the next. Shells fall as placed blasts along the current line
-(the Orbital Barrage's pending detonation, many times over, `command-powers-nouns.md`),
-with a warning before each line opens. The plan ends at the **last line**,
-short of the heart: the batteries' reach, or the ammunition the briefing names.
+**lifts** to the next. Shells fall at a steady rate as placed blasts scattered
+along the current line (the Orbital Barrage's pending detonation, many times
+over, `command-powers-nouns.md`), each landing after its flight, which is the
+warning on the ground. A line may fire incendiary shells, which light what they
+land on through fire's ignition seam. The plan ends at the **last line**, short
+of the heart: the batteries' reach, or the ammunition the briefing names. The
+Burn's plan is an incendiary opening shoot on the near ride, then high
+explosive lifting about a sixteenth of the approach at a time to about two
+thirds of the way in, some six minutes of shooting; the country is dry and the
+wind blows toward the heart for the whole battle. `WalkingBarrage` is general:
+any battle with a ground to map depth onto may carry one.
 
 **Burn line** (The Burn). The company's front, which is a firebreak moving:
 the fire the barrage and the company light ahead of it, and the burnt ground it
 leaves behind, which no creep re-takes for minutes (`fire-nouns.md`, Firebreak).
 
 **Danger close.** How near the barrage a squad may stand: the field mortar's
-friendly veto at launch (`FieldMortarService.friendlyUnderRound`) is the model.
+friendly veto at launch (`FieldMortarService.friendlyUnderRound`) is the model,
+widened by how far a body walks while the shell is in the air.
 A squad advancing behind the barrage keeps outside it; a shell never falls on a
 cell the veto refuses.
 

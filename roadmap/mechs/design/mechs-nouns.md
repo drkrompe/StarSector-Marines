@@ -194,7 +194,7 @@ increasing an encounter's total armored threat.
   against owned quantity; a refit transaction returns the target mech's
   current component before evaluating the replacement.
 - An **internal** is a non-weapon fitting that changes the frame (`MechInternal`):
-  an **engine** in the CORE socket, a **capacitor bank** in AMMO_RESERVE, an optional
+  an **engine** in the CORE socket, a **capacitor bank** in CAPACITORS, an optional
   **vent array** in MINI_FAB, and **plating**, which covers the whole frame and has no
   socket. The **stock frame** is the industrial engine, factory plating and factory
   capacitor bank, with the utility socket empty; every fabricated, recovered or migrated
@@ -382,15 +382,21 @@ increasing an encounter's total armored threat.
   placement is domain intent.
 - **Hardpoint language** (after MechWarrior 4's lab). Colour names the
   compatibility type everywhere hardware or a socket is drawn: energy red-orange,
-  missile green, ballistic yellow, omni grey; frame internals a cool steel. Size
-  reads from shape, not text: every grid cell is a chamfered brick narrower than
-  it is tall, and a footprint is its bricks stacked, so a 2x3 rack is visibly a
-  taller stack than a 2x2. An empty doll socket wears its type's colour on its rim
+  missile green, ballistic yellow, omni grey. The frame's own mounts have their
+  own colours: the engine socket blue, the capacitor (flux) socket violet and the
+  mini-fab utility socket teal, and an engine, capacitor bank, vent array or
+  missile loader is a brick piece in its socket's colour like any weapon. Every
+  chassis has an engine and a capacitor bank: those sockets only take a
+  replacement and are never left empty. Size reads from shape, not text: every
+  grid cell is a chamfered brick narrower than it is tall, and a footprint is its
+  bricks stacked, so a 2x3 rack is visibly a taller stack than a 2x2. On the doll
+  every brick is the same size, so a socket's card grows with its capacity and a
+  2x3 piece is physically larger than a 2x2. An empty doll socket wears its type's colour on its rim
   over dim bricks; fitted hardware fills its bricks in its own colour and fuses
   them into one solid piece, notched only along its outside edge. The piece's
   face is a painted icon (`HardwareArt`): a flat pictogram in a dark shade and a
   light highlight over that colour, never the battle sprite, with a silver
-  stencil designation (SRM, LRM, CG, LAS...) tagged in the piece's bottom-right
+  stencil designation (SRM, LRM, CG, ENG, CAP...) tagged in the piece's bottom-right
   brick. Designations are markings, not prose: they do not localize. Drag
   compatibility therefore uses a colour outside that palette. The doll is the
   location picker: clicking a socket selects it, the right column describes only
@@ -1041,7 +1047,7 @@ support sortie, subject only to practical runtime resources.
 - Socket overlays consume the selected asset's authored fitting layout. Recessed
   metal equipment wells frame the actual weapon art around the physical doll;
   quiet internal grids retain the socket's authored dimensions. Empty mounts show
-  a hardware silhouette and compatibility label. The CORE, AMMO_RESERVE and
+  a hardware silhouette and compatibility label. The CORE, CAPACITORS and
   MINI_FAB wells host internals rather than weapons, and the workspace shows the
   engine budget beside them. Thin routed leaders return to physical anchors.
   Amber corners identify selection; green alignment scans and a release prompt

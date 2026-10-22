@@ -46,10 +46,10 @@ import com.dillon.starsectormarines.ops.CompanyShipLossListener;
 import com.dillon.starsectormarines.ops.CompanyViewAbility;
 import com.dillon.starsectormarines.ops.MenuTheme;
 import com.dillon.starsectormarines.ops.event.PlayerEventPresenter;
+import com.dillon.starsectormarines.marine.LoadoutCardInventory;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
-import com.dillon.starsectormarines.marine.EquipmentTemplateCardInventory;
 import com.dillon.starsectormarines.marine.FactionEquipmentCatalog;
 import com.dillon.starsectormarines.marine.FactionEquipmentMarketStock;
 import com.dillon.starsectormarines.marine.SquadLoadoutPresentationRegistry;
@@ -302,10 +302,9 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
 
     private static void repairEquipmentCollectionProgression() {
         MarineRosterScript script = MarineRosterScript.getInstance();
-        Set<String> acquiredOrCarried =
-                EquipmentTemplateCardInventory.playerUnavailableTemplateIds();
-        if (script != null && acquiredOrCarried != null) {
-            script.roster().armory().repairCollectionProgression(acquiredOrCarried);
+        Set<String> carriedCards = LoadoutCardInventory.playerUnavailableCardIds();
+        if (script != null && carriedCards != null) {
+            script.roster().armory().repairCollectionProgression(carriedCards);
         }
     }
 

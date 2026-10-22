@@ -120,6 +120,7 @@ import com.dillon.starsectormarines.battle.air.AirLoss;
 import com.dillon.starsectormarines.battle.air.BoatDamageLedger;
 import com.dillon.starsectormarines.battle.air.AirOrdnance;
 import com.dillon.starsectormarines.battle.air.HullTarget;
+import com.dillon.starsectormarines.battle.power.WalkingBarrage;
 import com.dillon.starsectormarines.battle.evacuation.HeartSequence;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.evacuation.SurvivorPickupSystem;
@@ -816,6 +817,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * The battle's fire (`fire-nouns.md`), created on first use by whatever
      * lights something, so a battle that never burns pays nothing. Sim thread only.
      */
+    @Override
     public FireField fireField() {
         if (fire == null) fire = new BattleFire(grid, topology, doodadService, mapEditor,
                 this::creepFieldIfPresent, generationSeed ^ FIRE_SEED_SALT);
@@ -891,12 +893,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * Installs the heart's battle (`heart-nouns.md`) over its opened bores: the
      * mothers go to sleep and the heart's wake rules and beats take over.
      */
-    public void installHeart(Form form) {
+    public void installHeart(Form form, WalkingBarrage barrage) {
         if (simTickIndex != 0 || heart != null || colonyBreach != null)
             throw new IllegalStateException("Install the heart once at setup");
         if (!swarmReinforcements.isConfigured())
             throw new IllegalStateException("The heart needs a configured swarm director");
-        heart = new HeartSequence(form, storyBeats);
+        heart = new HeartSequence(form, storyBeats, barrage);
         heart.install(this);
     }
     /** Ends the swarm director's opening seepage; the breach has begun. Idempotent. */
