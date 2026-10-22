@@ -11,9 +11,17 @@ public final class LootSettlementLine {
     public final int keptValue;
     public final int fencedBaseValue;
     public final int fencedCredits;
+    /** Hold space the kept quantity takes in its bucket. */
+    public final float keptSpace;
 
     public LootSettlementLine(int stackIndex, LootStack stack, LootCapacityBucket bucket,
                               int keptQuantity, int fencedQuantity, int fencedCredits) {
+        this(stackIndex, stack, bucket, keptQuantity, fencedQuantity, fencedCredits, 0f);
+    }
+
+    public LootSettlementLine(int stackIndex, LootStack stack, LootCapacityBucket bucket,
+                              int keptQuantity, int fencedQuantity, int fencedCredits,
+                              float keptSpace) {
         this.stackIndex = stackIndex;
         this.stack = stack;
         this.bucket = bucket;
@@ -22,6 +30,7 @@ public final class LootSettlementLine {
         this.keptValue = multiply(stack.unitValue, keptQuantity);
         this.fencedBaseValue = multiply(stack.unitValue, fencedQuantity);
         this.fencedCredits = Math.max(0, fencedCredits);
+        this.keptSpace = Math.max(0f, keptSpace);
     }
 
     private static int multiply(int left, int right) {

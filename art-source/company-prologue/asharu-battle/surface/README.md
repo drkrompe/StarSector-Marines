@@ -3,7 +3,7 @@
 The planet under the Asharu battle is the game's own `desert01.jpg` (1024 x 512, about 31 km
 a pixel at the equator) wrapped on a 5,000 km sphere. From the convoy's 250 km orbit that is
 soft everywhere a camera looks: S1a's straight-down frame is 94 km across, three map pixels.
-This package lays ImageGen detail tiles over the map where the cameras look, and paints a few
+This package lays seven ImageGen detail tiles over the map where the cameras look, and paints a few
 static settlements into them. `battle_blockout.py` composites them in the planet material
 (`surface_layers`); `SURFACE_DETAIL` is the knob and `--surface base` renders the control.
 
@@ -17,6 +17,7 @@ same projection samples the game map, so a tile and the map agree point for poin
 |---|---|---|---|---|
 | regional | (300, 0) | 3,400 km | 3,300 | everything out to the 1,580 km horizon |
 | mid | (0, 0) | 1,300 km | 1,270 | the near ring of every wide shot |
+| far | (1,150, 0) | 1,400 km | 1,370 | S12's far band, 450-1,850 km out to the horizon (over mid, under track) |
 | aft | (-240, 350) | 500 km | 490 | S4, looking back past the platform (north-west) |
 | flank | (230, -360) | 440 km | 430 | S1, looking forward past the convoy (south-east) |
 | track | (520, 20) | 420 km | 410 | S12, down the track toward the northern canyons |

@@ -5,8 +5,11 @@ import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
 import com.dillon.starsectormarines.battle.world.model.PropPower;
 import com.dillon.starsectormarines.battle.world.gen.ship.FacilityDressing;
 import com.dillon.starsectormarines.battle.ambient.AmbientActivity;
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
+import com.dillon.starsectormarines.battle.air.BayDoor;
 import com.dillon.starsectormarines.battle.air.ShipBayRoute;
+import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskRoute;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
@@ -171,6 +174,8 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      */
     private final Map<String, Shift> watchBills = new HashMap<>();
     private final DeckGraph rooms;
+    /** Each bay door's leaves, by compartment; presentation only, advanced with the deck. */
+    private final Map<Integer, BayDoor> doorLeaves = new HashMap<>();
     private ShipDeckLighting lighting;
     private final MapResult deck;
     private final long seed;
@@ -677,6 +682,29 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         return rooms == null ? List.of() : rooms.apertures();
     }
 
+    /** The leaves across this bay's opening, or null for a bay with no way out. */
+    public BayDoor bayDoorLeaves(DeckGraph.Compartment bay) {
+        BayAperture aperture = bayDoor(bay);
+        return aperture == null ? null : doorLeaves.computeIfAbsent(aperture.compartmentId(), id -> new BayDoor(aperture));
+    }
+
+    /** Opens each bay door for the boats passing through it and closes it behind them. */
+    private void advanceDoors(float seconds) {
+        for (BayAperture aperture : bayDoors()) {
+            BayDoor door = doorLeaves.computeIfAbsent(aperture.compartmentId(), id -> new BayDoor(aperture));
+            boolean called = false;
+            for (long id : simulation.getAirEntityIds()) {
+                var mission = simulation.world().mission(id);
+                if (mission == null || mission.shipTransit == null
+                        || mission.state != ShuttleState.SHIP_DEPARTURE && mission.state != ShuttleState.SHIP_RETURN) continue;
+                AirBody body = simulation.world().kinematics(id);
+                if (body != null && door.calledBy(mission.shipTransit.route.aperture(),
+                        mission.shipTransit.returning, body.x, body.y)) { called = true; break; }
+            }
+            door.advance(seconds, called);
+        }
+    }
+
     /** The indices of every berth on the deck that holds a machine. */
     private static int[] machineBerthsIn(List<Gantry> berths) {
         int[] found = new int[berths.size()];
@@ -1097,6 +1125,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         float ahead = target - simulatedSeconds;
         if (ahead <= 0f) return;
         simulation.advance(Math.min(ahead, MAX_CATCH_UP_SECONDS));
+        advanceDoors(Math.min(ahead, MAX_CATCH_UP_SECONDS));
         simulatedSeconds = target;
     }
 

@@ -301,6 +301,8 @@ public class BattleRenderer {
                 RenderSystem.of(RenderLayer.DOODADS, dressing::collectBeneath),
                 doodads,
                 RenderSystem.of(RenderLayer.DOODADS, dressing::collectOver),
+                // Burnt ground under the creep, inside the ground's colour target.
+                new ScorchLayer(),
                 creep,
                 // A spine strike's run through the creep lies on the ground.
                 colonyThreat.ground(),

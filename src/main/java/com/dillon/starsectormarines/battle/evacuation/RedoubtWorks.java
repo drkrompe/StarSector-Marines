@@ -45,6 +45,12 @@ final class RedoubtWorks {
     /** The nearest a side may be drawn in toward the building: the firing step and the barricade. */
     static final int MIN_MARGIN = 2;
     /**
+     * The least {@link #room} a holdout's block is chosen with while the colony
+     * has enough such blocks: below it a side or two of the works are pulled in
+     * to the kerb and the yard is gone.
+     */
+    static final float MIN_ROOM = 0.75f;
+    /**
      * Carriageway cells in one unbroken run along a side's line that mean the
      * side lies along the street rather than crossing it. A crossing is as long
      * as the street is wide; a side lying along a street runs on past that.
@@ -98,6 +104,39 @@ final class RedoubtWorks {
     /** Whether a cell is a street's carriageway: its asphalt. */
     interface Roadway {
         boolean at(int x, int y);
+    }
+
+    /** Whether a piece of the works could stand on a cell: open ground, off a street's asphalt. */
+    interface Ground {
+        boolean open(int x, int y);
+    }
+
+    /**
+     * The share of a building's barricade line ({@code margin} cells out) and
+     * firing-step line (one cell in from it) that is open ground off the
+     * streets: what room the block has for its works to stand where they are
+     * meant to. A building fronting a street has its sides drawn in to the kerb
+     * and scores low; one in a yard scores near one.
+     */
+    static float room(Ground ground, int left, int top, int right, int bottom, int margin) {
+        int open = 0, total = 0;
+        for (int m = margin; m >= margin - 1 && m >= 1; m--) {
+            int l = left - m, t = top - m, r = right + m, b = bottom + m;
+            for (int y = t; y <= b; y++) {
+                for (int x = l; x <= r; x++) {
+                    if (x != l && x != r && y != t && y != b) continue;
+                    total++;
+                    if (ground.open(x, y)) open++;
+                }
+            }
+        }
+        return total == 0 ? 0f : open / (float) total;
+    }
+
+    /** Ground the works could stand on in this battle: {@link #open} with no keep, and off the asphalt. */
+    static Ground ground(BattleSimulation sim) {
+        Roadway road = roadway(sim);
+        return (x, y) -> open(sim, Set.of(), (kx, ky) -> true, x, y) && !road.at(x, y);
     }
 
     /**

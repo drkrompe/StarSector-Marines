@@ -1411,7 +1411,7 @@ public final class UnitRenderService implements RenderSystem {
                     float shoulderPx = layeredInfantryShoulderWidth(
                             cam.cellPxSize(), type.renderScale);
                     // Asleep in a bunk: the straight lying pose, along the bunk, head on the pillow.
-                    LayeredSpriteCache sleeper = onMachine > 0f && LayeredAppearance.workMotion(layeredFlags[r]).asleep() ? layeredAssets.downed(0) : null;
+                    LayeredSpriteCache sleeper = onMachine > 0f && LayeredAppearance.workMotion(layeredFlags[r]) == WorkMotion.SLEEP ? layeredAssets.downed(0) : null;
                     if (sleeper != null) {
                         float scale = shoulderPx * SLEEPER_BODY_SCALE / LayeredUnitComposer.SOURCE_SHOULDER_PX;
                         out.addSprite(RenderLayer.UNITS, sleeper.sprite, cx, cy,

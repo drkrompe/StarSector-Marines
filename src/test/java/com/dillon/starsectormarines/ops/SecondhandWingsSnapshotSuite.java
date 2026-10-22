@@ -71,43 +71,34 @@ public final class SecondhandWingsSnapshotSuite implements SnapshotSuite {
         roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
         roster.markStoryComplete(OpeningOperationKind.COUNTERATTACK.missionId);
         roster.mechBay().beginLabLesson();
-        frames.add(frame(context, hull, reactor, boats, model, null, BoatBayRestorationModel.Row.hidden(), 0,
+        frames.add(frame(context, hull, reactor, boats, model, null, 0,
                 CompanyNotices.unread(roster, BoatBayState.DAMAGED), "01c-unread-room-opportunities.png"));
         frames.add(missionNews(context, CompanyNotices.unread(roster, BoatBayState.DAMAGED)));
         AtomicInteger credits = new AtomicInteger(15000);
         boolean[] restored = {false};
         var wings = new SecondhandWingsModel(reactor, boats,
                 () -> new Offer(!boats.secondhandWingsPurchased(), SecondhandWings.refusal(boats, true, true,
-                        restored[0], true, true, credits.get()), credits.get()),
+                        restored[0], true, true, credits.get()), credits.get(), SecondhandWings.price(restored[0])),
                 review -> SecondhandWings.purchase(boats, review,
                         SecondhandWings.refusal(boats, true, true, restored[0], true, true, credits.get()),
-                        n -> { if (credits.get() < n) return false; credits.addAndGet(-n); return true; }),
+                        n -> { if (credits.get() < n) return false; credits.addAndGet(-n); return true; },
+                        () -> { restored[0] = true; boats.reconcile("second-wind", ShuttleType.HERMES, 2); }),
                 model::refresh, () -> model.selectBoatAction(0).run());
         wings.open();
         frames.add(frame(context, hull, reactor, boats, model, wings, "02-castles-lead.png"));
         wings.row().get().action().run();
-        frames.add(frame(context, hull, reactor, boats, model, wings, "03-separate-bay-required.png"));
+        frames.add(frame(context, hull, reactor, boats, model, wings, "03-bay-included-in-order.png"));
         wings.dismiss();
         CompanyNotices.Notice.SECONDHAND_WINGS.review(roster);
-        frames.add(frame(context, hull, reactor, boats, model, null, BoatBayRestorationModel.Row.hidden(), 0,
+        frames.add(frame(context, hull, reactor, boats, model, null, 0,
                 CompanyNotices.unread(roster, BoatBayState.DAMAGED), "03a-other-news-remains.png"));
-        model.backToDeckAction().run();
-        frames.add(frame(context, hull, reactor, boats, model, null,
-                new BoatBayRestorationModel.Row(true, true, credits.get(), null, () -> { }),
-                1, "03b-inspect-second-bay.png"));
-        // The existing bay transaction is represented explicitly: 8,000 credits, no boat reward.
-        credits.addAndGet(-8000); restored[0] = true;
-        hull = hull.withBoatBay(BoatBayState.RESTORED);
-        boats.reconcile("second-wind", ShuttleType.HERMES, 2);
-        model.refresh(); model.selectBoatAction(1).run();
-        frames.add(frame(context, hull, reactor, boats, model, null, "04-second-hermes-wreck.png"));
-        model.fabricateAction().run();
-        frames.add(frame(context, hull, reactor, boats, model, null, "04b-second-hermes-repaired.png"));
+        // The sealed bay is bought with the pair: 5,000 for the boats and 8,000 for the bay, one order.
         wings.open(); wings.row().get().action().run();
         frames.add(frame(context, hull, reactor, boats, model, wings, "05-reviewed-exchange.png"));
         wings.row().get().action().run();
-        if (credits.get() != 2000 || boats.airworthy().size() != 2 || boats.pattern() != ShuttleType.AEROSHUTTLE)
+        if (credits.get() != 2000 || !restored[0] || boats.airworthy().size() != 2 || boats.pattern() != ShuttleType.AEROSHUTTLE)
             throw new AssertionError("Purchase did not apply exactly once");
+        hull = hull.withBoatBay(BoatBayState.RESTORED);
         hull = hull.withAeroshuttleConversion(true);
         frames.add(frame(context, hull, reactor, boats, model, wings, "06-delivery.png"));
         wings.row().get().action().run();
@@ -118,20 +109,13 @@ public final class SecondhandWingsSnapshotSuite implements SnapshotSuite {
     private SnapshotArtifact frame(SnapshotContext context, CompanyShip hull, Reactor reactor,
                                    BoatDeck boats, BoatDeckViewModel model, SecondhandWingsModel wings,
                                    String name) throws Exception {
-        return frame(context, hull, reactor, boats, model, wings, BoatBayRestorationModel.Row.hidden(),
-                Math.max(0, model.selectedBerthIndex()), name);
+        return frame(context, hull, reactor, boats, model, wings,
+                Math.max(0, model.selectedBerthIndex()), List.of(), name);
     }
 
     private SnapshotArtifact frame(SnapshotContext context, CompanyShip hull, Reactor reactor,
                                    BoatDeck boats, BoatDeckViewModel model, SecondhandWingsModel wings,
-                                   BoatBayRestorationModel.Row restoration, int selected, String name) throws Exception {
-        return frame(context, hull, reactor, boats, model, wings, restoration, selected, List.of(), name);
-    }
-
-    private SnapshotArtifact frame(SnapshotContext context, CompanyShip hull, Reactor reactor,
-                                   BoatDeck boats, BoatDeckViewModel model, SecondhandWingsModel wings,
-                                   BoatBayRestorationModel.Row restoration, int selected,
-                                   List<CompanyNotices.Notice> notices, String name) throws Exception {
+                                   int selected, List<CompanyNotices.Notice> notices, String name) throws Exception {
         var ship = CompanyDeck.home(hull, 42, null, List::of, List::of, () -> {
             boolean[] occupied = new boolean[boats.berths()];
             for (int i = 0; i < occupied.length; i++) occupied[i] = boats.boats().get(i) != null;
@@ -158,9 +142,9 @@ public final class SecondhandWingsSnapshotSuite implements SnapshotSuite {
                 throw new AssertionError("Cached hangar still carries the wrong airframe");
             var bay = ship.rooms(RoomPurpose.HANGAR).get(selected);
             var props = UiSnapshotSuite.props(model, ship, bay, 2);
-            props.put("activeBayLabel", selected == 0 ? "BAY 01 / 02"
-                    : restoration.visible() ? "02/02 SEALED" : "BAY 02 / 02");
-            props.put("restoration", restoration);
+            boolean sealed = boats.berths() < 2;
+            props.put("activeBayLabel", selected == 0 ? "BAY 01 / 02" : sealed ? "02/02 SEALED" : "BAY 02 / 02");
+            props.put("bayNoteClasses", sealed ? "bay-sealed-note label tone-muted" : "hidden");
             if (wings != null) { wings.refresh(); props.put("wings", wings.row()); }
             var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), List.of(
                     "data/ui/components/company/company-resource-stock.mlx",

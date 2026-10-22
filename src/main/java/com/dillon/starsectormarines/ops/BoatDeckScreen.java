@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
-import com.dillon.starsectormarines.campaign.start.CompanyBayRestoration;
 import com.dillon.starsectormarines.campaign.start.SecondhandWingsCampaign;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.marine.CampaignBoat;
@@ -57,6 +56,7 @@ public final class BoatDeckScreen implements Screen {
     private final MutableSignal<String> bayContextLabel = reactor.signal("");
     private final MutableSignal<String> activeBayLabel = reactor.signal("");
     private final MutableSignal<String> bayNavigatorClasses = reactor.signal("bay-navigator hidden");
+    private final MutableSignal<String> bayNoteClasses = reactor.signal("hidden");
     private final MutableSignal<Integer> selectedBayIndex = reactor.signal(0);
     private final MarkupLoader markup = new MarkupLoader(
             path -> Global.getSettings().loadText(path), COMPONENT_PATHS);
@@ -66,7 +66,6 @@ public final class BoatDeckScreen implements Screen {
     private MarineRoster roster;
     private CompanyDeck deck;
     private BoatDeckViewModel viewModel;
-    private BoatBayRestorationModel restoration;
     private SecondhandWingsModel wings;
     private UiViewport viewport;
     private UiDocument document;
@@ -108,16 +107,6 @@ public final class BoatDeckScreen implements Screen {
         } else {
             viewModel.refresh();
         }
-        var reviewedShip = CompanyShipDesignation.aboard();
-        restoration = new BoatBayRestorationModel(reactor,
-                () -> CompanyBayRestoration.offer(reviewedShip, roster),
-                () -> CompanyBayRestoration.repair(reviewedShip, roster),
-                () -> {
-                    if (roster.hasCompletedStory(OpeningOperationKind.RELIEF.missionId))
-                        CompanyNotices.Notice.SECOND_BAY.review(roster);
-                    selectedBayIndex.set(1); viewModel.backToDeckAction().run(); refreshBayPresentation(); invalidateBay();
-                },
-                () -> { ShipsBoatsAboard.reconcile(roster.boatDeck()); viewModel.refresh(); viewModel.selectBoatAction(1).run(); deckChanged(); });
         wings = new SecondhandWingsModel(reactor, roster.boatDeck(),
                 () -> SecondhandWingsCampaign.offer(roster),
                 review -> SecondhandWingsCampaign.purchase(roster, review),
@@ -131,7 +120,6 @@ public final class BoatDeckScreen implements Screen {
         var news = CompanyNotices.current();
         if (!CompanyPreparation.required(roster) && !roster.campaignLessons().boatRecoveryPending()) {
             if (news.contains(CompanyNotices.Notice.SECONDHAND_WINGS)) wings.open();
-            else if (news.contains(CompanyNotices.Notice.SECOND_BAY)) restoration.row().get().action().run();
         }
         document.layout(viewport.documentWidth(), viewport.documentHeight());
         if (preparationGuide != null) preparationGuide.update();
@@ -177,14 +165,14 @@ public final class BoatDeckScreen implements Screen {
     private Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("contextLabel", bayContextLabel);
-        props.put("restoration", restoration.row());
+        props.put("bayNoteClasses", bayNoteClasses);
         props.put("wings", wings.row());
         props.put("activeBayLabel", activeBayLabel);
         props.put("bayNavigatorClasses", bayNavigatorClasses);
         props.put("previousBay", (Runnable) () -> cycleBay(-1));
         props.put("nextBay", (Runnable) () -> cycleBay(1));
         props.put("deckSummary", viewModel.deckSummary());
-        props.put("materialStock", reactor.computed(() -> CompanyResources.withCredits(viewModel.materialStock().get(), restoration.row().get().credits())));
+        props.put("materialStock", reactor.computed(() -> CompanyResources.withCredits(viewModel.materialStock().get(), wings.row().get().credits())));
         props.put("boatRows", viewModel.boatRows());
         props.put("recovery", viewModel.recovery());
         props.put("selectedBoatName", viewModel.selectedBoatName());
@@ -372,6 +360,7 @@ public final class BoatDeckScreen implements Screen {
         if (bays.isEmpty()) {
             activeBayLabel.set(Strings.get("openingBoatDeckNoHangar"));
             bayNavigatorClasses.set("bay-navigator hidden");
+            bayNoteClasses.set("hidden");
             bayContextLabel.set(deck == null ? "" : ShipBreadcrumb.of(deck.ship(), null));
             return;
         }
@@ -380,6 +369,9 @@ public final class BoatDeckScreen implements Screen {
         activeBayLabel.set(Strings.format("openingBoatDeckBayPosition", index + 1, bays.size(),
                 deck.rooms().damaged(bays.get(index).id()) ? Strings.get("openingBoatDeckSealed") : ""));
         bayNavigatorClasses.set(bays.size() > 1 ? "bay-navigator" : "bay-navigator hidden");
+        // The bay is restored from Engineering or with Secondhand Wings; this room only says where.
+        bayNoteClasses.set(bays.stream().anyMatch(bay -> deck.rooms().damaged(bay.id()))
+                ? "bay-sealed-note label tone-muted" : "hidden");
         bayContextLabel.set(ShipBreadcrumb.of(deck.ship(), bays.get(index)));
     }
 
@@ -387,7 +379,6 @@ public final class BoatDeckScreen implements Screen {
     public void advance(float dt) {
         if (deckMayHaveChanged) adoptChangedDeck();
         if (viewModel != null) viewModel.refreshTime();
-        if (restoration != null) restoration.refresh();
         if (wings != null) wings.refresh();
         if (deck != null && deck.ready()) {
             int selected = viewModel.selectedBerthIndex();

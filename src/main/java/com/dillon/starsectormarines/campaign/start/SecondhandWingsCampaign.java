@@ -14,7 +14,11 @@ import java.util.Objects;
 /** Campaign adapter for the saved, hull-specific conversion and the fleet credit account. */
 public final class SecondhandWingsCampaign {
     private SecondhandWingsCampaign() { }
-    public record Offer(boolean visible, String refusal, int credits) { }
+    /** {@code price} includes the second bay's restoration when the bay is still sealed. */
+    public record Offer(boolean visible, String refusal, int credits, int price) {
+        public Offer(boolean visible, String refusal, int credits) { this(visible, refusal, credits, SecondhandWings.CREDIT_COST); }
+        public boolean bundlesBay() { return price > SecondhandWings.CREDIT_COST; }
+    }
 
     public static boolean available(MarineRoster roster) {
         return roster != null && roster.hasCompletedStory(OpeningOperationKind.COUNTERATTACK.missionId)
@@ -38,11 +42,11 @@ public final class SecondhandWingsCampaign {
                 && Objects.equals(ship.getId(), CerberusCompanyStart.startingShipId())
                 && fleet.getFleetData().getMembersListCopy().contains(ship)
                 && MercenaryCompanyConversion.installed(ship);
+        boolean bayRestored = ship != null && CompanyBayRestoration.state(ship) == BoatBayState.RESTORED;
         String refusal = SecondhandWings.refusal(roster.boatDeck(),
-                roster.hasCompletedStory(OpeningOperationKind.COUNTERATTACK.missionId), home,
-                ship != null && CompanyBayRestoration.state(ship) == BoatBayState.RESTORED,
+                roster.hasCompletedStory(OpeningOperationKind.COUNTERATTACK.missionId), home, bayRestored,
                 ship != null && !ship.isMothballed(), CompanyYard.dockedMarket() != null, credits);
-        return new Offer(available(roster), refusal, credits);
+        return new Offer(available(roster), refusal, credits, SecondhandWings.price(bayRestored));
     }
 
     public static String purchase(MarineRoster roster, SecondhandWings.Review reviewed) {
@@ -52,6 +56,9 @@ public final class SecondhandWingsCampaign {
             if (credits.get() < cost) return false;
             credits.subtract(cost);
             return true;
+        }, () -> {
+            CompanyBayRestoration.markRestored(CompanyShipDesignation.aboard());
+            ShipsBoatsAboard.reconcile(roster.boatDeck());
         });
     }
 }

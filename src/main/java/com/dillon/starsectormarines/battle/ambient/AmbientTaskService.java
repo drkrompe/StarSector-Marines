@@ -710,7 +710,7 @@ public final class AmbientTaskService {
             weaponPhase = positiveModulo((elapsedSeconds + offset) / motion.periodSeconds(), 1f);
         } else if (motion == WorkMotion.CARRY) {
             flags = LayeredAppearance.withWorkMotion(flags, motion);
-        } else if (motion.asleep()) {
+        } else if (motion == WorkMotion.SLEEP) {
             // In the bunk rather than beside it; the renderer lays the body down.
             flags = LayeredAppearance.withWorkMotion(flags | LayeredAppearance.FLAG_AT_STATION, motion);
         } else if (pose.activity() == AmbientActivity.FIRING_PRIMARY || practiceEquipment) {

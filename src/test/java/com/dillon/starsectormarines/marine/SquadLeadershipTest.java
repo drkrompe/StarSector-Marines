@@ -149,9 +149,10 @@ class SquadLeadershipTest {
         assertNotNull(roster.recruitToSquad(roster.reserveSquad().id()));
         assertEquals(EnlistedRank.CORPORAL, roster.squadLeader(squad).enlistedRank());
 
-        // Putting them in a veteran-band suit does.
-        leader.setArmor(MarineArmorPattern.CHARCOAL);
-        assertNotNull(roster.recruitToSquad(roster.reserveSquad().id()));
+        // Putting the squad on a veteran-band sheet does.
+        EquipmentTestFixtures.learnSheet(roster.armory(), SquadEquipmentDoctrines.LEAGUE_LINE_ARMOR);
+        assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(squad.id(),
+                squad.weaponDoctrineId(), SquadEquipmentDoctrines.LEAGUE_LINE_ARMOR));
         assertEquals(EnlistedRank.SERGEANT, roster.squadLeader(squad).enlistedRank());
     }
 

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
+import com.dillon.starsectormarines.battle.evacuation.CivilianRedoubt;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.BattleLaunchFixture;
@@ -68,6 +69,14 @@ public final class RuralMapgenSnapshotSuite implements SnapshotSuite {
                     near.refocus(farm[0] + 0.5f, farm[1] + 0.5f, PLAY_ZOOM_CELLS);
                     out.add(new SnapshotArtifact(tag + "06-play-zoom-farmstead.png",
                             near.render(sim, "seed " + seed + ", a farmstead on its track, play zoom")));
+                }
+                // Each holdout's works, framed on its claimed ground with room round it.
+                for (CivilianRedoubt redoubt : sim.getCivilianRedoubts()) {
+                    if (redoubt.isMain()) continue;
+                    near.refocus((redoubt.left() + redoubt.right() + 1) / 2f,
+                            (redoubt.top() + redoubt.bottom() + 1) / 2f, PLAY_ZOOM_CELLS);
+                    out.add(new SnapshotArtifact(tag + "07-holdout-" + redoubt.number() + ".png",
+                            near.render(sim, "seed " + seed + ", holdout " + redoubt.number() + ", play zoom")));
                 }
             }
         }

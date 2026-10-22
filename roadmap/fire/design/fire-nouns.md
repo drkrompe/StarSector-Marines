@@ -195,9 +195,17 @@ does not set Conquest alight.
 The fire field drawn (`FireRenderSystem`), from what the field already holds;
 nothing is drawn for a battle that never lit anything.
 
-- **Scorch** lies on the ground under everything that stands on it: a cell
-  darkens as it burns and is char once burnt, drawn as runs of one shade along
-  a row so a burnt field is a few rectangles, not thousands.
+- **Scorch** lies on the ground under everything that stands on it. Burnt
+  ground is not a fill: it darkens and browns the ground's own albedo, so the
+  texture always reads, and lays what lies on top of it over that: charcoal,
+  straw-brown singe, grey-white ash, a creep's charred crust, dying embers. It
+  varies at three scales of noise and with the fuel that burnt (grass a light
+  singe and sprinkled ash, hedges and the ground under trees darker with ash
+  piles, creep its own crust, pavement only soot smudges), and its outline
+  wanders through cells with a singed band just past it (`ScorchShading`, drawn
+  by `ScorchLayer` inside the ground's colour target). Three looks are before
+  the owner: mottled char, singe and ash, and fresh char that weathers to grey;
+  until one is picked the game draws the older flat per-cell fill.
 - **Glow** is a warm wash over each burning cell, under its flames.
 - **Flames** are tongues from the existing smoke-and-fire sheet, two to a
   burning cell and three to a crown, each on its own seeded phase and rate,
@@ -218,7 +226,9 @@ nothing is drawn for a battle that never lit anything.
   its groves: there its two layers cost about 0.3 ms of collection and drain
   at a lane framing and about 0.65 ms at the whole map, with nothing else
   moving. The look choices (`-Dbattle.render.fireFlames=bold|restrained`,
-  `-Dbattle.render.fireScorch=char|ash|ember`) are the owner's.
+  `-Dbattle.render.fireScorch=char|ash|ember|soot`) are the owner's, judged
+  on real ground in the `fire-colony` snapshot suite (the canonical colony on a
+  verdant world, burnt from its west edge).
 
 ## Evidence
 

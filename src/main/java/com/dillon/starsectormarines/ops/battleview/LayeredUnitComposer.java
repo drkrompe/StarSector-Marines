@@ -494,7 +494,7 @@ final class LayeredUnitComposer {
             }
             // Both arms out under a load.
             case CARRY -> new float[]{4f, 0.04f};
-            case NONE, TREAT, SLEEP, SLEEP_BUNK -> new float[]{0f, 0f};
+            case NONE, TREAT, SLEEP -> new float[]{0f, 0f};
         };
     }
 

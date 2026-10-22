@@ -33,19 +33,11 @@ import java.util.List;
 public final class BerthingFitting implements RoomFitting {
 
     /**
-     * Cells a ground rack takes, head to foot: the residential single is 2.1 m,
-     * about three cells of a cell's 0.75 m.
+     * Cells one rack takes, head to foot, aboard or on the ground. The figure is
+     * drawn at head-and-shoulders scale, a cell a crewman's shoulders and a bit,
+     * so a three-cell bed read as one for a giant: a bed is a pair of cells.
      */
-    private static final int RACK_DEPTH = 3;
-    /**
-     * Cells a shipboard bunk takes, head to foot. A ship's bunk is a tight rack
-     * against a marine drawn at the live shoulder scale, where a cell is a
-     * crewman's shoulders and a bit: three cells read as a bed for a giant, so a
-     * bunk is a pair, level with its locker banks.
-     */
-    private static final int SHIP_RACK_DEPTH = 2;
-    /** Cells a locker bank takes, head to foot. */
-    private static final int LOCKER_DEPTH = 2;
+    private static final int RACK_DEPTH = 2;
     /** Clear deck between the ranks. Two abreast, as everywhere else. */
     private static final int AISLE = 2;
 
@@ -143,16 +135,11 @@ public final class BerthingFitting implements RoomFitting {
         return Hookup.DoorSlot.run(along, -1, 2, 1);
     }
 
-    /** Cells this fitting's racks take, head to foot. */
-    private int rackDepth() {
-        return shipboard ? SHIP_RACK_DEPTH : RACK_DEPTH;
-    }
-
     @Override
     public void fit(RoomFloor floor) {
         int along = floor.canonicalWidth();
         int across = floor.canonicalHeight();
-        int depth = rackDepth();
+        int depth = RACK_DEPTH;
         if (along < 1 || across < depth + AISLE) return;
 
         boolean facingRanks = across >= 2 * depth + AISLE;
@@ -212,7 +199,7 @@ public final class BerthingFitting implements RoomFitting {
      */
     private void layRank(RoomFloor floor, int along, int band,
                          boolean headOutboard, boolean[] taken, boolean doorSide) {
-        int depth = rackDepth();
+        int depth = RACK_DEPTH;
         int outboard = headOutboard ? band : band + depth - 1;
         int inboard = headOutboard ? band + depth - 1 : band;
         // The head points at the bulkhead the rank backs onto. Chosen on the
@@ -227,22 +214,16 @@ public final class BerthingFitting implements RoomFitting {
             if (taken[slot]) continue;
             if (shipboard) {
                 // A bunk is worked from the passage at its foot. A locker bank is
-                // two cells, so where the bunk is longer it stands against the hull
-                // and is opened from the alcove that leaves between the bunks either
-                // side; at the bunk's own length it is opened from the passage.
+                // two cells, the bunk's own length, and is opened from the passage.
                 boolean storage = doorSide ? slot == 0 || slot == along - 1 : slot == divider;
-                int gap = depth - LOCKER_DEPTH;
-                int standingRow = storage ? (headOutboard ? band + depth - gap : band - 1 + gap)
-                        : headOutboard ? band + depth : band - 1;
-                int fixtureRow = storage ? (headOutboard ? band + depth - 1 - gap : band + gap) : inboard;
-                int baseRow = storage && !headOutboard ? band + gap : band;
+                int standingRow = headOutboard ? band + depth : band - 1;
                 String id = storage ? (doorSide ? "locker" : "locker-open") : "bed";
                 List<LayoutOp.Layer> layers = storage ? List.of() : List.of(
                         new LayoutOp.Layer(0, 0, SHIP_KIT + (headOutboard ? "bedding-low" : "bedding-high")),
                         new LayoutOp.Layer(0, 0, SHIP_KIT + "frame"));
-                if (floor.placeAssembly(slot, baseRow, SHIP_KIT + id, layers)) {
+                if (floor.placeAssembly(slot, band, SHIP_KIT + id, layers)) {
                     int[] stand = floor.toLocal(slot, standingRow);
-                    int[] fixture = floor.toLocal(slot, fixtureRow);
+                    int[] fixture = floor.toLocal(slot, inboard);
                     floor.fixtureTask(stand[0], stand[1], storage ? Affordance.STOW : Affordance.REST,
                             fixture[0], fixture[1]);
                 }
@@ -251,15 +232,10 @@ public final class BerthingFitting implements RoomFitting {
             if (doorSide && (slot == 0 || slot == along - 1)) {
                 // Stowage at the ends of the rank the hatches are in, which is
                 // where somebody coming off watch actually drops their kit. The
-                // locker stands a cell short of the passage, opened from the
-                // alcove that leaves between the racks either side; the bag
-                // behind it is scenery.
+                // locker is the cell against the passage so it can be opened
+                // from it; the bag behind it is scenery.
                 place(floor, slot, outboard, KIT);
-                int[] at = floor.toLocal(slot, band + 1);
-                if (floor.place(locker, at[0], at[1])) {
-                    int[] stand = floor.toLocal(slot, inboard);
-                    floor.fixtureTask(stand[0], stand[1], Affordance.STOW, at[0], at[1]);
-                }
+                place(floor, slot, inboard, locker, Affordance.STOW);
             } else if (!doorSide && slot == divider) {
                 for (int row = band; row < band + depth; row++) place(floor, slot, row, STANCHION);
             } else {
@@ -274,10 +250,10 @@ public final class BerthingFitting implements RoomFitting {
      * ({@code WorkMotion.SLEEP} draws the body up the bed from there).
      */
     private void layRack(RoomFloor floor, int slot, int band, boolean headOutboard, String rack) {
-        int[] rect = floor.toLocalRect(slot, band, 1, rackDepth());
+        int[] rect = floor.toLocalRect(slot, band, 1, RACK_DEPTH);
         if (!floor.place(rack, rect[0], rect[1])) return;
-        int[] stand = floor.toLocal(slot, headOutboard ? band + rackDepth() : band - 1);
-        int[] foot = floor.toLocal(slot, headOutboard ? band + rackDepth() - 1 : band);
+        int[] stand = floor.toLocal(slot, headOutboard ? band + RACK_DEPTH : band - 1);
+        int[] foot = floor.toLocal(slot, headOutboard ? band + RACK_DEPTH - 1 : band);
         floor.fixtureTask(stand[0], stand[1], Affordance.REST, foot[0], foot[1]);
     }
 
@@ -292,6 +268,12 @@ public final class BerthingFitting implements RoomFitting {
     private void place(RoomFloor floor, int along, int across, String id) {
         int[] cell = floor.toLocal(along, across);
         floor.place(id, cell[0], cell[1]);
+    }
+
+    private void place(RoomFloor floor, int along, int across,
+                       String id, Affordance affordance) {
+        int[] cell = floor.toLocal(along, across);
+        floor.place(id, cell[0], cell[1], affordance);
     }
 
     private void reserve(RoomFloor floor,
