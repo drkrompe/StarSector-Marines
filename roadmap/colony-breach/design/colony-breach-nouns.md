@@ -1032,11 +1032,14 @@ against its own control in `renderEvidence`.
   works on a dead tree. Creep therefore strips a wood of concealment the way it
   strips a building of its roof. `creep-vegetation` (`sceneEvidence`) holds the
   mechanics; `-Dbattle.swarm.creepTrees=false` is the control.
-- **There are no hedges.** Vegetation in a battle is trees (props with a
-  crown), the plants dressed on grass (shrubs and tufts, which neither block
-  nor shelter) and cultivated ground (crop strips of grass beside turned earth).
-  A hedgerow would be a new natural prop, and creep would take it as it takes a
-  tree.
+- **Hedges and crops are taken as grass is.** Vegetation in a battle is trees
+  (props with a crown) and the green ground: grass with the plants dressed on
+  it (shrubs and tufts), crop rows of grass beside turned earth, and the
+  country's hedges, which are shrubs grown along a plot's grass headland. None
+  of the green ground blocks a body or sight or gives cover, so creep changes
+  how it looks and nothing about how it fights: it wilts ahead of the lip and is
+  buried under it. A hedge that sheltered would be a natural prop with a crown,
+  and creep would take it as it takes a tree.
 - **A ground colony answers a gun the swarm cannot rush** (`GroundColonies`).
   A living bore grows one on its creep within reach of a hostile emplacement
   the creep has come up against: on living creep with creep round it, inside

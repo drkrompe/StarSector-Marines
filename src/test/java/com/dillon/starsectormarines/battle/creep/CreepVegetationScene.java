@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.scene.TickObserver;
 import com.dillon.starsectormarines.battle.scene.Verdict;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.gen.GenRecipe;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -23,9 +24,9 @@ import com.dillon.starsectormarines.battle.world.gen.forest.ForestBrush;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestField;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestPlan;
 import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
-import com.dillon.starsectormarines.battle.world.gen.fortress.FarmlandGround;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -138,12 +139,26 @@ public final class CreepVegetationScene implements BehaviorScene {
         NatureZoneFiller.dressOpenGround(c, open);
     }
 
+    /**
+     * Crop rows of grass beside turned earth, two cells a pitch, inside a grass headland that carries a hedge of
+     * shrubs, as the country's hedged plots are dressed ({@code RuralGround}).
+     */
     private static void fields(GenContext c) {
-        boolean[][] ground = new boolean[c.width][c.height], circulation = new boolean[c.width][c.height];
-        for (int x = FIELD_LEFT; x < c.width - 4; x++) {
-            for (int y = 4; y < FIELD_TOP; y++) ground[x][y] = true;
+        GenMappingRegistry mapping = GenMappingRegistry.installed();
+        int grass = mapping == null ? 0 : c.topology.surfaceIndex(mapping.groundBlockId(CellTopology.GroundKind.GRASS));
+        int dirt = mapping == null ? 0 : c.topology.surfaceIndex(mapping.groundBlockId(CellTopology.GroundKind.DIRT));
+        TileRegistry tiles = TileRegistry.installed();
+        int shrub = tiles != null && tiles.has("nature.shrub-1") ? tiles.indexOf("nature.shrub-1") : -1;
+        int x0 = FIELD_LEFT, x1 = c.width - 5, y0 = 4, y1 = FIELD_TOP - 1;
+        for (int x = x0; x <= x1; x++) {
+            for (int y = y0; y <= y1; y++) {
+                boolean headland = x == x0 || x == x1 || y == y0 || y == y1;
+                boolean crop = headland || ((y - y0) / 2) % 2 == 0;
+                c.topology.setGroundKind(x, y, crop ? CellTopology.GroundKind.GRASS : CellTopology.GroundKind.DIRT);
+                c.topology.setSurface(x, y, crop ? grass : dirt);
+                c.topology.setNatureOverlayIndex(x, y, headland ? shrub : -1);
+            }
         }
-        FarmlandGround.dress(c, ground, circulation);
     }
 
     private static void grove(GenContext c, int cx, int cy, int r) {
