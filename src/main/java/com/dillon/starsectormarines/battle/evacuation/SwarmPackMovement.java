@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
+import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 
@@ -41,6 +42,8 @@ final class SwarmPackMovement {
         if (!sim.isSwarmPackEnabled() || !sim.isSwarmFlowFieldEnabled()) return false;
         int packId = sim.swarmPacks().packIdOf(body);
         if (packId == 0) return false;
+        // A sub-pack runs at its own quarry, not on its pack's lane or hunt.
+        if (sim.swarmPackPlans().assignedQuarry(body) != 0L) return false;
         SwarmPackPlans.Plan pack = sim.swarmPackPlans().planFor(packId);
         if (pack == null || pack.anchor == 0L) return false;
         int i = pack.indexOf(body);
@@ -74,6 +77,62 @@ final class SwarmPackMovement {
             default:
                 return false;
         }
+    }
+
+    /**
+     * Moves {@code body} one tick in the press round {@code target}
+     * ({@link SwarmPackPress}): a holder wheels round it inside its reach,
+     * lunging in and easing out as it bites; a waiter circles a wider ring the
+     * other way, weaving in and out. Returns false, having moved nothing, when
+     * the body is not in a press on this target or the ring is walled off
+     * here; the caller then moves it as before.
+     */
+    static boolean press(long body, long target, BattleSimulation sim) {
+        SwarmPackPress press = sim.swarmPackPlans().press();
+        SwarmPackPress.Role role = press.role(body);
+        if (role == SwarmPackPress.Role.NONE || press.pressQuarry(body) != target) return false;
+        float bx = sim.world().x(body);
+        float by = sim.world().y(body);
+        float tx = sim.world().x(target);
+        float ty = sim.world().y(target);
+        long roll = SwarmPackPlans.mix(body * 0x9E3779B97F4A7C15L ^ target);
+        float offsetX = bx - tx;
+        float offsetY = by - ty;
+        double bearing = offsetX * offsetX + offsetY * offsetY > 1e-6f
+                ? Math.atan2(offsetY, offsetX) : 2 * Math.PI * ((roll >>> 40) & 0xFFFF) / 65536.0;
+        double period = 0.9 + 0.7 * ((roll & 0xFFFF) / 65535.0);
+        double offset = ((roll >>> 16) & 0xFFFF) / 65535.0;
+        double swing = Math.sin(2 * Math.PI * (sim.getSimTickIndex() * BattleSimulation.TICK_DT / period + offset));
+        float touching = sim.getRoster().radius(target) + sim.getRoster().radius(body);
+        float radius;
+        float pace;
+        if (role == SwarmPackPress.Role.HOLD) {
+            float inner = touching + 0.1f;
+            float outer = Math.max(inner, Math.min(sim.combat().attackRange(body) - 0.15f, touching + 0.8f));
+            radius = inner + (outer - inner) * 0.5f * (1f + (float) swing);
+            // Out of reach, a holder darts in at full stride; in reach, it wheels.
+            float out = (float) Math.sqrt(offsetX * offsetX + offsetY * offsetY) - outer;
+            pace = out > 0f ? 1f : SwarmPackPress.HOLD_PACE;
+        } else {
+            radius = Math.max(touching + 1f, SwarmPackPress.WAIT_RADIUS + SwarmPackPress.WAIT_WEAVE * (float) swing);
+            pace = SwarmPackPress.WAIT_PACE;
+        }
+        double aim = bearing + press.ringDirection(body) * SwarmPackPress.CARROT_CELLS / Math.max(radius, 0.5f);
+        float ax = tx + (float) Math.cos(aim) * radius - bx;
+        float ay = ty + (float) Math.sin(aim) * radius - by;
+        float distance = (float) Math.sqrt(ax * ax + ay * ay);
+        if (distance < 1e-4f) return true;
+        float step = sim.movement().moveSpeed(body) * BattleSimulation.TICK_DT;
+        float scale = step <= 0f ? 0f : Math.min(pace, distance / step);
+        float bodyRadius = sim.getRoster().radius(body);
+        ManualTerrainMotion.Result preview = sim.movement().previewDirect(body, sim.getGrid(),
+                ax / distance, ay / distance, bodyRadius, BattleSimulation.TICK_DT, scale);
+        float wanted = step * scale;
+        if (wanted > 1e-4f && Math.hypot(preview.dx(), preview.dy()) < 0.3f * wanted) return false;
+        sim.clearPath(body);
+        sim.movement().moveDirectScaled(body, sim.getGrid(), ax / distance, ay / distance, bodyRadius,
+                BattleSimulation.TICK_DT, scale);
+        return true;
     }
 
     private static boolean runLane(long body, SwarmPackPlans.Plan pack, int i, float ax, float ay,

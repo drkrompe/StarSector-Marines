@@ -83,7 +83,8 @@ public final class SwarmPressureBehavior implements UnitBehavior {
             return;
         }
         // A member that took its leader's quarry is the pack's cry, which the leader gave.
-        if (target != previousTarget && !sim.swarmPacks().followsLeader(runner, target, sim)) {
+        if (target != previousTarget && !sim.swarmPacks().followsLeader(runner, target, sim)
+                && !sim.swarmPackPlans().followsLead(runner)) {
             sim.swarmCues().post(SwarmCues.Kind.ALERT, runner, sim);
         }
 
@@ -106,9 +107,12 @@ public final class SwarmPressureBehavior implements UnitBehavior {
                 sim.swarmCues().post(SwarmCues.Kind.STRIKE, runner, sim);
                 sim.combat().setCooldownTimer(runner, strikeCooldown(runner, sim));
             }
+            // In a pack's press a striker wheels round its quarry between blows rather than planting.
+            SwarmPackMovement.press(runner, target, sim);
             return;
         }
 
+        if (SwarmPackMovement.press(runner, target, sim)) return;
         pressToward(runner, target, target != previousTarget, sim);
     }
 
@@ -278,6 +282,9 @@ public final class SwarmPressureBehavior implements UnitBehavior {
      * remembered quarry and no far fallback: it takes the nearest it senses.
      */
     public static long selectTarget(long runner, BattleSimulation sim) {
+        // A sub-pack goes at the quarry it was peeled off onto.
+        long assigned = sim.resolveUnit(sim.swarmPackPlans().assignedQuarry(runner));
+        if (assigned != 0L && sim.world().isAlive(assigned)) return assigned;
         return sim.swarmPacks().sharedQuarry(runner, ownTarget(runner, sim), sim);
     }
 

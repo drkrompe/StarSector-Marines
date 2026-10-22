@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-22 — Creep on green worlds as built (grown over trees, which die to bare bone-pale skeletons that no longer hide or shelter anyone, the owner's choice; grass and crops wilt ahead of its edge); campaign: blooms as built, frequent, at the benign first severity tier with spores carried on traffic, and the owner's arc as direction; growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
+Updated: 2026-10-22 — Pack press and sub-packs (strike slots, holders wheel and waiters circle, surplus peeled onto other prey, re-merge on quarry death); Creep on green worlds as built (grown over trees, which die to bare bone-pale skeletons that no longer hide or shelter anyone, the owner's choice; grass and crops wilt ahead of its edge); campaign: blooms as built, frequent, at the benign first severity tier with spores carried on traffic, and the owner's arc as direction; growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -1003,8 +1003,9 @@ and the reasons for each choice, with the first balance reading, in
   no elder has no leader and none of a leader's bonuses, though it still runs
   together (*Pack movement*) round its first living body, its **anchor**, which
   is a place to move round and nothing more. While the leader lives, members on its eight-cell leash share its
-  quarry when they have none of their own close by (local pursuit; the flow
-  field is untouched), pool what any of them senses (still sensing, passed body
+  quarry when they have none of their own close by and have not been peeled
+  off onto other prey (*The press, sub-packs*; local pursuit; the flow field is
+  untouched), pool what any of them senses (still sensing, passed body
   to body, a tick behind), and strike 15% faster. The leader's cry on new
   quarry is the pack's: a member taking the leader's quarry stays quiet. When
   it dies the pack **breaks** for good, heard as one scatter shriek at the
@@ -1243,6 +1244,33 @@ large map.
   mechanic (spread across the pack's width, no long file on open ground,
   stalk-feint-rush in order, approaches from more than one side, the break on
   the leader's death); its cost is in `swarm-movement-cost.md`.
+- **The press, sub-packs** (owner, 2026-10-22: "retain movement and possibly
+  break off sub-packs onto other targets"). Once a pack is on its quarry it
+  fights as a press rather than a heap. A body has room round it for only so
+  many Runners to strike at once, its **strike slots**: the ring round its body
+  a Runner's width apiece, four round a marine and more round anything
+  bigger. Two packs on one body share its slots. The members holding them
+  **hold**: they wheel round the quarry inside their reach, lunging in and
+  easing out, biting as they pass; nothing in the press plants. The rest
+  **wait**: they circle a wider ring the other way, weaving in and out. A
+  holder's turn ends after a second and a half while others wait; then the
+  longest-waiting darts in and the holder backs out to the ring. A member joins
+  the press once it is committed to the rush, or whenever its victim is right in
+  front of it. A pack with more on its quarry than the slots and one in reserve
+  peels the surplus off as a **sub-pack** onto the nearest other prey it can see
+  from there (another marine, a squad's flank, a gun), never fewer than two and
+  no more than that quarry's slots and a reserve, with the member nearest that
+  quarry as its **lead**, whose cry it is. A sub-pack stays in its pack
+  (membership, leader and break are unchanged) and runs at its own quarry, not
+  on the pack's lane or hunt; it **re-merges** the moment its quarry dies, is
+  the pack's own quarry, or it is down to one body, and the pack may peel
+  another off its surplus a second later. The press is a pack's: a Runner in
+  no pack still plants on what it strikes. `-Dbattle.swarm.packSplit=false` is
+  the control: every Runner in reach plants and the whole pack takes the
+  leader's quarry, which is the pile-on the owner saw. The `swarm-pack-crowd`
+  scene asserts the mechanic (the surplus on a saturated quarry hunting other
+  prey within three seconds, no sub-pack of one, no Runner in the fight still
+  for more than a second and a half, re-merge on the tick its quarry dies).
 - **Strategic movement and local pursuit.** A body whose target is more than a
   few cells away moves down its goal's field; within that range it runs its own
   short path to the one victim it has chosen. Every strain moves through the

@@ -387,7 +387,7 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   scheduler, one sim at a time: per-tick median, spread, p99, max and ticks over
   10 ms), then two replicas of each lever side by side for the determinism
   check; fails if they differ. `build/reports/performance/swarm-flow/summary.md`.
-  `-Dbattle.swarmFlow.sizes=400x240`, `.counts=150,300`, `.levers=on`,
+  `-Dbattle.swarmFlow.sizes=400x240`, `.counts=150,300`, `.levers=on`, `.spawnDistance=20` (a melee window),
   `.measureTicks`, `.warmupTicks`, `.outputDir` narrow it. Opt-in, excluded
   from `test`. Readings and the decision they support: `swarm-movement-cost.md`.
 - `gradlew.bat garrisonEvidence` → stands up every story mission at tick zero

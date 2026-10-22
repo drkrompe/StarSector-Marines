@@ -3,7 +3,7 @@
 Status: ACTIVE
 
 Written: 2026-10-21
-Updated: 2026-10-21 — pack movement cost
+Updated: 2026-10-22 — the press and sub-packs, and a melee window
 
 What moving the swarm costs by map size and swarm size, with and without its
 flow fields (`colony-breach-nouns.md`, Swarm goal), and what that says about
@@ -108,6 +108,32 @@ ticks.
 The first cut descended every pack's lane every 6 ticks and re-pathed every
 member each time: median +0.6 ms and two ticks over 10 ms. The lane is now
 taken again only once the anchor runs off its head, or at most every 15 ticks.
+
+## The press and sub-packs (`-Dbattle.swarm.packSplit`)
+
+The press (`colony-breach-nouns.md`, The press, sub-packs) runs only once a
+pack is on its quarry, which the default harness never reaches: its swarm
+spawns 80 cells out and the window is the approach. `-Dbattle.swarmFlow.spawnDistance=20`
+brings the swarm into contact inside the window. 560x336, `pack` lever, one
+run each with the split on and off (ms per tick, median / p99 / max):
+
+| Window | Bodies | Split | Tick | Swarm behaviour |
+|---|---|---|---|---|
+| approach | 1000 | on | 3.59 / 11.0 / 14.1 | 0.91 / 3.3 / 4.3 |
+| approach | 1000 | off | 2.47 / 6.3 / 8.5 | 0.62 / 1.1 / 2.5 |
+| melee | 1000 | on | 3.10 / 380 / 498 | 0.79 / 376 / 493 |
+| melee | 1000 | off | 2.86 / 393 / 632 | 0.72 / 389 / 627 |
+
+On the approach the press does not run, and the gap is the machine: the
+split-on run's own `on` rows (no packs at all) were a millisecond slower than
+the split-off run's, and pack against `on` is +0.25 ms in one and +0.22 in the
+other. In melee the press costs about 0.07 ms of swarm behaviour on the median
+and nothing on the tail. Replicas stay identical.
+
+**The melee tail is not the press, and it is large.** Both runs, and the
+`on` lever without packs, spike to 140-630 ms once contact is made, all of it
+in `SWARM_PATHFIND`: the local pursuit's per-body paths, which the fields do not
+cover. That is the next thing to measure at scale, not the press.
 
 ## Rejected: crowd avoidance in the descent
 
