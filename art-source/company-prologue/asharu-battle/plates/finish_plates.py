@@ -8,7 +8,7 @@
 2. S12 only: the painting puts its horizon a little high. Rows above the guide's band of exact
    registration are remapped so the painted limb meets the camera's true limb (the ray-cast
    guide's, raised by the air shell's thickness), and nothing below that band moves.
-3. Invert the stills' grade. The painting is display-referred, painted to look like the
+3. Tone-match it to the graded stills (tone_match.json), then invert the stills' grade. The painting is display-referred, painted to look like the
    graded still; the composite grades the backdrop through AgX 'Base Contrast'. agx_lut.py
    tabulates that grade on a lattice in Blender; here each pixel is solved for the scene-linear
    colour the grade maps onto it (Gauss-Newton on the lattice's trilinear interpolation), so the
@@ -113,6 +113,15 @@ def fix_horizon(img, guide_hit):
     return out
 
 
+def tone_match(img):
+    """The painting brought to the stills' exposure and palette: the guide lit the ground as if the
+    sun were overhead, the scene's sun is 16 degrees up. tone_match.json is a per-channel curve
+    fitted once by quantile-matching the S1a painting to the graded r9b S1a still."""
+    lut = np.array(json.loads((HERE / 'tone_match.json').read_text())['lut']) / 255.0
+    x = np.linspace(0, 1, lut.shape[1])
+    return np.stack([np.interp(img[..., c], x, lut[c]) for c in range(3)], -1)
+
+
 def write_exr(path, rgb):
     """Scanline float32 RGBA OpenEXR, no compression, alpha 1."""
     h, w = rgb.shape[:2]
@@ -156,6 +165,7 @@ def main():
         if kf == 'k6':
             _, hit = mg.ground(kf, finished={}, base=mg.load(mg.roster.GAME_CORE / 'graphics' / 'planets' / 'desert01.jpg'))
             img = fix_horizon(img, hit)
+        img = tone_match(img)
         lin, back = ungrade(img, axis, disp)
         err = np.abs(back - img).max(-1)
         print(f'{kf}: round trip through the grade, mean {err.mean() * 255:.2f}, 99th pct '
