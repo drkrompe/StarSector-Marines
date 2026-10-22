@@ -67,6 +67,7 @@ import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretFireSystem;
 import com.dillon.starsectormarines.battle.unit.DeadBodySystem;
+import com.dillon.starsectormarines.battle.unit.BodyPileCap;
 import com.dillon.starsectormarines.battle.warship.LanceSweep;
 import com.dillon.starsectormarines.battle.warship.LanceSweepSystem;
 import com.dillon.starsectormarines.battle.warship.Warship;
@@ -740,6 +741,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final CreepDigestion creepDigestion = new CreepDigestion();
     /** The creep digesting the swarm's dead (`colony-breach-nouns.md`, Creep). */
     public CreepDigestion creepDigestion() { return creepDigestion; }
+    private final BodyPileCap bodyPileCap = new BodyPileCap();
+    /** The safety net on how many bodies lie in one place (`colony-breach-nouns.md`, Body pile cap). */
+    public BodyPileCap bodyPileCap() { return bodyPileCap; }
     /** Roofs the creep has stood on long enough cave in under it. */
     private CreepRoofCollapse creepRoofs;
     /** Trees the creep has climbed die under it. */
@@ -3623,6 +3627,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         boreCreep.sync(this);
         if (creep != null) creep.tick(simTickIndex);
         creepDigestion.tick(this);
+        bodyPileCap.tick(this);
         // Outposts after the creep has spread: they root on ground it has held a while.
         creepOutposts.tick(this);
         groundColonies.tick(this);
