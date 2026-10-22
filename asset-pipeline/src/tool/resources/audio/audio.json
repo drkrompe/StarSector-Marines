@@ -936,6 +936,15 @@
     {"id": "marines_breach_body_latch_1", "source": "colony-breach/sfx/marines_breach_body_latch_1.mp3", "kind": "positional", "out": "battle/colony-breach"},
     {"id": "marines_breach_body_latch_2", "source": "colony-breach/sfx/marines_breach_body_latch_2.mp3", "kind": "positional", "out": "battle/colony-breach"},
     {"id": "marines_breach_body_latch_3", "source": "colony-breach/sfx/marines_breach_body_latch_3.mp3", "kind": "positional", "out": "battle/colony-breach"},
-    {"id": "marines_breach_body_drag_4", "source": "colony-breach/sfx/marines_breach_body_drag_4.mp3", "kind": "positional", "out": "battle/colony-breach"}
+    {"id": "marines_breach_body_drag_4", "source": "colony-breach/sfx/marines_breach_body_drag_4.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    // Colony Breach (tools/generate_colony_breach_audio.py)
+    {"id": "marines_breach_matriarch_roar_3", "source": "colony-breach/sfx/marines_breach_matriarch_roar_3.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    {"id": "marines_breach_matriarch_roar_4", "source": "colony-breach/sfx/marines_breach_matriarch_roar_4.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    {"id": "marines_breach_matriarch_reap_1", "source": "colony-breach/sfx/marines_breach_matriarch_reap_1.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    {"id": "marines_breach_matriarch_reap_2", "source": "colony-breach/sfx/marines_breach_matriarch_reap_2.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    {"id": "marines_breach_matriarch_reap_3", "source": "colony-breach/sfx/marines_breach_matriarch_reap_3.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    {"id": "marines_breach_matriarch_death_1", "source": "colony-breach/sfx/marines_breach_matriarch_death_1.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    {"id": "marines_breach_matriarch_death_2", "source": "colony-breach/sfx/marines_breach_matriarch_death_2.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    {"id": "marines_breach_matriarch_death_3", "source": "colony-breach/sfx/marines_breach_matriarch_death_3.mp3", "kind": "positional", "out": "battle/colony-breach"}
   ]
 }

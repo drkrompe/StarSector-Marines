@@ -1040,7 +1040,7 @@
 	"marines_breach_bore_ambience_maw": [{"file": "sounds/battle/colony-breach/marines_breach_bore_ambience_maw_1.ogg", "pitch": 1.0, "volume": 1.0}, {"file": "sounds/battle/colony-breach/marines_breach_bore_ambience_maw_2.ogg", "pitch": 1.0, "volume": 1.0}],
 	"marines_breach_bore_collapse": [{"file": "sounds/battle/colony-breach/marines_breach_bore_collapse_1.ogg", "pitch": 1.0, "volume": 1.0}],
 	"marines_breach_spore_vent_burst": [{"file": "sounds/battle/colony-breach/marines_breach_spore_vent_burst_2.ogg", "pitch": 1.0, "volume": 1.0}],
-	"marines_breach_matriarch_roar": [{"file": "sounds/battle/colony-breach/marines_breach_matriarch_roar_1.ogg", "pitch": 1.0, "volume": 1.0}, {"file": "sounds/battle/colony-breach/marines_breach_matriarch_roar_2.ogg", "pitch": 1.0, "volume": 1.0}],
+	"marines_breach_matriarch_roar": [{"file": "sounds/battle/colony-breach/marines_breach_matriarch_roar_1.ogg", "pitch": 1.0, "volume": 1.0}, {"file": "sounds/battle/colony-breach/marines_breach_matriarch_roar_2.ogg", "pitch": 1.0, "volume": 1.0}, {"file": "sounds/battle/colony-breach/marines_breach_matriarch_roar_3.ogg", "pitch": 1.0, "volume": 1.0}, {"file": "sounds/battle/colony-breach/marines_breach_matriarch_roar_4.ogg", "pitch": 1.0, "volume": 1.0}],
 	# ----- Colony Breach (tools/generate_colony_breach_audio.py) -----
 	"breach_first_harvest": [{"file": "sounds/story/colony-breach/breach_first_harvest.ogg", "pitch": 1, "volume": 1.0}],
 	"marines_breach_bore_surge": [{"file": "sounds/battle/colony-breach/marines_breach_bore_surge_1.ogg", "pitch": 1.0, "volume": 1.0}, {"file": "sounds/battle/colony-breach/marines_breach_bore_surge_2.ogg", "pitch": 1.0, "volume": 1.0}, {"file": "sounds/battle/colony-breach/marines_breach_bore_surge_3.ogg", "pitch": 1.0, "volume": 1.0}],
@@ -1074,4 +1074,7 @@
 	"marines_breach_brute_stun": [{"file": "sounds/battle/colony-breach/marines_breach_brute_stun_1.ogg", "pitch": 1.0, "volume": 1.0}, {"file": "sounds/battle/colony-breach/marines_breach_brute_stun_2.ogg", "pitch": 1.0, "volume": 1.0}],
 	# ----- Colony Breach (tools/generate_colony_breach_audio.py) -----
 	"marines_breach_body_latch": [{"file": "sounds/battle/colony-breach/marines_breach_body_latch_1.ogg", "pitch": 1.0, "volume": 1.0}, {"file": "sounds/battle/colony-breach/marines_breach_body_latch_2.ogg", "pitch": 1.0, "volume": 1.0}, {"file": "sounds/battle/colony-breach/marines_breach_body_latch_3.ogg", "pitch": 1.0, "volume": 1.0}],
+	# ----- Colony Breach (tools/generate_colony_breach_audio.py) -----
+	"marines_breach_matriarch_reap": [{"file": "sounds/battle/colony-breach/marines_breach_matriarch_reap_1.ogg", "pitch": 1.0, "volume": 1.0}, {"file": "sounds/battle/colony-breach/marines_breach_matriarch_reap_2.ogg", "pitch": 1.0, "volume": 1.0}, {"file": "sounds/battle/colony-breach/marines_breach_matriarch_reap_3.ogg", "pitch": 1.0, "volume": 1.0}],
+	"marines_breach_matriarch_death": [{"file": "sounds/battle/colony-breach/marines_breach_matriarch_death_1.ogg", "pitch": 1.0, "volume": 1.0}, {"file": "sounds/battle/colony-breach/marines_breach_matriarch_death_2.ogg", "pitch": 1.0, "volume": 1.0}, {"file": "sounds/battle/colony-breach/marines_breach_matriarch_death_3.ogg", "pitch": 1.0, "volume": 1.0}],
 }
