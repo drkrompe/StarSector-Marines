@@ -141,30 +141,45 @@ public final class BloomHeartSetup {
 
     static final float BURN_WIND = 0.5f;
     private static final long BARRAGE_SALT = 0x4255_524E_4241_5252L;
-    /** The first line opens once the company is down and formed, on the near ride. */
+    /** The first line opens once the company is down and formed, just past the near ride. */
     static final float BURN_FIRST_OPEN_SECONDS = 40f;
     static final float BURN_FIRST_FIRE_SECONDS = 50f;
     static final float BURN_LINE_FIRE_SECONDS = 40f;
-    static final float BURN_FIRST_DEPTH = 0.30f, BURN_LAST_DEPTH = 0.66f, BURN_LINE_STEP = 0.06f;
-    /** The opening shoot is incendiary (owner's pick): it lights the line. */
-    static final int BURN_OPENING_HEAT = 420;
+    /** The barrage's last line: short of the mothers, round the workings past three quarters of the way in. */
+    static final float BURN_LAST_DEPTH = 0.70f;
+    /** Lines lift about this far at a time between the firebreaks. */
+    static final float BURN_LINE_STEP = 0.06f;
+    /** A line this close to a firebreak's own line gives way to it. */
+    static final float BURN_MERGE = 0.025f;
+    /** How far past a firebreak's far edge its relighting line falls: clear of the shells' scatter, so the near side never catches. */
+    static final float BURN_RELIGHT_PAST = 0.02f;
+    /** The shells that relight the burn past a firebreak. */
+    static final int BURN_RELIGHT_HEAT = 420;
 
     /**
-     * The Burn's barrage plan (`heart-nouns.md`, Barrage plan): an incendiary
-     * opening shoot on the near ride, then high explosive lifting a line at a
-     * time across the approach to a last line short of the heart.
+     * The Burn's barrage plan (`heart-nouns.md`, Barrage plan): the burn is
+     * lit and relit just past each firebreak with incendiary shells (the
+     * fire holds at each break, the owner's pick), with high explosive lifting
+     * a line at a time between them to a last line short of the heart.
      */
     public static WalkingBarrage.Plan burnBarrage() {
+        float[] breaks = HeartCountry.burnFirebreaks();
+        List<float[]> depths = new ArrayList<>();
+        for (float b : breaks) if (b + BURN_RELIGHT_PAST <= BURN_LAST_DEPTH) depths.add(new float[]{b + BURN_RELIGHT_PAST, 1f});
+        for (float d = breaks[0] + BURN_RELIGHT_PAST + BURN_LINE_STEP; d <= BURN_LAST_DEPTH + 1e-4f; d += BURN_LINE_STEP) {
+            boolean near = false;
+            for (float[] line : depths) if (Math.abs(line[0] - d) < BURN_MERGE) near = true;
+            if (!near) depths.add(new float[]{d, 0f});
+        }
+        depths.sort((a, b) -> Float.compare(a[0], b[0]));
         List<WalkingBarrage.Line> lines = new ArrayList<>();
         float open = BURN_FIRST_OPEN_SECONDS;
-        int count = Math.round((BURN_LAST_DEPTH - BURN_FIRST_DEPTH) / BURN_LINE_STEP) + 1;
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < depths.size(); i++) {
             float fire = i == 0 ? BURN_FIRST_FIRE_SECONDS : BURN_LINE_FIRE_SECONDS;
-            lines.add(new WalkingBarrage.Line(BURN_FIRST_DEPTH + i * BURN_LINE_STEP, open, fire,
-                    i == 0 ? BURN_OPENING_HEAT : 0));
+            lines.add(new WalkingBarrage.Line(depths.get(i)[0], open, fire, depths.get(i)[1] > 0f ? BURN_RELIGHT_HEAT : 0));
             open += fire;
         }
-        return new WalkingBarrage.Plan(lines, new WalkingBarrage.Shell(3f, 70f, 20f, 60, 3f), 2.5f, 0.015f);
+        return new WalkingBarrage.Plan(lines, new WalkingBarrage.Shell(3f, 70f, 20f, 60, 3f), 2.5f, 0.012f);
     }
 
     /** What setup made: the battle, its map and plan, the heart's sites and the seed the attempt used. */

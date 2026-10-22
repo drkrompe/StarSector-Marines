@@ -64,20 +64,20 @@ public final class SpecSheetLayer {
      * Armory's own, which is where the first per-card popups lived.
      */
     private static final String CSS = """
-            .spec-sheet {
-                position: absolute;
-                pointer-events: none;
+            .spec-sheet, .spec-card {
                 flex-direction: column;
-                width: 360px;
                 padding: 10px;
                 gap: 6px;
                 border-width: 2px;
                 overflow: hidden;
                 font-family: body;
+                text-align: left;
                 background-color: #09131d;
                 border-color: #53c6e8;
                 color: #d5deea;
             }
+            .spec-sheet { position: absolute; pointer-events: none; width: 360px; }
+            .spec-card { width: 504px; }
             .spec-sheet.spec-sheet-weapon { border-color: #53c6e8; }
             .spec-sheet.spec-sheet-armor { border-color: #dfb84d; }
             .spec-sheet.spec-sheet-special { border-color: #71d6c1; }
@@ -97,6 +97,8 @@ public final class SpecSheetLayer {
             .spec-sheet-stat-track { flex-direction: row; height: 4px; background-color: #1a2836; }
             .spec-sheet-stat-fill { height: 4px; background-color: #53c6e8; }
             .spec-sheet-armor .spec-sheet-stat-fill { background-color: #dfb84d; }
+            .spec-card .spec-sheet-stamp-badge { width: 466px; }
+            .spec-sheet-crest.spec-card-crest { width: 48px; height: 32px; }
             .spec-sheet-special .spec-sheet-stat-fill { background-color: #71d6c1; }
             .spec-sheet-system .spec-sheet-stat-fill { background-color: #c79ce8; }
             .spec-sheet-mech .spec-sheet-stat-fill { background-color: #e2965c; }

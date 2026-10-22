@@ -218,7 +218,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/armory/fleet-armory-fireteam.mlx",
-            "data/ui/components/armory/armory-weapon-tech-card.mlx", "data/ui/components/armory/armory-squad-doctrine.mlx",
+            "data/ui/components/armory/armory-loadout-card.mlx", "data/ui/components/armory/armory-squad-doctrine.mlx",
             "data/ui/components/armory/armory-refit-transaction.mlx",
             "data/ui/components/armory/armory-armor-comparison.mlx");
     private static final List<String> MECH_LAB_COMPONENTS = List.of(
@@ -1781,6 +1781,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             try (var editorMarkup = editorLoader.reloadAndBuild(reactor, "fleet-armory-fireteam", editorProps)) {
                 var editorDocument = new UiDocument(editorMarkup.root()).theme(MarineOpsThemes.standard());
                 editorMarkup.styles().forEach(editorDocument::addStyleSheet);
+                // Installed with the document, as the screen does: the cards wear its classes.
+                var sheets = new SpecSheetBinder(editorDocument, SpecSheetLayer.install(editorDocument));
                 MarineOpsPageNav.refresh(editorMarkup, MarineOpsPageNav.Page.ARMORY, MarineOpsPageNav.ANY_SHIP,
                         List.of(CompanyNotices.Notice.FIRST_REFIT));
                 frames.add(new SnapshotArtifact("03-existing-equipment-editor.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
@@ -1792,12 +1794,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 editor.showWeaponPickerAction().run();
                 editor.weaponDoctrineTiles().get().get(0).select().run();
                 editorMarkup.flush();
+                editorDocument.advance(0.3f); // let the selection's border transition settle
                 frames.add(new SnapshotArtifact("03b-earned-weapon-comparison.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
                 collectArmorTemplates(roster);
                 editor.refresh();
                 editor.showArmorPickerAction().run();
                 editor.armorDoctrineTiles().get().get(0).select().run();
                 editorMarkup.flush();
+                editorDocument.advance(0.3f);
                 frames.add(new SnapshotArtifact("03c-earned-armor-comparison.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
                 // Production pointer targets remain visible at the player's review scale.
                 var grid = editorMarkup.requireElement("loadout-billets").box().borderBox();
@@ -1819,7 +1823,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 frames.add(new SnapshotArtifact("03e-vacant-billet-plan.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
                 if (editor.applyDisabled().get()) throw new AssertionError("Wounds or vacancies blocked fitting");
                 clickBarracksFlow(editorDocument, editorMarkup, "loadout-billet:0");
-                var sheets = new SpecSheetBinder(editorDocument, SpecSheetLayer.install(editorDocument));
                 ArmorySpecSheets.bindInspection(sheets, editorMarkup, editor.inspection());
                 var target = editorMarkup.requireElement("loadout-item:1:proposed");
                 var targetBox = target.box().borderBox();

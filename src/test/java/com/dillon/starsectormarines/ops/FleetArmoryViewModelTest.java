@@ -90,7 +90,7 @@ class FleetArmoryViewModelTest {
     private static final List<String> COMPONENTS = List.of(
             "mod/data/ui/components/company/company-resource-stock.mlx", "mod/data/ui/components/company/company-resource-cost.mlx", "mod/data/ui/components/marine-ops-page-nav.mlx",
             "mod/data/ui/components/armory/fleet-armory-fireteam.mlx",
-            "mod/data/ui/components/armory/armory-weapon-tech-card.mlx", "mod/data/ui/components/armory/armory-squad-doctrine.mlx",
+            "mod/data/ui/components/armory/armory-loadout-card.mlx", "mod/data/ui/components/armory/armory-squad-doctrine.mlx",
             "mod/data/ui/components/armory/armory-refit-transaction.mlx",
             "mod/data/ui/components/armory/armory-armor-comparison.mlx");
 
@@ -226,10 +226,11 @@ class FleetArmoryViewModelTest {
         // company holds; missing roles may fall back within that class.
         assertEquals(roster.armory().armorDoctrines().stream().map(SquadArmorDoctrine::issueIds).distinct().count(),
                 viewModel.armorDoctrineTiles().get().size());
-        viewModel.showLoadoutFilterAction(FleetArmoryViewModel.LoadoutFilter.RARE).run();
-        assertEquals(FleetArmoryViewModel.LoadoutFilter.RARE, viewModel.loadoutFilter());
+        viewModel.showLoadoutFilterAction(FleetArmoryViewModel.LoadoutFilter.TIER_1).run();
+        assertEquals(FleetArmoryViewModel.LoadoutFilter.TIER_1, viewModel.loadoutFilter());
+        assertFalse(viewModel.weaponDoctrineTiles().get().isEmpty());
         assertTrue(viewModel.weaponDoctrineTiles().get().stream()
-                .allMatch(loadout -> "Rare".equals(loadout.rarity())));
+                .allMatch(loadout -> loadout.metadata().contains("TIER I ")));
         assertTrue(viewModel.loadoutBrowserSummary().get().contains(" of "));
 
         assertEquals(SquadEquipmentResult.APPLIED,
