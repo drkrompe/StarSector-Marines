@@ -96,14 +96,56 @@ def missile(x, y, length, h, kind):
     return s
 
 
+# 5 x 7 block glyphs for stamped labels; '#' is a filled cell.
+GLYPHS = {
+    'S': ['.####', '#....', '#....', '.###.', '....#', '....#', '####.'],
+    'R': ['####.', '#...#', '#...#', '####.', '#.#..', '#..#.', '#...#'],
+    'M': ['#...#', '##.##', '#.#.#', '#...#', '#...#', '#...#', '#...#'],
+    'L': ['#....', '#....', '#....', '#....', '#....', '#....', '#####'],
+}
+
+
+def stamped(text, cx, cy, cell):
+    """Text pressed into metal: bold block letters in a deep shade, with a lit lip under every
+    stroke end that has open plate below it, so each letter reads as a recess lit from above.
+    Runs of cells merge into one rectangle so the translucent shade never doubles."""
+    deep = 'fill="#000000" fill-opacity="0.72"'
+    width = len(text) * 5 * cell + (len(text) - 1) * cell
+    x0, y0 = cx - width / 2, cy - 3.5 * cell
+    out = ''
+    for i, ch in enumerate(text):
+        gx = x0 + i * 6 * cell
+        rows = GLYPHS[ch]
+        for r, row in enumerate(rows):
+            below = rows[r + 1] if r + 1 < len(rows) else '.....'
+            for want, attr, top, height in (('#', deep, 0, cell), ('lip', LS, cell, cell * .32)):
+                c = 0
+                while c < 5:
+                    on = row[c] == '#' and (want == '#' or below[c] != '#')
+                    if not on:
+                        c += 1
+                        continue
+                    start = c
+                    while c < 5 and row[c] == '#' and (want == '#' or below[c] != '#'):
+                        c += 1
+                    out += rect(gx + start * cell, y0 + r * cell + top, (c - start) * cell, height, attr)
+    return out
+
+
 def missile_rack(w, h, rows, kind, margin_x=18):
+    """Stacked missiles over a debossed plate stamped SRM or LRM."""
+    plate = 40
     s = ''
-    pitch = (h - 16) / rows
+    pitch = (h - 16 - plate) / rows
     # Body plus both fins stays under the row pitch, so neighbouring missiles never touch.
     mh = pitch * (.4 if kind == 'lrm' else .5)
     for i in range(rows):
         y = 8 + pitch * (i + .5)
         s += missile(margin_x, y, w - margin_x - 8, mh, kind)
+    py0, py1 = h - plate - 4, h - 8
+    s += block(12, py0, w - 12, py1, 5, MID)
+    s += rect(17, py1 - 3, w - 34, 2, LS)
+    s += stamped(kind.upper(), w / 2, (py0 + py1) / 2 - 1, 4.2)
     return s
 
 
@@ -227,10 +269,10 @@ def build():
     f = {}
 
     # Missile racks: stacked horizontal missiles.
-    f['srm-5'] = svg(150, 200, missile_rack(150, 200, 5, 'srm'))
-    f['srm-15'] = svg(150, 300, missile_rack(150, 300, 8, 'srm'))
-    f['lrm-5'] = svg(150, 200, missile_rack(150, 200, 5, 'lrm'))
-    f['lrm-15'] = svg(150, 300, missile_rack(150, 300, 8, 'lrm'))
+    f['srm-5'] = svg(150, 200, missile_rack(150, 200, 4, 'srm'))
+    f['srm-15'] = svg(150, 300, missile_rack(150, 300, 7, 'srm'))
+    f['lrm-5'] = svg(150, 200, missile_rack(150, 200, 4, 'lrm'))
+    f['lrm-15'] = svg(150, 300, missile_rack(150, 300, 7, 'lrm'))
     # Pioneer: one rocket riding its cradle rail, a 2x1 piece.
     b = missile(22, 40, 116, 26, 'rocket')
     b += rect(14, 64, 124, 8, D, rx=2) + rect(30, 74, 8, 16, D) + rect(112, 74, 8, 16, D)
@@ -262,33 +304,50 @@ def build():
     f['chaingun-nose'] = svg(150, 200, gatling(100, 6, 144, 62, barrels=5))
     f['linear-cannon-dual'] = svg(225, 200, gauss(52, 10, 214, 32) + gauss(148, 10, 214, 32))
 
-    b = rect(10, 58, 58, 84, D, rx=6) + rect(16, 64, 46, 9, L, rx=3)
-    b += hbar(72, 126, 84, 9) + hbar(72, 126, 116, 9)
-    b += hbar(72, 126, 100, 26)
-    b += hbar(130, 160, 100, 40, D, rx=8)
-    b += hbar(164, 184, 100, 24)
-    b += rect(188, 74, 26, 52, D, rx=3)
-    b += rect(193, 80, 5, 40, L) + rect(203, 80, 5, 40, L)
-    b += hbar(76, 182, 92, 4, LS, rx=0)
+    # Heavy cannon: a tank gun. Breech block, recoil cylinders, a sleeved barrel, the tapered
+    # fume extractor partway along, and a baffled muzzle brake.
+    b = block(8, 48, 74, 152, 12)
+    b += rect(17, 57, 48, 3, L) + rect(17, 106, 48, 36, MID)
+    b += hbar(76, 120, 66, 12, MID, rx=0) + hbar(76, 120, 134, 12, MID, rx=0)
+    b += block(76, 80, 130, 120, 3)
+    for x in (90, 110):
+        b += rect(x, 77, 5, 46, D)
+    b += poly([(132, 86), (142, 76), (166, 76), (174, 86), (174, 114), (166, 124), (142, 124), (132, 114)], D)
+    b += hbar(176, 192, 100, 28, D, rx=0)
+    b += block(194, 72, 216, 128, 4)
+    b += rect(198, 80, 4, 40, L) + rect(207, 80, 4, 40, L)
+    b += hbar(78, 190, 87, 3, LS, rx=0)
     f['heavy-cannon'] = svg(225, 200, b)
 
-    b = rect(10, 30, 76, 92, D, rx=6) + rect(16, 36, 64, 9, L, rx=3)
-    for y in (56, 96):
-        b += hbar(90, 196, y, 18) + rect(198, y - 13, 16, 26, D, rx=3)
-        b += hbar(94, 194, y - 5, 4, LS, rx=0)
-    b += ell(48, 156, 34, 34, D) + ell(48, 156, 16, 16, L) + ell(48, 156, 6, 6, D)
+    # Bastion: twin autocannons on one receiver, belt-fed from an ammunition can beneath.
+    b = block(8, 30, 86, 130, 12)
+    b += rect(17, 39, 60, 3, L) + rect(17, 96, 60, 26, MID)
+    for y in (58, 104):
+        b += block(88, y - 13, 136, y + 13, 3)
+        b += hbar(138, 190, y, 14, D, rx=0)
+        b += block(192, y - 15, 216, y + 15, 3) + rect(198, y - 9, 3, 18, L) + rect(206, y - 9, 3, 18, L)
+        b += hbar(90, 188, y - 7, 2.5, LS, rx=0)
+    # The ammunition can hangs under the receiver on a short feed neck.
+    b += rect(56, 132, 22, 8, MID)
+    b += block(14, 142, 86, 188, 6, D)
+    for k in range(3):
+        b += rect(22, 152 + k * 11, 56, 3, LS)
     f['bastion-autocannon-dual'] = svg(225, 200, b)
 
     f['muster-autogun-dual'] = svg(225, 200, autogun(42, 10, 214, 26) + autogun(128, 10, 214, 26))
     f['muster-autogun-nose'] = svg(150, 200, autogun(84, 8, 144, 34))
 
-    # Demolition cannon: a stubby howitzer with a wide muzzle and recoil cylinders.
-    b = rect(8, 64, 44, 76, D, rx=6) + rect(13, 70, 34, 8, L, rx=3)
-    b += hbar(56, 110, 102, 52, D, rx=6)
-    b += hbar(56, 104, 70, 10) + hbar(56, 104, 134, 10)
-    b += rect(114, 66, 28, 72, D, rx=6)
-    b += ell(128, 102, 7, 24, L)
-    b += rect(60, 86, 46, 6, LS)
+    # Demolition cannon: a short, very wide siege barrel. Breech block, recoil buffers, a
+    # tapering barrel bound by heavy bands, and a flared muzzle collar.
+    b = block(6, 60, 50, 140, 8)
+    b += rect(12, 68, 32, 3, L) + rect(12, 104, 32, 28, MID)
+    b += hbar(52, 94, 64, 9, MID, rx=0) + hbar(52, 94, 136, 9, MID, rx=0)
+    b += poly([(52, 76), (112, 72), (112, 128), (52, 124)], D)
+    for x in (66, 88):
+        b += block(x, 70, x + 8, 130, 2)
+    b += poly([(114, 66), (128, 60), (144, 60), (144, 140), (128, 140), (114, 134)], D)
+    b += rect(138, 70, 3, 60, L)
+    b += hbar(54, 110, 80, 2.5, LS, rx=0)
     f['demolition-cannon'] = svg(150, 200, b)
 
     # Quarry breaker: hydraulic cylinder, piston rod and a chisel bit, pointing right.
