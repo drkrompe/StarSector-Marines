@@ -1,9 +1,9 @@
-# Swarm bores and spore colonies
+# Swarm bores, spore colonies and the ground colony
 
 Geometry-first ImageGen (`art-source/geometry-first-imagegen.md`) for the
 Colony Breach bore bodies (`structure.swarm-bore`, `structure.swarm-mother-bore`)
 and the three spore-colony grades (`structure.spore-colony-fissure`, `-bore`,
-`-maw`), in the Runner's chitin (`art-source/alien-modular-topdown/`).
+`-maw`) and the ground colony (`structure.ground-colony`), in the Runner's chitin (`art-source/alien-modular-topdown/`).
 
 | Step | Command | Writes |
 | --- | --- | --- |
@@ -16,7 +16,7 @@ and the three spore-colony grades (`structure.spore-colony-fissure`, `-bore`,
 | Other-palette preview | `python art-source/swarm-bores/export.py --palette raw` (or `purple`, `chitin`) | `build/swarm-bores/<palette>/` |
 
 Parts and variant counts are `make_guide.VARIANTS`: `bore` 3, `mother-bore` 2,
-`spore-colony-fissure`, `spore-colony-bore`, `spore-colony-maw` 3 each. The
+`spore-colony-fissure`, `spore-colony-bore`, `spore-colony-maw` 3 each, `ground-colony` 3. The
 structure's art block declares `"variants": N` and names its layers with
 `{variant}`; `StructureArt.variantFor` picks one per structure from its entity
 id, the same for the body and its glow.
@@ -98,7 +98,10 @@ Art direction: the swarm is one engineered organism (`colony-breach-nouns.md`,
 Origin), so a bore and a colony are grown out of the same chitin, sinew and amber
 nodes as the strains, never plants or machines. They erupted, so nothing is
 symmetric: a bore has an upheaved side and a collapsed side, and a colony
-grows round one dominant leaning sac.
+grows round one dominant leaning sac. The ground colony is told from them at a glance: low on the creep,
+no sac and no pore aimed at the sky, a plated core whose crimson sinew arms sprawl flat over the ground, studded
+with raked spines (the owner's pick of three body plans, `make_guide.GROUND_COLONY_STYLE`; the other two,
+`ridge` and `urchin`, stay selectable for comparison).
 
 Review: `gradlew.bat createSnapshots -Psnapshot=swarm-spore-colonies,swarm-bore-collapse`,
 and `python art-source/swarm-bores/review_sheet.py` for the side-by-side sheets.
