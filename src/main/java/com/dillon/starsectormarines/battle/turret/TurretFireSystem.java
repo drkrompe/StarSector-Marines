@@ -68,6 +68,35 @@ public final class TurretFireSystem implements TurretFireSink {
 
     private ShooterAccuracy shooterAccuracy = ShooterAccuracy.NONE;
 
+    /**
+     * The chance a gun's crew holds a round whose resolved flight would hit their own side, the way a marine's
+     * {@code ExperienceTier.friendlyFireHoldChance} does. Zero for a shooter with no such discipline.
+     */
+    @FunctionalInterface
+    public interface FriendlyFireHold {
+        FriendlyFireHold NONE = shooterId -> 0f;
+
+        float chance(long shooterId);
+    }
+
+    /**
+     * The discipline an emplacement's crew works to: they see a friend between the gun and its target about as
+     * often as a regular rifleman does, and let go of the trigger as often.
+     */
+    public static final float CREW_FRIENDLY_HOLD_CHANCE = 0.5f;
+
+    private FriendlyFireHold friendlyFireHold = FriendlyFireHold.NONE;
+
+    /** Whether a burst at a point would reach a body on the shooter's own side. */
+    @FunctionalInterface
+    public interface FriendsInBlast {
+        FriendsInBlast NONE = (shooterId, side, x, y, radius) -> false;
+
+        boolean reaches(long shooterId, Faction side, float x, float y, float radius);
+    }
+
+    private FriendsInBlast friendsInBlast = FriendsInBlast.NONE;
+
     public TurretFireSystem(Random rng, CellTopology topology,
                             ShotService shots, DamageService damageService,
                             DetonationSink detonationSink,
@@ -90,12 +119,34 @@ public final class TurretFireSystem implements TurretFireSink {
         this.shooterAccuracy = shooterAccuracy != null ? shooterAccuracy : ShooterAccuracy.NONE;
     }
 
+    /**
+     * Who holds a resolved round that would hit a friend ({@link FriendlyFireHold}), and how a round with a burst
+     * learns whether it would reach one ({@link FriendsInBlast}).
+     */
+    public void setFriendlyFireHold(FriendlyFireHold friendlyFireHold, FriendsInBlast friendsInBlast) {
+        this.friendlyFireHold = friendlyFireHold != null ? friendlyFireHold : FriendlyFireHold.NONE;
+        this.friendsInBlast = friendsInBlast != null ? friendsInBlast : FriendsInBlast.NONE;
+    }
+
+    /**
+     * The hold decision: a round that would hit no friend always goes, and draws nothing from {@code rng}, so a gun
+     * that never has a friend in its line plays exactly as it did before the discipline existed; a round that would
+     * takes one draw against {@code holdChance}.
+     */
+    public static boolean holdsRound(boolean friendlyHit, float holdChance, Random rng) {
+        return friendlyHit && holdChance > 0f && rng.nextFloat() < holdChance;
+    }
+
+    /**
+     * Fires one round, returning false when the crew held it: a modeled ground round whose resolved flight would
+     * hit their own side and which their discipline refused ({@link FriendlyFireHold}). A held round is neither
+     * delivered nor counted; the caller breaks off the rest of its burst.
+     */
     @Override
-    public void fire(long shooterId, float fromX, float fromY, Faction shooterFaction,
+    public boolean fire(long shooterId, float fromX, float fromY, Faction shooterFaction,
                      StructureDef structure, long target, boolean aerialShooter, boolean hasLos,
                      float mountFacingDegrees, int releaseIndex) {
         WeaponDef weapon = structure.mount.weapon;
-        telemetry.recordRoundFired(shooterId);
         int tcx = world.cellX(target);
         int tcy = world.cellY(target);
         float facing = Float.isFinite(mountFacingDegrees)
@@ -116,15 +167,15 @@ public final class TurretFireSystem implements TurretFireSink {
             effectiveAccuracy *= distFalloff * losMult;
         }
         if (!aerialShooter && weapon.arcHeight <= 0f && weapon.projectileCellsPerSec() <= 0f) {
-            fireGroundDirect(shooterId, fromX, fromY, shooterFaction,
+            return fireGroundDirect(shooterId, fromX, fromY, shooterFaction,
                     structure, target, distToTarget, effectiveAccuracy);
-            return;
         }
 
+        telemetry.recordRoundFired(shooterId);
         if (weapon.projectileCellsPerSec() > 0f) {
             spawnProjectile(shooterId, fromX, fromY, shooterFaction, structure, target, aerialShooter,
                     distToTarget, effectiveAccuracy);
-            return;
+            return true;
         }
 
         boolean hit = rng.nextFloat() < effectiveAccuracy;
@@ -176,6 +227,7 @@ public final class TurretFireSystem implements TurretFireSink {
         float lifetime = weapon.flightSec > 0f ? weapon.flightSec : SHOT_LIFETIME;
         shots.postShot(new ShotEvent(shooterId, fromX, fromY, toX, toY, hit, shooterFaction,
                 lifetime, structure, null, null));
+        return true;
     }
 
     @Override
@@ -205,7 +257,7 @@ public final class TurretFireSystem implements TurretFireSink {
     }
 
     /** Modeled ground-level path for Vulcan/Heavy-MG bursts and any future direct mount. */
-    private void fireGroundDirect(long shooterId, float fromX, float fromY,
+    private boolean fireGroundDirect(long shooterId, float fromX, float fromY,
                                   Faction shooterFaction, StructureDef structure,
                                   long target, float distToTarget,
                                   float effectiveAccuracy) {
@@ -217,8 +269,20 @@ public final class TurretFireSystem implements TurretFireSink {
         BallisticResolver.Resolution res = resolver.resolve(
                 source, target, effectiveAccuracy, effectiveSpread,
                 weapon.directRoundVelocity(), weapon.range, rng);
+        // The round is resolved before the crew decides, as a rifleman's trigger pull is: the hold is on what
+        // this round would actually hit -- a friend it strikes, or one inside the burst where it lands -- not on
+        // a friend merely standing near the line.
+        float holdChance = friendlyFireHold.chance(shooterId);
+        if (holdChance > 0f) {
+            boolean friendlyThreat = res.friendlyHit()
+                    || weapon.aoeRadius > 0f && res.impacts()
+                    && friendsInBlast.reaches(shooterId, shooterFaction, res.endX(), res.endY(), weapon.aoeRadius);
+            if (holdsRound(friendlyThreat, holdChance, rng)) return false;
+        }
 
+        telemetry.recordRoundFired(shooterId);
         deliverGroundDirect(shooterId, fromX, fromY, shooterFaction, structure, res);
+        return true;
     }
 
     private void deliverGroundDirect(long shooterId, float fromX, float fromY,

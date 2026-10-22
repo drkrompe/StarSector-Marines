@@ -1,7 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 75 200">
-  <rect x="26" y="92" width="23" height="96" rx="4" fill="#000000" fill-opacity="0.55"/>
-  <rect x="30" y="100" width="6" height="80" fill="#ffffff" fill-opacity="0.45"/>
-  <rect x="20" y="86" width="35" height="12" rx="3" fill="#000000" fill-opacity="0.55"/>
-  <path d="M 37.5 10 C 58 34 60 56 50 80 L 25 80 C 15 56 17 34 37.5 10 Z" fill="#000000" fill-opacity="0.55"/>
-  <path d="M 37.5 30 C 48 46 49 60 44 74 L 31 74 C 26 60 27 46 37.5 30 Z" fill="#ffffff" fill-opacity="0.45"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100">
+  <rect x="8" y="26" width="38" height="48" rx="12" fill="#000000" fill-opacity="0.58"/>
+  <rect x="14" y="32" width="26" height="8" rx="3" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="50" y="43" width="32" height="14" rx="2" fill="#000000" fill-opacity="0.58"/>
+  <polygon points="84,38 102,44 102,56 84,62" fill="#000000" fill-opacity="0.58"/>
+  <path d="M 104 44 C 118 36 128 42 146 50 C 128 58 118 64 104 56 Z" fill="#000000" fill-opacity="0.58"/>
+  <path d="M 106 47 C 116 43 124 46 134 50 C 124 54 116 57 106 53 Z" fill="#ffffff" fill-opacity="0.5"/>
 </svg>

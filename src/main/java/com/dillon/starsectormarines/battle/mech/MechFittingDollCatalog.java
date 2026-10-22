@@ -168,7 +168,7 @@ public final class MechFittingDollCatalog {
                         0.36f, -0.15f, 1.34f, -0.46f, 1.36f, 0.68f, false, "R. SHOULDER"),
                 new SocketDef(SocketId.AMMO_RESERVE, SocketType.AMMO, 2, 2,
                         0.0f, -0.26f, -1.34f, 0.68f, 1.36f, 0.68f, false, "AMMO RESERVE"),
-                new SocketDef(SocketId.MINI_FAB, SocketType.UTILITY, 1, 1,
+                new SocketDef(SocketId.MINI_FAB, SocketType.UTILITY, 2, 1,
                         0.0f, -0.36f, 1.34f, 0.68f, 0.80f, 0.44f, false, "MINI-FAB")
         )));
 
@@ -184,7 +184,7 @@ public final class MechFittingDollCatalog {
                         0.36f, -0.12f, 1.38f, -0.48f, 1.40f, 0.68f, false, "R. SHOULDER"),
                 new SocketDef(SocketId.AMMO_RESERVE, SocketType.AMMO, 3, 1,
                         0.0f, -0.26f, -1.38f, 0.72f, 1.40f, 0.38f, false, "AMMO RESERVE"),
-                new SocketDef(SocketId.MINI_FAB, SocketType.UTILITY, 1, 1,
+                new SocketDef(SocketId.MINI_FAB, SocketType.UTILITY, 2, 1,
                         0.0f, -0.36f, 1.38f, 0.72f, 0.80f, 0.44f, false, "MINI-FAB")
         )));
 

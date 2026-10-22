@@ -107,11 +107,9 @@
               <div id="{squad.cardsId}" class="card-faces">
                 <div id="{squad.weaponChipId}" class="card-face">
                   <img id="{squad.weaponIconId}" class="card-face-icon" src="{squad.weaponIcon}" />
-                  <div id="{squad.weaponNameId}" class="label warm card-face-name">{squad.weaponName}</div>
                 </div>
                 <div id="{squad.armorChipId}" class="card-face">
                   <img id="{squad.armorIconId}" class="card-face-icon" src="{squad.armorIcon}" />
-                  <div id="{squad.armorNameId}" class="label warm card-face-name">{squad.armorName}</div>
                 </div>
               </div>
               <div id="{squad.formationstatusId}" class="{squad.personnelClasses}">{squad.personnel}</div>
@@ -257,9 +255,9 @@
   .scope-count { width: 0px; flex-grow: 1; height: 20px; }
   .select-all { width: 174px; height: 26px; padding: 0px 4px; text-align: center; font-family: heading; }
   .formation-list { display: grid; height: 0px; flex-grow: 1; gap: 10px; overflow: scroll; }
-  .formation { flex-direction: column; width: 260px; height: 228px; gap: 6px; padding: 8px; border-width: 2px; border-color: #586154; background-color: #202922; }
+  .formation { flex-direction: column; width: 260px; height: 232px; gap: 6px; padding: 8px; border-width: 2px; border-color: #586154; background-color: #202922; }
   .formation.selected { border-color: #dfc588; background-color: #383c2d; }
-  .formation-select { flex-direction: column; width: 100%; height: 178px; gap: 6px; padding: 0px; border-width: 0px; text-align: left; background-color: #202922; }
+  .formation-select { flex-direction: column; width: 100%; height: 182px; gap: 6px; padding: 0px; border-width: 0px; text-align: left; background-color: #202922; }
   .formation-select:hover { background-color: #303b30; }
   .formation.selected .formation-select { background-color: #383c2d; }
   .formation.stationed .formation-select { opacity: 1; }
@@ -269,11 +267,13 @@
   .formation-name { width: 0px; flex-grow: 1; height: 20px; }
   .card-strength { width: 54px; height: 20px; text-align: right; }
   .card-personnel { height: 16px; font-family: body; }
-  .card-faces { flex-direction: column; height: 42px; gap: 2px; }
-  .card-face { flex-direction: row; align-items: center; height: 20px; gap: 6px; padding: 0px 2px; }
-  .card-face:hover { background-color: #303b30; }
-  .card-face-icon { width: 20px; height: 20px; }
-  .card-face-name { width: 0px; flex-grow: 1; height: 18px; }
+  /* Two card slots side by side, icon only: the hover sheet names and describes the card.
+     Widths are fixed because the layout has no centering: 240px of card interior is two
+     117px slots and a 6px gap. Padding and border sit outside the width here, so a slot is\n     76px of content after 39px of padding and a 1px border, centering a 36px icon. */
+  .card-faces { flex-direction: row; height: 46px; gap: 6px; }
+  .card-face { flex-direction: row; align-items: center; width: 76px; height: 44px; padding: 0px 0px 0px 39px; border-width: 1px; border-color: #46554b; background-color: #151b17; }
+  .card-face:hover { border-color: #dfc588; background-color: #303b30; }
+  .card-face-icon { width: 36px; height: 36px; }
   .fill-button { flex-direction: row; align-items: center; width: 56px; height: 28px; padding: 0px 6px; gap: 4px; }
   .fill-button.hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
   .fill-icon { width: 18px; height: 18px; }
