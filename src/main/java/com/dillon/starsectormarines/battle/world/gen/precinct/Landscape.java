@@ -19,8 +19,12 @@ import java.util.List;
  *                 approach, or a track along one
  * @param brooks   streams run across the country before the woods are grown:
  *                 water nobody walks through, crossed at fords
+ * @param raggedMargin cells, at most, that a seeded ragged line of rough grass
+ *                 and scrub wanders either side of a field's straight edge,
+ *                 over the bare earth beside it or into the parcel; 0 for none. A burn then stops on an organic line
+ *                 rather than a field's ruler edge.
  */
-public record Landscape(float woodland, List<Track> tracks, List<Brook> brooks) {
+public record Landscape(float woodland, List<Track> tracks, List<Brook> brooks, int raggedMargin) {
 
     /** The groves' share of wild ground in the stock landscape pass. */
     public static final float STOCK_WOODLAND = 0.58f;
@@ -28,7 +32,13 @@ public record Landscape(float woodland, List<Track> tracks, List<Brook> brooks) 
     /** The landscape every plan has unless its mission says otherwise. */
     public static final Landscape STOCK = new Landscape(STOCK_WOODLAND, List.of(), List.of());
 
+    /** A landscape with no ragged field margins. */
+    public Landscape(float woodland, List<Track> tracks, List<Brook> brooks) {
+        this(woodland, tracks, brooks, 0);
+    }
+
     public Landscape {
+        if (raggedMargin < 0) throw new IllegalArgumentException("a margin is a width: " + raggedMargin);
         if (!(woodland >= 0f && woodland <= 1f)) throw new IllegalArgumentException("woodland is a share: " + woodland);
         tracks = tracks == null ? List.of() : List.copyOf(tracks);
         brooks = brooks == null ? List.of() : List.copyOf(brooks);

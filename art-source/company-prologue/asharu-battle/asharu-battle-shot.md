@@ -68,6 +68,13 @@ by 1 km (`debris_field`). It holds old hulks up to about 340 m, broken hull sect
 plates down to a few metres, all slowly tumbling about their own axes: the big wrecks at a few
 tenths of a degree a second, plates at several. Nothing in it is a sphere.
 
+**Nothing in it reads as a box** (owner, 2026-10-22, on preview 12). Each wreck's boxes are what
+`--check` measures the hiding against, but the picture draws a broken shape inside each one
+(`wreck_meshes`), chosen from the box's proportions: a tapered hull snapped off ragged at one end,
+with gashes in its side and a stub of superstructure; an open hull section ragged at both ends;
+a bent, torn plate with holes; a kinked truss spar; or a crumpled block torn open at one corner.
+They are blockout shapes. The finished field replaces them with modelled wrecks.
+
 The pirates hide in the field the way a crew would:
 - **The station hides only two:** the Manticore (P) in its south hangar and the Colossus Mk.III
   inverted under its biggest hull.
@@ -300,10 +307,12 @@ once time and place are established.
 - **S3 is the exception.** The pirates are running dark and not transmitting. The convoy's
   channel is quiet, chatting about the window, while the picture shows the trap: the audience
   sees what the recording could not hear.
-- **It ends on the recording.** In S11 the plasma takes the channel: the picture breaks into the
-  recording screen's static, the waveform flattens, the Colossus's and Morrow's channels drop out
-  one at a time, and **END OF RECORDING**. S12, the two trails, plays after it in silence, or
-  under the static: the last image is one no recording made.
+- **It ends on the recording** (owner, 2026-10-22: "we started by hearing a log and we end with
+  hearing the comms log"). In S11 the plasma takes the channel: the picture breaks into the
+  recording screen's static, the waveform flattens, and CARAVEL's and MORROW's channels drop out
+  one at a time. S12, the two trails, plays in silence: an image no recording made. Then S13 cuts
+  back to the log. The survivors and the pirates are still on the channel, and the log ends on
+  **END OF RECORDING**, not on a held frame.
 - **When it plays (owner, 2026-10-20): when the player arrives at Asharu,** before the Salvage
   Rights briefing. It sets the scene. Vale's "three cycles back, two fleets fought it out in low
   orbit" then confirms something the player has already seen, rather than introducing it.
@@ -440,7 +449,7 @@ About 2 minutes 15 (134 s): 10 s of recording, 40 s of setup and ambush, 60 s of
 
 | Shot | Length | Picture | Ships seen closest | Camera | Camera move |
 |---|---|---|---|---|---|
-| S0 | 10 s | **The recording.** Black, then the playback screen: source, timestamp, place, the channels lighting as each speaks, a waveform. The S1 traffic plays over it as audio only. On the escort lead's "close up the column", cut to picture. | (none) | (a screen, not a camera) | **Timed 2D layout** (`asharu_preview.recording_screen`): black, the screen fading in from 0.8 s, the COLOSSUS channel lit 1.8-6.4 s and ESCORT LEAD 6.9-9.7 s with the waveform following the voice, then the cut to picture at 10 s. |
+| S0 | 10 s | **The recording.** Black, then the playback screen: source, timestamp, place, the channels lighting as each speaks, a waveform. The S1 traffic plays over it as audio only. On the escort lead's "close up the column", cut to picture. | (none) | (a screen, not a camera) | **Timed 2D layout** (`asharu_preview.recording_screen`): black, the screen fading in from 0.8 s, the CARAVEL channel lit 1.8-6.4 s and WARDEN LEAD 6.9-9.7 s with the waveform following the voice, then the cut to picture at 10 s. |
 | S1a **K** | 6 s | **The view the player knows** (owner, 2026-10-21). The first picture after the recording looks straight down on the convoy, prograde up the frame: the ships small against the desert far below, the way the player has always seen them. Then the camera tips down and pulls into 3D for S1. | the core convoy, from above | 100 mm, straight down from 11 km | **ZOOM OUT, ZOOM IN** (owner, 2026-10-22): a long-range optic straight down, prograde up, that never turns: out to the convoy small on the desert (35 mm), then in on its core (300 mm), sliding sideways onto it, focus hunting as it racks in and snapping sharp. Then a cut to S1's action camera. |
 | S1 **K** | 8 s | Establishing: the convoy in loose column over the day side, the limb high in frame, the desert sliding beneath. Ordinary work. | the whole convoy, small | 35 mm, high off the north flank | **Dolly + ZOOM OUT:** drops back along the column as the convoy overtakes the lens, widening 35 to 22 mm to put it against the limb. |
 | S2 | 6 s | Alongside the Colossus. Morrow rides off her starboard quarter; a Lasher slides through the foreground. | Colossus, Morrow, Lasher | 28 mm, tracking alongside at 300 m | **Tracking:** alongside at 300 m off her port side, easing forward along her length (28 mm). Lasher A slides through the foreground right to left; Morrow off the starboard quarter, drones stowed. Blocked for the preview only (`m2`), no key frame. |
@@ -456,25 +465,46 @@ About 2 minutes 15 (134 s): 10 s of recording, 40 s of setup and ambush, 60 s of
 | S9 **K** | 8 s | She will not be taken: the Colossus Mk.III closes from above; she fights with flares and both turrets and drives off a Kite; Morrow is under her keel holding her up. Two Borers cut the pod free while two more launch and rake the Wolf and the Kite with their mining lasers. | Colossus, Colossus Mk.III, Morrow, Borers | 28 mm, 600 m off her port side | **ZOOM OUT:** on to the wide, then wider (20 mm) for the Mk.III's scale; jolted by the pod and the Kite's hit. |
 | S9b **K** | 8 s | The lead's last run. Smoking since S6, the lead Lasher dives over the Falcon (P) on her back. The Falcon's broad front shield takes it and flares, then overloads in a burst of arcs, and the Lasher's guns walk down the flagship's open flank. The Falcon's broadside answers, and the Lasher tumbles away burning. | lead Lasher, Falcon (P) | 28 mm, close, just above the Lasher | **Pass-by:** the camera drifts while the Lasher dives past and away, panning after her; jolted by the hits. |
 | S10 **K** | 8 s | The prize taken: the Tarsus clamped to the Colossus Mk.III; far below, the Colossus nose-down and losing her orbit, Morrow with her. | Falcon (P), Colossus Mk.III, Tarsus; Colossus and Morrow below | 35 mm, behind and above | **ZOOM OUT to scale:** long on the clamped prize (85 mm), widening and tilting down to the Colossus falling away (24 mm). |
-| S11 | 8 s | Entry: from just behind, plasma builds round both hulls; Morrow drifts apart from her. The radio breaks up, the picture breaks into the recording screen's static, the channels drop out, and END OF RECORDING. | Colossus, Morrow | 50 mm, chase | **Chase:** just behind and above the Colossus, closing a little and shaking harder as the plasma builds (42 to 38 mm), framed to keep Morrow as she drifts apart. From 124.5 s the picture breaks into the recording screen's static, the Colossus's and Morrow's channels drop out, and END OF RECORDING at 125.5 s. Blocked for the preview only (`m11`). Entry plasma is **new effects work**: the preview draws it as a sheath cone from each bow, building from 118 to 124 s. |
-| S12 **K** | 8 s | After the recording ends: two trails down the track toward the horizon and the canyon country, in silence. Hold. End. | (trails only) | 50 mm from the pirates' orbit | Holds (deliberate). |
+| S11 | 8 s | Entry: from just behind, plasma builds round both hulls; Morrow drifts apart from her. The radio breaks up, the picture breaks into the recording screen's static, the channels drop out, and END OF RECORDING. | Colossus, Morrow | 50 mm, chase | **Chase:** just behind and above the Colossus, closing a little and shaking harder as the plasma builds (42 to 38 mm), framed to keep Morrow as she drifts apart. From 124.5 s the picture breaks into the recording screen's static, and CARAVEL's and MORROW's channels drop out. END OF RECORDING is in S13, back on the log. Blocked for the preview only (`m11`). Entry plasma is **new effects work**: the preview draws it as a sheath cone from each bow, building from 118 to 124 s. |
+| S12 **K** | 8 s | After the recording breaks up: two trails down the track toward the horizon and the canyon country, in silence. | (trails only) | 50 mm from the pirates' orbit | **Slow push-in + pan:** from 45 mm, easing in to 70 mm and tilting down after the trails as they fall toward the canyons. |
+| S13 | 13 s | **Back on the log.** The recording screen again, with CARAVEL's and MORROW's channels dark. The survivors call each other, the pirate flag signs off, and the log ends on END OF RECORDING. | (none) | (a screen, not a camera) | **Timed 2D layout** (`asharu_preview.recording_screen`, mode `close`), synced to `radio_log.CLOSING`. |
 
 ## Radio traffic (draft)
 
 The convoy and the pirates talk throughout, as captions with a speaker tag over the picture.
 That is the arrival cinematic's caption track: `CinematicShot` captions name a `strings.json`
 key and a speaker, and the player pages them (`CaptionPager`). No English is baked into the
-frames.
+frames. The motion preview burns each line in as a caption at its time, so the owner can judge
+the traffic's density and whether the edit follows the radio.
 
 It is **voiced**: an in-universe cast, which the game otherwise never has.
 
+**The final script is a writer's job, not the blockout's** (owner, 2026-10-22: a Fable writer
+session writes the battle's comms log). The lines below are a draft. They exist to time the edit
+and to show where the traffic falls. Lines marked *placeholder* only hold a gap's timing and are
+not dialogue to keep. The writer needs three things, all here:
+- **the shot timings**: the "Shot list" table above, where sequence time is battle time (S0 0-10 s
+  through S13 134-147 s);
+- **the cast and callsigns**: `radio_log.CALLSIGNS`, summarised in the first rule below;
+- **the rules** below, and the window each line must fit (the t column). The writer's lines replace
+  `radio_log.TRAFFIC`, which the preview and the playback screens read.
+
 Rules:
-- **A cast of voices, credited by ship and role.** Each voice is a person with a character: the
+- **Callsigns, never hull classes** (owner, 2026-10-22: "Ford Focus I need you to be on my flank
+  Chrysler Challenger out"). The convoy flies under one callsign, CARAVEL: the Colossus, its master's
+  ship, is CARAVEL, and its freighters are numbered. Its escorts are WARDENs, with the lead Lasher as
+  WARDEN LEAD. Morrow keeps her own name, because the player later reads it on her name plate. The
+  pirates have handles: BARON (the Falcon (P)), HOOK (the Colossus Mk.III), LATCH (the boarding Kite),
+  ANVIL, KNIFE, CUR, SACK. Hull classes appear only in the preview's legend. `radio_log.py` holds the
+  cast, every timed line (`TRAFFIC`), and the strings.json key for each line
+  (`asharuRadio<Shot>_<n>`). Those keys are not in strings.json yet, because the cinematic is not
+  wired into the game.
+- **A cast of voices, credited by callsign.** Each voice is a person with a character: the
   Colossus's master is steady and tired, the escort lead is clipped, the rear Hound is young, and
   the pirate flag is unhurried. But nobody gets a personal name. The story keeps Morrow's
   original crew, and every other crew, unnamed (`shepherd-recovery-dialogue.md`): Basin never
   learns who they were, and the cinematic does not tell the player either. A caption tag reads
-  COLOSSUS or ESCORT LEAD.
+  CARAVEL or WARDEN LEAD.
 - **Flux is spoken.** Shield and flux calls are the kind of thing a player recognises from the
   game ("shields at ninety", "she's venting, now", "overload"). They also carry the
   back-and-forth.
@@ -482,43 +512,53 @@ Rules:
   matters. The pirates want what is in the holds and never say what it is.
 - **Working voices.** Short, procedural, a little tired, and frightened only once it goes bad.
   This is ordinary traffic and an ordinary raid.
-- **Silence is a beat.** S3 has no convoy traffic, and S11-S12 lose the radio to plasma and
-  then to distance.
+- **Silence is a beat.** S3 has no convoy traffic, only the pirate flag's "Hold", and S11-S12
+  lose the radio to plasma and then to distance.
 
-| Shot | Speaker | Line |
-|---|---|---|
-| S1 | Colossus | Convoy, Colossus. Window opens in forty. All ships ease to two-thirds. |
-| S1 | Escort lead | Lead copies. Escorts, close up the column. |
-| S2 | Morrow | Morrow, standing off your starboard quarter. Drones stowed. |
-| S3 | (pirate channel, low) | Hold. ... Hold. ... Light them. |
-| S4 | Rear escort | Lead, rear. Drives behind us. Low, off that old station. A lot of them. |
-| S4 | Escort lead | Say again. |
-| S4 | Rear escort | Twelve. Climbing. |
-| S5 | Escort lead | Escorts, come about. Convoy, full burn, now. |
-| S5 | Colossus | We're committed to the window. We can't outrun them from here. |
-| S6 | Phaeton | Phaeton, we're hit, we're venting, we're — |
-| S6 | Escort lead | Lead turning back. Cover the tail. |
-| S6b | Lasher B | Two, rolling in. Wolf, take her left. |
-| S6b | Merchant Wolf | She's got no shield. Hit her. |
-| S6b | Lasher B | Feeders on. ... She's breaking up. One down. |
-| S6c | Mule | Two frigates in the gap! They're in the column! |
-| S6c | Merchant Wolf | Shields up, they blinked, where — on the Tarsus, they're on the Tarsus! |
-| S6c | Tarsus | Taking fire aft, flux at ninety, I can't hold the shield — |
-| S6d | Rear escort | Two on me. ... Got one. Got one! |
-| S6d | Rear escort | Drives hit. Falling back on the column. Flares out. |
-| S7 | Pirate (Kite) | Tarsus. Open your locks and you all walk away. |
-| S7 | Tarsus | Drives are gone. They're alongside. Boarders, boarders — |
-| S8 | Colossus | Port pod's gone. Morrow, get under us. |
-| S9 | Morrow | Under you. Taking the weight. |
-| S9 | Pirate (Mk.III) | Colossus. Heave to. You're next. |
-| S9b | Escort lead | Lead. One more pass. On the flagship. |
-| S9b | Pirate (Falcon) | Shield up. ... Shield's overloading — |
-| S9b | Escort lead | She's open. She's open! |
-| S9b | Pirate (Falcon) | Broadside. Burn that frigate off my hull. |
-| S10 | Pirate (Falcon) | Let her go. She's going down anyway. Take the Tarsus. |
-| S10 | Colossus | We're losing the orbit. Morrow, break off. |
-| S10 | Morrow | Staying with you. |
-| S11 | (both) | static; the plasma takes the channel; END OF RECORDING |
+| Shot | t (s) | Speaker | Line |
+|---|---|---|---|
+| S1 | 1.8-6.4 | CARAVEL | All Caravel ships, Caravel. Window opens in forty. Ease to two-thirds. |
+| S1 | 6.9-9.7 | WARDEN LEAD | Warden Lead copies. Wardens, close up the column. |
+| S1 | 16.8-18.6 | WARDEN TWO | Two, on station. *(placeholder)* |
+| S1 | 20.2-22.4 | CARAVEL SEVEN | Seven, two-thirds, aye. *(placeholder)* |
+| S2 | 24.6-28.6 | MORROW | Caravel, Morrow. Standing off your starboard quarter. Drones stowed. |
+| S3 | 31.2-34.0 | BARON | Hold. ... Hold. ... Light them. |
+| S4 | 38.6-41.6 | WARDEN FIVE | Lead, Five. Drives behind us. Low, off that old station. A lot of them. |
+| S4 | 41.9-42.6 | WARDEN LEAD | Say again. |
+| S4 | 42.9-43.9 | WARDEN FIVE | Eleven. Climbing. |
+| S5 | 44.4-46.9 | WARDEN LEAD | Wardens, come about. Caravel, full burn, now. |
+| S5 | 47.2-49.8 | CARAVEL | We're committed to the window. We can't outrun them from here. |
+| S6 | 51.0-53.2 | CARAVEL SIX | Six, we're hit, we're venting, we're — |
+| S6 | 54.5-56.6 | WARDEN LEAD | Lead turning back. Cover the tail. |
+| S6b | 58.4-60.6 | WARDEN THREE | Three, rolling in. Four, take her left. |
+| S6b | 61.0-62.6 | WARDEN FOUR | She's got no shield. Hit her. |
+| S6b | 63.0-65.6 | WARDEN THREE | Feeders on. ... She's breaking up. One down. |
+| S6c | 66.4-68.4 | CARAVEL FOUR | Two frigates in the gap! They're in the column! |
+| S6c | 68.8-71.4 | WARDEN FOUR | Shields up, they blinked, where — on Two, they're on Caravel Two! |
+| S6c | 71.8-73.9 | CARAVEL TWO | Taking fire aft, flux at ninety, I can't hold the shield — |
+| S6d | 74.4-76.6 | WARDEN FIVE | Two on me. ... Got one. Got one! |
+| S6d | 77.4-79.6 | WARDEN FIVE | Drives hit. Falling back on the column. Flares out. |
+| S7 | 80.8-83.8 | LATCH | Caravel Two. Open your locks and you all walk away. |
+| S7 | 84.4-87.0 | CARAVEL TWO | Drives are gone. They're alongside. Boarders, boarders — |
+| S8 | 88.6-91.0 | CARAVEL | Port pod's gone. Morrow, get under us. |
+| S8 | 91.8-93.6 | CARAVEL FOUR | Four, flux at sixty, holding. *(placeholder)* |
+| S9 | 94.4-96.0 | MORROW | Under you. Taking the weight. |
+| S9 | 96.4-98.0 | MORROW | Borers out. *(placeholder)* |
+| S9 | 98.6-101.2 | HOOK | Caravel. Heave to. You're next. |
+| S9b | 102.4-104.6 | WARDEN LEAD | Lead. One more pass. On their flagship. |
+| S9b | 105.0-106.6 | BARON | Shield up. ... Shield's overloading — |
+| S9b | 106.9-107.9 | WARDEN LEAD | She's open. She's open! |
+| S9b | 108.2-109.9 | BARON | Broadside. Burn that frigate off my hull. |
+| S10 | 110.4-113.4 | BARON | Let her go. She's going down anyway. Take Caravel Two. |
+| S10 | 113.9-116.0 | CARAVEL | We're losing the orbit. Morrow, break off. |
+| S10 | 116.4-117.4 | MORROW | Staying with you. |
+| S11 | 119.0-121.4 | CARAVEL | Caravel, hull temperature climbing. *(placeholder)* |
+| S11 | 121.8-123.6 | MORROW | Morrow, losing you in the — *(placeholder)* |
+| S11 | 124.5- | | static; the plasma takes the channel; CARAVEL and MORROW drop out |
+| S13 | 135.2-138.4 | CARAVEL FOUR | All Caravel ships, Caravel Four. Who is still with me? |
+| S13 | 139.0-141.4 | WARDEN THREE | Warden Three. Still here. The column is scattered. |
+| S13 | 141.9-144.6 | BARON | Baron to all hands. We have what we came for. Burn out. |
+| S13 | 145.6 | | END OF RECORDING |
 
 Open for the owner:
 - Morrow's "Staying with you" makes her going down with the Colossus a choice. The plan
@@ -537,7 +577,7 @@ The recording screen (S0) states where and when, before anything is seen:
 - **The timestamp is in the game's own date format.** The player computes it at run time as the
   date of the player's arrival minus three cycles, written in the game's own date format, so it
   is right in every save.
-- **The channels:** one row per speaker (COLOSSUS, ESCORT LEAD, MORROW and the rest), lighting
+- **The channels:** one row per speaker by callsign (CARAVEL, WARDEN LEAD, MORROW and the rest), lighting
   as each speaks. The caption tags in the picture use the same names, so the screen teaches the
   cast before the picture starts.
 

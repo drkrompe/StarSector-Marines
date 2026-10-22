@@ -25,9 +25,12 @@ import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainSurface;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.function.IntPredicate;
 
 /** Closing outdoor pass: optional landscape yields to finished places, circulation and access. */
 public final class OutdoorLandscapeStage implements GenStage {
@@ -46,6 +49,7 @@ public final class OutdoorLandscapeStage implements GenStage {
         SurfacePalette surface = profile == null ? SurfacePalette.ROCK : profile.surface();
         PrecinctPlan plan = c.get(BspKeys.PRECINCTS);
         Landscape landscape = plan == null ? Landscape.STOCK : plan.landscape();
+        if (landscape.raggedMargin() > 0) raggedMargins(c, landscape.raggedMargin());
         clearTracks(c, landscape);
         List<int[]> brookCells = runBrooks(c, landscape);
         boolean[] reserved = reservations(c);
@@ -211,6 +215,102 @@ public final class OutdoorLandscapeStage implements GenStage {
             points.add(new TerrainPlan.Point(Math.min(c.width-1,x+radius/2),y+2));
         }
         return new TerrainPlan.Stroke(TerrainPlan.Mode.RAISE,brushRadius,points);
+    }
+
+    /** Rough plants a field margin grows, as tile ids; brush burns as grass does. */
+    private static final String[] MARGIN_PLANTS = {"nature.grass-1", "nature.grass-3", "nature.grass-5", "nature.tuft-1", "nature.tuft-2", "nature.tuft-3", "nature.shrub-1", "nature.shrub-2"};
+    /** Cells between the margin noise's lattice points: how long a stretch of edge bulges or dips together. */
+    private static final int MARGIN_NOISE_CELLS = 5;
+
+    /**
+     * A ragged edge on every field: rough grass and scrub along a seeded,
+     * smoothly wandering line up to {@code margin} cells either side of the
+     * parcel's edge, grown out over the bare earth beside it where the line
+     * bulges and eating into the parcel's own edge where it dips. A parcel is a
+     * rectangle, and once a burn has taken the crop and the creep off it, it
+     * shows as one, against bare earth (which does not burn, `fire-nouns.md`)
+     * or wild ground alike; with this the line between them is organic. Runs
+     * before the tracks are cleared, so a ride stays bare earth wherever a
+     * margin reaches it.
+     */
+    private static void raggedMargins(GenContext c, int margin) {
+        int w = c.width, h = c.height;
+        TileRegistry registry = TileRegistry.installed();
+        List<Integer> plants = new ArrayList<>();
+        for (String id : MARGIN_PLANTS) if (registry != null && registry.has(id)) plants.add(registry.indexOf(id));
+        boolean[] field = new boolean[w * h];
+        for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) field[y * w + x] = c.isMadeGround(x, y) && naturalGround(c, x, y);
+        // Outward: from a field's burning ground over the bare earth beside it.
+        int[] out = new int[w * h];
+        Arrays.fill(out, Integer.MAX_VALUE);
+        ArrayDeque<Integer> queue = new ArrayDeque<>();
+        for (int i = 0; i < w * h; i++) if (field[i] && fuel(c, i % w, i / w)) { out[i] = 0; queue.add(i); }
+        spread(c, out, queue, margin, n -> naturalGround(c, n % w, n / w) && !fuel(c, n % w, n / w));
+        // Inward: from everything that is not a field into the parcel's own edge.
+        int[] in = new int[w * h];
+        Arrays.fill(in, Integer.MAX_VALUE);
+        for (int i = 0; i < w * h; i++) if (!field[i]) { in[i] = 0; queue.add(i); }
+        spread(c, in, queue, margin, n -> field[n]);
+        long seed = c.seed ^ 0x4d415247494eL;
+        for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) {
+            int i = y * w + x;
+            float line = marginNoise(seed, x, y);
+            boolean grown = out[i] > 0 && out[i] != Integer.MAX_VALUE && out[i] <= line * (margin + 1);
+            boolean eaten = in[i] > 0 && in[i] != Integer.MAX_VALUE && in[i] <= (1f - line) * (margin + 1);
+            if (!grown && !eaten) continue;
+            c.topology.setSurface(x, y, 0);
+            c.topology.setGroundKind(x, y, GroundKind.GRASS);
+            long roll = mix(seed + 1, x, y);
+            boolean plant = !plants.isEmpty() && Math.floorMod(roll, 3L) != 0;
+            c.topology.setNatureOverlayIndex(x, y, plant ? plants.get((int) Math.floorMod(roll >>> 8, (long) plants.size())) : -1);
+        }
+    }
+
+    /** Chebyshev distances out from the queued cells, over cells {@code passable} admits, up to {@code limit}. */
+    private static void spread(GenContext c, int[] dist, ArrayDeque<Integer> queue, int limit, IntPredicate passable) {
+        int w = c.width, h = c.height;
+        while (!queue.isEmpty()) {
+            int i = queue.poll(), x = i % w, y = i / w, d = dist[i] + 1;
+            if (d > limit) continue;
+            for (int dy = -1; dy <= 1; dy++) for (int dx = -1; dx <= 1; dx++) {
+                int nx = x + dx, ny = y + dy;
+                if ((dx | dy) == 0 || nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+                int n = ny * w + nx;
+                if (dist[n] <= d || !passable.test(n)) continue;
+                dist[n] = d;
+                queue.add(n);
+            }
+        }
+    }
+
+    /** Whether ground carries fuel of its own: grass, crop, sand, snow, or a plant on it. */
+    private static boolean fuel(GenContext c, int x, int y) {
+        return switch (c.topology.getGroundKind(x, y)) {
+            case GRASS, SAND, SNOW -> true;
+            default -> c.topology.getNatureOverlayIndex(x, y) >= 0;
+        };
+    }
+
+    /** Smooth seeded value noise in [0, 1): bilinear over a lattice {@link #MARGIN_NOISE_CELLS} apart. */
+    static float marginNoise(long seed, int x, int y) {
+        int gx = Math.floorDiv(x, MARGIN_NOISE_CELLS), gy = Math.floorDiv(y, MARGIN_NOISE_CELLS);
+        float fx = (x - gx * MARGIN_NOISE_CELLS) / (float) MARGIN_NOISE_CELLS;
+        float fy = (y - gy * MARGIN_NOISE_CELLS) / (float) MARGIN_NOISE_CELLS;
+        float a = lattice(seed, gx, gy), b = lattice(seed, gx + 1, gy);
+        float cc = lattice(seed, gx, gy + 1), d = lattice(seed, gx + 1, gy + 1);
+        float top = a + (b - a) * fx, bottom = cc + (d - cc) * fx;
+        return top + (bottom - top) * fy;
+    }
+
+    private static float lattice(long seed, int x, int y) {
+        return (mix(seed, x, y) >>> 40) / (float) (1L << 24);
+    }
+
+    private static long mix(long seed, int x, int y) {
+        long h = seed ^ (x * 0x9E3779B97F4A7C15L) ^ (y * 0xC2B2AE3D27D4EB4FL);
+        h ^= h >>> 31;
+        h *= 0xBF58476D1CE4E5B9L;
+        return h ^ (h >>> 29);
     }
 
     /**

@@ -34,6 +34,9 @@
                 <div id="{squad.nameId}" class="label heading row-name">{squad.name}</div>
                 <div id="{squad.statusId}" class="label tone-accent row-small">{squad.status}</div>
                 <div id="{squad.strengthId}" class="label tone-muted row-small">{squad.strength}</div>
+                <div id="{squad.slotsId}" class="squad-slots">
+                  <canvas each="slot in squad.slots" key="{slot.id}" id="{slot.id}" class="squad-slot" width="112" height="112" />
+                </div>
               </button>
             </div>
           </div>
@@ -41,10 +44,14 @@
             <div id="mech-assets-heading" class="section-title label heading tone-edge">{i18n.openingUiMechLabAssignedHeavyAssets}</div>
             <div id="mech-list" class="mech-list">
               <button each="mech in mechRows" key="{mech.id}" id="{mech.id}" class="{mech.classes}" onclick="{mech.select}">
-                <div id="{mech.nameId}" class="label heading mech-card-name tone-accent">{mech.name}</div>
-                <div id="{mech.chassisId}" class="label tone-muted mech-card-line">{mech.chassis}</div>
-                <div id="{mech.subsystemId}" class="label tone-edge mech-card-line">{mech.subsystem}</div>
-                <div id="{mech.actionId}" class="{mech.statusClasses}">{mech.status}</div>
+                <canvas id="{mech.previewId}" class="mech-card-preview" width="180" height="200" />
+                <div id="{mech.copyId}" class="mech-card-copy">
+                  <div id="{mech.padId}" class="label heading tone-edge mech-card-pad">{mech.pad}</div>
+                  <div id="{mech.nameId}" class="label heading mech-card-name tone-accent">{mech.name}</div>
+                  <div id="{mech.chassisId}" class="label tone-muted mech-card-line">{mech.chassis}</div>
+                  <div id="{mech.subsystemId}" class="label tone-edge mech-card-line">{mech.subsystem}</div>
+                  <div id="{mech.actionId}" class="{mech.statusClasses}">{mech.status}</div>
+                </div>
               </button>
             </div>
           </div>
@@ -214,14 +221,20 @@
   .picker-body { flex-direction: row; width: 100%; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
   .picker-lances { flex-direction: column; width: 270px; padding: 8px; gap: 5px; }
   .squad-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; overflow: scroll; }
-  .mech-squad-row { flex-direction: column; width: 100%; height: 66px; padding: 7px; gap: 2px; border-width: 1px; text-align: left; }
+  .mech-squad-row { flex-direction: column; width: 100%; height: 124px; padding: 7px; gap: 2px; border-width: 1px; text-align: left; }
+  .squad-slots { flex-direction: row; width: 100%; height: 56px; gap: 4px; padding-top: 2px; }
+  .squad-slot { width: 56px; height: 56px; border-width: 1px; border-color: #3a4442; }
   .picker-assets { flex-direction: column; width: 0px; flex-grow: 1; padding: 8px; gap: 5px; overflow: hidden; }
   .mech-list { flex-direction: row; align-items: start; width: 100%; height: 0px; flex-grow: 1; gap: 8px; overflow: scroll; }
-  .mech-row { flex-direction: column; width: 250px; height: 110px; padding: 10px; gap: 5px; border-width: 1px; text-align: left; }
+  .mech-row { flex-direction: row; width: 360px; height: 120px; padding: 8px; gap: 10px; border-width: 1px; text-align: left; }
+  .mech-row.vacant { border-color: #6a5a30; }
+  .mech-card-preview { width: 90px; height: 100px; border-width: 1px; border-color: #3a4442; }
+  .mech-card-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 3px; }
+  .mech-card-pad { height: 16px; }
   .mech-squad-row.selected, .mech-row.selected, .doll-slot.selected, .catalog-row.selected { background-color: #2a3632; border-color: #dfc588; }
   .row-name { height: 18px; }
   .row-small { height: 16px; }
-  .mech-card-name { height: 32px; white-space: normal; font-family: title; }
+  .mech-card-name { height: 22px; white-space: normal; font-family: title; }
   .mech-card-line { height: 20px; }
   .mech-card-action { height: 20px; padding-top: 0px; text-align: right; }
 
