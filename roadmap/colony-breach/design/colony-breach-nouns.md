@@ -622,13 +622,12 @@ craft's drawn height, hit or miss, in an amber flash, and leaves spore haze
 drifting there; it never marks the ground beneath.
 
 A spore colony **looks armed with nothing overhead**, since a breach rarely has
-aircraft and a gun that never fires otherwise reads as scenery: spores breathe
-off its sacs all the time, amber motes lifting and drifting up off the body
-(more of them the higher its grade) in a lilac haze it exhales on a slow breath.
-Its **reach** is not drawn in ordinary play, which would cover the creep in
-rings; while a hostile aircraft is airborne, each colony's reach is a faint
-dashed ring on the ground, brighter while it is engaging, so a player flying a
-sortie sees the umbrella it is flying into (`ColonyThreatFx`).
+aircraft and a gun that never fires otherwise reads as scenery: spores lift off
+its sacs all the time, amber motes in a faint lilac halo rising and drifting up
+off the body, more of them the higher its grade (`ColonyThreatFx`; the owner's
+pick over an exhaled haze, alone or with the motes). Its **reach is not drawn**
+(owner): a ring round every colony, or round each while aircraft are up, was
+offered and declined; the shots and the motes say where it stands.
 
 Bores and colonies are grown, not built, and look it: they wear the same
 Rav Bloom palette as the creatures (lilac and dusky-violet carapace over

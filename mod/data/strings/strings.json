@@ -2868,9 +2868,8 @@
     "openingUiMechLabSelectMountDragToFit": "SELECT MOUNT / DRAG TO FIT",
     "openingUiMechLabBrowseLances": "BROWSE LANCES",
     "openingUiMechLabSpecifications": "SPECIFICATIONS",
-    "openingUiMechLabFittingLocations": "FITTING LOCATIONS",
-    "openingUiMechLabSelectASocketToFilterHardware": "Select a socket to filter hardware.",
-    "openingUiMechLabStrip": "STRIP",
+    "openingUiMechLabFittingLocations": "SELECTED MOUNT",
+    "openingUiMechLabSelectASocketToFilterHardware": "Click a mount on the mech to inspect it.",
 
     "openingBoatCount": "{0,choice,0#0 boats aboard|1#1 boat aboard|1<{0,number,integer} boats aboard}",
     "openingBoatCarrier": "carried by {0}",
