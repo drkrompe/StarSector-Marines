@@ -232,6 +232,8 @@ def apply(plate_rgb, version="v1"):
     if gen is None:
         return plate_rgb
     from c3_plates import blur, shift
+    if not (G / "c3-settlement-target.png").exists() or not (G / "c3-settlement-mask.png").exists():
+        prep()                                                     # generated guides: a fresh checkout has none
     tgt = np.asarray(Image.open(G / "c3-settlement-target.png").convert("RGB"), np.float32) / 255
     mask = np.asarray(Image.open(G / "c3-settlement-mask.png"), np.float32) / 255
     g = np.asarray(gen, np.float32) / 255
