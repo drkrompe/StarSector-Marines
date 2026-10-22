@@ -669,7 +669,10 @@ for one job in the cycle, and reads that way on screen.
   body and the shanks over them. It walks, trots and gallops with the hips
   and shoulders swaying against each other; it plants its feet to stand, to
   brace for the tell and while it can't act, and gallops through a charge with
-  its head down. A blow is the whole body's, timed off the attack cooldown as
+  its head down. Its back gives: the body is drawn as front and rear halves
+  that meet in the middle of the back, and through a turn the spine bows into
+  it, stiffer and slower than a Runner's, the halves hinged at the outer edge
+  so they never open a gap. A blow is the whole body's, timed off the attack cooldown as
   the Runner's arms are: the weight goes back onto the hind legs and the
   forequarters rise, then it drives forward through the shoulders, the front
   hooves stamping down ahead and the head driving with them; a charge's hit
@@ -699,7 +702,8 @@ for one job in the cycle, and reads that way on screen.
   then hunts as a Brute does (an emplacement first), and every blow is an
   action that holds the body and lands part-way through, so it is seen coming.
   Infantry is reaped: one scythe sweeps across its front, right then left on
-  the next, cutting a handful in the arc. An emplacement, a hull or a mech
+  the next, cutting a handful in the arc and throwing whoever lives through it
+  down and across the sweep. An emplacement, a hull or a mech
   takes the crown. It breaks walls a Brute cannot (a fort's buildings, not its
   curtain until something has worn that down), from further off, and never
   walks round to a door. It is not staggered and does not charge. Until it has

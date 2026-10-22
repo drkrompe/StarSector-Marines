@@ -16,8 +16,8 @@ import java.util.Arrays;
  * <p>It comes out roaring, then hunts as a Brute does: a sensed emplacement first, otherwise the swarm's
  * prey, pressing toward it on the swarm's strategic move. What it does on reaching it depends on what it
  * reached. Infantry is reaped: one scythe sweeps across its front, right then left on the next, and cuts
- * everyone in the arc, a handful at a time. Anything else, an emplacement, a hull or a mech, takes the
- * crown: it rocks back onto its haunches and drives the plated crown into it. Prey inside a building, or
+ * everyone in the arc, a handful at a time, throwing whoever lives through it down and across. Anything
+ * else, an emplacement, a hull or a mech, takes the crown: it rocks back onto its haunches and drives the plated crown into it. Prey inside a building, or
  * behind a barricade, is reached through the wall: it breaks walls a Brute could not (a fort's buildings,
  * not its curtain until something has worn that down), from further off, and never walks round to a door.
  *
@@ -36,6 +36,8 @@ final class SwarmMatriarchBehavior {
     static final int REAP_MAX_BODIES = 5;
     /** A scythe goes through infantry plate as a Brute's blow does, and further. */
     static final float REAP_PENETRATION = 12f;
+    /** A reaped body is thrown this much forward for each cell across the front. */
+    static final float TOSS_FORWARD = 0.75f;
     /** The crown: a mech's armour is not proof against it. */
     static final float CROWN_DAMAGE = 90f;
     static final float CROWN_PENETRATION = 22f;
@@ -154,7 +156,15 @@ final class SwarmMatriarchBehavior {
         }
         long[] struck = reaped(matriarch, action.axisX, action.axisY, sim);
         float damage = sim.combat().attackDamage(matriarch);
-        for (long body : struck) sim.applyDamage(body, matriarch, damage, REAP_PENETRATION, morale);
+        // The sweep carries what it cuts with it: forward and across to the side the blade swings toward.
+        float across = action.kind == Kind.REAP_RIGHT ? -1f : 1f;
+        float rightX = action.axisY, rightY = -action.axisX;
+        float tx = action.axisX * TOSS_FORWARD + rightX * across, ty = action.axisY * TOSS_FORWARD + rightY * across;
+        float tl = (float) Math.hypot(tx, ty);
+        for (long body : struck) {
+            sim.applyDamage(body, matriarch, damage, REAP_PENETRATION, morale);
+            sim.bruteCharges().toss(matriarch, body, tx / tl, ty / tl);
+        }
         sim.swarmCues().post(SwarmCues.Kind.STRIKE, matriarch, sim);
     }
 
