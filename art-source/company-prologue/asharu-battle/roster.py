@@ -23,6 +23,10 @@ sys.path.insert(0, str(ART))
 import ship_scale  # noqa: E402
 from starsector_path import GAME_CORE  # noqa: E402
 
+# The painted backdrop plates (planet session; composite_layers.py): <kf>.backdrop.exr, scene-linear, on each key
+# frame's camera, with manifest.json. A render-queue job copies them to build/asharu-battle/plates/.
+PLATES = 'builds/asharu-plates/78f2d1140'
+
 # Finished cinematic builds this scene appends. Each build is one Drive folder, copied whole to
 # build/asharu-battle/builds/<dir>/ (ignored) by hand or as a render-queue drive input:
 #   dir: the local folder; drive: its source under Drive starsector/; file: the .blend in it (the

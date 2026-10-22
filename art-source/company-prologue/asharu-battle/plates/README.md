@@ -27,6 +27,8 @@ over it unchanged. The moving shots keep the rendered planet with the surface de
    without rendering) so the plate grades back to the painting; writes the EXR, a display PNG
    and the manifest under `build/asharu-plates/out/`. `--post <commit>` copies them to Drive.
 
-The grade cannot reach every painted colour: AgX desaturates bright highlights, so the
-brightest, warmest sand (about 3% of S1a) comes back up to about 15 code values less warm.
-Everything else round-trips within a code value.
+The painting is first tone-matched to the graded r9b S1a still (`tone_match.json`, a per-channel
+curve fitted once by quantile matching): the guide lit the ground as if the sun were overhead,
+the scene sun is 16 degrees up, and the composite must not put sunlit-looking ships over a
+plate twice their brightness. After that the colours are inside what AgX can produce and
+round-trip exactly.

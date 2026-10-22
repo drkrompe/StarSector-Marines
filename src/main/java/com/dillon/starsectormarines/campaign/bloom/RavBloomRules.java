@@ -11,8 +11,6 @@ public final class RavBloomRules {
     public static final int FIRST_WAKE_DAY = 30;
     /** A colony younger than this has not dug deep enough to wake anything. */
     public static final int MIN_MARKET_AGE_DAYS = 90;
-    /** Colonies this young are still digging new workings. */
-    public static final int YOUNG_MARKET_DAYS = 3 * 365;
     public static final int MIN_SIZE = 3;
     /** More running blooms than this and nothing new wakes. */
     public static final int MAX_RUNNING = 2;
@@ -30,8 +28,9 @@ public final class RavBloomRules {
     /** Seeded blooms of this generation seed nothing further. */
     public static final int MAX_GENERATION = 3;
     public static final float SPREAD_RANGE_LY = 6f;
-    public static final float FRONTIER_LY = 25f;
 
+    /** How much likelier a world over an old seeding site is to wake one. */
+    static final double RESERVOIR_WEIGHT = 1.5;
     static final double BASE_RESERVOIR = 0.30;
     static final double RUINS_RESERVOIR = 0.15;
     static final double HABITABLE_RESERVOIR = 0.10;
@@ -49,16 +48,22 @@ public final class RavBloomRules {
         return unit(mix(seed ^ 0x5245534552564FL, market.id.hashCode())) < chance;
     }
 
-    /** Relative weight of this market waking a bloom this week; 0 when it cannot. */
-    public static double wakeWeight(BloomMarket market) {
+    /**
+     * Relative weight of this market waking a bloom this week; 0 when it cannot. Spores travel with
+     * cargo and with people who do not know they carry them, so traffic and inflow lead: a busy,
+     * growing colony is where they land and find enough to eat. A reservoir under the world (an old
+     * seeding site) and deep workings make it likelier still.
+     */
+    public static double wakeWeight(BloomMarket market, long seed) {
         if (market.size < MIN_SIZE || market.hidden || market.daysInExistence < MIN_MARKET_AGE_DAYS) {
             return 0.0;
         }
         double size = market.size <= 3 ? 0.6 : market.size == 4 ? 1.0 : market.size == 5 ? 1.3 : 1.6;
-        double age = market.daysInExistence < YOUNG_MARKET_DAYS ? 1.5 : 1.0;
-        double industry = market.workings ? 1.5 : 1.0;
-        double reach = market.core ? 0.5 : market.lyFromCore > FRONTIER_LY ? 1.3 : 1.0;
-        return size * age * industry * reach;
+        double traffic = 0.5 + Math.max(0f, Math.min(2f, market.traffic));
+        double inflow = 1.0 + Math.max(0f, Math.min(1f, market.inflow));
+        double reservoir = hasReservoir(seed, market) ? RESERVOIR_WEIGHT : 1.0;
+        double workings = market.workings ? 1.25 : 1.0;
+        return size * traffic * inflow * reservoir * workings;
     }
 
     /** Whether the Hegemony quarantines a bloom here: its own world, or the core while it lives. */
