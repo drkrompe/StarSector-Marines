@@ -127,14 +127,24 @@ PIRATES_RISING = {   # coming up out of the platform, behind and below the convo
 PLATFORM = (-9500, 1200, -4300)   # the derelict Asharu platform: about 4 km lower and 10 km astern
 
 
+PLATFORM_HD = -70.0     # the platform's long axis, turned so the convoy sees it broadside from its north side
+
+
+def on_platform(offset):
+    """A point in the platform's own metres (+X along its length, +Y its north side) in the battle frame."""
+    c, s = math.cos(math.radians(PLATFORM_HD)), math.sin(math.radians(PLATFORM_HD))
+    return (PLATFORM[0] + c * offset[0] - s * offset[1], PLATFORM[1] + s * offset[0] + c * offset[1],
+            PLATFORM[2] + offset[2])
+
+
 def moored(offset, hd=0.0, pt=0.0, rl=0.0):
-    """A pirate hull lying cold at the platform: offset in metres from its centre, her attitude, and
-    her drives dark."""
-    return (PLATFORM[0] + offset[0], PLATFORM[1] + offset[1], PLATFORM[2] + offset[2], hd, pt, rl, 0.0)
+    """A pirate hull lying cold at the platform: offset in the platform's metres, her attitude
+    relative to it, and her drives dark."""
+    return on_platform(offset) + (hd + PLATFORM_HD, pt, rl, 0.0)
 
 
 def platform_parts():
-    """The derelict platform as parts in its own metres (+X prograde): the game's own description,
+    """The derelict platform as parts in its own metres (on_platform places them): the game's own description,
     "castoff bulk-carrier segments welded between a honeycomb of emptied fuel tanks", with empty
     hangars. [(kind, name, centre, size, (hd, pt, rl))]: a box's size is its half extents; a drum's
     is (radius, half length) along its own X. A sagging double girder carries five mismatched hulls,
@@ -177,9 +187,10 @@ def platform_parts():
 
 
 # Hiding: every pirate parked nose-out, in a bay or under a hull or between the drums, on the side away
-# from the convoy's line of sight (which comes from ahead and above), at her own heading, pitch and roll.
+# from the convoy's line of sight (which comes from above and the platform's north side, +Y), at her own
+# heading, pitch and roll; the two in the north hangar are the "hulks in its bays" the convoy can glimpse.
 PIRATES_MOORED = {
-    'falcon-p': moored((-60, -102, -56), hd=2, pt=-2, rl=10),          # along the big hull's underside
+    'falcon-p': moored((-60, -110, -70), hd=-25, pt=-2, rl=10),          # along the big hull's underside
     'manticore-p': moored((110, -52, -40), hd=-90, pt=0, rl=4),       # in the south hangar, nose out
     'colossus3': moored((-360, 0, -82), hd=180, pt=-8, rl=175),       # under the aft hull, inverted
     'buffalo2-a': moored((20, 12, -76), hd=-15, pt=-8, rl=6),         # under the big drum cluster
@@ -189,7 +200,7 @@ PIRATES_MOORED = {
     'hound-p-a': moored((-215, -14, -52), hd=-178, pt=4, rl=180),     # under the second hull, inverted
     'hound-p-b': moored((110, 66, -22), hd=80, pt=25, rl=-20),        # north of the fourth hull, in its shadow
     'kite-p-a': moored((-272, -22, -44), hd=-60, pt=15, rl=-30),      # under the aft drums
-    'kite-p-b': moored((190, -42, -36), hd=-120, pt=-5, rl=60),       # tucked against the forward drums
+    'kite-p-b': moored((190, -42, -36), hd=-55, pt=-5, rl=60),       # tucked against the forward drums
 }
 
 # Where the Tarsus rides in the Colossus Mk.III's grapples, in Mk.III metres: the build's
@@ -351,16 +362,17 @@ def _near(a, b):
 
 def launch(key, hide, t_light, climb):
     """A hidden ship's launch: dark at hide, drives lighting at t_light, easing out along her nose for
-    two seconds, turning onto her climb attitude (climb's heading, pitch and roll) as she gathers
-    speed, then burning up toward the column at her class's speed."""
+    four and a half seconds until she is clear of the structure, then turning onto her climb attitude
+    (climb's heading, pitch and roll) as she gathers speed, then burning up toward the column at her class's speed."""
     x, y, z, hd, pt, rl, _ = hide
     chd, cpt, crl = _near(hd, climb[3]), climb[4], _near(rl, climb[5])
     v = CLIMB_SPEED[mass_class(key)]
     keys = [dict(t=t_light - .05, v=0.0, thr=0.0), dict(t=t_light + .6, v=0.0, thr=.25),
             dict(t=t_light + 2.4, v=18.0, thr=.6),
-            dict(t=t_light + 4.6, hd=(hd + chd) / 2, pt=(pt + cpt) / 2, rl=(rl + crl) / 2, v=.3 * v, thr=1.0),
-            dict(t=t_light + 7.0, hd=chd, pt=cpt, rl=crl, v=.65 * v),
-            dict(t=t_light + 11.0, hd=chd + 3, pt=cpt + 2, rl=crl, v=v)]
+            dict(t=t_light + 4.6, v=.3 * v, thr=1.0),          # still on her nose, clear of the structure
+            dict(t=t_light + 7.0, hd=(hd + chd) / 2, pt=(pt + cpt) / 2, rl=(rl + crl) / 2, v=.5 * v),
+            dict(t=t_light + 9.5, hd=chd, pt=cpt, rl=crl, v=.8 * v),
+            dict(t=t_light + 13.0, hd=chd + 3, pt=cpt + 2, rl=crl, v=v)]
     if t_light < K1B_T:          # her drives are already lighting at the still
         keys = [k for k in keys if abs(k['t'] - K1B_T) > .05]
     return keyed(key, (x, y, z, hd, pt, rl, 0.0 if t_light >= K1B_T else .08), K1B_T, keys, v=0.0,
@@ -514,7 +526,7 @@ def sortie(key, before, t0, runs, vmax=420.0, accel=200.0, t_end=110.0, dt=1 / 4
     burning with her acceleration (motion's thrust model); a run ends when she has passed within 60 m
     and opened to 140 m again. A run with side 0 is her way home to the ship she works from, flown
     to the end. Returns (her Pose, her rakes: [(target, t_in, t_out, side)], the spans
-    she is inside 70 m of a target, where her mining laser sweeps the hull)."""
+    she is inside 110 m of a target, where her mining laser sweeps the hull)."""
     x, y, z, hd, pt, rl, _ = before.at(t0)
     v = 2.5
     a_full = A_FULL[mass_class(key)]
@@ -563,9 +575,9 @@ def sortie(key, before, t0, runs, vmax=420.0, accel=200.0, t_end=110.0, dt=1 / 4
         if side == 0:                  # home: back to the ship she works from, no laser
             t += dt
             continue
-        if dn < 70.0 and inside is None:
+        if dn < 110.0 and inside is None:
             inside = t
-        if dn >= 70.0 and inside is not None:
+        if dn >= 110.0 and inside is not None:
             rakes.append((tk, inside, t, side))
             inside = None
         closest = min(closest, dn)
@@ -1762,9 +1774,8 @@ def blender_main(cfg):
             bm.free()
             me.materials.append(mat)
         drum_me = bpy.data.meshes['Drum unit']
-        base = Vector(p)
         for kind, name, c, size, (hd, pt, rl) in platform_parts():
-            m = frame_of(base + Vector(c), hd, pt, rl)
+            m = frame_of(Vector(on_platform(c)), hd + PLATFORM_HD, pt, rl)
             if kind == 'box':
                 o = obj(name, box_me, mat, m @ Matrix.Diagonal((*size, 1)), stage_ships)
             else:

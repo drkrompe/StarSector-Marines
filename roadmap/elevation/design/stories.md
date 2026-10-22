@@ -11,7 +11,7 @@ the elevation plan and brush) and sight and fire (one skyline rule for the fog, 
 
 | Story | State and dependency |
 | --- | --- |
-| elevation-look | **IN PROGRESS.** Faces, stacked second tier, ramp floors and tier heights in the relief field have landed (the `elevation` snapshot suite). Left: the owner's look pick (face width, tall south faces, lit tops), ramp floor art that reads as a slope rather than a pad (the relief already slopes it), ground cover left standing on faces, and a `renderEvidence` measurement against its control. |
+| elevation-look | **IN PROGRESS.** Faces, stacked second tier, ramp floors and tier heights in the relief field have landed (the `elevation` snapshot suite). Left: the owner's pick between the cliff tiles and gradient shading with scree and ramp steps (the `elevation-look` study; the tiles' tall south faces step, a fault in `ElevationLayout.tilted`), carrying the pick into the ground composite, ramp floor art that reads as a slope rather than a pad (the relief already slopes it), ground cover left standing on faces, and a `renderEvidence` measurement against its control. |
 
 Owner decisions pending (picture cards through the coordinating session): the
 sight rule (skyline / strict / flat), firing up (none / accuracy penalty), the

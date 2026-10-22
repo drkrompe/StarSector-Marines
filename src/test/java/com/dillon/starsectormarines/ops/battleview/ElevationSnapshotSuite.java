@@ -101,17 +101,21 @@ public final class ElevationSnapshotSuite implements SnapshotSuite {
 
     /** {@code left} and {@code top} are the world coordinates of the image's top-left corner. */
     static BufferedImage sunlit(MapResult map, BufferedImage ground, float left, float top) {
+        return sunlit(map, ground, left, top, CELL_PX);
+    }
+
+    static BufferedImage sunlit(MapResult map, BufferedImage ground, float left, float top, int cellPx) {
         MacroReliefField relief = new MacroReliefField(map.topology, map.grid, map.buildings,
                 GenMappingRegistry.installed());
         GroundSunShadowReference.PixelToWorld worldAt = new GroundSunShadowReference.PixelToWorld() {
             @Override
             public float worldX(int pixelX) {
-                return left + (pixelX + 0.5f) / CELL_PX;
+                return left + (pixelX + 0.5f) / cellPx;
             }
 
             @Override
             public float worldY(int pixelY) {
-                return top - (pixelY + 0.5f) / CELL_PX;
+                return top - (pixelY + 0.5f) / cellPx;
             }
         };
         return GroundSunShadowReference.shade(ground, relief::metersAt, worldAt,

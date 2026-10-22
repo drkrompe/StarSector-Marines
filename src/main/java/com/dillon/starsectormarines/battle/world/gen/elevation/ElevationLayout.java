@@ -41,6 +41,8 @@ public final class ElevationLayout {
     private final double[][] artFields;
     private final double[] rampRise;
     private final List<RampShape> ramps;
+    private final double[][] plateauFields;
+    private final int southFace;
 
     /**
      * A ramp's corridor as resolved: from the foot along unit axis
@@ -54,7 +56,8 @@ public final class ElevationLayout {
     }
 
     private ElevationLayout(int width, int height, int faceWidth, byte[] tier, byte[] kind,
-                            double[][] artFields, double[] rampRise, List<RampShape> ramps) {
+                            double[][] artFields, double[] rampRise, List<RampShape> ramps,
+                            double[][] plateauFields, int southFace) {
         this.width = width;
         this.height = height;
         this.faceWidth = faceWidth;
@@ -63,9 +66,13 @@ public final class ElevationLayout {
         this.artFields = artFields;
         this.rampRise = rampRise;
         this.ramps = List.copyOf(ramps);
+        this.plateauFields = plateauFields;
+        this.southFace = southFace;
     }
 
     public int width() { return width; }
+    /** How many cells a face looking down the screen is widened by. */
+    public int southFace() { return southFace; }
     public int height() { return height; }
     public int faceWidth() { return faceWidth; }
     public int tier(int x, int y) { return tier[y * width + x]; }
@@ -86,6 +93,14 @@ public final class ElevationLayout {
      * holds tier {@code k} up, above is its top. A copy.
      */
     public double[] artCorners(int k) { return artFields[k - 1].clone(); }
+
+    /**
+     * Tier {@code k}'s field over the cell corners before any ramp is cut or
+     * any south face widened: the plateau's own shape, for a look that lays
+     * its ramps on as slopes and widens its south faces itself
+     * ({@link #southFace()}).
+     */
+    public double[] plateauCorners(int k) { return plateauFields[k - 1].clone(); }
 
     /** The ramps as resolved, in plan order. */
     public List<RampShape> ramps() { return ramps; }
@@ -110,6 +125,8 @@ public final class ElevationLayout {
                 if (p.tier() >= k) sweep(plan, p, raw[k - 1]);
             }
         }
+        double[][] untilted = new double[maxTier][];
+        for (int k = 0; k < maxTier; k++) untilted[k] = raw[k].clone();
         if (plan.southFace() > 0) {
             for (int k = 0; k < maxTier; k++) raw[k] = tilted(raw[k], w, h, fw, plan.southFace());
         }
@@ -198,7 +215,7 @@ public final class ElevationLayout {
                 }
             }
         }
-        ElevationLayout layout = new ElevationLayout(w, h, fw, tier, faced, art, rampRise, shapes);
+        ElevationLayout layout = new ElevationLayout(w, h, fw, tier, faced, art, rampRise, shapes, untilted, plan.southFace());
         for (ElevationPlan.Ramp ramp : plan.ramps()) layout.requireRampEnds(ramp);
         layout.requireEveryPlateauReachable();
         return layout;

@@ -311,7 +311,7 @@ public final class ElevationOptionsSnapshotSuite implements SnapshotSuite {
         }
     }
 
-    private static void caption(BufferedImage image, String title, String note) {
+    static void caption(BufferedImage image, String title, String note) {
         Graphics2D g = image.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g.setColor(new Color(10, 14, 20, 200));
