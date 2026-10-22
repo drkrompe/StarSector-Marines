@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.marine.BilletRoles;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCard;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -407,23 +408,13 @@ public final class EquipmentDoctrineDesignerViewModel {
     }
 
     private static String roleLabel(String role) {
-        return switch (role) {
-            case "Team Leader" -> Strings.get("openingBilletRoleTeamLeader");
-            case "Rifleman" -> Strings.get("openingBilletRoleRifleman");
-            case "Assault Leader" -> Strings.get("openingBilletRoleAssaultLeader");
-            case "Breacher" -> Strings.get("openingBilletRoleBreacher");
-            case "Grenadier" -> Strings.get("openingBilletRoleGrenadier");
-            case "Automatic Rifleman" -> Strings.get("openingBilletRoleAutomaticRifleman");
-            case "Marksman" -> Strings.get("openingBilletRoleMarksman");
-            case "Anti-Armor" -> Strings.get("openingBilletRoleAntiArmor");
-            case "Security Rifleman" -> Strings.get("openingBilletRoleSecurityRifleman");
-            case "Scout" -> Strings.get("openingBilletRoleScout");
-            default -> role; // Preserve addon- and player-authored roles.
-        };
+        return BilletRoles.label(role); // Addon- and player-authored roles pass through.
     }
 
+    /** A catalog role is already translated, and set in capitals; the billet line reads it in sentence case. */
     private static String title(String value) {
-        return Strings.named("billetRole", value);
+        String lower = value.toLowerCase(Strings.locale());
+        return lower.isEmpty() ? lower : lower.substring(0, 1).toUpperCase(Strings.locale()) + lower.substring(1);
     }
 
     private List<EquipmentTemplateCard> ownedCards(EquipmentTemplateCard.Kind wanted) {

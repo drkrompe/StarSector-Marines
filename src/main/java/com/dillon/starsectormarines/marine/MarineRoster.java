@@ -844,14 +844,14 @@ public class MarineRoster implements Serializable {
             }
         }
         MarineSquad reserve = new MarineSquad(
-                java.util.UUID.randomUUID().toString(), "Reserve Pool", true);
+                java.util.UUID.randomUUID().toString(), MarineSquad.RESERVE_NAME, true);
         squads.add(reserve);
         reserveSquadId = reserve.id();
         return reserve;
     }
 
     public MarineSquad createSquad() {
-        MarineSquad squad = new MarineSquad(String.format("Squad %02d", nextSquadNumber++));
+        MarineSquad squad = new MarineSquad(MarineSquad.defaultName(nextSquadNumber++));
         int reserveIndex = squads.indexOf(squadById(reserveSquadId));
         if (reserveIndex >= 0) squads.add(reserveIndex, squad);
         else squads.add(squad);
@@ -1546,7 +1546,7 @@ public class MarineRoster implements Serializable {
             if (!complete || weapons.size() != MarineSquad.CAPACITY) continue;
             String weaponId = "migrated:weapons:" + squad.id();
             armory.ensureWeaponDoctrine(weaponId,
-                    squad.name() + " Legacy Weapon Issue", weapons);
+                    SquadWeaponDoctrine.migratedName(squad.savedName()), weapons);
             // The legacy card's twelve concrete patterns are deliberately
             // dropped rather than preserved as a doctrine. Armour is a plan
             // now, and a frozen twelve is the artifact the plan model exists to

@@ -51,6 +51,7 @@ import com.dillon.starsectormarines.campaign.systems.VanillaRaidEnder;
 import com.dillon.starsectormarines.marine.BoatDeck;
 import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.CasualtyFate;
+import com.dillon.starsectormarines.marine.Commendations;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.OfficerCommandProfile;
 import com.dillon.starsectormarines.marine.MarineSoldier;
@@ -579,8 +580,8 @@ public final class MissionResolver {
                             captain.addXp(-captain.rank().xpToNext());
                             Rank next = captain.rank().promote();
                             captain.setRank(next);
-                            captain.commendations().add(Strings.format(
-                                    "resolverCommendationPromoted", day, next.displayName()));
+                            Commendations.add(captain, day, "resolverCommendationPromoted",
+                                    Commendations.ref(next.displayKey()));
                         }
                     }
                     if (outcome.newCaptainStatus != null
@@ -758,16 +759,13 @@ public final class MissionResolver {
 
     private static void appendOutcomeCommendation(MarineCaptain captain, MissionOutcome outcome, int day) {
         if (outcome.victory) {
-            captain.commendations().add(Strings.format(
-                    "resolverCommendationSuccess", day, outcome.missionName));
+            Commendations.add(captain, day, "resolverCommendationSuccess", outcome.missionName);
         } else if (outcome.newCaptainStatus == Status.KIA) {
-            captain.commendations().add(Strings.format(
-                    "resolverCommendationKia", day, outcome.missionName));
+            Commendations.add(captain, day, "resolverCommendationKia", outcome.missionName);
         } else if (outcome.newCaptainStatus == Status.INJURED
                 && outcome.injuredUntilDay - day >= WIPE_INJURED_DAYS - 1f) {
             // Long recovery only happens on a wipe-survived roll.
-            captain.commendations().add(Strings.format(
-                    "resolverCommendationSurvived", day, outcome.missionName));
+            Commendations.add(captain, day, "resolverCommendationSurvived", outcome.missionName);
         }
     }
 

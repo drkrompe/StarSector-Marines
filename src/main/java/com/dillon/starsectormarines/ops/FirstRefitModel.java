@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.marine.BilletRoles;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.FirstRefit.Path;
@@ -124,7 +125,8 @@ final class FirstRefitModel {
         props.put("inspect", (Runnable) () -> inspect.accept(roster.firstRefit().issuedSquadId()));
         props.put("issue", (Runnable) this::issue);
         props.put("squads", roster.squads().stream().filter(s -> !s.reserve()).map(s -> Map.<String, Object>of(
-                "id", "refit-squad:" + s.id(), "label", (s.id().equals(squadId) ? Strings.get("openingFirstRefitSelected") : "") + s.name() + (s.stationed() ? " / STATIONED" : ""),
+                "id", "refit-squad:" + s.id(), "label", Strings.join("separatorPath", s.id().equals(squadId) ? Strings.get("squadRefitSelectedTag") : null,
+                        s.name(), s.stationed() ? Strings.get("squadRefitStationedTag") : null),
                 "classes", "refit-squad" + (s.id().equals(squadId) ? " refit-selected selected" : ""),
                 "select", (Runnable) () -> selectSquad(s.id()))).toList());
         props.put("squadHint", roster.squads().stream().noneMatch(s -> !s.reserve())
@@ -163,7 +165,8 @@ final class FirstRefitModel {
             billets.add(billet);
             if (i == selectedBillet) {
                 currentKit = current; proposedKit = next;
-                selectedName = name + " / " + kit.role() + (soldier == null ? Strings.get("openingLoadoutVacantPlanOnly") : " / " + soldier.status());
+                selectedName = Strings.join("separatorPath", name, BilletRoles.label(kit.role()),
+                        soldier == null ? Strings.get("squadRefitVacantPlanOnly") : String.valueOf(soldier.status()));
             }
         }
         props.put("billets", billets);

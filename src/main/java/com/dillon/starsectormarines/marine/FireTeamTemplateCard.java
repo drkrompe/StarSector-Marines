@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.i18n.Strings;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,7 +36,8 @@ public final class FireTeamTemplateCard implements Serializable {
     }
 
     public String id() { return id; }
-    public String displayName() { return displayName; }
+    /** Built-in names are {@code @key} references read in the reader's language; a typed name is shown as typed. */
+    public String displayName() { return Strings.resolve(displayName); }
     public List<FireTeamBillet> billets() {
         return Collections.unmodifiableList(billets);
     }

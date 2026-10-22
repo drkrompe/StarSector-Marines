@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.campaign.GarrisonDefensePayload;
 import com.dillon.starsectormarines.campaign.GarrisonDefenseTriggerType;
 import com.dillon.starsectormarines.campaign.Posting;
 import com.dillon.starsectormarines.campaign.StationingIncidentType;
+import com.dillon.starsectormarines.marine.Commendations;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
@@ -63,7 +64,7 @@ class PostingServiceTest {
                 fixture.roster.squadsStationedOn(contractId).size());
         assertEquals(Status.GARRISONED, fixture.captain.status());
         assertTrue(fixture.captain.commendations().stream()
-                        .anyMatch(line -> line.contains("Posted to " + MARKET)),
+                        .anyMatch(line -> Commendations.display(line).contains("Posted to " + MARKET)),
                 fixture.captain.commendations().toString());
     }
 
@@ -141,7 +142,7 @@ class PostingServiceTest {
         }
         assertEquals(Status.ACTIVE, fixture.captain.status());
         assertTrue(fixture.captain.commendations().stream()
-                        .anyMatch(line -> line.contains("Released from the posting at "
+                        .anyMatch(line -> Commendations.display(line).contains("Released from the posting at "
                                 + MARKET)),
                 fixture.captain.commendations().toString());
     }

@@ -23,6 +23,15 @@ public final class FirstRefit implements Serializable {
         }
     }
 
+    /**
+     * The name a claimed plan's weapon definition is saved under. It stays English so
+     * every save holds the same value; {@link SquadWeaponDoctrine#displayName()}
+     * recognises it and shows the translated name.
+     */
+    static String savedDoctrineName(Path path) {
+        return "Wayline / " + path.label;
+    }
+
     public static boolean isWeaponPlan(String id) {
         for (Path path : Path.values()) if (path.weapons.equals(id)) return true;
         return false;
@@ -54,7 +63,7 @@ public final class FirstRefit implements Serializable {
         // Plans are reusable intent. The unchosen plan still requires its technology,
         // acquired through ordinary market, patron, recovery, or collection rewards.
         for (Path plan : Path.values()) {
-            armory.ensureWeaponDoctrine(plan.weapons, "Wayline / " + plan.label, weapons(plan));
+            armory.ensureWeaponDoctrine(plan.weapons, savedDoctrineName(plan), weapons(plan));
         }
         chosenPath = path;
         claimed = true;
@@ -68,7 +77,7 @@ public final class FirstRefit implements Serializable {
             boolean upgraded = path == Path.STEADY_LINE ? i % 4 == 3 : i % 4 < 2;
             String primary = !upgraded ? WeaponRegistry.STARTER_PRIMARY_ID
                     : path == Path.STEADY_LINE ? WeaponRegistry.SQUAD_AUTOMATIC_ID : WeaponRegistry.PULSE_RIFLE_ID;
-            issues.add(new SquadWeaponIssue(upgraded ? path == Path.STEADY_LINE ? "Automatic rifleman" : "Pulse rifleman" : "Rifleman",
+            issues.add(new SquadWeaponIssue(upgraded ? path == Path.STEADY_LINE ? "Automatic Rifleman" : "Pulse Rifleman" : BilletRoles.RIFLEMAN,
                     primary, upgraded ? EquipmentGrade.MILSPEC : EquipmentGrade.SURPLUS, null));
         }
         return List.copyOf(issues);

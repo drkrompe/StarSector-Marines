@@ -223,7 +223,7 @@ public final class MarineArmory implements Serializable {
     public SquadWeaponDoctrine cloneWeaponDoctrine(String sourceId) {
         SquadWeaponDoctrine source = weaponDoctrineById(sourceId);
         return source != null
-                ? createWeaponDoctrine(source.displayName() + " Copy", source.issues()) : null;
+                ? createWeaponDoctrine(copyName(source.displayName()), source.issues()) : null;
     }
 
     public boolean renameWeaponDoctrine(String id, String displayName) {
@@ -232,7 +232,7 @@ public final class MarineArmory implements Serializable {
         if (index < 0 || displayName == null || displayName.isBlank()) return false;
         SquadWeaponDoctrine existing = customWeaponDoctrines.get(index);
         customWeaponDoctrines.set(index, new SquadWeaponDoctrine(
-                existing.id(), displayName, existing.description(), existing.issues()));
+                existing.id(), displayName, existing.savedDescription(), existing.issues()));
         return true;
     }
 
@@ -289,7 +289,7 @@ public final class MarineArmory implements Serializable {
     public FireTeamTemplateCard cloneTemplateCard(String sourceId) {
         FireTeamTemplateCard source = templateCardById(sourceId);
         if (source == null) return null;
-        return createTemplateCard(source.displayName() + " Copy", source.billets());
+        return createTemplateCard(copyName(source.displayName()), source.billets());
     }
 
     /** Renaming changes library metadata only and is therefore safe for assigned templates. */
@@ -465,7 +465,7 @@ public final class MarineArmory implements Serializable {
                     "Weapon definition requires an unowned equipment template");
         }
         SquadWeaponDoctrine doctrine = new SquadWeaponDoctrine(
-                id, displayName, "Player-authored squad weapon definition.", issues);
+                id, displayName, SquadWeaponDoctrine.CUSTOM_DESCRIPTION, issues);
         customWeaponDoctrines.add(doctrine);
         return doctrine;
     }
@@ -477,6 +477,15 @@ public final class MarineArmory implements Serializable {
             if (doctrine != null && id.equals(doctrine.id())) return index;
         }
         return -1;
+    }
+
+    /**
+     * The proposed name of a copy. A copy is a player-owned document, so its name is
+     * written in the reader's language once, the way a typed name would be, and is
+     * never translated again.
+     */
+    private static String copyName(String sourceName) {
+        return SavedDefaultText.formatOr(sourceName + " Copy", "squadDoctrineCopyName", sourceName);
     }
 
     public static int secondaryFabricationCost(SpecialEquipmentDef special) { return 5; }
