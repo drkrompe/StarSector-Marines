@@ -63,8 +63,8 @@ panels. The first blockout's two 300 m flat "collector" slabs read as big quads,
 sphere tanks read as orbs; both are gone.
 
 The pirates hide the way a crew would, not in rows. Each hull is parked nose-out under a hull, in a
-bay or between the drums, on the side away from the convoy's line of sight (which comes from ahead
-and above). Each lies at her own heading and depth, some rolled on their sides or inverted.
+bay or between the drums, on the side away from the convoy's line of sight (which comes from above
+and from the platform's north side). Each lies at her own heading and depth, some rolled on their sides or inverted.
 
 The launch is one motion across S3 and S4 (`launch`):
 - Drives light in a ripple from the Falcon (P), 33.8 s to 38.2 s.
@@ -215,7 +215,7 @@ own. Placements:
     a second, jinking, banking with the turn, and every rate eased so `--check` reports no
     jumps.
   - Her drives burn with her acceleration (the thrust model), and she reaches 420 m/s.
-  - Wherever she passes within 70 m of a hull, her mining laser (`beam_t_ws001`) sweeps stern to
+  - Wherever she passes within 110 m of a hull, her mining laser (`beam_t_ws001`) sweeps stern to
     bow down the near side, with sparks where it cuts. The preview draws the beam as a line and
     the sparks as dots.
   - After her runs she flies home to the Colossus, slowing as she arrives.
