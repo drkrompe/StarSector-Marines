@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.combat.BodyPart;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -119,6 +120,62 @@ class SwarmHarvestTest {
             assertTrue(SwarmHarvest.harvestable(sim, marine), "a Marine on foot is taken");
             long mech = sim.spawn(new EntitySpec("mech", Faction.MARINE, UnitType.HEAVY_MECH, 14, 5));
             assertFalse(SwarmHarvest.harvestable(sim, mech), "a machine is not");
+        }
+    }
+
+    @Test
+    void anIdleRunnerRecyclesADeadRunnerIntoTheBoreAndAFightingOneLeavesIt() {
+        try (BattleSimulation sim = simulation()) {
+            SwarmHarvest harvest = sim.swarmHarvest();
+            SwarmBore bore = sim.swarmBores().open(sim, 1, false, 20, 5);
+            harvest.tick(sim);
+            long dead = SwarmStrains.spawn(sim, "dead", UnitType.SWARM_RUNNER, 5, 5);
+            long fighter = SwarmStrains.spawn(sim, "fighter", UnitType.SWARM_RUNNER, 4, 5);
+            long marine = sim.spawn(new EntitySpec("marine", Faction.MARINE, UnitType.MARINE, 2, 8));
+            sim.combat().setTargetId(fighter, marine);
+            sim.applyDamage(dead, 1000f, 1000f);
+            harvest.onDeath(new DeathEvent(dead, sim.world().x(dead), sim.world().y(dead), 0));
+            sim.getUnitIndex().rebuild(sim.getRoster());
+            harvest.tick(sim);
+            assertTrue(harvest.isLoose(dead), "a dead Runner lies loose for the swarm");
+            assertFalse(harvest.isCarrier(fighter), "a Runner still fighting leaves it");
+
+            sim.combat().setTargetId(fighter, 0L);
+            harvest.tick(sim);
+            assertEquals(dead, harvest.loadOf(fighter), "a Runner with nothing to fight takes it up");
+            assertEquals(0, harvest.seized(), "recycling the swarm's own is not harvest");
+
+            sim.world().setPos(fighter, 19.5f, 5.5f);
+            harvest.tick(sim);
+            assertEquals(1, harvest.recycled());
+            assertEquals(0, harvest.delivered());
+            assertEquals(1, bore.feeds());
+        }
+    }
+
+    @Test
+    void aScavengerFetchesTheDeadBeforeItFightsAndAnAttackerGoesForTheMarine() {
+        try (BattleSimulation sim = simulation()) {
+            SwarmHarvest harvest = sim.swarmHarvest();
+            sim.swarmBores().open(sim, 1, false, 22, 5);
+            harvest.tick(sim);
+            long dead = SwarmStrains.spawn(sim, "dead", UnitType.SWARM_RUNNER, 16, 2);
+            sim.applyDamage(dead, 1000f, 1000f);
+            harvest.onDeath(new DeathEvent(dead, sim.world().x(dead), sim.world().y(dead), 0));
+            harvest.tick(sim);
+            long scavenger = SwarmStrains.spawn(sim, "scavenger", UnitType.SWARM_RUNNER, 3, 5);
+            long attacker = SwarmStrains.spawn(sim, "attacker", UnitType.SWARM_RUNNER, 3, 7);
+            sim.spawn(new EntitySpec("marine", Faction.MARINE, UnitType.MARINE, 6, 6));
+            harvest.markScavenger(scavenger);
+            sim.getUnitIndex().rebuild(sim.getRoster());
+
+            SwarmPressureBehavior.INSTANCE.update(scavenger, sim);
+            SwarmPressureBehavior.INSTANCE.update(attacker, sim);
+            assertEquals(0L, sim.combat().targetId(scavenger), "the scavenger leaves the Marine");
+            int[] path = sim.movement().path(scavenger);
+            assertEquals(16, Paths.destX(path), "it heads for the dead");
+            assertEquals(2, Paths.destY(path));
+            assertTrue(sim.combat().targetId(attacker) != 0L, "an attacker goes for the Marine");
         }
     }
 
