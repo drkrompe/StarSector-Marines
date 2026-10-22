@@ -1092,7 +1092,7 @@ K6_DIVE = tuple(40.0 * c for c in K6_LOOK)
 K6_SHIPS = {'colossus': falling('colossus', M11_COLOSSUS, 126.0, K6_DIVE, drift=(0.0, 40.0, 0.0),
                                  yaw=72.0, pitch=-14.0, roll_rate=1.5),
             'morrow': falling('morrow', M11_MORROW, 126.0, tuple(34.0 * c for c in K6_LOOK),
-                              drift=(0.0, 10.0, 0.0), yaw=-58.0, pitch=-8.0, roll_rate=-2.5)}
+                              drift=(0.0, 40.0, 0.0), yaw=-58.0, pitch=-8.0, roll_rate=-2.5)}
 _k6c = K6_SHIPS['colossus'].at(K6_T)
 K6_CAM = tuple(_k6c[i] - K6_RANGE * K6_LOOK[i] for i in range(3))
 
@@ -1173,7 +1173,7 @@ KEYFRAMES['k6'].update(
     # mm to the plate's 50 mm at the key, then on to 85 mm, ending tight on the two burning hulls
     camera=camera('k6', [dict(t=126, loc=_k6_cam, target=lambda t: _k6_aim(t, .35), lens=40),
                          dict(t=130, loc=_k6_cam, target=lambda t: _k6_aim(t, 0.0), lens=50),
-                         dict(t=134, loc=_k6_cam, target=lambda t: _k6_aim(t, .3), lens=85)], K6_T),
+                         dict(t=134, loc=_k6_cam, target=lambda t: _k6_aim(t, .5), lens=85)], K6_T),
     ships=K6_SHIPS,
     fx=[('entry_sheath', 'colossus'), ('entry_sheath', 'morrow'), ('wreckfall',)],
     labels=['colossus', 'morrow'])
