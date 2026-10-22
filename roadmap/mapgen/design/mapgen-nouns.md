@@ -1086,6 +1086,12 @@ and native ground variation continue beneath that airspace. Only engineered
 working ground is kept bare, so an approach reservation cannot draw a cleared
 rectangle across the landscape.
 
+**No wall or lot draws the first urban sheet's blue steel.** A wall no stage
+gave a material takes the installation's light concrete when the map is
+finalized (a ship deck dresses its own bulkheads instead), and rubble ground,
+a rubble lot or a wall knocked down, draws as cracked gravel with scrap. The
+blue riveted wall and the blue chevron rubble of that sheet are retired.
+
 A programmed precinct owns its working ground even where that ground was
 already walkable before its buildings were packed. Its kept circulation takes
 asphalt, its building aprons and cut access paths take concrete, and unused

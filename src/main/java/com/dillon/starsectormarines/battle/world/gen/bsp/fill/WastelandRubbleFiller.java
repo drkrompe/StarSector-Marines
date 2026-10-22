@@ -25,8 +25,8 @@ import java.util.Random;
  *       {@link GroundKind#RUBBLE} wall-to-wall — no full wall cells.</li>
  *   <li>3-6 doodads pulled from an inline pool that mixes the urban-1 row-7
  *       damaged props (shelf-dam-1/2, desk-dam, box-dam, chair-s-yellow-dam,
- *       chair-s-green-dam) with the row-7 rubble decals
- *       (decal-rubble-1..4).</li>
+ *       chair-s-green-dam) with scrap piles. The old sheet's blue rubble
+ *       decals are retired with its blue rubble ground.</li>
  * </ul>
  *
  * <p>No POI is emitted. The block reads as ambush terrain: open lines,
@@ -49,10 +49,8 @@ public final class WastelandRubbleFiller implements BlockFiller {
 
         TileRegistry reg = TileRegistry.installed();
         DoodadDef[] wastelandPool = {
-            reg.doodad("doodad.decal-rubble-1"),
-            reg.doodad("doodad.decal-rubble-2"),
-            reg.doodad("doodad.decal-rubble-3"),
-            reg.doodad("doodad.decal-rubble-4"),
+            reg.doodad("doodad.industrial-scrap-pile"),
+            reg.doodad("doodad.industrial-scrap-pile"),
             reg.doodad("doodad.shelf-dam-1"),
             reg.doodad("doodad.shelf-dam-2"),
             reg.doodad("doodad.desk-dam"),
