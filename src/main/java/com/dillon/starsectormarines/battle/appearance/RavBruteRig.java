@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.appearance;
 
+import com.dillon.starsectormarines.battle.unit.SwarmStage;
+
 /**
  * The Rav Bloom Brute's skeleton, advanced once per simulation tick: a heavy pig-and-bull build whose
  * short legs stand under the body, so from above the hooves step at the body's edge and the body itself
@@ -158,6 +160,21 @@ public final class RavBruteRig {
         this.seed = seed;
     }
 
+    /** The body's growth stage, and its scale against its adult: what it is drawn at and with. */
+    private SwarmStage stage = SwarmStage.ADULT;
+    private float scale = 1f;
+
+    /** Sets the growth stage; read each tick, so a Matriarch that matures in the field grows with it. */
+    public void setStage(SwarmStage stage) {
+        this.stage = SwarmStage.of(stage);
+        this.scale = this.stage.scale;
+    }
+
+    public SwarmStage stage() { return stage; }
+
+    /** The stage's draw scale against the adult ({@link SwarmStage#scale}). */
+    public float scale() { return scale; }
+
     /**
      * Advances the rig one tick.
      *
@@ -187,6 +204,10 @@ public final class RavBruteRig {
         }
         bodyX = posX;
         bodyY = posY;
+        // The skeleton walks in its adult's units: a body drawn smaller covers more of its own strides.
+        dx /= scale;
+        dy /= scale;
+        moved /= scale;
         float yawRate = (((facing - facingDeg) % 360f + 540f) % 360f - 180f) / dt;
         float bendTarget = Math.max(-MAX_BEND, Math.min(MAX_BEND, yawRate * BEND_PER_YAW_RATE));
         bend += (bendTarget - bend) * Math.min(1f, dt / BEND_SECONDS);

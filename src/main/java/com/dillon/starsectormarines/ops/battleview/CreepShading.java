@@ -57,6 +57,12 @@ final class CreepShading {
     static final float VEIN_SECOND_SCALE = 0.77f;
     /** Scale of the finer vein lattice drawn over walls, against the ground's. */
     static final float WALL_VEIN_SCALE = 2.2f;
+    /**
+     * How an overgrown wall still reads as a wall: its crust lifted toward the rim colour, lit and shaded on the edges
+     * that face toward and away from the sun as a raised block is, and outlined dark where it meets the floor (the
+     * floor's own contact crease is the outline's other half).
+     */
+    static final float WALL_LIFT = 0.22f, WALL_BEVEL = 0.30f, WALL_OUTLINE = 0.5f;
 
     private CreepShading() { }
 
@@ -153,6 +159,21 @@ final class CreepShading {
         float va = 0.9f * vein;
         if (ac > 0f) {
             body(clamp(dc, 0f, 2f), x, y, ux, uy, here[1], here[2], noise[0], patch, tpp, time, pal, sun, surf, col);
+            float[] tap = tmp.tap;
+            f.sample(x + TAP, y, tap);
+            float we = tap[3];
+            f.sample(x - TAP, y, tap);
+            float ww = tap[3];
+            f.sample(x, y + TAP, tap);
+            float wn = tap[3];
+            f.sample(x, y - TAP, tap);
+            float ws = tap[3];
+            float gwx = (we - ww) / (2f * TAP), gwy = (wn - ws) / (2f * TAP);
+            float bevel = clamp(-(gwx * sun.dirX() + gwy * sun.dirY()), -1f, 1f);
+            float edge = 1f - smoothstep(0.5f, 0.8f, here[3]);
+            for (int c = 0; c < 3; c++) {
+                col[c] = mix(col[c], pal.rim()[c], WALL_LIFT) * (1f + WALL_BEVEL * bevel) * (1f - WALL_OUTLINE * edge);
+            }
         }
         float alpha = ac + va * (1f - ac);
         for (int c = 0; c < 3; c++) out[c] = clamp01((col[c] * ac + out[c] * va * (1f - ac)) / Math.max(alpha, 1e-4f));

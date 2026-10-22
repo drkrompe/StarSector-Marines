@@ -29,7 +29,8 @@ import static org.lwjgl.opengl.GL11.glReadPixels;
 
 /**
  * The creep as the game draws it: the infested canonical colony through the shipping {@link BattleRenderer} into
- * a real GL context, at play zoom on a spreading edge, close on a climbed wall, and at the whole map, each beside
+ * a real GL context, at play zoom on a spreading edge, close on a climbed wall, at the whole map, and on fully
+ * overgrown walls on a street and in a compound at play zoom, each beside
  * the review frame of the same framing. The GL frame is the only picture of the creep inside the relief
  * composite: displaced with the ground, shadowed by the walls, shading its own relief. Writes
  * {@code build/reports/render/creep-look/}; runs under {@code renderEvidence} and reports that it skipped where
@@ -81,6 +82,9 @@ class CreepGlLookEvidence {
                 shoot(renderer, sim, layout, modRoot, out, "01-play-zoom", edge[0], edge[1], 32f);
                 shoot(renderer, sim, layout, modRoot, out, "02-close-wall", wall[0], wall[1], 64f);
                 shoot(renderer, sim, layout, modRoot, out, "03-whole-map", gw * 0.5f, gh * 0.5f, 0f);
+                int[] street = overgrownWall(field, sim, true), yard = overgrownWall(field, sim, false);
+                shoot(renderer, sim, layout, modRoot, out, "04-overgrown-street", street[0] + 0.5f, street[1] + 0.5f, 32f);
+                shoot(renderer, sim, layout, modRoot, out, "05-overgrown-compound", yard[0] + 0.5f, yard[1] + 0.5f, 32f);
                 System.out.println("[creep-look] wrote " + out);
             } finally {
                 Global.setSettings(null);
@@ -146,6 +150,36 @@ class CreepGlLookEvidence {
                 int d = (x - cx) * (x - cx) + (y - cy) * (y - cy);
                 if (d >= 36 && d < bestD) {
                     bestD = d;
+                    best = new int[]{x, y};
+                }
+            }
+        }
+        return best;
+    }
+
+    /**
+     * A wall the crust has fully taken, with the most living creep on the street (or, with {@code street} false, in a
+     * compound's courtyard) within three cells of it: where an overgrown wall has to read as a wall. Ties go to the
+     * lower row, then column.
+     */
+    static int[] overgrownWall(CreepField field, BattleSimulation sim, boolean street) {
+        int gw = sim.getGrid().getWidth(), gh = sim.getGrid().getHeight();
+        int[] best = {gw / 2, gh / 2};
+        int bestScore = 0;
+        for (int y = 12; y < gh - 12; y++) {
+            for (int x = 20; x < gw - 20; x++) {
+                if (sim.getGrid().isWalkable(x, y) || !sim.getTopology().isWall(x, y)) continue;
+                if (field.coverageAt(x, y) < CreepField.FULL) continue;
+                int score = 0;
+                for (int dy = -3; dy <= 3; dy++) {
+                    for (int dx = -3; dx <= 3; dx++) {
+                        int cx = x + dx, cy = y + dy;
+                        if (!field.isCreeped(cx, cy) || !sim.getGrid().isWalkable(cx, cy)) continue;
+                        if (street ? sim.getTopology().isStreet(cx, cy) : sim.getTopology().isCourtyard(cx, cy)) score++;
+                    }
+                }
+                if (score > bestScore) {
+                    bestScore = score;
                     best = new int[]{x, y};
                 }
             }

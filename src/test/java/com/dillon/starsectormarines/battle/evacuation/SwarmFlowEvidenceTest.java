@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
@@ -31,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * What the swarm's strategic movement costs, by map size and swarm size, with
- * the flow field on and off. Opt-in ({@code gradlew profileSwarmFlow}).
+ * the flow field off, on, and on with packs moving as packs. Opt-in ({@code gradlew profileSwarmFlow}).
  *
  * <p>The battle is a generated city at each size with a small Marine column
  * walking a fixed route — the goal moves the whole time, which is what makes
@@ -61,6 +62,8 @@ class SwarmFlowEvidenceTest {
     /** A body that moved less than this over {@link #STUCK_WINDOW} ticks, out of contact, is stuck. */
     private static final float STUCK_DISTANCE = 1.5f;
     private static final int STUCK_WINDOW = 150;
+    /** Runners spawn in clusters of this many, each cluster one pack. */
+    private static final int PACK_SIZE = 6;
 
     @Test
     void reportsStrategicMovementCostBySwarmAndMapSize() throws Exception {
@@ -70,7 +73,7 @@ class SwarmFlowEvidenceTest {
                 "battle.swarmFlow.counts", "64,150,300,600,1000"));
         int warmup = Integer.getInteger("battle.swarmFlow.warmupTicks", 90);
         int measured = Integer.getInteger("battle.swarmFlow.measureTicks", 450);
-        String[] levers = System.getProperty("battle.swarmFlow.levers", "off,on").split(",");
+        String[] levers = System.getProperty("battle.swarmFlow.levers", "off,on,pack").split(",");
         int determinismTicks = Integer.getInteger("battle.swarmFlow.determinismTicks", 600);
         Path outputDir = Path.of(System.getProperty("battle.swarmFlow.outputDir",
                 "build/reports/performance/swarm-flow"));
@@ -97,14 +100,15 @@ class SwarmFlowEvidenceTest {
         for (int[] size : sizes) {
             for (int count : counts) {
                 for (String lever : levers) {
-                    boolean flow = lever.trim().equals("on");
-                    Run run = new Run(size[0], size[1], count, flow, warmup + measured, true);
+                    boolean flow = !lever.trim().equals("off");
+                    boolean pack = lever.trim().equals("pack");
+                    Run run = new Run(size[0], size[1], count, flow, pack, warmup + measured, true);
                     RunResult result = run.call();
                     JSONObject row = result.toJson(warmup);
                     rows.put(row);
                     md.append(result.markdownRow(warmup)).append('\n');
                     System.out.println("swarm-flow " + size[0] + "x" + size[1]
-                            + " n=" + count + " flow=" + flow + " " + row);
+                            + " n=" + count + " flow=" + flow + " pack=" + pack + " " + row);
                 }
             }
         }
@@ -121,10 +125,11 @@ class SwarmFlowEvidenceTest {
         boolean allIdentical = true;
         try {
             for (String lever : levers) {
-                boolean flow = lever.trim().equals("on");
-                Future<RunResult> a = pool.submit(new Run(dSize[0], dSize[1], dCount, flow,
+                boolean flow = !lever.trim().equals("off");
+                boolean pack = lever.trim().equals("pack");
+                Future<RunResult> a = pool.submit(new Run(dSize[0], dSize[1], dCount, flow, pack,
                         determinismTicks, false));
-                Future<RunResult> b = pool.submit(new Run(dSize[0], dSize[1], dCount, flow,
+                Future<RunResult> b = pool.submit(new Run(dSize[0], dSize[1], dCount, flow, pack,
                         determinismTicks, false));
                 long[] ha = a.get().hashes;
                 long[] hb = b.get().hashes;
@@ -138,11 +143,13 @@ class SwarmFlowEvidenceTest {
                         .put("map", dSize[0] + "x" + dSize[1])
                         .put("bodies", dCount)
                         .put("flowField", flow)
+                    .put("packs", pack)
+                        .put("packs", pack)
                         .put("ticks", determinismTicks)
                         .put("identical", identical)
                         .put("firstDifferingTick", firstDiff));
                 md.append("| ").append(dSize[0]).append('x').append(dSize[1])
-                        .append(" | ").append(dCount).append(" | ").append(flow ? "on" : "off")
+                        .append(" | ").append(dCount).append(" | ").append(lever.trim())
                         .append(" | ").append(determinismTicks).append(" | ")
                         .append(identical ? "yes" : "NO").append(" | ")
                         .append(firstDiff < 0 ? "-" : Integer.toString(firstDiff)).append(" |\n");
@@ -168,14 +175,16 @@ class SwarmFlowEvidenceTest {
         final int height;
         final int count;
         final boolean flow;
+        final boolean pack;
         final int ticks;
         final boolean timed;
 
-        Run(int width, int height, int count, boolean flow, int ticks, boolean timed) {
+        Run(int width, int height, int count, boolean flow, boolean pack, int ticks, boolean timed) {
             this.width = width;
             this.height = height;
             this.count = count;
             this.flow = flow;
+            this.pack = pack;
             this.ticks = ticks;
             this.timed = timed;
         }
@@ -186,10 +195,11 @@ class SwarmFlowEvidenceTest {
             NavigationGrid grid = map.grid;
             int[][] routes = new int[PREY_GROUPS][];
             for (int g = 0; g < PREY_GROUPS; g++) routes[g] = preyRoute(map, g);
-            RunResult result = new RunResult(width, height, count, flow, ticks);
+            RunResult result = new RunResult(width, height, count, flow, pack, ticks);
             try (BattleSimulation sim = new BattleSimulation(grid, map.topology, MAP_SEED)) {
                 sim.setMissionCompletionEnabled(false);
                 sim.setSwarmFlowFieldEnabled(flow);
+                sim.setSwarmPackEnabled(pack);
                 long[] prey = new long[PREY_COUNT];
                 for (int i = 0; i < PREY_COUNT; i++) {
                     int[] route = routes[i / PREY_PER_GROUP];
@@ -197,6 +207,13 @@ class SwarmFlowEvidenceTest {
                             UnitType.MARINE, Paths.cellX(route, 0), Paths.cellY(route, 0)));
                 }
                 long[] runners = spawnRunners(sim, map, routes, count);
+                // Packs are stamped on every lever, as a bore stamps them; only "pack" moves them as packs.
+                for (int i = 0; i < runners.length; i += PACK_SIZE) {
+                    int pack = sim.swarmPacks().openLeaderless(runners[i]);
+                    for (int j = i + 1; j < Math.min(runners.length, i + PACK_SIZE); j++) {
+                        sim.swarmPacks().join(pack, runners[j]);
+                    }
+                }
                 result.spawned = runners.length;
                 float[][] history = new float[STUCK_WINDOW + 1][];
                 for (int tick = 0; tick < ticks; tick++) {
@@ -240,7 +257,10 @@ class SwarmFlowEvidenceTest {
         int alive;
         double meanDistance;
 
-        RunResult(int width, int height, int count, boolean flow, int ticks) {
+        final boolean pack;
+
+        RunResult(int width, int height, int count, boolean flow, boolean pack, int ticks) {
+            this.pack = pack;
             this.width = width;
             this.height = height;
             this.count = count;
@@ -285,6 +305,7 @@ class SwarmFlowEvidenceTest {
                     .put("bodies", count)
                     .put("spawned", spawned)
                     .put("flowField", flow)
+                    .put("packs", pack)
                     .put("tickMs", stats(tickNanos, warmup))
                     .put("ticksOver10ms", overBudget(warmup))
                     .put("swarmBehaviourMs", stats(swarmNanos, warmup))
@@ -299,7 +320,7 @@ class SwarmFlowEvidenceTest {
         }
 
         String markdownRow(int warmup) {
-            return "| " + width + "x" + height + " | " + count + " | " + (flow ? "on" : "off")
+            return "| " + width + "x" + height + " | " + count + " | " + (pack ? "pack" : flow ? "on" : "off")
                     + " | " + cell(tickNanos, warmup) + " | " + overBudget(warmup)
                     + " | " + cell(swarmNanos, warmup)
                     + " | " + cell(pathNanos, warmup) + " | " + cell(fieldNanos, warmup)
@@ -432,10 +453,36 @@ class SwarmFlowEvidenceTest {
                 candidates.add(grid.index(x, y));
             }
         }
-        java.util.Collections.shuffle(candidates, new Random(SPAWN_SEED));
-        long[] ids = new long[Math.min(count, candidates.size())];
+        Collections.shuffle(candidates, new Random(SPAWN_SEED));
+        // Clusters of PACK_SIZE round a seed cell, as a pulse leaves a mouth: the nearest free cells to it.
+        boolean[] taken = new boolean[grid.getWidth() * grid.getHeight()];
+        List<Integer> cells = new ArrayList<>();
+        for (int seed : candidates) {
+            if (cells.size() >= count) break;
+            if (taken[seed]) continue;
+            int x0 = seed % grid.getWidth();
+            int y0 = seed / grid.getWidth();
+            int placed = 0;
+            for (int r = 0; r <= 3 && placed < PACK_SIZE; r++) {
+                for (int dy = -r; dy <= r && placed < PACK_SIZE; dy++) {
+                    for (int dx = -r; dx <= r && placed < PACK_SIZE; dx++) {
+                        if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                        int x = x0 + dx;
+                        int y = y0 + dy;
+                        if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) continue;
+                        int cell = grid.index(x, y);
+                        if (taken[cell] || !grid.arePathConnected(x0, y0, x, y,
+                                GridPathfinder.USE_CARDINAL_NAVIGATION)) continue;
+                        taken[cell] = true;
+                        cells.add(cell);
+                        placed++;
+                    }
+                }
+            }
+        }
+        long[] ids = new long[Math.min(count, cells.size())];
         for (int i = 0; i < ids.length; i++) {
-            int cell = candidates.get(i);
+            int cell = cells.get(i);
             ids[i] = sim.spawn(new EntitySpec("Swarm Runner " + (i + 1), Faction.DEFENDER,
                     UnitType.SWARM_RUNNER, cell % grid.getWidth(), cell / grid.getWidth())
                     .role(UnitRole.SWARM_PRESSURE));
