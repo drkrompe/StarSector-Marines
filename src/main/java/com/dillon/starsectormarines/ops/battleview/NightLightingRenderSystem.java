@@ -27,8 +27,11 @@ final class NightLightingRenderSystem implements RenderSystem {
     private final FireLight fire = new FireLight();
     /** Fire's pool at half-cell resolution, like {@link #pools}; zero outside the boxes last filled. */
     private float[] firePools;
-    private int[] filled = new int[FireLight.MAX_LIGHTS * 4];
+    /** The most fire lights one frame fills: a whole-map view of a country alight keeps its brightest. */
+    static final int MAX_FILLED = 160;
+    private int[] filled = new int[MAX_FILLED * 4];
     private int filledCount;
+    private int[] inView = new int[64];
 
     public RenderLayer layer() { return RenderLayer.NIGHT_LIGHTING; }
 
@@ -37,10 +40,11 @@ final class NightLightingRenderSystem implements RenderSystem {
         var night = ground.nightLighting();
         if (night == null) return;
         if (ground != topology || night != lighting) bake(ground, night);
-        boolean burning = fillFire(ground, FireRenderSystem.enabled() ? ctx.sim.fireFieldIfPresent() : null,
-                FireLight.clock(ctx.animationTimeSeconds));
         var camera = ctx.camera;
         var visible = camera.visibleCells(1, ground.getWidth(), ground.getHeight());
+        boolean burning = fillFire(ground, FireRenderSystem.enabled() ? ctx.sim.fireFieldIfPresent() : null,
+                FireLight.clock(ctx.animationTimeSeconds),
+                visible.minX(), visible.minY(), visible.maxX(), visible.maxY());
         var fog=ctx.sim.getFogOfWar();
         boolean useFog=ctx.hostProfile.fogClipsLighting() && fog.isInitialized();
         pass.reset(camera);
@@ -143,7 +147,8 @@ final class NightLightingRenderSystem implements RenderSystem {
      * Refills fire's pools for this frame; false, having cleared them, when
      * nothing burns. A fire lights only its own side of a roof, as a lamp does.
      */
-    private boolean fillFire(CellTopology ground, FireField field, float timeSeconds) {
+    private boolean fillFire(CellTopology ground, FireField field, float timeSeconds,
+                             int viewMinX, int viewMinY, int viewMaxX, int viewMaxY) {
         fire.update(field);
         if (firePools == null || firePools.length != pools.length) {
             firePools = new float[pools.length];
@@ -155,7 +160,25 @@ final class NightLightingRenderSystem implements RenderSystem {
         filledCount = 0;
         if (fire.count() == 0) return false;
         int height = pools.length / width;
+        // Only the lights whose pools reach the view, and of those the brightest.
+        int n = 0;
         for (int l = 0; l < fire.count(); l++) {
+            float r = fire.radius(l);
+            if (fire.x(l) + r < viewMinX || fire.x(l) - r > viewMaxX + 1
+                    || fire.y(l) + r < viewMinY || fire.y(l) - r > viewMaxY + 1) continue;
+            if (n == inView.length) inView = Arrays.copyOf(inView, n * 2);
+            inView[n++] = l;
+        }
+        if (n == 0) return false;
+        if (n > MAX_FILLED) {
+            Integer[] order = new Integer[n];
+            for (int i = 0; i < n; i++) order[i] = inView[i];
+            Arrays.sort(order, (a, b) -> Float.compare(fire.baseStrength(b), fire.baseStrength(a)));
+            for (int i = 0; i < MAX_FILLED; i++) inView[i] = order[i];
+            n = MAX_FILLED;
+        }
+        for (int k = 0; k < n; k++) {
+            int l = inView[k];
             float r = fire.radius(l);
             int gx0 = Math.max(0, (int) ((fire.x(l) - r) * 2)), gx1 = Math.min(width - 1, (int) ((fire.x(l) + r) * 2) + 1);
             int gy0 = Math.max(0, (int) ((fire.y(l) - r) * 2)), gy1 = Math.min(height - 1, (int) ((fire.y(l) + r) * 2) + 1);

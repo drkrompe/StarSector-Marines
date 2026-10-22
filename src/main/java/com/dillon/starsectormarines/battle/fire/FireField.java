@@ -68,6 +68,10 @@ public final class FireField {
     private final short[] fuel, load;
     private final byte[] peak, age, intensity, mask, reach;
     private final int[] burntTick;
+    /** Cells that stop heat passing over them, as of {@link #barrierRevision}; see {@link FireTerrain#blocksHeat}. */
+    private final boolean[] barrier;
+    private long barrierRevision = Long.MIN_VALUE;
+    private boolean anyBarrier;
     /** Cells holding heat, unburning; flagged in {@link #warm}. */
     private int[] warmList = new int[256];
     private int warmSize;
@@ -105,6 +109,7 @@ public final class FireField {
         this.mask = new byte[cells];
         this.reach = new byte[cells];
         this.burntTick = new int[cells];
+        this.barrier = new boolean[cells];
         this.warm = new boolean[cells];
         this.tilesX = (width + TILE - 1) / TILE;
         this.tilesY = (height + TILE - 1) / TILE;
@@ -232,6 +237,7 @@ public final class FireField {
 
     private void step() {
         stepIndex++;
+        refreshBarriers();
         for (int i = igniters.size() - 1; i >= 0; i--) {
             Igniter ig = igniters.get(i);
             if (now >= ig.untilTick) { igniters.remove(i); continue; }
@@ -258,14 +264,48 @@ public final class FireField {
         int[] off = offsets[r], wt = weights[r];
         int x = idx % width, y = idx / width;
         for (int k = 0; k < wt.length; k++) {
-            int nx = x + off[k * 2], ny = y + off[k * 2 + 1];
+            int dx = off[k * 2], dy = off[k * 2 + 1];
+            int nx = x + dx, ny = y + dy;
             if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
             int n = ny * width + nx;
+            if (anyBarrier && shielded(x, y, dx, dy)) continue;
             int amount = power * wt[k];
             if (jitter) amount = (int) ((long) amount * (128 + jitter(n)) >> 8);
             amount >>= 8;
             if (amount > 0) warmUp(n, amount);
         }
+    }
+
+    /**
+     * Whether a standing wall that is not itself burning lies between a cell and
+     * one {@code (dx, dy)} from it: heat does not pass over walls. Adjacent cells
+     * have nothing between them.
+     */
+    private boolean shielded(int x, int y, int dx, int dy) {
+        int steps = Math.max(Math.abs(dx), Math.abs(dy));
+        for (int t = 1; t < steps; t++) {
+            int cx = x + Math.round(dx * t / (float) steps), cy = y + Math.round(dy * t / (float) steps);
+            int c = cy * width + cx;
+            if (barrier[c] && state[c] != BURNING) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Rereads which cells stop heat when the terrain says its walls have changed
+     * (a breach, a wall burnt through): a whole-map pass, on those steps only.
+     */
+    private void refreshBarriers() {
+        long rev = terrain.barrierRevision();
+        if (rev == barrierRevision) return;
+        barrierRevision = rev;
+        boolean any = false;
+        for (int i = 0; i < cells; i++) {
+            boolean b = terrain.blocksHeat(i);
+            barrier[i] = b;
+            any |= b;
+        }
+        anyBarrier = any;
     }
 
     /** 0..255, a hash of the cell and the step: the ragged edge of a front. */

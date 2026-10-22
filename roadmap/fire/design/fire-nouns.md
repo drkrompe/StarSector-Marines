@@ -46,16 +46,18 @@ grass under a hedge under creep is three loads.
 | Living creep | `CreepField` coverage, alive | 75 | 15 s | moderately | Creep over a crown makes it catch as creep does: an overgrown tree goes up readily. |
 | Dead creep | creep dying back | 40 | 8 s | easily | Dry; the edge a source has abandoned goes up fast. |
 | Debris | timber and furniture rubble | 50 | 10 s | moderately | Defined, not yet read off the map. |
+| Structure | a light wall or window: one of at most 100 hit points, in a structure that is not fortified | 120 | 24 s | hard | Catches only from fire held against it, so a passing grass front catches it some of the time; a cell that burns through falls to rubble (Buildings). |
+| Furnishing | a plain indoor or panelled floor (`INDOOR`, `TILE`) of a building that is not fortified | 80 | 16 s | moderately | A room's furniture and boards; a room that catches loses its roof. |
 
 Fuels stack: grass under a hedge under creep burns for all three loads,
 at the hottest one's intensity, and catches as easily as the easiest.
 Bodies and wrecks are not fuel: a burning cell consumes the bodies lying in
 it, and a wreck is an igniter (Starting fires).
 
-**Does not burn:** bare paving (`STREET`, `SIDEWALK`, `COURTYARD`, `BRICK`,
-`STONE`, `TILE`, `STRIPED`), bare `DIRT`, `SAND`, `SNOW`, `WATER`, masonry
-rubble, walls and rock, and ground that has already burnt. A building's walls
-are masonry and do not carry fire; what is inside them may.
+**Does not burn:** bare outdoor paving (`STREET`, `SIDEWALK`, `COURTYARD`,
+`BRICK`, `STONE`), military floor (`STRIPED`), bare `DIRT`, `SAND`, `SNOW`,
+`WATER`, masonry rubble, rock, any wall heavier than a light one, anything of
+a fortified structure, and ground that has already burnt.
 
 **Creep over a road is fuel.** Paving stops a fire only while it is bare. In
 country the creep has overgrown, no road is a firebreak; the only break is
@@ -138,8 +140,8 @@ is not touching it costs nothing.
 
 **Static things take nothing.** Turrets, hubs, bores and the swarm's growths
 are fought through their durability, never burnt. Burning never collapses a
-bore; growths die with the creep a fire takes. Walls and buildings take
-nothing from fire.
+bore; growths die with the creep a fire takes. Buildings burn by what they
+are made of (Buildings).
 
 **Trees** burn as fuel and fall when three crown cells have burnt out.
 
@@ -180,6 +182,35 @@ alone, not a side's costing), so the swarm streams round a burning stand
 where there is a way round and through it where its prey lies beyond. Fields
 rebuild as the fire changes, at their ordinary cadence, and pay nothing while
 nothing burns. The fire route-cost control switches this off with the rest.
+
+## Buildings
+
+**A building burns by its materials, not as a whole** (`BattleFire`). A light
+wall or window (an ordinary building's, at most 100 hit points) is structure
+fuel; a plain indoor or panelled floor is furnishing. A **fortified
+structure**, one walled anywhere by something heavier than a light wall or
+floored as military, burns at none of its walls, windows, doors or floors, so
+compounds, redoubts, military buildings and forts stand in a burning field.
+Which structures count as fortified is read off their walls when the battle's
+fire is made.
+
+**Walls stop heat.** A standing wall or window stops heat passing over it, so
+fire reaches a room only through a doorway or through a wall or window that
+itself burns. A light wall held in a fire catches slowly; once it burns
+through it falls to rubble as a breach does (`MapEditor.damageWall`), opening
+the building to movement and sight, and its rubble is burnt ground.
+
+**Rooms burn one by one.** Fire that gets in catches the room's floor, spreads
+room to room as through a meadow, and burns through the roof above each cell
+that catches, so the burning is seen from above and the room is open to the
+sky. Burnt rooms char and ash as burnt ground does.
+
+**What it costs.** Whether a cell stops heat is cached in the field and
+reread only on a step after the map's walls have changed, and a map with no
+walls never asks, so a fire in open country pays nothing for buildings.
+
+The owner chose this (2026-10-22): light walls the fire burns against fall,
+and fire gets into rooms where the materials can burn.
 
 ## Starting fires
 
@@ -245,8 +276,9 @@ nothing is drawn for a battle that never lit anything.
   rather than one per cell (`FireLight`): burning cells are gathered into
   six-cell squares, and each square with fire in it is one light at its
   hottest middle, reaching about as far as its fire is wide and as bright as
-  it burns, flickering at its own phase; only the brightest few dozen are
-  kept. At night they carve warm orange pools out of the dark as a yard lamp
+  it burns, flickering at its own phase. Every square is kept; a frame
+  draws those whose pools reach the view, the brightest 160 of them when more
+  do, so a fire in view is never left dark by fires elsewhere. At night they carve warm orange pools out of the dark as a yard lamp
   does, and, like a lamp, do not light through a roof, so a night burn reads
   from across the map and lights the men beside it. In game the same lights
   are the ground relief's event lights (`GroundLightService`), competing with
@@ -303,6 +335,15 @@ break holding at scale is its verdict; the fire's peak burning cells, the
 mean, p99 and worst simulation-thread cost of a tick with fire in it
 (`FireCost`: the field, its harm and its route costing together), and how
 long the country takes to burn are its metrics.
+
+`fire-buildings` (`sceneEvidence`, and the `fire-buildings` snapshot suite)
+runs a grass fire into two houses on the green colony: the light-walled house
+standing most fully in grass, and its neighbour, built fortified for the
+occasion (walls raised to 150 hit points before the fire is made). Verdicts:
+a light wall cell that burns through is rubble, the light house's rooms burn,
+every room cell that caught is open to the sky, and the fortified house burns
+nowhere although the fire reaches it. Walls fallen, room cells burnt and when
+the fire got in are metrics.
 
 `fire-smoke` (`sceneEvidence`) burns a hedge between two watchers on bare
 ground: they see each other before it is lit, not while it burns, and again
