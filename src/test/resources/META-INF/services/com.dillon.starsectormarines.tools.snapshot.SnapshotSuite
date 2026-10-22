@@ -134,6 +134,7 @@ com.dillon.starsectormarines.battle.battery.FortressBatterySceneSnapshotSuite
 com.dillon.starsectormarines.battle.salvage.FieldSalvageSnapshotSuite
 com.dillon.starsectormarines.ops.OpeningLocalizationSnapshotSuite
 com.dillon.starsectormarines.ops.EquipmentLocalizationSnapshotSuite
+com.dillon.starsectormarines.ops.MissionFlowLocalizationSnapshotSuite
 com.dillon.starsectormarines.ops.EngineeringOverlaySnapshotSuite
 com.dillon.starsectormarines.ops.ColdStartSnapshotSuite
 com.dillon.starsectormarines.battle.air.CloseAirSupportSceneSnapshotSuite
@@ -231,6 +232,7 @@ com.dillon.starsectormarines.battle.evacuation.RavShadowSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.RavBruteMotionSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.DeckPropMotionSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmChokepointSceneSnapshotSuite
+com.dillon.starsectormarines.battle.evacuation.SwarmPackSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmBoreCollapseSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmHarvestSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmImpaleSceneSnapshotSuite

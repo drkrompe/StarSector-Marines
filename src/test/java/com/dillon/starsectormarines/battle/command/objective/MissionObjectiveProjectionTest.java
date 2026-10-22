@@ -39,7 +39,7 @@ class MissionObjectiveProjectionTest {
                 new CivilianEvacuationSystem.Progress(false, 0, true, false, 2, 1, 3, 1));
         assertEquals("2 aboard / 5 awaiting rescue / 1 lost", item.progressText());
         assertTrue(item.blocker().contains("2 need close escort"));
-        assertTrue(item.blocker().contains("1 have no route"));
+        assertTrue(item.blocker().contains("1 has no route"));
         assertTrue(item.blocker().contains("3 waiting for pickup"));
         assertEquals("cohort-payload", item.focusMarkerId());
         assertEquals(15, item.focus().x());

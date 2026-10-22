@@ -33,7 +33,10 @@ class TranslationSmokeTest {
      * Prefixes {@code Strings.named} reads that the catalog has no entry for yet, so a translation
      * cannot reach them and they read as the id spelled out. The list may only shrink.
      */
-    private static final Set<String> UNTRANSLATED_NAMED_PREFIXES = Set.of("shipHull", "billetRole", "armorTradition");
+    private static final Set<String> UNTRANSLATED_NAMED_PREFIXES = Set.of("shipHull");
+    /** Service-record entries name their pattern key as the first string argument. */
+    private static final Pattern COMMENDATION = Pattern.compile(
+            "Commendations\\.(?:add\\([^,;]+,[^,;]+,|entry\\(|ref\\()\\s*\"([A-Za-z][A-Za-z0-9_]*)\"\\s*[,)]");
 
     private static JSONObject catalog() throws Exception {
         String source = Files.readString(MOD.resolve("data/strings/strings.json"));
@@ -56,6 +59,16 @@ class TranslationSmokeTest {
             }
         }
         assertTrue(broken.isEmpty(), "unparseable patterns " + broken);
+        // A lone apostrophe in a pattern with arguments quotes the text after it and vanishes.
+        List<String> loneApostrophes = new ArrayList<>();
+        for (var keys = catalog.keys(); keys.hasNext();) {
+            String key = (String) keys.next();
+            String text = catalog.optString(key, "");
+            if (!text.matches("(?s).*\\{[0-9].*")) continue;
+            String unescaped = text.replace("''", "");
+            if (unescaped.matches("(?s).*'[^{}].*") || unescaped.endsWith("'")) loneApostrophes.add(key);
+        }
+        assertTrue(loneApostrophes.isEmpty(), "patterns with an undoubled apostrophe " + loneApostrophes);
         try (var strings = new HeadlessStrings(MOD, text -> "«" + text + "»")) {
             String any = (String) catalog.keys().next();
             assertEquals("«" + catalog.getString(any) + "»", Strings.get(any));
@@ -77,6 +90,7 @@ class TranslationSmokeTest {
                 Path file = sources.get(i);
                 String source = texts.get(i);
                 for (var m = LOOKUP.matcher(source); m.find();) keys.add(file.getFileName() + " " + m.group(1));
+                for (var m = COMMENDATION.matcher(source); m.find();) keys.add(file.getFileName() + " " + m.group(1));
                 if (NOT_CATALOG_REFERENCES.contains(file.getFileName().toString())) continue;
                 for (var m = AT_LITERAL.matcher(source); m.find();) keys.add(file.getFileName() + " " + m.group(1));
                 for (var m = NAMED.matcher(source); m.find();) prefixes.add(file.getFileName() + " " + m.group(1));
@@ -93,5 +107,45 @@ class TranslationSmokeTest {
             if (!any && !UNTRANSLATED_NAMED_PREFIXES.contains(prefix)) missing.add(entry + "*");
         }
         assertTrue(missing.isEmpty(), "keys with no catalog entry: " + missing);
+    }
+
+    @Test
+    void everyKeyTheMarkupNamesIsInTheCatalog() throws Exception {
+        JSONObject catalog = catalog();
+        Pattern reference = Pattern.compile("\\{i18n\\.([A-Za-z][A-Za-z0-9_]*)}");
+        List<String> missing = new ArrayList<>();
+        try (Stream<Path> files = Files.walk(MOD.resolve("data/ui"))) {
+            for (Path file : files.filter(f -> f.toString().endsWith(".mlx")).toList()) {
+                for (var m = reference.matcher(Files.readString(file)); m.find();) {
+                    if (!catalog.has(m.group(1))) missing.add(file.getFileName() + " " + m.group(1));
+                }
+            }
+        }
+        assertTrue(missing.isEmpty(), "markup keys with no catalog entry: " + missing);
+    }
+
+    /** Developer-only markup, whose copy is not shipped to players. */
+    private static final Set<String> DEBUG_MARKUP = Set.of("ui-workbench.mlx", "debug-missions.mlx");
+    /** The briefing's debug drawer headings, shown only on debug-source missions. */
+    private static final Set<String> DEBUG_LITERALS = Set.of("/ SCALE &amp; FIXTURE", "AIR SUPPORT");
+
+    @Test
+    void playerFacingMarkupHasNoLiteralCopy() throws Exception {
+        Pattern style = Pattern.compile("(?s)<style>.*?</style>");
+        Pattern textNode = Pattern.compile(">([^<>]*)<");
+        Pattern word = Pattern.compile("\\p{L}{2,}");
+        List<String> literals = new ArrayList<>();
+        try (Stream<Path> files = Files.walk(MOD.resolve("data/ui"))) {
+            for (Path file : files.filter(f -> f.toString().endsWith(".mlx")).toList()) {
+                if (DEBUG_MARKUP.contains(file.getFileName().toString())) continue;
+                String markup = style.matcher(Files.readString(file)).replaceAll("");
+                for (var m = textNode.matcher(markup); m.find();) {
+                    String text = m.group(1).replaceAll("\\{[^}]*}", "").strip();
+                    if (word.matcher(text.replaceAll("&[a-z]+;", "")).find() && !DEBUG_LITERALS.contains(text))
+                        literals.add(file.getFileName() + " \"" + text + "\"");
+                }
+            }
+        }
+        assertTrue(literals.isEmpty(), "literal copy in player-facing markup; use {i18n.key}: " + literals);
     }
 }

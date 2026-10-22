@@ -4,17 +4,17 @@
       <img id="mission-results-header-lock" class="flow-header-lock" src="graphics/ui/console/locking-plate.svg" />
       <div id="mission-results-heading" class="mission-flow-heading">
         <div id="mission-results-title" class="label title tone-edge">{title}</div>
-        <div id="mission-results-subtitle" class="label tone-muted">Operation settlement and personnel disposition</div>
+        <div id="mission-results-subtitle" class="label tone-muted">{i18n.resultsScreenSubtitle}</div>
       </div>
-      <div id="mission-results-context" class="label heading tone-accent mission-flow-context">MISSION DEBRIEF</div>
+      <div id="mission-results-context" class="label heading tone-accent mission-flow-context">{i18n.resultsScreenContext}</div>
     </div>
     <div id="mission-results-refit" class="{refitClasses}">
       <img id="results-refit-portrait" class="refit-portrait" src="graphics/portraits/castle.png" />
       <div id="results-refit-copy" class="refit-copy">
-        <div id="results-refit-title" class="label heading tone-accent">EQUIPMENT UPGRADE AVAILABLE / A PROPER ISSUE</div>
+        <div id="results-refit-title" class="label heading tone-accent">{i18n.resultsScreenRefitTitle}</div>
         <div id="results-refit-message" class="label refit-message">{refitCopy}</div>
       </div>
-      <button id="results-refit-open" class="good-surface console-action" onclick="{refitAction}">REVIEW EQUIPMENT UPGRADE</button>
+      <button id="results-refit-open" class="good-surface console-action" onclick="{refitAction}">{i18n.resultsScreenRefitOpen}</button>
     </div>
     <div id="mission-results-body" class="mission-results-body">
       <div id="mission-results-summary" class="console-section results-summary">
@@ -40,8 +40,8 @@
         <div id="salvage-conversation" class="{salvageClasses}">
           <div id="salvage-conversation-heading" class="salvage-heading">
             <div id="salvage-conversation-status" class="label heading tone-accent">{conversationTitle}</div>
-            <button id="salvage-replay" class="{salvagePlaybackClasses}" onclick="{salvageReplay}">Replay</button>
-            <button id="salvage-stop" class="{salvagePlaybackClasses}" onclick="{salvageStop}">Stop</button>
+            <button id="salvage-replay" class="{salvagePlaybackClasses}" onclick="{salvageReplay}">{i18n.resultsScreenSalvageReplay}</button>
+            <button id="salvage-stop" class="{salvagePlaybackClasses}" onclick="{salvageStop}">{i18n.resultsScreenSalvageStop}</button>
           </div>
           <div id="salvage-turns" class="salvage-turns">
             <div each="turn in salvageTurns" key="{turn.id}" id="{turn.id}" class="salvage-turn">
@@ -59,7 +59,7 @@
         </div>
         <div id="mission-results-personnel-heading" class="personnel-heading surface-dark">
           <div id="mission-results-personnel-title" class="label heading tone-edge">{personnelHeader}</div>
-          <div id="mission-results-personnel-subtitle" class="label tone-muted">Returned / wounded / missing / killed</div>
+          <div id="mission-results-personnel-subtitle" class="label tone-muted">{i18n.resultsScreenPersonnelSubtitle}</div>
         </div>
         <div id="mission-results-squads" class="results-squad-grid">
           <div each="squad in squadRows" key="{squad.id}" id="{squad.id}" class="results-squad-card console-readout">
@@ -82,7 +82,7 @@
     <div id="reward-modal" class="{rewardPrompt.classes}">
       <div id="reward-space-above" class="reward-space" />
       <div id="reward-dialog" class="reward-dialog console-readout">
-        <div id="reward-eyebrow" class="label heading tone-edge reward-eyebrow">CASTLE / BEFORE YOU GO</div>
+        <div id="reward-eyebrow" class="label heading tone-edge reward-eyebrow">{i18n.resultsScreenRewardEyebrow}</div>
         <div id="reward-title" class="label title tone-accent reward-title">{rewardPrompt.title}</div>
         <div id="reward-conversation" class="reward-conversation">
           <img id="reward-portrait" class="reward-portrait" src="graphics/portraits/castle.png" />
@@ -91,15 +91,15 @@
         <div id="reward-options" class="reward-options">
           <div id="reward-line" class="reward-option panel">
             <img id="reward-line-icon" class="reward-icon" src="{rewardPrompt.lineIcon}" />
-            <div id="reward-line-label" class="label reward-option-copy">STEADY LINE / Milspec Stalwart. Hold ground with automatic fire.</div>
+            <div id="reward-line-label" class="label reward-option-copy">{i18n.resultsScreenRewardLine}</div>
           </div>
           <div id="reward-scout" class="reward-option panel">
             <img id="reward-scout-weapon" class="reward-icon" src="{rewardPrompt.scoutWeaponIcon}" />
             <img id="reward-scout-armor" class="reward-icon" src="{rewardPrompt.scoutArmorIcon}" />
-            <div id="reward-scout-label" class="label reward-option-copy">FORWARD SCREEN / Milspec Lancer + Janus. Scout ahead with mobile infantry.</div>
+            <div id="reward-scout-label" class="label reward-option-copy">{i18n.resultsScreenRewardScout}</div>
           </div>
         </div>
-        <div id="reward-footnote" class="label tone-muted reward-footnote">Compare the equipment before choosing. Your debrief and pending salvage will wait here.</div>
+        <div id="reward-footnote" class="label tone-muted reward-footnote">{i18n.resultsScreenRewardFootnote}</div>
         <div id="reward-actions" class="reward-actions">
           <button id="reward-open" class="reward-open good-surface console-action" onclick="{rewardPrompt.open}">{rewardPrompt.actionLabel}</button>
         </div>

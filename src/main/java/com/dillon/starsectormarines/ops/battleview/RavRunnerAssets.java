@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.unit.SwarmStage;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -8,10 +10,15 @@ import java.util.function.Function;
  * The Rav Bloom Runner's bone sprites, exported by {@code art-source/rav-redesign/export_runner_rig.py}.
  * Each runs from its root at the bottom to its end at the top with the bone's midpoint at the
  * sprite's centre. Limb bones come in left and right, the right mirrored: {@code [bone][side]}.
+ * A whelp and an elder have their own recoloured sets ({@link #forStage}) beside the adult's, cut
+ * from the same bones so they pose on the same skeleton; the ichor is the adult's.
  */
 public final class RavRunnerAssets {
 
     public static final String ROOT = "graphics/battle/rav-runner/";
+    /** The whelp's and the elder's sets, by the same export. */
+    public static final String WHELP_ROOT = "graphics/battle/rav-runner-whelp/";
+    public static final String ELDER_ROOT = "graphics/battle/rav-runner-elder/";
 
     /** The trunk in two halves that meet at mid-spine, so it bends through a turn. */
     final LayeredSpriteCache trunkFront;
@@ -23,6 +30,8 @@ public final class RavRunnerAssets {
     /** Ichor a burst Runner leaves, by {@code art-source/rav-redesign/export_ichor.py}. */
     final LayeredSpriteCache[] splat = new LayeredSpriteCache[4];
     LayeredSpriteCache drop;
+    /** The stage sets, or null where one is missing and the adult's stands in. */
+    private RavRunnerAssets whelp, elder;
 
     private RavRunnerAssets(LayeredSpriteCache trunkFront, LayeredSpriteCache trunkRear,
                             LayeredSpriteCache fore) {
@@ -33,23 +42,51 @@ public final class RavRunnerAssets {
 
     /** Every sprite through loader, or null when any is missing, so the Runner keeps its old art. */
     public static RavRunnerAssets load(Function<String, LayeredSpriteCache> loader) {
-        RavRunnerAssets assets = new RavRunnerAssets(loader.apply(ROOT + "trunk-front.png"),
-                loader.apply(ROOT + "trunk-rear.png"), loader.apply(ROOT + "fore.png"));
-        if (assets.trunkFront == null || assets.trunkRear == null || assets.fore == null) return null;
-        if (!fill(assets.front, "front", loader) || !fill(assets.hind, "hind", loader)
-                || !fill(assets.arm, "arm", loader)) return null;
+        RavRunnerAssets assets = bones(ROOT, loader);
+        if (assets == null) return null;
         for (int i = 0; i < assets.splat.length; i++) {
             assets.splat[i] = loader.apply(ROOT + "ichor-splat-" + i + ".png");
             if (assets.splat[i] == null) return null;
         }
         assets.drop = loader.apply(ROOT + "ichor-drop.png");
         if (assets.drop == null) return null;
+        assets.whelp = bones(WHELP_ROOT, loader);
+        assets.elder = bones(ELDER_ROOT, loader);
+        for (RavRunnerAssets stage : new RavRunnerAssets[]{assets.whelp, assets.elder}) {
+            if (stage == null) continue;
+            System.arraycopy(assets.splat, 0, stage.splat, 0, assets.splat.length);
+            stage.drop = assets.drop;
+        }
         return assets;
     }
 
-    /** Every bone image, for the unit atlas. */
+    /** The set a body of {@code stage} is drawn with: its own, or the adult's where it has none. */
+    public RavRunnerAssets forStage(SwarmStage stage) {
+        RavRunnerAssets own = stage == SwarmStage.WHELP ? whelp : stage == SwarmStage.ELDER ? elder : null;
+        return own != null ? own : this;
+    }
+
+    private static RavRunnerAssets bones(String root, Function<String, LayeredSpriteCache> loader) {
+        RavRunnerAssets assets = new RavRunnerAssets(loader.apply(root + "trunk-front.png"),
+                loader.apply(root + "trunk-rear.png"), loader.apply(root + "fore.png"));
+        if (assets.trunkFront == null || assets.trunkRear == null || assets.fore == null) return null;
+        if (!fill(assets.front, root + "front", loader) || !fill(assets.hind, root + "hind", loader)
+                || !fill(assets.arm, root + "arm", loader)) return null;
+        return assets;
+    }
+
+    /** Every bone image, the stage sets' too, for the unit atlas. */
     public List<LayeredSpriteCache> layers() {
         List<LayeredSpriteCache> all = new ArrayList<>();
+        addBones(all);
+        all.addAll(List.of(splat));
+        all.add(drop);
+        if (whelp != null) whelp.addBones(all);
+        if (elder != null) elder.addBones(all);
+        return all;
+    }
+
+    private void addBones(List<LayeredSpriteCache> all) {
         all.add(trunkFront);
         all.add(trunkRear);
         all.add(fore);
@@ -59,16 +96,13 @@ public final class RavRunnerAssets {
                 all.add(pair[1]);
             }
         }
-        all.addAll(List.of(splat));
-        all.add(drop);
-        return all;
     }
 
     private static boolean fill(LayeredSpriteCache[][] bones, String name,
                                 Function<String, LayeredSpriteCache> loader) {
         for (int i = 0; i < bones.length; i++) {
-            bones[i][0] = loader.apply(ROOT + name + "-" + i + "-l.png");
-            bones[i][1] = loader.apply(ROOT + name + "-" + i + "-r.png");
+            bones[i][0] = loader.apply(name + "-" + i + "-l.png");
+            bones[i][1] = loader.apply(name + "-" + i + "-r.png");
             if (bones[i][0] == null || bones[i][1] == null) return false;
         }
         return true;

@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.campaign.CampaignTable;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractReputation;
 import com.dillon.starsectormarines.campaign.ContractType;
+import com.dillon.starsectormarines.marine.Commendations;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.Status;
@@ -90,13 +91,11 @@ public final class ExtractionResolutionSystem implements CampaignSystem {
         if (captain != null && captain.status() == Status.GARRISONED) {
             if (success) {
                 captain.setStatus(Status.ACTIVE);
-                captain.commendations().add("Day " + day
-                        + ": Recovered after employer default.");
+                Commendations.add(captain, day, "commendationRecoveredAfterDefault");
             } else {
                 captain.setStatus(Status.INJURED);
                 captain.setInjuredUntilDay(day + FAILED_EXTRACTION_INJURY_DAYS);
-                captain.commendations().add("Day " + day
-                        + ": Injured during failed extraction after employer default.");
+                Commendations.add(captain, day, "commendationInjuredAfterDefault");
             }
         }
 

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — growth stages (whelp, adult, elder), age mix, pack leader as planned vocabulary; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
+Updated: 2026-10-21 — growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -733,6 +733,21 @@ not read in a soft shadow at play zoom.
   walks round to a door. It is not staggered and does not charge. Until it has
   sounds of its own it borrows the Brute's.
 
+  Its weight is set against a lance: three Bulwarks and one Matriarch at full
+  health come out near even (the `matriarch` scene's `mech-lance` loop reads
+  it: two Bulwarks lost, the Matriarch left on its last few points), so it is
+  a boss a mech lance with support answers and a rifle squad does not.
+
+  Drawn on its own skeleton (`RavMatriarchRig`): the charcoal Siege Crown,
+  matte charcoal plates edged in dried-blood red over wine-red sinew, a fan
+  of yellowed ivory crown over a straight-ahead head, the legs pillars under
+  the body on a slow four-beat walk. Walking, it looks slowly left and right;
+  a reap turns the head toward the blade and opens the jaws; the roar gapes
+  and shakes it. The two scythes hang from under the crown's rim, a mirrored
+  pair about the head, and are long enough that a reap reads past the crown
+  (owner's pick over mounting them further out or turning them with the head).
+  It dies with its back broken, in one of four poses of that death.
+
 **Growth stage.** How old a rav is: **whelp**, **adult** or **elder**. Every
 strain has the same three stages, so a stage is a property of one body, never
 a strain of its own: a whelp Runner is a Runner, with the Runner's `UnitType`,
@@ -752,9 +767,9 @@ ridge. A stage is issued at
 spawn through `SwarmStrains`, like the Brute's plate, and fixed for the body's
 life; the Matriarch is the one exception. Stage scales presentation only
 through things the body already has: its rig's scale and stage-recoloured
-sprites, and its voice pitched by its size. Stats, the stage table and the
-reasons for each choice are in `rav-growth-stages.md` (stage, stats, size, the
-age mix, packs and sound built; the per-stage art planned).
+sprites, and its voice pitched by its size. The numbers are in `SwarmStageStats`
+and the reasons for each choice, with the first balance reading, in
+`growth-stages.md`.
 `-Dbattle.swarm.growthStages=false` is the control: every body an adult.
 
 - **Age mix.** A surge's stages come from its bore, never from the director:
@@ -764,10 +779,12 @@ age mix, packs and sound built; the per-stage art planned).
   has been fed sends bigger, darker ravs, and fewer of them, because the
   director counts a body's stage weight against its target. The draw is keyed by the bore, the
   pulse and the body, so stages change no other roll.
-- **Pack, pack leader.** A pack is the bodies of one pulse. Its first elder is
-  its **pack leader** and is released at the head of the stream; a pulse with
-  no elder has no leader, and its bodies hunt alone as every body did before
-  stages. While the leader lives, members on its eight-cell leash share its
+- **Pack, pack leader.** A pack is the bodies of one pulse, at most eight: a
+  bigger pulse splits into as few even packs as fit. Its first elder is
+  its **pack leader** and is released at the head of the stream; a pack with
+  no elder has no leader and none of a leader's bonuses, though it still runs
+  together (*Pack movement*) round its first living body, its **anchor**, which
+  is a place to move round and nothing more. While the leader lives, members on its eight-cell leash share its
   quarry when they have none of their own close by (local pursuit; the flow
   field is untouched), pool what any of them senses (still sensing, passed body
   to body, a tick behind), and strike 15% faster. The leader's cry on new
@@ -776,8 +793,9 @@ age mix, packs and sound built; the per-stage art planned).
   leader's stage: the bonuses go at once, members drop their quarry and for two
   seconds hunt only what they sense themselves, and its whelps bolt back down
   the bore field for four, dropping what they carry. A pack never elects a new
-  leader; a body out of any led pack (a leaderless pulse, a broken pack) joins
-  a leader whose leash it comes within, which is how two surges merge.
+  leader; a body out of any led pack (a leaderless pack, a broken one) joins
+  a leader whose leash it comes within if that pack has room for it, which is
+  how two surges merge.
   `-Dbattle.swarm.packLeaders=false` is the control: no pack forms.
 - **The Matriarch's stage** is set by how long the mother bore has been
   feeding (its lifetime biomass when she emerges), within a narrower range of
@@ -851,7 +869,9 @@ against its own control in `renderEvidence`.
 - **Walls are held slowly.** A wall beside claimed ground is climbed, never
   crossed, and filled over about a minute and a half rather than at once: its
   coverage is its age, so a newly reached wall carries only veins and an old
-  one is crusted over. It reads as a matter of time.
+  one is crusted over. It reads as a matter of time. An overgrown wall still
+  reads as a barrier: its crust is lighter than the floor's, lit and shaded on
+  its edges as a raised block is, and outlined dark where it meets the floor.
 - **A ground colony answers a gun the swarm cannot rush** (`GroundColonies`).
   A living bore grows one on its creep within reach of a hostile emplacement
   the creep has come up against: on living creep with creep round it, inside
@@ -914,11 +934,34 @@ large map.
   bore. The swarm's own holes, so their cells are declared and redeclared as a
   bore opens or collapses.
 - **A field makes a stream.** The descent is the same from every cell and has
-  no crowd term, so bodies released together follow one lane down it, which is
-  the river a spawning surge needs; they break apart where local pursuit takes
-  over. Nothing separates swarm bodies from each other today (Marines steer
-  away from them, not they from one another), so a later separation pass must
-  leave a surging body on its lane to keep the stream.
+  no crowd term, so bodies descending it each for themselves fall into one lane
+  and run it single file. That is the river a surge makes leaving its mouth,
+  and it is also why, without packs, Runners crossed the map as beads on a
+  string. Packs are what turn the stream into hunters once it is out.
+- **Pack movement.** The field stays the strategic layer; a pack is how its
+  bodies run it. The pack's **lane** is the prey field's descent from its
+  anchor, and every member runs that lane at its own place in a loose fan:
+  out to one side or the other by rank, swept back by rank, weaving about its
+  place, each at its own stride and pace, so no two lope in step. The fan
+  narrows to the room the lane has ahead of it, so a pack funnels to a file
+  through a street or a door and opens again beyond it. Near its quarry
+  (the anchor's target, once there is room to spread) the pack **hunts**:
+  it **stalks**, the centre slowing to a standoff while the outer ranks swing
+  wide to either side of the quarry; it **feints**, the centre darting in and
+  falling back once or twice; then it **rushes**, staggered, flankers first
+  from the outside in and the anchor last, each member from where it stands.
+  Losing two members while it stalks or feints provokes the rush at once, and a
+  member whose own victim is right in front of it goes for it. A member more
+  than the leash from its anchor runs alone until it is back on it; a broken
+  pack's members run alone until a leader takes them in. Pack movement is
+  Runners'; Brutes, Spitters and the Matriarch keep their own gaits, though an
+  elder of any strain can lead and anchor. `-Dbattle.swarm.pack=false` is the
+  control: packs still form, lead and break, but every body moves alone
+  (`-Dbattle.swarm.packLeaders=false` forms no packs at all, so nothing moves
+  as one). The `swarm-pack` scene asserts the
+  mechanic (spread across the pack's width, no long file on open ground,
+  stalk-feint-rush in order, approaches from more than one side, the break on
+  the leader's death); its cost is in `swarm-movement-cost.md`.
 - **Strategic movement and local pursuit.** A body whose target is more than a
   few cells away moves down its goal's field; within that range it runs its own
   short path to the one victim it has chosen. Every strain moves through the
@@ -1120,9 +1163,9 @@ stage pitches everything it makes by the inverse of its size and sets its
 loudness (a whelp about four semitones up and quieter, an elder deeper and
 louder): one take heard three ways stays the same creature. A pack's break is
 one scatter shriek, the leader's own cry at the leader's stage. The Spitter has
-no voice; the Matriarch's sounds wait for its design and join as a strain of
-their own (its catalogued roar was rejected and is redone once the design
-settles).
+no voice. The Matriarch's design has settled but its sounds are still open:
+it borrows the Brute's until its own join as a strain of their own (its
+catalogued roar was rejected and is to be redone).
 
 ## Laws
 
@@ -1134,8 +1177,9 @@ settles).
   ordinary durability; nothing collapses a bore by fiat.
 - **Biomass drives growth.** A bore that is not fed grows slowly; a bore that
   is fed grows fast. Saving colonists starves the hive.
-- **Surges, not trickles.** Bores release bodies in timed pulses that move as
-  a stream; the quiet between pulses is real.
+- **Surges, not trickles.** Bores release bodies in timed pulses that leave
+  the mouth as a stream and cross the ground as packs; the quiet between pulses
+  is real.
 - **Strains by tier.** Which strains spawn is a function of the bore's tier and
   the director's budget, deterministic under the battle seed.
 - **Air cannot clear the map.** Every living bore has spore colonies round it

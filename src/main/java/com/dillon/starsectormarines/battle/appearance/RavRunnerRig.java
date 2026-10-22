@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.appearance;
 
+import com.dillon.starsectormarines.battle.unit.SwarmStage;
 
 /**
  * The Rav Bloom Runner's skeleton, advanced once per simulation tick: a hunched four-legged hound
@@ -184,7 +185,25 @@ public final class RavRunnerRig {
 
     public RavRunnerRig(long seed) {
         this.seed = seed;
+        // Each Runner starts at its own point in the stride, so a pack lopes out of step.
+        long h = (seed ^ 0xD1B54A32D192ED03L) * 0xBF58476D1CE4E5B9L;
+        this.phi = ((h >>> 40) & 0xFFFF) / 65536f;
     }
+
+    /** The body's growth stage, and its scale against its adult: what it is drawn at and with. */
+    private SwarmStage stage = SwarmStage.ADULT;
+    private float scale = 1f;
+
+    /** Sets the growth stage; read each tick, so a Matriarch that matures in the field grows with it. */
+    public void setStage(SwarmStage stage) {
+        this.stage = SwarmStage.of(stage);
+        this.scale = this.stage.scale;
+    }
+
+    public SwarmStage stage() { return stage; }
+
+    /** The stage's draw scale against the adult ({@link SwarmStage#scale}). */
+    public float scale() { return scale; }
 
     /**
      * Advances the rig one tick.
@@ -238,6 +257,10 @@ public final class RavRunnerRig {
         }
         bodyX = posX;
         bodyY = posY;
+        // The skeleton walks in its adult's units: a body drawn smaller covers more of its own strides.
+        dx /= scale;
+        dy /= scale;
+        moved /= scale;
         float yawRate = (((facing - facingDeg) % 360f + 540f) % 360f - 180f) / dt;
         float bendTarget = Math.max(-MAX_BEND, Math.min(MAX_BEND, yawRate * BEND_PER_YAW_RATE));
         bend += (bendTarget - bend) * Math.min(1f, dt / 0.12f);
@@ -595,7 +618,7 @@ public final class RavRunnerRig {
 
     /** The jaws close on the load beside the spike, the neck reaching no further than it can. */
     private void latchOn(float loadX, float loadY, float fwdX, float fwdY) {
-        float dx = loadX - bodyX, dy = loadY - bodyY;
+        float dx = (loadX - bodyX) / scale, dy = (loadY - bodyY) / scale;
         // the body is drawn CARRY_BACK behind the sim position, so the load sits that much further ahead
         float lx = dx * fwdY - dy * fwdX, ly = dx * fwdX + dy * fwdY + CARRY_BACK * latch, lz = 0.18f;
         float hx = x(HEAD), hy = y(HEAD), hz = z(HEAD);

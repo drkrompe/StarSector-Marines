@@ -1,11 +1,11 @@
 package com.dillon.starsectormarines.campaign.systems;
 
-import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractType;
+import com.dillon.starsectormarines.marine.Commendations;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.Status;
@@ -74,8 +74,8 @@ public final class StationingReleaseSystem implements CampaignSystem {
 
             if (captain != null && captain.status() == Status.GARRISONED) {
                 captain.setStatus(Status.ACTIVE);
-                captain.commendations().add("Day " + day + ": Returned from "
-                        + type.name().toLowerCase(Strings.locale()) + " duty.");
+                Commendations.add(captain, day, "commendationReturnedFrom",
+                        Commendations.ref("commendationDuty" + type.name()));
             }
             state.contractMarinesCommitted[i] = 0;
             state.contractCaptainId[i] = -1;

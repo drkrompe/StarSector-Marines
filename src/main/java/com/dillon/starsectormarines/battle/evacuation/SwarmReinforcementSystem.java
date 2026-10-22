@@ -72,7 +72,7 @@ public final class SwarmReinforcementSystem {
         int nextTick;
         /** A scavenger pack: its Runners fetch the swarm's dead before they fight. */
         boolean scavengers;
-        /** The pack this surge forms, once its leader is out; 0 for a pulse with none. */
+        /** The pack this surge's bodies are joining now; 0 while packs are off. */
         int pack;
 
         Release(SwarmBore bore, int surgeIndex, List<Planned> bodies, int tick) {
@@ -356,9 +356,11 @@ public final class SwarmReinforcementSystem {
         String strain = slot.name().charAt(0) + slot.name().substring(1).toLowerCase();
         long body = SwarmStrains.spawn(sim, "Bore " + release.bore.beatKey() + " " + strain + " "
                 + (release.bore.bodiesSpawned() + 1), slot.unitType, cell[0], cell[1], planned.stage());
-        // The pulse is a pack: its first body leads it if it is an elder or the Matriarch.
-        if (release.released == 0 && (planned.matriarch() || planned.stage() == SwarmStage.ELDER)) {
-            release.pack = sim.swarmPacks().open(body);
+        // The pulse is one pack, or several of at most eight: each opens on its first body, which
+        // leads it if it is an elder or the Matriarch (the pulse's first elder was moved to its head).
+        if (SwarmPacks.startsPack(release.released, release.size)) {
+            release.pack = planned.matriarch() || planned.stage() == SwarmStage.ELDER
+                    ? sim.swarmPacks().open(body) : sim.swarmPacks().openLeaderless(body);
         } else {
             sim.swarmPacks().join(release.pack, body);
         }

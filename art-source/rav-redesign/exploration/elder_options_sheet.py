@@ -1,5 +1,5 @@
 """Elder treatments for the Rav growth stages: what makes an elder read as older, beyond being bigger
-(`rav-growth-stages.md`). One pick-one image per treatment, for the owner's decision page.
+(`growth-stages.md`, `colony-breach-nouns.md` Growth stage). One pick-one image per treatment, for the owner's decision page.
 
   python elder_options_sheet.py <render root> <out dir>
 

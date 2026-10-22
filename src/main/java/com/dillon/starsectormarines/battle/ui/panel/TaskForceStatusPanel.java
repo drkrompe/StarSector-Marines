@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
@@ -114,22 +115,22 @@ public final class TaskForceStatusPanel implements HudPanel {
         target.filledRect(x, y, PANEL_W, PANEL_H, BG, alphaMult);
         target.borderRect(x, y, PANEL_W, PANEL_H, BORDER, alphaMult);
 
-        target.text(TextRole.HEADER, "TASK FORCE", x + PAD_INNER,
+        target.text(TextRole.HEADER, Strings.get("battleTaskForceTitle"), x + PAD_INNER,
                 y + PANEL_H - 7f, HEADER_FG, alphaMult);
         target.text(TextRole.BODY,
-                value.effectiveSquads + "/" + value.committedSquads + " EFFECTIVE",
+                Strings.format("battleTaskForceEffective", value.effectiveSquads, value.committedSquads),
                 x + 220f, y + PANEL_H - 7f, HEADER_FG, alphaMult);
 
         float bodyY = y + 29f;
         target.text(TextRole.BODY,
-                value.aliveMarines + "/" + value.landedMarines + " MARINES",
+                Strings.format("battleTaskForceMarines", value.aliveMarines, value.landedMarines),
                 x + PAD_INNER, bodyY, VALUE_FG, alphaMult);
         drawAlert(target, x + 145f, bodyY, ALERT_ENGAGED,
-                "ENG " + value.engagedSquads, alphaMult);
+                Strings.format("battleTaskForceEngaged", value.engagedSquads), alphaMult);
         drawAlert(target, x + 213f, bodyY, ALERT_SUSPICIOUS,
-                "WATCH " + value.suspiciousSquads, alphaMult);
+                Strings.format("battleTaskForceWatch", value.suspiciousSquads), alphaMult);
         drawAlert(target, x + 302f, bodyY, ALERT_UNAWARE,
-                "CLEAR " + value.unawareSquads, alphaMult);
+                Strings.format("battleTaskForceClear", value.unawareSquads), alphaMult);
 
         target.moraleBar(x + PAD_INNER, y + 5f, PANEL_W - 2f * PAD_INNER,
                 MORALE_BAR_H, value.totalMorale, value.totalMoraleCap,

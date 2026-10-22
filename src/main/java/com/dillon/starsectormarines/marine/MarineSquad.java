@@ -6,7 +6,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A persistent campaign squad: twelve marines organized as three four-marine
@@ -24,6 +27,12 @@ public final class MarineSquad implements Serializable {
     public static final int TEAMS_PER_SQUAD = 3;
 
     public static final int CAPACITY = TEAM_SIZE * TEAMS_PER_SQUAD;
+
+    /** Saved English defaults; see {@link #name()}. Changing them would orphan old saves. */
+    private static final String DEFAULT_NAME = "Squad %02d";
+    private static final Pattern DEFAULT_PATTERN = Pattern.compile("Squad (\\d{2,})");
+    static final String RESERVE_NAME = "Reserve Pool";
+    private static final String FALLBACK_NAME = "Squad";
 
     private String id;
     private String name;
@@ -61,7 +70,29 @@ public final class MarineSquad implements Serializable {
     }
 
     public String id() { return id; }
-    public String name() { return name; }
+    /**
+     * The squad's name as the reader sees it. A name the company gave is shown as given;
+     * the built-in default a squad is founded with ({@link #DEFAULT_NAME}) is saved in
+     * English and translated here, for as long as nobody renames it.
+     */
+    public String name() { return displayName(name); }
+    /** The saved name, untranslated: what a rename replaces and a save keeps. */
+    public String savedName() { return name; }
+
+    /** Default name of the {@code n}th founded squad, as saved; {@link #name()} translates it. */
+    public static String defaultName(int number) {
+        return String.format(Locale.ROOT, DEFAULT_NAME, number);
+    }
+
+    /** Saved built-in default names read in the reader's language; anything else as saved. */
+    public static String displayName(String saved) {
+        if (saved == null) return null;
+        if (saved.equals(RESERVE_NAME)) return SavedDefaultText.formatOr(saved, "squadReservePoolName");
+        if (saved.equals(FALLBACK_NAME)) return SavedDefaultText.formatOr(saved, "squadFallbackName");
+        Matcher numbered = DEFAULT_PATTERN.matcher(saved);
+        return numbered.matches()
+                ? SavedDefaultText.formatOr(saved, "squadDefaultName", numbered.group(1)) : saved;
+    }
     public boolean reserve() { return reserve; }
     public String squadProfileId() { return squadProfileId; }
     void setSquadProfileId(String id) { squadProfileId = id; }
@@ -134,7 +165,7 @@ public final class MarineSquad implements Serializable {
 
     private Object readResolve() {
         if (id == null) id = UUID.randomUUID().toString();
-        if (name == null) name = "Squad";
+        if (name == null) name = FALLBACK_NAME;
         if (memberIds == null) memberIds = new ArrayList<>();
         if (teamTemplateCardIds == null || teamTemplateCardIds.length != TEAMS_PER_SQUAD) {
             String[] repaired = new String[TEAMS_PER_SQUAD];

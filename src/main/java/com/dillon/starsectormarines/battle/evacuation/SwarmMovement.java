@@ -19,6 +19,10 @@ import java.util.Arrays;
  * {@link #LOCAL_PURSUIT_RANGE} — keeps the body's own short path, because
  * close in a body is chasing one particular victim rather than the nearest.
  *
+ * <p>A pack member moves with its pack first ({@link SwarmPackMovement}):
+ * the pack runs its anchor's descent as a fan rather than every body
+ * descending into one file.
+ *
  * <p>{@code -Dbattle.swarm.flowField=false} (or
  * {@link BattleSimulation#setSwarmFlowFieldEnabled}) is the control: every
  * move paths body by body, as the swarm did before fields.
@@ -45,6 +49,7 @@ public final class SwarmMovement {
      */
     public static void pursue(long body, long target, boolean retargeted,
                               BattleSimulation sim) {
+        if (SwarmPackMovement.steer(body, target, sim)) return;
         if (sim.isSwarmFlowFieldEnabled()
                 && !isLocal(body, target, sim)
                 && Faction.DEFENDER.hostileTo(sim.identity().faction(target))
@@ -138,6 +143,13 @@ public final class SwarmMovement {
     /** The body's own path to a cell, repathed on the movement clock or at once when retargeted. */
     static void pathDirect(long body, int targetX, int targetY, boolean retargeted,
                            BattleSimulation sim) {
+        ensurePath(body, targetX, targetY, retargeted, sim);
+        sim.advanceMovement(body);
+    }
+
+    /** Gives the body its own path to a cell, on the movement clock or at once when retargeted; moves nothing. */
+    static void ensurePath(long body, int targetX, int targetY, boolean retargeted,
+                           BattleSimulation sim) {
         if ((retargeted || sim.movement().mayRepath(body))
                 && needsPath(body, targetX, targetY, sim)) {
             int bodyX = sim.world().cellX(body);
@@ -149,7 +161,6 @@ public final class SwarmMovement {
                             sim.getOccupancyMap());
             sim.setPath(body, path);
         }
-        sim.advanceMovement(body);
     }
 
     private static boolean needsPath(long body, int targetX, int targetY,

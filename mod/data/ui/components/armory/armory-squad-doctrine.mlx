@@ -40,15 +40,15 @@
             <button id="{tile.issueId}" class="{tile.issueButtonClasses}" disabled="{tile.issueDisabled}" onclick="{tile.issue}">{tile.issueLabel}</button>
           </div>
           <div id="{tile.descriptionId}" class="doctrine-lore label tone-muted">{tile.description}</div>
-          <div id="{tile.compositionId}" class="doctrine-composition label">SECTION  ·  {tile.composition}</div>
-          <div id="{tile.distributionId}" class="{tile.distributionClasses}">ISSUED  ·  {tile.distribution}</div>
+          <div id="{tile.compositionId}" class="doctrine-composition label">{tile.compositionLine}</div>
+          <div id="{tile.distributionId}" class="{tile.distributionClasses}">{tile.distributionLine}</div>
           <div id="{tile.distributionRowId}" class="{tile.distributionRowClasses}" style="{tile.distributionStyle}">
 
             <div id="{tile.distributionGridId}" class="doctrine-span-grid">
               <div each="span in tile.distributionSpans" key="{span.id}" id="{span.id}" class="doctrine-span doctrine-issue-span"><img id="{span.iconId}" class="doctrine-equipment-icon" src="{span.icon}" /><div id="{span.textId}" class="doctrine-equipment-name">{span.text}</div></div>
             </div>
           </div>
-          <div id="{tile.carriesId}" class="{tile.carriesClasses}">CARRIES  ·  {tile.carries}</div>
+          <div id="{tile.carriesId}" class="{tile.carriesClasses}">{tile.carriesLine}</div>
           <div id="{tile.carriesRowId}" class="{tile.carriesRowClasses}">
             <div id="{tile.carriesTagId}" class="doctrine-line-tag label">{i18n.openingUiArmorySquadDoctrineCarries}</div>
             <div id="{tile.carriesGridId}" class="doctrine-span-grid">

@@ -277,8 +277,9 @@ final class BriefingViewModel {
         props.put("tierSteps", List.of());
         props.put("debugControls", List.of());
         props.put("airRows", List.of());
-        props.put("employerRows", List.of(info("employer-transport", "Landing craft",
-                "None", ""), info("employer-air", "Allied air", "None", "")));
+        props.put("employerRows", List.of(
+                info("employer-transport", Strings.get("briefingUiEmpLandingCraftLabel"), Strings.get("briefingAirNone"), ""),
+                info("employer-air", Strings.get("briefingUiEmpAlliedAirLabel"), Strings.get("briefingAirNone"), "")));
         return props;
     }
 

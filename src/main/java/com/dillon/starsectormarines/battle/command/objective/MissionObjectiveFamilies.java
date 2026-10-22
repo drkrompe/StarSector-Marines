@@ -48,37 +48,37 @@ public final class MissionObjectiveFamilies {
         String markerId = id + "-site";
         return new Item(id, name, state, phase, steps, instruction, measure,
                 state == State.COMPLETE ? 1 : progress < 0 ? -1 : Math.max(0, Math.min(1, progress)),
-                state == State.COMPLETE ? "" : state == State.FAILED ? "Objective failed." : blocker, List.of(new Marker(markerId, name, x, y, phase, state)), markerId);
+                state == State.COMPLETE ? "" : state == State.FAILED ? Strings.get("objectiveFailedSentence") : blocker, List.of(new Marker(markerId, name, x, y, phase, state)), markerId);
     }
 
     public static Item charge(ChargeSiteObjective site) {
         State state = state(site);
         return at("charge-" + site.siteId(), site.displayName(), state,
-                state == State.COMPLETE ? "PLANTED" : site.planterOnSite() ? "PLANTING" : "REACH SITE",
-                "Reach site > Plant charge", state == State.COMPLETE ? "Charge planted."
-                        : "Keep the equipped planter at this site until the charge is planted.",
-                timed("Planting", site.progress(), site.plantDuration()), site.progress() / site.plantDuration(),
-                site.planterOnSite() ? "" : "Waiting for the equipped planter at the site.", site.cellX(), site.cellY());
+                state == State.COMPLETE ? Strings.get("objectiveChargePlanted") : site.planterOnSite() ? Strings.get("objectiveChargePlanting") : Strings.get("objectiveChargeReachSite"),
+                Strings.get("objectiveChargeSteps"), state == State.COMPLETE ? Strings.get("objectiveChargeDone")
+                        : Strings.get("objectiveChargeInstruction"),
+                timed(Strings.get("objectiveChargeTimer"), site.progress(), site.plantDuration()), site.progress() / site.plantDuration(),
+                site.planterOnSite() ? "" : Strings.get("objectiveChargeBlocker"), site.cellX(), site.cellY());
     }
 
     public static Item raid(RaidObjective raid) {
         State state = state(raid);
         boolean returning = raid.targetSecured();
-        String phase = raid.phase().name();
+        String phase = Strings.named("objectivePhase", raid.phase().name());
         String sourceId = "raid-" + raid.targetId() + "-source", pickupId = "raid-" + raid.targetId() + "-pickup";
         return new Item("raid-" + raid.targetId(), raid.targetName(), state, phase,
-                "1 Seize target > 2 Return to landing zone",
-                state == State.COMPLETE ? "Target secured and survivor returned."
-                        : returning ? "Return a surviving marine to the landing zone and stop inside the pickup area."
-                        : "Keep a settled marine in the target room and service area, uncontested.",
-                returning ? state == State.COMPLETE ? "Objective complete" : "Awaiting survivor return"
-                        : timed("Seizure", raid.serviceProgress(), raid.serviceDuration()),
+                Strings.get("objectiveRaidSteps"),
+                state == State.COMPLETE ? Strings.get("objectiveRaidDone")
+                        : returning ? Strings.get("objectiveRaidReturn")
+                        : Strings.get("objectiveRaidSeize"),
+                returning ? state == State.COMPLETE ? Strings.get("objectiveComplete") : Strings.get("objectiveRaidAwaitingReturn")
+                        : timed(Strings.get("objectiveRaidTimer"), raid.serviceProgress(), raid.serviceDuration()),
                 state == State.COMPLETE ? 1 : returning ? -1 : raid.serviceProgress() / raid.serviceDuration(),
-                returning || raid.marineServicing() ? "" : "The target needs settled Marine presence and uncontested control.",
+                returning || raid.marineServicing() ? "" : Strings.get("objectiveRaidBlocker"),
                 List.of(new Marker(sourceId, raid.targetName(), raid.targetCellX(), raid.targetCellY(),
-                                returning ? "SECURED" : phase, returning ? State.COMPLETE : state, List.of(), RaidObjective.TARGET_RADIUS),
-                        new Marker(pickupId, "Landing zone", raid.egressCellX(), raid.egressCellY(),
-                                returning ? phase : "RETURN HERE", state, List.of(), RaidObjective.EGRESS_RADIUS)), returning ? pickupId : sourceId);
+                                returning ? Strings.get("objectiveMarkerSecured") : phase, returning ? State.COMPLETE : state, List.of(), RaidObjective.TARGET_RADIUS),
+                        new Marker(pickupId, Strings.get("objectiveRaidLandingZone"), raid.egressCellX(), raid.egressCellY(),
+                                returning ? phase : Strings.get("objectiveMarkerReturnHere"), state, List.of(), RaidObjective.EGRESS_RADIUS)), returning ? pickupId : sourceId);
     }
 
     public static Item salvage(SalvageRightsSequence sequence) {
@@ -87,22 +87,22 @@ public final class MissionObjectiveFamilies {
         float duration = inspecting ? SalvageRightsProgress.INSPECTION_SECONDS : SalvageRightsProgress.CAPTURE_SECONDS;
         float work = inspecting ? p.inspection() : p.capture();
         String name = switch (p.phase()) {
-            case RECEIVING -> "Receiving yard";
-            case WORKSHOP -> "Workshop";
-            case CRADLE, INSPECTION, SECURED, FAILED -> "Morrow's cradle";
+            case RECEIVING -> Strings.get("objectiveSalvageReceivingYard");
+            case WORKSHOP -> Strings.get("objectiveSalvageWorkshop");
+            case CRADLE, INSPECTION, SECURED, FAILED -> Strings.get("objectiveSalvageCradle");
         };
-        String blocker = p.contested() ? "Area contested: clear the working area."
-                : !p.companyAtTarget() ? "Company cover must enter and remain in the marked area."
-                : inspecting && !p.engineerPresent() ? "Waiting for a living technician at the inspection site."
-                : inspecting && work >= duration && !p.responseCommitted() ? "Inspection complete; hold the claim through the announced road response." : "";
-        return at("salvage-rights", name, state(sequence), p.phase().name(),
-                "Receiving yard > Workshop > Cradle > Inspection",
-                sequence.isComplete() ? "Inspection complete; Morrow's recovery claim is secured."
-                        : sequence.isFailed() ? "Recovery operation lost."
-                        : inspecting ? "Protect company cover and a living technician through the inspection."
-                        : "Hold the marked working area uncontested for " + seconds(duration) + ".",
-                sequence.isComplete() ? "Recovery claim secured" : sequence.isFailed() ? "Recovery failed"
-                        : timed(inspecting ? "Inspection" : "Capture", work, duration), work / duration, blocker,
+        String blocker = p.contested() ? Strings.get("objectiveSalvageContested")
+                : !p.companyAtTarget() ? Strings.get("objectiveSalvageCompanyCover")
+                : inspecting && !p.engineerPresent() ? Strings.get("objectiveSalvageTechnician")
+                : inspecting && work >= duration && !p.responseCommitted() ? Strings.get("objectiveSalvageHoldClaim") : "";
+        return at("salvage-rights", name, state(sequence), Strings.named("objectivePhase", p.phase().name()),
+                Strings.get("objectiveSalvageSteps"),
+                sequence.isComplete() ? Strings.get("objectiveSalvageDone")
+                        : sequence.isFailed() ? Strings.get("objectiveSalvageLost")
+                        : inspecting ? Strings.get("objectiveSalvageProtect")
+                        : Strings.format("objectiveSalvageHoldFor", seconds(duration)),
+                sequence.isComplete() ? Strings.get("objectiveSalvageSecured") : sequence.isFailed() ? Strings.get("objectiveSalvageFailed")
+                        : timed(inspecting ? Strings.get("objectiveSalvageInspectionTimer") : Strings.get("objectiveCaptureTimer"), work, duration), work / duration, blocker,
                 sequence.targetX(), sequence.targetY());
     }
 
@@ -114,23 +114,23 @@ public final class MissionObjectiveFamilies {
         var order=sequence.tender().current();
         boolean building=build && order!=null
                 && Math.hypot(order.siteX()-sequence.buildX(),order.siteY()-sequence.buildY())<22;
-        String blocker=p.terminal()?"":p.contested()?"Company position contested; tender travel and work are paused."
-                :!p.companyPresent()?"Company cover must reach and remain near the forward position."
-                :!p.tenderArrived()?"Morrow must physically reach the cleared assembly position."
-                :building&&order.underFire()?"Builders under fire; clear the firing position before work resumes."
-                :building&&order.contested()?"Clear known hostiles within 30 cells of the construction site."
-                :building?"Builders are servicing the selected emplacement."
-                :build&&!p.constructionReady()?"Select Build Vulcan Turret and complete a surviving gun near this position."
-                :!p.responseReached()?"Hold through the announced finite road response.":"";
+        String blocker=p.terminal()?"":p.contested()?Strings.get("objectivePassageContested")
+                :!p.companyPresent()?Strings.get("objectivePassageCompanyCover")
+                :!p.tenderArrived()?Strings.get("objectivePassageTender")
+                :building&&order.underFire()?Strings.get("objectivePassageUnderFire")
+                :building&&order.contested()?Strings.get("objectivePassageClearSite")
+                :building?Strings.get("objectivePassageBuilding")
+                :build&&!p.constructionReady()?Strings.get("objectivePassageBuildGun")
+                :!p.responseReached()?Strings.get("objectivePassageHold"):"";
         return at("working-passage",switch(p.phase()) {
-            case BEND,BEND_BUILD->"Pump bend build ground";
-            case NARROWS,NARROWS_BUILD->"Narrows build ground";
-            default->"Climb-out yard";
-        },state(sequence),p.phase().name(),"Pump bend > Narrows > Climb-out > Physical departure",
-                sequence.displayName(),p.phase()==WorkingPassageProgress.Phase.SPOOL?timed("Drive spool",p.work(),WorkingPassageProgress.SPOOL_SECONDS)
-                        :clearing?timed("Area secure",p.work(),WorkingPassageProgress.CLEAR_SECONDS)
-                        :building?"Construction / "+Math.round(100*order.fraction())+"%"
-                        :build?p.constructionReady()?"Emplacement ready / hold through the road response":"Awaiting actual surviving construction":sequence.displayName(),
+            case BEND,BEND_BUILD->Strings.get("objectivePassageBend");
+            case NARROWS,NARROWS_BUILD->Strings.get("objectivePassageNarrows");
+            default->Strings.get("objectivePassageClimbOut");
+        },state(sequence),Strings.named("objectivePhase", p.phase().name()),Strings.get("objectivePassageSteps"),
+                sequence.displayName(),p.phase()==WorkingPassageProgress.Phase.SPOOL?timed(Strings.get("objectivePassageSpoolTimer"),p.work(),WorkingPassageProgress.SPOOL_SECONDS)
+                        :clearing?timed(Strings.get("objectivePassageSecureTimer"),p.work(),WorkingPassageProgress.CLEAR_SECONDS)
+                        :building?Strings.format("objectiveConstructionPercent", Math.round(100*order.fraction()))
+                        :build?p.constructionReady()?Strings.get("objectivePassageReady"):Strings.get("objectivePassageAwaitingBuild"):sequence.displayName(),
                 p.phase()==WorkingPassageProgress.Phase.SPOOL?p.work()/WorkingPassageProgress.SPOOL_SECONDS
                         :clearing?p.work()/WorkingPassageProgress.CLEAR_SECONDS:building?order.fraction():-1,
                 blocker,sequence.targetX(),sequence.targetY());
@@ -154,20 +154,20 @@ public final class MissionObjectiveFamilies {
                 : phase == WaterUnderSealProgress.Phase.ESCORT && !p.carrierArrived() ? Strings.get("weirBlockerRepairLoad")
                 : !p.safeWork() ? Strings.get(duration > 0 ? "weirBlockerKeepWorkArea" : "weirBlockerKeepRoadPosition")
                 : phase == WaterUnderSealProgress.Phase.ATTACK ? Strings.get("weirBlockerDefendGun") : "";
-        return new Item("water-under-seal", "North Weir", state, phase.name(), "Repair load > North switch > South switch > Road gun > Handover",
-                sequence.displayName(), duration > 0 ? timed("Protected work", p.work(), duration)
-                        : building ? "Construction / " + Math.round(100 * order.fraction()) + "%"
-                        : phase == WaterUnderSealProgress.Phase.ATTACK ? "Hold the road position" : sequence.displayName(),
+        return new Item("water-under-seal", Strings.get("objectiveWeirName"), state, Strings.named("objectivePhase", phase.name()), Strings.get("objectiveWeirSteps"),
+                sequence.displayName(), duration > 0 ? timed(Strings.get("objectiveProtectedWorkTimer"), p.work(), duration)
+                        : building ? Strings.format("objectiveConstructionPercent", Math.round(100 * order.fraction()))
+                        : phase == WaterUnderSealProgress.Phase.ATTACK ? Strings.get("objectiveWeirHoldRoad") : sequence.displayName(),
                 duration > 0 ? p.work() / duration : building ? order.fraction() : -1, blocker,
-                List.of(new Marker("weir-escort", "Repair-load escort rally", sequence.escortRallyX(), sequence.escortRallyY(), "ESCORT", state),
-                        new Marker("weir-isolation", "Isolation switch / repair load", NorthWeir.ISOLATION_X, NorthWeir.ISOLATION_Y,
-                                milestones.cargoDelivered() ? "DELIVERED" : "UNLOAD HERE", milestones.cargoDelivered() ? State.COMPLETE : state),
-                        new Marker("weir-north", "North switching room", NorthWeir.NORTH_X, NorthWeir.NORTH_Y,
-                                milestones.northRoomReconnected() ? "RECONNECTED" : "PROTECTED WORK", milestones.northRoomReconnected() ? State.COMPLETE : state),
-                        new Marker("weir-south", "South switching room", NorthWeir.SOUTH_X, NorthWeir.SOUTH_Y,
-                                milestones.southRoomReconnected() ? "RECONNECTED" : "PROTECTED WORK", milestones.southRoomReconnected() ? State.COMPLETE : state),
-                        new Marker("weir-road-gun", "Maintenance road gun / build here", sequence.buildX(), sequence.buildY(),
-                                milestones.turretConstructed() ? "COMMISSIONED" : "BUILD HERE", milestones.turretConstructed() ? State.COMPLETE : state,
+                List.of(new Marker("weir-escort", Strings.get("objectiveWeirEscortRally"), sequence.escortRallyX(), sequence.escortRallyY(), Strings.get("objectiveMarkerEscort"), state),
+                        new Marker("weir-isolation", Strings.get("objectiveWeirIsolation"), NorthWeir.ISOLATION_X, NorthWeir.ISOLATION_Y,
+                                milestones.cargoDelivered() ? Strings.get("objectiveMarkerDelivered") : Strings.get("objectiveMarkerUnloadHere"), milestones.cargoDelivered() ? State.COMPLETE : state),
+                        new Marker("weir-north", Strings.get("objectiveWeirNorthRoom"), NorthWeir.NORTH_X, NorthWeir.NORTH_Y,
+                                milestones.northRoomReconnected() ? Strings.get("objectiveMarkerReconnected") : Strings.get("objectiveMarkerProtectedWork"), milestones.northRoomReconnected() ? State.COMPLETE : state),
+                        new Marker("weir-south", Strings.get("objectiveWeirSouthRoom"), NorthWeir.SOUTH_X, NorthWeir.SOUTH_Y,
+                                milestones.southRoomReconnected() ? Strings.get("objectiveMarkerReconnected") : Strings.get("objectiveMarkerProtectedWork"), milestones.southRoomReconnected() ? State.COMPLETE : state),
+                        new Marker("weir-road-gun", Strings.get("objectiveWeirRoadGun"), sequence.buildX(), sequence.buildY(),
+                                milestones.turretConstructed() ? Strings.get("objectiveMarkerCommissioned") : Strings.get("objectiveMarkerBuildHere"), milestones.turretConstructed() ? State.COMPLETE : state,
                                 List.of(), 8)).stream().filter(marker -> !milestones.cargoDelivered() || !marker.id().equals("weir-escort")).toList(), focus);
     }
     public static Item yardOwners(YardOwnersSequence sequence) {
@@ -175,19 +175,19 @@ public final class MissionObjectiveFamilies {
         var markers = new ArrayList<Marker>();
         for (int i = 0; i < 3; i++) {
             var site = LatchkeyYard.SITES.get(i);
-            markers.add(new Marker("yard-site-"+i,site.name(),site.x(),site.y(),p.held(i) ? "HELD / KEEP CLEAR" : "SECURE / COMPANY REQUIRED",p.held(i) ? State.COMPLETE : state));
+            markers.add(new Marker("yard-site-"+i,site.name(),site.x(),site.y(),p.held(i) ? Strings.get("objectiveMarkerHeldKeepClear") : Strings.get("objectiveMarkerSecureCompany"),p.held(i) ? State.COMPLETE : state));
         }
-        markers.add(new Marker("yard-tools","Calibration machine / preserve",LatchkeyYard.TOOL_X,LatchkeyYard.TOOL_Y,"REQUIRED TOOLING",state));
+        markers.add(new Marker("yard-tools",Strings.get("objectiveYardTools"),LatchkeyYard.TOOL_X,LatchkeyYard.TOOL_Y,Strings.get("objectiveMarkerRequiredTooling"),state));
         // Lenna's machine labels: whose work the benches do. Information only; nothing to capture or protect.
         for (var bench : LatchkeyYard.WORKPLACES)
-            markers.add(new Marker("yard-"+bench.id(),bench.label(),bench.x(),bench.y(),"ASSOCIATION LABEL",state));
+            markers.add(new Marker("yard-"+bench.id(),bench.label(),bench.x(),bench.y(),Strings.get("objectiveMarkerAssociationLabel"),state));
         boolean inspecting = p.phase() == YardOwnersProgress.Phase.INSPECTION;
         int site = Math.min(2,p.phase().ordinal());
-        return new Item("yard-owners","Latchkey Yard",state,p.phase().name(),"Secure dispatch > Tooling hall > Operator entrance > Inspect",sequence.displayName(),
-                inspecting ? timed("Protected inspection",p.inspection(),YardOwnersProgress.INSPECTION_SECONDS)
-                        : timed("Secure site",p.capture(site),YardOwnersProgress.CAPTURE_SECONDS),
+        return new Item("yard-owners",Strings.get("objectiveYardName"),state,Strings.named("objectivePhase", p.phase().name()),Strings.get("objectiveYardSteps"),sequence.displayName(),
+                inspecting ? timed(Strings.get("objectiveYardInspectionTimer"),p.inspection(),YardOwnersProgress.INSPECTION_SECONDS)
+                        : timed(Strings.get("objectiveSecureSiteTimer"),p.capture(site),YardOwnersProgress.CAPTURE_SECONDS),
                 p.terminal() ? -1 : inspecting ? p.inspection()/YardOwnersProgress.INSPECTION_SECONDS : p.capture(site)/YardOwnersProgress.CAPTURE_SECONDS,
-                p.terminal() ? "" : "Keep all sites clear and occupied by company or constables. Inspection needs a living technician and company infantry inside the tooling hall.",
+                p.terminal() ? "" : Strings.get("objectiveYardBlocker"),
                 markers, inspecting || p.terminal() ? "yard-tools" : "yard-site-"+site);
     }
     public static Item smallWar(SmallWarSequence sequence) {
@@ -196,19 +196,19 @@ public final class MissionObjectiveFamilies {
         for (int i = 0; i < 3; i++) {
             var site = BlackSluice.SITES.get(i);
             markers.add(new Marker("sluice-site-" + i, site.name(), site.x(), site.y(),
-                    p.held(i) ? "HELD / KEEP CLEAR" : "SECURE / COMPANY REQUIRED", p.held(i) ? State.COMPLETE : state));
+                    p.held(i) ? Strings.get("objectiveMarkerHeldKeepClear") : Strings.get("objectiveMarkerSecureCompany"), p.held(i) ? State.COMPLETE : state));
         }
         for (int i = 0; i < BlackSluice.TANKS.size(); i++)
-            markers.add(new Marker("sluice-tank-" + i, "Marked fuel tank / preserve", BlackSluice.TANKS.get(i)[0], BlackSluice.TANKS.get(i)[1], "REQUIRED FUEL INFRASTRUCTURE", state));
+            markers.add(new Marker("sluice-tank-" + i, Strings.get("objectiveSluiceTank"), BlackSluice.TANKS.get(i)[0], BlackSluice.TANKS.get(i)[1], Strings.get("objectiveMarkerRequiredFuel"), state));
         boolean handover = phase == SmallWarProgress.Phase.HANDOVER;
         int site = switch (phase) { case FUEL_CONTROL -> 1; case DISPATCH -> 2; default -> 0; };
         String focus = handover || p.terminal() ? "sluice-site-1" : "sluice-site-" + site;
         String blocker = p.terminal() ? ""
-                : handover && !p.safeHandover() ? "Keep all three sites clear and occupied, company infantry in fuel control, and the living custody party inside it."
-                : handover ? "" : "Company infantry must hold the marked site uncontested. Preserve the marked fuel tanks.";
-        return new Item("small-war", "Black Sluice", state, phase.name(), "Customs > Fuel control > Dispatch > Handover",
-                sequence.displayName(), handover ? timed("Protected handover", p.handover(), SmallWarProgress.HANDOVER_SECONDS)
-                        : timed("Secure site", p.capture(site), SmallWarProgress.CAPTURE_SECONDS),
+                : handover && !p.safeHandover() ? Strings.get("objectiveSluiceHandoverBlocker")
+                : handover ? "" : Strings.get("objectiveSluiceSiteBlocker");
+        return new Item("small-war", Strings.get("objectiveSluiceName"), state, Strings.named("objectivePhase", phase.name()), Strings.get("objectiveSluiceSteps"),
+                sequence.displayName(), handover ? timed(Strings.get("objectiveSluiceHandoverTimer"), p.handover(), SmallWarProgress.HANDOVER_SECONDS)
+                        : timed(Strings.get("objectiveSecureSiteTimer"), p.capture(site), SmallWarProgress.CAPTURE_SECONDS),
                 p.terminal() ? -1 : handover ? p.handover() / SmallWarProgress.HANDOVER_SECONDS
                         : p.capture(site) / SmallWarProgress.CAPTURE_SECONDS,
                 blocker, markers, focus);
@@ -219,49 +219,49 @@ public final class MissionObjectiveFamilies {
         boolean custody = sequence.route() == TermsOfProtectionProgress.Route.HOUSE_CUSTODY;
         var markers = new ArrayList<Marker>();
         if (phase == TermsOfProtectionProgress.Phase.ESCORT)
-            markers.add(new Marker("terms-escort", custody ? "Custodial records carrier / escort" : "Joint-party records carrier / escort",
-                    sequence.escortRallyX(), sequence.escortRallyY(), "ESCORT", state));
+            markers.add(new Marker("terms-escort", custody ? Strings.get("objectiveTermsCustodyCarrier") : Strings.get("objectiveTermsJointCarrier"),
+                    sequence.escortRallyX(), sequence.escortRallyY(), Strings.get("objectiveMarkerEscort"), state));
         markers.add(new Marker("terms-handover", LatchkeyYard.HANDOVER.label(), LatchkeyYard.HANDOVER.x(), LatchkeyYard.HANDOVER.y(),
-                p.signed() ? p.ratified() ? "RATIFIED" : "SIGNED / RATIFY HERE" : p.delivered() ? "SIGNING / HOLD DISPATCH" : "DELIVER THE PARTY",
+                p.signed() ? p.ratified() ? Strings.get("objectiveMarkerRatified") : Strings.get("objectiveMarkerSignedRatify") : p.delivered() ? Strings.get("objectiveMarkerSigningHold") : Strings.get("objectiveMarkerDeliverParty"),
                 p.ratified() ? State.COMPLETE : state));
         markers.add(new Marker("terms-commissioning", LatchkeyYard.COMMISSIONING.label(), LatchkeyYard.COMMISSIONING.x(), LatchkeyYard.COMMISSIONING.y(),
-                p.commissioned() ? "COMMISSIONED" : "PROTECTED WORK / HOLD THE HALL", p.commissioned() ? State.COMPLETE : state));
+                p.commissioned() ? Strings.get("objectiveMarkerCommissioned") : Strings.get("objectiveMarkerProtectedHall"), p.commissioned() ? State.COMPLETE : state));
         if (custody) markers.add(new Marker("terms-guards", LatchkeyYard.GUARD_POST.label(), LatchkeyYard.GUARD_POST.x(), LatchkeyYard.GUARD_POST.y(),
-                "ESTATE GUARDS / WEAK POINT", state));
+                Strings.get("objectiveMarkerEstateGuards"), state));
         else for (var bench : LatchkeyYard.WORKPLACES)
-            markers.add(new Marker("terms-" + bench.id(), bench.label(), bench.x(), bench.y(), "FITTERS STAY HERE", state));
+            markers.add(new Marker("terms-" + bench.id(), bench.label(), bench.x(), bench.y(), Strings.get("objectiveMarkerFittersStay"), state));
         // The mortar appears on the picture only as far as it has actually been observed.
         if (sequence.mortarSighted())
             markers.add(new Marker("terms-mortar", LatchkeyYard.MORTAR_POST.label(), LatchkeyYard.MORTAR_POST.x(), LatchkeyYard.MORTAR_POST.y(),
-                    "MORTAR SIGHTED / COUNTER-BATTERY", state));
+                    Strings.get("objectiveMarkerMortarSighted"), state));
         else if (sequence.mortarReported())
-            markers.add(new Marker("terms-mortar", "Mortar fire reported from the Cinder Steps terraces", LatchkeyYard.CINDER_GATE.x(), LatchkeyYard.CINDER_GATE.y(),
-                    "TUBE UNLOCATED / EAST OF THE WALL", state));
+            markers.add(new Marker("terms-mortar", Strings.get("objectiveTermsMortarReported"), LatchkeyYard.CINDER_GATE.x(), LatchkeyYard.CINDER_GATE.y(),
+                    Strings.get("objectiveMarkerTubeUnlocated"), state));
         String focus = switch (phase) {
             case ESCORT -> "terms-escort";
             case SIGNING, DEFENCE, COMPLETE -> "terms-handover";
             default -> "terms-commissioning";
         };
-        return new Item("terms-of-protection", "Latchkey handover", state, phase.name(),
-                "Escort > Sign at dispatch > Commission the tooling > Resolve the attacks > Ratify", sequence.displayName(),
-                phase == TermsOfProtectionProgress.Phase.SIGNING ? timed("Signing", p.signing(), TermsOfProtectionProgress.SIGNING_SECONDS)
-                        : timed("Commissioning", p.work(), TermsOfProtectionProgress.WORK_SECONDS),
+        return new Item("terms-of-protection", Strings.get("objectiveTermsName"), state, Strings.named("objectivePhase", phase.name()),
+                Strings.get("objectiveTermsSteps"), sequence.displayName(),
+                phase == TermsOfProtectionProgress.Phase.SIGNING ? timed(Strings.get("objectiveTermsSigningTimer"), p.signing(), TermsOfProtectionProgress.SIGNING_SECONDS)
+                        : timed(Strings.get("objectiveTermsCommissioningTimer"), p.work(), TermsOfProtectionProgress.WORK_SECONDS),
                 p.terminal() ? -1 : phase == TermsOfProtectionProgress.Phase.SIGNING ? p.signing() / TermsOfProtectionProgress.SIGNING_SECONDS
                         : p.work() / TermsOfProtectionProgress.WORK_SECONDS,
-                p.terminal() ? "" : sequence.fieldClear() ? "Every committed attack is resolved. A living representative at a held dispatch ratifies."
-                        : "Work pauses while anyone hostile is in the hall or no company infantry is there. Losing both representatives, the carrier or both technicians before commissioning fails.",
+                p.terminal() ? "" : sequence.fieldClear() ? Strings.get("objectiveTermsFieldClear")
+                        : Strings.get("objectiveTermsBlocker"),
                 markers, focus);
     }
     public static Item districtEscort(DistrictEscortSequence sequence) {
         var p = sequence.progress(); var state = state(sequence);
         boolean escort = p.phase() == DistrictEscortProgress.Phase.ESCORT;
-        return new Item("district-escort", "Low Quay freight lane", state, p.phase().name(),
-                "Link up at the loading lane > Cover consignment and party to the apron", sequence.displayName(),
-                escort || p.terminal() ? "Escort the marked consignment" : timed("Link up", p.link(), DistrictEscortProgress.LINK_SECONDS),
+        return new Item("district-escort", Strings.get("objectiveEscortName"), state, Strings.named("objectivePhase", p.phase().name()),
+                Strings.get("objectiveEscortSteps"), sequence.displayName(),
+                escort || p.terminal() ? Strings.get("objectiveEscortConsignment") : timed(Strings.get("objectiveEscortLinkTimer"), p.link(), DistrictEscortProgress.LINK_SECONDS),
                 escort || p.terminal() ? -1 : p.link() / DistrictEscortProgress.LINK_SECONDS,
-                p.terminal() || p.covered() ? "" : "Keep company infantry with the carrier and clear anything that can see it.",
-                List.of(new Marker("escort-load", "Consignment", sequence.cargoX(), sequence.cargoY(), "ESCORT", state),
-                        new Marker("escort-apron", "Western apron", LowQuay.LANDING_X, LowQuay.LANDING_Y, "DELIVER LOAD AND PARTY", state)),
+                p.terminal() || p.covered() ? "" : Strings.get("objectiveEscortBlocker"),
+                List.of(new Marker("escort-load", Strings.get("objectiveEscortLoad"), sequence.cargoX(), sequence.cargoY(), Strings.get("objectiveMarkerEscort"), state),
+                        new Marker("escort-apron", Strings.get("objectiveEscortApron"), LowQuay.LANDING_X, LowQuay.LANDING_Y, Strings.get("objectiveMarkerDeliverLoadParty"), state)),
                 "escort-load");
     }
     public static Item limitedWarrant(LimitedWarrantSequence sequence) {
@@ -269,18 +269,18 @@ public final class MissionObjectiveFamilies {
         boolean egress = p.phase() == LimitedWarrantProgress.Phase.EGRESS;
         String focus = p.phase() == LimitedWarrantProgress.Phase.RECORDS ? "warrant-records"
                 : p.phase() == LimitedWarrantProgress.Phase.CALIBRATION ? "warrant-kit" : "warrant-load";
-        return new Item("limited-warrant", "Low Quay bonded stores", state, p.phase().name(),
-                "Authenticate archive > Recover calibration kit > Escort load to egress", sequence.displayName(),
-                egress ? "Escort the marked calibration carrier" : timed("Protected work", p.work(), LimitedWarrantProgress.WORK_SECONDS),
+        return new Item("limited-warrant", Strings.get("objectiveWarrantName"), state, Strings.named("objectivePhase", p.phase().name()),
+                Strings.get("objectiveWarrantSteps"), sequence.displayName(),
+                egress ? Strings.get("objectiveWarrantEscortCarrier") : timed(Strings.get("objectiveProtectedWorkTimer"), p.work(), LimitedWarrantProgress.WORK_SECONDS),
                 egress || p.terminal() ? -1 : p.work() / LimitedWarrantProgress.WORK_SECONDS,
-                p.terminal() || p.safeWork() ? "" : egress ? "Keep company infantry with the load and clear its route."
-                        : "Clear the marked room and its approaches; the calibration work also needs the supplier's living technician inside.",
-                List.of(new Marker("warrant-records", "Service archive / records office", LowQuay.RECORDS_X, LowQuay.RECORDS_Y,
-                                p.recordsRecovered() ? "AUTHENTICATED" : "PROTECTED WORK", p.recordsRecovered() ? State.COMPLETE : state),
-                        new Marker("warrant-kit", "Calibration cage", LowQuay.KIT_X, LowQuay.KIT_Y, "SUPPLIER TECHNICIAN", state),
-                        new Marker("warrant-load", "Calibration-load escort", egress || p.terminal() ? sequence.targetX() : LowQuay.LOAD_X,
-                                egress || p.terminal() ? sequence.targetY() : LowQuay.LOAD_Y, "ESCORT", state),
-                        new Marker("warrant-egress", "Western return apron", LowQuay.LANDING_X, LowQuay.LANDING_Y, "RETURN LOAD AND COMPANY", state)), focus);
+                p.terminal() || p.safeWork() ? "" : egress ? Strings.get("objectiveWarrantEgressBlocker")
+                        : Strings.get("objectiveWarrantWorkBlocker"),
+                List.of(new Marker("warrant-records", Strings.get("objectiveWarrantRecords"), LowQuay.RECORDS_X, LowQuay.RECORDS_Y,
+                                p.recordsRecovered() ? Strings.get("objectiveMarkerAuthenticated") : Strings.get("objectiveMarkerProtectedWork"), p.recordsRecovered() ? State.COMPLETE : state),
+                        new Marker("warrant-kit", Strings.get("objectiveWarrantKit"), LowQuay.KIT_X, LowQuay.KIT_Y, Strings.get("objectiveMarkerSupplierTechnician"), state),
+                        new Marker("warrant-load", Strings.get("objectiveWarrantLoad"), egress || p.terminal() ? sequence.targetX() : LowQuay.LOAD_X,
+                                egress || p.terminal() ? sequence.targetY() : LowQuay.LOAD_Y, Strings.get("objectiveMarkerEscort"), state),
+                        new Marker("warrant-egress", Strings.get("objectiveWarrantEgress"), LowQuay.LANDING_X, LowQuay.LANDING_Y, Strings.get("objectiveMarkerReturnLoad"), state)), focus);
     }
     public static Item coldStart(ColdStartSequence sequence) {
         var p = sequence.progress();
@@ -291,93 +291,93 @@ public final class MissionObjectiveFamilies {
             default -> 0;
         };
         String name = switch (p.phase()) {
-            case ESCORT -> "Repair-carrier escort rally";
-            case POWER -> "Shore-power pump";
-            default -> "Morrow's work site";
+            case ESCORT -> Strings.get("objectiveColdEscortRally");
+            case POWER -> Strings.get("objectiveColdShorePower");
+            default -> Strings.get("objectiveColdWorkSite");
         };
         String blocker = p.phase() == ColdStartProgress.Phase.CONSTRUCTION ? ""
-                : p.contested() ? "Area contested: work is paused."
-                : p.phase() == ColdStartProgress.Phase.ESCORT && !p.carrierArrived() ? "Repair carrier must reach the workshop unloading point."
-                : !p.companyPresent() ? "Company cover must reach and remain near the work site."
-                : !p.crewPresent() ? "Waiting for a living technician at the work site."
+                : p.contested() ? Strings.get("objectiveColdContested")
+                : p.phase() == ColdStartProgress.Phase.ESCORT && !p.carrierArrived() ? Strings.get("objectiveColdCarrier")
+                : !p.companyPresent() ? Strings.get("objectiveColdCompanyCover")
+                : !p.crewPresent() ? Strings.get("objectiveColdTechnician")
                 : p.phase() == ColdStartProgress.Phase.REPAIR && p.work() >= duration && !p.responseReachedYard()
-                ? "Repairs complete; hold the work site through the announced road response." : "";
-        return at("cold-start", name, state(sequence), p.phase().name(),
-                "Cargo > Shore power > Road gun > Repairs", switch (p.phase()) {
-                    case ESCORT -> "Escort the carrier to the workshop; protect company cover and technicians through unloading.";
-                    case POWER -> "Keep company cover and living technicians near the shore-power pump, uncontested.";
-                    case CONSTRUCTION -> "Select Build Vulcan Turret and place it on clear exterior ground by Morrow's east bay.";
-                    case REPAIR -> "Keep company cover and living technicians near Morrow's work site, uncontested.";
+                ? Strings.get("objectiveColdHold") : "";
+        return at("cold-start", name, state(sequence), Strings.named("objectivePhase", p.phase().name()),
+                Strings.get("objectiveColdSteps"), switch (p.phase()) {
+                    case ESCORT -> Strings.get("objectiveColdEscort");
+                    case POWER -> Strings.get("objectiveColdPower");
+                    case CONSTRUCTION -> Strings.get("objectiveColdConstruction");
+                    case REPAIR -> Strings.get("objectiveColdRepair");
                     default -> sequence.displayName();
                 },
-                duration > 0 ? timed("Work", p.work(), duration) : p.phase() == ColdStartProgress.Phase.CONSTRUCTION
-                        ? "Awaiting completed Vulcan turret" : sequence.displayName(),
+                duration > 0 ? timed(Strings.get("objectiveWorkTimer"), p.work(), duration) : p.phase() == ColdStartProgress.Phase.CONSTRUCTION
+                        ? Strings.get("objectiveColdAwaitingTurret") : sequence.displayName(),
                 duration > 0 ? p.work() / duration : -1, blocker, sequence.targetX(), sequence.targetY());
     }
 
     public static Item coldStartPicket(ColdStartPicket.Report post) {
-        String name = post.key().equals("south_haul") ? "South haul picket" : "Quarry picket";
+        String name = post.key().equals("south_haul") ? Strings.get("objectivePicketSouthHaul") : Strings.get("objectivePicketQuarry");
         String status = switch (post.state()) {
-            case HOLDING -> post.contacted() ? "CONTACT REPORTED" : "OUTER WATCH";
-            case WITHDRAWING -> "FALLING BACK";
-            case INNER_HOLD -> "INNER LINE";
-            case LOST -> "POST LOST";
+            case HOLDING -> post.contacted() ? Strings.get("objectivePicketContact") : Strings.get("objectivePicketOuterWatch");
+            case WITHDRAWING -> Strings.get("objectivePicketFallingBack");
+            case INNER_HOLD -> Strings.get("objectivePicketInnerLine");
+            case LOST -> Strings.get("objectivePicketLost");
         };
         // Strength is a report, not a capture meter or an additional victory requirement.
         return at("cold-start-picket-" + post.key(), name,
                 post.aliveMembers() == 0 ? State.FAILED : State.ACTIVE, status,
-                "Optional support / outer watch > inner defense",
+                Strings.get("objectivePicketSteps"),
                 switch (post.state()) {
-                    case HOLDING -> "Optional support: reinforce this outer watch.";
-                    case WITHDRAWING -> "Cover the survivors' withdrawal to this position.";
-                    case INNER_HOLD -> "Survivors hold this repair-yard approach.";
-                    case LOST -> "Detachment lost. Protect the inner line.";
+                    case HOLDING -> Strings.get("objectivePicketHolding");
+                    case WITHDRAWING -> Strings.get("objectivePicketWithdrawing");
+                    case INNER_HOLD -> Strings.get("objectivePicketInnerHold");
+                    case LOST -> Strings.get("objectivePicketLostInstruction");
                 },
-                post.aliveMembers() + "/" + post.initialMembers() + " militia alive"
-                        + (post.overrun() ? " / outer post overrun" : ""), -1, "",
+                Strings.format(post.overrun() ? "objectivePicketAliveOverrun" : "objectivePicketAlive",
+                        post.aliveMembers(), post.initialMembers()), -1, "",
                 post.withdrawing() ? post.innerX() : post.outerX(),
                 post.withdrawing() ? post.innerY() : post.outerY());
     }
 
     public static Item depot(DepotHoldSequence sequence) {
         var p = sequence.progress();
-        String measure = sequence.isComplete() ? "Dispatch secured" : !p.committed() ? timed("Capture", p.captureFraction() * DepotHoldProgress.CAPTURE_SECONDS, DepotHoldProgress.CAPTURE_SECONDS)
-                : p.waves() < 2 ? "Next announced road attack / " + seconds(p.nextWaveSeconds())
-                : "Both road attacks committed; secure dispatch";
-        return at("depot-dispatch", "Dispatch warehouse", state(sequence),
-                sequence.isComplete() ? "SECURED" : p.committed() ? "DEFEND DISPATCH" : "CAPTURE DISPATCH",
-                "Capture dispatch > Hold against both road attacks",
-                sequence.isComplete() ? "Dispatch secured; both road attacks defeated."
-                        : p.committed() ? "Keep friendly forces inside dispatch and defeat both road attacks."
-                        : "Keep company forces inside the warehouse, uncontested, for 8s.",
+        String measure = sequence.isComplete() ? Strings.get("objectiveDepotSecured") : !p.committed() ? timed(Strings.get("objectiveCaptureTimer"), p.captureFraction() * DepotHoldProgress.CAPTURE_SECONDS, DepotHoldProgress.CAPTURE_SECONDS)
+                : p.waves() < 2 ? Strings.format("objectiveDepotNextAttack", seconds(p.nextWaveSeconds()))
+                : Strings.get("objectiveDepotBothCommitted");
+        return at("depot-dispatch", Strings.get("objectiveDepotName"), state(sequence),
+                sequence.isComplete() ? Strings.get("objectiveMarkerSecured") : p.committed() ? Strings.get("objectiveDepotDefend") : Strings.get("objectiveDepotCapture"),
+                Strings.get("objectiveDepotSteps"),
+                sequence.isComplete() ? Strings.get("objectiveDepotDone")
+                        : p.committed() ? Strings.get("objectiveDepotDefendInstruction")
+                        : Strings.get("objectiveDepotCaptureInstruction"),
                 measure, !p.committed() ? p.captureFraction() : -1,
-                p.enemyInside() ? "Dispatch contested: clear the warehouse."
+                p.enemyInside() ? Strings.get("objectiveDepotContested")
                         : !(p.committed() ? p.friendlyInside() : p.companyInside())
-                        ? "Keep friendly forces inside the warehouse." : "",
+                        ? Strings.get("objectiveDepotKeepInside") : "",
                 sequence.x(), sequence.y());
     }
 
     public static Item compound(CompoundService.Record record, int index, String name) {
         boolean held = record.state == CompoundService.CompoundState.MARINE_HELD;
         return at("territory-" + index, name, held ? State.COMPLETE : State.ACTIVE,
-                held ? "HELD" : record.defendersPresent ? "CONTESTED" : record.attackersPresent ? "CAPTURING" : "REACH ROOM",
-                "Enter capture room > Clear > Hold", held ? "Position held; protect it from recapture."
-                        : "Keep friendly forces inside the capture room and hold uncontested for 4s.",
-                held ? "Marine-held" : "Control transition / " + Math.round(record.captureProgress * 100) + "%",
+                held ? Strings.get("objectiveCompoundHeld") : record.defendersPresent ? Strings.get("objectiveCompoundContested") : record.attackersPresent ? Strings.get("objectiveCompoundCapturing") : Strings.get("objectiveCompoundReachRoom"),
+                Strings.get("objectiveCompoundSteps"), held ? Strings.get("objectiveCompoundHeldInstruction")
+                        : Strings.get("objectiveCompoundInstruction"),
+                held ? Strings.get("objectiveCompoundMarineHeld") : Strings.format("objectiveCompoundTransition", Math.round(record.captureProgress * 100)),
                 held ? 1 : record.captureProgress,
-                held ? "" : record.defendersPresent ? "Area contested: clear the capture room."
-                        : !record.attackersPresent ? "Friendly forces must enter and remain in the capture room." : "",
+                held ? "" : record.defendersPresent ? Strings.get("objectiveCompoundContestedBlocker")
+                        : !record.attackersPresent ? Strings.get("objectiveCompoundEnterBlocker") : "",
                 record.captureCellX >= 0 ? record.captureCellX : record.node.anchorX,
                 record.captureCellY >= 0 ? record.captureCellY : record.node.anchorY);
     }
 
     public static Item freight(Objective objective, ThunderRunSequence column) {
-        return new Item("freight-convoy", "Employer freight", state(objective), column.resolved() ? "RESOLVED" : "ESCORT CONVOY",
-                "Clear road posts > Hold dispatch windows > Escort freight out",
-                "Secure road posts and protect physical cargo delivery; capturing the road alone does not finish the job.",
-                column.deliveredCount() + " delivered / " + column.lostCount() + " lost / "
-                        + (column.cargoIdentities().size() - column.deliveredCount() - column.lostCount()) + " en route",
-                -1, column.holdSite() > 0 ? "Hold the dispatch post / " + seconds(column.holdRemainingTicks() / 30f) + " remaining" : "",
+        return new Item("freight-convoy", Strings.get("objectiveFreightName"), state(objective), column.resolved() ? Strings.get("objectiveFreightResolved") : Strings.get("objectiveFreightEscort"),
+                Strings.get("objectiveFreightSteps"),
+                Strings.get("objectiveFreightInstruction"),
+                Strings.format("objectiveFreightTally", column.deliveredCount(), column.lostCount(),
+                        column.cargoIdentities().size() - column.deliveredCount() - column.lostCount()),
+                -1, column.holdSite() > 0 ? Strings.format("objectiveFreightHold", seconds(column.holdRemainingTicks() / 30f)) : "",
                 List.of(), "");
     }
 
@@ -385,28 +385,30 @@ public final class MissionObjectiveFamilies {
         var layout = intervention.layout();
         boolean evidence = intervention.phase() == ColdAccountIntervention.Phase.EVIDENCE;
         String blocker = !evidence && !intervention.companyRecovered()
-                ? intervention.outsideWithdrawal() > 0 ? "Company personnel must reach the shuttle pickup."
-                : intervention.pendingArrivals() ? "Waiting for committed company arrivals before extraction." : "Awaiting company extraction." : "";
-        return at("cold-account", evidence ? "Dispatch office" : "Shuttle pickup", state(intervention),
-                intervention.phase().name(), "Recover evidence > Withdraw > Naval intervention",
+                ? intervention.outsideWithdrawal() > 0 ? Strings.get("objectiveColdAccountReachPickup")
+                : intervention.pendingArrivals() ? Strings.get("objectiveColdAccountArrivals") : Strings.get("objectiveColdAccountAwaiting") : "";
+        return at("cold-account", evidence ? Strings.get("objectiveColdAccountOffice") : Strings.get("objectiveColdAccountPickup"), state(intervention),
+                Strings.named("objectivePhase", intervention.phase().name()), Strings.get("objectiveColdAccountSteps"),
                 intervention.isComplete() || intervention.isFailed() ? intervention.displayName()
-                        : evidence ? "Secure the dispatch office." : intervention.companyRecovered()
-                        ? "Company recovered; naval intervention is continuing." : "Withdraw to the shuttle pickup; keep clear of the announced bombardment area.",
-                evidence ? records == null ? "Awaiting evidence recovery"
-                        : timed("Evidence recovery", records.serviceProgress(), records.serviceDuration())
-                        : intervention.companyRecovered() ? "Company recovered" : "Awaiting extraction",
+                        : evidence ? Strings.get("objectiveColdAccountSecure") : intervention.companyRecovered()
+                        ? Strings.get("objectiveColdAccountRecovered") : Strings.get("objectiveColdAccountWithdraw"),
+                evidence ? records == null ? Strings.get("objectiveColdAccountAwaitingEvidence")
+                        : timed(Strings.get("objectiveColdAccountEvidenceTimer"), records.serviceProgress(), records.serviceDuration())
+                        : intervention.companyRecovered() ? Strings.get("objectiveColdAccountCompanyRecovered") : Strings.get("objectiveColdAccountAwaitingExtraction"),
                 evidence && records != null ? records.serviceProgress() / records.serviceDuration() : -1,
                 evidence && records != null && !records.marineServicing()
-                        ? "The dispatch office needs settled Marine presence and uncontested control." : blocker,
+                        ? Strings.get("objectiveColdAccountBlocker") : blocker,
                 evidence ? layout.evidenceX() : layout.withdrawalX(), evidence ? layout.evidenceY() : layout.withdrawalY());
     }
 
     public static Item generic(Objective objective, int index) {
         State state = state(objective);
-        return new Item("mission-" + index, objective.displayName(), state, state.name(), "", objective.displayName(),
-                state == State.COMPLETE ? "Objective complete" : state == State.FAILED ? "Objective failed" : "Awaiting mission condition",
+        return new Item("mission-" + index, objective.displayName(), state, Strings.named("objectiveState", state.name()), "", objective.displayName(),
+                state == State.COMPLETE ? Strings.get("objectiveComplete") : state == State.FAILED ? Strings.get("objectiveFailed") : Strings.get("objectiveAwaitingCondition"),
                 -1, "", List.of(), "");
     }
-    static String seconds(float value) { return Math.max(0, Math.round(value * 10)) / 10f + "s"; }
-    static String timed(String label, float work, float duration) { return label + " / " + seconds(work) + " of " + seconds(duration); }
+    static String seconds(float value) { return Strings.format("objectiveSeconds", Math.max(0, Math.round(value * 10)) / 10f); }
+    static String timed(String label, float work, float duration) {
+        return Strings.format("objectiveTimed", label, seconds(work), seconds(duration));
+    }
 }
