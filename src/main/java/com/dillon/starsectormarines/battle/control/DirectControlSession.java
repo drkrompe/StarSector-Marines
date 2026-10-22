@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.battle.tender.TenderPilot;
 import com.dillon.starsectormarines.battle.tender.TenderSystem;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.CombatService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -32,6 +33,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipPilot;
 import com.dillon.starsectormarines.battle.warship.WarshipSystem;
+import com.dillon.starsectormarines.battle.weapon.MagazineDef;
 import com.dillon.starsectormarines.marine.SpecialActivation;
 
 import java.util.EnumMap;
@@ -60,6 +62,15 @@ public final class DirectControlSession {
     private final MarineSprint marineSprint = new MarineSprint();
     /** Whether the right button was down on the previous Marine tick; a press, not a hold, uses equipment. */
     private boolean secondaryHeld;
+    /** Whether the left button was down on the previous Marine tick; a semi-automatic primary fires on a press. */
+    private boolean primaryHeld;
+    /**
+     * Ticks a semi-automatic press stays armed while the action finishes its cycle, so a press that lands
+     * a moment early still fires instead of being lost to the cooldown. Zero means no press is armed.
+     */
+    private int semiPressTicks;
+    /** How long a semi-automatic press waits for the action, in ticks (about a fifth of a second). */
+    static final int SEMI_PRESS_BUFFER_TICKS = 6;
 
     /** The side the player flies for. */
     private static final Faction PLAYER_SIDE = Faction.MARINE;
@@ -192,6 +203,11 @@ public final class DirectControlSession {
                 yield spec != null && spec.grantsMitigation() && roster.integralSystems().canActivate(unitId);
             }
             case SMOKE -> SmokeTactics.canThrow(unitId, battle);
+            case RELOAD -> {
+                CombatService combat = roster.combat();
+                int size = combat.magazineSize(unitId);
+                yield size > 0 && !combat.isReloading(unitId) && combat.roundsLoaded(unitId) < size;
+            }
             case CANCEL_BUILDS, LOW_PASS -> false;
         };
     }
@@ -208,6 +224,11 @@ public final class DirectControlSession {
             }
             return ability == DirectControlAbility.CANCEL_BUILDS ? TenderPilot.cancelBuilds(tender)
                     : WarshipPilot.command(ship, WarshipPilot.Command.TOGGLE_SHIELD);
+        }
+        if (ability == DirectControlAbility.RELOAD) {
+            if (!canUseAbility(ability)) return false;
+            pendingAbilities.put(ability, null);
+            return true;
         }
         if (!canUseAbility(ability) || aim == null || !Float.isFinite(aim.x()) || !Float.isFinite(aim.y())) {
             return false;
@@ -326,6 +347,7 @@ public final class DirectControlSession {
     /** Chrome, focus, and pause can neutralize input even when no simulation tick runs. */
     public void suspendInput() {
         pendingAbilities.clear();
+        semiPressTicks = 0;
         intent = intent.neutralized();
         if (ship != null) {
             ship.pilotMove(0f, 0f);
@@ -342,6 +364,8 @@ public final class DirectControlSession {
 
     public void exit() {
         secondaryHeld = false;
+        primaryHeld = false;
+        semiPressTicks = 0;
         if (ship != null) {
             Warship released = ship;
             Tender releasedTender = tender;
@@ -475,6 +499,10 @@ public final class DirectControlSession {
                 MitigationSystem.faceManual(id, roster.mitigations(), roster.world(), shield);
             }
         }
+        if (pendingAbilities.containsKey(DirectControlAbility.RELOAD)) {
+            pendingAbilities.remove(DirectControlAbility.RELOAD);
+            roster.combat().beginReload(id);
+        }
         PointFireAim smoke = pendingAbilities.remove(DirectControlAbility.SMOKE);
         if (smoke != null) SmokeTactics.beginThrow(id, smoke, true, battle);
         if (ownsSmokeChannel(id) && InfantryUnitPrep.tickAimAndShortCircuit(id, battle)) {
@@ -500,10 +528,40 @@ public final class DirectControlSession {
                 speed, BattleSimulation.TICK_DT);
         if (sprinting) roster.combat().clearPrimaryFire(id);
         MitigationSystem.faceManual(id, roster.mitigations(), roster.world(), pointAim());
-        if (input.firing() && !sprinting) {
+        if (primaryTrigger(id, input.firing()) && !sprinting) {
             boolean moving = roster.movement().velX(id) != 0f || roster.movement().velY(id) != 0f;
             roster.combat().setPointFireIntent(id, new PointFireAim(input.aimX(), input.aimY()),
                     FireStance.stanceFor(moving));
         }
+    }
+
+    /**
+     * Whether the controlled Marine's primary trigger asks for a round this tick. A held trigger asks
+     * every tick, and the firing gate paces it to the weapon's cycle. A semi-automatic magazine asks
+     * once per press instead: the press stays armed for {@link #SEMI_PRESS_BUFFER_TICKS} while the
+     * action cycles, and is dropped by a reload, so tapping fires as fast as the action allows and a
+     * held button fires a single round.
+     */
+    private boolean primaryTrigger(long id, boolean firing) {
+        boolean pressed = firing && !primaryHeld;
+        primaryHeld = firing;
+        MagazineDef magazine = roster.combat().primaryMagazine(id);
+        if (magazine == null || magazine.trigger() != MagazineDef.Trigger.SEMI) {
+            semiPressTicks = 0;
+            return firing;
+        }
+        CombatService combat = roster.combat();
+        if (pressed) semiPressTicks = SEMI_PRESS_BUFFER_TICKS;
+        if (semiPressTicks == 0) return false;
+        if (combat.isReloading(id)) {
+            semiPressTicks = 0;
+            return false;
+        }
+        if (combat.cooldownTimer(id) <= 0f && combat.burstRemaining(id) == 0) {
+            semiPressTicks = 0;
+            return true;
+        }
+        semiPressTicks--;
+        return false;
     }
 }

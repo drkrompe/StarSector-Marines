@@ -17,7 +17,9 @@ import java.util.Set;
  *
  * <p>The field set is the shared baseline populated by handheld, mech, and
  * turret weapons (see {@code moddable-weapons-nouns.md}). Carrier-specific
- * durability, magazines and mount art remain outside this definition.
+ * durability, magazines and mount art remain outside this definition; the one
+ * exception is a handheld primary's own detachable {@link MagazineDef}, which
+ * travels with the gun because a marine carries no other rack.
  *
  * <p>Grouped by who reads it: the {@code sim} block feeds
  * {@link com.dillon.starsectormarines.battle.infantry.InfantryCombatStats}
@@ -99,9 +101,13 @@ public final class WeaponDef {
     public final float wallDamageRadius;
     /** Heat the weapon's blast puts into the ground it covers (`fire-nouns.md`, Starting fires); 0 for none. */
     private int incendiaryHeat;
+    /** Detachable feed for a handheld primary, or {@code null} for a weapon that only cycles. */
+    private MagazineDef magazine;
 
     /** Incendiary heat a blast of this weapon carries, 0 for an ordinary one. */
     public int incendiaryHeat() { return incendiaryHeat; }
+    /** The handheld primary's magazine, or {@code null} when the weapon cycles without one. */
+    public MagazineDef magazine() { return magazine; }
     /** Carrier-owned pre-fire commitment window for handheld specials. */
     public final float aimDuration;
     /** Maximum-range travel time retained for projectile presentation. */
@@ -363,6 +369,10 @@ public final class WeaponDef {
                     + "' declares render.beam for a projectile-sprite weapon");
         }
         def.incendiaryHeat = Math.max(0, sim.optInt("incendiaryHeat", 0));
+        def.magazine = MagazineDef.parse(sim.optJSONObject("magazine"), id);
+        if (def.magazine != null && def.mount != MountClass.MARINE_PRIMARY) {
+            throw new JSONException("Weapon '" + id + "' declares a magazine outside the marine-primary mount class");
+        }
         validateMountFields(def);
         return def;
     }

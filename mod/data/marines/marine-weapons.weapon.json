@@ -16,13 +16,21 @@
         "range": 22.0,
         "damage": 14.0,
         "accuracy": 0.28,
-        "cooldown": 1.15,
+        "cooldown": 0.45,
         "penetration": 7.0,
         "burstCount": 1,
         "burstSpacing": 0.0,
         "accuracyFalloff": 0.42,
         "hitSpread": 0.75,
-        "roundVelocity": 48.0
+        "roundVelocity": 48.0,
+        "magazine": {
+          "size": [3, 4, 5, 6],
+          "reload": 3.0,
+          "trigger": "semi",
+          "recoil": 0.12,
+          "recoilMax": 0.35,
+          "recoilRecovery": 0.2
+        }
       },
       "render": {
         "heldSpriteFamily": "RIFLE",

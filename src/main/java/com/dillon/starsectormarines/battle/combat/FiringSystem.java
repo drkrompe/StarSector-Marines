@@ -39,10 +39,14 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  *
  * <p>A point intent is mutually exclusive with the entity intent and is also
  * consumed once. It validates an equipped direct primary, a finite bearing,
- * positive weapon reach, cooldown, and burst availability. It needs no target
- * registration or clear line of fire: the resolver stops rounds at physical
- * obstacles. Handheld primaries have no ammunition counter; this path uses the
- * same cadence and resources as their ordinary primary release.
+ * positive weapon reach, cooldown, burst and magazine availability. It needs no
+ * target registration or clear line of fire: the resolver stops rounds at
+ * physical obstacles. This path uses the same cadence and magazine as the
+ * ordinary primary release.
+ *
+ * <p>Both paths refuse a magazine-fed primary that is empty or reloading with
+ * {@link FireGate#RELOADING}. The round itself is spent where it leaves, in
+ * {@code InfantryWeapons.firePrimary}, so burst follow-ups draw on the same load.
  *
  * <p><b>The weapon-cooldown decrement is NOT here.</b> {@code
  * InfantryUnitPrep.tickCooldowns} stays the canonical once-per-unit cooldown decrement — it's coupled to the
@@ -171,6 +175,8 @@ public final class FiringSystem {
                         lastFireGate[r] = FireGate.OUT_OF_RANGE.ordinal();
                     } else if (cooldownTimer[r] > 0f || combat.burstRemaining(shooterId) > 0) {
                         lastFireGate[r] = FireGate.COOLDOWN.ordinal();
+                    } else if (!combat.mayFirePrimary(shooterId)) {
+                        lastFireGate[r] = FireGate.RELOADING.ordinal();
                     } else {
                         // The point supplies a bearing, not a lock or a distance gate.
                         // Walls and bodies are physical contacts along the weapon's reach.
@@ -201,6 +207,10 @@ public final class FiringSystem {
 
                 if (cooldownTimer[r] > 0f) {
                     lastFireGate[r] = FireGate.COOLDOWN.ordinal();
+                    continue;
+                }
+                if (!combat.mayFirePrimary(shooterId)) {
+                    lastFireGate[r] = FireGate.RELOADING.ordinal();
                     continue;
                 }
                 if (TacticalScoring.cellDistance(w.x(shooterId), w.y(shooterId), w.x(ft), w.y(ft))

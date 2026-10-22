@@ -46,8 +46,9 @@ public final class InfantryReflexes {
     };
 
     /**
-     * Weapon cooldowns advance, so they drain during move and cohere just as
-     * they do during fire.
+     * Weapon cooldowns and reloads advance, so they drain during move and cohere
+     * just as they do during fire, and a marine idle with a part-spent magazine
+     * tops it up.
      *
      * <p>Housekeeping rather than an interrupt — it always returns {@code false}
      * and never consumes the tick. It is an entry rather than a preamble because
@@ -61,6 +62,7 @@ public final class InfantryReflexes {
         @Override public boolean interrupt(long unit, Squad squad,
                                            ReflexContext context, BattleControl sim) {
             InfantryUnitPrep.tickCooldowns(unit, sim.world());
+            InfantryUnitPrep.topUpMagazineWhenIdle(unit, sim);
             return false;
         }
     };

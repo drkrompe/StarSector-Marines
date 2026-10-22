@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.command;
 
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
@@ -81,12 +82,19 @@ public record Armament(Delivery delivery, float range, int roundsPerTrigger, flo
         return triggersLeft < 0 ? Float.POSITIVE_INFINITY : triggersLeft;
     }
 
-    /** A catalog weapon fired by something that is not a mech mount: a marine's primary, with no magazine to count. */
+    /**
+     * A catalog weapon fired by something that is not a mech mount: a marine's primary, with no stock to
+     * count. A magazine reloads without end, so it costs cadence rather than triggers: the cycle is the
+     * service-grade average over a load and its reload.
+     */
     public static Armament ofPrimary(WeaponDef weapon) {
         if (weapon == null) return null;
         int rounds = Math.max(1, weapon.burstCount) * Math.max(1, weapon.projectilesPerShot);
+        float cycle = weapon.magazine() == null ? weapon.cooldown
+                : weapon.magazine().sustainedTriggerInterval(EquipmentGrade.SERVICE, weapon.cooldown,
+                        Math.max(1, weapon.burstCount), weapon.magazine().reloadSeconds());
         return new Armament(weapon.indirectFire || weapon.arcHeight > 0f ? Delivery.INDIRECT : Delivery.DIRECT,
-                weapon.range, rounds, Math.max(0.1f, weapon.cooldown), weapon.damage, weapon.penetration,
+                weapon.range, rounds, Math.max(0.1f, cycle), weapon.damage, weapon.penetration,
                 weapon.wallDamage, UNLIMITED);
     }
 

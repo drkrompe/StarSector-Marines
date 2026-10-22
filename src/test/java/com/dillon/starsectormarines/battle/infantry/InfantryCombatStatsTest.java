@@ -15,7 +15,6 @@ public class InfantryCombatStatsTest {
 
     @Test
     public void fieldRifleIsARealDowngradeFromPulseIssue() {
-        assertTrue(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).cooldown() > WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID).cooldown());
         assertTrue(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).accuracy() < WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID).accuracy());
         assertTrue(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).accuracyFalloff() > WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID).accuracyFalloff());
         assertEquals(1, WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).burstCount());

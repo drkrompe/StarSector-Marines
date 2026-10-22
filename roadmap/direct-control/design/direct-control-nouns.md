@@ -97,7 +97,8 @@ resumes at the speed the battle had before the pause. Both panels size
 to their rows and hug the bottom edge, and like the game's own combat HUD they have no box: text and bars float over the battle, and only the selected weapon row carries a wash. Weapon rows distinguish the authored firing
 pattern, remaining resources, and burst or recovery clocks. Loaded describes
 resource and clock availability, not a guarantee that the barrel is aimed or
-clear. Infantry primaries show no ammunition counter; finite Mech stores count
+clear. A magazine-fed infantry primary counts the rounds left in its load and
+shows its reload on the cycle bar; one without a magazine shows no counter. Finite Mech stores count
 trigger packs, while the APC turret counts individual rounds. Indirect mounts
 remain visible as unavailable for manual fire.
 
@@ -154,7 +155,7 @@ continue to update the guide while paused; pointing at chrome or outside the
 world viewport hides it.
 
 Equipped Marine abilities have one-shot input: E raises an integral directional
-shield and G throws carried smoke toward the cursor. Their read-only rows sit
+shield, G throws carried smoke toward the cursor, and R reloads a magazine. Their read-only rows sit
 under a KEYS group below the primary weapon, each marked with its key. Only present
 equipment appears. Shield state reads its real soak pool, expiry, break flash,
 and cooldown; smoke reads carried canisters and the committed throw clock.
@@ -374,13 +375,17 @@ trigger pull for all its follow-up rounds; moving the cursor affects the next tr
 shooter changes its bearing to that frozen point. Follow-up spread uses the
 shooter’s actual applied movement. A held trigger cannot restart an unfinished
 burst. Releasing control cancels pending intent and burst work without
-resetting cooldown. The current handheld primary family has no ammunition
-counter; manual fire shares that resource contract rather than granting a
-separate ammunition supply.
+resetting cooldown. A magazine-fed primary spends one round per release from
+the same load its AI fire uses, and an empty load reloads on its own; manual
+fire grants no separate supply. R asks for a reload of a part-spent load (an
+autonomous marine tops up after a short lull instead). A semi-automatic
+magazine fires one round per press of the trigger rather than on a hold; a
+press that lands a moment before the action has cycled stays armed briefly so
+it is not lost, and a reload drops it.
 
 A handheld point request is consumed once whether it fires or is held by a gate.
 It requires a live equipped direct primary, a finite noncoincident world bearing,
-positive weapon reach, a ready cooldown, and no active burst. The cursor is
+positive weapon reach, a ready cooldown, a loaded magazine where it has one, and no active burst. The cursor is
 not a range limit: an unobstructed round travels to the weapon’s full modeled
 reach beyond it. Accuracy, falloff, spread, and smoke depth are calibrated at
 weapon range so placing the cursor nearer cannot improve distant accuracy.

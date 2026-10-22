@@ -7,5 +7,7 @@ public enum DirectControlAbility {
     /** A tender pilot's X key: withdraw every unfinished build site. */
     CANCEL_BUILDS,
     /** A warship pilot's F key: a fast, low pass from the hull to the cursor. */
-    LOW_PASS
+    LOW_PASS,
+    /** Reload the controlled Marine's magazine-fed primary before it runs dry. */
+    RELOAD
 }

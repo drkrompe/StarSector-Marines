@@ -18,7 +18,14 @@ without turning a JSON typo into a silent zero-damage battle.
 
 - A **weapon definition** is the immutable, stable-id description of combat
   behavior, catalog identity, and shot presentation. It does not own a unit's
-  health, hardpoint geometry, magazine policy, or progression eligibility.
+  health, hardpoint geometry, magazine policy, or progression eligibility. The
+  one feed it carries is a handheld primary's own **magazine**, because a
+  marine has no other rack: rounds per load at each equipment grade, a reload,
+  a trigger mode (semi or auto) and recoil. With a magazine, `cooldown` is the
+  action's cycle between rounds; without one it is the whole firing rhythm, the
+  way pulse and laser families keep their cycle instead of a reload. A load
+  reloads without end, so a magazine changes cadence, never total supply, and
+  its size is one of the ways a better grade of the same gun levels.
 - A **damage payload** pairs damage against exposed structure with penetration
   against actor armor. One shot may own a **contact payload** for the actor
   physically struck and a separate **area payload** for nearby actors. The

@@ -236,6 +236,9 @@ final class BattleDirectControlHudModel {
         boolean enabled = weapon.directEligible();
         String state = enabled ? label(weapon.state().name()) : label("Indirect");
         if (enabled && weapon.state() == WeaponState.BURST) state += " " + weapon.burstRemaining();
+        if (enabled && weapon.state() == WeaponState.RELOADING) {
+            state = label("RELOADING") + " " + seconds(weapon.cooldownSeconds());
+        }
         if (enabled && weapon.state() == WeaponState.CYCLING) {
             state = (mech && !weapon.mechanism().isEmpty() ? weapon.mechanism() + " " : "")
                     + seconds(weapon.cooldownSeconds());

@@ -29,6 +29,14 @@ public final class InfantryCombatStats {
                 * profile.experienceTier().cooldownMult;
     }
 
+    /** Reload seconds for a magazine-fed family, scaled as the cycle is; zero without a magazine. */
+    public static float reload(WeaponDef family, EquipmentGrade grade,
+                               SoldierProfile profile) {
+        if (family.magazine() == null) return 0f;
+        return family.magazine().reloadSeconds() * grade.cooldownMult
+                * profile.experienceTier().cooldownMult;
+    }
+
     public static float spread(WeaponDef family, EquipmentGrade grade,
                                SoldierProfile profile) {
         return family.hitSpread * grade.spreadMult
@@ -41,10 +49,19 @@ public final class InfantryCombatStats {
         return damage(family, grade) * family.burstCount * family.projectilesPerShot;
     }
 
-    /** Sustained raw output based on the interval between trigger pulls. */
+    /**
+     * Sustained raw output based on the interval between trigger pulls. A magazine-fed family is
+     * averaged over a whole load and its reload, so a fast cycle does not read as free damage.
+     */
     public static float estimatedDps(WeaponDef family, EquipmentGrade grade,
                                      SoldierProfile profile) {
-        return volleyDamage(family, grade) / Math.max(0.01f, cooldown(family, grade, profile));
+        float cycle = Math.max(0.01f, cooldown(family, grade, profile));
+        if (family.magazine() == null) return volleyDamage(family, grade) / cycle;
+        int rounds = family.magazine().size(grade);
+        int pulls = (rounds + family.burstCount - 1) / family.burstCount;
+        float interval = family.magazine().sustainedTriggerInterval(grade, cycle, family.burstCount,
+                reload(family, grade, profile));
+        return damage(family, grade) * rounds * family.projectilesPerShot / (pulls * interval);
     }
 
     /** Standing hit chance at a fraction of this weapon's effective range. */

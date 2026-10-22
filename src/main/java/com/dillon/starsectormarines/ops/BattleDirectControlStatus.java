@@ -33,7 +33,7 @@ final class BattleDirectControlStatus {
 
     enum Carrier { NONE, MARINE, MECH, VEHICLE, WARSHIP, TENDER }
     enum FireKind { SINGLE, BURST, PACKET, INDIRECT }
-    enum WeaponState { BURST, CYCLING, LOADED, EMPTY, TOO_CLOSE }
+    enum WeaponState { BURST, RELOADING, CYCLING, LOADED, EMPTY, TOO_CLOSE }
     enum AmmoUnit { UNTRACKED, ROUNDS, TRIGGER_PACKS }
 
     record Snapshot(long entityId, String name, Carrier carrier, Durability durability,
@@ -127,12 +127,21 @@ final class BattleDirectControlStatus {
     /**
      * {@code trigger} names the mouse button(s) that fire this weapon: {@code L}, {@code R}, {@code LR}
      * or empty when none does. {@code tooClose} is a cursor inside the mount's manual minimum range, where
-     * its trigger is refused.
+     * its trigger is refused. {@code reloading} is a magazine being changed, in which case the cooldown
+     * and cycle fields carry the reload clock instead of the action's.
      */
     record WeaponStatus(int number, String slotKey, String name, Behavior behavior,
                         boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
                         int burstRemaining, float burstSeconds, Ammo ammo,
-                        boolean fluxBlocked, String mechanism, String trigger, boolean tooClose) {
+                        boolean fluxBlocked, String mechanism, String trigger, boolean tooClose,
+                        boolean reloading) {
+        WeaponStatus(int number, String slotKey, String name, Behavior behavior,
+                     boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
+                     int burstRemaining, float burstSeconds, Ammo ammo,
+                     boolean fluxBlocked, String mechanism, String trigger, boolean tooClose) {
+            this(number, slotKey, name, behavior, directEligible, cooldownSeconds, cycleDurationSeconds,
+                    burstRemaining, burstSeconds, ammo, fluxBlocked, mechanism, trigger, tooClose, false);
+        }
         WeaponStatus(int number, String slotKey, String name, Behavior behavior,
                      boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
                      int burstRemaining, float burstSeconds, Ammo ammo,
@@ -155,6 +164,7 @@ final class BattleDirectControlStatus {
         }
         WeaponState state() {
             if (burstRemaining > 0) return WeaponState.BURST;
+            if (reloading) return WeaponState.RELOADING;
             if (ammo.unit() != AmmoUnit.UNTRACKED && !ammo.unlimited() && ammo.remaining() <= 0) {
                 return WeaponState.EMPTY;
             }
@@ -201,7 +211,8 @@ final class BattleDirectControlStatus {
         WeaponDef primary = combat.has(id) ? combat.primaryWeaponDef(id) : null;
         List<WeaponStatus> weapons = primary == null ? List.of()
                 : List.of(marineWeapon(primary, combat.equipmentGrade(id), combat.cooldownTimer(id),
-                combat.attackCooldown(id), combat.burstRemaining(id), combat.burstTimer(id)));
+                combat.attackCooldown(id), combat.burstRemaining(id), combat.burstTimer(id),
+                combat.roundsLoaded(id), combat.reloadTimer(id), combat.reloadSeconds(id)));
         return new Snapshot(id, name, Carrier.MARINE, durability, weapons,
                 marineAbilities(sim.getRoster(), id, sim.directControl()::canUseAbility),
                 sim.directControl().sprintStatus());
@@ -251,11 +262,28 @@ final class BattleDirectControlStatus {
     static WeaponStatus marineWeapon(WeaponDef weapon, EquipmentGrade grade,
                                      float cooldown, float cycleDuration, int burstRemaining,
                                      float burstTimer) {
+        return marineWeapon(weapon, grade, cooldown, cycleDuration, burstRemaining, burstTimer,
+                weapon.magazine() != null ? weapon.magazine().size(grade) : 0, 0f, 0f);
+    }
+
+    /** A magazine-fed primary counts its rounds and shows its reload on the cycle bar. */
+    static WeaponStatus marineWeapon(WeaponDef weapon, EquipmentGrade grade,
+                                     float cooldown, float cycleDuration, int burstRemaining,
+                                     float burstTimer, int roundsLoaded, float reloadRemaining,
+                                     float reloadDuration) {
+        boolean direct = PointFireAim.supports(weapon) && Float.isFinite(weapon.range) && weapon.range > 0f;
+        if (weapon.magazine() == null) {
+            return new WeaponStatus(1, "PRIMARY", weapon.catalogName(grade),
+                    behavior(weapon, weapon.burstCount), direct,
+                    cooldown, cycleDuration, burstRemaining, burstTimer,
+                    new Ammo(0, 0, AmmoUnit.UNTRACKED, false));
+        }
+        boolean reloading = reloadRemaining > 0f;
+        Ammo ammo = new Ammo(roundsLoaded, weapon.magazine().size(grade), AmmoUnit.ROUNDS, false);
         return new WeaponStatus(1, "PRIMARY", weapon.catalogName(grade),
-                behavior(weapon, weapon.burstCount), PointFireAim.supports(weapon)
-                && Float.isFinite(weapon.range) && weapon.range > 0f,
-                cooldown, cycleDuration, burstRemaining, burstTimer,
-                new Ammo(0, 0, AmmoUnit.UNTRACKED, false));
+                behavior(weapon, weapon.burstCount), direct,
+                reloading ? reloadRemaining : cooldown, reloading ? reloadDuration : cycleDuration,
+                burstRemaining, burstTimer, ammo, false, "", "", false, reloading);
     }
 
     static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts) {

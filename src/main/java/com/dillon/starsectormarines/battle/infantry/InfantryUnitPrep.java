@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
+import com.dillon.starsectormarines.battle.sim.CombatService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -87,7 +88,8 @@ public final class InfantryUnitPrep {
     }
 
     /**
-     * Decrements primary and secondary cooldown timers by one sim tick.
+     * Decrements primary and secondary cooldown timers by one sim tick, and
+     * advances the primary magazine's reload and recoil recovery with them.
      * Idempotent at zero — already-expired timers stay at zero. Runs every
      * tick regardless of what the unit is doing so a long approach phase
      * doesn't freeze cooldown drain (otherwise the marine arrives at firing
@@ -97,6 +99,7 @@ public final class InfantryUnitPrep {
         long id = unit;
         float cd = world.cooldownTimer(id);
         if (cd > 0f) world.setCooldownTimer(id, cd - BattleSimulation.TICK_DT);
+        world.tickMagazine(id, BattleSimulation.TICK_DT);
         if (world.hasSecondaryWeapon(id)) {
             float scd = world.secondaryCooldownTimer(id);
             if (scd > 0f) world.setSecondaryCooldownTimer(id, scd - BattleSimulation.TICK_DT);
@@ -105,6 +108,26 @@ public final class InfantryUnitPrep {
         if (rcd > 0f) world.setRepositionCooldown(id, rcd - BattleSimulation.TICK_DT);
         float sidestep = world.sidestepTimer(id);
         if (sidestep > 0f) world.setSidestepTimer(id, sidestep - BattleSimulation.TICK_DT);
+    }
+
+    /** A marine who has not tried to fire for this long tops up a part-spent magazine. */
+    static final float TOP_UP_IDLE_SECONDS = 2.0f;
+
+    /**
+     * Starts a tactical reload for an autonomous marine whose magazine is part spent and who has not
+     * tried to fire for {@link #TOP_UP_IDLE_SECONDS}, so a lull is spent loading rather than arriving
+     * at the next fight with one round. An empty load reloads on its own the moment it runs dry; a
+     * controlled marine reloads on the player's key instead, so this runs only from the AI reflexes.
+     */
+    public static void topUpMagazineWhenIdle(long unit, BattleView sim) {
+        CombatService combat = sim.combat();
+        int size = combat.magazineSize(unit);
+        if (size == 0 || combat.isReloading(unit) || combat.roundsLoaded(unit) >= size
+                || combat.burstRemaining(unit) > 0) {
+            return;
+        }
+        int idleTicks = sim.getSimTickIndex() - combat.lastFireGateTick(unit);
+        if (idleTicks * BattleSimulation.TICK_DT >= TOP_UP_IDLE_SECONDS) combat.beginReload(unit);
     }
 
     /**
