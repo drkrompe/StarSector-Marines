@@ -487,6 +487,8 @@ def blender_main(cfg):
     scene = bpy.context.scene
     scene.render.resolution_x, scene.render.resolution_y = W, H
     scene.render.resolution_percentage = 50 if cfg.get('half') else 100     # --half: a light check
+    if cfg.get('percent'):              # --percent P: a timing check at any size (never a review frame)
+        scene.render.resolution_percentage = int(cfg['percent'])
     scene.render.engine = 'CYCLES'
     scene.cycles.samples = cfg['samples']
     scene.cycles.use_denoising = True
@@ -1780,7 +1782,21 @@ def blender_main(cfg):
         if cfg.get('stage_only'):                 # --stage-only: build and pose every hull, render nothing
             print('ASHARU staged', kf, flush=True)
             continue
+        if cfg.get('hide_volumes'):      # --hide-volumes a,b | all: a timing control, the kit's volumes left out
+            prefixes = cfg['hide_volumes'].split(',')
+            gone = 0
+            for s_ in ships_fx.values():
+                for o_ in s_.ids:
+                    if not isinstance(o_, bpy.types.Object) or o_.hide_render:
+                        continue
+                    vol = [sl.material for sl in o_.material_slots if sl.material and sl.material.use_nodes and any(
+                        n.type == 'OUTPUT_MATERIAL' and n.inputs['Volume'].is_linked for n in sl.material.node_tree.nodes)]
+                    if vol and ('all' in prefixes or any(ship_fx.base_name(o_.name).startswith(p) for p in prefixes)):
+                        o_.hide_render = True
+                        gone += 1
+            print(f'ASHARU hid {gone} volume objects ({cfg["hide_volumes"]})', flush=True)
         partial = raw / f'{kf}.partial'           # not *.png, so a queue's frame count never counts it
+        t_render = time.time()
         scene.render.use_file_extension = False
         st = scene.render.image_settings
         if layers:
@@ -1800,6 +1816,7 @@ def blender_main(cfg):
             scene.render.filepath = str(partial)
             bpy.ops.render.render(write_still=True)
         os.replace(partial, raw / f'{kf}.png')      # a PNG under its own name is always a finished one
+        print(f'ASHARU render time {kf} {time.time() - t_render:.1f} s', flush=True)
         store = raw / 'labels.json'   # saved per frame: a stopped job keeps every finished frame's labels
         old = json.loads(store.read_text()) if store.exists() else {}
         store.write_text(json.dumps({**old, kf: labels[kf]}, indent=1))
@@ -2416,7 +2433,8 @@ def main():
             from blender_path import BLENDER
             cfg = dict(out=str(run), frames=todo, samples=samples, half=half, swfx='--swfx' in argv, surface=surface,
                        layers=layers, plates=plates, volume_step_rate=opt('--volume-step-rate'),
-                       volume_max_steps=opt('--volume-max-steps'))
+                       volume_max_steps=opt('--volume-max-steps'), percent=opt('--percent'),
+                       hide_volumes=opt('--hide-volumes'))
             env = dict(os.environ, ASHARU_CFG=json.dumps(cfg))
             subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python', __file__], env=env)
     outputs = [orbit_diagram(run)] + label_frames(run)
