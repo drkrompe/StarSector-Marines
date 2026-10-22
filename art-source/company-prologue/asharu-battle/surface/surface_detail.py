@@ -21,12 +21,14 @@ MAP_LAT, MAP_LON = 12.0, 95.0     # battle_blockout.py's; the battle sits over t
 #   regional: everything a 25-degree-down wide shot sees out to the 1,580 km horizon (S1, S4, S12)
 #   mid:      the near ring of the wide shots, about 600 km out in every direction
 #   near:     under the convoy; S1a's straight-down frame is 94 x 53 km of it
+#   far:      S12's far band, 450-1,850 km down the track to the horizon (laid over mid, under track)
 #   aft:      S4's ground, looking back and down past the platform to the north-west
 #   flank:    S1's ground, looking forward and down past the convoy to the south-east
 #   track:    S12's ground, 310-730 km down the track toward the northern canyons
 TILES = {
     'regional': (300e3, 0.0, 3400e3, 1024),
     'mid': (0.0, 0.0, 1300e3, 1024),
+    'far': (1150e3, 0.0, 1400e3, 1024),
     'aft': (-240e3, 350e3, 500e3, 1024),
     'flank': (230e3, -360e3, 440e3, 1024),
     'track': (520e3, 20e3, 420e3, 1024),
@@ -34,7 +36,7 @@ TILES = {
 }
 # Each tile's guide is the finished tile it sits in (the base map for the first), so every
 # generation adds detail to the one above it rather than reinventing it.
-PARENT = {'regional': None, 'mid': 'regional', 'aft': 'mid', 'flank': 'mid', 'track': 'mid', 'near': 'mid'}
+PARENT = {'regional': None, 'mid': 'regional', 'far': 'regional', 'aft': 'mid', 'flank': 'mid', 'track': 'mid', 'near': 'mid'}
 FEATHER = .14    # share of a tile's half-width over which it fades into the layer below
 
 

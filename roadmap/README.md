@@ -214,7 +214,7 @@ The retained UI foundation is proven in-engine and is being adopted one
 production surface at a time. Company HQ reads as the flagship bridge's
 command station, Fleet Armory owns deliberate equipment inspection and issue
 for one squad at a time, and Barracks owns squad choice, home-officer organization,
-bulk personnel command, saved profiles and replenishment between
+bulk personnel command and replenishment between
 operations. The active Alpha pickup, `barracks-turnaround.md`, adds a guided
 preparation handoff. Shared stock displays and upgrade
 bills are defined in `company-view-nouns.md` (Company resource bills). `castle-officer-induction.md` adds

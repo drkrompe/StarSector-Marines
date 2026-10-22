@@ -2165,7 +2165,11 @@ def surface_lines(loc, f, r, u, fpx):
         return [o[i] + t * d[i] for i in range(3)], t
 
     out = []
-    for label, py in (('centre', H / 2), ('lower edge', H - 1)):
+    rows = [('centre', H / 2), ('lower edge', H - 1)]
+    top = next((py for py in range(0, H, 10) if hit(W / 2, py)), None)
+    if top is not None and top > 0:
+        rows.insert(0, ('below the horizon', min(H - 1, top + 30)))
+    for label, py in rows:
         h = hit(W / 2, py)
         if h is None:
             out.append(f'surface {label}: sky')

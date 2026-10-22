@@ -51,6 +51,7 @@ import java.io.ObjectOutputStream;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -175,8 +176,10 @@ class SubmodEquipmentContributionTest {
             FactionEquipmentCatalog.install(oldFactionEquipment);
             MarineRoster repaired = deserialize(providerSave);
             assertEquals("weapon.field-rifle", repaired.activeSoldiers().get(0).primaryId());
-            assertEquals("armor.field-fatigues",
-                    repaired.activeSoldiers().get(ceramicBillet).armorId());
+            // The seat is dressed from the squad's sheet again, which no longer has the suit.
+            String repairedArmor = repaired.activeSoldiers().get(ceramicBillet).armorId();
+            assertNotEquals("example.armor-ceramic", repairedArmor);
+            MarineArmorCatalogRegistry.require(repairedArmor);
             assertNull(repaired.activeSoldiers().get(0).specialEquipmentId());
 
             WeaponRegistry.install(weapons);

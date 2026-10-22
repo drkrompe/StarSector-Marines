@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.squad.Squad;
 
 import java.io.Serializable;
@@ -40,7 +41,7 @@ public final class MarineSquad implements Serializable {
     private boolean reserve;
     /** Durable organizational default; mission borrowing does not rewrite it. */
     private String homeCaptainId;
-    /** Desired profile; assigning it never rewrites the equipment already issued. */
+    /** Legacy saved-profile reference; read once by the roster's load migration, then cleared. */
     private String squadProfileId;
     /** Active named-stationing assignment; {@code -1} while available at home. */
     private long stationingContractId = -1L;
@@ -52,6 +53,8 @@ public final class MarineSquad implements Serializable {
     private String weaponDoctrineId;
     /** Squad-wide armour intent; null means legacy or individually issued equipment. */
     private String armorDoctrineId;
+    /** Per-seat primary grades overriding the weapon card's; null issues the card's own grades. */
+    private List<EquipmentGrade> primaryGrades;
     /** Lifetime service record. Belongs to the formation, never reset by turnover. */
     private SquadCareer career = new SquadCareer();
 
@@ -94,8 +97,8 @@ public final class MarineSquad implements Serializable {
                 ? SavedDefaultText.formatOr(saved, "squadDefaultName", numbered.group(1)) : saved;
     }
     public boolean reserve() { return reserve; }
-    public String squadProfileId() { return squadProfileId; }
-    void setSquadProfileId(String id) { squadProfileId = id; }
+    String legacySquadProfileId() { return squadProfileId; }
+    void clearLegacySquadProfileId() { squadProfileId = null; }
     public String homeCaptainId() { return homeCaptainId; }
     public String leaderSoldierId() { return leaderSoldierId; }
     public long stationingContractId() { return stationingContractId; }
@@ -149,9 +152,13 @@ public final class MarineSquad implements Serializable {
             teamTemplateCardIds[teamIndex] = value;
         }
     }
-    void setEquipmentDoctrineIds(String weaponId, String armorId) {
+    public List<EquipmentGrade> primaryGrades() {
+        return primaryGrades != null ? Collections.unmodifiableList(primaryGrades) : null;
+    }
+    void setEquipmentDoctrineIds(String weaponId, String armorId, List<EquipmentGrade> grades) {
         weaponDoctrineId = weaponId;
         armorDoctrineId = armorId;
+        primaryGrades = grades != null ? new ArrayList<>(grades) : null;
         teamTemplateCardIds = new String[TEAMS_PER_SQUAD];
     }
     /** Load migration records equivalent squad intent without changing or erasing legacy issue. */
