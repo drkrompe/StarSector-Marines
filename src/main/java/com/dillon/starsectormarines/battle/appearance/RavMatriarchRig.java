@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.appearance;
 
+import com.dillon.starsectormarines.battle.unit.SwarmStage;
+
 /**
  * The Matriarch's skeleton, advanced once per simulation tick: an elephant's build under a plated body,
  * the legs pillars under it, two scythes from under the crown's rim. Presentation only; it reads where the
@@ -83,6 +85,21 @@ public final class RavMatriarchRig {
         lookTime = Math.floorMod(seed * 0x9E3779B97F4A7C15L, 9000L) / 1000f;
     }
 
+    /** The body's growth stage, and its scale against its adult: what it is drawn at and with. */
+    private SwarmStage stage = SwarmStage.ADULT;
+    private float scale = 1f;
+
+    /** Sets the growth stage; read each tick, so a Matriarch that matures in the field grows with it. */
+    public void setStage(SwarmStage stage) {
+        this.stage = SwarmStage.of(stage);
+        this.scale = this.stage.matriarchScale;
+    }
+
+    public SwarmStage stage() { return stage; }
+
+    /** The stage's draw scale against the adult ({@link SwarmStage#scale}). */
+    public float scale() { return scale; }
+
     /**
      * Advances the rig one tick.
      *
@@ -106,6 +123,10 @@ public final class RavMatriarchRig {
         }
         bodyX = posX;
         bodyY = posY;
+        // The skeleton walks in its adult's units: a body drawn smaller covers more of its own strides.
+        dx /= scale;
+        dy /= scale;
+        moved /= scale;
         facingDeg = facing;
         double rad = Math.toRadians(facing);
         float fwdX = (float) -Math.sin(rad), fwdY = (float) Math.cos(rad);
