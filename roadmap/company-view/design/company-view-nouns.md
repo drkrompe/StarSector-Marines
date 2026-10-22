@@ -851,8 +851,9 @@ once all are selected, and the board shows the selected total. Changing a filter
 preserves it. Stationed formations can be inspected but cannot receive bulk orders.
 
 Formations are compact selectable cards. Each leads with the squad name and ready
-count, then its two cards (weapon card and tactic sheet, each with its own hover
-sheet: rarity, tier, rating, composition and lore), then its personnel state and
+count, then its two cards as two icon slots side by side (weapon card, then tactic
+sheet). A slot carries no words: hovering it names and describes the card (rarity,
+tier, rating, composition and lore). Then come its personnel state and
 twelve current billets grouped into three fire teams.
 Filled silhouettes, medical marks and hollow silhouettes distinguish ready,
 wounded and vacant places without relying on color. Selection has its own frame
