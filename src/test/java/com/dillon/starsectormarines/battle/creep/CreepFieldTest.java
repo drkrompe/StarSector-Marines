@@ -133,6 +133,26 @@ class CreepFieldTest {
         assertEquals(0, field.tileRevision(1, 0), "a tile creep never reached did not");
     }
 
+    /** A tree line is grown over to its far side; the same line of rock is only climbed, so nothing passes it. */
+    @Test
+    void growsOverDeclaredTreesButOnlyClimbsOtherSolids() {
+        for (boolean trees : new boolean[]{true, false}) {
+            NavigationGrid grid = openGrid(W, H);
+            CellTopology topology = new CellTopology(W, H);
+            for (int y = 0; y < H; y++) {
+                grid.setWalkable(20, y, false);
+                grid.setTag(20, y, NavigationGrid.CellTag.NATURAL_SOLID, true);
+                topology.setGroundKind(20, y, CellTopology.GroundKind.GRASS);
+            }
+            CreepField field = new CreepField(grid, topology, 7L);
+            if (trees) for (int y = 0; y < H; y++) field.growOver(y * W + 20);
+            field.putSource(1L, 12, 12, new CreepGrowth(6f, 30f));
+            run(field, 0, 900);
+            assertTrue(field.coverageAt(20, 12) > 0, "the line itself is reached either way");
+            assertEquals(trees, field.coverageAt(23, 12) > 0, trees ? "trees are grown over" : "rock is only climbed");
+        }
+    }
+
     private static void run(CreepField field, int from, int to) {
         for (int t = from; t < to; t++) field.tick(t);
     }

@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -21,7 +22,9 @@ import java.util.List;
  * also claims the walls beside it: creep climbs a building's edge but does not
  * spread from the wall on, and a wall fills slowly ({@link #WALL_FILL_TICKS}),
  * so its coverage is how long the creep has held it: a renderer shows veins on
- * a young wall and a crust on an old one. Nothing blocks creep except the walls
+ * a young wall and a crust on an old one. Growth declared with {@link #growOver}
+ * (a tree's crown) is not only climbed but crossed, dearer than ground, so a
+ * grove is overgrown from its edge in. Nothing blocks creep except the walls
  * the ground itself respects.
  *
  * <p>Each cell carries three bytes: <em>coverage</em> (how much growth stands
@@ -66,6 +69,8 @@ public final class CreepField {
     static final int RECEDE_JITTER_TICKS = 24;
     /** Cells a source settles per tick at most; bounds a large feed or a fresh maw. */
     static final int MAX_SETTLES_PER_TICK = 4000;
+    /** Path cost of growing over a cell of natural growth, against the ground's. */
+    static final int OVERGROW_COST = 3;
 
     private static final int COST_SCALE = 10;
     private static final int RING = 64;
@@ -87,6 +92,8 @@ public final class CreepField {
     private final long[] tileRevision;
     private volatile long revision;
     private boolean dirtyThisTick;
+    /** Cells the creep grows over rather than climbs; null while none are declared. */
+    private BitSet overgrown;
     private int now;
 
     public CreepField(NavigationGrid grid, CellTopology topology, long seed) {
@@ -200,14 +207,31 @@ public final class CreepField {
         source.farthestCost = Math.max(source.farthestCost, cost);
         claim(source, idx, cost);
         int x = idx % width, y = idx / width;
+        boolean overgrowing = !grid.isWalkableAt(idx);
         for (Direction dir : Direction.CARDINALS) {
             int nx = x + dir.dx, ny = y + dir.dy;
             if (!grid.inBounds(nx, ny)) continue;
             int n = ny * width + nx;
-            if (source.isSettled(n) || grid.isWalkableAt(n) || !climbable(nx, ny)) continue;
+            if (source.isSettled(n)) continue;
+            if (grid.isWalkableAt(n)) {
+                // Off a tree onto open ground again: the far side of a crown is reached over it.
+                if (overgrowing) {
+                    int next = cost + (stepCost[n] & 0xFF);
+                    if (next < source.dist[n]) source.push(n, next);
+                }
+                continue;
+            }
+            if (!climbable(nx, ny)) continue;
+            if (growsOver(nx, ny)) {
+                int next = cost + (stepCost[n] & 0xFF) * OVERGROW_COST;
+                if (next < source.dist[n]) source.push(n, next);
+                continue;
+            }
+            if (overgrowing) continue;
             source.markSettled(n);
             claim(source, n, cost);
         }
+        if (overgrowing) return;
         for (Direction dir : Direction.ALL) {
             if (!grid.canTraverseCellStep(x, y, dir)) continue;
             int n = (y + dir.dy) * width + (x + dir.dx);
@@ -298,6 +322,9 @@ public final class CreepField {
 
     /** Bumped at the end of every tick that changed any cell. */
     public long revision() { return revision; }
+
+    /** The tick the field last advanced to. */
+    public int now() { return now; }
     public int tilesX() { return tilesX; }
     public int tilesY() { return tilesY; }
     /** The {@link #revision} at which tile {@code (tx, ty)} last changed; may run one ahead mid-tick. */
@@ -332,6 +359,23 @@ public final class CreepField {
         double factor = 0.3 + 0.3 * fine + 1.6 * coarse * coarse;
         if (topology != null && topology.inBounds(x, y) && topology.isStreet(x, y)) factor += 0.5;
         return (int) Math.max(3, Math.min(30, Math.round(factor * COST_SCALE)));
+    }
+
+    /**
+     * Whether creep grows over a non-walkable cell rather than only climbing its edge: a living thing's growth
+     * declared by {@link #growOver} (a tree's crown), which the creep crosses cell by cell at
+     * {@link #OVERGROW_COST} times the ground's cost, so a grove is overgrown from its edge inward and its far side
+     * is reached over it. Rock and hills are climbed as walls are.
+     */
+    private boolean growsOver(int x, int y) {
+        return overgrown != null && overgrown.get(y * width + x) && grid.hasTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID);
+    }
+
+    /** Declares a cell of growth the creep grows over rather than climbs (a tree's crown); before it spreads. */
+    public void growOver(int idx) {
+        if (idx < 0 || idx >= cells) return;
+        if (overgrown == null) overgrown = new BitSet(cells);
+        overgrown.set(idx);
     }
 
     /** A non-walkable cell creep may climb: walls, fixtures and growth, not water or open void. */

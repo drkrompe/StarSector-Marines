@@ -259,6 +259,7 @@ import com.dillon.starsectormarines.battle.creep.CreepDigestion;
 import com.dillon.starsectormarines.battle.creep.CreepEffects;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.creep.CreepRoofCollapse;
+import com.dillon.starsectormarines.battle.creep.CreepVegetation;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.evacuation.CreepOutposts;
@@ -734,12 +735,25 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public CreepDigestion creepDigestion() { return creepDigestion; }
     /** Roofs the creep has stood on long enough cave in under it. */
     private CreepRoofCollapse creepRoofs;
+    /** Trees the creep has climbed die under it. */
+    private CreepVegetation creepVegetation;
+    /** The creep's hold on the battle's trees, or {@code null} before the creep has spread; safe for renderers. */
+    public CreepVegetation creepVegetationIfPresent() { return creepVegetation; }
+    /** The creep's hold on the battle's trees, created on first use; for reviews that advance the creep alone. */
+    public CreepVegetation creepVegetation() {
+        if (creepVegetation == null) creepVegetation = new CreepVegetation(generationSeed ^ BORE_SEED_SALT);
+        return creepVegetation;
+    }
     /**
      * The battle's hive creep, created on first use by whatever declares a
      * source (a bore, a scene); call only from the simulation thread.
      */
     public CreepField creepField() {
-        if (creep == null) creep = new CreepField(grid, topology, generationSeed);
+        if (creep == null) {
+            creep = new CreepField(grid, topology, generationSeed);
+            // The creep grows over the battle's trees rather than only climbing their edge.
+            for (int cell : CreepVegetation.treeCells(getDoodads(), grid)) creep.growOver(cell);
+        }
         return creep;
     }
     /** The creep field if anything has created one, else {@code null}; safe for renderers. */
@@ -3578,6 +3592,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (creep != null) {
             if (creepRoofs == null) creepRoofs = new CreepRoofCollapse(generationSeed ^ BORE_SEED_SALT);
             creepRoofs.tick(this);
+            creepVegetation().tick(this);
         }
         if (reliefAssault != null) reliefAssault.tick(this);
         if (lastLiftSequence != null) lastLiftSequence.tick(this);

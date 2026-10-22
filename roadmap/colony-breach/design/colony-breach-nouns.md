@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-22 — Campaign: blooms as built, at the benign first severity tier with spores carried on traffic, and the owner's arc as direction; growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
+Updated: 2026-10-22 — Creep on green worlds as built (grown over trees, which die withered or shrouded, the owner's pick pending; grass and crops wilt ahead of its edge); campaign: blooms as built, at the benign first severity tier with spores carried on traffic, and the owner's arc as direction; growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -981,6 +981,13 @@ against its own control in `renderEvidence`.
   cost along walkable ground, weighted by seeded noise so the front runs out in
   fingers, dearer on pavement. Until bores stand up on eruption sites, each opened site is itself a
   source that never dies.
+- **Trees are grown over, never only climbed.** A tree's crown cells are growth
+  the creep crosses, cell by cell at three times the ground's cost, so a grove
+  is overgrown from its edge inward and its interior and far side are reached
+  over it rather than left a green island the creep cannot enter. The battle
+  declares its trees' crowns to the field when the field is made; rock
+  formations and hills are climbed as walls are. A crown fills at a wall's rate,
+  so its coverage is how long the creep has held the tree.
 - **Removing a source withers what it alone held**, from the outer edge back to
   the hole over a visible interval: the growth dies first, then clears. Ground a
   living source also reaches stays, and a living source reaching dying ground
@@ -991,6 +998,24 @@ against its own control in `renderEvidence`.
   one is crusted over. It reads as a matter of time. An overgrown wall still
   reads as a barrier: its crust is lighter than the floor's, lit and shaded on
   its edges as a raised block is, and outlined dark where it meets the floor.
+- **Trees die under it** (`CreepVegetation`). A tree whose crown living creep
+  has held to the tree's own seeded share of about a minute and a half of
+  climbing is dead, and stays dead if the creep later withers. What a dead tree
+  does to the fight follows the look chosen for it
+  (`-Dbattle.render.creepTreeStyle`): *withered*, it has dropped its leaves, so
+  its crown no longer hides or shelters anyone (sight passes and it gives no
+  edge cover) while its trunk still does both and its tangle of crusted limbs
+  still stops a body walking through; *shrouded*, it is a crusted mound in the
+  crown's shape and blocks as the tree did. A crown cell two trees share opens
+  only when both are dead, and never if it is either one's trunk. Felling still
+  works on a dead tree. Creep therefore strips a wood of concealment the way it
+  strips a building of its roof. `creep-vegetation` (`sceneEvidence`) holds the
+  mechanics; `-Dbattle.swarm.creepTrees=false` is the control.
+- **There are no hedges.** Vegetation in a battle is trees (props with a
+  crown), the plants dressed on grass (shrubs and tufts, which neither block
+  nor shelter) and cultivated ground (crop strips of grass beside turned earth).
+  A hedgerow would be a new natural prop, and creep would take it as it takes a
+  tree.
 - **A ground colony answers a gun the swarm cannot rush** (`GroundColonies`).
   A living bore grows one on its creep within reach of a hostile emplacement
   the creep has come up against: on living creep with creep round it, inside
@@ -1029,7 +1054,20 @@ against its own control in `renderEvidence`.
   inside the ground's relief composite, so it moves with the ground's parallax
   and lies under the walls' shadows. Walls go through four stages with age:
   veins, then crust from the foot, with a dark crease where creep meets the
-  wall. Dead growth is a grey husk. One shading model serves the game (a shader)
+  wall. Dead growth is a grey husk. Trees go through four stages with the
+  creep's hold on the crown, cross-faded so a tree turns rather than pops: veins
+  reaching in from the crown's rim while the leaves start to turn; a crust
+  rolling in from the rim with the creep's beaded lip while the leaves brown;
+  the crown withering; and the dead tree, which is the chosen look's end — a
+  grey-brown skeleton of limbs crusted up from the trunk with a few dead leaves
+  hanging on, or a plated mound in the crown's silhouette. The stages are a
+  sheet baked from the canopy art and the creep's own surface and palette
+  (`gradlew.bat bakeCreepBlight`), so the crust on a crown is the crust on the
+  ground. On vegetation (grass, crops and the plants on them) the edge is not
+  clean as it is on pavement: the creep's coverage spread a few cells out turns
+  the grass a dry, greyed straw (the palette's wilt colour) and veins reach out
+  into it ahead of the lip, so grass and crop rows are seen to be taken before
+  they are covered; turned earth and pavement keep the hard edge. One shading model serves the game (a shader)
   and review frames (its CPU mirror), from one surface texture generated in
   code. Colour is data: the swarm owns no red, and the default creep is a dull,
   dark, desaturated violet-grey that sits under the lilac creatures without
