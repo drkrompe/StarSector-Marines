@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 /** Persisted equipment-template ownership and reusable squad definitions. */
 public final class MarineArmory implements Serializable {
@@ -206,41 +205,16 @@ public final class MarineArmory implements Serializable {
         return canIssue(plan) ? issue(plan) : null;
     }
 
-    public SquadWeaponDoctrine createWeaponDoctrine(
-            String displayName, List<SquadWeaponIssue> issues) {
-        return createWeaponDoctrine("custom:weapons:" + UUID.randomUUID(),
-                displayName, issues, true);
-    }
-
-    public SquadWeaponDoctrine cloneWeaponDoctrine(String sourceId) {
-        SquadWeaponDoctrine source = weaponDoctrineById(sourceId);
-        return source != null
-                ? createWeaponDoctrine(copyName(source.displayName()), source.issues()) : null;
-    }
-
-    public boolean renameWeaponDoctrine(String id, String displayName) {
-        if (FirstRefit.isWeaponPlan(id)) return false;
-        int index = customWeaponDoctrineIndex(id);
-        if (index < 0 || displayName == null || displayName.isBlank()) return false;
-        SquadWeaponDoctrine existing = customWeaponDoctrines.get(index);
-        customWeaponDoctrines.set(index, new SquadWeaponDoctrine(
-                existing.id(), displayName, existing.savedDescription(), existing.issues()));
-        return true;
-    }
-
-    boolean deleteWeaponDoctrine(String id) {
-        if (FirstRefit.isWeaponPlan(id)) return false;
-        int index = customWeaponDoctrineIndex(id);
-        if (index < 0) return false;
-        customWeaponDoctrines.remove(index);
-        return true;
-    }
-
-    SquadWeaponDoctrine ensureWeaponDoctrine(
+    /**
+     * Registers a developer-authored weapon card outside the built-in list — a story
+     * path's or a debug operation's — under its fixed id, or returns the one already
+     * registered. The player never authors a card: this is not a designer.
+     */
+    public SquadWeaponDoctrine ensureWeaponDoctrine(
             String id, String displayName, List<SquadWeaponIssue> issues) {
         SquadWeaponDoctrine existing = weaponDoctrineById(id);
         SquadWeaponDoctrine result = existing != null ? existing
-                : createWeaponDoctrine(id, displayName, issues, false);
+                : createWeaponDoctrine(id, displayName, issues);
         repairArmorPlanKnowledge();
         return result;
     }
@@ -259,81 +233,6 @@ public final class MarineArmory implements Serializable {
             if (arrangement != null && id.equals(arrangement.id())) return arrangement;
         }
         return null;
-    }
-
-    /**
-     * Saves a player-authored design. Stock and recipe state are deliberately
-     * ignored: those constrain assignment, not what the player may design.
-     */
-    public FireTeamTemplateCard createTemplateCard(String displayName,
-                                                   List<FireTeamBillet> billets) {
-        if (displayName == null || displayName.isBlank()) {
-            throw new IllegalArgumentException("Template name is required");
-        }
-        FireTeamTemplateCard card = new FireTeamTemplateCard(
-                "custom:" + UUID.randomUUID(), displayName, billets);
-        templateCards.add(card);
-        return card;
-    }
-
-    /** Clones either a built-in or custom template into a new player-owned design. */
-    public FireTeamTemplateCard cloneTemplateCard(String sourceId) {
-        FireTeamTemplateCard source = templateCardById(sourceId);
-        if (source == null) return null;
-        return createTemplateCard(copyName(source.displayName()), source.billets());
-    }
-
-    /** Renaming changes library metadata only and is therefore safe for assigned templates. */
-    public boolean renameTemplateCard(String id, String displayName) {
-        FireTeamTemplateCard card = templateCardById(id);
-        if (card == null || FireTeamTemplateCards.isStarterId(id)
-                || displayName == null || displayName.isBlank()) return false;
-        card.rename(displayName);
-        return true;
-    }
-
-    /** Assignment-aware callers must reject templates with any live reference. */
-    boolean deleteTemplateCard(String id) {
-        if (id == null || FireTeamTemplateCards.isStarterId(id)) return false;
-        return templateCards.removeIf(card -> id.equals(card.id()));
-    }
-
-    /** Saves a reusable three-template plan without consulting recipes or stock. */
-    public SquadArrangement createSquadArrangement(String displayName,
-                                                   List<String> templateIds) {
-        SquadArrangement arrangement = new SquadArrangement(
-                "arrangement:" + UUID.randomUUID(), displayName, templateIds);
-        for (String templateId : arrangement.templateIds()) {
-            if (templateCardById(templateId) == null) {
-                throw new IllegalArgumentException(
-                        "Arrangement references an unknown fire-team template");
-            }
-        }
-        squadArrangements.add(arrangement);
-        return arrangement;
-    }
-
-    /** Renaming changes plan metadata only and never refits a squad. */
-    public boolean renameSquadArrangement(String id, String displayName) {
-        SquadArrangement arrangement = squadArrangementById(id);
-        if (arrangement == null || displayName == null || displayName.isBlank()) return false;
-        arrangement.rename(displayName);
-        return true;
-    }
-
-    /** Deleting a convenience plan never changes existing team assignments. */
-    public boolean deleteSquadArrangement(String id) {
-        return id != null && squadArrangements.removeIf(
-                arrangement -> id.equals(arrangement.id()));
-    }
-
-    public boolean isTemplateReferencedByArrangement(String templateId) {
-        if (templateId == null) return false;
-        for (SquadArrangement arrangement : squadArrangements) {
-            if (arrangement != null
-                    && arrangement.referencesTemplate(templateId)) return true;
-        }
-        return false;
     }
 
     public boolean isPrimaryUnlocked(String weaponId, EquipmentGrade grade) {
@@ -446,37 +345,14 @@ public final class MarineArmory implements Serializable {
     }
 
     private SquadWeaponDoctrine createWeaponDoctrine(
-            String id, String displayName, List<SquadWeaponIssue> issues,
-            boolean requireOwnedTemplates) {
+            String id, String displayName, List<SquadWeaponIssue> issues) {
         if (weaponDoctrineById(id) != null) {
             throw new IllegalArgumentException("Weapon doctrine id already exists: " + id);
-        }
-        if (requireOwnedTemplates && !canAuthorWeaponDoctrine(issues)) {
-            throw new IllegalArgumentException(
-                    "Weapon definition requires an unowned equipment template");
         }
         SquadWeaponDoctrine doctrine = new SquadWeaponDoctrine(
                 id, displayName, SquadWeaponDoctrine.CUSTOM_DESCRIPTION, issues);
         customWeaponDoctrines.add(doctrine);
         return doctrine;
-    }
-
-    private int customWeaponDoctrineIndex(String id) {
-        if (id == null) return -1;
-        for (int index = 0; index < customWeaponDoctrines.size(); index++) {
-            SquadWeaponDoctrine doctrine = customWeaponDoctrines.get(index);
-            if (doctrine != null && id.equals(doctrine.id())) return index;
-        }
-        return -1;
-    }
-
-    /**
-     * The proposed name of a copy. A copy is a player-owned document, so its name is
-     * written in the reader's language once, the way a typed name would be, and is
-     * never translated again.
-     */
-    private static String copyName(String sourceName) {
-        return SavedDefaultText.formatOr(sourceName + " Copy", "squadDoctrineCopyName", sourceName);
     }
 
     public static int secondaryFabricationCost(SpecialEquipmentDef special) { return 5; }

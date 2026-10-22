@@ -66,10 +66,11 @@ complete twelve-billet technology validation succeeds. Fitting is free; stationi
 and unknown technology remain blockers. Saved squad profiles are gone: `SquadProfile`
 and the fields that held it survive only so old saves load, and the roster's
 `readResolve` turns an assigned profile into the squad's cards.
-`MarineArmory` persists a custom **weapon** definition catalog while built-ins
-remain immutable fixtures; authoring consumes nothing but may reference only
-collected templates. **There is no custom armour catalog and nothing should add
-one back.** An armour doctrine id always names a `SquadArmorPlan`, and
+**The player never authors a card, and nothing should add a designer back.**
+`MarineArmory.customWeaponDoctrines` holds only developer-registered weapon cards
+under fixed ids (`ensureWeaponDoctrine`: the Wayline paths, migration, debug) and
+any card an old save's designer made, which keeps issuing. **There is no custom
+armour catalog either.** An armour doctrine id always names a `SquadArmorPlan`, and
 `armorDoctrineById` resolves it through `ArmorIssueResolver.issueSheet`: every sheet
 issues exactly the patterns its card carries (`ArmorSheetBundles`), never whatever else
 the armoury happens to own, so a card is the same squad for every company. Roles and

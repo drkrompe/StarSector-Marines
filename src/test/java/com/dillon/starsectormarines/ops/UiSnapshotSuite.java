@@ -218,7 +218,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/armory/fleet-armory-fireteam.mlx",
-            "data/ui/components/armory/fleet-armory-doctrine-designer.mlx",
             "data/ui/components/armory/armory-weapon-tech-card.mlx", "data/ui/components/armory/armory-squad-doctrine.mlx",
             "data/ui/components/armory/armory-refit-transaction.mlx",
             "data/ui/components/armory/armory-armor-comparison.mlx");
@@ -388,12 +387,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderFleetArmoryWorkspace(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
                                 true, false, true)),
-                new SnapshotArtifact("fleet-armory-equipment-designer-wide.png",
-                        renderEquipmentDesigner(
-                                context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
-                new SnapshotArtifact("fleet-armory-equipment-designer-spec-sheet-wide.png",
-                        renderEquipmentDesigner(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
                 new SnapshotArtifact("fleet-armory-armor-comparison-wide.png",
                         renderArmorComparison(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
@@ -2445,54 +2438,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
     }
 
-    private static BufferedImage renderEquipmentDesigner(
-            SnapshotContext context, HeadlessUiRenderer renderer,
-            int width, int height) throws Exception {
-        return renderEquipmentDesigner(context, renderer, width, height, false);
-    }
-
-    /**
-     * @param specSheet hover the first billet's primary, so the picture shows
-     *                  the weapon being authored described in full
-     */
-    private static BufferedImage renderEquipmentDesigner(
-            SnapshotContext context, HeadlessUiRenderer renderer,
-            int width, int height, boolean specSheet) throws Exception {
-        Reactor reactor = new Reactor();
-        MarineRoster roster = new MarineRoster();
-        roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
-        FleetArmoryViewModel armory = new FleetArmoryViewModel(reactor, roster);
-        EquipmentDoctrineDesignerViewModel designer = new EquipmentDoctrineDesignerViewModel(
-                reactor, roster, armory.selectedSquadId(),
-                armory.selectedWeaponDoctrineId());
-        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
-                context.modRoot().resolve(path)), WORKSPACE_COMPONENTS);
-        loader.reload();
-        try (MarkupInstance instance = loader.build(
-                reactor, "fleet-armory-doctrine-designer", designerProps(designer))) {
-            UiDocument document = new UiDocument(instance.root());
-            for (var style : instance.styles()) document.addStyleSheet(style);
-            document.theme(MarineOpsThemes.standard());
-            HeadlessArmoryPreviewRenderer armoryPreview =
-                    new HeadlessArmoryPreviewRenderer(context.modRoot());
-            for (int index = 0; index < MarineSquad.TEAM_SIZE; index++) {
-                int billet = index;
-                document.canvases().set(instance.requireElement(
-                                "designer-marine-preview:" + index),
-                        new ArmoryMarinePreviewCanvas(
-                                () -> designer.viewerBilletAt(billet), armoryPreview.assets()));
-            }
-            if (specSheet) {
-                SpecSheetBinder binder = new SpecSheetBinder(
-                        document, SpecSheetLayer.install(document));
-                ArmorySpecSheets.bindBilletCards(binder, instance, designer.billets());
-                openSpecSheet(document, binder, width, height, instance.requireElement(
-                        designer.billets().get().get(0).primaryId()));
-            }
-            return renderRelative(renderer, document, width, height, 1f);
-        }
-    }
-
     private static BufferedImage renderArmorComparison(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height) throws Exception {
@@ -3226,31 +3171,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("issueCargoClasses", viewModel.issueCargoClasses());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
-        props.put("back", (Runnable) () -> { });
-        putArmoryPageNavigation(props);
-        return props;
-    }
-
-    private static Map<String, Object> designerProps(
-            EquipmentDoctrineDesignerViewModel viewModel) {
-        Map<String, Object> props = new LinkedHashMap<>();
-        props.put("squadName", viewModel.squadName());
-        props.put("designerHeading", viewModel.heading());
-        props.put("designerSubheading", viewModel.subheading());
-        props.put("draftName", viewModel.draftName());
-        props.put("editName", viewModel.editName());
-        props.put("definitions", viewModel.definitions());
-        props.put("teamTabs", viewModel.teamTabs());
-        props.put("billets", viewModel.billets());
-        props.put("feedback", viewModel.feedback());
-        props.put("newDraft", viewModel.newDraft());
-        props.put("cloneSelected", viewModel.cloneSelected());
-        props.put("saveAsNew", viewModel.saveAsNew());
-        props.put("rename", viewModel.rename());
-        props.put("renameDisabled", viewModel.renameDisabled());
-        props.put("delete", viewModel.delete());
-        props.put("deleteDisabled", viewModel.deleteDisabled());
-        props.put("backToFireTeams", (Runnable) () -> { });
         props.put("back", (Runnable) () -> { });
         putArmoryPageNavigation(props);
         return props;

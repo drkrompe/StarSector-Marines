@@ -172,17 +172,4 @@ class EquipmentTemplateCatalogTest {
         assertFalse(armory.ownsSpecialTemplate(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID)));
     }
 
-    @Test
-    void playerAuthoredDefinitionCannotReferenceAnUnownedCard() {
-        MarineArmory armory = new MarineArmory();
-        List<SquadWeaponIssue> assault = SquadEquipmentDoctrines.weaponById(
-                SquadEquipmentDoctrines.ASSAULT_WEAPONS).issues();
-
-        assertThrows(IllegalArgumentException.class,
-                () -> armory.createWeaponDoctrine("Premature Assault", assault));
-        EquipmentTestFixtures.learnServiceKit(armory);
-        armory.unlockSecondary(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID));
-        assertEquals("Collected Assault",
-                armory.createWeaponDoctrine("Collected Assault", assault).displayName());
-    }
 }

@@ -225,6 +225,54 @@ public final class QuadBatch {
         quadCount++;
     }
 
+    /**
+     * The texture coordinates of sub-rects {@code rects} (x, y, w, h each) of this sheet, BL BR TR TL per quad
+     * as {@link #appendRotated} writes them, for a {@link QuadMesh} to keep and hand back to {@link #appendMesh}.
+     */
+    float[] meshUvs(int[] rects, int quads) {
+        float texU = sheet.getTextureWidth();
+        float texV = sheet.getTextureHeight();
+        float[] uv = new float[quads * UV_FLOATS_PER_QUAD];
+        for (int q = 0; q < quads; q++) {
+            int s = q * 4;
+            float u0 = ((float) rects[s] / sheetPxW) * texU;
+            float u1 = ((float) (rects[s] + rects[s + 2]) / sheetPxW) * texU;
+            float v0 = texV - ((float) rects[s + 1] / sheetPxH) * texV;
+            float v1 = texV - ((float) (rects[s + 1] + rects[s + 3]) / sheetPxH) * texV;
+            int t = q * UV_FLOATS_PER_QUAD;
+            uv[t] = u0; uv[t + 1] = v1;
+            uv[t + 2] = u1; uv[t + 3] = v1;
+            uv[t + 4] = u1; uv[t + 5] = v0;
+            uv[t + 6] = u0; uv[t + 7] = v0;
+        }
+        return uv;
+    }
+
+    /**
+     * Queue a {@link QuadMesh}'s quads: {@code uv} from {@link #meshUvs}, {@code corners} their already-turned
+     * corners (BL BR TR TL) scaled by {@code scale} about {@code (x, y)}, and {@code tint} their colours with
+     * alpha multiplied by {@code alphaMult}. What {@link #appendRotated} writes, without its trigonometry.
+     */
+    void appendMesh(float[] uv, float[] corners, float[] tint, int quads,
+                    float x, float y, float scale, float alphaMult) {
+        ensureCapacity(quadCount + quads);
+        System.arraycopy(uv, 0, uvData, quadCount * UV_FLOATS_PER_QUAD, quads * UV_FLOATS_PER_QUAD);
+        int p = quadCount * POS_FLOATS_PER_QUAD;
+        for (int i = 0, n = quads * POS_FLOATS_PER_QUAD; i < n; i += 2) {
+            posData[p + i] = x + corners[i] * scale;
+            posData[p + i + 1] = y + corners[i + 1] * scale;
+        }
+        int c = quadCount * COL_FLOATS_PER_QUAD;
+        for (int q = 0; q < quads; q++) {
+            int t = q * 4;
+            float r = tint[t], g = tint[t + 1], b = tint[t + 2], a = tint[t + 3] * alphaMult;
+            for (int v = 0; v < VERTS_PER_QUAD; v++) {
+                colData[c++] = r; colData[c++] = g; colData[c++] = b; colData[c++] = a;
+            }
+        }
+        quadCount += quads;
+    }
+
     /** Clipped tile vertices preserve its original planar texture coordinates. */
     public void appendPatch(int sx,int sy,int sw,int sh,float cx,float cy,float w,float h,
                             float r,float g,float b,float a,float[] patch) {
