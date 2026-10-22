@@ -7,11 +7,12 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.engine.ecs.Query;
 
 import java.util.function.LongPredicate;
+import java.util.function.LongToDoubleFunction;
 import java.util.function.LongToIntFunction;
 import java.util.function.LongUnaryOperator;
 
 /**
- * Advances every live Runner's and Brute's skeleton from the tick's settled state: where the body stands,
+ * Advances every live Runner's, Brute's and Matriarch's skeleton from the tick's settled state: where the body stands,
  * which way {@link FacingSystem} turned it, and the attack cooldown that times its strikes.
  * Presentation only, like {@code MechGaitSystem}; it runs after facing so the pose is solved on
  * this tick's heading. A Runner hauling a body ({@link #setLoads}) is posed facing it, and a dead
@@ -28,6 +29,8 @@ public final class RavRunnerRigSystem {
     private LongUnaryOperator loadOf = runner -> 0L;
     private LongToIntFunction chargePhase = id -> RavBruteRig.IDLE;
     private LongPredicate stunned = id -> false;
+    private LongToIntFunction matriarchAction = id -> RavMatriarchRig.NONE;
+    private LongToDoubleFunction matriarchAge = id -> 0.0;
 
     public RavRunnerRigSystem(EntityWorld world, BattleComponents components) {
         this.world = world;
@@ -49,6 +52,12 @@ public final class RavRunnerRigSystem {
         this.stunned = stunned;
     }
 
+    /** Where a Matriarch's action ({@link RavMatriarchRig#NONE} ...) and its age in seconds come from. */
+    public void matriarchState(LongToIntFunction action, LongToDoubleFunction ageSeconds) {
+        this.matriarchAction = action;
+        this.matriarchAge = ageSeconds;
+    }
+
     public void tick(float dt) {
         for (ArchetypeTable table : world.matched(runners)) {
             Object[] rigs = table.objects(components.RAV_RIG, BattleComponents.RAV_RIG_STATE).array();
@@ -65,6 +74,12 @@ public final class RavRunnerRigSystem {
                     long id = table.entityAt(row);
                     brute.advance(posX[row], posY[row], facing[row], cooldown[row],
                             chargePhase.applyAsInt(id), stunned.test(id), dt);
+                    continue;
+                }
+                if (state instanceof RavMatriarchRig matriarch) {
+                    long id = table.entityAt(row);
+                    matriarch.advance(posX[row], posY[row], facing[row], matriarchAction.applyAsInt(id),
+                            (float) matriarchAge.applyAsDouble(id), dt);
                     continue;
                 }
                 if (!(state instanceof RavRunnerRig rig)) continue;
