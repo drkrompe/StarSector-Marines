@@ -584,10 +584,10 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         ui.updateUIForItem(this);
     }
 
-    /** Explicit test acquisition uses permanent template ownership and never changes issued kit. */
+    /** Explicit test acquisition uses permanent template ownership and never changes issued kit. Reached only from this intel, which exists only under {@code DevConfig.CAMPAIGN_DEBUG_INTEL}. */
     @DebugOnly
     static int learnSuitTestPatterns(MarineArmory armory, boolean military) {
-        if (!DevConfig.CAMPAIGN_DEBUG_INTEL || armory == null) return 0;
+        if (armory == null) return 0;
         List<String> patterns = military
                 ? List.of("armor.specter-heavy", "armor.arbalest")
                 : List.of("armor.specter-recovered", "armor.arbalest-recovered");

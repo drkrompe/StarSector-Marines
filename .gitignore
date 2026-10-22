@@ -20,7 +20,7 @@ mod/sounds/**
 !mod/sounds/.gitkeep
 
 ### Raw proprietary game-audio extraction (local reference only — never commit) ###
-# MechWarrior 4: Mercenaries rip. The two tracks we actually ship live (copied) under
+# MechWarrior 4: Mercenaries rip. The one track we ship (Next Move) lives (copied) under
 # asset-pipeline/.../audio/music/; this raw dump stays out of the public repo.
 asset-pipeline/src/tool/resources/audio/mw4mercs/
 

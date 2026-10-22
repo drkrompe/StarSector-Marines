@@ -16,6 +16,16 @@
       "base": "#888981"
     },
     {
+      "id": "gravel",
+      "damageBlock": "terrain.blast-earth",
+      "base": "#8a7f6c"
+    },
+    {
+      "id": "dirt",
+      "base": "#6e5640",
+      "damageBlock": "terrain.blast-earth"
+    },
+    {
       "id": "marking",
       "base": "#d9d5c6",
       "paint": true

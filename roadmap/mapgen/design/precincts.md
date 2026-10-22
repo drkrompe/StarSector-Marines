@@ -707,9 +707,11 @@ things make that a property of the place rather than a hope:
 - **What is not built still has to be kept off.** A claim keeps a neighbour's
   parcels out and nothing else: the landscape pass reserves the disc against
   trees, hills and rock formations, and parked vehicles are kept off the track
-  across it. The country is dressed as cultivated plots of crop and turned
-  earth, green on every world by the cultivated-ground law, so it reads as
-  farmland rather than as a cleared circle.
+  across it. The country is surveyed farmland, not grown streets: a paved
+  country road out of town, a gravel farm road along the town's edge, dirt
+  field tracks and plots of crop, grain, pasture and fallow, green on every
+  world by the cultivated-ground law (`mapgen-nouns.md`, Rural country), so it
+  reads as farmland rather than as a cleared circle.
 - **It is checked on the finished map**, not trusted from the claim:
   `MissionMapRequirements` asks that the disc be clear of buildings, walls,
   fixtures, vehicles, natural solids, anything that blocks sight and any prop

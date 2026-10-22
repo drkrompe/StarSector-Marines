@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainSurface;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -328,7 +329,9 @@ public final class GroundRenderSystem implements RenderSystem {
         GroundMesh.CellResolver[] sublayers = topology.roadSurface()==null
                 ? new GroundMesh.CellResolver[]{base,base::resolveEdge,new GroundDamage(topology),new Scatter(topology),new DoorDecals(grid,topology)}
                 : new GroundMesh.CellResolver[]{base,base::resolveEdge,base::resolveSecondEdge,
-                        base::resolveConcrete,base::resolveSecondConcrete,base::resolveMarking,new GroundDamage(topology),new Scatter(topology),new DoorDecals(grid,topology)};
+                        base::resolveConcrete,base::resolveSecondConcrete,base::resolveGravel,base::resolveSecondGravel,
+                        base::resolveDirtRoad,base::resolveSecondDirtRoad,base::resolveMarking,
+                        new GroundDamage(topology),new Scatter(topology),new DoorDecals(grid,topology)};
         if(topology.terrainSurface()!=null) {
             int existing=sublayers.length-DECORATION_LAYERS;
             GroundMesh.CellResolver[] expanded=new GroundMesh.CellResolver[sublayers.length+TerrainSurface.LAYERS];
@@ -564,6 +567,10 @@ public final class GroundRenderSystem implements RenderSystem {
         private void resolveSecondEdge(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,0,true); }
         private void resolveConcrete(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,1,false); }
         private void resolveSecondConcrete(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,1,true); }
+        private void resolveGravel(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,RoadPlan.Material.GRAVEL.ordinal(),false); }
+        private void resolveSecondGravel(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,RoadPlan.Material.GRAVEL.ordinal(),true); }
+        private void resolveDirtRoad(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,RoadPlan.Material.DIRT.ordinal(),false); }
+        private void resolveSecondDirtRoad(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,RoadPlan.Material.DIRT.ordinal(),true); }
         private void resolveMarking(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,RoadSurface.MARKING,false); }
         private void resolveEdge(int x,int y,GroundMesh.CellSink sink) {
             if(topology.roadSurface()!=null){smoothEdge(x,y,sink,0,false);return;}

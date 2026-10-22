@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LaneResistance;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctAllowance;
@@ -13,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctClaim;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctHighways;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctInterconnect;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
 import java.util.ArrayList;
@@ -83,6 +85,10 @@ public final class PrecinctSkeletonStage implements GenStage {
         // fault that has to be solved for rather than hoped about.
         PrecinctInterconnect.weld(grown.owner(), ctx.width, ctx.height);
 
+        // An open-field landing's country is surveyed, not grown.
+        RuralLayout rural = survey(plan, grown, ctx);
+        if (rural != null) ctx.put(BspKeys.RURAL_LAYOUT, rural);
+
         List<TrunkPlan.TrunkSegment> trunks = grown.plan().trunks;
         boolean[][] trunkPainted = new boolean[ctx.width][ctx.height];
         for (TrunkPlan.TrunkSegment trunk : trunks) {
@@ -109,6 +115,42 @@ public final class PrecinctSkeletonStage implements GenStage {
         ctx.put(BspKeys.UNPLACED_LANE_PLACES, plan.unplacedLanePlaces());
         ctx.put(BspKeys.PRECINCT_CLAIM, claim);
         ctx.put(BspKeys.PRECINCT_ROAD, grown.owner());
+    }
+
+    /**
+     * Replaces whatever streets growth threw across an open-field landing's
+     * country with the country's own roads (`mapgen-nouns.md`, Rural country).
+     *
+     * <p>Growth lays town streets wherever its arms reach, so the fields came
+     * out crossed by boulevards and back streets of every width, ending where
+     * an arm's budget did. Only the country and farm roads are road for
+     * anything that drives; a field track is ground. The farm road runs the
+     * length of the town's edge and every street that reached the fields
+     * reaches it, so a town that was one network through its country is one
+     * network still, and the weld is asked again only to make sure of it.
+     */
+    private static RuralLayout survey(PrecinctPlan plan, GrownTrunkPlan.Grown grown, GenContext ctx) {
+        FieldOfFire field = FieldOfFire.of(plan);
+        if (field == null) return null;
+        int landing = plan.precincts().indexOf(plan.landingPlace());
+        int[][] owner = grown.owner();
+        boolean[][] road = grown.plan().roadCells;
+        boolean[][] town = new boolean[ctx.width][ctx.height];
+        for (int x = 0; x < ctx.width; x++) {
+            for (int y = 0; y < ctx.height; y++) town[x][y] = owner[x][y] != GrownTrunkPlan.UNOWNED;
+        }
+        RuralLayout rural = RuralLayout.plan(ctx.width, ctx.height, field, town, ctx.seed);
+        for (int x = 0; x < ctx.width; x++) {
+            for (int y = 0; y < ctx.height; y++) {
+                if (!rural.inCountry(x, y)) continue;
+                boolean traffic = rural.carriesTraffic(x, y);
+                owner[x][y] = traffic ? landing : GrownTrunkPlan.UNOWNED;
+                boolean perimeter = x == 0 || y == 0 || x == ctx.width - 1 || y == ctx.height - 1;
+                if (!perimeter) road[x][y] = traffic;
+            }
+        }
+        PrecinctInterconnect.weld(owner, ctx.width, ctx.height);
+        return rural;
     }
 
     /**
