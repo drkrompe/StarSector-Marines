@@ -6,31 +6,31 @@
         <div id="squad-deployment-title" class="label title tone-edge">{title}</div>
         <div id="squad-deployment-mission" class="label tone-muted">{missionName}</div>
       </div>
-      <div id="squad-deployment-context" class="label heading tone-accent mission-flow-context">PRE-BATTLE MUSTER</div>
+      <div id="squad-deployment-context" class="label heading tone-accent mission-flow-context">{i18n.deployContext}</div>
     </div>
     <div id="squad-deployment-body" class="mission-flow-body">
       <div id="squad-deployment-summary" class="console-section deployment-summary">
-        <div id="squad-deployment-summary-heading" class="label heading tone-edge section-heading">FORCE ENVELOPE</div>
+        <div id="squad-deployment-summary-heading" class="label heading tone-edge section-heading">{i18n.deployForceEnvelope}</div>
         <div id="squad-deployment-meta" class="label title deployment-mission">{missionMeta}</div>
         <div id="squad-deployment-ready-block" class="summary-block console-readout">
-          <div id="squad-deployment-ready-label" class="label heading tone-muted">READY PERSONNEL</div>
+          <div id="squad-deployment-ready-label" class="label heading tone-muted">{i18n.deployReadyPersonnel}</div>
           <div id="squad-deployment-readiness" class="{readinessTone}">{readinessSummary}</div>
         </div>
         <div id="squad-deployment-command-block" class="summary-block console-readout">
-          <div id="squad-deployment-command-label" class="label heading tone-muted">TASK FORCE COMMAND</div>
+          <div id="squad-deployment-command-label" class="label heading tone-muted">{i18n.deployTaskForceCommand}</div>
           <div id="squad-deployment-command-value" class="label summary-value">{commandSummary}</div>
         </div>
         <div id="squad-deployment-capacity-block" class="summary-block console-readout">
-          <div id="squad-deployment-capacity-label" class="label heading tone-muted">LIFT CAPACITY</div>
+          <div id="squad-deployment-capacity-label" class="label heading tone-muted">{i18n.deployLiftCapacity}</div>
           <div id="squad-deployment-capacity-value" class="label summary-value">{capacitySummary}</div>
         </div>
         <div id="squad-deployment-reserve-block" class="summary-block console-readout">
-          <div id="squad-deployment-reserve-label" class="label heading tone-muted">RESERVE POLICY</div>
+          <div id="squad-deployment-reserve-label" class="label heading tone-muted">{i18n.deployReservePolicy}</div>
           <div id="squad-deployment-reserve-value" class="label summary-value">{reserveSummary}</div>
         </div>
-        <div id="squad-deployment-note" class="label tone-muted deployment-note">Whole squads are committed here. Their actual fire teams board the available lifts at launch.</div>
+        <div id="squad-deployment-note" class="label tone-muted deployment-note">{i18n.deployNote}</div>
         <div id="squad-deployment-inspector" class="{inspectorClasses}">
-          <div id="squad-deployment-inspector-heading" class="label heading tone-muted inspector-heading">MARINE HOVER</div>
+          <div id="squad-deployment-inspector-heading" class="label heading tone-muted inspector-heading">{i18n.deployInspectorHeading}</div>
           <div id="squad-deployment-inspector-title" class="label heading tone-edge inspector-title">{inspectorTitle}</div>
           <div id="squad-deployment-inspector-context" class="label tone-muted inspector-context">{inspectorContext}</div>
           <div id="squad-deployment-inspector-ratings" class="inspector-ratings">
@@ -42,18 +42,18 @@
           <div id="squad-deployment-inspector-special" class="label inspector-line inspector-special">{inspectorSpecial}</div>
           <div id="squad-deployment-inspector-system" class="label inspector-line inspector-system">{inspectorSystem}</div>
           <div id="squad-deployment-inspector-profile" class="label inspector-line tone-muted">{inspectorProfile}</div>
-          <div id="squad-deployment-inspector-caveat" class="label tone-muted inspector-caveat">Ratings omit reach, abilities, morale, terrain, and orders.</div>
+          <div id="squad-deployment-inspector-caveat" class="label tone-muted inspector-caveat">{i18n.deployInspectorCaveat}</div>
         </div>
       </div>
       <div id="squad-deployment-roster" class="console-section deployment-roster">
         <div id="squad-deployment-roster-heading" class="roster-heading surface-dark">
           <div id="squad-deployment-roster-copy" class="roster-heading-copy">
-            <div id="squad-deployment-roster-title" class="label heading tone-edge section-heading">AVAILABLE LINE SQUADS</div>
-            <div id="squad-deployment-roster-subtitle" class="label tone-muted">Select formations; each card shows all twelve billets and their issued kit.</div>
+            <div id="squad-deployment-roster-title" class="label heading tone-edge section-heading">{i18n.deployRosterTitle}</div>
+            <div id="squad-deployment-roster-subtitle" class="label tone-muted">{i18n.deployRosterSubtitle}</div>
           </div>
           <div id="squad-deployment-roster-rule" class="roster-rule">
-            <div id="squad-deployment-firepower-legend" class="label heading rule-firepower">FIREPOWER</div>
-            <div id="squad-deployment-protection-legend" class="label heading rule-protection">PROTECTION</div>
+            <div id="squad-deployment-firepower-legend" class="label heading rule-firepower">{i18n.deployFirepowerLegend}</div>
+            <div id="squad-deployment-protection-legend" class="label heading rule-protection">{i18n.deployProtectionLegend}</div>
           </div>
         </div>
         <div id="squad-deployment-grid" class="deployment-grid">
@@ -98,8 +98,8 @@
       </div>
     </div>
     <div id="squad-deployment-actions" class="mission-flow-actions console-section">
-      <button id="squad-deployment-back" onclick="{backAction}" class="console-action">BACK TO BRIEFING</button>
-      <button id="squad-deployment-armory" onclick="{armoryAction}" class="console-action">MANAGE PERSONNEL</button>
+      <button id="squad-deployment-back" onclick="{backAction}" class="console-action">{i18n.deployBackToBriefing}</button>
+      <button id="squad-deployment-armory" onclick="{armoryAction}" class="console-action">{i18n.deployManagePersonnel}</button>
     </div>
   </div>
 </template>

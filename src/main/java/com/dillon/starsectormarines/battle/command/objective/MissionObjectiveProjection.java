@@ -37,7 +37,6 @@ import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSna
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.function.IntFunction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -92,10 +91,11 @@ public final class MissionObjectiveProjection {
                 if (command != null && command.detail() instanceof OpeningOperationCommandPicture opening
                         && objective instanceof EliminateFactionObjective)
                     items.add(MissionObjectiveFamilies.at("opening-" + opening.placeId(), opening.placeName(),
-                            MissionObjectiveFamilies.state(objective), opening.phase().name(), "Hold the position > Defeat the assault",
-                            objective.isComplete() ? "Position secured; the assault has been defeated."
-                                    : "Protect the named position and defeat the finite assault.",
-                            objective.isComplete() ? "Assault defeated" : objective.isFailed() ? "Position lost" : "Assault unresolved", -1, "",
+                            MissionObjectiveFamilies.state(objective), Strings.named("objectivePhase", opening.phase().name()),
+                            Strings.get("objectiveOpeningSteps"),
+                            Strings.get(objective.isComplete() ? "objectiveOpeningDone" : "objectiveOpeningInstruction"),
+                            Strings.get(objective.isComplete() ? "objectiveOpeningDefeated"
+                                    : objective.isFailed() ? "objectiveOpeningLost" : "objectiveOpeningUnresolved"), -1, "",
                             opening.placeCellX(), opening.placeCellY()));
                 else items.add(MissionObjectiveFamilies.generic(objective, index));
             }
@@ -110,7 +110,7 @@ public final class MissionObjectiveProjection {
             int site = 0;
             for (var record : sim.getCompoundService().getRecords()) {
                 String name = site < names.size() ? names.get(site)
-                        : record.node.kind.name().replace('_', ' ') + " " + (site + 1);
+                        : Strings.format("objectiveSiteFallback", Strings.named("objectiveSiteKind", record.node.kind.name()), site + 1);
                 items.add(MissionObjectiveFamilies.compound(record, site, name));
                 site++;
             }
@@ -119,7 +119,7 @@ public final class MissionObjectiveProjection {
         items.sort(Comparator.comparing(Item::id));
         var activities = activities(sim.getCommanderSnapshot(Faction.MARINE), id -> {
             var squad = sim.getSquad(id);
-            return squad != null && squad.campaignLabel != null ? squad.campaignLabel : "Squad " + id;
+            return squad != null && squad.campaignLabel != null ? squad.campaignLabel : Strings.format("objectiveSquadFallback", id);
         });
         // A player lease can change between commander pulses. Show the current owner immediately.
         List<SquadActivity> current = new ArrayList<>();
@@ -127,7 +127,7 @@ public final class MissionObjectiveProjection {
             if (sim.squadMemberCount(activity.squadId()) == 0) continue;
             var directive = sim.getSquadCommandDirective(activity.squadId());
             if (directive != null && directive.authority() == CommandAuthority.PLAYER_INTERVENTION) {
-                current.add(new SquadActivity(activity.squadId(), activity.name(), "Following your order", "Player command"));
+                current.add(new SquadActivity(activity.squadId(), activity.name(), Strings.get("objectiveTaskPlayerOrder"), Strings.get("objectiveStatusPlayerCommand")));
             } else current.add(activity);
         }
         return new MissionObjectiveSnapshot(items, current);
@@ -180,105 +180,105 @@ public final class MissionObjectiveProjection {
     public static Item payload(ExtractionPayloadObjective p, CivilianEvacuationSystem.Progress evacuation) {
         State state = p.isFailed() ? State.FAILED : p.isComplete() ? State.COMPLETE : State.ACTIVE;
         String phase = switch (p.extractionPhase()) {
-            case AT_SOURCE -> "REACH SOURCE";
-            case SECURING -> "SECURING";
-            case IN_TRANSIT -> "ESCORTING";
-            case BOARDING -> "BOARDING";
-            case COMPLETE -> "COMPLETE";
-            case FAILED -> "FAILED";
+            case AT_SOURCE -> Strings.get("objectivePayloadAtSource");
+            case SECURING -> Strings.get("objectivePayloadSecuring");
+            case IN_TRANSIT -> Strings.get("objectivePayloadInTransit");
+            case BOARDING -> Strings.get("objectivePayloadBoarding");
+            case COMPLETE -> Strings.get("objectivePayloadComplete");
+            case FAILED -> Strings.get("objectivePayloadFailed");
         };
         boolean archive = p.payloadKind() == ExtractionPayloadObjective.Kind.ARCHIVE;
         boolean cohort = p.payloadKind() == ExtractionPayloadObjective.Kind.COHORT;
         boolean atSource = p.extractionPhase() == ExtractionPayloadObjective.Phase.AT_SOURCE
                 || p.extractionPhase() == ExtractionPayloadObjective.Phase.SECURING
                 || (state == State.FAILED && !p.alarmActive());
-        String instruction = archive ? "Keep marines inside the archive room."
-                : atSource ? "Reach the source and secure the recovery site."
-                : "Keep a close escort through the pickup corridor.";
+        String instruction = archive ? Strings.get("objectivePayloadArchiveInstruction")
+                : atSource ? Strings.get("objectivePayloadReachSource")
+                : Strings.get("objectivePayloadEscortCorridor");
         String measure = "";
         String blocker = "";
         float progress = p.normalizedProgress();
         if (p instanceof ExtractionObjective extraction) {
             if (atSource) {
-                instruction = "Hold the source uncontested for " + seconds(extraction.secureDuration()) + ".";
+                instruction = Strings.format("objectivePayloadHoldSource", seconds(extraction.secureDuration()));
                 progress = extraction.secureProgress() / extraction.secureDuration();
-                measure = "Securing / " + seconds(extraction.secureProgress()) + " of " + seconds(extraction.secureDuration());
+                measure = MissionObjectiveFamilies.timed(Strings.get("objectivePayloadSecuringTimer"), extraction.secureProgress(), extraction.secureDuration());
             } else if (p.extractionPhase() == ExtractionPayloadObjective.Phase.BOARDING) {
-                instruction = "Hold the pickup uncontested to finish boarding.";
+                instruction = Strings.get("objectivePayloadHoldPickup");
                 progress = extraction.boardingProgress() / extraction.boardingDuration();
-                measure = "Boarding / " + seconds(extraction.boardingProgress()) + " of " + seconds(extraction.boardingDuration());
+                measure = MissionObjectiveFamilies.timed(Strings.get("objectivePayloadBoardingTimer"), extraction.boardingProgress(), extraction.boardingDuration());
             } else {
                 progress = (float) extraction.routeIndex() / Math.max(1, extraction.routeCellCount() - 1);
-                measure = "Route / " + Math.round(progress * 100) + "% to pickup";
+                measure = Strings.format("objectivePayloadRoute", Math.round(progress * 100));
             }
-            blocker = extraction.contested() ? "Hostile control is preventing progress."
-                    : !p.escortPresent() ? atSource ? "Marines must reach and hold the source." : "Restore close escort at the payload." : "";
-            if (extraction.lossProgress() > 0) blocker = "Unescorted under hostile control / loss in "
-                    + seconds(extraction.lossDuration() - extraction.lossProgress());
-            else if (extraction.abandonmentProgress() > 0) blocker = "No escort / abandonment in "
-                    + seconds(extraction.abandonmentDuration() - extraction.abandonmentProgress());
+            blocker = extraction.contested() ? Strings.get("objectivePayloadHostileControl")
+                    : !p.escortPresent() ? atSource ? Strings.get("objectivePayloadReachHold") : Strings.get("objectivePayloadRestoreEscort") : "";
+            if (extraction.lossProgress() > 0) blocker = Strings.format("objectivePayloadLossIn",
+                    seconds(extraction.lossDuration() - extraction.lossProgress()));
+            else if (extraction.abandonmentProgress() > 0) blocker = Strings.format("objectivePayloadAbandonIn",
+                    seconds(extraction.abandonmentDuration() - extraction.abandonmentProgress()));
         } else if (p instanceof ColonyArchiveObjective colony) {
-            instruction = "Keep marines in the archive room for " + seconds(colony.recoveryDuration()) + ".";
-            measure = "Recovery / " + seconds(colony.progress()) + " of " + seconds(colony.recoveryDuration());
-            if (!p.escortPresent()) blocker = "Marines must enter and remain in the archive room.";
+            instruction = Strings.format("objectivePayloadArchiveFor", seconds(colony.recoveryDuration()));
+            measure = MissionObjectiveFamilies.timed(Strings.get("objectivePayloadRecoveryTimer"), colony.progress(), colony.recoveryDuration());
+            if (!p.escortPresent()) blocker = Strings.get("objectivePayloadArchiveBlocker");
         } else if (cohort) {
-            measure = p.boardedElements() + " aboard / " + p.activeElements() + " awaiting rescue / " + p.lostElements() + " lost";
+            measure = Strings.format("objectivePayloadCohortTally", p.boardedElements(), p.activeElements(), p.lostElements());
             if (atSource) {
-                instruction = evacuation.storyEscort() ? "Secure the shelter with the assigned escort for 2s."
-                        : "Reach the shelter entrance to release the survivors.";
+                instruction = evacuation.storyEscort() ? Strings.get("objectivePayloadSecureShelter")
+                        : Strings.get("objectivePayloadReachShelter");
                 progress = evacuation.storyEscort() ? evacuation.securedTicks() / 60f : 0;
-                blocker = evacuation.shelterThreat() ? "Nearby threats prevent shelter release."
-                        : evacuation.securedTicks() == 0 ? "Waiting for marines at the shelter entrance." : "";
-                if (evacuation.securedTicks() > 0) phase = "SECURING SHELTER";
+                blocker = evacuation.shelterThreat() ? Strings.get("objectivePayloadShelterThreat")
+                        : evacuation.securedTicks() == 0 ? Strings.get("objectivePayloadWaitingShelter") : "";
+                if (evacuation.securedTicks() > 0) phase = Strings.get("objectivePayloadSecuringShelter");
             } else {
-                instruction = "Escort every remaining survivor to the pickup.";
+                instruction = Strings.get("objectivePayloadEscortSurvivors");
                 List<String> holds = new ArrayList<>();
-                if (evacuation.unescorted() > 0) holds.add(evacuation.unescorted() + " need close escort");
-                if (evacuation.blocked() > 0) holds.add(evacuation.blocked() + " have no route");
-                if (evacuation.awaitingPickup() > 0) holds.add(evacuation.awaitingPickup() + " waiting for pickup");
-                if (evacuation.screened() > 0) holds.add(evacuation.screened() + " sheltering behind escort");
-                blocker = String.join("; ", holds);
+                if (evacuation.unescorted() > 0) holds.add(Strings.format("objectivePayloadNeedEscort", evacuation.unescorted()));
+                if (evacuation.blocked() > 0) holds.add(Strings.format("objectivePayloadNoRoute", evacuation.blocked()));
+                if (evacuation.awaitingPickup() > 0) holds.add(Strings.format("objectivePayloadAwaitingPickup", evacuation.awaitingPickup()));
+                if (evacuation.screened() > 0) holds.add(Strings.format("objectivePayloadSheltering", evacuation.screened()));
+                blocker = Strings.join("separatorList", holds.toArray(new String[0]));
             }
         }
         if (state == State.COMPLETE) {
             blocker = "";
             progress = 1;
-            instruction = archive ? "Archive recovered. Recovery squads can rejoin the escort."
-                    : cohort ? "All survivors accounted for; evacuation resolved." : "Package recovered and extracted.";
-            if (!cohort) measure = "Objective complete";
+            instruction = archive ? Strings.get("objectivePayloadArchiveDone")
+                    : cohort ? Strings.get("objectivePayloadCohortDone") : Strings.get("objectivePayloadPackageDone");
+            if (!cohort) measure = Strings.get("objectiveComplete");
         } else if (state == State.FAILED) {
             blocker = p instanceof CivilianEvacuationObjective civilian && civilian.pickupLost()
-                    ? "Pickup lost before evacuation finished."
-                    : p.failureReason() == ExtractionPayloadObjective.Failure.ABANDONED ? "Package abandoned."
-                    : cohort ? "No survivors evacuated." : "Package lost to hostile control.";
-            instruction = "Objective failed.";
+                    ? Strings.get("objectivePayloadPickupLost")
+                    : p.failureReason() == ExtractionPayloadObjective.Failure.ABANDONED ? Strings.get("objectivePayloadAbandoned")
+                    : cohort ? Strings.get("objectivePayloadNoSurvivors") : Strings.get("objectivePayloadLost");
+            instruction = Strings.get("objectiveFailedSentence");
         }
         String id = p.payloadId();
         String sourceName = p.sourceName();
         List<Marker> markers = new ArrayList<>();
         markers.add(new Marker(id + "-source", sourceName, p.sourceMarkerX(), p.sourceMarkerY(),
-                archive || atSource ? phase : "SECURED", archive || atSource ? state : State.COMPLETE));
+                archive || atSource ? phase : Strings.get("objectiveMarkerSecured"), archive || atSource ? state : State.COMPLETE));
         String focus = id + "-source";
         if (!archive && p.egressCellX() >= 0 && p.egressCellY() >= 0) {
             markers.add(new Marker(id + "-pickup", p.egressName(), p.egressCellX(), p.egressCellY(),
-                    state == State.ACTIVE ? "PICKUP" : phase, state));
+                    state == State.ACTIVE ? Strings.get("objectiveMarkerPickup") : phase, state));
             if (!atSource) focus = id + "-pickup";
         }
         if (!archive && !atSource && state == State.ACTIVE && p.payloadCellX() >= 0 && p.payloadCellY() >= 0
                 && Math.abs(p.payloadCellX() - p.egressCellX()) + Math.abs(p.payloadCellY() - p.egressCellY()) > 3) {
             markers.add(new Marker(id + "-payload", p.payloadName(), p.payloadCellX(), p.payloadCellY(),
-                    blocker.isEmpty() ? phase : "NEEDS ATTENTION", state));
+                    blocker.isEmpty() ? phase : Strings.get("objectiveMarkerNeedsAttention"), state));
             focus = id + "-payload";
         }
-        String steps = archive ? "Recover archive"
-                : atSource ? "1 Secure  >  2 Escort  >  3 Board"
-                : state == State.COMPLETE ? "Secure: done / Escort: done / Board: done"
-                : "Secure: done  >  Escort  >  Board";
+        String steps = archive ? Strings.get("objectivePayloadArchiveSteps")
+                : atSource ? Strings.get("objectivePayloadSteps")
+                : state == State.COMPLETE ? Strings.get("objectivePayloadStepsDone")
+                : Strings.get("objectivePayloadStepsEscort");
         return new Item(id, p.payloadName(), state, phase, steps, instruction, measure,
                 Math.max(0, Math.min(1, progress)), blocker, markers, focus);
     }
 
-    private static String seconds(float value) { return Math.max(0, Math.round(value * 10)) / 10f + "s"; }
+    private static String seconds(float value) { return MissionObjectiveFamilies.seconds(value); }
 
     /** Friendly command intent, not omniscient enemy positions or invented successful execution. */
     public static List<SquadActivity> activities(CommanderSnapshot<?> commander, IntFunction<String> names) {
@@ -294,11 +294,11 @@ public final class MissionObjectiveProjection {
         if (rows.isEmpty()) for (var directive : commander.directives()) {
             if (!directive.ownsSquad()) continue;
             var assignment = directive.assignment();
-            String task = directive.authority() == CommandAuthority.PLAYER_INTERVENTION ? "Following your order"
-                    : assignment == null ? "Following mission command"
-                    : assignment.kind().name().replace('_', ' ').toLowerCase(Locale.ROOT);
+            String task = directive.authority() == CommandAuthority.PLAYER_INTERVENTION ? Strings.get("objectiveTaskPlayerOrder")
+                    : assignment == null ? Strings.get("objectiveTaskMissionCommand")
+                    : Strings.named("objectiveAssignment", assignment.kind().name());
             rows.add(new SquadActivity(directive.squadId(), names.apply(directive.squadId()), task,
-                    directive.authority() == CommandAuthority.PLAYER_INTERVENTION ? "Player command" : "Assigned task"));
+                    directive.authority() == CommandAuthority.PLAYER_INTERVENTION ? Strings.get("objectiveStatusPlayerCommand") : Strings.get("objectiveStatusAssigned")));
         }
         rows.sort(Comparator.comparingInt(SquadActivity::squadId));
         return List.copyOf(rows);
@@ -306,21 +306,21 @@ public final class MissionObjectiveProjection {
 
     private static SquadActivity activity(int id, IntFunction<String> names, String role, boolean contact, boolean slowed) {
         String task = switch (role) {
-            case "ARCHIVE_RECOVERY" -> "Recovering colony archive";
-            case "SURVIVOR_ESCORT", "COHORT_ESCORT" -> "Escorting survivors";
-            case "PAYLOAD_ELEMENT" -> "Recovering and escorting package";
-            case "CLOSE_ESCORT" -> "Providing close escort";
-            case "LEAD_SCREEN" -> "Screening the route ahead";
-            case "LEFT_SCREEN" -> "Protecting the left flank";
-            case "RIGHT_SCREEN" -> "Protecting the right flank";
-            case "REAR_SCREEN" -> "Protecting the rear";
-            case "SHELTER_GUARD" -> "Guarding the shelter";
-            case "PICKUP_GUARD" -> "Guarding the pickup";
-            case "STRANDED" -> "No reachable mission route";
-            case "RELEASED" -> "Mission assignment finished";
-            default -> "Following separate orders";
+            case "ARCHIVE_RECOVERY" -> Strings.get("objectiveTaskArchive");
+            case "SURVIVOR_ESCORT", "COHORT_ESCORT" -> Strings.get("objectiveTaskEscortSurvivors");
+            case "PAYLOAD_ELEMENT" -> Strings.get("objectiveTaskPayload");
+            case "CLOSE_ESCORT" -> Strings.get("objectiveTaskCloseEscort");
+            case "LEAD_SCREEN" -> Strings.get("objectiveTaskLeadScreen");
+            case "LEFT_SCREEN" -> Strings.get("objectiveTaskLeftScreen");
+            case "RIGHT_SCREEN" -> Strings.get("objectiveTaskRightScreen");
+            case "REAR_SCREEN" -> Strings.get("objectiveTaskRearScreen");
+            case "SHELTER_GUARD" -> Strings.get("objectiveTaskShelterGuard");
+            case "PICKUP_GUARD" -> Strings.get("objectiveTaskPickupGuard");
+            case "STRANDED" -> Strings.get("objectiveTaskStranded");
+            case "RELEASED" -> Strings.get("objectiveTaskReleased");
+            default -> Strings.get("objectiveTaskSeparate");
         };
         return new SquadActivity(id, names.apply(id), task,
-                slowed ? "Holding for local contact" : contact ? "In contact" : "STRANDED".equals(role) ? "Route unavailable" : "Assigned task");
+                slowed ? Strings.get("objectiveStatusSlowed") : contact ? Strings.get("objectiveStatusContact") : "STRANDED".equals(role) ? Strings.get("objectiveStatusRouteUnavailable") : Strings.get("objectiveStatusAssigned"));
     }
 }

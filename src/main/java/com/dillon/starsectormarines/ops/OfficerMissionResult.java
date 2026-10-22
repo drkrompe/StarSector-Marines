@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
 import com.dillon.starsectormarines.marine.Commendations;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.OfficerCommandProfile;
@@ -100,7 +101,9 @@ public record OfficerMissionResult(OfficerCommandProfile officer, Set<String> so
     }
 
     public String summary() {
-        return officer.name() + " / +" + xpGained + " XP / " + status
-                + (promotedTo != null ? " / " + promotedTo.displayName() + " - training available" : "");
+        String state = Strings.named("resultsScreenOfficerStatus", status.name());
+        return promotedTo != null
+                ? Strings.format("resultsScreenOfficerSummaryPromoted", officer.name(), xpGained, state, promotedTo.displayName())
+                : Strings.format("resultsScreenOfficerSummary", officer.name(), xpGained, state);
     }
 }

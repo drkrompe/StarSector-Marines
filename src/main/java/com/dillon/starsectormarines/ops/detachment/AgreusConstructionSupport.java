@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.detachment;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.ShipOnStation;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.Global;
 
@@ -53,9 +54,9 @@ public final class AgreusConstructionSupport {
 
     public static String blocker(List<CommandPower> available, Collection<String> selected, float supplies) {
         if (!selected(CommandDeck.filter(available, selected)))
-            return "Commit a working company Shepherd and select Ship on Station in Support.";
+            return Strings.get("briefingConstructionNeedsTender");
         if (supplies < ShipOnStation.SUPPLY_COST)
-            return "Carry at least " + ShipOnStation.SUPPLY_COST + " supplies to call the construction tender.";
+            return Strings.format("briefingConstructionNeedsSupplies", ShipOnStation.SUPPLY_COST);
         return null;
     }
 }
