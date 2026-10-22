@@ -4,8 +4,8 @@
  "fps": 24,
  "width": 1920,
  "height": 1080,
- "frames": 192,
- "duration": 8.0,
+ "frames": 960,
+ "duration": 40.0,
  "captions": [
   {
    "t_in": 5.0,
@@ -24,11 +24,11 @@
  "cues": [
   {
    "t": 0.0,
-   "sound": "jangala_arrival_cabin_bed",
-   "volume": 0.3,
-   "until": 1.0,
+   "sound": "c5_yard_jungle_bed",
+   "volume": 0.4,
+   "until": 39.5,
    "fade_in": 0.0,
-   "fade_out": 0.9
+   "fade_out": 1.5
   },
   {
    "t": 0.0,
@@ -36,30 +36,14 @@
    "volume": 0.55
   },
   {
-   "t": 0.0,
-   "sound": "c5_yard_jungle_bed",
-   "volume": 0.4,
-   "until": 8.0,
-   "fade_in": 0.6,
-   "fade_out": 0.0
-  },
-  {
-   "t": 0.0,
-   "sound": "c5_yard_steam_vent",
-   "volume": 0.45,
-   "until": 8.0,
-   "fade_in": 0.4,
-   "fade_out": 0.0
+   "t": 0.4,
+   "sound": "c5_yard_hull_ticks",
+   "volume": 0.5
   },
   {
    "t": 1.0,
    "sound": "c5_yard_winch",
    "volume": 0.22
-  },
-  {
-   "t": 0.4,
-   "sound": "c5_yard_hull_ticks",
-   "volume": 0.5
   },
   {
    "t": 1.7,
@@ -72,14 +56,32 @@
    "volume": 0.22
   },
   {
-   "t": 3.6,
-   "sound": "c5_yard_boots",
-   "volume": 0.3
+   "t": 4.0,
+   "sound": "c5_yard_steam_vent",
+   "volume": 0.45,
+   "until": 22.0,
+   "fade_in": 0.4,
+   "fade_out": 6.0
   },
   {
    "t": 5.0,
    "sound": "c5_yard_winch",
    "volume": 0.22
+  },
+  {
+   "t": 10.0,
+   "sound": "c5_yard_hull_ticks",
+   "volume": 0.35
+  },
+  {
+   "t": 13.0,
+   "sound": "c5_yard_winch",
+   "volume": 0.18
+  },
+  {
+   "t": 14.5,
+   "sound": "c5_yard_radio_chatter",
+   "volume": 0.16
   },
   {
    "t": 5.0,
