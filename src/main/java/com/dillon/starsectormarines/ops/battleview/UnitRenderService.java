@@ -1048,19 +1048,20 @@ public final class UnitRenderService implements RenderSystem {
                 if (deadBruteArt != null && ravRigs != null && ravRigs[r] instanceof RavBruteRig deadBrute
                         && deadBrute.dead()) {
                     // A dead Brute has burst as a Runner does, over the same ichor.
-                    RavBruteComposer.emitDead(out, deadBruteArt, ravArt != null ? ravArt.splat : null,
+                    RavBruteComposer.emitDead(out, deadBruteArt.forStage(deadBrute.stage()),
+                            ravArt != null ? ravArt.splat : null,
                             ravArt != null ? ravArt.drop : null, deadBrute,
                             cam.cellToScreenX(deadBrute.bodyX()), cam.cellToScreenY(deadBrute.bodyY()),
-                            cam.cellPxSize(), alphaMult);
+                            cam.cellPxSize() * deadBrute.scale(), alphaMult);
                     continue;
                 }
                 RavRunnerRig ravRig = ravArt != null && ravRigs != null && ravRigs[r] instanceof RavRunnerRig dead
                         ? dead : null;
                 if (ravRig != null && ravRig.dead()) {
                     // A dead Runner has burst: its pieces where they were flung, over its ichor.
-                    RavRunnerComposer.emit(out, ravArt, ravRig,
+                    RavRunnerComposer.emit(out, ravArt.forStage(ravRig.stage()), ravRig,
                             cam.cellToScreenX(ravRig.bodyX()), cam.cellToScreenY(ravRig.bodyY()),
-                            cam.cellPxSize() * type.renderScale, 1f, alphaMult);
+                            cam.cellPxSize() * type.renderScale * ravRig.scale(), 1f, alphaMult);
                     continue;
                 }
                 // A body that wore layered art lies as itself: its outfit's own pose,
@@ -1307,24 +1308,25 @@ public final class UnitRenderService implements RenderSystem {
                 }
                 Object rig = ravRigs != null ? ravRigs[r] : null;
                 if (bruteArt != null && rig instanceof RavBruteRig bruteRig && bruteRig.posed()) {
-                    // The Brute too; its rig is sized in cells, so no render scale.
-                    RavBruteComposer.emit(out, bruteArt, bruteRig,
+                    // The Brute too; its rig is sized in cells, so only its growth stage scales it.
+                    RavBruteComposer.emit(out, bruteArt.forStage(bruteRig.stage()), bruteRig,
                             cam.cellToScreenX(bruteRig.bodyX()), cam.cellToScreenY(bruteRig.bodyY()),
-                            cam.cellPxSize(), unitAlpha);
+                            cam.cellPxSize() * bruteRig.scale(), unitAlpha);
                     continue;
                 }
                 if (matriarchArt != null && rig instanceof RavMatriarchRig matriarchRig && matriarchRig.posed()) {
                     RavMatriarchComposer.emit(out, matriarchArt, matriarchRig,
                             cam.cellToScreenX(matriarchRig.bodyX()), cam.cellToScreenY(matriarchRig.bodyY()),
-                            cam.cellPxSize(), unitAlpha);
+                            cam.cellPxSize() * matriarchRig.scale(), unitAlpha);
                     continue;
                 }
                 RavRunnerRig ravRig = ravArt != null && rig instanceof RavRunnerRig runnerRig ? runnerRig : null;
                 if (ravRig != null && ravRig.posed()) {
-                    // The Runner is drawn on its own skeleton, solved at the position it was posed at.
-                    RavRunnerComposer.emit(out, ravArt, ravRig,
+                    // The Runner is drawn on its own skeleton, solved at the position it was posed at,
+                    // at its growth stage's size and in its stage's colours.
+                    RavRunnerComposer.emit(out, ravArt.forStage(ravRig.stage()), ravRig,
                             cam.cellToScreenX(ravRig.bodyX()), cam.cellToScreenY(ravRig.bodyY()),
-                            cam.cellPxSize() * type.renderScale, 1f, unitAlpha);
+                            cam.cellPxSize() * type.renderScale * ravRig.scale(), 1f, unitAlpha);
                     continue;
                 }
                 LayeredArmorFamily bodyFamily = hasLayered

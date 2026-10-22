@@ -27,6 +27,7 @@ import numpy as np
 from PIL import Image
 
 HERE = Path(__file__).parent
+import stage_sprites  # noqa: E402
 sys.path.insert(0, str(HERE / "exploration"))
 from motion_brute import (HEAD_POLY, HOOVES, RAW, SHANK_W, key, largest_blob, soft_mask,  # noqa: E402
                           with_alpha)
@@ -94,6 +95,8 @@ def main():
 
     for p in sorted(OUT.glob("*.png")):
         print(p.name, Image.open(p).size)
+    # the whelp's and the elder's sets are recoloured from this one, so they never drift from it
+    stage_sprites.write("brute")
 
 
 if __name__ == "__main__":
