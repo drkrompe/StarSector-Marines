@@ -307,7 +307,14 @@ between:
 - the **barricade**, a ring of industrial fence broken by stacked crates and
   scrap, closed to movement and open to sight, with a parked truck dragged
   across each street it crosses. Wherever another building or a wall already
-  stands on the ring, that structure closes the side itself;
+  stands on the ring, that structure closes the side itself. The barricade
+  **crosses streets but never runs along one**: a side whose barricade or step
+  would lie lengthwise on a street's asphalt is drawn in toward the building,
+  to the kerb if need be (barricade only, no step on that side), and whatever
+  still lies on the asphalt is left open, so the street keeps its full width.
+  Laid along a street the works ate its lanes and left a sliver of road beside
+  the fence. A truck closes only a carriageway the barricade crosses, never
+  paved plaza;
 - the **firing step**, one course of sandbag just inside the barricade all the
   way round, which is a fighting-position run;
 - one **gate**, on the side toward the lift, the way relief comes in and the
