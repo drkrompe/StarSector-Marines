@@ -814,6 +814,18 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SwarmPackPlans swarmPackPlans;
     /** What each pack is doing as it moves (`colony-breach-nouns.md`, Pack movement). */
     public SwarmPackPlans swarmPackPlans() { return swarmPackPlans; }
+    /**
+     * Declares the open bores' creep and grows it to full at once, as creep
+     * that has stood for weeks; the trees it holds die. Setup only
+     * ({@code cordon-nouns.md}, The map).
+     */
+    public void matureCreep() {
+        if (simTickIndex != 0) throw new IllegalStateException("Creep is matured at setup");
+        boreCreep.sync(this);
+        if (creep == null) return;
+        creep.mature();
+        creepVegetation().look(this, 0);
+    }
     /** From the tremor on, the swarm director spawns only from living bores. */
     public void beginSwarmBoreSourcing() { swarmReinforcements.beginBoreSourcing(swarmBores); }
     /** The Colony Breach story, or {@code null} on every other battle. */
