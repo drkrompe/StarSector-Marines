@@ -67,16 +67,14 @@ class SelfContainedSheetTest {
     }
 
     @Test
-    void everySheetIsDefinedByItsBundleAndNoBundleTeachesAnotherSheet() {
+    void everySheetIsDefinedByItsBundleAndNoCardTeachesAnotherSheet() {
         List<String> baseline = List.of("armor.field-fatigues", "armor.cordon-shell");
         for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
             assertTrue(!ArmorSheetBundles.patternsFor(plan.id()).isEmpty(), plan.id() + " has no bundle");
         }
         for (SquadArmorPlan held : SquadEquipmentDoctrines.armorPlans()) {
             MarineArmory armory = new MarineArmory();
-            for (String pattern : ArmorSheetBundles.patternsFor(held.id())) {
-                armory.acquireEquipmentTemplate(EquipmentTemplateCatalog.armorId(pattern));
-            }
+            EquipmentTestFixtures.learnSheet(armory, held.id());
             for (SquadArmorPlan other : SquadEquipmentDoctrines.armorPlans()) {
                 boolean taught = armory.knowsArmorPlan(other.id());
                 boolean expected = other.id().equals(held.id())

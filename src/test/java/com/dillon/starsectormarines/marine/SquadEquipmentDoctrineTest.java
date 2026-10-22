@@ -326,14 +326,14 @@ class SquadEquipmentDoctrineTest {
         roster.armory().acquireArmorPlan(SquadEquipmentDoctrines.SINDRIAN_SECURITY_ARMOR);
         String unaffordableWeapons = null;
         for (SquadWeaponDoctrine candidate : SquadEquipmentDoctrines.weaponDoctrines()) {
-            if (!roster.armory().canAuthorWeaponDoctrine(candidate.issues())) {
+            if (!roster.armory().knowsWeaponCard(candidate.id())) {
                 unaffordableWeapons = candidate.id();
                 break;
             }
         }
         assertNotNull(unaffordableWeapons, "fixture assumption: a starter armoury cannot"
                 + " author every authored weapon doctrine");
-        assertEquals(SquadEquipmentResult.MISSING_TEMPLATE, roster.applySquadEquipment(
+        assertEquals(SquadEquipmentResult.UNKNOWN_CARD, roster.applySquadEquipment(
                 squad.id(), unaffordableWeapons,
                 SquadEquipmentDoctrines.SINDRIAN_SECURITY_ARMOR));
 

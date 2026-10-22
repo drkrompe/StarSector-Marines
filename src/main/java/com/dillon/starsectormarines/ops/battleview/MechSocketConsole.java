@@ -15,7 +15,6 @@ final class MechSocketConsole {
     private static final Color SILVER = new Color(0xd3d0c5);
     private static final Color MUTED = new Color(0x91988e);
     private static final Color AMBER = new Color(0xedc273);
-    private static final Color GREEN = new Color(0x78d494);
     /** Drag compatibility; kept clear of the hardpoint colours so a fit never reads as "missile". */
     private static final Color FITS = new Color(0xc8eef4);
     private static final Color RED = new Color(0xe98b83);
@@ -93,18 +92,19 @@ final class MechSocketConsole {
                         HardpointBricks.tone(shown.hardpointType));
             } else if (internal != null) {
                 int[] footprint = oriented(socket, internal.footprintColumns, internal.footprintRows);
-                HardpointBricks.drawFilled(c, bricks, 0, 0, footprint[0], footprint[1], HardpointBricks.INTERNAL);
+                HardpointBricks.drawFilled(c, bricks, 0, 0, footprint[0], footprint[1],
+                        HardpointBricks.tone(internal.role));
+                HardwareArt.draw(c, internal, bricks.left(), bricks.top(),
+                        bricks.span(footprint[0], bricks.brickWidth()),
+                        bricks.span(footprint[1], bricks.brickHeight()), 255);
             } else if (socket.type() == SocketType.UTILITY && replenisher != null) {
-                HardpointBricks.drawFilled(c, bricks, 0, 0, bricks.columns(), bricks.rows(), HardpointBricks.INTERNAL);
+                HardpointBricks.drawFilled(c, bricks, 0, 0, bricks.columns(), bricks.rows(), HardpointBricks.UTILITY);
+                HardwareArt.draw(c, replenisher, bricks.left(), bricks.top(), bricks.width(), bricks.height(), 255);
             }
-            if (shown == null && internal != null) {
-                internalGlyph(c, internal.role, bricks.centerX(), bricks.centerY(), SILVER);
-            } else if (shown != null && HardwareArt.draw(c, shown,
+            if (shown != null && !HardwareArt.draw(c, shown,
                     bricks.brickX(shownBlock[0]), bricks.brickY(shownBlock[1]),
                     bricks.span(shownBlock[2], bricks.brickWidth()), bricks.span(shownBlock[3], bricks.brickHeight()),
-                    preview != null ? 195 : 255)) {
-                // Painted icon drawn.
-            } else if (shown != null && assets != null) {
+                    preview != null ? 195 : 255) && assets != null) {
                 LayeredSpriteCache sprite = MechEquipmentGridCanvas.spriteFor(assets, shown);
                 if (sprite != null) {
                     float scale = Math.min(bricks.width() * .9f / sprite.pxWidth, bricks.height() * .9f / sprite.pxHeight);
@@ -112,18 +112,16 @@ final class MechSocketConsole {
                             sprite.pxWidth * scale, sprite.pxHeight * scale, 0,
                             new Color(255, 255, 255, preview != null ? 195 : 255));
                 }
-            } else if (socket.type() == SocketType.UTILITY && replenisher != null) {
-                MechReplenisherArt.draw(c, replenisher, bricks.centerX(), bricks.centerY(),
-                        Math.min(bricks.width(), bricks.height()) * .9f);
             }
             String caption = draggingHere ? rejected ? "CANNOT FIT" : "RELEASE TO FIT"
                     : internal != null ? internal.displayName()
-                    : socket.type() == SocketType.UTILITY ? "SELECT TO REFIT"
+                    : socket.type() == SocketType.UTILITY
+                    ? replenisher != null ? replenisher.displayName() : "SELECT TO REFIT"
                     : installed != null ? installed.displayName() : socket.type().label() + " / "
                     + socket.gridColumns() + "x" + socket.gridRows();
             c.text(Fonts.ORBITRON_12_BOLD, fit(caption, w - 20), x + 10,
                     y + h - CAPTION + (CAPTION - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f,
-                    draggingHere ? accent : installed != null || internal != null ? SILVER : AMBER);
+                    draggingHere ? accent : empty ? AMBER : SILVER);
         }
         if (selected || hovered || compatible || rejected) {
             float pulse = (float) (.5 + .5 * Math.sin(time * 3.5));
@@ -145,24 +143,6 @@ final class MechSocketConsole {
         c.fillRect(x + CUT, y, w - CUT * 2f, h, fill);
         c.fillQuad(x, y + CUT, x + CUT, y, x + CUT, y + h, x, y + h - CUT, fill);
         c.fillQuad(x + w - CUT, y, x + w, y + CUT, x + w, y + h - CUT, x + w - CUT, y + h, fill);
-    }
-
-    /** A line drawing per role: a turbine, a fin stack, or a fan, so the well reads as fitted. */
-    private static void internalGlyph(CanvasContext c, MechInternal.Role role, float x, float y, Color color) {
-        switch (role) {
-            case ENGINE -> {
-                c.strokeRect(x - 20, y - 12, 40, 24, color, 1.4f);
-                c.line(x - 20, y, x + 20, y, color, 1.2f);
-                for (int i = -1; i <= 1; i++) c.line(x + i * 10, y - 12, x + i * 10, y + 12, color, 1f);
-                c.fillRect(x - 3, y - 3, 6, 6, AMBER);
-            }
-            case CAPACITOR_BANK, VENT_ARRAY -> {
-                for (int i = -2; i <= 2; i++) c.line(x + i * 7, y - 12, x + i * 7, y + 12, color, 1.6f);
-                c.line(x - 18, y + 12, x + 18, y + 12, color, 1.4f);
-                if (role == MechInternal.Role.VENT_ARRAY) c.strokeRect(x - 6, y - 6, 12, 12, GREEN, 1.2f);
-            }
-            case PLATING -> c.strokeRect(x - 18, y - 12, 36, 24, color, 2f);
-        }
     }
 
     private static String fit(String text, float width) {

@@ -112,6 +112,9 @@ GLYPHS = {
     'P': ['####.', '#...#', '#...#', '####.', '#....', '#....', '#....'],
     'Q': ['.###.', '#...#', '#...#', '#...#', '#.#.#', '#..#.', '.##.#'],
     'T': ['#####', '..#..', '..#..', '..#..', '..#..', '..#..', '..#..'],
+    'E': ['#####', '#....', '#....', '####.', '#....', '#....', '#####'],
+    'N': ['#...#', '##..#', '#.#.#', '#..##', '#...#', '#...#', '#...#'],
+    'V': ['#...#', '#...#', '#...#', '#...#', '#...#', '.#.#.', '..#..'],
 }
 
 
@@ -404,7 +407,97 @@ def build():
     b += poly([(108, 84), (124, 87), (136, 98), (108, 96)], L)
     b += stroke('M 30 64 C 30 40 60 36 90 46', '#000000', .58, 8)
     f['quarry-breaker'] = banded(150, 200, b, 'QB')
+
+    internals(f)
     return f
+
+
+# --- internals ------------------------------------------------------------------------------
+
+def turbine_fan(cx, cy, rx, ry, blades=6):
+    """An intake fan seen at an angle: a dark ring, a lit hub and swept blades."""
+    s = ell(cx, cy, rx, ry, D)
+    for k in range(blades):
+        a = math.pi * 2 * k / blades
+        x0, y0 = cx + math.cos(a) * rx * .22, cy + math.sin(a) * ry * .22
+        x1, y1 = cx + math.cos(a + .55) * rx * .82, cy + math.sin(a + .55) * ry * .82
+        s += stroke(f'M {n(x0)} {n(y0)} L {n(x1)} {n(y1)}', '#ffffff', .3, max(2, rx * .1))
+    return s + ell(cx, cy, rx * .2, ry * .2, L)
+
+
+def cells(x0, x1, y0, y1, count, gap=5):
+    """A bank of upright capacitor cells: dark cylinders with a lit edge and a terminal cap."""
+    w = (x1 - x0 - gap * (count - 1)) / count
+    s = ''
+    for k in range(count):
+        x = x0 + k * (w + gap)
+        s += rect(x, y0, w, y1 - y0, D, rx=min(6, w * .3))
+        s += rect(x + w * .16, y0 + 5, max(1.5, w * .14), y1 - y0 - 10, L, rx=1)
+        s += rect(x + w * .3, y0 - 6, w * .4, 5, MID)
+    return s
+
+
+def internals(f):
+    # Industrial engine, 2x1: an intake ring, a finned turbine casing and an exhaust cone.
+    b = block(8, 14, 30, 66, 6) + rect(13, 22, 4, 36, L)
+    b += block(34, 22, 110, 62, 5)
+    for x in range(42, 106, 10):
+        b += rect(x, 12, 5, 9, D)
+    b += hbar(40, 104, 30, 3, L, rx=0) + hbar(40, 104, 50, 9, MID, rx=0)
+    b += poly([(113, 26), (140, 34), (140, 50), (113, 58)], D) + rect(132, 36, 4, 12, L)
+    f['engine-industrial'] = banded(150, 100, b, 'ENG')
+
+    # Uprated engine, 2x2: an upright block with an intake fan, cooling ribs and twin stacks.
+    def upright_engine(fans):
+        s = block(20, 62, 130, 156, 10)
+        for y in range(76, 148, 12):
+            s += hbar(30, 120, y, 3, LS, rx=0)
+        s += rect(28, 68, 94, 3, L)
+        if fans == 1:
+            s += turbine_fan(75, 34, 42, 24)
+        else:
+            s += turbine_fan(46, 34, 28, 20, 5) + turbine_fan(104, 34, 28, 20, 5)
+        s += rect(30, 160, 14, 28, D, rx=2) + rect(50, 160, 14, 28, D, rx=2)
+        return s
+    f['engine-uprated'] = banded(150, 200, upright_engine(1), 'ENG')
+    # Military engine: twin fans, armoured side plates and a lit core slit.
+    b = upright_engine(2)
+    b += rect(8, 70, 8, 80, D, rx=2) + rect(134, 70, 8, 80, D, rx=2)
+    b += rect(70, 84, 10, 52, L, rx=2)
+    f['engine-military'] = banded(150, 200, b, 'ENG')
+
+    # Capacitor banks: rows of upright cells on a bus bar.
+    f['capacitor-factory'] = banded(150, 100, hbar(10, 140, 12, 4, MID, rx=0) + cells(14, 136, 20, 64, 3), 'CAP')
+    b = hbar(10, 140, 12, 4, MID, rx=0) + cells(12, 70, 20, 64, 3, gap=3) + cells(80, 138, 20, 64, 3, gap=3)
+    f['capacitor-double'] = banded(150, 100, b, 'CAP')
+    b = hbar(10, 215, 12, 4, MID, rx=0) + cells(12, 160, 20, 64, 6, gap=4)
+    for y in range(18, 68, 8):
+        b += hbar(168, 214, y, 4, D, rx=0)
+    f['capacitor-military'] = banded(225, 100, b, 'CAP')
+
+    # Auxiliary vent array, 2x1: a framed bank of slanted louvres and an exhaust fan.
+    b = block(8, 12, 96, 68, 6, MID)
+    for x in range(16, 88, 12):
+        b += poly([(x, 18), (x + 7, 18), (x + 13, 62), (x + 6, 62)], D)
+        b += poly([(x + 7, 18), (x + 9, 18), (x + 15, 62), (x + 13, 62)], LS)
+    b += turbine_fan(120, 38, 22, 24, 5)
+    f['vent-auxiliary'] = banded(150, 100, b, 'VNT')
+
+    # Missile loaders, 2x1: a magazine of rounds feeding a chute; the accelerated feed adds a
+    # drive motor and a third chevron.
+    def loader(fast):
+        s = block(8, 12, 62, 68, 6)
+        for y in (22, 36, 50):
+            s += poly([(16, y - 4), (44, y - 4), (54, y + 1), (44, y + 6), (16, y + 6)], L)
+        s += hbar(64, 132, 40, 12, MID, rx=0)
+        for k in range(3 if fast else 2):
+            x = 72 + k * 20
+            s += poly([(x, 28), (x + 8, 28), (x + 18, 40), (x + 8, 52), (x, 52), (x + 10, 40)], D)
+        if fast:
+            s += ell(120, 22, 12, 12, D) + ell(120, 22, 4, 4, L)
+        return s
+    f['loader-standard'] = banded(150, 100, loader(False), 'LDR')
+    f['loader-accelerated'] = banded(150, 100, loader(True), 'LDR')
 
 
 if __name__ == '__main__':
