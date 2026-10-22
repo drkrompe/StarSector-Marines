@@ -264,8 +264,23 @@ public final class ElevationLayout {
                 int i = y * vw + x;
                 double f = field[i];
                 if (f < 0) continue;
-                double gx = field[y * vw + Math.min(w, x + 1)] - field[y * vw + Math.max(0, x - 1)];
-                double gy = field[Math.min(h, y + 1) * vw + x] - field[Math.max(0, y - 1) * vw + x];
+                // Sobel over the 3x3 around the corner. Outside every plateau the
+                // field holds a sentinel far below zero; read raw, one such
+                // neighbour swamps the difference and snaps the direction to the
+                // grid axis, which steps the widened band cell by cell along any
+                // diagonal outline. Clamped to what a slope-one field would hold
+                // there, the outline's own bearing comes through.
+                double gx = 0, gy = 0;
+                for (int dy = -1; dy <= 1; dy++) {
+                    for (int dx = -1; dx <= 1; dx++) {
+                        if (dx == 0 && dy == 0) continue;
+                        int nx = Math.max(0, Math.min(w, x + dx)), ny = Math.max(0, Math.min(h, y + dy));
+                        double n = Math.max(field[ny * vw + nx], f - Math.hypot(dx, dy));
+                        double weight = dx == 0 || dy == 0 ? 2 : 1;
+                        gx += dx * weight * n;
+                        gy += dy * weight * n;
+                    }
+                }
                 double length = Math.hypot(gx, gy);
                 if (length < 1e-6) continue;
                 double south = Math.max(0, gy / length);

@@ -616,7 +616,7 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   `-Dbattle.render.groundAtlas=false`,
   `-Dbattle.render.residentDecoration=false`, `-Dbattle.render.unitAtlas=false`,
   `-Dbattle.render.residentRoofs=false`, `-Dbattle.render.creep=false`,
-  `-Dbattle.render.cliffLook=false` (with `-PrenderMaps=raised`),
+  `-Dbattle.render.cliffLook=false` (with `-PrenderMaps=overlook`),
   `-Dbattle.render.settledBodyMesh=false`,
   `-Dbattle.render.collectCulling=false`), never against a number in a
   document — and never against a delta smaller than that spread.
