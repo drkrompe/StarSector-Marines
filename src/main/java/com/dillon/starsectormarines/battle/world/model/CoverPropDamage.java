@@ -24,7 +24,10 @@ public final class CoverPropDamage {
             "corner-nw", "corner-ne", "corner-sw", "corner-se");
     private static final Set<String> EMPLACEMENT_SHAPES = Set.of("n", "e", "s", "w",
             "inner-nw", "inner-ne", "inner-sw", "inner-se");
+    /** Single-cell props named {@code <id>-damaged} / {@code <id>-destroyed}; co-located ones keep separate pools. */
     public static final Set<String> CRATES = Set.of("doodad.box", "doodad.box-dam", "doodad.crate", "doodad.industrial-crate-stack");
+    /** Militia hedgehogs: crate-style naming, but one per cell. */
+    private static final Set<String> HEDGEHOGS = Set.of("doodad.fort-hedgehog");
     private static final class Entry {
         final int index;
         final Doodad original;
@@ -54,11 +57,14 @@ public final class CoverPropDamage {
         String id = prop.definitionId();
         String prefix = familyPrefix(id);
         boolean crate = id != null && CRATES.contains(id);
-        if ((!crate && prefix == null) || !grid.inBounds(prop.cellX, prop.cellY)) return false;
+        boolean single = crate || id != null && HEDGEHOGS.contains(id);
+        if ((!single && prefix == null) || !grid.inBounds(prop.cellX, prop.cellY)) return false;
         boolean physical = grid.isWalkable(prop.cellX, prop.cellY);
-        String shape = crate ? "" : id.substring(prefix.length());
-        DoodadDef damaged = registry == null ? null : registry.doodad(crate ? id + "-damaged" : prefix + "damaged-" + shape);
-        DoodadDef destroyed = registry == null ? null : registry.doodad(crate ? id + "-destroyed" : prefix + "destroyed-" + shape);
+        String shape = single ? "" : id.substring(prefix.length());
+        String damagedId = single ? id + "-damaged" : prefix + "damaged-" + shape;
+        String destroyedId = single ? id + "-destroyed" : prefix + "destroyed-" + shape;
+        DoodadDef damaged = registry == null ? null : registry.doodad(damagedId);
+        DoodadDef destroyed = registry == null ? null : registry.doodad(destroyedId);
         if (damaged == null || destroyed == null)
             throw new IllegalStateException("Missing cover damage pair for " + id);
         int key = grid.index(prop.cellX, prop.cellY);

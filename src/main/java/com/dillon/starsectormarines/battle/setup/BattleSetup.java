@@ -252,7 +252,7 @@ public final class BattleSetup {
     /** Sim-seconds between successive shuttle launches. Spaces out drops so the LZs aren't all active at once. */
     private static final float SHUTTLE_DROP_STAGGER_SEC = 1.5f;
     /** Minimum cell-distance between landing zones — avoids stacking all shuttles on the spawn anchor. */
-    private static final int LZ_MIN_SEPARATION = 8;
+    static final int LZ_MIN_SEPARATION = 8;
     /** Entry/exit Y offset above the grid (in cells). Long enough that shuttles are visible during their descent. */
     private static final float SHUTTLE_OFFMAP_Y = 8f;
 
@@ -341,7 +341,7 @@ public final class BattleSetup {
      * historical turret-after-vehicle cover-bake ordering is preserved.
      */
     /** The surface palette a target profile stands for; null (bare rock) when the battle has no planet behind it. */
-    private static SurfacePalette surfaceOf(TargetProfile profile) {
+    static SurfacePalette surfaceOf(TargetProfile profile) {
         return profile == null ? null : profile.surface();
     }
 
@@ -625,7 +625,7 @@ public final class BattleSetup {
      * generator. The landing zone marks nothing on the ground: the shuttles
      * set down on whatever the map has there.
      */
-    private static void recordLzPads(BattleSimulation sim, List<LandingPad> lzCells) {
+    static void recordLzPads(BattleSimulation sim, List<LandingPad> lzCells) {
         sim.setMarineLandingPads(lzCells);
     }
 

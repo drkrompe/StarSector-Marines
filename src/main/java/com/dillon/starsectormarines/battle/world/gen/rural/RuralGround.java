@@ -121,7 +121,7 @@ public final class RuralGround {
     }
 
     /** What one cell of a plot grows; outside every plot, rough grass. */
-    static GroundKind plotGround(Plot plot, int x, int y) {
+    public static GroundKind plotGround(Plot plot, int x, int y) {
         if (plot == null) return GroundKind.GRASS;
         boolean headland = x - plot.x0() < HEADLAND || plot.x1() - x < HEADLAND
                 || y - plot.y0() < HEADLAND || plot.y1() - y < HEADLAND;

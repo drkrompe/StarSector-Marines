@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16484-d3a9-77f0-a828-861ab08b74f6",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16484-d3a9-77f0-a828-861ab08b74f6\\exec-ecf45897-5807-4d92-b750-d1c3080a5aed.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\fort-hedgehog-damage.raw.png",
+    "sha256": "0485beb0d4afad5267876586944b9d41da6f02d896fc24d27b33427e63290b42",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\fort-hedgehog-damage.prompt.txt",
+  "promptSha256": "f1f48f743d1f0e138280f3c7b3a26470b0736c01cf8fda6d8ee5dd870f43c352",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target: two 512px cell frames; preserve every shape's position, angle and size\nImage 2: Material/identity only: the intact hedgehog's steel, rivets and hub; not layout\n\nUse case: sketch-to-render. Asset: two damage states of a steel anti-tank hedgehog for a gritty military dark-scifi overhead strategy game. Image 1 is the authoritative geometry guide and edit target: exactly TWO 512x512 frames side by side on a 1024x512 canvas, each one game cell. Image 2 is the existing intact hedgehog sprite: material and identity reference only (dark gunmetal steel girders with worn edges, rust specks, rivets, a bolted hexagonal hub plate), not layout.\n\nReskin every grey guide shape into that same steel, preserving each shape's position, angle, length and width, and all transparent empty space. Do not move, rescale, rotate, merge or add pieces.\n\nLEFT FRAME, damaged: the hedgehog still stands on its bolted hub. The vertical girder is intact. The diagonal through the hub is bent and kinked below the hub, its end twisted; the third girder has been torn off the hub and lies loose and askew at lower left, with a sheared, jagged end and a torn bolt plate. Scrapes, fresh bright metal at the tears.\n\nRIGHT FRAME, destroyed: the hedgehog has been toppled and flattened. Three girders lie flat on the ground, splayed apart, one of them bent at a kink in the middle; the hub plate lies loose beside them and two bolts are scattered. Everything is low wreckage lying flat, nothing standing upright.\n\nStraight 90-degree overhead orthographic camera, no perspective, no visible vertical faces, subtle ambient shading only. Same hand-painted Starsector-like finish and restrained palette as image 2, coarse readable detail at 64px per cell. Genuine transparent background with zero alpha between and around the pieces: no ground, soil, rubble carpet, cast shadow outside the guide shapes, border, labels, text, grid lines, smoke or fire.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\fort-hedgehog-damage-guide.png",
+      "sha256": "d4a76bf4a886d8e8cb6b3cb2de2332dcd4da1e1a00980a80d0b778e8e97a8c2c",
+      "dimensions": [
+        1024,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target: two 512px cell frames; preserve every shape's position, angle and size"
+    },
+    {
+      "path": "art-source\\templates\\fort-hedgehog-reference.png",
+      "sha256": "8c2f8f19461cb7459e7b6296dbdbbe312e30fb75b17b9f17ded87611acbf6b61",
+      "dimensions": [
+        192,
+        192
+      ],
+      "mode": "RGBA",
+      "role": "Material/identity only: the intact hedgehog's steel, rivets and hub; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use Image 1 as the exact geometry guide and Image 2 for the steel finish, generating one transparent image.\n"
+  ],
+  "usage": {
+    "input_tokens": 38972,
+    "cached_input_tokens": 31360,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 420,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 52.2
+}
