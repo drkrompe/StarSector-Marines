@@ -2442,6 +2442,31 @@ def check(frames):
             print('   ' + line)
         for line in surface_lines(loc, f, r, u, fpx):
             print('   ' + line)
+        for line in turn_lines(kf):
+            print('   ' + line)
+
+
+TURN_JUMP_LIMIT = 45.0     # deg/s of angular-velocity change in one frame (1/24 s) that --check reports
+
+
+def turn_lines(kf):
+    """--check's motion sweep: every flown ship over her shot at 24 fps, listing frames where her
+    angular velocity jumps by more than TURN_JUMP_LIMIT (a turn that stalls or snaps). A hit's
+    tumble or a boat setting down is expected there and is marked as such."""
+    import asharu_preview
+    import motion
+    seg = next((s for s in asharu_preview.segments(KEYFRAMES) if s['kf'] == kf), None)
+    if seg is None:
+        return []
+    out = []
+    for key, sp in KEYFRAMES[kf]['ships'].items():
+        if not hasattr(sp, 'at'):
+            continue
+        hits = [h['t'] for h in getattr(sp.at, 'hits', ()) if 'kick' not in h]
+        for t, j in motion.turn_jumps(sp.at, seg['start'], seg['end'], limit=TURN_JUMP_LIMIT):
+            why = 'a hit' if any(abs(t - th) < .1 for th in hits) else ('setting down' if key.startswith('hermes') else 'CHECK')
+            out.append(f'turn     {key:12} angular velocity jumps {j:.0f} deg/s at {t:.2f} s ({why})')
+    return out
 
 
 def surface_lines(loc, f, r, u, fpx):
