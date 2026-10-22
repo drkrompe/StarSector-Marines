@@ -62,20 +62,34 @@ public final class ElevationLookSnapshotSuite implements SnapshotSuite {
                     "Per-cell face art and a per-cell shadow.");
             out.add(new SnapshotArtifact(view + "/a-tiles.png", a));
             BufferedImage b = look.shade(meadow, left, top, px,
-                    new ElevationGradientLook.Options(true, false, false, .6f));
+                    new ElevationGradientLook.Options(true, false, ElevationGradientLook.RampStyle.NONE, .6f));
             ElevationOptionsSnapshotSuite.caption(b, "B. Gradients",
                     "One smooth height surface: slope shading, rock on steep ground, dark foot, lit rim, soft shadow.");
             out.add(new SnapshotArtifact(view + "/b-gradient.png", b));
             BufferedImage c = look.shade(meadow, left, top, px,
-                    new ElevationGradientLook.Options(true, true, true, .6f));
+                    new ElevationGradientLook.Options(true, true, ElevationGradientLook.RampStyle.BANDS, .6f));
             ElevationOptionsSnapshotSuite.caption(c, "C. Gradients with scree and ramp steps (recommended)",
                     "As B, plus loose stones thickening on slopes and at the foot, and compacted steps across ramps.");
             out.add(new SnapshotArtifact(view + "/c-gradient-scree.png", c));
             BufferedImage d = look.shade(tiles, left, top, px,
-                    new ElevationGradientLook.Options(false, true, true, 0f));
+                    new ElevationGradientLook.Options(false, true, ElevationGradientLook.RampStyle.BANDS, 0f));
             ElevationOptionsSnapshotSuite.caption(d, "D. Cliff tiles under the gradients and scree",
                     "The shipped rock faces kept, softened by the same shading, stones and ramp steps.");
             out.add(new SnapshotArtifact(view + "/d-tiles-gradient-scree.png", d));
+            String[][] rampLooks = {
+                    {"GRADED", "Ramp A. Graded earth with stone walls",
+                            "Over the cliff tiles: packed earth dark at the foot, light at the head; stone walls taper as the floor climbs."},
+                    {"TRACK", "Ramp B. Worn track (recommended)",
+                            "As A, with two ruts worn up the floor by boots and wheels, pointing the way up."},
+                    {"STAIRS", "Ramp C. Cut stone steps",
+                            "A shadowed riser and a lit tread every half cell: reads strongest, but says feet, not wheels."}};
+            for (String[] rampLook : rampLooks) {
+                // Over the shipped cliff tiles (A), the owner's pick for the cliffs.
+                BufferedImage ramp = look.paintRamps(ElevationSnapshotSuite.sunlit(tiled, tiles, left, top, px),
+                        left, top, px, ElevationGradientLook.RampStyle.valueOf(rampLook[0]));
+                ElevationOptionsSnapshotSuite.caption(ramp, rampLook[1], rampLook[2]);
+                out.add(new SnapshotArtifact(view + "/ramp-" + rampLook[0].toLowerCase() + ".png", ramp));
+            }
         }
         return out;
     }
