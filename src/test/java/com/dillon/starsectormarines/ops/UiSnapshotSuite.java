@@ -2820,7 +2820,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                     MechLabDollCanvas::headlessAssets));
                 }
             }
-            for (MechLabViewModel.SlotRow row : viewModel.slotRows().get()) {
+            for (MechLabViewModel.SlotRow row : viewModel.selectedSlotRows().get()) {
                 document.canvases().set(instance.requireElement(row.gridId()),
                         new MechEquipmentGridCanvas(
                                 () -> viewModel.socketDefinition(row.socketId()),
@@ -3435,7 +3435,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         viewModel.putRepairProps(props);
         props.put("leftSlotRows", viewModel.leftSlotRows());
         props.put("rightSlotRows", viewModel.rightSlotRows());
-        props.put("slotRows", viewModel.slotRows());
+        props.put("slotRows", viewModel.selectedSlotRows());
         props.put("selectedSlotTitle", viewModel.selectedSlotTitle());
         props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
         props.put("selectedSlotRule", viewModel.selectedSlotRule());

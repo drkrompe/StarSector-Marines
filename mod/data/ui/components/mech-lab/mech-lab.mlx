@@ -178,7 +178,6 @@
                         <canvas id="{slot.gridId}" class="slot-grid" width="180" height="112" />
                       </div>
                     </button>
-                    <button id="{slot.stripId}" class="{slot.stripClasses}" disabled="{slot.stripDisabled}" onclick="{slot.stripAction}">X</button>
                   </div>
                 </div>
               </div>
@@ -355,8 +354,6 @@
   .slot-type { height: 15px; }
   .slot-hardware { flex-direction: column; align-items: center; width: 62px; height: 66px; gap: 4px; }
   .slot-grid { width: 58px; height: 44px; border-width: 1px; }
-  .slot-strip-action { position: absolute; left: 306px; top: 36px; font-family: heading; width: 16px; height: 16px; padding: 0px; text-align: center; background-color: #2a1515cc; border-width: 1px; border-color: #8c3838; color: #e98b83; }
-  .slot-strip-action:hover { background-color: #451a1a; border-color: #ff6e6e; }
   .mech-lab-feedback { height: 18px; padding: 6px 9px; border-width: 1px; overflow: hidden; }
   .mech-drag-ghost { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; pointer-events: none; }
   .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; }

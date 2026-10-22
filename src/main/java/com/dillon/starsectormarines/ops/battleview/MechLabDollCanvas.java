@@ -75,6 +75,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private final Supplier<MechWeaponComponent> candidateWeapon;
     private List<VacantGantryTarget> vacantGantryTargets = List.of();
     private List<SocketDropTarget> lastSocketTargets = List.of();
+    private List<StripTarget> lastStripTargets = List.of();
+    private static final float STRIP_SIZE = 14f;
+    private SocketId hoveredStrip;
     private DragPreview dragPreview;
     private SocketId hoveredSocket;
     private Function<SocketId, MechInternal> installedInternals = socket -> null;
@@ -220,6 +223,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     public void pointAt(float canvasX, float canvasY) {
         hoveredVacantGantry = vacantGantryAt(canvasX, canvasY);
         hoveredSocket = socketAt(canvasX, canvasY);
+        hoveredStrip = stripAt(canvasX, canvasY);
     }
 
     /** The socket dock target at this canvas-local point, or null outside all sockets. */
@@ -227,6 +231,16 @@ public final class MechLabDollCanvas implements CanvasProducer {
         if (!Float.isFinite(canvasX) || !Float.isFinite(canvasY)) return null;
         for (SocketDropTarget target : lastSocketTargets) {
             if (target.contains(canvasX, canvasY)) return target.id();
+        }
+        return null;
+    }
+
+    /** The socket whose strip X is at this canvas-local point, or null when no X is there. */
+    public SocketId stripAt(float canvasX, float canvasY) {
+        if (!Float.isFinite(canvasX) || !Float.isFinite(canvasY)) return null;
+        for (StripTarget target : lastStripTargets) {
+            if (canvasX >= target.left() && canvasX <= target.left() + STRIP_SIZE
+                    && canvasY >= target.top() && canvasY <= target.top() + STRIP_SIZE) return target.id();
         }
         return null;
     }
@@ -373,7 +387,29 @@ public final class MechLabDollCanvas implements CanvasProducer {
                     elapsedSeconds.getAsDouble());
         }
         lastSocketTargets = List.copyOf(targets);
+        List<StripTarget> strips = new ArrayList<>();
+        for (SocketDropTarget target : targets) {
+            SocketDef socket = layout.socket(target.id());
+            boolean removable = !socket.factoryLocked() && dragPreview == null
+                    && (weaponAt(deployment, socket.id()) != null
+                    || socket.id() == SocketId.MINI_FAB && installedInternals.apply(socket.id()) != null);
+            if (!removable) continue;
+            StripTarget strip = new StripTarget(socket.id(), target.right() - STRIP_SIZE - 4f, target.top() + 4f);
+            strips.add(strip);
+            boolean hot = hoveredStrip == socket.id();
+            c.fillRect(strip.left(), strip.top(), STRIP_SIZE, STRIP_SIZE,
+                    hot ? new Color(0x45, 0x1a, 0x1a, 235) : new Color(0x2a, 0x15, 0x15, 215));
+            Color ink = hot ? new Color(0xff, 0x6e, 0x6e) : new Color(0xe9, 0x8b, 0x83);
+            float inset = 3.5f;
+            c.line(strip.left() + inset, strip.top() + inset,
+                    strip.left() + STRIP_SIZE - inset, strip.top() + STRIP_SIZE - inset, ink, 1.5f);
+            c.line(strip.left() + STRIP_SIZE - inset, strip.top() + inset,
+                    strip.left() + inset, strip.top() + STRIP_SIZE - inset, ink, 1.5f);
+        }
+        lastStripTargets = List.copyOf(strips);
     }
+
+    private record StripTarget(SocketId id, float left, float top) { }
 
     static List<float[]> leaderDogLegPath(float anchorX, float anchorY, SocketDropTarget target) {
         float targetX;
