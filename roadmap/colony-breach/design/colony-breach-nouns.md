@@ -367,8 +367,8 @@ and claws at it on its strike cooldown (a Runner's blow is light, a Brute's
 heavy), and the gap a broken piece leaves is where the pack pours through. A
 prepared position is therefore assaulted head on rather than flanked, which is
 what makes it read as one. Ordinary yard fences elsewhere in the town stay walls.
-A hedgehog has no damage art of its own yet: damaged it stands as it is, and
-destroyed it lies as wrecked fence. Trucks do not break.
+A damaged hedgehog stands bent with a girder knocked loose; a destroyed one lies
+toppled flat and gives no cover. Trucks do not break.
 `-Dbattle.swarm.barricadeAssault=false` is the control: barricades are walls,
 and the swarm goes round.
 

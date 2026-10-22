@@ -304,6 +304,8 @@ public class BattleRenderer {
                 RenderSystem.of(RenderLayer.DOODADS, dressing::collectOver),
                 // Compartment doors stand in their doorways, over the floor and under the crew.
                 new RoomDoorRenderSystem(),
+                // A battle map's one-cell doorways hang hinged doors that swing for whoever walks through.
+                new SwingDoorRenderSystem(),
                 // Burnt ground under the creep, inside the ground's colour target.
                 scorch,
                 creep,
