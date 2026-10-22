@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.vision.FiringExposure;
 import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
@@ -68,8 +69,17 @@ public class InfantryWeapons {
     /** The battle's seeded stream — see {@code BattleSimulation.random()}. */
     private final Random rng;
 
+    /** Where a shot fired down off higher ground exposes its shooter. */
+    private final FiringExposure exposure;
+
     public InfantryWeapons(UnitRosterService roster, BallisticResolver resolver,
                            ShotService shots, NavigationGrid grid, Random rng) {
+        this(roster, resolver, shots, grid, rng, new FiringExposure());
+    }
+
+    public InfantryWeapons(UnitRosterService roster, BallisticResolver resolver,
+                           ShotService shots, NavigationGrid grid, Random rng, FiringExposure exposure) {
+        this.exposure = exposure;
         this.roster = roster;
         this.resolver = resolver;
         this.shots = shots;
@@ -296,6 +306,10 @@ public class InfantryWeapons {
         float moraleImpact = shooterType != null ? shooterType.moraleImpact : 1.0f;
         float fromX = world.renderX(shooter);
         float fromY = world.renderY(shooter);
+        // A shot down off higher ground gives the shooter away to the ground it fired on.
+        float toX = aim != null ? aim.x() : world.x(target), toY = aim != null ? aim.y() : world.y(target);
+        exposure.noteShot(grid, shooter, world.cellX(shooter), world.cellY(shooter),
+                (int) Math.floor(toX), (int) Math.floor(toY));
         for (BallisticResolver.Resolution res : resolutions) {
             roster.telemetry().recordRoundFired(shooter);
             if (res.victimId() != 0L && (!drill || res.victimId() == target)) {

@@ -39,6 +39,11 @@ public class ShotEvent {
     public float toZ;
     /** Optional simulation-owned curved flight; presentation never steers it. */
     public GuidedMissile guidedFlight;
+    /**
+     * Height of the drawn arc in cells when the round's own throw sets it rather
+     * than its weapon (a battery's long lob across the map); NaN for the weapon's.
+     */
+    public float arcHeightOverride = Float.NaN;
     /** Physical flight ending; a flameout does not create impact effects or audio. */
     public boolean flightResolved, flightImpact;
     /** Current physical flight guidance target, published for observed behavior evidence. */
@@ -274,4 +279,10 @@ public class ShotEvent {
                 : stopKind != BallisticResolver.StopKind.OVERSHOOT;
     }
 
+
+    /** Draws this round's arc at {@code cells} high instead of its weapon's, and returns it, so a factory can mark it inline. */
+    public ShotEvent withArcHeight(float cells) {
+        this.arcHeightOverride = cells;
+        return this;
+    }
 }

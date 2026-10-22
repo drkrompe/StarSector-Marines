@@ -60,6 +60,11 @@
       "render": { "visualCells": 2.0, "muzzleOffsetCells": 0.58, "sprite": "graphics/weapons/locust_turret.png" }
     },
     {
+      "id": "mount.battery-locust", "weapon": "weapon.battery-locust",
+      "sim": { "ammoCapacity": 999, "turnRateDegPerSec": 50.0 },
+      "render": { "visualCells": 2.8, "muzzleOffsetCells": 0.8, "sprite": "graphics/weapons/locust_turret.png" }
+    },
+    {
       "id": "mount.turret-heavy-mg", "weapon": "weapon.turret-heavy-mg",
       "sim": { "ammoCapacity": 200, "turnRateDegPerSec": 110.0 },
       "render": { "visualCells": 1.6, "muzzleOffsetCells": 0.58, "muzzleLateralOffsetCells": 0.13, "sprite": "graphics/weapons/vulcan_cannon_turret_base.png", "recoilSprite": "graphics/weapons/vulcan_cannon_turret_recoil.png" }
@@ -106,6 +111,7 @@
     { "id": "structure.turret-hephaestus", "mount": "mount.turret-hephaestus", "catalog": { "displayName": "Hephaestus Emplacement" }, "durability": { "structure": 90.0, "armorCapacity": 145.0, "armorRating": 14.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 16.0 },
     { "id": "structure.turret-grenade-launcher", "mount": "mount.turret-grenade-launcher", "catalog": { "displayName": "Grenade Launcher Emplacement" }, "durability": { "structure": 75.0, "armorCapacity": 120.0, "armorRating": 10.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 12.0 },
     { "id": "structure.turret-locust", "mount": "mount.turret-locust", "catalog": { "displayName": "Locust Emplacement" }, "durability": { "structure": 85.0, "armorCapacity": 135.0, "armorRating": 12.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 18.0 },
+    { "id": "structure.battery-locust", "mount": "mount.battery-locust", "catalog": { "displayName": "Locust Battery Emplacement" }, "durability": { "structure": 160.0, "armorCapacity": 220.0, "armorRating": 14.0 }, "physics": { "radius": 0.6, "hitHalfHeight": 0.7, "footprintCells": [1, 1] }, "forceScore": 24.0 },
     { "id": "structure.turret-heavy-mg", "mount": "mount.turret-heavy-mg", "catalog": { "displayName": "Heavy MG Emplacement" }, "durability": { "structure": 70.0, "armorCapacity": 110.0, "armorRating": 10.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 10.0 },
     { "id": "structure.deployable-field-mortar", "mount": "mount.field-mortar", "catalog": { "displayName": "Field Mortar" }, "durability": { "structure": 34.0, "armorCapacity": 16.0, "armorRating": 3.0 }, "physics": { "radius": 0.32, "hitHalfHeight": 0.3, "footprintCells": [1, 1] }, "forceScore": 5.0,
       "art": { "base": "graphics/structures/field-mortar-base.png" } },

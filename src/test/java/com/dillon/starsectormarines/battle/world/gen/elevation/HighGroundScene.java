@@ -37,6 +37,8 @@ public final class HighGroundScene implements BehaviorScene {
 
     private static final int TICKS = 1500;
     private static final int[] START = {4, 19};
+    /** Ticks the fog may trail an exposure by: it recasts every third tick. */
+    private static final int FOG_LAG_TICKS = 3;
     private static final int[] GOAL = {32, 19};
 
     @Override public String id() { return "high-ground"; }
@@ -65,6 +67,8 @@ public final class HighGroundScene implements BehaviorScene {
             for (int i = 0; i < marines.length; i++) previous[i] = cell(sim, marines[i], w);
             List<String> tierJumps = new ArrayList<>(), onFace = new ArrayList<>();
             int belowTicks = 0, backSeenFromBelow = 0, firstOnTop = -1, rimSeenFromBelow = 0;
+            // The fog recasts every third tick, so it trails an exposure starting and ending by up to that.
+            int sinceExposed = Integer.MAX_VALUE, exposedRun = 0, exposedTicks = 0, exposedSeen = 0;
             for (int tick = 0; tick < TICKS; tick++) {
                 sim.advance(BattleSimulation.TICK_DT);
                 boolean allBelow = true;
@@ -83,9 +87,17 @@ public final class HighGroundScene implements BehaviorScene {
                     }
                     previous[i] = now;
                 }
+                boolean exposed = sim.firingExposure().isExposed(backDefender);
+                sinceExposed = exposed ? 0 : sinceExposed == Integer.MAX_VALUE ? sinceExposed : sinceExposed + 1;
+                exposedRun = exposed ? exposedRun + 1 : 0;
                 if (allBelow && sim.world().isAlive(backDefender)) {
                     belowTicks++;
-                    if (revealed(sim, backDefender)) backSeenFromBelow++;
+                    boolean seen = revealed(sim, backDefender);
+                    if (seen && sinceExposed > FOG_LAG_TICKS) backSeenFromBelow++;
+                    if (exposedRun > FOG_LAG_TICKS) {
+                        exposedTicks++;
+                        if (seen) exposedSeen++;
+                    }
                     if (sim.world().isAlive(scene.unit("rim"))
                             && revealed(sim, scene.unit("rim"))) rimSeenFromBelow++;
                 }
@@ -110,11 +122,21 @@ public final class HighGroundScene implements BehaviorScene {
             verdicts.add(Verdict.of("back-from-the-rim-unseen-from-below",
                     elevation.sightRule() != ElevationMap.SightRule.SKYLINE || backSeenFromBelow == 0,
                     "defender back from the rim visible on " + backSeenFromBelow + " of " + belowTicks
-                            + " ticks with every marine below (" + elevation.sightRule() + ")"));
+                            + " ticks with every marine below and no shot down of its own just before ("
+                            + elevation.sightRule() + ")"));
+            // A shot down exposes the holder: the fog shows it to the ground it fired on (FiringExposure).
+            // Seen by whoever it could see down to and whose sight reaches it: at least once while exposed.
+            verdicts.add(Verdict.of("firing-down-reveals-the-shooter",
+                    exposedTicks == 0 || exposedSeen > 0,
+                    exposedTicks == 0 ? "the holder back from the rim never fired down (conditional: nothing to judge)"
+                            : "exposed by its own fire on " + exposedTicks + " ticks with every marine below, seen on "
+                            + exposedSeen));
             Map<String, Number> metrics = new LinkedHashMap<>();
             metrics.put("firstOnTopTick", firstOnTop);
             metrics.put("ticksAllBelow", belowTicks);
             metrics.put("rimDefenderSeenFromBelowTicks", rimSeenFromBelow);
+            metrics.put("backDefenderExposedTicks", exposedTicks);
+            metrics.put("backDefenderSeenWhileExposedTicks", exposedSeen);
             metrics.put("marinesAlive", alive(sim, marines));
             metrics.put("defendersAlive", alive(sim, new long[]{scene.unit("rim"), backDefender}));
             pathCost(metrics, map.grid, ElevationTestMaps.meadow(CellTopology.GroundKind.GRASS).grid);
@@ -169,7 +191,7 @@ public final class HighGroundScene implements BehaviorScene {
     }
 
     /** The top cell nearest a point that is (or, with {@code onRim} false, is not) on the rim. */
-    private static int[] nearest(ElevationMap elevation, int x, int y, boolean onRim) {
+    static int[] nearest(ElevationMap elevation, int x, int y, boolean onRim) {
         int w = elevation.width(), best = -1;
         double bestDistance = Double.MAX_VALUE;
         for (int i = 0; i < w * elevation.height(); i++) {

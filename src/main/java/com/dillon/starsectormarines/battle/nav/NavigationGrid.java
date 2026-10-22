@@ -281,6 +281,42 @@ public class NavigationGrid {
         losCaches.clearAll();
     }
 
+    /** Cells whose holder fired down from higher ground and is seen back for a while; null until one has. */
+    private boolean[] exposed;
+    private int[] exposedCells = new int[0];
+
+    /**
+     * The cells of holders exposed by firing down ({@code FiringExposure}),
+     * ascending. Sight and direct fire from lower ground to one of them are
+     * judged from its own height, as if looking down the line it fired
+     * along. Set once per tick, before anything reads sight, so the caches
+     * are swept only when the set changes.
+     */
+    public void setExposedCells(int[] cells, int count) {
+        if (count == exposedCells.length && Arrays.equals(cells, 0, count, exposedCells, 0, count)) return;
+        if (exposed == null) exposed = new boolean[width * height];
+        for (int idx : exposedCells) exposed[idx] = false;
+        exposedCells = Arrays.copyOf(cells, count);
+        for (int idx : exposedCells) exposed[idx] = true;
+        losCaches.clearAll();
+    }
+
+    /** Cells exposed by firing down this tick, ascending; see {@link #setExposedCells}. */
+    public int[] exposedCells() { return exposedCells; }
+
+    /**
+     * The tier sight and fire are judged from along a line from {@code (x0, y0)}
+     * to {@code (x1, y1)}: the observer's own, or the far cell's when that cell
+     * is an exposed holder standing higher.
+     */
+    private int sightEye(ElevationMap elevation, int x0, int y0, int x1, int y1) {
+        int eye = elevation.eyeTier(x0, y0);
+        if (exposed != null && inBounds(x1, y1) && exposed[index(x1, y1)]) {
+            eye = Math.max(eye, elevation.eyeTier(x1, y1));
+        }
+        return eye;
+    }
+
     /** This grid's swarm flow fields; see {@link SwarmFlowFields}. */
     public SwarmFlowFields swarmFlowFields() { return swarmFlowFields; }
 
@@ -1183,7 +1219,7 @@ public class NavigationGrid {
             return false;
         }
         ElevationMap elevation = this.elevation;
-        int eye = elevation == null ? 0 : elevation.eyeTier(x0, y0);
+        int eye = elevation == null ? 0 : sightEye(elevation, x0, y0, x1, y1);
         if (elevation != null && inBounds(x1, y1) && !elevation.visibleFrom(index(x1, y1), eye)) {
             return false;
         }
@@ -1547,7 +1583,7 @@ public class NavigationGrid {
         // it is loud now.
         int budget = Math.abs(endX - x) + Math.abs(endY - y);
         ElevationMap elevation = this.elevation;
-        int eye = elevation == null ? 0 : elevation.eyeTier(x, y);
+        int eye = elevation == null ? 0 : sightEye(elevation, x, y, endX, endY);
         if (elevation != null && excludeEnd && inBounds(endX, endY)
                 && !elevation.visibleFrom(index(endX, endY), eye)) {
             // Fire follows sight: a body the shooter cannot see up there is
