@@ -866,6 +866,16 @@ detour proof refuses optional scenery rather than cutting a route through it
 later, and preserves connectivity even for places a mission chooses after the
 map is generated. Existing disconnected ground is not repaired by this pass.
 
+A precinct plan may state its country through a **landscape** (`Landscape`):
+the share of wild ground that is wood (the stock city's is a little over half),
+**tracks** cleared to bare earth before the woods grow, and **brooks**, water
+meandering across the map with sand banks, crossed on foot at a sand ford at a
+fixed interval along their length. A track or brook is reserved from trees; a
+brook is unwalkable, see-through water that creep does not climb, so it is a
+natural firebreak and a creep line broken only at its fords and wherever a road
+or street crosses it. The heart's country is the first plan to state one
+(`heart-nouns.md`).
+
 Open countryside can gain small cliff-backed hills where their entire visible
 footprint fits, using the same terrain brush as authored hills. A map with an
 existing authored terrain plan retains that plan. Living worlds use grassy

@@ -22,8 +22,8 @@ import java.util.Locale;
 
 /**
  * The heart's overgrown country as generated (`bloom-mission-arc.md`, the
- * heart): both forms at tick zero, bores open and the bloom grown before the
- * battle, on several seeds. Whole map, then play zoom (32 px a cell) on the
+ * heart): both forms at tick zero, bores open and their creep matured as weeks
+ * old, on several seeds. Whole map, then play zoom (32 px a cell) on the
  * creep front ahead of the start line, a dead wood, the dark settlement, a
  * satellite bore, a mother bore, the heart 140 cells across and, where there is
  * one, the brook at a ford. Look evidence, 1920x1080.
@@ -124,7 +124,7 @@ public final class HeartCountrySnapshotSuite implements SnapshotSuite {
         List<Doodad> dead = new ArrayList<>();
         for (Doodad d : sim.getDoodads()) {
             if (CreepVegetation.canopy(d.definitionId()) == null) continue;
-            if (vegetation.diedAt(d.cellX, d.cellY) != CreepVegetation.ALIVE) dead.add(d);
+            if (vegetation.diedAt(d.cellX, d.cellY) >= 0) dead.add(d);
         }
         int[] best = null;
         int bestCount = -1;

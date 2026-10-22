@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.setup;
 
-import com.dillon.starsectormarines.battle.creep.BloomPregrowth;
 import com.dillon.starsectormarines.battle.evacuation.HeartBores;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
@@ -24,14 +23,12 @@ import java.util.Set;
  * <p>The country is {@link HeartCountry}, on a living world. Its places are
  * laid out, the map generated, and the heart's sites chosen on ground the start
  * line can walk to ({@link HeartBores}); a map that cannot seat them re-rolls
- * the seed. The bores open at tick zero already fed to maw and the bloom is
- * grown before the battle ({@link BloomPregrowth}), so the creep, the dead woods
- * and the fallen roofs are those bores' work.
+ * the seed. The bores open at tick zero already fed to maw and their creep is
+ * matured as creep weeks old ({@link BattleSimulation#matureCreep}), so the
+ * overgrowth, the dead woods and the fallen roofs are those bores' work.
  */
 public final class BloomHeartSetup {
 
-    /** Seconds of growth the heart has had before the battle: enough for every maw's creep to reach its limit, crust the walls it reached and kill the trees and roofs under it. */
-    public static final float BLOOM_SECONDS = 420f;
     private static final int ATTEMPTS = 8;
     private static final BspCityGenerator MAP_GEN = new BspCityGenerator();
     private static final long BORE_SALT = 0x4845_4152_5453_4954L;
@@ -43,13 +40,8 @@ public final class BloomHeartSetup {
         return new TargetProfile(0, 0, 0, 0, "", Set.of(), SurfacePalette.VERDANT, SettlementLink.ROAD);
     }
 
-    /** The heart's country, bores and grown bloom, at tick zero. */
+    /** The heart's country, bores and matured bloom, at tick zero. */
     public static Built country(Form form, long seed) {
-        return country(form, seed, BLOOM_SECONDS);
-    }
-
-    /** As {@link #country(Form, long)}, with the bloom grown for {@code bloomSeconds}. */
-    public static Built country(Form form, long seed, float bloomSeconds) {
         TargetProfile profile = verdant();
         for (int attempt = 0; attempt < ATTEMPTS; attempt++) {
             long battleSeed = seed + attempt * 0x9E3779B97F4A7C15L;
@@ -65,7 +57,7 @@ public final class BloomHeartSetup {
                     Collections.emptyList(), battleSeed).sim();
             sim.setSurface(profile.surface());
             heart.open(sim);
-            BloomPregrowth.age(sim, bloomSeconds);
+            sim.matureCreep();
             return new Built(sim, map, plan, heart, battleSeed);
         }
         throw new IllegalStateException("no heart country of form " + form + " seated its bores in "

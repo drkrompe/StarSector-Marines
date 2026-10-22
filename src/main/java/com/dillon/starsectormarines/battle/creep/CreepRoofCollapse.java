@@ -51,8 +51,6 @@ public final class CreepRoofCollapse {
     public static final float SPREAD_JITTER_SECONDS = 4f;
 
     static final int TICKS_PER_SECOND = 30;
-    /** A cell's fall tick while it stands; not {@code -1}, because a bloom grown before the battle brings roofs down before tick zero. */
-    private static final int NEVER = Integer.MIN_VALUE;
 
     /** What the rule reads of the map and the creep. Coordinates are always in bounds. */
     public interface Cells {
@@ -105,6 +103,32 @@ public final class CreepRoofCollapse {
     }
 
     /**
+     * Brings down at once every roof standing over living creep, for creep that
+     * has been matured at setup ({@link BattleSimulation#matureCreep}): weeks
+     * of creep is far past any cell's hold, so a settlement the bloom has held
+     * stands open to the sky when the battle starts rather than caving in during
+     * its first minute. Returns the roof cells brought down. The battle's own
+     * rule then counts them as fallen on its first look, as it does a roof a
+     * shell took.
+     */
+    public static int matureOn(BattleSimulation sim) {
+        if ("false".equalsIgnoreCase(System.getProperty(PROPERTY))) return 0;
+        CreepField field = sim.creepFieldIfPresent();
+        if (field == null || field.isEmpty()) return 0;
+        CellTopology topology = sim.getTopology();
+        MapEditor editor = sim.mapEditor();
+        int width = topology.getWidth(), height = topology.getHeight(), fell = 0;
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (topology.getBuildingId(x, y) == 0 || topology.isRoofDestroyed(x, y) || !field.isCreeped(x, y)) continue;
+                editor.destroyRoof(x, y);
+                fell++;
+            }
+        }
+        return fell;
+    }
+
+    /**
      * One look at the battle's creep at {@code tick}, whatever the battle's own
      * clock: for a review that advances the creep field alone. No-op while there
      * is no creep.
@@ -145,7 +169,7 @@ public final class CreepRoofCollapse {
         if (candidates == null) index(cells, width, height);
         for (int i = 0; i < candidates.length; i++) {
             int idx = candidates[i];
-            if (fellAt[idx] != NEVER) continue;
+            if (fellAt[idx] >= 0) continue;
             int x = idx % width, y = idx / width;
             if (cells.roofGone(x, y)) {
                 // Fallen to something else (a shell, a breach): the creep spreads from it all the same.
@@ -185,7 +209,7 @@ public final class CreepRoofCollapse {
         candidates = Arrays.copyOf(found, count);
         held = new int[count];
         fellAt = new int[width * height];
-        Arrays.fill(fellAt, NEVER);
+        Arrays.fill(fellAt, -1);
     }
 
     private static boolean besideCrust(Cells cells, int x, int y, int width, int height) {
@@ -206,7 +230,7 @@ public final class CreepRoofCollapse {
     }
 
     private static int earliestOf(int earliest, int fell) {
-        return fell != NEVER ? Math.min(earliest, fell) : earliest;
+        return fell >= 0 ? Math.min(earliest, fell) : earliest;
     }
 
     /** A seeded share in [0, 1) for one cell and one use. */

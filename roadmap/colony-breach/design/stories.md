@@ -16,6 +16,7 @@ once the spine, bores and strains have landed.
 
 Movements 2 and 3 of the Rav Bloom arc (the defence, the heart) are directed in
 `bloom-mission-arc.md`. Movement 2, the Cordon, has its own feature:
-`cordon-nouns.md` and `roadmap/cordon/design/stories.md`.
+`cordon-nouns.md` and `roadmap/cordon/design/stories.md`. Movement 3, the
+heart, has its own too: `heart-nouns.md` and `roadmap/heart/design/stories.md`.
 
 Preview page media: producers follow `preview-contract.md`.

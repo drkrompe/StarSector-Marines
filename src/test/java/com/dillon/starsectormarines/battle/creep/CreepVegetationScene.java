@@ -209,7 +209,7 @@ public final class CreepVegetationScene implements BehaviorScene {
                         new CreepVegetation.Tree(0, 0, tree.crown, tree.trunk, 0), field);
                 for (int cell : tree.crown) if (field.coverageAt(cell) > 0) touched[t] = true;
                 int died = vegetation.diedAt(tree.placed.cellX, tree.placed.cellY);
-                if (died != CreepVegetation.ALIVE && !seenDead[t]) {
+                if (died >= 0 && !seenDead[t]) {
                     seenDead[t] = true;
                     dead++;
                     if (firstDeath < 0) firstDeath = died;
@@ -247,7 +247,7 @@ public final class CreepVegetationScene implements BehaviorScene {
         private boolean opensNow(CreepVegetation vegetation, int cell) {
             for (int owner : owners.get(cell)) {
                 Tree tree = trees.get(owner);
-                if (vegetation.diedAt(tree.placed.cellX, tree.placed.cellY) == CreepVegetation.ALIVE) return false;
+                if (vegetation.diedAt(tree.placed.cellX, tree.placed.cellY) < 0) return false;
                 for (int i = 0; i < tree.crown.length; i++) if (tree.crown[i] == cell && tree.trunk[i]) return false;
             }
             return true;

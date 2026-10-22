@@ -21,8 +21,8 @@ import java.util.Random;
  * from, a settlement that went dark weeks ago in the middle of the map, and the
  * reservoir's old workings at the far edge, where the heart's mother bores
  * stand. Woods fill the rest. The bloom itself is not painted on: the heart's
- * bores are opened at setup and their creep grown before the battle
- * ({@code BloomPregrowth}), so the overgrowth is what those bores made of this
+ * bores are opened at setup and their creep matured as weeks old
+ * ({@code BattleSimulation.matureCreep}), so the overgrowth is what those bores made of this
  * country.
  *
  * <p>One plan, two shapes, because the two ways of fighting the heart want

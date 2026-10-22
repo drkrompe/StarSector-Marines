@@ -80,7 +80,6 @@ public record HeartBores(List<Site> sites) {
         boolean[] reachable = reachableFrom(grid, start);
         if (reachable == null) return null;
         SplittableRandom rng = new SplittableRandom(seed ^ SALT);
-        int width = grid.getWidth(), height = grid.getHeight();
         List<Site> sites = new ArrayList<>();
         int mothers = 2 + rng.nextInt(2);
         for (int m = 1; m <= mothers; m++) {

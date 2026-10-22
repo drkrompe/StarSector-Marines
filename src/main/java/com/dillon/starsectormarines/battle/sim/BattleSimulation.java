@@ -757,13 +757,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (creepVegetation == null) creepVegetation = new CreepVegetation(generationSeed ^ BORE_SEED_SALT);
         return creepVegetation;
     }
-    /** The creep's weight on the battle's roofs, created on first use; the battle's own, so a bloom grown before it is remembered. */
-    public CreepRoofCollapse creepRoofs() {
-        if (creepRoofs == null) creepRoofs = new CreepRoofCollapse(generationSeed ^ BORE_SEED_SALT);
-        return creepRoofs;
-    }
-    /** Brings the creep field's sources in line with the bores now, as the tick does after the bores; for growing a bloom before the battle. */
-    public void syncBoreCreep() { boreCreep.sync(this); }
     /**
      * The battle's hive creep, created on first use by whatever declares a
      * source (a bore, a scene); call only from the simulation thread.
@@ -823,7 +816,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public SwarmPackPlans swarmPackPlans() { return swarmPackPlans; }
     /**
      * Declares the open bores' creep and grows it to full at once, as creep
-     * that has stood for weeks; the trees it holds die. Setup only
+     * that has stood for weeks; the trees it holds die and the roofs it stands
+     * under have caved in. Setup only
      * ({@code cordon-nouns.md}, The map).
      */
     public void matureCreep() {
@@ -832,6 +826,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (creep == null) return;
         creep.mature();
         creepVegetation().look(this, 0);
+        // Weeks under the creep is far past any roof's hold: what it stands on has caved in.
+        CreepRoofCollapse.matureOn(this);
     }
     /** From the tremor on, the swarm director spawns only from living bores. */
     public void beginSwarmBoreSourcing() { swarmReinforcements.beginBoreSourcing(swarmBores); }
@@ -3657,7 +3653,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         creepOutposts.tick(this);
         groundColonies.tick(this);
         if (creep != null) {
-            creepRoofs().tick(this);
+            if (creepRoofs == null) creepRoofs = new CreepRoofCollapse(generationSeed ^ BORE_SEED_SALT);
+            creepRoofs.tick(this);
             creepVegetation().tick(this);
         }
         // After the creep, so a cell catching this tick burns the creep as it now stands;
