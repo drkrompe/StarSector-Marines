@@ -13,6 +13,7 @@
     python battle_blockout.py --half          # render at half size (a light check; labels drawn at full size)
     python battle_blockout.py --stage-only    # build and pose the scene in Blender, render nothing (a pre-flight)
     python battle_blockout.py --stage-only --los   # ... and ray-cast every shot: does the round meet its target?
+    python battle_blockout.py --motion-preview   # the whole sequence in Workbench, an MP4 to judge motion (asharu_preview.py)
 
 A frame already finished in the run folder (its PNG, its labels, and the same samples and source)
 is not rendered again, so a job stopped part-way resumes where it stopped. Pass --run with a fixed
@@ -1482,6 +1483,10 @@ def blender_main(cfg):
                 else:
                     lab[key] = ship_label(key)
             labels[kf] = lab
+            if cfg.get('motion_preview'):     # --motion-preview: play this shot in Workbench (asharu_preview.py)
+                import asharu_preview
+                asharu_preview.shot(locals(), kf)
+                continue
         else:
             labels[kf] = roster_sheet(kf)
         if cfg.get('stage_only'):                 # --stage-only: build and pose every hull, render nothing
@@ -1998,6 +2003,10 @@ def main():
         started.write_text(opt('--date', date.today().isoformat()))   # a queue round pins one date
     run_date = started.read_text().strip()
     samples = int(opt('--samples', 48))
+    if '--motion-preview' in argv:  # the sequence as a cheap motion preview (asharu_preview.py)
+        import asharu_preview
+        asharu_preview.main(argv, run, run_date)
+        return
     if '--fx-check' in argv:        # per-ship effects: stage the cued frames under the kit, no render
         if '--frames' not in argv:
             frames = [kf for kf in KEYFRAMES if KEYFRAMES[kf].get('cues')]
