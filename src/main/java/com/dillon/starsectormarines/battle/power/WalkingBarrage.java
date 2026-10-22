@@ -134,6 +134,7 @@ public final class WalkingBarrage {
             PendingDetonation round = new PendingDetonation(CombatTelemetryService.NO_ATTACKER, x, y,
                     shell.flightSeconds(), shell.radius(), shell.damage(), shell.penetration(), shell.wallDamage(),
                     side, true, shell.radius() * 0.75f, true, false);
+            round.asUnmarked();
             if (line.heat() > 0) round.incendiary(line.heat());
             sim.getCommandPowerService().addFireMission(round);
             fired++;

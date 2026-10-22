@@ -1155,7 +1155,10 @@ support sortie, subject only to practical runtime resources.
 - The fitting header names the pad by its letter. Navigation wraps across the four physical pads; arriving
   at a vacant pad clears the chassis selection and exposes fabrication patterns rather
   than rendering chassis controls against nothing. Lance browsing remains a
-  separate direct-jump surface.
+  separate direct-jump surface, and it is pictures first: each lance shows one
+  lettered tile per pad (the chassis or vehicle standing there, or an empty pad), and
+  the selected lance lists every pad as a card with its thumbnail, vacant pads included
+  as BUILD cards, so what a lance lacks reads as plainly as what it holds.
 - Fabrication spends three ordinary player-fleet materials: metals, heavy machinery
   and transplutonics (the base game's `rare_metals`). The lab spends no supplies.
   **Hardware is priced, not authored.** A weapon is worth its mass (footprint, tier

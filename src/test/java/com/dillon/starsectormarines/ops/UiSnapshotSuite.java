@@ -102,6 +102,8 @@ import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.ops.battleview.MechLabCameraController;
 import com.dillon.starsectormarines.ops.battleview.MechChassisPreviewCanvas;
+import com.dillon.starsectormarines.ops.battleview.LanceSlotCanvas;
+import com.dillon.starsectormarines.ops.battleview.VehiclePreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechEquipmentGridCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechHardwareSheetCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
@@ -2802,11 +2804,25 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     .withSideShift(() -> camera.pose().sideShift());
             fittingCanvas.installedInternals(viewModel::installedInternal);
             document.canvases().set(instance.requireElement("mech-doll-canvas"), fittingCanvas);
+            for (MechLabViewModel.SquadRow squad : viewModel.squadRows().get()) {
+                for (MechLabViewModel.LanceSlot slot : squad.slots()) {
+                    document.canvases().set(instance.requireElement(slot.id()), new LanceSlotCanvas(
+                            slot.letter(), slot.variant(), slot.vehicle(), MechLabDollCanvas::headlessAssets));
+                }
+            }
+            for (MechLabViewModel.MechRow row : viewModel.mechRows().get()) {
+                document.canvases().set(instance.requireElement(row.previewId()), new LanceSlotCanvas(
+                        row.letter(), row.variant(), row.vehicle(),
+                        MechLabDollCanvas::headlessAssets));
+            }
             for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
                 if (row.chassisPreview() != null) {
                     document.canvases().set(instance.requireElement(row.previewId()),
                             new MechChassisPreviewCanvas(
                                     row.chassisPreview(), MechLabDollCanvas::headlessAssets));
+                } else if (row.vehiclePreview() != null) {
+                    document.canvases().set(instance.requireElement(row.previewId()),
+                            new VehiclePreviewCanvas(row.vehiclePreview()));
                 } else if (row.weaponPreview() != null || row.replenisherPreview() != null
                         || row.internalPreview() != null) {
                     document.canvases().set(instance.requireElement(row.previewId()),

@@ -979,7 +979,7 @@ class MechLabViewModelTest {
         clock[0] = 10d + mech.repairDaysRemaining(10f) + 1d;
         viewModel.refreshTime();
         assertTrue(viewModel.repair().get().classes().contains("hidden"));
-        assertEquals("OPEN GANTRY", viewModel.mechRows().get().get(0).status());
+        assertEquals("OPEN PAD", viewModel.mechRows().get().get(0).status());
     }
 
     @Test
