@@ -60,7 +60,7 @@ class MechPatternPickerTest {
         assertEquals(MechPattern.offerable().size(), drawn.size());
 
         Set<String> held = Set.of(MechPattern.of(MechVariant.BULWARK).id(),
-                MechPattern.of(MechWeaponComponent.DUAL_PULSE_LASERS).id());
+                MechPattern.of(MechWeaponComponent.PULSE_LASER).id());
         List<String> remaining = MechPatternPicker.pick("tritachyon",
                 FactionEquipmentSource.PATRON, 100, 7L, held, VETERAN);
         assertTrue(remaining.stream().noneMatch(held::contains));

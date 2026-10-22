@@ -11,8 +11,9 @@ import com.dillon.starsectormarines.battle.combat.BodyPlan;
  *
  * <p>Bands stack legs, torso, shoulders, head from the feet up ({@link #bodyPlan()}), so the
  * ballistic height a round arrives at picks the band exactly as it picks a marine's part. Two
- * bands split further: a torso-height hit lands on the arms mount with the plan's
- * {@link #armShare}, and a shoulder-height hit lands on the shoulder on the side the round came
+ * bands split further: a torso-height hit lands on an arm mount with the plan's
+ * {@link #armShare} (on a two-armed chassis, the arm on the side the round came from), and a
+ * shoulder-height hit lands on the shoulder on the side the round came
  * from. A chassis that draws a lone shoulder pod on its centreline ({@link #centresLonePod})
  * takes every shoulder-height hit on it, whichever side the round came from.
  *
@@ -44,21 +45,21 @@ public final class MechBodyPlan {
     /** Light assault: long legs, a nose chaingun on the centreline, one centred pod. */
     public static final MechBodyPlan HOUND = new MechBodyPlan("hound",
             0.35f, 0.40f, 0.17f, 0.08f, 0.30f,
-            new float[] {0.22f, 0.50f, 0.10f, 0.06f, 0.06f, 0.06f}, true);
+            new float[] {0.22f, 0.50f, 0.10f, 0f, 0f, 0.06f, 0.06f, 0.06f}, true);
 
     // A head holds about the share of hits its band takes (the Hound's 0.06 against 0.08 of hits):
     // a bigger head pool is armor and structure no fire reaches before the torso goes, which only
     // makes the machine die further below its whole-body time. MechTimeToKillScene measures it.
 
-    /** Heavy support: twin arm chainguns out wide, a pod on each shoulder. */
+    /** Heavy support: a gun on each arm out wide, a pod on each shoulder. */
     public static final MechBodyPlan BULWARK = new MechBodyPlan("bulwark",
             0.35f, 0.40f, 0.18f, 0.07f, 0.40f,
-            new float[] {0.22f, 0.46f, 0.12f, 0.07f, 0.07f, 0.06f}, false);
+            new float[] {0.22f, 0.46f, 0f, 0.06f, 0.06f, 0.07f, 0.07f, 0.06f}, false);
 
     /** Long-range support: one heavy cannon, an LRM rack on each shoulder. */
     public static final MechBodyPlan SIROCCO = new MechBodyPlan("sirocco",
             0.33f, 0.40f, 0.20f, 0.07f, 0.25f,
-            new float[] {0.20f, 0.48f, 0.10f, 0.08f, 0.08f, 0.06f}, false);
+            new float[] {0.20f, 0.48f, 0.10f, 0f, 0f, 0.08f, 0.08f, 0.06f}, false);
 
     private final String id;
     private final BodyPlan bodyPlan;
@@ -154,7 +155,10 @@ public final class MechBodyPlan {
             return MechSection.TORSO;
         }
         if (band == torso) {
-            return armRoll < armShare && fitted[MechSection.ARMS.ordinal()] ? MechSection.ARMS : MechSection.TORSO;
+            if (armRoll >= armShare) return MechSection.TORSO;
+            if (fitted[MechSection.ARMS.ordinal()]) return MechSection.ARMS;
+            MechSection nearArm = fromLeft ? MechSection.LEFT_ARM : MechSection.RIGHT_ARM;
+            return fitted[nearArm.ordinal()] ? nearArm : MechSection.TORSO;
         }
         throw new IllegalArgumentException(id + ": " + band + " is not one of this plan's bands");
     }

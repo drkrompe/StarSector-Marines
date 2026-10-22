@@ -73,6 +73,10 @@ public final class MechLabViewModel {
     private final MutableSignal<String> feedbackText;
     private final MutableSignal<String> feedbackClasses;
     private final MutableSignal<CategoryFilter> catalogFilter;
+    /** The build catalog's weight filter on a vacant pad; null shows every class. */
+    private final MutableSignal<MechPattern.WeightClass> weightFilter;
+    /** The machine a first press of SCRAP armed; any other selection disarms it. */
+    private final MutableSignal<String> scrapArmedId;
     private final MutableSignal<MechWeaponComponent> hoveredWeapon;
     /** A catalog internal under the pointer, previewed on the meters and the budget. */
     private final MutableSignal<MechInternal> hoveredInternal;
@@ -117,6 +121,11 @@ public final class MechLabViewModel {
     private final ComputedSignal<String> overviewRailClasses;
     private final ComputedSignal<String> garageTitle;
     private final ComputedSignal<Repair> repair;
+    private final ComputedSignal<String> garageStatus;
+    private final ComputedSignal<String> dragNoteTitle;
+    private final ComputedSignal<String> dragNoteCopy;
+    private final ComputedSignal<String> scrapLabel;
+    private final ComputedSignal<String> scrapClasses;
 
     private int physicalGantries = CampaignMechSquad.CAPACITY;
 
@@ -179,6 +188,8 @@ public final class MechLabViewModel {
                 Strings.get("openingMechLabSelectAnOccupiedGantryToRefitOr"));
         feedbackClasses = reactor.signal("mech-lab-feedback tone-muted surface-dark");
         catalogFilter = reactor.signal(CategoryFilter.ALL);
+        weightFilter = reactor.signal(null);
+        scrapArmedId = reactor.signal(null);
         hoveredWeapon = reactor.signal(null);
         hoveredInternal = reactor.signal(null);
         platingSelected = reactor.signal(false);
@@ -193,15 +204,15 @@ public final class MechLabViewModel {
             int index = selectedGantryIndex();
             boolean occupied = selectedMech() != null || selectedVehicle() != null
                     || gantryOccupied(selectedSquad(), index);
-            return String.format(Strings.locale(), Strings.get("openingMechLabGantryDDS"), index + 1,
-                    physicalGantries, occupied ? "" : Strings.get("openingMechLabVacant"));
+            return String.format(Strings.locale(), Strings.get("openingMechLabGantryDDS"), padLetter(index),
+                    occupied ? "" : Strings.get("openingMechLabVacant"));
         });
         selectedMechName = reactor.computed(() -> {
             CampaignMech mech = selectedMech();
             CampaignVehicle vehicle = selectedVehicle();
             if (vehicle != null) return vehicle.displayName();
             return mech != null ? mech.displayName() : fabricatingChassis()
-                    ? String.format(Strings.locale(), Strings.get("openingMechLabVacantGantryD"), selectedGantryIndex() + 1)
+                    ? String.format(Strings.locale(), Strings.get("openingMechLabVacantGantryD"), padLetter(selectedGantryIndex()))
                     : Strings.get("openingMechLabNoAssetSelected");
         });
         selectedMechNameClasses = reactor.computed(() -> selectedAssetName() == null
@@ -256,9 +267,9 @@ public final class MechLabViewModel {
                 : platingSelected.get() ? "plating-select console-action selected"
                 : "plating-select console-action");
         leftSlotRows = reactor.computed(() -> buildSlots(List.of(
-                SocketId.CORE, SocketId.ARMS, SocketId.LEFT_SHOULDER)));
+                SocketId.CORE, SocketId.ARMS, SocketId.LEFT_ARM, SocketId.LEFT_SHOULDER)));
         rightSlotRows = reactor.computed(() -> buildSlots(List.of(
-                SocketId.RIGHT_SHOULDER, SocketId.CAPACITORS, SocketId.MINI_FAB)));
+                SocketId.RIGHT_ARM, SocketId.RIGHT_SHOULDER, SocketId.CAPACITORS, SocketId.MINI_FAB)));
         slotRows = reactor.computed(() -> {
             CampaignMech mech = selectedMech();
             if (mech == null) return List.of();
@@ -298,8 +309,41 @@ public final class MechLabViewModel {
         overviewRailClasses = reactor.computed(() -> fittingFocused.get()
                 ? "overview-rail hidden" : "overview-rail");
         garageTitle = reactor.computed(() -> fittingFocused.get()
-                ? activeGantryLabel.get() : Strings.get("openingMechLabActiveLanceAllGantries"));
+                ? activeGantryLabel.get() : String.format(Strings.locale(),
+                        Strings.get("openingMechLabActiveLanceAllGantries"), padLetter(Math.max(0, physicalGantries - 1))));
         repair = reactor.computed(this::buildRepair);
+        garageStatus = reactor.computed(() -> {
+            revision.get();
+            if (!fittingFocused.get()) return Strings.get("openingMechLabStatusSelectAPad");
+            if (fabricatingChassis()) return Strings.get("openingMechLabStatusChooseAMachine");
+            if (selectedVehicle() != null) return Strings.get("openingMechLabStatusVehicleFit");
+            return Strings.get("openingUiMechLabSelectMountDragToFit");
+        });
+        dragNoteTitle = reactor.computed(() -> {
+            revision.get();
+            if (fabricatingChassis()) return Strings.get("openingMechLabBuildAMachine");
+            if (selectedVehicle() != null) return Strings.get("openingMechLabVehicleNoteTitle");
+            return Strings.get("openingUiMechLabDragHardwareToAMount");
+        });
+        dragNoteCopy = reactor.computed(() -> {
+            revision.get();
+            if (fabricatingChassis()) return Strings.get("openingMechLabBuildAMachineCopy");
+            if (selectedVehicle() != null) return Strings.get("openingMechLabVehicleNoteCopy");
+            return Strings.get("openingUiMechLabDropFittedWeaponsHereToReturnTo");
+        });
+        scrapLabel = reactor.computed(() -> {
+            revision.get();
+            String armed = scrapArmedId.get();
+            return armed != null && armed.equals(selectedMachineId())
+                    ? Strings.get("openingMechLabScrapConfirm") : Strings.get("openingMechLabScrap");
+        });
+        scrapClasses = reactor.computed(() -> {
+            revision.get();
+            if (!fittingFocused.get() || selectedMachineId() == null) return "hidden";
+            String armed = scrapArmedId.get();
+            return armed != null && armed.equals(selectedMachineId())
+                    ? "garage-scrap console-action armed" : "garage-scrap console-action";
+        });
     }
 
     public void resumeCampaignLesson() {
@@ -398,6 +442,14 @@ public final class MechLabViewModel {
     public Signal<String> slotRackClasses() { return slotRackClasses; }
     public Signal<String> overviewRailClasses() { return overviewRailClasses; }
     public Signal<String> garageTitle() { return garageTitle; }
+    public Signal<String> garageStatus() { return garageStatus; }
+    public Signal<String> dragNoteTitle() { return dragNoteTitle; }
+    public Signal<String> dragNoteCopy() { return dragNoteCopy; }
+    public Signal<String> scrapLabel() { return scrapLabel; }
+    public Signal<String> scrapClasses() { return scrapClasses; }
+    public Runnable scrapAction() { return this::scrapSelected; }
+    public Signal<MechPattern.WeightClass> weightFilter() { return weightFilter; }
+    public void setWeightFilter(MechPattern.WeightClass weight) { weightFilter.set(weight); }
     public Runnable openAssetPickerAction() { return this::openAssetPicker; }
     public Runnable closeAssetPickerAction() { return this::closeAssetPicker; }
     public Runnable previousGantryAction() { return this::previousGantry; }
@@ -794,7 +846,7 @@ public final class MechLabViewModel {
                     base + ":detail", mech != null && heldBack(mech)
                             ? "overview-gantry occupied held-back"
                             : occupied ? "overview-gantry occupied" : "overview-gantry vacant",
-                    String.format(Strings.locale(), Strings.get("openingMechLabGantryD"), index + 1),
+                    String.format(Strings.locale(), Strings.get("openingMechLabGantryD"), padLetter(index)),
                     mech != null ? mech.displayName() : vehicle != null ? vehicle.displayName()
                             : Strings.get("openingMechLabVacant2"),
                     mech != null && heldBack(mech) ? readinessText(mech)
@@ -835,8 +887,7 @@ public final class MechLabViewModel {
         // The stock frame: the chassis's roll-out weapons on its stock internals. A bar shows that
         // much in its part's shade and what the fit adds past it (or falls short of it) beyond.
         MechVariant variant = mech.variant();
-        MechFrameBudget.Fit stock = new MechFrameBudget.Fit(variant, variant.arms, variant.leftShoulder,
-                variant.rightShoulder, null, null, null, null);
+        MechFrameBudget.Fit stock = MechFrameBudget.Fit.stock(variant);
 
         return List.of(
                 meter("armor", Strings.get("openingMechLabArmor"), Strings.format("openingMechLabPlate", Math.round(armor)),
@@ -965,7 +1016,7 @@ public final class MechLabViewModel {
             case MINI_FAB -> Strings.get("openingMechLabUtilityCopy");
             case CORE -> Strings.get("openingMechLabEngineCopy");
             case CAPACITORS -> Strings.get("openingMechLabCapacitorBankCopy");
-            case ARMS, LEFT_SHOULDER, RIGHT_SHOULDER ->
+            case ARMS, LEFT_ARM, RIGHT_ARM, LEFT_SHOULDER, RIGHT_SHOULDER ->
                     slotComponent(mech, selectedSlot.get()).equals(Strings.get("openingMechLabEmptyHardpoint"))
                             ? Strings.get("openingMechLabEmptyMountFitCompatibleMissileHardwareHere")
                             : Strings.get("openingMechLabInstalledWeaponAssemblySocketTypeAndCapacity");
@@ -1111,8 +1162,10 @@ public final class MechLabViewModel {
         CampaignMechSquad squad = selectedSquad();
         boolean hasSpace = squad != null && squad.occupied() < physicalGantries && bay.canAddMech(squad.id());
         List<CatalogRow> rows = new ArrayList<>();
+        MechPattern.WeightClass weight = weightFilter.get();
         for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.chassis()) {
             if (!bay.canFabricate(recipe.variant())) continue;
+            if (weight != null && MechPattern.of(recipe.variant()).weightClass() != weight) continue;
             boolean affordable = resources.canAfford(resources.quote(recipe.cost()));
             MechVariant variant = recipe.variant();
             String base = "mech-catalog:" + recipe.id();
@@ -1126,7 +1179,7 @@ public final class MechLabViewModel {
                     Strings.format("openingMechLabSpeedArmor", number(variant.moveSpeed), Math.round(variant.armorCapacity)),
                     "", "catalog-delta hidden",
                     roleLabel(variant.defaultRole),
-                    !hasSpace ? Strings.get("openingMechLabLanceFull") : !affordable ? Strings.get("openingMechLabMaterialsShort") : Strings.get("openingMechLabFabricateChassis"),
+                    !hasSpace ? Strings.get("openingMechLabLanceFull") : !affordable ? Strings.get("openingMechLabMaterialsShort") : Strings.get("openingMechLabFab"),
                     !hasSpace ? Strings.get("openingMechLabThisWorkshopHasNoVacantGantry")
                             : !affordable ? Strings.get("openingMechLabNotEnoughMaterialsHoverACostFor")
                             : Strings.get("openingMechLabBuildThisChassisIntoTheVacantGantry"),
@@ -1143,6 +1196,8 @@ public final class MechLabViewModel {
         for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.vehicles()) {
             VehicleType type = recipe.vehicle();
             if (!bay.canFabricate(type)) continue;
+            MechPattern.WeightClass weight = weightFilter.get();
+            if (weight != null && MechPattern.weightClass(type) != weight) continue;
             boolean affordable = resources.canAfford(resources.quote(recipe.cost()));
             String base = "mech-catalog:" + recipe.id();
             rows.add(new CatalogRow(base, base + ":copy", base + ":header", base + ":name", base + ":badge",
@@ -1155,7 +1210,7 @@ public final class MechLabViewModel {
                     Strings.format("openingMechLabSpeedArmor", number(type.maxSpeed), Math.round(type.maxArmor)),
                     "", "catalog-delta hidden",
                     vehicleIdentity(type),
-                    !hasSpace ? Strings.get("openingMechLabLanceFull") : !affordable ? Strings.get("openingMechLabMaterialsShort") : Strings.get("openingMechLabFabricateVehicle"),
+                    !hasSpace ? Strings.get("openingMechLabLanceFull") : !affordable ? Strings.get("openingMechLabMaterialsShort") : Strings.get("openingMechLabFab"),
                     !hasSpace ? Strings.get("openingMechLabThisWorkshopHasNoVacantGantry")
                             : !affordable ? Strings.get("openingMechLabNotEnoughMaterialsHoverACostFor")
                             : Strings.get("openingMechLabBuildThisVehicleIntoTheVacantGantry"),
@@ -1552,8 +1607,8 @@ public final class MechLabViewModel {
         fittingFocused.set(true);
         assetPickerOpen.set(false);
         feedbackText.set(occupant != null
-                ? Strings.format("openingMechLabGantrySelectedNoCampaignHardwareChanged", String.format(Strings.locale(), "%02d", index + 1), occupant)
-                : Strings.format("openingMechLabGantryIsVacantSelectAChassisPattern", String.format(Strings.locale(), "%02d", index + 1)));
+                ? Strings.format("openingMechLabGantrySelectedNoCampaignHardwareChanged", padLetter(index), occupant)
+                : Strings.format("openingMechLabGantryIsVacantSelectAChassisPattern", padLetter(index)));
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
 
@@ -1617,6 +1672,58 @@ public final class MechLabViewModel {
             if (!def.factoryLocked()) return def.id();
         }
         return layout.sockets().get(0).id();
+    }
+
+    /** Pads are lettered A to D, the stencil on each pad and the label on its card. */
+    static String padLetter(int index) {
+        return String.valueOf((char) ('A' + Math.max(0, index)));
+    }
+
+    private String selectedMachineId() {
+        CampaignMech mech = selectedMech();
+        if (mech != null) return mech.id();
+        CampaignVehicle vehicle = selectedVehicle();
+        return vehicle != null ? vehicle.id() : null;
+    }
+
+    /**
+     * SCRAP takes two presses: the first arms it and says what comes back, the second breaks
+     * the machine up through the workshop and returns to the lance with its pad vacant.
+     */
+    private void scrapSelected() {
+        String machineId = selectedMachineId();
+        if (machineId == null) return;
+        CampaignMech mech = selectedMech();
+        String name = mech != null ? mech.displayName() : selectedVehicle().displayName();
+        FabricationCost salvage = mech != null ? workshop.mechSalvage(machineId) : workshop.vehicleSalvage(machineId);
+        if (!machineId.equals(scrapArmedId.get())) {
+            scrapArmedId.set(machineId);
+            feedbackText.set(Strings.format("openingMechLabScrapArmed", name, salvageText(salvage)));
+            feedbackClasses.set("mech-lab-feedback tone-danger surface-dark");
+            return;
+        }
+        String pad = padLetter(selectedGantryIndex());
+        MechWorkshop.Result result = mech != null ? workshop.scrapMech(machineId) : workshop.scrapVehicle(machineId);
+        scrapArmedId.set(null);
+        if (!result.succeeded()) {
+            feedbackText.set(Strings.get("openingMechLabScrapBlocked"));
+            feedbackClasses.set("mech-lab-feedback tone-danger surface-dark");
+            return;
+        }
+        showLanceOverview();
+        feedbackText.set(Strings.format("openingMechLabScrapped", name, pad, salvageText(salvage)));
+        feedbackClasses.set("mech-lab-feedback tone-good surface-dark");
+        bayChanged.run();
+        revision.update(value -> value + 1);
+    }
+
+    private String salvageText(FabricationCost salvage) {
+        if (salvage == null) return Strings.get("openingMechLabNoSalvage");
+        List<String> parts = new ArrayList<>();
+        for (FabricationCost.Line line : salvage.lines()) {
+            parts.add(line.quantity() + " " + resources.commodityName(line.commodityId()));
+        }
+        return String.join(", ", parts);
     }
 
     private void showLanceOverview() {
@@ -1748,7 +1855,7 @@ public final class MechLabViewModel {
             selectedVehicleId.set(null);
             callSignDraft.set(fabricated.displayName());
             selectedGantry.set(Math.max(0, squad.mechs().size() - 1));
-            selectedSlot.set(SocketId.ARMS);
+            selectedSlot.set(fabricated.variant().twoArmed() ? SocketId.LEFT_ARM : SocketId.ARMS);
             platingSelected.set(false);
             fittingFocused.set(true);
         }
@@ -1946,6 +2053,8 @@ public final class MechLabViewModel {
         return switch (slot) {
             case CORE -> mech.internal(MechInternal.Role.ENGINE).displayName();
             case ARMS -> componentName(mech.arms());
+            case LEFT_ARM -> componentName(mech.leftArm());
+            case RIGHT_ARM -> componentName(mech.rightArm());
             case LEFT_SHOULDER -> componentName(mech.leftShoulder());
             case RIGHT_SHOULDER -> componentName(mech.rightShoulder());
             case CAPACITORS -> mech.internal(MechInternal.Role.CAPACITOR_BANK).displayName();
@@ -2020,6 +2129,8 @@ public final class MechLabViewModel {
     private static MechMountSlot mountFor(SocketId slot) {
         return switch (slot) {
             case ARMS -> MechMountSlot.ARMS;
+            case LEFT_ARM -> MechMountSlot.LEFT_ARM;
+            case RIGHT_ARM -> MechMountSlot.RIGHT_ARM;
             case LEFT_SHOULDER -> MechMountSlot.LEFT_SHOULDER;
             case RIGHT_SHOULDER -> MechMountSlot.RIGHT_SHOULDER;
             default -> null;
@@ -2056,6 +2167,7 @@ public final class MechLabViewModel {
     }
 
     private List<FilterPill> buildFilterPills() {
+        if (fabricatingChassis()) return weightPills();
         if (selectedMech() == null || platingSelected.get() || mountFor(selectedSlot.get()) == null) return List.of();
         CategoryFilter current = catalogFilter.get();
         List<FilterPill> pills = new ArrayList<>();
@@ -2063,6 +2175,21 @@ public final class MechLabViewModel {
             String id = "mech-filter:" + f.name().toLowerCase(Locale.ROOT);
             String classes = f == current ? "catalog-filter-pill selected" : "catalog-filter-pill";
             pills.add(new FilterPill(id, f.label(), classes, () -> setFilter(f)));
+        }
+        return List.copyOf(pills);
+    }
+
+    /** On a vacant pad the strip filters the build catalog by weight class instead of hardpoint. */
+    private List<FilterPill> weightPills() {
+        MechPattern.WeightClass current = weightFilter.get();
+        List<FilterPill> pills = new ArrayList<>();
+        pills.add(new FilterPill("mech-weight:all", Strings.get("openingMechLabAll"),
+                current == null ? "catalog-filter-pill selected" : "catalog-filter-pill", () -> setWeightFilter(null)));
+        for (MechPattern.WeightClass weight : MechPattern.WeightClass.values()) {
+            pills.add(new FilterPill("mech-weight:" + weight.name().toLowerCase(Locale.ROOT),
+                    Strings.get("openingMechLabWeightClass" + weight.name()),
+                    weight == current ? "catalog-filter-pill selected" : "catalog-filter-pill",
+                    () -> setWeightFilter(weight)));
         }
         return List.copyOf(pills);
     }

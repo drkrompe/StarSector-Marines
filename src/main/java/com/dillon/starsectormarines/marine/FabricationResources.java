@@ -26,6 +26,9 @@ public interface FabricationResources extends CommodityPresentation {
     /** Rechecks and consumes the whole cost, or consumes nothing. */
     boolean spend(FabricationCost cost);
 
+    /** Puts salvaged materials back in the hold; false where there is no hold to take them. */
+    default boolean credit(FabricationCost salvage) { return false; }
+
     default boolean canAfford(FabricationCost cost) {
         if (cost == null) return false;
         for (FabricationCost.Line line : cost.lines()) {

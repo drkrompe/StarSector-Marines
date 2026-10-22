@@ -102,6 +102,9 @@ final class PreparationGuide {
         UiElement later = markup.requireElement("preparation-later");
         later.text(LessonCopy.text("lessonLater"));
         later.classed("preparation-hidden", current.later() == null);
+        // A lesson with nothing to press gives the row's height to its words.
+        markup.requireElement("preparation-actions").classed("preparation-hidden",
+                current.action() == null && current.later() == null);
         List<UiElement> targets = targets();
         UiElement target = targets.isEmpty() ? null : targets.get(0);
         if (target != null && (!target.id().equals(previousTarget) || !document.viewport().equals(previousViewport))) {

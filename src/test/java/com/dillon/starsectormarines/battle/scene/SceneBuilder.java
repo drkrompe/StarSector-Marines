@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.scene;
 
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
@@ -508,8 +509,8 @@ public final class SceneBuilder {
 
         private static float fittedRange(MechDeploymentSpec deployment) {
             float reach = 0f;
-            for (MechWeaponComponent c : new MechWeaponComponent[] {
-                    deployment.arms(), deployment.leftShoulder(), deployment.rightShoulder()}) {
+            for (MechMountSlot slot : MechMountSlot.values()) {
+                MechWeaponComponent c = deployment.weaponAt(slot);
                 if (c != null) reach = Math.max(reach, c.weaponDef().range);
             }
             return reach;
@@ -560,8 +561,7 @@ public final class SceneBuilder {
                 each.accept(spec);
                 spawned[i] = sim.spawn(spec);
                 if (mechDeployment != null) {
-                    MechLoadoutComponent loadout = new MechLoadoutComponent(mechVariant, mechDeployment.arms(),
-                            mechDeployment.leftShoulder(), mechDeployment.rightShoulder(), mechDeployment.role());
+                    MechLoadoutComponent loadout = mechDeployment.createLoadout(mechDeployment.role());
                     loadout.applyFrame(mechDeployment.frame());
                     loadout.installMissileReplenisher(mechDeployment.missileReplenisher());
                     sim.world().attachMechLoadout(spawned[i], loadout);

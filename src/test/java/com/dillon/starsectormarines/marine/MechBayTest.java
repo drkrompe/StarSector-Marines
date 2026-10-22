@@ -29,7 +29,7 @@ class MechBayTest {
         assertEquals(0, bay.activeSquad().mechs().size());
         assertEquals(0, bay.ownedReplenisher(
                 MissileReplenisherComponent.STANDARD.id()));
-        assertEquals(0, bay.ownedWeapon(MechWeaponComponent.DUAL_CHAINGUNS.id));
+        assertEquals(0, bay.ownedWeapon(MechWeaponComponent.CHAINGUN.id));
         assertEquals(0, roundTrip(bay).activeSquad().mechs().size(),
                 "the modern empty start must not be mistaken for a legacy save");
     }
@@ -63,8 +63,8 @@ class MechBayTest {
                 MissileReplenisherComponent.STANDARD.id()));
         assertEquals(1, bay.availableReplenisher(
                 MissileReplenisherComponent.ACCELERATED_FEED.id()));
-        assertEquals(1, bay.ownedWeapon(MechWeaponComponent.DUAL_CHAINGUNS.id));
-        assertEquals(0, bay.availableWeapon(MechWeaponComponent.DUAL_CHAINGUNS.id));
+        assertEquals(2, bay.ownedWeapon(MechWeaponComponent.CHAINGUN.id));
+        assertEquals(0, bay.availableWeapon(MechWeaponComponent.CHAINGUN.id));
     }
 
     @Test
@@ -92,9 +92,9 @@ class MechBayTest {
         MechBay bay = MechBay.legacyStarterFixture();
         assertTrue(bay.installReplenisher(MechBay.STARTER_MECH_ID,
                 MissileReplenisherComponent.ACCELERATED_FEED.id()));
-        bay.addWeapon(MechWeaponComponent.DUAL_PULSE_LASERS.id, 1);
-        assertTrue(bay.installWeapon(MechBay.STARTER_MECH_ID, MechMountSlot.ARMS,
-                MechWeaponComponent.DUAL_PULSE_LASERS.id));
+        bay.addWeapon(MechWeaponComponent.PULSE_LASER.id, 1);
+        assertTrue(bay.installWeapon(MechBay.STARTER_MECH_ID, MechMountSlot.LEFT_ARM,
+                MechWeaponComponent.PULSE_LASER.id));
 
         MechBay restored = roundTrip(bay);
         List<MechDeploymentSpec> deployment = restored.activeDeployment();
@@ -104,29 +104,29 @@ class MechBayTest {
         assertEquals(MechRole.ARMORED_SUPPORT, deployment.get(0).role());
         assertEquals(MissileReplenisherComponent.ACCELERATED_FEED,
                 deployment.get(0).missileReplenisher());
-        assertEquals(MechWeaponComponent.DUAL_PULSE_LASERS, deployment.get(0).arms());
+        assertEquals(MechWeaponComponent.PULSE_LASER, deployment.get(0).leftArm());
         assertEquals(0, restored.availableReplenisher(
                 MissileReplenisherComponent.ACCELERATED_FEED.id()));
         assertEquals(1, restored.availableReplenisher(
                 MissileReplenisherComponent.STANDARD.id()));
-        assertEquals(1, restored.availableWeapon(MechWeaponComponent.DUAL_CHAINGUNS.id));
-        assertEquals(0, restored.availableWeapon(MechWeaponComponent.DUAL_PULSE_LASERS.id));
+        assertEquals(1, restored.availableWeapon(MechWeaponComponent.CHAINGUN.id));
+        assertEquals(0, restored.availableWeapon(MechWeaponComponent.PULSE_LASER.id));
     }
 
     @Test
     void weaponRefitReturnsTheOutgoingAssemblyAndFreezesTheReplacement() {
         MechBay bay = MechBay.legacyStarterFixture();
-        bay.addWeapon(MechWeaponComponent.DUAL_PULSE_LASERS.id, 1);
+        bay.addWeapon(MechWeaponComponent.PULSE_LASER.id, 1);
 
-        assertTrue(bay.installWeapon(MechBay.STARTER_MECH_ID, MechMountSlot.ARMS,
-                MechWeaponComponent.DUAL_PULSE_LASERS.id));
+        assertTrue(bay.installWeapon(MechBay.STARTER_MECH_ID, MechMountSlot.LEFT_ARM,
+                MechWeaponComponent.PULSE_LASER.id));
 
         CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
-        assertEquals(MechWeaponComponent.DUAL_PULSE_LASERS, mech.arms());
-        assertEquals(1, bay.availableWeapon(MechWeaponComponent.DUAL_CHAINGUNS.id));
-        assertEquals(0, bay.availableWeapon(MechWeaponComponent.DUAL_PULSE_LASERS.id));
-        assertEquals(MechWeaponComponent.DUAL_PULSE_LASERS,
-                bay.activeDeployment().get(0).arms());
+        assertEquals(MechWeaponComponent.PULSE_LASER, mech.leftArm());
+        assertEquals(1, bay.availableWeapon(MechWeaponComponent.CHAINGUN.id));
+        assertEquals(0, bay.availableWeapon(MechWeaponComponent.PULSE_LASER.id));
+        assertEquals(MechWeaponComponent.PULSE_LASER,
+                bay.activeDeployment().get(0).leftArm());
     }
 
     @Test

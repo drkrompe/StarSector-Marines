@@ -105,7 +105,7 @@ public final class MechVersusInfantryScene implements BehaviorScene {
                            boolean mixed, long seed) {
         SceneBuilder builder = SceneBuilder.openGround(WIDTH, HEIGHT).missionCompletion(false).seed(seed);
         MechDeploymentSpec fit = new MechDeploymentSpec(variant, variant.defaultRole,
-                MissileReplenisherComponent.STANDARD, variant.arms, rack, rack);
+                MissileReplenisherComponent.STANDARD, variant.stockArmWeapon(), rack, rack);
         // A one-mech lance forms up a cell and a half west of its spawn cell, so ask two east.
         builder.squad(MECH).faction(Faction.MARINE).size(1).at(MECH_X + 2, MECH_Y)
                 .mech(fit)

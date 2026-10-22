@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
  *   unit    := [count 'x'] (mech | vehicle)          2xhound:refit, heavy-apc
  *   mech    := ['mech:'] chassis [':' item (',' item)*]
  *   item    := stock | refit | role=&lt;role&gt;
- *            | arms|ls|rs = &lt;weapon&gt;|none           arms=demolition-cannon
+ *            | arms|la|ra|ls|rs = &lt;weapon&gt;|none   arms=chaingun (arms: every arm mount; la/ra: one arm)
  *            | engine|plating|capacitors|vents = &lt;internal&gt;|none
  *   vehicle := ['vehicle:'] &lt;VehicleType, kebab case&gt;  breakthrough-tank (technical, scout, dozer accepted)
  * </pre>
@@ -73,20 +73,29 @@ public record ArmorSide(List<Unit> units) {
 
         public MechDeploymentSpec deployment() {
             return new MechDeploymentSpec(fit.variant(), role, MissileReplenisherComponent.STANDARD,
-                    fit.arms(), fit.leftShoulder(), fit.rightShoulder(), null, frame());
+                    fit.arms(), fit.leftArm(), fit.rightArm(), fit.leftShoulder(), fit.rightShoulder(),
+                    null, frame(), null);
         }
 
         @Override
         public String label() {
             MechVariant variant = fit.variant();
             List<String> items = new ArrayList<>();
-            boolean stockWeapons = fit.arms() == variant.arms && fit.leftShoulder() == variant.leftShoulder
+            boolean stockArms = fit.arms() == variant.arms && fit.leftArm() == variant.leftArm
+                    && fit.rightArm() == variant.rightArm;
+            boolean stockWeapons = stockArms && fit.leftShoulder() == variant.leftShoulder
                     && fit.rightShoulder() == variant.rightShoulder;
             boolean refit = !isFactoryFrame(fit) && sameInternals(fit,
-                    bestRefit(new MechFrameBudget.Fit(variant, fit.arms(), fit.leftShoulder(), fit.rightShoulder(),
-                            null, null, null, null)));
+                    bestRefit(MechFrameBudget.Fit.stock(variant).withWeaponsOf(fit)));
             if (!stockWeapons) {
-                if (fit.arms() != variant.arms) items.add("arms=" + weaponName(fit.arms()));
+                if (!stockArms) {
+                    if (fit.leftArm() == fit.rightArm()) {
+                        items.add("arms=" + weaponName(fit.armWeapon()));
+                    } else {
+                        items.add("la=" + weaponName(fit.leftArm()));
+                        items.add("ra=" + weaponName(fit.rightArm()));
+                    }
+                }
                 if (fit.leftShoulder() != variant.leftShoulder) items.add("ls=" + weaponName(fit.leftShoulder()));
                 if (fit.rightShoulder() != variant.rightShoulder) items.add("rs=" + weaponName(fit.rightShoulder()));
             }
@@ -181,7 +190,11 @@ public record ArmorSide(List<Unit> units) {
             String key = item.substring(0, eq).trim();
             String value = item.substring(eq + 1).trim();
             switch (key) {
-                case "arms" -> fit = fit.withWeapon(MechMountSlot.ARMS, weapon(variant, MechMountSlot.ARMS, value));
+                case "arms" -> fit = fit.withArmWeapon(weapon(variant, variant.armMounts()[0], value));
+                case "la" -> fit = fit.withWeapon(MechMountSlot.LEFT_ARM,
+                        weapon(variant, MechMountSlot.LEFT_ARM, value));
+                case "ra" -> fit = fit.withWeapon(MechMountSlot.RIGHT_ARM,
+                        weapon(variant, MechMountSlot.RIGHT_ARM, value));
                 case "ls" -> fit = fit.withWeapon(MechMountSlot.LEFT_SHOULDER,
                         weapon(variant, MechMountSlot.LEFT_SHOULDER, value));
                 case "rs" -> fit = fit.withWeapon(MechMountSlot.RIGHT_SHOULDER,
@@ -196,7 +209,7 @@ public record ArmorSide(List<Unit> units) {
                         internal(variant, MechInternal.Role.VENT_ARRAY, value));
                 case "role" -> role = role(value);
                 default -> throw new IllegalArgumentException("Unknown mech fit key '" + key
-                        + "'; known: arms, ls, rs, engine, plating, capacitors, vents, role");
+                        + "'; known: arms, la, ra, ls, rs, engine, plating, capacitors, vents, role");
             }
         }
         if (refit) fit = bestRefit(fit);
@@ -205,8 +218,9 @@ public record ArmorSide(List<Unit> units) {
 
     /** The strongest internals under budget around {@code fit}'s weapons; the factory frame when none fits. */
     static MechFrameBudget.Fit bestRefit(MechFrameBudget.Fit fit) {
-        return MechFitSpace.internalFits(fit.variant(), fit.arms(), fit.leftShoulder(), fit.rightShoulder())
+        return MechFitSpace.internalFits(fit.variant(), fit.armWeapon(), fit.leftShoulder(), fit.rightShoulder())
                 .stream()
+                .map(f -> f.withWeaponsOf(fit))
                 .filter(f -> !f.overBudget())
                 .max(MechFitSpace.FRAME_ORDER)
                 .orElse(fit);
@@ -316,6 +330,8 @@ public record ArmorSide(List<Unit> units) {
     private static String slotKey(MechMountSlot slot) {
         return switch (slot) {
             case ARMS -> "arms";
+            case LEFT_ARM -> "la";
+            case RIGHT_ARM -> "ra";
             case LEFT_SHOULDER -> "ls";
             case RIGHT_SHOULDER -> "rs";
         };

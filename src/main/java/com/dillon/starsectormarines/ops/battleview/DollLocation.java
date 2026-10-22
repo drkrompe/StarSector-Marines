@@ -9,7 +9,7 @@ import com.dillon.starsectormarines.battle.mech.MechSection;
  */
 public enum DollLocation {
     FRONT, LEFT, RIGHT, REAR, HULL, TURRET, DRIVE,
-    HEAD, TORSO, TORSO_REAR, ARMS, LEFT_SHOULDER, RIGHT_SHOULDER, LEGS;
+    HEAD, TORSO, TORSO_REAR, ARMS, LEFT_ARM, RIGHT_ARM, LEFT_SHOULDER, RIGHT_SHOULDER, LEGS;
 
     private static final DollLocation[] VALUES = values();
 
@@ -25,6 +25,8 @@ public enum DollLocation {
             case HEAD -> HEAD;
             case TORSO -> TORSO;
             case ARMS -> ARMS;
+            case LEFT_ARM -> LEFT_ARM;
+            case RIGHT_ARM -> RIGHT_ARM;
             case LEFT_SHOULDER -> LEFT_SHOULDER;
             case RIGHT_SHOULDER -> RIGHT_SHOULDER;
             case LEGS -> LEGS;

@@ -29,8 +29,8 @@ public final class MechHardpointGeometry {
 
     public static LocalPoint localMuzzle(MechLoadoutComponent loadout,
                                          MechWeaponMount mount, int releaseIndex) {
-        if (mount.slot == MechMountSlot.ARMS) {
-            return armsMuzzle(mount.component.appearanceSelector, releaseIndex);
+        if (mount.slot.isArm()) {
+            return armsMuzzle(mount.component.appearanceSelector, mount.slot);
         }
         int left = appearance(loadout.mount(MechMountSlot.LEFT_SHOULDER));
         int right = appearance(loadout.mount(MechMountSlot.RIGHT_SHOULDER));
@@ -39,25 +39,47 @@ public final class MechHardpointGeometry {
                 mount.component.appearanceSelector);
     }
 
-    /** Local muzzle for an arms appearance, in hull-width units. */
-    public static LocalPoint armsMuzzle(int armsAppearance, int releaseIndex) {
+    /**
+     * Local muzzle of one arm gun on {@code slot}, in hull-width units. Each gun is one barrel: on
+     * a side arm it sits out at {@link MechMountSlot#armLateral}, pivoted further back than a
+     * centreline gun, whose barrel starts under the nose.
+     */
+    public static LocalPoint armsMuzzle(int armsAppearance, MechMountSlot slot) {
+        boolean side = slot != null && slot.isSideArm();
+        float forward = side ? sideArmForward(armsAppearance) : centrelineForward(armsAppearance);
+        if (Float.isNaN(forward)) return new LocalPoint(0f, 0f);
+        return new LocalPoint(side ? slot.armLateral() : 0f, forward);
+    }
+
+    /** Muzzle forward of a gun out on an arm; its barrel's rear pivot sits at -0.15. */
+    private static float sideArmForward(int armsAppearance) {
         return switch (armsAppearance) {
-            case LayeredMechAppearance.ARMS_CHAINGUN -> new LocalPoint(
-                    alternatingX(0.37f, releaseIndex), 0.39f);
-            case LayeredMechAppearance.ARMS_LINEAR_CANNON -> new LocalPoint(
-                    alternatingX(0.37f, releaseIndex), 0.51f);
-            case LayeredMechAppearance.ARMS_NOSE_CHAINGUN -> new LocalPoint(0f, 0.52f);
-            case LayeredMechAppearance.ARMS_HEAVY_CANNON -> new LocalPoint(0f, 0.57f);
-            case LayeredMechAppearance.ARMS_PULSE_LASER -> new LocalPoint(
-                    alternatingX(0.37f, releaseIndex), 0.39f);
-            case LayeredMechAppearance.ARMS_BASTION_AUTOCANNON -> new LocalPoint(
-                    alternatingX(0.37f, releaseIndex), 0.49f);
-            case LayeredMechAppearance.ARMS_DEMOLITION_CANNON -> new LocalPoint(0f, 0.52f);
-            case LayeredMechAppearance.ARMS_MUSTER_AUTOGUN -> new LocalPoint(
-                    alternatingX(0.37f, releaseIndex), 0.46f);
-            case LayeredMechAppearance.ARMS_NOSE_MUSTER_AUTOGUN -> new LocalPoint(0f, 0.55f);
-            case LayeredMechAppearance.ARMS_QUARRY_BREAKER -> new LocalPoint(0f, 0.52f);
-            default -> new LocalPoint(0f, 0f);
+            case LayeredMechAppearance.ARMS_CHAINGUN, LayeredMechAppearance.ARMS_PULSE_LASER,
+                 LayeredMechAppearance.ARMS_NOSE_CHAINGUN -> 0.39f;
+            case LayeredMechAppearance.ARMS_LINEAR_CANNON -> 0.51f;
+            case LayeredMechAppearance.ARMS_BASTION_AUTOCANNON -> 0.49f;
+            case LayeredMechAppearance.ARMS_MUSTER_AUTOGUN,
+                 LayeredMechAppearance.ARMS_NOSE_MUSTER_AUTOGUN -> 0.46f;
+            case LayeredMechAppearance.ARMS_HEAVY_CANNON -> 0.47f;
+            case LayeredMechAppearance.ARMS_DEMOLITION_CANNON,
+                 LayeredMechAppearance.ARMS_QUARRY_BREAKER -> 0.42f;
+            default -> Float.NaN;
+        };
+    }
+
+    /** Muzzle forward of a gun on the centreline mount. */
+    private static float centrelineForward(int armsAppearance) {
+        return switch (armsAppearance) {
+            case LayeredMechAppearance.ARMS_NOSE_CHAINGUN, LayeredMechAppearance.ARMS_CHAINGUN,
+                 LayeredMechAppearance.ARMS_DEMOLITION_CANNON,
+                 LayeredMechAppearance.ARMS_QUARRY_BREAKER -> 0.52f;
+            case LayeredMechAppearance.ARMS_HEAVY_CANNON -> 0.57f;
+            case LayeredMechAppearance.ARMS_NOSE_MUSTER_AUTOGUN,
+                 LayeredMechAppearance.ARMS_MUSTER_AUTOGUN -> 0.55f;
+            case LayeredMechAppearance.ARMS_LINEAR_CANNON -> 0.61f;
+            case LayeredMechAppearance.ARMS_PULSE_LASER -> 0.49f;
+            case LayeredMechAppearance.ARMS_BASTION_AUTOCANNON -> 0.59f;
+            default -> Float.NaN;
         };
     }
 
@@ -95,10 +117,6 @@ public final class MechHardpointGeometry {
     private static int appearance(MechWeaponMount mount) {
         return mount != null ? mount.component.appearanceSelector
                 : LayeredMechAppearance.POD_NONE;
-    }
-
-    private static float alternatingX(float magnitude, int releaseIndex) {
-        return (releaseIndex & 1) == 0 ? -magnitude : magnitude;
     }
 
     private static boolean isSmallPod(int appearance) {

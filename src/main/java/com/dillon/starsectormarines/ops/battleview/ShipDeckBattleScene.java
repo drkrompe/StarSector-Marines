@@ -532,9 +532,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             }
             FacingSystem.faceStanding(simulation.getEntityWorld(),
                     simulation.getBattleComponents(), mech, parkedFacing(gantry));
-            MechLoadoutComponent loadout = new MechLoadoutComponent(deployment.variant(),
-                    deployment.arms(), deployment.leftShoulder(), deployment.rightShoulder(),
-                    deployment.role());
+            MechLoadoutComponent loadout = deployment.createLoadout(deployment.role());
             loadout.installMissileReplenisher(deployment.missileReplenisher());
             simulation.world().attachMechLoadout(mech, loadout);
         }

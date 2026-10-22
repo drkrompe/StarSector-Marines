@@ -362,6 +362,27 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   the ticks before `T` undrawn, so a GIF opens on the moment it is about. Optional
   `-PgifFrameDelayMillis=125`, `-PsnapshotWidth=960`, and
   `-PsnapshotHeight=640` arguments control review playback and output size.
+- **Memory budget: measure before raising the heap.** Every Test task,
+  `battleProbe`, `sceneEvidence` and `sceneDeterminism` run under
+  `-PtestHeap` (default 6g); `createSnapshots` keeps the JVM default unless
+  given it. A battle's live set is small: a framed The Burn (heart, seed 202,
+  1920x1080 every 300 ticks, to its end at tick 9,607) peaks near 0.3 GB, an
+  unframed 9,000-tick Conquest sits flat near 0.22 GB, and both finish under
+  `-PtestHeap=2g`. Its 2g OOM (2026-10-22) was not frames held for the GIF —
+  `AnimatedGifWriter` streams, and each frame is written and dropped — but the
+  headless sprite tokens closing over every decoded sheet (1.3 GB before a
+  battle began) plus a tinted-cut cache that filled to its 256 MB cap on every
+  burn. So when a run dies of OOM, find the retainer rather than the flag:
+  `-PtestHeap=2g "-PtestJvmArgs=-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=<dir>"`
+  reproduces it cheaply and leaves a dump, and
+  `-XX:StartFlightRecording=filename=<file>.jfr,settings=profile` in the same
+  property gives the heap-after-GC curve (`jfr print --events jdk.GCHeapSummary`).
+  A curve that rises with ticks and never falls is a leak to fix; a
+  render-side cache must be bounded by what the frame draws, not by a size cap
+  it reaches every run. Raise the heap only for a live set that is really that
+  big, and say what it is. Never run two `commanderEvidence` at once in one
+  worktree: they share `build/test-results/commanderEvidence` and the second
+  fails on the first's files.
 - `gradlew.bat simDeterminism` → replays the Conquest matrix twice for a bounded
   tick budget (`-PmaxTicks`, default 3000) and fails on the first byte that
   differs, writing under `build/reports/sim-determinism/`. It exists because a
@@ -494,8 +515,8 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   `-Pgifs`/`-PgifSeeds`, `-Dbattle.*` forwarded, the control replayed twice side by side for the determinism
   header). Writes `armor-matchups.md`, `armor-matchups.csv` and `runs.csv` under `build/reports/armor-matchups/`.
   A side is `unit(+unit)*`; a unit is `[Nx]` then a mech (`hound`, `bulwark:refit`,
-  `bulwark:arms=dual-linear-cannons,rs=shoulder-laser,engine=uprated,vents=auxiliary,role=assault`: pattern ids with
-  or without their `component.mech-`/`internal.` prefix, `none` empties a mount, `refit` fills the best buildable
+  `bulwark:arms=linear-cannon,rs=shoulder-laser,engine=uprated,vents=auxiliary,role=assault`: pattern ids with
+  or without their `component.mech-`/`internal.` prefix, `arms` fits every arm mount and `la`/`ra` one Bulwark arm, `none` empties a mount, `refit` fills the best buildable
   internals around the fitted weapons, an over-budget fit runs and is labelled so) or a `VehicleType` in kebab case
   (`breakthrough-tank`; `technical`, `scout`, `dozer`). Scenarios: `open-ground`; `hull-down` (berms hide the
   defenders' legs and hulls, ruins in the middle ground); `street` (between solid blocks, defenders behind the last

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.LiftClass;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
@@ -160,10 +161,11 @@ class ArmorEconomyEvidence {
         List<Machine> list = new ArrayList<>();
         for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.chassis()) {
             MechVariant v = recipe.variant();
-            float dps = weaponDps(v.arms) + weaponDps(v.leftShoulder) + weaponDps(v.rightShoulder);
+            float dps = 0f;
+            for (MechMountSlot slot : MechMountSlot.values()) dps += weaponDps(v.stockWeapon(slot));
             list.add(new Machine(v.name(), false, v.liftClass(), MechPattern.of(v).accessTier(), recipe.cost(),
                     v.maxStructure, v.armorCapacity, v.armorRating, v.moveSpeed, dps, 0,
-                    "stock weapons " + v.arms.name() + "/" + v.leftShoulder.name()
+                    "stock weapons " + (v.twoArmed() ? "2x " : "") + v.stockArmWeapon().name() + "/" + v.leftShoulder.name()
                             + (v.rightShoulder != null ? "/" + v.rightShoulder.name() : "")));
         }
         for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.vehicles()) {

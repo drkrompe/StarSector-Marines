@@ -52,8 +52,11 @@ class MechFittingLayoutTest {
             if (variant == MechVariant.HOUND) {
                 assertEquals(EnumSet.of(SocketId.CORE, SocketId.ARMS,
                         SocketId.LEFT_SHOULDER, SocketId.CAPACITORS), ids);
+            } else if (variant.twoArmed()) {
+                assertEquals(EnumSet.complementOf(EnumSet.of(SocketId.ARMS)), ids,
+                        "a two-armed chassis has an arm socket each side and no centreline mount");
             } else {
-                assertEquals(EnumSet.allOf(SocketId.class), ids);
+                assertEquals(EnumSet.complementOf(EnumSet.of(SocketId.LEFT_ARM, SocketId.RIGHT_ARM)), ids);
             }
         }
     }
@@ -69,10 +72,14 @@ class MechFittingLayoutTest {
         assertTrue(bulwark.occupied(SocketId.RIGHT_SHOULDER));
         assertEquals(SocketType.OMNI,
                 bulwark.socket(SocketId.RIGHT_SHOULDER).type());
+        MechFittingLayout sirocco = MechFittingLayout.forVariant(MechVariant.SIROCCO);
         assertNotEquals(hound.socket(SocketId.ARMS).capacity(),
-                bulwark.socket(SocketId.ARMS).capacity());
+                sirocco.socket(SocketId.ARMS).capacity());
         assertNotEquals(hound.socket(SocketId.ARMS).footprintWidthHull(),
-                bulwark.socket(SocketId.ARMS).footprintWidthHull());
+                sirocco.socket(SocketId.ARMS).footprintWidthHull());
+        assertFalse(bulwark.hasSocket(SocketId.ARMS));
+        assertTrue(bulwark.occupied(SocketId.LEFT_ARM));
+        assertTrue(bulwark.occupied(SocketId.RIGHT_ARM));
     }
 
     @Test
