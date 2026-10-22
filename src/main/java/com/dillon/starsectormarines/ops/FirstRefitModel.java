@@ -70,6 +70,11 @@ final class FirstRefitModel {
     @SuppressWarnings("unchecked")
     Map<String, Object> inspection() { return (Map<String, Object>) row.get().get("inspection"); }
     void selectSquad(String id) { squadId = id; feedback = ""; refresh(); }
+    /** The letter a choice goes by on its tab and on the learn button: A, then B. */
+    static String optionLetter(Path value) {
+        return value == Path.STEADY_LINE ? Strings.get("openingFirstRefitOptionA") : Strings.get("openingFirstRefitOptionB");
+    }
+
     void selectPath(Path value) {
         path = value; selectedBillet = value == Path.STEADY_LINE ? 3 : 0;
         feedback = ""; refresh();
@@ -128,7 +133,7 @@ final class FirstRefitModel {
                 : LessonCopy.text("refitFittingCopy"));
         props.put("claimClasses", !claimed && !complete ? "refit-action spec-action" : "refit-hidden");
         props.put("claimDisabled", path == null || reviewed == null);
-        props.put("claimLabel", path == null ? Strings.get("openingFirstRefitChooseAPath") : Strings.format("openingFirstRefitLearn", Strings.upper(path.label())));
+        props.put("claimLabel", path == null ? Strings.get("openingFirstRefitChooseAPath") : Strings.format("openingFirstRefitLearn", optionLetter(path)));
         props.put("issueClasses", claimed && !complete ? "refit-action spec-action" : "refit-hidden");
         props.put("workClasses", !complete ? "refit-work" : "refit-hidden");
         props.put("doneClasses", complete ? "refit-action spec-action" : "refit-hidden");
@@ -152,6 +157,21 @@ final class FirstRefitModel {
                 Strings.format("openingFirstRefitWayline", p.label(), (claimed ? FirstRefit.technologyKnown(roster, p) ? Strings.get("openingFirstRefitLearned") : Strings.get("openingFirstRefitFindSpecs") : "")),
                 p.description(), FirstRefit.weapons(p)), p == path, () -> selectPath(p)).asCompact()).toList();
         props.put("paths", pathCards);
+        List<Map<String, Object>> options = new ArrayList<>();
+        for (int i = 0; i < pathCards.size(); i++) {
+            Path p = Path.values()[i];
+            String id = "refit-option:" + p.name();
+            // The card's style names its content height; its padding and border add 24px.
+            int card = Integer.parseInt(String.valueOf(pathCards.get(i).markupProperty("cardStyle")).replaceAll("\\D", "")) + 24;
+            options.add(Map.of("id", id, "tabId", id + ":tab", "captionId", id + ":caption", "letterId", id + ":letter",
+                    "letter", optionLetter(p),
+                    "tabClasses", "refit-option-tab spec-tab spec-choice" + (p == path ? " selected" : ""),
+                    "rowStyle", "height: " + card + "px;",
+                    "tabStyle", "height: " + (card - 2) + "px;",
+                    "select", (Runnable) () -> selectPath(p),
+                    "tile", pathCards.get(i)));
+        }
+        props.put("options", options);
         currentKit = null; proposedKit = null;
         String selectedName = Strings.get("openingFirstRefitChooseASquadAndAPathTo");
         if (reviewed != null && selectedBillet < reviewed.billets().size()) {
