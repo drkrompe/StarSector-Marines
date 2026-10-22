@@ -471,6 +471,13 @@ def shot(L, kf):
             for path in ('location', 'rotation_quaternion'):
                 cam.keyframe_insert(path, frame=f)
             cam.data.keyframe_insert('lens', frame=f)
+            if 'focus' in c:            # the optic's focus pull (Workbench depth of field)
+                cam.data.dof.use_dof = True
+                cam.data.dof.focus_distance = c['focus']
+                cam.data.dof.aperture_fstop = c.get('fstop', 2.8)
+                cam.data.dof.keyframe_insert('focus_distance', frame=f)
+                cam.data.dof.keyframe_insert('aperture_fstop', frame=f)
+                L['scene'].display.shading.use_dof = True
         ground.rotation_mode = 'XYZ'
         ground.rotation_euler = (0.0, math.radians(motion.planet_turn_deg(t, t_still, bb.R)), 0.0)
         ground.keyframe_insert('rotation_euler', frame=f)
@@ -478,6 +485,8 @@ def shot(L, kf):
     if cam_at is not None:          # the next shot keys its own camera from scratch
         cam.animation_data_clear()
         cam.data.animation_data_clear()
+        cam.data.dof.use_dof = False
+        L['scene'].display.shading.use_dof = False
     ground.animation_data_clear()
     ground.rotation_euler = (0.0, 0.0, 0.0)
     mp.end_shot()

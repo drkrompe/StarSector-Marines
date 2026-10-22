@@ -171,7 +171,8 @@ preview plays, and the stills did not move when the motion went in (`--check` is
   started except S12's hold, and focal-length zooms tell the story: a long lens finding a far
   contact (S3, S4, S6), a zoom out for scale (S1, S9, S10). The shot list's camera-move column has
   each shot's move.
-  - S1a tips down from the player's view into S1's framing, which S1 then travels on with.
+  - S1a stays the player's view, straight down and never turning: the optic zooms out, then in
+    on the convoy with its focus hunting, and the picture cuts to S1's action camera.
   - S3 creeps in on the platform, then onto the Falcon (P) as her drives light.
   - S4 pans with the climbing pack.
   - S6 pushes in, handheld. S6b chases Lasher B over her roll. S6c tracks aft along the column.
@@ -393,7 +394,7 @@ About 2 minutes 15 (134 s): 10 s of recording, 40 s of setup and ambush, 60 s of
 | Shot | Length | Picture | Ships seen closest | Camera | Camera move |
 |---|---|---|---|---|---|
 | S0 | 10 s | **The recording.** Black, then the playback screen: source, timestamp, place, the channels lighting as each speaks, a waveform. The S1 traffic plays over it as audio only. On the escort lead's "close up the column", cut to picture. | (none) | (a screen, not a camera) | (none) |
-| S1a **K** | 6 s | **The view the player knows** (owner, 2026-10-21). The first picture after the recording looks straight down on the convoy, prograde up the frame: the ships small against the desert far below, the way the player has always seen them. Then the camera tips down and pulls into 3D for S1. | the core convoy, from above | 100 mm, straight down from 11 km | Holds the player's view 2 s, then tips down and pulls 9 km into S1's framing (100 to 35 mm). |
+| S1a **K** | 6 s | **The view the player knows** (owner, 2026-10-21). The first picture after the recording looks straight down on the convoy, prograde up the frame: the ships small against the desert far below, the way the player has always seen them. Then the camera tips down and pulls into 3D for S1. | the core convoy, from above | 100 mm, straight down from 11 km | **ZOOM OUT, ZOOM IN** (owner, 2026-10-22): a long-range optic straight down, prograde up, that never turns: out to the convoy small on the desert (35 mm), then in on it (400 mm), focus hunting as it racks in and snapping sharp. Then a cut to S1's action camera. |
 | S1 **K** | 8 s | Establishing: the convoy in loose column over the day side, the limb high in frame, the desert sliding beneath. Ordinary work. | the whole convoy, small | 35 mm, high off the north flank | **Dolly + ZOOM OUT:** drops back along the column as the convoy overtakes the lens, widening 35 to 22 mm to put it against the limb. |
 | S2 | 6 s | Alongside the Colossus. Morrow rides off her starboard quarter; a Lasher slides through the foreground. | Colossus, Morrow, Lasher | 28 mm, tracking alongside at 300 m | (slate) Tracking alongside; a Lasher passes the lens. |
 | S3 **K** | 8 s | Running dark. Long lens back down at the derelict platform: dark, stripped, hulks in its bays; hold until it reads as junk. Then one hulk shows a running light, reactor glow behind a bay, a second, a third. Drives light and the first ships ease out. The audience sees the trap before the convoy does. | the platform, the Falcon (P) | 135 mm from the convoy's tail (longer, about 300 mm, is worth trying) | **ZOOM, then CRASH ZOOM:** a long lens finds the platform (90 to 135 mm), then snaps in on the Falcon (P) as her drives light (300 mm), handheld. |
