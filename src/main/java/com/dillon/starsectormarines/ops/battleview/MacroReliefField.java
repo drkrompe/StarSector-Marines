@@ -115,12 +115,12 @@ public final class MacroReliefField {
 
     /**
      * How high the ground itself stands: its tier, a face at the tier it holds
-     * up, a ramp halfway between its two. Zero on a flat map.
+     * up, a ramp by how far up it stands. Zero on a flat map.
      */
     private float tierMeters(int x, int y) {
         if (elevation == null) return 0f;
         int idx = y * topology.getWidth() + x;
-        if (elevation.isRampAt(idx)) return (elevation.sightHeightAt(idx) + .5f) * TIER_RISE_METERS;
+        if (elevation.isRampAt(idx)) return (elevation.sightHeightAt(idx) + elevation.rampRiseAt(idx)) * TIER_RISE_METERS;
         return elevation.sightHeightAt(idx) * TIER_RISE_METERS;
     }
 

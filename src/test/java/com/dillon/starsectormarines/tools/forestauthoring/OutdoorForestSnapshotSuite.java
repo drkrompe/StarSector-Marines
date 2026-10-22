@@ -117,7 +117,7 @@ public final class OutdoorForestSnapshotSuite implements SnapshotSuite {
         return frames;
     }
 
-    static MapResult generate(String family, long seed, TargetProfile profile) {
+    public static MapResult generate(String family, long seed, TargetProfile profile) {
         return switch (family) {
             case "relief" -> ReliefCheckpoint.generate(ReliefCheckpoint.WIDTH, ReliefCheckpoint.HEIGHT, seed, profile).map();
             case "counterattack" -> CounterattackDepot.generate(seed, profile).map();

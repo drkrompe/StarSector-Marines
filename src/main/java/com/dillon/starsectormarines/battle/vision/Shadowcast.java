@@ -14,7 +14,9 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
  * <p>On a map with {@linkplain ElevationMap elevation} the cast sees from the
  * observer's tier: down and across freely, up only as far as the skyline rule
  * allows (the face, then the rim). An observer with an air radius is airborne
- * and sees every tier. See {@code elevation-nouns.md}.
+ * and sees every tier; a ground observer that reads through walls (a sensor
+ * sweep, {@link #castFromGround}) reads past higher ground only within its
+ * read radius. See {@code elevation-nouns.md}.
  */
 public final class Shadowcast {
 
@@ -36,7 +38,18 @@ public final class Shadowcast {
      */
     public static int castFrom(NavigationGrid grid, int sx, int sy, int range,
                                 float airLosRadius, int[] out, int outOffset) {
-        return castFrom(grid, sx, sy, range, airLosRadius, out, outOffset, false);
+        return castFrom(grid, sx, sy, range, airLosRadius, out, outOffset, false, airLosRadius > 0f);
+    }
+
+    /**
+     * A cast from a body standing on the ground that reads through walls
+     * within {@code readRadius} (a sensor sweep): the same wall rule as
+     * {@link #castFrom}, but the eye stays at the source's own tier, so higher
+     * ground beyond the read radius is seen as any ground observer sees it.
+     */
+    public static int castFromGround(NavigationGrid grid, int sx, int sy, int range,
+                                     float readRadius, int[] out, int outOffset) {
+        return castFrom(grid, sx, sy, range, readRadius, out, outOffset, false, false);
     }
 
     /**
@@ -46,18 +59,18 @@ public final class Shadowcast {
     public static int castFromIgnoringTransientOpacity(
             NavigationGrid grid, int sx, int sy, int range,
             float airLosRadius, int[] out, int outOffset) {
-        return castFrom(grid, sx, sy, range, airLosRadius, out, outOffset, true);
+        return castFrom(grid, sx, sy, range, airLosRadius, out, outOffset, true, airLosRadius > 0f);
     }
 
     private static int castFrom(NavigationGrid grid, int sx, int sy, int range,
                                 float airLosRadius, int[] out, int outOffset,
-                                boolean ignoreTransientOpacity) {
+                                boolean ignoreTransientOpacity, boolean airborne) {
         int w = grid.getWidth();
         int h = grid.getHeight();
         float airR2 = airLosRadius * airLosRadius;
         ElevationMap elevation = grid.elevation();
         int eye = elevation == null ? 0
-                : airLosRadius > 0f ? ElevationMap.MAX_TIER : elevation.eyeTier(sx, sy);
+                : airborne ? ElevationMap.MAX_TIER : elevation.eyeTier(sx, sy);
         int count = 0;
 
         if (sx >= 0 && sx < w && sy >= 0 && sy < h) {
@@ -124,7 +137,12 @@ public final class Shadowcast {
                 int idx = grid.index(cx, cy);
                 boolean opaque;
                 boolean surface;
-                if (elevation != null && elevation.above(idx, eye)) {
+                if (elevation != null && elevation.above(idx, eye) && dx * dx + dy * dy <= airR2) {
+                    // Within a ground observer's read radius higher ground is
+                    // read through, as a wall there is.
+                    opaque = false;
+                    surface = true;
+                } else if (elevation != null && elevation.above(idx, eye)) {
                     // Higher ground: a face is the skyline the eye looks past
                     // (a wall under the strict rule); any top cell stops the
                     // cast, and is itself seen only if it is the rim.
