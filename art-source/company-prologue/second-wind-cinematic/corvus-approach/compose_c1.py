@@ -177,19 +177,37 @@ def captions():
     return out
 
 
+PLANET_TRACK = OUT / "planet-track.json"   # c1v2_planet_track.py: Jangala through C1 v2's camera
+
+
+def _globe_in_frame(sample):
+    _, cx, cy, r = sample
+    return r <= cx <= W - r and r <= cy <= H - r
+
+
 def overlays():
-    """The planet lock as data: the globe's screen centre and radius (source pixels) over time."""
-    global SCENE
-    if SCENE is None:
-        SCENE = build_scene(duration())
-    t_lock, t_out = c1_overlay.planet_lock_times()
+    """The planet lock as data: the globe's screen centre and radius (source pixels) over time.
+
+    The shipped C1 is v2 (`c1v2_scene.py`), whose camera holds Second Wind and only turns onto
+    Jangala from 15 s, so the track is read from `c1v2_planet_track.py`'s projection of that
+    camera, not from this module's v1 composition. The lock lands as the first Approach
+    transmission to open with the whole globe in frame (the customs call) begins, and clears as it
+    keys down."""
+    if not PLANET_TRACK.is_file():
+        raise SystemExit("C1's planet lock needs %s: run `blender --background --factory-startup "
+                         "--python corvus-approach/c1v2_planet_track.py` first" % PLANET_TRACK)
+    samples = json.loads(PLANET_TRACK.read_text(encoding="utf-8"))
+    at = {round(s[0] * OVERLAY_SAMPLE_HZ): s for s in samples}
+    t_lock = t_out = None
+    for t_in, t_end, speaker, _line in captions():
+        sample = at.get(math.ceil(t_in * OVERLAY_SAMPLE_HZ))
+        if speaker == "approach" and sample and _globe_in_frame(sample):
+            t_lock, t_out = t_in, t_end
+            break
+    if t_lock is None:
+        raise SystemExit("no Approach transmission in C1 opens with Jangala wholly in frame")
     t_end = min(duration(), t_out + c1_overlay.OUT_SECONDS)
-    steps = max(1, math.ceil((t_end - t_lock) * OVERLAY_SAMPLE_HZ))
-    track = []
-    for i in range(steps + 1):
-        t = t_lock + (t_end - t_lock) * i / steps
-        cx, cy, r = c1_overlay.planet_screen(t, duration())
-        track.append([round(t, 3), round(cx, 2), round(cy, 2), round(r, 2)])
+    track = [s for s in samples if t_lock - 1 / OVERLAY_SAMPLE_HZ <= s[0] <= t_end + 1 / OVERLAY_SAMPLE_HZ]
     return [{
         "kind": "lock", "t_in": round(t_lock, 3), "t_out": round(t_out, 3),
         "close_seconds": c1_overlay.LOCK_SECONDS, "out_seconds": c1_overlay.OUT_SECONDS,

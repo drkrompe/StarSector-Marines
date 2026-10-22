@@ -1,11 +1,11 @@
 """Package arrival-cinematic shots into the mod (runtime-contract.md).
 
-python art-source/company-prologue/second-wind-cinematic/cinematic_export.py [--shot c1 ...] [--crf 25] [--check] [--timeline-only]
+python art-source/company-prologue/second-wind-cinematic/cinematic_export.py [--shot c1 ...] [--crf 25] [--check] [--timeline-only] [--from-drive]
 
 For each shot with rendered frames this encodes the shipped video and writes the shot's
 timeline (captions, overlays, audio cues) beside it:
 
-  mod/cinematic/jangala-arrival/<shot>.mp4          gitignored; the player decodes it (JCodec)
+  mod/cinematic/jangala-arrival/<shot>.mp4          checked in (its frames are not); the player decodes it (JCodec)
   mod/data/cinematic/jangala-arrival/<shot>.json    timeline; small, checked in
 
 The video is H.264 High, CABAC, closed one-second GOPs, no B-frames, BT.709 limited range:
@@ -18,8 +18,9 @@ so the player resolves them in the active language and pages the text itself (Ca
 `--timeline-only` rewrites just the JSON, taking the frame count from the timeline already on disk;
 it needs no frames and no ffmpeg and leaves the checked-in mp4 untouched.
 
-To add a shot, add a row to SHOTS: the folder holding its composer, the module name, and where
-the composer writes frames (build/cinematic/<output>/frames). The module provides captions() (as
+To add a shot, add a row to SHOTS: the folder holding its composer (or, for a Blender scene, a
+plain-Python contract module beside it), the module name, and where its frames are read from
+(build/cinematic/<output>/frames), and a row to FINALS once its final frames are on Drive. The module provides captions() (as
 (t_in, t_out, speaker_id, catalog_line_id) over the whole take), overlays(), audio_cues() and
 duration() (or DURATION). Requires ffmpeg on PATH.
 """
@@ -27,6 +28,7 @@ import argparse
 import importlib
 import json
 import re
+import shutil
 import subprocess
 import sys
 from collections import namedtuple
@@ -49,10 +51,63 @@ SHOTS = {
     "entry": Shot("patrol-abeam", "compose_entry", "entry"),
     # C3 is film-grain heavy: crf 25 costs 1.1 MB/s there against 0.4 for C1, so it takes 28 (8 MB).
     "c3": Shot("first-open-sky", "compose_c3", "c3-first-open-sky", 28),
-    "c4": Shot("road-and-port", "compose_c4", "c4-road-and-port"),
-    "c5": Shot("nessas-yard", "compose_c5", "c5-nessas-yard"),
+    # C4 and C5 are Blender scenes (c4x_scene.py, c5_scene.py import bpy); their contract data is in
+    # the plain-Python c4x_contract / c5_contract beside them.
+    "c4": Shot("industrial-exterior", "c4x_contract", "c4-landing"),
+    "c5": Shot("industrial-exterior", "c5_contract", "c5-yard-title"),
 }
 CINEMATIC_BUILD = ROOT / "build" / "cinematic"
+
+# The owner-approved final frames of each shot, under the shared Drive's builds/ folder (README.md,
+# "Final renders"). `--from-drive` copies them into <frames-root>/<output>/frames before encoding:
+# Drive is storage, so nothing reads frames off it in place (CLAUDE.md, "Large files").
+# Each shot lists one or more frame folders; a later folder replaces the earlier ones' frames where
+# it has them (C4's plume pass re-rendered only frames 0-359). A folder is either flat (frames in
+# name order from 0) or split into render-queue chunks named "<first>-<last>/".
+DRIVE_BUILDS = Path("G:/My Drive/starsector/builds")
+FINALS = {
+    "c1": ["c1-final-dc62710dc-e0c15dc08-plumes-trim/frames"],
+    "c2": ["c2-final-dc62710dc-71c4b051b/frames"],
+    "entry": ["c3-entry-final-2a0bd10ef/entry/frames"],
+    "c3": ["c3-entry-final-2a0bd10ef/c3/frames"],
+    "c4": ["c4-final-dc62710dc-f2323ac8f/frames", "c4-final-dc62710dc-f2323ac8f-plumes-trim/frames"],
+    "c5": ["c5-final-dc62710dc-f2323ac8f/titled"],   # the frames with the title laid on (c5_title.py)
+}
+
+
+def final_frames(folder):
+    """{shot frame index: png} for one Drive frame folder, flat or chunked."""
+    chunks = [d for d in folder.iterdir() if d.is_dir() and re.fullmatch(r"\d+-\d+", d.name)]
+    if not chunks:
+        return dict(enumerate(sorted(folder.glob("*.png"))))
+    out = {}
+    for chunk in chunks:
+        first, last = (int(n) for n in chunk.name.split("-"))
+        pngs = sorted(chunk.glob("*.png"))
+        if len(pngs) != last - first + 1:
+            raise SystemExit("%s holds %d frames, its name says %d" % (chunk, len(pngs), last - first + 1))
+        out.update((first + i, png) for i, png in enumerate(pngs))
+    return out
+
+
+def copy_final(shot_id, target):
+    """Copy a shot's final frames off Drive into target as 00000.png on, skipping files already
+    there at the same size and removing any left over from a longer take."""
+    frames = {}
+    for folder in FINALS[shot_id]:
+        frames.update(final_frames(DRIVE_BUILDS / folder))
+    if sorted(frames) != list(range(len(frames))):
+        raise SystemExit("%s: the final frames are not one unbroken run from 0" % shot_id)
+    target.mkdir(parents=True, exist_ok=True)
+    keep = {"%05d.png" % i for i in frames}
+    for old in target.glob("*.png"):
+        if old.name not in keep:
+            old.unlink()
+    for i, frame in frames.items():
+        out = target / ("%05d.png" % i)
+        if not out.is_file() or out.stat().st_size != frame.stat().st_size:
+            shutil.copyfile(frame, out)
+    print("%s: %d frames from %s" % (shot_id, len(frames), " + ".join(FINALS[shot_id])))
 
 # Labels are strings.json keys; the player resolves them.
 SPEAKERS = {
@@ -167,6 +222,8 @@ def main():
     parser.add_argument("--crf", type=int, default=None, help="override every shot's crf (default 25, or the shot's own)")
     parser.add_argument("--frames-root", type=Path, default=CINEMATIC_BUILD,
                         help="folder holding <output>/frames for each shot (default build/cinematic)")
+    parser.add_argument("--from-drive", action="store_true",
+                        help="first copy each shot's approved final frames (FINALS) off Drive into the frames root")
     parser.add_argument("--timeline-only", action="store_true",
                         help="rewrite only the timeline JSON (frame count from the one on disk); no frames, no encode")
     parser.add_argument("--check", action="store_true", help="validate the timeline; write nothing")
@@ -176,6 +233,8 @@ def main():
         if args.shot and shot_id not in args.shot:
             continue
         frames_dir = args.frames_root / shot.output / "frames"
+        if args.from_drive and not args.timeline_only:
+            copy_final(shot_id, frames_dir)
         frames = frames_of(frames_dir)
         if args.timeline_only:
             existing = TIMELINE_DIR / (shot_id + ".json")

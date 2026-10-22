@@ -12,11 +12,11 @@ The packages below are the earlier animated sequence (**space -> entry -> forest
 [movie](arrival-sequence/review/jangala-space-to-berth.mp4). v3's salvage table
 says which of them feed the new plates.
 
-## Where it stands (2026-10-19)
+## Where it stands (2026-10-22)
 
 The shipped cut is **C1 -> C2 -> entry -> C3 -> C4 -> C5** (about 2:17 with the
-title). Every shot's content is owner-approved; what remains is the final renders,
-the final mix and packaging into the game.
+title). Every shot's content is owner-approved and its final render is packaged into the game;
+what remains is the final mix.
 
 | Shot | Length | Source | State |
 |---|---|---|---|
@@ -36,11 +36,17 @@ into the final mix. The game data already carries the new lines (`mod/data/cinem
 strings, sounds).
 
 **Open work, in order.**
-1. Owner review of the joined C4+C5 (half size, with `review/cinematic-c4c5/2026-10-19_mix-castle-v4_windows/01-c4c5-mix.wav`).
-2. Final mix from the owner's score-desk settings.
-3. Final full-quality renders of C1, C2 (lit), C4 and C5. C5's title is laid on Windows by `c5_title.py`.
-   Final render state: see *Final renders* below. Entry and C3 need C3's layer build first (`first-open-sky/build/layers/` is a generated input: run the C3 layer and plate scripts, then `compose_entry.py` and `compose_c3.py` at full rate).
-4. Packaging: the in-game C5 composer still builds an 8 s shot and must take the 40 s one; the new voice files need `processAudio`; then re-export every shot (`cinematic_export.py`) and run `ArrivalCinematicStringsTest`.
+1. Final mix from the owner's score-desk settings. The game's C4 and C5 cues are a stand-in
+   built from the sounds already shipped (`industrial-exterior/c4x_contract.py`,
+   `c5_contract.py`); the mix replaces them with `arrival-audio/sfx-cues.md`'s C4-C5 design and
+   the Ending A music, which are not yet in `audio.json` / `sounds.json`.
+2. An in-game play-through of the packaged cut (`runStarsector`).
+
+**Packaging.** All six finals are in the game (2026-10-22). `cinematic_export.py --from-drive`
+copies each shot's approved frames off Drive (`FINALS`: C1 and C4 on their plumes-trim builds,
+C5 titled) into `build/cinematic/` and encodes them. C1's planet lock is read from C1 v2's own
+camera (`corvus-approach/c1v2_planet_track.py`, run in Blender before exporting C1) and lands
+on Approach's customs call (hail 03), the first transmission with Jangala wholly in frame.
 
 ## Final renders (render coordinator, 2026-10-20)
 
