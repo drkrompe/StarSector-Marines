@@ -1,0 +1,86 @@
+<template props="tile">
+  <!-- One loadout card, drawn as a licence: the same heading, stamp, rating meter and
+       fire-team seats as the spec sheet a card shows on hover elsewhere, from the
+       spec sheet's own stylesheet (SpecSheetLayer), so the two cannot drift apart. -->
+  <button id="{tile.id}" class="{tile.cardClasses}" onclick="{tile.select}" style="{tile.cardStyle}">
+    <div id="{tile.headerId}" class="spec-sheet-heading">
+      <img id="{tile.factionLogoId}" class="{tile.crestClasses}" src="{tile.factionLogo}" />
+      <div id="{tile.headingCopyId}" class="spec-sheet-heading-copy">
+        <div id="{tile.nameId}" class="spec-sheet-title">{tile.name}</div>
+        <div id="{tile.metadataId}" class="spec-sheet-subtitle">{tile.metadata}</div>
+      </div>
+      <button id="{tile.issueId}" class="{tile.issueButtonClasses}" disabled="{tile.issueDisabled}" onclick="{tile.issue}">{tile.issueLabel}</button>
+    </div>
+    <div id="{tile.stampId}" class="{tile.stampClasses}">
+      <div id="{tile.restrictionId}" class="{tile.restrictionClasses}">
+        <img id="{tile.restrictionSealId}" class="spec-sheet-stamp-seal" src="graphics/ui/company/restricted-seal.svg" />
+        <div id="{tile.restrictionTextId}" class="spec-sheet-stamp-restriction">{tile.restriction}</div>
+      </div>
+      <div id="{tile.stampIssuedId}" class="spec-sheet-stamp-issued">{tile.stampIssued}</div>
+    </div>
+    <div id="{tile.ratingId}" class="spec-sheet-stat spec-sheet-stat-metered">
+      <div id="{tile.ratingLineId}" class="spec-sheet-stat-line">
+        <div id="{tile.ratingLabelId}" class="spec-sheet-stat-label">{tile.ratingName}</div>
+        <div id="{tile.ratingValueId}" class="spec-sheet-stat-value">{tile.ratingValue}</div>
+      </div>
+      <div id="{tile.ratingTrackId}" class="spec-sheet-stat-track">
+        <div id="{tile.ratingFillId}" class="spec-sheet-stat-fill" style="{tile.ratingFillStyle}" />
+      </div>
+    </div>
+    <div id="{tile.seatsId}" class="{tile.seatsClasses}">
+      <div each="team in tile.teams" key="{team.id}" id="{team.id}" class="spec-sheet-team">
+        <div id="{team.labelId}" class="spec-sheet-team-label">{team.label}</div>
+        <div id="{team.rowsId}" class="loadout-card-team-rows">
+          <div each="row in team.rows" key="{row.id}" id="{row.id}" class="spec-sheet-seat-row">
+            <div each="seat in row.seats" key="{seat.id}" id="{seat.id}" class="spec-sheet-seat">
+              <img id="{seat.imageId}" class="spec-sheet-seat-image" src="{seat.image}" />
+              <img id="{seat.badgeId}" class="{seat.badgeClasses}" src="{seat.badge}" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="{tile.compositionId}" class="loadout-card-line loadout-card-composition">{tile.compositionLine}</div>
+    <div id="{tile.distributionId}" class="{tile.distributionClasses}">{tile.distributionLine}</div>
+    <div id="{tile.distributionRowId}" class="{tile.distributionRowClasses}" style="{tile.distributionStyle}">
+      <div id="{tile.distributionGridId}" class="doctrine-span-grid">
+        <div each="span in tile.distributionSpans" key="{span.id}" id="{span.id}" class="doctrine-span doctrine-issue-span"><img id="{span.iconId}" class="doctrine-equipment-icon" src="{span.icon}" /><div id="{span.textId}" class="doctrine-equipment-name">{span.text}</div></div>
+      </div>
+    </div>
+    <div id="{tile.carriesId}" class="{tile.carriesClasses}">{tile.carriesLine}</div>
+    <div id="{tile.carriesRowId}" class="{tile.carriesRowClasses}">
+      <div id="{tile.carriesTagId}" class="doctrine-line-tag label">{i18n.openingUiArmorySquadDoctrineCarries}</div>
+      <div id="{tile.carriesGridId}" class="doctrine-span-grid">
+        <div each="span in tile.carriesSpans" key="{span.id}" id="{span.id}" class="doctrine-span doctrine-carries-span label">{span.label}</div>
+      </div>
+    </div>
+    <div id="{tile.descriptionId}" class="spec-sheet-note loadout-card-lore">{tile.description}</div>
+    <div id="{tile.issueReasonId}" class="{tile.issueReasonClasses}">{tile.issueReason}</div>
+  </button>
+</template>
+<style>
+  /* The card's frame and colours are the spec sheet's (.spec-card in SpecSheetLayer and the
+     theme); what is here is only the lines a whole card has and a hover sheet does not. */
+  .loadout-card-team-rows { flex-direction: column; height: 116px; gap: 4px; }
+  .loadout-card-line { height: 18px; white-space: normal; }
+  .loadout-card-composition { color: #7fb2d8; }
+  .loadout-card-lore { height: 64px; color: #8b9aaf; }
+  .doctrine-issue-button { width: 84px; height: 24px; padding: 2px 6px; border-width: 1px; font-family: body; text-align: center; }
+  .doctrine-issue-button.issued { color: #8fd6a6; border-color: #4f9c6b; }
+  .doctrine-issue-button-hidden { width: 0px; height: 0px; opacity: 0; overflow: hidden; }
+  .doctrine-issue-reason { height: 20px; padding: 2px 4px; white-space: normal; overflow: hidden; }
+  .doctrine-issue-reason-empty { width: 0px; height: 0px; opacity: 0; overflow: hidden; }
+  .doctrine-distribution { height: 18px; color: #d8bd67; white-space: normal; }
+  .doctrine-carries { height: 18px; color: #8fd6a6; }
+  .doctrine-span-row { flex-direction: row; gap: 6px; overflow: hidden; }
+  .doctrine-distribution-row { height: 96px; }
+  .doctrine-carries-row { height: 18px; }
+  .doctrine-line-tag { width: 58px; padding: 1px 0px; color: #7d8ea1; }
+  .doctrine-span-grid { display: grid; width: 0px; flex-grow: 1; gap: 4px; }
+  .doctrine-span { height: 17px; padding: 1px 2px; }
+  .doctrine-issue-span { flex-direction: row; width: 230px; height: 44px; gap: 7px; align-items: center; color: #d8bd67; background-color: #111719; }
+  .doctrine-equipment-icon { width: 50px; height: 42px; }
+  .doctrine-equipment-name { width: 0px; flex-grow: 1; height: 36px; white-space: normal; }
+  .doctrine-carries-span { color: #8fd6a6; }
+  .doctrine-line-hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; flex-grow: 0; opacity: 0; overflow: hidden; }
+</style>

@@ -41,7 +41,7 @@ public final class FleetArmoryScreen implements Screen {
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/armory/fleet-armory-fireteam.mlx",
-            "data/ui/components/armory/armory-weapon-tech-card.mlx", "data/ui/components/armory/armory-squad-doctrine.mlx",
+            "data/ui/components/armory/armory-loadout-card.mlx", "data/ui/components/armory/armory-squad-doctrine.mlx",
             "data/ui/components/armory/armory-refit-transaction.mlx",
             "data/ui/components/armory/armory-armor-comparison.mlx",
             "data/ui/components/armory/first-refit.mlx");

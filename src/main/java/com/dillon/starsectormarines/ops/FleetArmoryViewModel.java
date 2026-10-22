@@ -668,7 +668,7 @@ public final class FleetArmoryViewModel {
                 name, presentation.rarity().displayName(), rating,
                 Strings.format(presentation.kind() == SquadLoadoutPresentationDef.Kind.WEAPON ? "openingLoadoutFireRating" : "openingLoadoutGuardRating", rating), presentation.factionLogo(), metadata,
                 presentation.lore(), composition, distribution, distributionSpans,
-                carries, carriesSpans, stamp, seats, seatSheets, select, null, true, "", false);
+                carries, carriesSpans, stamp, seats, seatSheets, select, null, true, "", false, false);
     }
 
     private static String factionLogoClasses(String factionLogo) {
@@ -1618,7 +1618,7 @@ public final class FleetArmoryViewModel {
             List<DoctrineSpan> distributionSpans, String carries,
             List<DoctrineSpan> carriesSpans, SpecSheet.Stamp stamp, List<SpecSheet.Seat> seats,
             List<SpecSheet> seatSheets, Runnable select, Runnable issue, boolean issueDisabled,
-            String issueReason, boolean issued) implements MarkupPropertySource {
+            String issueReason, boolean issued, boolean compact) implements MarkupPropertySource {
         /** Inert click handler for a card shown where nothing can be issued; its button is hidden. */
         private static final Runnable NO_ISSUE = () -> { };
 
@@ -1626,8 +1626,32 @@ public final class FleetArmoryViewModel {
             return stamp != null && stamp.restricted();
         }
 
-        /** What the seat picture adds: three teams of two rows of seat tiles, plus the issued sentence above it. */
-        private static final int SEAT_GRID_HEIGHT = 140 + 34;
+        /** A weapon card wears the spec sheet's weapon accent and an Equipment card its armour one. */
+        private String accent() {
+            return id.startsWith("armor-doctrine:") ? "armor" : "weapon";
+        }
+
+        /** A card whose seats carry nothing beside their weapon or suit prints no carries line. */
+        private boolean carriesShown() {
+            return !carriesSpans.isEmpty() || (carries != null && !carries.isBlank());
+        }
+
+        /**
+         * The card's height, summed from its lines: the retained toolkit sizes a list
+         * item by its style, not by its content, so the card says how tall it is.
+         */
+        private int cardHeight() {
+            int height = 20 + 4 + 38                              // padding and border, heading
+                    + (stamp == null ? 0 : restricted() ? 52 : 30)  // stamp, with the banner
+                    + 29                                           // rating meter
+                    + (seats.isEmpty() ? 48 * ((distributionSpans.size() + 1) / 2) : 146);
+            if (compact) return height;
+            height += 24 + 24                              // section and issued lines
+                    + (carriesShown() ? 24 : 0)
+                    + 70                                           // field note
+                    + (issue != null && !issueReason.isEmpty() ? 26 : 0);
+            return height;
+        }
 
         private List<Map<String, Object>> seatTeams() {
             List<String> labels = fireTeams();
@@ -1668,7 +1692,20 @@ public final class FleetArmoryViewModel {
                     carriesId, classes, rarityClasses, ratingClasses, factionLogoClasses, name,
                     rarity, rating, ratingLabel, factionLogo, metadata, description, composition,
                     distribution, distributionSpans, carries, carriesSpans, stamp, seats, seatSheets, select, action,
-                    disabled, reason, alreadyIssued);
+                    disabled, reason, alreadyIssued, compact);
+        }
+
+        /**
+         * The same card cut off below its seats, for a screen that compares cards side by
+         * side in a short row: name, issuer, rating and the fire-team picture.
+         */
+        DoctrineTile asCompact() {
+            return new DoctrineTile(id, headerId, nameId, rarityId, ratingId, metadataRowId,
+                    factionLogoId, metadataId, descriptionId, compositionId, distributionId,
+                    carriesId, classes, rarityClasses, ratingClasses, factionLogoClasses, name,
+                    rarity, rating, ratingLabel, factionLogo, metadata, description, composition,
+                    distribution, distributionSpans, carries, carriesSpans, stamp, seats, seatSheets, select, issue,
+                    issueDisabled, issueReason, issued, true);
         }
 
         @Override
@@ -1705,20 +1742,32 @@ public final class FleetArmoryViewModel {
                 case "carriesGridId" -> carriesId + "-grid";
                 case "carriesTagId" -> carriesId + "-tag";
                 case "classes" -> classes;
-                case "weaponClasses" -> "weapon-tech-card " + classes;
-                case "cardStyle" -> "height: " + (174 + (seats.isEmpty()
-                        ? 48 * ((distributionSpans.size() + 1) / 2) : SEAT_GRID_HEIGHT)
-                        + (issue != null && !issueReason.isEmpty() ? 22 : 0)
-                        + (stamp == null ? 0 : 18) + (restricted() ? 22 : 0)) + "px;";
+                case "cardClasses" -> "spec-card spec-sheet-" + accent()
+                        + (classes.contains(" selected") ? " selected" : "");
+                case "cardStyle" -> "height: " + cardHeight() + "px;";
+                case "headingCopyId" -> id + ":heading-copy";
+                case "crestClasses" -> factionLogo == null || factionLogo.isBlank()
+                        ? "spec-sheet-crest spec-sheet-crest-absent" : "spec-sheet-crest spec-card-crest";
+                case "stampIssuedId" -> id + ":stamp-issued";
+                case "ratingLineId" -> id + ":rating-line";
+                case "ratingLabelId" -> id + ":rating-label";
+                case "ratingValueId" -> id + ":rating-value";
+                case "ratingTrackId" -> id + ":rating-track";
+                case "ratingFillId" -> id + ":rating-fill";
+                case "ratingName" -> Strings.get(accent().equals("armor") ? "openingBarracksCardGuard" : "openingBarracksCardFire");
+                case "ratingValue" -> rating + "%";
+                case "ratingFillStyle" -> "width: " + Math.max(0, Math.min(100, rating)) + "%;";
                 // The card's printed stamp, and for a Restricted card its seal and warrant banner.
                 case "stampId" -> id + ":stamp";
                 case "stampIssued" -> stamp == null ? "" : stamp.issued();
-                case "stampClasses" -> stamp == null ? "doctrine-line-hidden" : "doctrine-stamp label";
+                case "stampClasses" -> stamp == null ? "doctrine-line-hidden"
+                        : restricted() ? "spec-sheet-stamp spec-sheet-stamp-restricted" : "spec-sheet-stamp";
                 case "restrictionId" -> id + ":restriction";
                 case "restrictionSealId" -> id + ":restriction-seal";
                 case "restrictionTextId" -> id + ":restriction-text";
                 case "restriction" -> restricted() ? stamp.restriction() : "";
-                case "restrictionClasses" -> restricted() ? "doctrine-restriction" : "doctrine-line-hidden";
+                case "restrictionClasses" -> restricted() ? "spec-sheet-stamp-badge"
+                        : "spec-sheet-stamp-badge spec-sheet-stamp-badge-absent";
                 case "sealId" -> id + ":seal";
                 case "sealClasses" -> restricted() ? "doctrine-seal" : "doctrine-seal doctrine-seal-absent";
                 case "distributionStyle" -> seats.isEmpty()
@@ -1727,7 +1776,7 @@ public final class FleetArmoryViewModel {
                 // weapon or suit with its special or integral system on the opposite corner:
                 // the picture the Barracks hover paints, so the two screens read alike.
                 case "seatsId" -> id + ":seats";
-                case "seatsClasses" -> seats.isEmpty() ? "doctrine-line-hidden" : "doctrine-seats";
+                case "seatsClasses" -> seats.isEmpty() ? "doctrine-line-hidden" : "spec-sheet-seats";
                 case "teams" -> seatTeams();
                 case "rarityClasses" -> rarityClasses;
                 case "ratingClasses" -> ratingClasses;
@@ -1754,7 +1803,7 @@ public final class FleetArmoryViewModel {
                         ? "doctrine-line-hidden" : "doctrine-span-row doctrine-distribution-row";
                 case "carries" -> carries;
                 case "carriesSpans" -> carriesSpans;
-                case "carriesClasses" -> carriesSpans.isEmpty()
+                case "carriesClasses" -> carriesSpans.isEmpty() && carriesShown()
                         ? "doctrine-carries label" : "doctrine-line-hidden";
                 case "carriesRowClasses" -> carriesSpans.isEmpty()
                         ? "doctrine-line-hidden" : "doctrine-span-row doctrine-carries-row";

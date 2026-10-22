@@ -90,7 +90,7 @@ class FleetArmoryViewModelTest {
     private static final List<String> COMPONENTS = List.of(
             "mod/data/ui/components/company/company-resource-stock.mlx", "mod/data/ui/components/company/company-resource-cost.mlx", "mod/data/ui/components/marine-ops-page-nav.mlx",
             "mod/data/ui/components/armory/fleet-armory-fireteam.mlx",
-            "mod/data/ui/components/armory/armory-weapon-tech-card.mlx", "mod/data/ui/components/armory/armory-squad-doctrine.mlx",
+            "mod/data/ui/components/armory/armory-loadout-card.mlx", "mod/data/ui/components/armory/armory-squad-doctrine.mlx",
             "mod/data/ui/components/armory/armory-refit-transaction.mlx",
             "mod/data/ui/components/armory/armory-armor-comparison.mlx");
 

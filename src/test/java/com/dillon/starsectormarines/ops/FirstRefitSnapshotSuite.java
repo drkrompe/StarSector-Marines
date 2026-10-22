@@ -114,7 +114,7 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
         Runnable noop = () -> { };
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.ARMORY, MarineOpsPageNav.ANY_SHIP, noop, noop, noop, noop, noop, noop);
         var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), List.of(
-                "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/armory/armory-weapon-tech-card.mlx", "data/ui/components/armory/first-refit.mlx"));
+                "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/armory/armory-loadout-card.mlx", "data/ui/components/armory/first-refit.mlx"));
         loader.reload();
         try (var markup = loader.build(reactor, "first-refit", props)) {
             var document = PreparationGuide.document(markup.root()).theme(MarineOpsThemes.standard());
