@@ -302,6 +302,8 @@ public class BattleRenderer {
                 RenderSystem.of(RenderLayer.DOODADS, dressing::collectBeneath),
                 doodads,
                 RenderSystem.of(RenderLayer.DOODADS, dressing::collectOver),
+                // Compartment doors stand in their doorways, over the floor and under the crew.
+                new RoomDoorRenderSystem(),
                 // Burnt ground under the creep, inside the ground's colour target.
                 scorch,
                 creep,

@@ -123,12 +123,16 @@
               <div id="{squad.footerSpacerId}" class="card-footer-spacer"></div>
               <button id="{squad.loadoutId}" class="loadout-button console-action" onclick="{squad.loadout}">{i18n.openingUiShipboardBarracksLoadout}</button>
             </div>
-            <button id="{squad.founderId}" class="{squad.founderClasses}" disabled="{squad.founderDisabled}" onclick="{squad.raise}">
+            <button id="{squad.founderId}" class="{squad.founderClasses}" style="background-color: transparent; background-image: none; border-width: 0px; opacity: 1;" disabled="{squad.founderDisabled}" onclick="{squad.raise}">
               <div id="{squad.founderHeadingId}" class="raise-squad-heading">
-                <div id="{squad.founderPlusId}" class="label heading card-check raise-squad-plus">+</div>
                 <div id="{squad.founderTitleId}" class="label heading warm raise-squad-title">{i18n.openingUiShipboardBarracksRaiseSquad}</div>
               </div>
+              <div id="{squad.founderTopSpacerId}" class="raise-squad-spacer"></div>
+              <div id="{squad.founderEmblemId}" class="raise-squad-emblem">
+                <img id="{squad.founderEmblemIconId}" class="raise-squad-emblem-icon" src="graphics/ui/company/raise-squad.svg" />
+              </div>
               <div id="{squad.founderDestinationId}" class="label muted wrap raise-squad-copy">{squad.founderDestination}</div>
+              <div id="{squad.founderBottomSpacerId}" class="raise-squad-spacer"></div>
               <div id="{squad.founderCostsId}" class="raise-squad-costs">
                 <div each="cost in squad.founderCosts" key="{cost.id}" id="{cost.id}" class="{cost.classes}">
                   <img id="{cost.iconId}" class="raise-cost-icon" src="{cost.icon}" />
@@ -281,14 +285,17 @@
   .card-footer-spacer { width: 0px; flex-grow: 1; height: 1px; }
   .good { color: #a8cd99; }
   .formation-muster { width: 260px; height: 78px; pointer-events: none; }
-  .raise-tile { background-color: #1a211c; }
-  .raise-squad { flex-direction: column; width: 100%; height: 100%; gap: 8px; padding: 0px; border-width: 0px; text-align: left; background-color: #1a211c; }
-  .raise-squad:hover { background-color: #303b30; }
-  .raise-squad-heading { flex-direction: row; align-items: center; width: 100%; height: 24px; gap: 8px; }
-  .raise-squad-plus { width: 22px; height: 22px; text-align: center; }
-  .raise-squad-title { width: 0px; flex-grow: 1; height: 22px; }
-  .raise-squad-copy { width: 100%; height: 36px; }
-  .raise-squad-costs { flex-direction: row; align-items: center; width: 100%; height: 30px; padding: 2px 4px; gap: 6px; border-width: 1px; border-color: #46554b; background-color: #121719; overflow: hidden; }
+  .raise-tile { border-color: #3d4a40; background-color: #151b17; }
+  .raise-tile:hover { border-color: #dfc588; background-color: #1f2a21; }
+  .raise-squad { flex-direction: column; align-items: center; width: 100%; height: 100%; gap: 6px; padding: 0px; border-width: 0px; text-align: left; }
+  .raise-squad-heading { flex-direction: row; align-items: center; width: 100%; height: 24px; gap: 6px; }
+  .raise-squad-title { width: 0px; flex-grow: 1; height: 20px; }
+  .raise-squad-spacer { width: 1px; height: 0px; flex-grow: 1; }
+  .raise-squad-emblem { flex-direction: row; align-items: center; width: 46px; height: 60px; padding: 0px 0px 0px 14px; border-width: 2px; border-color: #586154; background-color: #1d251f; }
+  .raise-squad-emblem-icon { width: 32px; height: 32px; }
+  .raise-squad:hover .raise-squad-emblem { border-color: #dfc588; }
+  .raise-squad-copy { width: 100%; height: 34px; text-align: center; }
+  .raise-squad-costs { flex-direction: row; align-items: center; width: 100%; height: 28px; padding: 0px 6px; gap: 6px; border-width: 1px; border-color: #46554b; background-color: #101512; overflow: hidden; }
   .raise-cost { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 24px; gap: 4px; }
   .raise-cost-icon { width: 22px; height: 22px; pointer-events: none; }
   .raise-cost-count { width: 34px; height: 18px; color: #dfc588; }

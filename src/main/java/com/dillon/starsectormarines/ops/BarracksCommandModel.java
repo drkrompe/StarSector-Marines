@@ -512,10 +512,10 @@ public final class BarracksCommandModel {
     private void founderFields(Map<String, Object> row, String prefix, boolean shown) {
         String id = shown ? prefix : prefix + ":raise";
         row.put("founderId", id);
-        for (String part : List.of("Plus", "Heading", "Title", "Destination", "Costs"))
+        for (String part : List.of("Heading", "Title", "TopSpacer", "Emblem", "EmblemIcon", "Destination", "BottomSpacer", "Costs"))
             row.put("founder" + part + "Id", id + ":" + part.toLowerCase(Locale.ROOT));
         boolean ready = shown && raiseCommander() != null && foundingResources.canAfford(SquadFoundingCost.STANDARD);
-        row.put("founderClasses", shown ? "raise-squad console-action" : "hidden");
+        row.put("founderClasses", shown ? "raise-squad" : "hidden");
         row.put("founderDisabled", !ready);
         row.put("raise", shown ? (Runnable) this::raiseSquad : (Runnable) () -> { });
         row.put("founderDestination", shown ? raiseDestination() : "");

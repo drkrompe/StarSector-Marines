@@ -33,7 +33,7 @@ and alternative specialization branches remain future work.
 - Room footprint, location, doors, Mech Lab and both shuttle bays remain fixed
   across all workshop states. Debris, damaged machinery, restored stations and
   installed tools are visible in the normal ship renderer.
-- Sealed entrances show pressure-hatch leaves and locking bars; clearance
+- Sealed entrances show the compartment door locked (hazard leaves and lock bar); clearance
   removes the seal and restores the ordinary doorway after patching the breach.
 - Inactive machinery offers no ambient work; repaired and equipped stations
   offer appropriate reachable work. Clearing cannot strand crew or block the

@@ -1665,7 +1665,7 @@ An arrangement may also **pin its layout seed**, so the hull lays one deck
 whatever seed the caller passes: a ship the company owns is authored and
 checked once, not across seeds. Second Wind's is pinned. A reserve is
 furnished as the facility it is kept for, at its reserved footprint, then
-stripped and closed behind pressure hatches, and stays out of service until a
+stripped and closed behind locked doors, and stays out of service until a
 refit opens it where it stands. Opening is condition, not form: the hull's
 restoration state names the reserves that are open, the fill that ran is the
 same in both states, and an opened reserve is simply not stripped, so its
@@ -1688,22 +1688,29 @@ change compartment positions or award a boat. The physical working berths and th
 campaign lift count agree in both states, with the original bay first in berth
 order: abreast, the port bay comes first.
 
-Sealed personnel entrances show closed steel pressure hatches, locking bars and
-hazard markings aligned with their bulkheads. Their overhead profile spans
-the opening, with deck visible around the seal within the doorway cell; no full-cell bulkhead
-fill or cross-rib is drawn beneath it. Physical blocking and opacity remain in
-force independently of this appearance. The workshop and reserved second
-bay share this treatment, retaining the original doorway location rather than
-disguising it as an uninterrupted wall. They block passage and sight until their
-restoration stage reopens the ordinary doorway. The launch-aperture closure is
-separate; these hatches are not interactive doors or an atmosphere simulation.
+**Every compartment doorway has a sliding door** (`RoomDoor`): two plated
+leaves across its one or two doorway cells that part into the jambs for anyone
+standing in line with the doorway within a cell and a half of the bulkhead, and
+close once nobody is. In line rather than merely near, so a crewman behind the
+wall beside a door does not work it. The leaves are presentation only: passage
+and sight are the grid's, and nobody waits on a door.
+
+A sealed personnel entrance is the same door **locked**: shut, its leaves
+banded in hazard red with a lock bar across the seam. A doorway the grid refuses
+passage through is what makes a door locked, so the workshop, the reserved
+second bay, the reserves and condition-sealed rooms all share it, keeping the
+original doorway location rather than disguising it as an uninterrupted wall.
+Deck shows beneath the door within the doorway cell; no full-cell bulkhead fill
+is drawn. They block passage and sight until their restoration stage lays a new
+deck with the ordinary doorway. The launch-aperture closure is the bay's own
+door (`BayDoor`); neither is an atmosphere simulation.
 
 A damaged facility can have several useful stages within its permanent footprint.
 Second Wind's main machine shop begins buried, becomes accessible after clearance,
 regains working machinery after repair, and gains installed tools afterward.
 The main shop is the largest parts-work compartment, distinct from small utility
 parts closets. A torn deck breach, collapsed ribs, broken full-size machines,
-and soot make the initial compartment visibly uninhabitable. Its sealed hatch
+and soot make the initial compartment visibly uninhabitable. Its locked door
 and excluded floor keep crew out. Clearance removes the collapse and seals
 the breach with a welded patch before restoring access. Machinery repair removes
 scorch marks and replaces broken equipment; the patch remains as a repair scar.

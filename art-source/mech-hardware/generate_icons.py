@@ -102,33 +102,46 @@ GLYPHS = {
     'R': ['####.', '#...#', '#...#', '####.', '#.#..', '#..#.', '#...#'],
     'M': ['#...#', '##.##', '#.#.#', '#...#', '#...#', '#...#', '#...#'],
     'L': ['#....', '#....', '#....', '#....', '#....', '#....', '#####'],
+    'A': ['.###.', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'],
+    'B': ['####.', '#...#', '#...#', '####.', '#...#', '#...#', '####.'],
+    'C': ['.####', '#....', '#....', '#....', '#....', '#....', '.####'],
+    'D': ['####.', '#...#', '#...#', '#...#', '#...#', '#...#', '####.'],
+    'G': ['.####', '#....', '#....', '#.###', '#...#', '#...#', '.###.'],
+    'H': ['#...#', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'],
+    'K': ['#...#', '#..#.', '#.#..', '##...', '#.#..', '#..#.', '#...#'],
+    'P': ['####.', '#...#', '#...#', '####.', '#....', '#....', '#....'],
+    'Q': ['.###.', '#...#', '#...#', '#...#', '#.#.#', '#..#.', '.##.#'],
+    'T': ['#####', '..#..', '..#..', '..#..', '..#..', '..#..', '..#..'],
 }
 
 
 def stamped(text, cx, cy, cell):
-    """Text pressed into metal: bold block letters in a deep shade, with a lit lip under every
-    stroke end that has open plate below it, so each letter reads as a recess lit from above.
-    Runs of cells merge into one rectangle so the translucent shade never doubles."""
-    deep = 'fill="#000000" fill-opacity="0.72"'
+    """A rack label: bold silver block letters, each stroke framed in near-black, so the word
+    reads on any hardpoint colour. Both are opaque, so the frame drawn under every stroke
+    never darkens where strokes meet. Runs of cells merge into one rectangle per row."""
+    frame = 'fill="#0d100e"'
+    silver = 'fill="#d9dcd2"'
+    shade = 'fill="#9ea397"'
     width = len(text) * 5 * cell + (len(text) - 1) * cell
     x0, y0 = cx - width / 2, cy - 3.5 * cell
-    out = ''
+    runs = []
     for i, ch in enumerate(text):
         gx = x0 + i * 6 * cell
-        rows = GLYPHS[ch]
-        for r, row in enumerate(rows):
-            below = rows[r + 1] if r + 1 < len(rows) else '.....'
-            for want, attr, top, height in (('#', deep, 0, cell), ('lip', LS, cell, cell * .32)):
-                c = 0
-                while c < 5:
-                    on = row[c] == '#' and (want == '#' or below[c] != '#')
-                    if not on:
-                        c += 1
-                        continue
-                    start = c
-                    while c < 5 and row[c] == '#' and (want == '#' or below[c] != '#'):
-                        c += 1
-                    out += rect(gx + start * cell, y0 + r * cell + top, (c - start) * cell, height, attr)
+        for r, row in enumerate(GLYPHS[ch]):
+            c = 0
+            while c < 5:
+                if row[c] != '#':
+                    c += 1
+                    continue
+                start = c
+                while c < 5 and row[c] == '#':
+                    c += 1
+                runs.append((gx + start * cell, y0 + r * cell, (c - start) * cell))
+    edge = cell * .38
+    out = ''.join(rect(x - edge, y - edge, w + 2 * edge, cell + 2 * edge, frame) for x, y, w in runs)
+    out += ''.join(rect(x, y - cell * .06, w, cell * 1.12, silver) for x, y, w in runs)
+    # The lower third of each stroke a step darker, so the metal reads as lit from above.
+    out += ''.join(rect(x, y + cell * .66, w, cell * .4, shade) for x, y, w in runs)
     return out
 
 
@@ -142,11 +155,28 @@ def missile_rack(w, h, rows, kind, margin_x=18):
     for i in range(rows):
         y = 8 + pitch * (i + .5)
         s += missile(margin_x, y, w - margin_x - 8, mh, kind)
-    py0, py1 = h - plate - 4, h - 8
-    s += block(12, py0, w - 12, py1, 5, MID)
-    s += rect(17, py1 - 3, w - 34, 2, LS)
-    s += stamped(kind.upper(), w / 2, (py0 + py1) / 2 - 1, 4.2)
+    s += label_plate(kind.upper(), w / 2, h - plate / 2 - 6, 4.2)
     return s
+
+
+def label_plate(text, cx, cy, cell, pad=None):
+    """A dark plate just wide enough for the stamped text, with a lit lower lip."""
+    pad = cell * 2.2 if pad is None else pad
+    half_w = (len(text) * 6 - 1) * cell / 2 + pad
+    half_h = 3.5 * cell + cell * 1.2
+    s = block(cx - half_w, cy - half_h, cx + half_w, cy + half_h, cell * 1.1, D)
+    s += rect(cx - half_w + cell, cy + half_h - cell * .7, 2 * half_w - 2 * cell, cell * .45, LS)
+    return s + stamped(text, cx, cy - cell * .1, cell)
+
+
+def banded(w, h, art, text, cell=4.2):
+    """A two-row icon with its designation plate along the bottom: the art is scaled about the
+    top centre into the space above the plate, so nothing overlaps it."""
+    band = 44
+    k = (h - band) / h
+    tx = w * (1 - k) / 2
+    body = f'  <g transform="translate({n(tx)} 0) scale({k:.4f})">' + '\n' + art + '  </g>\n'
+    return svg(w, h, body + label_plate(text, w / 2, h - band / 2 - 2, cell))
 
 
 # --- guns -----------------------------------------------------------------------------------
@@ -276,6 +306,7 @@ def build():
     # Pioneer: one rocket riding its cradle rail, a 2x1 piece.
     b = missile(22, 40, 116, 26, 'rocket')
     b += rect(14, 64, 124, 8, D, rx=2) + rect(30, 74, 8, 16, D) + rect(112, 74, 8, 16, D)
+    b += stamped('RKT', 74, 40, 2.6)
     f['pioneer-rocket'] = svg(150, 100, b)
 
     pts = []
@@ -288,8 +319,8 @@ def build():
                          + poly(inner, 'fill="#ffffff" fill-opacity="0.75"'))
 
     # Energy.
-    f['shoulder-laser'] = svg(225, 200, laser_cannon(100, 10, 214, 54, rings=4))
-    f['pulse-laser-dual'] = svg(225, 200, pulse_laser(56, 10, 214, 46) + pulse_laser(144, 10, 214, 46))
+    f['shoulder-laser'] = banded(225, 200, laser_cannon(100, 10, 214, 54, rings=4), 'LAS')
+    f['pulse-laser-dual'] = banded(225, 200, pulse_laser(56, 10, 214, 46) + pulse_laser(144, 10, 214, 46), 'PLS')
 
     # Thermal lance, a 2x1 piece: fuel tank, feed pipe, nozzle, and the flame it throws.
     b = rect(8, 26, 38, 48, D, rx=12) + rect(14, 32, 26, 8, L, rx=3)
@@ -297,12 +328,13 @@ def build():
     b += poly([(84, 38), (102, 44), (102, 56), (84, 62)], D)
     b += path('M 104 44 C 118 36 128 42 146 50 C 128 58 118 64 104 56 Z', D)
     b += path('M 106 47 C 116 43 124 46 134 50 C 124 54 116 57 106 53 Z', L)
+    b += stamped('TL', 27, 50, 3.0)
     f['thermal-lance'] = svg(150, 100, b)
 
     # Ballistic.
-    f['chaingun-dual'] = svg(225, 200, gatling(52, 10, 214, 52) + gatling(144, 10, 214, 52))
-    f['chaingun-nose'] = svg(150, 200, gatling(100, 6, 144, 62, barrels=5))
-    f['linear-cannon-dual'] = svg(225, 200, gauss(52, 10, 214, 32) + gauss(148, 10, 214, 32))
+    f['chaingun-dual'] = banded(225, 200, gatling(52, 10, 214, 52) + gatling(144, 10, 214, 52), 'CG')
+    f['chaingun-nose'] = banded(150, 200, gatling(100, 6, 144, 62, barrels=5), 'CG')
+    f['linear-cannon-dual'] = banded(225, 200, gauss(52, 10, 214, 32) + gauss(148, 10, 214, 32), 'LC')
 
     # Heavy cannon: a tank gun. Breech block, recoil cylinders, a sleeved barrel, the tapered
     # fume extractor partway along, and a baffled muzzle brake.
@@ -317,7 +349,7 @@ def build():
     b += block(194, 72, 216, 128, 4)
     b += rect(198, 80, 4, 40, L) + rect(207, 80, 4, 40, L)
     b += hbar(78, 190, 87, 3, LS, rx=0)
-    f['heavy-cannon'] = svg(225, 200, b)
+    f['heavy-cannon'] = banded(225, 200, b, 'HC')
 
     # Bastion: twin autocannons on one receiver, belt-fed from an ammunition can beneath.
     b = block(8, 30, 86, 130, 12)
@@ -332,10 +364,10 @@ def build():
     b += block(14, 142, 86, 188, 6, D)
     for k in range(3):
         b += rect(22, 152 + k * 11, 56, 3, LS)
-    f['bastion-autocannon-dual'] = svg(225, 200, b)
+    f['bastion-autocannon-dual'] = banded(225, 200, b, 'AC')
 
-    f['muster-autogun-dual'] = svg(225, 200, autogun(42, 10, 214, 26) + autogun(128, 10, 214, 26))
-    f['muster-autogun-nose'] = svg(150, 200, autogun(84, 8, 144, 34))
+    f['muster-autogun-dual'] = banded(225, 200, autogun(42, 10, 214, 26) + autogun(128, 10, 214, 26), 'AG')
+    f['muster-autogun-nose'] = banded(150, 200, autogun(84, 8, 144, 34), 'AG')
 
     # Demolition cannon: a short, very wide siege barrel. Breech block, recoil buffers, a
     # tapering barrel bound by heavy bands, and a flared muzzle collar.
@@ -348,7 +380,7 @@ def build():
     b += poly([(114, 66), (128, 60), (144, 60), (144, 140), (128, 140), (114, 134)], D)
     b += rect(138, 70, 3, 60, L)
     b += hbar(54, 110, 80, 2.5, LS, rx=0)
-    f['demolition-cannon'] = svg(150, 200, b)
+    f['demolition-cannon'] = banded(150, 200, b, 'DC')
 
     # Quarry breaker: hydraulic cylinder, piston rod and a chisel bit, pointing right.
     b = rect(8, 64, 70, 72, D, rx=10)
@@ -358,7 +390,7 @@ def build():
     b += poly([(104, 78), (124, 82), (146, 100), (124, 118), (104, 122)], D)
     b += poly([(108, 84), (124, 87), (136, 98), (108, 96)], L)
     b += stroke('M 30 64 C 30 40 60 36 90 46', '#000000', .58, 8)
-    f['quarry-breaker'] = svg(150, 200, b)
+    f['quarry-breaker'] = banded(150, 200, b, 'QB')
     return f
 
 

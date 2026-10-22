@@ -21,7 +21,7 @@ import java.util.Set;
  * passage are the ones its refit will open onto, and an opened one is simply
  * left as furnished: its doors work and its fixtures publish their work. Every
  * other reserve is stripped of what the fill put inside, left with salvage
- * stacked on the bare deck, closed at every entrance with a pressure hatch and
+ * stacked on the bare deck, closed at every entrance by a locked door and
  * marked damaged, so it supplies no work, no berth and no facility. Either way
  * the fill ran first and identically, so opening a reserve moves nothing on
  * the deck. Run after the other condition stages, because it adds to their
