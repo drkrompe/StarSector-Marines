@@ -139,6 +139,23 @@ class GridPathfinderExpansionBudgetTest {
         assertEquals(0, GridPathfinder.lastSearchExpandedNodes());
     }
 
+    @Test
+    void occupancyBudgetPaysTheCrowdTollAndStopsAtItsAllowance() {
+        NavigationGrid grid = openGrid(new NavigationGrid(13, 11));
+        byte[] occupancy = new byte[13 * 11];
+        for (int y = 2; y < 9; y++) occupancy[grid.index(6, y)] = 3;
+        int[] original = GridPathfinder.findPath(grid, 1, 5, 11, 5, occupancy);
+        assertArrayEquals(original, GridPathfinder.findPathWithinExpansionBudget(
+                grid, 1, 5, 11, 5, occupancy, 143));
+        for (int i = 0; i < Paths.cellCount(original); i++) {
+            assertTrue(occupancy[grid.index(Paths.cellX(original, i), Paths.cellY(original, i))] == 0,
+                    "the crowd is walked round, not through");
+        }
+        assertSame(GridPathfinder.EMPTY_PATH, GridPathfinder.findPathWithinExpansionBudget(
+                grid, 1, 5, 11, 5, occupancy, 5));
+        assertEquals(5, GridPathfinder.lastSearchExpandedNodes());
+    }
+
     private static int[] search(NavigationGrid grid, boolean cardinal,
                                 boolean envelope, int allowance) {
         return envelope

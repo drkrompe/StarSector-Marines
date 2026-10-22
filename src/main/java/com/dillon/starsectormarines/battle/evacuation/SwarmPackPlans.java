@@ -69,6 +69,10 @@ public final class SwarmPackPlans {
     /** Packs below this many Runners hunt as individuals. */
     static final int MIN_HUNTING_PACK = 3;
 
+    /** Fewest bodies a sub-pack peels off with: never a lone stray. */
+    public static final int MIN_SUB_PACK = 2;
+    public static final String SPLIT_PROPERTY = "battle.swarm.packSplit";
+
     /** What a pack as a whole is doing. */
     public enum Phase { TRAVEL, STALK, FEINT, RUSH }
 
@@ -79,9 +83,30 @@ public final class SwarmPackPlans {
     /** Plans by pack id; a pack with no Runner left, or no longer standing, has none. */
     private final Map<Integer, Plan> plans = new HashMap<>();
     private final long seed;
+    private final SwarmPackPress press;
+    /** Whether packs press and split ({@link SwarmPackPress}); {@code -Dbattle.swarm.packSplit=false} is the control. */
+    private boolean splitEnabled = Boolean.parseBoolean(System.getProperty(SPLIT_PROPERTY, "true"));
+
+    public boolean splitEnabled() { return splitEnabled; }
+
+    public void setSplitEnabled(boolean enabled) { splitEnabled = enabled; }
+
+    SwarmPackPress press() { return press; }
+
+    /** The quarry {@code body}'s sub-pack was sent at, which it hunts in place of its own choice; 0 for none. */
+    public long assignedQuarry(long body) { return press.assignedQuarry(body); }
+
+    /** Whether {@code body} runs in a sub-pack it does not lead, so taking the sub-pack's quarry is not its own cry. */
+    public boolean followsLead(long body) { return press.followsLead(body); }
+
+    /** How many Runners can strike {@code target} at once; see {@link SwarmPackPress}. */
+    public static int strikeSlots(BattleSimulation sim, long target, long striker) {
+        return SwarmPackPress.strikeSlots(sim, target, striker);
+    }
 
     public SwarmPackPlans(long seed) {
         this.seed = seed;
+        this.press = new SwarmPackPress(seed);
     }
 
     /** The plan pack {@code packId} moves on this tick, or {@code null}. */
@@ -97,6 +122,7 @@ public final class SwarmPackPlans {
         SwarmPacks packs = sim.swarmPacks();
         if (!sim.isSwarmPackEnabled() || !sim.isSwarmFlowFieldEnabled() || !packs.enabled()) {
             plans.clear();
+            press.clear();
             return;
         }
         Map<Integer, List<Long>> members = new HashMap<>();
@@ -110,14 +136,19 @@ public final class SwarmPackPlans {
             members.computeIfAbsent(id, k -> new ArrayList<>()).add(body);
         }
         plans.keySet().retainAll(members.keySet());
-        if (members.isEmpty()) return;
+        if (members.isEmpty()) {
+            press.clear();
+            return;
+        }
         int[] ids = members.keySet().stream().mapToInt(Integer::intValue).sorted().toArray();
         int tick = sim.getSimTickIndex();
         for (int id : ids) {
             long[] bodies = members.get(id).stream().mapToLong(Long::longValue).sorted().toArray();
-            Plan plan = plans.computeIfAbsent(id, k -> new Plan(k, seed));
+            Plan plan = plans.computeIfAbsent(id, k -> new Plan(k, seed, press));
             plan.update(bodies, packs.leaderOfPack(id), sim, tick);
         }
+        if (splitEnabled) press.prepare(sim, plans, ids);
+        else press.clear();
     }
 
     /** Lateral rank of the {@code k}-th member after the anchor: +1, -1, +2, -2, ... */
@@ -149,6 +180,7 @@ public final class SwarmPackPlans {
     public static final class Plan {
         final int id;
         final long seed;
+        private final SwarmPackPress press;
         /** The pack's Runners this tick, by entity id. */
         long[] members = new long[0];
         int count;
@@ -184,8 +216,13 @@ public final class SwarmPackPlans {
         float spacing = SPACING;
 
         Plan(int id, long seed) {
+            this(id, seed, new SwarmPackPress(seed));
+        }
+
+        Plan(int id, long seed, SwarmPackPress press) {
             this.id = id;
             this.seed = seed;
+            this.press = press;
         }
 
         public int packId() { return id; }
@@ -196,6 +233,11 @@ public final class SwarmPackPlans {
         public long member(int i) { return members[i]; }
         public int[] lane() { return lane; }
         public float spacing() { return spacing; }
+        /** Sub-packs peeled off this pack onto other quarry, oldest first. */
+        public int subPackCount() { return press.subPacksOf(id).size(); }
+        public long subQuarry(int s) { return press.subPacksOf(id).get(s).quarry; }
+        public long subLead(int s) { return press.subPacksOf(id).get(s).lead; }
+        public int subSize(int s) { return press.subPacksOf(id).get(s).members.length; }
 
         int indexOf(long body) {
             for (int i = 0; i < count; i++) if (members[i] == body) return i;

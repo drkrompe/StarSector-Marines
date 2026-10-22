@@ -160,7 +160,7 @@ public final class MechFittingDollCatalog {
         dolls.put(MechVariant.SIROCCO, new DollDef(180f, List.of(
                 new SocketDef(SocketId.CORE, SocketType.CORE, 2, 2,
                         0.0f, 0.0f, 0.0f, -1.45f, 1.36f, 0.68f, false, "ENGINE CORE"),
-                new SocketDef(SocketId.ARMS, SocketType.BALLISTIC, 3, 2,
+                new SocketDef(SocketId.ARMS, SocketType.BALLISTIC, 2, 3,
                         0.0f, 0.26f, 0.0f, 1.45f, 1.70f, 0.68f, false, "NOSE CANNON"),
                 new SocketDef(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 2, 3,
                         -0.36f, -0.15f, -1.34f, -0.46f, 1.36f, 0.68f, false, "L. SHOULDER"),
@@ -176,7 +176,7 @@ public final class MechFittingDollCatalog {
         dolls.put(MechVariant.BULWARK, new DollDef(180f, List.of(
                 new SocketDef(SocketId.CORE, SocketType.CORE, 2, 2,
                         0.0f, 0.03f, 0.0f, -1.50f, 1.70f, 0.68f, false, "ENGINE CORE"),
-                new SocketDef(SocketId.ARMS, SocketType.OMNI, 3, 2,
+                new SocketDef(SocketId.ARMS, SocketType.OMNI, 2, 3,
                         0.0f, 0.22f, 0.0f, 1.50f, 1.70f, 0.68f, false, "ARM ASSEMBLY"),
                 new SocketDef(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 2, 3,
                         -0.36f, -0.12f, -1.38f, -0.48f, 1.40f, 0.68f, false, "L. SHOULDER"),

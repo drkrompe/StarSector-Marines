@@ -281,8 +281,10 @@ otherwise application loading names the stranded card and stops.
 ## Runtime consumption
 
 Contributed marine-primary weapons, armor, and special equipment are valid
-faction-roster and player issue. Once a weapon or special card is learned it
-joins the equipment designer's choices in manifest order.
+faction-roster and player issue. The player never assembles a card, so a contributed
+weapon or special reaches the company only on a complete card that names it; a
+submod therefore ships the card along with the equipment (card contribution is not
+yet a manifest section).
 
 **Armour is not authored a billet at a time and has no picker.** A contributed
 pattern reaches the field by winning a billet in a tactic sheet: the sheet names

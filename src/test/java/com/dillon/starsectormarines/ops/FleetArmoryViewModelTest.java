@@ -245,8 +245,8 @@ class FleetArmoryViewModelTest {
         MarineRoster roster = fullSquad();
         SquadWeaponDoctrine source = SquadEquipmentDoctrines.weaponById(
                 SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS);
-        SquadWeaponDoctrine custom = roster.armory().createWeaponDoctrine(
-                "Company Pattern", source.issues());
+        SquadWeaponDoctrine custom = roster.armory().ensureWeaponDoctrine(
+                "custom:weapons:saved", "Company Pattern", source.issues());
         FleetArmoryViewModel viewModel = new FleetArmoryViewModel(new Reactor(), roster);
 
         FleetArmoryViewModel.DoctrineTile tile = viewModel.weaponDoctrineTiles().get()

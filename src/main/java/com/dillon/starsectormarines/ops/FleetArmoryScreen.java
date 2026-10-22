@@ -5,8 +5,6 @@ import com.dillon.starsectormarines.marine.CampaignEquipmentIssueResources;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.FirstRefit;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
-import com.dillon.starsectormarines.marine.MarineSquad;
-import com.dillon.starsectormarines.ops.battleview.ArmoryMarinePreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.ArmoryLoadoutPreviewComposer;
 import com.dillon.starsectormarines.ops.battleview.ArmoryPreviewAssets;
 import com.dillon.starsectormarines.ops.battleview.ArmoryRangeTrial;
@@ -32,19 +30,17 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Retained equipment workspace for one squad: its loadout and atomic issue, the
- * equipment designer and armour comparison. Squads are chosen in Barracks.
+ * Retained equipment workspace for one squad: its loadout and atomic issue, and
+ * armour comparison. Squads are chosen in Barracks.
  */
 public final class FleetArmoryScreen implements Screen {
 
     private static final String FIRETEAM_COMPONENT = "fleet-armory-fireteam";
-    private static final String DESIGNER_COMPONENT = "fleet-armory-doctrine-designer";
     private static final String ARMOR_COMPARISON_COMPONENT = "armory-armor-comparison";
     private static final List<String> COMPONENT_PATHS = List.of(
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/armory/fleet-armory-fireteam.mlx",
-            "data/ui/components/armory/fleet-armory-doctrine-designer.mlx",
             "data/ui/components/armory/armory-weapon-tech-card.mlx", "data/ui/components/armory/armory-squad-doctrine.mlx",
             "data/ui/components/armory/armory-refit-transaction.mlx",
             "data/ui/components/armory/armory-armor-comparison.mlx",
@@ -60,7 +56,6 @@ public final class FleetArmoryScreen implements Screen {
     private MarineRoster roster;
     private FleetArmoryViewModel viewModel;
     private FirstRefitModel firstRefit;
-    private EquipmentDoctrineDesignerViewModel designerViewModel;
     private UiViewport viewport;
     private UiDocument document;
     private PreparationGuide preparationGuide;
@@ -75,7 +70,6 @@ public final class FleetArmoryScreen implements Screen {
     private List<FleetArmoryViewModel.DoctrineTile> boundWeaponTiles;
     private List<FleetArmoryViewModel.DoctrineTile> boundArmorTiles;
     private StarsectorUiInputAdapter input;
-    private float previewAnimationSeconds;
     private int projectedCampaignHour = Integer.MIN_VALUE;
     private View view = View.FIRETEAMS;
     private PositionAPI position;
@@ -136,7 +130,6 @@ public final class FleetArmoryScreen implements Screen {
     private void installDocument(boolean reloadSource) {
         String componentName = switch (view) {
             case FIRETEAMS -> FIRETEAM_COMPONENT;
-            case DESIGNER -> DESIGNER_COMPONENT;
             case ARMOR_COMPARISON -> ARMOR_COMPARISON_COMPONENT;
             case FIRST_REFIT -> "first-refit";
         };
@@ -156,19 +149,9 @@ public final class FleetArmoryScreen implements Screen {
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(switch (view) {
                 case FIRETEAMS -> this::returnFromWorkspace;
-                case DESIGNER -> this::showFireTeams;
                 case ARMOR_COMPARISON -> this::showFireTeams;
                 case FIRST_REFIT -> this::leaveFirstRefit;
             });
-            if (view == View.DESIGNER) {
-                for (int index = 0; index < MarineSquad.TEAM_SIZE; index++) {
-                    int slot = index;
-                    built.canvases().set(candidate.requireElement("designer-marine-preview:" + index),
-                            new ArmoryMarinePreviewCanvas(
-                                    () -> designerViewModel.viewerBilletAt(slot), previewAssets,
-                                    () -> previewAnimationSeconds + slot * 0.31d));
-                }
-            }
             candidateSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built));
             if (view == View.FIRST_REFIT) bindFirstRefitSheets(candidateSheets, candidate, firstRefit);
             if (view == View.FIRETEAMS) {
@@ -178,9 +161,6 @@ public final class FleetArmoryScreen implements Screen {
                 boundWeaponTiles = null;
                 boundArmorTiles = null;
                 bindLoadoutCards(candidateSheets, candidate);
-            } else if (view == View.DESIGNER) {
-                ArmorySpecSheets.bindBilletCards(
-                        candidateSheets, candidate, designerViewModel.billets());
             }
             if (viewport != null) {
                 built.layout(viewport.documentWidth(), viewport.documentHeight());
@@ -264,24 +244,6 @@ public final class FleetArmoryScreen implements Screen {
         props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("back", (Runnable) this::returnFromWorkspace);
         props.put("backToFireTeams", (Runnable) this::showFireTeams);
-        if (designerViewModel != null) {
-            props.put("squadName", designerViewModel.squadName());
-            props.put("designerHeading", designerViewModel.heading());
-            props.put("designerSubheading", designerViewModel.subheading());
-            props.put("draftName", designerViewModel.draftName());
-            props.put("editName", designerViewModel.editName());
-            props.put("definitions", designerViewModel.definitions());
-            props.put("teamTabs", designerViewModel.teamTabs());
-            props.put("billets", designerViewModel.billets());
-            props.put("feedback", designerViewModel.feedback());
-            props.put("newDraft", designerViewModel.newDraft());
-            props.put("cloneSelected", designerViewModel.cloneSelected());
-            props.put("saveAsNew", designerViewModel.saveAsNew());
-            props.put("rename", designerViewModel.rename());
-            props.put("renameDisabled", designerViewModel.renameDisabled());
-            props.put("delete", designerViewModel.delete());
-            props.put("deleteDisabled", designerViewModel.deleteDisabled());
-        }
         putPageNavigation(props);
         return props;
     }
@@ -311,16 +273,6 @@ public final class FleetArmoryScreen implements Screen {
                 "loadout-browser-tools", "loadout-filter-list", "refit-transaction",
                 "loadout-roll", "loadout-billets", "loadout-inspection", "squad-equip-row",
                 "transaction-result", "transaction-feedback")
-                : view == View.DESIGNER
-                ? List.of("equipment-designer-root", "marine-ops-page-nav",
-                "page-nav-return", "page-nav-hq", "page-nav-barracks",
-                "page-nav-mech-lab", "page-nav-boats",
-                "designer-breadcrumb", "back-to-fireteams", "designer-mode-row",
-                "designer-definition-library", "designer-definition-list",
-                "designer-editor", "designer-name-input", "designer-team-tabs",
-                "designer-billet-grid", "designer-feedback",
-                "designer-marine-preview:0", "designer-marine-preview:1",
-                "designer-marine-preview:2", "designer-marine-preview:3")
                 : List.of("armor-comparison-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
                 "page-nav-mech-lab", "page-nav-boats",
@@ -367,18 +319,9 @@ public final class FleetArmoryScreen implements Screen {
         else returnFromWorkspace();
     }
 
-    private void showDesigner() {
-        designerViewModel = new EquipmentDoctrineDesignerViewModel(
-                reactor, roster, viewModel.selectedSquadId(),
-                viewModel.selectedWeaponDoctrineId());
-        view = View.DESIGNER;
-        if (viewport != null) installDocument(false);
-    }
-
     private void showFireTeams() {
         viewModel.refresh();
         view = View.FIRETEAMS;
-        previewAnimationSeconds = 0f;
         if (viewport != null) installDocument(false);
     }
 
@@ -412,10 +355,6 @@ public final class FleetArmoryScreen implements Screen {
         // rather than only when the document was installed.
         if (view == View.FIRETEAMS) bindLoadoutCards(specSheets, markupInstance);
         if (specSheets != null) specSheets.update();
-        if ((view == View.FIRETEAMS || view == View.DESIGNER)
-                && Float.isFinite(dt) && dt > 0f) {
-            previewAnimationSeconds = (previewAnimationSeconds + dt) % 60f;
-        }
         if (document != null) document.advance(dt);
         if (preparationGuide != null) preparationGuide.update();
     }
@@ -502,5 +441,5 @@ public final class FleetArmoryScreen implements Screen {
         }
     }
 
-    private enum View { FIRETEAMS, DESIGNER, ARMOR_COMPARISON, FIRST_REFIT }
+    private enum View { FIRETEAMS, ARMOR_COMPARISON, FIRST_REFIT }
 }
