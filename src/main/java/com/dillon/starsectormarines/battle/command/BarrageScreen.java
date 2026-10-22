@@ -16,9 +16,16 @@ package com.dillon.starsectormarines.battle.command;
  * @param openTick       the tick each line opens
  * @param liftTick       the tick each line lifts
  * @param safeCells      how far short of the firing line the company stands
+ * @param formAlong      where the company forms up until {@code formUntilTick}, out of the bores' reach
+ * @param formUntilTick  the tick it leaves its form-up ground; 0 for none
  */
 public record BarrageScreen(boolean advancesAlongY, int sign, int[] lineAlong, int[] openTick, int[] liftTick,
-                            int safeCells) {
+                            int safeCells, int formAlong, int formUntilTick) {
+
+    /** A screen with no form-up ground: the company waits short of the first line from the start. */
+    public BarrageScreen(boolean advancesAlongY, int sign, int[] lineAlong, int[] openTick, int[] liftTick, int safeCells) {
+        this(advancesAlongY, sign, lineAlong, openTick, liftTick, safeCells, 0, 0);
+    }
 
     public BarrageScreen {
         if (lineAlong.length != openTick.length || lineAlong.length != liftTick.length)
@@ -33,6 +40,7 @@ public record BarrageScreen(boolean advancesAlongY, int sign, int[] lineAlong, i
      * or {@link Integer#MIN_VALUE} once the barrage is done and nothing holds it.
      */
     public int holdAlong(int tick) {
+        if (tick < formUntilTick) return formAlong;
         for (int i = 0; i < lineAlong.length; i++) {
             // The line firing now, or the next to open: the company waits short of it.
             if (tick < liftTick[i]) return lineAlong[i] - sign * safeCells;

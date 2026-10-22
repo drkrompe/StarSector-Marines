@@ -28,6 +28,14 @@ class BarrageScreenTest {
     }
 
     @Test
+    void aCompanyWithFormUpGroundWaitsThereUntilItsTimeIsUp() {
+        BarrageScreen held = new BarrageScreen(false, 1, new int[]{130, 155}, new int[]{1200, 2700},
+                new int[]{2700, 3900}, 18, 60, 2700);
+        assertEquals(60, held.holdAlong(1500));
+        assertEquals(137, held.holdAlong(2700));
+    }
+
+    @Test
     void aWestwardAdvanceHoldsOnTheOtherSide() {
         BarrageScreen west = new BarrageScreen(false, -1, new int[]{200}, new int[]{0}, new int[]{100}, 10);
         assertEquals(210, west.holdAlong(0));
