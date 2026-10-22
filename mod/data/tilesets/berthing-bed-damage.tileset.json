@@ -7,37 +7,37 @@
       "row": 0
     },
     {
-      "col": 2,
+      "col": 3,
       "name": "doodad.residential-bed-head-e-damaged",
       "row": 0
     },
     {
-      "col": 4,
+      "col": 6,
       "name": "doodad.residential-bed-v-damaged",
       "row": 0
     },
     {
-      "col": 5,
+      "col": 7,
       "name": "doodad.residential-bed-head-n-damaged",
       "row": 0
     },
     {
-      "col": 6,
+      "col": 8,
       "name": "doodad.residential-bed-h-destroyed",
       "row": 0
     },
     {
-      "col": 8,
+      "col": 11,
       "name": "doodad.residential-bed-head-e-destroyed",
       "row": 0
     },
     {
-      "col": 10,
+      "col": 14,
       "name": "doodad.residential-bed-v-destroyed",
       "row": 0
     },
     {
-      "col": 11,
+      "col": 15,
       "name": "doodad.residential-bed-head-n-destroyed",
       "row": 0
     }
@@ -48,7 +48,7 @@
       "col": 0,
       "cover": "light",
       "footprintCells": [
-        2,
+        3,
         1
       ],
       "id": "doodad.residential-bed-h-damaged",
@@ -56,10 +56,10 @@
     },
     {
       "ballisticHalfHeight": 0.28,
-      "col": 2,
+      "col": 3,
       "cover": "light",
       "footprintCells": [
-        2,
+        3,
         1
       ],
       "id": "doodad.residential-bed-head-e-damaged",
@@ -67,35 +67,24 @@
     },
     {
       "ballisticHalfHeight": 0.28,
-      "col": 4,
+      "col": 6,
       "cover": "light",
       "footprintCells": [
         1,
-        2
+        3
       ],
       "id": "doodad.residential-bed-v-damaged",
       "row": 0
     },
     {
       "ballisticHalfHeight": 0.28,
-      "col": 5,
+      "col": 7,
       "cover": "light",
       "footprintCells": [
         1,
-        2
+        3
       ],
       "id": "doodad.residential-bed-head-n-damaged",
-      "row": 0
-    },
-    {
-      "ballisticHalfHeight": 0,
-      "col": 6,
-      "cover": "none",
-      "footprintCells": [
-        2,
-        1
-      ],
-      "id": "doodad.residential-bed-h-destroyed",
       "row": 0
     },
     {
@@ -103,21 +92,10 @@
       "col": 8,
       "cover": "none",
       "footprintCells": [
-        2,
+        3,
         1
       ],
-      "id": "doodad.residential-bed-head-e-destroyed",
-      "row": 0
-    },
-    {
-      "ballisticHalfHeight": 0,
-      "col": 10,
-      "cover": "none",
-      "footprintCells": [
-        1,
-        2
-      ],
-      "id": "doodad.residential-bed-v-destroyed",
+      "id": "doodad.residential-bed-h-destroyed",
       "row": 0
     },
     {
@@ -125,8 +103,30 @@
       "col": 11,
       "cover": "none",
       "footprintCells": [
+        3,
+        1
+      ],
+      "id": "doodad.residential-bed-head-e-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 14,
+      "cover": "none",
+      "footprintCells": [
         1,
-        2
+        3
+      ],
+      "id": "doodad.residential-bed-v-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 15,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        3
       ],
       "id": "doodad.residential-bed-head-n-destroyed",
       "row": 0

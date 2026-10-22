@@ -14,7 +14,8 @@ import java.util.List;
 final class NeighborhoodFurnishing {
     private NeighborhoodFurnishing() {}
     record Room(int left,int bottom,int right,int top,RoomPurpose purpose,int area) {}
-    static Group sleeping() { return new Group(3,2,List.of(new Part("doodad.residential-bed-h",0,0,true),
+    /** A real-length (three-cell) bed with a cell clear at its foot, and a locker beside its head. */
+    static Group sleeping() { return new Group(4,2,List.of(new Part("doodad.residential-bed-h",0,0,true),
             new Part("colony-furnishings.locker",0,1,true))); }
     static Group kitchen() { return new Group(2,2,List.of(new Part("colony-furnishings.galley",0,0,true),
             new Part("colony-furnishings.locker",1,0,true))); }
@@ -40,7 +41,7 @@ final class NeighborhoodFurnishing {
             switch(p) {
                 case BEDROOM -> {
                     if(fit(groups,room,sleeping(),1)==0)
-                        fit(groups,room,new Group(3,1,List.of(new Part("doodad.residential-bed-h",0,0,true))),1);
+                        fit(groups,room,new Group(4,1,List.of(new Part("doodad.residential-bed-h",0,0,true))),1);
                     if(room.area>=24) fit(groups,room,desk(),1);
                     if(room.area>=36) fit(groups,room,CompactBuildingFurnishing.pair("locker","locker"),1);
                 }
