@@ -98,6 +98,31 @@ public final class MechWorkshop {
         return Result.of(Status.FABRICATED_AND_INSTALLED);
     }
 
+    /**
+     * Builds one weapon assembly into the bay's stores against its known pattern. Nothing is
+     * fitted: the player drags the new spare onto a mount.
+     */
+    public Result fabricateWeapon(MechWeaponComponent component) {
+        if (component == null) return Result.of(Status.INVALID);
+        if (!bay.canFabricate(component)) return Result.of(Status.PATTERN_LOCKED);
+        FabricationCost bill = weaponQuote(component);
+        if (bill == null || !resources.spend(bill)) return Result.of(Status.INSUFFICIENT_MATERIALS);
+        bay.addWeapon(component.id, 1);
+        return Result.of(Status.FABRICATED);
+    }
+
+    /** Builds one internal into the bay's stores against its known pattern. */
+    public Result fabricateInternal(MechInternal internal) {
+        if (internal == null) return Result.of(Status.INVALID);
+        if (!bay.canFabricate(internal)) return Result.of(Status.PATTERN_LOCKED);
+        MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.internal(internal);
+        if (recipe == null || !resources.spend(resources.quote(recipe.cost()))) {
+            return Result.of(Status.INSUFFICIENT_MATERIALS);
+        }
+        bay.addInternal(internal.id, 1);
+        return Result.of(Status.FABRICATED);
+    }
+
     /** Empties the optional utility socket; nothing else on a frame can be left empty. */
     public Result stripVentArray(String mechId) {
         CampaignMech mech = bay.mechById(mechId);
@@ -191,6 +216,8 @@ public final class MechWorkshop {
         ALREADY_INSTALLED,
         INSTALLED_FROM_STORES,
         FABRICATED_AND_INSTALLED,
+        /** One part was built into stores; nothing was fitted. */
+        FABRICATED,
         MOVED,
         TARGET_OCCUPIED,
         STRIPPED,
@@ -217,6 +244,7 @@ public final class MechWorkshop {
             return status == Status.ALREADY_INSTALLED
                     || status == Status.INSTALLED_FROM_STORES
                     || status == Status.FABRICATED_AND_INSTALLED
+                    || status == Status.FABRICATED
                     || status == Status.MOVED
                     || status == Status.STRIPPED
                     || status == Status.ALREADY_STRIPPED

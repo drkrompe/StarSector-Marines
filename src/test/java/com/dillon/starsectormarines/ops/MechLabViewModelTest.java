@@ -47,6 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class MechLabViewModelTest {
@@ -82,6 +83,13 @@ class MechLabViewModelTest {
                 new Reactor(), bay, resources, changes::incrementAndGet);
         viewModel.gantryRows().get().get(0).select().run();
 
+        // Nothing in stores yet: a pattern alone cannot be dragged, its row fabricates first.
+        assertFalse(viewModel.canDropCatalogWeapon(
+                MechWeaponComponent.DUAL_PULSE_LASERS, SocketId.ARMS));
+        viewModel.selectSlot(SocketId.ARMS);
+        viewModel.catalogRows().get().stream()
+                .filter(row -> row.weaponPreview() == MechWeaponComponent.DUAL_PULSE_LASERS)
+                .findFirst().orElseThrow().action().run();
         assertTrue(viewModel.canDropCatalogWeapon(
                 MechWeaponComponent.DUAL_PULSE_LASERS, SocketId.ARMS));
         assertTrue(viewModel.dropCatalogWeapon(
@@ -98,7 +106,7 @@ class MechLabViewModelTest {
         assertEquals(MechWeaponComponent.SRM_15,
                 viewModel.installedWeapon(SocketId.RIGHT_SHOULDER));
         assertEquals(1, bay.availableWeapon(MechWeaponComponent.SRM_15.id));
-        assertEquals(3, changes.get());
+        assertEquals(4, changes.get());
     }
 
     @Test
@@ -268,6 +276,9 @@ class MechLabViewModelTest {
         assertEquals("2,000", viewModel.materialStock().get().get(0).label());
         pulse.action().run();
         assertEquals("1,970", viewModel.materialStock().get().get(0).label());
+        // Fabrication fills stores; fitting is the drag.
+        assertEquals(1, bay.availableWeapon(MechWeaponComponent.DUAL_PULSE_LASERS.id));
+        assertTrue(viewModel.dropCatalogWeapon(MechWeaponComponent.DUAL_PULSE_LASERS, SocketId.ARMS));
         assertEquals(MechWeaponComponent.DUAL_PULSE_LASERS,
                 bay.mechById(MechBay.STARTER_MECH_ID).arms());
 
@@ -470,11 +481,9 @@ class MechLabViewModelTest {
             assertEquals(y, stage.box().borderBox().y(), EPSILON);
             assertEquals(width, stage.box().borderBox().width(), EPSILON);
             assertEquals(height, stage.box().borderBox().height(), EPSILON);
-            var rack = model.catalogRows().get().stream().filter(row -> row.weaponPreview() == MechWeaponComponent.SRM_5_FRAG).findFirst().orElseThrow();
-            var install = instance.requireElement(rack.actionId()).box().borderBox();
-            document.pointerDown(install.x() + install.width() / 2, install.y() + install.height() / 2);
-            document.pointerUp(install.x() + install.width() / 2, install.y() + install.height() / 2);
-            assertEquals(3, bay.labLesson(), "The actual install control must work through the spotlight");
+            // The spare is dragged onto the shoulder; the drop is what the lesson waits for.
+            assertTrue(model.dropCatalogWeapon(MechWeaponComponent.SRM_5_FRAG, SocketId.LEFT_SHOULDER));
+            assertEquals(3, bay.labLesson(), "Fitting the spare must advance the lesson through the spotlight");
             var reopened = new MechLabViewModel(new Reactor(), bay);
             reopened.resumeCampaignLesson();
             assertEquals(3, bay.labLesson());
@@ -572,13 +581,14 @@ class MechLabViewModelTest {
     }
 
     @Test
-    void fittingActionsExplainDisabledStateAndRefreshAfterPointerInstallAt1080p() throws Exception {
+    void fabricateButtonExplainsItselfAndBuildsIntoStoresAt1080p() throws Exception {
         Reactor reactor = new Reactor();
         MechBay bay = MechBay.legacyStarterFixture();
         AtomicInteger commits = new AtomicInteger();
         MechLabViewModel viewModel = new MechLabViewModel(
                 reactor, bay, TestResources.stocked(2000), commits::incrementAndGet);
         viewModel.gantryRows().get().get(0).select().run();
+        viewModel.selectSlot(SocketId.ARMS);
         MarkupLoader loader = new MarkupLoader(
                 path -> Files.readString(Path.of(path)), COMPONENTS);
         loader.reload();
@@ -591,35 +601,19 @@ class MechLabViewModelTest {
             MechLabSpecSheets.bindCatalogRows(binder, instance, viewModel.catalogRows().get());
             MechLabSpecSheets.bindActions(binder, instance, viewModel);
             document.layout(1920, 1080);
-            UiElement installed = instance.requireElement("mech-catalog:standard_replenisher:action");
-            document.pointerMoved(centerX(installed), centerY(installed));
+            UiElement fab = instance.requireElement("mech-catalog:" + MechWeaponComponent.DUAL_PULSE_LASERS.id + ":action");
+            document.pointerMoved(centerX(fab), centerY(fab));
             binder.update();
             document.advance(0f);
-            assertTrue(layer.visible(), "Disabled controls must still explain themselves on hover");
-            assertEquals(installed, binder.openTarget());
-            document.pointerDown(centerX(installed), centerY(installed));
-            document.pointerUp(centerX(installed), centerY(installed));
-            assertEquals(0, commits.get(), "Clicking installed hardware must not mutate inventory");
-
-            UiElement install = instance.requireElement("mech-catalog:accelerated_feed:action");
-            document.pointerMoved(centerX(install), centerY(install));
-            binder.update();
-            document.advance(0f);
-            assertEquals("INSTALL SPARE", instance.requireElement(
-                    SpecSheetLayer.ELEMENT_ID + "-subtitle").text());
-            document.pointerDown(centerX(install), centerY(install));
-            document.pointerUp(centerX(install), centerY(install));
+            assertTrue(layer.visible(), "The fabricate button explains itself on hover");
+            assertEquals("FAB", instance.requireElement(SpecSheetLayer.ELEMENT_ID + "-subtitle").text());
+            document.pointerDown(centerX(fab), centerY(fab));
+            document.pointerUp(centerX(fab), centerY(fab));
             instance.flush();
-            document.advance(0f);
             assertEquals(1, commits.get());
-            assertEquals(MissileReplenisherComponent.ACCELERATED_FEED,
-                    viewModel.installedReplenisher(SocketId.MINI_FAB));
-            binder.update();
-            document.advance(0f);
-            assertTrue(layer.visible());
-            assertEquals("INSTALLED", instance.requireElement(
-                    SpecSheetLayer.ELEMENT_ID + "-subtitle").text());
-            assertTrue(binder.isBound(instance.requireElement("mech-catalog:accelerated_feed:name")));
+            assertEquals(1, bay.availableWeapon(MechWeaponComponent.DUAL_PULSE_LASERS.id));
+            assertNotEquals(MechWeaponComponent.DUAL_PULSE_LASERS, viewModel.installedWeapon(SocketId.ARMS),
+                    "fabrication must not fit the part");
         }
     }
 
@@ -779,15 +773,21 @@ class MechLabViewModelTest {
         }
         MechLabViewModel.CatalogRow stock = engines.stream()
                 .filter(row -> row.internalPreview() == MechInternal.INDUSTRIAL_ENGINE).findFirst().orElseThrow();
-        assertTrue(stock.actionDisabled());
         assertEquals(MechInternal.INDUSTRIAL_ENGINE, viewModel.installedInternal(SocketId.CORE));
+        assertFalse(viewModel.canDropCatalogInternal(MechInternal.INDUSTRIAL_ENGINE, SocketId.CORE),
+                "the fitted engine is already in its mount");
 
+        // The row fabricates into stores; the spare is then dragged onto its own mount only.
         MechLabViewModel.CatalogRow uprated = engines.stream()
                 .filter(row -> row.internalPreview() == MechInternal.UPRATED_ENGINE).findFirst().orElseThrow();
         assertFalse(uprated.actionDisabled(), uprated.actionHint());
+        assertFalse(viewModel.canDropCatalogInternal(MechInternal.UPRATED_ENGINE, SocketId.CORE));
         uprated.action().run();
+        assertEquals(1, bay.availableInternal(MechInternal.UPRATED_ENGINE.id));
+        assertFalse(viewModel.canDropCatalogInternal(MechInternal.UPRATED_ENGINE, SocketId.CAPACITORS));
+        assertTrue(viewModel.dropCatalogInternal(MechInternal.UPRATED_ENGINE, SocketId.CORE));
         assertEquals(MechInternal.UPRATED_ENGINE, mech.internal(MechInternal.Role.ENGINE));
-        assertEquals(1, changes.get());
+        assertEquals(2, changes.get());
         assertTrue(viewModel.feedbackClasses().get().contains("tone-good"));
         assertEquals(mech.internal(MechInternal.Role.ENGINE).displayName(),
                 viewModel.slotRows().get().stream().filter(row -> row.socketId() == SocketId.CORE)
@@ -883,8 +883,8 @@ class MechLabViewModelTest {
                 MechInternal internal = row.internalPreview();
                 boolean within = mech.internal(internal.role) == internal || bay.withinBudget(
                         mech.id(), mech.fit().withInternal(internal.role, internal));
-                assertEquals(!within, row.actionLabel().equals("OVER BUDGET"), internal.id);
-                if (!within) assertTrue(row.actionDisabled());
+                // A spare plate is fitted from its row, and only when the engine can carry it.
+                if (row.actionLabel().equals("FIT")) assertEquals(!within, row.actionDisabled(), internal.id);
             }
         }
     }
@@ -907,6 +907,7 @@ class MechLabViewModelTest {
                 "the utility socket still lists missile loaders");
         assertFalse(ventArray.actionDisabled(), ventArray.actionHint());
         ventArray.action().run();
+        assertTrue(viewModel.dropCatalogInternal(MechInternal.AUXILIARY_VENT_ARRAY, SocketId.MINI_FAB));
         assertEquals(MechInternal.AUXILIARY_VENT_ARRAY, mech.internal(MechInternal.Role.VENT_ARRAY));
         assertEquals(MechInternal.AUXILIARY_VENT_ARRAY, viewModel.installedInternal(SocketId.MINI_FAB));
 
@@ -1024,17 +1025,7 @@ class MechLabViewModelTest {
         props.put("squadRows", viewModel.squadRows());
         props.put("mechRows", viewModel.mechRows());
         props.put("gantryRows", viewModel.gantryRows());
-        props.put("activeGantryLabel", viewModel.activeGantryLabel());
         props.put("garageTitle", viewModel.garageTitle());
-        props.put("selectedMechName", viewModel.selectedMechName());
-        props.put("selectedMechNameClasses", viewModel.selectedMechNameClasses());
-        props.put("callSignDraft", viewModel.callSignDraft());
-        props.put("callSignEditorClasses", viewModel.callSignEditorClasses());
-        props.put("callSignRenameDisabled", viewModel.callSignRenameDisabled());
-        props.put("editCallSign", viewModel.editCallSignAction());
-        props.put("renameCallSign", viewModel.renameCallSignAction());
-        props.put("selectedMechIdentity", viewModel.selectedMechIdentity());
-        props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());
         props.put("performanceMeters", viewModel.performanceMeters());
         viewModel.putInternalProps(props);
         viewModel.putRepairProps(props);
@@ -1049,16 +1040,13 @@ class MechLabViewModelTest {
         props.put("pickerClasses", viewModel.pickerClasses());
         props.put("workspaceClasses", viewModel.workspaceClasses());
         props.put("fittingHeaderClasses", viewModel.fittingHeaderClasses());
+        props.put("backToLance", viewModel.overviewAction());
         props.put("performanceClasses", viewModel.performanceClasses());
         props.put("catalogClasses", viewModel.catalogClasses());
         props.put("slotRackClasses", viewModel.slotRackClasses());
         props.put("overviewRailClasses", viewModel.overviewRailClasses());
         props.put("openAssetPicker", viewModel.openAssetPickerAction());
         props.put("closeAssetPicker", viewModel.closeAssetPickerAction());
-        props.put("previousGantry", viewModel.previousGantryAction());
-        props.put("nextGantry", viewModel.nextGantryAction());
-        props.put("feedbackText", viewModel.feedbackText());
-        props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("categoryFilterPills", viewModel.categoryFilterPills());
         props.put("categoryFilterClasses", viewModel.categoryFilterClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,

@@ -3376,17 +3376,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("squadRows", viewModel.squadRows());
         props.put("mechRows", viewModel.mechRows());
         props.put("gantryRows", viewModel.gantryRows());
-        props.put("activeGantryLabel", viewModel.activeGantryLabel());
         props.put("garageTitle", viewModel.garageTitle());
-        props.put("selectedMechName", viewModel.selectedMechName());
-        props.put("selectedMechNameClasses", viewModel.selectedMechNameClasses());
-        props.put("callSignDraft", viewModel.callSignDraft());
-        props.put("callSignEditorClasses", viewModel.callSignEditorClasses());
-        props.put("callSignRenameDisabled", viewModel.callSignRenameDisabled());
-        props.put("editCallSign", viewModel.editCallSignAction());
-        props.put("renameCallSign", viewModel.renameCallSignAction());
-        props.put("selectedMechIdentity", viewModel.selectedMechIdentity());
-        props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());
         props.put("performanceMeters", viewModel.performanceMeters());
         viewModel.putInternalProps(props);
         viewModel.putRepairProps(props);
@@ -3401,16 +3391,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("pickerClasses", viewModel.pickerClasses());
         props.put("workspaceClasses", viewModel.workspaceClasses());
         props.put("fittingHeaderClasses", viewModel.fittingHeaderClasses());
+        props.put("backToLance", viewModel.overviewAction());
         props.put("performanceClasses", viewModel.performanceClasses());
         props.put("catalogClasses", viewModel.catalogClasses());
         props.put("slotRackClasses", viewModel.slotRackClasses());
         props.put("overviewRailClasses", viewModel.overviewRailClasses());
         props.put("openAssetPicker", viewModel.openAssetPickerAction());
         props.put("closeAssetPicker", viewModel.closeAssetPickerAction());
-        props.put("previousGantry", viewModel.previousGantryAction());
-        props.put("nextGantry", viewModel.nextGantryAction());
-        props.put("feedbackText", viewModel.feedbackText());
-        props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("categoryFilterPills", viewModel.categoryFilterPills());
         props.put("categoryFilterClasses", viewModel.categoryFilterClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
