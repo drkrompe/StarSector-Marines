@@ -317,6 +317,7 @@ public final class FleetArmoryScreen implements Screen {
 
     /** First refit is offered before any loadout; leaving it opens the squad it was for. */
     private void leaveFirstRefit() {
+        if (firstRefit != null && !firstRefit.leavable()) return;
         if (viewModel.selectedSquadId() != null) showFireTeams();
         else returnFromWorkspace();
     }

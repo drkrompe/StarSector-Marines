@@ -86,6 +86,11 @@ final class FirstRefitModel {
             default -> null;
         };
     }
+    /** The reward must be chosen before the player can leave the screen. */
+    boolean leavable() {
+        return roster.firstRefit().claimed() || roster.firstRefit().complete();
+    }
+
     void claim() { roster.firstRefit().claim(roster, path); feedback = ""; refresh(); }
     void issue() {
         if (reviewed == null || path == null || !roster.firstRefit().claimed() || roster.firstRefit().complete()) return;
@@ -123,6 +128,7 @@ final class FirstRefitModel {
         props.put("claimLabel", path == null ? Strings.get("openingFirstRefitChooseAPath") : Strings.format("openingFirstRefitLearn", Strings.upper(path.label())));
         props.put("issueClasses", claimed && !complete ? "refit-action spec-action" : "refit-hidden");
         props.put("workClasses", !complete ? "refit-work" : "refit-hidden");
+        props.put("navClasses", leavable() ? "refit-nav" : "refit-hidden");
         props.put("doneClasses", complete ? "refit-action spec-action" : "refit-hidden");
         props.put("claim", (Runnable) this::claim);
         props.put("inspect", (Runnable) () -> inspect.accept(roster.firstRefit().issuedSquadId()));

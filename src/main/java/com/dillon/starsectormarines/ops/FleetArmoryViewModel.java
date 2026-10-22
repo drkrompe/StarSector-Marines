@@ -1612,10 +1612,11 @@ public final class FleetArmoryViewModel {
 
         /**
          * The card's height, summed from its lines: the retained toolkit sizes a list
-         * item by its style, not by its content, so the card says how tall it is.
+         * item by its style, not by its content, so the card says how tall it is. The
+         * height is the content box: the card's padding and border sit outside it.
          */
         private int cardHeight() {
-            int height = 20 + 4 + 38                              // padding and border, heading
+            int height = 38                                       // heading
                     + (stamp == null ? 0 : restricted() ? 52 : 30)  // stamp, with the banner
                     + 29                                           // rating meter
                     + (seats.isEmpty() ? 48 * ((distributionSpans.size() + 1) / 2) : 146);
