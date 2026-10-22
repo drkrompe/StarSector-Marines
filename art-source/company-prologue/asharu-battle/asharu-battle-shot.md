@@ -55,6 +55,23 @@ bulk-carrier segments welded between a honeycomb of emptied fuel tanks...
 hangars stand empty but for a few slumped, stripped hulks... no one would
 expect to find anything of value here". That is where the pirates wait.
 
+The blockout builds it to read as that description (`platform_parts`). Five mismatched bulk-carrier
+hulls sit along a sagging double girder, one of them knocked askew. Three clusters of drum tanks
+are packed between the hulls, with gaps where drums have gone. Two open hangar bays hang under and
+beside the hulls, and a broken mast stands off the forward end. It has no spheres and no flat
+panels. The first blockout's two 300 m flat "collector" slabs read as big quads, and its eighteen
+sphere tanks read as orbs; both are gone.
+
+The pirates hide the way a crew would, not in rows. Each hull is parked nose-out under a hull, in a
+bay or between the drums, on the side away from the convoy's line of sight (which comes from ahead
+and above). Each lies at her own heading and depth, some rolled on their sides or inverted.
+
+The launch is one motion across S3 and S4 (`launch`):
+- Drives light in a ripple from the Falcon (P), 33.8 s to 38.2 s.
+- Each hull eases out along her nose for two seconds, then turns onto her climb as she gains
+  speed, then burns toward the column.
+- S3 stills it at 34 s and S4 at 40 s, from the same flights, so the spread grows on screen.
+
 Assumptions the story does not give (owner to confirm or change):
 
 | | Value | Why |
@@ -174,7 +191,8 @@ preview plays, and the stills did not move when the motion went in (`--check` is
   - S1a stays the player's view, straight down and never turning: the optic zooms out, then in
     on the convoy with its focus hunting, and the picture cuts to S1's action camera.
   - S3 creeps in on the platform, then onto the Falcon (P) as her drives light.
-  - S4 pans with the climbing pack.
+  - S4 starts wide off the pack's flank as it climbs out of the platform, then crash-zooms onto
+    the Falcon (P).
   - S6 pushes in, handheld. S6b chases Lasher B over her roll. S6c tracks aft along the column.
   - S6d is handheld, close behind the Hound. S7 eases in behind the Tarsus.
   - S8-S9 pulls back from the shot-out pod to the wide. S9b travels with the Lasher's run.
@@ -187,10 +205,22 @@ preview plays, and the stills did not move when the motion went in (`--check` is
 Morrow is a drone tender, so her four Borers work wherever the story lets them. Each is placed
 through ShipFx, so each blinks its beacon, pulses its lift jets and fires its mining laser on its
 own. Placements:
-- **S8-S9:** two Borers hold outboard of and under the Colossus's shot-out port pod, cutting the
-  burning wreckage free with their lasers. A third lifts out of Morrow's bay (launch point 2,
-  straight up, as the cradle check clears) to join them.
-- At that range a Borer is about 9 px. It reads by its work lamps, its beacon and its beam.
+- **S8-S9, the pod:** two Borers hold outboard of and under the Colossus's shot-out port pod,
+  cutting the burning wreckage free with their lasers.
+- **S8-S9, the sortie:** two more launch from Morrow's bay, one at 95.4 s from launch point 2 and
+  one at 96.2 s from launch point 3. Each goes for the nearest attackers.
+  - One makes two passes at the Wolf (P), one on each side.
+  - The other runs down the Kite (P) as she breaks away, then comes back for the Wolf.
+  - Each flies her own pursuit (`sortie`): led by the closing time, turning at up to 150 degrees
+    a second, jinking, banking with the turn, and every rate eased so `--check` reports no
+    jumps.
+  - Her drives burn with her acceleration (the thrust model), and she reaches 420 m/s.
+  - Wherever she passes within 70 m of a hull, her mining laser (`beam_t_ws001`) sweeps stern to
+    bow down the near side, with sparks where it cuts. The preview draws the beam as a line and
+    the sparks as dots.
+  - After her runs she flies home to the Colossus, slowing as she arrives.
+- At that range a Borer is about 9 px. It reads by its work lamps, its beacon, its drive and its
+  beam.
 
 `near()` places a craft in its parent's frame with its own attitude, so a drone stays on the
 pod if the Colossus is re-posed.
@@ -398,7 +428,7 @@ About 2 minutes 15 (134 s): 10 s of recording, 40 s of setup and ambush, 60 s of
 | S1 **K** | 8 s | Establishing: the convoy in loose column over the day side, the limb high in frame, the desert sliding beneath. Ordinary work. | the whole convoy, small | 35 mm, high off the north flank | **Dolly + ZOOM OUT:** drops back along the column as the convoy overtakes the lens, widening 35 to 22 mm to put it against the limb. |
 | S2 | 6 s | Alongside the Colossus. Morrow rides off her starboard quarter; a Lasher slides through the foreground. | Colossus, Morrow, Lasher | 28 mm, tracking alongside at 300 m | (slate) Tracking alongside; a Lasher passes the lens. |
 | S3 **K** | 8 s | Running dark. Long lens back down at the derelict platform: dark, stripped, hulks in its bays; hold until it reads as junk. Then one hulk shows a running light, reactor glow behind a bay, a second, a third. Drives light and the first ships ease out. The audience sees the trap before the convoy does. | the platform, the Falcon (P) | 135 mm from the convoy's tail (longer, about 300 mm, is worth trying) | **ZOOM, then CRASH ZOOM:** a long lens finds the platform (90 to 135 mm), then snaps in on the Falcon (P) as her drives light (300 mm), handheld. |
-| S4 **K** | 6 s | First contact: twelve hulls climbing out of the platform toward the column, drives lit, the desert behind them. | Falcon (P), Wolves, Hounds (P), Kites (P) | 35 mm, off their flank | **CRASH ZOOM:** wide on the climbing pack (24 mm), then snaps in on the Falcon (P) (95 to 110 mm), panning with the pack. |
+| S4 **K** | 6 s | First contact: the hulls easing out of the platform and turning onto their climb, the last drives still lighting, the spread opening on screen, the desert behind them. Continuous with S3. | Falcon (P), Wolves, Hounds (P), Kites (P) | 28 mm, off their flank about 1.5 km out | **CRASH ZOOM:** wide on the climbing pack (24 mm), then snaps in on the Falcon (P) (95 to 110 mm), panning with her. |
 | S5 | 6 s | The opening: the Manticore (P) fires at long range, and rounds and missiles cross 3-4 km of space. | Manticore (P) | 85 mm along the line of fire | (slate) Along the line of fire. |
 | S6 **K** | 8 s | The screen breaks: the Phaeton tanker is struck in the first 2 s and cooks off through the rest, a Lasher burns, and the lead Lasher turns back into the fire and is hit. | lead Lasher, Phaeton, Lasher A | 35 mm, looking aft along the convoy | **ZOOM OUT along the salvo:** long on the Manticore (P) as she fires (85 mm), widening as her missiles reach the Phaeton, to the key framing; then a handheld push, jolted by the hits. |
 | S6b **K** | 8 s | The escorts answer. Lasher B and the merchant Wolf turn back and roll onto their backs over the climbing raiders. A Hound (P)'s bare armour soaks it (no shield), then the Ammo Feeder burst breaks her up. First blood to the convoy. | Lasher B, merchant Wolf, Hound (P) C | 50 mm, above and behind the escorts, looking down past them | **Chase:** behind Lasher B over her roll, looking down past her (40 to 60 mm); jolted as the Hound (P) breaks up. |
@@ -406,7 +436,7 @@ About 2 minutes 15 (134 s): 10 s of recording, 40 s of setup and ambush, 60 s of
 | S6d **K** | 6 s | The rear guard. The convoy's Hound rolls over to face two Hounds (P) climbing at her. No shields on either side: armour, flares and guns. She kills the first; the second's fire takes her drives, and she falls back on the column trailing flares. | Hound, Hounds (P) | 35 mm, close behind the Hound | **Handheld chase:** close behind the Hound through her roll-over (30 to 40 mm), jolted by her kill and her hit. |
 | S7 **K** | 8 s | Boarding the Tarsus: drives shot out, fallen out of the column, Kites (P) alongside, their boats bringing the boarders over to her deck, a Wolf (P) covering; the convoy runs on ahead. | Tarsus, Kite (P), boats, Wolf (P) | 35 mm, from behind the Tarsus | **Push-in + ZOOM:** from wide behind the Tarsus (28 mm) in to her deck as the boats set down (55 mm). |
 | S8 | 6 s | Close on the Colossus's aft: the port tug pod is shot out, the drives stutter, debris. | Colossus | 50 mm, close | **Pull back:** from close on the shot-out pod (50 mm), continuing into S9. |
-| S9 **K** | 8 s | She will not be taken: the Colossus Mk.III closes from above; she fights with flares and both turrets and drives off a Kite; Morrow is under her keel holding her up. | Colossus, Colossus Mk.III, Morrow | 28 mm, 600 m off her port side | **ZOOM OUT:** on to the wide, then wider (20 mm) for the Mk.III's scale; jolted by the pod and the Kite's hit. |
+| S9 **K** | 8 s | She will not be taken: the Colossus Mk.III closes from above; she fights with flares and both turrets and drives off a Kite; Morrow is under her keel holding her up. Two Borers cut the pod free while two more launch and rake the Wolf and the Kite with their mining lasers. | Colossus, Colossus Mk.III, Morrow, Borers | 28 mm, 600 m off her port side | **ZOOM OUT:** on to the wide, then wider (20 mm) for the Mk.III's scale; jolted by the pod and the Kite's hit. |
 | S9b **K** | 8 s | The lead's last run. Smoking since S6, the lead Lasher dives over the Falcon (P) on her back. The Falcon's broad front shield takes it and flares, then overloads in a burst of arcs, and the Lasher's guns walk down the flagship's open flank. The Falcon's broadside answers, and the Lasher tumbles away burning. | lead Lasher, Falcon (P) | 28 mm, close, just above the Lasher | **Pass-by:** the camera drifts while the Lasher dives past and away, panning after her; jolted by the hits. |
 | S10 **K** | 8 s | The prize taken: the Tarsus clamped to the Colossus Mk.III; far below, the Colossus nose-down and losing her orbit, Morrow with her. | Falcon (P), Colossus Mk.III, Tarsus; Colossus and Morrow below | 35 mm, behind and above | **ZOOM OUT to scale:** long on the clamped prize (85 mm), widening and tilting down to the Colossus falling away (24 mm). |
 | S11 | 8 s | Entry: from just behind, plasma builds round both hulls; Morrow drifts apart from her. The radio breaks up, the picture breaks into the recording screen's static, the channels drop out, and END OF RECORDING. | Colossus, Morrow | 50 mm, chase | (slate) Chase. |
