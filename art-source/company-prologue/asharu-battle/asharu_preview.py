@@ -215,7 +215,7 @@ def shot(L, kf):
 
     # the builder's stand-in effects go; the hulls are re-drawn by the preview, the platform and
     # the entry trails stay (the trails flat orange)
-    for o in stage.objects:
+    for o in stage.all_objects:
         if o.name.startswith('Platform'):
             continue
         if o.name.startswith('Plasma'):
@@ -254,7 +254,7 @@ def shot(L, kf):
 
     for key in spec['ships']:
         pl = placed[key]
-        e = next(o for o in stage.objects if o.name == 'Ship | ' + key)
+        e = next(o for o in stage.all_objects if o.name == 'Ship | ' + key)
         mpu = pl['mpu']
         mp.craft(key, e, label=label(L['members'], key), group='warm' if key in pirates else 'cool',
                  pose=lambda t, key=key, mpu=mpu: M(key, t) @ Matrix.Scale(mpu, 4), held=key in held)
