@@ -90,7 +90,7 @@ final class SwarmBruteBehavior {
         if (gap(brute, target, sim) <= BruteChargeRules.BLOW_REACH) {
             sim.clearPath(brute);
             if (sim.combat().cooldownTimer(brute) <= 0f) {
-                if (BruteChargeSystem.trampling() && BruteChargeSystem.kind(target, sim) == BruteChargeRules.Kind.INFANTRY) {
+                if (BruteChargeSystem.kind(target, sim) == BruteChargeRules.Kind.INFANTRY) {
                     // On infantry the blow is a trample: rear, and come down on them with the whole body.
                     sim.bruteCharges().trample(brute, target);
                 } else {
@@ -149,7 +149,7 @@ final class SwarmBruteBehavior {
                                      BattleSimulation sim) {
         BruteChargeSystem charges = sim.bruteCharges();
         int now = sim.getSimTickIndex();
-        if (!BruteChargeRules.ENABLED || !charges.ready(brute, now)) return false;
+        if (!charges.ready(brute, now)) return false;
         boolean open = lineOpen(sim, sim.world().cellX(brute), sim.world().cellY(brute),
                 (int) Math.floor(aimX), (int) Math.floor(aimY));
         if (!BruteChargeRules.shouldCharge(distance, open, now, 0)) return false;

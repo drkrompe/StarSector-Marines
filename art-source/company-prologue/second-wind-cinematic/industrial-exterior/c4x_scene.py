@@ -1815,7 +1815,7 @@ def build():
     end = thrust_shots.mark_c4(sys.modules[__name__])   # and plumes on every craft the port flies
     port_fleet.after_markers(sys.modules[__name__])     # the departing Colossus's burn, off its markers
     hang_drive_plumes()
-    thrust_shots.require_plumes(FPS, (0, end), 'c4')    # no craft thrusts without its drive showing
+    thrust_shots.require_plumes(FPS, (0, end), 'c4', air=True)   # every drive shown, at the throttle its motion asks
     scene.render.engine = 'BLENDER_EEVEE'
     # Layout pass by default: speed over smoothness. CINE_FINAL=1 is the final render's quality
     # (more anti-aliasing samples, full-resolution shadows); the look is otherwise the same.

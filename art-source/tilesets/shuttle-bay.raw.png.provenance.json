@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a160d4-e620-7a01-9109-ccb607e5a38c",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a160d4-e620-7a01-9109-ccb607e5a38c\\exec-ede0af1f-79c2-4261-82ad-ee4820c7c692.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\fsc\\bays\\shuttle-refit.png",
+    "sha256": "9fdf6e4c12839362cd17680632b06319f897ad778c95a43342280c1a2e13e429",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\fsc\\bays\\shuttle-refit.prompt.txt",
+  "promptSha256": "7f4dcec2a6de81b52967293abe23d5015e0a24370e6c3cc8b6333871de088d13",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry, scale and layout authority: reskin this exactly, same size and position for every piece\nImage 2: Material and style reference only; its pieces are the wrong size, layout and orientation, ignore their proportions\n\nReskin the attached geometry guide into finished top-down game art for three spaceship hangar-deck props. Strict overhead orthographic view, soft light from the upper left, the same look as the material reference sheet: neutral charcoal, grey steel, faint olive-grey enamel, warm-grey worktops, subdued off-white paint, small bolts and panel seams, restrained edge wear, realistic painted game-asset finish. No saturated blue, orange, bright yellow, glow, hazard stripes, labels, numbers or lettering.\n\nThe guide is the geometry, scale and layout authority, and the result will be cut mechanically from the guide's exact pixel rectangles. Each piece must overlay its grey guide shape almost exactly: the same left and right ends, the same top and bottom edges. Do not make any piece wider, deeper, longer or larger than its grey shape; do not move, rescale, rotate, merge or add pieces. Keep all empty canvas fully transparent: true transparent background, including the space inside the cart's handle and around the deck fitting plate; no floor, no ground, no shadow slab, no border, no people.\n\nPieces:\n1. Upper left: a compact flight-operations desk seen from directly above, a short wide rectangle about twice as long as it is deep. Warm-grey worktop on a charcoal-olive body; a single dim olive display set into the worktop at the back left, a small pale status panel beside it, a pale log board at the right, a slim dark control strip in front of the display, and a dark near fascia along the bottom edge with two small drawer pulls (the side the operator works from).\n2. Right: a narrow wheeled servicing cart seen from directly above, about half as wide as it is long. Four small dark caster wheels at its corners, a pale drawer panel at the top end, a securely coiled dark hose lying entirely within the cart's top, and at the BOTTOM a pale steel U-shaped handlebar with transparent space inside it.\n3. Lower left: a small flush deck fitting plate set into the floor: a small square plate with a worn off-white painted edge, a dark recessed centre, and a small flat steel ring lying in the recess. Floor paint and a recessed fitting only, NOT a raised platform, and exactly as small as the guide shape, with transparent space all around it.\n\nBroad readable forms, soft restrained highlights, sparse wear, low surface noise.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\shuttle-bay.png",
+      "sha256": "ed76acc1fbbb121dc332008559e6daf49320fd085b138432542524714ccebf26",
+      "dimensions": [
+        1280,
+        1280
+      ],
+      "mode": "RGBA",
+      "role": "Geometry, scale and layout authority: reskin this exactly, same size and position for every piece"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\fsc\\bays\\loading-old.raw.png",
+      "sha256": "7e2163eb4bebcc4d0601255724592cd4660e5a43c2b46b65c35dec101e467fc0",
+      "dimensions": [
+        1448,
+        1086
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only; its pieces are the wrong size, layout and orientation, ignore their proportions"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the first reference’s exact layout and the second reference’s materials, with a transparent background.\n"
+  ],
+  "usage": {
+    "input_tokens": 43894,
+    "cached_input_tokens": 35968,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 713,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 60.2
+}

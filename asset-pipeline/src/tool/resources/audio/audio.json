@@ -904,7 +904,6 @@
     {"id": "marines_breach_runner_gallop_1", "source": "colony-breach/sfx/marines_breach_runner_gallop_1.mp3", "kind": "positional", "out": "battle/colony-breach"},
     {"id": "marines_breach_runner_gallop_2", "source": "colony-breach/sfx/marines_breach_runner_gallop_2.mp3", "kind": "positional", "out": "battle/colony-breach"},
     {"id": "marines_breach_runner_gallop_3", "source": "colony-breach/sfx/marines_breach_runner_gallop_3.mp3", "kind": "positional", "out": "battle/colony-breach"},
-    {"id": "marines_breach_runner_gallop_4", "source": "colony-breach/sfx/marines_breach_runner_gallop_4.mp3", "kind": "positional", "out": "battle/colony-breach"},
     {"id": "marines_breach_runner_clatter_1", "source": "colony-breach/sfx/marines_breach_runner_clatter_1.mp3", "kind": "positional", "out": "battle/colony-breach"},
     {"id": "marines_breach_runner_clatter_2", "source": "colony-breach/sfx/marines_breach_runner_clatter_2.mp3", "kind": "positional", "out": "battle/colony-breach"},
     {"id": "marines_breach_runner_clatter_3", "source": "colony-breach/sfx/marines_breach_runner_clatter_3.mp3", "kind": "positional", "out": "battle/colony-breach"},

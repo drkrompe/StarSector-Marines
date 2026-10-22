@@ -7,15 +7,15 @@
   "idPrefix": "ship-washrooms",
   "alphaMin": 40,
   "outputSheet": "graphics/tilesets/ship-washrooms.png",
-  "note": "Geometry-first compact washroom: sink faces image-top (controls on image-bottom), toilet and shower entrances face image-bottom. Full cubicle footprints are physical fixtures; wash positions are on the shared aisle.",
+  "note": "Geometry-first compact washroom on a 2508x1254 raw: the left half is the original generation (toilet and shower cubicles with entrances facing image-bottom, deck sample); the right half is the real-size refit (ShipWashroomTemplate, 320 px per cell) of the basin, cut as a full 1x1 frame scaled so the basin is 0.5 m wide, its wall, faucet and controls flush with image-bottom and its open front at image-top. Full cubicle footprints are physical fixtures; wash positions are on the shared aisle. See ship-washrooms.README.md.",
   "entries": [
     {
       "id": "ship-washrooms.sink",
       "rect": [
-        172,
-        176,
-        257,
-        246
+        1593,
+        236,
+        578,
+        578
       ],
       "footprintCells": [
         1,

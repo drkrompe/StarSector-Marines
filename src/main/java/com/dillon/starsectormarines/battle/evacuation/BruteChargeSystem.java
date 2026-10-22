@@ -140,9 +140,6 @@ public final class BruteChargeSystem {
         tramples.add(new Trample(brute, target, false));
     }
 
-    /** Whether trampling is on ({@code -Dbattle.brute.trample}); the behaviour asks before it posts one. */
-    public static boolean trampling() { return BruteChargeRules.TRAMPLE; }
-
     // ---- presentation and evidence ----
 
     public Phase phase(long brute) {

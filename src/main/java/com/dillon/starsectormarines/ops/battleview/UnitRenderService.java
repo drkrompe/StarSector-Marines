@@ -1046,10 +1046,10 @@ public final class UnitRenderService implements RenderSystem {
                 UnitType type = (UnitType) types[r];
                 RavRunnerRig ravRig = ravRigs != null && ravRigs[r] instanceof RavRunnerRig dead ? dead : null;
                 if (ravRig != null && ravRig.dead()) {
-                    // A dead Runner lies on its own skeleton, fallen onto its flank, its colour gone dull.
+                    // A dead Runner has burst: its pieces where they were flung, over its ichor.
                     RavRunnerComposer.emit(out, ravArt, ravRig,
                             cam.cellToScreenX(ravRig.bodyX()), cam.cellToScreenY(ravRig.bodyY()),
-                            cam.cellPxSize() * type.renderScale, RavRunnerComposer.DEAD_SHADE, alphaMult);
+                            cam.cellPxSize() * type.renderScale, 1f, alphaMult);
                     continue;
                 }
                 // A body that wore layered art lies as itself: its outfit's own pose,

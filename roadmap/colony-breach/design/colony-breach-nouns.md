@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
+Updated: 2026-10-21 — growth stages (whelp, adult, elder), age mix, pack leader as planned vocabulary; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -584,8 +584,13 @@ for one job in the cycle, and reads that way on screen.
   lying (its outfit's fallen pose), head toward the jaws, jolting with each
   heave. Through a turn the spine bows into a C toward the inside, the
   shoulders and the hips swinging the same way while the planted feet hold.
-  A dead Runner keeps its skeleton, falls
-  onto its flank with its legs gone slack and lies there, dulled. In a crowd it
+  A dead Runner bursts: the trunk splits at mid-spine and the halves slump
+  apart, and the head and one or two limbs come away (the rest stay on their
+  half), thrown a short way (mostly behind it), spinning, bouncing once and
+  lying flat where they land, while its blood (red, as the Marines' and
+  the Matriarch's) sprays into splats
+  around a pool spreading under where it died. Seeded per Runner, so a replay
+  bursts the same way; presentation only, like the rest of the rig. In a crowd it
   is shoved as the shape it is drawn as, a capsule along its facing (the
   separation shape in `continuous-positions-nouns.md`), so a pack queues nose to
   tail and packs flank to flank rather than stacking into one another; its
@@ -609,7 +614,7 @@ for one job in the cycle, and reads that way on screen.
   as the fight goes on while a tank only rocks. On infantry
   the blow is a **trample**: the body under it is knocked down for a moment and
   bowled a little way, and anyone on foot right beside it takes half the blow
-  and goes down too (`-Dbattle.brute.trample=false` is the control).
+  and goes down too.
 
   It has two speeds: it **walks** at its sim speed and **charges** at a much
   higher one. A **charge** is a committed straight run at one target, or at the
@@ -640,21 +645,23 @@ for one job in the cycle, and reads that way on screen.
   on while one struck in the side stops short, tracks hold harder than wheels
   along the hull, and the spin is scrubbed by the same sideways grip. Nothing a
   charge strikes is moved in one step: a thrown or trampled body and a
-  rebounding Brute also slide to rest over the next ticks. Knocked down, stalled, staggered and stunned are one short
-  **can't act** state (`StaggerService`): no move, no fire, for a fixed time,
-  never a casualty state. The swarm's own bodies are never struck. Squad mates
-  of a thrown body take a near-miss morale drain. The numbers (charge speed,
-  band, cooldown, tell, every hold time) are starting values the owner chose
-  to feel out in play rather than settle on paper, so each is a
-  `-Dbattle.brute.*` switch and `-Dbattle.brute.charge=false` is the control.
+  rebounding Brute also slide to rest over the next ticks.
+
+  Knocked down, stalled, staggered and stunned are one short **can't act**
+  state (`StaggerService`): no move, no fire, for a fixed time, never a
+  casualty state. The swarm's own bodies are never struck. Squad mates of a
+  thrown body take a near-miss morale drain. The numbers (charge speed, band,
+  cooldown, tell, masses, every hold time) are starting values in
+  `BruteChargeRules`, to be felt out in play rather than settled on paper.
 
   A second of not being able to act confuses unless the player sees why, so
   the charge is shown four ways, all presentation over the rule: a faint amber
   wedge along the line during the tell, with the other threat warnings; a
   knocked-down body's picture lying as a fallen one does for that second,
   with a ring of dust where it lands, while the sim keeps it upright; a quiet
-  amber arc on the ground under any non-swarm body that can't act, whatever made
-  it so, emptying as the hold runs out; and the squad card's status word naming the cause (knocked down, stalled,
+  amber arc on the ground under a Marine or hull that can't act, whatever made
+  it so, emptying as the hold runs out (a staggered mech shows only in its
+  stilled hips); and the squad card's status word naming the cause (knocked down, stalled,
   staggered, stunned) ahead of engaged or wounded.
 
   Like the Runner it is drawn on its own skeleton (`RavBruteRig`): a plum,
@@ -694,6 +701,47 @@ for one job in the cycle, and reads that way on screen.
   curtain until something has worn that down), from further off, and never
   walks round to a door. It is not staggered and does not charge. Until it has
   sounds of its own it borrows the Brute's.
+
+**Growth stage.** How old a rav is: **whelp**, **adult** or **elder**. Every
+strain has the same three stages, so a stage is a property of one body, never
+a strain of its own: a whelp Runner is a Runner, with the Runner's `UnitType`,
+behaviour and rig, and no stage adds a `UnitType` or an appearance family. The
+stages are about a fifth apart in size (0.80, 1.00 and 1.22 of the adult), so
+they read at play zoom. Health, armour, damage and reach rise with stage and
+speed falls; a Brute's mass rises with its volume, so its charge physics scales
+without a rule of its own. They are also marked beyond size: a whelp is pale
+with nub spikes, an elder dark and scarred with long ones and a pale spine
+ridge. A stage is issued at
+spawn through `SwarmStrains`, like the Brute's plate, and fixed for the body's
+life; the Matriarch is the one exception. Stage scales presentation only
+through things the body already has: its rig's scale and stage-recoloured
+sprites, and its voice pitched by its size. Stats, the stage table and the
+reasons for each choice are in `rav-growth-stages.md` (planned, not built).
+
+- **Age mix.** A surge's stages come from its bore, never from the director:
+  each body draws a stage from a table keyed by the bore's tier (a fissure
+  throws whelps, a maw throws adults and elders), shifted older by the biomass
+  the bore has eaten in its life. So *Harvest* shows on the field: a bore that
+  has been fed sends bigger, darker ravs, and fewer of them, because the
+  director counts a body's stage weight against its target. The draw is keyed by the bore, the
+  pulse and the body, so stages change no other roll.
+- **Pack, pack leader.** A pack is the bodies of one pulse. Its first elder is
+  its **pack leader** and is released at the head of the stream; a pulse with
+  no elder has no leader, and its bodies hunt alone as every body did before
+  stages. While the leader lives, members on its leash share its quarry and
+  what it senses (still sensing, passed body to body) and strike faster. When
+  it dies the pack **breaks** for good: the bonuses go, members scatter to
+  their own quarry, and its whelps bolt back toward the bore for a moment. A
+  pack never elects a new leader.
+- **The Matriarch's stage** is set by how long the mother bore has been
+  feeding (its lifetime biomass when she emerges), within a narrower range of
+  size than the small strains'. Because she is fed from her mother, she steps
+  up a stage in the field when the mother is fed past the next threshold.
+  She leads every pack within her leash.
+- **Clearance.** Every stage of the small strains keeps a sim radius under half
+  a cell, so the shared flow fields serve every body; an elder Brute is drawn
+  and shoved larger than it navigates, and squeezes through a door it fills. The crowding capsule scales with stage.
+  The Matriarch paths for herself at her stage's clearance.
 
 **Air threat ladder.** What the swarm can do to what flies, rung by rung:
 

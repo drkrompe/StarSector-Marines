@@ -16,7 +16,7 @@ import java.util.function.LongUnaryOperator;
  * which way {@link FacingSystem} turned it, and the attack cooldown that times its strikes.
  * Presentation only, like {@code MechGaitSystem}; it runs after facing so the pose is solved on
  * this tick's heading. A Runner hauling a body ({@link #setLoads}) is posed facing it, and a dead
- * Runner keeps its rig and falls onto its flank, then lies where its corpse is. A Brute's rig also
+ * Runner keeps its rig and bursts into pieces and ichor around its corpse. A Brute's rig also
  * reads its charge phase and whether it is stunned, through providers the simulation sets, so this
  * package does not reach into the charge's.
  */
