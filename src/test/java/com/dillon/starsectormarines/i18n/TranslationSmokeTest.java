@@ -33,7 +33,10 @@ class TranslationSmokeTest {
      * Prefixes {@code Strings.named} reads that the catalog has no entry for yet, so a translation
      * cannot reach them and they read as the id spelled out. The list may only shrink.
      */
-    private static final Set<String> UNTRANSLATED_NAMED_PREFIXES = Set.of("shipHull", "billetRole", "armorTradition");
+    private static final Set<String> UNTRANSLATED_NAMED_PREFIXES = Set.of("shipHull");
+    /** Service-record entries name their pattern key as the first string argument. */
+    private static final Pattern COMMENDATION = Pattern.compile(
+            "Commendations\\.(?:add\\([^,;]+,[^,;]+,|entry\\(|ref\\()\\s*\"([A-Za-z][A-Za-z0-9_]*)\"\\s*[,)]");
 
     private static JSONObject catalog() throws Exception {
         String source = Files.readString(MOD.resolve("data/strings/strings.json"));
@@ -87,6 +90,7 @@ class TranslationSmokeTest {
                 Path file = sources.get(i);
                 String source = texts.get(i);
                 for (var m = LOOKUP.matcher(source); m.find();) keys.add(file.getFileName() + " " + m.group(1));
+                for (var m = COMMENDATION.matcher(source); m.find();) keys.add(file.getFileName() + " " + m.group(1));
                 if (NOT_CATALOG_REFERENCES.contains(file.getFileName().toString())) continue;
                 for (var m = AT_LITERAL.matcher(source); m.find();) keys.add(file.getFileName() + " " + m.group(1));
                 for (var m = NAMED.matcher(source); m.find();) prefixes.add(file.getFileName() + " " + m.group(1));

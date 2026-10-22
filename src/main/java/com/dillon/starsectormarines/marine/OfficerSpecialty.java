@@ -13,6 +13,8 @@ public enum OfficerSpecialty {
     private final String label;
     OfficerSpecialty(String label) { this.label = label; }
     public String label() { return Strings.get(label); }
+    /** The catalog key of {@link #label()}, for text saved now and read in another language. */
+    public String labelKey() { return label; }
     public String effect(int rank) {
         return switch (this) {
             case TACTICAL_COVER -> Strings.format("openingOfficerSpecialtyIncomingAccuracyForThisOfficerSDeployed", (5 * rank));

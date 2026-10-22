@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.BarracksEquipmentIssue;
+import com.dillon.starsectormarines.marine.Commendations;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.OfficerSpecialty;
@@ -390,7 +391,7 @@ public final class BarracksCommandModel {
                     if (specialtyNode(officer.career().level(specialty), officer.career().level(specialty) + 1,
                             canTrain(officer)) != SpecialtyNode.AVAILABLE) return;
                     if (officer.train(specialty)) {
-                        officer.commendations().add(Strings.format("openingBarracksCommandDayTrained", (int) currentDay.getAsDouble(), specialty.label(), officer.career().level(specialty)));
+                        Commendations.add(officer, (int) currentDay.getAsDouble(), "openingBarracksCommandDayTrained", Commendations.ref(specialty.labelKey()), officer.career().level(specialty));
                         refresh();
                     }
                 });
@@ -463,7 +464,7 @@ public final class BarracksCommandModel {
         List<Map<String, Object>> rows = new ArrayList<>();
         List<String> notes = officer.commendations();
         for (int i = notes.size() - 1; i >= Math.max(0, notes.size() - 20); i--)
-            rows.add(row("id", "officer-history-" + i, "text", notes.get(i)));
+            rows.add(row("id", "officer-history-" + i, "text", Commendations.display(notes.get(i))));
         if (rows.isEmpty()) rows.add(row("id", "officer-history-empty", "text", Strings.get("openingBarracksCommandServiceRecordBeginsWithTheNextOperation")));
         return rows;
     }

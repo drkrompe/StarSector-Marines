@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
+import com.dillon.starsectormarines.marine.Commendations;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.OfficerCommandProfile;
@@ -82,14 +83,14 @@ public record OfficerMissionResult(OfficerCommandProfile officer, Set<String> so
             while (!captain.rank().isTerminal() && captain.xp() >= captain.rank().xpToNext()) {
                 captain.addXp(-captain.rank().xpToNext());
                 captain.setRank(captain.rank().promote());
-                captain.commendations().add("Day " + day + ": Promoted to " + captain.rank().displayName()
-                        + ". Specialty training available.");
+                Commendations.add(captain, day, "commendationPromotedSpecialty",
+                        Commendations.ref(captain.rank().displayKey()));
             }
             captain.setStatus(result.status);
             captain.setInjuredUntilDay(result.injuredUntilDay);
-            captain.commendations().add("Day " + day + ": " + outcome.missionName + " / "
-                    + (outcome.victory ? "victory" : "defeat") + " / +" + result.xpGained
-                    + " XP / " + result.status + ".");
+            Commendations.add(captain, day, "commendationMissionResult", outcome.missionName,
+                    Commendations.ref(outcome.victory ? "commendationVictory" : "commendationDefeat"),
+                    result.xpGained, Commendations.ref("commendationStatus" + result.status.name()));
         }
     }
 

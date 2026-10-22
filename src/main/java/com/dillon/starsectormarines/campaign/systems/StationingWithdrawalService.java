@@ -1,10 +1,10 @@
 package com.dillon.starsectormarines.campaign.systems;
 
-import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractReputation;
 import com.dillon.starsectormarines.campaign.ContractType;
+import com.dillon.starsectormarines.marine.Commendations;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.Status;
@@ -53,8 +53,8 @@ public final class StationingWithdrawalService {
         ContractType type = ContractType.fromByte(state.contractType[row]);
         if (captain != null && captain.status() == Status.GARRISONED) {
             captain.setStatus(Status.ACTIVE);
-            captain.commendations().add("Day " + day + ": Withdrawn early from "
-                    + type.name().toLowerCase(Strings.locale()) + " duty.");
+            Commendations.add(captain, day, "commendationWithdrawnFrom",
+                    Commendations.ref("commendationDuty" + type.name()));
         }
         state.contractMarinesCommitted[row] = 0;
         state.contractCaptainId[row] = -1;

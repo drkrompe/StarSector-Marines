@@ -5,11 +5,11 @@ import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractType;
+import com.dillon.starsectormarines.marine.Commendations;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.Rank;
 
-import java.text.MessageFormat;
 import java.util.EnumSet;
 
 /** Awards whole-month passive captain XP for active Cadre contracts. */
@@ -87,9 +87,8 @@ public final class CadreTrainingSystem implements CampaignSystem {
             captain.addXp(-captain.rank().xpToNext());
             Rank next = captain.rank().promote();
             captain.setRank(next);
-            captain.commendations().add(MessageFormat.format(
-                    "Day {0}: Promoted to {1} during cadre duty.",
-                    day, next.displayName()));
+            Commendations.add(captain, day, "commendationCadrePromoted",
+                    Commendations.ref(next.displayKey()));
         }
     }
 
