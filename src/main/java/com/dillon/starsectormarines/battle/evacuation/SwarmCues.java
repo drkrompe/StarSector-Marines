@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.SwarmStage;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
 import java.util.Collection;
@@ -28,11 +29,13 @@ public final class SwarmCues {
     public enum Kind {
         ALERT, STRIKE, WALL_BLOW, WALL_BREAK,
         CHARGE_TELL, CHARGE_RUN, CHARGE_HIT_BODY, CHARGE_HIT_VEHICLE, CHARGE_HIT_WALL, STUNNED,
-        IMPALE, DRAG
+        IMPALE, DRAG,
+        /** A pack leader died and its pack broke: one scatter shriek for the pack, posted by the leader. */
+        PACK_BROKEN
     }
 
-    /** One act by a body of {@code strain} at a world position. */
-    public record Cue(Kind kind, UnitType strain, float x, float y) { }
+    /** One act by a body of {@code strain} at {@code stage} at a world position; the stage pitches its voice. */
+    public record Cue(Kind kind, UnitType strain, SwarmStage stage, float x, float y) { }
 
     private final ConcurrentLinkedQueue<Cue> frame = new ConcurrentLinkedQueue<>();
     private final Collection<Cue> view = Collections.unmodifiableCollection(frame);
@@ -45,11 +48,13 @@ public final class SwarmCues {
 
     /** Thread-safe: {@code body} did {@code kind} where it stands. */
     public void post(Kind kind, long body, BattleSimulation sim) {
-        frame.add(new Cue(kind, sim.identity().type(body), sim.world().x(body), sim.world().y(body)));
+        frame.add(new Cue(kind, sim.identity().type(body), sim.identity().swarmStage(body),
+                sim.world().x(body), sim.world().y(body)));
     }
 
     /** Thread-safe: {@code body} did {@code kind} to the cell at {@code cellX, cellY}. */
     public void postAt(Kind kind, long body, int cellX, int cellY, BattleSimulation sim) {
-        frame.add(new Cue(kind, sim.identity().type(body), cellX + 0.5f, cellY + 0.5f));
+        frame.add(new Cue(kind, sim.identity().type(body), sim.identity().swarmStage(body),
+                cellX + 0.5f, cellY + 0.5f));
     }
 }
