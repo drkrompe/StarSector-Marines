@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.marine.ArmorTradition;
+import com.dillon.starsectormarines.marine.MilitaryWarrants;
+import com.dillon.starsectormarines.marine.EquipmentAccessTier;
+import com.dillon.starsectormarines.marine.LoadoutCard;
 import com.dillon.starsectormarines.marine.BilletRoles;
 import com.dillon.starsectormarines.ops.CompanyResources.Row;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
@@ -451,8 +455,39 @@ public final class FleetArmoryViewModel {
                 joinSpans(issue), issue, "", List.of(), select);
     }
 
-    /** How a loadout card reads where it is named outside the Armory: its name, an icon, and its hover sheet. */
-    record CardFace(String name, String icon, SpecSheet sheet) { }
+    /**
+     * How a loadout card reads where it is named outside the Armory: its name, an icon, its
+     * hover sheet, and whether it bears the Restricted seal.
+     */
+    record CardFace(String name, String icon, SpecSheet sheet, boolean restricted) { }
+
+    /**
+     * The stamp a card is printed with: the office that issued it, with a serial of its own,
+     * and for a Restricted card the warrant it answers to. The issuer of a Restricted card is
+     * its warrant's issuer; any other card is issued by the tradition that fields it.
+     */
+    static SpecSheet.Stamp cardStamp(LoadoutCard card, ArmorTradition maker) {
+        boolean restricted = card.defined() && card.accessTier() == EquipmentAccessTier.RESTRICTED;
+        ArmorTradition warrantIssuer = restricted ? MilitaryWarrants.issuerOf(card) : null;
+        ArmorTradition issuer = warrantIssuer != null ? warrantIssuer
+                : maker != null ? maker : ArmorTradition.INDEPENDENT;
+        String serial = Integer.toString(1000 + Math.floorMod(card.id().hashCode(), 9000));
+        String issued = Strings.format("loadoutCardIssuedFmt", Strings.get("loadoutCardIssuer" + issuer.name()),
+                Strings.get("loadoutCardIssuerCode" + issuer.name()), serial);
+        String restriction = !restricted ? null : warrantIssuer != null
+                ? Strings.format("loadoutCardRestrictedFmt", warrantIssuer.displayName())
+                : Strings.get("loadoutCardRestricted");
+        return new SpecSheet.Stamp(issued, restriction);
+    }
+
+    /** The tradition whose crest a weapon card's presentation carries; null when none does. */
+    private static ArmorTradition traditionByCrest(String crest) {
+        if (crest == null) return null;
+        for (ArmorTradition tradition : ArmorTradition.values()) {
+            if (tradition.factionLogo().equals(crest)) return tradition;
+        }
+        return null;
+    }
 
     /** A weapon card's face, iconed by the weapon most of its seats carry. */
     static CardFace weaponCardFace(SquadWeaponDoctrine doctrine) {
@@ -470,10 +505,12 @@ public final class FleetArmoryViewModel {
             }
         }
         int rating = LoadoutEffectiveness.weaponRating(doctrine);
+        SpecSheet.Stamp stamp = cardStamp(new LoadoutCard(LoadoutCard.Kind.WEAPON, doctrine.id()),
+                traditionByCrest(presentation.factionLogo()));
         return new CardFace(doctrine.displayName(), icon, cardSheet(doctrine.displayName(), presentation,
                 doctrineMetadata(presentation), "weapon", "openingBarracksCardFire", rating,
                 List.of(weaponComposition(doctrine), joinSpans(weaponDistributionSpans("card-face", doctrine))))
-                .withSeats(weaponSeats(doctrine), fireTeams()));
+                .withSeats(weaponSeats(doctrine), fireTeams()).withStamp(stamp), stamp.restricted());
     }
 
     /** Each seat's weapon, with the special it also carries on the corner. */
@@ -513,11 +550,12 @@ public final class FleetArmoryViewModel {
         String metadata = Strings.format("openingFleetArmoryFieldsTier", plan.armorClassDisplayName(),
                 plan.tradition().displayName(), tierMark(maximumArmorTier(issued)));
         int rating = LoadoutEffectiveness.armorRating(issued);
+        SpecSheet.Stamp stamp = cardStamp(new LoadoutCard(LoadoutCard.Kind.SHEET, plan.id()), plan.tradition());
         return new CardFace(plan.displayName(), icon, cardSheet(plan.displayName(), presentation, metadata,
                 "armor", "openingBarracksCardGuard", rating,
                 List.of(joinSpans(armorDistributionSpans("card-face", issued)),
                         armorCapabilities(armorCapabilitySpans("card-face", issued))))
-                .withSeats(armorSeats(issued), fireTeams()));
+                .withSeats(armorSeats(issued), fireTeams()).withStamp(stamp), stamp.restricted());
     }
 
     private static SpecSheet cardSheet(String name, SquadLoadoutPresentationDef presentation, String metadata,

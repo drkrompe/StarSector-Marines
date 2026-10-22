@@ -101,6 +101,29 @@ public final class SpecSheetLayer {
             .spec-sheet-system .spec-sheet-stat-fill { background-color: #c79ce8; }
             .spec-sheet-mech .spec-sheet-stat-fill { background-color: #e2965c; }
             .spec-sheet-note { white-space: normal; }
+            .spec-sheet-stamp {
+                flex-direction: column;
+                height: 24px;
+                gap: 2px;
+                padding: 3px 6px 3px 6px;
+                border-width: 1px;
+                border-color: #1f3346;
+                background-color: #0e1a26;
+            }
+            .spec-sheet-stamp.spec-sheet-stamp-restricted { height: 46px; }
+            .spec-sheet-stamp-issued { height: 16px; color: #8b9aaf; }
+            .spec-sheet-stamp-badge {
+                flex-direction: row;
+                align-items: center;
+                width: 300px;
+                height: 20px;
+                gap: 4px;
+                padding: 0px 6px 0px 2px;
+                background-color: #3a1512;
+            }
+            .spec-sheet-stamp-badge.spec-sheet-stamp-badge-absent { width: 0px; height: 0px; padding: 0px; gap: 0px; }
+            .spec-sheet-stamp-seal { width: 18px; height: 18px; }
+            .spec-sheet-stamp-restriction { width: 0px; flex-grow: 1; font-family: heading; color: #f08a74; }
             .spec-sheet.spec-sheet-wide { width: 504px; }
             .spec-sheet-seats { flex-direction: row; height: 146px; gap: 9px; }
             .spec-sheet-team {
@@ -146,6 +169,8 @@ public final class SpecSheetLayer {
             """;
 
     private static final Map<UiDocument, SpecSheetLayer> INSTALLED = new WeakHashMap<>();
+    /** The seal a Restricted card's badge carries, the same one its face shows. */
+    public static final String RESTRICTED_SEAL = "graphics/ui/company/restricted-seal.svg";
 
     private final UiDocument document;
     private final UiElement root;
@@ -153,6 +178,10 @@ public final class SpecSheetLayer {
     private final UiElement crest;
     private final UiElement title;
     private final UiElement subtitle;
+    private final UiElement stamp;
+    private final UiElement stampIssued;
+    private final UiElement stampBadge;
+    private final UiElement stampRestriction;
     private final List<StatRow> statRows = new ArrayList<>();
     private final List<UiElement> notes = new ArrayList<>();
     private final UiElement seats;
@@ -167,6 +196,7 @@ public final class SpecSheetLayer {
     private int usedSeatRows;
     private int usedTeams;
     private boolean seatsAttached;
+    private boolean stampAttached;
 
     private SpecSheetLayer(UiDocument document) {
         this.document = document;
@@ -182,6 +212,18 @@ public final class SpecSheetLayer {
                         .addClass("spec-sheet-heading-copy")
                         .child(title)
                         .child(subtitle));
+        stampIssued = new UiElement(ELEMENT_ID + "-stamp-issued").addClass("spec-sheet-stamp-issued");
+        stampRestriction = new UiElement(ELEMENT_ID + "-stamp-restriction")
+                .addClass("spec-sheet-stamp-restriction");
+        stampBadge = new UiElement(ELEMENT_ID + "-stamp-badge")
+                .addClass("spec-sheet-stamp-badge")
+                .child(new UiElement(ELEMENT_ID + "-stamp-seal").tag(UiTag.IMAGE)
+                        .addClass("spec-sheet-stamp-seal").imageSource(RESTRICTED_SEAL))
+                .child(stampRestriction);
+        stamp = new UiElement(ELEMENT_ID + "-stamp")
+                .addClass("spec-sheet-stamp")
+                .child(stampBadge)
+                .child(stampIssued);
         root = new UiElement(ELEMENT_ID)
                 .addClass("spec-sheet")
                 .addClass(HIDDEN_CLASS)
@@ -254,6 +296,14 @@ public final class SpecSheetLayer {
         crest.classed("spec-sheet-crest-absent",
                 sheet.crestPath() == null || sheet.crestPath().isBlank());
 
+        if (stampAttached) root.remove(stamp);
+        stampAttached = sheet.stamp() != null;
+        if (stampAttached) {
+            stampIssued.text(sheet.stamp().issued());
+            stampRestriction.text(sheet.stamp().restricted() ? sheet.stamp().restriction() : "");
+            stampBadge.classed("spec-sheet-stamp-badge-absent", !sheet.stamp().restricted());
+            stamp.classed("spec-sheet-stamp-restricted", sheet.stamp().restricted());
+        }
         for (int index = usedStats - 1; index >= 0; index--) root.remove(statRows.get(index).row);
         for (int index = usedNotes - 1; index >= 0; index--) root.remove(notes.get(index));
         if (seatsAttached) root.remove(seats);
@@ -261,6 +311,7 @@ public final class SpecSheetLayer {
         usedStats = sheet.stats().size();
         usedNotes = sheet.notes().size();
 
+        if (stampAttached) root.child(stamp);
         for (int index = 0; index < usedStats; index++) {
             StatRow row = statRow(index);
             row.apply(sheet.stats().get(index));
