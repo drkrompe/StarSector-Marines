@@ -178,7 +178,7 @@ class BattleLaunchFixtureTest {
                 List.of(
                         new CommandPowerCommitment(ReconPing.ID, List.of()),
                         new CommandPowerCommitment(MechSupport.ID, List.of(
-                                new MechDeploymentSpec(MechVariant.SIROCCO,
+                                new MechDeploymentSpec(MechVariant.WARDEN,
                                         MechRole.LR_SUPPORT,
                                         MissileReplenisherComponent.ACCELERATED_FEED)))),
                 37);

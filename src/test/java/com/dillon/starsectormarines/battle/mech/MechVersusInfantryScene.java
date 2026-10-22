@@ -33,8 +33,8 @@ import java.util.Map;
  * with two SRM-15 fragmentation racks and again with two anti-armor racks. A third loop puts an
  * anti-armor Bulwark in front of a smaller screen with a breakthrough tank behind it: the mixed
  * fight, where the racks must turn the torso to the tank while they are loaded. Two more loops put a
- * factory Sirocco thirty cells from the section, beyond its cannon, with fragmentation and then
- * anti-armor LRM-5s: the artillery the Sirocco now ships with, against the rack it replaced.
+ * factory Warden thirty cells from the section, beyond its cannon, with fragmentation and then
+ * anti-armor LRM-5s: the artillery the Warden now ships with, against the rack it replaced.
  *
  * <p>Verdicts are mechanics only: an anti-armor rack never starts a salvo at a soft target, a
  * fragmentation rack does fire at men, and in the mixed loop the mech aims at the tank beyond
@@ -48,8 +48,8 @@ public final class MechVersusInfantryScene implements BehaviorScene {
     static final String FRAG_LOOP = "frag-open";
     static final String AT_LOOP = "at-open";
     static final String MIXED_LOOP = "at-mixed";
-    static final String SIROCCO_FRAG_LOOP = "sirocco-frag";
-    static final String SIROCCO_AT_LOOP = "sirocco-at";
+    static final String WARDEN_FRAG_LOOP = "warden-frag";
+    static final String WARDEN_AT_LOOP = "warden-at";
     static final int FRAME_EVERY_TICKS = 10;
 
     private static final int WIDTH = 64;
@@ -65,7 +65,7 @@ public final class MechVersusInfantryScene implements BehaviorScene {
     private static final int SCREEN_X = 23;
     private static final int SCREEN_SIZE = 6;
     private static final int TANK_X = 26;
-    /** Thirty cells off: beyond the heavy cannon's 26, where a Sirocco's LRMs lob. */
+    /** Thirty cells off: beyond the heavy cannon's 26, where a Warden's LRMs lob. */
     private static final int ARTILLERY_X = 40;
     private static final String RIFLE = "weapon.field-rifle";
 
@@ -87,8 +87,8 @@ public final class MechVersusInfantryScene implements BehaviorScene {
         reports.add(arm(frames, FRAG_LOOP, MechVariant.BULWARK, MechWeaponComponent.SRM_15_FRAG, false));
         reports.add(arm(frames, AT_LOOP, MechVariant.BULWARK, MechWeaponComponent.SRM_15, false));
         reports.add(arm(frames, MIXED_LOOP, MechVariant.BULWARK, MechWeaponComponent.SRM_15, true));
-        reports.add(arm(frames, SIROCCO_FRAG_LOOP, MechVariant.SIROCCO, MechWeaponComponent.LRM_5_FRAG, false));
-        reports.add(arm(frames, SIROCCO_AT_LOOP, MechVariant.SIROCCO, MechWeaponComponent.LRM_5, false));
+        reports.add(arm(frames, WARDEN_FRAG_LOOP, MechVariant.WARDEN, MechWeaponComponent.LRM_5_FRAG, false));
+        reports.add(arm(frames, WARDEN_AT_LOOP, MechVariant.WARDEN, MechWeaponComponent.LRM_5, false));
         return reports;
     }
 
@@ -113,7 +113,7 @@ public final class MechVersusInfantryScene implements BehaviorScene {
                 .assigned(id -> ObjectiveAssignment.defendArea(id, MECH_X, MECH_Y))
                 .done();
         int size = mixed ? SCREEN_SIZE : SECTION_SIZE;
-        int x = mixed ? SCREEN_X : variant == MechVariant.SIROCCO ? ARTILLERY_X : SECTION_X;
+        int x = mixed ? SCREEN_X : variant == MechVariant.WARDEN ? ARTILLERY_X : SECTION_X;
         builder.squad(SECTION).faction(Faction.DEFENDER).type(UnitType.MARINE_RED).size(size)
                 .primary(RIFLE)
                 .inFile(x, MECH_Y - size / 2, 0, 1)

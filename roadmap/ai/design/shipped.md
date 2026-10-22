@@ -54,7 +54,7 @@ Updated: 2026-10-21 — folded party places and story garrisons; earlier, folded
 | `26-audio-contact-belief.md` | 2026-08-19 | `63ffdb6a` | `ai-nouns.md` |
 | `27-commander-influence-substrate.md` | 2026-08-19 | `4e7089d0` | `ai-nouns.md` |
 | `28-assault-mech-cohesion.md` | 2026-08-22 | `eaef38b2` | `ai-nouns.md` |
-| `29-sirocco-screened-overwatch.md` | 2026-08-22 | `98fcc3fb` | `ai-nouns.md` |
+| `29-warden-screened-overwatch.md` | 2026-08-22 | `98fcc3fb` | `ai-nouns.md` |
 | `30-mech-formation-discipline.md` | 2026-08-22 | `861a5bf1` | `ai-nouns.md` |
 | `31-adaptive-squad-formations.md` | 2026-08-22 | `4c0864d9` | `ai-nouns.md` |
 | `squad-tactical-move-order.md` | 2026-08-31 | this change | `ai-nouns.md` |

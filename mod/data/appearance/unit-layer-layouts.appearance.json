@@ -674,7 +674,7 @@
       ]
     },
     {
-      "id": "mech-sirocco", "label": "Mech — Sirocco", "referencePixels": 208.0,
+      "id": "mech-warden", "label": "Mech — Warden", "referencePixels": 208.0,
       "variants": [
         { "id": "field-loadout", "label": "Field loadout", "animations": [
           { "id": "idle", "label": "Idle", "driver": "time", "loop": true, "frames": [
@@ -687,7 +687,7 @@
               { "id": "right-linear-cannon", "sprite": "graphics/battle/mech-modular-topdown/linear-cannon-variant.png", "offset": [0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 25 },
               { "id": "left-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-pod.png", "offset": [-0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 26 },
               { "id": "right-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-pod.png", "offset": [0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 27 },
-              { "id": "chassis", "sprite": "graphics/battle/mech-modular-topdown/chassis-sirocco.png", "offset": [0.0, 0.0], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 }
+              { "id": "chassis", "sprite": "graphics/battle/mech-modular-topdown/chassis-warden.png", "offset": [0.0, 0.0], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 }
             ] }
           ] },
           { "id": "walking", "label": "Walking", "driver": "locomotionPhase", "loop": true, "frames": [
@@ -700,7 +700,7 @@
               { "id": "right-linear-cannon", "sprite": "graphics/battle/mech-modular-topdown/linear-cannon-variant.png", "offset": [0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 25 },
               { "id": "left-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-pod.png", "offset": [-0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": -1.0, "pivot": [0.5, 1.0], "z": 26 },
               { "id": "right-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-pod.png", "offset": [0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": -1.0, "pivot": [0.5, 1.0], "z": 27 },
-              { "id": "chassis", "sprite": "graphics/battle/mech-modular-topdown/chassis-sirocco.png", "offset": [0.0, 0.0], "scale": [1.0, 1.0], "angleDegrees": -1.0, "pivot": [0.5, 0.5], "z": 30 }
+              { "id": "chassis", "sprite": "graphics/battle/mech-modular-topdown/chassis-warden.png", "offset": [0.0, 0.0], "scale": [1.0, 1.0], "angleDegrees": -1.0, "pivot": [0.5, 0.5], "z": 30 }
             ] },
             { "id": "right-step", "label": "Right extension", "durationMs": 240, "layers": [
               { "id": "left-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [-0.22, -0.05], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
@@ -711,7 +711,7 @@
               { "id": "right-linear-cannon", "sprite": "graphics/battle/mech-modular-topdown/linear-cannon-variant.png", "offset": [0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 25 },
               { "id": "left-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-pod.png", "offset": [-0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": 1.0, "pivot": [0.5, 1.0], "z": 26 },
               { "id": "right-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-pod.png", "offset": [0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": 1.0, "pivot": [0.5, 1.0], "z": 27 },
-              { "id": "chassis", "sprite": "graphics/battle/mech-modular-topdown/chassis-sirocco.png", "offset": [0.0, 0.0], "scale": [1.0, 1.0], "angleDegrees": 1.0, "pivot": [0.5, 0.5], "z": 30 }
+              { "id": "chassis", "sprite": "graphics/battle/mech-modular-topdown/chassis-warden.png", "offset": [0.0, 0.0], "scale": [1.0, 1.0], "angleDegrees": 1.0, "pivot": [0.5, 0.5], "z": 30 }
             ] }
           ] }
         ] }

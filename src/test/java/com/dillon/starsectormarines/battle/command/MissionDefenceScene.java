@@ -73,7 +73,7 @@ public final class MissionDefenceScene implements BehaviorScene {
 
     private static final int LANCES = 2;
 
-    /** {@code lances}: the pool also holds {@link #LANCES} Sirocco lances, offered to guard what the commander mans. */
+    /** {@code lances}: the pool also holds {@link #LANCES} Warden lances, offered to guard what the commander mans. */
     private record Mission(String loop, Supplier<BattleSimulation> build, boolean lances) {}
 
     private static List<Mission> missions() {
@@ -146,7 +146,7 @@ public final class MissionDefenceScene implements BehaviorScene {
             if (mission.lances()) {
                 for (int i = 0; i < LANCES; i++) {
                     builder.squad("lance-" + i).faction(Faction.DEFENDER).size(1).at(back[0] + 4 * i, back[1] + 3)
-                            .mech(MechVariant.SIROCCO, MechRole.BALANCED).done();
+                            .mech(MechVariant.WARDEN, MechRole.BALANCED).done();
                 }
             }
             // The party waits at the far corner until it is set down in front of the building.

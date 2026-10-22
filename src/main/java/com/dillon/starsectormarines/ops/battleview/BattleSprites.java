@@ -877,7 +877,7 @@ public class BattleSprites {
         LayeredSpriteCache chassis = loadLayeredSprite(root + "chassis.png");
         LayeredSpriteCache socketedChassis = loadLayeredSprite(root + "chassis-socketed-variant.png");
         LayeredSpriteCache houndChassis = loadLayeredSprite(root + "chassis-hound.png");
-        LayeredSpriteCache siroccoChassis = loadLayeredSprite(root + "chassis-sirocco.png");
+        LayeredSpriteCache wardenChassis = loadLayeredSprite(root + "chassis-warden.png");
         LayeredSpriteCache foot = loadLayeredSprite(root + "foot.png");
         LayeredSpriteCache thighBone = loadLayeredSprite(root + "thigh-bone.png");
         LayeredSpriteCache arm = loadLayeredSprite(root + "chaingun-arm.png");
@@ -901,7 +901,7 @@ public class BattleSprites {
         LayeredSpriteCache flash = loadLayeredSprite(
                 "graphics/battle/marine-modular-topdown/marine-muzzle-flash.png");
         if (chassis == null || socketedChassis == null || houndChassis == null
-                || siroccoChassis == null || foot == null || thighBone == null || arm == null
+                || wardenChassis == null || foot == null || thighBone == null || arm == null
                 || linearCannon == null || heavyCannon == null
                 || srm == null || lrm == null || shoulderLaser == null
                 || pulseLaserArm == null || bastionAutocannon == null
@@ -912,7 +912,7 @@ public class BattleSprites {
             return;
         }
         layeredMechSprites = new LayeredMechAssets(chassis, socketedChassis,
-                houndChassis, siroccoChassis, foot, thighBone, arm, linearCannon, heavyCannon,
+                houndChassis, wardenChassis, foot, thighBone, arm, linearCannon, heavyCannon,
                 srm, lrm, shoulderLaser, pulseLaserArm, bastionAutocannon,
                 demolitionCannon, thermalLance, musterAutogun,
                 quarryBreakerCannon, pioneerRocketCradle, flash);
@@ -932,7 +932,7 @@ public class BattleSprites {
         String root = baseRoot + "factions/" + livery.assetFolder() + "/";
         LayeredSpriteCache chassis = loadLayeredSprite(root + "chassis.png");
         LayeredSpriteCache houndChassis = loadLayeredSprite(root + "chassis-hound.png");
-        LayeredSpriteCache siroccoChassis = loadLayeredSprite(root + "chassis-sirocco.png");
+        LayeredSpriteCache wardenChassis = loadLayeredSprite(root + "chassis-warden.png");
         LayeredSpriteCache arm = loadLayeredSprite(root + "chaingun-arm.png");
         LayeredSpriteCache linearCannon = loadLayeredSprite(root + "linear-cannon-variant.png");
         LayeredSpriteCache heavyCannon = loadLayeredSprite(root + "heavy-cannon.png");
@@ -951,7 +951,7 @@ public class BattleSprites {
                 root + "quarry-breaker-cannon.png");
         LayeredSpriteCache pioneerRocketCradle = loadLayeredSprite(
                 root + "pioneer-rocket-cradle.png");
-        if (chassis == null || houndChassis == null || siroccoChassis == null
+        if (chassis == null || houndChassis == null || wardenChassis == null
                 || arm == null || linearCannon == null || heavyCannon == null
                 || srm == null || lrm == null || shoulderLaser == null
                 || pulseLaserArm == null || bastionAutocannon == null
@@ -963,7 +963,7 @@ public class BattleSprites {
             return;
         }
         layeredMechLiveries.put(livery, new LayeredMechAssets(
-                chassis, socketedChassis, houndChassis, siroccoChassis,
+                chassis, socketedChassis, houndChassis, wardenChassis,
                 foot, thighBone, arm, linearCannon, heavyCannon,
                 srm, lrm, shoulderLaser, pulseLaserArm, bastionAutocannon,
                 demolitionCannon, thermalLance, musterAutogun,

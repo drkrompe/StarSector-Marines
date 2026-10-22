@@ -72,11 +72,11 @@ class MechFittingLayoutTest {
         assertTrue(bulwark.occupied(SocketId.RIGHT_SHOULDER));
         assertEquals(SocketType.OMNI,
                 bulwark.socket(SocketId.RIGHT_SHOULDER).type());
-        MechFittingLayout sirocco = MechFittingLayout.forVariant(MechVariant.SIROCCO);
+        MechFittingLayout warden = MechFittingLayout.forVariant(MechVariant.WARDEN);
         assertNotEquals(hound.socket(SocketId.ARMS).capacity(),
-                sirocco.socket(SocketId.ARMS).capacity());
+                warden.socket(SocketId.ARMS).capacity());
         assertNotEquals(hound.socket(SocketId.ARMS).footprintWidthHull(),
-                sirocco.socket(SocketId.ARMS).footprintWidthHull());
+                warden.socket(SocketId.ARMS).footprintWidthHull());
         assertFalse(bulwark.hasSocket(SocketId.ARMS));
         assertTrue(bulwark.occupied(SocketId.LEFT_ARM));
         assertTrue(bulwark.occupied(SocketId.RIGHT_ARM));

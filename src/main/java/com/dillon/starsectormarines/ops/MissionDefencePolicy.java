@@ -77,7 +77,7 @@ public final class MissionDefencePolicy {
 
     /** The composition of each Conquest lance: one anchor, two skirmishers, one support. UNTUNED. */
     static final List<MechVariant> CONQUEST_MECH_LANCE =
-            List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.HOUND, MechVariant.SIROCCO);
+            List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.HOUND, MechVariant.WARDEN);
 
     /**
      * Every Nth marine squad of a Conquest is a mortar team, the last of each run of this many. UNTUNED first-pass

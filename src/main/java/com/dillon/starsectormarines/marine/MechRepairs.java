@@ -41,7 +41,7 @@ public final class MechRepairs {
     static float daysAtFullWear(MechVariant variant) {
         return switch (variant) {
             case HOUND -> LIGHT_DAYS_AT_FULL_WEAR;
-            case SIROCCO -> MEDIUM_DAYS_AT_FULL_WEAR;
+            case WARDEN -> MEDIUM_DAYS_AT_FULL_WEAR;
             case BULWARK -> HEAVY_DAYS_AT_FULL_WEAR;
         };
     }

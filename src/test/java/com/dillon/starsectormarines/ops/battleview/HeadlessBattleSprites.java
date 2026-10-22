@@ -616,7 +616,7 @@ final class HeadlessBattleSprites extends BattleSprites {
         return new LayeredMechAssets(layer(MECH_ROOT + "chassis.png"),
                 layer(MECH_ROOT + "chassis-socketed-variant.png"),
                 layer(MECH_ROOT + "chassis-hound.png"),
-                layer(MECH_ROOT + "chassis-sirocco.png"),
+                layer(MECH_ROOT + "chassis-warden.png"),
                 layer(MECH_ROOT + "foot.png"), layer(MECH_ROOT + "thigh-bone.png"),
                 layer(MECH_ROOT + "chaingun-arm.png"),
                 layer(MECH_ROOT + "linear-cannon-variant.png"),

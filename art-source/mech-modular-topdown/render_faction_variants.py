@@ -35,7 +35,7 @@ def main() -> None:
     draw.text((38, 24), "FACTIONAL MECH CHASSIS SKINS", font=font(35, bold=True),
               fill=(232, 237, 236))
     draw.text((40, 70),
-              "Bulwark / Hound / Sirocco — shared weapon layers retained — north/up",
+              "Bulwark / Hound / Warden — shared weapon layers retained — north/up",
               font=font(17), fill=(148, 164, 169))
 
     column_left = 330
@@ -52,7 +52,7 @@ def main() -> None:
             chassis_name = {
                 "BULWARK": "chassis.png",
                 "HOUND": "chassis-hound.png",
-                "SIROCCO": "chassis-sirocco.png",
+                "WARDEN": "chassis-warden.png",
             }[variant.name]
             skinned = replace(
                 variant,

@@ -141,7 +141,7 @@ final class LayeredMechComposer {
         // the ordinary weapon/chassis/pod stack emitted below.
         if (gaitPose != null
                 && (chassis == LayeredMechAppearance.CHASSIS_HOUND
-                || chassis == LayeredMechAppearance.CHASSIS_SIROCCO)) {
+                || chassis == LayeredMechAppearance.CHASSIS_WARDEN)) {
             emitConnectionTo(out, assets.thighBone, upperX, upperY,
                     gaitPose.leftFootX(), gaitPose.leftFootY(), hullWidth, alpha);
             emitConnectionTo(out, assets.thighBone, upperX, upperY,
@@ -153,7 +153,7 @@ final class LayeredMechComposer {
                     hipFacingDeg, alpha);
         } else if (leftThigh == null && rightThigh == null
                 && (chassis == LayeredMechAppearance.CHASSIS_HOUND
-                || chassis == LayeredMechAppearance.CHASSIS_SIROCCO)) {
+                || chassis == LayeredMechAppearance.CHASSIS_WARDEN)) {
             emitConnection(out, assets.thighBone, upperX, upperY, hullWidth, hipFacingDeg,
                     -footX - waistSway, leftFootY, alpha);
             emitConnection(out, assets.thighBone, upperX, upperY, hullWidth, hipFacingDeg,
@@ -197,7 +197,7 @@ final class LayeredMechComposer {
         }
 
         // Bulwark's racks are exposed above its armor; Hound carries one dorsal
-        // SRM rack. Sirocco's paired LRMs stay beneath its broader hull.
+        // SRM rack. Warden's paired LRMs stay beneath its broader hull.
         if (podsAboveChassis) {
             emitShoulderPods(out, assets, chassis, leftShoulder, rightShoulder,
                     upperX, upperY, hullWidth, upperFacingDeg, srmKick, lrmKick, alpha);
@@ -360,7 +360,7 @@ final class LayeredMechComposer {
     private static LayeredSpriteCache selectChassis(LayeredMechAssets assets, int chassis) {
         if (chassis == LayeredMechAppearance.CHASSIS_SOCKETED) return assets.socketedChassis;
         if (chassis == LayeredMechAppearance.CHASSIS_HOUND) return assets.houndChassis;
-        if (chassis == LayeredMechAppearance.CHASSIS_SIROCCO) return assets.siroccoChassis;
+        if (chassis == LayeredMechAppearance.CHASSIS_WARDEN) return assets.wardenChassis;
         return assets.chassis;
     }
 

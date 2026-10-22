@@ -25,7 +25,7 @@ gun tubes). A leg is one outline, not a stack of panels.
 
 The mechs follow the owner's references (2026-10-20): the Hound is a Locust (a
 pod in three thirds on straight, heavy legs, the chaingun under its nose, one rocket pod
-on top), the Sirocco a Catapult (a flat pod whose side thirds carry the missile
+on top), the Warden a Catapult (a flat pod whose side thirds carry the missile
 boxes, a cannon under the nose, heavy legs), the Bulwark a Fafnir (one wide shell
 with missile pods on its top corners, guns held at the chest, thick short legs).
 A pod's side thirds are its shoulder sections: a shoulder mount lives in its side
@@ -331,7 +331,7 @@ def hound(name):
     return d.write()
 
 
-def sirocco(name):
+def warden(name):
     """A Catapult: a hull much wider than its legs, in three thirds of even depth, a round-topped
     missile pod standing on each wing and a cannon under the nose. Seen from in front or behind the
     arrowhead plan does not show: the hull is one level band."""
@@ -394,7 +394,7 @@ def main():
         hauler("hauler"),
         bulwark("mech-bulwark"),
         hound("mech-hound"),
-        sirocco("mech-sirocco"),
+        warden("mech-warden"),
     ]
     print("wrote", ", ".join(written))
 

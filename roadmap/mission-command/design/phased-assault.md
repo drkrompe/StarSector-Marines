@@ -169,7 +169,7 @@ one shared lance loader), and answers `COMMITTED`, `NO_ALLOWANCE` or
 does. A mission declares the allowance (`MechDropAllowance`, a lance count and
 a composition of up to four variants) on the target profile beside its ground
 defences; Conquest declares an untuned two lances of Bulwark, two Hounds and a
-Sirocco for its marines, every other mission none. The landed lance is claimed
+Warden for its marines, every other mission none. The landed lance is claimed
 for the caller and is an ordinary machine squad the commander plans. A DEBUG
 briefing dial states the allowance, and its "at once" value calls the first lance
 ten seconds in, claimed by the marine commander, so the delivery can be watched
@@ -272,7 +272,7 @@ objective and must not churn every squad's stability.
   because they declare no allowance (`declaredMechDrops` is absent, so a fixture that predates mech drops declares
   none, deliberately); the wish was computed and the call silently refused. It now says so in the trace
   ("wanted a mech lance: the mission allows none"), and a fixture that adds the Conquest allowance (two lances of
-  Bulwark, two Hounds and a Sirocco) calls one per company, claimed and recruited as designed.
+  Bulwark, two Hounds and a Warden) calls one per company, claimed and recruited as designed.
 
 ## Fort assault plans: as built (slice 3)
 

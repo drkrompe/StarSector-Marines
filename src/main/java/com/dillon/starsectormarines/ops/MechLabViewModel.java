@@ -566,7 +566,7 @@ public final class MechLabViewModel {
         if (recipe.vehicle() != null) return Strings.get("vehicleLore" + recipe.vehicle().name());
         return switch (recipe.variant()) {
             case HOUND -> Strings.get("gearCatalogHoundDescription");
-            case SIROCCO -> Strings.get("gearCatalogSiroccoDescription");
+            case WARDEN -> Strings.get("gearCatalogWardenDescription");
             case BULWARK -> Strings.get("gearCatalogBulwarkDescription");
             default -> "";
         };

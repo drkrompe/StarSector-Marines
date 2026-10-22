@@ -17,7 +17,7 @@ public final class DebugMechRoster {
     public static final int DEFAULT_COUNT = MechSupport.LANCE_SIZE;
 
     private static final MechVariant[] FAMILY = {
-            MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO
+            MechVariant.BULWARK, MechVariant.HOUND, MechVariant.WARDEN
     };
 
     private final List<MechVariant> variants;

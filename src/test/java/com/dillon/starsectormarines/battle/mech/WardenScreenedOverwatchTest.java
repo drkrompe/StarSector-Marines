@@ -24,18 +24,18 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class SiroccoScreenedOverwatchTest {
+class WardenScreenedOverwatchTest {
 
     private static final int THREAT_X = 70;
     private static final int THREAT_Y = 30;
 
     @Test
-    void prefersANonSiroccoAllyBetweenItsLaneAndTheThreat() {
+    void prefersANonWardenAllyBetweenItsLaneAndTheThreat() {
         Fixture f = fixture(10, 30);
         long infantry = spawnInfantry(f.sim, Faction.DEFENDER, 44, 30);
 
         OverwatchKillZone.OverwatchPosition position =
-                OverwatchKillZone.pickOverwatchCell(f.sirocco, f.squad, f.sim);
+                OverwatchKillZone.pickOverwatchCell(f.warden, f.squad, f.sim);
 
         assertNotNull(position);
         assertEquals(infantry, position.screenId());
@@ -53,7 +53,7 @@ class SiroccoScreenedOverwatchTest {
         f.sim.getUnitIndex().rebuild(f.sim.getRoster());
 
         OverwatchKillZone.OverwatchPosition position =
-                OverwatchKillZone.pickOverwatchCell(f.sirocco, f.squad, f.sim);
+                OverwatchKillZone.pickOverwatchCell(f.warden, f.squad, f.sim);
 
         assertNotNull(position);
         assertEquals(infantry, position.screenId(),
@@ -75,7 +75,7 @@ class SiroccoScreenedOverwatchTest {
         f.sim.getUnitIndex().rebuild(f.sim.getRoster());
 
         OverwatchKillZone.OverwatchPosition position =
-                OverwatchKillZone.pickOverwatchCell(f.sirocco, f.squad, f.sim);
+                OverwatchKillZone.pickOverwatchCell(f.warden, f.squad, f.sim);
 
         assertNotNull(position);
         assertTrue(position.screenId() == centerMarine
@@ -97,7 +97,7 @@ class SiroccoScreenedOverwatchTest {
                 10, 10));
         f.sim.getUnitIndex().rebuild(f.sim.getRoster());
 
-        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+        OverwatchKillZone.INSTANCE.execute(f.warden, f.squad, f.sim);
         int originalX = f.loadout.overwatchCellX;
         int originalY = f.loadout.overwatchCellY;
         assertEquals(screen, f.loadout.overwatchScreenId);
@@ -108,7 +108,7 @@ class SiroccoScreenedOverwatchTest {
                 movingEngineer, rayMidpointX, rayMidpointY);
         f.sim.getUnitIndex().rebuild(f.sim.getRoster());
 
-        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+        OverwatchKillZone.INSTANCE.execute(f.warden, f.squad, f.sim);
 
         assertTrue(f.loadout.overwatchCellX != originalX
                         || f.loadout.overwatchCellY != originalY,
@@ -129,7 +129,7 @@ class SiroccoScreenedOverwatchTest {
         long screen = spawnInfantry(f.sim, Faction.DEFENDER, 39, 35);
         f.sim.getUnitIndex().rebuild(f.sim.getRoster());
 
-        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+        OverwatchKillZone.INSTANCE.execute(f.warden, f.squad, f.sim);
         int originalX = f.loadout.overwatchCellX;
         int originalY = f.loadout.overwatchCellY;
         assertEquals(screen, f.loadout.overwatchScreenId);
@@ -146,7 +146,7 @@ class SiroccoScreenedOverwatchTest {
         long apc = f.sim.convoy().spawn(
                 VehicleType.HEAVY_APC, Faction.DEFENDER, mission);
 
-        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+        OverwatchKillZone.INSTANCE.execute(f.warden, f.squad, f.sim);
 
         assertTrue(f.loadout.overwatchCellX != originalX
                         || f.loadout.overwatchCellY != originalY,
@@ -170,9 +170,9 @@ class SiroccoScreenedOverwatchTest {
         grid.setWalkableFloor(39, 34);
         BattleSimulation sim = new BattleSimulation(
                 grid, new CellTopology(width, height));
-        long sirocco = spawnMech(sim, Faction.DEFENDER,
-                MechVariant.SIROCCO, 46, THREAT_Y);
-        Squad squad = sim.squadOf(sirocco);
+        long warden = spawnMech(sim, Faction.DEFENDER,
+                MechVariant.WARDEN, 46, THREAT_Y);
+        Squad squad = sim.squadOf(warden);
         long infantry = spawnInfantry(sim, Faction.DEFENDER, 39, 34);
         long enemy = sim.spawn(new EntitySpec(
                 "corridor-enemy", Faction.MARINE, UnitType.MARINE,
@@ -184,7 +184,7 @@ class SiroccoScreenedOverwatchTest {
         sim.getUnitIndex().rebuild(sim.getRoster());
 
         OverwatchKillZone.OverwatchPosition position =
-                OverwatchKillZone.pickOverwatchCell(sirocco, squad, sim);
+                OverwatchKillZone.pickOverwatchCell(warden, squad, sim);
 
         assertNotNull(position);
         assertEquals(infantry, position.screenId());
@@ -198,9 +198,9 @@ class SiroccoScreenedOverwatchTest {
     @Test
     void longRangeSupportUsesPartlySpentLrmsAndMovesBehindMarines() {
         BattleSimulation sim = openSimulation();
-        long sirocco = spawnMech(sim, Faction.MARINE,
-                MechVariant.SIROCCO, 46, 30);
-        Squad squad = sim.squadOf(sirocco);
+        long warden = spawnMech(sim, Faction.MARINE,
+                MechVariant.WARDEN, 46, 30);
+        Squad squad = sim.squadOf(warden);
         long infantry = spawnInfantry(sim, Faction.MARINE, 39, 30);
         long enemy = sim.spawn(new EntitySpec(
                 "enemy", Faction.DEFENDER, UnitType.MARINE,
@@ -209,23 +209,23 @@ class SiroccoScreenedOverwatchTest {
                 THREAT_X, THREAT_Y, sim.getSimTickIndex());
         squad.lastSeenEnemyX = THREAT_X;
         squad.lastSeenEnemyY = THREAT_Y;
-        sim.world().setTargetId(sirocco, enemy);
+        sim.world().setTargetId(warden, enemy);
         sim.getUnitIndex().rebuild(sim.getRoster());
-        MechLoadoutComponent loadout = sim.world().mechLoadout(sirocco);
+        MechLoadoutComponent loadout = sim.world().mechLoadout(warden);
         MechWeaponMount lrm = loadout.mount(MechMountSlot.RIGHT_SHOULDER);
         lrm.ammo = Math.max(1, lrm.ammo - 1);
 
         sim.getMechDoctrineService().requestOverride(
-                sirocco, MechRole.LR_SUPPORT);
+                warden, MechRole.LR_SUPPORT);
         new MechDoctrineSystem(sim.getMechDoctrineService()).tick(sim);
-        ExecuteMechDoctrine.INSTANCE.execute(sirocco, squad, sim);
+        ExecuteMechDoctrine.INSTANCE.execute(warden, squad, sim);
 
         assertEquals(MechRole.LR_SUPPORT, loadout.effectiveRole());
         assertTrue(loadout.overwatchLongRangeBand,
                 "a fresh LR order should use every available LRM instead of inheriting rearm fallback");
         assertEquals(infantry, loadout.overwatchScreenId);
         assertTrue(loadout.overwatchCellX < sim.world().cellX(infantry));
-        assertFalse(Paths.isEmpty(sim.world().path(sirocco)),
+        assertFalse(Paths.isEmpty(sim.world().path(warden)),
                 "the serialized doctrine command should author visible repositioning");
     }
 
@@ -269,7 +269,7 @@ class SiroccoScreenedOverwatchTest {
 
     @Test
     void rushedSupportMayOpenDistanceIntoTheBoundedZonePerimeter() {
-        // The 1.2-cell-wide Bulwark cannot cross the one-cell Sirocco doorway.
+        // The 1.2-cell-wide Bulwark cannot cross the one-cell Warden doorway.
         // This test asks about the permitted retreat perimeter, not refusal of
         // a physically impossible passage, so give it a two-cell opening. The
         // east side is a corridor: an open room would offer an in-zone oblique
@@ -319,26 +319,26 @@ class SiroccoScreenedOverwatchTest {
                 70, 40, f.sim.getSimTickIndex());
         f.squad.lastSeenEnemyX = THREAT_X;
         f.squad.lastSeenEnemyY = THREAT_Y;
-        f.sim.world().setTargetId(f.sirocco, currentTarget);
+        f.sim.world().setTargetId(f.warden, currentTarget);
 
-        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+        OverwatchKillZone.INSTANCE.execute(f.warden, f.squad, f.sim);
 
-        assertEquals(currentTarget, f.sim.world().targetId(f.sirocco));
+        assertEquals(currentTarget, f.sim.world().targetId(f.warden));
         assertEquals(70, f.loadout.overwatchAxisX);
         assertEquals(40, f.loadout.overwatchAxisY,
                 "movement and firing should reason about the same perceived enemy");
     }
 
     @Test
-    void anotherSiroccoCannotPretendToBeTheFrontLine() {
+    void anotherWardenCannotPretendToBeTheFrontLine() {
         Fixture f = fixture(10, 30);
-        long otherSirocco = spawnMech(
-                f.sim, Faction.DEFENDER, MechVariant.SIROCCO, 44, 30);
-        f.sim.world().mechLoadout(otherSirocco)
+        long otherWarden = spawnMech(
+                f.sim, Faction.DEFENDER, MechVariant.WARDEN, 44, 30);
+        f.sim.world().mechLoadout(otherWarden)
                 .applyBattleOverride(MechRole.ARMORED_SUPPORT);
 
         OverwatchKillZone.OverwatchPosition position =
-                OverwatchKillZone.pickOverwatchCell(f.sirocco, f.squad, f.sim);
+                OverwatchKillZone.pickOverwatchCell(f.warden, f.squad, f.sim);
 
         assertNotNull(position, "screening is preferred, not required");
         assertEquals(0L, position.screenId());
@@ -358,13 +358,13 @@ class SiroccoScreenedOverwatchTest {
         BattleSimulation sim = new BattleSimulation(
                 grid, new CellTopology(width, height));
         int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.HEAVY_MECH);
-        long sirocco = sim.spawn(MechVariant.SIROCCO.applyTo(new EntitySpec(
-                "isolated-sirocco", Faction.DEFENDER, UnitType.HEAVY_MECH,
+        long warden = sim.spawn(MechVariant.WARDEN.applyTo(new EntitySpec(
+                "isolated-warden", Faction.DEFENDER, UnitType.HEAVY_MECH,
                 10, THREAT_Y).squad(squadId)));
-        sim.world().attachMechLoadout(sirocco,
-                MechVariant.SIROCCO.createLoadout(MechRole.LR_SUPPORT));
+        sim.world().attachMechLoadout(warden,
+                MechVariant.WARDEN.createLoadout(MechRole.LR_SUPPORT));
         Squad squad = sim.getSquad(squadId);
-        squad.leaderId = sirocco;
+        squad.leaderId = warden;
         squad.aliveMembers = 1;
         squad.originalSize = 1;
         squad.centroidX = 10.5f;
@@ -372,7 +372,7 @@ class SiroccoScreenedOverwatchTest {
         squad.lastSeenEnemyX = THREAT_X;
         squad.lastSeenEnemyY = THREAT_Y;
 
-        assertNull(OverwatchKillZone.pickOverwatchCell(sirocco, squad, sim),
+        assertNull(OverwatchKillZone.pickOverwatchCell(warden, squad, sim),
                 "geometrically legal cells beyond a sealed wall are not usable perches");
     }
 
@@ -383,9 +383,9 @@ class SiroccoScreenedOverwatchTest {
         f.squad.lastSeenEnemyX = 35;
         f.squad.lastSeenEnemyY = 30;
 
-        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+        OverwatchKillZone.INSTANCE.execute(f.warden, f.squad, f.sim);
 
-        int[] path = f.sim.world().path(f.sirocco);
+        int[] path = f.sim.world().path(f.warden);
         assertFalse(Paths.isEmpty(path));
         float initialDistance = 5f;
         float destinationDx = Paths.destX(path) + 0.5f
@@ -395,7 +395,7 @@ class SiroccoScreenedOverwatchTest {
         assertTrue(destinationDx * destinationDx + destinationDy * destinationDy
                         > initialDistance * initialDistance,
                 "a contact inside the support posture forces an outward move");
-        assertEquals(f.enemy, f.sim.world().targetId(f.sirocco));
+        assertEquals(f.enemy, f.sim.world().targetId(f.warden));
     }
 
     @Test
@@ -404,7 +404,7 @@ class SiroccoScreenedOverwatchTest {
         spawnInfantry(f.sim, Faction.MARINE, 44, 30);
 
         OverwatchKillZone.OverwatchPosition position =
-                OverwatchKillZone.pickOverwatchCell(f.sirocco, f.squad, f.sim);
+                OverwatchKillZone.pickOverwatchCell(f.warden, f.squad, f.sim);
 
         assertNotNull(position);
         assertEquals(0L, position.screenId());
@@ -416,25 +416,25 @@ class SiroccoScreenedOverwatchTest {
         Fixture f = fixture(10, 30);
         long infantry = spawnInfantry(f.sim, Faction.DEFENDER, 44, 30);
 
-        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+        OverwatchKillZone.INSTANCE.execute(f.warden, f.squad, f.sim);
         assertEquals(infantry, f.loadout.overwatchScreenId);
 
         f.sim.world().setCellPos(infantry, 8, 55);
-        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+        OverwatchKillZone.INSTANCE.execute(f.warden, f.squad, f.sim);
 
         assertEquals(0L, f.loadout.overwatchScreenId,
-                "the Sirocco must stop treating a departed ally as its screen");
+                "the Warden must stop treating a departed ally as its screen");
     }
 
     @Test
     void mediumBandAllowsAHeavyCannonShotOfOpportunity() {
         Fixture f = fixture(45, 30);
         spawnInfantry(f.sim, Faction.DEFENDER, 55, 30);
-        f.sim.world().setTargetId(f.sirocco, f.enemy);
+        f.sim.world().setTargetId(f.warden, f.enemy);
         f.loadout.torsoAimTargetId = f.enemy;
         f.loadout.torsoOnTarget = true;
 
-        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+        OverwatchKillZone.INSTANCE.execute(f.warden, f.squad, f.sim);
 
         assertTrue(f.loadout.mount(MechMountSlot.ARMS).cycleRemaining > 0f,
                 "the 25-cell contact should receive the installed heavy-cannon shot");
@@ -453,7 +453,7 @@ class SiroccoScreenedOverwatchTest {
         f.loadout.overwatchLongRangeBand = true;
         emptyLrmRacks(f.loadout);
 
-        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+        OverwatchKillZone.INSTANCE.execute(f.warden, f.squad, f.sim);
 
         assertFalse(f.loadout.overwatchLongRangeBand,
                 "spent LRMs must invalidate the cached long-range posture");
@@ -473,10 +473,10 @@ class SiroccoScreenedOverwatchTest {
         f.loadout.overwatchRearming = true;
         f.loadout.mount(MechMountSlot.LEFT_SHOULDER).ammo = 1;
 
-        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+        OverwatchKillZone.INSTANCE.execute(f.warden, f.squad, f.sim);
 
         assertFalse(f.loadout.overwatchLongRangeBand,
-                "one restored trigger must not make the Sirocco oscillate outward");
+                "one restored trigger must not make the Warden oscillate outward");
         assertEquals(1, f.loadout.mount(MechMountSlot.LEFT_SHOULDER).ammo,
                 "fallback posture withholds LRMs while the racks rebuild");
         assertInHeavyCannonFallbackBand(f.loadout.overwatchCellX,
@@ -487,13 +487,13 @@ class SiroccoScreenedOverwatchTest {
     void exhaustedRearmCycleSurvivesADoctrineRoundTrip() {
         Fixture f = fixture(45, 30);
         emptyLrmRacks(f.loadout);
-        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+        OverwatchKillZone.INSTANCE.execute(f.warden, f.squad, f.sim);
         assertTrue(f.loadout.overwatchRearming);
 
         f.loadout.applyBattleOverride(MechRole.BALANCED);
         f.loadout.mount(MechMountSlot.LEFT_SHOULDER).ammo = 1;
         f.loadout.applyBattleOverride(MechRole.LR_SUPPORT);
-        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+        OverwatchKillZone.INSTANCE.execute(f.warden, f.squad, f.sim);
 
         assertTrue(f.loadout.overwatchRearming,
                 "role toggles must not erase an unfinished all-racks rearm cycle");
@@ -514,7 +514,7 @@ class SiroccoScreenedOverwatchTest {
         f.loadout.overwatchRearming = true;
         fillLrmRacks(f.loadout);
 
-        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+        OverwatchKillZone.INSTANCE.execute(f.warden, f.squad, f.sim);
 
         assertTrue(f.loadout.overwatchLongRangeBand,
                 "full LRM racks should restore normal overwatch doctrine");
@@ -534,7 +534,7 @@ class SiroccoScreenedOverwatchTest {
         f.loadout.overwatchAxisY = THREAT_Y;
         f.loadout.overwatchLongRangeBand = true;
 
-        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+        OverwatchKillZone.INSTANCE.execute(f.warden, f.squad, f.sim);
 
         assertTrue(f.loadout.overwatchLongRangeBand,
                 "the last in-progress salvo should finish before the mech closes");
@@ -542,27 +542,27 @@ class SiroccoScreenedOverwatchTest {
         assertEquals(30, f.loadout.overwatchCellY);
     }
 
-    private static Fixture fixture(int siroccoX, int siroccoY) {
+    private static Fixture fixture(int wardenX, int wardenY) {
         BattleSimulation sim = openSimulation();
         int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.HEAVY_MECH);
-        long sirocco = sim.spawn(MechVariant.SIROCCO.applyTo(new EntitySpec(
-                "sirocco", Faction.DEFENDER, UnitType.HEAVY_MECH,
-                siroccoX, siroccoY).squad(squadId)));
-        MechLoadoutComponent loadout = MechVariant.SIROCCO.createLoadout(MechRole.LR_SUPPORT);
-        sim.world().attachMechLoadout(sirocco, loadout);
+        long warden = sim.spawn(MechVariant.WARDEN.applyTo(new EntitySpec(
+                "warden", Faction.DEFENDER, UnitType.HEAVY_MECH,
+                wardenX, wardenY).squad(squadId)));
+        MechLoadoutComponent loadout = MechVariant.WARDEN.createLoadout(MechRole.LR_SUPPORT);
+        sim.world().attachMechLoadout(warden, loadout);
         Squad squad = sim.getSquad(squadId);
-        squad.leaderId = sirocco;
+        squad.leaderId = warden;
         squad.aliveMembers = 1;
         squad.originalSize = 1;
-        squad.centroidX = siroccoX + 0.5f;
-        squad.centroidY = siroccoY + 0.5f;
+        squad.centroidX = wardenX + 0.5f;
+        squad.centroidY = wardenY + 0.5f;
         squad.lastSeenEnemyX = THREAT_X;
         squad.lastSeenEnemyY = THREAT_Y;
         long enemy = sim.spawn(new EntitySpec(
                 "enemy", Faction.MARINE, UnitType.MARINE, THREAT_X, THREAT_Y));
         SquadBeliefTestAccess.observeDirect(squad, enemy,
                 THREAT_X, THREAT_Y, sim.getSimTickIndex());
-        return new Fixture(sim, squad, sirocco, loadout, enemy);
+        return new Fixture(sim, squad, warden, loadout, enemy);
     }
 
     private static long spawnInfantry(BattleSimulation sim, Faction faction,
@@ -676,6 +676,6 @@ class SiroccoScreenedOverwatchTest {
                 "fallback perch must let the unlimited heavy cannon fire");
     }
 
-    private record Fixture(BattleSimulation sim, Squad squad, long sirocco,
+    private record Fixture(BattleSimulation sim, Squad squad, long warden,
                            MechLoadoutComponent loadout, long enemy) {}
 }

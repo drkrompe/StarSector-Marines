@@ -182,7 +182,7 @@ class LayeredMechComposerTest {
     @Test
     void missileFlashPreservesWeaponFamilyLayerTreatment() {
         LayeredMechAssets assets = MechLabDollCanvas.headlessAssets();
-        MechVariant variant = MechVariant.SIROCCO;
+        MechVariant variant = MechVariant.WARDEN;
         List<Layer> layers = emitFlashingMech(assets, variant,
                 LayeredMechAppearance.FLAG_LRM_FLASH);
 
@@ -238,7 +238,7 @@ class LayeredMechComposerTest {
         assertEquals(1, demolition.stream().filter(layer ->
                 fileName(layer.path()).equals("pather-demolition-cannon.png")).count());
 
-        List<Layer> thermal = emitFlashingMech(assets, MechVariant.SIROCCO,
+        List<Layer> thermal = emitFlashingMech(assets, MechVariant.WARDEN,
                 LayeredMechAppearance.FLAG_LASER_FLASH,
                 LayeredMechAppearance.POD_THERMAL_LANCE);
         assertEquals(1, thermal.stream().filter(layer ->

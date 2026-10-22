@@ -54,7 +54,7 @@ class TailMechSupportTest {
         census.observe(1, "DEFENDER", "hound", "ASSAULT", false, true);
         census.observe(2, "MARINE", "hound", "ASSAULT", true, true);
         census.observe(3, "MARINE", "hound", "ASSAULT", false, true);
-        census.observe(4, "MARINE", "sirocco", "LR_SUPPORT", true, true);
+        census.observe(4, "MARINE", "warden", "LR_SUPPORT", true, true);
         census.endTick();
         census.beginTick();
         census.observe(2, "MARINE", "hound", "BALANCED", true, true);

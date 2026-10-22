@@ -40,7 +40,7 @@ class ManualMechDriveTest {
     @Test
     void relativeChassisMassControlsAccelerationBrakingAndReversal() {
         float previous = Float.POSITIVE_INFINITY;
-        for (MechVariant variant : new MechVariant[]{MechVariant.HOUND, MechVariant.SIROCCO, MechVariant.BULWARK}) {
+        for (MechVariant variant : new MechVariant[]{MechVariant.HOUND, MechVariant.WARDEN, MechVariant.BULWARK}) {
             ManualMechDrive drive = new ManualMechDrive();
             drive.advance(1f, 0f, 1f, variant.relativeMass, .1f);
             assertTrue(drive.velocityX() < previous);
