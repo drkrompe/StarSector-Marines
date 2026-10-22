@@ -44,6 +44,11 @@ It gives two tasks:
   stations where it set the squad down, as fire support. If the squad never
   arrives, the hull gives up waiting and stations.
 
+An allied **mech** is stationed the same way: its squad attack-moves to ground
+the mech can stand on at the post, the post pulled back toward the mech a step
+at a time where it cannot (woods, a wall). A mech is a squad member, so this is
+a squad order, not a hull's; its doctrine fights it once there.
+
 Squads the allied command orders are under `GARRISON` authority, as every
 allied garrison's are.
 

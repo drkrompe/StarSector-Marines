@@ -2,8 +2,10 @@ package com.dillon.starsectormarines.battle.command.allied;
 
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
@@ -68,8 +70,14 @@ public final class AlliedCommand {
         int boardingSince;
     }
 
+    /** A mech's post, and the standable point it was sent to. */
+    private static final class MechPost {
+        int postX, postY;
+    }
+
     private final String issuer;
     private final Map<Long, Task> tasks = new LinkedHashMap<>();
+    private final Map<Long, MechPost> mechs = new LinkedHashMap<>();
 
     /** @param issuer who gives the orders, as the command log names it */
     public AlliedCommand(String issuer) {
@@ -127,6 +135,51 @@ public final class AlliedCommand {
                 CommandAuthority.GARRISON, issuer, "board the carrier");
     }
 
+    /**
+     * Sends an allied mech to a place to fight from, as {@link #station} does a hull: its squad
+     * attack-moves to standable ground at the post, the post pulled back toward the mech a step at a
+     * time when the mech cannot stand there (woods, a wall). The same post again is not a new order.
+     */
+    public void stationMech(BattleSimulation sim, long mech, int x, int y) {
+        MechPost held = mechs.get(mech);
+        if (held != null && Math.abs(held.postX - x) < RESTATION && Math.abs(held.postY - y) < RESTATION) return;
+        Squad squad = sim.squadOf(mech);
+        if (squad == null) return;
+        MechPost post = new MechPost();
+        post.postX = x;
+        post.postY = y;
+        mechs.put(mech, post);
+        MechSpawnPlacement.Point stand = standable(sim, mech, x, y);
+        if (stand == null) return;
+        sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad.id, stand.cellX(), stand.cellY()),
+                CommandAuthority.GARRISON, issuer, "allied mech to its post");
+    }
+
+    /** Live mechs under this command, in the order they were first stationed. */
+    public List<Long> mechs() {
+        return new ArrayList<>(mechs.keySet());
+    }
+
+    /** Standable ground at the post, or pulled back toward the mech until there is some. */
+    private static MechSpawnPlacement.Point standable(BattleSimulation sim, long mech, int x, int y) {
+        float radius = sim.physicalRadius(mech);
+        float fromX = sim.world().cellX(mech) + 0.5f, fromY = sim.world().cellY(mech) + 0.5f;
+        float gx = x + 0.5f, gy = y + 0.5f;
+        for (int step = 0; step <= PULLBACK_LIMIT; step++) {
+            MechSpawnPlacement.Point point = MechSpawnPlacement.nearCell(sim.getGrid(), radius,
+                    (int) Math.floor(gx), (int) Math.floor(gy), ANYWHERE, ANYWHERE);
+            if (point != null) return point;
+            float dx = fromX - gx, dy = fromY - gy;
+            float length = (float) Math.sqrt(dx * dx + dy * dy);
+            if (length <= PULLBACK_STEP) return null;
+            gx += dx / length * PULLBACK_STEP;
+            gy += dy / length * PULLBACK_STEP;
+        }
+        return null;
+    }
+
+    private static final MechSpawnPlacement.Domain ANYWHERE = (px, py) -> true;
+
     /** Live hulls under this command, in the order they were enlisted. */
     public List<Long> hulls() {
         return new ArrayList<>(tasks.keySet());
@@ -145,6 +198,7 @@ public final class AlliedCommand {
 
     /** One tick: boards, drives, unloads and keeps stationed hulls at their posts. */
     public void advance(BattleSimulation sim) {
+        mechs.keySet().removeIf(mech -> sim.resolveUnit(mech) == 0L || !sim.world().isAlive(mech));
         ConvoyService convoy = sim.convoy();
         VehicleTransportService transport = sim.transport();
         for (Map.Entry<Long, Task> entry : new ArrayList<>(tasks.entrySet())) {
