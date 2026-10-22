@@ -34,7 +34,8 @@ public final class FireRenderSystem {
     private static final float DETAIL_CELL_PX = 10f;
 
     /**
-     * The flame look: {@code -Dbattle.render.fireLook=<look>} names a sheet {@code graphics/fx/fire_topdown_<look>.png};
+     * The flame look: {@code -Dbattle.render.fireLook=<look>} names a sheet {@code graphics/fx/fire_topdown_<look>.png}
+     * (only {@code a-flame-bed}, the owner's pick, ships; the other looks' sources stay in {@code art-source/fx/fire-topdown});
      * {@code legacy} draws the old side-view flames off the smoke-and-fire sheet.
      */
     static final String FIRE_LOOK = System.getProperty("battle.render.fireLook", "a-flame-bed");
