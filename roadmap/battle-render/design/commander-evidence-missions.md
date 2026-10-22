@@ -48,6 +48,18 @@ once she is open, and every commit and recall is its beat. Who collapsed what is
 a reading; read it against `-Dbattle.colonyBreach.strikes=false` on the same
 fixture. `-Pfixture` plays one fixture alone.
 
+## The heart (`heart`)
+
+Both variants of the heart (`heart-nouns.md`) at seed 202, four boats of six:
+`heart-front-v1` (Broad Front, 560x336) and `heart-burn-v1` (The Burn, 400x240),
+side by side, 27,000 ticks by default. Each folder holds the trace
+(`heart.jsonl`), `summary.json` and `summary.md`: the end and winner, whether
+the heart woke, mothers and satellites collapsed, marines and swarm left, and per
+bore its cell, tier, integrity, surges, bodies, Matriarch and collapse tick, then
+the beats. Asserted: every beat is the heart's, no mother surged while the heart
+slept, Broad Front's first satellite collapse woke the heart on its tick, and
+the heart was down exactly when every mother had collapsed. Who won is a reading.
+
 ## Relief
 
 Relief's default matrix is three verdant-surface production maps, each played

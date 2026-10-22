@@ -46,7 +46,7 @@ public class MarineRoster implements Serializable {
     /** Derived lookup only; campaign saves continue to persist the ordered soldier list. */
     private transient Map<String, MarineSoldier> soldierIndex;
     /** Withheld templates to use instead of the running campaign's; null reads the campaign. */
-    private transient Set<String> withheldTemplatesOverride;
+    private transient Set<String> withheldCardsOverride;
     private List<MarineSquad> squads = new ArrayList<>();
     private List<CaptainCandidate> captainCandidates = new ArrayList<>();
     private MarineArmory armory = new MarineArmory();
@@ -1067,43 +1067,39 @@ public class MarineRoster implements Serializable {
             return new SquadEquipmentPreview(SquadEquipmentResult.STATIONED, billets);
         }
 
-        boolean ownsTemplates = true;
-        for (SquadEquipmentBillet billet : billets) {
-            ownsTemplates &= armory.ownsPrimaryTemplate(billet.primaryId(), billet.grade())
-                    && armory.ownsArmorTemplate(billet.armorId())
-                    && (billet.specialEquipmentId() == null
-                    || armory.ownsSpecialTemplate(billet.specialEquipmentId()));
+        // Access is the card: a squad is given a card the company holds, whole.
+        boolean known = armory.knowsWeaponCard(weapons.id()) && armory.knowsArmorPlan(armor.id());
+        if (known && primaryGrades != null) {
+            for (SquadEquipmentBillet billet : billets) {
+                known &= armory.ownsPrimaryTemplate(billet.primaryId(), billet.grade());
+            }
         }
-        if (!ownsTemplates) {
-            return new SquadEquipmentPreview(SquadEquipmentResult.MISSING_TEMPLATE, billets);
+        if (!known) {
+            return new SquadEquipmentPreview(SquadEquipmentResult.UNKNOWN_CARD, billets);
         }
-        return new SquadEquipmentPreview(withholdsNewFitting(squad, billets)
+        return new SquadEquipmentPreview(withholdsNewCard(squad, weapons.id(), armor.id())
                 ? SquadEquipmentResult.WARRANT_SUSPENDED : SquadEquipmentResult.APPLIED, billets);
     }
 
     /**
      * Whether a suspended or revoked military warrant forbids this issue
-     * ({@code progression-nouns.md}, Kit and armory): some occupant would be newly fitted with a
-     * suit the warrant withholds. A marine already wearing it keeps it, and a suit no warrant
-     * names (grandfathered) is never withheld.
+     * ({@code progression-nouns.md}, Kit and armory): the squad would be newly given a card the
+     * warrant withholds. A squad already holding that card keeps it, and its replacements are
+     * dressed from it as ever; a card no warrant names is never withheld.
      */
-    private boolean withholdsNewFitting(MarineSquad squad, List<SquadEquipmentBillet> billets) {
-        Set<String> withheld = withheldTemplatesOverride != null
-                ? withheldTemplatesOverride : MilitaryWarrants.liveWithheldTemplateIds();
+    private boolean withholdsNewCard(MarineSquad squad, String weaponDoctrineId, String armorDoctrineId) {
+        Set<String> withheld = withheldCardsOverride != null
+                ? withheldCardsOverride : MilitaryWarrants.liveWithheldCardIds();
         if (withheld.isEmpty()) return false;
-        List<String> memberIds = manningMemberIds(squad);
-        for (int index = 0; index < memberIds.size() && index < billets.size(); index++) {
-            String armorId = billets.get(index).armorId();
-            if (armorId == null || !withheld.contains(EquipmentTemplateCatalog.armorId(armorId))) continue;
-            MarineSoldier soldier = soldierById(memberIds.get(index));
-            if (soldier == null || !armorId.equals(soldier.armorId())) return true;
-        }
-        return false;
+        return (!weaponDoctrineId.equals(squad.weaponDoctrineId())
+                && withheld.contains(new LoadoutCard(LoadoutCard.Kind.WEAPON, weaponDoctrineId).id()))
+                || (!armorDoctrineId.equals(squad.armorDoctrineId())
+                && withheld.contains(new LoadoutCard(LoadoutCard.Kind.SHEET, armorDoctrineId).id()));
     }
 
-    /** Replaces the campaign's withheld warrant templates, for a roster outside a running campaign. */
-    public void setWithheldTemplates(Set<String> templateIds) {
-        withheldTemplatesOverride = templateIds != null ? Set.copyOf(templateIds) : null;
+    /** Replaces the campaign's withheld warrant cards, for a roster outside a running campaign. */
+    public void setWithheldCards(Set<String> cardIds) {
+        withheldCardsOverride = cardIds != null ? Set.copyOf(cardIds) : null;
     }
 
     /** Fits known equipment without a material charge. */
@@ -1504,7 +1500,7 @@ public class MarineRoster implements Serializable {
                 armory.acquireArmorPlan(squad.armorDoctrineId());
             }
         }
-        if (firstRefit != null) firstRefit.repairArmorPlanKnowledge(armory);
+        if (firstRefit != null) firstRefit.repairCardKnowledge(armory);
         for (MarineSoldier soldier : soldiers) {
             if (squadForSoldier(soldier.id()) == null) assignToSquad(soldier);
         }

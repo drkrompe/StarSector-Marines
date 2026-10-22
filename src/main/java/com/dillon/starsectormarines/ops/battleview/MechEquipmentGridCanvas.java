@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasProducer;
 
@@ -18,17 +19,20 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
     private final Supplier<SocketDef> socket;
     private final Supplier<MechWeaponComponent> weapon;
     private final Supplier<MissileReplenisherComponent> replenisher;
+    private final Supplier<MechInternal> internal;
     private final BooleanSupplier occupied;
     private final Supplier<LayeredMechAssets> assets;
 
     public MechEquipmentGridCanvas(Supplier<SocketDef> socket,
                                    Supplier<MechWeaponComponent> weapon,
                                    Supplier<MissileReplenisherComponent> replenisher,
+                                   Supplier<MechInternal> internal,
                                    BooleanSupplier occupied,
                                    Supplier<LayeredMechAssets> assets) {
         this.socket = socket;
         this.weapon = weapon;
         this.replenisher = replenisher;
+        this.internal = internal;
         this.occupied = occupied;
         this.assets = assets;
         HardwareArt.preload();
@@ -36,9 +40,10 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
 
     public static MechEquipmentGridCanvas catalog(MechWeaponComponent weapon,
                                                    MissileReplenisherComponent replenisher,
+                                                   MechInternal internal,
                                                    Supplier<LayeredMechAssets> assets) {
         return new MechEquipmentGridCanvas(() -> null, () -> weapon, () -> replenisher,
-                () -> true, assets);
+                () -> internal, () -> true, assets);
     }
 
     @Override
@@ -52,20 +57,33 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
         SocketDef definition = socket.get();
         MechWeaponComponent component = weapon.get();
         MissileReplenisherComponent subsystem = replenisher.get();
+        MechInternal part = component == null ? internal.get() : null;
 
         int gridColumns = definition != null ? definition.gridColumns()
-                : component != null ? component.footprintColumns : 1;
+                : component != null ? component.footprintColumns
+                : part != null ? part.footprintColumns : 2;
         int gridRows = definition != null ? definition.gridRows()
-                : component != null ? component.footprintRows : 1;
+                : component != null ? component.footprintRows
+                : part != null ? part.footprintRows : 1;
         HardpointBricks.Layout layout = HardpointBricks.fit(inset, inset,
                 width - inset * 2f, height - inset * 2f, gridColumns, gridRows, gap);
 
         // A fitted weapon fills its socket; an internal or replenisher fills the socket it sits in.
-        boolean filled = component != null || subsystem != null || occupied.getAsBoolean();
         Color tone = component != null ? HardpointBricks.tone(component.hardpointType)
+                : part != null ? HardpointBricks.tone(part.role)
                 : definition != null ? HardpointBricks.tone(definition.type())
-                : HardpointBricks.INTERNAL;
+                : HardpointBricks.UTILITY;
         if (definition != null) HardpointBricks.drawEmpty(context, layout, tone);
+        if (part != null) {
+            // An internal fills its own footprint, which may be smaller than the socket.
+            int columns = Math.min(layout.columns(), part.footprintColumns);
+            int rows = Math.min(layout.rows(), part.footprintRows);
+            HardpointBricks.drawFilled(context, layout, 0, 0, columns, rows, tone);
+            HardwareArt.draw(context, part, layout.left(), layout.top(),
+                    layout.span(columns, layout.brickWidth()), layout.span(rows, layout.brickHeight()), 255);
+            return;
+        }
+        boolean filled = component != null || subsystem != null || occupied.getAsBoolean();
         if (filled) {
             HardpointBricks.drawFilled(context, layout, 0, 0, layout.columns(), layout.rows(), tone);
         }
@@ -110,8 +128,7 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
             }
         }
         if (subsystem != null) {
-            MechReplenisherArt.draw(context, subsystem, layout.centerX(), layout.centerY(),
-                    Math.min(areaWidth, areaHeight) * .84f);
+            HardwareArt.draw(context, subsystem, layout.left(), layout.top(), areaWidth, areaHeight, 255);
         }
     }
 

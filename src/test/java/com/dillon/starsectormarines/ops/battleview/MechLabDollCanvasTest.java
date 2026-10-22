@@ -129,7 +129,7 @@ class MechLabDollCanvasTest {
     @Test
     void ammoReserveShowsExactTwoCells() {
         MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.HOUND);
-        SocketDef ammo = layout.socket(SocketId.AMMO_RESERVE);
+        SocketDef ammo = layout.socket(SocketId.CAPACITORS);
         MechLabDollCanvas.SocketDropTarget target =
                 MechLabDollCanvas.socketDropTarget(layout.doll(), ammo,
                         400f, 300f, 160f, 160f);

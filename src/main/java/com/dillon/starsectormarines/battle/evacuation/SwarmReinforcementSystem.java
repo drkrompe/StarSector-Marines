@@ -262,10 +262,14 @@ public final class SwarmReinforcementSystem {
         return boreSourcing;
     }
 
-    /** The population target the living bores hold the field at: their capacities summed. */
+    /**
+     * The population target the living bores hold the field at: their
+     * capacities summed. A sleeping bore holds none of the field: the bodies it
+     * would send are not on it yet, and the bores awake do not field them for it.
+     */
     public static int borePopulationTarget(List<SwarmBore> bores) {
         int target = 0;
-        for (SwarmBore bore : bores) if (!bore.collapsed()) target += bore.tier().capacity;
+        for (SwarmBore bore : bores) if (!bore.collapsed() && !bore.dormant()) target += bore.tier().capacity;
         return target;
     }
 

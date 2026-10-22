@@ -48,6 +48,7 @@ import com.dillon.starsectormarines.campaign.systems.PolityRaidLookup;
 import com.dillon.starsectormarines.campaign.systems.RaidEnder;
 import com.dillon.starsectormarines.campaign.systems.VanillaPolityRaidLookup;
 import com.dillon.starsectormarines.campaign.systems.VanillaRaidEnder;
+import com.dillon.starsectormarines.marine.LoadoutCardInventory;
 import com.dillon.starsectormarines.marine.BoatDeck;
 import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.CasualtyFate;
@@ -57,7 +58,6 @@ import com.dillon.starsectormarines.marine.OfficerCommandProfile;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
-import com.dillon.starsectormarines.marine.EquipmentTemplateCardInventory;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
 import com.dillon.starsectormarines.marine.Trait;
@@ -713,10 +713,9 @@ public final class MissionResolver {
                 outcome.soldierTelemetry, outcome.victory);
         applyRecoverySpecialties(roster, outcome, day, wiaDays);
         if (outcome.victory) {
-            Set<String> acquiredOrCarried =
-                    EquipmentTemplateCardInventory.playerUnavailableTemplateIds();
+            Set<String> carriedCards = LoadoutCardInventory.playerUnavailableCardIds();
             roster.armory().recordVictory(outcome.risk == RiskLevel.HIGH,
-                    acquiredOrCarried != null ? acquiredOrCarried : Set.of());
+                    carriedCards != null ? carriedCards : Set.of());
         }
         return roster;
     }

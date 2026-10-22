@@ -22,7 +22,8 @@ import java.util.List;
  * The colony's farmland and its roads, as generated: Colony Breach's map at
  * tick zero on the canonical seed and two others, whole map, the country band,
  * and play-zoom views of the fields, of the town's edge where a road leaves it,
- * and of a stretch of country away from the landing (`precincts.md`, open-field
+ * of a stretch of country away from the landing, and of the town's lots where
+ * they meet grass (`precincts.md`, open-field
  * landing; `mapgen-nouns.md`, rural ground). Look evidence, 1920x1080.
  *
  * <p>{@code -Dsnapshot.ruralMapgen.seeds=7117,3,11} picks the seeds.
@@ -69,6 +70,12 @@ public final class RuralMapgenSnapshotSuite implements SnapshotSuite {
                     near.refocus(farm[0] + 0.5f, farm[1] + 0.5f, PLAY_ZOOM_CELLS);
                     out.add(new SnapshotArtifact(tag + "06-play-zoom-farmstead.png",
                             near.render(sim, "seed " + seed + ", a farmstead on its track, play zoom")));
+                }
+                int[] lots = lots(sim.getTopology());
+                if (lots != null) {
+                    near.refocus(lots[0] + 0.5f, lots[1] + 0.5f, PLAY_ZOOM_CELLS);
+                    out.add(new SnapshotArtifact(tag + "08-play-zoom-lots.png",
+                            near.render(sim, "seed " + seed + ", the town's yards and lots where they meet grass, play zoom")));
                 }
                 // Each holdout's works, framed on its claimed ground with room round it.
                 for (CivilianRedoubt redoubt : sim.getCivilianRedoubts()) {
@@ -132,6 +139,41 @@ public final class RuralMapgenSnapshotSuite implements SnapshotSuite {
             int x = fieldX < width / 2 ? Math.min(width - 40, fieldX + 110) : Math.max(40, fieldX - 110);
             return new int[]{x, (int) bandMidY()};
         }
+    }
+
+    /**
+     * The middle of the play-zoom view holding the most boundary between a
+     * lot's trodden earth and the ground beside it, or {@code null} when the
+     * map has no lots.
+     */
+    private static int[] lots(CellTopology topology) {
+        int w = topology.getWidth(), h = topology.getHeight();
+        int[][] sum = new int[h + 1][w + 1];
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                int edge = 0;
+                if (trodden(topology, x, y)) {
+                    for (int[] d : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                        int nx = x + d[0], ny = y + d[1];
+                        if (topology.inBounds(nx, ny) && !topology.isWall(nx, ny) && !trodden(topology, nx, ny)) edge = 1;
+                    }
+                }
+                sum[y + 1][x + 1] = edge + sum[y][x + 1] + sum[y + 1][x] - sum[y][x];
+            }
+        }
+        int vw = (int) PLAY_ZOOM_CELLS, vh = vw * FRAME_H / FRAME_W, best = 0;
+        int[] at = null;
+        for (int y = 0; y + vh <= h; y += 2) {
+            for (int x = 0; x + vw <= w; x += 2) {
+                int count = sum[y + vh][x + vw] - sum[y][x + vw] - sum[y + vh][x] + sum[y][x];
+                if (count > best) { best = count; at = new int[]{x + vw / 2, y + vh / 2}; }
+            }
+        }
+        return at;
+    }
+
+    private static boolean trodden(CellTopology topology, int x, int y) {
+        return "pavement.dirt.worn".equals(topology.getSurfaceId(x, y));
     }
 
     private static BattleSimulation colony(long seed) throws Exception {

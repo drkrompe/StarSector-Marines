@@ -9,11 +9,21 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/** Persisted equipment-template ownership and reusable squad definitions. */
+/**
+ * The company's collection of loadout cards, the equipment beneath them, and the
+ * squad definitions they name.
+ *
+ * <p><b>A card is the unit of access.</b> {@link #knownLoadoutCardIds} is the
+ * authority for which weapon cards and tactic sheets a squad may be given; the
+ * equipment templates a card names are recorded beside it as the permanent
+ * capability beneath, never as a separate way in. Owning every suit a sheet names
+ * does not teach the sheet.
+ */
 public final class MarineArmory implements Serializable {
 
     /** Saved squad profiles from before squads held their cards directly; emptied on load. */
@@ -24,8 +34,12 @@ public final class MarineArmory implements Serializable {
     private Set<String> unlockedRecipes = new HashSet<>();
     /** Permanent collectible equipment templates used by all live issue paths. */
     private Set<String> ownedEquipmentTemplateIds = new HashSet<>();
-    /** Learned tactic sheets are independent of the kit currently filling them. */
+    /** Sheet knowledge from before the card ledger; read once by load migration. */
     private Set<String> knownArmorPlanIds = new HashSet<>();
+    /** Every loadout card this company holds, by {@link LoadoutCard#id()}; null in a save from before it. */
+    private Set<String> knownLoadoutCardIds = new LinkedHashSet<>();
+    /** Victory milestones already paid, by {@link VictoryMilestones.Milestone#id()}: each pays once. */
+    private Set<String> paidVictoryMilestoneIds = new LinkedHashSet<>();
     /** Reusable fire-team designs; the legacy field name is retained for save compatibility. */
     private List<FireTeamTemplateCard> templateCards = new ArrayList<>();
     /** Saved three-template compositions; applying one is still an inventory transaction. */
@@ -74,36 +88,81 @@ public final class MarineArmory implements Serializable {
         if (!EquipmentTemplateCatalog.contains(id)) {
             throw new IllegalArgumentException("Unknown equipment template id '" + id + "'");
         }
-        boolean acquired = ownedEquipmentTemplateIds.add(id);
-        repairArmorPlanKnowledge();
-        return acquired;
+        return ownedEquipmentTemplateIds.add(id);
     }
+
+    public Set<String> knownLoadoutCardIds() {
+        return Collections.unmodifiableSet(knownLoadoutCardIds);
+    }
+
+    public boolean knowsLoadoutCard(String cardId) {
+        return cardId != null && knownLoadoutCardIds.contains(cardId);
+    }
+
+    /**
+     * Adds one whole card to the collection, together with the equipment it names.
+     * Returns whether the card was new.
+     */
+    public boolean learnLoadoutCard(LoadoutCard card) {
+        if (card == null || !card.defined()) {
+            throw new IllegalArgumentException("Unknown loadout card " + card);
+        }
+        for (String templateId : card.templateIds()) ownedEquipmentTemplateIds.add(templateId);
+        return knownLoadoutCardIds.add(card.id());
+    }
+
+    /**
+     * Whether a squad may be given this weapon card. A built-in or Wayline card is
+     * known only once collected; a card registered outside them under a fixed id (a
+     * debug operation's, or one an old save's designer made) is known by being here.
+     */
+    public boolean knowsWeaponCard(String doctrineId) {
+        if (doctrineId == null) return false;
+        LoadoutCard card = new LoadoutCard(LoadoutCard.Kind.WEAPON, doctrineId);
+        if (card.defined()) return knowsLoadoutCard(card.id());
+        return weaponDoctrineById(doctrineId) != null;
+    }
+
+    /** Whether this tactic sheet's card is in the collection. */
     public boolean knowsArmorPlan(String id) {
-        return id != null && knownArmorPlanIds.contains(id);
+        return id != null && knowsLoadoutCard(new LoadoutCard(LoadoutCard.Kind.SHEET, id).id());
     }
+
+    /** Learns one tactic sheet's card. */
     public boolean acquireArmorPlan(String id) {
         if (SquadEquipmentDoctrines.armorPlanById(id) == null) {
             throw new IllegalArgumentException("Unknown armor plan id '" + id + "'");
         }
-        return knownArmorPlanIds.add(id);
+        return learnLoadoutCard(new LoadoutCard(LoadoutCard.Kind.SHEET, id));
     }
 
-    /** Every equipment acquisition channel teaches the same associated tactic sheets. */
-    void repairArmorPlanKnowledge() {
-        acquireArmorPlan(SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
-        for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
-            List<String> patterns = ArmorSheetBundles.patternsFor(plan.id());
-            if (patterns.isEmpty()) continue;
-            boolean known = true;
-            for (String pattern : patterns) known &= ownsArmorTemplate(pattern);
-            if (known) acquireArmorPlan(plan.id());
+    /**
+     * A save from before the card ledger knew a card by owning everything it names
+     * (and a sheet by its own ledger); carry exactly that forward, once.
+     */
+    private void migrateCardKnowledge() {
+        List<LoadoutCard> candidates = new ArrayList<>();
+        for (SquadWeaponDoctrine doctrine : SquadEquipmentDoctrines.weaponDoctrines()) {
+            candidates.add(new LoadoutCard(LoadoutCard.Kind.WEAPON, doctrine.id()));
         }
         for (FirstRefit.Path path : FirstRefit.Path.values()) {
-            if (weaponDoctrineById(path.weapons) != null && FirstRefit.technologyKnown(this, path)) {
-                acquireArmorPlan(path.armor);
+            if (weaponDoctrineById(path.weapons) != null) {
+                candidates.add(new LoadoutCard(LoadoutCard.Kind.WEAPON, path.weapons));
+            }
+        }
+        for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
+            LoadoutCard sheet = new LoadoutCard(LoadoutCard.Kind.SHEET, plan.id());
+            if (knownArmorPlanIds.contains(plan.id())) knownLoadoutCardIds.add(sheet.id());
+            else candidates.add(sheet);
+        }
+        for (LoadoutCard card : candidates) {
+            List<String> templates = card.templateIds();
+            if (!templates.isEmpty() && ownedEquipmentTemplateIds.containsAll(templates)) {
+                knownLoadoutCardIds.add(card.id());
             }
         }
     }
+
     public boolean ownsPrimaryTemplate(String weaponId, EquipmentGrade grade) {
         return weaponId != null && grade != null
                 && ownsEquipmentTemplate(EquipmentTemplateCatalog.primaryId(weaponId, grade));
@@ -124,18 +183,6 @@ public final class MarineArmory implements Serializable {
     }
     public boolean ownsSpecialTemplate(SpecialEquipmentDef special) {
         return special != null && ownsSpecialTemplate(special.id());
-    }
-    public boolean canAuthorWeaponDoctrine(List<SquadWeaponIssue> issues) {
-        if (issues == null || issues.size() != MarineSquad.CAPACITY) return false;
-        for (SquadWeaponIssue issue : issues) {
-            if (issue == null || !ownsPrimaryTemplate(issue.primaryId(), issue.grade())
-                    || (issue.specialEquipmentId() != null
-                    && (issue.specialDef() == null
-                    || !ownsSpecialTemplate(issue.specialEquipmentId())))) {
-                return false;
-            }
-        }
-        return true;
     }
     public List<FireTeamTemplateCard> templateCards() {
         return Collections.unmodifiableList(templateCards);
@@ -215,7 +262,6 @@ public final class MarineArmory implements Serializable {
         SquadWeaponDoctrine existing = weaponDoctrineById(id);
         SquadWeaponDoctrine result = existing != null ? existing
                 : createWeaponDoctrine(id, displayName, issues);
-        repairArmorPlanKnowledge();
         return result;
     }
 
@@ -290,40 +336,44 @@ public final class MarineArmory implements Serializable {
         acquireEquipmentTemplate(EquipmentTemplateCatalog.armorId(armorId));
     }
 
-    /** Awards permanent template cards at stable operation milestones. */
+    /** Counts a won operation and pays any victory milestone it reaches. */
     public void recordVictory(boolean highRisk) {
         recordVictory(highRisk, Set.of());
     }
 
-    /** Cargo-held cards count toward the breadth floor without being learned implicitly. */
-    public void recordVictory(boolean highRisk, Set<String> acquiredOrCarriedTemplateIds) {
+    /** Cards held in cargo count toward the safety net's floor without being learned. */
+    public void recordVictory(boolean highRisk, Set<String> carriedCardIds) {
         victories++;
         if (highRisk) highRiskVictories++;
-        repairFixedVictoryMilestones();
-        repairCollectionProgression(acquiredOrCarriedTemplateIds);
+        payVictoryMilestones();
+        repairCollectionProgression(carriedCardIds);
     }
 
-    private void repairFixedVictoryMilestones() {
-        if (victories >= 2) unlockPrimary(WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.MILSPEC);
-        if (victories >= 2) unlockSecondary(SpecialEquipmentRegistry.FRAG_GRENADE_ID);
-        if (victories >= 3) unlockPrimary(WeaponRegistry.SMG_ID, EquipmentGrade.MILSPEC);
-        if (victories >= 4) unlockPrimary(WeaponRegistry.DMR_ID, EquipmentGrade.MILSPEC);
-        if (victories >= 4) unlockPrimary(WeaponRegistry.SQUAD_AUTOMATIC_ID, EquipmentGrade.MILSPEC);
-        // The first aspirational chase item: proven operations plus one dangerous field test.
-        if (victories >= 5 && highRiskVictories >= 1) {
-            unlockPrimary(WeaponRegistry.DMR_ID, EquipmentGrade.MASTERWORK);
+    public Set<String> paidVictoryMilestoneIds() {
+        return Collections.unmodifiableSet(paidVictoryMilestoneIds);
+    }
+
+    /** Each milestone the company has reached and not yet been paid grants its card, once. */
+    private void payVictoryMilestones() {
+        for (VictoryMilestones.Milestone milestone : VictoryMilestones.ladder()) {
+            if (victories < milestone.victories() || highRiskVictories < milestone.highRiskVictories()
+                    || paidVictoryMilestoneIds.contains(milestone.id())) continue;
+            learnLoadoutCard(milestone.card());
+            paidVictoryMilestoneIds.add(milestone.id());
         }
     }
 
     /** Idempotent save-load and mission-resolution bridge for the collection safety net. */
-    public void repairCollectionProgression(Set<String> acquiredOrCarriedTemplateIds) {
-        EquipmentCollectionCurve.repair(this, victories, acquiredOrCarriedTemplateIds);
+    public void repairCollectionProgression(Set<String> carriedCardIds) {
+        EquipmentCollectionCurve.repair(this, victories, carriedCardIds);
     }
 
     private void seedStarterIssue() {
         unlockPrimary(WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SURPLUS);
         unlockArmor(MarineArmorPattern.ARMORLESS);
         unlockArmor("armor.cordon-shell");
+        learnLoadoutCard(new LoadoutCard(LoadoutCard.Kind.WEAPON, SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS));
+        learnLoadoutCard(new LoadoutCard(LoadoutCard.Kind.SHEET, SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR));
     }
 
     private void seedStarterCards() {
@@ -375,6 +425,9 @@ public final class MarineArmory implements Serializable {
 
     private Object readResolve() {
         if (knownArmorPlanIds == null) knownArmorPlanIds = new HashSet<>();
+        boolean cardLedgerMissing = knownLoadoutCardIds == null;
+        if (cardLedgerMissing) knownLoadoutCardIds = new LinkedHashSet<>();
+        if (paidVictoryMilestoneIds == null) paidVictoryMilestoneIds = new LinkedHashSet<>();
         if (squadProfiles == null) squadProfiles = new ArrayList<>();
         if (unlockedRecipes == null) unlockedRecipes = new HashSet<>();
         if (ownedEquipmentTemplateIds == null) ownedEquipmentTemplateIds = new HashSet<>();
@@ -393,8 +446,8 @@ public final class MarineArmory implements Serializable {
         seedStarterIssue();
         victories = Math.max(0, victories);
         highRiskVictories = Math.max(0, highRiskVictories);
-        repairFixedVictoryMilestones();
-        repairArmorPlanKnowledge();
+        if (cardLedgerMissing) migrateCardKnowledge();
+        payVictoryMilestones();
         // Profiles are saved intent owned by this armory, including legacy
         // profiles written before sheet knowledge had its own ledger.
         for (SquadProfile profile : squadProfiles) {

@@ -8,7 +8,8 @@ public enum SquadEquipmentResult {
     STATIONED,
     UNKNOWN_WEAPON_DOCTRINE,
     UNKNOWN_ARMOR_DOCTRINE,
-    MISSING_TEMPLATE,
+    /** The squad would be given a card the company has not collected. */
+    UNKNOWN_CARD,
     INSUFFICIENT_CARGO,
     /** A suspended or revoked military warrant withholds a suit some occupant is not already wearing. */
     WARRANT_SUSPENDED

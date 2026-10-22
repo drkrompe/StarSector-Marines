@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.fixture;
 
+import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.command.HivePosture;
 import com.dillon.starsectormarines.battle.squad.HullWelfare;
@@ -190,6 +191,13 @@ public final class BattleFixtureJson {
             putSprawl(root, extraction.sprawl());
             return root;
         }
+        if (fixture instanceof BloomHeartBattleFixture heart) {
+            root.put("kind", heart.kind());
+            root.put("seed", heart.seed());
+            root.put("form", heart.form().name());
+            root.put("shuttles", shuttlesToJson(heart.manifest()));
+            return root;
+        }
         throw new IllegalArgumentException("Unsupported battle fixture: " + fixture);
     }
 
@@ -263,6 +271,9 @@ public final class BattleFixtureJson {
             case AssaultBattleFixture.KIND -> decodeAssault(root);
             case RaidBattleFixture.KIND -> decodeRaid(root);
             case ExtractionBattleFixture.KIND -> decodeExtraction(root);
+            case BloomHeartBattleFixture.KIND -> new BloomHeartBattleFixture(root.getLong("seed"),
+                    enumValue(Form.class, root.getString("form"), "form"),
+                    shuttlesFromJson(root.getJSONArray("shuttles")));
             default -> throw new IllegalArgumentException(
                     "Unsupported battle fixture kind: " + kind);
         };

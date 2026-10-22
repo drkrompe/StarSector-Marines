@@ -53,7 +53,7 @@ public enum MechInternal {
     public enum Role {
         ENGINE(SocketId.CORE),
         PLATING(null),
-        CAPACITOR_BANK(SocketId.AMMO_RESERVE),
+        CAPACITOR_BANK(SocketId.CAPACITORS),
         /** Optional: the stock frame leaves this socket empty. */
         VENT_ARRAY(SocketId.MINI_FAB);
 

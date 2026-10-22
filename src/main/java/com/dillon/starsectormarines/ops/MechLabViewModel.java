@@ -258,7 +258,7 @@ public final class MechLabViewModel {
         leftSlotRows = reactor.computed(() -> buildSlots(List.of(
                 SocketId.CORE, SocketId.ARMS, SocketId.LEFT_SHOULDER)));
         rightSlotRows = reactor.computed(() -> buildSlots(List.of(
-                SocketId.RIGHT_SHOULDER, SocketId.AMMO_RESERVE, SocketId.MINI_FAB)));
+                SocketId.RIGHT_SHOULDER, SocketId.CAPACITORS, SocketId.MINI_FAB)));
         slotRows = reactor.computed(() -> {
             CampaignMech mech = selectedMech();
             if (mech == null) return List.of();
@@ -535,7 +535,7 @@ public final class MechLabViewModel {
     public boolean socketOccupied(SocketId id) {
         CampaignMech mech = selectedMech();
         return mech != null && (installedWeapon(id) != null
-                || id == SocketId.CORE || id == SocketId.AMMO_RESERVE
+                || id == SocketId.CORE || id == SocketId.CAPACITORS
                 || id == SocketId.MINI_FAB);
     }
 
@@ -910,7 +910,7 @@ public final class MechLabViewModel {
         return switch (selectedSlot.get()) {
             case MINI_FAB -> Strings.get("openingMechLabUtilityCopy");
             case CORE -> Strings.get("openingMechLabEngineCopy");
-            case AMMO_RESERVE -> Strings.get("openingMechLabCapacitorBankCopy");
+            case CAPACITORS -> Strings.get("openingMechLabCapacitorBankCopy");
             case ARMS, LEFT_SHOULDER, RIGHT_SHOULDER ->
                     slotComponent(mech, selectedSlot.get()).equals(Strings.get("openingMechLabEmptyHardpoint"))
                             ? Strings.get("openingMechLabEmptyMountFitCompatibleMissileHardwareHere")
@@ -951,7 +951,7 @@ public final class MechLabViewModel {
         SocketDef definition = selectedSocketDefinition();
         boolean occupied = slotWeapon(mech, selectedSlot.get()) != null
                 || selectedSlot.get() == SocketId.CORE
-                || selectedSlot.get() == SocketId.AMMO_RESERVE;
+                || selectedSlot.get() == SocketId.CAPACITORS;
         return List.of(new CatalogRow(base, base + ":copy", base + ":header", base + ":name", base + ":badge",
                 base + ":stock", base + ":telemetry", base + ":delta",
                 base + ":detail", base + ":action", base + ":materials", base + ":body",
@@ -1232,7 +1232,8 @@ public final class MechLabViewModel {
                     base + ":stock", base + ":telemetry", base + ":delta",
                     base + ":detail", base + ":action", base + ":materials", base + ":body",
                     base + ":preview",
-                    "catalog-preview hidden", null, null, null, internal,
+                    internal.role == MechInternal.Role.PLATING ? "catalog-preview hidden" : "catalog-preview",
+                    null, null, null, internal,
                     installed ? "catalog-row selected" : !showMaterials ? "catalog-row"
                             : "catalog-row requires-fabrication", internal.displayName(),
                     badge, badgeClasses,
@@ -1314,7 +1315,7 @@ public final class MechLabViewModel {
     static MechInternal.Role roleFor(SocketId socket) {
         return switch (socket) {
             case CORE -> MechInternal.Role.ENGINE;
-            case AMMO_RESERVE -> MechInternal.Role.CAPACITOR_BANK;
+            case CAPACITORS -> MechInternal.Role.CAPACITOR_BANK;
             case MINI_FAB -> MechInternal.Role.VENT_ARRAY;
             default -> null;
         };
@@ -1891,7 +1892,7 @@ public final class MechLabViewModel {
             case ARMS -> componentName(mech.arms());
             case LEFT_SHOULDER -> componentName(mech.leftShoulder());
             case RIGHT_SHOULDER -> componentName(mech.rightShoulder());
-            case AMMO_RESERVE -> mech.internal(MechInternal.Role.CAPACITOR_BANK).displayName();
+            case CAPACITORS -> mech.internal(MechInternal.Role.CAPACITOR_BANK).displayName();
             case MINI_FAB -> mech.internal(MechInternal.Role.VENT_ARRAY) != null
                     ? mech.internal(MechInternal.Role.VENT_ARRAY).displayName()
                     : mech.missileReplenisherId().equals(MissileReplenisherComponent.ACCELERATED_FEED.id())
