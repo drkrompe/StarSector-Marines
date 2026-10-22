@@ -851,7 +851,9 @@ against its own control in `renderEvidence`.
 - **Walls are held slowly.** A wall beside claimed ground is climbed, never
   crossed, and filled over about a minute and a half rather than at once: its
   coverage is its age, so a newly reached wall carries only veins and an old
-  one is crusted over. It reads as a matter of time.
+  one is crusted over. It reads as a matter of time. An overgrown wall still
+  reads as a barrier: its crust is lighter than the floor's, lit and shaded on
+  its edges as a raised block is, and outlined dark where it meets the floor.
 - **A ground colony answers a gun the swarm cannot rush** (`GroundColonies`).
   A living bore grows one on its creep within reach of a hostile emplacement
   the creep has come up against: on living creep with creep round it, inside
