@@ -639,8 +639,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 this.anchorX = actorX + anchorWorldX;
                 this.anchorY = actorY - anchorWorldY;
 
-                this.width = socket.factoryLocked() ? 160f : Math.max(164f, socket.footprintWidthHull() * hullWidth);
-                this.height = socket.factoryLocked() ? 54f : Math.max(116f, socket.footprintHeightHull() * hullHeight);
+                // Cards follow the socket's capacity at one brick size, not the hull's proportions.
+                this.width = MechSocketConsole.width(socket);
+                this.height = MechSocketConsole.height(socket);
 
                 float dockLocalX = socket.dockRight();
                 float dockLocalY = socket.dockForward();

@@ -58,6 +58,16 @@ final class HardpointBricks {
                 columns, rows, brickWidth, brickHeight, gap);
     }
 
+    /**
+     * A brick-stack of {@code columns x rows} at a fixed brick size, its top-left at the given
+     * point. The doll draws every socket this way, so a 2x3 piece is physically larger than a 2x2.
+     */
+    static Layout at(float x, float y, int columns, int rows, float brickHeight, float gap) {
+        brickHeight = Math.max(1f, (float) Math.floor(brickHeight));
+        return new Layout(Math.round(x), Math.round(y), Math.max(1, columns), Math.max(1, rows),
+                Math.round(brickHeight * BRICK_ASPECT), brickHeight, Math.round(gap));
+    }
+
     record Layout(float left, float top, int columns, int rows,
                   float brickWidth, float brickHeight, float gap) {
         float width() { return columns * brickWidth + (columns - 1) * gap; }
