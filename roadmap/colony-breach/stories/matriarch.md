@@ -16,7 +16,7 @@ a fight that wants mechs, heavy weapons or massed satchels. Layered body art
 (ImageGen), its own behaviour, `matriarch_emerged` beat, a behaviour scene
 against a mech lance, and an art review set.
 
-Stages: `rav-growth-stages.md` sets her growth stage from the mother bore's feeding and lets her mature in the field.
+Stages: `colony-breach-nouns.md` (The Matriarch's stage) sets her growth stage from the mother bore's feeding and lets her mature in the field.
 
 ## Remaining
 

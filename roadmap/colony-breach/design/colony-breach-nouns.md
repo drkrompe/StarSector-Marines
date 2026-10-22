@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — growth stages (whelp, adult, elder), age mix, pack leader as planned vocabulary; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
+Updated: 2026-10-21 — growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -752,9 +752,9 @@ ridge. A stage is issued at
 spawn through `SwarmStrains`, like the Brute's plate, and fixed for the body's
 life; the Matriarch is the one exception. Stage scales presentation only
 through things the body already has: its rig's scale and stage-recoloured
-sprites, and its voice pitched by its size. Stats, the stage table and the
-reasons for each choice are in `rav-growth-stages.md` (stage, stats, size, the
-age mix, packs and sound built; the per-stage art planned).
+sprites, and its voice pitched by its size. The numbers are in `SwarmStageStats`
+and the reasons for each choice, with the first balance reading, in
+`growth-stages.md`.
 `-Dbattle.swarm.growthStages=false` is the control: every body an adult.
 
 - **Age mix.** A surge's stages come from its bore, never from the director:
