@@ -741,13 +741,11 @@ place at table. Whole furniture assemblies turn with the room and yield to
 hatch approaches. Sparse meal settings are visual layers, not food inventory.
 Small secondary messes remain dining rooms without additional cooking postings.
 
-The sickbay keeps its ward around a stretcher aisle, with reserved bedside
-access between the beds. Each bay contains a real-length medical bed (three
-cells, a 2.2 m frame), separate linen with the pillow beside a head monitor;
-a hatch removes the complete bay. Two such bands and a two-cell spine fill the
-ten-row ward, and a medic treats from the bedside gap level with the middle of
-the bed. A clinic end holds an examination
-couch, supply trolley and privacy screen opposite a nurse station, secured
+The sickbay keeps its ward around a broad stretcher aisle, with reserved bedside
+access between the beds. Each bay contains a two-cell medical bed (the figure is
+drawn at head-and-shoulders scale, so a longer bed read as one for a giant),
+separate linen and a head monitor; a hatch removes the complete bay. A clinic end
+holds an examination couch, supply trolley and privacy screen opposite a nurse station, secured
 medical cabinets and scrub sink. The staffed bank changes sides when a hatch
 would take its desk, and the examination couch uses the remaining clear position.
 Optional screens and stock yield to access. Treatment, stowage and washing take

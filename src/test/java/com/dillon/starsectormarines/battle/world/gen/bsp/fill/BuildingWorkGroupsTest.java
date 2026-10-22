@@ -39,9 +39,9 @@ class BuildingWorkGroupsTest {
         assertTrue(groups.place(BuildingWorkGroups.bedBay(), 3, 3, 0, RoomPurpose.PATIENT_WARD));
         assertFalse(groups.place(BuildingWorkGroups.pallets(1, "cases"), 4, 3, 0, RoomPurpose.PATIENT_WARD));
         assertEquals(3, doodads.size());
-        for (int y = 3; y <= 8; y++) for (int x = 4; x <= 5; x++) assertTrue(grid.isWalkable(x,y));
-        assertTrue(grid.isWalkable(3,7)); assertTrue(grid.isWalkable(3,8));
-        for (int y = 3; y <= 6; y++) assertFalse(grid.isWalkable(3,y));
+        for (int y = 3; y <= 7; y++) for (int x = 4; x <= 5; x++) assertTrue(grid.isWalkable(x,y));
+        assertTrue(grid.isWalkable(3,6)); assertTrue(grid.isWalkable(3,7));
+        assertFalse(grid.isWalkable(3,3)); assertFalse(grid.isWalkable(3,4)); assertFalse(grid.isWalkable(3,5));
     }
 
     @Test void blockedGroupDoesNotLeaveAMonitorOrLinenBehind() {

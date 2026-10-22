@@ -449,7 +449,7 @@ The bay is opened before windows and furniture, so neither can close its throat.
 
 A clinic's equipment follows care: reception has charting and waiting seats;
 triage pairs readouts with assessment; treatment owns examination couches,
-monitors, trolleys and washing; the ward has aligned monitored real-length (three-cell) beds with side
+monitors, trolleys and washing; the ward has aligned monitored beds with side
 access and a two-cell stretcher approach; pharmacy has cabinet banks and a
 dispensing station. Bed and examination capacity grows with usable room space.
 Small wards may retain one bed when a complete larger bay cannot fit. The
@@ -1500,11 +1500,10 @@ lets one feature describe itself identically to movement, sight, fire and cover.
 Ground installations share the modern bunk, mess and clinical furniture kits
 with ships, but keep their own room programs and do not inherit ship layout
 overrides. Furniture is drawn at real size against a crewman whose shoulders are
-0.6 cells (a cell is about 0.75 m): a residential bed, like a ship's bunk, is
-three cells head to foot, and a resting hand lies down in it from the cell at its
-foot. The ground sick bay's ward beds are the same three cells, a monitor at
-the head against the bulkhead and the two-cell stretcher spine at the foot, as
-aboard. A fixture worked on one face (a bench, a locker bank, the ammunition
+0.6 cells (a cell is about 0.75 m), drawn at head-and-shoulders scale: a
+residential bed, like a ship's bunk or a ward bed, is two cells head to foot
+(three cells read as a bed for a giant), and a resting hand lies down in it from
+the cell at its foot. A fixture worked on one face (a bench, a locker bank, the ammunition
 cabinet) shows that face on its bottom edge, so every fitting stands it to be
 worked from the row below. Dispatch offices group seated desks, meeting space and records
 storage around clear circulation. Occupied support rooms can carry adjacent
