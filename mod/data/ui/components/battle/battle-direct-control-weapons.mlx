@@ -19,6 +19,11 @@
             </div>
             <div id="{weapon.dataId}" class="weapon-data"><div id="{weapon.behaviorId}" class="weapon-detail">{weapon.behavior}</div><div id="{weapon.ammoId}" class="weapon-ammo">{weapon.ammo}</div></div>
             <div id="{weapon.cycleId}" class="weapon-cycle"><div id="{weapon.fillId}" class="cycle-fill" style="{weapon.cycleStyle}"></div></div>
+            <div id="{weapon.roundsId}" class="{weapon.roundsClasses}">
+              <div each="block in weapon.roundBlocks" key="{block.id}" id="{block.id}" class="{block.classes}" style="{block.style}">
+                <img each="round in block.rounds" key="{round.id}" id="{round.id}" class="{round.classes}" src="{round.src}" />
+              </div>
+            </div>
           </button>
         </div>
       </div>
@@ -67,4 +72,11 @@
   .weapon-ammo { color: #e4e7df; font-family: body; white-space: nowrap; }
   .weapon-cycle { width: 100%; height: 3px; flex-direction: row; background-color: #00000080; }
   .cycle-fill { height: 100%; background-color: #a7ccc4; }
+  .weapon-rounds { height: 25px; flex-direction: row; gap: 5px; align-items: flex-end; }
+  .weapon-rounds-none { height: 0px; }
+  .round-block { height: 24px; flex-direction: row; gap: 4px; align-items: flex-end; }
+  .round-block-link { gap: 1px; }
+  .round-rifle { width: 10px; height: 24px; }
+  .round-shell { width: 11px; height: 21px; }
+  .round-link { width: 3px; height: 18px; }
 </style>

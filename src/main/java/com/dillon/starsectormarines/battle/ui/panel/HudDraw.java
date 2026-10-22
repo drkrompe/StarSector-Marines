@@ -152,6 +152,29 @@ final class HudDraw {
         glEnd();
     }
 
+    /**
+     * A band of ring between two angles, {@code thickness} wide about radius {@code r}. Angles are in
+     * degrees from the positive x axis, sweeping toward positive y.
+     */
+    static void arc(float cx, float cy, float r, float thickness, float fromDegrees, float toDegrees,
+                    Color c, float alphaMult) {
+        glColor4f(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f,
+                c.getAlpha() / 255f * alphaMult);
+        int steps = Math.max(1, (int) Math.ceil(Math.abs(toDegrees - fromDegrees) / 6f));
+        float inner = r - thickness * 0.5f;
+        float outer = r + thickness * 0.5f;
+        glBegin(GL_QUADS);
+        for (int i = 0; i < steps; i++) {
+            double a0 = Math.toRadians(fromDegrees + (toDegrees - fromDegrees) * i / steps);
+            double a1 = Math.toRadians(fromDegrees + (toDegrees - fromDegrees) * (i + 1) / steps);
+            glVertex2f(cx + (float) Math.cos(a0) * inner, cy + (float) Math.sin(a0) * inner);
+            glVertex2f(cx + (float) Math.cos(a0) * outer, cy + (float) Math.sin(a0) * outer);
+            glVertex2f(cx + (float) Math.cos(a1) * outer, cy + (float) Math.sin(a1) * outer);
+            glVertex2f(cx + (float) Math.cos(a1) * inner, cy + (float) Math.sin(a1) * inner);
+        }
+        glEnd();
+    }
+
     /** A closed outline through screen points given as x,y pairs. */
     static void outline(float[] xy, Color c, float alphaMult, float lineWidth) {
         glColor4f(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f,

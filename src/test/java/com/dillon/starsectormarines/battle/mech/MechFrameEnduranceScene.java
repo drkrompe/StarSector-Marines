@@ -395,18 +395,18 @@ public final class MechFrameEnduranceScene implements BehaviorScene {
         for (FrameKind kind : MAIN_KINDS) {
             double b = meanEndurance(plays, opposition, MechVariant.BULWARK, kind);
             double h = meanEndurance(plays, opposition, MechVariant.HOUND, kind);
-            double s = meanEndurance(plays, opposition, MechVariant.SIROCCO, kind);
+            double s = meanEndurance(plays, opposition, MechVariant.WARDEN, kind);
             m.put(kindName(kind) + ".bulwarkS", b);
             m.put(kindName(kind) + ".houndS", h);
-            m.put(kindName(kind) + ".siroccoS", s);
+            m.put(kindName(kind) + ".wardenS", s);
             m.put(kindName(kind) + ".orderHolds", b > h && h > s ? 1 : 0);
         }
         double refitHound = meanEndurance(plays, opposition, MechVariant.HOUND, FrameKind.REFIT);
         double stockBulwark = meanEndurance(plays, opposition, MechVariant.BULWARK, FrameKind.STOCK);
-        double refitSirocco = meanEndurance(plays, opposition, MechVariant.SIROCCO, FrameKind.REFIT);
+        double refitWarden = meanEndurance(plays, opposition, MechVariant.WARDEN, FrameKind.REFIT);
         double stockHound = meanEndurance(plays, opposition, MechVariant.HOUND, FrameKind.STOCK);
         m.put("refitHoundUnderStockBulwark", refitHound < stockBulwark ? 1 : 0);
-        m.put("refitSiroccoUnderStockHound", refitSirocco < stockHound ? 1 : 0);
+        m.put("refitWardenUnderStockHound", refitWarden < stockHound ? 1 : 0);
         for (MechVariant v : MechVariant.values()) {
             double stock = meanEndurance(plays, opposition, v, FrameKind.STOCK);
             double refit = meanEndurance(plays, opposition, v, FrameKind.REFIT);

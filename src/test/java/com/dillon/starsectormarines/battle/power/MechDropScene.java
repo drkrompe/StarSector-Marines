@@ -59,7 +59,7 @@ public final class MechDropScene implements BehaviorScene {
     private static final int ZONE_REACH = 14;
     private static final String RIFLE = "weapon.smg";
     private static final List<MechVariant> LANCE =
-            List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.HOUND, MechVariant.SIROCCO);
+            List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.HOUND, MechVariant.WARDEN);
     private static final String ISSUER = new ConquestCommand(
             new ConquestTrackLayout(TraversalAxis.WEST_TO_EAST, WIDTH, HEIGHT)).strategyId();
 

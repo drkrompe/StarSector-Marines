@@ -260,7 +260,7 @@ public final class SallyPortScene implements BehaviorScene {
                     int cx = x + dx;
                     int cy = y + dy;
                     if (!sim.getGrid().inBounds(cx, cy) || sim.fightingPositions().isFightingPositionCell(cx, cy)) continue;
-                    if (ManualTerrainMotion.canStand(sim.getGrid(), cx + 0.5f, cy + 0.5f, MechVariant.SIROCCO.radius)) {
+                    if (ManualTerrainMotion.canStand(sim.getGrid(), cx + 0.5f, cy + 0.5f, MechVariant.WARDEN.radius)) {
                         return new int[]{cx, cy};
                     }
                 }
@@ -290,7 +290,7 @@ public final class SallyPortScene implements BehaviorScene {
                             .at(layout.pool()[i][0], layout.pool()[i][1]).primary("weapon.smg").health(TOUGH).done();
                 }
                 builder.squad("lance").faction(Faction.DEFENDER).size(1).at(layout.lanceCell()[0], layout.lanceCell()[1])
-                        .mech(MechVariant.SIROCCO, MechRole.BALANCED).done();
+                        .mech(MechVariant.WARDEN, MechRole.BALANCED).done();
                 builder.squad("raiders").faction(Faction.MARINE).size(RAIDERS).at(layout.field()[0], layout.field()[1])
                         .primary("weapon.smg").health(TOUGH).stationary().done();
                 // A lookout on the belt, so the attack on a face with no gate and no nest looking along it is seen: a
@@ -612,7 +612,7 @@ public final class SallyPortScene implements BehaviorScene {
                         guardTick = tick;
                         guardBound = Math.round(ARRIVAL_BOUND * GarrisonDirector.etaTicks(sim.world().cellX(mech),
                                 sim.world().cellY(mech), order.destinationX(), order.destinationY())
-                                * UnitType.MARINE.moveSpeed / MechVariant.SIROCCO.moveSpeed);
+                                * UnitType.MARINE.moveSpeed / MechVariant.WARDEN.moveSpeed);
                     }
                     guardNearest = Math.min(guardNearest, (float) Math.hypot(sim.world().x(mech) - order.destinationX() - 0.5f,
                             sim.world().y(mech) - order.destinationY() - 0.5f));

@@ -55,10 +55,10 @@ class MechFireGroupsTest {
 
     @Test
     void arcingLaunchersJoinTheRightButton() {
-        MechWeaponMount[] sirocco = of(MechVariant.SIROCCO);
-        assertEquals(ARMS, MechFireGroups.primaryMask(sirocco));
-        assertEquals(LEFT | RIGHT, MechFireGroups.secondaryMask(sirocco), "LRMs drop on the cursor point");
-        assertEquals("R", MechFireGroups.badge(sirocco, 0, sirocco[MechMountSlot.LEFT_SHOULDER.ordinal()]));
+        MechWeaponMount[] warden = of(MechVariant.WARDEN);
+        assertEquals(ARMS, MechFireGroups.primaryMask(warden));
+        assertEquals(LEFT | RIGHT, MechFireGroups.secondaryMask(warden), "LRMs drop on the cursor point");
+        assertEquals("R", MechFireGroups.badge(warden, 0, warden[MechMountSlot.LEFT_SHOULDER.ordinal()]));
     }
 
     @Test

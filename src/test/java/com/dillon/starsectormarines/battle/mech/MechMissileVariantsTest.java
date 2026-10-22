@@ -87,11 +87,11 @@ class MechMissileVariantsTest {
 
     @Test
     void anIndirectRackDoesNotScoreInsideTheArmsReach() {
-        List<MechWeaponComponent> sirocco = List.of(MechWeaponComponent.SINGLE_HEAVY_CANNON,
+        List<MechWeaponComponent> warden = List.of(MechWeaponComponent.SINGLE_HEAVY_CANNON,
                 MechWeaponComponent.LRM_5_FRAG);
         float inside = MechWeaponComponent.SINGLE_HEAVY_CANNON.weaponDef().range - 2f;
         assertEquals(MechTargetPressure.pressure(List.of(MechWeaponComponent.SINGLE_HEAVY_CANNON), inside, MAN, false),
-                MechTargetPressure.pressure(sirocco, inside, MAN, false));
+                MechTargetPressure.pressure(warden, inside, MAN, false));
     }
 
     @Test
@@ -111,8 +111,8 @@ class MechMissileVariantsTest {
     }
 
     @Test
-    void theSiroccoShipsFragmentationLrms() {
-        assertEquals(MechWeaponComponent.LRM_5_FRAG, MechVariant.SIROCCO.leftShoulder);
-        assertEquals(MechWeaponComponent.LRM_5_FRAG, MechVariant.SIROCCO.rightShoulder);
+    void theWardenShipsFragmentationLrms() {
+        assertEquals(MechWeaponComponent.LRM_5_FRAG, MechVariant.WARDEN.leftShoulder);
+        assertEquals(MechWeaponComponent.LRM_5_FRAG, MechVariant.WARDEN.rightShoulder);
     }
 }

@@ -37,7 +37,7 @@ class WallBreachSystemTest {
         SceneBuilder builder = SceneBuilder.openGround(48, 40).missionCompletion(false)
                 .wall(WALL_X, 17, WALL_X, 23);
         builder.squad("cannon").faction(Faction.MARINE).size(1).at(8, 20)
-                .mech(MechVariant.SIROCCO, MechRole.LR_SUPPORT)
+                .mech(MechVariant.WARDEN, MechRole.LR_SUPPORT)
                 .assigned(id -> {
                     ObjectiveAssignment move = ObjectiveAssignment.attackMove(id, 8, 20);
                     return ordered ? move.withBreach(WALL_X, 20) : move;

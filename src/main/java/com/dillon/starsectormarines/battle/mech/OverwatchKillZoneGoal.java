@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * LR Support mech goal: angle for a medium/long-range firing lane along the
- * squad's known threat axis, preferably behind a non-Sirocco ally.
+ * squad's known threat axis, preferably behind a non-Warden ally.
  * {@link Goal.Priority#MISSION} so it outranks the ambient
  * {@link MechEliminateEnemiesGoal} when both are relevant.
  *

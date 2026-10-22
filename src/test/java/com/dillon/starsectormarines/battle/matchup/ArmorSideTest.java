@@ -91,11 +91,11 @@ class ArmorSideTest {
 
     @Test
     void countsAndMixedSides() {
-        ArmorSide side = ArmorSide.parse("2xhound:refit + heavy-apc + 3*sirocco");
+        ArmorSide side = ArmorSide.parse("2xhound:refit + heavy-apc + 3*warden");
         assertEquals(3, side.units().size());
         assertEquals(6, side.size());
         assertEquals(2, side.units().get(0).count());
-        assertEquals("2xhound:refit+heavy-apc+3xsirocco", side.label());
+        assertEquals("2xhound:refit+heavy-apc+3xwarden", side.label());
         assertEquals(side, ArmorSide.parse(side.label()));
     }
 

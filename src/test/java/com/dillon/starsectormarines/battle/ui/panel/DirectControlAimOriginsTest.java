@@ -21,7 +21,7 @@ class DirectControlAimOriginsTest {
         assertEquals(expected.y(), selected.get(0).y());
         assertEquals(4, DirectControlAimOrigins.mech(loadout, 0, 4f, 5f, .2f, -.1f).size(),
                 "a gun on each arm plus both racks");
-        var indirect = new MechLoadoutComponent(MechVariant.SIROCCO, null);
+        var indirect = new MechLoadoutComponent(MechVariant.WARDEN, null);
         assertEquals(1, DirectControlAimOrigins.mech(indirect, 0, 4f, 5f, 0f, 0f).size());
         assertTrue(DirectControlAimOrigins.mech(indirect, leftShoulder, 4f, 5f, 0f, 0f).isEmpty());
     }

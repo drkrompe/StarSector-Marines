@@ -771,7 +771,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 token("chassis.png", 208, 208),
                 token("chassis-socketed-variant.png", 208, 208),
                 token("chassis-hound.png", 208, 208),
-                token("chassis-sirocco.png", 208, 208),
+                token("chassis-warden.png", 208, 208),
                 token("foot.png", 44, 38), token("thigh-bone.png", 40, 112),
                 token("chaingun-arm.png", 62, 112),
                 token("linear-cannon-variant.png", 58, 138),

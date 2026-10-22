@@ -508,7 +508,6 @@ public final class MechLabViewModel {
     /** The build panel's props, read by the screen and both test prop builders. */
     public void putBuildPanelProps(Map<String, Object> props) {
         props.put("buildPanelClasses", reactor.computed(() -> fabricatingChassis() ? "surface-dark build-panel" : "hidden"));
-        props.put("dragNoteWrapClasses", reactor.computed(() -> fabricatingChassis() ? "hidden" : "drag-note-wrap"));
         props.put("buildName", reactor.computed(() -> {
             MechFabricationCatalog.Recipe recipe = previewRecipe();
             return recipe != null ? recipe.displayName() : Strings.get("openingMechLabSelectAPattern");
@@ -518,9 +517,20 @@ public final class MechLabViewModel {
             if (recipe == null) return "";
             return recipe.variant() != null
                     ? Strings.join("separatorDot", recipe.provenance(), roleLabel(recipe.variant().defaultRole))
-                    : vehicleIdentity(recipe.vehicle());
+                    : vehicleKind(recipe.vehicle());
         }));
         props.put("buildLore", reactor.computed(() -> lore(previewRecipe())));
+        props.put("buildStats", reactor.computed(() -> {
+            MechFabricationCatalog.Recipe recipe = previewRecipe();
+            if (recipe == null) return "";
+            if (recipe.variant() != null) {
+                return Strings.format("openingMechLabSpeedArmor", number(recipe.variant().moveSpeed),
+                        Math.round(recipe.variant().armorCapacity));
+            }
+            VehicleType type = recipe.vehicle();
+            return Strings.format("openingMechLabVehicleStats", number(type.maxStructure), number(type.maxArmor),
+                    number(type.maxSpeed), type.capacity);
+        }));
         props.put("buildMaterials", reactor.computed(() -> {
             MechFabricationCatalog.Recipe recipe = previewRecipe();
             return recipe != null ? materialRows("mech-build", resources.quote(recipe.cost())) : List.<Row>of();
@@ -556,7 +566,7 @@ public final class MechLabViewModel {
         if (recipe.vehicle() != null) return Strings.get("vehicleLore" + recipe.vehicle().name());
         return switch (recipe.variant()) {
             case HOUND -> Strings.get("gearCatalogHoundDescription");
-            case SIROCCO -> Strings.get("gearCatalogSiroccoDescription");
+            case WARDEN -> Strings.get("gearCatalogWardenDescription");
             case BULWARK -> Strings.get("gearCatalogBulwarkDescription");
             default -> "";
         };
@@ -1333,7 +1343,7 @@ public final class MechLabViewModel {
                     recipe.provenance(),
                     Strings.format("openingMechLabSpeedArmor", number(type.maxSpeed), Math.round(type.maxArmor)),
                     "", "catalog-delta hidden",
-                    vehicleIdentity(type),
+                    vehicleKind(type),
                     "", Strings.get("openingMechLabSelectToPreview"),
                     false, materialRows(base, resources.quote(recipe.cost())), "material-costs",
                     () -> previewRecipeId.set(recipe.id())));
@@ -2119,12 +2129,21 @@ public final class MechLabViewModel {
     }
 
     private static String vehicleIdentity(VehicleType type) {
-        String weight = switch (MechPattern.weightClass(type)) {
+        return Strings.format("openingMechLabVehicleIdentity", CampaignVehicle.typeName(type), weightLabel(type));
+    }
+
+    /** Weight and armament, for places that already show the vehicle's name above it. */
+    private static String vehicleKind(VehicleType type) {
+        return Strings.join("separatorDot", Strings.format("openingMechLabWeightVehicle", weightLabel(type)),
+                vehicleArmament(type));
+    }
+
+    private static String weightLabel(VehicleType type) {
+        return switch (MechPattern.weightClass(type)) {
             case LIGHT -> Strings.get("openingMechLabWeightClassLIGHT");
             case MEDIUM -> Strings.get("openingMechLabWeightClassMEDIUM");
             case HEAVY -> Strings.get("openingMechLabWeightClassHEAVY");
         };
-        return Strings.format("openingMechLabVehicleIdentity", CampaignVehicle.typeName(type), weight);
     }
 
     private static String vehicleArmament(VehicleType type) {

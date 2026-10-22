@@ -2086,16 +2086,16 @@ public class BriefingScreen implements Screen {
         if (roster == null || roster.count() == 0) return "No player mech drops";
         int bulwarks = 0;
         int hounds = 0;
-        int siroccos = 0;
+        int wardens = 0;
         for (MechVariant variant : roster.variants()) {
             if (variant == MechVariant.BULWARK) bulwarks++;
             else if (variant == MechVariant.HOUND) hounds++;
-            else if (variant == MechVariant.SIROCCO) siroccos++;
+            else if (variant == MechVariant.WARDEN) wardens++;
         }
         List<String> parts = new ArrayList<>();
         if (bulwarks > 0) parts.add(bulwarks + "x Bulwark");
         if (hounds > 0) parts.add(hounds + "x Hound");
-        if (siroccos > 0) parts.add(siroccos + "x Sirocco");
+        if (wardens > 0) parts.add(wardens + "x Warden");
         long drops = ((long) roster.count() + MechSupport.LANCE_SIZE - 1L)
                 / MechSupport.LANCE_SIZE;
         return drops + (drops == 1 ? " lance · " : " lances · ")

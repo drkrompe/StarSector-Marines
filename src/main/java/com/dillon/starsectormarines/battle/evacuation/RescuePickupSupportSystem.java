@@ -69,7 +69,7 @@ public final class RescuePickupSupportSystem {
         this.formationCells = placement.formationCells();
         if (formationCells.length != TARGET_GUARD_SQUADS * 2) return false;
         this.pickupMechVariant = (seed & 1L) == 0L
-                ? MechVariant.BULWARK : MechVariant.SIROCCO;
+                ? MechVariant.BULWARK : MechVariant.WARDEN;
         this.loadoutRng = new Random(seed ^ 0x72C5A4D93E10B68FL);
         this.risk = risk != null ? risk : RiskLevel.LOW;
         configured = true;

@@ -243,7 +243,7 @@ public final class AssaultMusterScene implements BehaviorScene {
             int[] at = clamp(terrain.cell(gate.mouthX() + gate.outX() * (FIRST_STANDOFF + 20),
                     gate.mouthY() + gate.outY() * (FIRST_STANDOFF + 20)));
             builder.squad("cannon-mech").faction(Faction.MARINE).size(1).at(at[0], at[1])
-                    .mech(MechVariant.SIROCCO, MechRole.LR_SUPPORT).done();
+                    .mech(MechVariant.WARDEN, MechRole.LR_SUPPORT).done();
             keys.add("cannon-mech");
         }
         int[] core = BatteryFort.coreCentre(FortAspect.FIRE_CONTROL);
@@ -258,7 +258,7 @@ public final class AssaultMusterScene implements BehaviorScene {
         if (lance) {
             sim.setMechDrops(new MechDropService(MechDropDeclaration.NONE.with(Faction.MARINE,
                     new MechDropAllowance(1, List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.HOUND,
-                            MechVariant.SIROCCO)))));
+                            MechVariant.WARDEN)))));
         }
         if (hasAir(loop)) {
             sim.setAirPool(new AirPoolService(AirPoolDeclaration.NONE.with(Faction.MARINE,

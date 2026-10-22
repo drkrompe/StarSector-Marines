@@ -28,8 +28,8 @@ class BattleSpritesMechLiveryTest {
                 marine.musterAutogun.sourcePath);
         assertEquals(factionPath("tri-tachyon", "quarry-breaker-cannon.png"),
                 marine.quarryBreakerCannon.sourcePath);
-        assertEquals(factionPath("lions-guard", "chassis-sirocco.png"),
-                defender.siroccoChassis.sourcePath);
+        assertEquals(factionPath("lions-guard", "chassis-warden.png"),
+                defender.wardenChassis.sourcePath);
         assertEquals(factionPath("lions-guard", "lrm-pod.png"),
                 defender.lrmPod.sourcePath);
         assertEquals(factionPath("lions-guard", "lions-guard-thermal-lance.png"),
