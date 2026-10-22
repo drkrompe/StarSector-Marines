@@ -60,6 +60,8 @@ public final class SwarmReinforcementSystem {
         final int size;
         int released;
         int nextTick;
+        /** A scavenger pack: its Runners fetch the swarm's dead before they fight. */
+        boolean scavengers;
 
         Release(SwarmBore bore, int surgeIndex, int size, int tick) {
             this.bore = bore;
@@ -242,7 +244,11 @@ public final class SwarmReinforcementSystem {
             }
             int bodies = Math.min(size, headroom);
             if (!surged) surgeWave = new ArrayList<>();
-            releases.add(new Release(bore, bore.surges(), bodies, tick));
+            Release release = new Release(bore, bore.surges(), bodies, tick);
+            // every second surge goes out to fetch the swarm's dead, while there are dead to fetch
+            release.scavengers = bore.surges() % 2 == 1
+                    && sim.swarmHarvest().recyclableCount(sim) >= SwarmHarvest.SCAVENGER_PACK_MIN_DEAD;
+            releases.add(release);
             float jitter = 2f * SwarmBores.unit(SwarmBores.mix(
                     seed ^ (bore.number() * 0x9E3779B97F4A7C15L) ^ (bore.surges() * 0xC2B2AE3D27D4EB4FL))) - 1f;
             bore.surged(tick, jitter);
@@ -287,6 +293,7 @@ public final class SwarmReinforcementSystem {
                 + (release.bore.bodiesSpawned() + 1), slot.unitType, cell[0], cell[1]);
         release.released++;
         release.bore.released();
+        if (release.scavengers && slot.unitType == UnitType.SWARM_RUNNER) sim.swarmHarvest().markScavenger(body);
         SwarmPressureSnapshot.Approach approach = approach(cell[0], cell[1], grid.getWidth(), grid.getHeight());
         approachByRunner.put(body, approach);
         surgeWave.add(new SwarmPressureSnapshot.WaveIntent(body, approach, cell[0], cell[1],

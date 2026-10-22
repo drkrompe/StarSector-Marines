@@ -80,10 +80,10 @@ public final class ColonyBreachSequence {
      * Harvest so far: bodies seized (a re-seizure of a dropped body and an
      * impale count again), delivered into a bore, dropped dead by a carrier that
      * died, and being dragged now; and of the living, how many were impaled,
-     * freed and taken.
+     * freed and taken; and how many of the swarm's own dead were recycled into a bore.
      */
     public record Harvest(int firstTick, int seized, int delivered, int dropped, int carrying,
-                          int impaled, int freed, int taken) { }
+                          int impaled, int freed, int taken, int recycled) { }
 
     private final ColonyEruptionPlan plan;
     private final List<Long> colonists;
@@ -258,7 +258,8 @@ public final class ColonyBreachSequence {
 
     private static Harvest harvest(SwarmHarvest harvest) {
         return new Harvest(harvest.firstHarvestTick(), harvest.seized(), harvest.delivered(),
-                harvest.dropped(), harvest.carrying(), harvest.impaled(), harvest.freed(), harvest.taken());
+                harvest.dropped(), harvest.carrying(), harvest.impaled(), harvest.freed(), harvest.taken(),
+                harvest.recycled());
     }
 
     private void emit(int tick, String key) {
