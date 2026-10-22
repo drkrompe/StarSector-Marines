@@ -33,6 +33,8 @@ public final class FireColonySnapshotSuite implements SnapshotSuite {
     /** Cells across at play zoom: 32 px a cell. */
     private static final float PLAY_CELLS = 60f;
     private static final int WIN_W = 60, WIN_H = 34;
+    /** Cells across close up: 96 px a cell. */
+    private static final float CLOSE_CELLS = 20f;
     private static final int MAX_TICKS = 30 * 240;
 
     @Override public String id() { return "fire-colony"; }
@@ -47,7 +49,7 @@ public final class FireColonySnapshotSuite implements SnapshotSuite {
         int[] ignite;
         int endTick;
         int w, h;
-        int[] window, grove;
+        int[] window, grove, edge;
         try (BattleSimulation sim = CreepVegetationSnapshotSuite.verdantColony()) {
             w = sim.getGrid().getWidth();
             h = sim.getGrid().getHeight();
@@ -55,6 +57,7 @@ public final class FireColonySnapshotSuite implements SnapshotSuite {
             Arrays.fill(ignite, -1);
             endTick = burn(sim, MAX_TICKS, ignite);
             window = bestWindow(sim, w, h);
+            edge = edgeSpot(sim, w, h, window);
             grove = groveCentre(sim, ignite, w);
         }
         int frontTick = medianIgnite(ignite, w, window[0], window[1], WIN_W, WIN_H);
@@ -72,6 +75,14 @@ public final class FireColonySnapshotSuite implements SnapshotSuite {
         shots.add(new Shot(endTick / 2, "04-whole-map-mid.png", whole, "whole map, mid-burn"));
         shots.add(new Shot(endTick + 30, "02-burnt-ground.png", play, "burnt ground against grass, road and pavement"));
         shots.add(new Shot(endTick + 30, "05-whole-map-after.png", whole, "whole map, burnt out"));
+        BattleReviewFrameRenderer close = new BattleReviewFrameRenderer(context.modRoot(), FRAME_W, FRAME_H,
+                edge[0] + 0.5f, edge[1] + 0.5f, CLOSE_CELLS);
+        shots.add(new Shot(endTick + 30, "06-edge-close.png", close, "close: where the burn stopped, unburnt grass beyond"));
+        if (groveView != null && groveTick >= 0) {
+            BattleReviewFrameRenderer groveClose = new BattleReviewFrameRenderer(context.modRoot(), FRAME_W, FRAME_H,
+                    grove[0] + 0.5f, grove[1] + 0.5f, CLOSE_CELLS);
+            shots.add(new Shot(endTick + 30, "07-grove-close.png", groveClose, "close: burnt ground under the grove"));
+        }
         shots.sort((a, b) -> Integer.compare(a.tick, b.tick));
         try (BattleSimulation sim = CreepVegetationSnapshotSuite.verdantColony()) {
             FireField fire = light(sim);
@@ -156,6 +167,38 @@ public final class FireColonySnapshotSuite implements SnapshotSuite {
     }
 
     /** The centre of the burnt tree with the most burnt trees round it: where the front ran into a grove. */
+    /** The burnt cell nearest the window's centre with unburnt grass a few cells off: the far side of a firebreak. */
+    private static int[] edgeSpot(BattleSimulation sim, int w, int h, int[] window) {
+        FireField fire = sim.fireField();
+        CellTopology topo = sim.getTopology();
+        int cx = window[0] + WIN_W / 2, cy = window[1] + WIN_H / 2;
+        int[] best = {cx, cy};
+        int bestD = Integer.MAX_VALUE;
+        for (int y = 2; y < h - 2; y++) {
+            for (int x = 2; x < w - 2; x++) {
+                if (fire.stateAt(y * w + x) != FireField.BURNT) continue;
+                boolean grass = false;
+                for (int dy = -6; dy <= 6 && !grass; dy++) {
+                    for (int dx = -6; dx <= 6; dx++) {
+                        int nx = x + dx, ny = y + dy;
+                        if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+                        if (topo.getGroundKind(nx, ny) == GroundKind.GRASS && fire.stateAt(ny * w + nx) == FireField.UNBURNT) {
+                            grass = true;
+                            break;
+                        }
+                    }
+                }
+                if (!grass) continue;
+                int d = Math.abs(x - cx) + Math.abs(y - cy);
+                if (d < bestD) {
+                    bestD = d;
+                    best = new int[]{x, y};
+                }
+            }
+        }
+        return best;
+    }
+
     private static int[] groveCentre(BattleSimulation sim, int[] ignite, int w) {
         List<Doodad> trees = new ArrayList<>();
         for (Doodad d : sim.getDoodads()) {

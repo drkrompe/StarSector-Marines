@@ -32,8 +32,24 @@ public final class FireRenderSystem {
     private static final boolean ENABLED = Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
 
     /** How burnt ground reads. */
-    /** How burnt ground reads: CHAR near-black, ASH grey, EMBER char with a glow, SOOT char thin enough for the ground to show through. */
-    public enum Scorch { CHAR, ASH, EMBER, SOOT }
+    /**
+     * How burnt ground reads. CHAR, ASH, EMBER and SOOT are flat fills per cell; MOTTLE, SINGE and WEATHER are
+     * shaded per pixel over the ground by {@link ScorchLayer} (see {@link ScorchShading.Style}).
+     */
+    public enum Scorch {
+        CHAR, ASH, EMBER, SOOT, MOTTLE, SINGE, WEATHER;
+
+        /** Whether this style is drawn by the per-pixel scorch layer rather than as flat fills. */
+        public boolean layered() { return this == MOTTLE || this == SINGE || this == WEATHER; }
+
+        ScorchShading.Style shading() {
+            return switch (this) {
+                case SINGE -> ScorchShading.Style.SINGE;
+                case WEATHER -> ScorchShading.Style.WEATHER;
+                default -> ScorchShading.Style.MOTTLE;
+            };
+        }
+    }
 
     /** How big the flames stand. */
     public enum Flames {
@@ -56,7 +72,8 @@ public final class FireRenderSystem {
     private static final float DETAIL_CELL_PX = 10f;
 
     private final BattleSprites sprites;
-    private final Scorch scorchStyle = parse(Scorch.class, SCORCH_PROPERTY, Scorch.CHAR);
+    private static final Scorch SCORCH_STYLE = parse(Scorch.class, SCORCH_PROPERTY, Scorch.CHAR);
+    private final Scorch scorchStyle = SCORCH_STYLE;
     private final Flames flameStyle = parse(Flames.class, FLAMES_PROPERTY, Flames.RESTRAINED);
     private final RenderSystem scorch = RenderSystem.of(RenderLayer.DECALS, this::collectScorch);
     private final RenderSystem flames = RenderSystem.of(RenderLayer.HAZARDS, this::collectFlames);
@@ -68,6 +85,9 @@ public final class FireRenderSystem {
 
     public static boolean enabled() { return ENABLED; }
 
+    /** The scorch style this run draws. */
+    public static Scorch scorchStyle() { return SCORCH_STYLE; }
+
     public RenderSystem scorch() { return scorch; }
 
     public RenderSystem flames() { return flames; }
@@ -76,7 +96,7 @@ public final class FireRenderSystem {
 
     private void collectScorch(RenderContext ctx, DrawList out) {
         FireField field = ENABLED ? ctx.sim.fireFieldIfPresent() : null;
-        if (field == null || field.revision() == 0) return;
+        if (field == null || field.revision() == 0 || scorchStyle.layered()) return;
         BattleCamera camera = ctx.camera;
         float cellPx = camera.cellPxSize();
         VisibleCellRect view = camera.visibleCells(1, field.width(), field.height());

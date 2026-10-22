@@ -41,9 +41,9 @@ public final class LootSettlementPlanner {
             int kept = Math.min(stack.quantity, fits);
             int fenced = stack.quantity - kept;
             int fencedCredits = fenceCredits(stack.unitValue, fenced);
-            lines.add(new LootSettlementLine(index, stack, bucket, kept, fenced, fencedCredits));
-
             float consumed = kept * unitSpace;
+            lines.add(new LootSettlementLine(index, stack, bucket, kept, fenced, fencedCredits, consumed));
+
             switch (bucket) {
                 case FUEL:      fuelLeft = Math.max(0f, fuelLeft - consumed); break;
                 case PERSONNEL: personnelLeft = Math.max(0f, personnelLeft - consumed); break;

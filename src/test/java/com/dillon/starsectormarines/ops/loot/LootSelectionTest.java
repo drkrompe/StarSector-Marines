@@ -11,17 +11,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class LootSelectionTest {
 
     @Test
-    void enforcesBudgetAndReleasesValueWhenDeselected() {
+    void startsWithEveryStackTheBudgetCoversInManifestOrder() {
         LootSelection selection = new LootSelection(manifest(900));
 
-        assertTrue(selection.toggle(0));
-        assertEquals(600, selection.selectedValue());
+        assertEquals(Arrays.asList(0, 2), selection.selectedIndices());
+        assertEquals(900, selection.selectedValue());
         assertFalse(selection.canSelect(1));
         assertFalse(selection.toggle(1));
-        assertTrue(selection.canSelect(2));
-        assertTrue(selection.toggle(2));
-        assertEquals(900, selection.selectedValue());
-        assertEquals(Arrays.asList(0, 2), selection.selectedIndices());
+    }
+
+    @Test
+    void enforcesBudgetAndReleasesValueWhenDeselected() {
+        LootSelection selection = new LootSelection(manifest(900));
 
         assertTrue(selection.toggle(0));
         assertEquals(300, selection.selectedValue());
