@@ -199,8 +199,8 @@ a world whose arc stops runs on the ordinary bloom clock. A scripted **sector
 threat** remains a possible authored instance of the same beats on a named
 world (`RavBloomSystem.wakeAt`), not the trigger.
 `bloom-mission-arc.md` is the direction for movements 2 and 3 and the sector
-threat: the Cordon (the Line and the Road as variants), the heart (a broad
-front behind a walking barrage and a burn line), what each reuses, candidate
+threat: the Cordon (the Line and the Road as variants), the heart (Broad Front
+and The Burn as variants), what each reuses, candidate
 stories, how one beat feeds the next, and the clock and gate hooks the beats
 need from this lifecycle.
 
