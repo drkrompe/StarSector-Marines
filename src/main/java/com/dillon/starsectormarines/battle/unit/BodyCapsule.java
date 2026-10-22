@@ -33,27 +33,36 @@ public final class BodyCapsule {
 
     /** Whether {@code type} is drawn long enough to be shoved as a capsule. */
     public static boolean isElongated(UnitType type) {
-        return halfLength(type) > 0f;
+        return type == UnitType.SWARM_RUNNER;
     }
 
-    /** Half the segment's length, cells; {@code 0} for a round body. */
-    public static float halfLength(UnitType type) {
-        return type == UnitType.SWARM_RUNNER ? RUNNER_HALF_LENGTH : 0f;
+    /**
+     * Half the segment's length, cells; {@code 0} for a round body. A swarm
+     * body's capsule scales linearly with its growth stage
+     * ({@link SwarmStage#scale(UnitType)}); {@code null} reads as an adult.
+     */
+    public static float halfLength(UnitType type, SwarmStage stage) {
+        return isElongated(type) ? RUNNER_HALF_LENGTH * SwarmStage.of(stage).scale(type) : 0f;
     }
 
     /** How far ahead of the sim position the segment's midpoint sits, cells. */
-    public static float forwardOffset(UnitType type) {
-        return type == UnitType.SWARM_RUNNER ? RUNNER_FORWARD_OFFSET : 0f;
+    public static float forwardOffset(UnitType type, SwarmStage stage) {
+        return isElongated(type) ? RUNNER_FORWARD_OFFSET * SwarmStage.of(stage).scale(type) : 0f;
     }
 
-    /** The swept radius, cells: the body's own radius for a round body. */
-    public static float radius(UnitType type, float bodyRadius) {
-        return type == UnitType.SWARM_RUNNER ? RUNNER_RADIUS : bodyRadius;
+    /**
+     * The swept radius, cells. A round body's is its own radius, except a
+     * swarm body's, which is its stage's drawn radius: an elder Brute is
+     * capped under half a cell to the grid and shoved at its full size.
+     */
+    public static float radius(UnitType type, float bodyRadius, SwarmStage stage) {
+        if (isElongated(type)) return RUNNER_RADIUS * SwarmStage.of(stage).scale(type);
+        return type.isSwarm() ? SwarmStage.of(stage).drawnRadius(type) : bodyRadius;
     }
 
     /** Farthest the capsule reaches from the sim position, cells. */
-    public static float reach(UnitType type, float bodyRadius) {
-        return Math.abs(forwardOffset(type)) + halfLength(type) + radius(type, bodyRadius);
+    public static float reach(UnitType type, float bodyRadius, SwarmStage stage) {
+        return Math.abs(forwardOffset(type, stage)) + halfLength(type, stage) + radius(type, bodyRadius, stage);
     }
 
     /**

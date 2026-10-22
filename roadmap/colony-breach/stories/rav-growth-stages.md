@@ -1,10 +1,10 @@
 # Rav growth stages
 
-Status: DESIGN — owner answered the round-1 questions (below); no mechanics built
+Status: IN PROGRESS — plan step 1 (stage on the body, stats, size) built
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — owner decisions: weighted population, elder treatment A (pale spine ridge, scars), elder Brute squeezes, whelps bolt.
+Updated: 2026-10-21 — step 1 built; per-stage numbers are plain constants in `SwarmStageStats`, as the Brute's are in `BruteChargeRules` (owner moved the Brute off switches), with the two controls kept as switches; owner picked elder treatment A (pale spine ridge, scars).
 
 Model: `colony-breach-nouns.md` (Swarm strain: Growth stage, Pack leader; Bore tier; Spawning surge; Harvest).
 

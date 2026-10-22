@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.combat.StaggerService.Cause;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.SwarmStage;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 /**
@@ -10,7 +11,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
  */
 final class BruteChargeRules {
 
-    /** Cells per second at a charge; the walk is the unit type's own speed. */
+    /** Cells per second at an adult's charge; a stage's own is {@link SwarmStageStats#bruteChargeSpeed}. */
     static final float CHARGE_SPEED = 4.0f;
     /** A target nearer than this is struck, not charged. */
     static final float MIN_BAND = 3f;
@@ -88,6 +89,60 @@ final class BruteChargeRules {
      */
     record Outcome(float throwCells, float holdSeconds, float bruteStunSeconds, boolean legs, boolean goesOn) {}
 
+    /**
+     * What a charge's hit does at {@code stage}: the weight class the Brute meets is shifted by its
+     * size ({@link #felt}), and the throw and knockdown it deals infantry scale with its momentum.
+     */
+    static Outcome outcome(Kind kind, SwarmStage stage) {
+        Outcome base = outcome(felt(kind, stage));
+        if (kind != Kind.INFANTRY) return base;
+        float m = SwarmStageStats.bruteMomentumRatio(stage);
+        return new Outcome(base.throwCells() * m, base.holdSeconds() * m, base.bruteStunSeconds(), base.legs(),
+                base.goesOn());
+    }
+
+    /**
+     * The weight class a Brute of {@code stage} meets in {@code kind}: a whelp finds every hull and mech one
+     * class heavier (it rebounds off an APC and is stunned), an elder one class lighter (it staggers a heavy
+     * mech an adult only rocks). Infantry and emplacements are what they are.
+     */
+    static Kind felt(Kind kind, SwarmStage stage) {
+        int shift = switch (SwarmStage.of(stage)) {
+            case WHELP -> 1;
+            case ADULT -> 0;
+            case ELDER -> -1;
+        };
+        if (shift == 0) return kind;
+        return switch (kind) {
+            case INFANTRY, EMPLACEMENT -> kind;
+            case LIGHT_VEHICLE, MEDIUM_VEHICLE, HEAVY_VEHICLE -> shiftWithin(kind, shift,
+                    Kind.LIGHT_VEHICLE, Kind.HEAVY_VEHICLE);
+            case LIGHT_MECH, MEDIUM_MECH, HEAVY_MECH -> shiftWithin(kind, shift, Kind.LIGHT_MECH, Kind.HEAVY_MECH);
+        };
+    }
+
+    private static Kind shiftWithin(Kind kind, int shift, Kind lightest, Kind heaviest) {
+        int i = Math.max(lightest.ordinal(), Math.min(heaviest.ordinal(), kind.ordinal() + shift));
+        return Kind.values()[i];
+    }
+
+    /** Bodies a charge at {@code stage} goes through: a whelp's stops on the first, an elder's goes through three. */
+    static int maxBodies(SwarmStage stage) {
+        return switch (SwarmStage.of(stage)) {
+            case WHELP -> 0;
+            case ADULT -> MAX_BODIES;
+            case ELDER -> 3;
+        };
+    }
+
+    /**
+     * What a charge at {@code stage} does to a light wall: the adult's {@link #WALL_BLOW} scaled by momentum.
+     * No stage breaks a fortified wall; that is a law of which walls a charge damages, not of this number.
+     */
+    static int wallBlow(SwarmStage stage) {
+        return Math.round(WALL_BLOW * SwarmStageStats.bruteMomentumRatio(stage));
+    }
+
     static Outcome outcome(Kind kind) {
         return switch (kind) {
             case INFANTRY -> new Outcome(THROW, KNOCKDOWN, 0f, false, true);
@@ -157,7 +212,12 @@ final class BruteChargeRules {
      * momentum conserved between two point masses, bouncing by {@link #RESTITUTION}.
      */
     static float pointPush(float speed, float mass) {
-        return (1f + RESTITUTION) * speed / (1f / MASS + 1f / mass) / mass;
+        return pointPush(speed, MASS, mass);
+    }
+
+    /** {@link #pointPush(float, float)} for a Brute of {@code bruteMass} tonnes. */
+    static float pointPush(float speed, float bruteMass, float mass) {
+        return (1f + RESTITUTION) * speed / (1f / bruteMass + 1f / mass) / mass;
     }
 
     /** Speed a body must leave at to slide {@code cells} against a deceleration of {@code decel}. */
