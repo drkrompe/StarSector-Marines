@@ -249,7 +249,8 @@ class HeartEvidenceTest {
 
     private static List<String> selectedFixtures() {
         String selected = System.getProperty(PREFIX + "fixture.path", "").trim();
-        return selected.isBlank() ? MATRIX : List.of(selected);
+        // Several fixtures, separated by ';', play side by side like the matrix does.
+        return selected.isBlank() ? MATRIX : List.of(selected.split(";"));
     }
 
     private static String fixtureId(String selected) {

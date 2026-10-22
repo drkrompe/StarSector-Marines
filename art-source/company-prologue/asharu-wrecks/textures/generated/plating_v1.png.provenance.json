@@ -1,0 +1,34 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16569-98fa-7401-9048-a0800394b98c",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16569-98fa-7401-9048-a0800394b98c\\exec-102ac454-df92-48c8-8e91-da74ee1126d9.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "textures\\generated\\plating_v1.png",
+    "sha256": "32321c642c20510f879a54226c3f33fb7cfef6ecfda705e29d3294caf37bdf4f",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "textures\\prompts\\plating.prompt.txt",
+  "promptSha256": "5276d958125b52019cc261ca63e81a358a21968d341e91fa96b40847c0dbb5f5",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nUse case: texture map generation for a 3D model. One square, seamless, tileable albedo (diffuse) texture of old spaceship hull plating that has drifted dead in hard vacuum sunlight for a century.\n\nMaterial: thick painted steel armour plate. The paint is sun-bleached and chalky, faded to a pale, dusty, nearly colourless grey-tan, flaking in small irregular patches to a darker primer and, in a few places, to dull bare metal. The whole surface is covered evenly in fine pitting and tiny micrometeoroid craters (a few millimetres to a few centimetres), faint radial scratch fans, faint streaks of fine grit, and a few thin hairline cracks in the paint. A couple of thin, faint plate seams with small flush fasteners may cross the square, but nothing dominates.\n\nRules:\n- Seen square-on, filling the whole square edge to edge; it will be tiled many times, so the detail is small and evenly spread, with no single large feature, nothing centred, and no seam, stain or crack running along an edge.\n- Albedo only: flat, even, shadowless lighting. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no vignette, no gradient across the square, no border.\n- Mostly neutral in colour: grey-tan paint, near-black primer flecks, dull steel. No rust-orange areas, no soot, no scorch, no burns, no glow, no markings, letters, numbers or stripes.\nOutput: one square 1:1 image.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one square, seamless albedo texture with fine, evenly distributed wear and flat lighting."
+  ],
+  "usage": {
+    "input_tokens": 37132,
+    "cached_input_tokens": 30464,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 407,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 52.6
+}

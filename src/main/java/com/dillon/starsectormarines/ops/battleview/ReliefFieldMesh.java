@@ -129,6 +129,14 @@ final class ReliefFieldMesh {
 
         /** This cell has no derived art and writes {@code (r, g, b, a)} flat. */
         void solid(float r, float g, float b, float a);
+
+        /**
+         * The red channel at the cell's four corners instead of one value over
+         * it, in vertex order: {@code (x, y)}, {@code (x+1, y)},
+         * {@code (x+1, y+1)}, {@code (x, y+1)}. Applies to the quad or solid
+         * this cell places next.
+         */
+        void cornerRed(float r0, float r1, float r2, float r3);
     }
 
     /** Resolves one cell's single quad. Every cell resolves to exactly one. */
@@ -461,12 +469,24 @@ final class ReliefFieldMesh {
         private int gx;
         private int gy;
         private boolean placed;
+        private boolean cornered;
+        private final float[] corners = new float[4];
 
         void begin(int cell, int gx, int gy) {
             this.cell = cell;
             this.gx = gx;
             this.gy = gy;
             this.placed = false;
+            this.cornered = false;
+        }
+
+        @Override
+        public void cornerRed(float r0, float r1, float r2, float r3) {
+            cornered = true;
+            corners[0] = r0;
+            corners[1] = r1;
+            corners[2] = r2;
+            corners[3] = r3;
         }
 
         /** Anything the resolver did not claim gives up whatever slot it held. */
@@ -487,6 +507,7 @@ final class ReliefFieldMesh {
             Bucket bucket = bucketFor(sheet, sheetPxW, sheetPxH);
             int slot = seat(bucket);
             bucket.write(slot, gx, gy, srcX, srcY, srcW, srcH, r, g, b, a);
+            if (cornered) bucket.writeRed(slot, corners);
         }
 
         @Override
@@ -496,6 +517,7 @@ final class ReliefFieldMesh {
             Bucket bucket = buckets.get(0);
             int slot = seat(bucket);
             bucket.writeSolid(slot, gx, gy, r, g, b, a);
+            if (cornered) bucket.writeRed(slot, corners);
         }
 
         private int seat(Bucket bucket) {
@@ -633,6 +655,12 @@ final class ReliefFieldMesh {
                 col[at] = cr; col[at + 1] = cg; col[at + 2] = cb; col[at + 3] = ca;
                 at += 4;
             }
+        }
+
+        /** Overwrites the red byte of each of a slot's vertices; the slot is already marked dirty. */
+        void writeRed(int slot, float[] reds) {
+            int at = slot * 16;
+            for (int vertex = 0; vertex < 4; vertex++) col[at + vertex * 4] = channel(reds[vertex]);
         }
 
         private void markDirty(int slot) {

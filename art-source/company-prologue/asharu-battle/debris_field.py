@@ -92,12 +92,14 @@ def half_along(half, r, d):
     return sum(abs(sum(r[i][k] * d[i] for i in range(3))) * half[k] for k in range(3))
 
 
-def cover_piece(name, ship, length, toward, kind, peek=0.0, seed=0, t0=0.0, rate=.15):
+def cover_piece(name, ship, length, toward, kind, peek=0.0, seed=0, t0=0.0, rate=.15, size=None):
     """A wreck the ship hides behind: between her and `toward` (unit, the convoy's direction), at
     least her size, its long axis along hers, shifted back along her axis by peek x length so her
     nose shows past its end (negative: her drives show past its other end). kind: 'hulk' (a long
     broken hull with a snapped-off end and spars), 'block' (a squat cargo section), 'slab' (a broad
-    deck plate face-on to the convoy, with ribs)."""
+    deck plate face-on to the convoy, with ribs). size: the main box's full (length, width,
+    height) in metres, in place of the proportions of her length: a real hull section's size (the
+    wreck kit's hulks)."""
     rnd = random.Random(seed)
     x, y, z, hd, pt, rl = ship[:6]
     rs = rot(hd, pt, rl)
@@ -109,6 +111,8 @@ def cover_piece(name, ship, length, toward, kind, peek=0.0, seed=0, t0=0.0, rate
     else:
         r = mul(rs, rot(rnd.uniform(-8, 8), rnd.uniform(-6, 6), rnd.uniform(-10, 10)))
         main = (.68 * L, .48 * L, .30 * L) if kind == 'hulk' else (.6 * L, .55 * L, .45 * L)
+    if size:
+        main = tuple(d / 2 for d in size)
     ship_half = tuple(f * L for f in SHIP_HALF)
     gap = half_along(ship_half, rs, toward) + half_along(main, r, toward) + .04 * L + 6
     c = tuple(p + toward[i] * gap - nose[i] * peek * L for i, p in enumerate((x, y, z)))
@@ -178,6 +182,24 @@ def field_pieces(seed, n, extent, keep_out, t0=0.0):
             continue
         out.append(p)
     return out
+
+
+def free_hulk(name, size, candidates, keep_out, others, seed=0, t0=0.0, rate=.1):
+    """One free-standing hulk of full size (length, width, height): at the first candidate centre
+    whose bounds clear every keep-out sphere [(centre, radius)] and every other piece, or None."""
+    rnd = random.Random(seed)
+    half = tuple(d / 2 for d in size)
+    for c in candidates:
+        r = rot(rnd.uniform(0, 360), rnd.uniform(-30, 30), rnd.uniform(0, 360))
+        p = Piece(name, c, [((0, 0, 0), half, r)],
+                  axis=(rnd.gauss(0, 1), rnd.gauss(0, 1), rnd.gauss(0, 1)), rate=rate, t0=t0)
+        rad = p.radius()
+        if any(math.dist(c, kc) < rad + kr for kc, kr in keep_out):
+            continue
+        if any(math.dist(c, o.centre) < rad + o.radius() for o in others):
+            continue
+        return p
+    return None
 
 
 def ray_box(o, d, c, half, r):

@@ -74,6 +74,11 @@ tenths of a degree a second, plates at several. Nothing in it is a sphere.
 with gashes in its side and a stub of superstructure; an open hull section ragged at both ends;
 a bent, torn plate with holes; a kinked truss spar; or a crumpled block torn open at one corner.
 They are blockout shapes. The finished field replaces them with modelled wrecks.
+Some pieces are sized to the wreck kit's hull-derived sections, so a real hulk drops in at its own
+proportions: the Falcon (P)'s cover is 230 x 201 x 112 m (an Onslaught's front section), the
+Wolf (P) B's is 103 x 90 x 45 m (a Colossus hold section), one field section is 112 x 89 x 43 m
+(a stripped Colossus), and a free-standing Onslaught hulk, 293 x 230 x 112 m with its stern torn
+off, lies in the field's north-west corner, clear of the launch corridors and both cameras.
 
 The pirates hide in the field the way a crew would:
 - **The station hides only two:** the Manticore (P) in its south hangar and the Colossus Mk.III

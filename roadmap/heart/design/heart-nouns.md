@@ -125,6 +125,14 @@ round fired from the gun nearest its point, lobbing in on a high, slow arc, so
 the warning is the rounds themselves coming in: a player reads the walk by
 watching where they land. The guns can be killed, and a battery with no gun
 left falls silent. They also defend themselves against what comes at them.
+Each gun is dug into a **gun pit**: a ring of sandbag round it, open at the back
+toward the start edge, manned by a fireteam of gunners who hold the pit under
+the battery's own garrison order and never join the push. The crews are an
+attached detachment on the allied side, so they never keep a broken company's
+battle alive. The
+pits are what the swarm has to come through to reach the guns, and **a battery
+overrun, every gun of it dead before the heart is down, is a loss** (owner,
+2026-10-22): without guns there is no barrage to push the burn under.
 
 **Barrage plan** (The Burn). The battery's timetable, frozen at the
 briefing: a sequence of **barrage lines** across the approach, each a depth
@@ -191,7 +199,7 @@ creep comes up to the cordon's wire and, on some seeds, over a field or two.
 
 Both variants end the same way: **the heart is down when every mother bore of
 it has collapsed** (the company wins), and the company **loses** when it is
-broken or withdraws. Bores are fought, not scripted: nothing in either flow
+broken or withdraws, or, in The Burn, when its battery is overrun. Bores are fought, not scripted: nothing in either flow
 collapses a bore by fiat.
 
 ### Broad Front
@@ -266,7 +274,8 @@ replace the scripting when they exist.
 Keyed `heart.<key>`, published by the battle's one story sequence; presentation
 and evidence, never inputs to the simulation. Both variants publish `start`, `landfall`,
 `bore_collapsed_N` (a satellite), `matriarch_emerged_mother-N`,
-`mother_collapsed_N`, `heart_down` and `company_broken`.
+`mother_collapsed_N`, `heart_down` and `company_broken` (`battery_overrun`
+instead in The Burn when the lost battle's guns are all dead).
 
 | Key | Variant | When |
 | --- | --- | --- |
@@ -278,6 +287,7 @@ and evidence, never inputs to the simulation. Both variants publish `start`, `la
 | `barrage_line_N`, `barrage_lifted_N` | The Burn | a line opens (after its warning); it lifts |
 | `breakout_<bore>` | The Burn | a hurt bore surges (observer-only, recurring) |
 | `barrage_ended` | The Burn | the last line lifts; the guns are done |
+| `battery_overrun` | The Burn | the battle is lost with every gun dead |
 
 ## Laws
 
@@ -314,6 +324,17 @@ on Broad Front, so the other lanes' satellites are the allies' work, and the
 whole approach on The Burn. The director needs no civilians to cover here: it
 spawns only out of the heart's bores from the first tick, and nothing closes it
 but their collapse.
+
+The squads go in on a **frontage**, each to its own cell spread across the
+advance, never all to one: a bunched company is what a Spitter's lobbed acid
+finds. On The Burn the company **follows the barrage**: while its bore lies
+past the line that is firing, it forms on that frontage a safe distance short
+of the line (the shell's danger-close veto plus the line's spread, so the
+company never silences the guns) and comes up as each line lifts; it goes for
+the bore only once the barrage has passed it. The hold is read off the
+timetable frozen at the briefing, never off the shells. It needs no fire rule:
+the burn runs downwind ahead of the line and is out by the time the company
+crosses its ground.
 
 ## Settled choices
 

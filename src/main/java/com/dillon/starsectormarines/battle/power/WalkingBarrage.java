@@ -143,6 +143,11 @@ public final class WalkingBarrage {
         return this;
     }
 
+    /** Whether the battery has been overrun: it had guns and none of them is left. */
+    public boolean overrun(BattleSimulation sim) {
+        return battery != null && guns.length > 0 && nearestGun(sim, 0f, 0f) == 0L;
+    }
+
     /** The line firing now, counted from 1, or 0. */
     public int firingLine() { return current + 1; }
 

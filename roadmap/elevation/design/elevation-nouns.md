@@ -265,8 +265,12 @@ draws.
   up and a ramp by how far up it stands, so a ramp is a slope in the relief
   and the battle's sun casts a plateau's shadow across
   the low ground on its far side and a higher tier's across a lower one, with
-  no shader change. The relief field is per cell, so the shadow's edge steps
-  with the grid on a diagonal cliff.
+  no shader change. Raised ground is read at the cell corners and runs
+  smoothly across each cell (`MacroReliefField.groundCornerMeters`), while
+  what stands on it stays flat per cell: held flat, a plateau is a pile of
+  square blocks to the sun, and its shadow and lit faces step along every
+  diagonal of its outline. The shadow's reach counts the highest tier as well
+  as the tallest building, or a raised ground's shadow is cut short.
 - **Ramps** (the tile look) are a floor of the talus material laid over the ramp's corridor,
   clipped to its sides, in the cap layers so it covers the cliff bands its cut
   would otherwise show.

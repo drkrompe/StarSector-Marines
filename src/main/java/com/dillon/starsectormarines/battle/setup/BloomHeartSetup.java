@@ -1,16 +1,17 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.command.BarrageScreen;
 import com.dillon.starsectormarines.battle.command.HeartAssaultCommand;
 import com.dillon.starsectormarines.battle.command.HeartLane;
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
+import com.dillon.starsectormarines.battle.command.objective.BatteryObjective;
 import com.dillon.starsectormarines.battle.command.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.command.objective.HeartObjective;
 import com.dillon.starsectormarines.battle.evacuation.HeartBores;
 import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.power.WalkingBarrage;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
@@ -86,14 +87,16 @@ public final class BloomHeartSetup {
      * The heart as a mission: the country, bores and bloom of {@link #country},
      * the company coming down by shuttle on the cordon's farmland under its
      * Purge commander, the bores' director and the heart's wake rules, won when
-     * every mother has collapsed and lost when the company is broken.
+     * every mother has collapsed and lost when the company is broken (in The
+     * Burn, also when its battery is overrun).
      */
     public static BattleSimulation mission(Form form, long seed, List<ShuttleAssignment> manifest) {
         if (manifest == null || manifest.isEmpty()) throw new IllegalArgumentException("the heart needs a company to land");
         Built built = country(form, seed);
         BattleSimulation sim = built.sim();
         sim.getBattleResources().disableCompoundProduction();
-        sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
+        // The company is broken when its people are: the Burn's guns standing on do not keep it in the fight.
+        sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE).personnelOnly());
         sim.addObjective(new HeartObjective());
         List<LandingPad> pads = LandingPadSelector.select(built.map(), manifest.size(), BattleSetup.LZ_MIN_SEPARATION);
         BattleSetup.recordLzPads(sim, pads);
@@ -105,8 +108,10 @@ public final class BloomHeartSetup {
             // Dry country and a steady wind toward the heart: the burn runs before it.
             sim.fireField().setTinder(true);
             sim.fireField().setWind(1f, 0f, BURN_WIND);
+            List<Long> guns = burnBattery(sim, form, pads, built.battleSeed());
             barrage = new WalkingBarrage(burnBarrage(), form::cellAt, Faction.MARINE, built.battleSeed() ^ BARRAGE_SALT)
-                    .battery(BURN_BATTERY_STRUCTURE, burnBattery(sim, form, pads));
+                    .battery(BURN_BATTERY_STRUCTURE, guns);
+            sim.addObjective(new BatteryObjective(guns));
         }
         HeartLanes lanes = form == Form.BROAD_FRONT ? alliedLanes(form, built.battleSeed()) : null;
         sim.installHeart(form, barrage, lanes);
@@ -115,7 +120,11 @@ public final class BloomHeartSetup {
         int laneHalfWidth = form == Form.BROAD_FRONT
                 ? Math.round(BROAD_FRONT_LANE_HALF_WIDTH * form.scale.width)
                 : Math.max(form.scale.width, form.scale.height);
-        sim.setAutonomousCommander(Faction.MARINE, new HeartAssaultCommand(new HeartLane(form.advancesAlongY(), laneAcross, laneHalfWidth)),
+        // -Dbattle.heart.followBarrage=false is the control: the company goes straight for its bore.
+        BarrageScreen screen = barrage == null || !Boolean.parseBoolean(System.getProperty("battle.heart.followBarrage", "true"))
+                ? null : burnScreen(form, barrage.plan());
+        sim.setAutonomousCommander(Faction.MARINE,
+                new HeartAssaultCommand(new HeartLane(form.advancesAlongY(), laneAcross, laneHalfWidth), screen),
                 HeartAssaultCommand.DISCLOSURE);
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(HeartAssaultCommand.ISSUER, "Company support joins the push"));
         return sim;
@@ -150,38 +159,46 @@ public final class BloomHeartSetup {
 
     /**
      * Digs The Burn's battery in on the start line, one gun at each share
-     * across, each on the nearest open cell clear of the landing pads, and
-     * returns their ids. The guns are the company's: they fire the barrage and
-     * defend themselves, and the swarm can kill them.
+     * across, each in a sandbagged pit clear of the landing pads with a crew of
+     * the company's gunners holding it ({@link BurnBattery}), and returns the
+     * guns' ids. The guns fire the barrage and defend themselves, and the swarm
+     * can kill them: a battery with none left is overrun, and the battle lost.
      */
-    static List<Long> burnBattery(BattleSimulation sim, Form form, List<LandingPad> pads) {
-        List<Long> guns = new ArrayList<>();
-        for (int i = 0; i < BURN_BATTERY_ACROSS.length; i++) {
-            int[] want = form.cellAt(BURN_BATTERY_DEPTH, BURN_BATTERY_ACROSS[i]);
-            int[] cell = openCellNear(sim, pads, want[0], want[1]);
-            if (cell == null) continue;
-            guns.add(sim.spawn(MapTurret.create("burn-battery-" + (i + 1), Faction.MARINE, BURN_BATTERY_STRUCTURE,
-                    cell[0], cell[1])));
-        }
-        return guns;
+    static List<Long> burnBattery(BattleSimulation sim, Form form, List<LandingPad> pads, long seed) {
+        return BurnBattery.dig(sim, form, pads, BURN_BATTERY_STRUCTURE, BURN_BATTERY_DEPTH, BURN_BATTERY_ACROSS,
+                seed ^ BATTERY_SALT);
     }
 
-    private static int[] openCellNear(BattleSimulation sim, List<LandingPad> pads, int x0, int y0) {
-        int w = sim.getGrid().getWidth(), h = sim.getGrid().getHeight();
-        for (int r = 0; r < 12; r++) {
-            for (int dy = -r; dy <= r; dy++) for (int dx = -r; dx <= r; dx++) {
-                if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
-                int x = x0 + dx, y = y0 + dy;
-                if (x < 1 || y < 1 || x >= w - 1 || y >= h - 1 || !sim.getGrid().isWalkable(x, y)) continue;
-                boolean onPad = false;
-                for (LandingPad pad : pads) {
-                    if (x >= pad.left() - 2 && x <= pad.right() + 2 && y >= pad.bottom() - 2 && y <= pad.top() + 2) onPad = true;
-                }
-                if (!onPad) return new int[]{x, y};
-            }
+    private static final long BATTERY_SALT = 0x4755_4E50_4954_5321L;
+    /**
+     * How far short of the firing line The Burn's company stands: the shell's
+     * own danger-close veto (blast, margin and the walk a body makes while a round
+     * flies across the map) plus the line's spread, so the company is never what
+     * stops the guns.
+     */
+    static final int BURN_FOLLOW_CELLS = 18;
+    /** Where The Burn's company forms up before the guns have walked off the first line: on its own farmland. */
+    static final float BURN_FORM_UP_DEPTH = 0.15f;
+
+    /** The Burn's company following its barrage: each line's ground along the advance and its timetable. */
+    static BarrageScreen burnScreen(Form form, WalkingBarrage.Plan plan) {
+        int axis = form.advancesAlongY() ? 1 : 0;
+        int sign = Integer.signum(form.cellAt(1f, 0.5f)[axis] - form.cellAt(0f, 0.5f)[axis]);
+        List<WalkingBarrage.Line> lines = plan.lines();
+        int[] along = new int[lines.size()], open = new int[lines.size()], lift = new int[lines.size()];
+        for (int i = 0; i < lines.size(); i++) {
+            WalkingBarrage.Line line = lines.get(i);
+            along[i] = form.cellAt(line.depth(), 0.5f)[axis];
+            open[i] = Math.round(line.openSeconds() / BattleSimulation.TICK_DT);
+            lift[i] = Math.round((line.openSeconds() + line.fireSeconds()) / BattleSimulation.TICK_DT);
         }
-        return null;
+        if (!Boolean.parseBoolean(System.getProperty("battle.heart.holdBack", "true")) || lines.isEmpty())
+            return new BarrageScreen(form.advancesAlongY(), sign, along, open, lift, BURN_FOLLOW_CELLS);
+        // The company forms on the cordon's open farmland, out of the surges' path, until the first line lifts.
+        return new BarrageScreen(form.advancesAlongY(), sign, along, open, lift, BURN_FOLLOW_CELLS,
+                form.cellAt(BURN_FORM_UP_DEPTH, 0.5f)[axis], lift[0]);
     }
+
     private static final long BARRAGE_SALT = 0x4255_524E_4241_5252L;
     /** The first line opens once the company is down and formed, just past the near ride. */
     static final float BURN_FIRST_OPEN_SECONDS = 40f;

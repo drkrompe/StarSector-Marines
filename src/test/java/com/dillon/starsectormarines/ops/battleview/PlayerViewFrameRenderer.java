@@ -132,6 +132,17 @@ public final class PlayerViewFrameRenderer {
         }
     }
 
+    /** Where cell point {@code (x, y)} lands in a rendered image, for evidence drawn over a frame. */
+    public float[] cellToImage(BattleSimulation simulation, float x, float y) {
+        BattleCamera camera = cameraFor(width, height, simulation);
+        return new float[]{camera.cellToScreenX(x), height - camera.cellToScreenY(y)};
+    }
+
+    /** One cell's width in a rendered image. */
+    public float cellPx(BattleSimulation simulation) {
+        return cameraFor(width, height, simulation).cellPxSize();
+    }
+
     private static Font captionFont(Graphics2D graphics, String caption, int available) {
         for (int points = MAX_CAPTION_POINTS; points > MIN_CAPTION_POINTS; points--) {
             Font candidate = new Font(Font.SANS_SERIF, Font.BOLD, points);
