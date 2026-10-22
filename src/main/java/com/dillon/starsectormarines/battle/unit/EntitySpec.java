@@ -71,6 +71,8 @@ public final class EntitySpec {
     /** Which aircraft this hull is, for a based aircraft; null otherwise. */
     public Airframe airframe;
     public LayeredArmorFamily layeredArmorFamily;
+    /** A swarm body's growth stage; null reads as an adult. */
+    public SwarmStage swarmStage;
     public ArmorClass armorClass = ArmorClass.STANDARD;
     public Objective assignedObjective;
     public int homeCellX = -1;
@@ -161,6 +163,9 @@ public final class EntitySpec {
      * as {@link #mechVariant}: geometry comes from the per-instance thing.
      */
     public EntitySpec airframe(Airframe airframe) { this.airframe = airframe; return this; }
+
+    /** Issues a swarm body its growth stage; its size follows it ({@link BodyRadius}). */
+    public EntitySpec swarmStage(SwarmStage stage) { this.swarmStage = stage; return this; }
 
     public EntitySpec moveSpeed(float v) { this.moveSpeed = v; return this; }
     public EntitySpec hp(float v) { this.hp = v; return this; }

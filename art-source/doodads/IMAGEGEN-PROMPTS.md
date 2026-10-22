@@ -233,10 +233,12 @@ perspective camera; no clipped edges
 
 Per-master primary requests and material details:
 
-- `residential-bed.png`: a compact civilian single bed for a modest futuristic
-  apartment; narrow overhead bed, simple metal frame, muted teal blanket,
-  off-white pillow, tiny folded personal item at the foot; painted metal, worn
-  fabric, warm-gray and small rust accents.
+- `residential-bed.png`: superseded. The bed is now real length (a 0.72 x 2.1 m
+  single in a 3x1 frame): a geometry-first reskin of `ResidentialBedTemplate`'s
+  guide at 320 px per cell, with the old master as material reference. The brief
+  is `residential-bed.prompt.txt`, the untouched output
+  `imagegen-raw/residential-bed.png` with its provenance, and the master is the
+  generation's frame mapped box to box onto the guide's.
 - `residential-sofa.png`: a compact two-seat civilian sofa for a modest
   futuristic apartment; low overhead sofa, worn olive upholstery, squared
   arms, subtle seam divisions, charcoal/warm-gray compact metal frame.

@@ -27,10 +27,11 @@ class WorkMotionsTest {
         assertEquals(WorkMotion.ROW, WorkMotions.forJob(Affordance.EXERCISE, "doodad.gym-ergometer"));
         assertEquals(WorkMotion.PRESS, WorkMotions.forJob(Affordance.EXERCISE, "ship-gym.bench-press"));
         assertEquals(WorkMotion.LIFT, WorkMotions.forJob(Affordance.EXERCISE, null));
-        // Asleep only in a bunk long enough to lie in.
+        // Asleep only in a bed long enough to lie in.
         assertEquals(WorkMotion.SLEEP,
                 WorkMotions.forJob(Affordance.REST, "barracks-bunks.bed barracks-bunks.bedding-low"));
-        assertEquals(WorkMotion.NONE, WorkMotions.forJob(Affordance.REST, "doodad.residential-bed-v"));
+        assertEquals(WorkMotion.SLEEP, WorkMotions.forJob(Affordance.REST, "doodad.residential-bed-v"));
+        assertEquals(WorkMotion.NONE, WorkMotions.forJob(Affordance.REST, "doodad.chest-1"));
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.evacuation.BruteChargeRules.Kind;
 import com.dillon.starsectormarines.battle.evacuation.BruteChargeRules.Outcome;
+import com.dillon.starsectormarines.battle.unit.SwarmStage;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import org.junit.jupiter.api.Test;
 
@@ -60,5 +61,32 @@ class BruteChargeRulesTest {
         assertEquals(Kind.LIGHT_MECH, BruteChargeRules.mechKind(.8f));
         assertEquals(Kind.MEDIUM_MECH, BruteChargeRules.mechKind(1.2f));
         assertEquals(Kind.HEAVY_MECH, BruteChargeRules.mechKind(1.8f));
+    }
+
+    @Test
+    void aBrutesStageShiftsTheWeightItMeets() {
+        assertEquals(Kind.HEAVY_VEHICLE, BruteChargeRules.felt(Kind.MEDIUM_VEHICLE, SwarmStage.WHELP),
+                "a whelp meets an APC as an adult meets a tank");
+        assertTrue(BruteChargeRules.outcome(Kind.MEDIUM_VEHICLE, SwarmStage.WHELP).bruteStunSeconds() > 0f);
+        assertEquals(Kind.MEDIUM_MECH, BruteChargeRules.felt(Kind.HEAVY_MECH, SwarmStage.ELDER),
+                "an elder staggers a heavy mech");
+        assertEquals(Kind.LIGHT_MECH, BruteChargeRules.felt(Kind.LIGHT_MECH, SwarmStage.ELDER), "no lighter class");
+        for (Kind kind : Kind.values()) {
+            assertEquals(kind, BruteChargeRules.felt(kind, SwarmStage.ADULT));
+            assertEquals(BruteChargeRules.outcome(kind), BruteChargeRules.outcome(kind, SwarmStage.ADULT));
+        }
+        assertEquals(Kind.INFANTRY, BruteChargeRules.felt(Kind.INFANTRY, SwarmStage.WHELP));
+    }
+
+    @Test
+    void anOlderChargeHitsHarderAndGoesThroughMore() {
+        assertTrue(BruteChargeRules.maxBodies(SwarmStage.WHELP) < BruteChargeRules.maxBodies(SwarmStage.ADULT));
+        assertTrue(BruteChargeRules.maxBodies(SwarmStage.ELDER) > BruteChargeRules.maxBodies(SwarmStage.ADULT));
+        assertEquals(BruteChargeRules.WALL_BLOW, BruteChargeRules.wallBlow(SwarmStage.ADULT));
+        assertTrue(BruteChargeRules.wallBlow(SwarmStage.ELDER) > BruteChargeRules.WALL_BLOW);
+        assertTrue(BruteChargeRules.outcome(Kind.INFANTRY, SwarmStage.ELDER).throwCells()
+                > BruteChargeRules.outcome(Kind.INFANTRY).throwCells());
+        assertTrue(BruteChargeRules.pointPush(4f, 5.4f, 10f) > BruteChargeRules.pointPush(4f, 10f),
+                "a heavier Brute moves a mech further");
     }
 }

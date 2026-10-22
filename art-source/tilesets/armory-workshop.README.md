@@ -8,11 +8,11 @@ fallback props; ground-side armories keep their existing fitting.
 
 ## Geometry and layers
 
-The raw is two generations side by side (2508x1254). The left half is the
+The raw is three generations side by side (4044x1254). The first 1254 px are the
 original built-in ImageGen reskin of the first guide (1024 square, 96 px source
 cells), with `warehouse-racks-muted.raw.png` as material reference and the
 request in `armory-workshop.prompt.txt`: the 2x1 counter, the 3x1 weapon bed,
-rifles and retaining frame, and the 2x2 ammunition cabinet. Its spacing differs
+rifles and retaining frame, and a 2x2 ammunition cabinet no longer cut. Its spacing differs
 from that guide, so measured component canvases register the overlays to their
 bases.
 
@@ -28,11 +28,26 @@ full placement frames. `real-scale-montage.py` joins the halves without
 touching a pixel. Each piece's worked face is its bottom edge: drawers and
 locker doors face the aisle below, the row a user stands on.
 
+From x=2508 is the ammunition cabinet, redone the same way. The original was a
+front elevation filling a 2x2 frame, a cabinet 1.5 m square seen face on; it
+is now the lid of a sealed 1.0 x 0.6 m cabinet seen from above, a 2x1 frame
+with its two door edges on the bottom face
+(`ArmoryWorkshopTemplate.renderAmmunition`, 320 px per cell on a 1536x1024
+canvas, brief `armory-workshop-ammo.prompt.txt`, provenance
+`armory-workshop-ammo.provenance.json`). The first generation came back 1.9x
+too large; naming the guide's pixel bounds in the brief brought the second
+within 2 px. Every fitting stands it so it is worked from the row below: the
+ship and ground armories from the rack alley side, the fort magazine from the
+aisle beneath it against the door wall.
+
 The exporter downsamples to 64px per world cell, preserving alpha. No height or
 normal companions are present. The damaged and destroyed pairs of the three
 refit pieces are their own generation, from `ComposableDamageTemplate` over
 `art-source/console-bank/damage/armory-workshop-refit.tsv`, joined the same way
-onto the right of `armory-workshop-damage.raw.png`.
+onto the right of `armory-workshop-damage.raw.png`. The ammunition cabinet's
+pair follows from x=2790, generated over `armory-workshop-ammo.tsv` with
+`armory-workshop-ammo-damage.prompt.txt` (two columns, the right one empty, so
+the guide is square).
 
 Weapon racks draw bed, rifles, then retaining frame. The workbench draws its
 empty top and rubber mat before the rifle, vise and organized tools. These
@@ -49,6 +64,7 @@ Set `JAVA_HOME` as documented in `CLAUDE.md`, then:
 
 ```powershell
 & "$env:JAVA_HOME/bin/java.exe" src/test/java/com/dillon/starsectormarines/tools/tilesetauthoring/ArmoryWorkshopTemplate.java art-source/templates/armory-workshop.png
+& "$env:JAVA_HOME/bin/java.exe" src/test/java/com/dillon/starsectormarines/tools/tilesetauthoring/ArmoryWorkshopTemplate.java art-source/templates/armory-workshop-ammo.png ammunition
 python art-source/templates/real-scale-montage.py <original-raw.png> <refit.png> art-source/tilesets/armory-workshop.raw.png
 '{"name":"armory-workshop"}' | .\tools\authoring.cmd tileset_export -
 .\gradlew.bat createSnapshots '-Psnapshot=ship-materials'

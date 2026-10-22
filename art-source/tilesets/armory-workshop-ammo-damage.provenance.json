@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a160ee-39d6-79a3-81a3-3742a16d0558",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a160ee-39d6-79a3-81a3-3742a16d0558\\exec-f6d08db7-c606-475e-a78a-b3406338c6be.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\561be886-e0cc-4b42-8e2f-ae131b00542f\\scratchpad\\ammo-damage-gen.png",
+    "sha256": "062f796594b76cb92e950498bb849a40ab501ab2fcf901f87036ab049f4cad11",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\armory-workshop-ammo-damage.prompt.txt",
+  "promptSha256": "fac1d87f48151d4092f6ff71410a175e747472a908ac3d5979bb3af255e92268",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Authoritative damage geometry guide and edit target\nImage 2: Intact material and object reference, aligned in the same slots\n\nEdit the FIRST image, a geometry-locked sprite atlas. The SECOND image supplies the intact materials and identity for the same slot. Preserve the exact canvas, grid, slot centers, object orientation, footprint and scale: the piece is a small rectangle a little under twice as long as it is deep, and must stay exactly that long and that shallow; do not make it deeper or larger. Orthographic straight overhead, no perspective or cast shadows, gritty detailed military science fiction metal, matching the reference. True transparent RGBA background and gutters. No text, labels, captions, floor tiles, borders or extra objects. Two equal columns and two equal rows; only the left column holds a piece, and the right column stays completely empty and transparent. Top left: the sealed ammunition cabinet seen from above, DAMAGED, retaining its recognizable standing outline and the reference surface identity (sage lid panels, graphite rim, two door edges with silver pulls along the bottom), adding dents, scorches, a buckled lid panel and a sprung door edge. Bottom left: the same cabinet DESTROYED: replace it with LOW collapsed separated fragments within its original footprint, following the sparse fragment guide, with transparent gaps between fragments, no intact box shell; a few spilled ammunition boxes may lie among the plates. Preserve all whitespace, do not enlarge the object or move it between slots. Respect the width/height of the guide silhouette exactly. Damage is structural wear and fracture; no fire, no smoke, no people.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\console-bank\\damage\\armory-workshop-ammo-guide.png",
+      "sha256": "5455e8a7656f898db35a08428e2803f4e009634c5e917deaaebdb28e29f4b6a2",
+      "dimensions": [
+        768,
+        768
+      ],
+      "mode": "RGBA",
+      "role": "Authoritative damage geometry guide and edit target"
+    },
+    {
+      "path": "art-source\\console-bank\\damage\\armory-workshop-ammo-reference.png",
+      "sha256": "0a208391cec225bc1911b1330e895ef216d8b2638c00c2814c3f68899ab998e0",
+      "dimensions": [
+        768,
+        768
+      ],
+      "mode": "RGBA",
+      "role": "Intact material and object reference, aligned in the same slots"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image generation to apply the reference materials and damage while preserving the guide’s exact layout and scale.\n"
+  ],
+  "usage": {
+    "input_tokens": 59869,
+    "cached_input_tokens": 54016,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 619,
+    "reasoning_output_tokens": 36
+  },
+  "elapsedSeconds": 61.7
+}

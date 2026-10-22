@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.squad.FireTeamGroups;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.BodyCapsule;
+import com.dillon.starsectormarines.battle.unit.SwarmStage;
 import com.dillon.starsectormarines.battle.unit.BodyRadius;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
@@ -519,6 +520,8 @@ public final class SeparationSystem {
                     BattleComponents.IDENTITY_MECH_VARIANT).array();
             Object[] airframes = table.objects(components.IDENTITY,
                     BattleComponents.IDENTITY_AIRFRAME).array();
+            Object[] stages = table.objects(components.IDENTITY,
+                    BattleComponents.IDENTITY_SWARM_STAGE).array();
             int[] roles = table.ints(components.ROLE,
                     BattleComponents.ROLE_ORDINAL).array();
 
@@ -568,7 +571,8 @@ public final class SeparationSystem {
                 float radius = BodyRadius.resolve(turretStructure,
                         (Airframe) airframes[row],
                         (MechVariant) variants[row],
-                        type);
+                        type,
+                        (SwarmStage) stages[row]);
                 byte flags = POPULATED;
                 if (hasHealth && hp[row] > 0f
                         && !hasKinematics && radius > 0f && !held.test(id)) {
@@ -600,7 +604,7 @@ public final class SeparationSystem {
                         (byte) ((Faction) factions[row]).ordinal();
                 collisionVelX[slot] = hasMovement ? velXs[row] : 0f;
                 collisionVelY[slot] = hasMovement ? velYs[row] : 0f;
-                cacheShape(slot, type, posX[row], posY[row], radius,
+                cacheShape(slot, type, (SwarmStage) stages[row], posX[row], posY[row], radius,
                         facings != null ? facings[row] : Float.NaN,
                         hasFlag(flags, PARTICIPATES));
             }
@@ -617,29 +621,34 @@ public final class SeparationSystem {
         }
     }
 
-    private void cacheShape(int slot, UnitType type, float x, float y, float radius,
+    private void cacheShape(int slot, UnitType type, SwarmStage stage, float x, float y, float radius,
                             float facingDegrees, boolean participates) {
-        float halfLength = BodyCapsule.halfLength(type);
+        float halfLength = BodyCapsule.halfLength(type, stage);
         if (!capsules || halfLength <= 0f || Float.isNaN(facingDegrees)) {
+            float shove = capsules ? BodyCapsule.radius(type, radius, stage) : radius;
             shapeX[slot] = x;
             shapeY[slot] = y;
             shapeHalfX[slot] = 0f;
             shapeHalfY[slot] = 0f;
-            shapeRadius[slot] = radius;
-            shapeReach[slot] = radius;
-            elongated[slot] = false;
+            shapeRadius[slot] = shove;
+            shapeReach[slot] = shove;
+            // A body shoved bigger than its sim radius (the elder Brute, capped
+            // under half a cell for the grid) is measured as a capsule of no
+            // length, so the pair test reads its shove radius.
+            elongated[slot] = shove > radius;
+            if (participates && shove > radius) maxCapsuleReach = Math.max(maxCapsuleReach, shove);
             return;
         }
         double rad = Math.toRadians(facingDegrees);
         float fx = (float) -Math.sin(rad);
         float fy = (float) Math.cos(rad);
-        float offset = BodyCapsule.forwardOffset(type);
+        float offset = BodyCapsule.forwardOffset(type, stage);
         shapeX[slot] = x + fx * offset;
         shapeY[slot] = y + fy * offset;
         shapeHalfX[slot] = fx * halfLength;
         shapeHalfY[slot] = fy * halfLength;
-        shapeRadius[slot] = BodyCapsule.radius(type, radius);
-        shapeReach[slot] = BodyCapsule.reach(type, radius);
+        shapeRadius[slot] = BodyCapsule.radius(type, radius, stage);
+        shapeReach[slot] = BodyCapsule.reach(type, radius, stage);
         elongated[slot] = true;
         if (participates) maxCapsuleReach = Math.max(maxCapsuleReach, shapeReach[slot]);
     }
