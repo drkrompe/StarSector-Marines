@@ -57,7 +57,21 @@ public final class SwarmFlowFields {
     public static final int UNREACHABLE = Integer.MAX_VALUE;
     static final int CARDINAL_COST = 10;
     static final int DIAGONAL_COST = 14;
-    private static final int BUCKETS = 16;
+    /**
+     * What crossing a militia barricade cell costs over an ordinary step: a
+     * detour up to about this many cells is walked round, a longer one is torn
+     * through ({@link NavigationGrid.CellTag#BARRICADE}).
+     */
+    static final int BARRICADE_COST = 12 * CARDINAL_COST;
+    /** Dial's ring must be wider than the dearest single step. */
+    private static final int BUCKETS = 256;
+    /** {@code -Dbattle.swarm.barricadeAssault=false} is the control: a barricade is a wall to the swarm. */
+    public static final String BARRICADE_ASSAULT_PROPERTY = "battle.swarm.barricadeAssault";
+    private static final long BARRICADE = NavigationGrid.CellTag.BARRICADE.mask();
+
+    public static boolean barricadeAssaultEnabled() {
+        return Boolean.parseBoolean(System.getProperty(BARRICADE_ASSAULT_PROPERTY, "true"));
+    }
 
     public static boolean defaultEnabled() {
         return Boolean.parseBoolean(System.getProperty(ENABLED_PROPERTY, "true"));
@@ -224,8 +238,6 @@ public final class SwarmFlowFields {
                 return GridPathfinder.EMPTY_PATH;
             }
             long[] cellFlags = grid.getCellFlagsArray();
-            byte[] edges = grid.getEdgePassabilityArray();
-            int directions = GridPathfinder.directionCount(GridPathfinder.USE_CARDINAL_NAVIGATION);
             int[] steps = new int[(maxSteps + 1) * 2];
             steps[0] = x;
             steps[1] = y;
@@ -233,24 +245,9 @@ public final class SwarmFlowFields {
             int cx = x;
             int cy = y;
             while (count <= maxSteps) {
-                int here = cy * width + cx;
-                int hereDistance = distance[here];
-                if (hereDistance == 0) break;
-                int bestIdx = -1;
-                int bestDistance = hereDistance;
-                for (int d = 0; d < directions; d++) {
-                    int nx = cx + GridPathfinder.directionX(d);
-                    int ny = cy + GridPathfinder.directionY(d);
-                    if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
-                    int next = ny * width + nx;
-                    int nextDistance = distance[next];
-                    if (nextDistance >= bestDistance) continue;
-                    if (!GridPathfinder.canStep(here, cx, cy, next, d, width, height,
-                            cellFlags, edges, null)) continue;
-                    bestDistance = nextDistance;
-                    bestIdx = next;
-                }
-                if (bestIdx < 0) break;
+                int bestIdx = downhill(grid, cx, cy);
+                // A barricade is not walked into: the body stops in front of it, and tears it down.
+                if (bestIdx < 0 || (cellFlags[bestIdx] & BARRICADE) != 0L) break;
                 cx = bestIdx % width;
                 cy = bestIdx / width;
                 steps[count * 2] = cx;
@@ -260,6 +257,74 @@ public final class SwarmFlowFields {
             if (count == 1) return GridPathfinder.EMPTY_PATH;
             return count * 2 == steps.length ? steps : Arrays.copyOf(steps, count * 2);
         }
+
+        /**
+         * The barricade cell the field's next step from {@code (x, y)} goes
+         * through, as a grid index, or -1 when the way on is open ground: where
+         * a body standing here has to tear its way on.
+         */
+        public int barricadeAhead(NavigationGrid grid, int x, int y) {
+            if (distanceAt(x, y) == UNREACHABLE || distanceAt(x, y) == 0) return -1;
+            int next = downhill(grid, x, y);
+            return next >= 0 && (grid.getCellFlagsArray()[next] & BARRICADE) != 0L ? next : -1;
+        }
+
+        /**
+         * Whether the field's way down from {@code (x, y)} runs through a
+         * barricade within {@code steps} cells: the field has already weighed
+         * going round against tearing through, and tearing through won.
+         */
+        public boolean leadsThroughBarricade(NavigationGrid grid, int x, int y, int steps) {
+            if (distanceAt(x, y) == UNREACHABLE || distanceAt(x, y) == 0) return false;
+            long[] cellFlags = grid.getCellFlagsArray();
+            int cx = x, cy = y;
+            for (int i = 0; i < steps; i++) {
+                int next = downhill(grid, cx, cy);
+                if (next < 0 || distance[next] == 0) return false;
+                if ((cellFlags[next] & BARRICADE) != 0L) return true;
+                cx = next % width;
+                cy = next / width;
+            }
+            return false;
+        }
+
+        /** The nearest neighbour a body here can step toward, ties to the lower direction index; -1 at a minimum. */
+        private int downhill(NavigationGrid grid, int cx, int cy) {
+            long[] cellFlags = grid.getCellFlagsArray();
+            byte[] edges = grid.getEdgePassabilityArray();
+            int directions = GridPathfinder.directionCount(GridPathfinder.USE_CARDINAL_NAVIGATION);
+            int here = cy * width + cx;
+            int bestIdx = -1;
+            int bestDistance = distance[here];
+            for (int d = 0; d < directions; d++) {
+                int nx = cx + GridPathfinder.directionX(d);
+                int ny = cy + GridPathfinder.directionY(d);
+                if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+                int next = ny * width + nx;
+                int nextDistance = distance[next];
+                if (nextDistance >= bestDistance) continue;
+                if (!step(here, cx, cy, next, d, width, height, cellFlags, edges)) continue;
+                bestDistance = nextDistance;
+                bestIdx = next;
+            }
+            return bestIdx;
+        }
+    }
+
+    /**
+     * Whether a body may step from {@code from} into {@code to} on a field: the
+     * pathfinder's own step, or a cardinal step into or out of a barricade
+     * cell from walkable ground or another barricade cell.
+     */
+    static boolean step(int from, int fromX, int fromY, int to, int direction, int width, int height,
+                        long[] cellFlags, byte[] edges) {
+        boolean barricade = ((cellFlags[from] | cellFlags[to]) & BARRICADE) != 0L;
+        if (!barricade) {
+            return GridPathfinder.canStep(from, fromX, fromY, to, direction, width, height, cellFlags, edges, null);
+        }
+        if (direction >= GridPathfinder.FIRST_DIAGONAL_DIRECTION) return false;
+        long walkable = NavigationGrid.CellTag.WALKABLE.mask();
+        return (cellFlags[from] & (walkable | BARRICADE)) != 0L && (cellFlags[to] & (walkable | BARRICADE)) != 0L;
     }
 
     /**
@@ -278,6 +343,7 @@ public final class SwarmFlowFields {
         private int current;
         private long topologyRevision;
         private int startedTick;
+        private boolean crossBarricades;
         private boolean finished = true;
 
         Integration(int cells) {
@@ -296,6 +362,7 @@ public final class SwarmFlowFields {
             current = 0;
             topologyRevision = grid.topologyRevision();
             startedTick = tick;
+            crossBarricades = barricadeAssaultEnabled();
             finished = false;
             for (int i = 0; i < sourceCount; i++) {
                 int source = sources[i];
@@ -332,9 +399,12 @@ public final class SwarmFlowFields {
                         if (px < 0 || py < 0 || px >= width || py >= height) continue;
                         int predecessor = py * width + px;
                         int candidate = current + (d < GridPathfinder.FIRST_DIAGONAL_DIRECTION
-                                ? CARDINAL_COST : DIAGONAL_COST);
+                                ? CARDINAL_COST : DIAGONAL_COST)
+                                + ((cellFlags[cell] & BARRICADE) != 0L ? BARRICADE_COST : 0);
                         if (candidate >= distance[predecessor]) continue;
-                        if (!GridPathfinder.canStep(predecessor, px, py, cell, d, width, height,
+                        if (crossBarricades) {
+                            if (!step(predecessor, px, py, cell, d, width, height, cellFlags, edges)) continue;
+                        } else if (!GridPathfinder.canStep(predecessor, px, py, cell, d, width, height,
                                 cellFlags, edges, null)) continue;
                         distance[predecessor] = candidate;
                         push(candidate & (BUCKETS - 1), predecessor);
