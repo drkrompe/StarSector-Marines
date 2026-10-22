@@ -191,6 +191,9 @@ public class BattleSprites {
     private boolean iconsLoadAttempted;
     private SpriteAPI smokeGrenadeSprite;
     private SpriteAPI smokeFieldSheet;
+    /** The smoke-and-fire flipbook the ground fire draws its flames from (`fire-nouns.md`, Look). */
+    private SpriteAPI fireSheet;
+    public static final String FIRE_SHEET_PATH = "graphics/particle/smokeAndFire.png";
     private boolean smokeSpritesLoadAttempted;
     private SpriteAPI satchelChargeSprite;
     private boolean satchelSpriteLoadAttempted;
@@ -251,6 +254,8 @@ public class BattleSprites {
     public SpriteAPI smokeGrenadeSprite() { return smokeGrenadeSprite; }
     /** The deployed smoke field's flipbook sheet; frames are addressed by {@code SpecialEquipmentPresentationDef.Field}. */
     public SpriteAPI smokeFieldSheet() { return smokeFieldSheet; }
+    /** The ground fire's flame sheet, loaded with the smoke sprites. */
+    public SpriteAPI fireSheet() { return fireSheet; }
     public SpriteAPI satchelChargeSprite() { return satchelChargeSprite; }
     public SpriteAPI decalSheet()                  { return decalSheet; }
     public SpriteSheetFrames decalFrames()         { return decalFrames; }
@@ -670,6 +675,8 @@ public class BattleSprites {
             smokeGrenadeSprite = Global.getSettings().getSprite(grenadePath);
             Global.getSettings().loadTexture(fieldPath);
             smokeFieldSheet = Global.getSettings().getSprite(fieldPath);
+            Global.getSettings().loadTexture(FIRE_SHEET_PATH);
+            fireSheet = Global.getSettings().getSprite(FIRE_SHEET_PATH);
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load smoke utility sprites", e);
         }

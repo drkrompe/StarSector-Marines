@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.ops.battleview;
 
-import com.dillon.starsectormarines.battle.air.AirLocomotion;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.evacuation.GroundColonies;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -14,7 +13,6 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -22,10 +20,8 @@ import java.util.Map;
  * colony). Observation only: it reads the simulation and draws, and changes nothing.
  *
  * <ul>
- *   <li><b>Spore colony.</b> Spores breathe off its sacs whether or not anything is overhead: amber motes rising and
- *   drifting off the body, and a lilac haze it exhales on a slow breath ({@link #SPORES}). While a hostile aircraft is
- *   airborne its reach is drawn on the ground as a faint dashed ring ({@link #SPORE_REACH}), brighter while it is
- *   engaging.</li>
+ *   <li><b>Spore colony.</b> Spores lift off its sacs whether or not anything is overhead: amber motes rising and
+ *   drifting off the body. Its reach is not drawn (owner).</li>
  *   <li><b>Ground colony.</b> Its spines are a shot that travels under the ground. The run is drawn as a ripple
  *   heaving through the creep from the colony to the strike, opening a crack lit by an amber seam behind it; at the
  *   strike the ground heaves and a crown of bone spines bursts up, holds and sinks back, and the crack and the heave
@@ -41,15 +37,6 @@ public final class ColonyThreatFx {
     /** Control-run switch; drawn unless it reads {@code false}. */
     public static final String PROPERTY = "battle.render.colonyThreat";
     static final boolean ENABLED = !"false".equalsIgnoreCase(System.getProperty(PROPERTY));
-
-    /** How a spore colony shows its spores: rising motes, an exhaled haze, or both. */
-    enum Spores { MOTES, HAZE, BOTH }
-
-    /** When a spore colony's reach is drawn: never, while a hostile aircraft is airborne, or always. */
-    enum Reach { OFF, AIR, ALWAYS }
-
-    static final Spores SPORES = parse(Spores.class, "battle.render.colonyThreat.spores", Spores.BOTH);
-    static final Reach SPORE_REACH = parse(Reach.class, "battle.render.colonyThreat.sporeReach", Reach.AIR);
 
     static final String SPORE_COLONY_PREFIX = "structure.spore-colony";
 
@@ -78,8 +65,7 @@ public final class ColonyThreatFx {
     private static final float[] BONE = {0.93f, 0.88f, 0.78f};
     private static final float[] SINEW = {0.54f, 0.12f, 0.24f};
     private static final float[] AMBER = {1.0f, 0.70f, 0.28f};
-    private static final float[] HAZE = {0.64f, 0.52f, 0.74f};
-    private static final float[] REACH = {0.86f, 0.62f, 0.40f};
+    private static final float[] HALO = {0.64f, 0.52f, 0.74f};
 
     /** One spine strike, remembered from its shot. */
     record Strike(float fromX, float fromY, float toX, float toY, float firedAt, float flight, long seed) {
@@ -98,14 +84,13 @@ public final class ColonyThreatFx {
     private final Map<Long, Strike> strikes = new LinkedHashMap<>();
     private final PolyMesh ground = new PolyMesh(128);
     private final PolyMesh spines = new PolyMesh(128);
-    private final PolyMesh rings = new PolyMesh(128);
     private int seenTick = Integer.MIN_VALUE;
 
     public ColonyThreatFx(BattleSprites sprites) {
         this.sprites = sprites;
     }
 
-    /** The ground half, drawn on the creep under the bodies: cracks, ripples, heaves and spore reach. */
+    /** The ground half, drawn on the creep under the bodies: cracks, ripples and heaves. */
     public RenderSystem ground() {
         return RenderSystem.of(RenderLayer.DECALS, this::collectGround);
     }
@@ -155,7 +140,6 @@ public final class ColonyThreatFx {
         float now = simSeconds(sim);
         float cellPx = camera.cellPxSize();
         ground.reset();
-        rings.reset();
         sprites.ensureShadowSprite();
         SpriteAPI disc = sprites.shadowBlobSprite();
         for (Strike strike : strikes.values()) {
@@ -166,9 +150,7 @@ public final class ColonyThreatFx {
             crack(camera, strike, t, ctx.alphaMult);
             if (disc != null) ripple(out, camera, disc, strike, t, cellPx, ctx.alphaMult);
         }
-        if (SPORE_REACH != Reach.OFF) sporeReach(ctx, view);
         if (!ground.isEmpty()) out.addPoly(RenderLayer.DECALS, ground);
-        if (!rings.isEmpty()) out.addPoly(RenderLayer.DECALS, rings);
     }
 
     private void collectOver(RenderContext ctx, DrawList out) {
@@ -309,7 +291,7 @@ public final class ColonyThreatFx {
 
     // ---- spore colonies --------------------------------------------------------------------------------------------
 
-    /** Spores breathed off every living spore colony in view. */
+    /** Spores lifting off every living spore colony in view. */
     private void spores(RenderContext ctx, DrawList out, ViewCull view, float now) {
         BattleSimulation sim = ctx.sim;
         BattleCamera camera = ctx.camera;
@@ -328,29 +310,8 @@ public final class ColonyThreatFx {
             float x = world.renderX(id), y = world.renderY(id);
             if (!view.visible(x, y, body * 1.5f)) continue;
             long seed = mix(id);
-            if (SPORES != Spores.MOTES) haze(out, camera, disc, x, y, body, seed, now, cellPx, ctx.alphaMult);
-            if (SPORES != Spores.HAZE) motes(out, camera, glow, disc, x, y, body, seed, now, cellPx, ctx.alphaMult);
+            motes(out, camera, glow, disc, x, y, body, seed, now, cellPx, ctx.alphaMult);
         }
-    }
-
-    /**
-     * A lilac haze round the sacs on a slow breath: it thickens as the colony breathes in and on each breath out a
-     * puff of it swells off the body and thins away.
-     */
-    private static void haze(DrawList out, BattleCamera camera, SpriteAPI disc, float x, float y, float body, long seed,
-                             float now, float cellPx, float alphaMult) {
-        float period = 3.2f + 0.6f * unit(seed, 1);
-        float u = frac(now / period + unit(seed, 2));
-        float breath = 0.5f - 0.5f * (float) Math.cos(2.0 * Math.PI * u);
-        float sx = camera.cellToScreenX(x), sy = camera.cellToScreenY(y);
-        float size = body * 0.95f * cellPx * (0.92f + 0.08f * breath);
-        out.addSprite(RenderLayer.HAZARDS, disc, sx, sy, size, size, 0f,
-                HAZE[0], HAZE[1], HAZE[2], (0.14f + 0.16f * breath) * alphaMult);
-        // The exhaled puff, drifting a little up the screen as it spreads.
-        float puff = frac(u + 0.5f);
-        float puffSize = body * cellPx * (0.55f + 0.95f * puff);
-        out.addSprite(RenderLayer.HAZARDS, disc, sx, sy + 0.35f * puff * cellPx, puffSize, puffSize, 0f,
-                HAZE[0], HAZE[1], HAZE[2], 0.32f * (1f - puff) * (1f - puff) * alphaMult);
     }
 
     /**
@@ -374,55 +335,10 @@ public final class ColonyThreatFx {
             float size = (0.10f + 0.06f * unit(s, 8)) * (1f + 0.6f * u) * cellPx;
             float sx = camera.cellToScreenX(mx), sy = camera.cellToScreenY(my);
             out.addSprite(RenderLayer.HAZARDS, disc, sx, sy, size * 3.2f, size * 3.2f, 0f,
-                    HAZE[0], HAZE[1], HAZE[2], 0.28f * fade * alphaMult);
+                    HALO[0], HALO[1], HALO[2], 0.28f * fade * alphaMult);
             out.addAdditiveSprite(RenderLayer.HAZARDS, glow, sx, sy, size * 2.4f, size * 2.4f, 0f,
                     AMBER[0], AMBER[1], AMBER[2], 0.9f * fade * alphaMult);
         }
-    }
-
-    /**
-     * Each spore colony's reach as a dashed ring on the ground, while a hostile aircraft is airborne
-     * ({@link Reach#AIR}) or always; a colony engaging draws its ring brighter.
-     */
-    private void sporeReach(RenderContext ctx, ViewCull view) {
-        BattleSimulation sim = ctx.sim;
-        World world = sim.world();
-        TurretStateService turrets = sim.turretState();
-        BattleCamera camera = ctx.camera;
-        Boolean airborne = SPORE_REACH == Reach.ALWAYS ? Boolean.TRUE : null;
-        for (int i = 0; i < sim.liveUnitCount(); i++) {
-            long id = sim.liveUnitAt(i);
-            if (!turrets.isTurret(id) || !world.isAlive(id)) continue;
-            StructureDef structure = turrets.structure(id);
-            if (!structure.id.startsWith(SPORE_COLONY_PREFIX)) continue;
-            if (airborne == null) airborne = hostileAirborne(sim, id);
-            if (!airborne) return;
-            float range = structure.mount.weapon.range;
-            float x = world.renderX(id), y = world.renderY(id);
-            if (!view.visible(x, y, range)) continue;
-            boolean engaging = world.targetId(id) != 0L;
-            float alpha = (engaging ? 0.6f : 0.34f) * ctx.alphaMult;
-            int dashes = Math.max(24, Math.round(range * 5f));
-            for (int d = 0; d < dashes; d++) {
-                double a0 = 2.0 * Math.PI * d / dashes, a1 = 2.0 * Math.PI * (d + 0.55) / dashes;
-                segment(rings, camera, x + (float) Math.cos(a0) * range, y + (float) Math.sin(a0) * range,
-                        x + (float) Math.cos(a1) * range, y + (float) Math.sin(a1) * range,
-                        0.13f, REACH, alpha);
-            }
-        }
-    }
-
-    /** Whether any aircraft hostile to {@code colony}'s side is airborne on the map. */
-    private static boolean hostileAirborne(BattleSimulation sim, long colony) {
-        World world = sim.world();
-        for (long craft : sim.getAirEntityIds()) {
-            if (!world.isAlive(craft)) continue;
-            var mission = world.mission(craft);
-            if (mission == null || mission.destroyed || !mission.isOnMap()
-                    || !AirLocomotion.of(mission.state).airborne()) continue;
-            if (sim.identity().faction(colony).hostileTo(world.airFaction(craft))) return true;
-        }
-        return false;
     }
 
     // ---- geometry --------------------------------------------------------------------------------------------------
@@ -498,15 +414,5 @@ public final class ColonyThreatFx {
         z = (z ^ (z >>> 30)) * 0xBF58476D1CE4E5B9L;
         z = (z ^ (z >>> 27)) * 0x94D049BB133111EBL;
         return z ^ (z >>> 31);
-    }
-
-    private static <E extends Enum<E>> E parse(Class<E> type, String property, E fallback) {
-        String value = System.getProperty(property);
-        if (value == null || value.isBlank()) return fallback;
-        try {
-            return Enum.valueOf(type, value.trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException unknown) {
-            return fallback;
-        }
     }
 }

@@ -104,13 +104,24 @@ public final class EffectsService {
     // ---- Wrecks ----
 
     public void spawnSmokingWreck(int x, int y) {
+        if (wreckSink != null) wreckSink.wreck(x + .5f, y + .5f, 1f);
         smokingWrecks.add(new SmokingWreck(x, y, WRECK_LIFETIME,
                 0.05f + rng.nextFloat() * 0.10f));
     }
 
+    /** Told of every burning wreck as it starts: where, and its rough radius in cells. */
+    @FunctionalInterface
+    public interface WreckSink { void wreck(float x, float y, float radiusCells); }
+
+    private WreckSink wreckSink;
+
+    /** Sets who is told when a wreck starts burning (the battle's fire); presentation is unchanged. */
+    public void setWreckSink(WreckSink sink) { this.wreckSink = sink; }
+
     /** A hull-sized, purely visual cook-off followed by three minutes of cooling smoke. */
     public void spawnVehicleWreck(float x, float y, float length, float width) {
         float size = (float) Math.sqrt(length * width);
+        if (wreckSink != null) wreckSink.wreck(x, y, Math.max(1f, size * .5f));
         float scale = Math.max(1f, Math.min(Math.max(2.5f, size * .1f), size * .65f));
         spawnHeavyImpact(x, y, scale);
         smokingWrecks.add(new SmokingWreck((int) Math.floor(x), (int) Math.floor(y),

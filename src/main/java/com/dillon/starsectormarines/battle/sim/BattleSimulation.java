@@ -260,8 +260,10 @@ import com.dillon.starsectormarines.battle.creep.CreepEffects;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.creep.CreepRoofCollapse;
 import com.dillon.starsectormarines.battle.fire.BattleFire;
+import com.dillon.starsectormarines.battle.fire.FireCost;
 import com.dillon.starsectormarines.battle.fire.FireField;
 import com.dillon.starsectormarines.battle.fire.FireHarm;
+import com.dillon.starsectormarines.battle.fire.FireIgnition;
 import com.dillon.starsectormarines.battle.fire.FireRouteCost;
 import com.dillon.starsectormarines.battle.creep.CreepVegetation;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
@@ -765,6 +767,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private BattleFire fire;
     private final FireHarm fireHarm = new FireHarm();
     private final FireRouteCost fireRouteCost = new FireRouteCost();
+    private final FireCost fireCost = new FireCost();
+    /** What fire has cost this battle's simulation thread so far (`fire-nouns.md`, Evidence). */
+    public FireCost fireCostProfile() { return fireCost; }
     private static final long FIRE_SEED_SALT = 0x46495245_4649454CL;
     /**
      * The battle's fire (`fire-nouns.md`), created on first use by whatever
@@ -1439,7 +1444,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 () -> simTickIndex, rng);
         this.detonations = new Detonations(rosterService, grid, topology, damageService,
                 mapEditor, effects, noiseEvents, this::applyPendingImpact);
-        detonations.observe(det -> warships.onDetonation(det, this));
+        detonations.observe(det -> {
+            warships.onDetonation(det, this);
+            FireIgnition.blast(this, det);
+        });
+        effects.setWreckSink((x, y, radius) -> FireIgnition.wreck(this, x, y, radius));
         detonations.screen(shieldDomes::absorbs);
         // Subscribed here rather than with the other demolition handlers above
         // because a burning airframe needs the detonation pipeline, and that
@@ -3615,9 +3624,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         }
         // After the creep, so a cell catching this tick burns the creep as it now stands;
         // before the topology flush, so a crown burnt through falls with this tick's breaches.
-        if (fire != null) {
+        if (fire != null && (fire.field().isActive() || fire.field().burningCount() > 0)) {
+            long fireStart = System.nanoTime();
             fire.tick(simTickIndex);
             fireHarm.tick(this, fire.field());
+            fireRouteCost.tick(simTickIndex, fire.field(), commanderInfluence.casualties()::routeCost);
+            fireCost.record(System.nanoTime() - fireStart, Math.floorMod(simTickIndex, FireField.STEP_TICKS) == 0);
+        } else if (fire != null) {
+            fire.tick(simTickIndex);
             fireRouteCost.tick(simTickIndex, fire.field(), commanderInfluence.casualties()::routeCost);
         }
         if (reliefAssault != null) reliefAssault.tick(this);
