@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
-import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.reactive.Signal;
 import org.json.JSONObject;
@@ -17,7 +16,6 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -79,12 +77,7 @@ class BarracksTurnaroundTest {
             roster.recruitToSquad(roster.reserveSquad().id(), 4);
             model.reinforceSelected();
             assertEquals(12, roster.readyCount(recipient));
-            assertEquals("barracks-issue", model.guideTargetId());
-            var profile = roster.armory().saveSquadProfile("Security", SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
-                    SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
-            roster.assignSquadProfile(Set.of(recipient.id()), profile.id());
-            model.issueSelected();
-            assertEquals("page-nav-return", model.guideTargetId());
+            assertEquals("page-nav-return", model.guideTargetId(), "Replacements need no separate issue order");
             action(model, "guidePrevious");
             action(model, "guideNext");
             assertEquals(12, roster.readyCount(recipient), "Manual lesson navigation never performs orders");

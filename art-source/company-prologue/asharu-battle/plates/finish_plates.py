@@ -6,9 +6,9 @@
     python finish_plates.py --tone k0=RENDER.png k6=RENDER.png   # refit tone/<kf>.png from graded renders
 
 1. Resize the painting to 1920x1080 (the key frame's frame; ImageGen returns 1672x941).
-2. S12 only: the painting puts its horizon a little high. Rows above the guide's band of exact
-   registration are remapped so the painted limb meets the camera's true limb (the ray-cast
-   guide's, raised by the air shell's thickness), and nothing below that band moves.
+2. S12 only: rows above the guide's band of exact registration are remapped so the painted
+   ground's top edge meets the camera's true limb, and the air above it is redrawn as one glow
+   profile sampled from the painting, so the painted limb's own steps cannot show.
 3. Tone-match it to the graded render of its key frame with the detail tiles (tone/<kf>.png, a
    coarse ground-colour field: exposure, palette and haze with distance), then invert the grade. The painting is display-referred, painted to look like the
    graded still; the composite grades the backdrop through AgX 'Base Contrast'. agx_lut.py
@@ -92,19 +92,26 @@ def ungrade(y, axis, disp, steps=10):
     return np.where(y.max(-1, keepdims=True) <= grey[0].max() + 1e-4, 0.0, lin), grade(z, axis, disp)
 
 
-def limb_rows(img, lo=40, hi=REGISTERED_FROM):
-    """Per column, the row of the painted limb: the brightest row of the air glow's blue."""
-    b = img[lo:hi, :, 2] - .5 * (img[lo:hi, :, 0] + img[lo:hi, :, 1])
-    return lo + np.argmax(b, axis=0)
+def ground_top(img, lo=40, hi=REGISTERED_FROM):
+    """Per column, the row where the painting stops being empty space (the top of its limb,
+    glow or ground), from the top, smoothed along the limb with a median and a mean."""
+    lit = img[lo:hi].mean(-1) > .12
+    first = np.where(lit.any(0), np.argmax(lit, axis=0), hi - lo).astype(float) + lo
+    k = 81
+    pad = np.pad(first, k // 2, mode='edge')
+    med = np.array([np.median(pad[i:i + k]) for i in range(W)])
+    return np.convolve(np.pad(med, k // 2, mode='edge'), np.ones(k) / k, mode='valid')
 
 
 def fix_horizon(img, guide_hit):
-    """Rows above REGISTERED_FROM remapped per column so the painted limb lands on the true one."""
+    """S12's limb, made to sit on the camera's: rows above REGISTERED_FROM are remapped per column
+    so the painted ground's top edge lands on the true limb (the ground registers within a pixel
+    below that band), then the air above it is redrawn as one glow profile, sampled from the
+    painting itself, so a step or gap in the painted glow cannot show."""
     x = np.arange(W)
-    # Both limbs are smooth curves: fit each with a parabola so whole-pixel steps leave no stripes.
-    true = np.polyval(np.polyfit(x, np.argmax(guide_hit, axis=0).astype(float), 2), x) - 3.0   # air shell
-    painted = np.polyval(np.polyfit(x, limb_rows(img).astype(float), 2), x)
+    true = np.polyval(np.polyfit(x, np.argmax(guide_hit, axis=0).astype(float), 2), x)
     true = np.minimum(true, REGISTERED_FROM - 20)
+    painted = np.clip(ground_top(img), true - 60, true + 60)
     ys = np.arange(REGISTERED_FROM, dtype=float)[:, None]
     src = np.where(ys <= true, ys * painted / np.maximum(true, 1),
                    painted + (ys - true) * (REGISTERED_FROM - painted) / np.maximum(REGISTERED_FROM - true, 1))
@@ -113,6 +120,20 @@ def fix_horizon(img, guide_hit):
     t = (src - y0)[..., None]
     cols = np.arange(W)[None, :]
     out[:REGISTERED_FROM] = img[y0, cols] * (1 - t) + img[y0 + 1, cols] * t
+    # The glow: the painting's own colour d rows above its ground, averaged over the columns where
+    # the painted glow is brightest (the clean stretch), laid along the true limb everywhere.
+    depth = 40
+    d = true[None, :] - ys                                   # rows above the true limb
+    ref_cols = np.argsort(out[np.clip((true - 6).astype(int), 0, H - 1), x, 2])[-W // 4:]
+    prof = np.stack([out[np.clip((true[ref_cols] - k).astype(int), 0, H - 1), ref_cols].mean(0)
+                     for k in range(depth + 1)])            # depth+1 x 3, k rows above the limb
+    kk = np.clip(d, 0, depth)
+    k0 = np.floor(kk).astype(int)
+    f = (kk - k0)[..., None]
+    glow = prof[k0] * (1 - f) + prof[np.minimum(k0 + 1, depth)] * f
+    glow = np.where((d > depth)[..., None], 0.0, glow)
+    sky = np.clip(d, 0, 1)[..., None]                       # 1 above the limb, ramping to 0 on it
+    out[:REGISTERED_FROM] = out[:REGISTERED_FROM] * (1 - sky) + glow * sky
     return out
 
 
