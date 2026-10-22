@@ -1,4 +1,6 @@
 package com.dillon.starsectormarines.battle.decision;
+import com.dillon.starsectormarines.battle.creep.CreepEffects;
+import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -188,13 +190,15 @@ public final class FleeBehavior implements UnitBehavior {
         float ny = dy / len;
         int[] best = null;
         int maxSteps = Math.max(grid.getWidth(), grid.getHeight());
+        // Run through creep if the way lies across it, but never stop on it.
+        CreepField creep = sim.creepFieldIfPresent();
         for (int step = 1; step <= maxSteps; step++) {
             int cx = sim.world().cellX(self) + Math.round(nx * step);
             int cy = sim.world().cellY(self) + Math.round(ny * step);
             if (!grid.inBounds(cx, cy)) break;
             if (!grid.isWalkable(cx, cy)) break;
             float distFromThreat = TacticalScoring.cellDistance(cx + 0.5f, cy + 0.5f, sim.world().x(threat), sim.world().y(threat));
-            if (distFromThreat >= MIN_DISTANCE_FROM_THREAT) {
+            if (distFromThreat >= MIN_DISTANCE_FROM_THREAT && !CreepEffects.refusedAsRefuge(creep, cx, cy)) {
                 best = new int[]{cx, cy};
             }
         }
@@ -220,6 +224,7 @@ public final class FleeBehavior implements UnitBehavior {
             if (!grid.inBounds(cx, cy)) continue;
             if (!grid.isWalkable(cx, cy)) continue;
             if (cx == sim.world().cellX(u) && cy == sim.world().cellY(u)) continue;
+            if (CreepEffects.refusedAsRefuge(sim.creepFieldIfPresent(), cx, cy)) continue;
             return new int[]{cx, cy};
         }
         return null;

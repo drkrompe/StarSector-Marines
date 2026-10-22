@@ -29,13 +29,7 @@ final class CreepShading {
     /** Where the lip crests and how wide it is, in cells in from the edge. */
     static final float LIP_AT = 0.24f, LIP_WIDTH = 0.20f;
     /** Plate relief, in metres. */
-    static final float PLATE_RELIEF = look("plateRelief", 0.022f);
-    /** Plate lattice frequency against the shipped one: above 1 is smaller, denser cells. */
-    static final float PLATE_SCALE = look("plateScale", 1f);
-    /** How strongly the plates' own colour shows over the membrane, and how glossy they are. */
-    static final float PLATE_MIX = look("plateMix", 1f), SPEC_GAIN = look("specGain", 1f);
-    /** Ground vein strength (0 draws none) and lattice frequency against the shipped one. */
-    static final float VEIN_GAIN = look("veinGain", 1f), VEIN_FREQ = look("veinFreq", 1f);
+    static final float PLATE_RELIEF = 0.022f;
     /** Coverage-unit amplitude of the coarse and fine lobes in the edge. */
     static final float EDGE_NOISE = 0.30f, EDGE_FINE = 0.12f;
     /** Half-spacing of the coverage taps the gradient and softening use, in cells. */
@@ -52,31 +46,19 @@ final class CreepShading {
     /** Colour the creep's shadow darkens the ground toward. */
     static final float[] SHADOW_TINT = {0.07f, 0.07f, 0.10f};
     /** Wall coverage over which veins reach across the wall top, and over which the crust takes it. */
-    static final float VEIN_AGE = look("veinAge", 0.5f), CRUST_AGE_LO = look("crustAgeLo", 0.35f),
-            CRUST_AGE_HI = look("crustAgeHi", 1f), CRUST_REACH = look("crustReach", 0.6f);
-    /** Whether creep is drawn on wall cells at all; without it only the contact crease marks the wall. */
-    static final boolean WALL_CLIMB = look("wallClimb", 1f) > 0.5f;
+    static final float VEIN_AGE = 0.5f, CRUST_AGE_LO = 0.35f, CRUST_REACH = 0.6f;
     /** Larger plates: their sampling scale, and the cloud band over which they take over. */
     static final float BIG_SCALE = 0.6f, BIG_LO = 0.45f, BIG_HI = 0.6f;
     /** Scale of the turned cloud sampling the membrane patches mix in. */
     static final float PATCH_TURN_SCALE = 1.7f;
     /** Fine-noise band over which plates give way to bare membrane. */
-    static final float PATCH_LO = look("patchLo", 0.30f), PATCH_HI = look("patchHi", 0.50f);
+    static final float PATCH_LO = 0.30f, PATCH_HI = 0.50f;
     /** Scale of the second, quarter-turned vein sampling on the ground, against the first. */
     static final float VEIN_SECOND_SCALE = 0.77f;
     /** Scale of the finer vein lattice drawn over walls, against the ground's. */
     static final float WALL_VEIN_SCALE = 2.2f;
 
     private CreepShading() { }
-
-    /**
-     * A look constant, overridable for option and control renders by {@code -Dbattle.render.creep.look.<name>};
-     * read once, so the shader compiles with the same value the CPU mirror shades with.
-     */
-    private static float look(String name, float shipped) {
-        String v = System.getProperty("battle.render.creep.look." + name);
-        return v == null ? shipped : Float.parseFloat(v);
-    }
 
     /** The field and noise lookups one point needs, from the layer's mirror on the CPU. */
     interface Field {
@@ -149,11 +131,11 @@ final class CreepShading {
 
         // A wall: its own coverage is how long creep has held it.
         float age = own[0];
-        if (age <= 0f || !WALL_CLIMB) {
+        if (age <= 0f) {
             out[0] = out[1] = out[2] = out[3] = 0f;
             return;
         }
-        float crustT = 1f - CRUST_REACH * smoothstep(CRUST_AGE_LO, CRUST_AGE_HI, age);
+        float crustT = 1f - CRUST_REACH * smoothstep(CRUST_AGE_LO, 1f, age);
         float dc = (soft - crustT + lobes * 0.6f) / gl;
         float ac = crustT < 1f ? clamp01(dc * cellPx + 0.5f) : 0f;
         float veinT = 1f - 0.95f * smoothstep(0f, VEIN_AGE, age);
@@ -193,24 +175,20 @@ final class CreepShading {
         // Plates come in two sizes, the larger where the cloud is high, and only in patches: between them is bare
         // membrane studded with nodules, so the cover reads as grown rather than paved.
         float big = smoothstep(BIG_LO, BIG_HI, cloud);
-        float qx = x * PLATE_SCALE, qy = y * PLATE_SCALE, qt = tpp * PLATE_SCALE;
-        CreepSurface.sample(qx * BIG_SCALE + 1.3f, qy * BIG_SCALE + 0.7f, qt * BIG_SCALE, surf);
+        CreepSurface.sample(x * BIG_SCALE + 1.3f, y * BIG_SCALE + 0.7f, tpp * BIG_SCALE, surf);
         float bigPlate = surf[0], bigTone = surf[1];
-        CreepSurface.sample(qx, qy, qt, surf);
+        CreepSurface.sample(x, y, tpp, surf);
         float plate = mix(surf[0], bigPlate, big), tone = mix(surf[1], bigTone, big);
-        float blister = surf[3];
-        CreepSurface.sample(x * VEIN_FREQ, y * VEIN_FREQ, tpp * VEIN_FREQ, surf);
-        float veinMask = surf[2];
+        float veinMask = surf[2], blister = surf[3];
         float step = 1f / 64f;
-        float px = plateAt(qx + step, qy, big, qt, col), py = plateAt(qx, qy + step, big, qt, col);
+        float px = plateAt(x + step, y, big, tpp, col), py = plateAt(x, y + step, big, tpp, col);
         float lip = bump(dd, LIP_AT, LIP_WIDTH);
         float lipAmp = LIP_LOW + LIP_BLISTER * blister;
         float hLip = PLATEAU + lip * lipAmp;
         float dLip = lipAmp * lip * (-2f * (dd - LIP_AT) / (LIP_WIDTH * LIP_WIDTH));
         float plated = smoothstep(0.35f, 0.7f, dd) * smoothstep(PATCH_LO, PATCH_HI, patch);
-        float relief = PLATE_RELIEF * PLATE_SCALE;
-        float sx = dLip * ux + relief * plated * (px - plate) / step;
-        float sy = dLip * uy + relief * plated * (py - plate) / step;
+        float sx = dLip * ux + PLATE_RELIEF * plated * (px - plate) / step;
+        float sy = dLip * uy + PLATE_RELIEF * plated * (py - plate) / step;
         float nl = (float) Math.sqrt(sx * sx + sy * sy + 1f);
         float nx = -sx / nl, ny = -sy / nl, nz = 1f / nl;
         float cosE = 1f / (float) Math.sqrt(1f + sun.rise() * sun.rise());
@@ -220,25 +198,24 @@ final class CreepShading {
         float hx = lx, hy = ly, hz = lz + 1f;
         float hn = (float) Math.sqrt(hx * hx + hy * hy + hz * hz);
         float ndh = Math.max(0f, (nx * hx + ny * hy + nz * hz) / hn);
-        float spec = SPEC_GAIN * (0.05f + 0.15f * plated) * (float) Math.pow(ndh, 24.0) * vit;
+        float spec = (0.05f + 0.15f * plated) * (float) Math.pow(ndh, 24.0) * vit;
         float seam = smoothstep(0.14f, 0f, plate) * plated;
         float crest = clamp01((hLip - PLATEAU) / 0.15f);
         // Two samplings of the vein lattice, the second turned and rescaled, chosen between by the cloud,
         // so the network does not repeat with the surface's tile.
-        float vf = VEIN_FREQ * VEIN_SECOND_SCALE;
-        CreepSurface.sample(y * vf + 2.3f, x * vf + 4.1f, tpp * vf, surf);
+        CreepSurface.sample(y * VEIN_SECOND_SCALE + 2.3f, x * VEIN_SECOND_SCALE + 4.1f, tpp * VEIN_SECOND_SCALE, surf);
         float veinPick = smoothstep(0.38f, 0.62f, cloud);
-        float vein = VEIN_GAIN * mix(veinMask, surf[2], veinPick) * smoothstep(0.25f, 0.8f, dd);
+        float vein = mix(veinMask, surf[2], veinPick) * smoothstep(0.25f, 0.8f, dd);
         float outline = smoothstep(0.06f, 0f, dd);
         float wave = 0.5f + 0.5f * (float) Math.sin(pulseCells * PULSE_PER_CELL + time * PULSE_PER_SECOND);
         float glow = vein * (0.25f + 0.75f * wave * wave) * vit * GLOW;
         for (int c = 0; c < 3; c++) {
             float membrane = pal.base()[c] * (0.8f + 0.25f * cloud) * (0.88f + 0.3f * blister);
             float plateCol = pal.flesh()[c] * (0.82f + 0.36f * tone);
-            float alb = mix(membrane, plateCol, PLATE_MIX * plated * (1f - seam));
-            alb = mix(alb, pal.base()[c] * 0.6f, PLATE_MIX * seam * 0.5f);
+            float alb = mix(membrane, plateCol, plated * (1f - seam));
+            alb = mix(alb, pal.base()[c] * 0.6f, seam * 0.5f);
             alb = mix(alb, pal.rim()[c], 0.5f * crest);
-            alb = mix(alb, pal.vein()[c], Math.min(1f, 0.7f * vein));
+            alb = mix(alb, pal.vein()[c], 0.7f * vein);
             alb = mix(pal.dead()[c] * (0.8f + 0.3f * cloud), alb, vit);
             col[c] = (alb * diffuse + spec + pal.glow()[c] * glow) * (1f - 0.35f * outline);
         }
