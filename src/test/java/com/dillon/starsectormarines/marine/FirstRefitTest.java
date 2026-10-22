@@ -191,7 +191,7 @@ class FirstRefitTest {
         assertTrue(legacy.claimed()); assertNull(legacy.chosenPath());
         var saved = MarineRoster.class.getDeclaredField("firstRefit");
         saved.setAccessible(true); saved.set(roster, legacy);
-        legacy.repairArmorPlanKnowledge(roster.armory());
+        legacy.repairCardKnowledge(roster.armory());
         var before = Set.copyOf(roster.armory().ownedEquipmentTemplateIds());
         assertFalse(legacy.claim(roster, FirstRefit.Path.STEADY_LINE));
         for (var path : FirstRefit.Path.values()) {
