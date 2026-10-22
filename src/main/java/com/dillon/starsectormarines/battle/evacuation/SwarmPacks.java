@@ -175,7 +175,8 @@ public final class SwarmPacks {
             Pack own = packOf.get(body);
             boolean ownLed = own != null && own.led();
             for (Pack pack : led) {
-                if (pack == own) continue;
+                // A pack that deferred to the Matriarch earlier in this pass leads no one now.
+                if (pack == own || !pack.led()) continue;
                 boolean matriarch = sim.identity().type(pack.leader) == UnitType.SWARM_MATRIARCH;
                 if (ownLed && !matriarch) continue;
                 if (ownLed && sim.identity().type(own.leader) == UnitType.SWARM_MATRIARCH) continue;

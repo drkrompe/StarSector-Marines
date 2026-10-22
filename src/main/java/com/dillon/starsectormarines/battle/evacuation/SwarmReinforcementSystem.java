@@ -358,7 +358,7 @@ public final class SwarmReinforcementSystem {
         }
         release.released++;
         release.bore.released(planned.stage());
-        if (planned.matriarch()) bores.matriarchEmerged(bore, tick);
+        if (planned.matriarch()) bores.matriarchEmerged(bore, tick, body);
         SwarmPressureSnapshot.Approach approach = approach(cell[0], cell[1], grid.getWidth(), grid.getHeight());
         approachByRunner.put(body, approach);
         surgeWave.add(new SwarmPressureSnapshot.WaveIntent(body, approach, cell[0], cell[1],
