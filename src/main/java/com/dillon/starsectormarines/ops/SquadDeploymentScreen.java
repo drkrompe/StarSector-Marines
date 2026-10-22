@@ -72,7 +72,7 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
         Map<String, Object> props = baseProps();
         props.put("missionName", mission != null ? mission.name : Strings.get("deployNoMission"));
         props.put("missionMeta", mission != null
-                ? Strings.format("deployMissionMeta", mission.tier.displayName, Strings.upper(Strings.get(mission.type.displayKey)))
+                ? Strings.format("deployMissionMeta", Strings.get("missionSelectTier" + mission.tier.name()), Strings.upper(Strings.get(mission.type.displayKey)))
                 : Strings.get("deployChooseOperation"));
         props.put("readinessTone", "label title "
                 + (readiness.ready() ? "tone-good" : "tone-danger"));
@@ -200,7 +200,7 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
                 + (special != null ? "  " + WeaponSymbols.specialAbbrev(special) : "");
         return new MemberRow(id, classes, compactName(soldier), equipment,
                 meter(firepower, "#78d494"), meter(protection, "#6ed7ff"),
-                soldier.enlistedRank().displayName() + " " + soldier.name(),
+                Strings.format("deployInspectorName", soldier.enlistedRank().displayName(), soldier.name()),
                 Strings.format("deployBilletStatus", String.valueOf((char) ('A' + team)), slot + 1, statusLabel(soldier)),
                 Strings.format("deployFirepower", firepower), Strings.format("deployProtection", protection),
                 Strings.format("deployPrimary", primary.catalogName(soldier.primaryGrade()), soldier.primaryGrade().displayName()),
@@ -209,7 +209,8 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
                 armor.hasIntegralSystem()
                         ? Strings.format("deploySystem", IntegralSystemCopy.summary(armor))
                         : Strings.format("deploySystem", Strings.get("deployNone")),
-                Strings.format("deployProfile", soldier.profile().experienceTier().displayName, soldier.aptitude().displayName),
+                Strings.format("deployProfile", Strings.named("briefingExperienceTier", soldier.profile().experienceTier().name()),
+                        Strings.named("deployAptitude", soldier.aptitude().name())),
                 SpecSheets.weapon(primary, soldier.primaryGrade()),
                 SpecSheets.armor(armor),
                 special != null ? SpecSheets.special(special) : null,
@@ -369,7 +370,7 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
                     "label heading squad-card-commander-status tone-good");
         }
         return new CommanderRow(leader.portraitSprite(),
-                leader.rank().displayName() + " " + leader.name(),
+                Strings.format("deployInspectorName", leader.rank().displayName(), leader.name()),
                 Strings.format("deployCommandStatus", commandKind, status),
                 "label heading squad-card-commander-status "
                         + (!canToggle ? "tone-danger" : selected ? "tone-accent" : "tone-good"));
@@ -597,16 +598,15 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
         private void clear() {
             if (elements == null) return;
             elements.panel().addClass("empty");
-            elements.title().text("HOVER A MARINE");
-            elements.context().text(
-                    "The twelve billets in each card are the people committed.");
-            elements.firepower().text("FIREPOWER —");
-            elements.protection().text("PROTECTION —");
-            elements.primary().text("PRIMARY · —");
-            elements.armor().text("ARMOR · —");
-            elements.special().text("SPECIAL · —");
-            elements.system().text("SUIT SYSTEM · —");
-            elements.profile().text("PROFILE · —");
+            elements.title().text(Strings.get("deployInspectorTitle"));
+            elements.context().text(Strings.get("deployInspectorContext"));
+            elements.firepower().text(Strings.format("deployFirepower", "—"));
+            elements.protection().text(Strings.format("deployProtection", "—"));
+            elements.primary().text(Strings.format("deployPrimaryOne", "—"));
+            elements.armor().text(Strings.format("deployArmorOne", "—"));
+            elements.special().text(Strings.format("deploySpecial", "—"));
+            elements.system().text(Strings.format("deploySystem", "—"));
+            elements.profile().text(Strings.format("deployProfileOne", "—"));
         }
     }
 }

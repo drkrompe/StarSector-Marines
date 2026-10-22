@@ -6,7 +6,7 @@
         <div id="mission-loot-title" class="label title tone-edge">{title}</div>
         <div id="mission-loot-mission" class="label tone-muted">{missionName}</div>
       </div>
-      <div id="mission-loot-context" class="label heading tone-accent mission-flow-context">RECOVERY CLAIM</div>
+      <div id="mission-loot-context" class="label heading tone-accent mission-flow-context">{i18n.lootScreenContext}</div>
     </div>
     <div id="mission-loot-summary" class="loot-summary console-section">
       <div id="mission-loot-summary-copy" class="loot-summary-copy">
@@ -28,17 +28,17 @@
     </div>
     <div id="mission-loot-settlement" class="loot-settlement console-readout">
       <div id="mission-loot-carry" class="settlement-cell">
-        <div id="mission-loot-carry-heading" class="label heading tone-muted">CARRY</div>
+        <div id="mission-loot-carry-heading" class="label heading tone-muted">{i18n.lootScreenCarryHeading}</div>
         <div id="mission-loot-carry-value" class="label tone-good">{carryLabel}</div>
       </div>
       <div id="mission-loot-fence" class="settlement-cell">
-        <div id="mission-loot-fence-heading" class="label heading tone-muted">FENCE OVERFLOW</div>
+        <div id="mission-loot-fence-heading" class="label heading tone-muted">{i18n.lootScreenFenceHeading}</div>
         <div id="mission-loot-fence-value" class="label tone-accent">{fenceLabel}</div>
       </div>
       <div id="mission-loot-notice" class="{noticeClasses}">{notice}</div>
     </div>
     <div id="mission-loot-actions" class="mission-flow-actions console-section">
-      <button id="mission-loot-back" onclick="{backAction}" class="console-action">BACK TO DEBRIEF</button>
+      <button id="mission-loot-back" onclick="{backAction}" class="console-action">{i18n.lootScreenBackToDebrief}</button>
       <div id="mission-loot-action-spacer" class="action-spacer"></div>
       <button id="mission-loot-confirm" class="good-surface console-action" disabled="{confirmDisabled}" onclick="{confirmAction}">{confirmLabel}</button>
     </div>

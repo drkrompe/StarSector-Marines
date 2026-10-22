@@ -450,7 +450,7 @@ public class BriefingScreen implements Screen {
 
         props.put("missionKicker", Strings.join("separatorDot", SupplyRouteCampaign.operationLabel(mission),
                 Strings.format("briefingUiKickerRisk", Strings.upper(Strings.get(mission.risk.displayKey))),
-                mission.tier.displayName));
+                Strings.get("missionSelectTier" + mission.tier.name())));
         props.put("missionTitle", mission.name);
         narration.put(props);
         WaylineNarration.Line briefingLine = displayedBriefingNarration();
@@ -1010,7 +1010,7 @@ public class BriefingScreen implements Screen {
         for (TaskForce.Element element : force.elements()) {
             boolean bad = !element.fit() || element.overCap();
             String name = element.officer != null
-                    ? element.officer.rank().displayName() + " " + element.officer.name()
+                    ? Strings.format("briefingForceOfficerName", element.officer.rank().displayName(), element.officer.name())
                     : element.squads.get(0).name();
             String detail = Strings.format(element.inherited ? "briefingUiForceDetailAttached" : "briefingUiForceDetail",
                     element.squads.size(), element.marines);
@@ -2344,12 +2344,11 @@ public class BriefingScreen implements Screen {
             counts.merge(key, w.sortieCount, Integer::sum);
         }
         if (counts.isEmpty()) return Strings.get("briefingAirNone");
-        StringBuilder sb = new StringBuilder();
+        List<String> parts = new ArrayList<>();
         for (java.util.Map.Entry<String, Integer> e : counts.entrySet()) {
-            if (sb.length() > 0) sb.append(", ");
-            sb.append(e.getValue()).append("× ").append(e.getKey());
+            parts.add(Strings.format("briefingAirWingCount", e.getValue(), e.getKey()));
         }
-        return sb.toString();
+        return Strings.join("briefingSeparatorComma", parts.toArray(new String[0]));
     }
 
     /** Title-cases the enum name (TALON → Talon, BROADSWORD → Broadsword). */
@@ -2360,23 +2359,22 @@ public class BriefingScreen implements Screen {
 
     /** Friendly summary of employer-offered power ids ("recon_ping" → "Recon Ping"). */
     private static String summarizePowerIds(List<String> ids) {
-        StringBuilder sb = new StringBuilder();
+        List<String> parts = new ArrayList<>();
         for (String id : ids) {
             if (id == null || id.isEmpty()) continue;
-            if (sb.length() > 0) sb.append(", ");
-            sb.append(prettifyId(id));
+            parts.add(prettifyId(id));
         }
-        return sb.length() == 0 ? Strings.get("briefingAirNone") : sb.toString();
+        return parts.isEmpty() ? Strings.get("briefingAirNone")
+                : Strings.join("briefingSeparatorComma", parts.toArray(new String[0]));
     }
 
     private static String summarizePowers(List<CommandPower> powers) {
-        StringBuilder sb = new StringBuilder();
+        List<String> parts = new ArrayList<>();
         for (CommandPower power : powers) {
-            if (power == null) continue;
-            if (sb.length() > 0) sb.append(", ");
-            sb.append(power.displayName);
+            if (power != null) parts.add(power.displayName);
         }
-        return sb.length() == 0 ? Strings.get("briefingAirNone") : sb.toString();
+        return parts.isEmpty() ? Strings.get("briefingAirNone")
+                : Strings.join("briefingSeparatorComma", parts.toArray(new String[0]));
     }
 
     /** "recon_ping" → "Recon Ping". */
