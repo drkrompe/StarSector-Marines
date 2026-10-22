@@ -192,13 +192,17 @@ campaign arc, in three movements:
 3. **The heart of the infection.** A climax assault on the bloom's centre on
    the surface, in overgrown country.
 
-Alongside it, a scripted **sector threat**: a set mission or planet with its own
-strength, once spread is modelled properly. The hooks are the severity tier, a
-bloom's generation and parent (its spread chain), and `RavBloomSystem.wakeAt`,
-which wakes a bloom at a chosen market outside the weekly draw.
+The arc runs **per infected world** (owner, 2026-10-22): any bloom can carry
+the three beats in turn, Colony Breach, then the defence, then the heart, each
+offered on its own and opted into, and the player may stop after any of them;
+a world whose arc stops runs on the ordinary bloom clock. A scripted **sector
+threat** remains a possible authored instance of the same beats on a named
+world (`RavBloomSystem.wakeAt`), not the trigger.
 `bloom-mission-arc.md` is the direction for movements 2 and 3 and the sector
-threat: concepts for the owner's pick, what each reuses, candidate stories,
-and how the campaign raises them.
+threat: the Cordon (the Line and the Road as variants), the heart (a broad
+front behind a walking barrage and a burn line), what each reuses, candidate
+stories, how one beat feeds the next, and the clock and gate hooks the beats
+need from this lifecycle.
 
 ## Vocabulary
 
@@ -624,7 +628,14 @@ colours, so the rim reads as where the creep pours out of the ground. Nothing ab
 they are lopsided. A bore is a slanted shaft torn up through the ground, one
 side heaved up into reared jaw-plates, tusks and thrown paving, the other
 collapsed into the funnel; the mother bore is a wider, deeper, terraced one.
-A colony is an uneven cluster round one dominant, leaning sac. Its grade shows
+A colony is an uneven cluster round one dominant, leaning sac. A ground colony
+must never read as one: it is low and pressed flat into the creep, with no sac
+and no pore aimed at the sky, a plated core with an amber eye whose crimson
+sinew arms sprawl out over the ground like a starfish's, studded with spines
+raked back towards the core (the owner's pick of three body plans, over a
+spined armoured hump and a flat urchin, because it alone is told from a spore
+colony at a glance at play zoom). It has the colonies' paintings, wounds and
+remains: dead, its arms shrivel flat and its spines snap to stumps. Its grade shows
 in its body as well as its numbers: a lone sac with a bud at fissure grade,
 two lesser sacs pressed against it at bore grade, three and a plated, spined
 flank at maw grade, each larger than the last. Each body carries several
@@ -1285,7 +1296,17 @@ hooves at every half cell, so a walking Brute plods and a charging one thunders.
 Each phase of the Brute's charge has its own sound (the tell, the run, the hit
 on infantry, a vehicle or a wall, the stun after a heavy wall or a tank), keyed
 to the charge's own events; a Runner's impale has its own sound, posted as a cue
-by the story that adds it. Each strain's sound is admitted under its own gap and
+by the story that adds it. A ground colony makes no sound as it fires: its
+spines travel unseen under the ground and are heard where they break out, as
+the weapon's impact. The creep itself is heard as a wet, slow spread bed, one
+loop placed on the seen living creep nearest the camera and as loud as the
+share of the ground round the camera the creep has taken (`CreepAudio`), so a
+sliver at the edge of the view murmurs and a street drowned in it is a full
+bed. **Rav Bloom sound re-uses rather than multiplies** (owner): a new sound
+is first tried as an accepted take of another played at another pitch, which
+also sets its tempo, and ships no audio of its own when that serves; the
+creep bed is the bore-tier ambience slowed, the spine strike the Brute's
+head-ram quickened and its wall hit slowed, drawn from one pool. Each strain's sound is admitted under its own gap and
 footfalls come from the few bodies nearest the listener, so a pack reads as a
 pack, and the swarm is heard only on ground the player has seen. A body's growth
 stage pitches everything it makes by the inverse of its size and sets its

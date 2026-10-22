@@ -17,6 +17,7 @@
     python battle_blockout.py --layers        # key frames as backdrop / ships / effects layers in one EXR
                                               # (raw/<kf>.layers.exr), composed into the still (composite_layers.py)
     python battle_blockout.py --plates DIR    # ... with the planet session's painted backdrops (<kf>.backdrop.exr)
+    python battle_blockout.py --motion-preview   # the whole sequence in Workbench, an MP4 to judge motion (asharu_preview.py)
 
 A frame already finished in the run folder (its PNG, its labels, and the same samples and source)
 is not rendered again, so a job stopped part-way resumes where it stopped. Pass --run with a fixed
@@ -55,7 +56,7 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(PROLOGUE))
 sys.path.insert(0, str(ART))
 import roster
-from motion import fleet_at   # ships move about their stations: seeded weave, bank and breathing spacing  # noqa: E402
+from motion import boarding_run, fleet_at   # ships move about their stations: seeded weave, bank and breathing spacing  # noqa: E402
 
 # One folder per finished build (roster.FINISHED's dir), copied whole from Drive.
 BUILDS = Path(os.environ.get('ASHARU_BUILDS') or REPO / 'build' / 'asharu-battle' / 'builds')
@@ -183,6 +184,19 @@ def near(parent, offset, hd=0.0, pt=0.0, rl=0.0, thr=.3):
             math.degrees(math.atan2(m[2][1], m[2][2])), thr)
 
 
+def boat(mother, prize, seat_off, t0, t1, t, launch_off=(-8.0, 0.0, -12.0)):
+    """A boarding boat (a Hermes) on its run from under its mother craft to a seat on the prize's deck
+    (motion.boarding_run). launch_off and seat_off are metres in the mother's and the prize's frames;
+    it leaves down and aft from the mother's belly, where the camera cannot see it launch, and comes in
+    along the prize's deck from astern, so it sits down facing aft, gear down."""
+    m, _ = _attitude(*mother[3:6])
+    p, _ = _attitude(*prize[3:6])
+    down_aft = [-.8 * m[i][2] - .6 * m[i][0] for i in range(3)]
+    n = math.hypot(*down_aft)
+    return boarding_run(aboard(mother, launch_off)[:3], [c / n for c in down_aft], aboard(prize, seat_off)[:3],
+                        [p[i][0] for i in range(3)], near(prize, seat_off, hd=180.0, thr=0.0), t0, t1, t)
+
+
 # Morrow's drone bay (Shepherd hull units x 0.78): the three Borer launch points, cradle seat on the
 # point, the drone's root 1.44 m above it (Borer manifest cradle_seat). The bay lifts straight up (+Z).
 BORER_BAY_M = [(-2.34, 14.82, -1.73), (9.36, 14.82, -1.73), (20.28, 14.82, -1.73)]
@@ -193,6 +207,14 @@ COLOSSUS_PORT_POD_M = (-62, 30, 0)    # the shot-out port drive pod (k4's blast,
 STAR_GAIN = 1.0      # starfield brightness on the key frames (0 hides it)
 
 C3_PRIZE = (-150, 330, 60, 30, -4, -6, .3)
+
+# S7: the Tarsus fallen out of the column, a Kite (P) on each beam, and their boats coming over to her deck
+K3B_T = 86
+K3B_TARSUS = (-650, 90, 30, 6, -2, 9, 0)
+K3B_KITE_A = (-620, 160, 40, 6, -1, 9, .2)     # port beam
+K3B_KITE_B = (-700, 25, 0, 4, 2, 6, .2)        # starboard beam
+# the boats' seats on her deck (Tarsus metres; deck heights checked by the seat cast, ASHARU seat)
+K3B_SEATS = {'hermes-p-a': (2.0, -4.0, 6.43), 'hermes-p-b': (-22.0, 3.0, 8.0), 'hermes-p-c': (24.0, -4.0, 6.0)}
 
 KEYFRAMES = {
     'k0': dict(
@@ -293,15 +315,22 @@ KEYFRAMES = {
         labels=['hound-m', 'hound-p-a', 'hound-p-b']),
     'k3b': dict(
         shot='S7', title='Boarding the Tarsus',
-        caption='The Tarsus has fallen out of the column with her drives shot out. Kites (P) lie alongside with '
-                'the boarders and a Wolf (P) covers them. The rest of the convoy runs on ahead without her.',
+        caption='The Tarsus has fallen out of the column with her drives shot out. Kites (P) lie alongside and '
+                'their boats bring the boarders over: one down on her deck, one braking in over her stern, one '
+                'just out from under its Kite. A Wolf (P) covers them. The rest of the convoy runs on ahead.',
         camera=dict(loc=(-1250, 380, 170), target=(400, -40, -60), lens=35),
         states={'tarsus': 'tarsus-boarded'},
-        ships={'tarsus': (-650, 90, 30, 6, -2, 9, 0),
-               'kite-p-a': (-620, 160, 40, 6, -1, 9, .2), 'kite-p-b': (-700, 25, 0, 4, 2, 6, .2),
+        knobs={'hermes-p-a': {'gear_up': 0.0, 'door_port': 1.0, 'door_starboard': 1.0},    # down, boarders out
+               'hermes-p-b': {'gear_up': 0.5}, 'hermes-p-c': {'gear_up': 1.0}},
+        seated={'hermes-p-a': 'tarsus'},
+        ships={'tarsus': K3B_TARSUS, 'kite-p-a': K3B_KITE_A, 'kite-p-b': K3B_KITE_B,
+               # the boats: one down on her deck, one braking in over her stern, one just out from under its Kite
+               'hermes-p-a': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-a'], 62, 80, K3B_T),
+               'hermes-p-b': boat(K3B_KITE_A, K3B_TARSUS, K3B_SEATS['hermes-p-b'], 70, 90, K3B_T),
+               'hermes-p-c': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-c'], 81, 99, K3B_T),
                'wolf-p-b': (-420, 330, 120, -20, -32, 110, 1),
                **fleet_at({'colossus': (1200, -80, 40, 0, 0, 2, .9), 'morrow': (1150, -250, 0, 0, 1, -3, .9),
-                           'mule': (1900, 260, 20, 0, 0, -2, .9), 'buffalo-a': (1600, -350, 80, 0, 1, 4, .9)}, 86)},
+                           'mule': (1900, 260, 20, 0, 0, -2, .9), 'buffalo-a': (1600, -350, 80, 0, 1, 4, .9)}, K3B_T)},
         fx=[('tracer', 'wolf-p-b', 'tarsus', (30, 0, 10)), ('fire_on', 'tarsus', (-38, 6, 8), (-.2, .5, 1)),
             ('smoke', 'tarsus', (-38, 6, 8), (-.3, .4, 1))],
         labels=['tarsus', 'kite-p-a', 'kite-p-b', 'wolf-p-b', 'colossus', 'mule']),
@@ -810,11 +839,24 @@ def blender_main(cfg):
             eng.append((Vector(e.get('mouth') or e['location']), Vector(e.get('axis') or e['exhaust_direction']),
                         e.get('radius') or e['mouth_radius'], e.get('style', 'LOW_TECH')))
         knobs = {}
-        if ctl and m.get('control'):      # knobs: a list of {name, ...}, or a dict of name -> description
+        if ctl and m.get('control'):      # knobs: a list of {name, ...} or of names, or a dict of name -> description
             ks = m['control'].get('knobs') or []
             pose = m['control'].get('saved_pose') or {}
-            knobs = {n: pose.get(n, 0.0) for n in (ks if isinstance(ks, dict) else [k['name'] for k in ks])}
+            knobs = {n: pose.get(n, 0.0) for n in (ks if isinstance(ks, dict) else
+                                                   [k if isinstance(k, str) else k['name'] for k in ks])}
         hull_ctl = ctl if ctl is not None and ctl.name in coll.all_objects else None    # gear, grapples, break-up
+        if f.get('livery') == 'scrap':     # a pirate's boat: the company paint greyed and dulled, on this copy only
+            for mat in {sl.material for o in coll.all_objects for sl in o.material_slots if sl.material}:
+                for n in [n for n in (mat.node_tree.nodes if mat.use_nodes else ()) if n.type == 'BSDF_PRINCIPLED']:
+                    base = n.inputs['Base Color']
+                    hs = mat.node_tree.nodes.new('ShaderNodeHueSaturation')
+                    hs.inputs['Saturation'].default_value = .15
+                    hs.inputs['Value'].default_value = .7
+                    if base.is_linked:
+                        mat.node_tree.links.new(base.links[0].from_socket, hs.inputs['Color'])
+                    else:
+                        hs.inputs['Color'].default_value = base.default_value
+                    mat.node_tree.links.new(hs.outputs['Color'], base)
         # the build's own lamps and volumes (shared by every ship of the build: one build, one mpu)
         ship_fx.metre_scale({d for o in coll.all_objects for d in
                              (o.data if o.type == 'LIGHT' else None, *(sl.material for sl in o.material_slots))
@@ -1120,6 +1162,57 @@ def blender_main(cfg):
             if report:
                 standin = '' if members[a].get('finished') else '  (stand-in: fires from inside its slab)'
                 print(f'ASHARU LOS {kf} {fx[0]:8} {a:12} -> {b:12} {what}{standin}', flush=True)
+
+    def seat_check(kf, spec):
+        """A boat set down on its prize (spec 'seated': boat -> prize): with the boat hidden, cast down
+        through each gear sole (its manifest's landing sole anchors) onto the prize's hull and print the
+        gap, so a boat that floats or sinks into the deck shows without a render. Positive: above the hull."""
+        for b, prize in spec.get('seated', {}).items():
+            pl = placed[b]
+            soles = [(s_['leg'], muzzle_world(b, ('anchor', s_['anchor'])))
+                     for s_ in (pl['lib']['manifest'].get('landing') or {}).get('sole_anchors') or []]
+            up = (pl['matrix'].to_3x3() @ Vector((0, 0, 1))).normalized()
+            mine = [o for o in stage.all_objects if o.name in ('Ship | ' + b, 'Ship fx | ' + b)]
+            for o in mine:
+                o.hide_viewport = True
+            bpy.context.view_layer.update()
+            dg = bpy.context.evaluated_depsgraph_get()
+            centre_p, reach_p = at(prize), placed[prize]['length'] * .6
+
+            def gap(p):
+                o = p + up * 40.0
+                for _ in range(64):
+                    hit, loc, _, _, ob, _ = scene.ray_cast(dg, o, -up, distance=80.0)
+                    if not hit:
+                        return None
+                    if (ob is not None and ob.name.startswith('SWFX')) or (loc - centre_p).length > reach_p:
+                        o = loc - up * .05      # the kit's volumes, or not the prize
+                        continue
+                    return (p - loc).dot(up)
+                return None
+
+            gaps = [(leg, gap(p)) for leg, p in soles]
+            row = ', '.join(f'{leg} {"no hull" if g is None else f"{g:+.2f} m"}' for leg, g in gaps)
+            ok = bool(gaps) and all(g is not None and abs(g) <= .35 for _, g in gaps)
+            print(f'ASHARU seat {kf} {b} on {prize}: {row}  {"SEATED" if ok else "NOT SEATED"}', flush=True)
+            if not ok and soles:       # where it would sit flat: the deck around the seat, in the prize's frame
+                rot = placed[prize]['matrix'].to_3x3()
+                best = None
+                for dx in range(-30, 31, 2):
+                    for dy in range(-12, 13, 2):
+                        t_ = rot @ Vector((dx, dy, 0))
+                        gs = [gap(p + t_) for _, p in soles]
+                        if any(g is None for g in gs):
+                            continue
+                        spread = max(gs) - min(gs)
+                        if best is None or spread < best[0]:
+                            best = (spread, dx, dy, min(gs))
+                if best is not None:
+                    print(f'ASHARU seat {kf} {b} flattest within 30 m: move ({best[1]:+d}, {best[2]:+d}) m in '
+                          f'the {prize} frame and down {best[3]:+.2f} m: soles within {best[0]:.2f} m', flush=True)
+            for o in mine:
+                o.hide_viewport = False
+            bpy.context.view_layer.update()
 
     def tracer(a, b, local=None, n=6, muzzle=None):
         p0 = muzzle_world(a, muzzle)
@@ -1569,6 +1662,7 @@ def blender_main(cfg):
             muzzles = {(k, a, b): (best[5] if best else None) for k, a, b, best, _ in bearing(kf)}
             CLEAR_GUNS.clear()
             line_of_sight(kf, spec, muzzles, cfg.get('los'))     # picks, per shot, a bearing gun with a clear line
+            seat_check(kf, spec)
             kit_drew = set()
             if cfg.get('swfx'):          # the finished kit draws what it can (scene_fx); the stand-ins draw the rest
                 import scene_fx
@@ -1655,6 +1749,10 @@ def blender_main(cfg):
                 else:
                     lab[key] = ship_label(key)
             labels[kf] = lab
+            if cfg.get('motion_preview'):     # --motion-preview: play this shot in Workbench (asharu_preview.py)
+                import asharu_preview
+                asharu_preview.shot(locals(), kf)
+                continue
         else:
             labels[kf] = roster_sheet(kf)
         layers = bool(cfg.get('layers')) and kf in KEYFRAMES
@@ -2269,6 +2367,10 @@ def main():
     samples = int(opt('--samples', 48))
     layers = '--layers' in argv     # three view layers and a composite (composite_layers.py)
     plates = '' if '--no-plates' in argv else opt('--plates')     # None: build/asharu-battle/plates (roster.PLATES)
+    if '--motion-preview' in argv:  # the sequence as a cheap motion preview (asharu_preview.py)
+        import asharu_preview
+        asharu_preview.main(argv, run, run_date)
+        return
     if '--fx-check' in argv:        # per-ship effects: stage the cued frames under the kit, no render
         if '--frames' not in argv:
             frames = [kf for kf in KEYFRAMES if KEYFRAMES[kf].get('cues')]
