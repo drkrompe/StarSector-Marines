@@ -28,6 +28,11 @@ public final class EquipmentTestFixtures {
         for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
             if (plan.armorClass() == ArmorClass.STANDARD && !plan.isMixedClass()) learnSheet(armory, plan.id());
         }
+        // ...and every weapon card its service equipment already covers.
+        for (SquadWeaponDoctrine doctrine : SquadEquipmentDoctrines.weaponDoctrines()) {
+            LoadoutCard card = new LoadoutCard(LoadoutCard.Kind.WEAPON, doctrine.id());
+            if (armory.ownedEquipmentTemplateIds().containsAll(card.templateIds())) armory.learnLoadoutCard(card);
+        }
     }
 
     /** Learns a tactic sheet the way the game does: by holding its card. */

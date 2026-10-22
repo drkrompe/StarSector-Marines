@@ -7,7 +7,7 @@ Status: PLANNED — depends on the remaining S2F–S2G special-equipment stories
 armor expansion also depends on
 `powered-assault-armor-roles.md`.
 Written: 2026-08-22
-Updated: 2026-08-28 — the close-contact tools shipped and left the dependency list; richer achievement gates and live pacing acceptance remain.
+Updated: 2026-10-22 — milestones and the safety net now grant whole authored cards, never templates (`progression-nouns.md`); the template-level ladder and card counts below are superseded and need re-planning in card terms.
 
 Read `progression-nouns.md`, `faction-lore-nouns.md`, and
 `powered-assault-armor-roles.md` before implementing this story.

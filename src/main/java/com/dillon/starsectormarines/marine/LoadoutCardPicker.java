@@ -14,8 +14,8 @@ import java.util.Set;
  * <p>A faction's authored pool still lists the equipment it fields; a card is on offer
  * through a channel when the faction fields part of what it bundles there, at the
  * heaviest weight of those entries, and the company's progress reaches the scarcest
- * bundled tier. Restricted kit inside a card additionally needs a military warrant and must
- * be fielded by this faction itself.
+ * bundled tier. A Restricted card instead needs a military warrant naming it, and its
+ * Restricted kit must be fielded by this faction itself.
  */
 public final class LoadoutCardPicker {
 
@@ -33,7 +33,7 @@ public final class LoadoutCardPicker {
         List<Candidate> candidates = new ArrayList<>();
         for (LoadoutCard card : LoadoutCards.all()) {
             if (unavailable.contains(card.id())
-                    || !EquipmentAcquisitionEligibility.allowsAll(card.templateIds(), source, progress)
+                    || !EquipmentAcquisitionEligibility.allows(card, source, progress)
                     || !fieldsEveryRestricted(card, fielded)) {
                 continue;
             }

@@ -1,58 +1,47 @@
 package com.dillon.starsectormarines.marine;
 
-import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
-import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/** Deterministic safety-net breadth for a company that misses ordinary card sources. */
+/**
+ * The collection safety net: a company that keeps winning but misses the ordinary
+ * card sources is topped up to a floor of collected cards, in an authored order.
+ *
+ * <p>It counts and grants whole cards, never single equipment, and never a
+ * Restricted card: those come only by warrant. Cards held in cargo count toward
+ * the floor without being learned.
+ */
 final class EquipmentCollectionCurve {
 
-    static final int FIVE_VICTORY_TARGET = 8;
-    static final int FIFTEEN_VICTORY_TARGET = 12;
-    static final int THIRTY_VICTORY_TARGET = 16;
-    static final int FORTY_VICTORY_TARGET = 17;
+    static final int FIVE_VICTORY_TARGET = 3;
+    static final int FIFTEEN_VICTORY_TARGET = 6;
+    static final int THIRTY_VICTORY_TARGET = 8;
+    static final int FORTY_VICTORY_TARGET = 9;
 
-    private static final List<String> FALLBACK_ORDER = List.of(
-            EquipmentTemplateCatalog.primaryId(
-                    WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.MILSPEC),
-            EquipmentTemplateCatalog.armorId(MarineArmorPattern.BLUE_SCOUT),
-            EquipmentTemplateCatalog.armorId(MarineArmorPattern.OUTLAW),
-            EquipmentTemplateCatalog.primaryId(
-                    WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.MASTERWORK),
-            EquipmentTemplateCatalog.primaryId(
-                    WeaponRegistry.SMG_ID, EquipmentGrade.MASTERWORK),
-            EquipmentTemplateCatalog.primaryId(
-                    WeaponRegistry.SQUAD_AUTOMATIC_ID, EquipmentGrade.MASTERWORK),
-            // Line combat armour, not the XIV battlesuit this slot once held: approved
-            // military issue is Restricted and a safety net never grants it.
-            EquipmentTemplateCatalog.armorId("armor.combat"),
-            EquipmentTemplateCatalog.primaryId(
-                    WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.MASTERWORK),
-            EquipmentTemplateCatalog.primaryId(
-                    WeaponRegistry.DMR_ID, EquipmentGrade.MASTERWORK),
-            EquipmentTemplateCatalog.primaryId(
-                    WeaponRegistry.DMR_ID, EquipmentGrade.SURPLUS),
-            EquipmentTemplateCatalog.primaryId(
-                    WeaponRegistry.SQUAD_AUTOMATIC_ID, EquipmentGrade.SURPLUS),
-            EquipmentTemplateCatalog.primaryId(
-                    WeaponRegistry.SMG_ID, EquipmentGrade.SURPLUS),
-            EquipmentTemplateCatalog.primaryId(
-                    WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SERVICE));
+    /** Low-tier cards, in the order the net hands them out; the Wayline refit sheets stay a choice. */
+    static final List<LoadoutCard> FALLBACK_ORDER = List.of(
+            new LoadoutCard(LoadoutCard.Kind.WEAPON, SquadEquipmentDoctrines.CONVOY_ESCORT_WEAPONS),
+            new LoadoutCard(LoadoutCard.Kind.SHEET, SquadEquipmentDoctrines.OUTLAW_RAIDER_ARMOR),
+            new LoadoutCard(LoadoutCard.Kind.SHEET, SquadEquipmentDoctrines.CHURCH_WARDEN_ARMOR),
+            new LoadoutCard(LoadoutCard.Kind.WEAPON, SquadEquipmentDoctrines.BUILDERS_GUARD_WEAPONS),
+            new LoadoutCard(LoadoutCard.Kind.SHEET, SquadEquipmentDoctrines.FREEPORT_ASSAULT_ARMOR),
+            new LoadoutCard(LoadoutCard.Kind.SHEET, SquadEquipmentDoctrines.OUTLAW_LINE_ARMOR),
+            new LoadoutCard(LoadoutCard.Kind.WEAPON, SquadEquipmentDoctrines.COUNTER_BATTERY_WEAPONS),
+            new LoadoutCard(LoadoutCard.Kind.SHEET, SquadEquipmentDoctrines.LEAGUE_LINE_ARMOR),
+            new LoadoutCard(LoadoutCard.Kind.WEAPON, SquadEquipmentDoctrines.CHECKPOINT_WEAPONS),
+            new LoadoutCard(LoadoutCard.Kind.SHEET, SquadEquipmentDoctrines.SINDRIAN_SECURITY_ARMOR),
+            new LoadoutCard(LoadoutCard.Kind.WEAPON, SquadEquipmentDoctrines.TRENCH_CLEARING_WEAPONS),
+            new LoadoutCard(LoadoutCard.Kind.WEAPON, SquadEquipmentDoctrines.LINE_INFANTRY_WEAPONS));
 
     private EquipmentCollectionCurve() {}
 
+    /** Collected cards beyond the starter pair a company should hold at this many victories. */
     static int minimumCollectedAtVictories(int victories) {
         int wins = Math.max(0, victories);
-        // The baseline has three specs. Preserve the number of later safety-net
-        // awards without restoring the former broad starter library.
-        if (wins < 2) return 3;
-        if (wins == 2) return 5;
-        if (wins == 3) return 6;
-        if (wins < 5) return FIVE_VICTORY_TARGET;
+        if (wins < 2) return 0;
+        if (wins < 5) return 1;
         if (wins <= 15) {
             return FIVE_VICTORY_TARGET
                     + (wins - 5) * (FIFTEEN_VICTORY_TARGET - FIVE_VICTORY_TARGET) / 10;
@@ -68,38 +57,23 @@ final class EquipmentCollectionCurve {
         return FORTY_VICTORY_TARGET;
     }
 
-    static List<String> repair(
-            MarineArmory armory, int victories, Set<String> acquiredOrCarriedTemplateIds) {
+    /** Learns cards from the fallback order until the floor is met; returns those it granted. */
+    static List<LoadoutCard> repair(MarineArmory armory, int victories, Set<String> carriedCardIds) {
         if (armory == null) return List.of();
         int target = minimumCollectedAtVictories(victories);
-        Set<String> effectiveCollection = new HashSet<>();
-        Set<String> external = acquiredOrCarriedTemplateIds != null
-                ? acquiredOrCarriedTemplateIds : Set.of();
-        for (EquipmentTemplateCard card : EquipmentTemplateCatalog.all()) {
-            if (armory.ownsEquipmentTemplate(card.id()) || external.contains(card.id())) {
-                effectiveCollection.add(card.id());
-            }
+        Set<String> collected = new HashSet<>();
+        Set<String> carried = carriedCardIds != null ? carriedCardIds : Set.of();
+        for (LoadoutCard card : LoadoutCards.all()) {
+            if (armory.knowsLoadoutCard(card.id()) || carried.contains(card.id())) collected.add(card.id());
         }
-        int collected = effectiveCollection.size();
-        if (collected >= target) return List.of();
-
-        List<String> granted = new ArrayList<>();
-        for (String templateId : FALLBACK_ORDER) {
-            if (collected >= target) break;
-            if (effectiveCollection.contains(templateId)
-                    || !EquipmentTemplateCatalog.contains(templateId)
-                    || EquipmentTemplateCatalog.require(templateId).accessTier()
-                            == EquipmentAccessTier.RESTRICTED
-                    || !armory.acquireEquipmentTemplate(templateId)) {
-                continue;
-            }
-            granted.add(templateId);
-            effectiveCollection.add(templateId);
-            collected++;
-        }
-        if (collected < target) {
-            throw new IllegalStateException("Equipment collection curve cannot reach its "
-                    + target + "-card target at " + victories + " victories");
+        List<LoadoutCard> granted = new ArrayList<>();
+        for (LoadoutCard card : FALLBACK_ORDER) {
+            if (collected.size() >= target) break;
+            if (collected.contains(card.id()) || !card.defined()
+                    || card.accessTier() == EquipmentAccessTier.RESTRICTED) continue;
+            armory.learnLoadoutCard(card);
+            collected.add(card.id());
+            granted.add(card);
         }
         return List.copyOf(granted);
     }

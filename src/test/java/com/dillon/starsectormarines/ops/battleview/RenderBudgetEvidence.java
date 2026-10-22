@@ -581,7 +581,7 @@ class RenderBudgetEvidence {
             camera.centerOn(focus[0], focus[1]);
 
             RenderContext rc = new RenderContext(sim, camera, layout, 1f, 0f, false,
-                    null, null, BattleRenderHostProfile.STANDALONE_BATTLE);
+                    null, null, BattleRenderHostProfile.STANDALONE_BATTLE, ANIMATION_CLOCK_SECONDS);
 
             for (int warmup = 0; warmup < WARMUP_FRAMES; warmup++) drawFrame(renderer, rc, null);
 
@@ -718,7 +718,7 @@ class RenderBudgetEvidence {
         for (int step = 0; step <= 8; step++) {
             camera.centerOn(bodyX - halfViewCells - step * 0.5f, bodyY);
             RenderContext rc = new RenderContext(sim, camera, layout, 1f, 0f, false,
-                    null, null, BattleRenderHostProfile.STANDALONE_BATTLE);
+                    null, null, BattleRenderHostProfile.STANDALONE_BATTLE, ANIMATION_CLOCK_SECONDS);
             drawFrame(renderer, rc, null);
             assertCulledFrameIsIdentical(renderer, rc, mapId,
                     "straddle +" + (step * 0.5f) + " cells past the right edge");
@@ -731,6 +731,14 @@ class RenderBudgetEvidence {
      * <p>Held rather than allocated per call: a frame is eight megabytes, and
      * the comparison wants two of them at once for every framing on both maps.
      */
+    /**
+     * The animation clock every frame here is drawn at. Left unset, a context falls back to the wall clock, and
+     * the fire lights' flicker ({@code FireLight.clock}) moved between the culled readback and its unculled
+     * control: the burning colony's whole-map frames differed by one channel level, on whichever run the
+     * milliseconds happened to land across a rounding step. A still world needs a still clock as well.
+     */
+    private static final float ANIMATION_CLOCK_SECONDS = BattleReviewFrameRenderer.REVIEW_CLOCK_SECONDS;
+
     private static final ByteBuffer READ_BUFFER =
             BufferUtils.createByteBuffer(SURFACE_W * SURFACE_H * 4);
     private static final byte[] CULLED = new byte[SURFACE_W * SURFACE_H * 4];

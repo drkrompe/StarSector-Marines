@@ -10,34 +10,35 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Restricted equipment answers to a military warrant, never to reputation or victories. */
+/** A military warrant names Restricted cards; nothing else opens them. */
 class MilitaryWarrantsTest {
 
-    private static final String XIV = EquipmentTemplateCatalog.armorId("armor.heavy");
-    private static final String MILITARY_ARBALEST = EquipmentTemplateCatalog.armorId("armor.arbalest");
-    private static final String SPECTER = EquipmentTemplateCatalog.armorId("armor.specter-heavy");
-    private static final String XIV_SHEET = "loadout-card:sheet:armor:hegemony-shock";
+    private static final String XIV_SHEET = new LoadoutCard(LoadoutCard.Kind.SHEET,
+            SquadEquipmentDoctrines.HEGEMONY_SHOCK_ARMOR).id();
+    private static final String AUXILIARY_SECTION = new LoadoutCard(LoadoutCard.Kind.SHEET,
+            SquadEquipmentDoctrines.HEGEMONY_AUXILIARY_SECTION_ARMOR).id();
+    private static final String SPECTER_SHEET = new LoadoutCard(LoadoutCard.Kind.SHEET,
+            SquadEquipmentDoctrines.CORPORATE_HEAVY_ARMOR).id();
+    private static final String LEAGUE_LINE = new LoadoutCard(LoadoutCard.Kind.SHEET,
+            SquadEquipmentDoctrines.LEAGUE_LINE_ARMOR).id();
 
     private static final EquipmentAcquisitionEligibility.Progress EVERYTHING =
             new EquipmentAcquisitionEligibility.Progress(1000, 1000);
 
     @Test
-    void theApprovedSuitsAreRestrictedAndTheCrudeOneIsNot() {
-        for (String id : List.of("armor.heavy", "armor.arbalest", "armor.specter-heavy",
-                "armor.bulwark-heavy", "armor.reliquary-heavy", "armor.lions-mantle")) {
-            assertEquals(EquipmentAccessTier.RESTRICTED, EquipmentTemplateCatalog.armor(id).accessTier(), id);
-        }
-        assertEquals(EquipmentAccessTier.PRESTIGE, EquipmentTemplateCatalog.armor("armor.foundry-breaker").accessTier(),
-                "the pirate road to powered armour stays open and unwarranted");
-        assertEquals(EquipmentAccessTier.ADVANCED, EquipmentTemplateCatalog.armor("armor.arbalest-recovered").accessTier());
+    void aCardIsIssuedByTheTraditionThatBuildsItsRestrictedKit() {
+        assertEquals(ArmorTradition.HEGEMONY, MilitaryWarrants.issuerOf(LoadoutCard.parse(XIV_SHEET)));
+        assertEquals(ArmorTradition.HEGEMONY, MilitaryWarrants.issuerOf(LoadoutCard.parse(AUXILIARY_SECTION)));
+        assertNull(MilitaryWarrants.issuerOf(LoadoutCard.parse(LEAGUE_LINE)), "an open card has no issuer");
     }
 
     @Test
-    void maximumProgressRefusesRestrictedKitOnEverySourceWithoutAWarrant() {
-        EquipmentTemplateCard xiv = EquipmentTemplateCatalog.require(XIV);
+    void maximumProgressRefusesARestrictedCardOnEverySourceWithoutAWarrant() {
+        LoadoutCard xiv = LoadoutCard.parse(XIV_SHEET);
         for (FactionEquipmentSource source : FactionEquipmentSource.values()) {
             assertFalse(EquipmentAcquisitionEligibility.allows(xiv, source, EVERYTHING), source.name());
         }
@@ -46,17 +47,17 @@ class MilitaryWarrantsTest {
     }
 
     @Test
-    void aWarrantOpensOnlyLicenceAndPatronAndOnlyForWhatItNames() {
+    void aWarrantOpensOnlyLicenceAndPatronAndOnlyForTheCardsItNames() {
         EquipmentAcquisitionEligibility.Progress warranted =
-                new EquipmentAcquisitionEligibility.Progress(0, 0, Set.of(XIV));
-        EquipmentTemplateCard xiv = EquipmentTemplateCatalog.require(XIV);
+                new EquipmentAcquisitionEligibility.Progress(0, 0, Set.of(XIV_SHEET));
+        LoadoutCard xiv = LoadoutCard.parse(XIV_SHEET);
 
         assertTrue(EquipmentAcquisitionEligibility.allows(xiv, FactionEquipmentSource.LICENSE, warranted));
         assertTrue(EquipmentAcquisitionEligibility.allows(xiv, FactionEquipmentSource.PATRON, warranted));
         assertFalse(EquipmentAcquisitionEligibility.allows(xiv, FactionEquipmentSource.MARKET, warranted));
         assertFalse(EquipmentAcquisitionEligibility.allows(xiv, FactionEquipmentSource.RECOVERY, warranted));
-        assertFalse(EquipmentAcquisitionEligibility.allows(EquipmentTemplateCatalog.require(SPECTER),
-                FactionEquipmentSource.LICENSE, warranted));
+        assertFalse(EquipmentAcquisitionEligibility.allows(LoadoutCard.parse(AUXILIARY_SECTION),
+                FactionEquipmentSource.LICENSE, warranted), "a warrant opens the cards it names, not their kit");
     }
 
     @Test
@@ -68,13 +69,14 @@ class MilitaryWarrantsTest {
     }
 
     @Test
-    void aStandingWarrantOpensEveryRestrictedSuitItsTraditionBuilds() {
+    void aStandingWarrantOpensEveryRestrictedCardItsTraditionIssues() {
         CampaignState state = new CampaignState();
 
         List<String> opened = MilitaryWarrants.grantStanding(state, ArmorTradition.HEGEMONY, 40);
 
-        assertEquals(Set.of(XIV, MILITARY_ARBALEST), Set.copyOf(opened));
-        assertEquals(Set.of(XIV, MILITARY_ARBALEST), MilitaryWarrants.warrantedTemplateIds(state));
+        assertTrue(opened.containsAll(List.of(XIV_SHEET, AUXILIARY_SECTION)));
+        assertEquals(Set.copyOf(opened), MilitaryWarrants.warrantedCardIds(state));
+        assertFalse(opened.contains(SPECTER_SHEET));
         assertTrue(MilitaryWarrants.holds(state, ArmorTradition.HEGEMONY));
         assertFalse(MilitaryWarrants.holds(state, ArmorTradition.TRITACHYON));
         MilitaryWarrants.Held held = MilitaryWarrants.held(state).get(0);
@@ -87,30 +89,54 @@ class MilitaryWarrantsTest {
     @Test
     void aStandingWarrantCompletesAPartialAuthoredOneWithoutRewritingIt() {
         CampaignState state = new CampaignState();
-        MilitaryWarrants.grant(state, ArmorTradition.HEGEMONY, List.of(MILITARY_ARBALEST),
+        MilitaryWarrants.grant(state, ArmorTradition.HEGEMONY, List.of(AUXILIARY_SECTION),
                 MilitaryWarrants.Reason.STORY, 10);
 
-        assertEquals(List.of(XIV), MilitaryWarrants.grantStanding(state, ArmorTradition.HEGEMONY, 90));
+        List<String> opened = MilitaryWarrants.grantStanding(state, ArmorTradition.HEGEMONY, 90);
+        assertTrue(opened.contains(XIV_SHEET));
+        assertFalse(opened.contains(AUXILIARY_SECTION));
         MilitaryWarrants.Held held = MilitaryWarrants.held(state).get(0);
         assertEquals(MilitaryWarrants.Reason.STORY, held.reason());
         assertEquals(10, held.day());
     }
 
     @Test
-    void aWarrantSpeaksOnlyForRestrictedKitItsIssuerBuilds() {
+    void aWarrantSpeaksOnlyForRestrictedCardsItsIssuerIssues() {
         CampaignState state = new CampaignState();
         assertThrows(IllegalArgumentException.class, () -> MilitaryWarrants.grant(state,
-                ArmorTradition.HEGEMONY, List.of(SPECTER), MilitaryWarrants.Reason.STORY, 0));
+                ArmorTradition.HEGEMONY, List.of(SPECTER_SHEET), MilitaryWarrants.Reason.STORY, 0));
         assertThrows(IllegalArgumentException.class, () -> MilitaryWarrants.grant(state,
-                ArmorTradition.HEGEMONY, List.of(EquipmentTemplateCatalog.armorId("armor.line")),
-                MilitaryWarrants.Reason.STORY, 0));
+                ArmorTradition.HEGEMONY, List.of(LEAGUE_LINE), MilitaryWarrants.Reason.STORY, 0));
+        assertThrows(IllegalArgumentException.class, () -> MilitaryWarrants.grant(state,
+                ArmorTradition.HEGEMONY, List.of(EquipmentTemplateCatalog.armorId("armor.heavy")),
+                MilitaryWarrants.Reason.STORY, 0), "a warrant names cards, never a suit");
         assertEquals(0, state.militaryWarrantCount);
     }
 
     @Test
-    void onlyTheIssuerOffersWarrantedKitAndOnlyWithTheWarrant() {
+    void aSaveFromBeforeCardWarrantsOpensExactlyTheCardsItsSuitsCovered() {
+        CampaignState state = new CampaignState();
+        int hegemony = state.factionRegistry.intern(ArmorTradition.HEGEMONY.key);
+        int arbalest = state.equipmentTemplateRegistry.intern(EquipmentTemplateCatalog.armorId("armor.arbalest"));
+        state.militaryWarrantIssuerId[0] = hegemony;
+        state.militaryWarrantTemplateId[0] = arbalest;
+        state.militaryWarrantReason[0] = MilitaryWarrants.Reason.STORY.code;
+        state.militaryWarrantDay[0] = 12;
+        state.militaryWarrantCount = 1;
+
+        Set<String> warranted = MilitaryWarrants.warrantedCardIds(state);
+
+        assertTrue(warranted.contains(AUXILIARY_SECTION), "every Restricted suit it carries was warranted");
+        assertFalse(warranted.contains(XIV_SHEET), "the XIV was not");
+        MilitaryWarrants.Held held = MilitaryWarrants.held(state).get(0);
+        assertEquals(MilitaryWarrants.Reason.STORY, held.reason());
+        assertEquals(12, held.day());
+    }
+
+    @Test
+    void onlyTheIssuerOffersAWarrantedCardAndOnlyWithTheWarrant() {
         EquipmentAcquisitionEligibility.Progress warranted =
-                new EquipmentAcquisitionEligibility.Progress(1000, 1000, Set.of(XIV, MILITARY_ARBALEST));
+                new EquipmentAcquisitionEligibility.Progress(1000, 1000, Set.of(XIV_SHEET));
 
         assertFalse(offers("hegemony", FactionEquipmentSource.LICENSE, EVERYTHING),
                 "without the warrant the Hegemony itself does not sell it");
@@ -125,23 +151,15 @@ class MilitaryWarrantsTest {
     }
 
     @Test
-    void theSafetyNetAndVictoryMilestonesNeverGrantRestrictedKit() {
+    void theSafetyNetAndVictoryMilestonesNeverGrantARestrictedCard() {
         MarineArmory armory = new MarineArmory();
         for (int win = 0; win < 60; win++) armory.recordVictory(true);
 
-        for (String id : armory.ownedEquipmentTemplateIds()) {
-            if (!EquipmentTemplateCatalog.contains(id)) continue;
-            assertNotEquals(EquipmentAccessTier.RESTRICTED, EquipmentTemplateCatalog.require(id).accessTier(), id);
+        for (String id : armory.knownLoadoutCardIds()) {
+            LoadoutCard card = LoadoutCard.parse(id);
+            if (card == null || !card.defined()) continue;
+            assertNotEquals(EquipmentAccessTier.RESTRICTED, card.accessTier(), id);
         }
-    }
-
-    @Test
-    void aSuitLearnedThroughTheOldOpenRoutesIsKept() {
-        MarineArmory armory = new MarineArmory();
-        assertTrue(armory.acquireEquipmentTemplate(XIV));
-        for (int win = 0; win < 20; win++) armory.recordVictory(true);
-
-        assertTrue(armory.ownsEquipmentTemplate(XIV), "the gate refuses new acquisition and revokes nothing");
     }
 
     private static boolean offers(String factionId, FactionEquipmentSource source,
