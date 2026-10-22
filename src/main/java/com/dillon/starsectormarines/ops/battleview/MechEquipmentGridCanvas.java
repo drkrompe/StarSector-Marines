@@ -135,18 +135,18 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
     static LayeredSpriteCache spriteFor(LayeredMechAssets assets,
                                          MechWeaponComponent component) {
         return switch (component) {
-            case DUAL_CHAINGUNS, NOSE_CHAINGUN -> assets.chaingunArm;
-            case DUAL_LINEAR_CANNONS -> assets.linearCannon;
+            case CHAINGUN, NOSE_CHAINGUN -> assets.chaingunArm;
+            case LINEAR_CANNON -> assets.linearCannon;
             case SINGLE_HEAVY_CANNON -> assets.heavyCannon;
             // The rack art follows tube count, independently of missile range.
             case SRM_5, LRM_5, SRM_5_FRAG, LRM_5_FRAG -> assets.srmPod;
             case SRM_15, LRM_15, SRM_15_FRAG, LRM_15_FRAG -> assets.lrmPod;
             case SHOULDER_LASER_CANNON -> assets.shoulderLaser;
-            case DUAL_PULSE_LASERS -> assets.pulseLaserArm;
-            case DUAL_BASTION_AUTOCANNONS -> assets.bastionAutocannon;
+            case PULSE_LASER -> assets.pulseLaserArm;
+            case BASTION_AUTOCANNON -> assets.bastionAutocannon;
             case DEMOLITION_CANNON -> assets.demolitionCannon;
             case THERMAL_LANCE -> assets.thermalLance;
-            case DUAL_MUSTER_AUTOGUNS, NOSE_MUSTER_AUTOGUN -> assets.musterAutogun;
+            case MUSTER_AUTOGUN, NOSE_MUSTER_AUTOGUN -> assets.musterAutogun;
             case QUARRY_BREAKER_CANNON -> assets.quarryBreakerCannon;
             case PIONEER_ROCKET_CRADLE -> assets.pioneerRocketCradle;
         };

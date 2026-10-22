@@ -99,8 +99,7 @@ public final class WaylineHoundRecovery {
                 (int) x, (int) y).atPosition(x, y).mechVariant(MechVariant.HOUND).hp(hp).squad(squadId));
         sim.world().setArmor(mech, armor);
         var fit = WaylineHound.deployment();
-        sim.world().attachMechLoadout(mech, new MechLoadoutComponent(fit.variant(),
-                fit.arms(), fit.leftShoulder(), fit.rightShoulder(), fit.role()));
+        sim.world().attachMechLoadout(mech, fit.createLoadout(fit.role()));
         Squad squad = sim.getSquad(squadId);
         squad.leaderId = mech;
         squad.originalSize = 1;

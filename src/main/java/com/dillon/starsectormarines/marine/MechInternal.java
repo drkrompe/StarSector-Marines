@@ -38,7 +38,7 @@ public enum MechInternal {
             EquipmentAccessTier.ADVANCED, 2, 1, 3f, 0f, 0f, 0f, 120f, 7.5f),
     // The military bank keeps the double's reservoir and adds dissipation. Above about 126 a bigger
     // reservoir changes which weapon gets the flux, not how much flux there is. When a vented
-    // reservoir of size C releases, the dual chainguns (30 flux) fire first. A 42-flux SRM-15
+    // reservoir of size C releases, the two arm chainguns (15 flux each) fire first. A 42-flux SRM-15
     // then clears the 0.9C gate before the chainguns cycle again only if
     // C > 2 * (72 - 1.05 * dissipation). That is about 126 on the refit Bulwark (8.5/s). Past it the
     // refit fires mostly SRMs and out-guns its pre-cut frame by a further ~4%. 120 stays below

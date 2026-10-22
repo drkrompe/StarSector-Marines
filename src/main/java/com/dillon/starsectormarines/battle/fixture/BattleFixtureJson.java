@@ -720,6 +720,8 @@ public final class BattleFixtureJson {
                 mech.put("missileReplenisherId",
                         deployment.missileReplenisher().id());
                 putNullable(mech, "armsComponentId", componentId(deployment.arms()));
+                putNullable(mech, "leftArmComponentId", componentId(deployment.leftArm()));
+                putNullable(mech, "rightArmComponentId", componentId(deployment.rightArm()));
                 putNullable(mech, "leftShoulderComponentId",
                         componentId(deployment.leftShoulder()));
                 putNullable(mech, "rightShoulderComponentId",
@@ -824,6 +826,8 @@ public final class BattleFixtureJson {
                         enumValue(MechRole.class, mech.getString("role"), "mech role"),
                         replenisher,
                         component(mech, "armsComponentId", variant.arms),
+                        component(mech, "leftArmComponentId", variant.leftArm),
+                        component(mech, "rightArmComponentId", variant.rightArm),
                         component(mech, "leftShoulderComponentId", variant.leftShoulder),
                         component(mech, "rightShoulderComponentId", variant.rightShoulder),
                         displayName, frame, null, refit));

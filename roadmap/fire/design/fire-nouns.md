@@ -301,7 +301,8 @@ nothing is drawn for a battle that never lit anything.
   strength, and it is a little transparent so ground and units read through.
   Zoomed far out a cell keeps one bed and its glow. The sheet is built
   geometry first (`art-source/fx/fire-topdown/`: a code-drawn guide reskinned
-  by ImageGen); `-Dbattle.render.fireLook=<look>` picks a sheet, and `legacy`
+  by ImageGen); the owner picked the flame bed of three looks (the others' sources stay
+  there); `-Dbattle.render.fireLook=<look>` picks a sheet, and `legacy`
   draws the old side-view tongues off vanilla's smoke-and-fire sheet.
 - **Embers** are a spark rising over each of the hottest cells, at play zoom
   only.

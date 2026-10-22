@@ -47,8 +47,11 @@ class MechVariantTest {
                 MechVariant.SIROCCO.chassisAppearance);
 
         MechLoadoutComponent bulwark = MechVariant.BULWARK.createLoadout(null);
-        assertSame(MechWeaponComponent.DUAL_CHAINGUNS,
-                bulwark.mount(MechMountSlot.ARMS).component);
+        assertSame(MechWeaponComponent.CHAINGUN,
+                bulwark.mount(MechMountSlot.RIGHT_ARM).component);
+        assertSame(MechWeaponComponent.CHAINGUN,
+                bulwark.mount(MechMountSlot.LEFT_ARM).component);
+        assertNull(bulwark.mount(MechMountSlot.ARMS), "a two-armed chassis has no centreline gun");
         assertSame(MechWeaponComponent.SRM_15,
                 bulwark.mount(MechMountSlot.LEFT_SHOULDER).component);
         assertSame(MechWeaponComponent.SRM_15,
@@ -90,9 +93,9 @@ class MechVariantTest {
                 heavyCannon.projectileSpritePath);
 
         MechLoadoutComponent custom = new MechLoadoutComponent(MechVariant.HOUND,
-                MechWeaponComponent.DUAL_LINEAR_CANNONS,
+                MechWeaponComponent.LINEAR_CANNON,
                 MechWeaponComponent.LRM_5, null, MechRole.LR_SUPPORT);
-        assertSame(MechWeaponComponent.DUAL_LINEAR_CANNONS,
+        assertSame(MechWeaponComponent.LINEAR_CANNON,
                 custom.mount(MechMountSlot.ARMS).component);
         assertSame(MechWeaponComponent.LRM_5,
                 custom.mount(MechMountSlot.LEFT_SHOULDER).component);
@@ -106,16 +109,16 @@ class MechVariantTest {
         MechLoadoutComponent independent = FactionMechLoadouts.create(
                 MechVariant.BULWARK, null, "independent");
 
-        assertSame(MechWeaponComponent.DUAL_PULSE_LASERS,
-                triTachyon.mount(MechMountSlot.ARMS).component);
+        assertSame(MechWeaponComponent.PULSE_LASER,
+                triTachyon.mount(MechMountSlot.RIGHT_ARM).component);
         assertSame(MechWeaponComponent.SRM_15,
                 triTachyon.mount(MechMountSlot.LEFT_SHOULDER).component);
         assertSame(MechWeaponComponent.SHOULDER_LASER_CANNON,
                 triTachyon.mount(MechMountSlot.RIGHT_SHOULDER).component);
         assertTrue(triTachyon.hasWeapon(WeaponRegistry.MECH_SHOULDER_LASER_ID));
         assertTrue(triTachyon.hasWeapon(WeaponRegistry.MECH_PULSE_LASER_ID));
-        assertSame(MechWeaponComponent.DUAL_CHAINGUNS,
-                independent.mount(MechMountSlot.ARMS).component);
+        assertSame(MechWeaponComponent.CHAINGUN,
+                independent.mount(MechMountSlot.RIGHT_ARM).component);
         assertSame(MechWeaponComponent.SRM_15,
                 independent.mount(MechMountSlot.RIGHT_SHOULDER).component);
         assertFalse(independent.hasWeapon(WeaponRegistry.MECH_SHOULDER_LASER_ID));
@@ -140,8 +143,8 @@ class MechVariantTest {
     void factionDoctrineFieldsTheThreeAcceptedSignatureWeapons() {
         MechLoadoutComponent hegemony = FactionMechLoadouts.create(
                 MechVariant.BULWARK, null, "hegemony");
-        assertSame(MechWeaponComponent.DUAL_BASTION_AUTOCANNONS,
-                hegemony.mount(MechMountSlot.ARMS).component);
+        assertSame(MechWeaponComponent.BASTION_AUTOCANNON,
+                hegemony.mount(MechMountSlot.RIGHT_ARM).component);
         assertTrue(hegemony.hasWeapon(WeaponRegistry.MECH_BASTION_AUTOCANNON_ID));
         assertSame(MechWeaponComponent.SRM_15,
                 hegemony.mount(MechMountSlot.RIGHT_SHOULDER).component);

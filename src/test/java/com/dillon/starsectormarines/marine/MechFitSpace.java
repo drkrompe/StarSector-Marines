@@ -58,7 +58,8 @@ public final class MechFitSpace {
 
     /** Every footprint-legal fit, mounts left empty included. */
     public static List<MechFrameBudget.Fit> all(MechVariant variant) {
-        List<MechWeaponComponent> arms = withEmpty(weaponsFor(variant, MechMountSlot.ARMS));
+        // A two-armed chassis is enumerated with the same gun on both arms: the pair a player fits.
+        List<MechWeaponComponent> arms = withEmpty(weaponsFor(variant, variant.armMounts()[0]));
         List<MechWeaponComponent> left = withEmpty(weaponsFor(variant, MechMountSlot.LEFT_SHOULDER));
         List<MechWeaponComponent> right = withEmpty(weaponsFor(variant, MechMountSlot.RIGHT_SHOULDER));
         List<MechFrameBudget.Fit> out = new ArrayList<>();
@@ -90,8 +91,7 @@ public final class MechFitSpace {
 
     /** The chassis's own stock fit: its factory weapons on the stock frame. */
     public static MechFrameBudget.Fit stock(MechVariant variant) {
-        return new MechFrameBudget.Fit(variant, variant.arms, variant.leftShoulder, variant.rightShoulder,
-                null, null, null, null);
+        return MechFrameBudget.Fit.stock(variant);
     }
 
     /**
@@ -100,7 +100,7 @@ public final class MechFitSpace {
      */
     public static MechFrameBudget.Fit bestOfEverything(MechVariant variant) {
         return new MechFrameBudget.Fit(variant,
-                heaviest(weaponsFor(variant, MechMountSlot.ARMS)),
+                heaviest(weaponsFor(variant, variant.armMounts()[0])),
                 heaviest(weaponsFor(variant, MechMountSlot.LEFT_SHOULDER)),
                 heaviest(weaponsFor(variant, MechMountSlot.RIGHT_SHOULDER)),
                 top(variant, MechInternal.Role.ENGINE), top(variant, MechInternal.Role.PLATING),
@@ -109,7 +109,7 @@ public final class MechFitSpace {
 
     /** The top internal of every role this chassis holds, around its factory weapons. */
     public static MechFrameBudget.Fit fullInternalRefit(MechVariant variant) {
-        return new MechFrameBudget.Fit(variant, variant.arms, variant.leftShoulder, variant.rightShoulder,
+        return new MechFrameBudget.Fit(variant, variant.stockArmWeapon(), variant.leftShoulder, variant.rightShoulder,
                 top(variant, MechInternal.Role.ENGINE), top(variant, MechInternal.Role.PLATING),
                 top(variant, MechInternal.Role.CAPACITOR_BANK), top(variant, MechInternal.Role.VENT_ARRAY));
     }
@@ -119,7 +119,7 @@ public final class MechFitSpace {
      * speed, then dissipation, then reservoir. This is "a full refit" as a player could actually build it.
      */
     public static MechFrameBudget.Fit bestRefitAroundStockWeapons(MechVariant variant) {
-        return internalFits(variant, variant.arms, variant.leftShoulder, variant.rightShoulder).stream()
+        return internalFits(variant, variant.stockArmWeapon(), variant.leftShoulder, variant.rightShoulder).stream()
                 .filter(fit -> !fit.overBudget())
                 .max(FRAME_ORDER)
                 .orElseThrow();

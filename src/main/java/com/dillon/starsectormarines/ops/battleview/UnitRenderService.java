@@ -1302,6 +1302,10 @@ public final class UnitRenderService implements RenderSystem {
                     ? t.ints(c.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_FLAGS).array() : null;
             int[] mechArms = hasMechLayered
                     ? t.ints(c.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_ARMS).array() : null;
+            int[] mechLeftArm = hasMechLayered
+                    ? t.ints(c.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_LEFT_ARM).array() : null;
+            int[] mechRightArm = hasMechLayered
+                    ? t.ints(c.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_RIGHT_ARM).array() : null;
             int[] mechChassis = hasMechLayered
                     ? t.ints(c.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_CHASSIS).array() : null;
             int[] mechLeftShoulder = hasMechLayered
@@ -1361,7 +1365,8 @@ public final class UnitRenderService implements RenderSystem {
                     LayeredMechComposer.emit(out, mechAssets, cx, cy, hullWidth,
                             mechHipFacing[r], mechFacing[r], mechLocomotion[r], mechChaingunPhase[r],
                             mechSrmPhase[r], mechLrmPhase[r], mechFlags[r], mechChassis[r],
-                            mechArms[r], mechLeftShoulder[r], mechRightShoulder[r], unitAlpha,
+                            mechArms[r], mechLeftArm[r], mechRightArm[r],
+                            mechLeftShoulder[r], mechRightShoulder[r], unitAlpha,
                             authoredPose, gaitPose);
                     continue;
                 }

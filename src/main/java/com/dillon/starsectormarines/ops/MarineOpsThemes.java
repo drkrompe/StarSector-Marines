@@ -244,6 +244,8 @@ final class MarineOpsThemes {
                 .spec-tab:hover { background-color: #0e1a26; border-color: #2a4258; color: #d5deea; }
                 .spec-tab:active { background-color: #060d14; border-style: solid; }
                 .spec-tab.selected { background-color: #16242f; border-color: #53c6e8; color: #eaf3ff; border-style: solid; }
+                /* A choice the player commits to (First Refit's A / B) is picked in gold, as its card is. */
+                .spec-tab.spec-choice.selected { background-color: #1a1608; border-color: #f2cf68; color: #f2cf68; }
                 .spec-action { background-color: #1a1608; border-color: #dfb84d; color: #f2cf68; }
                 .spec-action:hover { background-color: #2a2410; border-color: #f2cf68; }
                 .spec-action:active { background-color: #100d04; border-style: solid; }
@@ -353,6 +355,8 @@ final class MarineOpsThemes {
                 .spec-tab:hover { background-color: #0e1a26; border-color: #2a4258; color: #d5deea; }
                 .spec-tab:active { background-color: #060d14; border-style: solid; }
                 .spec-tab.selected { background-color: #16242f; border-color: #53c6e8; color: #eaf3ff; border-style: solid; }
+                /* A choice the player commits to (First Refit's A / B) is picked in gold, as its card is. */
+                .spec-tab.spec-choice.selected { background-color: #1a1608; border-color: #f2cf68; color: #f2cf68; }
                 .spec-action { background-color: #1a1608; border-color: #dfb84d; color: #f2cf68; }
                 .spec-action:hover { background-color: #2a2410; border-color: #f2cf68; }
                 .spec-action:active { background-color: #100d04; border-style: solid; }
@@ -385,7 +389,8 @@ final class MarineOpsThemes {
                         "prose", Fonts.INSIGNIA_LARGE,
                         "heading", Fonts.ORBITRON_12_BOLD,
                         "compact", Fonts.ORBITRON_10,
-                        "title", Fonts.ORBITRON_16));
+                        "title", Fonts.ORBITRON_16,
+                        "display", Fonts.ORBITRON_24_BOLD));
     }
 
     record CanvasPalette(Color button, Color selected, Color danger, Color valid,

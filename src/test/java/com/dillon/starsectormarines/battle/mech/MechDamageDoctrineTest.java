@@ -102,11 +102,11 @@ class MechDamageDoctrineTest {
     @Test
     void theReachLeftIsTheSurvivingMountsReach() {
         MechLoadoutComponent loadout = VARIANT.createLoadout(null);
-        float arms = loadout.mount(MechMountSlot.ARMS).weaponDef().range;
+        float arms = loadout.armsRange();
         loadout.destroyMount(MechMountSlot.LEFT_SHOULDER);
         loadout.destroyMount(MechMountSlot.RIGHT_SHOULDER);
         assertEquals(arms, loadout.maxWeaponRange(), "doctrine reaches only for what survives");
-        loadout.destroyMount(MechMountSlot.ARMS);
+        for (MechMountSlot arm : VARIANT.armMounts()) loadout.destroyMount(arm);
         assertEquals(0f, loadout.maxWeaponRange());
     }
 }

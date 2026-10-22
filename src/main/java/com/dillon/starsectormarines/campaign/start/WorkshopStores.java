@@ -47,4 +47,13 @@ public final class WorkshopStores {
         }
         return true;
     }
+
+    /** Salvage goes aboard the ship, never into a depot it may leave behind. */
+    public boolean credit(Map<String, Integer> salvage) {
+        if (cargo == null) return false;
+        for (var line : salvage.entrySet()) {
+            if (line.getValue() > 0) cargo.addCommodity(line.getKey(), line.getValue());
+        }
+        return true;
+    }
 }

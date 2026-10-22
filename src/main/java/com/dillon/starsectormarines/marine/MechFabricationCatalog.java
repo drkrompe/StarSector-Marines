@@ -16,14 +16,14 @@ import java.util.Locale;
 public final class MechFabricationCatalog {
 
     private static final List<Recipe> WEAPONS = List.of(
-            weapon(MechWeaponComponent.DUAL_CHAINGUNS, "@gearFabricationStandardIssue"),
+            weapon(MechWeaponComponent.CHAINGUN, "@gearFabricationStandardIssue"),
             weapon(MechWeaponComponent.NOSE_CHAINGUN, "@gearFabricationStandardIssue"),
-            weapon(MechWeaponComponent.DUAL_LINEAR_CANNONS, "@gearFabricationMilitaryPattern"),
+            weapon(MechWeaponComponent.LINEAR_CANNON, "@gearFabricationMilitaryPattern"),
             weapon(MechWeaponComponent.SINGLE_HEAVY_CANNON, "@gearFabricationMilitaryPattern"),
-            weapon(MechWeaponComponent.DUAL_PULSE_LASERS, "@gearFabricationTriTachyonPattern"),
-            weapon(MechWeaponComponent.DUAL_BASTION_AUTOCANNONS, "@gearFabricationHegemonyPattern"),
+            weapon(MechWeaponComponent.PULSE_LASER, "@gearFabricationTriTachyonPattern"),
+            weapon(MechWeaponComponent.BASTION_AUTOCANNON, "@gearFabricationHegemonyPattern"),
             weapon(MechWeaponComponent.DEMOLITION_CANNON, "@gearFabricationPatherConversion"),
-            weapon(MechWeaponComponent.DUAL_MUSTER_AUTOGUNS, "@gearFabricationCommonMarket"),
+            weapon(MechWeaponComponent.MUSTER_AUTOGUN, "@gearFabricationCommonMarket"),
             weapon(MechWeaponComponent.NOSE_MUSTER_AUTOGUN, "@gearFabricationCommonMarket"),
             weapon(MechWeaponComponent.QUARRY_BREAKER_CANNON, "@gearFabricationCommonMarket"),
             weapon(MechWeaponComponent.SRM_5, "@gearFabricationStandardIssue"),

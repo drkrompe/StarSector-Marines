@@ -13,9 +13,12 @@ import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.dillon.starsectormarines.ui.BitmapFont;
+import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 import com.dillon.starsectormarines.ui.retained.CanvasProducer;
+import com.dillon.starsectormarines.ui.retained.svg.SvgAsset;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -34,9 +37,14 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private static final String ROOT = "graphics/battle/mech-modular-topdown/";
     private static final Color BACKGROUND = new Color(0x06, 0x0A, 0x10);
     private static final Color WHITE = Color.WHITE;
-    private static final Color VACANT_FILL = new Color(0x18, 0x1c, 0x19, 214);
-    private static final Color VACANT_EDGE = new Color(0xb3, 0xb4, 0xa6, 226);
-    private static final Color VACANT_HOVER = new Color(0xFF, 0xD4, 0x64, 246);
+    private static final Color BUILD_WASH = new Color(0xe2, 0xb3, 0x4a, 22);
+    private static final Color BUILD_WASH_HOT = new Color(0xe2, 0xb3, 0x4a, 52);
+    private static final Color BUILD_EDGE = new Color(0xe2, 0xb3, 0x4a, 190);
+    private static final Color BUILD_HOT = new Color(0xff, 0xd4, 0x64, 255);
+    private static final Color LETTER_PLATE = new Color(0xe2, 0xb3, 0x4a, 235);
+    private static final Color LETTER_RIM = new Color(0x14, 0x11, 0x0a, 200);
+    private static final Color LETTER_INK = new Color(0x14, 0x11, 0x0a, 255);
+    private final SvgAsset buildMark = SvgAsset.load("graphics/ui/mech-hardware/fab.svg");
     private static final float VACANT_PAD_INSET_RATIO = 0.045f;
 
     private static final EnumSet<RenderLayer> BACKDROP_LAYERS = EnumSet.of(
@@ -200,7 +208,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
         context.hostPass(aboard.pass(bay, ACTOR_LAYERS));
         drawVacantGantryActions(context, sceneCamera, host[0], standing,
-                Math.max(lance.size(), occupiedGantries != null ? occupiedGantries.getAsInt() : 0));
+                Math.max(lance.size(), occupiedGantries != null ? occupiedGantries.getAsInt() : 0),
+                !fittingOverlaysVisible.getAsBoolean());
         if (selected != null && fittingOverlaysVisible.getAsBoolean()) {
             drawSocketOverlays(context, MechFittingLayout.forVariant(selectedVariant),
                     selected, selectedSocket.get(), candidateWeapon.get(), width, height);
@@ -271,10 +280,11 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     private void drawVacantGantryActions(CanvasContext context, BattleCamera camera,
                                           CanvasHostViewport viewport,
-                                          List<Gantry> standing, int occupied) {
+                                          List<Gantry> standing, int occupied, boolean letters) {
         int count = Math.min(CampaignMechSquad.CAPACITY, standing.size());
         List<VacantGantryTarget> targets = new ArrayList<>();
-        for (int index = Math.max(0, occupied); index < count; index++) {
+        for (int index = 0; index < count; index++) {
+            if (index < Math.max(0, occupied) && !letters) continue;
             Gantry gantry = standing.get(index);
             PadBounds pad = padBounds(gantry);
             float left = camera.cellToScreenX(pad.left()) / viewport.scaleX();
@@ -290,19 +300,51 @@ public final class MechLabDollCanvas implements CanvasProducer {
                     Math.min(left, right) + inset, Math.min(top, bottom) + inset,
                     Math.max(1f, width - inset * 2f),
                     Math.max(1f, height - inset * 2f));
-            targets.add(target);
-            Color edge = index == hoveredVacantGantry ? VACANT_HOVER : VACANT_EDGE;
-            context.fillRect(target.x(), target.y(), target.width(), target.height(), VACANT_FILL);
-            context.strokeRect(target.x(), target.y(), target.width(), target.height(), edge, 3f);
-            float centerX = target.x() + target.width() * 0.5f;
-            float centerY = target.y() + target.height() * 0.5f;
-            float shortSide = Math.min(target.width(), target.height());
-            float arm = shortSide * 0.23f;
-            float stroke = Math.max(4f, Math.min(10f, shortSide * 0.055f));
-            context.line(centerX - arm, centerY, centerX + arm, centerY, edge, stroke);
-            context.line(centerX, centerY - arm, centerX, centerY + arm, edge, stroke);
+            if (index >= Math.max(0, occupied)) {
+                targets.add(target);
+                drawBuildMark(context, target, index == hoveredVacantGantry);
+            }
+            if (letters) drawPadLetter(context, target, index);
         }
         vacantGantryTargets = List.copyOf(targets);
+    }
+
+    /**
+     * A vacant pad is marked as a build site in the BUY amber: a faint wash, corner brackets and
+     * the fabrication cog with BUILD beneath it, all brighter under the pointer.
+     */
+    private void drawBuildMark(CanvasContext context, VacantGantryTarget target, boolean hot) {
+        float shortSide = Math.min(target.width(), target.height());
+        context.fillRect(target.x(), target.y(), target.width(), target.height(), hot ? BUILD_WASH_HOT : BUILD_WASH);
+        Color edge = hot ? BUILD_HOT : BUILD_EDGE;
+        drawCornerBrackets(context, target.x(), target.y(), target.width(), target.height(), edge,
+                hot ? 3f : 2f, shortSide * 0.24f, Math.max(3f, shortSide * 0.06f));
+        float cog = Math.min(56f, shortSide * 0.34f);
+        boolean caption = shortSide >= 64f;
+        float block = cog + (caption ? 6f + Fonts.ORBITRON_12_BOLD.getLineHeight() : 0f);
+        float centerX = target.x() + target.width() * 0.5f;
+        float top = target.y() + (target.height() - block) * 0.5f;
+        context.svg(buildMark, centerX - cog * 0.5f, top, cog, cog, edge);
+        if (caption) {
+            String label = "BUILD";
+            context.text(Fonts.ORBITRON_12_BOLD, label,
+                    centerX - Fonts.ORBITRON_12_BOLD.measureWidth(label) * 0.5f, top + cog + 6f, edge);
+        }
+    }
+
+    /** The pad's letter, stencilled on an amber plate in its corner; the cards and headings use the same letter. */
+    private static void drawPadLetter(CanvasContext context, VacantGantryTarget target, int index) {
+        float shortSide = Math.min(target.width(), target.height());
+        boolean large = shortSide >= 150f;
+        BitmapFont font = large ? Fonts.ORBITRON_24_BOLD : Fonts.ORBITRON_12_BOLD;
+        float plate = large ? 34f : 20f;
+        float x = target.x() + 4f;
+        float y = target.y() + 4f;
+        String letter = String.valueOf((char) ('A' + index));
+        context.fillRect(x, y, plate, plate, LETTER_PLATE);
+        context.strokeRect(x, y, plate, plate, LETTER_RIM, 1f);
+        context.text(font, letter, x + (plate - font.measureWidth(letter)) * 0.5f,
+                y + (plate - font.getLineHeight()) * 0.5f, LETTER_INK);
     }
 
     /**
@@ -481,6 +523,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
         String name = switch (id) {
             case CORE -> "CORE";
             case ARMS -> "ARMS";
+            case LEFT_ARM -> "L. ARM";
+            case RIGHT_ARM -> "R. ARM";
             case LEFT_SHOULDER -> "L. SHLDR";
             case RIGHT_SHOULDER -> "R. SHLDR";
             case CAPACITORS -> "CAPS";
@@ -492,6 +536,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
     static MechMountSlot mountFor(SocketId slot) {
         return switch (slot) {
             case ARMS -> MechMountSlot.ARMS;
+            case LEFT_ARM -> MechMountSlot.LEFT_ARM;
+            case RIGHT_ARM -> MechMountSlot.RIGHT_ARM;
             case LEFT_SHOULDER -> MechMountSlot.LEFT_SHOULDER;
             case RIGHT_SHOULDER -> MechMountSlot.RIGHT_SHOULDER;
             default -> null;
@@ -499,22 +545,14 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     private static boolean occupied(MechDeploymentSpec deployment, SocketId socket) {
-        return switch (socket) {
-            case CORE, CAPACITORS, MINI_FAB -> true;
-            case ARMS -> deployment.arms() != null;
-            case LEFT_SHOULDER -> deployment.leftShoulder() != null;
-            case RIGHT_SHOULDER -> deployment.rightShoulder() != null;
-        };
+        if (socket == SocketId.CORE || socket == SocketId.CAPACITORS || socket == SocketId.MINI_FAB) return true;
+        return weaponAt(deployment, socket) != null;
     }
 
     private static MechWeaponComponent weaponAt(MechDeploymentSpec deployment,
                                                 SocketId socket) {
-        return switch (socket) {
-            case ARMS -> deployment.arms();
-            case LEFT_SHOULDER -> deployment.leftShoulder();
-            case RIGHT_SHOULDER -> deployment.rightShoulder();
-            default -> null;
-        };
+        MechMountSlot mount = mountFor(socket);
+        return mount != null ? deployment.weaponAt(mount) : null;
     }
 
     /** The share of the canvas the schematic panel takes; the fitting camera stands the machine in the rest. */
@@ -539,8 +577,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     /**
      * Lays the sockets out as the machine is built: the engine core in the middle of the panel,
-     * the arm assembly ahead of it, a shoulder either side, and the capacitors and mini-fab
-     * behind it. Every card keeps its fixed brick size; the rows are centred in the panel.
+     * the arm guns ahead of it (a centreline mount straight ahead, or one arm ahead-left and one
+     * ahead-right), a shoulder either side, and the capacitors and mini-fab behind it. Every card
+     * keeps its fixed brick size; the rows are centred in the panel.
      */
     static List<SocketDropTarget> schematicTargets(List<SocketDef> sockets, float panelWidth, float panelHeight) {
         EnumMap<SocketId, SocketDef> byId = new EnumMap<>(SocketId.class);
@@ -548,7 +587,10 @@ public final class MechLabDollCanvas implements CanvasProducer {
         if (byId.isEmpty()) return List.of();
         float coreW = cardWidth(byId.get(SocketId.CORE));
         float coreH = cardHeight(byId.get(SocketId.CORE));
-        float armsH = cardHeight(byId.get(SocketId.ARMS));
+        SocketDef leftArm = byId.get(SocketId.LEFT_ARM);
+        SocketDef rightArm = byId.get(SocketId.RIGHT_ARM);
+        float armsH = Math.max(cardHeight(byId.get(SocketId.ARMS)),
+                Math.max(cardHeight(leftArm), cardHeight(rightArm)));
         float backH = Math.max(cardHeight(byId.get(SocketId.CAPACITORS)), cardHeight(byId.get(SocketId.MINI_FAB)));
         float total = armsH + (armsH > 0f ? SCHEMATIC_GAP_Y : 0f) + coreH + (backH > 0f ? SCHEMATIC_GAP_Y + backH : 0f);
         float top = Math.max(SCHEMATIC_MARGIN, (panelHeight - total) * 0.5f);
@@ -557,7 +599,10 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
         List<SocketDropTarget> targets = new ArrayList<>();
         place(targets, byId.get(SocketId.CORE), centerX, coreY);
-        place(targets, byId.get(SocketId.ARMS), centerX, top + armsH * 0.5f);
+        float armsY = top + armsH * 0.5f;
+        place(targets, byId.get(SocketId.ARMS), centerX, armsY);
+        place(targets, leftArm, centerX - SCHEMATIC_GAP_X * 0.5f - cardWidth(leftArm) * 0.5f, armsY);
+        place(targets, rightArm, centerX + SCHEMATIC_GAP_X * 0.5f + cardWidth(rightArm) * 0.5f, armsY);
         SocketDef left = byId.get(SocketId.LEFT_SHOULDER);
         SocketDef right = byId.get(SocketId.RIGHT_SHOULDER);
         place(targets, left, centerX - coreW * 0.5f - SCHEMATIC_GAP_X - cardWidth(left) * 0.5f, coreY);

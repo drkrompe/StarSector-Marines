@@ -344,7 +344,8 @@ def build():
 
     # Energy.
     f['shoulder-laser'] = banded(150, 300, upright(laser_cannon(75, 10, 290, 54, rings=5)), 'LAS')
-    f['pulse-laser-dual'] = banded(150, 300, upright(pulse_laser(42, 10, 290, 40) + pulse_laser(110, 10, 290, 40)), 'PLS')
+    # Arm guns are one barrel each in a 2x2 piece; a two-armed chassis carries one per arm.
+    f['pulse-laser'] = banded(150, 200, upright2(pulse_laser(75, 10, 190, 80)), 'PLS')
 
     # Thermal lance, a 2x1 piece: fuel tank, feed pipe, nozzle, and the flame it throws.
     b = rect(8, 26, 38, 48, D, rx=12) + rect(14, 32, 26, 8, L, rx=3)
@@ -355,9 +356,9 @@ def build():
     f['thermal-lance'] = banded(150, 100, b, 'TL')
 
     # Ballistic.
-    f['chaingun-dual'] = banded(150, 300, upright(gatling(38, 10, 290, 40) + gatling(108, 10, 290, 40)), 'CG')
+    f['chaingun'] = banded(150, 200, upright2(gatling(75, 10, 190, 84, barrels=5)), 'CG')
     f['chaingun-nose'] = banded(150, 200, gatling(100, 6, 144, 62, barrels=5), 'CG')
-    f['linear-cannon-dual'] = banded(150, 300, upright(gauss(42, 10, 290, 26) + gauss(108, 10, 290, 26)), 'LC')
+    f['linear-cannon'] = banded(150, 200, upright2(gauss(75, 10, 190, 46)), 'LC')
 
     # Heavy cannon: a tank gun. Breech block, recoil cylinders, a sleeved barrel, the tapered
     # fume extractor partway along, and a baffled muzzle brake.
@@ -374,31 +375,7 @@ def build():
     b += hbar(78, 190, 87, 3, LS, rx=0)
     f['heavy-cannon'] = banded(150, 300, upright(b, 'scale(1.35 1) translate(0 -25)'), 'HC')
 
-    # Bastion: twin autocannons on one receiver, belt-fed from an ammunition can beneath.
-    b = block(8, 30, 86, 130, 12)
-    b += rect(17, 39, 60, 3, L) + rect(17, 96, 60, 26, MID)
-    for y in (58, 104):
-        b += block(88, y - 13, 136, y + 13, 3)
-        b += hbar(138, 190, y, 14, D, rx=0)
-        b += block(192, y - 15, 216, y + 15, 3) + rect(198, y - 9, 3, 18, L) + rect(206, y - 9, 3, 18, L)
-        b += hbar(90, 188, y - 7, 2.5, LS, rx=0)
-    # The ammunition can hangs under the receiver on a short feed neck.
-    b += rect(56, 132, 22, 8, MID)
-    b += block(14, 142, 86, 188, 6, D)
-    for k in range(3):
-        b += rect(22, 152 + k * 11, 56, 3, LS)
-    f['bastion-autocannon-dual'] = banded(150, 300, upright(b, 'translate(0 -22) scale(1.35 .9)'), 'AC')
-
-    f['muster-autogun-dual'] = banded(150, 300, upright(autogun(26, 10, 290, 22) + autogun(92, 10, 290, 22)), 'AG')
-    f['muster-autogun-nose'] = banded(150, 200, autogun(84, 8, 144, 34), 'AG')
-
-    # Single arm guns: one barrel of each dual, standing upright in its own arm mount, muzzle
-    # forward. A linear cannon keeps its length and so its 2x3 piece; the rest are 2x2.
-    f['chaingun-single'] = banded(150, 200, upright2(gatling(75, 10, 190, 84, barrels=5)), 'CG')
-    f['pulse-laser-single'] = banded(150, 200, upright2(pulse_laser(75, 10, 190, 80)), 'PLS')
-    f['linear-cannon-single'] = banded(150, 300, upright(gauss(75, 10, 290, 46)), 'LC')
-    f['muster-autogun-single'] = banded(150, 200, upright2(autogun(56, 10, 190, 40)), 'AG')
-    # Bastion: one autocannon on its receiver, the ammunition can beneath.
+    # Bastion: one autocannon on its receiver, belt-fed from the ammunition can beneath.
     b = block(8, 40, 70, 110, 10)
     b += rect(16, 48, 46, 3, L) + rect(16, 84, 46, 20, MID)
     b += block(72, 62, 112, 88, 3)
@@ -409,7 +386,10 @@ def build():
     b += block(12, 120, 70, 146, 5, D)
     for k in range(2):
         b += rect(20, 126 + k * 10, 42, 3, LS)
-    f['bastion-autocannon-single'] = banded(150, 200, upright2(b), 'AC')
+    f['bastion-autocannon'] = banded(150, 200, upright2(b), 'AC')
+
+    f['muster-autogun'] = banded(150, 200, upright2(autogun(56, 10, 190, 40)), 'AG')
+    f['muster-autogun-nose'] = banded(150, 200, autogun(84, 8, 144, 34), 'AG')
 
     # Demolition cannon: a short, very wide siege barrel. Breech block, recoil buffers, a
     # tapering barrel bound by heavy bands, and a flared muzzle collar.
