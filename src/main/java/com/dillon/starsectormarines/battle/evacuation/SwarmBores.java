@@ -69,7 +69,7 @@ public final class SwarmBores {
     public static final float RATE_SPREAD = 0.15f;
 
     /** What happened to a bore, for the beats. */
-    public enum EventKind { GREW, COLLAPSED, SURGE, FED }
+    public enum EventKind { GREW, COLLAPSED, SURGE, FED, MATRIARCH }
 
     /** One fact about a bore on a tick. {@code tier} is the tier reached, or the bore's tier at the time. */
     public record Event(int tick, EventKind kind, SwarmBore bore, BoreTier tier) { }
@@ -191,6 +191,12 @@ public final class SwarmBores {
         int n = 0;
         for (long colony : bore.colonies()) if (sim.resolveUnit(colony) != 0L) n++;
         return n;
+    }
+
+    /** Records that {@code bore}, a mother, put its Matriarch out. */
+    void matriarchEmerged(SwarmBore bore, int tick) {
+        bore.releasedMatriarch();
+        events.add(new Event(tick, EventKind.MATRIARCH, bore, bore.tier()));
     }
 
     /** Records that the director released a surge from {@code bore}. */

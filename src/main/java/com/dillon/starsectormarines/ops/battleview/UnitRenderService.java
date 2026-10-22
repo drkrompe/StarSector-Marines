@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.appearance.SystemFxService;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.RavBruteRig;
+import com.dillon.starsectormarines.battle.appearance.RavMatriarchRig;
 import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
@@ -1189,7 +1190,8 @@ public final class UnitRenderService implements RenderSystem {
             boolean hasMechGait = t.has(c.MECH_GAIT_STATE);
             RavRunnerAssets ravArt = sprites.ravRunnerSprites();
             RavBruteAssets bruteArt = sprites.ravBruteSprites();
-            Object[] ravRigs = (ravArt != null || bruteArt != null) && t.has(c.RAV_RIG)
+            RavMatriarchAssets matriarchArt = sprites.ravMatriarchSprites();
+            Object[] ravRigs = (ravArt != null || bruteArt != null || matriarchArt != null) && t.has(c.RAV_RIG)
                     ? t.objects(c.RAV_RIG, BattleComponents.RAV_RIG_STATE).array() : null;
             Object[] secSpec = hasSecondary
                     ? t.objects(c.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC).array() : null;
@@ -1297,6 +1299,12 @@ public final class UnitRenderService implements RenderSystem {
                     // The Brute too; its rig is sized in cells, so no render scale.
                     RavBruteComposer.emit(out, bruteArt, bruteRig,
                             cam.cellToScreenX(bruteRig.bodyX()), cam.cellToScreenY(bruteRig.bodyY()),
+                            cam.cellPxSize(), unitAlpha);
+                    continue;
+                }
+                if (matriarchArt != null && rig instanceof RavMatriarchRig matriarchRig && matriarchRig.posed()) {
+                    RavMatriarchComposer.emit(out, matriarchArt, matriarchRig,
+                            cam.cellToScreenX(matriarchRig.bodyX()), cam.cellToScreenY(matriarchRig.bodyY()),
                             cam.cellPxSize(), unitAlpha);
                     continue;
                 }

@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.RavBruteRig;
+import com.dillon.starsectormarines.battle.appearance.RavMatriarchRig;
 import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
 import com.dillon.starsectormarines.battle.mech.MechGaitState;
 import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
@@ -674,10 +675,11 @@ public final class UnitRosterService {
         // that replaced the old instanceof-subclass checks.
         boolean isDrone = spec.type.isDrone();
         boolean mechLayerDrawn = spec.type.drawnAsMechLayers();
-        // The Runner and the Brute are drawn on their own skeletons; their layered appearance stays,
+        // The Runner, the Brute and the Matriarch are drawn on their own skeletons; their layered appearance stays,
         // for facing and the corpse.
         boolean ravRigged = layerDrawn
-                && (spec.type == UnitType.SWARM_RUNNER || spec.type == UnitType.SWARM_BRUTE);
+                && (spec.type == UnitType.SWARM_RUNNER || spec.type == UnitType.SWARM_BRUTE
+                    || spec.type == UnitType.SWARM_MATRIARCH);
         ComponentType[] archetype = new ComponentType[
                 5 + (hasArmor ? 1 : 0) + (combatant ? 2 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)
                   + (hasIntegralSystem ? 1 : 0) + (hasMitigation ? 1 : 0)
@@ -787,7 +789,8 @@ public final class UnitRosterService {
         }
         if (ravRigged) {
             entityWorld.setObject(id, components.RAV_RIG, BattleComponents.RAV_RIG_STATE,
-                    spec.type == UnitType.SWARM_BRUTE ? new RavBruteRig() : new RavRunnerRig(id));
+                    spec.type == UnitType.SWARM_BRUTE ? new RavBruteRig()
+                            : spec.type == UnitType.SWARM_MATRIARCH ? new RavMatriarchRig(id) : new RavRunnerRig(id));
         }
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_HP, spec.hp);
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP, spec.maxHp);
