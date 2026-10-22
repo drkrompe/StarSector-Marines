@@ -125,8 +125,20 @@ for elevation's sake.
   not limited by ground height, which is how a side without the high ground
   spots onto it.
 
+Along a line, the rule reads: a cell no higher than the eye passes as it
+always has (a face under the eye passes outright); on higher ground a face
+passes under the skyline rule, the first top cell past it is the rim and is
+seen, and every top cell after that stops the line. The fog's shadowcast, the
+cell line of sight AI perception and spotting read, and the direct-fire ray all
+apply it, so the three agree. The rule is a switch (`-Dbattle.elevation.sight=
+skyline|strict|flat`), so a control run is one property away. Sight up a ramp
+is not special: a ramp cell is the lower tier.
+
 Height is a physical claim that never moves with what anyone knows
 (`surface-relief-nouns.md`), and the skyline rule asks only what stands where.
+Two older paths still read a face as a wall in every direction: the
+anti-aircraft and turret air-sight walks, and the Bresenham scatter snap that
+stops a spread round at the first wall. Both err toward blocking.
 
 ## Combat
 
@@ -148,6 +160,7 @@ Height is a physical claim that never moves with what anyone knows
   ignores tiers for its flight and lands where it is aimed. It still needs a
   spotter, and the spotter needs sight, so elevation reaches artillery through
   vision: a side that cannot see onto a plateau cannot call fire onto it.
+- **Fire** (burning) stops at a face: a face blocks heat as a wall does.
 - **Area effects** spread on the ground they land on. A blast at the foot of a
   cliff does not reach over the face onto the top, nor a blast on the rim down
   the face — the face is solid between them.
