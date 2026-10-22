@@ -58,6 +58,7 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(PROLOGUE))
 sys.path.insert(0, str(ART))
 import debris_field
+import wreck_meshes
 import roster
 from motion import boarding_run, fleet_at   # ships move about their stations: seeded weave, bank and breathing spacing  # noqa: E402
 from motion import (A_FULL, IDLE, Pose, camera, carried, drift, follow, held, keyed, mass_class, recoil, riding,  # noqa: E402
@@ -684,6 +685,12 @@ K5_SHIPS = {
         dict(t=110, hd=-1, pt=-21, rl=6), dict(t=118, hd=1, pt=-23, rl=10)], v=45, wobble=1.0, thrust=None),
 }
 
+
+def _far(look, d=300e3):
+    """A camera target d metres along a look direction: the trails are 150-350 km off."""
+    n = math.sqrt(sum(c * c for c in look))
+    return tuple(c / n * d for c in look)
+
 KEYFRAMES = {
     'k0': dict(
         shot='S1a', title='The view the player knows',
@@ -894,7 +901,12 @@ KEYFRAMES = {
         shot='S12', title='Two trails toward the northern canyons',
         caption='Long lens from the pirates\' orbit. The Colossus and Morrow burn into the atmosphere, two plasma '
                 'trails heading north and down toward the canyon country where Basin will find them.',
-        camera=dict(loc=(0, 0, 0), target=None, lens=50, look=(0.9, 0.02, -0.42)),
+        # A slow push-in and pan (owner, 2026-10-22: "S12's camera is still held"): from 45 mm, easing in
+        # to 70 mm and tilting down after the trails as they fall toward the canyons. At the key time it
+        # is the old still's framing, 50 mm along (0.9, 0.02, -0.42).
+        camera=camera('k6', [dict(t=126, loc=(0, 0, 0), target=_far((0.92, -0.01, -0.36)), lens=45),
+                             dict(t=130, loc=(0, 0, 0), target=_far((0.9, 0.02, -0.42)), lens=50),
+                             dict(t=134, loc=(0, 0, 0), target=_far((0.86, 0.05, -0.5)), lens=70)], 130),
         ships={},
         fx=[('entry_trails',)],
         labels=['trail-colossus', 'trail-morrow']),
@@ -1935,8 +1947,15 @@ def blender_main(cfg):
                 o = obj(name, drum_me, mat, m @ Matrix.Diagonal((size[1], size[0], size[0], 1)), stage_ships)
             o.visible_shadow = True
         for i, piece in enumerate(FIELD):
-            for j in range(len(piece.boxes)):
-                o = obj('Platform debris %d.%d' % (i, j), box_me, mat, field_matrix(i, j, t), stage_ships)
+            for j, (_, half, _) in enumerate(piece.boxes):
+                # a broken hull, section, plate, spar or chunk inside the box, not the box itself (owner,
+                # 2026-10-22: the stand-ins "must not read as boxes"); the box stays what --check measures
+                kind, verts, faces = wreck_meshes.wreck(half, i * 31 + j)
+                me = bpy.data.meshes.new('Wreck %s %d.%d' % (kind, i, j))
+                me.from_pydata(verts, [], faces)
+                me.validate()
+                me.materials.append(mat)
+                o = obj('Platform debris %d.%d' % (i, j), me, mat, field_matrix(i, j, t), stage_ships)
                 o.visible_shadow = True
                 o.rotation_mode = 'QUATERNION'
                 o['field_piece'], o['field_box'] = i, j

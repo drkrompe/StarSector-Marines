@@ -538,39 +538,34 @@ def shot(L, kf):
 # ------------------------------------------------------------------------------- the recording screen
 
 # The playback screen the sequence opens and ends on (the shot doc's "Framing: a comms recording" and
-# "On-screen place and time"). The game draws it, localised, with the date computed at run time; the
-# preview lays it out and times it against the radio so the sequence plays end to end.
-RECORDING_CHANNELS = ['COLOSSUS', 'ESCORT LEAD', 'MORROW', 'TARSUS', 'MULE', 'PHAETON', 'REAR ESCORT',
-                      'LASHER B', 'MERCHANT WOLF']
-# S0 plays the S1 traffic as audio only and cuts to picture on "close up the column" (10 s)
-RECORDING_SPEECH = [('COLOSSUS', 1.8, 6.4, 'Convoy, Colossus. Window opens in forty. All ships ease to two-thirds.'),
-                    ('ESCORT LEAD', 6.9, 9.7, 'Lead copies. Escorts, close up the column.')]
+# "On-screen place and time"): S0 opens on it, S11 breaks into its static, and S13 comes back to it for
+# the closing traffic and END OF RECORDING (owner, 2026-10-22: "we started by hearing a log and we end
+# with hearing the comms log"). The game draws it, localised, with the date computed at run time; the
+# preview lays it out and times it against the radio (radio_log) so the sequence plays end to end.
 RECORDING_END_S = 124.5          # S11: the picture breaks into the screen's static here
-RECORDING_DROPS = {'COLOSSUS': 124.9, 'MORROW': 125.3}
-RECORDING_END_CARD_S = 125.5
 
 
 def recording_screen(t, mode):
-    """One frame of the playback screen at sequence time t: 'open' (S0: black, then the screen, the
-    channels lighting as each voice speaks, a waveform, the caption) or 'end' (S11's last second and a
-    half: static over the screen, the Colossus's and Morrow's channels dropping out, END OF RECORDING)."""
+    """One frame of the playback screen at sequence time t, by callsign (radio_log): 'open' (S0: black,
+    then the screen, each channel lighting as its voice speaks, a waveform, the caption), 'static' (S11's
+    last second and a half: static over the screen, CARAVEL's and MORROW's channels dropping out) or
+    'close' (S13: the screen again, the dropped channels dark, the closing traffic, then END OF
+    RECORDING on the log itself)."""
     import random
+    import radio_log
     from PIL import Image, ImageDraw
     W, H = motion_preview.W, motion_preview.H
     fb, fm, fs = motion_preview._font(54, True), motion_preview._font(28, True), motion_preview._font(22)
     im = Image.new('RGB', (W, H), (7, 9, 11))
     dr = ImageDraw.Draw(im, 'RGBA')
     rnd = random.Random(int(t * 1000))
-    if mode == 'open':
-        speaking = [sp for sp in RECORDING_SPEECH if sp[1] <= t <= sp[2]]
-        live = {sp[0] for sp in speaking}
-        dead = set()
-        fade = max(0.0, min(1.0, (t - .8) / .8))
-    else:
-        speaking = []
-        live = {k for k, t_off in RECORDING_DROPS.items() if t < t_off and rnd.random() > .3}
-        dead = {k for k, t_off in RECORDING_DROPS.items() if t >= t_off}
-        fade = 1.0
+    lines = radio_log.OPENING if mode == 'open' else radio_log.CLOSING if mode == 'close' else []
+    speaking = [sp for sp in lines if sp[2] <= t <= sp[3]]
+    live = {sp[1] for sp in speaking}
+    dead = {k for k, t_off in radio_log.DROPS.items() if t >= t_off}
+    if mode == 'static':
+        live |= {k for k, t_off in radio_log.DROPS.items() if t < t_off and rnd.random() > .3}
+    fade = max(0.0, min(1.0, (t - .8) / .8)) if mode == 'open' else 1.0
     a = int(255 * fade)
     amber, grey, dim = (255, 186, 90, a), (190, 196, 204, a), (90, 96, 104, a)
     dr.text((140, 110), 'ASHARU', font=fb, fill=(235, 238, 242, a))
@@ -580,16 +575,16 @@ def recording_screen(t, mode):
     dr.text((1260, 160), '%02d:%02d:%05.2f' % (clock // 3600, clock % 3600 // 60, clock % 60), font=fm, fill=grey)
     dr.text((140, 236), 'RECORDING  \u00b7  CONVOY COMMON', font=fs, fill=dim)
     dr.line((140, 280, 1780, 280), fill=dim, width=1)
-    for i, ch in enumerate(RECORDING_CHANNELS):
-        y = 320 + i * 44
+    for i, ch in enumerate(radio_log.SCREEN_CHANNELS):
+        y = 306 + i * 38
         on = ch in live
-        col = amber if on else ((70, 40, 40, a) if ch in dead else dim)
+        col = amber if on else ((110, 60, 60, a) if ch in dead else dim)
         dr.ellipse((140, y + 6, 156, y + 22), fill=col if on else None, outline=col, width=2)
         dr.text((176, y), ch + ('  \u2014 no carrier' if ch in dead else ''), font=fs, fill=col)
         if on:
             for k in range(12):
                 hgt = rnd.uniform(.2, 1.0) * 18
-                dr.rectangle((420 + k * 9, y + 22 - hgt, 425 + k * 9, y + 22), fill=amber)
+                dr.rectangle((460 + k * 9, y + 22 - hgt, 465 + k * 9, y + 22), fill=amber)
     x0, x1, yc = 640, 1780, 560          # waveform
     env = 1.0 if speaking else .04
     pts = []
@@ -597,23 +592,21 @@ def recording_screen(t, mode):
         v = env * rnd.gauss(0, 1) * (90 if speaking else 6) * (.6 + .4 * math.sin(k * .03 + t * 9))
         pts.append((x0 + k, yc + v))
     dr.line(pts, fill=amber if speaking else dim, width=2)
-    dr.line((x0, 760, x1, 760), fill=dim, width=2)          # playback position
-    pos = x0 + (x1 - x0) * min(1.0, t / 134.0)
-    dr.rectangle((x0, 756, pos, 764), fill=grey)
+    dr.line((x0, 790, x1, 790), fill=dim, width=2)          # playback position over the whole recording
+    pos = x0 + (x1 - x0) * min(1.0, t / radio_log.END_CARD_S)
+    dr.rectangle((x0, 786, pos, 794), fill=grey)
     if speaking:
-        who, _, _, line = speaking[0]
+        _, who, _, _, line = speaking[0]
         dr.text((140, 860), who, font=fm, fill=amber)
         dr.text((140, 900), line, font=fm, fill=(235, 238, 242, a))
+    if mode == 'close' and t >= radio_log.END_CARD_S:
+        dr.text((640, 680), 'END OF RECORDING', font=fb, fill=(235, 238, 242, 255))
     dr.text((140, 1000), 'PREVIEW: layout and timing only. The game draws this screen, localised, with the date '
                          'computed at run time; the lines are voiced.', font=fs, fill=(80, 84, 90, 255))
-    if mode == 'end':
+    if mode == 'static':
         noise = Image.effect_noise((W // 4, H // 4), 90).resize((W, H), Image.NEAREST).convert('RGB')
         k = min(1.0, .55 + (t - RECORDING_END_S) * .3)
         im = Image.blend(im, noise, k * .6)
-        if t >= RECORDING_END_CARD_S:
-            dr2 = ImageDraw.Draw(im, 'RGBA')
-            dr2.rectangle((0, 0, W, H), fill=(0, 0, 0, 170))
-            dr2.text((W / 2 - 330, H / 2 - 30), 'END OF RECORDING', font=fb, fill=(235, 238, 242, 255))
     return im
 
 
@@ -637,13 +630,15 @@ def main(argv, run, run_date):
         subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python-exit-code', '1',
                                '--python', str(HERE / 'battle_blockout.py')], env=env)
     timeline = [dict(id=s['id'], title=s['title'], caption=s['caption'], start=round(s['start'] * FPS),
-                     end=round(s['end'] * FPS), rendered=bool(s['kf']) or s['first'] == 'S0') for s in segs]
+                     end=round(s['end'] * FPS), rendered=bool(s['kf']) or s['first'] in ('S0', 'S13')) for s in segs]
     for row in timeline:
         first = row['id'].split()[0]
         if first == 'S0':          # the recording screen, over the S1 traffic
             row['screen'] = lambda f: recording_screen(f / FPS, 'open')
-        elif first == 'S11':       # the plasma takes the channel: static, the channels drop, END OF RECORDING
-            row['screen'] = lambda f: recording_screen(f / FPS, 'end') if f / FPS >= RECORDING_END_S else None
+        elif first == 'S11':       # the plasma takes the channel: static, the channels drop out
+            row['screen'] = lambda f: recording_screen(f / FPS, 'static') if f / FPS >= RECORDING_END_S else None
+        elif first == 'S13':       # back on the log: the closing traffic, END OF RECORDING
+            row['screen'] = lambda f: recording_screen(f / FPS, 'close')
     summary = motion_preview.finish(out, ffmpeg=opt('--ffmpeg', 'ffmpeg'), name=NAME,
                                     trails=float(opt('--trails', 2.0)), timeline=timeline, sequence='Asharu')
     notes(out, summary, step, scale, argv)
