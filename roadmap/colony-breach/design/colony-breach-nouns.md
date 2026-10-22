@@ -197,8 +197,9 @@ strength, once spread is modelled properly. The hooks are the severity tier, a
 bloom's generation and parent (its spread chain), and `RavBloomSystem.wakeAt`,
 which wakes a bloom at a chosen market outside the weekly draw.
 `bloom-mission-arc.md` is the direction for movements 2 and 3 and the sector
-threat: concepts for the owner's pick, what each reuses, candidate stories,
-and how the campaign raises them.
+threat: the Cordon (the Line and the Road as variants), the heart (a broad
+front behind a walking barrage and a burn line), what each reuses, candidate
+stories, and how the campaign raises them.
 
 ## Vocabulary
 
