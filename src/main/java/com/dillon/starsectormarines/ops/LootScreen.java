@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.ops.loot.LootCapacityBucket;
+import com.dillon.starsectormarines.ops.loot.LootFleetHold;
 import com.dillon.starsectormarines.ops.loot.LootManifest;
 import com.dillon.starsectormarines.ops.loot.LootSelection;
 import com.dillon.starsectormarines.ops.loot.LootSettlementPlan;
@@ -59,6 +61,7 @@ public final class LootScreen extends MissionFlowMlxScreen {
                 ? "lootScreenInstructionsFieldFinds" : "lootInstructions"));
         props.put("lootRows", lootRows(selection, this::toggle, Strings::get));
         putSettlement(props, preview);
+        props.put("holdLabel", holdLabel(LootSettlementService.fleetHold(), preview, Strings::get));
         props.put("backAction", (Runnable) () -> context.goTo(ScreenId.RESULTS));
         props.put("confirmDisabled", preview == null);
         props.put("confirmAction", (Runnable) this::confirm);
@@ -75,18 +78,19 @@ public final class LootScreen extends MissionFlowMlxScreen {
         props.put("budgetLabel", "Selected: Cr. 9,800 / Cr. 14,200");
         props.put("budgetTone", "label title tone-good");
         props.put("poolLabel", "8 recovered stacks · Cr. 31,400 total pool value");
-        props.put("instructions", "Choose complete recovered stacks up to the negotiated claim budget. Overflow that does not fit cargo is fenced automatically at settlement.");
+        props.put("instructions", "Tick what to keep, up to the negotiated claim budget. Unticked stacks are left behind, and what will not fit the hold is fenced.");
         props.put("lootRows", List.of(
-                previewRow(0, "graphics/icons/cargo/heavymachinery.png", "Heavy Machinery", "18 recovered", "Cr. 4,500", "SELECTED", true, false, none),
-                previewRow(1, "graphics/icons/cargo/supplies.png", "Supplies", "40 recovered", "Cr. 4,000", "SELECTED", true, false, none),
-                previewRow(2, null, "Heavy Autocannon", "1 recovered", "Cr. 1,300", "SELECTED", true, false, none),
-                previewRow(3, "graphics/icons/cargo/lobster.png", "Volturnian Lobster", "12 recovered", "Cr. 2,400", "AVAILABLE", false, false, none),
+                previewRow(0, "graphics/icons/cargo/heavymachinery.png", "Heavy Machinery", "18 recovered", "Cr. 4,500", "KEEP", true, false, none),
+                previewRow(1, "graphics/icons/cargo/supplies.png", "Supplies", "40 recovered", "Cr. 4,000", "KEEP", true, false, none),
+                previewRow(2, null, "Heavy Autocannon", "1 recovered", "Cr. 1,300", "KEEP", true, false, none),
+                previewRow(3, "graphics/icons/cargo/lobster.png", "Volturnian Lobster", "12 recovered", "Cr. 2,400", "LEAVE BEHIND", false, false, none),
                 previewRow(4, "graphics/icons/cargo/ai_core_alpha.png", "AI Core", "1 recovered", "Cr. 8,000", "OVER BUDGET", false, true, none),
-                previewRow(5, "graphics/icons/cargo/fuel.png", "Fuel", "70 recovered", "Cr. 1,750", "AVAILABLE", false, false, none),
-                previewRow(6, "graphics/icons/cargo/marine.png", "Marines", "10 recovered", "Cr. 1,000", "AVAILABLE", false, false, none),
+                previewRow(5, "graphics/icons/cargo/fuel.png", "Fuel", "70 recovered", "Cr. 1,750", "LEAVE BEHIND", false, false, none),
+                previewRow(6, "graphics/icons/cargo/marine.png", "Marines", "10 recovered", "Cr. 1,000", "LEAVE BEHIND", false, false, none),
                 previewRow(7, null, "Field Armour Pattern", "1 recovered", "Cr. 8,450", "OVER BUDGET", false, true, none)));
         props.put("carryLabel", "59 units · Cr. 9,800 value");
         props.put("fenceLabel", "0 units · Cr. 0 paid");
+        props.put("holdLabel", "Cargo 340 / 1,200 · 399 after");
         props.put("noticeClasses", "label tone-muted");
         props.put("notice", "4,400 credits of claim budget remain.");
         props.put("backAction", none);
@@ -116,15 +120,36 @@ public final class LootScreen extends MissionFlowMlxScreen {
                     MessageFormat.format(copy.apply(stack.fieldRecovered
                             ? "lootScreenQuantityFieldFindFmt" : "lootQuantityFmt"), stack.quantity),
                     MessageFormat.format(copy.apply("lootValueFmt"), number(stack.totalValue())),
-                    selected ? (stack.fieldRecovered ? copy.apply("lootScreenSecured")
-                            : copy.apply("lootSelected"))
+                    selected ? copy.apply("lootScreenKeep")
                             : !canSelect ? copy.apply("lootOverBudget")
-                            : copy.apply("lootScreenAvailable"),
+                            : copy.apply("lootScreenLeave"),
                     "label heading "
                             + (selected ? "tone-good" : !canSelect ? "tone-danger" : "tone-edge"),
                     !canSelect, () -> toggle.accept(index)));
         }
         return List.copyOf(rows);
+    }
+
+    /**
+     * The fleet's hold now and after the kept lines go aboard: cargo always,
+     * fuel and crew only when something kept lands in them.
+     */
+    static String holdLabel(LootFleetHold hold, LootSettlementPlan plan, UnaryOperator<String> copy) {
+        if (hold == null) return copy.apply("lootScreenUnavailable");
+        List<String> parts = new ArrayList<>();
+        for (LootCapacityBucket bucket : LootCapacityBucket.values()) {
+            float added = plan != null ? plan.keptSpace(bucket) : 0f;
+            if (bucket != LootCapacityBucket.CARGO && added <= 0f) continue;
+            String name = copy.apply(switch (bucket) {
+                case CARGO -> "lootScreenHoldCargo";
+                case FUEL -> "lootScreenHoldFuel";
+                case PERSONNEL -> "lootScreenHoldCrew";
+            });
+            parts.add(MessageFormat.format(copy.apply("lootScreenHoldFmt"), name,
+                    number(Math.round(hold.used(bucket))), number(Math.round(hold.max(bucket))),
+                    number(Math.round(hold.used(bucket) + added))));
+        }
+        return String.join(" · ", parts);
     }
 
     private static LootRow previewRow(int index, String icon, String name, String quantity,
@@ -201,6 +226,8 @@ public final class LootScreen extends MissionFlowMlxScreen {
                 case "quantityId" -> id + "-quantity"; case "value" -> value;
                 case "valueId" -> id + "-value"; case "status" -> status;
                 case "statusId" -> id + "-status"; case "tone" -> tone;
+                case "checkId" -> id + "-check"; case "checkMarkId" -> id + "-check-mark";
+                case "checkClasses" -> "loot-check" + (classes.contains(" selected") ? " checked" : "");
                 case "disabled" -> disabled; case "action" -> action; default -> null;
             };
         }
