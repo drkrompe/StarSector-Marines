@@ -1438,9 +1438,10 @@ def blender_main(cfg):
     #   ships     the hulls at full samples; the effects and the planet are indirect-only, so every drive,
     #             muzzle flash, burst light, the sun and the planet's bounce still light them
     #   effects   volumes, shields, rounds and bursts; ships and planet are holdouts (they still cast and bounce)
-    # Each layer writes Cryptomatte (object, material, asset) and depth. A plate (composite_layers.plate_for) or a
-    # backdrop already rendered for the same locked camera stands in for the backdrop layer, which then
-    # does not render.
+    # Each layer writes Cryptomatte (object, material, asset) and depth. A backdrop already rendered for the same
+    # locked camera stands in for the backdrop layer, which then does not render. A painted plate
+    # (composite_layers.plate_for) replaces it in the composite but not in the render: a PNG plate's swap
+    # and a matted plate's sky both need the rendered one.
     ROLES = {'backdrop': {'Stage': 'exclude'},
              'ships': {'Stage | effects': 'indirect', 'Backdrop': 'indirect'},
              'effects': {'Stage | ships': 'holdout', 'Backdrop': 'holdout'}}
@@ -1661,7 +1662,7 @@ def blender_main(cfg):
         if layers:
             plate = composite_layers.plate_for(cfg.get('plates'), kf)
             cached = raw / 'backdrop' / f'{backdrop_key(kf)}.exr'
-            if not layered(kf, not composite_layers.is_linear(plate) and not cached.exists()) and not cfg.get('stage_only'):
+            if not layered(kf, not cached.exists()) and not cfg.get('stage_only'):
                 raise SystemExit(f'ASHARU layers {kf}: an object would render on the wrong layer (see the leak rows)')
         else:
             for vl in scene.view_layers:
@@ -1786,7 +1787,7 @@ def frame_meta(samples, half=False, surface=SURFACE_DETAIL, layers=False):
 
 
 def composite_layers_plates():
-    return HERE / 'plates'
+    return REPO / 'build' / 'asharu-battle' / 'plates'     # composite_layers.PLATES
 
 
 def finished(raw, kf, samples, half=False, surface=SURFACE_DETAIL, layers=False):
@@ -2267,7 +2268,7 @@ def main():
     run_date = started.read_text().strip()
     samples = int(opt('--samples', 48))
     layers = '--layers' in argv     # three view layers and a composite (composite_layers.py)
-    plates = '' if '--no-plates' in argv else opt('--plates')     # None: the painted plates beside this script
+    plates = '' if '--no-plates' in argv else opt('--plates')     # None: build/asharu-battle/plates (roster.PLATES)
     if '--fx-check' in argv:        # per-ship effects: stage the cued frames under the kit, no render
         if '--frames' not in argv:
             frames = [kf for kf in KEYFRAMES if KEYFRAMES[kf].get('cues')]

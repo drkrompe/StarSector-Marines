@@ -497,13 +497,16 @@ muzzle moves the shot with it.
   seconds, so a new backdrop or a reworked effect never re-renders a hull:
   - `backdrop`: the planet and the starfield, at 16 samples. A locked camera's backdrop is
     rendered once and cached by camera.
-  - **Painted plates** come from the planet session: `plates/<kf>/plate.png` beside the script,
-    an ImageGen painting on exactly the key frame's camera, committed with its prompt.
-    - The painting is display-referred, and AgX does not invert, so it is swapped in after the
-      view: `out = full + (1 - coverage) * (plate - backdrop)`.
-    - So the still shows the plate where nothing covers it and the hull where one does. A
-      drive's glow keeps its own tone over the painting.
-    - A scene-linear `<kf>.backdrop.exr` replaces the backdrop before the view instead.
+  - **Painted plates** come from the planet session. Their sources and prompts are in `plates/`.
+    - The finished plates are on Drive at `roster.PLATES`: `<kf>.backdrop.exr`, scene-linear,
+      exactly on the key frame's camera, today k0 (S1a) and k6 (S12). A queue job copies them to
+      `build/asharu-battle/plates/`.
+    - A plate replaces the rendered backdrop before the view. Where it carries a premultiplied
+      matte, the rendered stars show through.
+    - A display-referred `<kf>/plate.png` is swapped in after the view instead:
+      `out = full + (1 - coverage) * (plate - backdrop)`.
+    - The backdrop layer is still rendered (16 samples, once per camera), because both forms
+      need it.
     - `--plates DIR` points elsewhere, and `--no-plates` is the control.
   - `ships`: the hulls at full samples. Effects and planet are indirect-only, so drives, muzzle
     flashes, burst lights, the sun and the planet's bounce light still light them.
