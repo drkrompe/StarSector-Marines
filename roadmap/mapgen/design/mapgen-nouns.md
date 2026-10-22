@@ -638,6 +638,22 @@ paved and sweeps only precinct roads. Junctions, T-junctions, turns and dead
 ends are all composed from the sweep rather than from tiles, so no piece is
 missing from the set.
 
+**A street ends where it meets another, not where its band does.** A band is
+a maximal run of street cells, so a side street's band reaches across the
+street it joins to the far kerb row, and often a cell or two into a yard
+mouth beyond; swept to its band, every T put a *nub* of asphalt across the
+through road's far sidewalk. So at a *T* (the street it meets runs on past it
+both ways) a street stops at that street's centre line and the through
+asphalt covers the rest; at a *corner* (both end at each other) each runs to
+the outer edge of the other's asphalt, so the corner is paved square and
+nothing runs on into the kerb. A street that runs on through is a crossing
+and keeps its length. The kerb radius is still decided by whether both arms
+exist, so a T keeps its two near-side turns and gains none on the far side.
+Where two streets grown side by side make the road widen, the one that ends
+beside the other, meeting no crossing street, *tapers* into it over six cells
+with a diagonal stroke instead of stepping square across the carriageway.
+The `city-junctions` snapshot suite frames the junctions as generated.
+
 **Road paint** is a *marking*: a straight, flush-ended stroke along a grid
 axis, drawn as its own layer over the asphalt. It is laid only on cells the
 asphalt covers whole, so it never reaches a ragged edge, a sidewalk or bare
