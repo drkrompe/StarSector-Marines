@@ -108,7 +108,7 @@ final class CampaignLessons {
                 && roster.vacancies(s) > 0);
         String copy = full ? "lessonFormationAssign" : vacant ? "lessonFormationRecover" : "lessonFormationWounded";
         return later(lesson(3, "lessonFormationTitle", copy,
-                vacant || full ? List.of("barracks-command-list", "barracks-formation-board", "barracks-reinforce",
+                vacant || full ? List.of("barracks-command-list", "barracks-formation-board", "barracks-fill-selected",
                         "barracks-missions")
                         : List.of("barracks-command-list", "barracks-formation-board", "barracks-missions"),
                 context.getSelectedMission() == null ? "lessonHeadquarters" : "lessonBriefing",

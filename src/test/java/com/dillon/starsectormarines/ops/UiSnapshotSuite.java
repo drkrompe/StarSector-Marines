@@ -1942,6 +1942,19 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     images.add(new SnapshotArtifact("barracks-dossier-record-150pct.png",
                             renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1.5f)));
                 }
+                if (state.equals("command")) {
+                    // Each card face and a short squad's wrench describe themselves on hover.
+                    Map<String, String> hovers = new LinkedHashMap<>();
+                    hovers.put("barracks-weapon-card-hint-1920x1080.png", "formation:" + squads.get(0).id() + ":weapon-card");
+                    hovers.put("barracks-armor-card-hint-1920x1080.png", "formation:" + squads.get(0).id() + ":armor-card");
+                    hovers.put("barracks-fill-hint-1920x1080.png", "formation:" + squads.get(2).id() + ":fill");
+                    for (var hover : hovers.entrySet()) {
+                        openSpecSheet(document, hints, 1920, 1080, instance.requireElement(hover.getValue()));
+                        images.add(new SnapshotArtifact(hover.getKey(), renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
+                        document.deactivateInput();
+                        hints.update();
+                    }
+                }
                 if (state.equals("large")) {
                     clickBarracksFlow(document, instance, "barracks-select-all");
                     clickBarracksFlow(document, instance, "barracks-page-next");
@@ -2141,9 +2154,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 clickBarracksFlow(document, instance, id);
                 cardBindings.update(document, instance, model, hints);
             };
-            for (String id : List.of("barracks-recruit-stock", "barracks-recruit-draw", "barracks-reinforce")) {
-                hints.bindLive(instance.requireElement(id), model.command()::recruitSheet);
-            }
+            hints.bindLive(instance.requireElement("barracks-recruit-stock"), model.command()::recruitSheet);
+            hints.bindLive(instance.requireElement("barracks-fill-selected"), model.command()::fillSelectedSheet);
             renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f);
             click.accept("guide-dismiss");
             click.accept("command:" + company.captain.id());
@@ -2164,7 +2176,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.deactivateInput();
             hints.update();
             var originalCargo = company.available();
-            click.accept("barracks-reinforce");
+            click.accept("barracks-fill-selected");
             if (company.recruits() != 17 || company.roster.readyReserveCount() != 0
                     || company.squads.subList(0, 2).stream().anyMatch(s -> company.roster.readyCount(s) != 12)
                     || company.roster.readyCount(company.squads.get(2)) != 11) {

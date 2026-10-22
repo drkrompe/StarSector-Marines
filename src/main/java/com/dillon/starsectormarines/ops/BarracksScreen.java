@@ -110,9 +110,8 @@ public final class BarracksScreen implements Screen {
             built.theme(MarineOpsThemes.standard());
             candidateGuide = BarracksGuideCallout.bind(built, candidate, viewModel.command(), this::close);
             candidateSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built), true);
-            for (String id : List.of("barracks-recruit-stock", "barracks-recruit-draw", "barracks-reinforce")) {
-                candidateSheets.bindLive(candidate.requireElement(id), viewModel.command()::recruitSheet);
-            }
+            candidateSheets.bindLive(candidate.requireElement("barracks-recruit-stock"), viewModel.command()::recruitSheet);
+            candidateSheets.bindLive(candidate.requireElement("barracks-fill-selected"), viewModel.command()::fillSelectedSheet);
             candidateCards = new BarracksCardBindings();
             candidateCards.update(built, candidate, viewModel, candidateSheets);
             if (viewport != null) {

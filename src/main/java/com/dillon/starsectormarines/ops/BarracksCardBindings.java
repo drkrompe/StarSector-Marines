@@ -6,11 +6,14 @@ import com.dillon.starsectormarines.ops.battleview.SquadMusterCanvas;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
+import com.dillon.starsectormarines.ui.spec.SpecSheet;
 import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Supplier;
 
 /** Bounded keyed-card wiring, shared by the live room and its render walkthrough. */
 final class BarracksCardBindings {
@@ -38,10 +41,17 @@ final class BarracksCardBindings {
             } else {
                 document.canvases().invalidate(canvas);
             }
-            UiElement target = instance.requireElement((String) card.get("id"));
-            hints.bindLive(target, () -> model.squadSheet(id));
-            targets.add(target);
+            bind(hints, instance.requireElement((String) card.get("id")), () -> model.squadSheet(id));
+            // The deepest bound element wins, so a card face or the wrench describes itself over the squad.
+            bind(hints, instance.requireElement((String) card.get("weaponChipId")), () -> model.weaponCardSheet(id));
+            bind(hints, instance.requireElement((String) card.get("armorChipId")), () -> model.armorCardSheet(id));
+            bind(hints, instance.requireElement((String) card.get("fillId")), () -> model.fillSheet(Set.of(id)));
         }
+    }
+
+    private void bind(SpecSheetBinder hints, UiElement target, Supplier<SpecSheet> sheet) {
+        hints.bindLive(target, sheet);
+        targets.add(target);
     }
 
     /** Each rank node describes itself on hover; the tree carries no effect copy of its own. */

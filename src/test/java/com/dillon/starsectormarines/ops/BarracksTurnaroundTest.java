@@ -71,9 +71,9 @@ class BarracksTurnaroundTest {
             }
             var model = new BarracksViewModel(new Reactor(), roster, () -> 0d).command();
             model.toggle(recipient.id());
-            assertEquals("barracks-reinforce", model.guideTargetId());
+            assertEquals("barracks-fill-selected", model.guideTargetId());
             model.reinforceSelected();
-            assertEquals("barracks-reinforce", model.guideTargetId(), "No available personnel means no false success");
+            assertEquals("barracks-fill-selected", model.guideTargetId(), "No available personnel means no false success");
             roster.recruitToSquad(roster.reserveSquad().id(), 4);
             model.reinforceSelected();
             assertEquals(12, roster.readyCount(recipient));
