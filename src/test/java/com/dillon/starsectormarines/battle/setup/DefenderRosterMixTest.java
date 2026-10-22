@@ -69,8 +69,8 @@ class DefenderRosterMixTest {
 
     @Test
     void heavyLeanKeepsAShareOfTheRiskCurvesMechs() {
-        List<MechVariant> six = List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO,
-                MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO);
+        List<MechVariant> six = List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.WARDEN,
+                MechVariant.BULWARK, MechVariant.HOUND, MechVariant.WARDEN);
         assertEquals(six, DefenderRoster.bandedMechs(six, MarketGarrison.NONE), "no market keeps them all");
         assertEquals(six, DefenderRoster.bandedMechs(six, new MarketGarrison(100f, 0.3f, 0.4f, 1f)));
         assertEquals(six.subList(0, 3), DefenderRoster.bandedMechs(six, new MarketGarrison(100f, 0.3f, 0f, 1f)),

@@ -18,7 +18,7 @@ class MechBayDropManifestTest {
         MechBay bay = new MechBay();
         CampaignMech ready = bay.fabricateChassis(MechBay.STARTER_SQUAD_ID, MechVariant.HOUND);
         CampaignMech damaged = bay.fabricateChassis(MechBay.STARTER_SQUAD_ID, MechVariant.BULWARK);
-        CampaignMech repairing = bay.fabricateChassis(MechBay.STARTER_SQUAD_ID, MechVariant.SIROCCO);
+        CampaignMech repairing = bay.fabricateChassis(MechBay.STARTER_SQUAD_ID, MechVariant.WARDEN);
         damage(bay, damaged);
         damage(bay, repairing);
         repairing.beginRepair(12f);

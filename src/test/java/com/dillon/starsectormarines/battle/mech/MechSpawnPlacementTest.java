@@ -31,7 +31,7 @@ class MechSpawnPlacementTest {
         NavigationGrid grid = corridor(1);
         assertNull(MechSpawnPlacement.nearCell(grid, MechVariant.BULWARK.radius, 3, 2,
                 (x, y) -> true, (x, y) -> true));
-        assertNotNull(MechSpawnPlacement.nearCell(grid, MechVariant.SIROCCO.radius, 3, 2,
+        assertNotNull(MechSpawnPlacement.nearCell(grid, MechVariant.WARDEN.radius, 3, 2,
                 (x, y) -> true, (x, y) -> true));
         assertNotNull(MechSpawnPlacement.nearCell(grid, MechVariant.HOUND.radius, 3, 2,
                 (x, y) -> true, (x, y) -> true));

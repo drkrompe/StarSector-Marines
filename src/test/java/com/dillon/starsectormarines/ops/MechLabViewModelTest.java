@@ -226,7 +226,7 @@ class MechLabViewModelTest {
                 "support_mech_02", "Hound 02", MechVariant.HOUND,
                 MechRole.ASSAULT, MissileReplenisherComponent.STANDARD.id()));
         bay.addMech(MechBay.STARTER_SQUAD_ID, new CampaignMech(
-                "support_mech_03", "Sirocco 03", MechVariant.SIROCCO,
+                "support_mech_03", "Warden 03", MechVariant.WARDEN,
                 MechRole.LR_SUPPORT, MissileReplenisherComponent.STANDARD.id()));
         MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay);
 

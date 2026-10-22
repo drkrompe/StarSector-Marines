@@ -515,6 +515,15 @@
  "cues": [
   {
    "t": 0.0,
+   "sound": "jangala_arrival_score_strings",
+   "volume": 0.5623,
+   "until": 97.125,
+   "fade_in": 0.75,
+   "fade_out": 0.75,
+   "duck": 0.3981
+  },
+  {
+   "t": 0.0,
    "sound": "jangala_cabin_bed",
    "volume": 1.0,
    "until": 52.56,

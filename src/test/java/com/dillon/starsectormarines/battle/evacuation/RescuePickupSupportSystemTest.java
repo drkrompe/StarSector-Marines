@@ -38,7 +38,7 @@ class RescuePickupSupportSystemTest {
                 10.5f, 10.5f, -6f, 10.5f, -10f, 10.5f,
                 901L, RiskLevel.LOW, sim));
         assertEquals(0, support.liveGuardCount(sim));
-        assertInitialSorties(sim, payload.placement, MechVariant.SIROCCO);
+        assertInitialSorties(sim, payload.placement, MechVariant.WARDEN);
         advanceSeconds(sim,
                 RescuePickupSupportSystem.INITIAL_ARRIVAL_DELAY_SECONDS - 1f);
         assertEquals(0, support.liveGuardCount(sim),
@@ -76,14 +76,14 @@ class RescuePickupSupportSystemTest {
     @Test
     void seedSelectsOnePickupMechWithoutChangingMilitiaStrength() {
         BattleSimulation bulwarkSim = configuredSimulation(902L);
-        BattleSimulation siroccoSim = configuredSimulation(903L);
+        BattleSimulation wardenSim = configuredSimulation(903L);
 
         assertEquals(RescuePickupSupportSystem.TARGET_GUARDS,
                 countMilitia(bulwarkSim));
         assertEquals(RescuePickupSupportSystem.TARGET_GUARDS,
-                countMilitia(siroccoSim));
+                countMilitia(wardenSim));
         assertEquals(MechVariant.BULWARK, pickupMech(bulwarkSim));
-        assertEquals(MechVariant.SIROCCO, pickupMech(siroccoSim));
+        assertEquals(MechVariant.WARDEN, pickupMech(wardenSim));
     }
 
     @Test

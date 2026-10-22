@@ -33,7 +33,7 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
  * responds when exactly the same support geometry disappears.
  *
  * <p>The paired lance-order builder leaves those four loops unchanged and
- * instead adds a zero-locomotion Sirocco as the selected Bulwark's real squad
+ * instead adds a zero-locomotion Warden as the selected Bulwark's real squad
  * leader. Its offset firing pose stays stable without test-time position
  * writes while remaining inside the production Brawler support-acquisition
  * radius.
@@ -126,8 +126,8 @@ final class MechDoctrineScene {
         long[] support;
         Squad supportSquad;
         if (sameLanceLeader) {
-            EntitySpec leaderSpec = MechVariant.SIROCCO.applyTo(new EntitySpec(
-                    "lance-lead-sirocco", Faction.MARINE, UnitType.HEAVY_MECH,
+            EntitySpec leaderSpec = MechVariant.WARDEN.applyTo(new EntitySpec(
+                    "lance-lead-warden", Faction.MARINE, UnitType.HEAVY_MECH,
                     LANCE_LEADER_X, LANCE_LEADER_Y).squad(mechSquadId));
             // The leader is a real same-squad mech and a different chassis, so
             // Brawler cohesion can acquire it. Zero locomotion keeps the
@@ -135,7 +135,7 @@ final class MechDoctrineScene {
             leaderSpec.moveSpeed(0f);
             lanceLeader = sim.spawn(leaderSpec);
             sim.world().attachMechLoadout(lanceLeader,
-                    MechVariant.SIROCCO.createLoadout(MechRole.BALANCED));
+                    MechVariant.WARDEN.createLoadout(MechRole.BALANCED));
             support = new long[]{lanceLeader};
             supportSquad = mechSquad;
             initializeSquad(mechSquad, lanceLeader, 2,

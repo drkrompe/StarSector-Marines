@@ -43,6 +43,22 @@ class CinematicSequenceTest {
         assertEquals(0f, bed.loopVolume(3.0), 0f);
     }
 
+    @Test void aDuckedCueDipsUnderEveryVoiceAndEasesBackAfter() {
+        var line = new CinematicShot.Caption(2.0, 4.0, "castle", "k");
+        var withVoice = new CinematicShot("v", "v/v.mp4", 24, 1920, 1080, 240, 10.0, Map.of(), List.of(line), List.of(),
+                List.of(new Cue(0.0, "music", 0.5f, 10.0, 0, 0, 0.25f), new Cue(0.0, "bed", 0.5f, 10.0, 0, 0)));
+        var ducked = new CinematicSequence(List.of(shot("first", 24, List.of()), withVoice));
+        var music = ducked.cues().stream().filter(c -> c.cue().sound().equals("music")).findFirst().orElseThrow();
+        var bed = ducked.cues().stream().filter(c -> c.cue().sound().equals("bed")).findFirst().orElseThrow();
+        double in = 1.0 + 2.0, out = 1.0 + 4.0;     // the caption, moved onto the sequence clock
+        assertEquals(0.5f, ducked.volumeAt(music, in - 1.0), 1e-6f);
+        assertEquals(0.5f * (1 - 0.75f * 0.5f), ducked.volumeAt(music, in - CinematicSequence.DUCK_EASE / 2), 1e-6f);
+        assertEquals(0.125f, ducked.volumeAt(music, in + 1.0), 1e-6f);
+        assertEquals(0.5f * (1 - 0.75f * 0.5f), ducked.volumeAt(music, out + CinematicSequence.DUCK_EASE / 2), 1e-6f);
+        assertEquals(0.5f, ducked.volumeAt(music, out + 1.0), 1e-6f);
+        assertEquals(0.5f, ducked.volumeAt(bed, in + 1.0), 1e-6f);
+    }
+
     @Test void anEmptySequenceIsEmpty() {
         assertTrue(new CinematicSequence(List.of()).isEmpty());
     }

@@ -76,9 +76,9 @@ import java.util.Random;
  * west of the building and is given the player's click on its interior at tick 30. At {@link #LEAVE_TICK} the garrison
  * is lifted out to the far west corner, so the place is no longer manned.
  * <ul>
- *   <li>{@code mech}: a Sirocco lance of one.</li>
+ *   <li>{@code mech}: a Warden lance of one.</li>
  *   <li>{@code tank}: a breakthrough tank.</li>
- *   <li>{@code control}: the Sirocco and the same click on the building with nobody in it: an ordinary move.</li>
+ *   <li>{@code control}: the Warden and the same click on the building with nobody in it: an ordinary move.</li>
  * </ul>
  *
  * <p>{@code defender-lances}: the reactive-belt production fort, the defender's Conquest commander with four patrols and
@@ -86,7 +86,7 @@ import java.util.Random;
  * stretch; the loop asserts that it attaches no more lances at once than its bound, that any guard it gives stands
  * outside the run it guards and never on it, and that a guard is attached once a run is manned under pressure (when a
  * free lance can reach it) and that the guard, sent from the yard, reaches its cell outside the works. Manning waits on
- * belief: from inside the works nobody sees more than one or two of the party (a Sirocco sees 55 cells, a militiaman 28,
+ * belief: from inside the works nobody sees more than one or two of the party (a Warden sees 55 cells, a militiaman 28,
  * and the walls stand between), so the run is first believed pressed, and manned, when the patrols sent after the one
  * raider they did see have walked out round the works, near tick 1,200. Lances standing outside the works saw the whole
  * party at once and the run was manned on the first pulse; {@code believedPressedTick} beside {@code mannedPressedTick}
@@ -346,7 +346,7 @@ public final class MachineGuardScene implements BehaviorScene {
 
     /**
      * The commander's guard on a building of a mission map (`mission-building-commander`): the defender's commander,
-     * four tough patrols beside the Raid's best-posted held place and two Sirocco lances further out, against a tough,
+     * four tough patrols beside the Raid's best-posted held place and two Warden lances further out, against a tough,
      * stationary marine party in sight of the building. The map has no fort and no prepared ground in the scene, so the
      * only garrisonables are buildings. Verdicts: never more lances on guard than the bound; once the commander mans a
      * building under pressure, a lance stands guard by a building (when a free lance can reach it); and a guard's cell
@@ -370,7 +370,7 @@ public final class MachineGuardScene implements BehaviorScene {
         }
         for (int i = 0; i < LANCES; i++) {
             builder.squad("lance-" + i).faction(Faction.DEFENDER).size(1)
-                    .at(ground.lance()[0] + 4 * i, ground.lance()[1]).mech(MechVariant.SIROCCO, MechRole.BALANCED).done();
+                    .at(ground.lance()[0] + 4 * i, ground.lance()[1]).mech(MechVariant.WARDEN, MechRole.BALANCED).done();
         }
         builder.squad("raiders").faction(Faction.MARINE).size(6).at(ground.party()[0] + 2, ground.party()[1])
                 .primary("weapon.smg").health(TOUGH).stationary().done();
@@ -565,7 +565,7 @@ public final class MachineGuardScene implements BehaviorScene {
                 .assigned(id -> ObjectiveAssignment.attackMove(id, CLICK_X, CLICK_Y)).done();
         if (!tankLoop) {
             builder.squad("lance").faction(Faction.MARINE).size(1).at(MACHINE_X, MACHINE_Y)
-                    .mech(MechVariant.SIROCCO, MechRole.BALANCED)
+                    .mech(MechVariant.WARDEN, MechRole.BALANCED)
                     .assigned(id -> ObjectiveAssignment.defendArea(id, MACHINE_X, MACHINE_Y)).done();
         }
         // Keeps the battle going whatever happens at the building: a holdout in a sealed box.
@@ -880,7 +880,7 @@ public final class MachineGuardScene implements BehaviorScene {
             // (They stood outside the works while a lance sent from the yard was dropped from the pool a pulse later.)
             int[] cell = mechStand(probeSim, centre[0] - 4 + 8 * i, centre[1]);
             builder.squad("lance-" + i).faction(Faction.DEFENDER).size(1).at(cell[0], cell[1])
-                    .mech(MechVariant.SIROCCO, MechRole.BALANCED).done();
+                    .mech(MechVariant.WARDEN, MechRole.BALANCED).done();
         }
         builder.squad("raiders").faction(Faction.MARINE).size(6).at(fieldCell[0], fieldCell[1])
                 .primary("weapon.smg").health(TOUGH).stationary().done();
@@ -1057,7 +1057,7 @@ public final class MachineGuardScene implements BehaviorScene {
         return best != null ? best : walkable(sim, cx, cy);
     }
 
-    /** The nearest cell to (x, y) whose centre a Sirocco can stand on, off prepared ground. */
+    /** The nearest cell to (x, y) whose centre a Warden can stand on, off prepared ground. */
     private static int[] mechStand(BattleSimulation sim, int x, int y) {
         for (int r = 0; r < 20; r++) {
             for (int dy = -r; dy <= r; dy++) {
@@ -1066,7 +1066,7 @@ public final class MachineGuardScene implements BehaviorScene {
                     int cx = x + dx;
                     int cy = y + dy;
                     if (!sim.getGrid().inBounds(cx, cy) || sim.fightingPositions().isFightingPositionCell(cx, cy)) continue;
-                    if (ManualTerrainMotion.canStand(sim.getGrid(), cx + 0.5f, cy + 0.5f, MechVariant.SIROCCO.radius)) {
+                    if (ManualTerrainMotion.canStand(sim.getGrid(), cx + 0.5f, cy + 0.5f, MechVariant.WARDEN.radius)) {
                         return new int[]{cx, cy};
                     }
                 }

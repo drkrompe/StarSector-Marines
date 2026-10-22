@@ -201,7 +201,7 @@ class MechMissionLawTest {
                               MechRole role, int x, int y) {
         MechVariant variant = switch (role) {
             case ASSAULT -> MechVariant.HOUND;
-            case LR_SUPPORT -> MechVariant.SIROCCO;
+            case LR_SUPPORT -> MechVariant.WARDEN;
             default -> MechVariant.BULWARK;
         };
         long mech = sim.spawn(variant.applyTo(new EntitySpec(

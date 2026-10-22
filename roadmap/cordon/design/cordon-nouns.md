@@ -128,7 +128,14 @@ mission-neutral: the mission says where it enters, where it goes and what
 joining means), not commanded by an allied commander; the full allied column
 system (`marine-side-reinforcement.md` applied to `ALLY`) is a later story.
 
-**Refugees (the Line).** People walking out of the region behind the line to
+**Allied armour.** The allies' cars and technicals behind the line, under the
+allies' own command (`allied-command.md`), not the player's. Between calls
+each stands at its home behind the line; when a redoubt calls, each goes to
+the calling redoubt nearest it and fights from behind its rear wall, and goes
+home when no redoubt calls. They are the start of the allies fighting their
+own war (*The allies hold, the company decides*).
+
+**Refugees (the Line). People walking out of the region behind the line to
 the rear edge: groups of civilians leaving the rear villages on the
 briefing's timetable and walking the country road off the map. They are the
 Line's score, as evacuees are Colony Breach's, and they are prey: the swarm
@@ -363,6 +370,15 @@ with the same keys.
 ## Settled choices
 
 The owner's answers to the flow cards (2026-10-22):
+
+- **The allies hold, the company decides:** the allies fight their own war
+  in the manner of an RTS or MOBA lane. A rear logistics base builds their
+  light armour and APCs in a vehicle shop, reinforcement squads walk in off
+  the map to it, APCs carry them up to the line and stay there as support,
+  and the player's company is the backstop when a lane goes bad and the push
+  that carries one through. The allies alone should hold the ordinary pressure
+  and sag in the later tides. The base, the shop and the deliveries are
+  being built; the armour behind the line is in.
 
 - **Where the Line's refugees walk:** out of the rear villages to the rear
   edge along the country road, behind the line.

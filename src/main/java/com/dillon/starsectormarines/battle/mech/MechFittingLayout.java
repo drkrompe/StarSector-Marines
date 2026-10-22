@@ -191,7 +191,7 @@ public final class MechFittingLayout {
                         0f, -0.54f, -1.34f, 0.68f, 1.64f, 0.68f, false),
                 socket(SocketId.MINI_FAB, SocketType.UTILITY, 2, 1,
                         0f, -0.84f, 1.34f, 0.68f, 1.36f, 0.68f, false))));
-        layouts.put(MechVariant.SIROCCO, layout(MechVariant.SIROCCO, 180f, List.of(
+        layouts.put(MechVariant.WARDEN, layout(MechVariant.WARDEN, 180f, List.of(
                 socket(SocketId.CORE, SocketType.ENGINE, 2, 2,
                         0f, 0.02f, 0f, -1.45f, 1.70f, 0.68f, false),
                 socket(SocketId.ARMS, SocketType.BALLISTIC, 2, 3,

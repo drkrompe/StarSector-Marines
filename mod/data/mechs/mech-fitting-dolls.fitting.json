@@ -52,7 +52,7 @@
       ]
     },
     {
-      "variant": "sirocco",
+      "variant": "warden",
       "facingDegrees": 180.0,
       "sockets": [
         {

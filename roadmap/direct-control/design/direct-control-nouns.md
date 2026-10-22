@@ -317,7 +317,7 @@ changes, and braking ease the retained velocity in simulation time. Releasing
 movement therefore decelerates to rest rather than stopping in one tick; a
 reversal first arrests the old momentum. Relative handling mass belongs to the
 chassis: the Bulwark responds more slowly, the Hound is more agile, and the
-Sirocco lies between them. It does not change top speed or depend on damage.
+Warden lies between them. It does not change top speed or depend on damage.
 
 Manual translation continues while the damped hips turn toward cursor aim,
 without waiting for the autonomous eight-degree path-alignment gate. WASD stays

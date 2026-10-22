@@ -30,7 +30,7 @@ class MechDropServiceTest {
     private static final int W = 80;
     private static final int H = 60;
     private static final List<MechVariant> LANCE =
-            List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.HOUND, MechVariant.SIROCCO);
+            List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.HOUND, MechVariant.WARDEN);
     private static final SquadCommandClaim CLAIM =
             SquadCommandClaim.mission("conquest-attacker", "commander-called mech lance");
 

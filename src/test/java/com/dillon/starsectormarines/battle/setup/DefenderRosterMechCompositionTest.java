@@ -90,15 +90,15 @@ class DefenderRosterMechCompositionTest {
     @Test
     void highRiskUsesMissionScaledComplementaryProfiles() {
         List<MechVariant> lance = List.of(
-                MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO);
+                MechVariant.BULWARK, MechVariant.HOUND, MechVariant.WARDEN);
         for (MissionType type : MissionType.values()) {
             DefenderRoster roster = DefenderRoster.forMission(type, RiskLevel.HIGH, true);
             if (type == MissionType.SABOTAGE) {
                 assertEquals(List.of(MechVariant.HOUND), roster.mechVariants);
             } else if (type == MissionType.CONQUEST) {
                 assertEquals(List.of(
-                        MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO,
-                        MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO),
+                        MechVariant.BULWARK, MechVariant.HOUND, MechVariant.WARDEN,
+                        MechVariant.BULWARK, MechVariant.HOUND, MechVariant.WARDEN),
                         roster.mechVariants);
             } else {
                 assertEquals(lance, roster.mechVariants, type.name());
@@ -111,7 +111,7 @@ class DefenderRosterMechCompositionTest {
     void familyDefaultsMatchBattlefieldJobs() {
         assertEquals(MechRole.ARMORED_SUPPORT, MechVariant.BULWARK.defaultRole);
         assertEquals(MechRole.ASSAULT, MechVariant.HOUND.defaultRole);
-        assertEquals(MechRole.LR_SUPPORT, MechVariant.SIROCCO.defaultRole);
+        assertEquals(MechRole.LR_SUPPORT, MechVariant.WARDEN.defaultRole);
     }
 
     @Test

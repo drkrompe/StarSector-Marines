@@ -1663,7 +1663,7 @@ public final class UnitRenderService implements RenderSystem {
     private static LayerPose mechPose(int chassis, float locomotionPhase, int flags) {
         String unitId = switch (chassis) {
             case LayeredMechAppearance.CHASSIS_HOUND -> "mech-hound";
-            case LayeredMechAppearance.CHASSIS_SIROCCO -> "mech-sirocco";
+            case LayeredMechAppearance.CHASSIS_WARDEN -> "mech-warden";
             default -> "mech-bulwark";
         };
         boolean stepping = (flags & (LayeredMechAppearance.FLAG_MOVING

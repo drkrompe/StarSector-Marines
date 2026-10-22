@@ -28,7 +28,7 @@ class MechInternalsTest {
     void stockFrameReproducesTheShippedNumbersExactly() {
         assertFrame(MechVariant.BULWARK, 710f, 1.05f);
         assertFrame(MechVariant.HOUND, 375f, 1.55f);
-        assertFrame(MechVariant.SIROCCO, 300f, 1.32f);
+        assertFrame(MechVariant.WARDEN, 300f, 1.32f);
     }
 
     private static void assertFrame(MechVariant variant, float armor, float speed) {

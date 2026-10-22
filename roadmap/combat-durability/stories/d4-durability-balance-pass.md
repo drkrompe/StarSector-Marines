@@ -32,7 +32,7 @@ readable infantry and mech relationships rather than inherited HP totals.
   effective against exposed structure.
 - AMRs, rockets, and heavy cannon are practical answers to intact mech armor
   without becoming universal best weapons against soft targets.
-- Armor endurance orders Bulwark above Hound above Sirocco; Sirocco remains
+- Armor endurance orders Bulwark above Hound above Warden; Warden remains
   screen-dependent and Hound remains meaningfully less durable than Bulwark.
 - Published calibration artifacts state both break-time and kill-time targets,
   sample size, and tolerated variance.

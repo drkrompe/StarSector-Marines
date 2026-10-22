@@ -12,7 +12,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 public final class MechFamilyDebugSpawner {
 
     private static final MechVariant[] FAMILY = {
-            MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO
+            MechVariant.BULWARK, MechVariant.HOUND, MechVariant.WARDEN
     };
 
     private MechFamilyDebugSpawner() {}

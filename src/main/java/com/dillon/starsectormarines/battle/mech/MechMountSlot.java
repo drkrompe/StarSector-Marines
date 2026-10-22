@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.mech;
 
 /**
  * Physical hardpoints a modular strider chassis may expose. A chassis carries either one
- * centreline arms mount (the Hound's nose gun, the Sirocco's chin cannon) or a gun on each arm
+ * centreline arms mount (the Hound's nose gun, the Warden's chin cannon) or a gun on each arm
  * (the Bulwark); {@link MechVariant#hasMount} says which.
  */
 public enum MechMountSlot {

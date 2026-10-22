@@ -159,7 +159,7 @@ public final class DevConfig {
 
     /**
      * When {@code true}: DEBUG mission briefings expose a count + reroll picker
-     * for marine-side Bulwark/Hound/Sirocco support. The selected roster becomes
+     * for marine-side Bulwark/Hound/Warden support. The selected roster becomes
      * real Mech Support charges delivered by targetable Valkyrie sorties.
      */
     @DebugOnly

@@ -86,7 +86,7 @@ at deployment.
   contact, and seed for the four doctrines. It records threat distance,
   signed position relative to an allied screen, and the effect of removing that
   support midway through the run.
-- Existing Sirocco overwatch, assault assignment, mech morale, formation, and
+- Existing Warden overwatch, assault assignment, mech morale, formation, and
   campaign-freeze tests remain green.
 
 ## Out of scope

@@ -34,7 +34,7 @@ public final class LiftBudget {
 
     /**
      * Machine lifts a heavy-cradled company boat flies per mission. One more than the light cradle: a Medium
-     * mech (Sirocco) carries less structure and armor than the Light one (Hound), so a better cradle that
+     * mech (Warden) carries less structure and armor than the Light one (Hound), so a better cradle that
      * only changed the class would not put more armor on the ground, and the heavy cradle costs about twice
      * the light one's bill.
      */

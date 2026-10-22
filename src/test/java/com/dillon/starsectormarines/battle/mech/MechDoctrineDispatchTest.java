@@ -55,7 +55,7 @@ class MechDoctrineDispatchTest {
                 MechRole.ASSAULT, 10, 8);
         long tank = spawn(sim, squadId, MechVariant.BULWARK,
                 MechRole.ARMORED_SUPPORT, 11, 8);
-        long support = spawn(sim, squadId, MechVariant.SIROCCO,
+        long support = spawn(sim, squadId, MechVariant.WARDEN,
                 MechRole.LR_SUPPORT, 8, 8);
         long balanced = spawn(sim, squadId, MechVariant.BULWARK,
                 MechRole.BALANCED, 12, 8);
@@ -169,7 +169,7 @@ class MechDoctrineDispatchTest {
     void balancedLrmChassisClosesToDirectBandButHoldsAgainstACloseThreat() {
         BattleSimulation sim = openSimulation(64, 18);
         int squadId = sim.mintSquad(Faction.MARINE, UnitType.HEAVY_MECH);
-        long balanced = spawn(sim, squadId, MechVariant.SIROCCO,
+        long balanced = spawn(sim, squadId, MechVariant.WARDEN,
                 MechRole.BALANCED, 10, 8);
         long contact = sim.spawn(new EntitySpec(
                 "contact", Faction.DEFENDER, UnitType.MARINE, 42, 8));

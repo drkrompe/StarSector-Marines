@@ -13,7 +13,7 @@ weapons use classic walking-tank / Patriot-style rectangular canister boxes:
 only recessed missile caps are visible near the forward lip. The renderer
 can carry matching equipment or one deliberately centered rack. Feet and arms
 remain beneath the chassis layer. Shoulder-rack order is authored per hull:
-Bulwark and Hound expose their racks above the armor, while Sirocco's paired
+Bulwark and Hound expose their racks above the armor, while Warden's paired
 LRMs remain tucked under its broad hull. Rear/anchor regions are intentionally
 buried so motion exposes only a toe tip and recoil exposes no arm joint.
 
@@ -26,7 +26,7 @@ flipped so its pointed end faces forward, with one centerline nose chaingun and
 one dorsal SRM-5. The two light chassis use exposed mid-body foot anchors so
 their alternating locomotion remains visible around the thinner bodies. A
 surface-mounted thigh linkage rotates and length-scales from each light mech's
-waist toward its live foot position, ending just inside the pad. Sirocco uses
+waist toward its live foot position, ending just inside the pad. Warden uses
 the generated broad wedge, likewise flipped,
 with paired LRM-5 racks and a centerline heavy anti-armor cannon. Their retained
 full-resolution ImageGen sources live in `sources/`, including
@@ -38,7 +38,7 @@ retained generated linkage source is `sources/thigh-bone.png`.
 Tri-Tachyon, Persean League, Luddic Church, Knights of Ludd, Luddic Path,
 Sindrian Diktat, Lion's Guard, pirates, and the Independent/mercenary fallback.
 Every family repeats `chassis.png`, `chassis-hound.png`,
-`chassis-sirocco.png`, `chaingun-arm.png`, `linear-cannon-variant.png`,
+`chassis-warden.png`, `chaingun-arm.png`, `linear-cannon-variant.png`,
 `heavy-cannon.png`, `srm-pod.png`, `lrm-pod.png`, `shoulder-laser-cannon.png`,
 `pulse-laser-arm.png`, `hegemony-bastion-autocannon.png`,
 `pather-demolition-cannon.png`, `lions-guard-thermal-lance.png`,
@@ -53,7 +53,7 @@ Run `python art-source/mech-modular-topdown/build_assets.py` from the repository
 previews use the same hull-relative placement model as the runtime composer and
 are written beneath `build/sprite-previews/mech/` rather than packaged with the mod.
 
-Run `python art-source/mech-modular-topdown/render_variants.py` to regenerate the Bulwark/Hound/Sirocco contact
+Run `python art-source/mech-modular-topdown/render_variants.py` to regenerate the Bulwark/Hound/Warden contact
 sheet at `roadmap/mechs/previews/layered-mech-variants.png`. Its upper row keeps
 the variants' gameplay-relative render scales; its lower row normalizes all
 three hulls to 208 pixels for direct sprite and hardpoint comparison.
