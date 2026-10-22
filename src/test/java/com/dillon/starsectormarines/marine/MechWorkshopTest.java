@@ -6,8 +6,10 @@ import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -44,15 +46,17 @@ class MechWorkshopTest {
         TestResources resources = TestResources.stocked(100);
         MechWorkshop workshop = new MechWorkshop(bay, resources);
         CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
-        MechWeaponComponent arms = mech.arms();
+        MechWeaponComponent arms = Arrays.stream(MechMountSlot.values())
+                .map(mech::weaponAt).filter(Objects::nonNull).findFirst().orElseThrow();
         int spareArms = bay.availableWeapon(arms.id);
+        long fitted = Arrays.stream(MechMountSlot.values()).filter(slot -> mech.weaponAt(slot) == arms).count();
         int occupied = bay.activeSquad().occupied();
 
         assertEquals(MechWorkshop.Status.SCRAPPED, workshop.scrapMech(mech.id()).status());
 
         assertNull(bay.mechById(mech.id()));
         assertEquals(occupied - 1, bay.activeSquad().occupied());
-        assertEquals(spareArms + 1, bay.availableWeapon(arms.id), "the fitted weapon is a spare again");
+        assertEquals(spareArms + fitted, bay.availableWeapon(arms.id), "every fitted copy is a spare again");
         for (FabricationCost.Line line : MechFabricationCatalog.chassis(mech.variant()).cost().lines()) {
             assertEquals(100 + line.quantity() / 2, resources.available(line.commodityId()));
         }
