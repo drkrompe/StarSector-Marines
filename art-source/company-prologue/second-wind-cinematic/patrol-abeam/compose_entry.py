@@ -282,14 +282,14 @@ def sparks(e, heat):
         if age < 0 or age > sp["life"][i] or sp["bright"][i] > heat * 1.1:
             continue
         u = U_HALF - sp["u0"][i] - sp["speed"][i] * age          # from the bottom-right edge, up-left
-        tail = sp["speed"][i] / 48.0
+        tail = sp["speed"][i] / 48.0 * (0.6 + 0.8 * sp["bright"][i])
         fade = 1 - age / sp["life"][i]
-        val = int(255 * min(1.0, sp["bright"][i] * 1.6) * fade)
-        pts = []
-        for uu in (u, u + tail):
-            pts.append((W / 2 + uu * ca - sp["v"][i] * sa, H / 2 + uu * sa + sp["v"][i] * ca))
-        d.line(pts, fill=val, width=3)
-        d.ellipse([pts[0][0] - 2, pts[0][1] - 2, pts[0][0] + 2, pts[0][1] + 2], fill=val)   # the hot head
+        width = 1 + int(2.5 * sp["bright"][i])
+        for k in range(6):                                         # a tail that cools away from the head
+            a0, a1 = u + tail * k / 6, u + tail * (k + 1) / 6
+            val = int(255 * min(1.0, sp["bright"][i] * 1.6) * fade * (1 - k / 6) ** 1.5)
+            pts = [(W / 2 + uu * ca - sp["v"][i] * sa, H / 2 + uu * sa + sp["v"][i] * ca) for uu in (a0, a1)]
+            d.line(pts, fill=val, width=max(1, width - k // 3))
     a = np.asarray(im.filter(ImageFilter.GaussianBlur(0.8)), np.float32) / 255
     return a
 
@@ -334,7 +334,7 @@ def frame_entry(e):
     front = 1.25 - 2.6 * onset                                     # the hot edge spreads up-left
     reach = np.clip((UN - front) / 0.7 + 0.35 * (body - 0.5), 0, 1)
     lead = (0.18 + 0.82 * ((UN + 1) / 2) ** 1.4)                   # hotter toward the leading edge
-    glow = (0.10 + field) * reach * lead * h * flicker + 0.75 * shock_front(e, h * onset) * reach * flicker
+    glow = (0.24 + field) * reach * lead * h * flicker + 0.75 * shock_front(e, h * onset) * reach * flicker
     temp = 1.05 * glow
     adapt = np.clip(glow * 1.6, 0, 0.93)[..., None]                # exposure: the planet sinks under the glow
     if h > 0.02:                                                   # heat shimmer on what shows through
