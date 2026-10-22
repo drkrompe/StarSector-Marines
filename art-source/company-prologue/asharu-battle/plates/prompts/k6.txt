@@ -1,0 +1,20 @@
+A finished matte painting for a film: a photoreal view from low orbit, 250 km up, looking
+forward and down across a desert world to its curved horizon. Wide 16:9 landscape canvas,
+50 mm lens, flat morning light from the left and behind.
+
+Image 1 is the exact layout authority, a rough projection of this very ground through the
+shot's camera. Keep everything exactly where it is, at the same size and in the same colours:
+the horizon line and its curve, the pale sand sea on the left, the dark canyon-cut rock massif,
+the olive basin at right, the pale salt pan, and the three settlements and their roads. Do not
+move, add, remove or rescale anything, and keep the framing pixel for pixel.
+
+Repaint it at full photographic detail, the way an astronaut's photograph from orbit looks:
+- Near ground sharp: dune ridges with a consistent wind grain, sharp canyons with pale floors
+  and dark walls, mesas and talus. Detail falls off with distance into a soft, thin, pale-blue
+  atmospheric haze that thickens toward the horizon, and a thin bright limb of atmosphere
+  along the curve.
+- Above the limb: black space, no stars, no moon, nothing else.
+- The settlements stay small, as seen from 400-700 km: the walled city at the canyon mouth on
+  the edge of the sand sea, the strip mine on the massif's far flank, the spaceport's grid of
+  pads on the salt pan, faint road lines between them.
+No ships, plasma trails, clouds, lens flare, text, labels or border.
