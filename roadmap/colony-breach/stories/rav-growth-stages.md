@@ -1,6 +1,6 @@
 # Rav growth stages
 
-Status: IN PROGRESS — steps 1, 2, 3, 4 and 6 built (stage, stats, size, capsule, age mix, packs, sound); per-stage art and the Matriarch's maturing next
+Status: IN PROGRESS — steps 1-4, 6 and 7 built (stage, stats, size, capsule, age mix, packs, sound, the Matriarch's stage and maturing); per-stage art and the balance reading next
 
 Written: 2026-10-21
 

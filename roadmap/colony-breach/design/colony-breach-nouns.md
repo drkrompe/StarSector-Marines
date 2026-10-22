@@ -655,15 +655,14 @@ for one job in the cycle, and reads that way on screen.
   cooldown, tell, masses, every hold time) are starting values in
   `BruteChargeRules`, to be felt out in play rather than settled on paper.
 
-  A second of not being able to act confuses unless the player sees why, so
-  the charge is shown four ways, all presentation over the rule: a faint amber
-  wedge along the line during the tell, with the other threat warnings; a
-  knocked-down body's picture lying as a fallen one does for that second,
-  with a ring of dust where it lands, while the sim keeps it upright; a quiet
-  amber arc on the ground under a Marine or hull that can't act, whatever made
-  it so, emptying as the hold runs out (a staggered mech shows only in its
-  stilled hips); and the squad card's status word naming the cause (knocked down, stalled,
-  staggered, stunned) ahead of engaged or wounded.
+  The charge is shown three ways, all presentation over the rule: a faint
+  amber wedge along the line during the tell, with the other threat warnings;
+  a knocked-down body's picture lying as a fallen one does for that second
+  while the sim keeps it upright; and the squad card's status word naming the
+  cause (knocked down, stalled, staggered, stunned) ahead of engaged or
+  wounded. Nothing is drawn on the ground under a body that can't act, no ring
+  or arc on a Marine, a hull or a mech (owner, 2026-10-21): a body thrown and
+  getting back up says what happened.
 
   Like the Runner it is drawn on its own skeleton (`RavBruteRig`): a plum,
   plated rhino-ram with a mace head on four boar's legs, the hooves under the
@@ -843,6 +842,16 @@ against its own control in `renderEvidence`.
   body runs a quarter faster on living creep; Marines and colonists are never
   slowed, so creep reads as the swarm's ground rather than mud. A fleeing or
   wandering colonist may cross creep but never stops on it: creep is no refuge.
+- **Creep brings roofs down under its weight** (`CreepRoofCollapse`). A
+  building's roof gives way where living creep has stood beneath it for a minute
+  to a minute and a half: first beside a wall the creep has crusted, then inward
+  a cell every few seconds from each roof already down (to creep or to a shell),
+  each cell on its own seeded timing so a building sags open rather than falling
+  in lockstep. A cave-in is the same one war damage makes: rubble on the floor,
+  and the roof, sight and cover follow it. Creep that withers stops the count;
+  a roof that fell stays fallen. The battle keeps its own clock per cell, so the
+  creep field knows nothing of roofs. An infested building is no shelter twice
+  over: no colonist stops in it, and given time it has no roof.
 - **The look is the field drawn, never a second model.** The creep is a hard
   organic edge, not a spill: an opaque surface of grown chitin plates over a
   membrane, rolled up into a raised, beaded lip where it stops, veined, with a

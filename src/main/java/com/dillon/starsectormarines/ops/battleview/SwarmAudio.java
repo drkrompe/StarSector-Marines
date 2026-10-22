@@ -241,7 +241,7 @@ public final class SwarmAudio {
         }
         if (heavy(strain)) {
             return switch (kind) {
-                case ALERT, PACK_BROKEN -> Sound.BRUTE_BELLOW;
+                case ALERT, PACK_BROKEN, MOULT -> Sound.BRUTE_BELLOW;
                 case STRIKE, WALL_BLOW -> Sound.BRUTE_IMPACT;
                 case WALL_BREAK -> Sound.BRUTE_WALL_BREAK;
                 case CHARGE_TELL -> Sound.BRUTE_CHARGE_TELL;

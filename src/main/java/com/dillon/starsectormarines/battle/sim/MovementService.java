@@ -209,6 +209,11 @@ public final class MovementService {
                 entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_SPEED));
     }
 
+    /** Sets the body's own speed, cells/sec, before modifiers: a Matriarch stepping up a growth stage. */
+    public void setBaseMoveSpeed(long id, float v) {
+        entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_SPEED, v);
+    }
+
     private float groundMoveSpeed(long id) {
         float x = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X);
         float y = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y);

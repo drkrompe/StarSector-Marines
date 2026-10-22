@@ -7,7 +7,6 @@ import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.DistrictTheme;
-import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
@@ -156,9 +155,6 @@ public final class UrbanMapGenerator implements MapGenerator {
         paintCrosswalks(grid, topology);
 
         List<Doodad> doodads = scatterDoodads(grid, pois, poiThemes, rng);
-        for (int[] plaza : skyPortPlazas) {
-            doodads.add(new Doodad(plaza[0], plaza[1], TileManifest.lzPad(), true, Doodad.COVER_NONE));
-        }
 
         int[] marine   = pickSpawnAnchor(grid, skyPortPlazas, 1, 1, width / 2,        height - 1, rng);
         int[] defender = pickSpawnAnchor(grid, skyPortPlazas, width / 2, 1, width - 1, height - 1, rng);

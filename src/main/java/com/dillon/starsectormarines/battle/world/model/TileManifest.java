@@ -97,19 +97,6 @@ public final class TileManifest {
     }
 
     /**
-     * Landing-zone pad decal stamped under each shuttle's touchdown cell.
-     *
-     * <p>Placeholder: the current sheet has no dedicated LZ pad art, so we
-     * point at cell (16, 2) — labelled {@code grate-2} in the catalog. Visually
-     * it's a small grate, not a yellow-striped pad; the sky-port plaza still
-     * reads as deliberate because of the surrounding open ground, but the
-     * decal itself is off. Replace once a real LZ marker tile gets added.
-     */
-    public static TileFrame lzPad() {
-        return single("road.lz-marker", 16, 2);
-    }
-
-    /**
      * Top-left cell of the turret-wall 3×3 autotile block on {@link #ROAD_SHEET}.
      * Same shape as the urban-1 wall block at cols 3..5 rows 0..2 — directional
      * caps on the outside of each cell, transparent center — but the art reads

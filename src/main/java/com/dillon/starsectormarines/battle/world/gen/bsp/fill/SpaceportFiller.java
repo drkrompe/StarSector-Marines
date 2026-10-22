@@ -92,13 +92,11 @@ public final class SpaceportFiller implements BlockFiller {
         int[] padCenter = choosePadCenter(leaf, longX, approachLow);
         LandingPad pad = LandingPad.spaceport(padCenter[0], padCenter[1], approach);
 
-        // Tiny legacy leaves still read as marked aprons, but only publish a
-        // berth when the full 5x5 exclusion footprint fits.
+        // Tiny legacy leaves stay plain striped apron; only publish a berth
+        // when the full 5x5 exclusion footprint fits.
         if (leaf.width() >= PAD_MIN_SIDE && leaf.height() >= PAD_MIN_SIDE) {
             stampPadSurface(pad, ctx.topology);
             ctx.landingPads.add(pad);
-        } else {
-            ctx.topology.setGroundKind(pad.centerX, pad.centerY, GroundKind.LZ_MARKER);
         }
 
         int[] tower = null;
@@ -151,7 +149,6 @@ public final class SpaceportFiller implements BlockFiller {
                 topology.setGroundKind(x, y, perimeter ? GroundKind.BRICK : GroundKind.STRIPED);
             }
         }
-        topology.setGroundKind(pad.centerX, pad.centerY, GroundKind.LZ_MARKER);
     }
 
     /**

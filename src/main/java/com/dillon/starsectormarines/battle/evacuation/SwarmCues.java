@@ -31,7 +31,9 @@ public final class SwarmCues {
         CHARGE_TELL, CHARGE_RUN, CHARGE_HIT_BODY, CHARGE_HIT_VEHICLE, CHARGE_HIT_WALL, STUNNED,
         IMPALE, DRAG,
         /** A pack leader died and its pack broke: one scatter shriek for the pack, posted by the leader. */
-        PACK_BROKEN
+        PACK_BROKEN,
+        /** The Matriarch stepped up a growth stage: her plates split and darken, and she roars. */
+        MOULT
     }
 
     /** One act by a body of {@code strain} at {@code stage} at a world position; the stage pitches its voice. */

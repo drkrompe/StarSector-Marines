@@ -152,7 +152,6 @@ public final class LandingZoneScorer {
             case STREET:
             case COURTYARD:
             case STRIPED:
-            case LZ_MARKER:
             case SIDEWALK:
             case BRICK:
                 return true;
