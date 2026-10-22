@@ -1,21 +1,30 @@
 package com.dillon.starsectormarines;
 
 /**
- * Dev-build toggles. Edit constants here for local testing; flip back to
- * {@code false} before shipping or sharing a build with someone who's going
- * to playtest the intended experience.
+ * Dev-build toggles. Every player-reachable debug surface is gated on
+ * {@link #DEV_MODE}, which is off unless the JVM is started with
+ * {@code -Dmarines.dev=true} ({@code runStarsector} passes it; a player's
+ * install never does). The per-surface flags below are ANDed with it, so a
+ * release build needs no edits here.
  *
- * <p>Kept as plain {@code public static final} booleans so the JIT can
- * dead-code the disabled branches at runtime — no perf cost when off.
+ * <p>Kept as {@code public static final} booleans so the JIT can dead-code the
+ * disabled branches at runtime — no perf cost when off.
  */
 public final class DevConfig {
+
+    /**
+     * The single developer switch: the debug mission client, HQ debug button,
+     * battle DEBUG HUD and its hotkeys, campaign debug intel, debug pickers and
+     * the S0 combat probe exist only while it is on.
+     */
+    public static final boolean DEV_MODE = Boolean.getBoolean("marines.dev");
 
     /**
      * Exposes the retained UI workbench beside Back on Company HQ. The screen
      * is a host/layout/input proof, not a player-facing management surface.
      */
     @DebugOnly
-    public static final boolean DEBUG_UI_WORKBENCH = true;
+    public static final boolean DEBUG_UI_WORKBENCH = DEV_MODE && true;
 
     /**
      * When {@code > 0}: overrides {@link com.dillon.starsectormarines.ops.Mission#requiredDrops}
@@ -29,7 +38,7 @@ public final class DevConfig {
      * through a CONQUEST/FULL_STRENGTH 40-drop wave to test one thing.
      */
     @DebugOnly
-    public static final int DROP_COUNT_OVERRIDE = 0;
+    public static final int DROP_COUNT_OVERRIDE = DEV_MODE ? 0 : 0;
 
     /**
      * When {@code true}: show an "AIR DEBUG — force-spawn" panel at the top of the
@@ -46,7 +55,7 @@ public final class DevConfig {
      * fighters. {@code false} hides the panel entirely (no behavior change).
      */
     @DebugOnly
-    public static final boolean DEBUG_AIRCRAFT_PICKER = true;
+    public static final boolean DEBUG_AIRCRAFT_PICKER = DEV_MODE && true;
 
     /**
      * When {@code true}: debug-generated missions show a "WARSHIP DEBUG" group in
@@ -58,7 +67,7 @@ public final class DevConfig {
      * rounds fired. {@code false} hides all of it (no behavior change).
      */
     @DebugOnly
-    public static final boolean DEBUG_WARSHIP_PICKER = true;
+    public static final boolean DEBUG_WARSHIP_PICKER = DEV_MODE && true;
 
     /**
      * FBO pixel resolution per nav-grid cell for the decal accumulator.
@@ -107,7 +116,7 @@ public final class DevConfig {
      * in the data and the panel would just be eye candy.
      */
     @DebugOnly
-    public static final boolean PROFILE_TICK_PHASES = true;
+    public static final boolean PROFILE_TICK_PHASES = DEV_MODE && true;
 
     /**
      * When {@code true}: register the campaign-tier debug intel
@@ -118,7 +127,7 @@ public final class DevConfig {
      * either way.
      */
     @DebugOnly
-    public static final boolean CAMPAIGN_DEBUG_INTEL = true;
+    public static final boolean CAMPAIGN_DEBUG_INTEL = DEV_MODE && true;
 
     /**
      * When {@code true}: mission generators ignore campaign-tier gating
@@ -131,7 +140,7 @@ public final class DevConfig {
      * declaration so consumers can branch on it from day one.
      */
     @DebugOnly
-    public static final boolean BYPASS_HOUSE_GATING = false;
+    public static final boolean BYPASS_HOUSE_GATING = DEV_MODE && false;
 
     /**
      * When {@code true}: prepend a synthetic "DEBUG — All Missions" client to
@@ -146,7 +155,7 @@ public final class DevConfig {
      * is meant to exercise.
      */
     @DebugOnly
-    public static final boolean DEBUG_CLIENT = true;
+    public static final boolean DEBUG_CLIENT = DEV_MODE && true;
 
     /**
      * When {@code true}: DEBUG mission briefings expose a count + reroll picker
@@ -154,7 +163,7 @@ public final class DevConfig {
      * real Mech Support charges delivered by targetable Valkyrie sorties.
      */
     @DebugOnly
-    public static final boolean DEBUG_MECH_SUPPORT_PICKER = true;
+    public static final boolean DEBUG_MECH_SUPPORT_PICKER = DEV_MODE && true;
 
     /**
      * When {@code true}: every battle grants the recon-ping command power for
@@ -167,27 +176,27 @@ public final class DevConfig {
      * it ({@code Mission.employerPowerIds}). Flip off to feel the real gating.
      */
     @DebugOnly
-    public static final boolean ALWAYS_GRANT_RECON_PING = false;
+    public static final boolean ALWAYS_GRANT_RECON_PING = DEV_MODE && false;
 
     /** Expose Mech Support for battle iteration without requiring its fleet source. */
     @DebugOnly
-    public static final boolean DEBUG_GRANT_MECH_SUPPORT = false;
+    public static final boolean DEBUG_GRANT_MECH_SUPPORT = DEV_MODE && false;
 
     /** Expose Emergency Resupply without requiring a Tarsus or Atlas source. */
     @DebugOnly
-    public static final boolean DEBUG_GRANT_EMERGENCY_RESUPPLY = false;
+    public static final boolean DEBUG_GRANT_EMERGENCY_RESUPPLY = DEV_MODE && false;
 
     /** Expose Orbital Barrage without requiring an orbital-fire-capable ship. */
     @DebugOnly
-    public static final boolean DEBUG_GRANT_ORBITAL_BARRAGE = false;
+    public static final boolean DEBUG_GRANT_ORBITAL_BARRAGE = DEV_MODE && false;
 
     /** Expose Marine Drop without requiring a troop-transport source. */
     @DebugOnly
-    public static final boolean DEBUG_GRANT_MARINE_INSERTION = false;
+    public static final boolean DEBUG_GRANT_MARINE_INSERTION = DEV_MODE && false;
 
     /** Expose Close Air Support without requiring a committed Mudskipper. */
     @DebugOnly
-    public static final boolean DEBUG_GRANT_CLOSE_AIR_SUPPORT = false;
+    public static final boolean DEBUG_GRANT_CLOSE_AIR_SUPPORT = DEV_MODE && false;
 
     /**
      * When {@code true}: register the vanilla-combat-bridge <b>S0 battle-bootstrap
@@ -202,7 +211,7 @@ public final class DevConfig {
      * the {@code combathybrid} probe classes) for prod builds.
      */
     @DebugOnly
-    public static final boolean S0_COMBAT_PROBE = true;
+    public static final boolean S0_COMBAT_PROBE = DEV_MODE && true;
 
     /**
      * When {@code true}: the {@code RenderLayer#GROUND} pass renders into an
