@@ -802,6 +802,20 @@ population. The snapshot carries each bore that has opened: its tier, whether
 it lives, integrity, growth, biomass fed, surges, bodies released, next surge,
 its living spore colonies and the ticks it opened and collapsed.
 
+A battle with no rescue (`cordon-nouns.md`) runs the director **bore-only**:
+bore-sourced from the first tick over bores setup opened, with no perimeter
+and no rescue to end it. A mission may hold its field at a **pressure share**
+of the living bores' capacities; in the bore-only form due bores are then
+served fewest-surges first and a pulse is sized to the share, so the pressure
+lies across every bore rather than on whichever is listed first. A rescue's
+director is unchanged by either.
+
+The heart (`heart-nouns.md`) runs it bore-only too. A mission may hold a bore
+**asleep**: it grows and feeds but sends no surge until the mission wakes it
+with a surge due at once, and a sleeping bore adds nothing to the population
+target, so the bores awake never field bodies on its behalf. A woken surge
+still waits for room under the target, as any surge does.
+
 **Swarm strain.** A kind of swarm body with its own stats, appearance family and
 behaviour. A strain is a designed stage of the one organism (see *Origin*), not
 another animal: every strain is the Runner's body plan and chitin specialised
@@ -1323,6 +1337,15 @@ large map.
   few cells away moves down its goal's field; within that range it runs its own
   short path to the one victim it has chosen. Every strain moves through the
   same call, so a change to how the swarm travels reaches all of them at once.
+- **A body's own path is a bounded search.** Close in, a body never pays for a
+  whole-map answer: its path is a crowd-aware search capped at about the work of
+  the box round it, and a victim that search cannot reach is not close, so the
+  body goes back to the field, which goes round to it. A farther cell (a pack
+  member's place round a quarry) gets a larger cap, and a miss there too falls
+  back to the field wherever there is one; only a move with no field behind it
+  (a far dead to fetch, a breach approach) still pays for the whole map. Melee is where every body re-paths to a victim that moves
+  every tick; uncapped, that was whole-map searches by the dozen once a large
+  swarm made contact. `-Dbattle.swarm.localPathBudget=false` is the control.
 - **A field belongs to the battle's navigation grid.** It is derived from that
   grid's walls and retired by its topology changing, so two battles in one
   process can never read each other's fields (the `LosCache` lesson). It is

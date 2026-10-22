@@ -1,8 +1,10 @@
 # The Heart — Nouns
 
-Status: DRAFT
+Status: ACTIVE
 
 Written: 2026-10-22
+
+Updated: 2026-10-22 — the owner's flow picks settled; the battle as built (sleeping mothers, wake rules, beats).
 
 The heart is the third and last movement of the Rav Bloom arc
 (`bloom-mission-arc.md`, Mission 3): months into a bloom the world's military
@@ -165,22 +167,23 @@ collapses a bore by fiat.
 
 ### Broad Front
 
-1. **Step-off.** The company lands in the cordon's farmland at the middle of
-   the start edge. Four allied columns stand on the start line, one at the foot
-   of each lane. At the opening the allied commander sends them up their lanes
-   together; the company's own lane is the country road. Beat `step_off`.
-2. **Advance to contact.** Each lane advances on the satellite in front of it.
-   The bores' surges hunt whatever they sense, so contact comes lane by lane as
-   each column enters a bore's reach. Beats `contact_lane_N` (the company's lane
-   is `contact_company`).
-3. **The swarm counterattacks.** The heart answers the push (open choice:
-   what wakes it, below) with every living mother surging at once, packs
-   streaming down the field toward the lanes. Beat `heart_surge`.
+1. **Step-off.** The company comes down by shuttle in the cordon's farmland at
+   the middle of the start edge (`landfall`). Four allied columns stand on the
+   start line, one at the foot of each lane, and go up their lanes together;
+   the company's own lane is the country road.
+2. **Advance to contact.** The satellites surge on their own clocks from the
+   start and hunt whatever they sense, so contact comes lane by lane. The
+   mothers **sleep**: they grow, but send nothing.
+3. **The heart wakes.** The first satellite to fall wakes the heart: every
+   living mother surges at once, packs streaming down the field toward the
+   lanes (`heart_surge`; owner's pick, 2026-10-22). From then on the mothers
+   surge on their own clocks.
 4. **The bores fall in turn.** Lanes take their satellites, then converge on
    the heart. A mother at maw puts out her Matriarch the first time she
-   releases there, elder from the start. Beats `bore_collapsed_N`,
-   `matriarch_emerged_mother-N`, `mother_collapsed_N` (what a mother's fall
-   does to the others is an open choice, below).
+   releases there, elder from the start. **A mother's fall makes every
+   surviving mother surge at once** (owner's pick): the heart fights harder as
+   it dies. Beats `bore_collapsed_N`, `matriarch_emerged_mother-N`,
+   `mother_collapsed_N`.
 5. **Heart down.** The last mother collapses: `heart_down`, the win. Allied
    lanes broken are a cost on the outcome, never a loss.
 
@@ -194,9 +197,10 @@ general allied column once the Cordon has built it).
 1. **The briefing's timetable.** The barrage plan is shown and frozen: its
    lines, when each opens and lifts, and the last line short of the heart. The
    wind blows from the start edge toward the heart for the whole battle.
-2. **Lighting the line.** The forest is set alight along the near ride (open
-   choice: who lights it, below), and the fire runs before the wind into the
-   overgrowth. Beat `line_lit`.
+2. **Lighting the line.** The barrage's opening shoot is incendiary and sets
+   the forest alight along the near ride; the company relights the line past
+   every firebreak it reaches (owner's pick: both). The fire runs before the
+   wind into the overgrowth. Beat `line_lit`.
 3. **The barrage walks.** Each line opens with a warning, fires for its
    seconds and lifts on time whatever the company does. Infantry close behind
    it arrive as it lifts and meet a swarm the shells have stunned and thinned;
@@ -210,8 +214,12 @@ general allied column once the Cordon has built it).
    past each with its incendiaries.
 5. **Breakout.** The swarm breaks out through the fire: bodies come through the
    gaps the fire leaves (fords, burnt ground, roads, a ride the creep had
-   covered), and satellites caught by the fire or the barrage surge (open
-   choice: whether the burn provokes them, below). Beat `breakout_N`.
+   covered). **A bore the fire, the guns or the company hurts surges at once**,
+   at most every twelve seconds however long it burns, and a mother hurt so
+   wakes (owner's pick): the breakouts come where the guns have just been, in
+   front of the company. The mothers otherwise sleep as on Broad Front, and a
+   mother's fall makes the survivors surge on The Burn too. Beat
+   `breakout_<bore>` (observer-only, recurring).
 6. **The last line.** The barrage stops at its last line, short of the heart:
    `barrage_ended`. The last stretch is the company's: the mothers are
    collapsed by satchels, heavy weapons and machines, as any bore is.
@@ -221,19 +229,18 @@ general allied column once the Cordon has built it).
 ## Beats
 
 Keyed `heart.<key>`, published by the battle's one story sequence; presentation
-and evidence, never inputs to the simulation. Both variants publish `start`,
+and evidence, never inputs to the simulation. Both variants publish `start`, `landfall`,
 `bore_collapsed_N` (a satellite), `matriarch_emerged_mother-N`,
 `mother_collapsed_N`, `heart_down` and `company_broken`.
 
 | Key | Variant | When |
 | --- | --- | --- |
-| `step_off` | Broad Front | the columns and the company advance |
-| `contact_lane_N`, `contact_company` | Broad Front | a lane first takes swarm fire, once |
-| `heart_surge` | Broad Front | the mothers' answer to the push |
-| `lane_broken_N` | Broad Front | a column below a third of its strength |
+| `landfall` | both | the first Marine is on the ground |
+| `heart_surge` | Broad Front | the first satellite falls and the mothers wake |
+| `contact_lane_N`, `lane_broken_N` | Broad Front | a lane first takes swarm fire; a column below a third of its strength (`heart-allied-lanes.md`) |
 | `line_lit` | The Burn | the fire line takes |
 | `barrage_line_N`, `barrage_lifted_N` | The Burn | a line opens (after its warning); it lifts |
-| `breakout_N` | The Burn | a surge comes through the fire line |
+| `breakout_<bore>` | The Burn | a hurt bore surges (observer-only, recurring) |
 | `barrage_ended` | The Burn | the last line lifts; the guns are done |
 
 ## Laws
@@ -260,19 +267,23 @@ and evidence, never inputs to the simulation. Both variants publish `start`,
   loss; the company alone wins or loses it (`ai-nouns.md`, Sides).
 - **Deterministic.** Same seed, same heart: country, sites, growth, timetable.
 
-## Open choices
+## The company's command
 
-Sent to the owner as labelled pictures (`heart-flow-options`):
+The company plays the heart as Purge under its own commander
+(`HeartAssaultCommand`): it goes in together on one bore at a time, first the
+satellites standing in its lane, then the nearest living mother, opening each as
+the thing to breach. Its lane is the band of ground either side of the line it
+advances along from its landing: about a seventh of the map's width either side
+on Broad Front, so the other lanes' satellites are the allies' work, and the
+whole approach on The Burn. The director needs no civilians to cover here: it
+spawns only out of the heart's bores from the first tick, and nothing closes it
+but their collapse.
 
-- **What wakes the heart** (Broad Front): the first satellite collapsing, a
-  lane crossing into the heart's ground, or timed waves.
-- **What a mother's fall does** (Broad Front): nothing more, the survivors
-  surge at once, or the survivors' Matriarchs come out at once.
-- **Who lights the line** (The Burn): the barrage's opening shoot is
-  incendiary, the company lights it along the near ride, or both.
-- **Whether the burn provokes** (The Burn): bores surge on their own clocks and
-  break out through the gaps, or a bore the fire or the shells reach surges at
-  once.
+## Settled choices
+
+The owner's picks (2026-10-22, `heart-flow-options`): a satellite's fall wakes
+the heart; a mother's fall makes the survivors surge; the barrage and the
+company both light The Burn's line; a hurt bore surges.
 
 ## Boundaries
 

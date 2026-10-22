@@ -59,8 +59,8 @@ sys.path.insert(0, str(PROLOGUE))
 sys.path.insert(0, str(ART))
 import roster
 from motion import boarding_run, fleet_at   # ships move about their stations: seeded weave, bank and breathing spacing  # noqa: E402
-from motion import (Pose, camera, carried, drift, follow, held, keyed, mass_class, recoil, riding, station,  # noqa: E402
-                    struck)
+from motion import (A_FULL, Pose, camera, carried, drift, follow, held, keyed, mass_class, recoil, riding,  # noqa: E402
+                    station, struck)
 
 # One folder per finished build (roster.FINISHED's dir), copied whole from Drive.
 BUILDS = Path(os.environ.get('ASHARU_BUILDS') or REPO / 'build' / 'asharu-battle' / 'builds')
@@ -214,16 +214,21 @@ JINK = {'frigate': (6.0, 28.0), 'destroyer': (3.5, 14.0), 'cruiser': (1.5, 6.0),
 
 
 def fly(key, pose, t, keys=(), v=None, **kw):
-    """A ship flown through attitude keys (motion.keyed) at her class's closing speed unless v says."""
+    """A ship flown through attitude keys (motion.keyed) at her class's closing speed unless v says.
+    Her drives burn with the acceleration the motion implies (motion.A_FULL); thrust=None keeps the
+    keyed throttle instead (a ship whose drives are out, or one holding a burn the story sets)."""
     c = mass_class(key)
     kw.setdefault('wobble', WOBBLE[c])
+    kw.setdefault('thrust', A_FULL[c])
     return keyed(key, pose, t, keys, v=SPEED[c] if v is None else v, **kw)
 
 
 def jinking(key, pose, t, t0, t1, v=None, amp=1.0, **kw):
     """A ship on her run, jinking: seeded heading and roll keys about her pose every 2 s from t0 to
     t1 (none within a second of the key time), as hard as her class throws itself about."""
-    dh, dr = JINK[mass_class(key)]
+    c = mass_class(key)
+    dh, dr = JINK[c]
+    v = SPEED[c] if v is None else v
     h = zlib.crc32(key.encode())
     keys, n = [], 0
     tt = t0
@@ -235,7 +240,22 @@ def jinking(key, pose, t, t0, t1, v=None, amp=1.0, **kw):
                              pt=pose[4] + dh * .4 * amp * r))
         tt += 2.0
         n += 1
+    # still gaining on the column: speed builds through the shot, so the drives burn
+    keys[0]['v'], keys[-1]['v'] = v * .8, v * 1.15
     return fly(key, pose, t, keys, v=v, **kw)
+
+
+# The convoy's escorts work up and down the column (m/s, relative to it): the lead moving up, the
+# rear ones dropping back, so the column reads as a moving formation rather than a parked one.
+ESCORT_DRIFT = {'lasher-lead': (18, 3, 0), 'wolf-m': (-12, 0, 2), 'lasher-a': (10, -4, 0), 'lasher-b': (-15, 3, 0),
+                'hound-m': (-8, -2, 1)}
+
+
+def convoy_at(t):
+    """The convoy at t: freighters weaving on station, escorts working along the column."""
+    out = fleet_at({k: v for k, v in CONVOY.items() if k not in ESCORT_DRIFT}, t)
+    out.update({k: station(k, CONVOY[k], t, vel=ESCORT_DRIFT[k]) for k in ESCORT_DRIFT})
+    return out
 
 
 def track(pose, point, share=1.0, lag=0.0):
@@ -290,11 +310,11 @@ K3_SHIPS = {
         hits=recoil([55.0], every=.25, until=57.5) + [dict(t=56.0, push=(0, -6, 4), spin=(35, 8, -12), decay=1.2, thr=.55)]),
     'lasher-a': fly('lasher-a', (-150, 560, 160, 10, 6, 40, .2), K3_T, [
         dict(t=50, hd=2, pt=1, rl=3, v=0, thr=.6), dict(t=52.5, hd=4, pt=2, rl=8, thr=.6),
-        dict(t=58, hd=13, pt=8, rl=55, v=-40)], v=-25,
+        dict(t=58, hd=13, pt=8, rl=55, v=-40)], v=-25, thrust=None,
         hits=[dict(t=52.6, push=(0, 6, 4), spin=(12, 2, 3), decay=2.0, thr=.2)]),
     'phaeton': fly('phaeton', (-350, 300, 20, 8, -4, 30, 0), K3_T, [
         dict(t=50, hd=0, pt=0, rl=2, v=0, thr=.5), dict(t=53.9, hd=.5, pt=0, rl=3, thr=.5),
-        dict(t=58, hd=11, pt=-6, rl=38, v=-22)], v=-15,
+        dict(t=58, hd=11, pt=-6, rl=38, v=-22)], v=-15, thrust=None,
         hits=[dict(t=54.0, push=(-4, 3, 2), spin=(3, 0, 1), decay=3.0, thr=0.0)]),
     # steadied on her gun run at the Wolf (P), then starting the turn back that S6b finishes
     'lasher-b': fly('lasher-b', CONVOY['lasher-b'], K3_T, [dict(t=50, v=0), dict(t=58, hd=-20, rl=40, v=90)], v=0,
@@ -367,7 +387,7 @@ K3E_SHIPS = {
 # S7: the Tarsus adrift, rolling slowly; the Kites (P) hold alongside; the boats come over and the one
 # on her deck rides with her; a Wolf (P) makes a covering pass; the convoy draws away ahead
 K3B_TARSUS_FLOWN = fly('tarsus', K3B_TARSUS, K3B_T, [
-    dict(t=80, hd=4.5, pt=-1.5, rl=6), dict(t=88, hd=6.8, pt=-2.3, rl=11)], v=0.0, wobble=1.0)
+    dict(t=80, hd=4.5, pt=-1.5, rl=6), dict(t=88, hd=6.8, pt=-2.3, rl=11)], v=0.0, wobble=1.0, thrust=None)
 K3B_SHIPS = {
     'tarsus': K3B_TARSUS_FLOWN,
     'kite-p-a': held('kite-p-a', K3B_KITE_A, K3B_T, wobble=1.5),
@@ -379,7 +399,7 @@ K3B_SHIPS = {
     'wolf-p-b': fly('wolf-p-b', (-420, 330, 120, -20, -32, 110, 1), K3B_T, [
         dict(t=80, hd=40, pt=-8, rl=40, v=200), dict(t=84, hd=5, pt=-25, rl=95), dict(t=88, hd=-60, pt=-20, rl=70)],
         hits=recoil([84.5], every=.25, until=87.0)),
-    **{k: station(k, v, K3B_T, vel=(30.0, 0.0, 0.0)) for k, v in (
+    **{k: station(k, v, K3B_T, vel=(45.0, 0.0, 0.0)) for k, v in (
         ('colossus', (1200, -80, 40, 0, 0, 2, .9)), ('morrow', (1150, -250, 0, 0, 1, -3, .9)),
         ('mule', (1900, 260, 20, 0, 0, -2, .9)), ('buffalo-a', (1600, -350, 80, 0, 1, 4, .9)))},
 }
@@ -389,7 +409,7 @@ K3B_SHIPS = {
 K4_T = 95
 K4_COLOSSUS_FLOWN = fly('colossus', K4_COLOSSUS, K4_T, [
     dict(t=88, hd=.5, pt=-1, rl=2, thr=.5), dict(t=90.2, hd=.4, pt=-1.3, rl=2.5, thr=.5),
-    dict(t=102, hd=-2.5, pt=-6, rl=11)], v=0.0, wobble=.5,
+    dict(t=102, hd=-2.5, pt=-6, rl=11)], v=0.0, wobble=.5, thrust=None,
     hits=[dict(t=90.3, push=(0, -1.5, -.5), spin=(.8, -.3, -.3), decay=3.0, thr=.2)])
 K4_MORROW_FLOWN = carried(held('morrow', K4_MORROW, K4_T, wobble=.8), K4_COLOSSUS_FLOWN)
 K4_SHIPS = {
@@ -434,12 +454,12 @@ K5_C3 = fly('colossus3', C3_PRIZE, K5_T, [
     dict(t=110, hd=25, pt=-3, rl=-4, v=18), dict(t=118, hd=36, pt=-5, rl=-8, v=20)], v=18, wobble=.8)
 K5_SHIPS = {
     'falcon-p': fly('falcon-p', (-560, 120, 120, 25, -6, 8, .8), K5_T, [
-        dict(t=110, hd=22, rl=5), dict(t=118, hd=30, rl=12)], v=60),
+        dict(t=110, hd=22, rl=5), dict(t=118, hd=30, rl=12)], v=60, thrust=None),
     'colossus3': K5_C3, 'tarsus': riding(K5_C3, CLAMP_TARSUS_M, thr=0), 'kite-p-a': riding(K5_C3, (10, 66, -40), thr=0),
     'colossus': fly('colossus', (480, -30, -780, 5, -26, 14, .15), K5_T, [
-        dict(t=110, hd=4, pt=-24, rl=11), dict(t=118, hd=6, pt=-28, rl=17)], v=45, wobble=1.0),
+        dict(t=110, hd=4, pt=-24, rl=11), dict(t=118, hd=6, pt=-28, rl=17)], v=45, wobble=1.0, thrust=None),
     'morrow': fly('morrow', (500, -175, -830, 0, -22, 8, 1), K5_T, [
-        dict(t=110, hd=-1, pt=-21, rl=6), dict(t=118, hd=1, pt=-23, rl=10)], v=45, wobble=1.0),
+        dict(t=110, hd=-1, pt=-21, rl=6), dict(t=118, hd=1, pt=-23, rl=10)], v=45, wobble=1.0, thrust=None),
 }
 
 KEYFRAMES = {
@@ -452,17 +472,19 @@ KEYFRAMES = {
                              dict(t=12, loc=(60, 180, 10200), target=(200, 100, 0), lens=100),
                              dict(t=14.5, loc=(-1000, 1900, 4200), target=(250, 0, -100), lens=55),
                              dict(t=16, loc=(-1900, 2700, 1500), target=(300, -80, -150), lens=35)], 10),
-        ships=fleet_at(CONVOY, 10),
+        ships=convoy_at(10),
         labels=['colossus', 'morrow', 'tarsus', 'mule', 'phaeton', 'buffalo-a', 'lasher-a']),
     'k1': dict(
         shot='S1', title='Low orbit over Asharu',
         caption='A working convoy in loose column over the day side, slowing for its descent window: the Colossus '
                 'with Morrow alongside, a Tarsus, a Mule, a Phaeton tanker, Buffalos and a Dram, escorted by '
                 'three Lashers, a Wolf and a Hound.',
-        # travelling with the column
+        # DOLLY + ZOOM OUT: the camera drops back along the column as it overtakes the lens, then widens
+        # to put the convoy against the limb
         camera=camera('k1', [dict(t=16, loc=(-1900, 2700, 1500), target=(300, -80, -150), lens=35),
-                             dict(t=24, loc=(-1350, 2350, 1250), target=(450, -60, -140), lens=33)], 16),
-        ships=fleet_at(CONVOY, 16),
+                             dict(t=20, loc=(-2300, 2600, 1450), target=(380, -70, -145), lens=30),
+                             dict(t=24, loc=(-2800, 2450, 1400), target=(450, -60, -140), lens=22)], 16),
+        ships=convoy_at(16),
         labels=['colossus', 'morrow', 'tarsus', 'mule', 'phaeton', 'buffalo-a', 'buffalo-b', 'dram',
                 'lasher-lead', 'lasher-a', 'lasher-b', 'wolf-m', 'hound-m']),
     'k1b': dict(
@@ -470,10 +492,12 @@ KEYFRAMES = {
         caption='Long lens from the convoy\'s tail, back down at the derelict platform it has just passed: dark, '
                 'stripped, hulks in its bays. Then one of the hulks shows a light: the Falcon (P)\'s drives coming '
                 'up. Eleven more lie cold beside her.',
-        # a slow creep in on the platform, then onto the Falcon (P) as her drives light
-        camera=camera('k1b', [dict(t=30, loc=(-1600, -120, 90), target=PLATFORM, lens=120),
+        # ZOOM, then CRASH ZOOM: a long lens finding the platform, holding until it reads as junk, then
+        # snapping in on the Falcon (P) as her drives light; handheld at the long end
+        camera=camera('k1b', [dict(t=30, loc=(-1560, -150, 85), target=PLATFORM, lens=90),
                               dict(t=34, loc=(-1600, -120, 90), target=PLATFORM, lens=135),
-                              dict(t=38, loc=(-1600, -120, 90), target=(-9620, 1290, -4300), lens=165)], K1B_T, shake=.02),
+                              dict(t=36.4, loc=(-1610, -110, 92), target=(-9650, 1300, -4300), lens=165),
+                              dict(t=38, loc=(-1630, -95, 96), target=(-9640, 1305, -4295), lens=300)], K1B_T, shake=.05),
         ships=K1B_SHIPS,
         platform=PLATFORM,
         labels=['platform', 'falcon-p', 'colossus3', 'manticore-p']),
@@ -481,10 +505,13 @@ KEYFRAMES = {
         shot='S4', title='First contact',
         caption='Behind and below: drives light up in the derelict Asharu platform the convoy has just passed. '
                 'Twelve pirate hulls climb out of it toward the column.',
-        # panning with the pack as it climbs past, the camera travelling a little with it
+        # CRASH ZOOM: wide on the climbing pack, the lens finding the Falcon (P) and snapping in on her,
+        # panning with the pack as it climbs past
         camera=camera('k2', [dict(t=t, loc=track(K2_PIRATES['falcon-p'], (-4800, -2600, -1700), .3),
-                                  target=track(K2_PIRATES['falcon-p'], (-6500, 200, -3100), .75), lens=lens)
-                             for t, lens in ((38, 32), (40, 35), (44, 40))], K2_T, shake=.05),
+                                  target=track(K2_PIRATES['falcon-p'], aim, 1.0), lens=lens)
+                             for t, lens, aim in ((38, 24, (-6500, 200, -3100)), (40, 35, (-6500, 200, -3100)),
+                                                  (41.2, 40, (-6500, 200, -3100)), (42.2, 95, K2_PIRATES['falcon-p'][:3]),
+                                                  (44, 110, K2_PIRATES['falcon-p'][:3]))], K2_T, shake=.1),
         ships={**fleet_at({k: CONVOY[k] for k in ('hound-m', 'tarsus')}, K2_T), **K2_PIRATES},
         platform=PLATFORM,
         labels=['falcon-p', 'colossus3', 'manticore-p', 'wolf-p-a', 'kite-p-a', 'hound-p-b', 'platform']),
@@ -493,10 +520,14 @@ KEYFRAMES = {
         caption='Looking aft along the convoy. Manticore (P) and Falcon (P) open from 3-4 km astern. The Phaeton '
                 'tanker goes up, Lasher A is burning, and the lead Lasher turns back into the fire and is hit. '
                 'The freighters keep running.',
-        # aboard a ship under fire: pushing in as the lead Lasher turns back
-        camera=camera('k3', [dict(t=50, loc=(960, 700, 230), target=(-1250, -480, -300), lens=33),
+        # ZOOM OUT along the salvo: long on the Manticore (P) as she fires, widening as her missiles come in
+        # on the Phaeton, then the key framing and a handheld push, jolted by the hits
+        camera=camera('k3', [dict(t=50, loc=(960, 700, 230), target=track(K3_SHIPS['manticore-p'], (-2500, -1000, -480)), lens=85),
+                             dict(t=52.4, loc=(930, 690, 225), target=track(K3_SHIPS['manticore-p'], (-2500, -1000, -480)), lens=85),
+                             dict(t=54.2, loc=(900, 670, 215), target=(-450, 200, 0), lens=50),
                              dict(t=56, loc=(860, 640, 200), target=(-1300, -420, -280), lens=35),
-                             dict(t=58, loc=(830, 620, 190), target=(-1330, -400, -270), lens=36)], K3_T, shake=.15),
+                             dict(t=58, loc=(790, 600, 180), target=(-1330, -400, -270), lens=32)], K3_T, shake=.15,
+                     kicks=[(54.0, .5), (56.0, .7)]),
         states={'phaeton': 'phaeton-wreck'},
         knobs={'phaeton': {'break_frame': {'ago_s': 2.0}}},     # 2 s into the cook-off: tank 1 has just gone
         ships={**fleet_at({k: v for k, v in CONVOY.items() if k not in ('lasher-lead', 'lasher-a', 'phaeton', 'wolf-m',
@@ -514,10 +545,10 @@ KEYFRAMES = {
         shot='S6b', title='The escorts answer',
         caption='Lasher B and the merchant Wolf turn back and roll over onto the climbing raiders, firing down. '
                 'A Hound (P) takes the full Ammo Feeder burst on her bare armour and breaks up: the convoy draws blood.',
-        # chasing Lasher B over her roll, looking down past her at the Hound (P)
+        # CHASE: behind Lasher B over her roll, looking down past her; jolted as the Hound (P) breaks up
         camera=camera('k3c', [dict(t=t, loc=track(K3C_SHIPS['lasher-b'], (-900, 700, 150), .9, .2),
                                    target=track(K3C_SHIPS['lasher-b'], (-1600, 300, -350), .8, .1), lens=lens)
-                              for t, lens in ((58, 45), (62, 50), (66, 55))], K3C_T, shake=.3),
+                              for t, lens in ((58, 40), (62, 50), (66, 60))], K3C_T, shake=.3, kicks=[(62.0, .6)]),
         ships=K3C_SHIPS,
         fx=[('tracer', 'lasher-b', 'hound-p-c'), ('tracer', 'wolf-m', 'hound-p-c'),
             ('tracer', 'buffalo2-a', 'lasher-b'),
@@ -528,10 +559,11 @@ KEYFRAMES = {
         caption='Alongside the column at 300 m. The two Wolves (P) blink through the gap between the freighters, '
                 'raking the Tarsus\'s drives as they pass. The Mule\'s guns and the merchant Wolf chase them; '
                 'shields flare on both sides.',
-        # tracking aft along the column, panning onto the Tarsus as the Wolves (P) reach her
-        camera=camera('k3d', [dict(t=66, loc=(-80, -790, 100), target=(-40, 0, 0), lens=28),
+        # TRACKING DOLLY: dropping back along the column at 70 m/s, the Wolves (P) passing the lens
+        camera=camera('k3d', [dict(t=66, loc=(120, -800, 105), target=(60, 0, 0), lens=28),
                               dict(t=72, loc=(-250, -760, 90), target=(-200, 20, -10), lens=28),
-                              dict(t=74, loc=(-310, -750, 85), target=(-260, 40, -10), lens=28)], K3D_T, shake=.2),
+                              dict(t=74, loc=(-420, -740, 80), target=(-330, 40, -10), lens=26)], K3D_T, shake=.2,
+                      kicks=[(72.3, .3)]),
         ships=K3D_SHIPS,
         # shields flare on both sides: the raiders' fronts under the Mule's and the Wolf's fire
         shields={'wolf-p-b': dict(toward='mule', flux=.6), 'wolf-p-a': dict(toward='wolf-m', flux=.45),
@@ -544,10 +576,10 @@ KEYFRAMES = {
         shot='S6d', title='The rear guard',
         caption='The convoy\'s Hound turns to face two Hounds (P) climbing at her. She kills the first at close range '
                 'and takes the second\'s fire full on, flares going out as she falls back on the column.',
-        # handheld, close behind the Hound, riding her roll-over
+        # HANDHELD CHASE: close behind the Hound, riding her roll-over, jolted by her kill and her hit
         camera=camera('k3e', [dict(t=t, loc=track(K3E_SHIPS['hound-m'], (-1450, 120, 160), .95, .15),
                                    target=track(K3E_SHIPS['hound-m'], (-1650, -180, 20), .8, .05), lens=lens)
-                              for t, lens in ((74, 32), (77, 35), (80, 38))], K3E_T, shake=.45),
+                              for t, lens in ((74, 30), (77, 35), (80, 40))], K3E_T, shake=.45, kicks=[(77.0, .7), (77.4, 1.0)]),
         ships=K3E_SHIPS,
         fx=[('tracer', 'hound-m', 'hound-p-a'), ('tracer', 'hound-p-b', 'hound-m'),
             ('blast_on', 'hound-p-a', 14, (0, 0, 0)), ('debris', 'hound-p-a', 40, (0, 0, 0)),
@@ -559,10 +591,10 @@ KEYFRAMES = {
         caption='The Tarsus has fallen out of the column with her drives shot out. Kites (P) lie alongside and '
                 'their boats bring the boarders over: one down on her deck, one braking in over her stern, one '
                 'just out from under its Kite. A Wolf (P) covers them. The rest of the convoy runs on ahead.',
-        # easing in behind her
-        camera=camera('k3b', [dict(t=80, loc=(-1420, 430, 195), target=(380, -40, -60), lens=32),
+        # PUSH-IN + ZOOM onto the boats: from wide behind the Tarsus in to her deck as they set down
+        camera=camera('k3b', [dict(t=80, loc=(-1500, 450, 210), target=(380, -40, -60), lens=28),
                               dict(t=86, loc=(-1250, 380, 170), target=(400, -40, -60), lens=35),
-                              dict(t=88, loc=(-1180, 360, 160), target=(400, -40, -60), lens=38)], K3B_T, shake=.08),
+                              dict(t=88, loc=(-1150, 350, 150), target=(-480, 50, 10), lens=55)], K3B_T, shake=.08),
         states={'tarsus': 'tarsus-boarded'},
         knobs={'hermes-p-a': {'gear_up': 0.0, 'door_port': 1.0, 'door_starboard': 1.0},    # down, boarders out
                'hermes-p-b': {'gear_up': 0.5}, 'hermes-p-c': {'gear_up': 1.0}},
@@ -577,11 +609,12 @@ KEYFRAMES = {
                 'but she fights: flares out, both turrets firing, a Kite (P) driven off. Morrow is under her keel '
                 'with her drives lit, holding her up, and her Borers are already out: two cut the burning pod '
                 'free with their mining lasers while a third lifts out of the bay to join them.',
-        # S8 close on the shot-out pod, pulling back to S9's wide as the Mk.III comes down
+        # PULL BACK + ZOOM OUT: close on the shot-out pod, back to the wide, then wider for the Mk.III's scale
         camera=camera('k4', [dict(t=88, loc=(-190, 150, 30), target=(-62, 30, 0), lens=50),
                              dict(t=91, loc=(-260, 260, 60), target=(-50, 28, 6), lens=40),
                              dict(t=95, loc=(-420, 470, 120), target=(-40, 20, 20), lens=28),
-                             dict(t=102, loc=(-440, 500, 135), target=(-30, 15, 25), lens=28)], K4_T, shake=.12),
+                             dict(t=102, loc=(-480, 540, 160), target=(-30, 15, 40), lens=20)], K4_T, shake=.12,
+                     kicks=[(90.3, .7), (95.3, .3)]),
         knobs={'colossus3': {'grapples': 0.5},
                'borer-a': {'beam_t_ws001': 1.0, 'beam_len_ws001': 30.0},      # 7.5 m to the pod's skin
                'borer-b': {'beam_t_ws001': 1.0, 'beam_len_ws001': 34.0}},
@@ -597,10 +630,11 @@ KEYFRAMES = {
         caption='Smoking from S6, the lead Lasher makes one more run over the Falcon (P), rolled onto her back. '
                 'She presses the flagship\'s shield into overload and walks her guns down the open flank. The '
                 'Falcon is hit hard, and her broadside answers.',
-        # handheld, travelling with the Lasher down her run
-        camera=camera('k4b', [dict(t=t, loc=track(K4B_LEAD, (-560, 900, -60), .35, .3),
-                                   target=track(K4B_LEAD, (-620, 280, -130), .45), lens=lens)
-                              for t, lens in ((102, 26), (105, 28), (110, 30))], K4B_T, shake=.35),
+        # PASS-BY: the camera drifts while the Lasher dives past the lens and away, panning after her
+        camera=camera('k4b', [dict(t=102, loc=(-500, 880, -40), target=track(K4B_LEAD, (-620, 280, -130), .9), lens=26),
+                              dict(t=105, loc=(-560, 900, -60), target=track(K4B_LEAD, (-620, 280, -130), .9), lens=28),
+                              dict(t=110, loc=(-640, 930, -90), target=track(K4B_LEAD, (-620, 280, -130), .9), lens=24)],
+                      K4B_T, shake=.35, kicks=[(105.0, .5), (107.2, .9)]),
         ships=K4B_SHIPS,
         # her front shield at full flux, torn by the Lasher's guns a moment ago: the flank is open
         shields={'falcon-p': dict(toward='lasher-lead', flux=1.0, overload_s=.4, up_s=6.0)},
@@ -613,10 +647,10 @@ KEYFRAMES = {
         caption='The pirates have their prize: the captured Tarsus is clamped to the Colossus Mk.III, with a Kite (P) '
                 'still docked. Far below, the Colossus has lost her orbit, nose down, with Morrow still at her side. '
                 'A burning freighter heading into the atmosphere is not worth chasing.',
-        # craning down after the Colossus as she falls away
-        camera=camera('k5', [dict(t=110, loc=(-960, 400, 460), target=(400, -50, -520), lens=33),
+        # ZOOM OUT to scale: long on the clamped prize, widening and tilting down to the Colossus falling away
+        camera=camera('k5', [dict(t=110, loc=(-960, 400, 460), target=(-160, 330, 40), lens=85),
                              dict(t=114, loc=(-900, 380, 420), target=(420, -60, -560), lens=35),
-                             dict(t=118, loc=(-840, 360, 390), target=(440, -70, -610), lens=38)], K5_T, shake=.06),
+                             dict(t=118, loc=(-840, 360, 390), target=(440, -70, -610), lens=24)], K5_T, shake=.06),
         states={'tarsus': 'tarsus-boarded'},
         knobs={'colossus3': {'grapples': 1.0}},
         ships=K5_SHIPS,

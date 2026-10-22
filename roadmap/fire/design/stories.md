@@ -7,7 +7,7 @@ Written: 2026-10-22
 `fire-nouns.md` is the canonical model. Read it in full before any of these
 stories. The fire field, its spread, the creep's refusal, fire damage and route
 cost, smoke that cuts sight, the look, ignition by incendiaries, dry-country shells and wrecks, and
-the swarm's and the marines' fear of fire, fire light at night, and the `fire-line`, `fire-harm`, `fire-fear`, `fire-ignition`, `fire-scale` and `fire-smoke` scenes have
+the swarm's and the marines' fear of fire, fire light at night, buildings that burn by material, and the `fire-line`, `fire-harm`, `fire-fear`, `fire-buildings`, `fire-ignition`, `fire-scale` and `fire-smoke` scenes have
 landed (`shipped.md`).
 
 | Story | State and dependency |

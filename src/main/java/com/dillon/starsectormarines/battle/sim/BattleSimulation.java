@@ -120,6 +120,8 @@ import com.dillon.starsectormarines.battle.air.AirLoss;
 import com.dillon.starsectormarines.battle.air.BoatDamageLedger;
 import com.dillon.starsectormarines.battle.air.AirOrdnance;
 import com.dillon.starsectormarines.battle.air.HullTarget;
+import com.dillon.starsectormarines.battle.evacuation.HeartSequence;
+import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.evacuation.SurvivorPickupSystem;
 import com.dillon.starsectormarines.battle.air.AirStrikeSystem;
 import com.dillon.starsectormarines.battle.air.BoatSortieSystem;
@@ -270,6 +272,9 @@ import com.dillon.starsectormarines.battle.fire.FireHarm;
 import com.dillon.starsectormarines.battle.fire.FireIgnition;
 import com.dillon.starsectormarines.battle.fire.FireRouteCost;
 import com.dillon.starsectormarines.battle.creep.CreepVegetation;
+import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
+import com.dillon.starsectormarines.battle.cordon.CordonSequence;
+import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.evacuation.CreepOutposts;
@@ -650,6 +655,35 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         limitedWarrant = new LimitedWarrantSequence(technician, constables, carrier, reserve, records, storyBeats);
         addObjective(limitedWarrant);
     }
+    private CordonSequence cordon;
+    /** The Cordon's story, or {@code null} on every other battle. */
+    public CordonSequence getCordon() { return cordon; }
+    /**
+     * Installs the Cordon's story over manned redoubts: their states, the
+     * tides and the beats, and the company's objective
+     * ({@code cordon-nouns.md}). The director must already be bore-sourced.
+     */
+    public CordonSequence installCordon(CordonVariant variant, List<CordonRedoubt> redoubts, List<Integer> gap,
+                                        int[][] eruptionSites, CordonSequence.Timetable timetable) {
+        if (simTickIndex != 0 || cordon != null) throw new IllegalStateException("Install the Cordon once at setup");
+        if (!swarmReinforcements.isBoreSourcing())
+            throw new IllegalStateException("The Cordon needs a bore-sourced swarm director");
+        int firstErupted = 1;
+        for (SwarmBore bore : swarmBores.bores()) firstErupted = Math.max(firstErupted, bore.number() + 1);
+        cordon = new CordonSequence(variant, redoubts, gap, eruptionSites, firstErupted, timetable, storyBeats);
+        swarmReinforcements.setPressureShare(timetable.ordinaryPressure());
+        addObjective(cordon);
+        return cordon;
+    }
+    /**
+     * Configures the swarm director with no rescue: bore-sourced from the
+     * first tick over the bores setup opened ({@code cordon-nouns.md}).
+     */
+    /** The share of the bores' capacities the director holds the field at ({@link SwarmReinforcementSystem#setPressureShare}). */
+    public void setSwarmPressureShare(float share) { swarmReinforcements.setPressureShare(share); }
+    public boolean configureSwarmFromBores(long seed) {
+        return swarmReinforcements.configureFromBores(swarmBores, seed, this);
+    }
     private DistrictEscortSequence districtEscort;
     public DistrictEscortSequence getDistrictEscort() { return districtEscort; }
     public void installDistrictEscort(int party, int constables, long carrier, List<EntitySpec> reserve, float[] routeX, float[] routeY) {
@@ -848,6 +882,22 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         colonyBreach.setEruptionHandler((sim, site, tick) ->
                 sim.swarmBores().open(sim, site.number(), site.mother(), site.x(), site.y()));
         swarmReinforcements.beginSeepage();
+    }
+    private HeartSequence heart;
+    /** The heart's battle, or {@code null} when this is not the heart. */
+    public HeartSequence getHeart() { return heart; }
+
+    /**
+     * Installs the heart's battle (`heart-nouns.md`) over its opened bores: the
+     * mothers go to sleep and the heart's wake rules and beats take over.
+     */
+    public void installHeart(Form form) {
+        if (simTickIndex != 0 || heart != null || colonyBreach != null)
+            throw new IllegalStateException("Install the heart once at setup");
+        if (!swarmReinforcements.isConfigured())
+            throw new IllegalStateException("The heart needs a configured swarm director");
+        heart = new HeartSequence(form, storyBeats);
+        heart.install(this);
     }
     /** Ends the swarm director's opening seepage; the breach has begun. Idempotent. */
     public void endSwarmSeepage() { swarmReinforcements.endSeepage(); }
@@ -3640,6 +3690,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // that starts bore sourcing spawns only from bores.
         swarmBores.tick(this);
         if (colonyBreach != null) colonyBreach.tick(this);
+        if (heart != null) heart.tick(this);
         // After the bores and the eruptions, so a body is delivered only into a
         // bore that still lives and harvest opens on the tick a bore does.
         swarmHarvest.tick(this);
@@ -3687,6 +3738,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (smallWar != null) smallWar.advance(this);
         if (termsOfProtection != null) termsOfProtection.advance(this);
         if (districtEscort != null) districtEscort.advance(this);
+        if (cordon != null) cordon.advance(this);
         objectivesService.tick(o -> o.tick(this));
         // Delayed impacts and objective callbacks run after DEMOLISH and may
         // kill a body on the final tick. Publish their corpse/cascade reactions
@@ -3717,6 +3769,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (junctionStory != null) junctionStory.observe(this);
         if (relayNineStory != null) relayNineStory.observe(this);
         if (colonyBreach != null) colonyBreach.observe(this);
+        if (heart != null) heart.observe(this);
         if (thunderRun != null && isComplete()) thunderRun.freeze(this, false);
         if (lastLiftSequence != null) {
             lastLiftSequence.observe(this);

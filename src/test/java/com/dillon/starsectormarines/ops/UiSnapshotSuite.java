@@ -406,6 +406,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderMechLab(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, false, true, false, false,
                                 null, "empty-socket")),
+                // The two heavier chassis, arm mount chosen: their 2x3 arm sockets and long guns.
+                new SnapshotArtifact("mech-lab-bulwark-wide.png",
+                        renderMechLab(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, false, false, false, false,
+                                null, "chassis-Bulwark")),
+                new SnapshotArtifact("mech-lab-sirocco-wide.png",
+                        renderMechLab(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, false, false, false, false,
+                                null, "chassis-Sirocco")),
                 new SnapshotArtifact("mech-lab-chassis-fabrication-wide.png",
                         renderMechLab(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
@@ -2684,6 +2693,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     .filter(row -> row.name().contains("SHOULDER"))
                     .findFirst().orElseThrow().select().run();
         }
+        if (materialHint != null && materialHint.startsWith("chassis-")) {
+            String chassis = materialHint.substring("chassis-".length());
+            viewModel.mechRows().get().stream()
+                    .filter(row -> row.name().startsWith(chassis))
+                    .findFirst().orElseThrow().select().run();
+            viewModel.slotRows().get().get(0).select().run();
+        }
         // The shoulder stripped, so the doll shows an empty socket wearing its hardpoint colour.
         if ("empty-socket".equals(materialHint)) viewModel.stripWeapon(viewModel.selectedSocket());
         if (motionFrames != null) {
@@ -2782,7 +2798,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             guide.update();
             if (specSheet || materialHint != null && !"long-name".equals(materialHint)
                     && !materialHint.startsWith("lesson-") && !materialHint.startsWith("resource-")
-                    && !materialHint.startsWith("internal-")) {
+                    && !materialHint.startsWith("internal-") && !materialHint.startsWith("chassis-")) {
                 SpecSheetBinder binder = new SpecSheetBinder(
                         document, SpecSheetLayer.install(document));
                 List<MechLabViewModel.CatalogRow> rows = viewModel.catalogRows().get();

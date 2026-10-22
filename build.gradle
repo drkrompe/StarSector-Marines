@@ -161,7 +161,7 @@ test {
                 'squad-firing-evidence', 'swarm-flow-evidence',
                 'commander-balance', 'conquest-trial-evidence',
                 'sabotage-command-evidence', 'assault-command-evidence', 'relief-command-evidence', 'counterattack-command-evidence', 'junction-command-evidence', 'relay-nine-command-evidence', 'thunder-run-command-evidence', 'last-lift-command-evidence', 'supply-route-campaign-evidence',
-                'raid-command-evidence', 'extraction-command-evidence', 'colony-breach-command-evidence', 'corvus-command-evidence', 'power-suit-campaign-evidence',
+                'raid-command-evidence', 'extraction-command-evidence', 'colony-breach-command-evidence', 'cordon-command-evidence', 'heart-command-evidence', 'corvus-command-evidence', 'power-suit-campaign-evidence',
                 'story-command-evidence',
                 'crew-liveliness', 'shader-evidence', 'render-evidence', 'garrison-evidence',
                 'generated-space-evidence',
@@ -245,6 +245,9 @@ def commanderEvidenceTags = [
         raid: 'raid-command-evidence',
         extraction: 'extraction-command-evidence',
         'colony-breach': 'colony-breach-command-evidence',
+        'cordon-line': 'cordon-command-evidence',
+        'cordon-road': 'cordon-command-evidence',
+        'heart': 'heart-command-evidence',
         'yard-owners': 'yard-owners-command-evidence',
         'water-under-seal': 'water-under-seal-command-evidence',
         'limited-warrant': 'limited-warrant-command-evidence',
@@ -583,6 +586,9 @@ tasks.register('commanderEvidence', Test) {
                 raid: 'raid.command.evidence',
                 extraction: 'extraction.command.evidence',
                 'colony-breach': 'colony.breach.command.evidence',
+                'cordon-line': 'cordon.line.command.evidence',
+                'cordon-road': 'cordon.road.command.evidence',
+                'heart': 'heart.command.evidence',
                 'yard-owners': 'story.command.evidence',
                 'water-under-seal': 'story.command.evidence',
                 'limited-warrant': 'story.command.evidence',
@@ -1488,6 +1494,17 @@ tasks.register('roadMaterials', JavaExec) {
     dependsOn tasks.named('testClasses')
     classpath = sourceSets.test.runtimeClasspath
     mainClass = 'com.dillon.starsectormarines.tools.roadauthoring.RoadMaterialBaker'
+    workingDir projectDir
+    args projectDir.absolutePath
+}
+
+// Feathered ground boundaries (GroundFeather): each material's art through baked noise-edged masks.
+tasks.register('groundFeather', JavaExec) {
+    group = 'asset pipeline'
+    description = 'Bake the ground feather sheet and catalog from the feathering materials own art'
+    dependsOn tasks.named('testClasses')
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.dillon.starsectormarines.tools.terrainauthoring.GroundFeatherBaker'
     workingDir projectDir
     args projectDir.absolutePath
 }

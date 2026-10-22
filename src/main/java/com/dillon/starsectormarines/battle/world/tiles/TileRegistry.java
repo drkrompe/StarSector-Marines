@@ -78,6 +78,7 @@ public final class TileRegistry {
             "data/tilesets/forest-destroyed.tileset.json",
             "data/tilesets/forest-blight.tileset.json",
             "data/tilesets/pavement-edges.tileset.json",
+            "data/tilesets/ground-feather.tileset.json",
             "data/tilesets/colony-buildings.tileset.json",
             "data/tilesets/colony-walls.tileset.json",
             "data/tilesets/concrete-walls.tileset.json",

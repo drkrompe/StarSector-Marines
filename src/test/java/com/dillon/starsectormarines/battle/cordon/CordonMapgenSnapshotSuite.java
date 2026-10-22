@@ -79,7 +79,8 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
                 String tag = name + "-seed" + seed + "-";
                 CordonSetup.CordonMap cordon = CordonSetup.map(variant, seed, TargetProfile.NEUTRAL);
                 PrecinctPlan plan = cordon.plan();
-                try (BattleSimulation sim = CordonSetup.create(cordon, List.of(), TargetProfile.NEUTRAL)) {
+                try (BattleSimulation sim = CordonSetup.create(cordon, variant, List.of(), TargetProfile.NEUTRAL,
+                        CordonSequence.Timetable.STANDARD)) {
                     out.add(new SnapshotArtifact(tag + "01-whole-map.png",
                             whole.render(sim, "the " + name + ", seed " + seed + ", whole map", annotations(sim, cordon))));
                     List<Precinct> redoubts = CordonPlan.redoubts(plan);

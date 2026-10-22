@@ -300,6 +300,26 @@ public final class GridPathfinder {
                 maxExpandedNodes);
     }
 
+    /**
+     * As {@link #findPathWithinExpansionBudget(NavigationGrid, int, int, int, int, boolean, int)},
+     * paying the same occupancy tolls as {@link #findPath(NavigationGrid, int, int, int, int, byte[])}:
+     * an ordinary crowd-aware search that gives up after {@code maxExpandedNodes} pops
+     * instead of flooding the map round a goal it cannot reach.
+     */
+    public static int[] findPathWithinExpansionBudget(NavigationGrid grid,
+                                                      int startX, int startY,
+                                                      int goalX, int goalY,
+                                                      byte[] occupancy,
+                                                      int maxExpandedNodes) {
+        WORKSPACE.get().expandedNodes = 0;
+        if (maxExpandedNodes < 0) {
+            throw new IllegalArgumentException("maxExpandedNodes must be nonnegative");
+        }
+        return findPathProfiled(grid, startX, startY, goalX, goalY,
+                USE_CARDINAL_NAVIGATION, occupancy, null, null, null, null, false, INF,
+                maxExpandedNodes);
+    }
+
     /** Read immediately after a search, before another search reuses this thread's scratch. */
     public static int lastSearchExpandedNodes() {
         return WORKSPACE.get().expandedNodes;

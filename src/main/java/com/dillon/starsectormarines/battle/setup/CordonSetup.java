@@ -1,12 +1,19 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
+import com.dillon.starsectormarines.battle.command.objective.EliminateFactionObjective;
+import com.dillon.starsectormarines.battle.cordon.CordonCommand;
 import com.dillon.starsectormarines.battle.cordon.CordonCorridor;
+import com.dillon.starsectormarines.battle.cordon.CordonGarrisons;
+import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
+import com.dillon.starsectormarines.battle.cordon.CordonSequence;
 import com.dillon.starsectormarines.battle.cordon.CordonFront;
 import com.dillon.starsectormarines.battle.cordon.CordonPlan;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapGenerator;
@@ -19,9 +26,11 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -109,17 +118,26 @@ public final class CordonSetup {
         return count >= MIN_WALL_CELLS;
     }
 
-    /**
-     * The Cordon battle: its map and the company's landing. The garrisons, the
-     * front's bores and the cordon sequence are {@code cordon-battle.md}.
-     */
+    /** Cells behind the line the company's reserve stands. */
+    static final int RESERVE_DEPTH = 24;
+    /** The garrisons' kit: troops dug in on the line for weeks, the colony's best. */
+    static final RiskLevel GARRISON_RISK = RiskLevel.HIGH;
+    /** Salt for the garrisons' loadout rolls, their own stream so the map's draws are not read again. */
+    private static final long GARRISON_SALT = 0x4741525249534F4EL;
+
+    /** The Cordon battle on the briefing's timetable. */
     public static BattleSimulation create(CordonVariant variant, long seed,
                                           List<ShuttleAssignment> manifest, TargetProfile profile) {
-        return create(map(variant, seed, profile), manifest, profile);
+        return create(map(variant, seed, profile), variant, manifest, profile, CordonSequence.Timetable.STANDARD);
     }
 
-    /** The Cordon battle on a map already generated. */
-    public static BattleSimulation create(CordonMap cordon, List<ShuttleAssignment> manifest, TargetProfile profile) {
+    /**
+     * The Cordon battle on a map already generated: the company's landing, the
+     * line manned, the front grown, the director bore-sourced and the cordon's
+     * story over it ({@code cordon-nouns.md}).
+     */
+    public static BattleSimulation create(CordonMap cordon, CordonVariant variant, List<ShuttleAssignment> manifest,
+                                          TargetProfile profile, CordonSequence.Timetable timetable) {
         MapResult map = cordon.map();
         Random rng = new Random(cordon.battleSeed());
         List<Doodad> vehicles = BattleSetup.stampVehicles(map, rng);
@@ -129,7 +147,43 @@ public final class CordonSetup {
                 Collections.emptyList(), cordon.battleSeed()).sim();
         sim.setSurface(BattleSetup.surfaceOf(country(profile)));
         BattleSetup.recordLzPads(sim, pads);
+        BattleSetup.landCompany(sim, pads, manifest, rng,
+                SquadCommandClaim.mission(CordonCommand.ISSUER, "Cordon company lift"));
+        List<CordonRedoubt> redoubts = CordonGarrisons.man(sim, cordon.plan(), GARRISON_RISK,
+                new Random(cordon.battleSeed() ^ GARRISON_SALT));
         CordonFront.grow(sim, cordon.plan(), cordon.corridor(), CordonFront.DEFAULT_TIERS, cordon.battleSeed());
+        if (!sim.configureSwarmFromBores(cordon.battleSeed())) {
+            throw new IllegalStateException("Cordon swarm director configuration failed");
+        }
+        int[][] eruptions = CordonFront.eruptionSites(sim.getGrid(), sim.getTopology(), cordon.plan(),
+                cordon.corridor(), timetable.eruptionSeconds().size(), cordon.battleSeed());
+        CordonSequence sequence = sim.installCordon(variant, redoubts, gap(variant, redoubts, cordon), eruptions,
+                timetable);
+        sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
+        int reserveY = Math.round(CordonFront.lineY(cordon.plan()) - CordonFront.frontward(cordon.plan()) * RESERVE_DEPTH);
+        sim.setAutonomousCommander(Faction.MARINE, new CordonCommand(WIDTH / 2, reserveY),
+                CordonCommand.disclosure(sequence));
         return sim;
+    }
+
+    /**
+     * On the Road, the two redoubts either side of where the corridor crosses
+     * the line, by index ({@code cordon-nouns.md}, Gap); empty on the Line.
+     */
+    static List<Integer> gap(CordonVariant variant, List<CordonRedoubt> redoubts, CordonMap cordon) {
+        if (variant != CordonVariant.ROAD || cordon.corridor() == null || redoubts.size() < 2) return List.of();
+        float line = CordonFront.lineY(cordon.plan());
+        int[] crossing = cordon.corridor().get(0);
+        for (int[] cell : cordon.corridor()) {
+            if (Math.abs(cell[1] - line) < Math.abs(crossing[1] - line)) crossing = cell;
+        }
+        int crossX = crossing[0];
+        List<Integer> order = new ArrayList<>();
+        for (int i = 0; i < redoubts.size(); i++) order.add(i);
+        order.sort(Comparator.comparingInt((Integer i) -> Math.abs(redoubts.get(i).centreX() - crossX))
+                .thenComparingInt(i -> i));
+        List<Integer> gap = new ArrayList<>(order.subList(0, 2));
+        Collections.sort(gap);
+        return List.copyOf(gap);
     }
 }

@@ -113,6 +113,21 @@ public final class SwarmBores {
         return null;
     }
 
+    /**
+     * A tide ({@code cordon-nouns.md}): every living bore's next surge is
+     * brought forward to {@code tick}, so they all go at once. Returns how
+     * many bores were called.
+     */
+    public int tide(int tick) {
+        int called = 0;
+        for (SwarmBore bore : bores) {
+            if (bore.collapsed()) continue;
+            bore.callSurge(tick);
+            called++;
+        }
+        return called;
+    }
+
     /** The living bore nearest a point, or {@code null} when none lives. */
     public SwarmBore nearestLiving(float x, float y) {
         SwarmBore best = null;
@@ -230,6 +245,23 @@ public final class SwarmBores {
     void matriarchEmerged(SwarmBore bore, int tick, long body) {
         bore.releasedMatriarch(body);
         events.add(new Event(tick, EventKind.MATRIARCH, bore, bore.tier()));
+    }
+
+    /**
+     * Holds {@code bore} quiet: it keeps growing and feeding but sends no surge
+     * until {@link #surgeNow} wakes it. A mission's sleeping bore (the heart's
+     * mothers before the push wakes them, `heart-nouns.md`).
+     */
+    public void hold(SwarmBore bore) {
+        bore.hold();
+    }
+
+    /**
+     * Wakes {@code bore} with a surge due now. The director still releases it
+     * only when it fits under the living bores' capacity, as any surge.
+     */
+    public void surgeNow(SwarmBore bore, int tick) {
+        if (!bore.collapsed()) bore.surgeAt(tick);
     }
 
     /** Records that the director released a surge from {@code bore}. */

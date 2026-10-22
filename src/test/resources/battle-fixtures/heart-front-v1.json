@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 2,
+  "kind": "BLOOM_HEART",
+  "seed": 202,
+  "form": "BROAD_FRONT",
+  "shuttles": [
+    {"type": "AEROSHUTTLE", "cycles": 1, "seatsPerSortie": 6},
+    {"type": "AEROSHUTTLE", "cycles": 1, "seatsPerSortie": 6},
+    {"type": "AEROSHUTTLE", "cycles": 1, "seatsPerSortie": 6},
+    {"type": "AEROSHUTTLE", "cycles": 1, "seatsPerSortie": 6}
+  ]
+}
