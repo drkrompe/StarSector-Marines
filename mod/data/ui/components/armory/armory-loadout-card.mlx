@@ -54,7 +54,7 @@
         <div each="span in tile.carriesSpans" key="{span.id}" id="{span.id}" class="doctrine-span doctrine-carries-span label">{span.label}</div>
       </div>
     </div>
-    <div id="{tile.descriptionId}" class="spec-sheet-note loadout-card-lore">{tile.description}</div>
+    <div id="{tile.descriptionId}" class="spec-sheet-note loadout-card-lore" style="{tile.descriptionStyle}">{tile.description}</div>
     <div id="{tile.issueReasonId}" class="{tile.issueReasonClasses}">{tile.issueReason}</div>
   </button>
 </template>
@@ -64,7 +64,7 @@
   .loadout-card-team-rows { flex-direction: column; height: 116px; gap: 4px; }
   .loadout-card-line { height: 18px; white-space: normal; }
   .loadout-card-composition { color: #7fb2d8; }
-  .loadout-card-lore { height: 64px; color: #8b9aaf; }
+  .loadout-card-lore { color: #8b9aaf; }
   .doctrine-issue-button { width: 84px; height: 24px; padding: 2px 6px; border-width: 1px; font-family: body; text-align: center; }
   .doctrine-issue-button.issued { color: #8fd6a6; border-color: #4f9c6b; }
   .doctrine-issue-button-hidden { width: 0px; height: 0px; opacity: 0; overflow: hidden; }

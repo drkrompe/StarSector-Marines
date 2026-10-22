@@ -116,7 +116,11 @@ for elevation's sake.
   who step up to the rim to fire are seen, and can be fired on. A holder back
   from the rim that fires down is revealed to the low ground for about three
   seconds after the shot, so the low ground can answer it (owner, 2026-10-22:
-  skyline sight, firing down reveals).
+  skyline sight, firing down reveals). While exposed, sight and direct fire
+  from lower ground to its cell are judged from its own height, as if looking
+  down the line it fired along: whoever it could see down to sees it back and
+  can shoot it. The exposure follows it if it moves; a new shot down restarts
+  it (`FiringExposure`, `-Dbattle.elevation.firingReveal=false` is the control).
 - Ramp cells count as their lower tier for the observer on them, so a unit
   climbing a ramp sees up only when it reaches the head. A ramp is seen from
   both tiers.

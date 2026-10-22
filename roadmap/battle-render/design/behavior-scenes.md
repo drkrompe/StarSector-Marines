@@ -350,9 +350,18 @@ defender on the rim above the ramp and one back from the edge
 (`elevation-nouns.md`). Its verdicts are mechanics: nobody steps between tiers
 except through a ramp cell, nobody stands on a face, every marine on top had
 stood on the ramp, and while every marine is below the defender back from the
-rim is never in their fog under the skyline rule. Who wins and when the first
+rim is never in their fog under the skyline rule, unless it has just fired
+down, and once a shot down exposes it they see it. Who wins and when the first
 marine stands on top are readings, with path length and search time onto the
 top and past the plateau against the same meadow with no plateau.
+
+`FiringDownScene` (`firing-down`) stands one defender two cells back from the
+overlook's west rim and four marines on the low ground in its reach, all
+holding. Its verdicts: the holder is never in the marines' fog before its first
+shot down, no marine round is fired at it while it is hidden, and on every
+tick a shot down has exposed it (past the fog's three-tick recast) the marines
+see it. `-Dbattle.elevation.firingReveal=false` is its control: there the
+holder kills the squad unanswered, and with the reveal the squad answers it.
 
 **The instrument nearly blamed the rule for a roster reshuffle.** The first
 version read the defender's per-unit fog visibility, which is keyed by roster
