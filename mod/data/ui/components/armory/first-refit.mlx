@@ -20,7 +20,15 @@
       <div id="refit-body" class="refit-body">
         <div id="refit-choices" class="refit-choices">
           <div id="refit-paths" class="refit-paths">
-            <armory-loadout-card each="tile in lesson.paths" key="{tile.id}" tile="{tile}" />
+            <!-- Each choice carries its letter on a tab, so the player reads "A or B" before
+                 reading either licence; the learn button names the same letter. -->
+            <div each="option in lesson.options" key="{option.id}" id="{option.id}" class="refit-option" style="{option.rowStyle}">
+              <button id="{option.tabId}" class="{option.tabClasses}" style="{option.tabStyle}" onclick="{option.select}">
+                <div id="{option.captionId}" class="refit-option-caption label">{i18n.openingFirstRefitOption}</div>
+                <div id="{option.letterId}" class="refit-option-letter">{option.letter}</div>
+              </button>
+              <armory-loadout-card tile="{option.tile}" />
+            </div>
           </div>
         </div>
         <div id="refit-squad" class="refit-squad-column">
@@ -56,7 +64,12 @@
   .refit-body { flex-direction: row; height: 0px; flex-grow: 1; gap: 12px; }
   /* Two compact cards high, and as wide as Castle's callout, which settles in the
      free space beneath them rather than over the squad. */
-  .refit-choices { flex-direction: column; width: 528px; }
+  .refit-choices { flex-direction: column; width: 600px; }
+  .refit-option { flex-direction: row; gap: 6px; }
+  .refit-option-tab { flex-direction: column; align-items: center; width: 60px; padding: 0px; gap: 4px; }
+  .refit-option-caption { width: 58px; height: 14px; padding: 12px 0px 0px 0px; color: #8b9aaf; text-align: center; }
+  .refit-option-letter { width: 58px; height: 32px; font-family: display; color: #d5deea; text-align: center; }
+  .refit-option-tab.selected .refit-option-letter { color: #f2cf68; }
   .refit-paths { flex-direction: column; height: 546px; gap: 12px; }
   .refit-squad-column { flex-direction: column; width: 0px; flex-grow: 1; }
   .refit-empty { height: 0px; flex-grow: 1; padding: 20px; }
