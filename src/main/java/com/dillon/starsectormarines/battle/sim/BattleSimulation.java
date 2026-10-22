@@ -270,6 +270,9 @@ import com.dillon.starsectormarines.battle.fire.FireHarm;
 import com.dillon.starsectormarines.battle.fire.FireIgnition;
 import com.dillon.starsectormarines.battle.fire.FireRouteCost;
 import com.dillon.starsectormarines.battle.creep.CreepVegetation;
+import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
+import com.dillon.starsectormarines.battle.cordon.CordonSequence;
+import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.evacuation.CreepOutposts;
@@ -650,6 +653,33 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         limitedWarrant = new LimitedWarrantSequence(technician, constables, carrier, reserve, records, storyBeats);
         addObjective(limitedWarrant);
     }
+    private CordonSequence cordon;
+    /** The Cordon's story, or {@code null} on every other battle. */
+    public CordonSequence getCordon() { return cordon; }
+    /**
+     * Installs the Cordon's story over manned redoubts: their states, the
+     * tides and the beats, and the company's objective
+     * ({@code cordon-nouns.md}). The director must already be bore-sourced.
+     */
+    public CordonSequence installCordon(CordonVariant variant, List<CordonRedoubt> redoubts, List<Integer> gap,
+                                        CordonSequence.Timetable timetable) {
+        if (simTickIndex != 0 || cordon != null) throw new IllegalStateException("Install the Cordon once at setup");
+        if (!swarmReinforcements.isBoreSourcing())
+            throw new IllegalStateException("The Cordon needs a bore-sourced swarm director");
+        cordon = new CordonSequence(variant, redoubts, gap, timetable, storyBeats);
+        swarmReinforcements.setPressureShare(timetable.ordinaryPressure());
+        addObjective(cordon);
+        return cordon;
+    }
+    /**
+     * Configures the swarm director with no rescue: bore-sourced from the
+     * first tick over the bores setup opened ({@code cordon-nouns.md}).
+     */
+    /** The share of the bores' capacities the director holds the field at ({@link SwarmReinforcementSystem#setPressureShare}). */
+    public void setSwarmPressureShare(float share) { swarmReinforcements.setPressureShare(share); }
+    public boolean configureSwarmFromBores(long seed) {
+        return swarmReinforcements.configureFromBores(swarmBores, seed, this);
+    }
     private DistrictEscortSequence districtEscort;
     public DistrictEscortSequence getDistrictEscort() { return districtEscort; }
     public void installDistrictEscort(int party, int constables, long carrier, List<EntitySpec> reserve, float[] routeX, float[] routeY) {
@@ -816,7 +846,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public SwarmPackPlans swarmPackPlans() { return swarmPackPlans; }
     /**
      * Declares the open bores' creep and grows it to full at once, as creep
-     * that has stood for weeks; the trees it holds die. Setup only
+     * that has stood for weeks; the trees it holds die and the roofs it stands
+     * under have caved in. Setup only
      * ({@code cordon-nouns.md}, The map).
      */
     public void matureCreep() {
@@ -825,6 +856,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (creep == null) return;
         creep.mature();
         creepVegetation().look(this, 0);
+        // Weeks under the creep is far past any roof's hold: what it stands on has caved in.
+        CreepRoofCollapse.matureOn(this);
     }
     /** From the tremor on, the swarm director spawns only from living bores. */
     public void beginSwarmBoreSourcing() { swarmReinforcements.beginBoreSourcing(swarmBores); }
@@ -1519,10 +1552,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         rosterService.convoy().setDestructionSink(groundSystem::destroyVehicle);
         // A gun on a turning hull shakes the way a moving shooter's does.
         turretFire.setShooterAccuracy(new HullPivot(rosterService.convoy()));
-        // A map emplacement's crew holds a round that would hit their own side; vehicle and aircraft guns do not yet.
-        // -Dbattle.turret.crewFriendlyHold=false is the control.
+        // A map emplacement's or a vehicle's crew holds a round that would hit their own side; aircraft guns do not
+        // yet. -Dbattle.turret.crewFriendlyHold=false is the control.
         if (Boolean.parseBoolean(System.getProperty("battle.turret.crewFriendlyHold", "true"))) {
             turretFire.setFriendlyFireHold(id -> rosterService.turretState().isTurret(id)
+                    || rosterService.convoy().isVehicle(id)
                     ? TurretFireSystem.CREW_FRIENDLY_HOLD_CHANCE : 0f, this::friendsInBlast);
         }
         groundSystem.setBlade(new DozerBlade(navigation, mapEditor, doodadService));
@@ -3683,6 +3717,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (smallWar != null) smallWar.advance(this);
         if (termsOfProtection != null) termsOfProtection.advance(this);
         if (districtEscort != null) districtEscort.advance(this);
+        if (cordon != null) cordon.advance(this);
         objectivesService.tick(o -> o.tick(this));
         // Delayed impacts and objective callbacks run after DEMOLISH and may
         // kill a body on the final tick. Publish their corpse/cascade reactions
@@ -4106,21 +4141,29 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 structure, target, aerialShooter, hasLos);
     }
 
-    /** Whether a burst of {@code radius} at a point would catch a living body on {@code side}'s own side. */
+    /**
+     * Whether a burst of {@code radius} at a point would catch a living body on {@code side}'s own side: the
+     * detonation's own reach test, the blast radius widened by the body's footprint ({@code Detonations}).
+     */
     private boolean friendsInBlast(long shooterId, Faction side, float x, float y, float radius) {
         LongBucket bucket = blastScratch.get();
-        unitIndex.gather(x, y, radius, bucket);
-        float radiusSq = radius * radius;
+        unitIndex.gather(x, y, radius + BLAST_FOOTPRINT_PAD, bucket);
         for (int i = 0, n = bucket.size; i < n; i++) {
             long id = bucket.ids[i];
             if (id == shooterId || !world.isAlive(id)) continue;
-            if (!side.friendlyTo(rosterService.identity().faction(id))) continue;
+            Faction faction = rosterService.convoy().isVehicle(id)
+                    ? rosterService.convoy().faction(id) : rosterService.identity().faction(id);
+            if (!side.friendlyTo(faction)) continue;
             float dx = world.x(id) - x;
             float dy = world.y(id) - y;
-            if (dx * dx + dy * dy <= radiusSq) return true;
+            float reach = radius + rosterService.radius(id);
+            if (dx * dx + dy * dy <= reach * reach) return true;
         }
         return false;
     }
+
+    /** How far past a blast's radius {@link #friendsInBlast} looks for a body whose footprint reaches into it. */
+    private static final float BLAST_FOOTPRINT_PAD = 2f;
 
     /** Ground-entity turret overload with the posed barrel and burst release; false when the crew held the round. */
     public boolean fireShotFrom(long shooterId, float fromX, float fromY,

@@ -12,11 +12,14 @@ import com.dillon.starsectormarines.battle.world.gen.forest.ForestPlan;
 import com.dillon.starsectormarines.battle.world.gen.forest.LandscapeAccess;
 import com.dillon.starsectormarines.battle.world.gen.nature.FormationBrush;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainBrush;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainField;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainPlan;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainSurface;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,11 +40,17 @@ public final class OutdoorLandscapeStage implements GenStage {
         if (c.width < 32 || c.height < 32 || TileRegistry.installed() == null) return;
         TargetProfile profile = c.get(BspKeys.MARKET_PROFILE);
         SurfacePalette surface = profile == null ? SurfacePalette.ROCK : profile.surface();
+        PrecinctPlan plan = c.get(BspKeys.PRECINCTS);
+        Landscape landscape = plan == null ? Landscape.STOCK : plan.landscape();
+        clearTracks(c, landscape);
+        List<int[]> brookCells = runBrooks(c, landscape);
         boolean[] reserved = reservations(c);
+        reserveTracks(c, landscape, reserved);
+        for (int[] cell : brookCells) reserve(c, reserved, cell[0] - 2, cell[1] - 2, cell[0] + 2, cell[1] + 2);
         // Own substream: absent nature never moves facilities, force positions or later RNG draws.
         Random random = new Random(c.seed ^ 0x574f4f444c414e44L);
         if (c.topology.terrainSurface() == null) hills(c, surface, reserved, random);
-        if (surface == SurfacePalette.VERDANT) trees(c, reserved);
+        if (surface == SurfacePalette.VERDANT) trees(c, reserved, landscape.woodland());
         else FormationBrush.scatter(c,surface,reserved);
         // Hills, trees and formations turn cells non-walkable after TacticalRegionStage
         // published, so refresh the artifact: "non-walkable => regionId -1" must hold.
@@ -165,7 +174,102 @@ public final class OutdoorLandscapeStage implements GenStage {
         return new TerrainPlan.Stroke(TerrainPlan.Mode.RAISE,brushRadius,points);
     }
 
-    private static void trees(GenContext c, boolean[] reserved) {
+    /**
+     * A plan's tracks cleared to bare earth before anything grows: open natural
+     * ground on a track becomes dirt and loses its shrubs. A building, a road or
+     * a place on the track is left as it stands.
+     */
+    private static void clearTracks(GenContext c, Landscape landscape) {
+        for (Landscape.Track track : landscape.tracks()) {
+            for (int y = Math.max(0, track.y0()); y <= Math.min(c.height - 1, track.y1()); y++)
+                for (int x = Math.max(0, track.x0()); x <= Math.min(c.width - 1, track.x1()); x++) {
+                    if (!openGround(c, x, y)) continue;
+                    c.topology.setGroundKind(x, y, GroundKind.DIRT);
+                    c.topology.setNatureOverlayIndex(x, y, -1);
+                }
+        }
+    }
+
+    /**
+     * A plan's brooks run across the country: water on open natural ground
+     * along each centre line, a sand strip on either bank, and at every ford
+     * sand right across. Returns the centre cells, for the reservations.
+     */
+    private static List<int[]> runBrooks(GenContext c, Landscape landscape) {
+        List<int[]> centres = new ArrayList<>();
+        for (Landscape.Brook brook : landscape.brooks()) {
+            List<int[]> line = new ArrayList<>();
+            for (int i = 0; i + 1 < brook.path().size(); i++) {
+                int[] a = brook.path().get(i), b = brook.path().get(i + 1);
+                int steps = Math.max(Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1]));
+                for (int k = i == 0 ? 0 : 1; k <= steps; k++) {
+                    line.add(new int[]{Math.round(a[0] + (b[0] - a[0]) * k / (float) Math.max(1, steps)),
+                            Math.round(a[1] + (b[1] - a[1]) * k / (float) Math.max(1, steps))});
+                }
+            }
+            float r = brook.width() / 2f;
+            int reach = (int) Math.ceil(r) + 1;
+            for (int[] centre : line) {
+                for (int dy = -reach; dy <= reach; dy++) for (int dx = -reach; dx <= reach; dx++) {
+                    int x = centre[0] + dx, y = centre[1] + dy;
+                    if (x < 0 || y < 0 || x >= c.width || y >= c.height) continue;
+                    float d = (float) Math.sqrt(dx * dx + dy * dy);
+                    if (d <= r) {
+                        if (brookGround(c, x, y)) {
+                            c.topology.setSurface(x, y, 0);
+                            c.topology.setGroundKind(x, y, GroundKind.WATER);
+                            c.topology.setNatureOverlayIndex(x, y, -1);
+                            c.grid.setWalkable(x, y, false);
+                            c.grid.setSeeThrough(x, y, true);
+                            c.grid.setEdgeCoverSuppressed(x, y, true);
+                        }
+                    } else if (d <= r + 1f && brookGround(c, x, y) && c.topology.getGroundKind(x, y) != GroundKind.WATER) {
+                        c.topology.setSurface(x, y, 0);
+                        c.topology.setGroundKind(x, y, GroundKind.SAND);
+                        c.topology.setNatureOverlayIndex(x, y, -1);
+                    }
+                }
+            }
+            // Fords last, so a ford is open across the whole stream whatever drew water over it.
+            for (int i = 0; i < line.size(); i++) {
+                if (i % brook.fordEvery() >= brook.fordWidth() || i < brook.fordWidth()) continue;
+                int[] centre = line.get(i);
+                for (int dy = -reach; dy <= reach; dy++) for (int dx = -reach; dx <= reach; dx++) {
+                    int x = centre[0] + dx, y = centre[1] + dy;
+                    if (x < 0 || y < 0 || x >= c.width || y >= c.height) continue;
+                    if (c.topology.getGroundKind(x, y) != GroundKind.WATER) continue;
+                    c.topology.setGroundKind(x, y, GroundKind.SAND);
+                    c.grid.setWalkable(x, y, true);
+                    c.grid.setEdgeCoverSuppressed(x, y, false);
+                }
+            }
+            centres.addAll(line);
+        }
+        return centres;
+    }
+
+    /**
+     * Ground a brook may run over: walkable natural ground outside any building,
+     * door, fixture or road, whatever ground dressing lies on it.
+     */
+    private static boolean brookGround(GenContext c, int x, int y) {
+        boolean natural = switch (c.topology.getGroundKind(x, y)) {
+            case GRASS, DIRT, STONE, SAND, SNOW -> true;
+            default -> false;
+        };
+        return natural && c.grid.isWalkable(x, y) && !c.grid.isDoorway(x, y)
+                && !c.topology.isWall(x, y) && !c.topology.isFixture(x, y)
+                && c.topology.getBuildingId(x, y) == 0
+                && (c.topology.roadSurface() == null || c.topology.roadSurface().underlay(x, y) == null);
+    }
+
+    /** No tree, hill or formation stands on a track or the cell beside it. */
+    private static void reserveTracks(GenContext c, Landscape landscape, boolean[] reserved) {
+        for (Landscape.Track track : landscape.tracks())
+            reserve(c, reserved, track.x0() - 1, track.y0() - 1, track.x1() + 1, track.y1() + 1);
+    }
+
+    private static void trees(GenContext c, boolean[] reserved, float woodland) {
         boolean[] paint = new boolean[reserved.length], closed = new boolean[reserved.length];
         PatchField groves = new PatchField(c.seed ^ 0x47524f5645L, 19);
         for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) {
@@ -177,7 +281,7 @@ public final class OutdoorLandscapeStage implements GenStage {
             };
             // Exposed faces/talus remain legible; only complete summit cells carry crowns.
             if (summit || (soil && openGround(c, x, y) && !terrainVisible(c, x, y)))
-                paint[y * c.width + x] = groves.sample(x, y) < (summit ? .85f : .58f);
+                paint[y * c.width + x] = groves.sample(x, y) < (summit ? Math.max(.85f, woodland) : woodland);
         }
         ForestField field = ForestField.build(c.width, c.height, c.seed ^ 0x5452454553L, ForestPlan.Woodland.MIXED, paint);
         List<ForestField.Tree> accepted = new ArrayList<>();

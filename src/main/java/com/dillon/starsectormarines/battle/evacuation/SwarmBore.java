@@ -123,8 +123,12 @@ public final class SwarmBore {
     public List<Long> outposts() { return outpostView; }
     public int collapsedTick() { return collapsedTick; }
 
-    /** The beat key that names this bore: {@code N} for a first-wave bore, {@code mother} for the mother. */
-    public String beatKey() { return mother ? "mother" : String.valueOf(number); }
+    /**
+     * The beat key that names this bore: {@code N} for a first-wave bore,
+     * {@code mother} for Colony Breach's one mother (numbered 0) and
+     * {@code mother-N} for each of a heart's several.
+     */
+    public String beatKey() { return mother ? (number == 0 ? "mother" : "mother-" + number) : String.valueOf(number); }
 
     /**
      * Advances the base clock by {@code dt} seconds at {@code integrity}, the
@@ -182,6 +186,11 @@ public final class SwarmBore {
     void releasedMatriarch(long body) {
         matriarchReleased = true;
         matriarch = body;
+    }
+
+    /** Brings the next surge forward to {@code tick} at the latest: a tide. */
+    void callSurge(int tick) {
+        if (!collapsed()) nextSurgeTick = Math.min(nextSurgeTick, tick);
     }
 
     /** Holds a due surge back to {@code tick}; the bore stays quiet until then. */

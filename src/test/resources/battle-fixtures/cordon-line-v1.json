@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 2,
+  "kind": "CORDON",
+  "seed": 7117,
+  "variant": "LINE",
+  "shuttles": [
+    {
+      "type": "AEROSHUTTLE",
+      "cycles": 1,
+      "seatsPerSortie": 6
+    },
+    {
+      "type": "AEROSHUTTLE",
+      "cycles": 1,
+      "seatsPerSortie": 6
+    },
+    {
+      "type": "AEROSHUTTLE",
+      "cycles": 1,
+      "seatsPerSortie": 6
+    },
+    {
+      "type": "AEROSHUTTLE",
+      "cycles": 1,
+      "seatsPerSortie": 6
+    },
+    {
+      "type": "AEROSHUTTLE",
+      "cycles": 1,
+      "seatsPerSortie": 6
+    },
+    {
+      "type": "AEROSHUTTLE",
+      "cycles": 1,
+      "seatsPerSortie": 6
+    }
+  ]
+}
