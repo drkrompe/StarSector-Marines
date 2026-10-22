@@ -293,6 +293,9 @@ class MechLabViewModelTest {
         assertEquals("mech-catalog:recipe.chassis.hound:preview", hound.previewId());
         assertFalse(hound.previewClasses().contains("hidden"));
         hound.action().run();
+        assertEquals(1, bay.activeSquad().mechs().size(), "selecting a pattern only previews it");
+        assertEquals(MechVariant.HOUND, viewModel.padPreview());
+        viewModel.buildAction().run();
         assertEquals(2, bay.activeSquad().mechs().size());
         assertEquals(MechVariant.HOUND, viewModel.selectedVariant());
         assertTrue(viewModel.feedbackText().get().contains("standard roll-out fit"));
@@ -416,6 +419,9 @@ class MechLabViewModelTest {
         assertFalse(apc.actionDisabled());
         assertEquals(3, apc.materials().size());
         apc.action().run();
+        assertEquals(0, bay.activeSquad().vehicles().size(), "selecting a pattern only previews it");
+        assertEquals(VehicleType.ESCORT_APC, viewModel.padPreview());
+        viewModel.buildAction().run();
 
         assertEquals(1, bay.activeSquad().vehicles().size());
         assertEquals(2, bay.activeSquad().occupied());
@@ -1040,6 +1046,7 @@ class MechLabViewModelTest {
         props.put("scrapLabel", viewModel.scrapLabel());
         props.put("scrapClasses", viewModel.scrapClasses());
         props.put("scrapAction", viewModel.scrapAction());
+        viewModel.putBuildPanelProps(props);
         props.put("performanceMeters", viewModel.performanceMeters());
         viewModel.putInternalProps(props);
         viewModel.putRepairProps(props);

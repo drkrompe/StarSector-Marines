@@ -463,6 +463,32 @@ def shot(L, kf):
                 return (mw @ Vector((ln_ * .55, 0, 0)), mw.to_3x3() @ Vector((-1, 0, 0)),
                         ln_ * (.08 + .17 * u), ln_ * (.25 + .9 * u))
             mp.cone(name, sheath, 'fire')
+        elif kind == 'entry_sheath':
+            # S12: a falling hull's bow shock (a cone narrowing ahead of her along her fall) and the
+            # trail growing behind her since the shot began; proxies for swfx_entry
+            key = fx[1]
+            ln_ = placed[key]['length']
+
+            def pos(t, key=key):
+                return M(key, t).to_translation()
+
+            def shock(t, key=key, ln_=ln_):        # ahead of her fall, small enough that she reads against it
+                v = (pos(t + .1) - pos(t)).normalized()
+                return pos(t) + v * ln_ * .35, v, ln_ * .32, ln_ * .7
+            mp.cone(name, shock, 'fire')
+            mp.line(name + ' trail', lambda t, ts=ts: (pos(t), pos(max(ts, t - 4.0))), 'fire', width_px=6.0)
+        elif kind == 'wreckfall':
+            # S12: the ships the battle lost, coming down in pieces (battle_blockout.WRECKFALL)
+            import __main__ as bb          # battle_blockout, running as Blender's script
+            for pc in bb.WRECKFALL:
+                def ends(t, pc=pc):
+                    if t < pc['t_in']:
+                        return None
+                    age = min(t - pc['t_in'], 1.2 if pc['kind'] == 'chunk' else .7)
+                    at = lambda tt: Vector([pc['at'][i] + pc['vel'][i] * (tt - bb.K6_T) for i in range(3)])
+                    return at(t), at(t - age)
+                mp.line('%s %s' % (name, pc['name']), ends, 'fire' if pc['kind'] == 'chunk' else 'flare',
+                        width_px=3.0 if pc['kind'] == 'chunk' else 1.2)
         elif kind == 'flares':
             key = fx[1]
             offs = [Vector((rnd.uniform(-60, 40), rnd.choice((-1, 1)) * rnd.uniform(50, 120), rnd.uniform(-10, 40)))
