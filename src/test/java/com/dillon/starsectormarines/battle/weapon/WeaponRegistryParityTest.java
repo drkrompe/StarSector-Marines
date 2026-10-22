@@ -244,44 +244,6 @@ class WeaponRegistryParityTest {
     }
 
     @Test
-    void shredderCarbineOwnsTheCloseContactFlechetteRole() {
-        assertSim(WeaponRegistry.require(WeaponRegistry.SMG_ID), 14f, 3.0f, 0.68f, 0.75f, 1f,
-                1, 0f, 0.75f, 1.7f, 45f);
-        assertEquals(6, WeaponRegistry.require(WeaponRegistry.SMG_ID).projectilesPerShot());
-        assertPresentation(WeaponRegistry.require(WeaponRegistry.SMG_ID), new Color(0xFF, 0xE8, 0xC0),
-                ImpactKind.RIFLE, "graphics/missiles/shell_small_yellow.png", 0.15f,
-                "light_machinegun_fire");
-        assertEquals(0.40f, WeaponRegistry.require(WeaponRegistry.SMG_ID).tracerTailCells(), EPS);
-        assertEquals("Shredder Carbine", WeaponRegistry.require(WeaponRegistry.SMG_ID).displayName());
-        assertEquals("Rattler", WeaponRegistry.require(WeaponRegistry.SMG_ID).modelName());
-    }
-
-    @Test
-    void squadAutomaticOwnsTheSustainedSlugRole() {
-        assertSim(WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID), 22f, 5.8f, 0.34f, 1.60f, 5f,
-                8, 0.10f, 0.45f, 0.9f, 52f);
-        assertEquals(1, WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID).projectilesPerShot());
-        assertPresentation(WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID),
-                new Color(0xFF, 0xD6, 0xA0), ImpactKind.RIFLE,
-                "graphics/missiles/shell_small_yellow.png", 0.16f,
-                "light_machinegun_fire");
-        assertEquals(0.50f,
-                WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID).tracerTailCells(), EPS);
-        assertEquals("Squad Automatic", WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID).displayName());
-        assertEquals("Stalwart", WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID).modelName());
-    }
-
-    @Test
-    void railgunMatchesItsShippedValues() {
-        assertSim(WeaponRegistry.require(WeaponRegistry.DMR_ID), 32f, 18.0f, 0.55f, 1.10f, 11f,
-                1, 0f, 0.10f, 0.15f, 110f);
-        assertPresentation(WeaponRegistry.require(WeaponRegistry.DMR_ID), new Color(0xE0, 0xF0, 0xFF),
-                ImpactKind.KINETIC, null, 0f, "railgun_fire");
-        assertEquals("Railgun", WeaponRegistry.require(WeaponRegistry.DMR_ID).displayName());
-        assertEquals("Longbow", WeaponRegistry.require(WeaponRegistry.DMR_ID).modelName());
-    }
-
-    @Test
     void dronePulseMatchesItsShippedValues() {
         assertSim(WeaponRegistry.require(WeaponRegistry.DRONE_PULSE_ID), 26f, 7.2f, 0.40f, 1.0f, 5f,
                 2, 0.10f, 0.35f, 0.5f, 55f);

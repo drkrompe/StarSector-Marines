@@ -29,6 +29,12 @@ import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.vehicle.HullLocations;
 import com.dillon.starsectormarines.battle.vehicle.HullTurretSection;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.control.MarineSprint;
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
+import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import java.awt.BasicStroke;
 import java.awt.geom.Line2D;
 import java.awt.Color;
@@ -150,8 +156,33 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, tank.status(), tank.plate(), false)));
         artifacts.add(new SnapshotArtifact("mech-sections-states-1920x1080-ui100.png",
                 sectionStates(renderer, context.modRoot())));
+        for (MagazineFrame frame : MAGAZINE_FRAMES) {
+            artifacts.add(new SnapshotArtifact("active-marine-magazine-" + frame.name() + "-1920x1080-ui100.png",
+                    activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, frame.snapshot(), null, false)));
+        }
         return artifacts;
     }
+
+    /** A controlled Marine's magazine at one moment: the real status row a primary would publish. */
+    private record MagazineFrame(String name, String weaponId, EquipmentGrade grade, int rounds,
+                                 float cooldown, float reload) {
+        BattleDirectControlStatus.Snapshot snapshot() {
+            WeaponDef weapon = WeaponRegistry.require(weaponId);
+            float cycle = InfantryCombatStats.cooldown(weapon, grade, SoldierProfile.REGULAR);
+            var status = BattleDirectControlStatus.marineWeapon(weapon, grade, cooldown, cycle, 0, 0f, rounds,
+                    reload, InfantryCombatStats.reload(weapon, grade, SoldierProfile.REGULAR));
+            var base = BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.MARINE, false);
+            return new BattleDirectControlStatus.Snapshot(base.entityId(), base.name(), base.carrier(),
+                    base.durability(), List.of(status), List.of(), MarineSprint.EMPTY);
+        }
+    }
+
+    private static final List<MagazineFrame> MAGAZINE_FRAMES = List.of(
+            new MagazineFrame("rook-full", "weapon.field-rifle", EquipmentGrade.SERVICE, 4, 0f, 0f),
+            new MagazineFrame("rook-cycling", "weapon.field-rifle", EquipmentGrade.SERVICE, 1, .2f, 0f),
+            new MagazineFrame("rook-reloading", "weapon.field-rifle", EquipmentGrade.SERVICE, 0, 0f, 1.8f),
+            new MagazineFrame("stalwart-belt", "weapon.squad-automatic", EquipmentGrade.MILSPEC, 27, 0f, 0f),
+            new MagazineFrame("longbow-masterwork", "weapon.dmr", EquipmentGrade.MASTERWORK, 10, 0f, 0f));
 
     /** The hover-only help tab: collapsed ({@code carrier == null}) or opened for a carrier. */
     private static BufferedImage helpFrame(HeadlessUiRenderer renderer, Path modRoot,
@@ -284,7 +315,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 draw(graphics, renderer, fixture.weapons(), weapons, layout.host(), uiScale);
                 draw(graphics, renderer, fixture.actions(), layout.activeActions(), layout.host(), uiScale);
             }
-            draw(graphics, renderer, plate, layout.activeSections(), layout.host(), uiScale);
+            if (plate != null) draw(graphics, renderer, plate, layout.activeSections(), layout.host(), uiScale);
         } finally {
             graphics.dispose();
         }
