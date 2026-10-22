@@ -101,24 +101,35 @@ public final class SpecSheetLayer {
             .spec-sheet-system .spec-sheet-stat-fill { background-color: #c79ce8; }
             .spec-sheet-mech .spec-sheet-stat-fill { background-color: #e2965c; }
             .spec-sheet-note { white-space: normal; }
-            .spec-sheet.spec-sheet-wide { width: 432px; }
-            .spec-sheet-seats { flex-direction: column; gap: 6px; }
-            .spec-sheet-seat-row { flex-direction: row; height: 60px; gap: 8px; }
-            .spec-sheet-seat {
-                width: 92px;
-                height: 50px;
+            .spec-sheet.spec-sheet-wide { width: 504px; }
+            .spec-sheet-seats { flex-direction: row; height: 146px; gap: 9px; }
+            .spec-sheet-team {
+                flex-direction: column;
+                width: 152px;
+                height: 136px;
                 padding: 4px;
+                gap: 4px;
                 border-width: 1px;
                 border-color: #1f3346;
                 background-color: #0e1a26;
             }
-            .spec-sheet-seat-image { width: 92px; height: 50px; }
+            .spec-sheet-team-label { height: 12px; text-align: center; color: #8b9aaf; }
+            .spec-sheet-seat-row { flex-direction: row; height: 58px; gap: 4px; }
+            .spec-sheet-seat {
+                width: 64px;
+                height: 48px;
+                padding: 4px;
+                border-width: 1px;
+                border-color: #2a4258;
+                background-color: #09131d;
+            }
+            .spec-sheet-seat-image { width: 64px; height: 48px; }
             .spec-sheet-seat-badge {
                 position: absolute;
-                left: 64px;
+                left: 38px;
                 top: 22px;
-                width: 26px;
-                height: 26px;
+                width: 28px;
+                height: 28px;
                 border-width: 1px;
                 border-color: #2c4a63;
                 background-color: #09131d;
@@ -146,12 +157,15 @@ public final class SpecSheetLayer {
     private final List<UiElement> notes = new ArrayList<>();
     private final UiElement seats;
     private final List<UiElement> seatRows = new ArrayList<>();
+    private final List<UiElement> teamBlocks = new ArrayList<>();
+    private final List<UiElement> teamLabels = new ArrayList<>();
     private final List<SeatTile> seatTiles = new ArrayList<>();
 
     private String accentClass;
     private int usedStats;
     private int usedNotes;
     private int usedSeatRows;
+    private int usedTeams;
     private boolean seatsAttached;
 
     private SpecSheetLayer(UiDocument document) {
@@ -243,7 +257,7 @@ public final class SpecSheetLayer {
         for (int index = usedStats - 1; index >= 0; index--) root.remove(statRows.get(index).row);
         for (int index = usedNotes - 1; index >= 0; index--) root.remove(notes.get(index));
         if (seatsAttached) root.remove(seats);
-        for (int index = usedSeatRows - 1; index >= 0; index--) seats.remove(seatRows.get(index));
+        for (int index = usedTeams - 1; index >= 0; index--) seats.remove(teamBlocks.get(index));
         usedStats = sheet.stats().size();
         usedNotes = sheet.notes().size();
 
@@ -252,7 +266,7 @@ public final class SpecSheetLayer {
             row.apply(sheet.stats().get(index));
             root.child(row.row);
         }
-        fillSeats(sheet.seats());
+        fillSeats(sheet.seats(), sheet.teams());
         for (int index = 0; index < usedNotes; index++) {
             UiElement note = note(index);
             note.text(sheet.notes().get(index));
@@ -261,30 +275,51 @@ public final class SpecSheetLayer {
     }
 
     /**
-     * Paints a squad-wide sheet's seats as fire teams, one row of
-     * {@link SpecSheet#TEAM_SIZE} tiles each, and widens the overlay to hold
-     * them. A single-item sheet has none and keeps the ordinary width.
+     * Paints a squad-wide sheet's seats as fire teams side by side, each a
+     * labelled two-by-two block of {@link SpecSheet#TEAM_SIZE} tiles — the
+     * grouping the squad card's muster already uses — and widens the overlay to
+     * hold them. A single-item sheet has none and keeps the ordinary width.
      */
-    private void fillSeats(List<SpecSheet.Seat> sheetSeats) {
+    private void fillSeats(List<SpecSheet.Seat> sheetSeats, List<String> teams) {
         seatsAttached = !sheetSeats.isEmpty();
         root.classed("spec-sheet-wide", seatsAttached);
-        usedSeatRows = 0;
+        usedTeams = 0;
         if (!seatsAttached) return;
-        usedSeatRows = (sheetSeats.size() + SpecSheet.TEAM_SIZE - 1) / SpecSheet.TEAM_SIZE;
-        for (int rowIndex = 0; rowIndex < usedSeatRows; rowIndex++) {
-            UiElement row = seatRow(rowIndex);
-            for (int index = row.children().size() - 1; index >= 0; index--) row.remove(row.children().get(index));
-            for (int column = 0; column < SpecSheet.TEAM_SIZE; column++) {
-                int seat = rowIndex * SpecSheet.TEAM_SIZE + column;
-                if (seat >= sheetSeats.size()) break;
-                SeatTile tile = seatTile(seat);
-                tile.apply(sheetSeats.get(seat));
-                row.child(tile.tile);
+        int perRow = SpecSheet.TEAM_SIZE / 2;
+        usedTeams = (sheetSeats.size() + SpecSheet.TEAM_SIZE - 1) / SpecSheet.TEAM_SIZE;
+        for (int team = 0; team < usedTeams; team++) {
+            UiElement block = teamBlock(team);
+            UiElement label = teamLabels.get(team);
+            label.text(team < teams.size() ? teams.get(team) : "");
+            for (int rowIndex = 0; rowIndex < 2; rowIndex++) {
+                UiElement row = seatRow(team * 2 + rowIndex);
+                for (int index = row.children().size() - 1; index >= 0; index--) row.remove(row.children().get(index));
+                for (int column = 0; column < perRow; column++) {
+                    int seat = team * SpecSheet.TEAM_SIZE + rowIndex * perRow + column;
+                    if (seat >= sheetSeats.size()) break;
+                    SeatTile tile = seatTile(seat);
+                    tile.apply(sheetSeats.get(seat));
+                    row.child(tile.tile);
+                }
             }
-            seats.child(row);
+            seats.child(block);
         }
-        height(seats, usedSeatRows * 60f + (usedSeatRows - 1) * 6f);
         root.child(seats);
+    }
+
+    private UiElement teamBlock(int index) {
+        while (teamBlocks.size() <= index) {
+            int team = teamBlocks.size();
+            UiElement label = new UiElement(ELEMENT_ID + "-team-" + team + "-label")
+                    .addClass("spec-sheet-team-label");
+            teamLabels.add(label);
+            teamBlocks.add(new UiElement(ELEMENT_ID + "-team-" + team)
+                    .addClass("spec-sheet-team")
+                    .child(label)
+                    .child(seatRow(team * 2))
+                    .child(seatRow(team * 2 + 1)));
+        }
+        return teamBlocks.get(index);
     }
 
     private UiElement seatRow(int index) {

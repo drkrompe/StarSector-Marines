@@ -67,6 +67,7 @@ import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretFireSystem;
 import com.dillon.starsectormarines.battle.unit.DeadBodySystem;
+import com.dillon.starsectormarines.battle.unit.BodyPileCap;
 import com.dillon.starsectormarines.battle.warship.LanceSweep;
 import com.dillon.starsectormarines.battle.warship.LanceSweepSystem;
 import com.dillon.starsectormarines.battle.warship.Warship;
@@ -742,6 +743,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final CreepDigestion creepDigestion = new CreepDigestion();
     /** The creep digesting the swarm's dead (`colony-breach-nouns.md`, Creep). */
     public CreepDigestion creepDigestion() { return creepDigestion; }
+    private final BodyPileCap bodyPileCap = new BodyPileCap();
+    /** The safety net on how many bodies lie in one place (`colony-breach-nouns.md`, Body pile cap). */
+    public BodyPileCap bodyPileCap() { return bodyPileCap; }
     /** Roofs the creep has stood on long enough cave in under it. */
     private CreepRoofCollapse creepRoofs;
     /** Trees the creep has climbed die under it. */
@@ -810,6 +814,18 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SwarmPackPlans swarmPackPlans;
     /** What each pack is doing as it moves (`colony-breach-nouns.md`, Pack movement). */
     public SwarmPackPlans swarmPackPlans() { return swarmPackPlans; }
+    /**
+     * Declares the open bores' creep and grows it to full at once, as creep
+     * that has stood for weeks; the trees it holds die. Setup only
+     * ({@code cordon-nouns.md}, The map).
+     */
+    public void matureCreep() {
+        if (simTickIndex != 0) throw new IllegalStateException("Creep is matured at setup");
+        boreCreep.sync(this);
+        if (creep == null) return;
+        creep.mature();
+        creepVegetation().look(this, 0);
+    }
     /** From the tremor on, the swarm director spawns only from living bores. */
     public void beginSwarmBoreSourcing() { swarmReinforcements.beginBoreSourcing(swarmBores); }
     /** The Colony Breach story, or {@code null} on every other battle. */
@@ -3629,6 +3645,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         boreCreep.sync(this);
         if (creep != null) creep.tick(simTickIndex);
         creepDigestion.tick(this);
+        bodyPileCap.tick(this);
         // Outposts after the creep has spread: they root on ground it has held a while.
         creepOutposts.tick(this);
         groundColonies.tick(this);

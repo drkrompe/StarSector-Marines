@@ -640,6 +640,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         renderer.getImpactFx().advance(frameSimDt);
         renderer.getGroundLights().advance(frameSimDt);
         renderer.getGroundLights().syncBoltLights(sim.getActiveShots());
+        renderer.getGroundLights().syncFireLights(sim.fireFieldIfPresent());
         // Contrail trails — push the leading-edge sample for each in-flight
         // contrail shot and age the lot. Real (unscaled) dt, not sim-time, so
         // trails keep dissipating during sim pause (matches the old render-frame
