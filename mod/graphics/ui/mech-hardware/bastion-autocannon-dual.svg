@@ -1,13 +1,83 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 225 200">
-  <rect x="10" y="30" width="76" height="92" rx="6" fill="#000000" fill-opacity="0.58"/>
-  <rect x="16" y="36" width="64" height="9" rx="3" fill="#ffffff" fill-opacity="0.5"/>
-  <rect x="90" y="47" width="106" height="18" rx="2" fill="#000000" fill-opacity="0.58"/>
-  <rect x="198" y="43" width="16" height="26" rx="3" fill="#000000" fill-opacity="0.58"/>
-  <rect x="94" y="49" width="100" height="4" fill="#ffffff" fill-opacity="0.3"/>
-  <rect x="90" y="87" width="106" height="18" rx="2" fill="#000000" fill-opacity="0.58"/>
-  <rect x="198" y="83" width="16" height="26" rx="3" fill="#000000" fill-opacity="0.58"/>
-  <rect x="94" y="89" width="100" height="4" fill="#ffffff" fill-opacity="0.3"/>
-  <ellipse cx="48" cy="156" rx="34" ry="34" fill="#000000" fill-opacity="0.58"/>
-  <ellipse cx="48" cy="156" rx="16" ry="16" fill="#ffffff" fill-opacity="0.5"/>
-  <ellipse cx="48" cy="156" rx="6" ry="6" fill="#000000" fill-opacity="0.58"/>
+  <g transform="translate(24.7 0) scale(0.7800)">
+  <polygon points="20,30 74,30 86,42 86,118 74,130 20,130 8,118 8,42" fill="#000000" fill-opacity="0.58"/>
+  <rect x="17" y="39" width="60" height="3" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="17" y="96" width="60" height="26" fill="#000000" fill-opacity="0.34"/>
+  <polygon points="91,45 133,45 136,48 136,68 133,71 91,71 88,68 88,48" fill="#000000" fill-opacity="0.58"/>
+  <rect x="138" y="51" width="52" height="14" fill="#000000" fill-opacity="0.58"/>
+  <polygon points="195,43 213,43 216,46 216,70 213,73 195,73 192,70 192,46" fill="#000000" fill-opacity="0.58"/>
+  <rect x="198" y="49" width="3" height="18" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="206" y="49" width="3" height="18" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="90" y="49.8" width="98" height="2.5" fill="#ffffff" fill-opacity="0.3"/>
+  <polygon points="91,91 133,91 136,94 136,114 133,117 91,117 88,114 88,94" fill="#000000" fill-opacity="0.58"/>
+  <rect x="138" y="97" width="52" height="14" fill="#000000" fill-opacity="0.58"/>
+  <polygon points="195,89 213,89 216,92 216,116 213,119 195,119 192,116 192,92" fill="#000000" fill-opacity="0.58"/>
+  <rect x="198" y="95" width="3" height="18" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="206" y="95" width="3" height="18" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="90" y="95.8" width="98" height="2.5" fill="#ffffff" fill-opacity="0.3"/>
+  <rect x="56" y="132" width="22" height="8" fill="#000000" fill-opacity="0.34"/>
+  <polygon points="20,142 80,142 86,148 86,182 80,188 20,188 14,182 14,148" fill="#000000" fill-opacity="0.58"/>
+  <rect x="22" y="152" width="56" height="3" fill="#ffffff" fill-opacity="0.3"/>
+  <rect x="22" y="163" width="56" height="3" fill="#ffffff" fill-opacity="0.3"/>
+  <rect x="22" y="174" width="56" height="3" fill="#ffffff" fill-opacity="0.3"/>
+  </g>
+  <polygon points="84.8,156.3 140.2,156.3 144.8,160.9 144.8,191.1 140.2,195.7 84.8,195.7 80.2,191.1 80.2,160.9" fill="#000000" fill-opacity="0.58"/>
+  <rect x="84.4" y="192.8" width="56.3" height="1.9" fill="#ffffff" fill-opacity="0.3"/>
+  <rect x="92" y="159.3" width="15.8" height="7.4" fill="#0d100e"/>
+  <rect x="87.8" y="163.5" width="7.4" height="7.4" fill="#0d100e"/>
+  <rect x="104.6" y="163.5" width="7.4" height="7.4" fill="#0d100e"/>
+  <rect x="87.8" y="167.7" width="7.4" height="7.4" fill="#0d100e"/>
+  <rect x="104.6" y="167.7" width="7.4" height="7.4" fill="#0d100e"/>
+  <rect x="87.8" y="171.9" width="24.2" height="7.4" fill="#0d100e"/>
+  <rect x="87.8" y="176.1" width="7.4" height="7.4" fill="#0d100e"/>
+  <rect x="104.6" y="176.1" width="7.4" height="7.4" fill="#0d100e"/>
+  <rect x="87.8" y="180.3" width="7.4" height="7.4" fill="#0d100e"/>
+  <rect x="104.6" y="180.3" width="7.4" height="7.4" fill="#0d100e"/>
+  <rect x="87.8" y="184.5" width="7.4" height="7.4" fill="#0d100e"/>
+  <rect x="104.6" y="184.5" width="7.4" height="7.4" fill="#0d100e"/>
+  <rect x="117.2" y="159.3" width="20" height="7.4" fill="#0d100e"/>
+  <rect x="113" y="163.5" width="7.4" height="7.4" fill="#0d100e"/>
+  <rect x="113" y="167.7" width="7.4" height="7.4" fill="#0d100e"/>
+  <rect x="113" y="171.9" width="7.4" height="7.4" fill="#0d100e"/>
+  <rect x="113" y="176.1" width="7.4" height="7.4" fill="#0d100e"/>
+  <rect x="113" y="180.3" width="7.4" height="7.4" fill="#0d100e"/>
+  <rect x="117.2" y="184.5" width="20" height="7.4" fill="#0d100e"/>
+  <rect x="93.6" y="160.6" width="12.6" height="4.7" fill="#d9dcd2"/>
+  <rect x="89.4" y="164.8" width="4.2" height="4.7" fill="#d9dcd2"/>
+  <rect x="106.2" y="164.8" width="4.2" height="4.7" fill="#d9dcd2"/>
+  <rect x="89.4" y="169" width="4.2" height="4.7" fill="#d9dcd2"/>
+  <rect x="106.2" y="169" width="4.2" height="4.7" fill="#d9dcd2"/>
+  <rect x="89.4" y="173.2" width="21" height="4.7" fill="#d9dcd2"/>
+  <rect x="89.4" y="177.4" width="4.2" height="4.7" fill="#d9dcd2"/>
+  <rect x="106.2" y="177.4" width="4.2" height="4.7" fill="#d9dcd2"/>
+  <rect x="89.4" y="181.6" width="4.2" height="4.7" fill="#d9dcd2"/>
+  <rect x="106.2" y="181.6" width="4.2" height="4.7" fill="#d9dcd2"/>
+  <rect x="89.4" y="185.8" width="4.2" height="4.7" fill="#d9dcd2"/>
+  <rect x="106.2" y="185.8" width="4.2" height="4.7" fill="#d9dcd2"/>
+  <rect x="118.8" y="160.6" width="16.8" height="4.7" fill="#d9dcd2"/>
+  <rect x="114.6" y="164.8" width="4.2" height="4.7" fill="#d9dcd2"/>
+  <rect x="114.6" y="169" width="4.2" height="4.7" fill="#d9dcd2"/>
+  <rect x="114.6" y="173.2" width="4.2" height="4.7" fill="#d9dcd2"/>
+  <rect x="114.6" y="177.4" width="4.2" height="4.7" fill="#d9dcd2"/>
+  <rect x="114.6" y="181.6" width="4.2" height="4.7" fill="#d9dcd2"/>
+  <rect x="118.8" y="185.8" width="16.8" height="4.7" fill="#d9dcd2"/>
+  <rect x="93.6" y="163.7" width="12.6" height="1.7" fill="#9ea397"/>
+  <rect x="89.4" y="167.9" width="4.2" height="1.7" fill="#9ea397"/>
+  <rect x="106.2" y="167.9" width="4.2" height="1.7" fill="#9ea397"/>
+  <rect x="89.4" y="172.1" width="4.2" height="1.7" fill="#9ea397"/>
+  <rect x="106.2" y="172.1" width="4.2" height="1.7" fill="#9ea397"/>
+  <rect x="89.4" y="176.3" width="21" height="1.7" fill="#9ea397"/>
+  <rect x="89.4" y="180.5" width="4.2" height="1.7" fill="#9ea397"/>
+  <rect x="106.2" y="180.5" width="4.2" height="1.7" fill="#9ea397"/>
+  <rect x="89.4" y="184.7" width="4.2" height="1.7" fill="#9ea397"/>
+  <rect x="106.2" y="184.7" width="4.2" height="1.7" fill="#9ea397"/>
+  <rect x="89.4" y="188.9" width="4.2" height="1.7" fill="#9ea397"/>
+  <rect x="106.2" y="188.9" width="4.2" height="1.7" fill="#9ea397"/>
+  <rect x="118.8" y="163.7" width="16.8" height="1.7" fill="#9ea397"/>
+  <rect x="114.6" y="167.9" width="4.2" height="1.7" fill="#9ea397"/>
+  <rect x="114.6" y="172.1" width="4.2" height="1.7" fill="#9ea397"/>
+  <rect x="114.6" y="176.3" width="4.2" height="1.7" fill="#9ea397"/>
+  <rect x="114.6" y="180.5" width="4.2" height="1.7" fill="#9ea397"/>
+  <rect x="114.6" y="184.7" width="4.2" height="1.7" fill="#9ea397"/>
+  <rect x="118.8" y="188.9" width="16.8" height="1.7" fill="#9ea397"/>
 </svg>

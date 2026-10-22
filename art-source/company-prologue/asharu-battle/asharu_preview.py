@@ -247,7 +247,7 @@ def shot(L, kf):
     notes.append('camera held at the key frame\'s framing')
     if spec.get('fx') or spec.get('shields'):
         notes.append('effects: proxies on placeholder timing')
-    if t_key is None and not held:
+    if t_key is None and poses and not held:
         notes.append('key frame time outside this shot')
     mp.begin_shot(seg['id'], seg['title'], ts, te, caption=seg['caption'], key_s=t_key, notes=notes)
 
