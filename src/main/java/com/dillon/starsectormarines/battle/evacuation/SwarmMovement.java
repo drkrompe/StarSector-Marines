@@ -94,11 +94,13 @@ public final class SwarmMovement {
     /**
      * Serial, before the unit update: brings every goal a body asked for up to
      * date. Prey sources are gathered here, before any body moves, so a
-     * field never depends on the order workers moved bodies in.
+     * field never depends on the order workers moved bodies in. Steps pay the
+     * fire's multipliers, so the swarm goes round a burning stand where it can.
      */
     public static void prepare(BattleSimulation sim) {
         SwarmFlowFields fields = sim.getGrid().swarmFlowFields();
         int tick = sim.getSimTickIndex();
+        fields.setStepCost(sim.fireHazard());
         for (SwarmGoal goal : SwarmGoal.values()) {
             if (!fields.isWanted(goal.ordinal(), tick)) continue;
             int[] sources = goal == SwarmGoal.PREY

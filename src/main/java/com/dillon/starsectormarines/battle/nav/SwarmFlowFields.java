@@ -36,6 +36,13 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
  * catches up. A rebuild in progress is not restarted by a further change; the
  * field it publishes carries the revision it started from and is rebuilt
  * again on the next cadence.
+ *
+ * <h2>Step cost</h2>
+ * A step costs its length times the multiplier of the cell it enters, from
+ * the field {@link #setStepCost} hands over (the fire's, `fire-nouns.md`,
+ * Pathing), so a body walks round a fire where there is a way round and
+ * through it where the goal lies beyond. Multipliers are clamped to
+ * {@link #MAX_STEP_MULTIPLIER}; without a field every multiplier is one.
  */
 public final class SwarmFlowFields {
 
@@ -57,7 +64,10 @@ public final class SwarmFlowFields {
     public static final int UNREACHABLE = Integer.MAX_VALUE;
     static final int CARDINAL_COST = 10;
     static final int DIAGONAL_COST = 14;
-    private static final int BUCKETS = 16;
+    /** The dearest a cell may make a step into it. */
+    public static final float MAX_STEP_MULTIPLIER = 10f;
+    /** A ring wider than the dearest step, as Dial's algorithm needs. */
+    private static final int BUCKETS = 256;
 
     public static boolean defaultEnabled() {
         return Boolean.parseBoolean(System.getProperty(ENABLED_PROPERTY, "true"));
@@ -70,6 +80,7 @@ public final class SwarmFlowFields {
     private final long[] lastSourceHash = new long[MAX_GOALS];
     private final int[][] fixedSources = new int[MAX_GOALS][];
     private final Integration[] building = new Integration[MAX_GOALS];
+    private RouteCostField stepCost;
 
     SwarmFlowFields(NavigationGrid grid) {
         this(grid, EXPANSIONS_PER_TICK);
@@ -94,6 +105,18 @@ public final class SwarmFlowFields {
      */
     public void setFixedSources(int goal, int[] cells) {
         fixedSources[goal] = cells == null ? null : cells.clone();
+    }
+
+    /**
+     * Serial: the per-cell multipliers steps pay from now on, or {@code null}
+     * for none. Every field built under another costing is stale from here.
+     */
+    public void setStepCost(RouteCostField cost) {
+        stepCost = cost;
+    }
+
+    private long stepCostRevision() {
+        return stepCost == null ? 0L : stepCost.revision();
     }
 
     /** The fixed source cells declared for a goal, or {@code null}. */
@@ -127,6 +150,7 @@ public final class SwarmFlowFields {
             Field current = published.get(goal);
             if (current != null) {
                 boolean stale = current.topologyRevision != grid.topologyRevision()
+                        || current.costRevision != stepCostRevision()
                         || lastSourceHash[goal] != sourceHash;
                 if (!stale || tick - current.builtTick < REFRESH_TICKS) return false;
             }
@@ -134,7 +158,7 @@ public final class SwarmFlowFields {
                 pending = new Integration(grid.getWidth() * grid.getHeight());
                 building[goal] = pending;
             }
-            pending.start(grid, sources, sourceCount, tick);
+            pending.start(grid, stepCost, sources, sourceCount, tick);
             lastSourceHash[goal] = sourceHash;
         }
         long started = System.nanoTime();
@@ -158,6 +182,15 @@ public final class SwarmFlowFields {
         }
     }
 
+    /** What a step into a cell is multiplied by: the costing's value, clamped to 1..{@link #MAX_STEP_MULTIPLIER}. */
+    private static float multiplier(RouteCostField cost, int cell, int x, int y) {
+        return cost == null ? 1f : Math.max(1f, Math.min(MAX_STEP_MULTIPLIER, cost.costAt(cell, x, y)));
+    }
+
+    private static int stepCost(int length, float multiplier) {
+        return multiplier == 1f ? length : Math.round(length * multiplier);
+    }
+
     /** Order-independent: the same set of source cells hashes the same in any order. */
     private static long hashSources(int[] sources, int count) {
         long sum = 0L;
@@ -179,21 +212,26 @@ public final class SwarmFlowFields {
     }
 
     /**
-     * An immutable integration: step distance (cardinal 10, diagonal 14) from
-     * each cell to the nearest source under the same step rule as A*.
+     * An immutable integration: step distance (cardinal 10, diagonal 14, each
+     * times the entered cell's multiplier) from each cell to the nearest
+     * source under the same step rule as A*.
      */
     public static final class Field {
         private final int width;
         private final int height;
         private final int[] distance;
         final long topologyRevision;
+        private final RouteCostField cost;
+        final long costRevision;
         final int builtTick;
 
-        Field(int width, int height, int[] distance, long topologyRevision, int builtTick) {
+        Field(int width, int height, int[] distance, long topologyRevision, RouteCostField cost, int builtTick) {
             this.width = width;
             this.height = height;
             this.distance = distance;
             this.topologyRevision = topologyRevision;
+            this.cost = cost;
+            this.costRevision = cost == null ? 0L : cost.revision();
             this.builtTick = builtTick;
         }
 
@@ -209,9 +247,10 @@ public final class SwarmFlowFields {
         /**
          * Up to {@code maxSteps} cells downhill from {@code (x, y)}, as a path
          * in {@link Paths} layout starting at the start cell. Each step goes to
-         * the nearest neighbour the grid lets this cell step into, ties to the
-         * lower direction index, and only ever strictly nearer, so the walk
-         * cannot loop. Empty when the start is unreachable or already a source.
+         * the nearest neighbour the grid lets this cell step into (under a step
+         * costing, the one whose distance plus the step into it is least), ties
+         * to the lower direction index, and only ever strictly nearer, so the
+         * walk cannot loop. Empty when the start is unreachable or already a source.
          *
          * <p>There is deliberately no crowd term. The occupancy map marks where
          * paths end, not where bodies stand, and every weight given it in the
@@ -237,17 +276,22 @@ public final class SwarmFlowFields {
                 int hereDistance = distance[here];
                 if (hereDistance == 0) break;
                 int bestIdx = -1;
-                int bestDistance = hereDistance;
+                long bestTotal = Long.MAX_VALUE;
                 for (int d = 0; d < directions; d++) {
                     int nx = cx + GridPathfinder.directionX(d);
                     int ny = cy + GridPathfinder.directionY(d);
                     if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
                     int next = ny * width + nx;
                     int nextDistance = distance[next];
-                    if (nextDistance >= bestDistance) continue;
+                    if (nextDistance >= hereDistance) continue;
+                    // Unweighted, the nearest neighbour; weighted, the step into it counts too.
+                    long total = cost == null ? nextDistance
+                            : (long) nextDistance + stepCost(d < GridPathfinder.FIRST_DIAGONAL_DIRECTION
+                            ? CARDINAL_COST : DIAGONAL_COST, multiplier(cost, next, nx, ny));
+                    if (total >= bestTotal) continue;
                     if (!GridPathfinder.canStep(here, cx, cy, next, d, width, height,
                             cellFlags, edges, null)) continue;
-                    bestDistance = nextDistance;
+                    bestTotal = total;
                     bestIdx = next;
                 }
                 if (bestIdx < 0) break;
@@ -264,7 +308,7 @@ public final class SwarmFlowFields {
 
     /**
      * One resumable integration by Dial's algorithm: integer step costs
-     * bounded by {@link #DIAGONAL_COST} let a ring of buckets replace the
+     * bounded by {@link #DIAGONAL_COST} times {@link #MAX_STEP_MULTIPLIER} let a ring of buckets replace the
      * heap, so a build is linear in the cells it reaches and can stop after
      * any expansion and carry on next tick. The bucket scratch is reused; the
      * distance array is fresh per build, because the published field is read
@@ -277,6 +321,7 @@ public final class SwarmFlowFields {
         private long pending;
         private int current;
         private long topologyRevision;
+        private RouteCostField cost;
         private int startedTick;
         private boolean finished = true;
 
@@ -287,7 +332,7 @@ public final class SwarmFlowFields {
 
         boolean done() { return finished; }
 
-        void start(NavigationGrid grid, int[] sources, int sourceCount, int tick) {
+        void start(NavigationGrid grid, RouteCostField cost, int[] sources, int sourceCount, int tick) {
             distance = new int[grid.getWidth() * grid.getHeight()];
             Arrays.fill(distance, UNREACHABLE);
             Arrays.fill(sizes, 0);
@@ -295,6 +340,7 @@ public final class SwarmFlowFields {
             pending = 0L;
             current = 0;
             topologyRevision = grid.topologyRevision();
+            this.cost = cost;
             startedTick = tick;
             finished = false;
             for (int i = 0; i < sourceCount; i++) {
@@ -325,14 +371,15 @@ public final class SwarmFlowFields {
                     settled++;
                     int cx = cell % width;
                     int cy = cell / width;
+                    float multiplier = multiplier(cost, cell, cx, cy);
                     for (int d = 0; d < directions; d++) {
                         // Reverse search: the predecessor steps into this cell.
                         int px = cx - GridPathfinder.directionX(d);
                         int py = cy - GridPathfinder.directionY(d);
                         if (px < 0 || py < 0 || px >= width || py >= height) continue;
                         int predecessor = py * width + px;
-                        int candidate = current + (d < GridPathfinder.FIRST_DIAGONAL_DIRECTION
-                                ? CARDINAL_COST : DIAGONAL_COST);
+                        int candidate = current + stepCost(d < GridPathfinder.FIRST_DIAGONAL_DIRECTION
+                                ? CARDINAL_COST : DIAGONAL_COST, multiplier);
                         if (candidate >= distance[predecessor]) continue;
                         if (!GridPathfinder.canStep(predecessor, px, py, cell, d, width, height,
                                 cellFlags, edges, null)) continue;
@@ -348,10 +395,12 @@ public final class SwarmFlowFields {
         }
 
         Field publish(int width, int height) {
-            Field field = new Field(width, height, distance, topologyRevision, startedTick);
+            Field field = new Field(width, height, distance, topologyRevision, cost, startedTick);
             distance = null;
+            cost = null;
             return field;
         }
+
 
         private void push(int slot, int cell) {
             if (sizes[slot] == buckets[slot].length) {

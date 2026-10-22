@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.nav;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -62,6 +64,59 @@ class SwarmFlowFieldsTest {
         assertTrue(usedGap, "crossed the wall somewhere other than its gap");
         assertEquals(18, Paths.destX(path));
         assertEquals(1, Paths.destY(path));
+    }
+
+    /** 20x9 open floor whose column x=10 costs ten times to enter, except where {@code openFrom} and below are free. */
+    private static RouteCostField costlyColumn(int openFrom) {
+        float[] cost = new float[20 * 9];
+        Arrays.fill(cost, 1f);
+        for (int y = 0; y < Math.min(openFrom, 9); y++) cost[y * 20 + 10] = 10f;
+        return new RouteCostField(cost, RouteCostField.nextRevision());
+    }
+
+    private static NavigationGrid openGrid() {
+        NavigationGrid grid = new NavigationGrid(20, 9);
+        for (int y = 0; y < 9; y++) for (int x = 0; x < 20; x++) grid.setWalkableFloor(x, y);
+        return grid;
+    }
+
+    @Test
+    void descentGoesRoundDearCellsWhereThereIsAWayRound() {
+        NavigationGrid grid = openGrid();
+        grid.swarmFlowFields().setStepCost(costlyColumn(7));
+        SwarmFlowFields.Field field = build(grid, 0, grid.index(18, 4));
+
+        int[] path = field.descend(grid, 2, 4, 64);
+        for (int i = 0; i < Paths.cellCount(path); i++) {
+            if (Paths.cellX(path, i) == 10) assertTrue(Paths.cellY(path, i) >= 7, "crossed the dear column at y=" + Paths.cellY(path, i));
+        }
+        assertEquals(18, Paths.destX(path));
+    }
+
+    @Test
+    void descentGoesThroughDearCellsWhenTheGoalLiesBeyond() {
+        NavigationGrid grid = openGrid();
+        grid.swarmFlowFields().setStepCost(costlyColumn(9));
+        SwarmFlowFields.Field field = build(grid, 0, grid.index(18, 4));
+
+        assertEquals(17 * SwarmFlowFields.CARDINAL_COST + 9 * SwarmFlowFields.CARDINAL_COST, field.distanceAt(1, 4),
+                "seventeen steps, the one into the dear column at ten times");
+        assertEquals(18, Paths.destX(field.descend(grid, 1, 4, 64)));
+    }
+
+    @Test
+    void aNewCostingRetiresTheFieldBuiltUnderTheOldOne() {
+        NavigationGrid grid = openGrid();
+        SwarmFlowFields fields = grid.swarmFlowFields();
+        int[] goal = {grid.index(18, 4)};
+        fields.refresh(GOAL, goal, 1, 0);
+        int plain = fields.field(GOAL).distanceAt(1, 4);
+        fields.setStepCost(costlyColumn(9));
+        assertTrue(fields.refresh(GOAL, goal, 1, SwarmFlowFields.REFRESH_TICKS));
+        assertTrue(fields.field(GOAL).distanceAt(1, 4) > plain);
+        fields.setStepCost(null);
+        assertTrue(fields.refresh(GOAL, goal, 1, SwarmFlowFields.REFRESH_TICKS * 2));
+        assertEquals(plain, fields.field(GOAL).distanceAt(1, 4));
     }
 
     @Test

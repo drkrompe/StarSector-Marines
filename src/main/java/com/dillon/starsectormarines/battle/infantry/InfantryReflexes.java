@@ -88,6 +88,22 @@ public final class InfantryReflexes {
     };
 
     /**
+     * Get out of the fire's way: out of a burning cell, or off fuel near one.
+     * Below the grenade, which kills in an instant where fire takes seconds, and
+     * above everything else: a marine who stays in the fire to shoot, treat or
+     * rejoin burns doing it.
+     *
+     * @see FireStepOut for where he goes
+     */
+    public static final Reflex IN_FIRE = new Reflex() {
+        @Override public String name() { return "IN_FIRE"; }
+        @Override public boolean interrupt(long unit, Squad squad,
+                                           ReflexContext context, BattleControl sim) {
+            return FireStepOut.stepOut(unit, sim);
+        }
+    };
+
+    /**
      * A marine who landed after his squad stepped off closes on it, and does
      * not start a fight of his own on the way.
      *
@@ -263,6 +279,7 @@ public final class InfantryReflexes {
             COOLDOWNS,
             FRIENDLY_CHARGE,
             KNOWN_GRENADE,
+            IN_FIRE,
             REJOIN,
             MORTAR_SECTION,
             TREATMENT,
