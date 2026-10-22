@@ -421,9 +421,10 @@ public final class FogOfWarService {
             conceal(ephemeralPrevCells[i]);
         }
 
-        int total = castInto(projected, 0);
-        total = castInto(carried, total);
-        total = castInto(vehicleSight, total);
+        int total = castInto(projected, 0, false);
+        // A sweep is carried by somebody on the ground: it reads walls, not cliffs, beyond its radius.
+        total = castInto(carried, total, true);
+        total = castInto(vehicleSight, total, false);
         ephemeralPrevCount = total;
 
         for (int i = 0; i < total; i++) {
@@ -515,12 +516,13 @@ public final class FogOfWarService {
     }
 
     /** Shadowcasts every source in one channel onto the end of the combined footprint. */
-    private int castInto(TemporarySources sources, int total) {
+    private int castInto(TemporarySources sources, int total, boolean grounded) {
         for (int s = 0; s < sources.count; s++) {
-            int count = Shadowcast.castFrom(grid,
-                    sources.cellX[s], sources.cellY[s],
-                    sources.range[s], sources.airLosRadius[s],
-                    shadowScratch, 0);
+            int count = grounded
+                    ? Shadowcast.castFromGround(grid, sources.cellX[s], sources.cellY[s],
+                            sources.range[s], sources.airLosRadius[s], shadowScratch, 0)
+                    : Shadowcast.castFrom(grid, sources.cellX[s], sources.cellY[s],
+                            sources.range[s], sources.airLosRadius[s], shadowScratch, 0);
             int needed = total + count;
             if (needed > ephemeralPrevCells.length) {
                 int newCap = Math.max(needed, ephemeralPrevCells.length * 2);

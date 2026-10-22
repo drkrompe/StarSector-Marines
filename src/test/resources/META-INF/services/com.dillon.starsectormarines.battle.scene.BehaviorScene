@@ -145,3 +145,4 @@ com.dillon.starsectormarines.battle.fire.FireIgnitionScene
 com.dillon.starsectormarines.battle.fire.FireRoundsScene
 com.dillon.starsectormarines.battle.evacuation.RoadblockScene
 com.dillon.starsectormarines.battle.evacuation.SwarmPackCrowdScene
+com.dillon.starsectormarines.battle.world.gen.elevation.HighGroundScene

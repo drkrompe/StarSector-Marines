@@ -343,3 +343,23 @@ to be **placed at the lift rather than at the start**: the main body walks the
 same axis on its way east and kills it before the second lift is in the air,
 which is `AirfieldSortieScene`'s scenery mistake arriving from the other
 direction.
+
+`HighGroundScene` (`high-ground`) puts six marines on the overlook test map's
+low ground and orders them onto the plateau past its west ramp, held by one
+defender on the rim above the ramp and one back from the edge
+(`elevation-nouns.md`). Its verdicts are mechanics: nobody steps between tiers
+except through a ramp cell, nobody stands on a face, every marine on top had
+stood on the ramp, and while every marine is below the defender back from the
+rim is never in their fog under the skyline rule. Who wins and when the first
+marine stands on top are readings, with path length and search time onto the
+top and past the plateau against the same meadow with no plateau.
+
+**The instrument nearly blamed the rule for a roster reshuffle.** The first
+version read the defender's per-unit fog visibility, which is keyed by roster
+slot: on the tick the rim defender died the slots moved, and the hidden
+defender read its dead neighbour's "visible" for one tick. The scene reads
+whether the defender's cell is revealed instead. Chasing it turned up a real
+leak on the way: a marine suit's sensor sweep hands the fog a wall-read radius,
+and the cast took any read radius as airborne, so a sweep at the cliff foot saw
+the whole plateau. A ground sweep now reads past higher ground only within its
+radius.

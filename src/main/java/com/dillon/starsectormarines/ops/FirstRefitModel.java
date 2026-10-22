@@ -134,7 +134,7 @@ final class FirstRefitModel {
         pathCards = List.of(Path.values()).stream().map(p -> FleetArmoryViewModel.weaponTile(
                 "refit-path:" + p.name(), new SquadWeaponDoctrine(p.weapons,
                 Strings.format("openingFirstRefitWayline", p.label(), (claimed ? FirstRefit.technologyKnown(roster, p) ? Strings.get("openingFirstRefitLearned") : Strings.get("openingFirstRefitFindSpecs") : "")),
-                p.description(), FirstRefit.weapons(p)), p == path, () -> selectPath(p))).toList();
+                p.description(), FirstRefit.weapons(p)), p == path, () -> selectPath(p)).asCompact()).toList();
         props.put("paths", pathCards);
         List<Map<String, Object>> billets = new ArrayList<>();
         currentKit = null; proposedKit = null;

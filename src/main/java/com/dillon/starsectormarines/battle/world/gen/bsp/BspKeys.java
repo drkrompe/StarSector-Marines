@@ -35,6 +35,14 @@ public final class BspKeys {
 
     private BspKeys() {}
 
+    /**
+     * How many plateaus a mission asks the outdoor landscape for
+     * ({@code elevation-nouns.md}, Generation). Absent is none, so a map that
+     * does not ask is unchanged; {@code -Dbattle.mapgen.plateaus=N} asks on
+     * every map, for evidence.
+     */
+    public static final GenKey<Integer> PLATEAUS = GenKey.of("plateaus");
+
     /** Conquest zoning overlay (beach → port → city → fortress bands). Null in legacy mode. */
     public static final GenKey<BiomeMap> BIOME_MAP = GenKey.of("biomeMap");
 

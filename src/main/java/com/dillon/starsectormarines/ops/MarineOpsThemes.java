@@ -70,6 +70,10 @@ final class MarineOpsThemes {
                 .danger-surface { background-color: #3d2a26; border-color: #e98b83; }
                 .edge-surface { background-color: #253b38; border-color: #a7ccc4; }
                 .formation-select { background-color: transparent; background-image: none; }
+                .spec-card { background-color: #09131d; background-image: none; border-style: solid; border-color: #53c6e8; color: #d5deea; }
+                .spec-card.spec-sheet-armor { border-color: #dfb84d; }
+                .spec-card:hover { background-color: #0e1a26; }
+                .spec-card.selected { background-color: #16242f; border-color: #f2cf68; border-style: solid; }
                 .formation-select:hover { background-color: #ffffff08; }
                 .formation.stationed .formation-select:disabled { opacity: 0.72; }
                 #marine-ops-page-nav {

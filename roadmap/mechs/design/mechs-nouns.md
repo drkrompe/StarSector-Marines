@@ -705,7 +705,7 @@ LRM-15 are the anti-armor racks.
   This is the one place penetration enters the band (Family and doctrine, duel
   range), because penetration is what a warhead is chosen for.
 - **Patterns.** A Frag rack is a sidegrade of its AT rack: the same tier, the
-  same footprint and so the same mass, and a slightly smaller rare-metal bill.
+  same footprint and so the same mass, and so the same bill.
   The navies (Hegemony, Tri-Tachyon) weight up the Advanced AT racks. Pirates,
   independents and the Luddic Path weight up the Frag racks. A new company knows
   both SRM-5s, and Castle's recovered spare for Wayward is the Frag one, since
@@ -1119,8 +1119,18 @@ support sortie, subject only to practical runtime resources.
   at a vacant pad clears the chassis selection and exposes fabrication patterns rather
   than rendering chassis controls against nothing. Lance browsing remains a
   separate direct-jump surface.
-- Fabrication spends ordinary player-fleet supplies, heavy machinery, metals, and
-  rare metals. A shared icon-and-count strip shows fleet material stock; each
+- Fabrication spends three ordinary player-fleet materials: metals, heavy machinery
+  and transplutonics (the base game's `rare_metals`). The lab spends no supplies.
+  **Hardware is priced, not authored.** A weapon is worth its mass (footprint, tier
+  weight and heavy build) at a common rate, times its access tier; an internal is
+  worth its role's stock part, times its tier. What the part is made of decides
+  which materials pay that worth: plate is mostly metals, mechanisms and engines
+  mostly machinery, energy weapons, guidance and capacitance mostly
+  transplutonics. A bigger or rarer part therefore costs more without a second
+  table to keep in step with the first (`MechFabricationCatalog.weaponValue`).
+  Chassis and vehicle bills stay authored, because they carry the armor-per-credit
+  parity between hulls and walkers. Workshop tooling saves a fifth of the heavy
+  machinery (and of a boat job's supplies). A shared icon-and-count strip shows fleet material stock; each
   fabrication pattern shows only its required quantities beside commodity icons.
   Hover details supply material names, exact cargo counts and shortages. Icons and
   names resolve from the base game's live commodity specifications, so the Mech Lab

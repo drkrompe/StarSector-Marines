@@ -6,6 +6,10 @@ import com.dillon.starsectormarines.battle.world.gen.PatchField;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
+import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationBrush;
+import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationLayout;
+import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationPlan;
+import com.dillon.starsectormarines.battle.world.gen.elevation.PlateauPlanner;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestBrush;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestField;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestPlan;
@@ -46,10 +50,14 @@ public final class OutdoorLandscapeStage implements GenStage {
         List<int[]> brookCells = runBrooks(c, landscape);
         boolean[] reserved = reservations(c);
         reserveTracks(c, landscape, reserved);
-        for (int[] cell : brookCells) reserve(c, reserved, cell[0] - 2, cell[1] - 2, cell[0] + 2, cell[1] + 2);
+        // Keep crowns off the banks too: a brook is a firebreak only if nothing that burns overhangs it.
+        int bank = landscape.brooks().stream().mapToInt(Landscape.Brook::width).max().orElse(3) / 2 + 2;
+        for (int[] cell : brookCells) reserve(c, reserved, cell[0] - bank, cell[1] - bank, cell[0] + bank, cell[1] + bank);
         // Own substream: absent nature never moves facilities, force positions or later RNG draws.
         Random random = new Random(c.seed ^ 0x574f4f444c414e44L);
         if (c.topology.terrainSurface() == null) hills(c, surface, reserved, random);
+        int plateaus = plateausWanted(c);
+        if (plateaus > 0) plateaus(c, reserved, plateaus, new Random(c.seed ^ 0x504c4154L));
         if (surface == SurfacePalette.VERDANT) trees(c, reserved, landscape.woodland());
         else FormationBrush.scatter(c,surface,reserved);
         // Hills, trees and formations turn cells non-walkable after TacticalRegionStage
@@ -147,6 +155,37 @@ public final class OutdoorLandscapeStage implements GenStage {
             }
         }
         if (!plan.strokes().isEmpty()) TerrainBrush.stamp(plan, c.grid, c.topology, reserved);
+    }
+
+    private static int plateausWanted(GenContext c) {
+        Integer asked = c.get(BspKeys.PLATEAUS);
+        return asked != null ? asked : Integer.getInteger("battle.mapgen.plateaus", 0);
+    }
+
+    /**
+     * Raised ground the mission asked for: plateaus on open ground clear of
+     * every reservation and of the hills, each ramped toward the nearest
+     * reserved ground, so it overlooks what the host keeps open and is climbed
+     * from it. Own random stream, so asking for none changes nothing.
+     */
+    private static void plateaus(GenContext c, boolean[] reserved, int count, Random random) {
+        int w = c.width;
+        ElevationPlan plan = PlateauPlanner.plan(c.width, c.height, c.seed ^ 0x504c4154L, count, random,
+                i -> !reserved[i] && openGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
+                i -> reserved[i],
+                layout -> keepsAccess(c, layout));
+        if (plan != null) ElevationBrush.stamp(plan, c.grid, c.topology, reserved);
+    }
+
+    /** Whether the ground around a layout's faces stays one connected piece once they close. */
+    private static boolean keepsAccess(GenContext c, ElevationLayout layout) {
+        int l = c.width, b = c.height, r = -1, t = -1;
+        for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) {
+            if (!layout.touched(x, y)) continue;
+            l = Math.min(l, x); r = Math.max(r, x); b = Math.min(b, y); t = Math.max(t, y);
+        }
+        return r < 0 || LandscapeAccess.canClose(c.grid, new boolean[c.width * c.height], l, b, r, t,
+                layout::isFace);
     }
 
     private static TerrainPlan.Stroke ridge(GenContext c,SurfacePalette surface,int x,int y,int radius,int attempt) {

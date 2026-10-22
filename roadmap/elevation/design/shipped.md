@@ -8,3 +8,5 @@ Written: 2026-10-22
 | --- | --- | --- | --- |
 | elevation-grid | 2026-10-22 | session/elevation | `elevation-nouns.md` (Vocabulary, Movement, Generation) |
 | elevation-sight-fire | 2026-10-22 | session/elevation | `elevation-nouns.md` (Sight, Combat) |
+| elevation-generation | 2026-10-22 | session/elevation | `elevation-nouns.md` (Generation, Look) |
+| elevation-scene | 2026-10-22 | session/elevation | `behavior-scenes.md` (high-ground); `elevation-nouns.md` (Sight: sensor sweeps) |
