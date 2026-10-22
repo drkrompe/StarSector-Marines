@@ -11,9 +11,12 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.Set;
 import java.util.Locale;
 
@@ -26,7 +29,9 @@ import java.util.Locale;
  * and the second burn is drawn there as the front crosses it and once it has
  * passed; the densest grove as its crowns catch; and the whole map mid-burn and
  * after. The front, the grove and the whole map mid-burn are drawn again at night,
- * with no lamps, so what is lit there is lit by the fire.
+ * with no lamps, so what is lit there is lit by the fire. The front is drawn close up
+ * as it crosses grass, day and night, and three short GIFs play the flames: the
+ * front at play zoom, the front close up, and the grove at night.
  */
 public final class FireColonySnapshotSuite implements SnapshotSuite {
 
@@ -37,6 +42,8 @@ public final class FireColonySnapshotSuite implements SnapshotSuite {
     /** Cells across close up: 96 px a cell. */
     private static final float CLOSE_CELLS = 20f;
     private static final int MAX_TICKS = 30 * 240;
+    /** GIF frames: one every two ticks, 15 a second of battle, played at that rate. */
+    private static final int GIF_FRAMES = 30, GIF_STEP = 2, GIF_DELAY_MS = 66;
 
     @Override public String id() { return "fire-colony"; }
 
@@ -61,6 +68,7 @@ public final class FireColonySnapshotSuite implements SnapshotSuite {
             edge = edgeSpot(sim, w, h, window);
             grove = groveCentre(sim, ignite, w);
         }
+        int[] front = frontCell(ignite, w, window);
         int frontTick = medianIgnite(ignite, w, window[0], window[1], WIN_W, WIN_H);
         int groveTick = grove == null ? -1 : medianIgnite(ignite, w, grove[0] - 4, grove[1] - 4, 8, 8);
 
@@ -85,26 +93,63 @@ public final class FireColonySnapshotSuite implements SnapshotSuite {
             shots.add(new Shot(endTick + 30, "07-grove-close.png", groveClose, "close: burnt ground under the grove"));
         }
         shots.add(new Shot(frontTick + 60, "08-night-front.png", play, "night: the front crossing grass, road and pavement", true));
+        BattleReviewFrameRenderer frontClose = new BattleReviewFrameRenderer(context.modRoot(), FRAME_W, FRAME_H,
+                front[0] + 0.5f, front[1] + 0.5f, CLOSE_CELLS);
+        shots.add(new Shot(front[2] + 20, "11-front-close.png", frontClose, "close: the front crossing grass"));
+        shots.add(new Shot(front[2] + 20, "12-night-front-close.png", frontClose, "night, close: the front crossing grass", true));
+        for (int k = 0; k < GIF_FRAMES; k++) {
+            shots.add(new Shot(frontTick + 60 + k * GIF_STEP, null, play, "front crossing grass, road and pavement", false, "front.gif"));
+            shots.add(new Shot(front[2] + 20 + k * GIF_STEP, null, frontClose, "close: the front crossing grass", false, "front-close.gif"));
+            if (groveView != null && groveTick >= 0)
+                shots.add(new Shot(groveTick + 90 + k * GIF_STEP, null, groveView, "night: the grove as its crowns catch", true, "night-grove.gif"));
+        }
         shots.add(new Shot(endTick / 2, "09-night-whole-mid.png", whole, "night: whole map, mid-burn", true));
         if (groveView != null && groveTick >= 0) shots.add(new Shot(groveTick + 90, "10-night-grove.png", groveView, "night: the grove as its crowns catch", true));
         shots.sort((a, b) -> Integer.compare(a.tick, b.tick));
+        Map<String, List<BufferedImage>> gifs = new TreeMap<>();
         try (BattleSimulation sim = CreepVegetationSnapshotSuite.verdantColony()) {
             FireField fire = light(sim);
             int tick = 0;
             for (Shot shot : shots) {
                 for (; tick < shot.tick; tick++) fire.tick(tick);
                 sim.getTopology().setNightLighting(shot.night ? NIGHT : null);
-                out.add(new SnapshotArtifact(shot.file, shot.renderer.render(sim, caption(shot.view, tick))));
+                // The flames' clock runs with the battle's, so a GIF plays them at their own pace.
+                BufferedImage frame = shot.renderer.atClock(tick / 30f).render(sim, caption(shot.view, tick));
+                if (shot.gif != null) gifs.computeIfAbsent(shot.gif, g -> new ArrayList<>()).add(frame);
+                else out.add(new SnapshotArtifact(shot.file, frame));
             }
         }
+        for (Map.Entry<String, List<BufferedImage>> gif : gifs.entrySet())
+            out.add(SnapshotArtifact.colorAnimation(gif.getKey(), gif.getValue(), GIF_DELAY_MS));
         out.sort((a, b) -> a.relativePath().compareTo(b.relativePath()));
         return out;
     }
 
-    private record Shot(int tick, String file, BattleReviewFrameRenderer renderer, String view, boolean night) {
+    private record Shot(int tick, String file, BattleReviewFrameRenderer renderer, String view, boolean night, String gif) {
         Shot(int tick, String file, BattleReviewFrameRenderer renderer, String view) {
-            this(tick, file, renderer, view, false);
+            this(tick, file, renderer, view, false, null);
         }
+        Shot(int tick, String file, BattleReviewFrameRenderer renderer, String view, boolean night) {
+            this(tick, file, renderer, view, night, null);
+        }
+    }
+
+    /**
+     * A grass cell in the play window that the first burn lit at about the window's median tick, and that tick:
+     * the front is crossing it then.
+     */
+    private static int[] frontCell(int[] ignite, int w, int[] window) {
+        int median = medianIgnite(ignite, w, window[0], window[1], WIN_W, WIN_H);
+        int[] best = {window[0] + WIN_W / 2, window[1] + WIN_H / 2, Math.max(0, median)};
+        int bestGap = Integer.MAX_VALUE;
+        for (int y = window[1] + 6; y < window[1] + WIN_H - 6; y++)
+            for (int x = window[0] + 8; x < window[0] + WIN_W - 8; x++) {
+                int t = ignite[y * w + x];
+                if (t < 0) continue;
+                int gap = Math.abs(t - median);
+                if (gap < bestGap) { bestGap = gap; best = new int[]{x, y, t}; }
+            }
+        return best;
     }
 
     /** A dark night with no lamps: whatever is lit is lit by the fire. */

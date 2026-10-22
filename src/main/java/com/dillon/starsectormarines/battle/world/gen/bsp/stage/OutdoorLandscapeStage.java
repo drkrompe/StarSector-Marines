@@ -216,13 +216,15 @@ public final class OutdoorLandscapeStage implements GenStage {
     /**
      * A plan's tracks cleared to bare earth before anything grows: open natural
      * ground on a track becomes dirt and loses its shrubs. A building, a road or
-     * a place on the track is left as it stands.
+     * a place on the track is left as it stands, but a field's crop rows are cut
+     * through, so a track is unbroken bare earth across farmland (a firebreak).
      */
     private static void clearTracks(GenContext c, Landscape landscape) {
         for (Landscape.Track track : landscape.tracks()) {
             for (int y = Math.max(0, track.y0()); y <= Math.min(c.height - 1, track.y1()); y++)
                 for (int x = Math.max(0, track.x0()); x <= Math.min(c.width - 1, track.x1()); x++) {
-                    if (!openGround(c, x, y)) continue;
+                    if (!naturalGround(c, x, y)) continue;
+                    c.topology.setSurface(x, y, 0);
                     c.topology.setGroundKind(x, y, GroundKind.DIRT);
                     c.topology.setNatureOverlayIndex(x, y, -1);
                 }
@@ -277,7 +279,8 @@ public final class OutdoorLandscapeStage implements GenStage {
                     int x = centre[0] + dx, y = centre[1] + dy;
                     if (x < 0 || y < 0 || x >= c.width || y >= c.height) continue;
                     if (c.topology.getGroundKind(x, y) != GroundKind.WATER) continue;
-                    c.topology.setGroundKind(x, y, GroundKind.SAND);
+                    // A stony bed, not sand: creep over it is a film that does not burn, so a ford holds as a break.
+                    c.topology.setGroundKind(x, y, GroundKind.STONE);
                     c.grid.setWalkable(x, y, true);
                     c.grid.setEdgeCoverSuppressed(x, y, false);
                 }
@@ -347,13 +350,18 @@ public final class OutdoorLandscapeStage implements GenStage {
     }
 
     private static boolean openGround(GenContext c, int x, int y) {
+        return naturalGround(c, x, y) && c.topology.getSurface(x, y) == 0;
+    }
+
+    /** Walkable natural ground outside any building, door, fixture or road, whatever surface dresses it. */
+    private static boolean naturalGround(GenContext c, int x, int y) {
         boolean natural = switch (c.topology.getGroundKind(x, y)) {
             case GRASS, DIRT, STONE, SAND, SNOW -> true;
             default -> false;
         };
         return natural && c.grid.isWalkable(x, y) && !c.grid.isDoorway(x, y)
                 && !c.topology.isWall(x, y) && !c.topology.isFixture(x, y)
-                && c.topology.getBuildingId(x, y) == 0 && c.topology.getSurface(x, y) == 0
+                && c.topology.getBuildingId(x, y) == 0
                 && (c.topology.roadSurface() == null || c.topology.roadSurface().underlay(x, y) == null);
     }
 

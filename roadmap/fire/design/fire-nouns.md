@@ -59,10 +59,17 @@ it, and a wreck is an igniter (Starting fires).
 `WATER`, masonry rubble, rock, any wall heavier than a light one, anything of
 a fortified structure, and ground that has already burnt.
 
-**Creep over a road is fuel.** Paving stops a fire only while it is bare. In
-country the creep has overgrown, no road is a firebreak; the only break is
-one somebody clears or burns, which is what makes the burn line the way in
-(the `fire-line` scene's first draft lost its road to exactly this).
+**Creep over cleared ground is a film.** Creep is fuel where it has ground to
+feed it: over grass, brush or a crown it burns, living or dead. Over cleared
+ground with nothing else on the cell (bare `DIRT`, any paving, `STRIPED`) it
+is a thin film that does not burn, so a road, a ride or a bare yard keeps its
+firebreak after a bloom has grown over it, and a burn in creep country stops
+at each break until something relights it past (the owner's pick, "firebreaks
+hold"). `SAND` and `SNOW` keep creep fuel: they are a biome's open ground, not
+a cleared break. A break holds when it is wider than heat crosses: two cells
+against a grass, brush or creep fire, three against a crown fire, four
+against a crown fire in a strong wind (Wind).
+`-Dbattle.fire.creepFilm=false` is the control: creep burns over any ground.
 
 **Ignition.** A cell catches when its soaked-up heat passes its fuel's
 ignition. Heat comes from burning neighbours and from an **igniter**: an
@@ -274,13 +281,26 @@ nothing is drawn for a battle that never lit anything.
   colour target with the creep) and its CPU model (`ScorchShading`) draws
   review frames; `shaderEvidence` holds the two to the same pixels.
 - **Glow** is a warm wash over each burning cell, under its flames.
-- **Flames** are restrained tongues from the existing smoke-and-fire sheet,
-  smaller than a sheet frame and a little transparent so the ground and the
-  tree read through the fire, two to a
-  burning cell and three to a crown, each on its own seeded phase and rate,
-  sized by intensity, so a front reads as a line of fire at play zoom and a
-  crown fire stands taller than a grass fire. Zoomed far out a cell keeps one
-  tongue and its glow.
+- **Flames** are seen from straight above, as the rest of the battle is:
+  patches of burning ground, irregular, with several hot spots and a ragged
+  rim, never a starburst (a ring of long tongues round one core reads from
+  above as a blast), from a sheet of their own
+  (`graphics/fx/fire_topdown_<look>.png`, a bed's eight-frame loop and a grass
+  fire's few small flame islands). Each is drawn larger than its cell, so a
+  front's patches run together into one carpet. The fuel sets the bed: grass
+  burns as islands, brush, creep and debris as one bed, a building as two, a
+  crown as three large ones, so a crown fire spreads wider than a grass fire. Inside a
+  burn, where a cell has fire on every side, the beds thin and fade, so a
+  fire's edge burns brightest and the ground and units in a burnt-over area
+  still read. Each bed
+  is turned to its own angle, starts its loop at its own frame and rate and
+  turns slowly as it burns, and at play zoom it fades from one frame into the
+  next, so neither the loop nor the grid shows; intensity sets its size and
+  strength, and it is a little transparent so ground and units read through.
+  Zoomed far out a cell keeps one bed and its glow. The sheet is built
+  geometry first (`art-source/fx/fire-topdown/`: a code-drawn guide reskinned
+  by ImageGen); `-Dbattle.render.fireLook=<look>` picks a sheet, and `legacy`
+  draws the old side-view tongues off vanilla's smoke-and-fire sheet.
 - **Embers** are a spark rising over each of the hottest cells, at play zoom
   only.
 - **Charred trees.** A tree whose middle burns darkens as it burns and is

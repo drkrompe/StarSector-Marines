@@ -326,27 +326,29 @@ or satchel therefore follows the Weapon slot without being reclassified as a
 ballistic `WeaponDef`.
 
 The Loadout screen follows the Mech Lab gantry's arrangement: the stores on the
-left (the card browser), the thing being fitted in the centre (the current and
-proposed comparison), and its summary on the right. The right column opens on the
-squad's two cards, each with its face, kind, FIRE or GUARD rating and the
-Restricted seal when it bears one, above the squad's billets.
+left (the card browser) and the thing being fitted beside them, which here is the
+whole squad. The squad view opens on the squad's two issued cards, each with its
+face, kind, FIRE or GUARD rating and the Restricted seal when it bears one, beside
+the selected marine and the Test Loadout action.
 
-The two selected definitions compose into one exact twelve-billet preview. Routine
-fitting shows all twelve current billets in three fire-team columns of four. Each
-square names its occupant, readiness, actual weapon and armor sprites, and whether
-the proposed issue changes that billet. Selection inspects one billet without
-changing the squad-wide transaction. Personnel careers and recovery management
-remain in Barracks.
+The two selected definitions compose into one exact twelve-billet preview. Below
+the cards the squad stands as three fire teams of two by two. Each marine's tile
+names its occupant and readiness and whether the proposed issue changes them, and
+shows a portrait of the kit they would wear. Its four kit lines (primary weapon,
+armour, special equipment, integral system) give what the marine carries now with
+the proposed item beneath in gold where the selected card changes it, and five
+numbers (sustained output, range, penetration, armour, movement) compare now and
+proposed the same way, weapon figures using that marine's own profile. Hovering a
+kit line opens the shared spec sheet of the item it would issue; the bindings read
+the live projection, so changing billets or cards needs no rebinding. Selection
+picks the marine Test Loadout fields without changing the squad-wide transaction.
+A vacancy shows the planned issue without inventing an equipped soldier. Personnel
+careers and recovery management remain in Barracks.
 
-The adjacent comparison pairs current and proposed primary weapon, armor and suit
-system, and special equipment. Real equipment sprites, catalog names, exact values,
-and SVG-marked paired meters make the tradeoff visible. Weapon penetration is shown
-alongside damage, range, accuracy, and sustained output. Both sides use the same
-catalog-wide scales and the selected marine's profile for weapon accuracy and output.
-Hovering either item opens its shared spec sheet; changing billets preserves those
-bindings. A vacancy shows the planned issue without inventing an equipped soldier.
-
-Weapon Loadouts and Tactic Sheets share the left-hand browser. Each card in it
+Weapon cards and tactic sheets share the left-hand browser, under its Weapons and
+Equipment tabs, filtered by tier (I to IV). Each card is drawn as a licence in
+the spec sheet's own style (heading and crest, issuer stamp, metered rating), so a
+card and the sheet it opens elsewhere are one design. Each card
 paints its twelve seats as three fire teams of two by two, each seat's weapon or
 suit with its special or integral system on the opposite corner: the picture the
 Barracks hover paints, so a card reads the same on both screens. A new company's

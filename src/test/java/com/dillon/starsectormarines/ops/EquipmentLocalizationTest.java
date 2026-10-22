@@ -104,10 +104,18 @@ class EquipmentLocalizationTest {
         try (var strings = new HeadlessStrings(Path.of("mod"), text ->
                 List.of("DMG", "RNG", "ACC", "DPS", "PEN", "ARMOR", "MOVE", "RESIST", "EVASION").contains(text) ? "Same translated label" : text)) {
             var after = LoadoutInspection.project(roster, squad, preview, 0, ignored -> {});
-            var oldItems = (List<Map<String, Object>>) before.get("items");
-            var newItems = (List<Map<String, Object>>) after.get("items");
-            for (int i = 0; i < oldItems.size(); i++) assertEquals(oldItems.get(i).get("stats"), newItems.get(i).get("stats"));
-            assertEquals(5, ((List<?>)newItems.get(0).get("stats")).size());
+            var oldStats = (List<Map<String, Object>>) firstBillet(before).get("stats");
+            var newStats = (List<Map<String, Object>>) firstBillet(after).get("stats");
+            assertEquals(oldStats.stream().map(row -> row.get("id")).toList(),
+                    newStats.stream().map(row -> row.get("id")).toList());
+            assertEquals(5, newStats.size());
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> firstBillet(Map<String, Object> inspection) {
+        var team = ((List<Map<String, Object>>) inspection.get("teams")).get(0);
+        var row = ((List<Map<String, Object>>) team.get("rows")).get(0);
+        return ((List<Map<String, Object>>) row.get("billets")).get(0);
     }
 }
