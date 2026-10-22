@@ -103,6 +103,8 @@ public final class SwarmPackPlans {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long body = sim.liveUnitAt(i);
             if (sim.identity().type(body) != UnitType.SWARM_RUNNER) continue;
+            // A scavenger fetches the dead on its own errand; it neither anchors nor keeps a place.
+            if (sim.swarmHarvest().isScavenger(body)) continue;
             int id = packs.packIdOf(body);
             if (id == 0 || !packs.isStanding(id)) continue;
             members.computeIfAbsent(id, k -> new ArrayList<>()).add(body);

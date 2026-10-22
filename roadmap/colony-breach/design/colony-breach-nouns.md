@@ -366,7 +366,22 @@ Laws:
   an ordinary Runner to shoot.
 - Only a Runner carries, and only what it killed itself or finds loose. A
   Brute's or a Spitter's kill, or a body shot down by the company, stays where
-  it fell. No body is seized while no bore lives, because there is nowhere to
+  it fell.
+- **The swarm recycles its own dead.** A dead Runner lies loose, to be taken
+  up and dragged home like any load. At the bore it is worth half a colonist of
+  biomass, and it is counted apart (recycled), never as a seizure or a
+  delivery, so it raises no harvest beat. A Brute or a Spitter is too heavy and
+  is left to the creep.
+- **Attack packs and scavenger packs** (owner, 2026-10-21). The dead lie where
+  the fighting is, where every Runner has something to fight, so a bore sends
+  its surges out by turns as an attack pack and a scavenger pack, the latter
+  only while at least three of the swarm's dead lie loose. A scavenger goes for
+  the nearest of the dead anywhere on the field and drags it home, fighting only
+  what is already within its reach; with nothing left to fetch it attacks like
+  any Runner. Any Runner with nothing to fight also fetches the dead within
+  eight cells. So the killing ground in front of a defence is cleared by a
+  visible stream of carriers, each an ordinary Runner to shoot, and a pack out
+  scavenging is a pack not attacking. No body is seized while no bore lives, because there is nowhere to
   take it.
 - Never a power suit, a machine or a structure: harvest takes bodies on foot.
 - Evacuees in the cohort are never harvested while their escort lives: one
@@ -564,6 +579,15 @@ its living spore colonies and the ticks it opened and collapsed.
 behaviour. A strain is a designed stage of the one organism (see *Origin*), not
 another animal: every strain is the Runner's body plan and chitin specialised
 for one job in the cycle, and reads that way on screen.
+
+A Runner, Brute or Matriarch casts one soft ellipse laid along its body rather
+than the round blob every other body casts: its drawn mass seen from above
+(`SwarmFootprint`, legs and spines left out), scaled by its growth stage, turned
+with its heading and set down-sun so its near edge sits on the body's centre,
+the same rule a round body's shadow keeps. One sprite a body, as every body
+casts, so a swarm's shadows cost what a squad's do; two blobs at shoulders and
+hips would double that and darken where they overlap, and a spine's bend does
+not read in a soft shadow at play zoom.
 
 - **Runner** — the shipped 20 HP melee body. Volume. It is drawn on its own
   skeleton (`RavRunnerRig`), not on the layered infantry composition: a hunched
@@ -829,6 +853,13 @@ In `hive-creep.md`.
   crossed, and filled over about a minute and a half rather than at once: its
   coverage is its age, so a newly reached wall carries only veins and an old
   one is crusted over. It reads as a matter of time.
+- **The creep digests the swarm's dead** (`CreepDigestion`). A strain body
+  lying on living creep sinks into it over about twenty-five seconds, drawn
+  smaller and fainter after its first third, and is gone; a body off the creep
+  keeps what it had digested and waits for the creep to reach it, and a body
+  being dragged is lying nowhere. Only the swarm's own: Marines, militia and
+  colonists are the harvest's. It is what keeps a long battle on the creep from
+  piling up corpses, and it gives nothing back to the field.
 - **Creep favours the swarm and shelters no one** (`CreepEffects`). A swarm
   body runs a quarter faster on living creep; Marines and colonists are never
   slowed, so creep reads as the swarm's ground rather than mud. A fleeing or

@@ -255,6 +255,7 @@ import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftAttempt;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftSequence;
 import com.dillon.starsectormarines.battle.creep.BoreCreep;
+import com.dillon.starsectormarines.battle.creep.CreepDigestion;
 import com.dillon.starsectormarines.battle.creep.CreepEffects;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.creep.CreepRoofCollapse;
@@ -727,6 +728,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
     private CreepField creep;
     private final BoreCreep boreCreep = new BoreCreep();
+    private final CreepDigestion creepDigestion = new CreepDigestion();
+    /** The creep digesting the swarm's dead (`colony-breach-nouns.md`, Creep). */
+    public CreepDigestion creepDigestion() { return creepDigestion; }
     /** Roofs the creep has stood on long enough cave in under it. */
     private CreepRoofCollapse creepRoofs;
     /**
@@ -3563,6 +3567,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         swarmPacks.tick(this);
         boreCreep.sync(this);
         if (creep != null) creep.tick(simTickIndex);
+        creepDigestion.tick(this);
         // Outposts after the creep has spread: they root on ground it has held a while.
         creepOutposts.tick(this);
         if (creep != null) {
