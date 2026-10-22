@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointType;
+import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 
 import java.awt.Color;
@@ -9,14 +10,18 @@ import java.awt.Color;
 /**
  * The Mech Lab's hardware language: a footprint is a stack of chamfered bricks, one per grid
  * cell, each narrower than it is tall, so a piece's size reads from its outline. Colour
- * names the hardpoint: energy red-orange, missile green, ballistic yellow, omni grey.
+ * names the hardpoint: energy red-orange, missile green, ballistic yellow, omni grey; the
+ * frame's own mounts are engine blue, flux violet and utility teal.
  */
 final class HardpointBricks {
     static final Color ENERGY = new Color(0xe0, 0x6a, 0x3c);
     static final Color MISSILE = new Color(0x6c, 0xc4, 0x5e);
     static final Color BALLISTIC = new Color(0xe2, 0xc2, 0x48);
     static final Color OMNI = new Color(0xa4, 0xa8, 0xa0);
-    static final Color INTERNAL = new Color(0x7e, 0x94, 0xa6);
+    /** The frame's own mounts, kept clear of the weapon colours: engine, flux, utility. */
+    static final Color ENGINE = new Color(0x5e, 0x96, 0xd2);
+    static final Color FLUX = new Color(0xa0, 0x7e, 0xdc);
+    static final Color UTILITY = new Color(0x4c, 0xb4, 0xa6);
 
     /** Width over height of one brick: narrower than tall, so even a square footprint stands upright. */
     static final float BRICK_ASPECT = 0.75f;
@@ -38,7 +43,18 @@ final class HardpointBricks {
             case BALLISTIC -> BALLISTIC;
             case MISSILE -> MISSILE;
             case OMNI -> OMNI;
-            case CORE, AMMO, UTILITY -> INTERNAL;
+            case ENGINE -> ENGINE;
+            case FLUX -> FLUX;
+            case UTILITY -> UTILITY;
+        };
+    }
+
+    static Color tone(MechInternal.Role role) {
+        return switch (role) {
+            case ENGINE -> ENGINE;
+            case CAPACITOR_BANK -> FLUX;
+            case VENT_ARRAY -> UTILITY;
+            case PLATING -> OMNI;
         };
     }
 

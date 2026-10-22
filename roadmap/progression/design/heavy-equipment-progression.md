@@ -55,7 +55,7 @@ Read `mechs-nouns.md` (chassis, sockets, Mech Lab, flux), `convoy-nouns.md`
   Finite and losable (`MechBay.loseSpares`); a pattern is neither.
 - **Internal.** A non-weapon fitting that changes the frame: engine, plating,
   capacitor bank, vent array, loader. Internals live in sockets the doll already reserves (the
-  CORE, AMMO_RESERVE and MINI_FAB placeholders).
+  CORE, CAPACITORS and MINI_FAB placeholders).
 - **Engine budget.** An engine's output, against the mass of everything fitted.
   A fit over budget is refused atomically. Engine tier also sets the chassis's
   speed within its own band, so an engine cannot make a Bulwark a Hound.
@@ -134,7 +134,7 @@ budget). The ladder, tuned on headless readings (below):
 | --- | --- | --- | --- |
 | Engine (CORE) | Industrial, output x1.00, 2x1 | Uprated, x1.25, half the speed band, 2x2, mass 1 | Military, x1.50, full band, 2x2, mass 3, -0.5 dissipation |
 | Plating (frame) | Factory | Composite: half the armor band, 1 plating unit | Heavy: full band, 2.5 units |
-| Capacitor bank (AMMO_RESERVE) | Factory: 100 flux, 6/s, 1x1 | Double: 120, 7.5/s, 2x1, mass 3 | Military: 120, 8/s, 3x1, mass 5 |
+| Capacitor bank (CAPACITORS) | Factory: 100 flux, 6/s, 1x1 | Double: 120, 7.5/s, 2x1, mass 3 | Military: 120, 8/s, 3x1, mass 5 |
 | Vent array (MINI_FAB) | none | Auxiliary: +1/s, mass 2 | — |
 
 Rated output is Hound 20, Sirocco 39, Bulwark 46 (stock weapons weigh 16, 39 and

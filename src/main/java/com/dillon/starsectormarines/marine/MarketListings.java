@@ -54,8 +54,8 @@ public final class MarketListings {
      *
      * @param reasonKey strings key naming the event that stocked it, shown on the card
      * @return true when this call created the listing; false when it already existed
-     * @throws IllegalArgumentException when the card is unknown, or carries Restricted kit
-     *         the company holds no military warrant for
+     * @throws IllegalArgumentException when the card is unknown, or is Restricted and no
+     *         held military warrant names it
      */
     public static boolean list(CampaignState state, String cardId, Scope scope, String scopeId,
                                String reasonKey, int day) {
@@ -65,13 +65,10 @@ public final class MarketListings {
         }
         LoadoutCard card = LoadoutCard.parse(cardId);
         if (card == null) throw new IllegalArgumentException("Unknown loadout card: " + cardId);
-        Set<String> warranted = MilitaryWarrants.warrantedTemplateIds(state);
-        for (String templateId : card.templateIds()) {
-            if (EquipmentTemplateCatalog.require(templateId).accessTier() == EquipmentAccessTier.RESTRICTED
-                    && !warranted.contains(templateId)) {
-                throw new IllegalArgumentException("Listing " + cardId + " would sell Restricted "
-                        + templateId + " without a military warrant naming it");
-            }
+        if (card.accessTier() == EquipmentAccessTier.RESTRICTED
+                && !MilitaryWarrants.warrantedCardIds(state).contains(card.id())) {
+            throw new IllegalArgumentException("Listing Restricted card " + cardId
+                    + " without a military warrant naming it");
         }
         return state.recordMarketListing(card.id(), scope.code, scopeId, reasonKey, day) >= 0;
     }

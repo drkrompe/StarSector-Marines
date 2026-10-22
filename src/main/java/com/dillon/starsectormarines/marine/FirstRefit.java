@@ -54,20 +54,14 @@ public final class FirstRefit implements Serializable {
     public boolean claim(MarineRoster roster, Path path) {
         if (!available(roster) || claimed || path == null) return false;
         MarineArmory armory = roster.armory();
-        if (path == Path.STEADY_LINE) {
-            armory.unlockPrimary(WeaponRegistry.SQUAD_AUTOMATIC_ID, EquipmentGrade.MILSPEC);
-        } else {
-            armory.unlockPrimary(WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.MILSPEC);
-        }
-        grantSheetPatterns(armory, path);
-        // Plans are reusable intent. The unchosen plan still requires its technology,
-        // acquired through ordinary market, patron, recovery, or collection rewards.
+        // Both paths' weapon cards are registered; only the chosen pair is collected.
+        // The other stays a card to find through markets, patrons and recovery.
         for (Path plan : Path.values()) {
             armory.ensureWeaponDoctrine(plan.weapons, savedDoctrineName(plan), weapons(plan));
         }
         chosenPath = path;
         claimed = true;
-        repairArmorPlanKnowledge(roster.armory());
+        learnCards(armory, path);
         return true;
     }
 
@@ -99,7 +93,7 @@ public final class FirstRefit implements Serializable {
                     weapon.specialEquipmentId(), armor.issueId(i)));
         }
         return new SquadEquipmentPreview(squad.stationed() ? SquadEquipmentResult.STATIONED
-                : claimed ? SquadEquipmentResult.MISSING_TEMPLATE : SquadEquipmentResult.APPLIED, billets);
+                : claimed ? SquadEquipmentResult.UNKNOWN_CARD : SquadEquipmentResult.APPLIED, billets);
     }
 
     public static boolean technologyKnown(MarineRoster roster, Path path) {
@@ -107,40 +101,26 @@ public final class FirstRefit implements Serializable {
     }
 
     static boolean technologyKnown(MarineArmory armory, Path path) {
-        if (path == null) return false;
-        return path == Path.STEADY_LINE
-                ? armory.ownsPrimaryTemplate(WeaponRegistry.SQUAD_AUTOMATIC_ID, EquipmentGrade.MILSPEC)
-                : armory.ownsPrimaryTemplate(WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.MILSPEC)
-                    && sheetPatternsOwned(armory, path);
+        return path != null && armory.knowsWeaponCard(path.weapons) && armory.knowsArmorPlan(path.armor);
     }
 
-    /** The refit hands over its formation whole: every pattern the path's tactic sheet wears. */
-    private static void grantSheetPatterns(MarineArmory armory, Path path) {
-        for (String pattern : ArmorSheetBundles.patternsFor(path.armor)) armory.unlockArmor(pattern);
+    /** The refit hands over its formation whole: the path's weapon card and tactic sheet. */
+    private static void learnCards(MarineArmory armory, Path path) {
+        armory.learnLoadoutCard(new LoadoutCard(LoadoutCard.Kind.WEAPON, path.weapons));
+        armory.acquireArmorPlan(path.armor);
     }
 
-    private static boolean sheetPatternsOwned(MarineArmory armory, Path path) {
-        for (String pattern : ArmorSheetBundles.patternsFor(path.armor)) {
-            if (!armory.ownsArmorTemplate(pattern)) return false;
-        }
-        return true;
-    }
-
-    /** Repairs a saved lesson receipt without awarding technology or fitting equipment. */
-    void repairArmorPlanKnowledge(MarineArmory armory) {
+    /** Repairs a saved claim's cards without fitting equipment. */
+    void repairCardKnowledge(MarineArmory armory) {
         if (!claimed) return;
         for (Path path : Path.values()) {
-            if (chosenPath == null || chosenPath == path) {
-                grantSheetPatterns(armory, path);
-                armory.acquireArmorPlan(path.armor);
-            }
+            if (chosenPath == null || chosenPath == path) learnCards(armory, path);
         }
-        armory.repairArmorPlanKnowledge();
     }
 
     public SquadEquipmentResult issue(MarineRoster roster, String squadId, Path path, EquipmentIssueResources resources) {
         if (!available(roster) || !claimed || path == null) return SquadEquipmentResult.INVALID_SQUAD;
-        if (!technologyKnown(roster, path)) return SquadEquipmentResult.MISSING_TEMPLATE;
+        if (!technologyKnown(roster, path)) return SquadEquipmentResult.UNKNOWN_CARD;
         SquadEquipmentResult result = roster.applySquadEquipment(squadId, path.weapons, path.armor, resources);
         if (result == SquadEquipmentResult.APPLIED) issuedSquadId = squadId;
         return result;

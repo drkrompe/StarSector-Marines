@@ -422,7 +422,7 @@ public final class FleetArmoryViewModel {
         String selected = selectedWeaponDoctrineId.get();
         List<DoctrineTile> tiles = new ArrayList<>();
         for (SquadWeaponDoctrine doctrine : roster.armory().weaponDoctrines()) {
-            boolean available = roster.armory().canAuthorWeaponDoctrine(doctrine.issues());
+            boolean available = roster.armory().knowsWeaponCard(doctrine.id());
             if (!available) continue;
             SquadLoadoutPresentationDef presentation = loadoutPresentation(
                     doctrine.id(), SquadLoadoutPresentationDef.Kind.WEAPON,
@@ -652,7 +652,7 @@ public final class FleetArmoryViewModel {
     private int knownWeaponLoadouts() {
         int known = 0;
         for (SquadWeaponDoctrine doctrine : roster.armory().weaponDoctrines()) {
-            if (roster.armory().canAuthorWeaponDoctrine(doctrine.issues())) known++;
+            if (roster.armory().knowsWeaponCard(doctrine.id())) known++;
         }
         return known;
     }
@@ -1484,8 +1484,8 @@ public final class FleetArmoryViewModel {
             case STATIONED -> Strings.get("openingLoadoutUnavailableThisSquadIsStationedAway");
             case UNKNOWN_WEAPON_DOCTRINE -> Strings.get("openingLoadoutChooseWeaponEquipment");
             case UNKNOWN_ARMOR_DOCTRINE -> Strings.get("openingLoadoutChooseArmorEquipment");
-            case MISSING_TEMPLATE ->
-                    Strings.get("openingFleetArmoryBlockedOneOrMoreRequiredEquipmentTemplates");
+            case UNKNOWN_CARD ->
+                    Strings.get("openingFleetArmoryBlockedCardNotCollected");
             case INSUFFICIENT_CARGO ->
                     Strings.get("openingFleetArmoryTheOrderChangedReviewTheCurrentSquad");
             case WARRANT_SUSPENDED -> Strings.get("squadEquipmentWarrantSuspended");
