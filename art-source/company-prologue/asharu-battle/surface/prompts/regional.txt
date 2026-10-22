@@ -1,0 +1,18 @@
+A square, straight-down orbital survey photograph of a dry desert planet, 3,400 km across the
+frame (about 3.3 km per pixel), north up. True nadir view, no perspective, no horizon, no sky,
+no clouds, no haze, no vignette, no text, labels, grid or border. Flat, even lighting: a
+colour map, not a lit relief render, so there are no strong cast shadows.
+
+Image 1 is the layout and colour authority. It is the low-resolution game map of this very
+region, magnified. Keep every region exactly where it is and the same colour and brightness:
+the pale sand and cream dune seas, the tan plains, the dark brown-grey rock highlands and
+scarps (the dark mass at upper right, the dark patches at upper centre and the long dark band
+down the left edge), the small dark basins and outcrops, and the faint olive-green flecks. Do
+not move, add or remove any large region, and do not change the overall palette or contrast.
+
+Add only the detail a real orbital image at this scale would show inside those regions:
+linear dune ridges and star-dune fields with a consistent wind grain in the sand seas, branching
+dry river canyons and wadis cut into the dark highlands, eroded mesa and scarp edges with talus
+fans, salt pans and pale playa lake beds in the basins, crater-free wind-scoured bedrock, and
+alluvial fans spreading from canyon mouths onto the plains. Natural geology only: no cities,
+roads, fields or any sign of people.

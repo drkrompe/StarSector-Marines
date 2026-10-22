@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a163ac-55e4-76b2-a0e6-f08f61845c0d",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a163ac-55e4-76b2-a0e6-f08f61845c0d\\exec-1ed838d7-fac2-4c77-bb16-5f41dda3a084.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\asharu-battle\\surface\\raw\\near-settled.png",
+    "sha256": "b98025c4cd7d6a0104cde2083f77a176cb94286f7937c04f64e1ef0a201c30a9",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\asharu-battle\\surface\\prompts\\near-settled.txt",
+  "promptSha256": "d5ff472cae764179d17439e6e0ec205a33bd41e83a2bd3272dff723b5484c3b3",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Edit target: the photograph to return, with settlement plans sketched on it. Keep the terrain and framing exactly; render only the sketches.\n\nImage 1 is a straight-down orbital photograph of desert canyon country, 160 km across (about\n150 m per pixel), north up, with a few plans sketched on it in flat grey and rust. Return the\nsame photograph with each sketch rendered as real built ground seen from orbit, and everything\nelse left exactly as it is: same terrain, colours, canyons, framing and scale, pixel for pixel.\n\nThe sketches, keep each at its exact position, outline and size:\n- the octagon with a wall line and a block grid: a walled frontier town where two dry wadis\n  meet. A pale perimeter wall, a dense grid of flat dusty roofs and narrow lanes, a few larger\n  warehouse roofs, sand drifted against the wall on the windward side;\n- the grey rectangle of round pads: a landing grid, a pale concrete apron with rows of circular\n  landing pads stained by drive scorch, a row of hangar and tank roofs along one side;\n- the concentric rust and tan ovals: a terraced open-pit mine cut into the dark rock ridge,\n  stepped benches spiralling down, a dark tailings heap and haul tracks beside it;\n- the thin pale lines: unpaved haul roads, faint, following the ground.\n\nLow population, independent and worn: dusty, sun-bleached, sand-coloured materials, nothing\nshiny, no green fields, no lights, no vehicles, no text, labels or border. Flat even lighting\nas in the original photograph.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "build\\asharu-surface\\guides\\near-settled.png",
+      "sha256": "ab7247281769f26cb083dd78a856037ae7cad70722cd9f235b711c2bb9a6dc1b",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Edit target: the photograph to return, with settlement plans sketched on it. Keep the terrain and framing exactly; render only the sketches."
+    }
+  ],
+  "agentMessages": [
+    "I’ll render the marked structures and roads in place, preserving the surrounding terrain and framing."
+  ],
+  "usage": {
+    "input_tokens": 39850,
+    "cached_input_tokens": 29312,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 435,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 78.9
+}
