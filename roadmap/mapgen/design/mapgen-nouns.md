@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-22 — An open-field landing's country is surveyed rather than grown: graded rural roads and plots (Rural country).
+Updated: 2026-10-22 — Fields are land in use: worked plots by the town and the country road, wild ground beyond, and fields on the town's other sides (Rural country).
 
 Earlier 2026-10-13 — reversible authored damage layers give Relief a worn checkpoint without changing its landing contract; Relief rear working courts preserve the expanded landing and assembly apron.
 
@@ -870,6 +870,16 @@ detour proof refuses optional scenery rather than cutting a route through it
 later, and preserves connectivity even for places a mission chooses after the
 map is generated. Existing disconnected ground is not repaired by this pass.
 
+A precinct plan may state its country through a **landscape** (`Landscape`):
+the share of wild ground that is wood (the stock city's is a little over half),
+**tracks** cleared to bare earth before the woods grow, and **brooks**, water
+meandering across the map with sand banks, crossed on foot at a sand ford at a
+fixed interval along their length. A track or brook is reserved from trees; a
+brook is unwalkable, see-through water that creep does not climb, so it is a
+natural firebreak and a creep line broken only at its fords and wherever a road
+or street crosses it. The heart's country is the first plan to state one
+(`heart-nouns.md`).
+
 Open countryside can gain small cliff-backed hills where their entire visible
 footprint fits, using the same terrain brush as authored hills. A map with an
 existing authored terrain plan retains that plan. Living worlds use grassy
@@ -1672,7 +1682,7 @@ role:
 |---|---|---|---|
 | country road | 5, a cross-street's | paved asphalt, no sidewalk, no lines | the town's widest street that arrives at the fields, carried straight on to the map edge |
 | farm road | 3 | gravel | the length of the town's edge, so every street that reaches the fields meets a road |
-| field track | 2 | dirt | between plots, out from the country road both ways and once across the band's depth |
+| field track | 2 | dirt | between plots, out from the country road both ways and once across the band's depth, only where it serves a worked field |
 
 **One road, one width, one line.** Every rural road is a straight route of its
 grade's width from end to end, flush at both ends; there is no per-band brush
@@ -1693,8 +1703,23 @@ dirt surface on it. The farm road joins every street that reached the band, so
 a town that was one network through its country stays one; the weld is asked
 again only to make sure.
 
+**Fields are land in use, not a strip.** The band is the ground the company
+crosses, not a farm laid edge to edge: an owner review found every colony map
+drawing one solid third of crops along its landing edge, which read as a stripe
+rather than as a colony working its land. So each plot in the band is either
+worked or wild. A plot is worked where a farm works from: always against the
+town beside the country road, less often the farther out along the edge
+(fading to nothing at half the edge's length on the town's side and at under a
+third out by the map edge, where a plot is worked less often to begin with).
+Wild plots keep the planet's own ground, which the landscape pass is free to
+raise hills and rock formations on, so the fields are broken by terrain. Worked
+fields are made ground and stay clear of it. Field tracks run only where they serve a
+worked field; one out by the map edge behind wild ground is reached down the
+boundary on its road side. `-Dbattle.mapgen.ruralLandUse=false` is the
+control: every plot is a field.
+
 **Plots are what the roads leave.** Each rectangle between tracks and roads is
-one field with one use: row crop (crop rows and furrows a cell apart), grain
+one plot, and a worked plot is one field with one use: row crop (crop rows and furrows a cell apart), grain
 (standing gold with a tramline every few rows), pasture (grass) or fallow
 (turned earth). Rows run the plot's long way, a headland of grass rings each
 plot, and the cultivated-ground law keeps all of it green and brown on every
@@ -1711,7 +1736,22 @@ stamped buildings, `BuildingStamp.FARMHOUSE` and `BARN`, which the city's lots
 never draw) in a trodden-dirt yard cut from the corner of the plot farthest
 from the landing that fits it, set back from the road it opens onto with their
 doors facing it, and well past the field of fire. They are the one structural
-thing out here, and so ordinary buildings to everything that reads one.
+thing out here, and so ordinary buildings to everything that reads one. A farm
+stands only on a worked plot.
+
+**The town farms its other sides too** (`TownFields`). Open, flat ground round
+the town grows food whichever side of it lies, so fields are laid on natural
+ground nothing was built on, outside the band, inside a grown place's claim as
+much as outside every claim. Each field fronts the town or one of its roads
+across a one-cell verge, keeps wild ground between itself and the next, and is
+laid less often the farther its frontage lies from the town, with none past
+48 cells out. A programmed place's claim is never farmed, because it is built
+after the fields are laid. The fields are painted the way the band's are,
+hedged on all four sides about half the time, and made ground; a passable
+prop the hinterland scatter left wholly inside one is cleared off it.
+`-Dbattle.mapgen.townFields=false` is the control. Only a map with an
+open-field landing has a rural layout, so only those maps have fields at all:
+a mission with no country to cross gets none.
 
 ## Defense-post layouts
 

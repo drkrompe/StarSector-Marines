@@ -43,6 +43,12 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
  *       variable-length geometry carrier rather than inline fields. Replayed into
  *       the shared {@link SolidQuadBatch} at drain (coalesces with
  *       {@code SOLID_RECT}).</li>
+ *   <li>{@code MESH} — a {@link QuadMesh} recorded once and drawn again:
+ *       {@code mesh}; {@code cx/cy} = where its origin lands, {@code w} = the
+ *       scale its local units are drawn at, {@code a} = an alpha multiplied into
+ *       every quad's own. {@code sprite} is the atlas sheet when the mesh was
+ *       addressed into it and joins that sheet's batch; null when it draws
+ *       through its images one sprite at a time.</li>
  *   <li>{@code CUSTOM} — {@code custom} owns its own GL state (e.g. the decal
  *       FBO blit); the drain just runs it.</li>
  * </ul>
@@ -52,7 +58,7 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
  */
 public final class DrawCommand {
 
-    public enum Kind { SHEET_QUAD, SPRITE, SOLID_RECT, LINE, RIBBON, POLY, CUSTOM }
+    public enum Kind { SHEET_QUAD, SPRITE, SOLID_RECT, LINE, RIBBON, POLY, MESH, CUSTOM }
 
     private float[] patch;
     public float[] patch() { return patch; }
@@ -72,6 +78,8 @@ public final class DrawCommand {
     ContrailTrail trail;
     /** {@code POLY} only: the tessellated solid-quad fan (annulus / arc) the drain replays. */
     PolyMesh poly;
+    /** {@code MESH} only: the recorded quads. */
+    QuadMesh mesh;
     Runnable custom;
 
     public Kind kind() { return kind; }
@@ -90,6 +98,10 @@ public final class DrawCommand {
     /** Whether this sprite adds light rather than compositing over what is beneath it. */
     public boolean additive() { return additive; }
     public PolyMesh polygon() { return poly; }
+    /** {@code MESH} only: the recorded quads, drawn at {@link #centerX}, {@link #centerY} by {@link #meshScale}. */
+    public QuadMesh mesh() { return mesh; }
+    /** {@code MESH} only: the size of one of the mesh's local units on screen. */
+    public float meshScale() { return w; }
     /** {@code RIBBON} only: the contrail sample history the drain expands. */
     public ContrailTrail trail() { return trail; }
     public float red() { return r; }
@@ -122,6 +134,7 @@ public final class DrawCommand {
         this.r = r; this.g = g; this.b = b; this.a = a;
         this.trail = null;
         this.poly = null;
+        this.mesh = null;
         this.custom = null;
     }
 
@@ -173,6 +186,7 @@ public final class DrawCommand {
         this.additive = additive;
         this.trail = null;
         this.poly = null;
+        this.mesh = null;
         this.custom = null;
     }
 
@@ -185,6 +199,7 @@ public final class DrawCommand {
         this.r = r; this.g = g; this.b = b; this.a = a;
         this.trail = null;
         this.poly = null;
+        this.mesh = null;
         this.custom = null;
     }
 
@@ -201,6 +216,7 @@ public final class DrawCommand {
         this.r = r; this.g = g; this.b = b; this.a = a;
         this.trail = null;
         this.poly = null;
+        this.mesh = null;
         this.custom = null;
     }
 
@@ -215,6 +231,7 @@ public final class DrawCommand {
         this.trail = trail;
         this.a = alphaMult;
         this.poly = null;
+        this.mesh = null;
         this.custom = null;
     }
 
@@ -224,6 +241,26 @@ public final class DrawCommand {
         this.sprite = null;
         this.trail = null;
         this.poly = mesh;
+        this.mesh = null;
+        this.custom = null;
+    }
+
+    /**
+     * {@code mesh} drawn with its origin at {@code (x, y)} and its local units {@code scale} px long, every quad's
+     * alpha multiplied by {@code alphaMult}; {@code atlasSheet} is the sheet it was addressed into, or null to
+     * draw it through its images.
+     */
+    public void setMesh(QuadMesh mesh, SpriteAPI atlasSheet, float x, float y, float scale, float alphaMult) {
+        this.kind = Kind.MESH;
+        this.patch = null;
+        this.sprite = atlasSheet;
+        this.cx = x; this.cy = y; this.w = scale; this.h = scale; this.angleDeg = 0f;
+        this.flipV = false;
+        this.additive = false;
+        this.r = 1f; this.g = 1f; this.b = 1f; this.a = alphaMult;
+        this.trail = null;
+        this.poly = null;
+        this.mesh = mesh;
         this.custom = null;
     }
 
@@ -232,6 +269,7 @@ public final class DrawCommand {
         this.sprite = null;
         this.trail = null;
         this.poly = null;
+        this.mesh = null;
         this.custom = custom;
     }
 }

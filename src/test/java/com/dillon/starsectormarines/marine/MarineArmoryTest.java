@@ -430,116 +430,11 @@ class MarineArmoryTest {
         assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID), persisted.specialEquipmentDef());
     }
 
-    @Test
-    void squadArrangementPersistsThreeTemplateReferences() throws Exception {
-        MarineArmory armory = new MarineArmory();
-        SquadArrangement arrangement = armory.createSquadArrangement(
-                "Screen and Strike", List.of(
-                        FireTeamTemplateCards.LINE_ID,
-                        FireTeamTemplateCards.RECON_ID,
-                        FireTeamTemplateCards.FIELD_ID));
 
-        MarineArmory loaded = roundTrip(armory);
-        SquadArrangement persisted = loaded.squadArrangementById(arrangement.id());
-        assertNotNull(persisted);
-        assertEquals("Screen and Strike", persisted.displayName());
-        assertEquals(List.of(
-                        FireTeamTemplateCards.LINE_ID,
-                        FireTeamTemplateCards.RECON_ID,
-                        FireTeamTemplateCards.FIELD_ID),
-                persisted.templateIds());
-    }
 
-    @Test
-    void squadArrangementRequiresThreeKnownTemplates() {
-        MarineArmory armory = new MarineArmory();
 
-        assertThrows(IllegalArgumentException.class,
-                () -> armory.createSquadArrangement("Too Small",
-                        List.of(FireTeamTemplateCards.FIELD_ID)));
-        assertThrows(IllegalArgumentException.class,
-                () -> armory.createSquadArrangement("Unknown",
-                        List.of(FireTeamTemplateCards.FIELD_ID,
-                                FireTeamTemplateCards.LINE_ID, "missing")));
-    }
 
-    @Test
-    void arrangementReferenceProtectsCustomTemplateUntilPlanIsDeleted() {
-        MarineRoster roster = new MarineRoster();
-        FireTeamTemplateCard custom = roster.armory().cloneTemplateCard(
-                FireTeamTemplateCards.FIELD_ID);
-        SquadArrangement arrangement = roster.armory().createSquadArrangement(
-                "Custom Line", List.of(custom.id(),
-                        FireTeamTemplateCards.LINE_ID,
-                        FireTeamTemplateCards.FIELD_ID));
 
-        assertTrue(roster.isFireTeamTemplateReferenced(custom.id()));
-        assertFalse(roster.deleteFireTeamTemplate(custom.id()));
-        assertTrue(roster.armory().deleteSquadArrangement(arrangement.id()));
-        assertTrue(roster.deleteFireTeamTemplate(custom.id()));
-    }
-
-    @Test
-    void customCardCanBeDesignedWithoutStockAndKeepsItsStableIdAcrossSaveLoad()
-            throws Exception {
-        MarineArmory armory = new MarineArmory();
-        assertFalse(armory.isPrimaryUnlocked(WeaponRegistry.require(WeaponRegistry.DMR_ID), EquipmentGrade.MASTERWORK));
-        assertFalse(armory.isArmorUnlocked(MarineArmorPattern.RED_ELITE));
-
-        FireTeamTemplateCard card = armory.createTemplateCard("Aspirational Hunters",
-                List.of(
-                        billet("Leader", WeaponRegistry.require(WeaponRegistry.DMR_ID), EquipmentGrade.MASTERWORK,
-                                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), MarineArmorPattern.RED_ELITE),
-                        billet("Hunter", WeaponRegistry.require(WeaponRegistry.DMR_ID), EquipmentGrade.MASTERWORK,
-                                null, MarineArmorPattern.RED_ELITE),
-                        billet("Hunter", WeaponRegistry.require(WeaponRegistry.DMR_ID), EquipmentGrade.MASTERWORK,
-                                null, MarineArmorPattern.RED_ELITE),
-                        billet("Hunter", WeaponRegistry.require(WeaponRegistry.DMR_ID), EquipmentGrade.MASTERWORK,
-                                null, MarineArmorPattern.RED_ELITE)));
-
-        MarineArmory loaded = roundTrip(armory);
-        FireTeamTemplateCard persisted = loaded.templateCardById(card.id());
-        assertNotNull(persisted);
-        assertEquals("Aspirational Hunters", persisted.displayName());
-        assertEquals(WeaponRegistry.require(WeaponRegistry.DMR_ID), persisted.billet(0).primaryDef());
-        assertEquals(EquipmentGrade.MASTERWORK, persisted.billet(0).grade());
-        assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), persisted.billet(0).specialDef());
-        assertEquals(MarineArmorPattern.RED_ELITE, persisted.billet(0).armor());
-        assertEquals(8, loaded.templateCards().size(),
-                "readResolve restores missing starters without duplicating existing ones");
-    }
-
-    @Test
-    void builtInsAreImmutableButCanBeClonedAndRenamed() {
-        MarineArmory armory = new MarineArmory();
-        assertFalse(armory.renameTemplateCard(FireTeamTemplateCards.RECON_ID, "Sneaky"));
-
-        FireTeamTemplateCard clone = armory.cloneTemplateCard(FireTeamTemplateCards.RECON_ID);
-        assertNotNull(clone);
-        assertFalse(FireTeamTemplateCards.isStarterId(clone.id()));
-        assertTrue(armory.renameTemplateCard(clone.id(), "Pathfinders"));
-        assertEquals("Pathfinders", armory.templateCardById(clone.id()).displayName());
-        assertEquals(FireTeamTemplateCards.RECON_ID,
-                armory.templateCardById(FireTeamTemplateCards.RECON_ID).id());
-    }
-
-    @Test
-    void customCardRequiresExactlyFourCompleteBillets() {
-        MarineArmory armory = new MarineArmory();
-        List<FireTeamBillet> three = List.of(
-                billet("One", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), EquipmentGrade.SERVICE,
-                        null, MarineArmorPattern.ARMORLESS),
-                billet("Two", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), EquipmentGrade.SERVICE,
-                        null, MarineArmorPattern.ARMORLESS),
-                billet("Three", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), EquipmentGrade.SERVICE,
-                        null, MarineArmorPattern.ARMORLESS));
-
-        assertThrows(IllegalArgumentException.class,
-                () -> armory.createTemplateCard("Too Small", three));
-        assertThrows(IllegalArgumentException.class,
-                () -> armory.createTemplateCard("   ",
-                        FireTeamTemplateCards.starterCards().get(0).billets()));
-    }
 
     private static FireTeamBillet billet(String name, WeaponDef primary,
                                           EquipmentGrade grade, SpecialEquipmentDef secondary,

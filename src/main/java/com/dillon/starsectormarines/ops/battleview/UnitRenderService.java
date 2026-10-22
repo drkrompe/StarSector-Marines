@@ -47,6 +47,7 @@ import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.LayerClips;
 import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.dillon.starsectormarines.render2d.QuadMesh;
 
 import java.awt.Color;
 import java.util.Arrays;
@@ -182,6 +183,8 @@ public final class UnitRenderService implements RenderSystem {
      * the wreck exists.
      */
     private final Map<Object, HullBreakup> wrecks = new IdentityHashMap<>();
+    /** The burst Rav dead that have stopped moving, each drawn from the mesh it was recorded into once. */
+    private final SettledBodyMeshes settledBodies = new SettledBodyMeshes();
 
     public UnitRenderService(BattleSprites sprites) {
         this.sprites = sprites;
@@ -1082,21 +1085,26 @@ public final class UnitRenderService implements RenderSystem {
                 if (deadBruteArt != null && ravRigs != null && ravRigs[r] instanceof RavBruteRig deadBrute
                         && deadBrute.dead()) {
                     // A dead Brute has burst as a Runner does, over the same ichor.
-                    RavBruteComposer.emitDead(out, deadBruteArt.forStage(deadBrute.stage()),
-                            ravArt != null ? ravArt.splat : null,
-                            ravArt != null ? ravArt.drop : null, deadBrute,
-                            cam.cellToScreenX(deadBrute.bodyX()), cam.cellToScreenY(deadBrute.bodyY()),
-                            cam.cellPxSize() * deadBrute.scale() * shrink, alpha);
+                    RavBruteAssets bruteArt = deadBruteArt.forStage(deadBrute.stage());
+                    LayeredSpriteCache[] splat = ravArt != null ? ravArt.splat : null;
+                    LayeredSpriteCache drop = ravArt != null ? ravArt.drop : null;
+                    float bx = cam.cellToScreenX(deadBrute.bodyX()), by = cam.cellToScreenY(deadBrute.bodyY());
+                    float ppc = cam.cellPxSize() * deadBrute.scale() * shrink;
+                    QuadMesh settled = settledBodies.brute(deadBrute, bruteArt, splat, drop);
+                    if (settled != null) out.addMesh(RenderLayer.UNITS, settled, bx, by, ppc, alpha);
+                    else RavBruteComposer.emitDead(out, bruteArt, splat, drop, deadBrute, bx, by, ppc, alpha);
                     continue;
                 }
                 RavRunnerRig ravRig = ravArt != null && ravRigs != null && ravRigs[r] instanceof RavRunnerRig dead
                         ? dead : null;
                 if (ravRig != null && ravRig.dead()) {
                     // A dead Runner has burst: its pieces where they were flung, over its ichor.
-                    RavRunnerComposer.emit(out, ravArt.forStage(ravRig.stage()), ravRig,
-                            cam.cellToScreenX(ravRig.bodyX()), cam.cellToScreenY(ravRig.bodyY()),
-                            cam.cellPxSize() * type.renderScale * ravRig.scale() * shrink,
-                            1f, alpha);
+                    RavRunnerAssets runnerArt = ravArt.forStage(ravRig.stage());
+                    float bx = cam.cellToScreenX(ravRig.bodyX()), by = cam.cellToScreenY(ravRig.bodyY());
+                    float ppc = cam.cellPxSize() * type.renderScale * ravRig.scale() * shrink;
+                    QuadMesh settled = settledBodies.runner(ravRig, runnerArt);
+                    if (settled != null) out.addMesh(RenderLayer.UNITS, settled, bx, by, ppc, alpha);
+                    else RavRunnerComposer.emit(out, runnerArt, ravRig, bx, by, ppc, 1f, alpha);
                     continue;
                 }
                 // A body that wore layered art lies as itself: its outfit's own pose,

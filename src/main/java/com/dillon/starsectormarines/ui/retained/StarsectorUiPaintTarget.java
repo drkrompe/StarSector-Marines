@@ -133,6 +133,23 @@ final class StarsectorUiPaintTarget implements UiPaintTarget {
         glEnd();
     }
 
+    /** One quad with a colour per corner; GL's smooth shading blends them across it. */
+    static void fillQuadGradientGl(float x0, float y0, float x1, float y1,
+                                   float x2, float y2, float x3, float y3, UiViewport viewport,
+                                   Color c0, Color c1, Color c2, Color c3, float alphaMult) {
+        glDisable(GL_TEXTURE_2D);
+        glBegin(GL_QUADS);
+        setColor(c0, alphaMult);
+        glVertex2f(viewport.screenXFor(x0), viewport.screenTopFor(y0));
+        setColor(c1, alphaMult);
+        glVertex2f(viewport.screenXFor(x1), viewport.screenTopFor(y1));
+        setColor(c2, alphaMult);
+        glVertex2f(viewport.screenXFor(x2), viewport.screenTopFor(y2));
+        setColor(c3, alphaMult);
+        glVertex2f(viewport.screenXFor(x3), viewport.screenTopFor(y3));
+        glEnd();
+    }
+
     static void outlineGl(Rect rect, UiViewport viewport, Color color,
                           float width, float alphaMult) {
         glDisable(GL_TEXTURE_2D);

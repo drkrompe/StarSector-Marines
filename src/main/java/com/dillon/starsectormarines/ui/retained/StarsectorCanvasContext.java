@@ -53,6 +53,19 @@ final class StarsectorCanvasContext extends CanvasContext {
     }
 
     @Override
+    protected void drawFillQuadGradient(float x0, float y0, float x1, float y1,
+                                        float x2, float y2, float x3, float y3,
+                                        Color c0, Color c1, Color c2, Color c3) {
+        CanvasMetrics metrics = metrics();
+        StarsectorUiPaintTarget.fillQuadGradientGl(
+                metrics.toDocumentX(x0), metrics.toDocumentY(y0),
+                metrics.toDocumentX(x1), metrics.toDocumentY(y1),
+                metrics.toDocumentX(x2), metrics.toDocumentY(y2),
+                metrics.toDocumentX(x3), metrics.toDocumentY(y3),
+                viewport, c0, c1, c2, c3, alphaMult());
+    }
+
+    @Override
     protected void drawMesh(CanvasMesh mesh, float x, float y, float scale, Color color) {
         CanvasMetrics metrics = metrics();
         glDisable(GL_TEXTURE_2D);

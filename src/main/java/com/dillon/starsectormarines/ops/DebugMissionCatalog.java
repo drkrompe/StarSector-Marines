@@ -186,7 +186,8 @@ public final class DebugMissionCatalog {
         if (scenario(mission) != Scenario.WORKING_PASSAGE) return roster;
         roster.armory().acquireEquipmentTemplate(EquipmentTemplateCatalog.primaryId(WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.SERVICE));
         var issue = new SquadWeaponIssue("Rifleman", WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.SERVICE, null);
-        var doctrine = roster.armory().createWeaponDoctrine("Working Passage service rifles", Collections.nCopies(12, issue));
+        var doctrine = roster.armory().ensureWeaponDoctrine("debug:weapons:working-passage",
+                "Working Passage service rifles", Collections.nCopies(12, issue));
         for (var squad : roster.squads()) if (!squad.reserve()
                 && roster.applySquadEquipment(squad.id(), doctrine.id(), SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR) != SquadEquipmentResult.APPLIED)
             throw new IllegalStateException("Unable to issue Working Passage debug equipment");

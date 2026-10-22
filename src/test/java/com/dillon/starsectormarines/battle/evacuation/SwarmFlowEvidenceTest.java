@@ -58,6 +58,11 @@ class SwarmFlowEvidenceTest {
     private static final long BUDGET_NANOS = 10_000_000L;
     private static final float PREY_SPEED = 2.0f;
     private static final int MIN_SPAWN_DISTANCE = 80;
+    /**
+     * {@code -Dbattle.swarmFlow.spawnDistance=N} overrides {@link #MIN_SPAWN_DISTANCE}: about 20 brings the
+     * swarm into contact inside the measured window, which is where a pack's press costs anything.
+     */
+    private static final int SPAWN_DISTANCE = Integer.getInteger("battle.swarmFlow.spawnDistance", MIN_SPAWN_DISTANCE);
     private static final int PREY_ROUTE_LENGTH = 60;
     /** A body that moved less than this over {@link #STUCK_WINDOW} ticks, out of contact, is stuck. */
     private static final float STUCK_DISTANCE = 1.5f;
@@ -91,7 +96,7 @@ class SwarmFlowEvidenceTest {
                 .append("Generated city (BSP, seed ").append(MAP_SEED).append("), ")
                 .append(PREY_GROUPS).append(" groups of ").append(PREY_PER_GROUP)
                 .append(" Marines each walking its own ").append(PREY_ROUTE_LENGTH)
-                .append("-cell route, swarm spawned >= ").append(MIN_SPAWN_DISTANCE)
+                .append("-cell route, swarm spawned >= ").append(SPAWN_DISTANCE)
                 .append(" cells away. Serial scheduler, one sim at a time. ")
                 .append(warmup).append(" warm-up ticks, ").append(measured)
                 .append(" measured. Times are ms per tick: median [p10-p90] / p99 / max. Over: ticks over 10 ms.\n\n")
@@ -446,7 +451,7 @@ class SwarmFlowEvidenceTest {
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
                 if (!grid.isWalkable(x, y)) continue;
-                if (Math.hypot(x - sx, y - sy) < MIN_SPAWN_DISTANCE) continue;
+                if (Math.hypot(x - sx, y - sy) < SPAWN_DISTANCE) continue;
                 if (nearAnyRouteEnd(routes, x, y)) continue;
                 if (!grid.arePathConnected(sx, sy, x, y,
                         GridPathfinder.USE_CARDINAL_NAVIGATION)) continue;
@@ -492,7 +497,7 @@ class SwarmFlowEvidenceTest {
 
     private static boolean nearAnyRouteEnd(int[][] routes, int x, int y) {
         for (int[] route : routes) {
-            if (Math.hypot(x - Paths.destX(route), y - Paths.destY(route)) < MIN_SPAWN_DISTANCE) {
+            if (Math.hypot(x - Paths.destX(route), y - Paths.destY(route)) < SPAWN_DISTANCE) {
                 return true;
             }
         }

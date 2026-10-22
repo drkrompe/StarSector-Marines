@@ -31,7 +31,8 @@ import java.util.Random;
 public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
                            Standoff standoff, Lanes lanes,
                            List<String> unplacedLanePlaces,
-                           List<String> movedLaneWaypoints) {
+                           List<String> movedLaneWaypoints,
+                           Landscape landscape) {
 
     public PrecinctPlan {
         precincts = List.copyOf(precincts);
@@ -43,6 +44,16 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
                 ? List.of() : List.copyOf(unplacedLanePlaces);
         movedLaneWaypoints = movedLaneWaypoints == null
                 ? List.of() : List.copyOf(movedLaneWaypoints);
+        // A plan that says nothing about its country gets the stock landscape.
+        if (landscape == null) landscape = Landscape.STOCK;
+    }
+
+    /** A plan with every lane diagnostic and the stock landscape. */
+    public PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
+                        Standoff standoff, Lanes lanes,
+                        List<String> unplacedLanePlaces,
+                        List<String> movedLaneWaypoints) {
+        this(precincts, attackerFrom, standoff, lanes, unplacedLanePlaces, movedLaneWaypoints, null);
     }
 
     /** A plan whose lane diagnostics are only what could not be seated. */
@@ -85,7 +96,17 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      */
     public PrecinctPlan withStandoff(Standoff standoff) {
         return new PrecinctPlan(precincts, attackerFrom, standoff, lanes,
-                unplacedLanePlaces, movedLaneWaypoints);
+                unplacedLanePlaces, movedLaneWaypoints, landscape);
+    }
+
+    /**
+     * The same plan with a stated country between its places: how wooded the
+     * wild ground is and which straight tracks are cleared through it. A
+     * mission's statement about its battle, as a standoff is.
+     */
+    public PrecinctPlan withLandscape(Landscape landscape) {
+        return new PrecinctPlan(precincts, attackerFrom, standoff, lanes,
+                unplacedLanePlaces, movedLaneWaypoints, landscape);
     }
 
     /**

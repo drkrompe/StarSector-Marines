@@ -152,6 +152,43 @@ public final class DrawListRenderer {
                     solidPending = true;
                     break;
                 }
+                case MESH: {
+                    if (c.mesh == null) break;
+                    if (c.sprite != null) {
+                        // Addressed into an atlas: one more run of that sheet's batch.
+                        if (c.sprite != activeSheetKey) {
+                            if (activeSheet != null) flushSheet(activeSheet, census);
+                            if (solidPending) { flushSolid(solidBatch, census); solidPending = false; }
+                            if (linePending) { flushLines(lineBatch, census); linePending = false; }
+                            if (ribbonPending) { flushRibbons(ribbonBatch, census); ribbonPending = false; }
+                            activeSheetKey = c.sprite;
+                            activeSheet = batchBySheet.get(c.sprite);
+                        }
+                        if (bracket == null) bracket = GlStateBracket.textured2D();
+                        else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; }
+                        if (activeSheet != null) {
+                            c.mesh.appendTo(activeSheet, c.cx, c.cy, c.w, c.a);
+                            if (census != null) census.recordMeshQuads(c.mesh.size(), false);
+                        }
+                        break;
+                    }
+                    // No atlas: each quad is the whole-image draw it was recorded from.
+                    if (activeSheet != null) { flushSheet(activeSheet, census); activeSheet = null; activeSheetKey = null; }
+                    if (solidPending) { flushSolid(solidBatch, census); solidPending = false; }
+                    if (linePending) { flushLines(lineBatch, census); linePending = false; }
+                    if (ribbonPending) { flushRibbons(ribbonBatch, census); ribbonPending = false; }
+                    if (bracket == null) bracket = GlStateBracket.textured2D();
+                    QuadMesh m = c.mesh;
+                    for (int q = 0, n = m.size(); q < n; q++) {
+                        drawSprite(m.image(q), c.cx + m.centerX(q) * c.w, c.cy + m.centerY(q) * c.w,
+                                m.width(q) * c.w, m.height(q) * c.w, m.angleDegrees(q),
+                                m.red(q), m.green(q), m.blue(q), m.alpha(q) * c.a, false);
+                        if (census != null) census.recordTexturedDraw();
+                    }
+                    if (census != null) census.recordMeshQuads(m.size(), true);
+                    spritePolluted = true;
+                    break;
+                }
                 case SPRITE: {
                     if (activeSheet != null) { flushSheet(activeSheet, census); activeSheet = null; activeSheetKey = null; }
                     if (solidPending) { flushSolid(solidBatch, census); solidPending = false; }
@@ -215,16 +252,20 @@ public final class DrawListRenderer {
     }
 
     private static void drawSprite(DrawCommand q) {
-        SpriteAPI sprite = q.sprite;
-        sprite.setSize(q.w, q.h);
-        sprite.setAngle(q.angleDeg);
-        sprite.setAlphaMult(q.a);
-        if (q.additive) sprite.setAdditiveBlend(); else sprite.setNormalBlend();
+        drawSprite(q.sprite, q.cx, q.cy, q.w, q.h, q.angleDeg, q.r, q.g, q.b, q.a, q.additive);
+    }
+
+    private static void drawSprite(SpriteAPI sprite, float cx, float cy, float w, float h, float angleDeg,
+                                   float r, float g, float b, float a, boolean additive) {
+        sprite.setSize(w, h);
+        sprite.setAngle(angleDeg);
+        sprite.setAlphaMult(a);
+        if (additive) sprite.setAdditiveBlend(); else sprite.setNormalBlend();
         // Avoid a per-quad Color alloc for the common untinted case (all SHOTS
         // projectiles are white); only build a Color when an actual tint is set.
-        sprite.setColor(q.r == 1f && q.g == 1f && q.b == 1f
-                ? Color.WHITE : new Color(q.r, q.g, q.b));
-        sprite.renderAtCenter(q.cx, q.cy);
+        sprite.setColor(r == 1f && g == 1f && b == 1f
+                ? Color.WHITE : new Color(r, g, b));
+        sprite.renderAtCenter(cx, cy);
         // Reset rotation so the shared cached sprite carries no angle into other passes.
         sprite.setAngle(0f);
     }

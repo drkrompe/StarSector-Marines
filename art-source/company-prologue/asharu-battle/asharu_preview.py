@@ -12,12 +12,15 @@ The sequence is the shot list in asharu-battle-shot.md, in order and at its leng
 key frame is built by battle_blockout.py's own scene build for that key frame (same hulls, places,
 camera and planet) and then played over the shot's whole length:
 
-- a ship the key frame places with motion.fleet_at moves the way motion.drift says, and a boat
-  on a motion.boarding_run flies its run, on the cinematic's own clock (the key frame is one
-  instant of that motion, marked KEY FRAME);
-- a ship with an authored pose (an attack run, a ship aboard another) has no path yet and holds
-  that pose: the legend says "(held)". --weave-all weaves it about its pose instead;
-- the camera holds the key frame's framing;
+- every ship flies the motion its key frame gives it, on the cinematic's own clock: a weave about
+  her station (motion.fleet_at), a flown run through attitude keys with hits, recoil and blinks
+  (motion.keyed), a boat's run, or riding another ship (motion.carried, motion.riding). The key
+  frame is one instant of that motion, marked KEY FRAME;
+- a ship given only a plain pose holds it: the legend says "(held)". --weave-all weaves it about
+  its pose instead;
+- the camera flies the key frame's move (motion.camera: a push, a track, a chase, handheld
+  drift), passing through the key frame's framing at the key time; a camera with no move holds;
+- the planet turns beneath at orbital speed, registered to the still at the key time;
 - effects are proxies on placeholder timing (no shot has authored effect timing yet): gunfire
   as dashed lines from the chosen muzzle, missiles as streaks, blasts as wire shells at the key
   moment, fires and smoke as cones, flares and debris as dots, shields as wire shells.
@@ -184,6 +187,114 @@ def _planet_flat(L, bb):
     nt.nodes.active = img
 
 
+DETAIL_PX = 4096      # the preview ground's detail image
+DETAIL_KNEE = 120e3   # m: the detail mapping's knee; about 60 m a pixel under the battle, coarser outward
+
+
+def _surface_detail(L, bb):
+    """The desert under the battle at a resolution its orbital speed can be seen against. The game's
+    map is about 15 km a texel, so 60 km of travel in a shot moves a few blurred texels: the convoy
+    looks parked. One image covers the whole cap, radially compressed (g = k r / (r + k) from the
+    point under the battle), so it is fine near the battle and coarse at the horizon: the map's
+    colour times seeded fractal relief, with scattered bright specks a moving eye can hold on to.
+    Judges speed, not the look; the lit stills carry the real surface tiles."""
+    import bpy
+    import numpy as np
+    from mathutils import Euler, Matrix
+    me, nt = L['ground'].data, L['gm'].node_tree
+    src = next(nd for nd in nt.nodes if nd.type == 'TEX_IMAGE' and nd.image and 'desert01' in nd.image.name).image
+    sw, sh = src.size
+    sp = np.empty(sw * sh * 4, dtype=np.float32)
+    src.pixels.foreach_get(sp)
+    sp = sp.reshape(sh, sw, 4)
+    rot = np.array(Euler((0, math.radians(90 - bb.MAP_LAT), math.radians(bb.MAP_LON)), 'XYZ').to_matrix()
+                   @ Matrix.Rotation(math.radians(90), 3, 'Z'))
+    n, r, k = DETAIL_PX, bb.R, DETAIL_KNEE
+    rng = np.random.default_rng(7)
+    fx, fy = np.fft.rfftfreq(n)[None, :], np.fft.fftfreq(n)[:, None]
+    f = np.sqrt(fx * fx + fy * fy)
+    f[0, 0] = 1.0
+    spec = (rng.standard_normal(f.shape) + 1j * rng.standard_normal(f.shape)) / f ** 1.4
+    spec[0, 0] = 0
+    relief = np.fft.irfft2(spec, s=(n, n)).astype(np.float32)
+    del spec, f
+    relief = np.clip(.85 + .32 * relief / (relief.std() + 1e-9), .35, 1.5)
+    ys, xs = rng.integers(1, n - 1, (2, 9000))
+    for dy in (0, 1):
+        for dx in (0, 1):
+            relief[ys + dy, xs + dx] = 1.9
+    out = np.empty((n, n, 4), dtype=np.float32)
+    out[..., 3] = 1.0
+    for y0 in range(0, n, 512):
+        yy, xx = np.mgrid[y0:y0 + 512, 0:n].astype(np.float64)
+        gx, gy = ((xx + .5) / n - .5) * 2 * k, ((yy + .5) / n - .5) * 2 * k
+        g = np.minimum(np.hypot(gx, gy), k * .999)
+        phi = np.arctan2(gy, gx)
+        c = np.minimum(g * k / (k - g) / r, math.radians(24.0))
+        p = np.stack([np.sin(c) * np.cos(phi), np.sin(c) * np.sin(phi), np.cos(c)], -1) @ rot.T
+        u = (np.arctan2(p[..., 1], p[..., 0]) / (2 * math.pi) + .5) * sw - .5
+        w = (np.arcsin(np.clip(p[..., 2], -1, 1)) / math.pi + .5) * sh - .5
+        x0, y0_ = np.floor(u).astype(np.int64), np.clip(np.floor(w).astype(np.int64), 0, sh - 2)
+        ax, ay = (u - x0)[..., None], np.clip(w - y0_, 0, 1)[..., None]
+        x0, x1 = x0 % sw, (x0 + 1) % sw
+        col = ((sp[y0_, x0] * (1 - ax) + sp[y0_, x1] * ax) * (1 - ay)
+               + (sp[y0_ + 1, x0] * (1 - ax) + sp[y0_ + 1, x1] * ax) * ay)
+        out[y0:y0 + 512, :, :3] = col[..., :3] * relief[y0:y0 + 512, :, None]
+    img = bpy.data.images.new('Preview surface', n, n, alpha=False)
+    img.colorspace_settings.name = src.colorspace_settings.name
+    img.pixels.foreach_set(np.clip(out, 0, 1).ravel())
+    del out, relief
+    node = nt.nodes.new('ShaderNodeTexImage')
+    node.image = img
+    nt.nodes.active = node
+    co = np.empty(len(me.vertices) * 3, dtype=np.float64)
+    me.vertices.foreach_get('co', co)
+    co = co.reshape(-1, 3)
+    c = np.arccos(np.clip(co[:, 2] / np.linalg.norm(co, axis=1), -1, 1))
+    phi = np.arctan2(co[:, 1], co[:, 0])
+    g = k * (r * c) / (r * c + k)
+    uv = np.stack([.5 + g * np.cos(phi) / (2 * k), .5 + g * np.sin(phi) / (2 * k)], 1)
+    lv = np.empty(len(me.loops), dtype=np.int64)
+    me.loops.foreach_get('vertex_index', lv)
+    layer = me.uv_layers.new(name='Preview detail')
+    layer.data.foreach_set('uv', uv[lv].ravel().astype(np.float32))
+    me.uv_layers.active = layer
+
+
+def _star_dome(L):
+    """Stars for the preview: a seeded field on an inside-out sphere far beyond the fight (inside the
+    camera's clip), so a pan or a whip reads against them. The planet hides those below the limb."""
+    import bmesh
+    import bpy
+    import numpy as np
+    w, h = 4096, 2048
+    rng = np.random.default_rng(11)
+    px = np.zeros((h, w, 4), dtype=np.float32)
+    px[..., 3] = 1.0
+    ys, xs = rng.integers(0, h, 7000), rng.integers(0, w, 7000)
+    lum = .35 + .65 * rng.random(7000) ** 3
+    px[ys, xs, :3] = lum[:, None]
+    big = lum > .8
+    px[(ys[big] + 1) % h, xs[big], :3] = lum[big, None] * .7
+    px[ys[big], (xs[big] + 1) % w, :3] = lum[big, None] * .7
+    img = bpy.data.images.new('Preview stars', w, h, alpha=False)
+    img.pixels.foreach_set(px.ravel())
+    bm = bmesh.new()
+    bmesh.ops.create_uvsphere(bm, u_segments=96, v_segments=48, radius=3.5e6, calc_uvs=True)
+    bmesh.ops.reverse_faces(bm, faces=bm.faces[:])
+    me = bpy.data.meshes.new('Preview stars')
+    bm.to_mesh(me)
+    bm.free()
+    mat = bpy.data.materials.new('Preview stars')
+    mat.use_nodes = True
+    node = mat.node_tree.nodes.new('ShaderNodeTexImage')
+    node.image = img
+    mat.node_tree.nodes.active = node
+    me.materials.append(mat)
+    ob = bpy.data.objects.new('Preview stars', me)
+    L['scene'].collection.objects.link(ob)
+
+
 def label(members, key):
     """The hull's name, with its key when the convoy or the raiders have more than one of it."""
     name = members[key]['name']
@@ -205,6 +316,8 @@ def shot(L, kf):
         traced = traced_keyframes()
         _STATE.update(mp=mp, traced=traced, segs={s['kf']: s for s in segments(traced) if s['kf']})
         _planet_flat(L, bb)
+        _surface_detail(L, bb)
+        _star_dome(L)
     mp, seg, spec = _STATE['mp'], _STATE['segs'][kf], _STATE['traced'][kf]
     placed, frame_of, stage = L['placed'], L['frame_of'], L['stage']
     weave_all = cfg.get('weave_all', False)
@@ -225,7 +338,7 @@ def shot(L, kf):
 
     poses, t_key, held = {}, None, []
     for key, sp in spec['ships'].items():
-        if isinstance(sp, Drift):
+        if isinstance(sp, Drift) or hasattr(sp, 'at'):      # motion's own poses (flight, keyed, riding) carry at()
             poses[key] = sp.at
             t_key = sp.t
         elif weave_all:
@@ -244,7 +357,9 @@ def shot(L, kf):
     notes = []
     if held:
         notes.append('%d of %d ships hold their key-frame pose (no path authored)' % (len(held), len(poses)))
-    notes.append('camera held at the key frame\'s framing')
+    cam_at = spec['camera'].get('at')
+    if cam_at is None:
+        notes.append('camera held at the key frame\'s framing')
     if spec.get('fx') or spec.get('shields'):
         notes.append('effects: proxies on placeholder timing')
     if t_key is None and poses and not held:
@@ -266,7 +381,7 @@ def shot(L, kf):
     # Draw only what the preview owns, the planet's surface, the platform and the entry trails:
     # a build's own effects (cook-off volumes, kit copies hidden in the viewport) and the air shell,
     # which the builder turns back on for every key frame, would otherwise draw as grey solids.
-    keep, hid = {L['ground'].name}, []
+    keep, hid = {L['ground'].name, 'Preview stars'}, []
     live = set()                     # collections the render reaches (an excluded library never renders)
 
     def walk(lc):
@@ -346,7 +461,26 @@ def shot(L, kf):
         mp.shield('%s shield %s' % (kf, key), point(key), placed[key]['length'] * .6,
                   toward=point(tw) if tw in placed else None)
 
-    mp.render_shot()
+    cam, ground = L['scene'].camera, L['ground']
+    t_still = spec['camera'].get('t', t_key if t_key is not None else ts)
+
+    def per_frame(f, t):
+        """The camera's move (motion.camera) and the planet turning under the co-moving frame."""
+        if cam_at is not None:
+            c = cam_at(t)
+            L['aim'](c['loc'], c['target'], c['lens'], None, c.get('roll', 0.0))
+            for path in ('location', 'rotation_quaternion'):
+                cam.keyframe_insert(path, frame=f)
+            cam.data.keyframe_insert('lens', frame=f)
+        ground.rotation_mode = 'XYZ'
+        ground.rotation_euler = (0.0, math.radians(motion.planet_turn_deg(t, t_still, bb.R)), 0.0)
+        ground.keyframe_insert('rotation_euler', frame=f)
+    mp.render_shot(before=per_frame)
+    if cam_at is not None:          # the next shot keys its own camera from scratch
+        cam.animation_data_clear()
+        cam.data.animation_data_clear()
+    ground.animation_data_clear()
+    ground.rotation_euler = (0.0, 0.0, 0.0)
     mp.end_shot()
 
 
