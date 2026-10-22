@@ -124,6 +124,10 @@ for elevation's sake.
 - Air observers (shuttles, flybys, recon) see every tier: their footprint is
   not limited by ground height, which is how a side without the high ground
   spots onto it.
+- A **sensor sweep** carried by a body on the ground reads past higher ground
+  as it reads through walls, within its read radius only; beyond it the
+  sweep sees from the carrier's own tier. A suit at the cliff foot reads the
+  holders just behind the rim, not the whole plateau.
 
 Along a line, the rule reads: a cell no higher than the eye passes as it
 always has (a face under the eye passes outright); on higher ground a face
@@ -205,12 +209,23 @@ one top to the tier below, and the host's required places must stay connected.
 
 Generators place plateaus where a mission wants them:
 
-- **Countryside** (rural, the heart's country) places a few plateaus on open
-  ground in place of some of the existing cliff-backed hills, each with one or
-  two ramps facing the roads.
+- **Outdoor landscape.** The closing outdoor pass (`OutdoorLandscapeStage`)
+  places as many plateaus as the mission asks for (`BspKeys.PLATEAUS`; none
+  when it does not ask, so every existing map is unchanged;
+  `-Dbattle.mapgen.plateaus=N` asks on every map, for evidence). It runs after
+  the hills and before the trees, so a plateau top on living ground can carry
+  a wood. A plateau stands only where there is room for it: on open ground
+  clear of every reservation the pass keeps (roads, places, landing
+  approaches, anchors and the routes between them) and of the hills, sized to
+  the room it finds, at least two cells from any other plateau so two never
+  merge, with one ramp facing the nearest reserved ground, so it overlooks what
+  the host keeps open and is climbed from it. A ramp up a tall south face is
+  cut deeper so it reaches the top. The closing of its faces must leave the
+  ground around it connected. Dense maps simply get fewer or none.
 - **Mission maps** author their plateaus and ramps (the Cordon's line, a
   redoubt on a rise, an overlook over a crossing).
-- City blocks do not get plateaus; a city's height is its buildings.
+- City blocks do not get plateaus; a city's height is its buildings. A city's
+  countryside margin may.
 
 ## Look
 
@@ -226,11 +241,13 @@ draws.
   and the second is stacked after them, so an upper tier's apron and face lie
   over the lower tier's top; a third tier stands and fights but draws as the
   second's top.
-- **Plateau tops** are the map's own ground (grass-topped on living ground,
-  rock on bare, ice on frozen).
+- **Plateau tops** are the map's own ground: grass-topped where a quarter of
+  the tops is grass (a dirt patch on a meadow does not make bare rock), ice
+  where most is snow, rock otherwise.
 - **Shadow.** Each tier stands `TIER_RISE_METERS` (4 m, a storey) higher in the
   macro-relief field (`surface-relief-nouns.md`), a face at the tier it holds
-  up and a ramp halfway, so the battle's sun casts a plateau's shadow across
+  up and a ramp by how far up it stands, so a ramp is a slope in the relief
+  and the battle's sun casts a plateau's shadow across
   the low ground on its far side and a higher tier's across a lower one, with
   no shader change. The relief field is per cell, so the shadow's edge steps
   with the grid on a diagonal cliff.

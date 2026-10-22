@@ -95,13 +95,15 @@ country road out of the middle of the farmland as the company's own. A lane is
 ground, not a corridor: a column may leave it, and the creep has grown over it.
 
 **Ride** (The Burn). A straight strip a forester cuts across a wood to stop a
-fire: bare earth three cells wide across the whole approach, two of them, at
-about three tenths and a half of the way in. A ride outside the creep is a
+fire: bare earth five cells wide across the whole approach, two of them, at
+about three tenths and a half of the way in. Fire jumps up to three cells of
+ground with nothing to burn (`fire-nouns.md`), so a firebreak is five wide. A ride outside the creep is a
 firebreak; a ride the creep has grown over is fuel again, as creep over a road
 is (`fire-nouns.md`).
 
 **Brook** (The Burn). A stream across the approach, deep in the bloom beyond
-the village: water three cells wide with sand on either bank, crossed on foot
+the village: water five cells wide with sand on either bank and no crown
+overhanging it, crossed on foot
 at a ford every forty-six cells and wherever a road bridges it. Nobody walks
 through water and creep does not climb it, so the brook is the map's natural
 firebreak and a line the creep crosses only at its fords and bridges. A road
@@ -117,9 +119,11 @@ over, `command-powers-nouns.md`), each landing after its flight, which is the
 warning on the ground. A line may fire incendiary shells, which light what they
 land on through fire's ignition seam. The plan ends at the **last line**, short
 of the heart: the batteries' reach, or the ammunition the briefing names. The
-Burn's plan is an incendiary opening shoot on the near ride, then high
-explosive lifting about a sixteenth of the approach at a time to about two
-thirds of the way in, some six minutes of shooting; the country is dry and the
+Burn's plan follows **firebreaks hold** (the owner's pick): the fire stops at
+each ride and the brook, so the guns light it and relight it with incendiary
+shells on a line just clear of each firebreak's far side, and lift high
+explosive a sixteenth of the approach at a time between them, to a last line
+seven tenths of the way in, some five minutes of shooting; the country is dry and the
 wind blows toward the heart for the whole battle. `WalkingBarrage` is general:
 any battle with a ground to map depth onto may carry one.
 
@@ -298,7 +302,11 @@ but their collapse.
 
 The owner's picks (2026-10-22, `heart-flow-options`): a satellite's fall wakes
 the heart; a mother's fall makes the survivors surge; the barrage and the
-company both light The Burn's line; a hurt bore surges.
+company both light The Burn's line; a hurt bore surges. On The Burn's pace (`heart-burn-pace`),
+firebreaks hold: the fire stops at each ride, the brook and roads, and is
+relit past each. Whether a ride, road or ford the creep has grown over still
+holds is fire's rule (`fire-nouns.md`); as it stands creep over any ground is
+fuel, so inside the bloom only open water holds.
 
 ## Boundaries
 

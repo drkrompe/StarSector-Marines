@@ -94,7 +94,7 @@ public final class ElevationLayout {
     public double rampRise(int x, int y) { return rampRise[y * width + x]; }
 
     public ElevationMap toMap(ElevationMap.SightRule rule) {
-        return ElevationMap.of(width, height, tier, kind, rule);
+        return ElevationMap.of(width, height, tier, kind, rampRise, rule);
     }
 
     public static ElevationLayout resolve(ElevationPlan plan) {
