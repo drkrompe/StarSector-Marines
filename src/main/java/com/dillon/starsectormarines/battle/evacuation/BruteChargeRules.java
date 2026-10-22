@@ -5,81 +5,76 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 /**
- * The numbers and the pure decisions of a Brute's charge ({@code colony-breach-nouns.md}, Brute). Every number is
- * a starting value to feel out, so each is a {@code -Dbattle.brute.*} switch: a feel pass is a command
- * line, not an edit.
+ * The numbers and the pure decisions of a Brute's charge, its blows and what they do to what they hit
+ * ({@code colony-breach-nouns.md}, Brute). Every number is a starting value to feel out in play.
  */
 final class BruteChargeRules {
 
-    /** {@code -Dbattle.brute.charge=false} keeps the Brute walking: the control run. */
-    static final boolean ENABLED = Boolean.parseBoolean(System.getProperty("battle.brute.charge", "true"));
     /** Cells per second at a charge; the walk is the unit type's own speed. */
-    static final float CHARGE_SPEED = f("chargeSpeed", 4.0f);
+    static final float CHARGE_SPEED = 4.0f;
     /** A target nearer than this is struck, not charged. */
-    static final float MIN_BAND = f("chargeMinBand", 3f);
+    static final float MIN_BAND = 3f;
     /** A target further than this is walked toward. */
-    static final float MAX_BAND = f("chargeMaxBand", 8f);
+    static final float MAX_BAND = 8f;
     /** Seconds from the end of one charge to the next. */
-    static final float COOLDOWN = f("chargeCooldown", 8f);
+    static final float COOLDOWN = 8f;
     /** Seconds the Brute stands head-down before it goes: the player's warning. */
-    static final float TELL = f("chargeTell", .35f);
+    static final float TELL = .35f;
     /** Degrees a second a running Brute can turn toward its target. */
-    static final float TURN_RATE = f("chargeTurnRate", 30f);
+    static final float TURN_RATE = 30f;
     /** Cells a charge runs before it gives out. */
-    static final float MAX_RUN = f("chargeMaxRun", 10f);
+    static final float MAX_RUN = 10f;
     /** Seconds the Brute stands after a charge before it walks on. */
-    static final float PULL_UP = f("chargePullUp", .5f);
+    static final float PULL_UP = .5f;
     /** The charge's hit against the Brute's ordinary blow. */
-    static final float DAMAGE_SCALE = f("chargeDamageScale", 1.5f);
+    static final float DAMAGE_SCALE = 1.5f;
     /** A light wall's share of a charge: one blow at double the walking ram. */
-    static final int WALL_BLOW = Integer.getInteger("battle.brute.chargeWallBlow", 50);
+    static final int WALL_BLOW = 50;
     /** Bodies a charge goes through; the one after stops it. */
-    static final int MAX_BODIES = Integer.getInteger("battle.brute.chargeMaxBodies", 2);
+    static final int MAX_BODIES = 2;
     /** Pace kept after each body or prop it goes through. */
-    static final float BODY_SLOW = f("chargeBodySlow", .75f);
-    static final float KNOCKDOWN = f("knockdown", 1f);
-    static final float THROW = f("throw", 1.2f);
+    static final float BODY_SLOW = .75f;
+    static final float KNOCKDOWN = 1f;
+    static final float THROW = 1.2f;
     /**
      * A Brute's mass in tonnes, against {@link com.dillon.starsectormarines.battle.vehicle.VehicleType#massTonnes}:
      * what a hull it runs into takes from it is a momentum exchange
      * ({@link com.dillon.starsectormarines.battle.vehicle.HullImpact}), not a fixed shove.
      */
-    static final float MASS = f("mass", 3f);
+    static final float MASS = 3f;
     /** How much a charge bounces off a hull: 0 is a dead stop against it, 1 a perfect bounce. */
-    static final float RESTITUTION = f("restitution", .2f);
+    static final float RESTITUTION = .2f;
     /** Impulse (tonne-cells a second) a Brute's plate and bulk take without harm; damage per unit past it. */
-    static final float SAFE_IMPULSE = f("safeImpulse", 5f);
-    static final float RECOIL_DAMAGE = f("recoilDamage", 1f);
+    static final float SAFE_IMPULSE = 5f;
+    static final float RECOIL_DAMAGE = 1f;
     /** Decelerations, cells a second squared, of a thrown body sliding to rest and of a Brute's rebound. */
-    static final float BODY_SLIDE = f("bodySlide", 9f);
-    static final float BRUTE_SLIDE = f("bruteSlide", 8f);
+    static final float BODY_SLIDE = 9f;
+    static final float BRUTE_SLIDE = 8f;
     /**
      * How far a Brute's blow reaches, from its centre to the surface of what it strikes: its head, about a
      * cell. Measured to a hull's footprint, not to a circle about its centre.
      */
-    static final float BLOW_REACH = f("blowReach", 1.0f);
+    static final float BLOW_REACH = 1.0f;
     /** The speed a blow drives the Brute's weight into what it strikes, cells a second: what a hull or mech takes. */
-    static final float BLOW_SPEED = f("blowSpeed", 2.5f);
+    static final float BLOW_SPEED = 2.5f;
     /** A mech's tonnes per unit of its variant's relative mass, and how hard its feet hold a slide. */
-    static final float MECH_TONNES = f("mechTonnes", 10f);
-    static final float MECH_SLIDE = f("mechSlide", 4f);
-    /** {@code -Dbattle.brute.trample=false} keeps the Brute's blow on infantry an ordinary hit: the control. */
-    static final boolean TRAMPLE = Boolean.parseBoolean(System.getProperty("battle.brute.trample", "true"));
+    static final float MECH_TONNES = 10f;
+    static final float MECH_SLIDE = 4f;
     /** A trampled body's time down, how far it is bowled, and the ground under the hooves (cells). */
-    static final float TRAMPLE_HOLD = f("trampleHold", .6f);
-    static final float TRAMPLE_BOWL = f("trampleBowl", .4f);
-    static final float TRAMPLE_RADIUS = f("trampleRadius", .75f);
+    static final float TRAMPLE_HOLD = .6f;
+    static final float TRAMPLE_BOWL = .4f;
+    static final float TRAMPLE_RADIUS = .75f;
     /** What a body beside the one trampled takes of the blow. */
-    static final float TRAMPLE_SPLASH = f("trampleSplash", .5f);
-    static final float STALL_LIGHT = f("stallLight", .8f);
-    static final float STALL_MEDIUM = f("stallMedium", .4f);
-    static final float STUN = f("stun", 1f);
-    static final float MECH_STAGGER = f("mechStagger", .6f);
+    static final float TRAMPLE_SPLASH = .5f;
+    static final float STALL_LIGHT = .8f;
+    static final float STALL_MEDIUM = .4f;
+    static final float STUN = 1f;
+    static final float MECH_STAGGER = .6f;
     /** Squad mates this close to a thrown body take a near-miss drain. */
-    static final float FEAR_RADIUS = f("fearRadius", 2f);
+    static final float FEAR_RADIUS = 2f;
     /** Mechs lighter than this are light; up to {@link #HEAVY_MECH_MASS} medium; heavy from there. */
-    static final float MEDIUM_MECH_MASS = f("mediumMechMass", 1f);
-    static final float HEAVY_MECH_MASS = f("heavyMechMass", 1.5f);
+    static final float MEDIUM_MECH_MASS = 1f;
+    static final float HEAVY_MECH_MASS = 1.5f;
 
     private BruteChargeRules() {}
 
@@ -129,7 +124,7 @@ final class BruteChargeRules {
 
     /** Whether a Brute charges: a target in the band, an open line to it, and its cooldown spent. */
     static boolean shouldCharge(float distance, boolean lineOpen, int now, int readyTick) {
-        return ENABLED && distance >= MIN_BAND && distance <= MAX_BAND && lineOpen && now >= readyTick;
+        return distance >= MIN_BAND && distance <= MAX_BAND && lineOpen && now >= readyTick;
     }
 
     /**
@@ -174,7 +169,4 @@ final class BruteChargeRules {
         return Math.round(seconds / BattleSimulation.TICK_DT);
     }
 
-    private static float f(String key, float fallback) {
-        return Float.parseFloat(System.getProperty("battle.brute." + key, Float.toString(fallback)));
-    }
 }

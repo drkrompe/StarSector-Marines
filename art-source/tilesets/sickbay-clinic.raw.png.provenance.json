@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a160d9-60b3-7600-82d5-4e65abcbbfe9",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a160d9-60b3-7600-82d5-4e65abcbbfe9\\exec-4e4ea22a-2f7d-460c-b467-055f8188f61e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\fsc\\beds\\sickbay-refit.png",
+    "sha256": "e3ecfd33feaf3c24a7d08fd1f32a43b924c544d83093deaa58a57a867cd53be5",
+    "dimensions": [
+      1345,
+      1170
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\fsc\\beds\\sickbay-refit.prompt.txt",
+  "promptSha256": "068149bbb39b127d58b797e74f15699823c337750012e209cbf78b9aac5b639a",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry, scale and layout authority: reskin this exactly, same size and position for every piece\nImage 2: Material and style reference only; its pieces are the wrong size and layout, ignore their proportions\n\nReskin the attached geometry guide into finished top-down game art for three spaceship sickbay props that overlay one another in the game. Strict overhead orthographic view, soft light from the upper left, the same look as the material reference sheet: warm off-white medical casework, pale sage upholstery and linen, graphite bases, quiet silver rails, realistic painted game-asset finish. No saturated colour, no glow, no red crosses, no hazard stripes.\n\nThe guide is the geometry, scale and layout authority, and the result will be cut mechanically from the guide's exact pixel rectangles. Every piece is a long slim upright strip, a little more than three times as long as it is wide, and must overlay its grey guide shape almost exactly: the same left and right sides, the same top and bottom ends. Do not make any piece wider, shorter, longer or larger than its grey shape; do not move, rescale, rotate, merge or add pieces. Keep all empty canvas fully transparent: true transparent background; no floor, no ground, no shadow slab, no border, no people, no labels or text.\n\nPieces, left to right:\n1. EMPTY ward bed frame: a long narrow graphite-edged frame with an open dark mattress tray, matching off-white head and foot boards at the two ends, and short silver side rails along the middle of both long sides. No mattress, no linen, no drawer. The same at both ends.\n2. ONLY a long single hospital mattress with a flat off-white pillow at the TOP end and a neatly tucked pale sage blanket covering the lower two thirds, its turned-down band just below the pillow. No bed frame, no floor outside the mattress.\n3. The same linen facing the OPPOSITE way: pillow at the BOTTOM end, blanket over the upper two thirds with its turned-down band just above the pillow. Same size.\n\nBroad readable forms, restrained weave and a few broad fabric folds, soft restrained highlights, sparse wear, low surface noise.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\sickbay-clinic.png",
+      "sha256": "8d17b93da3a98c281b6c032374067423cd837d2bf9d7144953cacd0126dd755a",
+      "dimensions": [
+        1472,
+        1280
+      ],
+      "mode": "RGBA",
+      "role": "Geometry, scale and layout authority: reskin this exactly, same size and position for every piece"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\fsc\\beds\\sickbay-old.raw.png",
+      "sha256": "01d7d6b3fde31bdb7dbde715dcf18ecf85fe83539d3bb36350398e94487e9c89",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only; its pieces are the wrong size and layout, ignore their proportions"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the guide’s exact layout and the second image’s materials, with a transparent background."
+  ],
+  "usage": {
+    "input_tokens": 45302,
+    "cached_input_tokens": 28416,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 761,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 61.4
+}

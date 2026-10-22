@@ -30,7 +30,7 @@ import java.util.Map;
  *   <li><b>Hauling:</b> backing off with a body on its spike, jaws latched on.</li>
  * </ul>
  * A second recording kills four Runners mid-action (galloping, striking, turning, standing) and
- * lets them fall, dulled as the battle draws its dead.
+ * lets them burst: pieces flung and spinning, ichor sprayed, then lying where they landed.
  * 1920x1080 at 100% scale, one frame per simulation tick.
  */
 public final class RavRunnerMotionSnapshotSuite implements SnapshotSuite {
@@ -187,8 +187,8 @@ public final class RavRunnerMotionSnapshotSuite implements SnapshotSuite {
             g.setColor(new Color(0x111920));
             g.fillRect(0, 0, 1920, 1080);
             text(g, "RAV BLOOM RUNNER / DEATH ON ITS SKELETON", 40, 52, 28);
-            text(g, ("Four Runners killed mid-action at tick %d, then lying as corpses, dulled as the battle draws its"
-                    + " dead · %.0f px per cell · tick %d%s").formatted(DEATH_TICK, PPC, tick, dead ? " · DEAD" : ""), 40, 86, 17);
+            text(g, ("Four Runners killed mid-action at tick %d, then bursting into pieces and ichor"
+                    + " · %.0f px per cell · tick %d%s").formatted(DEATH_TICK, PPC, tick, dead ? " · DEAD" : ""), 40, 86, 17);
             for (int i = 0; i < 4; i++) {
                 int px = 40 + i * 465;
                 g.setColor(new Color(0x3E4A36));
@@ -211,20 +211,20 @@ public final class RavRunnerMotionSnapshotSuite implements SnapshotSuite {
         g.setColor(new Color(0x111920));
         g.fillRect(0, 0, 1920, 1080);
         text(g, "RAV BLOOM RUNNER / CORPSES", 40, 46, 26);
-        text(g, "Top: a galloping Runner killed and falling onto its flank. Bottom: four corpses at rest, each"
-                + " lying in the pose it died in. 280 px per cell.", 40, 76, 16);
-        int[] fall = {DEATH_TICK - 1, DEATH_TICK + 4, DEATH_TICK + 8, DEATH_TICK + 14};
-        String[] fallNames = {"alive, galloping", "hit: rolling over", "falling", "down, legs slack"};
+        text(g, "Top: a galloping Runner killed and bursting. Bottom: four Runners at rest where they burst, each"
+                + " killed in a different action. 140 px per cell.", 40, 76, 16);
+        int[] fall = {DEATH_TICK - 1, DEATH_TICK + 3, DEATH_TICK + 7, DEATH_TICK + 14};
+        String[] fallNames = {"alive, galloping", "bursts", "pieces flying, ichor spraying", "landed"};
         for (int i = 0; i < 4; i++) {
             int x = i * 480, y = 100;
-            g.drawImage(frames.get(fall[i]), x, y, x + 480, y + 460, 142, 455, 382, 685, null);
+            g.drawImage(frames.get(fall[i]), x, y, x + 480, y + 460, 40, 340, 485, 800, null);
             text(g, fallNames[i], x + 16, y + 482, 16);
         }
         BufferedImage last = frames.get(frames.size() - 1);
         for (int i = 0; i < 4; i++) {
             int x = i * 480, y = 590;
             int sx = 40 + i * 465 + 222;
-            g.drawImage(last, x, y, x + 480, y + 460, sx - 120, 455, sx + 120, 685, null);
+            g.drawImage(last, x, y, x + 480, y + 460, sx - 222, 340, sx + 223, 800, null);
             text(g, "corpse: killed while " + DEATH_NAMES[i], x + 16, y + 482, 16);
         }
         g.dispose();
@@ -241,7 +241,7 @@ public final class RavRunnerMotionSnapshotSuite implements SnapshotSuite {
             transform.scale(width / source.getWidth(), height / source.getHeight());
             transform.translate(-source.getWidth() / 2.0, -source.getHeight() / 2.0);
             g.drawImage(source, transform, null);
-        }, art, rig, x, 1080f - y, PPC, rig.dead() ? RavRunnerComposer.DEAD_SHADE : 1f, 1f);
+        }, art, rig, x, 1080f - y, PPC, 1f, 1f);
     }
 
     /** The sprite multiplied by a grey tint, as the game's vertex colour does. */
