@@ -4944,6 +4944,8 @@
 		"battleDirectHudSINGLE": "Single shot",
 		"battleDirectHudBURST": "Burst",
 		"battleDirectHudPACKET": "Volley",
+		"battleDirectHudTriggerSEMI": "Semi-auto",
+		"battleDirectHudTriggerAUTO": "Auto",
 		"battleDirectHudINDIRECT": "Indirect · AI only",
 		"battleDirectHudIndirect": "AI ONLY",
 		"battleDirectHudCYCLING": "CYCLING",

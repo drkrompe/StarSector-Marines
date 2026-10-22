@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
+import com.dillon.starsectormarines.battle.weapon.MagazineDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -117,9 +118,16 @@ final class BattleDirectControlStatus {
         boolean hasArmor() { return maxArmor > 0f; }
     }
 
-    /** Scheduled releases and simultaneous packets are separate authored dimensions. */
+    /**
+     * Scheduled releases and simultaneous packets are separate authored dimensions. {@code trigger} is a
+     * magazine-fed primary's trigger mode, {@code null} for a weapon that only cycles.
+     */
     record Behavior(FireKind kind, int projectilesPerTrigger, float burstSpacingSeconds,
-                    int projectilesPerShot) { }
+                    int projectilesPerShot, MagazineDef.Trigger trigger) {
+        Behavior(FireKind kind, int projectilesPerTrigger, float burstSpacingSeconds, int projectilesPerShot) {
+            this(kind, projectilesPerTrigger, burstSpacingSeconds, projectilesPerShot, null);
+        }
+    }
 
     /** UNTRACKED is absence of an ammunition model, never an unlimited magazine. */
     record Ammo(int remaining, int capacity, AmmoUnit unit, boolean unlimited) { }
@@ -339,7 +347,8 @@ final class BattleDirectControlStatus {
         FireKind kind = weapon.indirectFire || weapon.arcHeight > 0f ? FireKind.INDIRECT
                 : releasesPerTrigger > 1 ? FireKind.BURST
                 : weapon.projectilesPerShot > 1 ? FireKind.PACKET : FireKind.SINGLE;
-        return new Behavior(kind, releasesPerTrigger, weapon.burstSpacing, weapon.projectilesPerShot);
+        return new Behavior(kind, releasesPerTrigger, weapon.burstSpacing, weapon.projectilesPerShot,
+                weapon.magazine() != null ? weapon.magazine().trigger() : null);
     }
 
     private static float fraction(float value, float maximum) {

@@ -346,6 +346,11 @@ final class BattleDirectControlHudModel {
         if (behavior.kind() == BattleDirectControlStatus.FireKind.BURST && behavior.projectilesPerShot() > 1) {
             value += " · " + label("PACKET") + " ×" + behavior.projectilesPerShot();
         }
+        // A magazine names its trigger first; a semi-automatic single round needs no other word.
+        if (behavior.trigger() != null) {
+            String trigger = label("Trigger" + behavior.trigger().name());
+            value = behavior.kind() == BattleDirectControlStatus.FireKind.SINGLE ? trigger : trigger + " · " + value;
+        }
         return value;
     }
 

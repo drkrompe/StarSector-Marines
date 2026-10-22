@@ -101,14 +101,22 @@
         "range": 14.0,
         "damage": 3.0,
         "accuracy": 0.68,
-        "cooldown": 0.75,
+        "cooldown": 0.40,
         "penetration": 1.0,
         "burstCount": 1,
         "burstSpacing": 0.0,
         "projectilesPerShot": 6,
         "accuracyFalloff": 0.75,
         "hitSpread": 1.7,
-        "roundVelocity": 45.0
+        "roundVelocity": 45.0,
+        "magazine": {
+          "size": [6, 8, 10, 12],
+          "reload": 3.2,
+          "trigger": "auto",
+          "recoil": 0.15,
+          "recoilMax": 0.4,
+          "recoilRecovery": 0.25
+        }
       },
       "render": {
         "heldSpriteFamily": "SMG",
@@ -141,14 +149,22 @@
         "range": 22.0,
         "damage": 5.8,
         "accuracy": 0.34,
-        "cooldown": 1.60,
+        "cooldown": 1.0,
         "penetration": 5.0,
         "burstCount": 8,
         "burstSpacing": 0.10,
         "projectilesPerShot": 1,
         "accuracyFalloff": 0.45,
         "hitSpread": 0.9,
-        "roundVelocity": 52.0
+        "roundVelocity": 52.0,
+        "magazine": {
+          "size": [32, 40, 48, 56],
+          "reload": 4.0,
+          "trigger": "auto",
+          "recoil": 0.04,
+          "recoilMax": 0.4,
+          "recoilRecovery": 0.3
+        }
       },
       "render": {
         "heldSpriteFamily": "RIFLE",
@@ -181,14 +197,22 @@
         "range": 32.0,
         "damage": 18.0,
         "accuracy": 0.55,
-        "cooldown": 1.10,
+        "cooldown": 0.6,
         "penetration": 11.0,
         "burstCount": 1,
         "burstSpacing": 0.0,
         "accuracyFalloff": 0.10,
         "hitSpread": 0.15,
         "roundVelocity": 110.0,
-        "noiseMagnitude": 1.4
+        "noiseMagnitude": 1.4,
+        "magazine": {
+          "size": [5, 6, 8, 10],
+          "reload": 3.6,
+          "trigger": "semi",
+          "recoil": 0.2,
+          "recoilMax": 0.4,
+          "recoilRecovery": 0.3
+        }
       },
       "render": {
         "heldSpriteFamily": "DMR",
