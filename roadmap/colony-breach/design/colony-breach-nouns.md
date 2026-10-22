@@ -802,6 +802,14 @@ population. The snapshot carries each bore that has opened: its tier, whether
 it lives, integrity, growth, biomass fed, surges, bodies released, next surge,
 its living spore colonies and the ticks it opened and collapsed.
 
+A battle with no rescue (`cordon-nouns.md`) runs the director **bore-only**:
+bore-sourced from the first tick over bores setup opened, with no perimeter
+and no rescue to end it. A mission may hold its field at a **pressure share**
+of the living bores' capacities; in the bore-only form due bores are then
+served fewest-surges first and a pulse is sized to the share, so the pressure
+lies across every bore rather than on whichever is listed first. A rescue's
+director is unchanged by either.
+
 **Swarm strain.** A kind of swarm body with its own stats, appearance family and
 behaviour. A strain is a designed stage of the one organism (see *Origin*), not
 another animal: every strain is the Runner's body plan and chitin specialised
