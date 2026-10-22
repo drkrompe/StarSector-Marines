@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.campaign;
 
 import com.dillon.starsectormarines.DebugOnly;
+import com.dillon.starsectormarines.campaign.bloom.RavBloomLedger;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
@@ -47,6 +48,15 @@ public final class CampaignState implements Serializable {
     public WarrantObligationLedger warrantObligations() {
         if (warrantObligations == null) warrantObligations = new WarrantObligationLedger();
         return warrantObligations;
+    }
+
+    /** Every Rav Bloom outbreak in this save; null in older saves, created on first read. */
+    public RavBloomLedger ravBlooms;
+
+    /** The Rav Bloom ledger, created on first read so an old save starts with no blooms. */
+    public RavBloomLedger ravBlooms() {
+        if (ravBlooms == null) ravBlooms = new RavBloomLedger();
+        return ravBlooms;
     }
 
     /** The Hegemony auxiliary warrant offer; null in older saves, created on first read. */

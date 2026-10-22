@@ -14,6 +14,9 @@
     python battle_blockout.py --surface base  # the game's desert01 alone, without the detail tiles (the control)
     python battle_blockout.py --stage-only    # build and pose the scene in Blender, render nothing (a pre-flight)
     python battle_blockout.py --stage-only --los   # ... and ray-cast every shot: does the round meet its target?
+    python battle_blockout.py --layers        # key frames as backdrop / ships / effects layers in one EXR
+                                              # (raw/<kf>.layers.exr), composed into the still (composite_layers.py)
+    python battle_blockout.py --plates DIR    # ... with the planet session's painted backdrops (<kf>.backdrop.exr)
 
 A frame already finished in the run folder (its PNG, its labels, and the same samples and source)
 is not rendered again, so a job stopped part-way resumes where it stopped. Pass --run with a fixed
@@ -445,6 +448,7 @@ def blender_main(cfg):
     from bpy_extras.object_utils import world_to_camera_view
     from mathutils import Euler, Matrix, Quaternion, Vector
     import ship_fx
+    import composite_layers
 
     out = Path(cfg['out'])
     raw = out / 'raw'
@@ -724,6 +728,11 @@ def blender_main(cfg):
     nt2.links.new(mix.outputs[0], nt2.nodes['Material Output'].inputs['Surface'])
     air.data.materials.append(am)
     air.visible_shadow = False
+    backdrop = bpy.data.collections.new('Backdrop')     # the planet: its own view layer under --layers
+    scene.collection.children.link(backdrop)
+    for o in (ground, air):
+        scene.collection.objects.unlink(o)
+        backdrop.objects.link(o)
 
     # ---------------------------------------------------------------------------- hull library
     library = {}      # game/finished key -> dict(coll, mpu, engines [(pos, dir, radius, style)], length_m)
@@ -951,6 +960,10 @@ def blender_main(cfg):
 
     stage = bpy.data.collections.new('Stage')
     scene.collection.children.link(stage)
+    stage_ships = bpy.data.collections.new('Stage | ships')       # hulls, stand-ins, the platform
+    stage_fx = bpy.data.collections.new('Stage | effects')        # each ship's kit copy, the placeholder effects
+    stage.children.link(stage_ships)
+    stage.children.link(stage_fx)
     placed = {}
     ships_fx = {}     # (ship key, build key) -> ShipFx: that ship's own SWFX (and hull, where it has gear)
 
@@ -990,13 +1003,13 @@ def blender_main(cfg):
         e.instance_collection = sfx.hull if sfx is not None else lib['coll']
         mw = frame_of((x, y, z), hd, pt, rl)
         e.matrix_world = mw @ Matrix.Scale(lib['mpu'], 4)
-        link(e, stage)
+        link(e, stage_ships)
         if sfx is not None and sfx.fx is not None:
             e2 = bpy.data.objects.new('Ship fx | ' + key, None)
             e2.instance_type = 'COLLECTION'
             e2.instance_collection = sfx.fx
             e2.matrix_world = e.matrix_world
-            link(e2, stage)
+            link(e2, stage_fx)
         placed[key] = dict(matrix=mw, mpu=lib['mpu'], length=lib['length_m'], lib=lib, fx=sfx, throttle=thr,
                            build=m.get('finished') or m['game'])
         if sfx is not None:
@@ -1018,10 +1031,10 @@ def blender_main(cfg):
         """A point on a placed ship, local in metres in its own frame."""
         return placed[key]['matrix'] @ Vector(local)
 
-    def obj(name, me, mat, matrix):
+    def obj(name, me, mat, matrix, coll=None):
         o = bpy.data.objects.new(name, me)
         o.matrix_world = matrix
-        link(o, stage)
+        link(o, coll or stage_fx)
         o.material_slots[0].link = 'OBJECT'
         o.material_slots[0].material = mat
         o.visible_shadow = mat in (smoke_mat, debris_mat)   # light and plasma cast no shadow
@@ -1184,15 +1197,15 @@ def blender_main(cfg):
         for i in range(6):
             o = Vector((i * 110 - 280, rng.uniform(-8, 8), rng.uniform(-6, 6)))
             rot = Euler((0, 0, rng.uniform(-.08, .08))).to_matrix().to_4x4()
-            obj('Platform bulk segment', box_me, mat, Matrix.Translation(base + o) @ rot @ Matrix.Diagonal((48, 22, 18, 1)))
+            obj('Platform bulk segment', box_me, mat, Matrix.Translation(base + o) @ rot @ Matrix.Diagonal((48, 22, 18, 1)), stage_ships)
         for i in range(18):
             o = Vector((rng.uniform(-320, 300), rng.choice((-1, 1)) * rng.uniform(40, 75), rng.uniform(-30, 30)))
-            obj('Platform tank', bead_me, mat, Matrix.Translation(base + o) @ Matrix.Scale(rng.uniform(14, 22), 4))
+            obj('Platform tank', bead_me, mat, Matrix.Translation(base + o) @ Matrix.Scale(rng.uniform(14, 22), 4), stage_ships)
         for side in (-1, 1):
             obj('Platform collector', box_me, mat, Matrix.Translation(base + Vector((0, side * 190, 0)))
-                @ Matrix.Diagonal((150, 70, 1.5, 1)))
+                @ Matrix.Diagonal((150, 70, 1.5, 1)), stage_ships)
         obj('Platform spine', plume_me, mat, Matrix.Translation(base + Vector((-380, 0, 0)))
-            @ Vector((1, 0, 0)).to_track_quat('Z', 'Y').to_matrix().to_4x4() @ Matrix.Diagonal((12, 12, 760, 1)))
+            @ Vector((1, 0, 0)).to_track_quat('Z', 'Y').to_matrix().to_4x4() @ Matrix.Diagonal((12, 12, 760, 1)), stage_ships)
 
     def apply_cue(key, s, cue):
         """One ship's effects cue for this frame (KEYFRAMES 'cues'): 'fire' lists the guns flashing
@@ -1300,7 +1313,7 @@ def blender_main(cfg):
             print(f'ASHARU volume kind {kf} {label:10} {k_[:40]:40} x{c_:3}  sum size {sz:7.0f} m  sum area {ar * 100:5.2f}%', flush=True)
 
     def clear_stage():
-        for o in list(stage.objects):
+        for o in list(stage.all_objects):
             bpy.data.objects.remove(o)
         placed.clear()
 
@@ -1417,6 +1430,88 @@ def blender_main(cfg):
         world.node_tree.nodes['Background'].inputs['Color'].default_value = (.035, .037, .042, 1)
         world.node_tree.nodes['Star gain'].inputs[1].default_value = 0.0      # a roster sheet is a studio
         return lab
+
+    # ---------------------------------------------------------------------------- layers (--layers)
+    # A key frame rendered as three view layers into one multilayer EXR, composed by composite_layers.py, so
+    # the backdrop and the effects can change without the hulls being rendered again (owner, 2026-10-22):
+    #   backdrop  the planet and the starfield, at BACKDROP_SAMPLES; the ships take no part
+    #   ships     the hulls at full samples; the effects and the planet are indirect-only, so every drive,
+    #             muzzle flash, burst light, the sun and the planet's bounce still light them
+    #   effects   volumes, shields, rounds and bursts; ships and planet are holdouts (they still cast and bounce)
+    # Each layer writes Cryptomatte (object, material, asset) and depth. A plate (composite_layers.plate_for) or a
+    # backdrop already rendered for the same locked camera stands in for the backdrop layer, which then
+    # does not render.
+    ROLES = {'backdrop': {'Stage': 'exclude'},
+             'ships': {'Stage | effects': 'indirect', 'Backdrop': 'indirect'},
+             'effects': {'Stage | ships': 'holdout', 'Backdrop': 'holdout'}}
+
+    def walk(lc):
+        yield lc
+        for c in lc.children:
+            yield from walk(c)
+
+    def layered(kf, backdrop_needed):
+        """The three view layers for this frame, their collections synced to the base layer's exclusions
+        (ShipFx sources and appended libraries are excluded there as they are made), then given their role."""
+        base_vl = scene.view_layers[0]
+        base_vl.use = False
+        base = {lc.collection.name: lc.exclude for lc in walk(base_vl.layer_collection)}
+        for name in composite_layers.LAYERS:
+            vl = scene.view_layers.get(name) or scene.view_layers.new(name)
+            vl.use = name != 'backdrop' or backdrop_needed
+            vl.samples = min(cfg['samples'], composite_layers.BACKDROP_SAMPLES) if name == 'backdrop' else cfg['samples']
+            vl.cycles.use_denoising = True
+            vl.use_pass_z = True
+            vl.use_pass_environment = name == 'backdrop'
+            vl.use_pass_cryptomatte_object = True
+            vl.use_pass_cryptomatte_asset = True
+            vl.use_pass_cryptomatte_material = True
+            role = ROLES[name]
+            for lc in walk(vl.layer_collection):
+                if lc is vl.layer_collection:
+                    continue
+                lc.exclude = base.get(lc.collection.name, False)
+                lc.holdout = lc.indirect_only = False
+                r = role.get(lc.collection.name)
+                if r == 'exclude':
+                    lc.exclude = True
+                elif r == 'holdout':
+                    lc.holdout = True
+                elif r == 'indirect':
+                    lc.indirect_only = True
+        return layer_audit(kf)
+
+    def layer_audit(kf):
+        """What each layer will draw, from the collections alone: a kit object inside a hull copy would render
+        on the ships layer and never change with the effects, and a loose object at the scene root renders on
+        every layer. Both are leaks; the frame's row says so."""
+        leaks = []
+        for e in stage_ships.all_objects:
+            for o in (e.instance_collection.all_objects if e.instance_collection else ()):
+                if ship_fx.base_name(o.name).startswith('SWFX') and o.type != 'EMPTY':
+                    leaks.append(f'{o.name} in the hull of {e.name}')
+        loose = [o.name for o in scene.collection.objects if o.type not in ('CAMERA', 'LIGHT')]
+        n = {c.name: sum(1 for _ in c.all_objects) for c in (stage_ships, stage_fx, backdrop)}
+        print(f'ASHARU layers {kf}: ships {n[stage_ships.name]} objects, effects {n[stage_fx.name]}, '
+              f'backdrop {n[backdrop.name]}; kit objects in hull copies {len(leaks)}, loose at the root {len(loose)}',
+              flush=True)
+        for row in leaks[:12] + loose[:12]:
+            print('ASHARU layers leak', kf, row, flush=True)
+        return not leaks and not loose
+
+    def backdrop_key(kf):
+        """Everything the backdrop layer's pixels depend on: a locked camera's backdrop renders once."""
+        import hashlib
+        cam_m = [round(v, 4) for row in cam.matrix_world for v in row]
+        world_n = world.node_tree.nodes
+        h = hashlib.sha256(json.dumps([cam_m, cam.data.type, cam.data.lens, cam.data.ortho_scale,
+                                       [round(v, 5) for v in sun.rotation_euler], sun.data.energy,
+                                       list(world_n['Background'].inputs['Color'].default_value),
+                                       world_n['Star gain'].inputs[1].default_value,
+                                       scene.render.resolution_percentage,
+                                       min(cfg['samples'], composite_layers.BACKDROP_SAMPLES),
+                                       frame_meta(0, False, cfg.get('surface', SURFACE_DETAIL))]).encode())
+        return h.hexdigest()[:16]
 
     labels = {}
     for kf in cfg['frames']:
@@ -1561,19 +1656,42 @@ def blender_main(cfg):
             labels[kf] = lab
         else:
             labels[kf] = roster_sheet(kf)
+        layers = bool(cfg.get('layers')) and kf in KEYFRAMES
+        scene.render.film_transparent = layers
+        if layers:
+            plate = composite_layers.plate_for(cfg.get('plates'), kf)
+            cached = raw / 'backdrop' / f'{backdrop_key(kf)}.exr'
+            if not layered(kf, not composite_layers.is_linear(plate) and not cached.exists()) and not cfg.get('stage_only'):
+                raise SystemExit(f'ASHARU layers {kf}: an object would render on the wrong layer (see the leak rows)')
+        else:
+            for vl in scene.view_layers:
+                vl.use = vl == scene.view_layers[0]
         if cfg.get('stage_only'):                 # --stage-only: build and pose every hull, render nothing
             print('ASHARU staged', kf, flush=True)
             continue
         partial = raw / f'{kf}.partial'           # not *.png, so a queue's frame count never counts it
         scene.render.use_file_extension = False
-        scene.render.filepath = str(partial)
-        bpy.ops.render.render(write_still=True)
+        st = scene.render.image_settings
+        if layers:
+            st.file_format, st.color_depth, st.exr_codec = 'OPEN_EXR_MULTILAYER', '16', 'ZIP'
+            exr_partial = raw / f'{kf}.layers.partial'
+            scene.render.filepath = str(exr_partial)
+            bpy.ops.render.render(write_still=True)
+            os.replace(exr_partial, raw / f'{kf}.layers.exr')
+            st.file_format, st.color_mode, st.color_depth = 'PNG', 'RGBA', '8'
+            composite_layers.compose_frame(raw / f'{kf}.layers.exr', partial, scene, plate=plate, backdrop=cached,
+                                           log=lambda m: print(m, flush=True))
+        else:
+            st.file_format, st.color_mode, st.color_depth = 'PNG', 'RGBA', '8'
+            scene.render.filepath = str(partial)
+            bpy.ops.render.render(write_still=True)
         os.replace(partial, raw / f'{kf}.png')      # a PNG under its own name is always a finished one
         store = raw / 'labels.json'   # saved per frame: a stopped job keeps every finished frame's labels
         old = json.loads(store.read_text()) if store.exists() else {}
         store.write_text(json.dumps({**old, kf: labels[kf]}, indent=1))
         (raw / f'{kf}.meta.json').write_text(json.dumps(frame_meta(cfg['samples'], cfg.get('half', False),
-                                                                      cfg.get('surface', SURFACE_DETAIL))))
+                                                                      cfg.get('surface', SURFACE_DETAIL),
+                                                                      layers and cfg.get('plates', None))))
         print('ASHARU rendered', kf, flush=True)
     if cfg.get('fx_check'):
         fx_verdict(out)
@@ -1642,13 +1760,23 @@ def fx_verdict(out):
 
 # ======================================================================================= driver
 
-def frame_meta(samples, half=False, surface=SURFACE_DETAIL):
-    """What a finished frame was rendered with: its samples and the staging source it came from."""
+def frame_meta(samples, half=False, surface=SURFACE_DETAIL, layers=False):
+    """What a finished frame was rendered with: its samples, the staging source, and for a layered frame
+    (layers: the --plates value, None for the plates beside the script, '' for none) the plates."""
     import hashlib
     h = hashlib.sha256()
-    for f in (HERE / 'battle_blockout.py', HERE / 'roster.py'):
+    for f in (HERE / 'battle_blockout.py', HERE / 'roster.py', HERE / 'composite_layers.py'):
         h.update(f.read_bytes())
     meta = {'samples': samples, 'half': half, 'source_sha256': h.hexdigest()}
+    if layers is not False:
+        meta['layers'] = True
+        root = composite_layers_plates() if layers is None else (Path(layers) if layers else None)
+        if root is not None and root.exists():
+            p = hashlib.sha256()
+            for f in sorted(x for x in root.rglob('*') if x.is_file() and x.suffix.lower() in ('.png', '.exr')):
+                p.update(str(f.relative_to(root)).encode())
+                p.update(f.read_bytes())
+            meta['plates_sha256'] = p.hexdigest()
     if surface:
         s = hashlib.sha256()
         for f in [HERE / 'surface' / 'surface_detail.py', *sorted((HERE / 'surface' / 'raw').glob('*.png'))]:
@@ -1657,11 +1785,15 @@ def frame_meta(samples, half=False, surface=SURFACE_DETAIL):
     return meta
 
 
-def finished(raw, kf, samples, half=False, surface=SURFACE_DETAIL):
+def composite_layers_plates():
+    return HERE / 'plates'
+
+
+def finished(raw, kf, samples, half=False, surface=SURFACE_DETAIL, layers=False):
     """Whether raw/<kf>.png is a finished frame of this staging at these samples."""
     png, meta, store = raw / f'{kf}.png', raw / f'{kf}.meta.json', raw / 'labels.json'
     try:
-        if json.loads(meta.read_text()) != frame_meta(samples, half, surface) or kf not in json.loads(store.read_text()):
+        if json.loads(meta.read_text()) != frame_meta(samples, half, surface, layers) or kf not in json.loads(store.read_text()):
             return False
         with open(png, 'rb') as fh:
             fh.seek(-12, 2)
@@ -2134,6 +2266,8 @@ def main():
         started.write_text(opt('--date', date.today().isoformat()))   # a queue round pins one date
     run_date = started.read_text().strip()
     samples = int(opt('--samples', 48))
+    layers = '--layers' in argv     # three view layers and a composite (composite_layers.py)
+    plates = '' if '--no-plates' in argv else opt('--plates')     # None: the painted plates beside this script
     if '--fx-check' in argv:        # per-ship effects: stage the cued frames under the kit, no render
         if '--frames' not in argv:
             frames = [kf for kf in KEYFRAMES if KEYFRAMES[kf].get('cues')]
@@ -2143,20 +2277,23 @@ def main():
         env = dict(os.environ, ASHARU_CFG=json.dumps(dict(out=str(run), frames=frames, samples=1, stage_only=True,
                                                           los='--los' in argv, swfx='--swfx' in argv,
                                                           fx_check='--fx-check' in argv,
-                                                          volume_audit='--volume-audit' in argv)))
+                                                          volume_audit='--volume-audit' in argv,
+                                                          layers=layers, plates=plates)))
         subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python-exit-code', '1',
                                '--python', __file__], env=env)
         return
     if '--skip-render' not in argv:
         half = '--half' in argv
         surface = opt('--surface', 'detail' if SURFACE_DETAIL else 'base') == 'detail'
-        todo = [kf for kf in frames if '--rerender' in argv or not finished(run / 'raw', kf, samples, half, surface)]
+        todo = [kf for kf in frames if '--rerender' in argv
+                or not finished(run / 'raw', kf, samples, half, surface, plates if layers and kf in KEYFRAMES else False)]
         done = [kf for kf in frames if kf not in todo]
         if done:
             print('ASHARU already finished, not rendered again:', ','.join(done), flush=True)
         if todo:
             from blender_path import BLENDER
-            cfg = dict(out=str(run), frames=todo, samples=samples, half=half, swfx='--swfx' in argv, surface=surface)
+            cfg = dict(out=str(run), frames=todo, samples=samples, half=half, swfx='--swfx' in argv, surface=surface,
+                       layers=layers, plates=plates)
             env = dict(os.environ, ASHARU_CFG=json.dumps(cfg))
             subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python', __file__], env=env)
     outputs = [orbit_diagram(run)] + label_frames(run)

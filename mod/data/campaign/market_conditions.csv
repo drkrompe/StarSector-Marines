@@ -1,0 +1,2 @@
+name,id,tags,planetary,decivRemove,script,desc,icon,order
+Rav Bloom,smk_rav_bloom,,,TRUE,com.dillon.starsectormarines.campaign.bloom.RavBloomCondition,"Something old and engineered has come up out of the ground under $market. People call it a bloom, quietly, and those who can are leaving.",graphics/icons/markets/xenoplague.png,150

@@ -27,6 +27,9 @@ generic battle victory.
 ## Event families
 
 **Civilian rescue** is a time-bounded relief commitment at an eligible market.
+Its only source is a Rav Bloom's eruption there: the rescue is the bloom's
+distress call, and the bloom reads the rescue's terminal report back
+(`colony-breach-nouns.md`, Campaign: blooms).
 Its dedicated operation reports the evacuated portion of a frozen civilian
 cohort. Refusal and expiry are distinct from a measured rescue result.
 

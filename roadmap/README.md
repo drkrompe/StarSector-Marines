@@ -139,7 +139,10 @@ and lift while a separately disclosed swarm director owns pressure waves and
 perimeter approaches. Colony Breach is refreshing Rescue in place: a precinct
 colony, destroyable bores the swarm erupts from, new strains, a callable tender
 and a hive posture for the Marine commander; start with `colony-breach-nouns.md`
-and its `stories.md`. Silent Colony now divides its Marine expedition into
+and its `stories.md`. On the campaign layer the Rav Bloom now raises every
+rescue: outbreaks wake over hidden reservoirs, go dark and spread when ignored,
+and end when the mother bore falls (`colony-breach-nouns.md`, Campaign: blooms;
+`gradlew.bat bloomEvidence`). Silent Colony now divides its Marine expedition into
 stable archive and survivor branches through the same frozen command envelope.
 Live acceptance for Generic Extraction, Rescue, and Silent Colony remains.
 Each mission keeps its own strategy geometry. See `conquest-command.md`,
