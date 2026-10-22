@@ -23,6 +23,8 @@ import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Composite;
+import java.awt.GradientPaint;
+import java.awt.Paint;
 import java.awt.CompositeContext;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -470,6 +472,45 @@ public final class HeadlessUiRenderer {
             graphics.fill(new Rectangle2D.Float(documentX(x), documentY(y),
                     width * coordinateScaleX, height * coordinateScaleY));
             graphics.setComposite(previous);
+        }
+
+        @Override
+        protected void drawFillQuadGradient(float x0, float y0, float x1, float y1,
+                                            float x2, float y2, float x3, float y3,
+                                            Color c0, Color c1, Color c2, Color c3) {
+            // Exact when the gradient runs between opposite edges with one colour per edge.
+            boolean across = c0.equals(c1) && c2.equals(c3);
+            boolean along = c0.equals(c3) && c1.equals(c2);
+            if (!across && !along) {
+                super.drawFillQuadGradient(x0, y0, x1, y1, x2, y2, x3, y3, c0, c1, c2, c3);
+                return;
+            }
+            // The gradient runs perpendicular to its starting edge, out to the opposite edge. Joining
+            // the two edges' midpoints instead tilts it on any trapezoid (a chamfered band), and a
+            // tilted gradient shades the band's ends with colours from above or below it.
+            float ex = across ? x1 - x0 : x3 - x0, ey = across ? y1 - y0 : y3 - y0;
+            float length = (float) Math.hypot(ex, ey);
+            float nx = length > 0f ? -ey / length : 0f, ny = length > 0f ? ex / length : 1f;
+            float ox = across ? x3 - x0 : x1 - x0, oy = across ? y3 - y0 : y1 - y0;
+            float reach = ox * nx + oy * ny;
+            float fromX = x0, fromY = y0;
+            float toX = x0 + nx * reach, toY = y0 + ny * reach;
+            Color to = across ? c3 : c1;
+            Composite previousComposite = graphics.getComposite();
+            Paint previousPaint = graphics.getPaint();
+            graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+                    clampAlpha(alphaMult())));
+            graphics.setPaint(new GradientPaint(documentX(fromX), documentY(fromY), c0,
+                    documentX(toX), documentY(toY), to));
+            Path2D.Float path = new Path2D.Float();
+            path.moveTo(documentX(x0), documentY(y0));
+            path.lineTo(documentX(x1), documentY(y1));
+            path.lineTo(documentX(x2), documentY(y2));
+            path.lineTo(documentX(x3), documentY(y3));
+            path.closePath();
+            graphics.fill(path);
+            graphics.setPaint(previousPaint);
+            graphics.setComposite(previousComposite);
         }
 
         @Override

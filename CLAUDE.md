@@ -548,7 +548,9 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   custom passes drained, draw calls, texture binds, and the milliseconds
   collection and submission each took, plus a whole-frame wall clock with the
   GPU waited on. `build/reports/render/summary.md` and `summary.json`;
-  `-PrenderMaxTicks`, `-PrenderFrames`, `-PrenderDir`. Opt-in and excluded from
+  `-PrenderMaxTicks`, `-PrenderFrames`, `-PrenderDir`, and `-PrenderMaps=body pile,control`
+  to profile only the maps whose ids contain those words (a `body pile` of 1,200
+  Runner dead, `-PrenderPileBodies`, prices `BodyPileCap`). Opt-in and excluded from
   `test`, for `shaderEvidence`'s reasons — it needs an accelerated driver, and
   it reports that it skipped where no context can be made.
   **Counts must repeat and times must not be read as one.** The task asserts

@@ -157,10 +157,29 @@ A fleeing unit never picks a refuge in or beside fire (`FireEffects`).
 crossing it is the difference between a squad that goes round a burning band
 and one that walks into it and dies there.
 
-Not yet: nothing steps a unit out of a fire it is standing in except its own
-next route and its breaking morale, and the swarm moves on flow fields that
-do not read the route costing, so a rav does not yet fear fire
-(`stories.md`).
+**Getting out of the way** (`FireEscape`). A person in the fire's way moves
+before doing anything else: in a burning cell, or standing on fuel within
+three cells of one, because a grass front moves about as fast as a man walks
+and waiting for it to arrive is waiting to be overtaken. He goes to the
+nearest safe cell, one out of and not beside the fire that cannot burn (burnt
+out or bare); ground just ahead of a front is not safe, since the front takes
+it. Steps through burning cells count five times, so a thin front is crossed
+into the burnt ground behind it and a deep one is outrun to bare ground. For a
+marine this is a reflex below grenade evasion and above everything else
+(`InfantryReflexes.IN_FIRE`): he neither shoots nor takes up a new step until
+he is out. Out of the way, nobody but the swarm, armour and drones steps from
+a clear cell into a burning one: the walk waits at the fire's edge, wherever
+the route came from, since the route costing already sent it round where
+there was a way round and a fire passes. A squad holding ground the fire
+takes therefore stands off at the edge and returns when it has burnt out.
+`-Dbattle.fire.stepOut=false` is the control.
+
+**The swarm fears fire too.** Its flow fields charge each step by the fire's
+multiplier on the cell entered (`SwarmFlowFields.setStepCost`, fed the fire
+alone, not a side's costing), so the swarm streams round a burning stand
+where there is a way round and through it where its prey lies beyond. Fields
+rebuild as the fire changes, at their ordinary cadence, and pay nothing while
+nothing burns. The fire route-cost control switches this off with the rest.
 
 ## Starting fires
 
@@ -222,8 +241,19 @@ nothing is drawn for a battle that never lit anything.
   fallen to its destroyed art.
 - **Smoke** is a dark puff rising off each smoking cell and leaning
   downwind, at play zoom only: the picture of the screen it holds.
-- Not yet: fire light through `GroundLightService` (its pools are the
-  screen's, not the draw list's; `stories.md`).
+- **Fire light.** A burn lights what is round it, as a few pooled lights
+  rather than one per cell (`FireLight`): burning cells are gathered into
+  six-cell squares, and each square with fire in it is one light at its
+  hottest middle, reaching about as far as its fire is wide and as bright as
+  it burns, flickering at its own phase; only the brightest few dozen are
+  kept. At night they carve warm orange pools out of the dark as a yard lamp
+  does, and, like a lamp, do not light through a roof, so a night burn reads
+  from across the map and lights the men beside it. In game the same lights
+  are the ground relief's event lights (`GroundLightService`), competing with
+  muzzle and impact flashes for its nearest eight. The night pools are drawn
+  in review frames (`fire-colony` draws the front, a grove and the whole map at
+  night with no lamps); `renderEvidence`'s fire fixture is by day, so their
+  cost is not yet measured there.
 - The look is costed against its own control in `renderEvidence`
   (`-Dbattle.render.fire=false`), on the green colony with a front burnt into
   its groves: there its two layers cost about 0.3 ms of collection and drain
@@ -250,6 +280,15 @@ round its end. Verdicts: a body in a burning cell loses health every fire
 step, a swarm body lying in fire is consumed, and burning ground costs more
 than bare ground in the published route costing. Health lost, deaths and the
 crossing's time in fire are metrics.
+
+`fire-fear` (`sceneEvidence`) holds getting out of the way: a squad holding a
+meadow as a grass front runs at it, bare ground a few cells past the meadow's
+edge, and runners on the prey field after marines beyond a burning band of
+brush with a way round its end. Verdicts: no marine stands in fire longer
+than the time to cross a front's depth, and no runner sets foot in a burning
+cell; each passes trivially under its own control, where time in fire is the
+reading (863 marine-ticks in fire against 113, and 1,877 runner-ticks against
+none, when it was written).
 
 `fire-ignition` (`sceneEvidence`) holds the starting rules: an incendiary blast
 on grass lights it, an ordinary shell lights nothing in country that is not

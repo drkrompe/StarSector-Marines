@@ -386,7 +386,9 @@ increasing an encounter's total armored threat.
   over dim bricks; fitted hardware fills its bricks in its own colour and fuses
   them into one solid piece, notched only along its outside edge. The piece's
   face is a painted icon (`HardwareArt`): a flat pictogram in a dark shade and a
-  light highlight over that colour, never the battle sprite. Drag
+  light highlight over that colour, never the battle sprite, with a silver
+  stencil designation (SRM, LRM, CG, LAS...) tagged in the piece's bottom-right
+  brick. Designations are markings, not prose: they do not localize. Drag
   compatibility therefore uses a colour outside that palette. The doll is the
   location picker: clicking a socket selects it, the right column describes only
   that socket, and a fitted weapon is stripped from the X on its doll card.

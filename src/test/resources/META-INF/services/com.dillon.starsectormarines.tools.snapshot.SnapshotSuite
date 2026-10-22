@@ -253,9 +253,12 @@ com.dillon.starsectormarines.battle.evacuation.PackLeaderSceneSnapshotSuite
 com.dillon.starsectormarines.battle.creep.CreepRoofCollapseSceneSnapshotSuite
 com.dillon.starsectormarines.battle.creep.CreepVegetationSceneSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.RuralMapgenSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.HeartCountrySnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.CityJunctionSnapshotSuite
 com.dillon.starsectormarines.battle.fire.FireLineSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.ColonyRoadblockSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.RoadblockSceneSnapshotSuite
 com.dillon.starsectormarines.battle.fire.FireColonySnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmPackCrowdSceneSnapshotSuite
+com.dillon.starsectormarines.battle.cordon.CordonMapgenSnapshotSuite
+com.dillon.starsectormarines.battle.unit.BodyPileSnapshotSuite

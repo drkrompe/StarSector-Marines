@@ -472,7 +472,34 @@ public final class FleetArmoryViewModel {
         int rating = LoadoutEffectiveness.weaponRating(doctrine);
         return new CardFace(doctrine.displayName(), icon, cardSheet(doctrine.displayName(), presentation,
                 doctrineMetadata(presentation), "weapon", "openingBarracksCardFire", rating,
-                List.of(weaponComposition(doctrine), joinSpans(weaponDistributionSpans("card-face", doctrine)))));
+                List.of(weaponComposition(doctrine), joinSpans(weaponDistributionSpans("card-face", doctrine))))
+                .withSeats(weaponSeats(doctrine), fireTeams()));
+    }
+
+    /** Each seat's weapon, with the special it also carries on the corner. */
+    private static List<SpecSheet.Seat> weaponSeats(SquadWeaponDoctrine doctrine) {
+        List<SpecSheet.Seat> seats = new ArrayList<>();
+        for (SquadWeaponIssue issue : doctrine.issues()) {
+            SpecialEquipmentDef special = issue.specialEquipmentId() == null ? null : issue.specialDef();
+            seats.add(new SpecSheet.Seat(EquipmentIcons.primary(issue.primaryDef(), issue.grade()),
+                    special == null ? null : special.armoryIconPath()));
+        }
+        return seats;
+    }
+
+    private static List<String> fireTeams() {
+        return List.of(Strings.get("openingLoadoutAlpha"), Strings.get("openingLoadoutBravo"),
+                Strings.get("openingLoadoutCharlie"));
+    }
+
+    /** Each seat's suit, with the integral system it carries on the corner. */
+    private static List<SpecSheet.Seat> armorSeats(SquadArmorDoctrine issued) {
+        List<SpecSheet.Seat> seats = new ArrayList<>();
+        for (String armorId : issued.issueIds()) {
+            MarineArmorCatalogDef suit = MarineArmorCatalogRegistry.require(armorId);
+            seats.add(new SpecSheet.Seat(suit.iconPath(), IntegralSystemCopy.iconPath(suit)));
+        }
+        return seats;
     }
 
     /** A tactic sheet's face, iconed by the suit most of its seats wear. */
@@ -489,7 +516,8 @@ public final class FleetArmoryViewModel {
         return new CardFace(plan.displayName(), icon, cardSheet(plan.displayName(), presentation, metadata,
                 "armor", "openingBarracksCardGuard", rating,
                 List.of(joinSpans(armorDistributionSpans("card-face", issued)),
-                        armorCapabilities(armorCapabilitySpans("card-face", issued)))));
+                        armorCapabilities(armorCapabilitySpans("card-face", issued))))
+                .withSeats(armorSeats(issued), fireTeams()));
     }
 
     private static SpecSheet cardSheet(String name, SquadLoadoutPresentationDef presentation, String metadata,

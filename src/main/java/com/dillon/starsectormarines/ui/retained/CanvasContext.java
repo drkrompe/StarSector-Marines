@@ -79,6 +79,20 @@ public abstract class CanvasContext {
                 requireColor(color));
     }
 
+    /**
+     * Fills one quad with a colour at each corner, blended across it: the gradient primitive.
+     * Corners are in the same order as {@link #fillQuad}. With {@code c0 == c1} and
+     * {@code c2 == c3} it is a straight gradient from the {@code 0-1} edge to the {@code 3-2}
+     * edge, which every target draws exactly.
+     */
+    public final void fillQuadGradient(float x0, float y0, float x1, float y1,
+                                       float x2, float y2, float x3, float y3,
+                                       Color c0, Color c1, Color c2, Color c3) {
+        requireFinite(x0, y0, x1, y1, x2, y2, x3, y3);
+        drawFillQuadGradient(x0, y0, x1, y1, x2, y2, x3, y3,
+                requireColor(c0), requireColor(c1), requireColor(c2), requireColor(c3));
+    }
+
     public final void strokeRect(float x, float y, float width, float height,
                                  Color color, float strokeWidth) {
         requireRect(x, y, width, height);
@@ -182,6 +196,34 @@ public abstract class CanvasContext {
 
     protected abstract void drawLine(float x1, float y1, float x2, float y2,
                                      Color color, float strokeWidth);
+
+    /**
+     * Per-corner colour fill. This default approximates it for targets that cannot blend:
+     * thin bands from the {@code 0-1} edge to the {@code 3-2} edge, each in the colour at its
+     * middle. Targets that can interpolate override it.
+     */
+    protected void drawFillQuadGradient(float x0, float y0, float x1, float y1,
+                                        float x2, float y2, float x3, float y3,
+                                        Color c0, Color c1, Color c2, Color c3) {
+        int bands = 24;
+        for (int i = 0; i < bands; i++) {
+            float ta = (float) i / bands, tb = (float) (i + 1) / bands, tm = (ta + tb) * .5f;
+            Color left = lerp(c0, c3, tm), right = lerp(c1, c2, tm);
+            drawFillQuad(x0 + (x3 - x0) * ta, y0 + (y3 - y0) * ta,
+                    x1 + (x2 - x1) * ta, y1 + (y2 - y1) * ta,
+                    x1 + (x2 - x1) * tb, y1 + (y2 - y1) * tb,
+                    x0 + (x3 - x0) * tb, y0 + (y3 - y0) * tb,
+                    lerp(left, right, .5f));
+        }
+    }
+
+    /** Linear blend of two colours, alpha included. */
+    protected static Color lerp(Color a, Color b, float t) {
+        return new Color(Math.round(a.getRed() + (b.getRed() - a.getRed()) * t),
+                Math.round(a.getGreen() + (b.getGreen() - a.getGreen()) * t),
+                Math.round(a.getBlue() + (b.getBlue() - a.getBlue()) * t),
+                Math.round(a.getAlpha() + (b.getAlpha() - a.getAlpha()) * t));
+    }
 
     /** Targets may batch triangles to prevent seams between adjacent fill pieces. */
     protected void drawMesh(CanvasMesh mesh, float x, float y, float scale, Color color) {

@@ -31,6 +31,7 @@ public final class FireRouteCost {
 
     private final boolean enabled = !"false".equalsIgnoreCase(System.getProperty(PROPERTY));
     private volatile Map<Faction, RouteCostField> published = Map.of();
+    private RouteCostField hazard;
     private final Map<Faction, Long> builtFrom = new EnumMap<>(Faction.class);
     private long builtFireRevision = -1;
     private int lastBuild = Integer.MIN_VALUE;
@@ -41,10 +42,20 @@ public final class FireRouteCost {
         return folded != null ? folded : own;
     }
 
+    /**
+     * The fire alone as multipliers, for movers that read no side's costing (the
+     * swarm's flow fields); {@code null} while nothing burns. A new field only
+     * when the fire has changed, so its revision says exactly that.
+     */
+    public RouteCostField hazard() {
+        return hazard;
+    }
+
     public void tick(int simTick, FireField field, Function<Faction, RouteCostField> own) {
         if (!enabled || (long) simTick - lastBuild < INTERVAL_TICKS) return;
         if (field.burningCount() == 0) {
             if (!published.isEmpty()) published = Map.of();
+            hazard = null;
             builtFireRevision = -1;
             builtFrom.clear();
             return;
@@ -60,15 +71,15 @@ public final class FireRouteCost {
         if (!fireChanged && !sideChanged) return;
         lastBuild = simTick;
         builtFireRevision = field.revision();
-        float[] hazard = hazard(field);
+        if (fireChanged || hazard == null) hazard = new RouteCostField(hazard(field), RouteCostField.nextRevision());
+        RouteCostField fireOnly = hazard;
         Map<Faction, RouteCostField> out = new EnumMap<>(Faction.class);
-        RouteCostField fireOnly = new RouteCostField(hazard, RouteCostField.nextRevision());
         for (Faction f : Faction.values()) {
             RouteCostField o = own.apply(f);
             builtFrom.put(f, o == null ? 0L : o.revision());
             if (o == null) { out.put(f, fireOnly); continue; }
-            float[] combined = new float[hazard.length];
-            for (int i = 0; i < combined.length; i++) combined[i] = hazard[i] * o.costAt(i);
+            float[] combined = new float[field.width() * field.height()];
+            for (int i = 0; i < combined.length; i++) combined[i] = fireOnly.costAt(i) * o.costAt(i);
             out.put(f, new RouteCostField(combined, RouteCostField.nextRevision()));
         }
         published = out;

@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout.Farmstead
 import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout.Grade;
 import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout.Plot;
 import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout.Road;
+import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout.Use;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayDeque;
@@ -12,6 +13,7 @@ import java.util.Deque;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -78,14 +80,39 @@ class RuralLayoutTest {
             }
         }
         for (Plot plot : layout.plots()) {
+            if (plot.use() == Use.WILD) continue;
             assertTrue(plot.x1() - plot.x0() + 1 >= RuralLayout.MIN_PLOT - 1, plot.toString());
         }
     }
 
     @Test
-    void everyPlotIsReachedByATrackOrRoad() {
+    void fieldsLieBesideTheRoadAndThinOutAlongTheEdge() {
+        int width = 400;
+        FieldOfFire field = new FieldOfFire(200, 30, 40);
+        int depth = field.countryDepth(width, H) + 1;
+        boolean[][] road = new boolean[width][H];
+        for (int y = depth; y < H; y++) for (int x = 198; x <= 202; x++) road[x][y] = true;
+        RuralLayout layout = RuralLayout.plan(width, H, field, road, 5L);
+        Road country = layout.roads().stream().filter(r -> r.grade() == Grade.COUNTRY).findFirst().orElseThrow();
+        int townRow = layout.depth() - Grade.FARM.width - 1;
+        assertNotEquals(Use.WILD, layout.plotAt(country.x0() - 1, townRow).use(), "beside the road, against the town");
+        assertNotEquals(Use.WILD, layout.plotAt(country.x1() + 1, townRow).use());
+        boolean wild = false;
+        for (Plot plot : layout.plots()) {
+            wild |= plot.use() == Use.WILD;
+            if (plot.use() == Use.WILD || plot.y1() >= townRow) continue;
+            // Out by the map edge a field lies within its reach of the road.
+            int gap = Math.max(plot.x0() - country.x1() - 1, country.x0() - 1 - plot.x1());
+            assertTrue(gap < width * RuralLayout.FAR_SIDE_REACH, plot.toString());
+        }
+        assertTrue(wild, "some of the country is nobody's field");
+    }
+
+    @Test
+    void everyFieldIsReachedByATrackOrRoad() {
         RuralLayout layout = layout();
         for (Plot plot : layout.plots()) {
+            if (plot.use() == Use.WILD) continue;
             boolean touches = false;
             for (int x = plot.x0() - 1; x <= plot.x1() + 1 && !touches; x++) {
                 for (int y = plot.y0() - 1; y <= plot.y1() + 1 && !touches; y++) {

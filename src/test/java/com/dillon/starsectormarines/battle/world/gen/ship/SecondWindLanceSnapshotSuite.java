@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 import org.json.JSONObject;
 
 /**
@@ -180,9 +181,36 @@ public final class SecondWindLanceSnapshotSuite implements SnapshotSuite {
                                 facility.name().replace('_', ' ') + " " + room.width() + "x" + room.depth()
                                         + (opened ? " / opened" : " / sealed")));
                     }
+                    if (opened) frames.addAll(doorsInPassing(renderer, scene));
                 } finally { deck.dismiss(); }
             }
         }
+    }
+
+    /**
+     * A compartment door caught opening for someone, then standing open while
+     * they pass: the deck's own crew walking its own doorways, never a posed door.
+     */
+    private static List<SnapshotArtifact> doorsInPassing(HeadlessUiRenderer renderer, ShipDeckBattleScene scene) {
+        var found = new ArrayList<SnapshotArtifact>();
+        float clock = scene.simulatedSeconds();
+        String[] names = {"door-opening.png", "door-open.png"};
+        float[][] bands = {{0.3f, 0.8f}, {1f, 1f}};
+        for (int stage = 0; stage < 2; stage++) {
+            RoomDoor caught = null;
+            for (int step = 0; step < 2400 && caught == null; step++) {
+                clock += 0.05f;
+                scene.advanceTo(clock);
+                for (RoomDoor door : scene.roomDoors()) {
+                    float t = door.openness();
+                    if (!door.locked() && t >= bands[stage][0] && t <= bands[stage][1]) { caught = door; break; }
+                }
+            }
+            if (caught == null) throw new AssertionError("No crew opened a compartment door in the evidence window");
+            found.add(closeUp(renderer, scene, new ShipDeckBattleScene.DeckView(caught.centerX(), caught.centerY(), 72f),
+                    names[stage], String.format(Locale.ROOT, "COMPARTMENT DOOR / %.0f%% open", caught.openness() * 100f)));
+        }
+        return found;
     }
 
     private static SnapshotArtifact closeUp(HeadlessUiRenderer renderer, ShipDeckBattleScene scene,

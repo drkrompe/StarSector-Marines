@@ -67,6 +67,7 @@ import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretFireSystem;
 import com.dillon.starsectormarines.battle.unit.DeadBodySystem;
+import com.dillon.starsectormarines.battle.unit.BodyPileCap;
 import com.dillon.starsectormarines.battle.warship.LanceSweep;
 import com.dillon.starsectormarines.battle.warship.LanceSweepSystem;
 import com.dillon.starsectormarines.battle.warship.Warship;
@@ -234,6 +235,7 @@ import com.dillon.starsectormarines.battle.breach.WallBreachSystem;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.RouteCostField;
 import com.dillon.starsectormarines.battle.nav.SharedGoalPolicy;
 import com.dillon.starsectormarines.battle.nav.SwarmFlowFields;
@@ -262,6 +264,7 @@ import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.creep.CreepRoofCollapse;
 import com.dillon.starsectormarines.battle.fire.BattleFire;
 import com.dillon.starsectormarines.battle.fire.FireCost;
+import com.dillon.starsectormarines.battle.fire.FireEscape;
 import com.dillon.starsectormarines.battle.fire.FireField;
 import com.dillon.starsectormarines.battle.fire.FireHarm;
 import com.dillon.starsectormarines.battle.fire.FireIgnition;
@@ -740,6 +743,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final CreepDigestion creepDigestion = new CreepDigestion();
     /** The creep digesting the swarm's dead (`colony-breach-nouns.md`, Creep). */
     public CreepDigestion creepDigestion() { return creepDigestion; }
+    private final BodyPileCap bodyPileCap = new BodyPileCap();
+    /** The safety net on how many bodies lie in one place (`colony-breach-nouns.md`, Body pile cap). */
+    public BodyPileCap bodyPileCap() { return bodyPileCap; }
     /** Roofs the creep has stood on long enough cave in under it. */
     private CreepRoofCollapse creepRoofs;
     /** Trees the creep has climbed die under it. */
@@ -782,7 +788,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return fire.field();
     }
     /** The fire field if anything has lit one, else {@code null}; safe for renderers. */
+    @Override
     public FireField fireFieldIfPresent() { return fire == null ? null : fire.field(); }
+
+    /** The fire alone as route multipliers, {@code null} while nothing burns; see {@link FireRouteCost#hazard}. */
+    public RouteCostField fireHazard() { return fireRouteCost.hazard(); }
     private ColonyBreachSequence colonyBreach;
     /** Salt for the bores' own draws, so they are not the battle stream read again. */
     private static final long BORE_SEED_SALT = 0x53574152_4D424F52L;
@@ -804,6 +814,21 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SwarmPackPlans swarmPackPlans;
     /** What each pack is doing as it moves (`colony-breach-nouns.md`, Pack movement). */
     public SwarmPackPlans swarmPackPlans() { return swarmPackPlans; }
+    /**
+     * Declares the open bores' creep and grows it to full at once, as creep
+     * that has stood for weeks; the trees it holds die and the roofs it stands
+     * under have caved in. Setup only
+     * ({@code cordon-nouns.md}, The map).
+     */
+    public void matureCreep() {
+        if (simTickIndex != 0) throw new IllegalStateException("Creep is matured at setup");
+        boreCreep.sync(this);
+        if (creep == null) return;
+        creep.mature();
+        creepVegetation().look(this, 0);
+        // Weeks under the creep is far past any roof's hold: what it stands on has caved in.
+        CreepRoofCollapse.matureOn(this);
+    }
     /** From the tremor on, the swarm director spawns only from living bores. */
     public void beginSwarmBoreSourcing() { swarmReinforcements.beginBoreSourcing(swarmBores); }
     /** The Colony Breach story, or {@code null} on every other battle. */
@@ -1497,10 +1522,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         rosterService.convoy().setDestructionSink(groundSystem::destroyVehicle);
         // A gun on a turning hull shakes the way a moving shooter's does.
         turretFire.setShooterAccuracy(new HullPivot(rosterService.convoy()));
-        // A map emplacement's crew holds a round that would hit their own side; vehicle and aircraft guns do not yet.
-        // -Dbattle.turret.crewFriendlyHold=false is the control.
+        // A map emplacement's or a vehicle's crew holds a round that would hit their own side; aircraft guns do not
+        // yet. -Dbattle.turret.crewFriendlyHold=false is the control.
         if (Boolean.parseBoolean(System.getProperty("battle.turret.crewFriendlyHold", "true"))) {
             turretFire.setFriendlyFireHold(id -> rosterService.turretState().isTurret(id)
+                    || rosterService.convoy().isVehicle(id)
                     ? TurretFireSystem.CREW_FRIENDLY_HOLD_CHANCE : 0f, this::friendsInBlast);
         }
         groundSystem.setBlade(new DozerBlade(navigation, mapEditor, doodadService));
@@ -3623,6 +3649,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         boreCreep.sync(this);
         if (creep != null) creep.tick(simTickIndex);
         creepDigestion.tick(this);
+        bodyPileCap.tick(this);
         // Outposts after the creep has spread: they root on ground it has held a while.
         creepOutposts.tick(this);
         groundColonies.tick(this);
@@ -3903,8 +3930,21 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                     world, u, TICK_DT, grid, physicalRadius(u));
             if (result == MovementService.MotionResult.BLOCKED) navigation.clearPath(u);
         } else {
+            if (waitsAtFireEdge(u)) return;
             movement().advanceAlongPath(world, u, TICK_DT);
         }
+    }
+
+    /** A person out of the fire's way does not walk back into it; see {@link FireEscape#waitsAtEdge}. */
+    private boolean waitsAtFireEdge(long u) {
+        if (fire == null || fire.field().burningCount() == 0) return false;
+        UnitType type = identity().type(u);
+        if (type.isSwarm() || type.isGroundVehicle() || type.isMachineFrame() || type.isDrone()) return false;
+        int[] path = world.path(u);
+        int next = world.pathIdx(u);
+        if (next >= Paths.cellCount(path)) return false;
+        return FireEscape.waitsAtEdge(fire.field(), world.cellX(u), world.cellY(u),
+                Paths.cellX(path, next), Paths.cellY(path, next));
     }
 
     @Override
@@ -4070,21 +4110,29 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 structure, target, aerialShooter, hasLos);
     }
 
-    /** Whether a burst of {@code radius} at a point would catch a living body on {@code side}'s own side. */
+    /**
+     * Whether a burst of {@code radius} at a point would catch a living body on {@code side}'s own side: the
+     * detonation's own reach test, the blast radius widened by the body's footprint ({@code Detonations}).
+     */
     private boolean friendsInBlast(long shooterId, Faction side, float x, float y, float radius) {
         LongBucket bucket = blastScratch.get();
-        unitIndex.gather(x, y, radius, bucket);
-        float radiusSq = radius * radius;
+        unitIndex.gather(x, y, radius + BLAST_FOOTPRINT_PAD, bucket);
         for (int i = 0, n = bucket.size; i < n; i++) {
             long id = bucket.ids[i];
             if (id == shooterId || !world.isAlive(id)) continue;
-            if (!side.friendlyTo(rosterService.identity().faction(id))) continue;
+            Faction faction = rosterService.convoy().isVehicle(id)
+                    ? rosterService.convoy().faction(id) : rosterService.identity().faction(id);
+            if (!side.friendlyTo(faction)) continue;
             float dx = world.x(id) - x;
             float dy = world.y(id) - y;
-            if (dx * dx + dy * dy <= radiusSq) return true;
+            float reach = radius + rosterService.radius(id);
+            if (dx * dx + dy * dy <= reach * reach) return true;
         }
         return false;
     }
+
+    /** How far past a blast's radius {@link #friendsInBlast} looks for a body whose footprint reaches into it. */
+    private static final float BLAST_FOOTPRINT_PAD = 2f;
 
     /** Ground-entity turret overload with the posed barrel and burst release; false when the crew held the round. */
     public boolean fireShotFrom(long shooterId, float fromX, float fromY,

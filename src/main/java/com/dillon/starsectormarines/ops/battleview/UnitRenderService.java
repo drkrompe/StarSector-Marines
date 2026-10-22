@@ -1045,12 +1045,13 @@ public final class UnitRenderService implements RenderSystem {
                     if (rx[r] < cullMinX || rx[r] > cullMaxX
                             || ry[r] < cullMinY || ry[r] > cullMaxY) continue;
                     LayeredSpriteCache pool = pools.get(Math.floorMod(poseIdx[r], pools.size()));
+                    float poolAlpha = alphaMult * pileFadeAlpha(ctx.sim.bodyPileCap().faded(t.entityAt(r)));
                     float size = cam.cellPxSize() * BLOOD_POOL_CELLS * ((UnitType) types[r]).renderScale
                             * bloodSpread((now - deathTick[r]) * BattleSimulation.TICK_DT);
                     out.addSprite(RenderLayer.UNITS, pool.sprite,
                             cam.cellToScreenX(rx[r]), cam.cellToScreenY(ry[r]),
                             size, size * pool.pxHeight / pool.pxWidth, facing[r],
-                            1f, 1f, 1f, alphaMult);
+                            1f, 1f, 1f, poolAlpha);
                 }
             }
         }
@@ -1073,7 +1074,11 @@ public final class UnitRenderService implements RenderSystem {
                 UnitType type = (UnitType) types[r];
                 // A strain body on the creep melts into it: drawn smaller and fainter until it is gone.
                 float digested = type.isSwarm() ? ctx.sim.creepDigestion().digested(t.entityAt(r)) : 0f;
-                float alpha = alphaMult * meltAlpha(digested);
+                // A body the pile cap is retiring settles and fades the same way, on any ground.
+                float faded = ctx.sim.bodyPileCap().faded(t.entityAt(r));
+                float pileAlpha = pileFadeAlpha(faded);
+                float alpha = alphaMult * meltAlpha(digested) * pileAlpha;
+                float shrink = 1f - MELT_SHRINK * Math.max(digested, faded);
                 if (deadBruteArt != null && ravRigs != null && ravRigs[r] instanceof RavBruteRig deadBrute
                         && deadBrute.dead()) {
                     // A dead Brute has burst as a Runner does, over the same ichor.
@@ -1081,7 +1086,7 @@ public final class UnitRenderService implements RenderSystem {
                             ravArt != null ? ravArt.splat : null,
                             ravArt != null ? ravArt.drop : null, deadBrute,
                             cam.cellToScreenX(deadBrute.bodyX()), cam.cellToScreenY(deadBrute.bodyY()),
-                            cam.cellPxSize() * deadBrute.scale() * (1f - MELT_SHRINK * digested), alpha);
+                            cam.cellPxSize() * deadBrute.scale() * shrink, alpha);
                     continue;
                 }
                 RavRunnerRig ravRig = ravArt != null && ravRigs != null && ravRigs[r] instanceof RavRunnerRig dead
@@ -1090,7 +1095,7 @@ public final class UnitRenderService implements RenderSystem {
                     // A dead Runner has burst: its pieces where they were flung, over its ichor.
                     RavRunnerComposer.emit(out, ravArt.forStage(ravRig.stage()), ravRig,
                             cam.cellToScreenX(ravRig.bodyX()), cam.cellToScreenY(ravRig.bodyY()),
-                            cam.cellPxSize() * type.renderScale * ravRig.scale() * (1f - MELT_SHRINK * digested),
+                            cam.cellPxSize() * type.renderScale * ravRig.scale() * shrink,
                             1f, alpha);
                     continue;
                 }
@@ -1109,11 +1114,11 @@ public final class UnitRenderService implements RenderSystem {
                 }
                 if (lying != null) {
                     float shoulderPx = layeredInfantryShoulderWidth(cam.cellPxSize(), type.renderScale);
-                    float scale = shoulderPx * DOWNED_BODY_SCALE / LayeredUnitComposer.SOURCE_SHOULDER_PX;
+                    float scale = shoulderPx * DOWNED_BODY_SCALE / LayeredUnitComposer.SOURCE_SHOULDER_PX * shrink;
                     out.addSprite(RenderLayer.UNITS, lying.sprite,
                             cam.cellToScreenX(rx[r]), cam.cellToScreenY(ry[r]),
                             lying.pxWidth * scale, lying.pxHeight * scale, corpseFacing[r],
-                            1f, 1f, 1f, alphaMult);
+                            1f, 1f, 1f, alphaMult * pileAlpha);
                     continue;
                 }
                 RenderAppearance app = RenderAppearance.of(type);
@@ -1127,7 +1132,7 @@ public final class UnitRenderService implements RenderSystem {
                         % frames.frames.length;
                 SpriteSheetFrames.Frame f = frames.frames[frameIdx];
 
-                float scaledSize = unitSize * ctx.sim.getRoster().renderScale(t.entityAt(r));
+                float scaledSize = unitSize * ctx.sim.getRoster().renderScale(t.entityAt(r)) * shrink;
                 float targetW, targetH;
                 if (f.w >= f.h) {
                     targetW = scaledSize;
@@ -1148,6 +1153,13 @@ public final class UnitRenderService implements RenderSystem {
 
     /** How much a digesting body shrinks by the time the creep has it all. */
     private static final float MELT_SHRINK = 0.2f;
+
+    /** A body the pile cap retires fades out smoothly over the whole of its fade. */
+    static float pileFadeAlpha(float faded) {
+        if (faded <= 0f) return 1f;
+        float t = Math.min(1f, faded);
+        return 1f - t * t * (3f - 2f * t);
+    }
 
     /** A digesting body stays whole for its first third, then fades into the creep. */
     static float meltAlpha(float digested) {

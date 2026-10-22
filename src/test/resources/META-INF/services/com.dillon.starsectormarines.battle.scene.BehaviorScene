@@ -136,6 +136,7 @@ com.dillon.starsectormarines.battle.evacuation.PackLeaderScene
 com.dillon.starsectormarines.battle.creep.CreepRoofCollapseScene
 com.dillon.starsectormarines.battle.fire.FireLineScene
 com.dillon.starsectormarines.battle.fire.FireHarmScene
+com.dillon.starsectormarines.battle.fire.FireFearScene
 com.dillon.starsectormarines.battle.creep.CreepVegetationScene
 com.dillon.starsectormarines.battle.fire.FireScaleScene
 com.dillon.starsectormarines.battle.fire.FireSmokeScene
