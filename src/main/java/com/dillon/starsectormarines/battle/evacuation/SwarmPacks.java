@@ -24,6 +24,12 @@ import java.util.Map;
  * surges merge. The Matriarch leads every pack within her leash; an elder that
  * comes within it defers to her and brings its pack.
  *
+ * <p>A pulse is split into packs of at most {@link #MAX_PACK}. A pack with no
+ * elder at its head is <em>leaderless</em>: it has none of a leader's bonuses
+ * and never breaks, but it is still a pack, so it moves as one
+ * ({@link SwarmPackPlans}). Its members join a leader's pack whose leash they
+ * come within only while that pack has room.
+ *
  * <p>Everything here is written once a tick, serially ({@link #tick}), and read
  * by the parallel unit update, which never writes it.
  * {@code -Dbattle.swarm.packLeaders=false} is the control: no pack ever forms
@@ -40,6 +46,8 @@ public final class SwarmPacks {
     /** Seconds a broken pack's members scatter, and its whelps bolt for the bore. */
     public static final float SCATTER_SECONDS = 2f;
     public static final float BOLT_SECONDS = 4f;
+    /** The most bodies one pack takes; a bigger pulse splits evenly. */
+    public static final int MAX_PACK = 8;
 
     /** Whether packs form. {@code -Dbattle.swarm.packLeaders=false} is the control. */
     public static boolean enabledByDefault() {
@@ -56,6 +64,8 @@ public final class SwarmPacks {
         long quarry;
         /** Contacts sensed by members on the leash this tick, sorted. */
         long[] contacts = new long[0];
+        /** Living members at the start of this tick, for room to recruit. */
+        int size;
 
         Pack(int id, long leader) {
             this.id = id;
@@ -99,7 +109,38 @@ public final class SwarmPacks {
         return pack.id;
     }
 
-    /** Puts {@code body} in pack {@code id}; nothing for id 0 (a pulse without a leader). */
+    /** Opens a leaderless pack whose first body is {@code first}. Returns its id, or 0 while packs are off. */
+    public int openLeaderless(long first) {
+        if (!enabled) return 0;
+        Pack pack = new Pack(nextId++, 0L);
+        packs.put(pack.id, pack);
+        packOf.put(first, pack);
+        return pack.id;
+    }
+
+    /**
+     * How a pulse of {@code size} bodies splits into packs: as few packs as
+     * fit {@link #MAX_PACK}, as even as they can be, larger first.
+     */
+    public static int[] packSizes(int size) {
+        if (size <= 0) return new int[0];
+        int count = (size + MAX_PACK - 1) / MAX_PACK;
+        int[] sizes = new int[count];
+        for (int i = 0; i < count; i++) sizes[i] = size / count + (i < size % count ? 1 : 0);
+        return sizes;
+    }
+
+    /** Whether body {@code index} of a pulse of {@code size} is the first of a new pack. */
+    public static boolean startsPack(int index, int size) {
+        int start = 0;
+        for (int s : packSizes(size)) {
+            if (index == start) return true;
+            start += s;
+        }
+        return false;
+    }
+
+    /** Puts {@code body} in pack {@code id}; nothing for id 0 (packs off). */
     public void join(int id, long body) {
         Pack pack = packs.get(id);
         if (pack != null) packOf.put(body, pack);
@@ -119,6 +160,8 @@ public final class SwarmPacks {
         boltUntil.values().removeIf(until -> tick >= until);
         packOf.keySet().removeIf(body -> sim.resolveUnit(body) == 0L && !isLeaderOf(body));
 
+        for (Pack pack : packs.values()) pack.size = 0;
+        for (Pack pack : packOf.values()) pack.size++;
         List<Pack> led = new ArrayList<>();
         for (Pack pack : sortedPacks()) {
             if (!pack.led()) continue;
@@ -180,6 +223,8 @@ public final class SwarmPacks {
                 boolean matriarch = sim.identity().type(pack.leader) == UnitType.SWARM_MATRIARCH;
                 if (ownLed && !matriarch) continue;
                 if (ownLed && sim.identity().type(own.leader) == UnitType.SWARM_MATRIARCH) continue;
+                // A leaderless pack's member comes over only while the leader's pack has room.
+                if (!ownLed && own != null && !own.broken && pack.size >= MAX_PACK) continue;
                 if (!onLeash(sim.world().x(body), sim.world().y(body), pack)) continue;
                 if (ownLed && own.leader == body) {
                     // An elder defers to her and brings its pack.
@@ -187,7 +232,9 @@ public final class SwarmPacks {
                     own.broken = true;
                     own.leader = 0L;
                 } else {
+                    if (own != null) own.size--;
                     packOf.put(body, pack);
+                    pack.size++;
                 }
                 break;
             }
@@ -298,6 +345,24 @@ public final class SwarmPacks {
     /** Whether {@code body} is a whelp bolting back to its bore after its leader died. */
     public boolean bolting(long body) {
         return boltUntil.containsKey(body);
+    }
+
+    /** The id of the pack {@code body} belongs to, or 0. */
+    public int packIdOf(long body) {
+        Pack pack = packOf.get(body);
+        return pack == null ? 0 : pack.id;
+    }
+
+    /** Whether pack {@code id} still stands: it exists and has not broken (a leaderless pack never breaks). */
+    public boolean isStanding(int id) {
+        Pack pack = packs.get(id);
+        return pack != null && !pack.broken;
+    }
+
+    /** The living leader of pack {@code id}, or 0 for a leaderless or broken pack. */
+    public long leaderOfPack(int id) {
+        Pack pack = packs.get(id);
+        return pack != null && pack.led() ? pack.leader : 0L;
     }
 
     /** Packs broken this battle, oldest first. */

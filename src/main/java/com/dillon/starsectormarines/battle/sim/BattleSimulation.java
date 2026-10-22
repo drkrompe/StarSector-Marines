@@ -265,6 +265,7 @@ import com.dillon.starsectormarines.battle.evacuation.CreepOutposts;
 import com.dillon.starsectormarines.battle.evacuation.GroundColonies;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
 import com.dillon.starsectormarines.battle.evacuation.SwarmHarvest;
+import com.dillon.starsectormarines.battle.evacuation.SwarmPackPlans;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPacks;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
@@ -746,6 +747,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private ColonyBreachSequence colonyBreach;
     /** Salt for the bores' own draws, so they are not the battle stream read again. */
     private static final long BORE_SEED_SALT = 0x53574152_4D424F52L;
+    private static final long PACK_SEED_SALT = 0x50414B5F_4C4F5045L;
     private final SwarmBores swarmBores;
     private final CreepOutposts creepOutposts;
     private final GroundColonies groundColonies = new GroundColonies();
@@ -760,6 +762,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SwarmPacks swarmPacks = new SwarmPacks();
     /** Packs and their leaders (`colony-breach-nouns.md`, Pack, pack leader). */
     public SwarmPacks swarmPacks() { return swarmPacks; }
+    private final SwarmPackPlans swarmPackPlans;
+    /** What each pack is doing as it moves (`colony-breach-nouns.md`, Pack movement). */
+    public SwarmPackPlans swarmPackPlans() { return swarmPackPlans; }
     /** From the tremor on, the swarm director spawns only from living bores. */
     public void beginSwarmBoreSourcing() { swarmReinforcements.beginBoreSourcing(swarmBores); }
     /** The Colony Breach story, or {@code null} on every other battle. */
@@ -1179,6 +1184,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private boolean missionCompletionEnabled = true;
     /** Whether the swarm's strategic move descends a goal's flow field; see {@link SwarmFlowFields}. */
     private boolean swarmFlowFieldEnabled = SwarmFlowFields.defaultEnabled();
+    /** Whether swarm packs move as packs; see {@link SwarmPackPlans}. */
+    private boolean swarmPackEnabled = SwarmPackPlans.defaultEnabled();
 
     /** Alias of {@link NavigationService#getZoneGraph()}. */
     private final ZoneGraph zoneGraph;
@@ -1217,6 +1224,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.generationSeed = seed;
         this.swarmBores = new SwarmBores(seed ^ BORE_SEED_SALT);
         this.creepOutposts = new CreepOutposts(seed ^ BORE_SEED_SALT);
+        this.swarmPackPlans = new SwarmPackPlans(seed ^ PACK_SEED_SALT);
         this.rng = new Random(seed);
         this.noiseEvents = new NoiseEventBus(() -> simTickIndex);
         this.shots = new ShotService(noiseEvents);
@@ -2095,6 +2103,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Per-battle override of {@code -Dbattle.swarm.flowField}, so evidence can run lever and control in one process. */
     public void setSwarmFlowFieldEnabled(boolean enabled) { swarmFlowFieldEnabled = enabled; }
+
+    /** Whether pack members move as a pack rather than each body alone. */
+    public boolean isSwarmPackEnabled() { return swarmPackEnabled; }
+
+    /** Per-battle override of {@code -Dbattle.swarm.pack}, so evidence can run lever and control in one process. */
+    public void setSwarmPackEnabled(boolean enabled) { swarmPackEnabled = enabled; }
     /** Per-cell unit count, indexed by {@link NavigationGrid#index(int, int)}. Exposed for AI scoring; do not mutate directly — go through {@link #setPath}. */
     public byte[] getOccupancyMap()        { return occupancyMap; }
     /** Bucketed spatial index over alive units. Rebuilt at the top of each tick by {@link #tick()}. */
@@ -3244,6 +3258,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // Swarm goal fields are rebuilt here, serially and from the positions
         // the unit update starts from, so the dispatch below only reads them.
         if (swarmFlowFieldEnabled) SwarmMovement.prepare(this);
+        // Packs plan their moves after the fields, from the same tick-start positions.
+        swarmPackPlans.prepare(this);
         navigation.beginSharedGoalPathSnapshot();
         try {
             unitUpdate.tick(this);
