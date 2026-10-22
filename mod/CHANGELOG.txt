@@ -25,5 +25,3 @@ Known issues
   - Large maps can be slow on older CPUs, especially in Conquest.
   - Some text is not yet localised and some screens still use placeholder
     copy.
-  - Radio and music include placeholder audio that will be replaced in a
-    later version.

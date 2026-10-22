@@ -254,31 +254,20 @@ public final class BattleRadioChatter {
                 && !squad.isDroneSquad();
     }
 
+    /** A squad report; {@code OperationRadio} voices it through the cast's recorded lines. */
     public enum Cue {
-        ACKNOWLEDGE("marines_radio_ack", 1, 0.32f),
-        COMBAT("marines_radio_combat", 1, 0.32f),
-        ENEMY_DOWN("marines_radio_enemy_down", 2, 0.32f),
-        CONTACT("marines_radio_contact", 3, 0.32f),
-        MECH_SPOTTED("marines_radio_mech_spotted", 4, 0.32f),
-        FALLBACK("marines_radio_fallback", 5, 0.32f),
-        CHECK_FIRE("marines_radio_check_fire", 6, 0.32f);
+        ACKNOWLEDGE(1),
+        COMBAT(1),
+        ENEMY_DOWN(2),
+        CONTACT(3),
+        MECH_SPOTTED(4),
+        FALLBACK(5),
+        CHECK_FIRE(6);
 
-        private final String soundId;
         private final int priority;
-        private final float volume;
 
-        Cue(String soundId, int priority, float volume) {
-            this.soundId = soundId;
+        Cue(int priority) {
             this.priority = priority;
-            this.volume = volume;
-        }
-
-        public String soundId() {
-            return soundId;
-        }
-
-        public float volume() {
-            return volume;
         }
     }
 

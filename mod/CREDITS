@@ -48,20 +48,17 @@ Game Audio (proprietary — unofficial fan use)
 ---------------------------------------------
 Audio from "MechWarrior 4: Mercenaries"
   © Microsoft Game Studios / FASA Studio. Developed by Cyberlore Studios.
-  Music tracks used:
-    Behemoths   (marines_battle_music)
-    Next Move   (marines_intel_music)
-  Voice clips used for marine squad radio:
-    viscontact_ais, viscontact_bul, viscontact_han, viscontact_scr
-    fallback_ais, fallback_bul, fallback_han, fallback_scr
-    copy_ais, copy_bul, rogerthat_han, rogerthat_scr
-  These are copyrighted game assets, NOT released under a Creative Commons
+  Music track used:
+    Next Move   (marines_intel_music, the Marine Ops menu theme)
+  Kept as an homage: MechWarrior 4: Mercenaries is a direct inspiration for
+  this mod. It is the only proprietary audio the mod ships.
+  This is a copyrighted game asset, NOT released under a Creative Commons
   or other content-redistribution license. In 2010 the MekTek team released
   "MechWarrior 4: Mercenaries" as a free download with Microsoft's permission;
   that arrangement makes the game free to play but does not grant rights to
   reuse its audio in other works. Inclusion here is unofficial, non-commercial
   fan use with no claim of ownership. All rights remain with the rightsholders;
-  on request these audio assets will be removed.
+  on request this track will be removed.
 
 Ambient Sound Effects
 ---------------------
