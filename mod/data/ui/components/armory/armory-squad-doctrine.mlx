@@ -54,6 +54,19 @@
               <div each="span in tile.distributionSpans" key="{span.id}" id="{span.id}" class="doctrine-span doctrine-issue-span"><img id="{span.iconId}" class="doctrine-equipment-icon" src="{span.icon}" /><div id="{span.textId}" class="doctrine-equipment-name">{span.text}</div></div>
             </div>
           </div>
+          <div id="{tile.seatsId}" class="{tile.seatsClasses}">
+            <div each="team in tile.teams" key="{team.id}" id="{team.id}" class="doctrine-team">
+              <div id="{team.labelId}" class="doctrine-team-label label">{team.label}</div>
+              <div id="{team.rowsId}" class="doctrine-team-rows">
+                <div each="row in team.rows" key="{row.id}" id="{row.id}" class="doctrine-seat-row">
+                  <div each="seat in row.seats" key="{seat.id}" id="{seat.id}" class="doctrine-seat">
+                    <img id="{seat.imageId}" class="doctrine-seat-image" src="{seat.image}" />
+                    <img id="{seat.badgeId}" class="{seat.badgeClasses}" src="{seat.badge}" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
           <div id="{tile.carriesId}" class="{tile.carriesClasses}">{tile.carriesLine}</div>
           <div id="{tile.carriesRowId}" class="{tile.carriesRowClasses}">
             <div id="{tile.carriesTagId}" class="doctrine-line-tag label">{i18n.openingUiArmorySquadDoctrineCarries}</div>
@@ -77,6 +90,15 @@
 </template>
 
 <style>
+  .doctrine-seats { flex-direction: row; height: 136px; gap: 9px; }
+  .doctrine-team { flex-direction: column; width: 152px; height: 132px; padding: 4px; gap: 4px; border-width: 1px; border-color: #1f3346; background-color: #0e1a26; }
+  .doctrine-team-label { height: 12px; text-align: center; color: #8b9aaf; }
+  .doctrine-team-rows { flex-direction: column; height: 116px; gap: 4px; }
+  .doctrine-seat-row { flex-direction: row; height: 56px; gap: 4px; }
+  .doctrine-seat { width: 64px; height: 46px; padding: 4px; border-width: 1px; border-color: #2a4258; background-color: #09131d; }
+  .doctrine-seat-image { width: 64px; height: 46px; }
+  .doctrine-seat-badge { position: absolute; left: 38px; top: 20px; width: 28px; height: 28px; border-width: 1px; border-color: #2c4a63; background-color: #09131d; }
+  .doctrine-seat-badge.doctrine-seat-badge-absent { width: 0px; height: 0px; border-width: 0px; }
   .doctrine-seal { width: 18px; height: 18px; }
   .doctrine-seal.doctrine-seal-absent { width: 0px; height: 0px; }
   .doctrine-stamp { height: 16px; color: #8b9aaf; }

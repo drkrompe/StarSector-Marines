@@ -86,12 +86,34 @@ final class ArmorySpecSheets {
                     FleetArmoryViewModel.DoctrineTile::distributionSpans);
             bindSpans(binder, markup, tiles, tile.id(), tile.carriesSpans(),
                     FleetArmoryViewModel.DoctrineTile::carriesSpans);
+            // Each seat of the card's fire-team picture describes the weapon or suit it shows.
+            for (int index = 0; index < tile.seatSheets().size(); index++) {
+                UiElement element = markup.requireElement(seatId(tile.id(), index));
+                if (binder.isBound(element)) continue;
+                int slot = index;
+                String tileId = tile.id();
+                binder.bind(element, () -> seatSheetAt(tiles, tileId, slot));
+            }
         }
+    }
+
+    /** The element a loadout card paints its {@code index}th seat on. */
+    static String seatId(String tileId, int index) {
+        return tileId + ":seat-" + index;
+    }
+
+    private static SpecSheet seatSheetAt(Signal<List<FleetArmoryViewModel.DoctrineTile>> tiles,
+                                         String tileId, int slot) {
+        for (FleetArmoryViewModel.DoctrineTile tile : tiles.get()) {
+            if (tile.id().equals(tileId)) return slot < tile.seatSheets().size() ? tile.seatSheets().get(slot) : null;
+        }
+        return null;
     }
 
     /** The first loadout entry {@link #bindDoctrineTiles} binds, for headless evidence. */
     static String firstSpecSheetAnchorId(List<FleetArmoryViewModel.DoctrineTile> tiles) {
         for (FleetArmoryViewModel.DoctrineTile tile : tiles) {
+            if (!tile.seatSheets().isEmpty()) return seatId(tile.id(), 0);
             for (FleetArmoryViewModel.DoctrineSpan span : tile.distributionSpans()) {
                 if (span.sheet() != null) return span.id();
             }

@@ -257,6 +257,59 @@ def _apply(p, m, hits, jumps, t, t_key):
     return [p[n] + off[n] for n in range(3)], m
 
 
+class _Curve:
+    """A monotone cubic (Fritsch-Carlson) through (ts, ys): continuous in value and in rate, no
+    overshoot past a key, carried on at the end rate beyond the ends. A key that is a local peak or trough is where the
+    rate passes through zero; every other key is passed through at speed."""
+    def __init__(self, ts, ys):
+        self.ts, self.ys = list(ts), list(ys)
+        n = len(ts)
+        d = [(ys[i + 1] - ys[i]) / (ts[i + 1] - ts[i]) for i in range(n - 1)]
+        m = [0.0] * n
+        if n > 1:
+            m[0], m[-1] = d[0], d[-1]
+        for i in range(1, n - 1):
+            if d[i - 1] * d[i] <= 0:
+                m[i] = 0.0
+            else:
+                w1 = 2 * (ts[i + 1] - ts[i]) + (ts[i] - ts[i - 1])
+                w2 = (ts[i + 1] - ts[i]) + 2 * (ts[i] - ts[i - 1])
+                m[i] = (w1 + w2) / (w1 / d[i - 1] + w2 / d[i])
+        self.m = m
+
+    def _seg(self, t):
+        ts = self.ts
+        i = next((n for n in range(len(ts) - 1) if t < ts[n + 1]), len(ts) - 2)
+        h = ts[i + 1] - ts[i]
+        return i, h, (t - ts[i]) / h
+
+    def __call__(self, t):
+        ts, ys, m = self.ts, self.ys, self.m
+        if len(ts) == 1:
+            return ys[0]
+        if t <= ts[0]:              # beyond the ends at the end rate: a turn carries on across the cut
+            return ys[0] + self.m[0] * (t - ts[0])
+        if t >= ts[-1]:
+            return ys[-1] + self.m[-1] * (t - ts[-1])
+        i, h, u = self._seg(t)
+        u2, u3 = u * u, u * u * u
+        return ((2 * u3 - 3 * u2 + 1) * ys[i] + (u3 - 2 * u2 + u) * h * m[i]
+                + (-2 * u3 + 3 * u2) * ys[i + 1] + (u3 - u2) * h * m[i + 1])
+
+    def slope(self, t):
+        ts, ys, m = self.ts, self.ys, self.m
+        if len(ts) == 1:
+            return 0.0
+        if t <= ts[0]:
+            return m[0]
+        if t >= ts[-1]:
+            return m[-1]
+        i, h, u = self._seg(t)
+        u2 = u * u
+        return ((6 * u2 - 6 * u) * ys[i] / h + (3 * u2 - 4 * u + 1) * m[i]
+                + (-6 * u2 + 6 * u) * ys[i + 1] / h + (3 * u2 - 2 * u) * m[i + 1])
+
+
 class Flight:
     """A ship flown by commanded body rates and speed (phases) through her key-frame pose at t_key:
     the motion is integrated outward from that pose, both ways in time, so the pose a key frame
@@ -330,9 +383,12 @@ class Keyed(Flight):
     otherwise in full: 185 after 0 turns 185 to port); she flies where her nose points at v, so the
     path follows the manoeuvre. Throttle eases between the keys' and follows the thrust model on
     top (a burn while she gains speed, idling while she sheds it). Hits, jumps and wobble as Flight."""
-    def __init__(self, key, anchor, t_key, keys, hits=(), jumps=(), wobble=2.0, v=None, thrust=None):
+    BANK_GAIN, BANK_MAX = .35, 20.0
+
+    def __init__(self, key, anchor, t_key, keys, hits=(), jumps=(), wobble=2.0, v=None, thrust=None, bank=True):
         super().__init__(key, anchor, t_key, [dict(t=-1e9, v=0.0)], hits, jumps, wobble)
         self.thrust = thrust       # m/s^2 at full burn: the throttle is the motion's acceleration
+        self.bank = bank
         x, y, z, hd, pt, rl, thr = anchor
         ks = sorted([dict(k) for k in keys] + [dict(t=t_key, hd=hd, pt=pt, rl=rl, thr=thr,
                                                      **({} if v is None else {'v': v}))], key=lambda k: k['t'])
@@ -349,22 +405,18 @@ class Keyed(Flight):
                     last[f] = k[f]
                 else:
                     k[f] = last.get(f, 0.0 if f != 'thr' else thr)
-        self.keys = ks
+        merged = {}
+        for k in ks:                      # one key per instant; the key frame's own pose wins a tie
+            if k['t'] not in merged or abs(k['t'] - t_key) < 1e-9:
+                merged[k['t']] = k
+        self.keys = ks = [merged[tt] for tt in sorted(merged)]
+        self._curves = {f: _Curve([k['t'] for k in ks], [k[f] for k in ks]) for f in ('hd', 'pt', 'rl', 'v', 'thr')}
 
     def attitude(self, t):
-        ks = self.keys
-        if t <= ks[0]['t']:
-            k = ks[0]
-            return k['hd'], k['pt'], k['rl'], k['v'], k['thr']
-        if t >= ks[-1]['t']:
-            k = ks[-1]
-            return k['hd'], k['pt'], k['rl'], k['v'], k['thr']
-        i = max(n for n in range(len(ks) - 1) if ks[n]['t'] <= t)
-        a, b = ks[i], ks[i + 1]
-        u = _ease((t - a['t']) / (b['t'] - a['t']))
-        uv = (t - a['t']) / (b['t'] - a['t'])           # speed and throttle change linearly
-        return tuple(a[f] + (b[f] - a[f]) * u for f in ('hd', 'pt', 'rl')) + tuple(
-            a[f] + (b[f] - a[f]) * uv for f in ('v', 'thr'))
+        """Heading, pitch, roll, speed and throttle at t: one continuous monotone cubic through all
+        the keys per field (_Curve), so a turn keeps turning through a key instead of pausing there
+        (the old per-span ease stopped every rate at every key: a straight inside each turn)."""
+        return tuple(self._curves[f](t) for f in ('hd', 'pt', 'rl', 'v', 'thr'))
 
     def _state(self, i):
         if i in self.samples:
@@ -389,6 +441,8 @@ class Keyed(Flight):
             thr = max(IDLE, min(1.0, IDLE + (abs(self._accel(t)) + .5 * abs(v) * self._turn(t)) / self.thrust))
         elif thr > 0:        # the drives burn to gain speed and ease off to lose it
             thr = max(.05, min(1.0, thr + (self._accel(t) - self._accel(self.t_key)) / 40.0))
+        if self.bank:        # bank into the turn with the lateral acceleration, on top of the keyed roll
+            rl += self._bank_at(t) - self._bank_at(self.t_key)
         p, m = _apply(p, _rot(hd, pt, rl), self.hits, self.jumps, t, self.t_key)
         w = [0.0, 0.0, 0.0]
         if self.wobble:
@@ -402,13 +456,43 @@ class Keyed(Flight):
         return tuple(p[n] + w[n] for n in range(3)) + (hd, pt, rl, thr)
 
     def _accel(self, t):
-        return (self.attitude(t + .25)[3] - self.attitude(t - .25)[3]) / .5
+        return self._curves['v'].slope(t)
+
+    def _bank_at(self, t):
+        """Bank (deg) for the lateral acceleration of the keyed turn: a heading turning to port (rising)
+        rolls her port side down (negative), as drift's weave does."""
+        a = self._curves['v'](t) * math.radians(self._curves['hd'].slope(t))
+        b = -math.degrees(math.atan2(a, G_BANK)) * self.BANK_GAIN
+        return max(-self.BANK_MAX, min(self.BANK_MAX, b))
 
     def _turn(self, t):
         """How fast her nose is swinging, rad/s."""
-        a, b = _rot(*self.attitude(t - .1)[:3]), _rot(*self.attitude(t + .1)[:3])
+        a, b = _rot(*self.attitude(t - .05)[:3]), _rot(*self.attitude(t + .05)[:3])
         c = sum(a[k][0] * b[k][0] for k in range(3))
-        return math.acos(max(-1.0, min(1.0, c))) / .2
+        return math.acos(max(-1.0, min(1.0, c))) / .1
+
+
+def turn_jumps(at, t0, t1, fps=24, limit=45.0):
+    """Frames where a pose function's angular velocity jumps: the change in angular velocity from one
+    frame to the next, deg/s, above limit. [(t, jump deg/s)], for --check: a turn that stalls at a
+    key, a snap between keys, and a hit's tumble (expected) all show here."""
+    def omega(ta, tb):
+        a, b = _rot(*at(ta)[3:6]), _rot(*at(tb)[3:6])
+        r = _mul(_t(a), b)            # body-frame rotation from ta to tb
+        ang = math.degrees(math.acos(max(-1.0, min(1.0, (r[0][0] + r[1][1] + r[2][2] - 1) / 2))))
+        ax = (r[2][1] - r[1][2], r[0][2] - r[2][0], r[1][0] - r[0][1])
+        n = math.hypot(*ax) or 1.0
+        return [ang / (tb - ta) * c / n for c in ax]
+    dt, out, prev = 1.0 / fps, [], None
+    for i in range(int(round((t1 - t0) * fps))):
+        ta = t0 + i * dt
+        w = omega(ta, ta + dt)
+        if prev is not None:
+            j = math.dist(w, prev)
+            if j > limit:
+                out.append((round(ta, 3), round(j, 1)))
+        prev = w
+    return out
 
 
 def keyed(key, anchor, t_key, keys, **kw):

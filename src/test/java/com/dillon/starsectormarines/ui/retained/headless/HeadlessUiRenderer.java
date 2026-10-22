@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Renders any retained document to a deterministic Java2D image without a
@@ -599,7 +600,7 @@ public final class HeadlessUiRenderer {
                 throw new IllegalArgumentException(
                         "Headless canvas sprites require their source path");
             }
-            BufferedImage image = resources.region(resources.tintedSprite(sourcePath, tint), region);
+            BufferedImage image = resources.tintedRegion(sourcePath, tint, region);
             AffineTransform transform = graphics.getTransform();
             var composite = graphics.getComposite();
             graphics.translate(documentX(centerX), documentY(centerY));
@@ -674,6 +675,9 @@ public final class HeadlessUiRenderer {
 
         /** Cuts beyond this many are dropped wholesale; a cut is a view onto its image, so it costs a header, not pixels. */
         private static final int MAX_REGIONS = 200_000;
+        /** Pixels of tinted cuts kept before they are all dropped: 64 M pixels is 256 MB. */
+        private static final long MAX_TINTED_PIXELS = 64L * 1024 * 1024;
+        private final AtomicLong tintedPixels = new AtomicLong();
 
         private BufferedImage region(BufferedImage source, CanvasSpriteRegion region) {
             if (region.equals(CanvasSpriteRegion.FULL)) return source;
@@ -732,11 +736,24 @@ public final class HeadlessUiRenderer {
             }
         }
 
-        private BufferedImage tintedSprite(String resourcePath, Color tint) {
+        /**
+         * The cut a draw takes from a sprite, multiplied by its tint. Only the cut is tinted and kept: a tint that
+         * moves every frame (a burning tree's char) on a large sheet made a whole-sheet copy per shade, and a big
+         * fire ran a 2 GB review heap out.
+         */
+        private BufferedImage tintedRegion(String resourcePath, Color tint, CanvasSpriteRegion region) {
             int rgb = tint.getRGB() & 0x00FFFFFF;
-            if (rgb == 0x00FFFFFF) return image(resourcePath);
-            return tintedSprites.computeIfAbsent(new SpriteTintKey(resourcePath, rgb), key ->
-                    modulate(image(key.path()), key.rgb()));
+            BufferedImage cut = region(image(resourcePath), region);
+            if (rgb == 0x00FFFFFF) return cut;
+            if (tintedPixels.get() > MAX_TINTED_PIXELS) {
+                tintedSprites.clear();
+                tintedPixels.set(0L);
+            }
+            return tintedSprites.computeIfAbsent(new SpriteTintKey(cut, rgb), key -> {
+                BufferedImage tinted = modulate(key.cut(), key.rgb());
+                tintedPixels.addAndGet((long) tinted.getWidth() * tinted.getHeight());
+                return tinted;
+            });
         }
 
         private void drawText(Graphics2D graphics, BitmapFont font, String text,
@@ -811,7 +828,8 @@ public final class HeadlessUiRenderer {
 
     private record TintKey(String path, int rgb, int alpha) { }
 
-    private record SpriteTintKey(String path, int rgb) { }
+    /** One cut of a decoded image (by identity, as {@link RegionKey} holds it) in one tint. */
+    private record SpriteTintKey(BufferedImage cut, int rgb) { }
 
     /** Multiplies the destination's colour by the source's where the source has alpha, by that alpha times {@code opacity}. */
     private record MultiplyComposite(float opacity) implements Composite {

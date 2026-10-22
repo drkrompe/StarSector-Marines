@@ -13,8 +13,8 @@
     </div>
 
     <div id="fireteam-body">
-      <armory-refit-transaction testLoadout="{testLoadout}" rangeDisabled="{rangeDisabled}" rangeHint="{rangeHint}" inspection="{inspection}" feedbackText="{feedbackText}" feedbackClasses="{feedbackClasses}" />
       <armory-squad-doctrine weaponDoctrineSummary="{weaponDoctrineSummary}" armorDoctrineSummary="{armorDoctrineSummary}" weaponDoctrineTiles="{weaponDoctrineTiles}" armorDoctrineTiles="{armorDoctrineTiles}" weaponPickerTabClasses="{weaponPickerTabClasses}" armorPickerTabClasses="{armorPickerTabClasses}" weaponPickerPanelClasses="{weaponPickerPanelClasses}" armorPickerPanelClasses="{armorPickerPanelClasses}" showWeaponPicker="{showWeaponPicker}" showArmorPicker="{showArmorPicker}" loadoutFilters="{loadoutFilters}" loadoutBrowserSummary="{loadoutBrowserSummary}" showArmorComparison="{showArmorComparison}" transactionSummary="{transactionSummary}" transactionClasses="{transactionClasses}" issueCargoRows="{issueCargoRows}" issueCargoClasses="{issueCargoClasses}" />
+      <armory-refit-transaction testLoadout="{testLoadout}" rangeDisabled="{rangeDisabled}" rangeHint="{rangeHint}" inspection="{inspection}" feedbackText="{feedbackText}" feedbackClasses="{feedbackClasses}" />
     </div>
 
   </div>

@@ -59,7 +59,7 @@ sys.path.insert(0, str(PROLOGUE))
 sys.path.insert(0, str(ART))
 import roster
 from motion import boarding_run, fleet_at   # ships move about their stations: seeded weave, bank and breathing spacing  # noqa: E402
-from motion import (A_FULL, Pose, camera, carried, drift, follow, held, keyed, mass_class, recoil, riding,  # noqa: E402
+from motion import (A_FULL, IDLE, Pose, camera, carried, drift, follow, held, keyed, mass_class, recoil, riding,  # noqa: E402
                     station, struck)
 
 # One folder per finished build (roster.FINISHED's dir), copied whole from Drive.
@@ -127,24 +127,69 @@ PIRATES_RISING = {   # coming up out of the platform, behind and below the convo
 PLATFORM = (-9500, 1200, -4300)   # the derelict Asharu platform: about 4 km lower and 10 km astern
 
 
-def moored(offset, throttle=0.0):
-    """A pirate hull lying cold along the platform's flank: offset in metres from its centre,
-    heading prograde with it, drives at throttle (0 is dark)."""
-    return (PLATFORM[0] + offset[0], PLATFORM[1] + offset[1], PLATFORM[2] + offset[2], 0, 0, 0, throttle)
+def moored(offset, hd=0.0, pt=0.0, rl=0.0):
+    """A pirate hull lying cold at the platform: offset in metres from its centre, her attitude, and
+    her drives dark."""
+    return (PLATFORM[0] + offset[0], PLATFORM[1] + offset[1], PLATFORM[2] + offset[2], hd, pt, rl, 0.0)
 
 
-PIRATES_MOORED = {   # running dark among the platform's stripped hulks; the Falcon (P) lights first
-    'falcon-p': moored((-150, 105, 0), .15),
-    'manticore-p': moored((80, 110, -20)),
-    'colossus3': moored((120, -110, 0)),
-    'buffalo2-a': moored((230, 100, 10)),
-    'hound-p-c': moored((-300, -105, 0)),
-    'wolf-p-a': moored((-60, -120, 35)),
-    'wolf-p-b': moored((60, 135, 35)),
-    'hound-p-a': moored((-200, -130, -30)),
-    'hound-p-b': moored((220, -120, -35)),
-    'kite-p-a': moored((-330, 120, -15)),
-    'kite-p-b': moored((340, 120, -20)),
+def platform_parts():
+    """The derelict platform as parts in its own metres (+X prograde): the game's own description,
+    "castoff bulk-carrier segments welded between a honeycomb of emptied fuel tanks", with empty
+    hangars. [(kind, name, centre, size, (hd, pt, rl))]: a box's size is its half extents; a drum's
+    is (radius, half length) along its own X. A sagging double girder carries five mismatched hulls,
+    one knocked askew; clusters of drums are packed between them with gaps where drums have gone;
+    two open hangar bays hang under and beside the hulls; a broken mast stands off the forward end.
+    Nothing is a sphere (the owner: no orbs) and nothing is a flat card."""
+    parts = []
+
+    def box(name, c, h, a=(0, 0, 0)):
+        parts.append(('box', name, c, h, a))
+
+    for side in (-1, 1):                           # the spine: two girders, sagging 4 degrees at the middle
+        box('Platform girder', (-230, side * 16, 6), (190, 3, 3), (0, -2, 0))
+        box('Platform girder', (190, side * 16, 6), (230, 3, 3), (0, 2, 0))
+    for x in range(-400, 401, 70):                 # cross ties
+        box('Platform tie', (x, 0, 6 + abs(x) * .035), (2.5, 18, 2.5))
+    for x, h, a in (((-330, (55, 26, 20), (0, 0, 6))), ((-215, (40, 30, 24), (3, 0, -4))),
+                    ((-70, (65, 34, 28), (0, 0, 0))), ((110, (50, 28, 22), (-5, 3, 0))),
+                    ((265, (45, 24, 18), (14, -2, 9)))):
+        box('Platform bulk segment', (x, 0 if x != 265 else 12, 0), h, a)       # the castoff hulls
+    hexes = [(0, 0)] + [(16 * math.cos(math.radians(a)), 16 * math.sin(math.radians(a))) for a in range(0, 360, 60)]
+    ring2 = [(32 * math.cos(math.radians(a)), 32 * math.sin(math.radians(a))) for a in range(30, 360, 60)]
+    for x, cells, gone in ((-272, hexes, {2, 5}), (20, hexes + ring2, {4, 9, 11}), (190, hexes, {1})):
+        for n, (y, z) in enumerate(cells):         # the honeycomb of emptied fuel tanks, drums along X
+            if n not in gone:
+                parts.append(('drum', 'Platform tank', (x, y, z + 4), (7.6, 18 if x != 20 else 26), (0, 0, 0)))
+    # hangar bay under the fourth hull, open to the south: floor, back wall, end walls
+    box('Platform hangar', (110, -28, -66), (55, 38, 2))
+    box('Platform hangar', (110, 10, -44), (55, 2, 22))
+    for x in (55, 165):
+        box('Platform hangar', (x, -28, -44), (2, 38, 22))
+    # hangar bay beside the first hull, open to the north
+    box('Platform hangar', (-330, 66, -27), (55, 40, 2))
+    box('Platform hangar', (-330, 66, 23), (55, 40, 2))
+    for x in (-385, -275):
+        box('Platform hangar', (x, 66, -2), (2, 40, 23))
+    box('Platform mast', (330, 0, 60), (2, 2, 70), (0, 18, 0))                  # broken mast and its stub arms
+    box('Platform mast', (318, 0, 105), (18, 1.5, 1.5), (0, 0, 25))
+    return parts
+
+
+# Hiding: every pirate parked nose-out, in a bay or under a hull or between the drums, on the side away
+# from the convoy's line of sight (which comes from ahead and above), at her own heading, pitch and roll.
+PIRATES_MOORED = {
+    'falcon-p': moored((-60, -102, -56), hd=2, pt=-2, rl=10),          # along the big hull's underside
+    'manticore-p': moored((110, -52, -40), hd=-90, pt=0, rl=4),       # in the south hangar, nose out
+    'colossus3': moored((-360, 0, -82), hd=180, pt=-8, rl=175),       # under the aft hull, inverted
+    'buffalo2-a': moored((20, 12, -76), hd=-15, pt=-8, rl=6),         # under the big drum cluster
+    'hound-p-c': moored((365, -32, -48), hd=15, pt=-12, rl=40),       # off the forward end, low
+    'wolf-p-a': moored((-475, -40, 8), hd=-160, pt=5, rl=-35),        # beyond the aft end
+    'wolf-p-b': moored((-330, 70, -2), hd=90, pt=0, rl=85),           # in the north hangar, on her side
+    'hound-p-a': moored((-215, -14, -52), hd=-178, pt=4, rl=180),     # under the second hull, inverted
+    'hound-p-b': moored((110, 66, -22), hd=80, pt=25, rl=-20),        # north of the fourth hull, in its shadow
+    'kite-p-a': moored((-272, -22, -44), hd=-60, pt=15, rl=-30),      # under the aft drums
+    'kite-p-b': moored((190, -42, -36), hd=-120, pt=-5, rl=60),       # tucked against the forward drums
 }
 
 # Where the Tarsus rides in the Colossus Mk.III's grapples, in Mk.III metres: the build's
@@ -288,17 +333,45 @@ K3B_KITE_B = (-700, 25, 0, 4, 2, 6, .2)        # starboard beam
 # the boats' seats on her deck (Tarsus metres; deck heights checked by the seat cast, ASHARU seat)
 K3B_SEATS = {'hermes-p-a': (2.0, -4.0, 6.43), 'hermes-p-b': (-22.0, 3.0, 8.0), 'hermes-p-c': (24.0, -4.0, 6.0)}
 
-# S3: the hulks light one by one; the Falcon (P) first, and she eases out of her berth
+# S3-S4: the launch, one motion across the cut. Drives light in a ripple from the Falcon (P), each
+# hull eases out of her hiding place along her nose, turns onto her climb and accelerates; S3 stills
+# 34 s of it (only the Falcon showing a light) and S4 picks the same flights up mid-climb at 40 s.
 K1B_T = 34
-K1B_LIGHTS = {'manticore-p': 35.2, 'colossus3': 36.2, 'kite-p-a': 36.8, 'wolf-p-a': 37.2, 'wolf-p-b': 37.5}
-K1B_SHIPS = {k: held(k, v, K1B_T, wobble=.4, thr=lit(K1B_LIGHTS[k], .6) if k in K1B_LIGHTS else None)
-             for k, v in PIRATES_MOORED.items() if k != 'falcon-p'}
-K1B_SHIPS['falcon-p'] = keyed('falcon-p', PIRATES_MOORED['falcon-p'], K1B_T, [
-    dict(t=30, thr=0.0), dict(t=35.4, thr=.7, pt=0), dict(t=38, thr=1.0, v=30, pt=4, hd=3)], v=0.0, wobble=.4)
-
-# S4: the pack climbing at the column, every hull flying her own line
 K2_T = 40
-K2_PIRATES = {k: jinking(k, drift(k, v, K2_T), K2_T, 38, 44) for k, v in PIRATES_RISING.items()}   # from the weave the still had
+LAUNCH = {'falcon-p': 33.8, 'manticore-p': 35.0, 'colossus3': 35.6, 'kite-p-a': 36.0, 'wolf-p-a': 36.3,
+          'hound-p-a': 36.6, 'wolf-p-b': 36.9, 'kite-p-b': 37.2, 'hound-p-b': 37.5, 'buffalo2-a': 37.8,
+          'hound-p-c': 38.2}
+CLIMB_SPEED = {'frigate': 300.0, 'destroyer': 240.0, 'cruiser': 190.0, 'freighter': 150.0}
+
+
+def _near(a, b):
+    """b moved by whole turns to within 180 degrees of a."""
+    return a + ((b - a + 180.0) % 360.0 - 180.0)
+
+
+def launch(key, hide, t_light, climb):
+    """A hidden ship's launch: dark at hide, drives lighting at t_light, easing out along her nose for
+    two seconds, turning onto her climb attitude (climb's heading, pitch and roll) as she gathers
+    speed, then burning up toward the column at her class's speed."""
+    x, y, z, hd, pt, rl, _ = hide
+    chd, cpt, crl = _near(hd, climb[3]), climb[4], _near(rl, climb[5])
+    v = CLIMB_SPEED[mass_class(key)]
+    keys = [dict(t=t_light - .05, v=0.0, thr=0.0), dict(t=t_light + .6, v=0.0, thr=.25),
+            dict(t=t_light + 2.4, v=18.0, thr=.6),
+            dict(t=t_light + 4.6, hd=(hd + chd) / 2, pt=(pt + cpt) / 2, rl=(rl + crl) / 2, v=.3 * v, thr=1.0),
+            dict(t=t_light + 7.0, hd=chd, pt=cpt, rl=crl, v=.65 * v),
+            dict(t=t_light + 11.0, hd=chd + 3, pt=cpt + 2, rl=crl, v=v)]
+    if t_light < K1B_T:          # her drives are already lighting at the still
+        keys = [k for k in keys if abs(k['t'] - K1B_T) > .05]
+    return keyed(key, (x, y, z, hd, pt, rl, 0.0 if t_light >= K1B_T else .08), K1B_T, keys, v=0.0,
+                 wobble=.3, thrust=None, bank=False)
+
+
+PIRATE_LAUNCH = {k: launch(k, PIRATES_MOORED[k], LAUNCH[k], PIRATES_RISING[k]) for k in PIRATES_MOORED}
+K1B_SHIPS = PIRATE_LAUNCH
+K2_CAM = (PLATFORM[0] + 600, PLATFORM[1] - 1500, PLATFORM[2] + 350)     # off the south flank, a little above
+K2_AIM = (PLATFORM[0] + 100, PLATFORM[1] - 60, PLATFORM[2] + 40)
+K2_PIRATES = {k: Pose(f.at(K2_T), K2_T, f.at) for k, f in PIRATE_LAUNCH.items()}
 
 # S6: the lead Lasher turns back into the fire and is hit; Lasher A burns and falls back; the
 # Phaeton is struck and drifts aft cooking off; the raiders close at speed, guns kicking
@@ -432,6 +505,103 @@ K4_SHIPS = {
         dict(t=102, hd=-220, rl=-30)]),
 }
 
+def sortie(key, before, t0, runs, vmax=420.0, accel=200.0, t_end=110.0, dt=1 / 48):
+    """A Borer's sortie: before t0 she is the pose `before` (in the bay); from t0 she flies her own
+    pursuit, run after run at the attackers. Each run is (target key, target pose, side): she steers
+    for a point beside the target's hull (side: +1 her port, -1 her starboard, a little above), led by
+    the closing time, turning at most 150 deg/s and jinking about that, every rate eased (no angular
+    velocity jumps for --check), banking with her turn and
+    burning with her acceleration (motion's thrust model); a run ends when she has passed within 60 m
+    and opened to 140 m again. A run with side 0 is her way home to the ship she works from, flown
+    to the end. Returns (her Pose, her rakes: [(target, t_in, t_out, side)], the spans
+    she is inside 70 m of a target, where her mining laser sweeps the hull)."""
+    x, y, z, hd, pt, rl, _ = before.at(t0)
+    v = 2.5
+    a_full = A_FULL[mass_class(key)]
+    wh = wp = wr = 0.0
+    phase = (zlib.crc32(key.encode()) % 628) / 100.0
+    rows, rakes = [], []
+    run, closest, inside = 0, 1e9, None
+    t = t0
+    while t <= t_end + 1e-9 and run < len(runs):
+        tk, tp, side = runs[run]
+        q = tp.at(t)
+        d = math.dist((x, y, z), q[:3])
+        lead = min(1.2, d / max(v + 150.0, 1.0))
+        q = tp.at(t + lead)
+        m = _attitude(*q[3:6])[0]
+        off = (0.0, side * 30.0, 14.0) if side else (-40.0, 60.0, -30.0)
+        aim = [q[i] + sum(m[i][j] * off[j] for j in range(3)) for i in range(3)]
+        dx, dy, dz = (aim[i] - (x, y, z)[i] for i in range(3))
+        want_h = math.degrees(math.atan2(dy, dx))
+        want_p = max(-55.0, min(55.0, math.degrees(math.atan2(dz, math.hypot(dx, dy)))))
+        eh = (want_h - hd + 180.0) % 360.0 - 180.0
+        ep = want_p - pt
+        jink = 30.0 * math.sin(2 * math.pi * 1.1 * (t - t0) + phase) if t - t0 > .8 else 0.0
+        for e, w, j, name in ((eh, wh, jink, 'h'), (ep, wp, .4 * jink, 'p')):
+            target_w = max(-150.0, min(150.0, 3.0 * e)) + j
+            nw = w + max(-350.0 * dt, min(350.0 * dt, target_w - w))
+            if name == 'h':
+                wh = nw
+            else:
+                wp = nw
+        want_v = vmax if side else max(15.0, min(vmax, .8 * d))          # home: slowing as she arrives
+        dv = max(-accel * dt, min(accel * dt, want_v - v)) if t - t0 > .3 else 4.0 * dt
+        v += dv
+        hd += wh * dt
+        pt = max(-80.0, min(80.0, pt + wp * dt))
+        omega = math.radians(math.hypot(wh, wp))
+        thr = min(1.0, IDLE + (abs(dv) / dt + .5 * v * omega) / a_full)
+        bank = -60.0 * math.tanh(v * math.radians(wh) / 400.0)      # rolls into the turn, smoothly
+        wr += max(-600.0 * dt, min(600.0 * dt, max(-240.0, min(240.0, (bank - rl) / .25)) - wr))
+        rl += wr * dt
+        ch, sh, cp, sp = (math.cos(math.radians(hd)), math.sin(math.radians(hd)),
+                          math.cos(math.radians(pt)), math.sin(math.radians(pt)))
+        x, y, z = x + v * dt * cp * ch, y + v * dt * cp * sh, z + v * dt * sp
+        rows.append((t, x, y, z, hd, pt, rl, thr))
+        dn = math.dist((x, y, z), tp.at(t)[:3])
+        if side == 0:                  # home: back to the ship she works from, no laser
+            t += dt
+            continue
+        if dn < 70.0 and inside is None:
+            inside = t
+        if dn >= 70.0 and inside is not None:
+            rakes.append((tk, inside, t, side))
+            inside = None
+        closest = min(closest, dn)
+        if closest < 60.0 and dn > 140.0:
+            run, closest = run + 1, 1e9
+        t += dt
+    last = rows[-1]
+
+    def at(tt):
+        if tt < t0:
+            return before.at(tt)
+        if tt >= last[0]:
+            c = math.cos(math.radians(last[5]))
+            g = tt - last[0]
+            return (last[1] + v * g * c * math.cos(math.radians(last[4])),
+                    last[2] + v * g * c * math.sin(math.radians(last[4])),
+                    last[3] + v * g * math.sin(math.radians(last[5])), last[4], last[5], last[6], last[7])
+        i = min(len(rows) - 2, max(0, int((tt - t0) / dt)))
+        a, b = rows[i], rows[i + 1]
+        u = max(0.0, min(1.0, (tt - a[0]) / (b[0] - a[0])))
+        return tuple(a[k] + (b[k] - a[k]) * u for k in range(1, 8))
+    return Pose(before, before.t, at), rakes
+
+
+K4_BORER_C, K4_RAKES_C = sortie('borer-c', K4_SHIPS['borer-c'], 95.4,
+                                [('wolf-p-a', K4_SHIPS['wolf-p-a'], 1), ('wolf-p-a', K4_SHIPS['wolf-p-a'], -1),
+                                 ('colossus', K4_SHIPS['colossus'], 0)])
+K4_BORER_D, K4_RAKES_D = sortie('borer-d', carried(held('borer-d', near(K4_MORROW, (BORER_BAY_M[2][0], BORER_BAY_M[2][1], 7),
+                                                                       hd=10, pt=20, rl=-4, thr=.1), K4_T, wobble=0.0),
+                                                   K4_MORROW_FLOWN), 96.2,
+                                [('kite-p-b', K4_SHIPS['kite-p-b'], -1), ('wolf-p-a', K4_SHIPS['wolf-p-a'], 1),
+                                 ('colossus', K4_SHIPS['colossus'], 0)])
+K4_SHIPS.update({'borer-c': K4_BORER_C, 'borer-d': K4_BORER_D})
+K4_RAKES = [('borer-c',) + r for r in K4_RAKES_C] + [('borer-d',) + r for r in K4_RAKES_D]
+
+
 # S9b: the lead Lasher rolls onto her back over the Falcon (P), guns walking down her flank; the
 # Falcon is hit and her broadside answers, and the Lasher tumbles away
 K4B_T = 105
@@ -503,8 +673,10 @@ KEYFRAMES = {
         # snapping in on the Falcon (P) as her drives light; handheld at the long end
         camera=camera('k1b', [dict(t=30, loc=(-1560, -150, 85), target=PLATFORM, lens=90),
                               dict(t=34, loc=(-1600, -120, 90), target=PLATFORM, lens=135),
-                              dict(t=36.4, loc=(-1610, -110, 92), target=(-9650, 1300, -4300), lens=165),
-                              dict(t=38, loc=(-1630, -95, 96), target=(-9640, 1305, -4295), lens=300)], K1B_T, shake=.05),
+                              dict(t=36.4, loc=(-1610, -110, 92), target=track(K1B_SHIPS['falcon-p'], PIRATES_MOORED['falcon-p'][:3]),
+                                   lens=165),
+                              dict(t=38, loc=(-1630, -95, 96), target=track(K1B_SHIPS['falcon-p'], PIRATES_MOORED['falcon-p'][:3]),
+                                   lens=300)], K1B_T, shake=.05),
         ships=K1B_SHIPS,
         platform=PLATFORM,
         labels=['platform', 'falcon-p', 'colossus3', 'manticore-p']),
@@ -512,13 +684,13 @@ KEYFRAMES = {
         shot='S4', title='First contact',
         caption='Behind and below: drives light up in the derelict Asharu platform the convoy has just passed. '
                 'Twelve pirate hulls climb out of it toward the column.',
-        # CRASH ZOOM: wide on the climbing pack, the lens finding the Falcon (P) and snapping in on her,
-        # panning with the pack as it climbs past
-        camera=camera('k2', [dict(t=t, loc=track(K2_PIRATES['falcon-p'], (-4800, -2600, -1700), .3),
-                                  target=track(K2_PIRATES['falcon-p'], aim, 1.0), lens=lens)
-                             for t, lens, aim in ((38, 24, (-6500, 200, -3100)), (40, 35, (-6500, 200, -3100)),
-                                                  (41.2, 40, (-6500, 200, -3100)), (42.2, 95, K2_PIRATES['falcon-p'][:3]),
-                                                  (44, 110, K2_PIRATES['falcon-p'][:3]))], K2_T, shake=.1),
+        # off the pack's flank as it climbs out of the platform, wide while the spread opens up, then a
+        # CRASH ZOOM onto the Falcon (P) and panning with her
+        camera=camera('k2', [dict(t=t, loc=track(K2_PIRATES['falcon-p'], K2_CAM, .3),
+                                  target=track(K2_PIRATES['falcon-p'], aim, share), lens=lens)
+                             for t, lens, aim, share in ((38, 24, K2_AIM, .5), (40, 28, K2_AIM, .5), (41.4, 32, K2_AIM, .6),
+                                                         (42.4, 95, K2_PIRATES['falcon-p'][:3], 1.0),
+                                                         (44, 110, K2_PIRATES['falcon-p'][:3], 1.0))], K2_T, shake=.1),
         ships={**fleet_at({k: CONVOY[k] for k in ('hound-m', 'tarsus')}, K2_T), **K2_PIRATES},
         platform=PLATFORM,
         labels=['falcon-p', 'colossus3', 'manticore-p', 'wolf-p-a', 'kite-p-a', 'hound-p-b', 'platform']),
@@ -615,7 +787,7 @@ KEYFRAMES = {
         caption='The Colossus Mk.III closes from above to take the Colossus too. Her port drive pod is shot out, '
                 'but she fights: flares out, both turrets firing, a Kite (P) driven off. Morrow is under her keel '
                 'with her drives lit, holding her up, and her Borers are already out: two cut the burning pod '
-                'free with their mining lasers while a third lifts out of the bay to join them.',
+                'free with their mining lasers while two more launch from the bay and go for the attackers.',
         # PULL BACK + ZOOM OUT: close on the shot-out pod, back to the wide, then wider for the Mk.III's scale
         camera=camera('k4', [dict(t=88, loc=(-190, 150, 30), target=(-62, 30, 0), lens=50),
                              dict(t=91, loc=(-260, 260, 60), target=(-50, 28, 6), lens=40),
@@ -626,6 +798,7 @@ KEYFRAMES = {
                'borer-a': {'beam_t_ws001': 1.0, 'beam_len_ws001': 30.0},      # 7.5 m to the pod's skin
                'borer-b': {'beam_t_ws001': 1.0, 'beam_len_ws001': 34.0}},
         ships=K4_SHIPS,
+        rakes=K4_RAKES,      # the sortie Borers' mining lasers swept along the attackers' hulls
         shields={'kite-p-b': dict(toward='colossus', flux=.85)},     # her omni shield nearly gone: she breaks off
         fx=[('blast_on', 'colossus', 12, (-62, 30, 0)), ('fire_on', 'colossus', (-55, 36, 4)),
             ('tracer', 'colossus3', 'colossus', (-60, 30, 6)), ('tracer', 'colossus', 'wolf-p-a'),
@@ -1578,21 +1751,25 @@ def blender_main(cfg):
             labels3d[name] = head
 
     def platform(p):
-        """The derelict Asharu platform: bulk-carrier segments welded between emptied tanks."""
+        """The derelict Asharu platform (platform_parts), at p, casting shadows its hidden ships lie in."""
         mat = principled('Platform', (.32, .3, .28), rough=.75, metal=.4)
+        if 'Drum unit' not in bpy.data.meshes:
+            me = bpy.data.meshes.new('Drum unit')
+            bm = bmesh.new()
+            bmesh.ops.create_cone(bm, cap_ends=True, segments=20, radius1=1.0, radius2=1.0, depth=2.0)
+            bmesh.ops.rotate(bm, verts=bm.verts[:], cent=(0, 0, 0), matrix=Matrix.Rotation(math.radians(90), 3, 'Y'))
+            bm.to_mesh(me)
+            bm.free()
+            me.materials.append(mat)
+        drum_me = bpy.data.meshes['Drum unit']
         base = Vector(p)
-        for i in range(6):
-            o = Vector((i * 110 - 280, rng.uniform(-8, 8), rng.uniform(-6, 6)))
-            rot = Euler((0, 0, rng.uniform(-.08, .08))).to_matrix().to_4x4()
-            obj('Platform bulk segment', box_me, mat, Matrix.Translation(base + o) @ rot @ Matrix.Diagonal((48, 22, 18, 1)), stage_ships)
-        for i in range(18):
-            o = Vector((rng.uniform(-320, 300), rng.choice((-1, 1)) * rng.uniform(40, 75), rng.uniform(-30, 30)))
-            obj('Platform tank', bead_me, mat, Matrix.Translation(base + o) @ Matrix.Scale(rng.uniform(14, 22), 4), stage_ships)
-        for side in (-1, 1):
-            obj('Platform collector', box_me, mat, Matrix.Translation(base + Vector((0, side * 190, 0)))
-                @ Matrix.Diagonal((150, 70, 1.5, 1)), stage_ships)
-        obj('Platform spine', plume_me, mat, Matrix.Translation(base + Vector((-380, 0, 0)))
-            @ Vector((1, 0, 0)).to_track_quat('Z', 'Y').to_matrix().to_4x4() @ Matrix.Diagonal((12, 12, 760, 1)), stage_ships)
+        for kind, name, c, size, (hd, pt, rl) in platform_parts():
+            m = frame_of(base + Vector(c), hd, pt, rl)
+            if kind == 'box':
+                o = obj(name, box_me, mat, m @ Matrix.Diagonal((*size, 1)), stage_ships)
+            else:
+                o = obj(name, drum_me, mat, m @ Matrix.Diagonal((size[1], size[0], size[0], 1)), stage_ships)
+            o.visible_shadow = True
 
     def apply_cue(key, s, cue):
         """One ship's effects cue for this frame (KEYFRAMES 'cues'): 'fire' lists the guns flashing
@@ -2442,6 +2619,31 @@ def check(frames):
             print('   ' + line)
         for line in surface_lines(loc, f, r, u, fpx):
             print('   ' + line)
+        for line in turn_lines(kf):
+            print('   ' + line)
+
+
+TURN_JUMP_LIMIT = 45.0     # deg/s of angular-velocity change in one frame (1/24 s) that --check reports
+
+
+def turn_lines(kf):
+    """--check's motion sweep: every flown ship over her shot at 24 fps, listing frames where her
+    angular velocity jumps by more than TURN_JUMP_LIMIT (a turn that stalls or snaps). A hit's
+    tumble or a boat setting down is expected there and is marked as such."""
+    import asharu_preview
+    import motion
+    seg = next((s for s in asharu_preview.segments(KEYFRAMES) if s['kf'] == kf), None)
+    if seg is None:
+        return []
+    out = []
+    for key, sp in KEYFRAMES[kf]['ships'].items():
+        if not hasattr(sp, 'at'):
+            continue
+        hits = [h['t'] for h in getattr(sp.at, 'hits', ()) if 'kick' not in h]
+        for t, j in motion.turn_jumps(sp.at, seg['start'], seg['end'], limit=TURN_JUMP_LIMIT):
+            why = 'a hit' if any(abs(t - th) < .1 for th in hits) else ('setting down' if key.startswith('hermes') else 'CHECK')
+            out.append(f'turn     {key:12} angular velocity jumps {j:.0f} deg/s at {t:.2f} s ({why})')
+    return out
 
 
 def surface_lines(loc, f, r, u, fpx):
