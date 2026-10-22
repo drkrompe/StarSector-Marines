@@ -14,7 +14,7 @@ import com.dillon.starsectormarines.campaign.systems.ChainAdvancementSystem;
 import com.dillon.starsectormarines.campaign.systems.CivilWarParticipationSystem;
 import com.dillon.starsectormarines.campaign.systems.CivilWarParticipationOfferSystem;
 import com.dillon.starsectormarines.campaign.systems.CivilWarPlayerConsequenceSystem;
-import com.dillon.starsectormarines.campaign.systems.CivilianRescueSpawnSystem;
+import com.dillon.starsectormarines.campaign.bloom.RavBloomSystem;
 import com.dillon.starsectormarines.campaign.systems.HouseAmbitionSystem;
 import com.dillon.starsectormarines.campaign.systems.HouseConsolidationSystem;
 import com.dillon.starsectormarines.campaign.systems.HousePowerSystem;
@@ -78,7 +78,7 @@ class CampaignStateSystemOrderTest {
         int kingmakerTestament = indexOf(systems, KingmakerTestamentSystem.class);
         int captainDrift = indexOf(systems, CaptainTraitDriftSystem.class);
         int eventLifecycle = indexOf(systems, CampaignEventLifecycleSystem.class);
-        int rescueSpawn = indexOf(systems, CivilianRescueSpawnSystem.class);
+        int rescueSpawn = indexOf(systems, RavBloomSystem.class);
         int silentColony = indexOf(systems, SilentColonySpawnSystem.class);
         int extraction = indexOf(systems, StationingDefaultExtractionSystem.class);
         int polityRoster = indexOf(systems, PolityRosterSystem.class);

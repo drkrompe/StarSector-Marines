@@ -146,7 +146,7 @@ explains the mechanic; it never adds behaviour the mechanic does not have.
 - **It was seeded widely.** Whoever deployed it seeded many worlds and many sites
   per world; the records of where are lost. Outbreaks therefore surface across
   the Persean Sector, at no predictable world, whenever a colony grows over a
-  reservoir. Where and how often belongs to `sector-outbreaks.md`; the lore only
+  reservoir. Where and how often belongs to `colony-breach-nouns.md` (Campaign: blooms); the lore only
   requires that it can happen anywhere a colony has grown, and that nobody holds
   the map.
 - **Collapsing the mother bore ends an outbreak, not the weapon.** The surface
@@ -158,7 +158,7 @@ explains the mechanic; it never adds behaviour the mechanic does not have.
   is a bonus and a mercy for whoever comes next, not victory over the thing.
 - Rumoured vectors between worlds (dormant material in ore, salvage or ballast;
   a reservoir cut open by a new mine) are allowed as **in-world speculation** for
-  radio and bar talk. None of them is a mechanic until `sector-outbreaks.md` makes
+  radio and bar talk. Cargo is the one that is a mechanic: a dark bloom can seed a neighbour (`colony-breach-nouns.md`, Campaign: blooms); the rest stay talk until something makes
   it one.
 
 ### Names: what people call it

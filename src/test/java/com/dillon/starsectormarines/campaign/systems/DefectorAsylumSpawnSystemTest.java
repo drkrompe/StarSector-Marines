@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.campaign.systems;
 
 import com.dillon.starsectormarines.campaign.CampaignEventState;
 import com.dillon.starsectormarines.campaign.CampaignEventType;
+import com.dillon.starsectormarines.campaign.CampaignEvents;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.ChainArchetype;
 import com.dillon.starsectormarines.campaign.ChainState;
@@ -12,11 +13,10 @@ import com.dillon.starsectormarines.campaign.HouseStatus;
 import com.dillon.starsectormarines.campaign.PatronArchetype;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DefectorAsylumSpawnSystemTest {
 
@@ -92,9 +92,8 @@ class DefectorAsylumSpawnSystemTest {
     void openRescueBlocksDefectorAndOpenDefectorBlocksRescue() {
         Fixture defectorBlocked = new Fixture();
         defectorBlocked.chain(10, ChainState.ACTIVE, (byte) 0);
-        CivilianRescueSpawnSystem rescue = new CivilianRescueSpawnSystem(
-                new TestMarkets().add("market", 4));
-        rescue.tick(defectorBlocked.state, 30);
+        CivilianRescueSpawnSystem.prepareEvent(defectorBlocked.state, 0L,
+                defectorBlocked.state.marketRegistry.intern("market"), 4, 30);
 
         new DefectorAsylumSpawnSystem().tick(defectorBlocked.state, 60);
         assertEquals(1, defectorBlocked.state.eventCount);
@@ -111,7 +110,9 @@ class DefectorAsylumSpawnSystemTest {
                 CampaignEventState.fromByte(rescueBlocked.state.eventState[
                         rescueBlocked.state.eventIndex(event)]));
 
-        rescue.tick(rescueBlocked.state, 30);
+        // The open defector event holds a bloom's distress call at the shared gate
+        // (RavBloomSystemTest covers the bloom side).
+        assertTrue(CampaignEvents.hasOpenEvent(rescueBlocked.state));
         assertEquals(1, rescueBlocked.state.eventCount);
         assertEquals(CampaignEventType.DEFECTOR_ASYLUM,
                 CampaignEventType.fromByte(rescueBlocked.state.eventType[0]));
@@ -186,21 +187,5 @@ class DefectorAsylumSpawnSystemTest {
         byte value = values[first];
         values[first] = values[second];
         values[second] = value;
-    }
-
-    private static final class TestMarkets
-            implements CivilianRescueSpawnSystem.MarketSource {
-        private final Map<String, Integer> sizes = new HashMap<>();
-
-        TestMarkets add(String marketId, int size) {
-            sizes.put(marketId, size);
-            return this;
-        }
-
-        @Override
-        public int eligibleSize(String marketId) {
-            Integer size = sizes.get(marketId);
-            return size != null ? size : -1;
-        }
     }
 }
