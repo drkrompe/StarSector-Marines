@@ -265,6 +265,9 @@ KEYFRAMES = {
         ships={**fleet_at({k: CONVOY[k] for k in ('colossus', 'morrow', 'tarsus', 'buffalo-b', 'mule')}, 72),
                'wolf-p-a': (-380, -60, -30, 75, 6, -60, 1), 'wolf-p-b': (-180, 80, 10, 95, 4, -70, 1),
                'wolf-m': (-560, -300, -60, 70, 4, -20, 1)},
+        # shields flare on both sides: the raiders' fronts under the Mule's and the Wolf's fire
+        shields={'wolf-p-b': dict(toward='mule', flux=.6), 'wolf-p-a': dict(toward='wolf-m', flux=.45),
+                 'wolf-m': dict(toward='wolf-p-a', flux=.2)},
         fx=[('tracer', 'wolf-p-a', 'tarsus'), ('tracer', 'wolf-p-b', 'tarsus'),
             ('tracer', 'wolf-m', 'wolf-p-a'), ('tracer', 'mule', 'wolf-p-b'),
             ('fire_on', 'tarsus', (-40, 0, 6), (-.2, .5, 1))],
@@ -313,6 +316,7 @@ KEYFRAMES = {
                'colossus3': (-60, 70, 175, -4, -8, 64, .6),
                'kite-p-b': (110, 210, 40, -60, 6, 32, 1),
                'wolf-p-a': (260, 160, 110, -150, 2, -40, 1)},
+        shields={'kite-p-b': dict(toward='colossus', flux=.85)},     # her omni shield nearly gone: she breaks off
         fx=[('blast_on', 'colossus', 12, (-62, 30, 0)), ('fire_on', 'colossus', (-55, 36, 4)),
             ('tracer', 'colossus3', 'colossus', (-60, 30, 6)), ('tracer', 'colossus', 'wolf-p-a'),
             ('tracer', 'colossus', 'kite-p-b'), ('tracer', 'colossus', 'colossus3'),
@@ -325,6 +329,8 @@ KEYFRAMES = {
                 'Falcon is hit hard, and her broadside answers.',
         camera=dict(loc=(-560, 900, -60), target=(-620, 280, -130), lens=28),
         ships={'falcon-p': (-700, 200, -100, 10, 6, -4, .8), 'lasher-lead': (-560, 380, 30, 200, -20, 160, 1)},
+        # her front shield at full flux, torn by the Lasher's guns a moment ago: the flank is open
+        shields={'falcon-p': dict(toward='lasher-lead', flux=1.0, overload_s=.4, up_s=6.0)},
         fx=[('tracer', 'lasher-lead', 'falcon-p'), ('tracer', 'falcon-p', 'lasher-lead'),
             ('blast_on', 'falcon-p', 18, (-20, -14, 4)), ('fire_on', 'lasher-lead', (-20, 10, 6)),
             ('debris', 'lasher-lead', 25, (-10, 8, 0))],
@@ -883,7 +889,7 @@ def blender_main(cfg):
         if k not in ships_fx:
             fx = lib['fx'] if (cfg.get('swfx') or lib['swfx'] or lib.get('own_fx')) else None
             s = ship_fx.ShipFx(key, lib['coll'], fx, lib['manifest'], hull_ctl=lib['hull_ctl'],
-                               clock=not lib['swfx'])
+                               clock=not lib['swfx'], own_hull=bool(cfg.get('swfx')))   # turrets train
             for c in (s.hull if s.hull is not lib['coll'] else None, s.fx):
                 if c is not None:
                     scene.collection.children.link(c)
@@ -914,7 +920,10 @@ def blender_main(cfg):
             e2.instance_collection = sfx.fx
             e2.matrix_world = e.matrix_world
             link(e2, stage)
-        placed[key] = dict(matrix=mw, mpu=lib['mpu'], length=lib['length_m'], lib=lib, fx=sfx, throttle=thr)
+        placed[key] = dict(matrix=mw, mpu=lib['mpu'], length=lib['length_m'], lib=lib, fx=sfx, throttle=thr,
+                           build=m.get('finished') or m['game'])
+        if sfx is not None:
+            sfx.matrix = mw
         if thr <= 0 or (sfx is not None and sfx.fx is not None and not lib['swfx']):
             return      # no throttle, or the kit's own drives draw this ship's plumes
         for pos, dirn, rad, style in lib['engines']:
@@ -967,6 +976,8 @@ def blender_main(cfg):
             return at(key, w.translation * lib['mpu'])
         return at(key, muzzle[1])
 
+    CLEAR_GUNS = {}     # (kind, shooter, target) -> every bearing muzzle with a clear line, the chosen one first
+
     def line_of_sight(kf, spec, muzzles, report):
         """--los: cast from each shot's muzzle to its aim point through the posed hulls (before any effect is
         made) and say what the round meets first: its target, the shooter's own hull, or another ship. A
@@ -990,6 +1001,9 @@ def blender_main(cfg):
                     hit, loc, _, _, ob, _ = scene.ray_cast(dg, o, d, distance=max(0.0, dist - (o - p0).length))
                     if not hit:
                         return True, 'nothing (open space to the aim point)'
+                    if ob is not None and ob.name.startswith('SWFX'):
+                        o = loc + d * .5       # the kit's own volumes (flash boxes, plumes): not armour
+                        continue
                     near = min(centres, key=lambda k: (loc - centres[k][0]).length)
                     if (loc - centres[near][0]).length > centres[near][1]:
                         o = loc + d * .5       # not a ship (sky, planet shell, platform): look past it
@@ -1010,6 +1024,9 @@ def blender_main(cfg):
                         muzzles[fx[:3]] = cand[5]
                         clear, what = True, what2 + f' (switched to another gun, {cand[2]}, after {tried - 1} blocked)'
                         break
+            if clear and fx[0] == 'tracer' and members[a].get('finished'):   # every gun that bears with a clear line
+                CLEAR_GUNS[fx[:3]] = [muzzles[fx[:3]]] + [c[5] for c in BEARING_CANDIDATES.get((kf,) + tuple(fx[:3]), [])
+                                                          if c[5] != muzzles[fx[:3]] and cast(c[5])[0]]
             if report:
                 standin = '' if members[a].get('finished') else '  (stand-in: fires from inside its slab)'
                 print(f'ASHARU LOS {kf} {fx[0]:8} {a:12} -> {b:12} {what}{standin}', flush=True)
@@ -1283,6 +1300,9 @@ def blender_main(cfg):
     labels = {}
     for kf in cfg['frames']:
         clear_stage()
+        for s in ships_fx.values():      # every ship's copy is rebuilt per key frame: one frame's kit effects
+            s.remove()                   # (rounds, impacts, shields) never show on another
+        ships_fx.clear()
         air.hide_render = False
         ground.hide_render = False
         sun.data.energy = 4.6
@@ -1323,15 +1343,53 @@ def blender_main(cfg):
                             print(f'ASHARU cook-off bursts {key}', swfx_fire.jagged_cookoff(ctx), flush=True)
                 ship_fx.refresh(scene)
                 bpy.context.view_layer.update()
-            if cfg.get('fx_check'):
-                fx_report(kf)
             extra3d = {}
             if spec.get('platform'):
                 platform(spec['platform'])
                 extra3d['platform'] = Vector(spec['platform']) + Vector((0, 0, -140))
             muzzles = {(k, a, b): (best[5] if best else None) for k, a, b, best, _ in bearing(kf)}
+            CLEAR_GUNS.clear()
             line_of_sight(kf, spec, muzzles, cfg.get('los'))     # picks, per shot, a bearing gun with a clear line
-            for fx in spec.get('fx', ()):
+            kit_drew = set()
+            if cfg.get('swfx'):          # the finished kit draws what it can (scene_fx); the stand-ins draw the rest
+                import scene_fx
+                sfx_ = scene_fx.SceneFx(scene, placed, lambda k: placed[k]['build'],
+                                        muzzle_world, scene.frame_current, log=lambda t: print(t, flush=True))
+                for key, sh in spec.get('shields', {}).items():
+                    sfx_.shield(key, sh)
+                for i, fx in enumerate(spec.get('fx', ())):
+                    kind, done = fx[0], False
+                    if kind == 'tracer':
+                        done = sfx_.tracer(fx[1], fx[2], fx[3] if len(fx) > 3 else None,
+                                           muzzles=CLEAR_GUNS.get(fx[:3]) or [muzzles.get(fx[:3])])
+                    elif kind == 'missiles':
+                        try:         # a salvo on a ship that breaks arrives on her break_frame (the cook-off)
+                            bf = int(placed[fx[2]]['fx'].get('break_frame'))
+                        except (AttributeError, KeyError):
+                            bf = None
+                        done = sfx_.missiles(fx[1], fx[2], arrive=bf)
+                    elif kind == 'blast_on':
+                        done = sfx_.blast_on(fx[1], fx[2], fx[3])
+                    elif kind == 'debris':
+                        done = sfx_.debris(fx[1], fx[2], fx[3] if len(fx) > 3 else (0, 0, 0))
+                    elif kind == 'fire_on':
+                        done = sfx_.breach(fx[1], fx[2], fx[3] if len(fx) > 3 else (-1, .4, .3), 1.5, vent=True)
+                    elif kind == 'smoke':
+                        done = sfx_.breach(fx[1], fx[2], fx[3] if len(fx) > 3 else (-1, .2, .5), 5.0, vent=False)
+                    elif kind == 'flares':
+                        done = sfx_.flares(fx[1])
+                    if done:
+                        kit_drew.add(i)
+                for row in sfx_.rows:
+                    print(f'ASHARU kit {kf} {row}', flush=True)
+                ship_fx.refresh(scene)
+                bpy.context.view_layer.update()
+            if cfg.get('fx_check'):
+                fx_report(kf)
+                FX_AUDIT.append(fx_audit(list(ships_fx.values()), [lib.get('fx') for lib in library.values()]))
+            for i, fx in enumerate(spec.get('fx', ())):
+                if i in kit_drew:
+                    continue
                 kind = fx[0]
                 if kind == 'tracer':
                     tracer(fx[1], fx[2], fx[3] if len(fx) > 3 else None, muzzle=muzzles.get(fx[:3]))
@@ -1378,22 +1436,41 @@ def blender_main(cfg):
         (raw / f'{kf}.meta.json').write_text(json.dumps(frame_meta(cfg['samples'], cfg.get('half', False))))
         print('ASHARU rendered', kf, flush=True)
     if cfg.get('fx_check'):
-        fx_verdict(list(ships_fx.values()), [lib.get('fx') for lib in library.values()], out)
+        fx_verdict(out)
 
 
 FX_ROWS = []     # --fx-check: one row per ship per frame, what its own copy evaluated to
 
 
-def fx_verdict(ships, library_fx, out):
-    """--fx-check's verdict: every ship's copy reaches only itself (ship_fx.audit), no driver is
-    invalid, and on some frame two ships of one build read different throttle or firing values."""
+FX_AUDIT = []    # --fx-check: each key frame's copies audited before the next frame rebuilds them
+
+
+def fx_audit(ships, library_fx):
+    """One key frame's copies: ship_fx.audit, invalid drivers, and which ships share a build."""
     import ship_fx
-    audit = ship_fx.audit(ships, library_fx)
-    invalid = sorted({s.key for s in ships for i in s.ids for fc in ship_fx._drivers(i) if not fc.driver.is_valid})
     builds = {}
     for s in ships:
         builds.setdefault(s.manifest['asset'] if 'asset' in s.manifest else s.manifest['append_collection'],
                           set()).add(s.key)
+    return dict(audit=ship_fx.audit(ships, library_fx), builds=builds,
+                invalid={s.key for s in ships for i in s.ids for fc in ship_fx._drivers(i) if not fc.driver.is_valid})
+
+
+def fx_verdict(out):
+    """--fx-check's verdict over every key frame staged: every ship's copy reaches only itself
+    (ship_fx.audit), no driver is invalid, and on some frame two ships of one build read
+    different throttle or firing values."""
+    audit, builds, invalid = {}, {}, set()
+    for a in FX_AUDIT:
+        for k, v in a['audit'].items():
+            old = audit.setdefault(k, dict(own=0, shared=0, foreign=[]))
+            old['own'], old['shared'] = max(old['own'], v['own']), max(old['shared'], v['shared'])
+            old['foreign'] += v['foreign']
+        for b, keys in a['builds'].items():
+            builds.setdefault(b, set()).update(keys)
+        invalid |= a['invalid']
+    invalid = sorted(invalid)
+    ships = audit
     pairs = []
     for kf in dict.fromkeys(r['frame'] for r in FX_ROWS):
         rows = {r['ship']: r for r in FX_ROWS if r['frame'] == kf}
