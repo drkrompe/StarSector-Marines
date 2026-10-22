@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a164f3-162d-7271-8570-83bac16b2d89",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a164f3-162d-7271-8570-83bac16b2d89\\exec-23992d06-3b67-49e4-b653-21808251b313.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\fx\\fire-topdown\\raw\\b-ember-crawl-v2.png",
+    "sha256": "593e7f910f3f590a51d10d332cb5604b39c855319a3a42cb3acc1076b7ab64e4",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\fx\\fire-topdown\\prompts\\b-ember-crawl.brief.txt",
+  "promptSha256": "df33a4f8a8c681ec81f453d3d35e379dea8c35e754f1cec868c45bdcbea7685b",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: exact grid, each frame's shape, outline, zones and placement; fill it in, never move it\n\nReskin the attached guide sheet into top-down fire sprites for an overhead tactical game. The camera looks STRAIGHT DOWN at the ground from high above: there are no side-view flame tongues rising up the image, no vertical flames, no horizon, no perspective. From above, a fire is a flickering PATCH of burning ground: an irregular, roughly round area of flame with several hot spots, no single centre, a busy ragged rim, and it would run together with the next patch into one carpet of fire.\n\nIt must NOT look like an explosion, a starburst, a star, a sun, a flower or a blast: no radial spikes, no symmetric points, no bright single centre with rays.\n\nLayout rules (strict):\n- The guide is a 4x4 grid of square frames on a 1024x1024 canvas. Keep exactly that grid, each frame's fire exactly where and as big as the guide's shapes, following their outlines closely. Do not move, merge, add or remove shapes. Frames must not touch their neighbours.\n- The guide's colour zones are a map, not the final colours: pale yellow = hottest parts, orange = flame body, dark red = outer licking rim. Keep each zone's shape and placement.\n- Rows 1-2 are eight frames of one animation loop of a burning patch; rows 3-4 are eight frames of one loop of a small grass fire of two or three little flame islands. Consecutive frames must differ only a little, like successive moments of the same fire, so they animate smoothly.\n- True transparent background, including all space between and around the flames. No ground, grass, soil, ash patch, shadow slab, border, grid lines, labels or text.\n\nLOOK: \"Ember crawl\", restrained and low.\nRender a low smouldering ground fire seen from directly above: the guide's core zone becomes a small cluster of short bright yellow-orange flames; the body zone becomes a bed of glowing embers and burning debris - dark charcoal fragments with bright orange cracks and hot spots between them; the outer rim zone becomes a thin, ragged, bright orange crawling fire line along the outline with a few short low flames, fading quickly to transparent. Mostly dark with glowing light, much less bright flame than a big fire: subdued, so units and ground around it stay readable. Grounded, realistic, slightly gritty.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\fx\\fire-topdown\\fire-topdown-guide.png",
+      "sha256": "53082eea7a796d43dfdf0b45cc5da4394997838c47ae718a4c51a303c97deb65",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: exact grid, each frame's shape, outline, zones and placement; fill it in, never move it"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the guide’s exact layout and zones to generate one transparent ember-crawl sprite sheet."
+  ],
+  "usage": {
+    "input_tokens": 40335,
+    "cached_input_tokens": 32000,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 585,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 59.8
+}

@@ -10,7 +10,8 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
 
 /**
  * The fire field drawn over the bodies (`fire-nouns.md`, Look): a warm glow,
- * restrained flames from the smoke-and-fire sheet sized and paced by intensity,
+ * flames seen from straight above (beds of flame turned each to its own angle,
+ * large ones for a crown, small tufts for grass) sized and paced by intensity,
  * a few embers over the hottest cells, and smoke off brush and crown fires.
  * Burnt ground under everything is {@link ScorchLayer}'s. Visits only the cells
  * burning in view, so a battle that never burns collects nothing.
@@ -31,6 +32,16 @@ public final class FireRenderSystem {
     private static final float FLAME_FPS = 10f;
     /** Cell size in pixels below which a fire is drawn as glow and one tongue, no embers. */
     private static final float DETAIL_CELL_PX = 10f;
+
+    /**
+     * The flame look: {@code -Dbattle.render.fireLook=<look>} names a sheet {@code graphics/fx/fire_topdown_<look>.png};
+     * {@code legacy} draws the old side-view flames off the smoke-and-fire sheet.
+     */
+    static final String FIRE_LOOK = System.getProperty("battle.render.fireLook", "a-flame-bed");
+    static final String FLAME_SHEET_PATH = "legacy".equals(FIRE_LOOK) ? null : "graphics/fx/fire_topdown_" + FIRE_LOOK + ".png";
+    /** The flame sheet's grid: cells 0-7 a bed's loop, 8-15 a grass tuft's. */
+    private static final int FLAME_COLS = 4, FLAME_LOOP = 8, TUFT_FIRST = 8;
+    private static final float TOP_FPS = 7f, TURN_DEG_PER_SEC = 6f, FLAME_ALPHA_TOP = 0.9f, INTERIOR_ALPHA = 0.55f;
 
     private final BattleSprites sprites;
     private final RenderSystem flames = RenderSystem.of(RenderLayer.HAZARDS, this::collectFlames);
@@ -71,7 +82,97 @@ public final class FireRenderSystem {
                     camera.cellToScreenX(x + 1f), camera.cellToScreenY(y + 1f),
                     1f, 0.42f, 0.10f, GLOW_ALPHA * heat * ctx.alphaMult);
         }
-        if (sheet == null || framePxW <= 0) return;
+        SpriteAPI flameSheet = sprites == null ? null : sprites.flameSheet();
+        if (flameSheet != null) {
+            collectTopDown(ctx, out, field, flameSheet, view, cellPx, detail);
+        } else {
+            if (sheet == null || framePxW <= 0) return;
+            collectSideView(ctx, out, field, sheet, view, cellPx, detail, framePxW, framePxH);
+        }
+        if (!detail || sheet == null || framePxW <= 0) return;
+        // Smoke last, over every flame, so a burning crown's screen reads as one.
+        for (int i = 0, n = field.burningCount(); i < n; i++) {
+            int idx = field.burningCell(i);
+            int x = idx % w, y = idx / w;
+            if (x < view.minX() || x > view.maxX() || y < view.minY() || y > view.maxY()) continue;
+            if (FireSmoke.smokes(field.burnedMaskAt(idx))) emitSmoke(out, camera, sheet, framePxW, framePxH, field, idx, x, y, cellPx, ctx.alphaMult);
+        }
+    }
+
+    /**
+     * Flames from straight above. Each burning cell is a few flame beds, by its fuel: a grass fire a few small
+     * flame islands, brush, creep and debris a bed, a building's walls and rooms two, a crown three large ones. Every bed
+     * is turned to its own angle, starts its loop at its own frame and turns slowly as it burns; at play zoom and
+     * closer it fades from one frame into the next, so the eight-frame loop never shows. Heat sets size and
+     * strength, and a cell with fire on all four sides draws fewer, smaller and fainter beds.
+     */
+    private void collectTopDown(RenderContext ctx, DrawList out, FireField field, SpriteAPI sheet,
+                                VisibleCellRect view, float cellPx, boolean detail) {
+        BattleCamera camera = ctx.camera;
+        int w = field.width();
+        int framePx = (int) (sheet.getWidth() / FLAME_COLS);
+        if (framePx <= 0) return;
+        for (int i = 0, n = field.burningCount(); i < n; i++) {
+            int idx = field.burningCell(i);
+            int x = idx % w, y = idx / w;
+            if (x < view.minX() || x > view.maxX() || y < view.minY() || y > view.maxY()) continue;
+            int intensity = field.intensityAt(idx);
+            float heat = intensity / 255f;
+            int mask = field.burnedMaskAt(idx);
+            boolean crown = FireFuel.CROWN.in(mask);
+            boolean building = FireFuel.STRUCTURE.in(mask) || FireFuel.FURNISHING.in(mask);
+            boolean grass = !crown && !building && (mask & ~FireFuel.GRASS.bit) == 0;
+            int beds = !detail ? 1 : crown ? 3 : building ? 2 : 1;
+            // Inside a burn the flame thins and the ground shows: a fire's edge burns brightest.
+            boolean interior = field.isBurning(x - 1, y) && field.isBurning(x + 1, y)
+                    && field.isBurning(x, y - 1) && field.isBurning(x, y + 1);
+            if (interior) beds = Math.max(1, beds - 1);
+            float scale = crown ? 2.3f : building ? 2.0f : grass ? 1.9f : 1.8f;
+            int first = grass ? TUFT_FIRST : 0;
+            for (int k = 0; k < beds; k++) {
+                int h = hash(idx, 0x70D + k * 977);
+                float spread = beds == 1 ? 0.25f : 0.6f;
+                float jx = ((h & 0xFF) / 255f - 0.5f) * spread, jy = (((h >>> 8) & 0xFF) / 255f - 0.5f) * spread;
+                float rate = TOP_FPS * (0.75f + 0.5f * (((h >>> 16) & 0xFF) / 255f));
+                float turn = ((h >>> 24) & 1) == 0 ? TURN_DEG_PER_SEC : -TURN_DEG_PER_SEC;
+                float angle = ((h >>> 4) & 0x3FF) * (360f / 1024f) + clock * turn;
+                float t = clock * rate + ((h >>> 20) & 0xF);
+                int frame = (int) t % FLAME_LOOP;
+                float blend = detail ? t - (float) Math.floor(t) : 0f;
+                float size = cellPx * scale * (0.7f + 0.4f * heat) * (beds > 1 ? 0.8f : 1f) * (interior ? 0.8f : 1f);
+                float a = (0.6f + 0.4f * heat) * FLAME_ALPHA_TOP * (interior ? INTERIOR_ALPHA : 1f) * ctx.alphaMult;
+                float cx = camera.cellToScreenX(x + 0.5f + jx), cy = camera.cellToScreenY(y + 0.5f + jy);
+                emitFlame(out, sheet, framePx, first + frame, cx, cy, size, angle, a * (1f - blend));
+                if (blend > 0f) emitFlame(out, sheet, framePx, first + (frame + 1) % FLAME_LOOP, cx, cy, size, angle, a * blend);
+            }
+            if (detail && intensity > 200) emitEmber(out, camera, idx, x, y, cellPx, ctx.alphaMult);
+        }
+    }
+
+    private static void emitFlame(DrawList out, SpriteAPI sheet, int framePx, int cell, float cx, float cy,
+                                  float size, float angle, float alpha) {
+        if (alpha <= 0.004f) return;
+        out.addSheetQuad(RenderLayer.HAZARDS, sheet, (cell % FLAME_COLS) * framePx, (cell / FLAME_COLS) * framePx,
+                framePx, framePx, cx, cy, size, size, angle, 1f, 1f, 1f, alpha);
+    }
+
+    /** A spark lifting off a hot cell. */
+    private void emitEmber(DrawList out, BattleCamera camera, int idx, int x, int y, float cellPx, float alphaMult) {
+        int h = hash(idx, 0xE1B);
+        float life = (clock * 0.9f + (h & 0xFF) / 255f) % 1f;
+        float ex = x + 0.5f + (((h >>> 8) & 0xFF) / 255f - 0.5f) * 0.9f;
+        float ey = y + 0.5f + (((h >>> 16) & 0xFF) / 255f - 0.5f) * 0.6f;
+        float s = cellPx * 0.07f;
+        float sx = camera.cellToScreenX(ex), sy = camera.cellToScreenY(ey) + life * cellPx * 1.2f;
+        out.addSolidRect(RenderLayer.HAZARDS, sx - s, sy - s, sx + s, sy + s,
+                1f, 0.75f, 0.30f, (1f - life) * alphaMult);
+    }
+
+    /** The old side-view flames off the smoke-and-fire sheet: {@code -Dbattle.render.fireLook=legacy}. */
+    private void collectSideView(RenderContext ctx, DrawList out, FireField field, SpriteAPI sheet,
+                                 VisibleCellRect view, float cellPx, boolean detail, int framePxW, int framePxH) {
+        BattleCamera camera = ctx.camera;
+        int w = field.width();
         for (int i = 0, n = field.burningCount(); i < n; i++) {
             int idx = field.burningCell(i);
             int x = idx % w, y = idx / w;
@@ -94,24 +195,7 @@ public final class FireRenderSystem {
                         framePxW, framePxH, cx, cy, size, size,
                         1f, 0.85f + 0.15f * heat, 0.75f + 0.25f * heat, (0.55f + 0.45f * heat) * FLAME_ALPHA * ctx.alphaMult);
             }
-            if (detail && intensity > 200) {
-                int h = hash(idx, 0xE1B);
-                float life = (clock * 0.9f + (h & 0xFF) / 255f) % 1f;
-                float ex = x + 0.5f + (((h >>> 8) & 0xFF) / 255f - 0.5f) * 0.9f;
-                float ey = y + 0.5f + (((h >>> 16) & 0xFF) / 255f - 0.5f) * 0.6f;
-                float s = cellPx * 0.07f;
-                float sx = camera.cellToScreenX(ex), sy = camera.cellToScreenY(ey) + life * cellPx * 1.2f;
-                out.addSolidRect(RenderLayer.HAZARDS, sx - s, sy - s, sx + s, sy + s,
-                        1f, 0.75f, 0.30f, (1f - life) * ctx.alphaMult);
-            }
-        }
-        if (!detail) return;
-        // Smoke last, over every flame, so a burning crown's screen reads as one.
-        for (int i = 0, n = field.burningCount(); i < n; i++) {
-            int idx = field.burningCell(i);
-            int x = idx % w, y = idx / w;
-            if (x < view.minX() || x > view.maxX() || y < view.minY() || y > view.maxY()) continue;
-            if (FireSmoke.smokes(field.burnedMaskAt(idx))) emitSmoke(out, camera, sheet, framePxW, framePxH, field, idx, x, y, cellPx, ctx.alphaMult);
+            if (detail && intensity > 200) emitEmber(out, camera, idx, x, y, cellPx, ctx.alphaMult);
         }
     }
 

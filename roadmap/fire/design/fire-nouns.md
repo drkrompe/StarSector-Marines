@@ -274,13 +274,26 @@ nothing is drawn for a battle that never lit anything.
   colour target with the creep) and its CPU model (`ScorchShading`) draws
   review frames; `shaderEvidence` holds the two to the same pixels.
 - **Glow** is a warm wash over each burning cell, under its flames.
-- **Flames** are restrained tongues from the existing smoke-and-fire sheet,
-  smaller than a sheet frame and a little transparent so the ground and the
-  tree read through the fire, two to a
-  burning cell and three to a crown, each on its own seeded phase and rate,
-  sized by intensity, so a front reads as a line of fire at play zoom and a
-  crown fire stands taller than a grass fire. Zoomed far out a cell keeps one
-  tongue and its glow.
+- **Flames** are seen from straight above, as the rest of the battle is:
+  patches of burning ground, irregular, with several hot spots and a ragged
+  rim, never a starburst (a ring of long tongues round one core reads from
+  above as a blast), from a sheet of their own
+  (`graphics/fx/fire_topdown_<look>.png`, a bed's eight-frame loop and a grass
+  fire's few small flame islands). Each is drawn larger than its cell, so a
+  front's patches run together into one carpet. The fuel sets the bed: grass
+  burns as islands, brush, creep and debris as one bed, a building as two, a
+  crown as three large ones, so a crown fire spreads wider than a grass fire. Inside a
+  burn, where a cell has fire on every side, the beds thin and fade, so a
+  fire's edge burns brightest and the ground and units in a burnt-over area
+  still read. Each bed
+  is turned to its own angle, starts its loop at its own frame and rate and
+  turns slowly as it burns, and at play zoom it fades from one frame into the
+  next, so neither the loop nor the grid shows; intensity sets its size and
+  strength, and it is a little transparent so ground and units read through.
+  Zoomed far out a cell keeps one bed and its glow. The sheet is built
+  geometry first (`art-source/fx/fire-topdown/`: a code-drawn guide reskinned
+  by ImageGen); `-Dbattle.render.fireLook=<look>` picks a sheet, and `legacy`
+  draws the old side-view tongues off vanilla's smoke-and-fire sheet.
 - **Embers** are a spark rising over each of the hottest cells, at play zoom
   only.
 - **Charred trees.** A tree whose middle burns darkens as it burns and is
