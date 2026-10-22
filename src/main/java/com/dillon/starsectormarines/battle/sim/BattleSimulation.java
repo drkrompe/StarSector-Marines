@@ -256,12 +256,15 @@ import com.dillon.starsectormarines.battle.evacuation.LastLiftAttempt;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftSequence;
 import com.dillon.starsectormarines.battle.creep.BoreCreep;
 import com.dillon.starsectormarines.battle.creep.CreepDigestion;
+import com.dillon.starsectormarines.battle.creep.CreepEffects;
 import com.dillon.starsectormarines.battle.creep.CreepField;
+import com.dillon.starsectormarines.battle.creep.CreepRoofCollapse;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.evacuation.CreepOutposts;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
 import com.dillon.starsectormarines.battle.evacuation.SwarmHarvest;
+import com.dillon.starsectormarines.battle.evacuation.SwarmPacks;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
@@ -727,6 +730,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final CreepDigestion creepDigestion = new CreepDigestion();
     /** The creep digesting the swarm's dead (`colony-breach-nouns.md`, Creep). */
     public CreepDigestion creepDigestion() { return creepDigestion; }
+    /** Roofs the creep has stood on long enough cave in under it. */
+    private CreepRoofCollapse creepRoofs;
     /**
      * The battle's hive creep, created on first use by whatever declares a
      * source (a bore, a scene); call only from the simulation thread.
@@ -748,6 +753,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SwarmHarvest swarmHarvest = new SwarmHarvest(SwarmHarvest.enabledByDefault());
     /** Runners dragging the dead to the bores (`colony-breach-nouns.md`, Harvest). */
     public SwarmHarvest swarmHarvest() { return swarmHarvest; }
+    private final SwarmPacks swarmPacks = new SwarmPacks();
+    /** Packs and their leaders (`colony-breach-nouns.md`, Pack, pack leader). */
+    public SwarmPacks swarmPacks() { return swarmPacks; }
     /** From the tremor on, the swarm director spawns only from living bores. */
     public void beginSwarmBoreSourcing() { swarmReinforcements.beginBoreSourcing(swarmBores); }
     /** The Colony Breach story, or {@code null} on every other battle. */
@@ -1296,6 +1304,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         rosterService.setDamageService(damageService);
         rosterService.stagger().setClock(() -> simTickIndex);
         rosterService.setNavigationGrid(grid);
+        // The swarm runs faster on its own creep; read through the field as it stands, created or not.
+        rosterService.movement().setGroundSpeedField((id, x, y) ->
+                CreepEffects.onCreep(creep, x, y) && rosterService.identity().type(id).isSwarm()
+                        ? CreepEffects.SWARM_SPEED_ON_CREEP : 1f);
         // Entity-access facade — by-id accessors that read the archetype entity
         // world's component columns directly. Owned by the roster service (which
         // owns the world it reads); the sim aliases it for its world() getter.
@@ -3535,11 +3547,17 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // bore that still lives and harvest opens on the tick a bore does.
         swarmHarvest.tick(this);
         swarmReinforcements.tick(TICK_DT, this);
+        // After the director, so a body released this tick is already in its pack.
+        swarmPacks.tick(this);
         boreCreep.sync(this);
         if (creep != null) creep.tick(simTickIndex);
         creepDigestion.tick(this);
         // Outposts after the creep has spread: they root on ground it has held a while.
         creepOutposts.tick(this);
+        if (creep != null) {
+            if (creepRoofs == null) creepRoofs = new CreepRoofCollapse(generationSeed ^ BORE_SEED_SALT);
+            creepRoofs.tick(this);
+        }
         if (reliefAssault != null) reliefAssault.tick(this);
         if (lastLiftSequence != null) lastLiftSequence.tick(this);
         if (relayNineSequence != null) relayNineSequence.tick(this);

@@ -16,14 +16,14 @@ import java.util.List;
 /**
  * Filler for {@link BlockKind#LANDING_ZONE} leaves. Open touchdown pad: no
  * perimeter wall, no interior carving — the whole leaf is walkable striped
- * floor with a single LZ_MARKER cell at the center and a sparse ring of
- * inward-pointing arrow decals around the perimeter.
+ * floor with a sparse ring of inward-pointing arrow decals around the
+ * perimeter. The touchdown cell at the center is striped like the rest: a
+ * landing zone needs no tile of its own.
  *
  * <p>Reads as a deliberate clearing inside the city: the striped pad signals
  * "shuttle apron" against the surrounding gray road, and the arrows orient
- * pilots toward the touchdown cell. Spawn-anchor selection in
- * {@code BspCityGenerator} will later prefer LZ_MARKER cells for marine
- * starting positions.
+ * pilots toward the touchdown cell, which is published as a
+ * {@link LandingPad} rather than marked on the ground.
  *
  * <p>No POI emitted — landing zones aren't landmark buildings, they're a
  * spatial role consumed by spawn-anchor logic instead.
@@ -71,12 +71,10 @@ public final class LandingZoneFiller implements BlockFiller {
             }
         }
 
-        // Center cell: LZ_MARKER. Touchdown decal — spawn-anchor preference
-        // will key on this kind later.
+        // Center cell: the touchdown berth, published when the leaf fits it.
         int cx = leaf.centerX();
         int cy = leaf.centerY();
         if (grid.inBounds(cx, cy)) {
-            topology.setGroundKind(cx, cy, GroundKind.LZ_MARKER);
             if (leaf.width() >= 5 && leaf.height() >= 5) {
                 ctx.landingPads.add(LandingPad.civilian(cx, cy, LandingPad.Approach.NORTH));
             }

@@ -64,6 +64,7 @@ public final class SwarmBore {
     private int bodiesSpawned;
     private final int[] stagesReleased = new int[SwarmStage.values().length];
     private boolean matriarchReleased;
+    private long matriarch;
     private int collapsedTick = -1;
     private final List<Long> colonies = new ArrayList<>();
     private final List<Long> colonyView = Collections.unmodifiableList(colonies);
@@ -113,6 +114,8 @@ public final class SwarmBore {
     public int releasedAt(SwarmStage stage) { return stagesReleased[stage.ordinal()]; }
     /** Whether this bore has put its Matriarch out; only a mother ever does, once. */
     public boolean matriarchReleased() { return matriarchReleased; }
+    /** The Matriarch this mother released, or 0. */
+    public long matriarch() { return matriarch; }
     public boolean collapsed() { return collapsedTick >= 0; }
     /** Every spore colony the bore has sprouted, living or not, in sprouting order. */
     public List<Long> colonies() { return colonyView; }
@@ -176,8 +179,9 @@ public final class SwarmBore {
     }
 
     /** Records that the body just released was this mother's Matriarch. */
-    void releasedMatriarch() {
+    void releasedMatriarch(long body) {
         matriarchReleased = true;
+        matriarch = body;
     }
 
     /** Holds a due surge back to {@code tick}; the bore stays quiet until then. */
