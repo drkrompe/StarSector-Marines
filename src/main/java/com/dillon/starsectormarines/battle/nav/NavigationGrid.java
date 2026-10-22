@@ -91,7 +91,13 @@ public class NavigationGrid {
         /** Natural obstruction: ordinary cell wall damage cannot clear it; tree ownership may release a whole crown. */
         NATURAL_SOLID,
         /** Low aircraft fragments: passability stays with the underlying terrain. */
-        CRASH_DEBRIS;
+        CRASH_DEBRIS,
+        /**
+         * A militia barricade piece: closed to walking, but something the swarm
+         * assaults rather than walks round. The swarm's flow field may cross it
+         * at a cost ({@link SwarmFlowFields}); a breach clears it.
+         */
+        BARRICADE;
 
         public long mask() { return 1L << ordinal(); }
     }
@@ -203,6 +209,12 @@ public class NavigationGrid {
      */
     private final SwarmFlowFields swarmFlowFields = new SwarmFlowFields(this);
 
+    /**
+     * The map's raised ground, or null on a flat map. Immutable and shared by
+     * every copy of this grid; see {@link ElevationMap}.
+     */
+    private ElevationMap elevation;
+
     public NavigationGrid(int width, int height) {
         this(width, height, false);
     }
@@ -253,12 +265,29 @@ public class NavigationGrid {
     public int getHeight() { return height; }
     public long topologyRevision() { return topologyRevision; }
 
+    /** The map's raised ground, or null when the map is flat. */
+    public ElevationMap elevation() { return elevation; }
+
+    /**
+     * Installs the map's raised ground. Generation only: the map is fixed for
+     * the battle. Sight answers change with it, so the caches are swept.
+     */
+    public void setElevation(ElevationMap value) {
+        if (value != null && (value.width() != width || value.height() != height)) {
+            throw new IllegalArgumentException("Elevation and grid dimensions differ");
+        }
+        elevation = value;
+        opacityRevision++;
+        losCaches.clearAll();
+    }
+
     /** This grid's swarm flow fields; see {@link SwarmFlowFields}. */
     public SwarmFlowFields swarmFlowFields() { return swarmFlowFields; }
 
     /** Independent navigation snapshot retaining full ancillary grid storage. */
     public NavigationGrid copyNavigationTopology() {
         NavigationGrid copy = new NavigationGrid(width, height);
+        copy.elevation = elevation;
         System.arraycopy(cellFlags, 0, copy.cellFlags, 0, cellFlags.length);
         System.arraycopy(edgePassability, 0, copy.edgePassability, 0,
                 edgePassability.length);
@@ -272,6 +301,7 @@ public class NavigationGrid {
      */
     public NavigationGrid copyRoutingTopology() {
         NavigationGrid copy = new NavigationGrid(width, height, true);
+        copy.elevation = elevation;
         System.arraycopy(cellFlags, 0, copy.cellFlags, 0, cellFlags.length);
         System.arraycopy(edgePassability, 0, copy.edgePassability, 0,
                 edgePassability.length);
@@ -894,6 +924,25 @@ public class NavigationGrid {
         return getCoverAtFacing(x, y, facingFor(fromDx, fromDy));
     }
 
+    /**
+     * {@link #getCoverAt(int, int, int, int)} against a shooter standing in a
+     * known cell. On raised ground a cliff face covers the body beside it only
+     * from shooters no higher than the body: from the top the face is under
+     * the shooter, not in front of the body, so a cell at a cliff's foot keeps
+     * nothing from it but any barrier on the same edge.
+     */
+    public int getCoverAgainst(int x, int y, int shooterX, int shooterY) {
+        int facing = facingFor(shooterX - x, shooterY - y);
+        int level = getCoverAtFacing(x, y, facing);
+        ElevationMap elevation = this.elevation;
+        if (level == 0 || elevation == null || !inBounds(x, y) || !inBounds(shooterX, shooterY)) return level;
+        int nx = x + (facing == FACING_E ? 1 : facing == FACING_W ? -1 : 0);
+        int ny = y + (facing == FACING_S ? 1 : facing == FACING_N ? -1 : 0);
+        if (!inBounds(nx, ny) || !elevation.isFaceAt(index(nx, ny))) return level;
+        if (elevation.eyeTier(shooterX, shooterY) <= elevation.eyeTier(x, y)) return level;
+        return edgeBarrierCoverByFacing[index(x, y) * FACING_COUNT + facing] & 0xFF;
+    }
+
     /** Per-facing symmetric target-plane catch half-height, or zero for no cover. */
     public float getCoverCatchHalfHeightAtFacing(int x, int y, int facing) {
         if (!inBounds(x, y)) return 0f;
@@ -1027,6 +1076,7 @@ public class NavigationGrid {
         // visible from this class.
         boolean wasOpaque = blocksStructuralLineOfSightAt(idx);
         cellFlags[idx] |= CellTag.WALKABLE.mask() | CellTag.DOORWAY.mask();
+        cellFlags[idx] &= ~CellTag.BARRICADE.mask();
         recordStructuralOpacityChange(idx, wasOpaque);
         edgePassability[idx] = (byte) 0xFF;
         markTopologyChanged(idx);
@@ -1111,6 +1161,12 @@ public class NavigationGrid {
         // Tick-scoped result cache. Off-tick (tests, mid-frame UI hooks) the
         // slot is null and we fall through to the Bresenham trace directly.
         LosCache cache = losCaches.current();
+        // The cache key is symmetric, and sight between two tiers is not: the
+        // high ground sees down where the low ground cannot see up.
+        if (cache != null && elevation != null && inBounds(x0, y0) && inBounds(x1, y1)
+                && elevation.sightHeightAt(index(x0, y0)) != elevation.sightHeightAt(index(x1, y1))) {
+            cache = null;
+        }
         if (cache != null) {
             int cached = cache.tryGet(x0, y0, x1, y1);
             if (cached >= 0) return cached == 1;
@@ -1126,6 +1182,12 @@ public class NavigationGrid {
                 x0 + 0.5f, y0 + 0.5f, x1 + 0.5f, y1 + 0.5f) != null) {
             return false;
         }
+        ElevationMap elevation = this.elevation;
+        int eye = elevation == null ? 0 : elevation.eyeTier(x0, y0);
+        if (elevation != null && inBounds(x1, y1) && !elevation.visibleFrom(index(x1, y1), eye)) {
+            return false;
+        }
+        boolean onHigherGround = false;
         int dx = Math.abs(x1 - x0);
         int dy = Math.abs(y1 - y0);
         int sx = x0 < x1 ? 1 : -1;
@@ -1135,7 +1197,15 @@ public class NavigationGrid {
         int y = y0;
         while (true) {
             boolean endpoint = (x == x0 && y == y0) || (x == x1 && y == y1);
-            if (!endpoint && blocksLineOfSight(x, y)) return false;
+            if (!endpoint) {
+                if (elevation == null || !inBounds(x, y)) {
+                    if (blocksLineOfSight(x, y)) return false;
+                } else {
+                    int idx = index(x, y);
+                    if (elevationBlocks(elevation, idx, eye, onHigherGround, true)) return false;
+                    if (elevation.above(idx, eye) && !elevation.isFaceAt(idx)) onHigherGround = true;
+                }
+            }
             if (x == x1 && y == y1) return true;
             int e2 = err << 1;
             if (e2 > -dy) { err -= dy; x += sx; }
@@ -1476,6 +1546,16 @@ public class NavigationGrid {
         // walk runs off the grid forever. That froze a whole battle once, so
         // it is loud now.
         int budget = Math.abs(endX - x) + Math.abs(endY - y);
+        ElevationMap elevation = this.elevation;
+        int eye = elevation == null ? 0 : elevation.eyeTier(x, y);
+        if (elevation != null && excludeEnd && inBounds(endX, endY)
+                && !elevation.visibleFrom(index(endX, endY), eye)) {
+            // Fire follows sight: a body the shooter cannot see up there is
+            // behind the rim, and the round stops on it.
+            return packCell(endX, endY);
+        }
+        boolean onHigherGround = false;
+        int step;
 
         while (x != endX || y != endY) {
             if (--budget < 0) {
@@ -1485,11 +1565,15 @@ public class NavigationGrid {
             if (tMaxX < tMaxY) {
                 x += stepX;
                 tMaxX = x == endX ? Float.POSITIVE_INFINITY : tMaxX + tDeltaX;
-                if (blocksRayCell(x, y, endX, endY, excludeEnd)) return packCell(x, y);
+                step = rayCell(x, y, endX, endY, excludeEnd, elevation, eye, onHigherGround);
+                if (step == RAY_BLOCKED) return packCell(x, y);
+                onHigherGround |= step == RAY_ONTO_HIGHER_GROUND;
             } else if (tMaxY < tMaxX) {
                 y += stepY;
                 tMaxY = y == endY ? Float.POSITIVE_INFINITY : tMaxY + tDeltaY;
-                if (blocksRayCell(x, y, endX, endY, excludeEnd)) return packCell(x, y);
+                step = rayCell(x, y, endX, endY, excludeEnd, elevation, eye, onHigherGround);
+                if (step == RAY_BLOCKED) return packCell(x, y);
+                onHigherGround |= step == RAY_ONTO_HIGHER_GROUND;
             } else {
                 // At an exact corner the zero-width segment enters only the
                 // diagonal cell; the orthogonal neighbors are touched at one
@@ -1499,17 +1583,39 @@ public class NavigationGrid {
                 y += stepY;
                 tMaxX = x == endX ? Float.POSITIVE_INFINITY : tMaxX + tDeltaX;
                 tMaxY = y == endY ? Float.POSITIVE_INFINITY : tMaxY + tDeltaY;
-                if (blocksRayCell(x, y, endX, endY, excludeEnd)) return packCell(x, y);
+                step = rayCell(x, y, endX, endY, excludeEnd, elevation, eye, onHigherGround);
+                if (step == RAY_BLOCKED) return packCell(x, y);
+                onHigherGround |= step == RAY_ONTO_HIGHER_GROUND;
             }
         }
         return noBlockPacked();
     }
 
-    private boolean blocksRayCell(int x, int y, int endX, int endY,
-                                  boolean excludeEnd) {
-        if (excludeEnd && x == endX && y == endY) return false;
-        if (!inBounds(x, y)) return false;
-        return blocksStructuralLineOfSightAt(index(x, y));
+    private static final int RAY_CLEAR = 0;
+    private static final int RAY_BLOCKED = 1;
+    /** Clear, and the ray has now crossed onto ground higher than the eye. */
+    private static final int RAY_ONTO_HIGHER_GROUND = 2;
+
+    private int rayCell(int x, int y, int endX, int endY, boolean excludeEnd,
+                        ElevationMap elevation, int eye, boolean onHigherGround) {
+        if (excludeEnd && x == endX && y == endY) return RAY_CLEAR;
+        if (!inBounds(x, y)) return RAY_CLEAR;
+        int idx = index(x, y);
+        if (elevation == null) return blocksStructuralLineOfSightAt(idx) ? RAY_BLOCKED : RAY_CLEAR;
+        if (elevationBlocks(elevation, idx, eye, onHigherGround, false)) return RAY_BLOCKED;
+        return elevation.above(idx, eye) && !elevation.isFaceAt(idx) ? RAY_ONTO_HIGHER_GROUND : RAY_CLEAR;
+    }
+
+    /**
+     * One elevation rule for sight and fire. Higher ground answers through
+     * {@link ElevationMap#stopsSight}; a face at or below the eye stands under
+     * it and stops nothing; everything else keeps its ordinary opacity.
+     */
+    private boolean elevationBlocks(ElevationMap elevation, int idx, int eye,
+                                    boolean onHigherGround, boolean countSmoke) {
+        if (elevation.above(idx, eye)) return elevation.stopsSight(idx, eye, onHigherGround);
+        if (elevation.isFaceAt(idx)) return countSmoke && transientOpacity[idx] > 0;
+        return countSmoke ? blocksLineOfSightAt(idx) : blocksStructuralLineOfSightAt(idx);
     }
 
     private static long packCell(int x, int y) {

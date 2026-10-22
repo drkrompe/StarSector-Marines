@@ -32,6 +32,7 @@ public final class DrawCensus {
     private int ribbons;
     private int sprites;
     private int customs;
+    private int meshes;
     private int drawCalls;
     private int textureBinds;
 
@@ -46,6 +47,8 @@ public final class DrawCensus {
     public int sprites() { return sprites; }
     /** Passes that owned their GL; their draws and binds are not counted here. */
     public int customs() { return customs; }
+    /** Recorded meshes replayed; their quads are in {@link #sheetQuads} or {@link #sprites}. */
+    public int meshes() { return meshes; }
     /** {@code glDrawArrays} calls plus whole-sprite draws. */
     public int drawCalls() { return drawCalls; }
     public int textureBinds() { return textureBinds; }
@@ -60,7 +63,17 @@ public final class DrawCensus {
             case RIBBON -> ribbons++;
             case SPRITE -> sprites++;
             case CUSTOM -> customs++;
+            case MESH -> meshes++;
         }
+    }
+
+    /**
+     * A mesh's quads, counted as what they drew: sheet quads when it joined an atlas batch, whole sprites when
+     * it drew through its images. A mesh is one command and many quads, and the quads are the cost.
+     */
+    void recordMeshQuads(int quads, boolean asSprites) {
+        if (asSprites) sprites += quads;
+        else sheetQuads += quads;
     }
 
     /** One batched draw that bound a texture first. */
@@ -85,6 +98,7 @@ public final class DrawCensus {
         ribbons += other.ribbons;
         sprites += other.sprites;
         customs += other.customs;
+        meshes += other.meshes;
         drawCalls += other.drawCalls;
         textureBinds += other.textureBinds;
     }

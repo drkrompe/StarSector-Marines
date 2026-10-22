@@ -8,7 +8,7 @@ plugins {
 }
 
 group = 'com.dillon.starsectormarines'
-version = '0.0.1'
+version = '0.1.0-alpha'
 
 def starsectorDir = file(providers.gradleProperty('starsectorDir').get())
 def starsectorCore = new File(starsectorDir, 'starsector-core')
@@ -117,13 +117,25 @@ dependencies {
 // diagnosing this independently both added it to `test` alone, leaving the
 // value duplicated there and still missing from `commanderEvidence`, which
 // renders review frames through the very renderer that was running out.
+// Raised from 2g to 6g (owner, 2026-10-22): long framed evidence runs - The Burn's
+// review frames at 1920x1080 - kept dying of OutOfMemoryError. The machine has 32 GB;
+// this is a cap, not a reservation. -PtestHeap=<size> overrides it per run.
+// What actually held the memory was measured afterwards (CLAUDE.md, "Memory
+// budget"): the headless sprite tokens kept every decoded sheet resident, 1.3 GB
+// before a battle began. With that fixed The Burn's whole framed run fits in 2g.
+def evidenceHeap = (findProperty('testHeap') ?: '6g').toString()
+// -PtestJvmArgs="<args>" adds JVM flags to an evidence fork for one run - a flight
+// recording, a heap dump on OOM - without touching the daemon, which
+// JAVA_TOOL_OPTIONS would also reach.
+def evidenceJvmArgs = (findProperty('testJvmArgs') ?: '').toString().trim()
 tasks.withType(Test).configureEach {
-    maxHeapSize = '2g'
+    maxHeapSize = evidenceHeap
     // A repeated implicit exception loses its stack to the JIT's fast-throw
     // optimisation, and an evidence run that dies after thirteen minutes with a
     // bare `java.lang.ArrayIndexOutOfBoundsException` and no frames is a run that
     // has to be paid for again to say anything. Keep the frames.
     jvmArgs '-XX:-OmitStackTraceInFastThrow'
+    if (!evidenceJvmArgs.isEmpty()) jvmArgs evidenceJvmArgs.split(/\s+/)
     // Every JVM-side measurement — the suite, commander evidence, snapshots —
     // measures shipping behaviour, never the debug scaffold. Without this,
     // IntegralSystemSystem's screen-trigger override would raise a screen in
@@ -161,11 +173,12 @@ test {
                 'squad-firing-evidence', 'swarm-flow-evidence',
                 'commander-balance', 'conquest-trial-evidence',
                 'sabotage-command-evidence', 'assault-command-evidence', 'relief-command-evidence', 'counterattack-command-evidence', 'junction-command-evidence', 'relay-nine-command-evidence', 'thunder-run-command-evidence', 'last-lift-command-evidence', 'supply-route-campaign-evidence',
-                'raid-command-evidence', 'extraction-command-evidence', 'colony-breach-command-evidence', 'corvus-command-evidence', 'power-suit-campaign-evidence',
+                'raid-command-evidence', 'extraction-command-evidence', 'colony-breach-command-evidence', 'cordon-command-evidence', 'heart-command-evidence', 'corvus-command-evidence', 'power-suit-campaign-evidence',
                 'story-command-evidence',
                 'crew-liveliness', 'shader-evidence', 'render-evidence', 'garrison-evidence',
                 'generated-space-evidence',
-                'loadout-card-sheet', 'loadout-matchup', 'armor-matchup', 'armor-economy-evidence'
+                'loadout-card-sheet', 'loadout-matchup', 'armor-matchup', 'armor-economy-evidence',
+                'bloom-evidence'
     }
     testLogging {
         // Audit-style tests print their report to stdout — stream it to the
@@ -244,6 +257,9 @@ def commanderEvidenceTags = [
         raid: 'raid-command-evidence',
         extraction: 'extraction-command-evidence',
         'colony-breach': 'colony-breach-command-evidence',
+        'cordon-line': 'cordon-command-evidence',
+        'cordon-road': 'cordon-command-evidence',
+        'heart': 'heart-command-evidence',
         'yard-owners': 'yard-owners-command-evidence',
         'water-under-seal': 'water-under-seal-command-evidence',
         'limited-warrant': 'limited-warrant-command-evidence',
@@ -270,6 +286,27 @@ tasks.register('crewEvidence', Test) {
     maxParallelForks = 1
     outputs.upToDateWhen { false }
     systemProperty 'starsectorDir', starsectorDir.absolutePath
+    testLogging {
+        showStandardStreams = true
+    }
+}
+
+// The Rav Bloom on the campaign layer over N cycles of a synthetic vanilla-shaped sector, for
+// every severity and frequency preset under three player policies: blooms a year, outcomes,
+// spread chains and size lost (colony-breach-nouns.md, Campaign: blooms). Campaign evidence, not a test.
+tasks.register('bloomEvidence', Test) {
+    group = 'verification'
+    description = 'Simulate years of Rav Bloom outbreaks and report counts, outcomes and spread; opt-in.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'bloom-evidence'
+    }
+    outputs.upToDateWhen { false }
+    systemProperty 'bloom.evidence.years', providers.gradleProperty('years').getOrElse('20')
+    systemProperty 'bloom.evidence.seeds', providers.gradleProperty('seeds').getOrElse('8')
+    systemProperty 'bloom.evidence.outputDir',
+            providers.gradleProperty('evidenceDir').getOrElse(layout.buildDirectory.dir('reports/blooms').get().asFile.absolutePath)
     testLogging {
         showStandardStreams = true
     }
@@ -478,6 +515,15 @@ tasks.register('renderEvidence', Test) {
     if (project.hasProperty('renderDir')) {
         systemProperty 'render.evidence.outputDir', project.property('renderDir')
     }
+    if (project.hasProperty('renderMaps')) {
+        systemProperty 'render.evidence.maps', project.property('renderMaps')
+    }
+    if (project.hasProperty('renderBurnSeconds')) {
+        systemProperty 'render.evidence.burnSeconds', project.property('renderBurnSeconds')
+    }
+    if (project.hasProperty('renderPileBodies')) {
+        systemProperty 'render.evidence.pileBodies', project.property('renderPileBodies')
+    }
     testLogging {
         showStandardStreams = true
     }
@@ -487,6 +533,17 @@ tasks.register('renderEvidence', Test) {
 // matters, switch on the hit log there, and ask who is shooting whom, without a replay per question.
 // -Pbattle=thunder-run[:seed=N,companySize=N] or fixture:<path>; -Pscript=<file> (stdin without one); -Pout=<file>.
 // Serial, as commanderEvidence plays, so the battle probed is the battle the evidence reported.
+tasks.register('bakeCreepBlight', JavaExec) {
+    group = 'build'
+    description = 'Bakes the forest-blight sheet: trees hive creep overgrows, from the canopy sheets and the creep surface.'
+    dependsOn tasks.named('testClasses')
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.dillon.starsectormarines.ops.battleview.CreepBlightBaker'
+    workingDir projectDir
+    args 'mod', (project.findProperty('skeleton') ?: 'sparse')
+    outputs.upToDateWhen { false }
+}
+
 tasks.register('battleProbe', JavaExec) {
     group = 'verification'
     description = 'Step one battle and query entities, hits and squads between steps.'
@@ -496,7 +553,6 @@ tasks.register('battleProbe', JavaExec) {
     workingDir projectDir
     standardInput = System.in
     outputs.upToDateWhen { false }
-    maxHeapSize = '2g'
     systemProperty 'starsectorDir', starsectorDir.absolutePath
     // Exactly what every Test task is given (`tasks.withType(Test)` above) plus commanderEvidence's serial unit
     // update. Without the async switches the probe plays the live game's asynchronous battle, which is neither the
@@ -544,6 +600,9 @@ tasks.register('commanderEvidence', Test) {
                 raid: 'raid.command.evidence',
                 extraction: 'extraction.command.evidence',
                 'colony-breach': 'colony.breach.command.evidence',
+                'cordon-line': 'cordon.line.command.evidence',
+                'cordon-road': 'cordon.road.command.evidence',
+                'heart': 'heart.command.evidence',
                 'yard-owners': 'story.command.evidence',
                 'water-under-seal': 'story.command.evidence',
                 'limited-warrant': 'story.command.evidence',
@@ -898,6 +957,20 @@ tasks.register('sceneDeterminism', JavaExec) {
     }
 }
 
+// The evidence JavaExecs answer to the same budget and the same -PtestJvmArgs
+// as the Test tasks. Before this a scene run had no cap at all - the JVM's
+// default of a quarter of the machine, 8 GB here - so a scene that grew without
+// bound could never show it. createSnapshots keeps that default unless
+// -PtestHeap is given: SnapshotWorkers spills finished frames at half the heap,
+// so its cap moves its spill point, and the whole catalog has not been
+// measured under 6g.
+['battleProbe', 'sceneEvidence', 'sceneDeterminism', 'createSnapshots'].each { name ->
+    tasks.named(name, JavaExec) {
+        if (name != 'createSnapshots' || findProperty('testHeap') != null) maxHeapSize = evidenceHeap
+        if (!evidenceJvmArgs.isEmpty()) jvmArgs evidenceJvmArgs.split(/\s+/)
+    }
+}
+
 tasks.register('layerAuthoring', JavaExec) {
     group = 'development'
     description = 'Launch the standalone marine/mech layer authoring workbench'
@@ -1141,6 +1214,52 @@ tasks.register('deployMod', Sync) {
     }
 }
 
+// The public release: what deployMod puts in the game's mods folder, as one zip whose top-level
+// folder is the mod's install folder. Built from mod/ with the two generated folders replaced by
+// fresh outputs -- the shaded jar alone (not whatever else sits in mod/jars) and audio transcoded
+// into an empty folder -- so nothing stale from a developer's checkout ships. The jar boundary
+// check runs first, and the manifest's version must be this build's.
+tasks.register('packageRelease', Zip) {
+    group = 'starsector'
+    description = 'Zip the shippable mod into build/release/StarsectorMarines-<version>.zip'
+    dependsOn tasks.named('verifyModJarBoundary'), ':asset-pipeline:processReleaseAudio'
+
+    def releaseSounds = layout.buildDirectory.dir("release/sounds").get().asFile
+    def manifest = new File(modOutputDir, 'mod_info.json')
+    archiveFileName = "${modName}-${project.version}.zip"
+    destinationDirectory = layout.buildDirectory.dir("release")
+    duplicatesStrategy = DuplicatesStrategy.FAIL
+
+    into(modName) {
+        from(modOutputDir) {
+            exclude 'jars/**', 'sounds/**', '**/.gitkeep'
+        }
+        into('jars') { from tasks.named('shadowJar') }
+        into('sounds') { from releaseSounds }
+    }
+
+    doFirst {
+        def declared = (manifest.text =~ /"version"\s*:\s*"([^"]+)"/)
+        if (!declared.find() || declared.group(1) != project.version.toString()) {
+            throw new GradleException("mod_info.json version does not match build.gradle's "
+                    + project.version + "; set both before packaging.")
+        }
+    }
+    doLast {
+        def zip = archiveFile.get().asFile
+        int entries = 0
+        new java.util.zip.ZipFile(zip).withCloseable { archive ->
+            archive.entries().each { entry ->
+                if (!entry.name.startsWith(modName + '/')) {
+                    throw new GradleException('release entry outside ' + modName + '/: ' + entry.name)
+                }
+                if (!entry.directory) entries++
+            }
+        }
+        logger.lifecycle(String.format('%s: %d files, %.1f MB', zip, entries, zip.length() / 1048576d))
+    }
+}
+
 tasks.register('undeployMod', Delete) {
     group = 'starsector'
     description = "Remove the deployed mod from $starsectorModsDir"
@@ -1158,7 +1277,7 @@ tasks.register('undeployMod', Delete) {
  * under the read-only game install, so read its command line and run it directly:
  * same flags, same working directory, but the exit code and stderr are the JVM's.
  */
-def starsectorLaunchArgv(File coreDir, File diagnosticsDir, boolean stockJvm) {
+def starsectorLaunchArgv(File coreDir, File diagnosticsDir, boolean stockJvm, boolean devMode) {
     def bat = new File(coreDir, 'starsector.bat')
     if (!bat.isFile()) {
         throw new GradleException("No starsector.bat in ${coreDir} -- cannot launch the game")
@@ -1192,7 +1311,10 @@ def starsectorLaunchArgv(File coreDir, File diagnosticsDir, boolean stockJvm) {
     if (stockJvm) {
         flags = flags.findAll { !it.startsWith('-XX:') && it != '-noverify' }
     }
-    [java.canonicalPath, "-XX:ErrorFile=${errorFile.absolutePath}".toString()] + flags
+    // A developer launch shows the debug surfaces (DevConfig.DEV_MODE); a player's install never
+    // carries the property, and -PplayerBuild launches the game as a player would see it.
+    def dev = devMode ? ['-Dmarines.dev=true'] : []
+    [java.canonicalPath, "-XX:ErrorFile=${errorFile.absolutePath}".toString()] + dev + flags
 }
 
 /**
@@ -1230,16 +1352,18 @@ class TeeOutputStream extends OutputStream {
 }
 
 def stockJvmRequested = providers.gradleProperty('stockJvm').map { true }.orElse(false)
+def playerBuildRequested = providers.gradleProperty('playerBuild').map { true }.orElse(false)
 
 tasks.register('runStarsector', Exec) {
     group = 'starsector'
-    description = 'Launch Starsector after deploying the mod (-PstockJvm drops the -XX: flags from vmparams)'
+    description = 'Launch Starsector after deploying the mod (-PstockJvm drops the -XX: flags from vmparams; -PplayerBuild hides the debug surfaces)'
     dependsOn 'deployMod'
     finalizedBy 'reportStarsectorRun'
     def coreDir = new File(starsectorDir, 'starsector-core')
     def diagnosticsDir = layout.buildDirectory.dir('starsector-run').get().asFile
     def consoleLog = new File(diagnosticsDir, 'console.log')
     def stock = stockJvmRequested
+    def playerBuild = playerBuildRequested
     workingDir coreDir
     // Report the JVM's own status rather than failing the build on it: a crash
     // and an ordinary quit both end this task, and only the message differs.
@@ -1253,7 +1377,7 @@ tasks.register('runStarsector', Exec) {
         sink = new BufferedOutputStream(new FileOutputStream(consoleLog))
         standardOutput = new TeeOutputStream(System.out, sink)
         errorOutput = new TeeOutputStream(System.err, sink)
-        commandLine starsectorLaunchArgv(coreDir, diagnosticsDir, stock.get())
+        commandLine starsectorLaunchArgv(coreDir, diagnosticsDir, stock.get(), !playerBuild.get())
         if (stock.get()) {
             logger.lifecycle('runStarsector: -PstockJvm -- launching without the -XX: flags from vmparams')
         }
@@ -1398,6 +1522,17 @@ tasks.register('roadMaterials', JavaExec) {
     dependsOn tasks.named('testClasses')
     classpath = sourceSets.test.runtimeClasspath
     mainClass = 'com.dillon.starsectormarines.tools.roadauthoring.RoadMaterialBaker'
+    workingDir projectDir
+    args projectDir.absolutePath
+}
+
+// Feathered ground boundaries (GroundFeather): each material's art through baked noise-edged masks.
+tasks.register('groundFeather', JavaExec) {
+    group = 'asset pipeline'
+    description = 'Bake the ground feather sheet and catalog from the feathering materials own art'
+    dependsOn tasks.named('testClasses')
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.dillon.starsectormarines.tools.terrainauthoring.GroundFeatherBaker'
     workingDir projectDir
     args projectDir.absolutePath
 }

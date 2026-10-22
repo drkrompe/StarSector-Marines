@@ -67,6 +67,7 @@ import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretFireSystem;
 import com.dillon.starsectormarines.battle.unit.DeadBodySystem;
+import com.dillon.starsectormarines.battle.unit.BodyPileCap;
 import com.dillon.starsectormarines.battle.warship.LanceSweep;
 import com.dillon.starsectormarines.battle.warship.LanceSweepSystem;
 import com.dillon.starsectormarines.battle.warship.Warship;
@@ -108,6 +109,7 @@ import com.dillon.starsectormarines.battle.unit.BodyCarrier;
 import com.dillon.starsectormarines.battle.unit.BodyService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
+import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
@@ -118,6 +120,10 @@ import com.dillon.starsectormarines.battle.air.AirLoss;
 import com.dillon.starsectormarines.battle.air.BoatDamageLedger;
 import com.dillon.starsectormarines.battle.air.AirOrdnance;
 import com.dillon.starsectormarines.battle.air.HullTarget;
+import com.dillon.starsectormarines.battle.power.WalkingBarrage;
+import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
+import com.dillon.starsectormarines.battle.evacuation.HeartSequence;
+import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.evacuation.SurvivorPickupSystem;
 import com.dillon.starsectormarines.battle.air.AirStrikeSystem;
 import com.dillon.starsectormarines.battle.air.BoatSortieSystem;
@@ -233,6 +239,7 @@ import com.dillon.starsectormarines.battle.breach.WallBreachSystem;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.RouteCostField;
 import com.dillon.starsectormarines.battle.nav.SharedGoalPolicy;
 import com.dillon.starsectormarines.battle.nav.SwarmFlowFields;
@@ -259,6 +266,17 @@ import com.dillon.starsectormarines.battle.creep.CreepDigestion;
 import com.dillon.starsectormarines.battle.creep.CreepEffects;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.creep.CreepRoofCollapse;
+import com.dillon.starsectormarines.battle.fire.BattleFire;
+import com.dillon.starsectormarines.battle.fire.FireCost;
+import com.dillon.starsectormarines.battle.fire.FireEscape;
+import com.dillon.starsectormarines.battle.fire.FireField;
+import com.dillon.starsectormarines.battle.fire.FireHarm;
+import com.dillon.starsectormarines.battle.fire.FireIgnition;
+import com.dillon.starsectormarines.battle.fire.FireRouteCost;
+import com.dillon.starsectormarines.battle.creep.CreepVegetation;
+import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
+import com.dillon.starsectormarines.battle.cordon.CordonSequence;
+import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.evacuation.CreepOutposts;
@@ -639,6 +657,35 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         limitedWarrant = new LimitedWarrantSequence(technician, constables, carrier, reserve, records, storyBeats);
         addObjective(limitedWarrant);
     }
+    private CordonSequence cordon;
+    /** The Cordon's story, or {@code null} on every other battle. */
+    public CordonSequence getCordon() { return cordon; }
+    /**
+     * Installs the Cordon's story over manned redoubts: their states, the
+     * tides and the beats, and the company's objective
+     * ({@code cordon-nouns.md}). The director must already be bore-sourced.
+     */
+    public CordonSequence installCordon(CordonVariant variant, List<CordonRedoubt> redoubts, List<Integer> gap,
+                                        int[][] eruptionSites, CordonSequence.Timetable timetable) {
+        if (simTickIndex != 0 || cordon != null) throw new IllegalStateException("Install the Cordon once at setup");
+        if (!swarmReinforcements.isBoreSourcing())
+            throw new IllegalStateException("The Cordon needs a bore-sourced swarm director");
+        int firstErupted = 1;
+        for (SwarmBore bore : swarmBores.bores()) firstErupted = Math.max(firstErupted, bore.number() + 1);
+        cordon = new CordonSequence(variant, redoubts, gap, eruptionSites, firstErupted, timetable, storyBeats);
+        swarmReinforcements.setPressureShare(timetable.ordinaryPressure());
+        addObjective(cordon);
+        return cordon;
+    }
+    /**
+     * Configures the swarm director with no rescue: bore-sourced from the
+     * first tick over the bores setup opened ({@code cordon-nouns.md}).
+     */
+    /** The share of the bores' capacities the director holds the field at ({@link SwarmReinforcementSystem#setPressureShare}). */
+    public void setSwarmPressureShare(float share) { swarmReinforcements.setPressureShare(share); }
+    public boolean configureSwarmFromBores(long seed) {
+        return swarmReinforcements.configureFromBores(swarmBores, seed, this);
+    }
     private DistrictEscortSequence districtEscort;
     public DistrictEscortSequence getDistrictEscort() { return districtEscort; }
     public void installDistrictEscort(int party, int constables, long carrier, List<EntitySpec> reserve, float[] routeX, float[] routeY) {
@@ -732,18 +779,64 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final CreepDigestion creepDigestion = new CreepDigestion();
     /** The creep digesting the swarm's dead (`colony-breach-nouns.md`, Creep). */
     public CreepDigestion creepDigestion() { return creepDigestion; }
+    private final BodyPileCap bodyPileCap = new BodyPileCap();
+    /** The safety net on how many bodies lie in one place (`colony-breach-nouns.md`, Body pile cap). */
+    public BodyPileCap bodyPileCap() { return bodyPileCap; }
     /** Roofs the creep has stood on long enough cave in under it. */
     private CreepRoofCollapse creepRoofs;
+    /** Trees the creep has climbed die under it. */
+    private CreepVegetation creepVegetation;
+    /** The creep's hold on the battle's trees, or {@code null} before the creep has spread; safe for renderers. */
+    public CreepVegetation creepVegetationIfPresent() { return creepVegetation; }
+    /** The creep's hold on the battle's trees, created on first use; for reviews that advance the creep alone. */
+    public CreepVegetation creepVegetation() {
+        if (creepVegetation == null) creepVegetation = new CreepVegetation(generationSeed ^ BORE_SEED_SALT);
+        return creepVegetation;
+    }
     /**
      * The battle's hive creep, created on first use by whatever declares a
      * source (a bore, a scene); call only from the simulation thread.
      */
     public CreepField creepField() {
-        if (creep == null) creep = new CreepField(grid, topology, generationSeed);
+        if (creep == null) {
+            creep = new CreepField(grid, topology, generationSeed);
+            // The creep grows over the battle's trees rather than only climbing their edge.
+            for (int cell : CreepVegetation.treeCells(getDoodads(), grid)) creep.growOver(cell);
+        }
         return creep;
     }
     /** The creep field if anything has created one, else {@code null}; safe for renderers. */
     public CreepField creepFieldIfPresent() { return creep; }
+    /** Volatile and made under a lock: units deciding whether to throw fire ask for it from the parallel unit update. */
+    private volatile BattleFire fire;
+    private final FireHarm fireHarm = new FireHarm();
+    private final FireRouteCost fireRouteCost = new FireRouteCost();
+    private final FireCost fireCost = new FireCost();
+    /** What fire has cost this battle's simulation thread so far (`fire-nouns.md`, Evidence). */
+    public FireCost fireCostProfile() { return fireCost; }
+    private static final long FIRE_SEED_SALT = 0x46495245_4649454CL;
+    /**
+     * The battle's fire (`fire-nouns.md`), created on first use by whatever
+     * lights something, so a battle that never burns pays nothing. Sim thread only.
+     */
+    @Override
+    public FireField fireField() {
+        BattleFire made = fire;
+        if (made == null) {
+            synchronized (this) {
+                made = fire;
+                if (made == null) fire = made = new BattleFire(grid, topology, doodadService, mapEditor,
+                        this::creepFieldIfPresent, generationSeed ^ FIRE_SEED_SALT);
+            }
+        }
+        return made.field();
+    }
+    /** The fire field if anything has lit one, else {@code null}; safe for renderers. */
+    @Override
+    public FireField fireFieldIfPresent() { BattleFire made = fire; return made == null ? null : made.field(); }
+
+    /** The fire alone as route multipliers, {@code null} while nothing burns; see {@link FireRouteCost#hazard}. */
+    public RouteCostField fireHazard() { return fireRouteCost.hazard(); }
     private ColonyBreachSequence colonyBreach;
     /** Salt for the bores' own draws, so they are not the battle stream read again. */
     private static final long BORE_SEED_SALT = 0x53574152_4D424F52L;
@@ -765,6 +858,21 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SwarmPackPlans swarmPackPlans;
     /** What each pack is doing as it moves (`colony-breach-nouns.md`, Pack movement). */
     public SwarmPackPlans swarmPackPlans() { return swarmPackPlans; }
+    /**
+     * Declares the open bores' creep and grows it to full at once, as creep
+     * that has stood for weeks; the trees it holds die and the roofs it stands
+     * under have caved in. Setup only
+     * ({@code cordon-nouns.md}, The map).
+     */
+    public void matureCreep() {
+        if (simTickIndex != 0) throw new IllegalStateException("Creep is matured at setup");
+        boreCreep.sync(this);
+        if (creep == null) return;
+        creep.mature();
+        creepVegetation().look(this, 0);
+        // Weeks under the creep is far past any roof's hold: what it stands on has caved in.
+        CreepRoofCollapse.matureOn(this);
+    }
     /** From the tremor on, the swarm director spawns only from living bores. */
     public void beginSwarmBoreSourcing() { swarmReinforcements.beginBoreSourcing(swarmBores); }
     /** The Colony Breach story, or {@code null} on every other battle. */
@@ -784,6 +892,22 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         colonyBreach.setEruptionHandler((sim, site, tick) ->
                 sim.swarmBores().open(sim, site.number(), site.mother(), site.x(), site.y()));
         swarmReinforcements.beginSeepage();
+    }
+    private HeartSequence heart;
+    /** The heart's battle, or {@code null} when this is not the heart. */
+    public HeartSequence getHeart() { return heart; }
+
+    /**
+     * Installs the heart's battle (`heart-nouns.md`) over its opened bores: the
+     * mothers go to sleep and the heart's wake rules and beats take over.
+     */
+    public void installHeart(Form form, WalkingBarrage barrage, HeartLanes lanes) {
+        if (simTickIndex != 0 || heart != null || colonyBreach != null)
+            throw new IllegalStateException("Install the heart once at setup");
+        if (!swarmReinforcements.isConfigured())
+            throw new IllegalStateException("The heart needs a configured swarm director");
+        heart = new HeartSequence(form, storyBeats, barrage, lanes);
+        heart.install(this);
     }
     /** Ends the swarm director's opening seepage; the breach has begun. Idempotent. */
     public void endSwarmSeepage() { swarmReinforcements.endSeepage(); }
@@ -1097,6 +1221,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final ShotService shots;
     /** Turret-kind fire procedure — modeled ground rounds plus legacy aerial/indirect fire, payload queuing, and shot-event posting. Extracted from the sim's former {@code fireShotFrom} methods. */
     private final TurretFireSystem turretFire;
+    /** Per-thread gather buffer for {@link #friendsInBlast}: turrets fire from the parallel unit update. */
+    private final ThreadLocal<LongBucket> blastScratch = ThreadLocal.withInitial(LongBucket::new);
     /** Per-hit response logic — fallback rolls + target-reprioritization rolls. Extracted from the sim's former {@code rollFallbackOnHit}/{@code rollReprioritizeOnHit}. */
     private final HitResponseSystem hitResponse;
     /** Ids of units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #getShotsThisFrame()}. */
@@ -1406,7 +1532,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 () -> simTickIndex, rng);
         this.detonations = new Detonations(rosterService, grid, topology, damageService,
                 mapEditor, effects, noiseEvents, this::applyPendingImpact);
-        detonations.observe(det -> warships.onDetonation(det, this));
+        detonations.observe(det -> {
+            warships.onDetonation(det, this);
+            FireIgnition.blast(this, det);
+        });
+        effects.setWreckSink((x, y, radius) -> FireIgnition.wreck(this, x, y, radius));
         detonations.screen(shieldDomes::absorbs);
         // Subscribed here rather than with the other demolition handlers above
         // because a burning airframe needs the detonation pipeline, and that
@@ -1452,6 +1582,18 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         rosterService.convoy().setDestructionSink(groundSystem::destroyVehicle);
         // A gun on a turning hull shakes the way a moving shooter's does.
         turretFire.setShooterAccuracy(new HullPivot(rosterService.convoy()));
+        // A tube loaded for an incendiary fire mission puts that heat into its round (`fire-nouns.md`, Starting fires).
+        turretFire.setRoundHeat(id -> {
+            FieldMortarService.Tube tube = fieldMortars().tubeOfEntity(id);
+            return tube == null ? 0 : tube.loadedHeat();
+        });
+        // A map emplacement's or a vehicle's crew holds a round that would hit their own side; aircraft guns do not
+        // yet. -Dbattle.turret.crewFriendlyHold=false is the control.
+        if (Boolean.parseBoolean(System.getProperty("battle.turret.crewFriendlyHold", "true"))) {
+            turretFire.setFriendlyFireHold(id -> rosterService.turretState().isTurret(id)
+                    || rosterService.convoy().isVehicle(id)
+                    ? TurretFireSystem.CREW_FRIENDLY_HOLD_CHANCE : 0f, this::friendsInBlast);
+        }
         groundSystem.setBlade(new DozerBlade(navigation, mapEditor, doodadService));
         groundSystem.setStall(id -> rosterService.stagger().isStaggered(id));
         groundSystem.setAssaultPlanner((vehicle, cellX, cellY) -> MachineAssaults.planVehicle(this, vehicle, cellX, cellY));
@@ -3563,6 +3705,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // that starts bore sourcing spawns only from bores.
         swarmBores.tick(this);
         if (colonyBreach != null) colonyBreach.tick(this);
+        if (heart != null) heart.tick(this);
         // After the bores and the eruptions, so a body is delivered only into a
         // bore that still lives and harvest opens on the tick a bore does.
         swarmHarvest.tick(this);
@@ -3572,12 +3715,26 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         boreCreep.sync(this);
         if (creep != null) creep.tick(simTickIndex);
         creepDigestion.tick(this);
+        bodyPileCap.tick(this);
         // Outposts after the creep has spread: they root on ground it has held a while.
         creepOutposts.tick(this);
         groundColonies.tick(this);
         if (creep != null) {
             if (creepRoofs == null) creepRoofs = new CreepRoofCollapse(generationSeed ^ BORE_SEED_SALT);
             creepRoofs.tick(this);
+            creepVegetation().tick(this);
+        }
+        // After the creep, so a cell catching this tick burns the creep as it now stands;
+        // before the topology flush, so a crown burnt through falls with this tick's breaches.
+        if (fire != null && (fire.field().isActive() || fire.field().burningCount() > 0)) {
+            long fireStart = System.nanoTime();
+            fire.tick(simTickIndex);
+            fireHarm.tick(this, fire.field());
+            fireRouteCost.tick(simTickIndex, fire.field(), commanderInfluence.casualties()::routeCost);
+            fireCost.record(System.nanoTime() - fireStart, Math.floorMod(simTickIndex, FireField.STEP_TICKS) == 0);
+        } else if (fire != null) {
+            fire.tick(simTickIndex);
+            fireRouteCost.tick(simTickIndex, fire.field(), commanderInfluence.casualties()::routeCost);
         }
         if (reliefAssault != null) reliefAssault.tick(this);
         if (lastLiftSequence != null) lastLiftSequence.tick(this);
@@ -3596,6 +3753,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (smallWar != null) smallWar.advance(this);
         if (termsOfProtection != null) termsOfProtection.advance(this);
         if (districtEscort != null) districtEscort.advance(this);
+        if (cordon != null) cordon.advance(this);
         objectivesService.tick(o -> o.tick(this));
         // Delayed impacts and objective callbacks run after DEMOLISH and may
         // kill a body on the final tick. Publish their corpse/cascade reactions
@@ -3626,6 +3784,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (junctionStory != null) junctionStory.observe(this);
         if (relayNineStory != null) relayNineStory.observe(this);
         if (colonyBreach != null) colonyBreach.observe(this);
+        if (heart != null) heart.observe(this);
         if (thunderRun != null && isComplete()) thunderRun.freeze(this, false);
         if (lastLiftSequence != null) {
             lastLiftSequence.observe(this);
@@ -3743,7 +3902,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     @Override
     public RouteCostField getRouteCostField(Faction faction) {
-        return commanderInfluence.casualties().routeCost(faction);
+        return fireRouteCost.forSide(faction, commanderInfluence.casualties().routeCost(faction));
     }
 
     @Override
@@ -3839,8 +3998,21 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                     world, u, TICK_DT, grid, physicalRadius(u));
             if (result == MovementService.MotionResult.BLOCKED) navigation.clearPath(u);
         } else {
+            if (waitsAtFireEdge(u)) return;
             movement().advanceAlongPath(world, u, TICK_DT);
         }
+    }
+
+    /** A person out of the fire's way does not walk back into it; see {@link FireEscape#waitsAtEdge}. */
+    private boolean waitsAtFireEdge(long u) {
+        if (fire == null || fire.field().burningCount() == 0) return false;
+        UnitType type = identity().type(u);
+        if (type.isSwarm() || type.isGroundVehicle() || type.isMachineFrame() || type.isDrone()) return false;
+        int[] path = world.path(u);
+        int next = world.pathIdx(u);
+        if (next >= Paths.cellCount(path)) return false;
+        return FireEscape.waitsAtEdge(fire.field(), world.cellX(u), world.cellY(u),
+                Paths.cellX(path, next), Paths.cellY(path, next));
     }
 
     @Override
@@ -4006,12 +4178,36 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 structure, target, aerialShooter, hasLos);
     }
 
-    /** Ground-entity turret overload with the posed barrel and burst release. */
-    public void fireShotFrom(long shooterId, float fromX, float fromY,
-                             Faction shooterFaction, StructureDef structure, long target,
-                             boolean aerialShooter, boolean hasLos,
-                             float mountFacingDegrees, int releaseIndex) {
-        turretFire.fire(shooterId, fromX, fromY, shooterFaction,
+    /**
+     * Whether a burst of {@code radius} at a point would catch a living body on {@code side}'s own side: the
+     * detonation's own reach test, the blast radius widened by the body's footprint ({@code Detonations}).
+     */
+    private boolean friendsInBlast(long shooterId, Faction side, float x, float y, float radius) {
+        LongBucket bucket = blastScratch.get();
+        unitIndex.gather(x, y, radius + BLAST_FOOTPRINT_PAD, bucket);
+        for (int i = 0, n = bucket.size; i < n; i++) {
+            long id = bucket.ids[i];
+            if (id == shooterId || !world.isAlive(id)) continue;
+            Faction faction = rosterService.convoy().isVehicle(id)
+                    ? rosterService.convoy().faction(id) : rosterService.identity().faction(id);
+            if (!side.friendlyTo(faction)) continue;
+            float dx = world.x(id) - x;
+            float dy = world.y(id) - y;
+            float reach = radius + rosterService.radius(id);
+            if (dx * dx + dy * dy <= reach * reach) return true;
+        }
+        return false;
+    }
+
+    /** How far past a blast's radius {@link #friendsInBlast} looks for a body whose footprint reaches into it. */
+    private static final float BLAST_FOOTPRINT_PAD = 2f;
+
+    /** Ground-entity turret overload with the posed barrel and burst release; false when the crew held the round. */
+    public boolean fireShotFrom(long shooterId, float fromX, float fromY,
+                                Faction shooterFaction, StructureDef structure, long target,
+                                boolean aerialShooter, boolean hasLos,
+                                float mountFacingDegrees, int releaseIndex) {
+        return turretFire.fire(shooterId, fromX, fromY, shooterFaction,
                 structure, target, aerialShooter, hasLos,
                 mountFacingDegrees, releaseIndex);
     }

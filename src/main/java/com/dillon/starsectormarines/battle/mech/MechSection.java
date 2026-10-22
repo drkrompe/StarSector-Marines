@@ -11,8 +11,12 @@ public enum MechSection {
     LEGS(null),
     /** At zero the mech is destroyed; the only way it dies. */
     TORSO(null),
-    /** The arms mount (or nose gun): at zero that weapon is destroyed. */
+    /** The centreline arms mount (a nose or chin gun): at zero that weapon is destroyed. */
     ARMS(MechMountSlot.ARMS),
+    /** The left arm of a two-armed chassis: at zero its gun is destroyed. */
+    LEFT_ARM(MechMountSlot.LEFT_ARM),
+    /** The right arm of a two-armed chassis: at zero its gun is destroyed. */
+    RIGHT_ARM(MechMountSlot.RIGHT_ARM),
     /** The left shoulder mount: at zero that weapon is destroyed. */
     LEFT_SHOULDER(MechMountSlot.LEFT_SHOULDER),
     /** The right shoulder mount: at zero that weapon is destroyed. */
@@ -37,6 +41,8 @@ public enum MechSection {
     public static MechSection of(MechMountSlot slot) {
         return switch (slot) {
             case ARMS -> ARMS;
+            case LEFT_ARM -> LEFT_ARM;
+            case RIGHT_ARM -> RIGHT_ARM;
             case LEFT_SHOULDER -> LEFT_SHOULDER;
             case RIGHT_SHOULDER -> RIGHT_SHOULDER;
         };

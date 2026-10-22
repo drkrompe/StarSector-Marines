@@ -18,8 +18,6 @@ class MarketListingsTest {
     /** Advanced kit: a listing shows it to a company no threshold would admit. */
     private static final String TRENCH = "loadout-card:weapon:weapons:trench-clearing";
     private static final String XIV_SHEET = "loadout-card:sheet:armor:hegemony-shock";
-    private static final String XIV = EquipmentTemplateCatalog.armorId("armor.heavy");
-    private static final String ARBALEST = EquipmentTemplateCatalog.armorId("armor.arbalest");
 
     @Test
     void aListingHasAShelfOfItsOwnAndNeverDisplacesTheRotation() {
@@ -59,11 +57,11 @@ class MarketListingsTest {
         assertThrows(IllegalArgumentException.class, () -> MarketListings.list(state, XIV_SHEET,
                 MarketListings.Scope.FACTION, "hegemony", "reason", 0));
 
-        MilitaryWarrants.grant(state, ArmorTradition.HEGEMONY, List.of(XIV, ARBALEST),
+        MilitaryWarrants.grant(state, ArmorTradition.HEGEMONY, List.of(XIV_SHEET),
                 MilitaryWarrants.Reason.STORY, 0);
         assertTrue(MarketListings.list(state, XIV_SHEET, MarketListings.Scope.FACTION, "hegemony", "reason", 0));
         assertTrue(FactionEquipmentMarketStockPlanner.plan("hegemony", "chicomoztoc", 6, 3L, false, Set.of(),
-                new EquipmentAcquisitionEligibility.Progress(0, 0, Set.of(XIV, ARBALEST)),
+                new EquipmentAcquisitionEligibility.Progress(0, 0, Set.of(XIV_SHEET)),
                 List.of(XIV_SHEET)).listedCardIds().contains(XIV_SHEET));
         assertTrue(FactionEquipmentMarketStockPlanner.plan("hegemony", "chicomoztoc", 6, 3L, false, Set.of(),
                 EquipmentAcquisitionEligibility.Progress.OPENING, List.of(XIV_SHEET)).listedCardIds().isEmpty(),

@@ -445,7 +445,7 @@ reserves. They are not part of `programFor`, so the general program and the
 deck's size are untouched. They are laid after every programmed room and
 before the pocket fill, so the same random stream reaches the program with
 or without them. A reserve is furnished like any room and then sealed:
-stripped, salvage left on the bare deck, pressure hatches on its doors, out
+stripped, salvage left on the bare deck, locked doors, out
 of service. Engineering lists it as *sealed / reserved for refit*; the ship
 comparison does not count it. Its facility track's Restored order opens it where it stands.
 `SecondWindReservesEvidence` (`generatedSpaceEvidence`) holds all of this
@@ -467,7 +467,7 @@ What each opened room is:
 |---|---|---|
 | Firing range 16×6 | three 10-cell lanes, shut deck downrange with a trap behind each target; a range control and prep bench beside the run to the line where the hatch leaves room | practice at the firing line |
 | Gymnasium 28×14 | a two-lane running track round the bulkheads; four treadmills, four rowers, two presses and a mat inside it; a 10×4 pool with three loungers and two weights racks on its deck | exercise (recreation) at the equipment, the mat and the racks; unwind at the loungers |
-| Sick bay 10×6 | up to three real-length beds across a stretcher aisle from the nurse station, cabinet and sink; a narrow rehab pool in a walkable coping ring at the end with fewer hatches | treatment at the beds, the station and the poolside; the medic's work |
+| Sick bay 10×6 | up to three beds across a stretcher aisle from the nurse station, cabinet and sink; a narrow rehab pool in a walkable coping ring at the end with fewer hatches | treatment at the beds, the station and the poolside; the medic's work |
 | Rec lounge 8×6 | a sofa and low table, a card table with stools, and at the quieter end a chapel of two pews facing a small altar | unwind (recreation), the pews included |
 | Brig 6×6 | two cells, each a bunk and a head behind bars, a bulkhead between them, on the side with fewer hatches; a desk and a property locker outside | one guard post facing the bars; the bunks publish no rest |
 

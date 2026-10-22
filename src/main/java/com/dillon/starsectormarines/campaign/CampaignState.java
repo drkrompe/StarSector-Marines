@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.campaign;
 
 import com.dillon.starsectormarines.DebugOnly;
+import com.dillon.starsectormarines.campaign.bloom.RavBloomLedger;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
@@ -47,6 +48,15 @@ public final class CampaignState implements Serializable {
     public WarrantObligationLedger warrantObligations() {
         if (warrantObligations == null) warrantObligations = new WarrantObligationLedger();
         return warrantObligations;
+    }
+
+    /** Every Rav Bloom outbreak in this save; null in older saves, created on first read. */
+    public RavBloomLedger ravBlooms;
+
+    /** The Rav Bloom ledger, created on first read so an old save starts with no blooms. */
+    public RavBloomLedger ravBlooms() {
+        if (ravBlooms == null) ravBlooms = new RavBloomLedger();
+        return ravBlooms;
     }
 
     /** The Hegemony auxiliary warrant offer; null in older saves, created on first read. */
@@ -505,16 +515,22 @@ public final class CampaignState implements Serializable {
     // ---------- military warrants (see progression-nouns.md, Kit and armory) ----------
 
     /*
-     * Which Restricted equipment templates the company may acquire, and on whose
-     * authority. One row per (issuer, template): a military warrant names the templates
-     * it opens, and a later stage of the same warrant adds rows rather than rewriting
-     * one. Holding a row teaches nothing; it only lets the issuer's own licence and
-     * patron channels offer the template. See MilitaryWarrants.
+     * Which Restricted loadout cards the company may acquire, and on whose authority.
+     * One row per (issuer, card): a military warrant names the cards it opens, and a
+     * later stage of the same warrant adds rows rather than rewriting one. Holding a
+     * row teaches nothing; it only lets the issuer's own licence and patron channels
+     * offer the card. See MilitaryWarrants.
      */
 
     /** Issuing tradition's faction slot in {@link #factionRegistry}; -1 in unused slots. */
     public int[]   militaryWarrantIssuerId = filledInts(INITIAL_CAPACITY, -1);
-    /** Opened template's slot in {@link #equipmentTemplateRegistry}; -1 in unused slots. */
+    /** The loadout card the row opens, by {@code LoadoutCard.id()}; null in unused and legacy rows. */
+    public String[] militaryWarrantCardId = new String[INITIAL_CAPACITY];
+    /**
+     * Legacy: the equipment template a row opened before warrants named cards, as its slot
+     * in {@link #equipmentTemplateRegistry}; -1 in card rows. Read once, by MilitaryWarrants'
+     * load conversion, and never written again.
+     */
     public int[]   militaryWarrantTemplateId = filledInts(INITIAL_CAPACITY, -1);
     /** Why it was granted, as {@code MilitaryWarrants.Reason} code. */
     public byte[]  militaryWarrantReason = filledBytes(INITIAL_CAPACITY, (byte) -1);
@@ -2225,9 +2241,15 @@ public final class CampaignState implements Serializable {
             militaryWarrantDay = filledInts(INITIAL_CAPACITY, -1);
             militaryWarrantCount = 0;
         }
+        if (militaryWarrantCardId == null) {
+            // A save from before warrants named cards: every row is a legacy template row,
+            // converted to cards by MilitaryWarrants on first read.
+            militaryWarrantCardId = new String[militaryWarrantIssuerId.length];
+        }
         militaryWarrantCount = Math.max(0, Math.min(militaryWarrantCount,
                 Math.min(Math.min(militaryWarrantIssuerId.length, militaryWarrantTemplateId.length),
-                        Math.min(militaryWarrantReason.length, militaryWarrantDay.length))));
+                        Math.min(Math.min(militaryWarrantReason.length, militaryWarrantDay.length),
+                                militaryWarrantCardId.length))));
         // A save from before listings has nothing on any shelf, which is what it meant.
         if (marketListingCardId == null || marketListingScopeId == null || marketListingScopeKind == null
                 || marketListingReason == null || marketListingDay == null) {
@@ -2269,29 +2291,40 @@ public final class CampaignState implements Serializable {
     }
 
     /**
-     * Records that {@code issuerSlot}'s military warrant opens {@code templateSlot}.
+     * Records that {@code issuerSlot}'s military warrant opens {@code cardId}.
      *
-     * @return the row it landed on, or -1 when either slot is unnameable or the template
-     *         is already warranted. A grant is never rewritten by a second one.
+     * @return the row it landed on, or -1 when the issuer is unnameable or the card is
+     *         already warranted. A grant is never rewritten by a second one.
      */
-    public int recordMilitaryWarrant(int issuerSlot, int templateSlot, byte reason, int day) {
-        if (issuerSlot < 0 || templateSlot < 0 || militaryWarrantRow(templateSlot) >= 0) return -1;
+    public int recordMilitaryWarrant(int issuerSlot, String cardId, byte reason, int day) {
+        if (issuerSlot < 0 || cardId == null || militaryWarrantRow(cardId) >= 0) return -1;
         ensureMilitaryWarrantCapacity(militaryWarrantCount + 1);
         int i = militaryWarrantCount++;
         militaryWarrantIssuerId[i] = issuerSlot;
-        militaryWarrantTemplateId[i] = templateSlot;
+        militaryWarrantCardId[i] = cardId;
+        militaryWarrantTemplateId[i] = -1;
         militaryWarrantReason[i] = reason;
         militaryWarrantDay[i] = day;
         return i;
     }
 
-    /** Row warranting {@code templateSlot}, or -1 when no military warrant opens it. */
-    public int militaryWarrantRow(int templateSlot) {
-        if (templateSlot < 0) return -1;
+    /** Row warranting {@code cardId}, or -1 when no military warrant opens it. */
+    public int militaryWarrantRow(String cardId) {
+        if (cardId == null) return -1;
         for (int i = 0; i < militaryWarrantCount; i++) {
-            if (militaryWarrantTemplateId[i] == templateSlot) return i;
+            if (cardId.equals(militaryWarrantCardId[i])) return i;
         }
         return -1;
+    }
+
+    /** Empties the warrant table; MilitaryWarrants' legacy conversion rewrites it as card rows. */
+    public void clearMilitaryWarrants() {
+        Arrays.fill(militaryWarrantIssuerId, -1);
+        Arrays.fill(militaryWarrantCardId, null);
+        Arrays.fill(militaryWarrantTemplateId, -1);
+        Arrays.fill(militaryWarrantReason, (byte) -1);
+        Arrays.fill(militaryWarrantDay, -1);
+        militaryWarrantCount = 0;
     }
 
     /**
@@ -2341,6 +2374,7 @@ public final class CampaignState implements Serializable {
         int oldLength = militaryWarrantTemplateId.length;
         int n = Math.max(needed, oldLength * 2);
         militaryWarrantIssuerId = Arrays.copyOf(militaryWarrantIssuerId, n);
+        militaryWarrantCardId = Arrays.copyOf(militaryWarrantCardId, n);
         militaryWarrantTemplateId = Arrays.copyOf(militaryWarrantTemplateId, n);
         militaryWarrantReason = Arrays.copyOf(militaryWarrantReason, n);
         militaryWarrantDay = Arrays.copyOf(militaryWarrantDay, n);

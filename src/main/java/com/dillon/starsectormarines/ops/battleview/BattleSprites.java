@@ -191,6 +191,10 @@ public class BattleSprites {
     private boolean iconsLoadAttempted;
     private SpriteAPI smokeGrenadeSprite;
     private SpriteAPI smokeFieldSheet;
+    /** The smoke-and-fire flipbook the ground fire draws its flames from (`fire-nouns.md`, Look). */
+    private SpriteAPI fireSheet;
+    private SpriteAPI flameSheet;
+    public static final String FIRE_SHEET_PATH = "graphics/particle/smokeAndFire.png";
     private boolean smokeSpritesLoadAttempted;
     private SpriteAPI satchelChargeSprite;
     private boolean satchelSpriteLoadAttempted;
@@ -251,6 +255,10 @@ public class BattleSprites {
     public SpriteAPI smokeGrenadeSprite() { return smokeGrenadeSprite; }
     /** The deployed smoke field's flipbook sheet; frames are addressed by {@code SpecialEquipmentPresentationDef.Field}. */
     public SpriteAPI smokeFieldSheet() { return smokeFieldSheet; }
+    /** The ground fire's flame sheet, loaded with the smoke sprites. */
+    public SpriteAPI fireSheet() { return fireSheet; }
+    /** The top-down flame sheet ({@link FireRenderSystem#FLAME_SHEET_PATH}), or null where it failed to load. */
+    public SpriteAPI flameSheet() { return flameSheet; }
     public SpriteAPI satchelChargeSprite() { return satchelChargeSprite; }
     public SpriteAPI decalSheet()                  { return decalSheet; }
     public SpriteSheetFrames decalFrames()         { return decalFrames; }
@@ -670,6 +678,12 @@ public class BattleSprites {
             smokeGrenadeSprite = Global.getSettings().getSprite(grenadePath);
             Global.getSettings().loadTexture(fieldPath);
             smokeFieldSheet = Global.getSettings().getSprite(fieldPath);
+            Global.getSettings().loadTexture(FIRE_SHEET_PATH);
+            fireSheet = Global.getSettings().getSprite(FIRE_SHEET_PATH);
+            if (FireRenderSystem.FLAME_SHEET_PATH != null) {
+                Global.getSettings().loadTexture(FireRenderSystem.FLAME_SHEET_PATH);
+                flameSheet = Global.getSettings().getSprite(FireRenderSystem.FLAME_SHEET_PATH);
+            }
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load smoke utility sprites", e);
         }

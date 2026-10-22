@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.airsupport;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirCorridor;
+import com.dillon.starsectormarines.battle.air.AirOrdnance;
 import com.dillon.starsectormarines.battle.air.CoverDuty;
 import com.dillon.starsectormarines.battle.air.GunshipOrbit;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
@@ -9,6 +10,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.airsupport.CommsOperators.Operator;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.fire.FireReach;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -91,7 +93,9 @@ public final class AirPoolService {
         int lost;
     }
 
-    private record PendingCall(Faction side, AirPoolKind kind, AirMission job, long operator, float x, float y, int readyTick) {}
+    /** A call on the net; {@code ordnance} overrides the kind's load, or is null for the kind's own. */
+    private record PendingCall(Faction side, AirPoolKind kind, AirMission job, long operator, float x, float y, int readyTick,
+                               AirOrdnance ordnance) {}
 
     /** A sortie in the air; holds its mission so a craft reaped on the tick it lands can still be read. */
     private record Sortie(long craft, ShuttleMission mission, Faction side, AirPoolKind kind, AirMission job, float x, float y) {}
@@ -299,7 +303,25 @@ public final class AirPoolService {
         Operator operator = CommsOperators.best(sim, side, x, y, believes, operators);
         if (operator == null || busy(operator.unit())) return Outcome.NO_OPERATOR;
         int ready = sim.getSimTickIndex() + Math.round(operator.spec().callSeconds() / BattleSimulation.TICK_DT);
-        return call(sim, side, kind, AirMission.strikeOf(kind), operator, x, y, ready);
+        return call(sim, side, kind, AirMission.strikeOf(kind), operator, x, y, ready, null);
+    }
+
+    /**
+     * As {@link #request(BattleSimulation, Faction, AirPoolKind, float, float, boolean, LongPredicate)} for a bomber
+     * carrying firebombs ({@link AirOrdnance#INCENDIARY_BOMBS}): from the same stock as any bomber, and loaded with the
+     * ordinary stick instead when a fire lit at the point could come to the side's own ({@link FireReach}).
+     */
+    public Outcome requestIncendiary(BattleSimulation sim, Faction side, float x, float y, boolean believes,
+                                     LongPredicate operators) {
+        Ledger ledger = ledger(side, AirPoolKind.BOMBER);
+        if (ledger == null || ledger.available <= 0) return Outcome.NO_AIRFRAME;
+        Operator operator = CommsOperators.best(sim, side, x, y, believes, operators);
+        if (operator == null || busy(operator.unit())) return Outcome.NO_OPERATOR;
+        int ready = sim.getSimTickIndex() + Math.round(operator.spec().callSeconds() / BattleSimulation.TICK_DT);
+        boolean safe = !FireReach.enabled()
+                || !FireReach.reachesSide(sim.fireField(), (int) Math.floor(x), (int) Math.floor(y), side, sim);
+        return call(sim, side, AirPoolKind.BOMBER, AirMission.strikeOf(AirPoolKind.BOMBER), operator, x, y, ready,
+                safe ? AirOrdnance.INCENDIARY_BOMBS : null);
     }
 
     /**
@@ -327,15 +349,15 @@ public final class AirPoolService {
         Operator operator = CommsOperators.best(sim, side, x, y, true, operators);
         if (operator == null || busy(operator.unit())) return Outcome.NO_OPERATOR;
         int ready = sim.getSimTickIndex() + Math.round(operator.spec().callSeconds() / BattleSimulation.TICK_DT);
-        return call(sim, side, AirPoolKind.FIGHTER, AirMission.COVER, operator, x, y, ready);
+        return call(sim, side, AirPoolKind.FIGHTER, AirMission.COVER, operator, x, y, ready, null);
     }
 
     private Outcome call(BattleSimulation sim, Faction side, AirPoolKind kind, AirMission job, Operator operator,
-                         float x, float y, int ready) {
+                         float x, float y, int ready, AirOrdnance ordnance) {
         Ledger ledger = ledger(side, kind);
         ledger.available--;
         ledger.reserved++;
-        pending.add(new PendingCall(side, kind, job, operator.unit(), x, y, ready));
+        pending.add(new PendingCall(side, kind, job, operator.unit(), x, y, ready, ordnance));
         if (operator.atFort()) {
             fortCalls.merge(side, 1, Integer::sum);
             operator.fort().holdSensorNetUntil(sim.getSimTickIndex() + Math.round(operator.spec().cooldownSeconds() / BattleSimulation.TICK_DT));
@@ -432,7 +454,8 @@ public final class AirPoolService {
         mission.strikeSortie = true;
         mission.poolSortie = true;
         mission.passesLeft = call.kind.passes();
-        mission.ordnance = call.job == AirMission.COVER ? airframe.ordnance() : call.kind.ordnance();
+        mission.ordnance = call.job == AirMission.COVER ? airframe.ordnance()
+                : call.ordnance != null ? call.ordnance : call.kind.ordnance();
         mission.aaExposure = call.kind.aaExposure();
         if (call.job == AirMission.COVER) beginCover(world, craft, mission, call, airframe, headOnCover);
         ledger.outFlying++;

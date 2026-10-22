@@ -108,7 +108,7 @@ final class CampaignLessons {
                 && roster.vacancies(s) > 0);
         String copy = full ? "lessonFormationAssign" : vacant ? "lessonFormationRecover" : "lessonFormationWounded";
         return later(lesson(3, "lessonFormationTitle", copy,
-                vacant || full ? List.of("barracks-command-list", "barracks-formation-board", "barracks-reinforce",
+                vacant || full ? List.of("barracks-command-list", "barracks-formation-board", "barracks-fill-selected",
                         "barracks-missions")
                         : List.of("barracks-command-list", "barracks-formation-board", "barracks-missions"),
                 context.getSelectedMission() == null ? "lessonHeadquarters" : "lessonBriefing",
@@ -142,6 +142,14 @@ final class CampaignLessons {
                                            String action, Runnable run) {
         return lessonText(step, LessonCopy.text(title), LessonCopy.text(copy), targets,
                 action == null ? null : LessonCopy.text(action), run);
+    }
+
+    /** The same lesson in a callout {@code height} tall, for a screen with little room to spare. */
+    static PreparationGuide.Lesson lesson(int step, String title, String copy, List<String> targets,
+                                           String action, Runnable run, int height) {
+        PreparationGuide.Lesson lesson = lesson(step, title, copy, targets, action, run);
+        return new PreparationGuide.Lesson(lesson.milestone(), lesson.title(), lesson.copy(), lesson.targets(),
+                lesson.actionLabel(), lesson.action(), height, lesson.later());
     }
 
     private static PreparationGuide.Lesson lessonText(int step, String title, String copy, List<String> targets,

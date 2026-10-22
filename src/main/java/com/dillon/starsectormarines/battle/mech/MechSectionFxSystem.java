@@ -134,6 +134,8 @@ public final class MechSectionFxSystem {
         return switch (section) {
             case LEFT_SHOULDER -> -0.28f;
             case RIGHT_SHOULDER -> 0.28f;
+            case LEFT_ARM -> MechMountSlot.LEFT_ARM.armLateral();
+            case RIGHT_ARM -> MechMountSlot.RIGHT_ARM.armLateral();
             default -> 0f;
         };
     }
@@ -142,6 +144,7 @@ public final class MechSectionFxSystem {
     private static float localY(MechSection section) {
         return switch (section) {
             case ARMS -> 0.25f;
+            case LEFT_ARM, RIGHT_ARM -> 0.15f;
             case HEAD -> 0.12f;
             default -> 0f;
         };

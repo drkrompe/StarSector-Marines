@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainSurface;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -328,7 +329,24 @@ public final class GroundRenderSystem implements RenderSystem {
         GroundMesh.CellResolver[] sublayers = topology.roadSurface()==null
                 ? new GroundMesh.CellResolver[]{base,base::resolveEdge,new GroundDamage(topology),new Scatter(topology),new DoorDecals(grid,topology)}
                 : new GroundMesh.CellResolver[]{base,base::resolveEdge,base::resolveSecondEdge,
-                        base::resolveConcrete,base::resolveSecondConcrete,base::resolveMarking,new GroundDamage(topology),new Scatter(topology),new DoorDecals(grid,topology)};
+                        base::resolveConcrete,base::resolveSecondConcrete,base::resolveGravel,base::resolveSecondGravel,
+                        base::resolveDirtRoad,base::resolveSecondDirtRoad,base::resolveMarking,
+                        new GroundDamage(topology),new Scatter(topology),new DoorDecals(grid,topology)};
+        // Feathered boundaries lie on the base ground, under road edges and everything raised or laid on it.
+        Feather feather = GroundFeather.enabled() ? Feather.of(this, base, topology) : null;
+        if (feather != null) {
+            int feathers = GroundFeather.RANKS * 4;
+            GroundMesh.CellResolver[] expanded = new GroundMesh.CellResolver[sublayers.length + feathers];
+            expanded[0] = sublayers[0];
+            for (int rank = 0; rank < GroundFeather.RANKS; rank++) {
+                for (int quadrant = 0; quadrant < 4; quadrant++) {
+                    final int r = rank, q = quadrant;
+                    expanded[1 + rank * 4 + quadrant] = (x, y, sink) -> feather.resolve(r, q, x, y, sink);
+                }
+            }
+            System.arraycopy(sublayers, 1, expanded, 1 + feathers, sublayers.length - 1);
+            sublayers = expanded;
+        }
         if(topology.terrainSurface()!=null) {
             int existing=sublayers.length-DECORATION_LAYERS;
             GroundMesh.CellResolver[] expanded=new GroundMesh.CellResolver[sublayers.length+TerrainSurface.LAYERS];
@@ -530,7 +548,9 @@ public final class GroundRenderSystem implements RenderSystem {
             return edgeBlocks[surface][mask]!=null ? mask : 0;
         }
         private RoadSurface.Underlay underlay(int x,int y) {
-            if(topology.roadSurface()==null || topology.isWall(x,y) || topology.isFixture(x,y))return null;
+            // A prop set down on the road (a roadblock's bags, a holdout's truck) stands on the road's
+            // ground; only a wall replaces it. Generated fixtures never had road under them.
+            if(topology.roadSurface()==null || topology.isWall(x,y))return null;
             RoadSurface.Underlay p=topology.roadSurface().underlay(x,y);
             if(p==null)return null;
             var kind=topology.getGroundKind(x,y);
@@ -564,6 +584,10 @@ public final class GroundRenderSystem implements RenderSystem {
         private void resolveSecondEdge(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,0,true); }
         private void resolveConcrete(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,1,false); }
         private void resolveSecondConcrete(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,1,true); }
+        private void resolveGravel(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,RoadPlan.Material.GRAVEL.ordinal(),false); }
+        private void resolveSecondGravel(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,RoadPlan.Material.GRAVEL.ordinal(),true); }
+        private void resolveDirtRoad(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,RoadPlan.Material.DIRT.ordinal(),false); }
+        private void resolveSecondDirtRoad(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,RoadPlan.Material.DIRT.ordinal(),true); }
         private void resolveMarking(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,RoadSurface.MARKING,false); }
         private void resolveEdge(int x,int y,GroundMesh.CellSink sink) {
             if(topology.roadSurface()!=null){smoothEdge(x,y,sink,0,false);return;}
@@ -675,6 +699,112 @@ public final class GroundRenderSystem implements RenderSystem {
                             nWall, sWall, eWall, wWall, x, y, sink);
                     break;
             }
+        }
+    }
+
+    /**
+     * A winning ground's noise-edged reach into the quarter-cells next to it
+     * ({@link GroundFeather}). Drawn from the baked feather sheet as a clipped
+     * quarter of a tile, so the resident mesh and the stream hold it as they
+     * hold any other ground.
+     */
+    private static final class Feather {
+        private final BaseTerrain base;
+        private final CellTopology topology;
+        private final SpriteAPI sheet;
+        /** Each material's baked block, by priority. */
+        private final GridBlockDef[] blocks;
+        /** Priority of each surface index; -1 for one that does not feather. */
+        private final int[] surfacePriority;
+        /** Priority of a bare cell of each kind. */
+        private final int[] kindPriority;
+        private final int[] winners = new int[3];
+
+        private Feather(BaseTerrain base, CellTopology topology, SpriteAPI sheet, GridBlockDef[] blocks,
+                        int[] surfacePriority, int[] kindPriority) {
+            this.base = base;
+            this.topology = topology;
+            this.sheet = sheet;
+            this.blocks = blocks;
+            this.surfacePriority = surfacePriority;
+            this.kindPriority = kindPriority;
+        }
+
+        /** The feather for this pass, or null when its sheet is not loaded. */
+        static Feather of(GroundRenderSystem system, BaseTerrain base, CellTopology topology) {
+            if (system.tileReg == null) return null;
+            int count = GroundFeather.MATERIALS.size();
+            GridBlockDef[] blocks = new GridBlockDef[count];
+            SpriteAPI sheet = null;
+            for (int i = 0; i < count; i++) {
+                GridBlockDef block = system.tileReg.block(GroundFeather.BLOCK_PREFIX + GroundFeather.MATERIALS.get(i));
+                if (block == null || block.cells == null
+                        || block.cells.length < GroundFeather.tilesPerMaterial()) continue;
+                SpriteAPI blockSheet = system.sheetFor(block.sheetPath);
+                if (blockSheet == null) continue;
+                blocks[i] = block;
+                sheet = blockSheet;
+            }
+            if (sheet == null) return null;
+            int surfaces = topology.surfaceCount();
+            int[] surfacePriority = new int[surfaces + 1];
+            surfacePriority[0] = -1;
+            for (int s = 1; s <= surfaces; s++) surfacePriority[s] = usable(blocks, topology.surfaceId(s));
+            CellTopology.GroundKind[] kinds = CellTopology.GroundKind.values();
+            int[] kindPriority = new int[kinds.length];
+            for (CellTopology.GroundKind kind : kinds) {
+                boolean nature = system.nature != null
+                        && (kind == CellTopology.GroundKind.GRASS || kind == CellTopology.GroundKind.DIRT);
+                String key = nature ? "kind:" + kind.name()
+                        : system.genMapping == null ? null : system.genMapping.groundBlockId(kind);
+                kindPriority[kind.ordinal()] = usable(blocks, key);
+            }
+            return new Feather(base, topology, sheet, blocks, surfacePriority, kindPriority);
+        }
+
+        private static int usable(GridBlockDef[] blocks, String key) {
+            int priority = GroundFeather.priority(key);
+            return priority >= 0 && blocks[priority] != null ? priority : -1;
+        }
+
+        /**
+         * What a cell feathers as, read the way {@link BaseTerrain} draws it; -1
+         * for walls, paved road, ruins and ground that does not take part. A
+         * road's soft shoulder is drawn as the ground under it, and feathers as
+         * that ground.
+         */
+        private int priority(int x, int y) {
+            if (!topology.inBounds(x, y) || topology.isWall(x, y)) return -1;
+            if (topology.isRubble(x, y) && topology.getWallRemnant(x, y) != null) return -1;
+            CellTopology.GroundKind kind = topology.getGroundKind(x, y);
+            int surface = topology.getSurface(x, y);
+            RoadSurface.Underlay underlay = base.underlay(x, y);
+            if (underlay != null) {
+                if (underlay.hard()) return -1;
+                kind = underlay.ground();
+                surface = underlay.surface();
+            }
+            if (surface > 0) return surface < surfacePriority.length ? surfacePriority[surface] : -1;
+            return kindPriority[kind.ordinal()];
+        }
+
+        void resolve(int rank, int quadrant, int x, int y, GroundMesh.CellSink sink) {
+            int self = priority(x, y);
+            if (self <= 0) return; // the strongest ground has nothing to take from
+            int sx = GroundFeather.dx(quadrant), sy = GroundFeather.dy(quadrant);
+            int vertical = priority(x, y + sy), horizontal = priority(x + sx, y), diagonal = priority(x + sx, y + sy);
+            int n = GroundFeather.winners(self, vertical, horizontal, diagonal, winners);
+            // Past the ranks there are, the weakest winners are the ones left out.
+            int index = Math.max(0, n - GroundFeather.RANKS) + rank;
+            if (index >= n) return;
+            int winner = winners[index];
+            GroundFeather.Shape shape = GroundFeather.shape(quadrant,
+                    vertical == winner, horizontal == winner, diagonal == winner);
+            GridBlockDef block = blocks[winner];
+            int[] cell = block.cells[GroundFeather.tileIndex(shape, x, y)];
+            // Each tile carries a one-texel border of its own edge, so filtering never reaches the next.
+            sink.patch(sheet, cell[0] * block.cellPx + 1, cell[1] * block.cellPx + 1,
+                    block.cellPx - 2, block.cellPx - 2, GroundFeather.QUADRANT_VERTICES[quadrant]);
         }
     }
 

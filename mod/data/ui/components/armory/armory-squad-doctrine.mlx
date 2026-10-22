@@ -18,45 +18,17 @@
     <div id="weapon-doctrine-slot" class="{weaponPickerPanelClasses}">
       <div id="weapon-doctrine-summary" class="label surface-dark tone-edge">{weaponDoctrineSummary}</div>
       <div id="weapon-doctrine-list" class="doctrine-list">
-        <armory-weapon-tech-card each="tile in weaponDoctrineTiles" key="{tile.id}" tile="{tile}" />
+        <armory-loadout-card each="tile in weaponDoctrineTiles" key="{tile.id}" tile="{tile}" />
       </div>
     </div>
 
     <div id="armor-doctrine-slot" class="{armorPickerPanelClasses}">
       <div id="armor-doctrine-summary-row">
         <div id="armor-doctrine-summary" class="label surface-dark tone-edge">{armorDoctrineSummary}</div>
-        <button id="compare-armor-patterns" onclick="{showArmorComparison}">{i18n.openingUiArmorySquadDoctrineComparePatterns}</button>
+        <button id="compare-armor-patterns" class="spec-tab" onclick="{showArmorComparison}">{i18n.openingUiArmorySquadDoctrineComparePatterns}</button>
       </div>
       <div id="armor-doctrine-list" class="doctrine-list">
-        <button each="tile in armorDoctrineTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" onclick="{tile.select}" style="{tile.cardStyle}">
-          <div id="{tile.headerId}" class="doctrine-header">
-            <div id="{tile.nameId}" class="doctrine-name label tone-edge">{tile.name}</div>
-            <div id="{tile.ratingId}" class="{tile.ratingClasses}">{tile.ratingLabel}</div>
-            <div id="{tile.rarityId}" class="{tile.rarityClasses}">{tile.rarity}</div>
-          </div>
-          <div id="{tile.metadataRowId}" class="doctrine-metadata-row">
-            <img id="{tile.factionLogoId}" class="{tile.factionLogoClasses}" src="{tile.factionLogo}" />
-            <div id="{tile.metadataId}" class="doctrine-metadata label tone-accent">{tile.metadata}</div>
-            <button id="{tile.issueId}" class="{tile.issueButtonClasses}" disabled="{tile.issueDisabled}" onclick="{tile.issue}">{tile.issueLabel}</button>
-          </div>
-          <div id="{tile.descriptionId}" class="doctrine-lore label tone-muted">{tile.description}</div>
-          <div id="{tile.compositionId}" class="doctrine-composition label">{tile.compositionLine}</div>
-          <div id="{tile.distributionId}" class="{tile.distributionClasses}">{tile.distributionLine}</div>
-          <div id="{tile.distributionRowId}" class="{tile.distributionRowClasses}" style="{tile.distributionStyle}">
-
-            <div id="{tile.distributionGridId}" class="doctrine-span-grid">
-              <div each="span in tile.distributionSpans" key="{span.id}" id="{span.id}" class="doctrine-span doctrine-issue-span"><img id="{span.iconId}" class="doctrine-equipment-icon" src="{span.icon}" /><div id="{span.textId}" class="doctrine-equipment-name">{span.text}</div></div>
-            </div>
-          </div>
-          <div id="{tile.carriesId}" class="{tile.carriesClasses}">{tile.carriesLine}</div>
-          <div id="{tile.carriesRowId}" class="{tile.carriesRowClasses}">
-            <div id="{tile.carriesTagId}" class="doctrine-line-tag label">{i18n.openingUiArmorySquadDoctrineCarries}</div>
-            <div id="{tile.carriesGridId}" class="doctrine-span-grid">
-              <div each="span in tile.carriesSpans" key="{span.id}" id="{span.id}" class="doctrine-span doctrine-carries-span label">{span.label}</div>
-            </div>
-          </div>
-          <div id="{tile.issueReasonId}" class="{tile.issueReasonClasses}">{tile.issueReason}</div>
-        </button>
+        <armory-loadout-card each="tile in armorDoctrineTiles" key="{tile.id}" tile="{tile}" />
       </div>
     </div>
 
@@ -71,77 +43,29 @@
 </template>
 
 <style>
-  .doctrine-issue-button { width: 84px; height: 24px; padding: 2px 6px; border-width: 1px; font-family: body; text-align: center; }
-  .doctrine-issue-button.issued { color: #8fd6a6; border-color: #4f9c6b; }
-  .doctrine-issue-button-hidden { width: 0px; height: 0px; opacity: 0; overflow: hidden; }
-  .doctrine-issue-reason { height: 20px; padding: 2px 4px; white-space: normal; overflow: hidden; }
-  .doctrine-issue-reason-empty { width: 0px; height: 0px; opacity: 0; overflow: hidden; }
-
   .squad-doctrine-strip { flex-direction: column; width: 566px; height: 100%; padding: 7px; gap: 5px; overflow: hidden; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }
   #equipment-picker-tabs { flex-direction: row; height: 30px; gap: 6px; }
   #equipment-picker-heading { width: 94px; padding: 5px 2px; }
-  .equipment-picker-tab { width: 190px; padding: 4px 8px; border-width: 1px; font-family: body; text-align: center; }
-  .equipment-picker-tab.selected { background-color: #35433f; border-color: #a5c6bc; color: #d5deea; }
+  .equipment-picker-tab { width: 190px; height: 30px; padding: 7px 8px; }
 
   #loadout-browser-tools { flex-direction: row; height: 26px; gap: 5px; }
   #loadout-browser-summary { width: 84px; padding: 4px 2px; }
   #loadout-browser-order { width: 0px; flex-grow: 1; padding: 4px 2px; }
   #loadout-filter-list { flex-direction: row; height: 28px; gap: 3px; }
-  .loadout-filter { width: 0px; height: 26px; flex-grow: 1; padding: 4px 3px; border-width: 1px; font-family: body; text-align: center; }
+  .loadout-filter { width: 0px; height: 26px; flex-grow: 1; padding: 5px 3px; }
   .supply-filter { width: 132px; height: 26px; padding: 4px 3px; border-width: 1px; font-family: body; text-align: center; }
   .supply-filter.selected { background-color: #35433f; border-color: #a5c6bc; color: #d5deea; }
-  .loadout-filter.selected { background-color: #35433f; border-color: #a5c6bc; color: #d5deea; }
 
   .doctrine-slot { flex-direction: column; height: 0px; flex-grow: 1; padding: 4px; gap: 3px; border-width: 1px; overflow: hidden; }
   .picker-hidden { width: 0px; height: 0px; flex-grow: 0; padding: 0px; gap: 0px; border-width: 0px; opacity: 0; overflow: hidden; }
   #weapon-doctrine-summary { height: 20px; padding: 2px 5px; }
   #armor-doctrine-summary-row { flex-direction: row; height: 20px; gap: 5px; }
   #armor-doctrine-summary { width: 0px; flex-grow: 1; height: 20px; padding: 2px 5px; }
-  #compare-armor-patterns { width: 130px; height: 20px; padding: 2px 4px; border-width: 1px; font-family: body; text-align: center; }
+  #compare-armor-patterns { width: 130px; height: 20px; padding: 2px 4px; }
   .doctrine-list { display: grid; height: 0px; flex-grow: 1; gap: 6px; padding: 1px; overflow: scroll; }
-  .doctrine-tile { flex-direction: column; width: 530px; padding: 6px; gap: 2px; border-width: 1px; font-family: body; text-align: left; overflow: hidden; background-color: #191e20; }
-  .doctrine-tile.rarity-common { border-color: #607188; }
-  .doctrine-tile.rarity-uncommon { border-color: #a5c6bc; background-color: #10202c; }
-  .doctrine-tile.rarity-rare { border-color: #dfb84d; background-color: #211d13; }
-  .doctrine-tile.rarity-exotic { border-color: #c77dff; background-color: #21162c; }
-  .doctrine-tile.selected { background-color: #35433f; border-color: #f2cf68; }
-  .doctrine-header { flex-direction: row; height: 18px; gap: 5px; }
-  .doctrine-metadata-row { flex-direction: row; height: 26px; gap: 7px; }
-  .doctrine-name, .doctrine-metadata { width: 0px; flex-grow: 1; }
-  .doctrine-metadata { padding: 5px 0px; }
-  .doctrine-faction-logo { width: 48px; height: 24px; border-width: 1px; border-color: #607188; background-color: #0a1018; }
-  .doctrine-faction-logo.faction-logo-hidden { width: 0px; height: 0px; border-width: 0px; opacity: 0; }
-  .doctrine-rating { width: 78px; padding: 1px 4px; border-width: 1px; text-align: center; }
-  .doctrine-rating.rating-low { color: #b4c0ce; border-color: #607188; }
-  .doctrine-rating.rating-mid { color: #7fb2d8; border-color: #4c7fa6; }
-  .doctrine-rating.rating-high { color: #8fd6a6; border-color: #4f9c6b; }
-  .doctrine-rarity { width: 74px; padding: 1px 4px; border-width: 1px; text-align: center; }
-  .doctrine-rarity.rarity-common { color: #b4c0ce; border-color: #607188; }
-  .doctrine-rarity.rarity-uncommon { color: #70d9f4; border-color: #a5c6bc; }
-  .doctrine-rarity.rarity-rare { color: #f2cf68; border-color: #dfb84d; }
-  .doctrine-rarity.rarity-exotic { color: #dda8ff; border-color: #c77dff; }
-  .doctrine-lore { height: 64px; white-space: normal; }
-  .doctrine-composition { height: 22px; white-space: normal; color: #7fb2d8; }
-  .doctrine-distribution { height: 34px; color: #d8bd67; white-space: normal; }
-  .doctrine-carries { height: 18px; color: #8fd6a6; }
 
-  /* An issue line is drawn as one span per entry so a reader can point at a
-     name; the grid is what wraps it, since a flow row does not. The plain
-     label above stays as the fallback for a line with nothing to list, and
-     exactly one of the two is ever laid out. */
-  .doctrine-span-row { flex-direction: row; gap: 6px; overflow: hidden; }
-  .doctrine-distribution-row { height: 96px; }
-  .doctrine-carries-row { height: 18px; }
-  .doctrine-line-tag { width: 58px; padding: 1px 0px; color: #7d8ea1; }
-  .doctrine-span-grid { display: grid; width: 0px; flex-grow: 1; gap: 4px; }
-  .doctrine-span { height: 17px; padding: 1px 2px; }
-  .doctrine-issue-span { flex-direction: row; width: 230px; height: 44px; gap: 7px; align-items: center; color: #d8bd67; background-color: #111719; }
-  .doctrine-equipment-icon { width: 50px; height: 42px; }
-  .doctrine-equipment-name { width: 0px; flex-grow: 1; height: 36px; white-space: normal; }
-  .doctrine-carries-span { color: #8fd6a6; }
-  .doctrine-line-hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; flex-grow: 0; opacity: 0; overflow: hidden; }
   .cargo-costs { display: grid; height: 54px; gap: 4px; overflow: hidden; }
   .cargo-costs.empty { height: 0px; gap: 0px; }
   .cargo-cost { width: 236px; height: 25px; flex-direction: row; padding: 2px 4px; gap: 4px; border-width: 1px; border-color: #50677e; background-color: #101a25; }

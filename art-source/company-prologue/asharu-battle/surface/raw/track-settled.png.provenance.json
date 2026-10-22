@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a163ac-55c3-77c2-aae4-d03d846b69ed",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a163ac-55c3-77c2-aae4-d03d846b69ed\\exec-00c6b3c5-ef8b-4a63-a581-460402604121.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\asharu-battle\\surface\\raw\\track-settled.png",
+    "sha256": "cf89c1bb6d3e6e7d089c1e91f5c20842ef09dc4d1617fa9da6231e50ef4976ad",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\asharu-battle\\surface\\prompts\\track-settled.txt",
+  "promptSha256": "14b0580b1669249535db1270593003e39778b7a3ea5107c6839507a2bf9d53ea",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Edit target: the photograph to return, with settlement plans sketched on it. Keep the terrain and framing exactly; render only the sketches.\n\nImage 1 is a straight-down orbital photograph of desert rock massif and sand sea, 420 km across\n(about 400 m per pixel), north up, with a few plans sketched on it in flat grey and rust. Return the\nsame photograph with each sketch rendered as real built ground seen from orbit, and everything\nelse left exactly as it is: same terrain, colours, canyons, framing and scale, pixel for pixel.\n\nThe sketches, keep each at its exact position, outline and size:\n- the octagon with a wall line and a block grid: a walled desert city at the mouth of a\n  canyon where it opens onto the sand sea. A pale perimeter wall, a dense grid of flat dusty roofs and narrow lanes, a few larger\n  warehouse roofs, sand drifted against the wall on the windward side;\n- the grey rectangle of round pads: a spaceport on the salt pan, a pale concrete apron with rows of circular\n  landing pads stained by drive scorch, a row of hangar and tank roofs along one side;\n- the concentric rust and tan ovals: a large terraced strip mine cut into the dark massif's flank,\n  stepped benches spiralling down, a dark tailings heap and haul tracks beside it;\n- the thin pale lines: unpaved haul roads, faint, following the ground.\n\nLow population, independent and worn: dusty, sun-bleached, sand-coloured materials, nothing\nshiny, no green fields, no lights, no vehicles, no text, labels or border. Flat even lighting\nas in the original photograph.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "build\\asharu-surface\\guides\\track-settled.png",
+      "sha256": "1e5f0cced5752a2f4b2507183f118ba453467b047d036eb768753dd219e8f34d",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Edit target: the photograph to return, with settlement plans sketched on it. Keep the terrain and framing exactly; render only the sketches."
+    }
+  ],
+  "agentMessages": [
+    "I’ll render the sketched sites and roads in place while preserving the surrounding terrain and framing."
+  ],
+  "usage": {
+    "input_tokens": 39885,
+    "cached_input_tokens": 31872,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 445,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 78.6
+}

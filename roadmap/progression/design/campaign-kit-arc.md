@@ -62,7 +62,7 @@ Keep Common, Advanced and Prestige as they are, and add a fourth tier above them
 offers on its own authority. It becomes acquirable only through a **military
 warrant**, a named, recorded authorisation from one tradition. A warrant is granted
 either by a story beat or by close standing with that faction at the Prestige band,
-and it names exactly which Restricted templates it opens. A military warrant is not
+and it names exactly which Restricted loadout cards it opens. A military warrant is not
 Rusk's *civil-security procurement warrant* on Agreus, which is a contract term and
 grants no military status.
 

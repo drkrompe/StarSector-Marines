@@ -13,8 +13,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * A suspended warrant squeezes replacement: no marine is newly fitted with its suit, those
- * already wearing it keep it, and a grandfathered suit no warrant names is never refused.
+ * A suspended warrant withholds its cards: no squad is newly given one, a squad already
+ * holding one keeps it, and a card no warrant names is never refused.
  */
 class WarrantFittingGateTest {
 
@@ -42,51 +42,48 @@ class WarrantFittingGateTest {
         HegemonyAuxiliaryWarrant.offer(state, 0);
         HegemonyAuxiliaryWarrant.accept(state, 0);
         state.warrantObligations().open(ArmorTradition.HEGEMONY.key, 0).suspend(5);
-        return MilitaryWarrants.withheldTemplateIds(state);
+        return MilitaryWarrants.withheldCardIds(state);
     }
 
     @Test
     void aSuspendedWarrantRefusesANewFitting() {
-        roster.setWithheldTemplates(suspendedHegemonyWarrant());
+        roster.setWithheldCards(suspendedHegemonyWarrant());
         String before = roster.soldierById(squad.memberIds().get(3)).armorId();
         assertEquals(SquadEquipmentResult.WARRANT_SUSPENDED, fit());
         assertEquals(before, roster.soldierById(squad.memberIds().get(3)).armorId(), "nothing is fitted");
     }
 
     @Test
-    void marinesAlreadyWearingTheSuitKeepItButAReplacementIsNotFitted() {
-        roster.setWithheldTemplates(Set.of());
+    void aSquadAlreadyHoldingTheCardKeepsIt() {
+        roster.setWithheldCards(Set.of());
         assertEquals(SquadEquipmentResult.APPLIED, fit());
         List<String> wearing = roster.manningMemberIds(squad).stream()
                 .filter(id -> SUIT.equals(roster.soldierById(id).armorId())).toList();
         assertFalse(wearing.isEmpty());
 
-        roster.setWithheldTemplates(suspendedHegemonyWarrant());
-        assertEquals(SquadEquipmentResult.APPLIED, fit(), "a refit of the same sheet takes no suit away");
+        roster.setWithheldCards(suspendedHegemonyWarrant());
+        assertEquals(SquadEquipmentResult.APPLIED, fit(), "a refit of the same card takes nothing away");
         assertTrue(wearing.stream().allMatch(id -> SUIT.equals(roster.soldierById(id).armorId())));
-
-        roster.soldierById(wearing.get(0)).setArmor("armor.line");
-        assertEquals(SquadEquipmentResult.WARRANT_SUSPENDED, fit(), "a casualty's suit is not reissued");
     }
 
     @Test
-    void aGrandfatheredSuitIsNeverWithheld() {
+    void aCardNoWarrantNamesIsNeverWithheld() {
         CampaignState state = new CampaignState();
         state.warrantObligations().open(ArmorTradition.HEGEMONY.key, 0).revoke(1);
-        Set<String> withheld = MilitaryWarrants.withheldTemplateIds(state);
-        assertTrue(withheld.isEmpty(), "no warrant names a suit learned before the Restricted tier");
-        roster.setWithheldTemplates(withheld);
+        Set<String> withheld = MilitaryWarrants.withheldCardIds(state);
+        assertTrue(withheld.isEmpty(), "a revoked term with no warrant row withholds nothing");
+        roster.setWithheldCards(withheld);
         assertEquals(SquadEquipmentResult.APPLIED, fit());
     }
 
     @Test
-    void aWithheldTemplateIsNotWarrantedForAcquisition() {
+    void aWithheldCardIsNotWarrantedForAcquisition() {
         CampaignState state = new CampaignState();
         HegemonyAuxiliaryWarrant.offer(state, 0);
         HegemonyAuxiliaryWarrant.accept(state, 0);
-        assertEquals(Set.of(HegemonyAuxiliaryWarrant.STAGE_ONE), MilitaryWarrants.warrantedTemplateIds(state));
+        assertEquals(Set.of(HegemonyAuxiliaryWarrant.STAGE_ONE), MilitaryWarrants.warrantedCardIds(state));
         state.warrantObligations().open(ArmorTradition.HEGEMONY.key, 0).suspend(3);
-        assertTrue(MilitaryWarrants.warrantedTemplateIds(state).isEmpty());
-        assertEquals(Set.of(HegemonyAuxiliaryWarrant.STAGE_ONE), MilitaryWarrants.withheldTemplateIds(state));
+        assertTrue(MilitaryWarrants.warrantedCardIds(state).isEmpty());
+        assertEquals(Set.of(HegemonyAuxiliaryWarrant.STAGE_ONE), MilitaryWarrants.withheldCardIds(state));
     }
 }

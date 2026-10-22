@@ -1,0 +1,281 @@
+"""Finish the Asharu backdrop plates (see README.md): raw ImageGen paintings -> <kf>.backdrop.exr.
+
+    python finish_plates.py                 # build/asharu-plates/out/<kf>.backdrop.exr, <kf>.display.png,
+                                            # manifest.json
+    python finish_plates.py --post COMMIT   # ... and copy them to Drive builds/asharu-plates/<COMMIT>/
+    python finish_plates.py --tone k0=RENDER.png k6=RENDER.png   # refit tone/<kf>.png from graded renders
+
+1. Resize the painting to 1920x1080 (the key frame's frame; ImageGen returns 1672x941).
+2. S12 only: rows above the guide's band of exact registration are remapped so the painted
+   ground's top edge meets the camera's true limb, and the air above it is redrawn as one glow
+   profile sampled from the painting, so the painted limb's own steps cannot show.
+3. Tone-match it to the graded render of its key frame with the detail tiles (tone/<kf>.png, a
+   coarse ground-colour field: exposure, palette and haze with distance), then invert the grade. The painting is display-referred, painted to look like the
+   graded still; the composite grades the backdrop through AgX 'Base Contrast'. agx_lut.py
+   tabulates that grade on a lattice in Blender; here each pixel is solved for the scene-linear
+   colour the grade maps onto it (Gauss-Newton on the lattice's trilinear interpolation), so the
+   plate grades back to the painting.
+4. Write scene-linear Rec.709 RGBA float EXR, uncompressed: alpha 1, except S12, whose sky is a
+   premultiplied matte (alpha 0 in empty space, the air glow partial) so the stars show through.
+"""
+import hashlib
+import json
+import shutil
+import struct
+import subprocess
+import sys
+from pathlib import Path
+
+import numpy as np
+from PIL import Image
+
+HERE = Path(__file__).resolve().parent
+REPO = HERE.parents[3]
+BUILD = REPO / 'build' / 'asharu-plates'
+OUT = BUILD / 'out'
+W, H = 1920, 1080
+KF = {'k0': 'S1a', 'k6': 'S12'}
+LUT = BUILD / 'agx_lut.npz'
+LO, HI = -12.0, 4.0
+REGISTERED_FROM = 300      # S12 rows from here down register to the guide within a pixel
+
+
+def blender():
+    sys.path.insert(0, str(HERE.parents[1]))
+    from blender_path import BLENDER
+    return BLENDER
+
+
+def lut():
+    if not LUT.exists():
+        subprocess.check_call([str(blender()), '-b', '--factory-startup', '--python-exit-code', '1',
+                               '--python', str(HERE / 'agx_lut.py'), '--', str(BUILD / 'agx_lut')])
+    d = np.load(LUT)
+    return d['axis'], d['display'].astype(np.float64)
+
+
+def grade(z, axis, disp):
+    """Display colour of scene-linear 2^z through the tabulated grade (trilinear in lattice index)."""
+    n = disp.shape[0]
+    t = np.clip(1 + (z - LO) / (HI - LO) * (n - 2), 0, n - 1 - 1e-9)
+    i = np.floor(t).astype(int)
+    f = t - i
+    out = 0.0
+    for dr in (0, 1):
+        for dg in (0, 1):
+            for db in (0, 1):
+                wgt = ((f[..., 0] if dr else 1 - f[..., 0]) * (f[..., 1] if dg else 1 - f[..., 1])
+                       * (f[..., 2] if db else 1 - f[..., 2]))
+                out = out + wgt[..., None] * disp[i[..., 0] + dr, i[..., 1] + dg, i[..., 2] + db]
+    return out
+
+
+def ungrade(y, axis, disp, steps=10):
+    """Scene-linear colours whose grade is the display colours y (H x W x 3, 0-1)."""
+    n = disp.shape[0]
+    grey = disp[np.arange(n), np.arange(n), np.arange(n)]          # the neutral axis
+    zs = np.concatenate([[LO - 1], np.linspace(LO, HI, n - 1)])
+    z = np.stack([np.interp(y[..., c], grey[:, c], zs) for c in range(3)], -1)
+    z = np.clip(z, LO, HI)
+    eps = 1e-3
+    for _ in range(steps):
+        f0 = grade(z, axis, disp)
+        jac = np.empty(z.shape + (3,))
+        for c in range(3):
+            dz = np.zeros(3)
+            dz[c] = eps
+            jac[..., :, c] = (grade(z + dz, axis, disp) - f0) / eps
+        jac += np.eye(3) * 1e-4
+        step = np.linalg.solve(jac, (y - f0)[..., None])[..., 0]
+        z = np.clip(z + np.clip(step, -1.5, 1.5), LO, HI)
+    lin = 2.0 ** z
+    return np.where(y.max(-1, keepdims=True) <= grey[0].max() + 1e-4, 0.0, lin), grade(z, axis, disp)
+
+
+def ground_top(img, lo=40, hi=REGISTERED_FROM):
+    """Per column, the row where the painting stops being empty space (the top of its limb,
+    glow or ground), from the top, smoothed along the limb with a median and a mean."""
+    lit = img[lo:hi].mean(-1) > .12
+    first = np.where(lit.any(0), np.argmax(lit, axis=0), hi - lo).astype(float) + lo
+    k = 81
+    pad = np.pad(first, k // 2, mode='edge')
+    med = np.array([np.median(pad[i:i + k]) for i in range(W)])
+    return np.convolve(np.pad(med, k // 2, mode='edge'), np.ones(k) / k, mode='valid')
+
+
+def fix_horizon(img, guide_hit):
+    """S12's limb, made to sit on the camera's: rows above REGISTERED_FROM are remapped per column
+    so the painted ground's top edge lands on the true limb (the ground registers within a pixel
+    below that band), then the air above it is redrawn as one glow profile, sampled from the
+    painting itself, so a step or gap in the painted glow cannot show."""
+    x = np.arange(W)
+    true = np.polyval(np.polyfit(x, np.argmax(guide_hit, axis=0).astype(float), 2), x)
+    true = np.minimum(true, REGISTERED_FROM - 20)
+    painted = np.clip(ground_top(img), true - 60, true + 60)
+    ys = np.arange(REGISTERED_FROM, dtype=float)[:, None]
+    src = np.where(ys <= true, ys * painted / np.maximum(true, 1),
+                   painted + (ys - true) * (REGISTERED_FROM - painted) / np.maximum(REGISTERED_FROM - true, 1))
+    out = img.copy()
+    y0 = np.clip(np.floor(src).astype(int), 0, H - 2)
+    t = (src - y0)[..., None]
+    cols = np.arange(W)[None, :]
+    out[:REGISTERED_FROM] = img[y0, cols] * (1 - t) + img[y0 + 1, cols] * t
+    # The glow: the painting's own colour d rows above its ground, averaged over the columns where
+    # the painted glow is brightest (the clean stretch), laid along the true limb everywhere.
+    depth = 40
+    d = true[None, :] - ys                                   # rows above the true limb
+    ref_cols = np.argsort(out[np.clip((true - 6).astype(int), 0, H - 1), x, 2])[-W // 4:]
+    prof = np.stack([out[np.clip((true[ref_cols] - k).astype(int), 0, H - 1), ref_cols].mean(0)
+                     for k in range(depth + 1)])            # depth+1 x 3, k rows above the limb
+    kk = np.clip(d, 0, depth)
+    k0 = np.floor(kk).astype(int)
+    f = (kk - k0)[..., None]
+    glow = prof[k0] * (1 - f) + prof[np.minimum(k0 + 1, depth)] * f
+    glow = np.where((d > depth)[..., None], 0.0, glow)
+    sky = np.clip(d, 0, 1)[..., None]                       # 1 above the limb, ramping to 0 on it
+    out[:REGISTERED_FROM] = out[:REGISTERED_FROM] * (1 - sky) + glow * sky
+    return out
+
+
+def ground_mask(kf):
+    """1 where the key frame camera sees the planet's surface."""
+    import make_plate_guides as mg
+    _, hit = mg.ground(kf, finished={}, base=np.zeros((2, 4, 3)))
+    return hit.astype(float)
+
+
+def low(img, mask, radius=40):
+    """Low-pass of img over mask only (normalised convolution), carried into the unmasked rest."""
+    sys.path.insert(0, str(HERE.parent / 'surface'))
+    from surface_detail import blur
+    m = mask[..., None]
+    return blur(img * m, radius) / np.maximum(blur(m, radius), 1e-4)
+
+
+def tone_reference(kf):
+    """The graded render of this key frame with the surface detail tiles, as a coarse colour
+    field: tone/<kf>.png (192 x 108), from the A/B light job's <kf>-detail.png. Ships, trails and
+    sky are left out of it, so it holds only how bright and what colour the ground renders, and how
+    that changes with distance (haze)."""
+    return np.asarray(Image.open(HERE / 'tone' / f'{kf}.png').convert('RGB').resize((W, H), Image.BICUBIC),
+                      np.float64) / 255
+
+
+def make_tone_reference(kf, render_png):
+    """Write tone/<kf>.png from a graded render of the key frame (any size)."""
+    r = np.asarray(Image.open(render_png).convert('RGB').resize((W, H), Image.BICUBIC), np.float64) / 255
+    m = ground_mask(kf)
+    lum = r.mean(-1)
+    sat = r.max(-1) - r.min(-1)
+    m = m * ~((lum > .62) & (sat < .2))                          # entry trails and hot lights
+    m = m * (np.abs(lum - low(r, m, 12).mean(-1)) < .12)        # ship hulls, small and off the ground's tone
+    field = low(r, m)
+    out = HERE / 'tone' / f'{kf}.png'
+    out.parent.mkdir(exist_ok=True)
+    Image.fromarray((np.clip(field, 0, 1) * 255 + .5).astype(np.uint8)).resize((192, 108), Image.LANCZOS).save(out)
+    print(out)
+
+
+def tone_match(kf, img):
+    """The painting brought to the render's exposure, palette and haze: each channel scaled by
+    the ratio of the render's coarse ground colour to the painting's, so the painted detail stays
+    and the broad tone is the render's. The guide lit the ground as if the sun were overhead; the
+    scene sun is 16 degrees up and the air hazes the distance."""
+    m = ground_mask(kf)
+    ratio = np.clip(tone_reference(kf) / np.maximum(low(img, m), 1e-3), 0, 4)
+    return np.clip(img * ratio, 0, 1)
+
+
+def sky_alpha(img, guide_hit):
+    """S12's matte: 1 on the ground, 0 in empty space, the air glow in between by its brightness,
+    so the rendered starfield shows through above the limb. Smooth across the limb."""
+    x = np.arange(W)
+    limb = np.polyval(np.polyfit(x, np.argmax(guide_hit, axis=0).astype(float), 2), x)
+    ys = np.arange(H, dtype=float)[:, None]
+    ground = np.clip((ys - (limb - 3.0)) / 3.0, 0, 1)                  # ground, 3 px soft
+    glow = np.clip((img.max(-1) - .02) / .2, 0, 1)
+    glow = glow * glow * (3 - 2 * glow)
+    return np.maximum(ground, glow)
+
+
+def write_exr(path, rgb, alpha=None):
+    """Scanline float32 RGBA OpenEXR, no compression; alpha 1 unless given (RGB premultiplied)."""
+    h, w = rgb.shape[:2]
+    a = np.ones((h, w), np.float32) if alpha is None else alpha.astype(np.float32)
+    chans = {'A': a, 'B': rgb[..., 2], 'G': rgb[..., 1], 'R': rgb[..., 0]}
+
+    def attr(name, kind, data):
+        return name.encode() + b'\0' + kind.encode() + b'\0' + struct.pack('<i', len(data)) + data
+
+    chlist = b''.join(c.encode() + b'\0' + struct.pack('<iB3xii', 2, 0, 1, 1) for c in chans) + b'\0'
+    box = struct.pack('<iiii', 0, 0, w - 1, h - 1)
+    header = (b'\x76\x2f\x31\x01' + struct.pack('<i', 2)
+              + attr('channels', 'chlist', chlist) + attr('compression', 'compression', b'\0')
+              + attr('dataWindow', 'box2i', box) + attr('displayWindow', 'box2i', box)
+              + attr('lineOrder', 'lineOrder', b'\0') + attr('pixelAspectRatio', 'float', struct.pack('<f', 1))
+              + attr('screenWindowCenter', 'v2f', struct.pack('<ff', 0, 0))
+              + attr('screenWindowWidth', 'float', struct.pack('<f', 1)) + b'\0')
+    line = 4 * w * len(chans)
+    start = len(header) + 8 * h
+    offsets = struct.pack('<%dQ' % h, *[start + y * (8 + line) for y in range(h)])
+    with open(path, 'wb') as fh:
+        fh.write(header + offsets)
+        for y in range(h):
+            fh.write(struct.pack('<ii', y, line))
+            for c in chans.values():
+                fh.write(np.ascontiguousarray(c[y], dtype='<f4').tobytes())
+
+
+def sha(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def main():
+    sys.path.insert(0, str(HERE))
+    import make_plate_guides as mg
+    if '--tone' in sys.argv:
+        for pair in sys.argv[sys.argv.index('--tone') + 1:]:
+            kf, png = pair.split('=', 1)
+            make_tone_reference(kf, png)
+        return
+    axis, disp = lut()
+    OUT.mkdir(parents=True, exist_ok=True)
+    manifest = {'plates': []}
+    for kf, shot in KF.items():
+        raw = HERE / 'raw' / f'{kf}.png'
+        img = np.asarray(Image.open(raw).convert('RGB').resize((W, H), Image.LANCZOS), np.float64) / 255
+        alpha = None
+        if kf == 'k6':
+            _, hit = mg.ground(kf, finished={}, base=mg.load(mg.roster.GAME_CORE / 'graphics' / 'planets' / 'desert01.jpg'))
+            img = fix_horizon(img, hit)
+            alpha = sky_alpha(img, hit)
+        img = tone_match(kf, img)
+        lin, back = ungrade(img, axis, disp)
+        err = np.abs(back - img).max(-1)
+        print(f'{kf}: round trip through the grade, mean {err.mean() * 255:.2f}, 99th pct '
+              f'{np.percentile(err, 99) * 255:.2f} code values of 255')
+        exr = OUT / f'{kf}.backdrop.exr'
+        if alpha is not None:       # premultiplied: the sky's dark painted pixels go to zero with it
+            lin = lin * alpha[..., None]
+        write_exr(exr, lin.astype(np.float32), alpha)
+        Image.fromarray((np.clip(img, 0, 1) * 255 + .5).astype(np.uint8)).save(OUT / f'{kf}.display.png')
+        manifest['plates'].append({'kf': kf, 'shot': shot, 'file': exr.name, 'sha256': sha(exr),
+                                   'source': f'art-source/company-prologue/asharu-battle/plates/raw/{kf}.png',
+                                   'source_sha256': sha(raw), 'size': [W, H],
+                                   'space': 'scene-linear Rec.709, ' + ('alpha 1' if alpha is None
+                                             else 'premultiplied, alpha 0 in empty space (stars show through)'),
+                                   'graded_by': "AgX, look 'AgX - Base Contrast', sRGB display"})
+    (OUT / 'manifest.json').write_text(json.dumps(manifest, indent=1))
+    print(OUT)
+    if '--post' in sys.argv:
+        commit = sys.argv[sys.argv.index('--post') + 1]
+        dest = Path('G:/My Drive/starsector/builds/asharu-plates') / commit
+        dest.mkdir(parents=True, exist_ok=True)
+        for f in OUT.iterdir():
+            if f.suffix in ('.exr', '.json'):
+                shutil.copy2(f, dest / f.name)
+        print('POSTED', dest)
+
+
+if __name__ == '__main__':
+    main()

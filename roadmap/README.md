@@ -139,7 +139,10 @@ and lift while a separately disclosed swarm director owns pressure waves and
 perimeter approaches. Colony Breach is refreshing Rescue in place: a precinct
 colony, destroyable bores the swarm erupts from, new strains, a callable tender
 and a hive posture for the Marine commander; start with `colony-breach-nouns.md`
-and its `stories.md`. Silent Colony now divides its Marine expedition into
+and its `stories.md`. On the campaign layer the Rav Bloom now raises every
+rescue: outbreaks wake over hidden reservoirs, go dark and spread when ignored,
+and end when the mother bore falls (`colony-breach-nouns.md`, Campaign: blooms;
+`gradlew.bat bloomEvidence`). Silent Colony now divides its Marine expedition into
 stable archive and survivor branches through the same frozen command envelope.
 Live acceptance for Generic Extraction, Rescue, and Silent Colony remains.
 Each mission keeps its own strategy geometry. See `conquest-command.md`,
@@ -211,7 +214,7 @@ The retained UI foundation is proven in-engine and is being adopted one
 production surface at a time. Company HQ reads as the flagship bridge's
 command station, Fleet Armory owns deliberate equipment inspection and issue
 for one squad at a time, and Barracks owns squad choice, home-officer organization,
-bulk personnel command, saved profiles and replenishment between
+bulk personnel command and replenishment between
 operations. The active Alpha pickup, `barracks-turnaround.md`, adds a guided
 preparation handoff. Shared stock displays and upgrade
 bills are defined in `company-view-nouns.md` (Company resource bills). `castle-officer-induction.md` adds

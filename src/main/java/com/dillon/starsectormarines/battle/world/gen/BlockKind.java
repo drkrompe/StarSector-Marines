@@ -87,7 +87,12 @@ public enum BlockKind {
     /** Impassable water with a walkable sand/stone shore strip. Map-edge or shoreline only — natural flank denial. */
     WATERFRONT,
 
-    /** Broken ground — damaged-floor + damaged-wall art with rubble decals and damaged doodads. Ambush territory. */
+    /**
+     * A lot with no standing building. In a farming settlement it is land in
+     * use: an empty lot, a fenced yard or a farm plot. Elsewhere it is a ruin:
+     * a burned-out footprint with short standing walls, rubble stubs and a
+     * collapsed corner. Ambush territory either way.
+     */
     WASTELAND_RUBBLE,
 
     /**

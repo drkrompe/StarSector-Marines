@@ -23,6 +23,10 @@ sys.path.insert(0, str(ART))
 import ship_scale  # noqa: E402
 from starsector_path import GAME_CORE  # noqa: E402
 
+# The painted backdrop plates (planet session; composite_layers.py): <kf>.backdrop.exr, scene-linear, on each key
+# frame's camera, with manifest.json. A render-queue job copies them to build/asharu-battle/plates/.
+PLATES = 'builds/asharu-plates/1d5ec7781'
+
 # Finished cinematic builds this scene appends. Each build is one Drive folder, copied whole to
 # build/asharu-battle/builds/<dir>/ (ignored) by hand or as a render-queue drive input:
 #   dir: the local folder; drive: its source under Drive starsector/; file: the .blend in it (the
@@ -49,6 +53,10 @@ FINISHED = {
     # the wreck carries its own flash, fireball, break-up and fires in its SWFX collection
     'phaeton-wreck': dict(dir='phaeton-destroyed', drive='builds/phaeton/e9ab52297/destroyed',
                           file='phaeton-destroyed.blend', length_m=76.6, swfx=True),
+    # the pirates' boarding boats: the company's accepted Hermes (pinned, never edited), each boat its own
+    # ShipFx copy; livery='scrap' greys the appended copy's paint (a real pirate livery is a new build)
+    'hermes': dict(dir='hermes', drive='builds/hermes/70f1f58eb', file='hermes.blend', manifest='hermes-manifest.json',
+                   length_m=9.0, own_fx=True, livery='scrap'),
     'tarsus': dict(dir='tarsus', drive='builds/tarsus/2e7d396fc/clean', file='tarsus.blend', length_m=94.0),
     'tarsus-boarded': dict(dir='tarsus-boarded', drive='builds/tarsus/2e7d396fc/boarded', file='tarsus.blend',
                            length_m=94.0),
@@ -97,6 +105,12 @@ PIRATE = [
 DRONES = [
     dict(key=f'borer-{c}', game='drone_borer', name=f'Borer {c.upper()} (Morrow)', role="Morrow's mining drone",
          finished='borer') for c in 'abcd'
+]
+# The boarders' boats (owner, 2026-10-22): Hermes shuttles launched out of the camera's sight from under their Kite
+# (P), flown in on motion.boarding_run and set down on the prize. Small craft, off the fleet rosters like the Borers.
+DRONES += [
+    dict(key=f'hermes-p-{c}', game='hermes', name=f'Boat {c.upper()} (P)', role='boarding boat', finished='hermes')
+    for c in 'abc'
 ]
 
 REFERENCES = [

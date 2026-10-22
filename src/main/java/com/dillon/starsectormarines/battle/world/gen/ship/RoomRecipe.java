@@ -16,10 +16,8 @@ import java.util.List;
  *
  * <p>A cell reads as roughly a metre, which is what makes these numbers
  * checkable against a real vessel rather than tuned until the picture looks
- * busy. {@link #TROOP_BERTHING} is sixty-four cells and berths nine, which is
- * spartan on purpose. It is eight deep because a bunk is three cells head to
- * foot: two facing ranks of real-length racks and the two-abreast passage
- * between them.
+ * busy. {@link #TROOP_BERTHING} is forty-eight square metres and berths nine,
+ * which is spartan on purpose.
  *
  * <p>{@link #provides} is what the room's own arrangement holds, counted rather
  * than asserted. A berth was programmed at twelve for as long as nothing was
@@ -64,7 +62,7 @@ public record RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone,
      * off has to hold their own people and nobody else's.
      */
     public static final RoomRecipe TROOP_BERTHING = new RoomRecipe(
-            RoomPurpose.BARRACKS, RoomShape.rectangle(8, 8), DeckZone.FORE, 9);
+            RoomPurpose.BARRACKS, RoomShape.rectangle(8, 6), DeckZone.FORE, 9);
 
     /**
      * The same compartment for the hands who work the ship, sized from minimum
@@ -78,7 +76,7 @@ public record RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone,
      * untouched while every other figure moved.
      */
     public static final RoomRecipe CREW_BERTHING = new RoomRecipe(
-            RoomPurpose.CREW_QUARTERS, RoomShape.rectangle(8, 8), DeckZone.FORE, 9);
+            RoomPurpose.CREW_QUARTERS, RoomShape.rectangle(8, 6), DeckZone.FORE, 9);
 
     /** Gantry space for servicing heavy assets; the largest room a ship carries. */
     public static final RoomRecipe VEHICLE_BAY = new RoomRecipe(

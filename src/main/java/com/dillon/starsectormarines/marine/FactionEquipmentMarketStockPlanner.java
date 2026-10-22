@@ -114,13 +114,8 @@ final class FactionEquipmentMarketStockPlanner {
 
     private static boolean restrictedKitWarranted(LoadoutCard card,
                                                   EquipmentAcquisitionEligibility.Progress progress) {
-        for (String templateId : card.templateIds()) {
-            if (EquipmentTemplateCatalog.require(templateId).accessTier() == EquipmentAccessTier.RESTRICTED
-                    && (progress == null || !progress.warrants(templateId))) {
-                return false;
-            }
-        }
-        return true;
+        return card.accessTier() != EquipmentAccessTier.RESTRICTED
+                || (progress != null && progress.warrants(card.id()));
     }
 
     record StockPlan(List<String> listedCardIds, List<String> marketCardIds,

@@ -10,7 +10,8 @@ import java.util.Locale;
  * field texture (R coverage, G vitality, B pulse distance, A wall) on unit 0,
  * sampled linearly so coverage blends between cell centres, {@link CreepNoise}
  * on unit 1 and {@link CreepSurface} on unit 2, both repeating, the surface
- * mipmapped.
+ * mipmapped, and the ground under the creep (R blight, G vegetated) on unit 3,
+ * sampled linearly as the field is.
  */
 final class CreepShader {
 
@@ -28,6 +29,7 @@ final class CreepShader {
             + "uniform sampler2D field;\n"
             + "uniform sampler2D noise;\n"
             + "uniform sampler2D surface;\n"
+            + "uniform sampler2D ground;\n"
             + "uniform vec2 fieldSize;\n"
             + "uniform float time;\n"
             + "uniform float alpha;\n"
@@ -41,6 +43,7 @@ final class CreepShader {
             + "uniform vec3 glow;\n"
             + "uniform vec3 rim;\n"
             + "uniform vec3 dead;\n"
+            + "uniform vec3 wilt;\n"
             + "vec4 F(vec2 p) { return texture2D(field, p / fieldSize); }\n"
             + "float C(vec2 p) { return texture2D(field, p / fieldSize).r; }\n"
             + "vec4 S(vec2 p) { return texture2D(surface, p / " + lit(CreepSurface.CELLS) + "); }\n"
@@ -106,6 +109,16 @@ final class CreepShader {
             + "    float patch = 0.5 * fine + 0.5 * texture2D(noise, pt / " + lit(CreepNoise.CELLS) + ").r;\n"
             + "    float pulseCells = here.b * 255.0;\n"
             + "    if (own.a <= 0.5) {\n"
+            + "        vec2 gd = texture2D(ground, p / fieldSize).rg;\n"
+            + "        float wa = 0.0, wvb = 0.0;\n"
+            + "        if (gd.g > 0.0 && gd.r > 0.0) {\n"
+            + "            wa = gd.g * smoothstep(" + lit(CreepShading.WILT_LO) + ", " + lit(CreepShading.WILT_HI)
+            + ", gd.r + (fine - 0.5) * " + lit(CreepShading.WILT_BREAK) + ") * " + lit(CreepShading.WILT_ALPHA) + ";\n"
+            + "            float reachV = smoothstep(" + lit(CreepShading.BAND_VEIN_LO) + ", " + lit(CreepShading.BAND_VEIN_HI)
+            + ", gd.r + (cloud - 0.5) * " + lit(CreepShading.BAND_VEIN_BREAK) + ");\n"
+            + "            if (reachV > 0.0) wvb = 0.85 * clamp(S(p * " + lit(CreepShading.WALL_VEIN_SCALE)
+            + ").b * 1.6, 0.0, 1.0) * reachV * gd.g;\n"
+            + "        }\n"
             + "        float d = (soft - 0.5 + lobes) / gl;\n"
             + "        float a = clamp(d * cellPx + 0.5, 0.0, 1.0);\n"
             + "        float shadow = 0.0;\n"
@@ -115,17 +128,20 @@ final class CreepShader {
             + shadowStep(CreepShading.SHADOW_STEPS[2])
             + "        }\n"
             + "        float sa = " + lit(CreepShading.SHADOW_ALPHA) + " * shadow * sunStrength;\n"
-            + "        if (a <= 0.0 && sa <= 0.002) discard;\n"
+            + "        if (a <= 0.0 && sa <= 0.002 && wa <= 0.002 && wvb <= 0.002) discard;\n"
             + "        vec3 col = vec3(0.0);\n"
             + "        if (a > 0.0) {\n"
             + "            col = body(clamp(d, 0.0, 2.0), p, u, here.g, pulseCells, cloud, patch);\n"
             + "            col *= 1.0 - 0.55 * smoothstep(0.2, 0.5, here.a);\n"
             + "        }\n"
-            + "        float outA = a + sa * (1.0 - a);\n"
             + "        vec3 tint = vec3(" + lit(CreepShading.SHADOW_TINT[0]) + ", " + lit(CreepShading.SHADOW_TINT[1])
             + ", " + lit(CreepShading.SHADOW_TINT[2]) + ");\n"
-            + "        vec3 rgb = (col * a + tint * sa * (1.0 - a)) / max(outA, 0.0001);\n"
-            + "        gl_FragColor = vec4(clamp(rgb, 0.0, 1.0), outA * alpha);\n"
+            + "        vec3 acc = wilt * wa;\n"
+            + "        float outA = wa;\n"
+            + "        acc = mix(flesh, rim, 0.35) * wvb + acc * (1.0 - wvb); outA = wvb + outA * (1.0 - wvb);\n"
+            + "        acc = tint * sa + acc * (1.0 - sa); outA = sa + outA * (1.0 - sa);\n"
+            + "        acc = col * a + acc * (1.0 - a); outA = a + outA * (1.0 - a);\n"
+            + "        gl_FragColor = vec4(clamp(acc / max(outA, 0.0001), 0.0, 1.0), outA * alpha);\n"
             + "        return;\n"
             + "    }\n"
             + "    float age = own.r;\n"
@@ -180,6 +196,7 @@ final class CreepShader {
         program.set1i("field", 0);
         program.set1i("noise", 1);
         program.set1i("surface", 2);
+        program.set1i("ground", 3);
         program.set2f("fieldSize", fieldW, fieldH);
         program.set1f("time", pass.timeSeconds);
         program.set1f("alpha", pass.alpha);
@@ -194,6 +211,7 @@ final class CreepShader {
         set(program, "glow", pal.glow());
         set(program, "rim", pal.rim());
         set(program, "dead", pal.dead());
+        set(program, "wilt", pal.wilt());
         return true;
     }
 

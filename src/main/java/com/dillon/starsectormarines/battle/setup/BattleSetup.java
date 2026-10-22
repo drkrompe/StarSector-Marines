@@ -252,7 +252,7 @@ public final class BattleSetup {
     /** Sim-seconds between successive shuttle launches. Spaces out drops so the LZs aren't all active at once. */
     private static final float SHUTTLE_DROP_STAGGER_SEC = 1.5f;
     /** Minimum cell-distance between landing zones — avoids stacking all shuttles on the spawn anchor. */
-    private static final int LZ_MIN_SEPARATION = 8;
+    static final int LZ_MIN_SEPARATION = 8;
     /** Entry/exit Y offset above the grid (in cells). Long enough that shuttles are visible during their descent. */
     private static final float SHUTTLE_OFFMAP_Y = 8f;
 
@@ -341,7 +341,7 @@ public final class BattleSetup {
      * historical turret-after-vehicle cover-bake ordering is preserved.
      */
     /** The surface palette a target profile stands for; null (bare rock) when the battle has no planet behind it. */
-    private static SurfacePalette surfaceOf(TargetProfile profile) {
+    static SurfacePalette surfaceOf(TargetProfile profile) {
         return profile == null ? null : profile.surface();
     }
 
@@ -625,8 +625,37 @@ public final class BattleSetup {
      * generator. The landing zone marks nothing on the ground: the shuttles
      * set down on whatever the map has there.
      */
-    private static void recordLzPads(BattleSimulation sim, List<LandingPad> lzCells) {
+    static void recordLzPads(BattleSimulation sim, List<LandingPad> lzCells) {
         sim.setMarineLandingPads(lzCells);
+    }
+
+    /**
+     * The company's boats, one per pad, each flying its manifest line's
+     * sorties onto its pad from the pad's clear side; the squads they land are
+     * claimed by {@code claim}. An empty manifest is the default lift.
+     */
+    static void landCompany(BattleSimulation sim, List<LandingPad> pads, List<ShuttleAssignment> manifest,
+                            Random rng, SquadCommandClaim claim) {
+        List<ShuttleAssignment> assignments = resolveManifest(manifest);
+        int width = sim.getGrid().getWidth(), height = sim.getGrid().getHeight();
+        for (int i = 0; i < pads.size(); i++) {
+            ShuttleAssignment assignment = assignments.get(i % assignments.size());
+            LandingPad pad = pads.get(i);
+            float x = pad.centerX + 0.5f, y = pad.centerY + 0.5f;
+            float[] entry = shuttleEntryFor(x, y, width, height, pad.approach);
+            long shuttle = sim.spawnShuttle(assignment.type, assignment.airframe, Faction.MARINE, x, y,
+                    entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            ShuttleMission mission = sim.world().mission(shuttle);
+            mission.totalCycles = assignment.cycles;
+            mission.commandClaim = claim;
+            MarineLoadout[][] cycles = new MarineLoadout[assignment.cycles][];
+            for (int cycle = 0; cycle < assignment.cycles; cycle++) {
+                cycles[cycle] = InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle), rng);
+            }
+            mission.cycleLoadouts = cycles;
+            mission.marineLoadout = cycles[0];
+            equipDefaultTurrets(sim, shuttle);
+        }
     }
 
     /** Dedicated Raid factory; target seizure and egress replace elimination. */

@@ -9,10 +9,14 @@ these stories.
 
 | Story | State and dependency |
 | --- | --- |
-| `ground-colony-art.md` | **PLANNED.** The ground colony's own sprite (it borrows the fissure spore colony's) and the creep's sounds: a spread ambience and the spines' own strike. |
-| `sector-outbreaks.md` | **QUEUED on the spine.** Lore in `swarm-lore-guide.md`. Outbreaks as a recurring campaign phenomenon. |
+| `bloom-installation-flavour.md` | **PLANNED.** The bloomed market's industry picks the colony's outlying installation (mine head, pumping yard, farm). Battle-side; campaign blooms have landed. |
 
 Live pressure and balance acceptance continues in `rescue-pressure-acceptance.md`
 once the spine, bores and strains have landed.
+
+Movements 2 and 3 of the Rav Bloom arc (the defence, the heart) are directed in
+`bloom-mission-arc.md`. Movement 2, the Cordon, has its own feature:
+`cordon-nouns.md` and `roadmap/cordon/design/stories.md`. Movement 3, the
+heart, has its own too: `heart-nouns.md` and `roadmap/heart/design/stories.md`.
 
 Preview page media: producers follow `preview-contract.md`.

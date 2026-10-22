@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.deployable;
 import com.dillon.starsectormarines.battle.combat.TargetMotion;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment.FireMission;
+import com.dillon.starsectormarines.battle.fire.FireReach;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -85,6 +86,8 @@ public final class FieldMortarService {
     public static final float MISSION_MIN_CONFIDENCE = 0.3f;
     /** Ticks between a tube's looks for a fresh target on its mission. */
     public static final int MISSION_RELOOK_TICKS = 20;
+    /** An incendiary round's heat: a little under a thrown thermite charge, spread by a shell's blast. */
+    public static final int INCENDIARY_ROUND_HEAT = 2400;
 
     public enum Phase { SETTING_UP, SERVING, PACKING }
 
@@ -113,6 +116,10 @@ public final class FieldMortarService {
         /** The body the tube last chose on its mission, or 0, and the tick it last looked. */
         volatile long missionTarget;
         volatile int missionLookTick = Integer.MIN_VALUE;
+        /** The incendiary heat of the round now going out, 0 for an ordinary shell; read when the round is built. */
+        volatile int loadedHeat;
+        /** Incendiary rounds this tube has fired, for evidence. */
+        volatile int incendiaryRoundsFired;
 
         Tube(long carrierId, Faction faction, int cellX, int cellY, int squadId,
              DeployableEmplacementSpec spec, StructureDef structure, int rounds, SpecialEquipmentDef item) {
@@ -137,6 +144,8 @@ public final class FieldMortarService {
         public int roundsFired() { return roundsFired; }
         public int missionRoundsFired() { return missionRoundsFired; }
         public long missionTarget() { return missionTarget; }
+        public int loadedHeat() { return loadedHeat; }
+        public int incendiaryRoundsFired() { return incendiaryRoundsFired; }
         public float idleSeconds() { return idleSeconds; }
 
         /** Whether the tube may fire this tick: standing, served and holding a round. */
@@ -155,6 +164,12 @@ public final class FieldMortarService {
 
         /** Marks the round just spent as fired on the assigned mission. */
         public void noteMissionRound() { missionRoundsFired++; }
+
+        /** Loads the next round: incendiary at this heat, or an ordinary shell at 0. */
+        public void loadRound(int heat) {
+            loadedHeat = Math.max(0, heat);
+            if (loadedHeat > 0) incendiaryRoundsFired++;
+        }
     }
 
     private final Map<Long, Tube> byCarrier = new ConcurrentHashMap<>();
@@ -397,6 +412,19 @@ public final class FieldMortarService {
             if (mission == null) missions.remove(squad.id);
             else missions.put(squad.id, mission);
         }
+    }
+
+    /**
+     * The heat of the round a tube fires at {@code target}: {@link #INCENDIARY_ROUND_HEAT} when the target is the
+     * tube's incendiary mission's and the fire it would light could not come to the tube's own side
+     * ({@link FireReach}), else 0, an ordinary shell.
+     */
+    public int roundHeat(Tube tube, long target, BattleControl sim) {
+        FireMission mission = missionOf(tube.squadId);
+        if (mission == null || !mission.incendiary() || target == 0L || target != tube.missionTarget) return 0;
+        if (FireReach.enabled() && FireReach.reachesSide(sim.fireField(), sim.world().cellX(target),
+                sim.world().cellY(target), tube.faction, sim)) return 0;
+        return INCENDIARY_ROUND_HEAT;
     }
 
     /** The fire mission {@code squadId}'s order carries, or null. */

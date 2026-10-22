@@ -43,29 +43,15 @@ class MechFittingDollCatalogTest {
         assertEquals(2, houndShoulder.gridRows());
         assertEquals(SocketType.MISSILE, houndShoulder.type());
 
-        // Sirocco: 1 Nose (3x2) and 2 Shoulders (3x2)
         DollDef sirocco = catalog.doll(MechVariant.SIROCCO);
         assertEquals(6, sirocco.sockets().size());
-        SocketDef siroccoNose = socket(sirocco, SocketId.ARMS);
-        assertEquals("NOSE CANNON", siroccoNose.label());
-        assertEquals(3, siroccoNose.gridColumns());
-        assertEquals(2, siroccoNose.gridRows());
+        assertEquals("NOSE CANNON", socket(sirocco, SocketId.ARMS).label());
 
-        SocketDef siroccoL = socket(sirocco, SocketId.LEFT_SHOULDER);
-        assertEquals(2, siroccoL.gridColumns());
-        assertEquals(3, siroccoL.gridRows());
-
-        SocketDef siroccoR = socket(sirocco, SocketId.RIGHT_SHOULDER);
-        assertEquals(2, siroccoR.gridColumns());
-        assertEquals(3, siroccoR.gridRows());
-
-        // Bulwark: Arm Assembly (3x2) and 2 Shoulders (3x2)
         DollDef bulwark = catalog.doll(MechVariant.BULWARK);
-        assertEquals(6, bulwark.sockets().size());
-        SocketDef bulwarkArms = socket(bulwark, SocketId.ARMS);
-        assertEquals("ARM ASSEMBLY", bulwarkArms.label());
-        assertEquals(3, bulwarkArms.gridColumns());
-        assertEquals(2, bulwarkArms.gridRows());
+        assertEquals(7, bulwark.sockets().size(), "a socket for each arm in place of one arm assembly");
+        assertEquals("L. ARM", socket(bulwark, SocketId.LEFT_ARM).label());
+        assertEquals("R. ARM", socket(bulwark, SocketId.RIGHT_ARM).label());
+        assertTrue(bulwark.sockets().stream().noneMatch(socket -> socket.id() == SocketId.ARMS));
     }
 
     @Test

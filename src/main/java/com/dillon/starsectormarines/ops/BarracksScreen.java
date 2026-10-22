@@ -35,7 +35,7 @@ public final class BarracksScreen implements Screen {
     private static final List<String> COMPONENT_PATHS = List.of(
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
-            "data/ui/components/company/shipboard-barracks.mlx");
+            "data/ui/components/armory/armory-card-chip.mlx", "data/ui/components/company/shipboard-barracks.mlx");
 
     private final Reactor reactor = new Reactor();
     private final MarkupLoader markup = new MarkupLoader(
@@ -110,9 +110,8 @@ public final class BarracksScreen implements Screen {
             built.theme(MarineOpsThemes.standard());
             candidateGuide = BarracksGuideCallout.bind(built, candidate, viewModel.command(), this::close);
             candidateSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built), true);
-            for (String id : List.of("barracks-recruit-stock", "barracks-recruit-draw", "barracks-reinforce")) {
-                candidateSheets.bindLive(candidate.requireElement(id), viewModel.command()::recruitSheet);
-            }
+            candidateSheets.bindLive(candidate.requireElement("barracks-recruit-stock"), viewModel.command()::recruitSheet);
+            candidateSheets.bindLive(candidate.requireElement("barracks-fill-selected"), viewModel.command()::fillSelectedSheet);
             candidateCards = new BarracksCardBindings();
             candidateCards.update(built, candidate, viewModel, candidateSheets);
             if (viewport != null) {

@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a163a5-7ec7-7b21-a455-035f0ad4d62d",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a163a5-7ec7-7b21-a455-035f0ad4d62d\\exec-8dd38e6d-1d4b-4830-ab83-df5e5d400c84.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\asharu-battle\\surface\\raw\\regional.png",
+    "sha256": "9962ece12bb8b98db4709dceebb0945435549820d08270ce26c2479e967aa6ed",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\asharu-battle\\surface\\prompts\\regional.txt",
+  "promptSha256": "1a405a0d3fcbabca0f8233666edca139a61b09a9613b89049036be2bf43c9dc7",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Layout and colour authority: the game map of this region, magnified. Keep every region where it is.\n\nA square, straight-down orbital survey photograph of a dry desert planet, 3,400 km across the\nframe (about 3.3 km per pixel), north up. True nadir view, no perspective, no horizon, no sky,\nno clouds, no haze, no vignette, no text, labels, grid or border. Flat, even lighting: a\ncolour map, not a lit relief render, so there are no strong cast shadows.\n\nImage 1 is the layout and colour authority. It is the low-resolution game map of this very\nregion, magnified. Keep every region exactly where it is and the same colour and brightness:\nthe pale sand and cream dune seas, the tan plains, the dark brown-grey rock highlands and\nscarps (the dark mass at upper right, the dark patches at upper centre and the long dark band\ndown the left edge), the small dark basins and outcrops, and the faint olive-green flecks. Do\nnot move, add or remove any large region, and do not change the overall palette or contrast.\n\nAdd only the detail a real orbital image at this scale would show inside those regions:\nlinear dune ridges and star-dune fields with a consistent wind grain in the sand seas, branching\ndry river canyons and wadis cut into the dark highlands, eroded mesa and scarp edges with talus\nfans, salt pans and pale playa lake beds in the basins, crater-free wind-scoured bedrock, and\nalluvial fans spreading from canyon mouths onto the plains. Natural geology only: no cities,\nroads, fields or any sign of people.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "build\\asharu-surface\\guides\\regional.png",
+      "sha256": "acc5b31a80f39fcb4928f41af5bd796ddf4e06d74fc1975a2398e7211a87635a",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Layout and colour authority: the game map of this region, magnified. Keep every region where it is."
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one orbital image using your reference to preserve the layout, colours, and brightness.\n"
+  ],
+  "usage": {
+    "input_tokens": 39892,
+    "cached_input_tokens": 31872,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 449,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 56.5
+}

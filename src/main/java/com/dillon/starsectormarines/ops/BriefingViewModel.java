@@ -84,9 +84,9 @@ final class BriefingViewModel {
 
     static Map<String, Object> actingNcoPreviewProps() {
         Map<String, Object> props = campaignPreviewProps(false);
-        props.put("captains", List.of(new ChoiceRow("captain-acting-nco", "choice-row selected",
-                "No operation commander", "Home officers retain groups; remaining squads use acting NCOs",
-                false, () -> { }, null)));
+        props.put("captains", List.of(new ChoiceRow("captain-preview", "choice-row selected",
+                "Sabine Hale", "Lieutenant · 3 squad coordination", false, () -> { },
+                "graphics/portraits/portrait_mercenary01.png")));
         props.put("captainEmpty", "");
         props.put("taskForceRows", List.of(forceCard("nco-1", "Squad 01",
                 "1 squad · 12 marines", null, "", false)));

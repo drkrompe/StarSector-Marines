@@ -117,6 +117,20 @@ them.
   Comparison rows retain stable stat identities independently of translated
   labels; translation cannot merge two stats or change a meter or icon. Headings,
   subtitles and stat rows accommodate wrapped copy using the resolved font.
+  A sheet for a whole squad's card (a weapon card or a tactic sheet) also
+  carries one picture per seat, painted as three labelled fire teams of two by
+  two (the grouping the squad card's muster uses), with what the seat carries
+  beside its main item badged on the corner; a single item's sheet has none.
+  A card's sheet also prints its **issuer's stamp** under the heading: the
+  in-universe office that issued it and a serial of the card's own ("Issued by
+  Hegemony Ordnance Board · No. HG-7860"). A Restricted card adds a red banner
+  above the stamp naming the warrant it answers to, and its face, wherever the
+  card is shown small, wears the matching red seal on its corner, so a player
+  can tell a warranted card at a glance. A card shown whole, as the Loadout
+  picker's cards are, carries all three: the seal beside its name, the banner and
+  the stamp, in the same colours. The stamp is flavour drawn from the
+  card's issuing tradition; the Restricted mark is derived from what the card
+  carries, never authored beside it.
 - A **subject** is any catalog item a spec sheet can be written for. A marine,
   a squad, or a doctrine template is a dossier rather than a subject: it is
   described by its own screen, and only the catalog items it names carry

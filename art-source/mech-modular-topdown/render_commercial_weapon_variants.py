@@ -22,7 +22,7 @@ def commercial_fit(variant):
             arm_layout="dual-narrow",
             left_pod="pioneer-rocket-cradle.png",
             right_pod="pioneer-rocket-cradle.png",
-            loadout="DUAL MUSTER AUTOGUNS  /  PIONEER  /  PIONEER",
+            loadout="2x MUSTER AUTOGUN  /  PIONEER  /  PIONEER",
         )
     if variant.name == "HOUND":
         return replace(

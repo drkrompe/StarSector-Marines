@@ -30,12 +30,13 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.SquadEquipmentResult;
+import com.dillon.starsectormarines.marine.SquadWeaponIssue;
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import java.util.Collections;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
-import com.dillon.starsectormarines.ops.EquipmentDoctrineDesignerViewModel;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.ops.battleview.ShotFx;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
-import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -51,6 +52,7 @@ import java.io.ObjectOutputStream;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -153,7 +155,7 @@ class SubmodEquipmentContributionTest {
             assertEquals(loadout.primaryDef(), shot.primaryWeaponDef);
             assertTrue(ShotFx.of(shot).body() instanceof ShotFx.Sprite);
 
-            MarineRoster playerRoster = playerCanLearnAuthorIssueAndDeployContributedKit();
+            MarineRoster playerRoster = playerCanLearnIssueAndDeployContributedKit();
             // Weapons are authored per billet, so the contributed rifle and
             // special land on billet one by construction. Armour is issued by
             // role, so which billet wears the contributed suit is the sheet's
@@ -175,8 +177,10 @@ class SubmodEquipmentContributionTest {
             FactionEquipmentCatalog.install(oldFactionEquipment);
             MarineRoster repaired = deserialize(providerSave);
             assertEquals("weapon.field-rifle", repaired.activeSoldiers().get(0).primaryId());
-            assertEquals("armor.field-fatigues",
-                    repaired.activeSoldiers().get(ceramicBillet).armorId());
+            // The seat is dressed from the squad's sheet again, which no longer has the suit.
+            String repairedArmor = repaired.activeSoldiers().get(ceramicBillet).armorId();
+            assertNotEquals("example.armor-ceramic", repairedArmor);
+            MarineArmorCatalogRegistry.require(repairedArmor);
             assertNull(repaired.activeSoldiers().get(0).specialEquipmentId());
 
             WeaponRegistry.install(weapons);
@@ -194,7 +198,7 @@ class SubmodEquipmentContributionTest {
         }
     }
 
-    private static MarineRoster playerCanLearnAuthorIssueAndDeployContributedKit() {
+    private static MarineRoster playerCanLearnIssueAndDeployContributedKit() {
         String primaryTemplate = "equipment-template:example.weapon-needle-rifle:service";
         String armorTemplate = "equipment-template:example.armor-ceramic";
         String specialTemplate = "equipment-template:example.special-signal-smoke";
@@ -204,29 +208,13 @@ class SubmodEquipmentContributionTest {
         assertTrue(roster.armory().acquireEquipmentTemplate(armorTemplate));
         assertTrue(roster.armory().acquireEquipmentTemplate(specialTemplate));
 
-        EquipmentDoctrineDesignerViewModel designer = new EquipmentDoctrineDesignerViewModel(
-                new Reactor(), roster, null, null);
-        for (int attempt = 0; attempt < 20
-                && !"example.weapon-needle-rifle".equals(
-                designer.viewerBilletAt(0).primaryId()); attempt++) {
-            designer.billets().get().get(0).cyclePrimary().run();
-        }
-        assertEquals("example.weapon-needle-rifle", designer.viewerBilletAt(0).primaryId(),
-                "a learned contributed primary must appear in the doctrine picker");
-        for (int attempt = 0; attempt < 20
-                && !"example.special-signal-smoke".equals(
-                designer.viewerBilletAt(0).specialEquipmentId()); attempt++) {
-            designer.billets().get().get(0).cycleSpecial().run();
-        }
-        assertEquals("example.special-signal-smoke",
-                designer.viewerBilletAt(0).specialEquipmentId(),
-                "a learned contributed special must appear in the doctrine picker");
-        designer.newDraft().run();
-        designer.editName().accept("OC Needle Issue");
-        designer.saveAsNew().run();
-        SquadWeaponDoctrine weapons = roster.armory().weaponDoctrines().stream()
-                .filter(doctrine -> "OC Needle Issue".equals(doctrine.displayName()))
-                .findFirst().orElseThrow();
+        // The player never authors a card. A contributed weapon reaches the field
+        // on a card its author ships, registered here under that card's fixed id.
+        SquadWeaponDoctrine weapons = roster.armory().ensureWeaponDoctrine(
+                "example:weapons:needle-issue", "OC Needle Issue",
+                Collections.nCopies(MarineSquad.CAPACITY, new SquadWeaponIssue("Rifleman",
+                        "example.weapon-needle-rifle", EquipmentGrade.SERVICE,
+                        "example.special-signal-smoke")));
 
         // Armour is issued by plan rather than authored a billet at a time,
         // so a contributed pattern proves itself by being reachable through a

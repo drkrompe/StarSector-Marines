@@ -78,7 +78,7 @@ public final class ArmorDropScene implements BehaviorScene {
 
     private static MechDeploymentSpec named(MechVariant variant, String callsign) {
         return new MechDeploymentSpec(variant, variant.defaultRole, MissileReplenisherComponent.STANDARD,
-                variant.arms, variant.leftShoulder, variant.rightShoulder, callsign);
+                variant.stockArmWeapon(), variant.leftShoulder, variant.rightShoulder, callsign);
     }
 
     private Trace playOne(FrameSink frames) {

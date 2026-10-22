@@ -58,6 +58,10 @@ public final class CivilianRescueMissionResolution {
         CivilianRescueEvent.Result resolved = CivilianRescueEvent.resolve(
                 state, outcome.campaignEventId, outcome.civiliansRescued, day);
         if (resolved == CivilianRescueEvent.Result.RESOLVED) {
+            // The bloom behind the call reads this on its next tick (RavBloomSystem).
+            if (outcome.motherBoreCollapsed) {
+                state.ravBlooms().recordMotherBoreCollapsed(outcome.campaignEventId);
+            }
             return Result.RESOLVED;
         }
         if (resolved == CivilianRescueEvent.Result.ALREADY_TERMINAL) {

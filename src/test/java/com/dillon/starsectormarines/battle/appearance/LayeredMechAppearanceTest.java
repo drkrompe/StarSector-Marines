@@ -62,7 +62,7 @@ public class LayeredMechAppearanceTest {
         long mech = sim.spawn(new EntitySpec("mech", Faction.DEFENDER, UnitType.HEAVY_MECH, 5, 5));
         long target = sim.spawn(new EntitySpec("target", Faction.MARINE, UnitType.MARINE, 8, 5));
         MechLoadoutComponent loadout = MechLoadoutComponent.defaultLoadout(MechRole.ARMORED_SUPPORT);
-        MechWeaponMount arms = loadout.mount(MechMountSlot.ARMS);
+        MechWeaponMount arms = loadout.mount(MechMountSlot.LEFT_ARM);
         MechWeaponMount srm = loadout.mount(MechMountSlot.LEFT_SHOULDER);
         arms.burstRemaining = 4;
         arms.burstTimer = arms.weaponDef().burstSpacing * 0.5f;

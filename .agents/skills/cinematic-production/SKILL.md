@@ -24,6 +24,10 @@ shot with a larger production.
   or motion troubleshooting.
 - Read [dynamic objects](references/dynamic-objects.md) for ships, shuttles,
   cranes, landing mechanisms, and any object whose details must survive movement.
+- Read [render layers](references/render-layers.md) when staging a shot that will
+  go through review rounds or carries effects or a large backdrop.
+- Read [motion previews](references/motion-preview.md) before reviewing any new or
+  re-timed shot's motion, and when wiring a builder for previews.
 
 The references distinguish demonstrated techniques from work still to be proved.
 Do not describe a concept sheet as a registered texture or the approved still
@@ -55,6 +59,35 @@ look as an already completed animation.
    the shot. Check both the visible result and the geometry/registration facts
    affected by the change. Continue an already authorized stage without adding
    approval gates; pause at review when the user explicitly requested it.
+
+## Review motion on a preview first
+
+Every new or re-timed shot's motion and composition is reviewed on a motion preview
+before its first lit review render (owner, 2026-10-22: motion is the hardest thing to
+judge, so judge it early and nearly free). A preview is the whole shot in Workbench at
+half size: each craft a flat colour with a legend, plumes as cones sized by throttle,
+effects as timed proxies, frame, timecode, shot id and safe areas burnt in, assembled
+into an MP4 at real speed. See [motion previews](references/motion-preview.md).
+
+- Queue it as a light-lane job on `machine: any`, never from a session's shell.
+- Show the owner the MP4 and a still per shot, with the decision questions first.
+- Use it to judge paths, timing, spacing, speed, attitude and bank, framing, what is
+  in frame when, and whether every moving craft's drive is lit. It would have caught
+  Asharu's lockstep, straight-line ships and C4's traffic flying with no plumes.
+- It cannot judge lighting, materials, volume or plume look, motion blur or depth of
+  field. Those wait for a lit still or a short lit span once motion is settled.
+- After a re-time, preview again before re-rendering lit frames.
+
+## Plan render layers before the first final
+
+Decide a shot's layers when it is blocked, not after a final comes back wrong.
+Read [render layers](references/render-layers.md) before staging any shot that
+will take more than one review round or carries effects. Separate layers by how
+often they will change and how much they cost, keep every light source in the
+layer whose surfaces it lights, and composite deterministically (owner,
+2026-10-22: "it might be good for us to start doing that more"). Both C4's
+missing-plume repair and Asharu's backdrop work were composite jobs; planned
+layers make that a recomposite in seconds instead of a two-hour frame.
 
 ## Every moving craft shows its drive
 

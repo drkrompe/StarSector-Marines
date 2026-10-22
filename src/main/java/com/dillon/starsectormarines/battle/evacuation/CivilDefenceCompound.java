@@ -166,12 +166,23 @@ public final class CivilDefenceCompound {
 
     /** Plans the dressing of the wall round {@code shelter}; null when the shelter stands in no closed wall. */
     static Plan plan(BattleSimulation sim, PointOfInterest shelter, CivilianEvacuationPlacement placement) {
+        return plan(sim, shelter.centerX(), shelter.centerY(), placement.shelterApproachX, placement.shelterApproachY,
+                placement.liftX, placement.liftY, WALL_REACH);
+    }
+
+    /**
+     * Plans the dressing of the perimeter wall within {@code wallReach} of
+     * {@code (sx, sy)}: the yard is what {@code (insideX, insideY)} reaches
+     * without crossing it, and the main gate is the one nearest
+     * {@code (towardX, towardY)}. Null when no closed wall stands there.
+     */
+    static Plan plan(BattleSimulation sim, int sx, int sy, int insideX, int insideY, int towardX, int towardY,
+                     int wallReach) {
         NavigationGrid grid = sim.getGrid();
         CellTopology topology = sim.getTopology();
         Set<Long> wall = new HashSet<>();
-        int sx = shelter.centerX(), sy = shelter.centerY();
-        for (int y = Math.max(0, sy - WALL_REACH); y <= Math.min(grid.getHeight() - 1, sy + WALL_REACH); y++) {
-            for (int x = Math.max(0, sx - WALL_REACH); x <= Math.min(grid.getWidth() - 1, sx + WALL_REACH); x++) {
+        for (int y = Math.max(0, sy - wallReach); y <= Math.min(grid.getHeight() - 1, sy + wallReach); y++) {
+            for (int x = Math.max(0, sx - wallReach); x <= Math.min(grid.getWidth() - 1, sx + wallReach); x++) {
                 if (topology.isWall(x, y) && InstallationWalls.PERIMETER.equals(topology.getSurfaceId(x, y))) {
                     wall.add(key(x, y));
                 }
@@ -195,8 +206,8 @@ public final class CivilDefenceCompound {
         // Inside: what the shelter door reaches without crossing the wall or a gate.
         Set<Long> inside = new HashSet<>();
         ArrayDeque<int[]> queue = new ArrayDeque<>();
-        queue.add(new int[]{placement.shelterApproachX, placement.shelterApproachY});
-        inside.add(key(placement.shelterApproachX, placement.shelterApproachY));
+        queue.add(new int[]{insideX, insideY});
+        inside.add(key(insideX, insideY));
         while (!queue.isEmpty()) {
             int[] c = queue.poll();
             // Past the wall's own extent is out of the compound: a wall with a hole in it.
@@ -229,7 +240,7 @@ public final class CivilDefenceCompound {
             int[] first = crossing.get(0);
             int[] in = inward(first, inside);
             if (in == null) continue;
-            int distance = Math.abs(first[0] - placement.liftX) + Math.abs(first[1] - placement.liftY);
+            int distance = Math.abs(first[0] - towardX) + Math.abs(first[1] - towardY);
             if (distance < mainDistance) {
                 main = first;
                 mainDistance = distance;
@@ -299,6 +310,32 @@ public final class CivilDefenceCompound {
         return new Plan(l, t, r, b, cells, guns, posts, lamps, main[0], main[1]);
     }
 
+    /**
+     * A walled place dressed as the compound's wall is: its ground, its gun
+     * towers' centres (seated by the caller), the wall posts behind its slits
+     * and its main gate.
+     */
+    public record Dressed(int left, int top, int right, int bottom, List<int[]> guns, List<int[]> posts,
+                          int gateX, int gateY) { }
+
+    /**
+     * Dresses the perimeter wall round {@code (sx, sy)} on the live map, the
+     * way the militia dress the compound's: towers, a gun tower beside each
+     * gate, slits along the runs and floodlights ({@code cordon-nouns.md},
+     * Field redoubt). Null, having laid nothing, when no closed wall stands
+     * within {@code reach}.
+     */
+    public static Dressed dress(BattleSimulation sim, int sx, int sy, int insideX, int insideY,
+                                int towardX, int towardY, int reach) {
+        Plan plan = plan(sim, sx, sy, insideX, insideY, towardX, towardY, reach);
+        if (plan == null) return null;
+        lay(sim, plan);
+        List<int[]> posts = new ArrayList<>();
+        for (RedoubtWorks.Bag post : plan.posts()) posts.add(new int[]{post.x(), post.y()});
+        return new Dressed(plan.left(), plan.top(), plan.right(), plan.bottom(), List.copyOf(plan.guns()),
+                List.copyOf(posts), plan.gateX(), plan.gateY());
+    }
+
     /** A gun tower on one flank of a gate: its gun on the line of the wall behind slits, a floodlight inside the other flank. */
     private static void gunTower(List<int[]> crossing, int[] in, Set<Long> wall, Set<Long> inside, Open open,
                                  Map<Long, Kind> cells, List<int[]> guns, List<NightLighting.Lamp> lamps) {
@@ -337,7 +374,7 @@ public final class CivilDefenceCompound {
         }
     }
 
-    private static NightLighting.Lamp floodlight(int x, int y, int outX, int outY) {
+    static NightLighting.Lamp floodlight(int x, int y, int outX, int outY) {
         float bearing = (float) Math.toDegrees(Math.atan2(outY, outX));
         return new NightLighting.Lamp(x + 0.5f, y + 0.5f, 9f, 1f, 0.93f, 0.78f, LIGHT_CIRCUIT,
                 NightLighting.Fixture.TRIPOD_FLOODLIGHT, bearing);
@@ -390,9 +427,15 @@ public final class CivilDefenceCompound {
                 }
             }
         }
+        addLamps(sim, plan.lamps());
+    }
+
+    /** Adds floodlights to the map's night lighting, on the civil-defence circuit, which is powered. */
+    static void addLamps(BattleSimulation sim, List<NightLighting.Lamp> added) {
+        CellTopology topology = sim.getTopology();
         NightLighting night = topology.nightLighting();
         List<NightLighting.Lamp> lamps = new ArrayList<>(night == null ? List.of() : night.lamps());
-        lamps.addAll(plan.lamps());
+        lamps.addAll(added);
         Set<String> powered = new HashSet<>(night == null ? Set.of() : night.poweredCircuits());
         powered.add(LIGHT_CIRCUIT);
         topology.setNightLighting(new NightLighting(night == null ? 0f : night.darkness(), lamps, powered));

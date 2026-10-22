@@ -378,12 +378,11 @@ public final class SpecSheets {
 
     private static List<MechWeaponComponent> fittedComponents(MechVariant variant) {
         List<MechWeaponComponent> fitted = new ArrayList<>();
-        if (variant.arms != null) fitted.add(variant.arms);
-        if (variant.leftShoulder != null) fitted.add(variant.leftShoulder);
         // A symmetric pair is one line: the sheet is describing the hardware,
         // and saying the same sentence twice reads as a rendering fault.
-        if (variant.rightShoulder != null && variant.rightShoulder != variant.leftShoulder) {
-            fitted.add(variant.rightShoulder);
+        for (MechWeaponComponent component : new MechWeaponComponent[] {variant.arms, variant.leftArm,
+                variant.rightArm, variant.leftShoulder, variant.rightShoulder}) {
+            if (component != null && !fitted.contains(component)) fitted.add(component);
         }
         return fitted;
     }

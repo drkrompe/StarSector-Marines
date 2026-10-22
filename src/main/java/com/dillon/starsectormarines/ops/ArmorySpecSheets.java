@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.reactive.Signal;
@@ -32,19 +33,20 @@ final class ArmorySpecSheets {
 
     private ArmorySpecSheets() { }
 
-    /** Fixed comparison positions resolve their sheets again after every billet or draft change. */
+    /**
+     * Each kit line of each marine in the squad view: the item the selected card would
+     * issue there, or the one carried now where nothing changes. Resolved again on
+     * every hover, so a billet or draft change needs no rebinding.
+     */
     static void bindInspection(SpecSheetBinder binder, MarkupInstance markup,
-                               Signal<Map<String, Object>> inspection) {
-        for (int kind = 0; kind < 3; kind++) for (String side : List.of("current", "proposed")) {
-            int index = kind;
-            bind(binder, markup, "loadout-item:" + kind + ":" + side, () -> inspectionSheet(inspection, index, side));
+                               Supplier<Map<String, Object>> inspection) {
+        for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
+            for (int part = 0; part < LoadoutInspection.PARTS; part++) {
+                int index = billet, line = part;
+                bind(binder, markup, LoadoutInspection.partId(billet, part),
+                        () -> LoadoutInspection.partSheet(inspection.get(), index, line));
+            }
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static SpecSheet inspectionSheet(Signal<Map<String, Object>> inspection, int kind, String side) {
-        var items = (List<Map<String, Object>>) inspection.get().get("items");
-        return (SpecSheet) ((Map<String, Object>) items.get(kind).get(side)).get("sheet");
     }
 
     /** The four equipment labels on each marine dossier. */
@@ -62,25 +64,6 @@ final class ArmorySpecSheets {
                     FleetArmoryViewModel.MarineViewerCard::specialSheet));
             bind(binder, markup, card.systemId(), () -> at(cards, slot,
                     FleetArmoryViewModel.MarineViewerCard::systemSheet));
-        }
-    }
-
-    /**
-     * The primary and specialty a billet is being authored with in the doctrine
-     * designer. Role and grade are not catalog items and carry no sheet; armour
-     * is not authored here at all — the squad's tactic sheet issues it.
-     */
-    static void bindBilletCards(
-            SpecSheetBinder binder, MarkupInstance markup,
-            Signal<List<EquipmentDoctrineDesignerViewModel.BilletCard>> cards) {
-        List<EquipmentDoctrineDesignerViewModel.BilletCard> projected = cards.get();
-        for (int index = 0; index < projected.size(); index++) {
-            EquipmentDoctrineDesignerViewModel.BilletCard card = projected.get(index);
-            int slot = index;
-            bind(binder, markup, card.primaryId(), () -> at(cards, slot,
-                    EquipmentDoctrineDesignerViewModel.BilletCard::primarySheet));
-            bind(binder, markup, card.specialId(), () -> at(cards, slot,
-                    EquipmentDoctrineDesignerViewModel.BilletCard::specialSheet));
         }
     }
 
@@ -105,12 +88,34 @@ final class ArmorySpecSheets {
                     FleetArmoryViewModel.DoctrineTile::distributionSpans);
             bindSpans(binder, markup, tiles, tile.id(), tile.carriesSpans(),
                     FleetArmoryViewModel.DoctrineTile::carriesSpans);
+            // Each seat of the card's fire-team picture describes the weapon or suit it shows.
+            for (int index = 0; index < tile.seatSheets().size(); index++) {
+                UiElement element = markup.requireElement(seatId(tile.id(), index));
+                if (binder.isBound(element)) continue;
+                int slot = index;
+                String tileId = tile.id();
+                binder.bind(element, () -> seatSheetAt(tiles, tileId, slot));
+            }
         }
+    }
+
+    /** The element a loadout card paints its {@code index}th seat on. */
+    static String seatId(String tileId, int index) {
+        return tileId + ":seat-" + index;
+    }
+
+    private static SpecSheet seatSheetAt(Signal<List<FleetArmoryViewModel.DoctrineTile>> tiles,
+                                         String tileId, int slot) {
+        for (FleetArmoryViewModel.DoctrineTile tile : tiles.get()) {
+            if (tile.id().equals(tileId)) return slot < tile.seatSheets().size() ? tile.seatSheets().get(slot) : null;
+        }
+        return null;
     }
 
     /** The first loadout entry {@link #bindDoctrineTiles} binds, for headless evidence. */
     static String firstSpecSheetAnchorId(List<FleetArmoryViewModel.DoctrineTile> tiles) {
         for (FleetArmoryViewModel.DoctrineTile tile : tiles) {
+            if (!tile.seatSheets().isEmpty()) return seatId(tile.id(), 0);
             for (FleetArmoryViewModel.DoctrineSpan span : tile.distributionSpans()) {
                 if (span.sheet() != null) return span.id();
             }

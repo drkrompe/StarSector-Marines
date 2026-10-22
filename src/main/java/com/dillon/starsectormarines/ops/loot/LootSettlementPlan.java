@@ -38,6 +38,15 @@ public final class LootSettlementPlan {
         this.fencedUnits = bounded(fencedUnits);
     }
 
+    /** Hold space the kept lines take in one bucket. */
+    public float keptSpace(LootCapacityBucket bucket) {
+        float total = 0f;
+        for (LootSettlementLine line : lines) {
+            if (line.bucket == bucket) total += line.keptSpace;
+        }
+        return total;
+    }
+
     public boolean isEmpty() {
         return lines.isEmpty();
     }

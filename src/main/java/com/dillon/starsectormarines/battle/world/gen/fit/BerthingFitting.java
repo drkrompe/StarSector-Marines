@@ -33,12 +33,11 @@ import java.util.List;
 public final class BerthingFitting implements RoomFitting {
 
     /**
-     * Cells one rack takes, head to foot, aboard or on the ground. A cell is
-     * about 0.75 m, so a bunk is 2.25 m of frame round a two-metre mattress, and
-     * the ground's residential single bed is 2.1 m: what a crewman of 1.8 m
-     * actually lies in. Two cells was a metre and a half and nobody fitted.
+     * Cells one rack takes, head to foot, aboard or on the ground. The figure is
+     * drawn at head-and-shoulders scale, a cell a crewman's shoulders and a bit,
+     * so a three-cell bed read as one for a giant: a bed is a pair of cells.
      */
-    private static final int RACK_DEPTH = 3;
+    private static final int RACK_DEPTH = 2;
     /** Clear deck between the ranks. Two abreast, as everywhere else. */
     private static final int AISLE = 2;
 
@@ -215,20 +214,16 @@ public final class BerthingFitting implements RoomFitting {
             if (taken[slot]) continue;
             if (shipboard) {
                 // A bunk is worked from the passage at its foot. A locker bank is
-                // a cell shorter than a bunk, so it stands against the hull and is
-                // opened from the alcove that leaves between the bunks either side.
+                // two cells, the bunk's own length, and is opened from the passage.
                 boolean storage = doorSide ? slot == 0 || slot == along - 1 : slot == divider;
-                int standingRow = storage ? (headOutboard ? band + depth - 1 : band)
-                        : headOutboard ? band + depth : band - 1;
-                int fixtureRow = storage ? (headOutboard ? band + depth - 2 : band + 1) : inboard;
-                int baseRow = storage && !headOutboard ? band + 1 : band;
+                int standingRow = headOutboard ? band + depth : band - 1;
                 String id = storage ? (doorSide ? "locker" : "locker-open") : "bed";
                 List<LayoutOp.Layer> layers = storage ? List.of() : List.of(
                         new LayoutOp.Layer(0, 0, SHIP_KIT + (headOutboard ? "bedding-low" : "bedding-high")),
                         new LayoutOp.Layer(0, 0, SHIP_KIT + "frame"));
-                if (floor.placeAssembly(slot, baseRow, SHIP_KIT + id, layers)) {
+                if (floor.placeAssembly(slot, band, SHIP_KIT + id, layers)) {
                     int[] stand = floor.toLocal(slot, standingRow);
-                    int[] fixture = floor.toLocal(slot, fixtureRow);
+                    int[] fixture = floor.toLocal(slot, inboard);
                     floor.fixtureTask(stand[0], stand[1], storage ? Affordance.STOW : Affordance.REST,
                             fixture[0], fixture[1]);
                 }
@@ -237,15 +232,10 @@ public final class BerthingFitting implements RoomFitting {
             if (doorSide && (slot == 0 || slot == along - 1)) {
                 // Stowage at the ends of the rank the hatches are in, which is
                 // where somebody coming off watch actually drops their kit. The
-                // locker stands a cell short of the passage, opened from the
-                // alcove that leaves between the racks either side; the bag
-                // behind it is scenery.
+                // locker is the cell against the passage so it can be opened
+                // from it; the bag behind it is scenery.
                 place(floor, slot, outboard, KIT);
-                int[] at = floor.toLocal(slot, band + 1);
-                if (floor.place(locker, at[0], at[1])) {
-                    int[] stand = floor.toLocal(slot, inboard);
-                    floor.fixtureTask(stand[0], stand[1], Affordance.STOW, at[0], at[1]);
-                }
+                place(floor, slot, inboard, locker, Affordance.STOW);
             } else if (!doorSide && slot == divider) {
                 for (int row = band; row < band + depth; row++) place(floor, slot, row, STANCHION);
             } else {
@@ -278,6 +268,12 @@ public final class BerthingFitting implements RoomFitting {
     private void place(RoomFloor floor, int along, int across, String id) {
         int[] cell = floor.toLocal(along, across);
         floor.place(id, cell[0], cell[1]);
+    }
+
+    private void place(RoomFloor floor, int along, int across,
+                       String id, Affordance affordance) {
+        int[] cell = floor.toLocal(along, across);
+        floor.place(id, cell[0], cell[1], affordance);
     }
 
     private void reserve(RoomFloor floor,

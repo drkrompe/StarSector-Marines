@@ -163,6 +163,9 @@ public final class BattleComponents {
     public static final int MECH_LAYERED_RIGHT_SHOULDER = 9;
     /** Field 10: locomotion/hip facing used by the independently planted feet (FLOAT). */
     public static final int MECH_LAYERED_HIP_FACING_DEGREES = 10;
+    /** Fields 11..12: the gun on each arm of a two-armed chassis; zero (none) on a centreline chassis (INT). */
+    public static final int MECH_LAYERED_LEFT_ARM = 11;
+    public static final int MECH_LAYERED_RIGHT_ARM = 12;
 
     /** {@link #MECH_LOCOMOTION} field 0: persistent chassis heading in sprite degrees (FLOAT). */
     public static final int MECH_LOCOMOTION_FACING_DEGREES = 0;
@@ -1254,7 +1257,7 @@ public final class BattleComponents {
         MECH_LAYERED_ANIMATION = world.register(32, "MechLayeredAnimation",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.INT,
-                FieldKind.INT, FieldKind.INT, FieldKind.FLOAT);
+                FieldKind.INT, FieldKind.INT, FieldKind.FLOAT, FieldKind.INT, FieldKind.INT);
         MECH_LOCOMOTION = world.register(33, "MechLocomotion",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT);
         TELEMETRY       = world.register(34, "Telemetry",

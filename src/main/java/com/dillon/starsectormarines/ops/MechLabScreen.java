@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -12,6 +14,8 @@ import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.battleview.MechLabCameraController;
 import com.dillon.starsectormarines.ops.battleview.MechChassisPreviewCanvas;
+import com.dillon.starsectormarines.ops.battleview.LanceSlotCanvas;
+import com.dillon.starsectormarines.ops.battleview.VehiclePreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechEquipmentGridCanvas;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
@@ -161,7 +165,8 @@ public final class MechLabScreen implements Screen {
                             this::currentBayId,
                             () -> previewSeconds,
                             viewModel::hoveredWeapon)
-                    .withOccupiedGantries(viewModel::occupiedGantries);
+                    .withOccupiedGantries(viewModel::occupiedGantries)
+                    .withSideShift(() -> cameraController.pose().sideShift());
             dollCanvas.installedInternals(viewModel::installedInternal);
             built.canvases().set(dollElement, dollCanvas);
             inventoryDropElement = candidate.requireElement("mech-component-catalog");
@@ -203,23 +208,19 @@ public final class MechLabScreen implements Screen {
         props.put("squadRows", viewModel.squadRows());
         props.put("mechRows", viewModel.mechRows());
         props.put("gantryRows", viewModel.gantryRows());
-        props.put("activeGantryLabel", viewModel.activeGantryLabel());
         props.put("garageTitle", viewModel.garageTitle());
-        props.put("selectedMechName", viewModel.selectedMechName());
-        props.put("selectedMechNameClasses", viewModel.selectedMechNameClasses());
-        props.put("callSignDraft", viewModel.callSignDraft());
-        props.put("callSignEditorClasses", viewModel.callSignEditorClasses());
-        props.put("callSignRenameDisabled", viewModel.callSignRenameDisabled());
-        props.put("editCallSign", viewModel.editCallSignAction());
-        props.put("renameCallSign", viewModel.renameCallSignAction());
-        props.put("selectedMechIdentity", viewModel.selectedMechIdentity());
-        props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());
+        props.put("garageStatus", viewModel.garageStatus());
+        props.put("dragNoteTitle", viewModel.dragNoteTitle());
+        props.put("dragNoteCopy", viewModel.dragNoteCopy());
+        props.put("scrapLabel", viewModel.scrapLabel());
+        props.put("scrapClasses", viewModel.scrapClasses());
+        props.put("scrapAction", viewModel.scrapAction());
         props.put("performanceMeters", viewModel.performanceMeters());
         viewModel.putInternalProps(props);
         viewModel.putRepairProps(props);
         props.put("leftSlotRows", viewModel.leftSlotRows());
         props.put("rightSlotRows", viewModel.rightSlotRows());
-        props.put("slotRows", viewModel.slotRows());
+        props.put("slotRows", viewModel.selectedSlotRows());
         props.put("selectedSlotTitle", viewModel.selectedSlotTitle());
         props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
         props.put("selectedSlotRule", viewModel.selectedSlotRule());
@@ -228,16 +229,13 @@ public final class MechLabScreen implements Screen {
         props.put("pickerClasses", viewModel.pickerClasses());
         props.put("workspaceClasses", viewModel.workspaceClasses());
         props.put("fittingHeaderClasses", viewModel.fittingHeaderClasses());
+        props.put("backToLance", viewModel.overviewAction());
         props.put("performanceClasses", viewModel.performanceClasses());
         props.put("catalogClasses", viewModel.catalogClasses());
         props.put("slotRackClasses", viewModel.slotRackClasses());
         props.put("overviewRailClasses", viewModel.overviewRailClasses());
         props.put("openAssetPicker", viewModel.openAssetPickerAction());
         props.put("closeAssetPicker", viewModel.closeAssetPickerAction());
-        props.put("previousGantry", viewModel.previousGantryAction());
-        props.put("nextGantry", viewModel.nextGantryAction());
-        props.put("feedbackText", viewModel.feedbackText());
-        props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("categoryFilterPills", viewModel.categoryFilterPills());
         props.put("categoryFilterClasses", viewModel.categoryFilterClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
@@ -256,9 +254,30 @@ public final class MechLabScreen implements Screen {
      * when the player moves from a fitted gantry to a vacant one. Wire every
      * newly attached chassis, equipment, and socket-grid canvas after reconciliation.
      */
+    /** The picker's pad tiles and asset-card thumbnails; keyed by occupant, so a changed pad is a new canvas. */
+    private void wireLancePictures(MarkupInstance instance, UiDocument target) {
+        for (MechLabViewModel.SquadRow squad : viewModel.squadRows().get()) {
+            for (MechLabViewModel.LanceSlot slot : squad.slots()) {
+                UiElement canvas = instance.requireElement(slot.id());
+                if (target.canvases().producerOf(canvas) == null) {
+                    target.canvases().set(canvas, new LanceSlotCanvas(slot.letter(), slot.variant(), slot.vehicle(),
+                            () -> previewSprites().layeredMechSprites()));
+                }
+            }
+        }
+        for (MechLabViewModel.MechRow row : viewModel.mechRows().get()) {
+            UiElement canvas = instance.requireElement(row.previewId());
+            if (target.canvases().producerOf(canvas) == null) {
+                target.canvases().set(canvas, new LanceSlotCanvas(row.letter(),
+                        row.variant(), row.vehicle(), () -> previewSprites().layeredMechSprites()));
+            }
+        }
+    }
+
     private void wireEquipmentPreviews(MarkupInstance instance, UiDocument target,
                                        SpecSheetBinder sheets) {
         MechLabSpecSheets.bindCatalogRows(sheets, instance, viewModel.catalogRows().get(), viewModel);
+        wireLancePictures(instance, target);
         MechLabSpecSheets.bindMaterials(sheets, instance, viewModel);
         MechLabSpecSheets.bindActions(sheets, instance, viewModel);
         for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
@@ -267,13 +286,18 @@ public final class MechLabScreen implements Screen {
                 if (row.chassisPreview() != null) {
                     target.canvases().set(canvas, new MechChassisPreviewCanvas(
                             row.chassisPreview(), () -> previewSprites().layeredMechSprites()));
-                } else if (row.weaponPreview() != null || row.replenisherPreview() != null) {
+                } else if (row.vehiclePreview() != null) {
+                    target.canvases().set(canvas, new VehiclePreviewCanvas(row.vehiclePreview()));
+                } else if (row.weaponPreview() != null || row.replenisherPreview() != null
+                        || row.internalPreview() != null) {
                     target.canvases().set(canvas, MechEquipmentGridCanvas.catalog(
-                            row.weaponPreview(), row.replenisherPreview(),
+                            row.weaponPreview(), row.replenisherPreview(), row.internalPreview(),
                             () -> previewSprites().layeredMechSprites()));
                 }
-                if (row.weaponPreview() != null) {
-                    canvas.onPointerDown(event -> beginCatalogWeaponDrag(event, row.weaponPreview()));
+                if (row.weaponPreview() != null || row.replenisherPreview() != null
+                        || row.internalPreview() != null
+                        && row.internalPreview().role != MechInternal.Role.PLATING) {
+                    canvas.onPointerDown(event -> beginCatalogDrag(event, row));
                     canvas.onPointerMove(this::moveWeaponDrag);
                     canvas.onPointerUp(this::finishWeaponDrag);
                 }
@@ -288,13 +312,14 @@ public final class MechLabScreen implements Screen {
                 }
             });
         }
-        for (MechLabViewModel.SlotRow row : viewModel.slotRows().get()) {
+        for (MechLabViewModel.SlotRow row : viewModel.selectedSlotRows().get()) {
             UiElement canvas = instance.requireElement(row.gridId());
             if (target.canvases().producerOf(canvas) == null) {
                 target.canvases().set(canvas, new MechEquipmentGridCanvas(
                         () -> viewModel.socketDefinition(row.socketId()),
                         () -> viewModel.installedWeapon(row.socketId()),
                         () -> viewModel.installedReplenisher(row.socketId()),
+                        () -> viewModel.installedInternal(row.socketId()),
                         () -> viewModel.socketOccupied(row.socketId()),
                         () -> previewSprites().layeredMechSprites()));
             }
@@ -308,14 +333,11 @@ public final class MechLabScreen implements Screen {
                 "page-nav-mech-lab", "page-nav-boats",
                 "mech-lab-room-bar", "mech-bay-navigator", "mech-previous-bay",
                 "mech-active-bay", "mech-next-bay", "mech-lab-body", "mech-asset-picker",
-                "mech-squad-list", "mech-list", "mech-fitting-workspace",
-                "mech-previous-gantry", "mech-active-gantry", "mech-next-gantry",
-                "mech-call-sign-editor", "mech-call-sign-input", "mech-call-sign-set",
+                "mech-squad-list", "mech-list", "mech-fitting-workspace", "mech-back-to-lance",
                 "mech-performance-grid", "mech-garage-stage", "mech-doll-canvas",
                 "mech-overview-rail", "mech-overview-gantries", "mech-overview-browse",
                 "mech-slot-rack", "mech-component-catalog",
-                "mech-catalog-list", "mech-drag-drop-note",
-                "mech-lab-feedback")) {
+                "mech-catalog-list", "mech-drag-drop-note")) {
             component.requireElement(id);
         }
     }
@@ -339,6 +361,13 @@ public final class MechLabScreen implements Screen {
         if (event.button() != PointerButton.PRIMARY) return;
         CanvasPoint point = canvasPoint(event);
         if (point == null) return;
+        SocketId strip = dollCanvas.stripAt(point.x(), point.y());
+        if (strip != null) {
+            viewModel.stripWeapon(strip);
+            document.canvases().invalidate(dollElement);
+            event.preventDefault();
+            return;
+        }
         SocketId socket = dollCanvas.socketAt(point.x(), point.y());
         MechWeaponComponent component = socket != null
                 ? viewModel.installedWeapon(socket) : null;
@@ -380,15 +409,24 @@ public final class MechLabScreen implements Screen {
         }
     }
 
-    private void beginCatalogWeaponDrag(UiPointerEvent event,
-                                        MechWeaponComponent component) {
-        if (event.button() != PointerButton.PRIMARY || component == null) return;
-        beginWeaponDrag(event, component, null);
+    /** Picks a spare up out of stores; a row with none to carry only offers its FAB button. */
+    private void beginCatalogDrag(UiPointerEvent event, MechLabViewModel.CatalogRow row) {
+        if (event.button() != PointerButton.PRIMARY) return;
+        MechWeaponComponent weapon = row.weaponPreview();
+        MechInternal internal = row.internalPreview();
+        MissileReplenisherComponent loader = row.replenisherPreview();
+        boolean spare = weapon != null ? viewModel.inStores(weapon)
+                : internal != null ? viewModel.inStores(internal) : viewModel.inStores(loader);
+        if (!spare) return;
+        weaponDrag = new WeaponDrag(weapon, internal, loader, null, event.x(), event.y());
+        weaponDragMoved = false;
+        event.capturePointer();
+        event.preventDefault();
     }
 
     private void beginWeaponDrag(UiPointerEvent event, MechWeaponComponent component,
                                  SocketId source) {
-        weaponDrag = new WeaponDrag(component, source, event.x(), event.y());
+        weaponDrag = new WeaponDrag(component, null, null, source, event.x(), event.y());
         weaponDragMoved = false;
         event.capturePointer();
         event.preventDefault();
@@ -400,14 +438,23 @@ public final class MechLabScreen implements Screen {
         float dy = event.y() - weaponDrag.startY();
         if (!weaponDragMoved && dx * dx + dy * dy < DRAG_THRESHOLD_SQUARED) return;
         weaponDragMoved = true;
-        dragGhost.show(weaponDrag.component(), event.x(), event.y());
+        WeaponDrag drag = weaponDrag;
+        if (drag.component() != null) dragGhost.show(drag.component(), event.x(), event.y());
+        else if (drag.internal() != null) dragGhost.show(drag.internal(), event.x(), event.y());
+        else dragGhost.show(drag.loader(), event.x(), event.y());
         document.canvases().invalidate(ghostElement);
         CanvasPoint point = canvasPoint(event);
         SocketId target = point != null ? dollCanvas.socketAt(point.x(), point.y()) : null;
-        boolean valid = target != null && (weaponDrag.source() == null
-                ? viewModel.canDropCatalogWeapon(weaponDrag.component(), target)
-                : viewModel.canMoveInstalledWeapon(weaponDrag.source(), target));
-        dollCanvas.previewWeaponDrag(weaponDrag.component(), weaponDrag.source(), target, valid);
+        boolean valid = target != null && (drag.source() != null
+                ? viewModel.canMoveInstalledWeapon(drag.source(), target)
+                : drag.component() != null ? viewModel.canDropCatalogWeapon(drag.component(), target)
+                : drag.internal() != null ? viewModel.canDropCatalogInternal(drag.internal(), target)
+                : viewModel.canDropCatalogLoader(drag.loader(), target));
+        if (drag.component() != null) {
+            dollCanvas.previewWeaponDrag(drag.component(), drag.source(), target, valid);
+        } else {
+            dollCanvas.previewPartDrag(target, valid);
+        }
         boolean returning = weaponDrag.source() != null && overInventory(event);
         returnDropNote.classed("drop-active", returning);
         document.canvases().invalidate(dollElement);
@@ -425,7 +472,9 @@ public final class MechLabScreen implements Screen {
             if (drag.source() != null) viewModel.selectSocket(drag.source());
         } else if (target != null && target != drag.source()) {
             if (drag.source() == null) {
-                viewModel.dropCatalogWeapon(drag.component(), target);
+                if (drag.component() != null) viewModel.dropCatalogWeapon(drag.component(), target);
+                else if (drag.internal() != null) viewModel.dropCatalogInternal(drag.internal(), target);
+                else viewModel.dropCatalogLoader(drag.loader(), target);
             } else {
                 viewModel.moveInstalledWeapon(drag.source(), target);
             }
@@ -643,6 +692,11 @@ public final class MechLabScreen implements Screen {
 
     private record CanvasPoint(float x, float y) { }
 
-    private record WeaponDrag(MechWeaponComponent component, SocketId source,
+    /**
+     * Hardware on the pointer: one of a weapon, an internal or a missile loader. Only a
+     * weapon is ever lifted off the doll ({@code source}); the others come out of stores.
+     */
+    private record WeaponDrag(MechWeaponComponent component, MechInternal internal,
+                              MissileReplenisherComponent loader, SocketId source,
                               float startX, float startY) { }
 }

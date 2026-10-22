@@ -5,8 +5,11 @@ import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
 import com.dillon.starsectormarines.battle.world.model.PropPower;
 import com.dillon.starsectormarines.battle.world.gen.ship.FacilityDressing;
 import com.dillon.starsectormarines.battle.ambient.AmbientActivity;
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
+import com.dillon.starsectormarines.battle.air.BayDoor;
 import com.dillon.starsectormarines.battle.air.ShipBayRoute;
+import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskRoute;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
@@ -37,6 +40,9 @@ import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.gen.ship.BayAperture;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
+import com.dillon.starsectormarines.battle.world.gen.ship.RoomDoor;
+import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
+import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.SquadExperienceStandard;
@@ -171,6 +177,11 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      */
     private final Map<String, Shift> watchBills = new HashMap<>();
     private final DeckGraph rooms;
+    /** Each bay door's leaves, by compartment; presentation only, advanced with the deck. */
+    private final Map<Integer, BayDoor> doorLeaves = new HashMap<>();
+    /** Every compartment's sliding door, laid once from the deck; presentation only. */
+    private List<RoomDoor> roomDoors;
+    private final LongBucket nearDoor = new LongBucket();
     private ShipDeckLighting lighting;
     private final MapResult deck;
     private final long seed;
@@ -521,9 +532,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             }
             FacingSystem.faceStanding(simulation.getEntityWorld(),
                     simulation.getBattleComponents(), mech, parkedFacing(gantry));
-            MechLoadoutComponent loadout = new MechLoadoutComponent(deployment.variant(),
-                    deployment.arms(), deployment.leftShoulder(), deployment.rightShoulder(),
-                    deployment.role());
+            MechLoadoutComponent loadout = deployment.createLoadout(deployment.role());
             loadout.installMissileReplenisher(deployment.missileReplenisher());
             simulation.world().attachMechLoadout(mech, loadout);
         }
@@ -675,6 +684,72 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     /** Every door off this deck, in the order the placer cut them. */
     public List<BayAperture> bayDoors() {
         return rooms == null ? List.of() : rooms.apertures();
+    }
+
+    /** The leaves across this bay's opening, or null for a bay with no way out. */
+    public BayDoor bayDoorLeaves(DeckGraph.Compartment bay) {
+        BayAperture aperture = bayDoor(bay);
+        return aperture == null ? null : doorLeaves.computeIfAbsent(aperture.compartmentId(), id -> new BayDoor(aperture));
+    }
+
+    /**
+     * The sliding doors in every compartment's doorway, one per run of adjacent
+     * doorway cells. A doorway the grid will not let anyone through is a sealed
+     * one, and its door is locked.
+     */
+    public List<RoomDoor> roomDoors() {
+        if (roomDoors != null) return roomDoors;
+        if (rooms == null) return roomDoors = List.of();
+        var grid = simulation.getGrid();
+        List<RoomDoor> doors = new ArrayList<>();
+        for (DeckGraph.Compartment room : rooms.compartments()) {
+            List<Doorway> left = new ArrayList<>(room.doors());
+            while (!left.isEmpty()) {
+                List<Doorway> run = new ArrayList<>(List.of(left.remove(0)));
+                for (boolean grew = true; grew; ) {
+                    grew = false;
+                    for (int i = 0; i < left.size(); i++) {
+                        Doorway cell = left.get(i);
+                        if (run.stream().anyMatch(d -> Math.abs(d.x() - cell.x()) + Math.abs(d.y() - cell.y()) == 1)) {
+                            run.add(left.remove(i)); grew = true; break;
+                        }
+                    }
+                }
+                Doorway first = run.get(0);
+                doors.add(RoomDoor.across(room, run, !grid.isWalkable(first.x(), first.y())));
+            }
+        }
+        return roomDoors = List.copyOf(doors);
+    }
+
+    /** Opens room doors for whoever is near and bay doors for the boats passing through, and closes each behind them. */
+    private void advanceDoors(float seconds) {
+        var index = simulation.getUnitIndex();
+        for (RoomDoor door : roomDoors()) {
+            boolean called = false;
+            if (!door.locked() && index != null) {
+                index.gather(door.centerX(), door.centerY(), door.callRadius(), nearDoor);
+                var world = simulation.world();
+                for (int i = 0; i < nearDoor.size && !called; i++) {
+                    long id = nearDoor.ids[i];
+                    called = world.hasPosition(id) && door.calledBy(world.x(id), world.y(id));
+                }
+            }
+            door.advance(seconds, called);
+        }
+        for (BayAperture aperture : bayDoors()) {
+            BayDoor door = doorLeaves.computeIfAbsent(aperture.compartmentId(), id -> new BayDoor(aperture));
+            boolean called = false;
+            for (long id : simulation.getAirEntityIds()) {
+                var mission = simulation.world().mission(id);
+                if (mission == null || mission.shipTransit == null
+                        || mission.state != ShuttleState.SHIP_DEPARTURE && mission.state != ShuttleState.SHIP_RETURN) continue;
+                AirBody body = simulation.world().kinematics(id);
+                if (body != null && door.calledBy(mission.shipTransit.route.aperture(),
+                        mission.shipTransit.returning, body.x, body.y)) { called = true; break; }
+            }
+            door.advance(seconds, called);
+        }
     }
 
     /** The indices of every berth on the deck that holds a machine. */
@@ -1097,6 +1172,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         float ahead = target - simulatedSeconds;
         if (ahead <= 0f) return;
         simulation.advance(Math.min(ahead, MAX_CATCH_UP_SECONDS));
+        advanceDoors(Math.min(ahead, MAX_CATCH_UP_SECONDS));
         simulatedSeconds = target;
     }
 
@@ -1198,7 +1274,8 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                 viewport.width(), viewport.height());
         RenderContext context = new RenderContext(simulation, camera, null,
                 alphaMult, 0f, false, highlights, selection,
-                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting, dressing, coreDressing, liveWave(), facilityPieces);
+                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting, dressing, coreDressing, liveWave(), facilityPieces,
+                roomDoors());
         return new BattleSceneFrame(context, layers);
     }
 
@@ -1214,7 +1291,8 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         camera.centerOn(view.centerCellX(), view.centerCellY());
         RenderContext context = new RenderContext(simulation, camera, null,
                 alphaMult, 0f, false, highlights, selection,
-                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting, dressing, coreDressing, liveWave(), facilityPieces);
+                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting, dressing, coreDressing, liveWave(), facilityPieces,
+                roomDoors());
         return new BattleSceneFrame(context, layers);
     }
 

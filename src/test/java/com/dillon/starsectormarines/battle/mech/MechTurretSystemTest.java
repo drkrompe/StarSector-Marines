@@ -51,7 +51,7 @@ class MechTurretSystemTest {
         assertEquals(-10f, loadout.torsoAngularVelocityDegrees, 0.001f);
         assertFalse(loadout.isAimedAt(target));
         MechCombatantBehavior.tryFireChaingun(mech, loadout, target, 3.7f, sim, true);
-        MechWeaponMount arms = loadout.mount(MechMountSlot.ARMS);
+        MechWeaponMount arms = loadout.mount(MechMountSlot.LEFT_ARM);
         assertEquals(0f, arms.cycleRemaining, 0.001f,
                 "a weapon must wait for the torso to traverse onto its target");
 
@@ -150,8 +150,8 @@ class MechTurretSystemTest {
         roster.entityWorld().setFloat(mech, roster.components().MECH_LOCOMOTION,
                 BattleComponents.MECH_LOCOMOTION_FACING_DEGREES, 0f);
         loadout.torsoFacingDegrees = 0f;
-        MechWeaponMount arms = loadout.mount(MechMountSlot.ARMS);
-        arms.burstRemaining = 11;
+        MechWeaponMount arms = loadout.mount(MechMountSlot.LEFT_ARM);
+        arms.burstRemaining = 5;
         arms.burstPointAim = aimAt(-90f);
         MechWeaponMount shoulder = loadout.mount(MechMountSlot.LEFT_SHOULDER);
         shoulder.burstRemaining = 3;
@@ -167,7 +167,7 @@ class MechTurretSystemTest {
         for (int tick = 0; tick < 60; tick++) turrets.tick(BattleSimulation.TICK_DT, mech, aimAt(-30f));
         assertEquals(-30f, loadout.torsoFacingDegrees, .001f,
                 "a changed cursor takes ownership without waiting for either burst to finish");
-        assertEquals(11, arms.burstRemaining, "traverse never edits weapon schedules");
+        assertEquals(5, arms.burstRemaining, "traverse never edits weapon schedules");
         assertEquals(3, shoulder.burstRemaining);
         assertEquals(0L, loadout.torsoAimTargetId);
     }

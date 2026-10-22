@@ -46,7 +46,7 @@ public class MarineRoster implements Serializable {
     /** Derived lookup only; campaign saves continue to persist the ordered soldier list. */
     private transient Map<String, MarineSoldier> soldierIndex;
     /** Withheld templates to use instead of the running campaign's; null reads the campaign. */
-    private transient Set<String> withheldTemplatesOverride;
+    private transient Set<String> withheldCardsOverride;
     private List<MarineSquad> squads = new ArrayList<>();
     private List<CaptainCandidate> captainCandidates = new ArrayList<>();
     private MarineArmory armory = new MarineArmory();
@@ -397,17 +397,6 @@ public class MarineRoster implements Serializable {
         return Collections.unmodifiableSet(completedStoryIds);
     }
 
-    /** Assigns reusable intent atomically, including to formations awaiting replacements. */
-    public boolean assignSquadProfile(Set<String> squadIds, String profileId) {
-        if (squadIds == null || squadIds.isEmpty() || armory.squadProfile(profileId) == null) return false;
-        for (String id : squadIds) {
-            MarineSquad squad = squadById(id);
-            if (squad == null || squad.reserve() || squad.stationed()) return false;
-        }
-        for (String id : squadIds) squadById(id).setSquadProfileId(profileId);
-        return true;
-    }
-
     public MarineArmory armory() { return armory; }
     public MechBay mechBay() { return mechBay; }
     public BoatDeck boatDeck() { return boatDeck; }
@@ -421,38 +410,6 @@ public class MarineRoster implements Serializable {
             }
         }
         return false;
-    }
-
-    /** Whether a fielded team or saved squad arrangement still references this template. */
-    public boolean isFireTeamTemplateReferenced(String templateId) {
-        return isFireTeamTemplateAssigned(templateId)
-                || armory.isTemplateReferencedByArrangement(templateId);
-    }
-
-    /** Custom templates may be deleted only after every live reference is removed. */
-    public boolean deleteFireTeamTemplate(String cardId) {
-        return !isFireTeamTemplateReferenced(cardId) && armory.deleteTemplateCard(cardId);
-    }
-
-    public boolean isWeaponDoctrineAssigned(String doctrineId) {
-        if (doctrineId == null) return false;
-        for (MarineSquad squad : squads) {
-            if (doctrineId.equals(squad.weaponDoctrineId())) return true;
-        }
-        return false;
-    }
-
-    public boolean isArmorDoctrineAssigned(String doctrineId) {
-        if (doctrineId == null) return false;
-        for (MarineSquad squad : squads) {
-            if (doctrineId.equals(squad.armorDoctrineId())) return true;
-        }
-        return false;
-    }
-
-    public boolean deleteWeaponDoctrine(String doctrineId) {
-        return !isWeaponDoctrineAssigned(doctrineId)
-                && armory.deleteWeaponDoctrine(doctrineId);
     }
 
     public List<MarineSoldier> soldiers() {
@@ -852,6 +809,9 @@ public class MarineRoster implements Serializable {
 
     public MarineSquad createSquad() {
         MarineSquad squad = new MarineSquad(MarineSquad.defaultName(nextSquadNumber++));
+        // A line squad always holds both cards: its seats are dressed from them.
+        squad.setEquipmentDoctrineIds(SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
+                SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR, null);
         int reserveIndex = squads.indexOf(squadById(reserveSquadId));
         if (reserveIndex >= 0) squads.add(reserveIndex, squad);
         else squads.add(squad);
@@ -1102,55 +1062,44 @@ public class MarineRoster implements Serializable {
             return squadEquipmentFailure(SquadEquipmentResult.UNKNOWN_ARMOR_DOCTRINE);
         }
 
-        List<SquadEquipmentBillet> billets = new ArrayList<>();
-        for (int index = 0; index < MarineSquad.CAPACITY; index++) {
-            SquadWeaponIssue weapon = weapons.issue(index);
-            billets.add(new SquadEquipmentBillet(
-                    weapon.role(), weapon.primaryId(), primaryGrades != null
-                            ? primaryGrades.get(index) : weapon.grade(),
-                    weapon.specialEquipmentId(), armor.issueId(index)));
-        }
+        List<SquadEquipmentBillet> billets = billets(weapons, armor, primaryGrades);
         if (squad.stationed()) {
             return new SquadEquipmentPreview(SquadEquipmentResult.STATIONED, billets);
         }
 
-        boolean ownsTemplates = true;
-        for (SquadEquipmentBillet billet : billets) {
-            ownsTemplates &= armory.ownsPrimaryTemplate(billet.primaryId(), billet.grade())
-                    && armory.ownsArmorTemplate(billet.armorId())
-                    && (billet.specialEquipmentId() == null
-                    || armory.ownsSpecialTemplate(billet.specialEquipmentId()));
+        // Access is the card: a squad is given a card the company holds, whole.
+        boolean known = armory.knowsWeaponCard(weapons.id()) && armory.knowsArmorPlan(armor.id());
+        if (known && primaryGrades != null) {
+            for (SquadEquipmentBillet billet : billets) {
+                known &= armory.ownsPrimaryTemplate(billet.primaryId(), billet.grade());
+            }
         }
-        if (!ownsTemplates) {
-            return new SquadEquipmentPreview(SquadEquipmentResult.MISSING_TEMPLATE, billets);
+        if (!known) {
+            return new SquadEquipmentPreview(SquadEquipmentResult.UNKNOWN_CARD, billets);
         }
-        return new SquadEquipmentPreview(withholdsNewFitting(squad, billets)
+        return new SquadEquipmentPreview(withholdsNewCard(squad, weapons.id(), armor.id())
                 ? SquadEquipmentResult.WARRANT_SUSPENDED : SquadEquipmentResult.APPLIED, billets);
     }
 
     /**
      * Whether a suspended or revoked military warrant forbids this issue
-     * ({@code progression-nouns.md}, Kit and armory): some occupant would be newly fitted with a
-     * suit the warrant withholds. A marine already wearing it keeps it, and a suit no warrant
-     * names (grandfathered) is never withheld.
+     * ({@code progression-nouns.md}, Kit and armory): the squad would be newly given a card the
+     * warrant withholds. A squad already holding that card keeps it, and its replacements are
+     * dressed from it as ever; a card no warrant names is never withheld.
      */
-    private boolean withholdsNewFitting(MarineSquad squad, List<SquadEquipmentBillet> billets) {
-        Set<String> withheld = withheldTemplatesOverride != null
-                ? withheldTemplatesOverride : MilitaryWarrants.liveWithheldTemplateIds();
+    private boolean withholdsNewCard(MarineSquad squad, String weaponDoctrineId, String armorDoctrineId) {
+        Set<String> withheld = withheldCardsOverride != null
+                ? withheldCardsOverride : MilitaryWarrants.liveWithheldCardIds();
         if (withheld.isEmpty()) return false;
-        List<String> memberIds = manningMemberIds(squad);
-        for (int index = 0; index < memberIds.size() && index < billets.size(); index++) {
-            String armorId = billets.get(index).armorId();
-            if (armorId == null || !withheld.contains(EquipmentTemplateCatalog.armorId(armorId))) continue;
-            MarineSoldier soldier = soldierById(memberIds.get(index));
-            if (soldier == null || !armorId.equals(soldier.armorId())) return true;
-        }
-        return false;
+        return (!weaponDoctrineId.equals(squad.weaponDoctrineId())
+                && withheld.contains(new LoadoutCard(LoadoutCard.Kind.WEAPON, weaponDoctrineId).id()))
+                || (!armorDoctrineId.equals(squad.armorDoctrineId())
+                && withheld.contains(new LoadoutCard(LoadoutCard.Kind.SHEET, armorDoctrineId).id()));
     }
 
-    /** Replaces the campaign's withheld warrant templates, for a roster outside a running campaign. */
-    public void setWithheldTemplates(Set<String> templateIds) {
-        withheldTemplatesOverride = templateIds != null ? Set.copyOf(templateIds) : null;
+    /** Replaces the campaign's withheld warrant cards, for a roster outside a running campaign. */
+    public void setWithheldCards(Set<String> cardIds) {
+        withheldCardsOverride = cardIds != null ? Set.copyOf(cardIds) : null;
     }
 
     /** Fits known equipment without a material charge. */
@@ -1187,23 +1136,55 @@ public class MarineRoster implements Serializable {
         SquadEquipmentPreview preview = previewSquadEquipment(
                 squadId, weaponDoctrineId, armorDoctrineId, resources, primaryGrades);
         if (!preview.canApply()) return preview.result();
-        MarineSquad squad = squadById(squadId);
-        List<String> memberIds = manningMemberIds(squad);
-        for (int index = 0; index < memberIds.size(); index++) {
-            MarineSoldier soldier = soldierById(memberIds.get(index));
-            SquadEquipmentBillet billet = preview.billet(index);
-            soldier.setPrimary(billet.primaryId(), billet.grade());
-            soldier.setSpecialEquipment(billet.specialEquipmentId());
-            soldier.setArmor(billet.armorId());
-        }
-        squad.setEquipmentDoctrineIds(weaponDoctrineId, armorDoctrineId);
-        SquadProfile profile = armory.squadProfile(squad.squadProfileId());
-        if (profile != null && (!profile.weaponDoctrineId().equals(weaponDoctrineId)
-                || !profile.armorDoctrineId().equals(armorDoctrineId))) {
-            squad.setSquadProfileId(null);
-        }
+        squadById(squadId).setEquipmentDoctrineIds(weaponDoctrineId, armorDoctrineId, primaryGrades);
         refreshLeadership();
         return SquadEquipmentResult.APPLIED;
+    }
+
+    /** The twelve seats two cards describe, in billet order. */
+    private static List<SquadEquipmentBillet> billets(SquadWeaponDoctrine weapons,
+            SquadArmorDoctrine armor, List<EquipmentGrade> primaryGrades) {
+        List<SquadEquipmentBillet> billets = new ArrayList<>();
+        for (int index = 0; index < MarineSquad.CAPACITY; index++) {
+            SquadWeaponIssue weapon = weapons.issue(index);
+            billets.add(new SquadEquipmentBillet(
+                    weapon.role(), weapon.primaryId(), primaryGrades != null
+                            ? primaryGrades.get(index) : weapon.grade(),
+                    weapon.specialEquipmentId(), armor.issueId(index)));
+        }
+        return billets;
+    }
+
+    /**
+     * Dresses every occupied seat of every line squad in what its cards issue that seat.
+     * A marine's kit is never authored on its own: it follows the squad's two cards and
+     * the seat the marine holds, so a replacement, a transfer or a casualty that moves
+     * everyone up a seat leaves nobody in kit their cards do not describe. Cards are read
+     * here without the access check that gates assigning them, because a squad keeps the
+     * cards it already holds.
+     */
+    private void conformKit() {
+        for (MarineSquad squad : squads) {
+            if (squad == null || squad.reserve()) continue;
+            SquadWeaponDoctrine weapons = armory.weaponDoctrineById(squad.weaponDoctrineId());
+            SquadArmorPlan plan = SquadEquipmentDoctrines.armorPlanById(squad.armorDoctrineId());
+            if (weapons == null || plan == null) continue;
+            SquadArmorDoctrine armor;
+            try {
+                armor = armory.issue(plan);
+            } catch (IllegalStateException unresolvable) {
+                continue;
+            }
+            List<SquadEquipmentBillet> billets = billets(weapons, armor, squad.primaryGrades());
+            List<String> memberIds = manningMemberIds(squad);
+            for (int index = 0; index < memberIds.size() && index < billets.size(); index++) {
+                MarineSoldier soldier = soldierById(memberIds.get(index));
+                SquadEquipmentBillet billet = billets.get(index);
+                soldier.setPrimary(billet.primaryId(), billet.grade());
+                soldier.setSpecialEquipment(billet.specialEquipmentId());
+                soldier.setArmor(billet.armorId());
+            }
+        }
     }
 
     private static SquadEquipmentPreview squadEquipmentFailure(SquadEquipmentResult result) {
@@ -1391,11 +1372,16 @@ public class MarineRoster implements Serializable {
      * and resumes the billet instead of the squad drifting to a new leader every
      * time someone is hurt.
      *
+     * <p>Kit is settled first: every seat is dressed from its squad's cards
+     * ({@link #conformKit()}), because a membership change moves marines between
+     * seats and issued armour sets the band the stripes follow.
+     *
      * <p>Public because issued armour is one of the inputs: a refit changes a
      * marine's band and therefore whether their squad leader wears sergeant's
      * stripes. Idempotent; safe to call as often as a caller likes.
      */
     public void refreshLeadership() {
+        conformKit();
         for (MarineSquad squad : squads) {
             List<MarineSoldier> onDuty = new ArrayList<>();
             if (!squad.reserve()) {
@@ -1506,6 +1492,7 @@ public class MarineRoster implements Serializable {
         if (nextSquadNumber <= 0) nextSquadNumber = squads.size() + 1;
         if (!soldiers.isEmpty()) initialComplementIssued = true;
         migrateLegacySquadEquipmentIntent();
+        migrateLegacySquadProfiles();
         // Old saves had assigned sheets but no separate sheet-knowledge ledger.
         // Preserve their intent without learning or replacing any equipment.
         for (MarineSquad squad : squads) {
@@ -1513,7 +1500,7 @@ public class MarineRoster implements Serializable {
                 armory.acquireArmorPlan(squad.armorDoctrineId());
             }
         }
-        if (firstRefit != null) firstRefit.repairArmorPlanKnowledge(armory);
+        if (firstRefit != null) firstRefit.repairCardKnowledge(armory);
         for (MarineSoldier soldier : soldiers) {
             if (squadForSoldier(soldier.id()) == null) assignToSquad(soldier);
         }
@@ -1522,6 +1509,27 @@ public class MarineRoster implements Serializable {
         refreshLeadership();
         repairCaptainCandidates();
         return this;
+    }
+
+    /**
+     * Saved squad profiles are gone: a squad holds its two cards directly. A profile
+     * assigned to a squad was the player's stated intent for it, so its cards become
+     * the squad's; a line squad still holding no cards takes the starter pair.
+     */
+    private void migrateLegacySquadProfiles() {
+        for (MarineSquad squad : squads) {
+            if (squad == null) continue;
+            SquadProfile profile = armory.legacySquadProfile(squad.legacySquadProfileId());
+            squad.clearLegacySquadProfileId();
+            if (squad.reserve()) continue;
+            if (profile != null && armory.weaponDoctrineById(profile.weaponDoctrineId()) != null
+                    && SquadEquipmentDoctrines.armorPlanById(profile.armorDoctrineId()) != null) {
+                squad.setEquipmentDoctrineIds(profile.weaponDoctrineId(), profile.armorDoctrineId(), null);
+            }
+            squad.migrateEquipmentDoctrineIds(SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
+                    SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
+        }
+        armory.dropLegacySquadProfiles();
     }
 
     private void migrateLegacySquadEquipmentIntent() {

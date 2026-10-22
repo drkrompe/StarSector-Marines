@@ -117,16 +117,13 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         List<PersonnelRow> personnel = personnelRows(outcome);
         props.put("squadRows", personnel);
         props.put("personnelEmpty", personnel.isEmpty() ? noPersonnelMessage(outcome) : "");
+        props.put("secondaryClasses", "hidden");
+        props.put("secondaryLabel", "");
+        props.put("secondaryAction", (Runnable) () -> { });
         if (manifest != null && !manifest.isEmpty()) {
-            props.put("secondaryClasses", "danger-surface console-action");
-            props.put("secondaryLabel", Strings.get("resultsForfeitSalvage"));
-            props.put("secondaryAction", (Runnable) this::returnToMissions);
             props.put("primaryLabel", Strings.get("resultsReviewSalvage"));
             props.put("primaryAction", (Runnable) () -> { context.prepareAfterSettlement(false); context.goTo(ScreenId.LOOT); });
         } else {
-            props.put("secondaryClasses", "hidden");
-            props.put("secondaryLabel", "");
-            props.put("secondaryAction", (Runnable) () -> { });
             props.put("primaryLabel", WaylineHoundAward.eligible(outcome) ? Strings.get("resultsScreenVisitMechLab") : Strings.get("resultsReturn"));
             props.put("primaryAction", (Runnable) this::returnToMissions);
         }
@@ -158,8 +155,8 @@ public class ResultsScreen extends MissionFlowMlxScreen {
                         "12R 0W 0M 0K", "label heading results-squad-summary tone-good",
                         "Vale R · Sato R · Moss R · Holt R · Venn R · Ward R")));
         props.put("personnelEmpty", "");
-        props.put("secondaryClasses", salvage ? "danger-surface console-action" : "hidden");
-        props.put("secondaryLabel", salvage ? "FORFEIT SALVAGE" : "");
+        props.put("secondaryClasses", "hidden");
+        props.put("secondaryLabel", "");
         props.put("secondaryAction", none);
         props.put("primaryLabel", salvage ? "REVIEW SALVAGE" : "RETURN");
         props.put("primaryAction", none);

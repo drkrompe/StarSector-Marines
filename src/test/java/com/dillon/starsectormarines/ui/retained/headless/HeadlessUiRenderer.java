@@ -23,6 +23,8 @@ import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Composite;
+import java.awt.GradientPaint;
+import java.awt.Paint;
 import java.awt.CompositeContext;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -46,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Renders any retained document to a deterministic Java2D image without a
@@ -72,6 +75,28 @@ public final class HeadlessUiRenderer {
             graphics.scale(width * raster.coordinateScaleX / image.getWidth(), height * raster.coordinateScaleY / image.getHeight());
             graphics.setComposite(new AdditiveComposite(clampAlpha(alpha * raster.alphaMult())));
             graphics.translate(-image.getWidth()/2d, -image.getHeight()/2d);
+            graphics.drawImage(image, 0, 0, null);
+        } finally {
+            graphics.setComposite(composite);
+            graphics.setTransform(transform);
+        }
+    }
+
+    /**
+     * Draws a transient raster, unscaled and unturned, with its top-left at canvas ({@code x}, {@code y}): its
+     * colour multiplies the surface under it where its alpha is set ({@code multiply}), or it blends over it as an
+     * ordinary straight-alpha image. The live counterpart of the multiply is a {@code DST_COLOR, ZERO} blend.
+     */
+    public static void blendImage(CanvasContext context, BufferedImage image, float x, float y, boolean multiply) {
+        if (!(context instanceof RasterCanvasContext raster)) throw new IllegalArgumentException("Not a raster canvas");
+        var graphics = raster.graphics;
+        var transform = graphics.getTransform();
+        var composite = graphics.getComposite();
+        try {
+            graphics.translate(raster.documentX(x), raster.documentY(y));
+            graphics.scale(raster.coordinateScaleX, raster.coordinateScaleY);
+            graphics.setComposite(multiply ? new MultiplyComposite(clampAlpha(raster.alphaMult()))
+                    : AlphaComposite.getInstance(AlphaComposite.SRC_OVER, clampAlpha(raster.alphaMult())));
             graphics.drawImage(image, 0, 0, null);
         } finally {
             graphics.setComposite(composite);
@@ -213,6 +238,7 @@ public final class HeadlessUiRenderer {
         if (width <= 0 || height <= 0) {
             throw new IllegalArgumentException("viewport dimensions must be positive");
         }
+        resources.beginImage();
         BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = output.createGraphics();
         configure(graphics);
@@ -237,6 +263,7 @@ public final class HeadlessUiRenderer {
         if (width <= 0 || height <= 0) {
             throw new IllegalArgumentException("canvas dimensions must be positive");
         }
+        resources.beginImage();
         BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = output.createGraphics();
         configure(graphics);
@@ -279,6 +306,7 @@ public final class HeadlessUiRenderer {
         installFontMetrics(document, document.root(), new IdentityHashMap<>());
         document.layout(documentWidth, documentHeight);
 
+        resources.beginImage();
         BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = output.createGraphics();
         configure(graphics);
@@ -451,6 +479,45 @@ public final class HeadlessUiRenderer {
         }
 
         @Override
+        protected void drawFillQuadGradient(float x0, float y0, float x1, float y1,
+                                            float x2, float y2, float x3, float y3,
+                                            Color c0, Color c1, Color c2, Color c3) {
+            // Exact when the gradient runs between opposite edges with one colour per edge.
+            boolean across = c0.equals(c1) && c2.equals(c3);
+            boolean along = c0.equals(c3) && c1.equals(c2);
+            if (!across && !along) {
+                super.drawFillQuadGradient(x0, y0, x1, y1, x2, y2, x3, y3, c0, c1, c2, c3);
+                return;
+            }
+            // The gradient runs perpendicular to its starting edge, out to the opposite edge. Joining
+            // the two edges' midpoints instead tilts it on any trapezoid (a chamfered band), and a
+            // tilted gradient shades the band's ends with colours from above or below it.
+            float ex = across ? x1 - x0 : x3 - x0, ey = across ? y1 - y0 : y3 - y0;
+            float length = (float) Math.hypot(ex, ey);
+            float nx = length > 0f ? -ey / length : 0f, ny = length > 0f ? ex / length : 1f;
+            float ox = across ? x3 - x0 : x1 - x0, oy = across ? y3 - y0 : y1 - y0;
+            float reach = ox * nx + oy * ny;
+            float fromX = x0, fromY = y0;
+            float toX = x0 + nx * reach, toY = y0 + ny * reach;
+            Color to = across ? c3 : c1;
+            Composite previousComposite = graphics.getComposite();
+            Paint previousPaint = graphics.getPaint();
+            graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+                    clampAlpha(alphaMult())));
+            graphics.setPaint(new GradientPaint(documentX(fromX), documentY(fromY), c0,
+                    documentX(toX), documentY(toY), to));
+            Path2D.Float path = new Path2D.Float();
+            path.moveTo(documentX(x0), documentY(y0));
+            path.lineTo(documentX(x1), documentY(y1));
+            path.lineTo(documentX(x2), documentY(y2));
+            path.lineTo(documentX(x3), documentY(y3));
+            path.closePath();
+            graphics.fill(path);
+            graphics.setPaint(previousPaint);
+            graphics.setComposite(previousComposite);
+        }
+
+        @Override
         protected void drawFillQuad(float x0, float y0, float x1, float y1,
                                     float x2, float y2, float x3, float y3,
                                     Color color) {
@@ -536,7 +603,7 @@ public final class HeadlessUiRenderer {
                 throw new IllegalArgumentException(
                         "Headless canvas sprites require their source path");
             }
-            BufferedImage image = resources.region(resources.tintedSprite(sourcePath, tint), region);
+            BufferedImage image = resources.tintedRegion(sourcePath, tint, region);
             AffineTransform transform = graphics.getTransform();
             var composite = graphics.getComposite();
             graphics.translate(documentX(centerX), documentY(centerY));
@@ -603,7 +670,14 @@ public final class HeadlessUiRenderer {
         private final List<Path> roots;
         private final Map<String, BufferedImage> images = new ConcurrentHashMap<>();
         private final Map<TintKey, BufferedImage> tintedFonts = new ConcurrentHashMap<>();
-        private final Map<SpriteTintKey, BufferedImage> tintedSprites = new ConcurrentHashMap<>();
+        /**
+         * Tinted cuts this image has drawn, and the ones the image before it drew. A cut neither of the last two
+         * images drew is let go: a tint that moves every frame (a burning tree's char) is never asked for again, and
+         * with only a size cap those dead shades filled 256 MB on every long burn and stayed there. A tint the scene
+         * keeps drawing moves forward frame to frame and is cut once.
+         */
+        private volatile Map<SpriteTintKey, BufferedImage> tintedSprites = new ConcurrentHashMap<>();
+        private volatile Map<SpriteTintKey, BufferedImage> previousTints = new ConcurrentHashMap<>();
         /** Source rectangles already cut, by image identity: a fresh subimage per draw cost Java2D a new surface and a disposer record every time. */
         private final Map<RegionKey, BufferedImage> regions = new ConcurrentHashMap<>();
         private final IdentityHashMap<BitmapFont, Boolean> installedFonts =
@@ -611,6 +685,16 @@ public final class HeadlessUiRenderer {
 
         /** Cuts beyond this many are dropped wholesale; a cut is a view onto its image, so it costs a header, not pixels. */
         private static final int MAX_REGIONS = 200_000;
+        /** Pixels of tinted cuts one image may build before they are all dropped: 64 M pixels is 256 MB. */
+        private static final long MAX_TINTED_PIXELS = 64L * 1024 * 1024;
+        private final AtomicLong tintedPixels = new AtomicLong();
+
+        /** Called once per image, before anything draws into it, never from a band. */
+        private void beginImage() {
+            previousTints = tintedSprites;
+            tintedSprites = new ConcurrentHashMap<>();
+            tintedPixels.set(0L);
+        }
 
         private BufferedImage region(BufferedImage source, CanvasSpriteRegion region) {
             if (region.equals(CanvasSpriteRegion.FULL)) return source;
@@ -669,11 +753,26 @@ public final class HeadlessUiRenderer {
             }
         }
 
-        private BufferedImage tintedSprite(String resourcePath, Color tint) {
+        /**
+         * The cut a draw takes from a sprite, multiplied by its tint. Only the cut is tinted and kept: a tint that
+         * moves every frame (a burning tree's char) on a large sheet made a whole-sheet copy per shade, and a big
+         * fire ran a 2 GB review heap out.
+         */
+        private BufferedImage tintedRegion(String resourcePath, Color tint, CanvasSpriteRegion region) {
             int rgb = tint.getRGB() & 0x00FFFFFF;
-            if (rgb == 0x00FFFFFF) return image(resourcePath);
-            return tintedSprites.computeIfAbsent(new SpriteTintKey(resourcePath, rgb), key ->
-                    modulate(image(key.path()), key.rgb()));
+            BufferedImage cut = region(image(resourcePath), region);
+            if (rgb == 0x00FFFFFF) return cut;
+            if (tintedPixels.get() > MAX_TINTED_PIXELS) {
+                tintedSprites.clear();
+                tintedPixels.set(0L);
+            }
+            Map<SpriteTintKey, BufferedImage> previous = previousTints;
+            return tintedSprites.computeIfAbsent(new SpriteTintKey(cut, rgb), key -> {
+                BufferedImage carried = previous.get(key);
+                BufferedImage tinted = carried != null ? carried : modulate(key.cut(), key.rgb());
+                tintedPixels.addAndGet((long) tinted.getWidth() * tinted.getHeight());
+                return tinted;
+            });
         }
 
         private void drawText(Graphics2D graphics, BitmapFont font, String text,
@@ -748,7 +847,48 @@ public final class HeadlessUiRenderer {
 
     private record TintKey(String path, int rgb, int alpha) { }
 
-    private record SpriteTintKey(String path, int rgb) { }
+    /** One cut of a decoded image (by identity, as {@link RegionKey} holds it) in one tint. */
+    private record SpriteTintKey(BufferedImage cut, int rgb) { }
+
+    /** Multiplies the destination's colour by the source's where the source has alpha, by that alpha times {@code opacity}. */
+    private record MultiplyComposite(float opacity) implements Composite {
+        @Override
+        public CompositeContext createContext(ColorModel sourceColorModel, ColorModel destinationColorModel,
+                                              RenderingHints hints) {
+            return new CompositeContext() {
+                @Override
+                public void compose(Raster source, Raster destinationIn, WritableRaster destinationOut) {
+                    int width = Math.min(source.getWidth(), destinationIn.getWidth());
+                    int height = Math.min(source.getHeight(), destinationIn.getHeight());
+                    for (int y = 0; y < height; y++) {
+                        for (int x = 0; x < width; x++) {
+                            int s = sourceColorModel.getRGB(source.getDataElements(source.getMinX() + x, source.getMinY() + y, null));
+                            int d = destinationColorModel.getRGB(destinationIn.getDataElements(destinationIn.getMinX() + x, destinationIn.getMinY() + y, null));
+                            float a = (s >>> 24) / 255f * opacity;
+                            if (a <= 0f) {
+                                destinationOut.setDataElements(destinationOut.getMinX() + x, destinationOut.getMinY() + y,
+                                        destinationColorModel.getDataElements(d, null));
+                                continue;
+                            }
+                            int r = multiplyChannel(d >>> 16 & 0xff, s >>> 16 & 0xff, a);
+                            int g = multiplyChannel(d >>> 8 & 0xff, s >>> 8 & 0xff, a);
+                            int b = multiplyChannel(d & 0xff, s & 0xff, a);
+                            destinationOut.setDataElements(destinationOut.getMinX() + x, destinationOut.getMinY() + y,
+                                    destinationColorModel.getDataElements((d & 0xff000000) | r << 16 | g << 8 | b, null));
+                        }
+                    }
+                }
+
+                @Override
+                public void dispose() { }
+            };
+        }
+
+        private static int multiplyChannel(int dst, int src, float a) {
+            float multiplied = dst * src / 255f;
+            return Math.round(dst + (multiplied - dst) * a);
+        }
+    }
 
     /** Java2D equivalent of the live canvas's SRC_ALPHA, ONE sprite blend. */
     private record AdditiveComposite(float opacity) implements Composite {

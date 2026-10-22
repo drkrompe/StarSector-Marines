@@ -38,6 +38,7 @@ import com.dillon.starsectormarines.battle.setup.GroundRosterRegistry;
 import com.dillon.starsectormarines.intel.BridgeIntel;
 import com.dillon.starsectormarines.intel.CampaignDebugIntel;
 import com.dillon.starsectormarines.intel.CivilianRescueIntel;
+import com.dillon.starsectormarines.intel.RavBloomIntel;
 import com.dillon.starsectormarines.intel.DefectorAsylumIntel;
 import com.dillon.starsectormarines.intel.DeadLetterIntel;
 import com.dillon.starsectormarines.intel.LastTestamentIntel;
@@ -45,10 +46,10 @@ import com.dillon.starsectormarines.ops.CompanyShipLossListener;
 import com.dillon.starsectormarines.ops.CompanyViewAbility;
 import com.dillon.starsectormarines.ops.MenuTheme;
 import com.dillon.starsectormarines.ops.event.PlayerEventPresenter;
+import com.dillon.starsectormarines.marine.LoadoutCardInventory;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
-import com.dillon.starsectormarines.marine.EquipmentTemplateCardInventory;
 import com.dillon.starsectormarines.marine.FactionEquipmentCatalog;
 import com.dillon.starsectormarines.marine.FactionEquipmentMarketStock;
 import com.dillon.starsectormarines.marine.SquadLoadoutPresentationRegistry;
@@ -63,6 +64,7 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PersistentUIDataAPI.AbilitySlotAPI;
 import com.fs.starfarer.api.campaign.PersistentUIDataAPI.AbilitySlotsAPI;
 import com.fs.starfarer.api.campaign.SectorAPI;
+import com.fs.starfarer.api.campaign.comm.IntelInfoPlugin;
 import com.fs.starfarer.api.campaign.comm.IntelManagerAPI;
 import org.apache.log4j.Logger;
 
@@ -175,11 +177,14 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         ArrivalCinematicPresenter.install();
         ensureCompanyViewAbility();
         ensureCivilianRescueIntel();
+        ensureRavBloomIntel();
         ensureDefectorAsylumIntel();
         ensureDeadLetterIntel();
         ensureLastTestamentIntel();
         if (DevConfig.CAMPAIGN_DEBUG_INTEL) {
             ensureCampaignDebugIntel();
+        } else {
+            removeCampaignDebugIntel();
         }
         if (DevConfig.S0_COMBAT_PROBE) {
             ensureCombatHybridProbe();
@@ -297,10 +302,9 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
 
     private static void repairEquipmentCollectionProgression() {
         MarineRosterScript script = MarineRosterScript.getInstance();
-        Set<String> acquiredOrCarried =
-                EquipmentTemplateCardInventory.playerUnavailableTemplateIds();
-        if (script != null && acquiredOrCarried != null) {
-            script.roster().armory().repairCollectionProgression(acquiredOrCarried);
+        Set<String> carriedCards = LoadoutCardInventory.playerUnavailableCardIds();
+        if (script != null && carriedCards != null) {
+            script.roster().armory().repairCollectionProgression(carriedCards);
         }
     }
 
@@ -396,11 +400,27 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         LOG.info("Starsector Marines: CampaignDebugIntel registered (dev)");
     }
 
+    /** A save made by a developer build keeps its debug intel; a player build takes it out on load. */
+    private static void removeCampaignDebugIntel() {
+        IntelManagerAPI mgr = Global.getSector().getIntelManager();
+        IntelInfoPlugin stale;
+        while ((stale = mgr.getFirstIntel(CampaignDebugIntel.class)) != null) {
+            mgr.removeIntel(stale);
+        }
+    }
+
     private static void ensureCivilianRescueIntel() {
         IntelManagerAPI mgr = Global.getSector().getIntelManager();
         if (mgr.getFirstIntel(CivilianRescueIntel.class) != null) return;
         mgr.addIntel(new CivilianRescueIntel(), true);
         LOG.info("Starsector Marines: Distress Net intel registered");
+    }
+
+    private static void ensureRavBloomIntel() {
+        IntelManagerAPI mgr = Global.getSector().getIntelManager();
+        if (mgr.getFirstIntel(RavBloomIntel.class) != null) return;
+        mgr.addIntel(new RavBloomIntel(), true);
+        LOG.info("Starsector Marines: Rav Bloom intel registered");
     }
 
     private static void ensureDefectorAsylumIntel() {

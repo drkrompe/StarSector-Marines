@@ -44,6 +44,23 @@ class RoadSurfaceTest {
         }
         assertTrue(joins>5,"material joins need fractional coverage too");
     }
+    @Test void whereTwoMaterialsEdgesMeetEachHalfCellGoesToExactlyOne() {
+        // Asphalt crossing a gravel lane, split where the lane's far edge lies:
+        // both edges, and the asphalt's flush ends, meet at the cell corners there.
+        Route below=new Route("below",List.of(new Point(5,1.5),new Point(5,7.5)),3,0,0,1,Material.ASPHALT,EndCap.BUTT);
+        Route above=new Route("above",List.of(new Point(5,7.5),new Point(5,12.5)),3,0,0,1,Material.ASPHALT,EndCap.BUTT);
+        Route lane=new Route("lane",List.of(new Point(.5,6),new Point(12.5,6)),3,0,0,1,Material.GRAVEL,EndCap.BUTT);
+        var plan=new RoadPlan(16,16,List.of(below,above,lane));
+        var surface=RoadSurface.build(plan,RoadRasterizer.rasterize(plan),new CellTopology(16,16));
+        for(int x=4;x<=6;x++) {
+            assertEquals(1,surface.patch(x,7,Material.ASPHALT.ordinal()).area(),1e-6,"asphalt whole at "+x);
+            var gravel=surface.patch(x,7,Material.GRAVEL.ordinal());
+            assertTrue(gravel==null || gravel.area()<1e-6,"no gravel over the asphalt at "+x);
+        }
+        // Beside the asphalt, where the same edges meet, the lane is still whole.
+        for(int x:new int[]{3,7})for(int y=5;y<=7;y++)
+            assertEquals(1,surface.patch(x,y,Material.GRAVEL.ordinal()).area(),1e-6,"lane whole at "+x+","+y);
+    }
     @Test void flushEndsClipAtTheEndpointAndHardApronsKeepTheirFullCells() {
         Route route=new Route("flush",List.of(new Point(8,6),new Point(8,17)),9,0,0,1,Material.CONCRETE,EndCap.BUTT);
         var plan=new RoadPlan(24,24,List.of(route));

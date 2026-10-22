@@ -72,7 +72,7 @@ public final class ShipViewScreen implements Screen {
     private WorkshopRestorationModel workshop;
     private ShipConditionModel survey;
     private ShipConditionOverlay overlay;
-    private boolean deckChanged, refocusPending;
+    private boolean deckChanged, refocusPending, secondBayPending;
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
@@ -109,6 +109,7 @@ public final class ShipViewScreen implements Screen {
         installDocument();
         document.layout(viewport.documentWidth(), viewport.documentHeight());
         input = new StarsectorUiInputAdapter(document, viewport);
+        secondBayPending = CompanyNotices.current().contains(CompanyNotices.Notice.SECOND_BAY);
     }
 
     private void installDocument() {
@@ -170,6 +171,16 @@ public final class ShipViewScreen implements Screen {
         }
     }
 
+    /** The second bay's notice opens here on the sealed hangar, where its restoration is ordered. */
+    private void inspectSecondBay() {
+        secondBayPending = false;
+        CompanyNotices.Notice.SECOND_BAY.review(CompanyPreparationGuide.roster());
+        if (overlay == null) return;
+        var room = shownDeck.rooms().compartments().stream()
+                .filter(r -> r.purpose() == RoomPurpose.HANGAR && shownDeck.rooms().damaged(r.id())).findFirst().orElse(null);
+        if (room != null) { overlay.select(room.id()); deck.focus(room); }
+    }
+
     private void close() {
         if (dismissDialog != null) dismissDialog.run();
     }
@@ -186,6 +197,7 @@ public final class ShipViewScreen implements Screen {
             }
         }
         if (refocusPending && shownDeck != null && shownDeck.ready()) { survey.refocus(); refocusPending = false; }
+        if (secondBayPending && shownDeck != null && shownDeck.ready()) inspectSecondBay();
         if (workshop != null) workshop.refresh();
         if (survey != null) survey.refresh();
         if (markupInstance != null) markupInstance.flush();

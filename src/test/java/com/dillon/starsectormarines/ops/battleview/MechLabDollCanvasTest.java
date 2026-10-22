@@ -1,10 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
-import com.dillon.starsectormarines.battle.mech.MechFittingLayout.DollDef;
-import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
-import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import org.junit.jupiter.api.Test;
@@ -50,173 +47,58 @@ class MechLabDollCanvasTest {
     }
 
     @Test
-    void dropTargetUsesTheGantryAroundTheDollWhileLeaderRetainsPhysicalAnchor() {
-        MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.BULWARK);
-        SocketDef core = layout.socket(SocketId.CORE);
-
-        MechLabDollCanvas.SocketDropTarget target =
-                MechLabDollCanvas.socketDropTarget(layout.doll(), core,
-                        500f, 300f, 160f, 160f);
-
-        assertEquals(272f, target.width(), 1e-4f);
-        assertEquals(108.8f, target.height(), 1e-4f);
-        assertEquals(500f, target.anchorX(), 1e-4f);
-        assertEquals(304.8f, target.anchorY(), 1e-4f);
-        assertEquals(500f, target.centerX(), 1e-4f);
-        assertEquals(60f, target.centerY(), 1e-4f);
-        assertTrue(target.contains(target.centerX(), target.centerY()));
-        assertTrue(target.bottom() < target.anchorY());
-    }
-
-    @Test
-    void oneSlotSocketRetainsAPracticalMinimumDropAreaOnSmallDolls() {
-        MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.HOUND);
-        SocketDef oneSlot = new SocketDef(SocketId.MINI_FAB, SocketType.UTILITY,
-                1, 1, 0f, -0.84f, 1.34f, 0.68f, 1.36f, 0.68f, false);
-
-        MechLabDollCanvas.SocketDropTarget target =
-                MechLabDollCanvas.socketDropTarget(layout.doll(), oneSlot,
-                        200f, 160f, 80f, 80f);
-
-        assertEquals(128f, target.width(), 1e-4f);
-        assertEquals(76f, target.height(), 1e-4f);
-        assertEquals(1, target.gridColumns());
-        assertEquals(1, target.gridRows());
-    }
-
-    @Test
-    void capacityCellsAreContiguousOrderedPlacementUnitsInsideTheDropTarget() {
-        MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.BULWARK);
-        SocketDef arms = layout.socket(SocketId.ARMS);
-        MechLabDollCanvas.SocketDropTarget target =
-                MechLabDollCanvas.socketDropTarget(layout.doll(), arms,
-                        400f, 300f, 160f, 160f);
-
-        List<MechLabDollCanvas.CapacityCell> cells =
-                MechLabDollCanvas.capacityCells(target);
-
-        assertEquals(6, cells.size());
-        for (int index = 0; index < cells.size(); index++) {
-            MechLabDollCanvas.CapacityCell cell = cells.get(index);
-            assertEquals(index, cell.index());
-            assertTrue(cell.width() > 0f);
-            assertTrue(cell.height() > 0f);
-            assertTrue(target.contains(cell.x(), cell.y()));
-            assertTrue(target.contains(cell.x() + cell.width(), cell.y() + cell.height()));
-            assertTrue(cell.active());
-            if (index > 0 && cell.row() == cells.get(index - 1).row()) {
-                MechLabDollCanvas.CapacityCell prior = cells.get(index - 1);
-                assertTrue(cell.x() > prior.x() + prior.width());
-            }
-        }
-    }
-
-    @Test
-    void houndArmGridShowsExactFourCellsWithoutGhostCells() {
-        MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.HOUND);
-        SocketDef arms = layout.socket(SocketId.ARMS);
-        MechLabDollCanvas.SocketDropTarget target =
-                MechLabDollCanvas.socketDropTarget(layout.doll(), arms,
-                        400f, 300f, 160f, 160f);
-
-        List<MechLabDollCanvas.CapacityCell> cells =
-                MechLabDollCanvas.capacityCells(target);
-
-        assertEquals(4, cells.size());
-        assertTrue(cells.stream().allMatch(MechLabDollCanvas.CapacityCell::active));
-    }
-
-    @Test
-    void ammoReserveShowsExactTwoCells() {
-        MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.HOUND);
-        SocketDef ammo = layout.socket(SocketId.AMMO_RESERVE);
-        MechLabDollCanvas.SocketDropTarget target =
-                MechLabDollCanvas.socketDropTarget(layout.doll(), ammo,
-                        400f, 300f, 160f, 160f);
-
-        List<MechLabDollCanvas.CapacityCell> cells =
-                MechLabDollCanvas.capacityCells(target);
-
-        assertEquals(2, cells.size());
-        assertTrue(cells.stream().allMatch(MechLabDollCanvas.CapacityCell::active));
-    }
-
-    @Test
-    void dropTargetAndLeaderConsumeTheAuthoredDollFacing() {
-        MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.BULWARK);
-        SocketDef core = layout.socket(SocketId.CORE);
-        DollDef eastFacing = new DollDef(90f, List.of(core));
-
-        MechLabDollCanvas.SocketDropTarget target =
-                MechLabDollCanvas.socketDropTarget(eastFacing, core,
-                        500f, 300f, 160f, 160f);
-
-        assertEquals(495.2f, target.anchorX(), 1e-3f);
-        assertEquals(300f, target.anchorY(), 1e-3f);
-        assertEquals(740f, target.centerX(), 1e-3f);
-        assertEquals(300f, target.centerY(), 1e-3f);
-    }
-
-    @Test
-    void leaderDogLegPathOrthogonalGeometryKeepsCenterClear() {
-        MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.BULWARK);
-        SocketDef left = layout.socket(SocketId.LEFT_SHOULDER);
-        MechLabDollCanvas.SocketDropTarget target =
-                MechLabDollCanvas.socketDropTarget(layout.doll(), left,
-                        500f, 300f, 160f, 160f);
-
-        List<float[]> points = MechLabDollCanvas.leaderDogLegPath(target.anchorX(), target.anchorY(), target);
-        assertFalse(points.isEmpty());
-        // First point is the anchor
-        assertEquals(target.anchorX(), points.get(0)[0], 1e-3f);
-        assertEquals(target.anchorY(), points.get(0)[1], 1e-3f);
-        // Last point terminates on dock edge
-        float[] last = points.get(points.size() - 1);
-        assertTrue(last[0] >= target.left() - 1e-3f && last[0] <= target.right() + 1e-3f);
-        assertTrue(last[1] >= target.top() - 1e-3f && last[1] <= target.bottom() + 1e-3f);
-    }
-
-    @Test
-    void socketAtDetectsHitOnTarget() {
-        MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.BULWARK);
-        SocketDef arms = layout.socket(SocketId.ARMS);
-        MechLabDollCanvas.SocketDropTarget target =
-                MechLabDollCanvas.socketDropTarget(layout.doll(), arms,
-                        400f, 300f, 160f, 160f);
-
-        assertTrue(target.contains(target.centerX(), target.centerY()));
-        assertFalse(target.contains(target.centerX() + 500f, target.centerY()));
-    }
-
-    @Test
-    void resolveExplodedDropTargetsGuaranteesZeroPairwiseOverlapsAcrossAllVariants() {
+    void schematicBuildsTheMachineAroundItsEngineCoreWithoutOverlaps() {
         for (MechVariant variant : MechVariant.values()) {
             MechFittingLayout layout = MechFittingLayout.forVariant(variant);
-            // Standard resolution canvas
             List<MechLabDollCanvas.SocketDropTarget> targets =
-                    MechLabDollCanvas.resolveExplodedDropTargets(layout.doll(), layout.sockets(),
-                            450f, 290f, 160f, 160f, 900f, 580f);
-
+                    MechLabDollCanvas.schematicTargets(layout.sockets(), 620f, 880f);
             assertEquals(layout.sockets().size(), targets.size());
-
-            // Check no pairwise overlaps
+            MechLabDollCanvas.SocketDropTarget core = find(targets, SocketId.CORE);
+            assertEquals(310f, core.centerX(), 1e-3f, "the core is the middle of the panel");
+            MechLabDollCanvas.SocketDropTarget arms = find(targets, SocketId.ARMS);
+            if (arms != null) assertTrue(arms.bottom() < core.top(), "arms ahead of the core on " + variant);
+            MechLabDollCanvas.SocketDropTarget left = find(targets, SocketId.LEFT_SHOULDER);
+            MechLabDollCanvas.SocketDropTarget right = find(targets, SocketId.RIGHT_SHOULDER);
+            if (left != null) assertTrue(left.right() < core.left(), "left shoulder beside the core on " + variant);
+            if (right != null) assertTrue(right.left() > core.right(), "right shoulder beside the core on " + variant);
+            MechLabDollCanvas.SocketDropTarget capacitors = find(targets, SocketId.CAPACITORS);
+            if (capacitors != null) assertTrue(capacitors.top() > core.bottom(), "capacitors behind the core on " + variant);
             for (int i = 0; i < targets.size(); i++) {
                 MechLabDollCanvas.SocketDropTarget a = targets.get(i);
-                // Bounds check
-                assertTrue(a.left() >= 0f, "Target " + a.id() + " outside left on " + variant);
-                assertTrue(a.right() <= 900f, "Target " + a.id() + " outside right on " + variant);
-                assertTrue(a.top() >= 0f, "Target " + a.id() + " outside top on " + variant);
-                assertTrue(a.bottom() <= 580f, "Target " + a.id() + " outside bottom on " + variant);
-
+                assertTrue(a.left() >= 0f && a.right() <= 620f && a.top() >= 0f && a.bottom() <= 880f,
+                        a.id() + " leaves the panel on " + variant);
                 for (int j = i + 1; j < targets.size(); j++) {
                     MechLabDollCanvas.SocketDropTarget b = targets.get(j);
-                    float overlapX = Math.min(a.right(), b.right()) - Math.max(a.left(), b.left());
-                    float overlapY = Math.min(a.bottom(), b.bottom()) - Math.max(a.top(), b.top());
-                    boolean overlaps = overlapX > 0f && overlapY > 0f;
-                    assertFalse(overlaps, "Targets " + a.id() + " and " + b.id()
-                            + " overlap on " + variant + ": overlapX=" + overlapX + ", overlapY=" + overlapY);
+                    boolean overlaps = Math.min(a.right(), b.right()) > Math.max(a.left(), b.left())
+                            && Math.min(a.bottom(), b.bottom()) > Math.max(a.top(), b.top());
+                    assertFalse(overlaps, a.id() + " overlaps " + b.id() + " on " + variant);
                 }
             }
         }
+    }
+
+    @Test
+    void everyWireRunsOrthogonallyFromItsPartToTheCoresEdge() {
+        MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.BULWARK);
+        List<MechLabDollCanvas.SocketDropTarget> targets =
+                MechLabDollCanvas.schematicTargets(layout.sockets(), 620f, 880f);
+        MechLabDollCanvas.SocketDropTarget core = find(targets, SocketId.CORE);
+        for (MechLabDollCanvas.SocketDropTarget part : targets) {
+            if (part == core) continue;
+            List<float[]> wire = MechLabDollCanvas.wireToCore(part, core);
+            float[] end = wire.get(wire.size() - 1);
+            boolean onCoreEdge = (Math.abs(end[1] - core.top()) < 1e-3f || Math.abs(end[1] - core.bottom()) < 1e-3f
+                    || Math.abs(end[0] - core.left()) < 1e-3f || Math.abs(end[0] - core.right()) < 1e-3f);
+            assertTrue(onCoreEdge, part.id() + " wire ends off the core");
+            for (int i = 1; i < wire.size(); i++) {
+                float[] a = wire.get(i - 1), b = wire.get(i);
+                assertTrue(a[0] == b[0] || a[1] == b[1], part.id() + " wire has a diagonal leg");
+            }
+        }
+    }
+
+    private static MechLabDollCanvas.SocketDropTarget find(List<MechLabDollCanvas.SocketDropTarget> targets,
+                                                           SocketId id) {
+        return targets.stream().filter(target -> target.id() == id).findFirst().orElse(null);
     }
 }

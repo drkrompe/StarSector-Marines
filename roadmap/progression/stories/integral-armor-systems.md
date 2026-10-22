@@ -188,8 +188,8 @@ the screen, and that screen is live: the Reliquary advertises and applies a slow
 crossing behind the best protection anyone has, rather than reading as a
 twelve-percent movement boost.
 
-A suit's system is legible before it is issued. The doctrine designer's tile —
-the screen where a pattern is actually chosen — spends its one non-meter line
+A suit's system is legible before it is issued. The tactic sheet's hover badges
+each seat's suit with its system icon, and the armour comparison tile spends its one non-meter line
 on the system's mechanics, because the four scalars beneath it cannot express
 what makes a late pattern worth wanting. The fire-team card carries a system
 line level with the billet's carried special item, so the screen shows at a

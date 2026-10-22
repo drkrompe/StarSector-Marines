@@ -123,9 +123,8 @@ public final class DamageResolver {
         if (attackerId == targetId || !roster.isAliveById(attackerId)) {
             return grid.getCoverAt(targetCellX, targetCellY);
         }
-        return grid.getCoverAt(targetCellX, targetCellY,
-                world.cellX(attackerId) - targetCellX,
-                world.cellY(attackerId) - targetCellY);
+        return grid.getCoverAgainst(targetCellX, targetCellY,
+                world.cellX(attackerId), world.cellY(attackerId));
     }
 
     /**

@@ -70,6 +70,10 @@ final class MarineOpsThemes {
                 .danger-surface { background-color: #3d2a26; border-color: #e98b83; }
                 .edge-surface { background-color: #253b38; border-color: #a7ccc4; }
                 .formation-select { background-color: transparent; background-image: none; }
+                .spec-card { background-color: #09131d; background-image: none; border-style: solid; border-color: #53c6e8; color: #d5deea; }
+                .spec-card.spec-sheet-armor { border-color: #dfb84d; }
+                .spec-card:hover { background-color: #0e1a26; }
+                .spec-card.selected { background-color: #16242f; border-color: #f2cf68; border-style: solid; }
                 .formation-select:hover { background-color: #ffffff08; }
                 .formation.stationed .formation-select:disabled { opacity: 0.72; }
                 #marine-ops-page-nav {
@@ -181,7 +185,7 @@ final class MarineOpsThemes {
                 /* Shared command keys and latching selectors; dimensions belong to each surface. */
                 .console-action, .slot-strip-action, .fabricate-action,
                 #compare-armor-patterns, #fireteam-breadcrumb button,
-                #comparison-breadcrumb button, #designer-breadcrumb button, #marine-ops-page-routes button,
+                #comparison-breadcrumb button, #marine-ops-page-routes button,
                 .console-toggle, .fire-team-tab, .equipment-picker-tab,
                 .loadout-filter, .supply-filter, .catalog-filter-pill,
                 .team-tab {
@@ -191,19 +195,19 @@ final class MarineOpsThemes {
                 }
                 .console-action:hover, .slot-strip-action:hover, .fabricate-action:hover,
                 #compare-armor-patterns:hover, #fireteam-breadcrumb button:hover,
-                #comparison-breadcrumb button:hover, #designer-breadcrumb button:hover, #marine-ops-page-routes button:hover,
+                #comparison-breadcrumb button:hover, #marine-ops-page-routes button:hover,
                 .console-toggle:hover, .fire-team-tab:hover, .equipment-picker-tab:hover,
                 .loadout-filter:hover, .supply-filter:hover, .catalog-filter-pill:hover,
                 .team-tab:hover { background-color: #525d4e; }
                 .console-action:active, .slot-strip-action:active, .fabricate-action:active,
                 #compare-armor-patterns:active, #fireteam-breadcrumb button:active,
-                #comparison-breadcrumb button:active, #designer-breadcrumb button:active, #marine-ops-page-routes button:active,
+                #comparison-breadcrumb button:active, #marine-ops-page-routes button:active,
                 .console-toggle:active, .fire-team-tab:active, .equipment-picker-tab:active,
                 .loadout-filter:active, .supply-filter:active, .catalog-filter-pill:active,
                 .team-tab:active { background-color: #222b24; border-style: inset; }
                 .console-action:focus-visible, .slot-strip-action:focus-visible, .fabricate-action:focus-visible,
                 #compare-armor-patterns:focus-visible, #fireteam-breadcrumb button:focus-visible,
-                #comparison-breadcrumb button:focus-visible, #designer-breadcrumb button:focus-visible, #marine-ops-page-routes button:focus-visible,
+                #comparison-breadcrumb button:focus-visible, #marine-ops-page-routes button:focus-visible,
                 .console-toggle:focus-visible, .fire-team-tab:focus-visible, .equipment-picker-tab:focus-visible,
                 .loadout-filter:focus-visible, .supply-filter:focus-visible, .catalog-filter-pill:focus-visible,
                 .team-tab:focus-visible { border-color: #ffe1a0; border-style: solid; }
@@ -229,6 +233,24 @@ final class MarineOpsThemes {
                 }
                 .console-key-grip { width: 14px; height: 24px; pointer-events: none; }
                 .console-command-signal { width: 12px; height: 8px; border-width: 1px; pointer-events: none; }
+                /* Licence keys: the tabs and actions that sit on and around the spec-sheet cards,
+                   in the cards' own navy and edge colours rather than the console's. After the
+                   console block so a surface that also carries a console class takes these. */
+                .spec-tab, .spec-action {
+                    background-image: none; border-style: solid; border-width: 1px;
+                    font-family: heading; text-align: center;
+                }
+                .spec-tab { background-color: #09131d; border-color: #1f3346; color: #8b9aaf; }
+                .spec-tab:hover { background-color: #0e1a26; border-color: #2a4258; color: #d5deea; }
+                .spec-tab:active { background-color: #060d14; border-style: solid; }
+                .spec-tab.selected { background-color: #16242f; border-color: #53c6e8; color: #eaf3ff; border-style: solid; }
+                /* A choice the player commits to (First Refit's A / B) is picked in gold, as its card is. */
+                .spec-tab.spec-choice.selected { background-color: #1a1608; border-color: #f2cf68; color: #f2cf68; }
+                .spec-action { background-color: #1a1608; border-color: #dfb84d; color: #f2cf68; }
+                .spec-action:hover { background-color: #2a2410; border-color: #f2cf68; }
+                .spec-action:active { background-color: #100d04; border-style: solid; }
+                .spec-action.issued { background-color: #0d1a12; border-color: #4f9c6b; color: #8fd6a6; }
+                .spec-tab:focus-visible, .spec-action:focus-visible { border-color: #ffe1a0; border-style: solid; }
 
                 """);
     }
@@ -297,14 +319,14 @@ final class MarineOpsThemes {
 
                 .console-action, .slot-strip-action, .fabricate-action,
                 #compare-armor-patterns, #fireteam-breadcrumb button,
-                #comparison-breadcrumb button, #designer-breadcrumb button, #marine-ops-page-routes button,
+                #comparison-breadcrumb button, #marine-ops-page-routes button,
                 .console-toggle, .fire-team-tab, .equipment-picker-tab,
                 .loadout-filter, .supply-filter, .catalog-filter-pill,
                 .team-tab { background-color: #102b42; border-color: #d2f3ff; color: #ffffff; }
                 .console-action { text-align: center; }
                 .console-action:hover, .slot-strip-action:hover, .fabricate-action:hover,
                 #compare-armor-patterns:hover, #fireteam-breadcrumb button:hover,
-                #comparison-breadcrumb button:hover, #designer-breadcrumb button:hover, #marine-ops-page-routes button:hover,
+                #comparison-breadcrumb button:hover, #marine-ops-page-routes button:hover,
                 .console-toggle:hover, .fire-team-tab:hover, .equipment-picker-tab:hover,
                 .loadout-filter:hover, .supply-filter:hover, .catalog-filter-pill:hover,
                 .team-tab:hover { background-color: #15577b; }
@@ -322,6 +344,24 @@ final class MarineOpsThemes {
                 }
                 .console-key-grip { width: 14px; height: 24px; pointer-events: none; }
                 .console-command-signal { width: 12px; height: 8px; border-width: 1px; pointer-events: none; }
+                /* Licence keys: the tabs and actions that sit on and around the spec-sheet cards,
+                   in the cards' own navy and edge colours rather than the console's. After the
+                   console block so a surface that also carries a console class takes these. */
+                .spec-tab, .spec-action {
+                    background-image: none; border-style: solid; border-width: 1px;
+                    font-family: heading; text-align: center;
+                }
+                .spec-tab { background-color: #09131d; border-color: #1f3346; color: #8b9aaf; }
+                .spec-tab:hover { background-color: #0e1a26; border-color: #2a4258; color: #d5deea; }
+                .spec-tab:active { background-color: #060d14; border-style: solid; }
+                .spec-tab.selected { background-color: #16242f; border-color: #53c6e8; color: #eaf3ff; border-style: solid; }
+                /* A choice the player commits to (First Refit's A / B) is picked in gold, as its card is. */
+                .spec-tab.spec-choice.selected { background-color: #1a1608; border-color: #f2cf68; color: #f2cf68; }
+                .spec-action { background-color: #1a1608; border-color: #dfb84d; color: #f2cf68; }
+                .spec-action:hover { background-color: #2a2410; border-color: #f2cf68; }
+                .spec-action:active { background-color: #100d04; border-style: solid; }
+                .spec-action.issued { background-color: #0d1a12; border-color: #4f9c6b; color: #8fd6a6; }
+                .spec-tab:focus-visible, .spec-action:focus-visible { border-color: #ffe1a0; border-style: solid; }
 
                 """);
     }
@@ -349,7 +389,8 @@ final class MarineOpsThemes {
                         "prose", Fonts.INSIGNIA_LARGE,
                         "heading", Fonts.ORBITRON_12_BOLD,
                         "compact", Fonts.ORBITRON_10,
-                        "title", Fonts.ORBITRON_16));
+                        "title", Fonts.ORBITRON_16,
+                        "display", Fonts.ORBITRON_24_BOLD));
     }
 
     record CanvasPalette(Color button, Color selected, Color danger, Color valid,

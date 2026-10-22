@@ -1,4 +1,4 @@
-<template props="confirmLabel,title,missionName,budgetLabel,budgetTone,poolLabel,instructions,lootRows,carryLabel,fenceLabel,noticeClasses,notice,backAction,confirmDisabled,confirmAction">
+<template props="confirmLabel,title,missionName,budgetLabel,budgetTone,poolLabel,instructions,lootRows,carryLabel,fenceLabel,holdLabel,noticeClasses,notice,backAction,confirmDisabled,confirmAction">
   <div id="mission-loot-root" class="mission-loot-root">
     <div id="mission-loot-header" class="mission-flow-header console-header">
       <img id="mission-loot-header-lock" class="flow-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -17,6 +17,9 @@
     </div>
     <div id="mission-loot-grid" class="loot-grid console-section">
       <button each="loot in lootRows" key="{loot.id}" id="{loot.id}" class="{loot.classes}" disabled="{loot.disabled}" onclick="{loot.action}">
+        <div id="{loot.checkId}" class="{loot.checkClasses}">
+          <div id="{loot.checkMarkId}" class="loot-check-mark"></div>
+        </div>
         <img id="{loot.iconId}" class="loot-icon" src="{loot.icon}" />
         <div id="{loot.copyId}" class="loot-card-copy">
           <div id="{loot.nameId}" class="label heading loot-name">{loot.name}</div>
@@ -34,6 +37,10 @@
       <div id="mission-loot-fence" class="settlement-cell">
         <div id="mission-loot-fence-heading" class="label heading tone-muted">{i18n.lootScreenFenceHeading}</div>
         <div id="mission-loot-fence-value" class="label tone-accent">{fenceLabel}</div>
+      </div>
+      <div id="mission-loot-hold" class="settlement-cell">
+        <div id="mission-loot-hold-heading" class="label heading tone-muted">{i18n.lootScreenHoldHeading}</div>
+        <div id="mission-loot-hold-value" class="label tone-edge">{holdLabel}</div>
       </div>
       <div id="mission-loot-notice" class="{noticeClasses}">{notice}</div>
     </div>
@@ -77,11 +84,16 @@
   .loot-summary { height: 78px; padding: 8px 10px; gap: 10px; }
   .loot-summary-copy { width: 470px; gap: 6px; }
   .loot-instructions { padding: 10px; white-space: normal; }
-  .loot-card { width: 350px; height: 118px; padding: 8px; gap: 9px; background-color: #252b30; border-color: #64717b; }
+  .loot-card { width: 350px; height: 118px; padding: 8px; gap: 9px; align-items: flex-start; background-color: #252b30; border-color: #64717b; }
   .loot-card:hover { background-color: #354047; border-color: #91a9b8; }
   .loot-card.selected { background-color: #253b42; border-color: #d4b569; }
   .loot-icon { width: 68px; height: 68px; }
   .loot-card-copy { gap: 5px; }
   .loot-settlement { height: 68px; padding: 8px 10px; }
   .settlement-cell { width: 360px; gap: 5px; }
+  #mission-loot-hold { width: 520px; }
+  .loot-check { width: 22px; height: 22px; padding: 4px; border-width: 1px; border-color: #91a9b8; background-color: #161b1f; }
+  .loot-check-mark { width: 12px; height: 12px; opacity: 0; }
+  .loot-check.checked { border-color: #d4b569; }
+  .loot-check.checked .loot-check-mark { opacity: 1; background-color: #78d494; }
 </style>

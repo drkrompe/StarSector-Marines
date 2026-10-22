@@ -326,14 +326,14 @@ class SquadEquipmentDoctrineTest {
         roster.armory().acquireArmorPlan(SquadEquipmentDoctrines.SINDRIAN_SECURITY_ARMOR);
         String unaffordableWeapons = null;
         for (SquadWeaponDoctrine candidate : SquadEquipmentDoctrines.weaponDoctrines()) {
-            if (!roster.armory().canAuthorWeaponDoctrine(candidate.issues())) {
+            if (!roster.armory().knowsWeaponCard(candidate.id())) {
                 unaffordableWeapons = candidate.id();
                 break;
             }
         }
         assertNotNull(unaffordableWeapons, "fixture assumption: a starter armoury cannot"
                 + " author every authored weapon doctrine");
-        assertEquals(SquadEquipmentResult.MISSING_TEMPLATE, roster.applySquadEquipment(
+        assertEquals(SquadEquipmentResult.UNKNOWN_CARD, roster.applySquadEquipment(
                 squad.id(), unaffordableWeapons,
                 SquadEquipmentDoctrines.SINDRIAN_SECURITY_ARMOR));
 
@@ -395,24 +395,20 @@ class SquadEquipmentDoctrineTest {
     }
 
     @Test
-    void playerAuthoredDefinitionsPersistAndUseTheAuthoritativeIssueTransaction() throws Exception {
+    void aRegisteredCardOutsideTheBuiltInsPersistsAndUsesTheAuthoritativeIssueTransaction() throws Exception {
         MarineRoster roster = fullSquad();
         MarineSquad squad = roster.squads().get(0);
-        SquadWeaponDoctrine customWeapons = roster.armory().createWeaponDoctrine(
-                "My Fleet Issue",
+        // A save may hold a card a removed designer once made; it keeps issuing.
+        SquadWeaponDoctrine customWeapons = roster.armory().ensureWeaponDoctrine(
+                "custom:weapons:saved", "My Fleet Issue",
                 SquadEquipmentDoctrines.weaponById(
                         SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS).issues());
-        // Only weapons are player-authored. Armour is a sheet, and the sheet
-        // this squad is issued is a built-in plan resolved against what the
-        // armoury owns ({@code role-and-access.md}).
         String sheet = SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR;
 
         assertTrue(roster.previewSquadEquipment(
                 squad.id(), customWeapons.id(), sheet).canApply());
         assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(
                 squad.id(), customWeapons.id(), sheet));
-        assertFalse(roster.deleteWeaponDoctrine(customWeapons.id()),
-                "an assigned custom definition remains protected");
 
         MarineRoster loaded = roundTrip(roster);
         assertEquals("My Fleet Issue",

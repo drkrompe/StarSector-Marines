@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a163b1-35d0-7cd1-b4a1-8bcd77864390",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a163b1-35d0-7cd1-b4a1-8bcd77864390\\exec-c63e9156-817f-4daf-aa3f-4951fa278d53.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\asharu-battle\\surface\\raw\\aft.png",
+    "sha256": "b9c2b20b17e19ba86d1b3e3d507f5196f59aa4da3ed6df7501ee87f6d4d52ba4",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\asharu-battle\\surface\\prompts\\aft.txt",
+  "promptSha256": "435a5476bd0994ea5c64176d3350369f48732fb3b4570e9f2854cd2237be79a9",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Layout and colour authority: a lower-resolution image of this region, magnified. Keep every region where it is.\n\nA square, straight-down orbital survey photograph of a dry desert planet, 500 km across the\nframe (about 0.45 km per pixel), north up. True nadir view, no perspective, no horizon, no sky,\nno clouds, no haze, no vignette, no text, labels, grid or border. Flat, even lighting: a\ncolour map, not a lit relief render, so there are no strong cast shadows.\n\nImage 1 is the layout and colour authority: a lower-resolution survey image of exactly this\nregion, magnified. Keep every region exactly where it is and the same colour and brightness:\nsand seas, tan gravel plains, dark rock country, pale playa beds. Do not move, add or remove any\nlarge region, and do not change the overall palette or contrast. Treat any rounded, blobby\ndark patch as an eroded rock plateau with ragged, canyon-cut edges.\n\nAdd the detail a real orbital image at this scale shows: individual linear and crescent dunes\nwith one consistent wind grain, sharp branching canyons with pale sand floors and dark walls,\nlayered mesas and buttes, scarp edges with talus aprons, braided dry riverbeds, white salt\ncrusts, alluvial fans, wind streaks behind outcrops. Natural geology only: no cities, roads,\nfields or any sign of people.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "build\\asharu-surface\\guides\\aft.png",
+      "sha256": "c9ed27adbcb535fe322ffcb500d375c5b2c325b9f5695c159020a5bdb0ae9dd4",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Layout and colour authority: a lower-resolution image of this region, magnified. Keep every region where it is."
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image, preserving the reference’s layout, palette, and brightness while adding finer geological detail.\n"
+  ],
+  "usage": {
+    "input_tokens": 39781,
+    "cached_input_tokens": 31744,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 451,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 55.4
+}

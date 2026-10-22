@@ -8,21 +8,43 @@ import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadEquipmentBillet;
 import com.dillon.starsectormarines.marine.SquadEquipmentPreview;
+import com.dillon.starsectormarines.ops.battleview.ArmoryLoadoutPreviewComposer;
+import com.dillon.starsectormarines.ops.battleview.ArmoryMarinePreviewCanvas;
 import com.dillon.starsectormarines.ops.spec.IntegralSystemCopy;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
+import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.UiElement;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.IntConsumer;
+import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-/** Read-only comparison of actual equipment against a squad-wide draft. */
+/**
+ * The squad as the Loadout screen shows it: three fire teams of two by two, each
+ * marine with a portrait of the kit they would wear, their weapon, armour, special
+ * and integral system as issued now with what the selected cards would change it
+ * to, and the few numbers that change with it. Read-only; nothing here issues.
+ */
 final class LoadoutInspection {
     private LoadoutInspection() { }
+
+    /** The lines of kit each marine's tile lists, in order. */
+    static final int WEAPON = 0, ARMOR = 1, SPECIAL = 2, SYSTEM = 3, PARTS = 4;
+
+    /** The numbers a tile compares: the weapon's three that matter most, and the suit's two. */
+    private static final List<String> STATS = List.of("DPS", "RNG", "PEN", "ARMOR", "MOVE");
+    private static final Pattern NUMBER = Pattern.compile("-?\\d+(\\.\\d+)?");
+    private static final String BETTER = "graphics/ui/equipment/stat-better.svg";
+    private static final String WORSE = "graphics/ui/equipment/stat-worse.svg";
+    private static final String CHANGE = "graphics/ui/equipment/kit-change.svg";
 
     static Map<String, Object> project(MarineRoster roster, MarineSquad squad,
                                        SquadEquipmentPreview preview, int selected,
@@ -30,37 +52,183 @@ final class LoadoutInspection {
         List<String> members = squad == null ? List.of() : roster.manningMemberIds(squad);
         List<Map<String, Object>> teams = new ArrayList<>();
         MarineSoldier focused = selected < members.size() ? roster.soldierById(members.get(selected)) : null;
-        FireTeamBillet current = current(focused), proposed = proposed(preview, selected);
+        String[] labels = {Strings.get("openingLoadoutAlpha"), Strings.get("openingLoadoutBravo"), Strings.get("openingLoadoutCharlie")};
         int changed = 0;
         for (int team = 0; team < 3; team++) {
-            List<Map<String, Object>> billets = new ArrayList<>();
-            for (int slot = 0; slot < 4; slot++) {
-                int index = team * 4 + slot;
-                MarineSoldier soldier = index < members.size() ? roster.soldierById(members.get(index)) : null;
-                FireTeamBillet before = current(soldier), after = proposed(preview, index);
-                boolean differs = !same(before, after);
-                if (differs) changed++;
-                String id = "loadout-billet:" + index;
-                Map<String, Object> billet = row(id, "name", "art", "armorIcon", "weaponIcon", "status", "change");
-                billet.put("name", Strings.join("separatorPath", String.valueOf(slot + 1), soldier == null ? Strings.get("openingLoadoutVacant") : soldier.name()));
-                billet.put("status", soldier == null ? Strings.get("openingLoadoutVacantPlanOnly2") : soldier.status().toString());
-                billet.put("change", after == null ? Strings.get("openingLoadoutChooseALoadout") : differs ? Strings.get("openingLoadoutEquipmentChanges") : Strings.get("openingLoadoutKeepCurrentKit"));
-                billet.put("armor", before == null ? "graphics/ui/formation/marine-cutout-vacant.svg" : before.armorDef().iconPath());
-                billet.put("weapon", before == null ? "" : EquipmentIcons.primary(before.primaryDef(), before.grade()));
-                billet.put("classes", "loadout-billet" + (index == selected ? " selected" : ""));
-                billet.put("select", (Runnable) () -> select.accept(index));
-                billets.add(billet);
+            List<Map<String, Object>> rows = new ArrayList<>();
+            for (int row = 0; row < 2; row++) {
+                List<Map<String, Object>> billets = new ArrayList<>();
+                for (int column = 0; column < 2; column++) {
+                    int slot = row * 2 + column, index = team * 4 + slot;
+                    MarineSoldier soldier = index < members.size() ? roster.soldierById(members.get(index)) : null;
+                    FireTeamBillet before = current(soldier), after = proposed(preview, index);
+                    boolean differs = after != null && !same(before, after);
+                    if (differs) changed++;
+                    billets.add(billet(index, slot, soldier, before, after, differs, index == selected, select));
+                }
+                Map<String, Object> line = new LinkedHashMap<>();
+                line.put("id", "loadout-team:" + team + ":row:" + row);
+                line.put("billets", billets);
+                rows.add(line);
             }
-            Map<String, Object> group = row("loadout-team:" + team, "heading", "members");
-            group.put("label", new String[]{Strings.get("openingLoadoutAlpha"), Strings.get("openingLoadoutBravo"), Strings.get("openingLoadoutCharlie")}[team]);
-            group.put("billets", billets); teams.add(group);
+            Map<String, Object> group = row("loadout-team:" + team, "heading", "rows");
+            group.put("label", labels[team]);
+            group.put("rows", rows);
+            teams.add(group);
         }
-        List<Map<String, Object>> items = new ArrayList<>();
-        for (int kind = 0; kind < 3; kind++) items.add(item(kind, current, proposed, focused));
-        return Map.of("teams", teams, "items", items,
+        return Map.of("teams", teams,
                 "title", focused == null ? Strings.get("openingLoadoutVacantBilletPlannedEquipment") : Strings.join("separatorPath", focused.name(), String.valueOf(focused.status())),
-                "summary", Strings.format("openingLoadoutChangedBillets", changed),
-                "scope", Strings.get("openingLoadoutCurrentKitInTheGridSelectABillet"));
+                "scope", Strings.format("openingLoadoutSquadScope", changed));
+    }
+
+    /** The kit a marine's portrait shows: what the selected cards would issue, or what they wear. */
+    static FireTeamBillet shownKit(Map<String, Object> inspection, int index) {
+        Map<String, Object> billet = billetAt(inspection, index);
+        return billet == null ? null : (FireTeamBillet) billet.get("kit");
+    }
+
+    /** The sheet one kit line of one marine opens on hover. */
+    @SuppressWarnings("unchecked")
+    static SpecSheet partSheet(Map<String, Object> inspection, int index, int part) {
+        Map<String, Object> billet = billetAt(inspection, index);
+        if (billet == null) return null;
+        return (SpecSheet) ((List<Map<String, Object>>) billet.get("parts")).get(part).get("sheet");
+    }
+
+    /**
+     * Gives each marine's portrait its producer, reading the live projection so a
+     * change of card or billet repaints without rebinding. Idempotent per document.
+     */
+    static void bindPortraits(UiDocument document, MarkupInstance markup,
+                              Supplier<Map<String, Object>> inspection,
+                              ArmoryLoadoutPreviewComposer.Assets assets) {
+        for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
+            UiElement canvas = markup.requireElement(portraitId(billet));
+            if (document.canvases().producerOf(canvas) != null) continue;
+            int index = billet;
+            document.canvases().set(canvas, new ArmoryMarinePreviewCanvas(
+                    () -> shownKit(inspection.get(), index), assets));
+        }
+    }
+
+    static String partId(int index, int part) {
+        return "loadout-billet:" + index + ":part:" + part;
+    }
+
+    static String portraitId(int index) {
+        return "loadout-billet:" + index + ":portrait";
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> billetAt(Map<String, Object> inspection, int index) {
+        for (Object team : (List<?>) inspection.get("teams")) {
+            for (Object line : (List<?>) ((Map<String, Object>) team).get("rows")) {
+                for (Object billet : (List<?>) ((Map<String, Object>) line).get("billets")) {
+                    Map<String, Object> shown = (Map<String, Object>) billet;
+                    if ((Integer) shown.get("index") == index) return shown;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static Map<String, Object> billet(int index, int slot, MarineSoldier soldier, FireTeamBillet before,
+                                              FireTeamBillet after, boolean differs, boolean selected,
+                                              IntConsumer select) {
+        String id = "loadout-billet:" + index;
+        Map<String, Object> billet = row(id, "name", "state", "parts", "stats");
+        billet.put("index", index);
+        billet.put("portraitId", portraitId(index));
+        billet.put("kit", after != null ? after : before);
+        billet.put("name", Strings.join("separatorPath", String.valueOf(slot + 1), soldier == null ? Strings.get("openingLoadoutVacant") : soldier.name()));
+        billet.put("state", Strings.join("separatorDot",
+                soldier == null ? Strings.get("openingLoadoutVacantPlanOnly2") : soldier.status().toString(),
+                after == null ? Strings.get("openingLoadoutChooseALoadout") : differs ? Strings.get("openingLoadoutEquipmentChanges") : Strings.get("openingLoadoutKeepCurrentKit")));
+        billet.put("stateClasses", "loadout-member-state label " + (differs ? "tone-accent" : "tone-muted"));
+        billet.put("classes", "loadout-billet" + (selected ? " selected" : ""));
+        billet.put("select", (Runnable) () -> select.accept(index));
+        List<Map<String, Object>> parts = new ArrayList<>();
+        for (int part = 0; part < PARTS; part++) parts.add(part(index, part, before, after));
+        billet.put("parts", parts);
+        billet.put("stats", stats(id, before, after, soldier));
+        return billet;
+    }
+
+    private static Map<String, Object> part(int index, int part, FireTeamBillet before, FireTeamBillet after) {
+        Map<String, Object> line = row(partId(index, part), "icon", "text", "now", "nextRow", "arrow", "next");
+        SpecSheet now = sheet(before, part), next = sheet(after, part);
+        boolean changes = after != null && !Objects.equals(now, next);
+        String icon = icon(after != null ? after : before, part);
+        line.put("icon", icon);
+        line.put("iconClasses", icon.isEmpty() ? "loadout-part-icon loadout-part-icon-absent" : "loadout-part-icon");
+        line.put("now", name(before, now, part));
+        // A change reads as the old item dimmed with the new one under an arrow.
+        line.put("nowClasses", "loadout-part-now label " + (now == null || changes ? "tone-muted" : "tone-edge"));
+        line.put("arrow", CHANGE);
+        line.put("next", changes ? name(after, next, part) : "");
+        line.put("nextRowClasses", changes ? "loadout-part-next" : "loadout-hidden");
+        line.put("sheet", changes && next != null ? next : now != null ? now : next);
+        return line;
+    }
+
+    private static List<Map<String, Object>> stats(String id, FireTeamBillet before, FireTeamBillet after,
+                                                   MarineSoldier soldier) {
+        Map<String, SpecSheet.Stat> now = statsById(before, soldier), next = statsById(after, soldier);
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (String stat : STATS) {
+            SpecSheet.Stat old = now.get(stat), fresh = next.get(stat);
+            boolean changes = after != null && fresh != null && (old == null || !old.value().equals(fresh.value()));
+            Map<String, Object> line = row(id + ":stat:" + stat, "label", "before", "arrow", "after");
+            line.put("label", statLabel(stat));
+            line.put("before", old == null ? "—" : old.value());
+            line.put("after", changes ? fresh.value() : "");
+            // Every number compared here reads better the higher it is.
+            int direction = changes ? Float.compare(number(fresh.value()), old == null ? 0f : number(old.value())) : 0;
+            line.put("arrow", direction > 0 ? BETTER : direction < 0 ? WORSE : "");
+            line.put("arrowClasses", direction == 0 ? "loadout-stat-arrow loadout-stat-arrow-absent" : "loadout-stat-arrow");
+            line.put("afterClasses", "loadout-stat-after label " + (direction > 0 ? "tone-good" : direction < 0 ? "tone-danger" : "tone-edge"));
+            rows.add(line);
+        }
+        return rows;
+    }
+
+    /** The leading number of a stat's printed value: {@code "+12%"} reads 12, {@code "26.4"} 26.4. */
+    static float number(String value) {
+        Matcher match = NUMBER.matcher(value);
+        return match.find() ? Float.parseFloat(match.group()) : 0f;
+    }
+
+    private static Map<String, SpecSheet.Stat> statsById(FireTeamBillet kit, MarineSoldier soldier) {
+        Map<String, SpecSheet.Stat> byId = new LinkedHashMap<>();
+        for (var stat : stats(kit, WEAPON, soldier)) byId.put(stat.id(), stat);
+        for (var stat : stats(kit, ARMOR, soldier)) byId.put(stat.id(), stat);
+        return byId;
+    }
+
+    private static String statLabel(String stat) {
+        return switch (stat) {
+            case "DPS" -> Strings.get("openingLoadoutStatDPS");
+            case "RNG" -> Strings.get("openingLoadoutStatRNG");
+            case "PEN" -> Strings.get("openingLoadoutStatPEN");
+            case "ARMOR" -> Strings.get("openingLoadoutStatARMOR");
+            default -> Strings.get("openingLoadoutStatMOVE");
+        };
+    }
+
+    private static String name(FireTeamBillet kit, SpecSheet sheet, int part) {
+        if (sheet != null) return sheet.title();
+        if (kit == null) return Strings.get("openingLoadoutVacant");
+        return part == SYSTEM ? Strings.get("gearSystemNone") : Strings.get("openingLoadoutNoSpecialItem");
+    }
+
+    private static String icon(FireTeamBillet kit, int part) {
+        if (kit == null) return "";
+        return switch (part) {
+            case WEAPON -> EquipmentIcons.primary(kit.primaryDef(), kit.grade());
+            case ARMOR -> kit.armorDef().iconPath();
+            case SPECIAL -> kit.specialDef() == null ? "" : kit.specialDef().armoryIconPath();
+            default -> IntegralSystemCopy.carried(kit.armorDef()) ? IntegralSystemCopy.iconPath(kit.armorDef()) : "";
+        };
     }
 
     private static Map<String, Object> row(String id, String... children) {
@@ -68,58 +236,6 @@ final class LoadoutInspection {
         row.put("id", id);
         for (String child : children) row.put(child + "Id", id + ":" + child);
         return row;
-    }
-
-    private static Map<String, Object> item(int kind, FireTeamBillet before, FireTeamBillet after, MarineSoldier soldier) {
-        String id = "loadout-item:" + kind;
-        SpecSheet current = sheet(before, kind), proposed = sheet(after, kind);
-        Map<String, Object> item = row(id, "headingRow", "kind", "change", "pair", "stats", "note");
-        item.put("kind", new String[]{Strings.get("openingLoadoutPrimaryWeapon"), Strings.get("openingLoadoutArmorSuitSystem"), Strings.get("openingLoadoutSpecialEquipment")}[kind]);
-        item.put("change", before == null ? Strings.get("openingLoadoutPlanOnly") : Objects.equals(current, proposed) ? Strings.get("openingLoadoutUnchanged") : proposed == null ? Strings.get("openingLoadoutRemove") : Strings.get("openingLoadoutReplace"));
-        item.put("classes", "loadout-item panel" + (kind == 2 ? " loadout-special" : kind == 1 ? " loadout-armor" : ""));
-        item.put("current", subject(id + ":current", before, current, kind));
-        item.put("proposed", subject(id + ":proposed", after, proposed, kind));
-        List<SpecSheet.Stat> oldStats = stats(before, kind, soldier);
-        List<SpecSheet.Stat> newStats = stats(after, kind, soldier);
-        Map<String, SpecSheet.Stat> oldById = new LinkedHashMap<>(), newById = new LinkedHashMap<>();
-        for (var stat : oldStats) oldById.put(stat.id(), stat);
-        for (var stat : newStats) newById.put(stat.id(), stat);
-        Map<String, SpecSheet.Stat> union = new LinkedHashMap<>(oldById);
-        union.putAll(newById);
-        List<Map<String, Object>> rows = new ArrayList<>();
-        for (String label : union.keySet()) {
-            SpecSheet.Stat old = oldById.get(label), next = newById.get(label);
-            Map<String, Object> stat = row(id + ":stat:" + label, "icon", "label", "oldTrack", "oldFill", "oldValue", "arrow", "newTrack", "newFill", "newValue");
-            stat.put("label", statLabel(union.get(label)));
-            stat.put("icon", "graphics/ui/equipment/" + statIcon(label) + ".svg");
-            stat.put("before", old == null ? "—" : old.value());
-            stat.put("after", next == null ? "—" : next.value());
-            stat.put("oldStyle", fill(old)); stat.put("newStyle", fill(next));
-            stat.put("change", old == null || next == null ? "" : old.value().equals(next.value()) ? "=" : "→");
-            rows.add(stat);
-        }
-        item.put("stats", rows);
-        item.put("style", "height: " + (kind == 2 ? 164 + 24 * rows.size() : kind == 1 ? 282 : 274) + "px;");
-        item.put("statsStyle", "height: " + Math.max(0, 24 * rows.size() - 3) + "px;");
-        item.put("notes", kind == 0 ? Strings.get("openingLoadoutPenetrationCountersResistanceAccuracyAndDpsUseThis")
-                : kind == 1 ? Strings.get("openingLoadoutArmorIsCapacityResistanceReducesPenetrationMovementIs")
-                : Strings.get("openingLoadoutSpecialEquipmentFollowsTheWeaponLoadout"));
-        return item;
-    }
-
-    private static Map<String, Object> subject(String id, FireTeamBillet kit, SpecSheet sheet, int kind) {
-        Map<String, Object> subject = row(id, "top", "icon", "text", "title", "subtitle", "system");
-        subject.put("title", sheet == null ? kit == null ? Strings.get("openingLoadoutNoEquipment") : Strings.get("openingLoadoutNoneCarried") : sheet.title());
-        subject.put("subtitle", sheet == null ? kit == null ? Strings.get("openingLoadoutVacantBillet") : Strings.get("openingLoadoutNoSpecialItem") : sheet.subtitle());
-        subject.put("icon", kit == null ? "" : switch (kind) {
-            case 0 -> EquipmentIcons.primary(kit.primaryDef(), kit.grade());
-            case 1 -> kit.armorDef().iconPath();
-            default -> kit.specialDef() == null ? "" : kit.specialDef().armoryIconPath();
-        });
-        subject.put("system", kind == 1 && kit != null ? IntegralSystemCopy.tile(kit.armorDef()) : "");
-        subject.put("systemClasses", kind == 1 ? "loadout-system" : "loadout-hidden");
-        subject.put("sheet", sheet);
-        return subject;
     }
 
     private static List<SpecSheet.Stat> stats(FireTeamBillet kit, int kind, MarineSoldier soldier) {
@@ -133,32 +249,13 @@ final class LoadoutInspection {
         return sheet == null ? List.of() : sheet.stats();
     }
 
-    private static String fill(SpecSheet.Stat stat) {
-        return String.format(Locale.ROOT, "width: %.2f%%;", stat == null || !stat.hasMeter() ? 0f : stat.fill() * 100);
-    }
-
-    private static String statLabel(SpecSheet.Stat stat) {
-        return switch (stat.id()) {
-            case "DMG" -> Strings.get("openingLoadoutDamage"); case "RNG" -> Strings.get("openingLoadoutRange"); case "ACC" -> Strings.get("openingLoadoutAccuracy");
-            case "DPS" -> Strings.get("openingLoadoutSustainedDps"); case "RESIST" -> Strings.get("openingLoadoutResistance"); case "PEN" -> Strings.get("openingLoadoutPenetration");
-            case "MOVE" -> Strings.get("openingLoadoutMovement"); case "EVASION" -> Strings.get("openingLoadoutEvasion"); case "ARMOR" -> Strings.get("openingLoadoutArmor");
-            default -> stat.label();
-        };
-    }
-
-    private static String statIcon(String label) {
-        return switch (label) {
-            case "DMG", "DPS" -> "firepower"; case "RNG", "ACC", "EVASION" -> "target";
-            case "MOVE" -> "movement"; default -> "protection";
-        };
-    }
-
     private static SpecSheet sheet(FireTeamBillet kit, int kind) {
         if (kit == null) return null;
         return switch (kind) {
-            case 0 -> SpecSheets.weapon(kit.primaryDef(), kit.grade());
-            case 1 -> SpecSheets.armor(kit.armorDef());
-            default -> kit.specialDef() == null ? null : SpecSheets.special(kit.specialDef());
+            case WEAPON -> SpecSheets.weapon(kit.primaryDef(), kit.grade());
+            case ARMOR -> SpecSheets.armor(kit.armorDef());
+            case SPECIAL -> kit.specialDef() == null ? null : SpecSheets.special(kit.specialDef());
+            default -> IntegralSystemCopy.carried(kit.armorDef()) ? SpecSheets.integralSystem(kit.armorDef()) : null;
         };
     }
 

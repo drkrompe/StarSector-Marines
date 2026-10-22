@@ -11,8 +11,14 @@
     python battle_blockout.py --root DIR      # put run folders under DIR (a render-queue job's {work})
     python battle_blockout.py --date D        # the review folder's date, when the run starts (default today)
     python battle_blockout.py --half          # render at half size (a light check; labels drawn at full size)
+    python battle_blockout.py --surface base  # the game's desert01 alone, without the detail tiles (the control)
     python battle_blockout.py --stage-only    # build and pose the scene in Blender, render nothing (a pre-flight)
     python battle_blockout.py --stage-only --los   # ... and ray-cast every shot: does the round meet its target?
+    python battle_blockout.py --combined      # one pass per key frame; the default (from r10) renders them as
+                                              # backdrop / ships / effects layers in one EXR (raw/<kf>.layers.exr),
+                                              # composed into the still (composite_layers.py)
+    python battle_blockout.py --plates DIR    # ... with the planet session's painted backdrops (<kf>.backdrop.exr)
+    python battle_blockout.py --motion-preview   # the whole sequence in Workbench, an MP4 to judge motion (asharu_preview.py)
 
 A frame already finished in the run folder (its PNG, its labels, and the same samples and source)
 is not rendered again, so a job stopped part-way resumes where it stopped. Pass --run with a fixed
@@ -40,6 +46,7 @@ import math
 import os
 import subprocess
 import sys
+import zlib
 from datetime import date
 from pathlib import Path
 
@@ -50,8 +57,11 @@ REPO = ART.parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(PROLOGUE))
 sys.path.insert(0, str(ART))
+import debris_field
 import roster
-from motion import fleet_at   # ships move about their stations: seeded weave, bank and breathing spacing  # noqa: E402
+from motion import boarding_run, fleet_at   # ships move about their stations: seeded weave, bank and breathing spacing  # noqa: E402
+from motion import (A_FULL, IDLE, Pose, camera, carried, drift, follow, held, keyed, mass_class, recoil, riding,  # noqa: E402
+                    station, struck)
 
 # One folder per finished build (roster.FINISHED's dir), copied whole from Drive.
 BUILDS = Path(os.environ.get('ASHARU_BUILDS') or REPO / 'build' / 'asharu-battle' / 'builds')
@@ -71,6 +81,9 @@ R = 5.0e6          # planet radius, m
 ALT = 250e3        # convoy altitude, m
 SUN_EL, SUN_AZ = 16.0, -40.0   # degrees: low morning sun, ahead of the convoy and to the south
 MAP_LAT, MAP_LON = 12.0, 95.0   # where on the game's desert01 map the battle is fought
+# ImageGen detail tiles and settlements laid over desert01 under the battle (surface/README.md).
+# --surface base renders the game map alone, the control.
+SURFACE_DETAIL = True
 
 # --------------------------------------------------------------------------------- key frames
 # Each key frame: what the camera sees and where every ship is. Placements are
@@ -115,25 +128,96 @@ PIRATES_RISING = {   # coming up out of the platform, behind and below the convo
 PLATFORM = (-9500, 1200, -4300)   # the derelict Asharu platform: about 4 km lower and 10 km astern
 
 
-def moored(offset, throttle=0.0):
-    """A pirate hull lying cold along the platform's flank: offset in metres from its centre,
-    heading prograde with it, drives at throttle (0 is dark)."""
-    return (PLATFORM[0] + offset[0], PLATFORM[1] + offset[1], PLATFORM[2] + offset[2], 0, 0, 0, throttle)
+PLATFORM_HD = -70.0     # the platform's long axis, turned so the convoy sees it broadside from its north side
 
 
-PIRATES_MOORED = {   # running dark among the platform's stripped hulks; the Falcon (P) lights first
-    'falcon-p': moored((-150, 105, 0), .15),
-    'manticore-p': moored((80, 110, -20)),
-    'colossus3': moored((120, -110, 0)),
-    'buffalo2-a': moored((230, 100, 10)),
-    'hound-p-c': moored((-300, -105, 0)),
-    'wolf-p-a': moored((-60, -120, 35)),
-    'wolf-p-b': moored((60, 135, 35)),
-    'hound-p-a': moored((-200, -130, -30)),
-    'hound-p-b': moored((220, -120, -35)),
-    'kite-p-a': moored((-330, 120, -15)),
-    'kite-p-b': moored((340, 120, -20)),
+def on_platform(offset):
+    """A point in the platform's own metres (+X along its length, +Y its north side) in the battle frame."""
+    c, s = math.cos(math.radians(PLATFORM_HD)), math.sin(math.radians(PLATFORM_HD))
+    return (PLATFORM[0] + c * offset[0] - s * offset[1], PLATFORM[1] + s * offset[0] + c * offset[1],
+            PLATFORM[2] + offset[2])
+
+
+def moored(offset, hd=0.0, pt=0.0, rl=0.0):
+    """A pirate hull lying cold at the platform: offset in the platform's metres, her attitude
+    relative to it, and her drives dark."""
+    return on_platform(offset) + (hd + PLATFORM_HD, pt, rl, 0.0)
+
+
+def platform_parts():
+    """The derelict platform as parts in its own metres (on_platform places them): the game's own description,
+    "castoff bulk-carrier segments welded between a honeycomb of emptied fuel tanks", with empty
+    hangars. [(kind, name, centre, size, (hd, pt, rl))]: a box's size is its half extents; a drum's
+    is (radius, half length) along its own X. A sagging double girder carries five mismatched hulls,
+    one knocked askew; clusters of drums are packed between them with gaps where drums have gone;
+    two open hangar bays hang under and beside the hulls; a broken mast stands off the forward end.
+    Nothing is a sphere (the owner: no orbs) and nothing is a flat card."""
+    parts = []
+
+    def box(name, c, h, a=(0, 0, 0)):
+        parts.append(('box', name, c, h, a))
+
+    for side in (-1, 1):                           # the spine: two girders, sagging 4 degrees at the middle
+        box('Platform girder', (-230, side * 16, 6), (190, 3, 3), (0, -2, 0))
+        box('Platform girder', (190, side * 16, 6), (230, 3, 3), (0, 2, 0))
+    for x in range(-400, 401, 70):                 # cross ties
+        box('Platform tie', (x, 0, 6 + abs(x) * .035), (2.5, 18, 2.5))
+    for x, h, a in (((-330, (55, 26, 20), (0, 0, 6))), ((-215, (40, 30, 24), (3, 0, -4))),
+                    ((-70, (65, 34, 28), (0, 0, 0))), ((110, (50, 28, 22), (-5, 3, 0))),
+                    ((265, (45, 24, 18), (14, -2, 9)))):
+        box('Platform bulk segment', (x, 0 if x != 265 else 12, 0), h, a)       # the castoff hulls
+    hexes = [(0, 0)] + [(16 * math.cos(math.radians(a)), 16 * math.sin(math.radians(a))) for a in range(0, 360, 60)]
+    ring2 = [(32 * math.cos(math.radians(a)), 32 * math.sin(math.radians(a))) for a in range(30, 360, 60)]
+    for x, cells, gone in ((-272, hexes, {2, 5}), (20, hexes + ring2, {4, 9, 11}), (190, hexes, {1})):
+        for n, (y, z) in enumerate(cells):         # the honeycomb of emptied fuel tanks, drums along X
+            if n not in gone:
+                parts.append(('drum', 'Platform tank', (x, y, z + 4), (7.6, 18 if x != 20 else 26), (0, 0, 0)))
+    # hangar bay under the fourth hull, open to the south: floor, back wall, end walls
+    box('Platform hangar', (110, -28, -66), (55, 38, 2))
+    box('Platform hangar', (110, 10, -44), (55, 2, 22))
+    for x in (55, 165):
+        box('Platform hangar', (x, -28, -44), (2, 38, 22))
+    # hangar bay beside the first hull, open to the north
+    box('Platform hangar', (-330, 66, -27), (55, 40, 2))
+    box('Platform hangar', (-330, 66, 23), (55, 40, 2))
+    for x in (-385, -275):
+        box('Platform hangar', (x, 66, -2), (2, 40, 23))
+    box('Platform mast', (330, 0, 60), (2, 2, 70), (0, 18, 0))                  # broken mast and its stub arms
+    box('Platform mast', (318, 0, 105), (18, 1.5, 1.5), (0, 0, 25))
+    return parts
+
+
+def to_platform(world):
+    """A battle-frame point in the platform's own metres (on_platform's inverse)."""
+    c, s_ = math.cos(math.radians(-PLATFORM_HD)), math.sin(math.radians(-PLATFORM_HD))
+    x, y, z = (world[i] - PLATFORM[i] for i in range(3))
+    return (c * x - s_ * y, s_ * x + c * y, z)
+
+
+# The convoy's line of sight onto the platform, in its metres: what a hiding ship must be out of
+TOWARD_CONVOY = debris_field.unit(to_platform((0.0, 0.0, 0.0)))
+
+# Hiding (owner, 2026-10-22: eleven hulls pouring out of the station read as a clown car). The station
+# hides only the two ships its hangars and hulls can hold; the rest lie out in its debris field, each
+# behind a wreck at least her size set between her and the convoy (debris_field.cover_piece), across
+# the whole field and at every depth, so the launch comes out of many places at once. Four are left
+# half-seen in S3 (peek: a nose past a hulk's end, or, negative, a drive cluster), so S4 reveals what
+# the audience half-saw. at: the platform's metres; hd, pt, rl relative to it.
+HIDES = {
+    'manticore-p': dict(at=(110, -52, -40), hd=-90, pt=0, rl=4),            # the station's south hangar
+    'colossus3': dict(at=(-70, -45, -72), hd=180, pt=-6, rl=175),            # under its big hull, inverted
+    'falcon-p': dict(at=(-950, -420, -180), hd=-30, pt=-4, rl=12, cover='hulk'),
+    'buffalo2-a': dict(at=(480, -520, -260), hd=150, pt=6, rl=-8, cover='block'),
+    'hound-p-c': dict(at=(1080, -160, 90), hd=-20, pt=8, rl=35, cover='hulk', peek=.75),
+    'wolf-p-a': dict(at=(-1180, 140, 130), hd=160, pt=-5, rl=-20, cover='slab'),
+    'wolf-p-b': dict(at=(-380, 420, -330), hd=-35, pt=4, rl=80, cover='hulk', peek=.75),
+    'hound-p-a': dict(at=(230, 450, 190), hd=140, pt=-6, rl=180, cover='block', peek=-.55),
+    'hound-p-b': dict(at=(880, 320, -210), hd=-25, pt=10, rl=-15, cover='hulk'),
+    'kite-p-a': dict(at=(-980, -640, -320), hd=155, pt=12, rl=40, cover='slab'),
+    'kite-p-b': dict(at=(-160, -780, 260), hd=-15, pt=-8, rl=-30, cover='hulk', peek=.75),
 }
+PIRATES_MOORED = {k: moored(h['at'], hd=h['hd'], pt=h['pt'], rl=h['rl']) for k, h in HIDES.items()}
+SHIP_LENGTH = {m['key']: roster.size_row(m)['length_m'] for m in roster.MERCHANT + roster.PIRATE + roster.DRONES}
 
 # Where the Tarsus rides in the Colossus Mk.III's grapples, in Mk.III metres: the build's
 # grapples.tarsus_origin_units (20.398, 0.49, -78.254) at 0.495 m/u, axes aligned.
@@ -176,6 +260,87 @@ def near(parent, offset, hd=0.0, pt=0.0, rl=0.0, thr=.3):
             math.degrees(math.atan2(m[2][1], m[2][2])), thr)
 
 
+def boat(mother, prize, seat_off, t0, t1, t, launch_off=(-8.0, 0.0, -12.0), carrier=None):
+    """A boarding boat (a Hermes) on its run from under its mother craft to a seat on the prize's deck
+    (motion.boarding_run). launch_off and seat_off are metres in the mother's and the prize's frames;
+    it leaves down and aft from the mother's belly, where the camera cannot see it launch, and comes in
+    along the prize's deck from astern, so it sits down facing aft, gear down."""
+    m, _ = _attitude(*mother[3:6])
+    p, _ = _attitude(*prize[3:6])
+    down_aft = [-.8 * m[i][2] - .6 * m[i][0] for i in range(3)]
+    n = math.hypot(*down_aft)
+    args = (aboard(mother, launch_off)[:3], [c / n for c in down_aft], aboard(prize, seat_off)[:3],
+            [p[i][0] for i in range(3)], near(prize, seat_off, hd=180.0, thr=0.0), t0, t1)
+    run = Pose(tuple(boarding_run(*args, t)), t, lambda tt: tuple(boarding_run(*args, tt)))
+    return run if carrier is None else carried(run, carrier)     # the seat moves with the prize
+
+
+# ------------------------------------------------------------------------- flown motion (owner, 2026-10-22)
+# Every ship in a key frame's shot flies (motion.keyed and friends): a key frame's pose is where her
+# flight passes at the key time (the t each shot passes), so a lit still is a sample of the motion
+# the preview plays. Speeds are relative to the convoy's co-moving frame: a ship on station is at
+# rest in it, a raider closing from astern flies forward through it, a ship falling out drifts aft.
+SPEED = {'frigate': 210.0, 'destroyer': 170.0, 'cruiser': 130.0, 'freighter': 90.0}
+WOBBLE = {'frigate': 6.0, 'destroyer': 4.0, 'cruiser': 2.5, 'freighter': 1.5}
+JINK = {'frigate': (6.0, 28.0), 'destroyer': (3.5, 14.0), 'cruiser': (1.5, 6.0), 'freighter': (.6, 2.0)}
+
+
+def fly(key, pose, t, keys=(), v=None, **kw):
+    """A ship flown through attitude keys (motion.keyed) at her class's closing speed unless v says.
+    Her drives burn with the acceleration the motion implies (motion.A_FULL); thrust=None keeps the
+    keyed throttle instead (a ship whose drives are out, or one holding a burn the story sets)."""
+    c = mass_class(key)
+    kw.setdefault('wobble', WOBBLE[c])
+    kw.setdefault('thrust', A_FULL[c])
+    return keyed(key, pose, t, keys, v=SPEED[c] if v is None else v, **kw)
+
+
+def jinking(key, pose, t, t0, t1, v=None, amp=1.0, **kw):
+    """A ship on her run, jinking: seeded heading and roll keys about her pose every 2 s from t0 to
+    t1 (none within a second of the key time), as hard as her class throws itself about."""
+    c = mass_class(key)
+    dh, dr = JINK[c]
+    v = SPEED[c] if v is None else v
+    h = zlib.crc32(key.encode())
+    keys, n = [], 0
+    tt = t0
+    while tt <= t1 + 1e-6:
+        if abs(tt - t) >= 1.0:
+            r = ((h >> (n % 24)) & 0xFF) / 255.0 * 2 - 1
+            side = 1 if n % 2 else -1
+            keys.append(dict(t=tt, hd=pose[3] + side * dh * amp * (.5 + .5 * abs(r)), rl=pose[5] + side * dr * amp * r,
+                             pt=pose[4] + dh * .4 * amp * r))
+        tt += 2.0
+        n += 1
+    # still gaining on the column: speed builds through the shot, so the drives burn
+    keys[0]['v'], keys[-1]['v'] = v * .8, v * 1.15
+    return fly(key, pose, t, keys, v=v, **kw)
+
+
+# The convoy's escorts work up and down the column (m/s, relative to it): the lead moving up, the
+# rear ones dropping back, so the column reads as a moving formation rather than a parked one.
+ESCORT_DRIFT = {'lasher-lead': (18, 3, 0), 'wolf-m': (-12, 0, 2), 'lasher-a': (10, -4, 0), 'lasher-b': (-15, 3, 0),
+                'hound-m': (-8, -2, 1)}
+
+
+def convoy_at(t):
+    """The convoy at t: freighters weaving on station, escorts working along the column."""
+    out = fleet_at({k: v for k, v in CONVOY.items() if k not in ESCORT_DRIFT}, t)
+    out.update({k: station(k, CONVOY[k], t, vel=ESCORT_DRIFT[k]) for k in ESCORT_DRIFT})
+    return out
+
+
+def track(pose, point, share=1.0, lag=0.0):
+    """A camera point that sits at point at the pose's key time and then moves with that ship (share
+    of her motion, lag seconds behind): a camera that pans or travels with the action."""
+    return follow(pose, tuple(point[n] - pose[n] for n in range(3)), lag, share)
+
+
+def lit(t0, level=.6, ramp=1.5):
+    """A cold ship's drives coming up from t0: the throttle, as a function of time."""
+    return lambda t: level * max(0.0, min(1.0, (t - t0) / ramp))
+
+
 # Morrow's drone bay (Shepherd hull units x 0.78): the three Borer launch points, cradle seat on the
 # point, the drone's root 1.44 m above it (Borer manifest cradle_seat). The bay lifts straight up (+Z).
 BORER_BAY_M = [(-2.34, 14.82, -1.73), (9.36, 14.82, -1.73), (20.28, 14.82, -1.73)]
@@ -187,21 +352,368 @@ STAR_GAIN = 1.0      # starfield brightness on the key frames (0 hides it)
 
 C3_PRIZE = (-150, 330, 60, 30, -4, -6, .3)
 
+# S7: the Tarsus fallen out of the column, a Kite (P) on each beam, and their boats coming over to her deck
+K3B_T = 86
+K3B_TARSUS = (-650, 90, 30, 6, -2, 9, 0)
+K3B_KITE_A = (-620, 160, 40, 6, -1, 9, .2)     # port beam
+K3B_KITE_B = (-700, 25, 0, 4, 2, 6, .2)        # starboard beam
+# the boats' seats on her deck (Tarsus metres; deck heights checked by the seat cast, ASHARU seat)
+K3B_SEATS = {'hermes-p-a': (2.0, -4.0, 6.43), 'hermes-p-b': (-22.0, 3.0, 8.0), 'hermes-p-c': (24.0, -4.0, 6.0)}
+
+# S3-S4: the launch, one motion across the cut. Drives light in a ripple from the Falcon (P), each
+# hull eases out of her hiding place along her nose, turns onto her climb and accelerates; S3 stills
+# 34 s of it (only the Falcon showing a light) and S4 picks the same flights up mid-climb at 40 s.
+K1B_T = 34
+K2_T = 40
+LAUNCH = {'falcon-p': 33.8, 'manticore-p': 35.0, 'colossus3': 35.6, 'kite-p-a': 36.0, 'wolf-p-a': 36.3,
+          'hound-p-a': 36.6, 'wolf-p-b': 36.9, 'kite-p-b': 37.2, 'hound-p-b': 37.5, 'buffalo2-a': 37.8,
+          'hound-p-c': 38.2}
+CLIMB_SPEED = {'frigate': 300.0, 'destroyer': 240.0, 'cruiser': 190.0, 'freighter': 150.0}
+
+
+def _near(a, b):
+    """b moved by whole turns to within 180 degrees of a."""
+    return a + ((b - a + 180.0) % 360.0 - 180.0)
+
+
+def launch(key, hide, t_light, climb):
+    """A hidden ship's launch: dark at hide, drives lighting at t_light, easing out along her nose for
+    four and a half seconds until she is clear of the structure, then turning onto her climb attitude
+    (climb's heading, pitch and roll) as she gathers speed, then burning up toward the column at her class's speed."""
+    x, y, z, hd, pt, rl, _ = hide
+    chd, cpt, crl = _near(hd, climb[3]), climb[4], _near(rl, climb[5])
+    v = CLIMB_SPEED[mass_class(key)]
+    keys = [dict(t=t_light - .05, v=0.0, thr=0.0), dict(t=t_light + .6, v=0.0, thr=.25),
+            dict(t=t_light + 2.4, v=18.0, thr=.6),
+            dict(t=t_light + 4.6, v=.3 * v, thr=1.0),          # still on her nose, clear of the structure
+            dict(t=t_light + 7.0, hd=(hd + chd) / 2, pt=(pt + cpt) / 2, rl=(rl + crl) / 2, v=.5 * v),
+            dict(t=t_light + 9.5, hd=chd, pt=cpt, rl=crl, v=.8 * v),
+            dict(t=t_light + 13.0, hd=chd + 3, pt=cpt + 2, rl=crl, v=v)]
+    if t_light < K1B_T:          # her drives are already lighting at the still
+        keys = [k for k in keys if abs(k['t'] - K1B_T) > .05]
+    return keyed(key, (x, y, z, hd, pt, rl, 0.0 if t_light >= K1B_T else .08), K1B_T, keys, v=0.0,
+                 wobble=.3, thrust=None, bank=False)
+
+
+PIRATE_LAUNCH = {k: launch(k, PIRATES_MOORED[k], LAUNCH[k], PIRATES_RISING[k]) for k in PIRATES_MOORED}
+K1B_SHIPS = PIRATE_LAUNCH
+K2_CAM = (PLATFORM[0] + 600, PLATFORM[1] - 1500, PLATFORM[2] + 350)     # off the south flank, a little above
+K2_AIM = (PLATFORM[0] + 100, PLATFORM[1] - 60, PLATFORM[2] + 40)
+K2_PIRATES = {k: Pose(f.at(K2_T), K2_T, f.at) for k, f in PIRATE_LAUNCH.items()}
+
+
+def _field():
+    """The debris field: a cover wreck per hidden ship, then seeded wreckage across the field kept
+    out of every launch corridor, the station's body and S4's camera."""
+    cover = []
+    for n, (k, h) in enumerate(HIDES.items()):
+        if h.get('cover'):
+            cover.append(debris_field.cover_piece('cover %s' % k, (*h['at'], h['hd'], h['pt'], h['rl']),
+                                                  SHIP_LENGTH[k], TOWARD_CONVOY, h['cover'], h.get('peek', 0.0),
+                                                  seed=n, t0=K1B_T))
+            cover[-1].cover_for = k
+    keep = [(to_platform(K2_CAM), 450.0)]
+    keep += [((x, 0.0, 0.0), 160.0) for x in range(-450, 451, 150)]
+    for k, f in PIRATE_LAUNCH.items():
+        for i in range(0, 25):
+            t = LAUNCH[k] + i * .5
+            keep.append((to_platform(f.at(t)[:3]), SHIP_LENGTH[k] * .6 + 45.0))
+    keep += [(c.centre, c.radius() + 20.0) for c in cover]
+    return cover, debris_field.field_pieces(11, 70, (1650.0, 1050.0, 560.0), keep, t0=K1B_T)
+
+
+FIELD_COVER, FIELD_WRECKS = _field()
+FIELD = FIELD_COVER + FIELD_WRECKS
+
+# S6: the lead Lasher turns back into the fire and is hit; Lasher A burns and falls back; the
+# Phaeton is struck and drifts aft cooking off; the raiders close at speed, guns kicking
+K3_T = 56
+K3_SHIPS = {
+    'lasher-lead': fly('lasher-lead', (330, 430, 70, 165, 4, -15, 1), K3_T, [
+        dict(t=50, hd=0, pt=0, rl=-5, v=190), dict(t=52.5, hd=70, pt=2, rl=-70), dict(t=54.8, hd=145, pt=4, rl=-45),
+        dict(t=58, hd=172, pt=6, rl=-20, v=170)],
+        hits=recoil([55.0], every=.25, until=57.5) + [dict(t=56.0, push=(0, -6, 4), spin=(35, 8, -12), decay=1.2, thr=.55)]),
+    'lasher-a': fly('lasher-a', (-150, 560, 160, 10, 6, 40, .2), K3_T, [
+        dict(t=50, hd=2, pt=1, rl=3, v=0, thr=.6), dict(t=52.5, hd=4, pt=2, rl=8, thr=.6),
+        dict(t=58, hd=13, pt=8, rl=55, v=-40)], v=-25, thrust=None,
+        hits=[dict(t=52.6, push=(0, 6, 4), spin=(12, 2, 3), decay=2.0, thr=.2)]),
+    'phaeton': fly('phaeton', (-350, 300, 20, 8, -4, 30, 0), K3_T, [
+        dict(t=50, hd=0, pt=0, rl=2, v=0, thr=.5), dict(t=53.9, hd=.5, pt=0, rl=3, thr=.5),
+        dict(t=58, hd=11, pt=-6, rl=38, v=-22)], v=-15, thrust=None,
+        hits=[dict(t=54.0, push=(-4, 3, 2), spin=(3, 0, 1), decay=3.0, thr=0.0)]),
+    # steadied on her gun run at the Wolf (P), then starting the turn back that S6b finishes
+    'lasher-b': fly('lasher-b', CONVOY['lasher-b'], K3_T, [dict(t=50, v=0), dict(t=58, hd=-20, rl=40, v=90)], v=0,
+                    hits=recoil([54.5], kick=.3, every=.4, until=57.5)),
+    'falcon-p': jinking('falcon-p', (-3100, -700, -650, 6, 4, -3, 1), K3_T, 50, 58,
+                        hits=recoil([51.0], kick=.12, shove=.2, every=.8, until=58)),
+    'manticore-p': jinking('manticore-p', (-2500, -1000, -480, 8, 3, 4, 1), K3_T, 50, 58,
+                           hits=recoil([50.5], kick=.2, shove=.3, every=.6, until=58)),
+    'wolf-p-a': jinking('wolf-p-a', (-1250, 200, -120, 2, 6, 25, 1), K3_T, 50, 58),
+    'wolf-p-b': jinking('wolf-p-b', (-1700, -650, -300, 3, 5, -20, 1), K3_T, 50, 58),
+    'buffalo2-a': jinking('buffalo2-a', (-3600, 150, -760, 0, 5, 3, 1), K3_T, 50, 58),
+}
+
+# S6b: Lasher B rolls over to starboard (150) and the merchant Wolf to port (-140), both onto the
+# climbing raiders, guns down; the Hound (P) soaks the burst, then breaks up at the key time
+K3C_T = 62
+K3C_SHIPS = {
+    'lasher-b': fly('lasher-b', (-1300, 450, -150, -175, -15, 150, 1), K3C_T, [
+        dict(t=58, hd=-20, pt=0, rl=40, v=170), dict(t=60, hd=-100, pt=-4, rl=85), dict(t=61.2, hd=-150, pt=-10, rl=125),
+        dict(t=64, hd=-183, pt=-24, rl=160), dict(t=66, hd=-195, pt=-8, rl=70, v=200)],
+        hits=recoil([61.5], every=.2, until=64.5)),
+    'wolf-m': fly('wolf-m', (-1420, 560, -120, 175, -18, -140, 1), K3C_T, [
+        dict(t=58, hd=5, pt=0, rl=-10, v=180), dict(t=60, hd=90, pt=-4, rl=-80), dict(t=61.2, hd=150, pt=-12, rl=-115),
+        dict(t=64, hd=182, pt=-24, rl=-155), dict(t=66, hd=195, pt=-6, rl=-60, v=210)],
+        hits=recoil([61.4], every=.25, until=64.5)),
+    'hound-p-c': fly('hound-p-c', (-1800, 300, -500, 5, 12, -4, .4), K3C_T, [
+        dict(t=58, hd=3, pt=14, rl=4, thr=1.0), dict(t=60.8, hd=4, pt=13, rl=0, thr=1.0),
+        dict(t=63, v=120), dict(t=66, hd=15, pt=0, rl=-60, v=50)], v=200,     # the wreck slows, tumbling
+        hits=[dict(t=61.0, spin=(25, 6, 10), push=(2, 0, -3), decay=1.0, thr=.4),
+              dict(t=62.0, spin=(90, 30, 50), push=(-10, 8, 6), decay=2.0, thr=0.0)]),
+    'buffalo2-a': jinking('buffalo2-a', (-4200, -1200, -1500, 3, 10, 3, 1), K3C_T, 58, 66,
+                          hits=recoil([59.0], kick=.2, shove=.3, every=.5, until=66)),
+    'manticore-p': jinking('manticore-p', (-3000, -800, -900, 8, 6, 4, 1), K3C_T, 58, 66),
+}
+
+# S6c: the Wolves (P) blink through the gap and rake the Tarsus, whose drives go; the merchant Wolf chases
+K3D_T = 72
+K3D_FLEET = fleet_at({k: CONVOY[k] for k in ('colossus', 'morrow', 'tarsus', 'buffalo-b', 'mule')}, K3D_T)
+K3D_SHIPS = {
+    **K3D_FLEET,
+    'tarsus': struck(K3D_FLEET['tarsus'], [dict(t=72.3, push=(-8, 1, -1), spin=(4, 0, -2), decay=3.0, thr=0.0)], K3D_T),
+    'wolf-p-a': fly('wolf-p-a', (-380, -60, -30, 75, 6, -60, 1), K3D_T, [
+        dict(t=66, hd=50, pt=4, rl=-30, v=220), dict(t=69.6, hd=65, rl=-45), dict(t=74, hd=105, pt=2, rl=-70)],
+        jumps=[(69.0, (90.0, 156.0, 0.0))], hits=recoil([70.0], every=.25, until=73.5)),
+    'wolf-p-b': fly('wolf-p-b', (-180, 80, 10, 95, 4, -70, 1), K3D_T, [
+        dict(t=66, hd=60, rl=-30, v=220), dict(t=69.8, hd=80, rl=-50), dict(t=74, hd=125, rl=-80)],
+        jumps=[(69.4, (40.0, 175.0, 0.0))], hits=recoil([70.3], every=.25, until=73.5)),
+    'wolf-m': fly('wolf-m', (-560, -300, -60, 70, 4, -20, 1), K3D_T, [
+        dict(t=66, hd=40, rl=10, v=230), dict(t=70, hd=60, rl=-15), dict(t=74, hd=85, rl=-35)],
+        hits=recoil([69.5], every=.3, until=74)),
+}
+
+# S6d: the convoy's Hound rolls over (110) to face the two Hounds (P), kills the first, and the
+# second's fire takes her drives: she tumbles back toward the column
+K3E_T = 77
+K3E_SHIPS = {
+    'hound-m': fly('hound-m', (-1500, -150, 110, -160, -25, 110, 1), K3E_T, [
+        dict(t=74, hd=0, pt=2, rl=5, v=160), dict(t=75.5, hd=-85, pt=-10, rl=75),
+        dict(t=78.5, hd=-170, pt=-18, rl=125, v=120), dict(t=80, hd=-176, pt=-8, rl=145, v=60)],
+        hits=recoil([75.8], every=.2, until=77.4) + [dict(t=77.4, push=(6, -4, 3), spin=(25, 10, -15), decay=1.5, thr=.25)]),
+    'hound-p-a': fly('hound-p-a', (-1700, -50, -20, 10, 20, 0, .4), K3E_T, [
+        dict(t=74, hd=8, pt=21, rl=-10, thr=1.0), dict(t=76, hd=9, pt=20, rl=0, thr=1.0), dict(t=79, v=50)], v=200,
+        hits=[dict(t=76.3, spin=(15, 4, 6), decay=.8, thr=.4),
+              dict(t=77.0, spin=(110, 40, 70), push=(-15, 8, 10), decay=2.0, thr=0.0)]),
+    'hound-p-b': fly('hound-p-b', (-1680, -380, 20, 30, 16, 0, 1), K3E_T, [
+        dict(t=74, hd=22, pt=18, rl=10), dict(t=78.5, hd=45, pt=14, rl=-30), dict(t=80, hd=70, pt=8, rl=-60)], v=200,
+        hits=recoil([75.0], every=.2, until=78.5)),
+}
+
+# S7: the Tarsus adrift, rolling slowly; the Kites (P) hold alongside; the boats come over and the one
+# on her deck rides with her; a Wolf (P) makes a covering pass; the convoy draws away ahead
+K3B_TARSUS_FLOWN = fly('tarsus', K3B_TARSUS, K3B_T, [
+    dict(t=80, hd=4.5, pt=-1.5, rl=6), dict(t=88, hd=6.8, pt=-2.3, rl=11)], v=0.0, wobble=1.0, thrust=None)
+K3B_SHIPS = {
+    'tarsus': K3B_TARSUS_FLOWN,
+    'kite-p-a': held('kite-p-a', K3B_KITE_A, K3B_T, wobble=1.5),
+    'kite-p-b': held('kite-p-b', K3B_KITE_B, K3B_T, wobble=1.5),
+    # the boats: one down on her deck, one braking in over her stern, one just out from under its Kite
+    'hermes-p-a': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-a'], 62, 80, K3B_T, carrier=K3B_TARSUS_FLOWN),
+    'hermes-p-b': boat(K3B_KITE_A, K3B_TARSUS, K3B_SEATS['hermes-p-b'], 70, 90, K3B_T, carrier=K3B_TARSUS_FLOWN),
+    'hermes-p-c': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-c'], 81, 99, K3B_T, carrier=K3B_TARSUS_FLOWN),
+    'wolf-p-b': fly('wolf-p-b', (-420, 330, 120, -20, -32, 110, 1), K3B_T, [
+        dict(t=80, hd=40, pt=-8, rl=40, v=200), dict(t=84, hd=5, pt=-25, rl=95), dict(t=88, hd=-60, pt=-20, rl=70)],
+        hits=recoil([84.5], every=.25, until=87.0)),
+    **{k: station(k, v, K3B_T, vel=(45.0, 0.0, 0.0)) for k, v in (
+        ('colossus', (1200, -80, 40, 0, 0, 2, .9)), ('morrow', (1150, -250, 0, 0, 1, -3, .9)),
+        ('mule', (1900, 260, 20, 0, 0, -2, .9)), ('buffalo-a', (1600, -350, 80, 0, 1, 4, .9)))},
+}
+
+# S8-S9: the Colossus wallows with her port pod shot out; Morrow and the Borers ride with her; the
+# Mk.III settles in from above; the Kite (P) makes her run, is driven off and breaks away
+K4_T = 95
+K4_COLOSSUS_FLOWN = fly('colossus', K4_COLOSSUS, K4_T, [
+    dict(t=88, hd=.5, pt=-1, rl=2, thr=.5), dict(t=90.2, hd=.4, pt=-1.3, rl=2.5, thr=.5),
+    dict(t=102, hd=-2.5, pt=-6, rl=11)], v=0.0, wobble=.5, thrust=None,
+    hits=[dict(t=90.3, push=(0, -1.5, -.5), spin=(.8, -.3, -.3), decay=3.0, thr=.2)])
+K4_MORROW_FLOWN = carried(held('morrow', K4_MORROW, K4_T, wobble=.8), K4_COLOSSUS_FLOWN)
+K4_SHIPS = {
+    'colossus': K4_COLOSSUS_FLOWN, 'morrow': K4_MORROW_FLOWN,
+    # outboard of the pod, nose in; under its lip, nose up; out of Morrow's bay, climbing
+    'borer-a': carried(held('borer-a', near(K4_COLOSSUS, (-60, 45, -4), hd=-95, pt=8, rl=6, thr=.25), K4_T, wobble=.3),
+                       K4_COLOSSUS_FLOWN),
+    'borer-b': carried(held('borer-b', near(K4_COLOSSUS, (-70, 36, -13), hd=-70, pt=40, rl=-10, thr=.25), K4_T, wobble=.3),
+                       K4_COLOSSUS_FLOWN),
+    'borer-c': carried(keyed('borer-c', near(K4_MORROW, (BORER_BAY_M[1][0], BORER_BAY_M[1][1], 18), hd=10, pt=30, thr=.8),
+                             K4_T, [], v=2.5, wobble=0.0), K4_MORROW_FLOWN),
+    'colossus3': fly('colossus3', (-60, 70, 175, -4, -8, 64, .6), K4_T, [
+        dict(t=88, hd=-2, pt=-5, rl=55, v=14), dict(t=102, hd=-6, pt=-10, rl=70, v=8)], v=12, wobble=1.0),
+    'kite-p-b': fly('kite-p-b', (110, 210, 40, -60, 6, 32, 1), K4_T, [
+        dict(t=88, hd=-100, pt=-2, rl=10, v=150), dict(t=93, hd=-80, pt=2, rl=20), dict(t=98, hd=-10, pt=12, rl=55, v=180),
+        dict(t=102, hd=30, pt=10, rl=20, v=210)],
+        hits=[dict(t=95.3, spin=(12, 3, -6), decay=.8)]),
+    'wolf-p-a': fly('wolf-p-a', (260, 160, 110, -150, 2, -40, 1), K4_T, [
+        dict(t=88, hd=-100, pt=0, rl=-10, v=210), dict(t=92, hd=-125, rl=-30), dict(t=98, hd=-185, pt=-4, rl=-60),
+        dict(t=102, hd=-220, rl=-30)]),
+}
+
+def sortie(key, before, t0, runs, vmax=420.0, accel=200.0, t_end=110.0, dt=1 / 48):
+    """A Borer's sortie: before t0 she is the pose `before` (in the bay); from t0 she flies her own
+    pursuit, run after run at the attackers. Each run is (target key, target pose, side): she steers
+    for a point beside the target's hull (side: +1 her port, -1 her starboard, a little above), led by
+    the closing time, turning at most 150 deg/s and jinking about that, every rate eased (no angular
+    velocity jumps for --check), banking with her turn and
+    burning with her acceleration (motion's thrust model); a run ends when she has passed within 60 m
+    and opened to 140 m again. A run with side 0 is her way home to the ship she works from, flown
+    to the end. Returns (her Pose, her rakes: [(target, t_in, t_out, side)], the spans
+    she is inside 110 m of a target, where her mining laser sweeps the hull)."""
+    x, y, z, hd, pt, rl, _ = before.at(t0)
+    v = 2.5
+    a_full = A_FULL[mass_class(key)]
+    wh = wp = wr = 0.0
+    phase = (zlib.crc32(key.encode()) % 628) / 100.0
+    rows, rakes = [], []
+    run, closest, inside = 0, 1e9, None
+    t = t0
+    while t <= t_end + 1e-9 and run < len(runs):
+        tk, tp, side = runs[run]
+        q = tp.at(t)
+        d = math.dist((x, y, z), q[:3])
+        lead = min(1.2, d / max(v + 150.0, 1.0))
+        q = tp.at(t + lead)
+        m = _attitude(*q[3:6])[0]
+        off = (0.0, side * 30.0, 14.0) if side else (-40.0, 60.0, -30.0)
+        aim = [q[i] + sum(m[i][j] * off[j] for j in range(3)) for i in range(3)]
+        dx, dy, dz = (aim[i] - (x, y, z)[i] for i in range(3))
+        want_h = math.degrees(math.atan2(dy, dx))
+        want_p = max(-55.0, min(55.0, math.degrees(math.atan2(dz, math.hypot(dx, dy)))))
+        eh = (want_h - hd + 180.0) % 360.0 - 180.0
+        ep = want_p - pt
+        jink = 30.0 * math.sin(2 * math.pi * 1.1 * (t - t0) + phase) if t - t0 > .8 else 0.0
+        for e, w, j, name in ((eh, wh, jink, 'h'), (ep, wp, .4 * jink, 'p')):
+            target_w = max(-150.0, min(150.0, 3.0 * e)) + j
+            nw = w + max(-350.0 * dt, min(350.0 * dt, target_w - w))
+            if name == 'h':
+                wh = nw
+            else:
+                wp = nw
+        want_v = vmax if side else max(15.0, min(vmax, .8 * d))          # home: slowing as she arrives
+        dv = max(-accel * dt, min(accel * dt, want_v - v)) if t - t0 > .3 else 4.0 * dt
+        v += dv
+        hd += wh * dt
+        pt = max(-80.0, min(80.0, pt + wp * dt))
+        omega = math.radians(math.hypot(wh, wp))
+        thr = min(1.0, IDLE + (abs(dv) / dt + .5 * v * omega) / a_full)
+        bank = -60.0 * math.tanh(v * math.radians(wh) / 400.0)      # rolls into the turn, smoothly
+        wr += max(-600.0 * dt, min(600.0 * dt, max(-240.0, min(240.0, (bank - rl) / .25)) - wr))
+        rl += wr * dt
+        ch, sh, cp, sp = (math.cos(math.radians(hd)), math.sin(math.radians(hd)),
+                          math.cos(math.radians(pt)), math.sin(math.radians(pt)))
+        x, y, z = x + v * dt * cp * ch, y + v * dt * cp * sh, z + v * dt * sp
+        rows.append((t, x, y, z, hd, pt, rl, thr))
+        dn = math.dist((x, y, z), tp.at(t)[:3])
+        if side == 0:                  # home: back to the ship she works from, no laser
+            t += dt
+            continue
+        if dn < 110.0 and inside is None:
+            inside = t
+        if dn >= 110.0 and inside is not None:
+            rakes.append((tk, inside, t, side))
+            inside = None
+        closest = min(closest, dn)
+        if closest < 60.0 and dn > 140.0:
+            run, closest = run + 1, 1e9
+        t += dt
+    last = rows[-1]
+
+    def at(tt):
+        if tt < t0:
+            return before.at(tt)
+        if tt >= last[0]:
+            c = math.cos(math.radians(last[5]))
+            g = tt - last[0]
+            return (last[1] + v * g * c * math.cos(math.radians(last[4])),
+                    last[2] + v * g * c * math.sin(math.radians(last[4])),
+                    last[3] + v * g * math.sin(math.radians(last[5])), last[4], last[5], last[6], last[7])
+        i = min(len(rows) - 2, max(0, int((tt - t0) / dt)))
+        a, b = rows[i], rows[i + 1]
+        u = max(0.0, min(1.0, (tt - a[0]) / (b[0] - a[0])))
+        return tuple(a[k] + (b[k] - a[k]) * u for k in range(1, 8))
+    return Pose(before, before.t, at), rakes
+
+
+K4_BORER_C, K4_RAKES_C = sortie('borer-c', K4_SHIPS['borer-c'], 95.4,
+                                [('wolf-p-a', K4_SHIPS['wolf-p-a'], 1), ('wolf-p-a', K4_SHIPS['wolf-p-a'], -1),
+                                 ('colossus', K4_SHIPS['colossus'], 0)])
+K4_BORER_D, K4_RAKES_D = sortie('borer-d', carried(held('borer-d', near(K4_MORROW, (BORER_BAY_M[2][0], BORER_BAY_M[2][1], 7),
+                                                                       hd=10, pt=20, rl=-4, thr=.1), K4_T, wobble=0.0),
+                                                   K4_MORROW_FLOWN), 96.2,
+                                [('kite-p-b', K4_SHIPS['kite-p-b'], -1), ('wolf-p-a', K4_SHIPS['wolf-p-a'], 1),
+                                 ('colossus', K4_SHIPS['colossus'], 0)])
+K4_SHIPS.update({'borer-c': K4_BORER_C, 'borer-d': K4_BORER_D})
+K4_RAKES = [('borer-c',) + r for r in K4_RAKES_C] + [('borer-d',) + r for r in K4_RAKES_D]
+
+
+# S9b: the lead Lasher rolls onto her back over the Falcon (P), guns walking down her flank; the
+# Falcon is hit and her broadside answers, and the Lasher tumbles away
+K4B_T = 105
+K4B_LEAD = fly('lasher-lead', (-560, 380, 30, -160, -20, 160, 1), K4B_T, [
+    dict(t=102, hd=-150, pt=-4, rl=25, v=170), dict(t=103.8, hd=-157, pt=-16, rl=120),
+    dict(t=106.6, hd=-163, pt=-25, rl=172), dict(t=110, hd=-170, pt=-30, rl=190, v=130)], v=165,
+    hits=recoil([103.5], every=.15, until=106.8) + [dict(t=107.2, spin=(150, 50, 60), push=(0, 20, 8), decay=2.5, thr=.1)])
+K4B_SHIPS = {
+    'falcon-p': fly('falcon-p', (-700, 200, -100, 10, 6, -4, .8), K4B_T, [
+        dict(t=102, hd=8, pt=5, rl=-2), dict(t=110, hd=16, pt=3, rl=-12, v=30)], v=45,
+        hits=recoil([106.0], kick=.12, shove=.2, every=.3, until=108.5)
+        + [dict(t=105.0, push=(0, -4, -2), spin=(-5, 1, 3), decay=2.0, thr=.5)]),
+    'lasher-lead': K4B_LEAD,
+}
+
+# S10: the Mk.III turning away with her prize and the docked Kite; the Falcon (P) smoking; far below,
+# the Colossus and Morrow sliding down and away, nose-down
+K5_T = 114
+K5_C3 = fly('colossus3', C3_PRIZE, K5_T, [
+    dict(t=110, hd=25, pt=-3, rl=-4, v=18), dict(t=118, hd=36, pt=-5, rl=-8, v=20)], v=18, wobble=.8)
+K5_SHIPS = {
+    'falcon-p': fly('falcon-p', (-560, 120, 120, 25, -6, 8, .8), K5_T, [
+        dict(t=110, hd=22, rl=5), dict(t=118, hd=30, rl=12)], v=60, thrust=None),
+    'colossus3': K5_C3, 'tarsus': riding(K5_C3, CLAMP_TARSUS_M, thr=0), 'kite-p-a': riding(K5_C3, (10, 66, -40), thr=0),
+    'colossus': fly('colossus', (480, -30, -780, 5, -26, 14, .15), K5_T, [
+        dict(t=110, hd=4, pt=-24, rl=11), dict(t=118, hd=6, pt=-28, rl=17)], v=45, wobble=1.0, thrust=None),
+    'morrow': fly('morrow', (500, -175, -830, 0, -22, 8, 1), K5_T, [
+        dict(t=110, hd=-1, pt=-21, rl=6), dict(t=118, hd=1, pt=-23, rl=10)], v=45, wobble=1.0, thrust=None),
+}
+
 KEYFRAMES = {
     'k0': dict(
         shot='S1a', title='The view the player knows',
         caption='Straight down on the convoy, prograde up the frame: the ships as the player has always seen them, '
                 'small against the desert far below. From here the camera tips down into the 3D fight.',
-        camera=dict(loc=(80, 120, 11000), lens=100, look=(0.01, 0.0, -1.0)),
-        ships=fleet_at(CONVOY, 10),
+        # the player's view holds, then tips down and pulls in, landing on S1's framing at its first frame
+        # a long-range optic straight down, prograde up, as the player knows the battle: it never turns.
+        # ZOOM OUT to the convoy small on the desert, then ZOOM IN on it, the focus hunting as the lens
+        # racks in and snapping sharp; then the cut to S1's action camera
+        # (sliding sideways onto the convoy's core as it racks in: the same look, so still no turn)
+        camera=camera('k0', [dict(t=t, loc=(80 + dx, 120 + dy, 11000), target=(190 + dx, 120 + dy, 0), lens=lens,
+                                  focus=focus, fstop=1.0)
+                             for t, lens, focus, dx, dy in ((10, 100, 11000, 0, 0), (11.6, 35, 11000, 0, 0),
+                                                            (12.4, 60, 11000, -60, -60), (13.4, 200, 600, -150, -150),
+                                                            (14.2, 330, 220, -170, -180), (14.8, 310, 500, -170, -180),
+                                                            (15.3, 300, 11000, -170, -180), (16, 300, 11000, -170, -180))],
+                      10),
+        ships=convoy_at(10),
         labels=['colossus', 'morrow', 'tarsus', 'mule', 'phaeton', 'buffalo-a', 'lasher-a']),
     'k1': dict(
         shot='S1', title='Low orbit over Asharu',
         caption='A working convoy in loose column over the day side, slowing for its descent window: the Colossus '
                 'with Morrow alongside, a Tarsus, a Mule, a Phaeton tanker, Buffalos and a Dram, escorted by '
                 'three Lashers, a Wolf and a Hound.',
-        camera=dict(loc=(-1900, 2700, 1500), target=(300, -80, -150), lens=35),
-        ships=fleet_at(CONVOY, 16),
+        # DOLLY + ZOOM OUT: the camera drops back along the column as it overtakes the lens, then widens
+        # to put the convoy against the limb
+        camera=camera('k1', [dict(t=16, loc=(-1900, 2700, 1500), target=(300, -80, -150), lens=35),
+                             dict(t=20, loc=(-2300, 2600, 1450), target=(380, -70, -145), lens=30),
+                             dict(t=24, loc=(-2800, 2450, 1400), target=(450, -60, -140), lens=22)], 16),
+        ships=convoy_at(16),
         labels=['colossus', 'morrow', 'tarsus', 'mule', 'phaeton', 'buffalo-a', 'buffalo-b', 'dram',
                 'lasher-lead', 'lasher-a', 'lasher-b', 'wolf-m', 'hound-m']),
     'k1b': dict(
@@ -209,16 +721,29 @@ KEYFRAMES = {
         caption='Long lens from the convoy\'s tail, back down at the derelict platform it has just passed: dark, '
                 'stripped, hulks in its bays. Then one of the hulks shows a light: the Falcon (P)\'s drives coming '
                 'up. Eleven more lie cold beside her.',
-        camera=dict(loc=(-1600, -120, 90), target=PLATFORM, lens=135),
-        ships=PIRATES_MOORED,
-        platform=PLATFORM,
+        # ZOOM, then CRASH ZOOM: a long lens finding the platform, holding until it reads as junk, then
+        # snapping in on the Falcon (P) as her drives light; handheld at the long end
+        camera=camera('k1b', [dict(t=30, loc=(-1560, -150, 85), target=PLATFORM, lens=90),
+                              dict(t=34, loc=(-1600, -120, 90), target=PLATFORM, lens=135),
+                              dict(t=36.4, loc=(-1610, -110, 92), target=track(K1B_SHIPS['falcon-p'], PIRATES_MOORED['falcon-p'][:3]),
+                                   lens=165),
+                              dict(t=38, loc=(-1630, -95, 96), target=track(K1B_SHIPS['falcon-p'], PIRATES_MOORED['falcon-p'][:3]),
+                                   lens=300)], K1B_T, shake=.05),
+        ships=K1B_SHIPS,
+        platform=PLATFORM, platform_t=K1B_T,
         labels=['platform', 'falcon-p', 'colossus3', 'manticore-p']),
     'k2': dict(
         shot='S4', title='First contact',
         caption='Behind and below: drives light up in the derelict Asharu platform the convoy has just passed. '
                 'Twelve pirate hulls climb out of it toward the column.',
-        camera=dict(loc=(-4800, -2600, -1700), target=(-6500, 200, -3100), lens=35),
-        ships=fleet_at({**{k: CONVOY[k] for k in ('hound-m', 'tarsus')}, **PIRATES_RISING}, 40),
+        # off the pack's flank as it climbs out of the platform, wide while the spread opens up, then a
+        # CRASH ZOOM onto the Falcon (P) and panning with her
+        camera=camera('k2', [dict(t=t, loc=track(K2_PIRATES['falcon-p'], K2_CAM, .3),
+                                  target=track(K2_PIRATES['falcon-p'], aim, share), lens=lens)
+                             for t, lens, aim, share in ((38, 24, K2_AIM, .5), (40, 28, K2_AIM, .5), (41.4, 32, K2_AIM, .6),
+                                                         (42.4, 95, K2_PIRATES['falcon-p'][:3], 1.0),
+                                                         (44, 110, K2_PIRATES['falcon-p'][:3], 1.0))], K2_T, shake=.1),
+        ships={**fleet_at({k: CONVOY[k] for k in ('hound-m', 'tarsus')}, K2_T), **K2_PIRATES},
         platform=PLATFORM,
         labels=['falcon-p', 'colossus3', 'manticore-p', 'wolf-p-a', 'kite-p-a', 'hound-p-b', 'platform']),
     'k3': dict(
@@ -226,16 +751,19 @@ KEYFRAMES = {
         caption='Looking aft along the convoy. Manticore (P) and Falcon (P) open from 3-4 km astern. The Phaeton '
                 'tanker goes up, Lasher A is burning, and the lead Lasher turns back into the fire and is hit. '
                 'The freighters keep running.',
-        camera=dict(loc=(860, 640, 200), target=(-1300, -420, -280), lens=35),
+        # ZOOM OUT along the salvo: long on the Manticore (P) as she fires, widening as her missiles come in
+        # on the Phaeton, then the key framing and a handheld push, jolted by the hits
+        camera=camera('k3', [dict(t=50, loc=(960, 700, 230), target=track(K3_SHIPS['manticore-p'], (-2500, -1000, -480)), lens=85),
+                             dict(t=52.4, loc=(930, 690, 225), target=track(K3_SHIPS['manticore-p'], (-2500, -1000, -480)), lens=85),
+                             dict(t=54.2, loc=(900, 670, 215), target=(-450, 200, 0), lens=50),
+                             dict(t=56, loc=(860, 640, 200), target=(-1300, -420, -280), lens=35),
+                             dict(t=58, loc=(790, 600, 180), target=(-1330, -400, -270), lens=32)], K3_T, shake=.15,
+                     kicks=[(54.0, .5), (56.0, .7)]),
         states={'phaeton': 'phaeton-wreck'},
         knobs={'phaeton': {'break_frame': {'ago_s': 2.0}}},     # 2 s into the cook-off: tank 1 has just gone
-        ships={**fleet_at({k: v for k, v in CONVOY.items() if k not in ('lasher-lead', 'lasher-a', 'phaeton', 'wolf-m')}, 56,
-                           keep=('lasher-b',)),   # steadied on her gun run at the Wolf (P)
-               'lasher-lead': (330, 430, 70, 165, 4, -15, 1), 'lasher-a': (-150, 560, 160, 10, 6, 40, .2),
-               'phaeton': (-350, 300, 20, 8, -4, 30, 0),
-               'falcon-p': (-3100, -700, -650, 6, 4, -3, 1), 'manticore-p': (-2500, -1000, -480, 8, 3, 4, 1),
-               'wolf-p-a': (-1250, 200, -120, 2, 6, 25, 1), 'wolf-p-b': (-1700, -650, -300, 3, 5, -20, 1),
-               'buffalo2-a': (-3600, 150, -760, 0, 5, 3, 1)},
+        ships={**fleet_at({k: v for k, v in CONVOY.items() if k not in ('lasher-lead', 'lasher-a', 'phaeton', 'wolf-m',
+                                                                            'lasher-b')}, K3_T),
+               **K3_SHIPS},
         fx=[('tracer', 'manticore-p', 'lasher-lead'), ('tracer', 'falcon-p', 'lasher-lead'),
             ('tracer', 'falcon-p', 'lasher-b'), ('tracer', 'lasher-lead', 'manticore-p'),
             ('tracer', 'lasher-b', 'wolf-p-a'), ('missiles', 'manticore-p', 'phaeton'),
@@ -248,10 +776,11 @@ KEYFRAMES = {
         shot='S6b', title='The escorts answer',
         caption='Lasher B and the merchant Wolf turn back and roll over onto the climbing raiders, firing down. '
                 'A Hound (P) takes the full Ammo Feeder burst on her bare armour and breaks up: the convoy draws blood.',
-        camera=dict(loc=(-900, 700, 150), target=(-1600, 300, -350), lens=50),
-        ships={'lasher-b': (-1300, 450, -150, 185, -15, 150, 1), 'wolf-m': (-1420, 560, -120, 175, -18, -140, 1),
-               'hound-p-c': (-1800, 300, -500, 5, 12, -4, .4), 'buffalo2-a': (-4200, -1200, -1500, 3, 10, 3, 1),
-               'manticore-p': (-3000, -800, -900, 8, 6, 4, 1)},
+        # CHASE: behind Lasher B over her roll, looking down past her; jolted as the Hound (P) breaks up
+        camera=camera('k3c', [dict(t=t, loc=track(K3C_SHIPS['lasher-b'], (-900, 700, 150), .9, .2),
+                                   target=track(K3C_SHIPS['lasher-b'], (-1600, 300, -350), .8, .1), lens=lens)
+                              for t, lens in ((58, 40), (62, 50), (66, 60))], K3C_T, shake=.3, kicks=[(62.0, .6)]),
+        ships=K3C_SHIPS,
         fx=[('tracer', 'lasher-b', 'hound-p-c'), ('tracer', 'wolf-m', 'hound-p-c'),
             ('tracer', 'buffalo2-a', 'lasher-b'),
             ('blast_on', 'hound-p-c', 18, (0, 0, 0)), ('debris', 'hound-p-c', 50, (0, 0, 0))],
@@ -261,10 +790,12 @@ KEYFRAMES = {
         caption='Alongside the column at 300 m. The two Wolves (P) blink through the gap between the freighters, '
                 'raking the Tarsus\'s drives as they pass. The Mule\'s guns and the merchant Wolf chase them; '
                 'shields flare on both sides.',
-        camera=dict(loc=(-250, -760, 90), target=(-200, 20, -10), lens=28),
-        ships={**fleet_at({k: CONVOY[k] for k in ('colossus', 'morrow', 'tarsus', 'buffalo-b', 'mule')}, 72),
-               'wolf-p-a': (-380, -60, -30, 75, 6, -60, 1), 'wolf-p-b': (-180, 80, 10, 95, 4, -70, 1),
-               'wolf-m': (-560, -300, -60, 70, 4, -20, 1)},
+        # TRACKING DOLLY: dropping back along the column at 70 m/s, the Wolves (P) passing the lens
+        camera=camera('k3d', [dict(t=66, loc=(120, -800, 105), target=(60, 0, 0), lens=28),
+                              dict(t=72, loc=(-250, -760, 90), target=(-200, 20, -10), lens=28),
+                              dict(t=74, loc=(-420, -740, 80), target=(-330, 40, -10), lens=26)], K3D_T, shake=.2,
+                      kicks=[(72.3, .3)]),
+        ships=K3D_SHIPS,
         # shields flare on both sides: the raiders' fronts under the Mule's and the Wolf's fire
         shields={'wolf-p-b': dict(toward='mule', flux=.6), 'wolf-p-a': dict(toward='wolf-m', flux=.45),
                  'wolf-m': dict(toward='wolf-p-a', flux=.2)},
@@ -276,9 +807,11 @@ KEYFRAMES = {
         shot='S6d', title='The rear guard',
         caption='The convoy\'s Hound turns to face two Hounds (P) climbing at her. She kills the first at close range '
                 'and takes the second\'s fire full on, flares going out as she falls back on the column.',
-        camera=dict(loc=(-1450, 120, 160), target=(-1650, -180, 20), lens=35),
-        ships={'hound-m': (-1500, -150, 110, 200, -25, 110, 1),
-               'hound-p-a': (-1700, -50, -20, 10, 20, 0, .4), 'hound-p-b': (-1680, -380, 20, 30, 16, 0, 1)},
+        # HANDHELD CHASE: close behind the Hound, riding her roll-over, jolted by her kill and her hit
+        camera=camera('k3e', [dict(t=t, loc=track(K3E_SHIPS['hound-m'], (-1450, 120, 160), .95, .15),
+                                   target=track(K3E_SHIPS['hound-m'], (-1650, -180, 20), .8, .05), lens=lens)
+                              for t, lens in ((74, 30), (77, 35), (80, 40))], K3E_T, shake=.45, kicks=[(77.0, .7), (77.4, 1.0)]),
+        ships=K3E_SHIPS,
         fx=[('tracer', 'hound-m', 'hound-p-a'), ('tracer', 'hound-p-b', 'hound-m'),
             ('blast_on', 'hound-p-a', 14, (0, 0, 0)), ('debris', 'hound-p-a', 40, (0, 0, 0)),
             ('fire_on', 'hound-m', (-12, 4, 3)), ('flares', 'hound-m')],
@@ -286,15 +819,18 @@ KEYFRAMES = {
         labels=['hound-m', 'hound-p-a', 'hound-p-b']),
     'k3b': dict(
         shot='S7', title='Boarding the Tarsus',
-        caption='The Tarsus has fallen out of the column with her drives shot out. Kites (P) lie alongside with '
-                'the boarders and a Wolf (P) covers them. The rest of the convoy runs on ahead without her.',
-        camera=dict(loc=(-1250, 380, 170), target=(400, -40, -60), lens=35),
+        caption='The Tarsus has fallen out of the column with her drives shot out. Kites (P) lie alongside and '
+                'their boats bring the boarders over: one down on her deck, one braking in over her stern, one '
+                'just out from under its Kite. A Wolf (P) covers them. The rest of the convoy runs on ahead.',
+        # PUSH-IN + ZOOM onto the boats: from wide behind the Tarsus in to her deck as they set down
+        camera=camera('k3b', [dict(t=80, loc=(-1500, 450, 210), target=(380, -40, -60), lens=28),
+                              dict(t=86, loc=(-1250, 380, 170), target=(400, -40, -60), lens=35),
+                              dict(t=88, loc=(-1150, 350, 150), target=(-480, 50, 10), lens=55)], K3B_T, shake=.08),
         states={'tarsus': 'tarsus-boarded'},
-        ships={'tarsus': (-650, 90, 30, 6, -2, 9, 0),
-               'kite-p-a': (-620, 160, 40, 6, -1, 9, .2), 'kite-p-b': (-700, 25, 0, 4, 2, 6, .2),
-               'wolf-p-b': (-420, 330, 120, -20, -32, 110, 1),
-               **fleet_at({'colossus': (1200, -80, 40, 0, 0, 2, .9), 'morrow': (1150, -250, 0, 0, 1, -3, .9),
-                           'mule': (1900, 260, 20, 0, 0, -2, .9), 'buffalo-a': (1600, -350, 80, 0, 1, 4, .9)}, 86)},
+        knobs={'hermes-p-a': {'gear_up': 0.0, 'door_port': 1.0, 'door_starboard': 1.0},    # down, boarders out
+               'hermes-p-b': {'gear_up': 0.5}, 'hermes-p-c': {'gear_up': 1.0}},
+        seated={'hermes-p-a': 'tarsus'},
+        ships=K3B_SHIPS,
         fx=[('tracer', 'wolf-p-b', 'tarsus', (30, 0, 10)), ('fire_on', 'tarsus', (-38, 6, 8), (-.2, .5, 1)),
             ('smoke', 'tarsus', (-38, 6, 8), (-.3, .4, 1))],
         labels=['tarsus', 'kite-p-a', 'kite-p-b', 'wolf-p-b', 'colossus', 'mule']),
@@ -303,19 +839,18 @@ KEYFRAMES = {
         caption='The Colossus Mk.III closes from above to take the Colossus too. Her port drive pod is shot out, '
                 'but she fights: flares out, both turrets firing, a Kite (P) driven off. Morrow is under her keel '
                 'with her drives lit, holding her up, and her Borers are already out: two cut the burning pod '
-                'free with their mining lasers while a third lifts out of the bay to join them.',
-        camera=dict(loc=(-420, 470, 120), target=(-40, 20, 20), lens=28),
+                'free with their mining lasers while two more launch from the bay and go for the attackers.',
+        # PULL BACK + ZOOM OUT: close on the shot-out pod, back to the wide, then wider for the Mk.III's scale
+        camera=camera('k4', [dict(t=88, loc=(-190, 150, 30), target=(-62, 30, 0), lens=50),
+                             dict(t=91, loc=(-260, 260, 60), target=(-50, 28, 6), lens=40),
+                             dict(t=95, loc=(-420, 470, 120), target=(-40, 20, 20), lens=28),
+                             dict(t=102, loc=(-480, 540, 160), target=(-30, 15, 40), lens=20)], K4_T, shake=.12,
+                     kicks=[(90.3, .7), (95.3, .3)]),
         knobs={'colossus3': {'grapples': 0.5},
                'borer-a': {'beam_t_ws001': 1.0, 'beam_len_ws001': 30.0},      # 7.5 m to the pod's skin
                'borer-b': {'beam_t_ws001': 1.0, 'beam_len_ws001': 34.0}},
-        ships={'colossus': K4_COLOSSUS, 'morrow': K4_MORROW,
-               # outboard of the pod, nose in; under its lip, nose up; out of Morrow's bay, climbing
-               'borer-a': near(K4_COLOSSUS, (-60, 45, -4), hd=-95, pt=8, rl=6, thr=.25),
-               'borer-b': near(K4_COLOSSUS, (-70, 36, -13), hd=-70, pt=40, rl=-10, thr=.25),
-               'borer-c': near(K4_MORROW, (BORER_BAY_M[1][0], BORER_BAY_M[1][1], 18), hd=10, pt=30, thr=.8),
-               'colossus3': (-60, 70, 175, -4, -8, 64, .6),
-               'kite-p-b': (110, 210, 40, -60, 6, 32, 1),
-               'wolf-p-a': (260, 160, 110, -150, 2, -40, 1)},
+        ships=K4_SHIPS,
+        rakes=K4_RAKES,      # the sortie Borers' mining lasers swept along the attackers' hulls
         shields={'kite-p-b': dict(toward='colossus', flux=.85)},     # her omni shield nearly gone: she breaks off
         fx=[('blast_on', 'colossus', 12, (-62, 30, 0)), ('fire_on', 'colossus', (-55, 36, 4)),
             ('tracer', 'colossus3', 'colossus', (-60, 30, 6)), ('tracer', 'colossus', 'wolf-p-a'),
@@ -327,8 +862,12 @@ KEYFRAMES = {
         caption='Smoking from S6, the lead Lasher makes one more run over the Falcon (P), rolled onto her back. '
                 'She presses the flagship\'s shield into overload and walks her guns down the open flank. The '
                 'Falcon is hit hard, and her broadside answers.',
-        camera=dict(loc=(-560, 900, -60), target=(-620, 280, -130), lens=28),
-        ships={'falcon-p': (-700, 200, -100, 10, 6, -4, .8), 'lasher-lead': (-560, 380, 30, 200, -20, 160, 1)},
+        # PASS-BY: the camera drifts while the Lasher dives past the lens and away, panning after her
+        camera=camera('k4b', [dict(t=102, loc=(-500, 880, -40), target=track(K4B_LEAD, (-620, 280, -130), .9), lens=26),
+                              dict(t=105, loc=(-560, 900, -60), target=track(K4B_LEAD, (-620, 280, -130), .9), lens=28),
+                              dict(t=110, loc=(-640, 930, -90), target=track(K4B_LEAD, (-620, 280, -130), .9), lens=24)],
+                      K4B_T, shake=.35, kicks=[(105.0, .5), (107.2, .9)]),
+        ships=K4B_SHIPS,
         # her front shield at full flux, torn by the Lasher's guns a moment ago: the flank is open
         shields={'falcon-p': dict(toward='lasher-lead', flux=1.0, overload_s=.4, up_s=6.0)},
         fx=[('tracer', 'lasher-lead', 'falcon-p'), ('tracer', 'falcon-p', 'lasher-lead'),
@@ -340,13 +879,13 @@ KEYFRAMES = {
         caption='The pirates have their prize: the captured Tarsus is clamped to the Colossus Mk.III, with a Kite (P) '
                 'still docked. Far below, the Colossus has lost her orbit, nose down, with Morrow still at her side. '
                 'A burning freighter heading into the atmosphere is not worth chasing.',
-        camera=dict(loc=(-900, 380, 420), target=(420, -60, -560), lens=35),
+        # ZOOM OUT to scale: long on the clamped prize, widening and tilting down to the Colossus falling away
+        camera=camera('k5', [dict(t=110, loc=(-960, 400, 460), target=(-160, 330, 40), lens=85),
+                             dict(t=114, loc=(-900, 380, 420), target=(420, -60, -560), lens=35),
+                             dict(t=118, loc=(-840, 360, 390), target=(440, -70, -610), lens=24)], K5_T, shake=.06),
         states={'tarsus': 'tarsus-boarded'},
         knobs={'colossus3': {'grapples': 1.0}},
-        ships={'falcon-p': (-560, 120, 120, 25, -6, 8, .8),
-               'colossus3': C3_PRIZE, 'tarsus': aboard(C3_PRIZE, CLAMP_TARSUS_M),
-               'kite-p-a': aboard(C3_PRIZE, (10, 66, -40)),
-               'colossus': (480, -30, -780, 5, -26, 14, .15), 'morrow': (500, -175, -830, 0, -22, 8, 1)},
+        ships=K5_SHIPS,
         fx=[('fire_on', 'colossus', (-55, 36, 4)), ('smoke', 'colossus', (-60, 34, 0)),
             ('debris', 'colossus', 70, (-30, 0, 10)),
             ('fire_on', 'falcon-p', (-20, -14, 4), (-.3, -.6, .7)), ('smoke', 'falcon-p', (-20, -14, 4), (-.6, -.4, .6))],
@@ -361,10 +900,183 @@ KEYFRAMES = {
         labels=['trail-colossus', 'trail-morrow']),
 }
 
+
+def _nose(pose):
+    """A pose's nose direction (unit vector) from its heading and pitch."""
+    h, p_ = math.radians(pose[3]), math.radians(pose[4])
+    return (math.cos(p_) * math.cos(h), math.cos(p_) * math.sin(h), math.sin(p_))
+
+
+def _along(pose, back, up=0.0, side=0.0):
+    """A point `back` metres behind a pose along her nose, raised `up` and moved `side` to her port."""
+    n = _nose(pose)
+    h = math.radians(pose[3])
+    return (pose[0] - n[0] * back - math.sin(h) * side, pose[1] - n[1] * back + math.cos(h) * side,
+            pose[2] - n[2] * back + up)
+
+
+# S2: alongside the Colossus, Morrow off her starboard quarter with her drones stowed (no Borer is
+# placed), Lasher A sliding through the foreground between the lens and the Colossus
+M2_T = 27.0
+M2_LASHER = fly('lasher-a', (-110, 185, 60, 3, 1, -28, .9), M2_T, [
+    dict(t=24, hd=-3, pt=0, rl=-12), dict(t=30, hd=8, pt=2, rl=-35)], v=110)
+M2_SHIPS = {**{k: v for k, v in convoy_at(M2_T).items() if k in ('colossus', 'morrow', 'buffalo-a')},
+            'lasher-a': M2_LASHER}
+
+# S5: the Manticore (P) opens at long range on the column's tail, Hellbore slugs and a Harpoon salvo
+# crossing 3-4 km; her flight is S6's, so the cut into S6 keeps her where she is
+M5_T = 47.0
+def at_time(pose, t):
+    """A flight keyed at another shot's key time, stilled at t instead: the same motion, so a camera
+    tracking it and the preview's key frame both register at t."""
+    return Pose(pose.at(t), t, pose.at)
+
+
+M5_MANTICORE = at_time(K3_SHIPS['manticore-p'], 47.0)
+_m5 = M5_MANTICORE.at(M5_T)
+_m5_aim = convoy_at(M5_T)['phaeton']
+M5_SHIPS = {**{k: v for k, v in convoy_at(M5_T).items() if k in ('phaeton', 'tarsus', 'hound-m', 'buffalo-b', 'dram')},
+            **{k: at_time(K3_SHIPS[k], M5_T) for k in ('manticore-p', 'wolf-p-b')}}
+_m5_dir = [b - a for a, b in zip(_m5[:3], _m5_aim[:3])]
+_m5_len = math.sqrt(sum(x * x for x in _m5_dir))
+_m5_dir = [x / _m5_len for x in _m5_dir]
+
+
+def _m5_point(d, up=0.0, side=0.0):
+    """A point d metres along the Manticore's line of fire from her, at the key time."""
+    return (_m5[0] + _m5_dir[0] * d - _m5_dir[1] * side, _m5[1] + _m5_dir[1] * d + _m5_dir[0] * side,
+            _m5[2] + _m5_dir[2] * d + up)
+
+
+# S11: entry, a chase from just behind the Colossus as plasma builds round both hulls and Morrow drifts
+# apart from her; the last of it breaks into the recording screen's static (asharu_preview)
+M11_T = 122.0
+M11_COLOSSUS = at_time(K5_SHIPS['colossus'], 122.0)
+M11_MORROW = fly('morrow', K5_SHIPS['morrow'].at(M11_T), M11_T, [
+    dict(t=118, hd=1, pt=-23, rl=10), dict(t=126, hd=-9, pt=-27, rl=-4, v=36)], v=44, wobble=1.0, thrust=None)
+_m11 = M11_COLOSSUS.at(M11_T)
+
+# Shots with no key frame, blocked for the motion preview so no shot plays as a slate: the camera's
+# move and every ship's flight, the same spec as a key frame's. They are never lit: the lit run's
+# frames are KEYFRAMES only, and SHOTS is what the preview and --check read.
+BLOCKED = {
+    'm2': dict(
+        shot='S2', title='Alongside the Colossus',
+        caption='Tracking alongside the Colossus at 300 m. Morrow rides off her starboard quarter, drones stowed; '
+                'Lasher A slides through the foreground.',
+        # TRACKING: alongside at 300 m off her port side, a little above, easing forward along her length
+        camera=camera('m2', [dict(t=24, loc=(-260, 300, 90), target=(-60, -60, -10), lens=28),
+                             dict(t=27, loc=(-170, 305, 85), target=(-20, -70, -12), lens=28),
+                             dict(t=30, loc=(-80, 300, 80), target=(20, -80, -14), lens=28)], M2_T, shake=.04),
+        ships=M2_SHIPS,
+        labels=['colossus', 'morrow', 'lasher-a']),
+    'm5': dict(
+        shot='S5', title='The opening',
+        caption='The Manticore (P) opens at long range: Hellbore slugs and a Harpoon salvo cross 3-4 km of space '
+                'toward the column\'s tail.',
+        # ALONG THE LINE OF FIRE, ZOOM OUT: long on the Manticore from behind as she fires (130 mm), widening
+        # down the line as the salvo crosses toward the column (85 to 50 mm)
+        camera=camera('m5', [dict(t=44, loc=track(M5_MANTICORE, _m5_point(-850, 110, 90)),
+                                  target=track(M5_MANTICORE, _m5_point(0)), lens=130),
+                             dict(t=45.6, loc=track(M5_MANTICORE, _m5_point(-880, 115, 95)),
+                                  target=track(M5_MANTICORE, _m5_point(120)), lens=110),
+                             dict(t=47, loc=track(M5_MANTICORE, _m5_point(-900, 120, 100)),
+                                  target=track(M5_MANTICORE, _m5_point(700), .5), lens=85),
+                             dict(t=50, loc=track(M5_MANTICORE, _m5_point(-940, 130, 110)),
+                                  target=_m5_point(_m5_len * .7), lens=50)], M5_T, shake=.08, kicks=[(44.6, .4)]),
+        ships=M5_SHIPS,
+        fx=[('tracer', 'manticore-p', 'phaeton'), ('missiles', 'manticore-p', 'phaeton')],
+        labels=['manticore-p', 'phaeton', 'tarsus', 'hound-m']),
+    'm11': dict(
+        shot='S11', title='Entry',
+        caption='From just behind, plasma builds round both hulls; Morrow drifts apart from her. The radio breaks '
+                'up, the picture breaks into the recording screen\'s static, and END OF RECORDING.',
+        # CHASE: just behind and above the Colossus, closing a little as the plasma builds, shaking more
+        camera=camera('m11', [dict(t=118, loc=track(M11_COLOSSUS, _along(_m11, 340, 80, 0), 1.0, .3),
+                                   target=track(M11_COLOSSUS, _along(_m11, 0, 0, -75)), lens=42),
+                              dict(t=122, loc=track(M11_COLOSSUS, _along(_m11, 300, 70, 0), 1.0, .3),
+                                   target=track(M11_COLOSSUS, _along(_m11, 0, 0, -75)), lens=42),
+                              dict(t=126, loc=track(M11_COLOSSUS, _along(_m11, 270, 65, 0), 1.0, .3),
+                                   target=track(M11_COLOSSUS, _along(_m11, -40, 0, -75)), lens=38)], M11_T, shake=.3),
+        ships={'colossus': M11_COLOSSUS, 'morrow': M11_MORROW},
+        # entry plasma is new effects work: a proxy here (asharu_preview 'plasma'), building from 118 s to 124 s
+        fx=[('plasma', 'colossus', 118.0, 124.0), ('plasma', 'morrow', 118.5, 124.5)],
+        labels=['colossus', 'morrow']),
+}
+SHOTS = {**KEYFRAMES, **BLOCKED}
+
 ROSTER_SHEETS = ('r1', 'r2')   # top-down and broadside fleet sheets
 
 
 # ======================================================================================= Blender
+
+def surface_layers(nt, tc, base_col, mnode, sock):
+    """The detail tiles over the base map colour, in the planet material (surface/README.md): each
+    finished tile looked up on the tangent plane by object X, Y and mixed in by its feathered
+    edge. Returns (colour, the topmost tile's weight)."""
+    import bpy
+    import numpy as np
+    sys.path.insert(0, str(HERE / 'surface'))
+    import surface_detail as sd
+
+    def pixels(img):
+        a = np.empty(img.size[0] * img.size[1] * 4, dtype=np.float32)
+        img.pixels.foreach_get(a)
+        return a.reshape(img.size[1], img.size[0], 4)[::-1, :, :3].astype(np.float64)
+
+    def load(path):
+        img = bpy.data.images.load(str(path))
+        try:
+            return pixels(img)
+        finally:
+            bpy.data.images.remove(img)
+
+    base = load(roster.GAME_CORE / 'graphics' / 'planets' / 'desert01.jpg')
+
+    def raw(name):
+        p = HERE / 'surface' / 'raw' / f'{name}.png'
+        return load(p) if p.exists() else None
+
+    finished = sd.finish_all(base, raw)
+    col, weight = base_col, None
+    for name, tile in finished.items():
+        cx, cy, side, n = sd.TILES[name]
+        im = bpy.data.images.new(f'Asharu | surface {name}', n, n, alpha=False)
+        rgba = np.ones((n, n, 4), dtype=np.float32)
+        rgba[..., :3] = tile[::-1]
+        im.pixels.foreach_set(rgba.ravel())
+        im.pack()
+        sep = nt.nodes.new('ShaderNodeSeparateXYZ')
+        nt.links.new(tc.outputs['Object'], sep.inputs[0])
+        u = mnode('ADD', mnode('DIVIDE', mnode('SUBTRACT', sep.outputs['X'], cx), side), .5)
+        v = mnode('ADD', mnode('DIVIDE', mnode('SUBTRACT', sep.outputs['Y'], cy), side), .5)
+        uv = nt.nodes.new('ShaderNodeCombineXYZ')
+        nt.links.new(u, uv.inputs['X'])
+        nt.links.new(v, uv.inputs['Y'])
+        tex = nt.nodes.new('ShaderNodeTexImage')
+        tex.image = im
+        tex.interpolation = 'Cubic'
+        tex.extension = 'EXTEND'
+        nt.links.new(uv.outputs[0], tex.inputs['Vector'])
+        # Feather: 1 inside, smoothstep to 0 over the outer FEATHER of the half-width.
+        edge = mnode('MAXIMUM', mnode('ABSOLUTE', mnode('MULTIPLY', mnode('SUBTRACT', u, .5), 2.0)),
+                     mnode('ABSOLUTE', mnode('MULTIPLY', mnode('SUBTRACT', v, .5), 2.0)))
+        ramp = nt.nodes.new('ShaderNodeMapRange')
+        ramp.interpolation_type = 'SMOOTHSTEP'
+        ramp.inputs['From Min'].default_value = 0.0
+        ramp.inputs['From Max'].default_value = sd.FEATHER
+        nt.links.new(mnode('SUBTRACT', 1.0, edge), ramp.inputs['Value'])
+        w = ramp.outputs['Result']
+        mix = nt.nodes.new('ShaderNodeMix')
+        mix.data_type = 'RGBA'
+        nt.links.new(w, mix.inputs['Factor'])
+        nt.links.new(col, sock(mix.inputs, 'A'))
+        nt.links.new(tex.outputs['Color'], sock(mix.inputs, 'B'))
+        col = sock(mix.outputs, 'Result')
+        weight = w if weight is None else mnode('MAXIMUM', weight, w)
+    print('ASHARU surface tiles:', ', '.join(finished) or 'none', flush=True)
+    return col, weight
+
 
 def blender_main(cfg):
     import bmesh
@@ -373,6 +1085,7 @@ def blender_main(cfg):
     from bpy_extras.object_utils import world_to_camera_view
     from mathutils import Euler, Matrix, Quaternion, Vector
     import ship_fx
+    import composite_layers
 
     out = Path(cfg['out'])
     raw = out / 'raw'
@@ -382,13 +1095,29 @@ def blender_main(cfg):
     scene = bpy.context.scene
     scene.render.resolution_x, scene.render.resolution_y = W, H
     scene.render.resolution_percentage = 50 if cfg.get('half') else 100     # --half: a light check
+    if cfg.get('percent'):              # --percent P: a timing check at any size (never a review frame)
+        scene.render.resolution_percentage = int(cfg['percent'])
     scene.render.engine = 'CYCLES'
     scene.cycles.samples = cfg['samples']
     scene.cycles.use_denoising = True
     scene.cycles.max_bounces = 4
     scene.cycles.transparent_max_bounces = 16
+    if cfg.get('volume_biased'):        # --volume-biased: ray marching (step rate, max steps) for null scattering
+        scene.cycles.volume_biased = True
+    if cfg.get('volume_step_rate'):     # --volume-step-rate: coarser ray marching through the kit's volumes
+        scene.cycles.volume_step_rate = float(cfg['volume_step_rate'])
+    if cfg.get('volume_max_steps'):     # --volume-max-steps: the cap on steps per volume a ray takes
+        scene.cycles.volume_max_steps = int(cfg['volume_max_steps'])
     scene.view_settings.view_transform = 'AgX'
     scene.view_settings.look = 'AgX - Base Contrast'
+    import time
+    said = [0.0]
+
+    def progress(stats):     # Cycles prints nothing while a frame renders: say where it is, every 30 s at most
+        if time.time() - said[0] >= 30.0:
+            said[0] = time.time()
+            print('ASHARU progress', time.strftime('%H:%M:%S'), stats, flush=True)
+    bpy.app.handlers.render_stats.append(progress)
     try:
         prefs = bpy.context.preferences.addons['cycles'].preferences
         for kind in ('OPTIX', 'CUDA', 'METAL'):
@@ -579,6 +1308,9 @@ def blender_main(cfg):
     img.image = bpy.data.images.load(str(roster.GAME_CORE / 'graphics' / 'planets' / 'desert01.jpg'))
     img.interpolation = 'Cubic'
     nt.links.new(uv.outputs[0], img.inputs['Vector'])
+    ground_col, detail_w = img.outputs['Color'], None
+    if cfg.get('surface', SURFACE_DETAIL):
+        ground_col, detail_w = surface_layers(nt, tc, ground_col, mnode, sock)
     # Relief at the scales a 250 km orbit resolves: basins (60 km), ridges (8 km), dune fields.
     def noise(scale, detail=6, rough=.55):
         n = nt.nodes.new('ShaderNodeTexNoise')
@@ -602,12 +1334,14 @@ def blender_main(cfg):
                               mnode('MULTIPLY', mnode('SUBTRACT', wave.outputs['Fac'], .5), .12))))
     shade = mnode('ADD', shade, mnode('ADD', mnode('MULTIPLY', mnode('SUBTRACT', mid, .5), 1.2),
                                         mnode('MULTIPLY', vein, -.55)))
+    if detail_w is not None:     # the tiles carry their own relief: keep half the procedural on them
+        shade = mnode('MULTIPLY', shade, mnode('SUBTRACT', 1.0, mnode('MULTIPLY', detail_w, .5)))
     gain = mnode('MAXIMUM', mnode('ADD', 1.0, shade), .15)
     tint = nt.nodes.new('ShaderNodeMix')
     tint.data_type = 'RGBA'
     tint.blend_type = 'MULTIPLY'
     tint.inputs['Factor'].default_value = 1.0
-    nt.links.new(img.outputs['Color'], sock(tint.inputs, 'A'))
+    nt.links.new(ground_col, sock(tint.inputs, 'A'))
     cmb = nt.nodes.new('ShaderNodeCombineColor')
     for ch in ('Red', 'Green', 'Blue'):
         nt.links.new(gain, cmb.inputs[ch])
@@ -647,6 +1381,11 @@ def blender_main(cfg):
     nt2.links.new(mix.outputs[0], nt2.nodes['Material Output'].inputs['Surface'])
     air.data.materials.append(am)
     air.visible_shadow = False
+    backdrop = bpy.data.collections.new('Backdrop')     # the planet: its own view layer under --layers
+    scene.collection.children.link(backdrop)
+    for o in (ground, air):
+        scene.collection.objects.unlink(o)
+        backdrop.objects.link(o)
 
     # ---------------------------------------------------------------------------- hull library
     library = {}      # game/finished key -> dict(coll, mpu, engines [(pos, dir, radius, style)], length_m)
@@ -724,11 +1463,24 @@ def blender_main(cfg):
             eng.append((Vector(e.get('mouth') or e['location']), Vector(e.get('axis') or e['exhaust_direction']),
                         e.get('radius') or e['mouth_radius'], e.get('style', 'LOW_TECH')))
         knobs = {}
-        if ctl and m.get('control'):      # knobs: a list of {name, ...}, or a dict of name -> description
+        if ctl and m.get('control'):      # knobs: a list of {name, ...} or of names, or a dict of name -> description
             ks = m['control'].get('knobs') or []
             pose = m['control'].get('saved_pose') or {}
-            knobs = {n: pose.get(n, 0.0) for n in (ks if isinstance(ks, dict) else [k['name'] for k in ks])}
+            knobs = {n: pose.get(n, 0.0) for n in (ks if isinstance(ks, dict) else
+                                                   [k if isinstance(k, str) else k['name'] for k in ks])}
         hull_ctl = ctl if ctl is not None and ctl.name in coll.all_objects else None    # gear, grapples, break-up
+        if f.get('livery') == 'scrap':     # a pirate's boat: the company paint greyed and dulled, on this copy only
+            for mat in {sl.material for o in coll.all_objects for sl in o.material_slots if sl.material}:
+                for n in [n for n in (mat.node_tree.nodes if mat.use_nodes else ()) if n.type == 'BSDF_PRINCIPLED']:
+                    base = n.inputs['Base Color']
+                    hs = mat.node_tree.nodes.new('ShaderNodeHueSaturation')
+                    hs.inputs['Saturation'].default_value = .15
+                    hs.inputs['Value'].default_value = .7
+                    if base.is_linked:
+                        mat.node_tree.links.new(base.links[0].from_socket, hs.inputs['Color'])
+                    else:
+                        hs.inputs['Color'].default_value = base.default_value
+                    mat.node_tree.links.new(hs.outputs['Color'], base)
         # the build's own lamps and volumes (shared by every ship of the build: one build, one mpu)
         ship_fx.metre_scale({d for o in coll.all_objects for d in
                              (o.data if o.type == 'LIGHT' else None, *(sl.material for sl in o.material_slots))
@@ -874,6 +1626,10 @@ def blender_main(cfg):
 
     stage = bpy.data.collections.new('Stage')
     scene.collection.children.link(stage)
+    stage_ships = bpy.data.collections.new('Stage | ships')       # hulls, stand-ins, the platform
+    stage_fx = bpy.data.collections.new('Stage | effects')        # each ship's kit copy, the placeholder effects
+    stage.children.link(stage_ships)
+    stage.children.link(stage_fx)
     placed = {}
     ships_fx = {}     # (ship key, build key) -> ShipFx: that ship's own SWFX (and hull, where it has gear)
 
@@ -913,13 +1669,13 @@ def blender_main(cfg):
         e.instance_collection = sfx.hull if sfx is not None else lib['coll']
         mw = frame_of((x, y, z), hd, pt, rl)
         e.matrix_world = mw @ Matrix.Scale(lib['mpu'], 4)
-        link(e, stage)
+        link(e, stage_ships)
         if sfx is not None and sfx.fx is not None:
             e2 = bpy.data.objects.new('Ship fx | ' + key, None)
             e2.instance_type = 'COLLECTION'
             e2.instance_collection = sfx.fx
             e2.matrix_world = e.matrix_world
-            link(e2, stage)
+            link(e2, stage_fx)
         placed[key] = dict(matrix=mw, mpu=lib['mpu'], length=lib['length_m'], lib=lib, fx=sfx, throttle=thr,
                            build=m.get('finished') or m['game'])
         if sfx is not None:
@@ -941,10 +1697,10 @@ def blender_main(cfg):
         """A point on a placed ship, local in metres in its own frame."""
         return placed[key]['matrix'] @ Vector(local)
 
-    def obj(name, me, mat, matrix):
+    def obj(name, me, mat, matrix, coll=None):
         o = bpy.data.objects.new(name, me)
         o.matrix_world = matrix
-        link(o, stage)
+        link(o, coll or stage_fx)
         o.material_slots[0].link = 'OBJECT'
         o.material_slots[0].material = mat
         o.visible_shadow = mat in (smoke_mat, debris_mat)   # light and plasma cast no shadow
@@ -1031,6 +1787,57 @@ def blender_main(cfg):
                 standin = '' if members[a].get('finished') else '  (stand-in: fires from inside its slab)'
                 print(f'ASHARU LOS {kf} {fx[0]:8} {a:12} -> {b:12} {what}{standin}', flush=True)
 
+    def seat_check(kf, spec):
+        """A boat set down on its prize (spec 'seated': boat -> prize): with the boat hidden, cast down
+        through each gear sole (its manifest's landing sole anchors) onto the prize's hull and print the
+        gap, so a boat that floats or sinks into the deck shows without a render. Positive: above the hull."""
+        for b, prize in spec.get('seated', {}).items():
+            pl = placed[b]
+            soles = [(s_['leg'], muzzle_world(b, ('anchor', s_['anchor'])))
+                     for s_ in (pl['lib']['manifest'].get('landing') or {}).get('sole_anchors') or []]
+            up = (pl['matrix'].to_3x3() @ Vector((0, 0, 1))).normalized()
+            mine = [o for o in stage.all_objects if o.name in ('Ship | ' + b, 'Ship fx | ' + b)]
+            for o in mine:
+                o.hide_viewport = True
+            bpy.context.view_layer.update()
+            dg = bpy.context.evaluated_depsgraph_get()
+            centre_p, reach_p = at(prize), placed[prize]['length'] * .6
+
+            def gap(p):
+                o = p + up * 40.0
+                for _ in range(64):
+                    hit, loc, _, _, ob, _ = scene.ray_cast(dg, o, -up, distance=80.0)
+                    if not hit:
+                        return None
+                    if (ob is not None and ob.name.startswith('SWFX')) or (loc - centre_p).length > reach_p:
+                        o = loc - up * .05      # the kit's volumes, or not the prize
+                        continue
+                    return (p - loc).dot(up)
+                return None
+
+            gaps = [(leg, gap(p)) for leg, p in soles]
+            row = ', '.join(f'{leg} {"no hull" if g is None else f"{g:+.2f} m"}' for leg, g in gaps)
+            ok = bool(gaps) and all(g is not None and abs(g) <= .35 for _, g in gaps)
+            print(f'ASHARU seat {kf} {b} on {prize}: {row}  {"SEATED" if ok else "NOT SEATED"}', flush=True)
+            if not ok and soles:       # where it would sit flat: the deck around the seat, in the prize's frame
+                rot = placed[prize]['matrix'].to_3x3()
+                best = None
+                for dx in range(-30, 31, 2):
+                    for dy in range(-12, 13, 2):
+                        t_ = rot @ Vector((dx, dy, 0))
+                        gs = [gap(p + t_) for _, p in soles]
+                        if any(g is None for g in gs):
+                            continue
+                        spread = max(gs) - min(gs)
+                        if best is None or spread < best[0]:
+                            best = (spread, dx, dy, min(gs))
+                if best is not None:
+                    print(f'ASHARU seat {kf} {b} flattest within 30 m: move ({best[1]:+d}, {best[2]:+d}) m in '
+                          f'the {prize} frame and down {best[3]:+.2f} m: soles within {best[0]:.2f} m', flush=True)
+            for o in mine:
+                o.hide_viewport = False
+            bpy.context.view_layer.update()
+
     def tracer(a, b, local=None, n=6, muzzle=None):
         p0 = muzzle_world(a, muzzle)
         p1 = at(b, local or (0, 0, 0)) + Vector(rng.normal(0, 12, 3))
@@ -1100,22 +1907,39 @@ def blender_main(cfg):
             obj('Plasma head', bead_me, head_mat, Matrix.Translation(head) @ Matrix.Scale(2200 * scale, 4))
             labels3d[name] = head
 
-    def platform(p):
-        """The derelict Asharu platform: bulk-carrier segments welded between emptied tanks."""
+    def field_matrix(piece, box, t):
+        """A debris box's world matrix at time t: the wreck turning about its own axis (debris_field)."""
+        c, half, r = FIELD[piece].boxes_at(t)[box]
+        rz = frame_of(Vector((0, 0, 0)), PLATFORM_HD, 0, 0).to_3x3()
+        return (Matrix.Translation(Vector(on_platform(c))) @ (rz @ Matrix(r)).to_4x4()
+                @ Matrix.Diagonal((*half, 1)))
+
+    def platform(p, t=K1B_T):
+        """The derelict Asharu platform (platform_parts) and its debris field (FIELD, posed at t), at p,
+        casting shadows its hidden ships lie in."""
         mat = principled('Platform', (.32, .3, .28), rough=.75, metal=.4)
-        base = Vector(p)
-        for i in range(6):
-            o = Vector((i * 110 - 280, rng.uniform(-8, 8), rng.uniform(-6, 6)))
-            rot = Euler((0, 0, rng.uniform(-.08, .08))).to_matrix().to_4x4()
-            obj('Platform bulk segment', box_me, mat, Matrix.Translation(base + o) @ rot @ Matrix.Diagonal((48, 22, 18, 1)))
-        for i in range(18):
-            o = Vector((rng.uniform(-320, 300), rng.choice((-1, 1)) * rng.uniform(40, 75), rng.uniform(-30, 30)))
-            obj('Platform tank', bead_me, mat, Matrix.Translation(base + o) @ Matrix.Scale(rng.uniform(14, 22), 4))
-        for side in (-1, 1):
-            obj('Platform collector', box_me, mat, Matrix.Translation(base + Vector((0, side * 190, 0)))
-                @ Matrix.Diagonal((150, 70, 1.5, 1)))
-        obj('Platform spine', plume_me, mat, Matrix.Translation(base + Vector((-380, 0, 0)))
-            @ Vector((1, 0, 0)).to_track_quat('Z', 'Y').to_matrix().to_4x4() @ Matrix.Diagonal((12, 12, 760, 1)))
+        if 'Drum unit' not in bpy.data.meshes:
+            me = bpy.data.meshes.new('Drum unit')
+            bm = bmesh.new()
+            bmesh.ops.create_cone(bm, cap_ends=True, segments=20, radius1=1.0, radius2=1.0, depth=2.0)
+            bmesh.ops.rotate(bm, verts=bm.verts[:], cent=(0, 0, 0), matrix=Matrix.Rotation(math.radians(90), 3, 'Y'))
+            bm.to_mesh(me)
+            bm.free()
+            me.materials.append(mat)
+        drum_me = bpy.data.meshes['Drum unit']
+        for kind, name, c, size, (hd, pt, rl) in platform_parts():
+            m = frame_of(Vector(on_platform(c)), hd + PLATFORM_HD, pt, rl)
+            if kind == 'box':
+                o = obj(name, box_me, mat, m @ Matrix.Diagonal((*size, 1)), stage_ships)
+            else:
+                o = obj(name, drum_me, mat, m @ Matrix.Diagonal((size[1], size[0], size[0], 1)), stage_ships)
+            o.visible_shadow = True
+        for i, piece in enumerate(FIELD):
+            for j in range(len(piece.boxes)):
+                o = obj('Platform debris %d.%d' % (i, j), box_me, mat, field_matrix(i, j, t), stage_ships)
+                o.visible_shadow = True
+                o.rotation_mode = 'QUATERNION'
+                o['field_piece'], o['field_box'] = i, j
 
     def apply_cue(key, s, cue):
         """One ship's effects cue for this frame (KEYFRAMES 'cues'): 'fire' lists the guns flashing
@@ -1223,7 +2047,7 @@ def blender_main(cfg):
             print(f'ASHARU volume kind {kf} {label:10} {k_[:40]:40} x{c_:3}  sum size {sz:7.0f} m  sum area {ar * 100:5.2f}%', flush=True)
 
     def clear_stage():
-        for o in list(stage.objects):
+        for o in list(stage.all_objects):
             bpy.data.objects.remove(o)
         placed.clear()
 
@@ -1341,6 +2165,89 @@ def blender_main(cfg):
         world.node_tree.nodes['Star gain'].inputs[1].default_value = 0.0      # a roster sheet is a studio
         return lab
 
+    # ---------------------------------------------------------------------------- layers (--layers)
+    # A key frame rendered as three view layers into one multilayer EXR, composed by composite_layers.py, so
+    # the backdrop and the effects can change without the hulls being rendered again (owner, 2026-10-22):
+    #   backdrop  the planet and the starfield, at BACKDROP_SAMPLES; the ships take no part
+    #   ships     the hulls at full samples; the effects and the planet are indirect-only, so every drive,
+    #             muzzle flash, burst light, the sun and the planet's bounce still light them
+    #   effects   volumes, shields, rounds and bursts; ships and planet are holdouts (they still cast and bounce)
+    # Each layer writes Cryptomatte (object, material, asset) and depth. A backdrop already rendered for the same
+    # locked camera stands in for the backdrop layer, which then does not render. A painted plate
+    # (composite_layers.plate_for) replaces it in the composite but not in the render: a PNG plate's swap
+    # and a matted plate's sky both need the rendered one.
+    ROLES = {'backdrop': {'Stage': 'exclude'},
+             'ships': {'Stage | effects': 'indirect', 'Backdrop': 'indirect'},
+             'effects': {'Stage | ships': 'holdout', 'Backdrop': 'holdout'}}
+
+    def walk(lc):
+        yield lc
+        for c in lc.children:
+            yield from walk(c)
+
+    def layered(kf, backdrop_needed):
+        """The three view layers for this frame, their collections synced to the base layer's exclusions
+        (ShipFx sources and appended libraries are excluded there as they are made), then given their role."""
+        base_vl = scene.view_layers[0]
+        base_vl.use = False
+        base = {lc.collection.name: lc.exclude for lc in walk(base_vl.layer_collection)}
+        for name in composite_layers.LAYERS:
+            vl = scene.view_layers.get(name) or scene.view_layers.new(name)
+            vl.use = name != 'backdrop' or backdrop_needed
+            vl.samples = min(cfg['samples'], composite_layers.BACKDROP_SAMPLES) if name == 'backdrop' else cfg['samples']
+            vl.cycles.use_denoising = True
+            vl.use_pass_z = True
+            vl.use_pass_environment = name == 'backdrop'
+            vl.use_pass_cryptomatte_object = True
+            vl.use_pass_cryptomatte_asset = True
+            vl.use_pass_cryptomatte_material = True
+            role = ROLES[name]
+            for lc in walk(vl.layer_collection):
+                if lc is vl.layer_collection:
+                    continue
+                lc.exclude = base.get(lc.collection.name, False)
+                lc.holdout = lc.indirect_only = False
+                r = role.get(lc.collection.name)
+                if r == 'exclude':
+                    lc.exclude = True
+                elif r == 'holdout':
+                    lc.holdout = True
+                elif r == 'indirect':
+                    lc.indirect_only = True
+        return layer_audit(kf)
+
+    def layer_audit(kf):
+        """What each layer will draw, from the collections alone: a kit object inside a hull copy would render
+        on the ships layer and never change with the effects, and a loose object at the scene root renders on
+        every layer. Both are leaks; the frame's row says so."""
+        leaks = []
+        for e in stage_ships.all_objects:
+            for o in (e.instance_collection.all_objects if e.instance_collection else ()):
+                if ship_fx.base_name(o.name).startswith('SWFX') and o.type != 'EMPTY':
+                    leaks.append(f'{o.name} in the hull of {e.name}')
+        loose = [o.name for o in scene.collection.objects if o.type not in ('CAMERA', 'LIGHT')]
+        n = {c.name: sum(1 for _ in c.all_objects) for c in (stage_ships, stage_fx, backdrop)}
+        print(f'ASHARU layers {kf}: ships {n[stage_ships.name]} objects, effects {n[stage_fx.name]}, '
+              f'backdrop {n[backdrop.name]}; kit objects in hull copies {len(leaks)}, loose at the root {len(loose)}',
+              flush=True)
+        for row in leaks[:12] + loose[:12]:
+            print('ASHARU layers leak', kf, row, flush=True)
+        return not leaks and not loose
+
+    def backdrop_key(kf):
+        """Everything the backdrop layer's pixels depend on: a locked camera's backdrop renders once."""
+        import hashlib
+        cam_m = [round(v, 4) for row in cam.matrix_world for v in row]
+        world_n = world.node_tree.nodes
+        h = hashlib.sha256(json.dumps([cam_m, cam.data.type, cam.data.lens, cam.data.ortho_scale,
+                                       [round(v, 5) for v in sun.rotation_euler], sun.data.energy,
+                                       list(world_n['Background'].inputs['Color'].default_value),
+                                       world_n['Star gain'].inputs[1].default_value,
+                                       scene.render.resolution_percentage,
+                                       min(cfg['samples'], composite_layers.BACKDROP_SAMPLES),
+                                       frame_meta(0, False, cfg.get('surface', SURFACE_DETAIL))]).encode())
+        return h.hexdigest()[:16]
+
     labels = {}
     for kf in cfg['frames']:
         clear_stage()
@@ -1353,8 +2260,8 @@ def blender_main(cfg):
         sun.rotation_euler = sun_dir.to_track_quat('Z', 'Y').to_euler()
         world.node_tree.nodes['Background'].inputs['Color'].default_value = (.0008, .0009, .0014, 1)
         world.node_tree.nodes['Star gain'].inputs[1].default_value = STAR_GAIN
-        if kf in KEYFRAMES:
-            spec = KEYFRAMES[kf]
+        if kf in SHOTS:
+            spec = SHOTS[kf]
             for key, sp in spec['ships'].items():
                 place(key, sp, spec.get('states', {}).get(key))
             for lib in library.values():     # a build's control knobs: this frame's pose, else its saved pose
@@ -1391,11 +2298,12 @@ def blender_main(cfg):
                 bpy.context.view_layer.update()
             extra3d = {}
             if spec.get('platform'):
-                platform(spec['platform'])
+                platform(spec['platform'], spec.get('platform_t', K1B_T))
                 extra3d['platform'] = Vector(spec['platform']) + Vector((0, 0, -140))
             muzzles = {(k, a, b): (best[5] if best else None) for k, a, b, best, _ in bearing(kf)}
             CLEAR_GUNS.clear()
             line_of_sight(kf, spec, muzzles, cfg.get('los'))     # picks, per shot, a bearing gun with a clear line
+            seat_check(kf, spec)
             kit_drew = set()
             if cfg.get('swfx'):          # the finished kit draws what it can (scene_fx); the stand-ins draw the rest
                 import scene_fx
@@ -1458,7 +2366,7 @@ def blender_main(cfg):
                 elif kind == 'entry_trails':
                     entry_trails(extra3d)
             c = spec['camera']
-            aim(c['loc'], c.get('target'), c['lens'], c.get('look'))
+            aim(c['loc'], c.get('target'), c['lens'], c.get('look'), c.get('roll', 0.0))
             if cfg.get('volume_audit'):       # in vacuum (as rendered), then as the kit's atmosphere default
                 volume_audit(kf, 'vacuum')
                 for s_ in ships_fx.values():
@@ -1482,20 +2390,66 @@ def blender_main(cfg):
                 else:
                     lab[key] = ship_label(key)
             labels[kf] = lab
+            if cfg.get('motion_preview'):     # --motion-preview: play this shot in Workbench (asharu_preview.py)
+                import asharu_preview
+                asharu_preview.shot(locals(), kf)
+                continue
         else:
             labels[kf] = roster_sheet(kf)
+        layers = bool(cfg.get('layers')) and kf in KEYFRAMES
+        scene.render.film_transparent = layers
+        if layers:
+            plate = composite_layers.plate_for(cfg.get('plates'), kf)
+            cached = raw / 'backdrop' / f'{backdrop_key(kf)}.exr'
+            if not layered(kf, not cached.exists()) and not cfg.get('stage_only'):
+                raise SystemExit(f'ASHARU layers {kf}: an object would render on the wrong layer (see the leak rows)')
+        else:
+            for vl in scene.view_layers:
+                vl.use = vl == scene.view_layers[0]
         if cfg.get('stage_only'):                 # --stage-only: build and pose every hull, render nothing
             print('ASHARU staged', kf, flush=True)
             continue
+        if cfg.get('hide_volumes'):      # --hide-volumes a,b | all: a timing control, the kit's volumes left out
+            prefixes = cfg['hide_volumes'].split(',')
+            gone = 0
+            for s_ in ships_fx.values():
+                for o_ in s_.ids:
+                    if not isinstance(o_, bpy.types.Object) or o_.hide_render:
+                        continue
+                    vol = [sl.material for sl in o_.material_slots if sl.material and sl.material.use_nodes and any(
+                        n.type == 'OUTPUT_MATERIAL' and n.inputs['Volume'].is_linked for n in sl.material.node_tree.nodes)]
+                    if vol and ('all' in prefixes or any(ship_fx.base_name(o_.name).startswith(p) for p in prefixes)):
+                        o_.hide_render = True
+                        gone += 1
+            print(f'ASHARU hid {gone} volume objects ({cfg["hide_volumes"]})', flush=True)
         partial = raw / f'{kf}.partial'           # not *.png, so a queue's frame count never counts it
+        t_render = time.time()
         scene.render.use_file_extension = False
-        scene.render.filepath = str(partial)
-        bpy.ops.render.render(write_still=True)
+        st = scene.render.image_settings
+        if layers:
+            st.media_type = 'MULTI_LAYER_IMAGE'      # Blender 5: multilayer EXR is a media type
+            st.color_depth, st.exr_codec = '16', 'ZIP'
+            exr_partial = raw / f'{kf}.layers.partial'
+            scene.render.filepath = str(exr_partial)
+            bpy.ops.render.render(write_still=True)
+            os.replace(exr_partial, raw / f'{kf}.layers.exr')
+            st.media_type = 'IMAGE'
+            st.file_format, st.color_mode, st.color_depth = 'PNG', 'RGBA', '8'
+            composite_layers.compose_frame(raw / f'{kf}.layers.exr', partial, scene, plate=plate, backdrop=cached,
+                                           log=lambda m: print(m, flush=True))
+        else:
+            st.media_type = 'IMAGE'
+            st.file_format, st.color_mode, st.color_depth = 'PNG', 'RGBA', '8'
+            scene.render.filepath = str(partial)
+            bpy.ops.render.render(write_still=True)
         os.replace(partial, raw / f'{kf}.png')      # a PNG under its own name is always a finished one
+        print(f'ASHARU render time {kf} {time.time() - t_render:.1f} s', flush=True)
         store = raw / 'labels.json'   # saved per frame: a stopped job keeps every finished frame's labels
         old = json.loads(store.read_text()) if store.exists() else {}
         store.write_text(json.dumps({**old, kf: labels[kf]}, indent=1))
-        (raw / f'{kf}.meta.json').write_text(json.dumps(frame_meta(cfg['samples'], cfg.get('half', False))))
+        (raw / f'{kf}.meta.json').write_text(json.dumps(frame_meta(cfg['samples'], cfg.get('half', False),
+                                                                      cfg.get('surface', SURFACE_DETAIL),
+                                                                      layers and cfg.get('plates', None))))
         print('ASHARU rendered', kf, flush=True)
     if cfg.get('fx_check'):
         fx_verdict(out)
@@ -1564,20 +2518,40 @@ def fx_verdict(out):
 
 # ======================================================================================= driver
 
-def frame_meta(samples, half=False):
-    """What a finished frame was rendered with: its samples and the staging source it came from."""
+def frame_meta(samples, half=False, surface=SURFACE_DETAIL, layers=False):
+    """What a finished frame was rendered with: its samples, the staging source, and for a layered frame
+    (layers: the --plates value, None for the plates beside the script, '' for none) the plates."""
     import hashlib
     h = hashlib.sha256()
-    for f in (HERE / 'battle_blockout.py', HERE / 'roster.py'):
+    for f in (HERE / 'battle_blockout.py', HERE / 'roster.py', HERE / 'composite_layers.py'):
         h.update(f.read_bytes())
-    return {'samples': samples, 'half': half, 'source_sha256': h.hexdigest()}
+    meta = {'samples': samples, 'half': half, 'source_sha256': h.hexdigest()}
+    if layers is not False:
+        meta['layers'] = True
+        root = composite_layers_plates() if layers is None else (Path(layers) if layers else None)
+        if root is not None and root.exists():
+            p = hashlib.sha256()
+            for f in sorted(x for x in root.rglob('*') if x.is_file() and x.suffix.lower() in ('.png', '.exr')):
+                p.update(str(f.relative_to(root)).encode())
+                p.update(f.read_bytes())
+            meta['plates_sha256'] = p.hexdigest()
+    if surface:
+        s = hashlib.sha256()
+        for f in [HERE / 'surface' / 'surface_detail.py', *sorted((HERE / 'surface' / 'raw').glob('*.png'))]:
+            s.update(f.read_bytes())
+        meta['surface_sha256'] = s.hexdigest()
+    return meta
 
 
-def finished(raw, kf, samples, half=False):
+def composite_layers_plates():
+    return REPO / 'build' / 'asharu-battle' / 'plates'     # composite_layers.PLATES
+
+
+def finished(raw, kf, samples, half=False, surface=SURFACE_DETAIL, layers=False):
     """Whether raw/<kf>.png is a finished frame of this staging at these samples."""
     png, meta, store = raw / f'{kf}.png', raw / f'{kf}.meta.json', raw / 'labels.json'
     try:
-        if json.loads(meta.read_text()) != frame_meta(samples, half) or kf not in json.loads(store.read_text()):
+        if json.loads(meta.read_text()) != frame_meta(samples, half, surface, layers) or kf not in json.loads(store.read_text()):
             return False
         with open(png, 'rb') as fh:
             fh.seek(-12, 2)
@@ -1776,9 +2750,9 @@ def check(frames):
     pixels, and whether it is in frame. The camera math is Blender's track ('-Z', 'Y')."""
     lengths = {m['key']: roster.size_row(m)['length_m'] for m in roster.MERCHANT + roster.PIRATE + roster.DRONES}
     for kf in frames:
-        if kf not in KEYFRAMES:
+        if kf not in SHOTS:
             continue
-        c = KEYFRAMES[kf]['camera']
+        c = SHOTS[kf]['camera']
         loc = c['loc']
         f = [b - a for a, b in zip(loc, c['target'])] if c.get('target') else list(c['look'])
         n = math.sqrt(sum(x * x for x in f))
@@ -1792,7 +2766,7 @@ def check(frames):
         dip = math.degrees(math.acos(R / (R + ALT + loc[2])))
         hy = H / 2 - fpx * math.tan(math.radians(-dip - pitch))
         print(f'{kf}: pitch {pitch:.1f}, horizon at y={hy:.0f}' + ('' if 0 <= hy <= H else ' (out of frame)'))
-        for key, sp in KEYFRAMES[kf]['ships'].items():
+        for key, sp in SHOTS[kf]['ships'].items():
             d = [b - a for a, b in zip(loc, sp[:3])]
             z = sum(a * b for a, b in zip(d, f))
             if z <= 0:
@@ -1813,12 +2787,149 @@ def check(frames):
             print(f'   {kind:8} {a:12} -> {b:12} {verdict}')
         for line in cue_lines(kf):
             print('   ' + line)
+        for line in surface_lines(loc, f, r, u, fpx):
+            print('   ' + line)
+        for line in turn_lines(kf):
+            print('   ' + line)
+
+
+TURN_JUMP_LIMIT = 45.0     # deg/s of angular-velocity change in one frame (1/24 s) that --check reports
+
+
+def station_boxes():
+    """The station's parts as boxes in its own metres (a drum as its bounding box), for hide_lines."""
+    out = []
+    for kind, _, c, size, (hd, pt, rl) in platform_parts():
+        half = size if kind == 'box' else (size[1], size[0], size[0])
+        out.append((c, half, debris_field.rot(hd, pt, rl)))
+    return out
+
+
+def hide_lines():
+    """--check's hiding report (owner, 2026-10-22): per hidden pirate, what she hides behind and how
+    big it is against her own bounding box, how much of her the convoy can see before the drives
+    light, and whether her launch, eased out and turned onto her climb, passes through any wreck or
+    the station. Flags: EXPOSED (under half hidden and not meant to be seen), SMALL (her cover is less
+    than her own volume), HALF-SEEN (meant to be glimpsed: a nose or drives past the cover), and HIT
+    (her launch path enters a box)."""
+    t_dark = min(LAUNCH.values()) - .3
+    station = station_boxes()
+    boxes = station + [b for pc in FIELD for b in pc.boxes_at(t_dark)]
+    out = ['hiding (before the drives light, %.1f s; convoy line of sight %s)' % (
+        t_dark, ', '.join('%.2f' % v for v in TOWARD_CONVOY))]
+    for k, h in HIDES.items():
+        L = SHIP_LENGTH[k]
+        ship = (*h['at'], h['hd'], h['pt'], h['rl'])
+        vol = 8 * L ** 3 * debris_field.SHIP_HALF[0] * debris_field.SHIP_HALF[1] * debris_field.SHIP_HALF[2]
+        cover = next((c for c in FIELD_COVER if c.cover_for == k), None)
+        cv = cover.volume() if cover else None
+        seen = 1 - debris_field.coverage(ship, L, TOWARD_CONVOY, boxes)
+        flags = []
+        if h.get('peek'):
+            flags.append('HALF-SEEN (intended: %s shows)' % ('her nose' if h['peek'] > 0 else 'her drives'))
+        elif seen > .5:
+            flags.append('EXPOSED')
+        if cover is not None and cv < vol:
+            flags.append('SMALL')
+        hits = set()
+        f = PIRATE_LAUNCH[k]
+        for i in range(0, 49):
+            t = LAUNCH[k] + i * .25
+            q = f.at(t)
+            lp = to_platform(q[:3])
+            local = (*lp, q[3] - PLATFORM_HD, q[4], q[5])
+            for pt_ in debris_field.ship_points(local, L * .92, 3):
+                for n, (c, half, r) in enumerate(station + [b for pc in FIELD for b in pc.boxes_at(t)]):
+                    rel = tuple(pt_[j] - c[j] for j in range(3))
+                    if all(abs(sum(rel[j] * r[j][a] for j in range(3))) < half[a] for a in range(3)):
+                        hits.add('%.1f s %s' % (t, 'the station' if n < len(station) else 'a wreck'))
+                        break
+        if hits:
+            flags.append('HIT ' + ', '.join(sorted(hits)[:3]))
+        what = ('the station' if cover is None else '%s %.0f%% of her volume' % (
+            HIDES[k]['cover'], 100 * cv / vol))
+        out.append('   %-12s %5.0f m  behind %-24s  seen %3.0f%%  %s' % (k, L, what, 100 * seen, '  '.join(flags)))
+    return out
+
+
+def turn_lines(kf):
+    """--check's motion sweep: every flown ship over her shot at 24 fps, listing frames where her
+    angular velocity jumps by more than TURN_JUMP_LIMIT (a turn that stalls or snaps). A hit's
+    tumble or a boat setting down is expected there and is marked as such."""
+    import asharu_preview
+    import motion
+    seg = next((s for s in asharu_preview.segments(SHOTS) if s['kf'] == kf), None)
+    if seg is None:
+        return []
+    out = []
+    for key, sp in SHOTS[kf]['ships'].items():
+        if not hasattr(sp, 'at'):
+            continue
+        hits = [h['t'] for h in getattr(sp.at, 'hits', ()) if 'kick' not in h]
+        for t, j in motion.turn_jumps(sp.at, seg['start'], seg['end'], limit=TURN_JUMP_LIMIT):
+            why = 'a hit' if any(abs(t - th) < .1 for th in hits) else ('setting down' if key.startswith('hermes') else 'CHECK')
+            out.append(f'turn     {key:12} angular velocity jumps {j:.0f} deg/s at {t:.2f} s ({why})')
+    return out
+
+
+def surface_lines(loc, f, r, u, fpx):
+    """--check's view of the ground: the ground metres a pixel spans at frame centre and which
+    detail tile paints it, and where each settlement lands in frame."""
+    sys.path.insert(0, str(HERE / 'surface'))
+    import surface_detail as sd
+    if not SURFACE_DETAIL:
+        return ['surface: base map only (SURFACE_DETAIL off)']
+    c = (0.0, 0.0, -(R + ALT))
+    o = [a - b for a, b in zip(loc, c)]
+
+    def hit(px, py):
+        d = [f[i] + ((px - W / 2) * r[i] - (py - H / 2) * u[i]) / fpx for i in range(3)]
+        n = math.sqrt(sum(x * x for x in d))
+        d = [x / n for x in d]
+        b = sum(a * b for a, b in zip(o, d))
+        disc = b * b - (sum(x * x for x in o) - R * R)
+        if disc < 0:
+            return None
+        t = -b - math.sqrt(disc)
+        return [o[i] + t * d[i] for i in range(3)], t
+
+    out = []
+    rows = [('centre', H / 2), ('lower edge', H - 1)]
+    top = next((py for py in range(0, H, 10) if hit(W / 2, py)), None)
+    if top is not None and top > 0:
+        rows.insert(0, ('below the horizon', min(H - 1, top + 30)))
+    for label, py in rows:
+        h = hit(W / 2, py)
+        if h is None:
+            out.append(f'surface {label}: sky')
+            continue
+        p, t = h
+        mpp = t / fpx
+        tiles = [n for n, (cx, cy, side, k) in sd.TILES.items()
+                 if abs(p[0] - cx) < side / 2 and abs(p[1] - cy) < side / 2]
+        top = tiles[-1] if tiles else None
+        tile = f'{top} tile at {sd.TILES[top][2] / sd.TILES[top][3]:.0f} m/px' if top else 'base map only'
+        out.append(f'surface {label}: ground {t / 1e3:.0f} km away, {mpp:.0f} m/px across; {tile}')
+    for st in sd.SETTLEMENTS:
+        if st[1] == 'road':
+            continue
+        x, y = st[2], st[3]
+        z = math.sqrt(R * R - x * x - y * y)
+        d = [x - o[0], y - o[1], z - o[2]]
+        zc = sum(a * b for a, b in zip(d, f))
+        if zc <= 0:
+            continue
+        sx = W / 2 + fpx * sum(a * b for a, b in zip(d, r)) / zc
+        sy = H / 2 - fpx * sum(a * b for a, b in zip(d, u)) / zc
+        if 0 <= sx <= W and 0 <= sy <= H and hit(sx, sy) and abs(hit(sx, sy)[1] - math.sqrt(sum(v * v for v in d))) < 5e3:
+            out.append(f'settlement {st[1]:5} ({st[0]}) at ({sx:5.0f}, {sy:5.0f}), {2 * st[4] / zc * fpx:4.0f} px across')
+    return out
 
 
 def cue_lines(kf):
     """--check's view of a frame's effects cues: what each ship's own SWFX copy is set to (under
     --swfx) beside the other ships of its build, and anything a cue names that is not there."""
-    spec = KEYFRAMES[kf]
+    spec = SHOTS[kf]
     cues = spec.get('cues', {})
     if not cues:
         return []
@@ -1941,7 +3052,7 @@ def mounts(key, state=None):
 
 def bearing(kf):
     """For every shot in a key frame, whether the shooter has a gun that can bear on its target."""
-    spec = KEYFRAMES[kf]
+    spec = SHOTS[kf]
     ships = spec['ships']
     states = spec.get('states', {})
     rows = []
@@ -1984,7 +3095,9 @@ BEARING_CANDIDATES = {}     # (kf, kind, shooter, target) -> every mount that be
 def main():
     argv = sys.argv[1:]
     if '--check' in argv:
-        check(list(KEYFRAMES))
+        check(list(SHOTS))
+        for line in hide_lines():
+            print(line)
         return
 
     def opt(flag, default=None):
@@ -1998,6 +3111,12 @@ def main():
         started.write_text(opt('--date', date.today().isoformat()))   # a queue round pins one date
     run_date = started.read_text().strip()
     samples = int(opt('--samples', 48))
+    layers = '--combined' not in argv   # three view layers and a composite (composite_layers.py), the default from r10
+    plates = '' if '--no-plates' in argv else opt('--plates')     # None: build/asharu-battle/plates (roster.PLATES)
+    if '--motion-preview' in argv:  # the sequence as a cheap motion preview (asharu_preview.py)
+        import asharu_preview
+        asharu_preview.main(argv, run, run_date)
+        return
     if '--fx-check' in argv:        # per-ship effects: stage the cued frames under the kit, no render
         if '--frames' not in argv:
             frames = [kf for kf in KEYFRAMES if KEYFRAMES[kf].get('cues')]
@@ -2007,19 +3126,26 @@ def main():
         env = dict(os.environ, ASHARU_CFG=json.dumps(dict(out=str(run), frames=frames, samples=1, stage_only=True,
                                                           los='--los' in argv, swfx='--swfx' in argv,
                                                           fx_check='--fx-check' in argv,
-                                                          volume_audit='--volume-audit' in argv)))
+                                                          volume_audit='--volume-audit' in argv,
+                                                          layers=layers, plates=plates)))
         subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python-exit-code', '1',
                                '--python', __file__], env=env)
         return
     if '--skip-render' not in argv:
         half = '--half' in argv
-        todo = [kf for kf in frames if '--rerender' in argv or not finished(run / 'raw', kf, samples, half)]
+        surface = opt('--surface', 'detail' if SURFACE_DETAIL else 'base') == 'detail'
+        todo = [kf for kf in frames if '--rerender' in argv
+                or not finished(run / 'raw', kf, samples, half, surface, plates if layers and kf in KEYFRAMES else False)]
         done = [kf for kf in frames if kf not in todo]
         if done:
             print('ASHARU already finished, not rendered again:', ','.join(done), flush=True)
         if todo:
             from blender_path import BLENDER
-            cfg = dict(out=str(run), frames=todo, samples=samples, half=half, swfx='--swfx' in argv)
+            cfg = dict(out=str(run), frames=todo, samples=samples, half=half, swfx='--swfx' in argv, surface=surface,
+                       layers=layers, plates=plates, volume_step_rate=opt('--volume-step-rate'),
+                       volume_max_steps=opt('--volume-max-steps'), percent=opt('--percent'),
+                       volume_biased='--volume-biased' in argv,
+                       hide_volumes=opt('--hide-volumes'))
             env = dict(os.environ, ASHARU_CFG=json.dumps(cfg))
             subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python', __file__], env=env)
     outputs = [orbit_diagram(run)] + label_frames(run)

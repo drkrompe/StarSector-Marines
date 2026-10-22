@@ -33,27 +33,27 @@ public enum MechInternal {
             EquipmentAccessTier.PRESTIGE, 0, 0, 2.5f, 0f, 0f, 1.0f, 0f, 0f),
 
     FACTORY_CAPACITOR_BANK("internal.capacitor-bank-factory", "@gearInternalFactoryCapacitorBank", Role.CAPACITOR_BANK,
-            EquipmentAccessTier.COMMON, 1, 1, 0f, 0f, 0f, 0f, 100f, 6f),
+            EquipmentAccessTier.COMMON, 2, 1, 0f, 0f, 0f, 0f, 100f, 6f),
     DOUBLE_CAPACITOR_BANK("internal.capacitor-bank-double", "@gearInternalDoubleCapacitorBank", Role.CAPACITOR_BANK,
             EquipmentAccessTier.ADVANCED, 2, 1, 3f, 0f, 0f, 0f, 120f, 7.5f),
     // The military bank keeps the double's reservoir and adds dissipation. Above about 126 a bigger
     // reservoir changes which weapon gets the flux, not how much flux there is. When a vented
-    // reservoir of size C releases, the dual chainguns (30 flux) fire first. A 42-flux SRM-15
+    // reservoir of size C releases, the two arm chainguns (15 flux each) fire first. A 42-flux SRM-15
     // then clears the 0.9C gate before the chainguns cycle again only if
     // C > 2 * (72 - 1.05 * dissipation). That is about 126 on the refit Bulwark (8.5/s). Past it the
     // refit fires mostly SRMs and out-guns its pre-cut frame by a further ~4%. 120 stays below
     // the threshold for any dissipation up to 11.4/s.
     MILITARY_CAPACITOR_BANK("internal.capacitor-bank-military", "@gearInternalMilitaryCapacitorBank", Role.CAPACITOR_BANK,
-            EquipmentAccessTier.PRESTIGE, 3, 1, 5f, 0f, 0f, 0f, 120f, 8f),
+            EquipmentAccessTier.PRESTIGE, 2, 2, 5f, 0f, 0f, 0f, 120f, 8f),
 
     AUXILIARY_VENT_ARRAY("internal.vent-array-auxiliary", "@gearInternalAuxiliaryVentArray", Role.VENT_ARRAY,
-            EquipmentAccessTier.ADVANCED, 1, 1, 2f, 0f, 0f, 0f, 0f, 1f);
+            EquipmentAccessTier.ADVANCED, 2, 1, 2f, 0f, 0f, 0f, 0f, 1f);
 
     /** What part of the frame an internal replaces. */
     public enum Role {
         ENGINE(SocketId.CORE),
         PLATING(null),
-        CAPACITOR_BANK(SocketId.AMMO_RESERVE),
+        CAPACITOR_BANK(SocketId.CAPACITORS),
         /** Optional: the stock frame leaves this socket empty. */
         VENT_ARRAY(SocketId.MINI_FAB);
 

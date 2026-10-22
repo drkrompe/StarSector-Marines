@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.VehicleCorridor;
+import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.FrontDepth;
@@ -33,6 +34,14 @@ import java.util.Map;
 public final class BspKeys {
 
     private BspKeys() {}
+
+    /**
+     * How many plateaus a mission asks the outdoor landscape for
+     * ({@code elevation-nouns.md}, Generation). Absent is none, so a map that
+     * does not ask is unchanged; {@code -Dbattle.mapgen.plateaus=N} asks on
+     * every map, for evidence.
+     */
+    public static final GenKey<Integer> PLATEAUS = GenKey.of("plateaus");
 
     /** Conquest zoning overlay (beach → port → city → fortress bands). Null in legacy mode. */
     public static final GenKey<BiomeMap> BIOME_MAP = GenKey.of("biomeMap");
@@ -128,6 +137,12 @@ public final class BspKeys {
      * goes round the claim, and the gates are where the road crosses it.
      */
     public static final GenKey<int[][]> PRECINCT_ROAD = GenKey.of("precinctRoad");
+
+    /**
+     * The surveyed country outside an open-field landing's town: its roads by
+     * grade and its plots. Absent on a map with no such landing.
+     */
+    public static final GenKey<RuralLayout> RURAL_LAYOUT = GenKey.of("ruralLayout");
 
     /**
      * What each programmed precinct owed and could not fit, by precinct name.

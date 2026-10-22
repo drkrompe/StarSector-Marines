@@ -189,8 +189,8 @@ Rendered output and other large regenerable files that should reach the other
 machine (or the owner's phone) go to the shared Google Drive folder, never into
 git: `G:\My Drive\starsector` on Windows and
 `~/Library/CloudStorage/GoogleDrive-<account>/My Drive/starsector` on
-the Mac. It syncs in about half a minute. It is a transfer and viewing area,
-not version control, and a build copies what it needs local before reading it.
+the Mac. It syncs in about half a minute. It is a transfer and storage area,
+not version control and not how the owner is shown work (see below), and a build copies what it needs local before reading it.
 
 #### Review sets for the owner
 
@@ -221,7 +221,49 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   order so the folder reads in the order the notes describe.
 - Images obey the preview rule (1920x1080, 100% scale). Copy finished images
   only, never frame sequences or scratch.
-- Tell the owner the run folder's path when the set is ready.
+- **Show the owner the images; never send them to Drive to look** (owner,
+  2026-10-22). The run folder is storage and transfer, not how a set is
+  delivered. When a set is ready, put the images themselves in front of the
+  owner: send them into the chat (`SendUserFile`, `display: "render"`) or
+  publish them on a preview or picks artifact page. A message that says
+  "review in G drive" or gives only a folder path does not count as
+  delivering a set. A session started by another session gives its
+  coordinating session the image paths, and the coordinator shows them.
+  The folder path may follow as a footnote, never in place of the pictures.
+  Look and design choices go to the owner the same way: as labelled pictures
+  (an `options.json` of `{id, question, options:[{key,label,file,note}]}`
+  for the picks page), not as a description in words.
+
+#### Questions for the owner: the picks page
+
+**Every decision the owner has to make goes on the picks page as picture
+cards, never only in chat** (owner, 2026-10-22). A question asked in a chat
+message is lost the moment the owner switches to another session; the page is
+the one place they answer from. The page is the Artifact
+`https://claude.ai/artifact/Q2unCoyCvyuFBFomsCxuDU` ("Rav Bloom picks"); each
+answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
+
+- **A question is an `options.json`**: `[{id, question, options:[{key, label,
+  file, note}]}]`, with one 1920x1080 image per option rendered on the real
+  scene (real ground, real buildings, play zoom), a short `note` saying what
+  each option does in play, and `(recommended)` in the label of the one you
+  would pick. Yes/no and "how big" questions get pictures too.
+- **Sub-sessions raise it to their parent; the parent owns the relay**
+  (owner, 2026-10-22). A session started by another session never posts to the
+  page or asks the owner itself: it sends its parent the `options.json` path,
+  the image paths and what it is building on meanwhile. The parent passes it up
+  the same way until it reaches the top-level coordinating session, which
+  publishes the question, reads the answer from the `db` and sends it back down
+  to the session that asked. A parent that is itself the top relays straight
+  away.
+- **A top-level session with no coordinator** posts its own question: read
+  the page (`Artifact` `read`), add its question to the page's `QUESTIONS`
+  array and its images under `media/<question id>/`, republish to the same
+  URL (merging, never overwriting, if the publish reports a newer version),
+  and read the answer from `picks/<question id>`.
+- **Don't wait on the answer.** Build on the recommended option meanwhile and
+  switch if the owner picks otherwise. Tell the owner in one line that a
+  question is up, and nothing more.
 - Drive keeps two folders that two machines created under the same name and
   shows the second as `name (1)`. It happened once, to `review` itself. Create
   only your own run folder (the asset folder only if it is missing), and if a
@@ -273,7 +315,7 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   mission's documented construction-fixture matrix in a forced-serial,
   zero-input simulation and writes canonical traces plus `summary.json` /
   `summary.md` under `build/reports/commander/<mission>/`. Supported mission
-  arguments are currently `conquest`, `conquest-trial`, `sabotage`, `assault`, `raid`, `extraction`, `relief`, `counterattack`, `junction`, `last-lift`, `relay-nine`, `thunder-run`, `supply-route`, `corvus`, `colony-breach`, and the story missions `yard-owners`, `water-under-seal`, `limited-warrant`, `district-escort`, `terms-of-protection`, `small-war`, `salvage-rights`, `cold-start` and `working-passage`; later mission harnesses
+  arguments are currently `conquest`, `conquest-trial`, `sabotage`, `assault`, `raid`, `extraction`, `relief`, `counterattack`, `junction`, `last-lift`, `relay-nine`, `thunder-run`, `supply-route`, `corvus`, `colony-breach`, `cordon-line`, `cordon-road`, `heart`, and the story missions `yard-owners`, `water-under-seal`, `limited-warrant`, `district-escort`, `terms-of-protection`, `small-war`, `salvage-rights`, `cold-start` and `working-passage`; later mission harnesses
   extend that argument instead of creating another Gradle task. The run is
   opt-in and excluded from ordinary `test` / `build`.
   **Each fixture is replayed once.** It used to be replayed twice, with the two
@@ -320,6 +362,27 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   the ticks before `T` undrawn, so a GIF opens on the moment it is about. Optional
   `-PgifFrameDelayMillis=125`, `-PsnapshotWidth=960`, and
   `-PsnapshotHeight=640` arguments control review playback and output size.
+- **Memory budget: measure before raising the heap.** Every Test task,
+  `battleProbe`, `sceneEvidence` and `sceneDeterminism` run under
+  `-PtestHeap` (default 6g); `createSnapshots` keeps the JVM default unless
+  given it. A battle's live set is small: a framed The Burn (heart, seed 202,
+  1920x1080 every 300 ticks, to its end at tick 9,607) peaks near 0.3 GB, an
+  unframed 9,000-tick Conquest sits flat near 0.22 GB, and both finish under
+  `-PtestHeap=2g`. Its 2g OOM (2026-10-22) was not frames held for the GIF —
+  `AnimatedGifWriter` streams, and each frame is written and dropped — but the
+  headless sprite tokens closing over every decoded sheet (1.3 GB before a
+  battle began) plus a tinted-cut cache that filled to its 256 MB cap on every
+  burn. So when a run dies of OOM, find the retainer rather than the flag:
+  `-PtestHeap=2g "-PtestJvmArgs=-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=<dir>"`
+  reproduces it cheaply and leaves a dump, and
+  `-XX:StartFlightRecording=filename=<file>.jfr,settings=profile` in the same
+  property gives the heap-after-GC curve (`jfr print --events jdk.GCHeapSummary`).
+  A curve that rises with ticks and never falls is a leak to fix; a
+  render-side cache must be bounded by what the frame draws, not by a size cap
+  it reaches every run. Raise the heap only for a live set that is really that
+  big, and say what it is. Never run two `commanderEvidence` at once in one
+  worktree: they share `build/test-results/commanderEvidence` and the second
+  fails on the first's files.
 - `gradlew.bat simDeterminism` → replays the Conquest matrix twice for a bounded
   tick budget (`-PmaxTicks`, default 3000) and fails on the first byte that
   differs, writing under `build/reports/sim-determinism/`. It exists because a
@@ -376,7 +439,7 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   scheduler, one sim at a time: per-tick median, spread, p99, max and ticks over
   10 ms), then two replicas of each lever side by side for the determinism
   check; fails if they differ. `build/reports/performance/swarm-flow/summary.md`.
-  `-Dbattle.swarmFlow.sizes=400x240`, `.counts=150,300`, `.levers=on`,
+  `-Dbattle.swarmFlow.sizes=400x240`, `.counts=150,300`, `.levers=on`, `.spawnDistance=20` (a melee window),
   `.measureTicks`, `.warmupTicks`, `.outputDir` narrow it. Opt-in, excluded
   from `test`. Readings and the decision they support: `swarm-movement-cost.md`.
 - `gradlew.bat garrisonEvidence` → stands up every story mission at tick zero
@@ -452,8 +515,8 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   `-Pgifs`/`-PgifSeeds`, `-Dbattle.*` forwarded, the control replayed twice side by side for the determinism
   header). Writes `armor-matchups.md`, `armor-matchups.csv` and `runs.csv` under `build/reports/armor-matchups/`.
   A side is `unit(+unit)*`; a unit is `[Nx]` then a mech (`hound`, `bulwark:refit`,
-  `bulwark:arms=dual-linear-cannons,rs=shoulder-laser,engine=uprated,vents=auxiliary,role=assault`: pattern ids with
-  or without their `component.mech-`/`internal.` prefix, `none` empties a mount, `refit` fills the best buildable
+  `bulwark:arms=linear-cannon,rs=shoulder-laser,engine=uprated,vents=auxiliary,role=assault`: pattern ids with
+  or without their `component.mech-`/`internal.` prefix, `arms` fits every arm mount and `la`/`ra` one Bulwark arm, `none` empties a mount, `refit` fills the best buildable
   internals around the fitted weapons, an over-budget fit runs and is labelled so) or a `VehicleType` in kebab case
   (`breakthrough-tank`; `technical`, `scout`, `dozer`). Scenarios: `open-ground`; `hull-down` (berms hide the
   defenders' legs and hulls, ruins in the middle ground); `street` (between solid blocks, defenders behind the last
@@ -475,6 +538,13 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   left, hit rate, mounts lost, legs crippled, flux-limited seconds and damage by weapon (the side's dealt damage
   apportioned by hits x nominal damage); `runs.csv` adds each survivor's sections.
   One machine a side, no cost or lift parity: read rows against each other, not as balance acceptance.
+- `gradlew.bat bloomEvidence` → the Rav Bloom on the campaign layer: runs
+  `RavBloomSystem` with the real event lifecycle over `-Pyears=20` cycles of a
+  synthetic vanilla-shaped sector at `-Pseeds=8` save seeds, for every severity
+  and frequency preset under three player policies (ignores, answers half,
+  answers all), and writes blooms a year, outcomes, spread and size lost to
+  `build/reports/blooms/summary.md` / `summary.json` (`-PevidenceDir`). About
+  fifteen seconds. Readings, not acceptance; opt-in and excluded from `test`.
 - `gradlew.bat crewEvidence` → crews a transport and a capital from their own
   room programs, runs each for four minutes of ship's time, and reports what the
   complement actually spent it doing: the idle share, the activity histogram, the
@@ -529,8 +599,10 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   the whole map. Per layer it reports commands collected, quads, sprites and
   custom passes drained, draw calls, texture binds, and the milliseconds
   collection and submission each took, plus a whole-frame wall clock with the
-  GPU waited on. `build/reports/render/summary.md` and `summary.json`;
-  `-PrenderMaxTicks`, `-PrenderFrames`, `-PrenderDir`. Opt-in and excluded from
+  GPU waited on. `build/reports/render/summary.md` and `summary.json`, and each framing's GL frame as a PNG under `frames/` to diff a lever against its control;
+  `-PrenderMaxTicks`, `-PrenderFrames`, `-PrenderDir`, and `-PrenderMaps=body pile,control`
+  to profile only the maps whose ids contain those words (a `body pile` of 1,200
+  Runner dead, `-PrenderPileBodies`, prices `BodyPileCap`). Opt-in and excluded from
   `test`, for `shaderEvidence`'s reasons — it needs an accelerated driver, and
   it reports that it skipped where no context can be made.
   **Counts must repeat and times must not be read as one.** The task asserts
@@ -544,6 +616,7 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   `-Dbattle.render.groundAtlas=false`,
   `-Dbattle.render.residentDecoration=false`, `-Dbattle.render.unitAtlas=false`,
   `-Dbattle.render.residentRoofs=false`, `-Dbattle.render.creep=false`,
+  `-Dbattle.render.settledBodyMesh=false`,
   `-Dbattle.render.collectCulling=false`), never against a number in a
   document — and never against a delta smaller than that spread.
   **The world it profiles has to be the same world every run**, which it was
@@ -740,6 +813,15 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   `0xC0000005` is a native crash, and `0xC000001D` (illegal instruction) points
   at the experimental `-XX:UseAVX` / vector flags in the installed `vmparams`
   rather than at anything in the mod.
+- `gradlew.bat packageRelease` → the public download,
+  `build/release/StarsectorMarines-<version>.zip`, one top-level
+  `StarsectorMarines/` folder: `mod/` without its generated folders, plus the
+  shaded jar (after `verifyModJarBoundary`) and sounds transcoded fresh into
+  `build/release/sounds`, so stale clips in `mod/sounds` cannot ship. It fails
+  when `mod_info.json` and `build.gradle` disagree on the version. Every debug
+  surface is behind `DevConfig.DEV_MODE` (`-Dmarines.dev=true`), which
+  `runStarsector` passes and a player's install never has;
+  `runStarsector -PplayerBuild` launches without it. See `v0.1-public-build.md`.
 - `gradlew.bat prepareCatalogSmoke` → stages the additive two-provider catalog
   acceptance fixture without launching Starsector. Pass
   `-PcatalogSmokeMode=collision` to stage the duplicate-id variant.

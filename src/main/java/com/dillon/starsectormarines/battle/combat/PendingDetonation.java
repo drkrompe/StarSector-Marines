@@ -207,6 +207,18 @@ public final class PendingDetonation {
     /** Set by a shield dome that took this detonation as flux instead of letting it land. */
     private boolean absorbed;
 
+    /** Heat this blast puts into the ground it covers (`fire-nouns.md`, Starting fires); 0 for none. */
+    private int heat;
+
+    /** Marks this as incendiary with that much heat and returns it, so a factory can mark it inline. */
+    public PendingDetonation incendiary(int heat) {
+        this.heat = Math.max(0, heat);
+        return this;
+    }
+
+    /** Incendiary heat, 0 for an ordinary blast. */
+    public int heat() { return heat; }
+
     /** Marks this as ship-grade ordnance and returns it, so a factory can mark it inline. */
     public PendingDetonation asShipGrade() {
         this.shipGrade = true;

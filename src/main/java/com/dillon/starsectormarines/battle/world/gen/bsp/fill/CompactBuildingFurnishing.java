@@ -41,9 +41,9 @@ final class CompactBuildingFurnishing {
                     || recipe == BuildingLayouts.LayoutRecipe.WAREHOUSE;
             if (home) {
                 // Bed and personal locker form one sleeping nook; no furniture is placed in its apron.
-                var sleeping = new BuildingWorkGroups.Group(4, 3, List.of(
+                var sleeping = new BuildingWorkGroups.Group(3, 3, List.of(
                         new BuildingWorkGroups.Part("doodad.residential-bed-h", 0, 0, true),
-                        new BuildingWorkGroups.Part("colony-furnishings.locker", 3, 0, true)));
+                        new BuildingWorkGroups.Part("colony-furnishings.locker", 2, 0, true)));
                 groups.fit(bl, bt, br, bb, purpose, sleeping, 1);
             }
             String first = home ? "galley" : shop ? "shelf" : storage ? "case" : "utility";

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasProducer;
 
@@ -18,26 +19,31 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
     private final Supplier<SocketDef> socket;
     private final Supplier<MechWeaponComponent> weapon;
     private final Supplier<MissileReplenisherComponent> replenisher;
+    private final Supplier<MechInternal> internal;
     private final BooleanSupplier occupied;
     private final Supplier<LayeredMechAssets> assets;
 
     public MechEquipmentGridCanvas(Supplier<SocketDef> socket,
                                    Supplier<MechWeaponComponent> weapon,
                                    Supplier<MissileReplenisherComponent> replenisher,
+                                   Supplier<MechInternal> internal,
                                    BooleanSupplier occupied,
                                    Supplier<LayeredMechAssets> assets) {
         this.socket = socket;
         this.weapon = weapon;
         this.replenisher = replenisher;
+        this.internal = internal;
         this.occupied = occupied;
         this.assets = assets;
+        HardwareArt.preload();
     }
 
     public static MechEquipmentGridCanvas catalog(MechWeaponComponent weapon,
                                                    MissileReplenisherComponent replenisher,
+                                                   MechInternal internal,
                                                    Supplier<LayeredMechAssets> assets) {
         return new MechEquipmentGridCanvas(() -> null, () -> weapon, () -> replenisher,
-                () -> true, assets);
+                () -> internal, () -> true, assets);
     }
 
     @Override
@@ -51,48 +57,37 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
         SocketDef definition = socket.get();
         MechWeaponComponent component = weapon.get();
         MissileReplenisherComponent subsystem = replenisher.get();
+        MechInternal part = component == null ? internal.get() : null;
 
-        GridMetrics metrics = resolveGridMetrics(definition, component, width, height, inset, gap);
-        int gridColumns = metrics.columns();
-        int gridRows = metrics.rows();
-        float cellWidth = metrics.cellWidth();
-        float cellHeight = metrics.cellHeight();
-
-        int itemColumns = definition != null && component != null ? gridColumns
+        int gridColumns = definition != null ? definition.gridColumns()
                 : component != null ? component.footprintColumns
-                : subsystem != null || occupied.getAsBoolean() ? 1 : 0;
-        int itemRows = definition != null && component != null ? gridRows
+                : part != null ? part.footprintColumns : 2;
+        int gridRows = definition != null ? definition.gridRows()
                 : component != null ? component.footprintRows
-                : subsystem != null || occupied.getAsBoolean() ? 1 : 0;
-        itemColumns = Math.min(gridColumns, itemColumns);
-        itemRows = Math.min(gridRows, itemRows);
-        int itemStartColumn = Math.max(0, (gridColumns - itemColumns) / 2);
-        int itemStartRow = Math.max(0, (gridRows - itemRows) / 2);
+                : part != null ? part.footprintRows : 1;
+        HardpointBricks.Layout layout = HardpointBricks.fit(inset, inset,
+                width - inset * 2f, height - inset * 2f, gridColumns, gridRows, gap);
 
-        for (int row = 0; row < gridRows; row++) {
-            for (int column = 0; column < gridColumns; column++) {
-                float x = inset + column * (cellWidth + gap);
-                float y = inset + row * (cellHeight + gap);
-                boolean filled = column >= itemStartColumn
-                        && column < itemStartColumn + itemColumns
-                        && row >= itemStartRow && row < itemStartRow + itemRows;
-                context.fillRect(x, y, cellWidth, cellHeight,
-                        filled ? new Color(0x34, 0x39, 0x32) : new Color(0x1a, 0x1e, 0x1b));
-            }
+        // A fitted weapon fills its socket; an internal or replenisher fills the socket it sits in.
+        Color tone = component != null ? HardpointBricks.tone(component.hardpointType)
+                : part != null ? HardpointBricks.tone(part.role)
+                : definition != null ? HardpointBricks.tone(definition.type())
+                : HardpointBricks.UTILITY;
+        if (definition != null) HardpointBricks.drawEmpty(context, layout, tone);
+        if (part != null) {
+            // An internal fills its own footprint, which may be smaller than the socket.
+            int columns = Math.min(layout.columns(), part.footprintColumns);
+            int rows = Math.min(layout.rows(), part.footprintRows);
+            HardpointBricks.drawFilled(context, layout, 0, 0, columns, rows, tone);
+            HardwareArt.draw(context, part, layout.left(), layout.top(),
+                    layout.span(columns, layout.brickWidth()), layout.span(rows, layout.brickHeight()), 255);
+            return;
         }
-
-        drawEquipment(context, component, subsystem,
-                itemColumns, itemRows, itemStartColumn, itemStartRow,
-                inset, gap, cellWidth, cellHeight);
-
-        for (int row = 0; row < gridRows; row++) {
-            for (int column = 0; column < gridColumns; column++) {
-                float x = inset + column * (cellWidth + gap);
-                float y = inset + row * (cellHeight + gap);
-                context.strokeRect(x, y, cellWidth, cellHeight,
-                        new Color(0x78, 0x7e, 0x71), 1.5f);
-            }
+        boolean filled = component != null || subsystem != null || occupied.getAsBoolean();
+        if (filled) {
+            HardpointBricks.drawFilled(context, layout, 0, 0, layout.columns(), layout.rows(), tone);
         }
+        drawEquipment(context, component, subsystem, layout);
     }
 
     record GridMetrics(int columns, int rows, float cellWidth, float cellHeight) {}
@@ -113,49 +108,45 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
     }
 
     private void drawEquipment(CanvasContext context, MechWeaponComponent component,
-                               MissileReplenisherComponent subsystem,
-                               int itemColumns, int itemRows,
-                               int startColumn, int startRow,
-                               float inset, float gap, float cellWidth, float cellHeight) {
-        if (itemColumns <= 0 || itemRows <= 0) return;
-        float left = inset + startColumn * (cellWidth + gap);
-        float top = inset + startRow * (cellHeight + gap);
-        float areaWidth = itemColumns * cellWidth + (itemColumns - 1) * gap;
-        float areaHeight = itemRows * cellHeight + (itemRows - 1) * gap;
+                               MissileReplenisherComponent subsystem, HardpointBricks.Layout layout) {
+        float areaWidth = layout.width();
+        float areaHeight = layout.height();
+        if (component != null && HardwareArt.draw(context, component, layout.left(), layout.top(),
+                areaWidth, areaHeight, 255)) {
+            return;
+        }
         if (component != null && assets.get() != null) {
             LayeredSpriteCache sprite = spriteFor(assets.get(), component);
             if (sprite != null) {
-                float scale = Math.min(areaWidth * 0.88f / sprite.pxWidth,
-                        areaHeight * 0.88f / sprite.pxHeight);
+                float scale = Math.min(areaWidth * 0.84f / sprite.pxWidth,
+                        areaHeight * 0.84f / sprite.pxHeight);
                 context.sprite(sprite.sourcePath, sprite.sprite,
-                        left + areaWidth * 0.5f, top + areaHeight * 0.5f,
+                        layout.centerX(), layout.centerY(),
                         sprite.pxWidth * scale, sprite.pxHeight * scale,
                         0f, new Color(1f, 1f, 1f, 0.95f));
                 return;
             }
         }
         if (subsystem != null) {
-            MechReplenisherArt.draw(context, subsystem,
-                    left + areaWidth * .5f, top + areaHeight * .5f,
-                    Math.min(areaWidth, areaHeight) * .88f);
+            HardwareArt.draw(context, subsystem, layout.left(), layout.top(), areaWidth, areaHeight, 255);
         }
     }
 
     static LayeredSpriteCache spriteFor(LayeredMechAssets assets,
                                          MechWeaponComponent component) {
         return switch (component) {
-            case DUAL_CHAINGUNS, NOSE_CHAINGUN -> assets.chaingunArm;
-            case DUAL_LINEAR_CANNONS -> assets.linearCannon;
+            case CHAINGUN, NOSE_CHAINGUN -> assets.chaingunArm;
+            case LINEAR_CANNON -> assets.linearCannon;
             case SINGLE_HEAVY_CANNON -> assets.heavyCannon;
             // The rack art follows tube count, independently of missile range.
             case SRM_5, LRM_5, SRM_5_FRAG, LRM_5_FRAG -> assets.srmPod;
             case SRM_15, LRM_15, SRM_15_FRAG, LRM_15_FRAG -> assets.lrmPod;
             case SHOULDER_LASER_CANNON -> assets.shoulderLaser;
-            case DUAL_PULSE_LASERS -> assets.pulseLaserArm;
-            case DUAL_BASTION_AUTOCANNONS -> assets.bastionAutocannon;
+            case PULSE_LASER -> assets.pulseLaserArm;
+            case BASTION_AUTOCANNON -> assets.bastionAutocannon;
             case DEMOLITION_CANNON -> assets.demolitionCannon;
             case THERMAL_LANCE -> assets.thermalLance;
-            case DUAL_MUSTER_AUTOGUNS, NOSE_MUSTER_AUTOGUN -> assets.musterAutogun;
+            case MUSTER_AUTOGUN, NOSE_MUSTER_AUTOGUN -> assets.musterAutogun;
             case QUARRY_BREAKER_CANNON -> assets.quarryBreakerCannon;
             case PIONEER_ROCKET_CRADLE -> assets.pioneerRocketCradle;
         };

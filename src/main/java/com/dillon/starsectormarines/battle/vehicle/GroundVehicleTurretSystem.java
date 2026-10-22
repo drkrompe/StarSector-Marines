@@ -173,10 +173,15 @@ public final class GroundVehicleTurretSystem {
             if (turret.burstTimer <= 0f && burstTarget != 0L && world.isAlive(burstTarget)
                     && barrelClear(body, TurretMountGeometry.muzzle(
                     mountX, mountY, turret.facingDeg, mount, release))) {
-                fireSink.fire(id, mountX, mountY, convoy.faction(id), structure,
-                        burstTarget, false, true, turret.facingDeg, release);
-                turret.ammo--;
-                finishBurstRound(turret, weapon);
+                if (fireSink.fire(id, mountX, mountY, convoy.faction(id), structure,
+                        burstTarget, false, true, turret.facingDeg, release)) {
+                    turret.ammo--;
+                    finishBurstRound(turret, weapon);
+                } else {
+                    // The crew held a round that would have hit their own side: the rest of the burst stays in
+                    // the gun, and the next pull is the aim loop's.
+                    turret.clearQueuedFire();
+                }
             }
             if (burstTarget == 0L || !world.isAlive(burstTarget)) turret.clearQueuedFire();
             return;
@@ -229,8 +234,8 @@ public final class GroundVehicleTurretSystem {
                 turret.cooldownTimer = agedCooldown;
                 return;
             }
-            fireSink.fire(id, mountX, mountY, convoy.faction(id), structure, aim.target,
-                    false, aim.lastFireHadLos, turret.facingDeg, 0);
+            if (!fireSink.fire(id, mountX, mountY, convoy.faction(id), structure, aim.target,
+                    false, aim.lastFireHadLos, turret.facingDeg, 0)) return;
             turret.ammo--;
             if (turret.ammo > 0 && weapon.burstCount > 1 && world.isAlive(aim.target)) {
                 turret.burstRemaining = weapon.burstCount - 1;
@@ -310,7 +315,7 @@ public final class GroundVehicleTurretSystem {
             return;
         }
         // A spotted round is an observed round: the spotter's eyes stand in for the hull's, as a mortar's do.
-        fireSink.fire(id, mountX, mountY, side, structure, target, false, true, turret.facingDeg, 0);
+        if (!fireSink.fire(id, mountX, mountY, side, structure, target, false, true, turret.facingDeg, 0)) return;
         turret.ammo--;
         turret.cooldownTimer = weapon.cooldown;
         if (turret.ammo > 0 && weapon.burstCount > 1) {

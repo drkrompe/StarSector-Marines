@@ -30,6 +30,19 @@ class CreepFieldTest {
     }
 
     @Test
+    void maturingGrowsTheWholeReachAtOnceAsTheClockWouldHave() {
+        CreepField grown = new CreepField(openGrid(W, H), new CellTopology(W, H), 7L);
+        grown.putSource(1L, 10, 12, FAST);
+        run(grown, 0, 600);
+        CreepField matured = new CreepField(openGrid(W, H), new CellTopology(W, H), 7L);
+        matured.putSource(1L, 10, 12, FAST);
+        matured.mature();
+        assertEquals(covered(grown), covered(matured), "the same ground as a field left to grow out");
+        assertEquals(CreepField.FULL, matured.coverageAt(14, 12), "and all of it full at once");
+        assertFalse(matured.isCreeped(40, 12), "nothing past its reach");
+    }
+
+    @Test
     void creepSpeedsOnlyTheSwarmAndIsNoRefuge() {
         CreepField field = new CreepField(openGrid(W, H), new CellTopology(W, H), 7L);
         field.putSource(1L, 10, 12, FAST);
@@ -40,6 +53,26 @@ class CreepFieldTest {
         assertTrue(CreepEffects.refusedAsRefuge(field, 10, 12));
         assertFalse(CreepEffects.refusedAsRefuge(field, 45, 12));
         assertFalse(CreepEffects.refusedAsRefuge(null, 10, 12), "no field, no creep");
+    }
+
+    @Test
+    void refusedGroundLosesItsCreepAndRegrowsOnceTheRefusalEnds() {
+        CreepField field = new CreepField(openGrid(W, H), new CellTopology(W, H), 7L);
+        field.putSource(1L, 10, 12, FAST);
+        run(field, 0, 300);
+        int burnt = 12 * W + 14;
+        assertTrue(field.isCreeped(14, 12));
+        boolean[] refused = {true};
+        field.setRefusal(idx -> idx == burnt && refused[0]);
+        field.scorch(burnt);
+        run(field, 300, 400);
+        assertEquals(0, field.coverageAt(burnt), "the scorched cell is bare");
+        assertTrue(field.isCreeped(15, 12), "its neighbours are not");
+        run(field, 400, 600);
+        assertEquals(0, field.coverageAt(burnt), "and stays bare while refused");
+        refused[0] = false;
+        run(field, 600, 800);
+        assertTrue(field.isCreeped(14, 12), "the source fills it again once the refusal ends");
     }
 
     @Test
@@ -131,6 +164,26 @@ class CreepFieldTest {
         assertTrue(field.revision() > 0);
         assertTrue(field.tileRevision(0, 0) > 0, "the source's tile changed");
         assertEquals(0, field.tileRevision(1, 0), "a tile creep never reached did not");
+    }
+
+    /** A tree line is grown over to its far side; the same line of rock is only climbed, so nothing passes it. */
+    @Test
+    void growsOverDeclaredTreesButOnlyClimbsOtherSolids() {
+        for (boolean trees : new boolean[]{true, false}) {
+            NavigationGrid grid = openGrid(W, H);
+            CellTopology topology = new CellTopology(W, H);
+            for (int y = 0; y < H; y++) {
+                grid.setWalkable(20, y, false);
+                grid.setTag(20, y, NavigationGrid.CellTag.NATURAL_SOLID, true);
+                topology.setGroundKind(20, y, CellTopology.GroundKind.GRASS);
+            }
+            CreepField field = new CreepField(grid, topology, 7L);
+            if (trees) for (int y = 0; y < H; y++) field.growOver(y * W + 20);
+            field.putSource(1L, 12, 12, new CreepGrowth(6f, 30f));
+            run(field, 0, 900);
+            assertTrue(field.coverageAt(20, 12) > 0, "the line itself is reached either way");
+            assertEquals(trees, field.coverageAt(23, 12) > 0, trees ? "trees are grown over" : "rock is only climbed");
+        }
     }
 
     private static void run(CreepField field, int from, int to) {

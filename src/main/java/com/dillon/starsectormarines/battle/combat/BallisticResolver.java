@@ -753,7 +753,7 @@ public final class BallisticResolver {
             // the shape to do it — a rule that predates air and, before the
             // collapse, was spelled "is it a vehicle".
             int coverLevel = e.hull ? 0
-                    : grid.getCoverAt(e.victimCellX, e.victimCellY, fromDx, fromDy);
+                    : grid.getCoverAgainst(e.victimCellX, e.victimCellY, shooterCellX, shooterCellY);
             BodyPlan victimPlan = e.hull ? null : bodyPlanOf(victim);
             // A body whose rows read cover from the ground up (a mech) is not gated by the catch
             // band: that band is centred on the target plane and sized for a man, so on a body

@@ -21,6 +21,7 @@ public final class BattleShotAudio {
         Vector2f zeroVelocity = new Vector2f(0f, 0f);
         for (ShotEvent shot : shots) {
             Cue cue = cue(shot);
+            if (cue.soundId() == null) continue;
             Vector2f location = new Vector2f(
                     shot.fromX * WORLD_UNITS_PER_CELL,
                     shot.fromY * WORLD_UNITS_PER_CELL);
@@ -42,6 +43,7 @@ public final class BattleShotAudio {
         Vector2f zeroVelocity = new Vector2f(0f, 0f);
         for (ShotEvent shot : shots) {
             Cue cue = cue(shot);
+            if (cue.soundId() == null) continue;
             Global.getSoundPlayer().playSound(
                     cue.soundId(), pitch(), cue.volume() * scale,
                     anchor, zeroVelocity);
@@ -56,6 +58,11 @@ public final class BattleShotAudio {
         return new Vector2f(Global.getSector().getPlayerFleet().getLocation());
     }
 
+    /**
+     * The fire clip a shot is heard by. A turret weapon may name none: the ground
+     * colony's spines travel unseen under the ground and are heard only where they
+     * break out, through the weapon's impact sound.
+     */
     static Cue cue(ShotEvent shot) {
         if (shot.turretStructureDef != null) {
             return new Cue(shot.turretStructureDef.mount.weapon.fireSoundId, 1f);

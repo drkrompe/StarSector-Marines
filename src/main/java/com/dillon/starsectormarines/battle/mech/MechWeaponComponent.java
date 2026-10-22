@@ -17,32 +17,33 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public enum MechWeaponComponent {
 
-    DUAL_CHAINGUNS("component.mech-dual-chainguns", "@gearMechWeaponComponentDUALCHAINGUNS", MountFamily.ARMS,
-            HardpointType.BALLISTIC, 3, 2, "weapon.mech-chaingun",
-            12, -1, LayeredMechAppearance.ARMS_CHAINGUN),
+    // One gun per arm: a two-armed chassis carries a pair as two of these, one on each arm mount.
+    CHAINGUN("component.mech-chaingun", "@gearMechWeaponComponentCHAINGUN", MountFamily.ARMS,
+            HardpointType.BALLISTIC, 2, 2, "weapon.mech-chaingun",
+            6, -1, LayeredMechAppearance.ARMS_CHAINGUN),
     NOSE_CHAINGUN("component.mech-nose-chaingun", "@gearMechWeaponComponentNOSECHAINGUN", MountFamily.ARMS,
             HardpointType.BALLISTIC, 2, 2, "weapon.mech-chaingun",
             6, -1, LayeredMechAppearance.ARMS_NOSE_CHAINGUN),
-    DUAL_LINEAR_CANNONS("component.mech-dual-linear-cannons", "@gearMechWeaponComponentDUALLINEARCANNONS",
-            MountFamily.ARMS, HardpointType.BALLISTIC, 3, 2, "weapon.mech-linear-cannon",
-            2, -1, LayeredMechAppearance.ARMS_LINEAR_CANNON),
+    LINEAR_CANNON("component.mech-linear-cannon", "@gearMechWeaponComponentLINEARCANNON",
+            MountFamily.ARMS, HardpointType.BALLISTIC, 2, 2, "weapon.mech-linear-cannon",
+            1, -1, LayeredMechAppearance.ARMS_LINEAR_CANNON),
     SINGLE_HEAVY_CANNON("component.mech-heavy-cannon", "@gearMechWeaponComponentSINGLEHEAVYCANNON", MountFamily.ARMS,
-            HardpointType.BALLISTIC, 3, 2, "weapon.mech-heavy-cannon",
+            HardpointType.BALLISTIC, 2, 3, "weapon.mech-heavy-cannon",
             1, -1, LayeredMechAppearance.ARMS_HEAVY_CANNON),
-    DUAL_PULSE_LASERS("component.mech-dual-pulse-lasers", "@gearMechWeaponComponentDUALPULSELASERS",
-            MountFamily.ARMS, HardpointType.ENERGY, 3, 2, "weapon.mech-pulse-laser",
-            8, -1, LayeredMechAppearance.ARMS_PULSE_LASER),
-    DUAL_BASTION_AUTOCANNONS("component.mech-bastion-autocannons",
-            "@gearMechWeaponComponentDUALBASTIONAUTOCANNONS", MountFamily.ARMS,
-            HardpointType.BALLISTIC, 3, 2, "weapon.mech-bastion-autocannon", 6, -1,
+    PULSE_LASER("component.mech-pulse-laser", "@gearMechWeaponComponentPULSELASER",
+            MountFamily.ARMS, HardpointType.ENERGY, 2, 2, "weapon.mech-pulse-laser",
+            4, -1, LayeredMechAppearance.ARMS_PULSE_LASER),
+    BASTION_AUTOCANNON("component.mech-bastion-autocannon",
+            "@gearMechWeaponComponentBASTIONAUTOCANNON", MountFamily.ARMS,
+            HardpointType.BALLISTIC, 2, 2, "weapon.mech-bastion-autocannon", 3, -1,
             LayeredMechAppearance.ARMS_BASTION_AUTOCANNON),
     DEMOLITION_CANNON("component.mech-demolition-cannon", "@gearMechWeaponComponentDEMOLITIONCANNON",
             MountFamily.ARMS, HardpointType.BALLISTIC, 2, 2,
             "weapon.mech-demolition-cannon", 1, 5,
             LayeredMechAppearance.ARMS_DEMOLITION_CANNON),
-    DUAL_MUSTER_AUTOGUNS("component.mech-dual-muster-autoguns", "@gearMechWeaponComponentDUALMUSTERAUTOGUNS",
-            MountFamily.ARMS, HardpointType.BALLISTIC, 3, 2,
-            "weapon.mech-muster-autogun", 6, -1,
+    MUSTER_AUTOGUN("component.mech-muster-autogun", "@gearMechWeaponComponentMUSTERAUTOGUN",
+            MountFamily.ARMS, HardpointType.BALLISTIC, 2, 2,
+            "weapon.mech-muster-autogun", 3, -1,
             LayeredMechAppearance.ARMS_MUSTER_AUTOGUN),
     NOSE_MUSTER_AUTOGUN("component.mech-nose-muster-autogun", "@gearMechWeaponComponentNOSEMUSTERAUTOGUN",
             MountFamily.ARMS, HardpointType.BALLISTIC, 2, 2,
@@ -80,15 +81,15 @@ public enum MechWeaponComponent {
             HardpointType.MISSILE, 2, 3, WeaponRegistry.MECH_LRM_FRAG_ID,
             5, 3, LayeredMechAppearance.POD_LARGE_LRM),
     SHOULDER_LASER_CANNON("component.mech-shoulder-laser", "@gearMechWeaponComponentSHOULDERLASERCANNON",
-            MountFamily.SHOULDER, HardpointType.ENERGY, 3, 2,
+            MountFamily.SHOULDER, HardpointType.ENERGY, 2, 3,
             "weapon.mech-shoulder-laser", 1, -1,
             LayeredMechAppearance.POD_SHOULDER_LASER),
     THERMAL_LANCE("component.mech-thermal-lance", "@gearMechWeaponComponentTHERMALLANCE",
-            MountFamily.SHOULDER, HardpointType.ENERGY, 1, 2,
+            MountFamily.SHOULDER, HardpointType.ENERGY, 2, 1,
             "weapon.mech-thermal-lance", 1, -1,
             LayeredMechAppearance.POD_THERMAL_LANCE),
     PIONEER_ROCKET_CRADLE("component.mech-pioneer-rocket", "@gearMechWeaponComponentPIONEERROCKETCRADLE",
-            MountFamily.SHOULDER, HardpointType.MISSILE, 1, 1,
+            MountFamily.SHOULDER, HardpointType.MISSILE, 2, 1,
             "weapon.mech-pioneer-rocket", 4, 3,
             LayeredMechAppearance.POD_PIONEER_ROCKET);
 
@@ -129,6 +130,19 @@ public enum MechWeaponComponent {
     }
 
     public enum MountFamily { ARMS, SHOULDER }
+
+    /**
+     * A gun whose art is one barrel on the chassis's centreline (the Hound's nose guns, the heavy
+     * cannon, the breaching cannons): it fits the centreline arms mount only, never a side arm.
+     * Every other arm gun fits either.
+     */
+    public boolean centrelineOnly() {
+        return switch (this) {
+            case NOSE_CHAINGUN, NOSE_MUSTER_AUTOGUN, SINGLE_HEAVY_CANNON,
+                 DEMOLITION_CANNON, QUARRY_BREAKER_CANNON -> true;
+            default -> false;
+        };
+    }
     public enum HardpointType { BALLISTIC, ENERGY, MISSILE }
 
     public final String id;
@@ -181,16 +195,16 @@ public enum MechWeaponComponent {
     private float authoredCycleSeconds() {
         return switch (this) {
             case NOSE_CHAINGUN -> .65f;
-            case DUAL_CHAINGUNS -> 1.05f;
+            case CHAINGUN -> 1.05f;
             case SRM_5, SRM_5_FRAG -> 1.8f;
             case SRM_15, SRM_15_FRAG -> 2.6f;
             case LRM_5, LRM_15, LRM_5_FRAG, LRM_15_FRAG -> 9f;
-            case DUAL_LINEAR_CANNONS -> 2.8f;
+            case LINEAR_CANNON -> 2.8f;
             case SINGLE_HEAVY_CANNON -> 2.5f;
-            case DUAL_PULSE_LASERS -> 2.1f;
-            case DUAL_BASTION_AUTOCANNONS -> 2.6f;
+            case PULSE_LASER -> 2.1f;
+            case BASTION_AUTOCANNON -> 2.6f;
             case DEMOLITION_CANNON -> 5.8f;
-            case DUAL_MUSTER_AUTOGUNS, NOSE_MUSTER_AUTOGUN -> 2.4f;
+            case MUSTER_AUTOGUN, NOSE_MUSTER_AUTOGUN -> 2.4f;
             case QUARRY_BREAKER_CANNON -> 5.5f;
             case SHOULDER_LASER_CANNON, PIONEER_ROCKET_CRADLE -> 7f;
             case THERMAL_LANCE -> 4.8f;
@@ -212,7 +226,7 @@ public enum MechWeaponComponent {
     /**
      * A balance control: {@code -Dbattle.mech.<axis>.<short id>=<value>} replaces one authored value, where the
      * short id is the component id without {@code component.mech-} (for example
-     * {@code -Dbattle.mech.flux.bastion-autocannons=24}). Read once per component and axis.
+     * {@code -Dbattle.mech.flux.bastion-autocannon=12}). Read once per component and axis.
      */
     public float tuned(String axis, float authored) {
         float override = TUNING.computeIfAbsent(axis + "." + id.substring(id.indexOf("mech-") + 5), key -> {
@@ -227,19 +241,20 @@ public enum MechWeaponComponent {
     private float authoredFlux() {
         return switch (this) {
             case NOSE_CHAINGUN -> 18f;
-            case DUAL_CHAINGUNS -> 30f;
+            // Arm guns are reserved per gun: a pair on two arms costs what the old twin mount did.
+            case CHAINGUN -> 15f;
             case SRM_5, SRM_5_FRAG -> 28f;
             case SRM_15, SRM_15_FRAG -> 42f;
             case LRM_5, LRM_5_FRAG -> 22f;
             case LRM_15, LRM_15_FRAG -> 40f;
-            case DUAL_LINEAR_CANNONS -> 24f;
+            case LINEAR_CANNON -> 12f;
             // Flux-hungry enough that the bastion's range costs its carrier reservoir, as the heavy cannon's does.
-            case DUAL_BASTION_AUTOCANNONS -> 28f;
+            case BASTION_AUTOCANNON -> 14f;
             case SINGLE_HEAVY_CANNON -> HEAVY_CANNON_FLUX;
             case DEMOLITION_CANNON, QUARRY_BREAKER_CANNON -> 26f;
             // The Prestige arm pays in mass; at 38 it lost to both Advanced arms on the same frame.
-            case DUAL_PULSE_LASERS -> 26f;
-            case DUAL_MUSTER_AUTOGUNS -> 22f;
+            case PULSE_LASER -> 13f;
+            case MUSTER_AUTOGUN -> 11f;
             case NOSE_MUSTER_AUTOGUN -> 14f;
             case SHOULDER_LASER_CANNON -> 35f;
             case THERMAL_LANCE -> 32f;
@@ -271,8 +286,8 @@ public enum MechWeaponComponent {
     }
 
     public boolean accepts(MechMountSlot slot) {
-        return mountFamily == MountFamily.ARMS
-                ? slot == MechMountSlot.ARMS
-                : slot.isShoulder();
+        if (slot == null) return false;
+        if (mountFamily == MountFamily.SHOULDER) return slot.isShoulder();
+        return slot == MechMountSlot.ARMS || (slot.isSideArm() && !centrelineOnly());
     }
 }

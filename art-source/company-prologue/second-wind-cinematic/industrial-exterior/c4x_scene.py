@@ -1,6 +1,8 @@
 """C4 exterior: the camera in the sky over Greywater's industrial belt; Second Wind passes beneath.
 
     blender --background --factory-startup --python c4x_scene.py -- [--still t,...] [--frames a:b] [--step n] [--save]
+    python ../../cinematic-tools/motion_preview.py run --out <dir> --sequence C4 --         --python c4x_scene.py -- --motion-preview --preview-out <dir> [--frames a:b] [--step 2]
+                                         # motion preview: flat crafts, plume cones, no lighting (motion_preview.py)
 
 While sketching, render one frame per second (--step 24, sixteen frames, about four minutes) and
 play it as a slideshow; the full motion pass (--step 2) takes about twenty minutes.
@@ -1839,6 +1841,20 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     if '--save' in argv:
         bpy.ops.wm.save_as_mainfile(filepath=str(OUT / 'c4x-layout.blend'))
+    if '--motion-preview' in argv:            # every craft flat, plumes as cones: motion and composition only
+        sys.path.insert(0, str(CINE.parent / 'cinematic-tools'))
+        import motion_preview
+        import c4_farm
+        import port_fleet
+        import port_life
+        a, b = (int(x) for x in argv[argv.index('--frames') + 1].split(':')) if '--frames' in argv else (0, FRAMES - 1)
+        motion_preview.preview_animated_scene(
+            scene, argv[argv.index('--preview-out') + 1] if '--preview-out' in argv else OUT / 'motion-preview',
+            'C4', 'Second Wind sets down at Kilo Nine', frames=(a, b),
+            step=int(argv[argv.index('--step') + 1]) if '--step' in argv else 2,
+            hide=('Steam', 'Customs lights', 'Cloud shadow', 'Landing dust', 'Arc light'),
+            hide_materials=c4_farm.HAZE_SKIP | port_life.HAZE_SKIP | port_fleet.HAZE_SKIP, dry='--dry' in argv)
+        return
     if '--still' in argv:
         frames = [min(FRAMES - 1, round(float(t) * FPS)) for t in argv[argv.index('--still') + 1].split(',')]
         target = OUT / 'stills'

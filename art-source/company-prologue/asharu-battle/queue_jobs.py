@@ -47,6 +47,14 @@ def inputs():
     return out
 
 
+def plate_input():
+    """roster.PLATES as a drive input, every plate in its manifest pinned by its sha256."""
+    src = DRIVE / roster.PLATES
+    names = ['manifest.json'] + [p['file'] for p in json.loads((src / 'manifest.json').read_text())['plates']]
+    return {'kind': 'drive', 'from': '{drive}/' + roster.PLATES, 'to': '{checkout}/build/asharu-battle/plates',
+            'sha256': {n: sha256(src / n) for n in names}}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--run', required=True)
@@ -56,12 +64,16 @@ def main():
     ap.add_argument('--machine', default='any', choices=('any', 'windows', 'mac'))
     ap.add_argument('--light', action='store_true', help='light lane: half size (use --samples 16 or fewer)')
     ap.add_argument('--swfx', action='store_true', help='draw the key frames with the effects kit (scene_fx)')
+    ap.add_argument('--combined', action='store_true',
+                    help='render each key frame in one pass; by default (from r10) they render as layers composed '
+                         '(composite_layers.py) over the painted plates (roster.PLATES), the EXRs going to Drive '
+                         'builds/asharu-layers/<run>_<machine>/ for recomposing without a render')
     ap.add_argument('--date', required=True, help='the job id date, YYYY-MM-DD')
     ap.add_argument('sets', nargs='+')
     a = ap.parse_args()
     if a.light and a.samples > 16:
         raise SystemExit('a light job renders at 16 samples or fewer')
-    ins = inputs()
+    ins = inputs() + ([] if a.combined else [plate_input()])
     for frames in a.sets:
         names = frames.split(',')
         job = {
@@ -73,12 +85,15 @@ def main():
             'requires': ['gpu'],
             'cwd': '{checkout}/art-source/company-prologue/asharu-battle',
             'command': ['{python}', 'battle_blockout.py', '--frames', frames, '--samples', str(a.samples),
-                        '--root', '{work}', '--run', a.run, '--date', a.date, '--post', '{machine}', '--what', a.what] + (['--half'] if a.light else []) + (['--swfx'] if a.swfx else []),
+                        '--root', '{work}', '--run', a.run, '--date', a.date, '--post', '{machine}', '--what', a.what] + (['--half'] if a.light else []) + (['--swfx'] if a.swfx else []) + (['--combined'] if a.combined else []),
             'env': {},
             'inputs': ins,
             'frames': {'dir': '{work}/' + a.run + '/raw',
                        'glob': f'{names[0]}.png' if len(names) == 1 else '*.png', 'count': len(names)},
         }
+        if not a.combined:
+            job['outputs'] = [{'from': '{work}/' + a.run + '/raw', 'glob': '*.layers.exr',
+                               'to': '{drive}/builds/asharu-layers/' + a.run + '_{machine}'}]
         path = Path(a.out) / f"{job['id']}.json"
         path.write_text(json.dumps(job, indent=1))
         print(path)

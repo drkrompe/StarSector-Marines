@@ -68,6 +68,7 @@ CANVAS_CELLS = {
     "spore-colony-fissure": 1.6,
     "spore-colony-bore": 2.0,
     "spore-colony-maw": 2.4,
+    "ground-colony": 2.0,
 }
 # How much larger than the modelled body a part is drawn: its layer's `cells` is CANVAS_CELLS times this. The
 # heightfield is modelled at the body's physical size (one cell, one metre) so the sun's shadow length is right
@@ -79,6 +80,7 @@ DISPLAY_SCALE = {
     "spore-colony-fissure": 1.4,
     "spore-colony-bore": 1.4,
     "spore-colony-maw": 1.4,
+    "ground-colony": 1.4,
 }
 
 
@@ -93,6 +95,7 @@ VARIANTS = {
     "spore-colony-fissure": 3,
     "spore-colony-bore": 3,
     "spore-colony-maw": 3,
+    "ground-colony": 3,
 }
 PARTS = tuple(CANVAS_CELLS)
 # Damage states. ``wounded`` is drawn once a structure has lost half its durability: plates torn out of their
@@ -103,7 +106,10 @@ PARTS = tuple(CANVAS_CELLS)
 # through all three.
 STATES = ("intact", "wounded", "remains")
 SEEDS = {"bore": 1100, "mother-bore": 2300, "spore-colony-fissure": 3100, "spore-colony-bore": 3700,
-         "spore-colony-maw": 4100}
+         "spore-colony-maw": 4100, "ground-colony": 5300}
+# The ground colony's body plan (``ground_colony_body``).
+GROUND_COLONY_STYLES = ("ridge", "star", "urchin")
+GROUND_COLONY_STYLE = "star"  # the owner's pick, 2026-10-22
 
 
 def to_sun_screen():
@@ -696,10 +702,146 @@ def colony_body(f: Field, grade: str):
     return crown
 
 
-def build(part: str, variant: int, state: str = "intact") -> Field:
+def ground_colony_body(f: Field, style: str):
+    """A ground colony: a low growth hugging the creep that drives spines up out of the ground at what stands near it.
+
+    It answers a gun the swarm cannot rush, so it must never read as a spore colony (domed sacs, a pore aimed at
+    the sky). Everything here stays low, a quarter of a spore sac's height, and it is told by spines laid back
+    along it rather than by sacs. Three body plans were drawn for the owner's pick (``GROUND_COLONY_STYLES``):
+
+    - ``ridge``: a long, lopsided, half-buried armoured hump, overlapping plates down its back and a crest of bone
+      spines laid back along the spine like a dorsal fin, roots fanning out from its low end.
+    - ``star``: a knotted low core with thick arms sprawled out across the ground, each arm studded with a row of
+      spines, an amber eye at the core.
+    - ``urchin``: a flat rosette of plates pressed into the ground, a bristle of bone spines splayed out low from
+      its centre in every direction.
+    """
+    rng = f.rng
+    dead = f.state == "remains"
+    hurt = f.state == "wounded"
+    dmg = f.dmg
+    slump = 0.55 if dead else 1.0
+    cx, cy = rng.uniform(-0.08, 0.04), rng.uniform(-0.08, 0.04)
+
+    def snapped(length):
+        if dead or (hurt and dmg.random() < 0.35):
+            return length * dmg.uniform(0.3, 0.5)
+        return length
+
+    def spine(bx, by, heading, length, width, rise):
+        base = f.height_at(bx, by)
+        f.tusk(bx, by, heading, snapped(length), width, base, base + rise * slump, curl=rng.uniform(-0.5, 0.5))
+
+    if style == "ridge":
+        axis = rng.uniform(0, 2 * math.pi)
+        ux, uy = math.cos(axis), math.sin(axis)
+        vx, vy = -uy, ux
+        long_, wide = rng.uniform(0.62, 0.72), rng.uniform(0.3, 0.36)
+        # Footing of heaved creep, then the hump itself: a long low dome, higher towards one end.
+        f.blob(cx, cy, long_ * 1.05, 0.05, EARTH, lumps=4, squash=0.55, angle=axis)
+        dx, dy = f.x - cx, f.y - cy
+        u, v = (dx * ux + dy * uy) / long_, (dx * vx + dy * vy) / wide
+        wob = 1 + 0.12 * np.sin(u * 5 + rng.uniform(0, 6))
+        d = np.hypot(u, v / wob)
+        hump = d < 1
+        rise = 0.26 * (1 + 0.25 * u)
+        f.raise_(hump, rise * np.sqrt(np.clip(1 - d * d, 0, 1)) * slump, CHITIN)
+        # Shingled plates down each flank, each laid back towards the low end and splayed out off the ridge.
+        for side in (-1, 1):
+            for k in range(4):
+                t = 0.7 - 1.45 * (k + rng.uniform(0.0, 0.3)) / 4
+                px_, py_ = cx + ux * long_ * t + vx * wide * 0.2 * side, cy + uy * long_ * t + vy * wide * 0.2 * side
+                a = axis + math.pi + side * rng.uniform(0.55, 0.85)
+                f.plate(px_, py_, a, wide * rng.uniform(1.0, 1.25), wide * rng.uniform(0.85, 1.05),
+                        0.24 * (1 + 0.25 * t), 0.05, bulge=0.035, jagged=rng.uniform(0, 0.2), round_=0.02,
+                        torn=(dead and dmg.random() < 0.45) or (hurt and dmg.random() < 0.22), slump=slump)
+        f.open_tears()
+        # The crest: spines laid back along the ridge, longest mid-back.
+        n = rng.randint(6, 8)
+        for k in range(n):
+            t = -0.75 + 1.5 * k / (n - 1)
+            bx, by = cx + ux * long_ * t + vx * rng.uniform(-0.03, 0.03), cy + uy * long_ * t + vy * rng.uniform(-0.03, 0.03)
+            lean = axis + math.pi + rng.uniform(-0.5, 0.5) + rng.choice((-1, 1)) * 0.35
+            spine(bx, by, lean, 0.24 + 0.2 * (1 - abs(t)), 0.08, 0.16)
+        # The vents the spines are driven up through: amber slits along the low end.
+        for k in range(rng.randint(2, 3)):
+            t = rng.uniform(-0.6, 0.6)
+            f.node(cx + ux * long_ * t + vx * wide * 0.5 * rng.choice((-1, 1)),
+                   cy + uy * long_ * t + vy * wide * 0.5 * rng.choice((-1, 1)), 0.035, 0.9)
+        roots_from, root_dir, body = (cx - ux * long_ * 0.8, cy - uy * long_ * 0.8), axis + math.pi, long_
+    elif style == "star":
+        body = rng.uniform(0.28, 0.33)
+        f.blob(cx, cy, body * 1.6, 0.05, EARTH, lumps=5, squash=0.85, angle=rng.uniform(0, math.pi))
+        arms = rng.randint(5, 6)
+        a0 = rng.uniform(0, 2 * math.pi)
+        tips = []
+        for k in range(arms):
+            a = a0 + 2 * math.pi * k / arms + rng.uniform(-0.35, 0.35)
+            length = rng.uniform(0.5, 0.82)
+            pts = f.wander(cx + math.cos(a) * body * 0.5, cy + math.sin(a) * body * 0.5, a, length, steps=6, jitter=0.3)
+            f.tube(pts, rng.uniform(0.09, 0.12), 0.13 * slump, UNDER)
+            tips.append((pts, a))
+        # Plated core.
+        for k in range(rng.randint(5, 6)):
+            a = a0 + 2 * math.pi * k / 6 + rng.uniform(-0.3, 0.3)
+            f.plate(cx + math.cos(a) * body * 0.1, cy + math.sin(a) * body * 0.1, a, body * 1.1, body * 0.95,
+                    0.24, 0.07, bulge=0.03, round_=0.02,
+                    torn=(dead and dmg.random() < 0.45) or (hurt and dmg.random() < 0.25), slump=slump)
+        f.open_tears()
+        f.node(cx, cy, 0.07, 1.0)
+        # A row of spines down each arm, raked back towards the core.
+        for pts, a in tips:
+            for (x, y) in pts[1:-1:1]:
+                if rng.random() < 0.8:
+                    spine(x, y, a + math.pi + rng.uniform(-0.6, 0.6), rng.uniform(0.16, 0.26), 0.065, 0.12)
+            ex, ey = pts[-2]
+            f.node(ex, ey, 0.025, 0.7)
+        roots_from, root_dir = (cx, cy), a0
+    else:  # urchin
+        body = rng.uniform(0.34, 0.4)
+        f.blob(cx, cy, body * 1.5, 0.05, EARTH, lumps=4, squash=0.8, angle=rng.uniform(0, math.pi))
+        # A flat rosette: plates radiating, pressed into the ground.
+        petals = rng.randint(7, 9)
+        a0 = rng.uniform(0, 2 * math.pi)
+        for k in range(petals):
+            a = a0 + 2 * math.pi * k / petals + rng.uniform(-0.2, 0.2)
+            f.plate(cx + math.cos(a) * body * 0.15, cy + math.sin(a) * body * 0.15, a, body * rng.uniform(0.95, 1.25),
+                    body * rng.uniform(0.55, 0.7), 0.17, 0.03, bulge=0.025, jagged=rng.uniform(0.1, 0.35), round_=0.02,
+                    torn=(dead and dmg.random() < 0.45) or (hurt and dmg.random() < 0.22), slump=slump)
+        f.open_tears()
+        f.blob(cx, cy, body * 0.4, 0.2 * slump, UNDER, lumps=5)
+        f.node(cx, cy, 0.06, 1.0)
+        # The bristle: spines splayed out low in every direction, uneven in length, bunched more on one side.
+        bunch = rng.uniform(0, 2 * math.pi)
+        for k in range(rng.randint(11, 14)):
+            a = (bunch + rng.gauss(0, 1.1)) if rng.random() < 0.55 else rng.uniform(0, 2 * math.pi)
+            q = body * rng.uniform(0.05, 0.3)
+            spine(cx + math.cos(a) * q, cy + math.sin(a) * q, a + rng.uniform(-0.25, 0.25), body * rng.uniform(1.0, 1.9),
+                  0.075, 0.07)
+        roots_from, root_dir = (cx, cy), bunch + math.pi
+
+    # Roots reaching out under the creep, mostly one way.
+    for _ in range(rng.randint(3, 5)):
+        a = root_dir + rng.uniform(-0.9, 0.9)
+        sx, sy = roots_from[0] + math.cos(a) * body * 0.6, roots_from[1] + math.sin(a) * body * 0.6
+        room = f.cells / 2 * 0.9 - max(abs(sx), abs(sy))
+        length = min(room, body * rng.uniform(0.5, 0.9))
+        if length > 0.05:
+            f.tube(f.wander(sx, sy, a, length, steps=6, jitter=0.45), rng.uniform(0.025, 0.04),
+                   rng.uniform(0.03, 0.05) * (0.5 if dead else 1.0), UNDER)
+    for _ in range(5):
+        a = rng.uniform(0, 2 * math.pi)
+        f.crack(cx + math.cos(a) * 0.75, cy + math.sin(a) * 0.75, a, rng.uniform(0.15, 0.3), 0.008)
+    if f.state != "intact":
+        f.scars(5 if hurt else 8, (cx, cy), 0.7)
+
+
+def build(part: str, variant: int, state: str = "intact", style: str | None = None) -> Field:
     f = Field(CANVAS_CELLS[part], SEEDS[part] + 17 * variant)
     f.state = state
-    if part == "bore":
+    if part == "ground-colony":
+        ground_colony_body(f, style or GROUND_COLONY_STYLE)
+    elif part == "bore":
         bore_body(f, mother=False)
     elif part == "mother-bore":
         bore_body(f, mother=True)

@@ -3,26 +3,26 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
-import com.dillon.starsectormarines.battle.mech.MechFittingLayout.DollDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
-import com.dillon.starsectormarines.battle.mech.MechHardpointGeometry;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
-import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 import com.dillon.starsectormarines.ui.retained.CanvasProducer;
+import com.dillon.starsectormarines.ui.retained.svg.SvgAsset;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.function.BooleanSupplier;
@@ -35,15 +35,16 @@ import java.util.function.Supplier;
 public final class MechLabDollCanvas implements CanvasProducer {
 
     private static final String ROOT = "graphics/battle/mech-modular-topdown/";
-    private static final float MIN_DROP_TARGET_WIDTH = 128f;
-    private static final float MIN_DROP_TARGET_HEIGHT = 76f;
-    private static final float CAPACITY_INSET = 4f;
-    private static final float CAPACITY_GAP = 2f;
     private static final Color BACKGROUND = new Color(0x06, 0x0A, 0x10);
     private static final Color WHITE = Color.WHITE;
-    private static final Color VACANT_FILL = new Color(0x18, 0x1c, 0x19, 214);
-    private static final Color VACANT_EDGE = new Color(0xb3, 0xb4, 0xa6, 226);
-    private static final Color VACANT_HOVER = new Color(0xFF, 0xD4, 0x64, 246);
+    private static final Color BUILD_WASH = new Color(0xe2, 0xb3, 0x4a, 22);
+    private static final Color BUILD_WASH_HOT = new Color(0xe2, 0xb3, 0x4a, 52);
+    private static final Color BUILD_EDGE = new Color(0xe2, 0xb3, 0x4a, 190);
+    private static final Color BUILD_HOT = new Color(0xff, 0xd4, 0x64, 255);
+    private static final Color LETTER_PLATE = new Color(0xe2, 0xb3, 0x4a, 235);
+    private static final Color LETTER_RIM = new Color(0x14, 0x11, 0x0a, 200);
+    private static final Color LETTER_INK = new Color(0x14, 0x11, 0x0a, 255);
+    private final SvgAsset buildMark = SvgAsset.load("graphics/ui/mech-hardware/fab.svg");
     private static final float VACANT_PAD_INSET_RATIO = 0.045f;
 
     private static final EnumSet<RenderLayer> BACKDROP_LAYERS = EnumSet.of(
@@ -72,9 +73,13 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private final DoubleSupplier elapsedSeconds;
     /** Pads holding a mech or a vehicle; the doll draws mechs only, so this can exceed the lance. */
     private IntSupplier occupiedGantries;
+    private DoubleSupplier sideShift;
     private final Supplier<MechWeaponComponent> candidateWeapon;
     private List<VacantGantryTarget> vacantGantryTargets = List.of();
     private List<SocketDropTarget> lastSocketTargets = List.of();
+    private List<StripTarget> lastStripTargets = List.of();
+    private static final float STRIP_SIZE = 14f;
+    private SocketId hoveredStrip;
     private DragPreview dragPreview;
     private SocketId hoveredSocket;
     private Function<SocketId, MechInternal> installedInternals = socket -> null;
@@ -82,6 +87,14 @@ public final class MechLabDollCanvas implements CanvasProducer {
     public void previewWeaponDrag(MechWeaponComponent component, SocketId source,
                                   SocketId target, boolean valid) {
         dragPreview = component != null ? new DragPreview(component, source, target, valid) : null;
+    }
+
+    /**
+     * An internal or loader carried over the doll: only the target socket answers, lit as a
+     * fit or a refusal. The piece itself rides on the drag ghost.
+     */
+    public void previewPartDrag(SocketId target, boolean valid) {
+        dragPreview = new DragPreview(null, null, target, valid);
     }
 
     public void clearWeaponDragPreview() { dragPreview = null; }
@@ -160,7 +173,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         }
 
         ShipDeckBattleScene aboard = ship.get();
-        ShipDeckBattleScene.RoomView bay = aboard != null ? roomView.get() : null;
+        ShipDeckBattleScene.RoomView bay = aboard != null ? shifted(aboard, roomView.get(), width, height) : null;
         if (bay == null) {
             vacantGantryTargets = List.of();
             lastSocketTargets = List.of();
@@ -190,24 +203,38 @@ public final class MechLabDollCanvas implements CanvasProducer {
         }
 
         List<Gantry> standing = berths.get();
-        float berthX = berthCellX(standing, gantryIndex);
-        float berthY = berthCellY(standing, gantryIndex);
         BattleCamera sceneCamera = aboard.cameraFor(
                 bay, 0f, 0f, host[0].width(), host[0].height());
-        SceneProjection projection = selectedVariant != null
-                ? SceneProjection.forLive(sceneCamera, host[0], selectedVariant, berthX, berthY)
-                : null;
 
         context.hostPass(aboard.pass(bay, ACTOR_LAYERS));
         drawVacantGantryActions(context, sceneCamera, host[0], standing,
-                Math.max(lance.size(), occupiedGantries != null ? occupiedGantries.getAsInt() : 0));
+                Math.max(lance.size(), occupiedGantries != null ? occupiedGantries.getAsInt() : 0),
+                !fittingOverlaysVisible.getAsBoolean());
         if (selected != null && fittingOverlaysVisible.getAsBoolean()) {
             drawSocketOverlays(context, MechFittingLayout.forVariant(selectedVariant),
-                    selected, selectedSocket.get(), projection, candidateWeapon.get(),
-                    width, height);
+                    selected, selectedSocket.get(), candidateWeapon.get(), width, height);
         } else {
             lastSocketTargets = List.of();
         }
+    }
+
+    /**
+     * The framing moved so its subject stands {@link #sideShift} of the width right of centre: the
+     * look-at point slides left by that many of the view's own cells.
+     */
+    private ShipDeckBattleScene.RoomView shifted(ShipDeckBattleScene aboard, ShipDeckBattleScene.RoomView view,
+                                                 float width, float height) {
+        float share = sideShift != null ? (float) sideShift.getAsDouble() : 0f;
+        if (view == null || share == 0f || !(width > 0f) || !(height > 0f)) return view;
+        float cellPx = aboard.cameraFor(view, 0f, 0f, width, height).cellPxSize();
+        if (!(cellPx > 0f)) return view;
+        return view.lookingAt(view.centerCellX() - share * width / cellPx, view.centerCellY(), view.zoomNotches());
+    }
+
+    /** Where the subject stands across the view, from the lab camera's eased pose. */
+    public MechLabDollCanvas withSideShift(DoubleSupplier shift) {
+        this.sideShift = shift;
+        return this;
     }
 
     /** Pads past the mech lance that hold a vehicle are not vacant; the host says how many are taken. */
@@ -220,6 +247,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     public void pointAt(float canvasX, float canvasY) {
         hoveredVacantGantry = vacantGantryAt(canvasX, canvasY);
         hoveredSocket = socketAt(canvasX, canvasY);
+        hoveredStrip = stripAt(canvasX, canvasY);
     }
 
     /** The socket dock target at this canvas-local point, or null outside all sockets. */
@@ -227,6 +255,16 @@ public final class MechLabDollCanvas implements CanvasProducer {
         if (!Float.isFinite(canvasX) || !Float.isFinite(canvasY)) return null;
         for (SocketDropTarget target : lastSocketTargets) {
             if (target.contains(canvasX, canvasY)) return target.id();
+        }
+        return null;
+    }
+
+    /** The socket whose strip X is at this canvas-local point, or null when no X is there. */
+    public SocketId stripAt(float canvasX, float canvasY) {
+        if (!Float.isFinite(canvasX) || !Float.isFinite(canvasY)) return null;
+        for (StripTarget target : lastStripTargets) {
+            if (canvasX >= target.left() && canvasX <= target.left() + STRIP_SIZE
+                    && canvasY >= target.top() && canvasY <= target.top() + STRIP_SIZE) return target.id();
         }
         return null;
     }
@@ -242,10 +280,11 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     private void drawVacantGantryActions(CanvasContext context, BattleCamera camera,
                                           CanvasHostViewport viewport,
-                                          List<Gantry> standing, int occupied) {
+                                          List<Gantry> standing, int occupied, boolean letters) {
         int count = Math.min(CampaignMechSquad.CAPACITY, standing.size());
         List<VacantGantryTarget> targets = new ArrayList<>();
-        for (int index = Math.max(0, occupied); index < count; index++) {
+        for (int index = 0; index < count; index++) {
+            if (index < Math.max(0, occupied) && !letters) continue;
             Gantry gantry = standing.get(index);
             PadBounds pad = padBounds(gantry);
             float left = camera.cellToScreenX(pad.left()) / viewport.scaleX();
@@ -261,19 +300,51 @@ public final class MechLabDollCanvas implements CanvasProducer {
                     Math.min(left, right) + inset, Math.min(top, bottom) + inset,
                     Math.max(1f, width - inset * 2f),
                     Math.max(1f, height - inset * 2f));
-            targets.add(target);
-            Color edge = index == hoveredVacantGantry ? VACANT_HOVER : VACANT_EDGE;
-            context.fillRect(target.x(), target.y(), target.width(), target.height(), VACANT_FILL);
-            context.strokeRect(target.x(), target.y(), target.width(), target.height(), edge, 3f);
-            float centerX = target.x() + target.width() * 0.5f;
-            float centerY = target.y() + target.height() * 0.5f;
-            float shortSide = Math.min(target.width(), target.height());
-            float arm = shortSide * 0.23f;
-            float stroke = Math.max(4f, Math.min(10f, shortSide * 0.055f));
-            context.line(centerX - arm, centerY, centerX + arm, centerY, edge, stroke);
-            context.line(centerX, centerY - arm, centerX, centerY + arm, edge, stroke);
+            if (index >= Math.max(0, occupied)) {
+                targets.add(target);
+                drawBuildMark(context, target, index == hoveredVacantGantry);
+            }
+            if (letters) drawPadLetter(context, target, index);
         }
         vacantGantryTargets = List.copyOf(targets);
+    }
+
+    /**
+     * A vacant pad is marked as a build site in the BUY amber: a faint wash, corner brackets and
+     * the fabrication cog with BUILD beneath it, all brighter under the pointer.
+     */
+    private void drawBuildMark(CanvasContext context, VacantGantryTarget target, boolean hot) {
+        float shortSide = Math.min(target.width(), target.height());
+        context.fillRect(target.x(), target.y(), target.width(), target.height(), hot ? BUILD_WASH_HOT : BUILD_WASH);
+        Color edge = hot ? BUILD_HOT : BUILD_EDGE;
+        drawCornerBrackets(context, target.x(), target.y(), target.width(), target.height(), edge,
+                hot ? 3f : 2f, shortSide * 0.24f, Math.max(3f, shortSide * 0.06f));
+        float cog = Math.min(56f, shortSide * 0.34f);
+        boolean caption = shortSide >= 64f;
+        float block = cog + (caption ? 6f + Fonts.ORBITRON_12_BOLD.getLineHeight() : 0f);
+        float centerX = target.x() + target.width() * 0.5f;
+        float top = target.y() + (target.height() - block) * 0.5f;
+        context.svg(buildMark, centerX - cog * 0.5f, top, cog, cog, edge);
+        if (caption) {
+            String label = "BUILD";
+            context.text(Fonts.ORBITRON_12_BOLD, label,
+                    centerX - Fonts.ORBITRON_12_BOLD.measureWidth(label) * 0.5f, top + cog + 6f, edge);
+        }
+    }
+
+    /** The pad's letter, stencilled on an amber plate in its corner; the cards and headings use the same letter. */
+    private static void drawPadLetter(CanvasContext context, VacantGantryTarget target, int index) {
+        float shortSide = Math.min(target.width(), target.height());
+        boolean large = shortSide >= 150f;
+        BitmapFont font = large ? Fonts.ORBITRON_24_BOLD : Fonts.ORBITRON_12_BOLD;
+        float plate = large ? 34f : 20f;
+        float x = target.x() + 4f;
+        float y = target.y() + 4f;
+        String letter = String.valueOf((char) ('A' + index));
+        context.fillRect(x, y, plate, plate, LETTER_PLATE);
+        context.strokeRect(x, y, plate, plate, LETTER_RIM, 1f);
+        context.text(font, letter, x + (plate - font.measureWidth(letter)) * 0.5f,
+                y + (plate - font.getLineHeight()) * 0.5f, LETTER_INK);
     }
 
     /**
@@ -303,57 +374,43 @@ public final class MechLabDollCanvas implements CanvasProducer {
         return new PadBounds(left, bottom, right, top);
     }
 
-    private static float berthCellX(List<Gantry> berths, int index) {
-        return berths.isEmpty() ? 0f
-                : berths.get(Math.max(0, Math.min(berths.size() - 1, index))).worldCenterX();
-    }
-
-    private static float berthCellY(List<Gantry> berths, int index) {
-        return berths.isEmpty() ? 0f
-                : berths.get(Math.max(0, Math.min(berths.size() - 1, index))).worldCenterY();
-    }
-
     private static int selectedIndex(int requested) {
         return Math.max(0, Math.min(CampaignMechSquad.CAPACITY - 1, requested));
     }
 
     private void drawSocketOverlays(CanvasContext c, MechFittingLayout layout,
                                     MechDeploymentSpec deployment, SocketId selectedSocket,
-                                    SceneProjection projection,
                                     MechWeaponComponent candidate,
                                     float canvasWidth, float canvasHeight) {
-        float radians = (float) Math.toRadians(layout.doll().facingDegrees());
-        float cos = (float) Math.cos(radians);
-        float sin = (float) Math.sin(radians);
-        List<SocketDropTarget> targets = resolveExplodedDropTargets(layout.sockets(),
-                projection.actorX(), projection.actorY(), projection.hullX(), projection.hullY(),
-                canvasWidth, canvasHeight, cos, sin,
-                deployment, deployment != null ? deployment.variant() : null);
-        c.fillRect(0, 0, canvasWidth, canvasHeight, new Color(5, 6, 5, 30));
+        float panelWidth = canvasWidth * SCHEMATIC_SHARE;
+        drawSchematicPanel(c, panelWidth, canvasHeight);
+        List<SocketDropTarget> targets = schematicTargets(layout.sockets(), panelWidth, canvasHeight);
+        SocketDropTarget core = null;
+        for (SocketDropTarget target : targets) if (target.id() == SocketId.CORE) core = target;
         for (SocketDropTarget target : targets) {
+            if (core == null || target == core) continue;
             SocketDef socket = layout.socket(target.id());
             boolean selected = socket.id() == selectedSocket;
-            MechWeaponComponent component = weaponAt(deployment, socket.id());
             MechWeaponComponent active = dragPreview != null ? dragPreview.component() : candidate;
             boolean compatible = active != null && isSocketCompatible(socket, active);
             boolean draggingHere = dragPreview != null && dragPreview.target() == socket.id();
             boolean rejected = draggingHere && !dragPreview.valid();
             if (draggingHere) compatible = dragPreview.valid();
-            Color wire = rejected ? new Color(0xe98b83) : compatible ? new Color(0x78d494)
-                    : selected ? new Color(0xedc273) : new Color(0x859082);
-            List<float[]> path = leaderDogLegPath(target.anchorX(), target.anchorY(), target);
+            Color wire = rejected ? new Color(0xe98b83) : compatible ? new Color(0xc8eef4)
+                    : selected ? new Color(0xedc273) : HardpointBricks.tone(socket.type());
+            List<float[]> path = wireToCore(target, core);
             for (int i = 0; i < path.size() - 1; i++) {
                 float[] a = path.get(i), b = path.get(i + 1);
-                c.line(a[0], a[1], b[0], b[1], new Color(0, 0, 0, 170), 3f);
-                c.line(a[0], a[1], b[0], b[1], withAlpha(wire, selected ? 215 : 95), 1f);
-                if (selected || compatible) {
-                    float phase = (float) ((elapsedSeconds.getAsDouble() * .45 + i * .18) % 1);
-                    float px = a[0] + (b[0] - a[0]) * phase;
-                    float py = a[1] + (b[1] - a[1]) * phase;
-                    c.fillRect(px - 1.5f, py - 1.5f, 3, 3, wire);
-                }
+                c.line(a[0], a[1], b[0], b[1], new Color(0, 0, 0, 190), 5f);
+                c.line(a[0], a[1], b[0], b[1], withAlpha(wire, selected || compatible ? 235 : 150), 2f);
+                float phase = (float) ((elapsedSeconds.getAsDouble() * (selected || compatible ? .45 : .18)
+                        + i * .18) % 1);
+                float px = a[0] + (b[0] - a[0]) * phase;
+                float py = a[1] + (b[1] - a[1]) * phase;
+                c.fillRect(px - 1.5f, py - 1.5f, 3, 3, withAlpha(wire, selected || compatible ? 255 : 170));
             }
-            drawAnchorMechanicalTick(c, target.anchorX(), target.anchorY(), wire, selected);
+            float[] end = path.get(path.size() - 1);
+            drawAnchorMechanicalTick(c, end[0], end[1], wire, selected);
         }
         for (SocketDropTarget target : targets) {
             SocketDef socket = layout.socket(target.id());
@@ -373,54 +430,29 @@ public final class MechLabDollCanvas implements CanvasProducer {
                     elapsedSeconds.getAsDouble());
         }
         lastSocketTargets = List.copyOf(targets);
+        List<StripTarget> strips = new ArrayList<>();
+        for (SocketDropTarget target : targets) {
+            SocketDef socket = layout.socket(target.id());
+            boolean removable = !socket.factoryLocked() && dragPreview == null
+                    && (weaponAt(deployment, socket.id()) != null
+                    || socket.id() == SocketId.MINI_FAB && installedInternals.apply(socket.id()) != null);
+            if (!removable) continue;
+            StripTarget strip = new StripTarget(socket.id(), target.right() - STRIP_SIZE - 4f, target.top() + 4f);
+            strips.add(strip);
+            boolean hot = hoveredStrip == socket.id();
+            c.fillRect(strip.left(), strip.top(), STRIP_SIZE, STRIP_SIZE,
+                    hot ? new Color(0x45, 0x1a, 0x1a, 235) : new Color(0x2a, 0x15, 0x15, 215));
+            Color ink = hot ? new Color(0xff, 0x6e, 0x6e) : new Color(0xe9, 0x8b, 0x83);
+            float inset = 3.5f;
+            c.line(strip.left() + inset, strip.top() + inset,
+                    strip.left() + STRIP_SIZE - inset, strip.top() + STRIP_SIZE - inset, ink, 1.5f);
+            c.line(strip.left() + STRIP_SIZE - inset, strip.top() + inset,
+                    strip.left() + inset, strip.top() + STRIP_SIZE - inset, ink, 1.5f);
+        }
+        lastStripTargets = List.copyOf(strips);
     }
 
-    static List<float[]> leaderDogLegPath(float anchorX, float anchorY, SocketDropTarget target) {
-        float targetX;
-        float targetY;
-        if (target.right() < anchorX) {
-            targetX = target.right();
-            targetY = Math.max(target.top() + 8f, Math.min(target.bottom() - 8f, anchorY));
-        } else if (target.left() > anchorX) {
-            targetX = target.left();
-            targetY = Math.max(target.top() + 8f, Math.min(target.bottom() - 8f, anchorY));
-        } else if (target.bottom() < anchorY) {
-            targetX = target.centerX();
-            targetY = target.bottom();
-        } else {
-            targetX = target.centerX();
-            targetY = target.top();
-        }
-
-        List<float[]> points = new ArrayList<>();
-        points.add(new float[]{anchorX, anchorY});
-
-        float dx = targetX - anchorX;
-        float dy = targetY - anchorY;
-        if (Math.abs(dx) > 2f && Math.abs(dy) > 2f) {
-            float signX = Math.signum(dx);
-            float signY = Math.signum(dy);
-            if (Math.abs(dx) >= Math.abs(dy)) {
-                float bevel = Math.min(Math.abs(dy), Math.min(Math.abs(dx) * 0.4f, 16f));
-                float p1x = anchorX + (dx - signX * bevel);
-                float p1y = anchorY;
-                float p2x = targetX;
-                float p2y = anchorY + signY * bevel;
-                points.add(new float[]{p1x, p1y});
-                points.add(new float[]{p2x, p2y});
-            } else {
-                float bevel = Math.min(Math.abs(dx), Math.min(Math.abs(dy) * 0.4f, 16f));
-                float p1x = anchorX;
-                float p1y = anchorY + (dy - signY * bevel);
-                float p2x = anchorX + signX * bevel;
-                float p2y = targetY;
-                points.add(new float[]{p1x, p1y});
-                points.add(new float[]{p2x, p2y});
-            }
-        }
-        points.add(new float[]{targetX, targetY});
-        return points;
-    }
+    private record StripTarget(SocketId id, float left, float top) { }
 
     static void drawCornerBrackets(CanvasContext c, float left, float top, float width, float height,
                                    Color color, float stroke, float bracketLength, float chamfer) {
@@ -481,7 +513,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             case "ENGINE CORE" -> "CORE";
             case "L. SHOULDER" -> "L. SHLDR";
             case "R. SHOULDER" -> "R. SHLDR";
-            case "AMMO RESERVE" -> "AMMO";
+            case "CAPACITORS" -> "CAPS";
             default -> label;
         };
         return name + " [" + socket.gridColumns() + "×" + socket.gridRows() + "]";
@@ -491,9 +523,11 @@ public final class MechLabDollCanvas implements CanvasProducer {
         String name = switch (id) {
             case CORE -> "CORE";
             case ARMS -> "ARMS";
+            case LEFT_ARM -> "L. ARM";
+            case RIGHT_ARM -> "R. ARM";
             case LEFT_SHOULDER -> "L. SHLDR";
             case RIGHT_SHOULDER -> "R. SHLDR";
-            case AMMO_RESERVE -> "AMMO";
+            case CAPACITORS -> "CAPS";
             case MINI_FAB -> "MINI-FAB";
         };
         return name + " [" + cols + "×" + rows + "]";
@@ -502,6 +536,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
     static MechMountSlot mountFor(SocketId slot) {
         return switch (slot) {
             case ARMS -> MechMountSlot.ARMS;
+            case LEFT_ARM -> MechMountSlot.LEFT_ARM;
+            case RIGHT_ARM -> MechMountSlot.RIGHT_ARM;
             case LEFT_SHOULDER -> MechMountSlot.LEFT_SHOULDER;
             case RIGHT_SHOULDER -> MechMountSlot.RIGHT_SHOULDER;
             default -> null;
@@ -509,251 +545,123 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     private static boolean occupied(MechDeploymentSpec deployment, SocketId socket) {
-        return switch (socket) {
-            case CORE, AMMO_RESERVE, MINI_FAB -> true;
-            case ARMS -> deployment.arms() != null;
-            case LEFT_SHOULDER -> deployment.leftShoulder() != null;
-            case RIGHT_SHOULDER -> deployment.rightShoulder() != null;
-        };
+        if (socket == SocketId.CORE || socket == SocketId.CAPACITORS || socket == SocketId.MINI_FAB) return true;
+        return weaponAt(deployment, socket) != null;
     }
 
     private static MechWeaponComponent weaponAt(MechDeploymentSpec deployment,
                                                 SocketId socket) {
-        return switch (socket) {
-            case ARMS -> deployment.arms();
-            case LEFT_SHOULDER -> deployment.leftShoulder();
-            case RIGHT_SHOULDER -> deployment.rightShoulder();
-            default -> null;
-        };
+        MechMountSlot mount = mountFor(socket);
+        return mount != null ? deployment.weaponAt(mount) : null;
     }
 
-    static SocketDropTarget socketDropTarget(DollDef doll, SocketDef socket,
-                                             float actorX, float actorY,
-                                             float hullWidth, float hullHeight) {
-        float radians = (float) Math.toRadians(doll.facingDegrees());
-        return socketDropTarget(socket, actorX, actorY, hullWidth, hullHeight,
-                (float) Math.cos(radians), (float) Math.sin(radians));
+    /** The share of the canvas the schematic panel takes; the fitting camera stands the machine in the rest. */
+    static final float SCHEMATIC_SHARE = 0.56f;
+    static final float SCHEMATIC_MARGIN = 18f;
+    static final float SCHEMATIC_GAP_X = 26f;
+    static final float SCHEMATIC_GAP_Y = 30f;
+    private static final Color PANEL = new Color(0x05, 0x08, 0x0a, 214);
+    private static final Color PANEL_GRID = new Color(0x5e, 0x96, 0xd2, 20);
+    private static final Color PANEL_EDGE = new Color(0x8e, 0x9a, 0x8c, 120);
+
+    /** A dark drafting board under the schematic, so the cards read against one ground, not the deck. */
+    private static void drawSchematicPanel(CanvasContext c, float width, float height) {
+        c.fillRect(0f, 0f, width, height, PANEL);
+        for (float x = 24f; x < width; x += 24f) c.line(x, 0f, x, height, PANEL_GRID, 1f);
+        for (float y = 24f; y < height; y += 24f) c.line(0f, y, width, y, PANEL_GRID, 1f);
+        c.line(width, 0f, width, height, PANEL_EDGE, 2f);
+        for (int i = 1; i <= 6; i++) {
+            c.line(width + i * 2f, 0f, width + i * 2f, height, new Color(0x05, 0x08, 0x0a, 120 - i * 18), 2f);
+        }
     }
 
-    private static SocketDropTarget socketDropTarget(SocketDef socket,
-                                                      float actorX, float actorY,
-                                                      float hullWidth, float hullHeight,
-                                                      float cos, float sin) {
-        float anchorLocalX = socket.anchorRight() * hullWidth;
-        float anchorLocalY = socket.anchorForward() * hullHeight;
-        float anchorWorldX = anchorLocalX * cos - anchorLocalY * sin;
-        float anchorWorldY = anchorLocalX * sin + anchorLocalY * cos;
-        float dockLocalX = socket.dockRight() * hullWidth;
-        float dockLocalY = socket.dockForward() * hullHeight;
-        float dockWorldX = dockLocalX * cos - dockLocalY * sin;
-        float dockWorldY = dockLocalX * sin + dockLocalY * cos;
-        float width = Math.max(MIN_DROP_TARGET_WIDTH,
-                socket.footprintWidthHull() * hullWidth);
-        float height = Math.max(MIN_DROP_TARGET_HEIGHT,
-                socket.footprintHeightHull() * hullHeight);
-        return new SocketDropTarget(socket.id(), socket.gridColumns(), socket.gridRows(),
-                actorX + anchorWorldX, actorY - anchorWorldY,
-                actorX + dockWorldX, actorY - dockWorldY, width, height);
+    /**
+     * Lays the sockets out as the machine is built: the engine core in the middle of the panel,
+     * the arm guns ahead of it (a centreline mount straight ahead, or one arm ahead-left and one
+     * ahead-right), a shoulder either side, and the capacitors and mini-fab behind it. Every card
+     * keeps its fixed brick size; the rows are centred in the panel.
+     */
+    static List<SocketDropTarget> schematicTargets(List<SocketDef> sockets, float panelWidth, float panelHeight) {
+        EnumMap<SocketId, SocketDef> byId = new EnumMap<>(SocketId.class);
+        for (SocketDef socket : sockets) byId.put(socket.id(), socket);
+        if (byId.isEmpty()) return List.of();
+        float coreW = cardWidth(byId.get(SocketId.CORE));
+        float coreH = cardHeight(byId.get(SocketId.CORE));
+        SocketDef leftArm = byId.get(SocketId.LEFT_ARM);
+        SocketDef rightArm = byId.get(SocketId.RIGHT_ARM);
+        float armsH = Math.max(cardHeight(byId.get(SocketId.ARMS)),
+                Math.max(cardHeight(leftArm), cardHeight(rightArm)));
+        float backH = Math.max(cardHeight(byId.get(SocketId.CAPACITORS)), cardHeight(byId.get(SocketId.MINI_FAB)));
+        float total = armsH + (armsH > 0f ? SCHEMATIC_GAP_Y : 0f) + coreH + (backH > 0f ? SCHEMATIC_GAP_Y + backH : 0f);
+        float top = Math.max(SCHEMATIC_MARGIN, (panelHeight - total) * 0.5f);
+        float centerX = panelWidth * 0.5f;
+        float coreY = top + armsH + (armsH > 0f ? SCHEMATIC_GAP_Y : 0f) + coreH * 0.5f;
+
+        List<SocketDropTarget> targets = new ArrayList<>();
+        place(targets, byId.get(SocketId.CORE), centerX, coreY);
+        float armsY = top + armsH * 0.5f;
+        place(targets, byId.get(SocketId.ARMS), centerX, armsY);
+        place(targets, leftArm, centerX - SCHEMATIC_GAP_X * 0.5f - cardWidth(leftArm) * 0.5f, armsY);
+        place(targets, rightArm, centerX + SCHEMATIC_GAP_X * 0.5f + cardWidth(rightArm) * 0.5f, armsY);
+        SocketDef left = byId.get(SocketId.LEFT_SHOULDER);
+        SocketDef right = byId.get(SocketId.RIGHT_SHOULDER);
+        place(targets, left, centerX - coreW * 0.5f - SCHEMATIC_GAP_X - cardWidth(left) * 0.5f, coreY);
+        place(targets, right, centerX + coreW * 0.5f + SCHEMATIC_GAP_X + cardWidth(right) * 0.5f, coreY);
+        SocketDef capacitors = byId.get(SocketId.CAPACITORS);
+        SocketDef miniFab = byId.get(SocketId.MINI_FAB);
+        float backY = coreY + coreH * 0.5f + SCHEMATIC_GAP_Y + backH * 0.5f;
+        if (capacitors != null && miniFab != null) {
+            place(targets, capacitors, centerX - SCHEMATIC_GAP_X * 0.5f - cardWidth(capacitors) * 0.5f, backY);
+            place(targets, miniFab, centerX + SCHEMATIC_GAP_X * 0.5f + cardWidth(miniFab) * 0.5f, backY);
+        } else {
+            place(targets, capacitors != null ? capacitors : miniFab, centerX, backY);
+        }
+        return List.copyOf(targets);
     }
 
-    static final float DOCK_MARGIN = 16f;
-    static final float DOCK_MIN_GAP = 12f;
-
-    static List<SocketDropTarget> resolveExplodedDropTargets(
-            DollDef doll, List<SocketDef> sockets,
-            float actorX, float actorY, float hullWidth, float hullHeight,
-            float canvasWidth, float canvasHeight) {
-        float radians = (float) Math.toRadians(doll.facingDegrees());
-        return resolveExplodedDropTargets(sockets, actorX, actorY, hullWidth, hullHeight,
-                canvasWidth, canvasHeight, (float) Math.cos(radians), (float) Math.sin(radians),
-                null, null);
+    private static float cardWidth(SocketDef socket) {
+        return socket != null ? MechSocketConsole.width(socket) : 0f;
     }
 
-    static List<SocketDropTarget> resolveExplodedDropTargets(
-            List<SocketDef> sockets,
-            float actorX, float actorY, float hullWidth, float hullHeight,
-            float canvasWidth, float canvasHeight, float cos, float sin) {
-        return resolveExplodedDropTargets(sockets, actorX, actorY, hullWidth, hullHeight,
-                canvasWidth, canvasHeight, cos, sin, null, null);
+    private static float cardHeight(SocketDef socket) {
+        return socket != null ? MechSocketConsole.height(socket) : 0f;
     }
 
-    static List<SocketDropTarget> resolveExplodedDropTargets(
-            List<SocketDef> sockets,
-            float actorX, float actorY, float hullWidth, float hullHeight,
-            float canvasWidth, float canvasHeight, float cos, float sin,
-            MechDeploymentSpec deployment, MechVariant variant) {
-        if (sockets.isEmpty()) return List.of();
-
-        final class ResolvedDock {
-            final SocketDef socket;
-            final float anchorX;
-            final float anchorY;
-            final float width;
-            final float height;
-            float centerX;
-            float centerY;
-
-            ResolvedDock(SocketDef socket) {
-                this.socket = socket;
-                float[] anchor = socketAnchor(socket, deployment, variant);
-                float anchorLocalX = anchor[0] * hullWidth;
-                float anchorLocalY = anchor[1] * hullHeight;
-                float anchorWorldX = anchorLocalX * cos - anchorLocalY * sin;
-                float anchorWorldY = anchorLocalX * sin + anchorLocalY * cos;
-                this.anchorX = actorX + anchorWorldX;
-                this.anchorY = actorY - anchorWorldY;
-
-                this.width = socket.factoryLocked() ? 160f : Math.max(164f, socket.footprintWidthHull() * hullWidth);
-                this.height = socket.factoryLocked() ? 54f : Math.max(116f, socket.footprintHeightHull() * hullHeight);
-
-                float dockLocalX = socket.dockRight();
-                float dockLocalY = socket.dockForward();
-                float dirX = dockLocalX * cos - dockLocalY * sin;
-                float dirY = -(dockLocalX * sin + dockLocalY * cos);
-
-                if (dirX < -0.25f) {
-                    this.centerX = DOCK_MARGIN + this.width * 0.5f;
-                    if (dirY < 0f) {
-                        this.centerY = DOCK_MARGIN + this.height * 0.5f + 16f;
-                    } else {
-                        this.centerY = canvasHeight - DOCK_MARGIN - this.height * 0.5f - 16f;
-                    }
-                } else if (dirX > 0.25f) {
-                    this.centerX = canvasWidth - DOCK_MARGIN - this.width * 0.5f;
-                    if (dirY < 0f) {
-                        this.centerY = DOCK_MARGIN + this.height * 0.5f + 16f;
-                    } else {
-                        this.centerY = canvasHeight - DOCK_MARGIN - this.height * 0.5f - 16f;
-                    }
-                } else {
-                    this.centerX = Math.max(DOCK_MARGIN + this.width * 0.5f,
-                            Math.min(canvasWidth - DOCK_MARGIN - this.width * 0.5f, actorX));
-                    if (dirY < 0f) {
-                        this.centerY = DOCK_MARGIN + this.height * 0.5f;
-                    } else {
-                        this.centerY = canvasHeight - DOCK_MARGIN - this.height * 0.5f;
-                    }
-                }
-            }
-        }
-
-        List<ResolvedDock> docks = new ArrayList<>(sockets.size());
-        for (SocketDef socket : sockets) {
-            docks.add(new ResolvedDock(socket));
-        }
-
-        float mechClearanceX = Math.max(hullWidth * 0.6f, 65f);
-        float mechClearanceY = Math.max(hullHeight * 0.6f, 65f);
-        for (ResolvedDock dock : docks) {
-            float halfW = dock.width * 0.5f;
-            float halfH = dock.height * 0.5f;
-            float overlapX = (mechClearanceX + halfW) - Math.abs(dock.centerX - actorX);
-            float overlapY = (mechClearanceY + halfH) - Math.abs(dock.centerY - actorY);
-            if (overlapX > 0f && overlapY > 0f) {
-                if (overlapX < overlapY) {
-                    dock.centerX += (dock.centerX >= actorX ? overlapX : -overlapX);
-                } else {
-                    dock.centerY += (dock.centerY >= actorY ? overlapY : -overlapY);
-                }
-            }
-        }
-
-        for (int iter = 0; iter < 8; iter++) {
-            boolean changed = false;
-            for (int i = 0; i < docks.size(); i++) {
-                for (int j = i + 1; j < docks.size(); j++) {
-                    ResolvedDock a = docks.get(i);
-                    ResolvedDock b = docks.get(j);
-                    float dx = b.centerX - a.centerX;
-                    float dy = b.centerY - a.centerY;
-                    float targetDistX = (a.width + b.width) * 0.5f + DOCK_MIN_GAP;
-                    float targetDistY = (a.height + b.height) * 0.5f + DOCK_MIN_GAP;
-                    float overlapX = targetDistX - Math.abs(dx);
-                    float overlapY = targetDistY - Math.abs(dy);
-                    if (overlapX > 0f && overlapY > 0f) {
-                        changed = true;
-                        if (overlapX < overlapY) {
-                            float push = overlapX * 0.5f;
-                            float sign = dx >= 0f ? 1f : -1f;
-                            a.centerX -= push * sign;
-                            b.centerX += push * sign;
-                        } else {
-                            float push = overlapY * 0.5f;
-                            float sign = dy >= 0f ? 1f : -1f;
-                            a.centerY -= push * sign;
-                            b.centerY += push * sign;
-                        }
-                    }
-                }
-            }
-            for (ResolvedDock dock : docks) {
-                float halfW = dock.width * 0.5f;
-                float halfH = dock.height * 0.5f;
-                dock.centerX = Math.max(DOCK_MARGIN + halfW,
-                        Math.min(canvasWidth - DOCK_MARGIN - halfW, dock.centerX));
-                dock.centerY = Math.max(DOCK_MARGIN + halfH,
-                        Math.min(canvasHeight - DOCK_MARGIN - halfH, dock.centerY));
-            }
-            if (!changed) break;
-        }
-
-        List<SocketDropTarget> targets = new ArrayList<>(docks.size());
-        for (ResolvedDock dock : docks) {
-            targets.add(new SocketDropTarget(
-                    dock.socket.id(), dock.socket.gridColumns(), dock.socket.gridRows(),
-                    dock.anchorX, dock.anchorY,
-                    dock.centerX, dock.centerY,
-                    dock.width, dock.height));
-        }
-        return targets;
+    private static void place(List<SocketDropTarget> targets, SocketDef socket, float centerX, float centerY) {
+        if (socket == null) return;
+        targets.add(new SocketDropTarget(socket.id(), socket.gridColumns(), socket.gridRows(),
+                centerX, centerY, centerX, centerY, cardWidth(socket), cardHeight(socket)));
     }
 
-    static float[] socketAnchor(SocketDef socket, MechDeploymentSpec deployment, MechVariant variant) {
-        if (deployment != null && variant != null) {
-            MechWeaponComponent weapon = weaponAt(deployment, socket.id());
-            if (weapon != null) {
-                if (socket.id() == SocketId.ARMS) {
-                    if (variant.chassisAppearance == LayeredMechAppearance.CHASSIS_HOUND) {
-                        return new float[]{0f, 0.24f};
-                    } else if (variant.chassisAppearance == LayeredMechAppearance.CHASSIS_SIROCCO) {
-                        return new float[]{0f, 0.26f};
-                    } else {
-                        return new float[]{0f, 0.22f};
-                    }
-                } else if (socket.id() == SocketId.LEFT_SHOULDER || socket.id() == SocketId.RIGHT_SHOULDER) {
-                    int leftApp = appearance(deployment.leftShoulder());
-                    int rightApp = appearance(deployment.rightShoulder());
-                    boolean isLeft = socket.id() == SocketId.LEFT_SHOULDER;
-                    var pt = MechHardpointGeometry.podMuzzle(variant.chassisAppearance,
-                            leftApp, rightApp, isLeft, weapon.appearanceSelector);
-                    return new float[]{pt.xHullWidths(), pt.yHullWidths() - 0.10f};
-                }
-            }
+    /**
+     * The wire from a part back to the engine core: straight across where the two face each
+     * other, otherwise out of the card towards the core, along, and into the core's near side.
+     */
+    static List<float[]> wireToCore(SocketDropTarget part, SocketDropTarget core) {
+        List<float[]> points = new ArrayList<>();
+        if (part.bottom() <= core.top()) {
+            points.add(new float[]{part.centerX(), part.bottom()});
+            points.add(new float[]{core.centerX(), core.top()});
+        } else if (part.top() >= core.bottom()) {
+            float x = Math.max(core.left() + 18f, Math.min(core.right() - 18f, part.centerX()));
+            float midY = (part.top() + core.bottom()) * 0.5f;
+            points.add(new float[]{part.centerX(), part.top()});
+            points.add(new float[]{part.centerX(), midY});
+            points.add(new float[]{x, midY});
+            points.add(new float[]{x, core.bottom()});
+        } else if (part.right() <= core.left()) {
+            points.add(new float[]{part.right(), core.centerY()});
+            points.add(new float[]{core.left(), core.centerY()});
+        } else {
+            points.add(new float[]{part.left(), core.centerY()});
+            points.add(new float[]{core.right(), core.centerY()});
         }
-        return new float[]{socket.anchorRight(), socket.anchorForward()};
-    }
-
-    static List<CapacityCell> capacityCells(SocketDropTarget target) {
-        int cols = Math.max(1, target.gridColumns());
-        int rows = Math.max(1, target.gridRows());
-        float availableWidth = target.width() - CAPACITY_INSET * 2f
-                - CAPACITY_GAP * (cols - 1);
-        float availableHeight = target.height() - CAPACITY_INSET * 2f
-                - CAPACITY_GAP * (rows - 1);
-        float cellWidth = availableWidth / cols;
-        float cellHeight = availableHeight / rows;
-        float x = target.left() + CAPACITY_INSET;
-        float y = target.top() + CAPACITY_INSET;
-        List<CapacityCell> cells = new ArrayList<>(cols * rows);
-        int index = 0;
-        for (int row = 0; row < rows; row++) {
-            for (int column = 0; column < cols; column++) {
-                cells.add(new CapacityCell(index++, column, row, true,
-                        x + column * (cellWidth + CAPACITY_GAP),
-                        y + row * (cellHeight + CAPACITY_GAP), cellWidth, cellHeight));
-            }
+        if (points.size() == 2 && points.get(0)[0] != points.get(1)[0] && points.get(0)[1] != points.get(1)[1]) {
+            float[] a = points.get(0), b = points.get(1);
+            points.add(1, new float[]{a[0], (a[1] + b[1]) * 0.5f});
+            points.add(2, new float[]{b[0], (a[1] + b[1]) * 0.5f});
         }
-        return List.copyOf(cells);
+        return points;
     }
 
     record SocketDropTarget(SocketId id, int gridColumns, int gridRows,
@@ -770,9 +678,6 @@ public final class MechLabDollCanvas implements CanvasProducer {
         }
     }
 
-    record CapacityCell(int index, int column, int row, boolean active,
-                        float x, float y, float width, float height) { }
-
     record VacantGantryTarget(int index, float x, float y, float width, float height) {
         boolean contains(float pointX, float pointY) {
             return pointX >= x && pointX <= x + width
@@ -785,44 +690,12 @@ public final class MechLabDollCanvas implements CanvasProducer {
         float height() { return top - bottom; }
     }
 
-    private static Color socketColor(SocketType type) {
-        return switch (type) {
-            case CORE -> new Color(0xF0, 0xC9, 0x52);
-            case BALLISTIC -> new Color(0xE5, 0x83, 0x45);
-            case MISSILE -> new Color(0x6D, 0xD5, 0xF2);
-            case OMNI -> new Color(0xB5, 0x87, 0xF4);
-            case AMMO -> new Color(0x9E, 0xBD, 0x6A);
-            case UTILITY -> new Color(0xB1, 0x8B, 0xE8);
-        };
-    }
-
     private static Color withAlpha(Color color, int alpha) {
         return new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
     }
 
     private static int appearance(MechWeaponComponent component) {
         return component != null ? component.appearanceSelector : LayeredMechAppearance.POD_NONE;
-    }
-
-    /** Scene geometry expressed back in the canvas surface's top-left coordinates. */
-    private record SceneProjection(float actorX, float actorY,
-                                   float cellX, float cellY,
-                                   float hullX, float hullY) {
-
-        private static SceneProjection forLive(BattleCamera camera,
-                                               CanvasHostViewport viewport,
-                                               MechVariant variant,
-                                               float berthX, float berthY) {
-            float cell = camera.cellPxSize();
-            float hull = UnitRenderService.layeredMechHullWidth(cell, variant.renderScale);
-            float scaleX = viewport.scaleX();
-            float scaleY = viewport.scaleY();
-            return new SceneProjection(
-                    camera.cellToScreenX(berthX) / scaleX,
-                    (viewport.height() - camera.cellToScreenY(berthY)) / scaleY,
-                    cell / scaleX, cell / scaleY,
-                    hull / scaleX, hull / scaleY);
-        }
     }
 
     private record CanvasSink(CanvasContext context, float surfaceHeight)

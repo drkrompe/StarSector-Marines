@@ -1,0 +1,46 @@
+{
+  "sheetName": "fort-hedgehog-damage",
+  "sheet": "art-source/tilesets/fort-hedgehog-damage.raw.png",
+  "cellPx": 128,
+  "gridCols": 2,
+  "gridRows": 1,
+  "idPrefix": "doodad.fort",
+  "alphaMin": 40,
+  "note": "Fort hedgehog damage states. Geometry-first built-in ImageGen reskin of templates/fort-hedgehog-damage-guide.png (code-rendered by fort-hedgehog-damage-guide.py) with templates/fort-hedgehog-reference.png (the intact fort-earthworks hedgehog frame) as material reference; exact prompt and provenance retained beside this file; raw retained unmodified. Returned 1774x887 RGBA: two full-cell frames at 887px pitch, damaged then destroyed. Cuts keep the whole frame and source alpha.",
+  "entries": [
+    {
+      "id": "doodad.fort-hedgehog-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "note": "Hedgehog standing on its hub, one girder bent, one knocked loose.",
+      "rect": [
+        0,
+        0,
+        887,
+        887
+      ]
+    },
+    {
+      "id": "doodad.fort-hedgehog-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "note": "Toppled hedgehog: girders lying flat, hub plate loose.",
+      "rect": [
+        887,
+        0,
+        887,
+        887
+      ]
+    }
+  ]
+}

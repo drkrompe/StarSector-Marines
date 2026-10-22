@@ -45,6 +45,7 @@ NAMES = {
     "spore-colony-fissure": "spore-colony-fissure",
     "spore-colony-bore": "spore-colony-bore",
     "spore-colony-maw": "spore-colony-maw",
+    "ground-colony": "ground-colony",
 }
 
 # Rav Bloom CHITIN proposal (rav-palettes): luminance in -> colour out, for creature materials.

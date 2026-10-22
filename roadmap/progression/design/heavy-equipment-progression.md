@@ -55,7 +55,7 @@ Read `mechs-nouns.md` (chassis, sockets, Mech Lab, flux), `convoy-nouns.md`
   Finite and losable (`MechBay.loseSpares`); a pattern is neither.
 - **Internal.** A non-weapon fitting that changes the frame: engine, plating,
   capacitor bank, vent array, loader. Internals live in sockets the doll already reserves (the
-  CORE, AMMO_RESERVE and MINI_FAB placeholders).
+  CORE, CAPACITORS and MINI_FAB placeholders).
 - **Engine budget.** An engine's output, against the mass of everything fitted.
   A fit over budget is refused atomically. Engine tier also sets the chassis's
   speed within its own band, so an engine cannot make a Bulwark a Hound.
@@ -134,11 +134,12 @@ budget). The ladder, tuned on headless readings (below):
 | --- | --- | --- | --- |
 | Engine (CORE) | Industrial, output x1.00, 2x1 | Uprated, x1.25, half the speed band, 2x2, mass 1 | Military, x1.50, full band, 2x2, mass 3, -0.5 dissipation |
 | Plating (frame) | Factory | Composite: half the armor band, 1 plating unit | Heavy: full band, 2.5 units |
-| Capacitor bank (AMMO_RESERVE) | Factory: 100 flux, 6/s, 1x1 | Double: 120, 7.5/s, 2x1, mass 3 | Military: 120, 8/s, 3x1, mass 5 |
+| Capacitor bank (CAPACITORS) | Factory: 100 flux, 6/s, 1x1 | Double: 120, 7.5/s, 2x1, mass 3 | Military: 120, 8/s, 3x1, mass 5 |
 | Vent array (MINI_FAB) | none | Auxiliary: +1/s, mass 2 | — |
 
-Rated output is Hound 20, Sirocco 39, Bulwark 46 (stock weapons weigh 16, 39 and
-40); a plating unit is 3, 4 and 6. A full refit reaches the pre-cut armor and speed
+Rated output is Hound 20, Sirocco 39, Bulwark 50 (stock weapons weigh 16, 39 and
+44; the Bulwark rose from 46 when its twin arm gun became a single gun on
+each arm, two 2x2 guns weighing 4 more than the 2x3 twin); a plating unit is 3, 4 and 6. A full refit reaches the pre-cut armor and speed
 and roughly the old dissipation: Bulwark 950 / 1.15 / 120 flux at 8.5/s, Sirocco 400 /
 1.45 at 8/s, Hound 500 / 1.70 at 7/s. The trade is room: the Hound's two-cell
 reserve cannot take the military capacitor bank and it has no utility socket, a faster loader
@@ -223,8 +224,11 @@ and a refit Sirocco still out-plates no Hound.
 The heavy cannon is the Sirocco's factory arm, but its 3x2 ballistic footprint
 fits any arms socket that takes 3x2, so it is balanced by what carrying it
 costs, never by the fragility of the chassis that ships with it. Today that is
-the Sirocco and the Bulwark, whose 3x2 omni arms take it; the Hound's 2x2 nose
-cannot, at any quarter-turn. Its contact hit (100 on the body struck, over a 45
+the Sirocco alone. The Hound's 2x2 nose cannot take it at any quarter-turn, and
+since the Bulwark's one arm socket became a 2x2 socket on each arm (each arm
+carries one single gun, not a twin), neither can the Bulwark; it is also a
+centreline gun, which a side arm never takes. The arm-mount readings below
+predate that split. Its contact hit (100 on the body struck, over a 45
 splash) was tuned against mech armor and is not a lever here.
 
 **A Sirocco dying in about 11 s to one heavy cannon in the open is accepted**
@@ -380,7 +384,9 @@ plus a stock-frame bastion, a stock-frame pulse laser and a refit linear cannon;
 open / hull-down / street, eight seeds, both roles). A share is the wins over
 fights played in both roles; overall is the mean over the eleven fits the cannon
 section used. The controls are `-Dbattle.mech.buildMass.bastion-autocannons=0
--Dbattle.mech.flux.bastion-autocannons=24 -Dbattle.mech.flux.dual-pulse-lasers=38`.
+-Dbattle.mech.flux.bastion-autocannons=24 -Dbattle.mech.flux.dual-pulse-lasers=38`
+(ids of the twin guns these readings were taken with; the single guns that
+replaced them are `bastion-autocannon` and `pulse-laser`, at half each).
 The control run reproduces the before column fight for fight. Any arm's flux,
 cycle or build mass takes the same
 `-Dbattle.mech.<flux|cycle|buildMass>.<id without component.mech->` switch.

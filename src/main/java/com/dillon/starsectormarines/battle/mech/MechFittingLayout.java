@@ -23,10 +23,13 @@ public final class MechFittingLayout {
 
     public enum SocketId {
         CORE("@gearSocketEngineCore"),
+        /** The centreline arms mount: a nose or chin gun. */
         ARMS("@gearSocketArmAssembly"),
+        LEFT_ARM("@gearSocketLArm"),
+        RIGHT_ARM("@gearSocketRArm"),
         LEFT_SHOULDER("@gearSocketLShoulder"),
         RIGHT_SHOULDER("@gearSocketRShoulder"),
-        AMMO_RESERVE("@gearSocketAmmoReserve"),
+        CAPACITORS("@gearSocketCapacitors"),
         MINI_FAB("@gearSocketMiniFab");
 
         private final String label;
@@ -37,11 +40,11 @@ public final class MechFittingLayout {
     }
 
     public enum SocketType {
-        CORE("@gearSocketCore"),
+        ENGINE("@gearSocketEngine"),
         BALLISTIC("@gearSocketBallistic"),
         MISSILE("@gearSocketMissile"),
         OMNI("@gearSocketOmni"),
-        AMMO("@gearSocketAmmo"),
+        FLUX("@gearSocketFlux"),
         UTILITY("@gearSocketUtility");
 
         private final String label;
@@ -149,8 +152,10 @@ public final class MechFittingLayout {
     public boolean occupied(SocketId id) {
         if (!byId.containsKey(id)) return false;
         return switch (id) {
-            case CORE, AMMO_RESERVE, MINI_FAB -> true;
+            case CORE, CAPACITORS, MINI_FAB -> true;
             case ARMS -> variant.arms != null;
+            case LEFT_ARM -> variant.leftArm != null;
+            case RIGHT_ARM -> variant.rightArm != null;
             case LEFT_SHOULDER -> variant.leftShoulder != null;
             case RIGHT_SHOULDER -> variant.rightShoulder != null;
         };
@@ -159,20 +164,22 @@ public final class MechFittingLayout {
     private static Map<MechVariant, MechFittingLayout> buildLayouts() {
         EnumMap<MechVariant, MechFittingLayout> layouts = new EnumMap<>(MechVariant.class);
         layouts.put(MechVariant.BULWARK, layout(MechVariant.BULWARK, 180f, List.of(
-                socket(SocketId.CORE, SocketType.CORE, 2, 2,
+                socket(SocketId.CORE, SocketType.ENGINE, 2, 2,
                         0f, 0.03f, 0f, -1.50f, 1.70f, 0.68f, false),
-                socket(SocketId.ARMS, SocketType.OMNI, 3, 2,
-                        0f, 0.72f, 0f, 1.50f, 2.20f, 0.68f, false),
+                socket(SocketId.LEFT_ARM, SocketType.OMNI, 2, 2,
+                        -0.37f, 0.72f, -0.75f, 1.50f, 1.10f, 0.68f, false),
+                socket(SocketId.RIGHT_ARM, SocketType.OMNI, 2, 2,
+                        0.37f, 0.72f, 0.75f, 1.50f, 1.10f, 0.68f, false),
                 socket(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 2, 3,
                         -0.72f, 0.08f, -1.38f, -0.48f, 1.40f, 0.72f, false),
                 socket(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 2, 3,
                         0.72f, 0.08f, 1.38f, -0.48f, 1.40f, 0.72f, false),
-                socket(SocketId.AMMO_RESERVE, SocketType.AMMO, 3, 1,
+                socket(SocketId.CAPACITORS, SocketType.FLUX, 2, 2,
                         0f, -0.58f, -1.38f, 0.72f, 1.70f, 0.68f, false),
-                socket(SocketId.MINI_FAB, SocketType.UTILITY, 1, 1,
+                socket(SocketId.MINI_FAB, SocketType.UTILITY, 2, 1,
                         0f, -0.92f, 1.38f, 0.72f, 1.40f, 0.68f, false))));
         layouts.put(MechVariant.HOUND, layout(MechVariant.HOUND, 180f, List.of(
-                socket(SocketId.CORE, SocketType.CORE, 2, 2,
+                socket(SocketId.CORE, SocketType.ENGINE, 2, 2,
                         0f, 0.02f, 0f, -1.45f, 1.70f, 0.68f, false),
                 socket(SocketId.ARMS, SocketType.BALLISTIC, 2, 2,
                         0f, 0.66f, 0f, 1.45f, 2.00f, 0.68f, false),
@@ -180,22 +187,22 @@ public final class MechFittingLayout {
                         -0.62f, 0.04f, -1.34f, -0.46f, 1.36f, 0.72f, false),
                 socket(SocketId.RIGHT_SHOULDER, SocketType.MISSILE, 2, 2,
                         0.62f, 0.04f, 1.34f, -0.46f, 1.36f, 0.72f, false),
-                socket(SocketId.AMMO_RESERVE, SocketType.AMMO, 1, 1,
+                socket(SocketId.CAPACITORS, SocketType.FLUX, 2, 1,
                         0f, -0.54f, -1.34f, 0.68f, 1.64f, 0.68f, false),
-                socket(SocketId.MINI_FAB, SocketType.UTILITY, 1, 1,
+                socket(SocketId.MINI_FAB, SocketType.UTILITY, 2, 1,
                         0f, -0.84f, 1.34f, 0.68f, 1.36f, 0.68f, false))));
         layouts.put(MechVariant.SIROCCO, layout(MechVariant.SIROCCO, 180f, List.of(
-                socket(SocketId.CORE, SocketType.CORE, 2, 2,
+                socket(SocketId.CORE, SocketType.ENGINE, 2, 2,
                         0f, 0.02f, 0f, -1.45f, 1.70f, 0.68f, false),
-                socket(SocketId.ARMS, SocketType.BALLISTIC, 3, 2,
+                socket(SocketId.ARMS, SocketType.BALLISTIC, 2, 3,
                         0f, 0.72f, 0f, 1.45f, 2.08f, 0.68f, false),
                 socket(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 2, 3,
                         -0.64f, 0.04f, -1.34f, -0.46f, 1.36f, 0.72f, false),
                 socket(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 2, 3,
                         0.64f, 0.04f, 1.34f, -0.46f, 1.36f, 0.72f, false),
-                socket(SocketId.AMMO_RESERVE, SocketType.AMMO, 1, 2,
+                socket(SocketId.CAPACITORS, SocketType.FLUX, 1, 2,
                         0f, -0.55f, -1.34f, 0.68f, 1.64f, 0.68f, false),
-                socket(SocketId.MINI_FAB, SocketType.UTILITY, 1, 1,
+                socket(SocketId.MINI_FAB, SocketType.UTILITY, 2, 1,
                         0f, -0.86f, 1.34f, 0.68f, 1.36f, 0.68f, false))));
         return Map.copyOf(layouts);
     }

@@ -80,9 +80,9 @@ public enum WorkMotion {
             case RUN -> 1.6f;
             case ROW -> 1.5f;
             case PRESS -> 1.4f;
-            // A real-length bunk is three cells from the passage at its foot to
-            // the pillow, and the sleeper's head is on the pillow.
-            case SLEEP -> 2.55f;
+            // A bed is two cells from the passage at its foot to the pillow, and
+            // the sleeper's head is on the pillow.
+            case SLEEP -> 1.5f;
             default -> 0f;
         };
     }

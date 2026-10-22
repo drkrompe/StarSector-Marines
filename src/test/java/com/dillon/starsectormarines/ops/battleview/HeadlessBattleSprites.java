@@ -358,6 +358,28 @@ final class HeadlessBattleSprites extends BattleSprites {
 
     @Override public void ensureSmokeSprites() { }
 
+    private SpriteAPI fireSheet;
+    private boolean fireLoaded;
+
+    @Override public synchronized SpriteAPI fireSheet() {
+        if (!fireLoaded) {
+            fireLoaded = true;
+            fireSheet = spriteOrNull(FIRE_SHEET_PATH);
+        }
+        return fireSheet;
+    }
+
+    private SpriteAPI flameSheet;
+    private boolean flameLoaded;
+
+    @Override public synchronized SpriteAPI flameSheet() {
+        if (!flameLoaded) {
+            flameLoaded = true;
+            flameSheet = FireRenderSystem.FLAME_SHEET_PATH == null ? null : spriteOrNull(FireRenderSystem.FLAME_SHEET_PATH);
+        }
+        return flameSheet;
+    }
+
     @Override public SpriteAPI engineFlameSprite() { return engineFlame; }
     @Override public SpriteAPI engineGlowSprite() { return engineGlow; }
     @Override public SpriteAPI shadowBlobSprite() { return shadowBlob; }
@@ -642,13 +664,22 @@ final class HeadlessBattleSprites extends BattleSprites {
      * divides by the recorded {@link Asset} size and never reads it. A GL token
      * has to answer differently, which is the other half of why the factory
      * exists.
+     *
+     * <p>It keeps the size and lets the pixels go. The handler used to close
+     * over the decoded image to answer two numbers, so every sprite the
+     * bootstrap read stayed resident for the life of the cache — 1.3 GB of a
+     * 1.7 GB heap on The Burn's framed run, which is what ran it out of a 2g
+     * cap. The drain paints from {@code HeadlessUiRenderer}'s own store,
+     * never from here.
      */
     private static SpriteAPI identityToken(String path, Path file, BufferedImage image) {
+        float width = image.getWidth();
+        float height = image.getHeight();
         return (SpriteAPI) Proxy.newProxyInstance(
                 SpriteAPI.class.getClassLoader(), new Class<?>[]{SpriteAPI.class},
                 (proxy, method, args) -> switch (method.getName()) {
-                    case "getWidth", "getTextureWidth" -> (float) image.getWidth();
-                    case "getHeight", "getTextureHeight" -> (float) image.getHeight();
+                    case "getWidth", "getTextureWidth" -> width;
+                    case "getHeight", "getTextureHeight" -> height;
                     case "hashCode" -> System.identityHashCode(proxy);
                     case "equals" -> proxy == args[0];
                     case "toString" -> "HeadlessSprite[" + path + "]";

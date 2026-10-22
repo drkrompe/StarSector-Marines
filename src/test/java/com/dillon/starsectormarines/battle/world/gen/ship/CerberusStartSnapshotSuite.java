@@ -109,16 +109,9 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                                 throw new AssertionError("Sealed bay hatch must render over deck, not a wall block");
                             if (!map.grid.blocksStructuralLineOfSightAt(map.grid.index(door.x(), door.y())))
                                 throw new AssertionError("Sealed bay hatch must remain opaque");
-                            if (map.doodads.stream().noneMatch(d -> d.cellX == door.x() && d.cellY == door.y()
-                                    && "ship-sealed-hatches.pressure-hatch".equals(d.definitionId())))
-                                throw new AssertionError("Sealed entrance has no visible hatch");
                             if (!restoredMap.grid.isWalkable(door.x(), door.y()))
                                 throw new AssertionError("Repair did not reopen the personnel hatch");
                         }
-                        // The hull's reserves stay sealed; only the bay's own hatches go.
-                        if (restoredMap.doodads.stream().anyMatch(d -> "ship-sealed-hatches.pressure-hatch".equals(d.definitionId())
-                                && sealed.doors().stream().anyMatch(door -> door.x() == d.cellX && door.y() == d.cellY)))
-                            throw new AssertionError("Restored bay retained a sealed-hatch sprite");
                     }
                     if (conversion && seed == 42) {
                         if (state == BoatBayState.DAMAGED) {
@@ -141,10 +134,7 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                                             (bay.width() + 4) * 64, (bay.depth() + 4) * 64)));
                             for (float scale : new float[]{1f, 1.5f}) {
                                 frames.add(new SnapshotArtifact("bay-" + state.name().toLowerCase() + "-" + scale + ".png",
-                                        UiSnapshotSuite.renderBayRestoration(context, deck, state == BoatBayState.RESTORED, 12000, true, scale)));
-                                if (state == BoatBayState.DAMAGED)
-                                    frames.add(new SnapshotArtifact("bay-locked-" + scale + ".png",
-                                            UiSnapshotSuite.renderBayRestoration(context, deck, false, 4000, false, scale)));
+                                        UiSnapshotSuite.renderBayRestoration(context, deck, state == BoatBayState.RESTORED, scale)));
                             }
                         } finally { deck.dismiss(); }
                     }

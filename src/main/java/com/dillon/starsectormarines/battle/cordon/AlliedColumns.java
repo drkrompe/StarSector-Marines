@@ -1,0 +1,147 @@
+package com.dillon.starsectormarines.battle.cordon;
+
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.ops.RiskLevel;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+/**
+ * Scripted allied columns ({@code cordon-nouns.md}, Allied column): a few teams
+ * of allied militia that come on at a map edge on the timetable and march,
+ * under garrison authority, to the place that needs them most when they set
+ * out. Mission-neutral: the mission says where the column enters, how it
+ * picks where to go, and what joining means once it gets there.
+ *
+ * <p>Not the full allied column system (an allied commander choosing and
+ * re-routing columns, `marine-side-reinforcement.md` applied to {@code ALLY}),
+ * which is a later story; a column here knows only its destination, and is
+ * sent on to the next one if its destination is lost before it arrives.
+ */
+public final class AlliedColumns {
+
+    /** What a mission tells the columns. */
+    public interface Orders {
+        /** Where a column setting out now goes, {@code [x, y]}, or {@code null} when nowhere needs it. */
+        int[] destination(BattleSimulation sim);
+        /** Whether a destination is still worth marching to. */
+        boolean stillNeeded(BattleSimulation sim, int x, int y);
+        /** Whether a column member at {@code (x, y)} has arrived at the destination. */
+        boolean arrived(int x, int y, int destX, int destY);
+        /** The column has arrived: its squads are the mission's now. */
+        void joined(BattleSimulation sim, int number, List<Integer> squads, int destX, int destY);
+    }
+
+    /** One column on the timetable: when it comes and where it comes on. */
+    public record Departure(int seconds, int entryX, int entryY) { }
+
+    private static final class Column {
+        final int number;
+        final Departure departure;
+        final List<Integer> squads = new ArrayList<>();
+        int destX = -1, destY = -1;
+        boolean entered, done;
+
+        Column(int number, Departure departure) {
+            this.number = number;
+            this.departure = departure;
+        }
+    }
+
+    private final List<Column> columns = new ArrayList<>();
+    private final int teams;
+    private final String issuer;
+    private final RiskLevel risk;
+    private final Random rng;
+
+    /**
+     * @param teams  militia teams of {@link ColonyMilitia#POST_SIZE} in each column
+     * @param issuer who orders the columns, as the command log names it
+     */
+    public AlliedColumns(List<Departure> departures, int teams, String issuer, RiskLevel risk, Random rng) {
+        for (int i = 0; i < departures.size(); i++) columns.add(new Column(i + 1, departures.get(i)));
+        this.teams = teams;
+        this.issuer = issuer;
+        this.risk = risk;
+        this.rng = rng;
+    }
+
+    /** Columns that have joined their destination. */
+    public int joined() {
+        int n = 0;
+        for (Column c : columns) if (c.done && !c.squads.isEmpty()) n++;
+        return n;
+    }
+
+    /** One tick: due columns come on, marching columns are checked for arrival and re-routed if needed. */
+    public void advance(BattleSimulation sim, int tick, Orders orders, BeatSink beat) {
+        for (Column column : columns) {
+            if (column.done) continue;
+            if (!column.entered) {
+                if (tick < CordonSequence.ticks(column.departure.seconds())) continue;
+                int[] dest = orders.destination(sim);
+                if (dest == null) continue;
+                enter(sim, column, dest);
+                beat.emit("column_entered_" + column.number, true);
+                continue;
+            }
+            column.squads.removeIf(squad -> sim.squadMemberCount(squad) == 0);
+            if (column.squads.isEmpty()) {
+                column.done = true;
+                continue;
+            }
+            if (!orders.stillNeeded(sim, column.destX, column.destY)) {
+                int[] dest = orders.destination(sim);
+                if (dest == null) continue;
+                route(sim, column, dest);
+            }
+            if (anyArrived(sim, column, orders)) {
+                column.done = true;
+                orders.joined(sim, column.number, List.copyOf(column.squads), column.destX, column.destY);
+                beat.emit("column_arrived_" + column.number, false);
+            }
+        }
+    }
+
+    /** Where a column's beats go: the mission's story log, with whether the beat is for the observer only. */
+    public interface BeatSink {
+        void emit(String beat, boolean observerOnly);
+    }
+
+    private void enter(BattleSimulation sim, Column column, int[] dest) {
+        column.entered = true;
+        List<int[]> cells = CordonGround.cluster(sim.getGrid(), sim.getOccupancyMap(),
+                column.departure.entryX(), column.departure.entryY(), teams * ColonyMilitia.POST_SIZE);
+        for (int t = 0; t + ColonyMilitia.POST_SIZE <= cells.size() && t / ColonyMilitia.POST_SIZE < teams;
+             t += ColonyMilitia.POST_SIZE) {
+            column.squads.add(ColonyMilitia.seatTeam(sim, cells.subList(t, t + ColonyMilitia.POST_SIZE),
+                    "Column " + column.number + " team " + (t / ColonyMilitia.POST_SIZE + 1), risk, rng));
+        }
+        route(sim, column, dest);
+    }
+
+    private void route(BattleSimulation sim, Column column, int[] dest) {
+        column.destX = dest[0];
+        column.destY = dest[1];
+        for (int squad : column.squads) {
+            sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad, dest[0], dest[1]),
+                    CommandAuthority.GARRISON, issuer, "allied column " + column.number + " marches up");
+        }
+    }
+
+    private static boolean anyArrived(BattleSimulation sim, Column column, Orders orders) {
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long unit = sim.liveUnitAt(i);
+            // Turrets and bores carry no squad: ask for one rather than reading its id.
+            Squad squad = sim.squadOf(unit);
+            if (squad == null || !column.squads.contains(squad.id)) continue;
+            if (orders.arrived(sim.world().cellX(unit), sim.world().cellY(unit), column.destX, column.destY)) return true;
+        }
+        return false;
+    }
+}

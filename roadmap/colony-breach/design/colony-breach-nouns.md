@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
+Updated: 2026-10-22 — Pack press and sub-packs (strike slots, holders wheel and waiters circle, surplus peeled onto other prey, re-merge on quarry death); Creep on green worlds as built (grown over trees, which die to bare bone-pale skeletons that no longer hide or shelter anyone, the owner's choice; grass and crops wilt ahead of its edge); campaign: blooms as built, frequent, at the benign first severity tier with spores carried on traffic, and the owner's arc as direction; growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -60,9 +60,9 @@ Consequences that the design keeps:
   stages of a life cycle that someone designed.
 - **It eats to grow.** Biomass is its economy. Colonists are its food (see
   *Harvest*), which is why the colony is the target and why rescue starves it.
-- **It recurs.** Outbreaks are a sector phenomenon: they show up at colonies
-  across the campaign, are never "defeated" for good, and a collapsed mother
-  bore ends an outbreak, not the weapon.
+- **It recurs.** Outbreaks are a sector phenomenon (*Campaign: blooms*): they
+  show up at colonies across the campaign, are never "defeated" for good, and a
+  collapsed mother bore ends an outbreak, not the weapon.
 - **Who made it is a question, not an answer.** Briefings and radio may
   speculate (Domain denial programme, a Tri-Tachyon-era leak, a sporeship payload,
   something older);
@@ -70,6 +70,140 @@ Consequences that the design keeps:
 
 Names, the life cycle in in-world terms, each faction's view and the tone and
 vocabulary for briefings, radio and item text are in `swarm-lore-guide.md`.
+
+## Campaign: blooms
+
+On the campaign layer the Rav Bloom is a **sector phenomenon**, not a mission
+type and not a second event family. A **bloom** is one outbreak at one market,
+from its first seepage to the day it ends. It is the only thing that raises a
+Civilian Rescue: the rescue is the bloom's **distress call**, raised through
+the shared open-event gate and settled by the rescue's own exactly-once
+lifecycle (`campaign-event-nouns.md`). A rescue with no bloom behind it would
+be a Colony Breach with nothing coming out of the ground, so there is none.
+The live system is `RavBloomSystem`; everything it does to a market goes
+through a `BloomWorld`, so the rules run unchanged over a synthetic sector in
+evidence.
+
+**Spores travel with people** (owner, 2026-10-22). Dormant Bloom material rides
+on cargo and arrives with people who do not know they carry it, all through
+occupied space. It wakes where it lands in a colony busy and dense enough to
+feed it. So a bloom can start on any colony, and where it starts follows the
+traffic, not a map.
+
+**Reservoir.** An old seeding site under a world, which makes a bloom there
+likelier but is not needed for one. It is a hidden, fixed fact of the save,
+hashed from the sector seed and the market, likelier on worlds with ruins and
+on habitable or farmed worlds (the sporeship rumour), and never stored: nobody
+holds the map.
+
+**Waking.** Once a week the sector may wake one bloom, at a preset rate
+(*frequency*), with at most two blooms running. Where it wakes is weighted by
+the colony: trade traffic through its port and population inflow lead, then its
+size (dense colonies are worth eating), a reservoir under it, and deep
+workings. A colony younger than ninety days or smaller than size 3 cannot wake
+one. The busy core therefore blooms most, and the Hegemony quarantines most of
+what blooms. The draw is seeded by the save and the week, so a reload replays
+the same week.
+
+**Stages.**
+
+| Stage | What is true | What the player hears |
+| --- | --- | --- |
+| Stirring | Seepage, a couple of weeks; no market effect | a deniable rumour in the Rav Bloom intel |
+| Erupted | Bores inside the colony; the *Rav Bloom* market condition (stability and accessibility) | the distress call on the Distress Net, two weeks to commit relief; the Hegemony's quarantine notice where it polices |
+| Dark | Nobody lifted enough out. At the first stage the colony is cordoned and the garrison fights the bores; at a harsher tier its workings shut, it loses a size at intervals and it can spread | a colony cordoned (or gone quiet), with the Church's and the Path's readings |
+| Starved | Half or more of the cohort was lifted out: the bloom has too little to eat and burns out without spreading | the lifts got them out |
+| Ended | The outbreak is over; the condition lifts and unrest lingers | how it ended, said honestly |
+
+An erupted colony goes dark when its call is refused or expires, when the call
+never got through the gate within its window, or forty-five days after
+eruption with nobody lifted out. A dark bloom with nobody answering ends on
+its own after the tier's time: **put down** by the world's own military at the
+first stage, **burned out** at a harsher one.
+
+**Ending one.** The player's tools are the existing ones: commit relief, fly
+there, run the evacuation. The battle's report of evacuees and of the mother
+bore (*Hive bonus*) feeds the bloom on its next day. A collapsed mother bore
+**contains** the outbreak whatever the evacuation: it ends at once, the colony
+keeps its size, and the reservoir rests three cycles. Lifting half or more out
+**starves** it. Fewer than half changes nothing about the bloom, though the
+people lifted out are saved. A call still open when its bloom ends is closed as
+expired. The weapon is never ended: every end rests the reservoir (a cycle, or
+three after containment) and never removes it.
+
+**Spread.** At a harsher tier a dark bloom may also seed a new bloom on a
+neighbour, in its own system first, else the nearest within six light-years: a
+local version of the cargo vector. A seeded bloom skips seepage, and three
+generations deep it seeds nothing further. The first stage seeds nothing; its
+spread is the weekly wake alone.
+
+**Factions.** The Hegemony quarantines a bloom on its own worlds and, while it
+lives, anywhere in the core; the quarantine tightens the condition, and a
+quarantined bloom contained earns the Hegemony's regard. The world's owner
+regards evacuees (by the quarter of the cohort lifted) and resents a refused
+call. The Luddic Church regards any evacuation as mercy and calls the bloom a
+judgement on the Domain's pride; the Path calls it the Domain's sin come home;
+scavengers call a dark world dead ground. No line names a maker or says the
+weapon is gone.
+
+**What stands without our state.** At a harsher tier a bloom pulls vanilla's
+levers (a size lost, industries disrupted, recent unrest), so what it did to a
+market survives if the ledger is lost; only the condition reads the ledger back, and a condition
+with no bloom under it applies nothing. The ledger is one nullable object on
+the campaign state, created on first read, so an older save starts with none.
+
+**Severity is a tier, and the mod ships the first.** Every consequence of an
+unanswered bloom (size lost, workings shut, unrest left behind, neighbours
+seeded, a colony lost) is read from the severity tier (`BloomTuning`), so the
+Bloom grows teeth by raising the tier, not by rewriting the system. The mod
+ships **benign**, the first stage: an unanswered bloom costs its market the
+condition while it lasts and nothing else, and the world's military puts it
+down after sixty days. That is a limit of what the mod can model today, not a
+statement about the weapon (owner, 2026-10-22): the consequential tiers (*scar*,
+*dark and spread*, *deadly*: colonies eaten down, neighbours seeded, worlds
+lost) stay runnable and are the intended direction once the campaign can hold
+worlds lost or held. The owner's other picks: *frequency* frequent, so a
+player who wants the job gets it often while the consequences stay minor (rare
+and seasonal exist), *player colonies* exposed by the same rules
+as every colony (also *after the first answered bloom* and *never*), where
+later events are expected to land. `-Dmarines.bloom.severity`, `.frequency` and
+`.playerColonies` select a preset for a control run. `gradlew.bat
+bloomEvidence` plays every preset under three player policies over N cycles and
+reports blooms a year, outcomes, spread and size lost. On the shipped
+defaults the two-running cap holds *frequent* to about four and a half blooms a
+year rather than its nominal six; about 7% land on player colonies; the player
+is offered about four calls a year (calls never overlap, since one campaign
+event is open at a time) and receives about twelve intel messages, never more
+than five in any thirty days.
+
+**Not yet.** The colony's industry does not yet pick the outlying installation
+in the precinct plan (`bloom-installation-flavour.md`), and dead-ground
+scavenger fleets, Tri-Tachyon's interest in samples and what containment pays
+beyond regard are not built.
+
+**Direction (owner, 2026-10-22; not work).** The Bloom is meant to grow into a
+campaign arc, in three movements:
+
+1. **The assaulted settlement.** The first response to a colony being eaten:
+   Colony Breach, as built.
+2. **Organising the defence.** Faction militaries respond in force: allied
+   columns, large redoubts, and the company sallying out in a helping role on a
+   wider front rather than carrying the fight alone.
+3. **The heart of the infection.** A climax assault on the bloom's centre on
+   the surface, in overgrown country.
+
+The arc runs **per infected world** (owner, 2026-10-22): any bloom can carry
+three missions in turn, each a single battle: Colony Breach, then the
+defence (the Line or the Road), then the heart (Broad Front or The Burn), the
+campaign picking each variant, each mission offered on its own and opted into, and the player may stop after any of them;
+a world whose arc stops runs on the ordinary bloom clock. A scripted **sector
+threat** remains a possible authored instance of the same beats on a named
+world (`RavBloomSystem.wakeAt`), not the trigger.
+`bloom-mission-arc.md` is the direction for movements 2 and 3 and the sector
+threat: the Cordon (the Line and the Road as variants), the heart (Broad Front
+and The Burn as variants), what each reuses, candidate
+stories, how one beat feeds the next, and the clock and gate hooks the beats
+need from this lifecycle.
 
 ## Vocabulary
 
@@ -115,7 +249,8 @@ They hold a few buildings through ordinary garrison manning, crew whatever
 colony turret emplacements still work, and may run a technical or two. They
 are a resource the player inherits, not a force the player commands. The
 shelter guard is one militia post among several; on the colony map a wall team
-mans the civil-defence compound round the shelter (see *Redoubt*).
+mans the civil-defence compound round the shelter (see *Redoubt*), and a
+team mans each *Roadblock*.
 
 On the colony map the other militia posts are the **holdouts** (see
 *Redoubt*): buildings spread across the colony, each chosen as far as it can be
@@ -168,12 +303,25 @@ the cohort inside, deeper in than the fireteam's firing cells.
 
 A holdout **claims a block, not a building**. Its people have thrown up
 **works** round the building they hold, a few cells out, so a yard lies
-between:
+between. A holdout is therefore **chosen for its room**: the building is picked
+first among those whose barricade and step lines, at full margin, lie mostly
+on open ground (three quarters at least, measured by `RedoubtWorks.room`), and
+not on a street's asphalt, another building, a wall or a door. Only a colony
+without enough such blocks falls back to the cramped ones. Chosen without
+asking, holdouts landed on buildings fronting streets and their works were
+drawn in to the kerb with no yard at all. The works are:
 
 - the **barricade**, a ring of industrial fence broken by stacked crates and
   scrap, closed to movement and open to sight, with a parked truck dragged
   across each street it crosses. Wherever another building or a wall already
-  stands on the ring, that structure closes the side itself;
+  stands on the ring, that structure closes the side itself. The barricade
+  **crosses streets but never runs along one**: a side whose barricade or step
+  would lie lengthwise on a street's asphalt is drawn in toward the building,
+  to the kerb if need be (barricade only, no step on that side), and whatever
+  still lies on the asphalt is left open, so the street keeps its full width.
+  Laid along a street the works ate its lanes and left a sliver of road beside
+  the fence. A truck closes only a carriageway the barricade crosses, never
+  paved plaza;
 - the **firing step**, one course of sandbag just inside the barricade all the
   way round, which is a fighting-position run;
 - one **gate**, on the side toward the lift, the way relief comes in and the
@@ -188,6 +336,15 @@ compound prepared-ground courses a held base gets), when no gate can be cut or
 the building's door would be shut in. Nothing is invented for them. Nothing
 stands on a roof, because the battle has no roof posts.
 
+The building's own people have also **knocked loopholes** through its walls. A
+colony building picked for its room may be a blank block, with nothing to
+shoot from except its door. Every straight run of wall with the building's floor
+behind it and open ground in front gets an opening every few cells, centred on
+the run. An opening is an ordinary window, not a new kind of thing: a defender
+stands in it and shoots through, and nobody walks through it. Existing windows
+and doors are kept, and a short stub of wall between a door and a corner stays
+solid. `-Dbattle.colonyBreach.loopholes=false` is the control.
+
 A holdout with works has two militia teams. The **house** team holds the
 building's held place and mans its windows and doors. The **line** team mans
 the firing step, an area defence whose claims are kept to the step's run, the
@@ -200,10 +357,64 @@ made once, in place of the commander-tier fall back through layers that
 light barricade breaks the nearest piece between them rather than walking
 round to the gate the Runners crowd into.
 
+**A militia barricade is something the swarm tears down, not a wall.** Every
+breakable piece of the militia's works (a redoubt's fence and crates, a
+roadblock's hedgehogs and crates) is a **barricade** to the swarm: the swarm's
+flow field crosses it at the cost of about a dozen cells of walking, so where
+the way round is short the swarm goes round and where it is long the swarm comes
+on at the line. A body whose way on runs through a barricade stops at the piece
+and claws at it on its strike cooldown (a Runner's blow is light, a Brute's
+heavy), and the gap a broken piece leaves is where the pack pours through. A
+prepared position is therefore assaulted head on rather than flanked, which is
+what makes it read as one. Ordinary yard fences elsewhere in the town stay walls.
+A damaged hedgehog stands bent with a girder knocked loose; a destroyed one lies
+toppled flat and gives no cover. Trucks do not break.
+`-Dbattle.swarm.barricadeAssault=false` is the control: barricades are walls,
+and the swarm goes round.
+
 A holdout's ground is its works' rectangle. A Marine at its **gate** relieves
 it, and the people walk out through the gate.
 `-Dbattle.colonyBreach.redoubtWorks=false` is the control: every holdout is the
 bare building with aprons.
+
+**Roadblock.** A line the militia throw **across a street**, not round a
+building: works on an approach to the main redoubt, with nobody behind them to
+relieve. A redoubt claims a block; a roadblock closes a street, and the swarm
+tears its way through it unless the way round is short (see the barricade law
+above). The colony has one to
+three (seeded), each on its own approach:
+
+- **where**: a straight run of a street that leads toward the compound
+  (walking along it toward the shelter shortens the walk there; the far end is
+  the threat side), its asphalt unchanged for four cells beyond the works
+  either way so it never stands in a junction, between ten cells and a third of
+  the map's short side out from the compound;
+- **across**: from frontage to frontage, sidewalks included, because a line
+  kerb to kerb leaves both pavements open round it. A street with an open yard
+  on either side, nothing closing it within thirteen cells, takes no
+  roadblock: a line there closes nothing;
+- **the obstacle row**, on the threat side: hedgehogs broken by crate stacks,
+  and on some a truck dragged across one lane, closed to walking and open to
+  sight, and torn down by a swarm that comes on at it;
+- **the course** a row in: one course of sandbag facing the threat, a
+  fighting-position run its **team** mans under the same order a holdout's
+  line has;
+- **the gun** on the course's line at one end, on the pavement, so it fires
+  out past its riflemen rather than over them, with a tripod floodlight behind it.
+
+Where the cohort's walk to the lift crosses the line its lane is left open
+straight through both rows; every other street is closed. The pieces are the
+works' own pieces under the works' own rules and the same keep (the walk, the
+pads, the protected zones, ground already claimed), and they stand on the
+street's paving as anything set down on a road does. A site is refused rather
+than half built: a hole in the line that is not the cohort's lane, a course
+too short to seat the team, no end for the gun, or a line that would cut the
+street's far end off from the shelter's side. There is no building to fall back
+into, so the team holds where it stands. Roadblocks are raised after the
+holdouts' works and before the loose guns and technicals, which step round
+them. `-Dbattle.colonyBreach.roadblocks=false` is the control;
+`-Dbattle.colonyBreach.roadblockSpan=kerb` throws each line across the asphalt
+only.
 
 The **civil-defence compound** is the main redoubt's, and it is a different
 kind of thing from a holdout's works. A frontier colony that always knew
@@ -216,7 +427,11 @@ with the colony, the town's streets run up to it, its gates are where they
 cross its wall, and its neighbours are built against it: it fits the layout by
 construction, with a strip of cleared earth between its wall and the houses
 round it. The colony re-rolls a map that did not build it. The shelter is
-always its hall.
+always its hall, and the hall has windows on every wall that faces open
+ground, the last building its people hold and fight from. Its windows are
+laid out before it is furnished, so the bunks stand round them instead of
+against the wall behind them; a field redoubt's bunk dugout is laid out the
+same way.
 
 It is a proper work, but a civil one, partway between a house with sandbags and
 a Conquest fort and copied from neither. Its program owes nothing military (no
@@ -487,6 +702,14 @@ puffs (flak) or a fast white-amber streak (lance). It bursts in the air at the
 craft's drawn height, hit or miss, in an amber flash, and leaves spore haze
 drifting there; it never marks the ground beneath.
 
+A spore colony **looks armed with nothing overhead**, since a breach rarely has
+aircraft and a gun that never fires otherwise reads as scenery: spores lift off
+its sacs all the time, amber motes in a faint lilac halo rising and drifting up
+off the body, more of them the higher its grade (`ColonyThreatFx`; the owner's
+pick over an exhaled haze, alone or with the motes). Its **reach is not drawn**
+(owner): a ring round every colony, or round each while aircraft are up, was
+offered and declined; the shots and the motes say where it stands.
+
 Bores and colonies are grown, not built, and look it: they wear the same
 Rav Bloom palette as the creatures (lilac and dusky-violet carapace over
 crimson sinew, ivory bone, amber nodes breathing), standing on the ground with
@@ -495,7 +718,14 @@ colours, so the rim reads as where the creep pours out of the ground. Nothing ab
 they are lopsided. A bore is a slanted shaft torn up through the ground, one
 side heaved up into reared jaw-plates, tusks and thrown paving, the other
 collapsed into the funnel; the mother bore is a wider, deeper, terraced one.
-A colony is an uneven cluster round one dominant, leaning sac. Its grade shows
+A colony is an uneven cluster round one dominant, leaning sac. A ground colony
+must never read as one: it is low and pressed flat into the creep, with no sac
+and no pore aimed at the sky, a plated core with an amber eye whose crimson
+sinew arms sprawl out over the ground like a starfish's, studded with spines
+raked back towards the core (the owner's pick of three body plans, over a
+spined armoured hump and a flat urchin, because it alone is told from a spore
+colony at a glance at play zoom). It has the colonies' paintings, wounds and
+remains: dead, its arms shrivel flat and its spines snap to stumps. Its grade shows
 in its body as well as its numbers: a lone sac with a bud at fissure grade,
 two lesser sacs pressed against it at bore grade, three and a plated, spined
 flank at maw grade, each larger than the last. Each body carries several
@@ -575,6 +805,20 @@ collapsed, nothing spawns again. Every swarm strain counts toward the
 population. The snapshot carries each bore that has opened: its tier, whether
 it lives, integrity, growth, biomass fed, surges, bodies released, next surge,
 its living spore colonies and the ticks it opened and collapsed.
+
+A battle with no rescue (`cordon-nouns.md`) runs the director **bore-only**:
+bore-sourced from the first tick over bores setup opened, with no perimeter
+and no rescue to end it. A mission may hold its field at a **pressure share**
+of the living bores' capacities; in the bore-only form due bores are then
+served fewest-surges first and a pulse is sized to the share, so the pressure
+lies across every bore rather than on whichever is listed first. A rescue's
+director is unchanged by either.
+
+The heart (`heart-nouns.md`) runs it bore-only too. A mission may hold a bore
+**asleep**: it grows and feeds but sends no surge until the mission wakes it
+with a surge due at once, and a sleeping bore adds nothing to the population
+target, so the bores awake never field bodies on its behalf. A woken surge
+still waits for room under the target, as any surge does.
 
 **Swarm strain.** A kind of swarm body with its own stats, appearance family and
 behaviour. A strain is a designed stage of the one organism (see *Origin*), not
@@ -679,8 +923,10 @@ not read in a soft shadow at play zoom.
   cooldown, tell, masses, every hold time) are starting values in
   `BruteChargeRules`, to be felt out in play rather than settled on paper.
 
-  The charge is shown three ways, all presentation over the rule: a faint
-  amber wedge along the line during the tell, with the other threat warnings;
+  The charge is shown two ways, all presentation over the rule (the tell
+  itself is the Brute's own wind-up and its sound; nothing is drawn on the
+  ground for it, because a charge cone is a game-UI tell the battle does not
+  show, owner, 2026-10-22):
   a knocked-down body's picture lying as a fallen one does for that second
   while the sim keeps it upright; and the squad card's status word naming the
   cause (knocked down, stalled, staggered, stunned) ahead of engaged or
@@ -730,8 +976,7 @@ not read in a soft shadow at play zoom.
   down and across the sweep. An emplacement, a hull or a mech
   takes the crown. It breaks walls a Brute cannot (a fort's buildings, not its
   curtain until something has worn that down), from further off, and never
-  walks round to a door. It is not staggered and does not charge. Until it has
-  sounds of its own it borrows the Brute's.
+  walks round to a door. It is not staggered and does not charge.
 
   Its weight is set against a lance: three Bulwarks and one Matriarch at full
   health come out near even (the `matriarch` scene's `mech-lance` loop reads
@@ -785,8 +1030,9 @@ and the reasons for each choice, with the first balance reading, in
   no elder has no leader and none of a leader's bonuses, though it still runs
   together (*Pack movement*) round its first living body, its **anchor**, which
   is a place to move round and nothing more. While the leader lives, members on its eight-cell leash share its
-  quarry when they have none of their own close by (local pursuit; the flow
-  field is untouched), pool what any of them senses (still sensing, passed body
+  quarry when they have none of their own close by and have not been peeled
+  off onto other prey (*The press, sub-packs*; local pursuit; the flow field is
+  untouched), pool what any of them senses (still sensing, passed body
   to body, a tick behind), and strike 15% faster. The leader's cry on new
   quarry is the pack's: a member taking the leader's quarry stays quiet. When
   it dies the pack **breaks** for good, heard as one scatter shriek at the
@@ -862,6 +1108,20 @@ against its own control in `renderEvidence`.
   cost along walkable ground, weighted by seeded noise so the front runs out in
   fingers, dearer on pavement. Until bores stand up on eruption sites, each opened site is itself a
   source that never dies.
+- **Trees are grown over, never only climbed.** A tree's crown cells are growth
+  the creep crosses, cell by cell at three times the ground's cost, so a grove
+  is overgrown from its edge inward and its interior and far side are reached
+  over it rather than left a green island the creep cannot enter. The battle
+  declares its trees' crowns to the field when the field is made; rock
+  formations and hills are climbed as walls are. A crown fills at a wall's rate,
+  so its coverage is how long the creep has held the tree.
+- **Creep can be matured.** A battle set weeks into a bloom (the Cordon,
+  `cordon-nouns.md`) grows every source to its full reach at once at setup and
+  fills it, walls crusted, as the clock would have (`CreepField.mature`); the
+  trees under it die at once and the roofs it stands under cave in
+  (`CreepRoofCollapse.matureOn`), as weeks under it would have brought them
+  down. Nothing else about the field changes. The heart's country is grown this
+  way too (`heart-nouns.md`).
 - **Removing a source withers what it alone held**, from the outer edge back to
   the hole over a visible interval: the growth dies first, then clears. Ground a
   living source also reaches stays, and a living source reaching dying ground
@@ -872,6 +1132,25 @@ against its own control in `renderEvidence`.
   one is crusted over. It reads as a matter of time. An overgrown wall still
   reads as a barrier: its crust is lighter than the floor's, lit and shaded on
   its edges as a raised block is, and outlined dark where it meets the floor.
+- **Trees die under it** (`CreepVegetation`). A tree whose crown living creep
+  has held to the tree's own seeded share of about a minute and a half of
+  climbing is dead, and stays dead if the creep later withers. A dead tree has
+  dropped its leaves, so its crown no longer hides or shelters anyone (sight
+  passes and it gives no edge cover) while its trunk still does both and its
+  tangle of bare limbs still stops a body walking through (owner, 2026-10-22,
+  over a shrouded tree that went on blocking as the living one did). A crown cell two trees share opens
+  only when both are dead, and never if it is either one's trunk. Felling still
+  works on a dead tree. Creep therefore strips a wood of concealment the way it
+  strips a building of its roof. `creep-vegetation` (`sceneEvidence`) holds the
+  mechanics; `-Dbattle.swarm.creepTrees=false` is the control.
+- **Hedges and crops are taken as grass is.** Vegetation in a battle is trees
+  (props with a crown) and the green ground: grass with the plants dressed on
+  it (shrubs and tufts), crop rows of grass beside turned earth, and the
+  country's hedges, which are shrubs grown along a plot's grass headland. None
+  of the green ground blocks a body or sight or gives cover, so creep changes
+  how it looks and nothing about how it fights: it wilts ahead of the lip and is
+  buried under it. A hedge that sheltered would be a natural prop with a crown,
+  and creep would take it as it takes a tree.
 - **A ground colony answers a gun the swarm cannot rush** (`GroundColonies`).
   A living bore grows one on its creep within reach of a hostile emplacement
   the creep has come up against: on living creep with creep round it, inside
@@ -880,7 +1159,18 @@ against its own control in `renderEvidence`.
   swarm's side: spines driven up from below on whatever stands in its short
   reach, indirect, with a small blast that also breaks walls beside the target,
   so a gun behind a wall is not safe from it. It dies with its bore, and as soon
-  as the creep under it is no longer living. `ground-colony` (`sceneEvidence`)
+  as the creep under it is no longer living. **Its strike reads from end to
+  end** though it travels underground: in the half second before its spines
+  are ready, while it has a target, the body clenches and quivers and its eye
+  comes up to full, and on the shot it lashes out; the run is a ripple heaving
+  through the creep from the colony to the strike, opening a jagged crack lit
+  by an amber seam behind it; at the strike the ground heaves and splits and a
+  crown of bone spines, crimson at the root, bursts up, holds a moment and
+  sinks back, and the crack and the heave fade over a second or so after. So
+  the player sees which colony struck and where from, as well as where it
+  landed. Its dust is the creep's violet, not concrete grey (`ColonyThreatFx`;
+  `-Dbattle.render.colonyThreat=false` is the control for both colonies'
+  looks, costed against it in `renderEvidence`). `ground-colony` (`sceneEvidence`)
   holds the mechanics; `-Dbattle.swarm.groundColonies=false` is the control.
 - **The creep digests the swarm's dead** (`CreepDigestion`). A strain body
   lying on living creep sinks into it over about twenty-five seconds, drawn
@@ -889,6 +1179,34 @@ against its own control in `renderEvidence`.
   being dragged is lying nowhere. Only the swarm's own: Marines, militia and
   colonists are the harvest's. It is what keeps a long battle on the creep from
   piling up corpses, and it gives nothing back to the field.
+- **Body pile cap: a safety net where nothing clears the dead** (`BodyPileCap`).
+  Off the creep and out of a bore's reach — waves thrown at a defended redoubt —
+  nothing takes the swarm's dead away, and every body lying is drawn every
+  frame: a dead Runner is some thirty quads of burst pieces, so a pile of 1,200
+  cost about seven milliseconds of frame (`renderEvidence`, `body pile`). The
+  battle counts the bodies still lying by 8x8-cell area once a second; past 64
+  in one area (about one a cell, a carpet) the oldest there settle and fade out
+  over four seconds and are gone, and past 1,000 on the whole field the oldest
+  anywhere go the same way. Every side's dead count, the oldest first by death
+  tick and then id, so it is deterministic. A body on a carrier — dragged,
+  impaled, being harvested — is never counted or taken, and one taken up
+  mid-fade lies whole again; a retired Runner leaves the swarm's recycling with
+  it, and the corpse itself stays for the battle's reckoning of the dead. The
+  limits are generous on purpose: it is not a mechanic, and a battle the creep
+  or the bores keep clean never reaches them. `-Dbattle.bodyPileCap=false` is
+  the control; `body-pile` (`createSnapshots`) shows a pile capped against it.
+- **A settled body is drawn from a recording of itself** (`SettledBodyMeshes`).
+  A burst Runner or Brute stops moving once its burst has settled
+  (`RavBurst.settled`, two and a half seconds after death): its pieces lie
+  where they came down, its pool has spread, its ichor has landed. From then on
+  its composition — the same quads the burst was drawn with, in the same order —
+  is recorded once in the body's own frame and drawn every frame as one command
+  (`QuadMesh`), scaled by the framing and by the melt or pile-cap shrink and
+  faded by their alpha, so creep digestion and the cap's fade read exactly as
+  before. Nothing about a body is decided by the recording; it only stops the
+  renderer re-deriving thirty-odd placements a body per frame for a picture
+  that cannot change. A body still bursting, and every other corpse, is drawn
+  as it was. `-Dbattle.render.settledBodyMesh=false` is the control.
 - **Creep favours the swarm and shelters no one** (`CreepEffects`). A swarm
   body runs a quarter faster on living creep; Marines and colonists are never
   slowed, so creep reads as the swarm's ground rather than mud. A fleeing or
@@ -903,6 +1221,10 @@ against its own control in `renderEvidence`.
   a roof that fell stays fallen. The battle keeps its own clock per cell, so the
   creep field knows nothing of roofs. An infested building is no shelter twice
   over: no colonist stops in it, and given time it has no roof.
+- **Fire burns creep and holds it back** (`fire-nouns.md`, Firebreak). Creep
+  is fuel, living or dying; creep under a fire crisps away in seconds, and
+  burnt ground refuses the creep for about three minutes before the sources
+  that still claim it fill it again. Creep over a road makes the road burn.
 - **The look is the field drawn, never a second model.** The creep is a hard
   organic edge, not a spill: an opaque surface of grown chitin plates over a
   membrane, rolled up into a raised, beaded lip where it stops, veined, with a
@@ -910,7 +1232,23 @@ against its own control in `renderEvidence`.
   inside the ground's relief composite, so it moves with the ground's parallax
   and lies under the walls' shadows. Walls go through four stages with age:
   veins, then crust from the foot, with a dark crease where creep meets the
-  wall. Dead growth is a grey husk. One shading model serves the game (a shader)
+  wall. Dead growth is a grey husk. Trees go through four stages with the
+  creep's hold on the crown, cross-faded so a tree turns rather than pops: veins
+  reaching in from the crown's rim while the leaves start to turn; a crust
+  rolling in from the rim with the creep's beaded lip while the leaves brown;
+  the crown withering, its dead leaves falling from a bare skeleton; and the
+  dead tree, a skeleton of bleached, bone-pale limbs forking out from a crusted
+  trunk to the crown's own outline, veins running out along them, drawn with a
+  dark outline over a soft ground shadow so it stands up off the dark creep at
+  play zoom. The skeleton is grown by the bake rather than taken from the
+  damaged-crown art, whose few broken limbs vanished against the creep. The stages are a
+  sheet baked from the canopy art and the creep's own surface and palette
+  (`gradlew.bat bakeCreepBlight`), so the crust on a crown is the crust on the
+  ground. On vegetation (grass, crops and the plants on them) the edge is not
+  clean as it is on pavement: the creep's coverage spread a few cells out turns
+  the grass a dry, greyed straw (the palette's wilt colour) and veins reach out
+  into it ahead of the lip, so grass and crop rows are seen to be taken before
+  they are covered; turned earth and pavement keep the hard edge. One shading model serves the game (a shader)
   and review frames (its CPU mirror), from one surface texture generated in
   code. Colour is data: the swarm owns no red, and the default creep is a dull,
   dark, desaturated violet-grey that sits under the lilac creatures without
@@ -930,9 +1268,19 @@ large map.
   colonists while harvest is open.
 - **Shelter** and **lift** are disclosed, so the mission declares their cells;
   the swarm knows where they are without sensing them, as the noun's law allows.
+- **A barricade costs, it does not block.** A militia barricade piece is
+  crossed by the field at the cost of about a dozen cells, cardinally only, and
+  a descent stops in front of it; a body there strikes it. Close in, a body the
+  field leads through a barricade follows the field rather than its own path,
+  because its own path would take it round and the two would turn it back and
+  forth.
 - **Bore** is the goal of a body carrying biomass home: the nearest living
   bore. The swarm's own holes, so their cells are declared and redeclared as a
   bore opens or collapses.
+- **A field charges for fire.** A step into a burning cell, or one beside it,
+  costs the fire's route multiplier, so the swarm streams round a burning
+  stand where it can and through it only where its goal lies beyond
+  (`fire-nouns.md`, Pathing).
 - **A field makes a stream.** The descent is the same from every cell and has
   no crowd term, so bodies descending it each for themselves fall into one lane
   and run it single file. That is the river a surge makes leaving its mouth,
@@ -962,10 +1310,46 @@ large map.
   mechanic (spread across the pack's width, no long file on open ground,
   stalk-feint-rush in order, approaches from more than one side, the break on
   the leader's death); its cost is in `swarm-movement-cost.md`.
+- **The press, sub-packs** (owner, 2026-10-22: "retain movement and possibly
+  break off sub-packs onto other targets"). Once a pack is on its quarry it
+  fights as a press rather than a heap. A body has room round it for only so
+  many Runners to strike at once, its **strike slots**: the ring round its body
+  a Runner's width apiece, four round a marine and more round anything
+  bigger. Two packs on one body share its slots. The members holding them
+  **hold**: they wheel round the quarry inside their reach, lunging in and
+  easing out, biting as they pass; nothing in the press plants. The rest
+  **wait**: they circle a wider ring the other way, weaving in and out. A
+  holder's turn ends after a second and a half while others wait; then the
+  longest-waiting darts in and the holder backs out to the ring. A member joins
+  the press once it is committed to the rush, or whenever its victim is right in
+  front of it. A pack with more on its quarry than the slots and one in reserve
+  peels the surplus off as a **sub-pack** onto the nearest other prey it can see
+  from there (another marine, a squad's flank, a gun), never fewer than two and
+  no more than that quarry's slots and a reserve, with the member nearest that
+  quarry as its **lead**, whose cry it is. A sub-pack stays in its pack
+  (membership, leader and break are unchanged) and runs at its own quarry, not
+  on the pack's lane or hunt; it **re-merges** the moment its quarry dies, is
+  the pack's own quarry, or it is down to one body, and the pack may peel
+  another off its surplus a second later. The press is a pack's: a Runner in
+  no pack still plants on what it strikes. `-Dbattle.swarm.packSplit=false` is
+  the control: every Runner in reach plants and the whole pack takes the
+  leader's quarry, which is the pile-on the owner saw. The `swarm-pack-crowd`
+  scene asserts the mechanic (the surplus on a saturated quarry hunting other
+  prey within three seconds, no sub-pack of one, no Runner in the fight still
+  for more than a second and a half, re-merge on the tick its quarry dies).
 - **Strategic movement and local pursuit.** A body whose target is more than a
   few cells away moves down its goal's field; within that range it runs its own
   short path to the one victim it has chosen. Every strain moves through the
   same call, so a change to how the swarm travels reaches all of them at once.
+- **A body's own path is a bounded search.** Close in, a body never pays for a
+  whole-map answer: its path is a crowd-aware search capped at about the work of
+  the box round it, and a victim that search cannot reach is not close, so the
+  body goes back to the field, which goes round to it. A farther cell (a pack
+  member's place round a quarry) gets a larger cap, and a miss there too falls
+  back to the field wherever there is one; only a move with no field behind it
+  (a far dead to fetch, a breach approach) still pays for the whole map. Melee is where every body re-paths to a victim that moves
+  every tick; uncapped, that was whole-map searches by the dozen once a large
+  swarm made contact. `-Dbattle.swarm.localPathBudget=false` is the control.
 - **A field belongs to the battle's navigation grid.** It is derived from that
   grid's walls and retired by its topology changing, so two battles in one
   process can never read each other's fields (the `LosCache` lesson). It is
@@ -1063,8 +1447,9 @@ a commit is the `strike_committed_N` beat and a recall `strike_recalled_N`, wher
 
 **Hive bonus.** Collapsing the mother bore is recorded on the mission outcome
 whatever the posture, through the ordinary outcome path: the battle reports
-whether the mother collapsed beside the evacuation report. What the bonus pays
-in the campaign is the owner's call and not yet settled.
+whether the mother collapsed beside the evacuation report. In the campaign it
+contains the bloom behind the call (*Campaign: blooms*); anything it pays beyond
+that and the Hegemony's regard is the owner's call and not yet settled.
 
 ## Flow
 
@@ -1156,16 +1541,36 @@ hooves at every half cell, so a walking Brute plods and a charging one thunders.
 Each phase of the Brute's charge has its own sound (the tell, the run, the hit
 on infantry, a vehicle or a wall, the stun after a heavy wall or a tank), keyed
 to the charge's own events; a Runner's impale has its own sound, posted as a cue
-by the story that adds it. Each strain's sound is admitted under its own gap and
+by the story that adds it. A ground colony makes no sound as it fires: its
+spines travel under the ground, seen only as the ripple in the creep, and are
+heard where they break out, as the weapon's impact. The creep itself is heard as a wet, slow spread bed, one
+loop placed on the seen living creep nearest the camera and as loud as the
+share of the ground round the camera the creep has taken (`CreepAudio`), so a
+sliver at the edge of the view murmurs and a street drowned in it is a full
+bed. **Rav Bloom sound re-uses rather than multiplies** (owner): a new sound
+is first tried as an accepted take of another played at another pitch, which
+also sets its tempo, and ships no audio of its own when that serves; the
+creep bed is the bore-tier ambience slowed, the spine strike the Brute's
+head-ram quickened and its wall hit slowed, drawn from one pool. Each strain's sound is admitted under its own gap and
 footfalls come from the few bodies nearest the listener, so a pack reads as a
 pack, and the swarm is heard only on ground the player has seen. A body's growth
 stage pitches everything it makes by the inverse of its size and sets its
 loudness (a whelp about four semitones up and quieter, an elder deeper and
 louder): one take heard three ways stays the same creature. A pack's break is
 one scatter shriek, the leader's own cry at the leader's stage. The Spitter has
-no voice. The Matriarch's design has settled but its sounds are still open:
-it borrows the Brute's until its own join as a strain of their own (its
-catalogued roar was rejected and is to be redone).
+no voice. The Matriarch is the biggest of the Runner's and Brute's family and
+sounds it: only her roar (out of the bore and at each moult) and the whoosh
+and cut of a reap are her own takes; her bellow on new quarry, hoof, crown,
+wall breaking, pain and death are the Brute's, played deeper, slower and
+further apart.
+
+**Reuse before new takes** (owner, 2026-10-22). The swarm is a minor faction
+and its sound is kept small: a strain's sound is an accepted take of a sibling
+strain played at another pitch and speed before it is a new file, and a new
+take is made only where nothing reusable fits. The shift is the sound player's
+own pitch argument at play time (which moves pitch and speed together), never
+a baked copy, so a variant costs no file. Growth stage rides the same
+argument.
 
 ## Laws
 
@@ -1207,6 +1612,5 @@ catalogued roar was rejected and is to be redone).
 - Structure durability: `combat-durability-nouns.md`.
 - Setting and canon tiers: `faction-lore-nouns.md`; the swarm's own lore
   guide is `swarm-lore-guide.md`.
-- Where and how often outbreaks appear in the campaign: the Civilian Rescue
-  campaign event (`CivilianRescueSpawnSystem`), extended by
-  `sector-outbreaks.md`.
+- The rescue's choice and exactly-once lifecycle: `campaign-event-nouns.md`;
+  where and how often blooms raise it is *Campaign: blooms* above.

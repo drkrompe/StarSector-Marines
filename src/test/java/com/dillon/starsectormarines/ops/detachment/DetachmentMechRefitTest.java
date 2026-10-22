@@ -13,7 +13,8 @@ class DetachmentMechRefitTest {
         MechRefit refit = new MechRefit(1.03f, 1.10f, 1.05f, 1f);
         MechDeploymentSpec stock = MechDeploymentSpec.standard(MechVariant.BULWARK);
         MechDeploymentSpec owned = new MechDeploymentSpec(stock.variant(), stock.role(), stock.missileReplenisher(),
-                stock.arms(), stock.leftShoulder(), stock.rightShoulder(), "Anvil", stock.frame(), "mech-1");
+                stock.arms(), stock.leftArm(), stock.rightArm(), stock.leftShoulder(), stock.rightShoulder(),
+                "Anvil", stock.frame(), "mech-1");
 
         List<MechDeploymentSpec> frozen = DetachmentResolver.withShipRefit(List.of(owned, stock), refit);
 

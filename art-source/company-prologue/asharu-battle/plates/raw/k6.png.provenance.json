@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16447-18a5-7f91-bfab-4f842805f5f5",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16447-18a5-7f91-bfab-4f842805f5f5\\exec-3dad6346-b677-4ee6-addf-09b7932d1a68.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\asharu-battle\\plates\\raw\\k6.png",
+    "sha256": "2fd76651b562935fcad875119aaf663cdd96e699075239ed2b61976007913917",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\asharu-battle\\plates\\prompts\\k6.txt",
+  "promptSha256": "31f0000433825f0a5fd7b18cb496490129125f9799dd2f3825f4322c429d136c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Exact layout authority: a rough projection of this ground through the shot camera. Keep everything where it is.\n\nA finished matte painting for a film: a photoreal view from low orbit, 250 km up, looking\nforward and down across a desert world to its curved horizon. Wide 16:9 landscape canvas,\n50 mm lens, flat morning light from the left and behind.\n\nImage 1 is the exact layout authority, a rough projection of this very ground through the\nshot's camera. Keep everything exactly where it is, at the same size and in the same colours:\nthe horizon line and its curve, the pale sand sea on the left, the dark canyon-cut rock massif,\nthe olive basin at right, the pale salt pan, and the three settlements and their roads. Do not\nmove, add, remove or rescale anything, and keep the framing pixel for pixel.\n\nRepaint it at full photographic detail, the way an astronaut's photograph from orbit looks:\n- Near ground sharp: dune ridges with a consistent wind grain, sharp canyons with pale floors\n  and dark walls, mesas and talus. Detail falls off with distance into a soft, thin, pale-blue\n  atmospheric haze that thickens toward the horizon, and a thin bright limb of atmosphere\n  along the curve.\n- Above the limb: black space, no stars, no moon, nothing else.\n- The settlements stay small, as seen from 400-700 km: the walled city at the canyon mouth on\n  the edge of the sand sea, the strip mine on the massif's far flank, the spaceport's grid of\n  pads on the salt pan, faint road lines between them.\nNo ships, plasma trails, clouds, lens flare, text, labels or border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "build\\asharu-plates\\guides\\k6.png",
+      "sha256": "c504c8fec7bc1f5e3a746bb0aff4ec40c7c1eeb6d6606164b3c8eaefb490c984",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Exact layout authority: a rough projection of this ground through the shot camera. Keep everything where it is."
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the image generation tool to repaint the reference with photographic detail while preserving its layout and framing.\n"
+  ],
+  "usage": {
+    "input_tokens": 42354,
+    "cached_input_tokens": 33152,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 481,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 56.3
+}

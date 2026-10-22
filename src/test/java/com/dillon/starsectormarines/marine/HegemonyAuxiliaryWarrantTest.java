@@ -34,10 +34,10 @@ class HegemonyAuxiliaryWarrantTest {
     }
 
     @Test
-    void acceptanceRecordsAHegemonyWarrantNamingOnlyTheArbalest() {
+    void acceptanceRecordsAHegemonyWarrantNamingOnlyTheAuxiliarySection() {
         CampaignState state = offered();
         assertTrue(HegemonyAuxiliaryWarrant.accept(state, 20));
-        assertEquals(Set.of(HegemonyAuxiliaryWarrant.STAGE_ONE), MilitaryWarrants.warrantedTemplateIds(state));
+        assertEquals(Set.of(HegemonyAuxiliaryWarrant.STAGE_ONE), MilitaryWarrants.warrantedCardIds(state));
         List<MilitaryWarrants.Held> held = MilitaryWarrants.held(state);
         assertEquals(1, held.size());
         assertEquals(ArmorTradition.HEGEMONY, held.get(0).issuer());
@@ -53,11 +53,11 @@ class HegemonyAuxiliaryWarrantTest {
         CampaignState state = offered();
         assertFalse(HegemonyAuxiliaryWarrant.honouredPeriod(state, 15), "not before enrolment");
         HegemonyAuxiliaryWarrant.accept(state, 20);
-        assertFalse(MilitaryWarrants.warrantedTemplateIds(state).contains(HegemonyAuxiliaryWarrant.STAGE_TWO));
+        assertFalse(MilitaryWarrants.warrantedCardIds(state).contains(HegemonyAuxiliaryWarrant.STAGE_TWO));
 
         assertTrue(HegemonyAuxiliaryWarrant.honouredPeriod(state, 110));
         assertEquals(Set.of(HegemonyAuxiliaryWarrant.STAGE_ONE, HegemonyAuxiliaryWarrant.STAGE_TWO),
-                MilitaryWarrants.warrantedTemplateIds(state));
+                MilitaryWarrants.warrantedCardIds(state));
         assertFalse(HegemonyAuxiliaryWarrant.honouredPeriod(state, 200), "once");
         assertEquals(2, state.militaryWarrantCount);
     }
@@ -69,7 +69,7 @@ class HegemonyAuxiliaryWarrantTest {
         assertFalse(HegemonyAuxiliaryWarrant.accept(state, 21));
         assertFalse(HegemonyAuxiliaryWarrant.honouredPeriod(state, 110));
         assertFalse(HegemonyAuxiliaryWarrant.offer(state, 30));
-        assertTrue(MilitaryWarrants.warrantedTemplateIds(state).isEmpty());
+        assertTrue(MilitaryWarrants.warrantedCardIds(state).isEmpty());
         assertTrue(MilitaryWarrants.standingWarrantDue(EquipmentAcquisitionEligibility.requiredMrb(
                 EquipmentAccessTier.PRESTIGE), RepLevel.COOPERATIVE), "the standing route stays open");
     }

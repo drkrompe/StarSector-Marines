@@ -42,6 +42,17 @@ increasing an encounter's total armored threat.
   response, the Hound the lightest, and the Sirocco an intermediate response.
 - A **mount** is physical hardware at an arm or shoulder position. An absent
   mount is genuinely absent, never a dummy weapon or a hidden firing band.
+  The arm positions come in two shapes, and a chassis has one or the other:
+  a **centreline arm mount** (`ARMS`, the gun under the Hound's nose or the
+  Sirocco's chin) or a **left and a right arm mount** (`LEFT_ARM`,
+  `RIGHT_ARM`, the Bulwark's two arms, each with its own gun). Every arm gun is
+  one gun: there is no paired or "dual" component, because a pair is two arm
+  mounts, each fitted, damaged, lost and fired on its own. A gun whose art only
+  reads on the centreline (the nose chaingun and nose autogun, the heavy,
+  demolition and quarry-breaker cannons) fits only a centreline mount; the
+  other arm guns fit any arm mount. Direct-control number keys follow mount
+  order: 1 restores the default fire groups, then 2 centreline arm, 3 left arm,
+  4 right arm, 5 and 6 the shoulders.
 - A **missile replenisher** is an installed onboard subsystem. It owns how
   quickly finite SRM and LRM mounts regain trigger packs, independently of
   their mechanical trigger cycle and ready-ammunition capacity. Replenishment repeats
@@ -194,7 +205,7 @@ increasing an encounter's total armored threat.
   against owned quantity; a refit transaction returns the target mech's
   current component before evaluating the replacement.
 - An **internal** is a non-weapon fitting that changes the frame (`MechInternal`):
-  an **engine** in the CORE socket, a **capacitor bank** in AMMO_RESERVE, an optional
+  an **engine** in the CORE socket, a **capacitor bank** in CAPACITORS, an optional
   **vent array** in MINI_FAB, and **plating**, which covers the whole frame and has no
   socket. The **stock frame** is the industrial engine, factory plating and factory
   capacitor bank, with the utility socket empty; every fabricated, recovered or migrated
@@ -230,11 +241,13 @@ increasing an encounter's total armored threat.
   figures stay what the Mech Lab budget reads. Unowned mechs, and any mech off
   the founding hull, deploy neutral; battle never reads the ship.
 - A **section** is where on a mech a round lands (`MechSection`): legs, torso,
-  the arms mount, the left and right shoulder mounts, and the head. A chassis's
+  the centreline arm mount or the left and right arm mounts, the left and right
+  shoulder mounts, and the head. A chassis's
   **mech plan** (`MechBodyPlan`, authored per chassis) stacks four height bands
   from the feet up (legs, torso, shoulders, head) so the ballistic height picks
-  the band exactly as it picks a marine's part; the torso band gives the arms
-  mount a lateral share of its hits, and the shoulder band gives the hit to the
+  the band exactly as it picks a marine's part; the torso band gives the arm
+  mounts a lateral share of its hits (a centreline mount takes them all, a
+  two-armed chassis gives each to the arm on the side the round came from), and the shoulder band gives the hit to the
   shoulder on the side the round came from, read against the upper torso's
   facing. A lone pod a chassis draws on its centreline (the Hound's) takes the
   whole shoulder band. A payload with no ballistic height (a blast, a strafe) is
@@ -364,10 +377,18 @@ increasing an encounter's total armored threat.
   two rows; SRM-15 and LRM-15 occupy two columns by three rows. Large shoulder
   sockets present that same upright grid. Range and delivery distinguish SRM
   direct fire from LRM artillery, rather than different footprints within a size class.
-  Each asset-class layout owns the socket's physical mount anchor,
-  its equipment-dock center around the doll, and its doll-relative interaction
-  footprint as well as compatibility and capacity. A leader preserves the
-  relationship between a remote dock and the mount it configures.
+  Nothing is smaller than one row by two columns: every weapon, internal and
+  socket is at least 2x1, so the smallest piece still reads as a piece.
+  Above a single row, a piece is never wider than it is tall: multi-row
+  footprints are 2x2 or 2x3 (columns x rows), and long guns stand upright in
+  them, muzzle forward.
+  Each asset-class layout owns the socket's compatibility and capacity. The lab
+  draws the sockets as a **schematic**, not as docks around the machine: the
+  engine core in the middle of a drafting panel on the left, the arm mount
+  ahead of it (on a two-armed chassis, an arm card ahead-left and one
+  ahead-right), a shoulder either side, the capacitors and mini-fab behind, each
+  wired back to the core in its hardpoint colour. The fitting camera stands the
+  machine itself in the right of the view, beside the schematic.
   Presentation may enforce a minimum pointer hit area for usability without
   changing that grid or making the asset physically larger. Inactive cells remain
   visible and blocked so a smaller mount reads against the same scale as a larger
@@ -375,6 +396,39 @@ increasing an encounter's total armored threat.
   footprint means an authored socket is unoccupied; an omitted socket is still
   genuinely absent. The drag gesture is presentation; the validated resulting
   placement is domain intent.
+- **Hardpoint language** (after MechWarrior 4's lab). Colour names the
+  compatibility type everywhere hardware or a socket is drawn: energy red-orange,
+  missile green, ballistic yellow, omni grey. The frame's own mounts have their
+  own colours: the engine socket blue, the capacitor (flux) socket violet and the
+  mini-fab utility socket teal, and an engine, capacitor bank, vent array or
+  missile loader is a brick piece in its socket's colour like any weapon. Every
+  chassis has an engine and a capacitor bank: those sockets only take a
+  replacement and are never left empty. Size reads from shape, not text: every
+  grid cell is a chamfered brick narrower than it is tall, and a footprint is its
+  bricks stacked, so a 2x3 rack is visibly a taller stack than a 2x2. On the doll
+  every brick is the same size, so a socket's card grows with its capacity and a
+  2x3 piece is physically larger than a 2x2. An empty doll socket wears its type's colour on its rim
+  over dim bricks; fitted hardware fills its bricks in its own colour and fuses
+  them into one solid piece, notched only along its outside edge. The piece's
+  face is a painted icon (`HardwareArt`): a flat pictogram in a dark shade and a
+  light highlight over that colour, never the battle sprite, with a silver
+  stencil designation (SRM, LRM, CG, ENG, CAP...) tagged in the piece's bottom-right
+  brick. Designations are markings, not prose: they do not localize. Drag
+  compatibility therefore uses a colour outside that palette. The doll is the
+  location picker: clicking a socket selects it, the right column describes only
+  that socket, and a fitted weapon is stripped from the X on its doll card.
+- **Stores and fabrication are separate gestures.** The left column lists the
+  selected mount's stores: spares the bay holds, and patterns the company can
+  build. A fitted part is on the mech, not in that list. Fitting is a drag from a
+  spare onto a mount, and taking a part off is a drag back to stores (or the X);
+  there is no install button. A known pattern with no spare in stores carries a
+  BUY button (a cog icon) and its material cost on the right of its piece;
+  it builds one into stores and fits nothing, and is dimmed while the materials are
+  short. A row with a spare offers no build at all: the spare is what to drag, and
+  stripping a part back to stores takes the offer away again. Plating is the one exception: it covers the whole frame and
+  has no mount to drop on, so a spare plate is fitted from its row. The fitting
+  view has no call-sign or status bars: a BACK button returns to the lance
+  overview, as the Mech Lab tab itself does.
 - A **fitting doll** is the asset-authored maintenance presentation of one mech
   or vehicle class. It references the same ordered appearance and physical scale
   used in battle, while owning the maintenance facing and every socket's physical
@@ -437,13 +491,13 @@ increasing an encounter's total armored threat.
 ## Family and doctrine
 
 The Bulwark is the durable all-band anchor and compatibility control case. Its
-neutral production fit carries paired chaingun arms and twin anti-armor
-SRM shoulders (Missile warheads). Tri-Tachyon issue replaces the arms with paired rapid pulse-laser
-arrays and the right omni shoulder with a long-cooldown direct laser cannon whose
+neutral production fit carries a chaingun on each arm and twin anti-armor
+SRM shoulders (Missile warheads). Tri-Tachyon issue replaces them with a rapid pulse laser on
+each arm and the right omni shoulder with a long-cooldown direct laser cannon whose
 lance can pass through one body. Those are explicit faction hardware swaps;
 livery changes only the accepted casing paint of whichever components are
-installed. Hegemony Bulwarks replace the arm battery with paired Bastion
-autocannons: slower six-round service bursts trade saturation for range and
+installed. Hegemony Bulwarks put a Bastion autocannon on each
+arm: slower six-round service bursts trade saturation for range and
 armor penetration. Luddic Path Hounds replace the nose gun with a five-shell
 Foundry Breaker, an inaccurate demolition cannon whose contact payload, broad
 blast, and structural damage make every shot consequential. Lion's Guard
@@ -667,7 +721,7 @@ LRM-15 are the anti-armor racks.
   This is the one place penetration enters the band (Family and doctrine, duel
   range), because penetration is what a warhead is chosen for.
 - **Patterns.** A Frag rack is a sidegrade of its AT rack: the same tier, the
-  same footprint and so the same mass, and a slightly smaller rare-metal bill.
+  same footprint and so the same mass, and so the same bill.
   The navies (Hegemony, Tri-Tachyon) weight up the Advanced AT racks. Pirates,
   independents and the Luddic Path weight up the Frag racks. A new company knows
   both SRM-5s, and Castle's recovered spare for Wayward is the Frag one, since
@@ -1021,9 +1075,9 @@ support sortie, subject only to practical runtime resources.
 - Socket overlays consume the selected asset's authored fitting layout. Recessed
   metal equipment wells frame the actual weapon art around the physical doll;
   quiet internal grids retain the socket's authored dimensions. Empty mounts show
-  a hardware silhouette and compatibility label. The CORE, AMMO_RESERVE and
+  a hardware silhouette and compatibility label. The CORE, CAPACITORS and
   MINI_FAB wells host internals rather than weapons, and the workspace shows the
-  engine budget beside them. Thin routed leaders return to physical anchors.
+  engine budget beside them.
   Amber corners identify selection; green alignment scans and a release prompt
   identify an accepted proposed drop, and red corners explicitly reject one.
   Motion follows the presentation clock without mutating campaign hardware.
@@ -1044,6 +1098,13 @@ support sortie, subject only to practical runtime resources.
   command. Factory-locked internals read as recessed rather than as swappable
   mounts. Hover ghosting on docks and on the top performance meters is
   presentation only: it projects a candidate and never changes hardware.
+- Each performance meter wears the colour of the part that moves it (plate for
+  armor, engine blue for mobility, flux violet for capacitors and dissipation,
+  weapon amber for reach, missile green for racks) and reads against the
+  **stock frame**: the chassis's roll-out weapons on its stock internals. The
+  stock share is a dim shade with a tick where stock stands, what the fit adds
+  past it is the full colour, and a fit that falls short of stock shows the
+  shortfall in red.
 - The garage is a flat top-down, non-advancing room simulation assembled from the
   battle renderer's indoor tileset cells and props. Its mech and workers are real
   battle entities consumed by the ordinary unit render system. The retained host
@@ -1063,7 +1124,13 @@ support sortie, subject only to practical runtime resources.
   physical pads—including vacant ones—plus the adjacent service and circulation
   space. The camera does not crop to the number of assigned assets. This is a
   non-selected state: it gives the room its full width, labels all four gantries,
-  and exposes no equipment catalog, performance strip, or socket rack. Selecting
+  and exposes no equipment catalog, performance strip, or socket rack. **Pads are
+  lettered A to D** in gantry order: the letter is stencilled on an amber plate in each
+  pad's corner, and the cards, headings and messages name a pad by the same letter,
+  never by a number. A vacant pad is marked as a build site in the BUY amber (a faint
+  wash, corner brackets, the fabrication cog and BUILD), never a bare plus. The status
+  line on the right of the heading says what the current view asks for: select a pad,
+  choose a chassis or vehicle, or select a mount. Selecting
   an occupied gantry establishes the fitting asset and eases
   the same battle camera into it; only then does the fitting workspace reveal those
   chassis-scoped controls. Selecting a vacant gantry instead opens the chassis- and
@@ -1072,17 +1139,38 @@ support sortie, subject only to practical runtime resources.
   it part of the active lance. A gantry holding a vehicle is selectable and shows its
   callsign, hull, weight class and read-only hull stats (structure, armour, mobility,
   passengers, turret); it exposes no sockets, catalog or doll, and its pad is never
-  drawn as vacant. Gantries order mechs first, then vehicles. Returning
+  drawn as vacant. The build catalog filters by weight class (all, light, medium,
+  heavy) across chassis and vehicles alike, in the strip the weapon catalog uses for
+  hardpoint types. Gantries order mechs first, then vehicles.
+- **Scrapping frees a pad.** An occupied pad's heading carries SCRAP, which takes two
+  presses: the first arms it and says what comes back, the second breaks the machine
+  up. Nothing fitted is lost (weapons, internals and the replenisher stay owned and are
+  spares in stores again) and half the chassis or vehicle bill, rounded down, returns
+  to the ship's hold, never to a depot it may leave behind. This is the opposite of a
+  battle loss, which takes the fitted parts with the frame (`MechWorkshop.scrapMech`).
+  The lance returns to its overview with that pad vacant. Returning
   through the current Mech Lab room route clears
   that selection and restores the overview. No camera transition moves, respawns,
   pauses, or rebuilds garage contents to fake motion.
-- The fitting header exposes previous/next gantry controls and a numbered
-  `01 / 04` station position. Navigation wraps across the four physical pads; arriving
+- The fitting header names the pad by its letter. Navigation wraps across the four physical pads; arriving
   at a vacant pad clears the chassis selection and exposes fabrication patterns rather
   than rendering chassis controls against nothing. Lance browsing remains a
-  separate direct-jump surface.
-- Fabrication spends ordinary player-fleet supplies, heavy machinery, metals, and
-  rare metals. A shared icon-and-count strip shows fleet material stock; each
+  separate direct-jump surface, and it is pictures first: each lance shows one
+  lettered tile per pad (the chassis or vehicle standing there, or an empty pad), and
+  the selected lance lists every pad as a card with its thumbnail, vacant pads included
+  as BUILD cards, so what a lance lacks reads as plainly as what it holds.
+- Fabrication spends three ordinary player-fleet materials: metals, heavy machinery
+  and transplutonics (the base game's `rare_metals`). The lab spends no supplies.
+  **Hardware is priced, not authored.** A weapon is worth its mass (footprint, tier
+  weight and heavy build) at a common rate, times its access tier; an internal is
+  worth its role's stock part, times its tier. What the part is made of decides
+  which materials pay that worth: plate is mostly metals, mechanisms and engines
+  mostly machinery, energy weapons, guidance and capacitance mostly
+  transplutonics. A bigger or rarer part therefore costs more without a second
+  table to keep in step with the first (`MechFabricationCatalog.weaponValue`).
+  Chassis and vehicle bills stay authored, because they carry the armor-per-credit
+  parity between hulls and walkers. Workshop tooling saves a fifth of the heavy
+  machinery (and of a boat job's supplies). A shared icon-and-count strip shows fleet material stock; each
   fabrication pattern shows only its required quantities beside commodity icons.
   Hover details supply material names, exact cargo counts and shortages. Icons and
   names resolve from the base game's live commodity specifications, so the Mech Lab
@@ -1197,7 +1285,7 @@ first after a release takes the flux. Against a mech or a ground vehicle, mounts
 are tried in order of armor efficiency against that target's rating
 (`clamp(penetration / rating, 0, 1)`, the better of a weapon's payloads), with
 slot order kept on ties (`MechFireOrder`). Against anything else the slot order
-stands: arms, left shoulder, right shoulder. So a Bulwark's SRM shoulders, its
+stands: arm mounts, left shoulder, right shoulder. So a Bulwark's SRM shoulders, its
 anti-armor weapons, are no longer starved by the chaingun against a machine,
 while its fire at infantry is exactly what it was. An anti-armor rack (penetration 30) defeats any mech's plate outright, so a
 heavy cannon, which also does, keeps its slot ahead of it, a bastion yields to

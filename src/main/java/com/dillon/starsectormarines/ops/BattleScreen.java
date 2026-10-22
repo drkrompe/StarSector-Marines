@@ -10,7 +10,6 @@ import com.dillon.starsectormarines.battle.audio.OperationRadio;
 import com.dillon.starsectormarines.battle.audio.MechFootstepAudio;
 import com.dillon.starsectormarines.battle.audio.StoryNarrationPlayer;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
-import com.fs.starfarer.api.SoundAPI;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipSpotting;
@@ -84,6 +83,7 @@ import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceAudio;
 import com.dillon.starsectormarines.ops.battleview.WarshipAudio;
 import com.dillon.starsectormarines.ops.battleview.BoreAudio;
+import com.dillon.starsectormarines.ops.battleview.CreepAudio;
 import com.dillon.starsectormarines.ops.battleview.SwarmAudio;
 import com.dillon.starsectormarines.ops.battleview.TenderAudio;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceFxRuntime;
@@ -150,7 +150,6 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     /** Sound IDs declared in mod/data/config/sounds.json. */
     private static final String[] BATTLE_MUSIC_POOL = {
-            "marines_battle_music",
             "marines_battle_music_02",
             "marines_battle_music_03",
             "marines_battle_music_04",
@@ -161,7 +160,6 @@ public class BattleScreen implements Screen, BattleUiContext {
             "marines_battle_music_09",
             "marines_battle_music_10",
     };
-    private static final String LOOP_TICKING  = "marines_ticking_clock";
     private static final String SFX_VOICE_DEAD = "marines_voice_dead";
     /** A suit's integral system raising a screen. Mono, so it plays positionally. */
     private static final String SFX_SYSTEM_SCREEN_UP = "marines_system_screen_up";
@@ -304,7 +302,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     /** The one faction-local Conquest command picture currently projected into the world. */
     private Faction debugConquestPerspective;
     /**
-     * True while this screen owns the audio side effects (custom music + ticking-clock loop
+     * True while this screen owns the audio side effects (custom music + ambient loops
      * + suspended default playback). Guarded so attach() re-runs from dialog resizes don't
      * restart the music mid-battle, and detach() doesn't double-stop on already-cleaned exits.
      */
@@ -325,7 +323,6 @@ public class BattleScreen implements Screen, BattleUiContext {
     private final MechFootstepAudio mechFootsteps = new MechFootstepAudio();
     private final StorySubtitleOverlay storySubtitles = new StorySubtitleOverlay();
     private StoryNarrationPlayer storyNarration;
-    private SoundAPI radioSound;
     private final CompanyOfficer companyOfficer = new CompanyOfficer();
     private final OperationRadio operationRadio = new OperationRadio();
 
@@ -359,8 +356,6 @@ public class BattleScreen implements Screen, BattleUiContext {
             attachedSimulation = nextSimulation;
             if (storyNarration != null) storyNarration.stop();
             storySubtitles.detach();
-            if (radioSound != null) radioSound.stop();
-            radioSound = null;
             radioChatter.reset();
             companyOfficer.reset();
             operationRadio.reset();
@@ -368,8 +363,6 @@ public class BattleScreen implements Screen, BattleUiContext {
             storyNarration = new StoryNarrationPlayer(WaylineNarration.builtins(),
                     WaylineNarration.narrationMissionId(ctx != null ? ctx.getSelectedMission() : null,
                             nextSimulation), line -> {
-                        if (radioSound != null) radioSound.stop();
-                        radioSound = null;
                         companyOfficer.stop();
                         operationRadio.stop();
                         radioChatter.reserveVoice(line.durationSeconds());
@@ -429,9 +422,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     /**
      * Suspend the campaign music player and crossfade into our shuffled battle playlist.
      * Guarded so re-entry from a dialog resize (attach() is documented as idempotent)
-     * doesn't restart the music mid-battle. The ticking-clock loop itself is started
-     * lazily on the first {@link #advance(float)} — {@code playUILoop} must be called
-     * every frame anyway, so there's no benefit to kicking it off here.
+     * doesn't restart the music mid-battle. Ambient loops are driven from
+     * {@link #advance(float)}, since {@code playUILoop} must be called every frame.
      */
     private void startBattleAudio() {
         if (audioActive) return;
@@ -556,7 +548,6 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (nextTrack != null) {
                 Global.getSoundPlayer().playCustomMusic(0, 0, nextTrack, false);
             }
-            Global.getSoundPlayer().playUILoop(LOOP_TICKING, 1f, 1f);
             driveAmbientBackground(dt);
         }
         BattleSimulation sim = ctx != null ? ctx.getBattleSimulation() : null;
@@ -649,6 +640,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         renderer.getImpactFx().advance(frameSimDt);
         renderer.getGroundLights().advance(frameSimDt);
         renderer.getGroundLights().syncBoltLights(sim.getActiveShots());
+        renderer.getGroundLights().syncFireLights(sim.fireFieldIfPresent());
         // Contrail trails — push the leading-edge sample for each in-flight
         // contrail shot and age the lot. Real (unscaled) dt, not sim-time, so
         // trails keep dissipating during sim pause (matches the old render-frame
@@ -737,8 +729,6 @@ public class BattleScreen implements Screen, BattleUiContext {
         operationRadio.stop();
         if (storyNarration != null) storyNarration.stop();
         storySubtitles.detach();
-        if (radioSound != null) radioSound.stop();
-        radioSound = null;
         exitDirectControl();
         cameraControls.release();
         if (worldPicker != null) worldPicker.cancel();
@@ -814,7 +804,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         // diagnostic opens only while WorldPicker has a squad in Selection.
         hud.addPanel(new SquadPlanDebugPanel(this));
         // Shows/hides every developer panel below; it is the only one that stays up when they are hidden.
-        hud.addPanel(new DebugHudSwitchPanel(this));
+        // A player build has no developer HUD at all (DevConfig.DEV_MODE).
+        if (DevConfig.DEV_MODE) hud.addPanel(new DebugHudSwitchPanel(this));
         // WARSHIP DEBUG readout + F6/F7 orders; invisible unless a debug ship is over the battle.
         if (DevConfig.DEBUG_WARSHIP_PICKER) hud.addPanel(new WarshipDebugPanel(this));
         // Per-phase tick wall-time profile (top-center, beside DEBUG).
@@ -1104,7 +1095,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 : Math.min(topCenterContentBottom(), battleComms.noticeBottom());
     }
 
-    @Override public boolean debugHudVisible() { return debugHudVisible; }
+    @Override public boolean debugHudVisible() { return DevConfig.DEV_MODE && debugHudVisible; }
 
     @Override public void setDebugHudVisible(boolean visible) { debugHudVisible = visible; }
 
@@ -1332,6 +1323,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         TenderAudio.play(sim);
         BoreAudio.play(sim);
         SwarmAudio.play(sim, camera.panCellX(), camera.panCellY());
+        CreepAudio.play(sim, camera.panCellX(), camera.panCellY());
     }
 
     private void spawnImpactFx(BattleSimulation sim) {
@@ -1453,8 +1445,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             storyNarration.advance(dt, sim.getPlayerStoryBeatsAfter(storyNarration.cursor()),
                     speedMultiplier <= 0f, sim.isComplete());
         }
-        boolean channelBusy = storyNarration != null && storyNarration.busy()
-                || radioSound != null && radioSound.isPlaying();
+        boolean channelBusy = storyNarration != null && storyNarration.busy();
         boolean running = speedMultiplier > 0f && !sim.isComplete();
         if (sim.isComplete()) companyOfficer.discardPending();
         CompanyOfficer.Line response = companyOfficer.advance(dt, running, channelBusy || operationRadio.busy());
@@ -1468,24 +1459,15 @@ public class BattleScreen implements Screen, BattleUiContext {
                 running && !channelBusy && !companyOfficer.busy() && !operationRadio.busy());
         if (emission != null) {
             OperationRadio.Transmission report = operationRadio.report(emission.cue());
+            // Without the cast's catalog a report goes unspoken: there is no other radio bank.
             if (report != null) {
                 radioChatter.reserveVoice(report.line().durationSeconds());
-            } else {
+                // Company command answers once the report clears the channel.
                 companyOfficer.heard(emission.cue());
-                Vector2f loc = new Vector2f(
-                        emission.cellX() * AUDIO_WORLD_UNITS_PER_CELL,
-                        emission.cellY() * AUDIO_WORLD_UNITS_PER_CELL);
-                radioSound = Global.getSoundPlayer().playSound(
-                        emission.cue().soundId(), 1f, emission.cue().volume(), loc,
-                        new Vector2f(0f, 0f));
             }
         } else if (running && !channelBusy && !companyOfficer.busy() && radioChatter.voiceAvailable()) {
             OperationRadio.Transmission opening = operationRadio.beginExchange();
             if (opening != null) radioChatter.reserveVoice(opening.line().durationSeconds());
-        }
-        if (sim.isComplete() && radioSound != null) {
-            radioSound.stop();
-            radioSound = null;
         }
         storySubtitles.update(storyNarration != null ? storyNarration.current() : null,
                 companyOfficer.current(), operationRadio.current(), dt);
@@ -1607,13 +1589,13 @@ public class BattleScreen implements Screen, BattleUiContext {
                 && directControlSimulation.directControl().active()) {
             directControlSimulation.directControl().observeSprintRelease();
         }
-        if (!controlledAtInputStart && !directControlInput.active()) handleDebugDamageInput(events);
+        if (DevConfig.DEV_MODE && !controlledAtInputStart && !directControlInput.active()) handleDebugDamageInput(events);
         if (!controlledAtInputStart && !directControlInput.active()) handleSallyDoorOrder(events);
         handleCameraInput(events);
         // Apply the current lead at the new zoom before aim is projected.
         followControlledUnit(0f);
         submitDirectControlIntent();
-        if (!directControlInput.active()) handleDebugZoneToggle(events);
+        if (DevConfig.DEV_MODE && !directControlInput.active()) handleDebugZoneToggle(events);
     }
 
     private void toggleDirectControl() {

@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
@@ -98,6 +100,31 @@ public final class MechWorkshop {
         return Result.of(Status.FABRICATED_AND_INSTALLED);
     }
 
+    /**
+     * Builds one weapon assembly into the bay's stores against its known pattern. Nothing is
+     * fitted: the player drags the new spare onto a mount.
+     */
+    public Result fabricateWeapon(MechWeaponComponent component) {
+        if (component == null) return Result.of(Status.INVALID);
+        if (!bay.canFabricate(component)) return Result.of(Status.PATTERN_LOCKED);
+        FabricationCost bill = weaponQuote(component);
+        if (bill == null || !resources.spend(bill)) return Result.of(Status.INSUFFICIENT_MATERIALS);
+        bay.addWeapon(component.id, 1);
+        return Result.of(Status.FABRICATED);
+    }
+
+    /** Builds one internal into the bay's stores against its known pattern. */
+    public Result fabricateInternal(MechInternal internal) {
+        if (internal == null) return Result.of(Status.INVALID);
+        if (!bay.canFabricate(internal)) return Result.of(Status.PATTERN_LOCKED);
+        MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.internal(internal);
+        if (recipe == null || !resources.spend(resources.quote(recipe.cost()))) {
+            return Result.of(Status.INSUFFICIENT_MATERIALS);
+        }
+        bay.addInternal(internal.id, 1);
+        return Result.of(Status.FABRICATED);
+    }
+
     /** Empties the optional utility socket; nothing else on a frame can be left empty. */
     public Result stripVentArray(String mechId) {
         CampaignMech mech = bay.mechById(mechId);
@@ -159,6 +186,54 @@ public final class MechWorkshop {
         return new Result(Status.VEHICLE_FABRICATED, null, vehicle);
     }
 
+    /** Half of a pattern's base bill, rounded down: what breaking up one machine puts back in the hold. */
+    public static FabricationCost salvage(FabricationCost bill) {
+        if (bill == null) return null;
+        List<FabricationCost.Line> lines = new ArrayList<>();
+        for (FabricationCost.Line line : bill.lines()) {
+            int back = line.quantity() / 2;
+            if (back > 0) lines.add(new FabricationCost.Line(line.commodityId(), back));
+        }
+        return lines.isEmpty() ? null : new FabricationCost(lines);
+    }
+
+    /** What scrapping {@code mechId} would return, or null when it returns no materials. */
+    public FabricationCost mechSalvage(String mechId) {
+        CampaignMech mech = bay.mechById(mechId);
+        MechFabricationCatalog.Recipe recipe = mech == null ? null : MechFabricationCatalog.chassis(mech.variant());
+        return recipe == null ? null : salvage(recipe.cost());
+    }
+
+    /** What scrapping {@code vehicleId} would return, or null when it returns no materials. */
+    public FabricationCost vehicleSalvage(String vehicleId) {
+        CampaignVehicle vehicle = bay.vehicleById(vehicleId);
+        MechFabricationCatalog.Recipe recipe = vehicle == null ? null : MechFabricationCatalog.vehicle(vehicle.type());
+        return recipe == null ? null : salvage(recipe.cost());
+    }
+
+    /**
+     * Scraps a chassis to free its gantry: fitted parts go back to stores and half the
+     * chassis bill back to the hold.
+     */
+    public Result scrapMech(String mechId) {
+        CampaignMech mech = bay.mechById(mechId);
+        if (mech == null) return Result.of(Status.INVALID);
+        FabricationCost salvage = mechSalvage(mechId);
+        if (!bay.scrapMech(mechId)) return Result.of(Status.INVALID);
+        if (salvage != null) resources.credit(salvage);
+        return new Result(Status.SCRAPPED, mech);
+    }
+
+    /** Scraps a vehicle to free its gantry, half its bill back to the hold. */
+    public Result scrapVehicle(String vehicleId) {
+        CampaignVehicle vehicle = bay.vehicleById(vehicleId);
+        if (vehicle == null) return Result.of(Status.INVALID);
+        FabricationCost salvage = vehicleSalvage(vehicleId);
+        if (!bay.scrapVehicle(vehicleId)) return Result.of(Status.INVALID);
+        if (salvage != null) resources.credit(salvage);
+        return new Result(Status.SCRAPPED, null, vehicle);
+    }
+
     /** The quoted bill and clock for repairing {@code mechId}'s battle damage, or null if whole. */
     public RepairQuote repairQuote(String mechId) {
         CampaignMech mech = bay.mechById(mechId);
@@ -191,12 +266,16 @@ public final class MechWorkshop {
         ALREADY_INSTALLED,
         INSTALLED_FROM_STORES,
         FABRICATED_AND_INSTALLED,
+        /** One part was built into stores; nothing was fitted. */
+        FABRICATED,
         MOVED,
         TARGET_OCCUPIED,
         STRIPPED,
         ALREADY_STRIPPED,
         CHASSIS_FABRICATED,
         VEHICLE_FABRICATED,
+        /** A machine was broken up; its gantry is vacant and its salvage is in stores. */
+        SCRAPPED,
         /** A repair order was paid; the mech is in its gantry until the clock runs out. */
         REPAIR_STARTED,
         /** There is no battle damage to repair. */
@@ -217,11 +296,13 @@ public final class MechWorkshop {
             return status == Status.ALREADY_INSTALLED
                     || status == Status.INSTALLED_FROM_STORES
                     || status == Status.FABRICATED_AND_INSTALLED
+                    || status == Status.FABRICATED
                     || status == Status.MOVED
                     || status == Status.STRIPPED
                     || status == Status.ALREADY_STRIPPED
                     || status == Status.CHASSIS_FABRICATED
                     || status == Status.VEHICLE_FABRICATED
+                    || status == Status.SCRAPPED
                     || status == Status.REPAIR_STARTED;
         }
     }

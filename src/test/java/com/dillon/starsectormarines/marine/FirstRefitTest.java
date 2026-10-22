@@ -31,8 +31,6 @@ class FirstRefitTest {
         assertTrue(roster.armory().ownsPrimaryTemplate(WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.MILSPEC));
         assertTrue(roster.armory().ownsArmorTemplate(MarineArmorPattern.BLUE_SCOUT));
         assertEquals(2, FirstRefit.Path.values().length);
-        assertFalse(roster.deleteWeaponDoctrine(FirstRefit.Path.STEADY_LINE.weapons));
-        assertFalse(roster.armory().renameWeaponDoctrine(FirstRefit.Path.STEADY_LINE.weapons, "Changed"));
     }
 
     @Test void bothPathsIssueExactTwelveAndCompleteOnlyOnce() {
@@ -193,7 +191,7 @@ class FirstRefitTest {
         assertTrue(legacy.claimed()); assertNull(legacy.chosenPath());
         var saved = MarineRoster.class.getDeclaredField("firstRefit");
         saved.setAccessible(true); saved.set(roster, legacy);
-        legacy.repairArmorPlanKnowledge(roster.armory());
+        legacy.repairCardKnowledge(roster.armory());
         var before = Set.copyOf(roster.armory().ownedEquipmentTemplateIds());
         assertFalse(legacy.claim(roster, FirstRefit.Path.STEADY_LINE));
         for (var path : FirstRefit.Path.values()) {

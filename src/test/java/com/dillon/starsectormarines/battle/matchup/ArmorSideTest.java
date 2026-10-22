@@ -43,9 +43,10 @@ class ArmorSideTest {
 
     @Test
     void weaponsAndInternalsByPatternId() {
-        ArmorSide.Mech custom = mech("bulwark:arms=dual-linear-cannons,rs=component.mech-shoulder-laser,"
+        ArmorSide.Mech custom = mech("bulwark:arms=linear-cannon,rs=component.mech-shoulder-laser,"
                 + "engine=uprated,capacitors=internal.capacitor-bank-double,vents=auxiliary,role=assault");
-        assertEquals(MechWeaponComponent.DUAL_LINEAR_CANNONS, custom.fit().arms());
+        assertEquals(MechWeaponComponent.LINEAR_CANNON, custom.fit().leftArm());
+        assertEquals(MechWeaponComponent.LINEAR_CANNON, custom.fit().rightArm(), "arms= fits every arm");
         assertEquals(MechWeaponComponent.SRM_15, custom.fit().leftShoulder());
         assertEquals(MechWeaponComponent.SHOULDER_LASER_CANNON, custom.fit().rightShoulder());
         assertEquals(MechInternal.UPRATED_ENGINE, custom.fit().engine());
@@ -56,9 +57,17 @@ class ArmorSideTest {
     }
 
     @Test
+    void oneArmIsFittedOnItsOwn() {
+        ArmorSide.Mech mixed = mech("bulwark:la=linear-cannon");
+        assertEquals(MechWeaponComponent.LINEAR_CANNON, mixed.fit().leftArm());
+        assertEquals(MechVariant.BULWARK.rightArm, mixed.fit().rightArm());
+        assertEquals(mixed, mech(mixed.label()));
+    }
+
+    @Test
     void refitAppliesAfterTheWeaponsWhereverItIsWritten() {
-        assertEquals(mech("bulwark:arms=dual-linear-cannons,refit"), mech("bulwark:refit,arms=dual-linear-cannons"));
-        assertEquals("bulwark:arms=dual-linear-cannons,refit", mech("bulwark:refit,arms=dual-linear-cannons").label());
+        assertEquals(mech("bulwark:arms=linear-cannon,refit"), mech("bulwark:refit,arms=linear-cannon"));
+        assertEquals("bulwark:arms=linear-cannon,refit", mech("bulwark:refit,arms=linear-cannon").label());
     }
 
     @Test

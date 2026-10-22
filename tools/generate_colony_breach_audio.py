@@ -7,7 +7,10 @@ Speech comes from mod/data/marines/colony_breach_narration.json (text to speech,
 voice per line); effects from colony-breach/sfx.json (sound generation, one request
 per variant). A sound's "cut" lists takes the owner rejected: never generated, registered
 or shipped. A sound with "trimmedFrom" was cut by hand from another sound's takes; it is
-registered but never generated. Sources and receipts land under asset-pipeline/src/tool/resources/audio/colony-breach/.
+registered but never generated. A sound with "reuses" ships no audio of its own: it is registered
+as other sounds' kept takes, a pool of {"id", "pitch"} sources each played at its pitch (which also sets
+the tempo) and at the sound's own "volume", the owner's rule for the Rav Bloom (re-use takes between
+strains rather than ship near-copies). Sources and receipts land under asset-pipeline/src/tool/resources/audio/colony-breach/.
 A changed take needs --replace. No retries after ambiguous API failures. Needs ffprobe on
 PATH when generating. Credentials come only from the local environment.
 """
@@ -58,6 +61,8 @@ def takes(sound):
 def sfx_plan(catalog):
     result = []
     for sound in catalog["sounds"]:
+        if "reuses" in sound:
+            continue  # its clips are the reused sound's, already planned under that sound
         for variant in takes(sound):
             sound_id = "%s%s_%d" % (catalog["prefix"], sound["id"], variant)
             if not re.fullmatch(r"[a-z0-9_]+", sound_id):
@@ -152,11 +157,15 @@ def register(speech, sfx):
     for item in speech:
         entries.append((item["id"], '"%s": [{"file": "sounds/%s/%s.ogg", "pitch": 1, "volume": 1.0}],'
                         % (item["id"], SPEECH_OUT, item["id"])))
+    by_id = {sound["id"]: sound for sound in sfx_catalog["sounds"]}
     for sound in sfx_catalog["sounds"]:
         base = sfx_catalog["prefix"] + sound["id"]
-        files = ", ".join('{"file": "sounds/%s/%s_%d.ogg", "pitch": 1.0, "volume": %s}'
-                          % (sfx_catalog["out"], base, v, sound["volume"])
-                          for v in takes(sound))
+        pool = [(by_id[s["id"]], float(s["pitch"])) for s in sound["reuses"]] if "reuses" in sound             else [(sound, 1.0)]
+        if any("reuses" in source for source, _ in pool):
+            raise SystemExit(sound["id"] + " reuses a sound that itself reuses; no files written.")
+        files = ", ".join('{"file": "sounds/%s/%s_%d.ogg", "pitch": %s, "volume": %s}'
+                          % (sfx_catalog["out"], sfx_catalog["prefix"] + source["id"], v, pitch, sound["volume"])
+                          for source, pitch in pool for v in takes(source))
         entries.append((base, '"%s": [%s],' % (base, files)))
     # An effect's entry is rewritten in place when its takes change; speech entries never are.
     rewritten = 0

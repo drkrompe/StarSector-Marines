@@ -41,11 +41,13 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.LayerClips;
 import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.dillon.starsectormarines.render2d.QuadMesh;
 
 import java.awt.Color;
 import java.util.Arrays;
@@ -105,11 +107,10 @@ public final class UnitRenderService implements RenderSystem {
      */
     static final float DOWNED_BODY_SCALE = 0.65f;
     /**
-     * A sleeper against the live shoulder scale. Larger than a fallen body because it lies in a
-     * real-length bunk beside its neighbours: at this scale the straight lying pose spans the
-     * mattress's width with its arms at its sides and lies head on the pillow.
+     * A sleeper against the live shoulder scale: the same as a fallen body. At 0.9 a marine in
+     * bed read as a giant beside the standing figure, whose head and shoulders are all that shows.
      */
-    static final float SLEEPER_BODY_SCALE = 0.9f;
+    static final float SLEEPER_BODY_SCALE = DOWNED_BODY_SCALE;
     /**
      * A full pool's width in cells at render scale 1. A body lies about 1.2 cells long, and
      * the pool spreads past its torso and out from under its arms rather than hiding beneath it.
@@ -182,6 +183,8 @@ public final class UnitRenderService implements RenderSystem {
      * the wreck exists.
      */
     private final Map<Object, HullBreakup> wrecks = new IdentityHashMap<>();
+    /** The burst Rav dead that have stopped moving, each drawn from the mesh it was recorded into once. */
+    private final SettledBodyMeshes settledBodies = new SettledBodyMeshes();
 
     public UnitRenderService(BattleSprites sprites) {
         this.sprites = sprites;
@@ -302,13 +305,15 @@ public final class UnitRenderService implements RenderSystem {
     /**
      * Whether every cell under a turret's body carries an authored ground surface (the concrete a prepared position is
      * paved with). The flat road-coloured pad exists to seat a structure on bare ground; over a drawn surface it would
-     * paint a blue-grey square across the concrete instead.
+     * paint a blue-grey square across the concrete instead. A road's finish (asphalt and its sidewalk) is such a
+     * surface too, so a gun set down on a street stands on the street.
      */
     private static boolean standsOnSurface(CellTopology topology, int minX, int minY, int spanX, int spanY) {
         if (topology == null) return false;
+        RoadSurface road = topology.roadSurface();
         for (int x = minX; x < minX + spanX; x++) {
             for (int y = minY; y < minY + spanY; y++) {
-                if (topology.getSurfaceId(x, y) == null) return false;
+                if (topology.getSurfaceId(x, y) == null && (road == null || road.underlay(x, y) == null)) return false;
             }
         }
         return true;
@@ -512,12 +517,36 @@ public final class UnitRenderService implements RenderSystem {
                 bright = bright + (1f - bright) * Math.min(1f, flash * 2f);
                 size *= 1f + StructureArt.FIRE_FLASH_SWELL * flash;
             }
+            if (layer.windUp() > 0f && ColonyThreatFx.ENABLED) {
+                float ramp = windUp(ctx.sim, id);
+                if (ramp > 0f) {
+                    // Drawing in before the next shot: clench, quiver, and the eye comes up to full.
+                    float quiver = (float) Math.sin(2.0 * Math.PI * WIND_UP_QUIVER_HZ * ColonyThreatFx.simSeconds(ctx.sim));
+                    float k = layer.windUp() * ramp;
+                    size *= 1f - StructureArt.WIND_UP_CLENCH * k * (0.85f + 0.15f * quiver);
+                    bright = bright + (1f - bright) * k;
+                }
+            }
             out.addSprite(RenderLayer.UNITS, sprite.sprite, cx, cy, size * sprite.aspect, size, angle,
                     r * bright, g * bright, b * bright, alphaMult);
         }
         if (wounded && structure.art.bleed != null) {
             emitBleed(out, structure.art, id, variant, durability, cx, cy, cellPx, alphaMult, clock);
         }
+    }
+
+    /** How fast a winding-up body quivers. */
+    private static final float WIND_UP_QUIVER_HZ = 9f;
+
+    /**
+     * How far through its wind-up a structure stands, 0 to 1: rising over the last {@link StructureArt#WIND_UP_SECONDS}
+     * of its weapon's cooldown while it holds a target, 0 when it has none.
+     */
+    static float windUp(BattleSimulation sim, long id) {
+        if (sim.world().targetId(id) == 0L) return 0f;
+        float cooldown = sim.world().cooldownTimer(id);
+        if (cooldown >= StructureArt.WIND_UP_SECONDS) return 0f;
+        return 1f - Math.max(0f, cooldown) / StructureArt.WIND_UP_SECONDS;
     }
 
     /**
@@ -1019,12 +1048,13 @@ public final class UnitRenderService implements RenderSystem {
                     if (rx[r] < cullMinX || rx[r] > cullMaxX
                             || ry[r] < cullMinY || ry[r] > cullMaxY) continue;
                     LayeredSpriteCache pool = pools.get(Math.floorMod(poseIdx[r], pools.size()));
+                    float poolAlpha = alphaMult * pileFadeAlpha(ctx.sim.bodyPileCap().faded(t.entityAt(r)));
                     float size = cam.cellPxSize() * BLOOD_POOL_CELLS * ((UnitType) types[r]).renderScale
                             * bloodSpread((now - deathTick[r]) * BattleSimulation.TICK_DT);
                     out.addSprite(RenderLayer.UNITS, pool.sprite,
                             cam.cellToScreenX(rx[r]), cam.cellToScreenY(ry[r]),
                             size, size * pool.pxHeight / pool.pxWidth, facing[r],
-                            1f, 1f, 1f, alphaMult);
+                            1f, 1f, 1f, poolAlpha);
                 }
             }
         }
@@ -1047,25 +1077,34 @@ public final class UnitRenderService implements RenderSystem {
                 UnitType type = (UnitType) types[r];
                 // A strain body on the creep melts into it: drawn smaller and fainter until it is gone.
                 float digested = type.isSwarm() ? ctx.sim.creepDigestion().digested(t.entityAt(r)) : 0f;
-                float alpha = alphaMult * meltAlpha(digested);
+                // A body the pile cap is retiring settles and fades the same way, on any ground.
+                float faded = ctx.sim.bodyPileCap().faded(t.entityAt(r));
+                float pileAlpha = pileFadeAlpha(faded);
+                float alpha = alphaMult * meltAlpha(digested) * pileAlpha;
+                float shrink = 1f - MELT_SHRINK * Math.max(digested, faded);
                 if (deadBruteArt != null && ravRigs != null && ravRigs[r] instanceof RavBruteRig deadBrute
                         && deadBrute.dead()) {
                     // A dead Brute has burst as a Runner does, over the same ichor.
-                    RavBruteComposer.emitDead(out, deadBruteArt.forStage(deadBrute.stage()),
-                            ravArt != null ? ravArt.splat : null,
-                            ravArt != null ? ravArt.drop : null, deadBrute,
-                            cam.cellToScreenX(deadBrute.bodyX()), cam.cellToScreenY(deadBrute.bodyY()),
-                            cam.cellPxSize() * deadBrute.scale() * (1f - MELT_SHRINK * digested), alpha);
+                    RavBruteAssets bruteArt = deadBruteArt.forStage(deadBrute.stage());
+                    LayeredSpriteCache[] splat = ravArt != null ? ravArt.splat : null;
+                    LayeredSpriteCache drop = ravArt != null ? ravArt.drop : null;
+                    float bx = cam.cellToScreenX(deadBrute.bodyX()), by = cam.cellToScreenY(deadBrute.bodyY());
+                    float ppc = cam.cellPxSize() * deadBrute.scale() * shrink;
+                    QuadMesh settled = settledBodies.brute(deadBrute, bruteArt, splat, drop);
+                    if (settled != null) out.addMesh(RenderLayer.UNITS, settled, bx, by, ppc, alpha);
+                    else RavBruteComposer.emitDead(out, bruteArt, splat, drop, deadBrute, bx, by, ppc, alpha);
                     continue;
                 }
                 RavRunnerRig ravRig = ravArt != null && ravRigs != null && ravRigs[r] instanceof RavRunnerRig dead
                         ? dead : null;
                 if (ravRig != null && ravRig.dead()) {
                     // A dead Runner has burst: its pieces where they were flung, over its ichor.
-                    RavRunnerComposer.emit(out, ravArt.forStage(ravRig.stage()), ravRig,
-                            cam.cellToScreenX(ravRig.bodyX()), cam.cellToScreenY(ravRig.bodyY()),
-                            cam.cellPxSize() * type.renderScale * ravRig.scale() * (1f - MELT_SHRINK * digested),
-                            1f, alpha);
+                    RavRunnerAssets runnerArt = ravArt.forStage(ravRig.stage());
+                    float bx = cam.cellToScreenX(ravRig.bodyX()), by = cam.cellToScreenY(ravRig.bodyY());
+                    float ppc = cam.cellPxSize() * type.renderScale * ravRig.scale() * shrink;
+                    QuadMesh settled = settledBodies.runner(ravRig, runnerArt);
+                    if (settled != null) out.addMesh(RenderLayer.UNITS, settled, bx, by, ppc, alpha);
+                    else RavRunnerComposer.emit(out, runnerArt, ravRig, bx, by, ppc, 1f, alpha);
                     continue;
                 }
                 // A body that wore layered art lies as itself: its outfit's own pose,
@@ -1083,11 +1122,11 @@ public final class UnitRenderService implements RenderSystem {
                 }
                 if (lying != null) {
                     float shoulderPx = layeredInfantryShoulderWidth(cam.cellPxSize(), type.renderScale);
-                    float scale = shoulderPx * DOWNED_BODY_SCALE / LayeredUnitComposer.SOURCE_SHOULDER_PX;
+                    float scale = shoulderPx * DOWNED_BODY_SCALE / LayeredUnitComposer.SOURCE_SHOULDER_PX * shrink;
                     out.addSprite(RenderLayer.UNITS, lying.sprite,
                             cam.cellToScreenX(rx[r]), cam.cellToScreenY(ry[r]),
                             lying.pxWidth * scale, lying.pxHeight * scale, corpseFacing[r],
-                            1f, 1f, 1f, alphaMult);
+                            1f, 1f, 1f, alphaMult * pileAlpha);
                     continue;
                 }
                 RenderAppearance app = RenderAppearance.of(type);
@@ -1101,7 +1140,7 @@ public final class UnitRenderService implements RenderSystem {
                         % frames.frames.length;
                 SpriteSheetFrames.Frame f = frames.frames[frameIdx];
 
-                float scaledSize = unitSize * ctx.sim.getRoster().renderScale(t.entityAt(r));
+                float scaledSize = unitSize * ctx.sim.getRoster().renderScale(t.entityAt(r)) * shrink;
                 float targetW, targetH;
                 if (f.w >= f.h) {
                     targetW = scaledSize;
@@ -1122,6 +1161,13 @@ public final class UnitRenderService implements RenderSystem {
 
     /** How much a digesting body shrinks by the time the creep has it all. */
     private static final float MELT_SHRINK = 0.2f;
+
+    /** A body the pile cap retires fades out smoothly over the whole of its fade. */
+    static float pileFadeAlpha(float faded) {
+        if (faded <= 0f) return 1f;
+        float t = Math.min(1f, faded);
+        return 1f - t * t * (3f - 2f * t);
+    }
 
     /** A digesting body stays whole for its first third, then fades into the creep. */
     static float meltAlpha(float digested) {
@@ -1256,6 +1302,10 @@ public final class UnitRenderService implements RenderSystem {
                     ? t.ints(c.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_FLAGS).array() : null;
             int[] mechArms = hasMechLayered
                     ? t.ints(c.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_ARMS).array() : null;
+            int[] mechLeftArm = hasMechLayered
+                    ? t.ints(c.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_LEFT_ARM).array() : null;
+            int[] mechRightArm = hasMechLayered
+                    ? t.ints(c.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_RIGHT_ARM).array() : null;
             int[] mechChassis = hasMechLayered
                     ? t.ints(c.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_CHASSIS).array() : null;
             int[] mechLeftShoulder = hasMechLayered
@@ -1315,7 +1365,8 @@ public final class UnitRenderService implements RenderSystem {
                     LayeredMechComposer.emit(out, mechAssets, cx, cy, hullWidth,
                             mechHipFacing[r], mechFacing[r], mechLocomotion[r], mechChaingunPhase[r],
                             mechSrmPhase[r], mechLrmPhase[r], mechFlags[r], mechChassis[r],
-                            mechArms[r], mechLeftShoulder[r], mechRightShoulder[r], unitAlpha,
+                            mechArms[r], mechLeftArm[r], mechRightArm[r],
+                            mechLeftShoulder[r], mechRightShoulder[r], unitAlpha,
                             authoredPose, gaitPose);
                     continue;
                 }
@@ -1385,8 +1436,7 @@ public final class UnitRenderService implements RenderSystem {
                     float shoulderPx = layeredInfantryShoulderWidth(
                             cam.cellPxSize(), type.renderScale);
                     // Asleep in a bunk: the straight lying pose, along the bunk, head on the pillow.
-                    LayeredSpriteCache sleeper = onMachine > 0f && LayeredAppearance.workMotion(layeredFlags[r])
-                            == WorkMotion.SLEEP ? layeredAssets.downed(0) : null;
+                    LayeredSpriteCache sleeper = onMachine > 0f && LayeredAppearance.workMotion(layeredFlags[r]) == WorkMotion.SLEEP ? layeredAssets.downed(0) : null;
                     if (sleeper != null) {
                         float scale = shoulderPx * SLEEPER_BODY_SCALE / LayeredUnitComposer.SOURCE_SHOULDER_PX;
                         out.addSprite(RenderLayer.UNITS, sleeper.sprite, cx, cy,

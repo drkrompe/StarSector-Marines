@@ -1,7 +1,11 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.creep.ColonyCreep;
+import com.dillon.starsectormarines.battle.creep.CreepVegetationSnapshotSuite;
 import com.dillon.starsectormarines.battle.creep.CreepField;
+import com.dillon.starsectormarines.battle.fire.FireCost;
+import com.dillon.starsectormarines.battle.fire.FireField;
+import com.dillon.starsectormarines.battle.world.model.NightLighting;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
@@ -14,6 +18,9 @@ import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.evacuation.SwarmStrains;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.ops.BattleLayout;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.OperationTier;
@@ -28,6 +35,8 @@ import org.lwjgl.BufferUtils;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.lang.reflect.Proxy;
@@ -41,6 +50,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.IdentityHashMap;
+import java.util.Random;
+import java.util.Set;
+
+import javax.imageio.ImageIO;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -201,7 +215,7 @@ class RenderBudgetEvidence {
                 renderer.onAttach();
                 renderer.buildTileBatches();
 
-                for (MapSpec spec : MapSpec.MATRIX) {
+                for (MapSpec spec : MapSpec.selected()) {
                     try (BattleSimulation sim = spec.build()) {
                         play(sim, ticks);
                         List<EqualityCheck> checks = new ArrayList<>();
@@ -214,6 +228,7 @@ class RenderBudgetEvidence {
                         for (EqualityCheck check : checks) {
                             assertCulledFrameIsIdentical(renderer, check.context(),
                                     check.map(), check.framing());
+                            writeFrame(output.resolve("frames"), check.map(), check.framing());
                         }
                         assertStraddlingBodiesSurvive(sim, renderer,
                                 new BattleLayout(position(), sim.getGrid().getWidth(),
@@ -222,7 +237,9 @@ class RenderBudgetEvidence {
                                 spec.id());
                     }
                 }
-                assertStandUpRepeats(renderer, rows, ticks);
+                if (MapSpec.selected().stream().anyMatch(spec -> spec.id().equals(MapSpec.CONQUEST_ID))) {
+                    assertStandUpRepeats(renderer, rows, ticks);
+                }
                 System.out.println("[render-evidence] textures uploaded: "
                         + tokens.uploadedTextures());
             }
@@ -272,7 +289,105 @@ class RenderBudgetEvidence {
         static final List<MapSpec> MATRIX = List.of(
                 new MapSpec("280x168 control", MapSpec::control),
                 new MapSpec("560x336 conquest", MapSpec::conquest),
-                new MapSpec("400x240 colony", MapSpec::colony));
+                new MapSpec("400x240 colony", MapSpec::colony),
+                new MapSpec("400x240 green colony", MapSpec::greenColony),
+                new MapSpec("400x240 green colony burning", MapSpec::burningColony),
+                new MapSpec("280x168 body pile", MapSpec::bodyPile),
+                new MapSpec("400x240 the burn", () -> theBurn(false)),
+                new MapSpec("400x240 the burn at night", () -> theBurn(true)));
+
+        static final String CONQUEST_ID = "560x336 conquest";
+        static final String PILE_ID = "280x168 body pile";
+
+        /**
+         * The maps {@code -Drender.evidence.maps} names, by id substring, comma-separated; every map
+         * when it is unset. A lever measured on one map against its own control need not pay for six.
+         */
+        static List<MapSpec> selected() {
+            String wanted = System.getProperty("render.evidence.maps", "").trim();
+            if (wanted.isEmpty()) return MATRIX;
+            List<MapSpec> out = new ArrayList<>();
+            for (MapSpec spec : MATRIX) {
+                for (String part : wanted.split(",")) {
+                    if (!part.isBlank() && spec.id().contains(part.trim())) {
+                        out.add(spec);
+                        break;
+                    }
+                }
+            }
+            return out;
+        }
+
+        /** Bodies in the pile: a wave's worth of dead outside a defended line, many times over. */
+        static final int PILE_BODIES = Integer.getInteger("render.evidence.pileBodies", 1200);
+        /** Radius of the ground the pile lies on, cells: a killing ground in front of a wire. */
+        static final int PILE_RADIUS = 12;
+        /** Deaths per tick while the pile is laid down, so the bodies have distinct ages. */
+        static final int PILE_PER_TICK = 30;
+
+        /**
+         * The control map with {@link #PILE_BODIES} Runners killed onto the open ground nearest its
+         * centre, {@link #PILE_PER_TICK} a tick, at seeded places: the pile of dead a wave leaves
+         * outside a redoubt where nothing clears them. There is no creep and no bore, so only the
+         * body pile cap ({@code -Dbattle.bodyPileCap=false} is its control) takes any of them away.
+         * The close framing is centred on it ({@link #focusOf}).
+         */
+        static BattleSimulation bodyPile() throws Exception {
+            BattleSimulation sim = control();
+            NavigationGrid grid = sim.getGrid();
+            int[] centre = pileCentre(grid);
+            List<int[]> cells = new ArrayList<>();
+            for (int dy = -PILE_RADIUS; dy <= PILE_RADIUS; dy++) {
+                for (int dx = -PILE_RADIUS; dx <= PILE_RADIUS; dx++) {
+                    int x = centre[0] + dx, y = centre[1] + dy;
+                    if (dx * dx + dy * dy > PILE_RADIUS * PILE_RADIUS) continue;
+                    if (x < 0 || y < 0 || x >= grid.getWidth() || y >= grid.getHeight()) continue;
+                    if (grid.isWalkable(x, y)) cells.add(new int[]{x, y});
+                }
+            }
+            Random random = new Random(0xB0D1E5L);
+            sim.setMissionCompletionEnabled(false);
+            for (int laid = 0; laid < PILE_BODIES; ) {
+                for (int k = 0; k < PILE_PER_TICK && laid < PILE_BODIES; k++, laid++) {
+                    int[] cell = cells.get(random.nextInt(cells.size()));
+                    long runner = SwarmStrains.spawn(sim, "dead " + laid, UnitType.SWARM_RUNNER, cell[0], cell[1]);
+                    sim.applyDamage(runner, 1_000_000f, 1000f);
+                }
+                sim.advance(BattleSimulation.TICK_DT);
+            }
+            PILE_FOCUS.put(sim, new float[]{centre[0] + 0.5f, centre[1] + 0.5f});
+            return sim;
+        }
+
+        /** Where a map's close framing looks: the pile for the pile, the company for the rest. */
+        static final Map<BattleSimulation, float[]> PILE_FOCUS = new IdentityHashMap<>();
+
+        /** The cell nearest the map centre with the most open ground around it within the pile's radius. */
+        private static int[] pileCentre(NavigationGrid grid) {
+            int cx = grid.getWidth() / 2, cy = grid.getHeight() / 2;
+            int[] best = {cx, cy};
+            int bestOpen = -1;
+            for (int y = cy - 40; y <= cy + 40; y += 4) {
+                for (int x = cx - 60; x <= cx + 60; x += 4) {
+                    int open = 0;
+                    for (int dy = -PILE_RADIUS; dy <= PILE_RADIUS; dy += 2) {
+                        for (int dx = -PILE_RADIUS; dx <= PILE_RADIUS; dx += 2) {
+                            int px = x + dx, py = y + dy;
+                            if (px >= 0 && py >= 0 && px < grid.getWidth() && py < grid.getHeight()
+                                    && grid.isWalkable(px, py)) open++;
+                        }
+                    }
+                    if (open > bestOpen) {
+                        bestOpen = open;
+                        best = new int[]{x, y};
+                    }
+                }
+            }
+            return best;
+        }
+
+        /** Seconds the green colony burns for before it is drawn: the front well into its groves. */
+        static final int BURN_SECONDS = 45;
 
         BattleSimulation build() throws Exception {
             return builder.build();
@@ -298,6 +413,115 @@ class RenderBudgetEvidence {
             int ticks = Math.round(COLONY_OUTBREAK_SECONDS / BattleSimulation.TICK_DT);
             for (int t = 0; t < ticks; t++) creep.tick(t);
             return sim;
+        }
+
+        /**
+         * The canonical colony on a verdant world, grown for {@link #COLONY_OUTBREAK_SECONDS} with the town's sites
+         * open and a bore under every fourth tree ({@link CreepVegetationSnapshotSuite.Outbreak}), so its groves are
+         * overgrown, some of their trees dead, and its grass and fields blighted: the creep's vegetation measured on
+         * the map that carries it.
+         */
+        static BattleSimulation greenColony() throws Exception {
+            BattleSimulation sim = CreepVegetationSnapshotSuite.verdantColony();
+            CreepVegetationSnapshotSuite.Outbreak outbreak = new CreepVegetationSnapshotSuite.Outbreak(sim);
+            outbreak.runTo(Math.round(COLONY_OUTBREAK_SECONDS / BattleSimulation.TICK_DT));
+            return sim;
+        }
+
+        /**
+         * The green colony with a fire line lit down its west edge in a fresh wind and burnt for
+         * {@link #BURN_SECONDS}: flames, glow, embers, scorch and charred trees all on screen at once, the fire
+         * layers measured against {@code -Dbattle.render.fire=false}. Only the fire field is advanced.
+         */
+        static BattleSimulation burningColony() throws Exception {
+            BattleSimulation sim = greenColony();
+            FireField fire = sim.fireField();
+            fire.setWind(1f, 0.15f, 0.6f);
+            int h = sim.getGrid().getHeight();
+            for (int y = 0; y < h; y++) fire.addHeat(2, y, 3000);
+            int ticks = Math.round(BURN_SECONDS / BattleSimulation.TICK_DT);
+            for (int t = 0; t < ticks; t++) fire.tick(t);
+            return sim;
+        }
+
+        static final String THE_BURN = "/battle-fixtures/heart-burn-v1.json";
+        /** Seconds of The Burn played before it is drawn: inside its peak, 160 to 240 s. */
+        static final int BURN_PEAK_SECONDS = Integer.getInteger("render.evidence.burnSeconds", 200);
+        /** The window, from the end of the play, over which the simulation's cost is read. */
+        static final int BURN_COST_WINDOW_SECONDS = 80;
+
+        /**
+         * The Burn (`heart-nouns.md`) at seed 202, the whole battle played to {@link #BURN_PEAK_SECONDS}: the swarm,
+         * the company, the barrage and the fire it lights, all live. While it plays, every tick of the last
+         * {@link #BURN_COST_WINDOW_SECONDS} is timed whole and the fire's own share read off
+         * {@link BattleSimulation#fireCostProfile()}, and written beside the render report
+         * ({@code burn-sim.md}): the serial scheduler this task forces, so the whole tick is the
+         * single-thread figure, not production's parallel one. The framings centre on the densest fire, and at
+         * night the same moment is drawn with no lamps, so the fire light is all there is.
+         */
+        static BattleSimulation theBurn(boolean night) throws Exception {
+            BattleFixture fixture = BattleFixtureJson.fromJson(new JSONObject(resource(THE_BURN)));
+            BattleSimulation sim = fixture.build();
+            sim.setMissionCompletionEnabled(false);
+            int end = Math.round(BURN_PEAK_SECONDS / BattleSimulation.TICK_DT);
+            int windowStart = end - Math.round(BURN_COST_WINDOW_SECONDS / BattleSimulation.TICK_DT);
+            List<Long> tickNanos = new ArrayList<>();
+            int peakBurning = 0, fireTicksBefore = -1;
+            while (sim.getSimTickIndex() < end) {
+                if (fireTicksBefore < 0 && sim.getSimTickIndex() >= windowStart) {
+                    fireTicksBefore = sim.fireCostProfile().ticks();
+                }
+                long t0 = System.nanoTime();
+                sim.advance(BattleSimulation.TICK_DT);
+                long dt = System.nanoTime() - t0;
+                if (sim.getSimTickIndex() > windowStart) {
+                    tickNanos.add(dt);
+                    peakBurning = Math.max(peakBurning, sim.fireField().burningCount());
+                }
+            }
+            if (!night) writeBurnSimCost(sim, tickNanos, peakBurning, windowStart, end);
+            PILE_FOCUS.put(sim, densestFire(sim.fireField()));
+            if (night) sim.getTopology().setNightLighting(NIGHT);
+            return sim;
+        }
+
+        /** The middle of the 16-cell square with the most cells burning: the framings look at the fire, not the company. */
+        private static float[] densestFire(FireField fire) {
+            int bin = 16, w = fire.width(), bw = (w + bin - 1) / bin, bh = (fire.height() + bin - 1) / bin;
+            int[] counts = new int[bw * bh];
+            int best = 0;
+            for (int i = 0, n = fire.burningCount(); i < n; i++) {
+                int idx = fire.burningCell(i), b = (idx / w / bin) * bw + idx % w / bin;
+                if (++counts[b] > counts[best]) best = b;
+            }
+            return new float[]{(best % bw) * bin + bin / 2f, (best / bw) * bin + bin / 2f};
+        }
+
+        /** A dark night with no lamps: whatever is lit is lit by the fire. */
+        private static final NightLighting NIGHT = new NightLighting(0.78f, List.of(), Set.of());
+
+        private static void writeBurnSimCost(BattleSimulation sim, List<Long> tickNanos, int peakBurning,
+                                             int windowStart, int end) throws IOException {
+            long[] sorted = tickNanos.stream().mapToLong(Long::longValue).sorted().toArray();
+            double mean = Arrays.stream(sorted).average().orElse(0) / 1e6;
+            double p99 = sorted.length == 0 ? 0 : sorted[Math.min(sorted.length - 1, (int) Math.ceil(0.99 * sorted.length) - 1)] / 1e6;
+            double max = sorted.length == 0 ? 0 : sorted[sorted.length - 1] / 1e6;
+            FireCost fire = sim.fireCostProfile();
+            String md = String.format(Locale.ROOT, "# The Burn: simulation cost at its peak%n%n"
+                    + "Seed 202, ticks %d..%d (%d..%d s), serial scheduler. Fire cost is over every tick with a fire "
+                    + "since it was first lit (the field only records ticks with something burning or warm).%n%n"
+                    + "| measure | mean ms | p99 ms | max ms |%n|---|---|---|---|%n"
+                    + "| whole tick, window | %.3f | %.3f | %.3f |%n"
+                    + "| fire share, whole battle | %.3f | %.3f | %.3f |%n%n"
+                    + "Peak burning cells in the window: %d. Fire ticks recorded: %d (%d steps).%n",
+                    windowStart, end, windowStart / 30, end / 30, mean, p99, max,
+                    fire.meanMillis(), fire.p99Millis(), fire.maxMillis(),
+                    peakBurning, fire.ticks(), fire.steps());
+            Path out = Path.of(System.getProperty("render.evidence.outputDir", "build/reports/render"))
+                    .toAbsolutePath().normalize();
+            Files.createDirectories(out);
+            Files.writeString(out.resolve("burn-sim.md"), md, StandardCharsets.UTF_8);
+            System.out.println(md);
         }
 
         private static String resource(String path) throws Exception {
@@ -437,11 +661,12 @@ class RenderBudgetEvidence {
             camera.setViewport(layout.gridX, layout.gridY, layout.gridW, layout.gridH,
                     layout.cellSize);
             zoomTo(camera, framing.zoom());
-            float[] focus = marineCentroid(sim, gridW, gridH);
+            float[] pile = MapSpec.PILE_FOCUS.get(sim);
+            float[] focus = pile != null ? pile : marineCentroid(sim, gridW, gridH);
             camera.centerOn(focus[0], focus[1]);
 
             RenderContext rc = new RenderContext(sim, camera, layout, 1f, 0f, false,
-                    null, null, BattleRenderHostProfile.STANDALONE_BATTLE);
+                    null, null, BattleRenderHostProfile.STANDALONE_BATTLE, ANIMATION_CLOCK_SECONDS);
 
             for (int warmup = 0; warmup < WARMUP_FRAMES; warmup++) drawFrame(renderer, rc, null);
 
@@ -578,7 +803,7 @@ class RenderBudgetEvidence {
         for (int step = 0; step <= 8; step++) {
             camera.centerOn(bodyX - halfViewCells - step * 0.5f, bodyY);
             RenderContext rc = new RenderContext(sim, camera, layout, 1f, 0f, false,
-                    null, null, BattleRenderHostProfile.STANDALONE_BATTLE);
+                    null, null, BattleRenderHostProfile.STANDALONE_BATTLE, ANIMATION_CLOCK_SECONDS);
             drawFrame(renderer, rc, null);
             assertCulledFrameIsIdentical(renderer, rc, mapId,
                     "straddle +" + (step * 0.5f) + " cells past the right edge");
@@ -591,10 +816,38 @@ class RenderBudgetEvidence {
      * <p>Held rather than allocated per call: a frame is eight megabytes, and
      * the comparison wants two of them at once for every framing on both maps.
      */
+    /**
+     * The animation clock every frame here is drawn at. Left unset, a context falls back to the wall clock, and
+     * the fire lights' flicker ({@code FireLight.clock}) moved between the culled readback and its unculled
+     * control: the burning colony's whole-map frames differed by one channel level, on whichever run the
+     * milliseconds happened to land across a rounding step. A still world needs a still clock as well.
+     */
+    private static final float ANIMATION_CLOCK_SECONDS = BattleReviewFrameRenderer.REVIEW_CLOCK_SECONDS;
+
     private static final ByteBuffer READ_BUFFER =
             BufferUtils.createByteBuffer(SURFACE_W * SURFACE_H * 4);
     private static final byte[] CULLED = new byte[SURFACE_W * SURFACE_H * 4];
     private static final byte[] WHOLE = new byte[SURFACE_W * SURFACE_H * 4];
+
+    /**
+     * The frame just read back, as a PNG under {@code frames/}: a lever's run and its control's are then the same
+     * picture or they are not, which {@code RawFrameDump} can say pixel by pixel. The GL frame, not a review
+     * frame, because a lever that only the GL drain sees is invisible to every Java2D picture.
+     */
+    private static void writeFrame(Path dir, String mapId, String framing) throws IOException {
+        Files.createDirectories(dir);
+        BufferedImage image = new BufferedImage(SURFACE_W, SURFACE_H, BufferedImage.TYPE_INT_RGB);
+        for (int y = 0; y < SURFACE_H; y++) {
+            int row = (SURFACE_H - 1 - y) * SURFACE_W * 4;   // GL rows run bottom up
+            for (int x = 0; x < SURFACE_W; x++) {
+                int i = row + x * 4;
+                image.setRGB(x, y, (WHOLE[i] & 0xFF) << 16 | (WHOLE[i + 1] & 0xFF) << 8 | (WHOLE[i + 2] & 0xFF));
+            }
+        }
+        String name = (mapId + "-" + framing.substring(0, Math.max(0, framing.indexOf(" ("))))
+                .replaceAll("[^A-Za-z0-9]+", "-") + ".png";
+        ImageIO.write(image, "png", dir.resolve(name).toFile());
+    }
 
     private static void readBack(BattleRenderer renderer, RenderContext rc,
                                  FrameCensus census, byte[] into) {
@@ -706,6 +959,8 @@ class RenderBudgetEvidence {
                 .append(RoofMesh.enabled() ? "on" : "off")
                 .append("**, creep **")
                 .append(CreepLayer.enabled() ? "on" : "off")
+                .append("**, fire **")
+                .append(FireRenderSystem.enabled() ? "on" : "off")
                 .append("**, collect culling **")
                 .append(ViewCull.enabled() ? "on" : "off").append("**.\n\n");
 
@@ -794,6 +1049,7 @@ class RenderBudgetEvidence {
         root.put("unitAtlas", UnitAtlas.enabled());
         root.put("residentRoofs", RoofMesh.enabled());
         root.put("creep", CreepLayer.enabled());
+        root.put("fire", FireRenderSystem.enabled());
         root.put("collectCulling", ViewCull.enabled());
         List<JSONObject> costs = new ArrayList<>();
         for (FrameCost cost : frameCosts) {

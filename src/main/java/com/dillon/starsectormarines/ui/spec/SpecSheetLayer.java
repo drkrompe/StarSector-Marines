@@ -64,20 +64,20 @@ public final class SpecSheetLayer {
      * Armory's own, which is where the first per-card popups lived.
      */
     private static final String CSS = """
-            .spec-sheet {
-                position: absolute;
-                pointer-events: none;
+            .spec-sheet, .spec-card {
                 flex-direction: column;
-                width: 360px;
                 padding: 10px;
                 gap: 6px;
                 border-width: 2px;
                 overflow: hidden;
                 font-family: body;
+                text-align: left;
                 background-color: #09131d;
                 border-color: #53c6e8;
                 color: #d5deea;
             }
+            .spec-sheet { position: absolute; pointer-events: none; width: 360px; }
+            .spec-card { width: 504px; }
             .spec-sheet.spec-sheet-weapon { border-color: #53c6e8; }
             .spec-sheet.spec-sheet-armor { border-color: #dfb84d; }
             .spec-sheet.spec-sheet-special { border-color: #71d6c1; }
@@ -97,10 +97,69 @@ public final class SpecSheetLayer {
             .spec-sheet-stat-track { flex-direction: row; height: 4px; background-color: #1a2836; }
             .spec-sheet-stat-fill { height: 4px; background-color: #53c6e8; }
             .spec-sheet-armor .spec-sheet-stat-fill { background-color: #dfb84d; }
+            .spec-card .spec-sheet-stamp-badge { width: 466px; }
+            .spec-sheet-crest.spec-card-crest { width: 48px; height: 32px; }
             .spec-sheet-special .spec-sheet-stat-fill { background-color: #71d6c1; }
             .spec-sheet-system .spec-sheet-stat-fill { background-color: #c79ce8; }
             .spec-sheet-mech .spec-sheet-stat-fill { background-color: #e2965c; }
             .spec-sheet-note { white-space: normal; }
+            .spec-sheet-stamp {
+                flex-direction: column;
+                height: 24px;
+                gap: 2px;
+                padding: 3px 6px 3px 6px;
+                border-width: 1px;
+                border-color: #1f3346;
+                background-color: #0e1a26;
+            }
+            .spec-sheet-stamp.spec-sheet-stamp-restricted { height: 46px; }
+            .spec-sheet-stamp-issued { height: 16px; color: #8b9aaf; }
+            .spec-sheet-stamp-badge {
+                flex-direction: row;
+                align-items: center;
+                width: 300px;
+                height: 20px;
+                gap: 4px;
+                padding: 0px 6px 0px 2px;
+                background-color: #3a1512;
+            }
+            .spec-sheet-stamp-badge.spec-sheet-stamp-badge-absent { width: 0px; height: 0px; padding: 0px; gap: 0px; }
+            .spec-sheet-stamp-seal { width: 18px; height: 18px; }
+            .spec-sheet-stamp-restriction { width: 0px; flex-grow: 1; font-family: heading; color: #f08a74; }
+            .spec-sheet.spec-sheet-wide { width: 504px; }
+            .spec-sheet-seats { flex-direction: row; height: 146px; gap: 9px; }
+            .spec-sheet-team {
+                flex-direction: column;
+                width: 152px;
+                height: 136px;
+                padding: 4px;
+                gap: 4px;
+                border-width: 1px;
+                border-color: #1f3346;
+                background-color: #0e1a26;
+            }
+            .spec-sheet-team-label { height: 12px; text-align: center; color: #8b9aaf; }
+            .spec-sheet-seat-row { flex-direction: row; height: 58px; gap: 4px; }
+            .spec-sheet-seat {
+                width: 64px;
+                height: 48px;
+                padding: 4px;
+                border-width: 1px;
+                border-color: #2a4258;
+                background-color: #09131d;
+            }
+            .spec-sheet-seat-image { width: 64px; height: 48px; }
+            .spec-sheet-seat-badge {
+                position: absolute;
+                left: 38px;
+                top: 22px;
+                width: 28px;
+                height: 28px;
+                border-width: 1px;
+                border-color: #2c4a63;
+                background-color: #09131d;
+            }
+            .spec-sheet-seat-badge.spec-sheet-seat-badge-absent { width: 0px; height: 0px; border-width: 0px; }
             .spec-sheet.spec-sheet-hidden {
                 width: 0px;
                 height: 0px;
@@ -112,6 +171,8 @@ public final class SpecSheetLayer {
             """;
 
     private static final Map<UiDocument, SpecSheetLayer> INSTALLED = new WeakHashMap<>();
+    /** The seal a Restricted card's badge carries, the same one its face shows. */
+    public static final String RESTRICTED_SEAL = "graphics/ui/company/restricted-seal.svg";
 
     private final UiDocument document;
     private final UiElement root;
@@ -119,17 +180,31 @@ public final class SpecSheetLayer {
     private final UiElement crest;
     private final UiElement title;
     private final UiElement subtitle;
+    private final UiElement stamp;
+    private final UiElement stampIssued;
+    private final UiElement stampBadge;
+    private final UiElement stampRestriction;
     private final List<StatRow> statRows = new ArrayList<>();
     private final List<UiElement> notes = new ArrayList<>();
+    private final UiElement seats;
+    private final List<UiElement> seatRows = new ArrayList<>();
+    private final List<UiElement> teamBlocks = new ArrayList<>();
+    private final List<UiElement> teamLabels = new ArrayList<>();
+    private final List<SeatTile> seatTiles = new ArrayList<>();
 
     private String accentClass;
     private int usedStats;
     private int usedNotes;
+    private int usedSeatRows;
+    private int usedTeams;
+    private boolean seatsAttached;
+    private boolean stampAttached;
 
     private SpecSheetLayer(UiDocument document) {
         this.document = document;
         crest = new UiElement(ELEMENT_ID + "-crest").tag(UiTag.IMAGE)
                 .addClass("spec-sheet-crest");
+        seats = new UiElement(ELEMENT_ID + "-seats").addClass("spec-sheet-seats");
         title = new UiElement(ELEMENT_ID + "-title").addClass("spec-sheet-title");
         subtitle = new UiElement(ELEMENT_ID + "-subtitle").addClass("spec-sheet-subtitle");
         heading = new UiElement(ELEMENT_ID + "-heading")
@@ -139,6 +214,18 @@ public final class SpecSheetLayer {
                         .addClass("spec-sheet-heading-copy")
                         .child(title)
                         .child(subtitle));
+        stampIssued = new UiElement(ELEMENT_ID + "-stamp-issued").addClass("spec-sheet-stamp-issued");
+        stampRestriction = new UiElement(ELEMENT_ID + "-stamp-restriction")
+                .addClass("spec-sheet-stamp-restriction");
+        stampBadge = new UiElement(ELEMENT_ID + "-stamp-badge")
+                .addClass("spec-sheet-stamp-badge")
+                .child(new UiElement(ELEMENT_ID + "-stamp-seal").tag(UiTag.IMAGE)
+                        .addClass("spec-sheet-stamp-seal").imageSource(RESTRICTED_SEAL))
+                .child(stampRestriction);
+        stamp = new UiElement(ELEMENT_ID + "-stamp")
+                .addClass("spec-sheet-stamp")
+                .child(stampBadge)
+                .child(stampIssued);
         root = new UiElement(ELEMENT_ID)
                 .addClass("spec-sheet")
                 .addClass(HIDDEN_CLASS)
@@ -211,21 +298,94 @@ public final class SpecSheetLayer {
         crest.classed("spec-sheet-crest-absent",
                 sheet.crestPath() == null || sheet.crestPath().isBlank());
 
+        if (stampAttached) root.remove(stamp);
+        stampAttached = sheet.stamp() != null;
+        if (stampAttached) {
+            stampIssued.text(sheet.stamp().issued());
+            stampRestriction.text(sheet.stamp().restricted() ? sheet.stamp().restriction() : "");
+            stampBadge.classed("spec-sheet-stamp-badge-absent", !sheet.stamp().restricted());
+            stamp.classed("spec-sheet-stamp-restricted", sheet.stamp().restricted());
+        }
         for (int index = usedStats - 1; index >= 0; index--) root.remove(statRows.get(index).row);
         for (int index = usedNotes - 1; index >= 0; index--) root.remove(notes.get(index));
+        if (seatsAttached) root.remove(seats);
+        for (int index = usedTeams - 1; index >= 0; index--) seats.remove(teamBlocks.get(index));
         usedStats = sheet.stats().size();
         usedNotes = sheet.notes().size();
 
+        if (stampAttached) root.child(stamp);
         for (int index = 0; index < usedStats; index++) {
             StatRow row = statRow(index);
             row.apply(sheet.stats().get(index));
             root.child(row.row);
         }
+        fillSeats(sheet.seats(), sheet.teams());
         for (int index = 0; index < usedNotes; index++) {
             UiElement note = note(index);
             note.text(sheet.notes().get(index));
             root.child(note);
         }
+    }
+
+    /**
+     * Paints a squad-wide sheet's seats as fire teams side by side, each a
+     * labelled two-by-two block of {@link SpecSheet#TEAM_SIZE} tiles — the
+     * grouping the squad card's muster already uses — and widens the overlay to
+     * hold them. A single-item sheet has none and keeps the ordinary width.
+     */
+    private void fillSeats(List<SpecSheet.Seat> sheetSeats, List<String> teams) {
+        seatsAttached = !sheetSeats.isEmpty();
+        root.classed("spec-sheet-wide", seatsAttached);
+        usedTeams = 0;
+        if (!seatsAttached) return;
+        int perRow = SpecSheet.TEAM_SIZE / 2;
+        usedTeams = (sheetSeats.size() + SpecSheet.TEAM_SIZE - 1) / SpecSheet.TEAM_SIZE;
+        for (int team = 0; team < usedTeams; team++) {
+            UiElement block = teamBlock(team);
+            UiElement label = teamLabels.get(team);
+            label.text(team < teams.size() ? teams.get(team) : "");
+            for (int rowIndex = 0; rowIndex < 2; rowIndex++) {
+                UiElement row = seatRow(team * 2 + rowIndex);
+                for (int index = row.children().size() - 1; index >= 0; index--) row.remove(row.children().get(index));
+                for (int column = 0; column < perRow; column++) {
+                    int seat = team * SpecSheet.TEAM_SIZE + rowIndex * perRow + column;
+                    if (seat >= sheetSeats.size()) break;
+                    SeatTile tile = seatTile(seat);
+                    tile.apply(sheetSeats.get(seat));
+                    row.child(tile.tile);
+                }
+            }
+            seats.child(block);
+        }
+        root.child(seats);
+    }
+
+    private UiElement teamBlock(int index) {
+        while (teamBlocks.size() <= index) {
+            int team = teamBlocks.size();
+            UiElement label = new UiElement(ELEMENT_ID + "-team-" + team + "-label")
+                    .addClass("spec-sheet-team-label");
+            teamLabels.add(label);
+            teamBlocks.add(new UiElement(ELEMENT_ID + "-team-" + team)
+                    .addClass("spec-sheet-team")
+                    .child(label)
+                    .child(seatRow(team * 2))
+                    .child(seatRow(team * 2 + 1)));
+        }
+        return teamBlocks.get(index);
+    }
+
+    private UiElement seatRow(int index) {
+        while (seatRows.size() <= index) {
+            seatRows.add(new UiElement(ELEMENT_ID + "-seat-row-" + seatRows.size())
+                    .addClass("spec-sheet-seat-row"));
+        }
+        return seatRows.get(index);
+    }
+
+    private SeatTile seatTile(int index) {
+        while (seatTiles.size() <= index) seatTiles.add(new SeatTile(seatTiles.size()));
+        return seatTiles.get(index);
     }
 
     private StatRow statRow(int index) {
@@ -327,6 +487,27 @@ public final class SpecSheetLayer {
         }
         String value = result.toString();
         return value.equals("hidden") ? "item" : value;
+    }
+
+    /** One seat's tile: its main item, with a second item badged on the corner. */
+    private static final class SeatTile {
+
+        private final UiElement tile;
+        private final UiElement image;
+        private final UiElement badge;
+
+        private SeatTile(int index) {
+            String id = ELEMENT_ID + "-seat-" + index;
+            image = new UiElement(id + "-image").tag(UiTag.IMAGE).addClass("spec-sheet-seat-image");
+            badge = new UiElement(id + "-badge").tag(UiTag.IMAGE).addClass("spec-sheet-seat-badge");
+            tile = new UiElement(id).addClass("spec-sheet-seat").child(image).child(badge);
+        }
+
+        private void apply(SpecSheet.Seat seat) {
+            image.imageSource(seat.image());
+            badge.imageSource(seat.badge());
+            badge.classed("spec-sheet-seat-badge-absent", seat.badge() == null || seat.badge().isBlank());
+        }
     }
 
     /** One stat row: a label and value line, plus a meter track when it has one. */
