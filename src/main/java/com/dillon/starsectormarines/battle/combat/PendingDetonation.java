@@ -34,6 +34,8 @@ public final class PendingDetonation {
     public final float endpointY;
     /** Sim-seconds until detonation. Decremented per tick by {@code Detonations.tick}. */
     public float remainingTime;
+    /** Sim-seconds of flight it was queued with: the whole warning a fire mission's countdown ring runs over. */
+    public final float flightTime;
     /** Splash radius in cells. Every unit within this distance of the endpoint with line of sight to it takes damage (cover-reduced). */
     public final float aoeRadius;
     /** Damage applied to each unit in the splash, before cover reduction. */
@@ -180,6 +182,7 @@ public final class PendingDetonation {
         this.endpointX     = endpointX;
         this.endpointY     = endpointY;
         this.remainingTime = remainingTime;
+        this.flightTime    = remainingTime;
         this.aoeRadius     = aoeRadius;
         this.damage        = damage;
         this.penetration   = penetration;
@@ -240,6 +243,21 @@ public final class PendingDetonation {
     }
 
     public boolean isGroundEvent() { return groundEvent; }
+
+    /**
+     * Whether this fire mission lands without its own danger marker: one round of
+     * a scripted barrage, which the battle announces by the line rather than by
+     * the shell. Set by whoever queues it.
+     */
+    private boolean unmarked;
+
+    /** Marks this as landing without its own danger marker and returns it, so a factory can mark it inline. */
+    public PendingDetonation asUnmarked() {
+        this.unmarked = true;
+        return this;
+    }
+
+    public boolean isUnmarked() { return unmarked; }
 
     /** Records that a dome took this detonation: nothing it would have done has happened. */
     public void markAbsorbed() { this.absorbed = true; }

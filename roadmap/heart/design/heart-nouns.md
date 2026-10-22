@@ -102,6 +102,14 @@ ride is cut through any field it crosses, so it is unbroken bare earth. It holds
 inside the bloom too: creep over bare earth or paving is a film that does not
 burn (`fire-nouns.md`).
 
+**Field margin.** A ragged edge of rough grass and scrub on every field, along
+a seeded line that wanders up to three cells either side of the parcel's
+straight edge: out over the bare earth beside it, or into the parcel. A parcel
+is a rectangle, and a burn that takes its crop and creep would otherwise leave
+it showing as one, with no wall to explain the edge; with the margin the line
+is organic. A ride is cleared after the
+margins grow, so a margin never bridges one.
+
 **Brook** (The Burn). A stream across the approach, deep in the bloom beyond
 the village: water five cells wide with sand on either bank and no crown
 overhanging it, crossed on foot
@@ -117,7 +125,8 @@ into the map, with the second it opens and the seconds it fires before it
 **lifts** to the next. Shells fall at a steady rate as placed blasts scattered
 along the current line (the Orbital Barrage's pending detonation, many times
 over, `command-powers-nouns.md`), each landing after its flight, which is the
-warning on the ground. A line may fire incendiary shells, which light what they
+warning on the ground. A round carries no danger marker of its own, as a called
+strike does: the battle announces the guns by the line, in its beats. A line may fire incendiary shells, which light what they
 land on through fire's ignition seam. The plan ends at the **last line**, short
 of the heart: the batteries' reach, or the ammunition the briefing names. The
 Burn's plan follows **firebreaks hold** (the owner's pick): the fire stops at
