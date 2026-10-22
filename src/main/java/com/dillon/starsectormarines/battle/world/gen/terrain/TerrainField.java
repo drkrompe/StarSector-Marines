@@ -21,6 +21,19 @@ public final class TerrainField {
         return Math.max(Math.max(excavationCorner(x,y),excavationCorner(x+1,y)),
                 Math.max(excavationCorner(x,y+1),excavationCorner(x+1,y+1)));
     }
+    /**
+     * A field from corner samples already computed elsewhere — the elevation
+     * layout's, so raised ground is drawn by the same clipping as a mass.
+     * Arrays are {@code (width+1)*(height+1)}; a null excavation field is none.
+     */
+    public static TerrainField of(int width, int height, double[] corners, double[] excavationCorners) {
+        int size = (width + 1) * (height + 1);
+        if (corners.length != size || (excavationCorners != null && excavationCorners.length != size))
+            throw new IllegalArgumentException("Corner field does not match " + width + "x" + height);
+        double[] excavations = excavationCorners != null ? excavationCorners.clone() : new double[size];
+        if (excavationCorners == null) Arrays.fill(excavations, -128);
+        return new TerrainField(width, height, corners.clone(), excavations);
+    }
     public int width() { return width; }
     public int height() { return height; }
     public static TerrainField build(TerrainPlan plan) {

@@ -25,16 +25,20 @@ public final class TerrainSurface {
     }
     private static final float[] FULL_CELL = {0, 0, 1, 0, 1, 1, 0, 1};
     public static TerrainSurface build(TerrainPlan plan,TerrainField field,CellTopology topology) {
-        int w=plan.width(),h=plan.height();Patch[][] patches=new Patch[LAYERS][w*h];
+        return build(plan.finish(),plan.faceDepth(),field,topology);
+    }
+    /** The same clipping for a field that did not come from brush strokes (raised ground). */
+    public static TerrainSurface build(TerrainPlan.Finish finish,double faceDepth,TerrainField field,CellTopology topology) {
+        int w=field.width(),h=field.height();Patch[][] patches=new Patch[LAYERS][w*h];
         boolean[] excavated=new boolean[w*h];
-        String material=plan.finish().materialPrefix();
+        String material=finish.materialPrefix();
         int talus=topology.surfaceIndex(material+"talus");
         int[] rock=new int[7];
-        int cap=plan.finish()==TerrainPlan.Finish.GRASS_TOP?0:topology.surfaceIndex(material+"rock");
+        int cap=finish==TerrainPlan.Finish.GRASS_TOP?0:topology.surfaceIndex(material+"rock");
         for(int i=0;i<7;i++) {
             rock[i]=topology.surfaceIndex(material+"face."+i);
         }
-        double[] depths={-.65,0,plan.faceDepth()*.68,plan.faceDepth()};
+        double[] depths={-.65,0,faceDepth*.68,faceDepth};
         for(int y=0;y<h;y++)for(int x=0;x<w;x++) {
             double a=field.corner(x,y),b=field.corner(x+1,y),c=field.corner(x+1,y+1),d=field.corner(x,y+1);
             if(Math.max(Math.max(a,b),Math.max(c,d))<depths[0])continue;
@@ -82,5 +86,47 @@ public final class TerrainSurface {
             }
         }
         return new TerrainSurface(w,patches,excavated);
+    }
+    /**
+     * This surface with the given patches laid in one layer, replacing what the
+     * layer held in those cells. A null entry leaves the cell alone. Raised
+     * ground lays a ramp's floor this way, in a layer that draws after the
+     * bands its cut would otherwise show.
+     */
+    public TerrainSurface withPatches(int layer,Patch[] cellPatches) {
+        Patch[][] next=patches.clone();
+        next[layer]=patches[layer].clone();
+        for(int i=0;i<cellPatches.length;i++)if(cellPatches[i]!=null)next[layer][i]=cellPatches[i];
+        return new TerrainSurface(width,next,excavated);
+    }
+    /**
+     * Two tiers of raised ground as one surface: {@code lower}'s raised bands in
+     * the raised layers, {@code upper}'s raised bands in the layers after them,
+     * so an upper tier's apron and face draw over the lower tier's top. The
+     * excavation layers are spent on it; a map stacking two tiers keeps no
+     * excavation in the cells either tier draws in.
+     */
+    public static TerrainSurface stacked(TerrainSurface lower,TerrainSurface upper) {
+        int cells=lower.excavated.length;Patch[][] out=new Patch[LAYERS][];
+        for(int layer=0;layer<RAISED_LAYERS;layer++) {
+            out[layer]=lower.patches[layer].clone();
+            out[RAISED_LAYERS+layer]=upper.patches[layer].clone();
+        }
+        return new TerrainSurface(lower.width,out,new boolean[cells]);
+    }
+    /**
+     * Two surfaces as one: a cell {@code over} draws anything in takes all of
+     * its layers from {@code over}, every other cell keeps {@code base}'s.
+     * Used to lay raised ground over a map that already has brush terrain.
+     */
+    public static TerrainSurface compose(TerrainSurface base,TerrainSurface over) {
+        if(base==null)return over;
+        int cells=base.excavated.length;Patch[][] out=new Patch[LAYERS][cells];boolean[] excavated=base.excavated.clone();
+        for(int i=0;i<cells;i++) {
+            boolean useOver=false;
+            for(int layer=0;layer<LAYERS&&!useOver;layer++)useOver=over.patches[layer][i]!=null;
+            for(int layer=0;layer<LAYERS;layer++)out[layer][i]=(useOver?over:base).patches[layer][i];
+        }
+        return new TerrainSurface(base.width,out,excavated);
     }
 }
