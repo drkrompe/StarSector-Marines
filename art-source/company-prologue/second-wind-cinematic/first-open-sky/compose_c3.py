@@ -176,10 +176,11 @@ def relay_mast(strobe):
     return img(a)
 
 
-# The riverside freight road as Codex painted it (centreline measured on the plate, plate px): along
-# the town's waterfront in front of the warehouses, past the weigh station, and upstream to where it
+# The riverside freight road as Codex painted it (centreline traced on the plate, plate px): along
+# the town's waterfront, through the depot yard below its container stacks (above the barge), past the weigh station, and upstream to where it
 # passes under the canopy.
-ROAD = [(2270, 1005.0), (2350, 977.0), (2450, 943.0), (2550, 908.0), (2600, 886.0), (2690, 860.0),
+ROAD = [(2260, 1006.0), (2297, 997.0), (2335, 986.0), (2370, 975.0), (2390, 968.5), (2410, 966.5),
+        (2430, 962.5), (2445, 956.0), (2457, 947.5), (2470, 940.0), (2550, 908.0), (2600, 886.0), (2690, 860.0),
         (2740, 838.5), (2800, 821.5), (2860, 812.5), (2945, 798.0)]
 PLATE_M = 1.16                       # plate px per metre at ~2 km (c3_settlement.PX_PER_M)
 TRUCK_M = (24.0, 2.6, 3.8)           # length, width, height: a road train, cab and two box trailers
@@ -189,8 +190,8 @@ TRUCK_M = (24.0, 2.6, 3.8)           # length, width, height: a road train, cab 
 # hill road, the red cab leading, the blue about 90 m behind. Speeds in m/s (43 and 40 km/h: town
 # speeds); `lane` is plate px off the centreline.
 TRUCKS = [
-    {"name": "lead", "start": 2620.0, "t0": 0.0, "speed": -12.0, "lane": 1.2, "cab": (190, 60, 40)},
-    {"name": "second", "start": 2720.0, "t0": 0.0, "speed": -11.0, "lane": 1.2, "cab": (52, 96, 160)},
+    {"name": "lead", "start": 2620.0, "t0": 0.0, "speed": -12.0, "lane": 0.0, "cab": (190, 60, 40)},
+    {"name": "second", "start": 2720.0, "t0": 0.0, "speed": -11.0, "lane": 0.0, "cab": (52, 96, 160)},
 ]
 
 
