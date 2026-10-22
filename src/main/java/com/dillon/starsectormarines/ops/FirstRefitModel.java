@@ -58,8 +58,11 @@ final class FirstRefitModel {
         return CampaignLessons.lesson(roster.firstRefit().claimed() ? 3 : path == null ? 0 : 1,
                 "lessonRefitTitle", copy,
                 List.of(path == null ? "refit-paths" : "refit-actions", "refit-squads", "refit-paths", "refit-comparison"),
-                null, null);
+                null, null, GUIDE_HEIGHT);
     }
+
+    /** Castle's callout: portrait, title, progress and three lines, under the two choices. */
+    private static final int GUIDE_HEIGHT = 210;
 
     Signal<Map<String, Object>> row() { return row; }
 
@@ -128,11 +131,15 @@ final class FirstRefitModel {
         props.put("claimLabel", path == null ? Strings.get("openingFirstRefitChooseAPath") : Strings.format("openingFirstRefitLearn", Strings.upper(path.label())));
         props.put("issueClasses", claimed && !complete ? "refit-action spec-action" : "refit-hidden");
         props.put("workClasses", !complete ? "refit-work" : "refit-hidden");
-        props.put("navClasses", leavable() ? "refit-nav" : "refit-hidden");
         props.put("doneClasses", complete ? "refit-action spec-action" : "refit-hidden");
         props.put("claim", (Runnable) this::claim);
         props.put("inspect", (Runnable) () -> inspect.accept(roster.firstRefit().issuedSquadId()));
         props.put("issue", (Runnable) this::issue);
+        // The free fitting goes to one line squad. With only one there is nothing to pick,
+        // so the picker and its hint step aside; with none, the hint says why.
+        long lineSquads = roster.squads().stream().filter(s -> !s.reserve()).count();
+        props.put("squadsClasses", lineSquads > 1 ? "refit-squads" : "refit-hidden");
+        props.put("hintClasses", lineSquads != 1 ? "refit-hint tone-muted" : "refit-hidden");
         props.put("squads", roster.squads().stream().filter(s -> !s.reserve()).map(s -> Map.<String, Object>of(
                 "id", "refit-squad:" + s.id(), "label", Strings.join("separatorPath", s.id().equals(squadId) ? Strings.get("squadRefitSelectedTag") : null,
                         s.name(), s.stationed() ? Strings.get("squadRefitStationedTag") : null),

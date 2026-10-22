@@ -3,7 +3,9 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.creep.ColonyCreep;
 import com.dillon.starsectormarines.battle.creep.CreepVegetationSnapshotSuite;
 import com.dillon.starsectormarines.battle.creep.CreepField;
+import com.dillon.starsectormarines.battle.fire.FireCost;
 import com.dillon.starsectormarines.battle.fire.FireField;
+import com.dillon.starsectormarines.battle.world.model.NightLighting;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
@@ -50,6 +52,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.IdentityHashMap;
 import java.util.Random;
+import java.util.Set;
 
 import javax.imageio.ImageIO;
 
@@ -289,7 +292,9 @@ class RenderBudgetEvidence {
                 new MapSpec("400x240 colony", MapSpec::colony),
                 new MapSpec("400x240 green colony", MapSpec::greenColony),
                 new MapSpec("400x240 green colony burning", MapSpec::burningColony),
-                new MapSpec("280x168 body pile", MapSpec::bodyPile));
+                new MapSpec("280x168 body pile", MapSpec::bodyPile),
+                new MapSpec("400x240 the burn", () -> theBurn(false)),
+                new MapSpec("400x240 the burn at night", () -> theBurn(true)));
 
         static final String CONQUEST_ID = "560x336 conquest";
         static final String PILE_ID = "280x168 body pile";
@@ -437,6 +442,86 @@ class RenderBudgetEvidence {
             int ticks = Math.round(BURN_SECONDS / BattleSimulation.TICK_DT);
             for (int t = 0; t < ticks; t++) fire.tick(t);
             return sim;
+        }
+
+        static final String THE_BURN = "/battle-fixtures/heart-burn-v1.json";
+        /** Seconds of The Burn played before it is drawn: inside its peak, 160 to 240 s. */
+        static final int BURN_PEAK_SECONDS = Integer.getInteger("render.evidence.burnSeconds", 200);
+        /** The window, from the end of the play, over which the simulation's cost is read. */
+        static final int BURN_COST_WINDOW_SECONDS = 80;
+
+        /**
+         * The Burn (`heart-nouns.md`) at seed 202, the whole battle played to {@link #BURN_PEAK_SECONDS}: the swarm,
+         * the company, the barrage and the fire it lights, all live. While it plays, every tick of the last
+         * {@link #BURN_COST_WINDOW_SECONDS} is timed whole and the fire's own share read off
+         * {@link BattleSimulation#fireCostProfile()}, and written beside the render report
+         * ({@code burn-sim.md}): the serial scheduler this task forces, so the whole tick is the
+         * single-thread figure, not production's parallel one. The framings centre on the densest fire, and at
+         * night the same moment is drawn with no lamps, so the fire light is all there is.
+         */
+        static BattleSimulation theBurn(boolean night) throws Exception {
+            BattleFixture fixture = BattleFixtureJson.fromJson(new JSONObject(resource(THE_BURN)));
+            BattleSimulation sim = fixture.build();
+            sim.setMissionCompletionEnabled(false);
+            int end = Math.round(BURN_PEAK_SECONDS / BattleSimulation.TICK_DT);
+            int windowStart = end - Math.round(BURN_COST_WINDOW_SECONDS / BattleSimulation.TICK_DT);
+            List<Long> tickNanos = new ArrayList<>();
+            int peakBurning = 0, fireTicksBefore = -1;
+            while (sim.getSimTickIndex() < end) {
+                if (fireTicksBefore < 0 && sim.getSimTickIndex() >= windowStart) {
+                    fireTicksBefore = sim.fireCostProfile().ticks();
+                }
+                long t0 = System.nanoTime();
+                sim.advance(BattleSimulation.TICK_DT);
+                long dt = System.nanoTime() - t0;
+                if (sim.getSimTickIndex() > windowStart) {
+                    tickNanos.add(dt);
+                    peakBurning = Math.max(peakBurning, sim.fireField().burningCount());
+                }
+            }
+            if (!night) writeBurnSimCost(sim, tickNanos, peakBurning, windowStart, end);
+            PILE_FOCUS.put(sim, densestFire(sim.fireField()));
+            if (night) sim.getTopology().setNightLighting(NIGHT);
+            return sim;
+        }
+
+        /** The middle of the 16-cell square with the most cells burning: the framings look at the fire, not the company. */
+        private static float[] densestFire(FireField fire) {
+            int bin = 16, w = fire.width(), bw = (w + bin - 1) / bin, bh = (fire.height() + bin - 1) / bin;
+            int[] counts = new int[bw * bh];
+            int best = 0;
+            for (int i = 0, n = fire.burningCount(); i < n; i++) {
+                int idx = fire.burningCell(i), b = (idx / w / bin) * bw + idx % w / bin;
+                if (++counts[b] > counts[best]) best = b;
+            }
+            return new float[]{(best % bw) * bin + bin / 2f, (best / bw) * bin + bin / 2f};
+        }
+
+        /** A dark night with no lamps: whatever is lit is lit by the fire. */
+        private static final NightLighting NIGHT = new NightLighting(0.78f, List.of(), Set.of());
+
+        private static void writeBurnSimCost(BattleSimulation sim, List<Long> tickNanos, int peakBurning,
+                                             int windowStart, int end) throws IOException {
+            long[] sorted = tickNanos.stream().mapToLong(Long::longValue).sorted().toArray();
+            double mean = Arrays.stream(sorted).average().orElse(0) / 1e6;
+            double p99 = sorted.length == 0 ? 0 : sorted[Math.min(sorted.length - 1, (int) Math.ceil(0.99 * sorted.length) - 1)] / 1e6;
+            double max = sorted.length == 0 ? 0 : sorted[sorted.length - 1] / 1e6;
+            FireCost fire = sim.fireCostProfile();
+            String md = String.format(Locale.ROOT, "# The Burn: simulation cost at its peak%n%n"
+                    + "Seed 202, ticks %d..%d (%d..%d s), serial scheduler. Fire cost is over every tick with a fire "
+                    + "since it was first lit (the field only records ticks with something burning or warm).%n%n"
+                    + "| measure | mean ms | p99 ms | max ms |%n|---|---|---|---|%n"
+                    + "| whole tick, window | %.3f | %.3f | %.3f |%n"
+                    + "| fire share, whole battle | %.3f | %.3f | %.3f |%n%n"
+                    + "Peak burning cells in the window: %d. Fire ticks recorded: %d (%d steps).%n",
+                    windowStart, end, windowStart / 30, end / 30, mean, p99, max,
+                    fire.meanMillis(), fire.p99Millis(), fire.maxMillis(),
+                    peakBurning, fire.ticks(), fire.steps());
+            Path out = Path.of(System.getProperty("render.evidence.outputDir", "build/reports/render"))
+                    .toAbsolutePath().normalize();
+            Files.createDirectories(out);
+            Files.writeString(out.resolve("burn-sim.md"), md, StandardCharsets.UTF_8);
+            System.out.println(md);
         }
 
         private static String resource(String path) throws Exception {

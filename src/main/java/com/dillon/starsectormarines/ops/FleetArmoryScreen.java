@@ -352,7 +352,8 @@ public final class FleetArmoryScreen implements Screen {
             if (firstRefit != null) firstRefit.refresh();
         }
         if (markupInstance != null) markupInstance.flush();
-        if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.ARMORY, context::roomAboard, CompanyNotices.current());
+        // First Refit carries no page navigation: the reward is chosen before leaving.
+        if (context != null && view != View.FIRST_REFIT) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.ARMORY, context::roomAboard, CompanyNotices.current());
         // Loadout cards come and go with the rarity and supplies filters, so
         // the entries a reader can ask about are wired after reconciliation
         // rather than only when the document was installed.
