@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.combathybrid.bridge;
 
 import com.dillon.starsectormarines.DebugOnly;
-import com.dillon.starsectormarines.battle.audio.BattleRadioChatter;
 import com.dillon.starsectormarines.battle.audio.MechFootstepAudio;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
@@ -69,7 +68,6 @@ public final class GroundSimPresentation {
     private static final float RIFLE_VOLUME        = 0.5f;
 
     private final GroundBattleConfig cfg;
-    private final BattleRadioChatter radioChatter = new BattleRadioChatter();
     private final MechFootstepAudio mechFootsteps = new MechFootstepAudio();
     /** The listener's cell, as the footstep pass last placed it; swarm footfalls are drawn nearest it. */
     private float listenerCellX;
@@ -116,7 +114,6 @@ public final class GroundSimPresentation {
             playAtCell(cue.soundId(), cue.pitch(), cue.volume(), cue.cellX(), cue.cellY());
         }
         playDeathVoice(sim);
-        playRadioChatter(sim, dt);
         spawnAmbientFx(fx, sim);
 
         driveOrdnanceFx(renderer, sim, dt);
@@ -220,13 +217,6 @@ public final class GroundSimPresentation {
         }
     }
 
-    /** Shared squad-event policy, projected through the bridge's combat-world audio frame. */
-    private void playRadioChatter(BattleSimulation sim, float dt) {
-        BattleRadioChatter.Emission emission = radioChatter.advance(dt, sim);
-        if (emission == null) return;
-        playAtCell(emission.cue().soundId(), 1f, emission.cue().volume(),
-                emission.cellX(), emission.cellY());
-    }
 
     /** Burning-wreck smoke + flame puffs the sim queued this tick. */
     private void spawnAmbientFx(ImpactFx fx, BattleSimulation sim) {

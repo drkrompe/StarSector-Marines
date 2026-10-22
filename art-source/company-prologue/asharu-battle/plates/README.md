@@ -8,7 +8,8 @@ over it unchanged. The moving shots keep the rendered planet with the surface de
 
 ## Contract (agreed with the battle_blockout owner, 2026-10-22)
 
-- `<kf>.backdrop.exr`, 1920x1080, scene-linear Rec.709, alpha 1, on the key frame's own camera
+- `<kf>.backdrop.exr`, 1920x1080, scene-linear Rec.709, on the key frame's own camera; alpha 1, except
+  S12 (k6), whose sky is a premultiplied matte so the rendered stars show through
   (`battle_blockout.KEYFRAMES`, 36 mm sensor width).
 - Drive `builds/asharu-plates/<commit>/` with `manifest.json`: each plate's kf, shot, sha256,
   source painting and its sha256. The composite reads it with `--plates <dir>`.

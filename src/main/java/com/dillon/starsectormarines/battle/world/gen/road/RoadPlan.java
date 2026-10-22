@@ -10,7 +10,7 @@ import java.util.HashSet;
 
 /** Editable road intent; coordinates are cell centers in world space. Wear is visual only. */
 public record RoadPlan(int width, int height, List<Route> routes) {
-    public enum Material { ASPHALT, CONCRETE;
+    public enum Material { ASPHALT, CONCRETE, GRAVEL, DIRT;
         public String block(int age) { return "pavement." + name().toLowerCase(Locale.ROOT)
                 + "." + new String[]{"new", "worn", "cracked"}[age]; }
     }
@@ -31,9 +31,9 @@ public record RoadPlan(int width, int height, List<Route> routes) {
             points = List.copyOf(points);
             if (id == null || id.isBlank() || material == null || endCap == null || points.size() < 2 || points.size() > 64)
                 throw new IllegalArgumentException("A road needs an id, material and 2–64 anchors");
-            if (!Double.isFinite(width) || width < 3 || width > 32 || !Double.isFinite(shoulder) || shoulder < 0 || shoulder > 8
+            if (!Double.isFinite(width) || width < 2 || width > 32 || !Double.isFinite(shoulder) || shoulder < 0 || shoulder > 8
                     || !Double.isFinite(wear) || wear < 0 || wear > 1)
-                throw new IllegalArgumentException("Width 3–32, shoulder 0–8, wear 0–1 required");
+                throw new IllegalArgumentException("Width 2–32, shoulder 0–8, wear 0–1 required");
             for (int i=1;i<points.size();i++) if (points.get(i).equals(points.get(i-1)))
                 throw new IllegalArgumentException("Consecutive anchors must differ");
         }

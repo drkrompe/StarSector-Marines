@@ -119,6 +119,20 @@ class BloomEvidence {
             else row.ends.merge(bloom.end(), 1, Integer::sum);
         }
         row.decivilized += world.decivilized.size();
+        // What reaches the player's intel feed: a stage-change message at eruption, dark, starved
+        // and end. The rumour while a bloom stirs is shown in the intel but sends no message.
+        List<Integer> noticeDays = new ArrayList<>();
+        for (RavBloom bloom : ledger.blooms()) {
+            for (int day : new int[] {bloom.eruptDay(), bloom.darkDay(), bloom.starvedDay(), bloom.endDay()}) {
+                if (day >= 0) noticeDays.add(day);
+            }
+        }
+        noticeDays.sort(Integer::compare);
+        row.notices += noticeDays.size();
+        for (int i = 0, j = 0; i < noticeDays.size(); i++) {
+            while (noticeDays.get(i) - noticeDays.get(j) >= 30) j++;
+            row.peakNotices30 = Math.max(row.peakNotices30, i - j + 1);
+        }
         for (int count : perWorld.values()) if (count > 1) row.repeatWorlds++;
     }
 
@@ -161,7 +175,7 @@ class BloomEvidence {
         final int seeds;
         final int years;
         int blooms, woken, seeded, maxGeneration, callsRaised, callsHeld, quarantined, sizeLost;
-        int playerBlooms, running, unendedEnds, decivilized, repeatWorlds;
+        int playerBlooms, running, unendedEnds, decivilized, repeatWorlds, notices, peakNotices30;
         long evacuated, atRisk;
         final List<Integer> wakeGaps = new ArrayList<>();
         final Map<BloomEnd, Integer> ends = new HashMap<>();
@@ -195,6 +209,8 @@ class BloomEvidence {
         md.append(String.format(Locale.ROOT, "%d cycles x %d save seeds per row, synthetic vanilla-shaped sector "
                 + "(%d markets, %d of them core). Counts are per cycle, averaged over seeds; outcomes are totals.\n\n",
                 years, seeds, SyntheticSector.marketCount(), SyntheticSector.coreCount()));
+        md.append(volume(rows));
+        md.append("## Every preset\n\n");
         md.append("| Severity | Frequency | Player colonies | Policy | Blooms/yr | Woken/yr | Seeded/yr | Median days between wakes | "
                 + "Contained | Starved out | Put down | Burned out | Decivilised | Running at end | Size lost/yr | Max generation | "
                 + "Worlds bloomed twice+ | Calls held at gate | Quarantined | Evacuated | Player colony blooms |\n");
@@ -212,6 +228,26 @@ class BloomEvidence {
         return md.toString();
     }
 
+    /** What the player is offered and told under the shipped defaults, per player policy. */
+    private static String volume(List<Row> rows) {
+        StringBuilder md = new StringBuilder("## Shipped defaults: what reaches the player\n\n");
+        md.append("Calls are Distress Net offers (one open campaign event at a time, so they never overlap); "
+                + "a call held at the gate never reached the player. Messages are the intel's stage-change "
+                + "updates (eruption, dark, starved, ended).\n\n");
+        md.append("| Policy | Blooms/yr | On player colonies | Calls offered/yr | Held at gate/yr | Messages/yr | "
+                + "Most messages in any 30 days |\n|---|---:|---:|---:|---:|---:|---:|\n");
+        for (Row r : rows) {
+            if (r.tuning.severity != BloomTuning.DEFAULT.severity
+                    || r.tuning.frequency != BloomTuning.DEFAULT.frequency
+                    || r.tuning.playerColonies != BloomTuning.DEFAULT.playerColonies) continue;
+            md.append(String.format(Locale.ROOT, "| %s | %.2f | %s | %.2f | %.2f | %.2f | %d |\n",
+                    r.policy, r.perYear(r.blooms),
+                    r.blooms > 0 ? Math.round(100.0 * r.playerBlooms / r.blooms) + "%" : "-",
+                    r.perYear(r.callsRaised), r.perYear(r.callsHeld), r.perYear(r.notices), r.peakNotices30));
+        }
+        return md.append('\n').toString();
+    }
+
     private static String json(List<Row> rows, int years, int seeds) {
         StringBuilder js = new StringBuilder();
         js.append("{\"years\":").append(years).append(",\"seeds\":").append(seeds).append(",\"rows\":[");
@@ -223,12 +259,13 @@ class BloomEvidence {
                             + "\"blooms\":%d,\"woken\":%d,\"seeded\":%d,\"medianWakeGapDays\":%d,"
                             + "\"contained\":%d,\"starvedOut\":%d,\"putDown\":%d,\"burnedOut\":%d,\"decivilized\":%d,\"running\":%d,"
                             + "\"sizeLost\":%d,\"maxGeneration\":%d,\"repeatWorlds\":%d,\"callsRaised\":%d,"
-                            + "\"callsHeld\":%d,\"quarantined\":%d,\"evacuated\":%d,\"atRisk\":%d,\"playerBlooms\":%d}",
+                            + "\"callsHeld\":%d,\"quarantined\":%d,\"evacuated\":%d,\"atRisk\":%d,\"playerBlooms\":%d,"
+                            + "\"messages\":%d,\"peakMessages30Days\":%d}",
                     r.tuning.severity, r.tuning.frequency, r.tuning.playerColonies, r.policy,
                     r.blooms, r.woken, r.seeded, r.medianGap(), r.end(BloomEnd.CONTAINED),
                     r.end(BloomEnd.STARVED_OUT), r.end(BloomEnd.PUT_DOWN), r.end(BloomEnd.BURNED_OUT), r.end(BloomEnd.DECIVILIZED),
                     r.running, r.sizeLost, r.maxGeneration, r.repeatWorlds, r.callsRaised, r.callsHeld,
-                    r.quarantined, r.evacuated, r.atRisk, r.playerBlooms));
+                    r.quarantined, r.evacuated, r.atRisk, r.playerBlooms, r.notices, r.peakNotices30));
         }
         return js.append("]}\n").toString();
     }
