@@ -25,6 +25,10 @@ package com.dillon.starsectormarines.battle.appearance;
  * stepping in under it. Stunned, it stands splay-footed with its head hung low, shaking it slowly from side to
  * side, and its shoulders wander.
  *
+ * <p>Dead, it bursts as a Runner does ({@link RavBurst}): the body splits across between the shoulders and the
+ * hips and the halves slump apart, the head and one or two legs come away and the rest stay on their half,
+ * over a pool of ichor.
+ *
  * <p>Ported from the approved motion study, {@code art-source/rav-redesign/exploration/brute_skeleton.py}.
  */
 public final class RavBruteRig {
@@ -91,7 +95,21 @@ public final class RavBruteRig {
     public static final int[] LEG_START = {0, 3, 6, 10};
     public static final int[] LEG_POINTS = {3, 3, 4, 4};
     public static final int SHOULDER = 14, HIP = 15;
-    static final int POINTS = 16;
+    /** The head's centre (where it pivots when it comes away) and the middle of the back (where it splits). */
+    public static final int HEAD = 16, MID = 17;
+    static final int POINTS = 18;
+    /** Layer row of the head sprite's centre, ahead of the shoulders. */
+    static final float HEAD_ROW = 224f;
+
+    /** What a Brute bursts into: the body's rear and front halves, the head, and each leg. */
+    public static final int PIECE_REAR = 0, PIECE_FRONT = 1, PIECE_HEAD = 2, PIECE_LEG = 3;
+    private static final int[][] PIECE_POINTS = {
+            {MID, HIP}, {MID, SHOULDER}, {HEAD},
+            {0, 1, 2}, {3, 4, 5}, {6, 7, 8, 9}, {10, 11, 12, 13}};
+    private static final int[] PIECE_PARENT = {-1, -1, -1, PIECE_FRONT, PIECE_FRONT, PIECE_REAR, PIECE_REAR};
+    private static final int[] LOOSE_CANDIDATES = {3, 4, 5, 6};
+    /** The Brute's pool, cells across: it is a bigger body than a Runner. */
+    private static final float POOL_CELLS = 1.6f;
 
     private final float[] pose = new float[POINTS * 3];
     private float bodyX, bodyY, facingDeg;
@@ -118,7 +136,12 @@ public final class RavBruteRig {
     private boolean frontsLifted;
     private float stunTime = -1f, headYaw, daze;
 
-    public RavBruteRig() {
+    private final long seed;
+    private boolean dead;
+    private final RavBurst burst = new RavBurst(PIECE_POINTS, 2, PIECE_PARENT, LOOSE_CANDIDATES, POOL_CELLS);
+
+    public RavBruteRig(long seed) {
+        this.seed = seed;
     }
 
     /**
@@ -202,6 +225,8 @@ public final class RavBruteRig {
         float riseH = 0.012f * run * (1f - 0.5f * (load[HL] + load[HR]));
         set(SHOULDER, swayF, SHOULDER_Y + surge * 0.4f + lunge, SHOULDER_Z - crouch + riseF + rear);
         set(HIP, swayH, HIP_Y + surge + lunge * 0.6f, HIP_Z - crouch * 1.6f + riseH - rear * 0.3f);
+        set(MID, (x(SHOULDER) + x(HIP)) / 2, (y(SHOULDER) + y(HIP)) / 2, (z(SHOULDER) + z(HIP)) / 2);
+        set(HEAD, x(SHOULDER), y(SHOULDER) + (SHOULDER_ROW - HEAD_ROW) / U_LAYER, z(SHOULDER));
         solveLegs();
     }
 
@@ -383,6 +408,29 @@ public final class RavBruteRig {
     private static float frac(float v) {
         return v - (float) Math.floor(v);
     }
+
+    // ------------------------------------------------------------------ death
+
+    /**
+     * Advances a dead Brute: on its first dead tick it bursts from the pose it died in. Seeded by the rig, so
+     * every replay bursts the same way.
+     */
+    public void advanceDead(float posX, float posY, float dt) {
+        if (!started) advance(posX, posY, facingDeg, 0f, IDLE, false, dt);   // never drawn alive: stand it up
+        bodyX = posX;
+        bodyY = posY;
+        if (!dead) {
+            dead = true;
+            burst.start(pose, x(MID), y(MID), seed);
+        }
+        burst.advance(dt);
+    }
+
+    /** Whether the Brute is dead and burst. */
+    public boolean dead() { return dead; }
+
+    /** The burst it died in; meaningful once dead. */
+    public RavBurst burst() { return burst; }
 
     // ------------------------------------------------------------------ read side
 

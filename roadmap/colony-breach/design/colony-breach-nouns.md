@@ -675,7 +675,10 @@ for one job in the cycle, and reads that way on screen.
   hooves stamping down ahead and the head driving with them; a charge's hit
   plays the same drive. Stunned, it shows it in its body rather than with a
   mark: the head hangs and shakes slowly side to side and the shoulders
-  wander. Its corpse is still the old single sprite.
+  wander. Dead, it bursts as a Runner does, through the same
+  `RavBurst`: the body splits between the shoulders and the hips and the halves
+  slump apart, the head and one or two legs come away, over the Runner's red
+  ichor, at full colour.
 - **Spitter** — fragile, keeps its distance, lobs acid. It backs away from any
   ground enemy that closes inside its charge radius and does not lob while it
   runs. Otherwise a low hostile craft in reach whose skin its acid can bite
@@ -689,6 +692,18 @@ for one job in the cycle, and reads that way on screen.
   damage model has none for ground bodies.
 - **Matriarch** — one per mother bore at maw tier: large, slow, very durable,
   wrecks emplacements. Answered by mechs, heavy weapons or a lot of satchels.
+  The mother owes it the first time it releases at maw tier, and that body is
+  the Matriarch whatever the strain roll; it is never drawn otherwise, and its
+  emergence is the `matriarch_emerged` beat. About four and a half cells nose
+  to tail, plated a mech's weight: rifle fire skips off. It comes out roaring,
+  then hunts as a Brute does (an emplacement first), and every blow is an
+  action that holds the body and lands part-way through, so it is seen coming.
+  Infantry is reaped: one scythe sweeps across its front, right then left on
+  the next, cutting a handful in the arc. An emplacement, a hull or a mech
+  takes the crown. It breaks walls a Brute cannot (a fort's buildings, not its
+  curtain until something has worn that down), from further off, and never
+  walks round to a door. It is not staggered and does not charge. Until it has
+  sounds of its own it borrows the Brute's.
 
 **Growth stage.** How old a rav is: **whelp**, **adult** or **elder**. Every
 strain has the same three stages, so a stage is a property of one body, never

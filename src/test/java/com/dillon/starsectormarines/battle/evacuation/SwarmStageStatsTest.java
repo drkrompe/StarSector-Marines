@@ -27,6 +27,18 @@ class SwarmStageStatsTest {
         EntitySpec brute = SwarmStrains.spec("b", UnitType.SWARM_BRUTE, 0, 0);
         assertEquals(SwarmStrains.BRUTE_ARMOR, brute.maxArmor);
         assertEquals(SwarmStrains.BRUTE_ARMOR_RATING, brute.armorRating);
+        EntitySpec matriarch = SwarmStrains.spec("m", UnitType.SWARM_MATRIARCH, 0, 0);
+        assertEquals(UnitType.SWARM_MATRIARCH.maxHp, matriarch.maxHp);
+        assertEquals(SwarmStrains.MATRIARCH_ARMOR, matriarch.maxArmor);
+    }
+
+    @Test
+    void theMatriarchsStageFollowsHerMothersFeeding() {
+        assertEquals(SwarmStage.WHELP, SwarmStageStats.matriarchStage(0));
+        assertEquals(SwarmStage.ADULT, SwarmStageStats.matriarchStage(SwarmStageStats.MATRIARCH_ADULT_FED));
+        assertEquals(SwarmStage.ELDER, SwarmStageStats.matriarchStage(SwarmStageStats.MATRIARCH_ELDER_FED));
+        assertTrue(SwarmStageStats.of(UnitType.SWARM_MATRIARCH, SwarmStage.ELDER).hp()
+                > SwarmStageStats.of(UnitType.SWARM_MATRIARCH, SwarmStage.WHELP).hp());
     }
 
     @Test

@@ -120,7 +120,15 @@ public enum UnitType {
      * flier. {@link #attackDamage} is the acid's direct hit; the splash and range live with its
      * behaviour. Append-only.
      */
-    SWARM_SPITTER("graphics/battle/alien.png",      "graphics/battle/swarm-spitter-dead.png", true, 12.0f, 7.0f, 2.6f, 0.55f, 2.6f, 14.0f, 20.0f, FrameLayout.WNES_WEAPON_UP, 1.1f, 1.4f, 0.3f, 0.30f);
+    SWARM_SPITTER("graphics/battle/alien.png",      "graphics/battle/swarm-spitter-dead.png", true, 12.0f, 7.0f, 2.6f, 0.55f, 2.6f, 14.0f, 20.0f, FrameLayout.WNES_WEAPON_UP, 1.1f, 1.4f, 0.3f, 0.30f),
+    /**
+     * The mother bore's heavy strain: one per mother at maw tier, a plated quadruped about four and a
+     * half cells nose to tail. Slow and very durable; its scythes reap the infantry in front of it and its
+     * crown wrecks emplacements, hulls and walls. {@link #attackDamage} is one reap's cut on each body it
+     * catches; the crown blow and the reap's arc live with its behaviour. {@link #renderScale} is its
+     * length in cells, which sizes its corpse. Append-only.
+     */
+    SWARM_MATRIARCH("graphics/battle/alien.png",    "graphics/battle/rav-matriarch-dead.png", true, 1200.0f, 30.0f, 0.7f, 1.0f, 1.8f, 2.2f, 18.0f, FrameLayout.WNES_WEAPON_UP, 4.5f, 4.0f, 1.0f, 0.90f);
 
     public final String spritePath;
     /** Optional corpse sheet — 4 prone poses, auto-sliced like the alive sheets. Drawn for {@code !isAlive()} units in their own pre-pass so live units draw on top. Null = no corpse rendering (units just vanish on death). */
@@ -272,7 +280,8 @@ public enum UnitType {
 
     /** Whether this archetype is a swarm strain body: runner, brute or spitter. */
     public boolean isSwarm() {
-        return this == SWARM_RUNNER || this == SWARM_BRUTE || this == SWARM_SPITTER;
+        return this == SWARM_RUNNER || this == SWARM_BRUTE || this == SWARM_SPITTER
+                || this == SWARM_MATRIARCH;
     }
 
     /**

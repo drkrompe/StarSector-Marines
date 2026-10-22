@@ -41,6 +41,16 @@ public final class SwarmStageStats {
             new Stats(20f, 0f, 0f, 10f, 16f, 2.4f),
     };
 
+    /**
+     * The Matriarch's stage as multipliers on her adult kit: health, plate and damage, and speed. Her stage
+     * comes from her mother's feeding, not the age table ({@link #matriarchStage}).
+     */
+    private static final float[] MATRIARCH_DURABILITY = {0.70f, 1f, 1.45f};
+    private static final float[] MATRIARCH_SPEED = {1.10f, 1f, 0.92f};
+    /** The mother's lifetime bodies fed at which her Matriarch is an adult, and an elder. */
+    static final int MATRIARCH_ADULT_FED = 6;
+    static final int MATRIARCH_ELDER_FED = 14;
+
     /** A Brute's charge speed by stage, cells a second, and its mass in tonnes (scale cubed against the adult's 3). */
     private static final float[] BRUTE_CHARGE = {4.3f, 4.0f, 3.7f};
     private static final float[] BRUTE_MASS = {1.5f, 3.0f, 5.4f};
@@ -53,13 +63,29 @@ public final class SwarmStageStats {
 
     /** {@code type}'s kit at {@code stage}. */
     public static Stats of(UnitType type, SwarmStage stage) {
+        int i = SwarmStage.of(stage).ordinal();
+        if (type == UnitType.SWARM_MATRIARCH) {
+            float d = MATRIARCH_DURABILITY[i];
+            return new Stats(type.maxHp * d, SwarmStrains.MATRIARCH_ARMOR * d, SwarmStrains.MATRIARCH_ARMOR_RATING,
+                    type.attackDamage * d, type.attackRange, type.moveSpeed * MATRIARCH_SPEED[i]);
+        }
         Stats[] table = switch (type) {
             case SWARM_RUNNER -> RUNNER;
             case SWARM_BRUTE -> BRUTE;
             case SWARM_SPITTER -> SPITTER;
             default -> throw new IllegalArgumentException(type + " is not a swarm strain");
         };
-        return table[SwarmStage.of(stage).ordinal()];
+        return table[i];
+    }
+
+    /**
+     * The Matriarch's stage from her mother's lifetime biomass in bodies: a whelp under six, an adult to
+     * thirteen, an elder from fourteen. Read at her emergence and again as the mother is fed, since she is
+     * the one body that matures in the field.
+     */
+    public static SwarmStage matriarchStage(int motherBodiesFed) {
+        if (motherBodiesFed >= MATRIARCH_ELDER_FED) return SwarmStage.ELDER;
+        return motherBodiesFed >= MATRIARCH_ADULT_FED ? SwarmStage.ADULT : SwarmStage.WHELP;
     }
 
     /** A Brute's charge speed at {@code stage}, cells a second. */

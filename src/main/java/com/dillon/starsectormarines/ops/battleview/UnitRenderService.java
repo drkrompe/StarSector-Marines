@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.appearance.SystemFxService;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.RavBruteRig;
+import com.dillon.starsectormarines.battle.appearance.RavMatriarchRig;
 import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
@@ -1036,14 +1037,25 @@ public final class UnitRenderService implements RenderSystem {
             float[] corpseFacing = t.floats(c.CORPSE, BattleComponents.CORPSE_FACING_DEGREES).array();
             int[] corpseFamily = t.ints(c.CORPSE, BattleComponents.CORPSE_BODY_FAMILY).array();
             RavRunnerAssets ravArt = sprites.ravRunnerSprites();
-            Object[] ravRigs = ravArt != null && t.has(c.RAV_RIG)
+            RavBruteAssets deadBruteArt = sprites.ravBruteSprites();
+            Object[] ravRigs = (ravArt != null || deadBruteArt != null) && t.has(c.RAV_RIG)
                     ? t.objects(c.RAV_RIG, BattleComponents.RAV_RIG_STATE).array() : null;
             for (int r = 0, n = t.rowCount(); r < n; r++) {
                 if (poseIdx[r] < 0) continue;
                 if (rx[r] < cullMinX || rx[r] > cullMaxX
                         || ry[r] < cullMinY || ry[r] > cullMaxY) continue;
                 UnitType type = (UnitType) types[r];
-                RavRunnerRig ravRig = ravRigs != null && ravRigs[r] instanceof RavRunnerRig dead ? dead : null;
+                if (deadBruteArt != null && ravRigs != null && ravRigs[r] instanceof RavBruteRig deadBrute
+                        && deadBrute.dead()) {
+                    // A dead Brute has burst as a Runner does, over the same ichor.
+                    RavBruteComposer.emitDead(out, deadBruteArt, ravArt != null ? ravArt.splat : null,
+                            ravArt != null ? ravArt.drop : null, deadBrute,
+                            cam.cellToScreenX(deadBrute.bodyX()), cam.cellToScreenY(deadBrute.bodyY()),
+                            cam.cellPxSize(), alphaMult);
+                    continue;
+                }
+                RavRunnerRig ravRig = ravArt != null && ravRigs != null && ravRigs[r] instanceof RavRunnerRig dead
+                        ? dead : null;
                 if (ravRig != null && ravRig.dead()) {
                     // A dead Runner has burst: its pieces where they were flung, over its ichor.
                     RavRunnerComposer.emit(out, ravArt, ravRig,
@@ -1189,7 +1201,8 @@ public final class UnitRenderService implements RenderSystem {
             boolean hasMechGait = t.has(c.MECH_GAIT_STATE);
             RavRunnerAssets ravArt = sprites.ravRunnerSprites();
             RavBruteAssets bruteArt = sprites.ravBruteSprites();
-            Object[] ravRigs = (ravArt != null || bruteArt != null) && t.has(c.RAV_RIG)
+            RavMatriarchAssets matriarchArt = sprites.ravMatriarchSprites();
+            Object[] ravRigs = (ravArt != null || bruteArt != null || matriarchArt != null) && t.has(c.RAV_RIG)
                     ? t.objects(c.RAV_RIG, BattleComponents.RAV_RIG_STATE).array() : null;
             Object[] secSpec = hasSecondary
                     ? t.objects(c.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC).array() : null;
@@ -1297,6 +1310,12 @@ public final class UnitRenderService implements RenderSystem {
                     // The Brute too; its rig is sized in cells, so no render scale.
                     RavBruteComposer.emit(out, bruteArt, bruteRig,
                             cam.cellToScreenX(bruteRig.bodyX()), cam.cellToScreenY(bruteRig.bodyY()),
+                            cam.cellPxSize(), unitAlpha);
+                    continue;
+                }
+                if (matriarchArt != null && rig instanceof RavMatriarchRig matriarchRig && matriarchRig.posed()) {
+                    RavMatriarchComposer.emit(out, matriarchArt, matriarchRig,
+                            cam.cellToScreenX(matriarchRig.bodyX()), cam.cellToScreenY(matriarchRig.bodyY()),
                             cam.cellPxSize(), unitAlpha);
                     continue;
                 }

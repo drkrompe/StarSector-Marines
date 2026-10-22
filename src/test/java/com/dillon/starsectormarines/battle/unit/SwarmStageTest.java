@@ -12,10 +12,12 @@ class SwarmStageTest {
     void everyStageFitsTheOneCellField() {
         for (UnitType type : new UnitType[]{UnitType.SWARM_RUNNER, UnitType.SWARM_BRUTE, UnitType.SWARM_SPITTER}) {
             for (SwarmStage stage : SwarmStage.values()) {
-                assertTrue(stage.simRadius(type.radius) <= SwarmStage.SIM_RADIUS_CAP, type + " " + stage);
+                assertTrue(stage.simRadius(type) <= SwarmStage.SIM_RADIUS_CAP, type + " " + stage);
             }
-            assertEquals(type.radius, SwarmStage.ADULT.simRadius(type.radius));
+            assertEquals(type.radius, SwarmStage.ADULT.simRadius(type));
         }
+        assertTrue(SwarmStage.ELDER.simRadius(UnitType.SWARM_MATRIARCH) > UnitType.SWARM_MATRIARCH.radius,
+                "the Matriarch paths for herself and is never capped");
     }
 
     @Test
@@ -23,14 +25,14 @@ class SwarmStageTest {
         assertEquals(SwarmStage.SIM_RADIUS_CAP,
                 BodyRadius.resolve(null, null, null, UnitType.SWARM_BRUTE, SwarmStage.ELDER));
         float shove = BodyCapsule.radius(UnitType.SWARM_BRUTE, SwarmStage.SIM_RADIUS_CAP, SwarmStage.ELDER);
-        assertEquals(UnitType.SWARM_BRUTE.radius * SwarmStage.ELDER.scale, shove, 1e-6f);
+        assertEquals(SwarmStage.ELDER.drawnRadius(UnitType.SWARM_BRUTE), shove, 1e-6f);
         assertTrue(shove > SwarmStage.SIM_RADIUS_CAP);
     }
 
     @Test
     void aRunnersCapsuleScalesWithItsStage() {
         for (SwarmStage stage : SwarmStage.values()) {
-            float k = stage.scale;
+            float k = stage.scale(UnitType.SWARM_RUNNER);
             assertEquals(BodyCapsule.halfLength(UnitType.SWARM_RUNNER, null) * k,
                     BodyCapsule.halfLength(UnitType.SWARM_RUNNER, stage), 1e-6f);
             assertEquals(BodyCapsule.forwardOffset(UnitType.SWARM_RUNNER, null) * k,

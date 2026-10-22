@@ -39,15 +39,15 @@ public final class BodyCapsule {
     /**
      * Half the segment's length, cells; {@code 0} for a round body. A swarm
      * body's capsule scales linearly with its growth stage
-     * ({@link SwarmStage#scale}); {@code null} reads as an adult.
+     * ({@link SwarmStage#scale(UnitType)}); {@code null} reads as an adult.
      */
     public static float halfLength(UnitType type, SwarmStage stage) {
-        return isElongated(type) ? RUNNER_HALF_LENGTH * SwarmStage.of(stage).scale : 0f;
+        return isElongated(type) ? RUNNER_HALF_LENGTH * SwarmStage.of(stage).scale(type) : 0f;
     }
 
     /** How far ahead of the sim position the segment's midpoint sits, cells. */
     public static float forwardOffset(UnitType type, SwarmStage stage) {
-        return isElongated(type) ? RUNNER_FORWARD_OFFSET * SwarmStage.of(stage).scale : 0f;
+        return isElongated(type) ? RUNNER_FORWARD_OFFSET * SwarmStage.of(stage).scale(type) : 0f;
     }
 
     /**
@@ -56,8 +56,8 @@ public final class BodyCapsule {
      * capped under half a cell to the grid and shoved at its full size.
      */
     public static float radius(UnitType type, float bodyRadius, SwarmStage stage) {
-        if (isElongated(type)) return RUNNER_RADIUS * SwarmStage.of(stage).scale;
-        return type.isSwarm() ? SwarmStage.of(stage).drawnRadius(type.radius) : bodyRadius;
+        if (isElongated(type)) return RUNNER_RADIUS * SwarmStage.of(stage).scale(type);
+        return type.isSwarm() ? SwarmStage.of(stage).drawnRadius(type) : bodyRadius;
     }
 
     /** Farthest the capsule reaches from the sim position, cells. */

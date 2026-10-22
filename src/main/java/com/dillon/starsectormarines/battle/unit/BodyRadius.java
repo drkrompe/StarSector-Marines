@@ -56,6 +56,6 @@ public final class BodyRadius {
         if (turretStructure != null) return turretStructure.radius;
         if (airframe != null) return airframe.targetRadiusCells();
         if (variant != null) return variant.radius;
-        return stage != null ? stage.simRadius(type.radius) : type.radius;
+        return stage != null ? stage.simRadius(type) : type.radius;
     }
 }

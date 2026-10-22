@@ -210,6 +210,7 @@ public final class ColonyBreachSequence {
                         ? "mother_bore_collapsed" : "bore_collapsed_" + bore.number());
                 case SURGE -> log.emit(tick, BEAT_PREFIX + "surge_" + bore.beatKey(), Audience.OBSERVER_ONLY);
                 case FED -> log.emit(tick, BEAT_PREFIX + "bore_fed_" + bore.beatKey(), Audience.OBSERVER_ONLY);
+                case MATRIARCH -> emit(tick, "matriarch_emerged");
             }
         }
         // The commander's strike decisions, read off its published picture with

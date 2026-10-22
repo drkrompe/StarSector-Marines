@@ -23,6 +23,12 @@ public final class SwarmStrains {
     /** The Brute's plate: a DMR or rocket goes straight through it, an SMG barely scratches it. */
     public static final float BRUTE_ARMOR = 20f;
     public static final float BRUTE_ARMOR_RATING = 10f;
+    /**
+     * The Matriarch's plate, a mech's weight of it: rifle fire skips off, a rocket, a mech's guns or a
+     * satchel go in.
+     */
+    public static final float MATRIARCH_ARMOR = 700f;
+    public static final float MATRIARCH_ARMOR_RATING = 14f;
 
     private SwarmStrains() {}
 

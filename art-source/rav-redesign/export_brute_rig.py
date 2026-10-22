@@ -8,6 +8,9 @@ Writes mod/graphics/battle/rav-brute/*.png, every sprite head-up (forward is the
   body.png        the hero without its head and hooves, over the generated headless, legless body
                   (body-nohead.png) that fills what a moved head or hoof uncovers; the whole 1024x1536
                   layer canvas, so the hero's rows and columns are the sprite's, times SCALE
+  body-front.png, body-rear.png   the same body cut across between the shoulders and the hips, at
+                  SPLIT_ROW with a soft seam FEATHER rows either side, for the halves a dead Brute bursts
+                  into: rows 0..SPLIT_ROW+FEATHER and SPLIT_ROW-FEATHER..1536
   head.png        the head, rows 0..HEAD_ROWS of the layer canvas; it pivots at the neck (512, 384)
   hoof-fl/fr/hl/hr.png   each hoof cut from the hero, centred on the hoof
   shank-f/h-l/r.png      the shank above each hoof from the generated leg layers, the hip end at the top,
@@ -30,6 +33,8 @@ from motion_brute import (HEAD_POLY, HOOVES, RAW, SHANK_W, key, largest_blob, so
 OUT = HERE.parent.parent / "mod" / "graphics" / "battle" / "rav-brute"
 SCALE = 0.25         # sprite px per layer px
 HEAD_ROWS = 448      # the head sprite is the top of the canvas, down past the neck pivot and its soft edge
+SPLIT_ROW = 974      # halfway between the shoulder (790) and hip (1158) rows
+FEATHER = 16
 
 
 def scaled(img):
@@ -57,6 +62,14 @@ def main():
     body.alpha_composite(largest_blob(key(RAW / "body-nohead.png")))
     body.alpha_composite(with_alpha(hero, ha * keep))
     scaled(body).save(OUT / "body.png")
+
+    rows = np.arange(size[1], dtype=float)[:, None]
+    front_k = np.clip((SPLIT_ROW + FEATHER - rows) / (2 * FEATHER), 0, 1)
+    ba = np.asarray(body.getchannel("A")).astype(float)
+    front = with_alpha(body, ba * front_k).crop((0, 0, size[0], SPLIT_ROW + FEATHER))
+    rear = with_alpha(body, ba * (1 - front_k)).crop((0, SPLIT_ROW - FEATHER, size[0], size[1]))
+    scaled(front).save(OUT / "body-front.png")
+    scaled(rear).save(OUT / "body-rear.png")
 
     head = with_alpha(hero, ha * head_m).crop((0, 0, 1024, HEAD_ROWS))
     scaled(head).save(OUT / "head.png")

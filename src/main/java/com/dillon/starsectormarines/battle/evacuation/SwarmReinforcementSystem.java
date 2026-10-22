@@ -281,12 +281,15 @@ public final class SwarmReinforcementSystem {
         if (cell == null) return false;
         long roll = SwarmBores.mix(seed ^ (release.bore.number() * 0x9E3779B97F4A7C15L)
                 ^ ((long) release.surgeIndex << 20) ^ release.released);
-        BoreStrainTable.Slot slot = BoreStrainTable.pick(release.tier, roll);
+        SwarmBore bore = release.bore;
+        boolean owed = BoreStrainTable.owesMatriarch(bore.mother(), release.tier, bore.matriarchReleased());
+        BoreStrainTable.Slot slot = BoreStrainTable.pick(release.tier, roll, owed);
         String strain = slot.name().charAt(0) + slot.name().substring(1).toLowerCase();
         long body = SwarmStrains.spawn(sim, "Bore " + release.bore.beatKey() + " " + strain + " "
                 + (release.bore.bodiesSpawned() + 1), slot.unitType, cell[0], cell[1]);
         release.released++;
         release.bore.released();
+        if (owed) bores.matriarchEmerged(bore, tick);
         SwarmPressureSnapshot.Approach approach = approach(cell[0], cell[1], grid.getWidth(), grid.getHeight());
         approachByRunner.put(body, approach);
         surgeWave.add(new SwarmPressureSnapshot.WaveIntent(body, approach, cell[0], cell[1],
