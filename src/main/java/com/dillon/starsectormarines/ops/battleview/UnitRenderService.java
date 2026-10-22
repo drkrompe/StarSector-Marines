@@ -1410,6 +1410,12 @@ public final class UnitRenderService implements RenderSystem {
                     continue;
                 }
                 Object rig = ravRigs != null ? ravRigs[r] : null;
+                if (RavRigStandIn.needed(rig)) {
+                    // Spawned since the last tick: drawn standing, never as the old alien sheet.
+                    rig = RavRigStandIn.of(rig, entityId, rx[r], ry[r],
+                            layeredFacing != null ? layeredFacing[r] : 0f,
+                            ctx.sim.identity().swarmStage(entityId));
+                }
                 if (bruteArt != null && rig instanceof RavBruteRig bruteRig && bruteRig.posed()) {
                     // The Brute too; its rig is sized in cells, so only its growth stage scales it.
                     RavBruteComposer.emit(out, bruteArt.forStage(bruteRig.stage()), bruteRig,

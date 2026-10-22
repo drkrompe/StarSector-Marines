@@ -2,7 +2,9 @@ package com.dillon.starsectormarines.battle.vision;
 
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.unit.SwarmStage;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.World;
 
@@ -37,6 +39,27 @@ public final class FogOfWarService {
     public static final byte VIS_HIDDEN  = 0;
     public static final byte VIS_VISIBLE = 1;
     public static final byte VIS_FADING  = 2;
+
+    /**
+     * Which part of a hostile body must stand in a revealed cell for the player to see it. An open
+     * question for the owner (picks page, {@code fog-body-reveal}); the default is the old rule.
+     * <ul>
+     *   <li>{@code centre}: the cell its position is in. A Matriarch half round a corner is unseen.</li>
+     *   <li>{@code footprint}: any cell within its sim radius: the ground it stands on.</li>
+     *   <li>{@code length}: any cell within half its drawn length: its head and shoulders too.</li>
+     * </ul>
+     * A body that fits inside its own cell reads the same under all three.
+     */
+    public static final String BODY_REVEAL_PROPERTY = "battle.fog.bodyReveal";
+
+    enum BodyReveal { CENTRE, FOOTPRINT, LENGTH }
+
+    static BodyReveal bodyReveal() {
+        String value = System.getProperty(BODY_REVEAL_PROPERTY, "centre");
+        if ("footprint".equalsIgnoreCase(value)) return BodyReveal.FOOTPRINT;
+        if ("length".equalsIgnoreCase(value)) return BodyReveal.LENGTH;
+        return BodyReveal.CENTRE;
+    }
 
     private static final int COHORT_COUNT = 6;
     private static final int MAX_VISION_RANGE = 60;
@@ -638,6 +661,7 @@ public final class FogOfWarService {
 
     private void sweepUnitVisibility(UnitRosterService roster) {
         World world = roster.world();
+        BodyReveal reveal = bodyReveal();
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             long u = roster.get(i);
             // i IS the dense index (roster.get(i) == dense[i], dense[i].denseIdx==i),
@@ -651,7 +675,9 @@ public final class FogOfWarService {
                 continue;
             }
 
-            boolean revealed = isCellRevealed(world.cellX(u), world.cellY(u));
+            boolean revealed = isCellRevealed(world.cellX(u), world.cellY(u))
+                    || reveal != BodyReveal.CENTRE && anyCellRevealed(world.x(u), world.y(u),
+                    revealRadius(reveal, roster, u));
             byte prev = unitVisibility[i];
 
             if (revealed) {
@@ -664,6 +690,33 @@ public final class FogOfWarService {
                 unitVisibility[i] = VIS_HIDDEN;
             }
         }
+    }
+
+    /** How far from its position a body's revealing part reaches, in cells, under {@code reveal}. */
+    private static float revealRadius(BodyReveal reveal, UnitRosterService roster, long u) {
+        if (reveal == BodyReveal.FOOTPRINT) return roster.radius(u);
+        UnitType type = roster.identity().type(u);
+        float stage = type.isSwarm() ? roster.identity().swarmStage(u).scale(type) : 1f;
+        return type.renderScale * stage * 0.5f;
+    }
+
+    /**
+     * Whether any cell whose centre lies within {@code radius} of {@code (x, y)} is revealed. A
+     * radius under half a cell is the body's own cell, which the caller has already asked.
+     */
+    private boolean anyCellRevealed(float x, float y, float radius) {
+        if (radius < 0.5f) return false;
+        int x0 = (int) Math.floor(x - radius), x1 = (int) Math.floor(x + radius);
+        int y0 = (int) Math.floor(y - radius), y1 = (int) Math.floor(y + radius);
+        float r2 = radius * radius;
+        for (int cy = y0; cy <= y1; cy++) {
+            float dy = cy + 0.5f - y;
+            for (int cx = x0; cx <= x1; cx++) {
+                float dx = cx + 0.5f - x;
+                if (dx * dx + dy * dy <= r2 && isCellRevealed(cx, cy)) return true;
+            }
+        }
+        return false;
     }
 
     // ---- inner types ----
