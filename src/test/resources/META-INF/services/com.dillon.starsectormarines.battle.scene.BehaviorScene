@@ -130,3 +130,4 @@ com.dillon.starsectormarines.battle.evacuation.CreepOutpostScene
 com.dillon.starsectormarines.battle.evacuation.SwarmDamageStateScene
 com.dillon.starsectormarines.battle.evacuation.MatriarchScene
 com.dillon.starsectormarines.battle.evacuation.PackLeaderScene
+com.dillon.starsectormarines.battle.creep.CreepRoofCollapseScene

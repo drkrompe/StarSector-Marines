@@ -30,6 +30,19 @@ class CreepFieldTest {
     }
 
     @Test
+    void creepSpeedsOnlyTheSwarmAndIsNoRefuge() {
+        CreepField field = new CreepField(openGrid(W, H), new CellTopology(W, H), 7L);
+        field.putSource(1L, 10, 12, FAST);
+        run(field, 0, 60);
+        assertEquals(CreepEffects.SWARM_SPEED_ON_CREEP, CreepEffects.groundSpeed(field, true, 10.5f, 12.5f));
+        assertEquals(1f, CreepEffects.groundSpeed(field, false, 10.5f, 12.5f), "nobody else is slowed or sped");
+        assertEquals(1f, CreepEffects.groundSpeed(field, true, 45.5f, 12.5f), "bare ground gives the swarm nothing");
+        assertTrue(CreepEffects.refusedAsRefuge(field, 10, 12));
+        assertFalse(CreepEffects.refusedAsRefuge(field, 45, 12));
+        assertFalse(CreepEffects.refusedAsRefuge(null, 10, 12), "no field, no creep");
+    }
+
+    @Test
     void sameSeedSameField() {
         CreepField a = new CreepField(openGrid(W, H), new CellTopology(W, H), 99L);
         CreepField b = new CreepField(openGrid(W, H), new CellTopology(W, H), 99L);

@@ -88,6 +88,17 @@ public final class MovementService {
     /** Bind current terrain during roster setup for physical arrival checks. */
     public void setNavigationGrid(NavigationGrid grid) { terrain = grid; }
 
+    /** A ground speed multiplier that depends on who is moving, read where terrain's own is. */
+    @FunctionalInterface
+    public interface GroundSpeedField {
+        float at(long id, float x, float y);
+    }
+
+    private GroundSpeedField groundSpeedField;
+
+    /** Binds the battle's per-mover ground speed field (the swarm's speed on creep); {@code null} for none. */
+    public void setGroundSpeedField(GroundSpeedField field) { groundSpeedField = field; }
+
     /**
      * Per-tick prologue, called exactly once per sim tick by
      * {@code BattleSimulation}: advances the repath clock and zeroes every
@@ -206,7 +217,8 @@ public final class MovementService {
     private float groundMoveSpeed(long id) {
         float x = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X);
         float y = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y);
-        return moveSpeed(id) * (terrain == null ? 1f : terrain.groundSpeedMultiplier(x, y));
+        return moveSpeed(id) * (terrain == null ? 1f : terrain.groundSpeedMultiplier(x, y))
+                * (groundSpeedField == null ? 1f : groundSpeedField.at(id, x, y));
     }
 
     /** Velocity x actually applied by this tick's movement pass, cells/sec — 0 when the mover hasn't moved this tick. Fail-loud on a non-mover; gate on {@link #has}. */

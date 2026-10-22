@@ -255,7 +255,9 @@ import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftAttempt;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftSequence;
 import com.dillon.starsectormarines.battle.creep.BoreCreep;
+import com.dillon.starsectormarines.battle.creep.CreepEffects;
 import com.dillon.starsectormarines.battle.creep.CreepField;
+import com.dillon.starsectormarines.battle.creep.CreepRoofCollapse;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.evacuation.CreepOutposts;
@@ -724,6 +726,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
     private CreepField creep;
     private final BoreCreep boreCreep = new BoreCreep();
+    /** Roofs the creep has stood on long enough cave in under it. */
+    private CreepRoofCollapse creepRoofs;
     /**
      * The battle's hive creep, created on first use by whatever declares a
      * source (a bore, a scene); call only from the simulation thread.
@@ -1296,6 +1300,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         rosterService.setDamageService(damageService);
         rosterService.stagger().setClock(() -> simTickIndex);
         rosterService.setNavigationGrid(grid);
+        // The swarm runs faster on its own creep; read through the field as it stands, created or not.
+        rosterService.movement().setGroundSpeedField((id, x, y) ->
+                CreepEffects.onCreep(creep, x, y) && rosterService.identity().type(id).isSwarm()
+                        ? CreepEffects.SWARM_SPEED_ON_CREEP : 1f);
         // Entity-access facade — by-id accessors that read the archetype entity
         // world's component columns directly. Owned by the roster service (which
         // owns the world it reads); the sim aliases it for its world() getter.
@@ -3541,6 +3549,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (creep != null) creep.tick(simTickIndex);
         // Outposts after the creep has spread: they root on ground it has held a while.
         creepOutposts.tick(this);
+        if (creep != null) {
+            if (creepRoofs == null) creepRoofs = new CreepRoofCollapse(generationSeed ^ BORE_SEED_SALT);
+            creepRoofs.tick(this);
+        }
         if (reliefAssault != null) reliefAssault.tick(this);
         if (lastLiftSequence != null) lastLiftSequence.tick(this);
         if (relayNineSequence != null) relayNineSequence.tick(this);
