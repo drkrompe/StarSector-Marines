@@ -1153,6 +1153,22 @@ against its own control in `renderEvidence`.
   being dragged is lying nowhere. Only the swarm's own: Marines, militia and
   colonists are the harvest's. It is what keeps a long battle on the creep from
   piling up corpses, and it gives nothing back to the field.
+- **Body pile cap: a safety net where nothing clears the dead** (`BodyPileCap`).
+  Off the creep and out of a bore's reach — waves thrown at a defended redoubt —
+  nothing takes the swarm's dead away, and every body lying is drawn every
+  frame: a dead Runner is some thirty quads of burst pieces, so a pile of 1,200
+  cost about seven milliseconds of frame (`renderEvidence`, `body pile`). The
+  battle counts the bodies still lying by 8x8-cell area once a second; past 64
+  in one area (about one a cell, a carpet) the oldest there settle and fade out
+  over four seconds and are gone, and past 1,000 on the whole field the oldest
+  anywhere go the same way. Every side's dead count, the oldest first by death
+  tick and then id, so it is deterministic. A body on a carrier — dragged,
+  impaled, being harvested — is never counted or taken, and one taken up
+  mid-fade lies whole again; a retired Runner leaves the swarm's recycling with
+  it, and the corpse itself stays for the battle's reckoning of the dead. The
+  limits are generous on purpose: it is not a mechanic, and a battle the creep
+  or the bores keep clean never reaches them. `-Dbattle.bodyPileCap=false` is
+  the control; `body-pile` (`createSnapshots`) shows a pile capped against it.
 - **Creep favours the swarm and shelters no one** (`CreepEffects`). A swarm
   body runs a quarter faster on living creep; Marines and colonists are never
   slowed, so creep reads as the swarm's ground rather than mud. A fleeing or
