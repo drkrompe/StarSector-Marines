@@ -79,7 +79,14 @@ public final class RuralMapgenSnapshotSuite implements SnapshotSuite {
                 }
                 // Each holdout's works, framed on its claimed ground with room round it.
                 for (CivilianRedoubt redoubt : sim.getCivilianRedoubts()) {
-                    if (redoubt.isMain()) continue;
+                    if (redoubt.isMain()) {
+                        // The civil-defence compound the colony shelters in.
+                        near.refocus((redoubt.left() + redoubt.right() + 1) / 2f,
+                                (redoubt.top() + redoubt.bottom() + 1) / 2f, PLAY_ZOOM_CELLS);
+                        out.add(new SnapshotArtifact(tag + "09-civil-defence.png",
+                                near.render(sim, "seed " + seed + ", the civil-defence compound, play zoom")));
+                        continue;
+                    }
                     near.refocus((redoubt.left() + redoubt.right() + 1) / 2f,
                             (redoubt.top() + redoubt.bottom() + 1) / 2f, PLAY_ZOOM_CELLS);
                     out.add(new SnapshotArtifact(tag + "07-holdout-" + redoubt.number() + ".png",
