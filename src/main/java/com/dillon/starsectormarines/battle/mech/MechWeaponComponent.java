@@ -84,11 +84,11 @@ public enum MechWeaponComponent {
             "weapon.mech-shoulder-laser", 1, -1,
             LayeredMechAppearance.POD_SHOULDER_LASER),
     THERMAL_LANCE("component.mech-thermal-lance", "@gearMechWeaponComponentTHERMALLANCE",
-            MountFamily.SHOULDER, HardpointType.ENERGY, 1, 2,
+            MountFamily.SHOULDER, HardpointType.ENERGY, 2, 1,
             "weapon.mech-thermal-lance", 1, -1,
             LayeredMechAppearance.POD_THERMAL_LANCE),
     PIONEER_ROCKET_CRADLE("component.mech-pioneer-rocket", "@gearMechWeaponComponentPIONEERROCKETCRADLE",
-            MountFamily.SHOULDER, HardpointType.MISSILE, 1, 1,
+            MountFamily.SHOULDER, HardpointType.MISSILE, 2, 1,
             "weapon.mech-pioneer-rocket", 4, 3,
             LayeredMechAppearance.POD_PIONEER_ROCKET);
 
