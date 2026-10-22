@@ -16,7 +16,12 @@ Nothing in a timeline is English. A caption names a strings.json key (hail lines
 catalog ids, see caption_key), and speaker labels and the lock's title and detail runs are keys too,
 so the player resolves them in the active language and pages the text itself (CaptionPager).
 `--timeline-only` rewrites just the JSON, taking the frame count from the timeline already on disk;
-it needs no frames and no ffmpeg and leaves the checked-in mp4 untouched.
+it needs no frames and no encode and leaves the checked-in mp4 untouched.
+
+The sound is never in the video. Every cue's level, and the music, come from
+arrival-audio/arrival-mix.json (arrival_mix.py), applied to every timeline written here, so a mix
+change is `--timeline-only --preview`: rewrite the timelines and hear them on the shipped picture
+in build/cinematic/preview/arrival.mp4 (`--shot c5` for one shot).
 
 To add a shot, add a row to SHOTS: the folder holding its composer (or, for a Blender scene, a
 plain-Python contract module beside it), the module name, and where its frames are read from
@@ -33,6 +38,8 @@ import subprocess
 import sys
 from collections import namedtuple
 from pathlib import Path
+
+import arrival_mix
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
@@ -164,16 +171,19 @@ def cue_dict(cue):
     return out
 
 
-def collect(shot_id, shot, frame_count):
+def collect(shot_id, shot, frame_count, overlays=None):
+    """The shot's timeline. `overlays` keeps ones already worked out (the shipped timeline's, under
+    --timeline-only: the picture has not moved, and C1's lock needs Blender to recompute)."""
     sys.path.insert(0, str(HERE / shot.folder))
     module = importlib.import_module(shot.module)
     duration = module.duration() if hasattr(module, "duration") else module.DURATION
     captions = [{"t_in": a, "t_out": b, "speaker": speaker_id(s), "key": caption_key(line)}
                 for a, b, s, line in module.captions()]
-    overlays = list(module.overlays())
-    cues = [cue_dict(c) for c in module.audio_cues()]
+    overlays = list(module.overlays()) if overlays is None else overlays
+    cues, mix_problems = arrival_mix.apply(shot_id, [cue_dict(c) for c in module.audio_cues()],
+                                           list(SHOTS), shot_duration)
     clock = frame_count / FPS
-    problems = []
+    problems = list(mix_problems)
     if abs(clock - duration) > 1.5 / FPS:
         problems.append("%d frames play %.3fs but the shot says %.3fs" % (frame_count, clock, duration))
     sounds = known_sounds()
@@ -203,6 +213,17 @@ def collect(shot_id, shot, frame_count):
             "captions": captions, "overlays": overlays, "cues": cues}
 
 
+def shot_duration(shot_id):
+    """A shot's length for cues that run across shots: its shipped timeline's, else its module's."""
+    existing = TIMELINE_DIR / (shot_id + ".json")
+    if existing.is_file():
+        return json.loads(existing.read_text(encoding="utf-8"))["duration"]
+    shot = SHOTS[shot_id]
+    sys.path.insert(0, str(HERE / shot.folder))
+    module = importlib.import_module(shot.module)
+    return module.duration() if hasattr(module, "duration") else module.DURATION
+
+
 def encode(frames_dir, target, crf):
     target.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run([
@@ -227,7 +248,14 @@ def main():
     parser.add_argument("--timeline-only", action="store_true",
                         help="rewrite only the timeline JSON (frame count from the one on disk); no frames, no encode")
     parser.add_argument("--check", action="store_true", help="validate the timeline; write nothing")
+    parser.add_argument("--preview", action="store_true",
+                        help="then mix the shipped timelines onto the shipped video, as the player would, to "
+                             "build/cinematic/preview/ (the --shot ones, or the whole arrival)")
     args = parser.parse_args()
+    if args.check:
+        problems = arrival_mix.check_music()
+        if problems:
+            raise SystemExit("mix: " + "; ".join(problems))
     total = 0
     for shot_id, shot in SHOTS.items():
         if args.shot and shot_id not in args.shot:
@@ -241,13 +269,14 @@ def main():
             if not existing.is_file():
                 print("%s: no timeline on disk to take a frame count from, skipped" % shot_id)
                 continue
-            frame_count = json.loads(existing.read_text(encoding="utf-8"))["frames"]
+            shipped = json.loads(existing.read_text(encoding="utf-8"))
+            frame_count = shipped["frames"]
         else:
             frame_count = len(frames)
         if not frame_count:
             print("%s: no frames in %s, skipped" % (shot_id, frames_dir))
             continue
-        timeline = collect(shot_id, shot, frame_count)
+        timeline = collect(shot_id, shot, frame_count, shipped["overlays"] if args.timeline_only else None)
         timeline["speakers"] = SPEAKERS
         if args.check:
             print("%s: ok, %d frames, %d captions, %d cues" % (shot_id, frame_count, len(timeline["captions"]), len(timeline["cues"])))
@@ -266,6 +295,8 @@ def main():
         print("%s: %.1fs, %d frames, %.1f MB" % (shot_id, timeline["duration"], frame_count, size / 1e6))
     shipped = sum(p.stat().st_size for p in VIDEO_DIR.glob("*.mp4")) if VIDEO_DIR.is_dir() else 0
     print("arrival video on disk: %.1f MB" % (shipped / 1e6))
+    if args.preview and not args.check:
+        arrival_mix.preview(list(SHOTS), set(args.shot) if args.shot else None)
 
 
 if __name__ == "__main__":

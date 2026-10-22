@@ -36,10 +36,15 @@ into the final mix. The game data already carries the new lines (`mod/data/cinem
 strings, sounds).
 
 **Open work, in order.**
-1. Final mix from the owner's score-desk settings. The game's C4 and C5 cues are a stand-in
-   built from the sounds already shipped (`industrial-exterior/c4x_contract.py`,
-   `c5_contract.py`); the mix replaces them with `arrival-audio/sfx-cues.md`'s C4-C5 design and
-   the Ending A music, which are not yet in `audio.json` / `sounds.json`.
+1. Final mix, shot by shot, from the owner's settings. Every level is data in
+   `arrival-audio/arrival-mix.json`: each cue's `gain_db` (and fades, and `duck_db` for music),
+   and the music cues (strings over C1-C4 and Ending A over C5, on the score desk's dB scale,
+   ducked 8 dB under every caption). Change a number, then
+   `python art-source/company-prologue/second-wind-cinematic/cinematic_export.py --timeline-only --preview`
+   (`--shot c5` for one shot) rewrites the timelines and writes
+   `build/cinematic/preview/arrival.mp4` to hear it, in seconds and without re-encoding video.
+   C4 and C5's effects are still a stand-in from the sounds already shipped; `sfx-cues.md`'s
+   C4-C5 design is not yet in `audio.json` / `sounds.json`.
 2. An in-game play-through of the packaged cut (`runStarsector`).
 
 **Packaging.** All six finals are in the game (2026-10-22). `cinematic_export.py --from-drive`

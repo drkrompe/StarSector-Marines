@@ -105,7 +105,11 @@ through `Strings.get` in the language active when the arrival plays:
      for the shape: `t_in`, `t_out`, `title_key`, `detail` (runs of `{key, color}`), and a `track` of `[t, x, y, r]` in source pixels).
      Unknown kinds are ignored, so a new overlay kind needs a player change.
    - `audio_cues()` returns dicts `{"t", "sound", "volume"}`; a bed adds `until` (may run past the shot
-     into the next) plus `fade_in` / `fade_out`. `sound` must be in `mod/data/config/sounds.json`
+     into the next) plus `fade_in` / `fade_out`, and may add `duck`, the gain it drops to while any
+     caption is up (music under the voices; `CinematicSequence.volumeAt`). Only a cue with `until`
+     can ramp or duck: a one-shot plays at its volume. The composer's levels are defaults: the
+     exporter overrides every cue's level, and adds the music, from `arrival-audio/arrival-mix.json`
+     (`arrival_mix.py`), so the mix is changed there and never in a composer or the video. `sound` must be in `mod/data/config/sounds.json`
      (add it to `audio.json` and register it there). A cue past your shot's `duration()` is another
      shot's. The hail bed is C1's and runs to the end of the hail; C2 must not add another.
 3. Add a row to `SHOTS` in `cinematic_export.py` (folder, module, frames directory).
