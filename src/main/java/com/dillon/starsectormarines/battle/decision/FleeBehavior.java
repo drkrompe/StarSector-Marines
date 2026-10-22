@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.decision;
 import com.dillon.starsectormarines.battle.creep.CreepEffects;
+import com.dillon.starsectormarines.battle.fire.FireEffects;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -198,7 +199,8 @@ public final class FleeBehavior implements UnitBehavior {
             if (!grid.inBounds(cx, cy)) break;
             if (!grid.isWalkable(cx, cy)) break;
             float distFromThreat = TacticalScoring.cellDistance(cx + 0.5f, cy + 0.5f, sim.world().x(threat), sim.world().y(threat));
-            if (distFromThreat >= MIN_DISTANCE_FROM_THREAT && !CreepEffects.refusedAsRefuge(creep, cx, cy)) {
+            if (distFromThreat >= MIN_DISTANCE_FROM_THREAT && !CreepEffects.refusedAsRefuge(creep, cx, cy)
+                    && !FireEffects.refusedAsRefuge(sim.fireFieldIfPresent(), cx, cy)) {
                 best = new int[]{cx, cy};
             }
         }
@@ -225,6 +227,7 @@ public final class FleeBehavior implements UnitBehavior {
             if (!grid.isWalkable(cx, cy)) continue;
             if (cx == sim.world().cellX(u) && cy == sim.world().cellY(u)) continue;
             if (CreepEffects.refusedAsRefuge(sim.creepFieldIfPresent(), cx, cy)) continue;
+            if (FireEffects.refusedAsRefuge(sim.fireFieldIfPresent(), cx, cy)) continue;
             return new int[]{cx, cy};
         }
         return null;

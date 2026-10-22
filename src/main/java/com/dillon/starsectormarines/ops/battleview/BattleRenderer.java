@@ -238,6 +238,7 @@ public class BattleRenderer {
      */
     private final FogField fogField = new FogField();
     private final CreepLayer creep = new CreepLayer();
+    private final FireRenderSystem fire;
 
     /** S3 render-side event lights consumed by the surface-relief composite. */
     private final GroundLightService groundLights = new GroundLightService();
@@ -265,6 +266,7 @@ public class BattleRenderer {
 
     public BattleRenderer(BattleSprites sprites) {
         this.sprites = sprites;
+        this.fire = new FireRenderSystem(sprites);
         this.ordnanceTraceFx = new OrdnanceTraceFxService(sprites);
         this.groundParallax = new GroundParallaxPipeline(sprites, groundLights, sun);
         creep.useSun(sun);
@@ -280,6 +282,7 @@ public class BattleRenderer {
         PropMotionRenderSystem.Phases propPhases = new PropMotionRenderSystem.Phases();
         this.nightLighting = new NightLightingRenderSystem(sprites);
         this.aircraft = new ShuttleRenderSystem(sprites);
+        ColonyThreatFx colonyThreat = new ColonyThreatFx(sprites);
         this.worldSystems = List.of(
                 new GroundRenderSystem(sprites, groundMesh, groundAtlas),
                 // Zone debug overlay paints on top of ground tiles, under decals.
@@ -299,6 +302,8 @@ public class BattleRenderer {
                 doodads,
                 RenderSystem.of(RenderLayer.DOODADS, dressing::collectOver),
                 creep,
+                // A spine strike's run through the creep lies on the ground.
+                colonyThreat.ground(),
                 // Moving parts ride on top of their static bases: belts, fans, sliding seats.
                 new PropMotionRenderSystem(sprites, PropMotion.Layer.DECK, propPhases),
                 // Bodies cast here rather than through the ground composite:
@@ -331,7 +336,11 @@ public class BattleRenderer {
                 new FragGrenadeRenderSystem(),
                 // With the frag rings: where a Brute is about to charge.
                 new ChargeTellRenderSystem(),
+                // With the other threat marks: spines breaking out, and the spores a colony lifts.
+                colonyThreat.over(),
                 new SmokeRenderSystem(sprites),
+                fire.scorch(),
+                fire.flames(),
                 RenderSystem.of(RenderLayer.ROOFS, (ctx, out) ->
                         collectRoofs(ctx.sim, out, ctx.alphaMult)),
                 new FortBuildingRenderSystem(sprites),
@@ -492,7 +501,11 @@ public class BattleRenderer {
     }
 
     private void registerSmokeFieldBatch() {
-        SpriteAPI sheet = sprites.smokeFieldSheet();
+        registerSheetBatch(sprites.smokeFieldSheet());
+        registerSheetBatch(sprites.fireSheet());
+    }
+
+    private void registerSheetBatch(SpriteAPI sheet) {
         if (sheet == null || batchBySheet.containsKey(sheet)) return;
         int width = Math.max(1, Math.round(sheet.getWidth()));
         int height = Math.max(1, Math.round(sheet.getHeight()));

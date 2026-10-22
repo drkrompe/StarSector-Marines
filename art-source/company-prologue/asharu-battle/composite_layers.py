@@ -175,12 +175,14 @@ def save_png(rgba, path, scene, depth='8'):
         flat[..., 3] = np.clip(flat[..., 3], 0.0, 1.0)
         img.pixels.foreach_set(flat.ravel())
         st = scene.render.image_settings
-        saved = (st.file_format, st.color_mode, st.color_depth)
+        saved = (st.media_type, st.file_format, st.color_mode, st.color_depth)
+        st.media_type = 'IMAGE'
         st.file_format, st.color_mode, st.color_depth = 'PNG', 'RGBA', depth
         try:
             img.save_render(str(path), scene=scene)
         finally:
-            st.file_format, st.color_mode, st.color_depth = saved
+            st.media_type = saved[0]
+            st.file_format, st.color_mode, st.color_depth = saved[1:]
     finally:
         bpy.data.images.remove(img)
 

@@ -375,6 +375,16 @@ increasing an encounter's total armored threat.
   footprint means an authored socket is unoccupied; an omitted socket is still
   genuinely absent. The drag gesture is presentation; the validated resulting
   placement is domain intent.
+- **Hardpoint language** (after MechWarrior 4's lab). Colour names the
+  compatibility type everywhere hardware or a socket is drawn: energy red-orange,
+  missile green, ballistic yellow, omni grey; frame internals a cool steel. Size
+  reads from shape, not text: every grid cell is a chamfered brick twice as wide
+  as it is tall, and a footprint is its bricks stacked, so a 2x3 rack is visibly a
+  taller stack than a 2x2. An empty doll socket wears its type's colour on its rim
+  over dim bricks; fitted hardware fills its bricks in its own colour. Drag
+  compatibility therefore uses a colour outside that palette. The doll is the
+  location picker: clicking a socket selects it, the right column describes only
+  that socket, and a fitted weapon is stripped from the X on its doll card.
 - A **fitting doll** is the asset-authored maintenance presentation of one mech
   or vehicle class. It references the same ordered appearance and physical scale
   used in battle, while owning the maintenance facing and every socket's physical

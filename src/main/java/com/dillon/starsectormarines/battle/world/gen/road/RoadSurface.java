@@ -137,22 +137,32 @@ public final class RoadSurface {
             int cell=y*w+x,navOwner=raster==null?-1:raster.owner()[cell];
             boolean hard=navOwner>=0 && !routes.get(navOwner).autoEdge();
             boolean touched=navOwner>=0 || (raster!=null && raster.shoulder()[cell]);
+            boolean upperTaken=false,lowerTaken=false;
             for(int m=0;m<MATERIALS;m++) {
                 int ri=owner[m][cell];if(ri<0 || (hard && navOwner<ri))continue;
                 double[] f=fields[m];
                 double a=f[y*vw+x],b=f[y*vw+x+1],c=f[(y+1)*vw+x+1],d=f[(y+1)*vw+x];
-                if(Math.max(Math.max(a,b),Math.max(c,d))<0)continue;
+                // A triangle whose corners are all zero lies on two materials' shared
+                // edge, where the corner values cannot say whose it is. It goes to the
+                // first material that does not already cover it: kept by every
+                // material, it put a half cell of a later one over an earlier one at a
+                // corner; kept by none, it left a hole where only one of them lay.
+                boolean upper=Math.max(a,Math.max(b,c))>0 || (a==0 && b==0 && c==0 && !upperTaken);
+                boolean lower=Math.max(a,Math.max(c,d))>0 || (a==0 && c==0 && d==0 && !lowerTaken);
+                if(!upper && !lower)continue;
                 var route=routes.get(ri);
                 if(navOwner>=0 && routes.get(navOwner).material().ordinal()==m)
                     route=routes.get(navOwner);
                 int surface=topology.surfaceIndex(route.material().block(RoadRasterizer.age(route.wear(),route.seed(),x,y)));
                 float[] first,second;
-                if(Math.min(Math.min(a,b),Math.min(c,d))>=0) {
+                if(Math.min(Math.min(a,b),Math.min(c,d))>=0 && upper && lower) {
                     first=new float[]{0,0,1,0,1,1,0,1};second=null;
                 } else {
-                    first=clip(new float[]{0,0,1,0,1,1},new double[]{a,b,c});
-                    second=clip(new float[]{0,0,1,1,0,1},new double[]{a,c,d});
+                    first=upper?clip(new float[]{0,0,1,0,1,1},new double[]{a,b,c}):null;
+                    second=lower?clip(new float[]{0,0,1,1,0,1},new double[]{a,c,d}):null;
+                    if(first==null && second==null)continue;
                 }
+                upperTaken|=upper;lowerTaken|=lower;
                 patches[m][cell]=new Patch(surface,first,second);touched=true;
             }
             if(touched)underlays[cell]=new Underlay(topology.getGroundKind(x,y),topology.getSurface(x,y),

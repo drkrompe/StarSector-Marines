@@ -52,47 +52,23 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
         MechWeaponComponent component = weapon.get();
         MissileReplenisherComponent subsystem = replenisher.get();
 
-        GridMetrics metrics = resolveGridMetrics(definition, component, width, height, inset, gap);
-        int gridColumns = metrics.columns();
-        int gridRows = metrics.rows();
-        float cellWidth = metrics.cellWidth();
-        float cellHeight = metrics.cellHeight();
+        int gridColumns = definition != null ? definition.gridColumns()
+                : component != null ? component.footprintColumns : 1;
+        int gridRows = definition != null ? definition.gridRows()
+                : component != null ? component.footprintRows : 1;
+        HardpointBricks.Layout layout = HardpointBricks.fit(inset, inset,
+                width - inset * 2f, height - inset * 2f, gridColumns, gridRows, gap);
 
-        int itemColumns = definition != null && component != null ? gridColumns
-                : component != null ? component.footprintColumns
-                : subsystem != null || occupied.getAsBoolean() ? 1 : 0;
-        int itemRows = definition != null && component != null ? gridRows
-                : component != null ? component.footprintRows
-                : subsystem != null || occupied.getAsBoolean() ? 1 : 0;
-        itemColumns = Math.min(gridColumns, itemColumns);
-        itemRows = Math.min(gridRows, itemRows);
-        int itemStartColumn = Math.max(0, (gridColumns - itemColumns) / 2);
-        int itemStartRow = Math.max(0, (gridRows - itemRows) / 2);
-
-        for (int row = 0; row < gridRows; row++) {
-            for (int column = 0; column < gridColumns; column++) {
-                float x = inset + column * (cellWidth + gap);
-                float y = inset + row * (cellHeight + gap);
-                boolean filled = column >= itemStartColumn
-                        && column < itemStartColumn + itemColumns
-                        && row >= itemStartRow && row < itemStartRow + itemRows;
-                context.fillRect(x, y, cellWidth, cellHeight,
-                        filled ? new Color(0x34, 0x39, 0x32) : new Color(0x1a, 0x1e, 0x1b));
-            }
+        // A fitted weapon fills its socket; an internal or replenisher fills the socket it sits in.
+        boolean filled = component != null || subsystem != null || occupied.getAsBoolean();
+        Color tone = component != null ? HardpointBricks.tone(component.hardpointType)
+                : definition != null ? HardpointBricks.tone(definition.type())
+                : HardpointBricks.INTERNAL;
+        if (definition != null) HardpointBricks.drawEmpty(context, layout, tone);
+        if (filled) {
+            HardpointBricks.drawFilled(context, layout, 0, 0, layout.columns(), layout.rows(), tone);
         }
-
-        drawEquipment(context, component, subsystem,
-                itemColumns, itemRows, itemStartColumn, itemStartRow,
-                inset, gap, cellWidth, cellHeight);
-
-        for (int row = 0; row < gridRows; row++) {
-            for (int column = 0; column < gridColumns; column++) {
-                float x = inset + column * (cellWidth + gap);
-                float y = inset + row * (cellHeight + gap);
-                context.strokeRect(x, y, cellWidth, cellHeight,
-                        new Color(0x78, 0x7e, 0x71), 1.5f);
-            }
-        }
+        drawEquipment(context, component, subsystem, layout);
     }
 
     record GridMetrics(int columns, int rows, float cellWidth, float cellHeight) {}
@@ -113,31 +89,24 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
     }
 
     private void drawEquipment(CanvasContext context, MechWeaponComponent component,
-                               MissileReplenisherComponent subsystem,
-                               int itemColumns, int itemRows,
-                               int startColumn, int startRow,
-                               float inset, float gap, float cellWidth, float cellHeight) {
-        if (itemColumns <= 0 || itemRows <= 0) return;
-        float left = inset + startColumn * (cellWidth + gap);
-        float top = inset + startRow * (cellHeight + gap);
-        float areaWidth = itemColumns * cellWidth + (itemColumns - 1) * gap;
-        float areaHeight = itemRows * cellHeight + (itemRows - 1) * gap;
+                               MissileReplenisherComponent subsystem, HardpointBricks.Layout layout) {
+        float areaWidth = layout.width();
+        float areaHeight = layout.height();
         if (component != null && assets.get() != null) {
             LayeredSpriteCache sprite = spriteFor(assets.get(), component);
             if (sprite != null) {
-                float scale = Math.min(areaWidth * 0.88f / sprite.pxWidth,
-                        areaHeight * 0.88f / sprite.pxHeight);
+                float scale = Math.min(areaWidth * 0.84f / sprite.pxWidth,
+                        areaHeight * 0.84f / sprite.pxHeight);
                 context.sprite(sprite.sourcePath, sprite.sprite,
-                        left + areaWidth * 0.5f, top + areaHeight * 0.5f,
+                        layout.centerX(), layout.centerY(),
                         sprite.pxWidth * scale, sprite.pxHeight * scale,
                         0f, new Color(1f, 1f, 1f, 0.95f));
                 return;
             }
         }
         if (subsystem != null) {
-            MechReplenisherArt.draw(context, subsystem,
-                    left + areaWidth * .5f, top + areaHeight * .5f,
-                    Math.min(areaWidth, areaHeight) * .88f);
+            MechReplenisherArt.draw(context, subsystem, layout.centerX(), layout.centerY(),
+                    Math.min(areaWidth, areaHeight) * .84f);
         }
     }
 

@@ -102,6 +102,7 @@ public final class MechLabViewModel {
     private final ComputedSignal<List<SlotRow>> leftSlotRows;
     private final ComputedSignal<List<SlotRow>> rightSlotRows;
     private final ComputedSignal<List<SlotRow>> slotRows;
+    private final ComputedSignal<List<SlotRow>> selectedSlotRows;
     private final ComputedSignal<String> selectedSlotTitle;
     private final ComputedSignal<String> selectedSlotCopy;
     private final ComputedSignal<String> selectedSlotRule;
@@ -264,6 +265,8 @@ public final class MechLabViewModel {
             MechFittingLayout layout = MechFittingLayout.forVariant(mech.variant());
             return buildSlots(layout.sockets().stream().map(SocketDef::id).toList());
         });
+        selectedSlotRows = reactor.computed(() -> platingSelected.get() ? List.<SlotRow>of()
+                : slotRows.get().stream().filter(row -> row.socketId() == selectedSlot.get()).toList());
         selectedSlotTitle = reactor.computed(() -> {
             if (fabricatingChassis()) return Strings.get("openingMechLabChassisPatterns");
             if (selectedVehicle() != null) return Strings.get("openingMechLabVehicleHull");
@@ -381,6 +384,8 @@ public final class MechLabViewModel {
     public Signal<List<SlotRow>> leftSlotRows() { return leftSlotRows; }
     public Signal<List<SlotRow>> rightSlotRows() { return rightSlotRows; }
     public Signal<List<SlotRow>> slotRows() { return slotRows; }
+    /** Only the mount selected on the doll: the right column describes that one socket. */
+    public Signal<List<SlotRow>> selectedSlotRows() { return selectedSlotRows; }
     public Signal<String> selectedSlotTitle() { return selectedSlotTitle; }
     public Signal<String> selectedSlotCopy() { return selectedSlotCopy; }
     public Signal<String> selectedSlotRule() { return selectedSlotRule; }

@@ -109,7 +109,7 @@ SEEDS = {"bore": 1100, "mother-bore": 2300, "spore-colony-fissure": 3100, "spore
          "spore-colony-maw": 4100, "ground-colony": 5300}
 # The ground colony's body plan (``ground_colony_body``).
 GROUND_COLONY_STYLES = ("ridge", "star", "urchin")
-GROUND_COLONY_STYLE = "ridge"
+GROUND_COLONY_STYLE = "star"  # the owner's pick, 2026-10-22
 
 
 def to_sun_screen():

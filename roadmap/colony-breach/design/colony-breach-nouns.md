@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-22 — Campaign: blooms as built, at the benign first severity tier with spores carried on traffic, and the owner's arc as direction; growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
+Updated: 2026-10-22 — Creep on green worlds as built (grown over trees, which die to bare bone-pale skeletons that no longer hide or shelter anyone, the owner's choice; grass and crops wilt ahead of its edge); campaign: blooms as built, frequent, at the benign first severity tier with spores carried on traffic, and the owner's arc as direction; growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -162,13 +162,19 @@ down after sixty days. That is a limit of what the mod can model today, not a
 statement about the weapon (owner, 2026-10-22): the consequential tiers (*scar*,
 *dark and spread*, *deadly*: colonies eaten down, neighbours seeded, worlds
 lost) stay runnable and are the intended direction once the campaign can hold
-worlds lost or held. The owner's other picks: *frequency* seasonal (about three
-a year; rare and frequent exist), *player colonies* exposed by the same rules
+worlds lost or held. The owner's other picks: *frequency* frequent, so a
+player who wants the job gets it often while the consequences stay minor (rare
+and seasonal exist), *player colonies* exposed by the same rules
 as every colony (also *after the first answered bloom* and *never*), where
 later events are expected to land. `-Dmarines.bloom.severity`, `.frequency` and
 `.playerColonies` select a preset for a control run. `gradlew.bat
 bloomEvidence` plays every preset under three player policies over N cycles and
-reports blooms a year, outcomes, spread and size lost.
+reports blooms a year, outcomes, spread and size lost. On the shipped
+defaults the two-running cap holds *frequent* to about four and a half blooms a
+year rather than its nominal six; about 7% land on player colonies; the player
+is offered about four calls a year (calls never overlap, since one campaign
+event is open at a time) and receives about twelve intel messages, never more
+than five in any thirty days.
 
 **Not yet.** The colony's industry does not yet pick the outlying installation
 in the precinct plan (`bloom-installation-flavour.md`), and dead-ground
@@ -186,10 +192,18 @@ campaign arc, in three movements:
 3. **The heart of the infection.** A climax assault on the bloom's centre on
    the surface, in overgrown country.
 
-Alongside it, a scripted **sector threat**: a set mission or planet with its own
-strength, once spread is modelled properly. The hooks are the severity tier, a
-bloom's generation and parent (its spread chain), and `RavBloomSystem.wakeAt`,
-which wakes a bloom at a chosen market outside the weekly draw.
+The arc runs **per infected world** (owner, 2026-10-22): any bloom can carry
+three missions in turn, each a single battle: Colony Breach, then the
+defence (the Line or the Road), then the heart (Broad Front or The Burn), the
+campaign picking each variant, each mission offered on its own and opted into, and the player may stop after any of them;
+a world whose arc stops runs on the ordinary bloom clock. A scripted **sector
+threat** remains a possible authored instance of the same beats on a named
+world (`RavBloomSystem.wakeAt`), not the trigger.
+`bloom-mission-arc.md` is the direction for movements 2 and 3 and the sector
+threat: the Cordon (the Line and the Road as variants), the heart (Broad Front
+and The Burn as variants), what each reuses, candidate
+stories, how one beat feeds the next, and the clock and gate hooks the beats
+need from this lifecycle.
 
 ## Vocabulary
 
@@ -293,7 +307,14 @@ between:
 - the **barricade**, a ring of industrial fence broken by stacked crates and
   scrap, closed to movement and open to sight, with a parked truck dragged
   across each street it crosses. Wherever another building or a wall already
-  stands on the ring, that structure closes the side itself;
+  stands on the ring, that structure closes the side itself. The barricade
+  **crosses streets but never runs along one**: a side whose barricade or step
+  would lie lengthwise on a street's asphalt is drawn in toward the building,
+  to the kerb if need be (barricade only, no step on that side), and whatever
+  still lies on the asphalt is left open, so the street keeps its full width.
+  Laid along a street the works ate its lanes and left a sliver of road beside
+  the fence. A truck closes only a carriageway the barricade crosses, never
+  paved plaza;
 - the **firing step**, one course of sandbag just inside the barricade all the
   way round, which is a fighting-position run;
 - one **gate**, on the side toward the lift, the way relief comes in and the
@@ -607,6 +628,14 @@ puffs (flak) or a fast white-amber streak (lance). It bursts in the air at the
 craft's drawn height, hit or miss, in an amber flash, and leaves spore haze
 drifting there; it never marks the ground beneath.
 
+A spore colony **looks armed with nothing overhead**, since a breach rarely has
+aircraft and a gun that never fires otherwise reads as scenery: spores lift off
+its sacs all the time, amber motes in a faint lilac halo rising and drifting up
+off the body, more of them the higher its grade (`ColonyThreatFx`; the owner's
+pick over an exhaled haze, alone or with the motes). Its **reach is not drawn**
+(owner): a ring round every colony, or round each while aircraft are up, was
+offered and declined; the shots and the motes say where it stands.
+
 Bores and colonies are grown, not built, and look it: they wear the same
 Rav Bloom palette as the creatures (lilac and dusky-violet carapace over
 crimson sinew, ivory bone, amber nodes breathing), standing on the ground with
@@ -615,7 +644,14 @@ colours, so the rim reads as where the creep pours out of the ground. Nothing ab
 they are lopsided. A bore is a slanted shaft torn up through the ground, one
 side heaved up into reared jaw-plates, tusks and thrown paving, the other
 collapsed into the funnel; the mother bore is a wider, deeper, terraced one.
-A colony is an uneven cluster round one dominant, leaning sac. Its grade shows
+A colony is an uneven cluster round one dominant, leaning sac. A ground colony
+must never read as one: it is low and pressed flat into the creep, with no sac
+and no pore aimed at the sky, a plated core with an amber eye whose crimson
+sinew arms sprawl out over the ground like a starfish's, studded with spines
+raked back towards the core (the owner's pick of three body plans, over a
+spined armoured hump and a flat urchin, because it alone is told from a spore
+colony at a glance at play zoom). It has the colonies' paintings, wounds and
+remains: dead, its arms shrivel flat and its spines snap to stumps. Its grade shows
 in its body as well as its numbers: a lone sac with a bud at fissure grade,
 two lesser sacs pressed against it at bore grade, three and a plated, spined
 flank at maw grade, each larger than the last. Each body carries several
@@ -981,6 +1017,13 @@ against its own control in `renderEvidence`.
   cost along walkable ground, weighted by seeded noise so the front runs out in
   fingers, dearer on pavement. Until bores stand up on eruption sites, each opened site is itself a
   source that never dies.
+- **Trees are grown over, never only climbed.** A tree's crown cells are growth
+  the creep crosses, cell by cell at three times the ground's cost, so a grove
+  is overgrown from its edge inward and its interior and far side are reached
+  over it rather than left a green island the creep cannot enter. The battle
+  declares its trees' crowns to the field when the field is made; rock
+  formations and hills are climbed as walls are. A crown fills at a wall's rate,
+  so its coverage is how long the creep has held the tree.
 - **Removing a source withers what it alone held**, from the outer edge back to
   the hole over a visible interval: the growth dies first, then clears. Ground a
   living source also reaches stays, and a living source reaching dying ground
@@ -991,6 +1034,25 @@ against its own control in `renderEvidence`.
   one is crusted over. It reads as a matter of time. An overgrown wall still
   reads as a barrier: its crust is lighter than the floor's, lit and shaded on
   its edges as a raised block is, and outlined dark where it meets the floor.
+- **Trees die under it** (`CreepVegetation`). A tree whose crown living creep
+  has held to the tree's own seeded share of about a minute and a half of
+  climbing is dead, and stays dead if the creep later withers. A dead tree has
+  dropped its leaves, so its crown no longer hides or shelters anyone (sight
+  passes and it gives no edge cover) while its trunk still does both and its
+  tangle of bare limbs still stops a body walking through (owner, 2026-10-22,
+  over a shrouded tree that went on blocking as the living one did). A crown cell two trees share opens
+  only when both are dead, and never if it is either one's trunk. Felling still
+  works on a dead tree. Creep therefore strips a wood of concealment the way it
+  strips a building of its roof. `creep-vegetation` (`sceneEvidence`) holds the
+  mechanics; `-Dbattle.swarm.creepTrees=false` is the control.
+- **Hedges and crops are taken as grass is.** Vegetation in a battle is trees
+  (props with a crown) and the green ground: grass with the plants dressed on
+  it (shrubs and tufts), crop rows of grass beside turned earth, and the
+  country's hedges, which are shrubs grown along a plot's grass headland. None
+  of the green ground blocks a body or sight or gives cover, so creep changes
+  how it looks and nothing about how it fights: it wilts ahead of the lip and is
+  buried under it. A hedge that sheltered would be a natural prop with a crown,
+  and creep would take it as it takes a tree.
 - **A ground colony answers a gun the swarm cannot rush** (`GroundColonies`).
   A living bore grows one on its creep within reach of a hostile emplacement
   the creep has come up against: on living creep with creep round it, inside
@@ -999,7 +1061,18 @@ against its own control in `renderEvidence`.
   swarm's side: spines driven up from below on whatever stands in its short
   reach, indirect, with a small blast that also breaks walls beside the target,
   so a gun behind a wall is not safe from it. It dies with its bore, and as soon
-  as the creep under it is no longer living. `ground-colony` (`sceneEvidence`)
+  as the creep under it is no longer living. **Its strike reads from end to
+  end** though it travels underground: in the half second before its spines
+  are ready, while it has a target, the body clenches and quivers and its eye
+  comes up to full, and on the shot it lashes out; the run is a ripple heaving
+  through the creep from the colony to the strike, opening a jagged crack lit
+  by an amber seam behind it; at the strike the ground heaves and splits and a
+  crown of bone spines, crimson at the root, bursts up, holds a moment and
+  sinks back, and the crack and the heave fade over a second or so after. So
+  the player sees which colony struck and where from, as well as where it
+  landed. Its dust is the creep's violet, not concrete grey (`ColonyThreatFx`;
+  `-Dbattle.render.colonyThreat=false` is the control for both colonies'
+  looks, costed against it in `renderEvidence`). `ground-colony` (`sceneEvidence`)
   holds the mechanics; `-Dbattle.swarm.groundColonies=false` is the control.
 - **The creep digests the swarm's dead** (`CreepDigestion`). A strain body
   lying on living creep sinks into it over about twenty-five seconds, drawn
@@ -1022,6 +1095,10 @@ against its own control in `renderEvidence`.
   a roof that fell stays fallen. The battle keeps its own clock per cell, so the
   creep field knows nothing of roofs. An infested building is no shelter twice
   over: no colonist stops in it, and given time it has no roof.
+- **Fire burns creep and holds it back** (`fire-nouns.md`, Firebreak). Creep
+  is fuel, living or dying; creep under a fire crisps away in seconds, and
+  burnt ground refuses the creep for about three minutes before the sources
+  that still claim it fill it again. Creep over a road makes the road burn.
 - **The look is the field drawn, never a second model.** The creep is a hard
   organic edge, not a spill: an opaque surface of grown chitin plates over a
   membrane, rolled up into a raised, beaded lip where it stops, veined, with a
@@ -1029,7 +1106,23 @@ against its own control in `renderEvidence`.
   inside the ground's relief composite, so it moves with the ground's parallax
   and lies under the walls' shadows. Walls go through four stages with age:
   veins, then crust from the foot, with a dark crease where creep meets the
-  wall. Dead growth is a grey husk. One shading model serves the game (a shader)
+  wall. Dead growth is a grey husk. Trees go through four stages with the
+  creep's hold on the crown, cross-faded so a tree turns rather than pops: veins
+  reaching in from the crown's rim while the leaves start to turn; a crust
+  rolling in from the rim with the creep's beaded lip while the leaves brown;
+  the crown withering, its dead leaves falling from a bare skeleton; and the
+  dead tree, a skeleton of bleached, bone-pale limbs forking out from a crusted
+  trunk to the crown's own outline, veins running out along them, drawn with a
+  dark outline over a soft ground shadow so it stands up off the dark creep at
+  play zoom. The skeleton is grown by the bake rather than taken from the
+  damaged-crown art, whose few broken limbs vanished against the creep. The stages are a
+  sheet baked from the canopy art and the creep's own surface and palette
+  (`gradlew.bat bakeCreepBlight`), so the crust on a crown is the crust on the
+  ground. On vegetation (grass, crops and the plants on them) the edge is not
+  clean as it is on pavement: the creep's coverage spread a few cells out turns
+  the grass a dry, greyed straw (the palette's wilt colour) and veins reach out
+  into it ahead of the lip, so grass and crop rows are seen to be taken before
+  they are covered; turned earth and pavement keep the hard edge. One shading model serves the game (a shader)
   and review frames (its CPU mirror), from one surface texture generated in
   code. Colour is data: the swarm owns no red, and the default creep is a dull,
   dark, desaturated violet-grey that sits under the lilac creatures without
@@ -1276,7 +1369,17 @@ hooves at every half cell, so a walking Brute plods and a charging one thunders.
 Each phase of the Brute's charge has its own sound (the tell, the run, the hit
 on infantry, a vehicle or a wall, the stun after a heavy wall or a tank), keyed
 to the charge's own events; a Runner's impale has its own sound, posted as a cue
-by the story that adds it. Each strain's sound is admitted under its own gap and
+by the story that adds it. A ground colony makes no sound as it fires: its
+spines travel under the ground, seen only as the ripple in the creep, and are
+heard where they break out, as the weapon's impact. The creep itself is heard as a wet, slow spread bed, one
+loop placed on the seen living creep nearest the camera and as loud as the
+share of the ground round the camera the creep has taken (`CreepAudio`), so a
+sliver at the edge of the view murmurs and a street drowned in it is a full
+bed. **Rav Bloom sound re-uses rather than multiplies** (owner): a new sound
+is first tried as an accepted take of another played at another pitch, which
+also sets its tempo, and ships no audio of its own when that serves; the
+creep bed is the bore-tier ambience slowed, the spine strike the Brute's
+head-ram quickened and its wall hit slowed, drawn from one pool. Each strain's sound is admitted under its own gap and
 footfalls come from the few bodies nearest the listener, so a pack reads as a
 pack, and the swarm is heard only on ground the player has seen. A body's growth
 stage pitches everything it makes by the inverse of its size and sets its
