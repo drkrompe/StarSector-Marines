@@ -45,7 +45,7 @@ import java.util.Set;
  *
  * <p>Verdicts are the rule's mechanics: a tree dies only once living creep holds
  * its crown to its threshold, a crown held past the highest threshold has died,
- * a dead crown under the {@link CreepVegetation.Style#WITHERED} rule lets sight
+ * a dead crown lets sight
  * through and gives no cover outside its trunk while still stopping movement,
  * and a tree the creep never touched stands as it was. How many trees died and
  * when are metrics.
@@ -110,11 +110,9 @@ public final class CreepVegetationScene implements BehaviorScene {
             verdicts.add(Verdict.of("held-tree-dies", watch.overdue == 0,
                     watch.overdue + " trees still standing alive with their crown held past "
                             + CreepVegetation.DEATH_HI + "/255 for two looks"));
-            boolean withered = sim.creepVegetation().style().opensCrown;
             verdicts.add(Verdict.of("dead-crown-opens-at-the-trunk", watch.badCrowns == 0,
-                    withered ? watch.badCrowns + " dead crown cells that still block sight or give cover, let a body"
-                            + " through, or a trunk that stopped blocking"
-                            : watch.badCrowns + " dead crown cells that stopped blocking under the shrouded rule"));
+                    watch.badCrowns + " dead crown cells that still block sight or give cover, let a body"
+                            + " through, or a trunk that stopped blocking"));
             verdicts.add(Verdict.of("untouched-tree-stands", watch.untouchedChanged == 0,
                     watch.untouchedChanged + " trees the creep never reached died or stopped blocking"));
             Map<String, Number> metrics = new LinkedHashMap<>();
@@ -205,7 +203,6 @@ public final class CreepVegetationScene implements BehaviorScene {
             if (field == null || vegetation == null || tick % CreepVegetation.CHECK_TICKS != 0) return;
             NavigationGrid grid = sim.getGrid();
             int w = grid.getWidth();
-            boolean opens = vegetation.style().opensCrown;
             for (int t = 0; t < trees.size(); t++) {
                 Tree tree = trees.get(t);
                 int living = CreepVegetation.livingCoverage(
@@ -223,7 +220,7 @@ public final class CreepVegetationScene implements BehaviorScene {
                         boolean opaque = grid.blocksStructuralLineOfSightAt(cell);
                         boolean walkable = grid.isWalkable(x, y);
                         boolean noCover = grid.isEdgeCoverSuppressed(x, y);
-                        boolean open = opens && opensNow(vegetation, cell);
+                        boolean open = opensNow(vegetation, cell);
                         boolean right = open ? !opaque && noCover && !walkable : opaque && !noCover && !walkable;
                         if (!right) badCrowns++;
                     }

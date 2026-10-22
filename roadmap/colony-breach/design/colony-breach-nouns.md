@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-22 — Creep on green worlds as built (grown over trees, which die withered or shrouded, the owner's pick pending; grass and crops wilt ahead of its edge); campaign: blooms as built, frequent, at the benign first severity tier with spores carried on traffic, and the owner's arc as direction; growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
+Updated: 2026-10-22 — Creep on green worlds as built (grown over trees, which die to bare bone-pale skeletons that no longer hide or shelter anyone, the owner's choice; grass and crops wilt ahead of its edge); campaign: blooms as built, frequent, at the benign first severity tier with spores carried on traffic, and the owner's arc as direction; growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -1021,13 +1021,11 @@ against its own control in `renderEvidence`.
   its edges as a raised block is, and outlined dark where it meets the floor.
 - **Trees die under it** (`CreepVegetation`). A tree whose crown living creep
   has held to the tree's own seeded share of about a minute and a half of
-  climbing is dead, and stays dead if the creep later withers. What a dead tree
-  does to the fight follows the look chosen for it
-  (`-Dbattle.render.creepTreeStyle`): *withered*, it has dropped its leaves, so
-  its crown no longer hides or shelters anyone (sight passes and it gives no
-  edge cover) while its trunk still does both and its tangle of crusted limbs
-  still stops a body walking through; *shrouded*, it is a crusted mound in the
-  crown's shape and blocks as the tree did. A crown cell two trees share opens
+  climbing is dead, and stays dead if the creep later withers. A dead tree has
+  dropped its leaves, so its crown no longer hides or shelters anyone (sight
+  passes and it gives no edge cover) while its trunk still does both and its
+  tangle of bare limbs still stops a body walking through (owner, 2026-10-22,
+  over a shrouded tree that went on blocking as the living one did). A crown cell two trees share opens
   only when both are dead, and never if it is either one's trunk. Felling still
   works on a dead tree. Creep therefore strips a wood of concealment the way it
   strips a building of its roof. `creep-vegetation` (`sceneEvidence`) holds the
@@ -1086,9 +1084,12 @@ against its own control in `renderEvidence`.
   creep's hold on the crown, cross-faded so a tree turns rather than pops: veins
   reaching in from the crown's rim while the leaves start to turn; a crust
   rolling in from the rim with the creep's beaded lip while the leaves brown;
-  the crown withering; and the dead tree, which is the chosen look's end — a
-  grey-brown skeleton of limbs crusted up from the trunk with a few dead leaves
-  hanging on, or a plated mound in the crown's silhouette. The stages are a
+  the crown withering, its dead leaves falling from a bare skeleton; and the
+  dead tree, a skeleton of bleached, bone-pale limbs forking out from a crusted
+  trunk to the crown's own outline, veins running out along them, drawn with a
+  dark outline over a soft ground shadow so it stands up off the dark creep at
+  play zoom. The skeleton is grown by the bake rather than taken from the
+  damaged-crown art, whose few broken limbs vanished against the creep. The stages are a
   sheet baked from the canopy art and the creep's own surface and palette
   (`gradlew.bat bakeCreepBlight`), so the crust on a crown is the crust on the
   ground. On vegetation (grass, crops and the plants on them) the edge is not
