@@ -492,6 +492,22 @@ muzzle moves the shot with it.
     plumes.
   - `--fx-check` proves the copies independent without rendering (see `asharu-effects-plan.md`,
     W0).
+- **Layers** (owner, 2026-10-22; `--layers`). A key frame renders as three view layers into one
+  multilayer EXR, `raw/<kf>.layers.exr`. `composite_layers.py` composes it into the still in
+  seconds, so a new backdrop or a reworked effect never re-renders a hull:
+  - `backdrop`: the planet and the starfield, at 16 samples. A locked camera's backdrop is
+    rendered once and cached by camera. A painted plate (`--plates DIR`, `<kf>.backdrop.exr`,
+    scene-linear, from the planet session) replaces it, and the layer is not rendered.
+  - `ships`: the hulls at full samples. Effects and planet are indirect-only, so drives, muzzle
+    flashes, burst lights, the sun and the planet's bounce light still light them.
+  - `effects`: volumes, shields, rounds and bursts, with ships and planet as holdouts. Holdouts
+    still cast shadows and bounce light.
+  - Every layer writes Cryptomatte (object, asset) and depth.
+  - The composite is the backdrop, with the ships over it and the effects over those
+    (premultiplied). It then goes through the same AgX view the classic PNG uses.
+  - `--diff REF.png` measures a composite against a combined render of the same frame.
+  - Collections carry the split: `Stage | ships`, `Stage | effects`, `Backdrop`. A kit object
+    inside a hull copy, or a loose object at the scene root, fails the frame (`ASHARU layers leak`).
 
 To check a scene without rendering, run `python battle_blockout.py --check`; `python fight_layout.py` draws the same staging as diagrams. It prints where every ship lands in every key frame, and whether each shot can bear (see Gunnery). `--frames k3b,k5` renders only those frames; a frame already finished in the run folder is skipped, so a stopped job resumes (`--run <name>` fixes the folder across days, `--rerender` forces every frame); and `--skip-render --post <machine> --what <slug>` posts a run to `review/cinematic-asharu-battle/`.
 
