@@ -287,6 +287,7 @@ public final class SwarmReinforcementSystem {
         String strain = slot.name().charAt(0) + slot.name().substring(1).toLowerCase();
         long body = SwarmStrains.spawn(sim, "Bore " + release.bore.beatKey() + " " + strain + " "
                 + (release.bore.bodiesSpawned() + 1), slot.unitType, cell[0], cell[1]);
+        sim.swarmPacks().joinPulse(release, release.size, release.released, body, sim);
         release.released++;
         release.bore.released();
         if (owed) bores.matriarchEmerged(bore, tick);

@@ -230,6 +230,7 @@ com.dillon.starsectormarines.ops.battleview.RavRunnerMotionSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.RavBruteMotionSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.DeckPropMotionSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmChokepointSceneSnapshotSuite
+com.dillon.starsectormarines.battle.evacuation.SwarmPackSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmBoreCollapseSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmHarvestSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmImpaleSceneSnapshotSuite

@@ -184,6 +184,9 @@ public final class RavRunnerRig {
 
     public RavRunnerRig(long seed) {
         this.seed = seed;
+        // Each Runner starts at its own point in the stride, so a pack lopes out of step.
+        long h = (seed ^ 0xD1B54A32D192ED03L) * 0xBF58476D1CE4E5B9L;
+        this.phi = ((h >>> 40) & 0xFFFF) / 65536f;
     }
 
     /**

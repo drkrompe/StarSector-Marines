@@ -735,10 +735,12 @@ built; the age mix, packs and presentation planned).
   has been fed sends bigger, darker ravs, and fewer of them, because the
   director counts a body's stage weight against its target. The draw is keyed by the bore, the
   pulse and the body, so stages change no other roll.
-- **Pack, pack leader.** A pack is the bodies of one pulse. Its first elder is
-  its **pack leader** and is released at the head of the stream; a pulse with
-  no elder has no leader, and its bodies hunt alone as every body did before
-  stages. While the leader lives, members on its leash share its quarry and
+- **Pack, pack leader.** A pack is the bodies of one pulse, at most eight: a
+  bigger pulse splits into as few even packs as fit. Its first elder is
+  its **pack leader** and is released at the head of the stream; a pack with
+  no elder has no leader and none of a leader's bonuses, though it still runs
+  together (*Pack movement*) round its first living body, its **anchor**, which
+  is a place to move round and nothing more. While the leader lives, members on its leash share its quarry and
   what it senses (still sensing, passed body to body) and strike faster. When
   it dies the pack **breaks** for good: the bonuses go, members scatter to
   their own quarry, and its whelps bolt back toward the bore for a moment. A
@@ -845,11 +847,34 @@ large map.
   bore. The swarm's own holes, so their cells are declared and redeclared as a
   bore opens or collapses.
 - **A field makes a stream.** The descent is the same from every cell and has
-  no crowd term, so bodies released together follow one lane down it, which is
-  the river a spawning surge needs; they break apart where local pursuit takes
-  over. Nothing separates swarm bodies from each other today (Marines steer
-  away from them, not they from one another), so a later separation pass must
-  leave a surging body on its lane to keep the stream.
+  no crowd term, so bodies descending it each for themselves fall into one lane
+  and run it single file. That is the river a surge makes leaving its mouth,
+  and it is also why, without packs, Runners crossed the map as beads on a
+  string. Packs are what turn the stream into hunters once it is out.
+- **Pack movement.** The field stays the strategic layer; a pack is how its
+  bodies run it. The pack's **lane** is the prey field's descent from its
+  anchor, and every member runs that lane at its own place in a loose fan:
+  out to one side or the other by rank, swept back by rank, weaving about its
+  place, each at its own stride and pace, so no two lope in step. The fan
+  narrows to the room the lane has ahead of it, so a pack funnels to a file
+  through a street or a door and opens again beyond it. Near its quarry
+  (the anchor's target, once there is room to spread) the pack **hunts**:
+  it **stalks**, the centre slowing to a standoff while the outer ranks swing
+  wide to either side of the quarry; it **feints**, the centre darting in and
+  falling back once or twice; then it **rushes**, staggered, flankers first
+  from the outside in and the anchor last, each member from where it stands.
+  Losing two members while it stalks or feints provokes the rush at once, and a
+  member whose own victim is right in front of it goes for it. A member more
+  than the leash from its anchor runs alone and, if it stays out, leaves the
+  pack; a body without a pack joins a nearby leader's pack that has room, and
+  two leaderless packs that meet merge if they fit in one. A broken pack's
+  members run alone. Pack movement is Runners'; Brutes, Spitters and the
+  Matriarch keep their own gaits, though an elder of any strain can lead.
+  `-Dbattle.swarm.pack=false` is the control: packs are still stamped and
+  still break, but every body moves alone. The `swarm-pack` scene asserts the
+  mechanic (spread across the pack's width, no long file on open ground,
+  stalk-feint-rush in order, approaches from more than one side, the break on
+  the leader's death); its cost is in `swarm-movement-cost.md`.
 - **Strategic movement and local pursuit.** A body whose target is more than a
   few cells away moves down its goal's field; within that range it runs its own
   short path to the one victim it has chosen. Every strain moves through the
@@ -1061,8 +1086,9 @@ settles).
   ordinary durability; nothing collapses a bore by fiat.
 - **Biomass drives growth.** A bore that is not fed grows slowly; a bore that
   is fed grows fast. Saving colonists starves the hive.
-- **Surges, not trickles.** Bores release bodies in timed pulses that move as
-  a stream; the quiet between pulses is real.
+- **Surges, not trickles.** Bores release bodies in timed pulses that leave
+  the mouth as a stream and cross the ground as packs; the quiet between pulses
+  is real.
 - **Strains by tier.** Which strains spawn is a function of the bore's tier and
   the director's budget, deterministic under the battle seed.
 - **Air cannot clear the map.** Every living bore has spore colonies round it

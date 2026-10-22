@@ -3,6 +3,7 @@
 Status: ACTIVE
 
 Written: 2026-10-21
+Updated: 2026-10-21 — pack movement cost
 
 What moving the swarm costs by map size and swarm size, with and without its
 flow fields (`colony-breach-nouns.md`, Swarm goal), and what that says about
@@ -78,6 +79,34 @@ twice a second at any size on that map. 400x240 is comfortable at 1000. The
 next costs at scale are not movement: target selection and melee scale with
 bodies (about 0.5 µs a body here, before contact), and a real battle adds fire,
 LOS and rendering, which this harness leaves out on purpose.
+
+## Packs (`-Dbattle.swarm.pack`)
+
+Pack movement (`colony-breach-nouns.md`, Pack movement) adds a serial plan per
+pack (a 14-cell descent from its anchor at most every 15 ticks, a few
+clearance reads beside it, the hunt phase) and moves each member through the
+traffic seam with an offset instead of the plain path follower. The harness
+spawns Runners in clusters of six, each stamped as a pack, on every lever, and
+the `pack` lever moves them as packs; `on` is its control.
+
+560x336, 1000 bodies, one run (ms per tick, median / p99 / max; ticks over 10 ms):
+
+| Lever | Tick | Over | Swarm behaviour | Mean dist |
+|---|---|---|---|---|
+| on (control) | 2.88 / 8.0 / 9.0 | 0 | 0.57 / 1.4 / 1.7 | 163.8 |
+| pack | 2.98 / 6.7 / 8.3 | 0 | 0.71 / 1.4 / 2.3 | 172.9 |
+
+About a tenth of a millisecond on the median and nothing on the tail: still
+affordable at 1000 bodies. The tick-to-tick spread between runs on this
+machine is larger than that (the `off` row moved by 0.6 ms between two runs
+of the same code), so read a pack change against its own run's `on` row. A
+pack travels about 5% slower than a lone body, because the anchor runs at 92%
+so the fan can keep its places: the price of running as a pack, shown in the
+mean distance still to go after 540 ticks.
+
+The first cut descended every pack's lane every 6 ticks and re-pathed every
+member each time: median +0.6 ms and two ticks over 10 ms. The lane is now
+taken again only once the anchor runs off its head, or at most every 15 ticks.
 
 ## Rejected: crowd avoidance in the descent
 
