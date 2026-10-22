@@ -24,11 +24,11 @@ Mara, one item before you close the docket. Wayward is still listed as scrap on 
 
 marines_mara_salvage_terms
 MARA VENN / WAYLINE
-That scrap used to guard my drivers, Castle. If I sign her over, your company takes on the maintenance. I'm trying to run a freight cooperative.
+That scrap used to guard my drivers, Castle. A freight cooperative doesn't give away Hounds. Ride with my next convoy, and she's your pay for the run.
 
 marines_castle_salvage_accept
 CASTLE / COMPANY COMMAND
-Fair. Wayline covers recovery and this repair; we take her upkeep from handover. Put that beside the contract fee, and I'll sign.
+Fair. The chassis and her chaingun in lieu of the fee, and the company rides with your convoy. Put it in writing, and I'll sign.
 
 marines_mara_salvage_transfer
 MARA VENN / WAYLINE
