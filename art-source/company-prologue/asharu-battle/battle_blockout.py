@@ -11,8 +11,12 @@
     python battle_blockout.py --root DIR      # put run folders under DIR (a render-queue job's {work})
     python battle_blockout.py --date D        # the review folder's date, when the run starts (default today)
     python battle_blockout.py --half          # render at half size (a light check; labels drawn at full size)
+    python battle_blockout.py --surface base  # the game's desert01 alone, without the detail tiles (the control)
     python battle_blockout.py --stage-only    # build and pose the scene in Blender, render nothing (a pre-flight)
     python battle_blockout.py --stage-only --los   # ... and ray-cast every shot: does the round meet its target?
+    python battle_blockout.py --layers        # key frames as backdrop / ships / effects layers in one EXR
+                                              # (raw/<kf>.layers.exr), composed into the still (composite_layers.py)
+    python battle_blockout.py --plates DIR    # ... with the planet session's painted backdrops (<kf>.backdrop.exr)
     python battle_blockout.py --motion-preview   # the whole sequence in Workbench, an MP4 to judge motion (asharu_preview.py)
 
 A frame already finished in the run folder (its PNG, its labels, and the same samples and source)
@@ -52,7 +56,7 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(PROLOGUE))
 sys.path.insert(0, str(ART))
 import roster
-from motion import fleet_at   # ships move about their stations: seeded weave, bank and breathing spacing  # noqa: E402
+from motion import boarding_run, fleet_at   # ships move about their stations: seeded weave, bank and breathing spacing  # noqa: E402
 
 # One folder per finished build (roster.FINISHED's dir), copied whole from Drive.
 BUILDS = Path(os.environ.get('ASHARU_BUILDS') or REPO / 'build' / 'asharu-battle' / 'builds')
@@ -72,6 +76,9 @@ R = 5.0e6          # planet radius, m
 ALT = 250e3        # convoy altitude, m
 SUN_EL, SUN_AZ = 16.0, -40.0   # degrees: low morning sun, ahead of the convoy and to the south
 MAP_LAT, MAP_LON = 12.0, 95.0   # where on the game's desert01 map the battle is fought
+# ImageGen detail tiles and settlements laid over desert01 under the battle (surface/README.md).
+# --surface base renders the game map alone, the control.
+SURFACE_DETAIL = True
 
 # --------------------------------------------------------------------------------- key frames
 # Each key frame: what the camera sees and where every ship is. Placements are
@@ -177,6 +184,19 @@ def near(parent, offset, hd=0.0, pt=0.0, rl=0.0, thr=.3):
             math.degrees(math.atan2(m[2][1], m[2][2])), thr)
 
 
+def boat(mother, prize, seat_off, t0, t1, t, launch_off=(-8.0, 0.0, -12.0)):
+    """A boarding boat (a Hermes) on its run from under its mother craft to a seat on the prize's deck
+    (motion.boarding_run). launch_off and seat_off are metres in the mother's and the prize's frames;
+    it leaves down and aft from the mother's belly, where the camera cannot see it launch, and comes in
+    along the prize's deck from astern, so it sits down facing aft, gear down."""
+    m, _ = _attitude(*mother[3:6])
+    p, _ = _attitude(*prize[3:6])
+    down_aft = [-.8 * m[i][2] - .6 * m[i][0] for i in range(3)]
+    n = math.hypot(*down_aft)
+    return boarding_run(aboard(mother, launch_off)[:3], [c / n for c in down_aft], aboard(prize, seat_off)[:3],
+                        [p[i][0] for i in range(3)], near(prize, seat_off, hd=180.0, thr=0.0), t0, t1, t)
+
+
 # Morrow's drone bay (Shepherd hull units x 0.78): the three Borer launch points, cradle seat on the
 # point, the drone's root 1.44 m above it (Borer manifest cradle_seat). The bay lifts straight up (+Z).
 BORER_BAY_M = [(-2.34, 14.82, -1.73), (9.36, 14.82, -1.73), (20.28, 14.82, -1.73)]
@@ -187,6 +207,14 @@ COLOSSUS_PORT_POD_M = (-62, 30, 0)    # the shot-out port drive pod (k4's blast,
 STAR_GAIN = 1.0      # starfield brightness on the key frames (0 hides it)
 
 C3_PRIZE = (-150, 330, 60, 30, -4, -6, .3)
+
+# S7: the Tarsus fallen out of the column, a Kite (P) on each beam, and their boats coming over to her deck
+K3B_T = 86
+K3B_TARSUS = (-650, 90, 30, 6, -2, 9, 0)
+K3B_KITE_A = (-620, 160, 40, 6, -1, 9, .2)     # port beam
+K3B_KITE_B = (-700, 25, 0, 4, 2, 6, .2)        # starboard beam
+# the boats' seats on her deck (Tarsus metres; deck heights checked by the seat cast, ASHARU seat)
+K3B_SEATS = {'hermes-p-a': (2.0, -4.0, 6.43), 'hermes-p-b': (-22.0, 3.0, 8.0), 'hermes-p-c': (24.0, -4.0, 6.0)}
 
 KEYFRAMES = {
     'k0': dict(
@@ -287,15 +315,22 @@ KEYFRAMES = {
         labels=['hound-m', 'hound-p-a', 'hound-p-b']),
     'k3b': dict(
         shot='S7', title='Boarding the Tarsus',
-        caption='The Tarsus has fallen out of the column with her drives shot out. Kites (P) lie alongside with '
-                'the boarders and a Wolf (P) covers them. The rest of the convoy runs on ahead without her.',
+        caption='The Tarsus has fallen out of the column with her drives shot out. Kites (P) lie alongside and '
+                'their boats bring the boarders over: one down on her deck, one braking in over her stern, one '
+                'just out from under its Kite. A Wolf (P) covers them. The rest of the convoy runs on ahead.',
         camera=dict(loc=(-1250, 380, 170), target=(400, -40, -60), lens=35),
         states={'tarsus': 'tarsus-boarded'},
-        ships={'tarsus': (-650, 90, 30, 6, -2, 9, 0),
-               'kite-p-a': (-620, 160, 40, 6, -1, 9, .2), 'kite-p-b': (-700, 25, 0, 4, 2, 6, .2),
+        knobs={'hermes-p-a': {'gear_up': 0.0, 'door_port': 1.0, 'door_starboard': 1.0},    # down, boarders out
+               'hermes-p-b': {'gear_up': 0.5}, 'hermes-p-c': {'gear_up': 1.0}},
+        seated={'hermes-p-a': 'tarsus'},
+        ships={'tarsus': K3B_TARSUS, 'kite-p-a': K3B_KITE_A, 'kite-p-b': K3B_KITE_B,
+               # the boats: one down on her deck, one braking in over her stern, one just out from under its Kite
+               'hermes-p-a': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-a'], 62, 80, K3B_T),
+               'hermes-p-b': boat(K3B_KITE_A, K3B_TARSUS, K3B_SEATS['hermes-p-b'], 70, 90, K3B_T),
+               'hermes-p-c': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-c'], 81, 99, K3B_T),
                'wolf-p-b': (-420, 330, 120, -20, -32, 110, 1),
                **fleet_at({'colossus': (1200, -80, 40, 0, 0, 2, .9), 'morrow': (1150, -250, 0, 0, 1, -3, .9),
-                           'mule': (1900, 260, 20, 0, 0, -2, .9), 'buffalo-a': (1600, -350, 80, 0, 1, 4, .9)}, 86)},
+                           'mule': (1900, 260, 20, 0, 0, -2, .9), 'buffalo-a': (1600, -350, 80, 0, 1, 4, .9)}, K3B_T)},
         fx=[('tracer', 'wolf-p-b', 'tarsus', (30, 0, 10)), ('fire_on', 'tarsus', (-38, 6, 8), (-.2, .5, 1)),
             ('smoke', 'tarsus', (-38, 6, 8), (-.3, .4, 1))],
         labels=['tarsus', 'kite-p-a', 'kite-p-b', 'wolf-p-b', 'colossus', 'mule']),
@@ -367,6 +402,74 @@ ROSTER_SHEETS = ('r1', 'r2')   # top-down and broadside fleet sheets
 
 # ======================================================================================= Blender
 
+def surface_layers(nt, tc, base_col, mnode, sock):
+    """The detail tiles over the base map colour, in the planet material (surface/README.md): each
+    finished tile looked up on the tangent plane by object X, Y and mixed in by its feathered
+    edge. Returns (colour, the topmost tile's weight)."""
+    import bpy
+    import numpy as np
+    sys.path.insert(0, str(HERE / 'surface'))
+    import surface_detail as sd
+
+    def pixels(img):
+        a = np.empty(img.size[0] * img.size[1] * 4, dtype=np.float32)
+        img.pixels.foreach_get(a)
+        return a.reshape(img.size[1], img.size[0], 4)[::-1, :, :3].astype(np.float64)
+
+    def load(path):
+        img = bpy.data.images.load(str(path))
+        try:
+            return pixels(img)
+        finally:
+            bpy.data.images.remove(img)
+
+    base = load(roster.GAME_CORE / 'graphics' / 'planets' / 'desert01.jpg')
+
+    def raw(name):
+        p = HERE / 'surface' / 'raw' / f'{name}.png'
+        return load(p) if p.exists() else None
+
+    finished = sd.finish_all(base, raw)
+    col, weight = base_col, None
+    for name, tile in finished.items():
+        cx, cy, side, n = sd.TILES[name]
+        im = bpy.data.images.new(f'Asharu | surface {name}', n, n, alpha=False)
+        rgba = np.ones((n, n, 4), dtype=np.float32)
+        rgba[..., :3] = tile[::-1]
+        im.pixels.foreach_set(rgba.ravel())
+        im.pack()
+        sep = nt.nodes.new('ShaderNodeSeparateXYZ')
+        nt.links.new(tc.outputs['Object'], sep.inputs[0])
+        u = mnode('ADD', mnode('DIVIDE', mnode('SUBTRACT', sep.outputs['X'], cx), side), .5)
+        v = mnode('ADD', mnode('DIVIDE', mnode('SUBTRACT', sep.outputs['Y'], cy), side), .5)
+        uv = nt.nodes.new('ShaderNodeCombineXYZ')
+        nt.links.new(u, uv.inputs['X'])
+        nt.links.new(v, uv.inputs['Y'])
+        tex = nt.nodes.new('ShaderNodeTexImage')
+        tex.image = im
+        tex.interpolation = 'Cubic'
+        tex.extension = 'EXTEND'
+        nt.links.new(uv.outputs[0], tex.inputs['Vector'])
+        # Feather: 1 inside, smoothstep to 0 over the outer FEATHER of the half-width.
+        edge = mnode('MAXIMUM', mnode('ABSOLUTE', mnode('MULTIPLY', mnode('SUBTRACT', u, .5), 2.0)),
+                     mnode('ABSOLUTE', mnode('MULTIPLY', mnode('SUBTRACT', v, .5), 2.0)))
+        ramp = nt.nodes.new('ShaderNodeMapRange')
+        ramp.interpolation_type = 'SMOOTHSTEP'
+        ramp.inputs['From Min'].default_value = 0.0
+        ramp.inputs['From Max'].default_value = sd.FEATHER
+        nt.links.new(mnode('SUBTRACT', 1.0, edge), ramp.inputs['Value'])
+        w = ramp.outputs['Result']
+        mix = nt.nodes.new('ShaderNodeMix')
+        mix.data_type = 'RGBA'
+        nt.links.new(w, mix.inputs['Factor'])
+        nt.links.new(col, sock(mix.inputs, 'A'))
+        nt.links.new(tex.outputs['Color'], sock(mix.inputs, 'B'))
+        col = sock(mix.outputs, 'Result')
+        weight = w if weight is None else mnode('MAXIMUM', weight, w)
+    print('ASHARU surface tiles:', ', '.join(finished) or 'none', flush=True)
+    return col, weight
+
+
 def blender_main(cfg):
     import bmesh
     import bpy
@@ -374,6 +477,7 @@ def blender_main(cfg):
     from bpy_extras.object_utils import world_to_camera_view
     from mathutils import Euler, Matrix, Quaternion, Vector
     import ship_fx
+    import composite_layers
 
     out = Path(cfg['out'])
     raw = out / 'raw'
@@ -580,6 +684,9 @@ def blender_main(cfg):
     img.image = bpy.data.images.load(str(roster.GAME_CORE / 'graphics' / 'planets' / 'desert01.jpg'))
     img.interpolation = 'Cubic'
     nt.links.new(uv.outputs[0], img.inputs['Vector'])
+    ground_col, detail_w = img.outputs['Color'], None
+    if cfg.get('surface', SURFACE_DETAIL):
+        ground_col, detail_w = surface_layers(nt, tc, ground_col, mnode, sock)
     # Relief at the scales a 250 km orbit resolves: basins (60 km), ridges (8 km), dune fields.
     def noise(scale, detail=6, rough=.55):
         n = nt.nodes.new('ShaderNodeTexNoise')
@@ -603,12 +710,14 @@ def blender_main(cfg):
                               mnode('MULTIPLY', mnode('SUBTRACT', wave.outputs['Fac'], .5), .12))))
     shade = mnode('ADD', shade, mnode('ADD', mnode('MULTIPLY', mnode('SUBTRACT', mid, .5), 1.2),
                                         mnode('MULTIPLY', vein, -.55)))
+    if detail_w is not None:     # the tiles carry their own relief: keep half the procedural on them
+        shade = mnode('MULTIPLY', shade, mnode('SUBTRACT', 1.0, mnode('MULTIPLY', detail_w, .5)))
     gain = mnode('MAXIMUM', mnode('ADD', 1.0, shade), .15)
     tint = nt.nodes.new('ShaderNodeMix')
     tint.data_type = 'RGBA'
     tint.blend_type = 'MULTIPLY'
     tint.inputs['Factor'].default_value = 1.0
-    nt.links.new(img.outputs['Color'], sock(tint.inputs, 'A'))
+    nt.links.new(ground_col, sock(tint.inputs, 'A'))
     cmb = nt.nodes.new('ShaderNodeCombineColor')
     for ch in ('Red', 'Green', 'Blue'):
         nt.links.new(gain, cmb.inputs[ch])
@@ -648,6 +757,11 @@ def blender_main(cfg):
     nt2.links.new(mix.outputs[0], nt2.nodes['Material Output'].inputs['Surface'])
     air.data.materials.append(am)
     air.visible_shadow = False
+    backdrop = bpy.data.collections.new('Backdrop')     # the planet: its own view layer under --layers
+    scene.collection.children.link(backdrop)
+    for o in (ground, air):
+        scene.collection.objects.unlink(o)
+        backdrop.objects.link(o)
 
     # ---------------------------------------------------------------------------- hull library
     library = {}      # game/finished key -> dict(coll, mpu, engines [(pos, dir, radius, style)], length_m)
@@ -725,11 +839,24 @@ def blender_main(cfg):
             eng.append((Vector(e.get('mouth') or e['location']), Vector(e.get('axis') or e['exhaust_direction']),
                         e.get('radius') or e['mouth_radius'], e.get('style', 'LOW_TECH')))
         knobs = {}
-        if ctl and m.get('control'):      # knobs: a list of {name, ...}, or a dict of name -> description
+        if ctl and m.get('control'):      # knobs: a list of {name, ...} or of names, or a dict of name -> description
             ks = m['control'].get('knobs') or []
             pose = m['control'].get('saved_pose') or {}
-            knobs = {n: pose.get(n, 0.0) for n in (ks if isinstance(ks, dict) else [k['name'] for k in ks])}
+            knobs = {n: pose.get(n, 0.0) for n in (ks if isinstance(ks, dict) else
+                                                   [k if isinstance(k, str) else k['name'] for k in ks])}
         hull_ctl = ctl if ctl is not None and ctl.name in coll.all_objects else None    # gear, grapples, break-up
+        if f.get('livery') == 'scrap':     # a pirate's boat: the company paint greyed and dulled, on this copy only
+            for mat in {sl.material for o in coll.all_objects for sl in o.material_slots if sl.material}:
+                for n in [n for n in (mat.node_tree.nodes if mat.use_nodes else ()) if n.type == 'BSDF_PRINCIPLED']:
+                    base = n.inputs['Base Color']
+                    hs = mat.node_tree.nodes.new('ShaderNodeHueSaturation')
+                    hs.inputs['Saturation'].default_value = .15
+                    hs.inputs['Value'].default_value = .7
+                    if base.is_linked:
+                        mat.node_tree.links.new(base.links[0].from_socket, hs.inputs['Color'])
+                    else:
+                        hs.inputs['Color'].default_value = base.default_value
+                    mat.node_tree.links.new(hs.outputs['Color'], base)
         # the build's own lamps and volumes (shared by every ship of the build: one build, one mpu)
         ship_fx.metre_scale({d for o in coll.all_objects for d in
                              (o.data if o.type == 'LIGHT' else None, *(sl.material for sl in o.material_slots))
@@ -875,6 +1002,10 @@ def blender_main(cfg):
 
     stage = bpy.data.collections.new('Stage')
     scene.collection.children.link(stage)
+    stage_ships = bpy.data.collections.new('Stage | ships')       # hulls, stand-ins, the platform
+    stage_fx = bpy.data.collections.new('Stage | effects')        # each ship's kit copy, the placeholder effects
+    stage.children.link(stage_ships)
+    stage.children.link(stage_fx)
     placed = {}
     ships_fx = {}     # (ship key, build key) -> ShipFx: that ship's own SWFX (and hull, where it has gear)
 
@@ -914,13 +1045,13 @@ def blender_main(cfg):
         e.instance_collection = sfx.hull if sfx is not None else lib['coll']
         mw = frame_of((x, y, z), hd, pt, rl)
         e.matrix_world = mw @ Matrix.Scale(lib['mpu'], 4)
-        link(e, stage)
+        link(e, stage_ships)
         if sfx is not None and sfx.fx is not None:
             e2 = bpy.data.objects.new('Ship fx | ' + key, None)
             e2.instance_type = 'COLLECTION'
             e2.instance_collection = sfx.fx
             e2.matrix_world = e.matrix_world
-            link(e2, stage)
+            link(e2, stage_fx)
         placed[key] = dict(matrix=mw, mpu=lib['mpu'], length=lib['length_m'], lib=lib, fx=sfx, throttle=thr,
                            build=m.get('finished') or m['game'])
         if sfx is not None:
@@ -942,10 +1073,10 @@ def blender_main(cfg):
         """A point on a placed ship, local in metres in its own frame."""
         return placed[key]['matrix'] @ Vector(local)
 
-    def obj(name, me, mat, matrix):
+    def obj(name, me, mat, matrix, coll=None):
         o = bpy.data.objects.new(name, me)
         o.matrix_world = matrix
-        link(o, stage)
+        link(o, coll or stage_fx)
         o.material_slots[0].link = 'OBJECT'
         o.material_slots[0].material = mat
         o.visible_shadow = mat in (smoke_mat, debris_mat)   # light and plasma cast no shadow
@@ -1032,6 +1163,57 @@ def blender_main(cfg):
                 standin = '' if members[a].get('finished') else '  (stand-in: fires from inside its slab)'
                 print(f'ASHARU LOS {kf} {fx[0]:8} {a:12} -> {b:12} {what}{standin}', flush=True)
 
+    def seat_check(kf, spec):
+        """A boat set down on its prize (spec 'seated': boat -> prize): with the boat hidden, cast down
+        through each gear sole (its manifest's landing sole anchors) onto the prize's hull and print the
+        gap, so a boat that floats or sinks into the deck shows without a render. Positive: above the hull."""
+        for b, prize in spec.get('seated', {}).items():
+            pl = placed[b]
+            soles = [(s_['leg'], muzzle_world(b, ('anchor', s_['anchor'])))
+                     for s_ in (pl['lib']['manifest'].get('landing') or {}).get('sole_anchors') or []]
+            up = (pl['matrix'].to_3x3() @ Vector((0, 0, 1))).normalized()
+            mine = [o for o in stage.all_objects if o.name in ('Ship | ' + b, 'Ship fx | ' + b)]
+            for o in mine:
+                o.hide_viewport = True
+            bpy.context.view_layer.update()
+            dg = bpy.context.evaluated_depsgraph_get()
+            centre_p, reach_p = at(prize), placed[prize]['length'] * .6
+
+            def gap(p):
+                o = p + up * 40.0
+                for _ in range(64):
+                    hit, loc, _, _, ob, _ = scene.ray_cast(dg, o, -up, distance=80.0)
+                    if not hit:
+                        return None
+                    if (ob is not None and ob.name.startswith('SWFX')) or (loc - centre_p).length > reach_p:
+                        o = loc - up * .05      # the kit's volumes, or not the prize
+                        continue
+                    return (p - loc).dot(up)
+                return None
+
+            gaps = [(leg, gap(p)) for leg, p in soles]
+            row = ', '.join(f'{leg} {"no hull" if g is None else f"{g:+.2f} m"}' for leg, g in gaps)
+            ok = bool(gaps) and all(g is not None and abs(g) <= .35 for _, g in gaps)
+            print(f'ASHARU seat {kf} {b} on {prize}: {row}  {"SEATED" if ok else "NOT SEATED"}', flush=True)
+            if not ok and soles:       # where it would sit flat: the deck around the seat, in the prize's frame
+                rot = placed[prize]['matrix'].to_3x3()
+                best = None
+                for dx in range(-30, 31, 2):
+                    for dy in range(-12, 13, 2):
+                        t_ = rot @ Vector((dx, dy, 0))
+                        gs = [gap(p + t_) for _, p in soles]
+                        if any(g is None for g in gs):
+                            continue
+                        spread = max(gs) - min(gs)
+                        if best is None or spread < best[0]:
+                            best = (spread, dx, dy, min(gs))
+                if best is not None:
+                    print(f'ASHARU seat {kf} {b} flattest within 30 m: move ({best[1]:+d}, {best[2]:+d}) m in '
+                          f'the {prize} frame and down {best[3]:+.2f} m: soles within {best[0]:.2f} m', flush=True)
+            for o in mine:
+                o.hide_viewport = False
+            bpy.context.view_layer.update()
+
     def tracer(a, b, local=None, n=6, muzzle=None):
         p0 = muzzle_world(a, muzzle)
         p1 = at(b, local or (0, 0, 0)) + Vector(rng.normal(0, 12, 3))
@@ -1108,15 +1290,15 @@ def blender_main(cfg):
         for i in range(6):
             o = Vector((i * 110 - 280, rng.uniform(-8, 8), rng.uniform(-6, 6)))
             rot = Euler((0, 0, rng.uniform(-.08, .08))).to_matrix().to_4x4()
-            obj('Platform bulk segment', box_me, mat, Matrix.Translation(base + o) @ rot @ Matrix.Diagonal((48, 22, 18, 1)))
+            obj('Platform bulk segment', box_me, mat, Matrix.Translation(base + o) @ rot @ Matrix.Diagonal((48, 22, 18, 1)), stage_ships)
         for i in range(18):
             o = Vector((rng.uniform(-320, 300), rng.choice((-1, 1)) * rng.uniform(40, 75), rng.uniform(-30, 30)))
-            obj('Platform tank', bead_me, mat, Matrix.Translation(base + o) @ Matrix.Scale(rng.uniform(14, 22), 4))
+            obj('Platform tank', bead_me, mat, Matrix.Translation(base + o) @ Matrix.Scale(rng.uniform(14, 22), 4), stage_ships)
         for side in (-1, 1):
             obj('Platform collector', box_me, mat, Matrix.Translation(base + Vector((0, side * 190, 0)))
-                @ Matrix.Diagonal((150, 70, 1.5, 1)))
+                @ Matrix.Diagonal((150, 70, 1.5, 1)), stage_ships)
         obj('Platform spine', plume_me, mat, Matrix.Translation(base + Vector((-380, 0, 0)))
-            @ Vector((1, 0, 0)).to_track_quat('Z', 'Y').to_matrix().to_4x4() @ Matrix.Diagonal((12, 12, 760, 1)))
+            @ Vector((1, 0, 0)).to_track_quat('Z', 'Y').to_matrix().to_4x4() @ Matrix.Diagonal((12, 12, 760, 1)), stage_ships)
 
     def apply_cue(key, s, cue):
         """One ship's effects cue for this frame (KEYFRAMES 'cues'): 'fire' lists the guns flashing
@@ -1224,7 +1406,7 @@ def blender_main(cfg):
             print(f'ASHARU volume kind {kf} {label:10} {k_[:40]:40} x{c_:3}  sum size {sz:7.0f} m  sum area {ar * 100:5.2f}%', flush=True)
 
     def clear_stage():
-        for o in list(stage.objects):
+        for o in list(stage.all_objects):
             bpy.data.objects.remove(o)
         placed.clear()
 
@@ -1342,6 +1524,89 @@ def blender_main(cfg):
         world.node_tree.nodes['Star gain'].inputs[1].default_value = 0.0      # a roster sheet is a studio
         return lab
 
+    # ---------------------------------------------------------------------------- layers (--layers)
+    # A key frame rendered as three view layers into one multilayer EXR, composed by composite_layers.py, so
+    # the backdrop and the effects can change without the hulls being rendered again (owner, 2026-10-22):
+    #   backdrop  the planet and the starfield, at BACKDROP_SAMPLES; the ships take no part
+    #   ships     the hulls at full samples; the effects and the planet are indirect-only, so every drive,
+    #             muzzle flash, burst light, the sun and the planet's bounce still light them
+    #   effects   volumes, shields, rounds and bursts; ships and planet are holdouts (they still cast and bounce)
+    # Each layer writes Cryptomatte (object, material, asset) and depth. A backdrop already rendered for the same
+    # locked camera stands in for the backdrop layer, which then does not render. A painted plate
+    # (composite_layers.plate_for) replaces it in the composite but not in the render: a PNG plate's swap
+    # and a matted plate's sky both need the rendered one.
+    ROLES = {'backdrop': {'Stage': 'exclude'},
+             'ships': {'Stage | effects': 'indirect', 'Backdrop': 'indirect'},
+             'effects': {'Stage | ships': 'holdout', 'Backdrop': 'holdout'}}
+
+    def walk(lc):
+        yield lc
+        for c in lc.children:
+            yield from walk(c)
+
+    def layered(kf, backdrop_needed):
+        """The three view layers for this frame, their collections synced to the base layer's exclusions
+        (ShipFx sources and appended libraries are excluded there as they are made), then given their role."""
+        base_vl = scene.view_layers[0]
+        base_vl.use = False
+        base = {lc.collection.name: lc.exclude for lc in walk(base_vl.layer_collection)}
+        for name in composite_layers.LAYERS:
+            vl = scene.view_layers.get(name) or scene.view_layers.new(name)
+            vl.use = name != 'backdrop' or backdrop_needed
+            vl.samples = min(cfg['samples'], composite_layers.BACKDROP_SAMPLES) if name == 'backdrop' else cfg['samples']
+            vl.cycles.use_denoising = True
+            vl.use_pass_z = True
+            vl.use_pass_environment = name == 'backdrop'
+            vl.use_pass_cryptomatte_object = True
+            vl.use_pass_cryptomatte_asset = True
+            vl.use_pass_cryptomatte_material = True
+            role = ROLES[name]
+            for lc in walk(vl.layer_collection):
+                if lc is vl.layer_collection:
+                    continue
+                lc.exclude = base.get(lc.collection.name, False)
+                lc.holdout = lc.indirect_only = False
+                r = role.get(lc.collection.name)
+                if r == 'exclude':
+                    lc.exclude = True
+                elif r == 'holdout':
+                    lc.holdout = True
+                elif r == 'indirect':
+                    lc.indirect_only = True
+        return layer_audit(kf)
+
+    def layer_audit(kf):
+        """What each layer will draw, from the collections alone: a kit object inside a hull copy would render
+        on the ships layer and never change with the effects, and a loose object at the scene root renders on
+        every layer. Both are leaks; the frame's row says so."""
+        leaks = []
+        for e in stage_ships.all_objects:
+            for o in (e.instance_collection.all_objects if e.instance_collection else ()):
+                if ship_fx.base_name(o.name).startswith('SWFX') and o.type != 'EMPTY':
+                    leaks.append(f'{o.name} in the hull of {e.name}')
+        loose = [o.name for o in scene.collection.objects if o.type not in ('CAMERA', 'LIGHT')]
+        n = {c.name: sum(1 for _ in c.all_objects) for c in (stage_ships, stage_fx, backdrop)}
+        print(f'ASHARU layers {kf}: ships {n[stage_ships.name]} objects, effects {n[stage_fx.name]}, '
+              f'backdrop {n[backdrop.name]}; kit objects in hull copies {len(leaks)}, loose at the root {len(loose)}',
+              flush=True)
+        for row in leaks[:12] + loose[:12]:
+            print('ASHARU layers leak', kf, row, flush=True)
+        return not leaks and not loose
+
+    def backdrop_key(kf):
+        """Everything the backdrop layer's pixels depend on: a locked camera's backdrop renders once."""
+        import hashlib
+        cam_m = [round(v, 4) for row in cam.matrix_world for v in row]
+        world_n = world.node_tree.nodes
+        h = hashlib.sha256(json.dumps([cam_m, cam.data.type, cam.data.lens, cam.data.ortho_scale,
+                                       [round(v, 5) for v in sun.rotation_euler], sun.data.energy,
+                                       list(world_n['Background'].inputs['Color'].default_value),
+                                       world_n['Star gain'].inputs[1].default_value,
+                                       scene.render.resolution_percentage,
+                                       min(cfg['samples'], composite_layers.BACKDROP_SAMPLES),
+                                       frame_meta(0, False, cfg.get('surface', SURFACE_DETAIL))]).encode())
+        return h.hexdigest()[:16]
+
     labels = {}
     for kf in cfg['frames']:
         clear_stage()
@@ -1397,6 +1662,7 @@ def blender_main(cfg):
             muzzles = {(k, a, b): (best[5] if best else None) for k, a, b, best, _ in bearing(kf)}
             CLEAR_GUNS.clear()
             line_of_sight(kf, spec, muzzles, cfg.get('los'))     # picks, per shot, a bearing gun with a clear line
+            seat_check(kf, spec)
             kit_drew = set()
             if cfg.get('swfx'):          # the finished kit draws what it can (scene_fx); the stand-ins draw the rest
                 import scene_fx
@@ -1489,18 +1755,42 @@ def blender_main(cfg):
                 continue
         else:
             labels[kf] = roster_sheet(kf)
+        layers = bool(cfg.get('layers')) and kf in KEYFRAMES
+        scene.render.film_transparent = layers
+        if layers:
+            plate = composite_layers.plate_for(cfg.get('plates'), kf)
+            cached = raw / 'backdrop' / f'{backdrop_key(kf)}.exr'
+            if not layered(kf, not cached.exists()) and not cfg.get('stage_only'):
+                raise SystemExit(f'ASHARU layers {kf}: an object would render on the wrong layer (see the leak rows)')
+        else:
+            for vl in scene.view_layers:
+                vl.use = vl == scene.view_layers[0]
         if cfg.get('stage_only'):                 # --stage-only: build and pose every hull, render nothing
             print('ASHARU staged', kf, flush=True)
             continue
         partial = raw / f'{kf}.partial'           # not *.png, so a queue's frame count never counts it
         scene.render.use_file_extension = False
-        scene.render.filepath = str(partial)
-        bpy.ops.render.render(write_still=True)
+        st = scene.render.image_settings
+        if layers:
+            st.file_format, st.color_depth, st.exr_codec = 'OPEN_EXR_MULTILAYER', '16', 'ZIP'
+            exr_partial = raw / f'{kf}.layers.partial'
+            scene.render.filepath = str(exr_partial)
+            bpy.ops.render.render(write_still=True)
+            os.replace(exr_partial, raw / f'{kf}.layers.exr')
+            st.file_format, st.color_mode, st.color_depth = 'PNG', 'RGBA', '8'
+            composite_layers.compose_frame(raw / f'{kf}.layers.exr', partial, scene, plate=plate, backdrop=cached,
+                                           log=lambda m: print(m, flush=True))
+        else:
+            st.file_format, st.color_mode, st.color_depth = 'PNG', 'RGBA', '8'
+            scene.render.filepath = str(partial)
+            bpy.ops.render.render(write_still=True)
         os.replace(partial, raw / f'{kf}.png')      # a PNG under its own name is always a finished one
         store = raw / 'labels.json'   # saved per frame: a stopped job keeps every finished frame's labels
         old = json.loads(store.read_text()) if store.exists() else {}
         store.write_text(json.dumps({**old, kf: labels[kf]}, indent=1))
-        (raw / f'{kf}.meta.json').write_text(json.dumps(frame_meta(cfg['samples'], cfg.get('half', False))))
+        (raw / f'{kf}.meta.json').write_text(json.dumps(frame_meta(cfg['samples'], cfg.get('half', False),
+                                                                      cfg.get('surface', SURFACE_DETAIL),
+                                                                      layers and cfg.get('plates', None))))
         print('ASHARU rendered', kf, flush=True)
     if cfg.get('fx_check'):
         fx_verdict(out)
@@ -1569,20 +1859,40 @@ def fx_verdict(out):
 
 # ======================================================================================= driver
 
-def frame_meta(samples, half=False):
-    """What a finished frame was rendered with: its samples and the staging source it came from."""
+def frame_meta(samples, half=False, surface=SURFACE_DETAIL, layers=False):
+    """What a finished frame was rendered with: its samples, the staging source, and for a layered frame
+    (layers: the --plates value, None for the plates beside the script, '' for none) the plates."""
     import hashlib
     h = hashlib.sha256()
-    for f in (HERE / 'battle_blockout.py', HERE / 'roster.py'):
+    for f in (HERE / 'battle_blockout.py', HERE / 'roster.py', HERE / 'composite_layers.py'):
         h.update(f.read_bytes())
-    return {'samples': samples, 'half': half, 'source_sha256': h.hexdigest()}
+    meta = {'samples': samples, 'half': half, 'source_sha256': h.hexdigest()}
+    if layers is not False:
+        meta['layers'] = True
+        root = composite_layers_plates() if layers is None else (Path(layers) if layers else None)
+        if root is not None and root.exists():
+            p = hashlib.sha256()
+            for f in sorted(x for x in root.rglob('*') if x.is_file() and x.suffix.lower() in ('.png', '.exr')):
+                p.update(str(f.relative_to(root)).encode())
+                p.update(f.read_bytes())
+            meta['plates_sha256'] = p.hexdigest()
+    if surface:
+        s = hashlib.sha256()
+        for f in [HERE / 'surface' / 'surface_detail.py', *sorted((HERE / 'surface' / 'raw').glob('*.png'))]:
+            s.update(f.read_bytes())
+        meta['surface_sha256'] = s.hexdigest()
+    return meta
 
 
-def finished(raw, kf, samples, half=False):
+def composite_layers_plates():
+    return REPO / 'build' / 'asharu-battle' / 'plates'     # composite_layers.PLATES
+
+
+def finished(raw, kf, samples, half=False, surface=SURFACE_DETAIL, layers=False):
     """Whether raw/<kf>.png is a finished frame of this staging at these samples."""
     png, meta, store = raw / f'{kf}.png', raw / f'{kf}.meta.json', raw / 'labels.json'
     try:
-        if json.loads(meta.read_text()) != frame_meta(samples, half) or kf not in json.loads(store.read_text()):
+        if json.loads(meta.read_text()) != frame_meta(samples, half, surface, layers) or kf not in json.loads(store.read_text()):
             return False
         with open(png, 'rb') as fh:
             fh.seek(-12, 2)
@@ -1818,6 +2128,58 @@ def check(frames):
             print(f'   {kind:8} {a:12} -> {b:12} {verdict}')
         for line in cue_lines(kf):
             print('   ' + line)
+        for line in surface_lines(loc, f, r, u, fpx):
+            print('   ' + line)
+
+
+def surface_lines(loc, f, r, u, fpx):
+    """--check's view of the ground: the ground metres a pixel spans at frame centre and which
+    detail tile paints it, and where each settlement lands in frame."""
+    sys.path.insert(0, str(HERE / 'surface'))
+    import surface_detail as sd
+    if not SURFACE_DETAIL:
+        return ['surface: base map only (SURFACE_DETAIL off)']
+    c = (0.0, 0.0, -(R + ALT))
+    o = [a - b for a, b in zip(loc, c)]
+
+    def hit(px, py):
+        d = [f[i] + ((px - W / 2) * r[i] - (py - H / 2) * u[i]) / fpx for i in range(3)]
+        n = math.sqrt(sum(x * x for x in d))
+        d = [x / n for x in d]
+        b = sum(a * b for a, b in zip(o, d))
+        disc = b * b - (sum(x * x for x in o) - R * R)
+        if disc < 0:
+            return None
+        t = -b - math.sqrt(disc)
+        return [o[i] + t * d[i] for i in range(3)], t
+
+    out = []
+    for label, py in (('centre', H / 2), ('lower edge', H - 1)):
+        h = hit(W / 2, py)
+        if h is None:
+            out.append(f'surface {label}: sky')
+            continue
+        p, t = h
+        mpp = t / fpx
+        tiles = [n for n, (cx, cy, side, k) in sd.TILES.items()
+                 if abs(p[0] - cx) < side / 2 and abs(p[1] - cy) < side / 2]
+        top = tiles[-1] if tiles else None
+        tile = f'{top} tile at {sd.TILES[top][2] / sd.TILES[top][3]:.0f} m/px' if top else 'base map only'
+        out.append(f'surface {label}: ground {t / 1e3:.0f} km away, {mpp:.0f} m/px across; {tile}')
+    for st in sd.SETTLEMENTS:
+        if st[1] == 'road':
+            continue
+        x, y = st[2], st[3]
+        z = math.sqrt(R * R - x * x - y * y)
+        d = [x - o[0], y - o[1], z - o[2]]
+        zc = sum(a * b for a, b in zip(d, f))
+        if zc <= 0:
+            continue
+        sx = W / 2 + fpx * sum(a * b for a, b in zip(d, r)) / zc
+        sy = H / 2 - fpx * sum(a * b for a, b in zip(d, u)) / zc
+        if 0 <= sx <= W and 0 <= sy <= H and hit(sx, sy) and abs(hit(sx, sy)[1] - math.sqrt(sum(v * v for v in d))) < 5e3:
+            out.append(f'settlement {st[1]:5} ({st[0]}) at ({sx:5.0f}, {sy:5.0f}), {2 * st[4] / zc * fpx:4.0f} px across')
+    return out
 
 
 def cue_lines(kf):
@@ -2003,6 +2365,8 @@ def main():
         started.write_text(opt('--date', date.today().isoformat()))   # a queue round pins one date
     run_date = started.read_text().strip()
     samples = int(opt('--samples', 48))
+    layers = '--layers' in argv     # three view layers and a composite (composite_layers.py)
+    plates = '' if '--no-plates' in argv else opt('--plates')     # None: build/asharu-battle/plates (roster.PLATES)
     if '--motion-preview' in argv:  # the sequence as a cheap motion preview (asharu_preview.py)
         import asharu_preview
         asharu_preview.main(argv, run, run_date)
@@ -2016,19 +2380,23 @@ def main():
         env = dict(os.environ, ASHARU_CFG=json.dumps(dict(out=str(run), frames=frames, samples=1, stage_only=True,
                                                           los='--los' in argv, swfx='--swfx' in argv,
                                                           fx_check='--fx-check' in argv,
-                                                          volume_audit='--volume-audit' in argv)))
+                                                          volume_audit='--volume-audit' in argv,
+                                                          layers=layers, plates=plates)))
         subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python-exit-code', '1',
                                '--python', __file__], env=env)
         return
     if '--skip-render' not in argv:
         half = '--half' in argv
-        todo = [kf for kf in frames if '--rerender' in argv or not finished(run / 'raw', kf, samples, half)]
+        surface = opt('--surface', 'detail' if SURFACE_DETAIL else 'base') == 'detail'
+        todo = [kf for kf in frames if '--rerender' in argv
+                or not finished(run / 'raw', kf, samples, half, surface, plates if layers and kf in KEYFRAMES else False)]
         done = [kf for kf in frames if kf not in todo]
         if done:
             print('ASHARU already finished, not rendered again:', ','.join(done), flush=True)
         if todo:
             from blender_path import BLENDER
-            cfg = dict(out=str(run), frames=todo, samples=samples, half=half, swfx='--swfx' in argv)
+            cfg = dict(out=str(run), frames=todo, samples=samples, half=half, swfx='--swfx' in argv, surface=surface,
+                       layers=layers, plates=plates)
             env = dict(os.environ, ASHARU_CFG=json.dumps(cfg))
             subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python', __file__], env=env)
     outputs = [orbit_diagram(run)] + label_frames(run)

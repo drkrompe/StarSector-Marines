@@ -139,6 +139,29 @@ own. Placements:
 `near()` places a craft in its parent's frame with its own attitude, so a drone stays on the
 pod if the Colossus is re-posed.
 
+### The boarders' boats
+
+The owner (2026-10-22): the boarders cross in small boats, the company's Hermes, launched by the
+Kites (P).
+- **Launch is never shown.** A boat leaves from under its Kite's belly, where the camera cannot
+  see it, and enters the frame already flying.
+- **The run is `motion.boarding_run`:**
+  - a curve from the launch point to a seat on the prize's deck;
+  - a burn out along it, a coast with the drives idling;
+  - a yaw end for end, then a braking burn against its motion;
+  - so it comes in tail first over the prize's stern and sets down facing aft.
+  - `boat()` composes it from the mother's and the prize's stations, so it follows either if
+    re-posed, and an animation plays the same run.
+- **Each boat is its own ShipFx copy** (own hull and kit), so drives, gear and doors key
+  per boat. Drives burn on the run, gear comes down on the brake, doors open once down.
+- **Livery:** the Hermes is the company's own boat. The pirates' copies are greyed and
+  dulled on the appended copy (`livery='scrap'`); the pinned build is never edited.
+- **S7:** one boat down on the Tarsus's deck with its doors open, one braking in over her
+  stern, one just out from under the starboard Kite. At that range a boat is about 25 px.
+- **The seat cast:** `ASHARU seat`, under `--stage-only`/`--fx-check`, casts down through a
+  seated boat's gear soles onto the prize. It prints each sole's gap, so a boat floating over
+  the deck or sunk into it shows without a render.
+
 ### Continuity
 
 Fixed before any production render (owner: make continuity changes without asking):
@@ -275,6 +298,7 @@ Colossus 108 m, Onslaught 301 m.
 | Wolf (P) x2 | fast frigates that cut the column | 70 m (size not settled) | 1.15 Hounds | **finished** |
 | Hound (P) x3 | frigates | 61 m | the reference | **finished** (pirate state of the Hound) |
 | Kite (P) x2 | boarding shuttles | 52 m | 0.9 Hound | **finished** |
+| Hermes x3 (the Kites' boats) | boarding boats, launched from under the Kites | 9 m | a bus | **finished** (the company's accepted Hermes, Drive `builds/hermes/70f1f58eb`, greyed on the copy; a real pirate livery would be a new build) |
 
 All the pirate hulls are vanilla `pirate_bp` skins or pirate hulls (Colossus
 Mk.III), plus the Buffalo Mk.II, which pirate fleets field. Left out on purpose: the
@@ -323,7 +347,7 @@ About 2 minutes 15 (134 s): 10 s of recording, 40 s of setup and ambush, 60 s of
 | S6b **K** | 8 s | The escorts answer. Lasher B and the merchant Wolf turn back and roll onto their backs over the climbing raiders. A Hound (P)'s bare armour soaks it (no shield), then the Ammo Feeder burst breaks her up. First blood to the convoy. | Lasher B, merchant Wolf, Hound (P) C | 50 mm, above and behind the escorts, looking down past them |
 | S6c **K** | 8 s | The column is cut. Tracking alongside at about 300 m: the two Wolves (P) blink (Displacer) into the gap between the freighters, front shields up under the Mule's fire, then down to rake the Tarsus's drives. The merchant Wolf chases them through. | Wolves (P), Tarsus, merchant Wolf | 35 mm, tracking alongside the column |
 | S6d **K** | 6 s | The rear guard. The convoy's Hound rolls over to face two Hounds (P) climbing at her. No shields on either side: armour, flares and guns. She kills the first; the second's fire takes her drives, and she falls back on the column trailing flares. | Hound, Hounds (P) | 35 mm, close behind the Hound |
-| S7 **K** | 8 s | Boarding the Tarsus: drives shot out, fallen out of the column, Kites (P) alongside, a Wolf (P) covering; the convoy runs on ahead. | Tarsus, Kite (P), Wolf (P) | 35 mm, from behind the Tarsus |
+| S7 **K** | 8 s | Boarding the Tarsus: drives shot out, fallen out of the column, Kites (P) alongside, their boats bringing the boarders over to her deck, a Wolf (P) covering; the convoy runs on ahead. | Tarsus, Kite (P), boats, Wolf (P) | 35 mm, from behind the Tarsus |
 | S8 | 6 s | Close on the Colossus's aft: the port tug pod is shot out, the drives stutter, debris. | Colossus | 50 mm, close |
 | S9 **K** | 8 s | She will not be taken: the Colossus Mk.III closes from above; she fights with flares and both turrets and drives off a Kite; Morrow is under her keel holding her up. | Colossus, Colossus Mk.III, Morrow | 28 mm, 600 m off her port side |
 | S9b **K** | 8 s | The lead's last run. Smoking since S6, the lead Lasher dives over the Falcon (P) on her back. The Falcon's broad front shield takes it and flares, then overloads in a burst of arcs, and the Lasher's guns walk down the flagship's open flank. The Falcon's broadside answers, and the Lasher tumbles away burning. | lead Lasher, Falcon (P) | 28 mm, close, just above the Lasher |
@@ -492,6 +516,32 @@ muzzle moves the shot with it.
     plumes.
   - `--fx-check` proves the copies independent without rendering (see `asharu-effects-plan.md`,
     W0).
+- **Layers** (owner, 2026-10-22; `--layers`). A key frame renders as three view layers into one
+  multilayer EXR, `raw/<kf>.layers.exr`. `composite_layers.py` composes it into the still in
+  seconds, so a new backdrop or a reworked effect never re-renders a hull:
+  - `backdrop`: the planet and the starfield, at 16 samples. A locked camera's backdrop is
+    rendered once and cached by camera.
+  - **Painted plates** come from the planet session. Their sources and prompts are in `plates/`.
+    - The finished plates are on Drive at `roster.PLATES`: `<kf>.backdrop.exr`, scene-linear,
+      exactly on the key frame's camera, today k0 (S1a) and k6 (S12). A queue job copies them to
+      `build/asharu-battle/plates/`.
+    - A plate replaces the rendered backdrop before the view. Where it carries a premultiplied
+      matte, the rendered stars show through.
+    - A display-referred `<kf>/plate.png` is swapped in after the view instead:
+      `out = full + (1 - coverage) * (plate - backdrop)`.
+    - The backdrop layer is still rendered (16 samples, once per camera), because both forms
+      need it.
+    - `--plates DIR` points elsewhere, and `--no-plates` is the control.
+  - `ships`: the hulls at full samples. Effects and planet are indirect-only, so drives, muzzle
+    flashes, burst lights, the sun and the planet's bounce light still light them.
+  - `effects`: volumes, shields, rounds and bursts, with ships and planet as holdouts. Holdouts
+    still cast shadows and bounce light.
+  - Every layer writes Cryptomatte (object, material, asset) and depth.
+  - The composite is the backdrop, with the ships over it and the effects over those
+    (premultiplied). It then goes through the same AgX view the classic PNG uses.
+  - `--diff REF.png` measures a composite against a combined render of the same frame.
+  - Collections carry the split: `Stage | ships`, `Stage | effects`, `Backdrop`. A kit object
+    inside a hull copy, or a loose object at the scene root, fails the frame (`ASHARU layers leak`).
 
 To check a scene without rendering, run `python battle_blockout.py --check`; `python fight_layout.py` draws the same staging as diagrams. It prints where every ship lands in every key frame, and whether each shot can bear (see Gunnery). `--frames k3b,k5` renders only those frames; a frame already finished in the run folder is skipped, so a stopped job resumes (`--run <name>` fixes the folder across days, `--rerender` forces every frame); and `--skip-render --post <machine> --what <slug>` posts a run to `review/cinematic-asharu-battle/`.
 

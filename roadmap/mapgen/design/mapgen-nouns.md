@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — Ordinary residential lots are always homes; the apartment plan belongs only to gated housing compounds.
+Updated: 2026-10-22 — An open-field landing's country is surveyed rather than grown: graded rural roads and plots (Rural country).
 
 Earlier 2026-10-13 — reversible authored damage layers give Relief a worn checkpoint without changing its landing contract; Relief rear working courts preserve the expanded landing and assembly apron.
 
@@ -1597,6 +1597,57 @@ Where the settlement stands and how far it reaches is the precinct model's
 business — see `precincts.md`, which also owns the **lane**: the path a
 Conquest's ladder of places stands on, and the walkable route between them that
 the map records for the command layer to read.
+
+## Rural country
+
+The **country** is the band of open land an open-field landing claims along
+its map edge (`precincts.md`, `OPEN_FIELD`): the farmland the company lands in
+and walks out of into the town. It is **surveyed, not grown**
+(`RuralLayout`). Growth lays town streets wherever its arms reach, and on the
+first colony maps that put boulevards, back streets and dead-end stubs of every
+width across the fields, ending where an arm's budget did. So the skeleton
+stage replaces whatever grew inside the band with the country's own roads, by
+role:
+
+| grade | width | surface | where |
+|---|---|---|---|
+| country road | 5, a cross-street's | paved asphalt, no sidewalk, no lines | the town's widest street that arrives at the fields, carried straight on to the map edge |
+| farm road | 3 | gravel | the length of the town's edge, so every street that reaches the fields meets a road |
+| field track | 2 | dirt | between plots, out from the country road both ways and once across the band's depth |
+
+**One road, one width, one line.** Every rural road is a straight route of its
+grade's width from end to end, flush at both ends; there is no per-band brush
+fitting out here, which is what made the grown roads swell and pinch. A
+higher grade owns the junction. A street "arrives" only if it runs into the
+town behind the first town row, so a street along the town's edge is not
+mistaken for the main road.
+
+**Only roads that carry traffic are road.** The country and farm roads are
+circulation and road cells (the road graph routes on them, and a convoy can
+enter off the map edge along the country road); a field track is ground with a
+dirt surface on it. The farm road joins every street that reached the band, so
+a town that was one network through its country stays one; the weld is asked
+again only to make sure.
+
+**Plots are what the roads leave.** Each rectangle between tracks and roads is
+one field with one use: row crop (crop rows and furrows a cell apart), grain
+(standing gold with a tramline every few rows), pasture (grass) or fallow
+(turned earth). Rows run the plot's long way, a headland of grass rings each
+plot, and the cultivated-ground law keeps all of it green and brown on every
+world. It is appearance only: every cell stays exactly as walkable and as
+see-through as the open ground it was, and the landing's field of fire is
+checked on the finished map as before.
+
+**Hedges and farms.** A hedge is a line of shrubs on the headland of a plot
+where a road or track runs past, with a gateway left in the middle of each
+side: every pasture has one and about half the crop fields. The plants are
+passable and give no cover, so a hedge is a boundary to the eye only. Up to two
+**farmsteads** stand in the country, each a farmhouse and a barn (ordinary
+stamped buildings, `BuildingStamp.FARMHOUSE` and `BARN`, which the city's lots
+never draw) in a trodden-dirt yard cut from the corner of the plot farthest
+from the landing that fits it, set back from the road it opens onto with their
+doors facing it, and well past the field of fire. They are the one structural
+thing out here, and so ordinary buildings to everything that reads one.
 
 ## Defense-post layouts
 

@@ -475,6 +475,13 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   left, hit rate, mounts lost, legs crippled, flux-limited seconds and damage by weapon (the side's dealt damage
   apportioned by hits x nominal damage); `runs.csv` adds each survivor's sections.
   One machine a side, no cost or lift parity: read rows against each other, not as balance acceptance.
+- `gradlew.bat bloomEvidence` → the Rav Bloom on the campaign layer: runs
+  `RavBloomSystem` with the real event lifecycle over `-Pyears=20` cycles of a
+  synthetic vanilla-shaped sector at `-Pseeds=8` save seeds, for every severity
+  and frequency preset under three player policies (ignores, answers half,
+  answers all), and writes blooms a year, outcomes, spread and size lost to
+  `build/reports/blooms/summary.md` / `summary.json` (`-PevidenceDir`). About
+  fifteen seconds. Readings, not acceptance; opt-in and excluded from `test`.
 - `gradlew.bat crewEvidence` → crews a transport and a capital from their own
   room programs, runs each for four minutes of ship's time, and reports what the
   complement actually spent it doing: the idle share, the activity histogram, the
@@ -740,6 +747,15 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   `0xC0000005` is a native crash, and `0xC000001D` (illegal instruction) points
   at the experimental `-XX:UseAVX` / vector flags in the installed `vmparams`
   rather than at anything in the mod.
+- `gradlew.bat packageRelease` → the public download,
+  `build/release/StarsectorMarines-<version>.zip`, one top-level
+  `StarsectorMarines/` folder: `mod/` without its generated folders, plus the
+  shaded jar (after `verifyModJarBoundary`) and sounds transcoded fresh into
+  `build/release/sounds`, so stale clips in `mod/sounds` cannot ship. It fails
+  when `mod_info.json` and `build.gradle` disagree on the version. Every debug
+  surface is behind `DevConfig.DEV_MODE` (`-Dmarines.dev=true`), which
+  `runStarsector` passes and a player's install never has;
+  `runStarsector -PplayerBuild` launches without it. See `v0.1-public-build.md`.
 - `gradlew.bat prepareCatalogSmoke` → stages the additive two-provider catalog
   acceptance fixture without launching Starsector. Pass
   `-PcatalogSmokeMode=collision` to stage the duplicate-id variant.

@@ -83,6 +83,8 @@ public final class RoadMaterialBaker {
         }
         return result;
     }
+    /** A point well inside a tile, so a mark never runs over its seam. */
+    private static int stones(Random random,int size) { return 6+random.nextInt(size-12); }
     private static BufferedImage tile(int size,long seed,JSONObject family,int age) throws Exception {
         BufferedImage image=new BufferedImage(size,size,BufferedImage.TYPE_INT_ARGB);
         Color base=Color.decode(family.getString("base")); Random noise=new Random(seed);
@@ -100,6 +102,34 @@ public final class RoadMaterialBaker {
             return image;
         }
         Graphics2D g=image.createGraphics(); g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+        if(family.getString("id").equals("gravel")) {
+            // Loose stone over packed fines: light and dark chips, no seams to repeat.
+            Random stones=new Random(seed^0x6A7E1L);
+            for(int i=0;i<90;i++) {
+                int sx=2+stones.nextInt(size-4),sy=2+stones.nextInt(size-4),r=1+stones.nextInt(2);
+                int tone=stones.nextBoolean()?60:-45;
+                g.setColor(new Color(Math.max(0,Math.min(255,base.getRed()+tone)),Math.max(0,Math.min(255,base.getGreen()+tone)),
+                        Math.max(0,Math.min(255,base.getBlue()+tone)),150));
+                g.fillOval(sx-r,sy-r,2*r,2*r);
+            }
+            g.dispose();return image;
+        }
+        if(family.getString("id").equals("dirt")) {
+            // Packed earth: soft mottling and a few pebbles; it does not crack, it wears.
+            Random clods=new Random(seed^0x3D1A7L);
+            for(int i=0;i<14;i++) {
+                int sx=stones(clods,size),sy=stones(clods,size),r=4+clods.nextInt(7);
+                int tone=clods.nextBoolean()?14:-16;
+                g.setColor(new Color(Math.max(0,Math.min(255,base.getRed()+tone)),Math.max(0,Math.min(255,base.getGreen()+tone)),
+                        Math.max(0,Math.min(255,base.getBlue()+tone)),70));
+                g.fillOval(sx-r,sy-r,2*r,2*r);
+            }
+            for(int i=0;i<12+age*6;i++) {
+                int sx=stones(clods,size),sy=stones(clods,size);
+                g.setColor(new Color(150,140,122,140));g.fillOval(sx-1,sy-1,2,2);
+            }
+            g.dispose();return image;
+        }
         if(family.getString("id").equals("concrete")) {
             g.setColor(new Color(45,45,42,45));g.setStroke(new BasicStroke(1.2f));
             g.drawLine(3,3,size-4,3);g.drawLine(3,3,3,size-4);

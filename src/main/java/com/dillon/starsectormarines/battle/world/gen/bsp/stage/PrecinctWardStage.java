@@ -8,12 +8,13 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
+import com.dillon.starsectormarines.battle.world.gen.rural.RuralGround;
+import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
 import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressInterior;
-import com.dillon.starsectormarines.battle.world.gen.fortress.FarmlandGround;
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationGround;
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationWalls;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
@@ -136,8 +137,9 @@ public final class PrecinctWardStage implements GenStage {
                 InstallationGround.dress(ctx, masks.buildable(), masks.circulation(), result.placed());
                 // An open-field landing is farmland outside the town, not a
                 // margin of bare inland ground.
-                if (precinct.isLanding() && precinct.landing().hasFieldOfFire()) {
-                    FarmlandGround.dress(ctx, masks.buildable(), masks.circulation());
+                RuralLayout rural = ctx.get(BspKeys.RURAL_LAYOUT);
+                if (precinct.isLanding() && precinct.landing().hasFieldOfFire() && rural != null) {
+                    RuralGround.dress(ctx, rural);
                 }
             }
         }

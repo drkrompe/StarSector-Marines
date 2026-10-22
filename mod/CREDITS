@@ -48,20 +48,17 @@ Game Audio (proprietary — unofficial fan use)
 ---------------------------------------------
 Audio from "MechWarrior 4: Mercenaries"
   © Microsoft Game Studios / FASA Studio. Developed by Cyberlore Studios.
-  Music tracks used:
-    Behemoths   (marines_battle_music)
-    Next Move   (marines_intel_music)
-  Voice clips used for marine squad radio:
-    viscontact_ais, viscontact_bul, viscontact_han, viscontact_scr
-    fallback_ais, fallback_bul, fallback_han, fallback_scr
-    copy_ais, copy_bul, rogerthat_han, rogerthat_scr
-  These are copyrighted game assets, NOT released under a Creative Commons
+  Music track used:
+    Next Move   (marines_intel_music, the Marine Ops menu theme)
+  Kept as an homage: MechWarrior 4: Mercenaries is a direct inspiration for
+  this mod. It is the only proprietary audio the mod ships.
+  This is a copyrighted game asset, NOT released under a Creative Commons
   or other content-redistribution license. In 2010 the MekTek team released
   "MechWarrior 4: Mercenaries" as a free download with Microsoft's permission;
   that arrangement makes the game free to play but does not grant rights to
   reuse its audio in other works. Inclusion here is unofficial, non-commercial
   fan use with no claim of ownership. All rights remain with the rightsholders;
-  on request these audio assets will be removed.
+  on request this track will be removed.
 
 Ambient Sound Effects
 ---------------------
@@ -90,6 +87,9 @@ Small Arms
   License: Creative Commons Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0)
            https://creativecommons.org/licenses/by-sa/3.0/
 
+Rook rifle shot (marines_rook_rifle_fire): generated with ElevenLabs Sound
+Effects; see "Generated audio" below.
+
 Voice Lines
 -----------
 "Hurt & Death Sound Effect for Character" by Badre-Eddine
@@ -101,9 +101,10 @@ Voice Lines
 
 Explosions
 ----------
-"Explosions" by Unnamed (Viktor.Hahn@web.de)
+"9 explosion sounds" by Unnamed (Viktor.Hahn@web.de)
   Files used:
     explosion01 through explosion09, explosion-muffled-distant
+  Source:  https://opengameart.org/content/9-explosion-sounds
   License: Creative Commons Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0)
            https://creativecommons.org/licenses/by-sa/3.0/
 
@@ -137,3 +138,72 @@ Sound Effects v2 (eleven_text_to_sound_v2), October 2026. Edited as individual
 one-shots for Starsector Marines; layered at runtime by per-foot gait events.
 Prompts, original takes, generation receipts and offline mix recipe are retained
 in asset-pipeline/src/tool/resources/audio/mech-footsteps/ and tools/.
+
+Generated audio (ElevenLabs)
+----------------------------
+Every voice in the mod was generated with ElevenLabs on a paid Creator plan,
+2026, for Starsector Marines, as were the generated sound effects and the
+Jangala arrival score. Voices are original Voice Design characters or
+ElevenLabs library voices; no game or real person's recording was uploaded or
+cloned. All dialogue was written for this mod. Beyond the entries named above,
+this covers:
+  - Company officer responses (Company Officer B - British Matriarch)
+  - Colony Breach speech and sound effects
+  - Jangala arrival: hails, Castle's lines, background effects and the score
+  - Sabine and the Shepherd story voices
+  - The Rook rifle shot
+Prompts, voice ids, source takes and generation receipts are retained beside
+each clip under asset-pipeline/src/tool/resources/audio/ and art-source/.
+
+Original synthesized audio
+--------------------------
+The Jangala yard ambience, the tender sounds, and the arrival's cabin bed, wind
+and radio squelches are synthesized from scratch by the mod's own scripts
+(ffmpeg and numpy), retained beside each clip.
+
+Generated art
+-------------
+Most of the art under graphics/ and the Jangala arrival cinematic were made
+for this mod with OpenAI image generation (Codex ImageGen and built-in
+imagegen), refined and assembled by scripts and by hand, or rendered from the
+mod's own Blender models. Prompts and masters are retained under art-source/.
+A few battle sprites (the Venture and pirate Hound hulls and six fighter
+craft) are up-scaled derivatives of Starsector's own sprites, used in a mod
+for that game.
+
+Bundled libraries
+-----------------
+jars/StarsectorMarines.jar includes, relocated under
+com.dillon.starsectormarines.shaded:
+
+fastutil-core 8.5.16 by Sebastiano Vigna
+  https://fastutil.di.unimi.it/
+  License: Apache License 2.0
+           https://www.apache.org/licenses/LICENSE-2.0
+  Only the classes the mod uses are included; the code is unmodified.
+
+JCodec 0.2.5 by the JCodec project
+  http://www.jcodec.org/  https://github.com/jcodec/jcodec
+  License: FreeBSD (2-clause BSD) License, http://jcodec.org/lic.html
+  Copyright (c) the JCodec project. All rights reserved.
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+  1. Redistributions of source code must retain the above copyright notice,
+     this list of conditions and the following disclaimer.
+  2. Redistributions in binary form must reproduce the above copyright notice,
+     this list of conditions and the following disclaimer in the documentation
+     and/or other materials provided with the distribution.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+  JCodec includes the JAAD AAC decoder (net.sourceforge.jaad,
+  jaadec.sourceforge.net), distributed under the Public Domain; JCodec's
+  changes to it are under the FreeBSD License above.

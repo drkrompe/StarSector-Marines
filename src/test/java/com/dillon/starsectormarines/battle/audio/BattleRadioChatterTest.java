@@ -153,7 +153,6 @@ class BattleRadioChatterTest {
         assertEquals(BattleRadioChatter.Cue.CONTACT, emission.cue());
         BattleRadioChatter.Emission killBrag = chatter.advance(7f, List.of(marines), death);
         assertEquals(BattleRadioChatter.Cue.ENEMY_DOWN, killBrag.cue());
-        assertEquals("marines_radio_enemy_down", killBrag.cue().soundId());
     }
 
     private static Squad infantry(int id, Faction faction) {

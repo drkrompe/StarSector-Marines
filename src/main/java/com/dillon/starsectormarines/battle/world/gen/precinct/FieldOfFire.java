@@ -87,7 +87,7 @@ public record FieldOfFire(int centerX, int centerY, int radius) {
     }
 
     /** The edge nearest the centre: 0 low x, 1 high x, 2 low y, 3 high y. */
-    private int edge(int width, int height) {
+    public int edge(int width, int height) {
         int[] distance = {centerX, width - 1 - centerX, centerY, height - 1 - centerY};
         int best = 0;
         for (int i = 1; i < distance.length; i++) {

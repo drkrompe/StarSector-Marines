@@ -8,12 +8,16 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.road.GeneratedRoads;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
+import com.dillon.starsectormarines.battle.world.gen.rural.RuralGround;
+import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.Tag;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -75,6 +79,7 @@ public final class RoadSurfaceStage implements GenStage {
         boolean city = cityRoadsEnabled();
         if (!precinct && !city) return;
         var precincts = ctx.get(BspKeys.PRECINCTS);
+        RuralLayout rural = ctx.get(BspKeys.RURAL_LAYOUT);
         boolean[][] road = new boolean[ctx.width][ctx.height];
         boolean[][] street = new boolean[ctx.width][ctx.height];
         boolean[][] footway = new boolean[ctx.width][ctx.height];
@@ -84,6 +89,8 @@ public final class RoadSurfaceStage implements GenStage {
                     || precincts.precincts().get(claim[x][y]).isProgrammed());
             street[x][y] = city && !road[x][y] && carriageway(ctx, x, y);
             footway[x][y] = city && !road[x][y] && footway(ctx, x, y);
+            // The country's roads are its own routes, laid below; none of it is a street.
+            if (rural != null && rural.inCountry(x, y)) road[x][y] = street[x][y] = footway[x][y] = false;
         }
         if (city) bridgeSidewalks(ctx, road, street);
         boolean[][] swept = new boolean[ctx.width][ctx.height];
@@ -97,7 +104,8 @@ public final class RoadSurfaceStage implements GenStage {
         var network = anyStreet
                 ? GeneratedRoads.streets(swept, street, footway, ctx.seed, CITY_MAX_BREADTH, style)
                 : new GeneratedRoads.Network(GeneratedRoads.routes(swept, ctx.seed), List.of());
-        var routes = network.routes();
+        List<RoadPlan.Route> routes = new ArrayList<>(network.routes());
+        if (rural != null) routes.addAll(RuralGround.routes(rural, ctx.seed));
         if (routes.isEmpty()) return;
         TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
         var margin = (profile == null ? SurfacePalette.ROCK : profile.surface()).inlandGround();
@@ -106,6 +114,10 @@ public final class RoadSurfaceStage implements GenStage {
         var allowed = new RoadSurface.Underlay[ctx.width][ctx.height];
         for (int y = 0; y < ctx.height; y++) for (int x = 0; x < ctx.width; x++) {
             var kind = ctx.topology.getGroundKind(x, y);
+            if (rural != null && rural.inCountry(x, y)) {
+                allowed[x][y] = RuralGround.underlay(ctx, rural, x, y);
+                continue;
+            }
             if (street[x][y] || (footway[x][y] && style.sidewalks())) {
                 // The city's own paving is the underlay: it shows where the sweep does not reach.
                 allowed[x][y] = new RoadSurface.Underlay(kind, ctx.topology.getSurface(x, y), false, false);

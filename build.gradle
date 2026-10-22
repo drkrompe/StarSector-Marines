@@ -8,7 +8,7 @@ plugins {
 }
 
 group = 'com.dillon.starsectormarines'
-version = '0.0.1'
+version = '0.1.0-alpha'
 
 def starsectorDir = file(providers.gradleProperty('starsectorDir').get())
 def starsectorCore = new File(starsectorDir, 'starsector-core')
@@ -165,7 +165,8 @@ test {
                 'story-command-evidence',
                 'crew-liveliness', 'shader-evidence', 'render-evidence', 'garrison-evidence',
                 'generated-space-evidence',
-                'loadout-card-sheet', 'loadout-matchup', 'armor-matchup', 'armor-economy-evidence'
+                'loadout-card-sheet', 'loadout-matchup', 'armor-matchup', 'armor-economy-evidence',
+                'bloom-evidence'
     }
     testLogging {
         // Audit-style tests print their report to stdout — stream it to the
@@ -270,6 +271,27 @@ tasks.register('crewEvidence', Test) {
     maxParallelForks = 1
     outputs.upToDateWhen { false }
     systemProperty 'starsectorDir', starsectorDir.absolutePath
+    testLogging {
+        showStandardStreams = true
+    }
+}
+
+// The Rav Bloom on the campaign layer over N cycles of a synthetic vanilla-shaped sector, for
+// every severity and frequency preset under three player policies: blooms a year, outcomes,
+// spread chains and size lost (colony-breach-nouns.md, Campaign: blooms). Campaign evidence, not a test.
+tasks.register('bloomEvidence', Test) {
+    group = 'verification'
+    description = 'Simulate years of Rav Bloom outbreaks and report counts, outcomes and spread; opt-in.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'bloom-evidence'
+    }
+    outputs.upToDateWhen { false }
+    systemProperty 'bloom.evidence.years', providers.gradleProperty('years').getOrElse('20')
+    systemProperty 'bloom.evidence.seeds', providers.gradleProperty('seeds').getOrElse('8')
+    systemProperty 'bloom.evidence.outputDir',
+            providers.gradleProperty('evidenceDir').getOrElse(layout.buildDirectory.dir('reports/blooms').get().asFile.absolutePath)
     testLogging {
         showStandardStreams = true
     }
@@ -1141,6 +1163,52 @@ tasks.register('deployMod', Sync) {
     }
 }
 
+// The public release: what deployMod puts in the game's mods folder, as one zip whose top-level
+// folder is the mod's install folder. Built from mod/ with the two generated folders replaced by
+// fresh outputs -- the shaded jar alone (not whatever else sits in mod/jars) and audio transcoded
+// into an empty folder -- so nothing stale from a developer's checkout ships. The jar boundary
+// check runs first, and the manifest's version must be this build's.
+tasks.register('packageRelease', Zip) {
+    group = 'starsector'
+    description = 'Zip the shippable mod into build/release/StarsectorMarines-<version>.zip'
+    dependsOn tasks.named('verifyModJarBoundary'), ':asset-pipeline:processReleaseAudio'
+
+    def releaseSounds = layout.buildDirectory.dir("release/sounds").get().asFile
+    def manifest = new File(modOutputDir, 'mod_info.json')
+    archiveFileName = "${modName}-${project.version}.zip"
+    destinationDirectory = layout.buildDirectory.dir("release")
+    duplicatesStrategy = DuplicatesStrategy.FAIL
+
+    into(modName) {
+        from(modOutputDir) {
+            exclude 'jars/**', 'sounds/**', '**/.gitkeep'
+        }
+        into('jars') { from tasks.named('shadowJar') }
+        into('sounds') { from releaseSounds }
+    }
+
+    doFirst {
+        def declared = (manifest.text =~ /"version"\s*:\s*"([^"]+)"/)
+        if (!declared.find() || declared.group(1) != project.version.toString()) {
+            throw new GradleException("mod_info.json version does not match build.gradle's "
+                    + project.version + "; set both before packaging.")
+        }
+    }
+    doLast {
+        def zip = archiveFile.get().asFile
+        int entries = 0
+        new java.util.zip.ZipFile(zip).withCloseable { archive ->
+            archive.entries().each { entry ->
+                if (!entry.name.startsWith(modName + '/')) {
+                    throw new GradleException('release entry outside ' + modName + '/: ' + entry.name)
+                }
+                if (!entry.directory) entries++
+            }
+        }
+        logger.lifecycle(String.format('%s: %d files, %.1f MB', zip, entries, zip.length() / 1048576d))
+    }
+}
+
 tasks.register('undeployMod', Delete) {
     group = 'starsector'
     description = "Remove the deployed mod from $starsectorModsDir"
@@ -1158,7 +1226,7 @@ tasks.register('undeployMod', Delete) {
  * under the read-only game install, so read its command line and run it directly:
  * same flags, same working directory, but the exit code and stderr are the JVM's.
  */
-def starsectorLaunchArgv(File coreDir, File diagnosticsDir, boolean stockJvm) {
+def starsectorLaunchArgv(File coreDir, File diagnosticsDir, boolean stockJvm, boolean devMode) {
     def bat = new File(coreDir, 'starsector.bat')
     if (!bat.isFile()) {
         throw new GradleException("No starsector.bat in ${coreDir} -- cannot launch the game")
@@ -1192,7 +1260,10 @@ def starsectorLaunchArgv(File coreDir, File diagnosticsDir, boolean stockJvm) {
     if (stockJvm) {
         flags = flags.findAll { !it.startsWith('-XX:') && it != '-noverify' }
     }
-    [java.canonicalPath, "-XX:ErrorFile=${errorFile.absolutePath}".toString()] + flags
+    // A developer launch shows the debug surfaces (DevConfig.DEV_MODE); a player's install never
+    // carries the property, and -PplayerBuild launches the game as a player would see it.
+    def dev = devMode ? ['-Dmarines.dev=true'] : []
+    [java.canonicalPath, "-XX:ErrorFile=${errorFile.absolutePath}".toString()] + dev + flags
 }
 
 /**
@@ -1230,16 +1301,18 @@ class TeeOutputStream extends OutputStream {
 }
 
 def stockJvmRequested = providers.gradleProperty('stockJvm').map { true }.orElse(false)
+def playerBuildRequested = providers.gradleProperty('playerBuild').map { true }.orElse(false)
 
 tasks.register('runStarsector', Exec) {
     group = 'starsector'
-    description = 'Launch Starsector after deploying the mod (-PstockJvm drops the -XX: flags from vmparams)'
+    description = 'Launch Starsector after deploying the mod (-PstockJvm drops the -XX: flags from vmparams; -PplayerBuild hides the debug surfaces)'
     dependsOn 'deployMod'
     finalizedBy 'reportStarsectorRun'
     def coreDir = new File(starsectorDir, 'starsector-core')
     def diagnosticsDir = layout.buildDirectory.dir('starsector-run').get().asFile
     def consoleLog = new File(diagnosticsDir, 'console.log')
     def stock = stockJvmRequested
+    def playerBuild = playerBuildRequested
     workingDir coreDir
     // Report the JVM's own status rather than failing the build on it: a crash
     // and an ordinary quit both end this task, and only the message differs.
@@ -1253,7 +1326,7 @@ tasks.register('runStarsector', Exec) {
         sink = new BufferedOutputStream(new FileOutputStream(consoleLog))
         standardOutput = new TeeOutputStream(System.out, sink)
         errorOutput = new TeeOutputStream(System.err, sink)
-        commandLine starsectorLaunchArgv(coreDir, diagnosticsDir, stock.get())
+        commandLine starsectorLaunchArgv(coreDir, diagnosticsDir, stock.get(), !playerBuild.get())
         if (stock.get()) {
             logger.lifecycle('runStarsector: -PstockJvm -- launching without the -XX: flags from vmparams')
         }

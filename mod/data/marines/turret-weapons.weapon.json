@@ -868,7 +868,7 @@
           { "kind": "dust", "radius": [0.4, 0.6], "lifetime": [1.0, 1.5], "jitter": 0.4, "delay": 0.15, "emissionDuration": 0.4, "emissionInterval": 0.2, "color": "6E6474" }
         ]
       },
-      "audio": { "fireSound": "marines_breach_runner_impale" }
+      "audio": { "impactSound": "marines_breach_spine_strike" }
     },
     {
       "id": "weapon.spore-burst-fissure", "mount": "turret-mount",

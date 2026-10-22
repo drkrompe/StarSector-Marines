@@ -8,3 +8,4 @@ Written: 2026-08-23
 | --- | --- | --- | --- |
 | `background-radio-v1.md` | 2026-08-19 | `ba6f3b5a`, `476b2be6` | `battle-radio-nouns.md` |
 | `expanded-combat-events.md` | 2026-08-19 | `64c6acf8` | `battle-radio-nouns.md` |
+| `radio-credits-cleanup.md` | 2026-10-22 | superseded: the MW4 radio pool was dropped (`v0.1-public-build.md`) | `battle-radio-nouns.md` (Content and extension law) |

@@ -12,8 +12,9 @@ The sequence is the shot list in asharu-battle-shot.md, in order and at its leng
 key frame is built by battle_blockout.py's own scene build for that key frame (same hulls, places,
 camera and planet) and then played over the shot's whole length:
 
-- a ship the key frame places with motion.fleet_at moves the way motion.drift says, on the
-  cinematic's own clock (its key frame is one instant of that motion, marked KEY FRAME);
+- a ship the key frame places with motion.fleet_at moves the way motion.drift says, and a boat
+  on a motion.boarding_run flies its run, on the cinematic's own clock (the key frame is one
+  instant of that motion, marked KEY FRAME);
 - a ship with an authored pose (an attack run, a ship aboard another) has no path yet and holds
   that pose: the legend says "(held)". --weave-all weaves it about its pose instead;
 - the camera holds the key frame's framing;
@@ -108,27 +109,36 @@ def pick(segs, shots):
 
 
 class Drift(tuple):
-    """A pose that motion.fleet_at made: the ship's station, the time and the weave scale."""
-    def __new__(cls, pose, station, t, scale):
+    """A pose one of motion's functions made (fleet_at's weave, a boarding_run), still as posed,
+    that knows the time t it stills and how to pose the same ship at any other time: at(t)."""
+    def __new__(cls, pose, t, at):
         o = tuple.__new__(cls, pose)
-        o.station, o.t, o.scale = tuple(station), t, scale
+        o.t, o.at = t, at
         return o
 
 
 def traced_keyframes():
-    """battle_blockout.KEYFRAMES re-read with fleet_at traced: every drifting ship's pose is a
-    Drift that knows its station and time, so the preview can play the motion it stills."""
-    real = motion.fleet_at
+    """battle_blockout.KEYFRAMES re-read with motion's functions traced: every pose they make is a
+    Drift, so the preview can play the motion the key frame stills."""
+    real_fleet, real_run = motion.fleet_at, getattr(motion, 'boarding_run', None)
 
     def fleet_at(ships, t, scale=1.0, keep=()):
-        return {k: (v if k in keep else Drift(v, ships[k], t, scale)) for k, v in real(ships, t, scale, keep).items()}
+        return {k: (v if k in keep else Drift(v, t, lambda tt, k=k, st=tuple(ships[k]): motion.drift(k, st, tt, scale)))
+                for k, v in real_fleet(ships, t, scale, keep).items()}
+
+    def boarding_run(*a):
+        return Drift(real_run(*a), a[-1], lambda tt: real_run(*a[:-1], tt))
     motion.fleet_at = fleet_at
+    if real_run is not None:
+        motion.boarding_run = boarding_run
     try:
         spec = importlib.util.spec_from_file_location('asharu_traced', HERE / 'battle_blockout.py')
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
     finally:
-        motion.fleet_at = real
+        motion.fleet_at = real_fleet
+        if real_run is not None:
+            motion.boarding_run = real_run
     return mod.KEYFRAMES
 
 
@@ -170,7 +180,7 @@ def _planet_flat(L, bb):
     uvl.data.foreach_set('uv', np.stack([lu, lw], 1).ravel().astype(np.float32))
     me.uv_layers.active = uvl
     nt = L['gm'].node_tree
-    img = next(nd for nd in nt.nodes if nd.type == 'TEX_IMAGE')
+    img = next(nd for nd in nt.nodes if nd.type == 'TEX_IMAGE' and nd.image and 'desert01' in nd.image.name)
     nt.nodes.active = img
     L['air'].hide_render = True
 
@@ -217,7 +227,7 @@ def shot(L, kf):
     poses, t_key, held = {}, None, []
     for key, sp in spec['ships'].items():
         if isinstance(sp, Drift):
-            poses[key] = lambda t, key=key, sp=sp: motion.drift(key, sp.station, t, sp.scale)
+            poses[key] = sp.at
             t_key = sp.t
         elif weave_all:
             poses[key] = lambda t, key=key, sp=sp: motion.drift(key, tuple(sp), t)
