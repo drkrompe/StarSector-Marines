@@ -114,10 +114,13 @@ burnt ground behind a front someone lit on purpose.
   fire takes the creep and the growths on it, and scorches the bore's heaved
   earth, but does no harm to the bore itself.
 
-**Smoke.** A burning cell above a threshold intensity makes smoke. Smoke from
-a fire is gathered into clouds over the burning area (not one per cell) and
-those clouds are the same partition a smoke pot's screen is: sight does not
-pass through them. A burning forest hides the fight beyond it.
+**Smoke.** A brush or crown fire smokes; a grass or creep fire burns too low
+and fast to screen. A smoking cell holds smoke over itself and, in a wind of
+any strength, over the cell downwind of it, for exactly as long as it burns
+(`FireSmoke`). The smoke is the grid's transient opacity, the same a smoke
+grenade's cloud holds, so sight, the fog and every observer read it with no
+new path: a burning hedge or forest hides the fight beyond it, and the screen
+is gone when the fire is. `-Dbattle.fire.smoke=false` is the control.
 
 ## Damage
 
@@ -206,11 +209,15 @@ nothing is drawn for a battle that never lit anything.
 - **Charred trees.** A tree whose middle burns darkens as it burns and is
   drawn as char once its ground is burnt, whether it still stands or has
   fallen to its destroyed art.
+- **Smoke** is a dark puff rising off each smoking cell and leaning
+  downwind, at play zoom only: the picture of the screen it holds.
 - Not yet: fire light through `GroundLightService` (its pools are the
-  screen's, not the draw list's), and smoke (`stories.md`).
+  screen's, not the draw list's; `stories.md`).
 - The look is costed against its own control in `renderEvidence`
   (`-Dbattle.render.fire=false`), on the green colony with a front burnt into
-  its groves. The look choices (`-Dbattle.render.fireFlames=bold|restrained`,
+  its groves: there its two layers cost about 0.3 ms of collection and drain
+  at a lane framing and about 0.65 ms at the whole map, with nothing else
+  moving. The look choices (`-Dbattle.render.fireFlames=bold|restrained`,
   `-Dbattle.render.fireScorch=char|ash|ember`) are the owner's.
 
 ## Evidence
@@ -246,6 +253,10 @@ mean, p99 and worst simulation-thread cost of a tick with fire in it
 (`FireCost`: the field, its harm and its route costing together), and how
 long the country takes to burn are its metrics.
 
+`fire-smoke` (`sceneEvidence`) burns a hedge between two watchers on bare
+ground: they see each other before it is lit, not while it burns, and again
+once it is out. How long the screen stood is a metric.
+
 ## Laws
 
 - **Fire goes where the fuel goes.** Nothing scripts a burn; a fire's shape is
@@ -269,4 +280,4 @@ long the country takes to burn are its metrics.
 - **The walking barrage** and the advance behind it belong to the artillery
   work; fire only asks that a shell's blast can carry heat.
 - **Smoke as a partition** (`ai-nouns.md`) owns how smoke cuts sight; fire
-  only makes clouds.
+  only holds the grid's smoke opacity over what burns.

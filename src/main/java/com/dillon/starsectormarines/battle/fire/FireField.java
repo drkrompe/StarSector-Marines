@@ -122,6 +122,13 @@ public final class FireField {
 
     public boolean tinder() { return tinder; }
 
+    /** Unit vector the wind blows toward, and its strength 0..1. */
+    public float windX() { return windX; }
+
+    public float windY() { return windY; }
+
+    public float windStrength() { return windStrength; }
+
     public void setListener(Listener listener) { this.listener = listener == null ? new Listener() { } : listener; }
 
     /**
