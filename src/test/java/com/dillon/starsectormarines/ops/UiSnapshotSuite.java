@@ -2392,13 +2392,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
         if (armorPicker) collectArmorTemplates(roster);
         if (pickerOpen) {
-            var weapons = SquadEquipmentDoctrines.weaponById(SquadEquipmentDoctrines.LINE_INFANTRY_WEAPONS);
-            for (var issue : weapons.issues()) {
-                roster.armory().acquireEquipmentTemplate(
-                        EquipmentTemplateCatalog.primaryId(issue.primaryId(), issue.grade()));
-                if (issue.specialEquipmentId() != null) roster.armory().acquireEquipmentTemplate(
-                        EquipmentTemplateCatalog.specialId(issue.specialEquipmentId()));
-            }
+            roster.armory().learnLoadoutCard(new LoadoutCard(
+                    LoadoutCard.Kind.WEAPON, SquadEquipmentDoctrines.LINE_INFANTRY_WEAPONS));
         }
         MarineSquad squad = roster.squads().get(0);
         if (!pickerOpen) {
@@ -2497,6 +2492,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         for (var armor : MarineArmorCatalogRegistry.installed().all()) {
             roster.armory().acquireEquipmentTemplate(EquipmentTemplateCatalog.armorId(armor.id()));
         }
+        for (var plan : SquadEquipmentDoctrines.armorPlans()) roster.armory().acquireArmorPlan(plan.id());
     }
 
     private static BufferedImage renderMechLab(
