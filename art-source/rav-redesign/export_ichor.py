@@ -3,8 +3,8 @@
   python export_ichor.py
 
 Writes mod/graphics/battle/rav-runner/ichor-splat-{0..3}.png and ichor-drop.png. Drawn, not
-generated: a seeded cluster of soft blobs thresholded into a wet shape, coloured from the Rav flesh
-palette (deep magenta to crimson, `rav-design-language`), darker at the rim than the core, with a
+generated: a seeded cluster of soft blobs thresholded into a wet shape, coloured blood red to
+match the Marines' pools and the Matriarch's ichor, darker at the rim than the core, with a
 glossy highlight from the upper left. Seeded, so a re-run writes the same pixels.
 """
 from pathlib import Path
@@ -14,9 +14,9 @@ from PIL import Image, ImageFilter
 
 OUT = Path(__file__).parent.parent.parent / "mod" / "graphics" / "battle" / "rav-runner"
 SIZE = 160
-CORE = np.array([0xA8, 0x1C, 0x6A], float)     # wet magenta, brighter than the sinew so it pops
-RIM = np.array([0x38, 0x08, 0x2A], float)      # dark plum where it soaks in
-GLOSS = np.array([0xF2, 0xA6, 0xD4], float)
+CORE = np.array([0x86, 0x0C, 0x16], float)     # wet blood red, a shade brighter than the Marines' pools
+RIM = np.array([0x22, 0x02, 0x06], float)      # near black where it soaks in, as the Marines' blood
+GLOSS = np.array([0xD8, 0x6A, 0x66], float)
 
 
 def field(rng, size, blobs, spray):

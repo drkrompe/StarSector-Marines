@@ -91,7 +91,7 @@ public final class RavRunnerRig {
     /** Seconds until the pieces lie flat, the pool has spread, and everything is still. */
     private static final float FLATTEN_SECONDS = 0.45f;
     private static final float POOL_SECONDS = 0.6f;
-    private static final float POOL_CELLS = 0.8f;
+    private static final float POOL_CELLS = 1.05f;
     private static final float SETTLE_SECONDS = 2.5f;
 
     // ------------------------------------------------------------------ pose layout

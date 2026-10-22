@@ -587,7 +587,8 @@ for one job in the cycle, and reads that way on screen.
   A dead Runner bursts: the trunk splits at mid-spine and the halves slump
   apart, and the head and one or two limbs come away (the rest stay on their
   half), thrown a short way (mostly behind it), spinning, bouncing once and
-  lying flat where they land, while its ichor sprays into splats
+  lying flat where they land, while its blood (red, as the Marines' and
+  the Matriarch's) sprays into splats
   around a pool spreading under where it died. Seeded per Runner, so a replay
   bursts the same way; presentation only, like the rest of the rig. In a crowd it
   is shoved as the shape it is drawn as, a capsule along its facing (the
