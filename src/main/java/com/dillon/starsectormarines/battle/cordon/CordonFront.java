@@ -82,6 +82,11 @@ public final class CordonFront {
         return redoubts.isEmpty() ? 0f : sum / redoubts.size();
     }
 
+    /** The row of the rear edge: where the country road leaves the map behind the line. */
+    public static int rearRow(PrecinctPlan plan, int height) {
+        return frontward(plan) > 0 ? 1 : height - 2;
+    }
+
     /** Which way the front lies from the line: +1 toward high y, -1 toward low. */
     public static int frontward(PrecinctPlan plan) {
         return plan.attackerFrom() != null && plan.attackerFrom().y0() == 0f ? 1 : -1;

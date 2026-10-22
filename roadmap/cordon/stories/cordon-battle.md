@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-10-22
 
-Updated: 2026-10-22 — redoubts, director, sequence, company commander and evidence landed; the rest below is open.
+Updated: 2026-10-22 — the Line's refugees and scripted columns landed too; the Road's convoys and town, pickets and the paved road remain.
 
 Model: `cordon-nouns.md`. The map (`CordonPlan`, `CordonFront`, `CordonCorridor`) has landed, and so
 has the battle's skeleton: `CordonSetup.create` and `CordonBattleFixture`, the redoubts dressed and
@@ -23,16 +23,12 @@ What the battle still needs, both variants:
   single paved road from the rear edge through the line to the compound wants
   the generator to keep a stated supply route between places rather than
   prune it.
-- **The Line's end on its refugees and the Road's on its convoys.** The
-  sequence ends both variants on the window today; the people-are-the-score
-  ends, and their beats, come with the refugees and convoys.
-- **The Line's refugees.** Groups of civilians leave the rear hamlets on the
-  timetable and walk the country road off the rear edge.
+- **The Road's end on its convoys.** The Road ends on the window today; the
+  convoys' score and beats come with the convoys. (The Line's refugees and
+  columns are in; its end is the window, with `evacuation_complete` at it.)
 - **The Road's convoys.** Allied truck columns on the timetable drive the
   corridor to the compound, wait while the townspeople board, and drive out;
   they halt while the swarm blocks the road.
-- **Allied columns (the Line).** Scripted reinforcement squads walking up a
-  rear road to the redoubt holding with the least garrison.
 - **The company screens the convoy (Road).** The commander answers calls;
   screening the convoy comes with the convoys. Posture and strikes are
   `cordon-company-command.md`.

@@ -116,19 +116,27 @@ the swarm at a third of its strength between tides and two thirds in one, an
 eruption at minutes six and ten, one redoubt allowed to fall.
 
 **Allied column.** Allied troops that arrive during the battle along a rear
-road, on a timetable set at the briefing: a few trucks of riflemen. A column
+road, on a timetable set at the briefing: a few teams of riflemen. A column
 is the allies' answer to a redoubt calling: it goes to the redoubt holding
-with the least garrison (the Line) or is the convoy itself (the Road). The
-column is scripted, not commanded by an allied commander; the full allied
-column system (`marine-side-reinforcement.md` applied to `ALLY`) is a later
-story.
+with the least garrison standing when it sets out (the Line) or is the convoy
+itself (the Road). If that redoubt falls before the column gets there, it is
+sent on to the next one. On arriving it joins the garrison as wall teams, so a
+redoubt a column reached stands with more than it started with. A column takes
+about two minutes to march up from the rear, so the timetable sends each one
+two minutes before a tide. The column is scripted (`AlliedColumns`, which is
+mission-neutral: the mission says where it enters, where it goes and what
+joining means), not commanded by an allied commander; the full allied column
+system (`marine-side-reinforcement.md` applied to `ALLY`) is a later story.
 
 **Refugees (the Line).** People walking out of the region behind the line to
 the rear edge: groups of civilians leaving the rear villages on the
 briefing's timetable and walking the country road off the map. They are the
 Line's score, as evacuees are Colony Breach's, and they are prey: the swarm
-harvests a refugee it reaches as it harvests a colonist. A group is **out**
-when its last member leaves the map, **caught** when the swarm reaches it.
+harvests a refugee it reaches as it harvests a colonist. They are walked, not
+commanded: each member walks to the rear edge below its village and leaves the
+battle there. A group is **out** when its last member leaves the map, **caught**
+when the swarm first kills one of them. The standard timetable sends six
+groups of six, two minutes apart, from the two rear villages in turn.
 
 **Cut-off town (the Road).** The colony's own town in the front, beyond the
 line, where the people Colony Breach left behind are still holding out in its
@@ -313,7 +321,8 @@ with the same keys.
 | `redoubt_calling_N` | both | PLAYER | Redoubt N calls for relief |
 | `redoubt_relieved_N` | both | PLAYER | A Marine reaches redoubt N's gate while it calls |
 | `redoubt_fell_N` | both | PLAYER | Redoubt N falls |
-| `column_arrived_N` | the Line | PLAYER | The Nth allied column reaches its redoubt |
+| `column_entered_N` | the Line | OBSERVER_ONLY | The Nth allied column comes on at the rear edge |
+| `column_arrived_N` | the Line | PLAYER | The Nth allied column reaches its redoubt and joins it |
 | `refugees_moving_N` | the Line | OBSERVER_ONLY | Refugee group N leaves its village |
 | `refugees_out_N` | the Line | OBSERVER_ONLY | Refugee group N is off the map |
 | `refugees_caught_N` | the Line | PLAYER | The swarm reaches refugee group N |
