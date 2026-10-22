@@ -880,8 +880,10 @@ not read in a soft shadow at play zoom.
   cooldown, tell, masses, every hold time) are starting values in
   `BruteChargeRules`, to be felt out in play rather than settled on paper.
 
-  The charge is shown three ways, all presentation over the rule: a faint
-  amber wedge along the line during the tell, with the other threat warnings;
+  The charge is shown two ways, all presentation over the rule (the tell
+  itself is the Brute's own wind-up and its sound; nothing is drawn on the
+  ground for it, because a charge cone is a game-UI tell the battle does not
+  show, owner, 2026-10-22):
   a knocked-down body's picture lying as a fallen one does for that second
   while the sim keeps it upright; and the squad card's status word naming the
   cause (knocked down, stalled, staggered, stunned) ahead of engaged or

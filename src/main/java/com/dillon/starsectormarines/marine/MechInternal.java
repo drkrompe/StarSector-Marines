@@ -33,7 +33,7 @@ public enum MechInternal {
             EquipmentAccessTier.PRESTIGE, 0, 0, 2.5f, 0f, 0f, 1.0f, 0f, 0f),
 
     FACTORY_CAPACITOR_BANK("internal.capacitor-bank-factory", "@gearInternalFactoryCapacitorBank", Role.CAPACITOR_BANK,
-            EquipmentAccessTier.COMMON, 1, 1, 0f, 0f, 0f, 0f, 100f, 6f),
+            EquipmentAccessTier.COMMON, 2, 1, 0f, 0f, 0f, 0f, 100f, 6f),
     DOUBLE_CAPACITOR_BANK("internal.capacitor-bank-double", "@gearInternalDoubleCapacitorBank", Role.CAPACITOR_BANK,
             EquipmentAccessTier.ADVANCED, 2, 1, 3f, 0f, 0f, 0f, 120f, 7.5f),
     // The military bank keeps the double's reservoir and adds dissipation. Above about 126 a bigger
@@ -47,7 +47,7 @@ public enum MechInternal {
             EquipmentAccessTier.PRESTIGE, 3, 1, 5f, 0f, 0f, 0f, 120f, 8f),
 
     AUXILIARY_VENT_ARRAY("internal.vent-array-auxiliary", "@gearInternalAuxiliaryVentArray", Role.VENT_ARRAY,
-            EquipmentAccessTier.ADVANCED, 1, 1, 2f, 0f, 0f, 0f, 0f, 1f);
+            EquipmentAccessTier.ADVANCED, 2, 1, 2f, 0f, 0f, 0f, 0f, 1f);
 
     /** What part of the frame an internal replaces. */
     public enum Role {

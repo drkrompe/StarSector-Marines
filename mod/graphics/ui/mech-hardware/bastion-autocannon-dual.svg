@@ -1,26 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 225 200">
-  <rect x="14" y="21.0" width="44" height="50" rx="6" fill="#000000" fill-opacity="0.55"/>
-  <rect x="21" y="28.0" width="9" height="36" rx="3" fill="#ffffff" fill-opacity="0.45"/>
-  <rect x="56" y="34.0" width="140" height="24" rx="3" fill="#000000" fill-opacity="0.55"/>
-  <rect x="60" y="37.0" width="132" height="6.0" fill="#ffffff" fill-opacity="0.45"/>
-  <rect x="192" y="30" width="20" height="32" rx="3" fill="#000000" fill-opacity="0.55"/>
-  <rect x="14" y="87.0" width="44" height="50" rx="6" fill="#000000" fill-opacity="0.55"/>
-  <rect x="21" y="94.0" width="9" height="36" rx="3" fill="#ffffff" fill-opacity="0.45"/>
-  <rect x="56" y="100.0" width="140" height="24" rx="3" fill="#000000" fill-opacity="0.55"/>
-  <rect x="60" y="103.0" width="132" height="6.0" fill="#ffffff" fill-opacity="0.45"/>
-  <rect x="192" y="96" width="20" height="32" rx="3" fill="#000000" fill-opacity="0.55"/>
-  <rect x="22" y="146" width="22" height="42" rx="6" fill="#000000" fill-opacity="0.55"/>
-  <rect x="26" y="150" width="7" height="18" rx="2" fill="#ffffff" fill-opacity="0.45"/>
-  <rect x="49" y="146" width="22" height="42" rx="6" fill="#000000" fill-opacity="0.55"/>
-  <rect x="53" y="150" width="7" height="18" rx="2" fill="#ffffff" fill-opacity="0.45"/>
-  <rect x="76" y="146" width="22" height="42" rx="6" fill="#000000" fill-opacity="0.55"/>
-  <rect x="80" y="150" width="7" height="18" rx="2" fill="#ffffff" fill-opacity="0.45"/>
-  <rect x="103" y="146" width="22" height="42" rx="6" fill="#000000" fill-opacity="0.55"/>
-  <rect x="107" y="150" width="7" height="18" rx="2" fill="#ffffff" fill-opacity="0.45"/>
-  <rect x="130" y="146" width="22" height="42" rx="6" fill="#000000" fill-opacity="0.55"/>
-  <rect x="134" y="150" width="7" height="18" rx="2" fill="#ffffff" fill-opacity="0.45"/>
-  <rect x="157" y="146" width="22" height="42" rx="6" fill="#000000" fill-opacity="0.55"/>
-  <rect x="161" y="150" width="7" height="18" rx="2" fill="#ffffff" fill-opacity="0.45"/>
-  <rect x="184" y="146" width="22" height="42" rx="6" fill="#000000" fill-opacity="0.55"/>
-  <rect x="188" y="150" width="7" height="18" rx="2" fill="#ffffff" fill-opacity="0.45"/>
+  <polygon points="20,30 74,30 86,42 86,118 74,130 20,130 8,118 8,42" fill="#000000" fill-opacity="0.58"/>
+  <rect x="17" y="39" width="60" height="3" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="17" y="96" width="60" height="26" fill="#000000" fill-opacity="0.34"/>
+  <polygon points="91,45 133,45 136,48 136,68 133,71 91,71 88,68 88,48" fill="#000000" fill-opacity="0.58"/>
+  <rect x="138" y="51" width="52" height="14" fill="#000000" fill-opacity="0.58"/>
+  <polygon points="195,43 213,43 216,46 216,70 213,73 195,73 192,70 192,46" fill="#000000" fill-opacity="0.58"/>
+  <rect x="198" y="49" width="3" height="18" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="206" y="49" width="3" height="18" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="90" y="49.8" width="98" height="2.5" fill="#ffffff" fill-opacity="0.3"/>
+  <polygon points="91,91 133,91 136,94 136,114 133,117 91,117 88,114 88,94" fill="#000000" fill-opacity="0.58"/>
+  <rect x="138" y="97" width="52" height="14" fill="#000000" fill-opacity="0.58"/>
+  <polygon points="195,89 213,89 216,92 216,116 213,119 195,119 192,116 192,92" fill="#000000" fill-opacity="0.58"/>
+  <rect x="198" y="95" width="3" height="18" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="206" y="95" width="3" height="18" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="90" y="95.8" width="98" height="2.5" fill="#ffffff" fill-opacity="0.3"/>
+  <rect x="56" y="132" width="22" height="8" fill="#000000" fill-opacity="0.34"/>
+  <polygon points="20,142 80,142 86,148 86,182 80,188 20,188 14,182 14,148" fill="#000000" fill-opacity="0.58"/>
+  <rect x="22" y="152" width="56" height="3" fill="#ffffff" fill-opacity="0.3"/>
+  <rect x="22" y="163" width="56" height="3" fill="#ffffff" fill-opacity="0.3"/>
+  <rect x="22" y="174" width="56" height="3" fill="#ffffff" fill-opacity="0.3"/>
 </svg>
