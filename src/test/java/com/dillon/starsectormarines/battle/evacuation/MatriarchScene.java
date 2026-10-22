@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
+import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.evacuation.MatriarchActions.Action;
 import com.dillon.starsectormarines.battle.evacuation.MatriarchActions.Kind;
 import com.dillon.starsectormarines.battle.mech.MechRole;
@@ -34,6 +35,7 @@ import java.util.Map;
  *       never a scythe.</li>
  *   <li>{@code fort-wall}: marines in a building whose walls stand at a fort building's strength, more
  *       than a Brute could break, with a door on the far side. It breaks in through the near wall.</li>
+ *   <li>{@code corpses}: four Matriarchs killed where they stand, each laid in one of the four corpse poses.</li>
  * </ul>
  */
 public final class MatriarchScene implements BehaviorScene {
@@ -52,7 +54,53 @@ public final class MatriarchScene implements BehaviorScene {
     public List<SceneReport> play(FrameSink frames) throws Exception {
         List<SceneReport> reports = new ArrayList<>();
         for (String loop : List.of("reap", "mech-lance", "fort-wall")) reports.add(playOne(loop, frames));
+        reports.add(corpses(frames));
         return reports;
+    }
+
+    /** Where the {@code corpses} loop lays its four Matriarchs, and the tick it kills them. */
+    static final int[][] CORPSE_CELLS = {{6, 12}, {13, 12}, {20, 12}, {27, 12}};
+    private static final int KILL_TICK = 20;
+
+    private SceneReport corpses(FrameSink frames) throws Exception {
+        NavigationGrid grid = new NavigationGrid(34, 24);
+        for (int y = 0; y < 24; y++) for (int x = 0; x < 34; x++) grid.setWalkableFloor(x, y);
+        SceneWorld world = SceneBuilder.over(grid, new CellTopology(34, 24)).seed(20261021L)
+                .missionCompletion(false).build();
+        try (BattleSimulation sim = world.sim()) {
+            long[] bodies = new long[CORPSE_CELLS.length];
+            for (int i = 0; i < bodies.length; i++) {
+                bodies[i] = sim.spawn(SwarmStrains.spec("Matriarch " + (i + 1), UnitType.SWARM_MATRIARCH,
+                        CORPSE_CELLS[i][0], CORPSE_CELLS[i][1]));
+            }
+            TickObserver kill = (s, tick) -> {
+                if (tick == KILL_TICK) {
+                    for (long body : bodies) s.applyDamage(body, 0L, 1_000_000f, 100f, 0f);
+                } else if (tick == KILL_TICK + 1) {
+                    // A death pose is picked off the body; the review lays each in its own, in sheet order.
+                    BattleComponents c = s.getBattleComponents();
+                    for (int i = 0; i < bodies.length; i++) {
+                        if (s.getEntityWorld().has(bodies[i], c.SPRITE)) {
+                            s.getEntityWorld().setInt(bodies[i], c.SPRITE, BattleComponents.SPRITE_INDEX, i);
+                        }
+                    }
+                }
+            };
+            int ticks = 90;
+            SceneRun.of(world).observe(kill)
+                    .frames(frames, "corpses", 3, tick -> "corpses / matriarch / tick " + tick)
+                    .run(ticks);
+            int lying = 0;
+            for (long body : bodies) {
+                if (!sim.getRoster().isAliveById(body)
+                        && sim.getEntityWorld().has(body, sim.getBattleComponents().CORPSE)) lying++;
+            }
+            List<Verdict> verdicts = List.of(Verdict.of("lies-where-it-fell", lying == bodies.length,
+                    lying + " of " + bodies.length + " killed Matriarchs left a corpse"));
+            Map<String, Number> metrics = new LinkedHashMap<>();
+            metrics.put("corpses", lying);
+            return new SceneReport(id(), "corpses", ticks, verdicts, metrics);
+        }
     }
 
     private SceneReport playOne(String loop, FrameSink frames) throws Exception {

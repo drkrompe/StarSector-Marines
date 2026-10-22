@@ -4,7 +4,7 @@ at play zoom (32 px per cell), one GIF each.
 
   python reap_options.py <render root> <out dir>
 
-  A-now           the approved study, as the game draws it
+  A-now           the study before the pick (the owner chose B, now the default)
   B-longer        scythes 1.4x longer, so the blade clears the crown's rim
   C-further-out   scythes mounted 0.35 cells further out from the body
   D-with-head     the scythes turn with the head as it turns toward each blade
@@ -17,7 +17,7 @@ from matriarch_skeleton import FPS, S_BACK, S_HOLD, S_LASH, S_WIND, STRIKES
 from motion import save_gif
 
 VARIANTS = [
-    ("A-now", "NOW (in game)", dict()),
+    ("A-now", "AS IT WAS", dict(BLADE_SCALE=1.0)),
     ("B-longer", "LONGER SCYTHES", dict(BLADE_SCALE=1.4)),
     ("C-further-out", "MOUNTED FURTHER OUT", dict(BLADE_OUT=0.35)),
     ("D-with-head", "TURNED WITH THE HEAD", dict(BLADE_WITH_HEAD=True)),

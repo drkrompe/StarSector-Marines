@@ -1,8 +1,8 @@
 # Matriarch
 
-Status: IN PROGRESS — strain, mother-only rule, beat, behaviour, rig and `matriarch` scene shipped; the corpse sheet is provisional (four corpse round 1 concepts) until the owner picks one
+Status: IN PROGRESS — strain, mother-only rule, beat, behaviour, rig, corpse and `matriarch` scene shipped; its own sounds remain
 
-Updated: 2026-10-21 — in game; remaining: corpse poses, own sounds
+Updated: 2026-10-21 — owner picks shipped: corpse E (broken back, four poses) and longer scythes
 
 Written: 2026-10-21
 
@@ -20,7 +20,5 @@ Stages: `rav-growth-stages.md` sets her growth stage from the mother bore's feed
 
 ## Remaining
 
-- Corpse: the owner picks from corpse round 1; make four poses of it and
-  re-run `export_matriarch_corpse.py` with them.
 - Its own sounds (it borrows the Brute's).
 - Then fold into the noun doc (already carries the model) and retire.
