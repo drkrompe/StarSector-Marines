@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-22 — Campaign: blooms as built, at the benign first severity tier with spores carried on traffic, and the owner's arc as direction; growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
+Updated: 2026-10-22 — Campaign: blooms as built, frequent, at the benign first severity tier with spores carried on traffic, and the owner's arc as direction; growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -162,13 +162,19 @@ down after sixty days. That is a limit of what the mod can model today, not a
 statement about the weapon (owner, 2026-10-22): the consequential tiers (*scar*,
 *dark and spread*, *deadly*: colonies eaten down, neighbours seeded, worlds
 lost) stay runnable and are the intended direction once the campaign can hold
-worlds lost or held. The owner's other picks: *frequency* seasonal (about three
-a year; rare and frequent exist), *player colonies* exposed by the same rules
+worlds lost or held. The owner's other picks: *frequency* frequent, so a
+player who wants the job gets it often while the consequences stay minor (rare
+and seasonal exist), *player colonies* exposed by the same rules
 as every colony (also *after the first answered bloom* and *never*), where
 later events are expected to land. `-Dmarines.bloom.severity`, `.frequency` and
 `.playerColonies` select a preset for a control run. `gradlew.bat
 bloomEvidence` plays every preset under three player policies over N cycles and
-reports blooms a year, outcomes, spread and size lost.
+reports blooms a year, outcomes, spread and size lost. On the shipped
+defaults the two-running cap holds *frequent* to about four and a half blooms a
+year rather than its nominal six; about 7% land on player colonies; the player
+is offered about four calls a year (calls never overlap, since one campaign
+event is open at a time) and receives about twelve intel messages, never more
+than five in any thirty days.
 
 **Not yet.** The colony's industry does not yet pick the outlying installation
 in the precinct plan (`bloom-installation-flavour.md`), and dead-ground

@@ -79,9 +79,12 @@ public final class BloomTuning {
         NEVER
     }
 
-    /** The owner's picks (2026-10-22): the benign first stage, about three a year, player colonies exposed. */
+    /**
+     * The owner's picks (2026-10-22): the benign first stage, frequent (more jobs for a player who
+     * wants them, the consequences being minor), player colonies exposed.
+     */
     public static final BloomTuning DEFAULT = new BloomTuning(
-            Severity.BENIGN, Frequency.SEASONAL, PlayerColonies.EXPOSED);
+            Severity.BENIGN, Frequency.FREQUENT, PlayerColonies.EXPOSED);
 
     public final Severity severity;
     public final Frequency frequency;
