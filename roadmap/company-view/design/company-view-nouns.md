@@ -325,6 +325,12 @@ optional `specialEquipmentId`; armor doctrine owns only protection. A smoke gren
 or satchel therefore follows the Weapon slot without being reclassified as a
 ballistic `WeaponDef`.
 
+The Loadout screen follows the Mech Lab gantry's arrangement: the stores on the
+left (the card browser), the thing being fitted in the centre (the current and
+proposed comparison), and its summary on the right. The right column opens on the
+squad's two cards, each with its face, kind, FIRE or GUARD rating and the
+Restricted seal when it bears one, above the squad's billets.
+
 The two selected definitions compose into one exact twelve-billet preview. Routine
 fitting shows all twelve current billets in three fire-team columns of four. Each
 square names its occupant, readiness, actual weapon and armor sprites, and whether
@@ -340,7 +346,10 @@ catalog-wide scales and the selected marine's profile for weapon accuracy and ou
 Hovering either item opens its shared spec sheet; changing billets preserves those
 bindings. A vacancy shows the planned issue without inventing an equipped soldier.
 
-Weapon Loadouts and Tactic Sheets share the right-hand browser. A new company's
+Weapon Loadouts and Tactic Sheets share the left-hand browser. Each card in it
+paints its twelve seats as three fire teams of two by two, each seat's weapon or
+suit with its special or integral system on the opposite corner: the picture the
+Barracks hover paints, so a card reads the same on both screens. A new company's
 only weapon choice is **Dockside Issue**, twelve surplus Rooks; its only tactic
 sheet is **Watchman's Kit**, twelve Cordon security shells over field fatigues.
 Starting specifications remain Rook, field

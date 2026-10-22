@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
@@ -79,6 +80,14 @@ public final class MacroReliefField {
      */
     private final boolean[] roofed;
     private int lintelCells;
+    /** The map's raised ground, or null; every height on a tier stands that tier's rise higher. */
+    private final ElevationMap elevation;
+
+    /**
+     * Metres one tier of raised ground stands above the one below: a storey,
+     * so a plateau's shadow reaches about as far as a building's.
+     */
+    public static final float TIER_RISE_METERS = 4f;
 
     public MacroReliefField(CellTopology topology, NavigationGrid grid,
                             Buildings buildings, GenMappingRegistry mapping) {
@@ -92,6 +101,7 @@ public final class MacroReliefField {
                 ? mapping.windowSillMacroHeightMeters()
                 : GenMappingRegistry.DEFAULT_WINDOW_SILL_MACRO_HEIGHT_METERS;
 
+        this.elevation = grid != null ? grid.elevation() : null;
         this.roofed = new boolean[topology.getWidth() * topology.getHeight()];
         markRoofs(buildings);
         markDoorwayLintels(grid);
@@ -100,6 +110,22 @@ public final class MacroReliefField {
     /** Metres above the ground datum at {@code (x, y)}; the datum itself outside the map. */
     public float metersAt(int x, int y) {
         if (x < 0 || y < 0 || x >= topology.getWidth() || y >= topology.getHeight()) return 0f;
+        return tierMeters(x, y) + standingMeters(x, y);
+    }
+
+    /**
+     * How high the ground itself stands: its tier, a face at the tier it holds
+     * up, a ramp halfway between its two. Zero on a flat map.
+     */
+    private float tierMeters(int x, int y) {
+        if (elevation == null) return 0f;
+        int idx = y * topology.getWidth() + x;
+        if (elevation.isRampAt(idx)) return (elevation.sightHeightAt(idx) + .5f) * TIER_RISE_METERS;
+        return elevation.sightHeightAt(idx) * TIER_RISE_METERS;
+    }
+
+    /** What stands on the ground at {@code (x, y)}, above it. */
+    private float standingMeters(int x, int y) {
         if (topology.isWall(x, y)) {
             return topology.isWindow(x, y) ? windowSillMeters : wallMeters;
         }
@@ -115,7 +141,8 @@ public final class MacroReliefField {
     /** The tallest height this field can report, which is what sizes the sun's march. */
     public float tallestMeters() {
         float tallest = Math.max(wallMeters, roofMeters);
-        return mapping != null ? Math.max(tallest, mapping.tallestMacroHeightMeters()) : tallest;
+        tallest = mapping != null ? Math.max(tallest, mapping.tallestMacroHeightMeters()) : tallest;
+        return tallest + (elevation != null ? elevation.highestTier() * TIER_RISE_METERS : 0f);
     }
 
     /** How many cells stand under an intact roof. */

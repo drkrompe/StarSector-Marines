@@ -406,6 +406,11 @@ class FleetArmoryViewModelTest {
                             span.id() + " is a name in the issue line and is not askable");
                     entries++;
                 }
+                for (int seat = 0; seat < tile.seatSheets().size(); seat++) {
+                    assertTrue(binder.isBound(instance.requireElement(ArmorySpecSheets.seatId(tile.id(), seat))),
+                            "seat " + seat + " of " + tile.id() + " is painted and is not askable");
+                    entries++;
+                }
                 assertFalse(binder.isBound(instance.requireElement(tile.nameId())),
                         "a loadout is a definition, not a catalog item");
             }
@@ -445,16 +450,16 @@ class FleetArmoryViewModelTest {
             }
 
             // And the binding actually answers the pointer, on the picker that
-            // is laid out — a hidden picker's rows have no box to point at.
-            FleetArmoryViewModel.DoctrineSpan first = card.distributionSpans().get(0);
-            UiElement target = instance.requireElement(first.id());
+            // is laid out — a hidden picker's rows have no box to point at. The
+            // card paints its seats, and a seat describes what it shows.
+            UiElement target = instance.requireElement(ArmorySpecSheets.seatId(card.id(), 0));
             assertFalse(layer.visible());
             document.pointerMoved(centerX(target), centerY(target));
             binder.update();
             document.advance(0f);
             assertTrue(layer.visible());
             assertSame(target, binder.openTarget());
-            assertEquals(first.sheet().title(),
+            assertEquals(card.seatSheets().get(0).title(),
                     instance.requireElement(SpecSheetLayer.ELEMENT_ID + "-title").text());
         }
     }

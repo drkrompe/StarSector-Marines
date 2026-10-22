@@ -2,23 +2,6 @@
   <div id="refit-transaction" class="loadout-workspace">
     <div id="loadout-summary" class="panel loadout-summary">{inspection.summary}</div>
     <div id="loadout-workspace-body" class="loadout-workspace-body">
-      <div id="loadout-roll" class="panel loadout-roll">
-        <div class="heading loadout-heading" id="loadout-roll-heading">{i18n.openingUiLoadoutSquadCurrentEquipment}</div>
-        <div class="loadout-hint tone-muted" id="loadout-roll-hint">{inspection.scope}</div>
-        <div id="loadout-billets" class="loadout-billets">
-          <div each="team in inspection.teams" key="{team.id}" id="{team.id}" class="loadout-team">
-            <div class="heading loadout-team-heading" id="{team.headingId}">{team.label}</div>
-            <div class="loadout-team-billets" id="{team.membersId}">
-            <button each="billet in team.billets" key="{billet.id}" id="{billet.id}" class="{billet.classes}" onclick="{billet.select}">
-              <div class="loadout-name" id="{billet.nameId}">{billet.name}</div>
-              <div class="loadout-billet-art" id="{billet.artId}"><img class="loadout-billet-icon" src="{billet.armor}" id="{billet.armorIconId}" /><img class="loadout-billet-icon" src="{billet.weapon}" id="{billet.weaponIconId}" /></div>
-              <div class="loadout-state tone-edge" id="{billet.statusId}">{billet.status}</div>
-              <div class="loadout-state tone-muted" id="{billet.changeId}">{billet.change}</div>
-            </button>
-            </div>
-          </div>
-        </div>
-      </div>
       <div id="loadout-inspection" class="loadout-inspection">
         <div id="loadout-range-row" class="loadout-range-row">
           <div class="loadout-heading heading" id="loadout-selected-name">{inspection.title}</div>
@@ -51,6 +34,36 @@
           </div>
         </div>
       </div>
+      <div id="loadout-roll" class="panel loadout-roll">
+        <div class="heading loadout-heading" id="loadout-roll-heading">{i18n.openingUiLoadoutSquadCurrentEquipment}</div>
+        <div id="loadout-squad-cards" class="loadout-squad-cards">
+          <div each="card in inspection.cards" key="{card.id}" id="{card.id}" class="loadout-squad-card">
+            <div id="{card.slotId}" class="loadout-squad-card-slot">
+              <img id="{card.sealId}" class="{card.sealClasses}" src="graphics/ui/company/restricted-seal.svg" />
+            </div>
+            <img id="{card.iconId}" class="loadout-squad-card-icon" src="{card.icon}" />
+            <div id="{card.textId}" class="loadout-squad-card-text">
+              <div id="{card.kindId}" class="loadout-squad-card-kind label tone-muted">{card.kind}</div>
+              <div id="{card.nameId}" class="loadout-squad-card-name label tone-edge">{card.name}</div>
+            </div>
+            <div id="{card.ratingId}" class="loadout-squad-card-rating label tone-accent">{card.rating}</div>
+          </div>
+        </div>
+        <div class="loadout-hint tone-muted" id="loadout-roll-hint">{inspection.scope}</div>
+        <div id="loadout-billets" class="loadout-billets">
+          <div each="team in inspection.teams" key="{team.id}" id="{team.id}" class="loadout-team">
+            <div class="heading loadout-team-heading" id="{team.headingId}">{team.label}</div>
+            <div class="loadout-team-billets" id="{team.membersId}">
+            <button each="billet in team.billets" key="{billet.id}" id="{billet.id}" class="{billet.classes}" onclick="{billet.select}">
+              <div class="loadout-name" id="{billet.nameId}">{billet.name}</div>
+              <div class="loadout-billet-art" id="{billet.artId}"><img class="loadout-billet-icon" src="{billet.armor}" id="{billet.armorIconId}" /><img class="loadout-billet-icon" src="{billet.weapon}" id="{billet.weaponIconId}" /></div>
+              <div class="loadout-state tone-edge" id="{billet.statusId}">{billet.status}</div>
+              <div class="loadout-state tone-muted" id="{billet.changeId}">{billet.change}</div>
+            </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <div id="transaction-feedback" class="loadout-feedback tone-muted">{feedbackText}</div>
   </div>
@@ -60,6 +73,16 @@
   .loadout-summary { height: 26px; padding: 5px 8px; }
   .loadout-workspace-body { flex-direction: row; height: 0px; flex-grow: 1; gap: 10px; }
   .loadout-roll { flex-direction: column; width: 344px; padding: 8px; gap: 7px; overflow: hidden; }
+  .loadout-squad-cards { flex-direction: column; height: 112px; gap: 4px; }
+  .loadout-squad-card { flex-direction: row; align-items: center; height: 52px; gap: 6px; padding: 0px 8px 0px 0px; border-width: 1px; border-color: #46554b; background-color: #151b17; }
+  .loadout-squad-card-slot { flex-direction: column; width: 24px; height: 50px; padding: 3px 0px 0px 3px; }
+  .loadout-squad-card-seal { width: 18px; height: 18px; }
+  .loadout-squad-card-seal.loadout-squad-card-seal-absent { width: 0px; height: 0px; }
+  .loadout-squad-card-icon { width: 44px; height: 44px; }
+  .loadout-squad-card-text { flex-direction: column; width: 0px; flex-grow: 1; gap: 2px; }
+  .loadout-squad-card-kind { height: 14px; }
+  .loadout-squad-card-name { height: 18px; }
+  .loadout-squad-card-rating { width: 80px; text-align: right; }
   .loadout-heading { height: 22px; padding: 3px 0px; }
   .loadout-hint { height: 34px; white-space: normal; }
   .loadout-billets { flex-direction: row; height: 0px; flex-grow: 1; gap: 5px; overflow: scroll; }
