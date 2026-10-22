@@ -1,0 +1,9 @@
+Use case: sketch-to-render. Asset: two damage states of a steel anti-tank hedgehog for a gritty military dark-scifi overhead strategy game. Image 1 is the authoritative geometry guide and edit target: exactly TWO 512x512 frames side by side on a 1024x512 canvas, each one game cell. Image 2 is the existing intact hedgehog sprite: material and identity reference only (dark gunmetal steel girders with worn edges, rust specks, rivets, a bolted hexagonal hub plate), not layout.
+
+Reskin every grey guide shape into that same steel, preserving each shape's position, angle, length and width, and all transparent empty space. Do not move, rescale, rotate, merge or add pieces.
+
+LEFT FRAME, damaged: the hedgehog still stands on its bolted hub. The vertical girder is intact. The diagonal through the hub is bent and kinked below the hub, its end twisted; the third girder has been torn off the hub and lies loose and askew at lower left, with a sheared, jagged end and a torn bolt plate. Scrapes, fresh bright metal at the tears.
+
+RIGHT FRAME, destroyed: the hedgehog has been toppled and flattened. Three girders lie flat on the ground, splayed apart, one of them bent at a kink in the middle; the hub plate lies loose beside them and two bolts are scattered. Everything is low wreckage lying flat, nothing standing upright.
+
+Straight 90-degree overhead orthographic camera, no perspective, no visible vertical faces, subtle ambient shading only. Same hand-painted Starsector-like finish and restrained palette as image 2, coarse readable detail at 64px per cell. Genuine transparent background with zero alpha between and around the pieces: no ground, soil, rubble carpet, cast shadow outside the guide shapes, border, labels, text, grid lines, smoke or fire.

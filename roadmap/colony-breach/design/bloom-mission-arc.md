@@ -124,6 +124,11 @@ the ground.
 
 ### Candidate stories
 
+The Cordon is now its own feature: its model is `cordon-nouns.md` (the map,
+the redoubts, the beats and the end conditions of both variants) and its board
+is `roadmap/cordon/design/stories.md`. The list below is the original survey,
+which those stories now carry.
+
 1. **Cordon mission.** The mission with both variants: briefing (variant and
    line posture), factory, outcome (people out, redoubts lost, convoys lost,
    bores collapsed) and a `commanderEvidence` harness with a fixture per
@@ -270,6 +275,11 @@ many redoubts held is enough) is tuning, set when the Cordon's evidence exists.
 | Off-map fire | Orbital Barrage, a placed blast after a warning (player command power, charges, ship-grade; `command-powers-nouns.md`), locked by an intact hostile battery; ship and air powers; the defending world's hostile ship support. | No off-map ground artillery, and nothing for the `ALLY` side; no creeping or rolling barrage for ground guns (the rack volley in `air-nouns.md` is a launcher's footprint, not a timetable). |
 
 ### Candidate stories
+
+The heart is now its own feature: its model is `heart-nouns.md` (the country,
+the bores, the flow, beats and end conditions of both variants, the barrage)
+and its board is `roadmap/heart/design/stories.md`. The list below is the
+original survey, which those stories now carry.
 
 Shared by both variants:
 

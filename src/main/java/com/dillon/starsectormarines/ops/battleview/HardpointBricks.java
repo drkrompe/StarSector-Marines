@@ -70,12 +70,17 @@ final class HardpointBricks {
         float span(int count, float brick) { return count * brick + Math.max(0, count - 1) * gap; }
     }
 
-    /** Empty capacity: dark recessed bricks with a dim rim in the socket's colour. */
+    /**
+     * Empty capacity: dark bricks shaded as recesses, darkest under their top lip and lifting
+     * toward the floor, with a dim rim in the socket's colour.
+     */
     static void drawEmpty(CanvasContext c, Layout layout, Color tone) {
+        Color shadowed = new Color(0x05, 0x07, 0x06), floor = new Color(0x18, 0x1d, 0x1a);
         for (int row = 0; row < layout.rows(); row++) {
             for (int column = 0; column < layout.columns(); column++) {
                 float bx = layout.brickX(column), by = layout.brickY(row);
-                brick(c, bx, by, layout.brickWidth(), layout.brickHeight(), new Color(0x0b, 0x0e, 0x0d));
+                float w = layout.brickWidth(), h = layout.brickHeight(), ch = chamfer(w, h);
+                shadeOctagon(c, bx, by, bx + w, by + h, ch, ch, ch, ch, by, by + h, shadowed, floor);
                 outline(c, bx, by, layout.brickWidth(), layout.brickHeight(), mix(tone, 0x1a1e1b, .55f), 1f);
             }
         }
@@ -94,9 +99,14 @@ final class HardpointBricks {
         if (lastColumn < startColumn || lastRow < startRow) return;
         float w = layout.brickWidth(), h = layout.brickHeight(), gap = layout.gap();
         float ch = chamfer(w, h);
-        Color body = mix(tone, 0x101311, .5f);
-        Color lipColor = mix(tone, 0x101311, .25f);
-        float lip = Math.max(1f, h * .14f);
+        // Raised plate: lit from above, so the face falls from a bright top to a deep bottom
+        // across the whole piece, with a lit top-and-left bevel and a shaded bottom-and-right one.
+        Color lit = mix(tone, 0x101311, .22f);
+        Color deep = mix(tone, 0x101311, .74f);
+        Color bevelLight = mix(tone, 0xffffff, .38f);
+        Color bevelDark = mix(tone, 0x050605, .82f);
+        float pieceTop = layout.brickY(startRow);
+        float pieceBottom = layout.brickY(lastRow) + h;
         // Fills first, each overlapping the next brick of the piece by a pixel, so the shared
         // edges are covered twice and no antialiased seam survives; outlines go on top after.
         for (int pass = 0; pass < 2; pass++) {
@@ -110,11 +120,16 @@ final class HardpointBricks {
                     float tl = top || left ? ch : 0f, tr = top || right ? ch : 0f;
                     float br = bottom || right ? ch : 0f, bl = bottom || left ? ch : 0f;
                     if (pass == 0) {
-                        fillOctagon(c, x0, y0, x1 + (right ? 0f : 1f), y1 + (bottom ? 0f : 1f),
-                                tl, tr, br, bl, body);
-                        if (top) c.fillRect(x0 + tl, y0 + 1f, x1 - tr - x0 - tl, lip, lipColor);
+                        shadeOctagon(c, x0, y0, x1 + (right ? 0f : 1f), y1 + (bottom ? 0f : 1f),
+                                tl, tr, br, bl, pieceTop, pieceBottom, lit, deep);
                         continue;
                     }
+                    // Bevel just inside the outline, on the faces that look outward.
+                    float in = 2f;
+                    if (top) c.line(x0 + tl + in * .4f, y0 + in, x1 - tr - in * .4f, y0 + in, bevelLight, 1.6f);
+                    if (left) c.line(x0 + in, y0 + tl + in * .4f, x0 + in, y1 - bl - in * .4f, bevelLight, 1.2f);
+                    if (bottom) c.line(x0 + bl + in * .4f, y1 - in, x1 - br - in * .4f, y1 - in, bevelDark, 1.6f);
+                    if (right) c.line(x1 - in, y0 + tr + in * .4f, x1 - in, y1 - br - in * .4f, bevelDark, 1.2f);
                     // Outline only what faces outside the piece.
                     if (top) c.line(x0 + tl, y0, x1 - tr, y0, tone, 1.4f);
                     if (bottom) c.line(x0 + bl, y1, x1 - br, y1, tone, 1.4f);
@@ -130,19 +145,49 @@ final class HardpointBricks {
     }
 
     /**
-     * A rectangle with each corner cut by its own amount (0 leaves it square), filled as a top
-     * band, a body and a bottom band so no interior diagonal seam can show.
+     * A cut-corner rectangle filled with a vertical gradient from {@code top} at {@code shadeTop}
+     * to {@code bottom} at {@code shadeBottom}: three gradient quads (the cut top band, the
+     * body, the cut bottom band), each opaque and overlapping the next by a pixel so the
+     * shared edges leave no seam.
      */
-    private static void fillOctagon(CanvasContext c, float x0, float y0, float x1, float y1,
-                                    float tl, float tr, float br, float bl, Color fill) {
+    private static void shadeOctagon(CanvasContext c, float x0, float y0, float x1, float y1,
+                                     float tl, float tr, float br, float bl,
+                                     float shadeTop, float shadeBottom, Color top, Color bottom) {
+        float span = Math.max(1f, shadeBottom - shadeTop);
         float topBand = Math.max(tl, tr), bottomBand = Math.max(bl, br);
-        if (topBand > 0f) c.fillQuad(x0 + tl, y0, x1 - tr, y0,
-                x1 - Math.max(0f, tr - topBand), y0 + topBand, x0 + Math.max(0f, tl - topBand), y0 + topBand, fill);
-        // The body overlaps both bands by a pixel for the same reason the bricks overlap.
         float bodyTop = Math.max(y0, y0 + topBand - 1f), bodyBottom = Math.min(y1, y1 - bottomBand + 1f);
-        c.fillRect(x0, bodyTop, x1 - x0, bodyBottom - bodyTop, fill);
-        if (bottomBand > 0f) c.fillQuad(x0, y1 - bottomBand, x1, y1 - bottomBand,
-                x1 - br, y1, x0 + bl, y1, fill);
+        if (topBand > 0f) {
+            float yb = y0 + topBand;
+            Color a = at(top, bottom, shadeTop, span, y0), b = at(top, bottom, shadeTop, span, yb);
+            c.fillQuadGradient(left(x0, y0, y1, tl, bl, y0), y0, right(x1, y0, y1, tr, br, y0), y0,
+                    right(x1, y0, y1, tr, br, yb), yb, left(x0, y0, y1, tl, bl, yb), yb, a, a, b, b);
+        }
+        Color a = at(top, bottom, shadeTop, span, bodyTop), b = at(top, bottom, shadeTop, span, bodyBottom);
+        c.fillQuadGradient(x0, bodyTop, x1, bodyTop, x1, bodyBottom, x0, bodyBottom, a, a, b, b);
+        if (bottomBand > 0f) {
+            float ya = y1 - bottomBand;
+            Color d = at(top, bottom, shadeTop, span, ya), e = at(top, bottom, shadeTop, span, y1);
+            c.fillQuadGradient(left(x0, y0, y1, tl, bl, ya), ya, right(x1, y0, y1, tr, br, ya), ya,
+                    right(x1, y0, y1, tr, br, y1), y1, left(x0, y0, y1, tl, bl, y1), y1, d, d, e, e);
+        }
+    }
+
+    private static Color at(Color top, Color bottom, float shadeTop, float span, float y) {
+        return lerp(top, bottom, Math.max(0f, Math.min(1f, (y - shadeTop) / span)));
+    }
+
+    private static float left(float x0, float y0, float y1, float tl, float bl, float y) {
+        return x0 + Math.max(0f, tl - (y - y0)) + Math.max(0f, bl - (y1 - y));
+    }
+
+    private static float right(float x1, float y0, float y1, float tr, float br, float y) {
+        return x1 - Math.max(0f, tr - (y - y0)) - Math.max(0f, br - (y1 - y));
+    }
+
+    private static Color lerp(Color a, Color b, float t) {
+        return new Color(Math.round(a.getRed() + (b.getRed() - a.getRed()) * t),
+                Math.round(a.getGreen() + (b.getGreen() - a.getGreen()) * t),
+                Math.round(a.getBlue() + (b.getBlue() - a.getBlue()) * t));
     }
 
     /** A chamfered outline around a whole area, for a socket rim. */
@@ -167,13 +212,6 @@ final class HardpointBricks {
 
     private static float chamfer(float w, float h) {
         return Math.max(1f, Math.round(Math.min(w, h) * .2f));
-    }
-
-    private static void brick(CanvasContext c, float x, float y, float w, float h, Color fill) {
-        float ch = chamfer(w, h);
-        c.fillRect(x + ch, y, w - ch * 2f, h, fill);
-        c.fillQuad(x, y + ch, x + ch, y, x + ch, y + h, x, y + h - ch, fill);
-        c.fillQuad(x + w - ch, y, x + w, y + ch, x + w, y + h - ch, x + w - ch, y + h, fill);
     }
 
     private static void outline(CanvasContext c, float x, float y, float w, float h, Color color, float stroke) {

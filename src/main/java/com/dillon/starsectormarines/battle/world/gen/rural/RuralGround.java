@@ -2,6 +2,12 @@ package com.dillon.starsectormarines.battle.world.gen.rural;
 
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
+import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingStamp;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.EndCap;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
@@ -13,11 +19,14 @@ import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout.Farmstead
 import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout.Grade;
 import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout.Plot;
 import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout.Road;
+import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout.Use;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Paints a {@link RuralLayout} onto the map: each plot by its use, every road
@@ -51,6 +60,8 @@ public final class RuralGround {
         int dirt = surface(ctx, mapping, GroundKind.DIRT);
         int sand = surface(ctx, mapping, GroundKind.SAND);
         int[] hedge = hedgePlants();
+        TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
+        GroundKind wild = (profile == null ? SurfacePalette.ROCK : profile.surface()).inlandGround();
         int[] asphalt = new int[3];
         for (int age = 0; age < 3; age++) asphalt[age] = ctx.topology.surfaceIndex(Material.ASPHALT.block(age));
         for (int y = 0; y < ctx.height; y++) {
@@ -58,6 +69,7 @@ public final class RuralGround {
                 if (!layout.inCountry(x, y) || !open(ctx, x, y)) continue;
                 GroundKind kind;
                 int surface;
+                boolean worked = false;
                 Road road = layout.roadAt(x, y);
                 if (road != null && road.grade() == Grade.COUNTRY) {
                     // Paved ground, the way a kept precinct road is: no dust off it.
@@ -67,9 +79,14 @@ public final class RuralGround {
                     // A track, the farm road, or a farmyard trodden bare.
                     kind = GroundKind.DIRT;
                     surface = dirt;
+                } else if (layout.plotAt(x, y) == null || layout.plotAt(x, y).use() == Use.WILD) {
+                    // Ground nobody works is the planet's own, as unclaimed land is.
+                    kind = wild;
+                    surface = 0;
                 } else {
                     kind = plotGround(layout.plotAt(x, y), x, y);
                     surface = kind == GroundKind.DIRT ? dirt : kind == GroundKind.SAND ? sand : grass;
+                    worked = true;
                 }
                 ctx.topology.setGroundKind(x, y, kind);
                 ctx.topology.setSurface(x, y, surface);
@@ -78,9 +95,91 @@ public final class RuralGround {
                     plant = hedge[(int) Math.floorMod(hash(ctx.seed, x, y), (long) hedge.length)];
                 }
                 ctx.topology.setNatureOverlayIndex(x, y, plant);
+                // A worked field is made ground: no hill or rock formation is raised on it.
+                if (worked) ctx.markMadeGround(x, y);
             }
         }
         raiseFarmsteads(ctx, layout);
+    }
+
+    /**
+     * Lays and paints the fields a colony works on its other sides
+     * ({@link TownFields}): on unclaimed open ground outside the surveyed
+     * country, fronting the town's places and its roads. {@code claim} and
+     * {@code road} are the precinct claim and road-owner grids. Like the
+     * country's fields they change appearance only; a passable prop the
+     * hinterland scatter left wholly inside one is cleared off it, and the
+     * field is made ground so nothing is raised on it later.
+     */
+    public static List<Plot> townFields(GenContext ctx, RuralLayout layout, int[][] claim, int[][] road) {
+        int w = ctx.width, h = ctx.height;
+        boolean[][] open = new boolean[w][h], town = new boolean[w][h], roads = new boolean[w][h];
+        FieldOfFire field = layout.field();
+        long clear = field == null ? 0 : field.radius() + RuralLayout.HEDGE_CLEARANCE;
+        PrecinctPlan plan = ctx.get(BspKeys.PRECINCTS);
+        for (int x = 0; x < w; x++) {
+            for (int y = 0; y < h; y++) {
+                if (layout.inCountry(x, y)) continue;
+                int owner = claim[x][y];
+                roads[x][y] = road[x][y] != GrownTrunkPlan.UNOWNED;
+                // Natural ground nothing was built on is open, inside a grown
+                // place's claim as much as outside every claim; a programmed
+                // place is built later and keeps all of its own.
+                boolean programmed = owner != GrownTrunkPlan.UNOWNED && plan != null
+                        && owner < plan.precincts().size() && plan.precincts().get(owner).isProgrammed();
+                boolean natural = !roads[x][y] && !programmed && open(ctx, x, y)
+                        && NATURAL.contains(ctx.topology.getGroundKind(x, y)) && !nearField(field, clear, x, y);
+                open[x][y] = natural;
+                town[x][y] = owner != GrownTrunkPlan.UNOWNED && !natural && !roads[x][y];
+            }
+        }
+        List<Plot> fields = TownFields.plan(w, h, open, town, roads, ctx.seed);
+        GenMappingRegistry mapping = GenMappingRegistry.installed();
+        int grass = surface(ctx, mapping, GroundKind.GRASS);
+        int dirt = surface(ctx, mapping, GroundKind.DIRT);
+        int sand = surface(ctx, mapping, GroundKind.SAND);
+        int[] hedge = hedgePlants();
+        for (Plot plot : fields) {
+            for (int x = plot.x0(); x <= plot.x1(); x++) {
+                for (int y = plot.y0(); y <= plot.y1(); y++) {
+                    GroundKind kind = plotGround(plot, x, y);
+                    ctx.topology.setGroundKind(x, y, kind);
+                    ctx.topology.setSurface(x, y, kind == GroundKind.DIRT ? dirt : kind == GroundKind.SAND ? sand : grass);
+                    int plant = -1;
+                    if (plot.hedged() && hedge.length > 0 && kind == GroundKind.GRASS && fieldHedge(plot, x, y)) {
+                        plant = hedge[(int) Math.floorMod(hash(ctx.seed, x, y), (long) hedge.length)];
+                    }
+                    ctx.topology.setNatureOverlayIndex(x, y, plant);
+                    ctx.markMadeGround(x, y);
+                }
+            }
+        }
+        ctx.doodads.removeIf(d -> fields.stream().anyMatch(p -> p.contains(d.cellX, d.cellY)
+                && p.contains(d.cellX + d.footprintCellsX - 1, d.cellY + d.footprintCellsY - 1)));
+        return fields;
+    }
+
+    /** Ground a field may be laid on: the planet's own surface, not anything made or paved. */
+    private static final Set<GroundKind> NATURAL = EnumSet.of(GroundKind.GRASS, GroundKind.DIRT,
+            GroundKind.STONE, GroundKind.SAND, GroundKind.SNOW, GroundKind.RUBBLE);
+
+    private static boolean nearField(FieldOfFire field, long clear, int x, int y) {
+        if (field == null) return false;
+        long dx = x - field.centerX(), dy = y - field.centerY();
+        return dx * dx + dy * dy <= clear * clear;
+    }
+
+    /** The outer headland of a field, round all four sides, less a gateway in the middle of each. */
+    static boolean fieldHedge(Plot plot, int x, int y) {
+        boolean side = x == plot.x0() || x == plot.x1(), end = y == plot.y0() || y == plot.y1();
+        if (side && !end) return !inGateway(y, plot.y0(), plot.y1());
+        if (end && !side) return !inGateway(x, plot.x0(), plot.x1());
+        return side;
+    }
+
+    private static boolean inGateway(int at, int lo, int hi) {
+        int mid = (lo + hi) / 2;
+        return at >= mid - RuralLayout.GATEWAY / 2 && at < mid - RuralLayout.GATEWAY / 2 + RuralLayout.GATEWAY;
     }
 
     /**
@@ -132,6 +231,7 @@ public final class RuralGround {
             case GRAIN -> Math.floorMod(across, TRAMLINE_PITCH) == 0 ? GroundKind.DIRT : GroundKind.SAND;
             case PASTURE -> GroundKind.GRASS;
             case FALLOW -> GroundKind.DIRT;
+            case WILD -> GroundKind.GRASS;
         };
     }
 

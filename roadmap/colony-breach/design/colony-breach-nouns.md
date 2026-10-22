@@ -367,8 +367,8 @@ and claws at it on its strike cooldown (a Runner's blow is light, a Brute's
 heavy), and the gap a broken piece leaves is where the pack pours through. A
 prepared position is therefore assaulted head on rather than flanked, which is
 what makes it read as one. Ordinary yard fences elsewhere in the town stay walls.
-A hedgehog has no damage art of its own yet: damaged it stands as it is, and
-destroyed it lies as wrecked fence. Trucks do not break.
+A damaged hedgehog stands bent with a girder knocked loose; a destroyed one lies
+toppled flat and gives no cover. Trucks do not break.
 `-Dbattle.swarm.barricadeAssault=false` is the control: barricades are walls,
 and the swarm goes round.
 
@@ -1096,6 +1096,13 @@ against its own control in `renderEvidence`.
   declares its trees' crowns to the field when the field is made; rock
   formations and hills are climbed as walls are. A crown fills at a wall's rate,
   so its coverage is how long the creep has held the tree.
+- **Creep can be matured.** A battle set weeks into a bloom (the Cordon,
+  `cordon-nouns.md`) grows every source to its full reach at once at setup and
+  fills it, walls crusted, as the clock would have (`CreepField.mature`); the
+  trees under it die at once and the roofs it stands under cave in
+  (`CreepRoofCollapse.matureOn`), as weeks under it would have brought them
+  down. Nothing else about the field changes. The heart's country is grown this
+  way too (`heart-nouns.md`).
 - **Removing a source withers what it alone held**, from the outer edge back to
   the hole over a visible interval: the growth dies first, then clears. Ground a
   living source also reaches stays, and a living source reaching dying ground

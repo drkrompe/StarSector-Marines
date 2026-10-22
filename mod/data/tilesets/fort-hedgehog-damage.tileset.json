@@ -1,0 +1,34 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "description": "Hedgehog standing on its hub, one girder bent, one knocked loose.",
+      "name": "doodad.fort-hedgehog-damaged",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "Toppled hedgehog: girders lying flat, hub plate loose.",
+      "name": "doodad.fort-hedgehog-destroyed",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.45,
+      "col": 0,
+      "cover": "light",
+      "id": "doodad.fort-hedgehog-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 1,
+      "cover": "none",
+      "id": "doodad.fort-hedgehog-destroyed",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/doodads/fort-hedgehog-damage.png"
+}

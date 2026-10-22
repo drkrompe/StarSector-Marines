@@ -48,6 +48,10 @@ public final class WastelandRubbleFiller implements BlockFiller {
     private static final String[] WRECKAGE = {"doodad.shelf-dam-1", "doodad.shelf-dam-2", "doodad.desk-dam",
             "doodad.box-dam", "doodad.chair-s-yellow-dam", "doodad.chair-s-green-dam"};
     private static final String SCRAP = "doodad.industrial-scrap-pile";
+    /** Trodden earth: the worn dirt pavement, finer-grained than the open-ground dirt tile. */
+    private static final String TRODDEN = "pavement.dirt.worn";
+    /** The bed of broken masonry a fallen wall leaves along its line. */
+    private static final String RUBBLE_BED = "pavement.gravel.cracked";
     private static final String[] YARD_STORES = {"doodad.industrial-pallet-stack", "doodad.industrial-crate-stack",
             "doodad.industrial-drum-cluster", "doodad.industrial-cable-reel"};
     private static final String[] WEEDS = {"nature.tuft-1", "nature.tuft-2", "nature.tuft-3"};
@@ -236,7 +240,7 @@ public final class WastelandRubbleFiller implements BlockFiller {
             if (exposed(grid, topology, x + 1, y)) faces |= CellTopology.WALL_DIR_E;
             if (exposed(grid, topology, x, y - 1)) faces |= CellTopology.WALL_DIR_S;
             if (exposed(grid, topology, x - 1, y)) faces |= CellTopology.WALL_DIR_W;
-            topology.setWallRemnant(x, y, new WallRemnant(wall, GroundKind.COURTYARD, floor, faces));
+            topology.setWallRemnant(x, y, new WallRemnant(wall, GroundKind.COURTYARD, RUBBLE_BED, faces));
         }
 
         // One corner fell in: a heap of rubble against it, with scrap through it.
@@ -263,14 +267,14 @@ public final class WastelandRubbleFiller implements BlockFiller {
     /**
      * What becomes of each cell round a ruin's outline: {@code 'W'} still
      * standing, {@code 's'} a rubble stub, {@code '.'} gone. Standing runs are
-     * one to {@link #MAX_STANDING_RUN} long and never meet another, so no
+     * two to {@link #MAX_STANDING_RUN} long (a lone cell reads as a pillar) and never meet another, so no
      * enclosure survives; about a third of the outline stands.
      */
     static char[] outlineFates(int length, Random rng) {
         char[] fate = new char[length];
         int i = 0;
         while (i < length) {
-            int standing = 1 + rng.nextInt(MAX_STANDING_RUN);
+            int standing = 2 + rng.nextInt(MAX_STANDING_RUN - 1);
             for (int k = 0; k < standing && i < length; k++) fate[i++] = 'W';
             int down = 2 + rng.nextInt(4);
             for (int k = 0; k < down && i < length; k++) fate[i++] = rng.nextInt(4) == 0 ? '.' : 's';
@@ -310,7 +314,9 @@ public final class WastelandRubbleFiller implements BlockFiller {
     private static void ground(GenContext ctx, int x, int y, GroundKind kind) {
         ctx.topology.setGroundKind(x, y, kind);
         GenMappingRegistry mapping = GenMappingRegistry.installed();
-        String block = mapping == null ? null : mapping.groundBlockId(kind);
+        TileRegistry registry = TileRegistry.installed();
+        String block = kind == GroundKind.DIRT && registry != null && registry.hasBlock(TRODDEN) ? TRODDEN
+                : mapping == null ? null : mapping.groundBlockId(kind);
         if (block != null) ctx.topology.setSurface(x, y, ctx.topology.surfaceIndex(block));
     }
 
