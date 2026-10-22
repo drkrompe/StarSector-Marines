@@ -353,7 +353,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             boolean draggingHere = dragPreview != null && dragPreview.target() == socket.id();
             boolean rejected = draggingHere && !dragPreview.valid();
             if (draggingHere) compatible = dragPreview.valid();
-            Color wire = rejected ? new Color(0xe98b83) : compatible ? new Color(0x78d494)
+            Color wire = rejected ? new Color(0xe98b83) : compatible ? new Color(0xc8eef4)
                     : selected ? new Color(0xedc273) : new Color(0x859082);
             List<float[]> path = leaderDogLegPath(target.anchorX(), target.anchorY(), target);
             for (int i = 0; i < path.size() - 1; i++) {

@@ -405,7 +405,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, true)),
                 new SnapshotArtifact("mech-lab-hound-empty-socket-wide.png",
                         renderMechLab(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, false, true)),
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, false, true, false, false,
+                                null, "empty-socket")),
                 new SnapshotArtifact("mech-lab-chassis-fabrication-wide.png",
                         renderMechLab(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
@@ -2741,6 +2742,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     .filter(row -> row.name().contains("SHOULDER"))
                     .findFirst().orElseThrow().select().run();
         }
+        // The shoulder stripped, so the doll shows an empty socket wearing its hardpoint colour.
+        if ("empty-socket".equals(materialHint)) viewModel.stripWeapon(viewModel.selectedSocket());
         if (motionFrames != null) {
             if (!selectHound) viewModel.gantryRows().get().get(0).select().run();
             else viewModel.stripWeapon(viewModel.selectedSocket());
