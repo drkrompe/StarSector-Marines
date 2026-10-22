@@ -15,7 +15,6 @@ import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
-import com.dillon.starsectormarines.ui.retained.reactive.Signal;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
 
 import java.util.ArrayList;
@@ -24,6 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.IntConsumer;
+import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * The squad as the Loadout screen shows it: three fire teams of two by two, each
@@ -39,6 +41,10 @@ final class LoadoutInspection {
 
     /** The numbers a tile compares: the weapon's three that matter most, and the suit's two. */
     private static final List<String> STATS = List.of("DPS", "RNG", "PEN", "ARMOR", "MOVE");
+    private static final Pattern NUMBER = Pattern.compile("-?\\d+(\\.\\d+)?");
+    private static final String BETTER = "graphics/ui/equipment/stat-better.svg";
+    private static final String WORSE = "graphics/ui/equipment/stat-worse.svg";
+    private static final String CHANGE = "graphics/ui/equipment/kit-change.svg";
 
     static Map<String, Object> project(MarineRoster roster, MarineSquad squad,
                                        SquadEquipmentPreview preview, int selected,
@@ -72,8 +78,7 @@ final class LoadoutInspection {
         }
         return Map.of("teams", teams,
                 "title", focused == null ? Strings.get("openingLoadoutVacantBilletPlannedEquipment") : Strings.join("separatorPath", focused.name(), String.valueOf(focused.status())),
-                "summary", Strings.format("openingLoadoutChangedBillets", changed),
-                "scope", Strings.get("openingLoadoutCurrentKitInTheGridSelectABillet"));
+                "scope", Strings.format("openingLoadoutSquadScope", changed));
     }
 
     /** The kit a marine's portrait shows: what the selected cards would issue, or what they wear. */
@@ -95,7 +100,7 @@ final class LoadoutInspection {
      * change of card or billet repaints without rebinding. Idempotent per document.
      */
     static void bindPortraits(UiDocument document, MarkupInstance markup,
-                              Signal<Map<String, Object>> inspection,
+                              Supplier<Map<String, Object>> inspection,
                               ArmoryLoadoutPreviewComposer.Assets assets) {
         for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
             UiElement canvas = markup.requireElement(portraitId(billet));
@@ -150,16 +155,18 @@ final class LoadoutInspection {
     }
 
     private static Map<String, Object> part(int index, int part, FireTeamBillet before, FireTeamBillet after) {
-        Map<String, Object> line = row(partId(index, part), "icon", "text", "now", "next");
+        Map<String, Object> line = row(partId(index, part), "icon", "text", "now", "nextRow", "arrow", "next");
         SpecSheet now = sheet(before, part), next = sheet(after, part);
         boolean changes = after != null && !Objects.equals(now, next);
         String icon = icon(after != null ? after : before, part);
         line.put("icon", icon);
         line.put("iconClasses", icon.isEmpty() ? "loadout-part-icon loadout-part-icon-absent" : "loadout-part-icon");
         line.put("now", name(before, now, part));
-        line.put("nowClasses", "loadout-part-now label " + (now == null ? "tone-muted" : "tone-edge"));
-        line.put("next", changes ? Strings.format("openingLoadoutProposedFmt", name(after, next, part)) : "");
-        line.put("nextClasses", changes ? "loadout-part-next label tone-accent" : "loadout-hidden");
+        // A change reads as the old item dimmed with the new one under an arrow.
+        line.put("nowClasses", "loadout-part-now label " + (now == null || changes ? "tone-muted" : "tone-edge"));
+        line.put("arrow", CHANGE);
+        line.put("next", changes ? name(after, next, part) : "");
+        line.put("nextRowClasses", changes ? "loadout-part-next" : "loadout-hidden");
         line.put("sheet", changes && next != null ? next : now != null ? now : next);
         return line;
     }
@@ -171,13 +178,24 @@ final class LoadoutInspection {
         for (String stat : STATS) {
             SpecSheet.Stat old = now.get(stat), fresh = next.get(stat);
             boolean changes = after != null && fresh != null && (old == null || !old.value().equals(fresh.value()));
-            Map<String, Object> line = row(id + ":stat:" + stat, "label", "before", "after");
+            Map<String, Object> line = row(id + ":stat:" + stat, "label", "before", "arrow", "after");
             line.put("label", statLabel(stat));
             line.put("before", old == null ? "—" : old.value());
-            line.put("after", changes ? Strings.format("openingLoadoutProposedFmt", fresh.value()) : "");
+            line.put("after", changes ? fresh.value() : "");
+            // Every number compared here reads better the higher it is.
+            int direction = changes ? Float.compare(number(fresh.value()), old == null ? 0f : number(old.value())) : 0;
+            line.put("arrow", direction > 0 ? BETTER : direction < 0 ? WORSE : "");
+            line.put("arrowClasses", direction == 0 ? "loadout-stat-arrow loadout-stat-arrow-absent" : "loadout-stat-arrow");
+            line.put("afterClasses", "loadout-stat-after label " + (direction > 0 ? "tone-good" : direction < 0 ? "tone-danger" : "tone-edge"));
             rows.add(line);
         }
         return rows;
+    }
+
+    /** The leading number of a stat's printed value: {@code "+12%"} reads 12, {@code "26.4"} 26.4. */
+    static float number(String value) {
+        Matcher match = NUMBER.matcher(value);
+        return match.find() ? Float.parseFloat(match.group()) : 0f;
     }
 
     private static Map<String, SpecSheet.Stat> statsById(FireTeamBillet kit, MarineSoldier soldier) {

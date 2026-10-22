@@ -41,7 +41,7 @@ class FirstRefitModelTest {
         model.selectSquad(roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow().id());
         assertEquals(true, model.row().get().get("disabled"));
         model.selectPath(Path.FORWARD_SCREEN);
-        assertEquals(12, ((List<?>) model.row().get().get("billets")).size());
+        assertEquals(3, ((List<?>) model.inspection().get("teams")).size());
         assertEquals(true, model.row().get().get("disabled"));
         model.issue();
         assertFalse(roster.firstRefit().complete());
@@ -70,9 +70,9 @@ class FirstRefitModelTest {
         model.selectBillet(11);
         assertNotNull(model.sheet(false, 2), "The current launcher must be disclosed before removal");
         assertNull(model.sheet(true, 2));
-        var special = ((List<Map<String, Object>>) model.row().get().get("proposedItems")).get(2);
-        assertTrue(special.get("kind").toString().contains("REMOVE"));
-        assertTrue(special.get("subtitle").toString().contains("for free"));
+        // The squad view's special line still names the launcher being taken away.
+        assertEquals(model.sheet(false, 2),
+                LoadoutInspection.partSheet(model.inspection(), 11, LoadoutInspection.SPECIAL));
         roster.applySoldierOutcome(Map.of(roster.manningMemberIds(squad).get(11), MarineSoldierStatus.KIA), 10f, 5f);
         model.selectBillet(11);
         assertNull(model.sheet(false, 0));

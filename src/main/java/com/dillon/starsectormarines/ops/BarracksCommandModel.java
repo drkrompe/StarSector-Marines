@@ -462,19 +462,14 @@ public final class BarracksCommandModel {
             SquadMuster muster = muster(squad.id());
             String personnel = squad.stationed() ? Strings.get("openingBarracksCommandOnStation") : Strings.format("openingBarracksCommandReadyWiaVacant", ready, muster.woundedCount(), muster.vacantCount());
             String id = "formation:" + squad.id();
-            CardFace weapons = weaponFace(squad), armor = armorFace(squad);
+            Map<String, Object> weaponCard = weaponCard(squad, id + ":weapon-card"), armorCard = armorCard(squad, id + ":armor-card");
             Set<String> only = Set.of(squad.id());
             int vacant = vacancies(only);
             rows.add(row("id", id, "markId", id + ":mark",
                     "squadId", squad.id(), "musterId", id + ":muster",
                     "headerId", id + ":header", "checkId", id + ":check", "strengthId", id + ":strength",
-                    "cardsId", id + ":cards", "weaponChipId", id + ":weapon-card", "weaponIconId", id + ":weapon-icon",
-                    "armorChipId", id + ":armor-card", "armorIconId", id + ":armor-icon",
-                    "weaponSealId", id + ":weapon-seal", "armorSealId", id + ":armor-seal",
-                    "weaponSlotId", id + ":weapon-slot", "armorSlotId", id + ":armor-slot",
-                    "weaponSealClasses", sealClasses(weapons), "armorSealClasses", sealClasses(armor),
-                    "weaponIcon", weapons == null || weapons.icon() == null ? "" : weapons.icon(),
-                    "armorIcon", armor == null || armor.icon() == null ? "" : armor.icon(),
+                    "cardsId", id + ":cards", "weaponChipId", id + ":weapon-card", "armorChipId", id + ":armor-card",
+                    "weaponCard", weaponCard, "armorCard", armorCard,
                     "footerId", id + ":footer", "footerSpacerId", id + ":footer-spacer",
                     "fillId", id + ":fill", "fillIconId", id + ":fill-icon", "fillCountId", id + ":fill-count",
                     "fillClasses", vacant > 0 && !squad.stationed() ? "fill-button console-action" : "fill-button hidden",
@@ -498,11 +493,8 @@ public final class BarracksCommandModel {
         Map<String, Object> tile = new LinkedHashMap<>(row("id", id + ":tile", "markId", id + ":select",
                 "squadId", "", "musterId", id + ":muster", "headerId", id + ":header", "checkId", id + ":check",
                 "strengthId", id + ":strength", "cardsId", id + ":cards", "weaponChipId", id + ":weapon-card",
-                "weaponIconId", id + ":weapon-icon", "armorChipId", id + ":armor-card",
-                "armorIconId", id + ":armor-icon", "weaponIcon", "", "armorIcon", "",
-                "weaponSealId", id + ":weapon-seal", "armorSealId", id + ":armor-seal",
-                    "weaponSlotId", id + ":weapon-slot", "armorSlotId", id + ":armor-slot",
-                "weaponSealClasses", sealClasses(null), "armorSealClasses", sealClasses(null),
+                "armorChipId", id + ":armor-card",
+                "weaponCard", CardChips.empty(id + ":weapon-card", true), "armorCard", CardChips.empty(id + ":armor-card", true),
                 "footerId", id + ":footer", "footerSpacerId", id + ":footer-spacer",
                 "fillId", id + ":fill", "fillIconId", id + ":fill-icon", "fillCountId", id + ":fill-count",
                 "fillClasses", "fill-button hidden", "fillDisabled", true, "fillCount", "", "fill", (Runnable) () -> { },
@@ -670,9 +662,21 @@ public final class BarracksCommandModel {
         CardFace face = armorFace(roster.squadById(squadId));
         return face == null ? null : face.sheet();
     }
-    /** A Restricted card wears its seal on the corner of its face. */
-    private static String sealClasses(CardFace face) {
-        return face != null && face.restricted() ? "card-face-seal" : "card-face-seal card-face-seal-absent";
+    /** The squad's weapon card as a compact chip, or an empty slot where it holds none. */
+    private Map<String, Object> weaponCard(MarineSquad squad, String id) {
+        SquadWeaponDoctrine doctrine = roster.armory().weaponDoctrineById(squad.weaponDoctrineId());
+        return doctrine == null ? CardChips.empty(id, true) : CardChips.weapons(id, doctrine, true);
+    }
+
+    /** The squad's tactic sheet as a compact chip, or an empty slot where it cannot be issued. */
+    private Map<String, Object> armorCard(MarineSquad squad, String id) {
+        SquadArmorPlan plan = SquadEquipmentDoctrines.armorPlanById(squad.armorDoctrineId());
+        if (plan == null) return CardChips.empty(id, true);
+        try {
+            return CardChips.sheet(id, plan, roster.armory().issue(plan), true);
+        } catch (IllegalStateException unresolvable) {
+            return CardChips.empty(id, true);
+        }
     }
     private CardFace weaponFace(MarineSquad squad) {
         SquadWeaponDoctrine doctrine = squad == null ? null : roster.armory().weaponDoctrineById(squad.weaponDoctrineId());
