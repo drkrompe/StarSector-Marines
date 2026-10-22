@@ -609,9 +609,19 @@ where carriageway lies on both sides of it, so side streets reach the road
 they join and its junction turns give the corner a kerb radius. Because the
 carriageway is the street less its kerbs, it widens wherever a frontage gives
 way to a yard; the sweep refuses a *bulge* (a band broader than one running
-the same way along its whole length) and a *pill* (a short band whose ends
-are not both met by a crossing street), which would otherwise swell the road
-into the yard or float asphalt in a gap between buildings. Pedestrian frames,
+the same way along its whole length), which would swell the road into the
+yard, and a *pill* (a short band, under four breadths long, met by no
+crossing street at either end), which would float asphalt in a gap between
+buildings. A short band met at one end only, by a street that stands on its
+own, is a *spur*: a dead end off that street into a yard or a lot. It is
+swept as a street to where its cells end, because left paved it reads as a
+stub of street with no road on it. It must run on at least two of its
+breadths past the street it leaves; a shorter one is a yard's mouth opening
+off the street and keeps its paving, since swept it is a blob of asphalt
+stepping out of the kerb line. Its mouth takes a kerb radius only where
+the turn would lie wholly on street or footway; where the spur opens
+straight onto its yard the corner stays square rather than being cut off at
+the yard's edge. Pedestrian frames,
 the rest of the flank, plazas broader than a street (nine cells) and lanes too
 narrow for a sweep (under three) keep their paving, which also shows in the
 corners a junction turn leaves uncovered.
@@ -638,6 +648,22 @@ paved and sweeps only precinct roads. Junctions, T-junctions, turns and dead
 ends are all composed from the sweep rather than from tiles, so no piece is
 missing from the set.
 
+**A street ends where it meets another, not where its band does.** A band is
+a maximal run of street cells, so a side street's band reaches across the
+street it joins to the far kerb row, and often a cell or two into a yard
+mouth beyond; swept to its band, every T put a *nub* of asphalt across the
+through road's far sidewalk. So at a *T* (the street it meets runs on past it
+both ways) a street stops at that street's centre line and the through
+asphalt covers the rest; at a *corner* (both end at each other) each runs to
+the outer edge of the other's asphalt, so the corner is paved square and
+nothing runs on into the kerb. A street that runs on through is a crossing
+and keeps its length. The kerb radius is still decided by whether both arms
+exist, so a T keeps its two near-side turns and gains none on the far side.
+Where two streets grown side by side make the road widen, the one that ends
+beside the other, meeting no crossing street, *tapers* into it over six cells
+with a diagonal stroke instead of stepping square across the carriageway.
+The `city-junctions` snapshot suite frames the junctions as generated.
+
 **Road paint** is a *marking*: a straight, flush-ended stroke along a grid
 axis, drawn as its own layer over the asphalt. It is laid only on cells the
 asphalt covers whole, so it never reaches a ragged edge, a sidewalk or bare
@@ -651,6 +677,13 @@ finish it changes nothing the simulation reads.
 
 Intersecting carriageways form one paved footprint. The first declared road
 owns material where carriageways overlap, and a shoulder never erases a road.
+Where two materials' edges meet exactly at a cell corner (asphalt crossing the
+gravel farm road, a street's flush end on the farm road's edge) the corner
+values cannot say whose a half cell is; it goes to the first material that
+does not already cover it, so neither a triangle of the later material over
+the earlier nor a hole is left there. A junction turn's quarter arc is sampled
+finely, because the sweep's spline through a coarse arc overshoots it beside
+each tail and kinks the kerb line where the turn rejoins the street.
 Widths and map edges still obey grid quantization. A smooth centerline does not
 claim a smooth mesh edge or prove a chassis can negotiate a tight turn; mission
 acceptance continues to use the actual vehicle clearance and motion systems.
@@ -1620,7 +1653,12 @@ grade's width from end to end, flush at both ends; there is no per-band brush
 fitting out here, which is what made the grown roads swell and pinch. A
 higher grade owns the junction. A street "arrives" only if it runs into the
 town behind the first town row, so a street along the town's edge is not
-mistaken for the main road.
+mistaken for the main road. The one exception to one width is where the
+country road meets the street it carries on: when that street's asphalt
+starts at the town edge on the road's line and is narrower, the road narrows
+to it over four cells short of the farm road and crosses the farm road at the
+street's width, so the two meet flush rather than in a square step. The
+cells the taper leaves keep the road band's bare ground, a verge.
 
 **Only roads that carry traffic are road.** The country and farm roads are
 circulation and road cells (the road graph routes on them, and a convoy can

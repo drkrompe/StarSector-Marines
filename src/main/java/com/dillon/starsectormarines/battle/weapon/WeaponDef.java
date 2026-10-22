@@ -97,6 +97,11 @@ public final class WeaponDef {
     public final int wallDamage;
     /** Structural-damage reach around the impact point. */
     public final float wallDamageRadius;
+    /** Heat the weapon's blast puts into the ground it covers (`fire-nouns.md`, Starting fires); 0 for none. */
+    private int incendiaryHeat;
+
+    /** Incendiary heat a blast of this weapon carries, 0 for an ordinary one. */
+    public int incendiaryHeat() { return incendiaryHeat; }
     /** Carrier-owned pre-fire commitment window for handheld specials. */
     public final float aimDuration;
     /** Maximum-range travel time retained for projectile presentation. */
@@ -357,6 +362,7 @@ public final class WeaponDef {
             throw new JSONException("Weapon '" + def.id
                     + "' declares render.beam for a projectile-sprite weapon");
         }
+        def.incendiaryHeat = Math.max(0, sim.optInt("incendiaryHeat", 0));
         validateMountFields(def);
         return def;
     }

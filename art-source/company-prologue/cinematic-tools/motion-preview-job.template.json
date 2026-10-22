@@ -1,0 +1,103 @@
+{
+ "id": "c4-motion-preview-<commit>-<date>",
+ "machine": "any",
+ "lane": "light",
+ "priority": 0,
+ "after": [],
+ "requires": [
+  "gpu",
+  "ffmpeg"
+ ],
+ "cwd": "{checkout}/art-source/company-prologue/second-wind-cinematic/industrial-exterior",
+ "command": [
+  "{python}",
+  "../../cinematic-tools/motion_preview.py",
+  "run",
+  "--out",
+  "{work}/preview",
+  "--sequence",
+  "C4",
+  "--name",
+  "c4-motion-preview",
+  "--ffmpeg",
+  "{ffmpeg}",
+  "--",
+  "--python",
+  "c4x_scene.py",
+  "--",
+  "--motion-preview",
+  "--preview-out",
+  "{work}/preview",
+  "--step",
+  "2"
+ ],
+ "env": {},
+ "inputs": [
+  {
+   "commit": "f4d67978413ce1b7febb76fd6ca70579e05c0274",
+   "kind": "git"
+  },
+  {
+   "from": "{drive}/builds/second-wind/dc62710dc/patched/second-wind-patched.blend",
+   "kind": "drive",
+   "manifest": "{checkout}/art-source/company-prologue/second-wind-cinematic/pins/second-wind-dc62710dc-patched.manifest.json",
+   "to": "{checkout}/build/c1v2/inputs/second-wind-patched.blend"
+  },
+  {
+   "from": "{drive}/builds/port-roads/2026-10-20-inputs/colossus.blend",
+   "kind": "drive",
+   "manifest": "{checkout}/art-source/company-prologue/colossus-cinematic/manifest.json",
+   "to": "{checkout}/build/c1v2/inputs/colossus.blend"
+  },
+  {
+   "from": "{drive}/builds/shepherd/70f1f58eb/shepherd.blend",
+   "kind": "drive",
+   "manifest": "{checkout}/art-source/company-prologue/shepherd-cinematic/manifest.json",
+   "to": "{checkout}/build/c1v2/inputs/shepherd.blend"
+  },
+  {
+   "from": "{drive}/builds/hermes/70f1f58eb/hermes.blend",
+   "kind": "drive",
+   "manifest": "{checkout}/art-source/company-prologue/hermes-cinematic/manifest.json",
+   "to": "{checkout}/build/c1v2/inputs/hermes.blend"
+  },
+  {
+   "from": "{drive}/builds/port-roads/2026-10-20-inputs/hound-skinned.blend",
+   "kind": "drive",
+   "sha256": {
+    "hound-skinned.blend": "9c6168946aa17724ed982d24847d61eec98ccdd0db2a5e7ae064e68a949bd54e"
+   },
+   "to": "{checkout}/build/c1v2/inputs/hound-skinned.blend"
+  },
+  {
+   "from": "{drive}/builds/port-roads/2026-10-20-inputs/mudskipper-skinned.blend",
+   "kind": "drive",
+   "sha256": {
+    "mudskipper-skinned.blend": "963480f78570aeee82b9bdc72472a37662e3e227ea3e47aa19ac3a073a2d4fa0"
+   },
+   "to": "{checkout}/build/c1v2/inputs/mudskipper-skinned.blend"
+  }
+ ],
+ "frames": {
+  "dir": "{work}/preview",
+  "glob": "c4-motion-preview.mp4",
+  "count": 1
+ },
+ "outputs": [
+  {
+   "from": "{work}/preview",
+   "glob": "*.mp4",
+   "to": "{drive}/review/cinematic-c4c5/<date>_motion-preview_{machine}"
+  },
+  {
+   "from": "{work}/preview/jpg",
+   "glob": "*.jpg",
+   "to": "{drive}/review/cinematic-c4c5/<date>_motion-preview_{machine}/jpg"
+  },
+  {
+   "from": "{work}/preview",
+   "glob": "preview.json",
+   "to": "{drive}/review/cinematic-c4c5/<date>_motion-preview_{machine}"
+  }
+ ]
+}

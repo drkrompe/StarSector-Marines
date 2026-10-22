@@ -232,7 +232,7 @@ public final class ShipDutySnapshotSuite implements SnapshotSuite {
     /** The motions the board shows, in reading order. */
     private static final List<WorkMotion> BOARD = List.of(WorkMotion.WELD, WorkMotion.CARRY, WorkMotion.TREAT,
             WorkMotion.STIR, WorkMotion.CHOP, WorkMotion.WRENCH, WorkMotion.RUN, WorkMotion.ROW,
-            WorkMotion.PRESS, WorkMotion.LIFT, WorkMotion.JOG, WorkMotion.CONSOLE, WorkMotion.SLEEP);
+            WorkMotion.PRESS, WorkMotion.LIFT, WorkMotion.JOG, WorkMotion.CONSOLE, WorkMotion.SLEEP_BUNK);
     private static final int CLOSE_PX = 108, CLOSE_TILE = 270, GAME_PX = 24, GAME_TILE = 140, BOARD_FRAMES = 45;
     /** Close-up tiles per row of the board. */
     private static final int BOARD_COLUMNS = 7;

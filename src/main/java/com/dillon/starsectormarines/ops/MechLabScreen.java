@@ -219,7 +219,7 @@ public final class MechLabScreen implements Screen {
         viewModel.putRepairProps(props);
         props.put("leftSlotRows", viewModel.leftSlotRows());
         props.put("rightSlotRows", viewModel.rightSlotRows());
-        props.put("slotRows", viewModel.slotRows());
+        props.put("slotRows", viewModel.selectedSlotRows());
         props.put("selectedSlotTitle", viewModel.selectedSlotTitle());
         props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
         props.put("selectedSlotRule", viewModel.selectedSlotRule());
@@ -288,7 +288,7 @@ public final class MechLabScreen implements Screen {
                 }
             });
         }
-        for (MechLabViewModel.SlotRow row : viewModel.slotRows().get()) {
+        for (MechLabViewModel.SlotRow row : viewModel.selectedSlotRows().get()) {
             UiElement canvas = instance.requireElement(row.gridId());
             if (target.canvases().producerOf(canvas) == null) {
                 target.canvases().set(canvas, new MechEquipmentGridCanvas(
@@ -339,6 +339,13 @@ public final class MechLabScreen implements Screen {
         if (event.button() != PointerButton.PRIMARY) return;
         CanvasPoint point = canvasPoint(event);
         if (point == null) return;
+        SocketId strip = dollCanvas.stripAt(point.x(), point.y());
+        if (strip != null) {
+            viewModel.stripWeapon(strip);
+            document.canvases().invalidate(dollElement);
+            event.preventDefault();
+            return;
+        }
         SocketId socket = dollCanvas.socketAt(point.x(), point.y());
         MechWeaponComponent component = socket != null
                 ? viewModel.installedWeapon(socket) : null;

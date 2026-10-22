@@ -6,7 +6,9 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.VisibleCellRect;
+import com.dillon.starsectormarines.battle.fire.FireField;
 import com.fs.starfarer.api.graphics.SpriteAPI;
+import java.util.Map;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
 
 /**
@@ -24,6 +26,8 @@ import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
 public final class DoodadRenderSystem implements RenderSystem {
 
     private final BattleSprites sprites;
+    /** Crowns and stage doodads of the trees the creep is overgrowing, made once per placement. */
+    private final Map<Doodad, CreepTreeTwins.Entry> creepTreeStages = CreepTreeTwins.cache();
 
     public DoodadRenderSystem(BattleSprites sprites) {
         this.sprites = sprites;
@@ -40,7 +44,11 @@ public final class DoodadRenderSystem implements RenderSystem {
         VisibleCellRect view = cam.visibleCells(
                 VisibleCellRect.GEOMETRY_MARGIN_CELLS,
                 ctx.sim.getGrid().getWidth(), ctx.sim.getGrid().getHeight());
-        collectPlacements(ctx.sim.getDoodads(), out, cam, view, ctx.alphaMult, wornTwins(ctx));
+        Twins twins = wornTwins(ctx);
+        if (twins == null) twins = CreepTreeTwins.of(ctx.sim, creepTreeStages);
+        fire = FireRenderSystem.enabled() ? ctx.sim.fireFieldIfPresent() : null;
+        collectPlacements(ctx.sim.getDoodads(), out, cam, view, ctx.alphaMult, twins);
+        fire = null;
         // Facility tiers fitted into existing rooms stand with the furniture, presentation only.
         if (!ctx.facilityPieces.isEmpty() && ctx.hostProfile == BattleRenderHostProfile.DECK_SCENE)
             collectPlacements(ctx.facilityPieces, out, cam, view, ctx.alphaMult);
@@ -51,6 +59,10 @@ public final class DoodadRenderSystem implements RenderSystem {
      * a twin shares its placement's footprint, cover and blocking.
      */
     interface Twins {
+        /** What the placement shows under its twin; the placement itself unless its condition replaces it. */
+        default Doodad base(Doodad placed) { return placed; }
+        /** How strongly the base shows while its twin is coming in; whole unless the twin replaces it. */
+        default float baseWeight(Doodad placed) { return 1f; }
         /** The twin, or the placement itself when it has none. */
         Doodad twin(Doodad placed);
         /** 0 shows the placement, 1 its twin; between, the twin is drawn over it at that alpha. */
@@ -142,9 +154,12 @@ public final class DoodadRenderSystem implements RenderSystem {
         }
         for (Doodad placed : placements) {
             if (!view.intersectsCells(placed.cellX, placed.cellY, placed.footprintCellsX, placed.footprintCellsY)) continue;
+            Doodad shown = twins == null ? placed : twins.base(placed);
             Doodad twin = twins == null ? placed : twins.twin(placed);
             float weight = twin == placed ? 0f : twins.weight(placed);
-            if (weight < 1f) emitOne(placed, out, cam, alphaMult);
+            // A twin at full weight hides the base, unless the base is fading out under it.
+            float baseWeight = twins == null ? 1f : twins.baseWeight(placed);
+            if ((weight < 1f || baseWeight < 1f) && baseWeight > 0f) emitOne(shown, out, cam, alphaMult * baseWeight);
             if (weight > 0f) emitOne(twin, out, cam, alphaMult * weight);
         }
     }
@@ -157,8 +172,13 @@ public final class DoodadRenderSystem implements RenderSystem {
 
     private void emitOne(Doodad d, DrawList out, BattleCamera cam, float alpha) {
         SpriteAPI sheet = sheetFor(d);
-        if (sheet != null) emit(out, cam, sheet, d, cam.cellPxSize(), alpha);
+        if (sheet == null) return;
+        float shade = fire == null ? 1f : FireRenderSystem.treeShade(fire, d);
+        emit(out, cam, sheet, d, cam.cellPxSize(), alpha, RenderLayer.DOODADS, shade, shade, shade);
     }
+
+    /** The fire this frame's placements are charred by; set only while {@link #collect} runs. */
+    private FireField fire;
 
     /**
      * Draw placements again over themselves in one flat tint: how an unpowered
