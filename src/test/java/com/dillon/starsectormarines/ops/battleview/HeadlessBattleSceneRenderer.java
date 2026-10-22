@@ -365,6 +365,7 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
             case CUSTOM -> {
                 if (command.customDraw() instanceof WorldLabel label) drawWorldLabel(context, surfaceHeight, label);
                 else if (command.customDraw() instanceof ShieldDomePass domes) drawDomes(context, viewport, domes, bandTop, bandBottom);
+                else if (command.customDraw() instanceof CliffArtPass cliffs) drawCliffArt(context, viewport, cliffs, bandTop, bandBottom);
                 else if (command.customDraw() instanceof CreepPass creep) drawCreep(context, viewport, creep, bandTop, bandBottom);
                 else if (command.customDraw() instanceof ScorchPass scorch) drawScorch(context, viewport, scorch, bandTop, bandBottom);
                 else if (command.customDraw() instanceof NightLightingPass night) drawNightLighting(context, viewport, night, prepared, bandTop, bandBottom);
@@ -590,6 +591,40 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
      * sample per pixel, because the edge is hard and a coarser block would step it. Equal neighbours in a row share
      * one fill.
      */
+    /**
+     * Baked cliffs, one bilinear sample of the bake per pixel, laid over the
+     * ground as the live pass's premultiplied blend does.
+     */
+    private static void drawCliffArt(CanvasContext context, CanvasHostViewport viewport, CliffArtPass pass, int top, int bottom) {
+        float surfaceHeight = viewport.height();
+        float sx0 = pass.cellToScreenX(pass.minChunkX * CliffArtLayer.CHUNK);
+        float sx1 = pass.cellToScreenX((pass.maxChunkX + 1) * CliffArtLayer.CHUNK);
+        float gy0 = pass.cellToScreenY(pass.minChunkY * CliffArtLayer.CHUNK);
+        float gy1 = pass.cellToScreenY((pass.maxChunkY + 1) * CliffArtLayer.CHUNK);
+        int px0 = Math.max(0, (int) Math.floor(Math.min(sx0, sx1)));
+        int px1 = Math.min((int) Math.ceil(viewport.width()), (int) Math.ceil(Math.max(sx0, sx1)));
+        int row0 = Math.max(Math.max(0, top), (int) Math.floor(surfaceHeight - Math.max(gy0, gy1)));
+        int row1 = Math.min(Math.min((int) Math.ceil(surfaceHeight), bottom), (int) Math.ceil(surfaceHeight - Math.min(gy0, gy1)));
+        if (px1 <= px0 || row1 <= row0) return;
+        BufferedImage overlay = new BufferedImage(px1 - px0, row1 - row0, BufferedImage.TYPE_INT_ARGB);
+        float[] rgba = new float[4];
+        boolean any = false;
+        for (int y = row0; y < row1; y++) {
+            float cellY = pass.screenToCellY(surfaceHeight - (y + 0.5f));
+            for (int x = px0; x < px1; x++) {
+                if (!pass.layer().sample(pass.screenToCellX(x + 0.5f), cellY, rgba)) continue;
+                float a = rgba[3] * pass.alpha;
+                if (a <= 0f) continue;
+                any = true;
+                // Straight alpha for an ordinary over: the bake is premultiplied.
+                float inv = 1f / rgba[3];
+                overlay.setRGB(x - px0, y - row0, Math.round(clamp(a) * 255f) << 24 | channel(rgba[0] * inv) << 16
+                        | channel(rgba[1] * inv) << 8 | channel(rgba[2] * inv));
+            }
+        }
+        if (any) HeadlessUiRenderer.blendImage(context, overlay, px0, row0, false);
+    }
+
     private static void drawCreep(CanvasContext context, CanvasHostViewport viewport, CreepPass pass, int top, int bottom) {
         float surfaceHeight = viewport.height();
         float sx0 = pass.cellToScreenX(pass.minX), sx1 = pass.cellToScreenX(pass.maxX + 1);

@@ -165,6 +165,7 @@ final class HeadlessBattleSprites extends BattleSprites {
             loadWholeSprite(turretBarrels, structure.id, structure.mount.recoilSpritePath);
         }
         loadEngineFx();
+        ensureObjectiveIcons();
         loadDecals();
         mech = loadMech();
     }
@@ -227,6 +228,14 @@ final class HeadlessBattleSprites extends BattleSprites {
         } catch (IOException | RuntimeException missing) {
             return null;
         }
+    }
+
+    /**
+     * Marker icons off the resource roots. The base class loads them through {@code Global.getSettings()}, a
+     * stub here, so a headless frame drew every danger, alarm and star marker as its fallback solid square.
+     */
+    @Override public SpriteAPI loadIconOrNull(String path) {
+        return spriteOrNull(path);
     }
 
     private void loadWholeSprite(Map<String, ShuttleSpriteCache> target, String id, String path) {
