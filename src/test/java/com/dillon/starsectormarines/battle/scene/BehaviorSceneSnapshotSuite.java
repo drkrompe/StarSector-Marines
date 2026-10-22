@@ -73,6 +73,14 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
     }
 
     /**
+     * Opt-in: draw roofs as the game does. Off by default so bodies indoors stay
+     * readable; a scene about the roofs themselves asks for it.
+     */
+    protected boolean showRoofs() {
+        return false;
+    }
+
+    /**
      * Optional second, closer recording of a loop as {@code <loop>-close} at two thirds of the frame size (the suite holds every frame in memory until the runner writes them), as
      * {@code {centreX, centreY, cellsAcross}}; null records only the whole map.
      * Asked per loop so a control that shows nothing new is not stored twice.
@@ -128,6 +136,8 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
         boolean shadows = showUnitShadows();
         if (impacts) renderer.withImpactEffects();
         if (shadows) renderer.withUnitShadows();
+        boolean roofs = showRoofs();
+        if (roofs) renderer.withRoofs();
         boolean follow = followWarships() && WarshipFollowRecording.enabled();
         BattleReviewFrameRenderer mainRenderer = follow
                 ? WarshipFollowRecording.mainRenderer(context.modRoot(), width, height) : renderer;
@@ -160,6 +170,7 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
                                 close[0], close[1], close[2]);
                         // A close view is where a blast reads, so it draws what the main view was asked to.
                         if (impacts) closer.withImpactEffects();
+                        if (roofs) closer.withRoofs();
                         return shadows ? closer.withUnitShadows() : closer;
                     });
                     if (closeRenderer != null) {

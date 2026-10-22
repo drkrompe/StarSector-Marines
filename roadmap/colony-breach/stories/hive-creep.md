@@ -4,7 +4,7 @@ Status: IN PROGRESS — field, bore hookup, look (owner-picked: build 1 as built
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — owner kept build 1's look; creep effects built.
+Updated: 2026-10-21 — owner kept build 1's look; creep effects built, roofs cave in under creep.
 
 Model: `colony-breach-nouns.md` (Bore, Spore colony, Origin).
 
@@ -45,7 +45,8 @@ Mobile strains stay what they are: no melee body gains a ranged attack.
 4. **Creep effects.** Built: the swarm runs faster on creep and colonists never
    take creep as refuge (`colony-breach-nouns.md`, Creep). Colonists do not pick
    shelters at runtime, so "not in creeped buildings" is the flight and wander
-   choice; roof collapse under creep is its own session.
+   choice. Creep also brings roofs down under its weight (`colony-breach-nouns.md`,
+   Creep), proven by the `creep-roof-collapse` scene.
 5. **Lore and audio.** Creep is the weapon converting a world (see
    `swarm-lore-guide.md`); ask for a creep-spread ambience and ground-colony
    strike sound through the Colony Breach audio pipeline (`colony-breach-nouns.md`, Sound).
