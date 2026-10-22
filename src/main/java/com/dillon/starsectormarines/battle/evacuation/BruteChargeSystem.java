@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.unit.SwarmStage;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.HullImpact;
@@ -358,8 +359,9 @@ public final class BruteChargeSystem {
         float hx = (float) Math.cos(Math.toRadians(c.heading));
         float hy = (float) Math.sin(Math.toRadians(c.heading));
         float radius = roster.radius(brute);
-        float walk = sim.identity().type(brute).moveSpeed;
-        float scale = BruteChargeRules.CHARGE_SPEED * c.pace / walk;
+        SwarmStage stage = sim.identity().swarmStage(brute);
+        float walk = SwarmStageStats.of(UnitType.SWARM_BRUTE, stage).speed();
+        float scale = SwarmStageStats.bruteChargeSpeed(stage) * c.pace / walk;
         float intended = Math.max(0f, roster.movement().moveSpeed(brute)) * dt * scale;
         ManualTerrainMotion.Result moved = roster.movement().moveDirectScaled(brute, grid, hx, hy, radius, dt, scale);
         float applied = (float) Math.hypot(moved.dx(), moved.dy());
@@ -419,7 +421,8 @@ public final class BruteChargeSystem {
     private boolean strike(long brute, long target, Charge c, BattleSimulation sim, int now, float hx, float hy) {
         UnitRosterService roster = sim.getRoster();
         Kind kind = kind(target, sim);
-        Outcome outcome = BruteChargeRules.outcome(kind);
+        SwarmStage stage = sim.identity().swarmStage(brute);
+        Outcome outcome = BruteChargeRules.outcome(kind, stage);
         c.struck.add(target);
         UnitType type = sim.identity().type(brute);
         float damage = sim.combat().attackDamage(brute) * BruteChargeRules.DAMAGE_SCALE;
@@ -434,7 +437,7 @@ public final class BruteChargeSystem {
         sim.combat().setCooldownTimer(brute, sim.combat().attackCooldown(brute));
         boolean alive = roster.isAliveById(target);
         if (alive && outcome.throwCells() > 0f) throwBody(target, brute, outcome.throwCells(), sim, hx, hy);
-        push(brute, target, BruteChargeRules.CHARGE_SPEED * c.pace, true, sim, now, hx, hy);
+        push(brute, target, SwarmStageStats.bruteChargeSpeed(stage) * c.pace, true, sim, now, hx, hy);
         if (alive && outcome.holdSeconds() > 0f) {
             sim.stagger().stagger(target, BruteChargeRules.ticks(outcome.holdSeconds()),
                     BruteChargeRules.holdCause(kind));
@@ -443,7 +446,7 @@ public final class BruteChargeSystem {
             sim.stagger().stagger(brute, BruteChargeRules.ticks(outcome.bruteStunSeconds()), Cause.STUNNED);
             log(sim, now, brute, "stunned", target, -1, -1);
         }
-        if (outcome.goesOn() && ++c.bodies <= BruteChargeRules.MAX_BODIES) {
+        if (outcome.goesOn() && ++c.bodies <= BruteChargeRules.maxBodies(stage)) {
             c.pace *= BruteChargeRules.BODY_SLOW;
             // Through it and on along the line: nothing left to steer at.
             if (target == c.target) {
@@ -483,7 +486,8 @@ public final class BruteChargeSystem {
         if (!sim.identity().type(target).isMech()) return;
         var loadout = sim.world().mechLoadout(target);
         float mass = BruteChargeRules.MECH_TONNES * (loadout == null ? 1f : loadout.variant.relativeMass);
-        float dv = BruteChargeRules.pointPush(speed, mass);
+        float dv = BruteChargeRules.pointPush(speed,
+                SwarmStageStats.bruteMass(sim.identity().swarmStage(brute)), mass);
         float cells = dv * dv / (2f * BruteChargeRules.MECH_SLIDE);
         if (cells > 1e-3f) launch(target, hx, hy, cells, BruteChargeRules.MECH_SLIDE, sim);
     }
@@ -505,7 +509,7 @@ public final class BruteChargeSystem {
         HullImpact.Result hit = HullImpact.strike(body.x, body.y, body.facingDegrees,
                 type.visualLengthCells / 2f, type.visualWidthCells / 2f, type.massTonnes(),
                 hvx, hvy, body.knockOmega, sim.world().x(brute), sim.world().y(brute), hx * speed, hy * speed,
-                BruteChargeRules.MASS, BruteChargeRules.RESTITUTION);
+                SwarmStageStats.bruteMass(sim.identity().swarmStage(brute)), BruteChargeRules.RESTITUTION);
         if (hit.impulse() <= 0f) return;
         HullSlide.apply(body, hit);
         impulses.put(hull, Float.valueOf(hit.impulse()));
@@ -557,7 +561,7 @@ public final class BruteChargeSystem {
                 return false;
             }
             if (light && (topology.isWall(cx, cy) || topology.isWindow(cx, cy))) {
-                sim.mapEditor().damageWall(cx, cy, BruteChargeRules.WALL_BLOW);
+                sim.mapEditor().damageWall(cx, cy, BruteChargeRules.wallBlow(sim.identity().swarmStage(brute)));
                 log(sim, now, brute, "ram", 0L, cx, cy);
             } else if (hp > 0 || topology.isWall(cx, cy) || topology.isWindow(cx, cy)) {
                 sim.stagger().stagger(brute, BruteChargeRules.ticks(BruteChargeRules.STUN), Cause.STUNNED);
@@ -573,7 +577,8 @@ public final class BruteChargeSystem {
             SharedEdgeBarrier barrier = grid.getEdgeBarrier(ox, oy, step);
             if (barrier != null && barrier.kind().blocksMovement()) {
                 if (barrier.kind() == SharedEdgeBarrier.Kind.WINDOW) {
-                    sim.mapEditor().damageEdgeBarrier(ox, oy, step, BruteChargeRules.WALL_BLOW);
+                    sim.mapEditor().damageEdgeBarrier(ox, oy, step,
+                            BruteChargeRules.wallBlow(sim.identity().swarmStage(brute)));
                     log(sim, now, brute, "ram", 0L, ox, oy);
                 } else {
                     sim.stagger().stagger(brute, BruteChargeRules.ticks(BruteChargeRules.STUN), Cause.STUNNED);

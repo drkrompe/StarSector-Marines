@@ -1037,14 +1037,25 @@ public final class UnitRenderService implements RenderSystem {
             float[] corpseFacing = t.floats(c.CORPSE, BattleComponents.CORPSE_FACING_DEGREES).array();
             int[] corpseFamily = t.ints(c.CORPSE, BattleComponents.CORPSE_BODY_FAMILY).array();
             RavRunnerAssets ravArt = sprites.ravRunnerSprites();
-            Object[] ravRigs = ravArt != null && t.has(c.RAV_RIG)
+            RavBruteAssets deadBruteArt = sprites.ravBruteSprites();
+            Object[] ravRigs = (ravArt != null || deadBruteArt != null) && t.has(c.RAV_RIG)
                     ? t.objects(c.RAV_RIG, BattleComponents.RAV_RIG_STATE).array() : null;
             for (int r = 0, n = t.rowCount(); r < n; r++) {
                 if (poseIdx[r] < 0) continue;
                 if (rx[r] < cullMinX || rx[r] > cullMaxX
                         || ry[r] < cullMinY || ry[r] > cullMaxY) continue;
                 UnitType type = (UnitType) types[r];
-                RavRunnerRig ravRig = ravRigs != null && ravRigs[r] instanceof RavRunnerRig dead ? dead : null;
+                if (deadBruteArt != null && ravRigs != null && ravRigs[r] instanceof RavBruteRig deadBrute
+                        && deadBrute.dead()) {
+                    // A dead Brute has burst as a Runner does, over the same ichor.
+                    RavBruteComposer.emitDead(out, deadBruteArt, ravArt != null ? ravArt.splat : null,
+                            ravArt != null ? ravArt.drop : null, deadBrute,
+                            cam.cellToScreenX(deadBrute.bodyX()), cam.cellToScreenY(deadBrute.bodyY()),
+                            cam.cellPxSize(), alphaMult);
+                    continue;
+                }
+                RavRunnerRig ravRig = ravArt != null && ravRigs != null && ravRigs[r] instanceof RavRunnerRig dead
+                        ? dead : null;
                 if (ravRig != null && ravRig.dead()) {
                     // A dead Runner has burst: its pieces where they were flung, over its ichor.
                     RavRunnerComposer.emit(out, ravArt, ravRig,

@@ -23,8 +23,6 @@ final class RavRunnerComposer {
     /** The neck root sits this far ahead of the shoulders. */
     private static final float NECK_ROOT_CELLS = (541f - 420f) / BODY_LAYER_PX_PER_CELL;
     private static final float LEG_WIDTH = 1.25f, ARM_WIDTH = 1.1f;
-    /** An ichor droplet in flight, cells across at ground level. */
-    private static final float DROP_CELLS = 0.07f;
     /** Hind legs under the front ones. */
     private static final int[] LEG_ORDER = {2, 3, 0, 1};
 
@@ -108,47 +106,14 @@ final class RavRunnerComposer {
         }
     }
 
-    /** The pool spreading under the middle and every droplet that has landed, as splats. */
     private static void ichorOnGround(LayeredUnitComposer.SpriteEmitter out, RavRunnerAssets art, Frame f,
                                       float shade, float alpha) {
-        RavRunnerRig rig = f.rig;
-        float[] at = new float[2];
-        float pool = rig.poolCells() * f.ppc;
-        if (pool > 0.5f) {
-            f.rigToScreen(rig.poolX(), rig.poolY(), at);
-            splat(out, art.splat[rig.poolVariant()], at, pool, f.facing + rig.poolAngle(), shade, alpha);
-        }
-        // a wet smear where each piece came down
-        for (int i = 0; i < RavRunnerRig.PIECES; i++) {
-            if (!rig.pieceResting(i)) continue;
-            f.rigToScreen(rig.pieceX(i), rig.pieceY(i), at);
-            splat(out, art.splat[(i + rig.poolVariant()) % art.splat.length], at,
-                    (i <= RavRunnerRig.PIECE_FRONT ? 0.5f : 0.3f) * f.ppc, f.facing + i * 77f, shade, alpha);
-        }
-        for (int i = 0; i < rig.dropCount(); i++) {
-            if (!rig.dropLanded(i)) continue;
-            f.rigToScreen(rig.dropX(i), rig.dropY(i), at);
-            splat(out, art.splat[rig.dropVariant(i)], at, rig.dropSize(i) * f.ppc,
-                    f.facing + rig.dropAngle(i), shade, alpha);
-        }
+        RavIchor.onGround(out, art.splat, f.rig.burst(), f::rigToScreen, f.ppc, f.facing, shade, alpha);
     }
 
-    /** Droplets still in the air, over the pieces, drawn larger the higher they are. */
     private static void ichorInFlight(LayeredUnitComposer.SpriteEmitter out, RavRunnerAssets art, Frame f,
                                       float shade, float alpha) {
-        RavRunnerRig rig = f.rig;
-        float[] at = new float[2];
-        for (int i = 0; i < rig.dropCount(); i++) {
-            if (rig.dropLanded(i)) continue;
-            f.rigToScreen(rig.dropX(i), rig.dropY(i), at);
-            splat(out, art.drop, at, DROP_CELLS * (1f + 1.5f * rig.dropZ(i)) * f.ppc, 0f, shade, alpha);
-        }
-    }
-
-    private static void splat(LayeredUnitComposer.SpriteEmitter out, LayeredSpriteCache sprite, float[] at,
-                              float size, float angle, float shade, float alpha) {
-        out.add(sprite, at[0], at[1], size, size * sprite.pxHeight / sprite.pxWidth, angle,
-                shade, shade, shade, alpha);
+        RavIchor.inFlight(out, art.drop, f.rig.burst(), f::rigToScreen, f.ppc, shade, alpha);
     }
 
     /**
