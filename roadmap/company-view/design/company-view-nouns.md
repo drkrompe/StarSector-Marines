@@ -859,7 +859,8 @@ Filled silhouettes, medical marks and hollow silhouettes distinguish ready,
 wounded and vacant places without relying on color. Selection has its own frame
 and checkbox; inspection is a separate action. Each card face is iconed by what
 most of its seats carry, and its hover lays out all twelve seats as fire teams:
-each seat's weapon with its special on the corner, or each seat's suit. Short personnel states stay visible, while hover and
+each seat's weapon with its special on the corner, or each seat's suit with
+its integral system on the corner. Short personnel states stay visible, while hover and
 keyboard-focus details explain recovery, command and cards. The card does not
 repeat its commander: the officer rail already says whose squads are in view.
 
