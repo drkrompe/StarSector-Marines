@@ -1067,13 +1067,14 @@ public class BattleRenderer {
         }
 
         for (PendingDetonation mission : sim.getCommandPowerService().getActiveFireMissions()) {
+            if (mission.isUnmarked()) continue;
             float cx = rc.camera.cellToScreenX(mission.endpointX);
             float cy = rc.camera.cellToScreenY(mission.endpointY);
             float pulse = 1f + 0.18f * (float) Math.sin(now * 2.0 * Math.PI * 3.0);
             emitIcon(out, sprites.iconDanger(), cx, cy,
                     cellPx * 1.6f * pulse, ORBITAL_WARNING, alphaMult);
             float progress = Math.max(0f, Math.min(1f,
-                    mission.remainingTime / com.dillon.starsectormarines.battle.power.OrbitalBarrage.WARNING_SECONDS));
+                    mission.remainingTime / Math.max(1e-3f, mission.flightTime)));
             PolyTess.appendArc(objectiveArcMesh, cx, cy,
                     cellPx * mission.aoeRadius - 2f, cellPx * mission.aoeRadius + 2f,
                     progress, 64,

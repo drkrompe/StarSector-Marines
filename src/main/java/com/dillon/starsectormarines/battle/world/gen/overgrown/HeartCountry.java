@@ -145,6 +145,13 @@ public final class HeartCountry {
     static final float BROAD_FRONT_WOODLAND = 0.70f;
     /** Wild ground the woods cover on The Burn: thick forest, the fuel the burn line runs through. */
     static final float THE_BURN_WOODLAND = 0.80f;
+    /**
+     * Cells, at most, that a field's ragged edge of rough grass and scrub
+     * wanders either side of the parcel's straight one: a burn over the fields,
+     * and the creep it leaves, then follow an organic line.
+     */
+    static final int FIELD_MARGIN = 3;
+
     /** Cells across a cleared track. */
     static final int TRACK_WIDTH = 3;
     /** Where Broad Front's allied lanes run, across the front; the company's is the country road at the middle. */
@@ -197,13 +204,13 @@ public final class HeartCountry {
                 int x = Math.round(across * (w - 1)) - TRACK_WIDTH / 2;
                 tracks.add(new Landscape.Track(x, 0, x + TRACK_WIDTH - 1, top));
             }
-            return new Landscape(BROAD_FRONT_WOODLAND, tracks, List.of());
+            return new Landscape(BROAD_FRONT_WOODLAND, tracks, List.of(), FIELD_MARGIN);
         }
         for (float depth : RIDE_DEPTH) {
             int x = Math.round(depth * (w - 1)) - RIDE_WIDTH / 2;
             tracks.add(new Landscape.Track(x, 0, x + RIDE_WIDTH - 1, h - 1));
         }
-        return new Landscape(THE_BURN_WOODLAND, tracks, List.of(brook(w, h, seed)));
+        return new Landscape(THE_BURN_WOODLAND, tracks, List.of(brook(w, h, seed)), FIELD_MARGIN);
     }
 
     /**
