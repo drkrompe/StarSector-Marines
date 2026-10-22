@@ -27,7 +27,8 @@ import math
 from mathutils import Matrix, Quaternion, Vector
 
 PREFIX = 'SWFX burst'
-SMOKE_RGB = (.328, .205, .070)          # vanilla flak cloud 155,125,75, linear
+SMOKE_RGB = (.07, .052, .034)           # soot: vanilla flak cloud 155,125,75 darkened, so a lit puff
+                                        # reads as smoke and not as a sunlit rock (first sweep render)
 
 
 def _bpy():
@@ -112,9 +113,10 @@ def smoke_material(ctx, rgb=SMOKE_RGB):
     lw = nodes.new('ShaderNodeLayerWeight')
     lw.inputs['Blend'].default_value = .5
     c = g.clamp01(g.sub(1.0, lw.outputs['Facing']))
-    n = g.noise(tc.outputs['Object'], g.mul(sep.outputs[2], 17.0), 2.2, 6.0, .7)
-    holes = g.clamp01(g.mul(g.sub(n, .42), 3.2))
-    dens = g.clamp01(g.mul(g.mul(g.pow(c, 1.4), holes), sep.outputs[0]))
+    n = g.noise(tc.outputs['Object'], g.mul(sep.outputs[2], 17.0), 2.6, 8.0, .75)
+    holes = g.clamp01(g.mul(g.sub(n, .47), 2.6))
+    # Soft to the silhouette and torn through: no hard edge, so the mesh never reads as a solid.
+    dens = g.clamp01(g.mul(g.mul(g.mul(g.pow(c, 2.6), holes), sep.outputs[0]), .75))
     smoke = nodes.new('ShaderNodeBsdfDiffuse')
     smoke.inputs['Color'].default_value = (*rgb, 1)
     tr = nodes.new('ShaderNodeBsdfTransparent')
@@ -194,8 +196,10 @@ def burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), axis=
         lean_now = 0.0
     out = []
     # The flash: hot, jagged, gone in flash_frames.
+    # Not saturated: at 34 the lobed flash rendered as flat white polygons (first sweep render).
+    # Lower, the colour holds at the lobes and the white stays in the heart, edges falling soft.
     glow = mp.glow_material(ctx, f'{prefix} flash ' + '-'.join(f'{c:.3f}' for c in flash_rgb), flash_rgb,
-                            strength=34.0, core=.9)
+                            strength=9.0, core=.55)
     me, dirs = lobed_mesh(f'{prefix} {tag} flash mesh', glow, rnd, lean=lean_now)
     fl = bpy.data.objects.new(f'{prefix} {tag}', me)
     coll.objects.link(fl)

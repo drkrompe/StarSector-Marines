@@ -6,7 +6,8 @@ import java.util.EnumSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** The tier-keyed strain table: which strains a surge can hold at each tier. */
 class BoreStrainTableTest {
@@ -31,10 +32,21 @@ class BoreStrainTableTest {
     }
 
     @Test
-    void theMatriarchSlotIsNamedAndEmpty() {
-        assertNull(BoreStrainTable.Slot.MATRIARCH.unitType);
+    void theMatriarchIsNeverDrawn() {
         for (BoreTier tier : BoreTier.values()) {
             assertEquals(0, BoreStrainTable.weight(tier, BoreStrainTable.Slot.MATRIARCH));
+        }
+    }
+
+    @Test
+    void onlyAMotherAtMawOwesItsMatriarchAndOnlyOnce() {
+        assertTrue(BoreStrainTable.owesMatriarch(true, BoreTier.MAW, false));
+        assertFalse(BoreStrainTable.owesMatriarch(true, BoreTier.MAW, true));
+        assertFalse(BoreStrainTable.owesMatriarch(true, BoreTier.BORE, false));
+        assertFalse(BoreStrainTable.owesMatriarch(false, BoreTier.MAW, false));
+        for (long roll = 0; roll < 20; roll++) {
+            assertEquals(BoreStrainTable.Slot.MATRIARCH, BoreStrainTable.pick(BoreTier.MAW, roll, true));
+            assertEquals(BoreStrainTable.pick(BoreTier.MAW, roll), BoreStrainTable.pick(BoreTier.MAW, roll, false));
         }
     }
 
