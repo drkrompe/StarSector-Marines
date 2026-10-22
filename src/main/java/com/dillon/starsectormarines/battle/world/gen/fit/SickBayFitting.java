@@ -235,12 +235,15 @@ public final class SickBayFitting implements RoomFitting {
         floor.fixtureTask(stand[0], stand[1], work, fixture[0], fixture[1]);
     }
 
-    /** The compass-facing bed variant whose head points the way the world says this bulkhead does. */
+    /**
+     * The compass-facing bed variant whose head points the way the world says this bulkhead does. North is the high
+     * row: a sprite's top edge lies at its footprint's highest row, and the head-north bed has its pillow at the top.
+     */
     private static String bedFacing(int[] head, Art art) {
         if (head[0] < 0) return art.bedHeadW();
         if (head[0] > 0) return art.bedHeadE();
-        if (head[1] < 0) return art.bedHeadN();
-        return art.bedHeadS();
+        if (head[1] < 0) return art.bedHeadS();
+        return art.bedHeadN();
     }
 
     /**
