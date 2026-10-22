@@ -42,9 +42,10 @@ public final class WorkMotions {
                     : fixture.contains("rower") || fixture.contains("ergometer") ? WorkMotion.ROW
                     : fixture.contains("bench-press") ? WorkMotion.PRESS : WorkMotion.LIFT;
             case LAP -> WorkMotion.JOG;
-            // Only a bunk long enough to lie in: a two-cell ground bed is a metre
-            // and a half, and a body drawn lying there would hang off the end.
-            case REST -> fixture.contains("barracks-bunks.bed") ? WorkMotion.SLEEP : WorkMotion.NONE;
+            // Only a bed long enough to lie in, worked from its foot: the ship's
+            // bunk and the ground's residential single, both three cells long.
+            case REST -> fixture.contains("barracks-bunks.bed") || fixture.contains("residential-bed-")
+                    ? WorkMotion.SLEEP : WorkMotion.NONE;
             case FABRICATE, STOW, READOUT, WATCH, ISSUE, MESS -> WorkMotion.CONSOLE;
             case WASH, PRACTICE, UNWIND, ROUNDS, GUARD -> WorkMotion.NONE;
         };

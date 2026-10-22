@@ -85,6 +85,7 @@ public class BattleSprites {
             "graphics/battle/marine-modular-topdown/variants/";
     private RavRunnerAssets ravRunner;
     private RavBruteAssets ravBrute;
+    private RavMatriarchAssets ravMatriarch;
     private final java.util.EnumMap<LayeredArmorFamily, LayeredUnitAssets> layeredUnitSprites =
             new java.util.EnumMap<>(LayeredArmorFamily.class);
     private final Map<String, LayeredSpriteCache> specialEquipmentLayers = new LinkedHashMap<>();
@@ -206,6 +207,8 @@ public class BattleSprites {
 
     /** The Rav Bloom Brute's rig sprites, or null when incomplete (the Brute then keeps its layered art). */
     public RavBruteAssets ravBruteSprites() { return ravBrute; }
+    /** The Matriarch's rig sprites, or null when incomplete (it then wears the Brute's layered art). */
+    public RavMatriarchAssets ravMatriarchSprites() { return ravMatriarch; }
     public LayeredMechAssets layeredMechSprites() { return layeredMechSprites; }
     /** Pools under fallen layered bodies; empty when the art did not load. */
     public List<LayeredSpriteCache> bloodPools() { return bloodPools; }
@@ -841,6 +844,10 @@ public class BattleSprites {
         ravBrute = RavBruteAssets.load(this::loadLayeredSprite);
         if (ravBrute == null) {
             LOG.warn("BattleSprites: Rav Brute rig sprites incomplete; the Brute keeps its layered art");
+        }
+        ravMatriarch = RavMatriarchAssets.load(this::loadLayeredSprite);
+        if (ravMatriarch == null) {
+            LOG.warn("BattleSprites: Rav Matriarch rig sprites incomplete");
         }
         for (int pool = 0; pool < BLOOD_POOLS; pool++) {
             LayeredSpriteCache sprite = loadLayeredSprite(BLOOD_POOL_ROOT + pool + ".png");

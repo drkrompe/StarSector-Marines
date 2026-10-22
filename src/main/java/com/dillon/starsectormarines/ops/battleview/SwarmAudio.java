@@ -208,12 +208,12 @@ public final class SwarmAudio {
     static boolean stepped(UnitType type, float prior, float phase) {
         if (phase == prior) return false;
         boolean wrapped = phase < prior;
-        if (type == UnitType.SWARM_BRUTE) return wrapped || (prior < 0.5f && phase >= 0.5f);
+        if (heavy(type)) return wrapped || (prior < 0.5f && phase >= 0.5f);
         return wrapped;
     }
 
     static Sound footfall(UnitType strain, int stride, boolean carrying) {
-        if (strain == UnitType.SWARM_BRUTE) return Sound.BRUTE_FOOTFALL;
+        if (heavy(strain)) return Sound.BRUTE_FOOTFALL;
         if (strain == UnitType.SWARM_RUNNER) {
             if (carrying) return Sound.BODY_DRAG;
             if (stride % 2 != 0) return null;
@@ -232,7 +232,7 @@ public final class SwarmAudio {
                 default -> null;
             };
         }
-        if (strain == UnitType.SWARM_BRUTE) {
+        if (heavy(strain)) {
             return switch (kind) {
                 case ALERT -> Sound.BRUTE_BELLOW;
                 case STRIKE, WALL_BLOW -> Sound.BRUTE_IMPACT;
@@ -250,15 +250,20 @@ public final class SwarmAudio {
         return null;
     }
 
+    /** The Brute, and until it has its own sounds the Matriarch, which borrows the Brute's. */
+    private static boolean heavy(UnitType strain) {
+        return strain == UnitType.SWARM_BRUTE || strain == UnitType.SWARM_MATRIARCH;
+    }
+
     static Sound pain(UnitType strain) {
         if (strain == UnitType.SWARM_RUNNER) return Sound.RUNNER_PAIN;
-        if (strain == UnitType.SWARM_BRUTE) return Sound.BRUTE_PAIN;
+        if (heavy(strain)) return Sound.BRUTE_PAIN;
         return null;
     }
 
     static Sound death(UnitType strain) {
         if (strain == UnitType.SWARM_RUNNER) return Sound.RUNNER_DEATH;
-        if (strain == UnitType.SWARM_BRUTE) return Sound.BRUTE_DEATH;
+        if (heavy(strain)) return Sound.BRUTE_DEATH;
         return null;
     }
 

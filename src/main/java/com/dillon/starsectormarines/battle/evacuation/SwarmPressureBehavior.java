@@ -55,6 +55,7 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         switch (sim.identity().type(runner)) {
             case SWARM_BRUTE: SwarmBruteBehavior.update(runner, sim); return;
             case SWARM_SPITTER: SwarmSpitterBehavior.update(runner, sim); return;
+            case SWARM_MATRIARCH: SwarmMatriarchBehavior.update(runner, sim); return;
             default: break;
         }
         tickCooldown(runner, sim);

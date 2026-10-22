@@ -84,7 +84,10 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class SwarmHarvest {
 
-    /** A carrier's pace as a share of its own. Slower than a walking Marine, so a squad sent after one catches it. */
+    /**
+     * An adult carrier's pace as a share of its own. Slower than a walking Marine, so a squad sent after one
+     * catches it. A whelp drags slower and an elder faster ({@link SwarmStageStats#dragPace}).
+     */
     public static final float CARRIER_SPEED = 0.4f;
     /** How far behind its carrier a dragged body trails, in cells. */
     public static final float TRAIL_CELLS = 0.55f;
@@ -94,7 +97,7 @@ public final class SwarmHarvest {
     public static final float SEIZE_RADIUS = 1.25f;
     /** A cohort evacuee with a Marine or militia fighter this close is under escort and not harvested. */
     public static final float ESCORT_RADIUS = 8f;
-    /** The chance a Runner's landed blow impales its target instead of wounding it. */
+    /** The chance an adult Runner's landed blow impales its target instead of wounding it; by stage, {@link SwarmStageStats#impaleChance}. */
     public static final float IMPALE_CHANCE = 0.05f;
     /** How long a freed body lies recovering before it acts again. */
     public static final float RECOVERY_SECONDS = 3f;
@@ -143,6 +146,8 @@ public final class SwarmHarvest {
     private final Set<Long> scavengers = new HashSet<>();
     /** Carrier to load, in the order they were seized. */
     private final LinkedHashMap<Long, Long> loads = new LinkedHashMap<>();
+    /** Carrier to the share of its own pace it drags at, by its stage. */
+    private final Map<Long, Float> carrierPace = new HashMap<>();
     /** Load to carrier. */
     private final Map<Long, Long> carriers = new HashMap<>();
     /** Bodies dropped by a dead carrier, waiting for another, in the order they fell. */
@@ -305,7 +310,8 @@ public final class SwarmHarvest {
         if (sim.identity().type(runner) != UnitType.SWARM_RUNNER) return false;
         if (sim.resolveUnit(target) == 0L || !sim.world().isAlive(target)) return false;
         if (!harvestable(sim, target)) return false;
-        return impaleDraw(sim.getSimTickIndex(), runner, target) < IMPALE_CHANCE;
+        return impaleDraw(sim.getSimTickIndex(), runner, target)
+                < SwarmStageStats.impaleChance(sim.identity().swarmStage(runner));
     }
 
     /** {@code runner} impaled {@code target} this tick. Called from the parallel update; {@link #tick} takes it up. */
@@ -370,7 +376,9 @@ public final class SwarmHarvest {
             @Override public String name(long unit) { return "Dragging a body"; }
             @Override public Set<UnitStat> stats() { return Set.of(UnitStat.MOVE_SPEED); }
             @Override public boolean appliesTo(long unit) { return loads.containsKey(unit); }
-            @Override public float multiplier(long unit, UnitStat stat) { return CARRIER_SPEED; }
+            @Override public float multiplier(long unit, UnitStat stat) {
+                return carrierPace.getOrDefault(unit, CARRIER_SPEED);
+            }
         };
     }
 
@@ -423,6 +431,7 @@ public final class SwarmHarvest {
 
     private void seize(BattleSimulation sim, long runner, long body) {
         loads.put(runner, body);
+        carrierPace.put(runner, SwarmStageStats.dragPace(sim.identity().swarmStage(runner)));
         carriers.put(body, runner);
         loose.remove(body);
         sim.clearPath(runner);
@@ -523,6 +532,7 @@ public final class SwarmHarvest {
 
     private void release(long carrier, long body) {
         loads.remove(carrier);
+        carrierPace.remove(carrier);
         carriers.remove(body);
     }
 

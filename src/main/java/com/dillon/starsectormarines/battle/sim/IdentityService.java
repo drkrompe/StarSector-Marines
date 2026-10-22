@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.marine.ArmorClass;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.SwarmStage;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -98,6 +99,16 @@ public final class IdentityService {
     public Airframe airframe(long id) {
         return (Airframe) entityWorld.getObject(id, components.IDENTITY,
                 BattleComponents.IDENTITY_AIRFRAME);
+    }
+
+    /**
+     * A swarm body's growth stage; an adult for a body issued none (every
+     * non-swarm body, and a swarm body spawned before stages existed).
+     * Readable on a corpse.
+     */
+    public SwarmStage swarmStage(long id) {
+        return SwarmStage.of((SwarmStage) entityWorld.getObject(id, components.IDENTITY,
+                BattleComponents.IDENTITY_SWARM_STAGE));
     }
 
     /**

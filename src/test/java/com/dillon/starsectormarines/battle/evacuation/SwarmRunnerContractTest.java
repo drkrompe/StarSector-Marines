@@ -20,9 +20,10 @@ class SwarmRunnerContractTest {
         UnitRole[] roles = UnitRole.values();
 
         // The swarm strains append after the Runner, in the order they shipped.
-        assertEquals(UnitType.SWARM_RUNNER, types[types.length - 3]);
-        assertEquals(UnitType.SWARM_BRUTE, types[types.length - 2]);
-        assertEquals(UnitType.SWARM_SPITTER, types[types.length - 1]);
+        assertEquals(UnitType.SWARM_RUNNER, types[types.length - 4]);
+        assertEquals(UnitType.SWARM_BRUTE, types[types.length - 3]);
+        assertEquals(UnitType.SWARM_SPITTER, types[types.length - 2]);
+        assertEquals(UnitType.SWARM_MATRIARCH, types[types.length - 1]);
         assertEquals(UnitRole.SWARM_PRESSURE, roles[roles.length - 1]);
         assertNotEquals(UnitType.ALIEN, UnitType.SWARM_RUNNER);
     }

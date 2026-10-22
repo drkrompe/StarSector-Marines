@@ -7,7 +7,7 @@
   "idPrefix": "armory-workshop",
   "alphaMin": 40,
   "outputSheet": "graphics/tilesets/armory-workshop.png",
-  "note": "Geometry-first ImageGen reskins on a 2508x1254 raw: the left half is the original built-in generation (counter, rifle bed, rifles, retaining frame, ammunition cabinet, measured component canvases); the right half is the real-size refit (ArmoryWorkshopTemplate, 320 px per cell on the guide) of the repair bench, its tools and the ready-use locker bank, cut as full 3x1 placement frames. See armory-workshop.README.md.",
+  "note": "Geometry-first ImageGen reskins on a 4044x1254 raw of three generations: the first 1254 px are the original built-in generation (counter, rifle bed, rifles, retaining frame, measured component canvases); from x=1254, the real-size refit (ArmoryWorkshopTemplate, 320 px per cell on the guide) of the repair bench, its tools and the ready-use locker bank, cut as full 3x1 placement frames. From x=2508, the 1.0 x 0.6 m ammunition cabinet as a full 2x1 frame (ArmoryWorkshopTemplate.renderAmmunition, the same scale); the original 2x2 cabinet at the left is no longer cut. See armory-workshop.README.md.",
   "entries": [
     {
       "id": "armory-workshop.counter",
@@ -124,14 +124,14 @@
     {
       "id": "armory-workshop.ammo",
       "rect": [
-        712,
-        960,
-        312,
-        272
+        2956,
+        352,
+        640,
+        320
       ],
       "footprintCells": [
         2,
-        2
+        1
       ],
       "cover": "heavy",
       "ballisticHalfHeight": 1.1,

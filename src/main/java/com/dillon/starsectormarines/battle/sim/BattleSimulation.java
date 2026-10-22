@@ -172,6 +172,7 @@ import com.dillon.starsectormarines.battle.setup.ThunderRunSequence;
 import com.dillon.starsectormarines.battle.setup.WaylineGunship;
 import com.dillon.starsectormarines.battle.turret.GroundAntiAirSystem;
 import com.dillon.starsectormarines.battle.evacuation.BruteChargeSystem;
+import com.dillon.starsectormarines.battle.evacuation.MatriarchActions;
 import com.dillon.starsectormarines.battle.evacuation.SwarmStrikeSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmCues;
 import com.dillon.starsectormarines.battle.setup.ColdAccountLayout;
@@ -694,6 +695,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public GroundAntiAirSystem groundAntiAir() { return groundAntiAir; }
     private final SwarmStrikeSystem swarmStrikes = new SwarmStrikeSystem();
     private final BruteChargeSystem bruteCharges = new BruteChargeSystem();
+    private final MatriarchActions matriarchActions = new MatriarchActions();
     private final SwarmCues swarmCues = new SwarmCues();
     private final AirToAirFire airToAir = new AirToAirFire();
     private WaylineGunship waylineGunship;
@@ -1336,6 +1338,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.ravRunnerRigSystem.bruteState(id -> bruteCharges.phase(id).ordinal(),
                 id -> rosterService.stagger().isStaggered(id));
         ravRunnerRigSystem.setLoads(swarmHarvest::loadOf);
+        ravRunnerRigSystem.matriarchState(id -> matriarchActions.kind(id, simTickIndex).ordinal(),
+                id -> matriarchActions.ageSeconds(id, simTickIndex));
         this.mechTurretSystem = new MechTurretSystem(
                 entityWorld, battleComponents, rosterService);
         this.mechWreckSystem = new com.dillon.starsectormarines.battle.mech.MechWreckSystem(effects, rosterService);
@@ -3907,6 +3911,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Brute charges in progress and their record ({@code colony-breach-nouns.md}, Brute). */
     public BruteChargeSystem bruteCharges() { return bruteCharges; }
+    /** What each Matriarch is doing with its scythes and crown; its behaviour writes it, its rig reads it. */
+    public MatriarchActions matriarchActions() { return matriarchActions; }
 
     @Override
     public boolean applyContactStrike(long carrier, long target) {
