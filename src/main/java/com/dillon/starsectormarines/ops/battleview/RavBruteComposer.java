@@ -17,7 +17,7 @@ final class RavBruteComposer {
     private static final float SCALE = 0.25f;
     private static final float U = RavBruteRig.U_LAYER;
     /** Layer rows: the canvas centre, the neck pivot, and the head sprite's centre (it is rows 0..448). */
-    private static final float CANVAS_CENTRE_ROW = 768f, NECK_ROW = 384f, HEAD_CENTRE_ROW = 224f;
+    private static final float NECK_ROW = 384f, HEAD_CENTRE_ROW = 224f;
     /** Layer width of the front and hind shanks. */
     private static final float[] SHANK_W = {120f, 135f};
     /** The owner asked for bigger feet; a raised hoof is nearer the camera. */
@@ -26,6 +26,8 @@ final class RavBruteComposer {
     private static final float REAR_SCALE = 0.9f;
     /** Layer rows of the centres of the body's front half (rows 0..990) and rear half (rows 958..1536). */
     private static final float FRONT_CENTRE_ROW = 495f, REAR_CENTRE_ROW = 1247f;
+    /** Layer row where the halves meet: the middle of the back, halfway between the shoulders and the hips. */
+    private static final float SEAM_ROW = (RavBruteRig.SHOULDER_ROW + RavBruteRig.HIP_ROW) / 2;
     /** Hind legs under the front ones, as the study layers them. */
     private static final int[] LEG_ORDER = {2, 3, 0, 1};
 
@@ -73,18 +75,27 @@ final class RavBruteComposer {
                     width, ln + width, angle, 1f, 1f, 1f, alpha);
         }
 
-        // the body axis: a layer row r lies at shoulder + (shoulder - hip) * (SHOULDER_ROW - r) / span
-        float shX = rig.x(RavBruteRig.SHOULDER), shY = rig.y(RavBruteRig.SHOULDER);
-        float hpX = rig.x(RavBruteRig.HIP), hpY = rig.y(RavBruteRig.HIP);
-        float span = RavBruteRig.HIP_ROW - RavBruteRig.SHOULDER_ROW;
-        float axX = (shX - hpX) / span, axY = (shY - hpY) / span;     // cells per layer row, toward the head
-        float bodyAngle = facing + (float) Math.toDegrees(Math.atan2(-axX, axY));
-        // Its length is the axis's, so the sprite's shoulders and hips stay on the joints the legs hang from;
-        // a reared forequarter nearer the camera widens it, never lengthens it past the hips.
+        // The body in two halves that bend at the middle of the back, each on its own axis: a layer row r of the
+        // front half lies at shoulder + (shoulder - seam) * (SHOULDER_ROW - r) / span, the rear half's likewise
+        // from the hip. Each half's length is its axis's, so the sprite's shoulders and hips stay on the joints
+        // the legs hang from; a reared forequarter nearer the camera widens it, never lengthens it.
         float k = spritePx * (1f + REAR_SCALE * rig.rear());
-        float along = spritePx * (float) Math.hypot(axX, axY) * U;
-        rowPoint(shX, shY, axX, axY, CANVAS_CENTRE_ROW, cx, cy, ppc, fx, fy, a);
-        out.add(art.body, a[0], a[1], art.body.pxWidth * k, art.body.pxHeight * along,
+        float halfSpan = RavBruteRig.HIP_ROW - SEAM_ROW;
+        float hpX = rig.x(RavBruteRig.HIP), hpY = rig.y(RavBruteRig.HIP);
+        float rX = (rig.x(RavBruteRig.SEAM_REAR) - hpX) / halfSpan, rY = (rig.y(RavBruteRig.SEAM_REAR) - hpY) / halfSpan;
+        toScreen(hpX + rX * (RavBruteRig.HIP_ROW - REAR_CENTRE_ROW), hpY + rY * (RavBruteRig.HIP_ROW - REAR_CENTRE_ROW),
+                cx, cy, ppc, fx, fy, a);
+        out.add(art.bodyRear, a[0], a[1], art.bodyRear.pxWidth * k,
+                art.bodyRear.pxHeight * spritePx * (float) Math.hypot(rX, rY) * U,
+                facing + (float) Math.toDegrees(Math.atan2(-rX, rY)), 1f, 1f, 1f, alpha);
+        float shX = rig.x(RavBruteRig.SHOULDER), shY = rig.y(RavBruteRig.SHOULDER);
+        float frontSpan = SEAM_ROW - RavBruteRig.SHOULDER_ROW;
+        float axX = (shX - rig.x(RavBruteRig.SEAM_FRONT)) / frontSpan;   // cells per layer row, toward the head
+        float axY = (shY - rig.y(RavBruteRig.SEAM_FRONT)) / frontSpan;
+        float bodyAngle = facing + (float) Math.toDegrees(Math.atan2(-axX, axY));
+        rowPoint(shX, shY, axX, axY, FRONT_CENTRE_ROW, cx, cy, ppc, fx, fy, a);
+        out.add(art.bodyFront, a[0], a[1], art.bodyFront.pxWidth * k,
+                art.bodyFront.pxHeight * spritePx * (float) Math.hypot(axX, axY) * U,
                 bodyAngle, 1f, 1f, 1f, alpha);
 
         // the head: slides along the axis by its dy, scales about the neck, and turns about it

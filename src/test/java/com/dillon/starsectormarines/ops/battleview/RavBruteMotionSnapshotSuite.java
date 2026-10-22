@@ -22,9 +22,9 @@ import java.util.function.Function;
 /**
  * The Rav Bloom Brute's motion and death, large enough to judge: its skeleton ({@link RavBruteRig}) stepped
  * every tick and drawn through the production {@link RavBruteComposer}, so this is exactly what the battle
- * draws, magnified, each camera on its Brute. The motion recording has three panels: walking into a trot,
- * blows thrown with the whole body, and a charge (the tell, the gallop, then stunned against something
- * heavy). The death recording kills four Brutes mid-action and lets them burst over the Runner's ichor.
+ * draws, magnified, each camera on its Brute. The motion recording has four panels: walking into a trot,
+ * weaving left and right (the back bending into each turn), blows thrown with the whole body, and a charge
+ * (the tell, the gallop, then stunned against something heavy). The death recording kills four Brutes mid-action and lets them burst over the Runner's ichor.
  * 1920x1080 at 100% scale, one frame per simulation tick.
  */
 public final class RavBruteMotionSnapshotSuite implements SnapshotSuite {
@@ -71,7 +71,7 @@ public final class RavBruteMotionSnapshotSuite implements SnapshotSuite {
     /** One tick of each scripted Brute: where it is, and what it is doing. */
     private static final class Actor {
         final RavBruteRig rig;
-        float x, y, cooldown = 1f;
+        float x, y, facing, cooldown = 1f;
 
         Actor(long seed) {
             rig = new RavBruteRig(seed);
@@ -82,6 +82,15 @@ public final class RavBruteMotionSnapshotSuite implements SnapshotSuite {
             float speed = tick < 40 ? 0.9f : 1.8f;
             y += speed * DT;
             rig.advance(x, y, 0f, 1f, RavBruteRig.IDLE, false, DT);
+        }
+
+        /** Trots a weave, turning one way then the other at up to about a hundred degrees a second. */
+        void weave(int tick) {
+            facing = 50f * (float) Math.sin(2 * Math.PI * tick * DT / 3.0);
+            double rad = Math.toRadians(facing);
+            x += (float) -Math.sin(rad) * 1.8f * DT;
+            y += (float) Math.cos(rad) * 1.8f * DT;
+            rig.advance(x, y, facing, 1f, RavBruteRig.IDLE, false, DT);
         }
 
         /** Stands and strikes as the battle's cooldown cycles: the blow lands as it runs out. */
@@ -103,24 +112,27 @@ public final class RavBruteMotionSnapshotSuite implements SnapshotSuite {
     }
 
     private List<BufferedImage> motion(RavBruteAssets art) {
-        Actor walker = new Actor(3L), striker = new Actor(5L), charger = new Actor(7L);
+        Actor walker = new Actor(3L), weaver = new Actor(4L), striker = new Actor(5L), charger = new Actor(7L);
         List<BufferedImage> frames = new ArrayList<>();
         for (int tick = 0; tick < TICKS; tick++) {
             walker.trot(tick);
+            weaver.weave(tick);
             striker.strike();
             charger.charge(tick);
             BufferedImage output = canvas();
             Graphics2D g = graphics(output);
-            for (int p = 0; p < 3; p++) panel(g, 40 + p * 620, 600);
+            for (int p = 0; p < 4; p++) panel(g, 40 + p * 465, 445);
             text(g, "RAV BLOOM BRUTE / MOTION ON ITS SKELETON", 40, 52, 28);
             text(g, "1920 × 1080 · 100%% UI scale · production RavBruteComposer · %.0f px per cell · tick %d"
                     .formatted(PPC, tick), 40, 86, 17);
             text(g, "Walking, then trotting (from tick 40)", 50, 1050, 15);
-            text(g, "Blows: weight back, forequarters up, drive through", 670, 1050, 15);
-            text(g, "Charge: tell, gallop, stunned, standing", 1290, 1050, 15);
-            draw(g, art, null, walker.rig, 340, 620);
-            draw(g, art, null, striker.rig, 960, 620);
-            draw(g, art, null, charger.rig, 1580, 620);
+            text(g, "Weaving: the back bends %+.0f°".formatted(weaver.rig.bendDegrees()), 515, 1050, 15);
+            text(g, "Blows: weight back, forequarters up, drive", 980, 1050, 15);
+            text(g, "Charge: tell, gallop, stunned, standing", 1445, 1050, 15);
+            draw(g, art, null, walker.rig, 262, 620);
+            draw(g, art, null, weaver.rig, 727, 620);
+            draw(g, art, null, striker.rig, 1192, 620);
+            draw(g, art, null, charger.rig, 1657, 620);
             g.dispose();
             frames.add(output);
         }
