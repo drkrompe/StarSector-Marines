@@ -256,6 +256,17 @@ withhold only a primary round already committed to a friendly victim: Green
 opportunity and emits no round, preserving hostile damage opportunity rather
 than solving friendly fire by making experienced soldiers fire less.
 
+A map emplacement's crew works to the same rule at a fixed Regular-like
+discipline (50%): a modeled ground round from a turret whose resolution would
+hit a friend -- a friendly contact, or a burst landing with a friendly body
+inside its radius, as a heavy MG's small-blast rounds do in a scrum -- is held
+on that roll, and the hold also breaks off the rest of the
+burst, as a crew that sees their own in the line lets go of the trigger. The
+roll is drawn only when a resolved round would hit a friend, so a gun with a
+clear line plays exactly as before. Crew-served tubes keep their own stricter
+refusal (no round onto ground a friend stands on); vehicle and aircraft guns do
+not hold yet. `-Dbattle.turret.crewFriendlyHold=false` is the control.
+
 ## Resolution, payload, and presentation
 
 `BallisticResolver` owns pure fire-time trajectory and contact resolution.
