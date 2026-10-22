@@ -184,7 +184,9 @@ class CordonCommandEvidenceTest {
                         sim.getSimTickIndex() * BattleSimulation.TICK_DT / 60f))
                 .append("- Redoubts fallen: ").append(cordon.fallen()).append(" of ").append(cordon.redoubts().size())
                 .append(" (").append(cordon.timetable().allowedFallen()).append(" allowed)\n")
-                .append("- Gap redoubts: ").append(cordon.gap()).append('\n');
+                .append("- Gap redoubts: ").append(cordon.gap()).append('\n')
+                .append("- Eruptions: ").append(cordon.eruptions()).append(" of ")
+                .append(cordon.timetable().eruptionSeconds().size()).append(" on the timetable\n");
         for (CordonRedoubt r : cordon.redoubts()) {
             out.append("- Redoubt ").append(r.number()).append(": cells ").append(r.left()).append(',').append(r.top())
                     .append(" to ").append(r.right()).append(',').append(r.bottom()).append(", guns ")

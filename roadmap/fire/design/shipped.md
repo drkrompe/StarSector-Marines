@@ -15,3 +15,4 @@ Written: 2026-10-22
 | fire-look-pick | 2026-10-22 | the commit adding `ScorchShader` | `fire-nouns.md` (Look) |
 | fire-swarm-fear | 2026-10-22 | the commit adding `FireEscape` | `fire-nouns.md` (Pathing, Evidence); `colony-breach-nouns.md` (Swarm goal) |
 | fire-light | 2026-10-22 | the commit adding `FireLight` | `fire-nouns.md` (Look) |
+| fire-buildings | 2026-10-22 | the commit adding `FireBuildingsScene` | `fire-nouns.md` (Fuel, Buildings, Evidence) |

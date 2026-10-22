@@ -662,11 +662,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * ({@code cordon-nouns.md}). The director must already be bore-sourced.
      */
     public CordonSequence installCordon(CordonVariant variant, List<CordonRedoubt> redoubts, List<Integer> gap,
-                                        CordonSequence.Timetable timetable) {
+                                        int[][] eruptionSites, CordonSequence.Timetable timetable) {
         if (simTickIndex != 0 || cordon != null) throw new IllegalStateException("Install the Cordon once at setup");
         if (!swarmReinforcements.isBoreSourcing())
             throw new IllegalStateException("The Cordon needs a bore-sourced swarm director");
-        cordon = new CordonSequence(variant, redoubts, gap, timetable, storyBeats);
+        int firstErupted = 1;
+        for (SwarmBore bore : swarmBores.bores()) firstErupted = Math.max(firstErupted, bore.number() + 1);
+        cordon = new CordonSequence(variant, redoubts, gap, eruptionSites, firstErupted, timetable, storyBeats);
         swarmReinforcements.setPressureShare(timetable.ordinaryPressure());
         addObjective(cordon);
         return cordon;

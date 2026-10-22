@@ -19,7 +19,8 @@ import java.util.List;
  * redoubts fallen than the briefing allows, and lost the moment the line
  * breaks, or, on the Road, the gap closes. Read-only against the battle except
  * for the tide, which brings every living bore's surge forward and lets the
- * swarm out at the tide's strength until it ebbs.
+ * swarm out at the tide's strength until it ebbs, and the eruption, which
+ * opens a new bore in front of the line.
  */
 public final class CordonSequence implements Objective {
 
@@ -31,19 +32,24 @@ public final class CordonSequence implements Objective {
     /**
      * What the battle is held to: when the tides come and how long each runs,
      * the share of the bores' strength the swarm presses with between tides
-     * and during one, how long the window, and how many redoubts may fall.
+     * and during one, when new bores erupt in front of the line, how long the
+     * window, and how many redoubts may fall.
      */
     public record Timetable(List<Integer> tideSeconds, int tideLengthSeconds, float ordinaryPressure,
-                            float tidePressure, int windowSeconds, int allowedFallen) {
+                            float tidePressure, List<Integer> eruptionSeconds, int windowSeconds,
+                            int allowedFallen) {
         /**
          * The briefing's ordinary timetable: three tides of a minute in a
          * fifteen-minute window, the swarm at a third of its strength between
-         * them and two thirds in one, one redoubt may fall.
+         * them and two thirds in one, a new bore erupting between each pair of
+         * tides, one redoubt may fall.
          */
-        public static final Timetable STANDARD = new Timetable(List.of(240, 480, 720), 60, 0.33f, 0.66f, 900, 1);
+        public static final Timetable STANDARD = new Timetable(List.of(240, 480, 720), 60, 0.33f, 0.66f,
+                List.of(360, 600), 900, 1);
 
         public Timetable {
             tideSeconds = List.copyOf(tideSeconds);
+            eruptionSeconds = List.copyOf(eruptionSeconds);
             if (windowSeconds <= 0 || allowedFallen < 0 || tideLengthSeconds <= 0)
                 throw new IllegalArgumentException("a Cordon needs a window");
             if (!(ordinaryPressure > 0f && ordinaryPressure <= tidePressure && tidePressure <= 1f))
@@ -60,15 +66,22 @@ public final class CordonSequence implements Objective {
     private final StoryBeatLog log;
     /** On the Road, the redoubts beside the gap, by index; empty on the Line. */
     private final List<Integer> gap;
+    /** Where each eruption on the timetable opens, in order; a {@code null} site is skipped. */
+    private final int[][] eruptionSites;
+    /** The number the first erupted bore takes: after the front's own. */
+    private final int firstEruptedNumber;
     private int tides;
+    private int eruptions;
     /** The tick the running tide ebbs on, or -1 between tides. */
     private int ebb = -1;
     private boolean landed, contact;
     private Outcome outcome = Outcome.RUNNING;
 
     public CordonSequence(CordonVariant variant, List<CordonRedoubt> redoubts, List<Integer> gap,
-                          Timetable timetable, StoryBeatLog log) {
+                          int[][] eruptionSites, int firstEruptedNumber, Timetable timetable, StoryBeatLog log) {
         this.variant = variant;
+        this.eruptionSites = eruptionSites.clone();
+        this.firstEruptedNumber = firstEruptedNumber;
         this.redoubts = List.copyOf(redoubts);
         this.gap = List.copyOf(gap);
         this.timetable = timetable;
@@ -80,6 +93,7 @@ public final class CordonSequence implements Objective {
     public List<Integer> gap() { return gap; }
     public Timetable timetable() { return timetable; }
     public int tides() { return tides; }
+    public int eruptions() { return eruptions; }
     public Outcome outcome() { return outcome; }
 
     /** Redoubts fallen so far. */
@@ -129,6 +143,17 @@ public final class CordonSequence implements Objective {
             sim.setSwarmPressureShare(timetable.tidePressure());
             ebb = tick + ticks(timetable.tideLengthSeconds());
             emit(tick, "tide_" + tides);
+        }
+        while (eruptions < timetable.eruptionSeconds().size()
+                && tick >= ticks(timetable.eruptionSeconds().get(eruptions))) {
+            int[] site = eruptions < eruptionSites.length ? eruptionSites[eruptions] : null;
+            eruptions++;
+            // A bore through the ordinary seam: it opens when its ground is clear and grows and
+            // surges as any bore does, so the director's target rises with it.
+            if (site != null) {
+                sim.swarmBores().open(sim, firstEruptedNumber + eruptions - 1, false, site[0], site[1]);
+                emit(tick, "eruption_" + eruptions);
+            }
         }
         if (ebb >= 0 && tick >= ebb) {
             ebb = -1;
