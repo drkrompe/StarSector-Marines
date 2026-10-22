@@ -1,0 +1,27 @@
+Starsector Marines - Changelog
+==============================
+
+0.1.0-alpha (first public alpha)
+--------------------------------
+First public build.
+
+  - Marine company: a captain, named officers, squads and fire teams, a
+    reserve, equipment issue from the Fleet Armory, recovery and replacement
+    of losses.
+  - Ground operations: real-time tactical battles inside the planet dialog,
+    on generated colony maps, with fog of war, cover, buildings, vehicles,
+    mechs, aircraft and orbital support.
+  - Conquest as the main mode, toned down for early progression, with
+    opening story work from Mara Venn on Jangala and repeatable work from
+    other Independent brokers afterwards.
+  - Mech bay: persistent lances of mechs and vehicles with refits.
+  - Optional Nexerelin integration.
+
+Known issues
+  - Alpha balance: force ratios, rewards and difficulty ramps are still being
+    tuned; some operations are much harder or easier than intended.
+  - Saves are not guaranteed to carry over between alpha versions.
+  - Adding the mod to an existing campaign is not supported.
+  - Large maps can be slow on older CPUs, especially in Conquest.
+  - Some text is not yet localised and some screens still use placeholder
+    copy.

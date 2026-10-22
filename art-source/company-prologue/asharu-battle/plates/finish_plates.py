@@ -13,7 +13,8 @@
    tabulates that grade on a lattice in Blender; here each pixel is solved for the scene-linear
    colour the grade maps onto it (Gauss-Newton on the lattice's trilinear interpolation), so the
    plate grades back to the painting.
-4. Write scene-linear Rec.709 RGBA float EXR, alpha 1, uncompressed.
+4. Write scene-linear Rec.709 RGBA float EXR, uncompressed: alpha 1, except S12, whose sky is a
+   premultiplied matte (alpha 0 in empty space, the air glow partial) so the stars show through.
 """
 import hashlib
 import json
@@ -122,10 +123,23 @@ def tone_match(img):
     return np.stack([np.interp(img[..., c], x, lut[c]) for c in range(3)], -1)
 
 
-def write_exr(path, rgb):
-    """Scanline float32 RGBA OpenEXR, no compression, alpha 1."""
+def sky_alpha(img, guide_hit):
+    """S12's matte: 1 on the ground, 0 in empty space, the air glow in between by its brightness,
+    so the rendered starfield shows through above the limb. Smooth across the limb."""
+    x = np.arange(W)
+    limb = np.polyval(np.polyfit(x, np.argmax(guide_hit, axis=0).astype(float), 2), x)
+    ys = np.arange(H, dtype=float)[:, None]
+    ground = np.clip((ys - (limb - 3.0)) / 3.0, 0, 1)                  # ground, 3 px soft
+    glow = np.clip((img.max(-1) - .02) / .2, 0, 1)
+    glow = glow * glow * (3 - 2 * glow)
+    return np.maximum(ground, glow)
+
+
+def write_exr(path, rgb, alpha=None):
+    """Scanline float32 RGBA OpenEXR, no compression; alpha 1 unless given (RGB premultiplied)."""
     h, w = rgb.shape[:2]
-    chans = {'A': np.ones((h, w), np.float32), 'B': rgb[..., 2], 'G': rgb[..., 1], 'R': rgb[..., 0]}
+    a = np.ones((h, w), np.float32) if alpha is None else alpha.astype(np.float32)
+    chans = {'A': a, 'B': rgb[..., 2], 'G': rgb[..., 1], 'R': rgb[..., 0]}
 
     def attr(name, kind, data):
         return name.encode() + b'\0' + kind.encode() + b'\0' + struct.pack('<i', len(data)) + data
@@ -162,21 +176,26 @@ def main():
     for kf, shot in KF.items():
         raw = HERE / 'raw' / f'{kf}.png'
         img = np.asarray(Image.open(raw).convert('RGB').resize((W, H), Image.LANCZOS), np.float64) / 255
+        alpha = None
         if kf == 'k6':
             _, hit = mg.ground(kf, finished={}, base=mg.load(mg.roster.GAME_CORE / 'graphics' / 'planets' / 'desert01.jpg'))
             img = fix_horizon(img, hit)
+            alpha = sky_alpha(img, hit)
         img = tone_match(img)
         lin, back = ungrade(img, axis, disp)
         err = np.abs(back - img).max(-1)
         print(f'{kf}: round trip through the grade, mean {err.mean() * 255:.2f}, 99th pct '
               f'{np.percentile(err, 99) * 255:.2f} code values of 255')
         exr = OUT / f'{kf}.backdrop.exr'
-        write_exr(exr, lin.astype(np.float32))
+        if alpha is not None:       # premultiplied: the sky's dark painted pixels go to zero with it
+            lin = lin * alpha[..., None]
+        write_exr(exr, lin.astype(np.float32), alpha)
         Image.fromarray((np.clip(img, 0, 1) * 255 + .5).astype(np.uint8)).save(OUT / f'{kf}.display.png')
         manifest['plates'].append({'kf': kf, 'shot': shot, 'file': exr.name, 'sha256': sha(exr),
                                    'source': f'art-source/company-prologue/asharu-battle/plates/raw/{kf}.png',
                                    'source_sha256': sha(raw), 'size': [W, H],
-                                   'space': 'scene-linear Rec.709, alpha 1',
+                                   'space': 'scene-linear Rec.709, ' + ('alpha 1' if alpha is None
+                                             else 'premultiplied, alpha 0 in empty space (stars show through)'),
                                    'graded_by': "AgX, look 'AgX - Base Contrast', sRGB display"})
     (OUT / 'manifest.json').write_text(json.dumps(manifest, indent=1))
     print(OUT)

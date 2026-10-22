@@ -130,7 +130,34 @@ public enum BuildingStamp {
             "#.................#",
             "#.c.c.........c.c.#",
             "#.................#",
-            "#########++########");
+            "#########++########"),
+    /** A farm's house, set back on a country track; rural only (`mapgen-nouns.md`, Rural country). */
+    FARMHOUSE("Farmhouse", BuildingKind.RESIDENTIAL, BuildingStyle.TENEMENT,
+            "##nn#nn##",
+            "#...#...#",
+            "w...+...e",
+            "#...#...#",
+            "#...#...#",
+            "#.......#",
+            "###+#s###"),
+    /** A farm's barn beside its house; rural only. */
+    BARN("Barn", BuildingKind.INDUSTRIAL, BuildingStyle.DEPOT,
+            "######n######",
+            "#c.........c#",
+            "#...........#",
+            "w...........e",
+            "#...........#",
+            "#c.........c#",
+            "#...........#",
+            "#####+++#####");
+
+    /**
+     * The plans a city lot may draw. The farm buildings stand only where the
+     * country survey puts them; drawn here they would also change every
+     * city's draws.
+     */
+    private static final List<BuildingStamp> CITY = List.of(CORNER_HOME, COURT_HOUSE, CORNER_SHOP,
+            MARKET_HALL, T_WORKSHOP, OFFSET_DEPOT, FREIGHT_L, FREIGHT_T);
 
     final String label;
     final BuildingKind kind;
@@ -178,7 +205,7 @@ public enum BuildingStamp {
      * drawing, so tall lots can use turned wide plans and refused lots spend no RNG.
      */
     static boolean tryPlace(BlockLeaf leaf, GenContext ctx, BuildingKind kind) {
-        return tryPlace(leaf, ctx, kind, List.of(values()));
+        return tryPlace(leaf, ctx, kind, CITY);
     }
 
     /** A compound warehouse can reuse a complete freight building without becoming a second factory. */

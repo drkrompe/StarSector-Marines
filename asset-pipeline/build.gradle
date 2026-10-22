@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'com.dillon.starsectormarines'
-version = '0.0.1'
+version = '0.1.0-alpha'
 
 java {
     toolchain {
@@ -115,6 +115,29 @@ tasks.register('processAudio', JavaExec) {
     outputs.dir outputDir
     // The cheap per-clip check also detects ffmpeg upgrades and shares encodes across worktrees.
     outputs.upToDateWhen { false }
+    args inputDir.absolutePath, outputDir.absolutePath, cacheDir.absolutePath
+
+    javaLauncher = javaToolchains.launcherFor(project.java.toolchain)
+}
+
+// The release package's audio: the same transcode into an empty folder, so the zip carries exactly
+// the clips audio.json lists. mod/sounds is never pruned, and a clip removed from the manifest would
+// otherwise ship from whatever a developer's checkout last generated. Shares processAudio's cache.
+tasks.register('processReleaseAudio', JavaExec) {
+    description 'Transcode the audio manifest into a clean build/release/sounds for packageRelease'
+    group 'build'
+
+    classpath = sourceSets.tool.runtimeClasspath
+    mainClass = 'com.dillon.starsectormarines.assets.pipeline.ProcessAudioTask'
+
+    def inputDir  = file('src/tool/resources/audio')
+    def outputDir = file("${rootDir}/build/release/sounds")
+    def cacheDir = new File(gradle.gradleUserHomeDir, 'caches/starsector-marines/audio-v1')
+
+    inputs.dir inputDir
+    outputs.dir outputDir
+    outputs.upToDateWhen { false }
+    doFirst { project.delete(outputDir) }
     args inputDir.absolutePath, outputDir.absolutePath, cacheDir.absolutePath
 
     javaLauncher = javaToolchains.launcherFor(project.java.toolchain)

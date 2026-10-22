@@ -11,10 +11,12 @@ Each marine ops session is a full-canvas takeover — own UI pipeline, own input
 routing, own rendering, no vanilla chrome in the play area. The screens grow
 into their own universe over time, not retrofitted into intel slots.
 
-**Status: pre-release / active development (v0.0.1).** Not yet playable as a
-complete gameplay loop — published as a reference for modders interested in
-custom UIs, ground-combat systems, 3D asset pipelines, or campaign-tier
-architecture in Starsector.
+**Status: public alpha (v0.1.0-alpha).** Playable from a new campaign, with
+rough edges, unfinished balance and placeholder content. Player install steps
+and known issues ship in the release zip (`mod/README.txt`,
+`mod/CHANGELOG.txt`). The source also serves as a reference for modders
+interested in custom UIs, ground-combat systems, 3D asset pipelines, or
+campaign-tier architecture in Starsector.
 
 The Alpha roadmap now tracks campaign learning and power growth alongside a
 required localization pass. Castle's post-Relief through Junction guidance uses
@@ -93,7 +95,8 @@ starsectorDir=C:/Program Files (x86)/Fractal Softworks/Starsector
 gradlew.bat build            # compile + test → mod/jars/StarsectorMarines.jar
 gradlew.bat deployMod        # sync mod/ into <starsectorDir>/mods/StarsectorMarines/
 gradlew.bat undeployMod      # remove the deployed copy
-gradlew.bat runStarsector    # deploy + launch the game
+gradlew.bat runStarsector    # deploy + launch the game (debug surfaces on; -PplayerBuild hides them)
+gradlew.bat packageRelease   # release zip -> build/release/StarsectorMarines-<version>.zip
 gradlew.bat createSnapshots  # render all deterministic visual-evidence suites
 gradlew.bat layerAuthoring   # launch the layer, turret, and emplacement authoring workbench
 
