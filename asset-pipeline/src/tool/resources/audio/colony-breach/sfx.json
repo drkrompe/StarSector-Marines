@@ -300,14 +300,6 @@
       "volume": 1.0
     },
     {
-      "id": "matriarch_death",
-      "prompt": "A colossal armoured beast the size of a house dying: a last long cavernous groaning roar that breaks and fades into a rattling wheeze, then its enormous plated body crashing to the ground with a deep booming thud that shakes the earth, thick bone plates and spikes cracking and clattering, no music",
-      "durationSeconds": 4.0,
-      "variants": 3,
-      "loop": false,
-      "volume": 1.0
-    },
-    {
       "id": "bore_surge",
       "prompt": "Pulse of countless alien creatures pouring out of a hole in the ground, rushing skittering swarm, wet chitin, rising roar then fading",
       "durationSeconds": 3.5,

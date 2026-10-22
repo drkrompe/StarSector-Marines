@@ -47,8 +47,9 @@ import java.util.concurrent.ThreadLocalRandom;
  * one clip. Presentation only; nothing here reaches the simulation.
  *
  * <p>The Spitter has no voice. The Matriarch has her own roar (out of the bore
- * and at each moult), reap and death, and the Brute's bellow, hoof, crown,
- * wall-break and pain a size deeper.
+ * and at each moult) and reap; her bellow, hoof, crown, wall-break, pain and
+ * death are the Brute's takes played deeper and slower through the pitch
+ * argument, not baked copies.
  */
 public final class SwarmAudio {
 
@@ -87,10 +88,12 @@ public final class SwarmAudio {
         BRUTE_STUN("brute_stun", 0.9f, 800),
         BRUTE_PAIN("brute_pain", 0.8f, 300),
         BRUTE_DEATH("brute_death", 1f, 150),
-        // The Matriarch: her own roar, reap and death; the Brute's other sounds a size deeper.
+        // The Matriarch: her own roar and reap; everything else is a Brute take played a size deeper at
+        // runtime, so a variant costs no file (colony-breach-nouns.md, Sound). Her death is the Brute's
+        // slowed and deepened by the same pitch argument.
         MATRIARCH_ROAR("matriarch_roar", 1f, 4000),
         MATRIARCH_REAP("matriarch_reap", 1f, 400),
-        MATRIARCH_DEATH("matriarch_death", 1f, 500),
+        MATRIARCH_DEATH("brute_death", 1f, 500, 0.62f),
         MATRIARCH_BELLOW("brute_bellow", 1f, 3000, 0.72f),
         MATRIARCH_FOOTFALL("brute_footfall", 1f, 250, 0.65f),
         MATRIARCH_CROWN("brute_impact", 1f, 400, 0.75f),
