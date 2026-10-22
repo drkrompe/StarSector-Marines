@@ -43,6 +43,26 @@ class CreepFieldTest {
     }
 
     @Test
+    void refusedGroundLosesItsCreepAndRegrowsOnceTheRefusalEnds() {
+        CreepField field = new CreepField(openGrid(W, H), new CellTopology(W, H), 7L);
+        field.putSource(1L, 10, 12, FAST);
+        run(field, 0, 300);
+        int burnt = 12 * W + 14;
+        assertTrue(field.isCreeped(14, 12));
+        boolean[] refused = {true};
+        field.setRefusal(idx -> idx == burnt && refused[0]);
+        field.scorch(burnt);
+        run(field, 300, 400);
+        assertEquals(0, field.coverageAt(burnt), "the scorched cell is bare");
+        assertTrue(field.isCreeped(15, 12), "its neighbours are not");
+        run(field, 400, 600);
+        assertEquals(0, field.coverageAt(burnt), "and stays bare while refused");
+        refused[0] = false;
+        run(field, 600, 800);
+        assertTrue(field.isCreeped(14, 12), "the source fills it again once the refusal ends");
+    }
+
+    @Test
     void sameSeedSameField() {
         CreepField a = new CreepField(openGrid(W, H), new CellTopology(W, H), 99L);
         CreepField b = new CreepField(openGrid(W, H), new CellTopology(W, H), 99L);

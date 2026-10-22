@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.function.IntPredicate;
 
 /**
  * Hive creep: the per-cell biological growth living sources spread across a
@@ -67,6 +68,8 @@ public final class CreepField {
     static final int RECEDE_TICKS_PER_CELL = 20;
     /** Seeded jitter, in ticks, on when each cell starts to wither. */
     static final int RECEDE_JITTER_TICKS = 24;
+    /** Vitality and coverage a refused cell loses per tick: burning creep crisps and is gone in about two seconds. */
+    static final int SCORCH_PER_TICK = 6;
     /** Cells a source settles per tick at most; bounds a large feed or a fresh maw. */
     static final int MAX_SETTLES_PER_TICK = 4000;
     /** Path cost of growing over a cell of natural growth, against the ground's. */
@@ -95,6 +98,8 @@ public final class CreepField {
     /** Cells the creep grows over rather than climbs; null while none are declared. */
     private BitSet overgrown;
     private int now;
+    /** Cells the creep is held off (`fire-nouns.md`, Firebreak); null while nothing refuses. */
+    private IntPredicate refusal;
 
     public CreepField(NavigationGrid grid, CellTopology topology, long seed) {
         this.grid = grid;
@@ -166,6 +171,34 @@ public final class CreepField {
     public void feed(long id, float seconds) {
         Source source = sources.get(id);
         if (source != null && seconds > 0f) source.boostSeconds += seconds;
+    }
+
+    // ---- Refusal ---------------------------------------------------------
+
+    /**
+     * Declares which cells the creep is held off: a refused cell's creep dies
+     * and clears fast and does not grow back while the refusal stands, though
+     * the sources that reach it keep their claim and fill it again once it ends
+     * (`fire-nouns.md`, Firebreak). Asked only for cells already changing.
+     */
+    public void setRefusal(IntPredicate refusal) { this.refusal = refusal; }
+
+    public IntPredicate refusal() { return refusal; }
+
+    /**
+     * Starts a cell's creep dying under the refusal now rather than waiting for
+     * it to change: a fire caught on it. No-op on a cell with no creep.
+     */
+    public void scorch(int idx) {
+        if (idx < 0 || idx >= cells) return;
+        byte s = state[idx];
+        if (s == STEADY) {
+            state[idx] = GROWING;
+            addActive(idx);
+        } else if (s == PENDING) {
+            state[idx] = WITHERING;
+            addActive(idx);
+        }
     }
 
     // ---- Tick ----------------------------------------------------------
@@ -263,6 +296,23 @@ public final class CreepField {
         for (int i = 0; i < activeSize; i++) {
             int idx = active[i];
             int cov = coverage[idx] & 0xFF, vit = vitality[idx] & 0xFF;
+            if (refusal != null && refusal.test(idx)) {
+                if (vit > 0 || cov > 0) {
+                    vit = Math.max(0, vit - SCORCH_PER_TICK * 2);
+                    if (vit == 0) cov = Math.max(0, cov - SCORCH_PER_TICK);
+                    vitality[idx] = (byte) vit;
+                    coverage[idx] = (byte) cov;
+                    markDirty(idx);
+                }
+                // Claimed ground waits out the refusal to fill again; unclaimed ground is simply gone.
+                if (cov == 0 && state[idx] != GROWING) {
+                    state[idx] = NONE;
+                    pulse[idx] = 0;
+                    continue;
+                }
+                active[kept++] = idx;
+                continue;
+            }
             if (state[idx] == GROWING) {
                 if (grid.isWalkableAt(idx)) cov = Math.min(FULL, cov + FILL_PER_TICK);
                 else if (Math.floorMod(now + idx, WALL_FILL_TICKS) == 0) cov = Math.min(FULL, cov + 1);
