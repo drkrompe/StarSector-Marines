@@ -814,7 +814,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         // diagnostic opens only while WorldPicker has a squad in Selection.
         hud.addPanel(new SquadPlanDebugPanel(this));
         // Shows/hides every developer panel below; it is the only one that stays up when they are hidden.
-        hud.addPanel(new DebugHudSwitchPanel(this));
+        // A player build has no developer HUD at all (DevConfig.DEV_MODE).
+        if (DevConfig.DEV_MODE) hud.addPanel(new DebugHudSwitchPanel(this));
         // WARSHIP DEBUG readout + F6/F7 orders; invisible unless a debug ship is over the battle.
         if (DevConfig.DEBUG_WARSHIP_PICKER) hud.addPanel(new WarshipDebugPanel(this));
         // Per-phase tick wall-time profile (top-center, beside DEBUG).
@@ -1104,7 +1105,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 : Math.min(topCenterContentBottom(), battleComms.noticeBottom());
     }
 
-    @Override public boolean debugHudVisible() { return debugHudVisible; }
+    @Override public boolean debugHudVisible() { return DevConfig.DEV_MODE && debugHudVisible; }
 
     @Override public void setDebugHudVisible(boolean visible) { debugHudVisible = visible; }
 
@@ -1607,13 +1608,13 @@ public class BattleScreen implements Screen, BattleUiContext {
                 && directControlSimulation.directControl().active()) {
             directControlSimulation.directControl().observeSprintRelease();
         }
-        if (!controlledAtInputStart && !directControlInput.active()) handleDebugDamageInput(events);
+        if (DevConfig.DEV_MODE && !controlledAtInputStart && !directControlInput.active()) handleDebugDamageInput(events);
         if (!controlledAtInputStart && !directControlInput.active()) handleSallyDoorOrder(events);
         handleCameraInput(events);
         // Apply the current lead at the new zoom before aim is projected.
         followControlledUnit(0f);
         submitDirectControlIntent();
-        if (!directControlInput.active()) handleDebugZoneToggle(events);
+        if (DevConfig.DEV_MODE && !directControlInput.active()) handleDebugZoneToggle(events);
     }
 
     private void toggleDirectControl() {

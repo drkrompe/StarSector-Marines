@@ -788,7 +788,7 @@ public class BattleRenderer {
 
     /** Debug flag — draws Reeds-Shepp docking paths under each docking truck for math iteration. */
     @DebugOnly
-    public static boolean DEBUG_RENDER_DOCKING_PATHS = true;
+    public static boolean DEBUG_RENDER_DOCKING_PATHS = DevConfig.DEV_MODE;
 
     @DebugOnly
     private void renderConvoyDockingPathsDebug(long[] ids, ConvoyService convoy, float alphaMult) {
