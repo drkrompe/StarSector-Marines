@@ -178,6 +178,7 @@ class ShipFx:
         self.mpu = float(manifest['metres_per_unit'])
         self.M = {}
         own_hull = hull_ctl is not None or own_hull
+        self.own_hull = own_hull       # its turrets can train (swfx_guns.aim) without moving another ship's
         if own_hull:
             # Hull parts are copied (their meshes shared) so this ship's gear moves on its own.
             self.hull = self._copy_tree(hull_coll, copy_data=lambda o: _has_drivers(o.data))
@@ -200,6 +201,17 @@ class ShipFx:
         self.groups = {base_name(c.name): c for c in ([self.fx, *self.fx.children_recursive] if self.fx else ())}
         self.own_colours()
         self.metre_scale()
+
+    def remove(self):
+        """Delete this copy outright (its objects, data, materials, trees, actions, collections):
+        a scene rebuilding a ship for the next key frame starts from the library again, so what
+        the kit built for one frame never shows on another."""
+        ids = [i for i in self.ids if i is not None]
+        for c in (self.fx, self.hull if self.hull is not None and self.hull in self.ids else None):
+            if c is not None:
+                ids.append(c)
+        bpy.data.batch_remove(set(ids))
+        self.ids = set()
 
     # ----------------------------------------------------------------------- per-object colour
     def own_colours(self):
