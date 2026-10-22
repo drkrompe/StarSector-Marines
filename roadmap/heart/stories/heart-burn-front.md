@@ -2,7 +2,7 @@ Status: IN PROGRESS (behind `-Dbattle.heart.burnFront=true`)
 
 Written: 2026-10-22
 
-Updated: 2026-10-22 — built behind the switch and measured; armour mix and sector width are with the owner (`heart-burn-front-armour`, `heart-burn-company-sector`); allied hull/mech driving moves onto bloom-m2's shared allied commander when it lands.
+Updated: 2026-10-22 — built behind the switch and measured; armour mix and sector width are with the owner (`heart-burn-front-armour`, `heart-burn-company-sector`); hulls now driven by the shared allied commander (`allied-command.md`); Hounds stay mission-driven until it stations mechs.
 
 # The Burn's front
 
@@ -63,6 +63,9 @@ company and the front reaching the mothers.
 ## Plan
 
 1. Battlegroup spawning and ordering on the barrage screen (`HeartLanes`
-   extended with armour and the screen).
+   extended with armour and the screen). Hulls are deployed and stationed
+   through `AlliedCommand` (`allied-command.md`); each post is the lane's
+   across, short of the hold. Hounds stay on the lane's own squad orders until
+   the allied commander stations mechs.
 2. The company's sector width in `BloomHeartSetup`.
 3. Measure, render, picks.
