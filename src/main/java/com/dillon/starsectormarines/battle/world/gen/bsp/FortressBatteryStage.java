@@ -48,7 +48,7 @@ public final class FortressBatteryStage implements GenStage {
     private static final int SCAN_STRIDE = 3;
     private static final EnumSet<DepthBand> ALLOWED_BANDS = EnumSet.of(DepthBand.MID, DepthBand.DEEP, DepthBand.UNSET);
     private static final EnumSet<GroundKind> REFUSED_GROUND = EnumSet.of(GroundKind.INDOOR, GroundKind.WATER,
-            GroundKind.TILE, GroundKind.STREET, GroundKind.LZ_MARKER, GroundKind.VOID, GroundKind.SIDEWALK);
+            GroundKind.TILE, GroundKind.STREET, GroundKind.VOID, GroundKind.SIDEWALK);
 
     private record Site(int x, int y, int band, long centreDistSq) {}
 

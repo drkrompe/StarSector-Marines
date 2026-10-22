@@ -11,11 +11,12 @@ Writes mod/graphics/battle/rav-matriarch/*.png, every sprite head-up (forward is
                        and columns are the sprite's, times SCALE
   head.png, gape.png   the straight-ahead head and its roar, rows 0..HEAD_ROWS of the canvas, full width;
                        both pivot at the neck
-  scythe-l/r.png       each scythe cut from the hero, cropped to SCYTHE_BOX; it turns about its PIVOT
+  scythe-l/r.png       the right scythe cut from the hero (the left is it mirrored) and lengthened BLADE_SCALE about its PIVOT, on a canvas
+                       centred on the pivot (SCYTHE_HALF each way), so the sprite turns about its own centre
   foot-fl/fr/hl/hr.png each foot cut from the hero, centred on the foot
   shank-f/h-l/r.png    the leg layers, the hip end at the top, SHANK_W layer px wide
 
-`RavMatriarchComposer` holds the matching numbers (SCALE, HEAD_ROWS, SCYTHE_BOX, PIVOT, NECK, SHANK_W);
+`RavMatriarchComposer` holds the matching numbers (SCALE, HEAD_ROWS, PIVOT, NECK, SHANK_W);
 keep it in step when anything here changes. The script prints them.
 """
 import sys
@@ -26,14 +27,14 @@ from PIL import Image
 
 HERE = Path(__file__).parent
 sys.path.insert(0, str(HERE / "exploration"))
-from motion_brute import key, largest_blob, soft_mask, with_alpha  # noqa: E402
-from motion_matriarch import (FEET, HEAD_POLY, NECK, PIVOT, RAW, SCYTHE_POLY, SHANK_W, STRAIGHT,  # noqa: E402
+from motion_brute import key, largest_blob, scale_about, soft_mask, with_alpha  # noqa: E402
+from motion_matriarch import (BLADE_SCALE, FEET, HEAD_POLY, NECK, PIVOT, RAW, SCYTHE_POLY, SHANK_W, STRAIGHT,  # noqa: E402
                               STRAIGHT_GAPE, poly_mask, trim)
 
 OUT = HERE.parent.parent / "mod" / "graphics" / "battle" / "rav-matriarch"
 SCALE = 0.4          # sprite px per layer px
 HEAD_ROWS = 672      # the head sprites are the top of the canvas, down past the neck and the soft edge
-SCYTHE_BOX = {"L": (330, 300, 520, 640), "R": (670, 230, 930, 600)}
+SCYTHE_HALF = (360, 480)   # the scythe canvas reaches this far from the pivot each way, layer px
 
 
 def scaled(img):
@@ -78,12 +79,17 @@ def main():
         assert bottom <= HEAD_ROWS, (out, bottom)
         scaled(lay.crop((0, 0, size[0], HEAD_ROWS))).save(OUT / out)
 
-    for side, m in blade_m.items():
-        cut = with_alpha(hero, ha * m)
-        bbox = cut.getchannel("A").point(lambda v: 255 if v > 8 else 0).getbbox()
-        box = SCYTHE_BOX[side]
-        assert box[0] <= bbox[0] and box[1] <= bbox[1] and box[2] >= bbox[2] and box[3] >= bbox[3], (side, bbox)
-        scaled(cut.crop(box)).save(OUT / f"scythe-{side.lower()}.png")
+    # the right scythe, cut from the hero; the left is it mirrored about the centre line (see PIVOT)
+    px, py = PIVOT["R"]
+    hx, hy = SCYTHE_HALF
+    pad = Image.new("RGBA", (size[0] + 2 * hx, size[1] + 2 * hy), (0, 0, 0, 0))
+    pad.alpha_composite(with_alpha(hero, ha * blade_m["R"]), (hx, hy))
+    pad = scale_about(pad, BLADE_SCALE, (px + hx, py + hy))
+    cut = pad.crop((px, py, px + 2 * hx, py + 2 * hy))       # centred on the pivot
+    bbox = cut.getchannel("A").point(lambda v: 255 if v > 8 else 0).getbbox()
+    assert bbox[0] > 0 and bbox[1] > 0 and bbox[2] < 2 * hx and bbox[3] < 2 * hy, bbox
+    scaled(cut).save(OUT / "scythe-r.png")
+    scaled(cut.transpose(Image.FLIP_LEFT_RIGHT)).save(OUT / "scythe-l.png")
 
     for n, (m, (cx, cy), (rx, ry)) in feet.items():
         r = int(max(rx, ry) + 16)   # past the soft edge; square and centred on the foot
@@ -101,7 +107,7 @@ def main():
 
     for p in sorted(OUT.glob("*.png")):
         print(p.name, Image.open(p).size)
-    print("SCALE", SCALE, "HEAD_ROWS", HEAD_ROWS, "SCYTHE_BOX", SCYTHE_BOX, "PIVOT", PIVOT, "NECK", NECK,
+    print("SCALE", SCALE, "HEAD_ROWS", HEAD_ROWS, "BLADE_SCALE", BLADE_SCALE, "PIVOT", PIVOT, "NECK", NECK,
           "SHANK_W", SHANK_W)
 
 

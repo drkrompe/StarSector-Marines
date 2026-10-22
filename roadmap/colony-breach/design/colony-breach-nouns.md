@@ -366,7 +366,22 @@ Laws:
   an ordinary Runner to shoot.
 - Only a Runner carries, and only what it killed itself or finds loose. A
   Brute's or a Spitter's kill, or a body shot down by the company, stays where
-  it fell. No body is seized while no bore lives, because there is nowhere to
+  it fell.
+- **The swarm recycles its own dead.** A dead Runner lies loose, to be taken
+  up and dragged home like any load. At the bore it is worth half a colonist of
+  biomass, and it is counted apart (recycled), never as a seizure or a
+  delivery, so it raises no harvest beat. A Brute or a Spitter is too heavy and
+  is left to the creep.
+- **Attack packs and scavenger packs** (owner, 2026-10-21). The dead lie where
+  the fighting is, where every Runner has something to fight, so a bore sends
+  its surges out by turns as an attack pack and a scavenger pack, the latter
+  only while at least three of the swarm's dead lie loose. A scavenger goes for
+  the nearest of the dead anywhere on the field and drags it home, fighting only
+  what is already within its reach; with nothing left to fetch it attacks like
+  any Runner. Any Runner with nothing to fight also fetches the dead within
+  eight cells. So the killing ground in front of a defence is cleared by a
+  visible stream of carriers, each an ordinary Runner to shoot, and a pack out
+  scavenging is a pack not attacking. No body is seized while no bore lives, because there is nowhere to
   take it.
 - Never a power suit, a machine or a structure: harvest takes bodies on foot.
 - Evacuees in the cohort are never harvested while their escort lives: one
@@ -528,8 +543,9 @@ be able to collapse a bore that still has its colonies without taking losses;
 air is for after the ground push, or for after the colonies.
 
 Colonies stand on the bore's **growth sites**, a seeded ring of open cells
-round the mouth (`BoreGrowthSites`). Today only spore colonies use it; a
-later ground colony roots on the same sites (`hive-creep.md`).
+round the mouth (`BoreGrowthSites`). Only spore colonies use them; a ground
+colony roots out on the creep instead, against the gun it answers (Creep:
+Ground colony).
 
 **Creep carries the umbrella outward** (`CreepOutposts`). A living bore also
 seeds spore colonies of its current grade on its creep, away from the mouth:
@@ -564,6 +580,15 @@ its living spore colonies and the ticks it opened and collapsed.
 behaviour. A strain is a designed stage of the one organism (see *Origin*), not
 another animal: every strain is the Runner's body plan and chitin specialised
 for one job in the cycle, and reads that way on screen.
+
+A Runner, Brute or Matriarch casts one soft ellipse laid along its body rather
+than the round blob every other body casts: its drawn mass seen from above
+(`SwarmFootprint`, legs and spines left out), scaled by its growth stage, turned
+with its heading and set down-sun so its near edge sits on the body's centre,
+the same rule a round body's shadow keeps. One sprite a body, as every body
+casts, so a swarm's shadows cost what a squad's do; two blobs at shoulders and
+hips would double that and darken where they overlap, and a spine's bend does
+not read in a soft shadow at play zoom.
 
 - **Runner** — the shipped 20 HP melee body. Volume. It is drawn on its own
   skeleton (`RavRunnerRig`), not on the layered infantry composition: a hunched
@@ -654,22 +679,24 @@ for one job in the cycle, and reads that way on screen.
   cooldown, tell, masses, every hold time) are starting values in
   `BruteChargeRules`, to be felt out in play rather than settled on paper.
 
-  A second of not being able to act confuses unless the player sees why, so
-  the charge is shown four ways, all presentation over the rule: a faint amber
-  wedge along the line during the tell, with the other threat warnings; a
-  knocked-down body's picture lying as a fallen one does for that second,
-  with a ring of dust where it lands, while the sim keeps it upright; a quiet
-  amber arc on the ground under a Marine or hull that can't act, whatever made
-  it so, emptying as the hold runs out (a staggered mech shows only in its
-  stilled hips); and the squad card's status word naming the cause (knocked down, stalled,
-  staggered, stunned) ahead of engaged or wounded.
+  The charge is shown three ways, all presentation over the rule: a faint
+  amber wedge along the line during the tell, with the other threat warnings;
+  a knocked-down body's picture lying as a fallen one does for that second
+  while the sim keeps it upright; and the squad card's status word naming the
+  cause (knocked down, stalled, staggered, stunned) ahead of engaged or
+  wounded. Nothing is drawn on the ground under a body that can't act, no ring
+  or arc on a Marine, a hull or a mech (owner, 2026-10-21): a body thrown and
+  getting back up says what happened.
 
   Like the Runner it is drawn on its own skeleton (`RavBruteRig`): a plum,
   plated rhino-ram with a mace head on four boar's legs, the hooves under the
   body and the shanks over them. It walks, trots and gallops with the hips
   and shoulders swaying against each other; it plants its feet to stand, to
   brace for the tell and while it can't act, and gallops through a charge with
-  its head down. A blow is the whole body's, timed off the attack cooldown as
+  its head down. Its back gives: the body is drawn as front and rear halves
+  that meet in the middle of the back, and through a turn the spine bows into
+  it, stiffer and slower than a Runner's, the halves hinged at the outer edge
+  so they never open a gap. A blow is the whole body's, timed off the attack cooldown as
   the Runner's arms are: the weight goes back onto the hind legs and the
   forequarters rise, then it drives forward through the shoulders, the front
   hooves stamping down ahead and the head driving with them; a charge's hit
@@ -699,7 +726,8 @@ for one job in the cycle, and reads that way on screen.
   then hunts as a Brute does (an emplacement first), and every blow is an
   action that holds the body and lands part-way through, so it is seen coming.
   Infantry is reaped: one scythe sweeps across its front, right then left on
-  the next, cutting a handful in the arc. An emplacement, a hull or a mech
+  the next, cutting a handful in the arc and throwing whoever lives through it
+  down and across the sweep. An emplacement, a hull or a mech
   takes the crown. It breaks walls a Brute cannot (a fort's buildings, not its
   curtain until something has worn that down), from further off, and never
   walks round to a door. It is not staggered and does not charge. Until it has
@@ -725,8 +753,9 @@ spawn through `SwarmStrains`, like the Brute's plate, and fixed for the body's
 life; the Matriarch is the one exception. Stage scales presentation only
 through things the body already has: its rig's scale and stage-recoloured
 sprites, and its voice pitched by its size. Stats, the stage table and the
-reasons for each choice are in `rav-growth-stages.md` (stage, stats and size
-built; the age mix, packs and presentation planned).
+reasons for each choice are in `rav-growth-stages.md` (stage, stats, size, the
+age mix, packs and sound built; the per-stage art planned).
+`-Dbattle.swarm.growthStages=false` is the control: every body an adult.
 
 - **Age mix.** A surge's stages come from its bore, never from the director:
   each body draws a stage from a table keyed by the bore's tier (a fissure
@@ -738,16 +767,24 @@ built; the age mix, packs and presentation planned).
 - **Pack, pack leader.** A pack is the bodies of one pulse. Its first elder is
   its **pack leader** and is released at the head of the stream; a pulse with
   no elder has no leader, and its bodies hunt alone as every body did before
-  stages. While the leader lives, members on its leash share its quarry and
-  what it senses (still sensing, passed body to body) and strike faster. When
-  it dies the pack **breaks** for good: the bonuses go, members scatter to
-  their own quarry, and its whelps bolt back toward the bore for a moment. A
-  pack never elects a new leader.
+  stages. While the leader lives, members on its eight-cell leash share its
+  quarry when they have none of their own close by (local pursuit; the flow
+  field is untouched), pool what any of them senses (still sensing, passed body
+  to body, a tick behind), and strike 15% faster. The leader's cry on new
+  quarry is the pack's: a member taking the leader's quarry stays quiet. When
+  it dies the pack **breaks** for good, heard as one scatter shriek at the
+  leader's stage: the bonuses go at once, members drop their quarry and for two
+  seconds hunt only what they sense themselves, and its whelps bolt back down
+  the bore field for four, dropping what they carry. A pack never elects a new
+  leader; a body out of any led pack (a leaderless pulse, a broken pack) joins
+  a leader whose leash it comes within, which is how two surges merge.
+  `-Dbattle.swarm.packLeaders=false` is the control: no pack forms.
 - **The Matriarch's stage** is set by how long the mother bore has been
   feeding (its lifetime biomass when she emerges), within a narrower range of
   size than the small strains'. Because she is fed from her mother, she steps
   up a stage in the field when the mother is fed past the next threshold.
-  She leads every pack within her leash.
+  She leads every pack within her leash: an elder that comes within it defers
+  to her and brings its pack, so killing her breaks them all at once.
 - **Clearance.** Every stage of the small strains keeps a sim radius under half
   a cell, so the shared flow fields serve every body; an elder Brute is drawn
   and shoved larger than it navigates, and squeezes through a door it fills. The crowding capsule scales with stage.
@@ -794,7 +831,8 @@ unmistakably wrong, and it is the only ground the hive's static growths stand on
 away from a bore's mouth. A ground colony (anti-infantry, anti-emplacement)
 roots only on creep. Creep recedes when its bore collapses. Mobile strains never
 gain ranged attacks to answer fortifications: static growth on creep does that.
-In `hive-creep.md`.
+Its look is the owner's pick (build 1 of the hard-edge studies) and is costed
+against its own control in `renderEvidence`.
 
 - **Creep is a field the battle owns** (`CreepField`): per cell, how much
   growth stands there, whether it is alive, and how far it is from the source
@@ -814,6 +852,37 @@ In `hive-creep.md`.
   crossed, and filled over about a minute and a half rather than at once: its
   coverage is its age, so a newly reached wall carries only veins and an old
   one is crusted over. It reads as a matter of time.
+- **A ground colony answers a gun the swarm cannot rush** (`GroundColonies`).
+  A living bore grows one on its creep within reach of a hostile emplacement
+  the creep has come up against: on living creep with creep round it, inside
+  the bore's own creep reach, spaced from every bore and colony, once the cell
+  has stood good a while, and up to a cap by tier (1, 2, 3). It is a gun of the
+  swarm's side: spines driven up from below on whatever stands in its short
+  reach, indirect, with a small blast that also breaks walls beside the target,
+  so a gun behind a wall is not safe from it. It dies with its bore, and as soon
+  as the creep under it is no longer living. `ground-colony` (`sceneEvidence`)
+  holds the mechanics; `-Dbattle.swarm.groundColonies=false` is the control.
+- **The creep digests the swarm's dead** (`CreepDigestion`). A strain body
+  lying on living creep sinks into it over about twenty-five seconds, drawn
+  smaller and fainter after its first third, and is gone; a body off the creep
+  keeps what it had digested and waits for the creep to reach it, and a body
+  being dragged is lying nowhere. Only the swarm's own: Marines, militia and
+  colonists are the harvest's. It is what keeps a long battle on the creep from
+  piling up corpses, and it gives nothing back to the field.
+- **Creep favours the swarm and shelters no one** (`CreepEffects`). A swarm
+  body runs a quarter faster on living creep; Marines and colonists are never
+  slowed, so creep reads as the swarm's ground rather than mud. A fleeing or
+  wandering colonist may cross creep but never stops on it: creep is no refuge.
+- **Creep brings roofs down under its weight** (`CreepRoofCollapse`). A
+  building's roof gives way where living creep has stood beneath it for a minute
+  to a minute and a half: first beside a wall the creep has crusted, then inward
+  a cell every few seconds from each roof already down (to creep or to a shell),
+  each cell on its own seeded timing so a building sags open rather than falling
+  in lockstep. A cave-in is the same one war damage makes: rubble on the floor,
+  and the roof, sight and cover follow it. Creep that withers stops the count;
+  a roof that fell stays fallen. The battle keeps its own clock per cell, so the
+  creep field knows nothing of roofs. An infested building is no shelter twice
+  over: no colonist stops in it, and given time it has no roof.
 - **The look is the field drawn, never a second model.** The creep is a hard
   organic edge, not a spill: an opaque surface of grown chitin plates over a
   membrane, rolled up into a raised, beaded lip where it stops, veined, with a
@@ -1046,7 +1115,11 @@ on infantry, a vehicle or a wall, the stun after a heavy wall or a tank), keyed
 to the charge's own events; a Runner's impale has its own sound, posted as a cue
 by the story that adds it. Each strain's sound is admitted under its own gap and
 footfalls come from the few bodies nearest the listener, so a pack reads as a
-pack, and the swarm is heard only on ground the player has seen. The Spitter has
+pack, and the swarm is heard only on ground the player has seen. A body's growth
+stage pitches everything it makes by the inverse of its size and sets its
+loudness (a whelp about four semitones up and quieter, an elder deeper and
+louder): one take heard three ways stays the same creature. A pack's break is
+one scatter shriek, the leader's own cry at the leader's stage. The Spitter has
 no voice; the Matriarch's sounds wait for its design and join as a strain of
 their own (its catalogued roar was rejected and is redone once the design
 settles).

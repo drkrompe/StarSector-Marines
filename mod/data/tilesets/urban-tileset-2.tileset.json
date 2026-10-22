@@ -45,15 +45,6 @@
       ]
     },
     {
-      "damageBlock": "terrain.blast-metal",
-      "id": "road.lz-marker",
-      "layout": "single",
-      "origin": [
-        15,
-        0
-      ]
-    },
-    {
       "id": "road.embankment",
       "layout": "wall-3x3",
       "origin": [
@@ -296,12 +287,6 @@
       "description": "road-se",
       "name": "road.road se",
       "row": 2
-    },
-    {
-      "col": 15,
-      "description": "grate-2",
-      "name": "road.lz-marker only",
-      "row": 0
     },
     {
       "col": 0,

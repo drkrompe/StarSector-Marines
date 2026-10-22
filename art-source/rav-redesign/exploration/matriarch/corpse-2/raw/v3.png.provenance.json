@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16100-ee9a-7ef2-b034-98479d117920",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16100-ee9a-7ef2-b034-98479d117920\\exec-7262399b-be3c-40f8-9d5d-314a4bfea549.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\matriarch\\corpse-2\\raw\\v3.png",
+    "sha256": "5b3dacd739595806f020338ccec853cb7b362dc6dc6ec540a3e5e436c4303b1a",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\matriarch\\corpse-2\\prompts\\v3.prompt.txt",
+  "promptSha256": "9bc33348654efecdc3f9186dce7dbab72f7008e0350e4209ada29ba90f5046c2",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity, palette, finish and scale authority: the living Matriarch; the corpse is this creature dead\nImage 2: The chosen corpse (broken back): design, palette, finish and scale authority; the new image is a different pose of this same death\n\nTop-down concept for a tactical game (Starsector mod: Marines against an engineered biological weapon, the Rav Bloom). The CORPSE of the MATRIARCH, the swarm's boss-scale mother strain, killed in battle, lying where it fell on the ground of a colony. Reference image 1 is the living Matriarch: keep its identity, palette, finish and scale exactly (a huge, heavily plated quadruped: matte charcoal-black plates with dried-blood red on the worn edges, deep wine-red sinew in every gap, a vast fan-shaped crown of yellowed ivory bone spikes over the head, two curved ivory scythes from under the crown's rim, clawed feet). It must read at a glance, at small size, as the same creature now DEAD: no amber in the eyes (dull and dark), limp, broken, with dark wine-red ichor pooled around it and splashed on the ground, a few shed plates and bone splinters scattered nearby. The silhouette must differ clearly from the living creature standing. It stays about the same size as reference image 1. Not gory close-up: a game corpse sprite seen from high above. Strict overhead orthographic view, camera looking straight down, the whole corpse and its ichor pool inside the frame, light from the upper left. Plain flat light grey background (#b4b4b4), no ground texture, no shadow beyond the ichor, no text, no border.\n\nThis corpse: BROKEN BACK, a variant of reference image 2 (the chosen death; keep its design, palette, finish and scale, change only the pose): broken at the middle of the spine, the hindquarters rolled over onto their side with the hind legs stiff in the air, the front half still belly-down with the crown flat on the ground and both long curved scythes splayed out flat on either side of the crown.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-matriarch\\raw\\hero.png",
+      "sha256": "9f2820dbf0752bc5172bbd209d0de312eee14488150839bcd23c368429ea33b6",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Identity, palette, finish and scale authority: the living Matriarch; the corpse is this creature dead"
+    },
+    {
+      "path": "art-source\\rav-redesign\\exploration\\matriarch\\corpse-1\\raw\\c5.png",
+      "sha256": "16f409f5e27c9f8a786842c292ba59b19837fb4ee1e475224b1a121a93e5266f",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "The chosen corpse (broken back): design, palette, finish and scale authority; the new image is a different pose of this same death"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using both references, preserving the creature’s design and changing the broken-back pose as specified.\n"
+  ],
+  "usage": {
+    "input_tokens": 45197,
+    "cached_input_tokens": 34432,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 609,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 50.5
+}

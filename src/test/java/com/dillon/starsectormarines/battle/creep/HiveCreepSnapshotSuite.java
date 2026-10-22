@@ -22,12 +22,13 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * The look of hive creep on the canonical colony (`hive-creep.md`).
+ * The look of hive creep on the canonical colony (`colony-breach-nouns.md`, Creep).
  *
  * <p>The colony fixture is stood up and every eruption site opens on the breach
  * schedule as a creep source; only the creep field is advanced, so the town,
  * its people and the company stay where setup put them and the frames are
- * about the growth. Whole-map stills at two, four and six minutes into the
+ * about the growth, with the roofs it has stood on long enough caving in
+ * ({@link CreepRoofCollapse}). Whole-map stills at two, four and six minutes into the
  * outbreak (the key image is the last: the colony must read as infested),
  * the same with roofs on as the game draws it, close views of a bore and of a
  * spreading edge, the pulse running toward its source, and a bore's creep
@@ -38,6 +39,8 @@ public final class HiveCreepSnapshotSuite implements SnapshotSuite {
     private static final String FIXTURE = "/battle-fixtures/colony-breach-v1.json";
     private static final int FRAME_W = 1920, FRAME_H = 1080;
     private static final int TICKS_PER_MINUTE = 1800;
+    /** The cave-in's draws; the review replays the creep alone, outside the battle's own systems. */
+    private static final long ROOF_SEED = 20261021L;
 
     @Override public String id() { return "hive-creep"; }
 
@@ -107,6 +110,7 @@ public final class HiveCreepSnapshotSuite implements SnapshotSuite {
         final BattleSimulation sim;
         final List<ColonyEruptionPlan.Site> sites;
         final boolean[] opened;
+        final CreepRoofCollapse roofs;
         int tick;
         long tickNanos, worstTickNanos;
         int ticks;
@@ -115,6 +119,7 @@ public final class HiveCreepSnapshotSuite implements SnapshotSuite {
             this.sim = sim;
             this.sites = sites;
             this.opened = new boolean[sites.size()];
+            this.roofs = new CreepRoofCollapse(ROOF_SEED);
         }
 
         void runTo(int target) {
@@ -131,6 +136,7 @@ public final class HiveCreepSnapshotSuite implements SnapshotSuite {
                 tickNanos += spent;
                 worstTickNanos = Math.max(worstTickNanos, spent);
                 ticks++;
+                if (tick % CreepRoofCollapse.CHECK_TICKS == 0) roofs.look(sim, tick);
             }
         }
 

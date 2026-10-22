@@ -66,6 +66,17 @@ import java.util.concurrent.ConcurrentHashMap;
  * the death drain and {@link #tick} runs after it. The parallel update only
  * reads, and nothing writes while it runs.
  *
+ * <p><b>The swarm recycles its own dead.</b> A dead Runner lies loose like a
+ * dropped body, and a Runner with nothing to fight goes to the nearest within
+ * {@link #SCAVENGE_RADIUS} ({@link #nearestRecyclable}), takes it up and drags it to
+ * the bore, where it is worth {@link #RAV_BODY_BIOMASS} of a colonist. A Runner
+ * still fighting leaves its dead where they fell, and a recycled body is counted
+ * apart from the harvest ({@link #recycled}): it is not a harvest beat. Since
+ * the dead lie where the fighting is, a bore also sends out scavenger packs
+ * ({@link #markScavenger}): a scavenger fetches the nearest of the dead anywhere
+ * on the field, fighting only what is already within its reach, and attacks like
+ * any Runner once nothing is left to fetch.
+ *
  * <p>{@code -Dbattle.colonyBreach.harvest=false} is the control: Runners leave
  * the dead where they fall, as they did before harvest.
  * {@code -Dbattle.colonyBreach.impale=false} keeps harvest and turns impales
@@ -92,6 +103,12 @@ public final class SwarmHarvest {
     public static final float RECOVERY_SECONDS = 3f;
     /** Damage that takes a held body at the bore's mouth. */
     private static final float TAKING_DAMAGE = 1_000_000f;
+    /** A Runner's own body fed back into a bore, in colonists' worth of biomass. */
+    public static final float RAV_BODY_BIOMASS = 0.5f;
+    /** How far a Runner with nothing to fight goes to fetch one of the swarm's dead, cells. */
+    public static final float SCAVENGE_RADIUS = 8f;
+    /** A bore sends a scavenger pack only while at least this many of the swarm's dead lie loose. */
+    public static final int SCAVENGER_PACK_MIN_DEAD = 3;
 
     /** Whether harvest runs. {@code -Dbattle.colonyBreach.harvest=false} is the control. */
     public static boolean enabledByDefault() {
@@ -123,6 +140,10 @@ public final class SwarmHarvest {
     private final ConcurrentHashMap<Long, Long> impales = new ConcurrentHashMap<>();
     /** Bodies a Runner struck that died this tick, in death order. */
     private final List<Long> fallen = new ArrayList<>();
+    /** Runners that died this tick: their bodies go loose for the swarm to recycle. */
+    private final List<Long> fallenRunners = new ArrayList<>();
+    /** Runners of a scavenger pack: they fetch the swarm's dead before they fight. */
+    private final Set<Long> scavengers = new HashSet<>();
     /** Carrier to load, in the order they were seized. */
     private final LinkedHashMap<Long, Long> loads = new LinkedHashMap<>();
     /** Carrier to the share of its own pace it drags at, by its stage. */
@@ -141,6 +162,7 @@ public final class SwarmHarvest {
     private final List<Event> eventView = Collections.unmodifiableList(events);
     private boolean open;
     private int seized;
+    private int recycled;
     private int delivered;
     private int dropped;
     private int impaled;
@@ -232,6 +254,43 @@ public final class SwarmHarvest {
     public int carrying() { return loads.size(); }
 
     /**
+     * The nearest of the swarm's own dead lying loose within {@code radius} of (x, y), lowest id on
+     * a tie, or 0. Read from the parallel unit update, which only reads harvest state.
+     */
+    public long nearestRecyclable(BattleSimulation sim, float x, float y, float radius) {
+        if (!open || loose.isEmpty()) return 0L;
+        long best = 0L;
+        float bestDistance = radius * radius;
+        for (int i = 0, n = loose.size(); i < n; i++) {
+            long body = loose.get(i);
+            if (!sim.world().hasPosition(body) || !isRavBody(sim, body)) continue;
+            float dx = sim.world().x(body) - x, dy = sim.world().y(body) - y;
+            float distance = dx * dx + dy * dy;
+            if (distance < bestDistance || distance == bestDistance && body < best) {
+                best = body;
+                bestDistance = distance;
+            }
+        }
+        return best;
+    }
+
+    /** How many of the swarm's dead lie loose for recycling now. */
+    public int recyclableCount(BattleSimulation sim) {
+        int count = 0;
+        for (long body : loose) if (sim.world().hasPosition(body) && isRavBody(sim, body)) count++;
+        return count;
+    }
+
+    /** Marks a Runner as one of a scavenger pack. Called serially, as a surge releases it. */
+    public void markScavenger(long runner) { scavengers.add(runner); }
+
+    /** Whether this Runner came out of its bore in a scavenger pack. */
+    public boolean isScavenger(long runner) { return scavengers.contains(runner); }
+
+    /** The swarm's own dead dragged back into a bore. */
+    public int recycled() { return recycled; }
+
+    /**
      * A Runner landed a blow on {@code target}. Called from the parallel unit
      * update; if the blow kills, the death drain finds it here.
      */
@@ -274,6 +333,7 @@ public final class SwarmHarvest {
     public void onDeath(DeathEvent event) {
         long id = event.unitId();
         if (strikes.containsKey(id)) fallen.add(id);
+        else fallenRunners.add(id);
     }
 
     /**
@@ -295,6 +355,9 @@ public final class SwarmHarvest {
                     if (runner != null && mayCarry(sim, runner) && harvestable(sim, body)) seize(sim, runner, body);
                 }
                 takeImpaled(sim, tick);
+                for (long body : fallenRunners) {
+                    if (isRavBody(sim, body) && sim.world().hasPosition(body) && !loose.contains(body)) loose.add(body);
+                }
                 takeUpLoose(sim);
             } else {
                 loose.removeIf(body -> !sim.world().hasPosition(body));
@@ -303,6 +366,7 @@ public final class SwarmHarvest {
         strikes.clear();
         impales.clear();
         fallen.clear();
+        fallenRunners.clear();
         open = enabled && boreLives;
     }
 
@@ -360,6 +424,11 @@ public final class SwarmHarvest {
                 && !loads.containsKey(runner);
     }
 
+    /** A dead Runner: the one body the swarm takes back from its own. */
+    static boolean isRavBody(BattleSimulation sim, long body) {
+        return sim.identity().type(body) == UnitType.SWARM_RUNNER;
+    }
+
     private void seize(BattleSimulation sim, long runner, long body) {
         loads.put(runner, body);
         carrierPace.put(runner, SwarmStageStats.dragPace(sim.identity().swarmStage(runner)));
@@ -368,6 +437,7 @@ public final class SwarmHarvest {
         sim.clearPath(runner);
         sim.combat().setTargetId(runner, 0L);
         trail(sim, body, sim.world().x(runner), sim.world().y(runner));
+        if (isRavBody(sim, body)) return;
         sim.swarmCues().post(SwarmCues.Kind.DRAG, runner, sim);
         seized++;
         if (firstHarvestTick < 0) firstHarvestTick = sim.getSimTickIndex();
@@ -421,7 +491,7 @@ public final class SwarmHarvest {
                     free(sim, body, tick);
                 } else {
                     loose.add(body);
-                    dropped++;
+                    if (!isRavBody(sim, body)) dropped++;
                 }
                 continue;
             }
@@ -429,11 +499,14 @@ public final class SwarmHarvest {
             trail(sim, body, cx, cy);
             SwarmBore bore = bores.nearestLiving(cx, cy);
             float dx = bore.x() + 0.5f - cx, dy = bore.y() + 0.5f - cy;
-            if (dx * dx + dy * dy <= DELIVER_RADIUS * DELIVER_RADIUS && bores.feed(sim, bore, 1f)) {
+            boolean rav = !alive && isRavBody(sim, body);
+            if (dx * dx + dy * dy <= DELIVER_RADIUS * DELIVER_RADIUS
+                    && bores.feed(sim, bore, rav ? RAV_BODY_BIOMASS : 1f)) {
                 release(carrier, body);
                 if (alive) take(sim, carrier, body, tick);
                 consume(sim, body, bore);
-                delivered++;
+                if (rav) recycled++;
+                else delivered++;
             }
         }
     }
@@ -457,6 +530,23 @@ public final class SwarmHarvest {
         events.add(new Event(tick, EventKind.TAKEN, body, faction));
     }
 
+    /**
+     * Serial: {@code carrier} lets go of its load where it stands, as a whelp
+     * does when it bolts. A living load is freed; a dead one lies loose for
+     * another carrier.
+     */
+    public void drop(BattleSimulation sim, long carrier) {
+        Long body = loads.get(carrier);
+        if (body == null) return;
+        release(carrier, body);
+        if (sim.resolveUnit(body) != 0L && sim.world().isAlive(body)) {
+            free(sim, body, sim.getSimTickIndex());
+        } else {
+            loose.add(body);
+            dropped++;
+        }
+    }
+
     private void release(long carrier, long body) {
         loads.remove(carrier);
         carrierPace.remove(carrier);
@@ -474,11 +564,14 @@ public final class SwarmHarvest {
             }
             float x = sim.world().x(body), y = sim.world().y(body);
             sim.getUnitIndex().gatherFaction(x, y, SEIZE_RADIUS + 1f, Faction.DEFENDER, near);
+            boolean rav = isRavBody(sim, body);
             long best = 0L;
             float bestDistance = SEIZE_RADIUS * SEIZE_RADIUS;
             for (int i = 0; i < near.size; i++) {
                 long runner = near.ids[i];
                 if (!mayCarry(sim, runner)) continue;
+                // the swarm's own dead are taken up only by a Runner with nothing to fight
+                if (rav && sim.combat().targetId(runner) != 0L) continue;
                 float dx = sim.world().x(runner) - x, dy = sim.world().y(runner) - y;
                 float distance = dx * dx + dy * dy;
                 if (distance < bestDistance || distance == bestDistance && runner < best) {

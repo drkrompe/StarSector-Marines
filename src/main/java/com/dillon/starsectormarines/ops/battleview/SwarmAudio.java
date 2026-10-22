@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.evacuation.SwarmCues;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.SwarmStage;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.fs.starfarer.api.Global;
@@ -36,7 +37,11 @@ import java.util.concurrent.ThreadLocalRandom;
  *       battle's deaths this frame.</li>
  * </ul>
  * Played positionally with pitch jitter, heard only on ground the player has
- * seen. A swarm is many bodies doing the same thing at once, so each sound is
+ * seen. A body's growth stage pitches everything it makes by the inverse of its
+ * size and sets its loudness ({@link #pitch}, {@link #volume}): one take heard
+ * three ways, so a whelp pack chitters high and light and an elder is deeper
+ * and louder, and still the same creature. A pack's break is one scatter
+ * shriek, the leader's own cry at the leader's stage. A swarm is many bodies doing the same thing at once, so each sound is
  * admitted under its own wall-time gap and footfalls are drawn from the few
  * bodies nearest the listener: a pack reads as a pack, not as forty copies of
  * one clip. Presentation only; nothing here reaches the simulation.
@@ -140,7 +145,7 @@ public final class SwarmAudio {
     }
 
     /** A footfall waiting for the per-frame budget. */
-    private record Step(Sound sound, float x, float y, float distanceSquared) { }
+    private record Step(Sound sound, float x, float y, float distanceSquared, UnitType strain, SwarmStage stage) { }
 
     private SwarmAudio() { }
 
@@ -153,13 +158,14 @@ public final class SwarmAudio {
         if (!mix.frame(sim.getSimTickIndex())) return;
         long now = System.nanoTime();
         for (SwarmCues.Cue cue : sim.swarmCues().cuesThisFrame())
-            emit(sim, mix, sound(cue.kind(), cue.strain()), cue.x(), cue.y(), now);
+            emit(sim, mix, sound(cue.kind(), cue.strain()), cue.x(), cue.y(), now, cue.strain(), cue.stage());
         LongList deaths = sim.getDeathsThisFrame();
         for (int i = 0; i < deaths.size(); i++) {
             long body = deaths.getLong(i);
             UnitType type = sim.identity().type(body);
             if (!type.isSwarm()) continue;
-            emit(sim, mix, death(type), sim.world().renderX(body), sim.world().renderY(body), now);
+            emit(sim, mix, death(type), sim.world().renderX(body), sim.world().renderY(body), now,
+                    type, sim.identity().swarmStage(body));
         }
         bodies(sim, mix, listenerX, listenerY, now);
     }
@@ -175,10 +181,11 @@ public final class SwarmAudio {
             if (!type.isSwarm()) continue;
             float x = sim.world().renderX(body);
             float y = sim.world().renderY(body);
+            SwarmStage stage = sim.identity().swarmStage(body);
             float hp = sim.world().hp(body);
             float priorHp = Float.intBitsToFloat(mix.health.get(body));
             mix.seenHealth.put(body, Float.floatToRawIntBits(hp));
-            if (hp > 0f && priorHp - hp >= PAIN_THRESHOLD) emit(sim, mix, pain(type), x, y, now);
+            if (hp > 0f && priorHp - hp >= PAIN_THRESHOLD) emit(sim, mix, pain(type), x, y, now, type, stage);
             if (!world.has(body, components.MOVEMENT)) continue;
             float phase = world.getFloat(body, components.MOVEMENT, BattleComponents.MOVEMENT_GAIT_PHASE);
             float priorPhase = Float.intBitsToFloat(mix.gait.get(body));
@@ -189,13 +196,13 @@ public final class SwarmAudio {
             float d2 = dx * dx + dy * dy;
             if (!(d2 <= FOOTFALL_RANGE_CELLS * FOOTFALL_RANGE_CELLS)) continue;
             Sound step = footfall(type, ++mix.strides, sim.swarmHarvest().isCarrier(body));
-            if (step != null) steps.add(new Step(step, x, y, d2));
+            if (step != null) steps.add(new Step(step, x, y, d2, type, stage));
         }
         mix.settle();
         steps.sort(Comparator.comparingDouble(Step::distanceSquared));
         for (int i = 0; i < Math.min(FOOTFALLS_PER_FRAME, steps.size()); i++) {
             Step step = steps.get(i);
-            emit(sim, mix, step.sound(), step.x(), step.y(), now);
+            emit(sim, mix, step.sound(), step.x(), step.y(), now, step.strain(), step.stage());
         }
     }
 
@@ -225,7 +232,7 @@ public final class SwarmAudio {
     static Sound sound(SwarmCues.Kind kind, UnitType strain) {
         if (strain == UnitType.SWARM_RUNNER) {
             return switch (kind) {
-                case ALERT -> Sound.RUNNER_CRY;
+                case ALERT, PACK_BROKEN -> Sound.RUNNER_CRY;
                 case STRIKE -> Sound.RUNNER_STRIKE;
                 case IMPALE -> Sound.RUNNER_IMPALE;
                 case DRAG -> Sound.BODY_LATCH;
@@ -234,7 +241,7 @@ public final class SwarmAudio {
         }
         if (heavy(strain)) {
             return switch (kind) {
-                case ALERT -> Sound.BRUTE_BELLOW;
+                case ALERT, PACK_BROKEN, MOULT -> Sound.BRUTE_BELLOW;
                 case STRIKE, WALL_BLOW -> Sound.BRUTE_IMPACT;
                 case WALL_BREAK -> Sound.BRUTE_WALL_BREAK;
                 case CHARGE_TELL -> Sound.BRUTE_CHARGE_TELL;
@@ -267,11 +274,26 @@ public final class SwarmAudio {
         return null;
     }
 
-    private static void emit(BattleSimulation sim, Mix mix, Sound sound, float x, float y, long now) {
+    /** A body's pitch by its stage: the inverse of its drawn size, so a whelp is about four semitones up. */
+    static float pitch(UnitType strain, SwarmStage stage) {
+        return 1f / SwarmStage.of(stage).scale(strain);
+    }
+
+    /** A body's loudness by its stage, against the adult's. */
+    static float volume(SwarmStage stage) {
+        return switch (SwarmStage.of(stage)) {
+            case WHELP -> 0.85f;
+            case ADULT -> 1f;
+            case ELDER -> 1.15f;
+        };
+    }
+
+    private static void emit(BattleSimulation sim, Mix mix, Sound sound, float x, float y, long now,
+                             UnitType strain, SwarmStage stage) {
         if (sound == null || !sim.getFogOfWar().isCellRevealed((int) Math.floor(x), (int) Math.floor(y))) return;
         if (!mix.admit(sound, now)) return;
-        float pitch = 1f + ThreadLocalRandom.current().nextFloat(-PITCH_JITTER, PITCH_JITTER);
-        Global.getSoundPlayer().playSound(sound.id, pitch, sound.volume,
+        float pitch = pitch(strain, stage) * (1f + ThreadLocalRandom.current().nextFloat(-PITCH_JITTER, PITCH_JITTER));
+        Global.getSoundPlayer().playSound(sound.id, pitch, sound.volume * volume(stage),
                 new Vector2f(x * BattleShotAudio.WORLD_UNITS_PER_CELL, y * BattleShotAudio.WORLD_UNITS_PER_CELL),
                 new Vector2f(0f, 0f));
     }

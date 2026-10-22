@@ -50,6 +50,10 @@ public final class SwarmPressureBehavior implements UnitBehavior {
 
     @Override
     public void update(long runner, BattleSimulation sim) {
+        if (sim.swarmPacks().bolting(runner)) {
+            bolt(runner, sim);
+            return;
+        }
         // Every strain keeps the SWARM_PRESSURE role, so the director, hit response and
         // evidence see one swarm; what differs is what a body does with a target.
         switch (sim.identity().type(runner)) {
@@ -64,13 +68,24 @@ public final class SwarmPressureBehavior implements UnitBehavior {
             return;
         }
         long previousTarget = sim.combat().targetId(runner);
+        if (scavenge(runner, previousTarget, sim)) return;
         long target = selectTarget(runner, sim);
         sim.combat().setTargetId(runner, target);
         if (target == 0L) {
+            // nothing to fight: fetch the nearest of the swarm's dead home, if one lies near
+            long dead = sim.swarmHarvest().nearestRecyclable(sim, sim.world().x(runner), sim.world().y(runner),
+                    SwarmHarvest.SCAVENGE_RADIUS);
+            if (dead != 0L) {
+                SwarmMovement.pathDirect(runner, sim.world().cellX(dead), sim.world().cellY(dead), false, sim);
+                return;
+            }
             updateRoaming(runner, previousTarget, sim);
             return;
         }
-        if (target != previousTarget) sim.swarmCues().post(SwarmCues.Kind.ALERT, runner, sim);
+        // A member that took its leader's quarry is the pack's cry, which the leader gave.
+        if (target != previousTarget && !sim.swarmPacks().followsLeader(runner, target, sim)) {
+            sim.swarmCues().post(SwarmCues.Kind.ALERT, runner, sim);
+        }
 
         float dx = sim.world().x(target) - sim.world().x(runner);
         float dy = sim.world().y(target) - sim.world().y(runner);
@@ -89,13 +104,53 @@ public final class SwarmPressureBehavior implements UnitBehavior {
                     harvest.struck(target, runner);
                 }
                 sim.swarmCues().post(SwarmCues.Kind.STRIKE, runner, sim);
-                sim.combat().setCooldownTimer(runner,
-                        sim.combat().attackCooldown(runner));
+                sim.combat().setCooldownTimer(runner, strikeCooldown(runner, sim));
             }
             return;
         }
 
         pressToward(runner, target, target != previousTarget, sim);
+    }
+
+    /**
+     * A Runner of a scavenger pack fetches the nearest of the swarm's dead anywhere on the field,
+     * unless what it was fighting is already within its reach. Returns whether it went scavenging;
+     * with nothing left to fetch it fights like any Runner.
+     */
+    private static boolean scavenge(long runner, long previousTarget, BattleSimulation sim) {
+        SwarmHarvest harvest = sim.swarmHarvest();
+        if (!harvest.isScavenger(runner)) return false;
+        if (previousTarget != 0L && sim.resolveUnit(previousTarget) != 0L && sim.world().isAlive(previousTarget)) {
+            float dx = sim.world().x(previousTarget) - sim.world().x(runner);
+            float dy = sim.world().y(previousTarget) - sim.world().y(runner);
+            float reach = sim.combat().attackRange(runner);
+            if (dx * dx + dy * dy <= reach * reach) return false;
+        }
+        long dead = harvest.nearestRecyclable(sim, sim.world().x(runner), sim.world().y(runner), Float.MAX_VALUE);
+        if (dead == 0L) return false;
+        sim.combat().setTargetId(runner, 0L);
+        SwarmMovement.pathDirect(runner, sim.world().cellX(dead), sim.world().cellY(dead), false, sim);
+        return true;
+    }
+
+    /**
+     * The cooldown a body's blow starts: its own, shortened while it is on a
+     * living pack leader's leash ({@link SwarmPacks#TEMPO}).
+     */
+    static float strikeCooldown(long body, BattleSimulation sim) {
+        return sim.swarmPacks().cooldown(body, sim.combat().attackCooldown(body), sim);
+    }
+
+    /**
+     * A whelp of a broken pack runs back down the bore field toward its bore
+     * for a few seconds, then hunts again ({@link SwarmPacks#bolting}).
+     */
+    private static void bolt(long body, BattleSimulation sim) {
+        tickCooldown(body, sim);
+        sim.combat().setTargetId(body, 0L);
+        if (SwarmMovement.moveToward(body, SwarmGoal.BORE, sim)) return;
+        SwarmBore bore = sim.swarmBores().nearestLiving(sim.world().x(body), sim.world().y(body));
+        if (bore != null) SwarmMovement.pathDirect(body, bore.x(), bore.y(), false, sim);
     }
 
     /**
@@ -216,8 +271,17 @@ public final class SwarmPressureBehavior implements UnitBehavior {
      * away from civilians without making the swarm oscillate between nearly
      * equidistant victims. When no local target is sensed, a runner continues
      * toward remembered prey or falls back to the nearest marine.
+     *
+     * <p>A body on a living pack leader's leash also weighs what the pack
+     * senses, and takes the leader's quarry when it has none of its own close
+     * by ({@link SwarmPacks}). A body scattering from a broken pack keeps no
+     * remembered quarry and no far fallback: it takes the nearest it senses.
      */
     public static long selectTarget(long runner, BattleSimulation sim) {
+        return sim.swarmPacks().sharedQuarry(runner, ownTarget(runner, sim), sim);
+    }
+
+    private static long ownTarget(long runner, BattleSimulation sim) {
         CivilianEvacuationTracker tracker =
                 sim.getCivilianEvacuationTracker();
         boolean shelterProtected = sim.isCivilianShelterProtected();
@@ -226,7 +290,8 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         int runnerCellX = (int) Math.floor(runnerPosX);
         int runnerCellY = (int) Math.floor(runnerPosY);
         float senseRange = sim.vision().visionRange(runner);
-        long current = sim.combat().targetId(runner);
+        boolean scattering = sim.swarmPacks().scattering(runner);
+        long current = scattering ? 0L : sim.combat().targetId(runner);
         boolean currentValid = isEligibleRememberedTarget(
                 current, tracker, shelterProtected, sim);
         long best = 0L;
@@ -295,6 +360,20 @@ public final class SwarmPressureBehavior implements UnitBehavior {
             }
         }
 
+        // What the pack senses, it senses: passed body to body along the leash.
+        for (long candidate : sim.swarmPacks().sharedContacts(runner, sim)) {
+            if (!isEligibleRememberedTarget(candidate, tracker, shelterProtected, sim)) continue;
+            // Only a Runner harvests: another strain does not take a colonist off the pack.
+            if (isHarvestPrey(candidate, tracker, sim)
+                    && sim.identity().type(runner) != UnitType.SWARM_RUNNER) continue;
+            float distance = distanceSquared(runnerPosX, runnerPosY,
+                    sim.world().x(candidate), sim.world().y(candidate));
+            if (isBetter(candidate, distance, best, bestDistance)) {
+                best = candidate;
+                bestDistance = distance;
+            }
+        }
+
         if (best != 0L) {
             if (currentValid) {
                 if (current == best) return current;
@@ -310,6 +389,7 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         }
 
         if (currentValid) return current;
+        if (scattering) return 0L;
 
         // Strategic pressure fallback: the swarm still advances when all
         // marines are beyond local sensing range, but civilians remain unknown

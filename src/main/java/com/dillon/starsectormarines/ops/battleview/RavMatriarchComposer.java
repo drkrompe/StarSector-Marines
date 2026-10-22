@@ -5,8 +5,9 @@ import com.dillon.starsectormarines.battle.appearance.RavMatriarchRig;
 /**
  * Draws a Matriarch from its skeleton, seen from above, as the approved motion study 4 draws it: a shank
  * from inside the body down to each foot, the feet over them, the body over both along the line from the
- * hips to the shoulders, the scythes about their pivots under the crown's rim, and the head on top. A
- * scythe swung forward past the crown's rim crosses over the head. Ported from
+ * hips to the shoulders, the scythes about their pivots under the crown's rim (long enough that the reap
+ * reads past the crown), and the head on top. A scythe swung forward past the crown's rim crosses over the
+ * head. Ported from
  * {@code art-source/rav-redesign/exploration/motion_matriarch.py}.
  */
 final class RavMatriarchComposer {
@@ -17,9 +18,8 @@ final class RavMatriarchComposer {
     /** Layer rows: the canvas centre, the neck pivot, and the head sprites' centre (they are rows 0..672). */
     private static final float CANVAS_CENTRE_ROW = 768f, NECK_ROW = 470f, HEAD_CENTRE_ROW = 336f;
     private static final float CENTRE_COL = 512f;
-    /** Each scythe's pivot and its sprite's centre, layer px; left then right. */
-    private static final float[][] PIVOT = {{458f, 360f}, {705f, 300f}};
-    private static final float[][] SCYTHE_CENTRE = {{425f, 470f}, {800f, 415f}};
+    /** Each scythe's pivot, layer px, left then right, mirrored about the centre line; its sprite is centred on it. */
+    private static final float[][] PIVOT = {{319f, 300f}, {705f, 300f}};
     /** Past this swing a scythe has crossed the crown's rim and is drawn over the head. */
     private static final float OVER_HEAD_DEGREES = 70f;
     /** The arm reaches forward this many times its outward reach as it swings. */
@@ -120,13 +120,8 @@ final class RavMatriarchComposer {
         float[] p = new float[2];
         layerPoint(PIVOT[side][0], PIVOT[side][1], shX + sign * reach, shY + FORWARD_REACH * reach, axX, axY,
                 lc, ls, cx, cy, ppc, fx, fy, p);
-        // the sprite's centre from its pivot, in screen px, turned with the body and the swing
-        float vx = (SCYTHE_CENTRE[side][0] - PIVOT[side][0]) / U * ppc;
-        float vy = -(SCYTHE_CENTRE[side][1] - PIVOT[side][1]) / U * ppc;
-        double r = Math.toRadians(bodyAngle + swing);
-        float c = (float) Math.cos(r), s = (float) Math.sin(r);
         LayeredSpriteCache blade = art.scythe[side];
-        out.addSprite(RenderLayer.UNITS, blade.sprite, p[0] + vx * c - vy * s, p[1] + vx * s + vy * c,
+        out.addSprite(RenderLayer.UNITS, blade.sprite, p[0], p[1],
                 blade.pxWidth * spritePx, blade.pxHeight * spritePx, bodyAngle + swing, 1f, 1f, 1f, alpha);
     }
 
