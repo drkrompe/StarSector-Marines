@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.command.BarrageScreen;
 import com.dillon.starsectormarines.battle.command.HeartAssaultCommand;
 import com.dillon.starsectormarines.battle.command.HeartLane;
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
@@ -119,7 +120,11 @@ public final class BloomHeartSetup {
         int laneHalfWidth = form == Form.BROAD_FRONT
                 ? Math.round(BROAD_FRONT_LANE_HALF_WIDTH * form.scale.width)
                 : Math.max(form.scale.width, form.scale.height);
-        sim.setAutonomousCommander(Faction.MARINE, new HeartAssaultCommand(new HeartLane(form.advancesAlongY(), laneAcross, laneHalfWidth)),
+        // -Dbattle.heart.followBarrage=false is the control: the company goes straight for its bore.
+        BarrageScreen screen = barrage == null || !Boolean.parseBoolean(System.getProperty("battle.heart.followBarrage", "true"))
+                ? null : burnScreen(form, barrage.plan());
+        sim.setAutonomousCommander(Faction.MARINE,
+                new HeartAssaultCommand(new HeartLane(form.advancesAlongY(), laneAcross, laneHalfWidth), screen),
                 HeartAssaultCommand.DISCLOSURE);
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(HeartAssaultCommand.ISSUER, "Company support joins the push"));
         return sim;
@@ -165,6 +170,29 @@ public final class BloomHeartSetup {
     }
 
     private static final long BATTERY_SALT = 0x4755_4E50_4954_5321L;
+    /**
+     * How far short of the firing line The Burn's company stands: the shell's
+     * own danger-close veto (blast, margin and the walk a body makes while a round
+     * flies across the map) plus the line's spread, so the company is never what
+     * stops the guns.
+     */
+    static final int BURN_FOLLOW_CELLS = 18;
+
+    /** The Burn's company following its barrage: each line's ground along the advance and its timetable. */
+    static BarrageScreen burnScreen(Form form, WalkingBarrage.Plan plan) {
+        int axis = form.advancesAlongY() ? 1 : 0;
+        int sign = Integer.signum(form.cellAt(1f, 0.5f)[axis] - form.cellAt(0f, 0.5f)[axis]);
+        List<WalkingBarrage.Line> lines = plan.lines();
+        int[] along = new int[lines.size()], open = new int[lines.size()], lift = new int[lines.size()];
+        for (int i = 0; i < lines.size(); i++) {
+            WalkingBarrage.Line line = lines.get(i);
+            along[i] = form.cellAt(line.depth(), 0.5f)[axis];
+            open[i] = Math.round(line.openSeconds() / BattleSimulation.TICK_DT);
+            lift[i] = Math.round((line.openSeconds() + line.fireSeconds()) / BattleSimulation.TICK_DT);
+        }
+        return new BarrageScreen(form.advancesAlongY(), sign, along, open, lift, BURN_FOLLOW_CELLS);
+    }
+
     private static final long BARRAGE_SALT = 0x4255_524E_4241_5252L;
     /** The first line opens once the company is down and formed, just past the near ride. */
     static final float BURN_FIRST_OPEN_SECONDS = 40f;

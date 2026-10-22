@@ -325,6 +325,17 @@ whole approach on The Burn. The director needs no civilians to cover here: it
 spawns only out of the heart's bores from the first tick, and nothing closes it
 but their collapse.
 
+The squads go in on a **frontage**, each to its own cell spread across the
+advance, never all to one: a bunched company is what a Spitter's lobbed acid
+finds. On The Burn the company **follows the barrage**: while its bore lies
+past the line that is firing, it forms on that frontage a safe distance short
+of the line (the shell's danger-close veto plus the line's spread, so the
+company never silences the guns) and comes up as each line lifts; it goes for
+the bore only once the barrage has passed it. The hold is read off the
+timetable frozen at the briefing, never off the shells. It needs no fire rule:
+the burn runs downwind ahead of the line and is out by the time the company
+crosses its ground.
+
 ## Settled choices
 
 The owner's picks (2026-10-22, `heart-flow-options`): a satellite's fall wakes
