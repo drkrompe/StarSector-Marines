@@ -117,8 +117,14 @@ dependencies {
 // diagnosing this independently both added it to `test` alone, leaving the
 // value duplicated there and still missing from `commanderEvidence`, which
 // renders review frames through the very renderer that was running out.
+// Raised from 2g to 6g (owner, 2026-10-22): long framed evidence runs - The Burn's
+// review frames at 1920x1080 - kept dying of OutOfMemoryError, and sessions worked
+// round it by splitting runs instead of giving the JVM room. The machine has 32 GB;
+// this is a cap, not a reservation. -PtestHeap=<size> overrides it per run. What
+// actually holds the memory is a separate question and is being looked at.
+def evidenceHeap = (findProperty('testHeap') ?: '6g').toString()
 tasks.withType(Test).configureEach {
-    maxHeapSize = '2g'
+    maxHeapSize = evidenceHeap
     // A repeated implicit exception loses its stack to the JIT's fast-throw
     // optimisation, and an evidence run that dies after thirteen minutes with a
     // bare `java.lang.ArrayIndexOutOfBoundsException` and no frames is a run that
@@ -538,7 +544,7 @@ tasks.register('battleProbe', JavaExec) {
     workingDir projectDir
     standardInput = System.in
     outputs.upToDateWhen { false }
-    maxHeapSize = '2g'
+    maxHeapSize = evidenceHeap
     systemProperty 'starsectorDir', starsectorDir.absolutePath
     // Exactly what every Test task is given (`tasks.withType(Test)` above) plus commanderEvidence's serial unit
     // update. Without the async switches the probe plays the live game's asynchronous battle, which is neither the

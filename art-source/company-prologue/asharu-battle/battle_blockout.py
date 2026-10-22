@@ -57,6 +57,7 @@ REPO = ART.parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(PROLOGUE))
 sys.path.insert(0, str(ART))
+import debris_field
 import roster
 from motion import boarding_run, fleet_at   # ships move about their stations: seeded weave, bank and breathing spacing  # noqa: E402
 from motion import (A_FULL, IDLE, Pose, camera, carried, drift, follow, held, keyed, mass_class, recoil, riding,  # noqa: E402
@@ -186,22 +187,37 @@ def platform_parts():
     return parts
 
 
-# Hiding: every pirate parked nose-out, in a bay or under a hull or between the drums, on the side away
-# from the convoy's line of sight (which comes from above and the platform's north side, +Y), at her own
-# heading, pitch and roll; the two in the north hangar are the "hulks in its bays" the convoy can glimpse.
-PIRATES_MOORED = {
-    'falcon-p': moored((-60, -110, -70), hd=-25, pt=-2, rl=10),          # along the big hull's underside
-    'manticore-p': moored((110, -52, -40), hd=-90, pt=0, rl=4),       # in the south hangar, nose out
-    'colossus3': moored((-360, 0, -82), hd=180, pt=-8, rl=175),       # under the aft hull, inverted
-    'buffalo2-a': moored((20, 12, -76), hd=-15, pt=-8, rl=6),         # under the big drum cluster
-    'hound-p-c': moored((365, -32, -48), hd=15, pt=-12, rl=40),       # off the forward end, low
-    'wolf-p-a': moored((-475, -40, 8), hd=-160, pt=5, rl=-35),        # beyond the aft end
-    'wolf-p-b': moored((-330, 70, -2), hd=90, pt=0, rl=85),           # in the north hangar, on her side
-    'hound-p-a': moored((-215, -14, -52), hd=-178, pt=4, rl=180),     # under the second hull, inverted
-    'hound-p-b': moored((110, 66, -22), hd=80, pt=25, rl=-20),        # north of the fourth hull, in its shadow
-    'kite-p-a': moored((-272, -22, -44), hd=-60, pt=15, rl=-30),      # under the aft drums
-    'kite-p-b': moored((190, -42, -36), hd=-55, pt=-5, rl=60),       # tucked against the forward drums
+def to_platform(world):
+    """A battle-frame point in the platform's own metres (on_platform's inverse)."""
+    c, s_ = math.cos(math.radians(-PLATFORM_HD)), math.sin(math.radians(-PLATFORM_HD))
+    x, y, z = (world[i] - PLATFORM[i] for i in range(3))
+    return (c * x - s_ * y, s_ * x + c * y, z)
+
+
+# The convoy's line of sight onto the platform, in its metres: what a hiding ship must be out of
+TOWARD_CONVOY = debris_field.unit(to_platform((0.0, 0.0, 0.0)))
+
+# Hiding (owner, 2026-10-22: eleven hulls pouring out of the station read as a clown car). The station
+# hides only the two ships its hangars and hulls can hold; the rest lie out in its debris field, each
+# behind a wreck at least her size set between her and the convoy (debris_field.cover_piece), across
+# the whole field and at every depth, so the launch comes out of many places at once. Four are left
+# half-seen in S3 (peek: a nose past a hulk's end, or, negative, a drive cluster), so S4 reveals what
+# the audience half-saw. at: the platform's metres; hd, pt, rl relative to it.
+HIDES = {
+    'manticore-p': dict(at=(110, -52, -40), hd=-90, pt=0, rl=4),            # the station's south hangar
+    'colossus3': dict(at=(-70, -45, -72), hd=180, pt=-6, rl=175),            # under its big hull, inverted
+    'falcon-p': dict(at=(-950, -420, -180), hd=-30, pt=-4, rl=12, cover='hulk'),
+    'buffalo2-a': dict(at=(480, -520, -260), hd=150, pt=6, rl=-8, cover='block'),
+    'hound-p-c': dict(at=(1080, -160, 90), hd=-20, pt=8, rl=35, cover='hulk', peek=.75),
+    'wolf-p-a': dict(at=(-1180, 140, 130), hd=160, pt=-5, rl=-20, cover='slab'),
+    'wolf-p-b': dict(at=(-380, 420, -330), hd=-35, pt=4, rl=80, cover='hulk', peek=.75),
+    'hound-p-a': dict(at=(230, 450, 190), hd=140, pt=-6, rl=180, cover='block', peek=-.55),
+    'hound-p-b': dict(at=(880, 320, -210), hd=-25, pt=10, rl=-15, cover='hulk'),
+    'kite-p-a': dict(at=(-980, -640, -320), hd=155, pt=12, rl=40, cover='slab'),
+    'kite-p-b': dict(at=(-160, -780, 260), hd=-15, pt=-8, rl=-30, cover='hulk', peek=.75),
 }
+PIRATES_MOORED = {k: moored(h['at'], hd=h['hd'], pt=h['pt'], rl=h['rl']) for k, h in HIDES.items()}
+SHIP_LENGTH = {m['key']: roster.size_row(m)['length_m'] for m in roster.MERCHANT + roster.PIRATE + roster.DRONES}
 
 # Where the Tarsus rides in the Colossus Mk.III's grapples, in Mk.III metres: the build's
 # grapples.tarsus_origin_units (20.398, 0.49, -78.254) at 0.495 m/u, axes aligned.
@@ -384,6 +400,30 @@ K1B_SHIPS = PIRATE_LAUNCH
 K2_CAM = (PLATFORM[0] + 600, PLATFORM[1] - 1500, PLATFORM[2] + 350)     # off the south flank, a little above
 K2_AIM = (PLATFORM[0] + 100, PLATFORM[1] - 60, PLATFORM[2] + 40)
 K2_PIRATES = {k: Pose(f.at(K2_T), K2_T, f.at) for k, f in PIRATE_LAUNCH.items()}
+
+
+def _field():
+    """The debris field: a cover wreck per hidden ship, then seeded wreckage across the field kept
+    out of every launch corridor, the station's body and S4's camera."""
+    cover = []
+    for n, (k, h) in enumerate(HIDES.items()):
+        if h.get('cover'):
+            cover.append(debris_field.cover_piece('cover %s' % k, (*h['at'], h['hd'], h['pt'], h['rl']),
+                                                  SHIP_LENGTH[k], TOWARD_CONVOY, h['cover'], h.get('peek', 0.0),
+                                                  seed=n, t0=K1B_T))
+            cover[-1].cover_for = k
+    keep = [(to_platform(K2_CAM), 450.0)]
+    keep += [((x, 0.0, 0.0), 160.0) for x in range(-450, 451, 150)]
+    for k, f in PIRATE_LAUNCH.items():
+        for i in range(0, 25):
+            t = LAUNCH[k] + i * .5
+            keep.append((to_platform(f.at(t)[:3]), SHIP_LENGTH[k] * .6 + 45.0))
+    keep += [(c.centre, c.radius() + 20.0) for c in cover]
+    return cover, debris_field.field_pieces(11, 70, (1650.0, 1050.0, 560.0), keep, t0=K1B_T)
+
+
+FIELD_COVER, FIELD_WRECKS = _field()
+FIELD = FIELD_COVER + FIELD_WRECKS
 
 # S6: the lead Lasher turns back into the fire and is hit; Lasher A burns and falls back; the
 # Phaeton is struck and drifts aft cooking off; the raiders close at speed, guns kicking
@@ -690,7 +730,7 @@ KEYFRAMES = {
                               dict(t=38, loc=(-1630, -95, 96), target=track(K1B_SHIPS['falcon-p'], PIRATES_MOORED['falcon-p'][:3]),
                                    lens=300)], K1B_T, shake=.05),
         ships=K1B_SHIPS,
-        platform=PLATFORM,
+        platform=PLATFORM, platform_t=K1B_T,
         labels=['platform', 'falcon-p', 'colossus3', 'manticore-p']),
     'k2': dict(
         shot='S4', title='First contact',
@@ -1868,8 +1908,16 @@ def blender_main(cfg):
             obj('Plasma head', bead_me, head_mat, Matrix.Translation(head) @ Matrix.Scale(2200 * scale, 4))
             labels3d[name] = head
 
-    def platform(p):
-        """The derelict Asharu platform (platform_parts), at p, casting shadows its hidden ships lie in."""
+    def field_matrix(piece, box, t):
+        """A debris box's world matrix at time t: the wreck turning about its own axis (debris_field)."""
+        c, half, r = FIELD[piece].boxes_at(t)[box]
+        rz = frame_of(Vector((0, 0, 0)), PLATFORM_HD, 0, 0).to_3x3()
+        return (Matrix.Translation(Vector(on_platform(c))) @ (rz @ Matrix(r)).to_4x4()
+                @ Matrix.Diagonal((*half, 1)))
+
+    def platform(p, t=K1B_T):
+        """The derelict Asharu platform (platform_parts) and its debris field (FIELD, posed at t), at p,
+        casting shadows its hidden ships lie in."""
         mat = principled('Platform', (.32, .3, .28), rough=.75, metal=.4)
         if 'Drum unit' not in bpy.data.meshes:
             me = bpy.data.meshes.new('Drum unit')
@@ -1887,6 +1935,12 @@ def blender_main(cfg):
             else:
                 o = obj(name, drum_me, mat, m @ Matrix.Diagonal((size[1], size[0], size[0], 1)), stage_ships)
             o.visible_shadow = True
+        for i, piece in enumerate(FIELD):
+            for j in range(len(piece.boxes)):
+                o = obj('Platform debris %d.%d' % (i, j), box_me, mat, field_matrix(i, j, t), stage_ships)
+                o.visible_shadow = True
+                o.rotation_mode = 'QUATERNION'
+                o['field_piece'], o['field_box'] = i, j
 
     def apply_cue(key, s, cue):
         """One ship's effects cue for this frame (KEYFRAMES 'cues'): 'fire' lists the guns flashing
@@ -2245,7 +2299,7 @@ def blender_main(cfg):
                 bpy.context.view_layer.update()
             extra3d = {}
             if spec.get('platform'):
-                platform(spec['platform'])
+                platform(spec['platform'], spec.get('platform_t', K1B_T))
                 extra3d['platform'] = Vector(spec['platform']) + Vector((0, 0, -140))
             muzzles = {(k, a, b): (best[5] if best else None) for k, a, b, best, _ in bearing(kf)}
             CLEAR_GUNS.clear()
@@ -2743,6 +2797,62 @@ def check(frames):
 TURN_JUMP_LIMIT = 45.0     # deg/s of angular-velocity change in one frame (1/24 s) that --check reports
 
 
+def station_boxes():
+    """The station's parts as boxes in its own metres (a drum as its bounding box), for hide_lines."""
+    out = []
+    for kind, _, c, size, (hd, pt, rl) in platform_parts():
+        half = size if kind == 'box' else (size[1], size[0], size[0])
+        out.append((c, half, debris_field.rot(hd, pt, rl)))
+    return out
+
+
+def hide_lines():
+    """--check's hiding report (owner, 2026-10-22): per hidden pirate, what she hides behind and how
+    big it is against her own bounding box, how much of her the convoy can see before the drives
+    light, and whether her launch, eased out and turned onto her climb, passes through any wreck or
+    the station. Flags: EXPOSED (under half hidden and not meant to be seen), SMALL (her cover is less
+    than her own volume), HALF-SEEN (meant to be glimpsed: a nose or drives past the cover), and HIT
+    (her launch path enters a box)."""
+    t_dark = min(LAUNCH.values()) - .3
+    station = station_boxes()
+    boxes = station + [b for pc in FIELD for b in pc.boxes_at(t_dark)]
+    out = ['hiding (before the drives light, %.1f s; convoy line of sight %s)' % (
+        t_dark, ', '.join('%.2f' % v for v in TOWARD_CONVOY))]
+    for k, h in HIDES.items():
+        L = SHIP_LENGTH[k]
+        ship = (*h['at'], h['hd'], h['pt'], h['rl'])
+        vol = 8 * L ** 3 * debris_field.SHIP_HALF[0] * debris_field.SHIP_HALF[1] * debris_field.SHIP_HALF[2]
+        cover = next((c for c in FIELD_COVER if c.cover_for == k), None)
+        cv = cover.volume() if cover else None
+        seen = 1 - debris_field.coverage(ship, L, TOWARD_CONVOY, boxes)
+        flags = []
+        if h.get('peek'):
+            flags.append('HALF-SEEN (intended: %s shows)' % ('her nose' if h['peek'] > 0 else 'her drives'))
+        elif seen > .5:
+            flags.append('EXPOSED')
+        if cover is not None and cv < vol:
+            flags.append('SMALL')
+        hits = set()
+        f = PIRATE_LAUNCH[k]
+        for i in range(0, 49):
+            t = LAUNCH[k] + i * .25
+            q = f.at(t)
+            lp = to_platform(q[:3])
+            local = (*lp, q[3] - PLATFORM_HD, q[4], q[5])
+            for pt_ in debris_field.ship_points(local, L * .92, 3):
+                for n, (c, half, r) in enumerate(station + [b for pc in FIELD for b in pc.boxes_at(t)]):
+                    rel = tuple(pt_[j] - c[j] for j in range(3))
+                    if all(abs(sum(rel[j] * r[j][a] for j in range(3))) < half[a] for a in range(3)):
+                        hits.add('%.1f s %s' % (t, 'the station' if n < len(station) else 'a wreck'))
+                        break
+        if hits:
+            flags.append('HIT ' + ', '.join(sorted(hits)[:3]))
+        what = ('the station' if cover is None else '%s %.0f%% of her volume' % (
+            HIDES[k]['cover'], 100 * cv / vol))
+        out.append('   %-12s %5.0f m  behind %-24s  seen %3.0f%%  %s' % (k, L, what, 100 * seen, '  '.join(flags)))
+    return out
+
+
 def turn_lines(kf):
     """--check's motion sweep: every flown ship over her shot at 24 fps, listing frames where her
     angular velocity jumps by more than TURN_JUMP_LIMIT (a turn that stalls or snaps). A hit's
@@ -2987,6 +3097,8 @@ def main():
     argv = sys.argv[1:]
     if '--check' in argv:
         check(list(SHOTS))
+        for line in hide_lines():
+            print(line)
         return
 
     def opt(flag, default=None):
