@@ -44,10 +44,14 @@ public final class StructureArt {
      * neutral sprite serves both sides. A {@code dome} layer follows the dome's state: it stops spinning and dims
      * while the dome is down, and flares when the dome takes a round. {@code fireFlash} (0 to 1) makes the layer
      * answer the structure's own fire: it snaps to full brightness and swells by up to a quarter of its size at that
-     * strength, settling over {@link #FIRE_FLASH_SECONDS} (a spore sac flaring as it spits a burst).
+     * strength, settling over {@link #FIRE_FLASH_SECONDS} (a spore sac flaring as it spits a burst). {@code windUp}
+     * (0 to 1) makes it warn of the next one: while the structure has a target and its weapon is within
+     * {@link #WIND_UP_SECONDS} of ready, the layer clenches by up to {@link #WIND_UP_CLENCH} of its size, quivers and
+     * brightens to full (a ground colony drawing its arms in before it drives its spines).
      */
     public record Layer(String spritePath, float cells, float spinDegPerSec,
-                        float pulseHz, float pulseDepth, boolean tintByHolder, boolean dome, float fireFlash) {
+                        float pulseHz, float pulseDepth, boolean tintByHolder, boolean dome, float fireFlash,
+                        float windUp) {
 
         /** This layer's sprite for one painting, {@code variant} counted from 1, unhurt. */
         public String spritePath(int variant) {
@@ -128,6 +132,10 @@ public final class StructureArt {
     public static final float FIRE_FLASH_SECONDS = 0.4f;
     /** How much a {@code fireFlash: 1} layer swells at the moment of the shot. */
     public static final float FIRE_FLASH_SWELL = 0.25f;
+    /** How long before its weapon is ready a {@link Layer#windUp} layer starts to clench. */
+    public static final float WIND_UP_SECONDS = 0.5f;
+    /** How much a {@code windUp: 1} layer clenches at the end of the wind-up. */
+    public static final float WIND_UP_CLENCH = 0.1f;
 
     /** Placeholder in a layer path that a variant number replaces. */
     public static final String VARIANT_TOKEN = "{variant}";
@@ -202,15 +210,17 @@ public final class StructureArt {
             float pulseHz = (float) l.optDouble("pulseHz", 0.0);
             float pulseDepth = (float) l.optDouble("pulseDepth", 0.0);
             float fireFlash = (float) l.optDouble("fireFlash", 0.0);
+            float windUp = (float) l.optDouble("windUp", 0.0);
             TurretMountDef.requirePositiveFinite(cells, structureId, "art layer cells");
             if (!Float.isFinite(spin) || !Float.isFinite(pulseHz) || pulseHz < 0f
                     || !Float.isFinite(pulseDepth) || pulseDepth < 0f || pulseDepth > 1f
-                    || !Float.isFinite(fireFlash) || fireFlash < 0f || fireFlash > 1f) {
+                    || !Float.isFinite(fireFlash) || fireFlash < 0f || fireFlash > 1f
+                    || !Float.isFinite(windUp) || windUp < 0f || windUp > 1f) {
                 throw new JSONException("Structure '" + structureId + "' art layer " + i
-                        + " has a non-finite or out-of-range spin, pulse or fire flash");
+                        + " has a non-finite or out-of-range spin, pulse, fire flash or wind-up");
             }
             layers.add(new Layer(sprite, cells, spin, pulseHz, pulseDepth,
-                    l.optBoolean("tintByHolder", false), l.optBoolean("dome", false), fireFlash));
+                    l.optBoolean("tintByHolder", false), l.optBoolean("dome", false), fireFlash, windUp));
         }
         int variants = json.optInt("variants", 1);
         if (variants < 1 || variants > MAX_VARIANTS) {
