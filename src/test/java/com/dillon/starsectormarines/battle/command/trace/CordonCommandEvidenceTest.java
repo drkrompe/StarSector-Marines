@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command.trace;
 
 import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
+import com.dillon.starsectormarines.battle.cordon.CordonRefugees;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
@@ -187,6 +188,16 @@ class CordonCommandEvidenceTest {
                 .append("- Gap redoubts: ").append(cordon.gap()).append('\n')
                 .append("- Eruptions: ").append(cordon.eruptions()).append(" of ")
                 .append(cordon.timetable().eruptionSeconds().size()).append(" on the timetable\n");
+        if (cordon.refugees() != null) {
+            out.append("- Refugees: ").append(cordon.refugees().out()).append(" out, ")
+                    .append(cordon.refugees().lost()).append(" lost of ")
+                    .append(cordon.refugees().groups() * CordonRefugees.GROUP_SIZE).append(" in ")
+                    .append(cordon.refugees().groups()).append(" groups\n");
+        }
+        if (cordon.columns() != null) {
+            out.append("- Allied columns joined: ").append(cordon.columns().joined()).append(" of ")
+                    .append(cordon.timetable().columnSeconds().size()).append('\n');
+        }
         for (CordonRedoubt r : cordon.redoubts()) {
             out.append("- Redoubt ").append(r.number()).append(": cells ").append(r.left()).append(',').append(r.top())
                     .append(" to ").append(r.right()).append(',').append(r.bottom()).append(", guns ")

@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.cordon;
 
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
@@ -32,24 +34,29 @@ public final class CordonSequence implements Objective {
     /**
      * What the battle is held to: when the tides come and how long each runs,
      * the share of the bores' strength the swarm presses with between tides
-     * and during one, when new bores erupt in front of the line, how long the
-     * window, and how many redoubts may fall.
+     * and during one, when new bores erupt in front of the line, when the
+     * Line's refugee groups set off and its allied columns come up, how long
+     * the window, and how many redoubts may fall.
      */
     public record Timetable(List<Integer> tideSeconds, int tideLengthSeconds, float ordinaryPressure,
-                            float tidePressure, List<Integer> eruptionSeconds, int windowSeconds,
-                            int allowedFallen) {
+                            float tidePressure, List<Integer> eruptionSeconds, List<Integer> refugeeSeconds,
+                            List<Integer> columnSeconds, int windowSeconds, int allowedFallen) {
         /**
          * The briefing's ordinary timetable: three tides of a minute in a
          * fifteen-minute window, the swarm at a third of its strength between
          * them and two thirds in one, a new bore erupting between each pair of
-         * tides, one redoubt may fall.
+         * tides, six refugee groups two minutes apart, a column up from the
+         * rear two minutes before each tide (a column takes about that to march
+         * up), one redoubt may fall.
          */
         public static final Timetable STANDARD = new Timetable(List.of(240, 480, 720), 60, 0.33f, 0.66f,
-                List.of(360, 600), 900, 1);
+                List.of(360, 600), List.of(30, 150, 270, 390, 510, 630), List.of(120, 360, 600), 900, 1);
 
         public Timetable {
             tideSeconds = List.copyOf(tideSeconds);
             eruptionSeconds = List.copyOf(eruptionSeconds);
+            refugeeSeconds = List.copyOf(refugeeSeconds);
+            columnSeconds = List.copyOf(columnSeconds);
             if (windowSeconds <= 0 || allowedFallen < 0 || tideLengthSeconds <= 0)
                 throw new IllegalArgumentException("a Cordon needs a window");
             if (!(ordinaryPressure > 0f && ordinaryPressure <= tidePressure && tidePressure <= 1f))
@@ -72,6 +79,8 @@ public final class CordonSequence implements Objective {
     private final int firstEruptedNumber;
     private int tides;
     private int eruptions;
+    private CordonRefugees refugees;
+    private AlliedColumns columns;
     /** The tick the running tide ebbs on, or -1 between tides. */
     private int ebb = -1;
     private boolean landed, contact;
@@ -94,6 +103,16 @@ public final class CordonSequence implements Objective {
     public Timetable timetable() { return timetable; }
     public int tides() { return tides; }
     public int eruptions() { return eruptions; }
+    /** The Line's refugees, or {@code null}. */
+    public CordonRefugees refugees() { return refugees; }
+    /** The Line's allied columns, or {@code null}. */
+    public AlliedColumns columns() { return columns; }
+
+    /** Gives the Line its people on the move and its columns; at setup, before the first tick. */
+    public void attach(CordonRefugees refugees, AlliedColumns columns) {
+        this.refugees = refugees;
+        this.columns = columns;
+    }
     public Outcome outcome() { return outcome; }
 
     /** Redoubts fallen so far. */
@@ -155,6 +174,10 @@ public final class CordonSequence implements Objective {
                 emit(tick, "eruption_" + eruptions);
             }
         }
+        if (refugees != null) refugees.advance(sim, tick, beat -> emit(tick, beat));
+        if (columns != null) columns.advance(sim, tick, new ColumnOrders(), (beat, observer) ->
+                log.emitOnce(tick, "cordon." + beat, observer ? StoryBeatLog.Audience.OBSERVER_ONLY
+                        : StoryBeatLog.Audience.PLAYER));
         if (ebb >= 0 && tick >= ebb) {
             ebb = -1;
             sim.setSwarmPressureShare(timetable.ordinaryPressure());
@@ -167,6 +190,7 @@ public final class CordonSequence implements Objective {
             emit(tick, "gap_closed");
         } else if (tick >= ticks(timetable.windowSeconds())) {
             outcome = Outcome.HELD;
+            if (refugees != null) emit(tick, "evacuation_complete");
             emit(tick, "cordon_held");
         }
     }
@@ -174,8 +198,7 @@ public final class CordonSequence implements Objective {
     /** One redoubt's state for this tick ({@code cordon-nouns.md}, Redoubt states). */
     private void step(BattleSimulation sim, int tick, CordonRedoubt redoubt, int swarmInside, boolean relief) {
         if (redoubt.state() == CordonRedoubt.State.FALLEN) return;
-        int standing = 0;
-        for (int squad : redoubt.teams()) standing += sim.squadMemberCount(squad);
+        int standing = standing(sim, redoubt);
         if (standing == 0 && swarmInside > 0) {
             redoubt.setState(CordonRedoubt.State.FALLEN);
             emit(tick, "redoubt_fell_" + redoubt.number());
@@ -200,6 +223,59 @@ public final class CordonSequence implements Objective {
             }
             default -> { }
         }
+    }
+
+    /**
+     * A column goes to the redoubt holding with the least garrison standing,
+     * and joins it as a wall team at its wall ({@code cordon-nouns.md}, Allied
+     * column).
+     */
+    private final class ColumnOrders implements AlliedColumns.Orders {
+        @Override public int[] destination(BattleSimulation sim) {
+            CordonRedoubt best = null;
+            int bestStanding = Integer.MAX_VALUE;
+            for (CordonRedoubt r : redoubts) {
+                if (r.state() == CordonRedoubt.State.FALLEN) continue;
+                int standing = standing(sim, r);
+                if (standing < bestStanding) {
+                    bestStanding = standing;
+                    best = r;
+                }
+            }
+            return best == null ? null : new int[]{best.centreX(), best.centreY()};
+        }
+
+        @Override public boolean stillNeeded(BattleSimulation sim, int x, int y) {
+            CordonRedoubt r = at(x, y);
+            return r != null && r.state() != CordonRedoubt.State.FALLEN;
+        }
+
+        @Override public boolean arrived(int x, int y, int destX, int destY) {
+            CordonRedoubt r = at(destX, destY);
+            return r != null && r.contains(x, y, RELIEF_REACH);
+        }
+
+        @Override public void joined(BattleSimulation sim, int number, List<Integer> squads, int destX, int destY) {
+            CordonRedoubt r = at(destX, destY);
+            if (r == null) return;
+            int radius = Math.max(r.right() - r.left(), r.bottom() - r.top()) / 2 + 2;
+            for (int squad : squads) {
+                r.reinforce(squad, sim.squadMemberCount(squad));
+                sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad, r.centreX(), r.centreY(), radius),
+                        CommandAuthority.GARRISON, CordonGarrisons.ISSUER, "hold redoubt " + r.number());
+            }
+        }
+
+        private CordonRedoubt at(int x, int y) {
+            for (CordonRedoubt r : redoubts) if (r.contains(x, y, 0)) return r;
+            return null;
+        }
+    }
+
+    private static int standing(BattleSimulation sim, CordonRedoubt redoubt) {
+        int standing = 0;
+        for (int squad : redoubt.teams()) standing += sim.squadMemberCount(squad);
+        return standing;
     }
 
     private boolean gapClosed() {
