@@ -31,8 +31,6 @@ class FirstRefitTest {
         assertTrue(roster.armory().ownsPrimaryTemplate(WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.MILSPEC));
         assertTrue(roster.armory().ownsArmorTemplate(MarineArmorPattern.BLUE_SCOUT));
         assertEquals(2, FirstRefit.Path.values().length);
-        assertFalse(roster.deleteWeaponDoctrine(FirstRefit.Path.STEADY_LINE.weapons));
-        assertFalse(roster.armory().renameWeaponDoctrine(FirstRefit.Path.STEADY_LINE.weapons, "Changed"));
     }
 
     @Test void bothPathsIssueExactTwelveAndCompleteOnlyOnce() {

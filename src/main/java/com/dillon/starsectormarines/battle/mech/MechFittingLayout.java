@@ -161,7 +161,7 @@ public final class MechFittingLayout {
         layouts.put(MechVariant.BULWARK, layout(MechVariant.BULWARK, 180f, List.of(
                 socket(SocketId.CORE, SocketType.CORE, 2, 2,
                         0f, 0.03f, 0f, -1.50f, 1.70f, 0.68f, false),
-                socket(SocketId.ARMS, SocketType.OMNI, 3, 2,
+                socket(SocketId.ARMS, SocketType.OMNI, 2, 3,
                         0f, 0.72f, 0f, 1.50f, 2.20f, 0.68f, false),
                 socket(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 2, 3,
                         -0.72f, 0.08f, -1.38f, -0.48f, 1.40f, 0.72f, false),
@@ -187,7 +187,7 @@ public final class MechFittingLayout {
         layouts.put(MechVariant.SIROCCO, layout(MechVariant.SIROCCO, 180f, List.of(
                 socket(SocketId.CORE, SocketType.CORE, 2, 2,
                         0f, 0.02f, 0f, -1.45f, 1.70f, 0.68f, false),
-                socket(SocketId.ARMS, SocketType.BALLISTIC, 3, 2,
+                socket(SocketId.ARMS, SocketType.BALLISTIC, 2, 3,
                         0f, 0.72f, 0f, 1.45f, 2.08f, 0.68f, false),
                 socket(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 2, 3,
                         -0.64f, 0.04f, -1.34f, -0.46f, 1.36f, 0.72f, false),

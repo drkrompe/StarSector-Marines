@@ -113,6 +113,21 @@ public final class SwarmBores {
         return null;
     }
 
+    /**
+     * A tide ({@code cordon-nouns.md}): every living bore's next surge is
+     * brought forward to {@code tick}, so they all go at once. Returns how
+     * many bores were called.
+     */
+    public int tide(int tick) {
+        int called = 0;
+        for (SwarmBore bore : bores) {
+            if (bore.collapsed()) continue;
+            bore.callSurge(tick);
+            called++;
+        }
+        return called;
+    }
+
     /** The living bore nearest a point, or {@code null} when none lives. */
     public SwarmBore nearestLiving(float x, float y) {
         SwarmBore best = null;

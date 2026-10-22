@@ -200,6 +200,11 @@ public final class SwarmBore {
         matriarch = body;
     }
 
+    /** Brings the next surge forward to {@code tick} at the latest: a tide. */
+    void callSurge(int tick) {
+        if (!collapsed()) nextSurgeTick = Math.min(nextSurgeTick, tick);
+    }
+
     /** Holds a due surge back to {@code tick}; the bore stays quiet until then. */
     void deferSurge(int tick) {
         nextSurgeTick = Math.max(nextSurgeTick, tick);

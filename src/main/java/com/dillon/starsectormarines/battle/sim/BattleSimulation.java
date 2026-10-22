@@ -272,6 +272,9 @@ import com.dillon.starsectormarines.battle.fire.FireHarm;
 import com.dillon.starsectormarines.battle.fire.FireIgnition;
 import com.dillon.starsectormarines.battle.fire.FireRouteCost;
 import com.dillon.starsectormarines.battle.creep.CreepVegetation;
+import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
+import com.dillon.starsectormarines.battle.cordon.CordonSequence;
+import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.evacuation.CreepOutposts;
@@ -651,6 +654,35 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (simTickIndex != 0 || limitedWarrant != null) throw new IllegalStateException("Install Limited Warrant once at setup");
         limitedWarrant = new LimitedWarrantSequence(technician, constables, carrier, reserve, records, storyBeats);
         addObjective(limitedWarrant);
+    }
+    private CordonSequence cordon;
+    /** The Cordon's story, or {@code null} on every other battle. */
+    public CordonSequence getCordon() { return cordon; }
+    /**
+     * Installs the Cordon's story over manned redoubts: their states, the
+     * tides and the beats, and the company's objective
+     * ({@code cordon-nouns.md}). The director must already be bore-sourced.
+     */
+    public CordonSequence installCordon(CordonVariant variant, List<CordonRedoubt> redoubts, List<Integer> gap,
+                                        int[][] eruptionSites, CordonSequence.Timetable timetable) {
+        if (simTickIndex != 0 || cordon != null) throw new IllegalStateException("Install the Cordon once at setup");
+        if (!swarmReinforcements.isBoreSourcing())
+            throw new IllegalStateException("The Cordon needs a bore-sourced swarm director");
+        int firstErupted = 1;
+        for (SwarmBore bore : swarmBores.bores()) firstErupted = Math.max(firstErupted, bore.number() + 1);
+        cordon = new CordonSequence(variant, redoubts, gap, eruptionSites, firstErupted, timetable, storyBeats);
+        swarmReinforcements.setPressureShare(timetable.ordinaryPressure());
+        addObjective(cordon);
+        return cordon;
+    }
+    /**
+     * Configures the swarm director with no rescue: bore-sourced from the
+     * first tick over the bores setup opened ({@code cordon-nouns.md}).
+     */
+    /** The share of the bores' capacities the director holds the field at ({@link SwarmReinforcementSystem#setPressureShare}). */
+    public void setSwarmPressureShare(float share) { swarmReinforcements.setPressureShare(share); }
+    public boolean configureSwarmFromBores(long seed) {
+        return swarmReinforcements.configureFromBores(swarmBores, seed, this);
     }
     private DistrictEscortSequence districtEscort;
     public DistrictEscortSequence getDistrictEscort() { return districtEscort; }
@@ -1838,10 +1870,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             CivilianEvacuationPlacement placement, int targetPopulation, long seed) {
         return swarmReinforcements.configure(placement, targetPopulation, seed,
                 this);
-    }
-    /** A battle with no civilians: the director spawns only out of this battle's bores, from the first tick. */
-    public boolean configureBoreDirector(long seed) {
-        return swarmReinforcements.configureBores(swarmBores, seed);
     }
     public boolean isSwarmReinforcementConfigured() {
         return swarmReinforcements.isConfigured();
@@ -3710,6 +3738,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (smallWar != null) smallWar.advance(this);
         if (termsOfProtection != null) termsOfProtection.advance(this);
         if (districtEscort != null) districtEscort.advance(this);
+        if (cordon != null) cordon.advance(this);
         objectivesService.tick(o -> o.tick(this));
         // Delayed impacts and objective callbacks run after DEMOLISH and may
         // kill a body on the final tick. Publish their corpse/cascade reactions

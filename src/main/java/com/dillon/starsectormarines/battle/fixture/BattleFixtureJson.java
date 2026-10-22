@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.fixture;
 
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
+import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.command.HivePosture;
 import com.dillon.starsectormarines.battle.squad.HullWelfare;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
@@ -141,6 +142,13 @@ public final class BattleFixtureJson {
             root.put("defenderReinforcements", sabotage.defenderReinforcements());
             return root;
         }
+        if (fixture instanceof CordonBattleFixture cordon) {
+            root.put("kind", cordon.kind());
+            root.put("seed", cordon.seed());
+            root.put("variant", cordon.variant().name());
+            root.put("shuttles", shuttlesToJson(cordon.manifest()));
+            return root;
+        }
         if (fixture instanceof ColdAccountBattleFixture cold) {
             root.put("kind", cold.kind());
             root.put("base", toJson(cold.base()));
@@ -256,6 +264,9 @@ public final class BattleFixtureJson {
             case CivilianRescueBattleFixture.KIND -> decodeCivilianRescue(root);
             case ConquestBattleFixture.KIND -> decodeConquestV2(root);
             case SabotageBattleFixture.KIND -> decodeSabotage(root);
+            case CordonBattleFixture.KIND -> new CordonBattleFixture(root.getLong("seed"),
+                    enumValue(CordonVariant.class, root.getString("variant"), "variant"),
+                    shuttlesFromJson(root.getJSONArray("shuttles")));
             case ColdAccountBattleFixture.KIND -> new ColdAccountBattleFixture(decodeAssault(root.getJSONObject("base")));
             case AssaultBattleFixture.KIND -> decodeAssault(root);
             case RaidBattleFixture.KIND -> decodeRaid(root);

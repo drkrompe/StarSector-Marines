@@ -73,18 +73,47 @@ where the swarm is funnelled and where columns come up.
 
 **Garrison.** The allied troops in a redoubt (`ALLY`, under garrison
 authority, never in the player's command pool, as the colony militia are). A
-redoubt's garrison is two teams: the **wall team** at its wall posts and the
-**gun crews** in its towers. A garrison is what makes a redoubt stand; the
-company never commands it.
+redoubt's garrison is three **wall teams** at the posts behind its slits, the
+wall facing the front first, and the guns in its gate towers. The wall is
+dressed exactly as the colony's civil-defence compound is
+(`CivilDefenceCompound.dress`); a wall the dressing cannot read as closed is
+still manned, its teams inside it with no towers. The teams hold the redoubt's
+ground and fight from the slits: an order that draws them to the middle of the
+yard leaves the wall empty and the gates open. The garrison is kitted as the
+colony's best (troops dug in for weeks). A garrison is what makes a redoubt
+stand; the company never commands it.
 
 **Redoubt states.** A redoubt is **holding** while its garrison stands and no
 swarm body is inside its wall. It is **calling** (for relief) once a swarm
 body is inside the wall or half its garrison is down: the company hears the
 call. It is **relieved** when a Marine reaches its gate while it is calling:
-the call is answered and stays answered while Marines stand there. It has
-**fallen** when its garrison is dead and a swarm body is inside the wall. A
-fallen redoubt is not re-raised in the battle (see *Open choices*). The line
+the call is answered, and it calls again only when a swarm body is inside its
+wall once more. A relieved redoubt whose garrison is gone is held by the
+company while Marines stand in it. It has **fallen** when its garrison is dead
+and a swarm body is inside the wall. A
+fallen redoubt is not re-raised in the battle (see *Settled choices*). The line
 **breaks** when more redoubts have fallen than the briefing allows.
+
+**Tide.** The crisis the battle is timed round: every living bore's next
+surge brought forward to the same tick, and the swarm let out at the tide's
+strength for the tide's length. Between tides the swarm presses at the
+**ordinary pressure**: the director holds the field at a share of the living
+bores' capacities, so the line is worn rather than overrun, and the tide is
+what breaks redoubts. A tide is heard, not seen coming.
+
+**Eruption.** The bloom breaking out anew in front of the line: a new bore
+opens in the near band in front of a redoubt (each eruption before a different
+redoubt, in a seeded order) through the ordinary bore seam, at the smallest
+tier, and grows, surges and spreads creep as any bore does, so the director's
+target rises with it. Tides make the crises; eruptions make the front worse
+between them, so a battle that holds early is not over.
+
+**Timetable.** What the briefing holds the battle to: when the tides come and
+how long each runs, the ordinary and tide pressures, when bores erupt, the
+window, and how many redoubts may fall. The standard timetable is three
+one-minute tides at minutes four, eight and twelve of a fifteen-minute window,
+the swarm at a third of its strength between tides and two thirds in one, an
+eruption at minutes six and ten, one redoubt allowed to fall.
 
 **Allied column.** Allied troops that arrive during the battle along a rear
 road, on a timetable set at the briefing: a few trucks of riflemen. A column
@@ -238,6 +267,34 @@ corridor.
    are lost to reach that number, when the gap closes, or when the company is
    wiped out.
 
+### The swarm without a rescue
+
+The Cordon has no cohort and no shelter, so the swarm director runs in its
+bore-only form (`colony-breach-nouns.md`, Swarm director): bore-sourced from
+the first tick over the bores the front was grown with, no perimeter waves, and
+no rescue to end it, so it spawns while a bore lives. Two rules keep the
+pressure along the whole line rather than at one end: due bores are served in
+the order of fewest surges so far, and a bore's pulse is sized to the share the
+director is held at, so a big bore held back to a third of its strength still
+surges instead of waiting for headroom it never gets.
+
+### The company
+
+Until `cordon-company-command.md`, the company's autonomous commander is the
+minimum the evidence needs: the company stands as the reserve behind the middle
+of the line, each squad goes to the calling redoubt nearest it, and returns to
+the reserve when no redoubt calls. It hears every call and knows where every
+redoubt stands; it sees the swarm only through its own squads.
+
+### Evidence
+
+`commanderEvidence -Pmission=cordon-line` and `-Pmission=cordon-road` play a
+fixture per variant through production construction. Asserted mechanics: the
+company lands, every tide the timetable reached came on its tick, a held line
+lost no more redoubts than allowed, a broken one says how. Read, not asserted:
+the beats in order, each redoubt's state and garrison minute by minute, the
+swarm's size, and how it ended.
+
 ## Beats
 
 All beats are prefixed `cordon.`. Numbered beats index redoubts west to east
@@ -252,6 +309,7 @@ with the same keys.
 | `landfall` | both | PLAYER | First Marine on the ground |
 | `line_contact` | both | PLAYER | First swarm body inside any redoubt's reach |
 | `tide_N` | both | PLAYER | The Nth tide: every living bore surges at once |
+| `eruption_N` | both | PLAYER | The Nth eruption: a new bore opens in front of the line |
 | `redoubt_calling_N` | both | PLAYER | Redoubt N calls for relief |
 | `redoubt_relieved_N` | both | PLAYER | A Marine reaches redoubt N's gate while it calls |
 | `redoubt_fell_N` | both | PLAYER | Redoubt N falls |
@@ -293,19 +351,18 @@ with the same keys.
 - **Deterministic.** Same seed, same cordon, same timetable, same tides.
 - **One story.** The cordon sequence is the battle's one story sequence.
 
-## Open choices
+## Settled choices
 
-Design choices sent to the owner as options cards; the doc records the
-recommended answer until one is picked.
+The owner's answers to the flow cards (2026-10-22):
 
-- **Where the Line's refugees walk** (recommended: out of the rear villages
-  to the rear edge along the country road, behind the line).
-- **Whether a fallen redoubt can be retaken** (recommended: no; a fallen
-  redoubt is a hole the next column cannot fill).
-- **How the swarm escalates** (recommended: tides on a timetable over the
-  bores' own surges; new eruptions in front as the alternative).
-- **How the Road's convoys run** (recommended: three convoys on a timetable,
-  each one out and back).
+- **Where the Line's refugees walk:** out of the rear villages to the rear
+  edge along the country road, behind the line.
+- **Whether a fallen redoubt can be retaken:** no; a fallen redoubt is a hole
+  the next column cannot fill.
+- **How the swarm escalates:** both tides on the timetable over the bores'
+  own surges and new bores erupting in front of the line (*Eruption*).
+- **How the Road's convoys run:** three convoys on a timetable, each one out
+  and back.
 
 ## Boundaries
 

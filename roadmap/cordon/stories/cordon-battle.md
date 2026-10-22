@@ -1,29 +1,31 @@
 # Cordon battle
 
-Status: PLANNED
+Status: IN PROGRESS
 
 Written: 2026-10-22
 
-Model: `cordon-nouns.md`. The map (`CordonPlan`, `CordonFront`, `CordonCorridor`) has landed.
+Updated: 2026-10-22 — redoubts, director, sequence, company commander and evidence landed; the rest below is open.
+
+Model: `cordon-nouns.md`. The map (`CordonPlan`, `CordonFront`, `CordonCorridor`) has landed, and so
+has the battle's skeleton: `CordonSetup.create` and `CordonBattleFixture`, the redoubts dressed and
+manned (`CordonGarrisons`), the director bore-only with a pressure share, the cordon sequence
+(`CordonSequence`: states, tides on the timetable, beats, the end as an objective), the minimum
+company commander (`CordonCommand`), and `commanderEvidence -Pmission=cordon-line|cordon-road`.
+The noun doc holds all of it. The scope below is what remains.
 
 ## Scope
 
-`BattleSetup.createCordon` and a `CordonBattleFixture` (variant, line posture,
-seed, bores), the minimum battle both variants need:
+What the battle still needs, both variants:
 
-- **Redoubts manned.** Each field redoubt dressed the way the civil-defence
-  compound is (gun towers at its gates, slits and wall posts, floodlights) and
-  manned by an `ALLY` wall team under garrison authority; picket courses
-  between neighbours with a team each, gaps left at the roads.
-- **The director bore-sourced from tick zero** over the front's grown bores (no
-  perimeter seepage, no evacuation placement).
+- **Picket courses** between neighbouring redoubts with a team each, gaps left
+  at the roads (the redoubts themselves are manned).
 - **A paved relief road.** The corridor is found on the map and wanders; a
   single paved road from the rear edge through the line to the compound wants
   the generator to keep a stated supply route between places rather than
   prune it.
-- **The cordon sequence.** Redoubt states (holding, calling, relieved,
-  fallen), tides on the timetable, every beat in the noun doc's table, and
-  the end conditions as objectives.
+- **The Line's end on its refugees and the Road's on its convoys.** The
+  sequence ends both variants on the window today; the people-are-the-score
+  ends, and their beats, come with the refugees and convoys.
 - **The Line's refugees.** Groups of civilians leave the rear hamlets on the
   timetable and walk the country road off the rear edge.
 - **The Road's convoys.** Allied truck columns on the timetable drive the
@@ -31,11 +33,11 @@ seed, bores), the minimum battle both variants need:
   they halt while the swarm blocks the road.
 - **Allied columns (the Line).** Scripted reinforcement squads walking up a
   rear road to the redoubt holding with the least garrison.
-- **The company commander.** The minimum autonomous Marine commander for
-  evidence: answer calling redoubts (Line) and screen the convoy (Road).
-  Posture and strikes are `cordon-company-command.md`.
-- **Evidence.** `commanderEvidence -Pmission=cordon-line` and
-  `-Pmission=cordon-road`, a fixture per variant, beats in order.
+- **The company screens the convoy (Road).** The commander answers calls;
+  screening the convoy comes with the convoys. Posture and strikes are
+  `cordon-company-command.md`.
+- **The town's garrison (Road).** The compound in the cut-off town dressed
+  and manned as the redoubts are.
 
 ## Acceptance
 

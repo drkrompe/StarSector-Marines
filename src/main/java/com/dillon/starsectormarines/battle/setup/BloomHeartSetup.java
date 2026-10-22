@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.command.objective.HeartObjective;
 import com.dillon.starsectormarines.battle.evacuation.HeartBores;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -20,6 +21,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -87,9 +89,11 @@ public final class BloomHeartSetup {
         sim.getBattleResources().disableCompoundProduction();
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
         sim.addObjective(new HeartObjective());
-        BattleSetup.landCompany(sim, built.map(), manifest,
-                SquadCommandClaim.mission(HeartAssaultCommand.ISSUER, "Company lands for the push on the heart"), built.battleSeed());
-        sim.configureBoreDirector(built.battleSeed());
+        List<LandingPad> pads = LandingPadSelector.select(built.map(), manifest.size(), BattleSetup.LZ_MIN_SEPARATION);
+        BattleSetup.recordLzPads(sim, pads);
+        BattleSetup.landCompany(sim, pads, manifest, new Random(built.battleSeed()),
+                SquadCommandClaim.mission(HeartAssaultCommand.ISSUER, "Company lands for the push on the heart"));
+        sim.configureSwarmFromBores(built.battleSeed());
         sim.installHeart(form);
         Precinct landing = built.plan().landingPlace();
         int laneAcross = form.advancesAlongY() ? landing.seedX() : landing.seedY();

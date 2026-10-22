@@ -21,7 +21,14 @@ public enum FireFuel {
     /** Creep that is dying back: dry husk. */
     DEAD_CREEP(40, 150, 260, 2),
     /** Timber and furniture rubble. */
-    DEBRIS(50, 170, 420, 2);
+    DEBRIS(50, 170, 420, 2),
+    /**
+     * A light wall or window: board and frame, slow to catch and long to burn.
+     * A cell of it that burns through falls to rubble, opening the building.
+     */
+    STRUCTURE(120, 210, 650, 2),
+    /** A furnished room's floor: furniture, fittings and boards, room by room. */
+    FURNISHING(80, 200, 420, 2);
 
     /** Fire steps of burning this fuel adds to a cell. */
     public final int load;

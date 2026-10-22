@@ -98,8 +98,6 @@ public final class SwarmReinforcementSystem {
 
     private final CivilianEvacuationTracker tracker;
     private CivilianEvacuationPlacement placement;
-    /** No civilians to cover: bores only, and only their collapse ends the director's work. */
-    private boolean cohortless;
     private int targetPopulation;
     private int populationFloor;
     private int waveSize;
@@ -117,6 +115,8 @@ public final class SwarmReinforcementSystem {
     private SwarmBores bores;
     private boolean boreSourcing;
     private int boreTarget;
+    /** The share of the living bores' capacities the field is held at; a mission can hold the swarm back between crises. */
+    private float pressureShare = 1f;
     private final List<Release> releases = new ArrayList<>();
     private List<SwarmPressureSnapshot.WaveIntent> surgeWave = new ArrayList<>();
     private final boolean growthStages;
@@ -155,20 +155,20 @@ public final class SwarmReinforcementSystem {
     }
 
     /**
-     * Configures a battle with no civilians to cover: every body comes out of
-     * the battle's bores from the first tick, and nothing closes the director
-     * but the bores' own collapse (the heart, `heart-nouns.md`). One-shot, as
-     * {@link #configure}.
+     * Configures a battle with no rescue ({@code cordon-nouns.md}): the
+     * director is bore-sourced from the first tick over {@code bores}, which
+     * setup has already opened, and nothing seeps in at the perimeter. With no
+     * cohort there is no rescue to end it; it spawns while a bore lives.
      */
-    public boolean configureBores(SwarmBores bores, long seed) {
-        if (configured || bores == null) return false;
-        this.targetPopulation = Math.max(1, borePopulationTarget(bores.bores()));
+    public boolean configureFromBores(SwarmBores bores, long seed, BattleSimulation sim) {
+        if (configured || bores == null || sim == null) return false;
+        this.seed = seed;
+        this.targetPopulation = borePopulationTarget(bores.bores());
         this.populationFloor = 1;
         this.waveSize = MIN_WAVE_SIZE;
-        this.seed = seed;
-        cohortless = true;
         configured = true;
         beginBoreSourcing(bores);
+        refreshSnapshot(sim, "OPENING_BORES");
         return true;
     }
 
@@ -178,7 +178,7 @@ public final class SwarmReinforcementSystem {
             ownedWave = captureOpeningWave(sim);
             refreshSnapshot(sim, "OPENING_PERIMETER");
         }
-        if (!cohortless && (tracker.isSealed() || tracker.activeCount() == 0)) {
+        if (placement != null && (tracker.isSealed() || tracker.activeCount() == 0)) {
             refreshSnapshot(sim, "OBJECTIVE_TERMINAL");
             return;
         }
@@ -244,6 +244,19 @@ public final class SwarmReinforcementSystem {
         seepage = false;
     }
 
+    /**
+     * Holds the bore-sourced field at {@code share} of the living bores'
+     * capacities: the Cordon's ordinary pressure between tides, the whole of
+     * it while a tide runs ({@code cordon-nouns.md}). Surges already leaving
+     * their mouths finish.
+     */
+    public void setPressureShare(float share) {
+        if (!(share > 0f && share <= 1f)) throw new IllegalArgumentException("pressure share in (0, 1]: " + share);
+        pressureShare = share;
+    }
+
+    public float pressureShare() { return pressureShare; }
+
     /** Whether spawning comes only from bores. */
     public boolean isBoreSourcing() {
         return boreSourcing;
@@ -268,7 +281,7 @@ public final class SwarmReinforcementSystem {
     private String tickBores(BattleSimulation sim) {
         int tick = sim.getSimTickIndex();
         List<SwarmBore> all = bores.bores();
-        boreTarget = borePopulationTarget(all);
+        boreTarget = Math.round(borePopulationTarget(all) * pressureShare);
         boolean released = false;
         for (int i = 0; i < releases.size(); ) {
             Release release = releases.get(i);
@@ -284,11 +297,22 @@ public final class SwarmReinforcementSystem {
         float inFlight = 0f;
         for (Release release : releases) inFlight += release.weightLeft();
         boolean surged = false;
-        for (SwarmBore bore : all) {
+        // With no rescue every bore presses its own stretch of front, so headroom goes to the bore that
+        // has surged least rather than to whichever is listed first: listed first, the west end of a
+        // Cordon's front took nearly all of it.
+        List<SwarmBore> order = all;
+        if (placement == null) {
+            order = new ArrayList<>(all);
+            order.sort(Comparator.comparingInt(SwarmBore::surges).thenComparingInt(SwarmBore::number));
+        }
+        for (SwarmBore bore : order) {
             if (!bore.surgeDue(tick) || releasing(bore)) continue;
             float headroom = boreTarget - live - inFlight;
             int size = bore.surgeSize();
-            if (headroom < Math.max(1, (int) Math.ceil(size * SURGE_MIN_FIT))) {
+            // Held back to a share, a big bore's pulse would never fit and only the small bores would
+            // ever surge; with no rescue it goes out at the share's size instead.
+            float fit = placement == null ? SURGE_MIN_FIT * pressureShare : SURGE_MIN_FIT;
+            if (headroom < Math.max(1, (int) Math.ceil(size * fit))) {
                 bore.deferSurge(tick + SURGE_RECHECK_TICKS);
                 continue;
             }
@@ -523,10 +547,8 @@ public final class SwarmReinforcementSystem {
     }
 
     private void refreshSnapshot(BattleSimulation sim, String reason) {
-        SwarmPressureSnapshot.Phase phase = cohortless
-                ? SwarmPressureSnapshot.Phase.COHORT_RELEASED
-                : tracker.isSealed()
-                || tracker.activeCount() == 0
+        SwarmPressureSnapshot.Phase phase = placement != null && (tracker.isSealed()
+                || tracker.activeCount() == 0)
                 ? SwarmPressureSnapshot.Phase.TERMINAL
                 : sim.isCivilianShelterProtected()
                 ? SwarmPressureSnapshot.Phase.OPENING

@@ -298,7 +298,7 @@ public final class ColonyMilitia {
      * A militia fireteam of {@link #POST_SIZE} on the given cells, one each,
      * with no order yet: the caller says what it holds.
      */
-    static int seatTeam(BattleSimulation sim, List<int[]> cells, String name, RiskLevel risk, Random rng) {
+    public static int seatTeam(BattleSimulation sim, List<int[]> cells, String name, RiskLevel risk, Random rng) {
         int squadId = sim.mintSquad(Faction.ALLY, UnitType.MILITIA);
         seatMembers(sim, sim.getSquad(squadId), cells, name, risk, rng);
         return squadId;
@@ -322,7 +322,7 @@ public final class ColonyMilitia {
     }
 
     /** A colony gun on one cell: the post's heavy machine gun, sealed into its cell. */
-    static long seatEmplacement(BattleSimulation sim, int[] cell, String name) {
+    public static long seatEmplacement(BattleSimulation sim, int[] cell, String name) {
         int x = cell[0], y = cell[1];
         long turret = sim.spawn(MapTurret.create(name, Faction.ALLY,
                 EMPLACEMENT_STRUCTURE, x, y));

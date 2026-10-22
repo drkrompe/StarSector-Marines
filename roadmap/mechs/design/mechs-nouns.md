@@ -366,6 +366,9 @@ increasing an encounter's total armored threat.
   direct fire from LRM artillery, rather than different footprints within a size class.
   Nothing is smaller than one row by two columns: every weapon, internal and
   socket is at least 2x1, so the smallest piece still reads as a piece.
+  Above a single row, a piece is never wider than it is tall: multi-row
+  footprints are 2x2 or 2x3 (columns x rows), and long guns stand upright in
+  them, muzzle forward.
   Each asset-class layout owns the socket's physical mount anchor,
   its equipment-dock center around the doll, and its doll-relative interaction
   footprint as well as compatibility and capacity. A leader preserves the

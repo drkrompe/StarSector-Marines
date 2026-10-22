@@ -630,29 +630,31 @@ public final class BattleSetup {
     }
 
     /**
-     * Brings a company down by shuttle on the map's landing berths, each boat
-     * flying its manifest's sorties with rolled player squads that land under
-     * {@code claim}: the shared landing of a story mission whose company comes
-     * in by air.
+     * The company's boats, one per pad, each flying its manifest line's
+     * sorties onto its pad from the pad's clear side; the squads they land are
+     * claimed by {@code claim}. An empty manifest is the default lift.
      */
-    static void landCompany(BattleSimulation sim, MapResult map, List<ShuttleAssignment> manifest,
-                            SquadCommandClaim claim, long seed) {
-        Random rng = new Random(seed);
-        var pads = LandingPadSelector.select(map, manifest.size(), LZ_MIN_SEPARATION);
-        recordLzPads(sim, pads);
-        for (int i = 0; i < manifest.size(); i++) {
-            var assignment = manifest.get(i); var pad = pads.get(i);
-            float x = pad.centerX + .5f, y = pad.centerY + .5f;
-            float[] entry = shuttleEntryFor(x, y, map.grid.getWidth(), map.grid.getHeight(), pad.approach);
-            long air = sim.spawnShuttle(assignment.type, assignment.airframe, Faction.MARINE, x, y,
+    static void landCompany(BattleSimulation sim, List<LandingPad> pads, List<ShuttleAssignment> manifest,
+                            Random rng, SquadCommandClaim claim) {
+        List<ShuttleAssignment> assignments = resolveManifest(manifest);
+        int width = sim.getGrid().getWidth(), height = sim.getGrid().getHeight();
+        for (int i = 0; i < pads.size(); i++) {
+            ShuttleAssignment assignment = assignments.get(i % assignments.size());
+            LandingPad pad = pads.get(i);
+            float x = pad.centerX + 0.5f, y = pad.centerY + 0.5f;
+            float[] entry = shuttleEntryFor(x, y, width, height, pad.approach);
+            long shuttle = sim.spawnShuttle(assignment.type, assignment.airframe, Faction.MARINE, x, y,
                     entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
-            var mission = sim.world().mission(air);
-            mission.totalCycles = assignment.cycles; mission.manifestOrdinal = i;
+            ShuttleMission mission = sim.world().mission(shuttle);
+            mission.totalCycles = assignment.cycles;
             mission.commandClaim = claim;
-            mission.cycleLoadouts = new MarineLoadout[assignment.cycles][];
-            for (int cycle = 0; cycle < assignment.cycles; cycle++)
-                mission.cycleLoadouts[cycle] = InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle), rng);
-            mission.marineLoadout = mission.cycleLoadouts[0];
+            MarineLoadout[][] cycles = new MarineLoadout[assignment.cycles][];
+            for (int cycle = 0; cycle < assignment.cycles; cycle++) {
+                cycles[cycle] = InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle), rng);
+            }
+            mission.cycleLoadouts = cycles;
+            mission.marineLoadout = cycles[0];
+            equipDefaultTurrets(sim, shuttle);
         }
     }
 
