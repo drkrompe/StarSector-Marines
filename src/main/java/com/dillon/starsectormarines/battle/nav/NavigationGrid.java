@@ -209,6 +209,12 @@ public class NavigationGrid {
      */
     private final SwarmFlowFields swarmFlowFields = new SwarmFlowFields(this);
 
+    /**
+     * The map's raised ground, or null on a flat map. Immutable and shared by
+     * every copy of this grid; see {@link ElevationMap}.
+     */
+    private ElevationMap elevation;
+
     public NavigationGrid(int width, int height) {
         this(width, height, false);
     }
@@ -259,12 +265,29 @@ public class NavigationGrid {
     public int getHeight() { return height; }
     public long topologyRevision() { return topologyRevision; }
 
+    /** The map's raised ground, or null when the map is flat. */
+    public ElevationMap elevation() { return elevation; }
+
+    /**
+     * Installs the map's raised ground. Generation only: the map is fixed for
+     * the battle. Sight answers change with it, so the caches are swept.
+     */
+    public void setElevation(ElevationMap value) {
+        if (value != null && (value.width() != width || value.height() != height)) {
+            throw new IllegalArgumentException("Elevation and grid dimensions differ");
+        }
+        elevation = value;
+        opacityRevision++;
+        losCaches.clearAll();
+    }
+
     /** This grid's swarm flow fields; see {@link SwarmFlowFields}. */
     public SwarmFlowFields swarmFlowFields() { return swarmFlowFields; }
 
     /** Independent navigation snapshot retaining full ancillary grid storage. */
     public NavigationGrid copyNavigationTopology() {
         NavigationGrid copy = new NavigationGrid(width, height);
+        copy.elevation = elevation;
         System.arraycopy(cellFlags, 0, copy.cellFlags, 0, cellFlags.length);
         System.arraycopy(edgePassability, 0, copy.edgePassability, 0,
                 edgePassability.length);
@@ -278,6 +301,7 @@ public class NavigationGrid {
      */
     public NavigationGrid copyRoutingTopology() {
         NavigationGrid copy = new NavigationGrid(width, height, true);
+        copy.elevation = elevation;
         System.arraycopy(cellFlags, 0, copy.cellFlags, 0, cellFlags.length);
         System.arraycopy(edgePassability, 0, copy.edgePassability, 0,
                 edgePassability.length);
