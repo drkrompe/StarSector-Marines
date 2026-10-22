@@ -33,16 +33,12 @@ import java.util.List;
 public final class BerthingFitting implements RoomFitting {
 
     /**
-     * Cells one rack takes, head to foot, on the ground: the residential beds
-     * there are two cells long.
-     */
-    private static final int RACK_DEPTH = 2;
-    /**
-     * Cells a shipboard bunk takes, head to foot. A cell is about 0.75 m, so a
-     * bunk is 2.25 m of frame round a two-metre mattress: what a crewman of 1.8 m
+     * Cells one rack takes, head to foot, aboard or on the ground. A cell is
+     * about 0.75 m, so a bunk is 2.25 m of frame round a two-metre mattress, and
+     * the ground's residential single bed is 2.1 m: what a crewman of 1.8 m
      * actually lies in. Two cells was a metre and a half and nobody fitted.
      */
-    private static final int SHIP_RACK_DEPTH = 3;
+    private static final int RACK_DEPTH = 3;
     /** Clear deck between the ranks. Two abreast, as everywhere else. */
     private static final int AISLE = 2;
 
@@ -57,7 +53,11 @@ public final class BerthingFitting implements RoomFitting {
     /** Kit that has not been stowed yet, behind the locker it belongs in. */
     private static final String KIT = "doodad.box";
 
-    /** Racks by which way the head points, on the deck rather than in the frame. */
+    /**
+     * Racks by which way the head points, on the deck rather than in the frame.
+     * North is the high row: a sprite's top edge lies at its footprint's highest
+     * row, and the head-north bed has its pillow at the image top.
+     */
     private static final String RACK_HEAD_NORTH = "doodad.residential-bed-head-n";
     private static final String RACK_HEAD_SOUTH = "doodad.residential-bed-v";
     private static final String RACK_HEAD_WEST = "doodad.residential-bed-h";
@@ -136,16 +136,11 @@ public final class BerthingFitting implements RoomFitting {
         return Hookup.DoorSlot.run(along, -1, 2, 1);
     }
 
-    /** Cells this fitting's racks take, head to foot. */
-    private int rackDepth() {
-        return shipboard ? SHIP_RACK_DEPTH : RACK_DEPTH;
-    }
-
     @Override
     public void fit(RoomFloor floor) {
         int along = floor.canonicalWidth();
         int across = floor.canonicalHeight();
-        int depth = rackDepth();
+        int depth = RACK_DEPTH;
         if (along < 1 || across < depth + AISLE) return;
 
         boolean facingRanks = across >= 2 * depth + AISLE;
@@ -205,7 +200,7 @@ public final class BerthingFitting implements RoomFitting {
      */
     private void layRank(RoomFloor floor, int along, int band,
                          boolean headOutboard, boolean[] taken, boolean doorSide) {
-        int depth = rackDepth();
+        int depth = RACK_DEPTH;
         int outboard = headOutboard ? band : band + depth - 1;
         int inboard = headOutboard ? band + depth - 1 : band;
         // The head points at the bulkhead the rank backs onto. Chosen on the
@@ -242,47 +237,47 @@ public final class BerthingFitting implements RoomFitting {
             if (doorSide && (slot == 0 || slot == along - 1)) {
                 // Stowage at the ends of the rank the hatches are in, which is
                 // where somebody coming off watch actually drops their kit. The
-                // locker is the cell against the passage so it can be opened
-                // from it; the bag behind it is scenery.
+                // locker stands a cell short of the passage, opened from the
+                // alcove that leaves between the racks either side; the bag
+                // behind it is scenery.
                 place(floor, slot, outboard, KIT);
-                place(floor, slot, inboard, locker, Affordance.STOW);
+                int[] at = floor.toLocal(slot, band + 1);
+                if (floor.place(locker, at[0], at[1])) {
+                    int[] stand = floor.toLocal(slot, inboard);
+                    floor.fixtureTask(stand[0], stand[1], Affordance.STOW, at[0], at[1]);
+                }
             } else if (!doorSide && slot == divider) {
-                place(floor, slot, outboard, STANCHION);
-                place(floor, slot, inboard, STANCHION);
+                for (int row = band; row < band + depth; row++) place(floor, slot, row, STANCHION);
             } else {
-                layRack(floor, slot, band, rack);
+                layRack(floor, slot, band, headOutboard, rack);
             }
         }
     }
 
     /**
-     * One rack, and the fact that somebody sleeps in it.
-     *
-     * <p>The standing cell falls in the passage of its own accord, because that
-     * is the only side of a rack that is not another rack or the hull.
+     * One rack, and the fact that somebody sleeps in it: worked from the
+     * passage cell at its foot, which is where a sleeper lies down from
+     * ({@code WorkMotion.SLEEP} draws the body up the bed from there).
      */
-    private void layRack(RoomFloor floor, int slot, int band, String rack) {
+    private void layRack(RoomFloor floor, int slot, int band, boolean headOutboard, String rack) {
         int[] rect = floor.toLocalRect(slot, band, 1, RACK_DEPTH);
-        floor.place(rack, rect[0], rect[1], Affordance.REST);
+        if (!floor.place(rack, rect[0], rect[1])) return;
+        int[] stand = floor.toLocal(slot, headOutboard ? band + RACK_DEPTH : band - 1);
+        int[] foot = floor.toLocal(slot, headOutboard ? band + RACK_DEPTH - 1 : band);
+        floor.fixtureTask(stand[0], stand[1], Affordance.REST, foot[0], foot[1]);
     }
 
     /** The rack sprite whose head lies the way this rank's heads point. */
     private static String rackFacing(int[] head) {
         if (head[0] < 0) return RACK_HEAD_WEST;
         if (head[0] > 0) return RACK_HEAD_EAST;
-        if (head[1] < 0) return RACK_HEAD_NORTH;
-        return RACK_HEAD_SOUTH;
+        if (head[1] < 0) return RACK_HEAD_SOUTH;
+        return RACK_HEAD_NORTH;
     }
 
     private void place(RoomFloor floor, int along, int across, String id) {
         int[] cell = floor.toLocal(along, across);
         floor.place(id, cell[0], cell[1]);
-    }
-
-    private void place(RoomFloor floor, int along, int across,
-                       String id, Affordance affordance) {
-        int[] cell = floor.toLocal(along, across);
-        floor.place(id, cell[0], cell[1], affordance);
     }
 
     private void reserve(RoomFloor floor,
