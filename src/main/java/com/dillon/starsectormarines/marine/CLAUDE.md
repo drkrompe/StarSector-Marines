@@ -45,6 +45,11 @@ write them directly:
   `TEAM_SIZE`. Storing it would be a second source of truth to keep in sync on
   every transfer; deriving it also means an under-strength squad consolidates
   into fewer full teams instead of keeping hollow ones.
+- **Seat kit** — what each marine carries is what the squad's two cards issue the
+  seat they hold. `MarineRoster.refreshLeadership` dresses every seat from the
+  cards first (`conformKit`), so a replacement, a transfer, or a casualty that
+  moves everyone up a seat can never leave a marine in kit the cards do not
+  describe. Never set a squad member's kit directly; change the squad's cards.
 - **Enlisted rank and the squad leader** — `MarineRoster.refreshLeadership`
   re-derives both after any membership, fitness, **or issued-armour** change,
   and `readResolve` calls it too. Rank follows the billet, so a new mutator that
@@ -53,11 +58,14 @@ write them directly:
   experience band and sergeant's stripes follow that band — a refit that skips
   the refresh leaves rank and band disagreeing.
 
-Squad **equipment doctrine assignment is authored state**, not another derived
-rollup. `MarineSquad` holds one weapon doctrine id and one armor doctrine id;
-`MarineRoster.applySquadEquipment` changes both only after the complete
-twelve-billet technology validation succeeds. Fitting is free; stationing and
-unknown technology remain blockers.
+Squad **cards are authored state**, the only authored kit there is. `MarineSquad`
+holds one weapon doctrine id and one armor doctrine id (plus, for the debug
+company only, per-seat primary grades); every line squad holds both from
+`createSquad` on. `MarineRoster.applySquadEquipment` changes both only after the
+complete twelve-billet technology validation succeeds. Fitting is free; stationing
+and unknown technology remain blockers. Saved squad profiles are gone: `SquadProfile`
+and the fields that held it survive only so old saves load, and the roster's
+`readResolve` turns an assigned profile into the squad's cards.
 `MarineArmory` persists a custom **weapon** definition catalog while built-ins
 remain immutable fixtures; authoring consumes nothing but may reference only
 collected templates. **There is no custom armour catalog and nothing should add

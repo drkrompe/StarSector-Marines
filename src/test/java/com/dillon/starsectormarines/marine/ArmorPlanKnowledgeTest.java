@@ -31,7 +31,7 @@ class ArmorPlanKnowledgeTest {
         }
     }
 
-    @Test void unknownSheetCannotBeSavedOrFittedEvenWhenItsKitCouldResolve() {
+    @Test void unknownSheetCannotBeFittedEvenWhenItsKitCouldResolve() {
         MarineRoster roster = new MarineRoster();
         MarineSquad squad = roster.createSquad();
         roster.recruitToSquad(squad.id(), 12);
@@ -39,8 +39,6 @@ class ArmorPlanKnowledgeTest {
                 SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS, SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR));
         String weaponPlan = squad.weaponDoctrineId(), armorPlan = squad.armorDoctrineId();
         var before = roster.soldiers().stream().map(MarineSoldier::armorId).toList();
-        assertNull(roster.armory().saveSquadProfile("Unknown", SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
-                SquadEquipmentDoctrines.FLEET_COMBAT_ARMOR));
         assertEquals(SquadEquipmentResult.UNKNOWN_ARMOR_DOCTRINE, roster.applySquadEquipment(squad.id(),
                 SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS, SquadEquipmentDoctrines.FLEET_COMBAT_ARMOR));
         assertEquals(before, roster.soldiers().stream().map(MarineSoldier::armorId).toList());
@@ -82,22 +80,6 @@ class ArmorPlanKnowledgeTest {
         MarineArmory armory = new MarineArmory();
         for (EquipmentTemplateCard card : EquipmentTemplateCatalog.all()) armory.acquireEquipmentTemplate(card.id());
         for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) assertTrue(armory.knowsArmorPlan(plan.id()), plan.id());
-    }
-
-    @Test void standaloneLegacyArmoryRetainsItsSavedProfileSheet() throws Exception {
-        MarineArmory armory = new MarineArmory();
-        armory.acquireArmorPlan(SquadEquipmentDoctrines.LEAGUE_MOBILE_ARMOR);
-        SquadProfile profile = armory.saveSquadProfile("Screen", SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
-                SquadEquipmentDoctrines.LEAGUE_MOBILE_ARMOR);
-        assertNotNull(profile);
-        var templates = Set.copyOf(armory.ownedEquipmentTemplateIds());
-        var field = MarineArmory.class.getDeclaredField("knownArmorPlanIds");
-        field.setAccessible(true);
-        field.set(armory, null);
-        MarineArmory loaded = roundTrip(armory);
-        assertTrue(loaded.knowsArmorPlan(SquadEquipmentDoctrines.LEAGUE_MOBILE_ARMOR));
-        assertNotNull(loaded.squadProfile(profile.id()));
-        assertEquals(templates, loaded.ownedEquipmentTemplateIds());
     }
 
     @Test void alternateRefitSheetWaitsForItsTechnologyAndSurvivesSave() throws Exception {

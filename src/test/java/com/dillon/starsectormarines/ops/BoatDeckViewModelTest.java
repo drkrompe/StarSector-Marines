@@ -426,7 +426,7 @@ class BoatDeckViewModelTest {
         props.put("fabricationBlocked", viewModel.fabricationBlocked());
         props.put("fabricationReason", viewModel.fabricationReason());
         props.put("fabricationActionLabel", viewModel.fabricationActionLabel());
-        props.put("restoration", BoatBayRestorationModel.Row.hidden());
+        props.put("bayNoteClasses", "hidden");
         props.put("wings", SecondhandWingsModel.Row.hidden());
         props.put("fabricate", viewModel.fabricateAction());
         props.put("backToDeck", viewModel.backToDeckAction());
