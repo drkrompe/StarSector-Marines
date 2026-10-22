@@ -10,12 +10,12 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 class WorkshopToolingTest {
-    @Test void suppliesRoundUpAndOtherMaterialsAndBaseRecipeStayUntouched() {
+    @Test void suppliesAndMachineryRoundUpAndOtherMaterialsAndBaseRecipeStayUntouched() {
         var base = new FabricationCost(List.of(new FabricationCost.Line("supplies", 11),
-                new FabricationCost.Line("metals", 17), new FabricationCost.Line("heavy_machinery", 3)));
+                new FabricationCost.Line("metals", 17), new FabricationCost.Line("heavy_machinery", 11)));
         assertSame(base, WorkshopTooling.quote(base, false));
         var quoted = WorkshopTooling.quote(base, true);
-        assertEquals(List.of(9, 17, 3), quoted.lines().stream().map(FabricationCost.Line::quantity).toList());
+        assertEquals(List.of(9, 17, 9), quoted.lines().stream().map(FabricationCost.Line::quantity).toList());
         assertEquals(11, base.lines().get(0).quantity());
         assertEquals(1, WorkshopTooling.quote(new FabricationCost(List.of(new FabricationCost.Line("supplies", 1))), true).lines().get(0).quantity());
     }

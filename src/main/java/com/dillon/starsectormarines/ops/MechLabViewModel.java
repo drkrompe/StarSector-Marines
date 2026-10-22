@@ -1455,8 +1455,7 @@ public final class MechLabViewModel {
 
     private List<Row> buildMaterialStock() {
         revision.get();
-        return List.of(Commodities.SUPPLIES, Commodities.HEAVY_MACHINERY,
-                Commodities.METALS, Commodities.RARE_METALS).stream().map(commodity ->
+        return List.of(Commodities.HEAVY_MACHINERY, Commodities.METALS, Commodities.RARE_METALS).stream().map(commodity ->
                 CompanyResources.stock("mech-material-stock:" + commodity, resources.commodityName(commodity),
                         resources.commodityIcon(commodity), resources.available(commodity))).toList();
     }

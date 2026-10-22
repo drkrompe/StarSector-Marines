@@ -100,6 +100,20 @@ class ElevationSightTest {
         }
     }
 
+    @Test void aSweepFromBelowReadsPastTheRimOnlyWithinItsRadius() {
+        NavigationGrid grid = hill(ElevationMap.SightRule.SKYLINE);
+        int[] out = new int[Shadowcast.maxCells(30)];
+        int n = Shadowcast.castFromGround(grid, 33, 15, 30, 4f, out, 0);
+        boolean near = false, far = false;
+        for (int i = 0; i < n; i++) {
+            near |= out[i] == grid.index(29, 15);
+            far |= out[i] == grid.index(25, 15);
+        }
+        assertTrue(near, "within its read radius the sweep reads the top behind the rim");
+        assertFalse(far, "beyond its read radius the sweep sees from the ground");
+        assertTrue(casts(grid, 33, 15, grid.index(30, 15)), "the rim is seen from below");
+    }
+
     @Test void strictSeesNothingUpAndFlatSeesEverything() {
         NavigationGrid strict = hill(ElevationMap.SightRule.STRICT);
         assertFalse(strict.hasLineOfSight(36, 15, 30, 15));
