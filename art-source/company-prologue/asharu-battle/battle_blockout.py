@@ -1178,6 +1178,50 @@ def blender_main(cfg):
                             worst, name = d, ship_fx.base_name(o.name)
                 print(f'ASHARU stale {kf} {k:12} worst {worst:.2f} u = {worst * pl["mpu"]:.1f} m {name}', flush=True)
 
+    def volume_audit(kf, label=''):
+        """--volume-audit: every volume the camera can see on this frame, by what it costs to march: its
+        share of the frame times its depth along the view, and the 20 worst (no render)."""
+        from bpy_extras.object_utils import world_to_camera_view
+        import re
+        bpy.context.view_layer.update()
+        dg = bpy.context.evaluated_depsgraph_get()
+        cam_o = scene.camera
+        rows, n = [], 0
+        for inst in dg.object_instances:
+            ob = inst.object
+            if ob.type != 'MESH' or not ob.material_slots:
+                continue
+            vol = [sl.material for sl in ob.material_slots if sl.material and sl.material.node_tree and any(
+                n_.type == 'OUTPUT_MATERIAL' and n_.inputs['Volume'].is_linked for n_ in sl.material.node_tree.nodes)]
+            if not vol:
+                continue
+            orig = ob.original
+            if orig.hide_render:
+                continue
+            n += 1
+            mw = inst.matrix_world
+            pts = [mw @ Vector(c) for c in ob.bound_box]
+            uv = [world_to_camera_view(scene, cam_o, p) for p in pts]
+            if all(q.z <= 0 for q in uv):
+                continue
+            xs = [min(1, max(0, q.x)) for q in uv if q.z > 0]
+            ys = [min(1, max(0, q.y)) for q in uv if q.z > 0]
+            area = (max(xs) - min(xs)) * (max(ys) - min(ys)) if xs else 0
+            size = max((pts[6] - pts[0]).length, 1e-6)
+            rows.append((area * size, area, size, orig.name, vol[0].name))
+        rows.sort(reverse=True)
+        print(f'ASHARU volumes {kf} {label}: {n} visible volume instances, {len(rows)} in front of the camera, '
+              f'sum size {sum(r[2] for r in rows):.0f} m, sum frame share {sum(r[1] for r in rows) * 100:.1f}%', flush=True)
+        kinds = {}
+        for cost, area, size, name, mat in rows:
+            k_ = re.sub(r'( \S*\d\S*)+$', '', ship_fx.base_name(name))
+            c_ = kinds.setdefault(k_, [0, 0.0, 0.0])
+            c_[0] += 1
+            c_[1] += size
+            c_[2] += area
+        for k_, (c_, sz, ar) in sorted(kinds.items(), key=lambda t: -t[1][1])[:14]:
+            print(f'ASHARU volume kind {kf} {label:10} {k_[:40]:40} x{c_:3}  sum size {sz:7.0f} m  sum area {ar * 100:5.2f}%', flush=True)
+
     def clear_stage():
         for o in list(stage.objects):
             bpy.data.objects.remove(o)
@@ -1322,6 +1366,8 @@ def blender_main(cfg):
             for key, pl in placed.items():   # the kit's drives follow the placement's throttle
                 if pl['fx'] is not None and pl['fx'].fx is not None and not pl['lib']['swfx']:
                     pl['fx'].set('thr_throttle', pl['throttle'])
+                if pl['fx'] is not None and pl['fx'].fx is not None:
+                    pl['fx'].vacuum()        # Asharu is fought in orbit: no hanging haze, no landing dust
             for key, kn in spec.get('knobs', {}).items():
                 for name, val in kn.items():
                     if isinstance(val, dict):     # {'ago_s': t}: a frame t seconds before this one
@@ -1413,6 +1459,22 @@ def blender_main(cfg):
                     entry_trails(extra3d)
             c = spec['camera']
             aim(c['loc'], c.get('target'), c['lens'], c.get('look'))
+            if cfg.get('volume_audit'):       # in vacuum (as rendered), then as the kit's atmosphere default
+                volume_audit(kf, 'vacuum')
+                for s_ in ships_fx.values():
+                    for n_ in ('smk_atmosphere', 'smk_dust'):
+                        try:
+                            s_.set(n_, 1.0)
+                        except KeyError:
+                            pass
+                    for o_ in s_.ids:
+                        if isinstance(o_, bpy.types.Object) and ship_fx.base_name(o_.name).startswith('SWFX smoke landing dust'):
+                            o_.hide_render = False
+                ship_fx.refresh(scene)
+                volume_audit(kf, 'atmosphere')
+                for s_ in ships_fx.values():
+                    s_.vacuum()
+                ship_fx.refresh(scene)
             lab = {}
             for key in spec['labels']:
                 if key in extra3d:
@@ -1944,7 +2006,8 @@ def main():
         from blender_path import BLENDER
         env = dict(os.environ, ASHARU_CFG=json.dumps(dict(out=str(run), frames=frames, samples=1, stage_only=True,
                                                           los='--los' in argv, swfx='--swfx' in argv,
-                                                          fx_check='--fx-check' in argv)))
+                                                          fx_check='--fx-check' in argv,
+                                                          volume_audit='--volume-audit' in argv)))
         subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python-exit-code', '1',
                                '--python', __file__], env=env)
         return
