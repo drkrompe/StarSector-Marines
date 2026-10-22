@@ -79,6 +79,28 @@ public final class HeadlessUiRenderer {
         }
     }
 
+    /**
+     * Draws a transient raster, unscaled and unturned, with its top-left at canvas ({@code x}, {@code y}): its
+     * colour multiplies the surface under it where its alpha is set ({@code multiply}), or it blends over it as an
+     * ordinary straight-alpha image. The live counterpart of the multiply is a {@code DST_COLOR, ZERO} blend.
+     */
+    public static void blendImage(CanvasContext context, BufferedImage image, float x, float y, boolean multiply) {
+        if (!(context instanceof RasterCanvasContext raster)) throw new IllegalArgumentException("Not a raster canvas");
+        var graphics = raster.graphics;
+        var transform = graphics.getTransform();
+        var composite = graphics.getComposite();
+        try {
+            graphics.translate(raster.documentX(x), raster.documentY(y));
+            graphics.scale(raster.coordinateScaleX, raster.coordinateScaleY);
+            graphics.setComposite(multiply ? new MultiplyComposite(clampAlpha(raster.alphaMult()))
+                    : AlphaComposite.getInstance(AlphaComposite.SRC_OVER, clampAlpha(raster.alphaMult())));
+            graphics.drawImage(image, 0, 0, null);
+        } finally {
+            graphics.setComposite(composite);
+            graphics.setTransform(transform);
+        }
+    }
+
     /** Draws one horizontal band of a canvas; {@code top}/{@code bottom} are the band's rows in canvas coordinates. */
     @FunctionalInterface
     public interface BandDrawer {
@@ -749,6 +771,46 @@ public final class HeadlessUiRenderer {
     private record TintKey(String path, int rgb, int alpha) { }
 
     private record SpriteTintKey(String path, int rgb) { }
+
+    /** Multiplies the destination's colour by the source's where the source has alpha, by that alpha times {@code opacity}. */
+    private record MultiplyComposite(float opacity) implements Composite {
+        @Override
+        public CompositeContext createContext(ColorModel sourceColorModel, ColorModel destinationColorModel,
+                                              RenderingHints hints) {
+            return new CompositeContext() {
+                @Override
+                public void compose(Raster source, Raster destinationIn, WritableRaster destinationOut) {
+                    int width = Math.min(source.getWidth(), destinationIn.getWidth());
+                    int height = Math.min(source.getHeight(), destinationIn.getHeight());
+                    for (int y = 0; y < height; y++) {
+                        for (int x = 0; x < width; x++) {
+                            int s = sourceColorModel.getRGB(source.getDataElements(source.getMinX() + x, source.getMinY() + y, null));
+                            int d = destinationColorModel.getRGB(destinationIn.getDataElements(destinationIn.getMinX() + x, destinationIn.getMinY() + y, null));
+                            float a = (s >>> 24) / 255f * opacity;
+                            if (a <= 0f) {
+                                destinationOut.setDataElements(destinationOut.getMinX() + x, destinationOut.getMinY() + y,
+                                        destinationColorModel.getDataElements(d, null));
+                                continue;
+                            }
+                            int r = multiplyChannel(d >>> 16 & 0xff, s >>> 16 & 0xff, a);
+                            int g = multiplyChannel(d >>> 8 & 0xff, s >>> 8 & 0xff, a);
+                            int b = multiplyChannel(d & 0xff, s & 0xff, a);
+                            destinationOut.setDataElements(destinationOut.getMinX() + x, destinationOut.getMinY() + y,
+                                    destinationColorModel.getDataElements((d & 0xff000000) | r << 16 | g << 8 | b, null));
+                        }
+                    }
+                }
+
+                @Override
+                public void dispose() { }
+            };
+        }
+
+        private static int multiplyChannel(int dst, int src, float a) {
+            float multiplied = dst * src / 255f;
+            return Math.round(dst + (multiplied - dst) * a);
+        }
+    }
 
     /** Java2D equivalent of the live canvas's SRC_ALPHA, ONE sprite blend. */
     private record AdditiveComposite(float opacity) implements Composite {
