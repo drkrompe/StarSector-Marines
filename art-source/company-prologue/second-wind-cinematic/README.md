@@ -22,8 +22,8 @@ the final mix and packaging into the game.
 |---|---|---|---|
 | C1 approach | 37.7 s | `corvus-approach/` (`c1v2_scene.py`, `c1-v2-shot.md`) | All ships on final builds; half-size motion check approved. Planet lock and captions are runtime data (`cinematic_export.py --shot c1`). |
 | C2 bridge | 15 s | `patrol-abeam/` (`c2-layout.md`, `c2_bridge_render.py`) | Camera set approved (walk, duck, breath, frame, lean, lens). Final Second Wind and Broadswords wired. Glass reflection kept faint, bridge lit brighter. Castle passes once at 5.5-6 s. Bulkhead detail round the slits (`c2_bulkhead.py`, owner-approved round 2) is on by default; `--no-bulkhead` is the control. Renders the Second Wind build pinned in `c2_bridge_render.SW_PIN` (`pins/`); a new build means moving the pin. |
-| Entry | 7 s | `patrol-abeam/compose_entry.py` | Approved. |
-| C3 window | 16 s | `first-open-sky/` | Approved. |
+| Entry | 7 s | `patrol-abeam/compose_entry.py` | Approved; a re-entry plasma pass (sheath, shock front, embers, glare in the effects kit's colours) is in owner review (2026-10-22). |
+| C3 window | 16 s | `first-open-sky/` | Approved; a look pass (graded onto C4/C5's jungle, a freight checkpoint town, its road and a relay mast on the far bank) is in owner review (2026-10-22). |
 | C4 landing | 21.4 s | `industrial-exterior/c4x_scene.py` (`LATE` 5.4: hover 12.0, touchdown 16.4) | Landing dust approved. Darker pads, final Second Wind. A joined C4+C5 review with the mix is the last check before the final render. |
 | C5 yard and title | 40 s | `industrial-exterior/c5_scene.py`, `c5_title.py` (title from 24 s, held to 38, black by 39.5) | Approved: 40 s length, dark pads, families walking out from under the hull, only the Colossus in the air under the title (lift-off dust, slow turn, mains at 19.5 s, engine-wash cloud). The title is added on Windows (the Mac has no install font). |
 

@@ -14,6 +14,9 @@ layer's scale in frame px per layer px:
   atlas                   the realism Atlas card at its true size, hazed for 2.2 km
   cabin                   the painted cabin at C3's camera, head band from v2
 
+Every land layer and the Atlas leave graded onto the C4/C5 look (c3_look.py) with their
+distance, so compose_c3.py and the entry draw them as baked.
+
 The range (band `mountains`) has no paint behind the far crests; the parallax exposes
 up to ~16 master px of it (c3-inpaint-mountains.png). It is filled procedurally rather
 than by a generation: below the range's foot each column mirrors the range's own lower
@@ -26,7 +29,9 @@ import json
 import numpy as np
 from PIL import Image
 
-from c3_core import BASE, CIN, F_PX, H, PLATE_SCALE, W
+from c3_core import BASE, CIN, F_PX, H, LAYERS, PLATE_SCALE, W
+from c3_look import grade_land
+import c3_settlement as settlement
 from c3_plates import MIST_WHITE, PLATE, arr, band, blur, img, shift
 
 G = BASE / "guides"
@@ -34,7 +39,6 @@ P = BASE / "build" / "plates"
 OUT = BASE / "build" / "layers"
 EXTRACT = CIN / "forest-reveal-realism" / "assets"
 ATLAS_LENGTH_M, ATLAS_DISTANCE_M = 300.0, 2200.0
-HAZE = np.array([0.70, 0.80, 0.90], np.float32)
 
 
 def up(a, size, resample=Image.BILINEAR):
@@ -44,7 +48,13 @@ def up(a, size, resample=Image.BILINEAR):
     return np.dstack([up(a[..., c], size, resample) for c in range(a.shape[2])])
 
 
+DIST = {n: d for n, d, _ in LAYERS}
+GRADE = {"range": DIST["horizon"], "far": DIST["far"], "mid": DIST["mid"], "near": DIST["near"], "atlas": ATLAS_DISTANCE_M}
+
+
 def save(name, rgba, scale, meta):
+    if name in GRADE:                                              # onto the C4/C5 look (c3_look.py)
+        rgba = np.dstack([grade_land(rgba[..., :3], GRADE[name]), rgba[..., 3]])
     img(rgba).save(OUT / (name + ".png"))
     meta[name] = {"scale": scale, "size": [rgba.shape[1], rgba.shape[0]]}
     print("layer", name, rgba.shape[1], "x", rgba.shape[0], "scale %.4f" % scale)
@@ -52,7 +62,7 @@ def save(name, rgba, scale, meta):
 
 def bands(meta):
     reg = json.loads((G / "c3-bands.json").read_text(encoding="utf-8"))["registration_px"]
-    demist = arr(Image.open(P / "land-demist.png").convert("RGB"))
+    demist = settlement.apply(arr(Image.open(P / "land-demist.png").convert("RGB")))   # the town (c3_settlement.py)
     PH, PW = demist.shape[:2]
     mh, mw = round(PH / PLATE), round(PW / PLATE)
     size = (PW, PH)
@@ -124,8 +134,7 @@ def atlas(meta):
     k = 3                                                          # baked at 3x, drawn at 1/3
     im = im.resize((round(length * k), round(length * k * im.height / im.width)), Image.LANCZOS)
     c = np.asarray(im, np.float32) / 255
-    # 2.2 km of humid air: about 15% haze, more in the shade
-    c[..., :3] = c[..., :3] * 0.85 + HAZE * 0.15
+    # 2.2 km of humid air: the grade's haze (c3_look) at the Atlas's distance
     save("atlas", c, 1.0 / k, meta)
 
 

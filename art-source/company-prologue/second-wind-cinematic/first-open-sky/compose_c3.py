@@ -32,8 +32,10 @@ from PIL import Image, ImageDraw, ImageFilter
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent))
 sys.path.insert(1, str(__import__("pathlib").Path(__file__).resolve().parents[1] / "arrival-audio"))
 import castle_lines  # noqa: E402
+from c3_look import grade_land, grade_sky  # noqa: E402
+from c3_settlement import MAST_FOOT  # noqa: E402
 from c3_core import (BASE, CABIN_DEPTH_M, CASTLE_REELS_AT, CASTLE_REELS_TAKE, CIN, DURATION, ENTRY_LEN,  # noqa: E402
-                     F_PX, FPS, H, HORIZON_Y, LAYERS, ROOT, W, PLATE_X0, PLATE_Y0, camera_shake, lean_scale,
+                     F_PX, FPS, H, HORIZON_Y, LAYERS, ROOT, W, PLATE_SCALE, PLATE_X0, PLATE_Y0, camera_shake, lean_scale,
                      nose_down_deg, rise_at, smooth, travelled, truck_at, world_buffet)
 
 LAYER_DIR = BASE / "build" / "layers"
@@ -131,6 +133,49 @@ def bird_frame(phase, span, glide):
     return im.resize((max(1, s // k), max(1, s // k)), Image.LANCZOS)
 
 
+MAST_HEIGHT_M = 70.0
+MAST_DISTANCE_M = 2000.0
+MAST_STROBE_S = 1.5                  # a white daytime obstruction strobe, once every 1.5 s
+
+
+def relay_mast(strobe):
+    """The relay mast (a nod to Relay Nine): a guyed lattice in aviation red and white bands, its
+    antenna panels near the top, 70 m tall at 2 km (about 48 px). Drawn at 8x and reduced, then
+    given the grade's 2 km of haze; `strobe` lights the white obstruction strobe at its tip."""
+    k = 8
+    h = F_PX * MAST_HEIGHT_M / MAST_DISTANCE_M
+    W8, H8 = round(14 * k), round((h + 6) * k)
+    im = Image.new("RGBA", (W8, H8), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    cx, foot, top = W8 / 2, H8 - 1, 6 * k
+    base, tip = 1.6 * k, 0.55 * k
+    bands = 7
+    for i in range(bands):
+        y0 = top + (foot - top) * i / bands
+        y1 = top + (foot - top) * (i + 1) / bands
+        w0 = tip + (base - tip) * (y0 - top) / (foot - top)
+        w1 = tip + (base - tip) * (y1 - top) / (foot - top)
+        col = (196, 64, 44, 255) if i % 2 == 0 else (226, 224, 216, 255)
+        d.polygon([(cx - w0 / 2, y0), (cx + w0 / 2, y0), (cx + w1 / 2, y1), (cx - w1 / 2, y1)], fill=col)
+    # the shaded (right) face of the lattice
+    d.polygon([(cx, top), (cx + tip / 2, top), (cx + base / 2, foot), (cx, foot)], fill=(0, 0, 0, 70))
+    for y, w in ((top + 2.2 * k, 2.2 * k), (top + 5.5 * k, 1.8 * k)):           # antenna panels
+        d.rectangle([cx - w, y, cx + w, y + 1.4 * k], fill=(214, 214, 208, 255))
+    d.ellipse([cx + 0.6 * k, top + 9 * k, cx + 2.6 * k, top + 11.5 * k], fill=(222, 222, 216, 255))   # a dish
+    d.line([(cx, top - 4 * k), (cx, top)], fill=(200, 200, 196, 255), width=round(0.35 * k))      # whip
+    for gx in (-5.5, 5.5):                                                     # guy wires, barely there
+        d.line([(cx, top + (foot - top) * 0.35), (cx + gx * k, foot)], fill=(200, 200, 196, 60), width=round(0.25 * k))
+    im = im.resize((W8 // k, H8 // k), Image.LANCZOS)
+    a = arr(im)
+    a[..., :3] = grade_land(a[..., :3], MAST_DISTANCE_M)
+    if strobe:
+        yy, xx = np.mgrid[0:a.shape[0], 0:a.shape[1]].astype(np.float32)
+        g = np.exp(-((xx - a.shape[1] / 2) ** 2 + (yy - (6 - 4)) ** 2) / 2.2)[..., None]
+        a[..., :3] = a[..., :3] * (1 - g) + 1.0 * g
+        a[..., 3:] = np.maximum(a[..., 3:], g)
+    return img(a)
+
+
 def build():
     meta = json.loads((LAYER_DIR / "layers.json").read_text(encoding="utf-8"))
     D = {n: d for n, d, _ in LAYERS}
@@ -138,6 +183,8 @@ def build():
     sky = Image.open(CIN / "managed-land-realism" / "assets" / "sky-realism-v1.png").convert("RGBA")
     sky_scale = SKY_SCALE
     sky = sky.resize((round(sky.width * sky_scale), round(sky.height * sky_scale)), Image.LANCZOS)
+    sky_a = arr(sky)
+    sky = img(np.dstack([grade_sky(sky_a[..., :3]), sky_a[..., 3]]))   # the C4/C5 air (c3_look.py)
     sky_x, sky_y = SKY_X, HORIZON_Y + 90 - sky.height
     L.append(Layer("sky", sky, lambda t: (sky_x - truck_at(t, D["horizon"]), sky_y), opaque=True))
     breeze = 1.0                                                  # m/s from the bow
@@ -159,6 +206,16 @@ def build():
     ad = 2200.0
     L.append(Layer("atlas", atlas, lambda t: (520 + F_PX * (60.0 * t - travelled(t)[0]) / ad,
                                               205 - F_PX * (8.0 * t + travelled(t)[1]) / ad), scale=s))
+    # Relay mast on the hill above the settlement (c3_settlement.MAST_FOOT), riding the mid layer.
+    mast_on, mast_off = relay_mast(True), relay_mast(False)
+    mfx, mfy = MAST_FOOT
+    k = PLATE_SCALE / 2.0                                          # frame px per plate px
+
+    def mast_pos(t):
+        x = PLATE_X0 - truck_at(t, D["mid"]) + mfx * k - mast_off.width / 2
+        return x, PLATE_Y0 - rise_at(t, D["mid"]) + mfy * k - mast_off.height + 1
+    L.append(Layer("mast", None, mast_pos,
+                   path=(lambda t: mast_on if (t + 0.4) % MAST_STROBE_S < 0.09 else mast_off, lambda t: 0.0)))
     plate("mist-low", 1700.0, breeze_dist=1700.0)
     plate("near", D["near"], opaque=True)
     # Flock: eleven 3 m fliers ~700 m out at about our altitude, against the bright low

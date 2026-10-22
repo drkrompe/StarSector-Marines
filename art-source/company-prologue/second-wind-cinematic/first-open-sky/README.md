@@ -14,6 +14,8 @@ It delivers to `runtime-contract.md`: frames, review mp4, and `captions()` (empt
 | Depth bands, masks, fill maps | `c3_bands.py` writes `guides/c3-band-*.png`, `c3-inpaint-*.png`, `c3-bands.json` |
 | Land plates (2x master, de-misted) and mist matte | `c3_plates.py`, from `assets/c3-tile-{0..3}-v1.png` |
 | Atlas | `assets/c3-atlas-v1.png`, on the guide `c3_atlas_guide.py` writes |
+| Settlement (town, freight road) | `assets/c3-settlement-v1.png`, on the edit target `c3_settlement.py prep` writes |
+| The C4/C5 look | `c3_look.py`, applied by `c3_layers.py` and to the sky in `compose_c3.py` |
 | Audio sources | `c3_audio.py` writes `asset-pipeline/src/tool/resources/audio/jangala-arrival/jangala_arrival_{cabin_bed,wind}.flac` |
 | Production layers | `c3_layers.py` bakes `build/layers/` (ignored) |
 | Final frames | `compose_c3.py --movie` |
@@ -31,6 +33,8 @@ python c3_bands.py
 python c3_plates.py prep        # edit targets (only to regenerate tiles)
 python c3_plates.py check       # registration of the tile completions
 python c3_plates.py assemble
+python c3_settlement.py prep    # edit target (only to regenerate the settlement)
+python c3_settlement.py check   # registration of the settlement completion
 python c3_layers.py
 python compose_c3.py            # review stills and contact sheet
 python compose_c3.py --movie    # plus every frame, the review mp4 and timeline.json

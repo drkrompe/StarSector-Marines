@@ -10,12 +10,17 @@ right to top left, the way the air goes past a ship coming down bow first. Back 
 
   1. Jangala as C2 leaves it (c2_planet, still drifting, lowered to C3's 9-degree view),
               hidden as the sheath thickens
-  2. fire     assets/c2-entry-glow-v1.png's filaments, flattened into a texture and streamed
-              along c2_core.FLOW_DEG at two speeds (a body and fast streaks), coloured by a
-              heat field that is hottest at the bottom right (the side the air hits first)
-              and spreads up-left from there over HEAT
-  3. smoke    torn off the sheath: the cloud card's detail, darkened, streaming the same way
-              and thicker toward the top left, where it trails
+  2. plasma   the sheath of glowing air the hull drives in front of it, as light added over the
+              planet rather than paint over it (the planet sinks as the eye adapts to the glow, and
+              shimmers through the heat): seeded fractal turbulence streamed along c2_core.FLOW_DEG
+              at three depths (broad and slow, a body, thin fast streaks against the hull), snaking
+              on a slow warp; a wavering shock front standing off the leading edge (bottom right,
+              the side the air hits first), the heat spreading up-left from there over HEAT;
+              burning ablator embers streaking past; glare in the glass. Coloured from rose air-glow
+              through the effects kit's plume orange and hot core (port_fleet.PLUME_RGB, CORE_RGB,
+              the C1/C4 drive plumes) to near white
+  3. smoke    torn off the sheath: the cloud card's billows, thin and darkened, streaming the
+              same way and thicker toward the top left, where it trails
   4. cloud    assets/c2-entry-cloud-v1.png, its ragged edge first, carried in along the same
               line from the bottom right over CLOUD_IN; warm while the heat is still in it,
               then white; fast wisps stream through it; the glass then settles to C3's flat
@@ -47,7 +52,7 @@ from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter
 
 BASE = Path(__file__).resolve().parent
 sys.path.insert(0, str(BASE))
@@ -179,17 +184,137 @@ def cloud_sheet(front):
     return rgb, lead
 
 
-FIRE = [(0.00, (0.0, 0.0, 0.0)), (0.25, (0.30, 0.025, 0.0)), (0.55, (0.95, 0.20, 0.02)),
-        (0.85, (1.25, 0.55, 0.10)), (1.20, (1.6, 1.15, 0.55)), (1.70, (2.0, 1.85, 1.5))]
+# The plasma's colours are the effects kit's (industrial-exterior/port_fleet.CORE_RGB, PLUME_RGB; the
+# drive plumes in C1, C4 and C5): its hot core and its orange plume, with the faint rose of glowing
+# air in the thin outer sheath and near white where the shock layer is densest against the hull.
+KIT_CORE, KIT_PLUME = (1.0, 0.80, 0.52), (1.0, 0.42, 0.08)
+FIRE = [(0.00, (0.0, 0.0, 0.0)), (0.12, (0.16, 0.025, 0.04)), (0.30, (0.55, 0.10, 0.07)),
+        (0.55, tuple(0.95 * c for c in KIT_PLUME)), (0.85, tuple(1.25 * c for c in KIT_CORE)),
+        (1.25, (1.75, 1.55, 1.20)), (1.80, (2.4, 2.3, 2.1))]
 
 
 def fire_colour(temp):
-    """Linear RGB of a flame at temperature 0..~1.7: deep red, orange, yellow, near white."""
+    """Linear RGB of the sheath at temperature 0..~1.8: rose air-glow, the kit's plume orange, its
+    hot core, near white."""
     ks = np.array([k for k, _ in FIRE], np.float32)
     out = np.empty(temp.shape + (3,), np.float32)
     for c in range(3):
         out[..., c] = np.interp(temp, ks, np.array([v[c] for _, v in FIRE], np.float32))
     return out
+
+
+@lru_cache(maxsize=1)
+def plasma_noise():
+    """Seeded fractal value noise, 1024 square, 0..1: the sheath's turbulence, streamed along the flow
+    at several stretches and speeds (no painted card, so nothing in it reads as a picture)."""
+    rng = np.random.default_rng(31)
+    n, out, amp, tot = 1024, np.zeros((1024, 1024), np.float32), 1.0, 0.0
+    for cells in (6, 12, 24, 48, 96, 192):
+        g = rng.random((cells, cells)).astype(np.float32)
+        g = np.concatenate([g, g[:1]], 0)
+        g = np.concatenate([g, g[:, :1]], 1)
+        up = np.asarray(Image.fromarray(g, "F").resize((n + n // cells, n + n // cells), Image.BICUBIC), np.float32)[:n, :n]
+        out += amp * up
+        tot += amp
+        amp *= 0.62
+    out /= tot
+    lo, hi = np.percentile(out, [1, 99])
+    return np.clip((out - lo) / (hi - lo), 0, 1)
+
+
+def sample(tex, u, v):
+    """Bilinear sample of a texture at (u, v) texel coordinates, mirrored so it never runs out."""
+    th, tw = tex.shape[:2]
+
+    def fold(q, n):
+        q = np.mod(q, 2 * (n - 1))
+        return np.where(q > n - 1, 2 * (n - 1) - q, q)
+    u, v = fold(u, tw), fold(v, th)
+    i0, j0 = np.floor(u).astype(np.int32), np.floor(v).astype(np.int32)
+    i1, j1 = np.minimum(i0 + 1, tw - 1), np.minimum(j0 + 1, th - 1)
+    fu, fv = u - i0, v - j0
+    return (tex[j0, i0] * (1 - fu) + tex[j0, i1] * fu) * (1 - fv) + (tex[j1, i0] * (1 - fu) + tex[j1, i1] * fu) * fv
+
+
+def plasma_field(e):
+    """The sheath's brightness (0..~1.5) over the frame at entry second e: three depths of flow, the
+    nearest (against the hull) thin, fast and stretched into streaks, the farthest broad and slow; a
+    slow sideways warp so the streams snake rather than rule straight lines."""
+    n = plasma_noise()
+    warp = (sample(n, UF / 9.0 + 140 * e, VF / 9.0 + 300) - 0.5) * 70.0          # px across the flow
+    v = VF + warp
+    far = sample(n, (UF + 300.0 * e) / 2.2, v / 2.6 + 200)
+    mid = sample(n, (UF + 900.0 * e) / 5.0, v / 1.3 + 500)
+    near = sample(n, (UF + 2100.0 * e) / 11.0, v / 0.55 + 800)
+    streaks = np.clip((near - 0.55) / 0.30, 0, 1) ** 2
+    body = np.clip((0.55 * mid + 0.45 * far - 0.30) / 0.45, 0, 1)
+    return 0.55 * body + 0.85 * streaks * (0.4 + body), body
+
+
+def shock_front(e, h):
+    """The bright shock layer standing off the leading edge (bottom right, where the air meets the
+    hull): a band across the flow that wavers and breathes, brightest at full heat."""
+    n = plasma_noise()
+    edge = 0.78 + 0.07 * (sample(n, VF / 5.0 + 60 * e, np.full_like(VF, 40.0) + 30 * e) - 0.5) * 2
+    width = 0.10 + 0.05 * h
+    return np.exp(-((UN - edge) / width) ** 2) * h + np.clip((UN - edge) / 0.25, 0, 1) * h
+
+
+SPARKS = None
+EMBER = np.array([2.2, 1.15, 0.30], np.float32)          # burning ablator: the kit's plume, hotter
+
+
+def sparks(e, heat):
+    """Ablation embers off the heat shield: small bright points streaking up-left along the flow,
+    each a motion-blurred line (a 1/48 s shutter at their speed). More of them at full heat."""
+    global SPARKS
+    if SPARKS is None:
+        rng = np.random.default_rng(57)
+        k = 260
+        SPARKS = {"born": rng.uniform(0.6, 5.2, k), "v": rng.normal(0, 380, k), "speed": rng.uniform(1900, 3600, k),
+                  "life": rng.uniform(0.25, 0.7, k), "bright": rng.uniform(0.4, 1.0, k) ** 2, "u0": rng.uniform(-200, 500, k)}
+    sp = SPARKS
+    im = Image.new("L", (W, H), 0)
+    d = ImageDraw.Draw(im)
+    ca, sa = math.cos(A), math.sin(A)
+    for i in range(len(sp["born"])):
+        age = e - sp["born"][i]
+        if age < 0 or age > sp["life"][i] or sp["bright"][i] > heat * 1.1:
+            continue
+        u = U_HALF - sp["u0"][i] - sp["speed"][i] * age          # from the bottom-right edge, up-left
+        tail = sp["speed"][i] / 48.0
+        fade = 1 - age / sp["life"][i]
+        val = int(255 * min(1.0, sp["bright"][i] * 1.6) * fade)
+        pts = []
+        for uu in (u, u + tail):
+            pts.append((W / 2 + uu * ca - sp["v"][i] * sa, H / 2 + uu * sa + sp["v"][i] * ca))
+        d.line(pts, fill=val, width=3)
+        d.ellipse([pts[0][0] - 2, pts[0][1] - 2, pts[0][0] + 2, pts[0][1] + 2], fill=val)   # the hot head
+    a = np.asarray(im.filter(ImageFilter.GaussianBlur(0.8)), np.float32) / 255
+    return a
+
+
+def bloom(lin):
+    """Glare in the glass: the brightest of the sheath spread wide and soft (at quarter size)."""
+    hot = np.clip(lin - 0.7, 0, None)
+    small = hot[::4, ::4]
+    for axis in (0, 1):                                            # three box passes ~ a Gaussian of 14
+        for _ in range(3):
+            small = _box(small, 12, axis)
+    out = [np.asarray(Image.fromarray(np.ascontiguousarray(small[..., c], dtype=np.float32), "F").resize((W, H), Image.BILINEAR), np.float32)
+           for c in range(3)]
+    return np.dstack(out)
+
+
+def _box(a, k, axis):
+    """Running mean of width 2k+1 along an axis, edges clamped."""
+    pad = [(0, 0)] * a.ndim
+    pad[axis] = (k + 1, k)
+    c = np.cumsum(np.pad(a, pad, mode="edge"), axis=axis)
+    n = a.shape[axis]
+    hi = np.take(c, np.arange(2 * k + 1, 2 * k + 1 + n), axis=axis)
+    lo = np.take(c, np.arange(0, n), axis=axis)
+    return (hi - lo) / (2 * k + 1)
 
 
 # ---------------------------------------------------------------- the frame
@@ -199,20 +324,29 @@ def frame_entry(e):
     lin = planet(e)
     flicker = 1.0 + 0.14 * Q._noise(e, 9.0, 21) + 0.07 * Q._noise(e, 23.0, 22)
 
-    # --- fire: the heat field is fixed to the glass (the air meets the hull at the bottom
-    # right), the filaments stream through it
+    # --- the plasma sheath. It is light, not paint: it adds to the planet behind it, and the planet
+    # sinks as the eye (and the glass) adapt to the glow. The heat field is fixed to the glass (the
+    # air meets the hull at the bottom right) and spreads up-left from there over HEAT; the flow
+    # streams through it.
     h = _ramp(e, C.HEAT)
     onset = C.smooth((e - C.HEAT[0]) / (C.HEAT[1] - C.HEAT[0] + 0.6))
-    body = detail("c2-entry-glow-v1.png")
-    fb = stream(body, SPEED["body"] * e, 1.5, 1.0)
-    fs = stream(body, SPEED["streak"] * e + 900.0, 3.2, 0.7, v_off=170.0)
-    fil = np.clip(0.7 * fb + 0.5 * fs - 0.55, 0, None)           # dark lanes between the streams
+    field, body = plasma_field(e)
     front = 1.25 - 2.6 * onset                                     # the hot edge spreads up-left
-    reach = np.clip((UN - front) / 0.6 + 0.4 * (fil - 0.6), 0, 1)
-    field = (0.22 + 0.78 * ((UN + 1) / 2) ** 1.3) * reach * h * flicker
-    temp = field * (0.03 + 1.45 * fil ** 2.2)
-    sheath = np.clip(reach * h * 1.6, 0, 1)[..., None]           # the plasma hides the planet
-    lin = lin * (1 - 0.985 * sheath) + fire_colour(temp)
+    reach = np.clip((UN - front) / 0.7 + 0.35 * (body - 0.5), 0, 1)
+    lead = (0.18 + 0.82 * ((UN + 1) / 2) ** 1.4)                   # hotter toward the leading edge
+    glow = (0.10 + field) * reach * lead * h * flicker + 0.75 * shock_front(e, h * onset) * reach * flicker
+    temp = 1.05 * glow
+    adapt = np.clip(glow * 1.6, 0, 0.93)[..., None]                # exposure: the planet sinks under the glow
+    if h > 0.02:                                                   # heat shimmer on what shows through
+        n = plasma_noise()
+        dx = (sample(n, UF / 4.0 + 500 * e, VF / 4.0) - 0.5) * 7 * h
+        xi = np.clip((np.arange(W)[None, :] + dx).astype(np.int32), 0, W - 1)
+        lin = np.take_along_axis(lin, np.repeat(xi[..., None], 3, 2), axis=1)
+    lin = lin * (1 - adapt) + fire_colour(temp)
+    if h > 0.02:
+        ember = sparks(e, h) * np.clip(reach * 1.5, 0, 1)            # embers only inside the sheath
+        lin = lin + ember[..., None] * EMBER
+    lin = lin + 0.35 * bloom(lin) * h
 
     # --- smoke torn off the sheath, trailing to the top left
     sm = _ramp(e, C.SMOKE)
@@ -220,7 +354,7 @@ def frame_entry(e):
         billow = smoke_tex()
         d = 0.65 * stream(billow, SPEED["smoke"] * e + 400.0, 1.5, 1.15, v_off=-90.0)             + 0.35 * stream(billow, SPEED["smoke"] * 1.25 * e + 1700.0, 1.2, 0.9, v_off=210.0)
         trail = np.clip(0.2 + 0.8 * (1 - UN) / 2, 0, 1)
-        dens = smooth_arr((d - 0.60) / 0.14) * trail * sm
+        dens = smooth_arr((d - 0.62) / 0.16) * trail * sm * 0.5           # thin: the sheath shows through
         # grey-brown soot, its underside lit by the fire it came off
         under = smooth_arr((0.70 - d) / 0.12)[..., None]
         smoke = np.array([0.030, 0.027, 0.024], np.float32) + fire_colour(temp * 0.8) * (0.08 + 0.35 * under)

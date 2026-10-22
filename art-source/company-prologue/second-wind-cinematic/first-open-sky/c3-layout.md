@@ -3,7 +3,7 @@
 Status: ACTIVE. Production plates, cards and audio cues built; final frames render from `compose_c3.py`.
 
 Written: 2026-10-16
-Updated: 2026-10-19 — sound-review rework: 16 s; opens nose down and descending, levels out, then the level slide; shared shake with the entry; Castle's travel-reels line.
+Updated: 2026-10-22 — look pass: graded onto the C4/C5 look; a freight checkpoint town, its road and a relay mast on the far bank.
 
 Shot C3 of `storyboard-v3.md`: 16.0 seconds, 1920x1080, 24 fps (384 frames). Cabin bed and
 wind, and one line from Castle once the ship is level.
@@ -81,6 +81,33 @@ actually used). `-p12` is the 12-degree alternative for comparison.
   the horizon range (40 km) is about 70% sky colour; the Atlas (2.2 km) takes about 15%
   haze. Fair-weather cumulus bases about 1.2 km above the ground (800 m above the
   ship), so the clouds at the top of the window are only about 5 km away.
+
+## One place with C4 and C5 (the look pass)
+
+C4 and C5 are Blender renders of the same Jangala (`industrial-exterior/c4x_scene.py`,
+`c4_jungle.py`): AgX, a high soft sun and aerial perspective toward a cool grey-blue haze. The
+painted plates here were deeper, darker and harder-lit than that canopy. `c3_look.py` grades every
+land layer and the Atlas at bake time, by its distance, onto that look: the luminance spread
+compressed to C4's (crown gaps lifted into green rather than grey), the canopy's balance pulled
+to C4's yellower green, and C4's own haze model (its haze colour, 1/e at 9 km) for distance. The
+sky plate gets the same air with a lighter hand. Nothing is relit: the sun stays upper left.
+
+## The settlement
+
+Background touches for the missions the player fights here later, kept small and calm under
+Castle's line. On the far bank, right of centre, about 2 km out: a freight checkpoint town with
+a weigh-station canopy across its road (Junction's Weigh Station, Wayline's checkpoint gate),
+two depot warehouses, sheds and houses (Relief's freight and warehouse service roads), fuel
+tanks, stacked containers, a freight barge moored at a jetty, and trucks. Its red-laterite
+freight road runs upstream along the bank and climbs out of the town into the hills (the
+Thunder Run corridor). On the hill above it stands a 70 m relay mast in aviation red and white
+with a white daytime strobe every 1.5 s (Relay Nine). The town and road are paint
+(`c3_settlement.py`: drawn at true scale into an upscaled crop of the de-misted plate, repainted
+by Codex, registered and pasted back through the drawing's mask before the bands are cut); the
+mast is a moving element on the mid layer, since it stands above the hill's crest line where
+the plate belongs to a farther layer. The town drifts from the right third of the window toward
+the centre over the shot and is partly hidden behind the near bank's crowns, which slide across
+it faster: depth, for free.
 
 ## Scale and distance
 
@@ -185,6 +212,7 @@ flight. `c3_core.ELEMENTS` holds the numbers.
 | Low mist | Mid | 1.7 km | 1 m/s breeze from the bow | Translucent card: the difference matte over the mid band. Depth offset and breeze together slide it about 20 px aft against the forest under it. |
 | High mist | Far | 4.5 km | the same breeze | The matte over the far band and the range; slides about 30 px aft against the ridges it lies between. |
 | Entry's last cloud | Near | 0.8 km | none | Frame 0 is the aperture filled with the entry's flat soft white, sRGB (244, 246, 248). It burns off over the first 1.6 s, thinnest parts first, its density from `managed-land-realism/assets/clouds-realism-v1.png` (softened: it is out of focus) sliding aft at the 800 m rate. |
+| Relay mast | Mid | 2.0 km | none | Procedural card (`compose_c3.relay_mast`): a 70 m lattice in seven red and white bands, antenna panels and a dish, 48 px tall, given the grade's haze; its white strobe lights 0.09 s in every 1.5 s. Its foot is the cleared pad `c3_settlement.MAST_FOOT` painted into the plate. |
 | Gloved hand (optional) | Cabin | 0.6 m | — | A 3–4 frame sheet on the sill, loosening at about 9.5 s, after the lean. Owner call (open question 3). |
 
 Nothing near the camera moves fast, nothing turns except the whole world with the ship's
@@ -254,7 +282,9 @@ may reuse them. `overlays()` is empty.
 | `c3_plates.py` | Tile edit targets, registration check, and the 2x de-misted plate and mist matte. |
 | `c3_cabin_head.py` | Cabin head v2 edit target with the rim drawn; `--check` measures a completion. |
 | `c3_atlas_guide.py` | The Atlas guide from the reveal scene's Atlas card. |
-| `c3_layers.py` | Bakes every production layer to `build/layers/`. |
+| `c3_look.py` | The grade onto the C4/C5 look, by distance. |
+| `c3_settlement.py` | The settlement's edit target and mask, its registration check, and the paste into the plate. |
+| `c3_layers.py` | Bakes every production layer to `build/layers/`, graded, the settlement in. |
 | `c3_audio.py` | The cabin bed and wind sources. |
 | `compose_c3.py` | Final frames, review mp4 and `timeline.json` under `build/cinematic/c3-first-open-sky/`; review stills and contact sheet in `review/`; the runtime contract's data. |
 | `prompts/`, `assets/` | Codex briefs and masters with provenance. |
