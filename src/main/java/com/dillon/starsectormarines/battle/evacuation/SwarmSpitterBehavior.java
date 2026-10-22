@@ -255,7 +255,7 @@ final class SwarmSpitterBehavior {
                 weapon.pointDefenseTarget));
         sim.postShot(new ShotEvent(spitter, fromX, fromY, ex, ey, true, faction, flight,
                 null, null, null, weapon, morale));
-        sim.combat().setCooldownTimer(spitter, sim.combat().attackCooldown(spitter));
+        sim.combat().setCooldownTimer(spitter, SwarmPressureBehavior.strikeCooldown(spitter, sim));
     }
 
     private static void lobAtCraft(long spitter, long craft, BattleSimulation sim) {
@@ -283,7 +283,7 @@ final class SwarmSpitterBehavior {
                     AIR_PENETRATION, arrival);
         }
         sim.combat().setTargetId(spitter, 0L);
-        sim.combat().setCooldownTimer(spitter, sim.combat().attackCooldown(spitter));
+        sim.combat().setCooldownTimer(spitter, SwarmPressureBehavior.strikeCooldown(spitter, sim));
     }
 
     /**

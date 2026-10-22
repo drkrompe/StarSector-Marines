@@ -70,6 +70,8 @@ public final class SwarmReinforcementSystem {
         final int size;
         int released;
         int nextTick;
+        /** The pack this surge forms, once its leader is out; 0 for a pulse with none. */
+        int pack;
 
         Release(SwarmBore bore, int surgeIndex, List<Planned> bodies, int tick) {
             this.bore = bore;
@@ -348,6 +350,12 @@ public final class SwarmReinforcementSystem {
         String strain = slot.name().charAt(0) + slot.name().substring(1).toLowerCase();
         long body = SwarmStrains.spawn(sim, "Bore " + release.bore.beatKey() + " " + strain + " "
                 + (release.bore.bodiesSpawned() + 1), slot.unitType, cell[0], cell[1], planned.stage());
+        // The pulse is a pack: its first body leads it if it is an elder or the Matriarch.
+        if (release.released == 0 && (planned.matriarch() || planned.stage() == SwarmStage.ELDER)) {
+            release.pack = sim.swarmPacks().open(body);
+        } else {
+            sim.swarmPacks().join(release.pack, body);
+        }
         release.released++;
         release.bore.released(planned.stage());
         if (planned.matriarch()) bores.matriarchEmerged(bore, tick);

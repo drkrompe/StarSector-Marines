@@ -261,6 +261,7 @@ import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.evacuation.CreepOutposts;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
 import com.dillon.starsectormarines.battle.evacuation.SwarmHarvest;
+import com.dillon.starsectormarines.battle.evacuation.SwarmPacks;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
@@ -744,6 +745,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SwarmHarvest swarmHarvest = new SwarmHarvest(SwarmHarvest.enabledByDefault());
     /** Runners dragging the dead to the bores (`colony-breach-nouns.md`, Harvest). */
     public SwarmHarvest swarmHarvest() { return swarmHarvest; }
+    private final SwarmPacks swarmPacks = new SwarmPacks();
+    /** Packs and their leaders (`colony-breach-nouns.md`, Pack, pack leader). */
+    public SwarmPacks swarmPacks() { return swarmPacks; }
     /** From the tremor on, the swarm director spawns only from living bores. */
     public void beginSwarmBoreSourcing() { swarmReinforcements.beginBoreSourcing(swarmBores); }
     /** The Colony Breach story, or {@code null} on every other battle. */
@@ -3531,6 +3535,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // bore that still lives and harvest opens on the tick a bore does.
         swarmHarvest.tick(this);
         swarmReinforcements.tick(TICK_DT, this);
+        // After the director, so a body released this tick is already in its pack.
+        swarmPacks.tick(this);
         boreCreep.sync(this);
         if (creep != null) creep.tick(simTickIndex);
         // Outposts after the creep has spread: they root on ground it has held a while.
