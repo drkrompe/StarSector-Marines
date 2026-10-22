@@ -101,6 +101,29 @@ public final class SpecSheetLayer {
             .spec-sheet-system .spec-sheet-stat-fill { background-color: #c79ce8; }
             .spec-sheet-mech .spec-sheet-stat-fill { background-color: #e2965c; }
             .spec-sheet-note { white-space: normal; }
+            .spec-sheet.spec-sheet-wide { width: 432px; }
+            .spec-sheet-seats { flex-direction: column; gap: 6px; }
+            .spec-sheet-seat-row { flex-direction: row; height: 60px; gap: 8px; }
+            .spec-sheet-seat {
+                width: 92px;
+                height: 50px;
+                padding: 4px;
+                border-width: 1px;
+                border-color: #1f3346;
+                background-color: #0e1a26;
+            }
+            .spec-sheet-seat-image { width: 92px; height: 50px; }
+            .spec-sheet-seat-badge {
+                position: absolute;
+                left: 64px;
+                top: 22px;
+                width: 26px;
+                height: 26px;
+                border-width: 1px;
+                border-color: #2c4a63;
+                background-color: #09131d;
+            }
+            .spec-sheet-seat-badge.spec-sheet-seat-badge-absent { width: 0px; height: 0px; border-width: 0px; }
             .spec-sheet.spec-sheet-hidden {
                 width: 0px;
                 height: 0px;
@@ -121,15 +144,21 @@ public final class SpecSheetLayer {
     private final UiElement subtitle;
     private final List<StatRow> statRows = new ArrayList<>();
     private final List<UiElement> notes = new ArrayList<>();
+    private final UiElement seats;
+    private final List<UiElement> seatRows = new ArrayList<>();
+    private final List<SeatTile> seatTiles = new ArrayList<>();
 
     private String accentClass;
     private int usedStats;
     private int usedNotes;
+    private int usedSeatRows;
+    private boolean seatsAttached;
 
     private SpecSheetLayer(UiDocument document) {
         this.document = document;
         crest = new UiElement(ELEMENT_ID + "-crest").tag(UiTag.IMAGE)
                 .addClass("spec-sheet-crest");
+        seats = new UiElement(ELEMENT_ID + "-seats").addClass("spec-sheet-seats");
         title = new UiElement(ELEMENT_ID + "-title").addClass("spec-sheet-title");
         subtitle = new UiElement(ELEMENT_ID + "-subtitle").addClass("spec-sheet-subtitle");
         heading = new UiElement(ELEMENT_ID + "-heading")
@@ -213,6 +242,8 @@ public final class SpecSheetLayer {
 
         for (int index = usedStats - 1; index >= 0; index--) root.remove(statRows.get(index).row);
         for (int index = usedNotes - 1; index >= 0; index--) root.remove(notes.get(index));
+        if (seatsAttached) root.remove(seats);
+        for (int index = usedSeatRows - 1; index >= 0; index--) seats.remove(seatRows.get(index));
         usedStats = sheet.stats().size();
         usedNotes = sheet.notes().size();
 
@@ -221,11 +252,52 @@ public final class SpecSheetLayer {
             row.apply(sheet.stats().get(index));
             root.child(row.row);
         }
+        fillSeats(sheet.seats());
         for (int index = 0; index < usedNotes; index++) {
             UiElement note = note(index);
             note.text(sheet.notes().get(index));
             root.child(note);
         }
+    }
+
+    /**
+     * Paints a squad-wide sheet's seats as fire teams, one row of
+     * {@link SpecSheet#TEAM_SIZE} tiles each, and widens the overlay to hold
+     * them. A single-item sheet has none and keeps the ordinary width.
+     */
+    private void fillSeats(List<SpecSheet.Seat> sheetSeats) {
+        seatsAttached = !sheetSeats.isEmpty();
+        root.classed("spec-sheet-wide", seatsAttached);
+        usedSeatRows = 0;
+        if (!seatsAttached) return;
+        usedSeatRows = (sheetSeats.size() + SpecSheet.TEAM_SIZE - 1) / SpecSheet.TEAM_SIZE;
+        for (int rowIndex = 0; rowIndex < usedSeatRows; rowIndex++) {
+            UiElement row = seatRow(rowIndex);
+            for (int index = row.children().size() - 1; index >= 0; index--) row.remove(row.children().get(index));
+            for (int column = 0; column < SpecSheet.TEAM_SIZE; column++) {
+                int seat = rowIndex * SpecSheet.TEAM_SIZE + column;
+                if (seat >= sheetSeats.size()) break;
+                SeatTile tile = seatTile(seat);
+                tile.apply(sheetSeats.get(seat));
+                row.child(tile.tile);
+            }
+            seats.child(row);
+        }
+        height(seats, usedSeatRows * 60f + (usedSeatRows - 1) * 6f);
+        root.child(seats);
+    }
+
+    private UiElement seatRow(int index) {
+        while (seatRows.size() <= index) {
+            seatRows.add(new UiElement(ELEMENT_ID + "-seat-row-" + seatRows.size())
+                    .addClass("spec-sheet-seat-row"));
+        }
+        return seatRows.get(index);
+    }
+
+    private SeatTile seatTile(int index) {
+        while (seatTiles.size() <= index) seatTiles.add(new SeatTile(seatTiles.size()));
+        return seatTiles.get(index);
     }
 
     private StatRow statRow(int index) {
@@ -327,6 +399,27 @@ public final class SpecSheetLayer {
         }
         String value = result.toString();
         return value.equals("hidden") ? "item" : value;
+    }
+
+    /** One seat's tile: its main item, with a second item badged on the corner. */
+    private static final class SeatTile {
+
+        private final UiElement tile;
+        private final UiElement image;
+        private final UiElement badge;
+
+        private SeatTile(int index) {
+            String id = ELEMENT_ID + "-seat-" + index;
+            image = new UiElement(id + "-image").tag(UiTag.IMAGE).addClass("spec-sheet-seat-image");
+            badge = new UiElement(id + "-badge").tag(UiTag.IMAGE).addClass("spec-sheet-seat-badge");
+            tile = new UiElement(id).addClass("spec-sheet-seat").child(image).child(badge);
+        }
+
+        private void apply(SpecSheet.Seat seat) {
+            image.imageSource(seat.image());
+            badge.imageSource(seat.badge());
+            badge.classed("spec-sheet-seat-badge-absent", seat.badge() == null || seat.badge().isBlank());
+        }
     }
 
     /** One stat row: a label and value line, plus a meter track when it has one. */

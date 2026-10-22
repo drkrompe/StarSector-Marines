@@ -472,7 +472,28 @@ public final class FleetArmoryViewModel {
         int rating = LoadoutEffectiveness.weaponRating(doctrine);
         return new CardFace(doctrine.displayName(), icon, cardSheet(doctrine.displayName(), presentation,
                 doctrineMetadata(presentation), "weapon", "openingBarracksCardFire", rating,
-                List.of(weaponComposition(doctrine), joinSpans(weaponDistributionSpans("card-face", doctrine)))));
+                List.of(weaponComposition(doctrine), joinSpans(weaponDistributionSpans("card-face", doctrine))))
+                .withSeats(weaponSeats(doctrine)));
+    }
+
+    /** Each seat's weapon, with the special it also carries on the corner. */
+    private static List<SpecSheet.Seat> weaponSeats(SquadWeaponDoctrine doctrine) {
+        List<SpecSheet.Seat> seats = new ArrayList<>();
+        for (SquadWeaponIssue issue : doctrine.issues()) {
+            SpecialEquipmentDef special = issue.specialEquipmentId() == null ? null : issue.specialDef();
+            seats.add(new SpecSheet.Seat(EquipmentIcons.primary(issue.primaryDef(), issue.grade()),
+                    special == null ? null : special.armoryIconPath()));
+        }
+        return seats;
+    }
+
+    /** Each seat's suit. */
+    private static List<SpecSheet.Seat> armorSeats(SquadArmorDoctrine issued) {
+        List<SpecSheet.Seat> seats = new ArrayList<>();
+        for (String armorId : issued.issueIds()) {
+            seats.add(new SpecSheet.Seat(MarineArmorCatalogRegistry.require(armorId).iconPath(), null));
+        }
+        return seats;
     }
 
     /** A tactic sheet's face, iconed by the suit most of its seats wear. */
@@ -489,7 +510,8 @@ public final class FleetArmoryViewModel {
         return new CardFace(plan.displayName(), icon, cardSheet(plan.displayName(), presentation, metadata,
                 "armor", "openingBarracksCardGuard", rating,
                 List.of(joinSpans(armorDistributionSpans("card-face", issued)),
-                        armorCapabilities(armorCapabilitySpans("card-face", issued)))));
+                        armorCapabilities(armorCapabilitySpans("card-face", issued))))
+                .withSeats(armorSeats(issued)));
     }
 
     private static SpecSheet cardSheet(String name, SquadLoadoutPresentationDef presentation, String metadata,

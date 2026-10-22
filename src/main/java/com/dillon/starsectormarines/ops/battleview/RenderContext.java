@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.world.gen.ship.RoomDoor;
 import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import java.util.List;
@@ -41,6 +42,8 @@ public final class RenderContext {
     final DressingWave dressingWave;
     /** Facility pieces fitted into existing rooms, drawn with the furniture; empty off a dressed deck. */
     final List<Doodad> facilityPieces;
+    /** Every compartment's sliding door with its current openness; empty off a ship deck. */
+    final List<RoomDoor> roomDoors;
 
     public RenderContext(BattleSimulation sim, BattleCamera camera, BattleLayout layout,
                   float alphaMult, float realDt, boolean debugZonesVisible,
@@ -70,7 +73,7 @@ public final class RenderContext {
                   HighlightOverlay highlights, Selection selection,
                   BattleRenderHostProfile hostProfile, float animationTimeSeconds, ShipDeckLighting deckLighting) {
         this(sim, camera, layout, alphaMult, realDt, debugZonesVisible, highlights, selection,
-                hostProfile, animationTimeSeconds, deckLighting, null, CoreDressing.RESTORED, null, List.of());
+                hostProfile, animationTimeSeconds, deckLighting, null, CoreDressing.RESTORED, null, List.of(), List.of());
     }
 
     RenderContext(BattleSimulation sim, BattleCamera camera, BattleLayout layout,
@@ -78,7 +81,7 @@ public final class RenderContext {
                   HighlightOverlay highlights, Selection selection,
                   BattleRenderHostProfile hostProfile, float animationTimeSeconds, ShipDeckLighting deckLighting,
                   ShipDeckDressing deckDressing, CoreDressing coreDressing, DressingWave dressingWave,
-                  List<Doodad> facilityPieces) {
+                  List<Doodad> facilityPieces, List<RoomDoor> roomDoors) {
         if (hostProfile == null) throw new IllegalArgumentException("host profile is required");
         this.sim = sim;
         this.camera = camera;
@@ -95,5 +98,6 @@ public final class RenderContext {
         this.coreDressing = coreDressing == null ? CoreDressing.RESTORED : coreDressing;
         this.dressingWave = dressingWave;
         this.facilityPieces = facilityPieces == null ? List.of() : facilityPieces;
+        this.roomDoors = roomDoors == null ? List.of() : roomDoors;
     }
 }

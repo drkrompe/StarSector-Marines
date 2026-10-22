@@ -445,7 +445,7 @@ reserves. They are not part of `programFor`, so the general program and the
 deck's size are untouched. They are laid after every programmed room and
 before the pocket fill, so the same random stream reaches the program with
 or without them. A reserve is furnished like any room and then sealed:
-stripped, salvage left on the bare deck, pressure hatches on its doors, out
+stripped, salvage left on the bare deck, locked doors, out
 of service. Engineering lists it as *sealed / reserved for refit*; the ship
 comparison does not count it. Its facility track's Restored order opens it where it stands.
 `SecondWindReservesEvidence` (`generatedSpaceEvidence`) holds all of this
