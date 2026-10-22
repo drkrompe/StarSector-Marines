@@ -22,7 +22,7 @@ Remaining:
 - Tune the fight. First reading (seed 202): the company alone, four boats of
   six with one sortie or three, is broken in both variants without hurting any
   bore; the satellites at maw stream surges at it all the way in and it never
-  reaches the first one. The barrage (`walking-barrage.md`) and the allied lanes
+  reaches the first one. The barrage (`heart-nouns.md`, Barrage plan) and the allied lanes
   (`heart-allied-lanes.md`) are the variants' answers; read again once they land
   before touching numbers.
 - Narration for the heart's beats, reusing Colony Breach's speech with pitch changes.
