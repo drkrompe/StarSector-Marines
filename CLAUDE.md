@@ -547,7 +547,7 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   the whole map. Per layer it reports commands collected, quads, sprites and
   custom passes drained, draw calls, texture binds, and the milliseconds
   collection and submission each took, plus a whole-frame wall clock with the
-  GPU waited on. `build/reports/render/summary.md` and `summary.json`;
+  GPU waited on. `build/reports/render/summary.md` and `summary.json`, and each framing's GL frame as a PNG under `frames/` to diff a lever against its control;
   `-PrenderMaxTicks`, `-PrenderFrames`, `-PrenderDir`, and `-PrenderMaps=body pile,control`
   to profile only the maps whose ids contain those words (a `body pile` of 1,200
   Runner dead, `-PrenderPileBodies`, prices `BodyPileCap`). Opt-in and excluded from
@@ -564,6 +564,7 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   `-Dbattle.render.groundAtlas=false`,
   `-Dbattle.render.residentDecoration=false`, `-Dbattle.render.unitAtlas=false`,
   `-Dbattle.render.residentRoofs=false`, `-Dbattle.render.creep=false`,
+  `-Dbattle.render.settledBodyMesh=false`,
   `-Dbattle.render.collectCulling=false`), never against a number in a
   document — and never against a delta smaller than that spread.
   **The world it profiles has to be the same world every run**, which it was

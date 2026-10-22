@@ -1169,6 +1169,18 @@ against its own control in `renderEvidence`.
   limits are generous on purpose: it is not a mechanic, and a battle the creep
   or the bores keep clean never reaches them. `-Dbattle.bodyPileCap=false` is
   the control; `body-pile` (`createSnapshots`) shows a pile capped against it.
+- **A settled body is drawn from a recording of itself** (`SettledBodyMeshes`).
+  A burst Runner or Brute stops moving once its burst has settled
+  (`RavBurst.settled`, two and a half seconds after death): its pieces lie
+  where they came down, its pool has spread, its ichor has landed. From then on
+  its composition — the same quads the burst was drawn with, in the same order —
+  is recorded once in the body's own frame and drawn every frame as one command
+  (`QuadMesh`), scaled by the framing and by the melt or pile-cap shrink and
+  faded by their alpha, so creep digestion and the cap's fade read exactly as
+  before. Nothing about a body is decided by the recording; it only stops the
+  renderer re-deriving thirty-odd placements a body per frame for a picture
+  that cannot change. A body still bursting, and every other corpse, is drawn
+  as it was. `-Dbattle.render.settledBodyMesh=false` is the control.
 - **Creep favours the swarm and shelters no one** (`CreepEffects`). A swarm
   body runs a quarter faster on living creep; Marines and colonists are never
   slowed, so creep reads as the swarm's ground rather than mud. A fleeing or

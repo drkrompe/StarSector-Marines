@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.DrawCommand;
 import com.dillon.starsectormarines.render2d.PolyMesh;
+import com.dillon.starsectormarines.render2d.QuadMesh;
 import com.dillon.starsectormarines.render2d.RibbonBatch;
 import com.dillon.starsectormarines.ui.retained.CanvasBlend;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
@@ -372,6 +373,32 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
                 else if (!skipUnsupportedCommands) throw new IllegalStateException("Unsupported custom draw");
             }
             case RIBBON -> drawRibbon(context, viewport.height(), command);
+            case MESH -> drawMesh(context, surfaceHeight, command, bandTop, bandBottom);
+        }
+    }
+
+    /**
+     * A recorded mesh, quad by quad, each the whole-image draw it was recorded from, with the band cull a sprite
+     * gets. A mesh addressed into an atlas never reaches a headless drain, which has none.
+     */
+    private void drawMesh(CanvasContext context, float surfaceHeight, DrawCommand command, int top, int bottom) {
+        QuadMesh mesh = command.mesh();
+        if (mesh == null) return;
+        boolean banded = top != Integer.MIN_VALUE || bottom != Integer.MAX_VALUE;
+        float scale = command.meshScale();
+        for (int q = 0, n = mesh.size(); q < n; q++) {
+            float cx = command.centerX() + mesh.centerX(q) * scale;
+            float cy = surfaceHeight - (command.centerY() + mesh.centerY(q) * scale);
+            float w = mesh.width(q) * scale, h = mesh.height(q) * scale;
+            float angle = mesh.angleDegrees(q);
+            if (banded) {
+                float reach = angle == 0f ? Math.abs(h) / 2f : (float) Math.hypot(w, h) / 2f;
+                if (cy + reach + CULL_MARGIN < top || cy - reach - CULL_MARGIN > bottom) continue;
+            }
+            Color tint = new Color(clamp(mesh.red(q)), clamp(mesh.green(q)), clamp(mesh.blue(q)),
+                    clamp(mesh.alpha(q) * command.alpha()));
+            context.sprite(sprites.asset(mesh.image(q)).path(), null, cx, cy, w, h, angle, tint,
+                    CanvasSpriteRegion.FULL, CanvasBlend.NORMAL);
         }
     }
 
