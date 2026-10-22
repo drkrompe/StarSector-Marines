@@ -233,6 +233,22 @@ final class MarineOpsThemes {
                 }
                 .console-key-grip { width: 14px; height: 24px; pointer-events: none; }
                 .console-command-signal { width: 12px; height: 8px; border-width: 1px; pointer-events: none; }
+                /* Licence keys: the tabs and actions that sit on and around the spec-sheet cards,
+                   in the cards' own navy and edge colours rather than the console's. After the
+                   console block so a surface that also carries a console class takes these. */
+                .spec-tab, .spec-action {
+                    background-image: none; border-style: solid; border-width: 1px;
+                    font-family: heading; text-align: center;
+                }
+                .spec-tab { background-color: #09131d; border-color: #1f3346; color: #8b9aaf; }
+                .spec-tab:hover { background-color: #0e1a26; border-color: #2a4258; color: #d5deea; }
+                .spec-tab:active { background-color: #060d14; border-style: solid; }
+                .spec-tab.selected { background-color: #16242f; border-color: #53c6e8; color: #eaf3ff; border-style: solid; }
+                .spec-action { background-color: #1a1608; border-color: #dfb84d; color: #f2cf68; }
+                .spec-action:hover { background-color: #2a2410; border-color: #f2cf68; }
+                .spec-action:active { background-color: #100d04; border-style: solid; }
+                .spec-action.issued { background-color: #0d1a12; border-color: #4f9c6b; color: #8fd6a6; }
+                .spec-tab:focus-visible, .spec-action:focus-visible { border-color: #ffe1a0; border-style: solid; }
 
                 """);
     }
@@ -326,6 +342,22 @@ final class MarineOpsThemes {
                 }
                 .console-key-grip { width: 14px; height: 24px; pointer-events: none; }
                 .console-command-signal { width: 12px; height: 8px; border-width: 1px; pointer-events: none; }
+                /* Licence keys: the tabs and actions that sit on and around the spec-sheet cards,
+                   in the cards' own navy and edge colours rather than the console's. After the
+                   console block so a surface that also carries a console class takes these. */
+                .spec-tab, .spec-action {
+                    background-image: none; border-style: solid; border-width: 1px;
+                    font-family: heading; text-align: center;
+                }
+                .spec-tab { background-color: #09131d; border-color: #1f3346; color: #8b9aaf; }
+                .spec-tab:hover { background-color: #0e1a26; border-color: #2a4258; color: #d5deea; }
+                .spec-tab:active { background-color: #060d14; border-style: solid; }
+                .spec-tab.selected { background-color: #16242f; border-color: #53c6e8; color: #eaf3ff; border-style: solid; }
+                .spec-action { background-color: #1a1608; border-color: #dfb84d; color: #f2cf68; }
+                .spec-action:hover { background-color: #2a2410; border-color: #f2cf68; }
+                .spec-action:active { background-color: #100d04; border-style: solid; }
+                .spec-action.issued { background-color: #0d1a12; border-color: #4f9c6b; color: #8fd6a6; }
+                .spec-tab:focus-visible, .spec-action:focus-visible { border-color: #ffe1a0; border-style: solid; }
 
                 """);
     }

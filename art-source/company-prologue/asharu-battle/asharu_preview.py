@@ -142,7 +142,7 @@ def traced_keyframes():
         motion.fleet_at = real_fleet
         if real_run is not None:
             motion.boarding_run = real_run
-    return mod.KEYFRAMES
+    return mod.SHOTS
 
 
 # ------------------------------------------------------------------------------- inside Blender
@@ -377,6 +377,12 @@ def shot(L, kf):
                 return mw @ (pos * mpu), mw.to_3x3() @ dirn, max(rad * mpu, 1.0), poses[key](t)[6]
             mp.plume('%s %d' % (key, i), at, PLUME_KIND.get(style, 'plume'))
 
+    # the debris field tumbles: every wreck turns slowly about its own axis (debris_field)
+    if L.get('field_matrix') is not None:
+        for o in list(L['scene'].objects):
+            if 'field_piece' in o:
+                mp.move(o, lambda t, i=int(o['field_piece']), j=int(o['field_box']): L['field_matrix'](i, j, t))
+
     # Draw only what the preview owns, the planet's surface, the platform and the entry trails:
     # a build's own effects (cook-off volumes, kit copies hidden in the viewport) and the air shell,
     # which the builder turns back on for every key frame, would otherwise draw as grey solids.
@@ -443,6 +449,20 @@ def shot(L, kf):
             r, ln = (4.0, 28.0) if kind == 'fire_on' else (10.0, 160.0)
             mp.cone(name, lambda t, key=key, c=c, d=d, r=r, ln=ln: (c(t), M(key, t).to_3x3() @ d, r, ln),
                     'fire' if kind == 'fire_on' else 'smoke')
+        elif kind == 'plasma':
+            # entry plasma, a proxy until the effect exists: a sheath cone from the bow streaming aft,
+            # growing from fx[2] to fx[3] seconds
+            key, p0, p1 = fx[1], fx[2], fx[3]
+            ln_ = placed[key]['length']
+
+            def sheath(t, key=key, p0=p0, p1=p1, ln_=ln_):
+                if t < p0:
+                    return None
+                u = min(1.0, (t - p0) / (p1 - p0))
+                mw = M(key, t)
+                return (mw @ Vector((ln_ * .55, 0, 0)), mw.to_3x3() @ Vector((-1, 0, 0)),
+                        ln_ * (.12 + .38 * u), ln_ * (.3 + 1.5 * u))
+            mp.cone(name, sheath, 'fire')
         elif kind == 'flares':
             key = fx[1]
             offs = [Vector((rnd.uniform(-60, 40), rnd.choice((-1, 1)) * rnd.uniform(50, 120), rnd.uniform(-10, 40)))
@@ -515,6 +535,88 @@ def shot(L, kf):
     mp.end_shot()
 
 
+# ------------------------------------------------------------------------------- the recording screen
+
+# The playback screen the sequence opens and ends on (the shot doc's "Framing: a comms recording" and
+# "On-screen place and time"). The game draws it, localised, with the date computed at run time; the
+# preview lays it out and times it against the radio so the sequence plays end to end.
+RECORDING_CHANNELS = ['COLOSSUS', 'ESCORT LEAD', 'MORROW', 'TARSUS', 'MULE', 'PHAETON', 'REAR ESCORT',
+                      'LASHER B', 'MERCHANT WOLF']
+# S0 plays the S1 traffic as audio only and cuts to picture on "close up the column" (10 s)
+RECORDING_SPEECH = [('COLOSSUS', 1.8, 6.4, 'Convoy, Colossus. Window opens in forty. All ships ease to two-thirds.'),
+                    ('ESCORT LEAD', 6.9, 9.7, 'Lead copies. Escorts, close up the column.')]
+RECORDING_END_S = 124.5          # S11: the picture breaks into the screen's static here
+RECORDING_DROPS = {'COLOSSUS': 124.9, 'MORROW': 125.3}
+RECORDING_END_CARD_S = 125.5
+
+
+def recording_screen(t, mode):
+    """One frame of the playback screen at sequence time t: 'open' (S0: black, then the screen, the
+    channels lighting as each voice speaks, a waveform, the caption) or 'end' (S11's last second and a
+    half: static over the screen, the Colossus's and Morrow's channels dropping out, END OF RECORDING)."""
+    import random
+    from PIL import Image, ImageDraw
+    W, H = motion_preview.W, motion_preview.H
+    fb, fm, fs = motion_preview._font(54, True), motion_preview._font(28, True), motion_preview._font(22)
+    im = Image.new('RGB', (W, H), (7, 9, 11))
+    dr = ImageDraw.Draw(im, 'RGBA')
+    rnd = random.Random(int(t * 1000))
+    if mode == 'open':
+        speaking = [sp for sp in RECORDING_SPEECH if sp[1] <= t <= sp[2]]
+        live = {sp[0] for sp in speaking}
+        dead = set()
+        fade = max(0.0, min(1.0, (t - .8) / .8))
+    else:
+        speaking = []
+        live = {k for k, t_off in RECORDING_DROPS.items() if t < t_off and rnd.random() > .3}
+        dead = {k for k, t_off in RECORDING_DROPS.items() if t >= t_off}
+        fade = 1.0
+    a = int(255 * fade)
+    amber, grey, dim = (255, 186, 90, a), (190, 196, 204, a), (90, 96, 104, a)
+    dr.text((140, 110), 'ASHARU', font=fb, fill=(235, 238, 242, a))
+    dr.text((140, 180), 'Corvus  \u00b7  low orbit', font=fm, fill=grey)
+    clock = 6 * 3600 + 41 * 60 + 12 + t
+    dr.text((1260, 118), '[arrival date \u2212 3 cycles]', font=fm, fill=grey)
+    dr.text((1260, 160), '%02d:%02d:%05.2f' % (clock // 3600, clock % 3600 // 60, clock % 60), font=fm, fill=grey)
+    dr.text((140, 236), 'RECORDING  \u00b7  CONVOY COMMON', font=fs, fill=dim)
+    dr.line((140, 280, 1780, 280), fill=dim, width=1)
+    for i, ch in enumerate(RECORDING_CHANNELS):
+        y = 320 + i * 44
+        on = ch in live
+        col = amber if on else ((70, 40, 40, a) if ch in dead else dim)
+        dr.ellipse((140, y + 6, 156, y + 22), fill=col if on else None, outline=col, width=2)
+        dr.text((176, y), ch + ('  \u2014 no carrier' if ch in dead else ''), font=fs, fill=col)
+        if on:
+            for k in range(12):
+                hgt = rnd.uniform(.2, 1.0) * 18
+                dr.rectangle((420 + k * 9, y + 22 - hgt, 425 + k * 9, y + 22), fill=amber)
+    x0, x1, yc = 640, 1780, 560          # waveform
+    env = 1.0 if speaking else .04
+    pts = []
+    for k in range(0, x1 - x0, 4):
+        v = env * rnd.gauss(0, 1) * (90 if speaking else 6) * (.6 + .4 * math.sin(k * .03 + t * 9))
+        pts.append((x0 + k, yc + v))
+    dr.line(pts, fill=amber if speaking else dim, width=2)
+    dr.line((x0, 760, x1, 760), fill=dim, width=2)          # playback position
+    pos = x0 + (x1 - x0) * min(1.0, t / 134.0)
+    dr.rectangle((x0, 756, pos, 764), fill=grey)
+    if speaking:
+        who, _, _, line = speaking[0]
+        dr.text((140, 860), who, font=fm, fill=amber)
+        dr.text((140, 900), line, font=fm, fill=(235, 238, 242, a))
+    dr.text((140, 1000), 'PREVIEW: layout and timing only. The game draws this screen, localised, with the date '
+                         'computed at run time; the lines are voiced.', font=fs, fill=(80, 84, 90, 255))
+    if mode == 'end':
+        noise = Image.effect_noise((W // 4, H // 4), 90).resize((W, H), Image.NEAREST).convert('RGB')
+        k = min(1.0, .55 + (t - RECORDING_END_S) * .3)
+        im = Image.blend(im, noise, k * .6)
+        if t >= RECORDING_END_CARD_S:
+            dr2 = ImageDraw.Draw(im, 'RGBA')
+            dr2.rectangle((0, 0, W, H), fill=(0, 0, 0, 170))
+            dr2.text((W / 2 - 330, H / 2 - 30), 'END OF RECORDING', font=fb, fill=(235, 238, 242, 255))
+    return im
+
+
 # ------------------------------------------------------------------------------- driver
 
 def main(argv, run, run_date):
@@ -535,7 +637,13 @@ def main(argv, run, run_date):
         subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python-exit-code', '1',
                                '--python', str(HERE / 'battle_blockout.py')], env=env)
     timeline = [dict(id=s['id'], title=s['title'], caption=s['caption'], start=round(s['start'] * FPS),
-                     end=round(s['end'] * FPS), rendered=bool(s['kf'])) for s in segs]
+                     end=round(s['end'] * FPS), rendered=bool(s['kf']) or s['first'] == 'S0') for s in segs]
+    for row in timeline:
+        first = row['id'].split()[0]
+        if first == 'S0':          # the recording screen, over the S1 traffic
+            row['screen'] = lambda f: recording_screen(f / FPS, 'open')
+        elif first == 'S11':       # the plasma takes the channel: static, the channels drop, END OF RECORDING
+            row['screen'] = lambda f: recording_screen(f / FPS, 'end') if f / FPS >= RECORDING_END_S else None
     summary = motion_preview.finish(out, ffmpeg=opt('--ffmpeg', 'ffmpeg'), name=NAME,
                                     trails=float(opt('--trails', 2.0)), timeline=timeline, sequence='Asharu')
     notes(out, summary, step, scale, argv)

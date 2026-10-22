@@ -97,14 +97,15 @@ ground, not a corridor: a column may leave it, and the creep has grown over it.
 **Ride** (The Burn). A straight strip a forester cuts across a wood to stop a
 fire: bare earth five cells wide across the whole approach, two of them, at
 about three tenths and a half of the way in. Fire jumps up to three cells of
-ground with nothing to burn (`fire-nouns.md`), so a firebreak is five wide. A ride outside the creep is a
-firebreak; a ride the creep has grown over is fuel again, as creep over a road
-is (`fire-nouns.md`).
+ground with nothing to burn (`fire-nouns.md`), so a firebreak is five wide. A
+ride is cut through any field it crosses, so it is unbroken bare earth. It holds
+inside the bloom too: creep over bare earth or paving is a film that does not
+burn (`fire-nouns.md`).
 
 **Brook** (The Burn). A stream across the approach, deep in the bloom beyond
 the village: water five cells wide with sand on either bank and no crown
 overhanging it, crossed on foot
-at a ford every forty-six cells and wherever a road bridges it. Nobody walks
+at a stony ford every forty-six cells (stone, not sand, so the creep over a ford is a film and the ford holds as a break) and wherever a road bridges it. Nobody walks
 through water and creep does not climb it, so the brook is the map's natural
 firebreak and a line the creep crosses only at its fords and bridges. A road
 over it is its bridge; where the settlement's streets cross its line it runs
@@ -304,9 +305,10 @@ The owner's picks (2026-10-22, `heart-flow-options`): a satellite's fall wakes
 the heart; a mother's fall makes the survivors surge; the barrage and the
 company both light The Burn's line; a hurt bore surges. On The Burn's pace (`heart-burn-pace`),
 firebreaks hold: the fire stops at each ride, the brook and roads, and is
-relit past each. Whether a ride, road or ford the creep has grown over still
-holds is fire's rule (`fire-nouns.md`); as it stands creep over any ground is
-fuel, so inside the bloom only open water holds.
+relit past each. Rides, roads and fords hold under the bloom because fire treats
+creep over bare earth or paving as a film (`fire-nouns.md`). High explosive lights
+dry tinder as well, so where the brook meanders back toward the guns the line
+before its relight line can light the far bank a little early.
 
 ## Boundaries
 
