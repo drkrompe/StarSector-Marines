@@ -326,17 +326,27 @@
     },
     {
       "id": "creep_spread",
-      "prompt": "Slow wet organic growth spreading across the ground: a soft continuous bed of living tissue squelching, stretching and oozing as it creeps over soil and stone, faint crackle of membrane and fibres pulling taut, an occasional soft wet pop of a bubble or tendril, quiet, close and eerie, no voices, no creature cries, no wind, no music, seamless loop",
-      "durationSeconds": 8.0,
-      "variants": 4,
+      "reuses": [
+        {
+          "id": "bore_ambience_bore",
+          "pitch": 0.85
+        }
+      ],
       "loop": true,
       "volume": 0.7
     },
     {
       "id": "spine_strike",
-      "prompt": "A huge bone spike bursting up out of the ground from below: a deep muffled underground thud and rumble, then a violent crack of earth and paving splitting open and a sharp wet bony stab erupting upward, dirt and gravel spraying and pattering down, heavy and fast, no voices, no music",
-      "durationSeconds": 1.6,
-      "variants": 4,
+      "reuses": [
+        {
+          "id": "brute_impact",
+          "pitch": 1.15
+        },
+        {
+          "id": "brute_charge_hit_wall",
+          "pitch": 0.85
+        }
+      ],
       "loop": false,
       "volume": 1.0
     }
