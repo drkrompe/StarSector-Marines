@@ -147,7 +147,7 @@ def stamped(text, cx, cy, cell):
 
 def missile_rack(w, h, rows, kind, margin_x=18):
     """Stacked missiles over a debossed plate stamped SRM or LRM."""
-    plate = 40
+    plate = 0
     s = ''
     pitch = (h - 16 - plate) / rows
     # Body plus both fins stays under the row pitch, so neighbouring missiles never touch.
@@ -155,7 +155,6 @@ def missile_rack(w, h, rows, kind, margin_x=18):
     for i in range(rows):
         y = 8 + pitch * (i + .5)
         s += missile(margin_x, y, w - margin_x - 8, mh, kind)
-    s += label_plate(kind.upper(), w / 2, h - plate / 2 - 6, 4.2)
     return s
 
 
@@ -169,14 +168,16 @@ def label_plate(text, cx, cy, cell, pad=None):
     return s + stamped(text, cx, cy - cell * .1, cell)
 
 
-def banded(w, h, art, text, cell=4.2):
-    """A two-row icon with its designation plate along the bottom: the art is scaled about the
-    top centre into the space above the plate, so nothing overlaps it."""
-    band = 44
-    k = (h - band) / h
-    tx = w * (1 - k) / 2
-    body = f'  <g transform="translate({n(tx)} 0) scale({k:.4f})">' + '\n' + art + '  </g>\n'
-    return svg(w, h, body + label_plate(text, w / 2, h - band / 2 - 2, cell))
+CELL_W, CELL_H = 75, 100
+
+
+def banded(w, h, art, text):
+    """An icon with its designation plate in the bottom-right brick: the same corner on every
+    piece, so the label is where the eye already looks. The art keeps its full size; the plate
+    sits over its corner like an applied tag."""
+    # Letters as large as the brick allows: (6n - 1) cells of text plus the plate's padding.
+    cell = min(4.4, (CELL_W - 12) / (len(text) * 6 - 1 + 2.4))
+    return svg(w, h, art + label_plate(text, w - CELL_W / 2, h - 4.7 * cell - 6, cell, pad=cell * 1.2))
 
 
 # --- guns -----------------------------------------------------------------------------------
@@ -299,15 +300,14 @@ def build():
     f = {}
 
     # Missile racks: stacked horizontal missiles.
-    f['srm-5'] = svg(150, 200, missile_rack(150, 200, 4, 'srm'))
-    f['srm-15'] = svg(150, 300, missile_rack(150, 300, 7, 'srm'))
-    f['lrm-5'] = svg(150, 200, missile_rack(150, 200, 4, 'lrm'))
-    f['lrm-15'] = svg(150, 300, missile_rack(150, 300, 7, 'lrm'))
+    f['srm-5'] = banded(150, 200, missile_rack(150, 200, 4, 'srm'), 'SRM')
+    f['srm-15'] = banded(150, 300, missile_rack(150, 300, 7, 'srm'), 'SRM')
+    f['lrm-5'] = banded(150, 200, missile_rack(150, 200, 4, 'lrm'), 'LRM')
+    f['lrm-15'] = banded(150, 300, missile_rack(150, 300, 7, 'lrm'), 'LRM')
     # Pioneer: one rocket riding its cradle rail, a 2x1 piece.
     b = missile(22, 40, 116, 26, 'rocket')
     b += rect(14, 64, 124, 8, D, rx=2) + rect(30, 74, 8, 16, D) + rect(112, 74, 8, 16, D)
-    b += stamped('RKT', 74, 40, 2.6)
-    f['pioneer-rocket'] = svg(150, 100, b)
+    f['pioneer-rocket'] = banded(150, 100, b, 'RKT')
 
     pts = []
     for i in range(16):
@@ -328,8 +328,7 @@ def build():
     b += poly([(84, 38), (102, 44), (102, 56), (84, 62)], D)
     b += path('M 104 44 C 118 36 128 42 146 50 C 128 58 118 64 104 56 Z', D)
     b += path('M 106 47 C 116 43 124 46 134 50 C 124 54 116 57 106 53 Z', L)
-    b += stamped('TL', 27, 50, 3.0)
-    f['thermal-lance'] = svg(150, 100, b)
+    f['thermal-lance'] = banded(150, 100, b, 'TL')
 
     # Ballistic.
     f['chaingun-dual'] = banded(225, 200, gatling(52, 10, 214, 52) + gatling(144, 10, 214, 52), 'CG')
