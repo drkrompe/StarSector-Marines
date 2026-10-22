@@ -1,7 +1,7 @@
 {
   "groundRender": {
     "INDOOR":    "urban.floor",
-    "RUBBLE":    "urban.rubble",
+    "RUBBLE":    "pavement.gravel.cracked",
     "STREET":    "urban3.street-square",
     "COURTYARD": "road.courtyard",
     "TILE":      "road.tile",

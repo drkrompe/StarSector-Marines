@@ -75,7 +75,7 @@ def read_layers(path):
         sub = 0
         while inp.seek_subimage(sub, 0):
             spec = inp.spec()
-            px = inp.read_image(0, spec.nchannels, oiio.FLOAT)
+            px = inp.read_image(sub, 0, 0, spec.nchannels, oiio.FLOAT)     # this part: Blender 5 writes one per pass
             px = np.asarray(px, dtype=np.float32).reshape(spec.height, spec.width, spec.nchannels)
             for i, name in enumerate(spec.channelnames):
                 head, chan = name.rsplit('.', 1) if '.' in name else ('', name)
@@ -133,7 +133,7 @@ def backdrop_of(layers):
     """The rendered backdrop: its Combined (the planet, the air) over its Environment (the stars)."""
     b = layers['backdrop']
     c = b['Combined']
-    env = b.get('Env')
+    env = b.get('Environment', b.get('Env'))
     if env is None:
         return c
     env = np.concatenate([env[..., :3], np.ones_like(env[..., :1])], -1)
