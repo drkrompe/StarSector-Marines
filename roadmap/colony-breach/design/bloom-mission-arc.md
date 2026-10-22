@@ -124,6 +124,11 @@ the ground.
 
 ### Candidate stories
 
+The Cordon is now its own feature: its model is `cordon-nouns.md` (the map,
+the redoubts, the beats and the end conditions of both variants) and its board
+is `roadmap/cordon/design/stories.md`. The list below is the original survey,
+which those stories now carry.
+
 1. **Cordon mission.** The mission with both variants: briefing (variant and
    line posture), factory, outcome (people out, redoubts lost, convoys lost,
    bores collapsed) and a `commanderEvidence` harness with a fixture per

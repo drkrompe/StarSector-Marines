@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
+import com.dillon.starsectormarines.battle.fire.FireField;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxDef;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxRuntime;
 import com.dillon.starsectormarines.render2d.BattleCamera;
@@ -35,6 +36,9 @@ public final class GroundLightService {
     private final Map<ShotEvent, Light> boltLights = new IdentityHashMap<>();
     /** Reused identity set for pruning ended bolt shots without per-frame allocation. */
     private final Set<ShotEvent> activeBolts = Collections.newSetFromMap(new IdentityHashMap<>());
+    /** One tracked light per gathered square of burning ground; see {@link FireLight}. */
+    private final List<Light> fireLights = new ArrayList<>();
+    private final FireLight fire = new FireLight();
     private final Light[] selected = new Light[MAX_SHADER_LIGHTS];
     private final float[] selectedScores = new float[MAX_SHADER_LIGHTS];
 
@@ -125,6 +129,27 @@ public final class GroundLightService {
         });
     }
 
+    /**
+     * Keeps one warm light over each gathered square of burning ground, so a
+     * burn lights the relief round it; flickers on the wall clock. A null
+     * field or one with nothing burning leaves none.
+     */
+    public void syncFireLights(FireField field) {
+        float timeSeconds = FireLight.clock(Float.NaN);
+        fire.update(FireRenderSystem.enabled() ? field : null);
+        int n = fire.count();
+        while (fireLights.size() < n) fireLights.add(new Light(0f, 0f, 0f, 0f, FIRE, 0f, 1f, true));
+        while (fireLights.size() > n) fireLights.remove(fireLights.size() - 1);
+        for (int i = 0; i < n; i++) {
+            Light light = fireLights.get(i);
+            light.x = fire.x(i);
+            light.y = fire.y(i);
+            light.height = 1.4f;
+            light.radius = fire.radius(i) * 1.2f;
+            light.intensity = 0.62f * fire.strength(i, timeSeconds);
+        }
+    }
+
     /** Ages lights on the same scaled clock as their source FX. */
     public void advance(float dt) {
         if (dt <= 0f) return;
@@ -139,6 +164,7 @@ public final class GroundLightService {
     /** Clears battle-local state on detach. */
     public void clear() {
         live.clear();
+        fireLights.clear();
         boltLights.clear();
         activeBolts.clear();
         Arrays.fill(selected, null);
@@ -160,7 +186,8 @@ public final class GroundLightService {
         float maxY = camera.panCellY() + halfH;
 
         int count = 0;
-        for (Light light : live) {
+        for (int i = 0, n = live.size() + fireLights.size(); i < n; i++) {
+            Light light = i < live.size() ? live.get(i) : fireLights.get(i - live.size());
             if (light.x + light.radius < minX || light.x - light.radius > maxX
                     || light.y + light.radius < minY || light.y - light.radius > maxY) continue;
             float dx = light.x - camera.panCellX();
@@ -191,6 +218,10 @@ public final class GroundLightService {
 
     int liveCount() {
         return live.size();
+    }
+
+    int fireLightCount() {
+        return fireLights.size();
     }
 
     Light boltLight(ShotEvent shot) {

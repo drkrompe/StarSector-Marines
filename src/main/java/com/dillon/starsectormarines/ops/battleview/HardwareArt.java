@@ -41,11 +41,13 @@ final class HardwareArt {
         if (art == null || width <= 0f || height <= 0f) return false;
         float insetX = width * .06f, insetY = height * .06f;
         Color tint = new Color(255, 255, 255, alpha);
-        art.draw(c, x + insetX, y + insetY, width - insetX * 2f, height - insetY * 2f, tint);
+        // Edge to edge: each drawing's 75 x 100 cells are the piece's bricks, so a tag authored
+        // in the last cell lands in the last brick. The drawings carry their own margins.
+        art.draw(c, x, y, width, height, tint);
         if (fragmentation(component) && fragMark != null) {
             float mark = Math.min(width, height) * .42f;
-            fragMark.draw(c, x + width - mark - insetX * .5f, y + height - mark - insetY * .5f,
-                    mark, mark, tint);
+            // Top corner: the bottom of a rack is its stamped SRM/LRM plate.
+            fragMark.draw(c, x + width - mark - insetX * .5f, y + insetY * .5f, mark, mark, tint);
         }
         return true;
     }

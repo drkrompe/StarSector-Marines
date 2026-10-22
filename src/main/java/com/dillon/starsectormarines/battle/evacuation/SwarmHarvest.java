@@ -217,6 +217,9 @@ public final class SwarmHarvest {
     /** Whether {@code body} was dropped and is waiting for another Runner. */
     public boolean isLoose(long body) { return loose.contains(body); }
 
+    /** A body gone from the field some other way (the body pile cap): no Runner goes to fetch it. */
+    public void forget(long body) { loose.remove(Long.valueOf(body)); }
+
     /** Living bodies impaled, freed and taken, in the order it happened; readers keep their own cursor. */
     public List<Event> events() { return eventView; }
 
