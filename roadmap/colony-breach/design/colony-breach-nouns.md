@@ -609,7 +609,7 @@ for one job in the cycle, and reads that way on screen.
   as the fight goes on while a tank only rocks. On infantry
   the blow is a **trample**: the body under it is knocked down for a moment and
   bowled a little way, and anyone on foot right beside it takes half the blow
-  and goes down too (`-Dbattle.brute.trample=false` is the control).
+  and goes down too.
 
   It has two speeds: it **walks** at its sim speed and **charges** at a much
   higher one. A **charge** is a committed straight run at one target, or at the
@@ -640,13 +640,14 @@ for one job in the cycle, and reads that way on screen.
   on while one struck in the side stops short, tracks hold harder than wheels
   along the hull, and the spin is scrubbed by the same sideways grip. Nothing a
   charge strikes is moved in one step: a thrown or trampled body and a
-  rebounding Brute also slide to rest over the next ticks. Knocked down, stalled, staggered and stunned are one short
-  **can't act** state (`StaggerService`): no move, no fire, for a fixed time,
-  never a casualty state. The swarm's own bodies are never struck. Squad mates
-  of a thrown body take a near-miss morale drain. The numbers (charge speed,
-  band, cooldown, tell, every hold time) are starting values the owner chose
-  to feel out in play rather than settle on paper, so each is a
-  `-Dbattle.brute.*` switch and `-Dbattle.brute.charge=false` is the control.
+  rebounding Brute also slide to rest over the next ticks.
+
+  Knocked down, stalled, staggered and stunned are one short **can't act**
+  state (`StaggerService`): no move, no fire, for a fixed time, never a
+  casualty state. The swarm's own bodies are never struck. Squad mates of a
+  thrown body take a near-miss morale drain. The numbers (charge speed, band,
+  cooldown, tell, masses, every hold time) are starting values in
+  `BruteChargeRules`, to be felt out in play rather than settled on paper.
 
   A second of not being able to act confuses unless the player sees why, so
   the charge is shown four ways, all presentation over the rule: a faint amber
