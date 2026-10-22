@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
+Updated: 2026-10-21 — growth stages (whelp, adult, elder), age mix, pack leader as planned vocabulary; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -688,6 +688,45 @@ for one job in the cycle, and reads that way on screen.
   damage model has none for ground bodies.
 - **Matriarch** — one per mother bore at maw tier: large, slow, very durable,
   wrecks emplacements. Answered by mechs, heavy weapons or a lot of satchels.
+
+**Growth stage.** How old a rav is: **whelp**, **adult** or **elder**. Every
+strain has the same three stages, so a stage is a property of one body, never
+a strain of its own: a whelp Runner is a Runner, with the Runner's `UnitType`,
+behaviour and rig, and no stage adds a `UnitType` or an appearance family. The
+stages are about a fifth apart in size (0.80, 1.00 and 1.22 of the adult), so
+they read at play zoom. Health, armour, damage and reach rise with stage and
+speed falls; a Brute's mass rises with its volume, so its charge physics scales
+without a rule of its own. They are also marked beyond size: a whelp is pale
+with nub spikes, an elder dark and scarred with long ones. A stage is issued at
+spawn through `SwarmStrains`, like the Brute's plate, and fixed for the body's
+life; the Matriarch is the one exception. Stage scales presentation only
+through things the body already has: its rig's scale and stage-recoloured
+sprites, and its voice pitched by its size. Stats, the stage table and the
+reasons for each choice are in `rav-growth-stages.md` (planned, not built).
+
+- **Age mix.** A surge's stages come from its bore, never from the director:
+  each body draws a stage from a table keyed by the bore's tier (a fissure
+  throws whelps, a maw throws adults and elders), shifted older by the biomass
+  the bore has eaten in its life. So *Harvest* shows on the field: a bore that
+  has been fed sends bigger, darker ravs. The draw is keyed by the bore, the
+  pulse and the body, so stages change no other roll.
+- **Pack, pack leader.** A pack is the bodies of one pulse. Its first elder is
+  its **pack leader** and is released at the head of the stream; a pulse with
+  no elder has no leader, and its bodies hunt alone as every body did before
+  stages. While the leader lives, members on its leash share its quarry and
+  what it senses (still sensing, passed body to body) and strike faster. When
+  it dies the pack **breaks** for good: the bonuses go, members scatter to
+  their own quarry, and its whelps bolt back toward the bore for a moment. A
+  pack never elects a new leader.
+- **The Matriarch's stage** is set by how long the mother bore has been
+  feeding (its lifetime biomass when she emerges), within a narrower range of
+  size than the small strains'. Because she is fed from her mother, she steps
+  up a stage in the field when the mother is fed past the next threshold.
+  She leads every pack within her leash.
+- **Clearance.** Every stage of the small strains keeps a sim radius under half
+  a cell, so the shared flow fields serve every body; an elder Brute is drawn
+  and shoved larger than it navigates. The crowding capsule scales with stage.
+  The Matriarch paths for herself at her stage's clearance.
 
 **Air threat ladder.** What the swarm can do to what flies, rung by rung:
 
