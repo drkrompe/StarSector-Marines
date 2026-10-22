@@ -200,18 +200,19 @@ authored content.
   amenities.
 - A **rack** is one bunk, and a **rank** is a row of them laid athwart the
   compartment's passage, head to the hull and feet to the deck people walk on.
-  A rack is three cells head to foot (a 2.25 m frame round a two-metre
-  mattress, at about 0.75 m a cell), so a berth is eight cells deep: two ranks
-  and the two-abreast passage between them.
-  Laid the other way — along the bulkhead — a rack takes three cells of hull to
+  A rack is two cells head to foot, so a berth is six cells deep: two ranks
+  and the two-abreast passage between them. The figure is drawn at head-and-
+  shoulders scale, a cell a crewman's shoulders and a bit, so a three-cell
+  bunk read as a bed for a giant and the sleeper in it as one; the sleeper
+  is drawn at the fallen-body scale, within the rack.
+  Laid the other way — along the bulkhead — a rack takes two cells of hull to
   berth one hand instead of one, and the compartment holds a third as many
   people in the same floor. That is why real berthing looks like this, and it is the
   only arrangement in which the recipe's few square metres a hand is reachable
   at all. Shipboard bunks combine a physical base, bedding and retaining rails;
   each complete assembly follows the room's orientation, with pillows outboard.
   Personal locker banks occupy the ends of the near rank and divide the far
-  rank; a bank is a cell shorter than a rack, so it stands against the hull
-  and is opened from the alcove that leaves between its neighbours. They
+  rank; a bank is as long as a rack and is opened from the passage. They
   replace loose kit without consuming another berth. The central aisle and
   whole hatch approaches stay clear, and rest and stowage happen from
   reachable standing cells beside the fixtures. A hand resting in a bunk is

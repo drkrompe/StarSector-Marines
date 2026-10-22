@@ -189,8 +189,8 @@ Rendered output and other large regenerable files that should reach the other
 machine (or the owner's phone) go to the shared Google Drive folder, never into
 git: `G:\My Drive\starsector` on Windows and
 `~/Library/CloudStorage/GoogleDrive-<account>/My Drive/starsector` on
-the Mac. It syncs in about half a minute. It is a transfer and viewing area,
-not version control, and a build copies what it needs local before reading it.
+the Mac. It syncs in about half a minute. It is a transfer and storage area,
+not version control and not how the owner is shown work (see below), and a build copies what it needs local before reading it.
 
 #### Review sets for the owner
 
@@ -221,7 +221,18 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   order so the folder reads in the order the notes describe.
 - Images obey the preview rule (1920x1080, 100% scale). Copy finished images
   only, never frame sequences or scratch.
-- Tell the owner the run folder's path when the set is ready.
+- **Show the owner the images; never send them to Drive to look** (owner,
+  2026-10-22). The run folder is storage and transfer, not how a set is
+  delivered. When a set is ready, put the images themselves in front of the
+  owner: send them into the chat (`SendUserFile`, `display: "render"`) or
+  publish them on a preview or picks artifact page. A message that says
+  "review in G drive" or gives only a folder path does not count as
+  delivering a set. A session started by another session gives its
+  coordinating session the image paths, and the coordinator shows them.
+  The folder path may follow as a footnote, never in place of the pictures.
+  Look and design choices go to the owner the same way: as labelled pictures
+  (an `options.json` of `{id, question, options:[{key,label,file,note}]}`
+  for the picks page), not as a description in words.
 - Drive keeps two folders that two machines created under the same name and
   shows the second as `name (1)`. It happened once, to `review` itself. Create
   only your own run folder (the asset folder only if it is missing), and if a

@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
-import java.util.List;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.campaign.start.SecondhandWingsCampaign.Offer;
 import com.dillon.starsectormarines.marine.BoatDeck;
@@ -71,6 +70,7 @@ final class SecondhandWingsModel {
 
     record Row(boolean available, boolean visible, int page, int credits, boolean blocked, String refusal,
                String trade, Runnable open, Runnable action, Runnable dismiss) implements MarkupPropertySource {
+        private long shortfall() { return Math.max(0, SecondhandWings.CREDIT_COST - credits); }
         static Row hidden() { return new Row(false, false, 0, 0, false, null, "", () -> { }, () -> { }, () -> { }); }
         @Override public Object markupProperty(String key) {
             return switch (key) {
@@ -83,10 +83,18 @@ final class SecondhandWingsModel {
                     case 1 -> Strings.get("openingSecondhandWingsYouGaveOurCooperativeAPlaceTo");
                     default -> Strings.get("openingSecondhandWingsThoseAreOursCaptainProperLandingCraft");
                 };
-                case "billRows" -> page == 2 ? List.of() : CompanyResources.credits("wings-cost", credits, SecondhandWings.CREDIT_COST);
-                case "bill" -> page == 2 ? Strings.get("openingSecondhandWingsDeliveredAeroshuttlesSeatsPerLift")
-                        : CompanyResources.creditBill(SecondhandWings.CREDIT_COST, credits);
-                case "trade" -> page == 1 ? Strings.format("openingSecondhandWingsExchangeIncludes", trade) : Strings.get("openingSecondhandWingsHermesSeatsAeroshuttleSeatsTwoRepairedLanders");
+                case "priceClasses" -> page == 2 ? "hidden" : shortfall() > 0 ? "wings-price short" : "wings-price";
+                case "priceLabel" -> Strings.get("openingSecondhandWingsPriceLabel");
+                case "price" -> CompanyResources.number(SecondhandWings.CREDIT_COST);
+                case "stock" -> shortfall() > 0 ? Strings.format("companyResourceShortBy", CompanyResources.number(shortfall()))
+                        : Strings.get("companyResourceAvailable") + "  " + CompanyResources.number(credits);
+                case "stockClasses" -> shortfall() > 0 ? "label wings-price-stock short" : "label wings-price-stock tone-muted";
+                case "oldName" -> ShuttleType.HERMES.displayName().toUpperCase(Strings.locale());
+                case "newName" -> ShuttleType.AEROSHUTTLE.displayName().toUpperCase(Strings.locale());
+                case "oldSeats" -> Strings.format("openingSecondhandWingsCraftSeats", ShuttleType.HERMES.capacity);
+                case "newSeats" -> Strings.format("openingSecondhandWingsCraftSeats", ShuttleType.AEROSHUTTLE.capacity);
+                case "arrow" -> ">";
+                case "trade" -> page == 1 ? Strings.format("openingSecondhandWingsExchangeIncludes", trade) : Strings.get("openingSecondhandWingsTwoRepairedLandersReplace");
                 case "reason" -> page == 2 ? Strings.get("openingSecondhandWingsDeliveredAtStandardFitPlatingAndDrive")
                         : page == 1 && refusal != null ? refusal : Strings.get("openingSecondhandWingsNoAdditionalMaterialBillBayRestorationIs");
                 case "actionLabel" -> page == 0 ? Strings.get("openingSecondhandWingsReviewOffer") : page == 1 ? Strings.get("openingSecondhandWingsBuyPair") : Strings.get("openingSecondhandWingsInspectFittings");
