@@ -452,7 +452,7 @@ Save repair retains previously learned specifications and assigned formations bu
 does not seed specialist gear or the unlearned faction-sheet library. The Machine
 Shop fits learned equipment freely.
 
-**Corporate Blacksite Breach** is the built-in player assault profile:
+**Blacksite Breach Package** is the built-in player assault profile:
 its twelve exact billets contain one Shattercap frag carrier, so its authored
 distribution stays legible. Every card resolves to twelve exact billets before the
 same issue transaction can commit.
