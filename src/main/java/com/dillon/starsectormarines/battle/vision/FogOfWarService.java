@@ -425,6 +425,7 @@ public final class FogOfWarService {
         // A sweep is carried by somebody on the ground: it reads walls, not cliffs, beyond its radius.
         total = castInto(carried, total, true);
         total = castInto(vehicleSight, total, false);
+        total = revealExposed(total);
         ephemeralPrevCount = total;
 
         for (int i = 0; i < total; i++) {
@@ -513,6 +514,36 @@ public final class FogOfWarService {
                 reveal(e.previousCells[j]);
             }
         }
+    }
+
+    /**
+     * A holder exposed by firing down ({@link FiringExposure}) is seen by every
+     * contributor in range whose line to it the grid now clears: its own cell
+     * only, the way the shadowcast would have shown it from its height.
+     */
+    private int revealExposed(int total) {
+        int[] exposed = grid.exposedCells();
+        for (int idx : exposed) {
+            int ex = idx % gridWidth, ey = idx / gridWidth;
+            if (!seenByContributor(ex, ey)) continue;
+            if (total == ephemeralPrevCells.length) {
+                ephemeralPrevCells = Arrays.copyOf(ephemeralPrevCells, Math.max(16, total * 2));
+            }
+            ephemeralPrevCells[total++] = idx;
+        }
+        return total;
+    }
+
+    private boolean seenByContributor(int x, int y) {
+        for (FogCohort cohort : cohorts) {
+            for (ContributorEntry e : cohort.contributors) {
+                if (e.lastRange <= 0) continue;
+                int dx = e.lastCellX - x, dy = e.lastCellY - y;
+                if (dx * dx + dy * dy > e.lastRange * e.lastRange) continue;
+                if (grid.hasLineOfSight(e.lastCellX, e.lastCellY, x, y)) return true;
+            }
+        }
+        return false;
     }
 
     /** Shadowcasts every source in one channel onto the end of the combined footprint. */

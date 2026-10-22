@@ -302,6 +302,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.vision.FiringExposure;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.combat.Detonations;
 import com.dillon.starsectormarines.battle.combat.FiringSystem;
@@ -445,6 +446,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final GroundSystem groundSystem;
     /** Fog-of-war state — building registry + faction contributor set + the every-3rd-tick {@link com.dillon.starsectormarines.battle.vision.BuildingVisibilityPass} driver. The {@link #getBuildings}/{@link #setBuildings}/{@link #getVisionState} delegates below forward here. */
     private final FogOfWarService fogOfWar = new FogOfWarService();
+    /** Holders exposed by firing down off higher ground; see {@link FiringExposure}. */
+    private final FiringExposure firingExposure = new FiringExposure();
     /** Handheld squad weapons (rifle / SMG / DMR / rocket launcher). Owns fireShot, fireSecondary, and the per-tick burst continuation pass. Pumped each tick via {@code infantry.tick()}; behavior call sites go through the delegating {@link #fireShot} / {@link #fireSecondary} wrappers on this class. */
     private final InfantryWeapons infantry;
     /** Fire-time ballistic resolution for infantry primaries — ray vs walls/doodads/unit radii, walked in time order. Pure/stateless (reads only); constructed once and shared. See {@code ballistics-nouns.md}. */
@@ -1556,7 +1559,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 rng, topology, shots, damageService,
                 det -> { synchronized (detonations) { detonations.queue(det); } },
                 hitResponse, world, ballisticResolver, rosterService.telemetry());
-        this.infantry = new InfantryWeapons(rosterService, ballisticResolver, shots, grid, rng);
+        this.infantry = new InfantryWeapons(rosterService, ballisticResolver, shots, grid, rng, firingExposure);
         this.ambientTasks.setLiveFireSink((actorId, targetId) -> {
             if (rosterService.isLive(actorId) && rosterService.isAliveById(targetId)) {
                 infantry.fireDrillShot(actorId, targetId, FireStance.STANCED);
@@ -1921,6 +1924,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public com.dillon.starsectormarines.battle.vision.PlayerVisionState getVisionState() { return fogOfWar.getVisionState(); }
     /** Fog-of-war service — per-cell reveal state + per-unit visibility. The renderer reads this for the fog overlay and unit visibility gate. */
     public FogOfWarService getFogOfWar() { return fogOfWar; }
+
+    /** Holders exposed by firing down off higher ground. */
+    public FiringExposure firingExposure() { return firingExposure; }
     /** Player command-power layer. The battle UI reads the pool / cooldowns and calls {@link com.dillon.starsectormarines.battle.power.CommandPowerService#requestActivation}; {@code BattleScreen.advance} projects its active recon pings into the fog as ephemeral vision sources. */
     public com.dillon.starsectormarines.battle.power.CommandPowerService getCommandPowerService() { return commandPowers; }
     /** Player battle-only mech doctrine command mailbox. */
@@ -3256,6 +3262,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // Smoke lands/expires before perception so stationary observers recast
         // against the same opacity state direct-fire AI sees this tick.
         smokeFields.tick(TICK_DT);
+        // Last tick's shots down off higher ground expose their shooters before anything reads sight.
+        firingExposure.tick(TICK_DT, rosterService, grid);
         // Fog-of-war visibility pass — recomputed every 3rd tick (~10 Hz at
         // 30 Hz sim). The render path lerps current→target alpha per frame so
         // this cadence stays invisible. Host-projected temporary sources
