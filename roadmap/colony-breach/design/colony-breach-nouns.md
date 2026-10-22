@@ -669,7 +669,10 @@ for one job in the cycle, and reads that way on screen.
   body and the shanks over them. It walks, trots and gallops with the hips
   and shoulders swaying against each other; it plants its feet to stand, to
   brace for the tell and while it can't act, and gallops through a charge with
-  its head down. A blow is the whole body's, timed off the attack cooldown as
+  its head down. Its back gives: the body is drawn as front and rear halves
+  that meet in the middle of the back, and through a turn the spine bows into
+  it, stiffer and slower than a Runner's, the halves hinged at the outer edge
+  so they never open a gap. A blow is the whole body's, timed off the attack cooldown as
   the Runner's arms are: the weight goes back onto the hind legs and the
   forequarters rise, then it drives forward through the shoulders, the front
   hooves stamping down ahead and the head driving with them; a charge's hit
@@ -699,7 +702,8 @@ for one job in the cycle, and reads that way on screen.
   then hunts as a Brute does (an emplacement first), and every blow is an
   action that holds the body and lands part-way through, so it is seen coming.
   Infantry is reaped: one scythe sweeps across its front, right then left on
-  the next, cutting a handful in the arc. An emplacement, a hull or a mech
+  the next, cutting a handful in the arc and throwing whoever lives through it
+  down and across the sweep. An emplacement, a hull or a mech
   takes the crown. It breaks walls a Brute cannot (a fort's buildings, not its
   curtain until something has worn that down), from further off, and never
   walks round to a door. It is not staggered and does not charge. Until it has
@@ -725,8 +729,9 @@ spawn through `SwarmStrains`, like the Brute's plate, and fixed for the body's
 life; the Matriarch is the one exception. Stage scales presentation only
 through things the body already has: its rig's scale and stage-recoloured
 sprites, and its voice pitched by its size. Stats, the stage table and the
-reasons for each choice are in `rav-growth-stages.md` (stage, stats and size
-built; the age mix, packs and presentation planned).
+reasons for each choice are in `rav-growth-stages.md` (stage, stats, size, the
+age mix, packs and sound built; the per-stage art planned).
+`-Dbattle.swarm.growthStages=false` is the control: every body an adult.
 
 - **Age mix.** A surge's stages come from its bore, never from the director:
   each body draws a stage from a table keyed by the bore's tier (a fissure
@@ -738,16 +743,24 @@ built; the age mix, packs and presentation planned).
 - **Pack, pack leader.** A pack is the bodies of one pulse. Its first elder is
   its **pack leader** and is released at the head of the stream; a pulse with
   no elder has no leader, and its bodies hunt alone as every body did before
-  stages. While the leader lives, members on its leash share its quarry and
-  what it senses (still sensing, passed body to body) and strike faster. When
-  it dies the pack **breaks** for good: the bonuses go, members scatter to
-  their own quarry, and its whelps bolt back toward the bore for a moment. A
-  pack never elects a new leader.
+  stages. While the leader lives, members on its eight-cell leash share its
+  quarry when they have none of their own close by (local pursuit; the flow
+  field is untouched), pool what any of them senses (still sensing, passed body
+  to body, a tick behind), and strike 15% faster. The leader's cry on new
+  quarry is the pack's: a member taking the leader's quarry stays quiet. When
+  it dies the pack **breaks** for good, heard as one scatter shriek at the
+  leader's stage: the bonuses go at once, members drop their quarry and for two
+  seconds hunt only what they sense themselves, and its whelps bolt back down
+  the bore field for four, dropping what they carry. A pack never elects a new
+  leader; a body out of any led pack (a leaderless pulse, a broken pack) joins
+  a leader whose leash it comes within, which is how two surges merge.
+  `-Dbattle.swarm.packLeaders=false` is the control: no pack forms.
 - **The Matriarch's stage** is set by how long the mother bore has been
   feeding (its lifetime biomass when she emerges), within a narrower range of
   size than the small strains'. Because she is fed from her mother, she steps
   up a stage in the field when the mother is fed past the next threshold.
-  She leads every pack within her leash.
+  She leads every pack within her leash: an elder that comes within it defers
+  to her and brings its pack, so killing her breaks them all at once.
 - **Clearance.** Every stage of the small strains keeps a sim radius under half
   a cell, so the shared flow fields serve every body; an elder Brute is drawn
   and shoved larger than it navigates, and squeezes through a door it fills. The crowding capsule scales with stage.
@@ -814,6 +827,10 @@ In `hive-creep.md`.
   crossed, and filled over about a minute and a half rather than at once: its
   coverage is its age, so a newly reached wall carries only veins and an old
   one is crusted over. It reads as a matter of time.
+- **Creep favours the swarm and shelters no one** (`CreepEffects`). A swarm
+  body runs a quarter faster on living creep; Marines and colonists are never
+  slowed, so creep reads as the swarm's ground rather than mud. A fleeing or
+  wandering colonist may cross creep but never stops on it: creep is no refuge.
 - **Creep brings roofs down under its weight** (`CreepRoofCollapse`). A
   building's roof gives way where living creep has stood beneath it for a minute
   to a minute and a half: first beside a wall the creep has crusted, then inward
@@ -822,9 +839,8 @@ In `hive-creep.md`.
   in lockstep. A cave-in is the same one war damage makes: rubble on the floor,
   and the roof, sight and cover follow it. Creep that withers stops the count;
   a roof that fell stays fallen. The battle keeps its own clock per cell, so the
-  creep field knows nothing of roofs. An infested building is no shelter: given
-  time it has no roof to hide under (and colonists are meant not to hide in it
-  at all, `hive-creep.md`).
+  creep field knows nothing of roofs. An infested building is no shelter twice
+  over: no colonist stops in it, and given time it has no roof.
 - **The look is the field drawn, never a second model.** The creep is a hard
   organic edge, not a spill: an opaque surface of grown chitin plates over a
   membrane, rolled up into a raised, beaded lip where it stops, veined, with a
@@ -1057,7 +1073,11 @@ on infantry, a vehicle or a wall, the stun after a heavy wall or a tank), keyed
 to the charge's own events; a Runner's impale has its own sound, posted as a cue
 by the story that adds it. Each strain's sound is admitted under its own gap and
 footfalls come from the few bodies nearest the listener, so a pack reads as a
-pack, and the swarm is heard only on ground the player has seen. The Spitter has
+pack, and the swarm is heard only on ground the player has seen. A body's growth
+stage pitches everything it makes by the inverse of its size and sets its
+loudness (a whelp about four semitones up and quieter, an elder deeper and
+louder): one take heard three ways stays the same creature. A pack's break is
+one scatter shriek, the leader's own cry at the leader's stage. The Spitter has
 no voice; the Matriarch's sounds wait for its design and join as a strain of
 their own (its catalogued roar was rejected and is redone once the design
 settles).

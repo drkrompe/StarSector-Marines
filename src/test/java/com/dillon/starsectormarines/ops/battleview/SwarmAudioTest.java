@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.evacuation.SwarmCues;
+import com.dillon.starsectormarines.battle.unit.SwarmStage;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import org.junit.jupiter.api.Test;
 
@@ -23,6 +24,16 @@ class SwarmAudioTest {
         assertEquals(SwarmAudio.Sound.BODY_DRAG, SwarmAudio.footfall(UnitType.SWARM_RUNNER, 1, true));
         assertNull(SwarmAudio.footfall(UnitType.SWARM_RUNNER, 1, false));
         assertEquals(SwarmAudio.Sound.RUNNER_GALLOP, SwarmAudio.footfall(UnitType.SWARM_RUNNER, 2, false));
+    }
+
+    @Test void aBodysVoiceIsPitchedByItsSize() {
+        assertEquals(1f, SwarmAudio.pitch(UnitType.SWARM_RUNNER, SwarmStage.ADULT));
+        assertEquals(1f, SwarmAudio.pitch(UnitType.SWARM_RUNNER, null), "no stage is an adult");
+        assertTrue(SwarmAudio.pitch(UnitType.SWARM_RUNNER, SwarmStage.WHELP) > 1f, "a whelp is higher");
+        assertTrue(SwarmAudio.pitch(UnitType.SWARM_BRUTE, SwarmStage.ELDER) < 1f, "an elder is deeper");
+        assertTrue(SwarmAudio.volume(SwarmStage.ELDER) > SwarmAudio.volume(SwarmStage.WHELP));
+        assertEquals(SwarmAudio.sound(SwarmCues.Kind.ALERT, UnitType.SWARM_RUNNER),
+                SwarmAudio.sound(SwarmCues.Kind.PACK_BROKEN, UnitType.SWARM_RUNNER), "the scatter shriek is the cry");
     }
 
     @Test void aStandingBodyMakesNoFootfall() {
