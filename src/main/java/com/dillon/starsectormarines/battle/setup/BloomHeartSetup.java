@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.command.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.command.objective.HeartObjective;
 import com.dillon.starsectormarines.battle.evacuation.HeartBores;
+import com.dillon.starsectormarines.battle.power.WalkingBarrage;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
@@ -19,6 +20,7 @@ import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -94,7 +96,14 @@ public final class BloomHeartSetup {
         BattleSetup.landCompany(sim, pads, manifest, new Random(built.battleSeed()),
                 SquadCommandClaim.mission(HeartAssaultCommand.ISSUER, "Company lands for the push on the heart"));
         sim.configureSwarmFromBores(built.battleSeed());
-        sim.installHeart(form);
+        WalkingBarrage barrage = null;
+        if (form == Form.THE_BURN) {
+            // Dry country and a steady wind toward the heart: the burn runs before it.
+            sim.fireField().setTinder(true);
+            sim.fireField().setWind(1f, 0f, BURN_WIND);
+            barrage = new WalkingBarrage(burnBarrage(), form::cellAt, Faction.MARINE, built.battleSeed() ^ BARRAGE_SALT);
+        }
+        sim.installHeart(form, barrage);
         Precinct landing = built.plan().landingPlace();
         int laneAcross = form.advancesAlongY() ? landing.seedX() : landing.seedY();
         int laneHalfWidth = form == Form.BROAD_FRONT
@@ -104,6 +113,34 @@ public final class BloomHeartSetup {
                 HeartAssaultCommand.DISCLOSURE);
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(HeartAssaultCommand.ISSUER, "Company support joins the push"));
         return sim;
+    }
+
+    static final float BURN_WIND = 0.5f;
+    private static final long BARRAGE_SALT = 0x4255_524E_4241_5252L;
+    /** The first line opens once the company is down and formed, on the near ride. */
+    static final float BURN_FIRST_OPEN_SECONDS = 40f;
+    static final float BURN_FIRST_FIRE_SECONDS = 50f;
+    static final float BURN_LINE_FIRE_SECONDS = 40f;
+    static final float BURN_FIRST_DEPTH = 0.30f, BURN_LAST_DEPTH = 0.66f, BURN_LINE_STEP = 0.06f;
+    /** The opening shoot is incendiary (owner's pick): it lights the line. */
+    static final int BURN_OPENING_HEAT = 420;
+
+    /**
+     * The Burn's barrage plan (`heart-nouns.md`, Barrage plan): an incendiary
+     * opening shoot on the near ride, then high explosive lifting a line at a
+     * time across the approach to a last line short of the heart.
+     */
+    public static WalkingBarrage.Plan burnBarrage() {
+        List<WalkingBarrage.Line> lines = new ArrayList<>();
+        float open = BURN_FIRST_OPEN_SECONDS;
+        int count = Math.round((BURN_LAST_DEPTH - BURN_FIRST_DEPTH) / BURN_LINE_STEP) + 1;
+        for (int i = 0; i < count; i++) {
+            float fire = i == 0 ? BURN_FIRST_FIRE_SECONDS : BURN_LINE_FIRE_SECONDS;
+            lines.add(new WalkingBarrage.Line(BURN_FIRST_DEPTH + i * BURN_LINE_STEP, open, fire,
+                    i == 0 ? BURN_OPENING_HEAT : 0));
+            open += fire;
+        }
+        return new WalkingBarrage.Plan(lines, new WalkingBarrage.Shell(3f, 70f, 20f, 60, 3f), 2.5f, 0.015f);
     }
 
     /** What setup made: the battle, its map and plan, the heart's sites and the seed the attempt used. */

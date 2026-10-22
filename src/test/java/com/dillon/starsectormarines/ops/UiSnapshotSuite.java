@@ -2736,7 +2736,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
         if ("internal-flux".equals(materialHint)) {
             viewModel.gantryRows().get().get(0).select().run();
-            viewModel.selectSlot(SocketId.AMMO_RESERVE);
+            viewModel.selectSlot(SocketId.CAPACITORS);
         }
         if (selectVacant) viewModel.previousGantryAction().run();
         if (pickerOpen) viewModel.openAssetPickerAction().run();
@@ -2782,10 +2782,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     document.canvases().set(instance.requireElement(row.previewId()),
                             new MechChassisPreviewCanvas(
                                     row.chassisPreview(), MechLabDollCanvas::headlessAssets));
-                } else if (row.weaponPreview() != null || row.replenisherPreview() != null) {
+                } else if (row.weaponPreview() != null || row.replenisherPreview() != null
+                        || row.internalPreview() != null) {
                     document.canvases().set(instance.requireElement(row.previewId()),
                             MechEquipmentGridCanvas.catalog(row.weaponPreview(),
-                                    row.replenisherPreview(),
+                                    row.replenisherPreview(), row.internalPreview(),
                                     MechLabDollCanvas::headlessAssets));
                 }
             }
@@ -2795,6 +2796,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 () -> viewModel.socketDefinition(row.socketId()),
                                 () -> viewModel.installedWeapon(row.socketId()),
                                 () -> viewModel.installedReplenisher(row.socketId()),
+                                () -> viewModel.installedInternal(row.socketId()),
                                 () -> viewModel.socketOccupied(row.socketId()),
                                 MechLabDollCanvas::headlessAssets));
             }
