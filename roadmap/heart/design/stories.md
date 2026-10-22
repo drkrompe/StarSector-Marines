@@ -12,5 +12,4 @@ swarm and `fire-nouns.md` owns fire. Read all three before any of these stories.
 | `heart-country.md` | **ACTIVE.** Country, landscape and bores shipped; remaining look work (lane tracks under creep, creeped fields inside the bloom). |
 | `heart-battle.md` | **ACTIVE.** The battle plays under `commanderEvidence -Pmission=heart`; tuning and narration left. |
 | `heart-burn-advance.md` | **PLANNED.** The Burn's company: advance behind the barrage, light and relight the line. Needs the barrage, the battle and fire's `fire-swarm-fear.md`. |
-| `heart-allied-lanes.md` | **PLANNED.** Broad Front's allied columns up their lanes; scripted first, the general column from `cordon-allied-columns.md` later. Needs the battle. |
 | `heart-campaign.md` | **PLANNED.** `BLOOM_HEART` event, variant pick from the Cordon's outcome, briefing, resolver. Needs the battle. |

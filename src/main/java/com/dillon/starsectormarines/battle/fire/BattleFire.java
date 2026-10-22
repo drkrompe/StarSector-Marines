@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.fire;
 
+import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.MapEditor;
@@ -123,7 +124,10 @@ public final class BattleFire implements FireTerrain, FireField.Listener {
     public boolean blocksHeat(int idx) {
         if (grid.isWalkableAt(idx)) return false;
         int x = idx % width, y = idx / width;
-        return topology.isWall(x, y) || topology.isWindow(x, y);
+        // A cliff face is bare rock between two tiers: fire on either side stops at it.
+        ElevationMap elevation = grid.elevation();
+        return topology.isWall(x, y) || topology.isWindow(x, y)
+                || (elevation != null && elevation.isFaceAt(idx));
     }
 
     @Override

@@ -47,7 +47,7 @@ public final class CordonCorridor {
         Precinct compound = compound(plan);
         if (compound == null) return null;
         int width = grid.getWidth(), height = grid.getHeight();
-        int rearRow = CordonFront.frontward(plan) > 0 ? 1 : height - 2;
+        int rearRow = CordonFront.rearRow(plan, height);
         int[] cost = new int[width * height];
         int[] parent = new int[width * height];
         Arrays.fill(cost, Integer.MAX_VALUE);

@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 class HeartAssaultCommandTest {
 
     /** Advancing north from x=100, with satellites within 30 cells across its own. */
-    private final HeartAssaultCommand command = new HeartAssaultCommand(true, 100, 30);
+    private final HeartAssaultCommand command = new HeartAssaultCommand(new HeartLane(true, 100, 30));
 
     @Test
     void satellitesInTheLaneComeBeforeAnyMother() {

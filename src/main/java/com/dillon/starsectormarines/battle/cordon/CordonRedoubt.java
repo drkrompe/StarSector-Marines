@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.cordon;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -15,8 +17,9 @@ public final class CordonRedoubt {
     private final int number;
     private final int left, top, right, bottom;
     private final List<Integer> teams;
+    private final List<Integer> teamsView;
     private final List<Long> guns;
-    private final int garrison;
+    private int garrison;
     private State state = State.HOLDING;
 
     public CordonRedoubt(int number, int left, int top, int right, int bottom,
@@ -26,7 +29,8 @@ public final class CordonRedoubt {
         this.top = top;
         this.right = right;
         this.bottom = bottom;
-        this.teams = List.copyOf(teams);
+        this.teams = new ArrayList<>(teams);
+        this.teamsView = Collections.unmodifiableList(this.teams);
         this.guns = List.copyOf(guns);
         this.garrison = garrison;
     }
@@ -40,15 +44,21 @@ public final class CordonRedoubt {
     public int bottom() { return bottom; }
     public int centreX() { return (left + right) / 2; }
     public int centreY() { return (top + bottom) / 2; }
-    /** The garrison's squads: the wall teams. */
-    public List<Integer> teams() { return teams; }
+    /** The garrison's squads: the wall teams, and any column that has joined them. */
+    public List<Integer> teams() { return teamsView; }
     /** The gun towers' emplacements. */
     public List<Long> guns() { return guns; }
-    /** How many the wall teams stood up with. */
+    /** How many the wall teams stood up with, and every column that has joined them since. */
     public int garrison() { return garrison; }
     public State state() { return state; }
 
     void setState(State state) { this.state = state; }
+
+    /** An allied column joins the garrison: its squad is a wall team from here on. */
+    void reinforce(int squad, int members) {
+        teams.add(squad);
+        garrison += members;
+    }
 
     /** Whether a cell is inside the wall, widened by {@code margin}. */
     public boolean contains(int x, int y, int margin) {

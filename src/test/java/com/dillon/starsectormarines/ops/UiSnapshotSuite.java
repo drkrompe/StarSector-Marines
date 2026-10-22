@@ -1905,6 +1905,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         SquadEquipmentDoctrines.LEAGUE_LINE_ARMOR) != SquadEquipmentResult.APPLIED) {
                     throw new IllegalStateException("Squad 01's showcase cards did not apply");
                 }
+                // Squad 02 holds a Restricted card, so its face wears the seal and its hover the stamp.
+                LoadoutCardLearning.learn(roster.armory(), new LoadoutCard(LoadoutCard.Kind.SHEET,
+                        SquadEquipmentDoctrines.HEGEMONY_AUXILIARY_SECTION_ARMOR).id());
+                if (roster.applySquadEquipment(squads.get(1).id(), SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
+                        SquadEquipmentDoctrines.HEGEMONY_AUXILIARY_SECTION_ARMOR) != SquadEquipmentResult.APPLIED) {
+                    throw new IllegalStateException("Squad 02's Restricted card did not apply");
+                }
                 viewModel.command().selectCommand(captain.id());
                 ((Runnable) viewModel.command().props().get("closeDossier")).run();
                 viewModel.command().toggle(squads.get(0).id());
@@ -1965,6 +1972,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     Map<String, String> hovers = new LinkedHashMap<>();
                     hovers.put("barracks-weapon-card-hint-1920x1080.png", "formation:" + squads.get(0).id() + ":weapon-card");
                     hovers.put("barracks-armor-card-hint-1920x1080.png", "formation:" + squads.get(0).id() + ":armor-card");
+                    hovers.put("barracks-restricted-card-hint-1920x1080.png", "formation:" + squads.get(1).id() + ":armor-card");
                     hovers.put("barracks-fill-hint-1920x1080.png", "formation:" + squads.get(2).id() + ":fill");
                     for (var hover : hovers.entrySet()) {
                         openSpecSheet(document, hints, 1920, 1080, instance.requireElement(hover.getValue()));
@@ -2384,13 +2392,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
         if (armorPicker) collectArmorTemplates(roster);
         if (pickerOpen) {
-            var weapons = SquadEquipmentDoctrines.weaponById(SquadEquipmentDoctrines.LINE_INFANTRY_WEAPONS);
-            for (var issue : weapons.issues()) {
-                roster.armory().acquireEquipmentTemplate(
-                        EquipmentTemplateCatalog.primaryId(issue.primaryId(), issue.grade()));
-                if (issue.specialEquipmentId() != null) roster.armory().acquireEquipmentTemplate(
-                        EquipmentTemplateCatalog.specialId(issue.specialEquipmentId()));
-            }
+            roster.armory().learnLoadoutCard(new LoadoutCard(
+                    LoadoutCard.Kind.WEAPON, SquadEquipmentDoctrines.LINE_INFANTRY_WEAPONS));
         }
         MarineSquad squad = roster.squads().get(0);
         if (!pickerOpen) {
@@ -2489,6 +2492,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         for (var armor : MarineArmorCatalogRegistry.installed().all()) {
             roster.armory().acquireEquipmentTemplate(EquipmentTemplateCatalog.armorId(armor.id()));
         }
+        for (var plan : SquadEquipmentDoctrines.armorPlans()) roster.armory().acquireArmorPlan(plan.id());
     }
 
     private static BufferedImage renderMechLab(

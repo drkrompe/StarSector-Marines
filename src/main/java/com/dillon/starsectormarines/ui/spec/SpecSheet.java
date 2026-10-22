@@ -22,6 +22,8 @@ import java.util.List;
  *                 squad's issue, painted as fire teams of {@link #TEAM_SIZE},
  *                 each team a two-by-two block; empty for a single item
  * @param teams    a heading per fire team, in seat order; may be empty
+ * @param stamp    who issued the item and on what terms, printed under the
+ *                 heading; null for an item that carries none
  */
 public record SpecSheet(String title,
                         String subtitle,
@@ -30,14 +32,15 @@ public record SpecSheet(String title,
                         List<Stat> stats,
                         List<String> notes,
                         List<Seat> seats,
-                        List<String> teams) {
+                        List<String> teams,
+                        Stamp stamp) {
 
     /** Seats per painted block: a fire team. */
     public static final int TEAM_SIZE = 4;
 
     public SpecSheet(String title, String subtitle, String crestPath, String accent,
                      List<Stat> stats, List<String> notes) {
-        this(title, subtitle, crestPath, accent, stats, notes, List.of(), List.of());
+        this(title, subtitle, crestPath, accent, stats, notes, List.of(), List.of(), null);
     }
 
     public SpecSheet {
@@ -52,7 +55,29 @@ public record SpecSheet(String title,
 
     /** This sheet with one picture per seat, under a heading per fire team. */
     public SpecSheet withSeats(List<Seat> seats, List<String> teams) {
-        return new SpecSheet(title, subtitle, crestPath, accent, stats, notes, seats, teams);
+        return new SpecSheet(title, subtitle, crestPath, accent, stats, notes, seats, teams, stamp);
+    }
+
+    /** This sheet with an issuer's stamp under its heading. */
+    public SpecSheet withStamp(Stamp stamp) {
+        return new SpecSheet(title, subtitle, crestPath, accent, stats, notes, seats, teams, stamp);
+    }
+
+    /**
+     * The issuer's stamp a loadout card carries: who printed it and, for a
+     * Restricted card, whose warrant it answers to.
+     *
+     * @param issued      the issuing line, office and serial
+     * @param restriction the Restricted badge's text, or null for an open card
+     */
+    public record Stamp(String issued, String restriction) {
+        public Stamp {
+            issued = issued == null ? "" : issued;
+        }
+
+        public boolean restricted() {
+            return restriction != null && !restriction.isBlank();
+        }
     }
 
     /**

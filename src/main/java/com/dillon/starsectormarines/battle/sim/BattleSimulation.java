@@ -121,6 +121,7 @@ import com.dillon.starsectormarines.battle.air.BoatDamageLedger;
 import com.dillon.starsectormarines.battle.air.AirOrdnance;
 import com.dillon.starsectormarines.battle.air.HullTarget;
 import com.dillon.starsectormarines.battle.power.WalkingBarrage;
+import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.evacuation.HeartSequence;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.evacuation.SurvivorPickupSystem;
@@ -900,12 +901,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * Installs the heart's battle (`heart-nouns.md`) over its opened bores: the
      * mothers go to sleep and the heart's wake rules and beats take over.
      */
-    public void installHeart(Form form, WalkingBarrage barrage) {
+    public void installHeart(Form form, WalkingBarrage barrage, HeartLanes lanes) {
         if (simTickIndex != 0 || heart != null || colonyBreach != null)
             throw new IllegalStateException("Install the heart once at setup");
         if (!swarmReinforcements.isConfigured())
             throw new IllegalStateException("The heart needs a configured swarm director");
-        heart = new HeartSequence(form, storyBeats, barrage);
+        heart = new HeartSequence(form, storyBeats, barrage, lanes);
         heart.install(this);
     }
     /** Ends the swarm director's opening seepage; the breach has begun. Idempotent. */

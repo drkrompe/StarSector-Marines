@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.marine.ArmorTradition;
+import com.dillon.starsectormarines.marine.MilitaryWarrants;
+import com.dillon.starsectormarines.marine.EquipmentAccessTier;
+import com.dillon.starsectormarines.marine.LoadoutCard;
 import com.dillon.starsectormarines.marine.BilletRoles;
 import com.dillon.starsectormarines.ops.CompanyResources.Row;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
@@ -448,11 +452,44 @@ public final class FleetArmoryViewModel {
         List<DoctrineSpan> issue = weaponDistributionSpans(id, doctrine);
         return doctrineTile(id, selected, doctrine.displayName(), LoadoutEffectiveness.weaponRating(doctrine),
                 presentation, doctrineMetadata(presentation), weaponComposition(doctrine),
-                joinSpans(issue), issue, "", List.of(), select);
+                joinSpans(issue), issue, "", List.of(),
+                cardStamp(new LoadoutCard(LoadoutCard.Kind.WEAPON, doctrine.id()),
+                        traditionByCrest(presentation.factionLogo())), select);
     }
 
-    /** How a loadout card reads where it is named outside the Armory: its name, an icon, and its hover sheet. */
-    record CardFace(String name, String icon, SpecSheet sheet) { }
+    /**
+     * How a loadout card reads where it is named outside the Armory: its name, an icon, its
+     * hover sheet, and whether it bears the Restricted seal.
+     */
+    record CardFace(String name, String icon, SpecSheet sheet, boolean restricted) { }
+
+    /**
+     * The stamp a card is printed with: the office that issued it, with a serial of its own,
+     * and for a Restricted card the warrant it answers to. The issuer of a Restricted card is
+     * its warrant's issuer; any other card is issued by the tradition that fields it.
+     */
+    static SpecSheet.Stamp cardStamp(LoadoutCard card, ArmorTradition maker) {
+        boolean restricted = card.defined() && card.accessTier() == EquipmentAccessTier.RESTRICTED;
+        ArmorTradition warrantIssuer = restricted ? MilitaryWarrants.issuerOf(card) : null;
+        ArmorTradition issuer = warrantIssuer != null ? warrantIssuer
+                : maker != null ? maker : ArmorTradition.INDEPENDENT;
+        String serial = Integer.toString(1000 + Math.floorMod(card.id().hashCode(), 9000));
+        String issued = Strings.format("loadoutCardIssuedFmt", Strings.get("loadoutCardIssuer" + issuer.name()),
+                Strings.get("loadoutCardIssuerCode" + issuer.name()), serial);
+        String restriction = !restricted ? null : warrantIssuer != null
+                ? Strings.format("loadoutCardRestrictedFmt", warrantIssuer.displayName())
+                : Strings.get("loadoutCardRestricted");
+        return new SpecSheet.Stamp(issued, restriction);
+    }
+
+    /** The tradition whose crest a weapon card's presentation carries; null when none does. */
+    private static ArmorTradition traditionByCrest(String crest) {
+        if (crest == null) return null;
+        for (ArmorTradition tradition : ArmorTradition.values()) {
+            if (tradition.factionLogo().equals(crest)) return tradition;
+        }
+        return null;
+    }
 
     /** A weapon card's face, iconed by the weapon most of its seats carry. */
     static CardFace weaponCardFace(SquadWeaponDoctrine doctrine) {
@@ -470,10 +507,12 @@ public final class FleetArmoryViewModel {
             }
         }
         int rating = LoadoutEffectiveness.weaponRating(doctrine);
+        SpecSheet.Stamp stamp = cardStamp(new LoadoutCard(LoadoutCard.Kind.WEAPON, doctrine.id()),
+                traditionByCrest(presentation.factionLogo()));
         return new CardFace(doctrine.displayName(), icon, cardSheet(doctrine.displayName(), presentation,
                 doctrineMetadata(presentation), "weapon", "openingBarracksCardFire", rating,
                 List.of(weaponComposition(doctrine), joinSpans(weaponDistributionSpans("card-face", doctrine))))
-                .withSeats(weaponSeats(doctrine), fireTeams()));
+                .withSeats(weaponSeats(doctrine), fireTeams()).withStamp(stamp), stamp.restricted());
     }
 
     /** Each seat's weapon, with the special it also carries on the corner. */
@@ -513,11 +552,12 @@ public final class FleetArmoryViewModel {
         String metadata = Strings.format("openingFleetArmoryFieldsTier", plan.armorClassDisplayName(),
                 plan.tradition().displayName(), tierMark(maximumArmorTier(issued)));
         int rating = LoadoutEffectiveness.armorRating(issued);
+        SpecSheet.Stamp stamp = cardStamp(new LoadoutCard(LoadoutCard.Kind.SHEET, plan.id()), plan.tradition());
         return new CardFace(plan.displayName(), icon, cardSheet(plan.displayName(), presentation, metadata,
                 "armor", "openingBarracksCardGuard", rating,
                 List.of(joinSpans(armorDistributionSpans("card-face", issued)),
                         armorCapabilities(armorCapabilitySpans("card-face", issued))))
-                .withSeats(armorSeats(issued), fireTeams()));
+                .withSeats(armorSeats(issued), fireTeams()).withStamp(stamp), stamp.restricted());
     }
 
     private static SpecSheet cardSheet(String name, SquadLoadoutPresentationDef presentation, String metadata,
@@ -567,6 +607,7 @@ public final class FleetArmoryViewModel {
                     presentation, metadata,
                     roleComposition(plan), joinSpans(patterns), patterns,
                     armorCapabilities(capabilities), capabilities,
+                    cardStamp(new LoadoutCard(LoadoutCard.Kind.SHEET, plan.id()), plan.tradition()),
                     () -> selectArmorDoctrine(plan.id()))
                     .withIssue(() -> issueArmorDoctrine(plan.id()), !candidate.canApply(),
                             issueReason(candidate), plan.id().equals(currentSquadArmorDoctrine())));
@@ -592,7 +633,7 @@ public final class FleetArmoryViewModel {
             String id, boolean selected, String name, int rating,
             SquadLoadoutPresentationDef presentation, String metadata,
             String composition, String distribution, List<DoctrineSpan> distributionSpans,
-            String carries, List<DoctrineSpan> carriesSpans, Runnable select) {
+            String carries, List<DoctrineSpan> carriesSpans, SpecSheet.Stamp stamp, Runnable select) {
         String rarityClass = presentation.rarity().cssClass();
         String classes = "doctrine-tile " + rarityClass
                 + (selected ? " selected" : "");
@@ -605,7 +646,7 @@ public final class FleetArmoryViewModel {
                 name, presentation.rarity().displayName(), rating,
                 Strings.format(presentation.kind() == SquadLoadoutPresentationDef.Kind.WEAPON ? "openingLoadoutFireRating" : "openingLoadoutGuardRating", rating), presentation.factionLogo(), metadata,
                 presentation.lore(), composition, distribution, distributionSpans,
-                carries, carriesSpans, select, null, true, "", false);
+                carries, carriesSpans, stamp, select, null, true, "", false);
     }
 
     private static String factionLogoClasses(String factionLogo) {
@@ -1515,11 +1556,15 @@ public final class FleetArmoryViewModel {
             String ratingLabel, String factionLogo, String metadata,
             String description, String composition, String distribution,
             List<DoctrineSpan> distributionSpans, String carries,
-            List<DoctrineSpan> carriesSpans,
+            List<DoctrineSpan> carriesSpans, SpecSheet.Stamp stamp,
             Runnable select, Runnable issue, boolean issueDisabled,
             String issueReason, boolean issued) implements MarkupPropertySource {
         /** Inert click handler for a card shown where nothing can be issued; its button is hidden. */
         private static final Runnable NO_ISSUE = () -> { };
+
+        private boolean restricted() {
+            return stamp != null && stamp.restricted();
+        }
 
         /** The same card carrying its own Issue action and the reason it may be refused. */
         DoctrineTile withIssue(Runnable action, boolean disabled, String reason, boolean alreadyIssued) {
@@ -1527,7 +1572,7 @@ public final class FleetArmoryViewModel {
                     factionLogoId, metadataId, descriptionId, compositionId, distributionId,
                     carriesId, classes, rarityClasses, ratingClasses, factionLogoClasses, name,
                     rarity, rating, ratingLabel, factionLogo, metadata, description, composition,
-                    distribution, distributionSpans, carries, carriesSpans, select, action,
+                    distribution, distributionSpans, carries, carriesSpans, stamp, select, action,
                     disabled, reason, alreadyIssued);
         }
 
@@ -1567,7 +1612,19 @@ public final class FleetArmoryViewModel {
                 case "classes" -> classes;
                 case "weaponClasses" -> "weapon-tech-card " + classes;
                 case "cardStyle" -> "height: " + (174 + 48 * ((distributionSpans.size() + 1) / 2)
-                        + (issue != null && !issueReason.isEmpty() ? 22 : 0)) + "px;";
+                        + (issue != null && !issueReason.isEmpty() ? 22 : 0)
+                        + (stamp == null ? 0 : 18) + (restricted() ? 22 : 0)) + "px;";
+                // The card's printed stamp, and for a Restricted card its seal and warrant banner.
+                case "stampId" -> id + ":stamp";
+                case "stampIssued" -> stamp == null ? "" : stamp.issued();
+                case "stampClasses" -> stamp == null ? "doctrine-line-hidden" : "doctrine-stamp label";
+                case "restrictionId" -> id + ":restriction";
+                case "restrictionSealId" -> id + ":restriction-seal";
+                case "restrictionTextId" -> id + ":restriction-text";
+                case "restriction" -> restricted() ? stamp.restriction() : "";
+                case "restrictionClasses" -> restricted() ? "doctrine-restriction" : "doctrine-line-hidden";
+                case "sealId" -> id + ":seal";
+                case "sealClasses" -> restricted() ? "doctrine-seal" : "doctrine-seal doctrine-seal-absent";
                 case "distributionStyle" -> "height: " + (48 * ((distributionSpans.size() + 1) / 2)) + "px;";
                 case "rarityClasses" -> rarityClasses;
                 case "ratingClasses" -> ratingClasses;
