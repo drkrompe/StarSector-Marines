@@ -233,6 +233,37 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   Look and design choices go to the owner the same way: as labelled pictures
   (an `options.json` of `{id, question, options:[{key,label,file,note}]}`
   for the picks page), not as a description in words.
+
+#### Questions for the owner: the picks page
+
+**Every decision the owner has to make goes on the picks page as picture
+cards, never only in chat** (owner, 2026-10-22). A question asked in a chat
+message is lost the moment the owner switches to another session; the page is
+the one place they answer from. The page is the Artifact
+`https://claude.ai/artifact/Q2unCoyCvyuFBFomsCxuDU` ("Rav Bloom picks"); each
+answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
+
+- **A question is an `options.json`**: `[{id, question, options:[{key, label,
+  file, note}]}]`, with one 1920x1080 image per option rendered on the real
+  scene (real ground, real buildings, play zoom), a short `note` saying what
+  each option does in play, and `(recommended)` in the label of the one you
+  would pick. Yes/no and "how big" questions get pictures too.
+- **Sub-sessions raise it to their parent; the parent owns the relay**
+  (owner, 2026-10-22). A session started by another session never posts to the
+  page or asks the owner itself: it sends its parent the `options.json` path,
+  the image paths and what it is building on meanwhile. The parent passes it up
+  the same way until it reaches the top-level coordinating session, which
+  publishes the question, reads the answer from the `db` and sends it back down
+  to the session that asked. A parent that is itself the top relays straight
+  away.
+- **A top-level session with no coordinator** posts its own question: read
+  the page (`Artifact` `read`), add its question to the page's `QUESTIONS`
+  array and its images under `media/<question id>/`, republish to the same
+  URL (merging, never overwriting, if the publish reports a newer version),
+  and read the answer from `picks/<question id>`.
+- **Don't wait on the answer.** Build on the recommended option meanwhile and
+  switch if the owner picks otherwise. Tell the owner in one line that a
+  question is up, and nothing more.
 - Drive keeps two folders that two machines created under the same name and
   shows the second as `name (1)`. It happened once, to `review` itself. Create
   only your own run folder (the asset folder only if it is missing), and if a
@@ -387,7 +418,7 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   scheduler, one sim at a time: per-tick median, spread, p99, max and ticks over
   10 ms), then two replicas of each lever side by side for the determinism
   check; fails if they differ. `build/reports/performance/swarm-flow/summary.md`.
-  `-Dbattle.swarmFlow.sizes=400x240`, `.counts=150,300`, `.levers=on`,
+  `-Dbattle.swarmFlow.sizes=400x240`, `.counts=150,300`, `.levers=on`, `.spawnDistance=20` (a melee window),
   `.measureTicks`, `.warmupTicks`, `.outputDir` narrow it. Opt-in, excluded
   from `test`. Readings and the decision they support: `swarm-movement-cost.md`.
 - `gradlew.bat garrisonEvidence` → stands up every story mission at tick zero
@@ -547,7 +578,7 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   the whole map. Per layer it reports commands collected, quads, sprites and
   custom passes drained, draw calls, texture binds, and the milliseconds
   collection and submission each took, plus a whole-frame wall clock with the
-  GPU waited on. `build/reports/render/summary.md` and `summary.json`;
+  GPU waited on. `build/reports/render/summary.md` and `summary.json`, and each framing's GL frame as a PNG under `frames/` to diff a lever against its control;
   `-PrenderMaxTicks`, `-PrenderFrames`, `-PrenderDir`, and `-PrenderMaps=body pile,control`
   to profile only the maps whose ids contain those words (a `body pile` of 1,200
   Runner dead, `-PrenderPileBodies`, prices `BodyPileCap`). Opt-in and excluded from
@@ -564,6 +595,7 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   `-Dbattle.render.groundAtlas=false`,
   `-Dbattle.render.residentDecoration=false`, `-Dbattle.render.unitAtlas=false`,
   `-Dbattle.render.residentRoofs=false`, `-Dbattle.render.creep=false`,
+  `-Dbattle.render.settledBodyMesh=false`,
   `-Dbattle.render.collectCulling=false`), never against a number in a
   document — and never against a delta smaller than that spread.
   **The world it profiles has to be the same world every run**, which it was

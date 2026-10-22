@@ -181,7 +181,7 @@ final class MarineOpsThemes {
                 /* Shared command keys and latching selectors; dimensions belong to each surface. */
                 .console-action, .slot-strip-action, .fabricate-action,
                 #compare-armor-patterns, #fireteam-breadcrumb button,
-                #comparison-breadcrumb button, #designer-breadcrumb button, #marine-ops-page-routes button,
+                #comparison-breadcrumb button, #marine-ops-page-routes button,
                 .console-toggle, .fire-team-tab, .equipment-picker-tab,
                 .loadout-filter, .supply-filter, .catalog-filter-pill,
                 .team-tab {
@@ -191,19 +191,19 @@ final class MarineOpsThemes {
                 }
                 .console-action:hover, .slot-strip-action:hover, .fabricate-action:hover,
                 #compare-armor-patterns:hover, #fireteam-breadcrumb button:hover,
-                #comparison-breadcrumb button:hover, #designer-breadcrumb button:hover, #marine-ops-page-routes button:hover,
+                #comparison-breadcrumb button:hover, #marine-ops-page-routes button:hover,
                 .console-toggle:hover, .fire-team-tab:hover, .equipment-picker-tab:hover,
                 .loadout-filter:hover, .supply-filter:hover, .catalog-filter-pill:hover,
                 .team-tab:hover { background-color: #525d4e; }
                 .console-action:active, .slot-strip-action:active, .fabricate-action:active,
                 #compare-armor-patterns:active, #fireteam-breadcrumb button:active,
-                #comparison-breadcrumb button:active, #designer-breadcrumb button:active, #marine-ops-page-routes button:active,
+                #comparison-breadcrumb button:active, #marine-ops-page-routes button:active,
                 .console-toggle:active, .fire-team-tab:active, .equipment-picker-tab:active,
                 .loadout-filter:active, .supply-filter:active, .catalog-filter-pill:active,
                 .team-tab:active { background-color: #222b24; border-style: inset; }
                 .console-action:focus-visible, .slot-strip-action:focus-visible, .fabricate-action:focus-visible,
                 #compare-armor-patterns:focus-visible, #fireteam-breadcrumb button:focus-visible,
-                #comparison-breadcrumb button:focus-visible, #designer-breadcrumb button:focus-visible, #marine-ops-page-routes button:focus-visible,
+                #comparison-breadcrumb button:focus-visible, #marine-ops-page-routes button:focus-visible,
                 .console-toggle:focus-visible, .fire-team-tab:focus-visible, .equipment-picker-tab:focus-visible,
                 .loadout-filter:focus-visible, .supply-filter:focus-visible, .catalog-filter-pill:focus-visible,
                 .team-tab:focus-visible { border-color: #ffe1a0; border-style: solid; }
@@ -297,14 +297,14 @@ final class MarineOpsThemes {
 
                 .console-action, .slot-strip-action, .fabricate-action,
                 #compare-armor-patterns, #fireteam-breadcrumb button,
-                #comparison-breadcrumb button, #designer-breadcrumb button, #marine-ops-page-routes button,
+                #comparison-breadcrumb button, #marine-ops-page-routes button,
                 .console-toggle, .fire-team-tab, .equipment-picker-tab,
                 .loadout-filter, .supply-filter, .catalog-filter-pill,
                 .team-tab { background-color: #102b42; border-color: #d2f3ff; color: #ffffff; }
                 .console-action { text-align: center; }
                 .console-action:hover, .slot-strip-action:hover, .fabricate-action:hover,
                 #compare-armor-patterns:hover, #fireteam-breadcrumb button:hover,
-                #comparison-breadcrumb button:hover, #designer-breadcrumb button:hover, #marine-ops-page-routes button:hover,
+                #comparison-breadcrumb button:hover, #marine-ops-page-routes button:hover,
                 .console-toggle:hover, .fire-team-tab:hover, .equipment-picker-tab:hover,
                 .loadout-filter:hover, .supply-filter:hover, .catalog-filter-pill:hover,
                 .team-tab:hover { background-color: #15577b; }
