@@ -219,10 +219,8 @@ def _surface_detail(L, bb):
     relief = np.fft.irfft2(spec, s=(n, n)).astype(np.float32)
     del spec, f
     relief = np.clip(.85 + .32 * relief / (relief.std() + 1e-9), .35, 1.5)
-    ys, xs = rng.integers(1, n - 1, (2, 9000))
-    for dy in (0, 1):
-        for dx in (0, 1):
-            relief[ys + dy, xs + dx] = 1.9
+    ys, xs = rng.integers(0, n, (2, 6000))
+    relief[ys, xs] = 1.3
     out = np.empty((n, n, 4), dtype=np.float32)
     out[..., 3] = 1.0
     for y0 in range(0, n, 512):
@@ -280,6 +278,7 @@ def _star_dome(L):
     img = bpy.data.images.new('Preview stars', w, h, alpha=False)
     img.pixels.foreach_set(px.ravel())
     bm = bmesh.new()
+    bm.loops.layers.uv.new('UVMap')        # create_uvsphere fills UVs only into an existing layer
     bmesh.ops.create_uvsphere(bm, u_segments=96, v_segments=48, radius=3.5e6, calc_uvs=True)
     bmesh.ops.reverse_faces(bm, faces=bm.faces[:])
     me = bpy.data.meshes.new('Preview stars')
