@@ -108,6 +108,7 @@ import com.dillon.starsectormarines.battle.unit.BodyCarrier;
 import com.dillon.starsectormarines.battle.unit.BodyService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
+import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
@@ -1135,6 +1136,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final ShotService shots;
     /** Turret-kind fire procedure — modeled ground rounds plus legacy aerial/indirect fire, payload queuing, and shot-event posting. Extracted from the sim's former {@code fireShotFrom} methods. */
     private final TurretFireSystem turretFire;
+    /** Per-thread gather buffer for {@link #friendsInBlast}: turrets fire from the parallel unit update. */
+    private final ThreadLocal<LongBucket> blastScratch = ThreadLocal.withInitial(LongBucket::new);
     /** Per-hit response logic — fallback rolls + target-reprioritization rolls. Extracted from the sim's former {@code rollFallbackOnHit}/{@code rollReprioritizeOnHit}. */
     private final HitResponseSystem hitResponse;
     /** Ids of units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #getShotsThisFrame()}. */
@@ -1494,6 +1497,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         rosterService.convoy().setDestructionSink(groundSystem::destroyVehicle);
         // A gun on a turning hull shakes the way a moving shooter's does.
         turretFire.setShooterAccuracy(new HullPivot(rosterService.convoy()));
+        // A map emplacement's crew holds a round that would hit their own side; vehicle and aircraft guns do not yet.
+        // -Dbattle.turret.crewFriendlyHold=false is the control.
+        if (Boolean.parseBoolean(System.getProperty("battle.turret.crewFriendlyHold", "true"))) {
+            turretFire.setFriendlyFireHold(id -> rosterService.turretState().isTurret(id)
+                    ? TurretFireSystem.CREW_FRIENDLY_HOLD_CHANCE : 0f, this::friendsInBlast);
+        }
         groundSystem.setBlade(new DozerBlade(navigation, mapEditor, doodadService));
         groundSystem.setStall(id -> rosterService.stagger().isStaggered(id));
         groundSystem.setAssaultPlanner((vehicle, cellX, cellY) -> MachineAssaults.planVehicle(this, vehicle, cellX, cellY));
@@ -4061,12 +4070,28 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 structure, target, aerialShooter, hasLos);
     }
 
-    /** Ground-entity turret overload with the posed barrel and burst release. */
-    public void fireShotFrom(long shooterId, float fromX, float fromY,
-                             Faction shooterFaction, StructureDef structure, long target,
-                             boolean aerialShooter, boolean hasLos,
-                             float mountFacingDegrees, int releaseIndex) {
-        turretFire.fire(shooterId, fromX, fromY, shooterFaction,
+    /** Whether a burst of {@code radius} at a point would catch a living body on {@code side}'s own side. */
+    private boolean friendsInBlast(long shooterId, Faction side, float x, float y, float radius) {
+        LongBucket bucket = blastScratch.get();
+        unitIndex.gather(x, y, radius, bucket);
+        float radiusSq = radius * radius;
+        for (int i = 0, n = bucket.size; i < n; i++) {
+            long id = bucket.ids[i];
+            if (id == shooterId || !world.isAlive(id)) continue;
+            if (!side.friendlyTo(rosterService.identity().faction(id))) continue;
+            float dx = world.x(id) - x;
+            float dy = world.y(id) - y;
+            if (dx * dx + dy * dy <= radiusSq) return true;
+        }
+        return false;
+    }
+
+    /** Ground-entity turret overload with the posed barrel and burst release; false when the crew held the round. */
+    public boolean fireShotFrom(long shooterId, float fromX, float fromY,
+                                Faction shooterFaction, StructureDef structure, long target,
+                                boolean aerialShooter, boolean hasLos,
+                                float mountFacingDegrees, int releaseIndex) {
+        return turretFire.fire(shooterId, fromX, fromY, shooterFaction,
                 structure, target, aerialShooter, hasLos,
                 mountFacingDegrees, releaseIndex);
     }

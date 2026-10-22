@@ -136,9 +136,16 @@ public final class TurretBehavior implements UnitBehavior {
                         0f, sim.vision().targetAirLosRadius(currentBurstTarget));
                 int releaseIndex = TurretMountGeometry.releaseIndex(
                         weapon.burstCount, burstRemaining);
-                sim.fireShotFrom(id, sim.world().x(id), sim.world().y(id),
+                boolean released = sim.fireShotFrom(id, sim.world().x(id), sim.world().y(id),
                         sim.identity().faction(u), structure, currentBurstTarget,
                         /*aerialShooter*/ false, hasLos, s.facingDegrees, releaseIndex);
+                if (!released) {
+                    // The crew saw their own in the line and let go of the trigger: the rest of the burst stays
+                    // in the gun, and the aim loop pulls again on its next cooldown.
+                    turretState.setBurstRemaining(id, 0);
+                    turretState.setBurstTargetId(id, 0L);
+                    return;
+                }
                 turretState.setRecoilTimer(id, 0f);
                 burstRemaining--;
                 turretState.setBurstRemaining(id, burstRemaining);
@@ -155,10 +162,11 @@ public final class TurretBehavior implements UnitBehavior {
                 // Burst kinds route through fireShotFrom so their modeled
                 // round / AoE procedure applies. Latch the remaining rounds
                 // for the pump to drain.
-                sim.fireShotFrom(id, sim.world().x(id), sim.world().y(id),
+                boolean released = sim.fireShotFrom(id, sim.world().x(id), sim.world().y(id),
                         sim.identity().faction(u), structure, s.target,
                         /*aerialShooter*/ false, s.lastFireHadLos,
                         s.facingDegrees, 0);
+                if (!released) return;
                 turretState.setRecoilTimer(id, 0f);
                 if (s.target != 0L) {
                     turretState.setBurstRemaining(id, weapon.burstCount - 1);
@@ -170,11 +178,12 @@ public final class TurretBehavior implements UnitBehavior {
                 // AoE, wall damage, and impact presentation. The old generic
                 // infantry path retained only their velocity and visual tag,
                 // silently discarding every other authored turret payload.
-                sim.fireShotFrom(id, sim.world().x(id), sim.world().y(id),
+                if (sim.fireShotFrom(id, sim.world().x(id), sim.world().y(id),
                         sim.identity().faction(u), structure, s.target,
                         /*aerialShooter*/ false, s.lastFireHadLos,
-                        s.facingDegrees, 0);
-                turretState.setRecoilTimer(id, 0f);
+                        s.facingDegrees, 0)) {
+                    turretState.setRecoilTimer(id, 0f);
+                }
             }
         }
     }

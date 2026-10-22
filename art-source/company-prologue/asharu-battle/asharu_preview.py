@@ -182,7 +182,6 @@ def _planet_flat(L, bb):
     nt = L['gm'].node_tree
     img = next(nd for nd in nt.nodes if nd.type == 'TEX_IMAGE' and nd.image and 'desert01' in nd.image.name)
     nt.nodes.active = img
-    L['air'].hide_render = True
 
 
 def label(members, key):
@@ -222,7 +221,7 @@ def shot(L, kf):
             mp._paint(o, mp.flat(motion_preview.FX_RGB['plume']))
             continue
         if not o.name.startswith('Ship | '):
-            o.hide_render = True
+            motion_preview.off(o)
 
     poses, t_key, held = {}, None, []
     for key, sp in spec['ships'].items():
@@ -263,6 +262,29 @@ def shot(L, kf):
                 mw = M(key, t)
                 return mw @ (pos * mpu), mw.to_3x3() @ dirn, max(rad * mpu, 1.0), poses[key](t)[6]
             mp.plume('%s %d' % (key, i), at, PLUME_KIND.get(style, 'plume'))
+
+    # Draw only what the preview owns, the planet's surface, the platform and the entry trails:
+    # a build's own effects (cook-off volumes, kit copies hidden in the viewport) and the air shell,
+    # which the builder turns back on for every key frame, would otherwise draw as grey solids.
+    keep, hid = {L['ground'].name}, []
+    live = set()                     # collections the render reaches (an excluded library never renders)
+
+    def walk(lc):
+        if not lc.exclude:
+            live.add(lc.collection.name)
+            for c in lc.children:
+                walk(c)
+    walk(bpy.context.view_layer.layer_collection)
+    for o in L['scene'].objects:
+        if not any(c.name in live for c in o.users_collection):
+            continue
+        if o.name in mp.coll.objects or o.name in keep or o.name.startswith(('Platform', 'Plasma')):
+            continue
+        if ((o.type in ('MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'VOLUME', 'POINTCLOUD', 'CURVES')
+                and not o.hide_render) or o.instance_type == 'COLLECTION'):
+            motion_preview.off(o)
+            hid.append(o.name)
+    print('PREVIEW %s hid %d more objects: %s' % (kf, len(hid), ', '.join(hid[:12])), flush=True)
 
     def point(key, local=(0, 0, 0)):
         local = Vector(local)
