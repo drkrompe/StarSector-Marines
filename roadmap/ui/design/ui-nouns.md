@@ -126,7 +126,9 @@ them.
   Hegemony Ordnance Board · No. HG-7860"). A Restricted card adds a red banner
   above the stamp naming the warrant it answers to, and its face, wherever the
   card is shown small, wears the matching red seal on its corner, so a player
-  can tell a warranted card at a glance. The stamp is flavour drawn from the
+  can tell a warranted card at a glance. A card shown whole, as the Loadout
+  picker's cards are, carries all three: the seal beside its name, the banner and
+  the stamp, in the same colours. The stamp is flavour drawn from the
   card's issuing tradition; the Restricted mark is derived from what the card
   carries, never authored beside it.
 - A **subject** is any catalog item a spec sheet can be written for. A marine,

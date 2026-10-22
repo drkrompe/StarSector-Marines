@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.fire;
 
+import com.dillon.starsectormarines.battle.sim.BattleView;
+import com.dillon.starsectormarines.battle.unit.Faction;
+
 import java.util.Arrays;
 
 /**
@@ -73,6 +76,17 @@ public final class FireReach {
         for (int ny = Math.max(0, ly - 1); ny <= Math.min(SIDE - 1, ly + 1); ny++)
             for (int nx = Math.max(0, lx - 1); nx <= Math.min(SIDE - 1, lx + 1); nx++)
                 if (reached[ny * SIDE + nx]) return true;
+        return false;
+    }
+
+    /** Whether a fire lit at the cell could come to anyone on {@code side}: what an incendiary is never sent onto. */
+    public static boolean reachesSide(FireField field, int x, int y, Faction side, BattleView sim) {
+        FireReach reach = of(field, x, y);
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long friendly = sim.liveUnitAt(i);
+            if (!side.friendlyTo(sim.identity().faction(friendly))) continue;
+            if (reach.threatens(sim.world().cellX(friendly), sim.world().cellY(friendly))) return true;
+        }
         return false;
     }
 

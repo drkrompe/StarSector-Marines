@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.vision;
 
+import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 /**
@@ -9,6 +10,11 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
  * <p>Supports an {@code airLosRadius}: wall cells within that distance of the
  * source are treated as transparent so airborne observers see over nearby
  * rooftops.
+ *
+ * <p>On a map with {@linkplain ElevationMap elevation} the cast sees from the
+ * observer's tier: down and across freely, up only as far as the skyline rule
+ * allows (the face, then the rim). An observer with an air radius is airborne
+ * and sees every tier. See {@code elevation-nouns.md}.
  */
 public final class Shadowcast {
 
@@ -49,6 +55,9 @@ public final class Shadowcast {
         int w = grid.getWidth();
         int h = grid.getHeight();
         float airR2 = airLosRadius * airLosRadius;
+        ElevationMap elevation = grid.elevation();
+        int eye = elevation == null ? 0
+                : airLosRadius > 0f ? ElevationMap.MAX_TIER : elevation.eyeTier(sx, sy);
         int count = 0;
 
         if (sx >= 0 && sx < w && sy >= 0 && sy < h) {
@@ -56,14 +65,15 @@ public final class Shadowcast {
         }
 
         for (int octant = 0; octant < 8; octant++) {
-            count = scanOctant(grid, sx, sy, w, h, range, airR2,
+            count = scanOctant(grid, elevation, eye, sx, sy, w, h, range, airR2,
                     octant, 1, 0.0f, 1.0f,
                     out, outOffset, count, ignoreTransientOpacity);
         }
         return count;
     }
 
-    private static int scanOctant(NavigationGrid grid, int sx, int sy,
+    private static int scanOctant(NavigationGrid grid, ElevationMap elevation, int eye,
+                                   int sx, int sy,
                                    int w, int h, int range, float airR2,
                                    int octant, int row,
                                    float startSlope, float endSlope,
@@ -111,14 +121,30 @@ public final class Shadowcast {
                 float leftSlope  = (col - 0.5f) / r;
                 float rightSlope = (col + 0.5f) / r;
 
-                boolean opaque = isOpaque(grid, cx, cy, sx, sy, airR2,
-                        ignoreTransientOpacity);
-
-                // The first solid surface is visible; only the cells beyond it
-                // are shadowed. Smoke still conceals occupants of its own cell.
-                if (!opaque || (grid.blocksStructuralLineOfSightAt(grid.index(cx, cy))
-                        && (ignoreTransientOpacity || !grid.hasTransientOpacityAt(grid.index(cx, cy))))) {
-                    out[outOffset + count++] = grid.index(cx, cy);
+                int idx = grid.index(cx, cy);
+                boolean opaque;
+                boolean surface;
+                if (elevation != null && elevation.above(idx, eye)) {
+                    // Higher ground: a face is the skyline the eye looks past
+                    // (a wall under the strict rule), and the first top cell
+                    // past it is the rim, seen and seen no further.
+                    opaque = elevation.stopsSight(idx, eye, false);
+                    surface = elevation.visibleFrom(idx, eye);
+                } else {
+                    opaque = isOpaque(grid, cx, cy, sx, sy, airR2,
+                            ignoreTransientOpacity);
+                    // The first solid surface is visible; only the cells beyond
+                    // it are shadowed. Smoke still conceals occupants of its own cell.
+                    surface = !opaque || (grid.blocksStructuralLineOfSightAt(idx)
+                            && (ignoreTransientOpacity || !grid.hasTransientOpacityAt(idx)));
+                    if (opaque && elevation != null && elevation.isFaceAt(idx)) {
+                        // A face at or below the eye stands under it: transparent.
+                        opaque = !ignoreTransientOpacity && grid.hasTransientOpacityAt(idx);
+                        surface = true;
+                    }
+                }
+                if (surface) {
+                    out[outOffset + count++] = idx;
                 }
 
                 if (blocked) {
@@ -130,7 +156,7 @@ public final class Shadowcast {
                     }
                 } else if (opaque) {
                     blocked = true;
-                    count = scanOctant(grid, sx, sy, w, h, range, airR2,
+                    count = scanOctant(grid, elevation, eye, sx, sy, w, h, range, airR2,
                             octant, r + 1, startSlope, leftSlope,
                             out, outOffset, count, ignoreTransientOpacity);
                     newStart = rightSlope;

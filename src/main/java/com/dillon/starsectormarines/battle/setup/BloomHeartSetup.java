@@ -2,10 +2,12 @@ package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.command.HeartAssaultCommand;
+import com.dillon.starsectormarines.battle.command.HeartLane;
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.command.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.command.objective.HeartObjective;
 import com.dillon.starsectormarines.battle.evacuation.HeartBores;
+import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.power.WalkingBarrage;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -19,6 +21,7 @@ import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -103,17 +106,38 @@ public final class BloomHeartSetup {
             sim.fireField().setWind(1f, 0f, BURN_WIND);
             barrage = new WalkingBarrage(burnBarrage(), form::cellAt, Faction.MARINE, built.battleSeed() ^ BARRAGE_SALT);
         }
-        sim.installHeart(form, barrage);
+        HeartLanes lanes = form == Form.BROAD_FRONT ? alliedLanes(form, built.battleSeed()) : null;
+        sim.installHeart(form, barrage, lanes);
         Precinct landing = built.plan().landingPlace();
         int laneAcross = form.advancesAlongY() ? landing.seedX() : landing.seedY();
         int laneHalfWidth = form == Form.BROAD_FRONT
                 ? Math.round(BROAD_FRONT_LANE_HALF_WIDTH * form.scale.width)
                 : Math.max(form.scale.width, form.scale.height);
-        sim.setAutonomousCommander(Faction.MARINE, new HeartAssaultCommand(form.advancesAlongY(), laneAcross, laneHalfWidth),
+        sim.setAutonomousCommander(Faction.MARINE, new HeartAssaultCommand(new HeartLane(form.advancesAlongY(), laneAcross, laneHalfWidth)),
                 HeartAssaultCommand.DISCLOSURE);
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(HeartAssaultCommand.ISSUER, "Company support joins the push"));
         return sim;
     }
+
+    /** An allied lane's band: satellites this share of the front's width either side of its line are its own. */
+    static final float ALLIED_LANE_HALF_WIDTH = 0.10f;
+    /** Where an allied column comes on: this far into the farmland from the start edge. */
+    static final float LANE_FOOT_DEPTH = 0.05f;
+
+    /** Broad Front's four allied lanes, each a column at its foot on the start line. */
+    static HeartLanes alliedLanes(Form form, long seed) {
+        List<HeartLane> grounds = new ArrayList<>();
+        List<int[]> entries = new ArrayList<>();
+        int halfWidth = Math.round(ALLIED_LANE_HALF_WIDTH * form.scale.width);
+        for (float across : HeartCountry.laneAcross()) {
+            int[] foot = form.cellAt(LANE_FOOT_DEPTH, across);
+            grounds.add(new HeartLane(form.advancesAlongY(), form.advancesAlongY() ? foot[0] : foot[1], halfWidth));
+            entries.add(foot);
+        }
+        return new HeartLanes(grounds, entries, RiskLevel.MEDIUM, seed ^ LANES_SALT);
+    }
+
+    private static final long LANES_SALT = 0x4C41_4E45_5348_5254L;
 
     static final float BURN_WIND = 0.5f;
     private static final long BARRAGE_SALT = 0x4255_524E_4241_5252L;

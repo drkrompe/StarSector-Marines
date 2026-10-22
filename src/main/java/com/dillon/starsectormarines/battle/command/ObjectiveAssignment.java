@@ -81,10 +81,22 @@ public record ObjectiveAssignment(
      * @param cellX        centre of the mission
      * @param cellY        centre of the mission
      * @param radiusCells  how far from the centre a target may stand and still be on the mission
+     * @param incendiary   whether the tubes fire incendiary rounds on it (`fire-nouns.md`, Starting fires); a round
+     *                     whose fire could come to the side's own goes out as an ordinary shell instead
      */
-    public record FireMission(int cellX, int cellY, int radiusCells) {
+    public record FireMission(int cellX, int cellY, int radiusCells, boolean incendiary) {
         public FireMission {
             if (radiusCells < 1) throw new IllegalArgumentException("radiusCells must be positive");
+        }
+
+        /** An ordinary mission: high explosive. */
+        public FireMission(int cellX, int cellY, int radiusCells) {
+            this(cellX, cellY, radiusCells, false);
+        }
+
+        /** The same mission, fired with incendiary rounds or not. */
+        public FireMission withIncendiary(boolean incendiary) {
+            return incendiary == this.incendiary ? this : new FireMission(cellX, cellY, radiusCells, incendiary);
         }
     }
 

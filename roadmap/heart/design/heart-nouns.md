@@ -195,10 +195,16 @@ collapses a bore by fiat.
 5. **Heart down.** The last mother collapses: `heart_down`, the win. Allied
    lanes broken are a cost on the outcome, never a loss.
 
-Allied columns are first scripted, as the Cordon's are: squads and a vehicle
-per lane under an allied lane commander that advances them along their lane and
-holds what they take (`heart-allied-lanes.md` replaces the scripting with the
-general allied column once the Cordon has built it).
+The allied columns are scripted (`HeartLanes`): three militia teams at the foot
+of each of the four lanes step off together at the opening and march to their
+lane's first satellite as the Cordon's scripted columns march to a redoubt
+(`cordon-nouns.md`, Allied column). Once a column has arrived it is the lane's:
+when the bore it is on falls it goes on to its lane's next satellite, then to
+the nearest living mother. An allied lane's band is about a tenth of the front's
+width either side of its line, so neighbouring lanes do not take each other's
+satellites, and the company's middle satellite is the company's. The general
+allied column and an allied line commander (`cordon-allied-columns.md`) will
+replace the scripting when they exist.
 
 ### The Burn
 
@@ -245,7 +251,8 @@ and evidence, never inputs to the simulation. Both variants publish `start`, `la
 | --- | --- | --- |
 | `landfall` | both | the first Marine is on the ground |
 | `heart_surge` | Broad Front | the first satellite falls and the mothers wake |
-| `contact_lane_N`, `lane_broken_N` | Broad Front | a lane first takes swarm fire; a column below a third of its strength (`heart-allied-lanes.md`) |
+| `lane_arrived_N` | Broad Front | lane N's column reaches its first bore |
+| `lane_broken_N` | Broad Front | lane N's column below a third of its strength |
 | `line_lit` | The Burn | the fire line takes |
 | `barrage_line_N`, `barrage_lifted_N` | The Burn | a line opens (after its warning); it lifts |
 | `breakout_<bore>` | The Burn | a hurt bore surges (observer-only, recurring) |

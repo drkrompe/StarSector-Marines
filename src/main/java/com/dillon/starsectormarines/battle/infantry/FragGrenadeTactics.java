@@ -68,7 +68,8 @@ public final class FragGrenadeTactics {
             boolean inFuel = fire != null && fire.canBurn(anchor.lastSeenCellX(), anchor.lastSeenCellY());
             if (softTargets < (inFuel ? 1 : MIN_SOFT_TARGETS)) continue;
             if (!friendlyFootprintClear(carrier, targetX, targetY, grenade, sim)) continue;
-            if (fire != null && fireReachesFriendly(carrier, anchor.lastSeenCellX(), anchor.lastSeenCellY(), fire, sim)) continue;
+            if (fire != null && FireReach.reachesSide(fire, anchor.lastSeenCellX(), anchor.lastSeenCellY(),
+                    sim.identity().faction(carrier), sim)) continue;
             if (overlapsCommittedGrenade(targetX, targetY, grenade.aoeRadius(),
                     grenade.weaponId(),
                     sim.identity().faction(carrier), sim)) continue;
@@ -273,18 +274,6 @@ public final class FragGrenadeTactics {
             }
         }
         return true;
-    }
-
-    /** Whether a fire lit at the cell could come to anyone on the carrier's side. */
-    private static boolean fireReachesFriendly(long carrier, int x, int y, FireField fire, BattleView sim) {
-        FireReach reach = FireReach.of(fire, x, y);
-        Faction faction = sim.identity().faction(carrier);
-        for (int i = 0; i < sim.liveUnitCount(); i++) {
-            long friendly = sim.liveUnitAt(i);
-            if (!faction.friendlyTo(sim.identity().faction(friendly))) continue;
-            if (reach.threatens(sim.world().cellX(friendly), sim.world().cellY(friendly))) return true;
-        }
-        return false;
     }
 
     private static boolean overlapsCommittedGrenade(float targetX, float targetY,

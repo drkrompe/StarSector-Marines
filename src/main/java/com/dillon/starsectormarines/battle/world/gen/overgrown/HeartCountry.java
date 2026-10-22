@@ -149,6 +149,9 @@ public final class HeartCountry {
     static final int TRACK_WIDTH = 3;
     /** Where Broad Front's allied lanes run, across the front; the company's is the country road at the middle. */
     static final float[] LANE_ACROSS = {0.15f, 0.33f, 0.67f, 0.85f};
+
+    /** Broad Front's allied lanes, as shares across the front, west to east. */
+    public static float[] laneAcross() { return LANE_ACROSS.clone(); }
     /** How deep the lanes are cut toward the heart: they stop short of the workings. */
     static final float LANE_DEPTH = 0.80f;
     /** Where The Burn's firebreak rides cross its approach. */
