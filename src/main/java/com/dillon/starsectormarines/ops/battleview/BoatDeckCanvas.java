@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.air.BayDoor;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.ship.BayAperture;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
@@ -55,6 +56,16 @@ public final class BoatDeckCanvas implements CanvasProducer {
     private static final Color SPACE = new Color(0x03, 0x07, 0x10);
     private static final Color STAR = new Color(0x86, 0xA2, 0xBC, 155);
     private static final Color THRESHOLD = new Color(0x6A, 0xD5, 0xE0, 180);
+    private static final Color LEAF = new Color(0x3A, 0x44, 0x4C);
+    private static final Color LEAF_SEAM = new Color(0x22, 0x29, 0x2F);
+    private static final Color LEAF_RIB = new Color(0x5C, 0x69, 0x72);
+    private static final Color HAZARD = new Color(0xE8, 0xB4, 0x3A);
+    private static final Color HAZARD_DARK = new Color(0x1A, 0x1A, 0x16);
+    private static final Color MOVING = new Color(0xFF, 0x6A, 0x3A, 230);
+    /** How thick a leaf is through the hull, in cells. */
+    private static final float LEAF_DEPTH = 1.0f;
+    /** Width of the striped band on each leaf's meeting edge, in cells. */
+    private static final float HAZARD_BAND = 0.45f;
 
     private static final EnumSet<RenderLayer> BACKDROP_LAYERS = EnumSet.of(
             RenderLayer.GROUND, RenderLayer.DOODADS);
@@ -167,7 +178,7 @@ public final class BoatDeckCanvas implements CanvasProducer {
 
         Projection projection = Projection.forHost(aboard, view, host[0]);
         space(context, projection, aboard.simulation().getTopology());
-        if (aperture != null) threshold(context, projection, aperture);
+        if (aperture != null) threshold(context, projection, aperture, aboard.bayDoorLeaves(hangar));
         markBerths(context, projection, boatBerthsIn(aboard, hangar));
         context.hostPass(aboard.pass(view, ACTOR_LAYERS));
         markRecovery(context);
@@ -217,15 +228,32 @@ public final class BoatDeckCanvas implements CanvasProducer {
         }
     }
 
-    /** Navigation lights mark the real opening; the blue line is its pressure screen. */
-    private static void threshold(CanvasContext context, Projection p, BayAperture door) {
+    /**
+     * Navigation lights mark the real opening; the door's two leaves close it.
+     *
+     * <p>The leaves meet on the door's centre line and withdraw sideways into
+     * pockets in the jambs, so only the part still across the opening is drawn
+     * and the hull plating hides the rest. The blue line is the pressure screen,
+     * which only shows where the leaves have left the opening uncovered.
+     */
+    private static void threshold(CanvasContext context, Projection p, BayAperture door, BayDoor leaves) {
         float tangentX = -door.outDy();
         float tangentY = door.outDx();
         float half = door.widthCells() * 0.5f;
         float x = door.centerX();
         float y = door.centerY();
-        context.line(p.x(x - tangentX * half), p.y(y - tangentY * half),
-                p.x(x + tangentX * half), p.y(y + tangentY * half), THRESHOLD, 2f);
+        float travel = leaves == null ? 1f : leaves.leafTravel();
+        float reach = half * (1f - travel);
+        if (travel > 0f) {
+            Color screen = new Color(THRESHOLD.getRed(), THRESHOLD.getGreen(), THRESHOLD.getBlue(),
+                    Math.round(THRESHOLD.getAlpha() * travel));
+            context.line(p.x(x - tangentX * half), p.y(y - tangentY * half),
+                    p.x(x + tangentX * half), p.y(y + tangentY * half), screen, 2f);
+        }
+        if (reach > 0.02f) {
+            for (int side : new int[]{-1, 1}) leaf(context, p, door, side, half, reach,
+                    leaves != null && leaves.openness() > 0f && leaves.openness() < 1f);
+        }
         for (int side : new int[]{-1, 1}) {
             float jambX = x + tangentX * (half + 0.15f) * side;
             float jambY = y + tangentY * (half + 0.15f) * side;
@@ -243,6 +271,54 @@ public final class BoatDeckCanvas implements CanvasProducer {
                         p.x(tipX), p.y(tipY), THRESHOLD, 2f);
             }
         }
+    }
+
+    /**
+     * One leaf, standing from its jamb ({@code half} out along the door) in to
+     * {@code reach} of it: a plated slab with ribs across it and a striped
+     * meeting edge, which shows amber while the leaf is moving.
+     */
+    private static void leaf(CanvasContext context, Projection p, BayAperture door, int side,
+                             float half, float reach, boolean moving) {
+        float jamb = half * side;
+        float edge = (half - reach) * side;
+        float depth = LEAF_DEPTH * 0.5f;
+        slab(context, p, door, jamb, edge, -depth, depth, LEAF);
+        slab(context, p, door, jamb, edge, -depth, -depth + 0.08f, LEAF_SEAM);
+        slab(context, p, door, jamb, edge, depth - 0.08f, depth, LEAF_SEAM);
+        // Ribs at whole-cell spacing from the jamb, fixed to the leaf so they travel with it.
+        for (float rib = 1f; rib < reach - HAZARD_BAND; rib += 1f) {
+            float at = edge + rib * side;
+            slab(context, p, door, at - 0.05f, at + 0.05f, -depth + 0.08f, depth - 0.08f, LEAF_RIB);
+        }
+        float band = Math.min(HAZARD_BAND, reach);
+        float inner = edge + band * side;
+        slab(context, p, door, edge, inner, -depth, depth, HAZARD_DARK);
+        int stripes = 3;
+        for (int stripe = 0; stripe < stripes; stripe++) {
+            float o0 = -depth + (2f * depth) * stripe / stripes;
+            float o1 = o0 + depth / stripes;
+            slab(context, p, door, edge, inner, o0, o1, HAZARD);
+        }
+        if (moving) slab(context, p, door, edge, edge + 0.1f * side, -depth, depth, MOVING);
+    }
+
+    /**
+     * Fills the door-aligned rectangle between {@code a0} and {@code a1} across
+     * the opening and {@code o0} and {@code o1} out of the hull, both measured
+     * in cells from the door's centre.
+     */
+    private static void slab(CanvasContext context, Projection p, BayAperture door,
+                             float a0, float a1, float o0, float o1, Color color) {
+        float tangentX = -door.outDy();
+        float tangentY = door.outDx();
+        float cx = door.centerX();
+        float cy = door.centerY();
+        float x0 = cx + tangentX * a0 + door.outDx() * o0, y0 = cy + tangentY * a0 + door.outDy() * o0;
+        float x1 = cx + tangentX * a1 + door.outDx() * o0, y1 = cy + tangentY * a1 + door.outDy() * o0;
+        float x2 = cx + tangentX * a1 + door.outDx() * o1, y2 = cy + tangentY * a1 + door.outDy() * o1;
+        float x3 = cx + tangentX * a0 + door.outDx() * o1, y3 = cy + tangentY * a0 + door.outDy() * o1;
+        context.fillQuad(p.x(x0), p.y(y0), p.x(x1), p.y(y1), p.x(x2), p.y(y2), p.x(x3), p.y(y3), color);
     }
 
     /** Records hover over the berths drawn during the last frame. */

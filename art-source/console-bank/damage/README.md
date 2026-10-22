@@ -27,14 +27,7 @@ actual game floor. There is no colour key, alpha transfer, repaint or atlas patc
 
 Accepted raw sheets and authoring documents live in `art-source/tilesets/`:
 `console-bank-damage`, `main-stores-damage`, `sickbay-clinic-damage`.
-Their actual raw dimensions are respectively 1086x1448, 1254x1254 and 3072x1024.
-The sickbay sheet is two generations joined by `templates/real-scale-montage.py`:
-the original 1536x1024 family on the left, and from x=1536 the real-length (1x3)
-ward bed and both linen pairs, generated from `sickbay-clinic-refit.tsv` with
-`sickbay-clinic-refit-damage.prompt.txt` and registered with
-`ComposableDamageRegistration sickbay-clinic-refit 3` before the join (provenance
-`sickbay-clinic-damage.raw.png.provenance.json`). `sickbay-clinic.tsv` still lists
-the old 1x2 bed and linen it was generated from.
+Their actual raw dimensions are respectively 1086x1448, 1254x1254 and 1536x1024.
 `ComposableDamageRegistration` measures each assigned slot, restores the intact
 sprite's full-frame padding for standing damage, and retains a local full frame
 around destroyed fragments. Its reviewed `*-registered.tsv` cuts are recorded

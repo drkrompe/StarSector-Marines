@@ -40,6 +40,16 @@ sheltering mountains. Its texture in the blockout is the game's own
 `desert01` map (read from the install, never copied), which has scarps and
 canyons between dune seas, broken up by procedural relief.
 
+**Surface detail** (owner, 2026-10-22). Over that map lie seven ImageGen detail tiles, each
+generated from the layer below so the planet still reads as desert01 from orbit, from 3.3 km a
+pixel out to the horizon down to 156 m under S1a, with static settlements painted in where the
+cameras see them: under S1a a walled town where two wadis meet, a landing grid and a terraced
+open-pit mine; down S12's track a spaceport on a salt pan, a walled city at the canyon mouth and
+strip mines. No traffic, no lights. The tiles are on by default (`--surface base` is the
+control); the settlements are accepted as they are. **S1a and S12 use matte-painted backdrop
+plates** in place of the rendered planet layer (`plates/`, Drive `builds/asharu-plates/`, pinned
+by `roster.PLATES`). See `surface/README.md` and `plates/README.md`.
+
 The game also gives Asharu a **derelict orbital platform**: "castoff
 bulk-carrier segments welded between a honeycomb of emptied fuel tanks...
 hangars stand empty but for a few slumped, stripped hulks... no one would

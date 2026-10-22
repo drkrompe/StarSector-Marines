@@ -42,10 +42,10 @@ public final class WorkMotions {
                     : fixture.contains("rower") || fixture.contains("ergometer") ? WorkMotion.ROW
                     : fixture.contains("bench-press") ? WorkMotion.PRESS : WorkMotion.LIFT;
             case LAP -> WorkMotion.JOG;
-            // Only a bed to lie in, worked from its foot: the ship's two-cell bunk
-            // and the ground's three-cell residential single.
-            case REST -> fixture.contains("barracks-bunks.bed") ? WorkMotion.SLEEP_BUNK
-                    : fixture.contains("residential-bed-") ? WorkMotion.SLEEP : WorkMotion.NONE;
+            // Only a bed to lie in, worked from its foot: the ship's bunk and the
+            // ground's residential single, both two cells long.
+            case REST -> fixture.contains("barracks-bunks.bed") || fixture.contains("residential-bed-")
+                    ? WorkMotion.SLEEP : WorkMotion.NONE;
             case FABRICATE, STOW, READOUT, WATCH, ISSUE, MESS -> WorkMotion.CONSOLE;
             case WASH, PRACTICE, UNWIND, ROUNDS, GUARD -> WorkMotion.NONE;
         };

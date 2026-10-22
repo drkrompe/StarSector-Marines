@@ -492,6 +492,10 @@ def blender_main(cfg):
     scene.cycles.use_denoising = True
     scene.cycles.max_bounces = 4
     scene.cycles.transparent_max_bounces = 16
+    if cfg.get('volume_step_rate'):     # --volume-step-rate: coarser ray marching through the kit's volumes
+        scene.cycles.volume_step_rate = float(cfg['volume_step_rate'])
+    if cfg.get('volume_max_steps'):     # --volume-max-steps: the cap on steps per volume a ray takes
+        scene.cycles.volume_max_steps = int(cfg['volume_max_steps'])
     scene.view_settings.view_transform = 'AgX'
     scene.view_settings.look = 'AgX - Base Contrast'
     import time
@@ -2165,7 +2169,11 @@ def surface_lines(loc, f, r, u, fpx):
         return [o[i] + t * d[i] for i in range(3)], t
 
     out = []
-    for label, py in (('centre', H / 2), ('lower edge', H - 1)):
+    rows = [('centre', H / 2), ('lower edge', H - 1)]
+    top = next((py for py in range(0, H, 10) if hit(W / 2, py)), None)
+    if top is not None and top > 0:
+        rows.insert(0, ('below the horizon', min(H - 1, top + 30)))
+    for label, py in rows:
         h = hit(W / 2, py)
         if h is None:
             out.append(f'surface {label}: sky')
@@ -2407,7 +2415,8 @@ def main():
         if todo:
             from blender_path import BLENDER
             cfg = dict(out=str(run), frames=todo, samples=samples, half=half, swfx='--swfx' in argv, surface=surface,
-                       layers=layers, plates=plates)
+                       layers=layers, plates=plates, volume_step_rate=opt('--volume-step-rate'),
+                       volume_max_steps=opt('--volume-max-steps'))
             env = dict(os.environ, ASHARU_CFG=json.dumps(cfg))
             subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python', __file__], env=env)
     outputs = [orbit_diagram(run)] + label_frames(run)
