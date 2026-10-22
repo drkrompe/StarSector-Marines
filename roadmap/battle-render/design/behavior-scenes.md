@@ -366,8 +366,10 @@ holder kills the squad unanswered, and with the reveal the squad answers it.
 **The instrument nearly blamed the rule for a roster reshuffle.** The first
 version read the defender's per-unit fog visibility, which is keyed by roster
 slot: on the tick the rim defender died the slots moved, and the hidden
-defender read its dead neighbour's "visible" for one tick. The scene reads
-whether the defender's cell is revealed instead. Chasing it turned up a real
+defender read its dead neighbour's "visible" for one tick. The roster now
+tells the fog when a release moves a unit's slot (`UnitRosterService.onSlotMoved`),
+so the visibility moves with the unit; the scene still reads whether the
+defender's cell is revealed, which is the question it asks. Chasing it turned up a real
 leak on the way: a marine suit's sensor sweep hands the fog a wall-read radius,
 and the cast took any read radius as airborne, so a sweep at the cliff foot saw
 the whole plateau. A ground sweep now reads past higher ground only within its

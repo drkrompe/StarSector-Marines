@@ -133,9 +133,51 @@ public final class MacroReliefField {
         return mapping != null ? mapping.macroHeightMeters(topology.getGroundKind(x, y)) : 0f;
     }
 
-    /** Metres at a continuous world position, which is the cell it falls in. */
+    /**
+     * Metres at a continuous world position: what stands in the cell it falls
+     * in, on ground whose tier height runs smoothly between the cell's
+     * corners ({@link #groundCornerMeters}).
+     */
     public float metersAt(float worldX, float worldY) {
-        return metersAt((int) Math.floor(worldX), (int) Math.floor(worldY));
+        int x = (int) Math.floor(worldX), y = (int) Math.floor(worldY);
+        if (x < 0 || y < 0 || x >= topology.getWidth() || y >= topology.getHeight()) return 0f;
+        if (elevation == null) return standingMeters(x, y);
+        float tx = worldX - x, ty = worldY - y;
+        float ground = (groundCornerMeters(x, y) * (1 - tx) + groundCornerMeters(x + 1, y) * tx) * (1 - ty)
+                + (groundCornerMeters(x, y + 1) * (1 - tx) + groundCornerMeters(x + 1, y + 1) * tx) * ty;
+        return ground + standingMeters(x, y);
+    }
+
+    /** Whether any ground stands raised, so corners differ from the cell they bound. */
+    public boolean hasRaisedGround() {
+        return elevation != null && elevation.highestTier() > 0;
+    }
+
+    /**
+     * How high raised ground stands at the corner {@code (cx, cy)} of the cell
+     * grid: the mean of the cells sharing it. Held flat per cell, a plateau is
+     * a pile of square blocks to the sun, and its shadow and its lit faces
+     * step along every diagonal of its outline; read at the corners and run
+     * across each cell, the outline's steps become slopes.
+     */
+    public float groundCornerMeters(int cx, int cy) {
+        if (elevation == null) return 0f;
+        float sum = 0f;
+        int count = 0;
+        for (int y = cy - 1; y <= cy; y++) {
+            for (int x = cx - 1; x <= cx; x++) {
+                if (x < 0 || y < 0 || x >= topology.getWidth() || y >= topology.getHeight()) continue;
+                sum += tierMeters(x, y);
+                count++;
+            }
+        }
+        return count == 0 ? 0f : sum / count;
+    }
+
+    /** What stands on the ground in the cell, above it; the datum outside the map. */
+    public float standingMetersAt(int x, int y) {
+        if (x < 0 || y < 0 || x >= topology.getWidth() || y >= topology.getHeight()) return 0f;
+        return standingMeters(x, y);
     }
 
     /** The tallest height this field can report, which is what sizes the sun's march. */
