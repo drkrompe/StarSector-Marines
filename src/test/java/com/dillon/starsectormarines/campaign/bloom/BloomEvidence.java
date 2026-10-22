@@ -196,16 +196,16 @@ class BloomEvidence {
                 + "(%d markets, %d of them core). Counts are per cycle, averaged over seeds; outcomes are totals.\n\n",
                 years, seeds, SyntheticSector.marketCount(), SyntheticSector.coreCount()));
         md.append("| Severity | Frequency | Player colonies | Policy | Blooms/yr | Woken/yr | Seeded/yr | Median days between wakes | "
-                + "Contained | Starved out | Burned out | Decivilised | Running at end | Size lost/yr | Max generation | "
+                + "Contained | Starved out | Put down | Burned out | Decivilised | Running at end | Size lost/yr | Max generation | "
                 + "Worlds bloomed twice+ | Calls held at gate | Quarantined | Evacuated | Player colony blooms |\n");
-        md.append("|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n");
+        md.append("|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n");
         for (Row r : rows) {
             md.append(String.format(Locale.ROOT,
-                    "| %s | %s | %s | %s | %.2f | %.2f | %.2f | %d | %d | %d | %d | %d | %d | %.2f | %d | %d | %d | %d | %s | %d |\n",
+                    "| %s | %s | %s | %s | %.2f | %.2f | %.2f | %d | %d | %d | %d | %d | %d | %d | %.2f | %d | %d | %d | %d | %s | %d |\n",
                     r.tuning.severity, r.tuning.frequency, r.tuning.playerColonies, r.policy,
                     r.perYear(r.blooms), r.perYear(r.woken), r.perYear(r.seeded), r.medianGap(),
-                    r.end(BloomEnd.CONTAINED), r.end(BloomEnd.STARVED_OUT), r.end(BloomEnd.BURNED_OUT),
-                    r.end(BloomEnd.DECIVILIZED), r.running, r.perYear(r.sizeLost), r.maxGeneration,
+                    r.end(BloomEnd.CONTAINED), r.end(BloomEnd.STARVED_OUT), r.end(BloomEnd.PUT_DOWN),
+                    r.end(BloomEnd.BURNED_OUT), r.end(BloomEnd.DECIVILIZED), r.running, r.perYear(r.sizeLost), r.maxGeneration,
                     r.repeatWorlds, r.callsHeld, r.quarantined,
                     r.atRisk > 0 ? Math.round(100.0 * r.evacuated / r.atRisk) + "%" : "-", r.playerBlooms));
         }
@@ -221,12 +221,12 @@ class BloomEvidence {
             js.append(String.format(Locale.ROOT,
                     "{\"severity\":\"%s\",\"frequency\":\"%s\",\"playerColonies\":\"%s\",\"policy\":\"%s\","
                             + "\"blooms\":%d,\"woken\":%d,\"seeded\":%d,\"medianWakeGapDays\":%d,"
-                            + "\"contained\":%d,\"starvedOut\":%d,\"burnedOut\":%d,\"decivilized\":%d,\"running\":%d,"
+                            + "\"contained\":%d,\"starvedOut\":%d,\"putDown\":%d,\"burnedOut\":%d,\"decivilized\":%d,\"running\":%d,"
                             + "\"sizeLost\":%d,\"maxGeneration\":%d,\"repeatWorlds\":%d,\"callsRaised\":%d,"
                             + "\"callsHeld\":%d,\"quarantined\":%d,\"evacuated\":%d,\"atRisk\":%d,\"playerBlooms\":%d}",
                     r.tuning.severity, r.tuning.frequency, r.tuning.playerColonies, r.policy,
                     r.blooms, r.woken, r.seeded, r.medianGap(), r.end(BloomEnd.CONTAINED),
-                    r.end(BloomEnd.STARVED_OUT), r.end(BloomEnd.BURNED_OUT), r.end(BloomEnd.DECIVILIZED),
+                    r.end(BloomEnd.STARVED_OUT), r.end(BloomEnd.PUT_DOWN), r.end(BloomEnd.BURNED_OUT), r.end(BloomEnd.DECIVILIZED),
                     r.running, r.sizeLost, r.maxGeneration, r.repeatWorlds, r.callsRaised, r.callsHeld,
                     r.quarantined, r.evacuated, r.atRisk, r.playerBlooms));
         }

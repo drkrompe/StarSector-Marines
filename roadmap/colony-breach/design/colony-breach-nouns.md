@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-22 — Campaign: blooms (the Rav Bloom as a sector phenomenon sourcing the rescue) as built; growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
+Updated: 2026-10-22 — Campaign: blooms as built, at the benign first severity tier with spores carried on traffic, and the owner's arc as direction; growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -84,19 +84,26 @@ The live system is `RavBloomSystem`; everything it does to a market goes
 through a `BloomWorld`, so the rules run unchanged over a synthetic sector in
 evidence.
 
-**Reservoir.** Whether a market sits over the weapon. It is a hidden, fixed
-fact of the save, hashed from the sector seed and the market, likelier on
-worlds with ruins and on habitable or farmed worlds (the sporeship rumour), and
-never stored: nobody holds the map, and the player learns a world had one only
-when it blooms.
+**Spores travel with people** (owner, 2026-10-22). Dormant Bloom material rides
+on cargo and arrives with people who do not know they carry it, all through
+occupied space. It wakes where it lands in a colony busy and dense enough to
+feed it. So a bloom can start on any colony, and where it starts follows the
+traffic, not a map.
 
-**Waking.** Once a week the sector may wake one bloom over a reservoir, at a
-preset rate (*frequency*), with at most two blooms running. Where it wakes is
-weighted by the colony: dense colonies are worth eating, young colonies are
-still digging, mine workings, aquifers and farms reach the reservoir, and
-marginal worlds wake more readily than the policed core. A colony younger than
-ninety days or smaller than size 3 cannot wake one. The draw is seeded by the
-save and the week, so a reload replays the same week.
+**Reservoir.** An old seeding site under a world, which makes a bloom there
+likelier but is not needed for one. It is a hidden, fixed fact of the save,
+hashed from the sector seed and the market, likelier on worlds with ruins and
+on habitable or farmed worlds (the sporeship rumour), and never stored: nobody
+holds the map.
+
+**Waking.** Once a week the sector may wake one bloom, at a preset rate
+(*frequency*), with at most two blooms running. Where it wakes is weighted by
+the colony: trade traffic through its port and population inflow lead, then its
+size (dense colonies are worth eating), a reservoir under it, and deep
+workings. A colony younger than ninety days or smaller than size 3 cannot wake
+one. The busy core therefore blooms most, and the Hegemony quarantines most of
+what blooms. The draw is seeded by the save and the week, so a reload replays
+the same week.
 
 **Stages.**
 
@@ -104,14 +111,15 @@ save and the week, so a reload replays the same week.
 | --- | --- | --- |
 | Stirring | Seepage, a couple of weeks; no market effect | a deniable rumour in the Rav Bloom intel |
 | Erupted | Bores inside the colony; the *Rav Bloom* market condition (stability and accessibility) | the distress call on the Distress Net, two weeks to commit relief; the Hegemony's quarantine notice where it polices |
-| Dark | Nobody lifted enough out: the colony goes quiet, its workings are disrupted, it loses a size at intervals down to the floor, and it can spread | a colony gone dark, with the Church's, the Path's and the scavengers' readings |
+| Dark | Nobody lifted enough out. At the first stage the colony is cordoned and the garrison fights the bores; at a harsher tier its workings shut, it loses a size at intervals and it can spread | a colony cordoned (or gone quiet), with the Church's and the Path's readings |
 | Starved | Half or more of the cohort was lifted out: the bloom has too little to eat and burns out without spreading | the lifts got them out |
 | Ended | The outbreak is over; the condition lifts and unrest lingers | how it ended, said honestly |
 
 An erupted colony goes dark when its call is refused or expires, when the call
 never got through the gate within its window, or forty-five days after
-eruption with nobody lifted out. A dark bloom with nobody answering **burns
-out** on its own after a preset time.
+eruption with nobody lifted out. A dark bloom with nobody answering ends on
+its own after the tier's time: **put down** by the world's own military at the
+first stage, **burned out** at a harsher one.
 
 **Ending one.** The player's tools are the existing ones: commit relief, fly
 there, run the evacuation. The battle's report of evacuees and of the mother
@@ -123,12 +131,11 @@ people lifted out are saved. A call still open when its bloom ends is closed as
 expired. The weapon is never ended: every end rests the reservoir (a cycle, or
 three after containment) and never removes it.
 
-**Spread.** A dark bloom may seed a new bloom on another colony, in its own
-system first, else the nearest within six light-years, reservoir or not: Bloom
-material carried out in ore, salvage or ballast, the lore guide's rumoured
-vector made a mechanic. A seeded bloom skips seepage, and three generations
-deep it seeds nothing further. How many neighbours one bloom may seed is the
-severity preset's.
+**Spread.** At a harsher tier a dark bloom may also seed a new bloom on a
+neighbour, in its own system first, else the nearest within six light-years: a
+local version of the cargo vector. A seeded bloom skips seepage, and three
+generations deep it seeds nothing further. The first stage seeds nothing; its
+spread is the weekly wake alone.
 
 **Factions.** The Hegemony quarantines a bloom on its own worlds and, while it
 lives, anywhere in the core; the quarantine tightens the condition, and a
@@ -139,29 +146,50 @@ judgement on the Domain's pride; the Path calls it the Domain's sin come home;
 scavengers call a dark world dead ground. No line names a maker or says the
 weapon is gone.
 
-**What stands without our state.** A bloom pulls vanilla's levers (a size lost,
-industries disrupted, recent unrest), so what it did to a market survives if
-the ledger is lost; only the condition reads the ledger back, and a condition
+**What stands without our state.** At a harsher tier a bloom pulls vanilla's
+levers (a size lost, industries disrupted, recent unrest), so what it did to a
+market survives if the ledger is lost; only the condition reads the ledger back, and a condition
 with no bloom under it applies nothing. The ledger is one nullable object on
 the campaign state, created on first read, so an older save starts with none.
 
-**Owner's presets** (`BloomTuning`). *Severity:* scar (one size at most, no
-spread, burns out quickly), dark and spread (to the floor, one seeded
-neighbour; default), deadly (faster, a colony at the floor decivilises, two
-seeded neighbours). *Frequency:* rare, seasonal (about three a year; default),
-frequent. *Player colonies:* exposed (default), exposed after the player has
-answered a bloom, never. `-Dmarines.bloom.severity`, `.frequency` and
-`.playerColonies` select one for a control run. `gradlew.bat bloomEvidence`
-plays every preset under three player policies over N cycles and reports
-blooms a year, outcomes, spread and size lost. Ignored blooms hold the
-two-running cap, so a sector nobody answers sees fewer new wakes and more
-spread; under *deadly*, an unanswered sector loses most of its small colonies
-within twenty cycles.
+**Severity is a tier, and the mod ships the first.** Every consequence of an
+unanswered bloom (size lost, workings shut, unrest left behind, neighbours
+seeded, a colony lost) is read from the severity tier (`BloomTuning`), so the
+Bloom grows teeth by raising the tier, not by rewriting the system. The mod
+ships **benign**, the first stage: an unanswered bloom costs its market the
+condition while it lasts and nothing else, and the world's military puts it
+down after sixty days. That is a limit of what the mod can model today, not a
+statement about the weapon (owner, 2026-10-22): the consequential tiers (*scar*,
+*dark and spread*, *deadly*: colonies eaten down, neighbours seeded, worlds
+lost) stay runnable and are the intended direction once the campaign can hold
+worlds lost or held. The owner's other picks: *frequency* seasonal (about three
+a year; rare and frequent exist), *player colonies* exposed by the same rules
+as every colony (also *after the first answered bloom* and *never*), where
+later events are expected to land. `-Dmarines.bloom.severity`, `.frequency` and
+`.playerColonies` select a preset for a control run. `gradlew.bat
+bloomEvidence` plays every preset under three player policies over N cycles and
+reports blooms a year, outcomes, spread and size lost.
 
 **Not yet.** The colony's industry does not yet pick the outlying installation
 in the precinct plan (`bloom-installation-flavour.md`), and dead-ground
 scavenger fleets, Tri-Tachyon's interest in samples and what containment pays
 beyond regard are not built.
+
+**Direction (owner, 2026-10-22; not work).** The Bloom is meant to grow into a
+campaign arc, in three movements:
+
+1. **The assaulted settlement.** The first response to a colony being eaten:
+   Colony Breach, as built.
+2. **Organising the defence.** Faction militaries respond in force: allied
+   columns, large redoubts, and the company sallying out in a helping role on a
+   wider front rather than carrying the fight alone.
+3. **The heart of the infection.** A climax assault on the bloom's centre on
+   the surface, in overgrown country.
+
+Alongside it, a scripted **sector threat**: a set mission or planet with its own
+strength, once spread is modelled properly. The hooks are the severity tier, a
+bloom's generation and parent (its spread chain), and `RavBloomSystem.wakeAt`,
+which wakes a bloom at a chosen market outside the weekly draw.
 
 ## Vocabulary
 

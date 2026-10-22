@@ -10,7 +10,9 @@ public enum BloomEnd {
     /** Nobody answered; the bloom ate what it could reach and went quiet on its own. */
     BURNED_OUT,
     /** Nobody answered, and the colony did not survive it. */
-    DECIVILIZED;
+    DECIVILIZED,
+    /** Nobody answered, and the world's own military put it down (the benign first stage). */
+    PUT_DOWN;
 
     public boolean byThePlayer() {
         return this == CONTAINED || this == STARVED_OUT;

@@ -36,8 +36,9 @@ public final class SectorBloomWorld implements BloomWorld {
 
     /** Days a dark bloom's bites keep the colony's workings shut. */
     private static final float DISRUPTION_DAYS = 90f;
-    private static final int UNREST_ON_END = 2;
     private static final int UNREST_ON_DARK = 2;
+    /** Incoming population weight read as full inflow. */
+    private static final float INFLOW_FULL = 20f;
 
     @Override
     public long seed() {
@@ -88,11 +89,13 @@ public final class SectorBloomWorld implements BloomWorld {
     }
 
     @Override
-    public void wentDark(RavBloom bloom) {
+    public void wentDark(RavBloom bloom, boolean disrupt) {
         MarketAPI market = live(bloom.marketId);
         if (market == null) return;
-        disruptWorkings(market);
-        RecentUnrest.get(market).add(UNREST_ON_DARK, Strings.get("ravBloomUnrestReason"));
+        if (disrupt) {
+            disruptWorkings(market);
+            RecentUnrest.get(market).add(UNREST_ON_DARK, Strings.get("ravBloomUnrestReason"));
+        }
         market.reapplyConditions();
         RavBloomIntel.notice(bloom, RavBloomIntel.Notice.DARK);
     }
@@ -123,11 +126,11 @@ public final class SectorBloomWorld implements BloomWorld {
     }
 
     @Override
-    public void ended(RavBloom bloom) {
+    public void ended(RavBloom bloom, int unrest) {
         MarketAPI market = live(bloom.marketId);
         if (market != null) {
             if (market.hasCondition(RavBloomCondition.ID)) market.removeCondition(RavBloomCondition.ID);
-            RecentUnrest.get(market).add(UNREST_ON_END, Strings.get("ravBloomUnrestReason"));
+            if (unrest > 0) RecentUnrest.get(market).add(unrest, Strings.get("ravBloomUnrestReason"));
             market.reapplyConditions();
         }
         RavBloomIntel.notice(bloom, RavBloomIntel.Notice.ENDED);
@@ -182,7 +185,22 @@ public final class SectorBloomWorld implements BloomWorld {
                 system != null ? system.getId() : null, market.getFactionId(), market.getSize(),
                 (int) market.getDaysInExistence(), market.isHidden(), market.isPlayerOwned(),
                 Misc.hasRuins(market), Misc.hasFarmland(market), workings, isCore(system),
-                x, y, fromCore);
+                x, y, fromCore, traffic(market), inflow(market));
+    }
+
+    /** Accessibility, plus the port: where the cargo, and whatever rides in it, comes through. */
+    private static float traffic(MarketAPI market) {
+        float traffic = Math.max(0f, market.getAccessibilityMod().computeEffective(0f));
+        if (market.hasIndustry(Industries.MEGAPORT)) traffic += 0.5f;
+        else if (market.hasIndustry(Industries.SPACEPORT)) traffic += 0.25f;
+        return traffic;
+    }
+
+    /** Growth pressure from immigration, 0 to 1: incoming weight against what reads as fast growth. */
+    private static float inflow(MarketAPI market) {
+        if (market.getIncoming() == null) return 0f;
+        float incoming = market.getIncoming().getWeightValue();
+        return Math.max(0f, Math.min(1f, incoming / INFLOW_FULL));
     }
 
     private static boolean isCore(StarSystemAPI system) {
