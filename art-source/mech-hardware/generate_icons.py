@@ -470,10 +470,12 @@ def internals(f):
     f['capacitor-factory'] = banded(150, 100, hbar(10, 140, 12, 4, MID, rx=0) + cells(14, 136, 20, 64, 3), 'CAP')
     b = hbar(10, 140, 12, 4, MID, rx=0) + cells(12, 70, 20, 64, 3, gap=3) + cells(80, 138, 20, 64, 3, gap=3)
     f['capacitor-double'] = banded(150, 100, b, 'CAP')
-    b = hbar(10, 215, 12, 4, MID, rx=0) + cells(12, 160, 20, 64, 6, gap=4)
-    for y in range(18, 68, 8):
-        b += hbar(168, 214, y, 4, D, rx=0)
-    f['capacitor-military'] = banded(225, 100, b, 'CAP')
+    # Military bank, 2x2: two tiers of cells on their bus bars and a cooling grille between them.
+    b = hbar(10, 140, 12, 4, MID, rx=0) + cells(12, 138, 20, 76, 4, gap=4)
+    for y in range(90, 110, 6):
+        b += hbar(14, 136, y, 3, D, rx=0)
+    b += hbar(10, 140, 116, 4, MID, rx=0) + cells(12, 138, 124, 180, 4, gap=4)
+    f['capacitor-military'] = banded(150, 200, b, 'CAP')
 
     # Auxiliary vent array, 2x1: a framed bank of slanted louvres and an exhaust fan.
     b = block(8, 12, 96, 68, 6, MID)

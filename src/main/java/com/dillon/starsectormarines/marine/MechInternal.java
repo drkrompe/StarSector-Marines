@@ -44,7 +44,7 @@ public enum MechInternal {
     // refit fires mostly SRMs and out-guns its pre-cut frame by a further ~4%. 120 stays below
     // the threshold for any dissipation up to 11.4/s.
     MILITARY_CAPACITOR_BANK("internal.capacitor-bank-military", "@gearInternalMilitaryCapacitorBank", Role.CAPACITOR_BANK,
-            EquipmentAccessTier.PRESTIGE, 3, 1, 5f, 0f, 0f, 0f, 120f, 8f),
+            EquipmentAccessTier.PRESTIGE, 2, 2, 5f, 0f, 0f, 0f, 120f, 8f),
 
     AUXILIARY_VENT_ARRAY("internal.vent-array-auxiliary", "@gearInternalAuxiliaryVentArray", Role.VENT_ARRAY,
             EquipmentAccessTier.ADVANCED, 2, 1, 2f, 0f, 0f, 0f, 0f, 1f);

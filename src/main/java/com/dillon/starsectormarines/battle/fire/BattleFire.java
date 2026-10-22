@@ -25,6 +25,11 @@ import java.util.function.Supplier;
  * striped (military) floor never burns. A standing wall or window stops heat
  * passing over it, so fire gets in through doorways and through what burns.
  *
+ * <p><b>Creep burns where it has ground to feed it.</b> Over grass or brush it is
+ * fuel, living or dead; over cleared ground (bare earth, roads, paving) with
+ * nothing else on the cell it is a thin film that does not burn, so a ride or a
+ * road keeps its firebreak under a bloom.
+ *
  * <p>Holds no state of its own beyond the field; the map, the creep field and
  * the doodads remain the owners of what they hold. A brush or crown fire
  * smokes ({@link FireSmoke}).
@@ -39,6 +44,8 @@ public final class BattleFire implements FireTerrain, FireField.Listener {
     public static final int LIGHT_WALL_HP = 100;
     /** Damage that knocks a burnt-through wall cell down whatever it had left. */
     static final int BURNT_THROUGH_DAMAGE = 1_000_000;
+    /** Control switch for creep over cleared ground burning: {@code -Dbattle.fire.creepFilm=false} lets it burn. */
+    static final boolean CREEP_FILM = !"false".equalsIgnoreCase(System.getProperty("battle.fire.creepFilm"));
 
     private final NavigationGrid grid;
     private final CellTopology topology;
@@ -98,12 +105,24 @@ public final class BattleFire implements FireTerrain, FireField.Listener {
         }
         mask |= structureFuel(idx, x, y, ground);
         CreepField c = creep.get();
-        if (c != null) {
+        // Creep over cleared ground (a ride, a road, a bare yard) is a film with nothing under it to feed it:
+        // it does not burn, so a cleared break still holds once the bloom has grown over it.
+        if (c != null && !(CREEP_FILM && mask == 0 && cleared(ground))) {
             int cov = c.coverageAt(idx);
             if (cov >= CreepField.CREEPED && c.vitalityAt(idx) >= CreepField.CREEPED) mask |= FireFuel.CREEP.bit;
             else if (cov >= DEAD_CREEP_COVERAGE) mask |= FireFuel.DEAD_CREEP.bit;
         }
         return mask;
+    }
+
+    /** Ground cleared of anything to burn: bare earth and every paving. Sand and snow are left to their own biomes. */
+    private static boolean cleared(CellTopology.GroundKind ground) {
+        switch (ground) {
+            case DIRT: case STREET: case COURTYARD: case STONE: case BRICK: case SIDEWALK: case STRIPED:
+                return true;
+            default:
+                return false;
+        }
     }
 
     /** What a building cell offers: its light wall or window, or its furnished floor. */

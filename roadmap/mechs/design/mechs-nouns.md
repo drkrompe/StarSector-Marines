@@ -369,10 +369,12 @@ increasing an encounter's total armored threat.
   Above a single row, a piece is never wider than it is tall: multi-row
   footprints are 2x2 or 2x3 (columns x rows), and long guns stand upright in
   them, muzzle forward.
-  Each asset-class layout owns the socket's physical mount anchor,
-  its equipment-dock center around the doll, and its doll-relative interaction
-  footprint as well as compatibility and capacity. A leader preserves the
-  relationship between a remote dock and the mount it configures.
+  Each asset-class layout owns the socket's compatibility and capacity. The lab
+  draws the sockets as a **schematic**, not as docks around the machine: the
+  engine core in the middle of a drafting panel on the left, the arm assembly
+  ahead of it, a shoulder either side, the capacitors and mini-fab behind, each
+  wired back to the core in its hardpoint colour. The fitting camera stands the
+  machine itself in the right of the view, beside the schematic.
   Presentation may enforce a minimum pointer hit area for usability without
   changing that grid or making the asset physically larger. Inactive cells remain
   visible and blocked so a smaller mount reads against the same scale as a larger
@@ -1061,7 +1063,7 @@ support sortie, subject only to practical runtime resources.
   quiet internal grids retain the socket's authored dimensions. Empty mounts show
   a hardware silhouette and compatibility label. The CORE, CAPACITORS and
   MINI_FAB wells host internals rather than weapons, and the workspace shows the
-  engine budget beside them. Thin routed leaders return to physical anchors.
+  engine budget beside them.
   Amber corners identify selection; green alignment scans and a release prompt
   identify an accepted proposed drop, and red corners explicitly reject one.
   Motion follows the presentation clock without mutating campaign hardware.
@@ -1082,6 +1084,13 @@ support sortie, subject only to practical runtime resources.
   command. Factory-locked internals read as recessed rather than as swappable
   mounts. Hover ghosting on docks and on the top performance meters is
   presentation only: it projects a candidate and never changes hardware.
+- Each performance meter wears the colour of the part that moves it (plate for
+  armor, engine blue for mobility, flux violet for capacitors and dissipation,
+  weapon amber for reach, missile green for racks) and reads against the
+  **stock frame**: the chassis's roll-out weapons on its stock internals. The
+  stock share is a dim shade with a tick where stock stands, what the fit adds
+  past it is the full colour, and a fit that falls short of stock shows the
+  shortfall in red.
 - The garage is a flat top-down, non-advancing room simulation assembled from the
   battle renderer's indoor tileset cells and props. Its mech and workers are real
   battle entities consumed by the ordinary unit render system. The retained host

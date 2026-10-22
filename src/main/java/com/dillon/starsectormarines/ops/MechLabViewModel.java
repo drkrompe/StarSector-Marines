@@ -832,22 +832,30 @@ public final class MechLabViewModel {
         MechRefit refit = refit();
         float armor = fit.armorCapacity() * refit.armorMult();
         float dissipation = fit.dissipationPerSecond() * refit.dissipationMult();
+        // The stock frame: the chassis's roll-out weapons on its stock internals. A bar shows that
+        // much in its part's shade and what the fit adds past it (or falls short of it) beyond.
+        MechVariant variant = mech.variant();
+        MechFrameBudget.Fit stock = new MechFrameBudget.Fit(variant, variant.arms, variant.leftShoulder,
+                variant.rightShoulder, null, null, null, null);
 
         return List.of(
                 meter("armor", Strings.get("openingMechLabArmor"), Strings.format("openingMechLabPlate", Math.round(armor)),
                         armor, maximum(MechFrameBudget::refitArmorCapacity) * refit.armorMult(),
-                        ghost.armorCapacity() * refit.armorMult()),
+                        ghost.armorCapacity() * refit.armorMult(), stock.armorCapacity() * refit.armorMult(), PLATE_TONE),
                 meter("mobility", Strings.get("openingMechLabMobility"), Strings.format("openingMechLabCellsS", number(fit.moveSpeed())),
-                        fit.moveSpeed(), maximum(MechFrameBudget::refitMoveSpeed), ghost.moveSpeed()),
+                        fit.moveSpeed(), maximum(MechFrameBudget::refitMoveSpeed), ghost.moveSpeed(),
+                        stock.moveSpeed(), ENGINE_TONE),
                 meter("flux", Strings.get("openingMechLabCapacitorBank"), Strings.format("openingMechLabFluxValue", number(fit.fluxCapacity())),
-                        fit.fluxCapacity(), maximumFluxCapacity(), ghost.fluxCapacity()),
+                        fit.fluxCapacity(), maximumFluxCapacity(), ghost.fluxCapacity(), stock.fluxCapacity(), FLUX_TONE),
                 meter("dissipation", Strings.get("openingMechLabDissipation"), Strings.format("openingMechLabDissipationValue", number(dissipation)),
                         dissipation, maximumDissipation() * refit.dissipationMult(),
-                        ghost.dissipationPerSecond() * refit.dissipationMult()),
+                        ghost.dissipationPerSecond() * refit.dissipationMult(),
+                        stock.dissipationPerSecond() * refit.dissipationMult(), FLUX_TONE),
                 meter("range", Strings.get("openingMechLabMaxRange"), Strings.format("openingMechLabCells", number(currentRange)),
-                        currentRange, maximumWeaponRange(), ghostRange),
+                        currentRange, maximumWeaponRange(), ghostRange, weaponRange(stock), WEAPON_TONE),
                 meter("endurance", Strings.get("openingMechLabMissiles"), Strings.format("openingMechLabTriggers", currentMissiles),
-                        currentMissiles, maximumMissileTriggers(), ghostMissiles));
+                        currentMissiles, maximumMissileTriggers(), ghostMissiles,
+                        finiteAmmo(stock.leftShoulder()) + finiteAmmo(stock.rightShoulder()), MISSILE_TONE));
     }
 
     /** The fit a hovered catalog candidate would produce, or null when nothing is hovered. */
@@ -1971,6 +1979,15 @@ public final class MechLabViewModel {
         return component != null && component.ammoCapacity > 0 ? component.ammoCapacity : 0;
     }
 
+    private static float weaponRange(MechFrameBudget.Fit fit) {
+        float max = 0f;
+        for (MechMountSlot slot : MechMountSlot.values()) {
+            MechWeaponComponent component = fit.weaponAt(slot);
+            if (component != null) max = Math.max(max, component.weaponDef().range);
+        }
+        return max;
+    }
+
     private static float maxWeaponRange(CampaignMech mech) {
         float max = 0f;
         for (MechMountSlot slot : MechMountSlot.values()) {
@@ -2050,30 +2067,81 @@ public final class MechLabViewModel {
         return List.copyOf(pills);
     }
 
+    /*
+     * Each stat bar wears the colour of the part that moves it, the hardpoint and socket tones the
+     * doll's bricks use: plate for armor, the engine's blue for mobility, flux purple for the
+     * capacitor bank and dissipation, a weapon's amber for reach and missile green for racks.
+     */
+    private static final String PLATE_TONE = "#b9b6a2";
+    private static final String ENGINE_TONE = "#5e96d2";
+    private static final String FLUX_TONE = "#a07edc";
+    private static final String WEAPON_TONE = "#e2c248";
+    private static final String MISSILE_TONE = "#6cc45e";
+    private static final String NEUTRAL_TONE = "#acae96";
+
+    /** A bar with no stock reference: a vehicle's read-only hull figures. */
     private static PerformanceMeter meter(String suffix, String label, String value,
                                           float currentAmount, float maximum, float ghostAmount) {
-        int currentPercent = maximum > 0f ? Math.round(currentAmount / maximum * 100f) : 0;
-        int ghostPercent = maximum > 0f ? Math.round(ghostAmount / maximum * 100f) : 0;
-        currentPercent = Math.max(0, Math.min(100, currentPercent));
-        ghostPercent = Math.max(0, Math.min(100, ghostPercent));
+        return meter(suffix, label, value, currentAmount, maximum, ghostAmount, currentAmount, NEUTRAL_TONE);
+    }
+
+    /**
+     * One stat bar, built of positioned segments on its track: the stock share in a dim shade of
+     * the part's colour, any gain past stock in the full colour, any shortfall below stock as a
+     * deficit, a tick where stock stands, and the hovered candidate's change as a ghost on top.
+     */
+    private static PerformanceMeter meter(String suffix, String label, String value,
+                                          float currentAmount, float maximum, float ghostAmount,
+                                          float stockAmount, String tone) {
+        int current = percent(currentAmount, maximum);
+        int ghost = percent(ghostAmount, maximum);
+        int stock = percent(stockAmount, maximum);
 
         String ghostStyle;
         String ghostClasses;
-        if (ghostPercent > currentPercent) {
-            ghostStyle = "left: " + currentPercent + "%; width: " + (ghostPercent - currentPercent) + "%;";
+        if (ghost > current) {
+            ghostStyle = segment(current, ghost - current);
             ghostClasses = "meter-ghost gain";
-        } else if (ghostPercent < currentPercent) {
-            ghostStyle = "left: " + ghostPercent + "%; width: " + (currentPercent - ghostPercent) + "%;";
+        } else if (ghost < current) {
+            ghostStyle = segment(ghost, current - ghost);
             ghostClasses = "meter-ghost loss";
         } else {
             ghostStyle = "";
             ghostClasses = "meter-ghost hidden";
         }
+        String fillStyle = segment(0, Math.min(current, stock)) + "background-color: " + dim(tone) + ";";
+        boolean gained = current > stock;
+        boolean fallsShort = current < stock;
+        String gainStyle = gained ? segment(stock, current - stock) + "background-color: " + tone + ";" : "";
+        String deficitStyle = fallsShort ? segment(current, stock - current) : "";
+        boolean stockShown = !NEUTRAL_TONE.equals(tone);
 
         String base = "mech-meter:" + suffix;
         return new PerformanceMeter(base, base + ":label", base + ":value",
                 base + ":track", base + ":fill", base + ":ghost", label, value,
-                "width: " + currentPercent + "%;", ghostStyle, ghostClasses);
+                fillStyle, ghostStyle, ghostClasses,
+                base + ":gain", gainStyle, gained ? "meter-gain" : "meter-gain hidden",
+                base + ":deficit", deficitStyle, fallsShort ? "meter-deficit" : "meter-deficit hidden",
+                base + ":stock", "left: " + stock + "%;", stockShown ? "meter-stock" : "meter-stock hidden");
+    }
+
+    private static int percent(float amount, float maximum) {
+        int value = maximum > 0f ? Math.round(amount / maximum * 100f) : 0;
+        return Math.max(0, Math.min(100, value));
+    }
+
+    private static String segment(int left, int width) {
+        return "left: " + left + "%; width: " + width + "%;";
+    }
+
+    /** The part's colour sunk most of the way into the track, for the share stock already gives. */
+    static String dim(String tone) {
+        int rgb = Integer.parseInt(tone.substring(1), 16);
+        int track = 0x121719;
+        int r = Math.round(((rgb >> 16) & 0xff) * .5f + ((track >> 16) & 0xff) * .5f);
+        int g = Math.round(((rgb >> 8) & 0xff) * .5f + ((track >> 8) & 0xff) * .5f);
+        int b = Math.round((rgb & 0xff) * .5f + (track & 0xff) * .5f);
+        return String.format(Locale.ROOT, "#%02x%02x%02x", r, g, b);
     }
 
     private static float maximum(VariantMetric metric) {
@@ -2166,13 +2234,20 @@ public final class MechLabViewModel {
 
     public record PerformanceMeter(String id, String labelId, String valueId, String trackId,
                                    String fillId, String ghostId, String label, String value,
-                                   String fillStyle, String ghostStyle, String ghostClasses)
+                                   String fillStyle, String ghostStyle, String ghostClasses,
+                                   String gainId, String gainStyle, String gainClasses,
+                                   String deficitId, String deficitStyle, String deficitClasses,
+                                   String stockId, String stockStyle, String stockClasses)
             implements MarkupPropertySource {
         @Override public Object markupProperty(String p) { return switch (p) {
             case "id" -> id; case "labelId" -> labelId; case "valueId" -> valueId;
             case "trackId" -> trackId; case "fillId" -> fillId; case "ghostId" -> ghostId;
             case "label" -> label; case "value" -> value; case "fillStyle" -> fillStyle;
             case "ghostStyle" -> ghostStyle; case "ghostClasses" -> ghostClasses;
+            case "gainId" -> gainId; case "gainStyle" -> gainStyle; case "gainClasses" -> gainClasses;
+            case "deficitId" -> deficitId; case "deficitStyle" -> deficitStyle;
+            case "deficitClasses" -> deficitClasses;
+            case "stockId" -> stockId; case "stockStyle" -> stockStyle; case "stockClasses" -> stockClasses;
             default -> throw unknown("mech-meter", p); }; }
     }
 

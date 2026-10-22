@@ -1,0 +1,9 @@
+Reskin the attached guide sheet into top-down fire sprites for an overhead tactical game. The camera looks STRAIGHT DOWN at the ground from high above: there are no side-view flame tongues rising up the image, no vertical flames, no horizon, no perspective. From above, a fire is a flickering PATCH of burning ground: an irregular, roughly round area of flame with several hot spots, no single centre, a busy ragged rim, and it would run together with the next patch into one carpet of fire.
+
+It must NOT look like an explosion, a starburst, a star, a sun, a flower or a blast: no radial spikes, no symmetric points, no bright single centre with rays.
+
+Layout rules (strict):
+- The guide is a 4x4 grid of square frames on a 1024x1024 canvas. Keep exactly that grid, each frame's fire exactly where and as big as the guide's shapes, following their outlines closely. Do not move, merge, add or remove shapes. Frames must not touch their neighbours.
+- The guide's colour zones are a map, not the final colours: pale yellow = hottest parts, orange = flame body, dark red = outer licking rim. Keep each zone's shape and placement.
+- Rows 1-2 are eight frames of one animation loop of a burning patch; rows 3-4 are eight frames of one loop of a small grass fire of two or three little flame islands. Consecutive frames must differ only a little, like successive moments of the same fire, so they animate smoothly.
+- True transparent background, including all space between and around the flames. No ground, grass, soil, ash patch, shadow slab, border, grid lines, labels or text.

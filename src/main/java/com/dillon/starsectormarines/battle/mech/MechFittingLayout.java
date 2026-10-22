@@ -167,7 +167,7 @@ public final class MechFittingLayout {
                         -0.72f, 0.08f, -1.38f, -0.48f, 1.40f, 0.72f, false),
                 socket(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 2, 3,
                         0.72f, 0.08f, 1.38f, -0.48f, 1.40f, 0.72f, false),
-                socket(SocketId.CAPACITORS, SocketType.FLUX, 3, 1,
+                socket(SocketId.CAPACITORS, SocketType.FLUX, 2, 2,
                         0f, -0.58f, -1.38f, 0.72f, 1.70f, 0.68f, false),
                 socket(SocketId.MINI_FAB, SocketType.UTILITY, 2, 1,
                         0f, -0.92f, 1.38f, 0.72f, 1.40f, 0.68f, false))));

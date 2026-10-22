@@ -156,6 +156,7 @@ public final class FleetArmoryScreen implements Screen {
             if (view == View.FIRST_REFIT) bindFirstRefitSheets(candidateSheets, candidate, firstRefit);
             if (view == View.FIRETEAMS) {
                 ArmorySpecSheets.bindInspection(candidateSheets, candidate, viewModel.inspection());
+                LoadoutInspection.bindPortraits(built, candidate, viewModel.inspection(), previewAssets);
                 // A new document holds new elements even where the projection
                 // behind them is the one already bound, so the guard is cleared.
                 boundWeaponTiles = null;
@@ -271,7 +272,7 @@ public final class FleetArmoryScreen implements Screen {
                 "squad-doctrine-strip", "equipment-picker-tabs", "show-weapon-picker",
                 "show-armor-picker", "weapon-doctrine-list", "armor-doctrine-list",
                 "loadout-browser-tools", "loadout-filter-list", "refit-transaction",
-                "loadout-roll", "loadout-billets", "loadout-inspection", "squad-equip-row",
+                "loadout-squad-head", "loadout-billets", "loadout-inspection", "squad-equip-row",
                 "transaction-result", "transaction-feedback")
                 : List.of("armor-comparison-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
