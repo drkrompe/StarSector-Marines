@@ -979,7 +979,7 @@ KEYFRAMES = {
         ships={},
         fx=[('entry_trails',)],
         labels=['trail-colossus', 'trail-morrow'],
-        clean=True),      # the review copy carries no labels or caption over the trails, only its shot id
+        clean=True),      # the review copy carries nothing over the trails: no labels, caption or shot id
 }
 
 
@@ -1145,6 +1145,9 @@ def _wreckfall(seed=12, small=10):
         size = rnd.uniform(14, 40) if kind == 'chunk' else rnd.uniform(1.5, 8)
         out.append(dict(name='%s %s %d' % (of, kind, n), of=of, kind=kind, size=size,
                         t_in=126.0 + rnd.uniform(-2.0, 5.5), at=pos, vel=vel, seed=n))
+    # two chunks, from different hulls, break up during the shot (coordinator, 2026-10-22)
+    chunks = [p for p in out if p['kind'] == 'chunk']
+    chunks[0]['split'], chunks[-1]['split'] = 129.6, 130.4
     return out
 
 
@@ -2163,14 +2166,14 @@ def blender_main(cfg):
         the white-hot core, sparks shed off her, and the trail grown behind her since 126 s."""
         length = SHIP_LENGTH[key]
         head = Vector(pose.at(t)[:3])
-        wake = length * min(4.0, 1.0 + (t - 126.0) * .8)      # grows as she goes deeper into the air
+        wake = length * min(3.5, 1.0 + (t - 126.0) * .7)      # grows as she goes deeper into the air
         pts = [head + Vector(K6_WIND) * wake * (1 - i / 40) for i in range(41)]
-        entry_kit().trail('Entry ' + key, pts, stage_fx, width_m=length * .45, glow=1.0, sparks=12,
-                          seed=len(key), shock=(length * 1.1, length * .5), spark_len=length * .6)
+        entry_kit().trail('Entry ' + key, pts, stage_fx, width_m=length * .55, glow=1.0, sparks=12,
+                          seed=len(key), shock=(length * 1.3, length * .6), spark_len=length * .6, ion=False)
 
     def wreckfall(t):
         """S12: the ships the battle lost coming down in pieces (WRECKFALL): each piece a short entry
-        trail of its own, a chunk splitting in two or three as it breaks up; no ionisation trail."""
+        trail of its own with a ragged, flickering head; two chunks split during the shot."""
         import random
         kit = entry_kit()
         for pc in WRECKFALL:
@@ -2179,20 +2182,25 @@ def blender_main(cfg):
             rnd = random.Random(pc['seed'])
             age = min(t - pc['t_in'], 1.5 if pc['kind'] == 'chunk' else .8)
 
-            def at(tt, dv=(0.0, 0.0, 0.0), pc=pc):
-                return Vector([pc['at'][i] + (pc['vel'][i] + dv[i]) * (tt - K6_T) for i in range(3)])
+            def at(tt, pc=pc):
+                return Vector([pc['at'][i] + pc['vel'][i] * (tt - K6_T) for i in range(3)])
             parts = [(0.0, 0.0, 0.0)]
-            if pc['kind'] == 'chunk':          # breaking up: splinters peeling off on headings of their own
-                parts += [tuple(rnd.gauss(0, 18) for _ in range(3)) for _ in range(rnd.randint(1, 2))]
+            split = pc.get('split')
+            if split is not None and t > split:     # breaking up in the shot: splinters peel off
+                parts += [tuple(rnd.gauss(0, 140) for _ in range(3)) for _ in range(2)]
+            # a tumbling fragment's head flickers: its brightness per frame, from the frame's own time
+            flick = random.Random(pc['seed'] * 1000 + int(round(t * 24))).uniform(.6, 1.35)
             for k, dv in enumerate(parts):
-                head = at(t, dv)
-                ln = pc['size'] * (12.0 if pc['kind'] == 'chunk' else 25.0) * min(1.0, .3 + age)
+                head = at(t) + Vector(dv) * (t - split if k else 0.0)
+                grown = age if k == 0 else t - split
+                ln = pc['size'] * (12.0 if pc['kind'] == 'chunk' else 25.0) * min(1.0, .3 + grown)
                 pts = [head + Vector(K6_WIND) * ln * (1 - i / 12) for i in range(13)]
                 kit.trail('Wreckfall %s %d' % (pc['name'], k), pts, stage_fx,
                           width_m=pc['size'] * (1.5 if pc['kind'] == 'chunk' else 2.0) * (1 if k == 0 else .6),
-                          glow=.35 if pc['kind'] == 'chunk' else .15, sparks=6 if pc['kind'] == 'chunk' and k == 0 else 0,
+                          glow=(.35 if pc['kind'] == 'chunk' else .15) * flick * (1 if k == 0 else .75),
+                          sparks=6 if pc['kind'] == 'chunk' and k == 0 else 0,
                           seed=pc['seed'] * 7 + k, ion=False, shock=(pc['size'] * 1.4, pc['size'] * .7),
-                          spark_len=pc['size'])
+                          spark_len=pc['size'], ragged=3 if pc['kind'] == 'chunk' else 2)
 
     def field_matrix(piece, box, t, local=None):
         """A debris box's world matrix at time t: the wreck turning about its own axis (debris_field).
@@ -2966,9 +2974,7 @@ def label_frames(run):
             bar = 100 / mpp
             dr.rectangle((60, H - 150, 60 + bar, H - 142), fill=(230, 230, 230, 255))
             dr.text((60, H - 138), '100 m', font=f_lab, fill=(230, 230, 230, 255))
-        if clean:       # a shot that sells on its effects: only its id, small, in the corner
-            dr.text((22, H - 40), spec['shot'], font=f_lab, fill=(230, 230, 230, 150))
-        else:
+        if not clean:   # a shot that sells on its effects carries nothing over them (no id burn-in either)
             dr.rectangle((0, 0, W, 58), fill=(0, 0, 0, 170))
             dr.text((22, 12), title, font=f_title, fill=(255, 255, 255, 255))
             dr.rectangle((0, H - 92, W, H), fill=(0, 0, 0, 170))

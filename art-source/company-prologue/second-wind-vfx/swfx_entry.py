@@ -177,52 +177,159 @@ def _material(name, colours, strength, opacity, edge=1.6, streaks=0.0):
     return mat
 
 
-def trail(name, pts, coll, width_m=1500.0, glow=1.0, sparks=0, seed=0, ion=True, shock=None, spark_len=None):
-    """An entry trail along pts (tail first, the hull last): the head's bow shock and core, the wake
-    cooling and widening back up the track, and the ionisation trail beyond it. width_m: the wake's
-    width at its widest; glow scales the emission (a smaller hull burns smaller and dimmer). sparks:
-    that many burning flecks shed from the head and strung back along the young wake; ion=False
-    leaves out the ionisation trail (a small fragment). shock: (length, radius) of the bow shock in
-    metres, in place of its size from width_m (a hull's shock hugs her; a wake is wider than she is);
-    spark_len: the longest spark, in metres. Sparks burn the wake's orange, never the core's white:
-    forty white-hot flecks read as white dashes (S12 lit span, 2026-10-22). Returns the head's position."""
-    pts = [Vector(p) for p in pts]
+def _wake_material(name, strength, cell_m):
+    """The wake as it cools (coordinator on S12 lit span 3, 2026-10-22: "turbulent and broken, widening
+    and cooling: white-yellow at the head, then orange, red, and grey smoke", gone before the black of
+    space). entry_u drives the colour, the glow (bright at the head, none once it is smoke), a lit grey
+    smoke taking over from the glow, and the opacity; a 3D noise at about cell_m metres breaks it into
+    patches, more so toward the tail, so it never reads as a cone with straight edges."""
+    name = '%s %.2f %.0f' % (name, strength, cell_m)
+    mat = bpy.data.materials.get(name)
+    if mat:
+        return mat
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    nt = mat.node_tree
+    nt.nodes.remove(nt.nodes['Principled BSDF'])
+    at = nt.nodes.new('ShaderNodeAttribute')
+    at.attribute_name = 'entry_u'
+    u = at.outputs['Fac']
+    col = _ramp(nt, [(0, (1.0, .95, .8)), (.07, (1.0, .78, .4)), (.18, PLASMA), (.34, (.62, .15, .05)),
+                     (.5, (.3, .27, .25)), (1, (.26, .25, .24))], u)
+    glow = _ramp(nt, [(0, (1, 1, 1)), (.1, (.45, .45, .45)), (.3, (.1, .1, .1)), (.48, (0, 0, 0))], u)
+    smoke = _ramp(nt, [(.32, (0, 0, 0)), (.55, (1, 1, 1))], u)
+    op = _ramp(nt, [(0, (1, 1, 1)), (.12, (.9, .9, .9)), (.5, (.5, .5, .5)), (.72, (.22, .22, .22)),
+                    (.88, (0, 0, 0))], u)
+    tc = nt.nodes.new('ShaderNodeTexCoord')
+    sc = nt.nodes.new('ShaderNodeVectorMath')
+    sc.operation = 'SCALE'
+    sc.inputs['Scale'].default_value = 1.0 / cell_m
+    nt.links.new(tc.outputs['Object'], sc.inputs[0])
+    nz = nt.nodes.new('ShaderNodeTexNoise')
+    nz.inputs['Scale'].default_value = 1.0
+    nz.inputs['Detail'].default_value = 6.0
+    nz.inputs['Roughness'].default_value = .62
+    nt.links.new(sc.outputs['Vector'], nz.inputs['Vector'])
+    patch = _math(nt, 'MINIMUM', _math(nt, 'MAXIMUM', _math(nt, 'MULTIPLY',
+                                                            _math(nt, 'SUBTRACT', nz.outputs['Fac'], .36), 3.2), 0.0), 1.0)
+    how = _math(nt, 'ADD', .45, _math(nt, 'MULTIPLY', u, .5))          # how broken: more toward the tail
+    brk = _math(nt, 'ADD', _math(nt, 'MULTIPLY', patch, how), _math(nt, 'SUBTRACT', 1.0, how))
+    lw = nt.nodes.new('ShaderNodeLayerWeight')
+    lw.inputs['Blend'].default_value = .5
+    soft = _math(nt, 'POWER', _math(nt, 'SUBTRACT', 1.0, lw.outputs['Facing']), 1.2)
+    fac = _math(nt, 'MINIMUM', _math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', op.outputs['Color'], soft), brk), 1.0)
+    em = nt.nodes.new('ShaderNodeEmission')
+    nt.links.new(col.outputs['Color'], em.inputs['Color'])
+    nt.links.new(_math(nt, 'MULTIPLY', glow.outputs['Color'], strength), em.inputs['Strength'])
+    dif = nt.nodes.new('ShaderNodeBsdfDiffuse')
+    nt.links.new(col.outputs['Color'], dif.inputs['Color'])
+    body = nt.nodes.new('ShaderNodeMixShader')
+    nt.links.new(smoke.outputs['Color'], body.inputs['Fac'])
+    nt.links.new(em.outputs[0], body.inputs[1])
+    nt.links.new(dif.outputs[0], body.inputs[2])
+    clear = nt.nodes.new('ShaderNodeBsdfTransparent')
+    mix = nt.nodes.new('ShaderNodeMixShader')
+    nt.links.new(fac, mix.inputs['Fac'])
+    nt.links.new(clear.outputs[0], mix.inputs[1])
+    nt.links.new(body.outputs[0], mix.inputs[2])
+    nt.links.new(mix.outputs[0], nt.nodes['Material Output'].inputs['Surface'])
+    return mat
+
+
+def _resample(pts, n):
+    """n points evenly along the polyline pts."""
+    out = []
+    for k in range(n):
+        j = k * (len(pts) - 1) / (n - 1)
+        i = min(int(j), len(pts) - 2)
+        out.append(pts[i].lerp(pts[i + 1], j - i))
+    return out
+
+
+def _ragged_tube(name, pts, radii, us, coll, mat, rnd, segments=20):
+    """_tube with its centre line wandering and every vertex's radius jittered, both growing toward
+    the tail: a wake whose edges are torn, not a cone's straight sides."""
+    me = bpy.data.meshes.new(name)
+    bm = bmesh.new()
+    rings = []
+    phase = rnd.uniform(0, 6.3)
+    for i, (p, r, (t, s, up)) in enumerate(zip(pts, radii, _frames(pts))):
+        w = us[i]
+        c = p + (s * math.sin(phase + 5.0 * w) + up * math.cos(phase * 1.7 + 4.0 * w)) * r * .35 * w
+        ring = []
+        for k in range(segments):
+            a = 2 * math.pi * k / segments
+            rr = r * (1 + w * rnd.uniform(-.35, .35))
+            ring.append(bm.verts.new(c + (s * math.cos(a) + up * math.sin(a)) * rr))
+        rings.append(ring)
+    layer = bm.loops.layers.float.new('entry_u')
+    for i in range(len(rings) - 1):
+        for k in range(segments):
+            a, b = rings[i][k], rings[i][(k + 1) % segments]
+            c, d = rings[i + 1][(k + 1) % segments], rings[i + 1][k]
+            f = bm.faces.new((a, b, c, d))
+            for loop in f.loops:
+                loop[layer] = us[i] if loop.vert in (a, b) else us[i + 1]
+    bm.to_mesh(me)
+    bm.free()
+    me.materials.append(mat)
+    o = bpy.data.objects.new(name, me)
+    coll.objects.link(o)
+    o.visible_shadow = False
+    return o
+
+
+def trail(name, pts, coll, width_m=1500.0, glow=1.0, sparks=0, seed=0, ion=True, shock=None, spark_len=None,
+          ragged=0):
+    """An entry trail along pts (tail first, the hull last). The hottest light is ahead of and around
+    her, never behind (coordinator, S12 lit span 3: a glow cone behind each hull read as engine
+    exhaust): a bow shock stands off her nose and wraps back over the hull, with a white-hot cap at its
+    front; the wake streams back from it, torn and cooling to smoke. width_m: the wake's width at its
+    widest; glow scales the emission. shock: (length, radius) of the bow shock in metres, in place of
+    its size from width_m. sparks: that many burning flecks, spark_len the longest, in the wake's
+    orange. ion=False leaves out the faint ionisation trail. ragged: that many extra small shocks
+    jittered around the head, so a tumbling fragment's head is torn, not a tidy comet's.
+    Returns the head's position."""
+    import random
+    rnd = random.Random(seed)
+    pts = _resample([Vector(p) for p in pts], 48)          # enough rings for the wake to wander
     n = len(pts)
     us = [1 - i / (n - 1) for i in range(n)]               # 0 at the head, 1 at the tail
     head, axis = pts[-1], (pts[-1] - pts[-2]).normalized()
-    wake = _material(f'{PREFIX} wake', [(0, HOT), (.06, PLASMA), (.35, EMBER), (1, (.12, .03, .01))],
-                     7.0 * glow, [(0, 1.0), (.1, .85), (.5, .35), (1, 0.0)], edge=1.4, streaks=.45)
-    ion_mat = _material(f'{PREFIX} ionisation', [(0, ION), (1, ION)], .35 * glow,
-                    [(0, 0.0), (.15, .28), (.6, .18), (1, 0.0)], edge=2.2, streaks=.3)
-    core = _material(f'{PREFIX} core', [(0, (1, 1, 1)), (.3, HOT), (1, PLASMA)], 40.0 * glow,
-                     [(0, 1.0), (.5, .9), (1, 0.0)], edge=1.0)
-    shock_mat = _material(f'{PREFIX} shock', [(0, HOT), (.4, PLASMA), (1, EMBER)], 14.0 * glow,
-                      [(0, 1.0), (.5, .7), (1, 0.0)], edge=2.0)
-    # the wake: narrow and hot at the head, widening as it cools
-    _tube(f'{name} wake', pts, [width_m * (.12 + .88 * u ** .7) for u in us], us, coll, wake)
-    # the ionisation trail: wider, and on past the wake's tail toward orbit
-    tail_dir = (pts[0] - pts[1]).normalized()
-    ext = [pts[0] + tail_dir * pts[0].__sub__(pts[1]).length * k for k in (4, 3, 2, 1)]
-    ipts = ext + pts
-    ius = [1 - i / (len(ipts) - 1) for i in range(len(ipts))]
-    if ion:
-        _tube(f'{name} ionisation', ipts, [width_m * (.5 + 2.5 * u) for u in ius], ius, coll, ion_mat)
-    # the head: a white-hot core a few hull lengths long, and the bow shock opening back over it
-    k = max(2, n // 12)
-    cpts = pts[-k - 1:]
-    cus = [1 - i / (len(cpts) - 1) for i in range(len(cpts))]
-    _tube(f'{name} core', cpts, [width_m * (.05 + .1 * u) for u in cus], cus, coll, core)
     sl, sr = shock if shock else (width_m * 2.2, width_m * .55)
-    _cone(f'{name} shock', head + axis * sl * .07, axis, sl, sr, coll, shock_mat)
+    wake = _wake_material(f'{PREFIX} wake', 9.0 * glow, max(width_m * .7, 1.0))
+    core = _material(f'{PREFIX} core', [(0, (1, 1, 1)), (.3, HOT), (1, PLASMA)], 45.0 * glow,
+                     [(0, 1.0), (.5, .8), (1, 0.0)], edge=1.4)
+    shock_mat = _material(f'{PREFIX} shock', [(0, HOT), (.35, PLASMA), (1, EMBER)], 22.0 * glow,
+                          [(0, 1.0), (.45, .75), (1, 0.0)], edge=1.6)
+    # the wake: from the shock's back edge, narrow and hot, widening and tearing as it cools
+    _ragged_tube(f'{name} wake', pts, [max(sr * .8, width_m * (.18 + .82 * u ** .6)) for u in us], us, coll,
+                 wake, rnd)
+    if ion:
+        ion_mat = _material(f'{PREFIX} ionisation', [(0, ION), (1, ION)], .35 * glow,
+                            [(0, 0.0), (.15, .28), (.6, .18), (1, 0.0)], edge=2.2, streaks=.3)
+        tail_dir = (pts[0] - pts[1]).normalized()
+        ext = [pts[0] + tail_dir * (pts[0] - pts[1]).length * k for k in (4, 3, 2, 1)]
+        ipts = ext + pts
+        ius = [1 - i / (len(ipts) - 1) for i in range(len(ipts))]
+        _tube(f'{name} ionisation', ipts, [width_m * (.5 + 2.5 * u) for u in ius], ius, coll, ion_mat)
+    # the bow shock, standing off her nose and wrapping back over her; a white-hot cap at its front
+    _cone(f'{name} shock', head + axis * sl * .4, axis, sl, sr, coll, shock_mat)
+    _cone(f'{name} cap', head + axis * sl * .42, axis, sl * .35, sr * .55, coll, core)
+    for j in range(ragged):
+        off = Vector((rnd.gauss(0, 1), rnd.gauss(0, 1), rnd.gauss(0, 1)))
+        off -= axis * off.dot(axis)
+        tilt = (axis + Vector((rnd.gauss(0, .3), rnd.gauss(0, .3), rnd.gauss(0, .3)))).normalized()
+        k = rnd.uniform(.35, .75)
+        _cone(f'{name} shard {j}', head + off * sr * .7 + tilt * sl * .3 * k, tilt, sl * k, sr * k, coll,
+              shock_mat if j % 2 else core)
     if sparks:
-        import random
-        rnd = random.Random(seed)
         fr = _frames(pts)
         for k in range(sparks):
             i = max(1, int((n - 1) * (1 - rnd.random() ** 2 * .35)))       # most near the head
             t, s_, u_ = fr[i]
             a = rnd.uniform(0, 2 * math.pi)
-            off = (s_ * math.cos(a) + u_ * math.sin(a)) * width_m * rnd.uniform(.3, 1.4)
+            off = (s_ * math.cos(a) + u_ * math.sin(a)) * max(width_m, sr) * rnd.uniform(.3, 1.4)
             p0 = pts[i] + off
             ln = (spark_len or width_m * 1.6) * rnd.uniform(.25, 1.0)
             p1 = p0 - t * ln
