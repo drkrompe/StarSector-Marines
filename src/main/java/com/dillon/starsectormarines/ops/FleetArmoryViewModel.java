@@ -187,8 +187,11 @@ public final class FleetArmoryViewModel {
         squadEquipmentPreview = reactor.computed(this::buildSquadEquipmentPreview);
         inspection = reactor.computed(() -> {
             domainRevision.get();
-            return LoadoutInspection.project(roster, roster.squadById(selectedSquadId.get()),
-                    squadEquipmentPreview.get(), inspectedBillet.get(), inspectedBillet::set);
+            Map<String, Object> projected = new LinkedHashMap<>(LoadoutInspection.project(roster,
+                    roster.squadById(selectedSquadId.get()), squadEquipmentPreview.get(),
+                    inspectedBillet.get(), inspectedBillet::set));
+            projected.put("cards", squadCards());
+            return projected;
         });
         targetSummary = reactor.computed(this::buildTargetSummary);
         candidateSummary = reactor.computed(this::buildCandidateSummary);
@@ -454,7 +457,8 @@ public final class FleetArmoryViewModel {
                 presentation, doctrineMetadata(presentation), weaponComposition(doctrine),
                 joinSpans(issue), issue, "", List.of(),
                 cardStamp(new LoadoutCard(LoadoutCard.Kind.WEAPON, doctrine.id()),
-                        traditionByCrest(presentation.factionLogo())), select);
+                        traditionByCrest(presentation.factionLogo())), weaponSeats(doctrine),
+                weaponSeatSheets(doctrine), select);
     }
 
     /**
@@ -513,6 +517,20 @@ public final class FleetArmoryViewModel {
                 doctrineMetadata(presentation), "weapon", "openingBarracksCardFire", rating,
                 List.of(weaponComposition(doctrine), joinSpans(weaponDistributionSpans("card-face", doctrine))))
                 .withSeats(weaponSeats(doctrine), fireTeams()).withStamp(stamp), stamp.restricted());
+    }
+
+    /** What hovering each seat of a weapon card describes: the weapon at the grade it is issued. */
+    private static List<SpecSheet> weaponSeatSheets(SquadWeaponDoctrine doctrine) {
+        List<SpecSheet> sheets = new ArrayList<>();
+        for (SquadWeaponIssue issue : doctrine.issues()) sheets.add(SpecSheets.weapon(issue.primaryDef(), issue.grade()));
+        return sheets;
+    }
+
+    /** What hovering each seat of a tactic sheet describes: the suit it issues. */
+    private static List<SpecSheet> armorSeatSheets(SquadArmorDoctrine issued) {
+        List<SpecSheet> sheets = new ArrayList<>();
+        for (String armorId : issued.issueIds()) sheets.add(SpecSheets.armor(MarineArmorCatalogRegistry.require(armorId)));
+        return sheets;
     }
 
     /** Each seat's weapon, with the special it also carries on the corner. */
@@ -608,7 +626,7 @@ public final class FleetArmoryViewModel {
                     roleComposition(plan), joinSpans(patterns), patterns,
                     armorCapabilities(capabilities), capabilities,
                     cardStamp(new LoadoutCard(LoadoutCard.Kind.SHEET, plan.id()), plan.tradition()),
-                    () -> selectArmorDoctrine(plan.id()))
+                    armorSeats(issued), armorSeatSheets(issued), () -> selectArmorDoctrine(plan.id()))
                     .withIssue(() -> issueArmorDoctrine(plan.id()), !candidate.canApply(),
                             issueReason(candidate), plan.id().equals(currentSquadArmorDoctrine())));
         }
@@ -633,7 +651,8 @@ public final class FleetArmoryViewModel {
             String id, boolean selected, String name, int rating,
             SquadLoadoutPresentationDef presentation, String metadata,
             String composition, String distribution, List<DoctrineSpan> distributionSpans,
-            String carries, List<DoctrineSpan> carriesSpans, SpecSheet.Stamp stamp, Runnable select) {
+            String carries, List<DoctrineSpan> carriesSpans, SpecSheet.Stamp stamp,
+            List<SpecSheet.Seat> seats, List<SpecSheet> seatSheets, Runnable select) {
         String rarityClass = presentation.rarity().cssClass();
         String classes = "doctrine-tile " + rarityClass
                 + (selected ? " selected" : "");
@@ -646,7 +665,7 @@ public final class FleetArmoryViewModel {
                 name, presentation.rarity().displayName(), rating,
                 Strings.format(presentation.kind() == SquadLoadoutPresentationDef.Kind.WEAPON ? "openingLoadoutFireRating" : "openingLoadoutGuardRating", rating), presentation.factionLogo(), metadata,
                 presentation.lore(), composition, distribution, distributionSpans,
-                carries, carriesSpans, stamp, select, null, true, "", false);
+                carries, carriesSpans, stamp, seats, seatSheets, select, null, true, "", false);
     }
 
     private static String factionLogoClasses(String factionLogo) {
@@ -941,6 +960,44 @@ public final class FleetArmoryViewModel {
     /** Why a card's Issue is refused; empty when it can be pressed. */
     private String issueReason(SquadEquipmentPreview candidate) {
         return candidate.canApply() ? "" : squadEquipmentMessage(candidate);
+    }
+
+    /**
+     * The selected squad's two cards as the right column's summary reads them: the card's
+     * face, its kind, its rating, and the Restricted seal when it bears one. The Mech Lab's
+     * specifications panel is the model: what the thing being fitted is, at a glance.
+     */
+    private List<Map<String, Object>> squadCards() {
+        MarineSquad squad = roster.squadById(selectedSquadId.get());
+        List<Map<String, Object>> cards = new ArrayList<>();
+        if (squad == null) return cards;
+        SquadWeaponDoctrine weapons = roster.armory().weaponDoctrineById(squad.weaponDoctrineId());
+        if (weapons != null) {
+            cards.add(squadCard("loadout-squad-card:weapons", weaponCardFace(weapons), "loadoutSquadCardWeapon",
+                    Strings.format("openingLoadoutFireRating", LoadoutEffectiveness.weaponRating(weapons))));
+        }
+        SquadArmorPlan plan = SquadEquipmentDoctrines.armorPlanById(squad.armorDoctrineId());
+        if (plan != null) {
+            SquadArmorDoctrine issued = roster.armory().issue(plan);
+            cards.add(squadCard("loadout-squad-card:armor", armorCardFace(plan, issued), "loadoutSquadCardSheet",
+                    Strings.format("openingLoadoutGuardRating", LoadoutEffectiveness.armorRating(issued))));
+        }
+        return cards;
+    }
+
+    private static Map<String, Object> squadCard(String id, CardFace face, String kindKey, String rating) {
+        Map<String, Object> card = new LinkedHashMap<>();
+        card.put("id", id);
+        for (String child : List.of("slot", "seal", "icon", "text", "kind", "name", "rating")) {
+            card.put(child + "Id", id + ":" + child);
+        }
+        card.put("sealClasses", face.restricted() ? "loadout-squad-card-seal"
+                : "loadout-squad-card-seal loadout-squad-card-seal-absent");
+        card.put("icon", face.icon() == null ? "" : face.icon());
+        card.put("kind", Strings.get(kindKey));
+        card.put("name", face.name());
+        card.put("rating", rating);
+        return card;
     }
 
     private String currentSquadWeaponDoctrine() {
@@ -1556,8 +1613,8 @@ public final class FleetArmoryViewModel {
             String ratingLabel, String factionLogo, String metadata,
             String description, String composition, String distribution,
             List<DoctrineSpan> distributionSpans, String carries,
-            List<DoctrineSpan> carriesSpans, SpecSheet.Stamp stamp,
-            Runnable select, Runnable issue, boolean issueDisabled,
+            List<DoctrineSpan> carriesSpans, SpecSheet.Stamp stamp, List<SpecSheet.Seat> seats,
+            List<SpecSheet> seatSheets, Runnable select, Runnable issue, boolean issueDisabled,
             String issueReason, boolean issued) implements MarkupPropertySource {
         /** Inert click handler for a card shown where nothing can be issued; its button is hidden. */
         private static final Runnable NO_ISSUE = () -> { };
@@ -1566,13 +1623,48 @@ public final class FleetArmoryViewModel {
             return stamp != null && stamp.restricted();
         }
 
+        /** What the seat picture adds: three teams of two rows of seat tiles, plus the issued sentence above it. */
+        private static final int SEAT_GRID_HEIGHT = 140 + 34;
+
+        private List<Map<String, Object>> seatTeams() {
+            List<String> labels = fireTeams();
+            List<Map<String, Object>> teams = new ArrayList<>();
+            for (int team = 0; team * SpecSheet.TEAM_SIZE < seats.size(); team++) {
+                String teamId = id + ":team-" + team;
+                List<Map<String, Object>> rows = new ArrayList<>();
+                for (int row = 0; row < SpecSheet.TEAM_SIZE / 2; row++) {
+                    String rowId = teamId + ":row-" + row;
+                    List<Map<String, Object>> cells = new ArrayList<>();
+                    for (int column = 0; column < 2; column++) {
+                        int index = team * SpecSheet.TEAM_SIZE + row * 2 + column;
+                        if (index >= seats.size()) break;
+                        SpecSheet.Seat seat = seats.get(index);
+                        String seatId = ArmorySpecSheets.seatId(id, index);
+                        Map<String, Object> cell = new LinkedHashMap<>();
+                        cell.put("id", seatId);
+                        cell.put("imageId", seatId + ":image");
+                        cell.put("image", seat.image() == null ? "" : seat.image());
+                        cell.put("badgeId", seatId + ":badge");
+                        cell.put("badge", seat.badge() == null ? "" : seat.badge());
+                        cell.put("badgeClasses", seat.badge() == null
+                                ? "doctrine-seat-badge doctrine-seat-badge-absent" : "doctrine-seat-badge");
+                        cells.add(cell);
+                    }
+                    rows.add(Map.of("id", rowId, "seats", cells));
+                }
+                teams.add(Map.of("id", teamId, "labelId", teamId + ":label", "rowsId", teamId + ":rows",
+                        "label", team < labels.size() ? labels.get(team) : "", "rows", rows));
+            }
+            return teams;
+        }
+
         /** The same card carrying its own Issue action and the reason it may be refused. */
         DoctrineTile withIssue(Runnable action, boolean disabled, String reason, boolean alreadyIssued) {
             return new DoctrineTile(id, headerId, nameId, rarityId, ratingId, metadataRowId,
                     factionLogoId, metadataId, descriptionId, compositionId, distributionId,
                     carriesId, classes, rarityClasses, ratingClasses, factionLogoClasses, name,
                     rarity, rating, ratingLabel, factionLogo, metadata, description, composition,
-                    distribution, distributionSpans, carries, carriesSpans, stamp, select, action,
+                    distribution, distributionSpans, carries, carriesSpans, stamp, seats, seatSheets, select, action,
                     disabled, reason, alreadyIssued);
         }
 
@@ -1611,7 +1703,8 @@ public final class FleetArmoryViewModel {
                 case "carriesTagId" -> carriesId + "-tag";
                 case "classes" -> classes;
                 case "weaponClasses" -> "weapon-tech-card " + classes;
-                case "cardStyle" -> "height: " + (174 + 48 * ((distributionSpans.size() + 1) / 2)
+                case "cardStyle" -> "height: " + (174 + (seats.isEmpty()
+                        ? 48 * ((distributionSpans.size() + 1) / 2) : SEAT_GRID_HEIGHT)
                         + (issue != null && !issueReason.isEmpty() ? 22 : 0)
                         + (stamp == null ? 0 : 18) + (restricted() ? 22 : 0)) + "px;";
                 // The card's printed stamp, and for a Restricted card its seal and warrant banner.
@@ -1625,7 +1718,14 @@ public final class FleetArmoryViewModel {
                 case "restrictionClasses" -> restricted() ? "doctrine-restriction" : "doctrine-line-hidden";
                 case "sealId" -> id + ":seal";
                 case "sealClasses" -> restricted() ? "doctrine-seal" : "doctrine-seal doctrine-seal-absent";
-                case "distributionStyle" -> "height: " + (48 * ((distributionSpans.size() + 1) / 2)) + "px;";
+                case "distributionStyle" -> seats.isEmpty()
+                        ? "height: " + (48 * ((distributionSpans.size() + 1) / 2)) + "px;" : "";
+                // The squad's twelve seats as three fire teams of two by two, each seat's
+                // weapon or suit with its special or integral system on the opposite corner:
+                // the picture the Barracks hover paints, so the two screens read alike.
+                case "seatsId" -> id + ":seats";
+                case "seatsClasses" -> seats.isEmpty() ? "doctrine-line-hidden" : "doctrine-seats";
+                case "teams" -> seatTeams();
                 case "rarityClasses" -> rarityClasses;
                 case "ratingClasses" -> ratingClasses;
                 case "factionLogoClasses" -> factionLogoClasses;
@@ -1645,9 +1745,9 @@ public final class FleetArmoryViewModel {
                 // A line is drawn as spans or as the joined sentence, never as
                 // both: the fallback is what a loadout issuing nothing to list
                 // still has to say.
-                case "distributionClasses" -> distributionSpans.isEmpty()
+                case "distributionClasses" -> distributionSpans.isEmpty() || !seats.isEmpty()
                         ? "doctrine-distribution label" : "doctrine-line-hidden";
-                case "distributionRowClasses" -> distributionSpans.isEmpty()
+                case "distributionRowClasses" -> distributionSpans.isEmpty() || !seats.isEmpty()
                         ? "doctrine-line-hidden" : "doctrine-span-row doctrine-distribution-row";
                 case "carries" -> carries;
                 case "carriesSpans" -> carriesSpans;
