@@ -65,11 +65,8 @@ breadcrumb keeps every completed level directly reachable.
   squad-wide readiness result and one squad-wide issue action commit all twelve billets
   atomically. The former Squad Equipment heading row, designer shortcut, and squad
   reinforcement shortcut do not occupy this workspace.
-- **Equipment designer:** a distinct breadcrumb depth edits one reusable definition
-  at a time. A horizontal library, Weapon/Armor mode, three team tabs, and four live
-  billet previews expose all twelve ordered positions without returning to the old
-  administration shell. Naming is a retained text input; role, primary, grade,
-  special, and armor controls change draft intent without consulting inventory.
+- **No equipment designer.** The player picks complete cards; the designer was removed
+  (`company-view-nouns.md`, Squad cards).
   Every billet card keeps its render compact, adds one line of role/equipment flavor,
   and shows catalog-normalized combat meters that move immediately with the draft.
 - **Inventory boundary:** the roster's exact atomic preview still gates assignment,
@@ -152,8 +149,6 @@ breadcrumb keeps every completed level directly reachable.
 - Damage, range, accuracy, sustained output, health, armor, resistance, and actual
   movement speed appear as comparative meters with exact values; their fill scale is
   stable across the four marines rather than relative to only the selected team.
-- Designer billet dossiers expose the same stable comparison language, including evasion,
-  without enlarging their upper-right live render or introducing card scrolling.
 - The starter pair differentiates each fire-team lead with its scarce pulse rifle and
   militia armor while leaving the other nine billets in field rifles and fatigues;
   new and migrated armories can issue that exact pair immediately.
