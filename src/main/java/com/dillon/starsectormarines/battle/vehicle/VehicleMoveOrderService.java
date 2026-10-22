@@ -108,6 +108,13 @@ public final class VehicleMoveOrderService {
      * garrison has gone or another order supersedes it. It names no target; the turret keeps its own pick.
      */
     private final Map<Long, MachineGuard> guards = new ConcurrentHashMap<>();
+    /**
+     * Allied hulls a mission's allied command has enlisted ({@code allied-command.md}). An enlisted
+     * {@code ALLY} hull takes orders through this mailbox as the player's own hulls do, and between
+     * orders fights as an autonomous one; an allied hull nobody enlisted stays its script's. The
+     * player never reaches one: the picker selects only the player's own hulls.
+     */
+    private final Set<Long> enlisted = ConcurrentHashMap.newKeySet();
 
     /** Queues a one-shot move request for resolution on the next fixed tick. */
     public void requestMove(long vehicleId, int cellX, int cellY) {
@@ -122,6 +129,24 @@ public final class VehicleMoveOrderService {
     public void requestMove(long vehicleId, int cellX, int cellY, float facingDegrees) {
         pending.add(new PendingOrder(vehicleId, cellX, cellY, facingDegrees));
     }
+
+    /** Puts an allied hull under allied command: it takes orders here and fights between them. */
+    public void enlist(long vehicleId) { enlisted.add(vehicleId); }
+
+    /** Hands an allied hull back to its script. */
+    public void discharge(long vehicleId) {
+        enlisted.remove(vehicleId);
+        forget(vehicleId);
+    }
+
+    /** Whether a request for this vehicle is queued and not yet resolved. */
+    public boolean pending(long vehicleId) {
+        for (PendingOrder order : pending) if (order.vehicleId == vehicleId) return true;
+        return false;
+    }
+
+    /** Whether an allied hull is under allied command. */
+    public boolean isEnlisted(long vehicleId) { return enlisted.contains(vehicleId); }
 
     /** Current accepted order for one exact vehicle, or {@code null}. */
     public ActiveOrder activeOrder(long vehicleId) {

@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.CordonBattleFixture;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import org.json.JSONArray;
@@ -39,6 +40,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @Tag("cordon-command-evidence")
 class CordonCommandEvidenceTest {
+
+    /** Cells from a calling redoubt's centre an allied hull counts as answering it. */
+    private static final float ARMOUR_AT_CALL = 20f;
 
     /** The window and a minute over, so a held line finishes inside the budget. */
     private static final int DEFAULT_MAX_TICKS = 28_800;
@@ -155,16 +159,32 @@ class CordonCommandEvidenceTest {
         }
         int bores = 0;
         for (SwarmBore bore : sim.swarmBores().bores()) if (!bore.collapsed()) bores++;
+        // Allied armour: hulls alive, and how many stand within reach of a calling redoubt.
+        int hulls = 0, atCall = 0;
+        if (cordon.armour() != null) {
+            for (long hull : cordon.armour().command().hulls()) {
+                hulls++;
+                GroundBody body = sim.convoy().body(hull);
+                for (CordonRedoubt r : cordon.redoubts()) {
+                    if (r.state() == CordonRedoubt.State.CALLING
+                            && body.distanceTo(r.centreX(), r.centreY()) <= ARMOUR_AT_CALL) {
+                        atCall++;
+                        break;
+                    }
+                }
+            }
+        }
         return new JSONObject().put("tick", sim.getSimTickIndex())
                 .put("minute", sim.getSimTickIndex() * BattleSimulation.TICK_DT / 60f)
                 .put("marines", marines).put("allies", allies).put("swarm", swarm)
-                .put("livingBores", bores).put("redoubts", redoubts);
+                .put("livingBores", bores).put("armour", hulls).put("armourAtCall", atCall)
+                .put("redoubts", redoubts);
     }
 
     private static String tableRow(JSONObject row) throws Exception {
-        StringBuilder line = new StringBuilder(String.format(Locale.ROOT, "| %.0f | %d | %d | %d | %d |",
+        StringBuilder line = new StringBuilder(String.format(Locale.ROOT, "| %.0f | %d | %d | %d | %d | %d (%d) |",
                 row.getDouble("minute"), row.getInt("marines"), row.getInt("allies"), row.getInt("swarm"),
-                row.getInt("livingBores")));
+                row.getInt("livingBores"), row.getInt("armour"), row.getInt("armourAtCall")));
         JSONArray redoubts = row.getJSONArray("redoubts");
         for (int i = 0; i < redoubts.length(); i++) {
             JSONObject r = redoubts.getJSONObject(i);
@@ -208,9 +228,10 @@ class CordonCommandEvidenceTest {
             out.append(String.format(Locale.ROOT, "| %.2f | %s |%n", event.tick() * BattleSimulation.TICK_DT / 60f,
                     event.id()));
         }
-        out.append("\n## The line each minute\n\n| min | marines | allies | swarm | bores |");
+        out.append("\n## The line each minute\n\nArmour: allied hulls alive (at a calling redoubt).\n\n"
+                + "| min | marines | allies | swarm | bores | armour |");
         for (CordonRedoubt r : cordon.redoubts()) out.append(" redoubt ").append(r.number()).append(" |");
-        out.append("\n|---|---|---|---|---|");
+        out.append("\n|---|---|---|---|---|---|");
         for (int i = 0; i < cordon.redoubts().size(); i++) out.append("---|");
         return out.append('\n').append(table).toString();
     }
