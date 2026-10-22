@@ -336,6 +336,15 @@ compound prepared-ground courses a held base gets), when no gate can be cut or
 the building's door would be shut in. Nothing is invented for them. Nothing
 stands on a roof, because the battle has no roof posts.
 
+The building's own people have also **knocked loopholes** through its walls. A
+colony building picked for its room may be a blank block, with nothing to
+shoot from except its door. Every straight run of wall with the building's floor
+behind it and open ground in front gets an opening every few cells, centred on
+the run. An opening is an ordinary window, not a new kind of thing: a defender
+stands in it and shoots through, and nobody walks through it. Existing windows
+and doors are kept, and a short stub of wall between a door and a corner stays
+solid. `-Dbattle.colonyBreach.loopholes=false` is the control.
+
 A holdout with works has two militia teams. The **house** team holds the
 building's held place and mans its windows and doors. The **line** team mans
 the firing step, an area defence whose claims are kept to the step's run, the
