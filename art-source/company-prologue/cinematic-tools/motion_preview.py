@@ -706,12 +706,13 @@ def _wrap(dr, text, font, width):
 
 
 def finish(out, ffmpeg='ffmpeg', name='motion-preview', trails=2.0, tags=True, timeline=None,
-           sequence='', stills_width=1600, web_width=1280):
+           sequence='', stills_width=1600, web_width=1280, post=None):
     """Overlays, MP4 and stills for a rendered run. timeline: the full ordered list of shot ids
     (with their slates' text) when the sequence has shots the run did not render:
     [dict(id, title, caption, start, end, rendered=False), ...]; default: the manifest's shots.
     An entry may carry screen(f) -> a 1920x1080 PIL image, or None for the rendered frame: a shot
-    that is a 2D screen rather than a camera (a playback screen), or one that breaks into one."""
+    that is a 2D screen rather than a camera (a playback screen), or one that breaks into one.
+    post(im, f, shot) -> image runs on every finished frame (burned-in captions, say)."""
     from PIL import Image, ImageDraw
     out = Path(out)
     man = json.loads((out / 'manifest.json').read_text())
@@ -757,6 +758,8 @@ def finish(out, ffmpeg='ffmpeg', name='motion-preview', trails=2.0, tags=True, t
                 im = _overlay(im, s, f, fps, step, track, crafts, trails, tags, sequence, (f_mid, f_small, f_tag))
             else:
                 im = _slate(s, f, fps, sequence, (f_big, f_mid, f_small))
+            if post:
+                im = post(im, f, s)
             enc.stdin.write(im.tobytes())
             n_out += 1
             if f == key_f:
