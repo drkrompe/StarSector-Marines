@@ -119,14 +119,21 @@ firebreak and a line the creep crosses only at its fords and bridges. A road
 over it is its bridge; where the settlement's streets cross its line it runs
 under them.
 
-**Barrage plan** (The Burn). The world's guns' timetable, frozen at the
+**Battery** (The Burn). The guns that fire the barrage: Locust rocket-artillery
+batteries dug in across the start line, the company's own. Every shell is a
+round fired from the gun nearest its point, lobbing in on a high, slow arc, so
+the warning is the rounds themselves coming in: a player reads the walk by
+watching where they land. The guns can be killed, and a battery with no gun
+left falls silent. They also defend themselves against what comes at them.
+
+**Barrage plan** (The Burn). The battery's timetable, frozen at the
 briefing: a sequence of **barrage lines** across the approach, each a depth
 into the map, with the second it opens and the seconds it fires before it
-**lifts** to the next. Shells fall at a steady rate as placed blasts scattered
-along the current line (the Orbital Barrage's pending detonation, many times
-over, `command-powers-nouns.md`), each landing after its flight, which is the
-warning on the ground. A round carries no danger marker of its own, as a called
-strike does: the battle announces the guns by the line, in its beats. A line may fire incendiary shells, which light what they
+**lifts** to the next. Shells fall at a steady rate, scattered along the
+current line. A round carries no danger marker, as a called strike does:
+nothing is drawn on the ground, and the battle announces the guns by the line,
+in its beats. How the walk should read beyond the rounds (ranging smoke, a
+marker) is open (`heart-barrage-read`). A line may fire incendiary shells, which light what they
 land on through fire's ignition seam. The plan ends at the **last line**, short
 of the heart: the batteries' reach, or the ammunition the briefing names. The
 Burn's plan follows **firebreaks hold** (the owner's pick): the fire stops at
