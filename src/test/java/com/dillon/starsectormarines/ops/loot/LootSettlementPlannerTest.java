@@ -15,7 +15,7 @@ class LootSettlementPlannerTest {
                 stack(LootKind.COMMODITY, "fuel", 25, 10, 0f),
                 stack(LootKind.COMMODITY, "marines", 20, 50, 0f),
                 stack(LootKind.WEAPON, "heavy_blaster", 1, 5_000, 20f)));
-        LootSelection selection = selectAll(manifest);
+        LootSelection selection = new LootSelection(manifest);
 
         LootSettlementPlan plan = LootSettlementPlanner.plan(selection,
                 new LootCapacitySnapshot(105f, 20f, 12f));
@@ -27,6 +27,8 @@ class LootSettlementPlannerTest {
         assertEquals(132, plan.keptUnits);
         assertEquals(14, plan.fencedUnits);
         assertEquals(4_087, plan.fencedCredits);
+        assertEquals(100f, plan.keptSpace(LootCapacityBucket.CARGO));
+        assertEquals(20f, plan.keptSpace(LootCapacityBucket.FUEL));
     }
 
     @Test
@@ -36,8 +38,7 @@ class LootSettlementPlannerTest {
                 stack(LootKind.WEAPON, "second", 1, 2_000, 5f),
                 stack(LootKind.WEAPON, "third", 1, 3_000, 5f)));
         LootSelection selection = new LootSelection(manifest);
-        selection.toggle(0);
-        selection.toggle(2);
+        selection.toggle(1);
 
         LootSettlementPlan plan = LootSettlementPlanner.plan(selection,
                 new LootCapacitySnapshot(5f, 0f, 0f));
@@ -50,12 +51,6 @@ class LootSettlementPlannerTest {
     @Test
     void nullSelectionProducesEmptyPlan() {
         assertEquals(0, LootSettlementPlanner.plan(null, null).lines.size());
-    }
-
-    private static LootSelection selectAll(LootManifest manifest) {
-        LootSelection selection = new LootSelection(manifest);
-        for (int i = 0; i < manifest.stacks.size(); i++) selection.toggle(i);
-        return selection;
     }
 
     private static LootStack stack(LootKind kind, String id, int quantity,
