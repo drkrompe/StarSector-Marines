@@ -405,6 +405,12 @@ class Preview:
     def _cam(self):
         return self.scene.camera.matrix_world.translation
 
+    def move(self, o, at):
+        """Key a scene object the shot does not own (scenery: a tumbling wreck) along at(t) -> 4x4
+        world matrix. It stays in the scene after the shot."""
+        o.rotation_mode = 'QUATERNION'
+        self._shot['updates'].append((o, lambda t: self._set(o, at(t), True)))
+
     def _set(self, o, matrix, visible):
         """Store one frame's state; render_shot keys it."""
         o['_m'] = [list(r) for r in matrix] if visible else None

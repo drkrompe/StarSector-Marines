@@ -331,13 +331,14 @@ so a player reads the same thing the same way wherever it appears:
 
 - the **licence card**: a card in full, in the spec sheet's own style (heading and
   crest, issuer stamp with the Restricted banner, metered rating, the fire-team seat
-  picture). It is the card in the Loadout stores and First Refit's choices, and the
-  sheet a card opens on hover anywhere;
+  picture). It is the card in the Loadout stores and First Refit's choices (both a
+  left-hand column beside the squad view), and the sheet a card opens on hover
+  anywhere;
 - the **issued-card chip**: a card at a glance (face, kind, name, FIRE or GUARD
   rating, the Restricted seal). Barracks stacks two compact chips on each squad
   card, and the Loadout squad view opens on the same two at full size;
-- the **squad view**: the twelve marines as three fire teams of two by two (or one
-  strip of twelve where height is short, as on First Refit), each with a portrait
+- the **squad view**: the twelve marines as three fire teams of two by two, each
+  with a portrait
   of the kit they would wear, four kit lines (primary weapon, armour, special
   equipment, integral system) giving what they carry now with an arrow to what the
   selected card would issue, and five numbers (sustained output, range,

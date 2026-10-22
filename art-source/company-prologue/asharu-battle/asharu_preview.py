@@ -377,6 +377,12 @@ def shot(L, kf):
                 return mw @ (pos * mpu), mw.to_3x3() @ dirn, max(rad * mpu, 1.0), poses[key](t)[6]
             mp.plume('%s %d' % (key, i), at, PLUME_KIND.get(style, 'plume'))
 
+    # the debris field tumbles: every wreck turns slowly about its own axis (debris_field)
+    if L.get('field_matrix') is not None:
+        for o in list(L['scene'].objects):
+            if 'field_piece' in o:
+                mp.move(o, lambda t, i=int(o['field_piece']), j=int(o['field_box']): L['field_matrix'](i, j, t))
+
     # Draw only what the preview owns, the planet's surface, the platform and the entry trails:
     # a build's own effects (cook-off volumes, kit copies hidden in the viewport) and the air shell,
     # which the builder turns back on for every key frame, would otherwise draw as grey solids.
@@ -455,7 +461,7 @@ def shot(L, kf):
                 u = min(1.0, (t - p0) / (p1 - p0))
                 mw = M(key, t)
                 return (mw @ Vector((ln_ * .55, 0, 0)), mw.to_3x3() @ Vector((-1, 0, 0)),
-                        ln_ * (.12 + .38 * u), ln_ * (.3 + 1.5 * u))
+                        ln_ * (.08 + .17 * u), ln_ * (.25 + .9 * u))
             mp.cone(name, sheath, 'fire')
         elif kind == 'flares':
             key = fx[1]

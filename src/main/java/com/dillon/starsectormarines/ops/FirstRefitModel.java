@@ -58,8 +58,11 @@ final class FirstRefitModel {
         return CampaignLessons.lesson(roster.firstRefit().claimed() ? 3 : path == null ? 0 : 1,
                 "lessonRefitTitle", copy,
                 List.of(path == null ? "refit-paths" : "refit-actions", "refit-squads", "refit-paths", "refit-comparison"),
-                null, null);
+                null, null, GUIDE_HEIGHT);
     }
+
+    /** Castle's callout: portrait, title, progress and three lines, under the two choices. */
+    private static final int GUIDE_HEIGHT = 210;
 
     Signal<Map<String, Object>> row() { return row; }
 
@@ -86,6 +89,11 @@ final class FirstRefitModel {
             default -> null;
         };
     }
+    /** The reward must be chosen before the player can leave the screen. */
+    boolean leavable() {
+        return roster.firstRefit().claimed() || roster.firstRefit().complete();
+    }
+
     void claim() { roster.firstRefit().claim(roster, path); feedback = ""; refresh(); }
     void issue() {
         if (reviewed == null || path == null || !roster.firstRefit().claimed() || roster.firstRefit().complete()) return;
@@ -127,6 +135,11 @@ final class FirstRefitModel {
         props.put("claim", (Runnable) this::claim);
         props.put("inspect", (Runnable) () -> inspect.accept(roster.firstRefit().issuedSquadId()));
         props.put("issue", (Runnable) this::issue);
+        // The free fitting goes to one line squad. With only one there is nothing to pick,
+        // so the picker and its hint step aside; with none, the hint says why.
+        long lineSquads = roster.squads().stream().filter(s -> !s.reserve()).count();
+        props.put("squadsClasses", lineSquads > 1 ? "refit-squads" : "refit-hidden");
+        props.put("hintClasses", lineSquads != 1 ? "refit-hint tone-muted" : "refit-hidden");
         props.put("squads", roster.squads().stream().filter(s -> !s.reserve()).map(s -> Map.<String, Object>of(
                 "id", "refit-squad:" + s.id(), "label", Strings.join("separatorPath", s.id().equals(squadId) ? Strings.get("squadRefitSelectedTag") : null,
                         s.name(), s.stationed() ? Strings.get("squadRefitStationedTag") : null),

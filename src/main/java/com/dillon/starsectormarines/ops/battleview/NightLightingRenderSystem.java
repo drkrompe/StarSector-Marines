@@ -184,10 +184,12 @@ final class NightLightingRenderSystem implements RenderSystem {
             int gy0 = Math.max(0, (int) ((fire.y(l) - r) * 2)), gy1 = Math.min(height - 1, (int) ((fire.y(l) + r) * 2) + 1);
             int owner = ground.getBuildingId(Math.min(ground.getWidth() - 1, (int) fire.x(l)),
                     Math.min(ground.getHeight() - 1, (int) fire.y(l)));
+            // The flicker once per light, not once per point it lights.
+            float strengthNow = fire.strength(l, timeSeconds);
             for (int y = gy0; y <= gy1; y++)
                 for (int x = gx0; x <= gx1; x++) {
                     if (ground.getBuildingId(Math.min(ground.getWidth() - 1, x / 2), Math.min(ground.getHeight() - 1, y / 2)) != owner) continue;
-                    firePools[y * width + x] += fire.pool(l, x * .5f, y * .5f, timeSeconds);
+                    firePools[y * width + x] += fire.pool(l, x * .5f, y * .5f, timeSeconds, strengthNow);
                 }
             filled[filledCount++] = gx0;
             filled[filledCount++] = gy0;

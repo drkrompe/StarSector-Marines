@@ -5,8 +5,7 @@
        would issue, and five numbers, green where they improve and red where they fall.
        Fed by LoadoutInspection.project; hovers by ArmorySpecSheets.bindInspection;
        portraits by LoadoutInspection.bindPortraits. layout="loadout-billets" stands
-       the teams side by side as columns; adding squad-view-strip lays all twelve in
-       one row for a screen with little height. -->
+       the teams side by side as columns. -->
   <div id="loadout-billets" class="{layout}">
     <div each="team in inspection.teams" key="{team.id}" id="{team.id}" class="loadout-team">
       <div class="heading loadout-team-heading" id="{team.headingId}">{team.label}</div>
@@ -69,6 +68,5 @@
   .loadout-stat-arrow { width: 10px; height: 10px; pointer-events: none; }
   .loadout-stat-arrow.loadout-stat-arrow-absent { opacity: 0; }
   .loadout-stat-after { width: 34px; text-align: right; }
-  .squad-view-strip .loadout-team-rows { flex-direction: row; }
   .loadout-hidden { width: 0px; height: 0px; opacity: 0; overflow: hidden; }
 </style>

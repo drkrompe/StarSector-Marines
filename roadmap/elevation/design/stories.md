@@ -11,9 +11,10 @@ the elevation plan and brush) and sight and fire (one skyline rule for the fog, 
 
 | Story | State and dependency |
 | --- | --- |
-| elevation-look | **IN PROGRESS.** Faces, stacked second tier, ramp floors and tier heights in the relief field have landed (the `elevation` snapshot suite). The owner kept the cliff tiles with tall south faces. Left: the ramp look (owner pick pending between graded earth, a worn track and cut steps, all with walls that taper up the cut), carrying it into the ground, the tiles' stepped south faces (a fault in `ElevationLayout.tilted`), ramp floor art that reads as a slope rather than a pad (the relief already slopes it), ground cover left standing on faces, and a `renderEvidence` measurement against its control. |
+| elevation-look | **IN PROGRESS.** Faces, stacked second tier, ramp floors and tier heights in the relief field have landed (the `elevation` snapshot suite). The owner kept the cliff tiles with tall south faces. Left: the cliff-edge treatment (owner pick pending), cut stone ramp steps with walls that taper up the cut, carrying it into the ground, the tiles' stepped south faces (a fault in `ElevationLayout.tilted`), ramp floor art that reads as a slope rather than a pad (the relief already slopes it), ground cover left standing on faces, and a `renderEvidence` measurement against its control. |
 
 Owner decisions (2026-10-22): skyline sight, no uphill penalty, no climbing
-swarm, one-cell cliff tiles with tall south faces. Pending: the ramp look, and
-whether firing down reveals a holder back from the rim (picture cards through
-the coordinating session).
+swarm, one-cell cliff tiles with tall south faces, cut stone ramp steps, and a
+holder that fires down revealed for about three seconds. Pending: the cliff-edge
+treatment (layered, boulder or eroded; picture cards through the coordinating
+session).

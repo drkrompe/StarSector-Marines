@@ -50,7 +50,8 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
         frames.add(resultsFrame(context, roster, false));
         frames.add(resultsFrame(context, roster, true));
         frames.add(frame(context, reactor, model, "01-wayline-technology-choice.png", null));
-        frames.add(frame(context, reactor, model, "02-choose-squad.png", "refit-squad:" + squad.id()));
+        // One line squad: it is the one fitted, so there is no squad to pick.
+        frames.add(frame(context, reactor, model, "02-choose-squad.png", null));
         frames.add(frame(context, reactor, model, "02b-choose-path.png", "refit-path:STEADY_LINE"));
         frames.add(frame(context, reactor, model, "03-steady-line-free-fitting.png", null));
         if (roster.firstRefit().complete()) throw new AssertionError("Inspection fitted equipment without confirmation");
