@@ -228,13 +228,31 @@ public final class MechLoadoutComponent {
     public int hpThresholdsCrossed = 0;
 
     public MechLoadoutComponent(MechVariant variant, MechRole role) {
-        this(variant, variant != null ? variant.arms : null,
+        this(variant,
+                variant != null ? variant.arms : null,
+                variant != null ? variant.leftArm : null,
+                variant != null ? variant.rightArm : null,
                 variant != null ? variant.leftShoulder : null,
                 variant != null ? variant.rightShoulder : null, role);
     }
 
+    /**
+     * Builds a loadout with {@code armWeapon} on every arm mount the chassis has: its centreline
+     * mount, or one on each arm of a two-armed chassis.
+     */
+    public MechLoadoutComponent(MechVariant variant, MechWeaponComponent armWeapon,
+                                MechWeaponComponent leftShoulder,
+                                MechWeaponComponent rightShoulder, MechRole role) {
+        this(variant,
+                variant != null && !variant.twoArmed() ? armWeapon : null,
+                variant != null && variant.twoArmed() ? armWeapon : null,
+                variant != null && variant.twoArmed() ? armWeapon : null,
+                leftShoulder, rightShoulder, role);
+    }
+
     /** Builds an authored/custom loadout from independently swappable hardpoint components. */
     public MechLoadoutComponent(MechVariant variant, MechWeaponComponent arms,
+                                MechWeaponComponent leftArm, MechWeaponComponent rightArm,
                                 MechWeaponComponent leftShoulder,
                                 MechWeaponComponent rightShoulder, MechRole role) {
         if (variant == null) throw new IllegalArgumentException("Mech variant is required");
@@ -242,17 +260,49 @@ public final class MechLoadoutComponent {
         this.deployedRole = role != null ? role : variant.defaultRole;
         this.role = deployedRole;
         install(MechMountSlot.ARMS, arms);
+        install(MechMountSlot.LEFT_ARM, leftArm);
+        install(MechMountSlot.RIGHT_ARM, rightArm);
         install(MechMountSlot.LEFT_SHOULDER, leftShoulder);
         install(MechMountSlot.RIGHT_SHOULDER, rightShoulder);
     }
 
     private void install(MechMountSlot slot, MechWeaponComponent component) {
-        if (component != null) mounts[slot.ordinal()] = new MechWeaponMount(slot, component);
+        if (component == null) return;
+        if (!variant.hasMount(slot)) {
+            throw new IllegalArgumentException(variant + " has no " + slot + " mount");
+        }
+        mounts[slot.ordinal()] = new MechWeaponMount(slot, component);
     }
 
     public MechWeaponMount mount(MechMountSlot slot) {
         return mounts[slot.ordinal()];
     }
+
+    /**
+     * The first arm gun still fitted (the centreline gun, else the left arm's, else the right's),
+     * or null when every arm mount is empty: the one track the arm animation follows.
+     */
+    public MechWeaponMount primaryArm() {
+        for (MechMountSlot slot : ARM_SLOTS) {
+            MechWeaponMount mount = mounts[slot.ordinal()];
+            if (mount != null) return mount;
+        }
+        return null;
+    }
+
+    /** Longest reach of the arm guns still fitted; zero when none is. */
+    public float armsRange() {
+        float range = 0f;
+        for (MechMountSlot slot : ARM_SLOTS) {
+            MechWeaponMount mount = mounts[slot.ordinal()];
+            if (mount != null) range = Math.max(range, mount.weaponDef().range);
+        }
+        return range;
+    }
+
+    /** The arm mounts in firing order: the centreline mount, then left, then right. */
+    public static final MechMountSlot[] ARM_SLOTS =
+            {MechMountSlot.ARMS, MechMountSlot.LEFT_ARM, MechMountSlot.RIGHT_ARM};
 
     /** Doctrine committed at deployment; never changes during the battle. */
     public MechRole deployedRole() {
@@ -312,10 +362,7 @@ public final class MechLoadoutComponent {
     public int appearanceSelector(MechMountSlot slot) {
         MechWeaponMount mount = mount(slot);
         if (mount != null) return mount.component.appearanceSelector;
-        // Zero is a real arms drawing (twin chainguns), so an empty arms mount
-        // must say "nothing" explicitly; for the shoulders zero already is POD_NONE.
-        return slot == MechMountSlot.ARMS
-                ? LayeredMechAppearance.ARMS_NONE : LayeredMechAppearance.POD_NONE;
+        return slot.isArm() ? LayeredMechAppearance.ARMS_NONE : LayeredMechAppearance.POD_NONE;
     }
 
     public MechWeaponMount[] mounts() {

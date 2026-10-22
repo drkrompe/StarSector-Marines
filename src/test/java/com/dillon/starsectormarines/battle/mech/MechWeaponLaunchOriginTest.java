@@ -19,19 +19,17 @@ class MechWeaponLaunchOriginTest {
     private static final float EPS = 1e-4f;
 
     @Test
-    void dualChaingunsAlternateBetweenThePosedArms() {
+    void eachArmChaingunLeavesFromItsOwnPosedArm() {
         BattleSimulation sim = arena();
         long mech = spawnBulwark(sim, 8, 8);
         long target = sim.spawn(new EntitySpec(
                 "target", Faction.DEFENDER, UnitType.MARINE, 8, 20));
         MechLoadoutComponent loadout = sim.world().mechLoadout(mech);
         loadout.torsoFacingDegrees = 0f;
-        MechWeaponMount arms = loadout.mount(MechMountSlot.ARMS);
 
-        sim.fireMechWeapon(mech, target, arms, 1f);
+        sim.fireMechWeapon(mech, target, loadout.mount(MechMountSlot.LEFT_ARM), 1f);
         ShotEvent first = sim.getActiveShots().get(0);
-        arms.burstRemaining = arms.component.projectilesPerTrigger - 1;
-        sim.fireMechWeapon(mech, target, arms, 1f);
+        sim.fireMechWeapon(mech, target, loadout.mount(MechMountSlot.RIGHT_ARM), 1f);
         ShotEvent second = sim.getActiveShots().get(1);
 
         float hullWidth = LayeredMechAppearance.hullWidthCells(
@@ -43,7 +41,7 @@ class MechWeaponLaunchOriginTest {
     }
 
     @Test
-    void dualPulseLasersAlternateAcrossTheSameArmHardpoints() {
+    void triTachyonPulseLasersLeaveFromTheSameArmHardpoints() {
         BattleSimulation sim = arena();
         long mech = sim.spawn(MechVariant.BULWARK.applyTo(new EntitySpec(
                 "tri-tachyon bulwark", Faction.MARINE, UnitType.HEAVY_MECH, 8, 8)));
@@ -53,12 +51,10 @@ class MechWeaponLaunchOriginTest {
         long target = sim.spawn(new EntitySpec(
                 "target", Faction.DEFENDER, UnitType.MARINE, 8, 20));
         loadout.torsoFacingDegrees = 0f;
-        MechWeaponMount arms = loadout.mount(MechMountSlot.ARMS);
 
-        sim.fireMechWeapon(mech, target, arms, 1f);
+        sim.fireMechWeapon(mech, target, loadout.mount(MechMountSlot.LEFT_ARM), 1f);
         ShotEvent first = sim.getActiveShots().get(0);
-        arms.burstRemaining = arms.component.projectilesPerTrigger - 1;
-        sim.fireMechWeapon(mech, target, arms, 1f);
+        sim.fireMechWeapon(mech, target, loadout.mount(MechMountSlot.RIGHT_ARM), 1f);
         ShotEvent second = sim.getActiveShots().get(1);
 
         float hullWidth = LayeredMechAppearance.hullWidthCells(loadout.variant.renderScale);

@@ -33,7 +33,7 @@ class MechMissileVariantsTest {
             assertTrue(rack.antiArmorOnly(), rack.name());
             assertFalse(rack.fragCounterpart().antiArmorOnly(), rack.fragCounterpart().name());
         }
-        assertFalse(MechWeaponComponent.DUAL_CHAINGUNS.antiArmorOnly());
+        assertFalse(MechWeaponComponent.CHAINGUN.antiArmorOnly());
     }
 
     @Test
@@ -75,9 +75,9 @@ class MechMissileVariantsTest {
 
     @Test
     void aChaingunBulwarkTurnsToTheTankOnlyWhileItsRacksAreLoaded() {
-        List<MechWeaponComponent> loaded = List.of(MechWeaponComponent.DUAL_CHAINGUNS,
+        List<MechWeaponComponent> loaded = List.of(MechWeaponComponent.CHAINGUN,
                 MechWeaponComponent.SRM_15, MechWeaponComponent.SRM_15);
-        List<MechWeaponComponent> racksEmpty = List.of(MechWeaponComponent.DUAL_CHAINGUNS);
+        List<MechWeaponComponent> racksEmpty = List.of(MechWeaponComponent.CHAINGUN);
         float distance = 16f;
         assertTrue(MechTargetPressure.pressure(loaded, distance, TANK, true)
                 > MechTargetPressure.pressure(loaded, distance, MAN, false));

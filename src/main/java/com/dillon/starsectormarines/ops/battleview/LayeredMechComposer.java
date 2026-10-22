@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerTransform;
 import com.dillon.starsectormarines.battle.mech.MechHardpointGeometry;
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 
 /**
  * Emits a mech as hull-width-relative, independently animated hardpoints.
@@ -33,24 +34,24 @@ final class LayeredMechComposer {
                      float actorX, float actorY, float hullWidth,
                      float hipFacingDeg, float torsoFacingDeg, float locomotionPhase,
                      float chaingunPhase, float srmPhase, float lrmPhase,
-                     int flags, int chassis, int arms,
+                     int flags, int chassis, int arms, int leftArm, int rightArm,
                      int leftShoulder, int rightShoulder,
                      float alpha) {
         emit(drawListSink(out), assets, actorX, actorY, hullWidth, hipFacingDeg, torsoFacingDeg,
                 locomotionPhase, chaingunPhase, srmPhase, lrmPhase, flags, chassis,
-                arms, leftShoulder, rightShoulder, alpha, null, null);
+                arms, leftArm, rightArm, leftShoulder, rightShoulder, alpha, null, null);
     }
 
     static void emit(DrawList out, LayeredMechAssets assets,
                      float actorX, float actorY, float hullWidth,
                      float hipFacingDeg, float torsoFacingDeg, float locomotionPhase,
                      float chaingunPhase, float srmPhase, float lrmPhase,
-                     int flags, int chassis, int arms,
+                     int flags, int chassis, int arms, int leftArm, int rightArm,
                      int leftShoulder, int rightShoulder,
                      float alpha, LayerPose authoredPose) {
         emit(drawListSink(out), assets, actorX, actorY, hullWidth,
                 hipFacingDeg, torsoFacingDeg, locomotionPhase,
-                chaingunPhase, srmPhase, lrmPhase, flags, chassis, arms,
+                chaingunPhase, srmPhase, lrmPhase, flags, chassis, arms, leftArm, rightArm,
                 leftShoulder, rightShoulder, alpha, authoredPose, null);
     }
 
@@ -58,12 +59,12 @@ final class LayeredMechComposer {
                      float actorX, float actorY, float hullWidth,
                      float hipFacingDeg, float torsoFacingDeg, float locomotionPhase,
                      float chaingunPhase, float srmPhase, float lrmPhase,
-                     int flags, int chassis, int arms,
+                     int flags, int chassis, int arms, int leftArm, int rightArm,
                      int leftShoulder, int rightShoulder,
                      float alpha, LayerPose authoredPose, GaitPose gaitPose) {
         emit(drawListSink(out), assets, actorX, actorY, hullWidth,
                 hipFacingDeg, torsoFacingDeg, locomotionPhase,
-                chaingunPhase, srmPhase, lrmPhase, flags, chassis, arms,
+                chaingunPhase, srmPhase, lrmPhase, flags, chassis, arms, leftArm, rightArm,
                 leftShoulder, rightShoulder, alpha, authoredPose, gaitPose);
     }
 
@@ -71,19 +72,19 @@ final class LayeredMechComposer {
                      float actorX, float actorY, float hullWidth,
                      float hipFacingDeg, float torsoFacingDeg, float locomotionPhase,
                      float chaingunPhase, float srmPhase, float lrmPhase,
-                     int flags, int chassis, int arms,
+                     int flags, int chassis, int arms, int leftArm, int rightArm,
                      int leftShoulder, int rightShoulder,
                      float alpha) {
         emit(out, assets, actorX, actorY, hullWidth, hipFacingDeg, torsoFacingDeg,
                 locomotionPhase, chaingunPhase, srmPhase, lrmPhase, flags, chassis,
-                arms, leftShoulder, rightShoulder, alpha, null, null);
+                arms, leftArm, rightArm, leftShoulder, rightShoulder, alpha, null, null);
     }
 
     static void emit(Sink out, LayeredMechAssets assets,
                      float actorX, float actorY, float hullWidth,
                      float hipFacingDeg, float torsoFacingDeg, float locomotionPhase,
                      float chaingunPhase, float srmPhase, float lrmPhase,
-                     int flags, int chassis, int arms,
+                     int flags, int chassis, int arms, int leftArm, int rightArm,
                      int leftShoulder, int rightShoulder,
                      float alpha, LayerPose authoredPose, GaitPose gaitPose) {
         boolean moving = (flags & LayeredMechAppearance.FLAG_MOVING) != 0;
@@ -165,7 +166,11 @@ final class LayeredMechComposer {
                 ? chassisTransform.angleDegrees() : 0f);
 
         float cgKick = 0.025f * LayeredMechAppearance.recoil(chaingunPhase);
-        emitArms(out, assets, chassis, arms, upperX, upperY, hullWidth,
+        emitArm(out, assets, chassis, arms, MechMountSlot.ARMS, upperX, upperY, hullWidth,
+                upperFacingDeg, cgKick, alpha);
+        emitArm(out, assets, chassis, leftArm, MechMountSlot.LEFT_ARM, upperX, upperY, hullWidth,
+                upperFacingDeg, cgKick, alpha);
+        emitArm(out, assets, chassis, rightArm, MechMountSlot.RIGHT_ARM, upperX, upperY, hullWidth,
                 upperFacingDeg, cgKick, alpha);
 
         float srmKick = ((flags & LayeredMechAppearance.FLAG_SRM_ACTIVE) != 0)
@@ -199,7 +204,11 @@ final class LayeredMechComposer {
         }
 
         if ((flags & LayeredMechAppearance.FLAG_CHAINGUN_FLASH) != 0) {
-            emitArmsFlash(out, assets, arms, upperX, upperY, hullWidth,
+            emitArmFlash(out, assets, arms, MechMountSlot.ARMS, upperX, upperY, hullWidth,
+                    upperFacingDeg, cgKick, alpha);
+            emitArmFlash(out, assets, leftArm, MechMountSlot.LEFT_ARM, upperX, upperY, hullWidth,
+                    upperFacingDeg, cgKick, alpha);
+            emitArmFlash(out, assets, rightArm, MechMountSlot.RIGHT_ARM, upperX, upperY, hullWidth,
                     upperFacingDeg, cgKick, alpha);
         }
         if ((flags & LayeredMechAppearance.FLAG_SRM_FLASH) != 0) {
@@ -240,52 +249,58 @@ final class LayeredMechComposer {
                 angle, alpha);
     }
 
-    private static void emitArms(Sink out, LayeredMechAssets assets,
-                                 int chassis, int arms,
-                                 float actorX, float actorY, float hullWidth,
-                                 float facingDeg, float kick, float alpha) {
-        if (arms == LayeredMechAppearance.ARMS_CHAINGUN) {
-            float widthScale = chassis == LayeredMechAppearance.CHASSIS_CLEAN ? 0.5f : 1f;
-            emitFromRearPivot(out, assets.chaingunArm, actorX, actorY, hullWidth, facingDeg,
-                    -0.37f, -0.15f + kick, widthScale, 0f, alpha);
-            emitFromRearPivot(out, assets.chaingunArm, actorX, actorY, hullWidth, facingDeg,
-                    0.37f, -0.15f + kick, widthScale, 0f, alpha);
-        } else if (arms == LayeredMechAppearance.ARMS_NOSE_CHAINGUN) {
-            emitFromRearPivot(out, assets.chaingunArm, actorX, actorY, hullWidth, facingDeg,
-                    0f, -0.02f + kick, 1f, 0f, alpha);
-        } else if (arms == LayeredMechAppearance.ARMS_LINEAR_CANNON) {
-            emitFromRearPivot(out, assets.linearCannon, actorX, actorY, hullWidth, facingDeg,
-                    -0.37f, -0.15f, 1f, 0f, alpha);
-            emitFromRearPivot(out, assets.linearCannon, actorX, actorY, hullWidth, facingDeg,
-                    0.37f, -0.15f, 1f, 0f, alpha);
-        } else if (arms == LayeredMechAppearance.ARMS_HEAVY_CANNON) {
-            emitFromRearPivot(out, assets.heavyCannon, actorX, actorY, hullWidth, facingDeg,
-                    0f, -0.05f, 1f, 0f, alpha);
-        } else if (arms == LayeredMechAppearance.ARMS_PULSE_LASER) {
-            emitFromRearPivot(out, assets.pulseLaserArm, actorX, actorY, hullWidth, facingDeg,
-                    -0.37f, -0.15f + kick, 0.5f, 0f, alpha);
-            emitFromRearPivot(out, assets.pulseLaserArm, actorX, actorY, hullWidth, facingDeg,
-                    0.37f, -0.15f + kick, 0.5f, 0f, alpha);
-        } else if (arms == LayeredMechAppearance.ARMS_BASTION_AUTOCANNON) {
-            emitFromRearPivot(out, assets.bastionAutocannon, actorX, actorY, hullWidth,
-                    facingDeg, -0.37f, -0.15f + kick, 0.5f, 0f, alpha);
-            emitFromRearPivot(out, assets.bastionAutocannon, actorX, actorY, hullWidth,
-                    facingDeg, 0.37f, -0.15f + kick, 0.5f, 0f, alpha);
-        } else if (arms == LayeredMechAppearance.ARMS_DEMOLITION_CANNON) {
-            emitFromRearPivot(out, assets.demolitionCannon, actorX, actorY, hullWidth,
-                    facingDeg, 0f, -0.05f, 1f, 0f, alpha);
-        } else if (arms == LayeredMechAppearance.ARMS_MUSTER_AUTOGUN) {
-            emitFromRearPivot(out, assets.musterAutogun, actorX, actorY, hullWidth,
-                    facingDeg, -0.37f, -0.15f + kick, 0.5f, 0f, alpha);
-            emitFromRearPivot(out, assets.musterAutogun, actorX, actorY, hullWidth,
-                    facingDeg, 0.37f, -0.15f + kick, 0.5f, 0f, alpha);
-        } else if (arms == LayeredMechAppearance.ARMS_NOSE_MUSTER_AUTOGUN) {
-            emitFromRearPivot(out, assets.musterAutogun, actorX, actorY, hullWidth,
-                    facingDeg, 0f, -0.02f + kick, 1f, 0f, alpha);
-        } else if (arms == LayeredMechAppearance.ARMS_QUARRY_BREAKER) {
-            emitFromRearPivot(out, assets.quarryBreakerCannon, actorX, actorY, hullWidth,
-                    facingDeg, 0f, -0.05f, 1f, 0f, alpha);
+    /**
+     * One arm gun: a single barrel, out on its arm for a side mount, under the nose for the
+     * centreline mount. A pair on a two-armed chassis is two calls.
+     */
+    private static void emitArm(Sink out, LayeredMechAssets assets,
+                                int chassis, int gun, MechMountSlot slot,
+                                float actorX, float actorY, float hullWidth,
+                                float facingDeg, float kick, float alpha) {
+        LayeredSpriteCache sprite = armSprite(assets, gun);
+        if (sprite == null) return;
+        float recoil = armRecoils(gun) ? kick : 0f;
+        if (slot.isSideArm()) {
+            // The arm guns were authored as narrow barrels; only the linear cannon's rails stay full width.
+            float widthScale = gun == LayeredMechAppearance.ARMS_LINEAR_CANNON
+                    || (gun == LayeredMechAppearance.ARMS_CHAINGUN
+                    && chassis != LayeredMechAppearance.CHASSIS_CLEAN) ? 1f : 0.5f;
+            emitFromRearPivot(out, sprite, actorX, actorY, hullWidth, facingDeg,
+                    slot.armLateral(), -0.15f + recoil, widthScale, 0f, alpha);
+        } else {
+            float pivot = gun == LayeredMechAppearance.ARMS_NOSE_CHAINGUN
+                    || gun == LayeredMechAppearance.ARMS_CHAINGUN
+                    || gun == LayeredMechAppearance.ARMS_NOSE_MUSTER_AUTOGUN
+                    || gun == LayeredMechAppearance.ARMS_MUSTER_AUTOGUN ? -0.02f : -0.05f;
+            emitFromRearPivot(out, sprite, actorX, actorY, hullWidth, facingDeg,
+                    0f, pivot + recoil, 1f, 0f, alpha);
         }
+    }
+
+    private static LayeredSpriteCache armSprite(LayeredMechAssets assets, int gun) {
+        return switch (gun) {
+            case LayeredMechAppearance.ARMS_CHAINGUN,
+                 LayeredMechAppearance.ARMS_NOSE_CHAINGUN -> assets.chaingunArm;
+            case LayeredMechAppearance.ARMS_LINEAR_CANNON -> assets.linearCannon;
+            case LayeredMechAppearance.ARMS_HEAVY_CANNON -> assets.heavyCannon;
+            case LayeredMechAppearance.ARMS_PULSE_LASER -> assets.pulseLaserArm;
+            case LayeredMechAppearance.ARMS_BASTION_AUTOCANNON -> assets.bastionAutocannon;
+            case LayeredMechAppearance.ARMS_DEMOLITION_CANNON -> assets.demolitionCannon;
+            case LayeredMechAppearance.ARMS_MUSTER_AUTOGUN,
+                 LayeredMechAppearance.ARMS_NOSE_MUSTER_AUTOGUN -> assets.musterAutogun;
+            case LayeredMechAppearance.ARMS_QUARRY_BREAKER -> assets.quarryBreakerCannon;
+            default -> null;
+        };
+    }
+
+    /** The rapid-fire guns kick back with the chaingun phase; the cannons stay planted. */
+    private static boolean armRecoils(int gun) {
+        return switch (gun) {
+            case LayeredMechAppearance.ARMS_LINEAR_CANNON, LayeredMechAppearance.ARMS_HEAVY_CANNON,
+                 LayeredMechAppearance.ARMS_DEMOLITION_CANNON,
+                 LayeredMechAppearance.ARMS_QUARRY_BREAKER -> false;
+            default -> true;
+        };
     }
 
     private static void emitShoulderPods(Sink out, LayeredMechAssets assets,
@@ -301,24 +316,15 @@ final class LayeredMechComposer {
                 srmKick, lrmKick, alpha);
     }
 
-    private static void emitArmsFlash(Sink out, LayeredMechAssets assets, int arms,
-                                      float actorX, float actorY, float hullWidth,
-                                      float facingDeg, float kick, float alpha) {
-        float recoil = arms == LayeredMechAppearance.ARMS_HEAVY_CANNON ? 0f : kick;
-        MechHardpointGeometry.LocalPoint primary =
-                MechHardpointGeometry.armsMuzzle(arms, 0);
+    private static void emitArmFlash(Sink out, LayeredMechAssets assets, int gun,
+                                     MechMountSlot slot,
+                                     float actorX, float actorY, float hullWidth,
+                                     float facingDeg, float kick, float alpha) {
+        if (armSprite(assets, gun) == null) return;
+        float recoil = gun == LayeredMechAppearance.ARMS_HEAVY_CANNON ? 0f : kick;
+        MechHardpointGeometry.LocalPoint muzzle = MechHardpointGeometry.armsMuzzle(gun, slot);
         emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, facingDeg,
-                primary.xHullWidths(), primary.yHullWidths() - recoil, 0f, alpha);
-        if (arms == LayeredMechAppearance.ARMS_CHAINGUN
-                || arms == LayeredMechAppearance.ARMS_LINEAR_CANNON
-                || arms == LayeredMechAppearance.ARMS_PULSE_LASER
-                || arms == LayeredMechAppearance.ARMS_BASTION_AUTOCANNON
-                || arms == LayeredMechAppearance.ARMS_MUSTER_AUTOGUN) {
-            MechHardpointGeometry.LocalPoint secondary =
-                    MechHardpointGeometry.armsMuzzle(arms, 1);
-            emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, facingDeg,
-                    secondary.xHullWidths(), secondary.yHullWidths() - recoil, 0f, alpha);
-        }
+                muzzle.xHullWidths(), muzzle.yHullWidths() - recoil, 0f, alpha);
     }
 
     private static void emitShoulderFlashes(Sink out, LayeredMechAssets assets,

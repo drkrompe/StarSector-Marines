@@ -48,8 +48,10 @@ class MechFittingDollCatalogTest {
         assertEquals("NOSE CANNON", socket(sirocco, SocketId.ARMS).label());
 
         DollDef bulwark = catalog.doll(MechVariant.BULWARK);
-        assertEquals(6, bulwark.sockets().size());
-        assertEquals("ARM ASSEMBLY", socket(bulwark, SocketId.ARMS).label());
+        assertEquals(7, bulwark.sockets().size(), "a socket for each arm in place of one arm assembly");
+        assertEquals("L. ARM", socket(bulwark, SocketId.LEFT_ARM).label());
+        assertEquals("R. ARM", socket(bulwark, SocketId.RIGHT_ARM).label());
+        assertTrue(bulwark.sockets().stream().noneMatch(socket -> socket.id() == SocketId.ARMS));
     }
 
     @Test

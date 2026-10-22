@@ -26,14 +26,14 @@ public final class FactionMechLoadouts {
         MechRole deployedRole = role != null ? role : variant.defaultRole;
         if (variant == MechVariant.BULWARK && isTriTachyon(factionId)) {
             return new MechLoadoutComponent(variant,
-                    MechWeaponComponent.DUAL_PULSE_LASERS,
+                    MechWeaponComponent.PULSE_LASER,
                     variant.leftShoulder,
                     MechWeaponComponent.SHOULDER_LASER_CANNON,
                     deployedRole);
         }
         if (variant == MechVariant.BULWARK && isFaction(factionId, HEGEMONY_ID)) {
             return new MechLoadoutComponent(variant,
-                    MechWeaponComponent.DUAL_BASTION_AUTOCANNONS,
+                    MechWeaponComponent.BASTION_AUTOCANNON,
                     variant.leftShoulder, variant.rightShoulder, deployedRole);
         }
         if (variant == MechVariant.HOUND && isFaction(factionId, LUDDIC_PATH_ID)) {

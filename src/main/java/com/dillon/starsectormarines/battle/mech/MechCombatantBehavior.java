@@ -109,10 +109,12 @@ public final class MechCombatantBehavior implements UnitBehavior {
         }
     }
 
-    /** Fires whichever direct-fire weapon is installed on the arms track. */
+    /** Fires whichever direct-fire weapons are installed on the arm mounts. */
     public static void tryFireArms(long u, MechLoadoutComponent m, long target,
                                    float dist, BattleControl sim, boolean hasLos) {
-        tryFireMount(u, m, m.mount(MechMountSlot.ARMS), target, dist, sim, hasLos);
+        for (MechMountSlot slot : MechLoadoutComponent.ARM_SLOTS) {
+            tryFireMount(u, m, m.mount(slot), target, dist, sim, hasLos);
+        }
     }
 
     /** Compatibility name retained for older callers and focused weapon tests. */
@@ -158,8 +160,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
         if (dist > weapon.range) return;
         boolean indirect = weapon.indirectFire;
         if (!indirect && !hasLos) return;
-        MechWeaponMount arms = loadout.mount(MechMountSlot.ARMS);
-        float minimumIndirectRange = arms != null ? arms.weaponDef().range : 0f;
+        float minimumIndirectRange = loadout.armsRange();
         if (indirect && dist <= minimumIndirectRange) return;
 
         float accuracyMult = indirect && !hasLos ? weapon.noLosAccuracyMult : 1f;

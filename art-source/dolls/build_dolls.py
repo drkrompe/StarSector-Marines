@@ -370,8 +370,9 @@ def bulwark(name):
         if rear:
             continue
         d.panel("HEAD", [(-8, 36), (8, 36), (10, 46), (-10, 46)], cx)
-        # Each arm one outline: the shoulder joint, then the gun block held level with the chest.
-        d.mirrored("ARMS", "ARMS", arm, cx, barrels)
+        # Each arm one outline and its own location: the shoulder joint, then the gun held level with
+        # the chest. Seen from the front the machine's right arm is on the viewer's left.
+        d.mirrored("RIGHT_ARM", "LEFT_ARM", arm, cx, barrels)
         d.mirrored("LEGS", "LEGS", leg, cx, [((-30, 120), (-6, 120)), ((-28, 136), (-8, 136))])
     return d.write()
 

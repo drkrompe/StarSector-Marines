@@ -139,14 +139,25 @@
           "factoryLocked": false
         },
         {
-          "id": "ARMS",
-          "label": "@gearSocketArmAssembly",
+          "id": "LEFT_ARM",
+          "label": "@gearSocketLArm",
           "type": "OMNI",
           "gridColumns": 2,
-          "gridRows": 3,
-          "anchor": [0.0, 0.22],
-          "dockDirection": [0.0, 1.50],
-          "footprintHull": [1.70, 0.68],
+          "gridRows": 2,
+          "anchor": [-0.30, 0.22],
+          "dockDirection": [-0.75, 1.50],
+          "footprintHull": [0.85, 0.68],
+          "factoryLocked": false
+        },
+        {
+          "id": "RIGHT_ARM",
+          "label": "@gearSocketRArm",
+          "type": "OMNI",
+          "gridColumns": 2,
+          "gridRows": 2,
+          "anchor": [0.30, 0.22],
+          "dockDirection": [0.75, 1.50],
+          "footprintHull": [0.85, 0.68],
           "factoryLocked": false
         },
         {

@@ -118,11 +118,16 @@ dependencies {
 // value duplicated there and still missing from `commanderEvidence`, which
 // renders review frames through the very renderer that was running out.
 // Raised from 2g to 6g (owner, 2026-10-22): long framed evidence runs - The Burn's
-// review frames at 1920x1080 - kept dying of OutOfMemoryError, and sessions worked
-// round it by splitting runs instead of giving the JVM room. The machine has 32 GB;
-// this is a cap, not a reservation. -PtestHeap=<size> overrides it per run. What
-// actually holds the memory is a separate question and is being looked at.
+// review frames at 1920x1080 - kept dying of OutOfMemoryError. The machine has 32 GB;
+// this is a cap, not a reservation. -PtestHeap=<size> overrides it per run.
+// What actually held the memory was measured afterwards (CLAUDE.md, "Memory
+// budget"): the headless sprite tokens kept every decoded sheet resident, 1.3 GB
+// before a battle began. With that fixed The Burn's whole framed run fits in 2g.
 def evidenceHeap = (findProperty('testHeap') ?: '6g').toString()
+// -PtestJvmArgs="<args>" adds JVM flags to an evidence fork for one run - a flight
+// recording, a heap dump on OOM - without touching the daemon, which
+// JAVA_TOOL_OPTIONS would also reach.
+def evidenceJvmArgs = (findProperty('testJvmArgs') ?: '').toString().trim()
 tasks.withType(Test).configureEach {
     maxHeapSize = evidenceHeap
     // A repeated implicit exception loses its stack to the JIT's fast-throw
@@ -130,6 +135,7 @@ tasks.withType(Test).configureEach {
     // bare `java.lang.ArrayIndexOutOfBoundsException` and no frames is a run that
     // has to be paid for again to say anything. Keep the frames.
     jvmArgs '-XX:-OmitStackTraceInFastThrow'
+    if (!evidenceJvmArgs.isEmpty()) jvmArgs evidenceJvmArgs.split(/\s+/)
     // Every JVM-side measurement — the suite, commander evidence, snapshots —
     // measures shipping behaviour, never the debug scaffold. Without this,
     // IntegralSystemSystem's screen-trigger override would raise a screen in
@@ -512,6 +518,9 @@ tasks.register('renderEvidence', Test) {
     if (project.hasProperty('renderMaps')) {
         systemProperty 'render.evidence.maps', project.property('renderMaps')
     }
+    if (project.hasProperty('renderBurnSeconds')) {
+        systemProperty 'render.evidence.burnSeconds', project.property('renderBurnSeconds')
+    }
     if (project.hasProperty('renderPileBodies')) {
         systemProperty 'render.evidence.pileBodies', project.property('renderPileBodies')
     }
@@ -544,7 +553,6 @@ tasks.register('battleProbe', JavaExec) {
     workingDir projectDir
     standardInput = System.in
     outputs.upToDateWhen { false }
-    maxHeapSize = evidenceHeap
     systemProperty 'starsectorDir', starsectorDir.absolutePath
     // Exactly what every Test task is given (`tasks.withType(Test)` above) plus commanderEvidence's serial unit
     // update. Without the async switches the probe plays the live game's asynchronous battle, which is neither the
@@ -946,6 +954,20 @@ tasks.register('sceneDeterminism', JavaExec) {
     doFirst {
         String selector = providers.gradleProperty('scene').getOrElse('all')
         args projectDir.absolutePath, starsectorCore.absolutePath, selector
+    }
+}
+
+// The evidence JavaExecs answer to the same budget and the same -PtestJvmArgs
+// as the Test tasks. Before this a scene run had no cap at all - the JVM's
+// default of a quarter of the machine, 8 GB here - so a scene that grew without
+// bound could never show it. createSnapshots keeps that default unless
+// -PtestHeap is given: SnapshotWorkers spills finished frames at half the heap,
+// so its cap moves its spill point, and the whole catalog has not been
+// measured under 6g.
+['battleProbe', 'sceneEvidence', 'sceneDeterminism', 'createSnapshots'].each { name ->
+    tasks.named(name, JavaExec) {
+        if (name != 'createSnapshots' || findProperty('testHeap') != null) maxHeapSize = evidenceHeap
+        if (!evidenceJvmArgs.isEmpty()) jvmArgs evidenceJvmArgs.split(/\s+/)
     }
 }
 

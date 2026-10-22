@@ -281,6 +281,25 @@ public final class MechBay implements Serializable {
         return new Settlement(chassisLost, assembliesLost, damaged);
     }
 
+    /**
+     * Breaks a chassis up on its gantry so the berth can take another machine. Unlike a loss in
+     * battle, nothing fitted is destroyed: its weapons, internals and replenisher stay owned and,
+     * with no frame to sit in, are spares in stores again.
+     */
+    public boolean scrapMech(String mechId) {
+        CampaignMech mech = mechById(mechId);
+        if (mech == null) return false;
+        for (CampaignMechSquad squad : squads) {
+            if (squad.mechById(mechId) == mech) return squad.remove(mech);
+        }
+        return false;
+    }
+
+    /** Breaks a vehicle up; it carries nothing the bay counts, so only the berth comes back. */
+    public boolean scrapVehicle(String vehicleId) {
+        return vehicleId != null && loseVehicles(List.of(vehicleId)) == 1;
+    }
+
     /** The chassis and everything fitted to it leave the bay; its gantry stands empty. */
     private boolean loseChassis(CampaignMech mech) {
         for (CampaignMechSquad squad : squads) {
@@ -688,6 +707,8 @@ public final class MechBay implements Serializable {
     private static MechFittingLayout.SocketId socketFor(MechMountSlot slot) {
         return switch (slot) {
             case ARMS -> MechFittingLayout.SocketId.ARMS;
+            case LEFT_ARM -> MechFittingLayout.SocketId.LEFT_ARM;
+            case RIGHT_ARM -> MechFittingLayout.SocketId.RIGHT_ARM;
             case LEFT_SHOULDER -> MechFittingLayout.SocketId.LEFT_SHOULDER;
             case RIGHT_SHOULDER -> MechFittingLayout.SocketId.RIGHT_SHOULDER;
         };

@@ -85,9 +85,9 @@ public final class ElevationLookSnapshotSuite implements SnapshotSuite {
                     {"STAIRS", "Ramp C. Cut stone steps",
                             "A shadowed riser and a lit tread every half cell: reads strongest, but says feet, not wheels."}};
             String[][] edgeLooks = {
-                    {"LAYERED", "Edge A. Layered escarpment",
+                    {"LAYERED", "Edge A. Layered escarpment (owner's pick)",
                             "Strata ledges across the face; a broken turf lip over exposed soil; a gravel apron feathering into the grass."},
-                    {"BOULDER", "Edge B. Boulder scarp (recommended)",
+                    {"BOULDER", "Edge B. Boulder scarp",
                             "Jointed rock blocks; rocks breaking through the turf at the rim; boulders and scree heaped at the foot."},
                     {"ERODED", "Edge C. Eroded bank",
                             "Gullies running down an earthy face; grass draping over the lip; scree fans spreading below."}};
