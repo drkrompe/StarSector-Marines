@@ -1071,6 +1071,10 @@ against its own control in `renderEvidence`.
   declares its trees' crowns to the field when the field is made; rock
   formations and hills are climbed as walls are. A crown fills at a wall's rate,
   so its coverage is how long the creep has held the tree.
+- **Creep can be matured.** A battle set weeks into a bloom (the Cordon,
+  `cordon-nouns.md`) grows every source to its full reach at once at setup and
+  fills it, walls crusted, as the clock would have (`CreepField.mature`); the
+  trees under it die at once. Nothing else about the field changes.
 - **Removing a source withers what it alone held**, from the outer edge back to
   the hole over a visible interval: the growth dies first, then clears. Ground a
   living source also reaches stays, and a living source reaching dying ground

@@ -217,6 +217,41 @@ public final class CreepField {
         }
     }
 
+    /**
+     * Brings every source to its full reach at once and fills all it claims,
+     * walls crusted over: creep that has stood for weeks
+     * ({@code cordon-nouns.md}, The map). For setup, before the first tick;
+     * what it grows is what the sources would have grown, only sooner.
+     */
+    public void mature() {
+        for (Source source : sources.values()) {
+            source.reach = Math.max(source.reach, source.growth.maxReachCells());
+            int limit = (int) (source.reach * COST_SCALE);
+            while (source.queued > 0) {
+                int idx = source.popUpTo(limit);
+                if (idx < 0) break;
+                settle(source, idx, source.cur);
+            }
+        }
+        int kept = 0;
+        for (int i = 0; i < activeSize; i++) {
+            int idx = active[i];
+            if (state[idx] != GROWING) {
+                active[kept++] = idx;
+                continue;
+            }
+            coverage[idx] = (byte) FULL;
+            vitality[idx] = (byte) FULL;
+            state[idx] = STEADY;
+            markDirty(idx);
+        }
+        activeSize = kept;
+        if (dirtyThisTick) {
+            dirtyThisTick = false;
+            revision = revision + 1;
+        }
+    }
+
     private void grow(Source source) {
         float rate = source.growth.cellsPerSecond() * source.variance;
         if (source.boostSeconds > 0f) {
