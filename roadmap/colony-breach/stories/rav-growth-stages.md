@@ -4,7 +4,7 @@ Status: DESIGN — owner answered the round-1 questions (below); no mechanics bu
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — owner decisions: weighted population, pale spine ridge on elders, elder Brute squeezes, whelps bolt.
+Updated: 2026-10-21 — owner decisions: weighted population, elder treatment A (pale spine ridge, scars), elder Brute squeezes, whelps bolt.
 
 Model: `colony-breach-nouns.md` (Swarm strain: Growth stage, Pack leader; Bore tier; Spawning surge; Harvest).
 
@@ -330,6 +330,10 @@ and waits for her design.
 
 - **Weighted population.** A fed bore sends fewer, older ravs: the director
   counts stage weight, not bodies.
-- **Elder on creep.** Dark plum with a pale spine ridge.
+- **Elder treatment: A, ridge** (picked from four on
+  `review/rav-growth/2026-10-21_elder-options_windows`). Dark plum with the
+  spine ridge kept pale, healed scars, spikes 1.30x; the build ships it.
+  Rejected: B (near-black, broader, spikes 1.55x), C (grey, worn, hunched)
+  and D (ivory bone crown). Their code stays in `elder_options_sheet.py`.
 - **Elder Brute at doors.** It squeezes through; no wall breaking for it.
 - **Whelps bolt** for four seconds when their leader dies.
