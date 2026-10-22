@@ -39,7 +39,7 @@ final class ArmorySpecSheets {
      * every hover, so a billet or draft change needs no rebinding.
      */
     static void bindInspection(SpecSheetBinder binder, MarkupInstance markup,
-                               Signal<Map<String, Object>> inspection) {
+                               Supplier<Map<String, Object>> inspection) {
         for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
             for (int part = 0; part < LoadoutInspection.PARTS; part++) {
                 int index = billet, line = part;

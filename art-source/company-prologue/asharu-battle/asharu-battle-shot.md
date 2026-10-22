@@ -62,14 +62,31 @@ beside the hulls, and a broken mast stands off the forward end. It has no sphere
 panels. The first blockout's two 300 m flat "collector" slabs read as big quads, and its eighteen
 sphere tanks read as orbs; both are gone.
 
-The pirates hide the way a crew would, not in rows. Each hull is parked nose-out under a hull, in a
-bay or between the drums, on the side away from the convoy's line of sight (which comes from above
-and from the platform's north side). Each lies at her own heading and depth, some rolled on their sides or inverted.
+**The debris field** (owner, 2026-10-22: eleven hulls pouring out of the station read as a
+"Looney Tunes clown car"). The platform sits in a field of its own wreckage about 3.3 km by 2 km
+by 1 km (`debris_field`). It holds old hulks up to about 340 m, broken hull sections, spars and
+plates down to a few metres, all slowly tumbling about their own axes: the big wrecks at a few
+tenths of a degree a second, plates at several. Nothing in it is a sphere.
+
+The pirates hide in the field the way a crew would:
+- **The station hides only two:** the Manticore (P) in its south hangar and the Colossus Mk.III
+  inverted under its biggest hull.
+- **Every other hull lies out in the field,** across the whole of it and at every depth, behind a
+  wreck at least her own size set between her and the convoy's line of sight, which comes from
+  above and from the platform's north side. That wreck is a hulk, a cargo block or a slab of deck.
+- **Four are half-seen in S3,** so S4 reveals what the audience half-saw. The noses of the Hound
+  (P) C, the Wolf (P) B and the Kite (P) B show past the ends of their hulks, and the drive
+  cluster of the Hound (P) A shows past her block.
+- **`--check` measures it** (`hide_lines`): for each pirate, her cover's volume against her own
+  bounding box (every cover is 1.6 to 8.5 times hers), and how much of her the convoy can see
+  before the drives light, from rays cast over her bounding box. It flags EXPOSED, SMALL, the
+  intended HALF-SEEN, and HIT for any launch that passes through a wreck or the station.
 
 The launch is one motion across S3 and S4 (`launch`):
-- Drives light in a ripple from the Falcon (P), 33.8 s to 38.2 s.
-- Each hull eases out along her nose for two seconds, then turns onto her climb as she gains
-  speed, then burns toward the column.
+- Drives light in a ripple from the Falcon (P), 33.8 s to 38.2 s, in many places across the field.
+- Each hull eases out along her nose past her wreck for 4.6 s, then turns onto her climb as she
+  gains speed, then burns toward the column. No launch passes through a wreck: the field's seeded
+  wreckage is kept out of every launch corridor.
 - S3 stills it at 34 s and S4 at 40 s, from the same flights, so the spread grows on screen.
 
 Assumptions the story does not give (owner to confirm or change):

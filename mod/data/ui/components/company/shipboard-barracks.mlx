@@ -105,18 +105,8 @@
                 <div id="{squad.strengthId}" class="label heading card-strength">{squad.strength}</div>
               </div>
               <div id="{squad.cardsId}" class="card-faces">
-                <div id="{squad.weaponChipId}" class="card-face">
-                  <div id="{squad.weaponSlotId}" class="card-face-slot">
-                    <img id="{squad.weaponSealId}" class="{squad.weaponSealClasses}" src="graphics/ui/company/restricted-seal.svg" />
-                  </div>
-                  <img id="{squad.weaponIconId}" class="card-face-icon" src="{squad.weaponIcon}" />
-                </div>
-                <div id="{squad.armorChipId}" class="card-face">
-                  <div id="{squad.armorSlotId}" class="card-face-slot">
-                    <img id="{squad.armorSealId}" class="{squad.armorSealClasses}" src="graphics/ui/company/restricted-seal.svg" />
-                  </div>
-                  <img id="{squad.armorIconId}" class="card-face-icon" src="{squad.armorIcon}" />
-                </div>
+                <armory-card-chip chip="{squad.weaponCard}" />
+                <armory-card-chip chip="{squad.armorCard}" />
               </div>
               <div id="{squad.formationstatusId}" class="{squad.personnelClasses}">{squad.personnel}</div>
               <canvas id="{squad.musterId}" class="formation-muster" width="260" height="78" />
@@ -127,7 +117,7 @@
                 <div id="{squad.fillCountId}" class="label heading fill-count">{squad.fillCount}</div>
               </button>
               <div id="{squad.footerSpacerId}" class="card-footer-spacer"></div>
-              <button id="{squad.loadoutId}" class="loadout-button console-action" onclick="{squad.loadout}">{i18n.openingUiShipboardBarracksLoadout}</button>
+              <button id="{squad.loadoutId}" class="loadout-button spec-action" onclick="{squad.loadout}">{i18n.openingUiShipboardBarracksLoadout}</button>
             </div>
             <button id="{squad.founderId}" class="{squad.founderClasses}" style="background-color: transparent; background-image: none; border-width: 0px; opacity: 1;" disabled="{squad.founderDisabled}" onclick="{squad.raise}">
               <div id="{squad.founderHeadingId}" class="raise-squad-heading">
@@ -265,9 +255,9 @@
   .scope-count { width: 0px; flex-grow: 1; height: 20px; }
   .select-all { width: 174px; height: 26px; padding: 0px 4px; text-align: center; font-family: heading; }
   .formation-list { display: grid; height: 0px; flex-grow: 1; gap: 10px; overflow: scroll; }
-  .formation { flex-direction: column; width: 260px; height: 232px; gap: 6px; padding: 8px; border-width: 2px; border-color: #586154; background-color: #202922; }
+  .formation { flex-direction: column; width: 260px; height: 258px; gap: 6px; padding: 8px; border-width: 2px; border-color: #586154; background-color: #202922; }
   .formation.selected { border-color: #dfc588; background-color: #383c2d; }
-  .formation-select { flex-direction: column; width: 100%; height: 182px; gap: 6px; padding: 0px; border-width: 0px; text-align: left; background-color: #202922; }
+  .formation-select { flex-direction: column; width: 100%; height: 208px; gap: 6px; padding: 0px; border-width: 0px; text-align: left; background-color: #202922; }
   .formation-select:hover { background-color: #303b30; }
   .formation.selected .formation-select { background-color: #383c2d; }
   .formation.stationed .formation-select { opacity: 1; }
@@ -277,16 +267,10 @@
   .formation-name { width: 0px; flex-grow: 1; height: 20px; }
   .card-strength { width: 54px; height: 20px; text-align: right; }
   .card-personnel { height: 16px; font-family: body; }
-  /* Two card slots side by side, icon only: the hover sheet names and describes the card.
-     Widths are fixed because the layout has no centering: 240px of card interior is two
-     117px slots and a 6px gap. Padding and border sit outside the width here, so a slot is\n     76px of content after 39px of padding and a 1px border, centering a 36px icon. */
-  .card-faces { flex-direction: row; height: 46px; gap: 6px; }
-  .card-face { flex-direction: row; align-items: center; width: 115px; height: 44px; padding: 0px; border-width: 1px; border-color: #46554b; background-color: #151b17; }
-  .card-face:hover { border-color: #dfc588; background-color: #303b30; }
-  .card-face-icon { width: 36px; height: 36px; }
-  .card-face-slot { flex-direction: column; width: 39px; height: 44px; padding: 3px 0px 0px 3px; }
-  .card-face-seal { width: 18px; height: 18px; }
-  .card-face-seal.card-face-seal-absent { width: 0px; height: 0px; }
+  /* The squad's two issued cards, stacked, as compact chips (armory-card-chip): the same
+     token the Loadout screen opens its squad view on. */
+  .card-faces { flex-direction: column; height: 72px; gap: 4px; }
+  .card-faces .card-chip { width: 242px; }
   .fill-button { flex-direction: row; align-items: center; width: 56px; height: 28px; padding: 0px 6px; gap: 4px; }
   .fill-button.hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
   .fill-icon { width: 18px; height: 18px; }
@@ -310,7 +294,7 @@
   .raise-cost-count { width: 34px; height: 18px; color: #dfc588; }
   .raise-cost.short .raise-cost-count { color: #eea296; }
   .card-footer { flex-direction: row; align-items: center; height: 28px; gap: 6px; }
-  .loadout-button { width: 80px; height: 28px; padding: 0px 4px; text-align: center; font-family: heading; }
+  .loadout-button { width: 84px; height: 28px; padding: 6px 4px; }
   .empty-message { height: auto; }
   .page-label { width: 0px; flex-grow: 1; text-align: center; }
   .barracks-surface { width: 100%; height: 100%; overflow: hidden; }

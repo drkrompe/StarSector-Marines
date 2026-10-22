@@ -325,25 +325,39 @@ optional `specialEquipmentId`; armor doctrine owns only protection. A smoke gren
 or satchel therefore follows the Weapon slot without being reclassified as a
 ballistic `WeaponDef`.
 
-The Loadout screen follows the Mech Lab gantry's arrangement: the stores on the
-left (the card browser) and the thing being fitted beside them, which here is the
-whole squad. The squad view opens on the squad's two issued cards, each with its
-face, kind, FIRE or GUARD rating and the Restricted seal when it bears one, beside
-the selected marine and the Test Loadout action.
+**One armoury presentation.** Every screen that shows a squad's cards and kit
+(Barracks, Loadout, and the First Refit reward) draws it with the same four parts,
+so a player reads the same thing the same way wherever it appears:
 
-The two selected definitions compose into one exact twelve-billet preview. Below
-the cards the squad stands as three fire teams of two by two. Each marine's tile
-names its occupant and readiness and whether the proposed issue changes them, and
-shows a portrait of the kit they would wear. Its four kit lines (primary weapon,
-armour, special equipment, integral system) give what the marine carries now with
-the proposed item beneath in gold where the selected card changes it, and five
-numbers (sustained output, range, penetration, armour, movement) compare now and
-proposed the same way, weapon figures using that marine's own profile. Hovering a
-kit line opens the shared spec sheet of the item it would issue; the bindings read
-the live projection, so changing billets or cards needs no rebinding. Selection
-picks the marine Test Loadout fields without changing the squad-wide transaction.
-A vacancy shows the planned issue without inventing an equipped soldier. Personnel
-careers and recovery management remain in Barracks.
+- the **licence card**: a card in full, in the spec sheet's own style (heading and
+  crest, issuer stamp with the Restricted banner, metered rating, the fire-team seat
+  picture). It is the card in the Loadout stores and First Refit's choices (both a
+  left-hand column beside the squad view), and the sheet a card opens on hover
+  anywhere;
+- the **issued-card chip**: a card at a glance (face, kind, name, FIRE or GUARD
+  rating, the Restricted seal). Barracks stacks two compact chips on each squad
+  card, and the Loadout squad view opens on the same two at full size;
+- the **squad view**: the twelve marines as three fire teams of two by two, each
+  with a portrait
+  of the kit they would wear, four kit lines (primary weapon, armour, special
+  equipment, integral system) giving what they carry now with an arrow to what the
+  selected card would issue, and five numbers (sustained output, range,
+  penetration, armour, movement) now and proposed, the arrow green where the number
+  improves and red where it falls; weapon figures use that marine's own profile;
+- the **licence keys**: tabs, filters and actions on and around cards are flat navy
+  keys with the cards' edge colours (blue for a choice, gold for an action), not the
+  console keys of the rest of the ship.
+
+The Loadout screen follows the Mech Lab gantry's arrangement: the stores on the left
+(the card browser) and the thing being fitted beside them, which is the whole squad.
+The squad view opens on the squad's two issued cards beside the selected marine and
+the Test Loadout action, with one line counting the marines the selected card would
+change. The two selected definitions compose into one exact twelve-billet preview.
+Hovering a kit line opens the shared spec sheet of the item it would issue; the
+bindings read the live projection, so changing billets or cards needs no rebinding.
+Selection picks the marine Test Loadout fields without changing the squad-wide
+transaction. A vacancy shows the planned issue without inventing an equipped
+soldier. Personnel careers and recovery management remain in Barracks.
 
 Weapon cards and tactic sheets share the left-hand browser, under its Weapons and
 Equipment tabs, filtered by tier (I to IV). Each card is drawn as a licence in

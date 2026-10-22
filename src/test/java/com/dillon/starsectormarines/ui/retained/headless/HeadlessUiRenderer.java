@@ -238,6 +238,7 @@ public final class HeadlessUiRenderer {
         if (width <= 0 || height <= 0) {
             throw new IllegalArgumentException("viewport dimensions must be positive");
         }
+        resources.beginImage();
         BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = output.createGraphics();
         configure(graphics);
@@ -262,6 +263,7 @@ public final class HeadlessUiRenderer {
         if (width <= 0 || height <= 0) {
             throw new IllegalArgumentException("canvas dimensions must be positive");
         }
+        resources.beginImage();
         BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = output.createGraphics();
         configure(graphics);
@@ -304,6 +306,7 @@ public final class HeadlessUiRenderer {
         installFontMetrics(document, document.root(), new IdentityHashMap<>());
         document.layout(documentWidth, documentHeight);
 
+        resources.beginImage();
         BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = output.createGraphics();
         configure(graphics);
@@ -667,7 +670,14 @@ public final class HeadlessUiRenderer {
         private final List<Path> roots;
         private final Map<String, BufferedImage> images = new ConcurrentHashMap<>();
         private final Map<TintKey, BufferedImage> tintedFonts = new ConcurrentHashMap<>();
-        private final Map<SpriteTintKey, BufferedImage> tintedSprites = new ConcurrentHashMap<>();
+        /**
+         * Tinted cuts this image has drawn, and the ones the image before it drew. A cut neither of the last two
+         * images drew is let go: a tint that moves every frame (a burning tree's char) is never asked for again, and
+         * with only a size cap those dead shades filled 256 MB on every long burn and stayed there. A tint the scene
+         * keeps drawing moves forward frame to frame and is cut once.
+         */
+        private volatile Map<SpriteTintKey, BufferedImage> tintedSprites = new ConcurrentHashMap<>();
+        private volatile Map<SpriteTintKey, BufferedImage> previousTints = new ConcurrentHashMap<>();
         /** Source rectangles already cut, by image identity: a fresh subimage per draw cost Java2D a new surface and a disposer record every time. */
         private final Map<RegionKey, BufferedImage> regions = new ConcurrentHashMap<>();
         private final IdentityHashMap<BitmapFont, Boolean> installedFonts =
@@ -675,9 +685,16 @@ public final class HeadlessUiRenderer {
 
         /** Cuts beyond this many are dropped wholesale; a cut is a view onto its image, so it costs a header, not pixels. */
         private static final int MAX_REGIONS = 200_000;
-        /** Pixels of tinted cuts kept before they are all dropped: 64 M pixels is 256 MB. */
+        /** Pixels of tinted cuts one image may build before they are all dropped: 64 M pixels is 256 MB. */
         private static final long MAX_TINTED_PIXELS = 64L * 1024 * 1024;
         private final AtomicLong tintedPixels = new AtomicLong();
+
+        /** Called once per image, before anything draws into it, never from a band. */
+        private void beginImage() {
+            previousTints = tintedSprites;
+            tintedSprites = new ConcurrentHashMap<>();
+            tintedPixels.set(0L);
+        }
 
         private BufferedImage region(BufferedImage source, CanvasSpriteRegion region) {
             if (region.equals(CanvasSpriteRegion.FULL)) return source;
@@ -749,8 +766,10 @@ public final class HeadlessUiRenderer {
                 tintedSprites.clear();
                 tintedPixels.set(0L);
             }
+            Map<SpriteTintKey, BufferedImage> previous = previousTints;
             return tintedSprites.computeIfAbsent(new SpriteTintKey(cut, rgb), key -> {
-                BufferedImage tinted = modulate(key.cut(), key.rgb());
+                BufferedImage carried = previous.get(key);
+                BufferedImage tinted = carried != null ? carried : modulate(key.cut(), key.rgb());
                 tintedPixels.addAndGet((long) tinted.getWidth() * tinted.getHeight());
                 return tinted;
             });
