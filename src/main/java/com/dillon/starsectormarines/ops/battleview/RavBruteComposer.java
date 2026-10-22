@@ -22,7 +22,7 @@ final class RavBruteComposer {
     private static final float[] SHANK_W = {120f, 135f};
     /** The owner asked for bigger feet; a raised hoof is nearer the camera. */
     private static final float HOOF_SCALE = 1.3f, HOOF_LIFT = 2.5f;
-    /** A reared forequarter is nearer the camera: the body and head grow by this per cell of rear. */
+    /** A reared forequarter is nearer the camera: the body widens and the head grows by this per cell of rear. */
     private static final float REAR_SCALE = 0.9f;
     /** Layer rows of the centres of the body's front half (rows 0..990) and rear half (rows 958..1536). */
     private static final float FRONT_CENTRE_ROW = 495f, REAR_CENTRE_ROW = 1247f;
@@ -79,9 +79,12 @@ final class RavBruteComposer {
         float span = RavBruteRig.HIP_ROW - RavBruteRig.SHOULDER_ROW;
         float axX = (shX - hpX) / span, axY = (shY - hpY) / span;     // cells per layer row, toward the head
         float bodyAngle = facing + (float) Math.toDegrees(Math.atan2(-axX, axY));
+        // Its length is the axis's, so the sprite's shoulders and hips stay on the joints the legs hang from;
+        // a reared forequarter nearer the camera widens it, never lengthens it past the hips.
         float k = spritePx * (1f + REAR_SCALE * rig.rear());
+        float along = spritePx * (float) Math.hypot(axX, axY) * U;
         rowPoint(shX, shY, axX, axY, CANVAS_CENTRE_ROW, cx, cy, ppc, fx, fy, a);
-        out.add(art.body, a[0], a[1], art.body.pxWidth * k, art.body.pxHeight * k,
+        out.add(art.body, a[0], a[1], art.body.pxWidth * k, art.body.pxHeight * along,
                 bodyAngle, 1f, 1f, 1f, alpha);
 
         // the head: slides along the axis by its dy, scales about the neck, and turns about it

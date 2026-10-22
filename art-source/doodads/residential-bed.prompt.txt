@@ -1,0 +1,7 @@
+Reskin the attached geometry guide into finished top-down game art for one civilian prop: a modest single bed in a futuristic apartment, seen from directly above. Strict overhead orthographic view, soft light from the upper left, the same look as the material reference: simple painted warm-grey metal frame, off-white pillow, muted teal blanket, worn fabric, small rust accents, realistic painted game-asset finish. No saturated colour, no glow.
+
+The guide is the geometry, scale and layout authority, and the result will be cut mechanically from the guide's exact pixel rectangle. The bed is a long narrow strip, its length three times its width, and must overlay its grey guide shape almost exactly: the same left and right ends, the same top and bottom edges. Do not make it wider, longer or larger than its grey shape; do not move, rescale or rotate it, and add nothing else. Keep all empty canvas fully transparent: true transparent background; no floor, no rug, no shadow slab, no border, no people, no labels or text.
+
+The piece: a narrow metal bed frame with a low headboard at the left end, the pillow at the left on the mattress, the blanket turned down at its left edge and covering the rest of the mattress to the foot at the right. Nothing on the floor around it.
+
+Broad readable forms, soft restrained highlights, sparse wear, low surface noise.

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.SwarmStage;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -61,6 +62,7 @@ public final class SwarmBore {
     private int surges;
     private int nextSurgeTick;
     private int bodiesSpawned;
+    private final int[] stagesReleased = new int[SwarmStage.values().length];
     private boolean matriarchReleased;
     private int collapsedTick = -1;
     private final List<Long> colonies = new ArrayList<>();
@@ -107,6 +109,8 @@ public final class SwarmBore {
     public int surges() { return surges; }
     public int nextSurgeTick() { return nextSurgeTick; }
     public int bodiesSpawned() { return bodiesSpawned; }
+    /** Bodies its surges have released at {@code stage}. */
+    public int releasedAt(SwarmStage stage) { return stagesReleased[stage.ordinal()]; }
     /** Whether this bore has put its Matriarch out; only a mother ever does, once. */
     public boolean matriarchReleased() { return matriarchReleased; }
     public boolean collapsed() { return collapsedTick >= 0; }
@@ -165,9 +169,10 @@ public final class SwarmBore {
         nextSurgeTick = tick + Math.max(1, seconds(interval));
     }
 
-    /** Records one body of a surge out of the mouth. */
-    void released() {
+    /** Records one body of a surge out of the mouth, born at {@code stage}. */
+    void released(SwarmStage stage) {
         bodiesSpawned++;
+        stagesReleased[stage.ordinal()]++;
     }
 
     /** Records that the body just released was this mother's Matriarch. */

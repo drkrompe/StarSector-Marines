@@ -32,7 +32,8 @@ public final class LogisticsKit {
         return new Module(2, 2, "main-stores.pallet", List.of(new LayoutOp.Layer(0, 0, stock.id)));
     }
 
-    public static Module ammunition() { return new Module(2, 2, "armory-workshop.ammo", List.of()); }
+    /** A sealed 1.0 x 0.6 m cabinet, its doors on its bottom edge: stand it where it is worked from the row below. */
+    public static Module ammunition() { return new Module(2, 1, "armory-workshop.ammo", List.of()); }
     public static Module desk(boolean packing) {
         return new Module(3, 1, packing ? "main-stores.packing" : "main-stores.tally", List.of());
     }

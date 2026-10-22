@@ -25,6 +25,15 @@ import javax.imageio.ImageIO;
  *   bench-tools   160,480,960,320       overlay: stripped rifle, vise, tool tray
  *   ready-locker  160,880,960,320       2.1 x 0.5 m three-door locker bank, doors on the bottom face
  * </pre>
+ *
+ * <p>The ammunition cabinet followed later, on its own canvas ({@link #renderAmmunition()}): the original was a
+ * 2x2 front elevation, a cabinet 1.5 m square seen face on. It is a 2x1 frame now, the lid of a sealed cabinet
+ * 1.0 x 0.6 m seen from above, standing against the back of its frame with its two doors on the bottom face.
+ *
+ * <pre>
+ *   slot          frame (x,y,w,h px)    real size
+ *   ammo          448,352,640,320       1.0 x 0.6 m sealed ammunition cabinet on a 1536x1024 canvas
+ * </pre>
  */
 public final class ArmoryWorkshopTemplate {
     private ArmoryWorkshopTemplate() {}
@@ -68,6 +77,28 @@ public final class ArmoryWorkshopTemplate {
         return image;
     }
 
+    /** The 2x1 ammunition cabinet alone, on a canvas the size ImageGen returns, so its cut needs no rescaling. */
+    public static BufferedImage renderAmmunition() {
+        BufferedImage image = new BufferedImage(1536, 1024, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = image.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.translate(448, 352);
+        g.scale(C / 64.0, C / 64.0);
+
+        // Armoured body 85 x 51 (1.0 x 0.6 m), back to the wall; a reinforced lid inside its rim.
+        rect(g, 21, 4, 86, 52, 0x3C4641);
+        rect(g, 24, 7, 80, 42, 0x6E7766);
+        rect(g, 24, 26, 80, 3, 0x56604F);
+        rect(g, 62, 7, 4, 42, 0x56604F);
+        // Two door fronts on the near (bottom) face, a locking bar and a pull each.
+        rect(g, 23, 49, 40, 6, 0x5D6656);
+        rect(g, 65, 49, 40, 6, 0x5D6656);
+        rect(g, 54, 50, 8, 4, 0xB0B5A5);
+        rect(g, 66, 50, 8, 4, 0xB0B5A5);
+        g.dispose();
+        return image;
+    }
+
     /** Slot {@code row}'s frame: half a cell in from the left, a quarter cell of gutter above each row. */
     private static void at(Graphics2D g, int col, int row) {
         g.setTransform(new AffineTransform());
@@ -81,6 +112,7 @@ public final class ArmoryWorkshopTemplate {
 
     public static void main(String[] args) throws Exception {
         Path path = Path.of(args[0]); Files.createDirectories(path.getParent());
-        ImageIO.write(render(), "png", path.toFile());
+        boolean ammunition = args.length > 1 && args[1].equals("ammunition");
+        ImageIO.write(ammunition ? renderAmmunition() : render(), "png", path.toFile());
     }
 }
