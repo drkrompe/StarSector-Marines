@@ -15,6 +15,7 @@ by name.
 
 | Suite | Evidence | Output |
 |-------|----------|--------|
+| `mission-flow-localization` | Mission previews (briefing, deployment, results, salvage) and the retained battle HUD matrix, each in English and in expanded copy (every catalog value 50% longer, arguments intact) at 1920x1080/100%; text that does not grow is still a literal or preview sample data. Siblings: `opening-localization`, `equipment-localization` | `build/snapshots/mission-flow-localization/` |
 | `hive-creep` | Hive creep on the canonical colony: every eruption site opened on the breach schedule and only the creep field advanced, whole map at two, four and six minutes (with roofs, and annotated), a bore and a spreading edge close up, an edge at play zoom (`07-play-zoom-edge.png`, 32 px a cell) and closer (`08-close-edge.png`), the pulse (`09-pulse.gif`, clock-driven) and a source removed dying back (`10-dying-back.gif`); 1920x1080/100% look evidence, not mission acceptance. `-Dbattle.render.creepPalette=chitin` or `bloom` draws a superseded palette. The GL picture of the same creep is `CreepGlLookEvidence` under `renderEvidence` (`build/reports/render/creep-look/`) | `build/snapshots/hive-creep/` |
 | Suite | Evidence | Output |
 |-------|----------|--------|
