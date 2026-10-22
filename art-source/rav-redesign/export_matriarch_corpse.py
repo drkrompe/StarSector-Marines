@@ -5,8 +5,8 @@ length (`UnitType.SWARM_MATRIARCH.renderScale`, 4.5 cells).
 
   python export_matriarch_corpse.py [raw.png ...]
 
-With no arguments it exports the provisional sheet: four of the six corpse round 1 concepts
-(exploration/matriarch/corpse-1/raw/), standing in until the owner picks one and its four poses are made.
+With no arguments it exports the shipped sheet: the owner's pick from corpse round 1 (#5, broken back,
+2026-10-21) and its three variants from exploration/matriarch/corpse-2/raw/.
 Writes mod/graphics/battle/rav-matriarch-dead.png.
 """
 import sys
@@ -21,7 +21,8 @@ from export_corpses import column_groups, one_frame  # noqa: E402
 from motion_brute import key  # noqa: E402
 
 OUT = HERE.parent.parent / "mod" / "graphics" / "battle" / "rav-matriarch-dead.png"
-PROVISIONAL = [HERE / "exploration" / "matriarch" / "corpse-1" / "raw" / f"c{i}.png" for i in (1, 2, 5, 6)]
+SHIPPED = [HERE / "exploration" / "matriarch" / "corpse-1" / "raw" / "c5.png"] + [
+    HERE / "exploration" / "matriarch" / "corpse-2" / "raw" / f"v{i}.png" for i in (1, 2, 3)]
 FRAME_LONG = 400
 GAP = 16
 PAD = 4
@@ -55,4 +56,4 @@ def main(paths):
 
 
 if __name__ == "__main__":
-    main([Path(p) for p in sys.argv[1:]] or PROVISIONAL)
+    main([Path(p) for p in sys.argv[1:]] or SHIPPED)

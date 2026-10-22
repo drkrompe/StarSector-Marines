@@ -62,8 +62,9 @@ STRAIGHT_GAPE = (0.715, (511.5, 11), (512, 20))
 HEAD_TURN = 0            # degrees the crown-and-head layer is turned; the owner tried 180 and rejected it
 HEAD_TURN_Y = 300        # hero row it turns about
 FOOT_SCALE = 1.1
-# Reap variants for the owner's pick (reap_options.py); the defaults are the approved study and the game.
-BLADE_SCALE = 1.0        # scythe length, scaled about its pivot
+# Reap variants (reap_options.py); the defaults are the shipped design. The owner picked the longer scythes
+# (option B, 2026-10-21) so the reap reads past the crown.
+BLADE_SCALE = 1.4        # scythe length, scaled about its pivot
 BLADE_OUT = 0.0          # cells the scythes are mounted further out from the body
 BLADE_WITH_HEAD = False  # the scythes turn with the head about the neck
 
