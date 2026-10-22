@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * Hive creep: the per-cell biological growth living sources spread across a
- * battle map (`hive-creep.md`, `colony-breach-nouns.md` *Creep*).
+ * battle map (`colony-breach-nouns.md` *Creep*).
  *
  * <p>Each source grows a reach along walkable ground at its {@link CreepGrowth}
  * rate, faster while it is fed, and claims every cell whose path cost from it

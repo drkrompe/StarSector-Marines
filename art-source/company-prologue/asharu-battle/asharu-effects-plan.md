@@ -293,6 +293,34 @@ third on the wreck's strike point at `break_frame`. `k3_cue` gives the k3 entrie
   `break_frame`.
 - **Done when:** the cook-off is caused on screen.
 
+## Scene integration: done 2026-10-21
+
+With `--swfx`, `battle_blockout` draws each key frame's action with the finished kit
+(`scene_fx.py`). Without it, the stand-ins still draw.
+- Every ship gets its own copy, with its own hull so its turrets can train.
+- The copies are rebuilt for each key frame, so nothing one frame builds shows on another.
+
+What each effect entry becomes:
+- **`tracer`:** every bearing gun with a clear line fires, up to four turrets. Each is armed as
+  its variant's weapon (`scene_fx.WEAPON_OF`), with the Lasher's Ammo Feeder on. Rounds fly at
+  the game's cadence and are timed to be in flight on the still, so the last half second's rounds
+  have landed. Each landed round strikes the target where its line meets her hull: on her shield,
+  leaking through at high flux, or on the armour. A stand-in shooter keeps its streaks, but its
+  hits still land on a kit target.
+- **`missiles`:** a Harpoon salvo from the shooter's tubes. On a ship with a `break_frame` (the
+  Phaeton) it arrives on her break; W6's marks are the hits.
+- **`blast_on`, `debris`, `fire_on`, `smoke`:** an HE burst (no orbs), plate debris, a breach
+  burning for 1.5 s, and an older breach still smoking.
+- **`flares`:** the Colossus's flare muzzles.
+
+Per-shot shields:
+- **S9b:** the Falcon (P)'s front shield at full flux, overloaded 0.4 s before the still.
+- **S6c:** both raiders' and the merchant Wolf's shields up.
+- **S9:** the Kite (P)'s omni shield at 0.85 flux.
+
+The Falcon's IR pulse lasers have no kit weapon; the heavy blaster's bolts stand in. S5 has no
+key frame yet.
+
 ## Shot map, most visible first
 
 | Priority | Shot | Effects |
