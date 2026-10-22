@@ -294,6 +294,10 @@ Broad Front:
 
 The Burn:
 
+Fire itself (stories 6 to 8 below) is its own feature now, modelled in
+`fire-nouns.md` with its board in `roadmap/fire/`; the fire field and the
+firebreak have landed there.
+
 6. **Fire field.** Burning as simulation state the battle owns, beside the
    creep field: per cell, fuel, burning and burnt. Fire spreads by fuel
    (crops, brush, canopies, dead and living creep), burns out, hurts whatever

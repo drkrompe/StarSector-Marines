@@ -105,11 +105,10 @@ public final class UnitRenderService implements RenderSystem {
      */
     static final float DOWNED_BODY_SCALE = 0.65f;
     /**
-     * A sleeper against the live shoulder scale. Larger than a fallen body because it lies in a
-     * real-length bunk beside its neighbours: at this scale the straight lying pose spans the
-     * mattress's width with its arms at its sides and lies head on the pillow.
+     * A sleeper against the live shoulder scale: the same as a fallen body. At 0.9 a marine in
+     * bed read as a giant beside the standing figure, whose head and shoulders are all that shows.
      */
-    static final float SLEEPER_BODY_SCALE = 0.9f;
+    static final float SLEEPER_BODY_SCALE = DOWNED_BODY_SCALE;
     /**
      * A full pool's width in cells at render scale 1. A body lies about 1.2 cells long, and
      * the pool spreads past its torso and out from under its arms rather than hiding beneath it.
@@ -1409,8 +1408,7 @@ public final class UnitRenderService implements RenderSystem {
                     float shoulderPx = layeredInfantryShoulderWidth(
                             cam.cellPxSize(), type.renderScale);
                     // Asleep in a bunk: the straight lying pose, along the bunk, head on the pillow.
-                    LayeredSpriteCache sleeper = onMachine > 0f && LayeredAppearance.workMotion(layeredFlags[r])
-                            == WorkMotion.SLEEP ? layeredAssets.downed(0) : null;
+                    LayeredSpriteCache sleeper = onMachine > 0f && LayeredAppearance.workMotion(layeredFlags[r]).asleep() ? layeredAssets.downed(0) : null;
                     if (sleeper != null) {
                         float scale = shoulderPx * SLEEPER_BODY_SCALE / LayeredUnitComposer.SOURCE_SHOULDER_PX;
                         out.addSprite(RenderLayer.UNITS, sleeper.sprite, cx, cy,

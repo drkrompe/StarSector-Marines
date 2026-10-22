@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-22 — Campaign: blooms as built, frequent, at the benign first severity tier with spores carried on traffic, and the owner's arc as direction; growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
+Updated: 2026-10-22 — Creep on green worlds as built (grown over trees, which die to bare bone-pale skeletons that no longer hide or shelter anyone, the owner's choice; grass and crops wilt ahead of its edge); campaign: blooms as built, frequent, at the benign first severity tier with spores carried on traffic, and the owner's arc as direction; growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -1011,6 +1011,13 @@ against its own control in `renderEvidence`.
   cost along walkable ground, weighted by seeded noise so the front runs out in
   fingers, dearer on pavement. Until bores stand up on eruption sites, each opened site is itself a
   source that never dies.
+- **Trees are grown over, never only climbed.** A tree's crown cells are growth
+  the creep crosses, cell by cell at three times the ground's cost, so a grove
+  is overgrown from its edge inward and its interior and far side are reached
+  over it rather than left a green island the creep cannot enter. The battle
+  declares its trees' crowns to the field when the field is made; rock
+  formations and hills are climbed as walls are. A crown fills at a wall's rate,
+  so its coverage is how long the creep has held the tree.
 - **Removing a source withers what it alone held**, from the outer edge back to
   the hole over a visible interval: the growth dies first, then clears. Ground a
   living source also reaches stays, and a living source reaching dying ground
@@ -1021,6 +1028,25 @@ against its own control in `renderEvidence`.
   one is crusted over. It reads as a matter of time. An overgrown wall still
   reads as a barrier: its crust is lighter than the floor's, lit and shaded on
   its edges as a raised block is, and outlined dark where it meets the floor.
+- **Trees die under it** (`CreepVegetation`). A tree whose crown living creep
+  has held to the tree's own seeded share of about a minute and a half of
+  climbing is dead, and stays dead if the creep later withers. A dead tree has
+  dropped its leaves, so its crown no longer hides or shelters anyone (sight
+  passes and it gives no edge cover) while its trunk still does both and its
+  tangle of bare limbs still stops a body walking through (owner, 2026-10-22,
+  over a shrouded tree that went on blocking as the living one did). A crown cell two trees share opens
+  only when both are dead, and never if it is either one's trunk. Felling still
+  works on a dead tree. Creep therefore strips a wood of concealment the way it
+  strips a building of its roof. `creep-vegetation` (`sceneEvidence`) holds the
+  mechanics; `-Dbattle.swarm.creepTrees=false` is the control.
+- **Hedges and crops are taken as grass is.** Vegetation in a battle is trees
+  (props with a crown) and the green ground: grass with the plants dressed on
+  it (shrubs and tufts), crop rows of grass beside turned earth, and the
+  country's hedges, which are shrubs grown along a plot's grass headland. None
+  of the green ground blocks a body or sight or gives cover, so creep changes
+  how it looks and nothing about how it fights: it wilts ahead of the lip and is
+  buried under it. A hedge that sheltered would be a natural prop with a crown,
+  and creep would take it as it takes a tree.
 - **A ground colony answers a gun the swarm cannot rush** (`GroundColonies`).
   A living bore grows one on its creep within reach of a hostile emplacement
   the creep has come up against: on living creep with creep round it, inside
@@ -1063,6 +1089,10 @@ against its own control in `renderEvidence`.
   a roof that fell stays fallen. The battle keeps its own clock per cell, so the
   creep field knows nothing of roofs. An infested building is no shelter twice
   over: no colonist stops in it, and given time it has no roof.
+- **Fire burns creep and holds it back** (`fire-nouns.md`, Firebreak). Creep
+  is fuel, living or dying; creep under a fire crisps away in seconds, and
+  burnt ground refuses the creep for about three minutes before the sources
+  that still claim it fill it again. Creep over a road makes the road burn.
 - **The look is the field drawn, never a second model.** The creep is a hard
   organic edge, not a spill: an opaque surface of grown chitin plates over a
   membrane, rolled up into a raised, beaded lip where it stops, veined, with a
@@ -1070,7 +1100,23 @@ against its own control in `renderEvidence`.
   inside the ground's relief composite, so it moves with the ground's parallax
   and lies under the walls' shadows. Walls go through four stages with age:
   veins, then crust from the foot, with a dark crease where creep meets the
-  wall. Dead growth is a grey husk. One shading model serves the game (a shader)
+  wall. Dead growth is a grey husk. Trees go through four stages with the
+  creep's hold on the crown, cross-faded so a tree turns rather than pops: veins
+  reaching in from the crown's rim while the leaves start to turn; a crust
+  rolling in from the rim with the creep's beaded lip while the leaves brown;
+  the crown withering, its dead leaves falling from a bare skeleton; and the
+  dead tree, a skeleton of bleached, bone-pale limbs forking out from a crusted
+  trunk to the crown's own outline, veins running out along them, drawn with a
+  dark outline over a soft ground shadow so it stands up off the dark creep at
+  play zoom. The skeleton is grown by the bake rather than taken from the
+  damaged-crown art, whose few broken limbs vanished against the creep. The stages are a
+  sheet baked from the canopy art and the creep's own surface and palette
+  (`gradlew.bat bakeCreepBlight`), so the crust on a crown is the crust on the
+  ground. On vegetation (grass, crops and the plants on them) the edge is not
+  clean as it is on pavement: the creep's coverage spread a few cells out turns
+  the grass a dry, greyed straw (the palette's wilt colour) and veins reach out
+  into it ahead of the lip, so grass and crop rows are seen to be taken before
+  they are covered; turned earth and pavement keep the hard edge. One shading model serves the game (a shader)
   and review frames (its CPU mirror), from one surface texture generated in
   code. Colour is data: the swarm owns no red, and the default creep is a dull,
   dark, desaturated violet-grey that sits under the lilac creatures without

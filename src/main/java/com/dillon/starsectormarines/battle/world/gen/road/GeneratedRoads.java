@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,12 +42,20 @@ public final class GeneratedRoads {
         }
         /** Whether the first (or last) cell line of this band meets another band or the map's edge. */
         boolean endMet(boolean first, List<Band> others, int mapW, int mapH) {
-            Band end = horizontal()
-                    ? (first ? new Band(left, bottom, left, top) : new Band(right, bottom, right, top))
-                    : (first ? new Band(left, bottom, right, bottom) : new Band(left, top, right, top));
+            Band end = end(first);
             if (end.left == 0 || end.bottom == 0 || end.right == mapW - 1 || end.top == mapH - 1) return true;
+            return crossedAt(first, others);
+        }
+        /** Whether the first (or last) cell line of this band meets a crossing band of {@code others}. */
+        boolean crossedAt(boolean first, List<Band> others) {
+            Band end = end(first);
             for (Band o : others) if (o != this && o.horizontal() != horizontal() && o.touches(end)) return true;
             return false;
+        }
+        private Band end(boolean first) {
+            return horizontal()
+                    ? (first ? new Band(left, bottom, left, top) : new Band(right, bottom, right, top))
+                    : (first ? new Band(left, bottom, right, bottom) : new Band(left, top, right, top));
         }
         /** Overlaps or shares an edge with {@code b}. */
         boolean touches(Band b) {
@@ -97,10 +106,13 @@ public final class GeneratedRoads {
      * {@code city} cell is a street and must also be no broader than
      * {@code maxBreadth}; two more are refused: a <em>bulge</em>, broader than a
      * band running the same way along its whole length, which would swell the
-     * road where the kerb steps back; and a <em>pill</em>, a short band not met
-     * by a crossing street at both ends, which would float a capsule of asphalt
-     * in a gap between buildings or swell a junction into a yard. Both keep
-     * their paving. Bands of {@code road} alone are swept as
+     * road where the kerb steps back; and a <em>pill</em>, a short band met by
+     * no crossing street at either end, which would float a capsule of asphalt
+     * in a gap between buildings. Both keep their paving. A short band met at
+     * one end only, by a street that stands on its own, is a <em>spur</em>: a
+     * dead end off that street into a yard or lot, swept to where its street
+     * ends, its mouth turned only where the turn stays on street or footway
+     * rather than being cut off at the yard's edge. Bands of {@code road} alone are swept as
      * {@link #routes(boolean[][], long)} sweeps them.
      *
      * <p>A street's sidewalk lies on the {@code footway} beside its band where
@@ -124,16 +136,22 @@ public final class GeneratedRoads {
         if (city != null) candidates.removeIf(b -> b.breadth() > maxBreadth && b.holds(city));
         List<Band> bands = candidates.stream().filter(b -> candidates.stream()
                 .noneMatch(other -> !other.equals(b) && other.contains(b))).toList();
+        Set<Band> spurs = new HashSet<>();
         if (city != null) {
             List<Band> all = bands;
             bands = all.stream().filter(b -> !b.holds(city) || all.stream().noneMatch(a -> a.alongside(b))).toList();
-            // A short band is a street only when each of its ends meets another
-            // street; a stub off one road, or across it, opens into a yard, and
-            // its turns would swell into the yard.
+            // A short band is a through street when each of its ends meets
+            // another street. One met at a single end by a street that stands on
+            // its own is a dead end off that street, a spur: it runs into a yard
+            // or a lot, and left paved it reads as a stub of street with no road
+            // on it. One that meets no street floats between buildings.
             List<Band> kept = bands;
             int w = road.length, h = road[0].length;
-            bands = kept.stream().filter(b -> !b.holds(city) || b.length() >= PILL_LENGTH * b.breadth()
+            List<Band> streets = kept.stream().filter(b -> !b.holds(city) || b.length() >= PILL_LENGTH * b.breadth()
                     || (b.endMet(true, kept, w, h) && b.endMet(false, kept, w, h))).toList();
+            for (Band b : kept)
+                if (!streets.contains(b) && (b.crossedAt(true, streets) || b.crossedAt(false, streets))) spurs.add(b);
+            bands = kept.stream().filter(b -> streets.contains(b) || spurs.contains(b)).toList();
         }
         List<Route> routes = new ArrayList<>();
         Map<Band, Carriageway> lanes = new HashMap<>();
@@ -170,6 +188,10 @@ public final class GeneratedRoads {
                 // into a phantom street on the other side of a pruned junction.
                 if (x + sx * (radius + 1) < lo(h, ends) || x + sx * (radius + 1) > hi(h, ends)
                         || y + sy * (radius + 1) < lo(v, ends) || y + sy * (radius + 1) > hi(v, ends)) continue;
+                // A spur's mouth may open straight onto its yard; a kerb radius
+                // there would be cut off square at the yard's edge.
+                if ((spurs.contains(h) || spurs.contains(v))
+                        && !paved(road, footway, x, y, x + sx * (radius + 1), y + sy * (radius + 1))) continue;
                 double mid = radius * (1 - Math.sqrt(.5));
                 var turn = List.of(new Point(x + sx * (radius + 1), y),
                         new Point(x + sx * radius, y), new Point(x + sx * mid, y + sy * mid),
@@ -317,6 +339,17 @@ public final class GeneratedRoads {
             if (line >= alongLo && line <= alongHi && end >= crossLo - 1 && end <= crossHi + 1) return true;
         }
         return false;
+    }
+
+    /** Whether every cell between two corners is street or footway, so a sweep over them is not cut off. */
+    private static boolean paved(boolean[][] road, boolean[][] footway, double x0, double y0, double x1, double y1) {
+        int w = road.length, h = road[0].length;
+        for (long x = Math.round(Math.min(x0, x1)); x <= Math.round(Math.max(x0, x1)); x++)
+            for (long y = Math.round(Math.min(y0, y1)); y <= Math.round(Math.max(y0, y1)); y++) {
+                if (x < 0 || y < 0 || x >= w || y >= h) return false;
+                if (!road[(int) x][(int) y] && (footway == null || !footway[(int) x][(int) y])) return false;
+            }
+        return true;
     }
 
     private static int lo(Band b, Map<Band, int[]> ends) {

@@ -101,6 +101,25 @@ class GeneratedRoadsTest {
                 "roads holding no city street are swept as roads");
     }
 
+    @Test void aShortStreetMetAtOneEndIsADeadEndTurnedOnlyOverPavedGround() {
+        boolean[][] road = new boolean[48][32];
+        fill(road, 2, 10, 45, 12);   // a street
+        fill(road, 20, 13, 23, 20);  // a short spur off it into a yard
+        fill(road, 34, 24, 37, 29);  // a short gap between buildings, touching nothing
+        var style = new GeneratedRoads.StreetStyle(true, false, false);
+        var yard = GeneratedRoads.streets(road, road, new boolean[48][32], 3, 9, style).routes();
+        var straight = yard.stream().filter(r -> r.points().size() == 2).toList();
+        assertEquals(2, straight.size(), "the street and its spur, not the gap: " + yard);
+        assertTrue(straight.stream().anyMatch(r -> r.points().get(0).x() == 21.5 && r.points().get(1).y() == 20.5),
+                "the spur runs to where its street ends: " + straight);
+        assertEquals(0, yard.size() - straight.size(), "a yard beside the spur's mouth takes no kerb radius");
+        boolean[][] kerbs = new boolean[48][32];
+        fill(kerbs, 0, 0, 47, 31);
+        var paved = GeneratedRoads.streets(road, road, kerbs, 3, 9, style).routes();
+        assertEquals(2, paved.stream().filter(r -> r.points().size() == 5).count(),
+                "footway beside the mouth turns both corners: " + paved);
+    }
+
     @Test void streetsEndSquareAndMakeRoomForASidewalk() {
         boolean[][] road = new boolean[40][24];
         fill(road, 4, 8, 35, 12);    // a street five wide, open ground either side
