@@ -176,18 +176,19 @@ def _material(name, colours, strength, opacity, edge=1.6, streaks=0.0):
     return mat
 
 
-def trail(name, pts, coll, width_m=1500.0, glow=1.0):
+def trail(name, pts, coll, width_m=1500.0, glow=1.0, sparks=0, seed=0, ion=True):
     """An entry trail along pts (tail first, the hull last): the head's bow shock and core, the wake
     cooling and widening back up the track, and the ionisation trail beyond it. width_m: the wake's
-    width at its widest; glow scales the emission (a smaller hull burns smaller and dimmer).
-    Returns the head's position."""
+    width at its widest; glow scales the emission (a smaller hull burns smaller and dimmer). sparks:
+    that many burning flecks shed from the head and strung back along the young wake; ion=False
+    leaves out the ionisation trail (a small fragment). Returns the head's position."""
     pts = [Vector(p) for p in pts]
     n = len(pts)
     us = [1 - i / (n - 1) for i in range(n)]               # 0 at the head, 1 at the tail
     head, axis = pts[-1], (pts[-1] - pts[-2]).normalized()
     wake = _material(f'{PREFIX} wake', [(0, HOT), (.06, PLASMA), (.35, EMBER), (1, (.12, .03, .01))],
                      7.0 * glow, [(0, 1.0), (.1, .85), (.5, .35), (1, 0.0)], edge=1.4, streaks=.45)
-    ion = _material(f'{PREFIX} ionisation', [(0, ION), (1, ION)], .35 * glow,
+    ion_mat = _material(f'{PREFIX} ionisation', [(0, ION), (1, ION)], .35 * glow,
                     [(0, 0.0), (.15, .28), (.6, .18), (1, 0.0)], edge=2.2, streaks=.3)
     core = _material(f'{PREFIX} core', [(0, (1, 1, 1)), (.3, HOT), (1, PLASMA)], 40.0 * glow,
                      [(0, 1.0), (.5, .9), (1, 0.0)], edge=1.0)
@@ -200,11 +201,24 @@ def trail(name, pts, coll, width_m=1500.0, glow=1.0):
     ext = [pts[0] + tail_dir * pts[0].__sub__(pts[1]).length * k for k in (4, 3, 2, 1)]
     ipts = ext + pts
     ius = [1 - i / (len(ipts) - 1) for i in range(len(ipts))]
-    _tube(f'{name} ionisation', ipts, [width_m * (.5 + 2.5 * u) for u in ius], ius, coll, ion)
+    if ion:
+        _tube(f'{name} ionisation', ipts, [width_m * (.5 + 2.5 * u) for u in ius], ius, coll, ion_mat)
     # the head: a white-hot core a few hull lengths long, and the bow shock opening back over it
     k = max(2, n // 12)
     cpts = pts[-k - 1:]
     cus = [1 - i / (len(cpts) - 1) for i in range(len(cpts))]
     _tube(f'{name} core', cpts, [width_m * (.05 + .1 * u) for u in cus], cus, coll, core)
     _cone(f'{name} shock', head + axis * width_m * .15, axis, width_m * 2.2, width_m * .55, coll, shock)
+    if sparks:
+        import random
+        rnd = random.Random(seed)
+        fr = _frames(pts)
+        for k in range(sparks):
+            i = max(1, int((n - 1) * (1 - rnd.random() ** 2 * .35)))       # most near the head
+            t, s_, u_ = fr[i]
+            a = rnd.uniform(0, 2 * math.pi)
+            off = (s_ * math.cos(a) + u_ * math.sin(a)) * width_m * rnd.uniform(.3, 1.4)
+            p0 = pts[i] + off
+            p1 = p0 - t * width_m * rnd.uniform(.4, 1.6)
+            _tube(f'{name} spark {k}', [p1, p0], [width_m * .012, width_m * .02], [1.0, .2], coll, core, segments=6)
     return head
