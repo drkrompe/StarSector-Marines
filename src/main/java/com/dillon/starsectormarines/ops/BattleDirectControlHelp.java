@@ -46,6 +46,7 @@ final class BattleDirectControlHelp {
                 add(out, "RMB", "MarineSecondary");
                 add(out, "E", "MarineShield");
                 add(out, "G", "MarineSmoke");
+                add(out, "R", "MarineReload");
                 add(out, "Shift", "MarineSprint");
                 add(out, "Tab / Esc", "Leave");
                 add(out, "Space", "Pause");

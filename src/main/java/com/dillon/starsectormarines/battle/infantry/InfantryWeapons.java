@@ -266,6 +266,8 @@ public class InfantryWeapons {
         }
         // A planted suit's steadier aim is already in world.accuracy, through its modifier.
         accuracy = Math.min(1f, accuracy * stance.accuracyMult);
+        // Recoil from the rounds just fired, recovering between them; zero for a weapon without a magazine.
+        if (weapon != null && weapon.magazine() != null) accuracy *= 1f - roster.combat().recoil(shooter);
 
         StructureDef turretStructure = shooterType.isTurret()
                 ? roster.turretState().structure(shooter) : null;
@@ -302,6 +304,8 @@ public class InfantryWeapons {
                     .experienceTier();
             if (rng.nextFloat() < experience.friendlyFireHoldChance) return;
         }
+        // The release leaves the muzzle: it costs a round of the load (one per trigger, however many flechettes).
+        if (weapon != null) roster.combat().spendPrimaryRound(shooter);
 
         float moraleImpact = shooterType != null ? shooterType.moraleImpact : 1.0f;
         float fromX = world.renderX(shooter);

@@ -177,6 +177,8 @@ public final class BloomHeartSetup {
      * stops the guns.
      */
     static final int BURN_FOLLOW_CELLS = 18;
+    /** Where The Burn's company forms up before the guns have walked off the first line: on its own farmland. */
+    static final float BURN_FORM_UP_DEPTH = 0.15f;
 
     /** The Burn's company following its barrage: each line's ground along the advance and its timetable. */
     static BarrageScreen burnScreen(Form form, WalkingBarrage.Plan plan) {
@@ -190,7 +192,11 @@ public final class BloomHeartSetup {
             open[i] = Math.round(line.openSeconds() / BattleSimulation.TICK_DT);
             lift[i] = Math.round((line.openSeconds() + line.fireSeconds()) / BattleSimulation.TICK_DT);
         }
-        return new BarrageScreen(form.advancesAlongY(), sign, along, open, lift, BURN_FOLLOW_CELLS);
+        if (!Boolean.parseBoolean(System.getProperty("battle.heart.holdBack", "true")) || lines.isEmpty())
+            return new BarrageScreen(form.advancesAlongY(), sign, along, open, lift, BURN_FOLLOW_CELLS);
+        // The company forms on the cordon's open farmland, out of the surges' path, until the first line lifts.
+        return new BarrageScreen(form.advancesAlongY(), sign, along, open, lift, BURN_FOLLOW_CELLS,
+                form.cellAt(BURN_FORM_UP_DEPTH, 0.5f)[axis], lift[0]);
     }
 
     private static final long BARRAGE_SALT = 0x4255_524E_4241_5252L;

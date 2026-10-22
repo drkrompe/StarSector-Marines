@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.modifier.UnitStat;
 import com.dillon.starsectormarines.battle.squad.DigInSystem;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.weapon.MagazineDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
@@ -100,9 +101,13 @@ public final class CombatService {
         return primaryWeapon(id);
     }
 
+    /** Equips {@code weapon} with a full magazine, no reload under way and no recoil carried over. */
     public void setPrimaryWeapon(long id, WeaponDef weapon) {
         entityWorld.setObject(id, components.COMBAT,
                 BattleComponents.COMBAT_PRIMARY_WEAPON, weapon);
+        entityWorld.setInt(id, components.COMBAT, BattleComponents.COMBAT_ROUNDS_SPENT, 0);
+        entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_RELOAD_TIMER, 0f);
+        entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_RECOIL, 0f);
     }
 
     public void setPrimaryWeaponDef(long id, WeaponDef weapon) {
@@ -410,6 +415,106 @@ public final class CombatService {
     public void beginPointBurst(long id, PointFireAim aim) {
         beginBurst(id, 0L);
         if (burstRemaining(id) > 0) setBurstPointAim(id, aim);
+    }
+
+    // ---- magazine ----
+    //
+    // A magazine-fed primary spends one round per release (InfantryWeapons.firePrimary), starts its
+    // own reload when the load runs dry, and refills when the reload clock runs out. Every fire path
+    // gates on mayFirePrimary, so AI fire, control fire and burst follow-ups share one supply.
+
+    /** The primary's magazine, or {@code null} when it cycles without one or there is no primary. */
+    public MagazineDef primaryMagazine(long id) {
+        WeaponDef weapon = primaryWeaponDef(id);
+        return weapon != null ? weapon.magazine() : null;
+    }
+
+    /** Rounds one full load of the primary holds at this marine's grade; zero without a magazine. */
+    public int magazineSize(long id) {
+        MagazineDef magazine = primaryMagazine(id);
+        return magazine != null ? magazine.size(equipmentGrade(id)) : 0;
+    }
+
+    /** Rounds left in the current load; zero without a magazine (read {@link #magazineSize} first). */
+    public int roundsLoaded(long id) {
+        int size = magazineSize(id);
+        return size == 0 ? 0 : Math.max(0, size
+                - entityWorld.getInt(id, components.COMBAT, BattleComponents.COMBAT_ROUNDS_SPENT));
+    }
+
+    public float reloadTimer(long id) {
+        return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_RELOAD_TIMER);
+    }
+
+    public boolean isReloading(long id) { return reloadTimer(id) > 0f; }
+
+    /** Reload seconds for this marine's primary, grade and experience; zero without a magazine. */
+    public float reloadSeconds(long id) {
+        WeaponDef weapon = primaryWeaponDef(id);
+        return weapon != null ? InfantryCombatStats.reload(weapon, equipmentGrade(id), soldierProfile(id)) : 0f;
+    }
+
+    /** Whether the primary's feed lets a round leave: always without a magazine, otherwise loaded and not reloading. */
+    public boolean mayFirePrimary(long id) {
+        return magazineSize(id) == 0 || (!isReloading(id) && roundsLoaded(id) > 0);
+    }
+
+    /**
+     * Spends one round of the current load and adds that round's recoil. Starts the reload when the
+     * load runs dry, which also drops any burst still queued. No-op without a magazine.
+     */
+    public void spendPrimaryRound(long id) {
+        MagazineDef magazine = primaryMagazine(id);
+        if (magazine == null) return;
+        int spent = entityWorld.getInt(id, components.COMBAT, BattleComponents.COMBAT_ROUNDS_SPENT) + 1;
+        entityWorld.setInt(id, components.COMBAT, BattleComponents.COMBAT_ROUNDS_SPENT, spent);
+        setRecoil(id, Math.min(magazine.recoilMax(), recoil(id) + magazine.recoilPerShot()));
+        if (spent >= magazine.size(equipmentGrade(id))) beginReload(id);
+    }
+
+    /**
+     * Starts a reload when the load is not full and none is under way, dropping any queued burst.
+     * Returns whether one started. The rounds left in the old load are not kept.
+     */
+    public boolean beginReload(long id) {
+        if (magazineSize(id) == 0 || isReloading(id)
+                || entityWorld.getInt(id, components.COMBAT, BattleComponents.COMBAT_ROUNDS_SPENT) <= 0) {
+            return false;
+        }
+        entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_RELOAD_TIMER,
+                Math.max(BattleSimulation.TICK_DT, reloadSeconds(id)));
+        setBurstRemaining(id, 0);
+        setBurstTimer(id, 0f);
+        setBurstTargetId(id, 0L);
+        setBurstPointAim(id, null);
+        return true;
+    }
+
+    /** Advances the reload clock and recoil recovery by {@code dt}; a finished reload refills the load. */
+    public void tickMagazine(long id, float dt) {
+        MagazineDef magazine = primaryMagazine(id);
+        if (magazine == null) return;
+        float reload = reloadTimer(id);
+        if (reload > 0f) {
+            float left = reload - dt;
+            if (left <= 1e-6f) {
+                entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_RELOAD_TIMER, 0f);
+                entityWorld.setInt(id, components.COMBAT, BattleComponents.COMBAT_ROUNDS_SPENT, 0);
+            } else {
+                entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_RELOAD_TIMER, left);
+            }
+        }
+        float recoil = recoil(id);
+        if (recoil > 0f) setRecoil(id, Math.max(0f, recoil - magazine.recoilRecovery() * dt));
+    }
+
+    /** Accuracy fraction the primary's recoil takes from the next round. */
+    public float recoil(long id) {
+        return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_RECOIL);
+    }
+
+    private void setRecoil(long id, float recoil) {
+        entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_RECOIL, recoil);
     }
 
     /** Cancel queued primary work when control changes hands or becomes ineligible. */

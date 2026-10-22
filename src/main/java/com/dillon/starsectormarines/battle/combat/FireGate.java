@@ -17,7 +17,9 @@ public enum FireGate {
     UNSUPPORTED_WEAPON,
     FRIENDLY_TARGET,
     /** The shooter {@linkplain StaggerService can't act}: knocked down, stalled or staggered. */
-    STAGGERED;
+    STAGGERED,
+    /** The primary's magazine is empty or being reloaded. */
+    RELOADING;
 
     public static final FireGate[] VALUES = values();
 }

@@ -1573,7 +1573,8 @@ public class BattleScreen implements Screen, BattleUiContext {
             directControlInput.reconcileToggleKeyRelease(Keyboard.isKeyDown(Keyboard.KEY_TAB));
             directControlInput.reconcileAbilityKeyReleases(
                     Keyboard.isKeyDown(Keyboard.KEY_E), Keyboard.isKeyDown(Keyboard.KEY_G),
-                    Keyboard.isKeyDown(Keyboard.KEY_X), Keyboard.isKeyDown(Keyboard.KEY_F));
+                    Keyboard.isKeyDown(Keyboard.KEY_X), Keyboard.isKeyDown(Keyboard.KEY_F),
+                    Keyboard.isKeyDown(Keyboard.KEY_R));
             directControlInput.reconcileShiftKeyReleases(
                     Keyboard.isKeyDown(Keyboard.KEY_LSHIFT), Keyboard.isKeyDown(Keyboard.KEY_RSHIFT));
         }
@@ -1636,8 +1637,12 @@ public class BattleScreen implements Screen, BattleUiContext {
         BattleSimulation sim = getSim();
         if (sim == null || sim != directControlSimulation || sim.isComplete()
                 || !directControlInput.active() || !sim.directControl().active()
-                || Display.isCreated() && !Display.isActive()
-                || directControlInput.blocked(camera, speedMultiplier == 0f,
+                || Display.isCreated() && !Display.isActive()) return false;
+        // A reload has no aim, so a pointer resting on the HUD does not refuse it.
+        if (ability == DirectControlAbility.RELOAD) {
+            return speedMultiplier != 0f && sim.directControl().requestAbility(ability, null);
+        }
+        if (directControlInput.blocked(camera, speedMultiplier == 0f,
                         this::battleChromeBlocksWorldPointer)) return false;
         float aimX = camera.screenToCellX(directControlInput.pointerX());
         float aimY = camera.screenToCellY(directControlInput.pointerY());

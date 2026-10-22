@@ -23,7 +23,7 @@ final class BattleDirectControlInput {
     private float previousSpeed;
     private boolean toggleHeld;
     private final boolean[] weaponKeyHeld = new boolean[6];
-    private final boolean[] abilityKeyHeld = new boolean[4];
+    private final boolean[] abilityKeyHeld = new boolean[5];
     private int selectedWeapon;
 
     /** Read host values before retained chrome consumes and invalidates them. */
@@ -195,6 +195,11 @@ final class BattleDirectControlInput {
         reconcileAbilityKeyReleases(shieldHeld, smokeHeld, cancelHeld);
         if (!passHeld) abilityKeyHeld[3] = false;
     }
+    void reconcileAbilityKeyReleases(boolean shieldHeld, boolean smokeHeld, boolean cancelHeld, boolean passHeld,
+                                     boolean reloadHeld) {
+        reconcileAbilityKeyReleases(shieldHeld, smokeHeld, cancelHeld, passHeld);
+        if (!reloadHeld) abilityKeyHeld[4] = false;
+    }
     /** Physical observations can release a missed Shift keyup but cannot restore sprint. */
     void reconcileShiftKeyReleases(boolean leftHeld, boolean rightHeld) {
         if (!leftHeld) {
@@ -263,13 +268,14 @@ final class BattleDirectControlInput {
     /** What each ability key asks for, in {@link #abilityKey} order. */
     private static final DirectControlAbility[] ABILITIES = {
             DirectControlAbility.SHIELD, DirectControlAbility.SMOKE, DirectControlAbility.CANCEL_BUILDS,
-            DirectControlAbility.LOW_PASS};
+            DirectControlAbility.LOW_PASS, DirectControlAbility.RELOAD};
 
     private static int abilityKey(int key) {
         if (key == Keyboard.KEY_E) return 0;
         if (key == Keyboard.KEY_G) return 1;
         if (key == Keyboard.KEY_X) return 2;
         if (key == Keyboard.KEY_F) return 3;
+        if (key == Keyboard.KEY_R) return 4;
         return -1;
     }
 

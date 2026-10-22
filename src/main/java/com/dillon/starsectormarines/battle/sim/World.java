@@ -223,6 +223,8 @@ public final class World {
     public void setCooldownTimer(long id, float v) { combat.setCooldownTimer(id, v); }
     /** Per-unit primary cooldown reset value (seed-only stat); {@code setCooldownTimer(id, attackCooldown(id))} on a fire. */
     public float attackCooldown(long id) { return combat.attackCooldown(id); }
+    /** Advances the primary's reload and recoil recovery; see {@link CombatService#tickMagazine}. */
+    public void tickMagazine(long id, float dt) { combat.tickMagazine(id, dt); }
 
     // Movement lives in the entity world's OPTIONAL MOVEMENT component, narrowed
     // to movers: a static emplacement (turret, drone hub) has no MOVEMENT.

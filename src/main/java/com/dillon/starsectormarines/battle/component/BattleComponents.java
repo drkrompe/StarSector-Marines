@@ -270,6 +270,16 @@ public final class BattleComponents {
      * means not. Written only by {@code DigInSystem}; read it through {@code CombatService.isDugIn}.
      */
     public static final int COMBAT_DIG_IN_SECONDS = 26;
+    /**
+     * {@link #COMBAT} field 27: rounds fired from the primary's current magazine load (INT); zero is a full load,
+     * so a freshly allocated or newly equipped marine needs no seeding. Meaningless for a primary without a
+     * magazine. Read through {@code CombatService.roundsLoaded}.
+     */
+    public static final int COMBAT_ROUNDS_SPENT = 27;
+    /** {@link #COMBAT} field 28: sim-seconds left in the primary's reload, zero when not reloading (FLOAT). */
+    public static final int COMBAT_RELOAD_TIMER = 28;
+    /** {@link #COMBAT} field 29: accuracy fraction the primary's recoil currently takes from the next round (FLOAT). */
+    public static final int COMBAT_RECOIL = 29;
 
     /** {@link #MOVEMENT} field 0: repeating [0,1) walk-stride phase, advanced by distance traveled — one full cycle per cell (FLOAT). Presentation-only: read by {@code battle.appearance.FacingSystem} for the locomotion pose; the sim never gates on it. */
     public static final int MOVEMENT_GAIT_PHASE = 0;
@@ -1218,7 +1228,8 @@ public final class BattleComponents {
                 FieldKind.INT, FieldKind.INT,
                 FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.INT,
                 FieldKind.INT, FieldKind.OBJECT, FieldKind.OBJECT,
-                FieldKind.FLOAT);
+                FieldKind.FLOAT,
+                FieldKind.INT, FieldKind.FLOAT, FieldKind.FLOAT);
         SECONDARY_WEAPON = world.register(7, "SecondaryWeapon",
                 FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.LONG, FieldKind.INT, FieldKind.OBJECT);

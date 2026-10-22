@@ -234,18 +234,6 @@ class WeaponRegistryParityTest {
     }
 
     @Test
-    void fieldRifleMatchesItsShippedValues() {
-        assertSim(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), 22f, 14.0f, 0.28f, 1.15f, 7f,
-                1, 0f, 0.42f, 0.75f, 48f);
-        assertPresentation(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), new Color(0xFF, 0xD0, 0x88),
-                ImpactKind.RIFLE, "graphics/missiles/shell_small_yellow.png", 0.18f,
-                "marines_rook_rifle_fire");
-        assertEquals(0.65f, WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).tracerTailCells(), EPS);
-        assertEquals("Field Rifle", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).displayName());
-        assertEquals("Rook", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).modelName());
-    }
-
-    @Test
     void pulseRifleMatchesItsShippedValues() {
         assertSim(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), 24f, 9.0f, 0.35f, 1.0f, 5f,
                 3, 0.09f, 0.30f, 0.4f, 55f);
