@@ -493,6 +493,14 @@ def blender_main(cfg):
     scene.cycles.transparent_max_bounces = 16
     scene.view_settings.view_transform = 'AgX'
     scene.view_settings.look = 'AgX - Base Contrast'
+    import time
+    said = [0.0]
+
+    def progress(stats):     # Cycles prints nothing while a frame renders: say where it is, every 30 s at most
+        if time.time() - said[0] >= 30.0:
+            said[0] = time.time()
+            print('ASHARU progress', time.strftime('%H:%M:%S'), stats, flush=True)
+    bpy.app.handlers.render_stats.append(progress)
     try:
         prefs = bpy.context.preferences.addons['cycles'].preferences
         for kind in ('OPTIX', 'CUDA', 'METAL'):
