@@ -1,0 +1,41 @@
+<template props="chip">
+  <!-- An issued card at a glance, as every armoury screen names it (CardChips): seal,
+       face, kind, name and rating, in the licence card's navy with its kind's edge.
+       card-chip-compact drops the kind line for a squad card on the Barracks board.
+       288px wide unless the host narrows it. -->
+  <div id="{chip.id}" class="{chip.classes}">
+    <div id="{chip.slotId}" class="card-chip-slot">
+      <img id="{chip.sealId}" class="{chip.sealClasses}" src="graphics/ui/company/restricted-seal.svg" />
+    </div>
+    <img id="{chip.iconId}" class="card-chip-icon" src="{chip.icon}" />
+    <div id="{chip.textId}" class="card-chip-text">
+      <div id="{chip.kindId}" class="card-chip-kind label">{chip.kind}</div>
+      <div id="{chip.nameId}" class="card-chip-name label">{chip.name}</div>
+    </div>
+    <div id="{chip.ratingId}" class="card-chip-rating label">{chip.rating}</div>
+  </div>
+</template>
+<style>
+  .card-chip { flex-direction: row; align-items: center; width: 288px; height: 52px; gap: 6px; padding: 0px 8px 0px 0px; border-width: 1px; border-color: #2a4258; background-color: #09131d; }
+  .card-chip.card-chip-weapon { border-color: #2c6075; }
+  .card-chip.card-chip-armor { border-color: #6e5c27; }
+  .card-chip:hover { background-color: #0e1a26; }
+  .card-chip-slot { flex-direction: column; width: 24px; height: 50px; padding: 3px 0px 0px 3px; }
+  .card-chip-seal { width: 18px; height: 18px; }
+  .card-chip-seal.card-chip-seal-absent { width: 0px; height: 0px; }
+  .card-chip-icon { width: 44px; height: 44px; pointer-events: none; }
+  .card-chip-text { flex-direction: column; width: 0px; flex-grow: 1; gap: 2px; overflow: hidden; }
+  .card-chip-kind { height: 14px; color: #8b9aaf; }
+  .card-chip-name { height: 18px; color: #eaf3ff; overflow: hidden; }
+  .card-chip-rating { width: 72px; text-align: right; }
+  .card-chip-weapon .card-chip-rating { color: #53c6e8; }
+  .card-chip-armor .card-chip-rating { color: #dfb84d; }
+  .card-chip-compact { height: 34px; gap: 4px; padding: 0px 6px 0px 0px; }
+  .card-chip-compact .card-chip-slot { width: 20px; height: 32px; padding: 2px 0px 0px 2px; }
+  .card-chip-compact .card-chip-seal { width: 14px; height: 14px; }
+  .card-chip-compact .card-chip-seal.card-chip-seal-absent { width: 0px; height: 0px; }
+  .card-chip-compact .card-chip-icon { width: 30px; height: 30px; }
+  .card-chip-compact .card-chip-kind { height: 0px; opacity: 0; }
+  .card-chip-compact .card-chip-rating { width: 34px; }
+  .card-chip.card-chip-empty { height: 0px; border-width: 0px; opacity: 0; overflow: hidden; }
+</style>

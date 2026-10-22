@@ -57,10 +57,11 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
         model.refresh();
         frames.add(frame(context, reactor, model, "04-steady-line-review.png", "refit-path:FORWARD_SCREEN"));
         frames.add(frame(context, reactor, model, "05-forward-screen-review.png", null));
-        frames.add(frame(context, reactor, model, "05a-current-weapon-spec.png", null, "refit-current-item:0"));
-        frames.add(frame(context, reactor, model, "05a-proposed-weapon-spec.png", null, "refit-proposed-item:0"));
-        frames.add(frame(context, reactor, model, "05a-scout-system-spec.png", "refit-billet:11", "refit-proposed-item:1:system"));
-        frames.add(frame(context, reactor, model, "05a-special-removal.png", "refit-billet:0"));
+        frames.add(frame(context, reactor, model, "05a-proposed-weapon-spec.png", null,
+                LoadoutInspection.partId(0, LoadoutInspection.WEAPON)));
+        frames.add(frame(context, reactor, model, "05a-scout-system-spec.png", "loadout-billet:11",
+                LoadoutInspection.partId(0, LoadoutInspection.SYSTEM)));
+        frames.add(frame(context, reactor, model, "05a-special-removal.png", "loadout-billet:0"));
         if (roster.firstRefit().claimed()) throw new AssertionError("Comparison granted technology");
         frames.add(frame(context, reactor, model, "05a-accept-forward-screen.png", "refit-claim"));
         if (!roster.firstRefit().claimed()) throw new AssertionError("Accept control did not claim reward");
@@ -68,7 +69,7 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
         roster.applySoldierOutcome(Map.of(members.get(0), MarineSoldierStatus.WIA,
                 members.get(10), MarineSoldierStatus.KIA, members.get(11), MarineSoldierStatus.MIA), 10f, 5f);
         model.refresh();
-        frames.add(frame(context, reactor, model, "05b-wounded-understrength-issue.png", "refit-billet:11"));
+        frames.add(frame(context, reactor, model, "05b-wounded-understrength-issue.png", "loadout-billet:11"));
         frames.add(frame(context, reactor, model, "05c-vacant-billet.png", "refit-issue"));
         if (roster.soldierById(members.get(0)).status() != MarineSoldierStatus.WIA || roster.manningCount(squad) != 10)
             throw new AssertionError("Equipment issue changed personnel readiness");
@@ -114,7 +115,7 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
         Runnable noop = () -> { };
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.ARMORY, MarineOpsPageNav.ANY_SHIP, noop, noop, noop, noop, noop, noop);
         var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), List.of(
-                "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/armory/armory-loadout-card.mlx", "data/ui/components/armory/first-refit.mlx"));
+                "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/armory/armory-loadout-card.mlx", "data/ui/components/armory/armory-squad-view.mlx", "data/ui/components/armory/first-refit.mlx"));
         loader.reload();
         try (var markup = loader.build(reactor, "first-refit", props)) {
             var document = PreparationGuide.document(markup.root()).theme(MarineOpsThemes.standard());
@@ -124,6 +125,8 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
             markup.styles().forEach(document::addStyleSheet);
             var binder = new SpecSheetBinder(document, SpecSheetLayer.install(document));
             FleetArmoryScreen.bindFirstRefitSheets(binder, markup, model);
+            LoadoutInspection.bindPortraits(document, markup, model::inspection,
+                    new HeadlessArmoryPreviewRenderer(context.modRoot()).assets());
             var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
                     new HeadlessBattleSceneRenderer(context.modRoot(), true));
             var image = renderer.renderRelative(document, 1920, 1080, 1f,
@@ -152,11 +155,11 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
                 document.pointerDown(box.x() + box.width() / 2, box.y() + box.height() / 2);
                 document.pointerUp(box.x() + box.width() / 2, box.y() + box.height() / 2);
                 markup.flush();
-                if (clickAfter.startsWith("refit-billet:")) {
+                if (clickAfter.startsWith("loadout-billet:")) {
                     var selected = markup.requireElement(clickAfter);
-                    if (!selected.hasClass("refit-selected")) throw new AssertionError("Billet selection did not update: " + clickAfter);
-                    // Existing bindings must describe the new selection without rebuilding the document.
-                    var target = markup.requireElement("refit-proposed-item:0");
+                    if (!selected.hasClass("selected")) throw new AssertionError("Billet selection did not update: " + clickAfter);
+                    // Existing bindings must keep describing the squad view without rebuilding the document.
+                    var target = markup.requireElement(clickAfter + ":part:" + LoadoutInspection.WEAPON);
                     var targetBox = target.box().borderBox();
                     document.pointerMoved(targetBox.x() + targetBox.width()/2, targetBox.y() + targetBox.height()/2);
                     binder.update();
@@ -167,30 +170,27 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
             return new SnapshotArtifact(file, image);
         }
     }
-    /** All twelve real controls must remain visible and select their own billet. */
+    /** All twelve marines must remain visible in the squad view and select their own billet. */
     private void verifyGrid(UiDocument document, MarkupInstance markup, FirstRefitModel model) {
         int selected = 0;
-        var area = markup.requireElement("refit-billets").box().borderBox();
+        var area = markup.requireElement("loadout-billets").box().borderBox();
         for (int i = 0; i < 12; i++) {
-            var cell = markup.requireElement("refit-billet:" + i);
-            if (cell.hasClass("refit-selected")) selected = i;
+            var cell = markup.requireElement("loadout-billet:" + i);
+            if (cell.hasClass("selected")) selected = i;
             var box = cell.box().borderBox();
-            var column = markup.requireElement("refit-billet:" + (i / 4 * 4)).box().borderBox();
-            var row = markup.requireElement("refit-billet:" + (i % 4)).box().borderBox();
-            if (Math.abs(box.x() - column.x()) > 0.1f || Math.abs(box.y() - row.y()) > 0.1f
-                    || box.bottom() > area.bottom() || box.right() > area.right() || box.width() < 90f)
-                throw new AssertionError("Billet is not a visible square in the 3x4 grid: " + i);
+            if (box.bottom() > area.bottom() + 0.1f || box.right() > area.right() + 0.1f || box.width() < 90f)
+                throw new AssertionError("Marine is not visible in the squad view: " + i);
         }
         for (int i = 0; i < 12; i++) {
-            var box = markup.requireElement("refit-armor-icon:" + i).box().borderBox();
+            var box = markup.requireElement("loadout-billet:" + i + ":name").box().borderBox();
             document.pointerDown(box.x() + box.width()/2, box.y() + box.height()/2);
             document.pointerUp(box.x() + box.width()/2, box.y() + box.height()/2);
             markup.flush();
             String position = new String[]{Strings.get("openingFirstRefitAlpha"), Strings.get("openingFirstRefitBravo"),
                     Strings.get("openingFirstRefitCharlie")}[i / 4] + " " + (i % 4 + 1);
-            if (!markup.requireElement("refit-billet:" + i).hasClass("refit-selected")
+            if (!markup.requireElement("loadout-billet:" + i).hasClass("selected")
                     || !model.row().get().get("selectedName").toString().startsWith(position + " / "))
-                throw new AssertionError("Equipment square did not select its own comparison: " + i);
+                throw new AssertionError("Marine did not select its own billet: " + i);
         }
         model.selectBillet(selected);
         markup.flush();

@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader.PreparedReload;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
+import com.dillon.starsectormarines.ui.spec.SpecSheet;
 import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
 import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
 import com.fs.starfarer.api.Global;
@@ -41,7 +42,7 @@ public final class FleetArmoryScreen implements Screen {
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/armory/fleet-armory-fireteam.mlx",
-            "data/ui/components/armory/armory-loadout-card.mlx", "data/ui/components/armory/armory-squad-doctrine.mlx",
+            "data/ui/components/armory/armory-loadout-card.mlx", "data/ui/components/armory/armory-squad-view.mlx", "data/ui/components/armory/armory-card-chip.mlx", "data/ui/components/armory/armory-squad-doctrine.mlx",
             "data/ui/components/armory/armory-refit-transaction.mlx",
             "data/ui/components/armory/armory-armor-comparison.mlx",
             "data/ui/components/armory/first-refit.mlx");
@@ -153,10 +154,13 @@ public final class FleetArmoryScreen implements Screen {
                 case FIRST_REFIT -> this::leaveFirstRefit;
             });
             candidateSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built));
-            if (view == View.FIRST_REFIT) bindFirstRefitSheets(candidateSheets, candidate, firstRefit);
+            if (view == View.FIRST_REFIT) {
+                bindFirstRefitSheets(candidateSheets, candidate, firstRefit);
+                LoadoutInspection.bindPortraits(built, candidate, firstRefit::inspection, previewAssets);
+            }
             if (view == View.FIRETEAMS) {
-                ArmorySpecSheets.bindInspection(candidateSheets, candidate, viewModel.inspection());
-                LoadoutInspection.bindPortraits(built, candidate, viewModel.inspection(), previewAssets);
+                ArmorySpecSheets.bindInspection(candidateSheets, candidate, viewModel.inspection()::get);
+                LoadoutInspection.bindPortraits(built, candidate, viewModel.inspection()::get, previewAssets);
                 // A new document holds new elements even where the projection
                 // behind them is the one already bound, so the guard is cleared.
                 boundWeaponTiles = null;
@@ -263,7 +267,7 @@ public final class FleetArmoryScreen implements Screen {
 
     private void requireWiredElements(MarkupInstance component) {
         List<String> required = view == View.FIRST_REFIT
-                ? List.of("first-refit-root", "refit-claim", "refit-issue", "refit-billets")
+                ? List.of("first-refit-root", "refit-claim", "refit-issue", "loadout-billets")
                 : view == View.FIRETEAMS
                 ? List.of("fleet-armory-fireteam-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
@@ -284,18 +288,15 @@ public final class FleetArmoryScreen implements Screen {
         }
     }
 
+    /** Each path card's seats, and the shared squad view's kit lines, as the Loadout screen binds them. */
     static void bindFirstRefitSheets(SpecSheetBinder binder, MarkupInstance markup, FirstRefitModel model) {
-        for (var tile : model.pathCards()) for (var span : tile.distributionSpans()) {
-            binder.bind(markup.requireElement(span.id()), span::sheet);
-        }
-        for (boolean proposed : new boolean[]{false, true}) {
-            String prefix = "refit-" + (proposed ? "proposed" : "current") + "-item:";
-            for (int i = 0; i < 3; i++) {
-                int item = i;
-                binder.bindLive(markup.requireElement(prefix + i), () -> model.sheet(proposed, item));
+        for (var tile : model.pathCards()) {
+            for (int seat = 0; seat < tile.seatSheets().size(); seat++) {
+                SpecSheet sheet = tile.seatSheets().get(seat);
+                binder.bind(markup.requireElement(ArmorySpecSheets.seatId(tile.id(), seat)), () -> sheet);
             }
-            binder.bindLive(markup.requireElement(prefix + "1:system"), () -> model.sheet(proposed, 3));
         }
+        ArmorySpecSheets.bindInspection(binder, markup, model::inspection);
     }
 
     private PreparationGuide.Lesson companyLesson() {
