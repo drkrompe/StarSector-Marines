@@ -57,6 +57,20 @@ public final class GeneratedRoads {
                     ? (first ? new Band(left, bottom, left, top) : new Band(right, bottom, right, top))
                     : (first ? new Band(left, bottom, right, bottom) : new Band(left, top, right, top));
         }
+        /** Cells of this band's length that no crossing band of {@code others} covers. */
+        int reach(List<Band> others) {
+            boolean horizontal = horizontal();
+            int lo = horizontal ? left : bottom, hi = horizontal ? right : top, open = 0;
+            for (int i = lo; i <= hi; i++) {
+                boolean covered = false;
+                for (Band o : others) {
+                    if (o == this || o.horizontal() == horizontal || !o.touches(this)) continue;
+                    covered |= horizontal ? i >= o.left && i <= o.right : i >= o.bottom && i <= o.top;
+                }
+                if (!covered) open++;
+            }
+            return open;
+        }
         /** Overlaps or shares an edge with {@code b}. */
         boolean touches(Band b) {
             return left <= b.right + 1 && right >= b.left - 1 && bottom <= b.top + 1 && top >= b.bottom - 1;
@@ -67,6 +81,14 @@ public final class GeneratedRoads {
     public static final int MAX_BREADTH = 32;
     /** A street band at least this many breadths long stands on its own; a shorter one must meet another. */
     static final int PILL_LENGTH = 4;
+    /**
+     * Breadths a spur must run on past the street it leaves. A shorter one is a
+     * yard's mouth opening off the street, not a street of its own, and swept it
+     * is a blob of asphalt stepping out of the kerb line.
+     */
+    static final int SPUR_REACH = 2;
+    /** Points along a junction turn's quarter arc, past its two ends. */
+    static final int TURN_STEPS = 6;
 
     /** No RNG consumption; straight service runs plus tangent-controlled junction turns. */
     public static List<Route> routes(boolean[][] road, long seed) {
@@ -150,7 +172,8 @@ public final class GeneratedRoads {
             List<Band> streets = kept.stream().filter(b -> !b.holds(city) || b.length() >= PILL_LENGTH * b.breadth()
                     || (b.endMet(true, kept, w, h) && b.endMet(false, kept, w, h))).toList();
             for (Band b : kept)
-                if (!streets.contains(b) && (b.crossedAt(true, streets) || b.crossedAt(false, streets))) spurs.add(b);
+                if (!streets.contains(b) && (b.crossedAt(true, streets) || b.crossedAt(false, streets))
+                        && b.reach(streets) >= SPUR_REACH * b.breadth()) spurs.add(b);
             bands = kept.stream().filter(b -> streets.contains(b) || spurs.contains(b)).toList();
         }
         List<Route> routes = new ArrayList<>();
@@ -192,10 +215,16 @@ public final class GeneratedRoads {
                 // there would be cut off square at the yard's edge.
                 if ((spurs.contains(h) || spurs.contains(v))
                         && !paved(road, footway, x, y, x + sx * (radius + 1), y + sy * (radius + 1))) continue;
-                double mid = radius * (1 - Math.sqrt(.5));
-                var turn = List.of(new Point(x + sx * (radius + 1), y),
-                        new Point(x + sx * radius, y), new Point(x + sx * mid, y + sy * mid),
-                        new Point(x, y + sy * radius), new Point(x, y + sy * (radius + 1)));
+                // The arc is sampled finely: the rasterizer's Catmull-Rom spline
+                // through a coarse arc overshoots it beside each tail, a kink in the
+                // kerb line where the turn rejoins the street.
+                List<Point> turn = new ArrayList<>();
+                turn.add(new Point(x + sx * (radius + 1), y));
+                for (int k = 0; k <= TURN_STEPS; k++) {
+                    double theta = Math.PI / 2 * k / TURN_STEPS;
+                    turn.add(new Point(x + sx * radius * (1 - Math.sin(theta)), y + sy * radius * (1 - Math.cos(theta))));
+                }
+                turn.add(new Point(x, y + sy * (radius + 1)));
                 double width = Math.min(ch.width(), cv.width());
                 add(routes, turn, width, seed, Material.ASPHALT, EndCap.ROUND);
             }
