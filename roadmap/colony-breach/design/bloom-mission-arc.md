@@ -4,7 +4,7 @@ Status: DRAFT
 
 Written: 2026-10-22
 
-Updated: 2026-10-22 — the arc trigger picked: three beats per infected world (Colony Breach, the Cordon, the heart), each opted into, the player free to stop; how beats feed each other, what stopping leaves, the clock and gate hooks, and the sector threat as an optional authored instance.
+Updated: 2026-10-22 — three beats per infected world (Colony Breach, the Cordon, the heart), each opted into; the clock-hold and gate-handoff hooks, the BLOOM_CORDON and BLOOM_HEART families and the arc ledger agreed with the bloom lifecycle owner; held-call cost at the frequent default.
 
 Direction for the second and third movements of the Rav Bloom arc that
 `colony-breach-nouns.md` (Campaign: blooms, Direction) names: **organising the
@@ -330,7 +330,7 @@ arc appears at the shipped benign tier, on any world that blooms.
 | --- | --- | --- |
 | Colony Breach, mother bore collapsed | **Contained**: the bloom ends at once (as today). | None: the arc is won early. |
 | Colony Breach, half or more lifted | **Starved**: the bloom lingers, its people out. | The Cordon, **the Line** (the colony is out; the region's refugees are walking). |
-| Colony Breach, fewer than half lifted, or the call refused or expired | Erupted, then **dark** (cordoned, the garrison fighting the bores). | The Cordon, **the Road** (the colony's people are still in there, cut off). |
+| Colony Breach, fewer than half lifted, or the call refused or expired | Stays **erupted** (the report changes no stage) until it goes **dark**: forty-five days after eruption, or at once on a refusal or expiry. | The Cordon, **the Road** (the colony's people are still in there, cut off), offered when the bloom goes dark, not when the report lands. |
 | The Cordon, won or lost | As before; the bloom is still running. | The heart, with what the Cordon left (below). |
 | The heart, every mother bore collapsed | **Contained**: ends at once, the reservoir rests. | None: the arc is complete. |
 | The heart, lost | As before. | None. |
@@ -341,6 +341,9 @@ because they got out. A call the player could not take (refused, expired, or
 held at the gate by another event) does not close the arc: the Cordon can still
 be offered to the dark world, so missing the first beat is a worse start, not
 the end of the story. The heart is offered only after a committed Cordon.
+At the benign tier a dark bloom is put down sixty days after going dark, so
+the Road's fourteen-day window has to open inside those sixty days; the
+clock hold below protects it only once the Cordon is committed.
 
 ### What the player leaves behind by stopping
 
@@ -374,7 +377,8 @@ report and read by the next beat's setup:
 
 ### Time, and the one-open-event rule
 
-A bloom's own clock leaves room for three beats, with two hooks:
+A bloom's own clock leaves room for three beats, with two hooks agreed with the
+session that owns the bloom lifecycle (`RavBloomSystem`, *Campaign: blooms*):
 
 - **The clocks.** The call window is fourteen days; an erupted bloom goes dark
   forty-five days after eruption with nobody lifted; at benign a dark bloom is
@@ -382,36 +386,50 @@ A bloom's own clock leaves room for three beats, with two hooks:
   fought around day twenty leaves a dark bloom about eighty days and a starved
   one ninety: enough for two more fourteen-day windows and the travel between,
   but not with slack.
-- **Hook: a committed beat holds the clock.** A bloom does not end by its own
-  clock while one of its beats is committed and unreported, and after a beat
-  settles the bloom lives at least long enough for the next beat's window and
-  the flight there. The world's military waits for the company it hired.
-  Today a call still open when its bloom ends is closed as expired; under this
-  hook a committed beat is never cut off that way.
+- **Hook: a committed beat holds the clock.** While one of a bloom's beats is
+  committed and unreported, its end-by-clock checks (put down or burned out,
+  starved out) are skipped. When a beat settles, the bloom's stage deadline
+  becomes the later of its own clock and the settle day plus the next window
+  (fourteen days) and a travel allowance (thirty). The world's military waits
+  for the company it hired. Today a call still open when its bloom ends is
+  closed as expired; under this hook a committed beat is never cut off that
+  way. The cost: an arc's bloom holds one of the two running places longer, so
+  fewer new blooms wake while an arc runs.
 - **Hook: the next offer opens as the last one settles.** The shared gate lets
-  only one campaign event be open at a time. Each beat's report settles its
-  event and opens the next beat's offer in the same step, so no other source
-  takes the gate between them and the arc does not lose its turn.
-- **The cost.** While a world's arc runs, other sources wait at the gate as
-  they wait for any open event: at the seasonal rate a three-beat arc over two
-  to three months will hold about one other bloom's call, which then goes dark
-  and is put down. That is the trade the one-open rule already makes; whether
-  a held bloom call should wait rather than lapse is the lifecycle owner's
-  question, not this doc's.
+  only one campaign event be open at a time. The handoff happens in the
+  bloom's daily tick that reads the beat's report (where it already reads the
+  rescue's terminal state), not inside the mission's resolution. The bloom
+  system ticks after the event lifecycle and before every other event source,
+  so the next offer is raised before any other source ticks that day, and a
+  report arriving between ticks cannot be pre-empted, since nothing raises
+  events outside the tick. The system order test pins it.
+- **The cost to other blooms.** A committed beat is an open event, so an arc
+  holds the gate for its whole length, and other blooms' calls lapse as they do
+  behind any open event. At the default *frequent* rate (about four and a half
+  blooms a year) an arc of about 120 days sees about 1.4 other calls arrive,
+  most of which lapse. A lapsed call sends its bloom dark, and a dark bloom can
+  still offer the Cordon (the Road) once the gate frees inside its sixty days,
+  so a lapsed call delays the content rather than losing it. `bloomEvidence`
+  measures held calls once the arc exists.
 
 ### Campaign plumbing
 
 Each beat is the bloom's next call, never an event without a bloom behind it,
-as the rescue is today. Whether the Cordon and the heart are new event families
-under `campaign-event-nouns.md`'s extension laws or beats of one bloom-call
-family is for the lifecycle owner to decide; either way each needs frozen terms
-(the variant, the posture, the inherited bores and allies), a factory, and a
-resolver that writes its report back to the bloom exactly once.
-`PolityDefenceMissionFactory` is the nearest model for the Cordon. The arc's
-state (which beat, what each reported) lives on the bloom's own ledger entry,
-so an older save starts with none. These hooks are proposals for the session
-that owns the bloom lifecycle (`RavBloomSystem`, *Campaign: blooms*) and are
-agreed there before any story builds on them.
+as the rescue is today.
+
+- **Families.** Each beat is its own event family under
+  `campaign-event-nouns.md`'s extension laws: `BLOOM_CORDON` and `BLOOM_HEART`
+  are appended to `CampaignEventType` rather than overloading the rescue, each
+  with its own frozen commitment (the variant, the posture, the inherited
+  bores and allies) and its own terminal report. The bloom is their only
+  source, so there is still no parallel scheduler.
+- **Ledger.** A nullable arc record on the bloom holds the current beat, each
+  beat's event id and its report (share lifted, bores collapsed, redoubts
+  held). Colony Breach keeps the bloom's existing rescue event id; the Cordon's
+  and the heart's live on the arc record. Older saves read it as none.
+- **Missions.** A factory and a resolver per beat, the resolver writing its
+  report back to the bloom exactly once. `PolityDefenceMissionFactory` is the
+  nearest model for the Cordon.
 
 ### The sector threat
 
