@@ -7,19 +7,19 @@
   "idPrefix": "sickbay-clinic",
   "alphaMin": 40,
   "outputSheet": "graphics/tilesets/sickbay-clinic.png",
-  "note": "Geometry-first ImageGen medical kit. Measured full canvases retain transparent linen registration and screen side voids; see sickbay-clinic.README.md.",
+  "note": "Geometry-first ImageGen medical kit on a 2599x1254 raw: the left half is the original built-in generation (monitor, station, cabinet, sink, trolley, exam couch, screen; measured full canvases, the screen keeping its side voids); the right half is the real-length refit (SickbayClinicTemplate, 320 px per cell on the guide) of the ward bed and both linen layers, cut as full 1x3 placement frames fitted to the guide. See sickbay-clinic.README.md.",
   "entries": [
     {
       "id": "sickbay-clinic.bed",
       "rect": [
-        164,
-        8,
-        152,
-        292
+        1371,
+        142,
+        305,
+        909
       ],
       "footprintCells": [
         1,
-        2
+        3
       ],
       "cover": "med",
       "ballisticHalfHeight": 0.38,
@@ -28,14 +28,14 @@
     {
       "id": "sickbay-clinic.linen-high",
       "rect": [
-        958,
-        36,
-        240,
-        374
+        1790,
+        144,
+        308,
+        901
       ],
       "footprintCells": [
         1,
-        2
+        3
       ],
       "cover": "none",
       "ballisticHalfHeight": 0,
@@ -44,14 +44,14 @@
     {
       "id": "sickbay-clinic.linen-low",
       "rect": [
-        430,
-        256,
-        240,
-        374
+        2204,
+        145,
+        311,
+        905
       ],
       "footprintCells": [
         1,
-        2
+        3
       ],
       "cover": "none",
       "ballisticHalfHeight": 0,
