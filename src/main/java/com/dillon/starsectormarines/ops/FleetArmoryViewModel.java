@@ -1649,7 +1649,7 @@ public final class FleetArmoryViewModel {
                         cell.put("badgeId", seatId + ":badge");
                         cell.put("badge", seat.badge() == null ? "" : seat.badge());
                         cell.put("badgeClasses", seat.badge() == null
-                                ? "doctrine-seat-badge doctrine-seat-badge-absent" : "doctrine-seat-badge");
+                                ? "spec-sheet-seat-badge spec-sheet-seat-badge-absent" : "spec-sheet-seat-badge");
                         cells.add(cell);
                     }
                     rows.add(Map.of("id", rowId, "seats", cells));
