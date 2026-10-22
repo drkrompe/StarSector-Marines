@@ -284,12 +284,28 @@
     },
     {
       "id": "matriarch_roar",
-      "prompt": "Colossal alien queen roaring, deep thunderous bellow with screeching overtones, terrifying",
+      "prompt": "Colossal armoured beast the size of a house rearing its crowned head: a cavernous chest-deep roar, a grinding growl swelling into a long ragged snarling bellow, bone plates and spikes grinding and rattling, deep sub-bass rumble, close, no shriek, no screech, no words, no music",
       "durationSeconds": 4.0,
-      "variants": 2,
+      "variants": 4,
       "loop": false,
       "volume": 1.0,
-      "note": "Both takes rejected 2026-10-21; regenerate once the Matriarch's design settles."
+      "note": "Regenerated 2026-10-22 for the Siege Crown as built; the 2026-10-21 takes were rejected."
+    },
+    {
+      "id": "matriarch_reap",
+      "prompt": "A huge curved bone scythe-arm of an enormous armoured beast sweeping in one fast wide arc: a deep heavy whoosh building into a sharp bony swish, ending in a meaty slashing impact through armour and bodies, a short grunt of effort from a huge throat, no metal sword ring, no music",
+      "durationSeconds": 1.3,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "matriarch_death",
+      "prompt": "A colossal armoured beast the size of a house dying: a last long cavernous groaning roar that breaks and fades into a rattling wheeze, then its enormous plated body crashing to the ground with a deep booming thud that shakes the earth, thick bone plates and spikes cracking and clattering, no music",
+      "durationSeconds": 4.0,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
     },
     {
       "id": "bore_surge",
