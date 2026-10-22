@@ -48,11 +48,13 @@ final class HardpointBricks {
         rows = Math.max(1, rows);
         float brickHeight = Math.min((height - gap * (rows - 1)) / rows,
                 (width - gap * (columns - 1)) / columns / BRICK_ASPECT);
-        brickHeight = Math.max(1f, brickHeight);
+        // Whole pixels, so fused bricks meet on pixel edges and leave no antialiased seam.
+        brickHeight = Math.max(1f, (float) Math.floor(brickHeight));
+        gap = Math.round(gap);
         float brickWidth = brickHeight * BRICK_ASPECT;
         float totalWidth = columns * brickWidth + (columns - 1) * gap;
         float totalHeight = rows * brickHeight + (rows - 1) * gap;
-        return new Layout(x + (width - totalWidth) * .5f, y + (height - totalHeight) * .5f,
+        return new Layout(Math.round(x + (width - totalWidth) * .5f), Math.round(y + (height - totalHeight) * .5f),
                 columns, rows, brickWidth, brickHeight, gap);
     }
 
@@ -78,22 +80,67 @@ final class HardpointBricks {
     }
 
     /**
-     * Fitted hardware over {@code columns x rows} bricks starting at the given cell: a tinted
-     * body, a lit top lip and a full-strength rim in the hardware's colour.
+     * Fitted hardware over {@code columns x rows} bricks starting at the given cell, drawn as one
+     * solid piece: the bricks fuse across their seams, so the body is unbroken and the rim runs
+     * only around the outside. Every brick corner on that outside keeps its chamfer, so the
+     * outline notches where two bricks meet and the brick count still reads from the edge.
      */
     static void drawFilled(CanvasContext c, Layout layout, int startColumn, int startRow,
                            int columns, int rows, Color tone) {
-        for (int row = startRow; row < Math.min(layout.rows(), startRow + rows); row++) {
-            for (int column = startColumn; column < Math.min(layout.columns(), startColumn + columns); column++) {
-                float bx = layout.brickX(column), by = layout.brickY(row);
-                float w = layout.brickWidth(), h = layout.brickHeight();
-                brick(c, bx, by, w, h, mix(tone, 0x101311, .84f));
-                float lip = Math.max(1f, h * .14f);
-                float ch = chamfer(w, h);
-                c.fillRect(bx + ch, by + 1f, w - ch * 2f, lip, mix(tone, 0x101311, .62f));
-                outline(c, bx, by, w, h, tone, 1.4f);
+        int lastColumn = Math.min(layout.columns(), startColumn + columns) - 1;
+        int lastRow = Math.min(layout.rows(), startRow + rows) - 1;
+        if (lastColumn < startColumn || lastRow < startRow) return;
+        float w = layout.brickWidth(), h = layout.brickHeight(), gap = layout.gap();
+        float ch = chamfer(w, h);
+        Color body = mix(tone, 0x101311, .84f);
+        Color lipColor = mix(tone, 0x101311, .62f);
+        float lip = Math.max(1f, h * .14f);
+        // Fills first, each overlapping the next brick of the piece by a pixel, so the shared
+        // edges are covered twice and no antialiased seam survives; outlines go on top after.
+        for (int pass = 0; pass < 2; pass++) {
+            for (int row = startRow; row <= lastRow; row++) {
+                for (int column = startColumn; column <= lastColumn; column++) {
+                    boolean top = row == startRow, bottom = row == lastRow;
+                    boolean left = column == startColumn, right = column == lastColumn;
+                    float x0 = layout.brickX(column), y0 = layout.brickY(row);
+                    // Reach across the seam to the next brick of the same piece.
+                    float x1 = x0 + w + (right ? 0f : gap), y1 = y0 + h + (bottom ? 0f : gap);
+                    float tl = top || left ? ch : 0f, tr = top || right ? ch : 0f;
+                    float br = bottom || right ? ch : 0f, bl = bottom || left ? ch : 0f;
+                    if (pass == 0) {
+                        fillOctagon(c, x0, y0, x1 + (right ? 0f : 1f), y1 + (bottom ? 0f : 1f),
+                                tl, tr, br, bl, body);
+                        if (top) c.fillRect(x0 + tl, y0 + 1f, x1 - tr - x0 - tl, lip, lipColor);
+                        continue;
+                    }
+                    // Outline only what faces outside the piece.
+                    if (top) c.line(x0 + tl, y0, x1 - tr, y0, tone, 1.4f);
+                    if (bottom) c.line(x0 + bl, y1, x1 - br, y1, tone, 1.4f);
+                    if (left) c.line(x0, y0 + tl, x0, y1 - bl, tone, 1.4f);
+                    if (right) c.line(x1, y0 + tr, x1, y1 - br, tone, 1.4f);
+                    if (tl > 0f) c.line(x0, y0 + tl, x0 + tl, y0, tone, 1.4f);
+                    if (tr > 0f) c.line(x1 - tr, y0, x1, y0 + tr, tone, 1.4f);
+                    if (br > 0f) c.line(x1, y1 - br, x1 - br, y1, tone, 1.4f);
+                    if (bl > 0f) c.line(x0 + bl, y1, x0, y1 - bl, tone, 1.4f);
+                }
             }
         }
+    }
+
+    /**
+     * A rectangle with each corner cut by its own amount (0 leaves it square), filled as a top
+     * band, a body and a bottom band so no interior diagonal seam can show.
+     */
+    private static void fillOctagon(CanvasContext c, float x0, float y0, float x1, float y1,
+                                    float tl, float tr, float br, float bl, Color fill) {
+        float topBand = Math.max(tl, tr), bottomBand = Math.max(bl, br);
+        if (topBand > 0f) c.fillQuad(x0 + tl, y0, x1 - tr, y0,
+                x1 - Math.max(0f, tr - topBand), y0 + topBand, x0 + Math.max(0f, tl - topBand), y0 + topBand, fill);
+        // The body overlaps both bands by a pixel for the same reason the bricks overlap.
+        float bodyTop = Math.max(y0, y0 + topBand - 1f), bodyBottom = Math.min(y1, y1 - bottomBand + 1f);
+        c.fillRect(x0, bodyTop, x1 - x0, bodyBottom - bodyTop, fill);
+        if (bottomBand > 0f) c.fillQuad(x0, y1 - bottomBand, x1, y1 - bottomBand,
+                x1 - br, y1, x0 + bl, y1, fill);
     }
 
     /** A chamfered outline around a whole area, for a socket rim. */
@@ -117,7 +164,7 @@ final class HardpointBricks {
     }
 
     private static float chamfer(float w, float h) {
-        return Math.max(1f, Math.min(w, h) * .2f);
+        return Math.max(1f, Math.round(Math.min(w, h) * .2f));
     }
 
     private static void brick(CanvasContext c, float x, float y, float w, float h, Color fill) {

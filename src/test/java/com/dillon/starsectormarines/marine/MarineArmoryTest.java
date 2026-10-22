@@ -177,6 +177,7 @@ class MarineArmoryTest {
 
         roster.armory().unlockPrimary(WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SERVICE);
         roster.armory().unlockArmor(MarineArmorPattern.MILITIA);
+        // Kit set on a marine by hand is not the squad's: the cards dress the seat again.
         for (MarineSoldier soldier : roster.soldiers()) {
             soldier.setPrimary(WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SERVICE);
             soldier.setArmor(MarineArmorPattern.MILITIA);
@@ -184,9 +185,9 @@ class MarineArmoryTest {
         MarineRoster veteranSave = roundTrip(roster);
         assertTrue(veteranSave.armory().ownsPrimaryTemplate(WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SERVICE));
         assertTrue(veteranSave.armory().ownsArmorTemplate(MarineArmorPattern.MILITIA));
-        for (MarineSoldier soldier : veteranSave.soldiers()) {
-            assertEquals(EquipmentGrade.SERVICE, soldier.primaryGrade());
-            assertEquals(MarineArmorPattern.MILITIA.id, soldier.armorId());
+        for (MarineSoldier soldier : veteranSave.squadMembers(veteranSave.squadById(squad.id()))) {
+            assertEquals(EquipmentGrade.SURPLUS, soldier.primaryGrade());
+            assertNotEquals(MarineArmorPattern.MILITIA.id, soldier.armorId());
         }
     }
 
@@ -406,8 +407,7 @@ class MarineArmoryTest {
         assertEquals(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID,
                 carrier.specialEquipmentId());
 
-        MarineRoster loaded = roundTrip(roster);
-        MarineSoldier persisted = loaded.soldierById(carrier.id());
+        MarineSoldier persisted = roundTrip(carrier);
         assertEquals(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID,
                 persisted.specialEquipmentId());
         assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID), persisted.specialEquipmentDef());
@@ -424,8 +424,7 @@ class MarineArmoryTest {
         assertEquals(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID,
                 carrier.specialEquipmentId());
 
-        MarineRoster loaded = roundTrip(roster);
-        MarineSoldier persisted = loaded.soldierById(carrier.id());
+        MarineSoldier persisted = roundTrip(carrier);
         assertEquals(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID,
                 persisted.specialEquipmentId());
         assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID), persisted.specialEquipmentDef());

@@ -8,7 +8,7 @@
   "lines": [
     {
       "id": "marines_management_muster",
-      "synthesisText": "[warm, conversational voice] Come in, Commander. Let's get everyone ready for the next job. Barracks is where we look after the company: people, assignments, and replacement kit. Open Equipment here to compare and design their kit, or inspect a squad and choose Equip Squad. If we're starting from nothing, Raise Squad opens the founding desk.",
+      "synthesisText": "[warm, conversational voice] Come in, Commander. Let's get everyone ready for the next job. Barracks is where we look after the company: people and assignments. A squad's kit is its two cards, weapons and tactic sheet. Open Equipment here to compare and design them, or choose Loadout on a squad's card to change that squad's. If we're starting from nothing, Raise Squad opens the founding desk.",
       "titleKey": "marines_management_musterTitle",
       "textKey": "marines_management_musterText"
     },
@@ -20,19 +20,13 @@
     },
     {
       "id": "marines_management_replenish",
-      "synthesisText": "[encouraging, matter-of-fact voice] For the places still empty, use Fill Vacancies. I'll draw from our ready reserves first, then enlist Marines from fleet cargo. The panel tells you how many recruits we'll need and what will remain unfilled. If we run short, we can prepare fewer squads or bring more Marines aboard.",
+      "synthesisText": "[encouraging, matter-of-fact voice] For the places still empty, use Fill Vacancies. I'll draw from our ready reserves first, then enlist Marines from fleet cargo. The panel tells you how many recruits we'll need and what will remain unfilled. New hands take the kit their squad's cards issue their seat. If we run short, we can prepare fewer squads or bring more Marines aboard.",
       "titleKey": "marines_management_replenishTitle",
       "textKey": "marines_management_replenishText"
     },
     {
-      "id": "marines_management_equipment",
-      "synthesisText": "[clear, patient voice] We can issue better kit while our people recover. Issue Assigned Equipment restores the selected squads' intended kit using technology learned by the Machine Shop, at no material charge. Wounded marines can receive kit while recovering. Empty billets cost nothing; review replacement equipment after recruits join. Assign selected squads on a commander card. Profiles holds saved equipment choices; assigning a profile and fitting learned equipment are both free.",
-      "titleKey": "marines_management_equipmentTitle",
-      "textKey": "marines_management_equipmentText"
-    },
-    {
       "id": "marines_management_ready",
-      "synthesisText": "[warm, confident voice] Check the muster once more before you commit to another job. Wounded people need time, and new hands need equipment. Missions takes you back to local work when you've come here after an operation. From the campaign, Return takes you outside. If you need me, Company Guide opens this walkthrough again.",
+      "synthesisText": "[warm, confident voice] Check the muster once more before you commit to another job. Wounded people need time. Missions takes you back to local work when you've come here after an operation. From the campaign, Return takes you outside. If you need me, Company Guide opens this walkthrough again.",
       "titleKey": "marines_management_readyTitle",
       "textKey": "marines_management_readyText"
     }
