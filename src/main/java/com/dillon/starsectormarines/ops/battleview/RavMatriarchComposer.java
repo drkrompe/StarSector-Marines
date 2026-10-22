@@ -18,8 +18,8 @@ final class RavMatriarchComposer {
     /** Layer rows: the canvas centre, the neck pivot, and the head sprites' centre (they are rows 0..672). */
     private static final float CANVAS_CENTRE_ROW = 768f, NECK_ROW = 470f, HEAD_CENTRE_ROW = 336f;
     private static final float CENTRE_COL = 512f;
-    /** Each scythe's pivot, layer px, left then right; its sprite is centred on it. */
-    private static final float[][] PIVOT = {{458f, 360f}, {705f, 300f}};
+    /** Each scythe's pivot, layer px, left then right, mirrored about the centre line; its sprite is centred on it. */
+    private static final float[][] PIVOT = {{319f, 300f}, {705f, 300f}};
     /** Past this swing a scythe has crossed the crown's rim and is drawn over the head. */
     private static final float OVER_HEAD_DEGREES = 70f;
     /** The arm reaches forward this many times its outward reach as it swings. */

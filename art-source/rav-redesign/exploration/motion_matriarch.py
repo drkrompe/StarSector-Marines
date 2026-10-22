@@ -49,7 +49,9 @@ SCYTHE_POLY = {"R": [(690, 250), (790, 250), (860, 350), (912, 470), (908, 572),
                      (780, 370), (690, 330)],
                "L": [(410, 320), (495, 330), (492, 420), (445, 520), (405, 612), (352, 602), (348, 520),
                      (380, 420)]}
-PIVOT = {"R": (705, 300), "L": (458, 360)}
+# The plate's own left scythe sat 54 px left of centre and its right 193 px right, set for its cocked head;
+# under the straight head the left is the right one mirrored about the centre line (owner, 2026-10-21).
+PIVOT = {"R": (705, 300), "L": (1024 - 705, 300)}
 FEET = {"FL": ((185, 860), (80, 95)), "FR": ((850, 885), (78, 98)),
         "HL": ((255, 1255), (82, 95)), "HR": ((775, 1300), (88, 102))}
 NECK = (512, 470)
@@ -147,6 +149,7 @@ class Rig:
             self.head = placed("head-straight.png", STRAIGHT)
             self.gape = placed("head-straight-gape.png", STRAIGHT_GAPE)
         self.blades = {s: on_canvas(with_alpha(hero, ha * m)) for s, m in blade_m.items()}
+        self.blades["L"] = self.blades["R"].transpose(Image.FLIP_LEFT_RIGHT)
         if BLADE_SCALE != 1.0:
             self.blades = {s: scale_about(b, BLADE_SCALE, L(*PIVOT[s])) for s, b in self.blades.items()}
         self.feet = {}
@@ -258,7 +261,7 @@ class Clip:
                 th = t0 + S_WIND + 0.45 * S_LASH
                 f = int(round(th * FPS))
                 piv = PIVOT[side]
-                tip = (890, 550) if side == "R" else (372, 600)
+                tip = (890, 550) if side == "R" else (1024 - 890, 550)
                 vx, vy = tip[0] - piv[0], tip[1] - piv[1]
                 a = math.radians(130 if side == "R" else -130)
                 rx = vx * math.cos(a) + vy * math.sin(a)
