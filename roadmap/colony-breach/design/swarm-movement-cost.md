@@ -93,16 +93,17 @@ the `pack` lever moves them as packs; `on` is its control.
 
 | Lever | Tick | Over | Swarm behaviour | Mean dist |
 |---|---|---|---|---|
-| on (control) | 2.88 / 8.0 / 9.0 | 0 | 0.57 / 1.4 / 1.7 | 163.8 |
-| pack | 2.98 / 6.7 / 8.3 | 0 | 0.71 / 1.4 / 2.3 | 172.9 |
+| on (control) | 1.67 / 4.0 / 4.5 | 0 | 0.35 / 0.7 / 0.7 | 154.7 |
+| pack | 1.96 / 5.0 / 5.5 | 0 | 0.51 / 0.8 / 1.0 | 164.2 |
 
-About a tenth of a millisecond on the median and nothing on the tail: still
-affordable at 1000 bodies. The tick-to-tick spread between runs on this
-machine is larger than that (the `off` row moved by 0.6 ms between two runs
-of the same code), so read a pack change against its own run's `on` row. A
-pack travels about 5% slower than a lone body, because the anchor runs at 92%
-so the fan can keep its places: the price of running as a pack, shown in the
-mean distance still to go after 540 ticks.
+About 0.3 ms on the median and a millisecond on the worst tick: still
+affordable at 1000 bodies, and two replicas side by side stay identical. The
+spread between runs on this machine is as large as the effect (the `off` row
+moved by a millisecond between two runs of the same code), so read a pack
+change against its own run's `on` row. A pack travels about 6% slower than a
+lone body, because the anchor runs at 92% so the fan can keep its places: the
+price of running as a pack, shown in the mean distance still to go after 540
+ticks.
 
 The first cut descended every pack's lane every 6 ticks and re-pathed every
 member each time: median +0.6 ms and two ticks over 10 ms. The lane is now
