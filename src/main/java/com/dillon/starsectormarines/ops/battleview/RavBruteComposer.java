@@ -20,6 +20,13 @@ final class RavBruteComposer {
     private static final float NECK_ROW = 384f, HEAD_CENTRE_ROW = 224f;
     /** Layer width of the front and hind shanks. */
     private static final float[] SHANK_W = {120f, 135f};
+    /**
+     * Shank roots sit this fraction of the way out from the spine to the leg's own root, well inside the body,
+     * as the Matriarch's do. The rig's root is at the body's edge, where the shank's tapered top showed as a
+     * neck between hip and hoof once the hoof swung away; from inside, the shank always leaves the body at full
+     * width and is stretched to whatever length the pose needs.
+     */
+    private static final float LEG_ROOT_IN = 0.55f;
     /** The owner asked for bigger feet; a raised hoof is nearer the camera. */
     private static final float HOOF_SCALE = 1.3f, HOOF_LIFT = 2.5f;
     /** A reared forequarter is nearer the camera: the body widens and the head grows by this per cell of rear. */
@@ -60,12 +67,14 @@ final class RavBruteComposer {
             out.add(s, a[0], a[1], s.pxWidth * k, s.pxHeight * k, facing,
                     1f, 1f, 1f, alpha);
         }
-        for (int leg : LEG_ORDER) {                    // shanks: from the root down to the hoof
+        for (int leg : LEG_ORDER) {                    // shanks: from inside the body, stretched down to the hoof
             int start = RavBruteRig.LEG_START[leg];
             int hoof = start + RavBruteRig.LEG_POINTS[leg] - 1;
-            screen(rig, start, cx, cy, ppc, fx, fy, a);
-            screen(rig, hoof, cx, cy, ppc, fx, fy, b);
             boolean front = leg < 2;
+            int joint = front ? RavBruteRig.SHOULDER : RavBruteRig.HIP;
+            float rootX = rig.x(joint) + (rig.x(start) - rig.x(joint)) * LEG_ROOT_IN;
+            toScreen(rootX, rig.y(start), cx, cy, ppc, fx, fy, a);
+            screen(rig, hoof, cx, cy, ppc, fx, fy, b);
             LayeredSpriteCache s = art.shank[front ? 0 : 1][leg % 2];
             float width = SHANK_W[front ? 0 : 1] * ppc / U;
             float dx = a[0] - b[0], dy = a[1] - b[1];  // the image runs from the hoof (bottom) to the root (top)

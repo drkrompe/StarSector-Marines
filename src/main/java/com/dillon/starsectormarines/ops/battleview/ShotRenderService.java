@@ -158,7 +158,7 @@ public final class ShotRenderService implements RenderSystem {
         float pz = s.fromZ + (s.toZ - s.fromZ) * progress;
         float py = s.fromY + (s.toY - s.fromY) * progress + pz;
         float bearing;
-        float arcH = fx.arcHeight();
+        float arcH = arcHeight(s, fx);
         if (arcH > 0f) {
             py += arcH * 4f * progress * (1f - progress);
             float tangentDy = (s.visualToY() - s.visualFromY())
@@ -198,7 +198,8 @@ public final class ShotRenderService implements RenderSystem {
         float x = s.fromX + (s.toX - s.fromX) * progress;
         float z = s.fromZ + (s.toZ - s.fromZ) * progress;
         float y = s.fromY + (s.toY - s.fromY) * progress + z;
-        if (fx.arcHeight() > 0f) y += fx.arcHeight() * 4f * progress * (1f - progress);
+        float arc = arcHeight(s, fx);
+        if (arc > 0f) y += arc * 4f * progress * (1f - progress);
         y += launch.lift(t, s.lifetimeMax);
         return new float[] {x, y, progress};
     }
@@ -263,10 +264,16 @@ public final class ShotRenderService implements RenderSystem {
     private static float projectedProjectileY(ShotEvent shot, ShotFx fx, float progress) {
         float z = shot.fromZ + (shot.toZ - shot.fromZ) * progress;
         float y = shot.fromY + (shot.toY - shot.fromY) * progress + z;
-        if (fx.arcHeight() > 0f) {
-            y += fx.arcHeight() * 4f * progress * (1f - progress);
+        float arc = arcHeight(shot, fx);
+        if (arc > 0f) {
+            y += arc * 4f * progress * (1f - progress);
         }
         return y;
+    }
+
+    /** The drawn arc's height: the round's own when its throw set one, else its weapon's. */
+    static float arcHeight(ShotEvent shot, ShotFx fx) {
+        return Float.isFinite(shot.arcHeightOverride) ? shot.arcHeightOverride : fx.arcHeight();
     }
 
     /** Width grows with the emerging streak so a bolt never spawns as a sideways muzzle blob. */

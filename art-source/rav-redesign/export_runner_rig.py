@@ -19,6 +19,7 @@ from PIL import Image, ImageOps
 
 HERE = Path(__file__).parent
 import stage_sprites  # noqa: E402
+from cut_clean import save  # noqa: E402
 sys.path.insert(0, str(HERE / "exploration"))
 from motion_runner import key  # noqa: E402
 from render_runner import ARM_ROWS, BODY_ROWS, FRONT_ROWS, HIND_ROWS, slices  # noqa: E402
@@ -90,10 +91,10 @@ def main():
         else:
             out = centred(piece)
         if name in ("trunk-front", "trunk-rear", "fore"):
-            out.save(OUT / f"{name}.png")
+            save(out, OUT / f"{name}.png")
         else:
-            out.save(OUT / f"{name}-l.png")
-            ImageOps.mirror(out).save(OUT / f"{name}-r.png")
+            save(out, OUT / f"{name}-l.png")
+            save(ImageOps.mirror(out), OUT / f"{name}-r.png")
         print(f"{name:8s} {out.size}  bone {piece[2] * SCALE:.1f} px")
     # the whelp's and the elder's sets are recoloured from this one, so they never drift from it
     stage_sprites.write("runner")

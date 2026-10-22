@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewAnnotations;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
+import com.dillon.starsectormarines.ops.battleview.ReviewImpactFx;
 import com.dillon.starsectormarines.tools.snapshot.AnimatedGifWriter;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -70,6 +71,16 @@ final class CommanderEvidenceCapture implements AutoCloseable {
     private final List<Frame> captured = new ArrayList<>();
     private final FrameSource frameSource;
     private BattleReviewFrameRenderer frameRenderer;
+    /**
+     * The presentation the screen ticks every frame and the draw list leaves
+     * out: muzzle and launch smoke, impacts, blasts, contrails. Fed from a few
+     * seconds before the first frame, so whatever is in the air when a frame is
+     * taken is drawn, and nothing before that is paid for.
+     */
+    private ReviewImpactFx impacts;
+    private int feedFromTick;
+    /** Ticks of effects fed before the first frame: longer than any trail or puff lives. */
+    static final int FX_WARMUP_TICKS = 150;
     private int nextTick;
     private int lastTick = -1;
     private boolean closed;
@@ -167,11 +178,16 @@ final class CommanderEvidenceCapture implements AutoCloseable {
             throw failure;
         }
         nextTick = fromTick == 0 ? cadenceTicks : fromTick;
+        feedFromTick = Math.max(0, fromTick - FX_WARMUP_TICKS);
     }
 
     void afterAdvance() throws IOException {
         if (!enabled()) return;
         int tick = simulation.getSimTickIndex();
+        if (frameSource == null && tick >= feedFromTick) {
+            if (impacts == null) impacts = new ReviewImpactFx(Path.of("mod").toAbsolutePath().normalize());
+            impacts.feed(simulation);
+        }
         if (tick < nextTick && !simulation.isComplete()) return;
         capture();
         while (nextTick <= tick) nextTick += cadenceTicks;
@@ -185,7 +201,7 @@ final class CommanderEvidenceCapture implements AutoCloseable {
                         : ReviewAnnotations.NONE;
         BufferedImage image = frameSource != null
                 ? frameSource.render(simulation, caption(tick), marks)
-                : frames().render(simulation, caption(tick), marks);
+                : frames().render(simulation, caption(tick), marks, impacts);
         String filename = String.format(Locale.ROOT,
                 "frame-%04d-tick-%06d.png", captured.size(), tick);
         Path frame = frames.resolve(filename);

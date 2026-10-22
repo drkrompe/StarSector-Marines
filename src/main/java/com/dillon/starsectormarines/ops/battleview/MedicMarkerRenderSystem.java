@@ -55,7 +55,7 @@ public final class MedicMarkerRenderSystem implements RenderSystem {
             long carrier = sim.resolveUnit(medic.medicId());
             if (carrier == 0L) continue;
             boolean selected = ctx.selection != null && ctx.selection.isSquadSelected(squad.id);
-            float medicAlpha = ctx.alphaMult * visibleAlpha(sim, carrier, selected);
+            float medicAlpha = ctx.alphaMult * visibleAlpha(ctx, carrier, selected);
             if (medicAlpha <= 0f) continue;
             float mx = sim.world().renderX(carrier);
             float my = sim.world().renderY(carrier);
@@ -78,7 +78,7 @@ public final class MedicMarkerRenderSystem implements RenderSystem {
         BattleSimulation sim = ctx.sim;
         BattleCamera camera = ctx.camera;
         // The particles are the world, not a mark: only the fog dims them, never selection.
-        float alpha = ctx.alphaMult * visibleAlpha(sim, patient, true);
+        float alpha = ctx.alphaMult * visibleAlpha(ctx, patient, true);
         if (alpha <= 0f) return;
         float px = sim.world().renderX(patient);
         float py = sim.world().renderY(patient);
@@ -121,9 +121,11 @@ public final class MedicMarkerRenderSystem implements RenderSystem {
         return visibility == FogOfWarService.VIS_FADING ? base * fadeAlpha : base;
     }
 
-    private static float visibleAlpha(BattleSimulation sim, long unit, boolean selected) {
+    private static float visibleAlpha(RenderContext ctx, long unit, boolean selected) {
+        BattleSimulation sim = ctx.sim;
         int slot = sim.getRoster().indexOf(unit);
-        byte visibility = sim.getFogOfWar().getUnitVisibility(slot);
+        byte visibility = ctx.hostProfile.fogHidesUnits()
+                ? sim.getFogOfWar().getUnitVisibility(slot) : FogOfWarService.VIS_VISIBLE;
         float fade = visibility == FogOfWarService.VIS_FADING ? sim.getFogOfWar().getFadeAlpha(slot) : 1f;
         return markerAlpha(visibility, selected, fade);
     }

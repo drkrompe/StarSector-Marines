@@ -43,7 +43,7 @@ identity from the Church rather than defining a separate economy.
 ### Units and armor
 
 Use sworn line Knights, aspirants or retainers, Knight-inquisitors, combat engineers,
-relic custodians, heavy-weapons teams, and consecrated heavy-suit operators. Their
+relic custodians, heavy-weapons teams, and armoury-trained heavy-suit operators. Their
 armor should be rugged, sealed, carefully maintained, and personalized through vows,
 campaign marks, scripture, or repaired plates while retaining a recognizable order.
 

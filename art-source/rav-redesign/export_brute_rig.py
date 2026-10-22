@@ -29,6 +29,7 @@ from PIL import Image
 HERE = Path(__file__).parent
 import stage_sprites  # noqa: E402
 sys.path.insert(0, str(HERE / "exploration"))
+from cut_clean import clip_to, save  # noqa: E402
 from motion_brute import (HEAD_POLY, HOOVES, RAW, SHANK_W, key, largest_blob, soft_mask,  # noqa: E402
                           with_alpha)
 
@@ -37,6 +38,8 @@ SCALE = 0.25         # sprite px per layer px
 HEAD_ROWS = 448      # the head sprite is the top of the canvas, down past the neck pivot and its soft edge
 SPLIT_ROW = 974      # halfway between the shoulder (790) and hip (1158) rows
 FEATHER = 16
+HOOF_REACH = 48     # layer px past a hoof's cut in which claw stubs are clipped off the body
+HOOF_FEATHER = 24   # rows below a hoof's centre over which that clip fades in
 
 
 def scaled(img):
@@ -60,10 +63,23 @@ def main():
         keep = keep * (1 - m)
         hooves[name] = (m, (cx, cy), (rx, ry))
 
+    # only below each hoof's centre row: above it the hero's hip and shoulder flesh is what the shank and hoof
+    # visibly hang from, and trimming it back to the narrower underlay leaves the hooves floating free
+    rows = np.arange(size[1], dtype=float)[:, None]
+    near_hooves = np.zeros(size[::-1])
+    for _, (cx, cy), (rx, ry) in hooves.values():
+        g = HOOF_REACH
+        ring = np.asarray(soft_mask(size, lambda d, cx=cx, cy=cy, rx=rx, ry=ry:
+                                    d.ellipse([cx - rx - g, cy - ry - g, cx + rx + g, cy + ry + g], fill=255), 8)) / 255
+        near_hooves = np.maximum(near_hooves, ring * np.clip((rows - cy) / HOOF_FEATHER, 0, 1))
+
     body = Image.new("RGBA", size, (0, 0, 0, 0))
-    body.alpha_composite(largest_blob(key(RAW / "body-nohead.png")))
-    body.alpha_composite(with_alpha(hero, ha * keep))
-    scaled(body).save(OUT / "body.png")
+    under = largest_blob(key(RAW / "body-nohead.png"))
+    body.alpha_composite(under)
+    # around the hoof holes, the hero only where the underlay is, so the cuts leave no claw stubs hanging off
+    # the hips; elsewhere the hero's own outline, which is wider than the underlay's
+    body.alpha_composite(clip_to(with_alpha(hero, ha * keep), under, where=near_hooves))
+    save(scaled(body), OUT / "body.png")
 
     rows = np.arange(size[1], dtype=float)[:, None]
     front_k = np.clip((SPLIT_ROW + FEATHER - rows) / (2 * FEATHER), 0, 1)
@@ -72,16 +88,16 @@ def main():
     # the rear half is solid under the seam and the front fades over it, so the two drawn together make the
     # whole body with no thin line where they meet, however the spine bends between them
     rear = with_alpha(body, ba).crop((0, SPLIT_ROW - FEATHER, size[0], size[1]))
-    scaled(front).save(OUT / "body-front.png")
-    scaled(rear).save(OUT / "body-rear.png")
+    save(scaled(front), OUT / "body-front.png")
+    save(scaled(rear), OUT / "body-rear.png")
 
     head = with_alpha(hero, ha * head_m).crop((0, 0, 1024, HEAD_ROWS))
-    scaled(head).save(OUT / "head.png")
+    save(scaled(head), OUT / "head.png")
 
     for name, (m, (cx, cy), (rx, ry)) in hooves.items():
         r = int(max(rx, ry) + 16)   # past the soft edge; square and centred on the hoof
         cut = with_alpha(hero, ha * m).crop((int(cx - r), int(cy - r), int(cx + r), int(cy + r)))
-        scaled(cut).save(OUT / f"hoof-{name.lower()}.png")
+        save(scaled(cut), OUT / f"hoof-{name.lower()}.png")
 
     for part, path in (("f", "leg-front.png"), ("h", "leg-hind.png")):
         leg = largest_blob(key(RAW / path))
@@ -90,8 +106,8 @@ def main():
         leg = leg.transpose(Image.FLIP_TOP_BOTTOM)                           # the hip end at the top
         w = SHANK_W[part.upper()]
         leg = leg.resize((w, int(leg.height * w / leg.width)), Image.LANCZOS)
-        scaled(leg).save(OUT / f"shank-{part}-l.png")
-        scaled(leg.transpose(Image.FLIP_LEFT_RIGHT)).save(OUT / f"shank-{part}-r.png")
+        save(scaled(leg), OUT / f"shank-{part}-l.png")
+        save(scaled(leg.transpose(Image.FLIP_LEFT_RIGHT)), OUT / f"shank-{part}-r.png")
 
     for p in sorted(OUT.glob("*.png")):
         print(p.name, Image.open(p).size)

@@ -914,7 +914,7 @@ and drains the same simulation lists `BattleScreen.advance` does.
 | Night lighting pools | Drawn. Muzzle, impact and fire lights (`GroundLightService`) are not fed, so a night battle's shots do not light the ground |
 | Capture-point rings and ticks, objective annuli | Drawn |
 | Objective, compound and fort **text** labels (GL bitmap font runnables) | Not drawn; reviews name places with `ReviewAnnotations`. Mission-marker and salvage cards are drawn as labels but the mission layer is left out on purpose |
-| Fog of war | Not drawn: a review is a neutral observer |
+| Fog of war | Not drawn, and hides no body: a review is a neutral observer (`BattleRenderHostProfile.OBSERVER_SCENE`), so an enemy nobody on the field can see is still drawn |
 | Highlights, selection rings, order lines, zone and convoy debug overlays | Not drawn: UI and debug |
 | Ship-deck lighting (`DECK_LIGHTING`) and deck scenes | Not drawn here; the ship-deck suites have their own renderer |
 

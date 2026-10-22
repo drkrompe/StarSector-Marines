@@ -13,10 +13,10 @@ import java.util.Map;
 
 /**
  * The issued-card chip: how every armoury screen names a squad's card at a glance —
- * its face, kind, name, FIRE or GUARD rating, and the Restricted seal when it bears
+ * its face, name, Firepower or Protection Rating, and the Restricted seal when it bears
  * one. Barracks stacks two compact chips on each squad card (the rating as a bare
- * percentage, coloured by kind); the Loadout screen's
- * squad view opens on the same two at full size. The {@code armory-card-chip}
+ * percentage, coloured by kind); the Loadout screen's squad view opens on the same two
+ * at full size, where the rating is spelled out on the line above the name. The {@code armory-card-chip}
  * component draws what this builds, so the two screens cannot disagree.
  */
 final class CardChips {
@@ -24,16 +24,16 @@ final class CardChips {
 
     static Map<String, Object> weapons(String id, SquadWeaponDoctrine doctrine, boolean compact) {
         int rating = LoadoutEffectiveness.weaponRating(doctrine);
-        return chip(id, FleetArmoryViewModel.weaponCardFace(doctrine), Strings.get("loadoutSquadCardWeapon"),
-                compact ? Strings.format("loadoutCardRatingShort", rating) : Strings.format("openingLoadoutFireRating", rating),
-                "weapon", compact);
+        return compact
+                ? chip(id, FleetArmoryViewModel.weaponCardFace(doctrine), "", Strings.format("loadoutCardRatingShort", rating), "weapon", true)
+                : chip(id, FleetArmoryViewModel.weaponCardFace(doctrine), Strings.format("openingLoadoutFireRating", rating), "", "weapon", false);
     }
 
     static Map<String, Object> sheet(String id, SquadArmorPlan plan, SquadArmorDoctrine issued, boolean compact) {
         int rating = LoadoutEffectiveness.armorRating(issued);
-        return chip(id, FleetArmoryViewModel.armorCardFace(plan, issued), Strings.get("loadoutSquadCardSheet"),
-                compact ? Strings.format("loadoutCardRatingShort", rating) : Strings.format("openingLoadoutGuardRating", rating),
-                "armor", compact);
+        return compact
+                ? chip(id, FleetArmoryViewModel.armorCardFace(plan, issued), "", Strings.format("loadoutCardRatingShort", rating), "armor", true)
+                : chip(id, FleetArmoryViewModel.armorCardFace(plan, issued), Strings.format("openingLoadoutGuardRating", rating), "", "armor", false);
     }
 
     /** A slot with no card in it: laid out with the same ids, drawn as nothing. */
