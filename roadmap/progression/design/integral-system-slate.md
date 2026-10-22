@@ -70,8 +70,8 @@ its fraction across its arc for the window's duration
 | `armor.heavy` | Hegemony (XIV) | **Assault bracing** | The perfected version, and the most *available* one — the longest window against the shortest recovery. Doctrine, not a gamble. |
 | `armor.bulwark-heavy` | Persean League | **Interlock advance** | The widest screen in the family, covering more front than one wearer needs, because the marine beside you may not be from your navy. No worst axis. |
 | `armor.specter-heavy` | Tri-Tachyon | **Predictive breach** | The briefest window, the quickest recycle, and the fastest crossing on the field. The screen is a courtesy. Prediction, spent rather than worn. |
-| `armor.reliquary-heavy` | Knights of Ludd | **Consecrated advance** | Barely faster than standing still, for a very long time, behind the best screen anyone has. A Knight crosses the room in front of somebody else. |
-| `armor.lions-mantle` | Sindrian Lion's Guard | **Blazon advance** | One grand gesture per engagement: long, bright, well covered, and then thirty seconds of nothing. Spectacle priced as spectacle. |
+| `armor.reliquary-heavy` | Knights of Ludd | **Governed advance** | Barely faster than standing still, for a very long time, behind the best screen anyone has. A Knight crosses the room in front of somebody else. |
+| `armor.lions-mantle` | Sindrian Lion's Guard | **Loop-dump advance** | One big push per engagement: long, well covered, and then thirty seconds of nothing. Visibility priced as visibility. |
 | `armor.foundry-breaker` | Pirate / Pather | **Breaching assist** | The crude copy, and the only one without a proper designation. The biggest raw shove in the family, over almost immediately, behind a sheet of scrap, followed by the longest sulk. |
 | `armor.vigil` | Sindrian Diktat | **Suppression brace** | The tier-III rung, and the only one. A shield and a shove, both adequate, neither remarkable — the version of the idea a state can afford to issue to everybody. |
 
@@ -106,10 +106,10 @@ can be had.
 `ArmorCatalogShapeTest` owns that measure and the rule. It is a comparison index
 for the catalog's shape and never a balance model: the game reads none of it.
 
-Two of these are honest about being weak in the current build. The Consecrated
-and Blazon advances spend most of their design on the screen, so until the
+Two of these are honest about being weak in the current build. The Governed
+and Loop-dump advances spend most of their design on the screen, so until the
 mitigation concept lands they under-express — the Armory correctly advertises the
-Reliquary as a twelve-percent movement boost, which is true and is not what the
+Holdfast as a twelve-percent movement boost, which is true and is not what the
 suit is for.
 
 ## The brace family
@@ -200,7 +200,7 @@ on a line suit. It landed there because there was no support role to land in.
 There is now, and the Aegis is its first member.
 
 Everything else in the catalog carries nothing, on purpose. The Church's
-Palatine, the League's Bastion, the pirate Reaver, and every tier-I and
+Gilead line suit, the League's Bastion, the pirate Blackforge Mk2, and every tier-I and
 tier-II pattern are complete as tradeoffs and gain nothing from a trick.
 
 ## What each of these must not become
@@ -219,7 +219,7 @@ likely to be violated by a *capability* rather than by a stat are:
   catalog says outright that no neural-interface faction bonus exists outside the
   suit. The Specter spends its prediction as a short, visible, expiring window;
   it does not quietly improve the wearer's odds between activations.
-- **Consecration is not damage reduction.** The Reliquary's rating is already
+- **Custody is not damage reduction.** The Holdfast's rating is already
   paid for with lower capacity and the heaviest movement, and its system adds no capacity
   and no rating. What it buys is a timed, arc-limited screen someone else can
   walk behind — a squad capability with a cost, not a second helping of armour.
@@ -227,7 +227,7 @@ likely to be violated by a *capability* rather than by a stat are:
   identity, and the obvious mechanical reading — restore something mid-battle -
   is durability, which is forbidden. The interesting half of "shared control
   standards" is the *shared* part, and the Interlock advance spends it on arc.
-- **Sindrian spectacle is a liability too.** The Blazon advance is the longest,
+- **Sindrian visibility is a liability too.** The Loop-dump advance is the longest,
   brightest window in the family behind the second-best screen, and it pays for
   that with the worst recovery. If it ever gains a visual treatment, the suit
   should be more conspicuous while it runs, not less.

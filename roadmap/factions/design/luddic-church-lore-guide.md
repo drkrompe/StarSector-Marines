@@ -45,8 +45,8 @@ Use parish militia, settlement defenders, household or temple guards, veteran
 regulars, combat engineers, shrine wardens, and rare sanctioned heavy-armor warriors.
 Line suits should look maintained rather than factory-fresh: replacement seals,
 hand-fitted plates, devotional markings, and locally made covers over legacy powered
-frames. Heavy battlesuits may be treated as consecrated burdens entrusted after
-training and spiritual scrutiny.
+frames. Heavy battlesuits are issued as burdens of upkeep: signed out by an armoury
+after training and scrutiny, and answered for by the wearer.
 
 Keep Knights separate when the fiction calls for the Church's professional military
 arm. A Church militia squad should not become a Knight squad merely because it is
