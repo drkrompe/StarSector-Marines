@@ -364,6 +364,8 @@ increasing an encounter's total armored threat.
   two rows; SRM-15 and LRM-15 occupy two columns by three rows. Large shoulder
   sockets present that same upright grid. Range and delivery distinguish SRM
   direct fire from LRM artillery, rather than different footprints within a size class.
+  Nothing is smaller than one row by two columns: every weapon, internal and
+  socket is at least 2x1, so the smallest piece still reads as a piece.
   Each asset-class layout owns the socket's physical mount anchor,
   its equipment-dock center around the doll, and its doll-relative interaction
   footprint as well as compatibility and capacity. A leader preserves the
