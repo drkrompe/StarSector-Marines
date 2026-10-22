@@ -495,6 +495,8 @@ def blender_main(cfg):
     scene.cycles.use_denoising = True
     scene.cycles.max_bounces = 4
     scene.cycles.transparent_max_bounces = 16
+    if cfg.get('volume_biased'):        # --volume-biased: ray marching (step rate, max steps) for null scattering
+        scene.cycles.volume_biased = True
     if cfg.get('volume_step_rate'):     # --volume-step-rate: coarser ray marching through the kit's volumes
         scene.cycles.volume_step_rate = float(cfg['volume_step_rate'])
     if cfg.get('volume_max_steps'):     # --volume-max-steps: the cap on steps per volume a ray takes
@@ -2435,6 +2437,7 @@ def main():
             cfg = dict(out=str(run), frames=todo, samples=samples, half=half, swfx='--swfx' in argv, surface=surface,
                        layers=layers, plates=plates, volume_step_rate=opt('--volume-step-rate'),
                        volume_max_steps=opt('--volume-max-steps'), percent=opt('--percent'),
+                       volume_biased='--volume-biased' in argv,
                        hide_volumes=opt('--hide-volumes'))
             env = dict(os.environ, ASHARU_CFG=json.dumps(cfg))
             subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python', __file__], env=env)

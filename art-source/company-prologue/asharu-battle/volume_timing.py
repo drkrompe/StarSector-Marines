@@ -4,7 +4,10 @@
 
 Renders the frame once per variant, small and at few samples, and prints each render's wall time:
     as-is        the frame as a review round renders it
-    step-4       scene volume_step_rate 4 and volume_max_steps 256 (coarser ray marching)
+    step-4       scene volume_step_rate 4 and volume_max_steps 256 (no effect unless biased: Blender 5's
+                 default unbiased volumes do null scattering, whose cost follows density, not steps)
+    biased       volume_biased: ray marching instead, at step rate 1; biased-step-4 at step rate 4
+    no-thrusters, no-smoke, no-fire: one kind of the kit's volumes left out
     no-haze      the engines' smoke haze left out (vacuum still hangs a short haze off every drive)
     no-volumes   every kit volume left out: what the hulls, lights and planet cost on their own
 A frame that takes hours at review size is diagnosed here in minutes: the variants say whether the
@@ -22,7 +25,12 @@ HERE = Path(__file__).resolve().parent
 VARIANTS = {
     'as-is': [],
     'step-4': ['--volume-step-rate', '4', '--volume-max-steps', '256'],
+    'biased': ['--volume-biased'],
+    'biased-step-4': ['--volume-biased', '--volume-step-rate', '4', '--volume-max-steps', '256'],
     'no-haze': ['--hide-volumes', 'SWFX smoke haze'],
+    'no-thrusters': ['--hide-volumes', 'SWFX thrusters'],
+    'no-smoke': ['--hide-volumes', 'SWFX smoke'],
+    'no-fire': ['--hide-volumes', 'SWFX fire'],
     'no-volumes': ['--hide-volumes', 'all'],
 }
 
