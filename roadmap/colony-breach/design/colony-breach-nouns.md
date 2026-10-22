@@ -1163,10 +1163,18 @@ loudness (a whelp about four semitones up and quieter, an elder deeper and
 louder): one take heard three ways stays the same creature. A pack's break is
 one scatter shriek, the leader's own cry at the leader's stage. The Spitter has
 no voice. The Matriarch is the biggest of the Runner's and Brute's family and
-sounds it: her own roar (out of the bore and at each moult), the whoosh and
-cut of a reap, and her death; everything else is the Brute's a size deeper
-(her bellow on new quarry, hoof, crown, wall breaking and pain, pitched down
-and spaced further apart). Her own takes await the owner's verdict.
+sounds it: only her roar (out of the bore and at each moult) and the whoosh
+and cut of a reap are her own takes; her bellow on new quarry, hoof, crown,
+wall breaking, pain and death are the Brute's, played deeper, slower and
+further apart.
+
+**Reuse before new takes** (owner, 2026-10-22). The swarm is a minor faction
+and its sound is kept small: a strain's sound is an accepted take of a sibling
+strain played at another pitch and speed before it is a new file, and a new
+take is made only where nothing reusable fits. The shift is the sound player's
+own pitch argument at play time (which moves pitch and speed together), never
+a baked copy, so a variant costs no file. Growth stage rides the same
+argument.
 
 ## Laws
 
