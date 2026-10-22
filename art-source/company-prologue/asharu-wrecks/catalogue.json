@@ -9,9 +9,9 @@
    "object": "Wreck hullfrag-a",
    "family": "hullfrag",
    "half": [
-    11.423,
-    7.956,
-    5.979
+    11.421,
+    7.796,
+    5.898
    ],
    "source": null
   },
@@ -20,9 +20,9 @@
    "object": "Wreck hullfrag-b",
    "family": "hullfrag",
    "half": [
-    18.652,
-    13.042,
-    10.586
+    18.65,
+    12.877,
+    10.354
    ],
    "source": null
   },
@@ -32,8 +32,8 @@
    "family": "hullfrag",
    "half": [
     28.861,
-    19.783,
-    16.337
+    19.321,
+    15.86
    ],
    "source": null
   },
@@ -43,8 +43,8 @@
    "family": "hullfrag",
    "half": [
     40.866,
-    26.719,
-    21.709
+    26.039,
+    21.025
    ],
    "source": null
   },
@@ -53,9 +53,9 @@
    "object": "Wreck hullfrag-e",
    "family": "hullfrag",
    "half": [
-    57.66,
-    39.836,
-    32.819
+    57.659,
+    38.872,
+    31.869
    ],
    "source": null
   },
@@ -65,8 +65,8 @@
    "family": "section",
    "half": [
     24.225,
-    21.704,
-    16.707
+    21.438,
+    16.44
    ],
    "source": null
   },
@@ -75,9 +75,9 @@
    "object": "Wreck section-b",
    "family": "section",
    "half": [
-    31.2,
-    23.704,
-    20.704
+    31.113,
+    23.153,
+    20.153
    ],
    "source": null
   },
@@ -87,8 +87,8 @@
    "family": "section",
    "half": [
     40.225,
-    30.844,
-    22.844
+    30.133,
+    22.133
    ],
    "source": null
   },
@@ -97,9 +97,9 @@
    "object": "Wreck section-d",
    "family": "section",
    "half": [
-    47.725,
-    43.377,
-    26.377
+    47.7,
+    42.396,
+    25.533
    ],
    "source": null
   },
@@ -108,9 +108,9 @@
    "object": "Wreck section-e",
    "family": "section",
    "half": [
-    57.806,
-    44.088,
-    39.088
+    57.725,
+    42.879,
+    37.879
    ],
    "source": null
   },
@@ -119,9 +119,9 @@
    "object": "Wreck section-f",
    "family": "section",
    "half": [
-    67.744,
-    54.774,
-    35.799
+    67.7,
+    52.879,
+    33.879
    ],
    "source": null
   },
@@ -130,9 +130,9 @@
    "object": "Wreck section-g",
    "family": "section",
    "half": [
-    115.366,
-    87.619,
-    56.119
+    115.225,
+    85.363,
+    53.879
    ],
    "source": null
   },
@@ -406,8 +406,8 @@
    "family": "chunk",
    "half": [
     22.725,
-    21.197,
-    17.926
+    21.102,
+    17.779
    ],
    "source": null
   },
@@ -416,9 +416,9 @@
    "object": "Wreck chunk-b",
    "family": "chunk",
    "half": [
-    36.302,
-    35.332,
-    29.351
+    36.225,
+    34.622,
+    28.837
    ],
    "source": null
   },
@@ -427,9 +427,9 @@
    "object": "Wreck chunk-c",
    "family": "chunk",
    "half": [
-    52.235,
-    51.146,
-    42.629
+    52.225,
+    50.273,
+    41.722
    ],
    "source": null
   },

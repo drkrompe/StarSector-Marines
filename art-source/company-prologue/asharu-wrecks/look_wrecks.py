@@ -37,6 +37,7 @@ ap.add_argument('--cpu', action='store_true')
 ap.add_argument('--layout', action='store_true')
 ap.add_argument('--workbench', action='store_true', help='internal framing check: Workbench, never an owner image')
 a = ap.parse_args(argv)
+a.kit, a.out = str(Path(a.kit).resolve()), str(Path(a.out).resolve())   # before the kit is opened: Blender resolves relative to the .blend
 
 _argv, sys.argv = sys.argv, ['look_wrecks']
 import battle_blockout as B  # noqa: E402

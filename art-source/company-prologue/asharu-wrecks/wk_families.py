@@ -75,6 +75,7 @@ class Body:
         # panels scale with the hull: a big hull in small tiles reads as pixelated from 1-3 km
         self.plate_len = max(5.0, min(16.0, L / 9))
         self.nst = max(4, round(L / self.plate_len))
+        self.unit = max(4.5, min(9.0, L / 12))      # damage scale, m: tears and holes do not grow with the panels
         if round_section:          # a drum: a true circle, enough plates round it that no facet shows
             perim = 2 * math.pi * (w + h) / 2
             self.n = max(n_min, 32, 2 * round(perim / 3.0 / 2))
@@ -87,17 +88,19 @@ class Body:
             base, _ = _resample(_chamfered(w, h, chamfer), self.n)
         self.xs = [-L / 2 + L * i / self.nst for i in range(self.nst + 1)]
         self.rings = []
-        amp = dent * min(w, h)
+        amp = min(dent * min(w, h), 1.5)          # dented, not crumpled: a big hull's plates stay near one surface
+        dscale = max(18.0, self.plate_len * 2.5)
         for i, x in enumerate(self.xs):
             s = taper(i / self.nst) if taper else 1.0
             ring = []
             for j, (y, z) in enumerate(base):
                 out = norm((0, y, z))
-                d = amp * max(0.0, self.noise(x / 18.0, y / 18.0, z / 18.0) * 1.6)
+                d = amp * max(0.0, self.noise(x / dscale, y / dscale, z / dscale) * 1.6)
                 ring.append((x, y * s - out[1] * d, z * s - out[2] * d))
             self.rings.append(ring)
         self.seg = perim / self.n                      # nominal arc between ring points, m
         self.perim = perim
+        self.useg = perim / max(n_min, min(44, 2 * round(perim / 12.0)))   # damage arc, m: the look-2 ring spacing
         self.fronts = []        # (end sign, x of the station end, depth m, noise): tears
         self.holes = []         # (x, s, rx, rs, noise): holes torn in the skin
         self.ends = {}          # station end index -> 'torn'
@@ -125,22 +128,22 @@ class Body:
     def tear_end(self, end, depth=2):
         """Tears the hull off at station end 0 (aft) or nst (fore), up to depth plate lengths in."""
         self.ends[end] = 'torn'
-        d = max(1.0, min(depth, self.nst / 3.5)) * self.plate_len
+        d = max(1.0, min(depth, self.L / self.unit / 3.5)) * self.unit
         x_end = self.xs[0] if end == 0 else self.xs[-1]
         self.fronts.append((1 if end == 0 else -1, x_end, d, Noise(self.rnd.randrange(1 << 30))))
 
     def gash(self, i0, j0, di, dj):
         """A hole torn in the side, about di plates long and dj plates round, ragged."""
-        x = self.xs[min(self.nst, i0)] + di * self.plate_len / 2
+        x = self.xs[min(self.nst, i0)] + di * self.unit / 2
         s = (j0 + dj / 2) * self.seg
-        self.holes.append((x, s, di * self.plate_len * .55, dj * self.seg * .55, Noise(self.rnd.randrange(1 << 30))))
+        self.holes.append((x, s, di * self.unit * .55, dj * self.useg * .55, Noise(self.rnd.randrange(1 << 30))))
 
     def scatter(self, p):
         """Small ragged punctures, about p of the plates' worth of them."""
-        for _ in range(int(p * self.nst * self.n / 4) + 1):
+        for _ in range(int(p * (self.L / self.unit) * (self.perim / self.useg) / 4) + 1):
             x = self.rnd.uniform(self.xs[0], self.xs[-1])
             s = self.rnd.uniform(0, self.perim)
-            r = self.rnd.uniform(.4, .9) * self.plate_len
+            r = self.rnd.uniform(.4, .9) * self.unit
             self.holes.append((x, s, r, r * self.rnd.uniform(.6, 1.2), Noise(self.rnd.randrange(1 << 30))))
 
     def front_f(self, x, s):
@@ -172,23 +175,23 @@ class Body:
 
     def plates(self, band=None):
         """Every standing skin plate, cut along the damage field; the torn lips curl outward."""
-        band_m = self.plate_len * .7
+        band_m = self.unit * .7
 
         def lift(fv):
-            return 0.0 if fv >= band_m else self.plate_len * .32 * (1 - fv / band_m) ** 2.2
+            return 0.0 if fv >= band_m else self.unit * .32 * (1 - fv / band_m) ** 2.2
         for i in range(self.nst):
             for j in range(self.n):
                 x0, x1 = self.xs[i], self.xs[i + 1]
                 s0, s1 = j * self.seg, (j + 1) * self.seg
                 samples = [self.field(x0 + (x1 - x0) * u, s0 + (s1 - s0) * v) for u in (0, .5, 1) for v in (0, .5, 1)]
-                if max(samples) < -self.plate_len:
+                if max(samples) < -self.unit:
                     continue
                 q = self.quad(i, j)
                 inn = self.inward(q)
-                qs = shrink(q, GAP)
+                qs = shrink(q, GAP if self.plate_len < 10 else GAP / 2)   # seams thin out at hull scale
                 col = self.accent if band and band(j) else self.main
                 if self.rnd.random() < .07:
-                    col = tuple(min(1, c * self.rnd.uniform(.75, 1.25)) for c in col)      # a replacement plate
+                    col = tuple(min(1, c * self.rnd.uniform(.85, 1.15)) for c in col)      # a replacement plate
                 tone = self.rnd.gauss(0, .25)
                 if min(samples) > band_m:
                     self.m.prism(qs, mul(inn, PLATE_T), tone=tone, base=col)
@@ -214,7 +217,7 @@ class Body:
                 pts.append(sub(p, mul(out, inset)))
             for j in range(self.n):
                 beyond = -self.front_f(self.xs[i], (j + .5) * self.seg)
-                if beyond > self.rnd.uniform(0, 1.4) * self.plate_len:
+                if beyond > self.rnd.uniform(0, 1.4) * self.unit:
                     continue
                 a, b = pts[j], pts[j + 1]
                 if beyond > 0:                              # standing free past the skin: bent
@@ -225,7 +228,7 @@ class Body:
         step = max(2, self.n // 10)
         for j in range(0, self.n, step):
             s = j * self.seg
-            extra = self.rnd.uniform(.3, 1.7) * self.plate_len
+            extra = self.rnd.uniform(.3, 1.7) * self.unit
             pts = []
             for i in range(nst + 1):
                 p = self.corner(i, j)
@@ -235,7 +238,7 @@ class Body:
                 if ba > extra and bb > extra:
                     continue
                 if bb > extra or ba > extra:                 # the last length, bent off line
-                    bend = (0, self.rnd.uniform(-.25, .25) * self.plate_len, self.rnd.uniform(-.25, .25) * self.plate_len)
+                    bend = (0, self.rnd.uniform(-.25, .25) * self.unit, self.rnd.uniform(-.25, .25) * self.unit)
                     if bb > extra:
                         b = add(lerp(a, b, .7), bend)
                     else:
@@ -276,7 +279,7 @@ class Body:
         """A deck tears with the hull, a little inboard of the skin's tear."""
         def f(u, v):
             y = y0 + (y1 - y0) * v
-            return self.front_f(x0 + (x1 - x0) * u, y / max(hw, 1) * self.perim / 4 + self.perim / 4) - self.plate_len * .4
+            return self.front_f(x0 + (x1 - x0) * u, y / max(hw, 1) * self.perim / 4 + self.perim / 4) - self.unit * .4
         return f
 
     def bulkhead(self, i):
