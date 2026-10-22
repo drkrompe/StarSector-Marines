@@ -123,8 +123,12 @@ public final class SwarmBore {
     public List<Long> outposts() { return outpostView; }
     public int collapsedTick() { return collapsedTick; }
 
-    /** The beat key that names this bore: {@code N} for a first-wave bore, {@code mother} for the mother. */
-    public String beatKey() { return mother ? "mother" : String.valueOf(number); }
+    /**
+     * The beat key that names this bore: {@code N} for a first-wave bore,
+     * {@code mother} for Colony Breach's one mother (numbered 0) and
+     * {@code mother-N} for each of a heart's several.
+     */
+    public String beatKey() { return mother ? (number == 0 ? "mother" : "mother-" + number) : String.valueOf(number); }
 
     /**
      * Advances the base clock by {@code dt} seconds at {@code integrity}, the

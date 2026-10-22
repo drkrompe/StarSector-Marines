@@ -276,6 +276,11 @@ many redoubts held is enough) is tuning, set when the Cordon's evidence exists.
 
 ### Candidate stories
 
+The heart is now its own feature: its model is `heart-nouns.md` (the country,
+the bores, the flow, beats and end conditions of both variants, the barrage)
+and its board is `roadmap/heart/design/stories.md`. The list below is the
+original survey, which those stories now carry.
+
 Shared by both variants:
 
 1. **Heart mission.** The mission with both variants: briefing (the variant
