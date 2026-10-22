@@ -671,6 +671,13 @@ save from before warrants named cards held one row per warranted suit; on load e
 issuer's rows become exactly the cards whose every Restricted suit was warranted,
 keeping the original grant's reason and day.
 
+**Every card has an issuer**, the in-universe office that printed it: a
+Restricted card's issuer is its warrant's tradition, any other card's is the
+tradition that fields it, and a card no tradition claims is a free-port
+outfitter's. The issuer and a serial are printed on the card's stamp; the
+Restricted seal and banner (`ui-nouns.md`) are how the player sees that a card
+answers to a warrant.
+
 A tradition grants its **standing warrant** once the company is at the Prestige
 reputation band and its relationship with that faction is Cooperative, well above
 the Favorable a licence needs. The standing warrant opens every Restricted

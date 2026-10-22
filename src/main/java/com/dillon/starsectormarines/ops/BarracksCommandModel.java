@@ -470,6 +470,9 @@ public final class BarracksCommandModel {
                     "headerId", id + ":header", "checkId", id + ":check", "strengthId", id + ":strength",
                     "cardsId", id + ":cards", "weaponChipId", id + ":weapon-card", "weaponIconId", id + ":weapon-icon",
                     "armorChipId", id + ":armor-card", "armorIconId", id + ":armor-icon",
+                    "weaponSealId", id + ":weapon-seal", "armorSealId", id + ":armor-seal",
+                    "weaponSlotId", id + ":weapon-slot", "armorSlotId", id + ":armor-slot",
+                    "weaponSealClasses", sealClasses(weapons), "armorSealClasses", sealClasses(armor),
                     "weaponIcon", weapons == null || weapons.icon() == null ? "" : weapons.icon(),
                     "armorIcon", armor == null || armor.icon() == null ? "" : armor.icon(),
                     "footerId", id + ":footer", "footerSpacerId", id + ":footer-spacer",
@@ -497,6 +500,9 @@ public final class BarracksCommandModel {
                 "strengthId", id + ":strength", "cardsId", id + ":cards", "weaponChipId", id + ":weapon-card",
                 "weaponIconId", id + ":weapon-icon", "armorChipId", id + ":armor-card",
                 "armorIconId", id + ":armor-icon", "weaponIcon", "", "armorIcon", "",
+                "weaponSealId", id + ":weapon-seal", "armorSealId", id + ":armor-seal",
+                    "weaponSlotId", id + ":weapon-slot", "armorSlotId", id + ":armor-slot",
+                "weaponSealClasses", sealClasses(null), "armorSealClasses", sealClasses(null),
                 "footerId", id + ":footer", "footerSpacerId", id + ":footer-spacer",
                 "fillId", id + ":fill", "fillIconId", id + ":fill-icon", "fillCountId", id + ":fill-count",
                 "fillClasses", "fill-button hidden", "fillDisabled", true, "fillCount", "", "fill", (Runnable) () -> { },
@@ -663,6 +669,10 @@ public final class BarracksCommandModel {
     public SpecSheet armorCardSheet(String squadId) {
         CardFace face = armorFace(roster.squadById(squadId));
         return face == null ? null : face.sheet();
+    }
+    /** A Restricted card wears its seal on the corner of its face. */
+    private static String sealClasses(CardFace face) {
+        return face != null && face.restricted() ? "card-face-seal" : "card-face-seal card-face-seal-absent";
     }
     private CardFace weaponFace(MarineSquad squad) {
         SquadWeaponDoctrine doctrine = squad == null ? null : roster.armory().weaponDoctrineById(squad.weaponDoctrineId());
