@@ -27,6 +27,9 @@ import java.util.Locale;
  *
  * <p>{@code -Dsnapshot.cityJunctions.seeds=7117,3} picks the colony seeds and
  * {@code .count} how many junctions a seed shows; {@code .cells} the framing.
+ * {@code -Dsnapshot.cityJunctions.at.<seed>=x:y;x:y} frames those cells instead,
+ * so a run after a change can be compared frame for frame with one before it,
+ * whose junctions the change may have moved.
  */
 public final class CityJunctionSnapshotSuite implements SnapshotSuite {
 
@@ -50,16 +53,17 @@ public final class CityJunctionSnapshotSuite implements SnapshotSuite {
         for (String token : System.getProperty("snapshot.cityJunctions.seeds", "7117,3").split(",")) {
             long seed = Long.parseLong(token.trim());
             try (BattleSimulation sim = colony(seed)) {
-                List<int[]> junctions = junctions(sim.getTopology(), count);
+                String at = System.getProperty("snapshot.cityJunctions.at." + seed);
+                List<int[]> junctions = at == null ? junctions(sim.getTopology(), count) : cells(at);
                 int n = 0;
                 for (int[] j : junctions) {
                     n++;
                     near.refocus(j[0] + 0.5f, j[1] + 0.5f, cells);
-                    String name = String.format(Locale.ROOT, "seed%d-%02d-%s-%d-%d.png", seed, n,
-                            j[2] == 4 ? "cross" : "tee", j[0], j[1]);
+                    String kind = j[2] == 4 ? "cross" : j[2] == 3 ? "tee" : "cell";
+                    String name = String.format(Locale.ROOT, "seed%d-%02d-%s-%d-%d.png", seed, n, kind, j[0], j[1]);
                     out.add(new SnapshotArtifact(name, near.render(sim, String.format(Locale.ROOT,
-                            "seed %d, %s junction at %d,%d, %.0f cells across", seed,
-                            j[2] == 4 ? "cross" : "T", j[0], j[1], cells))));
+                            "seed %d, %s at %d,%d, %.0f cells across", seed,
+                            j[2] == 4 ? "cross junction" : j[2] == 3 ? "T junction" : "cell", j[0], j[1], cells))));
                 }
             }
         }
@@ -97,6 +101,16 @@ public final class CityJunctionSnapshotSuite implements SnapshotSuite {
             if (i < crosses.size() && found.size() < count && spaced(crosses.get(i), found)) found.add(crosses.get(i));
         }
         return found;
+    }
+
+    /** Cells named as {@code x:y;x:y}, framed instead of the junctions found. */
+    private static List<int[]> cells(String list) {
+        List<int[]> out = new ArrayList<>();
+        for (String cell : list.split(";")) {
+            String[] xy = cell.split(":");
+            out.add(new int[]{Integer.parseInt(xy[0].trim()), Integer.parseInt(xy[1].trim()), 0});
+        }
+        return out;
     }
 
     private static boolean spaced(int[] j, List<int[]> taken) {
