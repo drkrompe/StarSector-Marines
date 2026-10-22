@@ -468,10 +468,17 @@ KEYFRAMES = {
         caption='Straight down on the convoy, prograde up the frame: the ships as the player has always seen them, '
                 'small against the desert far below. From here the camera tips down into the 3D fight.',
         # the player's view holds, then tips down and pulls in, landing on S1's framing at its first frame
-        camera=camera('k0', [dict(t=10, loc=(80, 120, 11000), target=(190, 120, 0), lens=100),
-                             dict(t=12, loc=(60, 180, 10200), target=(200, 100, 0), lens=100),
-                             dict(t=14.5, loc=(-1000, 1900, 4200), target=(250, 0, -100), lens=55),
-                             dict(t=16, loc=(-1900, 2700, 1500), target=(300, -80, -150), lens=35)], 10),
+        # a long-range optic straight down, prograde up, as the player knows the battle: it never turns.
+        # ZOOM OUT to the convoy small on the desert, then ZOOM IN on it, the focus hunting as the lens
+        # racks in and snapping sharp; then the cut to S1's action camera
+        # (sliding sideways onto the convoy's core as it racks in: the same look, so still no turn)
+        camera=camera('k0', [dict(t=t, loc=(80 + dx, 120 + dy, 11000), target=(190 + dx, 120 + dy, 0), lens=lens,
+                                  focus=focus, fstop=1.0)
+                             for t, lens, focus, dx, dy in ((10, 100, 11000, 0, 0), (11.6, 35, 11000, 0, 0),
+                                                            (12.4, 60, 11000, -60, -60), (13.4, 200, 600, -150, -150),
+                                                            (14.2, 330, 220, -170, -180), (14.8, 310, 500, -170, -180),
+                                                            (15.3, 300, 11000, -170, -180), (16, 300, 11000, -170, -180))],
+                      10),
         ships=convoy_at(10),
         labels=['colossus', 'morrow', 'tarsus', 'mule', 'phaeton', 'buffalo-a', 'lasher-a']),
     'k1': dict(

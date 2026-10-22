@@ -23,10 +23,14 @@ Remaining:
   six with one sortie or three, is broken in both variants without hurting any
   bore; the satellites at maw stream surges at it all the way in and it never
   reaches the first one. The barrage (`heart-nouns.md`, Barrage plan) and the allied lanes
-  (`heart-allied-lanes.md`) are the variants' answers; read again once they land
+  (`heart-nouns.md`, Broad Front) are the variants' answers; read again once they land
   before touching numbers. With the barrage (same seed) The Burn's company
   lasts to the time limit with 2 of 24 left; the shells wear a satellite they
   cross (one to 95%, which broke out) but the company still collapses none.
+  With the allied lanes Broad Front's company reaches its satellite (wears it
+  to 97%) and is broken there at tick 6,415, before any column has reached its
+  own; no lane broke. Next lever to read: the company waiting for the lanes, or
+  stepping off with them, rather than running ahead alone.
 - Narration for the heart's beats, reusing Colony Breach's speech with pitch changes.
 
 ## Acceptance

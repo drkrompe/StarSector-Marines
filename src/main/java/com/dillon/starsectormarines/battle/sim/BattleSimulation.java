@@ -121,6 +121,7 @@ import com.dillon.starsectormarines.battle.air.BoatDamageLedger;
 import com.dillon.starsectormarines.battle.air.AirOrdnance;
 import com.dillon.starsectormarines.battle.air.HullTarget;
 import com.dillon.starsectormarines.battle.power.WalkingBarrage;
+import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.evacuation.HeartSequence;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.evacuation.SurvivorPickupSystem;
@@ -806,7 +807,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
     /** The creep field if anything has created one, else {@code null}; safe for renderers. */
     public CreepField creepFieldIfPresent() { return creep; }
-    private BattleFire fire;
+    /** Volatile and made under a lock: units deciding whether to throw fire ask for it from the parallel unit update. */
+    private volatile BattleFire fire;
     private final FireHarm fireHarm = new FireHarm();
     private final FireRouteCost fireRouteCost = new FireRouteCost();
     private final FireCost fireCost = new FireCost();
@@ -819,13 +821,19 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      */
     @Override
     public FireField fireField() {
-        if (fire == null) fire = new BattleFire(grid, topology, doodadService, mapEditor,
-                this::creepFieldIfPresent, generationSeed ^ FIRE_SEED_SALT);
-        return fire.field();
+        BattleFire made = fire;
+        if (made == null) {
+            synchronized (this) {
+                made = fire;
+                if (made == null) fire = made = new BattleFire(grid, topology, doodadService, mapEditor,
+                        this::creepFieldIfPresent, generationSeed ^ FIRE_SEED_SALT);
+            }
+        }
+        return made.field();
     }
     /** The fire field if anything has lit one, else {@code null}; safe for renderers. */
     @Override
-    public FireField fireFieldIfPresent() { return fire == null ? null : fire.field(); }
+    public FireField fireFieldIfPresent() { BattleFire made = fire; return made == null ? null : made.field(); }
 
     /** The fire alone as route multipliers, {@code null} while nothing burns; see {@link FireRouteCost#hazard}. */
     public RouteCostField fireHazard() { return fireRouteCost.hazard(); }
@@ -893,12 +901,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * Installs the heart's battle (`heart-nouns.md`) over its opened bores: the
      * mothers go to sleep and the heart's wake rules and beats take over.
      */
-    public void installHeart(Form form, WalkingBarrage barrage) {
+    public void installHeart(Form form, WalkingBarrage barrage, HeartLanes lanes) {
         if (simTickIndex != 0 || heart != null || colonyBreach != null)
             throw new IllegalStateException("Install the heart once at setup");
         if (!swarmReinforcements.isConfigured())
             throw new IllegalStateException("The heart needs a configured swarm director");
-        heart = new HeartSequence(form, storyBeats, barrage);
+        heart = new HeartSequence(form, storyBeats, barrage, lanes);
         heart.install(this);
     }
     /** Ends the swarm director's opening seepage; the breach has begun. Idempotent. */
@@ -1574,6 +1582,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         rosterService.convoy().setDestructionSink(groundSystem::destroyVehicle);
         // A gun on a turning hull shakes the way a moving shooter's does.
         turretFire.setShooterAccuracy(new HullPivot(rosterService.convoy()));
+        // A tube loaded for an incendiary fire mission puts that heat into its round (`fire-nouns.md`, Starting fires).
+        turretFire.setRoundHeat(id -> {
+            FieldMortarService.Tube tube = fieldMortars().tubeOfEntity(id);
+            return tube == null ? 0 : tube.loadedHeat();
+        });
         // A map emplacement's or a vehicle's crew holds a round that would hit their own side; aircraft guns do not
         // yet. -Dbattle.turret.crewFriendlyHold=false is the control.
         if (Boolean.parseBoolean(System.getProperty("battle.turret.crewFriendlyHold", "true"))) {

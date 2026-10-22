@@ -70,10 +70,19 @@ public final class AirOrdnance {
     public final float penetration;
     /** Structure one round takes off a wall it lands on. */
     public final int wallDamage;
+    /** Incendiary heat one round puts into the ground its blast covers (`fire-nouns.md`, Starting fires); 0 for none. */
+    public final int incendiaryHeat;
 
     public AirOrdnance(float roundsPerSecond, int roundsPerPass, OrdnanceFlight flight,
                        float scatterCells, float firingRangeCells, float aoeRadiusCells,
                        float damage, float penetration, int wallDamage) {
+        this(roundsPerSecond, roundsPerPass, flight, scatterCells, firingRangeCells, aoeRadiusCells,
+                damage, penetration, wallDamage, 0);
+    }
+
+    private AirOrdnance(float roundsPerSecond, int roundsPerPass, OrdnanceFlight flight,
+                        float scatterCells, float firingRangeCells, float aoeRadiusCells,
+                        float damage, float penetration, int wallDamage, int incendiaryHeat) {
         this.roundsPerSecond = roundsPerSecond;
         this.roundsPerPass = roundsPerPass;
         this.flight = flight;
@@ -83,6 +92,7 @@ public final class AirOrdnance {
         this.damage = damage;
         this.penetration = penetration;
         this.wallDamage = wallDamage;
+        this.incendiaryHeat = Math.max(0, incendiaryHeat);
     }
 
     /** Seconds between rounds. */
@@ -210,4 +220,16 @@ public final class AirOrdnance {
             new AirOrdnance(5f, 6,
                     OrdnanceFlight.dropped(6f, 0.72f),
                     1.8f, 20f, 4.0f, 140f, 24f, 220);
+
+    /** The same load, each round also putting this incendiary heat into the ground it covers. */
+    public AirOrdnance withIncendiary(int heat) {
+        return new AirOrdnance(roundsPerSecond, roundsPerPass, flight, scatterCells, firingRangeCells, aoeRadiusCells,
+                damage, penetration, wallDamage, heat);
+    }
+
+    /**
+     * {@link #STRIKE_BOMBS} as firebombs: the same stick, every round lighting what it lands on, a forest's crowns
+     * included. UNTUNED heat, a little over a thrown thermite charge's.
+     */
+    public static final AirOrdnance INCENDIARY_BOMBS = STRIKE_BOMBS.withIncendiary(3000);
 }

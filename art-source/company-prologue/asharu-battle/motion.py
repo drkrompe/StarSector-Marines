@@ -504,7 +504,8 @@ def _cr(p0, p1, p2, p3, u):
 
 class CameraPath:
     """A camera move through timed keys: dict(t=, loc=(x, y, z) or f(t), target=(x, y, z) or f(t),
-    lens=mm, roll=deg). Positions run on a Catmull-Rom curve with each span eased; lens and roll ease
+    lens=mm, roll=deg, and optionally focus=m and fstop for a focus pull the preview shows; a lit
+    still ignores them). Positions run on a Catmull-Rom curve with each span eased; lens and roll ease
     between keys. shake: handheld drift, degrees of seeded wander in the aim and the roll (an
     operator aboard a ship that is being shot at). kicks: [(t, degrees)], a jolt to the aim on a
     hit that peaks a fifth of a second later and settles (zero at the key time, like the shake)."""
@@ -559,7 +560,13 @@ class CameraPath:
             for n in range(3):
                 target[n] += math.radians(k[n] - k0[n]) * d
             roll += 2 * (k[3] - k0[3])
-        return dict(loc=tuple(loc), target=tuple(target), lens=lens, roll=roll)
+        out = dict(loc=tuple(loc), target=tuple(target), lens=lens, roll=roll)
+        for field in ('focus', 'fstop'):     # a focus pull: distance (m) and aperture, eased, preview only
+            if any(field in k for k in ks):
+                a, b = (next((k[field] for k in reversed(ks[:n + 1]) if field in k),
+                             next(k[field] for k in ks if field in k)) for n in (i, j))
+                out[field] = a + (b - a) * u
+        return out
 
 
 def camera(name, keys, t_key, shake=0.0, kicks=()):

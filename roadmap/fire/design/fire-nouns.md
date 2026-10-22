@@ -226,8 +226,15 @@ does not set Conquest alight.
   (`PendingDetonation.incendiary`). Two specials carry it, issued by mission kit
   until the economy decides their price: the **incendiary grenade** (a thrown
   thermite charge with little blast) and the **pack flamer** (a short, flat,
-  seven-cell lob of burning gel). An incendiary round for the field mortar and an
-  incendiary air strike are the same field on their weapons, not yet authored.
+  seven-cell lob of burning gel).
+- **Incendiary rounds.** A fire mission may be incendiary
+  (`FireMission.incendiary`): the tubes serving it load incendiary rounds for
+  the bodies on its ground. A bomber may be called with firebombs
+  (`AirPoolService.requestIncendiary`, `AirOrdnance.INCENDIARY_BOMBS`), the
+  same airframe and stick as an ordinary strike from the same stock. Both
+  follow the throwing rule below: a round or a stick whose fire could come to
+  the side's own goes out ordinary instead, so the choice of ammunition is the
+  order's and the safety is the crew's.
 - **Throwing fire.** A squad spends an incendiary as it does a frag, on soft
   infantry it has seen, with two differences, both because the fire does the
   rest of the work. One man standing in fuel is worth a throw, where a frag
@@ -237,7 +244,7 @@ does not set Conquest alight.
   out to ten cells; a friend on that ground or beside it vetoes the throw. So
   a squad standing in the meadow its enemy stands in holds its fire, and one on
   a road, a firebreak or burnt ground uses it. `-Dbattle.fire.throwSafety=false`
-  is the control.
+  is the control, for thrown fire, rounds and firebombs alike.
 - **Shells.** In dry country a heavy ordinary blast (radius 2.5 cells and up:
   shells, not grenades) puts enough heat into the ground it covers to catch
   grass and dying creep, never a living crown. A walking barrage of ordinary
@@ -338,7 +345,10 @@ living crown. Its `kit` loop holds the carrier's rules: grenadiers on a
 firebreak throw at a cluster in grass, flamers on a firebreak burn a lone man
 in grass, and flamers standing in the meadow their targets stand in hold their
 fire; with `throwSafety=false` that squad lights its own meadow and the lone
-man is left alone, which is the control.
+man is left alone, which is the control. `fire-rounds` does the same for the
+support weapons: a tube on an incendiary mission and a bomber with firebombs
+light the grass round a militia section, and with two marines in that grass
+the tube fires shells and the bomber an ordinary stick.
 
 `fire-scale` (`sceneEvidence`) burns a whole 560x336 country of grass and
 groves with creep over its middle in a fresh wind, up to a four-cell road. The

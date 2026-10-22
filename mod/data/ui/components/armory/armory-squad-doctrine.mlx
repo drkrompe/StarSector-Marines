@@ -30,6 +30,7 @@
       <div id="armor-doctrine-list" class="doctrine-list">
         <button each="tile in armorDoctrineTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" onclick="{tile.select}" style="{tile.cardStyle}">
           <div id="{tile.headerId}" class="doctrine-header">
+            <img id="{tile.sealId}" class="{tile.sealClasses}" src="graphics/ui/company/restricted-seal.svg" />
             <div id="{tile.nameId}" class="doctrine-name label tone-edge">{tile.name}</div>
             <div id="{tile.ratingId}" class="{tile.ratingClasses}">{tile.ratingLabel}</div>
             <div id="{tile.rarityId}" class="{tile.rarityClasses}">{tile.rarity}</div>
@@ -39,6 +40,11 @@
             <div id="{tile.metadataId}" class="doctrine-metadata label tone-accent">{tile.metadata}</div>
             <button id="{tile.issueId}" class="{tile.issueButtonClasses}" disabled="{tile.issueDisabled}" onclick="{tile.issue}">{tile.issueLabel}</button>
           </div>
+          <div id="{tile.restrictionId}" class="{tile.restrictionClasses}">
+            <img id="{tile.restrictionSealId}" class="doctrine-restriction-seal" src="graphics/ui/company/restricted-seal.svg" />
+            <div id="{tile.restrictionTextId}" class="doctrine-restriction-text label">{tile.restriction}</div>
+          </div>
+          <div id="{tile.stampId}" class="{tile.stampClasses}">{tile.stampIssued}</div>
           <div id="{tile.descriptionId}" class="doctrine-lore label tone-muted">{tile.description}</div>
           <div id="{tile.compositionId}" class="doctrine-composition label">{tile.compositionLine}</div>
           <div id="{tile.distributionId}" class="{tile.distributionClasses}">{tile.distributionLine}</div>
@@ -71,6 +77,12 @@
 </template>
 
 <style>
+  .doctrine-seal { width: 18px; height: 18px; }
+  .doctrine-seal.doctrine-seal-absent { width: 0px; height: 0px; }
+  .doctrine-stamp { height: 16px; color: #8b9aaf; }
+  .doctrine-restriction { flex-direction: row; align-items: center; height: 20px; gap: 4px; padding: 0px 6px 0px 2px; background-color: #3a1512; }
+  .doctrine-restriction-seal { width: 18px; height: 18px; }
+  .doctrine-restriction-text { width: 0px; flex-grow: 1; font-family: heading; color: #f08a74; }
   .doctrine-issue-button { width: 84px; height: 24px; padding: 2px 6px; border-width: 1px; font-family: body; text-align: center; }
   .doctrine-issue-button.issued { color: #8fd6a6; border-color: #4f9c6b; }
   .doctrine-issue-button-hidden { width: 0px; height: 0px; opacity: 0; overflow: hidden; }
