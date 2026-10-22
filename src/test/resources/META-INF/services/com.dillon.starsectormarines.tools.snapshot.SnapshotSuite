@@ -249,3 +249,4 @@ com.dillon.starsectormarines.tools.tilesetauthoring.GroundQuartersSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.PackLeaderSceneSnapshotSuite
 com.dillon.starsectormarines.battle.creep.CreepRoofCollapseSceneSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.RuralMapgenSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.CityJunctionSnapshotSuite
