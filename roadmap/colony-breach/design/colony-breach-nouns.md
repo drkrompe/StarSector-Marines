@@ -675,7 +675,10 @@ for one job in the cycle, and reads that way on screen.
   hooves stamping down ahead and the head driving with them; a charge's hit
   plays the same drive. Stunned, it shows it in its body rather than with a
   mark: the head hangs and shakes slowly side to side and the shoulders
-  wander. Its corpse is still the old single sprite.
+  wander. Dead, it bursts as a Runner does, through the same
+  `RavBurst`: the body splits between the shoulders and the hips and the halves
+  slump apart, the head and one or two legs come away, over the Runner's red
+  ichor, at full colour.
 - **Spitter** — fragile, keeps its distance, lobs acid. It backs away from any
   ground enemy that closes inside its charge radius and does not lob while it
   runs. Otherwise a low hostile craft in reach whose skin its acid can bite

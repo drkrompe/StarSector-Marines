@@ -787,7 +787,7 @@ public final class UnitRosterService {
         }
         if (ravRigged) {
             entityWorld.setObject(id, components.RAV_RIG, BattleComponents.RAV_RIG_STATE,
-                    spec.type == UnitType.SWARM_BRUTE ? new RavBruteRig() : new RavRunnerRig(id));
+                    spec.type == UnitType.SWARM_BRUTE ? new RavBruteRig(id) : new RavRunnerRig(id));
         }
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_HP, spec.hp);
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP, spec.maxHp);

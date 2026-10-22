@@ -81,8 +81,8 @@ public final class RavRunnerRigSystem {
             float[] posX = table.floats(components.POSITION, BattleComponents.POSITION_X).array();
             float[] posY = table.floats(components.POSITION, BattleComponents.POSITION_Y).array();
             for (int row = 0, n = table.rowCount(); row < n; row++) {
-                // A dead Brute is drawn by its corpse sprite; only a Runner's rig falls.
                 if (rigs[row] instanceof RavRunnerRig rig) rig.advanceDead(posX[row], posY[row], dt);
+                else if (rigs[row] instanceof RavBruteRig brute) brute.advanceDead(posX[row], posY[row], dt);
             }
         }
     }
