@@ -22,7 +22,7 @@ import bpy
 HERE = Path(__file__).resolve().parent
 TILES = HERE.parents[2] / 'build' / 'asharu-wrecks' / 'tiles'      # make_tiles.py writes them; ignored
 SLOTS = ('PLATING', 'STRUCTURE', 'INTERIOR', 'BARE')
-TILE_M = {'plating': 7.0, 'structure': 3.0}     # metres one tile covers
+TILE_M = {'plating': 10.0, 'structure': 3.0}     # metres one tile covers
 
 # bleach toward this pale, dusty grey-tan, by this much, after desaturating by this much
 BLEACH_TO, BLEACH, DESAT = (.40, .38, .34), .28, .32

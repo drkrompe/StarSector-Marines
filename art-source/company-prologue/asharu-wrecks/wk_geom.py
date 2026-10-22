@@ -130,9 +130,11 @@ class Mesh:
 
     # ------------------------------------------------------------------------------- solids
 
-    def prism(self, outline, offset, top=PLATING, bottom=INTERIOR, side=BARE, tone=0.0, base=None):
+    def prism(self, outline, offset, top=PLATING, bottom=INTERIOR, side=None, tone=0.0, base=None):
         """A slab: the polygon outline (3D, roughly planar) and its copy moved by offset. The outline's
-        face is `top`, the moved copy `bottom`, the walls `side`."""
+        face is `top`, the moved copy `bottom`, the walls `side` (by default the top's: a seam or a
+        tear wall in bright bare metal reads as a grid of flecks from a kilometre off)."""
+        side = top if side is None else side
         n = len(outline)
         o = len(self.verts)
         self.verts.extend(outline)
@@ -235,7 +237,7 @@ def torn_quad(quad, edge, depth, rnd, n=5):
     return pts
 
 
-def field_plate(m, P, f, inward, t, nsub=6, lift=None, top=PLATING, bottom=INTERIOR, side=BARE, tone=0.0,
+def field_plate(m, P, f, inward, t, nsub=6, lift=None, top=PLATING, bottom=INTERIOR, side=None, tone=0.0,
                 base=None):
     """One plate cut along a contour of a damage field, as a single closed slab.
 
@@ -246,6 +248,7 @@ def field_plate(m, P, f, inward, t, nsub=6, lift=None, top=PLATING, bottom=INTER
     region is one surface: the top, its copy moved by inward * t, and walls only along its boundary.
     lift(fv) -> metres to raise a point off the plate (outward, against inward) for its field value:
     the torn lip curling back."""
+    side = top if side is None else side
     F = [[f(i / nsub, j / nsub) for j in range(nsub + 1)] for i in range(nsub + 1)]
     if min(min(r) for r in F) >= 0 and lift is None:
         pass

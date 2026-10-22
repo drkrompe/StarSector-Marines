@@ -72,7 +72,8 @@ class Body:
         self.m, self.rnd, self.L = m, rnd, L
         self.noise = Noise(rnd.randrange(1 << 30))
         self.main, self.accent = livery
-        self.plate_len = max(4.5, min(9.0, L / 12))
+        # panels scale with the hull: a big hull in small tiles reads as pixelated from 1-3 km
+        self.plate_len = max(5.0, min(16.0, L / 9))
         self.nst = max(4, round(L / self.plate_len))
         if round_section:          # a drum: a true circle, enough plates round it that no facet shows
             perim = 2 * math.pi * (w + h) / 2
@@ -81,7 +82,8 @@ class Body:
                     for k in range(self.n)]
         else:
             outline, perim = _resample(_chamfered(w, h, chamfer), 8)
-            self.n = max(n_min, min(44, 2 * round(perim / 6.0 / 2)))
+            seg = max(6.0, min(14.0, perim / 24))
+            self.n = max(n_min, min(56, 2 * round(perim / seg / 2)))
             base, _ = _resample(_chamfered(w, h, chamfer), self.n)
         self.xs = [-L / 2 + L * i / self.nst for i in range(self.nst + 1)]
         self.rings = []
@@ -187,12 +189,13 @@ class Body:
                 col = self.accent if band and band(j) else self.main
                 if self.rnd.random() < .07:
                     col = tuple(min(1, c * self.rnd.uniform(.75, 1.25)) for c in col)      # a replacement plate
-                tone = self.rnd.gauss(0, .5)
+                tone = self.rnd.gauss(0, .25)
                 if min(samples) > band_m:
                     self.m.prism(qs, mul(inn, PLATE_T), tone=tone, base=col)
                     continue
                 f = self._cell_field(x0, x1, s0, s1)
-                field_plate(self.m, bilinear(qs), f, inn, PLATE_T, nsub=7, lift=lift, tone=tone, base=col)
+                field_plate(self.m, bilinear(qs), f, inn, PLATE_T, nsub=max(7, round(self.plate_len / 1.3)), lift=lift,
+                            tone=tone, base=col)     # the tear stays fine-grained on a coarse panel
 
     def _cell_field(self, x0, x1, s0, s1):
         return lambda u, v: self.field(x0 + (x1 - x0) * u, s0 + (s1 - s0) * v)
@@ -302,7 +305,7 @@ def _close_bow(body, m):
         inn = norm(cross(sub(tri[1], tri[0]), sub(tri[2], tri[0])))
         if dot(inn, sub((x, 0, 0), centroid(tri))) < 0:
             inn = mul(inn, -1)
-        m.prism(tri, mul(inn, PLATE_T), tone=body.rnd.gauss(0, .5), base=body.main)
+        m.prism(tri, mul(inn, PLATE_T), tone=body.rnd.gauss(0, .25), base=body.main)
 
 
 def _deckhouse(m, rnd, x0, x1, hw, z0, z1, livery):
@@ -324,7 +327,7 @@ def _deckhouse(m, rnd, x0, x1, hw, z0, z1, livery):
                 q = shrink([(p0[0], p0[1], za), (p1[0], p1[1], za), (p1[0], p1[1], zb), (p0[0], p0[1], zb)], GAP)
                 if b == nz - 1 and rnd.random() < .5:
                     q = torn_quad(q, 2, (zb - za) * .5, rnd)
-                m.prism(q, mul(out, -.3), tone=rnd.gauss(0, .5), base=livery[0])
+                m.prism(q, mul(out, -.3), tone=rnd.gauss(0, .25), base=livery[0])
     for cx in (x0, x1):
         for cy in (-hw, hw):
             m.member((cx, cy, z0), (cx, cy, z1 + .3), (1, 0, 0), .6, .6, 'box')
@@ -337,7 +340,7 @@ def _deckhouse(m, rnd, x0, x1, hw, z0, z1, livery):
                         (x0 + (x1 - x0) * (a + 1) / nx, -hw + 2 * hw * b / ny, z1),
                         (x0 + (x1 - x0) * (a + 1) / nx, -hw + 2 * hw * (b + 1) / ny, z1),
                         (x0 + (x1 - x0) * a / nx, -hw + 2 * hw * (b + 1) / ny, z1)], GAP)
-            m.prism(q, (0, 0, -.3), tone=rnd.gauss(0, .5), base=livery[0])
+            m.prism(q, (0, 0, -.3), tone=rnd.gauss(0, .25), base=livery[0])
     mx = lerp((x0, 0, 0), (x1, 0, 0), .3)[0]
     top = z1 + (z1 - z0) * rnd.uniform(.3, .6)
     m.member((mx, 0, z1), (mx, 0, top), (1, 0, 0), .5, .5, 'box')
@@ -505,7 +508,7 @@ def plate(size, seed, livery, erode=1.0, holes_n=None, bend=True):
     L, W, H = size
     m = Mesh(livery[0])
     nz = Noise(rnd.randrange(1 << 30))
-    tile = max(3.0, min(8.0, L / 9))
+    tile = max(4.0, min(14.0, L / 6))
     nx, ny = max(3, round(L / tile)), max(2, round(W / tile))
     t_arm = min(.6, max(.25, H * .12))
     rib = min(1.6, max(.5, H * .35))
@@ -537,7 +540,7 @@ def plate(size, seed, livery, erode=1.0, holes_n=None, bend=True):
             q = shrink([(xa, ya, 0), (xb, ya, 0), (xb, yb, 0), (xa, yb, 0)], GAP)
             f = (lambda xa, xb, ya, yb: lambda u, v: field(xa + (xb - xa) * u, ya + (yb - ya) * v))(xa, xb, ya, yb)
             col = livery[1] if j == ny // 2 and rnd.random() < .5 else livery[0]
-            if not field_plate(m, bilinear(q), f, (0, 0, -1), t_arm, nsub=6, lift=lift, tone=rnd.gauss(0, .5), base=col):
+            if not field_plate(m, bilinear(q), f, (0, 0, -1), t_arm, nsub=max(6, round(tile / 1.3)), lift=lift, tone=rnd.gauss(0, .25), base=col):
                 continue
             ym, xm = (ya + yb) / 2, (xa + xb) / 2
             if field(xm, ym) > tile * .3 and rnd.random() < .9:      # ribs under the tile, where it stands
@@ -580,7 +583,7 @@ def chunk(size, seed, livery):
         x1 = min(hx * .8, x0 + rnd.uniform(.35, .7) * L)
         n = 28
         circ = [(x0, cy + r * math.cos(2 * math.pi * k / n), cz + r * math.sin(2 * math.pi * k / n)) for k in range(n)]
-        m.prism(circ[::-1], (x1 - x0, 0, 0), top=STRUCTURE, bottom=STRUCTURE, side=PLATING, tone=rnd.gauss(0, .5),
+        m.prism(circ[::-1], (x1 - x0, 0, 0), top=STRUCTURE, bottom=STRUCTURE, side=PLATING, tone=rnd.gauss(0, .25),
                 base=livery[1])
         for xb in (x0 + .6, (x0 + x1) / 2, x1 - .6):
             ring = [(xb, cy + (r + .2) * math.cos(2 * math.pi * k / n), cz + (r + .2) * math.sin(2 * math.pi * k / n))
