@@ -189,6 +189,8 @@ final class ScorchLayer implements RenderSystem, ScorchShading.Field {
     /** How heavy a burnt cell's fuel was, from what burnt there. */
     static float heaviness(int mask) {
         if (FireFuel.CROWN.in(mask)) return 1f;
+        if (FireFuel.STRUCTURE.in(mask)) return 0.9f;
+        if (FireFuel.FURNISHING.in(mask)) return 0.85f;
         if (FireFuel.DEBRIS.in(mask)) return 0.8f;
         if (FireFuel.BRUSH.in(mask)) return 0.75f;
         if (FireFuel.CREEP.in(mask)) return 0.55f;
@@ -199,7 +201,8 @@ final class ScorchLayer implements RenderSystem, ScorchShading.Field {
     /** What lies underfoot, as {@link ScorchShading} reads it. */
     static int ground(NavigationGrid grid, CellTopology topology, int idx, int x, int y, int mask) {
         if (FireFuel.CREEP.in(mask) || FireFuel.DEAD_CREEP.in(mask)) return ScorchShading.CREEP;
-        if (FireFuel.CROWN.in(mask)) return ScorchShading.SOIL;
+        // A burnt room's boards char as burnt ground does; a burnt-through wall is rubble.
+        if (FireFuel.CROWN.in(mask) || FireFuel.FURNISHING.in(mask) || FireFuel.STRUCTURE.in(mask)) return ScorchShading.SOIL;
         if (!grid.isWalkableAt(idx)) return ScorchShading.NONE;
         CellTopology.GroundKind kind = topology == null ? null : topology.getGroundKind(x, y);
         if (kind == null) return ScorchShading.PAVED;
