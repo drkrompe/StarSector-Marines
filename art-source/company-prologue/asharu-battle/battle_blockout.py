@@ -11,6 +11,7 @@
     python battle_blockout.py --root DIR      # put run folders under DIR (a render-queue job's {work})
     python battle_blockout.py --date D        # the review folder's date, when the run starts (default today)
     python battle_blockout.py --half          # render at half size (a light check; labels drawn at full size)
+    python battle_blockout.py --surface base  # the game's desert01 alone, without the detail tiles (the control)
     python battle_blockout.py --stage-only    # build and pose the scene in Blender, render nothing (a pre-flight)
     python battle_blockout.py --stage-only --los   # ... and ray-cast every shot: does the round meet its target?
 
@@ -71,6 +72,9 @@ R = 5.0e6          # planet radius, m
 ALT = 250e3        # convoy altitude, m
 SUN_EL, SUN_AZ = 16.0, -40.0   # degrees: low morning sun, ahead of the convoy and to the south
 MAP_LAT, MAP_LON = 12.0, 95.0   # where on the game's desert01 map the battle is fought
+# ImageGen detail tiles and settlements laid over desert01 under the battle (surface/README.md).
+# --surface base renders the game map alone, the control.
+SURFACE_DETAIL = True
 
 # --------------------------------------------------------------------------------- key frames
 # Each key frame: what the camera sees and where every ship is. Placements are
@@ -366,6 +370,74 @@ ROSTER_SHEETS = ('r1', 'r2')   # top-down and broadside fleet sheets
 
 # ======================================================================================= Blender
 
+def surface_layers(nt, tc, base_col, mnode, sock):
+    """The detail tiles over the base map colour, in the planet material (surface/README.md): each
+    finished tile looked up on the tangent plane by object X, Y and mixed in by its feathered
+    edge. Returns (colour, the topmost tile's weight)."""
+    import bpy
+    import numpy as np
+    sys.path.insert(0, str(HERE / 'surface'))
+    import surface_detail as sd
+
+    def pixels(img):
+        a = np.empty(img.size[0] * img.size[1] * 4, dtype=np.float32)
+        img.pixels.foreach_get(a)
+        return a.reshape(img.size[1], img.size[0], 4)[::-1, :, :3].astype(np.float64)
+
+    def load(path):
+        img = bpy.data.images.load(str(path))
+        try:
+            return pixels(img)
+        finally:
+            bpy.data.images.remove(img)
+
+    base = load(roster.GAME_CORE / 'graphics' / 'planets' / 'desert01.jpg')
+
+    def raw(name):
+        p = HERE / 'surface' / 'raw' / f'{name}.png'
+        return load(p) if p.exists() else None
+
+    finished = sd.finish_all(base, raw)
+    col, weight = base_col, None
+    for name, tile in finished.items():
+        cx, cy, side, n = sd.TILES[name]
+        im = bpy.data.images.new(f'Asharu | surface {name}', n, n, alpha=False)
+        rgba = np.ones((n, n, 4), dtype=np.float32)
+        rgba[..., :3] = tile[::-1]
+        im.pixels.foreach_set(rgba.ravel())
+        im.pack()
+        sep = nt.nodes.new('ShaderNodeSeparateXYZ')
+        nt.links.new(tc.outputs['Object'], sep.inputs[0])
+        u = mnode('ADD', mnode('DIVIDE', mnode('SUBTRACT', sep.outputs['X'], cx), side), .5)
+        v = mnode('ADD', mnode('DIVIDE', mnode('SUBTRACT', sep.outputs['Y'], cy), side), .5)
+        uv = nt.nodes.new('ShaderNodeCombineXYZ')
+        nt.links.new(u, uv.inputs['X'])
+        nt.links.new(v, uv.inputs['Y'])
+        tex = nt.nodes.new('ShaderNodeTexImage')
+        tex.image = im
+        tex.interpolation = 'Cubic'
+        tex.extension = 'EXTEND'
+        nt.links.new(uv.outputs[0], tex.inputs['Vector'])
+        # Feather: 1 inside, smoothstep to 0 over the outer FEATHER of the half-width.
+        edge = mnode('MAXIMUM', mnode('ABSOLUTE', mnode('MULTIPLY', mnode('SUBTRACT', u, .5), 2.0)),
+                     mnode('ABSOLUTE', mnode('MULTIPLY', mnode('SUBTRACT', v, .5), 2.0)))
+        ramp = nt.nodes.new('ShaderNodeMapRange')
+        ramp.interpolation_type = 'SMOOTHSTEP'
+        ramp.inputs['From Min'].default_value = 0.0
+        ramp.inputs['From Max'].default_value = sd.FEATHER
+        nt.links.new(mnode('SUBTRACT', 1.0, edge), ramp.inputs['Value'])
+        w = ramp.outputs['Result']
+        mix = nt.nodes.new('ShaderNodeMix')
+        mix.data_type = 'RGBA'
+        nt.links.new(w, mix.inputs['Factor'])
+        nt.links.new(col, sock(mix.inputs, 'A'))
+        nt.links.new(tex.outputs['Color'], sock(mix.inputs, 'B'))
+        col = sock(mix.outputs, 'Result')
+        weight = w if weight is None else mnode('MAXIMUM', weight, w)
+    print('ASHARU surface tiles:', ', '.join(finished) or 'none', flush=True)
+    return col, weight
+
+
 def blender_main(cfg):
     import bmesh
     import bpy
@@ -579,6 +651,9 @@ def blender_main(cfg):
     img.image = bpy.data.images.load(str(roster.GAME_CORE / 'graphics' / 'planets' / 'desert01.jpg'))
     img.interpolation = 'Cubic'
     nt.links.new(uv.outputs[0], img.inputs['Vector'])
+    ground_col, detail_w = img.outputs['Color'], None
+    if cfg.get('surface', SURFACE_DETAIL):
+        ground_col, detail_w = surface_layers(nt, tc, ground_col, mnode, sock)
     # Relief at the scales a 250 km orbit resolves: basins (60 km), ridges (8 km), dune fields.
     def noise(scale, detail=6, rough=.55):
         n = nt.nodes.new('ShaderNodeTexNoise')
@@ -602,12 +677,14 @@ def blender_main(cfg):
                               mnode('MULTIPLY', mnode('SUBTRACT', wave.outputs['Fac'], .5), .12))))
     shade = mnode('ADD', shade, mnode('ADD', mnode('MULTIPLY', mnode('SUBTRACT', mid, .5), 1.2),
                                         mnode('MULTIPLY', vein, -.55)))
+    if detail_w is not None:     # the tiles carry their own relief: keep half the procedural on them
+        shade = mnode('MULTIPLY', shade, mnode('SUBTRACT', 1.0, mnode('MULTIPLY', detail_w, .5)))
     gain = mnode('MAXIMUM', mnode('ADD', 1.0, shade), .15)
     tint = nt.nodes.new('ShaderNodeMix')
     tint.data_type = 'RGBA'
     tint.blend_type = 'MULTIPLY'
     tint.inputs['Factor'].default_value = 1.0
-    nt.links.new(img.outputs['Color'], sock(tint.inputs, 'A'))
+    nt.links.new(ground_col, sock(tint.inputs, 'A'))
     cmb = nt.nodes.new('ShaderNodeCombineColor')
     for ch in ('Red', 'Green', 'Blue'):
         nt.links.new(gain, cmb.inputs[ch])
@@ -1495,7 +1572,8 @@ def blender_main(cfg):
         store = raw / 'labels.json'   # saved per frame: a stopped job keeps every finished frame's labels
         old = json.loads(store.read_text()) if store.exists() else {}
         store.write_text(json.dumps({**old, kf: labels[kf]}, indent=1))
-        (raw / f'{kf}.meta.json').write_text(json.dumps(frame_meta(cfg['samples'], cfg.get('half', False))))
+        (raw / f'{kf}.meta.json').write_text(json.dumps(frame_meta(cfg['samples'], cfg.get('half', False),
+                                                                      cfg.get('surface', SURFACE_DETAIL))))
         print('ASHARU rendered', kf, flush=True)
     if cfg.get('fx_check'):
         fx_verdict(out)
@@ -1564,20 +1642,26 @@ def fx_verdict(out):
 
 # ======================================================================================= driver
 
-def frame_meta(samples, half=False):
+def frame_meta(samples, half=False, surface=SURFACE_DETAIL):
     """What a finished frame was rendered with: its samples and the staging source it came from."""
     import hashlib
     h = hashlib.sha256()
     for f in (HERE / 'battle_blockout.py', HERE / 'roster.py'):
         h.update(f.read_bytes())
-    return {'samples': samples, 'half': half, 'source_sha256': h.hexdigest()}
+    meta = {'samples': samples, 'half': half, 'source_sha256': h.hexdigest()}
+    if surface:
+        s = hashlib.sha256()
+        for f in [HERE / 'surface' / 'surface_detail.py', *sorted((HERE / 'surface' / 'raw').glob('*.png'))]:
+            s.update(f.read_bytes())
+        meta['surface_sha256'] = s.hexdigest()
+    return meta
 
 
-def finished(raw, kf, samples, half=False):
+def finished(raw, kf, samples, half=False, surface=SURFACE_DETAIL):
     """Whether raw/<kf>.png is a finished frame of this staging at these samples."""
     png, meta, store = raw / f'{kf}.png', raw / f'{kf}.meta.json', raw / 'labels.json'
     try:
-        if json.loads(meta.read_text()) != frame_meta(samples, half) or kf not in json.loads(store.read_text()):
+        if json.loads(meta.read_text()) != frame_meta(samples, half, surface) or kf not in json.loads(store.read_text()):
             return False
         with open(png, 'rb') as fh:
             fh.seek(-12, 2)
@@ -1813,6 +1897,58 @@ def check(frames):
             print(f'   {kind:8} {a:12} -> {b:12} {verdict}')
         for line in cue_lines(kf):
             print('   ' + line)
+        for line in surface_lines(loc, f, r, u, fpx):
+            print('   ' + line)
+
+
+def surface_lines(loc, f, r, u, fpx):
+    """--check's view of the ground: the ground metres a pixel spans at frame centre and which
+    detail tile paints it, and where each settlement lands in frame."""
+    sys.path.insert(0, str(HERE / 'surface'))
+    import surface_detail as sd
+    if not SURFACE_DETAIL:
+        return ['surface: base map only (SURFACE_DETAIL off)']
+    c = (0.0, 0.0, -(R + ALT))
+    o = [a - b for a, b in zip(loc, c)]
+
+    def hit(px, py):
+        d = [f[i] + ((px - W / 2) * r[i] - (py - H / 2) * u[i]) / fpx for i in range(3)]
+        n = math.sqrt(sum(x * x for x in d))
+        d = [x / n for x in d]
+        b = sum(a * b for a, b in zip(o, d))
+        disc = b * b - (sum(x * x for x in o) - R * R)
+        if disc < 0:
+            return None
+        t = -b - math.sqrt(disc)
+        return [o[i] + t * d[i] for i in range(3)], t
+
+    out = []
+    for label, py in (('centre', H / 2), ('lower edge', H - 1)):
+        h = hit(W / 2, py)
+        if h is None:
+            out.append(f'surface {label}: sky')
+            continue
+        p, t = h
+        mpp = t / fpx
+        tiles = [n for n, (cx, cy, side, k) in sd.TILES.items()
+                 if abs(p[0] - cx) < side / 2 and abs(p[1] - cy) < side / 2]
+        top = tiles[-1] if tiles else None
+        tile = f'{top} tile at {sd.TILES[top][2] / sd.TILES[top][3]:.0f} m/px' if top else 'base map only'
+        out.append(f'surface {label}: ground {t / 1e3:.0f} km away, {mpp:.0f} m/px across; {tile}')
+    for st in sd.SETTLEMENTS:
+        if st[1] == 'road':
+            continue
+        x, y = st[2], st[3]
+        z = math.sqrt(R * R - x * x - y * y)
+        d = [x - o[0], y - o[1], z - o[2]]
+        zc = sum(a * b for a, b in zip(d, f))
+        if zc <= 0:
+            continue
+        sx = W / 2 + fpx * sum(a * b for a, b in zip(d, r)) / zc
+        sy = H / 2 - fpx * sum(a * b for a, b in zip(d, u)) / zc
+        if 0 <= sx <= W and 0 <= sy <= H and hit(sx, sy) and abs(hit(sx, sy)[1] - math.sqrt(sum(v * v for v in d))) < 5e3:
+            out.append(f'settlement {st[1]:5} ({st[0]}) at ({sx:5.0f}, {sy:5.0f}), {2 * st[4] / zc * fpx:4.0f} px across')
+    return out
 
 
 def cue_lines(kf):
@@ -2013,13 +2149,14 @@ def main():
         return
     if '--skip-render' not in argv:
         half = '--half' in argv
-        todo = [kf for kf in frames if '--rerender' in argv or not finished(run / 'raw', kf, samples, half)]
+        surface = opt('--surface', 'detail' if SURFACE_DETAIL else 'base') == 'detail'
+        todo = [kf for kf in frames if '--rerender' in argv or not finished(run / 'raw', kf, samples, half, surface)]
         done = [kf for kf in frames if kf not in todo]
         if done:
             print('ASHARU already finished, not rendered again:', ','.join(done), flush=True)
         if todo:
             from blender_path import BLENDER
-            cfg = dict(out=str(run), frames=todo, samples=samples, half=half, swfx='--swfx' in argv)
+            cfg = dict(out=str(run), frames=todo, samples=samples, half=half, swfx='--swfx' in argv, surface=surface)
             env = dict(os.environ, ASHARU_CFG=json.dumps(cfg))
             subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python', __file__], env=env)
     outputs = [orbit_diagram(run)] + label_frames(run)
