@@ -639,7 +639,7 @@ public final class BarracksCommandModel {
                         SpecSheet.Stat.of(Strings.get("openingBarracksCommandWillEnlist"), Integer.toString(recruitsRequired()))),
                 List.of(Strings.get("openingBarracksCommandTheMarinesCommodityRepresentsPersonnelOutsideYour"),
                         Strings.get("openingBarracksCommandFillVacanciesTransfersReadyCompanyReservesFirst"),
-                        Strings.get("openingBarracksCommandEquipmentIssueIsASeparateOrder")));
+                        Strings.get("openingBarracksCommandRecruitsWearTheirSeatsKit")));
     }
 
     private List<Map<String, Object>> issueCargoStock() {
