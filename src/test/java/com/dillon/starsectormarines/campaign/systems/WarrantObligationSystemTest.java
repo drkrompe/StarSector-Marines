@@ -66,7 +66,7 @@ class WarrantObligationSystemTest {
         assertEquals(1, term().honouredPeriods());
         assertEquals(PERIOD, term().periodStart());
         assertTrue(state.auxiliaryWarrant().secondStage());
-        assertTrue(MilitaryWarrants.warrantedTemplateIds(state).contains(HegemonyAuxiliaryWarrant.STAGE_TWO));
+        assertTrue(MilitaryWarrants.warrantedCardIds(state).contains(HegemonyAuxiliaryWarrant.STAGE_TWO));
     }
 
     @Test
@@ -81,8 +81,8 @@ class WarrantObligationSystemTest {
 
         runTo(PERIOD - WarrantObligationSystem.SERVICE_CALL_LEAD_DAYS + 1, PERIOD);
         assertEquals(WarrantObligationLedger.Status.SUSPENDED, term().status());
-        assertTrue(MilitaryWarrants.withheldTemplateIds(state).contains(HegemonyAuxiliaryWarrant.STAGE_ONE));
-        assertFalse(MilitaryWarrants.warrantedTemplateIds(state).contains(HegemonyAuxiliaryWarrant.STAGE_ONE));
+        assertTrue(MilitaryWarrants.withheldCardIds(state).contains(HegemonyAuxiliaryWarrant.STAGE_ONE));
+        assertFalse(MilitaryWarrants.warrantedCardIds(state).contains(HegemonyAuxiliaryWarrant.STAGE_ONE));
         assertFalse(state.auxiliaryWarrant().secondStage());
 
         long recall = term().serviceCallId();
@@ -92,7 +92,7 @@ class WarrantObligationSystemTest {
         state.contractAcceptedTick[callRow] = PERIOD + 3;
         system.tick(state, PERIOD + 5);
         assertEquals(WarrantObligationLedger.Status.ACTIVE, term().status());
-        assertTrue(MilitaryWarrants.withheldTemplateIds(state).isEmpty());
+        assertTrue(MilitaryWarrants.withheldCardIds(state).isEmpty());
         assertEquals(AuxiliaryWarrantProgress.Stage.ACCEPTED, state.auxiliaryWarrant().stage());
     }
 
@@ -120,7 +120,7 @@ class WarrantObligationSystemTest {
         complete(hegemonyHouse, otherHouse, 6);
         runTo(5, PERIOD * 2);
         assertEquals(WarrantObligationLedger.Status.REVOKED, term().status(), "service never lifts a revocation");
-        assertTrue(MilitaryWarrants.withheldTemplateIds(state).contains(HegemonyAuxiliaryWarrant.STAGE_ONE));
+        assertTrue(MilitaryWarrants.withheldCardIds(state).contains(HegemonyAuxiliaryWarrant.STAGE_ONE));
     }
 
     @Test
@@ -135,6 +135,6 @@ class WarrantObligationSystemTest {
         new StandingWarrantSystem(relations::get).tick(state, 40);
         assertEquals(WarrantObligationLedger.Status.ACTIVE, term().status());
         assertEquals(40, term().periodStart());
-        assertTrue(MilitaryWarrants.withheldTemplateIds(state).isEmpty());
+        assertTrue(MilitaryWarrants.withheldCardIds(state).isEmpty());
     }
 }

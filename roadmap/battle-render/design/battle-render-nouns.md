@@ -4,7 +4,7 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — Aircraft breakup renders continuous source-sprite sections from first contact through permanent wreck settlement.
+Updated: 2026-10-22 — Ground feathers: outdoor ground boundaries bleed into each other as baked, noise-edged resident quarters.
 
 ## Vocabulary
 
@@ -63,6 +63,25 @@ Updated: 2026-10-15 — Aircraft breakup renders continuous source-sprite sectio
   the first; the nature scatter laid over it and the doorway decals over that
   are the second and third. Sub-layer order is the whole of the painter contract
   between them, because within one sub-layer no cell's quad overlaps another's.
+- A **ground feather** is the noise-edged reach of one outdoor ground into its
+  weaker neighbour, so a boundary between grass, earth, sand, gravel or stone
+  reads as a mixed, irregular edge rather than a cell's square side. It is
+  presentation only: the cell keeps its ground for movement, cover, damage and
+  every other reading, and walls, paved road, ruins, interiors and authored
+  surfaces outside the feathering list neither give nor take one. A fixed
+  priority decides who bleeds into whom (green growth over bare earth, earth
+  over sand and gravel); a road's soft shoulder feathers as the ground it is
+  drawn as. The bleed is one field over the map — opacity falling off with
+  distance from the stronger ground's cells, wobbled by a noise fixed edge by
+  edge so neighbours always agree — and it reaches less than half a cell, so
+  each quarter of a cell is decided by the three neighbours at its corner and
+  is drawn as a clipped quarter of a tile baked from the material's own art
+  (`GroundFeather`, `GroundFeatherBaker`). Its quarters are ordinary resident
+  sub-layers laid straight over the base terrain, under road edges, raised
+  terrain and decoration, so the live mesh, the streamed fallback and the
+  review drain draw the same picture. Surface relief stays per cell; the
+  feather changes colour, not height. Control switch:
+  `-Dbattle.render.groundFeathering=false`.
 - A **visible cell rectangle** is the camera-derived dense-world cull. It reduces work for cell-backed terrain passes; it does not replace the simulation's cell grid.
 - A **view cull** is the same idea for things that are not cells: the camera's
   viewport in cell space, asked whether a body's own drawn extent can land in

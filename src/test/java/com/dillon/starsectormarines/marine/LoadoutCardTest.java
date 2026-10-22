@@ -38,13 +38,12 @@ class LoadoutCardTest {
         LoadoutCard card = new LoadoutCard(LoadoutCard.Kind.WEAPON,
                 SquadEquipmentDoctrines.ASSAULT_WEAPONS);
         assertEquals(LoadoutCardLearning.Result.LEARNED, LoadoutCardLearning.status(armory, card.id()));
-        assertFalse(armory.canAuthorWeaponDoctrine(
-                SquadEquipmentDoctrines.weaponById(card.definitionId()).issues()));
+        assertFalse(armory.knowsWeaponCard(card.definitionId()));
 
         assertEquals(LoadoutCardLearning.Result.LEARNED, LoadoutCardLearning.learn(armory, card.id()));
 
-        assertTrue(armory.canAuthorWeaponDoctrine(
-                SquadEquipmentDoctrines.weaponById(card.definitionId()).issues()));
+        assertTrue(armory.knowsWeaponCard(card.definitionId()));
+        for (String template : card.templateIds()) assertTrue(armory.ownsEquipmentTemplate(template), template);
         assertEquals(LoadoutCardLearning.Result.ALREADY_KNOWN,
                 LoadoutCardLearning.learn(armory, card.id()));
     }

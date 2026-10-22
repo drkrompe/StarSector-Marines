@@ -106,7 +106,7 @@ class MarineArmoryTest {
     }
 
     @Test
-    void mixedRefitRequiresBothSuitRolesAndRetainsNamedSeatsAcrossSave() throws Exception {
+    void mixedSheetRequiresItsCardAndRetainsNamedSeatsAcrossSave() throws Exception {
         MarineRoster roster = new MarineRoster();
         EquipmentTestFixtures.learnServiceKit(roster.armory());
         MarineSquad squad = roster.createSquad();
@@ -115,8 +115,7 @@ class MarineArmoryTest {
         SquadArmorPlan mixed = SquadEquipmentDoctrines.armorPlanById(
                 SquadEquipmentDoctrines.SALVAGE_ASSISTED_ARMOR);
         assertFalse(roster.armory().canIssue(mixed));
-        roster.armory().unlockArmor("armor.specter-recovered");
-        roster.armory().unlockArmor("armor.arbalest-recovered");
+        EquipmentTestFixtures.learnSheet(roster.armory(), mixed.id());
         assertTrue(roster.armory().canIssue(mixed));
         assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(squad.id(),
                 SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS, mixed.id()));
@@ -211,31 +210,7 @@ class MarineArmoryTest {
         assertEquals("RG-4 Longbow", WeaponRegistry.require(WeaponRegistry.DMR_ID).catalogName(EquipmentGrade.MASTERWORK));
     }
 
-    @Test
-    void squadAutomaticRequiresAcquisitionAndJoinsTheMilspecLadder() {
-        MarineArmory armory = new MarineArmory();
-        assertFalse(armory.isPrimaryUnlocked(
-                WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID), EquipmentGrade.SERVICE));
-        assertFalse(armory.isPrimaryUnlocked(
-                WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID), EquipmentGrade.MILSPEC));
 
-        for (int i = 0; i < 4; i++) armory.recordVictory(false);
-        assertTrue(armory.isPrimaryUnlocked(
-                WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID), EquipmentGrade.MILSPEC));
-    }
-
-    @Test
-    void fragTemplateCardUnlocksAfterTwoVictories() {
-        MarineArmory armory = new MarineArmory();
-        assertFalse(armory.isSecondaryUnlocked(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID)));
-
-        armory.recordVictory(false);
-        assertFalse(armory.isSecondaryUnlocked(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID)));
-        armory.recordVictory(false);
-        assertTrue(armory.isSecondaryUnlocked(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID)));
-        assertTrue(armory.ownsEquipmentTemplate(
-                EquipmentTemplateCatalog.specialId(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID))));
-    }
 
     @Test
     void saveLoadReinstallsCurrentBuiltInFireSupportDefinition() throws Exception {
@@ -264,122 +239,11 @@ class MarineArmoryTest {
         assertTrue(loaded.ownsSpecialTemplate(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID)));
     }
 
-    @Test
-    void highRiskProgressionUnlocksMasterworkDmrTemplateCard() {
-        MarineArmory armory = new MarineArmory();
-        assertFalse(armory.isPrimaryUnlocked(WeaponRegistry.require(WeaponRegistry.DMR_ID), EquipmentGrade.MASTERWORK));
 
-        for (int i = 0; i < 4; i++) armory.recordVictory(false);
-        assertFalse(armory.isPrimaryUnlocked(WeaponRegistry.require(WeaponRegistry.DMR_ID), EquipmentGrade.MASTERWORK));
 
-        armory.recordVictory(true);
-        assertTrue(armory.isPrimaryUnlocked(WeaponRegistry.require(WeaponRegistry.DMR_ID), EquipmentGrade.MASTERWORK));
-        assertTrue(armory.ownsEquipmentTemplate(EquipmentTemplateCatalog.primaryId(
-                WeaponRegistry.require(WeaponRegistry.DMR_ID), EquipmentGrade.MASTERWORK)));
-    }
 
-    @Test
-    void collectionSafetyNetReachesTheFiveFifteenThirtyAndFortyVictoryTargets() {
-        MarineArmory armory = new MarineArmory();
-        // A floor rather than a census. Pinning the starter count meant every
-        // added card broke a test about the collection curve, which is not what
-        // this is measuring.
-        assertTrue(armory.equipmentTemplateCards().size()
-                        >= EquipmentCollectionCurve.minimumCollectedAtVictories(0),
-                "starter issue should already satisfy the zero-victory floor");
-        assertTrue(armory.ownsArmorTemplate("armor.cordon-shell"));
-        assertFalse(armory.ownsArmorTemplate("armor.lashplate-harness"));
 
-        for (int victory = 1; victory <= 40; victory++) {
-            armory.recordVictory(false);
-            if (victory == 5) {
-                assertTrue(armory.equipmentTemplateCards().size()
-                                >= EquipmentCollectionCurve.FIVE_VICTORY_TARGET,
-                        "the safety net is a floor, not a ceiling");
-            } else if (victory == 15) {
-                assertTrue(armory.equipmentTemplateCards().size()
-                                >= EquipmentCollectionCurve.FIFTEEN_VICTORY_TARGET,
-                        "the safety net is a floor, not a ceiling");
-            } else if (victory == 30) {
-                assertTrue(armory.equipmentTemplateCards().size()
-                                >= EquipmentCollectionCurve.THIRTY_VICTORY_TARGET,
-                        "the safety net is a floor, not a ceiling");
-            } else if (victory == 40) {
-                assertTrue(armory.equipmentTemplateCards().size()
-                                >= EquipmentCollectionCurve.FORTY_VICTORY_TARGET,
-                        "the safety net is a floor, not a ceiling");
-            }
-        }
 
-        assertTrue(armory.ownsArmorTemplate(MarineArmorPattern.BLUE_SCOUT));
-        assertTrue(armory.ownsEquipmentTemplate(EquipmentTemplateCatalog.armorId("armor.combat")));
-        assertFalse(armory.ownsArmorTemplate(MarineArmorPattern.RED_ELITE),
-                "the XIV battlesuit is Restricted; no safety net grants approved military issue");
-        assertTrue(armory.ownsPrimaryTemplate(
-                WeaponRegistry.DMR_ID, EquipmentGrade.MASTERWORK));
-        assertTrue(armory.equipmentTemplateCards().size() < EquipmentTemplateCatalog.all().size(),
-                "the safety net must leave faction-source chase cards after its post-30 rung");
-    }
-
-    @Test
-    void collectionTargetIsMonotonicAndStopsBelowCatalogCompletion() {
-        int previous = 0;
-        for (int victories = 0; victories <= 100; victories++) {
-            int target = EquipmentCollectionCurve.minimumCollectedAtVictories(victories);
-            assertTrue(target >= previous);
-            previous = target;
-        }
-        assertEquals(EquipmentCollectionCurve.FORTY_VICTORY_TARGET, previous);
-        assertTrue(previous < EquipmentTemplateCatalog.all().size());
-    }
-
-    @Test
-    void cardsCollectedThroughOtherSourcesCountTowardTheSafetyNet() {
-        MarineArmory armory = new MarineArmory();
-        for (EquipmentTemplateCard card : EquipmentTemplateCatalog.all()) {
-            armory.acquireEquipmentTemplate(card.id());
-        }
-
-        for (int victory = 0; victory < 30; victory++) armory.recordVictory(false);
-
-        assertEquals(EquipmentTemplateCatalog.all().size(),
-                armory.equipmentTemplateCards().size());
-    }
-
-    @Test
-    void cargoHeldCardsCountWithoutBeingLearnedOrDuplicated() {
-        MarineArmory armory = new MarineArmory();
-        Set<String> held = Set.of(
-                EquipmentTemplateCatalog.primaryId(
-                        WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.MILSPEC),
-                EquipmentTemplateCatalog.armorId(MarineArmorPattern.BLUE_SCOUT),
-                EquipmentTemplateCatalog.armorId(MarineArmorPattern.OUTLAW),
-                EquipmentTemplateCatalog.primaryId(
-                        WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.MASTERWORK));
-
-        for (int victory = 0; victory < 15; victory++) {
-            armory.recordVictory(false, held);
-        }
-
-        assertTrue(armory.equipmentTemplateCards().size() + held.size()
-                        >= EquipmentCollectionCurve.FIFTEEN_VICTORY_TARGET,
-                "cards held in cargo count toward the floor without being learned");
-        assertTrue(held.stream().noneMatch(armory::ownsEquipmentTemplate));
-    }
-
-    @Test
-    void existingLongRunningSaveReceivesTheCurrentCollectionFloor() throws Exception {
-        MarineArmory armory = new MarineArmory();
-        Field victories = MarineArmory.class.getDeclaredField("victories");
-        victories.setAccessible(true);
-        victories.setInt(armory, 30);
-
-        MarineArmory loaded = roundTrip(armory);
-        loaded.repairCollectionProgression(Set.of());
-
-        assertEquals(EquipmentCollectionCurve.THIRTY_VICTORY_TARGET,
-                loaded.equipmentTemplateCards().size());
-    }
 
     @Test
     void fallenSoldiersStayPersistentlyKiaAndSurvivorsStayOnDuty() {

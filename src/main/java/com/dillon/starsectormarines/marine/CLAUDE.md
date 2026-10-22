@@ -66,6 +66,12 @@ complete twelve-billet technology validation succeeds. Fitting is free; stationi
 and unknown technology remain blockers. Saved squad profiles are gone: `SquadProfile`
 and the fields that held it survive only so old saves load, and the roster's
 `readResolve` turns an assigned profile into the squad's cards.
+**The card is the unit of access.** `MarineArmory.knownLoadoutCardIds` is the
+company's collection, and a squad may be given only cards in it
+(`knowsWeaponCard`, `knowsArmorPlan`). Learning a card records the equipment it
+names beneath it, but owning equipment opens nothing on its own: owning every suit of
+a sheet does not teach the sheet. Victory milestones (`VictoryMilestones`, paid once)
+and the safety net (`EquipmentCollectionCurve`) grant cards, never equipment.
 **The player never authors a card, and nothing should add a designer back.**
 `MarineArmory.customWeaponDoctrines` holds only developer-registered weapon cards
 under fixed ids (`ensureWeaponDoctrine`: the Wayline paths, migration, debug) and

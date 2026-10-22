@@ -51,7 +51,7 @@ class MechFittingLayoutTest {
             }
             if (variant == MechVariant.HOUND) {
                 assertEquals(EnumSet.of(SocketId.CORE, SocketId.ARMS,
-                        SocketId.LEFT_SHOULDER, SocketId.AMMO_RESERVE), ids);
+                        SocketId.LEFT_SHOULDER, SocketId.CAPACITORS), ids);
             } else {
                 assertEquals(EnumSet.allOf(SocketId.class), ids);
             }

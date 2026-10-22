@@ -155,7 +155,10 @@ public final class CordonSetup {
         if (!sim.configureSwarmFromBores(cordon.battleSeed())) {
             throw new IllegalStateException("Cordon swarm director configuration failed");
         }
-        CordonSequence sequence = sim.installCordon(variant, redoubts, gap(variant, redoubts, cordon), timetable);
+        int[][] eruptions = CordonFront.eruptionSites(sim.getGrid(), sim.getTopology(), cordon.plan(),
+                cordon.corridor(), timetable.eruptionSeconds().size(), cordon.battleSeed());
+        CordonSequence sequence = sim.installCordon(variant, redoubts, gap(variant, redoubts, cordon), eruptions,
+                timetable);
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
         int reserveY = Math.round(CordonFront.lineY(cordon.plan()) - CordonFront.frontward(cordon.plan()) * RESERVE_DEPTH);
         sim.setAutonomousCommander(Faction.MARINE, new CordonCommand(WIDTH / 2, reserveY),

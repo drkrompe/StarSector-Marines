@@ -120,6 +120,9 @@ import com.dillon.starsectormarines.battle.air.AirLoss;
 import com.dillon.starsectormarines.battle.air.BoatDamageLedger;
 import com.dillon.starsectormarines.battle.air.AirOrdnance;
 import com.dillon.starsectormarines.battle.air.HullTarget;
+import com.dillon.starsectormarines.battle.power.WalkingBarrage;
+import com.dillon.starsectormarines.battle.evacuation.HeartSequence;
+import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.evacuation.SurvivorPickupSystem;
 import com.dillon.starsectormarines.battle.air.AirStrikeSystem;
 import com.dillon.starsectormarines.battle.air.BoatSortieSystem;
@@ -662,11 +665,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * ({@code cordon-nouns.md}). The director must already be bore-sourced.
      */
     public CordonSequence installCordon(CordonVariant variant, List<CordonRedoubt> redoubts, List<Integer> gap,
-                                        CordonSequence.Timetable timetable) {
+                                        int[][] eruptionSites, CordonSequence.Timetable timetable) {
         if (simTickIndex != 0 || cordon != null) throw new IllegalStateException("Install the Cordon once at setup");
         if (!swarmReinforcements.isBoreSourcing())
             throw new IllegalStateException("The Cordon needs a bore-sourced swarm director");
-        cordon = new CordonSequence(variant, redoubts, gap, timetable, storyBeats);
+        int firstErupted = 1;
+        for (SwarmBore bore : swarmBores.bores()) firstErupted = Math.max(firstErupted, bore.number() + 1);
+        cordon = new CordonSequence(variant, redoubts, gap, eruptionSites, firstErupted, timetable, storyBeats);
         swarmReinforcements.setPressureShare(timetable.ordinaryPressure());
         addObjective(cordon);
         return cordon;
@@ -878,6 +883,22 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         colonyBreach.setEruptionHandler((sim, site, tick) ->
                 sim.swarmBores().open(sim, site.number(), site.mother(), site.x(), site.y()));
         swarmReinforcements.beginSeepage();
+    }
+    private HeartSequence heart;
+    /** The heart's battle, or {@code null} when this is not the heart. */
+    public HeartSequence getHeart() { return heart; }
+
+    /**
+     * Installs the heart's battle (`heart-nouns.md`) over its opened bores: the
+     * mothers go to sleep and the heart's wake rules and beats take over.
+     */
+    public void installHeart(Form form, WalkingBarrage barrage) {
+        if (simTickIndex != 0 || heart != null || colonyBreach != null)
+            throw new IllegalStateException("Install the heart once at setup");
+        if (!swarmReinforcements.isConfigured())
+            throw new IllegalStateException("The heart needs a configured swarm director");
+        heart = new HeartSequence(form, storyBeats, barrage);
+        heart.install(this);
     }
     /** Ends the swarm director's opening seepage; the breach has begun. Idempotent. */
     public void endSwarmSeepage() { swarmReinforcements.endSeepage(); }
@@ -3670,6 +3691,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // that starts bore sourcing spawns only from bores.
         swarmBores.tick(this);
         if (colonyBreach != null) colonyBreach.tick(this);
+        if (heart != null) heart.tick(this);
         // After the bores and the eruptions, so a body is delivered only into a
         // bore that still lives and harvest opens on the tick a bore does.
         swarmHarvest.tick(this);
@@ -3748,6 +3770,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (junctionStory != null) junctionStory.observe(this);
         if (relayNineStory != null) relayNineStory.observe(this);
         if (colonyBreach != null) colonyBreach.observe(this);
+        if (heart != null) heart.observe(this);
         if (thunderRun != null && isComplete()) thunderRun.freeze(this, false);
         if (lastLiftSequence != null) {
             lastLiftSequence.observe(this);

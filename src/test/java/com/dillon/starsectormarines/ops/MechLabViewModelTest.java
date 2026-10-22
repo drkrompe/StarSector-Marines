@@ -764,7 +764,7 @@ class MechLabViewModelTest {
         CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
         bay.learnPattern(MechPattern.of(MechInternal.UPRATED_ENGINE).id());
 
-        for (SocketId socket : List.of(SocketId.CORE, SocketId.AMMO_RESERVE, SocketId.MINI_FAB)) {
+        for (SocketId socket : List.of(SocketId.CORE, SocketId.CAPACITORS, SocketId.MINI_FAB)) {
             assertFalse(viewModel.socketDefinition(socket).factoryLocked(), socket + " is still sealed");
             assertFalse(viewModel.canDropCatalogWeapon(MechWeaponComponent.SRM_5, socket),
                     "a weapon must never drop into " + socket);
@@ -793,7 +793,7 @@ class MechLabViewModelTest {
                 viewModel.slotRows().get().stream().filter(row -> row.socketId() == SocketId.CORE)
                         .findFirst().orElseThrow().component());
 
-        viewModel.selectSlot(SocketId.AMMO_RESERVE);
+        viewModel.selectSlot(SocketId.CAPACITORS);
         assertTrue(viewModel.catalogRows().get().stream().allMatch(row ->
                 row.internalPreview() != null && row.internalPreview().role == MechInternal.Role.CAPACITOR_BANK));
     }
