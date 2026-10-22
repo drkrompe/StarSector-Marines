@@ -14,8 +14,9 @@
     python battle_blockout.py --surface base  # the game's desert01 alone, without the detail tiles (the control)
     python battle_blockout.py --stage-only    # build and pose the scene in Blender, render nothing (a pre-flight)
     python battle_blockout.py --stage-only --los   # ... and ray-cast every shot: does the round meet its target?
-    python battle_blockout.py --layers        # key frames as backdrop / ships / effects layers in one EXR
-                                              # (raw/<kf>.layers.exr), composed into the still (composite_layers.py)
+    python battle_blockout.py --combined      # one pass per key frame; the default (from r10) renders them as
+                                              # backdrop / ships / effects layers in one EXR (raw/<kf>.layers.exr),
+                                              # composed into the still (composite_layers.py)
     python battle_blockout.py --plates DIR    # ... with the planet session's painted backdrops (<kf>.backdrop.exr)
     python battle_blockout.py --motion-preview   # the whole sequence in Workbench, an MP4 to judge motion (asharu_preview.py)
 
@@ -2401,7 +2402,7 @@ def main():
         started.write_text(opt('--date', date.today().isoformat()))   # a queue round pins one date
     run_date = started.read_text().strip()
     samples = int(opt('--samples', 48))
-    layers = '--layers' in argv     # three view layers and a composite (composite_layers.py)
+    layers = '--combined' not in argv   # three view layers and a composite (composite_layers.py), the default from r10
     plates = '' if '--no-plates' in argv else opt('--plates')     # None: build/asharu-battle/plates (roster.PLATES)
     if '--motion-preview' in argv:  # the sequence as a cheap motion preview (asharu_preview.py)
         import asharu_preview

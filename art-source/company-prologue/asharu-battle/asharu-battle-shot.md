@@ -526,7 +526,7 @@ muzzle moves the shot with it.
     plumes.
   - `--fx-check` proves the copies independent without rendering (see `asharu-effects-plan.md`,
     W0).
-- **Layers** (owner, 2026-10-22; `--layers`). A key frame renders as three view layers into one
+- **Layers** (owner, 2026-10-22; the default from r10, `--combined` for one pass). A key frame renders as three view layers into one
   multilayer EXR, `raw/<kf>.layers.exr`. `composite_layers.py` composes it into the still in
   seconds, so a new backdrop or a reworked effect never re-renders a hull:
   - `backdrop`: the planet and the starfield, at 16 samples. A locked camera's backdrop is
@@ -550,6 +550,12 @@ muzzle moves the shot with it.
   - The composite is the backdrop, with the ships over it and the effects over those
     (premultiplied). It then goes through the same AgX view the classic PNG uses.
   - `--diff REF.png` measures a composite against a combined render of the same frame.
+  - **Proof:** k0, at half size and 16 samples, on 2026-10-22.
+    - Against a combined render at the same settings: mean 0.60/255, p99 1.0, and 0.31 at an
+      8 px blur.
+    - The one local residue is the drive plumes, at most 21 levels in an 8 px block, from
+      denoising the effects layer on its own.
+    - Against the 48-sample r9b still, it is as close as the combined render is (mean 0.8).
   - Collections carry the split: `Stage | ships`, `Stage | effects`, `Backdrop`. A kit object
     inside a hull copy, or a loose object at the scene root, fails the frame (`ASHARU layers leak`).
 

@@ -39,7 +39,7 @@ def main():
     for name in a.variants.split(','):
         t0 = time.time()
         out = subprocess.run([sys.executable, str(HERE / 'battle_blockout.py'), '--frames', a.frame, '--samples', a.samples,
-                              '--swfx', '--percent', a.percent, '--root', a.root, '--run', f'timing-{name}', '--rerender',
+                              '--swfx', '--combined', '--percent', a.percent, '--root', a.root, '--run', f'timing-{name}', '--rerender',
                               *VARIANTS[name]], capture_output=True, text=True)
         wall = time.time() - t0
         m = re.search(r'ASHARU render time \S+ ([\d.]+) s', out.stdout)

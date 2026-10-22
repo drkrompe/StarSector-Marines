@@ -64,16 +64,16 @@ def main():
     ap.add_argument('--machine', default='any', choices=('any', 'windows', 'mac'))
     ap.add_argument('--light', action='store_true', help='light lane: half size (use --samples 16 or fewer)')
     ap.add_argument('--swfx', action='store_true', help='draw the key frames with the effects kit (scene_fx)')
-    ap.add_argument('--layers', action='store_true',
-                    help='render the key frames as layers and compose them (composite_layers.py) over the painted '
-                         'plates (roster.PLATES); the EXRs go to Drive builds/asharu-layers/<run>_<machine>/ '
-                         'for recomposing without a render')
+    ap.add_argument('--combined', action='store_true',
+                    help='render each key frame in one pass; by default (from r10) they render as layers composed '
+                         '(composite_layers.py) over the painted plates (roster.PLATES), the EXRs going to Drive '
+                         'builds/asharu-layers/<run>_<machine>/ for recomposing without a render')
     ap.add_argument('--date', required=True, help='the job id date, YYYY-MM-DD')
     ap.add_argument('sets', nargs='+')
     a = ap.parse_args()
     if a.light and a.samples > 16:
         raise SystemExit('a light job renders at 16 samples or fewer')
-    ins = inputs() + ([plate_input()] if a.layers else [])
+    ins = inputs() + ([] if a.combined else [plate_input()])
     for frames in a.sets:
         names = frames.split(',')
         job = {
@@ -85,13 +85,13 @@ def main():
             'requires': ['gpu'],
             'cwd': '{checkout}/art-source/company-prologue/asharu-battle',
             'command': ['{python}', 'battle_blockout.py', '--frames', frames, '--samples', str(a.samples),
-                        '--root', '{work}', '--run', a.run, '--date', a.date, '--post', '{machine}', '--what', a.what] + (['--half'] if a.light else []) + (['--swfx'] if a.swfx else []) + (['--layers'] if a.layers else []),
+                        '--root', '{work}', '--run', a.run, '--date', a.date, '--post', '{machine}', '--what', a.what] + (['--half'] if a.light else []) + (['--swfx'] if a.swfx else []) + (['--combined'] if a.combined else []),
             'env': {},
             'inputs': ins,
             'frames': {'dir': '{work}/' + a.run + '/raw',
                        'glob': f'{names[0]}.png' if len(names) == 1 else '*.png', 'count': len(names)},
         }
-        if a.layers:
+        if not a.combined:
             job['outputs'] = [{'from': '{work}/' + a.run + '/raw', 'glob': '*.layers.exr',
                                'to': '{drive}/builds/asharu-layers/' + a.run + '_{machine}'}]
         path = Path(a.out) / f"{job['id']}.json"
