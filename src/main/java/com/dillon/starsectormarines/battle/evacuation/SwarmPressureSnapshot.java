@@ -20,7 +20,8 @@ public record SwarmPressureSnapshot(
         List<TargetState> targetContexts,
         List<WaveIntent> ownedWave,
         boolean boreSourcing,
-        List<BoreState> bores) {
+        List<BoreState> bores,
+        StageCounts livingByStage) {
 
     public enum Phase { OPENING, COHORT_RELEASED, TERMINAL }
     public enum Approach { NORTH, EAST, SOUTH, WEST }
@@ -32,6 +33,16 @@ public record SwarmPressureSnapshot(
             int ownedWaveRunners) { }
 
     public record TargetState(TargetContext context, int runnerCount) { }
+
+    /** Bodies, or weights out of a hundred, by growth stage. */
+    public record StageCounts(int whelps, int adults, int elders) {
+        public static final StageCounts NONE = new StageCounts(0, 0, 0);
+
+        /** From {@code {whelp, adult, elder}}. */
+        public static StageCounts of(int[] byStage) {
+            return new StageCounts(byStage[0], byStage[1], byStage[2]);
+        }
+    }
 
     public record WaveIntent(
             long runnerId,
@@ -51,6 +62,8 @@ public record SwarmPressureSnapshot(
      * @param bodiesSpawned bodies its surges have put on the field
      * @param sporeColonies  its spore colonies still alive
      * @param collapsedTick the tick it collapsed, {@code -1} while it lives
+     * @param ageMix        the stage weights its next surge draws from, out of a hundred
+     * @param released      the bodies its surges have released, by stage
      */
     public record BoreState(
             String key,
@@ -69,9 +82,21 @@ public record SwarmPressureSnapshot(
             int sporeColonies,
             int nextSurgeTick,
             int eruptedTick,
-            int collapsedTick) { }
+            int collapsedTick,
+            StageCounts ageMix,
+            StageCounts released) { }
+
+    /** A picture with no growth-stage counts. */
+    public SwarmPressureSnapshot(int revision, int tick, Phase phase, String pressureReason, int targetPopulation,
+                                 int populationFloor, int liveRunners, int waveIndex, List<ApproachState> approaches,
+                                 List<TargetState> targetContexts, List<WaveIntent> ownedWave, boolean boreSourcing,
+                                 List<BoreState> bores) {
+        this(revision, tick, phase, pressureReason, targetPopulation, populationFloor, liveRunners, waveIndex,
+                approaches, targetContexts, ownedWave, boreSourcing, bores, StageCounts.NONE);
+    }
 
     public SwarmPressureSnapshot {
+        livingByStage = livingByStage == null ? StageCounts.NONE : livingByStage;
         approaches = List.copyOf(approaches);
         targetContexts = List.copyOf(targetContexts);
         ownedWave = List.copyOf(ownedWave);
