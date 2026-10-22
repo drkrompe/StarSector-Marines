@@ -182,8 +182,8 @@ public final class MechFittingDollCatalog {
                         -0.36f, -0.12f, -1.38f, -0.48f, 1.40f, 0.68f, false, "L. SHOULDER"),
                 new SocketDef(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 2, 3,
                         0.36f, -0.12f, 1.38f, -0.48f, 1.40f, 0.68f, false, "R. SHOULDER"),
-                new SocketDef(SocketId.CAPACITORS, SocketType.FLUX, 3, 1,
-                        0.0f, -0.26f, -1.38f, 0.72f, 1.40f, 0.38f, false, "CAPACITORS"),
+                new SocketDef(SocketId.CAPACITORS, SocketType.FLUX, 2, 2,
+                        0.0f, -0.26f, -1.38f, 0.72f, 1.40f, 0.72f, false, "CAPACITORS"),
                 new SocketDef(SocketId.MINI_FAB, SocketType.UTILITY, 2, 1,
                         0.0f, -0.36f, 1.38f, 0.72f, 0.80f, 0.44f, false, "MINI-FAB")
         )));

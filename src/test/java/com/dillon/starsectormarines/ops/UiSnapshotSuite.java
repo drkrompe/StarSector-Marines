@@ -63,6 +63,7 @@ import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
@@ -2583,6 +2584,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         return frames;
     }
 
+    private static String actionOrName(MechLabViewModel.CatalogRow row) {
+        return String.valueOf(row.markupProperty("actionClasses")).contains("hidden") ? row.nameId() : row.actionId();
+    }
+
     static List<SnapshotArtifact> renderMechConsole(SnapshotContext context) throws Exception {
         HeadlessSvgAssets.install(context.modRoot());
         HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
@@ -2618,8 +2623,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "action")),
                 new SnapshotArtifact("mech-replenisher-hint-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "replenisher")),
-                new SnapshotArtifact("mech-no-spare-hint-1920x1080.png",
-                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "no-spare")),
                 new SnapshotArtifact("mech-long-callsign-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, true, false, false, false, null, "long-name")),
                 new SnapshotArtifact("mech-fitting-bulwark-1920x1080.png", heavy),
@@ -2630,6 +2633,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "internal-plating")),
                 new SnapshotArtifact("mech-internal-capacitor-bank-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "internal-flux")),
+                // A refit Bulwark: better engine, bank and plate, and a shorter arm gun, so the stat
+                // bars show gains past stock and a shortfall below it.
+                new SnapshotArtifact("mech-lab-refit-stats-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "refit-stats")),
                 new SnapshotArtifact("mech-fitting-valid-drop-1920x1080.png", frames.get(18)),
                 new SnapshotArtifact("mech-fitting-rejected-drop-1920x1080.png", frames.get(34)),
                 SnapshotArtifact.colorAnimation("mech-fitting-1920x1080.gif", frames, 100));
@@ -2668,7 +2675,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 "support_mech_03", "Sirocco 03", MechVariant.SIROCCO,
                 MechRole.LR_SUPPORT, MissileReplenisherComponent.ACCELERATED_FEED.id()));
         bay.addReplenisher(MissileReplenisherComponent.ACCELERATED_FEED.id(), 1);
-        if ("no-spare".equals(materialHint)) bay.loseSpares();
         if ("long-name".equals(materialHint)) {
             if (!bay.mechById(MechBay.STARTER_MECH_ID)
                     .rename("Ironclad of the Persean Expeditionary Vanguard 1")) {
@@ -2714,7 +2720,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             else viewModel.stripWeapon(viewModel.selectedSocket());
         }
         if ("action".equals(materialHint) || "replenisher".equals(materialHint)
-                || "no-spare".equals(materialHint)) {
+) {
             viewModel.gantryRows().get().get(0).select().run();
         }
         if (weldingEvidence) viewModel.gantryRows().get().get(0).select().run();
@@ -2732,6 +2738,18 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             viewModel.gantryRows().get().get(0).select().run();
             viewModel.selectPlating();
             viewModel.hoverInternal(MechInternal.HEAVY_PLATING);
+        }
+        if ("refit-stats".equals(materialHint)) {
+            String mechId = bay.activeSquad().mechs().get(0).id();
+            for (MechInternal internal : List.of(MechInternal.UPRATED_ENGINE, MechInternal.DOUBLE_CAPACITOR_BANK,
+                    MechInternal.COMPOSITE_PLATING)) {
+                bay.addInternal(internal.id, 1);
+                bay.installInternal(mechId, internal);
+            }
+            bay.addWeapon(MechWeaponComponent.DUAL_MUSTER_AUTOGUNS.id, 1);
+            bay.installWeapon(mechId, MechMountSlot.ARMS, MechWeaponComponent.DUAL_MUSTER_AUTOGUNS.id);
+            viewModel.gantryRows().get().get(0).select().run();
+            viewModel.selectSlot(SocketId.CORE);
         }
         if ("internal-flux".equals(materialHint)) {
             viewModel.gantryRows().get().get(0).select().run();
@@ -2773,7 +2791,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                     camera.pose().worldY(), camera.pose().zoomNotches()),
                             () -> ship.scene().berthsIn(vehicleBay), vehicleBay::id,
                             () -> seconds[0],
-                            viewModel::hoveredWeapon);
+                            viewModel::hoveredWeapon)
+                    .withSideShift(() -> camera.pose().sideShift());
             fittingCanvas.installedInternals(viewModel::installedInternal);
             document.canvases().set(instance.requireElement("mech-doll-canvas"), fittingCanvas);
             for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
@@ -2807,16 +2826,17 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             guide.update();
             if (specSheet || materialHint != null && !"long-name".equals(materialHint)
                     && !materialHint.startsWith("lesson-") && !materialHint.startsWith("resource-")
-                    && !materialHint.startsWith("internal-") && !materialHint.startsWith("chassis-")) {
+                    && !materialHint.startsWith("internal-") && !materialHint.startsWith("chassis-")
+                    && !materialHint.startsWith("refit-")) {
                 SpecSheetBinder binder = new SpecSheetBinder(
                         document, SpecSheetLayer.install(document));
                 List<MechLabViewModel.CatalogRow> rows = viewModel.catalogRows().get();
                 MechLabSpecSheets.bindCatalogRows(binder, instance, rows);
                 MechLabSpecSheets.bindMaterials(binder, instance, viewModel);
                 MechLabSpecSheets.bindActions(binder, instance, viewModel);
-                String anchor = "no-spare".equals(materialHint) ? rows.get(1).actionId()
-                        : "action".equals(materialHint) ? rows.get(0).actionId()
-                        : "replenisher".equals(materialHint) ? rows.get(1).nameId()
+                // A row with nothing to build shows no button; its sheet then hangs off the name.
+                String anchor = "action".equals(materialHint) ? actionOrName(rows.get(0))
+                        : "replenisher".equals(materialHint) ? rows.get(Math.min(1, rows.size() - 1)).nameId()
                         : "stock".equals(materialHint) ? viewModel.materialStock().get().get(0).id()
                         : "cost".equals(materialHint) ? rows.stream().flatMap(row -> row.materials().stream())
                         .findFirst().orElseThrow().id() : MechLabSpecSheets.firstSpecSheetAnchorId(rows);

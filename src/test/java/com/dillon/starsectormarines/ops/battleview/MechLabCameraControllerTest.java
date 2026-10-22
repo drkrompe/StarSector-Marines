@@ -13,10 +13,11 @@ class MechLabCameraControllerTest {
      */
     private static final MechLabCameraController.CameraPose WIDE =
             new MechLabCameraController.CameraPose(12f, 8f,
-                    MechLabCameraController.WIDE_ZOOM_NOTCHES);
+                    MechLabCameraController.WIDE_ZOOM_NOTCHES, 0f);
     private static final MechLabCameraController.CameraPose BERTH =
             new MechLabCameraController.CameraPose(19f, 5f,
-                    MechLabCameraController.FITTING_ZOOM_NOTCHES);
+                    MechLabCameraController.FITTING_ZOOM_NOTCHES,
+                    MechLabCameraController.FITTING_SIDE_SHIFT);
 
     private static MechLabCameraController controller() {
         return new MechLabCameraController(new MechLabCameraController.Anchors() {
