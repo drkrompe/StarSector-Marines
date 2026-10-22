@@ -55,7 +55,7 @@ import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL14.GL_GENERATE_MIPMAP;
 
 /**
- * Hive creep, resident on the GPU (`hive-creep.md`).
+ * Hive creep, resident on the GPU (`colony-breach-nouns.md`, Creep).
  *
  * <p>The simulation's {@link CreepField} is three bytes per cell; this layer
  * keeps a CPU mirror of them, plus whether the cell is a wall, as one RGBA

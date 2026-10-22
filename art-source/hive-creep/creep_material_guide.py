@@ -1,4 +1,4 @@
-"""Geometry-first guide for the hive creep material (`hive-creep.md`).
+"""Geometry-first guide for the hive creep material (`colony-breach-nouns.md`, Creep).
 
 Writes a seamless 1024x1024 top-down relief guide: a branching vein network
 (raised tubes), clustered nodules and a thin wet film between them. Code owns
