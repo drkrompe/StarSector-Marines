@@ -38,7 +38,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * Coverage for {@link ConquestCommand}'s strip-partition + forward-most-
@@ -334,15 +333,6 @@ public class ConquestCommandTest {
                 cmd.frontSnapshot().directiveFor(behind.id).reason());
         assertTrue(behind.assignedObjective.targetCellY() > 2,
                 "and it advances forward along the traversal axis");
-    }
-
-    @Test
-    public void scoutAdvanceIsOffUnderTheControlSwitch() {
-        assumeTrue(ConquestCommand.EMPTY_TRACK_ADVANCE_ENABLED,
-                "control run already has the switch off; nothing to compare");
-        assertEquals("battle.command.emptyTrackAdvance",
-                ConquestCommand.EMPTY_TRACK_ADVANCE_PROPERTY,
-                "the control run's documented switch name is part of the contract");
     }
 
     @Test
@@ -1707,27 +1697,9 @@ public class ConquestCommandTest {
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
-    /**
-     * The home-track capture bound. It ships on, but these set it explicitly
-     * rather than leaning on the default: the switch exists so an evidence run
-     * can turn it off, and a suite that silently follows whatever the JVM was
-     * started with is a suite that goes green against the control.
-     */
+    /** The home-track capture bound. */
     @Nested
     class HomeTrackCaptureAllocation {
-
-        private boolean restore;
-
-        @BeforeEach
-        void boundOn() {
-            restore = ConquestCommand.HOME_TRACK_CAPTURES_ENABLED;
-            ConquestCommand.HOME_TRACK_CAPTURES_ENABLED = true;
-        }
-
-        @AfterEach
-        void boundBack() {
-            ConquestCommand.HOME_TRACK_CAPTURES_ENABLED = restore;
-        }
 
         @Test
         public void aCompoundTwoTracksAwayIsNeverACaptureAssignment() {
@@ -1753,28 +1725,6 @@ public class ConquestCommandTest {
                     home.assignedObjective.kind());
             assertEquals(0, cmd.frontSnapshot().directiveFor(home.id)
                     .effectiveTrack(), "the order it does get is its own track's");
-        }
-
-        @Test
-        public void theControlSwitchRestoresTheMapGlobalFill() {
-            assertEquals("battle.command.conquest.homeTrackCaptures",
-                    ConquestCommand.HOME_TRACK_CAPTURES_PROPERTY,
-                    "the switch name an evidence run is documented with is part "
-                            + "of the contract");
-            ConquestCommand.HOME_TRACK_CAPTURES_ENABLED = false;
-
-            BattleSimulation sim = farTrackCompoundSim();
-            registerFarTrackCompound(sim);
-            addMarineSquad(sim, 24f, 1f);
-            Squad home = addMarineSquad(sim, 2f, 1f);
-
-            ConquestCommand cmd = new ConquestCommand(
-                    TraversalAxis.SOUTH_TO_NORTH);
-            tick(cmd, sim);
-
-            assertTrue(isSecureCompound(home),
-                    "off, the pairing is map-global again — the far-track walk "
-                            + "the control run is there to measure");
         }
 
         @Test
@@ -1868,19 +1818,6 @@ public class ConquestCommandTest {
     @Nested
     class LaneChains {
 
-        private boolean restore;
-
-        @BeforeEach
-        void chainOn() {
-            restore = ConquestCommand.LANE_CHAIN_ENABLED;
-            ConquestCommand.LANE_CHAIN_ENABLED = true;
-        }
-
-        @AfterEach
-        void chainBack() {
-            ConquestCommand.LANE_CHAIN_ENABLED = restore;
-        }
-
         /**
          * Two walled places up strip 0, each opening east onto open ground, so
          * a squad standing outside is adjacent to neither and the allocation
@@ -1957,23 +1894,6 @@ public class ConquestCommandTest {
                     "a lane is taken in order: the strongpoint waits for the outpost");
             assertNotEquals(captureZone(sim, deep),
                     squad.assignedObjective.targetZoneId());
-        }
-
-        @Test
-        public void theControlTakesWhicheverIsNearest() {
-            ConquestCommand.LANE_CHAIN_ENABLED = false;
-            BattleSimulation sim = twoPlacesUpStripZero();
-            outerPlace(sim);
-            TacticalNode deep = deepPlace(sim);
-            Squad squad = addMarineSquad(sim, 9f, 8f);
-
-            ConquestCommand cmd = commandWithLane();
-            tick(cmd, sim);
-
-            assertTrue(isSecureCompound(squad));
-            assertEquals(captureZone(sim, deep),
-                    squad.assignedObjective.targetZoneId(),
-                    "with the chain off, the fraction offers both and distance picks");
         }
 
         @Test
@@ -2054,39 +1974,6 @@ public class ConquestCommandTest {
      */
     @Nested
     class ZoneTargetCap {
-
-        private boolean restore;
-
-        @BeforeEach
-        void capOn() {
-            restore = ConquestCommand.ZONE_TARGET_CAP_ENABLED;
-            ConquestCommand.ZONE_TARGET_CAP_ENABLED = true;
-        }
-
-        @AfterEach
-        void capBack() {
-            ConquestCommand.ZONE_TARGET_CAP_ENABLED = restore;
-        }
-
-        /** With the cap off the whole force ranks onto the nearest zone. */
-        @Test
-        public void theControlPutsEverybodyOnTheNearestZone() {
-            ConquestCommand.ZONE_TARGET_CAP_ENABLED = false;
-            BattleSimulation sim = stackedRoomsSim();
-            List<Squad> squads = new ArrayList<>();
-            for (int i = 0; i < 4; i++) squads.add(addMarineSquad(sim, 2f + i, 1f));
-            establishMarineContact(sim, squads.get(0), addDefender(sim, 2, 6));
-            establishMarineContact(sim, squads.get(0), addDefender(sim, 2, 11));
-
-            ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
-            tick(cmd, sim);
-
-            int nearZone = sim.getZoneGraph().zoneIdAt(2, 6);
-            for (Squad squad : squads) {
-                assertEquals(nearZone, clearZoneTarget(squad),
-                        "the control is the plain nearest-forward rule");
-            }
-        }
 
         @Test
         public void aZoneAtItsCapPassesTheSurplusToTheNextForwardZone() {
@@ -2314,23 +2201,17 @@ public class ConquestCommandTest {
                     && p.assignment().kind() == AssignmentKind.SECURE_COMPOUND).count());
         }
 
-        @Test void namedGroupSupportPreservesEnabledZoneTargetDistribution() throws Exception {
-            boolean restore = ConquestCommand.ZONE_TARGET_CAP_ENABLED;
-            try {
-                ConquestCommand.ZONE_TARGET_CAP_ENABLED = true;
-                var plan = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH).plan(frame(
-                        List.of(row(1, 1, null, null), row(2, 2, null, null),
-                                row(3, 3, null, null), row(4, 4, null, null)),
-                        List.of(), contacts(10, 40), false));
-                assertEquals(3, plan.proposals().stream().filter(p -> p.assignment() != null
-                        && p.assignment().kind() == AssignmentKind.CLEAR_ZONE
-                        && p.assignment().targetZoneId() == 1).count());
-                assertEquals(1, plan.proposals().stream().filter(p -> p.assignment() != null
-                        && p.assignment().kind() == AssignmentKind.CLEAR_ZONE
-                        && p.assignment().targetZoneId() == 2).count());
-            } finally {
-                ConquestCommand.ZONE_TARGET_CAP_ENABLED = restore;
-            }
+        @Test void namedGroupSupportPreservesZoneTargetDistribution() throws Exception {
+            var plan = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH).plan(frame(
+                    List.of(row(1, 1, null, null), row(2, 2, null, null),
+                            row(3, 3, null, null), row(4, 4, null, null)),
+                    List.of(), contacts(10, 40), false));
+            assertEquals(3, plan.proposals().stream().filter(p -> p.assignment() != null
+                    && p.assignment().kind() == AssignmentKind.CLEAR_ZONE
+                    && p.assignment().targetZoneId() == 1).count());
+            assertEquals(1, plan.proposals().stream().filter(p -> p.assignment() != null
+                    && p.assignment().kind() == AssignmentKind.CLEAR_ZONE
+                    && p.assignment().targetZoneId() == 2).count());
         }
 
         private CommandSquadState row(int id, int y, ObjectiveAssignment assignment,

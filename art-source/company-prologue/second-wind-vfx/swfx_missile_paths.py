@@ -494,16 +494,19 @@ def glow_material(ctx, name, colour, strength=30.0, core=.6):
     return m
 
 
-def contrail_material(ctx, colour, glow):
+def contrail_material(ctx, colour, glow, broken=0.0):
     """The trail left in place. Attribute `birth` is the frame the missile passed each ring;
     the current frame comes from a driver. Object colour R is 1 / life in frames, G the
     vanilla alpha, B the spread the core reaches at the end of its life. A ring shows from its
     birth frame, then thins: its core widens and fades with age. glow > 0 adds a faint
-    emission in the trail colour (the Harpoon's blue smoke reads lit from inside)."""
+    emission in the trail colour (the Harpoon's blue smoke reads lit from inside).
+    broken > 0 (a noise scale, per hull unit): torn smoke, not a tube (owner, 2026-10-23: a
+    flare's trail read as a solid translucent rod). Noise fixed in the trail's space cuts it into
+    wisps, the holes opening as it ages, so it breaks up and disperses."""
     bpy = _bpy()
     import swfx_core
     import swfx_guns
-    name = f'{PREFIX} contrail ' + '-'.join(f'{c:.3f}' for c in colour) + f' g{glow:.2f}'
+    name = f'{PREFIX} contrail ' + '-'.join(f'{c:.3f}' for c in colour) + f' g{glow:.2f}' +         (f' broken {broken:.4g}' if broken else '')
     m = bpy.data.materials.get(name)
     if m:
         return m
@@ -529,6 +532,13 @@ def contrail_material(ctx, colour, glow):
     core = g.pow(c, g.div(5.0, widen))                      # narrow and dense young, wide and thin old
     young = g.clamp01(g.mul(g.add(age, .3), 1.5))           # the newest ring eases in at the motor
     dens = g.clamp01(g.mul(g.mul(g.mul(g.mul(core, fade), alpha0), shown), g.div(young, widen)))
+    if broken:
+        tc = nodes.new('ShaderNodeTexCoord')
+        n1 = g.noise(tc.outputs['Object'], g.mul(age, .02), broken, 4.0, .65)
+        n2 = g.noise(tc.outputs['Object'], g.add(g.mul(age, .03), 7.0), broken * 3.1, 2.0, .5)
+        torn = g.add(n1, g.mul(g.sub(n2, .5), .45))
+        holes = g.clamp01(g.mul(g.sub(torn, g.add(.44, g.mul(g.clamp01(k), .16))), 4.0))
+        dens = g.mul(dens, holes)
     smoke = nodes.new('ShaderNodeBsdfDiffuse')
     smoke.inputs['Color'].default_value = (*(.35 + .65 * v for v in colour), 1) if glow else (*colour, 1)
     body = smoke
@@ -594,7 +604,8 @@ def _contrail(ctx, coll, fl, inv, mpu, sides=6):
     at = me.attributes.new('birth', 'FLOAT', 'POINT')
     at.data.foreach_set('value', birth)
     me.update()
-    me.materials.append(contrail_material(ctx, prof['trail'], prof['trail_glow']))
+    broken = 1.0 / max(1e-6, prof['trail_r_m'] * 4.0 / mpu) if prof.get('trail_broken') else 0.0
+    me.materials.append(contrail_material(ctx, prof['trail'], prof['trail_glow'], broken))
     ob = bpy.data.objects.new(f'{PREFIX} contrail {fl.label} f{fl.frame:04d}', me)
     coll.objects.link(ob)
     ob.visible_shadow = False
@@ -729,9 +740,12 @@ def key(ctx, coll, fl, a, motor_mat, body_mat, cylinder_mesh, mpu):
     glare.location = (-2.6, 0, 0)
     glare.visible_shadow = False
     gr = prof['glare_m'] / mpu / s
-    _bake(glare, 'scale', 0, [fi, fi + 3], [gr * .3, gr])
-    _bake(glare, 'scale', 1, [fi, fi + 3], [gr * .3, gr])
-    _bake(glare, 'scale', 2, [fi, fi + 3], [gr * .3, gr])
+    # No orbs (owner, 2026-10-23: the Harpoons' heads read as "white orbs"): the glare is a streak
+    # drawn out behind the motor along the flight, thin across it, never a round ball.
+    glare.location = (-2.6 - gr * 1.4, 0, 0)
+    _bake(glare, 'scale', 0, [fi, fi + 3], [gr * .5, gr * 1.8])
+    _bake(glare, 'scale', 1, [fi, fi + 3], [gr * .12, gr * .3])
+    _bake(glare, 'scale', 2, [fi, fi + 3], [gr * .12, gr * .3])
     gf, gv, gh = [fi, burn_end], [1.0, 1.0], [0.0, 0.0]
     if fl.hot:                                  # in a PD laser's beam: heating toward white
         h0, h1 = fl.hot

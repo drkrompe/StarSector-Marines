@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.audio.BattleMusicPlaylist;
 import com.dillon.starsectormarines.battle.audio.BattleRadioChatter;
 import com.dillon.starsectormarines.battle.audio.CompanyOfficer;
 import com.dillon.starsectormarines.battle.audio.OperationRadio;
+import com.dillon.starsectormarines.battle.audio.MachineAudio;
 import com.dillon.starsectormarines.battle.audio.MechFootstepAudio;
 import com.dillon.starsectormarines.battle.audio.StoryNarrationPlayer;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
@@ -80,6 +81,7 @@ import com.dillon.starsectormarines.ops.battleview.RenderLayer;
 import com.dillon.starsectormarines.ops.battleview.RenderContext;
 import com.dillon.starsectormarines.ops.battleview.BattleShotAudio;
 import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
+import com.dillon.starsectormarines.ops.battleview.HeldFireLoops;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceAudio;
 import com.dillon.starsectormarines.ops.battleview.WarshipAudio;
 import com.dillon.starsectormarines.ops.battleview.BoreAudio;
@@ -280,6 +282,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     private final BattleRenderer renderer = new BattleRenderer(sprites);
     /** Weapon and impact cues for rounds an aircraft delivers onto the ground. */
     private final OrdnanceAudio ordnanceAudio = new OrdnanceAudio();
+    private final HeldFireLoops heldFireLoops = new HeldFireLoops();
     /**
      * Real-time {@code dt} from the most recent {@link #advance} call. Passed
      * into {@link com.dillon.starsectormarines.ops.battleview.RenderContext} so
@@ -321,6 +324,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     /** Shared squad-event policy for sparse positional marine radio calls. */
     private final BattleRadioChatter radioChatter = new BattleRadioChatter();
     private final MechFootstepAudio mechFootsteps = new MechFootstepAudio();
+    private final MachineAudio machineAudio = new MachineAudio();
     private final StorySubtitleOverlay storySubtitles = new StorySubtitleOverlay();
     private StoryNarrationPlayer storyNarration;
     private final CompanyOfficer companyOfficer = new CompanyOfficer();
@@ -360,6 +364,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             companyOfficer.reset();
             operationRadio.reset();
             mechFootsteps.reset();
+            machineAudio.reset();
             storyNarration = new StoryNarrationPlayer(WaylineNarration.builtins(),
                     WaylineNarration.narrationMissionId(ctx != null ? ctx.getSelectedMission() : null,
                             nextSimulation), line -> {
@@ -713,13 +718,14 @@ public class BattleScreen implements Screen, BattleUiContext {
         advanceRoofAlphaLerp(sim, dt);
         if (sim != null) sim.getFogOfWar().advanceFade(dt);
         driveShuttleEngineLoops(sim);
-        playCombatEventSounds(sim);
+        playCombatEventSounds(sim, dt);
         for (MechFootstepAudio.Cue cue : mechFootsteps.advance(
                 sim, camera.panCellX(), camera.panCellY())) {
             Global.getSoundPlayer().playSound(cue.soundId(), cue.pitch(), cue.volume(),
                     new Vector2f(cue.cellX() * AUDIO_WORLD_UNITS_PER_CELL,
                             cue.cellY() * AUDIO_WORLD_UNITS_PER_CELL), new Vector2f());
         }
+        playMachinery(sim);
         if (rangeTrial == null) advanceVoices(sim, dt);
     }
 
@@ -755,6 +761,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         renderer.getGroundAtlas().dispose();
         // And the composited unit atlas, for the same reason.
         renderer.getUnitAtlas().dispose();
+        // And this battle's props, which were cut from this battle's placements.
+        renderer.disposeDecorationAtlas();
         renderer.getGroundLights().clear();
         if (retainedOverlay != null) retainedOverlay.detach();
         if (retainedSquadOverlay != null) retainedSquadOverlay.detach();
@@ -1241,6 +1249,21 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
     }
 
+    /** Ground engines and flux vents ({@link MachineAudio}): loops held this frame, cues fired once. */
+    private void playMachinery(BattleSimulation sim) {
+        MachineAudio.Frame frame = machineAudio.advance(sim, camera.panCellX(), camera.panCellY());
+        for (MachineAudio.Loop loop : frame.loops()) {
+            Global.getSoundPlayer().playLoop(loop.soundId(), loop.key(), loop.pitch(), loop.volume(),
+                    new Vector2f(loop.cellX() * AUDIO_WORLD_UNITS_PER_CELL, loop.cellY() * AUDIO_WORLD_UNITS_PER_CELL),
+                    new Vector2f(loop.vxCells() * AUDIO_WORLD_UNITS_PER_CELL, loop.vyCells() * AUDIO_WORLD_UNITS_PER_CELL));
+        }
+        for (MachineAudio.Cue cue : frame.cues()) {
+            Global.getSoundPlayer().playSound(cue.soundId(), cue.pitch(), cue.volume(),
+                    new Vector2f(cue.cellX() * AUDIO_WORLD_UNITS_PER_CELL, cue.cellY() * AUDIO_WORLD_UNITS_PER_CELL),
+                    new Vector2f());
+        }
+    }
+
     /**
      * Per-frame velocity for {@link #driveShuttleEngineLoops} Doppler.
      *
@@ -1397,8 +1420,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         return !grid.isWalkable(cx, cy);
     }
 
-    private void playCombatEventSounds(BattleSimulation sim) {
-        BattleShotAudio.playPositional(sim.getShotsThisFrame());
+    private void playCombatEventSounds(BattleSimulation sim, float dt) {
+        BattleShotAudio.playPositional(sim.getShotsThisFrame(), heldFireLoops, dt);
         Vector2f zeroVel = new Vector2f(0f, 0f);
         playSystemActivationCues(sim, zeroVel);
         LongList deaths = sim.getDeathsThisFrame();

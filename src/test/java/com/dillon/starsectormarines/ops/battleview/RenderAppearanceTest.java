@@ -18,12 +18,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class RenderAppearanceTest {
 
     @Test
-    public void everyTypeHasADescriptorWithMatchingRenderScaleAndFrameLayout() {
+    public void everyTypeHasADescriptorWithMatchingRenderScale() {
         for (UnitType t : UnitType.values()) {
             RenderAppearance app = RenderAppearance.of(t);
             assertNotNull(app, "no descriptor for " + t);
             assertEquals(t.renderScale, app.renderScale, 0f, "renderScale for " + t);
-            assertEquals(t.frameLayout, app.frameLayout, "frameLayout for " + t);
         }
     }
 
@@ -34,8 +33,8 @@ public class RenderAppearanceTest {
             // Footprint pads are exactly the whole-sprite structures (turret + hub).
             assertEquals(app.spriteKind == SpriteKind.WHOLE_SPRITE, app.drawsFootprint,
                     "drawsFootprint should track WHOLE_SPRITE for " + t);
-            // Everything outside the structural/aerial/simulation-fixture types is sheet-drawn
-            // infantry/civilians — guards against a future type misrouted into a
+            // Everything outside the structural/aerial/simulation-fixture types is a posed
+            // body — guards against a future type misrouted into a
             // WHOLE_SPRITE/NONE arm. A convoy chassis joins the exceptions: it
             // is a unit for seeing, targeting and damage, but it draws through
             // the convoy pass rather than off a facing-indexed sheet.
@@ -102,19 +101,19 @@ public class RenderAppearanceTest {
     }
 
     @Test
-    public void infantryAreSheetDrawnHpBarredCorpses() {
+    public void infantryArePosedHpBarredBodiesThatFallThroughTheirOutfit() {
         RenderAppearance marine = RenderAppearance.of(UnitType.MARINE);
         assertEquals(SpriteKind.SHEET, marine.spriteKind);
         assertFalse(marine.drawsFootprint);
         assertTrue(marine.drawsDurabilityBar);
-        assertTrue(marine.hasDeathPose);
-        assertEquals(UnitType.FrameLayout.WNES_WEAPON_UP, marine.frameLayout);
+        // A fallen marine lies as its layered outfit's downed pose, not off a corpse sheet.
+        assertFalse(marine.hasDeathPose);
 
-        // The mech is sheet-drawn too but uses the 8-way layout and overhangs its cell.
+        // The mech is posed too but uses the 8-way layout, overhangs its cell and keeps its hulk sheet.
         RenderAppearance mech = RenderAppearance.of(UnitType.HEAVY_MECH);
         assertEquals(SpriteKind.SHEET, mech.spriteKind);
-        assertEquals(UnitType.FrameLayout.EIGHT_WAY_NO_WEAPON_UP, mech.frameLayout);
         assertTrue(mech.renderScale > 1f, "mech overhangs its cell");
+        assertTrue(mech.hasDeathPose);
     }
 
     @Test

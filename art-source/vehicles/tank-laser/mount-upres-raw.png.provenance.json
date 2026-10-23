@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16639-f187-7dd3-9015-a5b972ea0a20",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16639-f187-7dd3-9015-a5b972ea0a20\\exec-2262fba1-ac5e-4e19-980a-0f307c93b1c0.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\tank-laser\\mount-upres-raw.png",
+    "sha256": "9283ab7928964b4f7986a7531ea10c266615b0be1d4ecaab0c9e67b696eadce7",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\tank-laser\\mount-upres-prompt.txt",
+  "promptSha256": "8b44e7228cdc7cf1dbfd43367d569abef9d6a8b4103ad0df9a40c77196489cd3",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Design, silhouette and colour authority: the hull patch and mount ring to repaint at high resolution, same canvas, pose and scale\n\nRepaint image 1 at high resolution. Image 1 is a tiny game sprite crop, enlarged with hard pixels: a round patch of spaceship hull plating, seen strictly from straight above, with a circular weapon MOUNT RING set into its centre. Keep its design exactly: the same circular silhouette, the same ring, the same cross-shaped pattern inside the ring, the same surrounding plate shapes and colours, in the same position and size on the same canvas. Only replace the blocky pixels with crisp, detailed, painted sci-fi hardware.\nRead the parts as:\n- the dark central ring: a heavy recessed circular turret socket, a thick dark gunmetal race ring with bevelled inner and outer edges;\n- the pale cross shape and dark quadrants inside it: the socket's floor, a four-armed bearing spider with dark gaps between the arms, a small hub at the centre;\n- the cream/beige surroundings: smooth armoured hull plates around the socket with panel seams, a few small vents and bolts, faint grime.\nClean, well-made starship hardware in the Starsector style: semi-realistic painted metal, crisp edges, soft overhead light from the top left, subtle wear. No glow, no lights, no weapon in the socket.\nExactly one object, strict 90-degree overhead orthographic, no perspective tilt. No scene, labels, background, checkerboard, shadow or border. True transparent background outside the circular patch, with genuine alpha. Square canvas, same size and aspect as image 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\tank-laser\\mount-upres-guide.png",
+      "sha256": "afe6bfb8c60137508d23a85d715efa7371f4b6e56ef5a621d917b9a064ada344",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Design, silhouette and colour authority: the hull patch and mount ring to repaint at high resolution, same canvas, pose and scale"
+    }
+  ],
+  "agentMessages": [
+    "I’ll repaint the supplied design as detailed overhead starship hardware, preserving its layout and transparent outer silhouette."
+  ],
+  "usage": {
+    "input_tokens": 41142,
+    "cached_input_tokens": 32512,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 367,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 57.6
+}

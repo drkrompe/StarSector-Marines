@@ -1486,8 +1486,8 @@ count at every ordinary engagement — one rifle into a defender is a share of
 0.72 — so it relaxed spreading everywhere rather than only where the target is
 tough, and cost nine of one fixture's fourteen captures. Squaring the share
 holds the old figure at that ordinary anchor while still collapsing against a
-chassis many rifles deep. Measured on the same tree against
-`battle.targeting.committedFire=false`, that trades two captures on one fixture
+chassis many rifles deep. Measured on the same tree against the per-body
+count, that trades two captures on one fixture
 for turning the other from a defeat into a survival with more than twice the
 compounds taken. Two fixtures pointing opposite ways cannot settle a curve, so
 the exponent was not tuned further; a third attempt would be fitting the matrix

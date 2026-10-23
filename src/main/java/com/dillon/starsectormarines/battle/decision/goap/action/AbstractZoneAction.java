@@ -74,9 +74,6 @@ import java.util.Map;
  */
 abstract class AbstractZoneAction implements Action {
 
-    private static final boolean ISOLATED_ADVANCE_THREAT = Boolean.parseBoolean(
-            System.getProperty("battle.squad.isolatedAdvanceThreat", "true"));
-
     /**
      * Minimum sim-seconds since the last squad replan before a contact-halt is
      * allowed to force another. Without this throttle a pinned squad would
@@ -138,22 +135,6 @@ abstract class AbstractZoneAction implements Action {
 
     private static final boolean CONTACT_DRILL_ENABLED = Boolean.parseBoolean(
             System.getProperty(CONTACT_DRILL_PROPERTY, "false"));
-
-    /**
-     * Turns off zone-contained objective firing positions, restoring the
-     * behaviour to the attack-move-only form it shipped in. On by default;
-     * {@code -Dbattle.squad.objectiveFiringInZone=false} is the control run.
-     *
-     * <p>It exists because the alternative control is a commit-to-commit
-     * comparison, and this repository has already charged a squad behaviour
-     * with a seven-thousand-tick swing that turned out to be another session's
-     * reinforcement work arriving on a merge. A switch measures one change.
-     */
-    public static final String OBJECTIVE_FIRING_IN_ZONE_PROPERTY =
-            "battle.squad.objectiveFiringInZone";
-
-    private static final boolean OBJECTIVE_FIRING_IN_ZONE = Boolean.parseBoolean(
-            System.getProperty(OBJECTIVE_FIRING_IN_ZONE_PROPERTY, "true"));
 
     /**
      * Whether a prosecuting member that can find <em>no</em> firing cell inside
@@ -559,21 +540,15 @@ abstract class AbstractZoneAction implements Action {
         // for why the destination and not the member is the anchor.
         //
         // The footprint is the leash AND the room, when the order names one.
-        // This was restricted to an order with no target zone — the attack
-        // move, which is what it was built for — because the search knows
-        // nothing about rooms and would happily improve a member's angle by
-        // walking it into the room next door. That restriction turned out to
-        // exclude most of the population it was written for: instrumented
-        // over a Conquest matrix, 466,940 member-ticks reached this gate and
-        // 271,732 of them (58%) were refused for naming a zone, of which
-        // 39,342 had a legal firing cell inside their own leash. Containment
-        // is the answer rather than exclusion, and it belongs in the search,
-        // where every candidate can be tested — see the requiredZoneId
-        // overload of findFiringPositionWithin. targetZoneId carries both
-        // cases already: negative for an order with no room, and then the
-        // search is unconstrained exactly as before.
-        if (OBJECTIVE_FIRING_IN_ZONE
-                && haltOnContact && !committed && !inContact
+        // Left to itself the search knows nothing about rooms and would
+        // happily improve a member's angle by walking it into the room next
+        // door; excluding every order that names a zone instead refused 58%
+        // of the member-ticks reaching this gate over a Conquest matrix.
+        // Containment belongs in the search, where every candidate can be
+        // tested — see the requiredZoneId overload of
+        // findFiringPositionWithin. targetZoneId is negative for an order
+        // with no room, and then the search is unconstrained.
+        if (haltOnContact && !committed && !inContact
                 && target != 0L && clearShotOnTarget && opportune == 0L) {
             int[] firingPos = sim.getTacticalScoring().findSquadFiringPositionWithin(
                     member, target, squad, sim.getSimTickIndex(), destX, destY, OBJECTIVE_FIRING_LEASH, targetZoneId);
@@ -581,17 +556,6 @@ abstract class AbstractZoneAction implements Action {
             // refusal simply resumes the order it does have. This deliberately
             // includes a deferred shared-pool refresh: an optional improvement
             // must not stall travel toward the actual objective.
-            if (advanceToReachableFiringPosition(member, sim, firingPos)
-                    == FiringApproach.MOVED) return;
-        } else if (haltOnContact && !committed && !inContact && targetZoneId < 0
-                && target != 0L && clearShotOnTarget && opportune == 0L) {
-            // Control path for -Dbattle.squad.objectiveFiringInZone=false: the
-            // behaviour exactly as it shipped before containment, so a matrix
-            // run can be compared against one on the same tree rather than
-            // against an older commit carrying every other difference with it.
-            int[] firingPos = sim.getTacticalScoring().findSquadFiringPositionWithin(
-                    member, target, squad, sim.getSimTickIndex(), destX, destY, OBJECTIVE_FIRING_LEASH);
-            // As above, a deferred optional improvement may resume the order.
             if (advanceToReachableFiringPosition(member, sim, firingPos)
                     == FiringApproach.MOVED) return;
         }
@@ -747,15 +711,9 @@ abstract class AbstractZoneAction implements Action {
      * by squad.lock. Contact-onset publication has the same dedicated ownership.
      */
     protected static void updateAdvanceThreat(Squad squad, BattleControl sim, int destX, int destY) {
-        updateAdvanceThreat(squad, sim, destX, destY, ISOLATED_ADVANCE_THREAT);
-    }
-
-    /** Same production path with explicit monitor selection for focused controls. */
-    static void updateAdvanceThreat(Squad squad, BattleControl sim, int destX, int destY,
-                                    boolean isolated) {
         int tick = sim.getSimTickIndex();
         if (squad.advanceThreatTick == tick) return;
-        synchronized (isolated ? squad.advanceThreatLock : squad.lock) {
+        synchronized (squad.advanceThreatLock) {
             if (squad.advanceThreatTick == tick) return;
             computeAdvanceThreat(squad, sim, destX, destY, tick);
             // Volatile publication-last: the lock-free fast path must never

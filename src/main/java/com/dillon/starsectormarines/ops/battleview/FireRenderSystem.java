@@ -22,30 +22,24 @@ public final class FireRenderSystem {
     public static final String PROPERTY = "battle.render.fire";
     private static final boolean ENABLED = Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
 
-    /** Flame tongues' size and opacity against a full sheet frame, and the glow under them. */
-    private static final float FLAME_SIZE = 0.62f, FLAME_ALPHA = 0.75f, GLOW_ALPHA = 0.34f;
+    /** The glow's opacity under a burning cell. */
+    private static final float GLOW_ALPHA = 0.34f;
 
-    /** Sheet columns and rows; the smoke frames are the upper two rows, the fire frames the lower two. */
-    private static final int SHEET_COLS = 4, SHEET_ROWS = 4, FIRE_FIRST_ROW = 2, FIRE_FRAMES = 8, SMOKE_FRAMES = 8;
+    /** The smoke-and-fire sheet's columns and rows; the smoke frames are its upper two rows. */
+    private static final int SHEET_COLS = 4, SHEET_ROWS = 4, SMOKE_FRAMES = 8;
     /** Seconds a smoke puff takes to rise and fade. */
     private static final float SMOKE_LIFE = 2.4f;
-    private static final float FLAME_FPS = 10f;
     /** Cell size in pixels below which a fire is drawn as glow and one tongue, no embers. */
     private static final float DETAIL_CELL_PX = 10f;
 
-    /**
-     * The flame look: {@code -Dbattle.render.fireLook=<look>} names a sheet {@code graphics/fx/fire_topdown_<look>.png}
-     * (only {@code a-flame-bed}, the owner's pick, ships; the other looks' sources stay in {@code art-source/fx/fire-topdown});
-     * {@code legacy} draws the old side-view flames off the smoke-and-fire sheet.
-     */
-    static final String FIRE_LOOK = System.getProperty("battle.render.fireLook", "a-flame-bed");
-    static final String FLAME_SHEET_PATH = "legacy".equals(FIRE_LOOK) ? null : "graphics/fx/fire_topdown_" + FIRE_LOOK + ".png";
+    /** The top-down flame sheet, a bed of flame (its source is in {@code art-source/fx/fire-topdown}). */
+    static final String FLAME_SHEET_PATH = "graphics/fx/fire_topdown_a-flame-bed.png";
     /** The flame sheet's grid: cells 0-7 a bed's loop, 8-15 a grass tuft's. */
     private static final int FLAME_COLS = 4, FLAME_LOOP = 8, TUFT_FIRST = 8;
-    /** How thick fire smoke is drawn, 1 the original faint grey (3 the default): {@code -Dbattle.render.smokeDensity}. */
-    private static final float SMOKE_DENSITY = Float.parseFloat(System.getProperty("battle.render.smokeDensity", "3"));
-    /** Smoke's grey: 0.46 at the original density, darkening as it thickens so it stands off flame and creep. */
-    private static final float SMOKE_GREY = Math.max(0.22f, 0.46f - 0.08f * (SMOKE_DENSITY - 1f));
+    /** How thick fire smoke is drawn, against a faint grey at 1: it sets a puff's size and opacity. */
+    private static final float SMOKE_DENSITY = 3f;
+    /** Smoke's grey, dark enough to stand off flame and creep. */
+    private static final float SMOKE_GREY = 0.30f;
     /** A low fire's haze against a brush fire's smoke. */
     private static final float HAZE_ALPHA = 0.35f;
     private static final float TOP_FPS = 7f, TURN_DEG_PER_SEC = 6f, FLAME_ALPHA_TOP = 0.9f, INTERIOR_ALPHA = 0.55f;
@@ -90,12 +84,7 @@ public final class FireRenderSystem {
                     1f, 0.42f, 0.10f, GLOW_ALPHA * heat * ctx.alphaMult);
         }
         SpriteAPI flameSheet = sprites == null ? null : sprites.flameSheet();
-        if (flameSheet != null) {
-            collectTopDown(ctx, out, field, flameSheet, view, cellPx, detail);
-        } else {
-            if (sheet == null || framePxW <= 0) return;
-            collectSideView(ctx, out, field, sheet, view, cellPx, detail, framePxW, framePxH);
-        }
+        if (flameSheet != null) collectTopDown(ctx, out, field, flameSheet, view, cellPx, detail);
         if (!detail || sheet == null || framePxW <= 0) return;
         // Smoke last, over every flame, so a burning crown's screen reads as one.
         for (int i = 0, n = field.burningCount(); i < n; i++) {
@@ -179,37 +168,6 @@ public final class FireRenderSystem {
         float sx = camera.cellToScreenX(ex), sy = camera.cellToScreenY(ey) + life * cellPx * 1.2f;
         out.addSolidRect(RenderLayer.HAZARDS, sx - s, sy - s, sx + s, sy + s,
                 1f, 0.75f, 0.30f, (1f - life) * alphaMult);
-    }
-
-    /** The old side-view flames off the smoke-and-fire sheet: {@code -Dbattle.render.fireLook=legacy}. */
-    private void collectSideView(RenderContext ctx, DrawList out, FireField field, SpriteAPI sheet,
-                                 VisibleCellRect view, float cellPx, boolean detail, int framePxW, int framePxH) {
-        BattleCamera camera = ctx.camera;
-        int w = field.width();
-        for (int i = 0, n = field.burningCount(); i < n; i++) {
-            int idx = field.burningCell(i);
-            int x = idx % w, y = idx / w;
-            if (x < view.minX() || x > view.maxX() || y < view.minY() || y > view.maxY()) continue;
-            int intensity = field.intensityAt(idx);
-            float heat = intensity / 255f;
-            int mask = field.burnedMaskAt(idx);
-            boolean crown = FireFuel.CROWN.in(mask);
-            int tongues = !detail ? 1 : crown ? 3 : 2;
-            for (int k = 0; k < tongues; k++) {
-                int h = hash(idx, 0xF1A + k * 977);
-                float jx = ((h & 0xFF) / 255f - 0.5f) * 0.7f, jy = (((h >>> 8) & 0xFF) / 255f - 0.5f) * 0.7f;
-                float rate = FLAME_FPS * (0.8f + 0.4f * (((h >>> 16) & 0xFF) / 255f));
-                int frame = (int) (clock * rate + (h >>> 24)) % FIRE_FRAMES;
-                // Flame frames run big to small: start each tongue's loop at its fullest and let heat pick the size.
-                float size = cellPx * (crown ? 1.6f : 1.05f) * (0.55f + 0.6f * heat) * FLAME_SIZE;
-                float cx = camera.cellToScreenX(x + 0.5f + jx), cy = camera.cellToScreenY(y + 0.5f + jy) + size * 0.18f;
-                out.addSheetQuad(RenderLayer.HAZARDS, sheet,
-                        (frame % SHEET_COLS) * framePxW, (FIRE_FIRST_ROW + frame / SHEET_COLS) * framePxH,
-                        framePxW, framePxH, cx, cy, size, size,
-                        1f, 0.85f + 0.15f * heat, 0.75f + 0.25f * heat, (0.55f + 0.45f * heat) * FLAME_ALPHA * ctx.alphaMult);
-            }
-            if (detail && intensity > 200) emitEmber(out, camera, idx, x, y, cellPx, ctx.alphaMult);
-        }
     }
 
     /**

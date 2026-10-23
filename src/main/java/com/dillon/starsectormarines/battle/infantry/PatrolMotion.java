@@ -30,30 +30,21 @@ import com.dillon.starsectormarines.battle.profile.TickInnerProfile.Bucket;
  * waypoint write is lock-guarded, matching the GOAP action concurrency contract.
  */
 public final class PatrolMotion {
-    public static final String BOUND_GUARD_PATROL_PROPERTY = "battle.pathfinding.boundGuardPatrol";
-    public static final String BOUND_DISTRICT_PATROL_PROPERTY = "battle.pathfinding.boundDistrictPatrol";
-
-    /** Separate controls and attribution over the same optional-travel mechanism. */
+    /** Separate attribution over the same optional-travel mechanism. */
     public enum OptionalRoutePolicy {
-        NONE(null, null, null, null, null),
-        GUARD(BOUND_GUARD_PATROL_PROPERTY, Bucket.GUARD_PATROL_SEARCH, Bucket.GUARD_PATROL_EXPANDED,
+        NONE(null, null, null, null),
+        GUARD(Bucket.GUARD_PATROL_SEARCH, Bucket.GUARD_PATROL_EXPANDED,
                 Bucket.GUARD_PATROL_REFUSAL, Bucket.GUARD_PATROL_BACKOFF),
-        DISTRICT(BOUND_DISTRICT_PATROL_PROPERTY, Bucket.DISTRICT_PATROL_SEARCH, Bucket.DISTRICT_PATROL_EXPANDED,
+        DISTRICT(Bucket.DISTRICT_PATROL_SEARCH, Bucket.DISTRICT_PATROL_EXPANDED,
                 Bucket.DISTRICT_PATROL_REFUSAL, Bucket.DISTRICT_PATROL_BACKOFF);
 
-        private final String property;
         final Bucket search, expanded, refusal, backoff;
 
-        OptionalRoutePolicy(String property, Bucket search, Bucket expanded, Bucket refusal, Bucket backoff) {
-            this.property = property;
+        OptionalRoutePolicy(Bucket search, Bucket expanded, Bucket refusal, Bucket backoff) {
             this.search = search;
             this.expanded = expanded;
             this.refusal = refusal;
             this.backoff = backoff;
-        }
-
-        boolean enabled() {
-            return this != NONE && Boolean.parseBoolean(System.getProperty(property, "true"));
         }
     }
 
@@ -97,7 +88,7 @@ public final class PatrolMotion {
     public static ActionStatus advance(long member, Squad squad, BattleControl sim,
                                        WaypointSource source, boolean fireWhilePatrolling) {
         OptionalRoutePolicy policy = source.optionalRoutePolicy();
-        boolean boundedQuiet = policy.enabled()
+        boolean boundedQuiet = policy != OptionalRoutePolicy.NONE
                 && !sim.world().hasMechLoadout(member);
         if (squad.patrolDwellTimer > 0f) {
             TickInnerProfile profile = TickInnerProfile.currentIfBound();

@@ -120,6 +120,8 @@ final class HeadlessBattleSprites extends BattleSprites {
     private SpriteAPI engineFlame;
     private SpriteAPI engineGlow;
     private SpriteAPI shadowBlob;
+    private int shadowBlobPxW;
+    private int shadowBlobPxH;
 
     /** Tokens that answer their own size and draw nothing — the Java2D drain's. */
     HeadlessBattleSprites(Path modRoot) throws Exception {
@@ -220,6 +222,8 @@ final class HeadlessBattleSprites extends BattleSprites {
         engineFlame = spriteOrNull(ENGINE_FLAME_SPRITE);
         engineGlow = spriteOrNull(ENGINE_GLOW_SPRITE);
         shadowBlob = spriteOrNull(SHADOW_BLOB_SPRITE);
+        shadowBlobPxW = shadowBlob == null ? 0 : Math.round(shadowBlob.getWidth());
+        shadowBlobPxH = shadowBlob == null ? 0 : Math.round(shadowBlob.getHeight());
     }
 
     private SpriteAPI spriteOrNull(String path) {
@@ -384,7 +388,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public synchronized SpriteAPI flameSheet() {
         if (!flameLoaded) {
             flameLoaded = true;
-            flameSheet = FireRenderSystem.FLAME_SHEET_PATH == null ? null : spriteOrNull(FireRenderSystem.FLAME_SHEET_PATH);
+            flameSheet = spriteOrNull(FireRenderSystem.FLAME_SHEET_PATH);
         }
         return flameSheet;
     }
@@ -392,6 +396,8 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public SpriteAPI engineFlameSprite() { return engineFlame; }
     @Override public SpriteAPI engineGlowSprite() { return engineGlow; }
     @Override public SpriteAPI shadowBlobSprite() { return shadowBlob; }
+    @Override public int shadowBlobPxW() { return shadowBlobPxW; }
+    @Override public int shadowBlobPxH() { return shadowBlobPxH; }
     /** Already loaded in the constructor, off the resource roots rather than through the game. */
     @Override public void ensureEngineFxSprites() { }
     @Override public void ensureShadowSprite() { }

@@ -17,7 +17,7 @@ class SquadRouteBuildJobTest {
             NavigationGrid grid = openGrid(widths[i], heights[i]);
             GreedyNavigationMesh.Snapshot mesh = new GreedyNavigationMesh(grid).snapshot();
             SquadRouteBuildJob job = new SquadRouteBuildJob(grid);
-            job.begin(request(grid, 10, 10, null, 9, 10, 10, 11), mesh, true);
+            job.begin(request(grid, 10, 10, null, 9, 10, 10, 11), mesh);
             finish(job, 7);
             assertEquals(3072, job.corridorCells());
             assertEquals(1, job.seedSearches());
@@ -52,7 +52,7 @@ class SquadRouteBuildJobTest {
                 SquadRouteRequest request = request(grid, 65, 11, cost, 1, 2, 2, 12, 68, 0);
                 SquadRouteField expected = legacyField(grid, mesh, request);
                 SquadRouteBuildJob job = new SquadRouteBuildJob(grid);
-                job.begin(request, mesh, true);
+                job.begin(request, mesh);
                 finish(job, 3);
                 assertEquals(expected.corridorCellCount(), job.corridorCells());
                 assertEquals(expected.settledCellCount(), job.field().settledCellCount());
@@ -78,7 +78,7 @@ class SquadRouteBuildJobTest {
         NavigationGrid grid = openGrid(70, 9);
         SquadRouteBuildJob job = new SquadRouteBuildJob(grid);
         job.begin(request(grid, 35, 4, null, 0, 8, 69, 0),
-                new GreedyNavigationMesh(grid).snapshot(), true);
+                new GreedyNavigationMesh(grid).snapshot());
         assertEquals(0, job.advance(0));
         assertFalse(job.isDone());
         finish(job, 3);
@@ -101,7 +101,7 @@ class SquadRouteBuildJobTest {
         int[] expected = GridPathfinder.findSquadRouteSeed(grid, 1, 1, 12, 1,
                 GridPathfinder.USE_CARDINAL_NAVIGATION, cost);
         SquadRouteBuildJob job = new SquadRouteBuildJob(grid);
-        job.begin(request(grid, 12, 1, cost, 1, 1), new GreedyNavigationMesh(grid).snapshot(), true);
+        job.begin(request(grid, 12, 1, cost, 1, 1), new GreedyNavigationMesh(grid).snapshot());
         finish(job, 1);
         assertNotNull(job.field());
         assertArrayEquals(expected, job.field().extract(1, 1));
@@ -121,7 +121,7 @@ class SquadRouteBuildJobTest {
         RouteCostField cost = new RouteCostField(costs, RouteCostField.nextRevision());
         SquadRouteBuildJob job = new SquadRouteBuildJob(grid);
         job.begin(request(grid, 12, 1, cost, 1, 1, 2, 1),
-                new GreedyNavigationMesh(grid).snapshot(), true);
+                new GreedyNavigationMesh(grid).snapshot());
         finish(job, 7);
         for (int x : new int[]{1, 2}) {
             int[] expected = GridPathfinder.findSquadRouteSeed(grid, x, 1, 12, 1,
@@ -137,11 +137,11 @@ class SquadRouteBuildJobTest {
         NavigationGrid grid = openGrid(100, 3);
         GreedyNavigationMesh.Snapshot mesh = new GreedyNavigationMesh(grid).snapshot();
         SquadRouteBuildJob job = new SquadRouteBuildJob(grid);
-        job.begin(request(grid, 99, 1, null, 0, 1, 0, 2), mesh, true);
+        job.begin(request(grid, 99, 1, null, 0, 1, 0, 2), mesh);
         finish(job, 11);
         SquadRouteField first = job.field();
         int[] firstPath = first.extract(0, 1);
-        job.begin(request(grid, 2, 0, null, 0, 0), mesh, true);
+        job.begin(request(grid, 2, 0, null, 0, 0), mesh);
         finish(job, 2);
         assertArrayEquals(firstPath, first.extract(0, 1));
         assertFalse(job.field().covers(grid.index(99, 1)));
@@ -154,7 +154,7 @@ class SquadRouteBuildJobTest {
         for (int y = 0; y < 10; y++) grid.setSharedEdgePassable(10, y, Direction.E, false);
         SquadRouteBuildJob job = new SquadRouteBuildJob(grid);
         job.begin(request(grid, 18, 5, null, 0, 5),
-                new GreedyNavigationMesh(grid).snapshot(), true);
+                new GreedyNavigationMesh(grid).snapshot());
         assertEquals(4, job.advance(4));
         assertFalse(job.isDone());
         assertNull(job.field());
@@ -169,7 +169,7 @@ class SquadRouteBuildJobTest {
         NavigationGrid grid = openGrid(15, 3);
         SquadRouteBuildJob job = new SquadRouteBuildJob(grid);
         job.begin(request(grid, 14, 1, null, 0, 1),
-                new GreedyNavigationMesh(grid).snapshot(), true);
+                new GreedyNavigationMesh(grid).snapshot());
         job.advance(3);
         long work = job.workUnits();
         grid.setWalkable(7, 1, false);
@@ -186,12 +186,12 @@ class SquadRouteBuildJobTest {
         for (int y = 0; y < 3; y++) grid.setWalkable(7, y, false);
         grid.preparePathComponents(GridPathfinder.USE_CARDINAL_NAVIGATION);
         SquadRouteBuildJob job = new SquadRouteBuildJob(grid);
-        job.begin(request(grid, 14, 1, null, 0, 1), new GreedyNavigationMesh(grid).snapshot(), true);
+        job.begin(request(grid, 14, 1, null, 0, 1), new GreedyNavigationMesh(grid).snapshot());
         finish(job, 1);
         assertNull(job.field());
         assertEquals(0, job.seedExpanded());
         grid.setWalkableFloor(7, 1);
-        job.begin(request(grid, 14, 1, null, 0, 1), new GreedyNavigationMesh(grid).snapshot(), true);
+        job.begin(request(grid, 14, 1, null, 0, 1), new GreedyNavigationMesh(grid).snapshot());
         finish(job, 1);
         assertNotNull(job.field());
         assertTrue(job.seedExpanded() > 0);
@@ -202,15 +202,15 @@ class SquadRouteBuildJobTest {
         NavigationGrid grid = openGrid(40, 7);
         GreedyNavigationMesh.Snapshot mesh = new GreedyNavigationMesh(grid).snapshot();
         SquadRouteBuildJob reused = new SquadRouteBuildJob(grid);
-        reused.begin(request(grid, 39, 6, null, 0, 0), mesh, true);
+        reused.begin(request(grid, 39, 6, null, 0, 0), mesh);
         reused.advance(13);
         assertFalse(reused.isDone());
         reused.release();
         SquadRouteRequest request = request(grid, 0, 3, null, 39, 2, 38, 4);
-        reused.begin(request, mesh, true);
+        reused.begin(request, mesh);
         finish(reused, 1);
         SquadRouteBuildJob fresh = new SquadRouteBuildJob(grid);
-        fresh.begin(request, mesh, true);
+        fresh.begin(request, mesh);
         finish(fresh, 10_000);
         assertEquals(fresh.workUnits(), reused.workUnits());
         assertEquals(fresh.seedExpanded(), reused.seedExpanded());

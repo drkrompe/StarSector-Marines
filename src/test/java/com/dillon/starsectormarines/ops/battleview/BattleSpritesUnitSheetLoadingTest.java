@@ -73,7 +73,7 @@ class BattleSpritesUnitSheetLoadingTest {
     }
 
     @Test
-    void unitSheetLoadingFollowsUnitTypeRenderCapability() {
+    void unitSheetLoadingRequestsOnlyDeclaredCorpseSheets() {
         List<String> loadedPaths = new ArrayList<>();
         BattleSprites sprites = new BattleSprites() {
             @Override
@@ -87,11 +87,8 @@ class BattleSpritesUnitSheetLoadingTest {
 
         List<String> expectedPaths = new ArrayList<>();
         for (UnitType type : UnitType.values()) {
-            if (!type.drawnAsSheet()) continue;
-            expectedPaths.add(type.spritePath);
-            if (type.deadSpritePath != null) expectedPaths.add(type.deadSpritePath);
+            if (type.carriesSprite() && type.deadSpritePath != null) expectedPaths.add(type.deadSpritePath);
         }
-        assertEquals(expectedPaths, loadedPaths);
-        assertFalse(loadedPaths.contains(""), "non-sheet unit types must not request the mod directory as a texture");
+        assertEquals(expectedPaths, loadedPaths, "live bodies have no sheet; only corpse sheets load");
     }
 }

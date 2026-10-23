@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a168da-ef5c-7de0-afe2-5b2bbfc37cb3",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a168da-ef5c-7de0-afe2-5b2bbfc37cb3\\exec-926f4771-7471-460a-974a-33ece674a532.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\tank-laser\\hull-raw-pd.png",
+    "sha256": "1bf114b1042be388016d8b3ddab5d91c039afd8ba8ce7e8ba82c86fc9f67cc04",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\tank-laser\\hull-prompt-pd.txt",
+  "promptSha256": "2668258347d297239cc2e687a8e889935368ead2842068ee19a049e463b88851",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity authority: the hull to keep, same canvas, pose, scale, outline and parts\nImage 2: Geometry authority: where the radar dish and the short power bank go on the rear deck\n\nEdit image 1, an approved painted top-down sprite of a tracked vehicle HULL, nose pointing LEFT, on a wide transparent canvas. Image 2 is the same hull with one area of the rear deck blocked in as flat shapes. Keep the hull's outline, plate layout, sloped front glacis with its viewing window, round mount ring, radiator fins, tracks, camera, position and scale exactly as in image 1.\nThis is a different maker's build of the same hull: a rugged MIDLINE military refit, not a corporate one.\n1. REPAINT the armour panels in a worn GUNMETAL grey (dark-to-mid blue-grey steel) with darker graphite recesses and trim, chipped paint edges showing bare steel, light dust in the seams. Add a few small RED-ORANGE hazard markings and stencil stripes on the corner plates. Absolutely no white or off-white panels, no beige, no yellow, no gold.\n2. The thin cyan light strips along the side skirts and the small cyan lamps at the rear corners become small dull RED running lamps and plain recessed slots; no cyan anywhere on the vehicle.\n3. The blocked area on the rear deck of image 2 replaces the capacitor pack: the big light circle becomes a FIRE-CONTROL RADAR: a round, slightly dished tracking antenna seen from above, a pale grey metal dish with concentric ribs and a dark central feed horn, set in a heavy graphite bay; below it, the dark block becomes a short sealed POWER BANK: an armoured graphite box holding three capped energy cells with small dim red charge windows.\n4. The viewing window keeps its dark smoked glass, now framed in gunmetal.\nNo glow halos, no beams, no other new parts.\nStrict 90-degree overhead orthographic, no perspective tilt. Exactly one object: the hull; no top module, no scene, labels, background, checkerboard, ground shadow or border. True transparent background with genuine alpha outside the silhouette. Same canvas size and aspect as image 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\tank-laser\\hull-raw-b4.png",
+      "sha256": "88e6b37c90b6719f2579e485ad5010a77540b108411e7741ae6cf1dc11d43e8c",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Identity authority: the hull to keep, same canvas, pose, scale, outline and parts"
+    },
+    {
+      "path": "art-source\\vehicles\\tank-laser\\hull-guide-pd.png",
+      "sha256": "e931f9485ee723cf0587b36a45ff35764e9b2a0d17031c9ab4d1d98a5c7490f6",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority: where the radar dish and the short power bank go on the rear deck"
+    }
+  ],
+  "agentMessages": [
+    "I’m using the imagegen skill to create one edited image, preserving the hull and using the second reference for the rear-deck layout."
+  ],
+  "usage": {
+    "input_tokens": 115367,
+    "cached_input_tokens": 86656,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 823,
+    "reasoning_output_tokens": 17
+  },
+  "elapsedSeconds": 73.7
+}

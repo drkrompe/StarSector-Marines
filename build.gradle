@@ -208,6 +208,8 @@ test {
     inputs.dir('mod/data')
     // Opening localization checks catalog references in production code.
     inputs.dir('src/main/java')
+    // SwitchRegistryTest holds every -Dbattle.*/-Dmarines.* read against it.
+    inputs.file('roadmap/switches.md')
     inputs.file('asset-pipeline/src/tool/resources/audio/audio.json')
     inputs.dir('asset-pipeline/src/tool/resources/audio/wayline')
     inputs.dir('art-source/audio/shepherd')
@@ -734,10 +736,6 @@ tasks.register('profileBattleFixture', Test) {
     ['battle.profile.warmupTicks', 'battle.profile.prerollTicks',
      'battle.profile.sliceTicks', 'battle.profile.minimumMillis',
      'battle.unitUpdate.minimumParallelUnits',
-     'battle.pathfinding.sharedGoalFields',
-     'battle.pathfinding.minimumSharedGoalUnits',
-     'battle.pathfinding.squadRouteCorridors',
-     'battle.pathfinding.maxSquadRouteBuildsPerTick',
      'battle.pathfinding.casualtyRouteCost'].each { propertyName ->
         def propertyValue = System.getProperty(propertyName, '')
         if (!propertyValue.isBlank()) {
@@ -1218,6 +1216,21 @@ tasks.register('deployMod', Sync) {
     }
 }
 
+// Lossless PNG recompression for the release zip only (measured 163 -> 148 MB under mod/graphics).
+// Optimised copies live under build/; tracked art in mod/ is never rewritten. Pixel identity is
+// checked per file inside the script, and an up-to-date task skips it entirely.
+tasks.register('optimizePngs', Exec) {
+    group = 'starsector'
+    description = 'Recompress mod/graphics PNGs losslessly into build/optimized-png/graphics'
+    def src = new File(modOutputDir, 'graphics')
+    def dst = layout.buildDirectory.dir('optimized-png/graphics').get().asFile
+    inputs.dir(src).withPropertyName('graphics')
+    inputs.file('tools/optimize_pngs.py')
+    outputs.dir(dst)
+    commandLine(org.gradle.internal.os.OperatingSystem.current().isWindows() ? 'python' : 'python3',
+            file('tools/optimize_pngs.py').absolutePath, src.absolutePath, dst.absolutePath)
+}
+
 // The public release: what deployMod puts in the game's mods folder, as one zip whose top-level
 // folder is the mod's install folder. Built from mod/ with the two generated folders replaced by
 // fresh outputs -- the shaded jar alone (not whatever else sits in mod/jars) and audio transcoded
@@ -1226,7 +1239,8 @@ tasks.register('deployMod', Sync) {
 tasks.register('packageRelease', Zip) {
     group = 'starsector'
     description = 'Zip the shippable mod into build/release/StarsectorMarines-<version>.zip'
-    dependsOn tasks.named('verifyModJarBoundary'), ':asset-pipeline:processReleaseAudio'
+    dependsOn tasks.named('verifyModJarBoundary'), ':asset-pipeline:processReleaseAudio',
+            tasks.named('optimizePngs')
 
     def releaseSounds = layout.buildDirectory.dir("release/sounds").get().asFile
     def manifest = new File(modOutputDir, 'mod_info.json')
@@ -1236,8 +1250,9 @@ tasks.register('packageRelease', Zip) {
 
     into(modName) {
         from(modOutputDir) {
-            exclude 'jars/**', 'sounds/**', '**/.gitkeep', '**/*.md'
+            exclude 'jars/**', 'sounds/**', '**/.gitkeep', '**/*.md', 'graphics/**/*.png'
         }
+        into('graphics') { from layout.buildDirectory.dir('optimized-png/graphics') }
         into('jars') { from tasks.named('shadowJar') }
         into('sounds') { from releaseSounds }
     }
