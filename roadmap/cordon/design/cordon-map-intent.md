@@ -117,7 +117,8 @@ clear it. R2 to R4 need no new structure.
 3. The set pieces, one per beat, each checked on the pools. Built, but R1's
    wreck (above) and the dozer.
 4. Then the optional-objective mechanism, shared with the heart, which rolls
-   beats against what the layout placed.
+   beats against what the layout placed. The mechanism is built
+   (`optional-objectives.md`); the Cordon's pool and runtimes are not.
 
 ## Open
 

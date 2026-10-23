@@ -408,7 +408,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         var marks = new DirectControlFireMarks.Marks(DirectControlFireMarks.of(!ManualPointFire.tooClose(weapon, cells),
                 cells, ManualPointFire.optimalRangeCells(weapon), weapon.range), DirectControlFireMarks.Mark.NONE);
         // The reticle is laid out y up, as the GL panel draws; this frame is y down, so build it mirrored and flip back.
-        for (var stroke : DirectControlReticle.strokes(DirectControlReticle.LIVE, marks, spreadCells * px, -1f,
+        for (var stroke : DirectControlReticle.strokes(marks, spreadCells * px, -1f,
                 aimX, -aimY, aimX - ringX, ringY - aimY, DirectControlPanel.controlledColor())) {
             strokes.add(new DirectControlAimLane.Stroke(stroke.x(), -stroke.y(), stroke.endX(), -stroke.endY(),
                     stroke.width(), stroke.color()));
