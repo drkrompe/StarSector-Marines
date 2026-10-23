@@ -56,7 +56,7 @@ import time
 import traceback
 from pathlib import Path
 
-VERSION = "2026-10-23.1"
+VERSION = "2026-10-23.2"
 MACHINES = ("mac", "windows")
 LANES = ("light", "review", "final")
 DEFAULT_CONFIG = {
@@ -95,6 +95,12 @@ DEFAULT_CONFIG = {
     "retain_failed_hours": 48,
     # A busy machine leaves a fresh `any` job this long for an idle one to claim.
     "any_grace_seconds": 120,
+    # Daytime routing, switched by the render coordinator (`prefer mac` / `prefer off`):
+    # while set, the other machine leaves an unclaimed `any` job in these lanes to
+    # the preferred one until the job has waited wait_seconds, unless the preferred
+    # runner is down or its gate is paused. Windows is the owner's daily machine;
+    # the Mac is the render box. None (the night setting) routes as before.
+    "prefer": None,  # e.g. {"machine": "mac", "wait_seconds": 1800, "lanes": ["review", "final"]}
     # Do not start a job while a background Blender this runner did not start is
     # running (a hand-started render); frozen (stopped) ones do not count.
     "block_on_foreign_blender": True,
@@ -580,6 +586,17 @@ def cmd_prioritize(args) -> int:
     return 0
 
 
+def cmd_prefer(args) -> int:
+    def f(c):
+        if args.machine == "off":
+            c["prefer"] = None
+        else:
+            c["prefer"] = {"machine": args.machine, "wait_seconds": args.wait,
+                           "lanes": args.lanes.split(",")}
+    print("prefer:", edit_config(f)["prefer"])
+    return 0
+
+
 def cmd_cancel(args) -> int:
     q = Queue(find_drive_root() / "render-queue")
     if args.id not in q.jobs():
@@ -953,6 +970,8 @@ class Runner:
                 w = claim_winner(self.q.claims(jid))
                 if w and w != self.machine:
                     continue
+                if not w and self.leave_to_preferred(job):
+                    continue
             # A job preempted before it had run preempt_min_run_seconds is owed the
             # rest of that run: it goes back in ahead of any queued earlier-lane job,
             # so back-to-back light jobs cannot keep a final swapped out.
@@ -969,6 +988,25 @@ class Runner:
                 return None
             return jid
         return None
+
+    def leave_to_preferred(self, job) -> bool:
+        """True while config `prefer` names another machine for this job's lane, that
+        machine's runner is alive with its gate open, and the job has waited less
+        than wait_seconds."""
+        pref = self.cfg.get("prefer")
+        if not isinstance(pref, dict) or pref.get("machine") in (None, self.machine):
+            return False
+        if job["lane"] not in pref.get("lanes", ["review", "final"]):
+            return False
+        if time.time() - float(job.get("submitted_epoch", 0)) >= int(pref.get("wait_seconds", 1800)):
+            return False
+        other = pref["machine"]
+        if self.cfg.get("gates", {}).get(other) != "run" and job["lane"] not in self.cfg.get("ungated_lanes", ["light"]):
+            return False
+        st = self.q.statuses().get(other, {})
+        if not st.get("updated_epoch") or time.time() - st["updated_epoch"] > 900:
+            return False  # preferred runner down: don't leave work waiting on it
+        return True
 
     def foreign_blender(self) -> bool:
         """A background Blender this runner did not start (a hand-started render)."""
@@ -1678,6 +1716,11 @@ def main(argv=None) -> int:
     s.add_argument("id")
     s.add_argument("priority", type=int)
     s.set_defaults(fn=cmd_prioritize)
+    s = sub.add_parser("prefer", help="render coordinator only: route `any` jobs to one machine first (day) or off (night)")
+    s.add_argument("machine", choices=MACHINES + ("off",))
+    s.add_argument("--wait", type=int, default=1800, help="seconds a job waits for that machine (default 1800)")
+    s.add_argument("--lanes", default="review,final", help="lanes it applies to (default review,final)")
+    s.set_defaults(fn=cmd_prefer)
     s = sub.add_parser("install", help="install and start this machine's runner")
     s.add_argument("--repo", help="this machine's clone (default: the current repository)")
     s.add_argument("--blender", help="Blender executable for {blender}")

@@ -3,6 +3,11 @@ package com.dillon.starsectormarines.battle.fire;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.creep.CreepGrowth;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.world.MapEditor;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.DoodadService;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import org.junit.jupiter.api.Test;
@@ -85,6 +90,32 @@ class BuildingFireTest {
         assertEquals(FireFuel.GRASS.bit | FireFuel.CREEP.bit, fire.fuelMask(2), "creep over grass is fuel");
         assertEquals(0, fire.fuelMask(5), "creep over a bare ride does not burn");
         assertEquals(0, fire.fuelMask(10), "nor over a road");
+    }
+
+    @Test
+    void aWoodenPropBurnsAndIsLeftAsItsDestroyedArt() {
+        NavigationGrid grid = new NavigationGrid(W, 1);
+        CellTopology topo = new CellTopology(W, 1);
+        for (int x = 0; x < W; x++) {
+            grid.setWalkableFloor(x, 0);
+            topo.setGroundKind(x, 0, GroundKind.DIRT);
+        }
+        DoodadService props = new DoodadService(grid);
+        props.addDoodad(new Doodad(3, 0, TileRegistry.installed().doodad("doodad.crate"), 0, false));
+        props.addDoodad(new Doodad(6, 0, TileRegistry.installed().doodad("doodad.fort-sandbag-n"), 0, false));
+        try (NavigationService navigation = new NavigationService(grid, topo, false)) {
+            MapEditor editor = new MapEditor(navigation);
+            editor.setDoodads(props);
+            BattleFire fire = new BattleFire(grid, topo, props, editor, () -> null, 1L);
+            assertEquals(FireFuel.DEBRIS.bit, fire.fuelMask(3), "a crate is debris fuel");
+            assertEquals(0, fire.fuelMask(6), "a sandbag is not");
+            assertEquals(0, fire.fuelMask(5), "nor is bare dirt");
+            fire.burntOut(3, FireFuel.DEBRIS.bit);
+            assertEquals("doodad.crate-destroyed", props.getDoodads().get(0).definitionId(), "burnt out, the crate is wreckage");
+            assertEquals(0, fire.fuelMask(3), "and wreckage does not burn again");
+            fire.burntOut(3, FireFuel.DEBRIS.bit);
+            assertEquals(GroundKind.DIRT, topo.getGroundKind(3, 0), "a cell with nothing standing is never breached");
+        }
     }
 
     @Test

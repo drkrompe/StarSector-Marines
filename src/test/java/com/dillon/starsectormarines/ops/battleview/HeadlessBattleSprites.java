@@ -22,10 +22,11 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.HandsetLayer;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.render2d.texture.FittedTextureOverlay;
+import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.json.JSONObject;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.reflect.Proxy;
@@ -67,9 +68,10 @@ final class HeadlessBattleSprites extends BattleSprites {
         /**
          * @param path the resource path, as the game would name it
          * @param file where that path actually resolved on disk
-         * @param image the decoded pixels, valid only for the duration of the call
+         * @param width the image's logical width in pixels
+         * @param height its logical height
          */
-        SpriteAPI token(String path, Path file, BufferedImage image);
+        SpriteAPI token(String path, Path file, int width, int height);
     }
 
     private static final String INFANTRY_ROOT =
@@ -159,8 +161,11 @@ final class HeadlessBattleSprites extends BattleSprites {
         loadInfantry();
         loadHulls();
         for (VehicleType type : VehicleType.values()) {
-            vehicles.put(type, new UnitSpriteCache(sprite(type.spritePath),
-                    type.registeredSpriteFrames(slice(type.spritePath))));
+            // As the game loads them: equal slots from the sheet's size, no slicing.
+            SpriteAPI sheet = sprite(type.spritePath);
+            Asset size = assets.get(sheet);
+            vehicles.put(type, new UnitSpriteCache(sheet, type.registeredSpriteFrames(new SpriteSheetFrames(
+                    size.width(), size.height(), new SpriteSheetFrames.Frame[0]))));
         }
         for (var structure : TurretCatalogRegistry.installed().structures()) {
             loadWholeSprite(turretBases, structure.id, structure.mount.spritePath);
@@ -651,6 +656,7 @@ final class HeadlessBattleSprites extends BattleSprites {
 
     private SpriteSheetFrames slice(String path) throws IOException {
         BufferedImage image = read(path);
+        TextureUsage.sliced(path);
         return SpriteSheetSlicer.slice(image);
     }
 
@@ -663,11 +669,18 @@ final class HeadlessBattleSprites extends BattleSprites {
         return extraTerrainSheets.values();
     }
 
+    /** A token for {@code path}, sized from the file's header: neither drain needs its pixels here. */
     private SpriteAPI sprite(String path) throws IOException {
         Path file = resolve(path);
-        BufferedImage image = read(path);
-        SpriteAPI token = tokens.token(path, file, image);
-        assets.put(token, new Asset(path, image.getWidth(), image.getHeight()));
+        int[] size;
+        try {
+            size = FittedTextureOverlay.size(path, file);
+        } catch (IOException failure) {
+            throw new IOException("Could not read " + path, failure);
+        }
+        SpriteAPI token = tokens.token(path, file, size[0], size[1]);
+        assets.put(token, new Asset(path, size[0], size[1]));
+        TextureUsage.name(token, path, size[0], size[1]);
         return token;
     }
 
@@ -687,9 +700,9 @@ final class HeadlessBattleSprites extends BattleSprites {
      * cap. The drain paints from {@code HeadlessUiRenderer}'s own store,
      * never from here.
      */
-    private static SpriteAPI identityToken(String path, Path file, BufferedImage image) {
-        float width = image.getWidth();
-        float height = image.getHeight();
+    private static SpriteAPI identityToken(String path, Path file, int pixelWidth, int pixelHeight) {
+        float width = pixelWidth;
+        float height = pixelHeight;
         return (SpriteAPI) Proxy.newProxyInstance(
                 SpriteAPI.class.getClassLoader(), new Class<?>[]{SpriteAPI.class},
                 (proxy, method, args) -> switch (method.getName()) {
@@ -714,7 +727,7 @@ final class HeadlessBattleSprites extends BattleSprites {
         Path file = resolve(path);
         BufferedImage image;
         try {
-            image = ImageIO.read(file.toFile());
+            image = FittedTextureOverlay.read(path, file);
         } catch (IOException failure) {
             throw new IOException("Could not read " + path, failure);
         }

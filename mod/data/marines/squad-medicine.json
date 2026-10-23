@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "ranks": [
+    {
+      "rank": 1,
+      "energyMax": 30,
+      "energyRegenPerSecond": 0.2,
+      "energyPerPoint": 1,
+      "minStartEnergy": 7.5,
+      "woundFloorFraction": 0.05,
+      "healthPerSecond": 2.5,
+      "armorPerSecond": 1,
+      "reachCells": 1.5,
+      "approachSeconds": 8,
+      "retrySeconds": 3,
+      "treatBelowHealth": 0.7,
+      "treatBelowArmor": 0.5,
+      "heavyFirePressure": 2
+    },
+    {
+      "rank": 2,
+      "energyMax": 40,
+      "energyRegenPerSecond": 0.3,
+      "energyPerPoint": 1,
+      "minStartEnergy": 10,
+      "woundFloorFraction": 0.05,
+      "healthPerSecond": 3,
+      "armorPerSecond": 1.5,
+      "reachCells": 1.5,
+      "approachSeconds": 8,
+      "retrySeconds": 3,
+      "treatBelowHealth": 0.7,
+      "treatBelowArmor": 0.5,
+      "heavyFirePressure": 2
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ui.retained;
 
+import com.dillon.starsectormarines.render2d.texture.ModTextures;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
@@ -37,8 +38,8 @@ public final class UiSpriteCache implements UiImageResolver {
 
     private static UiImage load(String path) {
         try {
-            Global.getSettings().loadTexture(path);
-            SpriteAPI sprite = Global.getSettings().getSprite(path);
+            ModTextures.loadTexture(path);
+            SpriteAPI sprite = ModTextures.sprite(path);
             // Said once, because the outcome is cached. A caller that draws
             // nothing and says nothing is the failure mode this whole class
             // exists downstream of: a hull backdrop that simply did not appear.

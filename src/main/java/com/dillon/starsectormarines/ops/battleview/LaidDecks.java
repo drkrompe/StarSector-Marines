@@ -170,6 +170,16 @@ public final class LaidDecks {
         return new Laid(map, homeRooms);
     }
 
+    /**
+     * Start laying out the deck the company is about to move aboard, so the
+     * first visit finds her ready rather than being got ready. A visit that
+     * arrives first simply waits on the same lock and reads the kept deck.
+     */
+    public static void layHomeAhead(CompanyShip ship, long seed) {
+        if (ship == null) return;
+        off(() -> homeDeck(ship, seed));
+    }
+
     /** Whether this hull's deck is the one being kept. */
     static synchronized boolean isHomeDeck(CompanyShip ship, long seed) {
         return ship != null && homeMap != null && Hull.of(ship, seed).equals(homeHull);

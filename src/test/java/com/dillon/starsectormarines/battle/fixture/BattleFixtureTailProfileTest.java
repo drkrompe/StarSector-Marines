@@ -595,12 +595,7 @@ class BattleFixtureTailProfileTest {
         report.put("renderSink", "none");
         report.put("workerTimeline", jfrPath != null && Boolean.getBoolean("battle.tail.workerTimeline"));
         report.put("asyncDefendTrack", true);
-        report.put("squadTraffic", Boolean.getBoolean("battle.squad.traffic"));
-        report.put("squadTrafficYield", Boolean.parseBoolean(System.getProperty(
-                "battle.squad.trafficYield", "true")));
         report.put("pathSearchTimingSemantics", "Flat search samples and expansion totals include squad-field fallbacks; worker elapsed times overlap. goalOccupancy is the unsigned destination reservation count, -1 when unknown.");
-        report.put("squadFiringPositions", Boolean.parseBoolean(System.getProperty(
-                "battle.targeting.squadFiringPositions", "false")));
         report.put("asyncDefendSite", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.asyncDefendSite", "true")));
         report.put("minimumParallelUnits",

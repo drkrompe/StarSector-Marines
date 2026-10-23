@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.render2d.ShaderProgram;
 import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import org.lwjgl.BufferUtils;
 
+import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -288,6 +289,7 @@ final class CliffArtLayer implements RenderSystem {
         try {
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, atlasW, atlasH, 0, GL_RGBA, GL_UNSIGNED_BYTE, atlas);
+            Reference.reachabilityFence(atlas);   // LWJGL 2 keeps only the address
         } finally {
             glPopClientAttrib();
         }

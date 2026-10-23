@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.fire;
 
+import com.dillon.starsectormarines.battle.combat.EnvironmentMaterial;
 import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -24,6 +25,10 @@ import java.util.function.Supplier;
  * heavier than that, burns at none of its walls, windows or floors, and a
  * striped (military) floor never burns. A standing wall or window stops heat
  * passing over it, so fire gets in through doorways and through what burns.
+ *
+ * <p><b>Wooden props burn.</b> A cell whose standing prop is wood (a crate, wooden
+ * furniture, a pallet stack) is debris fuel, and the prop is destroyed when the
+ * cell burns out; wire, drums, sandbags, machinery and stone do not burn.
  *
  * <p><b>Creep burns where it has ground to feed it.</b> Over grass or brush it is
  * fuel, living or dead; over cleared ground (bare earth, roads, paving) with
@@ -104,6 +109,7 @@ public final class BattleFire implements FireTerrain, FireField.Listener {
             mask |= FireFuel.CROWN.bit;
         }
         mask |= structureFuel(idx, x, y, ground);
+        if (woodenPropAt(x, y)) mask |= FireFuel.DEBRIS.bit;
         CreepField c = creep.get();
         // Creep over cleared ground (a ride, a road, a bare yard) is a film with nothing under it to feed it:
         // it does not burn, so a cleared break still holds once the bloom has grown over it.
@@ -177,6 +183,15 @@ public final class BattleFire implements FireTerrain, FireField.Listener {
         return out;
     }
 
+    /**
+     * Whether the standing destructible prop on a cell is wood ({@link EnvironmentMaterial#forProp}): a crate, a
+     * box, wooden furniture, a pallet stack. Wire fences, drums, sandbags, machinery and stone do not burn.
+     */
+    private boolean woodenPropAt(int x, int y) {
+        if (doodads == null) return false;
+        return EnvironmentMaterial.forProp(doodads.damageablePropIdAt(x, y, topology)) == EnvironmentMaterial.WOOD;
+    }
+
     private boolean isTree(int x, int y) {
         if (doodads == null) return false;
         String id = doodads.damageablePropIdAt(x, y, topology);
@@ -204,6 +219,11 @@ public final class BattleFire implements FireTerrain, FireField.Listener {
         }
         if (FireFuel.CROWN.in(fuelMask) && mapEditor != null && !grid.isWalkableAt(idx)) {
             mapEditor.damageWall(x, y, CROWN_BURN_DAMAGE);
+        }
+        // A wooden prop burnt through is left as its destroyed art. Only while it still stands: with nothing on
+        // the cell, a structural hit would breach the ground itself.
+        if (FireFuel.DEBRIS.in(fuelMask) && mapEditor != null && woodenPropAt(x, y)) {
+            mapEditor.damageWall(x, y, BURNT_THROUGH_DAMAGE);
         }
     }
 

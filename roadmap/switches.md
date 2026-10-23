@@ -47,7 +47,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.colonyBreach.strikes` | experiment | 2026-10-21 | Colony Breach / Bloom sessions: remove each once its colony-breach reading is accepted (colony-breach-nouns.md). |
 | `battle.command.conquest.balancedHomeTracks` | experiment | 2026-10-11 | Conquest command (2026-10-11): remove once commanderEvidence -Pmission=conquest has been read against it. |
 | `battle.conquest.attackerHoldsGround` | experiment | 2026-10-20 | Conquest command (2026-10-20): remove once commanderEvidence -Pmission=conquest accepts it. |
-| `battle.conquest.derivedLift` | undecided | 2026-09-02 | Default off since 2026-09-02 (conquest-nouns.md). Ship it or delete the code. |
 | `battle.counterattack` | control | 2026-10-20 | Standing control: the commander-evidence counter-attack control (commander-evidence-missions.md). Its composed .<knob> evidence knobs (reserveShare, minStrength, ...) fold into constants when the counter-attack balance pass closes. |
 | `battle.creep.feedMultiplier` | tuning | 2026-10-22 | Creep-speed pass (owner picks 2026-10-23): fold into constants once the owner confirms the rates in play. |
 | `battle.creep.spreadScale` | tuning | 2026-10-22 | Creep-speed pass (owner picks 2026-10-23): fold into constants once the owner confirms the rates in play. |
@@ -81,7 +80,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.heart.holdBack` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
 | `battle.infantry.fightingPositions` | experiment | 2026-10-13 | Fighting positions (ai-nouns.md): remove once the defender fighting-position work is accepted. |
 | `battle.infantry.laneSidestep` | control | 2026-09-01 | Standing control: FiringLineScene runs the off arm as its control loop (behavior-scenes.md). Retire it with that loop. |
-| `battle.infantry.medicKeepMoving` | undecided | 2026-10-14 | Default off since 2026-10-14 (squad-medic.md). Ship it or delete the code. |
 | `battle.infantry.rejoin` | control | 2026-09-01 | Standing control: the control and contested-control loops of LateArrivalScene run the off arm. Retire it with those loops. |
 | `battle.influence.async` | config | 2026-09-26 | Permanent: determinism. Test and evidence tasks force the synchronous arm, and the live game runs async. |
 | `battle.junction.talonTwo` | experiment | 2026-10-15 | Junction (commander-evidence-missions.md): remove once commanderEvidence -Pmission=junction accepts Talon Two. |
@@ -140,13 +138,8 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.sallyDoors.closable` | experiment | 2026-10-21 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.sallyDoors.derived` | experiment | 2026-10-20 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.separation.capsules` | experiment | 2026-10-21 | Continuous positions (continuous-positions-nouns.md): remove once capsule separation is accepted. |
-| `battle.squad.apertureSpread` | undecided | 2026-10-11 | Default off since 2026-10-11 (conquest-command.md). Ship it or delete the code. |
-| `battle.squad.contactDrill` | undecided | 2026-08-30 | Default off since 2026-08-30 (ai-nouns.md). Ship it or delete the code. |
 | `battle.squad.prosecutionFallThrough` | control | 2026-09-01 | Standing control: the frozen-control loop of ProsecutionHoldScene runs the off arm and its verdict depends on it. Retire it with that loop. |
-| `battle.squad.roomCellSpread` | undecided | 2026-10-11 | Default off since 2026-10-11 (conquest-command.md). Ship it or delete the code. |
 | `battle.squad.routeCommitNeedsFreshContact` | experiment | 2026-10-13 | Squad zone actions (2026-10-13): remove once the squad zone-action evidence has been read against it. |
-| `battle.squad.traffic` | undecided | 2026-09-26 | Default off; SquadTrafficScene compares it. The owner decides whether to ship it (drop the switch, keep the code) or drop it (delete the code). |
-| `battle.squad.trafficYield` | experiment | 2026-09-26 | Part of the squad-traffic experiment (squad-traffic.md): its off arm isolates spreading from the speed preference. Remove it together with battle.squad.traffic. |
 | `battle.squad.transitSpacing` | experiment | 2026-10-11 | Conquest command (2026-10-11): remove once commanderEvidence -Pmission=conquest has been read against it. Its composed .cells/.maxHold knobs go with it. |
 | `battle.story.reactiveDefence` | experiment | 2026-10-21 | As battle.mission.reactiveDefence. Its composed .share knob goes with it. |
 | `battle.swarm.barricadeAssault` | experiment | 2026-10-22 | Swarm/Bloom sessions: remove each once colony-breach evidence accepts it (colony-breach-nouns.md). |
@@ -161,8 +154,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.swarm.packLeaders` | experiment | 2026-10-21 | Swarm/Bloom sessions: remove each once colony-breach evidence accepts it (colony-breach-nouns.md). |
 | `battle.swarm.packSplit` | experiment | 2026-10-22 | Swarm/Bloom sessions: remove each once colony-breach evidence accepts it (colony-breach-nouns.md). |
 | `battle.tail.replanCpu` | config | 2026-09-27 | Permanent: opt-in profileConquestTail instrumentation, off in play. |
-| `battle.targeting.friendlyLanePenalty` | undecided | 2026-09-01 | Default off since 2026-09-01 (ai-nouns.md). Ship it or delete the code. |
-| `battle.targeting.squadFiringPositions` | undecided | 2026-09-26 | Default off with its own profileSquadFiringPositions task (squad-firing-positions.md). Ship it, or delete the code together with that task. |
 | `battle.tender.fairThreat` | control | 2026-10-12 | Standing control: TenderBuildScene runs the off arm as its control loop. Retire it with that loop. |
 | `battle.thunderRun.reactiveColumn` | experiment | 2026-10-15 | Thunder Run: remove once commanderEvidence -Pmission=thunder-run accepts the reactive column. |
 | `battle.turret.crewFriendlyHold` | experiment | 2026-10-22 | Lane-discipline work: remove once lane discipline is accepted (ballistics-nouns.md). |
@@ -173,10 +164,10 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.vehicle.backingTurnDegrees` | experiment | 2026-10-19 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
 | `battle.vehicle.disarmedWithdraw` | experiment | 2026-10-19 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
 | `battle.vehicle.duelRange` | experiment | 2026-10-18 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
+| `battle.vehicle.edgeClearance` | control | 2026-10-23 | Control for edge-aware vehicle clearance; remove once the edge rule has shipped and a later Cordon/Heart evidence pass ran without reaching for it. |
 | `battle.vehicle.faceInBand` | experiment | 2026-10-19 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
 | `battle.vehicle.faceKnownOnly` | experiment | 2026-10-19 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
 | `battle.vehicle.faceWorstThreat` | experiment | 2026-10-19 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
-| `battle.vehicle.locatedArmor` | undecided | 2026-10-20 | Default off since 2026-10-20 (d5-located-armor.md). Ship it or delete the code with the D5 story. |
 | `battle.vehicle.pivotAccuracy` | experiment | 2026-10-19 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
 | `battle.vehicle.progressiveRecovery` | experiment | 2026-09-27 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
 | `battle.vehicle.recoveryExpansionsPerTick` | experiment | 2026-09-27 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
@@ -188,7 +179,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.vehicle.turretDamage` | experiment | 2026-10-18 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
 | `battle.vehicle.turretHitShare` | experiment | 2026-10-18 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
 | `battle.vehicle.turretPoolShare` | experiment | 2026-10-18 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
-| `battle.vehicle.withdrawNoseOn` | undecided | 2026-10-19 | Default off since 2026-10-19 (convoy-nouns.md). Ship it or delete the code. |
 | `battle.warship.atmosphericHandling` | experiment | 2026-10-16 | Warship tactics pass (warship-tactics.md, air-nouns.md): remove each with its losing path once the warship scenes have been read against it. Numeric ones fold into constants. |
 | `battle.warship.atmosphericSpeedShare` | experiment | 2026-10-16 | Warship tactics pass (warship-tactics.md, air-nouns.md): remove each with its losing path once the warship scenes have been read against it. Numeric ones fold into constants. |
 | `battle.warship.atmosphericTurnShare` | experiment | 2026-10-16 | Warship tactics pass (warship-tactics.md, air-nouns.md): remove each with its losing path once the warship scenes have been read against it. Numeric ones fold into constants. |
@@ -203,7 +193,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.warship.hullContact` | experiment | 2026-10-16 | Warship tactics pass (warship-tactics.md, air-nouns.md): remove each with its losing path once the warship scenes have been read against it. Numeric ones fold into constants. |
 | `battle.warship.hullDurability` | experiment | 2026-10-18 | Warship tactics pass (warship-tactics.md, air-nouns.md): remove each with its losing path once the warship scenes have been read against it. Numeric ones fold into constants. |
 | `battle.warship.hullFightFooting` | experiment | 2026-10-18 | Warship tactics pass (warship-tactics.md, air-nouns.md): remove each with its losing path once the warship scenes have been read against it. Numeric ones fold into constants. |
-| `battle.warship.hullFightWithdrawal` | undecided | 2026-10-18 | Default off since 2026-10-18 (warship-tactics.md). Ship it or delete the code. |
 | `battle.warship.hullPresence` | experiment | 2026-10-16 | Warship tactics pass (warship-tactics.md, air-nouns.md): remove each with its losing path once the warship scenes have been read against it. Numeric ones fold into constants. |
 | `battle.warship.hullRange` | experiment | 2026-10-18 | Warship tactics pass (warship-tactics.md, air-nouns.md): remove each with its losing path once the warship scenes have been read against it. Numeric ones fold into constants. |
 | `battle.warship.hullReachShare` | experiment | 2026-10-16 | Warship tactics pass (warship-tactics.md, air-nouns.md): remove each with its losing path once the warship scenes have been read against it. Numeric ones fold into constants. |

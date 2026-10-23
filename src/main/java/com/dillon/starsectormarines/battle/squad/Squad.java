@@ -20,7 +20,6 @@ import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
-import com.dillon.starsectormarines.battle.decision.SquadFiringPositions;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.perception.NoiseKind;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -612,8 +611,6 @@ public final class Squad {
     public float centroidY = 0f;
     /** Whether this squad is being held back from the room it was sent to. */
     public final EntryGate entryGate = new EntryGate();
-    /** Experimental local firing geometry and individual reservations; never mission authority. */
-    public final SquadFiringPositions firingPositions;
     /**
      * Internal flags filled mid-pass by {@code SquadAlertSystem}
      * to track "did any squadmate's LoS hit this tick" / "did anyone trip a
@@ -1182,7 +1179,6 @@ public final class Squad {
     public Squad(int id, Faction faction) {
         this.id = id;
         this.faction = faction;
-        this.firingPositions = new SquadFiringPositions(id);
         this.retainedFlankWaypoint = new RetainedFlankWaypoint(id);
     }
 

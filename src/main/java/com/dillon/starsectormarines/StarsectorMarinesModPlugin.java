@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines;
 
 import com.dillon.starsectormarines.campaign.start.SecondWindKeeper;
+import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.fs.starfarer.api.campaign.CampaignEventListener;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.ops.AgreusArcCampaign;
@@ -9,6 +10,7 @@ import com.dillon.starsectormarines.campaign.start.CompanyProloguePresenter;
 import com.dillon.starsectormarines.cinematic.ArrivalCinematicPresenter;
 import com.dillon.starsectormarines.battle.audio.CompanyOfficer;
 import com.dillon.starsectormarines.battle.audio.OperationRadio;
+import com.dillon.starsectormarines.battle.infantry.SquadMedicine;
 
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CampaignState;
@@ -29,6 +31,7 @@ import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayoutCatalo
 import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainCatalog;
 import com.dillon.starsectormarines.battle.world.gen.damage.DamageCatalog;
+import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
@@ -79,6 +82,8 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
     private static final int ABILITY_BARS = 5;
 
     private static final Logger LOG = Global.getLogger(StarsectorMarinesModPlugin.class);
+    /** Under {@code saves/common/}, with the {@code .data} suffix the settings API adds. */
+    private static final String TEXTURE_USAGE_FILE = "marines_texture_usage";
 
     @Override
     public void onApplicationLoad() throws Exception {
@@ -87,6 +92,17 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // too. Silent process deaths have no stack to catch; see
         // ProcessExitWatchdog for how to read the log tail after one.
         ProcessExitWatchdog.install(DevConfig.PROCESS_HEARTBEAT_SECONDS);
+        // Dev builds measure how large every texture is drawn, for the release build's
+        // texture fit; tools/texture_usage.py folds the file into the checked-in record.
+        if (DevConfig.DEV_MODE) {
+            TextureUsage.enable("game", json -> {
+                try {
+                    Global.getSettings().writeTextFileToCommon(TEXTURE_USAGE_FILE, json);
+                } catch (Exception e) {
+                    LOG.warn("Texture usage record not written", e);
+                }
+            });
+        }
         // Every retained page's press, disabled-press and hover cues, played through the
         // game's own sound player with the base game's UI sound ids.
         UiSounds.install(new UiSounds(id -> Global.getSoundPlayer().playUISound(id, 1f, 1f), System::nanoTime));
@@ -104,10 +120,14 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         RoadCatalog.loadBuiltins();
         TerrainCatalog.loadBuiltins();
         DamageCatalog.loadBuiltins();
+        StoryMapPools.loadBuiltins();
         WaylineNarration.loadBuiltins();
         CompanyManagementGuide.loadBuiltins();
         CompanyOfficer.loadBuiltins();
         OperationRadio.loadBuiltins();
+        // Field Medicine's per-rank numbers; fail-loud, since a missing table would
+        // otherwise read as an officer without the specialty.
+        SquadMedicine.loadBuiltins();
         // Weapon catalog → id-addressed registry (moddable-weapons W1). Unlike the
         // tile registries this is NOT self-defensive: a weapon whose stats failed to
         // load would read zero range and zero damage, so a bad catalog must stop

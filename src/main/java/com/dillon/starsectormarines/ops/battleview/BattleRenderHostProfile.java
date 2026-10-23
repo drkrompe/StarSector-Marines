@@ -18,6 +18,12 @@ public enum BattleRenderHostProfile {
      */
     OBSERVER_SCENE(false, false, true, false, false, false),
     /**
+     * The neutral observer drawn into a real GL context: {@link #OBSERVER_SCENE}'s bodies and decorations, with the
+     * surface-relief composite and the resident ground, fog and decals the battle screen uses. Only a host that owns
+     * a context can elect it; the headless review's GPU backend does.
+     */
+    OBSERVER_GL(false, true, true, true, false, false),
+    /**
      * A ship's deck, where the world does not fill its own grid.
      *
      * <p>A ground map is ground everywhere, so a backing quad under the whole

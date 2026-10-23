@@ -26,6 +26,11 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
+import com.dillon.starsectormarines.battle.world.gen.pool.MapPatch;
+import com.dillon.starsectormarines.battle.world.gen.pool.StoryMap;
+import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPool;
+import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -57,28 +62,65 @@ public final class BloomHeartSetup {
         return new TargetProfile(0, 0, 0, 0, "", Set.of(), SurfacePalette.VERDANT, SettlementLink.ROAD);
     }
 
-    /** The heart's country, bores and matured bloom, at tick zero. */
+    /** The story map a form plays from ({@code story-map-pools.md}). */
+    public static StoryMap storyMap(Form form) {
+        return form == Form.THE_BURN ? StoryMap.HEART_BURN : StoryMap.HEART_FRONT;
+    }
+
+    /**
+     * The heart's country, bores and matured bloom, at tick zero: the pooled
+     * map when the form's pool holds {@code seed}, else the first country from
+     * it whose bores seat. The second is how a candidate is tried before it is
+     * pooled; the campaign reaches only the first.
+     */
     public static Built country(Form form, long seed) {
-        TargetProfile profile = verdant();
+        StoryMapPool.Entry entry = StoryMapPools.installed() ? StoryMapPools.pool(storyMap(form)).entry(seed) : null;
+        if (entry != null) return country(form, entry);
         for (int attempt = 0; attempt < ATTEMPTS; attempt++) {
-            long battleSeed = seed + attempt * 0x9E3779B97F4A7C15L;
-            PrecinctPlan plan = HeartCountry.planFor(form, battleSeed);
-            MapResult map = MAP_GEN.generate(form.scale.width, form.scale.height, battleSeed, null, profile, plan);
-            Precinct workings = HeartCountry.place(plan, HeartCountry.WORKINGS);
-            Precinct landing = plan.landingPlace();
-            HeartBores heart = HeartBores.plan(map.grid, map.topology, form,
-                    new int[]{workings.seedX(), workings.seedY()},
-                    new int[]{landing.seedX(), landing.seedY()}, battleSeed ^ BORE_SALT);
-            if (heart == null) continue;
-            BattleSimulation sim = BattleSetup.buildMap(map, Collections.emptyList(),
-                    Collections.emptyList(), battleSeed).sim();
-            sim.setSurface(profile.surface());
-            heart.open(sim);
-            sim.matureCreep();
-            return new Built(sim, map, plan, heart, battleSeed);
+            Built built = build(form, seed + attempt * 0x9E3779B97F4A7C15L, MapPatch.NONE);
+            if (built != null) return built;
         }
         throw new IllegalStateException("no heart country of form " + form + " seated its bores in "
                 + ATTEMPTS + " attempts from seed " + seed);
+    }
+
+    /** A pooled heart country: never re-rolled, so a pooled seed whose bores no longer seat is a broken pool. */
+    public static Built country(Form form, StoryMapPool.Entry entry) {
+        Built built = build(form, entry.seed(), entry.patch());
+        if (built == null) {
+            throw new IllegalStateException(storyMap(form).id + " seed " + entry.seed()
+                    + " does not seat its bores");
+        }
+        return built;
+    }
+
+    private static HeartBores bores(Form form, MapResult map, PrecinctPlan plan, long battleSeed) {
+        Precinct workings = HeartCountry.place(plan, HeartCountry.WORKINGS);
+        Precinct landing = plan.landingPlace();
+        return HeartBores.plan(map.grid, map.topology, form,
+                new int[]{workings.seedX(), workings.seedY()},
+                new int[]{landing.seedX(), landing.seedY()}, battleSeed ^ BORE_SALT);
+    }
+
+    /** The country from one seed with its patch, or {@code null} when its bores do not seat. */
+    private static Built build(Form form, long battleSeed, MapPatch patch) {
+        TargetProfile profile = verdant();
+        PrecinctPlan plan = patch.pinned(HeartCountry.planFor(form, battleSeed));
+        MapResult map = MAP_GEN.generate(form.scale.width, form.scale.height, battleSeed, null, profile, plan);
+        HeartBores heart = bores(form, map, plan, battleSeed);
+        if (heart == null) return null;
+        map = patch.ruined(map, battleSeed);
+        BattleSimulation sim = BattleSetup.buildMap(map, Collections.emptyList(),
+                Collections.emptyList(), battleSeed).sim();
+        sim.setSurface(profile.surface());
+        heart.open(sim);
+        sim.matureCreep();
+        return new Built(sim, map, plan, heart, battleSeed);
+    }
+
+    /** The heart as a campaign battle: the pooled map for a roll its event carries. */
+    public static BattleSimulation pooledMission(Form form, long roll, List<ShuttleAssignment> manifest) {
+        return mission(form, StoryMapPools.pool(storyMap(form)).pick(roll).seed(), manifest);
     }
 
     /** Broad Front's company lane: satellites this share of the map's width either side of its landing are its own. */

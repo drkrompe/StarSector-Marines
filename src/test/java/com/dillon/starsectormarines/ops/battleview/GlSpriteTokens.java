@@ -1,14 +1,16 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.render2d.texture.FittedTextureOverlay;
+
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.lwjgl.BufferUtils;
 
-import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
+import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.file.Path;
@@ -82,8 +84,8 @@ final class GlSpriteTokens implements HeadlessBattleSprites.SpriteTokens, AutoCl
     private final List<Integer> owned = new ArrayList<>();
 
     @Override
-    public SpriteAPI token(String path, Path file, BufferedImage image) {
-        return new Token(path, file, image.getWidth(), image.getHeight()).proxy();
+    public SpriteAPI token(String path, Path file, int width, int height) {
+        return new Token(path, file, width, height).proxy();
     }
 
     /** How many distinct sheets a run actually bound — the working set, not the catalog. */
@@ -101,16 +103,17 @@ final class GlSpriteTokens implements HeadlessBattleSprites.SpriteTokens, AutoCl
     private int texture(String path, Path file) {
         Integer existing = uploaded.get(path);
         if (existing != null) return existing;
-        int name = upload(file);
+        int name = upload(path, file);
         uploaded.put(path, name);
         owned.add(name);
         return name;
     }
 
-    private int upload(Path file) {
+    private int upload(String path, Path file) {
         BufferedImage image;
         try {
-            image = ImageIO.read(file.toFile());
+            // Through the overlay, as the catalog sized it: a texture-fit A/B run draws the fitted build here too.
+            image = FittedTextureOverlay.read(path, file);
         } catch (IOException failure) {
             throw new IllegalStateException("Could not re-read " + file + " to upload it", failure);
         }
@@ -145,6 +148,8 @@ final class GlSpriteTokens implements HeadlessBattleSprites.SpriteTokens, AutoCl
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, TRANSPARENT);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+        // LWJGL 2 keeps only the address; without this the collector may free the pixels mid-upload.
+        Reference.reachabilityFence(pixels);
         return name;
     }
 

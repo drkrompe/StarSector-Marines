@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.battle.combat.fx;
 
+import com.dillon.starsectormarines.render2d.texture.ModTextures;
+import com.dillon.starsectormarines.render2d.texture.TextureLease;
+import com.dillon.starsectormarines.render2d.texture.TextureLedger;
+import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.battle.weapon.fx.FxBlend;
 import com.dillon.starsectormarines.battle.weapon.fx.FxCompositionContext;
@@ -86,14 +90,19 @@ public final class ImpactFx {
 
     /** Lazy-loads shared particle/glow assets and vanilla explosion sprites. Safe to call repeatedly; failures are logged and affected layers no-op. */
     public void ensureSprites() {
+        ensureSprites(TextureLedger.shared().session());
+    }
+
+    /** {@link #ensureSprites()} under {@code lease}, which keeps the textures until it is released. */
+    public void ensureSprites(TextureLease lease) {
         if (spritesLoadAttempted) return;
         spritesLoadAttempted = true;
-        particleSheetSprite = loadSpriteOrNull(SPRITE_PARTICLE_SHEET);
-        glowSprite          = loadSpriteOrNull(SPRITE_GLOW);
-        shardSprite         = loadSpriteOrNull("graphics/battle/fx/aircraft-metal-chip.png");
-        explosionRingSprite = loadSpriteOrNull(SPRITE_EXPLOSION_RING);
+        particleSheetSprite = loadSpriteOrNull(SPRITE_PARTICLE_SHEET, lease);
+        glowSprite          = loadSpriteOrNull(SPRITE_GLOW, lease);
+        shardSprite         = loadSpriteOrNull("graphics/battle/fx/aircraft-metal-chip.png", lease);
+        explosionRingSprite = loadSpriteOrNull(SPRITE_EXPLOSION_RING, lease);
         for (int i = 0; i < SPRITE_EXPLOSIONS.length; i++) {
-            explosionSprites[i] = loadSpriteOrNull(SPRITE_EXPLOSIONS[i]);
+            explosionSprites[i] = loadSpriteOrNull(SPRITE_EXPLOSIONS[i], lease);
         }
     }
 
@@ -496,6 +505,11 @@ public final class ImpactFx {
             s.setTexWidth(cellW);
             s.setTexHeight(cellH);
         }
+        if (TextureUsage.isEnabled()) {
+            boolean sheet = p.frameCount > 0;
+            TextureUsage.sprite(s, radiusPx * 2f * p.aspectRatio * (sheet ? PARTICLE_SHEET_COLS : 1),
+                    radiusPx * 2f * (sheet ? PARTICLE_SHEET_ROWS : 1));
+        }
         s.renderAtCenter(camera.cellToScreenX(p.x), camera.cellToScreenY(p.y));
         // Reset UVs on the shared sprite so the next particle that uses it
         // doesn't inherit a frame index. Cheap — four setters.
@@ -507,10 +521,10 @@ public final class ImpactFx {
         }
     }
 
-    private static SpriteAPI loadSpriteOrNull(String path) {
+    private static SpriteAPI loadSpriteOrNull(String path, TextureLease lease) {
         try {
-            Global.getSettings().loadTexture(path);
-            SpriteAPI sprite = Global.getSettings().getSprite(path);
+            ModTextures.loadTexture(path, lease);
+            SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("ImpactFx: getSprite returned null for " + path);
                 return null;

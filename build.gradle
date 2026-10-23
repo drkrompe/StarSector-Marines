@@ -170,7 +170,7 @@ void forwardBattleSwitches(task) {
 test {
     useJUnitPlatform {
         excludeTags 'battle-profile', 'battle-tail-profile', 'convoy-route-evidence',
-                'squad-firing-evidence', 'swarm-flow-evidence',
+                'swarm-flow-evidence',
                 'commander-balance', 'conquest-trial-evidence',
                 'sabotage-command-evidence', 'assault-command-evidence', 'relief-command-evidence', 'counterattack-command-evidence', 'junction-command-evidence', 'relay-nine-command-evidence', 'thunder-run-command-evidence', 'last-lift-command-evidence', 'supply-route-campaign-evidence',
                 'raid-command-evidence', 'extraction-command-evidence', 'colony-breach-command-evidence', 'cordon-command-evidence', 'heart-command-evidence', 'corvus-command-evidence', 'power-suit-campaign-evidence',
@@ -178,7 +178,7 @@ test {
                 'crew-liveliness', 'shader-evidence', 'render-evidence', 'garrison-evidence',
                 'generated-space-evidence',
                 'loadout-card-sheet', 'loadout-matchup', 'armor-matchup', 'armor-economy-evidence',
-                'bloom-evidence'
+                'bloom-evidence', 'story-map-pool-evidence'
     }
     testLogging {
         // Audit-style tests print their report to stdout — stream it to the
@@ -309,6 +309,31 @@ tasks.register('bloomEvidence', Test) {
     systemProperty 'bloom.evidence.seeds', providers.gradleProperty('seeds').getOrElse('8')
     systemProperty 'bloom.evidence.outputDir',
             providers.gradleProperty('evidenceDir').getOrElse(layout.buildDirectory.dir('reports/blooms').get().asFile.absolutePath)
+    testLogging {
+        showStandardStreams = true
+    }
+}
+
+// Regenerates every story map pool's seeds (story-map-pools.md) and fails when one no
+// longer meets its mission's acceptance, so a mapgen change that breaks a pooled map is
+// caught rather than shipped. -Pcandidates=cordon-line:1-40,heart-burn:1-20 screens seeds
+// that are not pooled yet and reports them without failing. Generates whole maps: opt-in.
+tasks.register('storyMapPools', Test) {
+    group = 'verification'
+    description = 'Regenerate every pooled story-map seed and check its acceptance; opt-in, excluded from test.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'story-map-pool-evidence'
+    }
+    maxParallelForks = 1
+    outputs.upToDateWhen { false }
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    systemProperty 'storyMapPools.candidates', providers.gradleProperty('candidates').getOrElse('')
+    systemProperty 'storyMapPools.parallelism', providers.gradleProperty('parallelism')
+            .getOrElse(String.valueOf(Math.max(1, Runtime.runtime.availableProcessors().intdiv(2))))
+    systemProperty 'storyMapPools.outputDir',
+            providers.gradleProperty('evidenceDir').getOrElse(layout.buildDirectory.dir('reports/story-map-pools').get().asFile.absolutePath)
     testLogging {
         showStandardStreams = true
     }
@@ -833,22 +858,6 @@ tasks.register('profileSwarmFlow', Test) {
     testLogging { showStandardStreams = true }
 }
 
-// Scorer-level quality/work evidence, not a played battle or a timing gate.
-tasks.register('profileSquadFiringPositions', Test) {
-    group = 'verification'
-    description = 'Compare individual and experimental shared firing-position scoring in a bounded six-member arena.'
-    testClassesDirs = sourceSets.test.output.classesDirs
-    classpath = sourceSets.test.runtimeClasspath
-    useJUnitPlatform { includeTags 'squad-firing-evidence' }
-    maxParallelForks = 1
-    outputs.upToDateWhen { false }
-    systemProperty 'starsectorDir', starsectorDir.absolutePath
-    systemProperty 'battle.influence.async', 'false'
-    systemProperty 'battle.pathfinding.asyncDefendTrack', 'false'
-    forwardBattleSwitches(delegate)
-    testLogging { showStandardStreams = true }
-}
-
 tasks.register('profileClearanceRoute', JavaExec) {
     group = 'verification'
     description = 'Measure circular-clearance routes and competing requests on synthetic and generated battle terrain.'
@@ -860,11 +869,74 @@ tasks.register('profileClearanceRoute', JavaExec) {
     args layout.buildDirectory.dir('reports/performance/clearance-route').get().asFile.absolutePath
 }
 
+// ---- LWJGL 3 headless GL, for a machine whose game install LWJGL 2 cannot load in (gpu-review-drain.md) ----
+// The Mac: the game's liblwjgl is x86_64 and the JDK is arm64. `gl3` holds the LWJGL 3 surface (CGL there, a hidden
+// GLFW window elsewhere) and stubs for the LWJGL 2 classes LWJGL 3 does not have; `gl3patch` writes LWJGL 3's GL11
+// with the LWJGL 2 client-array overloads the draw batches call. Tool classpath only: none of it can reach the mod
+// jar, and none of it is on `test`.
+configurations {
+    lwjgl3
+}
+
+dependencies {
+    lwjgl3 "org.lwjgl:lwjgl:${lwjglVersion}", "org.lwjgl:lwjgl-opengl:${lwjglVersion}", "org.lwjgl:lwjgl-glfw:${lwjglVersion}"
+    ['natives-windows', 'natives-macos', 'natives-macos-arm64'].each { natives ->
+        lwjgl3 "org.lwjgl:lwjgl:${lwjglVersion}:${natives}"
+        lwjgl3 "org.lwjgl:lwjgl-opengl:${lwjglVersion}:${natives}"
+        lwjgl3 "org.lwjgl:lwjgl-glfw:${lwjglVersion}:${natives}"
+    }
+}
+
+sourceSets {
+    gl3 {
+        java.srcDir 'src/gl3/java'
+        compileClasspath = sourceSets.test.output + configurations.lwjgl3
+    }
+    gl3patch {
+        java.srcDir 'src/gl3patch/java'
+    }
+}
+
+// java.lang.classfile is final from 24; the patcher runs on the build's own toolchain and never ships.
+tasks.named('compileGl3patchJava', JavaCompile) {
+    options.release = 25
+}
+
+def patchedLwjgl3Dir = layout.buildDirectory.dir('gl3/patched')
+
+tasks.register('patchLwjgl3Gl11', JavaExec) {
+    group = 'build'
+    description = "Write LWJGL 3's GL11 with the LWJGL 2 overloads the mod's batches call (headless LWJGL 3 classpath)"
+    classpath = sourceSets.gl3patch.runtimeClasspath
+    mainClass = 'com.dillon.starsectormarines.tools.gl3.PatchLwjgl3Gl11'
+    def openglJar = configurations.lwjgl3.elements.map { files ->
+        files.collect { it.asFile }.find { it.name == "lwjgl-opengl-${lwjglVersion}.jar".toString() }
+    }
+    inputs.files(configurations.lwjgl3)
+    outputs.dir(patchedLwjgl3Dir)
+    doFirst {
+        args openglJar.get().absolutePath, patchedLwjgl3Dir.get().asFile.absolutePath
+    }
+}
+
+// Which GL binding the review drain's context comes from: `lwjgl2` (the game's, a pbuffer) or `lwjgl3`. LWJGL 3 by
+// default on a Mac, where LWJGL 2 cannot load; `-PsnapshotGl=lwjgl3` runs the same path on Windows.
+def snapshotGl = providers.gradleProperty('snapshotGl').getOrElse(
+        System.getProperty('os.name', '').toLowerCase(Locale.ROOT).contains('mac') ? 'lwjgl3' : 'lwjgl2')
+
 tasks.register('createSnapshots', JavaExec) {
     group = 'verification'
     description = 'Create deterministic visual snapshots without launching Starsector'
     dependsOn tasks.named('testClasses')
-    classpath = sourceSets.test.runtimeClasspath
+    if (snapshotGl == 'lwjgl3') {
+        dependsOn tasks.named('patchLwjgl3Gl11'), tasks.named('gl3Classes')
+        // The patched GL11 ahead of the LWJGL 3 jar, and the game's LWJGL 2 out: the two cannot share a classpath.
+        classpath = files(patchedLwjgl3Dir) + sourceSets.gl3.output + configurations.lwjgl3 +
+                sourceSets.test.runtimeClasspath.filter { it.name != 'lwjgl.jar' }
+        systemProperty 'snapshot.gl.context', 'com.dillon.starsectormarines.testsupport.gl3.Lwjgl3Surface'
+    } else {
+        classpath = sourceSets.test.runtimeClasspath
+    }
     mainClass = 'com.dillon.starsectormarines.ops.CreateSnapshotsCli'
     workingDir projectDir
     systemProperty 'starsectorDir', starsectorDir.absolutePath
@@ -876,6 +948,9 @@ tasks.register('createSnapshots', JavaExec) {
     // Snapshot scenes play the same worlds `sceneEvidence` does and must read the same: serial, overridable by a -Dbattle switch.
     systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
     forwardBattleSwitches(delegate)
+    // Review frames are drawn on the GPU through the shipping renderer, falling back to Java2D where no context can be
+    // made (`ReviewSceneBackend`, `gpu-review-drain.md`). `-Dsnapshot.backend=java2d` is the reference, and overrides.
+    systemProperty 'snapshot.backend', 'gl'
     // `-Dsnapshot.threads=N` (`SnapshotWorkers`; 1 is the serial control) and any other snapshot switch.
     System.properties.each { key, value ->
         if (key.toString().startsWith('snapshot.')) systemProperty key.toString(), value
@@ -1197,6 +1272,11 @@ tasks.named('check').configure { dependsOn tasks.named('verifyModJarBoundary') }
 // produces the mod jar without needing to name `shadowJar` explicitly.
 tasks.named('assemble').configure { dependsOn tasks.named('shadowJar') }
 
+// Deploy ships the fitted textures too (see optimizePngs), so a dev game runs on what players
+// get; -PfitTextures=false deploys the source PNGs as they are.
+def deployFittedTextures = !project.hasProperty('fitTextures') || project.property('fitTextures').toString() != 'false'
+def fittedTextureRoot = layout.buildDirectory.dir('optimized-png').get().asFile
+
 tasks.register('deployMod', Sync) {
     group = 'starsector'
     description = "Copy the mod folder into the Starsector mods directory ($starsectorModsDir)"
@@ -1204,10 +1284,15 @@ tasks.register('deployMod', Sync) {
     // manifest before Sync snapshots mod/, otherwise a newly-added sound ID
     // can deploy without its matching Ogg and make Starsector fail at startup.
     dependsOn tasks.named('shadowJar'), ':asset-pipeline:processAudio'
+    if (deployFittedTextures) dependsOn tasks.named('optimizePngs')
     from(modOutputDir) {
         // Authoring notes (art-folder READMEs, the generated tileset cards) sit
         // beside the assets they describe; nothing in the game reads them.
         exclude '**/*.md'
+        if (deployFittedTextures) exclude 'graphics/**/*.png'
+    }
+    if (deployFittedTextures) {
+        from(fittedTextureRoot) { include 'graphics/**', 'data/**' }
     }
     into new File(starsectorModsDir, modName)
     preserve {
@@ -1216,19 +1301,42 @@ tasks.register('deployMod', Sync) {
     }
 }
 
-// Lossless PNG recompression for the release zip only (measured 163 -> 148 MB under mod/graphics).
-// Optimised copies live under build/; tracked art in mod/ is never rewritten. Pixel identity is
-// checked per file inside the script, and an up-to-date task skips it entirely.
+// The shipped textures: every image fitted to the largest size it is measured being drawn at
+// (art-source/texture-usage/usage.json), never upscaled, then losslessly recompressed; unmeasured
+// images ship at full size. Outputs live under build/; tracked art in mod/ is never rewritten.
+// build/optimized-png/data/config/marines_texture_fit.json gives the code each fitted image's
+// logical size (ModTextures), and build/reports/texture-fit/report.md says what was measured,
+// what was not, and what each fit saved. A warm run reuses every unchanged output.
+// See roadmap/release/design/texture-fit.md.
+def pythonExe = org.gradle.internal.os.OperatingSystem.current().isWindows() ? 'python' : 'python3'
+def textureUsageRecord = file('art-source/texture-usage/usage.json')
 tasks.register('optimizePngs', Exec) {
     group = 'starsector'
-    description = 'Recompress mod/graphics PNGs losslessly into build/optimized-png/graphics'
-    def src = new File(modOutputDir, 'graphics')
-    def dst = layout.buildDirectory.dir('optimized-png/graphics').get().asFile
-    inputs.dir(src).withPropertyName('graphics')
-    inputs.file('tools/optimize_pngs.py')
-    outputs.dir(dst)
-    commandLine(org.gradle.internal.os.OperatingSystem.current().isWindows() ? 'python' : 'python3',
-            file('tools/optimize_pngs.py').absolutePath, src.absolutePath, dst.absolutePath)
+    description = 'Fit and recompress mod/graphics into build/optimized-png (report: build/reports/texture-fit)'
+    def report = layout.buildDirectory.dir('reports/texture-fit').get().asFile
+    inputs.dir(new File(modOutputDir, 'graphics')).withPropertyName('graphics')
+    inputs.dir(new File(modOutputDir, 'data')).withPropertyName('data')
+    inputs.files(textureUsageRecord)
+    inputs.files('tools/optimize_pngs.py', 'tools/texture_fit_policy.json')
+    outputs.dir(fittedTextureRoot)
+    outputs.dir(report)
+    commandLine(pythonExe, file('tools/optimize_pngs.py').absolutePath, modOutputDir.absolutePath,
+            fittedTextureRoot.absolutePath, '--record', textureUsageRecord.absolutePath,
+            '--policy', file('tools/texture_fit_policy.json').absolutePath, '--report', report.absolutePath)
+}
+
+// Folds the recordings of evidence runs made with -PtextureUsage (build/texture-usage/) and of a
+// dev-mode game (saves/common/marines_texture_usage.data) into the checked-in usage record.
+tasks.register('mergeTextureUsage', Exec) {
+    group = 'starsector'
+    description = 'Merge texture-usage recordings into art-source/texture-usage/usage.json'
+    def game = new File(starsectorDir, 'saves/common/marines_texture_usage.data')
+    doFirst {
+        def sources = [layout.buildDirectory.dir('texture-usage').get().asFile.absolutePath]
+        if (game.isFile()) sources << game.absolutePath
+        commandLine([pythonExe, file('tools/texture_usage.py').absolutePath, 'merge',
+                     textureUsageRecord.absolutePath] + sources)
+    }
 }
 
 // The public release: what deployMod puts in the game's mods folder, as one zip whose top-level
@@ -1252,7 +1360,8 @@ tasks.register('packageRelease', Zip) {
         from(modOutputDir) {
             exclude 'jars/**', 'sounds/**', '**/.gitkeep', '**/*.md', 'graphics/**/*.png'
         }
-        into('graphics') { from layout.buildDirectory.dir('optimized-png/graphics') }
+        into('graphics') { from new File(fittedTextureRoot, 'graphics') }
+        into('data/config') { from new File(fittedTextureRoot, 'data/config') }
         into('jars') { from tasks.named('shadowJar') }
         into('sounds') { from releaseSounds }
     }
@@ -1554,4 +1663,29 @@ tasks.register('groundFeather', JavaExec) {
     mainClass = 'com.dillon.starsectormarines.tools.terrainauthoring.GroundFeatherBaker'
     workingDir projectDir
     args projectDir.absolutePath
+}
+
+// Texture fit evidence (roadmap/release/design/texture-fit.md). -PtextureUsage records how large
+// every texture is drawn into build/texture-usage/, one file per run, for mergeTextureUsage to
+// fold into the checked-in record; -PtextureUsageOnly does the same but leaves battle frames
+// unpainted (their draws are measured when collected), much faster and useless as pictures; -PtextureFitOverlay draws headless frames from the fitted build
+// (build/optimized-png, or the directory given) instead of the source art, the A/B half of the
+// raw-frame proof. Both reach every Test task and createSnapshots.
+def textureUsageDir = project.hasProperty('textureUsage')
+        ? layout.buildDirectory.dir('texture-usage').get().asFile : null
+def textureFitOverlay = project.findProperty('textureFitOverlay')?.toString()
+def textureFitOverlayDir = textureFitOverlay == null ? null
+        : (textureFitOverlay in ['', 'true'] ? layout.buildDirectory.dir('optimized-png').get().asFile
+                                             : file(textureFitOverlay))
+def textureUsageOnly = project.hasProperty('textureUsageOnly')
+if (textureUsageOnly && textureUsageDir == null) textureUsageDir = layout.buildDirectory.dir('texture-usage').get().asFile
+def textureSwitches = { task ->
+    if (textureUsageDir != null) task.systemProperty 'marines.textureUsage.dir', textureUsageDir.absolutePath
+    if (textureUsageOnly) task.systemProperty 'marines.textureUsage.only', 'true'
+    if (textureFitOverlayDir != null) task.systemProperty 'marines.textureFit.overlay', textureFitOverlayDir.absolutePath
+}
+tasks.withType(Test).configureEach { textureSwitches(it) }
+tasks.named('createSnapshots').configure { textureSwitches(it) }
+tasks.named('commanderEvidence').configure {
+    if (textureUsageDir != null) systemProperty 'marines.textureUsage.label', "commander-${commanderEvidenceMission}"
 }

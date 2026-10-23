@@ -1,12 +1,14 @@
 package com.dillon.starsectormarines.battle.world.tiles;
 
+import com.dillon.starsectormarines.render2d.texture.ModTextures;
+import com.dillon.starsectormarines.render2d.texture.TextureLease;
+import com.dillon.starsectormarines.render2d.texture.TextureLedger;
+import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.InputStream;
 
 /**
  * Lazy-loaded handle to one tile-sheet PNG: the loaded {@link SpriteAPI}, the
@@ -83,17 +85,22 @@ public final class SheetTexture {
      * retrying every frame.
      */
     public void ensureLoaded() {
+        ensureLoaded(TextureLedger.shared().session());
+    }
+
+    /** {@link #ensureLoaded()} under {@code lease}, which keeps the texture until it is released. */
+    public void ensureLoaded(TextureLease lease) {
         if (loadAttempted) return;
         loadAttempted = true;
         try {
-            Global.getSettings().loadTexture(path);
-            sprite = Global.getSettings().getSprite(path);
+            ModTextures.loadTexture(path, lease);
+            sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("SheetTexture: getSprite returned null for " + path);
                 return;
             }
-            try (InputStream stream = Global.getSettings().openStream(path)) {
-                BufferedImage img = ImageIO.read(stream);
+            {
+                BufferedImage img = ModTextures.readImage(path);
                 if (img == null) {
                     LOG.warn("SheetTexture: ImageIO.read returned null for " + path);
                     sprite = null;
@@ -106,6 +113,7 @@ public final class SheetTexture {
                     return;
                 }
                 frames = SpriteSheetSlicer.slice(img);
+                TextureUsage.sliced(path);
                 TileRegistry reg = TileRegistry.installed();
                 int expected = (reg == null) ? frames.frames.length
                         : (int) reg.all().stream()

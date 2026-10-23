@@ -3099,15 +3099,14 @@ public final class BattleSetup {
         // The target world's profile (planetary defenses, …) rides in so the
         // overwatch line reflects how fortified the planet is, and so the places
         // the map is made of are derived from the world it is on.
-        // The lift is sized before the map is generated, because the pairs it
-        // flies are also the berthing areas the landing place has to seat: the
-        // map is told what the force needs rather than the force being cut to
-        // what three drop zones can carry. See {@link OrbitalLift}.
+        // The lift is resolved before the map is generated, because the pairs
+        // it flies are also the berthing areas the landing place has to seat.
+        // See {@link OrbitalLift}.
         ShuttleArrivalPlan requestedArrivalPlan = arrivalPlan != null
                 ? arrivalPlan : ShuttleArrivalPlan.legacy();
         List<ShuttleAssignment> committedManifest = resolveManifest(manifest);
         ConquestArrivalConfig sizedArrivalConfig =
-                requestedArrivalPlan.sizedConfigFor(committedManifest);
+                requestedArrivalPlan.sizedConfig();
         ConquestMap generated = conquestMap(gridW, gridH, seed, axis, profile,
                 tier, risk, sprawl, standoff, laneCount, landing, lanePaths,
                 sizedArrivalConfig.dropZoneCount());
