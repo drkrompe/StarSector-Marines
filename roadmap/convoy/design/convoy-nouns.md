@@ -1116,7 +1116,8 @@ There is **no rack choice**: a vehicle is a fixed variant, so the anti-armor
 warhead is each hull's identity, and the fragmentation rack stays a mech fitting.
 
 The **LRM carrier** (`LRM_CARRIER`, Advanced, Medium lift) is the heavy APC's hull
-with the troop bay given over to one fifteen-tube LRM-15 box on a turntable
+with the troop bay given over to one mech LRM-15 pod on a turntable, which stands up on its
+tail hinge to fire
 (`art-source/vehicles/missile-carriers/`). It is the APC line's long arm against
 armor, where the fire-support APC's mortar is its short arm against men. Its rounds
 arc, and it fires **on a spotter's call** at a machine it cannot see itself:

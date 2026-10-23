@@ -44,6 +44,17 @@ public final class GroundTurret {
     public long burstTargetId;
     /** Sim-seconds until a missile launcher next looks for a new target. */
     public float relookTimer;
+    /**
+     * How far an arcing launcher stands raised on its trunnion, 0 lying flat to 1 raised to fire. A look only:
+     * the renderer foreshortens the rack by it, and nothing in the sim decides anything from it.
+     */
+    public float elevation;
+    /**
+     * Cells to what a raised launcher last aimed at, NaN before it has aimed at anything. A look only, beside
+     * {@link #elevation}: the renderer pitches the rack to the angle its rounds' drawn arc leaves at, which is
+     * steeper the nearer the target.
+     */
+    public float raiseRangeCells = Float.NaN;
     /** World point committed by a manual trigger; null for autonomous bursts. */
     public PointFireAim burstPointAim;
     /**

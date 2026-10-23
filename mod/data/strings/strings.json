@@ -2943,7 +2943,7 @@
     "vehicleLoreSUPPLY_TRUCK": "A workshop pickup with its bed full of ammunition crates and repair stock. It carries no gun and needs none, as long as it stays behind the people who do.",
     "vehicleLoreSCOUT_CAR": "A pickup with a salvaged sensor mast welded to the cab. It sees farther than anything else in the lance and survives about as well as you would expect of a truck.",
     "vehicleLoreSRM_TECHNICAL": "A stripped pickup carrying one short-range missile pod. Militias love it because it can kill a tank once. It rarely gets a second try.",
-    "vehicleLoreLRM_CARRIER": "The heavy APC's hull carrying a fifteen-tube long-range missile rack instead of passengers. It sits far back and rains guided salvos on whatever the spotters mark.",
+    "vehicleLoreLRM_CARRIER": "The heavy APC's hull carrying a single long-range missile pod instead of passengers. It sits far back and rains guided salvos on whatever the spotters mark.",
     "vehicleLoreHOVER_SCOUT": "Tri-Tachyon's corporate scout: lift fans, a composite skirt and a sensor cluster worth more than the hull. It skims over ground that bogs down tracks, and it folds like paper when hit.",
     "vehicleLoreDRONE_SKIMMER": "A Tri-Tachyon hover carrier for a small wing of combat drones. The skimmer itself is fragile; its drones are not its only defence, but they are its best one.",
     "openingMechLabSelectToPreview": "Click to preview this pattern on the pad.",

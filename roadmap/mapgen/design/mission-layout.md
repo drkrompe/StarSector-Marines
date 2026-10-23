@@ -64,6 +64,10 @@ optional (reported, and the map stands).
   the landscape keeps between places do not break it either: its own access
   proof stands for them, and a route along a line would break every stretch.
   Reported by its ramps' feet. The Cordon's line stands on one.
+  Elevation is stamped once per map, so a layout raises at most one Ridge,
+  and never on a map whose landscape raises ridges or plateaus of its own:
+  such a plan is refused at generation rather than losing the second relief
+  silently. Held bands beside a Ridge are reservations only.
 - **Deferred.** Pieces that can only be stated once the ground exists — a line
   from one place's claimed edge to the next's. A deferred piece resolves at
   its **phase** against a read-only view of the grown ground (claims, roads,
