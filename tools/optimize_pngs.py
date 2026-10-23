@@ -105,7 +105,7 @@ def choose_scale(need, w, h, policy):
 
 
 def decide(rel, w, h, entry, policy, engine_refs):
-    if rel in engine_refs:
+    if rel in engine_refs or match_any(rel, policy.get("engineLoaded", [])):
         return {"action": "keep", "reason": "engine-loaded"}
     if match_any(rel, policy["neverFit"]):
         return {"action": "keep", "reason": "never-fit"}
@@ -336,7 +336,8 @@ def main():
     manifest = {"version": 1, "textures": {}}
     for r in sorted(results, key=lambda r: r["rel"]):
         if (r["outW"], r["outH"]) != (r["w"], r["h"]) or r["file"] != r["rel"]:
-            manifest["textures"][r["rel"]] = {"w": r["w"], "h": r["h"], "file": r["file"]}
+            manifest["textures"][r["rel"]] = {"w": r["w"], "h": r["h"], "file": r["file"],
+                                              "sw": r["outW"], "sh": r["outH"]}
     manifest_path = os.path.join(dest, MANIFEST)
     os.makedirs(os.path.dirname(manifest_path), exist_ok=True)
     with open(manifest_path, "w", encoding="utf-8", newline="\n") as f:

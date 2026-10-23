@@ -21,8 +21,11 @@ public final class TextureFitManifest {
 
     public static final TextureFitManifest EMPTY = new TextureFitManifest(Collections.emptyMap());
 
-    /** One fitted image: its logical size in source pixels and the file that ships for it. */
-    public record Entry(int width, int height, String file) { }
+    /**
+     * One fitted image: its logical size in source pixels, the file that ships for it, and that
+     * file's own pixel size.
+     */
+    public record Entry(int width, int height, String file, int shippedWidth, int shippedHeight) { }
 
     private final Map<String, Entry> entries;
 
@@ -30,7 +33,7 @@ public final class TextureFitManifest {
         this.entries = entries;
     }
 
-    /** Reads {@code {"textures": {path: {"w": int, "h": int, "file": path}}}}. */
+    /** Reads {@code {"textures": {path: {"w": int, "h": int, "file": path, "sw": int, "sh": int}}}}. */
     public static TextureFitManifest parse(String json) throws JSONException {
         JSONObject root = new JSONObject(json);
         JSONObject textures = root.optJSONObject("textures");
@@ -43,7 +46,8 @@ public final class TextureFitManifest {
             int w = entry.getInt("w");
             int h = entry.getInt("h");
             if (w <= 0 || h <= 0) throw new JSONException("non-positive logical size for " + path);
-            entries.put(path, new Entry(w, h, entry.optString("file", path)));
+            entries.put(path, new Entry(w, h, entry.optString("file", path),
+                    entry.optInt("sw", w), entry.optInt("sh", h)));
         }
         return new TextureFitManifest(entries);
     }

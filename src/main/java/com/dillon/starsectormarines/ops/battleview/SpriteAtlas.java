@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.render2d.texture.ModTextures;
 import com.dillon.starsectormarines.render2d.GlErrors;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.lwjgl.BufferUtils;
@@ -410,8 +411,12 @@ public abstract class SpriteAtlas {
             broken = true;
             return scratch;
         }
-        int paddedW = Math.max(slot.contentW(), Math.round(slot.contentW() / usedU));
-        int paddedH = Math.max(slot.contentH(), Math.round(slot.contentH() / usedV));
+        // The texture's own texel size: smaller than the slot's logical size when the build
+        // fitted the image (texture-fit.md), and then the padding must be worked out from it.
+        int texW = ModTextures.shippedWidth(source, slot.contentW());
+        int texH = ModTextures.shippedHeight(source, slot.contentH());
+        int paddedW = Math.max(texW, Math.round(texW / usedU));
+        int paddedH = Math.max(texH, Math.round(texH / usedV));
         int needed = paddedW * paddedH * 4;
         ByteBuffer buffer = scratch;
         if (buffer == null || buffer.capacity() < needed) {
@@ -428,8 +433,15 @@ public abstract class SpriteAtlas {
             return buffer;
         }
 
+        int rowLength = paddedW;
+        if (texW != slot.contentW() || texH != slot.contentH()) {
+            // A slot addressed in source pixels over a fitted texture: resampled up into it,
+            // so every cut a caller adds to the slot's origin still lands on its own art.
+            buffer = resample(buffer, paddedW, texW, texH, slot.contentW(), slot.contentH());
+            rowLength = slot.contentW();
+        }
         glBindTexture(GL_TEXTURE_2D, texture);
-        glPixelStorei(GL_UNPACK_ROW_LENGTH, paddedW);
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, rowLength);
         GlErrors.clear();
         // A slot's y is stated the way a sheet's source rectangle is — down
         // from the top — because that is the coordinate every caller adds its
@@ -443,6 +455,48 @@ public abstract class SpriteAtlas {
         glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
         if (failed) broken = true;
         return buffer;
+    }
+
+    /**
+     * Bilinear resample of the {@code w x h} image at the start of {@code src} (rows
+     * {@code stride} texels apart) into a tightly packed {@code outW x outH} buffer, rows in the
+     * same order. Premultiplied while filtering, so transparent texels lend no colour to an edge.
+     */
+    static ByteBuffer resample(ByteBuffer src, int stride, int w, int h, int outW, int outH) {
+        ByteBuffer out = BufferUtils.createByteBuffer(outW * outH * 4);
+        float sx = (float) w / outW;
+        float sy = (float) h / outH;
+        for (int y = 0; y < outH; y++) {
+            float fy = Math.max(0f, Math.min(h - 1f, (y + 0.5f) * sy - 0.5f));
+            int y0 = (int) fy;
+            int y1 = Math.min(h - 1, y0 + 1);
+            float ty = fy - y0;
+            for (int x = 0; x < outW; x++) {
+                float fx = Math.max(0f, Math.min(w - 1f, (x + 0.5f) * sx - 0.5f));
+                int x0 = (int) fx;
+                int x1 = Math.min(w - 1, x0 + 1);
+                float tx = fx - x0;
+                float r = 0f, g = 0f, b = 0f, a = 0f;
+                for (int k = 0; k < 4; k++) {
+                    int px = (k & 1) == 0 ? x0 : x1;
+                    int py = (k & 2) == 0 ? y0 : y1;
+                    float weight = ((k & 1) == 0 ? 1f - tx : tx) * ((k & 2) == 0 ? 1f - ty : ty);
+                    int at = (py * stride + px) * 4;
+                    float alpha = (src.get(at + 3) & 0xFF) * weight;
+                    r += (src.get(at) & 0xFF) * alpha;
+                    g += (src.get(at + 1) & 0xFF) * alpha;
+                    b += (src.get(at + 2) & 0xFF) * alpha;
+                    a += alpha;
+                }
+                int o = (y * outW + x) * 4;
+                out.put(o, (byte) (a > 0f ? Math.round(r / a) : 0));
+                out.put(o + 1, (byte) (a > 0f ? Math.round(g / a) : 0));
+                out.put(o + 2, (byte) (a > 0f ? Math.round(b / a) : 0));
+                out.put(o + 3, (byte) Math.round(a));
+            }
+        }
+        out.limit(outW * outH * 4);
+        return out;
     }
 
     /** A cleared atlas, so a slot nobody fills is transparent rather than driver noise. */

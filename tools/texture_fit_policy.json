@@ -5,6 +5,17 @@
   "_scales": "Shipped sizes are these fractions of the source, all multiples of 1/16 so a sheet cut on a 16 px grid stays on whole pixels. The smallest one at or above need x margin is taken, then raised for free while the power-of-two texture it pads to stays the same size.",
   "ignoreSources": [],
   "_ignoreSources": "Source labels (fnmatch globs) whose measurements do not decide a fit, e.g. a snapshot suite that draws art far larger than play ever does.",
+  "engineLoaded": [
+    "graphics/portraits/**",
+    "graphics/factions/**",
+    "graphics/illustrations/**",
+    "graphics/hullmods/**",
+    "graphics/ships/**",
+    "graphics/weapons/**",
+    "graphics/missiles/**",
+    "graphics/icons/**"
+  ],
+  "_engineLoaded": "Folders whose images the game itself draws (portraits through text panels and dialogs, crests, illustrations, hull and weapon sprites, ability and intel icons), some at their native size. Kept whole even when one of our own screens also measured them. Paths named by engine data files (.ship, .wpn, .csv, settings.json, ...) are found by scanning mod/data and kept too.",
   "neverFit": [
     "graphics/fonts/**",
     "**/*_normal.png",

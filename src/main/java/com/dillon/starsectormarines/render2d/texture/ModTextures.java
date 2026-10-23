@@ -10,6 +10,9 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Map;
 
 /**
  * The one way the mod loads its own textures, so a fitted image reads exactly like its source.
@@ -32,6 +35,9 @@ public final class ModTextures {
 
     private static final Logger LOG = Global.getLogger(ModTextures.class);
     private static volatile TextureFitManifest manifest;
+    /** Every fitted sprite handed out, so code holding only the sprite can ask its texel size. */
+    private static final Map<SpriteAPI, TextureFitManifest.Entry> FITTED =
+            Collections.synchronizedMap(new IdentityHashMap<>());
 
     private ModTextures() { }
 
@@ -68,6 +74,33 @@ public final class ModTextures {
         return manifest().file(path);
     }
 
+    /**
+     * How many texels {@code path} really has across, given its logical width: less than the
+     * logical width when the build fitted it. A copy of the image (an atlas slot) needs no more.
+     */
+    public static int shippedWidth(String path, int logicalWidth) {
+        TextureFitManifest.Entry entry = manifest().entry(path);
+        return entry == null ? logicalWidth : entry.shippedWidth();
+    }
+
+    /** {@link #shippedWidth}, down. */
+    public static int shippedHeight(String path, int logicalHeight) {
+        TextureFitManifest.Entry entry = manifest().entry(path);
+        return entry == null ? logicalHeight : entry.shippedHeight();
+    }
+
+    /** {@link #shippedWidth} of a sprite this class handed out; {@code logicalWidth} otherwise. */
+    public static int shippedWidth(SpriteAPI sprite, int logicalWidth) {
+        TextureFitManifest.Entry entry = sprite == null ? null : FITTED.get(sprite);
+        return entry == null ? logicalWidth : entry.shippedWidth();
+    }
+
+    /** {@link #shippedWidth(SpriteAPI, int)}, down. */
+    public static int shippedHeight(SpriteAPI sprite, int logicalHeight) {
+        TextureFitManifest.Entry entry = sprite == null ? null : FITTED.get(sprite);
+        return entry == null ? logicalHeight : entry.shippedHeight();
+    }
+
     /** {@code SettingsAPI.loadTexture} of the file that ships for {@code path}. */
     public static void loadTexture(String path) throws IOException {
         Global.getSettings().loadTexture(file(path));
@@ -81,7 +114,10 @@ public final class ModTextures {
         SpriteAPI sprite = Global.getSettings().getSprite(file(path));
         if (sprite == null) return null;
         TextureFitManifest.Entry entry = manifest().entry(path);
-        if (entry != null) sprite.setSize(entry.width(), entry.height());
+        if (entry != null) {
+            sprite.setSize(entry.width(), entry.height());
+            FITTED.put(sprite, entry);
+        }
         TextureUsage.name(sprite, path, sprite.getWidth(), sprite.getHeight());
         return sprite;
     }

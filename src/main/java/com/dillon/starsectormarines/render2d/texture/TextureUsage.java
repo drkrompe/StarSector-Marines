@@ -234,6 +234,7 @@ public final class TextureUsage {
         }
         offer(frame, normalize(named), "ui",
                 Math.abs(docW) * MAX_UI_SCALE / regionW, Math.abs(docH) * MAX_UI_SCALE / regionH);
+        maybeFlush();
     }
 
     private static Named named(Frame frame, SpriteAPI sprite) {
