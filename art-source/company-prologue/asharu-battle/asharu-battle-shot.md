@@ -499,8 +499,12 @@ It is **voiced**: an in-universe cast, which the game otherwise never has.
 session writes the battle's comms log). The lines below are a draft. They exist to time the edit
 and to show where the traffic falls. Lines marked *placeholder* only hold a gap's timing and are
 not dialogue to keep. The writer needs three things, all here:
-- **the shot timings**: the "Shot list" table above, where sequence time is battle time (S0 0-10 s
-  through S13 134-147 s);
+- **the shot timings, locked** (owner, 2026-10-22, approving the r10 key frames): the "Shot list"
+  table above, where sequence time is battle time (S0 0-10 s through S13 134-147 s). Shot lengths
+  and cut points stay as they are. **The comms are written to fit the locked cuts; the edit no
+  longer moves to fit the lines.** Captions are drawn by the game, not burnt into the frames, so a
+  change of dialogue never touches a render. Sound and dialogue are a separate pass and block no
+  render;
 - **the cast and callsigns**: `radio_log.CALLSIGNS`, summarised in the first rule below;
 - **the rules** below, and the window each line must fit (the t column). The writer's lines replace
   `radio_log.TRAFFIC`, which the preview and the playback screens read.
@@ -724,14 +728,13 @@ To check a scene without rendering, run `python battle_blockout.py --check`; `py
 
 One line each, with its owner. Keep this list current, and remove an item when it closes.
 
-- **Owner's verdict on motion preview 13**, including the radio's density. Owner. Nothing is
-  lit-rendered until the motion is accepted. The S13 bookend stands (owner, 2026-10-22), with
-  Warden Three's line in place of the Baron's sign-off.
-- **Owner to confirm the derelict at 4.5 km** (closed the 7 km S4 to S5 jump; the coordinator's
-  call). Each pirate's launch now eases onto her next shot's flight (`REJOIN`; S5's two ships share
-  it with S5), so no cut jumps her; `--check`'s rejoin report flags it when a flight moves. Owner.
-- **The final comms script.** Fable writer session, once the timings and callsigns settle. It
-  replaces `radio_log.TRAFFIC`, including its placeholder lines (see "Radio traffic (draft)").
+- **The last look checks before finals** (owner approved the r10 key frames, 2026-10-22: "I think
+  we're good"): S8-S9 (k4) with the Borers' mining lasers (`swfx_mining`) re-rendered and shown; S3/S4
+  (k1b, k2) shown; the S12 lit span shown. Then the final render plan (24 fps, layered, per-shot chunk
+  jobs on the final lane), which waits for the render coordinator's gate and the owner. Blockout session.
+- **The final comms script.** Fable writer session; the timings are locked (owner, 2026-10-22), so
+  it can start. It replaces `radio_log.TRAFFIC`, including its placeholder lines (see "Radio traffic
+  (draft)"), and blocks no render.
 - **The wreck kit is swapped in** for lit renders (`roster.WRECKS`, `builds/asharu-wrecks/33513e7f8`,
   pinned by sha256): the station as one modelled piece, and each box filled by `wreck_kit.pick`.
   The motion preview, and `--blockout-wrecks`, keep the stand-ins. `--check` reports the kit:
