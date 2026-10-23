@@ -139,6 +139,24 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     drawCellX += (float) Math.sin(bearing) * recoil;
                     drawCellY -= (float) Math.cos(bearing) * recoil;
                 }
+                if (!wrecked && turret != null && type.turretRaiseFold() < 1f && turret.elevation > 0f) {
+                    // Standing up on its tail hinge: the rack shortens along its firing axis, its tail stays where
+                    // it was, and its nose, now nearer the eye, reads a little wider. Its shadow stays on the deck
+                    // at full length and the rack lifts off it, down and right like the sheets' baked shadows.
+                    float lift = RAISE_SHADOW_CELLS * turret.elevation;
+                    out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
+                            tf.x, tf.y, tf.w, tf.h,
+                            cam.cellToScreenX(drawCellX + lift), cam.cellToScreenY(drawCellY + lift),
+                            tDrawLong, tDrawShort, turretFacingDeg,
+                            0f, 0f, 0f, alphaMult * RAISE_SHADOW_ALPHA * turret.elevation);
+                    float fold = 1f - (1f - type.turretRaiseFold()) * turret.elevation;
+                    float aft = (1f - fold) * type.turretRaiseHingeCells();
+                    float bearing = (float) Math.toRadians(turretStateFacing);
+                    drawCellX += (float) Math.sin(bearing) * aft;
+                    drawCellY -= (float) Math.cos(bearing) * aft;
+                    tDrawLong *= fold;
+                    tDrawShort *= 1f + RAISE_WIDEN * (1f - fold);
+                }
                 out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
                         tf.x, tf.y, tf.w, tf.h,
                         cam.cellToScreenX(drawCellX), cam.cellToScreenY(drawCellY),
@@ -209,6 +227,12 @@ public final class ConvoyRenderSystem implements RenderSystem {
     }
 
     /** A gun with a target, ground or air, or a burst under way: what a firing frame is drawn for. */
+    /** How much wider a raised rack draws per unit it shortens: its nose has come up toward the eye. */
+    private static final float RAISE_WIDEN = .3f;
+    /** How far a fully raised rack stands off its own shadow, in cells, and how dark that shadow is. */
+    private static final float RAISE_SHADOW_CELLS = .14f;
+    private static final float RAISE_SHADOW_ALPHA = .45f;
+
     private static boolean engaged(GroundTurret turret) {
         return turret.targetId != 0L || turret.airTargetId != 0L || turret.burstRemaining > 0;
     }

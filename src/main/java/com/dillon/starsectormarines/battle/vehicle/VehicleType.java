@@ -267,12 +267,12 @@ public enum VehicleType {
         }
     },
     /**
-     * The heavy APC's hull with the troop bay given over to a launcher: one fifteen-tube LRM-15 anti-armor box on a
-     * turntable where the twin MG stood. It is the long arm against armor, where the fire-support APC's mortar
-     * is the short arm against men: its rounds arc over cover onto a machine somebody else on its side is looking
-     * at ({@link SideObservers}), it holds fire at anything soft, and it fights from beyond its target's reach
-     * ({@link Stance#STANDOFF}). It pays with no seats and thinner plate than the carrier it replaces. Its sheet is
-     * the APC's hulls with the launcher box drawn at the hull's scale (art-source/vehicles/missile-carriers).
+     * The heavy APC's hull with the troop bay given over to a launcher: one mech LRM-15 pod on a turntable where the
+     * twin MG stood, which stands up on its tail hinge to fire. It is the long arm against armor, where the
+     * fire-support APC's mortar is the short arm against men: its rounds arc over cover onto a machine somebody
+     * else on its side is looking at ({@link SideObservers}), it holds fire at anything soft, and it fights from
+     * beyond its target's reach ({@link Stance#STANDOFF}). It pays with no seats and thinner plate than the carrier it replaces. Its sheet is
+     * the APC's hulls with the mech LRM pod drawn at the hull's scale (art-source/vehicles/missile-carriers).
      */
     LRM_CARRIER("graphics/battle/vehicles/lrm-carrier.png", 0, 4, -90f,
             0, 2.4f, 1.4f, 2.6f, 1.6f, 3.5f, .8f, 2.2f,
@@ -282,6 +282,9 @@ public enum VehicleType {
             return new BicycleBody(1.6f, 22f, 150f, accel, brakingAccel, maxSpeed);
         }
         @Override public Stance engagementStance() { return Stance.STANDOFF; }
+        // The pod is 0.72 cells long, centred on the turntable, hinged at its tail.
+        @Override public float turretRaiseFold() { return .78f; }
+        @Override public float turretRaiseHingeCells() { return .36f; }
     },
     /**
      * The rocket pickup, a field rig: the technical's pickup with a mech SRM pod bolted to its pintle ring and the
@@ -336,6 +339,17 @@ public enum VehicleType {
 
     /** Visual recoil from actual recent shots; does not change the ballistic hardpoint. */
     public float turretRecoilCells() { return 0f; }
+
+    /**
+     * How long an arcing launcher's turret art is drawn along its firing axis once it stands fully up to fire
+     * ({@link GroundTurret#elevation}), as a fraction of its length lying flat: the top-down picture of a rack
+     * tilting its nose toward the sky. 1 for a turret that never stands up. The mount's muzzles are authored at
+     * the raised pose, since a launcher only fires raised.
+     */
+    public float turretRaiseFold() { return 1f; }
+
+    /** How far behind the turret's pivot a raising launcher's hinge sits, in cells: its tail stays put. */
+    public float turretRaiseHingeCells() { return 0f; }
 
     /**
      * The share of this hull's hits that land on its turret ({@link HullTurretSection}). Zero, with

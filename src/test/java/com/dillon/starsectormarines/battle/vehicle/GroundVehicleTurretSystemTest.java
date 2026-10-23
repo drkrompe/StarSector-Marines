@@ -419,4 +419,20 @@ class GroundVehicleTurretSystemTest {
             return roster.spawn(new EntitySpec("turret target", Faction.DEFENDER, UnitType.MARINE, x, y));
         }
     }
+
+    @Test
+    void aLauncherStandsUpWhileItHasSomethingToFireAtAndLiesBackDownAfter() {
+        Fixture f = new Fixture(VehicleType.LRM_CARRIER);
+        GroundTurret t = new GroundTurret(10);
+        float tenth = GroundVehicleTurretSystem.RAISE_SECONDS / 10f;
+        t.targetId = 7L;
+        for (int i = 0; i < 10; i++) GroundVehicleTurretSystem.raise(t, f.weapon, tenth);
+        assertEquals(1f, t.elevation, 1e-4f);
+        t.targetId = 0L;
+        for (int i = 0; i < 5; i++) GroundVehicleTurretSystem.raise(t, f.weapon, tenth);
+        assertEquals(.5f, t.elevation, 1e-4f, "no target and no salvo: it lies back down");
+        t.cooldownTimer = f.weapon.cooldown;
+        for (int i = 0; i < 5; i++) GroundVehicleTurretSystem.raise(t, f.weapon, tenth);
+        assertEquals(1f, t.elevation, 1e-4f, "it stays up just after a salvo");
+    }
 }

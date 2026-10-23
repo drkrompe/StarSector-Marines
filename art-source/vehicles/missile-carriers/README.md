@@ -1,30 +1,26 @@
 # Missile carriers
 
 `pack.py` packs `mod/graphics/battle/vehicles/lrm-carrier.png` and `srm-technical.png` (four 768x576 frames each:
-live hull, live turret, wreck hull, wreck turret). The hulls are the heavy APC's and the technical's, verbatim.
+live hull, live turret, wreck hull, wreck turret). The hulls are the heavy APC's and the technical's.
 
-## LRM-15 launcher box
+## LRM carrier: one pod that stands up to fire
 
-The LRM carrier carries one fifteen-tube LRM-15 box on its roof turntable (it carried two mech LRM pods until
-2026-10-23). The box is geometry-first:
+The carrier carries ONE mech LRM pod (`mech-modular-topdown/lrm-pod.png`, the LRM-15's rack) alone in its turret
+frame, centred on the frame centre, which is the turntable pivot, and 0.72 cells nose to tail. The turntable plate
+is painted on the hull frames at the APC's roof bearing (335, 288) instead of under the pod, because the pod frame
+is foreshortened when it raises and a flat turntable must not tilt with it.
 
-- `lrm15_guide.py` draws `lrm15-guide.png`: a 1024x1024 overhead box facing left, centred on the canvas, with a
-  sunken tube face of fifteen mouths (three deep, five across), a raised cover and centre strap, side lugs and a
-  tail trunnion. The canvas centre is the turntable pivot.
-- `lrm15.prompt.txt` is the exact ImageGen brief; the guide was the geometry reference and the mech
-  `lrm-pod.png` the material reference. `lrm15-master.png` is the untouched 1254x1254 result, with its
-  provenance beside it. It registers to the guide at a uniform 1254/1024.
-- `pack.py` snaps the master's near-opaque alpha, scales it so the box is 0.72 cells nose to tail at the APC's
-  320 px per cell, and keeps the canvas centre on the frame centre. The wreck turret is the same box darkened and
-  knocked 9 degrees off its bearing.
+The raise is a render transform, not a second frame. `GroundTurret.elevation` runs 0 to 1 over 0.6 s while the
+launcher has a target, is firing, or fired in the last two seconds, and back down otherwise. The renderer draws
+the turret frame `VehicleType.turretRaiseFold` (0.78) as long along its firing axis at full raise, keeps the pod's
+tail hinge (`turretRaiseHingeCells`, half the pod) where it was, and draws the frame a little wider, since the
+nose has come up toward the eye. The wreck pod lies flat.
 
-The mount's 15 muzzles in `turret-emplacements.turret.json` (`mount.vehicle-lrm`) are those tube mouths in cells,
-`[lateral, forward]` from the pivot: lateral 0, +/-0.122, +/-0.244 and forward 0.269, 0.149, 0.029, listed in an
-order that walks across the face so a salvo ripples over the whole box. Change the box size or the guide and they
-move with it.
+The mount's nine muzzles (`mount.vehicle-lrm`) are the pod's tube tips at the raised pose: lateral 0 and
++/-0.144, forward 0.142, 0.082 and 0.031 cells, in a Latin-square order so a salvo walks across the pod. Change the
+pod's size, the fold or the hinge and they move with it.
 
 ```
-python art-source/vehicles/missile-carriers/lrm15_guide.py
 python art-source/vehicles/missile-carriers/pack.py
 python art-source/dolls/build_dolls.py
 ```
