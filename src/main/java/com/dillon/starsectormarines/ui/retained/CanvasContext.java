@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ui.retained;
 
+import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.retained.svg.SvgAsset;
 import com.fs.starfarer.api.graphics.SpriteAPI;
@@ -170,6 +171,10 @@ public abstract class CanvasContext {
         }
         if (region == null || blend == null) {
             throw new IllegalArgumentException("sprite region and blend are required");
+        }
+        if (TextureUsage.isEnabled()) {
+            TextureUsage.ui(sourcePath, liveSprite, width * metrics.scaleX(), height * metrics.scaleY(),
+                    region.width(), region.height());
         }
         drawSprite(sourcePath, liveSprite, centerX, centerY, width, height,
                 angleDegrees, requireColor(tint), region, blend);

@@ -1,0 +1,30 @@
+{
+  "_doc": "Policy for tools/optimize_pngs.py, the release/deploy texture fit. See roadmap/release/design/texture-fit.md.",
+  "margin": 1.15,
+  "scales": [1.0, 0.75, 0.5, 0.375, 0.25, 0.1875, 0.125],
+  "_scales": "Shipped sizes are these fractions of the source, all multiples of 1/16 so a sheet cut on a 16 px grid stays on whole pixels. The smallest one at or above need x margin is taken, then raised for free while the power-of-two texture it pads to stays the same size.",
+  "ignoreSources": [],
+  "_ignoreSources": "Source labels (fnmatch globs) whose measurements do not decide a fit, e.g. a snapshot suite that draws art far larger than play ever does.",
+  "neverFit": [
+    "graphics/fonts/**",
+    "**/*_normal.png",
+    "**/*_height.png",
+    "**/*-normal.png",
+    "**/*-height.png"
+  ],
+  "_neverFit": "Shipped untouched (still losslessly recompressed): font pages are glyph atlases addressed by their .fnt files; normal and height maps are sampled at their albedo's frame coordinates.",
+  "jpg": {
+    "enabled": true,
+    "quality": 92,
+    "minSavingFraction": 0.2,
+    "exclude": [
+      "graphics/tilesets/**",
+      "**/*_normal.png",
+      "**/*_height.png",
+      "**/*-normal.png",
+      "**/*-height.png",
+      "graphics/fonts/**"
+    ]
+  },
+  "_jpg": "A fully opaque image the code loads (so it has a usage record and is not named by engine data) ships as JPG when that saves at least minSavingFraction of its PNG. Its manifest entry keeps the .png name the code and data use."
+}

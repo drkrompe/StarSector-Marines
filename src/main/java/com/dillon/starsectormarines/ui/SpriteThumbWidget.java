@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ui;
 
+import com.dillon.starsectormarines.render2d.texture.ModTextures;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;
@@ -56,7 +57,7 @@ public final class SpriteThumbWidget extends BaseWidget {
     public void render(float alphaMult) {
         if (spritePath == null || spritePath.isEmpty() || w <= 0f || h <= 0f) return;
         try {
-            SpriteAPI sprite = Global.getSettings().getSprite(spritePath);
+            SpriteAPI sprite = ModTextures.sprite(spritePath);
             if (sprite == null) return;
 
             float[] dims = naturalDims(sprite);
@@ -64,7 +65,7 @@ public final class SpriteThumbWidget extends BaseWidget {
                 if (!triedLoad) {
                     triedLoad = true;
                     try {
-                        Global.getSettings().loadTexture(spritePath);
+                        ModTextures.loadTexture(spritePath);
                     } catch (Exception e) {
                         LOG.warn("SpriteThumbWidget: loadTexture failed for " + spritePath, e);
                     }

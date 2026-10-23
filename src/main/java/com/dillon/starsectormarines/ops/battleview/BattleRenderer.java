@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSna
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
+import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.dillon.starsectormarines.render2d.DecalAccumulator;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
@@ -1247,6 +1248,9 @@ public class BattleRenderer {
         }
         this.rc = rc;
         drawList.clear();
+        if (TextureUsage.isEnabled() && rc.camera != null) {
+            TextureUsage.beginWorld(rc.camera.cellPxSize(), rc.camera.worldCellsW(), rc.camera.worldCellsH());
+        }
         for (RenderSystem system : worldSystems) {
             if (!layers.contains(system.layer())) continue;
             if (census == null) {

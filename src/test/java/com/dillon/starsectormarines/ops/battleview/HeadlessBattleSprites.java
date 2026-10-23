@@ -22,10 +22,11 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.HandsetLayer;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.render2d.texture.FittedTextureOverlay;
+import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.json.JSONObject;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.reflect.Proxy;
@@ -157,8 +158,11 @@ final class HeadlessBattleSprites extends BattleSprites {
         loadInfantry();
         loadHulls();
         for (VehicleType type : VehicleType.values()) {
-            vehicles.put(type, new UnitSpriteCache(sprite(type.spritePath),
-                    type.registeredSpriteFrames(slice(type.spritePath))));
+            // As the game loads them: equal slots from the sheet's size, no slicing.
+            SpriteAPI sheet = sprite(type.spritePath);
+            Asset size = assets.get(sheet);
+            vehicles.put(type, new UnitSpriteCache(sheet, type.registeredSpriteFrames(new SpriteSheetFrames(
+                    size.width(), size.height(), new SpriteSheetFrames.Frame[0]))));
         }
         for (var structure : TurretCatalogRegistry.installed().structures()) {
             loadWholeSprite(turretBases, structure.id, structure.mount.spritePath);
@@ -645,6 +649,7 @@ final class HeadlessBattleSprites extends BattleSprites {
 
     private SpriteSheetFrames slice(String path) throws IOException {
         BufferedImage image = read(path);
+        TextureUsage.sliced(path);
         return SpriteSheetSlicer.slice(image);
     }
 
@@ -662,6 +667,7 @@ final class HeadlessBattleSprites extends BattleSprites {
         BufferedImage image = read(path);
         SpriteAPI token = tokens.token(path, file, image);
         assets.put(token, new Asset(path, image.getWidth(), image.getHeight()));
+        TextureUsage.name(token, path, image.getWidth(), image.getHeight());
         return token;
     }
 
@@ -708,7 +714,7 @@ final class HeadlessBattleSprites extends BattleSprites {
         Path file = resolve(path);
         BufferedImage image;
         try {
-            image = ImageIO.read(file.toFile());
+            image = FittedTextureOverlay.read(path, file);
         } catch (IOException failure) {
             throw new IOException("Could not read " + path, failure);
         }

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.engine.EngineHullLighting;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
@@ -169,6 +170,14 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
     public boolean draw(CanvasHostPass pass, CanvasContext context,
                         CanvasHostViewport viewport, float alphaMult) {
         if (!(pass instanceof BattleSceneHostPass scenePass)) return false;
+        // The canvas sprites this drain paints are world draws, measured as such when collected.
+        try (TextureUsage.Scope ignored = TextureUsage.suppressUi()) {
+            return drawScene(scenePass, context, viewport, alphaMult);
+        }
+    }
+
+    private boolean drawScene(BattleSceneHostPass scenePass, CanvasContext context,
+                              CanvasHostViewport viewport, float alphaMult) {
         // RasterCanvasContext applies the document alpha while painting each
         // replayed primitive. Collect at full opacity so the host fade is not
         // folded into the battle commands and then multiplied a second time.
