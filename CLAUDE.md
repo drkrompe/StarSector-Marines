@@ -542,12 +542,12 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   fifteen seconds. Readings, not acceptance; opt-in and excluded from `test`.
 - `gradlew.bat storyMapPools` → the Rav Bloom story maps (Cordon Line and
   Road, The Burn, Broad Front) play only from their pools of vetted seeds,
-  `mod/data/world/pools/<map>.pool.json`, each seed with a note and an
-  optional patch (`story-map-pools.md`). This regenerates every pooled seed
+  three per world biome, `mod/data/world/pools/<map>.pool.json`, each seed with
+  a note and an optional patch (`story-map-pools.md`). This regenerates every pooled seed
   and fails when one no longer passes its mission's acceptance on the first
   generation: **run it after any mapgen change that may move a story map.**
-  `-Pcandidates=cordon-line:1-40,heart-burn:1-20` screens seeds that are not
-  pooled yet (reported, never failing). About 30 seconds; writes
+  `-Pcandidates=cordon-line:1-40,heart-burn/frozen:1-20` screens seeds that
+  are not pooled yet, on every biome or the one named (reported, never failing). About 30 seconds; writes
   `build/reports/story-map-pools/summary.md`. `commanderEvidence` on
   `cordon-line`, `cordon-road` and `heart` plays the whole pool by default, and
   `createSnapshots -Psnapshot=story-map-pools` renders every pooled map whole.

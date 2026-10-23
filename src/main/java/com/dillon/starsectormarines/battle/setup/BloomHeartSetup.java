@@ -42,7 +42,7 @@ import java.util.Set;
  * the heart's bores and the bloom they have grown over it in the weeks before
  * the battle.
  *
- * <p>The country is {@link HeartCountry}, on a living world. Its places are
+ * <p>The country is {@link HeartCountry}, on a world of the event's biome. Its places are
  * laid out, the map generated, and the heart's sites chosen on ground the start
  * line can walk to ({@link HeartBores}); a map that cannot seat them re-rolls
  * the seed. The bores open at tick zero already fed to maw and their creep is
@@ -57,9 +57,9 @@ public final class BloomHeartSetup {
 
     private BloomHeartSetup() { }
 
-    /** A living world with no market behind it: the heart is the same kind of place on any green world. */
-    public static TargetProfile verdant() {
-        return new TargetProfile(0, 0, 0, 0, "", Set.of(), SurfacePalette.VERDANT, SettlementLink.ROAD);
+    /** A world of this biome with no market behind it: the heart is the same kind of place on any such world. */
+    public static TargetProfile world(SurfacePalette biome) {
+        return new TargetProfile(0, 0, 0, 0, "", Set.of(), biome, SettlementLink.ROAD);
     }
 
     /** The story map a form plays from ({@code story-map-pools.md}). */
@@ -68,27 +68,28 @@ public final class BloomHeartSetup {
     }
 
     /**
-     * The heart's country, bores and matured bloom, at tick zero: the pooled
-     * map when the form's pool holds {@code seed}, else the first country from
-     * it whose bores seat. The second is how a candidate is tried before it is
-     * pooled; the campaign reaches only the first.
+     * The heart's country, bores and matured bloom on a world of this biome, at
+     * tick zero: the pooled map when the form's pool holds {@code seed} for the
+     * biome, else the first country from it whose bores seat. The second is how
+     * a candidate is tried before it is pooled; the campaign reaches only the first.
      */
-    public static Built country(Form form, long seed) {
-        StoryMapPool.Entry entry = StoryMapPools.installed() ? StoryMapPools.pool(storyMap(form)).entry(seed) : null;
-        if (entry != null) return country(form, entry);
+    public static Built country(Form form, SurfacePalette biome, long seed) {
+        StoryMapPool.Entry entry = StoryMapPools.installed()
+                ? StoryMapPools.pool(storyMap(form)).entry(biome, seed) : null;
+        if (entry != null) return country(form, biome, entry);
         for (int attempt = 0; attempt < ATTEMPTS; attempt++) {
-            Built built = build(form, seed + attempt * 0x9E3779B97F4A7C15L, MapPatch.NONE);
+            Built built = build(form, biome, seed + attempt * 0x9E3779B97F4A7C15L, MapPatch.NONE);
             if (built != null) return built;
         }
-        throw new IllegalStateException("no heart country of form " + form + " seated its bores in "
+        throw new IllegalStateException("no " + biome + " heart country of form " + form + " seated its bores in "
                 + ATTEMPTS + " attempts from seed " + seed);
     }
 
     /** A pooled heart country: never re-rolled, so a pooled seed whose bores no longer seat is a broken pool. */
-    public static Built country(Form form, StoryMapPool.Entry entry) {
-        Built built = build(form, entry.seed(), entry.patch());
+    public static Built country(Form form, SurfacePalette biome, StoryMapPool.Entry entry) {
+        Built built = build(form, biome, entry.seed(), entry.patch());
         if (built == null) {
-            throw new IllegalStateException(storyMap(form).id + " seed " + entry.seed()
+            throw new IllegalStateException(storyMap(form).id + " " + biome + " seed " + entry.seed()
                     + " does not seat its bores");
         }
         return built;
@@ -103,8 +104,8 @@ public final class BloomHeartSetup {
     }
 
     /** The country from one seed with its patch, or {@code null} when its bores do not seat. */
-    private static Built build(Form form, long battleSeed, MapPatch patch) {
-        TargetProfile profile = verdant();
+    private static Built build(Form form, SurfacePalette biome, long battleSeed, MapPatch patch) {
+        TargetProfile profile = world(biome);
         PrecinctPlan plan = patch.pinned(HeartCountry.planFor(form, battleSeed));
         MapResult map = MAP_GEN.generate(form.scale.width, form.scale.height, battleSeed, null, profile, plan);
         HeartBores heart = bores(form, map, plan, battleSeed);
@@ -118,9 +119,10 @@ public final class BloomHeartSetup {
         return new Built(sim, map, plan, heart, battleSeed);
     }
 
-    /** The heart as a campaign battle: the pooled map for a roll its event carries. */
-    public static BattleSimulation pooledMission(Form form, long roll, List<ShuttleAssignment> manifest) {
-        return mission(form, StoryMapPools.pool(storyMap(form)).pick(roll).seed(), manifest);
+    /** The heart as a campaign battle: the pooled map of the world's biome for a roll its event carries. */
+    public static BattleSimulation pooledMission(Form form, SurfacePalette biome, long roll,
+                                                 List<ShuttleAssignment> manifest) {
+        return mission(form, biome, StoryMapPools.pool(storyMap(form)).pick(biome, roll).seed(), manifest);
     }
 
     /** Broad Front's company lane: satellites this share of the map's width either side of its landing are its own. */
@@ -133,9 +135,10 @@ public final class BloomHeartSetup {
      * every mother has collapsed and lost when the company is broken (in The
      * Burn, also when its battery is overrun).
      */
-    public static BattleSimulation mission(Form form, long seed, List<ShuttleAssignment> manifest) {
+    public static BattleSimulation mission(Form form, SurfacePalette biome, long seed,
+                                           List<ShuttleAssignment> manifest) {
         if (manifest == null || manifest.isEmpty()) throw new IllegalArgumentException("the heart needs a company to land");
-        Built built = country(form, seed);
+        Built built = country(form, biome, seed);
         BattleSimulation sim = built.sim();
         sim.getBattleResources().disableCompoundProduction();
         // The company is broken when its people are: the Burn's guns standing on do not keep it in the fight.

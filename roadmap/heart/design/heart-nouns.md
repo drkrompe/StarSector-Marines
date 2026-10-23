@@ -202,9 +202,9 @@ cell the veto refuses.
 ## The map
 
 Both variants are laid out by one plan, `HeartCountry`, in one of two **forms**,
-on a living world (`SurfacePalette.VERDANT`) whatever world the bloom is on:
-the heart is the same kind of place on every green world, and a fixture names
-no market.
+on the bloom world's own ground (its `SurfacePalette`, with pooled maps for
+each): the heart is the same kind of place on every world, and a fixture names
+a biome, never a market.
 
 | | **Broad Front** | **The Burn** |
 | --- | --- | --- |

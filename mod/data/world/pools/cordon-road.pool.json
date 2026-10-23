@@ -1,15 +1,26 @@
 {
-  "version": 1,
+  "version": 2,
   "map": "cordon-road",
-  "seeds": [
-    { "seed": 14, "note": "rear north; corridor 97% on road; redoubt guns 0-1-2-2" },
-    { "seed": 18, "note": "rear north; corridor 89% on road; redoubt guns 1-1-0-2" },
-    { "seed": 22, "note": "rear north; corridor 83% on road; redoubt guns 2-2-2-0" },
-    { "seed": 30, "note": "rear north; corridor 92% on road; redoubt guns 0-2-2-2" },
-    { "seed": 9, "note": "rear south; corridor 83% on road; redoubt guns 0-1-2-2" },
-    { "seed": 15, "note": "rear south; corridor 90% on road; redoubt guns 2-1-2-2" },
-    { "seed": 16, "note": "rear south; corridor 86% on road; redoubt guns 1-2-2-0" },
-    { "seed": 19, "note": "rear south; corridor 94% on road; redoubt guns 1-2-1-0" },
-    { "seed": 25, "note": "rear south; corridor 85% on road; redoubt guns 1-0-2-2" }
-  ]
+  "biomes": {
+    "VERDANT": [
+      { "seed": 15, "note": "rear south; redoubt guns 2-1-2-2; corridor 90% on road" },
+      { "seed": 22, "note": "rear north; redoubt guns 2-2-2-0; corridor 83% on road" },
+      { "seed": 9, "note": "rear south; redoubt guns 0-1-2-2; corridor 83% on road" }
+    ],
+    "ARID": [
+      { "seed": 15, "note": "rear south; redoubt guns 2-1-2-2; corridor 90% on road" },
+      { "seed": 10, "note": "rear south; redoubt guns 2-2-2-0; corridor 90% on road" },
+      { "seed": 14, "note": "rear north; redoubt guns 0-1-2-2; corridor 98% on road" }
+    ],
+    "ROCK": [
+      { "seed": 15, "note": "rear south; redoubt guns 2-1-2-2; corridor 90% on road" },
+      { "seed": 22, "note": "rear north; redoubt guns 2-2-2-0; corridor 83% on road" },
+      { "seed": 9, "note": "rear south; redoubt guns 0-1-2-2; corridor 83% on road" }
+    ],
+    "FROZEN": [
+      { "seed": 15, "note": "rear south; redoubt guns 2-1-2-2; corridor 90% on road" },
+      { "seed": 10, "note": "rear south; redoubt guns 2-2-2-0; corridor 90% on road" },
+      { "seed": 22, "note": "rear north; redoubt guns 2-2-2-0; corridor 83% on road" }
+    ]
+  }
 }
