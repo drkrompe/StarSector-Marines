@@ -737,6 +737,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             renderer.getImpactFx().spawnAmbientFire(burst[0], burst[1], burst[2]);
             renderer.getGroundLights().spawnFire(burst[0], burst[1], burst[2]);
         }
+        renderer.getTurretFx().advance(sim, renderer.getImpactFx(), frameSimDt);
         driveOrdnanceFx(sim, frameSimDt);
         renderer.getProjectileTrailFx().tick(sim.getActiveShots(), renderer.getImpactFx());
         renderer.getImpactFx().advance(frameSimDt);
@@ -1470,6 +1471,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 ImpactDecals.spawnShellCasing(sim, rng, s.fromX, s.fromY);
             }
             WeaponFxRuntime.spawnMuzzle(renderer.getImpactFx(), s);
+            renderer.getTurretFx().onShot(s, sim, renderer.getImpactFx());
             // Line tracers (no projectile sprite) land their impact instantly;
             // projectile-sprite shots defer it to arrival (handled below).
             if (ShotFx.of(s).travels()) continue;

@@ -73,6 +73,8 @@ public final class TurretMountDef {
     public final String recoilSpritePath;
     /** How the barrel layer kicks back on a shot ({@code render.recoil}); {@link Recoil#DEFAULT} when not authored. */
     public final Recoil recoil;
+    /** Whether the gun throws spent brass beside itself as it fires ({@code render.casings}). Presentation only. */
+    public final boolean ejectsCasings;
 
     /**
      * A barrel's kick: it jumps back {@code distanceFrac} of the mount's visual size when a round leaves and eases
@@ -89,9 +91,11 @@ public final class TurretMountDef {
                            float muzzleLateralOffsetCells, List<Muzzle> muzzles,
                            boolean hardenedTargetsOnly, Flux flux,
                            boolean engagesAir, float maxDepressionDeg,
-                           String spritePath, String recoilSpritePath, Recoil recoil) {
+                           String spritePath, String recoilSpritePath, Recoil recoil,
+                           boolean ejectsCasings) {
         this.id = id;
         this.recoil = recoil;
+        this.ejectsCasings = ejectsCasings;
         this.maxDepressionDeg = maxDepressionDeg;
         this.engagesAir = engagesAir;
         this.flux = flux;
@@ -204,7 +208,8 @@ public final class TurretMountDef {
         return new TurretMountDef(
                 id, weaponId, weapon, ammoCapacity, turnRate, visualCells, muzzleOffsetCells,
                 muzzleLateralOffsetCells, muzzles, json.optBoolean("hardenedTargetsOnly", false),
-                flux, json.optBoolean("engagesAir", false), maxDepressionDeg, sprite, recoilSprite, recoil);
+                flux, json.optBoolean("engagesAir", false), maxDepressionDeg, sprite, recoilSprite, recoil,
+                render != null && render.optBoolean("casings", false));
     }
 
     /** A mount's flux frame ({@link TurretMountDef#flux}). */

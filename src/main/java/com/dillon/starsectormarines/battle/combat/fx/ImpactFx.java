@@ -268,6 +268,32 @@ public final class ImpactFx {
     }
 
     /**
+     * A spent casing in flight: a brass fleck thrown at ({@code vx},{@code vy}) cells per second that drags to a stop
+     * and fades where it lands, the instant before the casing decal takes its place on the ground.
+     */
+    public void spawnCasingGlint(float x, float y, float vx, float vy) {
+        if (glowSprite == null) return;
+        Particle p = new Particle();
+        p.x = x;
+        p.y = y;
+        p.vx = vx;
+        p.vy = vy;
+        p.dragPerSecond = 7f;
+        p.lifetimeRemaining = CASING_GLINT_SECONDS;
+        p.lifetimeMax = CASING_GLINT_SECONDS;
+        p.radiusCells = .07f;
+        p.color = CASING_COLOR;
+        p.alpha = .95f;
+        p.sprite = glowSprite;
+        p.angleDeg = rng.nextFloat() * 360f;
+        p.additive = true;
+        particles.add(p);
+    }
+
+    private static final float CASING_GLINT_SECONDS = .32f;
+    private static final Color CASING_COLOR = new Color(0xF0, 0xC8, 0x6A);
+
+    /**
      * Spawns a single smoke puff at (x, y). For driving continuous emitters
      * (smoking wrecks, smoldering rubble) where the caller picks the cadence
      * and the puff size. Lifetime is fixed at a value that pairs naturally

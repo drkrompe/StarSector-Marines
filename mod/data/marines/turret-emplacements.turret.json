@@ -34,7 +34,7 @@
     {
       "id": "mount.turret-vulcan", "weapon": "weapon.turret-vulcan",
       "sim": { "ammoCapacity": 120, "turnRateDegPerSec": 120.0 },
-      "render": { "visualCells": 1.25, "muzzleOffsetCells": 0.57, "muzzles": [[-0.055, 0.57], [0.07, 0.57]], "sprite": "graphics/structures/ground-turrets/brutalist/autogun-head.png", "recoilSprite": "graphics/structures/ground-turrets/brutalist/autogun-barrel.png", "recoil": { "distanceFrac": 0.07, "seconds": 0.06 } }
+      "render": { "visualCells": 1.25, "muzzleOffsetCells": 0.57, "muzzles": [[-0.055, 0.57], [0.07, 0.57]], "sprite": "graphics/structures/ground-turrets/brutalist/autogun-head.png", "recoilSprite": "graphics/structures/ground-turrets/brutalist/autogun-barrel.png", "casings": true, "recoil": { "distanceFrac": 0.07, "seconds": 0.06 } }
     },
     {
       "id": "mount.turret-arbalest", "weapon": "weapon.turret-arbalest",
@@ -49,7 +49,7 @@
     {
       "id": "mount.turret-dual-flak", "weapon": "weapon.turret-dual-flak",
       "sim": { "ammoCapacity": 80, "turnRateDegPerSec": 100.0 },
-      "render": { "visualCells": 1.25, "muzzleOffsetCells": 0.44, "muzzles": [[-0.082, 0.438], [0.082, 0.445]], "sprite": "graphics/structures/ground-turrets/brutalist/grenade-head.png", "recoilSprite": "graphics/structures/ground-turrets/brutalist/grenade-barrel.png", "recoil": { "distanceFrac": 0.1, "seconds": 0.18 } }
+      "render": { "visualCells": 1.25, "muzzleOffsetCells": 0.44, "muzzles": [[-0.082, 0.438], [0.082, 0.445]], "sprite": "graphics/structures/ground-turrets/brutalist/grenade-head.png", "recoilSprite": "graphics/structures/ground-turrets/brutalist/grenade-barrel.png", "casings": true, "recoil": { "distanceFrac": 0.1, "seconds": 0.18 } }
     },
     {
       "id": "mount.turret-hephaestus", "weapon": "weapon.turret-hephaestus",
@@ -74,7 +74,7 @@
     {
       "id": "mount.turret-heavy-mg", "weapon": "weapon.turret-heavy-mg",
       "sim": { "ammoCapacity": 200, "turnRateDegPerSec": 110.0 },
-      "render": { "visualCells": 1.25, "muzzleOffsetCells": 0.57, "muzzles": [[-0.055, 0.57], [0.07, 0.57]], "sprite": "graphics/structures/ground-turrets/brutalist/autogun-head.png", "recoilSprite": "graphics/structures/ground-turrets/brutalist/autogun-barrel.png", "recoil": { "distanceFrac": 0.07, "seconds": 0.06 } }
+      "render": { "visualCells": 1.25, "muzzleOffsetCells": 0.57, "muzzles": [[-0.055, 0.57], [0.07, 0.57]], "sprite": "graphics/structures/ground-turrets/brutalist/autogun-head.png", "recoilSprite": "graphics/structures/ground-turrets/brutalist/autogun-barrel.png", "casings": true, "recoil": { "distanceFrac": 0.07, "seconds": 0.06 } }
     },
     {
       "id": "mount.hardpoint-cannon", "weapon": "weapon.turret-hephaestus",
