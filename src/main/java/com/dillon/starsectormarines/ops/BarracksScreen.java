@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.marine.CampaignSquadFoundingResources;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.battleview.BattleShotAudio;
+import com.dillon.starsectormarines.ops.battleview.HeldFireLoops;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -38,6 +39,7 @@ public final class BarracksScreen implements Screen {
             "data/ui/components/armory/armory-card-chip.mlx", "data/ui/components/company/shipboard-barracks.mlx");
 
     private final Reactor reactor = new Reactor();
+    private final HeldFireLoops heldFireLoops = new HeldFireLoops();
     private final MarkupLoader markup = new MarkupLoader(
             path -> Global.getSettings().loadText(path), COMPONENT_PATHS);
 
@@ -183,7 +185,8 @@ public final class BarracksScreen implements Screen {
         // through the bulkhead.
         if (context != null && context.companyDeck().live()) {
             BattleShotAudio.playCampaignLocal(
-                    context.companyDeck().scene().simulation().getShotsThisFrame(), 0.55f);
+                    context.companyDeck().scene().simulation().getShotsThisFrame(), 0.55f,
+                    heldFireLoops, dt);
         }
         int currentHour = campaignHour();
         if (viewModel != null && currentHour != projectedCampaignHour) {

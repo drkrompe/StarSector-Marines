@@ -80,6 +80,7 @@ import com.dillon.starsectormarines.ops.battleview.RenderLayer;
 import com.dillon.starsectormarines.ops.battleview.RenderContext;
 import com.dillon.starsectormarines.ops.battleview.BattleShotAudio;
 import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
+import com.dillon.starsectormarines.ops.battleview.HeldFireLoops;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceAudio;
 import com.dillon.starsectormarines.ops.battleview.WarshipAudio;
 import com.dillon.starsectormarines.ops.battleview.BoreAudio;
@@ -280,6 +281,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     private final BattleRenderer renderer = new BattleRenderer(sprites);
     /** Weapon and impact cues for rounds an aircraft delivers onto the ground. */
     private final OrdnanceAudio ordnanceAudio = new OrdnanceAudio();
+    private final HeldFireLoops heldFireLoops = new HeldFireLoops();
     /**
      * Real-time {@code dt} from the most recent {@link #advance} call. Passed
      * into {@link com.dillon.starsectormarines.ops.battleview.RenderContext} so
@@ -713,7 +715,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         advanceRoofAlphaLerp(sim, dt);
         if (sim != null) sim.getFogOfWar().advanceFade(dt);
         driveShuttleEngineLoops(sim);
-        playCombatEventSounds(sim);
+        playCombatEventSounds(sim, dt);
         for (MechFootstepAudio.Cue cue : mechFootsteps.advance(
                 sim, camera.panCellX(), camera.panCellY())) {
             Global.getSoundPlayer().playSound(cue.soundId(), cue.pitch(), cue.volume(),
@@ -1397,8 +1399,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         return !grid.isWalkable(cx, cy);
     }
 
-    private void playCombatEventSounds(BattleSimulation sim) {
-        BattleShotAudio.playPositional(sim.getShotsThisFrame());
+    private void playCombatEventSounds(BattleSimulation sim, float dt) {
+        BattleShotAudio.playPositional(sim.getShotsThisFrame(), heldFireLoops, dt);
         Vector2f zeroVel = new Vector2f(0f, 0f);
         playSystemActivationCues(sim, zeroVel);
         LongList deaths = sim.getDeathsThisFrame();

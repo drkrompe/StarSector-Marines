@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.fs.starfarer.api.Global;
 import org.lwjgl.util.vector.Vector2f;
 
@@ -16,17 +17,28 @@ public final class BattleShotAudio {
 
     private BattleShotAudio() { }
 
-    /** Plays ordinary positional battle fire at each simulation muzzle. */
-    public static void playPositional(List<ShotEvent> shots) {
+    /**
+     * Plays ordinary positional battle fire at each simulation muzzle. A
+     * weapon with an authored loop is heard through {@code loops} instead: its
+     * fire clip once as a lance starts, then its loop at the muzzle each
+     * rendered frame until its pulses stop. {@code dt} is real seconds.
+     */
+    public static void playPositional(List<ShotEvent> shots, HeldFireLoops loops, float dt) {
         Vector2f zeroVelocity = new Vector2f(0f, 0f);
+        loops.advance(dt);
         for (ShotEvent shot : shots) {
             Cue cue = cue(shot);
-            if (cue.soundId() == null) continue;
+            if (!startsSound(shot, cue, loops)) continue;
             Vector2f location = new Vector2f(
                     shot.fromX * WORLD_UNITS_PER_CELL,
                     shot.fromY * WORLD_UNITS_PER_CELL);
             Global.getSoundPlayer().playSound(
                     cue.soundId(), pitch(), cue.volume(), location, zeroVelocity);
+        }
+        for (HeldFireLoops.Voice voice : loops.held()) {
+            Global.getSoundPlayer().playLoop(voice.loopSoundId(), voice, 1f, voice.volume(),
+                    new Vector2f(voice.x() * WORLD_UNITS_PER_CELL, voice.y() * WORLD_UNITS_PER_CELL),
+                    zeroVelocity);
         }
     }
 
@@ -36,18 +48,39 @@ public final class BattleShotAudio {
      * sounds rather than UI cues, so routing them through {@code playUISound}
      * can silently drop them even though the simulation emitted the shot.
      */
-    public static void playCampaignLocal(List<ShotEvent> shots, float volumeScale) {
+    public static void playCampaignLocal(List<ShotEvent> shots, float volumeScale,
+                                         HeldFireLoops loops, float dt) {
         float scale = Math.max(0f, volumeScale);
+        loops.advance(dt);
         Vector2f anchor = campaignAnchor();
         if (anchor == null) return;
         Vector2f zeroVelocity = new Vector2f(0f, 0f);
         for (ShotEvent shot : shots) {
             Cue cue = cue(shot);
-            if (cue.soundId() == null) continue;
+            if (!startsSound(shot, cue, loops)) continue;
             Global.getSoundPlayer().playSound(
                     cue.soundId(), pitch(), cue.volume() * scale,
                     anchor, zeroVelocity);
         }
+        for (HeldFireLoops.Voice voice : loops.held()) {
+            Global.getSoundPlayer().playLoop(voice.loopSoundId(), voice, 1f,
+                    voice.volume() * scale, anchor, zeroVelocity);
+        }
+    }
+
+    /**
+     * Arms a loop weapon's held voice and says whether this shot's own clip
+     * should play: always for a one-clip weapon, only on a lance's first pulse
+     * for a looped one.
+     */
+    private static boolean startsSound(ShotEvent shot, Cue cue, HeldFireLoops loops) {
+        WeaponDef weapon = shot.weaponDef();
+        String loopId = weapon != null ? weapon.loopSoundId : null;
+        if (loopId != null
+                && !loops.arm(shot.shooterId, loopId, cue.volume(), shot.fromX, shot.fromY)) {
+            return false;
+        }
+        return cue.soundId() != null;
     }
 
     private static Vector2f campaignAnchor() {

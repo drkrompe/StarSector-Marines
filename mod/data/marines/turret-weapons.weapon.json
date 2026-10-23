@@ -300,7 +300,7 @@
           { "kind": "dust", "radius": 0.16, "lifetime": 0.16 }
         ]
       },
-      "audio": { "fireSound": "laser_intro" }
+      "audio": { "fireSound": "laser_intro", "loopSound": "pd_laser_loop" }
     },
     {
       "id": "weapon.turret-vulcan",
