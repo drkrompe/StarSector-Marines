@@ -834,6 +834,16 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   surface is behind `DevConfig.DEV_MODE` (`-Dmarines.dev=true`), which
   `runStarsector` passes and a player's install never has;
   `runStarsector -PplayerBuild` launches without it. See `v0.1-public-build.md`.
+- **Shipped textures are fitted to how they are drawn** (`texture-fit.md`).
+  `optimizePngs` (fed to `packageRelease` and `deployMod`; `-PfitTextures=false`
+  deploys the sources) downscales each image to the largest size the usage
+  record `art-source/texture-usage/usage.json` says it is drawn at, keeps
+  unmeasured images whole, and reports to `build/reports/texture-fit/report.md`.
+  **Load every mod texture through `ModTextures`** (`sprite`, `loadTexture`,
+  `readImage`), never `Global.getSettings().getSprite`/`openStream` directly:
+  code addresses images in source pixels, and only `ModTextures` maps a fitted
+  image back to them. Grow the record with `-PtextureUsage` on `createSnapshots`
+  or `commanderEvidence` (plus a dev-mode game), then `mergeTextureUsage`.
 - `gradlew.bat prepareCatalogSmoke` → stages the additive two-provider catalog
   acceptance fixture without launching Starsector. Pass
   `-PcatalogSmokeMode=collision` to stage the duplicate-id variant.

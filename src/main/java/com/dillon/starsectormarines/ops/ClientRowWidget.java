@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.render2d.texture.ModTextures;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.BaseWidget;
 import com.dillon.starsectormarines.ui.Fonts;
@@ -152,8 +153,8 @@ public class ClientRowWidget extends BaseWidget {
         crestAttempted = true;
         if (client.crestPath == null || client.crestPath.isEmpty()) return;
         try {
-            Global.getSettings().loadTexture(client.crestPath);
-            crest = Global.getSettings().getSprite(client.crestPath);
+            ModTextures.loadTexture(client.crestPath);
+            crest = ModTextures.sprite(client.crestPath);
         } catch (Exception e) {
             LOG.warn("ClientRow: crest load failed for " + client.factionId + " (" + client.crestPath + ")");
         }
