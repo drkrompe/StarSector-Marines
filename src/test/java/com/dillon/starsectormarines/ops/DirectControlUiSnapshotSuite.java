@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.combat.SalvoChain;
 import com.dillon.starsectormarines.battle.ui.panel.SquadOrderTargetingPanel.Mode;
 
 import com.dillon.starsectormarines.battle.combat.ManualPointFire;
@@ -196,6 +197,13 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, chaingunBelts(),
                         sectionPlate(context.modRoot(), new MechLoadoutComponent(MechVariant.BULWARK, null)).document(),
                         false)));
+        // A held LRM-15 building its spike: each salvo the hold commits lights up in the strip (salvo-chain.md).
+        for (int salvos = 1; salvos <= MechWeaponComponent.LRM_15.ammoCapacity; salvos++) {
+            artifacts.add(new SnapshotArtifact("active-mech-lrm-hold-" + salvos + "-1920x1080-ui100.png",
+                    activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, holdingMech(salvos),
+                            sectionPlate(context.modRoot(), new MechLoadoutComponent(MechVariant.BULWARK, null))
+                                    .document(), false)));
+        }
         artifacts.add(new SnapshotArtifact("active-vehicle-ordnance-1920x1080-ui100.png",
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, ordnanceVehicle(),
                         vehiclePlate(context.modRoot()).document(), false)));
@@ -288,6 +296,30 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
             int rounds = mount.rotary.advance(BattleSimulation.TICK_DT, held);
             for (int r = 0; r < rounds; r++) mount.rotary.spend();
         }
+    }
+
+    /**
+     * A Bulwark holding its right button on an LRM-15 with {@code salvos} of its three committed: the salvo in flight
+     * is part way out, and every salvo the hold has fired draws lit beside the ones still loaded.
+     */
+    private static BattleDirectControlStatus.Snapshot holdingMech(int salvos) {
+        MechWeaponMount lrm = mount(MechMountSlot.LEFT_SHOULDER, MechWeaponComponent.LRM_15,
+                MechWeaponComponent.LRM_15.ammoCapacity - salvos, 2);
+        lrm.holdSalvos = salvos;
+        lrm.cycleRemaining = lrm.component.cycleSeconds() - .2f;
+        MechWeaponMount[] mounts = {
+                lrm,
+                mount(MechMountSlot.RIGHT_SHOULDER, MechWeaponComponent.SRM_5, 6, 0),
+                mount(MechMountSlot.LEFT_ARM, MechWeaponComponent.CHAINGUN, -1, 0),
+                mount(MechMountSlot.RIGHT_ARM, MechWeaponComponent.CHAINGUN, -1, 0)};
+        MechFlux flux = new MechFlux();
+        flux.commit(SalvoChain.fluxCost(lrm.component.fluxPerTrigger(), false)
+                + (salvos - 1) * SalvoChain.fluxCost(lrm.component.fluxPerTrigger(), true));
+        var base = BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.MECH, false);
+        return new BattleDirectControlStatus.Snapshot(base.entityId(), "Bulwark Lead",
+                BattleDirectControlStatus.Carrier.MECH, base.durability(),
+                BattleDirectControlStatus.mechWeapons(mounts, flux), List.of(), MarineSprint.EMPTY,
+                new BattleDirectControlStatus.MechFluxStatus(flux.value(), flux.venting(), flux.capacity()));
     }
 
     private static MechWeaponMount mount(MechMountSlot slot, MechWeaponComponent component, int ammo, int burst) {
