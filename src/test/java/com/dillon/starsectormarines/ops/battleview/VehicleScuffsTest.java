@@ -53,6 +53,16 @@ class VehicleScuffsTest {
     }
 
     @Test
+    void aRegionOfFewSlotsStillRunsThroughEveryStage() {
+        VehicleScuffs.Mask mask = mask(hull());
+        List<Integer> kinds = new ArrayList<>();
+        VehicleScuffs.place(mask, Plate.FRONT.ordinal(), 4, 1f, 99L,
+                (x, y, kind, variant, spin, alpha) -> kinds.add(kind));
+        assertEquals(List.of(VehicleScuffs.SCRAPE, VehicleScuffs.SCRAPE, VehicleScuffs.SCORCH, VehicleScuffs.GOUGE),
+                kinds);
+    }
+
+    @Test
     void marksBuildUpInPlace() {
         VehicleScuffs.Mask mask = mask(hull());
         for (Plate plate : Plate.values()) {

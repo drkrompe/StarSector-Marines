@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerTransform;
 import com.dillon.starsectormarines.battle.mech.MechHardpointGeometry;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
+import com.dillon.starsectormarines.battle.mech.MechSection;
 
 /**
  * Emits a mech as hull-width-relative, independently animated hardpoints.
@@ -22,6 +23,12 @@ final class LayeredMechComposer {
     interface Sink {
         void sprite(LayeredSpriteCache sprite, float centerX, float centerY,
                     float width, float height, float angleDegrees, float alpha);
+
+        /**
+         * The section the parts that follow belong to, or null for parts that carry none (leg bones, muzzle
+         * flashes): what worn plate is drawn on them ({@code body-scuffs.md}).
+         */
+        default void section(MechSection section) { }
     }
 
     /** Screen-space projection of the fixed-tick procedural gait state. */
@@ -110,6 +117,7 @@ final class LayeredMechComposer {
         float rightFootY = footY - footStepReach * rightStep;
         LayerTransform leftFoot = layer(authoredPose, "left-foot");
         LayerTransform rightFoot = layer(authoredPose, "right-foot");
+        out.section(MechSection.LEGS);
         if (gaitPose != null) {
             emitFoot(out, assets.foot, gaitPose.leftFootX(), gaitPose.leftFootY(),
                     hullWidth, gaitPose.leftFootFacing(), gaitPose.leftFootLift(), alpha);
@@ -137,6 +145,8 @@ final class LayeredMechComposer {
 
         LayerTransform leftThigh = layer(authoredPose, "left-thigh");
         LayerTransform rightThigh = layer(authoredPose, "right-thigh");
+        // A bone is stretched between waist and foot, so a mark on it would be stretched too.
+        out.section(null);
         // Legs always sit below the upper assembly: pads, then linkages, then
         // the ordinary weapon/chassis/pod stack emitted below.
         if (gaitPose != null
@@ -185,6 +195,7 @@ final class LayeredMechComposer {
         }
 
         LayeredSpriteCache chassisSprite = selectChassis(assets, chassis);
+        out.section(MechSection.TORSO);
         if (gaitPose != null) {
             emitCentered(out, chassisSprite, upperX, upperY, hullWidth, torsoFacingDeg,
                     0f, 0f, 0f, alpha);
@@ -203,6 +214,7 @@ final class LayeredMechComposer {
                     upperX, upperY, hullWidth, upperFacingDeg, srmKick, lrmKick, alpha);
         }
 
+        out.section(null);
         if ((flags & LayeredMechAppearance.FLAG_CHAINGUN_FLASH) != 0) {
             emitArmFlash(out, assets, arms, MechMountSlot.ARMS, upperX, upperY, hullWidth,
                     upperFacingDeg, cgKick, alpha);
@@ -259,6 +271,7 @@ final class LayeredMechComposer {
                                 float facingDeg, float kick, float alpha) {
         LayeredSpriteCache sprite = armSprite(assets, gun);
         if (sprite == null) return;
+        out.section(armSection(slot));
         float recoil = armRecoils(gun) ? kick : 0f;
         if (slot.isSideArm()) {
             // The arm guns were authored as narrow barrels; only the linear cannon's rails stay full width.
@@ -275,6 +288,14 @@ final class LayeredMechComposer {
             emitFromRearPivot(out, sprite, actorX, actorY, hullWidth, facingDeg,
                     0f, pivot + recoil, 1f, 0f, alpha);
         }
+    }
+
+    private static MechSection armSection(MechMountSlot slot) {
+        return switch (slot) {
+            case LEFT_ARM -> MechSection.LEFT_ARM;
+            case RIGHT_ARM -> MechSection.RIGHT_ARM;
+            default -> MechSection.ARMS;
+        };
     }
 
     private static LayeredSpriteCache armSprite(LayeredMechAssets assets, int gun) {
@@ -308,9 +329,11 @@ final class LayeredMechComposer {
                                          float actorX, float actorY, float hullWidth,
                                          float facingDeg, float srmKick, float lrmKick,
                                          float alpha) {
+        out.section(MechSection.LEFT_SHOULDER);
         emitPod(out, assets, leftShoulder, actorX, actorY, hullWidth, facingDeg,
                 podLocalX(chassis, leftShoulder, rightShoulder, true),
                 srmKick, lrmKick, alpha);
+        out.section(MechSection.RIGHT_SHOULDER);
         emitPod(out, assets, rightShoulder, actorX, actorY, hullWidth, facingDeg,
                 podLocalX(chassis, leftShoulder, rightShoulder, false),
                 srmKick, lrmKick, alpha);
