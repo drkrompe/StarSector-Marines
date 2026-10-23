@@ -23,8 +23,10 @@ import java.util.function.Consumer;
  * The allies' logistics base behind the line ({@code cordon-nouns.md}, Logistics base): reinforcement
  * squads walk in off the rear edge to its apron, its shed builds the allies' cars and carriers, and
  * its carriers take waiting squads up to the redoubt that needs them most, where they join the
- * garrison. A carrier stays at the redoubt it delivered to as support, and comes back to its own
- * staging slot on the apron when squads are waiting for it.
+ * garrison. Between carries a carrier is support: it stays behind the redoubt it delivered to and
+ * answers the nearest call as the armour does, its gun on the swarm. When squads wait at the base,
+ * as many carriers as there are squads come back to their slots, the nearest first; the rest stay
+ * on the line.
  *
  * <p><b>Exits are controlled.</b> The apron is the ground outside the shed's machine door. A finished
  * hull waits on its berth until the one before it has driven clear of the door, so two never meet in
@@ -35,10 +37,10 @@ public final class CordonLogistics {
 
     /** Cells from a slot a column counts as at the base, and a carrier as home. */
     static final int AT_BASE = 8;
-    /** Cells out from the machine door the apron's slots stand. */
-    static final int APRON_DEPTH = 7;
+    /** Cells out from the machine door the apron's slots stand: past the threshold, room to turn. */
+    static final int APRON_DEPTH = 9;
     /** Cells between one staging slot and the next, across the door. */
-    static final int SLOT_PITCH = 4;
+    static final int SLOT_PITCH = 5;
     /** Staging slots on the apron. */
     static final int SLOTS = 3;
     /** Cells past the door a leaving hull must be before the next is let out. */
@@ -66,7 +68,12 @@ public final class CordonLogistics {
     private final List<Long> carriers = new ArrayList<>();
     private final Map<Long, int[]> carrierSlot = new HashMap<>();
     private final Deque<Long> leaving = new ArrayDeque<>();
-    /** Cars and technicals on their way out to the threshold, and the home each goes on to. */
+    /** The redoubt each carrier between carries is supporting, so a call is answered once. */
+    private final Map<Long, CordonRedoubt> supporting = new HashMap<>();
+    /**
+     * Hulls on their way out to the threshold, and where each goes on to: a car's or technical's home
+     * behind the line, a carrier's staging slot.
+     */
     private final Map<Long, int[]> outbound = new HashMap<>();
     private final int thresholdX, thresholdY;
     private final Deque<Integer> waiting = new ArrayDeque<>();
@@ -114,8 +121,9 @@ public final class CordonLogistics {
             int outX = door[2], outY = door[3];
             for (int i = 0; i < SLOTS; i++) {
                 int offset = (i - (SLOTS - 1) / 2) * SLOT_PITCH;
-                int[] cell = CordonGround.nearestWalkable(grid, door[0] + outX * APRON_DEPTH + outY * offset,
-                        door[1] + outY * APRON_DEPTH + outX * offset);
+                // Ground a carrier's footprint fits on, not merely ground a man can stand on.
+                int[] cell = CordonArmour.drivable(sim, VehicleType.HEAVY_APC,
+                        door[0] + outX * APRON_DEPTH + outY * offset, door[1] + outY * APRON_DEPTH + outX * offset);
                 if (cell != null) slots.add(cell);
             }
         }
@@ -236,21 +244,31 @@ public final class CordonLogistics {
         for (Map.Entry<Long, int[]> leg : new ArrayList<>(outbound.entrySet())) {
             if (!near(sim.convoy().body(leg.getKey()), new int[]{thresholdX, thresholdY}, AT_THRESHOLD)) continue;
             outbound.remove(leg.getKey());
-            armour.adopt(sim, leg.getKey(), leg.getValue()[0], leg.getValue()[1]);
+            if (carrierSlot.containsKey(leg.getKey())) {
+                command.station(sim, leg.getKey(), leg.getValue()[0], leg.getValue()[1]);
+            } else {
+                armour.adopt(sim, leg.getKey(), leg.getValue()[0], leg.getValue()[1]);
+            }
         }
         letOut(sim);
         if (sim.getSimTickIndex() % CordonArmour.REVIEW_TICKS != 0) return;
         waiting.removeIf(squad -> sim.squadMemberCount(squad) == 0);
+        supporting.keySet().retainAll(carriers);
+        List<Long> recalled = recall(sim);
         for (long hull : carriers) {
-            if (waiting.isEmpty()) break;
-            if (command.carrying(hull)) continue;
+            if (command.carrying(hull) || outbound.containsKey(hull)) continue;
+            if (!recalled.contains(hull)) {
+                support(sim, hull, redoubts);
+                continue;
+            }
+            supporting.remove(hull);
             int[] slot = carrierSlot.get(hull);
             if (!near(sim.convoy().body(hull), slot, AT_BASE)) {
                 command.station(sim, hull, slot[0], slot[1]);
                 continue;
             }
             CordonRedoubt to = neediest(sim, redoubts);
-            if (to == null) break;
+            if (to == null || waiting.isEmpty()) continue;
             int squad = waiting.poll();
             int[] drop = armour.behind(to);
             // Each carrier its own place behind the wall, so two sent to one redoubt do not stack.
@@ -266,6 +284,33 @@ public final class CordonLogistics {
                 landed.add("carried_" + carried);
             });
         }
+    }
+
+    /**
+     * The carriers that go back for the squads waiting: one a squad, the nearest the base first.
+     * Those already loading are counted, so a second carrier is not called for a squad boarding.
+     */
+    private List<Long> recall(BattleSimulation sim) {
+        AlliedCommand command = armour.command();
+        List<Long> free = new ArrayList<>();
+        for (long hull : carriers) if (!command.carrying(hull)) free.add(hull);
+        free.sort((a, b) -> Float.compare(
+                sim.convoy().body(a).distanceTo(musterX, musterY),
+                sim.convoy().body(b).distanceTo(musterX, musterY)));
+        return free.subList(0, Math.min(waiting.size(), free.size()));
+    }
+
+    /**
+     * A carrier between carries: to the rear wall of the nearest calling redoubt, beside the armour
+     * rather than on it; with no call it stays where it last stood, behind the redoubt it fed.
+     */
+    private void support(BattleSimulation sim, long hull, List<CordonRedoubt> redoubts) {
+        CordonRedoubt call = CordonArmour.nearestCalling(sim.convoy().body(hull), redoubts);
+        if (call == null || call == supporting.get(hull)) return;
+        supporting.put(hull, call);
+        int[] post = armour.behind(call);
+        int lane = carriers.indexOf(hull) - (slots.size() - 1) / 2;
+        armour.command().station(sim, hull, post[0] + lane * DROP_SPACING + DROP_SPACING / 2, post[1]);
     }
 
     /** One hull through the door at a time: the next goes once the last is clear of it, or gone. */
@@ -293,6 +338,9 @@ public final class CordonLogistics {
             // A carrier works from a slot of its own; one more than there are slots fights with the armour.
             if (type != null && type.capacity > 0 && carriers.size() < slots.size()) {
                 addCarrier(sim, hull);
+                // Straight out of the door like the rest, then over to its slot.
+                armour.command().station(sim, hull, thresholdX, thresholdY);
+                outbound.put(hull, carrierSlot.get(hull));
             } else {
                 // Out of the shed first, a short drive to the threshold; its home behind the line after.
                 int[] home = armourHomes.isEmpty() ? new int[]{musterX, musterY}

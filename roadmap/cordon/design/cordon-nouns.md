@@ -138,9 +138,12 @@ stops production by killing the crew or the hull. Allied columns walk in off
 the rear edge to the muster yard and wait there. A carrier free at the base
 takes a waiting squad up to the redoubt that needs it most (a calling one
 first, then the fewest standing), sets it down behind the rear wall to join
-the garrison, and stays there as support until squads are waiting at the base
-again. A finished car or technical joins the allied armour with the base as
-its home. The base opens with one carrier.
+the garrison. Between carries a carrier is **support**: it stays behind the
+redoubt it fed and answers the nearest call as the armour does, beside the
+armour rather than on it. When squads wait at the base, one carrier a squad
+goes back for them, the nearest first, and the rest stay on the line. A
+finished car or technical joins the allied armour with a post behind a
+redoubt as its home. The base opens with one carrier.
 
 The base controls its exits so nothing piles up in the shed. A finished
 machine waits on its berth until the one before it has driven clear of the
@@ -148,9 +151,11 @@ machine door; it is then drawn out into the service lane in front of its
 berth facing the door (the shed's tug: a berth's mouth is no wider than the
 hull, and a hull cannot turn out of it alone) and driven out. A carrier waits
 on a **staging slot** of its own on the apron outside the door, never in the
-doorway; there are as many carriers as slots, and an APC beyond that fights
-with the armour. A car or technical drives to a **threshold** a few cells out
-of the door first, then on to its post behind a redoubt. Two carriers sent to
+doorway, on ground its footprint fits; there are as many carriers as slots,
+and an APC beyond that fights with the armour. Every machine drives straight
+out to a **threshold** a few cells beyond the door first, then on to its slot
+or its post behind a redoubt: a carrier steers too wide to turn from the lane
+straight onto a slot. Two carriers sent to
 one redoubt set down side by side, not on one spot.
 
 **Allied armour.** The allies' cars and technicals behind the line, under the

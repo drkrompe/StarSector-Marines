@@ -8,8 +8,11 @@ import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
+import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService;
+import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
@@ -53,10 +56,15 @@ public final class AlliedCommand {
     /** Ticks a carrier waits for its squad to board before it goes without them. */
     public static final int BOARDING_PATIENCE_TICKS = 60 * 60;
     /**
-     * Cells a refused goal is pulled back toward the hull before it is asked again. A goal in woods
-     * or a walled yard has no drivable route, and ground a step nearer usually has one.
+     * Cells a refused goal is pulled back toward the hull before it is asked again, where no way
+     * there is known at all. A goal in woods or a walled yard has no drivable route, and ground a
+     * step nearer usually has one.
      */
     public static final int PULLBACK_STEP = 6;
+    /** Cells from a waypoint a hull counts as there, to be sent on to its post. */
+    public static final float VIA_REACH = 4f;
+    /** Waypoints a hull is sent through on its way to one post before it stops asking. */
+    public static final int VIA_LIMIT = 24;
     /** Times a refused goal is pulled back before the hull stays where it is. */
     public static final int PULLBACK_LIMIT = 12;
     /** Cells a new post must move before a stationed hull is sent again, so a moving line is not a new order every tick. */
@@ -70,6 +78,7 @@ public final class AlliedCommand {
         /** Where it was last sent: the post, or the post pulled back after a refusal. */
         int goalX, goalY;
         int pullbacks;
+        int vias;
         int squad = -1;
         Delivery delivery;
         int boardingSince;
@@ -185,6 +194,8 @@ public final class AlliedCommand {
     }
 
     private static final MechSpawnPlacement.Domain ANYWHERE = (px, py) -> true;
+    /** Cells an end of a waypoint search is moved to find ground the footprint fits, as a move order's is. */
+    private static final int SNAP_REACH = 6;
 
     /** Live hulls under this command, in the order they were enlisted. */
     public List<Long> hulls() {
@@ -214,7 +225,7 @@ public final class AlliedCommand {
             }
             Task task = entry.getValue();
             if (task == null) continue;
-            if (task.phase != Phase.BOARDING && pullBack(sim, hull, task)) continue;
+            if (task.phase != Phase.BOARDING && (pullBack(sim, hull, task) || reachedVia(sim, hull, task))) continue;
             switch (task.phase) {
                 case BOARDING -> {
                     boolean gone = sim.squadMemberCount(task.squad) == 0;
@@ -271,8 +282,14 @@ public final class AlliedCommand {
     }
 
     /**
-     * A refused goal is pulled a step back toward the hull and asked again, never past the hull
-     * itself; after {@link #PULLBACK_LIMIT} steps the hull stays where it is.
+     * A refused goal is pulled back toward the hull and asked again: to the last corner of the way
+     * there, where one is known, so the hull goes a leg at a time; else a step back along the
+     * straight line, never past the hull itself. After {@link #PULLBACK_LIMIT} refusals the hull
+     * stays where it is.
+     *
+     * <p>A hull that steers wide (an APC turns on twice a car's circle) is refused a long route whose
+     * one tight corner it cannot make in a single drive, though every leg of it is drivable alone:
+     * standing at the corner, it turns there on its own and goes on.
      *
      * @return whether the hull was refused this tick
      */
@@ -284,15 +301,60 @@ public final class AlliedCommand {
         // Out of steps: a station stays put; a carrier sets its riders down where it stands.
         if (task.pullbacks >= PULLBACK_LIMIT) return task.phase == Phase.STATION;
         GroundBody body = sim.convoy().body(hull);
-        float dx = body.x - (task.goalX + 0.5f), dy = body.y - (task.goalY + 0.5f);
-        float length = (float) Math.sqrt(dx * dx + dy * dy);
-        if (length <= PULLBACK_STEP) {
-            task.pullbacks = PULLBACK_LIMIT;
-            return task.phase == Phase.STATION;
+        int[] corner = lastCorner(sim, hull, task.goalX, task.goalY);
+        if (corner != null) {
+            task.goalX = corner[0];
+            task.goalY = corner[1];
+        } else {
+            float dx = body.x - (task.goalX + 0.5f), dy = body.y - (task.goalY + 0.5f);
+            float length = (float) Math.sqrt(dx * dx + dy * dy);
+            if (length <= PULLBACK_STEP) {
+                task.pullbacks = PULLBACK_LIMIT;
+                return task.phase == Phase.STATION;
+            }
+            task.goalX = Math.round(task.goalX + dx / length * PULLBACK_STEP);
+            task.goalY = Math.round(task.goalY + dy / length * PULLBACK_STEP);
         }
-        task.goalX = Math.round(task.goalX + dx / length * PULLBACK_STEP);
-        task.goalY = Math.round(task.goalY + dy / length * PULLBACK_STEP);
         task.pullbacks++;
+        drive(sim, hull, task);
+        return true;
+    }
+
+    /**
+     * The corner before the goal on the hull's way there, footprint-clear but not yet proved
+     * drivable, or {@code null} where the way is one straight leg or there is none.
+     */
+    private static int[] lastCorner(BattleSimulation sim, long hull, int goalX, int goalY) {
+        VehicleType type = sim.convoy().vehicleType(hull);
+        if (type == null) return null;
+        GroundBody body = sim.convoy().body(hull);
+        VehicleClearance clearance = VehicleClearance.erode(sim.getGrid(),
+                VehicleClearance.radiusForWidth(type.visualWidthCells));
+        int[] from = VehicleRoutePlanner.snapToMask(clearance, (int) body.x, (int) body.y, SNAP_REACH);
+        int[] to = VehicleRoutePlanner.snapToMask(clearance, goalX, goalY, SNAP_REACH);
+        if (from == null || to == null) return null;
+        float[][] way = VehicleRoutePlanner.route(from[0], from[1], to[0], to[1], sim.getGrid(),
+                TerrainCostField.from(sim.getTopology()), clearance);
+        if (way == null || way[0].length < 3) return null;
+        int last = way[0].length - 2;
+        return new int[]{(int) way[0][last], (int) way[1][last]};
+    }
+
+    /**
+     * A hull standing at the waypoint it was pulled back to is sent on to its post. Each leg it
+     * made is ground gained, so the refusals it took on the way are forgotten; the waypoints are not,
+     * so a hull cannot be walked round a loop for ever.
+     *
+     * @return whether it was sent on this tick
+     */
+    private boolean reachedVia(BattleSimulation sim, long hull, Task task) {
+        if (task.goalX == task.postX && task.goalY == task.postY) return false;
+        if (task.vias >= VIA_LIMIT || !stopped(sim, hull)) return false;
+        if (!within(sim.convoy().body(hull), task.goalX, task.goalY, VIA_REACH)) return false;
+        task.vias++;
+        task.pullbacks = 0;
+        task.goalX = task.postX;
+        task.goalY = task.postY;
         drive(sim, hull, task);
         return true;
     }

@@ -92,7 +92,7 @@ public final class CordonArmour {
         }
     }
 
-    private CordonRedoubt nearestCalling(GroundBody body, List<CordonRedoubt> redoubts) {
+    static CordonRedoubt nearestCalling(GroundBody body, List<CordonRedoubt> redoubts) {
         CordonRedoubt best = null;
         float bestDistance = Float.MAX_VALUE;
         for (CordonRedoubt r : redoubts) {
