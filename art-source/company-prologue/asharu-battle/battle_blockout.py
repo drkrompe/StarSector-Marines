@@ -2168,15 +2168,21 @@ def blender_main(cfg):
         for i in range(n):
             f = .3 + (rng.uniform(0, .6) + span_dt() * 250.0 / (p1 - p0).length) % .6
             p = p0.lerp(p1, f) + Vector(rng.normal(0, 60, 3))
-            obj('Missile', bead_me, missile_mat, Matrix.Translation(p) @ Matrix.Scale(2.2, 4))
             back = (p0 - p1).normalized()
-            segment(p, p + back * 140, 2.5, plume_mats['LOW_TECH'], 'Missile trail')
+            # no orbs (owner, 2026-10-23: "white orbs"): the body is a short streak along its flight
+            segment(p + back * 9, p, .9, missile_mat, 'Missile')
+            segment(p + back * 9, p + back * 140, 2.5, plume_mats['LOW_TECH'], 'Missile trail')
 
     def blast(p, radius):
-        obj('Blast', bead_me, blast_mat, Matrix.Translation(p) @ Matrix.Scale(radius * .55, 4))
-        for i in range(9):
-            o = Vector(rng.normal(0, radius * .45, 3))
-            obj('Blast lobe', bead_me, blast_mat, Matrix.Translation(p + o) @ Matrix.Scale(radius * rng.uniform(.2, .45), 4))
+        """No orbs: a torn, spiked burst (swfx_burst's jagged mesh), turned at random, in smoke."""
+        if str(PROLOGUE / 'second-wind-vfx') not in sys.path:
+            sys.path.insert(0, str(PROLOGUE / 'second-wind-vfx'))
+        import random as _random
+        import swfx_burst
+        me, _ = swfx_burst.lobed_mesh('Blast burst', blast_mat, _random.Random(int(rng.integers(1 << 30))),
+                                      lobes=(4, 7), spikes=(5, 9), lean=.3)
+        obj('Blast', me, blast_mat, Matrix.Translation(p) @ Euler(rng.uniform(0, 6.3, 3)).to_matrix().to_4x4()
+            @ Matrix.Scale(radius * .7, 4))
         obj('Blast smoke', bead_me, smoke_mat, Matrix.Translation(p) @ Matrix.Scale(radius * 1.15, 4))
 
     def debris(p, spread, n=40):
@@ -2198,10 +2204,26 @@ def blender_main(cfg):
             o = toward * (20 + 180 * f) + Vector(rng.normal(0, 6 + 20 * f, 3))
             obj('Smoke', bead_me, smoke_mat, Matrix.Translation(p + o) @ Matrix.Scale(5 + 14 * f, 4))
 
-    def flares(key):
+    def flares(key, life=1.6):
+        """Decoy flares (a stand-in for a ship the kit has no flare muzzles on). No orbs (owner,
+        2026-10-23: "white orbs around the hound"): each is thrown off her flank at its own moment
+        through the shot, a short hot streak along its motion with a smoke tail, slowing and fading,
+        and gone after `life` seconds; nothing is drawn before it is thrown or after it burns out."""
+        dt = span_dt()
         for i in range(10):
-            p = at(key, (rng.uniform(-60, 40), rng.choice((-1, 1)) * rng.uniform(50, 120), rng.uniform(-10, 40)))
-            obj('Flare', bead_me, flare_mat, Matrix.Translation(p) @ Matrix.Scale(1.6, 4))
+            side = rng.choice((-1, 1))
+            s0 = Vector((rng.uniform(-20, 10), side * rng.uniform(8, 15), rng.uniform(0, 8)))
+            out = Vector((rng.uniform(-60, 40), side * rng.uniform(50, 120), rng.uniform(-10, 40))).normalized()
+            thrown = rng.uniform(-2.0, 4.0)              # seconds from the key frame
+            age = dt - thrown
+            if not 0.0 <= age <= life:
+                continue
+            go = lambda a: s0 + out * 70.0 * (a - a * a / (2.2 * life))     # thrown hard, slowing
+            heat = 1.0 - age / life
+            head, tail = at(key, go(age)), at(key, go(max(0.0, age - .12)))
+            if (head - tail).length > .05:
+                segment(tail, head, .5 + .5 * heat, flare_mat, 'Flare')
+            segment(at(key, go(max(0.0, age - .6))), tail, 1.2 + 2.0 * (1 - heat), smoke_mat, 'Flare smoke')
 
     def entry_trails(labels3d):
         """Two entry trails 150-45 km up, 150-800 km downrange and heading north, from orbit: each
