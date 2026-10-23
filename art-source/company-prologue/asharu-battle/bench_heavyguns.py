@@ -36,7 +36,8 @@ def clamp(bench, ship, label):
     """swfx_guns.screen_clamp on a ship's rounds at the bench camera, as scene_fx.to_world calls it."""
     import swfx_guns
     from bench_guns import _M
-    obs = [o for o in bench.bpy.data.objects if swfx_guns.ROUND_NAME.search(o.name)]
+    obs = [o for o in bench.bpy.data.objects
+           if swfx_guns.ROUND_NAME.search(o.name) or swfx_guns.FLARE_NAME.search(o.name)]
     n = swfx_guns.screen_clamp(obs, lambda f: (bench.cam.location.copy(), bench.cam.data.angle_x),
                                to_world=lambda f: _M(ship))
     print(f'BENCH clamp {label}: {len(obs)} round parts, {n} keyed', flush=True)
@@ -123,6 +124,7 @@ def decoy_flares(bench):
                       trail=dict(trail_glow=0.0, trail_alpha=.3, trail_r_m=.45, trail_spread=1.2,
                                  trail=(.55, .55, .55)))
     print('BENCH decoy-flares', len(anchors), 'anchors,', len(fl), 'flares', flush=True)
+    clamp(bench, h, 'decoy-flares')
     bench.camera(tuple(bench.at(h, (-30, -110, 45))), tuple(bench.at(h, (-25, 0, 0))), 35)
     lint(bench, TESTS['decoy-flares']['frames'], 'decoy-flares')
 
