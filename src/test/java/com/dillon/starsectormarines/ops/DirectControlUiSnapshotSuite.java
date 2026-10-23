@@ -197,7 +197,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, chaingunBelts(),
                         sectionPlate(context.modRoot(), new MechLoadoutComponent(MechVariant.BULWARK, null)).document(),
                         false)));
-        // A held LRM-15 building its spike: each salvo the hold commits lights up in the strip (salvo-chain.md).
+        // A held LRM-15 building its spike: each salvo the hold commits lights up in the strip (mechs-nouns.md).
         for (int salvos = 1; salvos <= MechWeaponComponent.LRM_15.ammoCapacity; salvos++) {
             artifacts.add(new SnapshotArtifact("active-mech-lrm-hold-" + salvos + "-1920x1080-ui100.png",
                     activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, holdingMech(salvos),
