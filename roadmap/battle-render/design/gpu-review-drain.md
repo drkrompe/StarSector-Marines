@@ -63,6 +63,22 @@ the other suites' 536s and 446s of writing unchanged, the 55 minutes become
 roughly 27. What is left is simulation, GIF encoding and the 39 suites that do
 not use this renderer.
 
+**GIF writing went side by side next** (2026-10-23). Once frames were drawn on the GPU, a
+suite's GIFs cost as much as drawing it, because each one was a single thread through ImageIO:
+median-cut palette, then the JDK's LZW, frame by frame. A frame's patch depends only on its own
+pixels and its predecessor's, so `AnimatedGifWriter.write` keys, quantises and compresses a
+recording's frames on `SnapshotWorkers.encode()` and only concatenates them in order. It writes
+the JDK's exact stream (layout, interlace, LZW code sequence), so every output file is
+byte-identical to before. The median cut keeps the same picks for less work. The palette's 7 MB
+of scratch is reused per thread. ImageIO's metadata round trip is gone. On colony-threat, whose
+two 165-frame adaptive GIFs were the slow part, the write phase went from 17.7s / 21.8s to
+9.4s / 13.7s across two alternating pairs of full runs. Writing those two GIFs alone, in one
+process, went from 8-9s to 1.5-4s. On one thread it used about a quarter less CPU (12s against
+15-17s). The machine was loaded throughout, so these readings are indicative. fire-line, whose four
+GIFs were already written side by side and whose stills dominate, did not move. A lower
+PNG deflate level was tried for the stills and was slower than ImageIO's default, so it was left
+alone.
+
 ## Which GL: LWJGL 2 on Windows, LWJGL 3 on the Mac
 
 **Windows: LWJGL 2, from the game's install, through `HeadlessGl`.** It is

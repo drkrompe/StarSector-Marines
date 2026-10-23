@@ -315,6 +315,22 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         renderer.buildTileBatches();
     }
 
+    /** Whether a renderer is attached, so the scene can draw itself. */
+    public boolean hasRenderer() {
+        return renderer != null;
+    }
+
+    /**
+     * Takes the renderer away with every GL resource it made, before the sprites it drew from are
+     * released ({@code battle-textures.md}). The scene keeps running; a later
+     * {@link #attachRenderer} gives it a fresh renderer over fresh sprites.
+     */
+    public void detachRenderer() {
+        if (renderer == null) return;
+        renderer.disposeGlResources();
+        renderer = null;
+    }
+
     public BattleSimulation simulation() {
         return simulation;
     }
@@ -1298,10 +1314,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
 
     @Override
     public void close() {
-        if (renderer != null) {
-            renderer.getGroundParallax().dispose();
-            renderer.disposeLighting();
-        }
+        detachRenderer();
         simulation.close();
     }
 

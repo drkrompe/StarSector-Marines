@@ -1,10 +1,10 @@
 # Story: truck vs. infantry interaction
 
-Status: PARTIAL — physical repulsion shipped; navigation occupancy, crushing and predictive avoidance remain.
+Status: PARTIAL — repulsion, ramming and hull contact shipped; navigation occupancy, pinned crushing and predictive avoidance remain.
 
 Written: 2026-05-28
 
-Updated: 2026-10-15 — repulsion (contact + bow wave) shipped; scope narrowed to what remains.
+Updated: 2026-10-23 — ram damage against the other side and hull-on-hull contact shipped (`convoy-nouns.md`).
 
 Read `convoy-nouns.md` first. A hull is still not a grid occupant, but it now
 repels bodies physically (contact and bow wave; see the noun doc), so marines no
@@ -14,7 +14,9 @@ column driver also slows for friendly infantry in the road. What remains:
 - **Planning.** Infantry still path through hulls and are pushed back out each
   tick; a parked hull on a defend post produces visible churn. A hull's
   footprint as a soft path cost or GOAP world-state input is the next step.
-- **Squash.** No impact damage; a body pinned against a wall is simply passed.
+- **Squash.** A hostile body on a moving bow is rammed for impact damage by mass
+  and closing speed (`HullRam`); a body pinned against a wall is still simply
+  passed rather than crushed.
 - **Yielding for every vehicle.** Slowing for friendlies is a Thunder Run
   driver behaviour, not yet a chassis-level rule for delivery and ordered
   vehicles.

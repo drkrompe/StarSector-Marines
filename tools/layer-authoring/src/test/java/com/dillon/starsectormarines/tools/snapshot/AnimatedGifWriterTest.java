@@ -9,9 +9,14 @@ import javax.imageio.stream.ImageInputStream;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -161,6 +166,30 @@ class AnimatedGifWriterTest {
             } finally {
                 reader.dispose();
             }
+        }
+    }
+
+    @Test
+    void writingARecordingSideBySideGivesTheFileAppendingItGives() throws Exception {
+        List<BufferedImage> frames = new ArrayList<>();
+        Random random = new Random(7);
+        for (int f = 0; f < 9; f++) {
+            BufferedImage image = new BufferedImage(48, 32, BufferedImage.TYPE_INT_RGB);
+            for (int y = 0; y < 32; y++) {
+                for (int x = 0; x < 48; x++) image.setRGB(x, y, (x * 5) << 16 | (y * 7) << 8 | (f % 3) * 40);
+            }
+            image.setRGB(random.nextInt(48), random.nextInt(32), random.nextInt());
+            frames.add(image);
+        }
+        frames.add(frames.get(frames.size() - 1)); // an identical frame keeps its timing as a one-pixel patch
+        for (AnimatedGifWriter.Palette palette : AnimatedGifWriter.Palette.values()) {
+            Path appended = tempDir.resolve("appended-" + palette + ".gif");
+            try (AnimatedGifWriter writer = new AnimatedGifWriter(appended, 100, palette)) {
+                for (BufferedImage frame : frames) writer.append(frame);
+            }
+            Path written = tempDir.resolve("written-" + palette + ".gif");
+            AnimatedGifWriter.write(written, frames, 100, palette);
+            assertArrayEquals(Files.readAllBytes(appended), Files.readAllBytes(written), palette.toString());
         }
     }
 

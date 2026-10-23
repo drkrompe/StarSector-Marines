@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.DevConfig;
+import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing;
 import com.dillon.starsectormarines.battle.world.gen.ship.FacilityDressing;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -9,12 +12,16 @@ import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipDeckGenerator;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.marine.MarineSoldier;
+import com.dillon.starsectormarines.render2d.texture.TextureLease;
+import com.dillon.starsectormarines.render2d.texture.TextureLedger;
+import com.fs.starfarer.api.Global;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
@@ -68,9 +75,22 @@ import java.util.function.Supplier;
  */
 public final class CompanyDeck {
 
+    /** A frame's share of the deck's texture loads; the battle screen's loading budget. */
+    private static final long LOAD_FRAME_BUDGET_NANOS = 12_000_000L;
+
     private final CompanyShip ship;
     private final long seed;
-    private final BattleSprites sprites;
+    /**
+     * What the deck draws with: the set handed in, or, for a deck {@linkplain #leasedFrom leased}
+     * from the ledger, the set its current lease loads, which is null while it holds none.
+     */
+    private BattleSprites sprites;
+    /** Where a leased deck takes its textures from; null when its sprites were handed in. */
+    private TextureLedger ledger;
+    /** What the deck holds while a screen that draws her is up. @see #releaseTextures() */
+    private TextureLease lease;
+    /** The textures her scene draws, loaded a frame's budget at a time. @see #drawable() */
+    private TextureLoadQueue loading;
     private final Supplier<List<MechVariant>> lance;
     private final Supplier<List<MarineSoldier>> company;
     /** Which of her boat berths the company still has a boat for. @see #getReady() */
@@ -82,6 +102,17 @@ public final class CompanyDeck {
     public CompanyDeck groundedBoats(Supplier<boolean[]> grounded) {
         if (gettingReady != null) throw new IllegalStateException("deck preparation already started");
         groundedBoats = grounded;
+        return this;
+    }
+
+    /**
+     * Owns her textures the way a battle does ({@code battle-textures.md}): a lease from
+     * {@code textures}, opened when a screen first draws her, loading only what her scene shows,
+     * and given back by {@link #releaseTextures()} when no screen that draws her is up.
+     */
+    public CompanyDeck leasedFrom(TextureLedger textures) {
+        if (sprites != null) throw new IllegalStateException("this deck draws with the sprites it was handed");
+        ledger = textures;
         return this;
     }
 
@@ -280,9 +311,94 @@ public final class CompanyDeck {
         return rooms;
     }
 
-    /** The ship's sprite cache, shared by every screen that draws her. */
+    /**
+     * The ship's sprite cache, shared by every screen that draws her. A leased deck opens its
+     * lease here, so what a screen loads through it is given back with the deck's own textures.
+     * Not to be kept: a release drops it, and the next call hands out a new one.
+     */
     public BattleSprites sprites() {
+        openTextures();
         return sprites;
+    }
+
+    /**
+     * Her scene, ready to be drawn: crewed, and with every texture it paints on the card. Null
+     * while she is not live yet or her textures are still loading, which a screen draws as it
+     * draws a ship being got ready. A leased deck loads here, a frame's budget per call, so
+     * walking back aboard never freezes the frame on an upload.
+     */
+    public ShipDeckBattleScene drawable() {
+        if (scene == null) return null;
+        if (ledger == null) {
+            ensureSceneSprites();
+            return scene;
+        }
+        openTextures();
+        if (loading == null) loading = new TextureLoadQueue(sceneTextureSteps());
+        if (!loading.done()) {
+            loading.advance(LOAD_FRAME_BUDGET_NANOS);
+            if (!loading.done()) return null;
+            if (DevConfig.DEV_MODE) {
+                Global.getLogger(CompanyDeck.class).info("company deck textures: loaded; the deck holds "
+                        + megabytes(lease.bytesHeld()) + " MB, " + megabytes(ledger.residentBytes())
+                        + " MB of mod textures resident in all");
+            }
+        }
+        scene.attachRenderer(sprites);
+        return scene;
+    }
+
+    /**
+     * Gives back every texture her scene loaded, for when no screen that draws her is up or the
+     * dialog closes ({@code battle-textures.md}). Her renderer goes first, with every GL resource
+     * it made, and her sprite set with the lease; the ship herself keeps running. The next
+     * {@link #drawable()} opens a new lease and loads again.
+     */
+    public void releaseTextures() {
+        if (lease == null) return;
+        if (scene != null) scene.detachRenderer();
+        TextureLedger.Release release = lease.release();
+        lease = null;
+        sprites = null;
+        loading = null;
+        if (DevConfig.DEV_MODE) {
+            Global.getLogger(CompanyDeck.class).info("company deck textures: released " + release.unloaded()
+                    + " textures, " + megabytes(release.bytesFreed()) + " MB freed (" + release.kept()
+                    + " kept, still held by other screens or the game's own); "
+                    + megabytes(ledger.residentBytes()) + " MB of mod textures resident after");
+        }
+    }
+
+    /**
+     * Hands this deck's lease and sprite set to {@code successor}, the deck laid out in her place,
+     * so a ship laid out again keeps what is already on the card rather than unloading it and
+     * loading it straight back. What the successor's scene does not draw stays held until it
+     * releases.
+     */
+    public void handTexturesTo(CompanyDeck successor) {
+        if (lease == null || successor == null || successor.ledger != ledger || successor.lease != null) return;
+        if (scene != null) scene.detachRenderer();
+        successor.lease = lease;
+        successor.sprites = sprites;
+        lease = null;
+        sprites = null;
+        loading = null;
+    }
+
+    /** Whether a leased deck holds textures now. */
+    public boolean holdsTextures() {
+        return lease != null;
+    }
+
+    private void openTextures() {
+        if (ledger == null || lease != null) return;
+        lease = ledger.lease("company deck");
+        sprites = new BattleSprites(lease);
+        loading = null;
+    }
+
+    private static long megabytes(long bytes) {
+        return Math.round(bytes / (1024.0 * 1024.0));
     }
 
     /**
@@ -294,7 +410,7 @@ public final class CompanyDeck {
      * different crew each time the player walked in.
      */
     public ShipDeckBattleScene scene() {
-        ensureSceneSprites();
+        if (ledger == null) ensureSceneSprites();
         if (scene != null) return scene;
         if (!ship.habitable()) {
             throw new IllegalStateException(
@@ -370,9 +486,12 @@ public final class CompanyDeck {
      * <p>On this thread, because a renderer reads sheets the game loaded.
      */
     private void adopt(ShipDeckBattleScene manned) {
-        ensureSceneSprites();
-        manned.attachRenderer(sprites);
         scene = manned;
+        // A leased deck loads when a screen draws her (#drawable), not when she is ready.
+        if (ledger == null) {
+            ensureSceneSprites();
+            manned.attachRenderer(sprites);
+        }
         if (dressing != null) scene.dress(dressing);
         scene.dress(facilities);
     }
@@ -400,14 +519,47 @@ public final class CompanyDeck {
      */
     void ensureSceneSprites() {
         if (sprites == null) return;
-        sprites.ensureTileSheet();
-        sprites.ensureRoadSheet();
-        sprites.ensureDoodadSheet();
-        sprites.ensureLayeredUnitSprites();
-        sprites.ensureLayeredMechSprites();
-        sprites.ensureMarineSecondarySprites();
-        sprites.ensureAirframeSprites();
+        for (TextureLoadQueue.Step step : sceneTextureSteps()) step.work().run();
     }
+
+    /**
+     * {@link #ensureSceneSprites()} as steps, so a leased deck can load across frames. The
+     * families are the ones her crew and company wear as they stand
+     * ({@link BattleTextureSet#onField}); a body she later shows in a family not named here loads
+     * on its first draw. Mechs are the unpainted set alone: nothing aboard binds a livery to a
+     * side.
+     */
+    private List<TextureLoadQueue.Step> sceneTextureSteps() {
+        BattleSprites s = sprites;
+        List<TextureLoadQueue.Step> steps = new ArrayList<>();
+        if (s == null) return steps;
+        BattleTextureSet set = scene != null ? BattleTextureSet.onField(scene.simulation()) : null;
+        steps.add(new TextureLoadQueue.Step(STAGE_TERRAIN, () -> {
+            s.ensureTileSheet();
+            s.ensureRoadSheet();
+            s.ensureDoodadSheet();
+        }));
+        steps.add(new TextureLoadQueue.Step(STAGE_SPRITES, s::ensureInfantryShared));
+        if (set != null) {
+            for (LayeredArmorFamily family : set.families()) {
+                steps.add(new TextureLoadQueue.Step(STAGE_SPRITES, () -> s.ensureLayeredFamily(family)));
+            }
+            if (set.ravRigs()) steps.add(new TextureLoadQueue.Step(STAGE_SPRITES, s::ensureRavRigs));
+            if (!set.vehicles().isEmpty()) {
+                steps.add(new TextureLoadQueue.Step(STAGE_SPRITES, () -> s.ensureConvoySprites(Set.of())));
+                for (VehicleType type : set.vehicles()) {
+                    steps.add(new TextureLoadQueue.Step(STAGE_SPRITES, () -> s.loadConvoySprite(type)));
+                }
+            }
+        }
+        steps.add(new TextureLoadQueue.Step(STAGE_SPRITES, () -> s.ensureLayeredMechSprites(Set.of())));
+        steps.add(new TextureLoadQueue.Step(STAGE_SPRITES, s::ensureMarineSecondarySprites));
+        steps.add(new TextureLoadQueue.Step(STAGE_SPRITES, s::ensureAirframeSprites));
+        return steps;
+    }
+
+    private static final String STAGE_TERRAIN = "terrain";
+    private static final String STAGE_SPRITES = "sprites";
 
     /**
      * Billet the company across every berthing the ship has, biggest first.
@@ -553,6 +705,7 @@ public final class CompanyDeck {
      * continuity the rest of them depend on.
      */
     public void dismiss() {
+        releaseTextures();
         if (scene != null) scene.close();
         scene = null;
         // Whatever was being got ready is let go rather than waited for. The
