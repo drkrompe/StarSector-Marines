@@ -503,8 +503,7 @@ public final class CordonConvoys {
 
     private void ground(BattleSimulation sim) {
         if (clearance != null) return;
-        // Edge walls too: a fence along a plaza's side stops a truck the plain mask lets through.
-        clearance = VehicleClearance.erodeRespectingEdges(sim.getGrid(),
+        clearance = VehicleClearance.erode(sim.getGrid(),
                 VehicleClearance.radiusForWidth(VehicleType.SUPPLY_TRUCK.visualWidthCells));
         cost = TerrainCostField.from(sim.getTopology());
         inward = lay(sim, entry, corridor.size() - 1);

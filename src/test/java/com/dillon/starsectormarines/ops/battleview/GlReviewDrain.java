@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.testsupport.HeadlessGl;
+import com.dillon.starsectormarines.testsupport.GlSurface;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.SettingsAPI;
 import org.lwjgl.BufferUtils;
@@ -37,7 +37,7 @@ import static org.lwjgl.opengl.GL12.GL_UNSIGNED_INT_8_8_8_8_REV;
 
 /**
  * The review frame's scene drawn by the GPU: the shipping {@link BattleRenderer} collect and drain into a
- * {@link HeadlessGl} pbuffer, read back as a {@link BufferedImage} for the CPU to caption and annotate.
+ * {@link GlSurface} (an LWJGL 2 pbuffer, or LWJGL 3 on the Mac), read back as a {@link BufferedImage} for the CPU to caption and annotate.
  *
  * <p>Opt-in with {@code -Dsnapshot.backend=gl} ({@link ReviewSceneBackend}). Where no context can be made it says so once and every frame falls
  * back to the Java2D drain, which stays the deterministic reference: a GL frame is a function of the driver as
@@ -67,7 +67,7 @@ final class GlReviewDrain implements ReviewSceneBackend {
         return owner;
     });
     private final Path modRoot;
-    private HeadlessGl gl;
+    private GlSurface gl;
     private int surfaceW;
     private int surfaceH;
     private GlSpriteTokens tokens;
@@ -101,7 +101,7 @@ final class GlReviewDrain implements ReviewSceneBackend {
             try {
                 String renderer = drain.call(() -> drain.start(1920, 1080));
                 if (renderer == null) {
-                    System.out.println("[gl-review] falling back to the Java2D drain: " + HeadlessGl.unavailableReason());
+                    System.out.println("[gl-review] falling back to the Java2D drain: " + GlSurface.unavailableReason());
                     drain.thread.shutdown();
                     return null;
                 }
@@ -163,7 +163,7 @@ final class GlReviewDrain implements ReviewSceneBackend {
     }
 
     private String start(int width, int height) throws Exception {
-        gl = HeadlessGl.createOrNull(width, height);
+        gl = GlSurface.createOrNull(width, height);
         if (gl == null) return null;
         surfaceW = width;
         surfaceH = height;

@@ -115,7 +115,7 @@ public final class CordonCorridor {
      */
     public static boolean truckReaches(NavigationGrid grid, List<int[]> corridor) {
         if (corridor == null || corridor.isEmpty()) return false;
-        VehicleClearance mask = VehicleClearance.erodeRespectingEdges(grid,
+        VehicleClearance mask = VehicleClearance.erode(grid,
                 VehicleClearance.radiusForWidth(VehicleType.SUPPLY_TRUCK.visualWidthCells));
         int[] from = standing(mask, corridor.get(0)), to = standing(mask, corridor.get(corridor.size() - 1));
         if (from == null || to == null) return false;

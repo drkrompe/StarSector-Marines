@@ -153,8 +153,7 @@ public final class CordonLogistics {
     public static boolean apronReaches(NavigationGrid grid, List<Gantry> berths, List<int[]> places) {
         int[] door = machineDoor(grid, berths);
         if (door == null) return true;
-        // Edge walls too: a fence along the apron's side stops a carrier the plain mask lets through.
-        VehicleClearance mask = VehicleClearance.erodeRespectingEdges(grid,
+        VehicleClearance mask = VehicleClearance.erode(grid,
                 VehicleClearance.radiusForWidth(VehicleType.HEAVY_APC.visualWidthCells));
         int w = mask.getWidth(), h = mask.getHeight();
         int[] start = null;
