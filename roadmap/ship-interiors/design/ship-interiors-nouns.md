@@ -431,7 +431,8 @@ authored content.
   spine.
 - An **interior tech style** is the material and light language a hull's
   interior is drawn in, after the game's own hull families: **low-tech**,
-  **midline** and **high-tech**. A style owns its whole condition range, from a
+  **midline** and **high-tech** — the interior expression of the shared tech
+  families (`tech-families.md`). A style owns its whole condition range, from a
   wreck through Deficit to Restored, so restoring a ship makes it a better ship
   of the same kind, never a different kind of ship. **Low-tech** is the one that
   exists. Its passages are bolted steel plate lit by caged amber lamps strung

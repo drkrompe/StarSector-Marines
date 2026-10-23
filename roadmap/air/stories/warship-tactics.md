@@ -345,7 +345,7 @@ one ship leaving. Two changes, each with a control:
 - **Flux footing in a hull fight.** Air superiority's 50/30 flux pair held a fighting ship's guns silent. While a
   ship fights a hull its flux runs on the duel footing (`-Dbattle.warship.hullFightFooting=false` is the control).
 - **Fights to the death.** The losing-exchange withdrawal is gone, and while a ship has a live hostile hull to fight,
-  neither hull-limit nor threat withdrawal applies (`-Dbattle.warship.hullFightWithdrawal=true` is the control).
+  neither hull-limit nor threat withdrawal applies.
   Mission-ordered withdrawals are separate and still apply; a hull that holds the field (the Black Sluice duel's) is
   never withdrawn by its doctrine at all.
 - **Hulls coming down or flying in are unseen.** At the new range a hull still descending through the cloud deck, or

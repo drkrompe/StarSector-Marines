@@ -4,7 +4,7 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-10-22 — Ground feathers: outdoor ground boundaries bleed into each other as baked, noise-edged resident quarters.
+Updated: 2026-10-23 — Texture leases: a battle loads its own texture set behind a loading screen and releases it at exit (`battle-textures.md`).
 
 ## Vocabulary
 
@@ -61,6 +61,13 @@ Updated: 2026-10-22 — Ground feathers: outdoor ground boundaries bleed into ea
   rectangles from a handful of them. And it is planned **per battle**, from that
   battle's placements, the first time the layer sees them; a new battle's
   placements retire the last one's.
+- A **texture lease** is one owner's claim on the textures it draws, held in the mod's
+  **texture ledger**. A battle loads its **battle texture set** — what its map places, its
+  roster wears and its mission can bring — under its own lease behind a loading screen, and
+  releases the lease when it ends; the ledger unloads (and deletes on the card) only what no
+  other lease holds, so a screen that shares an image never loses it. Screens that do not
+  manage their textures hold them on the never-released session lease. `battle-textures.md`
+  owns the model, the inventory and the laws.
 - The **resident ground** is the ground that is a function of the battle's cell
   topology, baked once into vertex buffers and drawn from them. Every cell that
   draws a tile owns four vertices in it and keeps them, in cell coordinates, so

@@ -428,11 +428,6 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   the 560x336 map under `build/reports/performance/convoy-route/summary.json`.
   Use `-Dbattle.convoyRoute.outputDir=<absolute path>` to redirect the report.
   Its timings are diagnostic, not a cross-host gate.
-- `gradlew.bat profileSquadFiringPositions` → opt-in paired scorer evidence on
-  six mixed-weapon infantry, target motion and topology repair; writes
-  `build/reports/performance/squad-firing-positions/summary.json`.
-  `-Dbattle.squadFiringEvidence.outputDir=<path>` redirects it. This measures
-  selected-cell validity, spread and reachability, not autonomous combat outcomes.
 - `gradlew.bat profileSwarmFlow` → swarm strategic-movement cost on generated
   cities at 280x168, 400x240 and 560x336 with 64 to 1000 runners chasing three
   walking Marine columns, flow field on and off in the same run (serial
@@ -836,6 +831,16 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   surface is behind `DevConfig.DEV_MODE` (`-Dmarines.dev=true`), which
   `runStarsector` passes and a player's install never has;
   `runStarsector -PplayerBuild` launches without it. See `v0.1-public-build.md`.
+- **Shipped textures are fitted to how they are drawn** (`texture-fit.md`).
+  `optimizePngs` (fed to `packageRelease` and `deployMod`; `-PfitTextures=false`
+  deploys the sources) downscales each image to the largest size the usage
+  record `art-source/texture-usage/usage.json` says it is drawn at, keeps
+  unmeasured images whole, and reports to `build/reports/texture-fit/report.md`.
+  **Load every mod texture through `ModTextures`** (`sprite`, `loadTexture`,
+  `readImage`), never `Global.getSettings().getSprite`/`openStream` directly:
+  code addresses images in source pixels, and only `ModTextures` maps a fitted
+  image back to them. Grow the record with `-PtextureUsage` on `createSnapshots`
+  or `commanderEvidence` (plus a dev-mode game), then `mergeTextureUsage`.
 - `gradlew.bat prepareCatalogSmoke` → stages the additive two-provider catalog
   acceptance fixture without launching Starsector. Pass
   `-PcatalogSmokeMode=collision` to stage the duplicate-id variant.

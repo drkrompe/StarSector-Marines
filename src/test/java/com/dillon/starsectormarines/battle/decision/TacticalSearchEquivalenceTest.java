@@ -1,11 +1,9 @@
 package com.dillon.starsectormarines.battle.decision;
 
-import com.dillon.starsectormarines.battle.combat.FiringLane;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
-import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -129,9 +127,6 @@ class TacticalSearchEquivalenceTest {
         float bestAnyDist = Float.MAX_VALUE;
         float sight = Math.max(sim.vision().visionRange(exclude),
                 sim.world().attackRange(exclude));
-        FiringLane.Friendlies allies = new FiringLane.Friendlies();
-        FiringLane.gather(sim.getUnitIndex(), sim.getRoster(), exclude,
-                selfX, selfY, sight, selfFaction, new LongBucket(), allies);
         for (int i = 0; i < liveCount; i++) {
             long other = dense[i];
             if (sim.getRoster().identity().faction(other) == selfFaction) continue;
@@ -154,11 +149,6 @@ class TacticalSearchEquivalenceTest {
             if (!visible && !allowNoLos) continue;
             float score = scoring.scoreTargetCandidate(other, d, visible, selfFaction,
                     selfSquadId, exclude, selfCellX, selfCellY, ox, oy);
-            if (TacticalScoring.friendlyLanePenaltyEnabled()
-                    && FiringLane.blocked(allies, selfX, selfY,
-                    sim.world().x(other), sim.world().y(other))) {
-                score += TacticalScoring.FRIENDLY_LANE_COST;
-            }
             if (score < bestScore) {
                 bestScore = score;
                 best = other;

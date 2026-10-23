@@ -161,46 +161,14 @@ aircraft sorties keep their strips, and `AirCorridor` merely learned one more
 way to be made. `reinforcement-nouns.md` owns the marine policy itself; only how
 many craft fly, and onto which berths, is Conquest's.
 
-**How much lift flies is a decision the matrix has taken away from arithmetic.**
-The drop-zone and pairs-per-zone counts may be left unstated, in which case they
-are the lift's to size: from the committed seats, the six seats a sortie carries
-and that constant round trip, the pairs that land the whole force inside the
-landing share follow directly, and the pairs are also the berthing areas the
-landing precinct's apron is asked to seat. That derivation is built, unit-tested
-and **off by default**, because sizing it that way is measurably worse. It does
-what it was written to do — full-strength-west assembles 356 live marines
-against the ferry's ~130 and the alive-squad plateau that ran from tick 6,000 to
-the end is gone — and it takes *fewer* compounds: 10 captured and 4 held against
-the ferry-with-descent's 11 and 7, while reinforced-south falls from 22 and 19 to
-16 and 16. **More lift landed sooner is not what the western approach was
-costing.** The marines simply arrive faster at the place they were being
-destroyed, and the finding `conquest-560-contact.md` left open — that the cadence
-does not scale with the force — turns out to have been a true observation about a
-lever that is not the one holding the west back.
-
-**Re-measured with that floor in place, it is still off, and the reading is
-cleaner than it was.** `reinforced-south` is now bit-identical either way — its
-204 seats derive the ferry's own three pairs — so the whole question is the
-west, and there the seat-sized lift takes 14 compounds and holds 3 against the
-ferry's 11 and 7 for eight more marines lost. It takes more and keeps less,
-which is the same finding the first measurement made and no longer confounded
-by a fixture that was quietly being given less lift.
-
-**Whatever it derives, it never derives less than the ferry.** The arithmetic
-only exceeds three pairs above about four hundred seats, so `reinforced-south`'s
-204 asked for two and the switch that exists to add lift was removing a third of
-it — marines on the ground by tick 2,926 fell from 214 to 148. The ferry's shape
-is the derivation's floor, which also means a force the ferry already carries
-plays the identical battle either way.
-
-So a mission that says nothing flies the ferry's three pairs down the descent.
-Against the map-edge crossing that shape is better on both fixtures:
-reinforced-south holds 19 compounds against 17 for 5 fewer losses on the same 22
-captures, and full-strength-west holds 7 against 6, its force finally on the map
-— 333 live marines at peak — at a cost of 430 losses against 300. The lift's
-size stays switchable: `battle.conquest.derivedLift=true` restores the
-seat-sized lift, so the next attempt at the western approach can move that dial
-beside whatever it is really testing.
+**A mission that leaves its lift unstated flies the ferry: three drop zones,
+one pair to each, down the descent.** A lift sized from the committed seats and
+the landing share was tried and took more compounds but kept fewer than the
+ferry. Against the map-edge crossing the ferry's shape is better on both
+fixtures: reinforced-south holds 19 compounds against 17 for 5 fewer losses on
+the same 22 captures, and full-strength-west holds 7 against 6, its force
+finally on the map — 333 live marines at peak — at a cost of 430 losses against
+300.
 
 **How far out the force lands is stated, not the map edge.** A Conquest states
 a standoff alongside its sprawl and its arrival config — how many cells of

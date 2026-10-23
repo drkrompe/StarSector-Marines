@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.combat.fx;
 
+import com.dillon.starsectormarines.render2d.texture.ModTextures;
+import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.battle.weapon.fx.FxBlend;
 import com.dillon.starsectormarines.battle.weapon.fx.FxCompositionContext;
@@ -496,6 +498,11 @@ public final class ImpactFx {
             s.setTexWidth(cellW);
             s.setTexHeight(cellH);
         }
+        if (TextureUsage.isEnabled()) {
+            boolean sheet = p.frameCount > 0;
+            TextureUsage.sprite(s, radiusPx * 2f * p.aspectRatio * (sheet ? PARTICLE_SHEET_COLS : 1),
+                    radiusPx * 2f * (sheet ? PARTICLE_SHEET_ROWS : 1));
+        }
         s.renderAtCenter(camera.cellToScreenX(p.x), camera.cellToScreenY(p.y));
         // Reset UVs on the shared sprite so the next particle that uses it
         // doesn't inherit a frame index. Cheap — four setters.
@@ -509,8 +516,8 @@ public final class ImpactFx {
 
     private static SpriteAPI loadSpriteOrNull(String path) {
         try {
-            Global.getSettings().loadTexture(path);
-            SpriteAPI sprite = Global.getSettings().getSprite(path);
+            ModTextures.loadTexture(path);
+            SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("ImpactFx: getSprite returned null for " + path);
                 return null;

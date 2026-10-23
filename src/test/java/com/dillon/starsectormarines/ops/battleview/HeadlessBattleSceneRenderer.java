@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.render2d.texture.TextureUsage;
+import com.dillon.starsectormarines.render2d.texture.TextureUsageCapture;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.engine.EngineHullLighting;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
@@ -174,6 +176,14 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
     public boolean draw(CanvasHostPass pass, CanvasContext context,
                         CanvasHostViewport viewport, float alphaMult) {
         if (!(pass instanceof BattleSceneHostPass scenePass)) return false;
+        // The canvas sprites this drain paints are world draws, measured as such when collected.
+        try (TextureUsage.Scope ignored = TextureUsage.suppressUi()) {
+            return drawScene(scenePass, context, viewport, alphaMult);
+        }
+    }
+
+    private boolean drawScene(BattleSceneHostPass scenePass, CanvasContext context,
+                              CanvasHostViewport viewport, float alphaMult) {
         // RasterCanvasContext applies the document alpha while painting each
         // replayed primitive. Collect at full opacity so the host fade is not
         // folded into the battle commands and then multiplied a second time.
@@ -199,6 +209,9 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
         // delivered rounds) is not in the simulation, so a review feed owns it and hands the collected commands in.
         DrawList overlay = scenePass instanceof ReviewOverlayPass review ? review.overlay(frame.context().camera) : null;
         camera = frame.context().camera;
+        // Measuring texture usage needs the collected commands, not their pixels: every draw was recorded as it
+        // was collected, so the frame is left blank and the CPU raster, the slow part of a review, is skipped.
+        if (TextureUsageCapture.measureOnly()) return true;
         List<DrawCommand> ordered = new ArrayList<>();
         for (RenderLayer layer : RenderLayer.values()) {
             if (!frame.layers().contains(layer)) continue;

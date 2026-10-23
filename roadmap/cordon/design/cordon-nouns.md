@@ -150,12 +150,6 @@ goes back for them, the nearest first, and the rest stay on the line. A
 finished car or technical joins the allied armour with a post behind a
 redoubt as its home. The base opens with one carrier.
 
-Three of these are open questions for the owner, each with a switch so a run
-can show the alternative: where the base sits (`battle.cordon.basePlace`,
-`middle` or `west`), whether a carrier stays as support or ferries straight
-back (`battle.cordon.carrierAfterDrop`, `support` or `return`), and the shed's
-building pace (`battle.cordon.basePace`). The defaults are the recommendations.
-
 The base controls its exits so nothing piles up in the shed. A finished
 machine waits on its berth until the one before it has driven clear of the
 machine door; it is then drawn out into the service lane in front of its
