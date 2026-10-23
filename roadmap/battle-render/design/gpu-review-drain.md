@@ -63,65 +63,67 @@ the other suites' 536s and 446s of writing unchanged, the 55 minutes become
 roughly 27. What is left is simulation, GIF encoding and the 39 suites that do
 not use this renderer.
 
-## Which GL: LWJGL 2 now, LWJGL 3 only for the Mac
+## Which GL: LWJGL 2 on Windows, LWJGL 3 on the Mac
 
 **Windows: LWJGL 2, from the game's install, through `HeadlessGl`.** It is
 already the context `shaderEvidence` and `renderEvidence` draw the shipping
 renderer into, it runs the mod's own classes rather than a copy, and it costs
 no dependency. A pbuffer on the workstation's RTX 3080 reads a 1920x1080
-frame back in about 1.2 ms. Nothing here needs LWJGL 3.
+frame back in about 1.2 ms.
 
-**The Mac cannot use that context as things stand**, measured over SSH on
-2026-10-23 (MacBook Pro, arm64, macOS 26.6):
+**The Mac cannot use LWJGL 2.** The game's native
+(`Contents/Resources/Java/native/macosx/liblwjgl.jnilib`) is x86_64 only, and
+the JDK the project builds with there is arm64; the game itself runs on its
+own x86_64 Zulu 17 under Rosetta. Run under that JRE instead, LWJGL 2 dies in
+`Display`'s static initializer (`MacOSXDisplay.nGetCurrentDisplayMode`) before
+it tries a pbuffer when there is no window-server session, and even where it
+worked it would put the whole simulation under Rosetta, the part of a run the
+GPU does not speed up.
 
-- The game's LWJGL 2 native (`Contents/Resources/Java/native/macosx/liblwjgl.jnilib`)
-  is **x86_64 only**. The JDK the project builds with there is arm64
-  (Temurin 26), and an arm64 JVM cannot load an x86_64 library. The game runs
-  on its own bundled x86_64 Zulu 17 under Rosetta.
-- `HeadlessGl` also looks for natives under `starsector-core/native/`, which is
-  not where the Mac app keeps them, and Java 17+ looks for `liblwjgl.dylib`
-  where the file is named `.jnilib`. Both are fixable in a line each.
-- Run under the game's own x86_64 JRE with those fixed, LWJGL 2 segfaults in
-  `Display`'s static initializer (`MacOSXDisplay.nGetCurrentDisplayMode`,
-  in `CFStringCompare`) before a pbuffer is attempted. An SSH shell has no
-  window-server session, so this is expected there and says nothing about a
-  Terminal on the Mac's own desktop. **That case is untested**; the probe is
-  one command (below) for the owner to run in Terminal.
-- Even if it works, this route runs the whole simulation under Rosetta, and
-  the simulation is the part of a run the GPU does not speed up.
+**The Mac uses LWJGL 3, through a windowless CGL context.** Probed over SSH on
+2026-10-23 (MacBook Pro, Apple M5 Max, macOS 26.6, arm64 JDK): CGL gives an
+accelerated legacy 2.1 context ("2.1 Metal") with no window and no
+window-server session, fixed-function drawing works, `#version 120` shaders
+compile (every shader here is), framebuffer objects come from
+`ARB_framebuffer_object`, and a 1920x1080 readback costs 1.85 ms. That legacy
+profile on Metal is what the game itself gets there.
 
-**LWJGL 3 is the Mac route if the Mac needs one.** It ships arm64 macOS
-natives, and CGL can make an offscreen context with no window (it should not
-need the window-server session `Display` does; unverified). The obstacle is
-the one the brief names: the mod is compiled against LWJGL 2, and the two
-cannot share a classpath. Measured, it is smaller than it sounds. Of the 124
-distinct LWJGL members the compiled mod references, 105 link unchanged
-against LWJGL 3.4.2 (`GL11`'s fixed-function calls, `GL13`–`GL30`, shader and
-FBO entry points: LWJGL 3 kept the names and descriptors). What does not:
+The mod is compiled against LWJGL 2, and the two cannot share a classpath, so
+`createSnapshots` on a Mac (or anywhere with `-PsnapshotGl=lwjgl3`) runs on a
+tool classpath that swaps the game's `lwjgl.jar` for LWJGL 3. That works
+because LWJGL 3 kept nearly every name and descriptor: of the 123 distinct
+LWJGL members the mod and the drain reference, 122 link. The rest is bridged
+on the tool classpath only, never in shipped code:
 
-| Reference | Where | On the battle path | Fix |
-|---|---|---|---|
-| `glVertexPointer` / `glTexCoordPointer` / `glColorPointer(size, stride, FloatBuffer)` | `QuadBatch`, `LineBatch`, `SolidQuadBatch` | yes | the explicit-type `ByteBuffer` overload, which both libraries have |
-| `glGetInteger(int, IntBuffer)` | `BridgeRenderer` | no | `glGetInteger(int)` (both have it), or leave it |
-| `GL20.glUniformMatrix4` | planet and cube drawables | no | leave it |
-| `Display.getWidth/getHeight/isCreated/isActive` | `GroundParallaxPipeline`, `NightLightingShader`, hosts | yes (two) | a stub class on the tool classpath answering "no display" |
-| `Keyboard`, `Mouse` | battle UI | no | stubs on the tool classpath |
+| LWJGL 2 member | Who calls it | Bridge |
+|---|---|---|
+| `glVertexPointer` / `glTexCoordPointer` / `glColorPointer(size, stride, FloatBuffer)` | `QuadBatch`, `LineBatch`, `SolidQuadBatch`, every flush | added to a patched copy of LWJGL 3's `GL11` (`gl3patch`, `PatchLwjgl3Gl11`), each calling the typed form |
+| `glGetInteger(int, IntBuffer)`, `glTexParameter(int, int, FloatBuffer)` | `BridgeRenderer`; the headless sprite tokens | the same patch, onto `glGetIntegerv` / `glTexParameterfv` |
+| `Display`, `Keyboard`, `Mouse` | `GroundParallaxPipeline`, `NightLightingShader`; battle UI | stub classes in the `gl3` source set: no display, no input |
+| `GL20.glUniformMatrix4` | planet and cube drawables | none: never on the battle path, and resolved only if called |
 
-`lwjgl_util.jar` (`Vector2f`) is plain Java and can stay. So the LWJGL 3
-backend is: a separate tool classpath that swaps the game's `lwjgl.jar` for
-LWJGL 3 plus a three-class stub jar, three batch classes moved to the
-overload both libraries share, and a CGL context class beside `HeadlessGl`.
-The shaders are all `#version 120`, which the legacy 2.1 context macOS gives
-compiles. Apple's GL is a translation layer over Metal and deprecated; it is
-what the game itself runs on there, so it is no worse a target than the game.
+Changing the batches to the `ByteBuffer` form both libraries share was the
+other option, and was rejected: `ClientArray` documents that the game's GL
+bridge mods intercept exactly these client-array calls, so the shipped form
+stays as it is. The surface, `Lwjgl3Surface` behind the `GlSurface` seam,
+makes a CGL context on macOS and a hidden GLFW window elsewhere, and draws
+into an FBO it leaves bound: CGL has no default framebuffer, and the battle
+renderer restores whatever binding it found before each of its own passes.
 
-The probe for the Mac's desktop session (it needs a `GlProbe.class` built
-against the game's `lwjgl.jar`, and a `native/liblwjgl.dylib` link to the
-game's `.jnilib`):
+**It runs.** `createSnapshots -Psnapshot=colony-threat` on the Mac, over SSH,
+drew its 330 frames on the M5 Max at 8.6 ms each and rendered the suite in
+10.2s; the same frame drawn on Windows through LWJGL 2 differs by 0.2/255 per
+pixel on average, most of it the caption's font. On Windows,
+`-PsnapshotGl=lwjgl3` runs the same classpath through a hidden GLFW window and
+draws the same picture, which is how the bridge is checked without the Mac.
 
-```bash
-/Applications/Starsector.app/Contents/Home/bin/java -Dorg.lwjgl.librarypath=$PWD/native -cp .:/Applications/Starsector.app/Contents/Resources/Java/lwjgl.jar GlProbe pbuffer
-```
+**Setting the Mac up.** The repository's `gradle.properties` names the Windows
+install, and a Mac build needs `starsectorDir` to be a folder whose
+`starsector-core` is the app's `Contents/Resources/Java` (where the game jars
+are): make one with a link, and pass it with `-PstarsectorDir=<folder>` or put
+it in `~/.gradle/gradle.properties`, which takes precedence over the
+project's. The Mac's checkout also needs `gradlew` run as `sh ./gradlew`,
+since the bit that makes it executable is not committed.
 
 ## Design
 
@@ -211,9 +213,10 @@ still made with both arms on the same backend on the same machine.
 The backend switch adds no test and no task; `shaderEvidence` and
 `renderEvidence` keep their own contexts.
 
-### Follow-ups
+### Not done
 
-1. The Mac: run `tools/gl-probe/gl-probe-mac.sh` in Terminal on its desktop.
-   If LWJGL 2 comes up under Rosetta, point `HeadlessGl` at the Mac layout and
-   decide whether a Rosetta simulation is worth it (probably not). Otherwise,
-   or anyway, the LWJGL 3 backend above.
+- The 39 suites with their own renderers (deck props, elevation looks, armory
+  sheets) still draw with Java2D; `elevation-look` and `deck-props` are the
+  only large ones.
+- `commanderEvidence` and the other `Test`-task evidence keep the Java2D
+  default; they can pass `-Dsnapshot.backend=gl` when a run wants it.

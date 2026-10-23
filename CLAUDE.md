@@ -696,8 +696,10 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   surface relief, sun shadows and event lights the Java2D drain never drew.
   Creep- and fire-heavy scenes render ten times faster or more; small plain
   views are about even. `-Dsnapshot.backend=java2d` is the reference drain;
-  `-Dsnapshot.gl.relief=false` drops the relief composite. A machine with no
-  context (the Mac today) says so once and uses Java2D. GL pixels depend on the
+  `-Dsnapshot.gl.relief=false` drops the relief composite. On the Mac, whose
+  game ships an x86_64-only LWJGL 2, the task runs on LWJGL 3 through a
+  windowless CGL context instead (`-PsnapshotGl=lwjgl3` does the same on
+  Windows); a machine with no context at all says so once and uses Java2D. GL pixels depend on the
   driver, so compare raw frames only between two runs on the same backend and
   machine. See `gpu-review-drain.md`.
 - `gradlew.bat battleProbe -Pbattle=<source> -Pscript=<file>` → **ask a battle
