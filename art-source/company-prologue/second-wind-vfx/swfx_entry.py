@@ -514,7 +514,9 @@ def _sheath_material(name, strength, cell_m):
     w = at.outputs['Fac']
     nz, _ = _noise(nt, cell_m)
     mottle = _math(nt, 'ADD', .35, _math(nt, 'MULTIPLY', nz, 1.3))
-    heat = _math(nt, 'MINIMUM', _math(nt, 'MULTIPLY', _math(nt, 'POWER', w, 1.6), .9), 1.0)
+    # owner, 2026-10-22: "bright in places", not white all over. The colour's heat is mottled as the
+    # glow is, so only the squarest, hottest patches reach white; the rest of the face burns orange-yellow
+    heat = _math(nt, 'MINIMUM', _math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', _math(nt, 'POWER', w, 1.8), mottle), .62), 1.0)
     glow = _math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', _math(nt, 'POWER', w, 2.6), mottle), strength)
     _additive(nt, _blackbody(nt, heat), glow)
     return mat
@@ -712,10 +714,14 @@ def sheath(name, verts, faces, coll, wind, length, glow=1.0, streamers=22, seed=
         for p in tube.data.polygons:
             p.use_smooth = True
     if wake:
+        # owner, 2026-10-22: the burn-up gas behind her was not the size of her flames or her structure.
+        # It is sized from her own cross-section across the airflow: it starts as wide as the flames
+        # converge (they close to a fifth of her half-width) and opens to a little more than her width.
         ext = max((v.co - c).dot(W) for v in skin.verts)
-        span = length * (.8 + 3.0 * grow)
-        _wake_volume(f'{name} wake', c + W * (ext - length * .1), W, span, length * .05, length * .4, coll,
-                     10.0 * glow, length * .1, seed)
+        half = max(((v.co - c) - W * (v.co - c).dot(W)).length for v in skin.verts)
+        span = length * (.8 + 2.6 * grow)
+        _wake_volume(f'{name} wake', c + W * (ext - length * .05), W, span, half * .35, half * 1.15, coll,
+                     10.0 * glow, half * .25, seed)
     if lights is not None:
         _glow_lights(name, skin, c, hot, length, glow, lights)
     skin.free()
