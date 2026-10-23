@@ -48,9 +48,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.command.conquest.balancedHomeTracks` | experiment | 2026-10-11 | Conquest command (2026-10-11): remove once commanderEvidence -Pmission=conquest has been read against it. |
 | `battle.conquest.attackerHoldsGround` | experiment | 2026-10-20 | Conquest command (2026-10-20): remove once commanderEvidence -Pmission=conquest accepts it. |
 | `battle.conquest.derivedLift` | undecided | 2026-09-02 | Default off since 2026-09-02 (conquest-nouns.md). Ship it or delete the code. |
-| `battle.cordon.basePace` | experiment | 2026-10-22 | Owner pick switch; the owner has picked and the default matches. Retire it on the coordinator's word (asked 2026-10-23). |
-| `battle.cordon.basePlace` | experiment | 2026-10-22 | Owner pick switch; the owner has picked and the default matches. Retire it on the coordinator's word (asked 2026-10-23). |
-| `battle.cordon.carrierAfterDrop` | experiment | 2026-10-22 | Owner pick switch; the owner has picked and the default matches. Retire it on the coordinator's word (asked 2026-10-23). |
 | `battle.counterattack` | control | 2026-10-20 | Standing control: the commander-evidence counter-attack control (commander-evidence-missions.md). Its composed .<knob> evidence knobs (reserveShare, minStrength, ...) fold into constants when the counter-attack balance pass closes. |
 | `battle.creep.feedMultiplier` | tuning | 2026-10-22 | Creep-speed pass (owner picks 2026-10-23): fold into constants once the owner confirms the rates in play. |
 | `battle.creep.spreadScale` | tuning | 2026-10-22 | Creep-speed pass (owner picks 2026-10-23): fold into constants once the owner confirms the rates in play. |
