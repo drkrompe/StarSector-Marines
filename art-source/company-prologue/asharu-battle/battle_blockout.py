@@ -2993,6 +2993,14 @@ def blender_main(cfg):
                         o_.hide_render = True
                         gone += 1
             print(f'ASHARU hid {gone} volume objects ({cfg["hide_volumes"]})', flush=True)
+        if cfg.get('swfx'):     # no orbs (owner, 2026-10-21 and 2026-10-23): flag any round emissive effect
+            if str(PROLOGUE / 'second-wind-vfx') not in sys.path:
+                sys.path.insert(0, str(PROLOGUE / 'second-wind-vfx'))
+            import swfx_lint
+            # measured as at full size: the lint counts pixels at the render's own percentage
+            orb_rows = swfx_lint.orbs(scene, min_px=4.0 * scene.render.resolution_percentage / 100.0)
+            print(f'ASHARU lint {kf}: {len(orb_rows)} orbs' + ''.join(
+                f'; {r_["object"]} {r_["px"]} px ratio {r_["ratio"]} ({r_["why"]})' for r_ in orb_rows[:4]), flush=True)
         partial = raw / f'{kf}.partial'           # not *.png, so a queue's frame count never counts it
         t_render = time.time()
         scene.render.use_file_extension = False
