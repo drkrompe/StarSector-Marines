@@ -63,12 +63,14 @@ public final class DirectControlPanel implements HudPanel {
                     camera.cellToScreenX(0f), camera.cellToScreenY(0f))) HudDraw.stroke(stroke, alpha);
         }
         scatterRing(sim, id, aim.aimX(), aim.aimY(), aimX, aimY, camera.cellPxSize(), alpha);
-        crosshair(aimX, aimY, alpha);
+        for (var stroke : DirectControlReticle.strokes(DirectControlReticle.LIVE, DirectControlFireMarks.read(sim),
+                aimX, aimY, CONTROLLED)) HudDraw.stroke(stroke, alpha);
     }
 
     /**
-     * Where a thrown rocket or LRM salvo will land: orange inside every covered mount's range, red past it,
-     * where the disk grows faster than distance, and red inside an arcing rack's minimum, where it will not fire.
+     * Where a thrown rocket or LRM salvo will land, in the reticle's palette: white inside every covered mount's
+     * optimal range, yellow past it, red past maximum range, where the disk grows faster than distance, and grey
+     * inside an arcing rack's minimum, where it will not fire.
      * A mech's ring covers its armed mounts, measured from the chassis centre; a vehicle's is its turret's,
      * measured from the turret ring, where the turret's own point fire measures.
      */
@@ -94,18 +96,20 @@ public final class DirectControlPanel implements HudPanel {
         if (ring == null) return;
         float r = scatterRingPx(ring, cellPx);
         if (r < 0f) return;
-        HudDraw.ring(aimX, aimY, r, scatterColor(ring), alpha * 0.8f, RING_SEGMENTS, 1.5f);
+        for (var stroke : DirectControlReticle.scatterRing(ring.mark(), aimX, aimY, r)) {
+            HudDraw.stroke(stroke, alpha * 0.8f);
+        }
     }
 
     /** A disk smaller than this many pixels is not drawn: it would hide under the crosshair. */
     static final float MIN_RING_PX = 4f;
 
     /**
-     * A warning ring never draws smaller than this, so it clears the crosshair's arms: inside an arcing rack's
-     * minimum the disk is a fraction of a cell, and the red that says the trigger is refused would otherwise be
-     * too small to see, or not drawn at all.
+     * A warning ring never draws smaller than this, so it clears the reticle: inside an arcing rack's minimum the
+     * disk is a fraction of a cell, and the grey that says the trigger is refused would otherwise be too small to
+     * see, or not drawn at all.
      */
-    static final float MIN_WARNING_RING_PX = 16f;
+    static final float MIN_WARNING_RING_PX = 18f;
 
     /** The scatter ring's on-screen radius at {@code cellPx} pixels a cell, or a negative value for none. */
     public static float scatterRingPx(DirectControlScatter.Ring ring, float cellPx) {
@@ -114,12 +118,12 @@ public final class DirectControlPanel implements HudPanel {
         return r < MIN_RING_PX ? -1f : r;
     }
 
-    /** The scatter ring's colour: missile orange, or danger red past range or inside the minimum. */
+    /** The scatter ring's colour: the reticle's colour for the ring's mark. */
     public static Color scatterColor(DirectControlScatter.Ring ring) {
-        return ring.warning() ? DANGER_AREA : MISSILES_AREA;
+        return DirectControlReticle.color(ring.mark());
     }
 
-    /** The cursor's crosshair colour. */
+    /** The cursor's crosshair colour, and the reticle's centre dot. */
     public static Color controlledColor() {
         return CONTROLLED;
     }

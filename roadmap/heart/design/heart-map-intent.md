@@ -1,6 +1,6 @@
 # The Heart — maps with intent
 
-Status: ACTIVE. Direction for step 2 of `heart-mission-depth.md`. The owner picked the ridge layout for both forms (2026-10-23); the cordon ridge and The Burn's brook valley are built, the rest is not.
+Status: ACTIVE. Direction for step 2 of `heart-mission-depth.md`. The owner picked the ridge layout for both forms (2026-10-23); the cordon ridge and The Burn's brook valley are built, the hollow's rim is held and partly raised, the rest is not.
 
 Written: 2026-10-23
 
@@ -79,16 +79,26 @@ car park.
 ### What generation leaves room for
 
 Authored ground is raised in the landscape pass, after the settlements, roads,
-fields and landing are laid, and elevation never touches any of them. So the
-ground is broken wherever generation built something. That works for the
-cordon ridge, which lies in open country. It fails for the heart's hollow:
-on every pooled seed of both forms the workings stand among their own roads,
-fields and paved yards, and a rim round them finds no stretch long enough. A
-knoll under Broad Front's town fails for the same reason. Ground that has to
-sit among built places needs to be laid **before** generation grows them, so
-the town, the roads and the workings grow around the terrain. That is a
-change to generation's order, shared with the mission layout
-(`MissionLayout`, bloom-m2), and is the next step for the hollow and the knoll.
+fields and landing are laid, and elevation never touches any of them. That is
+fine for the cordon ridge, which lies in open country, and fails for ground
+that has to stand among built places: on every pooled seed the workings stood
+among their own roads, fields and paved yards, and a rim round them found no
+stretch long enough.
+
+So the hollow's rim is **held ground** (`elevation-nouns.md`, Held ground): its
+ground is kept clear before the places grow, and the landscape pass raises it
+there. The rim wraps the workings on the attack's side, with a pass straight
+toward the start and wherever a road or route crosses it. Measured on the
+pooled seeds it now stands on 11 of 12 Burn maps and every Broad Front map,
+but as one to three arcs rather than a ring: the lane routes, the access
+routes the landscape keeps open and, on Broad Front, the market town growing
+up against the workings still break most of it. A rim that reads as a hollow
+needs those routed round it, or the workings placed clear of the town, and is
+open.
+
+The knoll under Broad Front's town is not built. Held ground keeps places off
+it; a knoll wants the place on top of it, growing on the plateau with only the
+faces and ramps kept clear, which is a different reservation.
 
 ## The cordon's works (both forms)
 

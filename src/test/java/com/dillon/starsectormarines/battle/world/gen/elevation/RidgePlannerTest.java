@@ -36,4 +36,16 @@ class RidgePlannerTest {
         ElevationLayout layout = ElevationLayout.resolve(plan);
         for (int y = 0; y < H; y++) for (int x = 58; x <= 61; x++) assertTrue(!layout.touched(x, y), "the pass stays open");
     }
+
+    @Test
+    void heldGroundCoversEverythingTheBandCanRaise() {
+        RidgePlanner.Band band = RidgePlanner.Band.rect(4, 20, W - 5, 29, true, -1, 5);
+        boolean[][] held = RidgePlanner.heldGround(List.of(band), W, H, 3);
+        ElevationPlan plan = RidgePlanner.plan(W, H, 1L, List.of(band), i -> true, layout -> true);
+        ElevationLayout layout = ElevationLayout.resolve(plan);
+        for (int y = 0; y < H; y++) for (int x = 0; x < W; x++) {
+            if (layout.touched(x, y)) assertTrue(held[x][y], "raised ground is held at " + x + "," + y);
+        }
+        assertTrue(!held[W / 2][2] && !held[W / 2][H - 3], "ground well clear of the band is not held");
+    }
 }

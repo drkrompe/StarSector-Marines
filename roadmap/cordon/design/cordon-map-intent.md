@@ -1,6 +1,6 @@
 # The Cordon: maps with intent
 
-Status: DRAFT. Direction for the Cordon's controlled maps (step 2). Nothing here is built.
+Status: DRAFT. Direction for the Cordon's controlled maps (step 2). The layout machinery, the picket courses and a placeholder eruption site are built (step 1, in part).
 
 Written: 2026-10-23
 
@@ -18,7 +18,7 @@ Cordon's **layout** lays every structure that the line, its logistics or a
 story beat needs, at a place the mission chose, over the grown country.
 
 - **Shared machinery.** The layout is mission-neutral and lives in map
-  generation (`MissionLayout`). It is built once for the Cordon and the heart,
+  generation (`MissionLayout`, `mission-layout.md`). It is built once for the Cordon and the heart,
   with the heart's authored ground beside it. Placements are named and
   reported, so an optional objective's "fits this map" is a lookup
   (*Order of work*, step 4).
@@ -86,7 +86,9 @@ which beats run.
 ## Order of work
 
 1. The layout machinery, and the Cordon's line, picket courses, supply roads
-   and base placed through it.
+   and base placed through it. Built: the machinery (lines, sites, deferred
+   pieces, the shared check) and the picket courses, with the L4 eruption site
+   as a placeholder open site. Next: supply roads and the base.
 2. The authored ground (the ridge), from the heart's side of the machinery.
 3. The set pieces, one per beat, each checked on the pools.
 4. Then the optional-objective mechanism, shared with the heart, which rolls
