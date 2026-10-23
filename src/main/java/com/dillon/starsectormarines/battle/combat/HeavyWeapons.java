@@ -232,6 +232,14 @@ public class HeavyWeapons {
                 standoffCells(loadout));
     }
 
+    /** How far a pilot's round from this mount keeps most of its point-blank chance; see {@link ManualPointFire}. */
+    public static float manualOptimalRangeCells(MechLoadoutComponent loadout, MechWeaponMount mount) {
+        if (mount == null) return 0f;
+        WeaponDef weapon = mount.weaponDef();
+        return ManualPointFire.optimalRangeCells(weapon.range, weapon.accuracy * sensorAccuracy(loadout),
+                weapon.hitSpread, weapon.aoeRadius, PointAimDispersion.WEAPON);
+    }
+
     private static float standoffCells(MechLoadoutComponent loadout) {
         return MIN_POINT_AIM_HULL_WIDTHS * LayeredMechAppearance.hullWidthCells(loadout.variant.renderScale);
     }

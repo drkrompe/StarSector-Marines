@@ -246,7 +246,19 @@ Generators place plateaus where a mission wants them:
   band breaks into a pass, so a ridge never puts a cliff across a road. Each
   unbroken run becomes a hill segment, a plateau with one ramp up from the side
   the mission names. A segment is left out when it would not fit or would cut
-  the host's ground apart. Nothing grows on a ridge's ramps.
+  the host's ground apart, proved a segment at a time against the segments
+  already kept. Nothing grows on a ridge's ramps, and no stock hill grows on
+  ground a ridge names.
+- **Held ground.** A ridge raised after generation fits only open country:
+  among built places every stretch is broken. So a landscape may **hold** a
+  ridge's ground before the places grow (`Landscape.held`,
+  `RidgePlanner.heldGround`): the band, its apron and a margin for what the
+  landscape pass reserves beside built things. Growth, claims and town fields
+  keep off it, and the landscape pass then raises the ridge there among them.
+  The ground round each place's seed is never held, so a place always has
+  somewhere to start. Held ground is a reservation, not a stamp: elevation
+  still goes down last, and whatever generation laid across the band anyway
+  (a weld road, an access route) is a pass like any other.
 - City blocks do not get plateaus; a city's height is its buildings. A city's
   countryside margin may.
 

@@ -91,6 +91,14 @@ settlement crosses it (`elevation-nouns.md`, Ridges). The line was dug along
 it, and it looks down into the overgrowth. The Burn's village stands across most of its
 band, so The Burn's ridge is short.
 
+**Hollow.** The low ground the workings sit in: a rim of high ground wrapped
+round them on the attack's side, climbed from outside, its inner face a cliff
+over the yard, with a pass straight toward the start and wherever a road or
+route crosses it. The rim's ground is held before the places grow
+(`elevation-nouns.md`, Held ground), so the workings' roads and the town's
+fields grow round it. Today it stands as one to three arcs rather than a ring
+(`heart-map-intent.md`).
+
 **Start line.** The near edge of the cordon's farmland, along the farm road the
 fields are worked from. Where the attack steps off and, in The Burn, the first
 firebreak behind the fire line.

@@ -33,6 +33,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapGenerator;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayoutCheck;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -214,6 +215,8 @@ public final class CordonSetup {
         if (!CordonLogistics.apronReaches(map.grid, map.gantries, lineMiddles)) {
             return "the logistics base's apron has no way to the line for a carrier";
         }
+        List<String> layout = MissionLayoutCheck.problems(map.grid, map.layout);
+        if (!layout.isEmpty()) return "the layout: " + layout.get(0);
         if (variant == CordonVariant.ROAD) {
             for (Precinct precinct : plan.precincts()) {
                 if (precinct.name().equals(CivilDefenceCompound.PLACE) && !walled(map.topology, precinct)) {

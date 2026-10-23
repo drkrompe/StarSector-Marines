@@ -21,9 +21,10 @@ activate per map (another way there is variation here)".
 
 1. **Maps with intent** (`heart-map-intent.md`, ridge layouts picked). Each
    map leaves room, and places the structures, for every beat that could run
-   on it, on every density. The cordon ridge is built; the cordon's works,
-   the beats' set pieces, the hollow, knoll and brook valley, and the town
-   and city densities follow.
+   on it, on every density. The cordon ridge and brook valley are built and
+   the hollow's rim is held ground, raised in arcs; the cordon's works, the
+   beats' set pieces, a full hollow, the knoll, and the town and city
+   densities follow.
 2. **Beats as optional objectives** (`heart-story-beats.md`). The beats are a
    pool. Each battle activates a subset, and how many and which vary by map,
    seed and density. Each beat declares the structure it needs, so a beat that

@@ -117,6 +117,8 @@ public final class RuralGround {
         FieldOfFire field = layout.field();
         long clear = field == null ? 0 : field.radius() + RuralLayout.HEDGE_CLEARANCE;
         PrecinctPlan plan = ctx.get(BspKeys.PRECINCTS);
+        // Ground the landscape held for its ridges is not ploughed: a field is made ground, and no ridge rises on one.
+        boolean[][] held = ctx.get(BspKeys.HELD_GROUND);
         for (int x = 0; x < w; x++) {
             for (int y = 0; y < h; y++) {
                 if (layout.inCountry(x, y)) continue;
@@ -128,7 +130,8 @@ public final class RuralGround {
                 boolean programmed = owner != GrownTrunkPlan.UNOWNED && plan != null
                         && owner < plan.precincts().size() && plan.precincts().get(owner).isProgrammed();
                 boolean natural = !roads[x][y] && !programmed && open(ctx, x, y)
-                        && NATURAL.contains(ctx.topology.getGroundKind(x, y)) && !nearField(field, clear, x, y);
+                        && NATURAL.contains(ctx.topology.getGroundKind(x, y)) && !nearField(field, clear, x, y)
+                        && (held == null || !held[x][y]);
                 open[x][y] = natural;
                 town[x][y] = owner != GrownTrunkPlan.UNOWNED && !natural && !roads[x][y];
             }
