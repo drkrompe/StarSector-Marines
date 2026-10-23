@@ -49,7 +49,7 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         final List<Call> redoubts;
         /** On the Road, where a halted convoy's road is blocked; empty otherwise. */
         final List<int[]> roadBlocks;
-        /** On the Road, where each convoy on the road wants its escort; empty otherwise. */
+        /** On the Road, where each convoy on the road no allied armour is with wants its escort; empty otherwise. */
         final List<int[]> escorts;
         Frame(CommandFrame base, List<Call> redoubts, List<int[]> roadBlocks, List<int[]> escorts) {
             super(base.tick(), base.perspective(), base.squads(), base.influence(), base.topology(), base.assignments());
@@ -69,7 +69,7 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
             }
             List<int[]> blocks = sequence.convoys() == null ? List.of() : sequence.convoys().roadBlocks();
             List<int[]> escorts = sequence.convoys() == null || !(view instanceof BattleSimulation sim)
-                    ? List.of() : sequence.convoys().escorts(sim);
+                    ? List.of() : sequence.convoys().unguarded(sim);
             return new Frame(base, List.copyOf(calls), blocks, escorts);
         };
     }

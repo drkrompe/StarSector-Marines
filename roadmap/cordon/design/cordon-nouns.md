@@ -121,8 +121,10 @@ the garrisons bled out before the first tide came.
 **Allied column.** Allied troops that arrive during the battle along a rear
 road, on a timetable set at the briefing: a few teams of riflemen. A column
 is the allies' answer to a redoubt calling: it goes to the redoubt holding
-with the least garrison standing when it sets out (the Line) or is the convoy
-itself (the Road). If that redoubt falls before the column gets there, it is
+with the least garrison standing when it sets out, on either line; the Road's
+convoys are a different thing, sent for the town's people, not the line. A
+Road without columns had nothing to make good what each tide took from its
+redoubts, and broke in the second tide. If that redoubt falls before the column gets there, it is
 sent on to the next one. On arriving it joins the garrison as wall teams, so a
 redoubt a column reached stands with more than it started with. A column takes
 about two minutes to march up from the rear, so the timetable sends each one
@@ -148,11 +150,22 @@ goes back for them, the nearest first, and the rest stay on the line. A
 finished car or technical joins the allied armour with a post behind a
 redoubt as its home. The base opens with one carrier.
 
+Three of these are open questions for the owner, each with a switch so a run
+can show the alternative: where the base sits (`battle.cordon.basePlace`,
+`middle` or `west`), whether a carrier stays as support or ferries straight
+back (`battle.cordon.carrierAfterDrop`, `support` or `return`), and the shed's
+building pace (`battle.cordon.basePace`). The defaults are the recommendations.
+
 The base controls its exits so nothing piles up in the shed. A finished
 machine waits on its berth until the one before it has driven clear of the
 machine door; it is then drawn out into the service lane in front of its
 berth facing the door (the shed's tug: a berth's mouth is no wider than the
-hull, and a hull cannot turn out of it alone) and driven out. A carrier waits
+hull, and a hull cannot turn out of it alone) and driven out. One still inside
+the door when its time to get clear is up (a carrier steers too wide to be
+proved a way out of a lane narrower than its clearance) is towed out onto the
+threshold by the tug when that ground is clear, and goes on from there; one that
+stood in the lane stopped the shed, since the next machine is drawn out into
+that same stretch. A carrier waits
 on a **staging slot** of its own on the apron outside the door, never in the
 doorway, on ground its footprint fits; there are as many carriers as slots,
 and an APC beyond that fights with the armour. Every machine drives straight
@@ -194,24 +207,41 @@ cut-off town's compound: the way the convoys drive (*The map*). Nothing is
 parked or built on it, so a convoy can always drive it if nothing is standing
 in the way.
 
-**Convoy (the Road).** An allied column of trucks that drives the corridor to
-the town, waits at the compound's gate while the townspeople board, and drives
-back out. It does not fight its way through: it stops when the road ahead is
+**Convoy (the Road).** An allied column of trucks that sets out from the
+logistics base where the corridor passes it, drives the corridor to the town,
+waits at the compound's gate while the townspeople board, and drives back to
+the base. It does not fight its way through: it stops when the road ahead is
 blocked by the swarm, and goes on when it is clear. Past the gap, in the
-swarm's country, it rolls only with the company beside it: a convoy nobody
+swarm's country, it rolls only with an escort beside it: a convoy nobody
 escorts waits at the line. A convoy is **lost** when all its trucks are
 destroyed; its passengers die with their truck. The standard timetable sends
 three convoys of two trucks, four minutes apart from minute one; each truck
 brings out six of the town's thirty-six, and two convoys must come back out.
 
+**Escort.** The allied armour escorts the convoys, and the company is the
+backstop (*The allies hold, the company decides*). From the moment a convoy
+sets out, the hulls nearest it leave their sectors and drive with it, one
+either side of the road a little ahead of its lead truck and a third further
+on, never on the road itself, where a parked car is in the trucks' way. They
+go back to their sectors when it is home. The company walks with a convoy only
+where no armed allied hull is with it, which is where the armour has not come
+or has died, and clears the road ahead of one the swarm has halted. One escort
+is the convoy's: a hull or a marine near any of its trucks lets the whole
+column roll.
+
 A truck drives a route laid along the corridor once: each stretch of the road
-a route the planner proves drivable for a truck, and where it proves none (a
-country lane's corner tighter than it will prove a truck's turn through) the
-road's own cells, which the truck drives with ordinary steering and recovery.
-A truck that stands still on an open route is given the rest of it again from
-where it stands. Trucks come on a few cells in from the rear edge, since a hull
-set down on the edge row has no route out of it, and nothing is parked within
-a few cells of the corridor.
+a route the planner proves drivable for a truck; where it proves none (a
+country lane's corner tighter than it will prove a truck's turn through) a way
+the truck's footprint fits along; and the road's own cells only where there is
+not even that. The footprint test there counts walls on cell edges, a fence
+along a plaza's side, which a truck's body collides with though both cells are
+open. A truck that makes no headway along an open route is proved a fresh way
+from where it stands to the road a stretch further on and given the rest from
+there: headway, not standing still, since a truck circling a point it cannot
+turn onto is moving all the time. On a map whose corridor does not pass the
+base, trucks come on a few cells in from the rear edge, since a hull set down
+on the edge row has no route out of it. Nothing is parked within a few cells of
+the corridor.
 
 **Line posture.** The briefing's choice of how far the company goes out, the
 Cordon's version of the hive posture (`colony-breach-nouns.md`, Hive posture),
@@ -250,7 +280,10 @@ square), so they claim first and the rest grows round them. Their roads are
 short arms, and their gates are where roads cross their walls, so a road may
 run through a redoubt rather than beside it: the redoubt then guards that
 road's way through the line. A map on which a redoubt has no wall, or the
-landing's field of fire is not clear, re-rolls.
+landing's field of fire is not clear, re-rolls; so does one whose logistics
+base packed no shed, or whose apron a carrier cannot drive from to every
+redoubt (a base fenced too narrowly for a carrier kept every one it built
+standing on its apron, refused a route, with the shed's lane jammed behind).
 
 The Road keeps the colony's civil-defence compound on the town's near side
 (depth 0.6 to 0.7). Its **corridor** (CordonCorridor) is found on the
@@ -267,9 +300,14 @@ with no drivable way re-rolls.
 **The front is grown at setup** (CordonFront). The front is cut across the
 width into one slot per bore, west to east (six by default: bore, maw, bore,
 bore, maw, bore). Even slots stand 60 to 100 cells in front of the line, odd
-ones 100 to 165; a bore-tier creep reaches fifty cells and a maw's eighty, so
-the creep's edge lies in front of the line and only now and then against a
-redoubt's wall, never behind it. A bore keeps fourteen cells off the Road's
+ones 100 to 165; a bore-tier creep reaches fifty cells and a maw's eighty, and
+every bore stands at least its own creep's reach and some twenty cells more from
+each redoubt's middle, taking the deep band where the near one has no such
+ground, so the creep's edge lies in front of the line and only now and then
+against a redoubt's wall, never behind it. Measured from each redoubt rather than
+the line's mean row, since one redoubt can stand twenty cells in front of the
+rest: a near maw at the mean distance grew over the redoubt in front of it, and
+the swarm began the battle at its walls. A bore keeps fourteen cells off the Road's
 corridor and seventy off the town's compound (the town is besieged, not yet
 eaten). Each bore opens through the ordinary seam and is fed to its tier one
 body at a time, so its age mix is a fed bore's. Then the creep is **matured**:

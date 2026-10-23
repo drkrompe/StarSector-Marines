@@ -132,7 +132,10 @@ public final class BloomHeartSetup {
         if (form == Form.BROAD_FRONT && lanes != null && BROAD_COMPANY_ARMOUR) supportCompany(sim, form, lanes, companyLane, landing);
         if (front) lanes.companySector(companyLane);
         sim.setAutonomousCommander(Faction.MARINE,
-                new HeartAssaultCommand(companyLane, screen),
+                form == Form.BROAD_FRONT && BROAD_WAIT_FOR_LANES
+                        ? (BROAD_FALL_BACK ? new HeartAssaultCommand(companyLane, screen).waitingForSatellites(landing.seedX(), landing.seedY())
+                                : new HeartAssaultCommand(companyLane, screen).waitingForSatellites())
+                        : new HeartAssaultCommand(companyLane, screen),
                 HeartAssaultCommand.DISCLOSURE);
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(HeartAssaultCommand.ISSUER, "Company support joins the push"));
         return sim;
@@ -232,6 +235,12 @@ public final class BloomHeartSetup {
             lanes.scheduleArmour(Math.round(w * ARMOUR_WAVE_SECONDS / BattleSimulation.TICK_DT), support,
                     VehicleType.BREAKTHROUGH_TANK, tank[0], tank[1], facing);
     }
+
+    /** Broad Front's company holds its taken ground until every satellite is down ({@code -Dbattle.heart.broadWaitForLanes}). */
+    /** Whether it waits back on its landing rather than on the ground it took ({@code -Dbattle.heart.broadFallBack}). */
+    static final boolean BROAD_FALL_BACK = Boolean.parseBoolean(System.getProperty("battle.heart.broadFallBack", "true"));
+    static final boolean BROAD_WAIT_FOR_LANES =
+            Boolean.parseBoolean(System.getProperty("battle.heart.broadWaitForLanes", "true"));
 
     /** Broad Front's waves after the first, {@link #LATE_WAVE_SECONDS} apart ({@code -Dbattle.heart.broadWaves}). */
     static final int BROAD_WAVES = Integer.getInteger("battle.heart.broadWaves", 12);

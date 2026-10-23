@@ -8,9 +8,12 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 
 /**
  * The allies' light armour on the line ({@code cordon-nouns.md}, Allied armour): cars and
@@ -20,6 +23,10 @@ import java.util.Map;
  * from there its gun reaches across the ground in front of the wall. Behind the rear wall it was out
  * of reach of the front (a redoubt is deeper than a heavy machine gun's range) and shot at nothing.
  * Several on one redoubt take turns on the two sides, each a step further back.
+ *
+ * <p>On the Road the armour also escorts the convoys: while a convoy is on the road near or past the
+ * gap, the hulls nearest the place it wants its escort leave their sectors and drive there, a few
+ * cells ahead of its lead truck, and go back to their sectors when it is out.
  */
 public final class CordonArmour {
 
@@ -36,10 +43,13 @@ public final class CordonArmour {
     /** Cells a hull set down at setup may be moved to find open ground it fits on. */
     static final int SET_DOWN_REACH = 24;
 
+
     private final AlliedCommand command;
     private final int frontward;
     private final Map<Long, int[]> home = new HashMap<>();
     private final Map<Long, CordonRedoubt> answering = new LinkedHashMap<>();
+    /** Each convoy's escort posts, or {@code null} off the Road. */
+    private Function<BattleSimulation, List<int[][]>> escorts;
 
     /** @param frontward which way the front lies from the line: +1 toward high y, -1 toward low */
     public CordonArmour(AlliedCommand command, int frontward) {
@@ -48,6 +58,11 @@ public final class CordonArmour {
     }
 
     public AlliedCommand command() { return command; }
+
+    /** Has the armour escort convoys: each convoy's posts want one hull each. */
+    public void escortConvoys(Function<BattleSimulation, List<int[][]>> escorts) {
+        this.escorts = escorts;
+    }
 
     /**
      * Takes a hull standing on the field under the allied command, with a home it goes back to
@@ -100,8 +115,9 @@ public final class CordonArmour {
         home.keySet().retainAll(hulls);
         answering.keySet().retainAll(hulls);
         answering.values().removeIf(r -> r.state() == CordonRedoubt.State.FALLEN);
+        Set<Long> escorting = escort(sim, hulls);
         for (long hull : hulls) {
-            if (command.carrying(hull) || !home.containsKey(hull)) continue;
+            if (command.carrying(hull) || !home.containsKey(hull) || escorting.contains(hull)) continue;
             CordonRedoubt sector = answering.get(hull);
             if (sector == null) {
                 sector = emptiest(sim.convoy().body(hull), redoubts);
@@ -110,6 +126,36 @@ public final class CordonArmour {
             int[] post = sector == null ? home.get(hull) : flank(sector, rankIn(hull, sector));
             command.station(sim, hull, post[0], post[1]);
         }
+    }
+
+    /**
+     * Sends the hulls nearest each convoy's escort posts to them, one a post.
+     *
+     * @return the hulls sent
+     */
+    private Set<Long> escort(BattleSimulation sim, List<Long> hulls) {
+        Set<Long> sent = new HashSet<>();
+        if (escorts == null) return sent;
+        for (int[][] posts : escorts.apply(sim)) {
+            for (int[] post : posts) {
+                long hull = 0L;
+                float best = Float.MAX_VALUE;
+                for (long h : hulls) {
+                    if (command.carrying(h) || !home.containsKey(h) || sent.contains(h)) continue;
+                    float d = sim.convoy().body(h).distanceTo(post[0], post[1]);
+                    if (d < best) {
+                        best = d;
+                        hull = h;
+                    }
+                }
+                if (hull == 0L) return sent;
+                int[] cell = drivable(sim, sim.convoy().vehicleType(hull), post[0], post[1]);
+                if (cell == null) cell = post;
+                command.station(sim, hull, cell[0], cell[1]);
+                sent.add(hull);
+            }
+        }
+        return sent;
     }
 
     /** A hull's place among its sector's hulls, in the order they were enlisted. */

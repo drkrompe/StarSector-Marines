@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 /**
@@ -57,6 +58,39 @@ public final class VehicleClearance {
             }
         }
         return mask;
+    }
+
+    /**
+     * {@link #erode}, and a cell is passable only where no wall stands on an edge between two cells
+     * of its block either: a fence or a low wall along a cell edge, which a hull's body collides
+     * with ({@code VehicleFootprint}) though both cells are walkable. A plain erosion lets a route
+     * graze such an edge beside its centre line, and a body three cells wide is stopped on it.
+     *
+     * <p>Opt-in: the plain erosion is what every planner is proved against, and changing it moves
+     * every vehicle's route.
+     */
+    public static VehicleClearance erodeRespectingEdges(NavigationGrid grid, int radiusCells) {
+        VehicleClearance mask = erode(grid, radiusCells);
+        int r = mask.radiusCells;
+        for (int y = 0; y < mask.height; y++) {
+            for (int x = 0; x < mask.width; x++) {
+                int idx = y * mask.width + x;
+                if (mask.passable[idx] && edgeInside(grid, x, y, r)) mask.passable[idx] = false;
+            }
+        }
+        return mask;
+    }
+
+    /** Whether a wall stands on an edge between two cells of the block of radius {@code r} round a cell. */
+    private static boolean edgeInside(NavigationGrid grid, int cx, int cy, int r) {
+        for (int dy = -r; dy <= r; dy++) {
+            for (int dx = -r; dx <= r; dx++) {
+                int x = cx + dx, y = cy + dy;
+                if (dx < r && !grid.canTraverseCellStep(x, y, Direction.E)) return true;
+                if (dy < r && !grid.canTraverseCellStep(x, y, Direction.N)) return true;
+            }
+        }
+        return false;
     }
 
     /**

@@ -109,7 +109,8 @@ class CordonCommandEvidenceTest {
             assertTrue(first.fallen() <= CordonSequence.Timetable.STANDARD.allowedFallen(), "a held line lost no more than allowed");
         }
         if ("BROKEN".equals(first.outcome())) {
-            assertTrue(first.beatIds().contains("cordon.line_broken") || first.beatIds().contains("cordon.gap_closed"),
+            assertTrue(first.beatIds().contains("cordon.line_broken") || first.beatIds().contains("cordon.gap_closed")
+                            || first.beatIds().contains("cordon.convoys_lost") || first.beatIds().contains("cordon.convoys_short"),
                     "a broken cordon says how");
         }
     }
@@ -183,7 +184,8 @@ class CordonCommandEvidenceTest {
                 .put("minute", sim.getSimTickIndex() * BattleSimulation.TICK_DT / 60f)
                 .put("marines", marines).put("allies", allies).put("swarm", swarm)
                 .put("livingBores", bores).put("armour", hulls).put("armourAtCall", atCall)
-                .put("redoubts", redoubts);
+                .put("redoubts", redoubts)
+                .put("convoys", cordon.convoys() == null ? "-" : cordon.convoys().describe(sim));
     }
 
     private static String tableRow(JSONObject row) throws Exception {
@@ -196,7 +198,7 @@ class CordonCommandEvidenceTest {
             line.append(' ').append(r.getString("state").toLowerCase(Locale.ROOT)).append(' ')
                     .append(r.getInt("standing")).append('/').append(r.getInt("garrison")).append(" |");
         }
-        return line.append('\n').toString();
+        return line.append(' ').append(row.getString("convoys")).append(" |\n").toString();
     }
 
     private static String report(String runId, BattleSimulation sim, CordonSequence cordon, String winner,
@@ -277,11 +279,13 @@ class CordonCommandEvidenceTest {
             out.append(String.format(Locale.ROOT, "| %.2f | %s |%n", event.tick() * BattleSimulation.TICK_DT / 60f,
                     event.id()));
         }
-        out.append("\n## The line each minute\n\nArmour: allied hulls alive (at a calling redoubt).\n\n"
-                + "| min | marines | allies | swarm | bores | armour |");
+        out.append("\n## The line each minute\n\nArmour: allied hulls alive (at a calling redoubt). Convoys: each on "
+                + "the road, its lead truck's cell along the corridor")
+                .append(cordon.convoys() == null ? "" : " (the gap is cell " + cordon.convoys().gapIndex() + ")")
+                .append(", and why it is held.\n\n| min | marines | allies | swarm | bores | armour |");
         for (CordonRedoubt r : cordon.redoubts()) out.append(" redoubt ").append(r.number()).append(" |");
-        out.append("\n|---|---|---|---|---|---|");
-        for (int i = 0; i < cordon.redoubts().size(); i++) out.append("---|");
+        out.append(" convoys |\n|---|---|---|---|---|---|");
+        for (int i = 0; i <= cordon.redoubts().size(); i++) out.append("---|");
         return out.append('\n').append(table).toString();
     }
 
