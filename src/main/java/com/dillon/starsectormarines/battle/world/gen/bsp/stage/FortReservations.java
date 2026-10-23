@@ -173,6 +173,8 @@ public final class FortReservations {
         List<int[]> boxes = boxes(ctx, plan);
         boolean[][] sites = plan.layout().keepClear(ctx.width, ctx.height);
         boolean[][] held = held(ctx, plan);
+        // Ground held from the fields alone is published for them, never kept from growth.
+        if (!plan.landscape().heldFromGrowth()) held = null;
         if (boxes.isEmpty() && held == null) return sites;
         boolean[][] mask = sites != null ? sites : new boolean[ctx.width][ctx.height];
         for (int[] box : boxes) {
@@ -235,7 +237,7 @@ public final class FortReservations {
             }
         }
         boolean[][] held = held(ctx, plan);
-        if (held == null) return;
+        if (held == null || !plan.landscape().heldFromGrowth()) return;
         for (int x = 0; x < Math.min(claim.length, ctx.width); x++) {
             for (int y = 0; y < Math.min(claim[x].length, ctx.height); y++) {
                 int owner = claim[x][y];

@@ -43,6 +43,8 @@ public enum MechInternal {
     // C > 2 * (72 - 1.05 * dissipation). That is about 126 on the refit Bulwark (8.5/s). Past it the
     // refit fires mostly SRMs and out-guns its pre-cut frame by a further ~4%. 120 stays below
     // the threshold for any dissipation up to 11.4/s.
+    // That reasoning dates from burst-fed arm chainguns. They are rotary guns now and commit flux a round at
+    // a time (mechs-nouns.md, Rotary guns), so re-measure with armorMatchup before resizing a bank on it.
     MILITARY_CAPACITOR_BANK("internal.capacitor-bank-military", "@gearInternalMilitaryCapacitorBank", Role.CAPACITOR_BANK,
             EquipmentAccessTier.PRESTIGE, 2, 2, 5f, 0f, 0f, 0f, 120f, 8f),
 

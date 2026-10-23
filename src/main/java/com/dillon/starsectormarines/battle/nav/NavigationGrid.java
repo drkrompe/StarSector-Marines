@@ -93,15 +93,26 @@ public class NavigationGrid {
          * assaults rather than walks round. The swarm's flow field may cross it
          * at a cost ({@link SwarmFlowFields}); a breach clears it.
          */
-        BARRICADE;
+        BARRICADE,
+        /**
+         * Shallow water over a firm bed, a brook's ford: walkable and slow to
+         * wade ({@link #SHALLOW_WATER_SPEED}). Sight, cover and passability stay
+         * with the underlying ground.
+         */
+        SHALLOW_WATER;
 
         public long mask() { return 1L << ordinal(); }
     }
 
-    /** Physical ground speed over low debris; this never opens a blocked cell. */
+    /** Speed through shallow water, against ordinary ground. */
+    public static final float SHALLOW_WATER_SPEED = .6f;
+
+    /** Physical ground speed over low debris and through shallow water; this never opens a blocked cell. */
     public float groundSpeedMultiplier(float x, float y) {
         int cx = (int) Math.floor(x), cy = (int) Math.floor(y);
-        return inBounds(cx, cy) && hasTag(cx, cy, CellTag.CRASH_DEBRIS) ? .5f : 1f;
+        if (!inBounds(cx, cy)) return 1f;
+        if (hasTag(cx, cy, CellTag.CRASH_DEBRIS)) return .5f;
+        return hasTag(cx, cy, CellTag.SHALLOW_WATER) ? SHALLOW_WATER_SPEED : 1f;
     }
 
     /**

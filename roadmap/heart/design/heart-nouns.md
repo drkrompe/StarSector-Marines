@@ -143,7 +143,7 @@ margins grow, so a margin never bridges one.
 **Brook** (The Burn). A stream across the approach, deep in the bloom beyond
 the village: water five cells wide with sand on either bank and no crown
 overhanging it, crossed on foot
-at a stony ford every forty-six cells (stone, not sand, so the creep over a ford is a film and the ford holds as a break) and wherever a road bridges it. Nobody walks
+at a stony ford every forty-six cells (stone, not sand, so the creep over a ford is a film and the ford holds as a break; shallow water over it, so it is waded slowly and reads as a crossing) and wherever a road bridges it. Nobody walks
 through water and creep does not climb it, so the brook is the map's natural
 firebreak and a line the creep crosses only at its fords and bridges. It runs in a shallow valley: raised banks either side,
 climbed from the country, broken at every ford and road, so a crossing is a

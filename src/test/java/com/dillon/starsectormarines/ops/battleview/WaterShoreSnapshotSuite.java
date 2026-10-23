@@ -33,11 +33,13 @@ import java.util.Locale;
  * heart's brook on The Burn and a Conquest city's ponds and coast. For each
  * map, the whole map, then the stretch of shore with the most shoreline in it
  * at play zoom (32 px a cell) and closer (64 px a cell), then the next-best
- * stretch well away from the first. Look evidence, 1920x1080.
+ * stretch well away from the first, then the first ford (shallow water over
+ * a stony bed) at play zoom and close. Look evidence, 1920x1080.
  *
  * <p>Render once per arm of {@code -Dbattle.render.shore=organic|diagonal|square}
  * into its own {@code -PsnapshotDir} to compare them. Run with
- * {@code -Dbattle.render.creep=false} to see the heart's banks under its creep.
+ * {@code -Dbattle.render.creep=false} to see the heart's banks under its creep,
+ * and once per {@code -Dbattle.render.fordLook=pebbles|stones|both} to compare fords.
  * {@code -Dsnapshot.waterShore.burnSeeds=202} and
  * {@code -Dsnapshot.waterShore.conquestSeeds=4} pick the maps.
  */
@@ -92,9 +94,33 @@ public final class WaterShoreSnapshotSuite implements SnapshotSuite {
         near.refocus(first[0] + .5f, first[1] + .5f, CLOSE_CELLS);
         out.add(new SnapshotArtifact(tag + "-03-shore-close.png", near.render(sim, head + " | close")));
         int[] second = shoreliest(topology, first);
-        if (second == null) return;
-        near.refocus(second[0] + .5f, second[1] + .5f, PLAY_CELLS);
-        out.add(new SnapshotArtifact(tag + "-04-shore-elsewhere.png", near.render(sim, head + " | play zoom, elsewhere")));
+        if (second != null) {
+            near.refocus(second[0] + .5f, second[1] + .5f, PLAY_CELLS);
+            out.add(new SnapshotArtifact(tag + "-04-shore-elsewhere.png", near.render(sim, head + " | play zoom, elsewhere")));
+        }
+        int[] ford = ford(topology);
+        if (ford == null) return;
+        near.refocus(ford[0] + .5f, ford[1] + .5f, PLAY_CELLS);
+        out.add(new SnapshotArtifact(tag + "-05-ford-play.png", near.render(sim, head + " | a ford, play zoom")));
+        near.refocus(ford[0] + .5f, ford[1] + .5f, CLOSE_CELLS);
+        out.add(new SnapshotArtifact(tag + "-06-ford-close.png", near.render(sim, head + " | a ford, close")));
+    }
+
+    /** The middle of the first ford found, row by row from the south: its shallow cells' mean; null without one. */
+    private static int[] ford(CellTopology topology) {
+        for (int y = 0; y < topology.getHeight(); y++) {
+            for (int x = 0; x < topology.getWidth(); x++) {
+                if (!topology.isShallowWater(x, y)) continue;
+                long sx = 0, sy = 0, n = 0;
+                for (int j = y; j < Math.min(topology.getHeight(), y + 12); j++) {
+                    for (int i = Math.max(0, x - 12); i < Math.min(topology.getWidth(), x + 12); i++) {
+                        if (topology.isShallowWater(i, j)) { sx += i; sy += j; n++; }
+                    }
+                }
+                return new int[]{(int) (sx / n), (int) (sy / n)};
+            }
+        }
+        return null;
     }
 
     /**
