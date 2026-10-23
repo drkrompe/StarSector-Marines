@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
+import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 
@@ -92,6 +94,7 @@ public final class MissionLayoutStage implements GenStage {
         Map<String, List<int[]>> ridges = new HashMap<>();
         boolean closed = false;
         if (phase == Phase.WORKS) {
+            refuseSecondElevation(ctx, plan, pieces);
             for (Piece piece : pieces) {
                 if (!(piece instanceof Ridge ridge) || ridges.containsKey(ridge.name())) continue;
                 List<int[]> feet = OutdoorLandscapeStage.raiseRidges(ctx, List.of(ridge.band()), held);
@@ -423,5 +426,35 @@ public final class MissionLayoutStage implements GenStage {
         Set<Long> out = new HashSet<>();
         for (int[] c : cells) out.add(PreparedGround.key(c[0], c[1]));
         return out;
+    }
+    /**
+     * Elevation is stamped once per map ({@code ElevationBrush}): whatever is raised first is the map's
+     * relief, and every later ridge or plateau pass finds elevation already there and does nothing. So a
+     * layout may raise at most one {@link Ridge}, and only on a map whose landscape asks for no ridges,
+     * held bands or plateaus of its own. A plan that asks for both is refused here, loudly, rather than
+     * losing the rest without a word.
+     */
+    private static void refuseSecondElevation(GenContext ctx, PrecinctPlan plan, List<Piece> pieces) {
+        String reason = secondElevation(pieces, plan == null ? null : plan.landscape(),
+                OutdoorLandscapeStage.plateausWanted(ctx));
+        if (reason != null) throw new IllegalStateException(reason);
+    }
+
+    /** Why this layout's ridges cannot be raised on this map, or null when they can. */
+    static String secondElevation(List<Piece> pieces, Landscape landscape, int plateaus) {
+        List<RidgePlanner.Band> raised = new ArrayList<>();
+        for (Piece piece : pieces) if (piece instanceof Ridge ridge) raised.add(ridge.band());
+        if (raised.isEmpty()) return null;
+        if (raised.size() > 1) {
+            return "a mission layout raises one Ridge: elevation is stamped once per map, and " + raised.size()
+                    + " were asked for";
+        }
+        // Held bands are a reservation first: with a layout Ridge they keep growth off the Ridge's ground and are
+        // not raised again (the Cordon holds its line's band so). Ridges the landscape asks to raise are relief.
+        if (landscape != null && !landscape.ridges().isEmpty()) {
+            return "a mission layout Ridge and the landscape's own ridges cannot share a map: elevation is stamped once";
+        }
+        if (plateaus > 0) return "a mission layout Ridge and plateaus cannot share a map: elevation is stamped once";
+        return null;
     }
 }
