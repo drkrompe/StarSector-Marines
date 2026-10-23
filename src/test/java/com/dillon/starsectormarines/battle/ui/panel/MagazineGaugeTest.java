@@ -54,6 +54,21 @@ class MagazineGaugeTest {
     }
 
     @Test
+    void theSalvosAHoldHasFiredLightUpBesideTheLiveOnes() {
+        MagazineGauge rack = MagazineGauge.of(Ordnance.MISSILE, 1, 5, 15, 5, 0f, 0f).withHeld(10);
+        assertEquals("live", rack.iconState(4));
+        assertEquals("held", rack.iconState(5));
+        assertEquals("held", rack.iconState(14));
+        assertEquals("spent", MagazineGauge.of(Ordnance.MISSILE, 1, 5, 15, 5, 0f, 0f).iconState(5));
+
+        MagazineGauge folded = MagazineGauge.of(Ordnance.MISSILE, 1, 10, 60, 30, 0f, 0f).withHeld(20);
+        assertEquals("live", folded.iconState(2));
+        assertEquals("held", folded.iconState(3));
+        assertEquals("held", folded.iconState(4));
+        assertEquals("spent", folded.iconState(5));
+    }
+
+    @Test
     void aLongBeltFoldsWholeBurstsPerIconUntilItFits() {
         MagazineGauge belt = MagazineGauge.of(Ordnance.BALLISTIC, 1, 5, 200, 131, 0f, 0f);
         assertEquals(0, belt.fold() % 5);

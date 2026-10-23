@@ -79,6 +79,23 @@ public final class DirectControlFireMarks {
     }
 
     /**
+     * The cell point the controlled ground body fires from, for the reticle's line of fire: a vehicle's turret
+     * ring, otherwise the body itself. Null with nothing controlled on the ground.
+     */
+    public static float[] fireOrigin(BattleSimulation sim) {
+        if (sim == null || !sim.directControl().active() || sim.directControl().warshipControl()) return null;
+        long id = sim.directControl().activeUnitId();
+        if (sim.directControl().controlledVehicleId() == id) {
+            var type = sim.convoy().vehicleType(id);
+            var body = sim.convoy().body(id);
+            if (type == null || body == null) return null;
+            TurretMountGeometry.Point ring = GroundVehicleTurretSystem.mountPoint(type, body);
+            return new float[]{ring.x(), ring.y()};
+        }
+        return sim.world().isAlive(id) ? new float[]{sim.world().renderX(id), sim.world().renderY(id)} : null;
+    }
+
+    /**
      * The best mark among the mounts the trigger's pick fires: LINKED is grey only when none of its mounts would
      * fire. Every gate is one the manual round itself applies before spending anything.
      */

@@ -46,6 +46,8 @@ public final class WeaponRegistry {
     /** The sensor and halo drones' light ion sting. */
     public static final String DRONE_ION_ID = "weapon.drone-ion";
     public static final String MECH_CHAINGUN_ID = "weapon.mech-chaingun";
+    /** The better chaingun: faster spin-up and refill, heavier rounds ({@code mechs-nouns.md}, Rotary guns). */
+    public static final String MECH_CHAINGUN_HF_ID = "weapon.mech-chaingun-hf";
     public static final String MECH_LINEAR_CANNON_ID = "weapon.mech-linear-cannon";
     public static final String MECH_HEAVY_CANNON_ID = "weapon.mech-heavy-cannon";
     public static final String MECH_SRM_POD_ID = "weapon.mech-srm-pod";

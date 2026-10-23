@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.PatchField;
@@ -26,6 +27,7 @@ import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainField;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainPlan;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainSurface;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.ArrayDeque;
@@ -55,7 +57,8 @@ public final class OutdoorLandscapeStage implements GenStage {
         if (landscape.raggedMargin() > 0) raggedMargins(c, landscape.raggedMargin());
         clearTracks(c, landscape);
         List<int[]> brookCells = runBrooks(c, landscape);
-        boolean[] reserved = reservations(c);
+        boolean[] reserved = reservations(c, hostAnchors, true);
+        reserveRamps(c, reserved);
         reserveTracks(c, landscape, reserved);
         // Keep crowns off the banks too: a brook is a firebreak only if nothing that burns overhangs it.
         int bank = landscape.brooks().stream().mapToInt(Landscape.Brook::width).max().orElse(3) / 2 + 2;
@@ -70,7 +73,7 @@ public final class OutdoorLandscapeStage implements GenStage {
         if (c.topology.terrainSurface() == null) hills(c, surface, reserved, ridgeGround, random);
         int plateaus = plateausWanted(c);
         if (plateaus > 0) plateaus(c, reserved, plateaus, new Random(c.seed ^ 0x504c4154L));
-        if (!ridges.isEmpty() && c.grid.elevation() == null) ridges(c, reserved, ridges);
+        if (!ridges.isEmpty() && c.grid.elevation() == null) ridges(c, reserved, ridges, false);
         if (surface == SurfacePalette.VERDANT) trees(c, reserved, landscape.woodland());
         else FormationBrush.scatter(c,surface,reserved);
         // Hills, trees and formations turn cells non-walkable after TacticalRegionStage
@@ -80,7 +83,48 @@ public final class OutdoorLandscapeStage implements GenStage {
         }
     }
 
-    private boolean[] reservations(GenContext c) {
+    /**
+     * Raises a mission layout's ridges before its works are laid ({@code mission-layout.md}, Ridge), against the
+     * reservations this pass keeps plus the structures already raised and {@code also} (sites the layout holds),
+     * so a line resolved along a ridge is dug on its crest. Returns the ramp feet of the segments raised, one per
+     * segment, empty when none fitted or the map already has elevation.
+     */
+    public static List<int[]> raiseRidges(GenContext c, List<RidgePlanner.Band> bands, boolean[][] also) {
+        if (bands.isEmpty() || c.grid.elevation() != null || c.width < 32 || c.height < 32
+                || TileRegistry.installed() == null
+                || !Boolean.parseBoolean(System.getProperty("battle.mapgen.outdoorLandscape", "true"))) return List.of();
+        // The access routes between the places are not reserved: the ridge's own access proof stands for them, and a
+        // route along the line would otherwise break every stretch of it. The ways through are its passes and ramps.
+        boolean[] reserved = reservations(c, new int[0], false);
+        List<Laid> raised = c.get(BspKeys.LAYOUT_STRUCTURES);
+        if (raised != null) for (Laid piece : raised) {
+            if (piece.kind() == Laid.Kind.STRUCTURE && piece.isLaid() && piece.cells().size() == 2) {
+                reserve(c, reserved, piece.cells().get(0)[0], piece.cells().get(0)[1],
+                        piece.cells().get(1)[0], piece.cells().get(1)[1]);
+            }
+        }
+        if (also != null) for (int x = 0; x < c.width; x++) for (int y = 0; y < c.height; y++) {
+            if (also[x][y]) reserve(c, reserved, x - 2, y - 2, x + 2, y + 2);
+        }
+        ElevationPlan plan = ridges(c, reserved, bands, true);
+        if (plan == null) return List.of();
+        List<int[]> feet = new ArrayList<>();
+        for (ElevationPlan.Ramp ramp : plan.ramps()) {
+            feet.add(new int[]{(int) Math.round(ramp.foot().x()), (int) Math.round(ramp.foot().y())});
+        }
+        return feet;
+    }
+
+    /** Ramps already on the map (a layout's ridges, raised before this pass) stay clear: they are the only ways up. */
+    private static void reserveRamps(GenContext c, boolean[] reserved) {
+        var elevation = c.grid.elevation();
+        if (elevation == null) return;
+        for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) {
+            if (elevation.isRamp(x, y)) reserve(c, reserved, x - 1, y - 1, x + 1, y + 1);
+        }
+    }
+
+    private static boolean[] reservations(GenContext c, int[] hostAnchors, boolean routes) {
         boolean[] reserved = new boolean[c.width * c.height];
         boolean[][] roads = c.get(BspKeys.ROAD_RESERVATION), roadCells = c.get(BspKeys.ROAD_CELLS);
         for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) {
@@ -144,7 +188,7 @@ public final class OutdoorLandscapeStage implements GenStage {
                 for (int[] cell : cells) reserve(c, reserved, cell[0] - 2, cell[1] - 2, cell[0] + 2, cell[1] + 2);
         }
         for (int[] point : anchors) reserve(c, reserved, point[0] - 5, point[1] - 5, point[0] + 5, point[1] + 5);
-        LandscapeAccess.reserveRoutes(c.grid, anchors, reserved);
+        if (routes) LandscapeAccess.reserveRoutes(c.grid, anchors, reserved);
         return reserved;
     }
 
@@ -184,7 +228,8 @@ public final class OutdoorLandscapeStage implements GenStage {
         if (!plan.strokes().isEmpty()) TerrainBrush.stamp(plan, c.grid, c.topology, reserved);
     }
 
-    private static int plateausWanted(GenContext c) {
+    /** How many plateaus the map asks for: the generation key, else the switch, else none. */
+    public static int plateausWanted(GenContext c) {
         Integer asked = c.get(BspKeys.PLATEAUS);
         return asked != null ? asked : Integer.getInteger("battle.mapgen.plateaus", 0);
     }
@@ -208,7 +253,13 @@ public final class OutdoorLandscapeStage implements GenStage {
      * The mission's ridges: each band raised as hill segments on open ground,
      * broken into passes wherever the host's ground crosses it.
      */
-    private static void ridges(GenContext c, boolean[] reserved, List<RidgePlanner.Band> bands) {
+    /**
+     * @param overLawns whether the ridges may rise over lawn painted on open country, which a layout's ridge does:
+     *                  its band is the mission's high ground, and a lawn is not something it yields to as a road or
+     *                  a place is. The ridge's top takes the map's own ground there.
+     */
+    private static ElevationPlan ridges(GenContext c, boolean[] reserved, List<RidgePlanner.Band> bands,
+                                        boolean overLawns) {
         int w = c.width;
         // Proved a segment at a time: each new segment's faces in a box round
         // them alone, with the faces already kept counted closed. One box round
@@ -216,15 +267,23 @@ public final class OutdoorLandscapeStage implements GenStage {
         // them all.
         boolean[] kept = new boolean[c.width * c.height];
         ElevationPlan plan = RidgePlanner.plan(c.width, c.height, c.seed ^ 0x52494447L, bands,
-                i -> !reserved[i] && openGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
+                i -> !reserved[i] && (openGround(c, i % w, i / w) || overLawns && lawn(c, i % w, i / w))
+                        && !terrainVisible(c, i % w, i / w),
                 layout -> keepsAccess(c, layout, kept));
-        if (plan == null) return;
+        if (plan == null) return null;
+        if (overLawns) {
+            ElevationLayout raised = ElevationLayout.resolve(plan);
+            for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) {
+                if (raised.touched(x, y) && lawn(c, x, y)) c.topology.setSurface(x, y, 0);
+            }
+        }
         ElevationBrush.stamp(plan, c.grid, c.topology, reserved);
         // A ridge's ramps are its only ways up: no tree may grow on one and close it.
         ElevationLayout layout = ElevationLayout.resolve(plan);
         for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) {
             if (layout.isRamp(x, y)) reserve(c, reserved, x - 1, y - 1, x + 1, y + 1);
         }
+        return plan;
     }
 
     /** Cells of low ground kept between a brook's sand and the foot of its valley side. */
@@ -241,7 +300,7 @@ public final class OutdoorLandscapeStage implements GenStage {
         List<RidgePlanner.Band> out = new ArrayList<>();
         for (Landscape.Brook brook : landscape.brooks()) {
             if (brook.banks() <= 0) continue;
-            List<int[]> line = brookLine(brook);
+            List<int[]> line = brook.line();
             int bank = brook.width() / 2 + 2;
             double offset = bank + VALLEY_FLOOR + PlateauPlanner.FACE_WIDTH + PlateauPlanner.SOUTH_FACE + 1
                     + brook.banks() / 2.0;
@@ -249,7 +308,7 @@ public final class OutdoorLandscapeStage implements GenStage {
             List<int[]> stretches = new ArrayList<>();
             int from = 0;
             for (int i = 0; i < line.size(); i++) {
-                boolean ford = i >= brook.fordWidth() && i % brook.fordEvery() < brook.fordWidth();
+                boolean ford = brook.isFord(i);
                 if (!ford) continue;
                 stretches.add(new int[]{from, i - FORD_APPROACH});
                 from = i + brook.fordWidth() + FORD_APPROACH;
@@ -274,20 +333,6 @@ public final class OutdoorLandscapeStage implements GenStage {
         int[] a = line.get(Math.max(0, i - 3)), b = line.get(Math.min(line.size() - 1, i + 3)), p = line.get(i);
         double dx = b[0] - a[0], dy = b[1] - a[1], len = Math.max(1e-9, Math.hypot(dx, dy));
         return new ElevationPlan.Point(p[0] - dy / len * by, p[1] + dx / len * by);
-    }
-
-    /** A brook's centre line walked a cell at a time, as {@link #runBrooks} lays its water. */
-    private static List<int[]> brookLine(Landscape.Brook brook) {
-        List<int[]> line = new ArrayList<>();
-        for (int i = 0; i + 1 < brook.path().size(); i++) {
-            int[] a = brook.path().get(i), b = brook.path().get(i + 1);
-            int steps = Math.max(Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1]));
-            for (int k = i == 0 ? 0 : 1; k <= steps; k++) {
-                line.add(new int[]{Math.round(a[0] + (b[0] - a[0]) * k / (float) Math.max(1, steps)),
-                        Math.round(a[1] + (b[1] - a[1]) * k / (float) Math.max(1, steps))});
-            }
-        }
-        return line;
     }
 
     /** Whether the ground around a layout's faces stays one connected piece once they close. */
@@ -460,12 +505,13 @@ public final class OutdoorLandscapeStage implements GenStage {
     /**
      * A plan's brooks run across the country: water on open natural ground
      * along each centre line, a sand strip on either bank, and at every ford
-     * sand right across. Returns the centre cells, for the reservations.
+     * a stony bed right across under shallow water, waded slowly. Returns the
+     * centre cells, for the reservations.
      */
     private static List<int[]> runBrooks(GenContext c, Landscape landscape) {
         List<int[]> centres = new ArrayList<>();
         for (Landscape.Brook brook : landscape.brooks()) {
-            List<int[]> line = brookLine(brook);
+            List<int[]> line = brook.line();
             float r = brook.width() / 2f;
             int reach = (int) Math.ceil(r) + 1;
             for (int[] centre : line) {
@@ -491,7 +537,7 @@ public final class OutdoorLandscapeStage implements GenStage {
             }
             // Fords last, so a ford is open across the whole stream whatever drew water over it.
             for (int i = 0; i < line.size(); i++) {
-                if (i % brook.fordEvery() >= brook.fordWidth() || i < brook.fordWidth()) continue;
+                if (!brook.isFord(i)) continue;
                 int[] centre = line.get(i);
                 for (int dy = -reach; dy <= reach; dy++) for (int dx = -reach; dx <= reach; dx++) {
                     int x = centre[0] + dx, y = centre[1] + dy;
@@ -499,6 +545,9 @@ public final class OutdoorLandscapeStage implements GenStage {
                     if (c.topology.getGroundKind(x, y) != GroundKind.WATER) continue;
                     // A stony bed, not sand: creep over it is a film that does not burn, so a ford holds as a break.
                     c.topology.setGroundKind(x, y, GroundKind.STONE);
+                    // Under shallow water: waded slowly, drawn as shallows over the stones.
+                    c.topology.setTag(x, y, CellTopology.Tag.SHALLOW_WATER, true);
+                    c.grid.setTag(x, y, NavigationGrid.CellTag.SHALLOW_WATER, true);
                     c.grid.setWalkable(x, y, true);
                     c.grid.setEdgeCoverSuppressed(x, y, false);
                 }
@@ -565,6 +614,12 @@ public final class OutdoorLandscapeStage implements GenStage {
         if (terrain == null) return false;
         for (int layer = 0; layer < TerrainSurface.LAYERS; layer++) if (terrain.patch(x, y, layer) != null) return true;
         return false;
+    }
+
+    /** Natural open ground under painted floor (a lawn), nothing built: what a layout's ridge may rise over. */
+    private static boolean lawn(GenContext c, int x, int y) {
+        return naturalGround(c, x, y) && !c.isMadeGround(x, y) && c.topology.getSurface(x, y) != 0
+                && c.topology.getSurfaceId(x, y).startsWith("floors.");
     }
 
     private static boolean openGround(GenContext c, int x, int y) {

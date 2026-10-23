@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
+import com.dillon.starsectormarines.battle.combat.SalvoChain;
 
 /** Mutable firing state for one installed {@link MechWeaponComponent}. */
 public final class MechWeaponMount {
@@ -18,6 +19,22 @@ public final class MechWeaponMount {
     public PointFireAim burstPointAim;
     /** Accumulated onboard replenishment work toward the next trigger pack. */
     public float replenishmentProgressSeconds;
+    /**
+     * Further salvos this rack's trigger has committed to without waiting out its cycle ({@link SalvoChain}):
+     * the rest of an autonomous carrier's chosen count, or unbounded while a pilot holds the button.
+     */
+    public int chainSalvos;
+    /** Seconds until the salvo in flight has gone and a chained one may follow it. */
+    public float chainGapRemaining;
+    /** The body the autonomous chain was committed against; a chained salvo goes to no other. */
+    public long chainTargetId;
+    /** Salvos a pilot's current hold has committed, for the HUD; zero when the button is up. */
+    public int holdSalvos;
+    /**
+     * A rotary gun's spin and belt, or null for a mount fired a trigger pull at a time. A rotary mount
+     * fires while its trigger is held and never uses the burst fields or the trigger-pack ammunition.
+     */
+    public final RotaryFeed rotary;
 
     public MechWeaponMount(MechMountSlot slot, MechWeaponComponent component) {
         if (slot == null || component == null || !component.accepts(slot)) {
@@ -26,7 +43,21 @@ public final class MechWeaponMount {
         this.slot = slot;
         this.component = component;
         this.ammo = component.ammoCapacity;
+        this.rotary = component.rotary() != null ? new RotaryFeed(component.rotary()) : null;
     }
+
+    /** Whether this mount fires while its trigger is held, off a belt, rather than a pull at a time. */
+    public boolean isRotary() { return rotary != null; }
+
+    /**
+     * Whether the gun is firing now, for the arm's pose: a burst under way, or a rotary gun that released a
+     * round within the last few ticks.
+     */
+    public boolean firing() {
+        return burstRemaining > 0 || rotary != null && rotary.sinceRound() <= ROTARY_FIRING_SECONDS;
+    }
+
+    private static final float ROTARY_FIRING_SECONDS = 0.2f;
 
     public String weaponId() { return component.weaponId; }
 
@@ -74,9 +105,60 @@ public final class MechWeaponMount {
         return true;
     }
 
+    /** Whether this mount chains its salvos under a held trigger. */
+    public boolean chains() {
+        return component.chainsSalvos() && SalvoChain.enabled();
+    }
+
+    /**
+     * Whether the next trigger would be a chained salvo: the cycle is still running, but a chain is pending.
+     * A trigger after the cycle has run out is a fresh one.
+     */
+    public boolean chainedTrigger() {
+        return cycleRemaining > 0f && chainSalvos > 0 && chains();
+    }
+
+    /**
+     * Whether the mechanical clocks admit a trigger now: no burst in flight, a pack loaded, and either the cycle
+     * done or a chained salvo whose predecessor has gone. Flux, aim and the barrel are the caller's gates.
+     */
+    public boolean triggerReady() {
+        if (burstRemaining > 0 || !hasAmmo()) return false;
+        if (cycleRemaining <= 0f) return true;
+        return chainedTrigger() && chainGapRemaining <= 0f;
+    }
+
+    /** The flux the next trigger reserves: in full, or {@link SalvoChain#CHAINED_FLUX_SHARE} of it when chained. */
+    public float triggerFlux() {
+        return SalvoChain.fluxCost(component.fluxPerTrigger(), chainedTrigger());
+    }
+
+    /**
+     * A pilot holds the rack's button. Once this hold has fired a salvo, every salvo after it chains until release;
+     * a fresh press waits out the cycle like any trigger.
+     */
+    public void holdChain() {
+        if (chains() && holdSalvos > 0) chainSalvos = Integer.MAX_VALUE;
+    }
+
+    /** The button is up, or the autonomous chain is over: the rack's cycle runs from its last salvo. */
+    public void releaseChain() {
+        chainSalvos = 0;
+        chainTargetId = 0L;
+        holdSalvos = 0;
+    }
+
+    /** Ticks the chain gap down with the cycle. */
+    public void advanceClocks(float dt) {
+        cycleRemaining = Math.max(0f, cycleRemaining - dt);
+        chainGapRemaining = Math.max(0f, chainGapRemaining - dt);
+    }
+
     /** Commits one emitted trigger; ammunition counts trigger packs, not individual rounds. */
     public void commitTrigger(long target, PointFireAim point) {
+        if (chainedTrigger() && chainSalvos != Integer.MAX_VALUE) chainSalvos--;
         consumeTrigger();
+        chainGapRemaining = component.projectilesPerTrigger * weaponDef().burstSpacing;
         cycleRemaining = component.cycleSeconds();
         burstRemaining = Math.max(0, component.projectilesPerTrigger - 1);
         burstTimer = burstRemaining > 0 ? weaponDef().burstSpacing : 0f;

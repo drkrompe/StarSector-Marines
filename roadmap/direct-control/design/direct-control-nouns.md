@@ -1,10 +1,10 @@
 # Direct control nouns
 
-Status: ACTIVE — Marine, Mech, deployed APC, friendly Warship, and drone Tender control are implemented; live acceptance remains open.
+Status: ACTIVE — Marine, Mech, any player-owned deployed vehicle, friendly Warship, and drone Tender control are implemented; live acceptance remains open.
 
 Written: 2026-09-23
 
-Updated: 2026-10-23 — the ground aim reticle: a quiet side tick per mouse button, coloured and patterned by what a click would do; landing spread blooms the tick; no scatter ring.
+Updated: 2026-10-23 — every vehicle the player owns is controllable, not only the Heavy APC; reticle ticks lie across the line of fire; held racks chain salvos.
 
 Direct control lets the player temporarily inhabit one of their ground units, or a
 friendly capital hovering over the battle, in
@@ -28,8 +28,14 @@ fire intent; it does not turn the player into a second mission commander.
   assignment. It is not a new squad order and does not restore a stale plan.
 
 Only an exact player-owned, controllable ground body may enter. The implemented
-families are a Marine infantry member, a deployed combat Mech, and a deployed
-Marine HEAVY_APC. Allied or enemy bodies, incapacitated or riding
+families are a Marine infantry member, a deployed combat Mech, and any deployed
+vehicle the player owns, whatever its type. A vehicle is the player's when it is
+Marine-faction: every hull the player's force puts on the field (a company bay
+vehicle, a granted or fallback drop, one a works the company holds rolls out) is
+spawned Marine, while scripted convoys, militia and allied armour the player
+escorts or fights beside are spawned Ally, and stay out of reach even when
+enlisted to take the player's move orders. A hull still being built on a works'
+stocks is not yet a vehicle anybody drives. Allied or enemy bodies, incapacitated or riding
 members, wrecks, and vehicles in a delivery leg are not eligible. Marine entry
 also waits for committed special-equipment actions and is unavailable to a
 mission planter or kit retriever. Those interactions need an explicit manual
@@ -63,7 +69,7 @@ current context without restoring old movement or firing work.
 
 ## Input and time
 
-Selecting an exact eligible Marine infantry member, Mech, or APC exposes an enter/exit
+Selecting an exact eligible Marine infantry member, Mech, or vehicle exposes an enter/exit
 control: a compact action beside that unit's details. No entry panel or disabled
 selection prompt appears without an eligible unit, and hidden controls retain no
 pointer or keyboard focus. Tab toggles takeover and Escape releases it. Tab is reserved before
@@ -118,11 +124,17 @@ missiles in salvos of one trigger pull, a vehicle's belt is cartridges in
 bursts, and an energy weapon counts nothing but shows charge cells, one per
 bolt of its burst (five for a single shot), emptying through the burst,
 refilling over the cycle and held violet when flux refuses the shot. A gun with nothing to count that
-fires in bursts (a mech's chaingun) shows the burst one click sends as
-cartridges, spent as the burst goes out and chambered again over the cycle. A rack or
+fires in bursts shows the burst one click sends as cartridges, spent as the burst
+goes out and chambered again over the cycle. A mech's chaingun is a **rotary gun**
+(`mechs-nouns.md`, Rotary guns): it fires while its button is held, its strip is
+its belt (folded, with the count beside it, emptying as it fires and filling from
+the hopper whether it fires or not), and its row's cycle bar is the barrels' spin,
+filling as they come up to speed and reading SPIN with the percentage. A rack or
 belt too long for the row folds to one icon per salvo or burst (several whole
 bursts per icon for a long belt) and then keeps its exact count beside it; a
-load too long even folded keeps only the number. Finite Mech stores count
+load too long even folded keeps only the number. While a rack's button is held, the missiles (or
+folded salvos) that hold has fired draw lit beside the live ones, so a chain is seen building
+salvo by salvo, and go back to spent when the button comes up. Finite Mech stores count
 trigger packs, while a vehicle turret counts individual rounds. In the Marine doll's kit column,
 a rocket or precision-rifle special with a short load draws it as missiles or
 cartridges in place of its count.
@@ -153,22 +165,27 @@ over the tab opens a panel of this carrier's bindings and what its cards mean, a
 both the tab and the panel closes it. It takes no click and no focus, and nothing opens
 by itself on entry. The tab is chrome like the buttons, so world fire is suspended
 while the pointer is over it; the open panel is chrome only while open, and a collapsed
-panel captures no pointer. The content is per carrier (Marine, Mech, APC, Warship, Tender) and
-lists only that carrier's real bindings; with nothing controlled there is no tab.
+panel captures no pointer. The content is per carrier (Marine, Mech, vehicle, Warship, Tender) and
+lists only that carrier's real bindings, so a vehicle with no working gun lists
+drive and steer and no aim or fire; with nothing controlled there is no tab.
 
 A faint aim lane connects the current firing origin toward the cursor. Its
 clear segment ends at the first structural projectile blocker, marked in amber;
 a fainter dashed segment continues beyond that obstruction. Marine origin is
-the ordinary point-shot source. Mech and APC lanes use their actual posed
+the ordinary point-shot source. Mech and vehicle lanes use their actual posed
 muzzles, and the Mech's trigger picks determine which flat-fire hardpoints appear;
 an arcing rack flies over walls and draws no lane.
 
 On a ground body the crosshair is an **aim reticle** that answers, per mouse
 button, what a click would do now: one **mark** per button, read from that
 button's current pick, as a short tick either side of a neutral centre dot on
-the aim point, the left tick for the left button and the right tick for the
-right (owner, 2026-10-23; side ticks chosen over split brackets and concentric
-rings). A button with nothing on it draws no mark. **White** fires well,
+the aim point (owner, 2026-10-23; side ticks chosen over split brackets and
+concentric rings). The ticks lie across the **line of fire**, from the body (a
+vehicle's turret ring) to the cursor, so they never run along the aim lane: the
+left button's tick is on the body's own left of that line and the right
+button's on its right, as a gunsight turns with its gun. Aiming down the screen
+therefore puts the left button's tick on the screen's right; the player reads
+left and right relative to the body (owner, 2026-10-23). A button with nothing on it draws no mark. **White** fires well,
 inside optimal range; **yellow** fires with accuracy falling off, between
 optimal and maximum range; **red** fires but is wasted, past maximum range;
 **grey** will not fire: too close (inside a manual minimum), out of the mount's
@@ -201,9 +218,8 @@ landing disk among them, the way a shooter's crosshair opens, and it never
 opens further than 40 pixels. A vehicle turret's launcher blooms the same way,
 measured from its turret ring. Guns, which have no ground burst, keep the
 resting tick, and so does a grey tick, since a refused trigger lands nothing.
-The spread is the clear-air figure; smoke on a rocket's lane widens it. Bloom is
-built on while the owner chooses between it and a tick that grows longer
-instead (picks question `aim-reticle-spread`).
+The spread is the clear-air figure; smoke on a rocket's lane widens it. Bloom
+was chosen over a tick that grows longer instead (owner, 2026-10-23).
 A blocked body-to-barrel segment cannot masquerade as an open lane from a
 muzzle beyond the wall. The guide uses current continuous terrain and shared
 edge profiles, so opening or destroying structure changes the next preview.
@@ -248,7 +264,7 @@ contract before it gains an activation key.
 
 Holding either Shift key requests sprint for every controllable Marine,
 independently of armor or carried equipment. Sprint is an individual movement
-choice; it does not add a squad order or a Mech/APC speed mode. A small Shift
+choice; it does not add a squad order or a Mech or vehicle speed mode. A small Shift
 card in the existing equipment row shows the exact Marine's stamina and running
 or exhausted state. Its bar is distinct from armor and health.
 
@@ -273,7 +289,7 @@ with point aiming and the crosshair. Right-click issues no world order while
 controlling. It is a second trigger for the carriers that have a second battery: a
 Warship's missiles (see Warship carrier), a Tender's drone recall (see Tender), a Mech's secondary weapon group, and a
 Marine's secondary equipment (see Mouse buttons). A carrier with nothing to put on
-it, such as the APC turret, lets the press fall on the floor; the press never
+it, such as a vehicle turret, lets the press fall on the floor; the press never
 reaches the world, the camera, or the command layer, and releasing input clears it
 exactly as it clears the left button.
 
@@ -397,7 +413,7 @@ two rear limits goes through the forward arc, never across the blind wedge.
 A mount requires the same four-degree firing alignment used by autonomous fire. A blocked drive step may
 still pivot, but its gait follows only the motion actually applied.
 
-A controlled APC must be a live Marine chassis in DEPLOYED state, with its
+A controlled vehicle must be a live Marine chassis in DEPLOYED state, with its
 complete oriented footprint legal at the current pose. Incoming, landed,
 departing, gone, and wrecked delivery bodies cannot enter. W/S requests forward
 or reverse throttle and A/D steers the wheels through the existing bicycle
@@ -407,7 +423,7 @@ and rotation against solid cells, reciprocal closed edges, and map limits.
 Blocked motion retains the last legal pose. The manual owner supplies recovery
 input without a retained AI maneuver moving the hull independently.
 
-Entry suspends an APC's one-shot move order and discards its route and recovery
+Entry suspends a vehicle's one-shot move order and discards its route and recovery
 state while retaining the requested destination. An order received during
 control replaces that retained destination without driving or proving a route.
 It cannot unload passengers merely by pointing at the controlled hull. Exit
@@ -491,7 +507,8 @@ mount is lost returns its trigger to LINKED at the next validation. The picks
 belong to the control session, survive pause, and reset to LINKED on takeover or
 handback. Changing a pick cancels queued manual rounds and releases held fire
 while preserving movement, aim, ammunition, and clocks; a new press must trigger
-the new choice. A queued burst keeps firing after its button is released and is
+the new choice. A rotary gun fires only while its button is held and its pick names
+it; let go, its barrels coast and spin down. A queued burst keeps firing after its button is released and is
 dropped when its mount is no longer what either trigger's pick fires. Repeated
 input cannot replay a cancelled burst. Neither picks nor groups change the
 installed equipment, authored packet size, or AI firing policy. The authored
@@ -518,6 +535,10 @@ cooldown and the committed throw are the equipment's own. No other secondary ite
 has a manual contract (grenade launchers and satchels are autonomous), so a Marine
 carrying only those leaves the right button inert rather than inventing a new free
 action. C and G keep working.
+
+A held rack chains its salvos (`mechs-nouns.md`, `salvo-chain.md`): a click is one salvo, and a
+hold that has fired one keeps firing the next as soon as the last has gone, without the cycle, until
+release or an empty rack. A vehicle turret's launcher does the same under manual fire.
 
 An arcing LRM rack drops its salvo on the thrown point: the aim point, pulled in
 to twice its range if further, plus the same growing scatter disk a rocket's ground
@@ -550,8 +571,12 @@ nominal range at a growing scatter cost; gun area payloads detonate only at thei
 committed physical terminal contact (`ballistics-nouns.md` owns both rules).
 Direct SRMs retain their ordinary interception opportunity and delayed impact.
 
-The APC's independent turret slews toward the mouse bearing at its authored
-traverse rate. The held primary trigger uses the existing magazine, cooldown,
+A vehicle's independent turret slews toward the mouse bearing at its authored
+traverse rate, whatever the gun: a flat-fire gun or beam, a rocket pod, or an
+arcing rack (the LRM carrier's launcher, the fire-support APC's mortar) refused
+inside its manual minimum. A hull with no turret weapon (the supply truck, the
+scout car, the drone skimmer, whose drones keep their own tether) drives only,
+and its buttons do nothing. The held primary trigger uses the existing magazine, cooldown,
 burst spacing, minimum range, and firing alignment. Each burst retains its accepted world
 point until completion. Manual and autonomous fire share one turret tick; AI
 acquisition and triggers are suppressed only for the controlled hull. Entry,

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.vehicle;
 import com.dillon.starsectormarines.battle.assault.MachineAssault;
 import com.dillon.starsectormarines.battle.assault.MachineGuard;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
+import com.dillon.starsectormarines.battle.combat.SalvoChain;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.mech.MechTargeting;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -16,6 +17,8 @@ import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+
+import java.util.function.LongPredicate;
 
 /** One aim, magazine, and cadence authority for autonomous and controlled vehicle turrets. */
 public final class GroundVehicleTurretSystem {
@@ -37,6 +40,9 @@ public final class GroundVehicleTurretSystem {
     /** Standing assaults whose fire directives this pass serves; null when none are given. */
     private VehicleMoveOrderService assaults;
 
+    /** Whether point defence screens a target, for a launcher choosing how many salvos to chain at it. */
+    private LongPredicate screened = target -> false;
+
     /** Seconds between a launcher's looks for a new target ({@link #tickLauncher}). */
     static final float LAUNCHER_RELOOK_SECONDS = 0.5f;
 
@@ -49,6 +55,11 @@ public final class GroundVehicleTurretSystem {
         this.grid = grid;
         this.world = world;
         this.fireSink = fireSink;
+    }
+
+    /** Whether point defence screens a body; a screened target draws a launcher's whole chain. */
+    public void setScreening(LongPredicate screened) {
+        this.screened = screened != null ? screened : target -> false;
     }
 
     /** Who calls targets for an indirect-fire launcher that cannot see them itself. */
@@ -91,12 +102,17 @@ public final class GroundVehicleTurretSystem {
             float mountX = mount.x();
             float mountY = mount.y();
             dissipate(turret, structure.mount, dt);
+            if (turret.chainGap > 0f) turret.chainGap -= dt;
             if (turret.overloaded && turret.burstRemaining > 0) turret.clearQueuedFire();
             if (id == controlledId) {
                 tickManual(id, turret, body, structure, mountX, mountY, dt, point, trigger);
             } else {
                 if (turret.burstPointAim != null) turret.clearQueuedFire();
                 tickAutonomous(id, turret, body, structure, mountX, mountY, dt);
+            }
+            if (type.turretRaiseFold() < 1f) {
+                raise(turret, structure.mount.weapon, dt);
+                aimRange(turret, mountX, mountY);
             }
         }
     }
@@ -113,6 +129,34 @@ public final class GroundVehicleTurretSystem {
                 body.y + type.turretMountX * sin + type.turretMountY * cos);
     }
 
+    /** Remembers how far off a launcher's aim is ({@link GroundTurret#raiseRangeCells}); kept when it has none. */
+    private void aimRange(GroundTurret turret, float mountX, float mountY) {
+        long target = world.isAlive(turret.burstTargetId) ? turret.burstTargetId
+                : world.isAlive(turret.targetId) ? turret.targetId : 0L;
+        if (target != 0L) {
+            turret.raiseRangeCells = (float) Math.hypot(world.x(target) - mountX, world.y(target) - mountY);
+        } else if (turret.burstPointAim != null) {
+            turret.raiseRangeCells = (float) Math.hypot(turret.burstPointAim.x() - mountX,
+                    turret.burstPointAim.y() - mountY);
+        }
+    }
+
+    /** Seconds a launcher takes to stand up on its trunnion, or to lie back down. */
+    static final float RAISE_SECONDS = 0.6f;
+    /** Seconds a launcher stays raised after its last salvo before it lies back down without a target. */
+    static final float RAISED_AFTER_SALVO_SECONDS = 2.0f;
+
+    /**
+     * Stands a launcher up while it has something to fire at, is firing, or has just fired, and lays it back down
+     * otherwise ({@link GroundTurret#elevation}). Nothing in the sim reads it: it is how an arcing rack looks.
+     */
+    static void raise(GroundTurret turret, WeaponDef weapon, float dt) {
+        boolean raised = turret.targetId != 0L || turret.burstRemaining > 0 || turret.burstPointAim != null
+                || turret.cooldownTimer > weapon.cooldown - RAISED_AFTER_SALVO_SECONDS;
+        float step = dt / RAISE_SECONDS;
+        turret.elevation = raised ? Math.min(1f, turret.elevation + step) : Math.max(0f, turret.elevation - step);
+    }
+
     private void tickManual(long id, GroundTurret turret, GroundBody body, StructureDef structure,
                             float mountX, float mountY, float dt, PointFireAim cursor, boolean trigger) {
         if (turret.burstRemaining > 0 && turret.burstPointAim == null) turret.clearQueuedFire();
@@ -120,6 +164,16 @@ public final class GroundVehicleTurretSystem {
         turret.targetId = 0L;
         TurretMountDef mount = structure.mount;
         WeaponDef weapon = mount.weapon;
+        // A held launcher chains its salvos (SalvoChain); letting go starts its cooldown from the last one.
+        boolean holding = trigger && SalvoChain.chains(weapon);
+        if (holding) {
+            // Only a hold that has already fired chains: a fresh press waits out the cooldown.
+            if (turret.holdRounds > 0) turret.chainSalvos = Integer.MAX_VALUE;
+        } else {
+            turret.chainSalvos = 0;
+            turret.holdRounds = 0;
+        }
+
         PointFireAim aim = turret.burstPointAim != null ? turret.burstPointAim : cursor;
         if (aim != null && aim.validFrom(mountX, mountY)) {
             turret.facingDeg = TurretAim.slewToward(turret.facingDeg,
@@ -134,15 +188,18 @@ public final class GroundVehicleTurretSystem {
             if (turret.burstTimer <= 0f
                     && firePoint(id, turret, body, structure, mountX, mountY, aim, release)) {
                 turret.ammo--;
+                if (holding) turret.holdRounds++;
                 addFlux(turret, structure.mount);
                 finishBurstRound(turret, weapon);
             }
             return;
         }
         if (turret.cooldownTimer > 0f) turret.cooldownTimer -= dt;
-        if (!trigger || turret.cooldownTimer > 0f || !ready(turret, mount)
+        if (!trigger || !turret.clockReady() || !ready(turret, mount)
                 || !firePoint(id, turret, body, structure, mountX, mountY, aim, 0)) return;
+        turret.commitChained();
         turret.ammo--;
+        if (holding) turret.holdRounds++;
         addFlux(turret, structure.mount);
         turret.cooldownTimer = weapon.cooldown;
         turret.burstRemaining = turret.ammo > 0 ? Math.max(0, weapon.burstCount - 1) : 0;
@@ -192,9 +249,12 @@ public final class GroundVehicleTurretSystem {
         }
         long burstTarget = roster.isAliveById(turret.burstTargetId) ? turret.burstTargetId : 0L;
         // Keep autonomous APC cadence: no cooldown or traverse tick during a committed burst. A beam is the
-        // exception: its lance is held, so the turret tracks its target through it and the beam drags with it.
+        // exception: its lance is held, so the turret tracks its target through it and the beam drags with it. So
+        // is a missile rack, which opens its salvo inside the fire arc and keeps coming round onto the target while
+        // it ripples, so the launcher points where its missiles go.
         if (turret.burstRemaining > 0) {
-            if (weapon.hitscanBeam() && burstTarget != 0L && world.isAlive(burstTarget)) {
+            boolean tracks = weapon.hitscanBeam() || mount.hardenedTargetsOnly || weapon.indirectFire;
+            if (tracks && burstTarget != 0L && world.isAlive(burstTarget)) {
                 turret.facingDeg = TurretAim.slewToward(turret.facingDeg,
                         TurretAim.bearingTo(mountX, mountY, world.x(burstTarget), world.y(burstTarget)),
                         mount.turnRateDegPerSec * dt);
@@ -408,16 +468,27 @@ public final class GroundVehicleTurretSystem {
         }
         float bearing = TurretAim.bearingTo(mountX, mountY, world.x(target), world.y(target));
         turret.facingDeg = TurretAim.slewToward(turret.facingDeg, bearing, mount.turnRateDegPerSec * dt);
-        if (turret.cooldownTimer > 0f || !ready(turret, mount)
+        // A chained salvo goes to the body its chain was committed against, and to no other.
+        if (turret.chainedTrigger() && target != turret.chainTargetId) turret.chainSalvos = 0;
+        if (!turret.clockReady() || !ready(turret, mount)
                 || Math.abs(TurretAim.shortestAngleDelta(turret.facingDeg, bearing)) > TurretAim.FIRE_ARC_DEG
                 || !barrelClear(body, TurretMountGeometry.muzzle(mountX, mountY, turret.facingDeg, mount, 0))) {
             return;
         }
         // A spotted round is an observed round: the spotter's eyes stand in for the hull's, as a mortar's do.
         if (!fireSink.fire(id, mountX, mountY, side, structure, target, false, true, turret.facingDeg, 0)) return;
+        boolean chained = turret.chainedTrigger();
+        int loadedSalvos = turret.ammo / Math.max(1, weapon.burstCount);
+        turret.commitChained();
         turret.ammo--;
         addFlux(turret, structure.mount);
         turret.cooldownTimer = weapon.cooldown;
+        if (!chained && SalvoChain.chains(weapon)) {
+            // A fresh trigger chooses how many salvos it chains: more at a mech or behind point defence.
+            turret.chainSalvos = SalvoChain.autonomousSalvos(loadedSalvos, SalvoChain.VEHICLE_AUTONOMOUS_SALVOS,
+                    hardened(target), world.hasMechLoadout(target), screened.test(target)) - 1;
+            turret.chainTargetId = target;
+        }
         if (turret.ammo > 0 && weapon.burstCount > 1) {
             turret.burstRemaining = weapon.burstCount - 1;
             turret.burstTimer = weapon.burstSpacing;
@@ -539,6 +610,7 @@ public final class GroundVehicleTurretSystem {
         if (turret.burstRemaining == 0) {
             turret.burstTargetId = 0L;
             turret.burstPointAim = null;
+            turret.chainGap = weapon.burstSpacing;
         }
     }
 }

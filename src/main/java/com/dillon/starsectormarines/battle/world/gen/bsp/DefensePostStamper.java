@@ -417,7 +417,7 @@ public final class DefensePostStamper implements GenStage {
             // post boxing in one of its OWN open footprint cells (a vent ring's
             // corner trapped between the ring arms and pre-existing water/wall).
             // Pass the actual blocked cells, not the bbox — sparse footprints
-            // (LIGHT cross, WEDGE/TRAPEZOID notches) leave bbox cells walkable,
+            // (LIGHT cross, TRAPEZOID notches) leave bbox cells walkable,
             // and those open cells must stay in the connectivity check.
             //
             // Asked locally rather than of the whole map. The map-wide form
@@ -451,7 +451,7 @@ public final class DefensePostStamper implements GenStage {
      * centered at {@code (cx, cy)} turns non-walkable. Used by the partition
      * guard so it sees the post's real
      * (often sparse) silhouette rather than a solid bbox: LIGHT is a cardinal
-     * cross with open corners, WEDGE/TRAPEZOID notch their back row, and only
+     * cross with open corners, TRAPEZOID notches its back row, and only
      * those open cells can be boxed in by adjacent water/walls.
      */
     static int[][] blockedFootprint(DefensePostKind tier, DefensePostShape shape, int cx, int cy) {
@@ -594,7 +594,8 @@ public final class DefensePostStamper implements GenStage {
         return stampPost(grid, topology, doodads, layout(tier, shape), cx, cy, style);
     }
 
-    private static DefensePost stampPost(NavigationGrid grid, CellTopology topology,
+    /** As above, for a layout given directly rather than looked up by tier and shape (a look study's draft). */
+    static DefensePost stampPost(NavigationGrid grid, CellTopology topology,
                                          List<Doodad> doodads, DefensePostLayoutDef layout,
                                          int cx, int cy, EmplacementStyle style) {
         clearFootprint(doodads, layout, cx, cy);

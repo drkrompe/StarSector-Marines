@@ -34,6 +34,16 @@
       "description": "@gearCatalogComponentMechNoseChaingunDescription"
     },
     {
+      "component": "component.mech-chaingun-hf",
+      "designation": "MCG-H",
+      "description": "@gearCatalogComponentMechChaingunHfDescription"
+    },
+    {
+      "component": "component.mech-nose-chaingun-hf",
+      "designation": "MCG-HN",
+      "description": "@gearCatalogComponentMechNoseChaingunHfDescription"
+    },
+    {
       "component": "component.mech-linear-cannon",
       "designation": "MLC",
       "description": "@gearCatalogComponentMechLinearCannonDescription"

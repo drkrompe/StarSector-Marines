@@ -8,6 +8,10 @@ import com.dillon.starsectormarines.battle.warship.ShipSupportResult;
 import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 import com.dillon.starsectormarines.battle.audio.NarrationSequence;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
+import com.dillon.starsectormarines.battle.objective.optional.Cost;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveResult;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRuntime;
+import com.dillon.starsectormarines.battle.objective.optional.Reward;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -32,6 +36,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.UnaryOperator;
 
 /** MLX-authored read-only operation debrief and recovery handoff. */
@@ -304,6 +309,33 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         }
     }
 
+    /** Status, then what it paid or what it costs downstream. */
+    static String objectiveSummary(ObjectiveResult objective) {
+        List<String> parts = new ArrayList<>();
+        parts.add(Strings.get("resultsScreenObjective" + objective.status().name()));
+        Reward earned = objective.earned();
+        if (earned.credits() > 0) parts.add(Strings.format("payoutFmt", earned.credits()));
+        for (Map.Entry<String, Integer> material : new TreeMap<>(earned.materials()).entrySet())
+            parts.add(Strings.format("resultsScreenFieldFind", material.getValue(), commodityName(material.getKey())));
+        Cost incurred = objective.incurred();
+        if (!incurred.isEmpty()) parts.add(Strings.format("resultsScreenObjectiveCost", incurred.key()));
+        return Strings.join("separatorDot", parts.toArray(String[]::new));
+    }
+
+    private static String commodityName(String commodityId) {
+        var settings = Global.getSettings();
+        var spec = settings == null ? null : settings.getCommoditySpec(commodityId);
+        return spec == null ? commodityId : spec.getName();
+    }
+
+    private static String objectiveTone(ObjectiveRuntime.Status status) {
+        return switch (status) {
+            case SUCCEEDED -> "tone-good";
+            case FAILED -> "tone-danger";
+            default -> "tone-muted";
+        };
+    }
+
     private static String outcomeMeta(MissionOutcome outcome, LootManifest manifest) {
         if (outcome == null) return Strings.get("resultsScreenMetaNoOutcome");
         if (manifest != null && !manifest.isEmpty()) {
@@ -345,6 +377,10 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             rows.add(row("result-field-salvage", Strings.get("resultsScreenFieldFinds"),
                     outcome.victory ? finds : Strings.format("resultsScreenLeftBehind", finds),
                     outcome.victory ? "tone-good" : "tone-muted"));
+        }
+        for (ObjectiveResult objective : outcome.objectives) {
+            rows.add(row("result-objective-" + objective.key(), objective.title(),
+                    objectiveSummary(objective), objectiveTone(objective.status())));
         }
         rows.add(row("result-casualties", trimLabel(copy.apply("resultsCasualtiesLabel")),
                 MessageFormat.format(copy.apply("resultsCasualtiesFmt"),

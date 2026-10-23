@@ -1,7 +1,0 @@
-Sketch-to-render reskin of a single top-down game sprite: one LRM-15 long-range missile launcher box, seen from directly overhead (true orthographic top-down, no perspective tilt, no visible side walls), facing LEFT.
-
-Reference 1 is the exact geometry: keep its silhouette, size, position on the canvas, proportions and every part in place. The left half is the sunken tube face with FIFTEEN round missile tube mouths in a 3 deep by 5 across grid; each mouth shows the yellow-orange tip of a loaded missile inside a dark tube, like the mouths in reference 2. Right of the face is a raised armoured top cover with four corner bolts and a raised centre strap running nose to tail. Small side lifting lugs above and below; a darker trunnion block at the right (tail) edge. Plane brightness in the guide only indicates height; render them as real painted metal.
-
-Reference 2 is material and style only, not layout: the existing mech LRM pod sprite. Match its worn olive-khaki military paint, chipped edges, fine dark outlines, small orange marker lights on the lugs, rivets, and its crisp hand-painted game-sprite look at a higher resolution.
-
-True transparent background including all space around the box; no ground, no cast shadow, no shadow slab, no border, no text, no turret plate under it, no vehicle. One object only.

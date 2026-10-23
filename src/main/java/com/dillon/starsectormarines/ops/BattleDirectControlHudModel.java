@@ -309,6 +309,9 @@ final class BattleDirectControlHudModel {
         if (enabled && weapon.state() == WeaponState.RELOADING) {
             state = label("RELOADING") + " " + seconds(weapon.cooldownSeconds());
         }
+        if (enabled && weapon.state() == WeaponState.SPINNING) {
+            state = label("SPINNING") + " " + Math.round(weapon.cycleFraction() * 100f) + "%";
+        }
         if (enabled && weapon.state() == WeaponState.CYCLING) {
             state = (mech && !weapon.mechanism().isEmpty() ? weapon.mechanism() + " " : "")
                     + seconds(weapon.cooldownSeconds());
@@ -369,6 +372,7 @@ final class BattleDirectControlHudModel {
                     behavior.projectilesPerTrigger(), ammo.capacity(), ammo.remaining(),
                     weapon.reloading() ? weapon.cooldownSeconds() : 0f, weapon.cycleDurationSeconds());
         }
+        gauge = gauge.withHeld(weapon.heldRounds());
         return gauge.fits() ? gauge : null;
     }
 
@@ -469,6 +473,8 @@ final class BattleDirectControlHudModel {
     }
 
     private String behavior(BattleDirectControlStatus.Behavior behavior) {
+        // A rotary gun has no pull to count: it fires while held.
+        if (behavior.kind() == BattleDirectControlStatus.FireKind.ROTARY) return label("ROTARY");
         String value = label(behavior.kind().name());
         int count = behavior.kind() == BattleDirectControlStatus.FireKind.PACKET
                 ? behavior.projectilesPerShot() : behavior.projectilesPerTrigger();

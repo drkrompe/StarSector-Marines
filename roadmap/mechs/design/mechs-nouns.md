@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — the torso's back is its own plate (TORSO_REAR, held on top of the torso armor) and the damage doll draws front and rear; earlier: torso arcs, missile warheads, duel range against armor, section-share tuning.
+Updated: 2026-10-23 — held racks chain their salvos (`salvo-chain.md`); earlier: torso rear plate, torso arcs, missile warheads, duel range against armor.
 
 ## Purpose
 
@@ -58,6 +58,17 @@ increasing an encounter's total armored threat.
   their mechanical trigger cycle and ready-ammunition capacity. Replenishment repeats
   for the life of the mech; the installed component is the future item-upgrade
   seam for changing that cadence.
+- A **rotary gun** (the chainguns) has no trigger pull. It fires while its
+  trigger is held: its **spin** ramps from a first-turn rate to its full rate over
+  the spin-up time, the barrels **coast** at speed for a moment after release, so a
+  quick re-press fires at full rate, then spin down. Its rounds come off a **belt**
+  of a few hundred, which a **hopper** refills at a fixed rate every tick for the
+  life of the mech, firing or not: the chaingun's counterpart of the replenisher's
+  cadence, owned by the gun. Ammunition is unlimited over a fight; a long hold
+  empties the belt, and then the gun fires only as fast as the hopper. Spin-up,
+  refill and the round's damage are what make a better chaingun, so the feed is
+  authored on the weapon (`sim.rotary`), not on the chassis, and the better gun
+  is a better component (the Advanced high-feed chaingun and its nose fit).
 - A **campaign mech** is one persistent player-owned chassis plus its doctrine
   and installed components. It is the campaign authority that produces a
   frozen battle loadout; the live battle mech never reaches back into it.
@@ -1061,6 +1072,13 @@ support sortie, subject only to practical runtime resources.
 - Missile weapon hardware owns capacity and projectile behavior; the installed
   replenisher owns refill cadence. Upgrade content changes the subsystem rather
   than encoding reload speed in a chassis, role, or weapon definition.
+- A rotary gun's belt and hopper belong to the gun: a better feed is a better gun,
+  never a chassis or role value. One rule advances spin and belt for the pilot and
+  the AI. An autonomous gunner leases the trigger while a target is exposed, keeps
+  the barrels turning while engaged without a shot, and keeps a reserve: below a
+  fifth of the belt it stops asking for rounds until the hopper has put a third
+  back, so it eases off rather than running dry. A pilot may empty the belt. A
+  round a gate refuses uses its slot, so a blocked gun never dumps a backlog.
 - Owned subsystem quantity includes installed copies. A failed refit changes
   neither inventory accounting nor the target mech's installed loadout.
 - A custom refit validates socket type, complete rectangular footprint, component inventory,
@@ -1286,8 +1304,10 @@ adds dissipation. A mech's flux and a warship's flux share one gauge on the dire
 HUD. Never call it heat, which reads as a separate mod mechanic.
 
 A weapon component owns its mechanical trigger-to-trigger period and its flux
-reservation. The Hound nose chaingun cycles every 0.65 seconds for a six-round
-burst costing 18 flux. SRM-5 loads every 1.8 seconds for a two-rocket packet
+reservation. A rotary gun commits its flux round by round instead (0.75 a round
+for the stock chaingun), small enough that a long hold runs the belt dry before it
+vents a single-gun frame, while a Bulwark holding both arm guns still runs hot.
+SRM-5 loads every 1.8 seconds for a two-rocket packet
 costing 28 flux. Burst continuation must also finish before another trigger.
 Projectile damage and spacing are unchanged. Larger and specialist components
 have explicit profiles; ordinary infantry/vehicle weapon cadence is unchanged.
@@ -1298,6 +1318,17 @@ to complete even if the chassis becomes hot. Blocked/unaimed first rounds spend
 nothing; cancelled packets retain spent flux and ammo. Dissipation runs once in the
 serial heavy-weapon pass, including on unselected mounts and autonomous chassis.
 Direct-control entry, exit, pause and input suspension never reset these resources.
+
+**A held rack chains its salvos** (`salvo-chain.md`, `SalvoChain`). A rack's trigger is one
+salvo; once a hold has fired one, the next follows as soon as the last has gone, without the
+rack's cycle, until the button is released or the rack is empty, and the cycle then runs from the
+last salvo. So an LRM-15 is 5 on a click, 10 on a short hold and 15 on a long one, and a deeper rack
+is a bigger spike. A chained salvo reserves half its trigger's flux, which lets an LRM-15 empty
+inside the stock reservoir while flux still bounds the deepest racks. The replenisher restores the
+spent salvos one pack at a time, as ever. An autonomous mech chooses its count on a fresh trigger:
+one salvo at a soft target, the whole load at a mech or at a target its own side's point defence
+covers, and half the load at other armor; a chained salvo goes only to the body its chain began
+on. `-Dbattle.salvoChain=false` is the control.
 
 **Against a machine, the mount that best defeats its armor fires first.** The
 reservoir admits one packet at a time, so whichever mount an autonomous mech tries

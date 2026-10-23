@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.mech.MechCatalog;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.weapon.RotaryFeedDef;
 import com.dillon.starsectormarines.battle.mech.MechFlux;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.power.CommandPower;
@@ -329,6 +330,24 @@ public final class SpecSheets {
             throw new IllegalArgumentException("A mech-weapon sheet needs a component");
         }
         MechCatalog.ComponentEntry entry = MechCatalog.require(component);
+        RotaryFeedDef rotary = component.rotary();
+        if (rotary != null) {
+            // A rotary gun is chosen on what makes a better one: spin-up, refill and the round's weight.
+            return new SpecSheet(
+                    component.displayName(),
+                    joined(entry.designation(), mountLabel(component),
+                            Strings.get("gearHardpoint" + component.hardpointType.name())),
+                    null,
+                    ACCENT_MECH,
+                    List.of(stat("Spin-up", Strings.format("gearSeconds", oneDecimal(rotary.spinUpSeconds()))),
+                            stat("Full rate", Strings.format("gearRoundsPerSecond", whole(rotary.fullRate()))),
+                            stat("Belt", whole(rotary.belt())),
+                            stat("Refill", Strings.format("gearRoundsPerSecond", oneDecimal(rotary.refillPerSecond()))),
+                            stat("DMG", oneDecimal(component.weaponDef().damage)),
+                            stat("Flux / round", oneDecimal(component.fluxPerRound()) + " / " + whole(fluxCapacity))),
+                    List.of(entry.description(), Strings.get("gearRotaryExplanation"),
+                            Strings.get("gearFluxExplanation")));
+        }
         return new SpecSheet(
                 component.displayName(),
                 joined(entry.designation(), mountLabel(component),

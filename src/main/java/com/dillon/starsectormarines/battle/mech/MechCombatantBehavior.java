@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.combat.SalvoChain;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -150,9 +151,16 @@ public final class MechCombatantBehavior implements UnitBehavior {
     private static void tryFireMount(long u, MechLoadoutComponent loadout,
                                      MechWeaponMount mount, long target, float dist,
                                      BattleControl sim, boolean hasLos) {
-        if (mount == null || !loadout.isAimedAt(target) || mount.cycleRemaining > 0f
-                || mount.burstRemaining > 0 || !mount.hasAmmo()
-                || !loadout.flux.permits(mount.component.fluxPerTrigger(), true)
+        if (mount == null) return;
+        if (mount.isRotary()) {
+            tryFireRotary(u, loadout, mount, target, dist, sim, hasLos);
+            return;
+        }
+        // A chained salvo goes to the body its chain was committed against, and to no other.
+        if (mount.chainedTrigger() && mount.chainTargetId != target) mount.releaseChain();
+        float flux = mount.triggerFlux();
+        if (!loadout.isAimedAt(target) || !mount.triggerReady()
+                || !loadout.flux.permits(flux, true)
                 || !sim.canFireMechMount(u, mount)) return;
         // An anti-armor warhead is wasted on a man: the rack keeps its pack for armor.
         if (mount.component.antiArmorOnly() && !sim.isHardenedTarget(target)) return;
@@ -164,8 +172,39 @@ public final class MechCombatantBehavior implements UnitBehavior {
         if (indirect && dist <= minimumIndirectRange) return;
 
         float accuracyMult = indirect && !hasLos ? weapon.noLosAccuracyMult : 1f;
+        boolean chained = mount.chainedTrigger();
+        int loaded = mount.ammo;
         sim.fireMechWeapon(u, target, mount, accuracyMult);
-        loadout.flux.commit(mount.component.fluxPerTrigger());
+        loadout.flux.commit(flux);
         mount.commitTrigger(target, null);
+        if (!chained && mount.chains()) {
+            // A fresh trigger chooses how many salvos it chains: one at men, more at armor or point defence.
+            int salvos = SalvoChain.autonomousSalvos(loaded, loaded, sim.isHardenedTarget(target),
+                    sim.world().hasMechLoadout(target), SalvoChain.screened(sim, target));
+            mount.chainSalvos = salvos - 1;
+            mount.chainTargetId = target;
+        }
+    }
+
+    /**
+     * How far past its reach a rotary gun's target may stand and still count as an engagement, for which
+     * the barrels are kept turning rather than left to spin down.
+     */
+    static final float ROTARY_ENGAGED_REACH = 1.5f;
+
+    /**
+     * A rotary gun fires while a target is exposed to it: the gunner leases the trigger on that target for
+     * a few ticks, and the fire pass releases rounds at the spin's rate off the belt, holding the reserve
+     * back ({@link RotaryFeed}). Engaged without a shot (the torso still turning, the lane blocked, the
+     * target behind cover or just out of reach), the barrels are kept turning so the next shot comes at
+     * speed.
+     */
+    private static void tryFireRotary(long u, MechLoadoutComponent loadout, MechWeaponMount mount,
+                                      long target, float dist, BattleControl sim, boolean hasLos) {
+        WeaponDef weapon = mount.weaponDef();
+        boolean exposed = hasLos && dist <= weapon.range && loadout.isAimedAt(target)
+                && sim.canFireMechMount(u, mount);
+        if (exposed) mount.rotary.demand(target);
+        else if (dist <= weapon.range * ROTARY_ENGAGED_REACH) mount.rotary.hold();
     }
 }

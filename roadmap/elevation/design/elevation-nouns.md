@@ -4,7 +4,7 @@ Status: ACTIVE — StarCraft-style raised ground: a few discrete tiers, impassab
 
 Written: 2026-10-22
 
-Updated: 2026-10-23 — a gun on a plinth sees from its height and is seen back from it.
+Updated: 2026-10-23 — a layout ridge is raised under its works; ground may be held from the fields alone.
 
 Read `stories.md` for open work.
 
@@ -258,7 +258,14 @@ Generators place plateaus where a mission wants them:
   The ground round each place's seed is never held, so a place always has
   somewhere to start. Held ground is a reservation, not a stamp: elevation
   still goes down last, and whatever generation laid across the band anyway
-  (a weld road, an access route) is a pass like any other.
+  (a weld road, an access route) is a pass like any other. A landscape may
+  hold the ground from the fields alone (`Landscape.withUnploughed`): the
+  places grow exactly as they would have and only ploughing yields, for a
+  mission whose places must not move.
+- **Under works.** A mission layout's ridge (`mission-layout.md`, Ridge) is
+  raised before the layout's works are laid, so a trench resolved along it
+  is dug on its crest (the Cordon's line). Places are built before it and stay
+  on the low ground of its passes.
 - City blocks do not get plateaus; a city's height is its buildings. A city's
   countryside margin may.
 
