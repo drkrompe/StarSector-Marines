@@ -178,7 +178,7 @@ obstruction marker or line-style transition. Pointer movement and camera motion
 continue to update the guide while paused; pointing at chrome or outside the
 world viewport hides it.
 
-Equipped Marine abilities have one-shot input: E raises an integral directional
+Equipped Marine abilities have one-shot input: C raises an integral directional
 shield, G throws carried smoke toward the cursor, and R reloads a magazine. Their read-only rows sit
 under a KEYS group below the primary weapon, each marked with its key. Only present
 equipment appears. Shield state reads its real soak pool, expiry, break flash,
@@ -188,7 +188,7 @@ later use when equipment is unavailable. Pause, chrome, lost focus, or handback
 clear uncommitted requests. The equipment owners validate requests and spend
 resources at their existing activation or release boundaries.
 
-During manual control the suit's supported shield waits for E rather than its
+During manual control the suit's supported shield waits for C rather than its
 autonomous activation policy. Its normal clocks and other suit systems keep
 running. The shield faces authoritative mouse aim, including while strafing;
 zero-length aim retains the screen's last simulation bearing. Its finite directional soak and
@@ -434,8 +434,10 @@ mount under its own arc, alignment, cooldown, ammunition, flux and burst gates),
 then each mount of its group in hardpoint order. A Bulwark therefore fires both
 arm chainguns on LINKED, or one of them alone. A group of one mount has only
 LINKED, which is that mount, and an empty group has no list. LINKED is the
-default pick. **Q** moves the left trigger to its next member and **C** the right,
-wrapping back to LINKED; the mouse wheel stays on zoom. Number keys are direct
+default pick. **Q** moves the left trigger to its next member and **E** the right,
+wrapping back to LINKED, on every carrier (owner, 2026-10-23); the mouse wheel stays on
+zoom. Abilities sit off the cycle keys: C is the shield, G smoke, R reload, F a
+warship's low pass and X a tender's cancel. Number keys are direct
 jumps on the left trigger only: key 1 is LINKED and keys 2 onward are its guns in
 list order. **A member its trigger's pick leaves out holds fire**: no manual round
 and no autonomous one, since the controlled body takes no AI trigger. A **crewed
@@ -456,27 +458,27 @@ input cannot replay a cancelled burst. Neither picks nor groups change the
 installed equipment, authored packet size, or AI firing policy. The authored
 single shot, timed burst, or simultaneous volley remains distinct from this
 player choice. A Marine's and a vehicle's triggers have single-member lists for
-now, so Q and C do nothing there; the Marine's direct-fire specials and grenades
+now, and a warship has no cycle, so Q and E do nothing there; the Marine's direct-fire specials and grenades
 join them under `weapon-cycling.md`.
 
 The weapon-groups panel lists each mount under the button whose list it is in:
 an LMB group (guns), an RMB group (racks), and OTHER MOUNTS for a hardpoint
 neither lists. Each trigger header names its pick and the key that cycles it,
-for example `LMB  LINKED  [Q]` or `LMB  R arm Chaingun  [Q]` (a picked mount is
+for example `LMB  LINKED  [Q]` or `LMB  R arm Chaingun  [Q]`, and `[E]` on the RMB header (a picked mount is
 named with its hardpoint when another member shares its name). The picked rows
 carry the wash; the others, which hold fire, dim. Gun rows carry their number
 key. Clicking a trigger header cycles it, clicking a gun row is its number key,
 and clicking a rack row picks that rack.
 
 A Marine's primary weapon stays on the left button. The right button is the
-Marine's secondary equipment, through the same one-shot request as the G and E
+Marine's secondary equipment, through the same one-shot request as the G and C
 keys: on the press it throws the carried smoke at the cursor and, for a Marine with
 no smoke, raises the integral shield toward it. It acts on the press and does not
 repeat while held, so a held button cannot spend a magazine of grenades; ammunition,
 cooldown and the committed throw are the equipment's own. No other secondary item
 has a manual contract (grenade launchers and satchels are autonomous), so a Marine
 carrying only those leaves the right button inert rather than inventing a new free
-action. E and G keep working.
+action. C and G keep working.
 
 An arcing LRM rack drops its salvo on the thrown point: the aim point, pulled in
 to twice its range if further, plus the same growing scatter disk a rocket's ground
@@ -567,7 +569,7 @@ observed, or off the map, is not laid: the fog rule is the aim lane's, so shelli
 scout. Number keys are commands rather than weapon choices: 1 holds fire (lays nothing,
 drops the director's ground, stops the director), 2 hands targeting to the ship's own
 director or takes it back, 3 steps the missile preset, 4 steps the ground-fire policy
-(all, heavy only, none). E raises or drops the shield, leaving its automatic mode, on a
+(all, heavy only, none). C raises or drops the shield, leaving its automatic mode, on a
 hull that has one. F sends the ship on a **low pass** (`ship-support.md`, slice 5): a fast, low run
 from where the hull is to the cursor, on ground the player has observed, its guns working a corridor
 of the line and nothing else, charged twice its flying time in station time. The pilot keeps the helm
@@ -611,7 +613,7 @@ A friendly drone tender (`tender-ship.md`) is the Warship carrier with different
 fifth input mode. It is selected by clicking its hull, entered with Tab through the same
 `enterWarship` seam, and flown with WASD on the hull's own hover handling; the session
 recognises the hull as a tender and routes the buttons to the tender instead of to batteries
-it does not have. The shield (E) is the warship's.
+it does not have. The shield (C) is the warship's.
 
 Strategic ship selection can also issue remote movement and construction commands
 without entering this session (`ui-nouns.md`, Remote ship commands). Takeover

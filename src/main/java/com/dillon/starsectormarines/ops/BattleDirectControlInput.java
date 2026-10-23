@@ -25,7 +25,7 @@ final class BattleDirectControlInput {
     private boolean toggleHeld;
     private final boolean[] weaponKeyHeld = new boolean[6];
     private final boolean[] abilityKeyHeld = new boolean[5];
-    /** Q and C, in {@link FireTrigger} order: a held key cycles its trigger once. */
+    /** Q and E, in {@link FireTrigger} order: a held key cycles its trigger once. */
     private final boolean[] cycleKeyHeld = new boolean[FireTrigger.values().length];
     private int selectedWeapon;
 
@@ -69,7 +69,7 @@ final class BattleDirectControlInput {
         process(samples, toggle, exit, selectWeapon, requestAbility, trigger -> false, chrome);
     }
 
-    /** {@code cycleTrigger} moves a trigger to the next member of its list: Q the left button, C the right. */
+    /** {@code cycleTrigger} moves a trigger to the next member of its list: Q the left button, E the right. */
     void process(List<Sample> samples, Runnable toggle, Runnable exit,
                  IntPredicate selectWeapon, Predicate<DirectControlAbility> requestAbility,
                  Predicate<FireTrigger> cycleTrigger, BiPredicate<Float, Float> chrome) {
@@ -288,7 +288,7 @@ final class BattleDirectControlInput {
 
     private static int cycleKey(int key) {
         if (key == Keyboard.KEY_Q) return FireTrigger.LEFT.ordinal();
-        if (key == Keyboard.KEY_C) return FireTrigger.RIGHT.ordinal();
+        if (key == Keyboard.KEY_E) return FireTrigger.RIGHT.ordinal();
         return -1;
     }
 
@@ -298,7 +298,7 @@ final class BattleDirectControlInput {
             DirectControlAbility.LOW_PASS, DirectControlAbility.RELOAD};
 
     private static int abilityKey(int key) {
-        if (key == Keyboard.KEY_E) return 0;
+        if (key == Keyboard.KEY_C) return 0;
         if (key == Keyboard.KEY_G) return 1;
         if (key == Keyboard.KEY_X) return 2;
         if (key == Keyboard.KEY_F) return 3;

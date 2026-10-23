@@ -183,7 +183,7 @@ public final class DirectControlSession {
     }
 
     /**
-     * Moves a trigger to the next member of its list (Q for the left button, C for the right).
+     * Moves a trigger to the next member of its list (Q for the left button, E for the right).
      * Refused when the list has fewer than two members, as every Marine's and vehicle's does for now.
      */
     public boolean cycle(FireTrigger trigger) {
@@ -506,7 +506,7 @@ public final class DirectControlSession {
     /**
      * The right button is a Marine's secondary equipment: on the press it throws the carried smoke
      * at the cursor, and a Marine with no smoke raises a directional shield toward it. It is the
-     * same one-shot request as the G and E keys, so ammunition, cooldowns and the committed throw
+     * same one-shot request as the G and C keys, so ammunition, cooldowns and the committed throw
      * stay the equipment's own; holding the button never repeats it. A Marine with neither does nothing.
      */
     private void requestSecondaryEquipment(ManualIntent input) {
