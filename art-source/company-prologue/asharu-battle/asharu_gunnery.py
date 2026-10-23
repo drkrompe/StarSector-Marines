@@ -148,9 +148,16 @@ def reach_m(weapon):
     return min(GAME.get(weapon, (400,))[0] * RANGE_SCALE, speed_of(weapon) * EXEC_FLIGHT_S, EXEC_RANGE_M)
 
 
+# Whether a story moment may fly past the execution gate. scene_fx.planned gates every round by
+# reach_m's rule and has no `force`, so a moment beyond it is range-skipped there (coordinator, S6
+# verify span 52-54 s): the plan asks only for what the execution fires, and --check reports the rest.
+FORCE_PAST_GATE = False
+
+
 def force_reach_m(weapon):
-    """How far a story moment may fire it: as far as the kit draws a round (a margin short of it)."""
-    return speed_of(weapon) * (KIT_FLIGHT_S - .3)
+    """How far a story moment may fire it: the execution gate, or (FORCE_PAST_GATE) as far as the
+    kit draws a round, a margin short of its ceiling."""
+    return speed_of(weapon) * (KIT_FLIGHT_S - .3) if FORCE_PAST_GATE else reach_m(weapon)
 
 
 def turn_rate(weapon):
@@ -494,8 +501,7 @@ def _valid(sh, key, turret, mount, weapon, target, i, aim_l, force=False):
     d = math.dist(mz, aim_w)
     lim = force_reach_m(weapon) if force else reach_m(weapon)
     if d > lim:
-        return False, d, (f'round flight {d / speed_of(weapon):.1f} s > the kit ceiling {KIT_FLIGHT_S:g} s' if force
-                          else f'out of range ({d:.0f} m > {lim:.0f})')
+        return False, d, f'out of range ({d:.0f} m > {lim:.0f})'
     others = [(k, sh.fr[k][i][0], .3 * length_m(k)) for k in sh.ships if k not in (key, target)]
     b = blocked(mz, aim_w, others)
     if b:
@@ -690,8 +696,9 @@ def _moment_reach(kf, key, turret):
                 good.append(i)
             else:
                 why = w
-        if flight > KIT_FLIGHT_S - .3:
-            good, why = [], f'{weapon} round flight {flight:.1f} s > the kit ceiling {KIT_FLIGHT_S:g} s'
+        if d > force_reach_m(weapon):
+            good, why = [], (f'{weapon} at {d:.0f} m: round flight {flight:.1f} s, past the execution gate '
+                             f'({force_reach_m(weapon):.0f} m)')
         out.append(dict(t=t, target=target, at=at, to=to, hid=hid, steps=frozenset(good), ok=bool(good),
                         why='' if good else why, miss=miss, flight=round(flight, 2)))
     return tuple(out)
@@ -945,7 +952,8 @@ def shot_plan(kf):
     kf = base_kf(kf)
     engs, holds = [], []
     if kf in CEASEFIRE or 'camera' not in bb.SHOTS[kf]:
-        return dict(engagements=[], holds=[('*', None) + window(kf) + (CEASEFIRE.get(kf, 'no camera'),)], owed=[])
+        return dict(engagements=[], holds=[('*', None) + window(kf) + (CEASEFIRE.get(kf, 'no camera'),)], owed=[],
+                    opening={}, missiles=missiles(kf))
     t0, t1 = window(kf)
     for key, turret, weapon in armed(kf):
         e, h, o = _turret_plan(kf, key, turret, weapon)
@@ -967,7 +975,45 @@ def shot_plan(kf):
             tu, o = min(mine, key=lambda r: (r[1]['miss'] is None, r[1]['miss'] or 0))
             owed_rows.append((hid, False, f'{key} t{tu} nearest: {o["why"]}'))
     return dict(engagements=sorted(engs, key=lambda e: (e['start'], e['shooter'], e['turret'])),
-                holds=holds, owed=owed_rows)
+                holds=holds, owed=owed_rows, opening=opening(kf), missiles=missiles(kf))
+
+
+def missiles(kf):
+    """The shot's missile salvos (the blockout's 'missiles' entries, which scene_fx flies as Harpoons):
+    [(shooter, target)]. What reaches at the ranges no gun does."""
+    return [(f[1], f[2]) for f in bb.SHOTS[kf].get('fx', ()) if f[0] == 'missiles']
+
+
+def opening(kf):
+    """For every armed ship in the shot, when its guns first have a hostile in reach and in arc (any
+    mount), and the nearest hostile then: {ship: (t or None, target, metres)}. None: never in the
+    shot - only missiles reach, or nothing does."""
+    sh = _shot(kf)
+    out = {}
+    for key in sh.ships:
+        mts = mounts_of(kf, key)
+        if not mts:
+            continue
+        b = build_of(kf, key)
+        best = None
+        for i, t in enumerate(sh.times):
+            if t < sh.t0 - LEAD_IN or best:
+                break
+            for tu, m in mts.items():
+                w = weapon_of(b, tu) if b in MOUNTS else 'lightmg'
+                for tgt in sh.ships:
+                    if side(tgt) == side(key) or not _alive(tgt, t) or _held(sh, key, tu, t):
+                        continue
+                    ok, d, _w = _valid(sh, key, tu, m, w, tgt, i, (0, 0, 0))
+                    if ok and (best is None or d < best[2]):
+                        best = (t, tgt, round(d))
+        if best is None:
+            near = min(((math.dist(sh.fr[key][0][0], sh.fr[k][0][0]), k) for k in sh.ships if side(k) != side(key)),
+                       default=None)
+            out[key] = (None, near[1] if near else None, round(near[0]) if near else None)
+        else:
+            out[key] = best
+    return out
 
 
 def expected_hits(eng):
@@ -1070,6 +1116,12 @@ def summary(kf):
     if sil:
         lines += ['', 'Silent: ' + '; '.join(f"{k} ({', '.join(f't{t}' for t in sorted(ts, key=str))}): {why}"
                                             for (k, why), ts in sil.items())]
+    if p['missiles']:
+        lines += ['', 'Missiles: ' + '; '.join(f'{a} -> {b} (Harpoons)' for a, b in p['missiles'])]
+    op = [f"{k} {('from %.1f s on ' % v[0]) + v[1] if v[0] is not None else 'never (nearest %s at %s m at the cut)' % (v[1], v[2])}"
+          for k, v in sorted(p['opening'].items(), key=lambda kv: (kv[1][0] is None, kv[1][0] or 0))]
+    if op:
+        lines += ['', 'Guns in reach: ' + '; '.join(op)]
     bad = [o for o in p['owed'] if not o[1]]
     if bad:
         lines += ['', 'Cannot deliver: ' + '; '.join(f'{h} ({w})' for h, _, w in bad)]
