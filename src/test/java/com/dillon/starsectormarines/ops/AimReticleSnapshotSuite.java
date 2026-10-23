@@ -124,16 +124,13 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
                 selection.selectUnit(world.squadId("lance"), mech);
                 require(sim.directControl().enter(mech), "The Bulwark can take control");
                 int index = 1;
-                for (DirectControlReticle.SpreadLook look : DirectControlReticle.SpreadLook.values()) {
-                    for (Aim aim : MECH_AIMS) {
-                        frames.add(frame(context, sim, selection, mech, aim, look,
-                                String.format(Locale.ROOT, "%02d-%s-bulwark-%s", index++, slug(look), aim.name())));
-                    }
+                for (Aim aim : MECH_AIMS) {
+                    frames.add(frame(context, sim, selection, mech, aim,
+                            String.format(Locale.ROOT, "%02d-bulwark-%s", index++, aim.name())));
                 }
                 for (Aim aim : BEARING_AIMS) {
-                    frames.add(frame(context, sim, selection, mech, aim, DirectControlReticle.LIVE,
-                            String.format(Locale.ROOT, "%02d-%s-bulwark-%s", index++, slug(DirectControlReticle.LIVE),
-                                    aim.name())));
+                    frames.add(frame(context, sim, selection, mech, aim,
+                            String.format(Locale.ROOT, "%02d-bulwark-%s", index++, aim.name())));
                 }
                 sim.directControl().exit();
                 // The carrier under control, as the player drives it: the launcher's tick on the left button, nothing on
@@ -141,21 +138,17 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
                 selection.selectVehicle(carrier);
                 require(sim.directControl().enter(carrier), "The LRM carrier can take control");
                 WeaponDef launcher = VehicleType.LRM_CARRIER.turretStructure().mount.weapon;
-                for (DirectControlReticle.SpreadLook look : DirectControlReticle.SpreadLook.values()) {
-                    frames.add(frame(context, sim, selection, carrier, new Aim("lrm-carrier", launcher.range * 0.8f),
-                            look, String.format(Locale.ROOT, "%02d-%s-lrm-carrier", index++, slug(look))));
-                }
+                frames.add(frame(context, sim, selection, carrier, new Aim("lrm-carrier", launcher.range * 0.8f),
+                        String.format(Locale.ROOT, "%02d-lrm-carrier", index++)));
                 frames.add(frame(context, sim, selection, carrier, new Aim("lrm-too-close", 5f),
-                        DirectControlReticle.LIVE, String.format(Locale.ROOT, "%02d-%s-lrm-carrier-too-close", index++,
-                                slug(DirectControlReticle.LIVE))));
+                        String.format(Locale.ROOT, "%02d-lrm-carrier-too-close", index++)));
                 sim.directControl().exit();
                 long marine = world.members("infantry")[0];
                 selection.selectUnit(world.squadId("infantry"), marine);
                 require(sim.directControl().enter(marine), "The Marine can take control");
                 float range = sim.world().attackRange(marine);
                 frames.add(frame(context, sim, selection, marine, new Aim("marine", range * 0.75f),
-                        DirectControlReticle.LIVE, String.format(Locale.ROOT, "%02d-%s-marine", index,
-                                slug(DirectControlReticle.LIVE))));
+                        String.format(Locale.ROOT, "%02d-marine", index)));
                 sim.directControl().exit();
             }
         } finally { Global.setSettings(previous); }
@@ -163,7 +156,7 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
     }
 
     private static SnapshotArtifact frame(SnapshotContext context, BattleSimulation sim, Selection selection,
-                                          long id, Aim aim, DirectControlReticle.SpreadLook look, String name)
+                                          long id, Aim aim, String name)
             throws Exception {
         boolean vehicle = sim.convoy().isVehicle(id);
         var mountPoint = vehicle
@@ -221,10 +214,10 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
                         camera.cellToScreenX(0f), camera.cellToScreenY(0f)), 1f);
             }
             float cellPx = camera.cellPxSize();
-            draw(graphics, DirectControlReticle.strokes(look, marks, spread.leftCells() * cellPx,
+            draw(graphics, DirectControlReticle.strokes(marks, spread.leftCells() * cellPx,
                     spread.rightCells() * cellPx, sx, sy, sx - camera.cellToScreenX(x), sy - camera.cellToScreenY(y),
                     DirectControlPanel.controlledColor()), 1f);
-            caption(graphics, look, aim, marks);
+            caption(graphics, aim, marks);
             inset(graphics, image, sx, HEIGHT - sy);
             graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
             for (var surface : control.surfaces()) {
@@ -242,10 +235,9 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
     }
 
     /** The review label: where the cursor is, and what each button's mark reads. */
-    private static void caption(Graphics2D graphics, DirectControlReticle.SpreadLook look, Aim aim,
+    private static void caption(Graphics2D graphics, Aim aim,
                                 DirectControlFireMarks.Marks marks) {
-        String text = String.format(Locale.ROOT, "%s   %s   cursor %.0f cells   LMB %s   RMB %s", look.name(),
-                aim.name(), aim.cells(),
+        String text = String.format(Locale.ROOT, "%s   cursor %.0f cells   LMB %s   RMB %s", aim.name(), aim.cells(),
                 label(marks.left()), label(marks.right()));
         graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
         graphics.setColor(new Color(0, 0, 0, 170));
@@ -276,8 +268,6 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
         graphics.setColor(Color.WHITE);
         graphics.drawString("cursor at 3x", insetX + 8, insetY + size - 10);
     }
-
-    private static String slug(DirectControlReticle.SpreadLook look) { return look.name().toLowerCase(Locale.ROOT); }
 
     private static String label(Mark mark) {
         return switch (mark) {
