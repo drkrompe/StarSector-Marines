@@ -150,8 +150,12 @@ Jobs run at low CPU priority (Windows below-normal, Mac nice 10).
 - `frames`: completion is decided by counting non-empty files matching `glob`
   in `dir`. The exit status does not decide it. Without `frames`, exit status
   0 is success.
-- `keep_checkout: true` keeps the worktree after success; `low_priority:
-  false` runs the job at normal priority.
+- `keep_checkout: true` keeps the worktree (and work scratch) after the job;
+  `low_priority: false` runs the job at normal priority. Without it the runner
+  removes the `rq-<id>` checkout and `work/<id>` scratch on every terminal
+  result (ok, failed, cancelled, timed out), and every ten idle minutes sweeps
+  `rq-*` checkouts and `work/` folders whose job is neither active nor queued,
+  then runs `git worktree prune`. A restarted runner picks this up.
 
 ## Checking and collecting
 
