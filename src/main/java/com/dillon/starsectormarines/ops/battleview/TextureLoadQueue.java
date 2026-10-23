@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.LongSupplier;
 import java.util.function.ObjLongConsumer;
@@ -29,7 +30,7 @@ public final class TextureLoadQueue implements LoadingProgress {
     }
 
     TextureLoadQueue(List<Step> steps, LongSupplier clock) {
-        this.steps = List.copyOf(steps);
+        this.steps = new ArrayList<>(steps);
         this.clock = clock;
     }
 
@@ -55,6 +56,14 @@ public final class TextureLoadQueue implements LoadingProgress {
             if (end - stepStart > slowStepNanos) slowStep.accept(step, end - stepStart);
             if (end - start >= budgetNanos) return;
         }
+    }
+
+    /**
+     * Adds {@code more} to the end of the queue, for a step that learns what is left to load only
+     * by running: it is run in later frames, like the rest.
+     */
+    public void append(List<Step> more) {
+        steps.addAll(more);
     }
 
     public boolean done() {
