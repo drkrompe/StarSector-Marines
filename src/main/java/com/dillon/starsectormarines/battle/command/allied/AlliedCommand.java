@@ -369,7 +369,7 @@ public final class AlliedCommand {
         return body.distanceTo(x + 0.5f, y + 0.5f) <= reach;
     }
 
-    private static boolean alive(ConvoyService convoy, long hull) {
+    static boolean alive(ConvoyService convoy, long hull) {
         if (!convoy.isVehicle(hull) || convoy.structure(hull) <= 0f) return false;
         VehicleMission mission = convoy.mission(hull);
         return mission != null && mission.state == VehicleState.DEPLOYED;
