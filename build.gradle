@@ -1594,7 +1594,8 @@ tasks.register('groundFeather', JavaExec) {
 
 // Texture fit evidence (roadmap/release/design/texture-fit.md). -PtextureUsage records how large
 // every texture is drawn into build/texture-usage/, one file per run, for mergeTextureUsage to
-// fold into the checked-in record; -PtextureFitOverlay draws headless frames from the fitted build
+// fold into the checked-in record; -PtextureUsageOnly does the same but leaves battle frames
+// unpainted (their draws are measured when collected), much faster and useless as pictures; -PtextureFitOverlay draws headless frames from the fitted build
 // (build/optimized-png, or the directory given) instead of the source art, the A/B half of the
 // raw-frame proof. Both reach every Test task and createSnapshots.
 def textureUsageDir = project.hasProperty('textureUsage')
@@ -1603,8 +1604,11 @@ def textureFitOverlay = project.findProperty('textureFitOverlay')?.toString()
 def textureFitOverlayDir = textureFitOverlay == null ? null
         : (textureFitOverlay in ['', 'true'] ? layout.buildDirectory.dir('optimized-png').get().asFile
                                              : file(textureFitOverlay))
+def textureUsageOnly = project.hasProperty('textureUsageOnly')
+if (textureUsageOnly && textureUsageDir == null) textureUsageDir = layout.buildDirectory.dir('texture-usage').get().asFile
 def textureSwitches = { task ->
     if (textureUsageDir != null) task.systemProperty 'marines.textureUsage.dir', textureUsageDir.absolutePath
+    if (textureUsageOnly) task.systemProperty 'marines.textureUsage.only', 'true'
     if (textureFitOverlayDir != null) task.systemProperty 'marines.textureFit.overlay', textureFitOverlayDir.absolutePath
 }
 tasks.withType(Test).configureEach { textureSwitches(it) }

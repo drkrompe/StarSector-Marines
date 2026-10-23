@@ -27,7 +27,20 @@ public final class TextureUsageCapture implements BeforeAllCallback {
     public static final String DIR_PROPERTY = "marines.textureUsage.dir";
     public static final String LABEL_PROPERTY = "marines.textureUsage.label";
 
+    /**
+     * {@code -Dmarines.textureUsage.only=true}: record usage and skip painting battle frames. Every
+     * world draw is measured when it is collected, so the raster is waste for a measuring run; UI
+     * screens still paint, because their images are measured as they are painted.
+     */
+    public static final String ONLY_PROPERTY = "marines.textureUsage.only";
+    private static final boolean MEASURE_ONLY = Boolean.getBoolean(ONLY_PROPERTY);
+
     private static boolean installed;
+
+    /** Whether this run only measures, leaving battle frames unpainted. */
+    public static boolean measureOnly() {
+        return MEASURE_ONLY && installed;
+    }
 
     /** Starts recording under {@code label} if the run asked for it; true when it did. */
     public static synchronized boolean install(String label) {
