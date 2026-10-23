@@ -129,6 +129,7 @@ public final class BloomHeartSetup {
                 ? null : burnScreen(form, barrage.plan());
         if (form == Form.BROAD_FRONT && BROAD_FORM_UP_SECONDS > 0) screen = broadFormUp(form, landing);
         HeartLane companyLane = new HeartLane(form.advancesAlongY(), laneAcross, laneHalfWidth);
+        if (form == Form.BROAD_FRONT && lanes != null && BROAD_COMPANY_ARMOUR) supportCompany(sim, form, lanes, companyLane, landing);
         if (front) lanes.companySector(companyLane);
         sim.setAutonomousCommander(Faction.MARINE,
                 new HeartAssaultCommand(companyLane, screen),
@@ -205,6 +206,31 @@ public final class BloomHeartSetup {
         int along = form.advancesAlongY() ? landing.seedY() : landing.seedX();
         return new BarrageScreen(form.advancesAlongY(), sign, new int[0], new int[0], new int[0], 0, along,
                 Math.round(BROAD_FORM_UP_SECONDS / BattleSimulation.TICK_DT));
+    }
+
+    /**
+     * Broad Front's company gets armour in its own sector, a breakthrough tank and a Hound pair stationed on its
+     * target and a fresh tank every two minutes, as the lanes either side have ({@code -Dbattle.heart.broadCompanyArmour}).
+     */
+    static final boolean BROAD_COMPANY_ARMOUR =
+            Boolean.parseBoolean(System.getProperty("battle.heart.broadCompanyArmour", "true"));
+
+    static void supportCompany(BattleSimulation sim, Form form, HeartLanes lanes, HeartLane companyLane, Precinct landing) {
+        int axis = form.advancesAlongY() ? 1 : 0;
+        int sign = Integer.signum(form.cellAt(1f, 0.5f)[axis] - form.cellAt(0f, 0.5f)[axis]);
+        float facing = form.advancesAlongY() ? (sign > 0 ? 90f : -90f) : (sign > 0 ? 0f : 180f);
+        int[] base = {landing.seedX(), landing.seedY()};
+        int support = lanes.addSupport(companyLane, base, sim.getSimTickIndex() ^ LANES_SALT);
+        int slot = 0;
+        int[] tank = offset(base, axis, slot++);
+        lanes.addArmour(sim, support, VehicleType.BREAKTHROUGH_TANK, tank[0], tank[1], facing);
+        for (int h = 0; h < 2; h++) {
+            int[] at = offset(base, axis, slot++);
+            lanes.addArmour(sim, support, null, at[0], at[1], facing);
+        }
+        for (int w = 1; w <= ARMOUR_WAVES; w++)
+            lanes.scheduleArmour(Math.round(w * ARMOUR_WAVE_SECONDS / BattleSimulation.TICK_DT), support,
+                    VehicleType.BREAKTHROUGH_TANK, tank[0], tank[1], facing);
     }
 
     /** Broad Front's waves after the first, {@link #LATE_WAVE_SECONDS} apart ({@code -Dbattle.heart.broadWaves}). */
