@@ -266,7 +266,7 @@ def shrapnel_material(ctx):
 
 def burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), axis=None, lean=1.1, light_w=0.0,
           shrapnel=(2, 4), smoke=.55, smoke_life=(10, 14), smoke_rgb=SMOKE_RGB, flash_frames=3, parent=None,
-          prefix=PREFIX, tear=False):
+          prefix=PREFIX, tear=False, smoke_drift=0.0):
     """One burst at `here` (collection space, hull units) on frame f. size_m: the flash's
     radius range in metres (the scale everything else follows). axis: a collection-space
     direction the burst throws along (a surface normal; None all round), with `lean` how far.
@@ -274,7 +274,9 @@ def burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), axis=
     puff's peak opacity (0 none) over smoke_life frames. light_w: a flash light (W, hull-unit
     file). parent: an object to hang everything from (it then rides with it). tear: the flash is
     whole and white-hot for its first frame only, then tears into orange tongues thrown outward
-    over the rest of flash_frames (an HE blast); False keeps it whole as it fades. Returns objects."""
+    over the rest of flash_frames (an HE blast); False keeps it whole as it fades. smoke_drift: the
+    smoke fades in over three frames and flies out along the throw by that many flash radii over its
+    life, so it is torn off the blast rather than a body left where the flash was. Returns objects."""
     bpy = _bpy()
     import swfx_core
     import swfx_guns
@@ -368,7 +370,13 @@ def burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), axis=
         grow = [size * 1.15 * (.6 + .6 * (1 - math.exp(-3.0 * i / life))) for i in range(life + 1)]
         for i in range(3):
             swfx_guns._bake(sm, 'scale', i, fr, [v * (.8 + .2 * stretch[i]) for v in grow])
-        swfx_guns._bake(sm, 'color', 0, fr, [smoke * (1 - i / life) ** 1.5 for i in range(life + 1)])
+        fade = [min(1.0, (i + 1) / 3.0) if smoke_drift else 1.0 for i in range(life + 1)]
+        swfx_guns._bake(sm, 'color', 0, fr, [smoke * a * (1 - i / life) ** 1.5 for i, a in zip(range(life + 1), fade)])
+        if smoke_drift:
+            out_dir = (Vector(axis).normalized() if axis is not None else Vector((0, 0, 0)))
+            path = [here + out_dir * size * smoke_drift * (1 - math.exp(-2.5 * i / life)) for i in range(life + 1)]
+            for i in range(3):
+                swfx_guns._bake(sm, 'location', i, fr, [p[i] for p in path])
         swfx_guns._bake(sm, 'color', 2, [f + 1], [rnd.random()], 'CONSTANT')
         swfx_guns._visible_between(sm, f + 1, f + life)
         out.append(sm)

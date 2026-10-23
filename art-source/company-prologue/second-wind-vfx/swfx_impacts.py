@@ -335,10 +335,12 @@ def he(ctx, frame, at_m, normal, size_m=None, scale=1.0, flash_colour=(1.0, .62,
         # One burst: the jagged flash, shrapnel cooling fast and torn smoke, all thrown out of
         # the face; the flash light stays the kit's own.
         R = k['fireball_m'] * s
-        obs += _flash(ctx, e, seed, k['flash_m'] * s, k['flash_s'], k['flash_W'] * s ** 2, colour=flash_colour,
-                      body=False)
+        # Torn: the light dies with the white frame (0.14 s kept the smoke lit cream-white for half
+        # a second, the blob that held, bench_he 2026-10-23) and the smoke flies off the blast.
+        obs += _flash(ctx, e, seed, k['flash_m'] * s, k['flash_s'] * (.4 if tear else 1.0), k['flash_W'] * s ** 2,
+                      colour=flash_colour, body=False)
         obs += _burst(ctx, e, flash_colour, (R * .55, R * .8), lean=1.2, shrapnel=(3, 6), smoke=.6,
-                      smoke_life=(14, 22), flash_frames=5 if tear else 4, tear=tear)
+                      smoke_life=(14, 22), flash_frames=5 if tear else 4, tear=tear, smoke_drift=1.2 if tear else 0.0)
     else:
         obs += _flash(ctx, e, seed, k['flash_m'] * s, k['flash_s'], k['flash_W'] * s ** 2, colour=flash_colour,
                       style='orb')
