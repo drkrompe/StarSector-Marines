@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command.trace;
 
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
+import com.dillon.starsectormarines.battle.cordon.CordonPlan;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveResult;
 import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
@@ -108,6 +109,7 @@ class CordonCommandEvidenceTest {
                     .put("schedulerMode", "SERIAL_DETERMINISTIC")
                     .put("fixture", selected.source())
                     .put("biome", selected.fixture().biome().name())
+                    .put("density", selected.fixture().density().name())
                     .put("seed", selected.fixture().seed())
                     .put("maxTicks", maxTicks)
                     .put("repeatCount", repeat)
@@ -121,10 +123,12 @@ class CordonCommandEvidenceTest {
                     .put("timeline", first.timeline());
             Files.writeString(dir.resolve("summary.json"), summary.toString(2) + '\n', StandardCharsets.UTF_8);
             Files.writeString(dir.resolve("summary.md"), first.report(), StandardCharsets.UTF_8);
-            all.put(new JSONObject().put("biome", selected.fixture().biome().name()).put("seed", selected.fixture().seed()).put("folder", pool ? selected.id() : ".")
+            all.put(new JSONObject().put("density", selected.fixture().density().name())
+                    .put("biome", selected.fixture().biome().name()).put("seed", selected.fixture().seed()).put("folder", pool ? selected.id() : ".")
                     .put("outcome", first.outcome()).put("winner", first.winner() != null ? first.winner() : JSONObject.NULL)
                     .put("ticks", first.ticks()).put("fallen", first.fallen()).put("objectives", first.objectives()));
-            matrix.append(String.format(Locale.ROOT, "| %s | %d | %s | %s | %.1f | %d | %s |%n",
+            matrix.append(String.format(Locale.ROOT, "| %s | %s | %d | %s | %s | %.1f | %d | %s |%n",
+                    selected.fixture().density().name().toLowerCase(Locale.ROOT),
                     selected.fixture().biome().name().toLowerCase(Locale.ROOT), selected.fixture().seed(),
                     first.outcome(), first.winner() != null ? first.winner() : "—",
                     first.ticks() * BattleSimulation.TICK_DT / 60f, first.fallen(),
@@ -164,6 +168,18 @@ class CordonCommandEvidenceTest {
     private record Selected(CordonBattleFixture fixture, String id, String source) { }
 
     /**
+     * The densities whose pools are played: {@code -P<prefix>.densities=town,urban} (forwarded as the system
+     * property), every density by default ({@code cordon-allied-forces.md}: what the allies field changes with it).
+     */
+    private static List<CordonPlan.Density> densities(String prefix) {
+        String named = System.getProperty(prefix + ".densities", "").trim();
+        if (named.isEmpty()) return List.of(CordonPlan.Density.values());
+        List<CordonPlan.Density> out = new ArrayList<>();
+        for (String d : named.split(",")) out.add(CordonPlan.Density.valueOf(d.trim().toUpperCase(Locale.ROOT)));
+        return out;
+    }
+
+    /**
      * The fixture {@code -Pfixture} names, or else every seed of the variant's
      * story-map pool, the checked-in fixture standing in for everything but the seed.
      */
@@ -173,11 +189,16 @@ class CordonCommandEvidenceTest {
         if (!selected.isBlank()) return List.of(new Selected(loadFixture(selected, variant), mission, selected));
         CordonBattleFixture template = loadFixture(fallback, variant);
         List<Selected> out = new ArrayList<>();
-        for (SurfacePalette biome : SurfacePalette.values()) {
-            String b = biome.name().toLowerCase(Locale.ROOT);
-            for (StoryMapPool.Entry entry : StoryMapPools.pool(CordonSetup.storyMap(variant)).entries(biome)) {
-                out.add(new Selected(new CordonBattleFixture(entry.seed(), variant, biome, template.manifest()),
-                        mission + "-" + b + "-seed" + entry.seed(), fallback + " at pooled " + b + " seed " + entry.seed()));
+        for (CordonPlan.Density density : densities(prefix)) {
+            // Rural keeps its old ids, so a run reads against the runs before densities were played.
+            String d = density == CordonPlan.Density.RURAL ? "" : density.name().toLowerCase(Locale.ROOT) + "-";
+            for (SurfacePalette biome : SurfacePalette.values()) {
+                String b = biome.name().toLowerCase(Locale.ROOT);
+                for (StoryMapPool.Entry entry : StoryMapPools.pool(CordonSetup.storyMap(variant, density)).entries(biome)) {
+                    out.add(new Selected(new CordonBattleFixture(entry.seed(), variant, biome, density, template.manifest()),
+                            mission + "-" + d + b + "-seed" + entry.seed(),
+                            fallback + " at pooled " + d + b + " seed " + entry.seed()));
+                }
             }
         }
         return out;

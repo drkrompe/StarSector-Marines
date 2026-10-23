@@ -147,10 +147,15 @@ public final class CordonSetup {
      * ({@link #pooled}).
      */
     public static CordonMap map(CordonVariant variant, SurfacePalette biome, long seed) {
+        return map(variant, CordonPlan.Density.RURAL, biome, seed);
+    }
+
+    /** As {@link #map(CordonVariant, SurfacePalette, long)}, in country as built-up as {@code density}. */
+    public static CordonMap map(CordonVariant variant, CordonPlan.Density density, SurfacePalette biome, long seed) {
         StoryMapPool.Entry entry = StoryMapPools.installed()
-                ? StoryMapPools.pool(storyMap(variant)).entry(biome, seed) : null;
-        if (entry != null) return map(variant, biome, entry);
-        return rolled(variant, CordonPlan.Density.RURAL, biome, seed);
+                ? StoryMapPools.pool(storyMap(variant, density)).entry(biome, seed) : null;
+        if (entry != null) return map(variant, density, biome, entry);
+        return rolled(variant, density, biome, seed);
     }
 
     /**
