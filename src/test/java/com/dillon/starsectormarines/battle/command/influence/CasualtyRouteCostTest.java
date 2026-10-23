@@ -159,9 +159,7 @@ public class CasualtyRouteCostTest {
         RouteCostField cost = memory.routeCost(Faction.MARINE);
         assertNotNull(cost);
         assertEquals(188_160, cost.size());
-        boolean compact = Boolean.parseBoolean(System.getProperty(
-                CasualtyMemory.COMPACT_ROUTE_COST_PROPERTY, "true"));
-        assertEquals(compact ? 2_940 : 188_160, cost.storedValueCount());
+        assertEquals(2_940, cost.storedValueCount());
     }
 
     @Test

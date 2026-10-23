@@ -36,27 +36,36 @@ class GroundVehicleTurretSystemTest {
     private static final float DT = BattleSimulation.TICK_DT;
 
     @Test
-    void aCapacitorBankHoldsTheTriggerWhenEmptyAndRefillsAtItsRateWithoutTouchingTheMagazine() {
-        TurretMountDef bank = VehicleType.LASER_TANK.turretStructure().mount;
-        GroundTurret turret = new GroundTurret(bank.ammoCapacity);
-        turret.charge = bank.charges;
-        for (int i = 0; i < bank.charges; i++) {
-            assertTrue(GroundVehicleTurretSystem.charged(turret, bank));
-            GroundVehicleTurretSystem.spendCharge(turret, bank);
+    void fluxOverloadsAtCapacityHoldsTheTriggerWhileVentingAndLeavesTheMagazine() {
+        TurretMountDef laser = VehicleType.LASER_TANK.turretStructure().mount;
+        TurretMountDef.Flux flux = laser.flux;
+        GroundTurret turret = new GroundTurret(laser.ammoCapacity);
+        int rounds = 0;
+        while (!turret.overloaded) {
+            assertTrue(GroundVehicleTurretSystem.ready(turret, laser));
+            GroundVehicleTurretSystem.addFlux(turret, laser);
+            rounds++;
         }
-        assertFalse(GroundVehicleTurretSystem.charged(turret, bank));
-        assertEquals(bank.chargeRechargeSeconds, GroundVehicleTurretSystem.chargeWait(turret, bank), 1e-5f);
-        assertEquals(bank.ammoCapacity, turret.ammo, "an empty bank leaves the hull armed");
-        GroundVehicleTurretSystem.recharge(turret, bank, bank.chargeRechargeSeconds);
-        assertTrue(GroundVehicleTurretSystem.charged(turret, bank));
-        GroundVehicleTurretSystem.recharge(turret, bank, bank.chargeRechargeSeconds * (bank.charges + 5));
-        assertEquals(bank.charges, turret.charge, 1e-5f, "a bank never fills past its charges");
+        assertEquals((int) Math.ceil(flux.capacity() / flux.perRound()), rounds);
+        assertFalse(GroundVehicleTurretSystem.ready(turret, laser));
+        assertEquals(flux.capacity() / flux.ventPerSec(), GroundVehicleTurretSystem.fluxWait(turret, laser), 1e-4f);
+        assertEquals(laser.ammoCapacity, turret.ammo, "an overloaded gun leaves the hull armed");
+        GroundVehicleTurretSystem.dissipate(turret, laser, flux.capacity() / flux.ventPerSec() * 0.5f);
+        assertFalse(GroundVehicleTurretSystem.ready(turret, laser), "a venting gun holds until it is empty");
+        GroundVehicleTurretSystem.dissipate(turret, laser, flux.capacity() / flux.ventPerSec());
+        assertTrue(GroundVehicleTurretSystem.ready(turret, laser));
+        assertEquals(0f, turret.flux);
+
+        GroundVehicleTurretSystem.addFlux(turret, laser);
+        GroundVehicleTurretSystem.dissipate(turret, laser, 1f);
+        assertEquals(Math.max(0f, flux.perRound() - flux.dissipationPerSec()), turret.flux, 1e-5f,
+                "below capacity flux bleeds at the dissipation rate");
 
         TurretMountDef magazine = VehicleType.HEAVY_APC.turretStructure().mount;
         GroundTurret gun = new GroundTurret(magazine.ammoCapacity);
-        GroundVehicleTurretSystem.spendCharge(gun, magazine);
-        assertTrue(GroundVehicleTurretSystem.charged(gun, magazine), "a mount without a bank is never held");
-        assertEquals(0f, GroundVehicleTurretSystem.chargeWait(gun, magazine));
+        GroundVehicleTurretSystem.addFlux(gun, magazine);
+        assertTrue(GroundVehicleTurretSystem.ready(gun, magazine), "a mount without flux is never held");
+        assertEquals(0f, GroundVehicleTurretSystem.fluxWait(gun, magazine));
     }
 
     @Test

@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Small scorer fixture, with no simulation/tick/generated map. */
 class LocalFiringSpreadScoringTest {
-    @Test void bothSearchesKeepWinnerWhileGatheringOnlyOncePerSearch() {
+    @Test void bothSearchesGatherAlliesOnlyOncePerSearch() {
         NavigationGrid grid = new NavigationGrid(48, 32);
         for (int y = 0; y < 32; y++) for (int x = 0; x < 48; x++) grid.setWalkableFloor(x, y);
         TickInnerProfile previous = TickInnerProfile.currentIfBound();
@@ -34,21 +34,14 @@ class LocalFiringSpreadScoringTest {
             }
             nav.getUnitIndex().rebuild(roster);
             nav.getDestIndex().rebuild(roster);
-            TacticalScoring control = scoring(false, nav, roster, grid);
-            TacticalScoring local = scoring(true, nav, roster, grid);
+            TacticalScoring scoring = new TacticalScoring(nav, roster, new AttackerIndexService(roster),
+                    null, new DoodadService(grid));
             TickInnerProfile.setCurrent(profile);
             for (boolean within : new boolean[]{false, true}) {
                 profile.reset();
-                int[] expected = pick(control, within, self, target);
-                int oldQueries = profile.countOf(TickInnerProfile.Bucket.FIRING_SPREAD_QUERY);
-                int oldCandidates = profile.countOf(TickInnerProfile.Bucket.FIRING_SPREAD_CANDIDATE);
-                profile.reset();
-                int[] actual = pick(local, within, self, target);
-                assertNotNull(expected);
-                assertArrayEquals(expected, actual);
-                assertEquals(oldCandidates, profile.countOf(TickInnerProfile.Bucket.FIRING_SPREAD_CANDIDATE));
+                assertNotNull(pick(scoring, within, self, target));
+                assertTrue(profile.countOf(TickInnerProfile.Bucket.FIRING_SPREAD_CANDIDATE) > 1);
                 assertEquals(1, profile.countOf(TickInnerProfile.Bucket.FIRING_SPREAD_QUERY));
-                assertTrue(oldQueries > 1);
             }
         } finally {
             TickInnerProfile.setCurrent(previous);
@@ -60,14 +53,4 @@ class LocalFiringSpreadScoringTest {
                 : scoring.findFiringPosition(self, target, -1, -1);
     }
 
-    private static TacticalScoring scoring(boolean enabled, NavigationService nav,
-                                           UnitRosterService roster, NavigationGrid grid) {
-        String key = "battle.targeting.localFiringSpread", previous = System.getProperty(key);
-        try {
-            System.setProperty(key, Boolean.toString(enabled));
-            return new TacticalScoring(nav, roster, new AttackerIndexService(roster), null, new DoodadService(grid));
-        } finally {
-            if (previous == null) System.clearProperty(key); else System.setProperty(key, previous);
-        }
-    }
 }

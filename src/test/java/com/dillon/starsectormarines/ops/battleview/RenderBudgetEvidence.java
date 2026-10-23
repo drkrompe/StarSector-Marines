@@ -1068,24 +1068,8 @@ class RenderBudgetEvidence {
                 .append("frame around ours are not in these numbers.\n\n");
         out.append("A `CUSTOM` pass owns its GL, so its draws and binds are its own and are\n")
                 .append("not counted in the draw-call column; its time is.\n\n");
-        out.append("Levers this run: zoom gates **")
-                .append(ZoomDetail.enabled() ? "on" : "off")
-                .append("**, resident ground mesh **")
-                .append(GroundMesh.enabled() ? "on" : "off")
-                .append("**, resident relief fields **")
-                .append(ReliefFieldMesh.enabled() ? "on" : "off")
-                .append("**, resident fog field **")
-                .append(FogField.enabled() ? "on" : "off")
-                .append("**, ground atlas **")
-                .append(GroundAtlas.enabled() ? "on" : "off")
-                .append("**, resident decoration **")
-                .append(GroundMesh.decorationEnabled() ? "on" : "off")
-                .append("**, unit atlas **")
-                .append(UnitAtlas.enabled() ? "on" : "off")
-                .append("**, decoration atlas **")
+        out.append("Levers this run: decoration atlas **")
                 .append(DecorationAtlas.enabled() ? "on" : "off")
-                .append("**, resident roofs **")
-                .append(RoofMesh.enabled() ? "on" : "off")
                 .append("**, creep **")
                 .append(CreepLayer.enabled() ? "on" : "off")
                 .append("**, fire **")
@@ -1180,16 +1164,8 @@ class RenderBudgetEvidence {
         root.put("surfaceHeight", SURFACE_H);
         root.put("ticks", ticks);
         root.put("frames", frames);
-        root.put("zoomGates", ZoomDetail.enabled());
-        root.put("groundMesh", GroundMesh.enabled());
-        root.put("residentRelief", ReliefFieldMesh.enabled());
-        root.put("fogField", FogField.enabled());
-        root.put("groundAtlas", GroundAtlas.enabled());
-        root.put("residentDecoration", GroundMesh.decorationEnabled());
-        root.put("unitAtlas", UnitAtlas.enabled());
         root.put("decorationAtlas", DecorationAtlas.enabled());
         root.put("atlasReports", new JSONArray(atlases));
-        root.put("residentRoofs", RoofMesh.enabled());
         root.put("creep", CreepLayer.enabled());
         root.put("fire", FireRenderSystem.enabled());
         root.put("collectCulling", ViewCull.enabled());

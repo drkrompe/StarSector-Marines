@@ -21,10 +21,6 @@ import java.util.Locale;
  * ground having lost half its strength has not either. The frames are there to
  * show the scene is the scene — eight cyan marines, twenty red runners closing
  * across open ground — rather than to carry the result.
- *
- * <p>Run the control with
- * {@code -Dbattle.targeting.committedFire=false}, which restores per-body
- * crowding. Nothing else differs between the two.
  */
 public final class SwarmOverkillSceneSnapshotSuite implements SnapshotSuite {
 

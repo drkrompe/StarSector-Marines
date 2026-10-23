@@ -611,16 +611,10 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   counts as well**; the times are medians of nine frames after a thirty-frame
   warm-up and carry about 0.06 ms of run-to-run spread per layer. Compare a
   lever against **its own run's control**
-  (`-Dbattle.render.zoomGates=false`, `-Dbattle.render.groundMesh=false`,
-  `-Dbattle.render.residentRelief=false`, `-Dbattle.render.fogField=false`,
-  `-Dbattle.render.groundAtlas=false`,
-  `-Dbattle.render.residentDecoration=false`, `-Dbattle.render.unitAtlas=false`,
-  `-Dbattle.render.doodadAtlas=false`,
-  `-Dbattle.render.residentRoofs=false`, `-Dbattle.render.creep=false`,
+  (`-Dbattle.render.doodadAtlas=false`, `-Dbattle.render.creep=false`,
   `-Dbattle.render.cliffLook=false` (with `-PrenderMaps=overlook`),
   `-Dbattle.render.settledBodyMesh=false`,
   `-Dbattle.render.collectCulling=false`,
-  `-Dbattle.render.nightRuns=false`, `-Dbattle.render.nightCoarse=false`,
   `-Dbattle.render.nightFireThroughFog=false`
   (with `-PrenderMaps=the burn at night`)), never against a number in a
   document — and never against a delta smaller than that spread.

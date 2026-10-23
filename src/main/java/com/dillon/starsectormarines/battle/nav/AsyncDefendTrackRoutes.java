@@ -33,8 +33,6 @@ public final class AsyncDefendTrackRoutes implements AutoCloseable {
             "battle.pathfinding.asyncDefendTrack.queueCapacity";
     public static final String WORKERS_PROPERTY =
             "battle.pathfinding.asyncDefendTrack.workers";
-    public static final String PHASE_OWNED_PROPERTY =
-            "battle.pathfinding.phaseOwnedRallyRequests";
     private static final int MAX_QUEUED = 512;
     private static final int REQUEST_TTL_TICKS = 120;
     private static final int NO_PATH_RETRY_TICKS = 30;
@@ -139,7 +137,6 @@ public final class AsyncDefendTrackRoutes implements AutoCloseable {
     private final ThreadPoolExecutor executor;
     private final Search search;
     private final Map<Long, Entry> byMember = new HashMap<>();
-    private final boolean phaseOwned;
     private final Long2ObjectOpenHashMap<MemberInbox> inboxes = new Long2ObjectOpenHashMap<>();
     private MemberInbox[] memberBuffer = new MemberInbox[0];
     private long inboxGeneration;
@@ -198,12 +195,6 @@ public final class AsyncDefendTrackRoutes implements AutoCloseable {
     }
 
     AsyncDefendTrackRoutes(int workers, int queueCapacity, Search search) {
-        this(workers, queueCapacity, search, Boolean.parseBoolean(
-                System.getProperty(PHASE_OWNED_PROPERTY, "true")));
-    }
-
-    AsyncDefendTrackRoutes(int workers, int queueCapacity, Search search, boolean phaseOwned) {
-        this.phaseOwned = phaseOwned;
         this.search = search;
         executor = new ThreadPoolExecutor(workers, workers, 0L,
                 TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(queueCapacity),
@@ -229,18 +220,15 @@ public final class AsyncDefendTrackRoutes implements AutoCloseable {
         if (occupancyTick != tick) occupancySnapshot = null;
     }
 
-    public boolean phaseOwnedRequestsEnabled() { return phaseOwned; }
-
     /**
      * Host boundary immediately before dispatch. Each listed member has exactly
      * one writer until join. Polling/cancellation then touch only that member's
      * inbox; no global map, metrics, executor or snapshot is mutated by a unit.
-     * Returns false for the same-build legacy control or a closed service.
+     * Returns false for a closed service.
      */
     public synchronized boolean beginMemberUpdates(long[] ids, int count) {
         if (closed) return false;
         requireNoMemberPhase();
-        if (!phaseOwned) return false;
         if (count < 0 || count > ids.length) throw new IllegalArgumentException("invalid member count");
         if (memberBuffer.length < count) memberBuffer = new MemberInbox[Math.max(count, memberBuffer.length * 2 + 8)];
         long generation = ++inboxGeneration;
@@ -398,9 +386,7 @@ public final class AsyncDefendTrackRoutes implements AutoCloseable {
         }
         long snapshotStart = System.nanoTime();
         if (topologySnapshot == null || topologyRevision != key.topologyRevision()) {
-            topologySnapshot = Boolean.parseBoolean(System.getProperty(
-                    NavigationGrid.COMPACT_PUBLIC_TOPOLOGY_PROPERTY, "true"))
-                    ? liveGrid.copyRoutingTopology() : liveGrid.copyNavigationTopology();
+            topologySnapshot = liveGrid.copyRoutingTopology();
             topologyRevision = key.topologyRevision();
             topologyCopies++;
         }
