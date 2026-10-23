@@ -102,10 +102,10 @@ def station():
 
 
 def station_current(parts):
-    """Whether the kit's station was built from this platform_parts() list."""
-    import hashlib
-    sha = hashlib.sha256(json.dumps(parts, sort_keys=True).encode()).hexdigest()[:16]
-    return sha == station()[1]['parts_sha']
+    """Whether the kit's station was built from this platform_parts() list (wk_station.parts_sha,
+    the hash the build recorded, so the check and the build cannot disagree)."""
+    import wk_station
+    return wk_station.parts_sha(parts) == station()[1]['parts_sha']
 
 
 def hulks():

@@ -48,26 +48,24 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.command.conquest.balancedHomeTracks` | experiment | 2026-10-11 | Conquest command (2026-10-11): remove once commanderEvidence -Pmission=conquest has been read against it. |
 | `battle.conquest.attackerHoldsGround` | experiment | 2026-10-20 | Conquest command (2026-10-20): remove once commanderEvidence -Pmission=conquest accepts it. |
 | `battle.conquest.derivedLift` | undecided | 2026-09-02 | Default off since 2026-09-02 (conquest-nouns.md). Ship it or delete the code. |
-| `battle.cordon.basePace` | experiment | 2026-10-22 | The owner's three Cordon picks (2026-10-22, cordon-nouns.md): remove once the owner has played the picks. |
-| `battle.cordon.basePlace` | experiment | 2026-10-22 | The owner's three Cordon picks (2026-10-22, cordon-nouns.md): remove once the owner has played the picks. |
-| `battle.cordon.carrierAfterDrop` | experiment | 2026-10-22 | The owner's three Cordon picks (2026-10-22, cordon-nouns.md): remove once the owner has played the picks. |
+| `battle.cordon.basePace` | experiment | 2026-10-22 | Owner pick switch; the owner has picked and the default matches. Retire it on the coordinator's word (asked 2026-10-23). |
+| `battle.cordon.basePlace` | experiment | 2026-10-22 | Owner pick switch; the owner has picked and the default matches. Retire it on the coordinator's word (asked 2026-10-23). |
+| `battle.cordon.carrierAfterDrop` | experiment | 2026-10-22 | Owner pick switch; the owner has picked and the default matches. Retire it on the coordinator's word (asked 2026-10-23). |
 | `battle.counterattack` | control | 2026-10-20 | Standing control: the commander-evidence counter-attack control (commander-evidence-missions.md). Its composed .<knob> evidence knobs (reserveShare, minStrength, ...) fold into constants when the counter-attack balance pass closes. |
 | `battle.creep.feedMultiplier` | tuning | 2026-10-22 | Creep-speed pass (owner picks 2026-10-23): fold into constants once the owner confirms the rates in play. |
 | `battle.creep.spreadScale` | tuning | 2026-10-22 | Creep-speed pass (owner picks 2026-10-23): fold into constants once the owner confirms the rates in play. |
 | `battle.elevation.firingReveal` | experiment | 2026-10-22 | Elevation pass (elevation-nouns.md): remove once the elevation behaviour scenes accept it. |
 | `battle.elevation.sight` | experiment | 2026-10-22 | Elevation pass (elevation-nouns.md): remove once the elevation behaviour scenes accept it. |
-| `battle.fire` | experiment | 2026-10-22 | Fire-system session: remove each with its losing path once the fire behaviour pass is accepted (fire-nouns.md). |
-| `battle.fire.creepFilm` | experiment | 2026-10-22 | Fire-system session: remove each with its losing path once the fire behaviour pass is accepted (fire-nouns.md). |
+| `battle.fire` | control | 2026-10-22 | Standing control: master fire cost control that renderEvidence and the fire-colony/burn readings are measured against. |
+| `battle.fire.creepFilm` | experiment | 2026-10-22 | Fire: retire it, keeping the rule, once the owner accepts the bloom-m3 Burn re-render with 5-cell breaks. |
 | `battle.fire.laneDiscipline` | experiment | 2026-10-23 | Fire-system session: remove each with its losing path once the fire behaviour pass is accepted (fire-nouns.md). |
-| `battle.fire.lowSmoke` | experiment | 2026-10-22 | Fire-system session: remove each with its losing path once the fire behaviour pass is accepted (fire-nouns.md). |
-| `battle.fire.smoke` | experiment | 2026-10-22 | Fire-system session: remove each with its losing path once the fire behaviour pass is accepted (fire-nouns.md). |
-| `battle.fire.stepOut` | experiment | 2026-10-22 | Fire-system session: remove each with its losing path once the fire behaviour pass is accepted (fire-nouns.md). |
-| `battle.fire.throwSafety` | experiment | 2026-10-22 | Fire-system session: remove each with its losing path once the fire behaviour pass is accepted (fire-nouns.md). |
+| `battle.fire.smoke` | control | 2026-10-22 | Standing control: the control loop of the fire-smoke scene verdict. Retire it with that loop. |
+| `battle.fire.stepOut` | control | 2026-10-22 | Standing control: the control loop of the fire-fear scene verdict. Retire it with that loop. |
+| `battle.fire.throwSafety` | control | 2026-10-22 | Standing control: the control loop of the fire-ignition kit scene verdict. Retire it with that loop. |
 | `battle.fog.bodyReveal` | experiment | 2026-10-22 | Remove once the fog body-reveal rule is accepted (fog-of-war-nouns.md). |
 | `battle.fort.restraint` | control | 2026-10-13 | Standing control: ShieldFortScene runs the off arm as its control loop. Retire it with that loop. |
 | `battle.garrison.envelopes` | experiment | 2026-10-20 | Garrisonables (garrisonables.md): remove once garrisonEvidence and the reactive-defence evidence accept it. |
 | `battle.garrison.stretches` | experiment | 2026-10-20 | Garrisonables (garrisonables.md): remove once garrisonEvidence and the reactive-defence evidence accept it. |
-| `battle.goap.retainFlankPlans` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.heart.broadCompanyArmour` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
 | `battle.heart.broadFallBack` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
 | `battle.heart.broadFormUp` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
@@ -117,39 +115,15 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.mission.flow.forward` | experiment | 2026-10-21 | Mission reactive defence and flow (garrisonables.md): remove each once commanderEvidence on the story missions accepts it. Its composed .triggered/.dutyShare/.dutyPressure knobs go with it. |
 | `battle.mission.reactiveDefence` | experiment | 2026-10-20 | Mission reactive defence and flow (garrisonables.md): remove each once commanderEvidence on the story missions accepts it. Its composed .triggered/.dutyShare/.dutyPressure knobs go with it. |
 | `battle.party.places` | experiment | 2026-10-21 | As battle.mission.*. |
-| `battle.pathfinding.<budget>` | tuning | 2026-09-27 | Squad-route work budgets (NavigationService). Fold into constants. |
 | `battle.pathfinding.asyncClearance` | config | 2026-09-26 | Permanent: determinism, as for battle.influence.async. |
 | `battle.pathfinding.asyncDefendSite` | config | 2026-09-26 | Permanent: determinism, as for battle.influence.async. |
 | `battle.pathfinding.asyncDefendTrack` | config | 2026-09-22 | Permanent: determinism, as for battle.influence.async. |
 | `battle.pathfinding.asyncDefendTrack.queueCapacity` | config | 2026-09-22 | Permanent: the capacity of the async route queue. |
 | `battle.pathfinding.asyncDefendTrack.workers` | config | 2026-09-22 | Permanent: the size of the async route worker pool. |
-| `battle.pathfinding.boundDistrictPatrol` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.boundFlankProofs` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.boundGuardPatrol` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.budgetFlankSelection` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.pathfinding.casualtyRouteCost` | control | 2026-08-30 | Standing control: the CLAUDE.md worked example of a control run (killing-ground). Retire it when the example moves to another switch. |
 | `battle.pathfinding.clearanceFailureBackoff` | experiment | 2026-10-14 | Mech clearance routing (mechs-nouns.md, 2026-10-14): remove once profileConvoyRoute has been read against it. |
-| `battle.pathfinding.compactCasualtyRouteCost` | experiment | 2026-09-26 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.compactPublicTopology` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.pathfinding.fireRouteCost` | control | 2026-10-22 | Standing control: FireFearScene and FireHarmScene compare against the off arm. Fire-system session; retire with those loops. |
-| `battle.pathfinding.flankStepGate` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.maxSquadRouteBuildsPerTick` | experiment | 2026-09-22 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.mechReachabilityComponents` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.minimumSharedGoalUnits` | experiment | 2026-08-24 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.omitFixedGoalOccupancy` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.phaseOwnedRallyRequests` | experiment | 2026-09-26 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.pruneFlankCandidates` | experiment | 2026-09-26 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.retainSingletonSeeds` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.retainSquadRouteCosts` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.pathfinding.shareExhaustedFlood` | experiment | 2026-10-14 | As clearanceFailureBackoff. |
-| `battle.pathfinding.sharedGoalFields` | experiment | 2026-08-28 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.squadRouteAdmission` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.squadRouteCorridors` | experiment | 2026-09-22 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.squadRouteRetryTicks` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.squadRouteWorkBudget` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.squadRouteWorkPerRequest` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.squadRouteWorkPerSlice` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.squadRouteWorkPerTick` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.power.armorDropCooldownSeconds` | tuning | 2026-10-18 | Heavy-equipment pass: fold into a constant once the cooldown is accepted. |
 | `battle.profile.commandFrameDetail` | config | 2026-09-27 | Permanent: opt-in profiling instrumentation, off in play. |
 | `battle.profile.commandTopologyCpu` | config | 2026-09-27 | Permanent: opt-in profiling instrumentation, off in play. |
@@ -162,16 +136,12 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.render.deadAirHaze` | control | 2026-10-20 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.domeShader` | control | 2026-10-13 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.doodadAtlas` | experiment | 2026-10-23 | Doodad decoration atlas: remove it with the per-cut bind path once renderEvidence has read the atlas against its control. |
-| `battle.render.fire` | experiment | 2026-10-22 | Fire-system session: remove once the owner's fire look is final (fire-nouns.md). |
-| `battle.render.fireLook` | experiment | 2026-10-22 | Fire-system session: remove once the owner's fire look is final (fire-nouns.md). |
+| `battle.render.fire` | control | 2026-10-22 | Standing control: fire render cost control for renderEvidence, as for battle.fire. |
 | `battle.render.groundFeathering` | control | 2026-10-22 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
-| `battle.render.nightCoarse` | experiment | 2026-10-22 | Night-shade session: remove once renderEvidence on the burn at night accepts the lever. |
-| `battle.render.nightFireFogClears` | experiment | 2026-10-23 | Night-shade session: remove once renderEvidence on the burn at night accepts the lever. |
-| `battle.render.nightFireThroughFog` | experiment | 2026-10-23 | Night-shade session: remove once renderEvidence on the burn at night accepts the lever. |
-| `battle.render.nightRuns` | experiment | 2026-10-22 | Night-shade session: remove once renderEvidence on the burn at night accepts the lever. |
-| `battle.render.nightUnseenTint` | experiment | 2026-10-23 | Night-shade session: remove once renderEvidence on the burn at night accepts the lever. |
+| `battle.render.nightFireFogClears` | tuning | 2026-10-23 | Night shade: thinning strength for options a/b of night-fire-fog. Fold into a constant once the owner answers. |
+| `battle.render.nightFireThroughFog` | experiment | 2026-10-23 | Night shade: option d (off) of the owner picks question night-fire-fog. Remove when the owner answers. |
+| `battle.render.nightUnseenTint` | undecided | 2026-10-23 | Night shade: option c of night-fire-fog. If c loses, delete it with the COOL colour in FireFogClearing; if c wins, make it the default and drop the switch. |
 | `battle.render.settledBodyMesh` | control | 2026-10-22 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
-| `battle.render.smokeDensity` | tuning | 2026-10-22 | Fire-system session: fold into a constant once the smoke look is picked. |
 | `battle.sallyDoors` | experiment | 2026-10-20 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.sallyDoors.closable` | experiment | 2026-10-21 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.sallyDoors.derived` | experiment | 2026-10-20 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |

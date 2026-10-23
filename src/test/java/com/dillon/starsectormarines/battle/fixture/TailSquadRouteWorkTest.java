@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class TailSquadRouteWorkTest {
     @Test
     void observesEveryMeasuredTickAndOnlySuccessfulCompletionAges() throws Exception {
-        TailSquadRouteWork totals = new TailSquadRouteWork(11, 100, true);
+        TailSquadRouteWork totals = new TailSquadRouteWork(11, 100);
         totals.observe(10, 900, List.of(slice("READY", 999)), 99_000_000, 99_000_000);
         totals.observe(11, 100, List.of(slice("YIELD", 800), slice("READY", 20)), 3_000_000, 1_000_000);
         totals.observe(12, 101, List.of(slice("FAILED", 900), slice("LIMIT", 700)), 2_500_000, 2_000_000);
@@ -32,8 +32,8 @@ class TailSquadRouteWorkTest {
     }
 
     @Test
-    void totalUsesTickCounterNotRetainedOrCumulativeSamplesAndControlHasNoViolations() throws Exception {
-        TailSquadRouteWork totals = new TailSquadRouteWork(1, 10, false);
+    void totalUsesTickCounterNotRetainedOrCumulativeSamples() throws Exception {
+        TailSquadRouteWork totals = new TailSquadRouteWork(1, 100);
         TickInnerProfile profile = new TickInnerProfile();
         profile.recordCount(TickInnerProfile.Bucket.SQUAD_ROUTE_WORK, 77);
         profile.recordSquadRouteWork(1, 1, "EnterZone", 2, 3, "DONE", "READY",

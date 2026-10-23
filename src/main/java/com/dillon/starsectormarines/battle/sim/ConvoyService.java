@@ -96,7 +96,6 @@ public final class ConvoyService implements BodyCarrier {
         body.teleport(spawnX, spawnY, AirBody.facingToward(nextX - spawnX, nextY - spawnY));
         GroundTurret turret = type.hasTurretWeapon()
                 ? new GroundTurret(type.turretStructure().mount.ammoCapacity, HullTurretSection.forHull(type)) : null;
-        if (turret != null) turret.charge = type.turretStructure().mount.charges;
         HullLocations locations = HullLocations.forHull(type, turret != null ? turret.section : null);
 
         // VEHICLE_MISSION (mission bag) + VEHICLE_CONTROL (motion-control bag) are universal;
@@ -257,6 +256,25 @@ public final class ConvoyService implements BodyCarrier {
     public float targetRadius(long id) {
         VehicleType type = vehicleType(id);
         return type != null ? Math.max(type.visualLengthCells, type.visualWidthCells) * 0.5f : 0f;
+    }
+
+    /** The hull's footprint, as {@code HullImpact} meets it: its drawn length and width. */
+    @Override
+    public float hullHalfLength(long id) {
+        VehicleType type = vehicleType(id);
+        return type != null ? type.visualLengthCells * 0.5f : 0f;
+    }
+
+    @Override
+    public float hullHalfWidth(long id) {
+        VehicleType type = vehicleType(id);
+        return type != null ? type.visualWidthCells * 0.5f : 0f;
+    }
+
+    @Override
+    public float hullFacingDegrees(long id) {
+        GroundBody body = body(id);
+        return body != null ? body.facingDegrees : 0f;
     }
 
     @Override

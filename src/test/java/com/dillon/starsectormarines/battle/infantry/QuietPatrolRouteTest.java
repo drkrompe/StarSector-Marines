@@ -28,17 +28,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class QuietPatrolRouteTest {
     private final TickInnerProfile previousProfile = TickInnerProfile.currentIfBound();
     private final boolean previousCardinal = GridPathfinder.USE_CARDINAL_NAVIGATION;
-    private final String previousControl = System.getProperty(PatrolMotion.BOUND_GUARD_PATROL_PROPERTY);
-    private final String previousDistrictControl = System.getProperty(PatrolMotion.BOUND_DISTRICT_PATROL_PROPERTY);
 
     @AfterEach
     void restore() {
         TickInnerProfile.setCurrent(previousProfile);
         GridPathfinder.USE_CARDINAL_NAVIGATION = previousCardinal;
-        if (previousControl == null) System.clearProperty(PatrolMotion.BOUND_GUARD_PATROL_PROPERTY);
-        else System.setProperty(PatrolMotion.BOUND_GUARD_PATROL_PROPERTY, previousControl);
-        if (previousDistrictControl == null) System.clearProperty(PatrolMotion.BOUND_DISTRICT_PATROL_PROPERTY);
-        else System.setProperty(PatrolMotion.BOUND_DISTRICT_PATROL_PROPERTY, previousDistrictControl);
     }
 
     @Test
@@ -60,7 +54,6 @@ class QuietPatrolRouteTest {
 
     @Test
     void districtRefusalSurvivesRoutinePlanRefreshAndRepeatedCallbacks() {
-        System.clearProperty(PatrolMotion.BOUND_DISTRICT_PATROL_PROPERTY);
         Fixture fixture = new Fixture(dogleg(), 25, 50, 36, 50);
         TickInnerProfile profile = bindProfile();
         assertEquals(ActionStatus.RUNNING,
@@ -83,7 +76,6 @@ class QuietPatrolRouteTest {
 
     @Test
     void investigationBypassesQuietDwellAndRetainsRequiredLongDetours() {
-        System.setProperty(PatrolMotion.BOUND_DISTRICT_PATROL_PROPERTY, "true");
         Fixture fixture = new Fixture(dogleg(), 25, 50, 36, 50);
         fixture.squad.patrolDwellTimer = PatrolMotion.DWELL_SECONDS;
         TickInnerProfile profile = bindProfile();
@@ -106,31 +98,24 @@ class QuietPatrolRouteTest {
     }
 
     @Test
-    void guardAndDistrictSwitchesSelectTheirOwnPolicyIndependently() {
-        for (boolean guardBounded : new boolean[]{false, true}) {
-            for (boolean districtBounded : new boolean[]{false, true}) {
-                System.setProperty(PatrolMotion.BOUND_GUARD_PATROL_PROPERTY, Boolean.toString(guardBounded));
-                System.setProperty(PatrolMotion.BOUND_DISTRICT_PATROL_PROPERTY, Boolean.toString(districtBounded));
-                Fixture guard = new Fixture(dogleg(), 25, 50, 36, 50);
-                TickInnerProfile profile = bindProfile();
-                guard.advance(true);
-                assertEquals(guardBounded, Paths.isEmpty(guard.roster.world().path(guard.member)));
-                assertEquals(guardBounded ? 1 : 0, profile.countOf(TickInnerProfile.Bucket.GUARD_PATROL_SEARCH));
-                assertEquals(0, profile.countOf(TickInnerProfile.Bucket.DISTRICT_PATROL_SEARCH));
+    void guardAndDistrictPoliciesAttributeTheirOwnSearches() {
+        Fixture guard = new Fixture(dogleg(), 25, 50, 36, 50);
+        TickInnerProfile profile = bindProfile();
+        guard.advance(true);
+        assertTrue(Paths.isEmpty(guard.roster.world().path(guard.member)));
+        assertEquals(1, profile.countOf(TickInnerProfile.Bucket.GUARD_PATROL_SEARCH));
+        assertEquals(0, profile.countOf(TickInnerProfile.Bucket.DISTRICT_PATROL_SEARCH));
 
-                Fixture district = new Fixture(dogleg(), 25, 50, 36, 50);
-                profile = bindProfile();
-                PatrolRoute.INSTANCE.execute(district.member, district.squad, district.sim);
-                assertEquals(districtBounded, Paths.isEmpty(district.roster.world().path(district.member)));
-                assertEquals(districtBounded ? 1 : 0, profile.countOf(TickInnerProfile.Bucket.DISTRICT_PATROL_SEARCH));
-                assertEquals(0, profile.countOf(TickInnerProfile.Bucket.GUARD_PATROL_SEARCH));
-            }
-        }
+        Fixture district = new Fixture(dogleg(), 25, 50, 36, 50);
+        profile = bindProfile();
+        PatrolRoute.INSTANCE.execute(district.member, district.squad, district.sim);
+        assertTrue(Paths.isEmpty(district.roster.world().path(district.member)));
+        assertEquals(1, profile.countOf(TickInnerProfile.Bucket.DISTRICT_PATROL_SEARCH));
+        assertEquals(0, profile.countOf(TickInnerProfile.Bucket.GUARD_PATROL_SEARCH));
     }
 
     @Test
     void districtActionRejectsStalePublicationAndHoldsAnObsoleteThrottledPath() {
-        System.setProperty(PatrolMotion.BOUND_DISTRICT_PATROL_PROPERTY, "true");
         Fixture stale = new Fixture(openGrid(20, 20), 2, 3, 15, 3);
         stale.beforeGridRead = () -> QuietPatrolRoute.refuse(stale.squad, 15, 3, OptionalRoutePolicy.DISTRICT);
         PatrolRoute.INSTANCE.execute(stale.member, stale.squad, stale.sim);
@@ -151,7 +136,6 @@ class QuietPatrolRouteTest {
 
     @Test
     void districtActionPublishesOrdinaryLegalRoutesInBothMovementModes() {
-        System.setProperty(PatrolMotion.BOUND_DISTRICT_PATROL_PROPERTY, "true");
         for (boolean cardinal : new boolean[]{false, true}) {
             GridPathfinder.USE_CARDINAL_NAVIGATION = cardinal;
             NavigationGrid grid = openGrid(24, 20);
@@ -171,7 +155,7 @@ class QuietPatrolRouteTest {
     }
 
     @Test
-    void ordinaryRoutesMatchTheSameInputLegacyControlInBothMovementModes() {
+    void ordinaryRoutesMatchTheUnboundedSearchInBothMovementModes() {
         NavigationGrid grid = openGrid(24, 20);
         for (boolean cardinal : new boolean[]{false, true}) {
             GridPathfinder.USE_CARDINAL_NAVIGATION = cardinal;
@@ -206,7 +190,6 @@ class QuietPatrolRouteTest {
 
     @Test
     void refusingAnOptionalWaypointSurvivesRepeatedCallbacksAndNewSources() {
-        System.clearProperty(PatrolMotion.BOUND_GUARD_PATROL_PROPERTY);
         Fixture fixture = new Fixture(dogleg(), 25, 50, 36, 50);
         TickInnerProfile profile = bindProfile();
         assertEquals(ActionStatus.RUNNING, fixture.advance(true));
@@ -235,17 +218,13 @@ class QuietPatrolRouteTest {
     }
 
     @Test
-    void legacySwitchAndNonOptionalAndRequiredRoutesStillTakeTheLongWay() {
+    void nonOptionalAndRequiredRoutesStillTakeTheLongWay() {
         NavigationGrid grid = dogleg();
-        for (boolean optional : new boolean[]{false, true}) {
-            System.setProperty(PatrolMotion.BOUND_GUARD_PATROL_PROPERTY, optional ? "false" : "true");
-            Fixture fixture = new Fixture(grid, 25, 50, 36, 50);
-            fixture.advance(optional);
-            assertFalse(Paths.isEmpty(fixture.roster.world().path(fixture.member)));
-            assertEquals(1, fixture.moves);
-            assertEquals(36, fixture.squad.patrolWaypointX);
-        }
-        System.setProperty(PatrolMotion.BOUND_GUARD_PATROL_PROPERTY, "true");
+        Fixture fixture = new Fixture(grid, 25, 50, 36, 50);
+        fixture.advance(false);
+        assertFalse(Paths.isEmpty(fixture.roster.world().path(fixture.member)));
+        assertEquals(1, fixture.moves);
+        assertEquals(36, fixture.squad.patrolWaypointX);
         Fixture required = new Fixture(grid, 25, 50, 36, 50);
         assertTrue(PatrolMotion.moveToward(required.member, required.sim, 36, 50));
         assertFalse(Paths.isEmpty(required.roster.world().path(required.member)));
@@ -254,7 +233,6 @@ class QuietPatrolRouteTest {
 
     @Test
     void throttledObsoletePathHoldsWithoutRefusingTheQuietWaypoint() {
-        System.setProperty(PatrolMotion.BOUND_GUARD_PATROL_PROPERTY, "true");
         Fixture fixture = new Fixture(openGrid(20, 20), 2, 3, 15, 3);
         fixture.install(new int[]{2, 3, 2, 4, 2, 5});
         TickInnerProfile profile = bindProfile();
@@ -268,7 +246,6 @@ class QuietPatrolRouteTest {
 
     @Test
     void freshResultWaitsOneTickAndCannotPublishAfterASiblingRefusal() {
-        System.setProperty(PatrolMotion.BOUND_GUARD_PATROL_PROPERTY, "true");
         Fixture success = new Fixture(openGrid(20, 20), 2, 3, 15, 3);
         success.advance(true);
         assertFalse(Paths.isEmpty(success.roster.world().path(success.member)));

@@ -112,7 +112,7 @@ public final class ScreenedAdvance {
     private final Trigger[] gates;
     private final Trigger start;
     private final Faction side;
-    private final float standoff, spacing, contactRange;
+    private final float standoff, spacing, frontage, contactRange, contactClear, contactHold;
     private final Broken broken;
     private final Element screen, main;
     private final Consumer<String> beats;
@@ -129,6 +129,7 @@ public final class ScreenedAdvance {
     private float screenPost;
     /** Where the screen halted on contact, along the route. */
     private float haltedAt;
+    private boolean suspended;
     private final Map<Integer, int[]> squadOrders = new HashMap<>();
     private final List<String> log = new ArrayList<>();
 
@@ -144,6 +145,9 @@ public final class ScreenedAdvance {
         side = b.side;
         standoff = b.standoff;
         spacing = b.spacing;
+        frontage = b.frontage;
+        contactClear = b.contactClear;
+        contactHold = b.contactHold;
         contactRange = b.contactRange;
         broken = b.broken;
         screen = b.screen;
@@ -165,7 +169,8 @@ public final class ScreenedAdvance {
         final Map<Integer, Trigger> gates = new HashMap<>();
         Trigger start = Trigger.now();
         Faction side = Faction.ALLY;
-        float standoff = DEFAULT_STANDOFF, spacing = DEFAULT_SPACING, contactRange = DEFAULT_CONTACT_RANGE;
+        float standoff = DEFAULT_STANDOFF, spacing = DEFAULT_SPACING, frontage = Float.MAX_VALUE, contactRange = DEFAULT_CONTACT_RANGE;
+        float contactClear = CONTACT_CLEAR_SECONDS, contactHold = CONTACT_HOLD_SECONDS;
         Broken broken = Broken.HOLD;
         Element screen = new Element(), main = new Element();
         Consumer<String> beats = beat -> { };
@@ -196,7 +201,14 @@ public final class ScreenedAdvance {
         public Builder side(Faction faction) { side = faction; return this; }
         public Builder standoff(float cells) { standoff = cells; return this; }
         public Builder spacing(float cells) { spacing = cells; return this; }
+        /** The widest an element's line may be: a large element closes up its spacing to fit a lane. */
+        public Builder frontage(float cells) { frontage = cells; return this; }
         public Builder contactRange(float cells) { contactRange = cells; return this; }
+        /**
+         * Seconds of quiet before a halted screen goes on, and the most a contact may hold it. A battle where
+         * contact never lets up (a swarm) wants a short hold, so that the advance keeps pace with its guns.
+         */
+        public Builder contactTimes(float clearSeconds, float holdSeconds) { contactClear = clearSeconds; contactHold = holdSeconds; return this; }
         public Builder onScreenBroken(Broken policy) { broken = policy; return this; }
         /** Where the advance's beats go: {@code <name>.step_off}, {@code .bound_N}, {@code .contact_N}, {@code .rallied}, {@code .screen_broken}. */
         public Builder beats(Consumer<String> sink) { beats = sink; return this; }
@@ -220,11 +232,49 @@ public final class ScreenedAdvance {
     public void joinScreen(int squad) { screen.squads.add(squad); }
     public void joinMainHull(long hull) { main.hulls.add(hull); }
     public void joinMainMech(long mech) { main.mechs.add(mech); }
+    /** A squad joins the main, or the screen when {@code toMain} is false. */
+    public void joinInfantry(int squad, boolean toMain) { (toMain ? main : screen).squads.add(squad); }
+    /** A hull or a mech joins the screen, or the main when {@code toScreen} is false. */
+    public void joinMachine(long id, boolean mech, boolean toScreen) {
+        Element element = toScreen ? screen : main;
+        if (mech) element.mechs.add(id);
+        else element.hulls.add(id);
+    }
+
+    /** Whether the advance is still going: neither rallied nor halted. */
+    public boolean active() {
+        return phase != Phase.RALLIED && phase != Phase.HALTED;
+    }
+
+    public boolean suspended() { return suspended; }
+
+    /**
+     * Hands the elements back to the mission for a while: the advance gives no orders until {@link #resume}.
+     * A battle that has a side task on the way (a satellite to take) suspends the advance for it.
+     */
+    public void suspend() {
+        suspended = true;
+    }
+
+    /**
+     * Takes the elements back: the screen is posted on its line again, the main behind it, wherever the
+     * mission's own orders left them, and the bound's patience starts over.
+     */
+    public void resume(BattleSimulation sim) {
+        if (!suspended) return;
+        suspended = false;
+        squadOrders.clear();
+        mainPost = Float.NEGATIVE_INFINITY;
+        phaseSince = sim.getSimTickIndex();
+        if (phase == Phase.WAITING) return;
+        if (phase != Phase.GATED) post(sim, screen, screenPost, "screen back to its line");
+        postMain(sim);
+    }
 
     /** One tick; decisions are taken once a second. */
     public void advance(BattleSimulation sim) {
         int tick = sim.getSimTickIndex();
-        if (tick % DECIDE_TICKS != 0 || phase == Phase.RALLIED || phase == Phase.HALTED) return;
+        if (suspended || tick % DECIDE_TICKS != 0 || !active()) return;
         prune(sim, screen);
         prune(sim, main);
         switch (phase) {
@@ -254,8 +304,8 @@ public final class ScreenedAdvance {
             case CONTACT -> {
                 if (brokenScreen(sim)) return;
                 if (contact(sim)) quietSince = tick;
-                boolean quiet = tick - quietSince >= seconds(CONTACT_CLEAR_SECONDS);
-                boolean heldLong = tick - phaseSince >= seconds(CONTACT_HOLD_SECONDS);
+                boolean quiet = tick - quietSince >= seconds(contactClear);
+                boolean heldLong = tick - phaseSince >= seconds(contactHold);
                 if (quiet || heldLong) sendScreen(sim, bounds[bound], Phase.SCREEN_BOUNDING);
             }
             case MAIN_CLOSING -> {
@@ -310,6 +360,7 @@ public final class ScreenedAdvance {
     /** Puts every squad and machine of an element on its slot in a line abreast {@code along} the route. */
     private void post(BattleSimulation sim, Element element, float along, String reason) {
         int count = element.size(), i = 0;
+        float spacing = spacing(count);
         for (int squad : element.squads) {
             int[] at = walkable(sim, route.slot(along, i++, count, spacing));
             int[] held = squadOrders.get(squad);
@@ -368,6 +419,7 @@ public final class ScreenedAdvance {
     /** Whether enough of an element's squads and machines stand at their slots {@code along} the route. */
     private boolean arrived(BattleSimulation sim, Element element, float along) {
         int count = element.size(), i = 0, live = 0, there = 0;
+        float spacing = spacing(count);
         if (count == 0) return true;
         Map<Integer, float[]> centres = squadCentres(sim, element);
         for (int squad : element.squads) {
@@ -390,6 +442,11 @@ public final class ScreenedAdvance {
             if (Math.hypot(sim.world().x(mech) - slot[0] - .5f, sim.world().y(mech) - slot[1] - .5f) <= ARRIVE_REACH) there++;
         }
         return live == 0 || there >= Math.ceil(live * ARRIVE_SHARE);
+    }
+
+    /** Cells between neighbours in a line of {@code count}: the spacing, closed up to fit the frontage. */
+    private float spacing(int count) {
+        return count > 1 ? Math.min(spacing, frontage / (count - 1)) : spacing;
     }
 
     private boolean waited(BattleSimulation sim) {
