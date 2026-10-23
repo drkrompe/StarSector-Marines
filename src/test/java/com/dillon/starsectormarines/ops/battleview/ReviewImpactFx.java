@@ -63,6 +63,7 @@ public final class ReviewImpactFx {
     private final Path modRoot;
     private final Map<String, BufferedImage> art = new HashMap<>();
     private final List<Draw> draws = new ArrayList<>();
+    private int lastPainted;
     private final SettingsAPI settings;
     private final List<Path> roots;
 
@@ -187,6 +188,14 @@ public final class ReviewImpactFx {
         return overlay;
     }
 
+    /**
+     * How many particles the last {@link #paint} laid inside its frame: how much is going on in that view, which a
+     * look recording reads to choose its stills.
+     */
+    public int lastPainted() {
+        return lastPainted;
+    }
+
     /** Paints the live particles over {@code image}, which is as tall as the camera's screen is flipped against. */
     public void paint(BufferedImage image, BattleCamera camera) {
         draws.clear();
@@ -200,6 +209,11 @@ public final class ReviewImpactFx {
             sheets.add(sheet);
         }
         draws.clear();
+        lastPainted = 0;
+        for (Draw draw : painted) {
+            float y = image.getHeight() - draw.centerY;
+            if (draw.centerX >= 0f && draw.centerX < image.getWidth() && y >= 0f && y < image.getHeight()) lastPainted++;
+        }
         if (!fastTarget(image) || SnapshotWorkers.threads() <= 1) {
             for (int i = 0; i < painted.size(); i++) {
                 blend(image, sheets.get(i), painted.get(i), image.getHeight() - painted.get(i).centerY);

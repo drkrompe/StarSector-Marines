@@ -701,7 +701,7 @@ class SceneFx:
             return False
         with ship.kit() as (ctx, kit):
             self.m['swfx_impacts'].breach(ctx, self.now - round(age_s * self.fps), tuple(at), tuple(toward),
-                                          vent=vent)
+                                          vent=vent, flame='stream')
         self.rows.append(f'breach {key} {age_s:g} s old')
         return True
 

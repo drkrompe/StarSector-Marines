@@ -15,6 +15,8 @@ import com.dillon.starsectormarines.battle.world.gen.forest.ForestBrush;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestField;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestPlan;
 import com.dillon.starsectormarines.battle.world.gen.forest.LandscapeAccess;
+import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
+import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.world.gen.nature.FormationBrush;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
@@ -129,6 +131,18 @@ public final class OutdoorLandscapeStage implements GenStage {
         var lanes = c.get(BspKeys.LANES);
         if (lanes != null) for (var lane : lanes) for (var cell : lane.route())
             reserve(c, reserved, cell.x() - 2, cell.y() - 2, cell.x() + 2, cell.y() + 2);
+        // A mission layout's works, the ways through them and its open sites stay as they were laid. Ground held
+        // for authored terrain is not reserved here: ridges and rises are what it is for.
+        LaidLayout laid = c.get(BspKeys.MISSION_LAYOUT_LAID);
+        if (laid != null) for (Laid piece : laid.pieces()) {
+            if (piece.kind() == Laid.Kind.GROUND) continue;
+            if (piece.kind() == Laid.Kind.SITE && piece.cells().size() == 2) {
+                reserve(c, reserved, piece.cells().get(0)[0], piece.cells().get(0)[1], piece.cells().get(1)[0], piece.cells().get(1)[1]);
+                continue;
+            }
+            for (List<int[]> cells : List.of(piece.cells(), piece.gaps(), piece.nests()))
+                for (int[] cell : cells) reserve(c, reserved, cell[0] - 2, cell[1] - 2, cell[0] + 2, cell[1] + 2);
+        }
         for (int[] point : anchors) reserve(c, reserved, point[0] - 5, point[1] - 5, point[0] + 5, point[1] + 5);
         LandscapeAccess.reserveRoutes(c.grid, anchors, reserved);
         return reserved;

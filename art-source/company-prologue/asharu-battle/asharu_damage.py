@@ -266,8 +266,9 @@ CLEAN = ('phaeton', 'mule', 'buffalo-a', 'buffalo-b', 'dram', 'buffalo2-a', 'kit
          'hermes-p-a', 'hermes-p-b', 'hermes-p-c', 'borer-a', 'borer-b', 'borer-c', 'borer-d')
 
 
-# Shot fx on a ship that are not damage: Morrow's Borers cutting the Colossus's burning pod free.
-NOT_DAMAGE = {('mining', 'borer-a', 'colossus'), ('mining', 'borer-b', 'colossus')}
+# Shot fx on a ship that are not damage (none now: Morrow's Borers fight the attackers, they do not
+# cut at their own ship; owner, 2026-10-23).
+NOT_DAMAGE = set()
 
 
 def hits(ship, until=None, since=None):
@@ -658,6 +659,7 @@ class _Builder:
         size = LEVELS[h.sev]['fire']
         e = self.empty(h, frame, at, n, 'damage fire', size_m=size, imp_ignite=ignite_s,
                        seed=self.seed(h, 'fire') % 997)
+        e['flame'] = 'stream'       # tongues off the breach edge, never a ball (owner, 2026-10-23: no orbs or blobs)
         swfx_fire._knobs(self.ctx)
         rec = swfx_fire.build_fire(self.ctx, self.ctx.collection(self.imp.GROUP), e)
         self.imp._retime([bpy.data.objects[o] for o in rec['objects']], e)

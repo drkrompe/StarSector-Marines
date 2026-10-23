@@ -33,6 +33,12 @@ public final class BattleReviewFrameRenderer {
     public static final int HEADER_HEIGHT = 30;
 
     /**
+     * Cells across a 1920-pixel frame at the game's play zoom: 32 px a cell. The framing a player sees a fight at,
+     * so the one a look frame shown to the owner is drawn at.
+     */
+    public static final float PLAY_ZOOM_CELLS = 60f;
+
+    /**
      * The animation clock a review frame is drawn at. Pinned rather than read from the wall, so the same battle state
      * draws the same pixels twice; zero is also what the shield dome and fort buildings already saw here.
      */
@@ -70,6 +76,7 @@ public final class BattleReviewFrameRenderer {
     private boolean impactEffects;
     private boolean unitShadows;
     private boolean roofs;
+    private boolean presentation;
 
     public BattleReviewFrameRenderer(Path modRoot, int width, int height) {
         this.backend = ReviewSceneBackend.select(modRoot.toAbsolutePath().normalize());
@@ -81,6 +88,31 @@ public final class BattleReviewFrameRenderer {
     public BattleReviewFrameRenderer(Path modRoot, int width, int height, float focusX, float focusY, float cellsAcross) {
         this(modRoot, width, height);
         this.focusX = focusX; this.focusY = focusY; this.focusWidth = cellsAcross;
+    }
+
+    /**
+     * The owner-facing look preset: a camera on {@code (focusX, focusY)} {@code cellsAcross} wide, with everything the
+     * live screen draws that a review frame can (shots, launch, trail, contrail, smoke, impact and aftermath effects,
+     * the sun's body shadows, roofs) and nothing it does not: no faction markers, no ordnance diamonds, no wreck rings,
+     * no annotations and no caption band. Verdict scenes keep the diagnostic framing; a picture put in front of the
+     * owner to judge how something looks comes from this one (see {@code LookReview}).
+     */
+    public static BattleReviewFrameRenderer look(Path modRoot, int width, int height,
+                                                 float focusX, float focusY, float cellsAcross) {
+        BattleReviewFrameRenderer renderer = new BattleReviewFrameRenderer(modRoot, width, height,
+                focusX, focusY, cellsAcross);
+        return renderer.asPresentation().withImpactEffects().withUnitShadows().withRoofs();
+    }
+
+    /**
+     * Draws the battle as a player would see it, for a look review rather than a behaviour one: no caption band, no
+     * unit, wreck or ordnance markers and no annotations, and a focused camera fills the whole frame. Markers are
+     * how a reader follows bodies across a whole-map frame; on a close look at art they read as debug marks.
+     * {@link #look} is this with the effects, shadows and roofs a look frame wants turned on as well.
+     */
+    public BattleReviewFrameRenderer asPresentation() {
+        this.presentation = true;
+        return this;
     }
 
     /**
@@ -170,7 +202,7 @@ public final class BattleReviewFrameRenderer {
             impacts.paint(image, cameraFor(image.getWidth(), image.getHeight(), simulation));
         }
         long particles = System.nanoTime();
-        annotate(image, simulation, caption, annotations);
+        if (!presentation) annotate(image, simulation, caption, annotations);
         if (ReviewRenderProfile.ENABLED) {
             long end = System.nanoTime();
             ReviewRenderProfile.phase("scene (collect+drain)", scene - start);
@@ -320,10 +352,11 @@ public final class BattleReviewFrameRenderer {
     /** Fits the whole grid under the caption band, so a frame never crops the battlefield. */
     private BattleCamera cameraFor(float viewportWidth, float viewportHeight,
                                           BattleSimulation simulation) {
-        if (!Float.isFinite(focusX)) return cameraFor(viewportWidth, viewportHeight,
+        int header = presentation ? 0 : HEADER_HEIGHT;
+        if (!Float.isFinite(focusX)) return cameraFor(viewportWidth, viewportHeight + HEADER_HEIGHT - header,
                 simulation.getGrid().getWidth(), simulation.getGrid().getHeight());
         BattleCamera camera = new BattleCamera(simulation.getGrid().getWidth(), simulation.getGrid().getHeight());
-        camera.setViewport(0, 0, viewportWidth, viewportHeight - HEADER_HEIGHT, (float)Math.floor(viewportWidth / focusWidth));
+        camera.setViewport(0, 0, viewportWidth, viewportHeight - header, (float)Math.floor(viewportWidth / focusWidth));
         camera.centerOn(focusX, focusY);
         return camera;
     }

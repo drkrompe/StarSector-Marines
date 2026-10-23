@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortSiting;
+import com.dillon.starsectormarines.battle.world.gen.layout.Site;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctClaim;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
@@ -163,12 +164,17 @@ public final class FortReservations {
         return s[x1][y1] - s[x0][y1] - s[x1][y0] + s[x0][y0] > 0;
     }
 
-    /** Ground no road arm may grow into, or {@code null} when the mission reserved none. */
+    /**
+     * Ground no road arm may grow into, or {@code null} when the mission reserved none: the forts' boxes, every
+     * site the plan's mission layout states up front ({@code MissionLayout.keepClear}), and the ground its landscape
+     * holds for ridges ({@link #held}).
+     */
     static boolean[][] keepClear(GenContext ctx, PrecinctPlan plan) {
         List<int[]> boxes = boxes(ctx, plan);
+        boolean[][] sites = plan.layout().keepClear(ctx.width, ctx.height);
         boolean[][] held = held(ctx, plan);
-        if (boxes.isEmpty() && held == null) return null;
-        boolean[][] mask = new boolean[ctx.width][ctx.height];
+        if (boxes.isEmpty() && held == null) return sites;
+        boolean[][] mask = sites != null ? sites : new boolean[ctx.width][ctx.height];
         for (int[] box : boxes) {
             for (int x = Math.max(0, box[0] - box[2]); x <= Math.min(ctx.width - 1, box[0] + box[2]); x++) {
                 for (int y = Math.max(0, box[1] - box[2]); y <= Math.min(ctx.height - 1, box[1] + box[2]); y++) {
@@ -208,6 +214,16 @@ public final class FortReservations {
 
     /** Releases the town's claim on the reserved ground; changes nothing when the mission reserved none. */
     static void release(GenContext ctx, PrecinctPlan plan, int[][] claim) {
+        for (Site site : plan.layout().planSites()) {
+            for (int x = Math.max(0, site.x0()); x <= Math.min(claim.length - 1, site.x1()); x++) {
+                for (int y = Math.max(0, site.y0()); y <= Math.min(claim[x].length - 1, site.y1()); y++) {
+                    int owner = claim[x][y];
+                    if (owner != GrownTrunkPlan.UNOWNED && !plan.precincts().get(owner).isProgrammed()) {
+                        claim[x][y] = GrownTrunkPlan.UNOWNED;
+                    }
+                }
+            }
+        }
         for (int[] box : boxes(ctx, plan)) {
             for (int x = Math.max(0, box[0] - box[2]); x <= Math.min(claim.length - 1, box[0] + box[2]); x++) {
                 for (int y = Math.max(0, box[1] - box[2]); y <= Math.min(claim[x].length - 1, box[1] + box[2]); y++) {

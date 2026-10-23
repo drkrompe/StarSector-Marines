@@ -64,6 +64,41 @@ public final class ManualPointFire {
     }
 
     /**
+     * The share of its point-blank hit chance a round keeps at its optimal range. Past that the reticle reads the
+     * shot as falling off, though it still fires to maximum range.
+     */
+    public static final float OPTIMAL_HIT_SHARE = 0.8f;
+
+    /** The radius, in cells, of the body a round is judged against when finding optimal range: one man. */
+    public static final float REFERENCE_TARGET_RADIUS_CELLS = 0.5f;
+
+    /**
+     * How far, in cells, a cursor round keeps {@link #OPTIMAL_HIT_SHARE} of its point-blank chance to land on a
+     * {@link #REFERENCE_TARGET_RADIUS_CELLS} body, widened by the round's blast radius. Derived, not authored: a
+     * point round's error disk is {@link PointAim}'s (and a thrown rocket's {@link GroundBurstAim}'s, the same
+     * disk inside range), sized at weapon range from {@code accuracy} and {@code spread} as they stand there, and it
+     * scales with distance, so the chance is the share of that disk the target covers. Point-blank it covers all
+     * of it. Never more than {@code range}.
+     */
+    public static float optimalRangeCells(float range, float accuracy, float spread, float aoeRadius,
+                                          PointAimDispersion dispersion) {
+        if (!(range > 0f) || !Float.isFinite(range)) return 0f;
+        float clampedAccuracy = Math.max(0f, Math.min(1f, accuracy));
+        float atRange = PointAim.BASE_ERROR_CELLS + Math.max(0f, spread)
+                + dispersion.accuracyErrorCells * (1f - clampedAccuracy);
+        float target = REFERENCE_TARGET_RADIUS_CELLS + Math.max(0f, aoeRadius);
+        // Coverage (target / disk)^2 >= share  <=>  disk <= target / sqrt(share).
+        float optimal = target / (float) Math.sqrt(OPTIMAL_HIT_SHARE) / atRange * range;
+        return Math.min(range, optimal);
+    }
+
+    /** A turret's or rack's optimal range at the weapon's own accuracy, under automated dispersion. */
+    public static float optimalRangeCells(WeaponDef weapon) {
+        return optimalRangeCells(weapon.range, weapon.accuracy, weapon.hitSpread, weapon.aoeRadius,
+                PointAimDispersion.WEAPON);
+    }
+
+    /**
      * Where a thrown arcing round lands: the aim point, its distance from {@code (originX, originY)} clamped to
      * {@link BallisticResolver#MAX_GROUND_BURST_RANGE_MULTIPLIER} times the weapon's range, scattered about by
      * {@link GroundBurstAim}. An arcing round passes over what stands between, so nothing on the lane stops it.

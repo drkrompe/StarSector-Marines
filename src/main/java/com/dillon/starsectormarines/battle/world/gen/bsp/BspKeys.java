@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.fort.FortKind;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortSiting;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
+import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.VehicleCorridor;
@@ -108,6 +109,12 @@ public final class BspKeys {
 
     /** The places this map is made of, when it was grown from a precinct plan. */
     public static final GenKey<PrecinctPlan> PRECINCTS = GenKey.of("precincts");
+
+    /**
+     * The plan's mission layout as laid ({@code mission-layout.md}): bound by the layout stage, which runs only on a
+     * map whose plan states a layout. Read back into the map's result, never kept on the generator.
+     */
+    public static final GenKey<LaidLayout> MISSION_LAYOUT_LAID = GenKey.of("missionLayoutLaid");
 
     /**
      * Where a mission sited its forts as barriers, by kind and in declaration order: the ground reserved for each while

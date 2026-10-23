@@ -152,6 +152,26 @@ public record RuralLayout(int width, int height, int edge, int depth, FieldOfFir
     /** Rows a street must run into town to count as arriving at the country. */
     static final int ARRIVAL_ROWS = 8;
 
+    /**
+     * The same country with nothing worked on the inclusive rect: every plot
+     * touching it left wild, and every farm whose yard touches it not built.
+     * The roads stay, since the country's traffic runs on them.
+     */
+    public RuralLayout without(int x0, int y0, int x1, int y1) {
+        List<Plot> keptPlots = new ArrayList<>(plots.size());
+        for (Plot p : plots) {
+            boolean touches = p.x0() <= x1 && p.x1() >= x0 && p.y0() <= y1 && p.y1() >= y0;
+            keptPlots.add(touches && p.use() != Use.WILD
+                    ? new Plot(p.x0(), p.y0(), p.x1(), p.y1(), Use.WILD, p.rowsAlongX(), false) : p);
+        }
+        List<Farmstead> keptFarms = new ArrayList<>(farmsteads.size());
+        for (Farmstead f : farmsteads) {
+            if (f.yardX0() <= x1 && f.yardX1() >= x0 && f.yardY0() <= y1 && f.yardY1() >= y0) continue;
+            keptFarms.add(f);
+        }
+        return new RuralLayout(width, height, edge, depth, field, roads, keptPlots, keptFarms);
+    }
+
     /** Whether a cell is in the country at all. */
     public boolean inCountry(int x, int y) {
         return x >= 0 && y >= 0 && x < width && y < height && depthOf(x, y) < depth;
