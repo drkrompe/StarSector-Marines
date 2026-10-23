@@ -125,7 +125,7 @@ public final class CordonLogistics {
             for (int i = 0; i < SLOTS; i++) {
                 int offset = (i - (SLOTS - 1) / 2) * SLOT_PITCH;
                 // Ground a carrier's footprint fits on, not merely ground a man can stand on.
-                int[] cell = CordonArmour.drivable(sim, VehicleType.HEAVY_APC,
+                int[] cell = armour.drivable(sim, VehicleType.HEAVY_APC,
                         door[0] + outX * APRON_DEPTH + outY * offset, door[1] + outY * APRON_DEPTH + outX * offset);
                 if (cell != null) slots.add(cell);
             }

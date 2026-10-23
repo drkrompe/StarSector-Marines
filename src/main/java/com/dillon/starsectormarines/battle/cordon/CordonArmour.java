@@ -1,11 +1,13 @@
 package com.dillon.starsectormarines.battle.cordon;
 
 import com.dillon.starsectormarines.battle.command.allied.AlliedCommand;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,6 +50,8 @@ public final class CordonArmour {
     private final int frontward;
     private final Map<Long, int[]> home = new HashMap<>();
     private final Map<Long, CordonRedoubt> answering = new LinkedHashMap<>();
+    /** The main body of hull ground per clearance radius, found at the first set-down. */
+    private final Map<Integer, boolean[]> mainGround = new HashMap<>();
     /** Each convoy's escort posts, or {@code null} off the Road. */
     private Function<BattleSimulation, List<int[][]>> escorts;
 
@@ -82,21 +86,71 @@ public final class CordonArmour {
         return hull;
     }
 
-    /** The nearest cell to {@code (x, y)} a hull of this type stands clear on, out to {@link #SET_DOWN_REACH}. */
-    static int[] drivable(BattleSimulation sim, VehicleType type, int x, int y) {
+    /**
+     * The nearest cell to {@code (x, y)} a hull of this type stands clear on and can drive away from,
+     * out to {@link #SET_DOWN_REACH}: on the main body of the map's ground for its clearance, not in a
+     * pocket. The nearest cell that merely fit put the base's first apron slot inside a walled pen of
+     * twenty-odd cells on four maps in seventeen, and every carrier and hull mustered there stood in it
+     * all battle.
+     */
+    int[] drivable(BattleSimulation sim, VehicleType type, int x, int y) {
         int radius = VehicleClearance.radiusForWidth(type.visualWidthCells);
-        for (int r = 0; r <= SET_DOWN_REACH; r++) {
+        boolean[] main = mainGround.computeIfAbsent(radius, r -> mainGround(sim.getGrid(), r));
+        return nearest(sim.getGrid(), main, x, y, SET_DOWN_REACH);
+    }
+
+    /** The nearest cell to {@code (x, y)} in {@code ground}, out to {@code reach}, or {@code null}. */
+    static int[] nearest(NavigationGrid grid, boolean[] ground, int x, int y, int reach) {
+        int w = grid.getWidth();
+        for (int r = 0; r <= reach; r++) {
             for (int dx = -r; dx <= r; dx++) {
                 for (int dy = -r; dy <= r; dy++) {
                     if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
                     int cx = x + dx, cy = y + dy;
-                    if (sim.getGrid().inBounds(cx, cy) && VehicleClearance.fitsAt(sim.getGrid(), cx, cy, radius)) {
-                        return new int[]{cx, cy};
-                    }
+                    if (grid.inBounds(cx, cy) && ground[cy * w + cx]) return new int[]{cx, cy};
                 }
             }
         }
         return null;
+    }
+
+    /**
+     * The largest connected body of ground a footprint of {@code radius} fits on, stepping as the
+     * route planner steps (no closed edge crossed, no corner cut). Found once a battle per radius, at
+     * setup: walls breached later only add ground, so a cell in it stays in it.
+     */
+    static boolean[] mainGround(NavigationGrid grid, int radius) {
+        VehicleClearance mask = VehicleClearance.erode(grid, radius);
+        int w = grid.getWidth(), h = grid.getHeight();
+        int[] label = new int[w * h];
+        int bestLabel = 0, bestSize = 0, next = 0;
+        ArrayDeque<Integer> open = new ArrayDeque<>();
+        for (int start = 0; start < w * h; start++) {
+            if (label[start] != 0 || !mask.isPassable(start % w, start / w)) continue;
+            int id = ++next, size = 0;
+            label[start] = id;
+            open.add(start);
+            while (!open.isEmpty()) {
+                int i = open.poll(), x = i % w, y = i / w;
+                size++;
+                for (int dy = -1; dy <= 1; dy++) {
+                    for (int dx = -1; dx <= 1; dx++) {
+                        int nx = x + dx, ny = y + dy;
+                        if ((dx | dy) == 0 || !mask.isPassable(nx, ny) || label[ny * w + nx] != 0
+                                || !grid.canTraverseCellStep(x, y, nx, ny)) continue;
+                        label[ny * w + nx] = id;
+                        open.add(ny * w + nx);
+                    }
+                }
+            }
+            if (size > bestSize) {
+                bestSize = size;
+                bestLabel = id;
+            }
+        }
+        boolean[] main = new boolean[w * h];
+        for (int i = 0; i < w * h; i++) main[i] = bestLabel != 0 && label[i] == bestLabel;
+        return main;
     }
 
     /**
