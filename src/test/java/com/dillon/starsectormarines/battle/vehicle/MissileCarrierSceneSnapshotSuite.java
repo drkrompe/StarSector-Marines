@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.scene.BehaviorSceneSnapshotSuite;
-import com.dillon.starsectormarines.battle.scene.LookReview;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotation;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
@@ -16,8 +15,7 @@ import java.util.List;
  * 100% scale, whole map plus a full-size close view (the LRM carrier's on the carrier itself). Scene walls have no art, so the wall the LRM carrier fires over
  * and the building the SRM technical hides behind are drawn as marks, and each hull is labelled where it starts.
  *
- * <p>Those loops are verdict evidence. The owner is shown {@code look/lrm-salvo-*}: the carrier mid-salvo on real
- * generated ground through the look preset ({@link MissileCarrierScene#lrmSalvoLook()}).
+ * <p>Those loops are verdict evidence. The owner is shown the carrier's look frames from {@code lrm-carrier-look}.
  */
 public final class MissileCarrierSceneSnapshotSuite extends BehaviorSceneSnapshotSuite {
 
@@ -39,10 +37,6 @@ public final class MissileCarrierSceneSnapshotSuite extends BehaviorSceneSnapsho
     }
 
     @Override protected float closeViewScale() { return 1f; }
-
-    @Override protected List<LookReview.Shot> lookShots() {
-        return List.of(MissileCarrierScene.lrmSalvoLook());
-    }
 
     @Override protected ReviewAnnotations annotations(BattleSimulation simulation) {
         NavigationGrid grid = simulation.getGrid();
