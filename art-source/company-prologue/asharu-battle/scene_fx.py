@@ -189,6 +189,14 @@ class SceneFx:
                 aim_at = self.space(a).inverted() @ Vector(hit_w)
                 if self.span and self.matrix_at is not None and hit_l is not None:
                     aim_at = self.tracking(a, b, self.local(a, mz), hit_l, speed)
+                    if self.cur is None:      # the whole shot, built once: planned aim, bursts, real shots
+                        recs = self.planned(ctx, kit, a, b, turret, weapon, self.local(a, mz), hit_l, speed,
+                                            feeder, aim_at)
+                        if recs is not None:
+                            landed += [r['hit_frame'] for r in recs if r.get('hit_frame') is not None]
+                            if recs:
+                                fired.append(f't{turret} {weapon} x{len(recs)}' + (' (feeder)' if feeder else ''))
+                            continue
                 only = None
                 if self.span and self.cur is not None:     # this frame's rounds: in flight, or just landed
                     only = (self.cur - round((dist / speed + 1.5) * self.fps), self.cur + 1)
@@ -228,6 +236,102 @@ class SceneFx:
             hit = self.matrix_at(b, f + fl) @ Vector(hit_l)
             return (ms @ Matrix.Scale(mpu, 4)).inverted() @ hit
         return at
+
+    # How a planned gun behaves (owner, 2026-10-23: turrets that do not elevate, pop instead of
+    # slewing, fire at nothing in long bursts, and shells that home): it trains on its target
+    # every frame at its turn rate, both axes, easing in; it fires in bursts with gaps, and only
+    # while it is on target, in range and with no other hull in the way; its rounds fly straight.
+    ON_TARGET_DEG = 3.0
+    MAX_FLIGHT_S = 2.2
+    MAX_RANGE_M = 3500.0
+    BURST_S, GAP_S = (.8, 2.0), (1.0, 2.6)
+    PREROLL_S = 2.0
+
+    def planned(self, ctx, kit, a, b, turret, weapon, muzzle_l, hit_l, speed, feeder, track):
+        """Fire turret on a at b over the whole shot as a gun would: returns the round records, or
+        None for a mount with no pivot (the caller fires it the old way)."""
+        g = kit.guns
+        fps = self.fps
+        guns = sorted((x for x in ctx.anchors.guns if x.turret == turret), key=g.gun_index)
+        if not guns:
+            return None
+        piv, elev = g.trainers(guns[0].empty)
+        if piv is None:
+            return None
+        w = g.WEAPONS[weapon]
+        rate = math.radians(w.get('turn', 30.0)) / fps
+        F0, F1 = self.span[0] - round(self.PREROLL_S * fps), self.span[1]
+        y, p = piv.rotation_euler.z, (elev.rotation_euler.y if elev is not None else 0.0)
+        plan = {}
+        for f in range(F0, F1 + 1):
+            got = g.aim_solve(ctx, turret, track(f))
+            yd, pd = got[2], (got[3] if got[3] is not None else 0.0)
+            ey = math.atan2(math.sin(yd - y), math.cos(yd - y))
+            ep = pd - p
+            y += max(-rate, min(rate, ey * .3))            # eased: slows as it closes, never past its rate
+            p += max(-rate, min(rate, ep * .3))
+            plan[f] = (y, p, math.degrees(max(abs(ey), abs(ep))))
+        frames = list(range(F0, F1 + 1))
+        g._bake(piv, 'rotation_euler', 2, frames, [plan[f][0] for f in frames])
+        if elev is not None:
+            g._bake(elev, 'rotation_euler', 1, frames, [plan[f][1] for f in frames])
+
+        def pose(f):
+            piv.rotation_euler.z = plan[f][0]
+            if elev is not None:
+                elev.rotation_euler.y = plan[f][1]
+        rnd = random.Random(f'asharu-bursts|{a}|{turret}|{b}')
+        bursts, t = [], F0 + rnd.uniform(0, 1.5) * fps
+        while t < F1:
+            on = rnd.uniform(*self.BURST_S) * fps
+            bursts.append((t, t + on))
+            t += on + rnd.uniform(*self.GAP_S) * fps
+        mpu = self.placed[a]['mpu']
+        copy_at = lambda f: self.matrix_at(a, f) @ Matrix.Scale(mpu, 4)
+        others = [k for k in self.placed if k not in (a, b)]
+        clear = {}
+
+        def line_clear(f):
+            k = f - f % 6
+            if k not in clear:
+                src = self.matrix_at(a, k) @ Vector(muzzle_l)
+                dst = self.matrix_at(b, k) @ Vector(hit_l)
+                seg, ok = dst - src, True
+                for o in others:
+                    c = self.matrix_at(o, k).translation
+                    r = self.placed[o]['length'] * .35
+                    u = max(0.0, min(1.0, (c - src).dot(seg) / max(seg.length_squared, 1e-6)))
+                    if (src + seg * u - c).length < r:
+                        ok = False
+                        break
+                clear[k] = (ok, seg.length)
+            return clear[k]
+        stats = {'on': 0, 'off_target': 0, 'range': 0, 'blocked': 0, 'gap': 0}
+
+        def allow(f):
+            if not any(t0 <= f < t1 for t0, t1 in bursts):
+                stats['gap'] += 1
+                return False
+            if plan.get(f, (0, 0, 99))[2] > self.ON_TARGET_DEG:
+                stats['off_target'] += 1
+                return False
+            ok, dist = line_clear(f)
+            if dist > min(speed * self.MAX_FLIGHT_S, self.MAX_RANGE_M):
+                stats['range'] += 1
+                return False
+            if not ok:
+                stats['blocked'] += 1
+                return False
+            stats['on'] += 1
+            return True
+        recs = g.fire_weapon(ctx, turret, F0, (F1 - F0) / fps, feeder=feeder, target=track, train=False,
+                             allow=allow, pose=pose,
+                             after=lambda f, objs: g.world_rounds(objs, lambda k, f=f: copy_at(k).inverted() @ copy_at(f)))
+        aims = [math.degrees(plan[f][1]) for f in frames[::24]]
+        self.rows.append(f'planned {a} t{turret} -> {b}: {len(recs)} rounds in {len(bursts)} bursts; '
+                         f'skipped {stats}; elevation {"none (traverse only)" if elev is None else f"{min(aims):+.1f}..{max(aims):+.1f} deg"}; '
+                         f'traverse {math.degrees(plan[F0][0]):+.1f} -> {math.degrees(plan[F1][0]):+.1f} deg')
+        return recs
 
     def strikes(self, key, frames, at_l, normal, kind):
         """Rounds arriving on key's hull (or shield) around at_l on these frames."""
@@ -311,6 +415,10 @@ class SceneFx:
             return False
         fl = pd.plan_flares(anchors, self.now - round(1.2 * self.fps))
         with ship.kit() as (ctx, kit):
-            pd.key_flares(ctx, fl, self.space(key), ship.mpu)
+            # small bright points with thin smoke (coordinator's default, 2026-10-23, pending the owner):
+            # a glare of 0.6 m, a faint grey trail, a dimmer light
+            pd.key_flares(ctx, fl, self.space(key), ship.mpu, glare_m=.6, light_w=4.0e3,
+                          trail=dict(trail_glow=0.0, trail_alpha=.3, trail_r_m=.45, trail_spread=1.2,
+                                     trail=(.55, .55, .55)))
         self.rows.append(f'flares {key}: {len(fl)}')
         return True

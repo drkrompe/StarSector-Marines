@@ -2158,10 +2158,19 @@ def blender_main(cfg):
     def tracer(a, b, local=None, n=6, muzzle=None):
         p0 = muzzle_world(a, muzzle)
         p1 = at(b, local or (0, 0, 0)) + Vector(rng.normal(0, 12, 3))
+        firing = True
+        if span_now.get('span'):     # in motion: bursts with gaps (owner: no long bursts at nothing)
+            import random as _random
+            r, t, firing = _random.Random(f'stand-in bursts|{a}|{b}'), -10.0 + _random.Random(a).uniform(0, 1.5), False
+            while t < 10.0 and not firing:
+                on = r.uniform(.8, 2.0)
+                firing = t <= span_dt() < t + on
+                t += on + r.uniform(1.0, 2.6)
         for i in range(n):
             f0 = .08 + (rng.uniform(0, .87) + span_dt() * 1200.0 / (p1 - p0).length) % .87   # rounds travel in a span
             f1 = min(1.0, f0 + 30.0 / (p1 - p0).length)
-            segment(p0.lerp(p1, f1), p0.lerp(p1, f0), .7, tracer_mat, 'Tracer')
+            if firing:
+                segment(p0.lerp(p1, f1), p0.lerp(p1, f0), .7, tracer_mat, 'Tracer')
 
     def missiles(a, b, n=5, muzzle=None):
         p0, p1 = muzzle_world(a, muzzle), at(b)
@@ -2727,6 +2736,7 @@ def blender_main(cfg):
             spec = SHOTS[kf]
             rng = np.random.default_rng(7)     # every frame draws the same stand-ins: a span's do not flicker
             span_now['dt'] = spec['span_t'] - spec['key_t'] if 'span_t' in spec else 0.0
+            span_now['span'] = 'span_t' in spec
             for key, sp in spec['ships'].items():
                 place(key, sp, spec.get('states', {}).get(key))
             if not step:                     # the kit's build: once per run under --kit-once
@@ -2750,6 +2760,8 @@ def blender_main(cfg):
                         else:
                             placed[key]['lib']['ctl'][name] = val
                 for key, cue in spec.get('cues', {}).items() if cfg.get('swfx') else ():
+                    if 'span_t' in spec:     # in motion a gun flashes when it fires a round, not on cue
+                        cue = {k: v for k, v in cue.items() if k != 'fire'}
                     apply_cue(key, placed[key]['fx'], cue)
                 if ships_fx or any(lib.get('ctl') is not None for lib in library.values()):
                     ship_fx.refresh(scene)     # drivers read the knobs

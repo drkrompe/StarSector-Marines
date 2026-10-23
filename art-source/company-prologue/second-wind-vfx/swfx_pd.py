@@ -560,9 +560,11 @@ def key_flak(ctx, bursts, space, launch_from, launch_s=.45, mpu=None, fps=24, st
     return len(bursts)
 
 
-def key_flares(ctx, flares, space, mpu=None):
+def key_flares(ctx, flares, space, mpu=None, glare_m=3.5, trail=None, light_w=2.0e4):
     """Key flares on the ship that throws them (inside its ship.kit()): a flickering
-    white-orange glare, a light, and a short bright trail left in place."""
+    white-orange glare, a light, and a short bright trail left in place. glare_m: the glare's
+    radius; trail: overrides for the trail's profile (Asharu, owner 2026-10-23: small bright
+    points with thin smoke, not glowing rods with balls on them); light_w: the light's watts."""
     bpy = _bpy()
     import swfx_core
     import swfx_guns
@@ -572,6 +574,7 @@ def key_flares(ctx, flares, space, mpu=None):
     mat = mp.glow_material(ctx, f'{PREFIX} flare glow', FLARE, strength=30.0, core=.9)
     trail_prof = dict(mp.PROFILES['harpoon'], trail=FLARE, trail_alpha=.5, trail_glow=1.5, trail_r_m=1.6,
                       trail_spread=2.2, trail_life_s=1.0, ignite_s=0.0)
+    trail_prof.update(trail or {})
     for k, fr in enumerate(flares):
         rnd = random.Random(f'swfx-flare-key|{k}|{fr.frame}')
         frames = list(range(fr.frame, fr.last + 1))
@@ -581,7 +584,7 @@ def key_flares(ctx, flares, space, mpu=None):
         ob.visible_shadow = False
         for i in range(3):
             swfx_guns._bake(ob, 'location', i, frames, [p[i] for p in locs])
-        r = 3.5 / mpu
+        r = glare_m / mpu
         size = [r * (.6 + .4 * min(1, j / 3)) * (1 - .5 * (j / len(frames)) ** 3) for j in range(len(frames))]
         for i in range(3):
             swfx_guns._bake(ob, 'scale', i, frames, size)
@@ -593,7 +596,7 @@ def key_flares(ctx, flares, space, mpu=None):
         lt = swfx_core.point_light(f'{PREFIX} flare light {k} f{fr.frame:04d}', coll, FLARE, 0.0, radius=1.0)
         lt.parent = ob
         lt.data.keyframe_insert('energy', frame=frames[0] - 1)
-        lt.data.energy = 2.0e4
+        lt.data.energy = light_w
         lt.data.keyframe_insert('energy', frame=frames[0])
         lt.data.keyframe_insert('energy', frame=frames[-1])
         lt.data.energy = 0.0

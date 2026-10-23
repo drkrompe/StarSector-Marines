@@ -1008,7 +1008,8 @@ def cadence(weapon, seconds, feeder=False):
     return out
 
 
-def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, tag=None, train=True, only=None):
+def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, tag=None, train=True, only=None,
+                allow=None, pose=None, after=None):
     """Fire an armed mount for `seconds` from `start_frame` at the game's cadence (cadence()):
     barrels alternate per round ('alternating'), per burst ('alternating_burst') or fire together
     ('linked'). target: a point in the ship's own (copy) space the rounds fly to and stop at, as
@@ -1019,7 +1020,11 @@ def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, ta
     the ship over the burst: each round flies to, and the turret trains onto, where it is then.
     only: (first, last) frames: rounds fired outside them are counted but not built. A motion span
     renders each frame from its own rebuild, so a frame builds only the rounds it can see, on the
-    same cadence and the same per-round seeds as the whole burst."""
+    same cadence and the same per-round seeds as the whole burst.
+    allow(frame) -> bool: a round on that frame fires only if it says so (counted either way, so
+    seeds and barrels stay in step). pose(frame): called before a round is built, to stand the
+    turret where a planned aim has it then (anchor_matrix reads the current pose, not the keys).
+    after(frame, objects): the unparented objects that round made (world_rounds' input)."""
     guns = [g for g in ctx.anchors.guns if g.turret == turret and getattr(g, 'kind', 'gun') != 'launcher'
             and (tag is None or g.tag == tag)]
     if not guns or not ctx.spec.get('guns', True):
@@ -1042,6 +1047,17 @@ def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, ta
             far = float('inf')
         reach = swfx_core.units(w['round']['speed'] if w.get('round') else 1000.0) * MAX_FLIGHT_S
         if not math.isfinite(far) or far > reach:
+            chain, o = [], guns[0].empty
+            while o is not None:
+                b = o.matrix_basis
+                chain.append(f'{o.name} t={tuple(round(c, 3) for c in b.translation)} '
+                             f's={tuple(round(c, 4) for c in b.to_scale())}')
+                o = o.parent
+            lib = getattr(guns[0].empty, 'library', None)
+            print(f'SWFX guns: degenerate anchor chain for turret {turret}: {" <- ".join(chain)}; '
+                  f'anchor matrix det {anchor_matrix(guns[0].empty).determinant():.4g}; '
+                  f'library {lib.filepath if lib else None}; file {bpy.data.filepath!r}; target {tuple(round(c, 2) for c in target)}',
+                  flush=True)
             print(f'SWFX guns: turret {turret} cannot fire {weapon} at its target '
                   f'({far:.4g} u off in the space of its anchor, reach {reach:.4g} u): degenerate anchor', flush=True)
             return []
@@ -1051,10 +1067,13 @@ def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, ta
         f = int(round(exact))
         mode = w['barrels']
         pick = guns if mode == 'linked' else [guns[(k if mode == 'alternating_burst' else n) % len(guns)]]
-        if only is not None and not only[0] <= f <= only[1]:
+        if (only is not None and not only[0] <= f <= only[1]) or (allow is not None and not allow(f)):
             for g in pick:
                 _rig(ctx, g)['count'] += 1
             continue
+        if pose is not None:
+            pose(f)
+        before = set(ctx.collection(GROUP).objects.keys()) if after is not None else None
         tg = target_at(f) if target is not None else None
         trained = None
         if tg is not None and train:
@@ -1065,6 +1084,9 @@ def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, ta
             out.append(_weapon_shot(ctx, g, f, lead=f - exact, target=tg))
             if trained is not None:
                 out[-1]['aim'] = trained
+        if after is not None:
+            objs = ctx.collection(GROUP).objects
+            after(f, [objs[n] for n in objs.keys() if n not in before and objs[n].parent is None])
     return out
 
 
@@ -1522,6 +1544,63 @@ def aim(ctx, turret, target, frame, tag=None, slew_frames=None, turn_rate=None, 
             _key_constant(ob, 'rotation_euler', i, frame)
     return (round(math.degrees(piv.rotation_euler.z), 2),
             round(math.degrees(elev.rotation_euler.y), 2) if elev is not None else None)
+
+
+def aim_solve(ctx, turret, target, tag=None, iterations=4):
+    """aim()'s solve without keying: the mount's pivot traversed and its elevation lifted until
+    the muzzle line passes through `target` (copy space, units), left standing there. Returns
+    (pivot, elevation, traverse rad, elevation rad); elevation None for a traverse-only mount;
+    None for a fixed hardpoint."""
+    guns = sorted((g for g in ctx.anchors.guns if g.turret == turret and (tag is None or g.tag == tag)),
+                  key=gun_index)
+    if not guns:
+        return None
+    a = guns[0]
+    piv, elev = trainers(a.empty)
+    if piv is None:
+        return None
+    T = Vector(target)
+    X, Y, Z = Vector((1, 0, 0)), Vector((0, 1, 0)), Vector((0, 0, 1))
+    for _ in range(iterations):
+        m = anchor_matrix(a.empty)
+        piv.rotation_euler.z += _signed_angle(m.to_3x3() @ X, T - m.translation,
+                                              (anchor_matrix(piv).to_3x3() @ Z).normalized())
+        if elev is not None:
+            m = anchor_matrix(a.empty)
+            elev.rotation_euler.y += _signed_angle(m.to_3x3() @ X, T - m.translation,
+                                                   (anchor_matrix(elev).to_3x3() @ Y).normalized())
+    return piv, elev, piv.rotation_euler.z, (elev.rotation_euler.y if elev is not None else None)
+
+
+def world_rounds(objs, delta_at):
+    """Make a round fly straight in the world while its ship moves on (owner, 2026-10-23: shells
+    "track while in flight onto moving targets"). The round was built in its ship's copy space as
+    the ship stood when it fired; delta_at(frame) is the matrix from that space to the copy space
+    on `frame`. A keyed mover gets location and rotation keys through it on each of its keyed
+    frames; a static object (one bolt strike, shown on one frame) is moved by its first shown
+    frame's delta. Parented objects (flash, cloud, puff, brass) ride the turret and are not passed."""
+    for ob in objs:
+        fcs = [swfx_core.find_fcurve(ob, 'location', i) for i in range(3)]
+        if all(fc is not None and len(fc.keyframe_points) for fc in fcs):
+            frames = [kp.co.x for kp in fcs[0].keyframe_points]
+            r0 = ob.rotation_euler.to_matrix()
+            locs, rots, prev = [], [], ob.rotation_euler.copy()
+            for f in frames:
+                d = delta_at(int(round(f)))
+                locs.append(d @ Vector([fc.evaluate(f) for fc in fcs]))
+                e = (d.to_3x3().normalized() @ r0).to_euler('XYZ', prev)
+                rots.append(e)
+                prev = e
+            for i in range(3):
+                _bake(ob, 'location', i, frames, [v[i] for v in locs])
+            if ob.type != 'LIGHT':
+                for i in range(3):
+                    _bake(ob, 'rotation_euler', i, frames, [e[i] for e in rots])
+            continue
+        vis = swfx_core.find_fcurve(ob, 'hide_render')
+        shown = [kp.co.x for kp in vis.keyframe_points if kp.co.y < .5] if vis is not None else []
+        if shown:
+            ob.matrix_basis = delta_at(int(round(min(shown)))) @ ob.matrix_basis
 
 
 def _braid_dir(a, converge_m):
