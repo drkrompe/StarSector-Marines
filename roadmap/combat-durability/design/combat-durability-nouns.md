@@ -4,7 +4,7 @@ Status: ACTIVE — armor-and-structure resolution is live; decision, evidence, a
 
 Written: 2026-08-23
 
-Updated: 2026-10-23 — a ground hull holds damage by location (plates, drive, hull) and an infantry special's commit gate reads the plate facing it; earlier: a tank's turret is a section of its hull, on the mech section law; mech missile racks split into contact (anti-armor) and area (fragmentation) warheads; a rocket's contact payload rides its detonation. Earlier: the heavy cannon's contact hit is fixed.
+Updated: 2026-10-23 — worn plate draws located damage on live hulls and mechs; earlier: a ground hull holds damage by location (plates, drive, hull) and an infantry special's commit gate reads the plate facing it; earlier: a tank's turret is a section of its hull, on the mech section law; mech missile racks split into contact (anti-armor) and area (fragmentation) warheads; a rocket's contact payload rides its detonation. Earlier: the heavy cannon's contact hit is fixed.
 
 ## Purpose
 
@@ -382,6 +382,36 @@ These transitional readers are not another durability authority and must not
 be copied into new consumers. `stories.md` owns their bounded conversion to
 current-state decisions, real armor-break morale, split evidence, and legible
 armor, structure, rating, and penetration presentation.
+
+**Worn plate** is located damage drawn on the living body: scuff marks on a
+ground hull's plates and turret and on a mech's parts, so the side that has been
+stripped looks stripped (`VehicleScuffs`, `MechScuffSink`). It is presentation,
+and it observes, never records: a location's marks are a pure function of its
+current armor (a mech section's also of its structure, a quarter of its wear),
+so nothing is written per hit, a re-plated location comes back clean, and a
+review frame or a replay draws exactly what the screen did. Each location owns a
+fixed set of slots, each hashed from the body, the location and the slot into a
+position, turn, stage and wear threshold. A slot shows once the location's wear
+passes its threshold and never moves after, so marks build up in place, in three
+stages: scrapes and bullet pocks, then scorch, then gouges and dents.
+
+A mark belongs to the part of the silhouette its location covers. A hull frame's
+opaque footprint, turned into the hull's own axes, is split along its diagonals
+into front, rear, left and right plates; a turret frame is one region; a mech's
+torso is split the same way, its rear quarter wearing with the rear plate; each
+arm, shoulder pod and foot is its own part. A mark is laid in its part's frame
+and turns with it, which matters for a mech, whose torso, hips and arms turn
+independently, and a part drawn over another covers that one's marks as it
+covers its paint. A mark never hangs off the silhouette: it may only sit on an
+opaque point whose distance to the nearest transparent pixel covers the mark's
+reach. So a narrow part, such as a Hound's torso, carries few and small marks.
+That is the honest consequence of the law, not a defect. A wreck carries none,
+because its registered wreck art already shows what happened to it.
+
+The marks are the mod's own scuff sheet, sized for vehicle sprites at play zoom
+(`art-source/vehicles/scuffs/`). The base game's ship damage decals were tried
+first and read only as smudges on a tank. Their size, 0.3 of a part's narrower
+extent, was picked by the owner over 0.22 and 0.4.
 
 ## Standing laws
 

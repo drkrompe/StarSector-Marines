@@ -25,6 +25,7 @@ import com.dillon.starsectormarines.marine.MissilePodMountGeometry;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService.PodLaunch;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.mech.MechGaitState;
+import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.sim.TurretStateService;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -210,6 +211,8 @@ public final class UnitRenderService implements RenderSystem {
     }
 
     private final BattleSprites sprites;
+    /** Draws each layered mech's parts and the worn plate on them ({@code combat-durability-nouns.md}). */
+    private final MechScuffSink mechScuffs;
     private final SystemHaloComposer halo = new SystemHaloComposer();
     /**
      * How each destroyed airframe's hull came apart, worked out on first draw
@@ -225,6 +228,7 @@ public final class UnitRenderService implements RenderSystem {
 
     public UnitRenderService(BattleSprites sprites) {
         this.sprites = sprites;
+        this.mechScuffs = new MechScuffSink(sprites);
     }
 
     @Override
@@ -456,8 +460,8 @@ public final class UnitRenderService implements RenderSystem {
 
             TurretLayerPose pose = TurretLayerPose.resolve(
                     cx, cy, facingDegrees, structure.mount.visualCells, cellPx,
-                    turretState.recoilTimer(id), BattleRenderer.RECOIL_DURATION,
-                    BattleRenderer.RECOIL_DISTANCE_FRAC);
+                    turretState.recoilTimer(id), structure.mount.recoil.seconds(),
+                    structure.mount.recoil.distanceFrac());
 
             ShuttleSpriteCache barrel = look != null && look.recoilSpritePath() != null
                     ? sprites.spriteByPath(look.recoilSpritePath()) : sprites.turretRecoilSprites().get(structure.id);
@@ -1401,7 +1405,10 @@ public final class UnitRenderService implements RenderSystem {
                             cam.cellToScreenX(rx[r] + gait.waistOffsetX()),
                             cam.cellToScreenY(ry[r] + gait.waistOffsetY()),
                             gait.leftFootLift(), gait.rightFootLift()) : null;
-                    LayeredMechComposer.emit(out, mechAssets, cx, cy, hullWidth,
+                    World world = ctx.sim.world();
+                    MechSections sections = world.hasMechLoadout(entityId)
+                            ? world.mechLoadout(entityId).sections() : null;
+                    LayeredMechComposer.emit(mechScuffs.begin(out, sections, entityId), mechAssets, cx, cy, hullWidth,
                             mechHipFacing[r], mechFacing[r], mechLocomotion[r], mechChaingunPhase[r],
                             mechSrmPhase[r], mechLrmPhase[r], mechFlags[r], mechChassis[r],
                             mechArms[r], mechLeftArm[r], mechRightArm[r],

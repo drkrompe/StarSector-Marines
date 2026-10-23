@@ -536,7 +536,7 @@ has a manual contract (grenade launchers and satchels are autonomous), so a Mari
 carrying only those leaves the right button inert rather than inventing a new free
 action. C and G keep working.
 
-A held rack chains its salvos (`mechs-nouns.md`, `salvo-chain.md`): a click is one salvo, and a
+A held rack chains its salvos (`mechs-nouns.md`, Flux): a click is one salvo, and a
 hold that has fired one keeps firing the next as soon as the last has gone, without the cycle, until
 release or an empty rack. A vehicle turret's launcher does the same under manual fire.
 

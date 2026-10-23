@@ -119,7 +119,7 @@ public enum MechWeaponComponent {
     }
 
     /**
-     * A missile rack holding more than one salvo: a held trigger chains its salvos (`salvo-chain.md`,
+     * A missile rack holding more than one salvo: a held trigger chains its salvos (`mechs-nouns.md`,
      * {@link com.dillon.starsectormarines.battle.combat.SalvoChain}).
      */
     public boolean chainsSalvos() {

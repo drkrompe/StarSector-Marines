@@ -107,7 +107,7 @@ public final class MechWeaponMount {
 
     /** Whether this mount chains its salvos under a held trigger. */
     public boolean chains() {
-        return component.chainsSalvos() && SalvoChain.enabled();
+        return component.chainsSalvos();
     }
 
     /**

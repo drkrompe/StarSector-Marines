@@ -138,7 +138,10 @@ def flash_material(ctx, rgb):
     blue, a torpedo's red), feathered to nothing at the silhouette with no rim. The jagged lobes
     give the shape; the emission stays modest, so the extra brightness is left to the camera's
     glare and bloom rather than to a large bright solid. Object colour R is the intensity
-    (keyed), G pushes the grade toward the core while the flash is young."""
+    (keyed), G pushes the grade toward the core while the flash is young, and B is how whole the
+    flash still is: 1 (the default, unkeyed) a whole lobed body; below 1 it tears into radial
+    tongues and loses its white heart (owner, 2026-10-23: an HE blast is a short bright flash
+    that breaks into ragged, directional debris and fire, no white body that holds)."""
     bpy = _bpy()
     import swfx_core
     import swfx_guns
@@ -156,7 +159,23 @@ def flash_material(ctx, rgb):
     lw.inputs['Blend'].default_value = .35
     c = g.clamp01(g.sub(1.0, lw.outputs['Facing']))          # 1 facing the camera, 0 at the silhouette
     feather = g.pow(c, 2.4)                                  # soft to the edge, no rim
-    grade = g.clamp01(g.add(g.pow(c, 1.6), g.mul(sep.outputs[1], .35)))
+    whole = sep.outputs[2]
+    tear = g.sub(1.0, whole)
+    grade = g.clamp01(g.add(g.mul(g.pow(c, 1.6), g.add(g.mul(whole, .55), .45)), g.mul(sep.outputs[1], .35)))
+    # Tongues: noise over the direction from the centre, so the holes run out radially and what
+    # is left of the body is rays thrown outward rather than a shrinking ball. Whole (B 1): 1.
+    tc = nodes.new('ShaderNodeTexCoord')
+    nrm = nodes.new('ShaderNodeVectorMath')
+    nrm.operation = 'NORMALIZE'
+    links.new(tc.outputs['Object'], nrm.inputs[0])
+    ray = nodes.new('ShaderNodeVectorMath')
+    ray.operation = 'MULTIPLY_ADD'
+    links.new(nrm.outputs[0], ray.inputs[0])
+    ray.inputs[1].default_value = (2.0, 2.0, 2.0)
+    links.new(tc.outputs['Object'], ray.inputs[2])
+    n = g.noise(ray.outputs[0], g.mul(info.outputs['Random'], 40.0), 1.7, 4.0, .65)
+    keep = g.clamp01(g.mul(g.sub(n, g.add(g.mul(tear, .42), .22)), 5.0))
+    holes = g.sub(1.0, g.mul(tear, g.sub(1.0, keep)))
     ramp = nodes.new('ShaderNodeValToRGB')
     els = ramp.color_ramp.elements
     rim = tuple(.5 * a + .5 * b for a, b in zip((1.0, .30, .05), rgb))   # orange leaning to the blast colour
@@ -168,7 +187,7 @@ def flash_material(ctx, rgb):
     links.new(grade, ramp.inputs['Fac'])
     em = nodes.new('ShaderNodeEmission')
     links.new(ramp.outputs['Color'], em.inputs['Color'])
-    links.new(g.mul(g.mul(feather, sep.outputs[0]), 4.0), em.inputs['Strength'])
+    links.new(g.mul(g.mul(g.mul(feather, sep.outputs[0]), holes), 4.0), em.inputs['Strength'])
     tr = nodes.new('ShaderNodeBsdfTransparent')
     add = nodes.new('ShaderNodeAddShader')
     links.new(tr.outputs[0], add.inputs[0])
@@ -247,13 +266,17 @@ def shrapnel_material(ctx):
 
 def burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), axis=None, lean=1.1, light_w=0.0,
           shrapnel=(2, 4), smoke=.55, smoke_life=(10, 14), smoke_rgb=SMOKE_RGB, flash_frames=3, parent=None,
-          prefix=PREFIX):
+          prefix=PREFIX, tear=False, smoke_drift=0.0):
     """One burst at `here` (collection space, hull units) on frame f. size_m: the flash's
     radius range in metres (the scale everything else follows). axis: a collection-space
     direction the burst throws along (a surface normal; None all round), with `lean` how far.
     shrapnel: loose fragments added to the spikes' own (None or (0, 0) for none). smoke: the
     puff's peak opacity (0 none) over smoke_life frames. light_w: a flash light (W, hull-unit
-    file). parent: an object to hang everything from (it then rides with it). Returns objects."""
+    file). parent: an object to hang everything from (it then rides with it). tear: the flash is
+    whole and white-hot for its first frame only, then tears into orange tongues thrown outward
+    over the rest of flash_frames (an HE blast); False keeps it whole as it fades. smoke_drift: the
+    smoke fades in over three frames and flies out along the throw by that many flash radii over its
+    life, so it is torn off the blast rather than a body left where the flash was. Returns objects."""
     bpy = _bpy()
     import swfx_core
     import swfx_guns
@@ -282,11 +305,21 @@ def burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), axis=
     fl.visible_shadow = False
     n_fl = max(2, int(flash_frames))
     fr = [f + j for j in range(n_fl + 1)]
-    grow = [.55 + .65 * (1 - math.exp(-2.5 * j / n_fl)) for j in range(n_fl + 1)]
+    if tear:
+        # One whole white-hot frame, then torn orange tongues flying out and fading.
+        grow = [.6 + 1.0 * (1 - math.exp(-2.0 * j / n_fl)) for j in range(n_fl + 1)]
+        heat = [1.7] + [1.0 * (1 - j / n_fl) ** 1.2 for j in range(1, n_fl + 1)]
+        young = [.35] + [0.0] * n_fl
+        whole = [1.0] + [max(0.0, .4 - .2 * (j - 1)) for j in range(1, n_fl + 1)]
+        swfx_guns._bake(fl, 'color', 2, fr, whole)
+    else:
+        grow = [.55 + .65 * (1 - math.exp(-2.5 * j / n_fl)) for j in range(n_fl + 1)]
+        heat = [1.7 * (1 - j / n_fl) ** 1.3 for j in range(n_fl + 1)]
+        young = [.35 * (1 - j / n_fl) for j in range(n_fl + 1)]
     for i in range(3):
         swfx_guns._bake(fl, 'scale', i, fr, [size * v * stretch[i] for v in grow])
-    swfx_guns._bake(fl, 'color', 0, fr, [1.7 * (1 - j / n_fl) ** 1.3 for j in range(n_fl + 1)])
-    swfx_guns._bake(fl, 'color', 1, fr, [.35 * (1 - j / n_fl) for j in range(n_fl + 1)])
+    swfx_guns._bake(fl, 'color', 0, fr, heat)
+    swfx_guns._bake(fl, 'color', 1, fr, young)
     swfx_guns._visible_between(fl, f, f + n_fl - 1)
     out.append(fl)
     # Shrapnel along the spikes and a few loose: short and white-hot at the core, dark within
@@ -337,7 +370,13 @@ def burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), axis=
         grow = [size * 1.15 * (.6 + .6 * (1 - math.exp(-3.0 * i / life))) for i in range(life + 1)]
         for i in range(3):
             swfx_guns._bake(sm, 'scale', i, fr, [v * (.8 + .2 * stretch[i]) for v in grow])
-        swfx_guns._bake(sm, 'color', 0, fr, [smoke * (1 - i / life) ** 1.5 for i in range(life + 1)])
+        fade = [min(1.0, (i + 1) / 3.0) if smoke_drift else 1.0 for i in range(life + 1)]
+        swfx_guns._bake(sm, 'color', 0, fr, [smoke * a * (1 - i / life) ** 1.5 for i, a in zip(range(life + 1), fade)])
+        if smoke_drift:
+            out_dir = (Vector(axis).normalized() if axis is not None else Vector((0, 0, 0)))
+            path = [here + out_dir * size * smoke_drift * (1 - math.exp(-2.5 * i / life)) for i in range(life + 1)]
+            for i in range(3):
+                swfx_guns._bake(sm, 'location', i, fr, [p[i] for p in path])
         swfx_guns._bake(sm, 'color', 2, [f + 1], [rnd.random()], 'CONSTANT')
         swfx_guns._visible_between(sm, f + 1, f + life)
         out.append(sm)

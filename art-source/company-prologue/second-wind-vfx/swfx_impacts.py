@@ -318,10 +318,12 @@ def kinetic(ctx, frame, at_m, normal, scale=1.0, style=None):
     return _record('kinetic', frame, at_m, e, obs)
 
 
-def he(ctx, frame, at_m, normal, size_m=None, scale=1.0, flash_colour=(1.0, .62, .3), style=None):
+def he(ctx, frame, at_m, normal, size_m=None, scale=1.0, flash_colour=(1.0, .62, .3), style=None, tear=True):
     """A high-explosive shell on armour: an orange flash and short fireball, slow spall, sparks,
     a wider glowing crater. size_m sets the fireball radius (default KINDS['he']); flash_colour
-    tints the flash and its light (a Harpoon warhead's is the game's blue, 100,165,255)."""
+    tints the flash and its light (a Harpoon warhead's is the game's blue, 100,165,255). tear: the
+    jagged flash is whole for one frame and then tears into tongues (False: the old whole flash
+    held four frames, kept for the bench's before/after)."""
     k = KINDS['he']
     s = (size_m / k['fireball_m'] if size_m else 1.0) * scale
     e, seed = anchor(ctx, 'he', frame, at_m, normal)
@@ -333,10 +335,12 @@ def he(ctx, frame, at_m, normal, size_m=None, scale=1.0, flash_colour=(1.0, .62,
         # One burst: the jagged flash, shrapnel cooling fast and torn smoke, all thrown out of
         # the face; the flash light stays the kit's own.
         R = k['fireball_m'] * s
-        obs += _flash(ctx, e, seed, k['flash_m'] * s, k['flash_s'], k['flash_W'] * s ** 2, colour=flash_colour,
-                      body=False)
+        # Torn: the light dies with the white frame (0.14 s kept the smoke lit cream-white for half
+        # a second, the blob that held, bench_he 2026-10-23) and the smoke flies off the blast.
+        obs += _flash(ctx, e, seed, k['flash_m'] * s, k['flash_s'] * (.4 if tear else 1.0), k['flash_W'] * s ** 2,
+                      colour=flash_colour, body=False)
         obs += _burst(ctx, e, flash_colour, (R * .55, R * .8), lean=1.2, shrapnel=(3, 6), smoke=.6,
-                      smoke_life=(14, 22), flash_frames=4)
+                      smoke_life=(14, 22), flash_frames=5 if tear else 4, tear=tear, smoke_drift=1.2 if tear else 0.0)
     else:
         obs += _flash(ctx, e, seed, k['flash_m'] * s, k['flash_s'], k['flash_W'] * s ** 2, colour=flash_colour,
                       style='orb')

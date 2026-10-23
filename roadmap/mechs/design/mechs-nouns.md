@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-23 — held racks chain their salvos (`salvo-chain.md`); earlier: torso rear plate, torso arcs, missile warheads, duel range against armor.
+Updated: 2026-10-23 — held racks chain their salvos; earlier: torso rear plate, torso arcs, missile warheads, duel range against armor.
 
 ## Purpose
 
@@ -1319,16 +1319,20 @@ nothing; cancelled packets retain spent flux and ammo. Dissipation runs once in 
 serial heavy-weapon pass, including on unselected mounts and autonomous chassis.
 Direct-control entry, exit, pause and input suspension never reset these resources.
 
-**A held rack chains its salvos** (`salvo-chain.md`, `SalvoChain`). A rack's trigger is one
+**A held rack chains its salvos** (`SalvoChain`). A rack's trigger is one
 salvo; once a hold has fired one, the next follows as soon as the last has gone, without the
 rack's cycle, until the button is released or the rack is empty, and the cycle then runs from the
 last salvo. So an LRM-15 is 5 on a click, 10 on a short hold and 15 on a long one, and a deeper rack
-is a bigger spike. A chained salvo reserves half its trigger's flux, which lets an LRM-15 empty
-inside the stock reservoir while flux still bounds the deepest racks. The replenisher restores the
+is a bigger spike. A fresh press after release waits out the cycle like any trigger. A chained
+salvo reserves half its trigger's flux (owner, 2026-10-23): at the full share an LRM-15's fifteen
+would cost 120 and could never leave inside the stock 100, while at half they cost 80, and flux still
+bounds the deepest racks (an SRM-15's six salvos would cost 147). The replenisher restores the
 spent salvos one pack at a time, as ever. An autonomous mech chooses its count on a fresh trigger:
 one salvo at a soft target, the whole load at a mech or at a target its own side's point defence
-covers, and half the load at other armor; a chained salvo goes only to the body its chain began
-on. `-Dbattle.salvoChain=false` is the control.
+covers, and half the load (rounded up) at other armor; a chained salvo goes only to the body its
+chain began on. A vehicle turret's missile launcher obeys the same hold and choice, except that its
+crew chains at most three salvos (owner, 2026-10-23): a vehicle magazine is its whole stock and is
+never replenished in battle, so it is not one rack's buffer to empty at the first machine it sees.
 
 **Against a machine, the mount that best defeats its armor fires first.** The
 reservoir admits one packet at a time, so whichever mount an autonomous mech tries
