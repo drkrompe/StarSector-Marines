@@ -2208,6 +2208,8 @@ def _slug_trail(ctx, coll, label, frame, weapon, frames, heads, burn, M, d, rot,
 # --- screen width ---------------------------------------------------------------
 ROUND_NAME = re.compile(r'SWFX guns (round(?: core| trail)?|bolt) (.+?) (f\d{4})')
 STREAK_PX = (.5, 1.4)     # a round's corona radius on screen, pixels at 1920 across
+MIN_STREAK_PX = 18.0      # a round's shortest length on screen, pixels at 1920 across (4.5 at quarter size)
+MIN_STREAK_STRETCH = 5.0  # the most a round is lengthened to get there: one flying at the lens stays short
 FLARE_NAME = re.compile(r'SWFX pd flare \d+ f\d{4}')
 FLARE_PX = (.8, 1.8)      # a decoy flare's glare radius on screen: a bright point, never a disc;
                           # under 4 px across, swfx_lint.orbs' threshold, so a clamped flare is never an orb
@@ -2225,14 +2227,16 @@ def _fc_at(ob, path, index, frame, default):
     return fc.evaluate(frame) if fc is not None and len(fc.keyframe_points) else default
 
 
-def screen_clamp(objs, cam_at, to_world=None, px=STREAK_PX, width_px=1920, flare_px=FLARE_PX):
+def screen_clamp(objs, cam_at, to_world=None, px=STREAK_PX, width_px=1920, flare_px=FLARE_PX, min_len_px=MIN_STREAK_PX):
     """Keep each round's drawn width inside a believable tracer's pixel band at the camera's
     distance (owner, 2026-10-23: streaks "very large at this zoom"). For every round among `objs`
     (its corona, core, ember trail, or an ion bolt strike, grouped by gun and fire frame), on each
     frame it is keyed or shown, the corona's radius in pixels is measured and, outside px=(lo, hi),
     the whole round's cross-section (scale Y and Z of each part, one factor, so core and sheath
     keep their proportion) is keyed to bring it to the band's edge. Length and flight are left
-    alone. A decoy flare's glare (swfx_pd.key_flares) is held to flare_px the same way, all three
+    alone, except that a round shorter on screen than min_len_px (at 1920 across) is stretched
+    along its flight to that length, up to MIN_STREAK_STRETCH times, so no round reads as a dot
+    (owner, 2026-10-23: quarter-size rounds were round dots, not streaks). A decoy flare's glare (swfx_pd.key_flares) is held to flare_px the same way, all three
     axes, so one thrown toward the camera stays a bright point and never swells into a disc.
 
     cam_at(frame) -> (camera world location, horizontal fov in radians). to_world(frame) -> the
@@ -2284,17 +2288,27 @@ def screen_clamp(objs, cam_at, to_world=None, px=STREAK_PX, width_px=1920, flare
         frames = sorted({int(round(k.co.x)) for k in fc.keyframe_points}) if fc is not None else []
         if not frames:
             frames = sorted(_shown_frames(ref)) or [ref.get('swfx_frame', 0)]
-        factors = []
+        factors, stretch = [], []
+        xs = [v.co.x for v in ref.data.vertices]
+        l0 = (max(xs) - min(xs)) if xs else 0.0
         for f in frames:
             M = to_world(f)
             loc = Vector([_fc_at(ref, 'location', i, f, ref.location[i]) for i in range(3)])
             here = M @ loc
             cam, fov = cam_at(f)
-            depth = max(1e-3, (here - Vector(cam)).length)
+            view = here - Vector(cam)
+            depth = max(1e-3, view.length)
+            per_px = width_px / (2 * depth * math.tan(fov / 2))
             r_world = r0 * M.to_scale()[1]
-            r_px = r_world / (2 * depth * math.tan(fov / 2)) * width_px
+            r_px = r_world * per_px
             want = min(max(r_px, px[0]), px[1])
             factors.append(want / r_px if r_px > 0 else 1.0)
+            # its length on screen, foreshortened by the angle its flight makes with the view line
+            nxt = M @ Vector([_fc_at(ref, 'location', i, f + 1, ref.location[i]) for i in range(3)])
+            d = nxt - here
+            side = d.normalized().cross(view.normalized()).length if d.length > 1e-6 else 1.0
+            len_px = l0 * _fc_at(ref, 'scale', 0, f, ref.scale[0]) * M.to_scale()[0] * per_px * side
+            stretch.append(min(MIN_STREAK_STRETCH, min_len_px / len_px) if 0 < len_px < min_len_px else 1.0)
         for kind, ob in parts:
             if kind == 'bolt':          # one strike shown on one frame: its own frame's factor
                 shown = sorted(_shown_frames(ob))
@@ -2307,6 +2321,9 @@ def screen_clamp(objs, cam_at, to_world=None, px=STREAK_PX, width_px=1920, flare
             for i in (1, 2):
                 base = ob.scale[i]
                 _bake(ob, 'scale', i, frames, [base * k for k in factors])
+            if kind != 'round trail' and any(k != 1.0 for k in stretch):   # the rod grows back from its head
+                sx = [_fc_at(ob, 'scale', 0, f, ob.scale[0]) for f in frames]
+                _bake(ob, 'scale', 0, frames, [v * k for v, k in zip(sx, stretch)])
             keyed += len(frames)
     return keyed
 
