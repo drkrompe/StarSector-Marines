@@ -52,7 +52,9 @@ square on its site (the planned redoubt kind of `forts.md`, a nest cluster with
 a small command post and no ship-grade guns), sized for an allied garrison.
 It is a place in the map's plan, as the civil-defence compound is in the
 colony's (`colony-breach-nouns.md`, Redoubt), so roads run up to it and its
-gates are where they cross its wall; the garrison makes the rest of it at
+gates are where they cross its wall (a road that only runs past a square
+place's side opens it only where a street leaves, and a square place no road
+grew into is given arms off the road past it); the garrison makes the rest of it at
 setup: a gun tower beside each gate, firing slits and wall posts along its
 runs, floodlights at its corners. Its wall is field grade: a Brute, a charge or
 a ground colony's spines open it. Each redoubt is numbered across the line from
