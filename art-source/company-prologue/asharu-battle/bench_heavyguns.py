@@ -116,7 +116,7 @@ def decoy_flares(bench):
     import swfx_missile_paths as mp
     import swfx_pd as pd
     h = bench.ship('hound', 'hound-p', throttle=.4)
-    anchors = pd.flare_anchors(h)
+    anchors = pd.flare_anchors(h) or pd.flank_anchors(h)       # as scene_fx.flares
     fl = pd.plan_flares(anchors, 2)
     with h.kit() as (ctx, k):
         pd.key_flares(ctx, fl, mp.space_of(h), h.mpu, glare_m=.6, light_w=4.0e3,

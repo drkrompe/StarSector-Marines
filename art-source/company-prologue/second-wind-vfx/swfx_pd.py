@@ -299,6 +299,34 @@ def flare_anchors(ship):
     return out
 
 
+def flank_anchors(ship):
+    """(world position, world axis) for a ship whose build has no flare muzzles (a Hound): two a
+    side on her flanks, a little aft of amidships and up, thrown out and slightly back and up, as
+    the blockout's stand-in flares were, so the kit's own flares (bright points, torn smoke) can
+    replace those stand-ins' grey rods. Sized off her hull's extent in her own space."""
+    lo = Vector((float('inf'),) * 3)
+    hi = -lo
+    for o in ship.hull.all_objects:
+        if o.type != 'MESH':
+            continue
+        m = mp.anchor_matrix(o)
+        for c in o.bound_box:
+            q = m @ Vector(c)
+            lo = Vector(map(min, lo, q))
+            hi = Vector(map(max, hi, q))
+    if not all(math.isfinite(v) for v in (*lo, *hi)):
+        return []
+    S = mp.space_of(ship)
+    mid, half = (lo + hi) / 2, (hi - lo) / 2
+    out = []
+    for side in (-1, 1):
+        for fx in (-.25, .1):
+            p = Vector((mid.x + fx * half.x, mid.y + side * half.y * .9, mid.z + half.z * .3))
+            d = Vector((-.35, side, .3)).normalized()
+            out.append(((S @ p).copy(), (S.to_3x3() @ d).normalized()))
+    return out
+
+
 # ======================================================================================= keying
 
 def _bpy():

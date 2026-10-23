@@ -645,7 +645,8 @@ class SceneFx:
         if ship is None:
             return False
         pd = self.m['swfx_pd']
-        anchors = pd.flare_anchors(ship)
+        # No flare muzzles on her build (a Hound): her flanks, so the kit's flares draw, not the stand-ins'
+        anchors = pd.flare_anchors(ship) or pd.flank_anchors(ship)
         if not anchors:
             return False
         fl = pd.plan_flares(anchors, self.now - round(1.2 * self.fps))
