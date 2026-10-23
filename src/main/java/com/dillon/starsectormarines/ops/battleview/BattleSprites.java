@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.render2d.texture.ModTextures;
+import com.dillon.starsectormarines.render2d.texture.TextureLease;
+import com.dillon.starsectormarines.render2d.texture.TextureLedger;
 import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
@@ -51,6 +53,29 @@ import java.util.Map;
 public class BattleSprites {
 
     private static final Logger LOG = Global.getLogger(BattleSprites.class);
+
+    /**
+     * Everything this instance loads is held under this lease ({@code battle-textures.md}). The
+     * battle screen gives each battle its own and releases it when the battle ends, after which
+     * this instance's sprites are dead and the instance is dropped; every other owner loads on
+     * the session lease and keeps its textures as it always did.
+     */
+    private final TextureLease lease;
+
+    /** Loads for the whole session: the company deck, the Armory, the combat bridge. */
+    public BattleSprites() {
+        this(TextureLedger.shared().session());
+    }
+
+    /** Loads under {@code lease}, which keeps the textures until it is released. */
+    public BattleSprites(TextureLease lease) {
+        this.lease = lease;
+    }
+
+    /** The lease this instance's textures are held under. */
+    public TextureLease lease() {
+        return lease;
+    }
 
     // ---- asset-path constants -----------------------------------------------
 
@@ -316,20 +341,20 @@ public class BattleSprites {
      * all six tile sheets.
      */
     public void ensureTileSheet() {
-        tileTex.ensureLoaded();
+        tileTex.ensureLoaded(lease);
         TileRegistry registry = TileRegistry.installed();
         if (registry == null) return;
         for (GridBlockDef block : registry.blocks()) {
             String path = block.sheetPath;
             if (path.equals(TileManifest.SHEET) || path.equals(TileManifest.ROAD_SHEET)
                     || path.equals(TileManifest.FLOORS_SHEET) || path.equals(TileManifest.WATER_SHEET)) continue;
-            extraTerrainSheets.computeIfAbsent(path, SheetTexture::grid).ensureLoaded();
+            extraTerrainSheets.computeIfAbsent(path, SheetTexture::grid).ensureLoaded(lease);
         }
         for (DoodadDef doodad : registry.doodads()) {
             String path = doodad.sheetPath;
             if (path.equals(TileManifest.SHEET) || path.equals(TileManifest.ROAD_SHEET)
                     || path.equals(TileManifest.DOODAD_SHEET) || path.equals(TileManifest.PARKED_VEHICLE_SHEET)) continue;
-            extraTerrainSheets.computeIfAbsent(path, SheetTexture::grid).ensureLoaded();
+            extraTerrainSheets.computeIfAbsent(path, SheetTexture::grid).ensureLoaded(lease);
         }
     }
 
@@ -349,13 +374,13 @@ public class BattleSprites {
     }
 
     /** Lazy-loads the road sheet (urban-tileset-2.png) — its own PNG so road art iterates independently of the indoor floors. */
-    public void ensureRoadSheet()       { roadTex.ensureLoaded(); }
+    public void ensureRoadSheet()       { roadTex.ensureLoaded(lease); }
 
     /** Lazy-loads the high-resolution outdoor surfaces sheet (Floors_Tiles.png), with 56px source cells drawn into the 32px nav grid. */
-    public void ensureFloorsSheet()     { floorsTex.ensureLoaded(); }
+    public void ensureFloorsSheet()     { floorsTex.ensureLoaded(lease); }
 
     /** Lazy-loads the Water_tiles sheet (legacy 16px cells, upscaled to the 32px nav grid). */
-    public void ensureWaterSheet()      { waterTex.ensureLoaded(); }
+    public void ensureWaterSheet()      { waterTex.ensureLoaded(lease); }
 
     /**
      * Lazy-loads the nature-tiles sheet — a sliced strip (grass / dirt / sand /
@@ -363,7 +388,7 @@ public class BattleSprites {
      * mismatch the handle nulls itself so the renderer falls back to the legacy
      * Floors_Tiles grass/dirt; {@link #natureFrames()} is null in that case.
      */
-    public void ensureNatureSheet()     { natureTex.ensureLoaded(); }
+    public void ensureNatureSheet()     { natureTex.ensureLoaded(lease); }
 
     /**
      * Lazy-loads the urban-tileset-3 sheet — a sliced strip (modern road +
@@ -371,14 +396,14 @@ public class BattleSprites {
      * itself so STREET cells fall back to the legacy road autotile;
      * {@link #urbanTile3Frames()} is null in that case.
      */
-    public void ensureUrbanTile3Sheet() { urbanTile3Tex.ensureLoaded(); }
+    public void ensureUrbanTile3Sheet() { urbanTile3Tex.ensureLoaded(lease); }
 
     /** Lazy-loads the dedicated 32px generated-doodad atlas. */
     /** Loads both prop atlases — the generated doodad sheet and the parked-vehicle
      *  sheet. One call because they are one layer's art: a caller that wants props
      *  drawn wants trucks drawn, and splitting the two only invites a host that
      *  loads one and silently drops the other. */
-    public void ensureDoodadSheet()     { doodadTex.ensureLoaded(); parkedVehicleTex.ensureLoaded(); }
+    public void ensureDoodadSheet()     { doodadTex.ensureLoaded(lease); parkedVehicleTex.ensureLoaded(lease); }
 
     /**
      * Lazy-loads aircraft textures and the separate vanilla warship textures. Same one-shot
@@ -413,7 +438,7 @@ public class BattleSprites {
 
     public SpriteAPI loadEngineFxSpriteOrNull(String path) {
         try {
-            ModTextures.loadTexture(path);
+            ModTextures.loadTexture(path, lease);
             SpriteAPI s = ModTextures.sprite(path);
             if (s == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + path);
@@ -455,7 +480,7 @@ public class BattleSprites {
         if (pathSprites.containsKey(path)) return pathSprites.get(path);
         ShuttleSpriteCache cache = null;
         try {
-            ModTextures.loadTexture(path);
+            ModTextures.loadTexture(path, lease);
             SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite != null) {
                 float w = sprite.getWidth();
@@ -473,7 +498,7 @@ public class BattleSprites {
     private void loadAirframe(Airframe airframe) {
         String path = airframe.spritePath();
         try {
-            ModTextures.loadTexture(path);
+            ModTextures.loadTexture(path, lease);
             SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + path);
@@ -532,7 +557,7 @@ public class BattleSprites {
 
     public SpriteAPI loadIconOrNull(String path) {
         try {
-            ModTextures.loadTexture(path);
+            ModTextures.loadTexture(path, lease);
             SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + path);
@@ -574,7 +599,7 @@ public class BattleSprites {
         for (SpecialEquipmentDef sec : registry.all()) {
             if (sec.projectileSpritePath() != null) {
                 try {
-                    ModTextures.loadTexture(sec.projectileSpritePath());
+                    ModTextures.loadTexture(sec.projectileSpritePath(), lease);
                     SpriteAPI sprite = ModTextures.sprite(sec.projectileSpritePath());
                     if (sprite == null) {
                         LOG.warn("BattleSprites: getSprite returned null for " + sec.projectileSpritePath());
@@ -598,7 +623,7 @@ public class BattleSprites {
             if (w.mount != MountClass.MARINE_PRIMARY) continue;
             if (w.projectileSpritePath == null) continue;
             try {
-                ModTextures.loadTexture(w.projectileSpritePath);
+                ModTextures.loadTexture(w.projectileSpritePath, lease);
                 SpriteAPI sprite = ModTextures.sprite(w.projectileSpritePath);
                 if (sprite == null) {
                     LOG.warn("BattleSprites: getSprite returned null for " + w.projectileSpritePath);
@@ -636,7 +661,7 @@ public class BattleSprites {
             String projectileSpritePath = weapon.projectileSpritePath;
             if (projectileSpritePath == null) continue;
             try {
-                ModTextures.loadTexture(projectileSpritePath);
+                ModTextures.loadTexture(projectileSpritePath, lease);
                 SpriteAPI sprite = ModTextures.sprite(projectileSpritePath);
                 if (sprite == null) {
                     LOG.warn("BattleSprites: getSprite returned null for " + projectileSpritePath);
@@ -667,13 +692,13 @@ public class BattleSprites {
             }
             String grenadePath = smoke.presentation().thrown().spritePath();
             String fieldPath = smoke.presentation().field().sheetPath();
-            ModTextures.loadTexture(grenadePath);
+            ModTextures.loadTexture(grenadePath, lease);
             smokeGrenadeSprite = ModTextures.sprite(grenadePath);
-            ModTextures.loadTexture(fieldPath);
+            ModTextures.loadTexture(fieldPath, lease);
             smokeFieldSheet = ModTextures.sprite(fieldPath);
-            ModTextures.loadTexture(FIRE_SHEET_PATH);
+            ModTextures.loadTexture(FIRE_SHEET_PATH, lease);
             fireSheet = ModTextures.sprite(FIRE_SHEET_PATH);
-            ModTextures.loadTexture(FireRenderSystem.FLAME_SHEET_PATH);
+            ModTextures.loadTexture(FireRenderSystem.FLAME_SHEET_PATH, lease);
             flameSheet = ModTextures.sprite(FireRenderSystem.FLAME_SHEET_PATH);
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load smoke utility sprites", e);
@@ -690,7 +715,7 @@ public class BattleSprites {
                 throw new IllegalStateException("Satchel equipment has no deployed presentation recipe");
             }
             String path = satchel.presentation().deployed().spritePath();
-            ModTextures.loadTexture(path);
+            ModTextures.loadTexture(path, lease);
             satchelChargeSprite = ModTextures.sprite(path);
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load satchel charge sprite", e);
@@ -1039,7 +1064,7 @@ public class BattleSprites {
     /** Whole transparent PNG loader that captures image pixels before SpriteAPI mutation. */
     public LayeredSpriteCache loadLayeredSprite(String path) {
         try {
-            ModTextures.loadTexture(path);
+            ModTextures.loadTexture(path, lease);
             SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("BattleSprites: getSprite returned null for modular layer " + path);
@@ -1080,7 +1105,7 @@ public class BattleSprites {
         droneHubSpriteLoadAttempted = true;
         String path = DroneHub.SPRITE_PATH;
         try {
-            ModTextures.loadTexture(path);
+            ModTextures.loadTexture(path, lease);
             SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + path);
@@ -1101,7 +1126,7 @@ public class BattleSprites {
         droneSpriteLoadAttempted = true;
         String path = com.dillon.starsectormarines.battle.drone.Drone.SPRITE_PATH;
         try {
-            ModTextures.loadTexture(path);
+            ModTextures.loadTexture(path, lease);
             SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + path);
@@ -1125,7 +1150,7 @@ public class BattleSprites {
     public ShuttleSpriteCache loadTurretSprite(String path) {
         if (path == null) return null;
         try {
-            ModTextures.loadTexture(path);
+            ModTextures.loadTexture(path, lease);
             SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + path);
@@ -1151,7 +1176,7 @@ public class BattleSprites {
 
     public UnitSpriteCache loadUnitSheet(String path) {
         try {
-            ModTextures.loadTexture(path);
+            ModTextures.loadTexture(path, lease);
             SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + path);
@@ -1179,7 +1204,7 @@ public class BattleSprites {
         if (decalSheetLoadAttempted) return;
         decalSheetLoadAttempted = true;
         try {
-            ModTextures.loadTexture(SPRITE_DECAL_SHEET);
+            ModTextures.loadTexture(SPRITE_DECAL_SHEET, lease);
             decalSheet = ModTextures.sprite(SPRITE_DECAL_SHEET);
             if (decalSheet == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + SPRITE_DECAL_SHEET);

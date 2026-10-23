@@ -1,8 +1,7 @@
 # Battle textures: what a battle loads, who owns it, and when it goes
 
-Status: ACTIVE — the ledger, the load queue and the loading screen are built; the per-battle
-texture set and the release at battle exit land once `texture-fit.md`'s loader changes are on
-`main`.
+Status: ACTIVE — the ledger, the loading screen and the release at battle exit are built;
+loading only the battle texture set (rather than every family the catalogs ship) is next.
 
 Written: 2026-10-23
 
@@ -126,6 +125,13 @@ the fog field, creep, scorch, cliff art and night-lighting targets. Those are al
 resources the battle generates and deletes itself at detach; they are not on the ledger and
 need not be, since nothing else can hold them.
 
+Measured through the shipping loaders on a real driver (`TextureLifecycleGlEvidence`, nothing
+fitted yet): the company deck's set is **542 MB** on the card and stays for as long as the ops
+dialog is open; a battle adds **230 MB** of its own (64 textures: vehicle lines, structures,
+battle effects and the terrain sheets the deck does not draw), which its release now frees.
+Most of what a battle draws is shared with the deck, because the deck loads every infantry
+family, every livery and every registered terrain sheet too.
+
 Owners of `BattleSprites` instances, for reference when deciding which lease a load is under:
 the battle screen (also used for the Armory range trial), the company deck (one per dialog,
 alive while the dialog is open), the Armory previews, and the combat bridge backdrop. Only the
@@ -162,8 +168,9 @@ its queue finishes, and after its release.
 
 ## Boundaries
 
-- The company deck lives for the whole ops dialog and holds infantry, mechs and the common
-  tile sheets on the session lease, so while the dialog is open those stay resident whether a
-  battle runs or not. Giving the deck a lease released when the dialog closes is the next
-  step for that share of the card, and a separate change.
+- The company deck lives for the whole ops dialog and holds infantry, mechs, airframes and
+  every registered terrain sheet on the session lease — 542 MB — so while the dialog is open
+  those stay resident whether a battle runs or not. That is now the largest share of the
+  card. Giving the deck its own lease, released when the dialog closes, and loading only what
+  a deck paints are the next steps for it, and separate changes.
 - Shrinking each image is `texture-fit.md`'s; this doc only decides how long it is resident.
