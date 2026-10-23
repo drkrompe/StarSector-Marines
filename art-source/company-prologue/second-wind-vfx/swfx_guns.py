@@ -1322,6 +1322,7 @@ def _jag_mesh(name, lines, radius, sides=4, mat=None):
 
 
 BOLT_POOL = 12      # jagged bolt strikes per gun
+MAX_FLIGHT_S = 6.0   # no round is drawn flying longer than this
 
 
 def _bolt_pool(label, weapon, length, amp, radius, mat):
@@ -1521,6 +1522,15 @@ def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target):
     if target is not None:
         loc = anchor_matrix(a.empty).inverted() @ Vector(target)
         stop, d = loc.length, loc.normalized()
+        # A degenerate anchor (a gun whose muzzle anchor is missing) can invert to a target thousands
+        # of kilometres off: its rounds then fly for millions of frames and the build never ends
+        # (Asharu S7's Wolf (P) ion cannon). No round flies further than MAX_FLIGHT_S at its speed.
+        most = swfx_core.units(r['speed']) * MAX_FLIGHT_S
+        if not math.isfinite(stop) or stop > most:
+            print(f'SWFX round {label}: target {stop:.4g} u off, flight capped at {MAX_FLIGHT_S:g} s', flush=True)
+            stop = most
+            if not all(math.isfinite(c) for c in d) or d.length < .5:
+                d = Vector((1, 0, 0))
     elif w.get('braid'):
         d = _braid_dir(a, w['braid'])
     yaw, pitch = rnd.gauss(0, w['spread']), rnd.gauss(0, w['spread'])
