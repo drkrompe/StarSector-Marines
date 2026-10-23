@@ -1,5 +1,5 @@
 <template props="commandPoints,commandPointFillStyle,supplies,suppliesIcon,powerCards,targetingClasses,targetingLabel,targetingHint,pickerClasses,pickerChips">
-  <div id="battle-power-overlay" class="battle-power-overlay">
+  <div id="battle-power-overlay" class="battle-power-overlay hud-glass">
     <div id="battle-power-targeting" class="{targetingClasses}">
       <div id="battle-power-targeting-label" class="label heading targeting-label">{targetingLabel}</div>
       <div id="battle-power-targeting-hint" class="label targeting-hint">{targetingHint}</div>
@@ -57,9 +57,9 @@
     height: 14px;
     flex-direction: row;
     padding: 4px 7px;
-    border-width: 1px;
-    border-color: #ffd464;
-    background-color: #241f12ed;
+    border-width: 0px;
+    background-color: transparent;
+    background-image: linear-gradient(to right, #ffd46433 0%, #ffd46414 60%, #ffd46400 100%);
   }
 
   .power-targeting-hidden {
@@ -75,9 +75,8 @@
     flex-direction: row;
     padding: 3px 7px;
     gap: 4px;
-    border-width: 1px;
-    border-color: #6b6448;
-    background-color: #1a1c14ee;
+    border-width: 0px;
+    background-color: transparent;
     overflow: hidden;
   }
 
@@ -126,9 +125,8 @@
     flex-direction: row;
     padding: 5px;
     gap: 5px;
-    border-width: 1px;
-    border-color: #727b79;
-    background-color: #141e19f2;
+    border-width: 0px;
+    background-color: transparent;
   }
 
   .power-resources {
@@ -142,7 +140,7 @@
 
   .resource-title { width: 100%; height: 12px; color: #a0ada8; }
   .resource-cp { width: 100%; height: 12px; color: #c5d6cb; }
-  .resource-track { width: 100%; height: 3px; background-color: #101713; }
+  .resource-track { width: 100%; height: 3px; background-color: #0000008c; }
   .resource-fill { height: 100%; background-color: #a7ccc4; }
   .resource-supplies { width: 100%; height: 14px; flex-direction: row; gap: 4px; color: #a0ada8; }
   .resource-supplies-icon { width: 14px; height: 14px; }

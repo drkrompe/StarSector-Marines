@@ -251,6 +251,32 @@ final class MarineOpsThemes {
                 .spec-action:active { background-color: #100d04; border-style: solid; }
                 .spec-action.issued { background-color: #0d1a12; border-color: #4f9c6b; color: #8fd6a6; }
                 .spec-tab:focus-visible, .spec-action:focus-visible { border-color: #ffe1a0; border-style: solid; }
+                /* Battle glass: the battle HUD draws on the field itself, with no panel behind it, so
+                   the fight shows through. A document's root opts in with hud-glass. Text keeps a
+                   shadow so it reads on any ground; a control is a hairline on a faint smoke that
+                   lights when hovered and fills gold when chosen, as a direct-control weapon row
+                   does. Last in the sheet, so it wins over the console button rules above. */
+                .hud-glass { text-shadow: #000000d9; background-color: transparent; background-image: none; }
+                .hud-glass button {
+                    color: #e4e9e4; background-color: #0a0e1040; background-image: none;
+                    border-style: solid; border-color: #c3cec933;
+                }
+                .hud-glass button:hover { background-color: #ffffff17; border-color: #c3cec9aa; }
+                .hud-glass button:active { background-color: #00000066; border-style: solid; }
+                .hud-glass button:focus-visible { border-color: #ffe1a0; }
+                .hud-glass button.selected, .hud-glass button.power-armed,
+                .hud-glass .doctrine-card-active, .hud-glass .pick-selected {
+                    background-color: #d6c27a24; border-color: #d6c27a99; color: #ffd464; border-style: solid;
+                }
+                .hud-glass .lance-order-card-active { background-color: #8ee3ff17; border-color: #a7ccc499; }
+                .hud-glass .doctrine-card-deployed { border-color: #78d49466; }
+                .hud-glass .member-leader { border-color: #d6c27a80; }
+                .hud-glass .member-critical { border-color: #e98b8399; }
+                .hud-glass .member-top { border-color: #dfc58899; }
+                .hud-glass .member-empty { background-color: transparent; }
+                .hud-glass .pick-refused, .hud-glass .power-disabled { background-color: transparent; border-color: #c3cec91a; }
+                .hud-glass .danger-surface { background-color: #e98b8324; border-color: #e98b8399; color: #f0a1a1; }
+                .hud-glass .danger-surface:hover { background-color: #e98b833d; border-color: #ef8f8f; }
 
                 """);
     }

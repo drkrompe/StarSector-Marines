@@ -1,5 +1,5 @@
 <template props="airClasses,airStatus,airStatusClasses,airRows">
-  <div id="battle-air-overlay" class="battle-air-overlay">
+  <div id="battle-air-overlay" class="battle-air-overlay hud-glass">
     <div id="battle-air-plate" class="{airClasses}">
       <div id="battle-air-header" class="air-header">
         <div id="battle-air-title" class="label heading air-title">{i18n.battleAirTitle}</div>
@@ -37,9 +37,8 @@
     flex-direction: column;
     padding: 5px 7px;
     gap: 4px;
-    border-width: 1px;
-    border-color: #727b79;
-    background-color: #141e19ee;
+    border-width: 0px;
+    background-color: transparent;
     overflow: hidden;
   }
 
@@ -65,8 +64,8 @@
     height: 8px;
     flex-direction: row;
     border-width: 1px;
-    border-color: #445447;
-    background-color: #101713;
+    border-color: #00000099;
+    background-color: #0000008c;
   }
   .air-fill-ready { height: 100%; background-color: #78d494; }
   .air-fill-flight { height: 100%; background-color: #ffd464; }

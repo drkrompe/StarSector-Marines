@@ -1,5 +1,5 @@
 <template props="label,disabled,toggle">
-  <div id="battle-direct-control" class="direct-control">
+  <div id="battle-direct-control" class="direct-control hud-glass">
     <button id="battle-direct-control-toggle" class="direct-toggle console-action" disabled="{disabled}" onclick="{toggle}">{label}</button>
   </div>
 </template>
