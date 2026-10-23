@@ -77,6 +77,7 @@ import com.dillon.starsectormarines.battle.tender.TenderSystem;
 import com.dillon.starsectormarines.battle.warship.MissionStance;
 import com.dillon.starsectormarines.battle.warship.ShipStationing;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.warship.WarshipSystem;
 import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
@@ -916,13 +917,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /**
      * Installs the heart's battle (`heart-nouns.md`) over its opened bores: the
      * mothers go to sleep and the heart's wake rules and beats take over.
+     * {@code places} is what the map's mission layout laid, by name.
      */
-    public void installHeart(Form form, WalkingBarrage barrage, HeartLanes lanes) {
+    public void installHeart(Form form, WalkingBarrage barrage, HeartLanes lanes, LaidLayout places) {
         if (simTickIndex != 0 || heart != null || colonyBreach != null)
             throw new IllegalStateException("Install the heart once at setup");
         if (!swarmReinforcements.isConfigured())
             throw new IllegalStateException("The heart needs a configured swarm director");
-        heart = new HeartSequence(form, storyBeats, barrage, lanes);
+        heart = new HeartSequence(form, storyBeats, barrage, lanes, places);
         heart.install(this);
     }
     /** Ends the swarm director's opening seepage; the breach has begun. Idempotent. */

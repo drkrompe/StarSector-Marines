@@ -132,19 +132,71 @@ public final class HeartCountry {
 
     private HeartCountry() { }
 
-    /** The places of a heart country of this form, laid out on its map. */
+    /**
+     * How built-up the country between the cordon and the heart is
+     * (`heart-map-intent.md`, Density): the bloom rooted wherever it rooted.
+     * Rural is farms, woods and a village; a town world puts market towns
+     * across the approach; a city puts the colony's suburbs most of the way to
+     * the workings, ground for infantry and walkers more than for wheels.
+     */
+    public enum Density {
+        RURAL, TOWN, CITY;
+
+        /** The density of a bloomed world of this vanilla market size. */
+        public static Density of(int marketSize) {
+            return marketSize >= CITY_SIZE ? CITY : marketSize >= TOWN_SIZE ? TOWN : RURAL;
+        }
+
+        /** Smallest vanilla market size that is a town world, and a city. */
+        static final int TOWN_SIZE = 5, CITY_SIZE = 7;
+    }
+
+    /** A town world's market towns: bigger than the rural ones, still with fields between. */
+    private static final GrownTrunkPlan.Profile MARKET_TOWN_GROWTH =
+            new GrownTrunkPlan.Profile(10, 0.7f, 0.06f, 0.13f, 0.4f, 14, SettlementLink.ROAD);
+    /** The second town a town world has across the approach. */
+    static final String SECOND_TOWN = "town-2";
+    /** A city's suburbs across the middle of the approach. */
+    static final String SUBURBS = "suburbs";
+
+    /** The places of a heart country of this form, laid out on its map, in open country. */
     public static PrecinctPlan planFor(Form form, long seed) {
+        return planFor(form, Density.RURAL, seed);
+    }
+
+    /** The places of a heart country of this form and density, laid out on its map. */
+    public static PrecinctPlan planFor(Form form, Density density, long seed) {
         Random rng = new Random(seed ^ PLAN_SALT);
-        List<PrecinctBrief> places = List.of(
-                PrecinctBrief.settlement(SETTLEMENT, form == Form.BROAD_FRONT ? MapPlacement.CENTRE : VILLAGE_PLACE,
-                        form == Form.BROAD_FRONT ? TOWN_GROWTH : VILLAGE_GROWTH, PrecinctCharacter.TOWN),
-                PrecinctBrief.settlement(WORKINGS, form.heartEdge, WORKINGS_GROWTH, PrecinctCharacter.DEPOT));
+        boolean broad = form == Form.BROAD_FRONT;
+        GrownTrunkPlan.Profile settlementGrowth = switch (density) {
+            case RURAL -> broad ? TOWN_GROWTH : VILLAGE_GROWTH;
+            case TOWN -> broad ? MARKET_TOWN_GROWTH : TOWN_GROWTH;
+            case CITY -> GrownTrunkPlan.Profile.city();
+        };
+        List<PrecinctBrief> places = new ArrayList<>(List.of(
+                PrecinctBrief.settlement(SETTLEMENT, broad ? MapPlacement.CENTRE : VILLAGE_PLACE,
+                        settlementGrowth, PrecinctCharacter.TOWN),
+                PrecinctBrief.settlement(WORKINGS, form.heartEdge, WORKINGS_GROWTH, PrecinctCharacter.DEPOT)));
+        // Rural places stay first and alone, so an open-country plan draws exactly what it always drew.
+        if (density == Density.TOWN) {
+            places.add(PrecinctBrief.settlement(SECOND_TOWN, placement(form, 0.35f, 0.6f, 0.7f, 0.92f),
+                    MARKET_TOWN_GROWTH, PrecinctCharacter.TOWN));
+        } else if (density == Density.CITY) {
+            places.add(PrecinctBrief.settlement(SUBURBS, placement(form, 0.35f, 0.62f, 0.05f, 0.95f),
+                    GrownTrunkPlan.Profile.of(0.9f), PrecinctCharacter.SUBURB));
+        }
         PrecinctPlan plan = PrecinctPlan.laidOut(places, form.startEdge, LandingKind.OPEN_FIELD,
                 form.scale.width, form.scale.height, rng);
         Precinct workings = place(plan, WORKINGS);
         Landscape landscape = landscapeFor(form, seed);
         if (workings != null) landscape = landscape.withHeld(hollow(form, workings.seedX(), workings.seedY()));
-        return plan.withLandscape(landscape);
+        return plan.withLandscape(landscape).withLayout(HeartLayout.layout(form, seed));
+    }
+
+    /** A placement given as depth and across shares, whichever way the form advances. */
+    static MapPlacement placement(Form form, float depth0, float depth1, float across0, float across1) {
+        return form.advancesAlongY() ? new MapPlacement(across0, depth0, across1, depth1)
+                : new MapPlacement(depth0, across0, depth1, across1);
     }
 
     /** Wild ground the woods cover on Broad Front: wooded, with room between the groves for lanes to deploy. */

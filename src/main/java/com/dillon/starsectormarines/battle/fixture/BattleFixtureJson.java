@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.fixture;
 
+import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Density;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.command.HivePosture;
@@ -197,6 +198,7 @@ public final class BattleFixtureJson {
             root.put("seed", heart.seed());
             root.put("form", heart.form().name());
             root.put("biome", heart.biome().name());
+            if (heart.density() != Density.RURAL) root.put("density", heart.density().name());
             root.put("shuttles", shuttlesToJson(heart.manifest()));
             return root;
         }
@@ -275,7 +277,9 @@ public final class BattleFixtureJson {
             case ExtractionBattleFixture.KIND -> decodeExtraction(root);
             case BloomHeartBattleFixture.KIND -> new BloomHeartBattleFixture(root.getLong("seed"),
                     enumValue(Form.class, root.getString("form"), "form"),
-                    storyBiome(root), shuttlesFromJson(root.getJSONArray("shuttles")));
+                    storyBiome(root), root.has("density")
+                            ? enumValue(Density.class, root.getString("density"), "density") : Density.RURAL,
+                    shuttlesFromJson(root.getJSONArray("shuttles")));
             default -> throw new IllegalArgumentException(
                     "Unsupported battle fixture kind: " + kind);
         };
