@@ -1241,7 +1241,7 @@ tasks.register('optimizePngs', Exec) {
     def report = layout.buildDirectory.dir('reports/texture-fit').get().asFile
     inputs.dir(new File(modOutputDir, 'graphics')).withPropertyName('graphics')
     inputs.dir(new File(modOutputDir, 'data')).withPropertyName('data')
-    inputs.file(textureUsageRecord).optional()
+    inputs.files(textureUsageRecord)
     inputs.files('tools/optimize_pngs.py', 'tools/texture_fit_policy.json')
     outputs.dir(fittedTextureRoot)
     outputs.dir(report)
