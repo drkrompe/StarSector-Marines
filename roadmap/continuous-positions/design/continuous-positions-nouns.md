@@ -169,7 +169,7 @@ Nearby-unit queries snapshot true positions once per tick. Point-space consumers
    distinct posts. Formation does not grant units a shared destination or
    override individual orders.
 
-The optional squad-traffic experiment extends that preference across nearby
+Squad traffic extends that preference across nearby
 friendly infantry squads during quiet travel. A retained lateral route offset
 may guide movement without rewriting the cell path, its destination, or its
 arrival witness. Both the shifted join and the return to the ordinary route
@@ -178,7 +178,7 @@ before tight terrain and arrival releases it at the original destination.
 After displacement, losing traffic eligibility restores ordinary speed and
 intent immediately but retains the terrain check until a route finishes.
 This is cell-native steering, not physical-radius routing for Mechs or a
-second collision authority. `squad-traffic.md` owns the adoption experiment.
+second collision authority. `ai-nouns.md` owns its execution model.
 
 ## Boundaries and extension points
 

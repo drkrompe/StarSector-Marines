@@ -22,19 +22,20 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Same-build quiet-travel controls for lateral squad spacing. Four squads start
- * in a compact column and retain one common destination. The passage variant
- * adds a five-cell-wide neck, with enough open ground on either side to observe
- * spreading independently of arrival compression. No observer authors movement.
+ * Showcase and acceptance of squad traffic during quiet travel. Four squads
+ * start in a compact column and retain one common destination. The passage
+ * variant adds a five-cell-wide neck, with enough open ground on either side to
+ * observe spreading independently of arrival compression; the crossing variant
+ * runs two pairs across each other's path. No observer authors movement.
  *
- * <p>All movement uses production AttackMove, formation, separation and routing.
- * This is opt-in battle evidence, not a default unit test. Timings include JIT
- * and scheduler noise and are readings, never portable pass/fail thresholds.
- * Controls carry the same safety bars; only the subject must improve lateral
- * separation. Failure is retained rather than relabelled as successful traffic.
+ * <p>All movement uses production AttackMove, formation, separation, routing
+ * and squad traffic. This is opt-in battle evidence, not a default unit test.
+ * Verdicts assert the mechanics (nobody lost, no blocked ground, bounded
+ * waiting, everyone through, squads spread on open ground); span sizes and
+ * arrival ticks are readings in the metrics. Timings include JIT and scheduler
+ * noise and are never thresholds.
  */
 public final class SquadTrafficScene implements BehaviorScene {
-    private static final String SWITCH = "battle.squad.traffic";
     private static final int WIDTH = 160;
     private static final int HEIGHT = 48;
     private static final int SQUADS = 4;
@@ -44,6 +45,7 @@ public final class SquadTrafficScene implements BehaviorScene {
     private static final int GOAL_Y = 24;
     private static final int NECK_START = 70;
     private static final int NECK_END = 86;
+    private static final double MIN_OPEN_SPAN = 2.0;
 
     @Override public String id() { return "squad-traffic"; }
     @Override public String label() {
@@ -51,28 +53,14 @@ public final class SquadTrafficScene implements BehaviorScene {
     }
 
     @Override public List<SceneReport> play(FrameSink frames) {
-        String previous = System.getProperty(SWITCH);
-        try {
-            List<SceneReport> reports = new ArrayList<>();
-            for (boolean passage : new boolean[]{false, true}) {
-                Reading control = run(frames, passage, false);
-                Reading subject = run(frames, passage, true);
-                reports.add(report(control, null));
-                reports.add(report(subject, control));
-            }
-            Reading crossingControl = runCrossing(frames, false);
-            Reading crossingSubject = runCrossing(frames, true);
-            reports.add(report(crossingControl, null));
-            reports.add(report(crossingSubject, crossingControl));
-            return reports;
-        } finally {
-            if (previous == null) System.clearProperty(SWITCH);
-            else System.setProperty(SWITCH, previous);
-        }
+        List<SceneReport> reports = new ArrayList<>();
+        reports.add(report(run(frames, false)));
+        reports.add(report(run(frames, true)));
+        reports.add(report(runCrossing(frames)));
+        return reports;
     }
 
-    private Reading run(FrameSink frames, boolean passage, boolean enabled) {
-        System.setProperty(SWITCH, Boolean.toString(enabled));
+    private Reading run(FrameSink frames, boolean passage) {
         SceneBuilder builder = SceneBuilder.openGround(WIDTH, HEIGHT).missionCompletion(false);
         if (passage) {
             builder.wall(NECK_START, 0, NECK_END, 21);
@@ -88,11 +76,10 @@ public final class SquadTrafficScene implements BehaviorScene {
         builder.unit("far", Faction.DEFENDER, UnitType.MARINE, 157, 3,
                 spec -> spec.moveSpeed(0f));
         SceneWorld world = builder.build();
-        return play(world, frames, new Reading(world, passage, false, enabled));
+        return play(world, frames, new Reading(world, passage, false));
     }
 
-    private Reading runCrossing(FrameSink frames, boolean enabled) {
-        System.setProperty(SWITCH, Boolean.toString(enabled));
+    private Reading runCrossing(FrameSink frames) {
         SceneBuilder builder = SceneBuilder.openGround(WIDTH, WIDTH).missionCompletion(false);
         for (int s = 0; s < SQUADS; s++) {
             boolean northbound = s >= 2;
@@ -108,7 +95,7 @@ public final class SquadTrafficScene implements BehaviorScene {
         builder.unit("far", Faction.DEFENDER, UnitType.MARINE, 157, 3,
                 spec -> spec.moveSpeed(0f));
         SceneWorld world = builder.build();
-        return play(world, frames, new Reading(world, false, true, enabled));
+        return play(world, frames, new Reading(world, false, true));
     }
 
     private Reading play(SceneWorld world, FrameSink frames, Reading reading) {
@@ -132,7 +119,7 @@ public final class SquadTrafficScene implements BehaviorScene {
         }
     }
 
-    private SceneReport report(Reading r, Reading control) {
+    private SceneReport report(Reading r) {
         List<Verdict> verdicts = new ArrayList<>();
         verdicts.add(Verdict.of("intact", r.alive == SQUADS * MEMBERS,
                 "alive=" + r.alive + ", expected=" + SQUADS * MEMBERS));
@@ -152,25 +139,21 @@ public final class SquadTrafficScene implements BehaviorScene {
                             + r.crossEncounterTicks + "; minimum separation="
                             + r.minimumCrossGroupDistance));
         }
-        if (control != null) {
-            if (!r.crossing) {
-                double before = control.preOpen.mean();
-                double after = r.preOpen.mean();
-                verdicts.add(Verdict.of("open-ground-spread", r.preOpen.count > 0
-                                && after >= before + 0.5,
-                        "mean simultaneous pre-neck lateral centroid span=" + after
-                                + " cells, control=" + before + "; wanted +0.5"));
-            }
-            if (r.passage) {
-                verdicts.add(Verdict.of("spread-again", r.postOpen.count > 0
-                                && r.postOpen.mean() >= control.postOpen.mean() + 0.5,
-                        "post-neck lateral span=" + r.postOpen.mean() + ", control="
-                                + control.postOpen.mean() + "; wanted +0.5"));
-            }
-            verdicts.add(Verdict.of("throughput-retained", r.arrived == SQUADS && r.lastArrival > 0
-                            && r.lastArrival <= control.lastArrival * 1.25 + 60,
-                    "last centroid arrival=" + r.lastArrival + ", control="
-                            + control.lastArrival + "; wanted <=25% + 60 ticks slower"));
+        verdicts.add(Verdict.of("traffic-steered", r.trafficMoves > 0,
+                "member moves through the traffic seam=" + r.trafficMoves));
+        if (!r.crossing) {
+            // Unsteered columns read about one cell here (2026-10-23 control);
+            // two cells asks only that the squads leave a shared lane.
+            verdicts.add(Verdict.of("open-ground-spread", r.preOpen.count > 0
+                            && r.preOpen.mean() >= MIN_OPEN_SPAN,
+                    "mean simultaneous pre-neck lateral centroid span=" + r.preOpen.mean()
+                            + " cells; wanted >= " + MIN_OPEN_SPAN));
+        }
+        if (r.passage) {
+            verdicts.add(Verdict.of("spread-again", r.postOpen.count > 0
+                            && r.postOpen.mean() >= MIN_OPEN_SPAN,
+                    "post-neck lateral span=" + r.postOpen.mean() + " cells; wanted >= "
+                            + MIN_OPEN_SPAN));
         }
         return new SceneReport(id(), r.loop, TICKS, verdicts, r.metrics());
     }
@@ -236,12 +219,11 @@ public final class SquadTrafficScene implements BehaviorScene {
         float meanX;
         float span;
 
-        Reading(SceneWorld world, boolean passage, boolean crossing, boolean enabled) {
+        Reading(SceneWorld world, boolean passage, boolean crossing) {
             this.world = world;
             this.passage = passage;
             this.crossing = crossing;
-            loop = (crossing ? "crossing" : passage ? "passage" : "open")
-                    + (enabled ? "-subject" : "-control");
+            loop = crossing ? "crossing" : passage ? "passage" : "open";
             Arrays.fill(crossingTick, -1);
             Arrays.fill(arrivalTick, -1);
             for (int s = 0; s < SQUADS; s++) members[s] = world.members(key(s));
