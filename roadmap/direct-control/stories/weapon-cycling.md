@@ -2,8 +2,9 @@
 
 > Two buttons, two groups; each button cycles what it fires.
 
-Status: PLANNED — model agreed with the owner; HUD look to go on the picks page with the first build
+Status: IN PROGRESS — steps 1 and 2 shipped; header look on the picks page (KEYCAP built meanwhile); steps 3-5 open
 Written: 2026-10-23
+Updated: 2026-10-23 — trigger model and HUD landed; the losing `PickLook` arms go when the owner picks
 
 Read `direct-control-nouns.md` first, in particular "Mouse buttons and weapon
 groups". This story extends that model, so the groups it describes stay true.
@@ -72,11 +73,14 @@ chooses what the button fires without a key per weapon.
 
 ## Plan
 
-1. Trigger model: member lists and picks per carrier; Q/C input; the mech
-   path, replacing keys 2-4's one-mount pointing with the cycle. Unit tests for
-   cycle order, skipping, reset and LINKED.
-2. HUD: headers and row states from the pick; picks-page question with
-   rendered options; snapshot frames in `direct-control-ui`.
+1. ~~Trigger model~~ (shipped): `MechFireGroups` lists and `MechTriggerPicks`,
+   Q/C in `BattleDirectControlInput`, number keys as left-trigger jumps; Marines
+   and vehicles have single-member lists.
+2. ~~HUD~~ (shipped): trigger headers and row wash/dim from the picks; frames
+   `pick-<look>-linked` and `pick-<look>-one-mount` in `direct-control-ui`. Open:
+   the owner's answer to the picks-page question `weapon-cycling-pick-look`;
+   then delete the losing `BattleDirectControlHudModel.PickLook` arms and their
+   frames.
 3. Marine direct-fire specials: a manual contract for the rocket launcher and
    the anti-materiel rifle on the left trigger.
 4. Marine grenades: the manual throw on the right trigger.

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.combat.FireTrigger;
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
 import com.dillon.starsectormarines.battle.control.ManualIntent;
 import com.dillon.starsectormarines.render2d.BattleCamera;
@@ -228,6 +229,25 @@ class BattleDirectControlInputTest {
         key.consume();
         input.process(captured, () -> {}, () -> {},
                 selection -> { fail("Chrome claimed selector key"); return false; }, NO_CHROME);
+    }
+
+    @Test
+    void qCyclesTheLeftTriggerAndCTheRightOncePerPressAndAnAcceptedCycleReleasesFire() {
+        BattleDirectControlInput input = active();
+        process(input, List.of(event(Kind.LEFT_DOWN, 70, 60, 0)));
+        List<FireTrigger> asked = new ArrayList<>();
+        for (int key : new int[]{Keyboard.KEY_Q, Keyboard.KEY_Q, Keyboard.KEY_C}) {
+            var down = event(Kind.DOWN, 0, 0, key);
+            input.process(BattleDirectControlInput.capture(List.of(down)), () -> {}, () -> {},
+                    selection -> false, ability -> false, trigger -> { asked.add(trigger); return false; }, NO_CHROME);
+            assertTrue(down.isConsumed());
+        }
+        assertEquals(List.of(FireTrigger.LEFT, FireTrigger.RIGHT), asked, "a held Q does not cycle again");
+        assertTrue(input.intent(camera(), false, NO_CHROME).firing(), "a refused cycle keeps the held trigger");
+        input.process(BattleDirectControlInput.capture(List.of(event(Kind.UP, 0, 0, Keyboard.KEY_Q),
+                        event(Kind.DOWN, 0, 0, Keyboard.KEY_Q))), () -> {}, () -> {},
+                selection -> false, ability -> false, trigger -> true, NO_CHROME);
+        assertFalse(input.intent(camera(), false, NO_CHROME).firing(), "a new pick needs a new press");
     }
 
     @Test

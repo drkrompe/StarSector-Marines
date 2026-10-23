@@ -79,6 +79,7 @@ public final class GroundVehicleTurretSystem {
             VehicleType type = convoy.vehicleType(id);
             if (!type.hasTurretWeapon()) continue;
             GroundTurret turret = convoy.turret(id);
+            turret.crossfire.advance(dt);
             if (turret.destroyed()) {
                 // A shot-away gun neither fires nor traverses; it stays where it last pointed.
                 turret.clearQueuedFire();

@@ -41,6 +41,9 @@ import java.util.Random;
  * the hull's own structure decides death; a hull whose drive goes is immobilised where it stands. A hit with no
  * origin meets the front plate and rolls no drive.
  *
+ * <p>An attributed hit on an armed hull is noted by its crew, shooter and bearing, so two machines hitting it from two
+ * directions put it in crossfire ({@link com.dillon.starsectormarines.battle.vehicle.Crossfire}).
+ *
  * <p>Serial only: it holds one reusable {@link DurabilityModel.Resolution},
  * which is the shape both resolvers it replaces already had.
  */
@@ -119,6 +122,11 @@ public final class BodyDamageResolver {
                     armorBefore, rating * arcs.rating(hullArc), arcs.plate(hullArc), hpBefore, durability);
             armorDamage = durability.armorDamage();
             hpAfter = Math.max(0f, hpBefore - durability.structureDamage());
+        }
+        if (turret != null && origin) {
+            // The crew notes where the hit came from: two machines apart is a crossfire (Crossfire).
+            turret.crossfire.record(attackerId, (float) Math.toDegrees(Math.atan2(
+                    world.y(attackerId) - world.y(targetId), world.x(attackerId) - world.x(targetId))));
         }
         if (armorDamage > 0f) {
             world.setArmor(targetId, Math.max(0f, armorBefore - armorDamage));
