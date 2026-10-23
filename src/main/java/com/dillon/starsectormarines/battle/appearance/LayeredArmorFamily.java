@@ -69,15 +69,15 @@ public enum LayeredArmorFamily {
     /**
      * Whether this family ships the four lying-body poses ({@code downed-0..3.png} beside its
      * body and head), so its fallen are drawn as themselves rather than through the unit type's
-     * legacy corpse sheet. Declared rather than probed: the game logs an error for every texture
+     * corpse sheet or its rig. Declared rather than probed: the game logs an error for every texture
      * it is asked to load that is not there.
      */
     public boolean hasDownedArt() {
-        // Every infantry outfit falls as itself; only the alien keeps its unit type's sheet.
+        // Every infantry outfit falls as itself; the swarm bursts on its rig or lies on its type's sheet.
         return !isXeno();
     }
 
-    /** Whether this is one of the swarm's chitin families, which fall through their unit type's corpse sheet. */
+    /** Whether this is one of the swarm's chitin families, whose fallen are laid down by their rig or unit type. */
     public boolean isXeno() {
         return this == XENO || this == XENO_BRUTE || this == XENO_SPITTER;
     }

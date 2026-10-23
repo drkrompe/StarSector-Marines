@@ -483,13 +483,10 @@ public class BattleRenderer {
         // (BattleScreen.attach order). batchBySheet owns the QuadBatch refs.
         registerSpriteSheetBatches(sprites.convoySprites().values());
 
-        // Entity sheets for the UNITS layer (UnitRenderService sprite sweeps) so
-        // dead + live infantry and secondary-aim poses batch via SHEET_QUAD.
-        // Loaded by ensureUnitSheets()/ensureMarineSecondarySprites() before this
-        // runs (BattleScreen.attach order).
+        // Corpse sheets for the UNITS layer (UnitRenderService's corpse sweep) so
+        // the fallen no layered or rig art lays down batch via SHEET_QUAD.
+        // Loaded by ensureUnitSheets() before this runs (BattleScreen.attach order).
         registerSpriteSheetBatches(sprites.unitDeadSprites().values());
-        registerSpriteSheetBatches(sprites.unitSprites().values());
-        registerSpriteSheetBatches(sprites.specialEquipmentAimSheets().values());
 
         // Hull sheets for the UNITS layer, so a burnt airframe can be drawn as
         // source strips of its own sprite (UnitRenderService's wreck pass).

@@ -258,6 +258,9 @@ class ShipFx:
     def metre_scale(self):
         """This copy's lights and volumes, from hull units to the metre scene (idempotent)."""
         r = metre_scale(self.ids, self.mpu)
+        # A point light with a radius is a ball the camera sees (owner: no orbs); its light stays.
+        import swfx_lint
+        r['quiet_lights'] = swfx_lint.quiet_lights(self.ids)
         if r['unhandled']:
             print(f'SHIP_FX {self.key}: volume inputs not metre-scaled:', sorted(set(r['unhandled'])), flush=True)
         return r
@@ -485,6 +488,7 @@ class ShipFx:
             ctx.scene, ctx.state, ctx.records = scene, state, {}
             ctx.spec = core.STATES.get(state) or next(iter(core.STATES.values()))
             ctx.root, ctx.controls = self.fx, self.controls
+            ctx.own_hull = self.own_hull        # swfx_guns recoil keys the barrel only on a hull of its own
             ctx.anchors = self._anchors(anchors_mod)
             groups = self.groups
             ctx.collection = lambda group: groups.get(f'{ROOT} | {group}') or self.fx

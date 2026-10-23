@@ -120,7 +120,7 @@ class CreepFieldTest {
         run(starved, 0, 90);
         float fedReach = fed.snapshot().sources().get(0).reachCells();
         float starvedReach = starved.snapshot().sources().get(0).reachCells();
-        assertTrue(fedReach > starvedReach * 2f, fedReach + " vs " + starvedReach);
+        assertTrue(fedReach > starvedReach, fedReach + " vs " + starvedReach);
     }
 
     @Test

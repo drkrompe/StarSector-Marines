@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-22 — Living field at the owner's picks, dense and militia-armed (homesteads, militia knots, refugee families walking out toward the company, stragglers; prey by the existing rules, read not scored); pack press and sub-packs (strike slots, holders wheel and waiters circle, surplus peeled onto other prey, re-merge on quarry death); Creep on green worlds as built (grown over trees, which die to bare bone-pale skeletons that no longer hide or shelter anyone, the owner's choice; grass and crops wilt ahead of its edge); campaign: blooms as built, frequent, at the benign first severity tier with spores carried on traffic, and the owner's arc as direction; growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
+Updated: 2026-10-23 — Creep spreads at half rate with a 1.5x feed boost (owner pick), and Creep explains why feeding set the old pace.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -1160,15 +1160,19 @@ against its own control in `renderEvidence`.
   cost along walkable ground, weighted by seeded noise so the front runs out in
   fingers, dearer on pavement. Until bores stand up on eruption sites, each opened site is itself a
   source that never dies.
-- **How fast the front walks is one dial** (`-Dbattle.creep.spreadScale`, 1 by
-  default). It multiplies every source's reach rate, fed or not, so it sets how
-  soon the ground turns and never how far the creep goes, how fast a claimed
-  cell fills, or how long burnt ground refuses it. Matured creep is grown whole
-  at setup, so on the Cordon and the heart it moves only what grows in the
-  battle: a bore's new tier, a satellite opened late. In Colony Breach the bores
-  are fed nearly without pause, so the feed boost (three times the rate,
-  `-Dbattle.creep.feedMultiplier`) and how soon a bore grows to maw set the pace
-  at least as much as the base rate does.
+- **The creep is slow enough to fight ahead of** (owner's pick). Every source
+  walks its front out at half its tier preset's rate, and a fed bore at one and
+  a half times that rather than three times (`-Dbattle.creep.spreadScale`, 0.5;
+  `-Dbattle.creep.feedMultiplier`, 1.5; 1 and 3 are the old pace). In Colony
+  Breach that is about four and a half minutes from the first bore until two
+  fifths of the map has turned, against two and a half before, and it is the
+  feeding that set the old pace: bores are fed nearly without pause and reach
+  maw on biomass whatever the rate, so the base rate alone bought half a
+  minute. The dials set how soon the ground turns, never how far the creep
+  goes, how fast a claimed cell fills, or how long burnt ground refuses it.
+  Matured creep is grown whole at setup, so on the Cordon and the heart they
+  move only what grows in the battle: a bore's new tier, a satellite opened
+  late.
 - **Trees are grown over, never only climbed.** A tree's crown cells are growth
   the creep crosses, cell by cell at three times the ground's cost, so a grove
   is overgrown from its edge inward and its interior and far side are reached

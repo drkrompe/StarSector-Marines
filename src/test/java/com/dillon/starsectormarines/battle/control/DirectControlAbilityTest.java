@@ -43,7 +43,7 @@ class DirectControlAbilityTest {
     private static final SpecialEquipmentDef SMOKE_ITEM = new SpecialEquipmentDef(
             "special.test-smoke", "Smoke", "", "", null, SpecialActivation.UTILITY_SMOKE,
             null, SpecialResourceMode.AMMUNITION, 2, SpecialAiPolicy.SQUAD_SMOKE_SCREEN,
-            new SpecialEquipmentPresentationDef("", null, SpecialUsePose.THROW,
+            new SpecialEquipmentPresentationDef("", SpecialUsePose.THROW,
                     null, null, null, null, null, null), SMOKE, null, null, null, null);
     private static final IntegralSystemDef SHIELD = new IntegralSystemDef(
             "system.test-screen", "Screen", EquipmentGrade.SERVICE, "",

@@ -32,7 +32,7 @@ public final class RenderAppearance {
      * draw command it emits.
      */
     public enum SpriteKind {
-        /** Frame-sheet sub-rect (live infantry + dead poses) → facing-indexed {@code SHEET_QUAD}. */
+        /** A body that faces and falls: live, drawn from modular art; dead, its corpse art or a corpse-sheet {@code SHEET_QUAD}. */
         SHEET,
         /** Whole-texture rotated sprite (map turrets + drone hubs) → {@code SPRITE}. */
         WHOLE_SPRITE,
@@ -48,22 +48,19 @@ public final class RenderAppearance {
     public final boolean drawsDurabilityBar;
     /** Withholds that bar until the entity has actually taken fire, so an untouched emplacement reads as scenery. */
     public final boolean barsOnlyWhenUnderFire;
-    /** Has a corpse sheet, so a {@code deathPoseIdx >= 0} entity is drawn in the dead-sprite sweep. */
+    /** Has a corpse sheet, so a {@code deathPoseIdx >= 0} entity no other corpse art claims is drawn from it. */
     public final boolean hasDeathPose;
-    /** Facing→frame convention for the sprite sweep. Meaningful only when {@link #spriteKind} is {@link SpriteKind#SHEET}. */
-    public final UnitType.FrameLayout frameLayout;
     /** Multiplier on the per-cell sprite size (mirrors {@link UnitType#renderScale}). */
     public final float renderScale;
 
     private RenderAppearance(SpriteKind spriteKind, boolean drawsFootprint, boolean drawsDurabilityBar,
                              boolean barsOnlyWhenUnderFire, boolean hasDeathPose,
-                             UnitType.FrameLayout frameLayout, float renderScale) {
+                             float renderScale) {
         this.spriteKind = spriteKind;
         this.drawsFootprint = drawsFootprint;
         this.drawsDurabilityBar = drawsDurabilityBar;
         this.barsOnlyWhenUnderFire = barsOnlyWhenUnderFire;
         this.hasDeathPose = hasDeathPose;
-        this.frameLayout = frameLayout;
         this.renderScale = renderScale;
     }
 
@@ -83,21 +80,21 @@ public final class RenderAppearance {
     }
 
     /**
-     * Derives the tags from the sim type. The sheet-drawn classification now
-     * lives on the sim {@link UnitType#drawnAsSheet()} (so the sim tier can
+     * Derives the tags from the sim type. The posed-body classification
+     * lives on the sim {@link UnitType#carriesSprite()} (so the sim tier can
      * gate {@code SPRITE} archetype membership without importing this
      * render-tier class) — this method just defers to it. {@code
      * TURRET}/{@code DRONE_HUB_STRUCTURE} are the whole-sprite footprint-drawers;
-     * {@code DRONE} renders in its own layer. Sheet-drawn is asked first, so a
-     * body that stands still and does name a sheet — a machine part-built in a
-     * gantry — draws as one rather than falling into the footprint case.
+     * {@code DRONE} renders in its own layer. A posed body is asked first, so one
+     * that stands still — a machine part-built in a gantry — draws as a body
+     * rather than falling into the footprint case.
      * Durability bars follow {@code combatant} (drones excluded), and a corpse sweep
      * needs only a dead sheet to exist.
      */
     private static RenderAppearance derive(UnitType t) {
         SpriteKind kind;
         boolean footprint;
-        if (t.drawnAsSheet()) {
+        if (t.carriesSprite()) {
             kind = SpriteKind.SHEET;
             footprint = false;
         } else if (t == UnitType.RANGE_TARGET) {
@@ -116,6 +113,6 @@ public final class RenderAppearance {
                 && t != UnitType.RANGE_TARGET;
         boolean deathPose = t.deadSpritePath != null;
         return new RenderAppearance(kind, footprint, hpBar, t.isTurret(), deathPose,
-                t.frameLayout, t.renderScale);
+                t.renderScale);
     }
 }
