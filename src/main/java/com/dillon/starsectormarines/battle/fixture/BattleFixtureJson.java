@@ -199,6 +199,7 @@ public final class BattleFixtureJson {
             root.put("form", heart.form().name());
             root.put("biome", heart.biome().name());
             if (heart.density() != Density.RURAL) root.put("density", heart.density().name());
+            if (!heart.objectives().isEmpty()) root.put("objectives", new JSONArray(heart.objectives()));
             root.put("shuttles", shuttlesToJson(heart.manifest()));
             return root;
         }
@@ -279,7 +280,7 @@ public final class BattleFixtureJson {
                     enumValue(Form.class, root.getString("form"), "form"),
                     storyBiome(root), root.has("density")
                             ? enumValue(Density.class, root.getString("density"), "density") : Density.RURAL,
-                    shuttlesFromJson(root.getJSONArray("shuttles")));
+                    shuttlesFromJson(root.getJSONArray("shuttles")), heartObjectives(root));
             default -> throw new IllegalArgumentException(
                     "Unsupported battle fixture kind: " + kind);
         };
@@ -1319,5 +1320,13 @@ public final class BattleFixtureJson {
             if (constant.name().equalsIgnoreCase(value)) return constant;
         }
         throw new IllegalArgumentException("Unknown " + field + ": " + value);
+    }
+
+    /** The optional objectives a heart fixture names, or none. */
+    private static List<String> heartObjectives(JSONObject root) throws Exception {
+        List<String> out = new ArrayList<>();
+        JSONArray keys = root.optJSONArray("objectives");
+        if (keys != null) for (int i = 0; i < keys.length(); i++) out.add(keys.getString(i));
+        return out;
     }
 }
