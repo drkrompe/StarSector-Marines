@@ -1,5 +1,5 @@
 <template props="actionClasses,actionLabel,action,confirmClasses,confirmPrompt,cancelLabel,cancelAction,confirmLabel,confirmAction">
-  <div id="battle-retreat-overlay" class="battle-retreat-overlay">
+  <div id="battle-retreat-overlay" class="battle-retreat-overlay hud-glass">
     <button id="battle-exit-action" class="{actionClasses}" onclick="{action}">{actionLabel}</button>
     <div id="battle-retreat-confirm" class="{confirmClasses}">
       <div id="battle-retreat-confirm-label" class="label heading retreat-prompt">{confirmPrompt}</div>
@@ -55,9 +55,9 @@
     flex-direction: row;
     padding: 5px;
     gap: 5px;
-    border-width: 1px;
-    border-color: #9d4d4d;
-    background-color: #160e12e8;
+    border-width: 1px; border-color: transparent;
+    background-color: transparent;
+    background-image: linear-gradient(to right, #e98b8300 0%, #e98b8314 40%, #e98b8333 100%);
   }
 
   .battle-retreat-confirm-hidden {

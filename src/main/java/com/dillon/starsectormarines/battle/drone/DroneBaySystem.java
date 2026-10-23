@@ -233,6 +233,7 @@ public final class DroneBaySystem {
         float bestD2 = DroneWing.REACH_CELLS * DroneWing.REACH_CELLS;
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             long u = dense[i];
+            if (roster.isRiding(u)) continue;
             if (!side.hostileTo(roster.identity().faction(u))) continue;
             float dx = world.x(u) - wing.anchorX();
             float dy = world.y(u) - wing.anchorY();

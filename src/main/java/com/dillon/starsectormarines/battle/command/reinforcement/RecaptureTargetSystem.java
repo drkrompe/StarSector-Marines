@@ -146,6 +146,7 @@ public final class RecaptureTargetSystem {
         int totalDefenders = 0;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long u = sim.liveUnitAt(i);
+            if (sim.isRiding(u)) continue;
             if (sim.identity().faction(u) != Faction.DEFENDER) continue;
             present[frontDepth.bandAt(sim.world().cellX(u), sim.world().cellY(u))]++;
             totalDefenders++;

@@ -349,7 +349,7 @@ public final class BreachToEngage implements Goal {
             if (!sim.identity().type(enemy).combatant) continue;
             if (!squad.faction.hostileTo(sim.identity().faction(enemy))) continue;
             if (zones.zoneIdAt(sim.world().cellX(enemy), sim.world().cellY(enemy)) != squadZone) continue;
-            for (int mi = 0; mi < liveN; mi++) { long member = sim.liveUnitAt(mi);
+            for (int mi = 0; mi < liveN; mi++) { long member = sim.liveUnitAt(mi); if (sim.isRiding(member)) continue;
                 if (!sim.squad().hasSquad(member) || sim.squad().squadId(member) != squad.id) continue;
                 if (grid.hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member), sim.world().cellX(enemy), sim.world().cellY(enemy))) {
                     return true;

@@ -1091,7 +1091,7 @@ one. Lines and their first variants:
 | --- | --- |
 | Technical (field rig) | Militia technical — Advanced filler for a small lift budget; SRM technical — Common rocket rig, an ambusher of armor (Light lift) |
 | APC | Heavy APC (troop carrier) → up-armored APC (more armor, slower) → fire-support APC (a mortar instead of seats) or LRM carrier (two LRM-15 anti-armor racks instead of seats, spotted indirect fire) |
-| Tank | Breakthrough tank → heavy-gun tank, a screened tank (active protection against top-attack rounds), or a dozer-blade breaching sidegrade |
+| Tank | Breakthrough tank → a screened tank (active protection against top-attack rounds), a laser tank (a ship's burst laser: infantry and drones, not plate), or a dozer-blade breaching sidegrade |
 | Supply (field rig) | Supply pickup — a carried resupply cache, served while halted (Light lift) |
 | Spotter (field rig) | Spotter pickup — a sight mast that reports to fog and commander (Light lift) |
 | Hover (Tri-Tachyon) | Hover scout (sight and a light emitter, Light lift) → drone skimmer (tethered drones, no gun, Medium lift) |
@@ -1139,6 +1139,38 @@ is the ambush, not the duel. On the street every short-reach attacking hull (the
 militia technical and heavy APC too) times out under the instrument's steering, so
 those rows read nothing. Not tuned: the duel numbers are readings.
 
+**The laser tank against men and machines.** A ship mounts a burst laser as point
+defence because it barely marks proper plate; at ground scale almost nothing is
+proper plate. The tank's identity is the split between the two, and it is held by
+cadence rather than by a damage type: a four-pulse burst at penetration 3 every
+0.55 s from a ten-charge capacitor bank refilling one charge every 2 s
+(`convoy-nouns.md`, The laser tank). A section dies inside the bank; a tank does not.
+Readings against the breakthrough tank's twin cannon (`tank-versus-infantry`, four
+seeds, one planted tank and a twelve-strong section eighteen cells off; `armorMatchup`,
+four seeds, three grounds):
+
+| | Twin cannon | Burst laser |
+| --- | --- | --- |
+| Line section (10/8 plate) broken | 19.8 s | 12.1 s |
+| Power-suit section (60/14) | 45 of 48 killed, 1 of 4 broken | 31 of 48 killed, none broken |
+| Attacking a breakthrough tank, wins of 4 (open, hull-down, street) | 2, 2, 2 | 0, 0, 1 |
+| Attacking a Hound / heavy APC, wins of 4 per ground | 4 / 4 | 4 / 4 |
+
+Without the bank, the same burst at penetration 3 took every street fight and every
+open-ground attack from the cannon tank: the armor pool is the only thing penetration
+discounts, and once it is stripped the structure under it takes every hit in full.
+Power suits are the laser's hard case on purpose.
+
+The gun also reaches the air. Under a hostile Mudskipper on station overhead
+(`tank-versus-air`, three seeds), the laser tank brought the craft down in every play,
+1.5 s after its first air round on average. The cannon tank never fired at it. With
+eight riflemen in reach as well, it split 33 air rounds against 48 at the ground and
+still downed the craft, 4.0 s after its first air round. A Mudskipper's 60 points are
+one burst at 85% accuracy, where a dual-flak position (36 at 40% every 0.8 s) needs
+about three seconds. That makes the laser tank the deadliest thing on the ground to
+light air, and the lever, if it is too much, is the weapon's accuracy against the
+air. Not tuned beyond this: readings.
+
 Faction variants (a Hegemony APC, a Tri-Tachyon tank) arrive as Prestige or
 Restricted cards weighted by faction, as faction mech weapons are.
 
@@ -1164,7 +1196,7 @@ internals vocabulary without the doll.
 | Vehicles in the bay (shipped; `mechs-nouns.md`) | Vehicle patterns; a bay space holds a mech or a vehicle; losses write back. |
 | Armor drop selection (shipped; `mechs-nouns.md`, armor drop) | Pick which bay spaces come down per call; cooldown between calls; lift caps armor per mission. |
 | Vehicle variant ladder (shipped; `mechs-nouns.md`) | Fixed vehicle variants per line, each a pattern card; faction variants; no vehicle fitting. |
-| Tank variant art (shipped; `convoy-nouns.md`) | Art for the heavy-gun tank and dozer breacher; both offered. |
+| Tank variant art (shipped; `convoy-nouns.md`) | Art for the dozer breacher, offered. The heavy-gun tank was removed (owner, 2026-10-22). |
 | Dozer breach (shipped; `convoy-nouns.md`) | The dozer's blade clears ground other vehicles can follow. |
 | Light roles (shipped; `convoy-nouns.md`, light roles) | Supply pickup through the resupply authority; spotter pickup through fog and commander contacts; both field rigs. |
 | Missile carriers (shipped; `convoy-nouns.md`, the missile carriers) | LRM carrier (spotted indirect anti-armor fire, stand-off) and SRM technical (ambusher field rig); both hold fire at men. |

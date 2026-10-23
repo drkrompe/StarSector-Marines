@@ -3736,6 +3736,7 @@ public final class TacticalScoring {
         int liveCount = roster.liveCount();
         for (int i = 0; i < liveCount; i++) {
             long u = dense[i];
+            if (roster.isRiding(u)) continue;
             int zid = zones.zoneIdAt(world.cellX(u), world.cellY(u));
             if (zid < 0 || zid >= control.length) continue;
             control[zid] += selfFaction.friendlyTo(

@@ -194,7 +194,8 @@ public final class IntegralSystemSystem {
             long id = live[i];
             if (!systems.has(id)) continue;
             systems.tick(id, dt);
-            projectSweep(id, systems, fog);
+            // A passenger casts no carried sweep from inside its vehicle.
+            if (!rosterService.isRiding(id)) projectSweep(id, systems, fog);
             if (!systems.canActivate(id)) continue;
             IntegralSystemDef def = systems.spec(id);
             if (def == null) continue;

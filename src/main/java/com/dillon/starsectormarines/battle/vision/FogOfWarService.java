@@ -269,6 +269,12 @@ public final class FogOfWarService {
         VisionService vision = roster.vision();
         ContributorEntry entry = new ContributorEntry();
         entry.unitId = u;
+        // A passenger joins sightless and starts casting when it is set down.
+        if (roster.isRiding(u)) {
+            stowAboard(entry);
+            smallest.contributors.add(entry);
+            return;
+        }
         entry.lastCellX = world.cellX(u);
         entry.lastCellY = world.cellY(u);
 
@@ -518,11 +524,15 @@ public final class FogOfWarService {
             }
             // Somebody inside a vehicle sees nothing out of it and has no cell
             // to see from. Its footprint comes down and it stops contributing
-            // until it is set down again — the same shape as a contributor that
-            // died, except it comes back.
+            // until it is set down again. It stays registered: nothing adds a
+            // contributor back on a dismount, so removing it here (as a death
+            // does) left a squad that had ridden an APC blind for the rest of
+            // the battle. The vehicle's own sight covers the ride.
             if (roster.isRiding(e.unitId)) {
-                decrementFootprint(e);
-                cohort.contributors.remove(i);
+                if (e.lastRange > 0 || e.previousCellCount > 0) {
+                    decrementFootprint(e);
+                    stowAboard(e);
+                }
                 continue;
             }
 
@@ -604,6 +614,19 @@ public final class FogOfWarService {
         return total;
     }
 
+    /**
+     * Empties a passenger's footprint and marks its cell unknown, so it reveals
+     * nothing, answers no sight question, and recasts the moment it has a cell
+     * again.
+     */
+    private static void stowAboard(ContributorEntry e) {
+        e.previousCellCount = 0;
+        e.lastRange = 0;
+        e.lastAirLosRadius = 0f;
+        e.lastCellX = Integer.MIN_VALUE;
+        e.lastCellY = Integer.MIN_VALUE;
+    }
+
     private void decrementFootprint(ContributorEntry e) {
         for (int j = 0; j < e.previousCellCount; j++) {
             conceal(e.previousCells[j]);
@@ -630,7 +653,7 @@ public final class FogOfWarService {
         clearAirMaskActive = true;
         for (FogCohort cohort : cohorts) {
             for (ContributorEntry entry : cohort.contributors) {
-                if (!roster.isAliveById(entry.unitId)) continue;
+                if (!roster.isAliveById(entry.unitId) || entry.lastRange <= 0) continue;
                 addClearAirFootprint(entry.lastCellX, entry.lastCellY,
                         entry.lastRange, entry.lastAirLosRadius);
             }

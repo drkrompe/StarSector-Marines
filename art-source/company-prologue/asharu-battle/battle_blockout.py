@@ -2188,8 +2188,9 @@ def blender_main(cfg):
             return
         verts, faces = kit.hull_soup(e)
         kit.sheath('Entry ' + key, verts, faces, stage_fx, K6_WIND, SHIP_LENGTH[key], glow=1.0,
-                   streamers=36 if key == 'colossus' else 28, seed=len(key), grow=min(1.0, (t - 126.0) / 4.5),
-                   lights=stage_ships)      # the sheath's glow on her own windward plates
+                   streamers=22 if key == 'colossus' else 16, seed=len(key), grow=min(1.0, (t - 126.0) / 4.5),
+                   lights=stage_ships,      # the sheath's glow on her own windward plates
+                   belly=e.matrix_world.to_3x3() @ Vector((0.0, 0.0, -1.0)))
 
     def wreckfall(t):
         """S12: the ships the battle lost coming down in pieces (WRECKFALL): each piece a short entry
@@ -2219,7 +2220,7 @@ def blender_main(cfg):
                                   stage_fx, turn=(t - K6_T) * rnd.uniform(.4, 1.2))
                 kit.sheath('Wreckfall %s %d' % (pc['name'], k), rv, rf, stage_fx, K6_WIND, size,
                            glow=(.5 if pc['kind'] == 'chunk' else .3) * flick * (1 if k == 0 else .8),
-                           streamers=6 if pc['kind'] == 'chunk' else 2, seed=pc['seed'] * 7 + k,
+                           streamers=4 if pc['kind'] == 'chunk' else 2, seed=pc['seed'] * 7 + k,
                            grow=min(1.0, .3 + grown), voxel=size / 9.0)
 
     def field_matrix(piece, box, t, local=None):

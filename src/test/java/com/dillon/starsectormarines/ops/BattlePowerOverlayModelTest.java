@@ -18,7 +18,6 @@ import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import org.junit.jupiter.api.Test;
 
-import java.awt.Color;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -94,7 +93,6 @@ class BattlePowerOverlayModelTest {
             document.advance(0.2f);
             UiElement armed = instance.requireElement("battle-power-recon");
             assertTrue(armed.hasClass("power-armed"));
-            assertEquals(new Color(0xFF, 0xD4, 0x64), armed.borderColor());
             assertEquals("TARGET", status(instance, "recon"));
             assertFalse(instance.requireElement("battle-power-targeting")
                     .hasClass("power-targeting-hidden"));

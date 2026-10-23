@@ -111,7 +111,8 @@ public final class World {
      * that carry their own kinematics instead — a convoy chassis, an aircraft —
      * which is exactly what a caller about to <em>write</em> a cell has to know:
      * they answer {@link #x}/{@link #y} off their body and there is no cell
-     * column to put anything back into.
+     * column to put anything back into. False too for a passenger aboard a
+     * vehicle, which answers off its carrier's body ({@link #isRiding}).
      */
     public boolean hasPosition(long id) { return entityWorld.has(id, components.POSITION); }
 
@@ -127,6 +128,8 @@ public final class World {
         // a body — never reaches this and keeps answering off its cell.
         AirBody flier = kinematics(id);
         if (flier != null) return flier.x;
+        long carrier = carrierOf(id);
+        if (carrier != 0L) return x(carrier);
         return entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X);
     }
     public float y(long id) {
@@ -136,6 +139,8 @@ public final class World {
         if (body != null) return body.y;
         AirBody flier = kinematics(id);
         if (flier != null) return flier.y;
+        long carrier = carrierOf(id);
+        if (carrier != 0L) return y(carrier);
         return entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y);
     }
     public void setPos(long id, float x, float y) {
@@ -160,6 +165,8 @@ public final class World {
         if (body != null) return body.x;
         AirBody flier = flierWithoutACell(id);
         if (flier != null) return flier.x;
+        long carrier = carrierOf(id);
+        if (carrier != 0L) return renderX(carrier);
         return entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X, 0f);
     }
     public float renderY(long id) {
@@ -167,6 +174,8 @@ public final class World {
         if (body != null) return body.y;
         AirBody flier = flierWithoutACell(id);
         if (flier != null) return flier.y;
+        long carrier = carrierOf(id);
+        if (carrier != 0L) return renderY(carrier);
         return entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y, 0f);
     }
 
@@ -182,6 +191,23 @@ public final class World {
     private AirBody flierWithoutACell(long id) {
         return entityWorld.has(id, components.POSITION) ? null : kinematics(id);
     }
+
+    /**
+     * The vehicle {@code id} is riding in, or {@code 0L} when it is not aboard
+     * anything. A passenger has no {@code POSITION} of its own (mounting strips
+     * it), so a position read on one answers its carrier's: the squad in the
+     * APC is where the APC is. Whether a passenger is <em>on the ground</em> —
+     * splash, capture, sight, a target — is a different question, answered by
+     * {@link #isRiding}, and the passes that ask it skip passengers.
+     */
+    private long carrierOf(long id) {
+        return entityWorld.has(id, components.RIDING)
+                ? entityWorld.getLong(id, components.RIDING, BattleComponents.RIDING_CARRIER_ID)
+                : 0L;
+    }
+
+    /** Whether {@code id} is aboard a vehicle: somewhere, but not standing on the ground. */
+    public boolean isRiding(long id) { return entityWorld.has(id, components.RIDING); }
 
     private GroundBody groundBody(long id) {
         return entityWorld.has(id, components.GROUND_KINEMATICS)

@@ -73,7 +73,10 @@ TRAFFIC = [
     ('S11', 'MORROW', 121.8, 123.6, 'Morrow, losing you in the —', True),
     ('S13', 'CARAVEL FOUR', 135.2, 138.4, 'All Caravel ships, Caravel Four. Who is still with me?', False),
     ('S13', 'WARDEN THREE', 139.0, 141.4, 'Warden Three. Still here. The column is scattered.', False),
-    ('S13', 'BARON', 141.9, 144.6, 'Baron to all hands. We have what we came for. Burn out.', False),
+    # owner, 2026-10-22: no pirate sign-off. Warden gives up on the lost ships, and reads the pirates as
+    # satisfied with what they caught (Caravel Two); nothing says what the Colossus carried
+    ('S13', 'WARDEN THREE', 141.9, 144.6, "Nothing from Caravel or the Morrow. ... They're not chasing. "
+                                          "Looks like they're happy with what they caught.", False),
 ]
 
 

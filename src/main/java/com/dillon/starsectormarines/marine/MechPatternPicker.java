@@ -70,6 +70,15 @@ public final class MechPatternPicker {
 
     private MechPatternPicker() {}
 
+    /** The patterns a faction weights up as its own issue. */
+    static Set<MechPattern> factionIssue(String factionId) {
+        return FACTION_ISSUE.getOrDefault(factionId, Set.of());
+    }
+
+    static Set<String> issuingFactions() {
+        return FACTION_ISSUE.keySet();
+    }
+
     public static List<String> pick(String factionId, FactionEquipmentSource source,
                                     int limit, long seed, Set<String> unavailablePatternIds,
                                     EquipmentAcquisitionEligibility.Progress progress) {
