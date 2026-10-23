@@ -142,12 +142,13 @@ public final class ConvoyRenderSystem implements RenderSystem {
                 }
                 float drawFacingDeg = turretFacingDeg;
                 if (!wrecked && turret != null && type.turretRaiseFold() < 1f && turret.elevation > 0f) {
-                    // Standing up on its tail hinge, pitched to the angle its rounds leave at. The battle is drawn
-                    // with height as screen-up, as the missiles' arcs are, so a pitched rack's nose rises up the
-                    // screen as well as running toward the target: it draws along the arc's first tangent, turned
-                    // off the true bearing and longer pointing north than south. Its tail stays where it was, its
-                    // nose reads a little wider for coming up toward the eye, and its shadow stays on the deck at
-                    // full length, the rack lifting off it down and right like the sheets' baked shadows.
+                    // Standing up to fire, pitched to the angle its rounds leave at. The battle is drawn with
+                    // height as screen-up, as the missiles' arcs are, so a pitched rack's nose rises up the screen
+                    // as well as running toward the target: it draws along the arc's first tangent, turned off the
+                    // true bearing and longer pointing north than south. It stays centred on its turntable, never
+                    // moved off it; the raise is only that turn and foreshortening, a nose a little wider for coming
+                    // up toward the eye, and a full-length shadow left on the deck down and right of it, like the
+                    // sheets' baked shadows.
                     float lift = RAISE_SHADOW_CELLS * turret.elevation;
                     out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
                             tf.x, tf.y, tf.w, tf.h,
@@ -164,9 +165,6 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     float cos = (float) Math.cos(pitch);
                     float axisX = ux * cos;
                     float axisY = uy * cos + (float) Math.sin(pitch);
-                    float hinge = type.turretRaiseHingeCells();
-                    drawCellX += (axisX - ux) * hinge;
-                    drawCellY += (axisY - uy) * hinge;
                     drawFacingDeg = (float) Math.toDegrees(Math.atan2(-axisX, axisY))
                             + type.turretSpriteFacingOffsetDeg;
                     tDrawLong *= (float) Math.hypot(axisX, axisY);
@@ -249,7 +247,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
     /** The steepest a rack is drawn pitched, for a target so near its rounds would leave almost straight up. */
     private static final float MAX_LAUNCH_PITCH = (float) Math.toRadians(70);
     /** The least a raised rack draws along its own bearing, as a share of its length ({@link #readablePitch}). */
-    static final float MIN_RAISED_ALONG = .5f;
+    static final float MIN_RAISED_ALONG = .7f;
 
     /**
      * The angle an arcing round leaves the ground at, in radians: the slope of the drawn arc at its start. The arc

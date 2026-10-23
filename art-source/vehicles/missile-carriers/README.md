@@ -11,14 +11,16 @@ is painted on the hull frames at the APC's roof bearing (335, 288) instead of un
 is foreshortened when it raises and a flat turntable must not tilt with it.
 
 The raise is a render transform, not a second frame. `GroundTurret.elevation` runs 0 to 1 over 0.6 s while the
-launcher has a target, is firing, or fired in the last two seconds, and back down otherwise. The renderer draws
-the turret frame `VehicleType.turretRaiseFold` (0.78) as long along its firing axis at full raise, keeps the pod's
-tail hinge (`turretRaiseHingeCells`, half the pod) where it was, and draws the frame a little wider, since the
-nose has come up toward the eye. The wreck pod lies flat.
+launcher has a target, is firing, or fired in the last two seconds, and back down otherwise. The renderer pitches the
+pod to the slope its missiles' drawn arc leaves at and draws it along that arc's first tangent on screen, so it is
+turned and foreshortened, a little wider for its nose coming up toward the eye, and always centred on the turntable:
+the raise never moves the pod off its ring. Firing toward the bottom of the screen it stands only as tall as still
+points at the target. The wreck pod lies flat.
 
-The mount's nine muzzles (`mount.vehicle-lrm`) are the pod's tube tips at the raised pose: lateral 0 and
-+/-0.144, forward 0.142, 0.082 and 0.031 cells, in a Latin-square order so a salvo walks across the pod. Change the
-pod's size, the fold or the hinge and they move with it.
+The mount's nine muzzles (`mount.vehicle-lrm`) are the pod's tube tips at a representative raise
+(`VehicleType.turretRaiseFold`, 0.78 of their flat reach about the pod's centre): lateral 0 and +/-0.144, forward
+0.222, 0.161 and 0.110 cells, in a Latin-square order so a salvo walks across the pod. Change the pod's size or the
+fold and they move with it.
 
 ```
 python art-source/vehicles/missile-carriers/pack.py
