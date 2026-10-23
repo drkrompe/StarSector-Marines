@@ -520,6 +520,16 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         BriefingViewModel.putFactionIdentity(narratedBriefing, "employer", "Independent", OpeningBroker.CREST);
 
         narratedBriefing.put("missionFlavor", narration.find("story_opening_relief", "briefing.01").text());
+        // As the first mission opens: one commander card, no command powers and no fleet ships.
+        narratedBriefing.put("taskForceRows", List.of(BriefingViewModel.forceCard("op-commander",
+                "Lieutenant Sabine Hale", "1 squad · 12 marines",
+                "graphics/portraits/portrait_mercenary01.png", "").asOperationCommander()));
+        narratedBriefing.put("powerRows", List.of());
+        narratedBriefing.put("powerEmpty", "No powers available from fleet or employer.");
+        narratedBriefing.put("sourceRows", List.of());
+        narratedBriefing.put("sourceEmpty", "No fleet ships provide command powers.");
+        narratedBriefing.put("assignClasses", "");
+        BriefingViewModel.withEmptyStyles(narratedBriefing);
         BriefingSurvey conquestSurvey = productionSurvey(context, "conquest-full-strength-west-v3.json", 1008);
         BriefingSurvey sabotageSurvey = productionSurvey(context, "sabotage-site-groups-v2.json", 12);
         BriefingSurvey understrengthSurvey = productionSurvey(context, "sabotage-site-groups-v2.json", 6);

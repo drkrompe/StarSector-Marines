@@ -12,7 +12,7 @@
 <style>
   .comms-dialogue { height: 200px; flex-direction: column; gap: 12px; }
   .comms-transcript { height: 0px; flex-grow: 1; overflow: scroll; }
-  .comms-text { height: auto; font-family: prose; white-space: normal; color: #ffffff; }
+  .comms-text { height: auto; white-space: normal; color: #ffffff; }
   .comms-controls { height: 32px; flex-direction: row; gap: 8px; align-items: center; }
   .comms-controls button { width: 138px; height: 28px; padding: 2px 4px; text-align: center; font-family: heading; }
   .comms-progress { width: 0px; flex-grow: 1; height: auto; text-align: right; color: #a7b2a9; }
