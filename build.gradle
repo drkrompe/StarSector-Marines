@@ -844,11 +844,74 @@ tasks.register('profileClearanceRoute', JavaExec) {
     args layout.buildDirectory.dir('reports/performance/clearance-route').get().asFile.absolutePath
 }
 
+// ---- LWJGL 3 headless GL, for a machine whose game install LWJGL 2 cannot load in (gpu-review-drain.md) ----
+// The Mac: the game's liblwjgl is x86_64 and the JDK is arm64. `gl3` holds the LWJGL 3 surface (CGL there, a hidden
+// GLFW window elsewhere) and stubs for the LWJGL 2 classes LWJGL 3 does not have; `gl3patch` writes LWJGL 3's GL11
+// with the LWJGL 2 client-array overloads the draw batches call. Tool classpath only: none of it can reach the mod
+// jar, and none of it is on `test`.
+configurations {
+    lwjgl3
+}
+
+dependencies {
+    lwjgl3 "org.lwjgl:lwjgl:${lwjglVersion}", "org.lwjgl:lwjgl-opengl:${lwjglVersion}", "org.lwjgl:lwjgl-glfw:${lwjglVersion}"
+    ['natives-windows', 'natives-macos', 'natives-macos-arm64'].each { natives ->
+        lwjgl3 "org.lwjgl:lwjgl:${lwjglVersion}:${natives}"
+        lwjgl3 "org.lwjgl:lwjgl-opengl:${lwjglVersion}:${natives}"
+        lwjgl3 "org.lwjgl:lwjgl-glfw:${lwjglVersion}:${natives}"
+    }
+}
+
+sourceSets {
+    gl3 {
+        java.srcDir 'src/gl3/java'
+        compileClasspath = sourceSets.test.output + configurations.lwjgl3
+    }
+    gl3patch {
+        java.srcDir 'src/gl3patch/java'
+    }
+}
+
+// java.lang.classfile is final from 24; the patcher runs on the build's own toolchain and never ships.
+tasks.named('compileGl3patchJava', JavaCompile) {
+    options.release = 25
+}
+
+def patchedLwjgl3Dir = layout.buildDirectory.dir('gl3/patched')
+
+tasks.register('patchLwjgl3Gl11', JavaExec) {
+    group = 'build'
+    description = "Write LWJGL 3's GL11 with the LWJGL 2 overloads the mod's batches call (headless LWJGL 3 classpath)"
+    classpath = sourceSets.gl3patch.runtimeClasspath
+    mainClass = 'com.dillon.starsectormarines.tools.gl3.PatchLwjgl3Gl11'
+    def openglJar = configurations.lwjgl3.elements.map { files ->
+        files.collect { it.asFile }.find { it.name == "lwjgl-opengl-${lwjglVersion}.jar".toString() }
+    }
+    inputs.files(configurations.lwjgl3)
+    outputs.dir(patchedLwjgl3Dir)
+    doFirst {
+        args openglJar.get().absolutePath, patchedLwjgl3Dir.get().asFile.absolutePath
+    }
+}
+
+// Which GL binding the review drain's context comes from: `lwjgl2` (the game's, a pbuffer) or `lwjgl3`. LWJGL 3 by
+// default on a Mac, where LWJGL 2 cannot load; `-PsnapshotGl=lwjgl3` runs the same path on Windows.
+def snapshotGl = providers.gradleProperty('snapshotGl').getOrElse(
+        System.getProperty('os.name', '').toLowerCase(Locale.ROOT).contains('mac') ? 'lwjgl3' : 'lwjgl2')
+
 tasks.register('createSnapshots', JavaExec) {
     group = 'verification'
     description = 'Create deterministic visual snapshots without launching Starsector'
     dependsOn tasks.named('testClasses')
-    classpath = sourceSets.test.runtimeClasspath
+    if (snapshotGl == 'lwjgl3') {
+        dependsOn tasks.named('patchLwjgl3Gl11'), tasks.named('gl3Classes')
+        // The patched GL11 ahead of the LWJGL 3 jar, and the game's LWJGL 2 out: the two cannot share a classpath.
+        classpath = files(patchedLwjgl3Dir) + sourceSets.gl3.output + configurations.lwjgl3 +
+                sourceSets.test.runtimeClasspath.filter { it.name != 'lwjgl.jar' }
+        systemProperty 'snapshot.gl.context', 'com.dillon.starsectormarines.testsupport.gl3.Lwjgl3Surface'
+    } else {
+        classpath = sourceSets.test.runtimeClasspath
+    }
     mainClass = 'com.dillon.starsectormarines.ops.CreateSnapshotsCli'
     workingDir projectDir
     systemProperty 'starsectorDir', starsectorDir.absolutePath
