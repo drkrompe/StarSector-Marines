@@ -112,8 +112,11 @@ between them, so a battle that holds early is not over.
 how long each runs, the ordinary and tide pressures, when bores erupt, the
 window, and how many redoubts may fall. The standard timetable is three
 one-minute tides at minutes four, eight and twelve of a fifteen-minute window,
-the swarm at a third of its strength between tides and two thirds in one, an
-eruption at minutes six and ten, one redoubt allowed to fall.
+the swarm at a fifth of its strength between tides and two thirds in one, an
+eruption at minutes six and ten, one redoubt allowed to fall. A fifth is what
+the allies hold alone: with no orders from the player the line holds between
+tides and breaks in the second (`cordon-line` evidence, 2026-10-22); at a third
+the garrisons bled out before the first tide came.
 
 **Allied column.** Allied troops that arrive during the battle along a rear
 road, on a timetable set at the briefing: a few teams of riflemen. A column
@@ -159,10 +162,14 @@ straight onto a slot. Two carriers sent to
 one redoubt set down side by side, not on one spot.
 
 **Allied armour.** The allies' cars and technicals behind the line, under the
-allies' own command (`allied-command.md`), not the player's. Between calls
-each stands at its home behind the line; when a redoubt calls, each goes to
-the calling redoubt nearest it and fights from behind its rear wall, and goes
-home when no redoubt calls. The base's shed adds to them through the battle.
+allies' own command (`allied-command.md`), not the player's. Each has a
+**sector**: one redoubt it fights beside, out past a side wall and a few cells
+back from the front, where its gun reaches the ground in front of the wall (from
+behind the rear wall it reached nothing; a redoubt is deeper than a machine
+gun's range). The redoubt with the fewest hulls gets the next one, and a hull
+whose redoubt falls is given another. They do not chase calls: on a front
+hundreds of cells wide a reserve sent to whichever redoubt called last spent
+the battle driving. The base's shed adds to them through the battle.
 They are the start of the allies fighting their
 own war (*The allies hold, the company decides*).
 
@@ -321,7 +328,7 @@ the first tick over the bores the front was grown with, no perimeter waves, and
 no rescue to end it, so it spawns while a bore lives. Two rules keep the
 pressure along the whole line rather than at one end: due bores are served in
 the order of fewest surges so far, and a bore's pulse is sized to the share the
-director is held at, so a big bore held back to a third of its strength still
+director is held at, so a big bore held back to a fifth of its strength still
 surges instead of waiting for headroom it never gets.
 
 ### The company
@@ -408,10 +415,8 @@ The owner's answers to the flow cards (2026-10-22):
   light armour and APCs in a vehicle shop, reinforcement squads walk in off
   the map to it, APCs carry them up to the line and stay there as support,
   and the player's company is the backstop when a lane goes bad and the push
-  that carries one through. The allies alone should hold the ordinary pressure
-  and sag in the later tides. The base, its shed, the walk-in columns and the
-  carrier deliveries are in (*Logistics base*); balancing the swarm to that
-  standard is next.
+  that carries one through. The allies alone hold the ordinary pressure and sag
+  in the tides: the ordinary share is set to that (*Tide*).
 
 - **Where the Line's refugees walk:** out of the rear villages to the rear
   edge along the country road, behind the line.

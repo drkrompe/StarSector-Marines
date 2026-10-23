@@ -301,16 +301,16 @@ public final class CordonLogistics {
     }
 
     /**
-     * A carrier between carries: to the rear wall of the nearest calling redoubt, beside the armour
-     * rather than on it; with no call it stays where it last stood, behind the redoubt it fed.
+     * A carrier between carries: to a flank of the nearest calling redoubt, behind the armour's
+     * places there; with no call it stays where it last stood, behind the redoubt it fed.
      */
     private void support(BattleSimulation sim, long hull, List<CordonRedoubt> redoubts) {
         CordonRedoubt call = CordonArmour.nearestCalling(sim.convoy().body(hull), redoubts);
         if (call == null || call == supporting.get(hull)) return;
         supporting.put(hull, call);
-        int[] post = armour.behind(call);
-        int lane = carriers.indexOf(hull) - (slots.size() - 1) / 2;
-        armour.command().station(sim, hull, post[0] + lane * DROP_SPACING + DROP_SPACING / 2, post[1]);
+        // Behind the first two armour places on each side, by its own rank among the carriers.
+        int[] post = armour.flank(call, 4 + carriers.indexOf(hull));
+        armour.command().station(sim, hull, post[0], post[1]);
     }
 
     /** One hull through the door at a time: the next goes once the last is clear of it, or gone. */
