@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16a1d-747e-7041-9a9d-23224c8e06bf",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16a1d-747e-7041-9a9d-23224c8e06bf\\exec-3e7ebc4c-8ad1-4d56-a1d0-0917404fa9b0.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ground-turrets\\raw\\earthwork-hardpoint.raw.png",
+    "sha256": "6289b0915af7dffbdfc1879278e5d53850e84f8ed6bb32413e9e436fa7f6c74e",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ground-turrets\\prompts\\earthwork-hardpoint.prompt.txt",
+  "promptSha256": "3f8144af96fc3a8ad66bb20b1863fcda1e88f80b3a5a31b13538fdb57a595a83",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target: keep every silhouette, position and size\nImage 2: Painting style and rendering finish only; not layout, not material colour\n\nUse case: sketch-to-render, game sprite sheet. Image 1 is the authoritative geometry guide and edit target: reskin it, keeping every shape exactly where and how big it is on the 1536x1024 canvas. It holds two separate objects for a sci-fi strategy-game building prop (like a tabletop miniature terrain set), each seen from directly above. Left: a raised plinth about one storey (four metres) tall, seen from straight above, so its sloped battered side walls show as the four bands round the flat top deck: the north and west walls catch the sun and are light, the south and east walls are in shade and dark; it must read clearly as a tall solid block standing above the ground. A narrow staircase is cut into the south wall from the deck down to the ground (keep the steps as drawn), a low parapet rims the deck, small lockers or vents sit on three deck corners, and the deck holds an empty dark circular turret-ring well (leave the well dark and plain: a separate rotating turret house sits over it). Right: the large armoured rotating turret house that sits on it, with one long heavy tube ending in a slotted end cap pointing straight up the image, a cupola, a roof hatch and rear stowage bustle. Material and style: Low dug-in field works: hessian sandbags (khaki and tan, sagging, tied ends), wire-mesh gabions filled with stone, rammed earth and packed dirt, rough timber step treads; cupolas in sand-and-khaki painted armour with scraps of camouflage netting tied over them, dusty, field-repaired. Straight 90-degree overhead orthographic camera, top-down like a strategy-game map sprite, no perspective tilt. Sun from the upper left: keep the guide's lit and shaded faces exactly where they are. Hand-painted gritty dark-science-fiction game-sprite look like Starsector, restrained desaturated palette, coarse readable detail that survives being shrunk to about 30 to 40 pixels per cell. No text, no labels, no watermark, no UI, no ground or terrain, no grass, no cast shadow outside the objects, no extra slab, apron or border. Transparent background outside every silhouette (if transparency is impossible, a flat pure white background). Change only material, surface detail and subtle shading, never placement, size or silhouette.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\ground-turrets\\guides\\earthwork-hardpoint-guide.png",
+      "sha256": "548c649511ffcf482e05ad1760a4153757b01db47342d68f42067aeb97dbb7c9",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target: keep every silhouette, position and size"
+    },
+    {
+      "path": "mod\\graphics\\structures\\missile-aa-base.png",
+      "sha256": "c4fd9bbc087b3bcc64c613cc676461ab1f9b79c3bce36ae6d5ecc9c589ff176e",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Painting style and rendering finish only; not layout, not material colour"
+    }
+  ],
+  "agentMessages": [
+    "I’ll render the guide with the requested fieldwork materials, preserving its layout and silhouettes and using Image 2 only for the painting finish."
+  ],
+  "usage": {
+    "input_tokens": 42331,
+    "cached_input_tokens": 35712,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 653,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 66.5
+}

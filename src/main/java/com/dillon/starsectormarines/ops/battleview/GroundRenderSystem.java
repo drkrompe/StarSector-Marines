@@ -340,6 +340,24 @@ public final class GroundRenderSystem implements RenderSystem {
             System.arraycopy(sublayers, 1, expanded, 1 + feathers, sublayers.length - 1);
             sublayers = expanded;
         }
+        // The shore lies over the feathered ground and under everything laid on it.
+        Shore shore = WaterShore.enabled() ? Shore.of(this, topology) : null;
+        if (shore != null) {
+            int at = 1 + (feather != null ? GroundFeather.RANKS * 4 : 0);
+            WaterShore.Band[] bands = WaterShore.Band.values();
+            int pieces = bands.length * WaterShore.TRIANGLES;
+            GroundMesh.CellResolver[] expanded = new GroundMesh.CellResolver[sublayers.length + pieces];
+            System.arraycopy(sublayers, 0, expanded, 0, at);
+            for (int band = 0; band < bands.length; band++) {
+                for (int triangle = 0; triangle < WaterShore.TRIANGLES; triangle++) {
+                    final WaterShore.Band b = bands[band];
+                    final int t = triangle;
+                    expanded[at + band * WaterShore.TRIANGLES + triangle] = (x, y, sink) -> shore.resolve(b, t, x, y, sink);
+                }
+            }
+            System.arraycopy(sublayers, at, expanded, at + pieces, sublayers.length - at);
+            sublayers = expanded;
+        }
         if(topology.terrainSurface()!=null) {
             int existing=sublayers.length-DECORATION_LAYERS;
             GroundMesh.CellResolver[] expanded=new GroundMesh.CellResolver[sublayers.length+TerrainSurface.LAYERS];
@@ -622,7 +640,18 @@ public final class GroundRenderSystem implements RenderSystem {
         }
 
         private void resolveFloor(int x, int y, GroundMesh.CellSink sink) {
-            resolveFloor(x,y,topology.getGroundKind(x,y),topology.getSurface(x,y),sink);
+            CellTopology.GroundKind kind = topology.getGroundKind(x, y);
+            if (kind == CellTopology.GroundKind.WATER && WaterShore.enabled()
+                    && WaterShore.isShoreWater(topology, x, y)) {
+                // The shore bands draw this cell's water; what they cut away is the bank's ground.
+                int[] donor = WaterShore.groundDonor(topology, x, y);
+                if (donor != null) {
+                    resolveFloor(x, y, topology.getGroundKind(donor[0], donor[1]),
+                            topology.getSurface(donor[0], donor[1]), sink);
+                    return;
+                }
+            }
+            resolveFloor(x,y,kind,topology.getSurface(x,y),sink);
         }
         private void resolveFloor(int x,int y,CellTopology.GroundKind kind,int surface,GroundMesh.CellSink sink) {
             boolean nWall = GroundTileSelector.isInBoundsWall(topology, x, y + 1);
@@ -810,6 +839,53 @@ public final class GroundRenderSystem implements RenderSystem {
             // Each tile carries a one-texel border of its own edge, so filtering never reaches the next.
             sink.patch(sheet, cell[0] * block.cellPx + 1, cell[1] * block.cellPx + 1,
                     block.cellPx - 2, block.cellPx - 2, GroundFeather.QUADRANT_VERTICES[quadrant]);
+        }
+    }
+
+    /**
+     * The organic shore ({@link WaterShore}): each band's clipped piece of each
+     * of a cell's fanned triangles, drawn from the band's block or the water's
+     * own tiles.
+     */
+    private static final class Shore {
+        private final CellTopology topology;
+        private final GridBlockDef[] blocks;
+        private final SpriteAPI[] sheets;
+
+        private Shore(CellTopology topology, GridBlockDef[] blocks, SpriteAPI[] sheets) {
+            this.topology = topology;
+            this.blocks = blocks;
+            this.sheets = sheets;
+        }
+
+        /** The shore for this pass, or null when its art is not loaded. */
+        static Shore of(GroundRenderSystem system, CellTopology topology) {
+            if (system.tileReg == null || system.genMapping == null) return null;
+            WaterShore.Band[] bands = WaterShore.Band.values();
+            GridBlockDef[] blocks = new GridBlockDef[bands.length];
+            SpriteAPI[] sheets = new SpriteAPI[bands.length];
+            for (WaterShore.Band band : bands) {
+                String id = band.block != null ? band.block
+                        : system.genMapping.groundBlockId(CellTopology.GroundKind.WATER);
+                GridBlockDef block = id == null ? null : system.tileReg.block(id);
+                SpriteAPI sheet = block == null ? null : system.sheetFor(block.sheetPath);
+                if (sheet == null) return null;
+                blocks[band.ordinal()] = block;
+                sheets[band.ordinal()] = sheet;
+            }
+            return new Shore(topology, blocks, sheets);
+        }
+
+        void resolve(WaterShore.Band band, int triangle, int x, int y, GroundMesh.CellSink sink) {
+            if (!WaterShore.takesPart(topology, x, y)) return;
+            float[] vertices = WaterShore.patch(topology, x, y, band, triangle);
+            if (vertices == null) return;
+            GridBlockDef block = blocks[band.ordinal()];
+            int[] cell = block.resolve(false, false, false, false, x, y);
+            if (cell == null) return;
+            int inset = block.cellPx >= TileManifest.TILE_SIZE ? GROUND_TILE_EDGE_INSET_PX : GROUND_SMALL_TILE_EDGE_INSET_PX;
+            sink.patch(sheets[band.ordinal()], cell[0] * block.cellPx + inset, cell[1] * block.cellPx + inset,
+                    block.cellPx - 2 * inset, block.cellPx - 2 * inset, vertices);
         }
     }
 

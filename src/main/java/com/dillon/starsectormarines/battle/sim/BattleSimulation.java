@@ -63,6 +63,7 @@ import com.dillon.starsectormarines.battle.fort.FortService;
 import com.dillon.starsectormarines.battle.fort.FortSystem;
 import com.dillon.starsectormarines.battle.sally.SallyDoors;
 import com.dillon.starsectormarines.battle.fort.FortTag;
+import com.dillon.starsectormarines.battle.turret.EmplacementStyle;
 import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretFireSystem;
@@ -315,6 +316,7 @@ import com.dillon.starsectormarines.battle.infantry.MortarTactics;
 import com.dillon.starsectormarines.battle.infantry.InfantryWeapons;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -1795,6 +1797,21 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Data owner for the TURRET_STATE component (turret facing/recoil/burst) — {@code sim.turretState().isTurret(id)} / {@code facingDegrees(id)}. */
     public TurretStateService turretState() { return rosterService.turretState(); }
+
+    /** Structures built in a style other than the default, by entity; kept for the battle, through a change of hands. */
+    private final Long2ObjectOpenHashMap<EmplacementStyle> structureStyles = new Long2ObjectOpenHashMap<>();
+
+    /** Records how structure {@code id} was built ({@link DefensePost#style}); presentation only. */
+    public void setStructureStyle(long id, EmplacementStyle style) {
+        if (style == null || style == EmplacementStyle.BRUTALIST) structureStyles.remove(id);
+        else structureStyles.put(id, style);
+    }
+
+    /** How structure {@code id} was built: {@link EmplacementStyle#BRUTALIST} unless its post said otherwise. */
+    public EmplacementStyle structureStyle(long id) {
+        EmplacementStyle style = structureStyles.get(id);
+        return style != null ? style : EmplacementStyle.BRUTALIST;
+    }
 
     /** Data owner for the DRONE_STATE component (drone patrol/pursuit vectors) — {@code sim.droneState().isDrone(id)} / {@code patrolGoalX(id)}. */
     public DroneStateService droneState() { return rosterService.droneState(); }

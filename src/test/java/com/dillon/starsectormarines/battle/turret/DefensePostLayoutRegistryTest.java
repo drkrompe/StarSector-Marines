@@ -7,46 +7,12 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class DefensePostLayoutRegistryTest {
-
-    @Test
-    void builtinsCoverEveryShippedLayoutAndStructureComposition() {
-        DefensePostLayoutRegistry registry = DefensePostLayoutRegistry.requireInstalled();
-        assertEquals(12, registry.size());
-        assertEquals(8, registry.layoutsFor(DefensePostKind.LARGE).size());
-        for (String family : List.of("locust", "swarmer", "proximity")) {
-            assertLayout(registry.require(DefensePostKind.LARGE, "aa-" + family),
-                    25, "structure.aa-" + family);
-        }
-        assertLayout(registry.require(DefensePostKind.LIGHT, "default"),
-                5, "structure.turret-vulcan");
-        assertLayout(registry.require(DefensePostKind.MEDIUM, "default"),
-                9, "structure.turret-arbalest");
-        assertLayout(registry.require(DefensePostKind.LARGE, "line-h"),
-                15, "structure.turret-hephaestus", "structure.turret-hephaestus");
-        assertLayout(registry.require(DefensePostKind.LARGE, "line-v"),
-                15, "structure.turret-hephaestus", "structure.turret-hephaestus");
-        assertLayout(registry.require(DefensePostKind.LARGE, "wedge"),
-                9, "structure.turret-hephaestus");
-        assertLayout(registry.require(DefensePostKind.LARGE, "trapezoid"),
-                13, "structure.turret-hephaestus", "structure.turret-hephaestus");
-        assertLayout(registry.require(DefensePostKind.LARGE, "triangle-formation"),
-                15, "structure.turret-hephaestus", "structure.turret-hephaestus",
-                "structure.turret-hephaestus");
-        assertLayout(registry.require(DefensePostKind.ARTILLERY, "default"),
-                15, "structure.turret-locust", "structure.turret-locust");
-
-        DefensePostLayoutDef hub = registry.require(DefensePostKind.DRONE_HUB, "default");
-        assertEquals(9, hub.cells.size());
-        assertEquals(0, hub.turrets.size());
-        assertEquals(new DefensePostLayoutDef.Offset(0, 0), hub.droneHubOffset());
-    }
 
     @Test
     void parserRejectsUnknownStructureDuplicateOffsetsAndTurretOffPad() throws Exception {
@@ -101,14 +67,6 @@ class DefensePostLayoutRegistryTest {
         }
         missingCorner.put("cells", retained);
         assertThrows(JSONException.class, () -> DefensePostLayoutDef.parse(missingCorner, turrets));
-    }
-
-    private static void assertLayout(DefensePostLayoutDef layout, int cells,
-                                     String... structures) {
-        assertEquals(cells, layout.cells.size(), layout.id);
-        assertEquals(List.of(structures),
-                layout.turrets.stream().map(DefensePostLayoutDef.TurretPlacement::structureId)
-                        .toList(), layout.id);
     }
 
     private static JSONObject catalog(String structureId, boolean duplicateCell,

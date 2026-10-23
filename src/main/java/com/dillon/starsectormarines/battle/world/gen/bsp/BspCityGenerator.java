@@ -814,6 +814,9 @@ public final class BspCityGenerator implements MapGenerator {
         int[] marine = ctx.get(BspKeys.MARINE_SPAWN);
         int[] defender = ctx.get(BspKeys.DEFENDER_SPAWN);
 
+        EmplacementStylePolicy.restyle(ctx.defensePosts,
+                EmplacementStylePolicy.forDefenders(ctx.get(BspKeys.MARKET_PROFILE)));
+
         // Berths and fixture work come out of the shared room fittings, which a
         // city map now uses too: a fortress vehicle shed publishes the same
         // machine berths a deck's bay does, and dropping them here would leave

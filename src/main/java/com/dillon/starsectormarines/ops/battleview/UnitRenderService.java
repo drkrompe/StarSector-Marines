@@ -32,6 +32,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.turret.StructureArt;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.turret.StructureLook;
 import com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem;
 import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -389,7 +390,7 @@ public final class UnitRenderService implements RenderSystem {
                 cy = StructureFootprint.minY(structure, cy);
             }
             if (!view.visible(cx + spanX * 0.5f, cy + spanY * 0.5f, Math.max(spanX, spanY))) continue;
-            ShuttleSpriteCache artBase = turretState.isTurret(u) ? structureBase(u, turretState) : null;
+            ShuttleSpriteCache artBase = turretState.isTurret(u) ? structureBase(ctx, u, turretState) : null;
             if (artBase != null) {
                 // Painted base: the whole footprint, upright, in place of the flat pad.
                 float w = spanX * cellPx;
@@ -439,7 +440,9 @@ public final class UnitRenderService implements RenderSystem {
             float cx = cam.cellToScreenX(world.renderX(id));
             float cy = cam.cellToScreenY(world.renderY(id));
 
-            ShuttleSpriteCache base = sprites.turretSprites().get(structure.id);
+            StructureLook look = structure.look(ctx.sim.structureStyle(id));
+            ShuttleSpriteCache base = look != null && look.spritePath() != null
+                    ? sprites.spriteByPath(look.spritePath()) : sprites.turretSprites().get(structure.id);
             if (base == null) {
                 // A structure whose body is all painted art has no mount sprite on purpose.
                 if (structure.art != null) {
@@ -456,7 +459,8 @@ public final class UnitRenderService implements RenderSystem {
                     turretState.recoilTimer(id), BattleRenderer.RECOIL_DURATION,
                     BattleRenderer.RECOIL_DISTANCE_FRAC);
 
-            ShuttleSpriteCache barrel = sprites.turretRecoilSprites().get(structure.id);
+            ShuttleSpriteCache barrel = look != null && look.recoilSpritePath() != null
+                    ? sprites.spriteByPath(look.recoilSpritePath()) : sprites.turretRecoilSprites().get(structure.id);
             if (barrel != null) {
                 emitWholeSprite(out, barrel, pose.facingDegrees(), pose.spriteHeightPx(),
                         pose.recoilCenterX(), pose.recoilCenterY(), alphaMult);
@@ -480,8 +484,10 @@ public final class UnitRenderService implements RenderSystem {
     }
 
     /** The painted base of a structure that has one and whose sprite loaded, else null (the flat pad is drawn). */
-    private ShuttleSpriteCache structureBase(long id, TurretStateService turretState) {
+    private ShuttleSpriteCache structureBase(RenderContext ctx, long id, TurretStateService turretState) {
         StructureDef structure = turretState.structure(id);
+        StructureLook look = structure.look(ctx.sim.structureStyle(id));
+        if (look != null && look.basePath() != null) return sprites.spriteByPath(look.basePath());
         if (structure.art == null || structure.art.basePath == null) return null;
         return sprites.spriteByPath(structure.art.basePath);
     }

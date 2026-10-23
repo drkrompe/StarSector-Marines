@@ -9,3 +9,4 @@ One picks page per top-level parent session (see "Questions for the owner" in
 | Cinematic ship pipeline coordinator (Asharu cinematic) | https://claude.ai/artifact/F2SSYaaEth68gbqSYgYJWP |
 | Asset shakeout (texture fit, battle loading) | https://claude.ai/artifact/RrGwLg54A9WL92XqXopwRa |
 | Battle HUD (glass command, ammo strips, weapon cycling) | https://claude.ai/artifact/T6H83hxxcdCfd3a1tnu2gd |
+| Ground turret tiers (point emplacements, raised hardpoints) | https://claude.ai/artifact/QvtkjhMfubgYbeVsffMkC8 |

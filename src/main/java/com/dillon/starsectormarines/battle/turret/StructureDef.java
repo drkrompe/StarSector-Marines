@@ -11,6 +11,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 /**
  * Immutable static-emplacement platform definition. It owns durability and
  * physical footprint separately from the mount and gun installed on it.
@@ -54,6 +58,8 @@ public final class StructureDef {
     public final FortBuildingArt buildingArt;
     /** How a fort's gatehouse is drawn, authored on the fort's platform, or null for any other structure. */
     public final FortGatehouseArt gatehouseArt;
+    /** Art for each {@link EmplacementStyle} other than the default, by style key; empty for a structure with one look. */
+    public final Map<String, StructureLook> looks;
 
     private StructureDef(String id, String displayName,
                          float maxStructure, float armorCapacity, float armorRating,
@@ -62,7 +68,9 @@ public final class StructureDef {
                          String mountId, TurretMountDef mount,
                          String batteryLoadoutId, float fireControlRadius, DomeSpec dome,
                          StructureArt art, TurretRole targetRole, FortAspect fortAspect,
-                         FortBuildingArt buildingArt, FortGatehouseArt gatehouseArt) {
+                         FortBuildingArt buildingArt, FortGatehouseArt gatehouseArt,
+                         Map<String, StructureLook> looks) {
+        this.looks = Map.copyOf(looks);
         this.buildingArt = buildingArt;
         this.gatehouseArt = gatehouseArt;
         this.targetRole = targetRole;
@@ -117,6 +125,11 @@ public final class StructureDef {
         if (height <= 0f || mount.maxDepressionDeg >= 90f) return own;
         float underTheGuns = height / (float) Math.tan(Math.toRadians(mount.maxDepressionDeg));
         return Math.max(own, underTheGuns);
+    }
+
+    /** This structure's art in {@code style}, or null where it has none and is drawn with its default art. */
+    public StructureLook look(EmplacementStyle style) {
+        return style == null ? null : looks.get(style.key);
     }
 
     /** Whether this structure stands on more than its anchor cell. */
@@ -184,6 +197,19 @@ public final class StructureDef {
         FortBuildingArt buildingArt = buildingJson != null ? FortBuildingArt.parse(id, buildingJson) : null;
         JSONObject gatehouseJson = json.optJSONObject("gatehouseArt");
         FortGatehouseArt gatehouseArt = gatehouseJson != null ? FortGatehouseArt.parse(id, gatehouseJson) : null;
+        Map<String, StructureLook> looks = new HashMap<>();
+        JSONObject looksJson = json.optJSONObject("looks");
+        if (looksJson != null) {
+            for (Iterator<?> keys = looksJson.keys(); keys.hasNext(); ) {
+                String key = (String) keys.next();
+                boolean known = false;
+                for (EmplacementStyle style : EmplacementStyle.values()) known |= style.key.equals(key);
+                if (!known) throw new JSONException("Structure '" + id + "' has a look for unknown style '" + key + "'");
+                JSONObject look = looksJson.getJSONObject(key);
+                looks.put(key, new StructureLook(TurretMountDef.optionalText(look, "base"),
+                        TurretMountDef.optionalText(look, "sprite"), TurretMountDef.optionalText(look, "recoilSprite")));
+            }
+        }
         TurretRole role = TurretRole.valueOf(json.optString("targetRole", "A2G"));
         if (mount.weapon.guidance != null && role != TurretRole.AA)
             throw new JSONException("Air-guided weapon requires an AA structure: " + id);
@@ -194,6 +220,6 @@ public final class StructureDef {
                 batteryLoadoutId, fireControlRadius, dome, art,
                 role,
                 json.has("fortAspect") ? FortAspect.valueOf(json.getString("fortAspect")) : null,
-                buildingArt, gatehouseArt);
+                buildingArt, gatehouseArt, looks);
     }
 }
