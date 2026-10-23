@@ -658,6 +658,7 @@ class _Builder:
         size = LEVELS[h.sev]['fire']
         e = self.empty(h, frame, at, n, 'damage fire', size_m=size, imp_ignite=ignite_s,
                        seed=self.seed(h, 'fire') % 997)
+        e['flame'] = 'stream'       # tongues off the breach edge, never a ball (owner, 2026-10-23: no orbs or blobs)
         swfx_fire._knobs(self.ctx)
         rec = swfx_fire.build_fire(self.ctx, self.ctx.collection(self.imp.GROUP), e)
         self.imp._retime([bpy.data.objects[o] for o in rec['objects']], e)
