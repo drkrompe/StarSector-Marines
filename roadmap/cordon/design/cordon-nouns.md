@@ -161,7 +161,11 @@ threshold by the tug when that ground is clear, and goes on from there; one that
 stood in the lane stopped the shed, since the next machine is drawn out into
 that same stretch. A carrier waits
 on a **staging slot** of its own on the apron outside the door, never in the
-doorway, on ground its footprint fits; there are as many carriers as slots,
+doorway, on ground its footprint fits and can drive away from: every hull of
+the allies' is set down on the main body of the map's ground for its width,
+never in a pocket (the nearest cell that merely fitted once put the first slot
+inside a walled pen beside the shed, and nothing from the base reached the
+line); there are as many carriers as slots,
 and an APC beyond that fights with the armour. Every machine drives straight
 out to a **threshold** a few cells beyond the door first, then on to its slot
 or its post behind a redoubt: a carrier steers too wide to turn from the lane
@@ -250,9 +254,9 @@ people on the move, (c) a capable detachment exists.
 ## The map
 
 One plan for both variants (CordonPlan), 560x336, mission-owned, the long
-axis across the front. It is green colony country whatever world the event
-names (the VERDANT palette, as the colony is laid out the same whatever
-market raised the call). Every place is stated by its depth from the rear
+axis across the front. It is fought on the event world's own ground, its
+biome's palette (verdant, arid, rock or frozen), with the colony laid out the
+same whatever market raised the call; each biome has its own pooled maps. Every place is stated by its depth from the rear
 edge, which is the north or the south (the seed's choice), as a fraction of
 the ground the landing's country leaves:
 

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.ui.panel;
 import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
 import com.dillon.starsectormarines.battle.combat.ManualPointFire;
 import com.dillon.starsectormarines.battle.combat.MechFireGroups;
+import com.dillon.starsectormarines.battle.combat.MechTriggerPicks;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
@@ -25,9 +26,9 @@ public final class DirectControlScatter {
     }
 
     /** The ring for a cursor {@code distance} cells from the chassis centre, or null when no armed mount bursts. */
-    public static Ring mech(MechLoadoutComponent loadout, int selected, float distance) {
+    public static Ring mech(MechLoadoutComponent loadout, MechTriggerPicks picks, float distance) {
         MechWeaponMount[] mounts = loadout.mounts();
-        int armed = MechFireGroups.leftMask(mounts, selected) | MechFireGroups.rightMask(mounts, selected);
+        int armed = picks.firedMask(mounts);
         float radius = -1f;
         boolean beyond = false;
         boolean close = false;

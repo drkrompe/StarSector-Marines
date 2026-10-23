@@ -108,6 +108,12 @@ Check it yourself before the owner sees it, and write the result down shot by sh
   none (owner, 2026-10-23, S6d's Hound: a Hound mounts no missiles).
 - **Burst rounds fly roughly parallel.** Within a burst each round gets a small, seeded aim
   spread; rounds converging on one point read as a laser (owner, 2026-10-23, S6).
+- **No round reads as a dot.** A gun round is a calibre-width streak of finite length on screen
+  at every render size (`swfx_guns.MIN_STREAK_PX`), never a point and never a muzzle-to-target
+  rod.
+- **A beam looks like its weapon.** Only a beam weapon draws a continuous line, in that weapon's
+  own vanilla colours (the Mining Laser: pink core, red fringe), never a white rod that reads as
+  some other gun (owner, 2026-10-23, S8-S9: "wonky laser effects").
 - **Drives.** Every moving craft shows its drive (the `thrust_shots` guard).
 - **Solidity.** Nothing passes through a hull: rounds, debris, flares, other ships.
 - **Continuity.** No pops: turrets, ships, effects and cameras move smoothly frame to frame.

@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.battle.control;
 
 import com.dillon.starsectormarines.battle.combat.FireStance;
+import com.dillon.starsectormarines.battle.combat.FireTrigger;
+import com.dillon.starsectormarines.battle.combat.MechFireGroups;
+import com.dillon.starsectormarines.battle.combat.MechTriggerPicks;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
-import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
 import com.dillon.starsectormarines.battle.combat.MitigationSystem;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
@@ -10,7 +12,6 @@ import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep;
 import com.dillon.starsectormarines.battle.infantry.SmokeTactics;
-import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.tender.BuildOption;
 import com.dillon.starsectormarines.battle.tender.Tender;
@@ -56,7 +57,10 @@ public final class DirectControlSession {
     private boolean vehicleControl;
     private Squad controlledSquad;
     private ManualIntent intent = ManualIntent.NEUTRAL;
+    /** A tender's chosen build option, by number key; nothing else keeps a number-key choice. */
     private int selectedWeapon;
+    /** What each of a mech's triggers is on; a Marine's and a vehicle's lists have one member and never move. */
+    private MechTriggerPicks picks = MechTriggerPicks.LINKED;
     private final EnumMap<DirectControlAbility, PointFireAim> pendingAbilities =
             new EnumMap<>(DirectControlAbility.class);
     private final MarineSprint marineSprint = new MarineSprint();
@@ -134,8 +138,14 @@ public final class DirectControlSession {
     public BuildOption selectedBuildOption() { return tender == null ? null : TenderPilot.option(selectedWeapon); }
     public boolean isControlling(long id) { return id != 0L && id == unitId; }
     public ManualIntent intent() { return intent; }
-    /** 0 is all direct weapons; 1..5 name the hardpoints in {@link MechMountSlot} order. */
+    /** A tender's selected number key; 0 for every other carrier. */
     public int selectedWeapon() { return selectedWeapon; }
+
+    /** What each trigger of the controlled mech is on; LINKED on both for every other carrier. */
+    public MechTriggerPicks mechPicks() { return picks; }
+
+    /** Changes whenever any trigger or number-key choice does, so the host knows to release held fire. */
+    public int selectionKey() { return (selectedWeapon * 31 + picks.left()) * 31 + picks.right(); }
 
     /** Read-only status for the exact controlled Marine; other carriers have no stamina gauge. */
     public MarineSprint.Status sprintStatus() {
@@ -150,14 +160,16 @@ public final class DirectControlSession {
         // A warship has no weapon to choose: its four number keys are commands (see WARSHIP_COMMANDS).
         if (ship != null) return selection >= 0 && selection < WARSHIP_COMMANDS.length;
         if (!unitActive() || !roster.isAliveById(unitId)) return false;
+        // Key 1 is the left trigger's first member, LINKED; a single-member list has nothing else.
         if (selection == 0) return true;
-        if (selection < 1 || selection > MechMountSlot.values().length
-                || !roster.world().hasMechLoadout(unitId)) return false;
-        return HeavyWeapons.supportsPointFire(roster.world().mechLoadout(unitId)
-                .mount(MechMountSlot.values()[selection - 1]));
+        if (!roster.world().hasMechLoadout(unitId)) return false;
+        return MechFireGroups.member(roster.world().mechLoadout(unitId).mounts(), FireTrigger.LEFT, selection) >= 0;
     }
 
-    /** Serialized player choice; switching releases queued rounds without changing installed equipment. */
+    /**
+     * Serialized player choice. On a ground body a number key jumps the left trigger to that member
+     * of its list; switching releases queued rounds without changing installed equipment.
+     */
     public boolean selectWeapon(int selection) {
         if (!canSelectWeapon(selection)) return false;
         if (tender != null) {
@@ -165,8 +177,30 @@ public final class DirectControlSession {
             return true;
         }
         if (ship != null) return WarshipPilot.command(ship, WARSHIP_COMMANDS[selection]);
-        if (selection == selectedWeapon) return true;
-        selectedWeapon = selection;
+        if (!roster.world().hasMechLoadout(unitId)) return true;
+        int member = MechFireGroups.member(roster.world().mechLoadout(unitId).mounts(), FireTrigger.LEFT, selection);
+        return member >= 0 && pick(FireTrigger.LEFT, member);
+    }
+
+    /**
+     * Moves a trigger to the next member of its list (Q for the left button, C for the right).
+     * Refused when the list has fewer than two members, as every Marine's and vehicle's does for now.
+     */
+    public boolean cycle(FireTrigger trigger) {
+        if (trigger == null || !unitActive() || !roster.isAliveById(unitId)
+                || !roster.world().hasMechLoadout(unitId)) return false;
+        var mounts = roster.world().mechLoadout(unitId).mounts();
+        if (MechFireGroups.members(mounts, trigger).length < 2) return false;
+        return pick(trigger, MechFireGroups.next(mounts, trigger, picks.pick(trigger)));
+    }
+
+    /** Puts a trigger on one member of its list: LINKED, or a hardpoint ({@code slot.ordinal() + 1}) of its group. */
+    public boolean pick(FireTrigger trigger, int member) {
+        if (trigger == null || !unitActive() || !roster.isAliveById(unitId)
+                || !roster.world().hasMechLoadout(unitId)
+                || !MechFireGroups.isMember(roster.world().mechLoadout(unitId).mounts(), trigger, member)) return false;
+        if (picks.pick(trigger) == member) return true;
+        picks = picks.with(trigger, member);
         releaseSelectedFire();
         return true;
     }
@@ -302,6 +336,7 @@ public final class DirectControlSession {
         if (vehicle && !battle.beginVehicleDirectControl(id)) return false;
         unitId = id;
         selectedWeapon = 0;
+        picks = MechTriggerPicks.LINKED;
         vehicleControl = vehicle;
         intent = ManualIntent.NEUTRAL;
         if (!vehicle && roster.identity().type(id) == UnitType.MARINE) marineSprint.releaseHold(id);
@@ -384,6 +419,7 @@ public final class DirectControlSession {
         boolean vehicle = vehicleControl;
         unitId = 0L;
         selectedWeapon = 0;
+        picks = MechTriggerPicks.LINKED;
         pendingAbilities.clear();
         marineSprint.releaseHold(previous);
         vehicleControl = false;
@@ -435,6 +471,17 @@ public final class DirectControlSession {
         if (active() && !canSelectWeapon(selectedWeapon)) {
             selectedWeapon = 0;
             releaseSelectedFire();
+        }
+        // A picked hardpoint that was destroyed, or moved groups with it, returns its trigger to LINKED.
+        if (unitActive() && roster.world().hasMechLoadout(unitId)) {
+            var mounts = roster.world().mechLoadout(unitId).mounts();
+            for (FireTrigger trigger : FireTrigger.values()) {
+                if (picks.pick(trigger) != MechFireGroups.LINKED
+                        && !MechFireGroups.isMember(mounts, trigger, picks.pick(trigger))) {
+                    picks = picks.with(trigger, MechFireGroups.LINKED);
+                    releaseSelectedFire();
+                }
+            }
         }
     }
 

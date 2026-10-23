@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.CampaignFabricationResources;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
+import com.dillon.starsectormarines.ops.battleview.LayeredMechAssets;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -45,6 +46,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /** Planet-free shipboard room for active support-lance selection and mech refits. */
 public final class MechLabScreen implements Screen {
@@ -149,17 +151,13 @@ public final class MechLabScreen implements Screen {
                 return CampaignLessons.next(roster) == CampaignLessons.Step.BOAT_RECOVERY
                         ? CampaignLessons.handoff(roster, context, ScreenId.MECH_LAB) : viewModel.campaignLesson();
             }, this::close);
-            // The doll is not the deck scene: it composes a machine at rest
-            // against its own backdrop, so it loads what it draws. Everything
-            // the deck itself paints is the deck's own business.
-            previewSprites().ensureLayeredMechSprites();
             dollElement = candidate.requireElement("mech-doll-canvas");
             dollCanvas = new MechLabDollCanvas(viewModel::gantryDeployments,
                             viewModel::selectedGantryIndex,
                             viewModel::selectedSocket,
-                            () -> previewSprites().layeredMechSprites(),
+                            this::previewMechs,
                             viewModel::fittingFocused,
-                            deck::scene,
+                            deck::drawable,
                             this::framing,
                             this::berths,
                             this::currentBayId,
@@ -173,7 +171,7 @@ public final class MechLabScreen implements Screen {
             inventoryDropElement = candidate.requireElement("mech-component-catalog");
             returnDropNote = candidate.requireElement("mech-drag-drop-note");
             ghostElement = candidate.requireElement("mech-drag-ghost");
-            dragGhost = new MechWeaponDragCanvas(() -> previewSprites().layeredMechSprites());
+            dragGhost = new MechWeaponDragCanvas(this::previewMechs);
             built.canvases().set(ghostElement, dragGhost);
             candidateSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built));
             wireEquipmentPreviews(candidate, built, candidateSheets);
@@ -263,7 +261,7 @@ public final class MechLabScreen implements Screen {
                 UiElement canvas = instance.requireElement(slot.id());
                 if (target.canvases().producerOf(canvas) == null) {
                     target.canvases().set(canvas, new LanceSlotCanvas(slot.letter(), slot.mech(), slot.vehicle(),
-                            () -> previewSprites().layeredMechSprites()));
+                            this::previewMechs));
                 }
             }
         }
@@ -271,7 +269,7 @@ public final class MechLabScreen implements Screen {
             UiElement canvas = instance.requireElement(row.previewId());
             if (target.canvases().producerOf(canvas) == null) {
                 target.canvases().set(canvas, new LanceSlotCanvas(row.letter(),
-                        row.mech(), row.vehicle(), () -> previewSprites().layeredMechSprites()));
+                        row.mech(), row.vehicle(), this::previewMechs));
             }
         }
     }
@@ -287,14 +285,14 @@ public final class MechLabScreen implements Screen {
             if (target.canvases().producerOf(canvas) == null) {
                 if (row.chassisPreview() != null) {
                     target.canvases().set(canvas, new MechChassisPreviewCanvas(
-                            row.chassisPreview(), () -> previewSprites().layeredMechSprites()));
+                            row.chassisPreview(), this::previewMechs));
                 } else if (row.vehiclePreview() != null) {
                     target.canvases().set(canvas, new VehiclePreviewCanvas(row.vehiclePreview()));
                 } else if (row.weaponPreview() != null || row.replenisherPreview() != null
                         || row.internalPreview() != null) {
                     target.canvases().set(canvas, MechEquipmentGridCanvas.catalog(
                             row.weaponPreview(), row.replenisherPreview(), row.internalPreview(),
-                            () -> previewSprites().layeredMechSprites()));
+                            this::previewMechs));
                 }
                 if (row.weaponPreview() != null || row.replenisherPreview() != null
                         || row.internalPreview() != null
@@ -324,7 +322,7 @@ public final class MechLabScreen implements Screen {
                         () -> viewModel.installedReplenisher(row.socketId()),
                         () -> viewModel.installedInternal(row.socketId()),
                         () -> viewModel.socketOccupied(row.socketId()),
-                        () -> previewSprites().layeredMechSprites()));
+                        this::previewMechs));
             }
         }
     }
@@ -530,6 +528,19 @@ public final class MechLabScreen implements Screen {
      */
     private BattleSprites previewSprites() {
         return deck.sprites();
+    }
+
+    /**
+     * The unpainted machine set the doll and the previews compose from, loaded under the deck's
+     * lease. The doll is not the deck scene: it composes a machine at rest against its own
+     * backdrop, so it loads what it draws, and asks again each time because a deck that released
+     * its textures while the lab was closed hands out a new sprite set when it is reopened.
+     */
+    private LayeredMechAssets previewMechs() {
+        BattleSprites sprites = previewSprites();
+        if (sprites == null) return null;
+        sprites.ensureLayeredMechSprites(Set.of());
+        return sprites.layeredMechSprites();
     }
 
     private void syncGantryScene() {

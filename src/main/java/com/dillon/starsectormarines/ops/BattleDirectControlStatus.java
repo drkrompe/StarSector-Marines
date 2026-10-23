@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
 import com.dillon.starsectormarines.battle.combat.ManualPointFire;
 import com.dillon.starsectormarines.battle.combat.MechFireGroups;
+import com.dillon.starsectormarines.battle.combat.MechTriggerPicks;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.combat.MitigationService;
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
@@ -142,8 +143,10 @@ final class BattleDirectControlStatus {
     record Ammo(int remaining, int capacity, AmmoUnit unit, boolean unlimited) { }
 
     /**
-     * {@code trigger} names the mouse button(s) that fire this weapon: {@code L}, {@code R}, {@code LR}
-     * or empty when none does. {@code tooClose} is a cursor inside the mount's manual minimum range, where
+     * {@code trigger} names the mouse button that fires this weapon under its trigger's current pick:
+     * {@code L}, {@code R}, or empty when none does. {@code group} is the button whose list it is in,
+     * picked or not ({@code L}, {@code R}, or empty); empty for a status built without groups, which
+     * reads its group off {@code trigger}. {@code tooClose} is a cursor inside the mount's manual minimum range, where
      * its trigger is refused. {@code reloading} is a magazine being changed, in which case the cooldown
      * and cycle fields carry the reload clock instead of the action's.
      */
@@ -151,7 +154,15 @@ final class BattleDirectControlStatus {
                         boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
                         int burstRemaining, float burstSeconds, Ammo ammo,
                         boolean fluxBlocked, String mechanism, String trigger, boolean tooClose,
-                        boolean reloading) {
+                        boolean reloading, String group) {
+        WeaponStatus(int number, String slotKey, String name, Behavior behavior,
+                     boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
+                     int burstRemaining, float burstSeconds, Ammo ammo,
+                     boolean fluxBlocked, String mechanism, String trigger, boolean tooClose,
+                     boolean reloading) {
+            this(number, slotKey, name, behavior, directEligible, cooldownSeconds, cycleDurationSeconds,
+                    burstRemaining, burstSeconds, ammo, fluxBlocked, mechanism, trigger, tooClose, reloading, "");
+        }
         WeaponStatus(int number, String slotKey, String name, Behavior behavior,
                      boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
                      int burstRemaining, float burstSeconds, Ammo ammo,
@@ -189,6 +200,9 @@ final class BattleDirectControlStatus {
             return cooldownSeconds > 0f ? WeaponState.CYCLING : WeaponState.LOADED;
         }
 
+        /** The button whose list this weapon is in, read off its trigger when the status carries no group. */
+        String listedOn() { return group.isEmpty() ? trigger : group; }
+
         /** Clock completion only: pose, alignment and the actual muzzle gate still decide a shot. */
         float cycleFraction() { return 1f - fraction(cooldownSeconds, cycleDurationSeconds); }
     }
@@ -222,7 +236,7 @@ final class BattleDirectControlStatus {
         if (world.hasMechLoadout(id)) {
             return new Snapshot(id, name, Carrier.MECH, durability,
                     mechWeapons(world.mechLoadout(id).mounts(), world.mechLoadout(id).flux,
-                    sim.directControl().selectedWeapon(), aimDistance(sim, id)), List.of(),
+                    sim.directControl().mechPicks(), aimDistance(sim, id)), List.of(),
                     MarineSprint.EMPTY, new MechFluxStatus(world.mechLoadout(id).flux.value(),
                     world.mechLoadout(id).flux.venting(),
                     world.mechLoadout(id).flux.capacity()));
@@ -311,11 +325,11 @@ final class BattleDirectControlStatus {
     }
 
     static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts, MechFlux flux) {
-        return mechWeapons(mounts, flux, MechFireGroups.DEFAULT_SELECTION);
+        return mechWeapons(mounts, flux, MechTriggerPicks.LINKED);
     }
 
-    static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts, MechFlux flux, int selection) {
-        return mechWeapons(mounts, flux, selection, Float.NaN);
+    static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts, MechFlux flux, MechTriggerPicks picks) {
+        return mechWeapons(mounts, flux, picks, Float.NaN);
     }
 
     /** The cursor's distance from the chassis centre, or NaN without a finite aim. */
@@ -326,7 +340,7 @@ final class BattleDirectControlStatus {
     }
 
     /** {@code aimDistance} is the cursor's distance from the chassis centre; NaN reads as no cursor. */
-    static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts, MechFlux flux, int selection,
+    static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts, MechFlux flux, MechTriggerPicks picks,
                                           float aimDistance) {
         List<WeaponStatus> weapons = new ArrayList<>();
         for (MechWeaponMount mount : mounts) {
@@ -340,8 +354,8 @@ final class BattleDirectControlStatus {
                     new Ammo(mount.ammo, mount.component.ammoCapacity, AmmoUnit.TRIGGER_PACKS,
                             mount.component.ammoCapacity < 0),
                     !flux.permits(mount.component.fluxPerTrigger(), false), mount.component.cycleLabel(),
-                    MechFireGroups.badge(mounts, selection, mount),
-                    HeavyWeapons.tooClose(mount, aimDistance)));
+                    MechFireGroups.badge(mounts, picks, mount),
+                    HeavyWeapons.tooClose(mount, aimDistance), false, MechFireGroups.group(mounts, mount)));
         }
         weapons.sort(Comparator.comparingInt(WeaponStatus::number));
         return List.copyOf(weapons);

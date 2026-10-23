@@ -146,6 +146,7 @@ public final class BattleFixtureJson {
             root.put("kind", cordon.kind());
             root.put("seed", cordon.seed());
             root.put("variant", cordon.variant().name());
+            root.put("biome", cordon.biome().name());
             root.put("shuttles", shuttlesToJson(cordon.manifest()));
             return root;
         }
@@ -195,6 +196,7 @@ public final class BattleFixtureJson {
             root.put("kind", heart.kind());
             root.put("seed", heart.seed());
             root.put("form", heart.form().name());
+            root.put("biome", heart.biome().name());
             root.put("shuttles", shuttlesToJson(heart.manifest()));
             return root;
         }
@@ -266,14 +268,14 @@ public final class BattleFixtureJson {
             case SabotageBattleFixture.KIND -> decodeSabotage(root);
             case CordonBattleFixture.KIND -> new CordonBattleFixture(root.getLong("seed"),
                     enumValue(CordonVariant.class, root.getString("variant"), "variant"),
-                    shuttlesFromJson(root.getJSONArray("shuttles")));
+                    storyBiome(root), shuttlesFromJson(root.getJSONArray("shuttles")));
             case ColdAccountBattleFixture.KIND -> new ColdAccountBattleFixture(decodeAssault(root.getJSONObject("base")));
             case AssaultBattleFixture.KIND -> decodeAssault(root);
             case RaidBattleFixture.KIND -> decodeRaid(root);
             case ExtractionBattleFixture.KIND -> decodeExtraction(root);
             case BloomHeartBattleFixture.KIND -> new BloomHeartBattleFixture(root.getLong("seed"),
                     enumValue(Form.class, root.getString("form"), "form"),
-                    shuttlesFromJson(root.getJSONArray("shuttles")));
+                    storyBiome(root), shuttlesFromJson(root.getJSONArray("shuttles")));
             default -> throw new IllegalArgumentException(
                     "Unsupported battle fixture kind: " + kind);
         };
@@ -1290,6 +1292,12 @@ public final class BattleFixtureJson {
             forts.put(enumValue(FortKind.class, name, "fort kind"), declared.getInt(name));
         }
         return forts;
+    }
+
+    /** A story fixture's world biome; one written before biomes were pooled played the green colony country. */
+    private static SurfacePalette storyBiome(JSONObject root) {
+        String biome = root.optString("biome", "");
+        return biome.isEmpty() ? SurfacePalette.VERDANT : enumValue(SurfacePalette.class, biome, "biome");
     }
 
     private static <E extends Enum<E>> E enumValue(

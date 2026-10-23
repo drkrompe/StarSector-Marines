@@ -1,6 +1,8 @@
 {
   "_doc": "Policy for tools/optimize_pngs.py, the release/deploy texture fit. See roadmap/release/design/texture-fit.md.",
   "margin": 1.15,
+  "battleZoom": 8,
+  "_battleZoom": "The battle zoom (BattleCamera.MAX_ZOOM is 16) battle art is fitted for; 8 is the owner's pick (2026-10-23, picks question texture-fit-battle-zoom). At 16 nothing is ever drawn coarser than it is in the source; a lower value saves memory and lets art soften only when the camera is closer than that.",
   "scales": [1.0, 0.75, 0.5, 0.375, 0.25, 0.1875, 0.125],
   "_scales": "Shipped sizes are these fractions of the source, all multiples of 1/16 so a sheet cut on a 16 px grid stays on whole pixels. The smallest one at or above need x margin is taken, then raised for free while the power-of-two texture it pads to stays the same size.",
   "ignoreSources": [],

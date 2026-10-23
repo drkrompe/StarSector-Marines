@@ -56,6 +56,20 @@ public final class GameLikeTextureStore {
         this.roots = List.copyOf(roots);
     }
 
+    private int screenWidth;
+    private int screenHeight;
+
+    /** Answers the game's screen size, at a UI scale of one, for a caller that draws a frame. */
+    public GameLikeTextureStore screen(int width, int height) {
+        screenWidth = width;
+        screenHeight = height;
+        return this;
+    }
+
+    private void requireScreen() {
+        if (screenWidth <= 0) throw new UnsupportedOperationException("SettingsAPI screen size: call screen() first");
+    }
+
     /** The settings to install with {@code Global.setSettings}. */
     public SettingsAPI settings() {
         InvocationHandler handler = (proxy, method, args) -> switch (method.getName()) {
@@ -66,6 +80,9 @@ public final class GameLikeTextureStore {
                 yield sprite(loaded.get((String) args[0]));
             }
             case "openStream" -> Files.newInputStream(resolve((String) args[0]));
+            case "getScreenWidth" -> { requireScreen(); yield (float) screenWidth; }
+            case "getScreenHeight" -> { requireScreen(); yield (float) screenHeight; }
+            case "getScreenScaleMult" -> { requireScreen(); yield 1f; }
             case "hashCode" -> System.identityHashCode(proxy);
             case "equals" -> proxy == args[0];
             case "toString" -> "GameLikeTextureStore";

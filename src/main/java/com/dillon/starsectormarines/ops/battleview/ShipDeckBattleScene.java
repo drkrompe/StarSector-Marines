@@ -38,6 +38,11 @@ import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.SurfaceRole;
+import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
+import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.gen.ship.BayAperture;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.gen.ship.RoomDoor;
@@ -57,8 +62,10 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Battle-renderer host for a generated ship deck.
@@ -313,6 +320,116 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         if (sprites == null || renderer != null) return;
         renderer = new BattleRenderer(sprites);
         renderer.buildTileBatches();
+    }
+
+    /**
+     * The catalog sheets her deck places, so a host can load those and not the whole catalog
+     * ({@code battle-textures.md}): the blocks of the floor kinds she has and of every surface,
+     * with their damage, rubble, window and door variants, the surface roles' blocks, and the
+     * sheets of every doodad on her, her lamps and cables, and the facility pieces shown. A sheet
+     * this misses — a dressing piece first planned later — loads on its first draw.
+     */
+    public Set<String> terrainSheets() {
+        Set<String> sheets = new LinkedHashSet<>();
+        TileRegistry registry = TileRegistry.installed();
+        GenMappingRegistry mapping = GenMappingRegistry.installed();
+        if (registry != null) {
+            CellTopology topology = deck.topology;
+            EnumSet<CellTopology.GroundKind> kinds = EnumSet.noneOf(CellTopology.GroundKind.class);
+            for (int y = 0; y < deck.grid.getHeight(); y++) {
+                for (int x = 0; x < deck.grid.getWidth(); x++) kinds.add(topology.getGroundKind(x, y));
+            }
+            if (mapping != null) {
+                for (CellTopology.GroundKind kind : kinds) addBlock(registry, mapping.groundBlockId(kind), sheets);
+                for (SurfaceRole role : SurfaceRole.values()) addBlock(registry, mapping.surfaceBlockId(role), sheets);
+            }
+            for (int i = 1; i <= topology.surfaceCount(); i++) addBlock(registry, topology.surfaceId(i), sheets);
+        }
+        addDoodads(deck.doodads, sheets);
+        addDoodads(simulation.getDoodads(), sheets);
+        addDoodads(facilityPieces, sheets);
+        if (lighting != null) {
+            addDoodads(lighting.cables, sheets);
+            for (ShipDeckLighting.Fixture fixture : lighting.fixtures) {
+                if (fixture.lit() != null) sheets.add(fixture.lit().sheetPath);
+                if (fixture.dead() != null) sheets.add(fixture.dead().sheetPath);
+            }
+        }
+        sheets.remove(null);
+        return sheets;
+    }
+
+    private static void addBlock(TileRegistry registry, String id, Set<String> sheets) {
+        GridBlockDef block = id == null ? null : registry.block(id);
+        if (block == null) return;
+        sheets.add(block.sheetPath);
+        for (String variant : new String[]{block.rubbleBlockId, block.damageBlockId,
+                block.windowBlockId, block.doorBlockId}) {
+            GridBlockDef other = variant == null ? null : registry.block(variant);
+            if (other != null) sheets.add(other.sheetPath);
+        }
+    }
+
+    private static void addDoodads(List<Doodad> doodads, Set<String> sheets) {
+        if (doodads == null) return;
+        for (Doodad doodad : doodads) sheets.add(doodad.sheetPath);
+    }
+
+    /**
+     * Collects one frame of the whole ship and draws nothing, so whatever her renderer asks for
+     * that was not loaded — a catalog sheet {@link #terrainSheets()} missed — is loaded now, on a
+     * frame she is not shown, instead of on a deck screen's first frame. Collection is GL-free.
+     */
+    public void prewarm() {
+        if (renderer == null) return;
+        collectWhole(renderer);
+    }
+
+    /**
+     * The catalog sheets a whole-ship frame would load that {@code sprites} has not: collected
+     * through a renderer built for the purpose and thrown away, so nothing it caches survives
+     * into the renderer that draws her. Loads nothing.
+     */
+    public List<String> surveyTerrain(BattleSprites sprites) {
+        BattleRenderer survey = new BattleRenderer(sprites);
+        sprites.beginTerrainSurvey();
+        try {
+            survey.buildTileBatches();
+            collectWhole(survey);
+        } finally {
+            survey.disposeGlResources();
+        }
+        return sprites.endTerrainSurvey();
+    }
+
+    private void collectWhole(BattleRenderer with) {
+        int across = simulation.getGrid().getWidth();
+        int down = simulation.getGrid().getHeight();
+        float cellPx = Math.max(1f, Math.min(PREWARM_WIDTH / (float) across, PREWARM_HEIGHT / (float) down));
+        CanvasHostViewport viewport = new CanvasHostViewport(0f, 0f, PREWARM_WIDTH, PREWARM_HEIGHT,
+                PREWARM_WIDTH, PREWARM_HEIGHT);
+        BattleSceneFrame frame = prepareFrame(viewport, DeckView.over(0, 0, across, down, cellPx), 1f,
+                EnumSet.copyOf(DECK_LAYERS));
+        with.collectWorld(frame.context(), frame.layers());
+    }
+
+    private static final int PREWARM_WIDTH = 1920;
+    private static final int PREWARM_HEIGHT = 1080;
+
+    /** Whether a renderer is attached, so the scene can draw itself. */
+    public boolean hasRenderer() {
+        return renderer != null;
+    }
+
+    /**
+     * Takes the renderer away with every GL resource it made, before the sprites it drew from are
+     * released ({@code battle-textures.md}). The scene keeps running; a later
+     * {@link #attachRenderer} gives it a fresh renderer over fresh sprites.
+     */
+    public void detachRenderer() {
+        if (renderer == null) return;
+        renderer.disposeGlResources();
+        renderer = null;
     }
 
     public BattleSimulation simulation() {
@@ -1298,10 +1415,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
 
     @Override
     public void close() {
-        if (renderer != null) {
-            renderer.getGroundParallax().dispose();
-            renderer.disposeLighting();
-        }
+        detachRenderer();
         simulation.close();
     }
 

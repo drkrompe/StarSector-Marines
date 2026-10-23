@@ -386,6 +386,8 @@ public final class FleetArmoryScreen implements Screen {
     @Override
     public void detach() {
         closeRange();
+        // The soldier previews' textures are this screen's; reopening loads what it shows again.
+        previewAssets.release();
         if (document != null) document.deactivateInput();
         if (specSheets != null) specSheets.clear();
         input = null;

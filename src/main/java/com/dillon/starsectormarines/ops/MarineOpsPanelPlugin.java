@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.render2d.texture.TextureLease;
+import com.dillon.starsectormarines.render2d.texture.TextureLedger;
+import com.dillon.starsectormarines.ui.retained.UiSpriteCache;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.fs.starfarer.api.campaign.BaseCustomUIPanelPlugin;
 import com.fs.starfarer.api.campaign.PlanetAPI;
@@ -45,6 +48,10 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
     private Runnable dismissDialog;
     private ScreenId lastScreenId;
     private final OpsMusic music = new OpsMusic(MenuTheme.shared());
+    /** A frame's share of preloading the deck's art: small, so the page being read never hitches. */
+    private static final long DECK_PRELOAD_FRAME_NANOS = 4_000_000L;
+    /** The dialog's own retained-UI images, given back when it closes ({@code battle-textures.md}). */
+    private final TextureLease uiImages = TextureLedger.shared().lease("ops dialog ui");
 
     public MarineOpsPanelPlugin(PlanetAPI planet) {
         this(planet, null);
@@ -59,6 +66,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
      */
     public MarineOpsPanelPlugin(PlanetAPI planet, Consumer<MarineOpsContext> seed) {
         this.ctx = new MarineOpsContext(planet);
+        UiSpriteCache.shared().enter(uiImages);
         screens.put(ScreenId.COMPANY_HQ,     new CompanyHqScreen());
         screens.put(ScreenId.BARRACKS,       new BarracksScreen());
         screens.put(ScreenId.SHIP_TRANSFER,  new ShipTransferScreen());
@@ -116,6 +124,13 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         ScreenId id = ctx.getCurrentScreen();
         if (id != lastScreenId) {
             if (lastScreenId != null) screens.get(lastScreenId).detach();
+            // The deck's art stays resident across the dialog's pages, so going aboard is instant;
+            // a battle takes the card for itself and loads what it shares with her behind its own
+            // loading screen.
+            if (screens.get(id).releasesCompanyDeckTextures()) {
+                CompanyDeck deck = ctx.companyDeck();
+                if (deck != null) deck.releaseTextures();
+            }
             lastScreenId = id;
             screens.get(id).attach(position, ctx, dismissDialog);
             music.entered(id);
@@ -128,6 +143,11 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         // them, which is the difference between a ship and a diorama.
         CompanyDeck ship = ctx.companyDeck();
         if (ship != null) ship.advance(amount);
+        // Her art loads a slice a frame while she is not on screen, from the moment the dialog
+        // opens and again after a battle, so a deck screen finds it already on the card.
+        if (ship != null && !screens.get(id).releasesCompanyDeckTextures()) {
+            ship.preloadTextures(DECK_PRELOAD_FRAME_NANOS);
+        }
         // Retained room navigation reads the new readiness during screen advance;
         // readiness must not detach/re-attach the player's current page.
         screens.get(id).advance(amount);
@@ -162,6 +182,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         ctx.setBattleSimulation(null);
         CompanyDeck ship = ctx.companyDeck();
         if (ship != null) ship.dismiss();
+        UiSpriteCache.shared().leave(uiImages);
         music.closed();
     }
 }
