@@ -30,6 +30,11 @@ public final class MechWeaponMount {
     public long chainTargetId;
     /** Salvos a pilot's current hold has committed, for the HUD; zero when the button is up. */
     public int holdSalvos;
+    /**
+     * A rotary gun's spin and belt, or null for a mount fired a trigger pull at a time. A rotary mount
+     * fires while its trigger is held and never uses the burst fields or the trigger-pack ammunition.
+     */
+    public final RotaryFeed rotary;
 
     public MechWeaponMount(MechMountSlot slot, MechWeaponComponent component) {
         if (slot == null || component == null || !component.accepts(slot)) {
@@ -38,7 +43,21 @@ public final class MechWeaponMount {
         this.slot = slot;
         this.component = component;
         this.ammo = component.ammoCapacity;
+        this.rotary = component.rotary() != null ? new RotaryFeed(component.rotary()) : null;
     }
+
+    /** Whether this mount fires while its trigger is held, off a belt, rather than a pull at a time. */
+    public boolean isRotary() { return rotary != null; }
+
+    /**
+     * Whether the gun is firing now, for the arm's pose: a burst under way, or a rotary gun that released a
+     * round within the last few ticks.
+     */
+    public boolean firing() {
+        return burstRemaining > 0 || rotary != null && rotary.sinceRound() <= ROTARY_FIRING_SECONDS;
+    }
+
+    private static final float ROTARY_FIRING_SECONDS = 0.2f;
 
     public String weaponId() { return component.weaponId; }
 

@@ -135,7 +135,7 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
     static LayeredSpriteCache spriteFor(LayeredMechAssets assets,
                                          MechWeaponComponent component) {
         return switch (component) {
-            case CHAINGUN, NOSE_CHAINGUN -> assets.chaingunArm;
+            case CHAINGUN, NOSE_CHAINGUN, CHAINGUN_HF, NOSE_CHAINGUN_HF -> assets.chaingunArm;
             case LINEAR_CANNON -> assets.linearCannon;
             case SINGLE_HEAVY_CANNON -> assets.heavyCannon;
             // The rack art follows tube count, independently of missile range.
