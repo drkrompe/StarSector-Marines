@@ -1,12 +1,12 @@
 # Squad medic — an officer specialty that designates one medic per squad
 
-Status: IN PROGRESS — the specialty, treatment, AI, both movement modes,
-battle and squad-card presentation, and the `squad-medic` scene are in; the
-balance pass and the billet choice remain. Numbers are starting points, not
-settled balance.
+Status: IN PROGRESS — the specialty, the energy-pool treatment, the AI, keep-moving
+treatment, battle and squad-card presentation, and the `squad-medic` scene are
+in; the balance pass, the billet choice and the copy remain. Numbers are
+starting points, not settled balance.
 
 Written: 2026-10-14
-Updated: 2026-10-14 — presentation landed and folded into the noun docs; remaining scope is balance, billet choice and copy.
+Updated: 2026-10-23 — keep-moving shipped as the only movement mode (switch and planted path deleted); supplies and cooldown replaced by an energy pool with a start gate; open question 2 closed.
 
 Read `progression-nouns.md` (officer career, legibility law),
 `combat-durability-nouns.md` (armor break, the no-regeneration rule this story
@@ -55,41 +55,72 @@ names sit close in the dossier; settle the copy before release (open question).
 ## The treatment
 
 A **treatment** is a channel: the medic kneels beside a squadmate and restores
-health, and armor, a little on every tick for its duration. This is the
-cutter's shape (`CloseContactTactics.tickChannel`): legality is re-checked every
-tick, and the channel is visibly in progress rather than an instant number.
+health, and armor, a little on every tick. Legality is re-checked every tick,
+and the treatment is visibly in progress rather than an instant number.
 
-Starting numbers, for a 25 HP marine who takes 18 from one rifle hit:
+**The budget is an energy pool** (owner, 2026-10-23), the Starcraft mana model:
+the medic deploys with it full, it regenerates slowly and always, and a
+treatment spends it per point of health or armor actually restored. There are
+no supplies and no cooldown between treatments. The numbers are data, per rank,
+in `data/marines/squad-medicine.json`; the arithmetic is `MedicEnergy`.
+
+Starting numbers, for a 25 HP marine with 5 armor who takes 18 from one rifle hit:
 
 | | Rank 1 | Rank 2 |
 | --- | --- | --- |
-| Supplies carried | 3 | 4 |
-| Supply recovery | 1 per 90 s, up to the cap | 1 per 60 s, up to the cap |
-| Cooldown between treatments | 10 s | 8 s |
-| Channel length | 5 s | 5 s |
-| Health restored | 2.5 / s (12.5 per full treatment) | 3 / s (15) |
-| Armor restored | 1 / s (5 per full treatment) | 1.5 / s (7.5) |
+| Pool | 30 | 40 |
+| Regeneration | 0.2 / s (empty to full in 150 s) | 0.3 / s (133 s) |
+| Energy per point restored | 1 | 1 |
+| Minimum to start | 7.5 (a quarter of the pool) | 10 |
+| Wound floor | 5% of health and armor together | 5% |
+| Health restored | 2.5 / s | 3 / s |
+| Armor restored | 1 / s | 1.5 / s |
 | Reach | 1.5 cells | 1.5 cells |
 
-- A supply is spent when the channel **starts**. Restoration is applied per
-  tick, so an interrupted treatment keeps what it already delivered and the
-  supply is gone. That makes interruption cost something without becoming an
-  exploit.
+Why those numbers: the old rank-one treatment restored up to 12.5 health and 5
+armor (17.5 points; 22.5 at rank two), so a full pool covers about one and
+three-quarter of them, or one badly hurt marine made whole (a 6 HP marine with a
+broken plate is 24 points). The old supplies came back at one treatment per 90 s
+(60 s at rank two), about 0.19 (0.38) points a second; the regeneration keeps
+rank one at that pace and slows rank two a little, so a pool refills over a
+couple of minutes of fighting — a Conquest's long middle, not one firefight.
+
+- **Start gate and continue to empty** (owner, 2026-10-23). Spending
+  continuously would let a medic stop fighting to dribble out each sliver of
+  energy as it regenerates, so the rules are deliberately asymmetric. A
+  treatment starts only when the pool holds at least the lesser of the energy
+  that would make the patient whole and the minimum to start; once started, it
+  spends until the patient is whole, the pool is empty, or reach is broken,
+  and the gate is not checked again. A patient missing less than the wound
+  floor is never started on. Patient choice is unchanged (below 70% health or
+  50% armor), so in practice the floor is a backstop: it binds only if those
+  thresholds are raised.
+- Both restorations run at their own rates and are paid at the same price per
+  point; when the pool cannot pay for a whole tick, both are scaled down
+  together. An interrupted treatment keeps what landed and simply stops
+  spending, so nothing is lost and nothing needs refunding.
 - Everything is clamped to the patient's own maxima, and restoration is flat
   rather than a fraction, for the reason `FieldAidSpec` gives: a bandage is a
   bandage.
-- **Supply recovery** is a slow trickle back toward the cap and never above it.
+- **Regeneration** is a slow trickle back toward the cap and never above it.
   It is what makes the medic matter in a long Conquest without making them
   matter in a short firefight. A medic who could treat every few seconds
   forever is the "more effective hit points" the integral-system slate forbids.
+- The pool belongs to the squad's medic billet, so a replacement medic picks up
+  what is left rather than a fresh pool.
+- **The one delay that remains** is after an abandoned approach (the patient
+  moved past the leash, recovered, or the approach ran out of time): the medic
+  waits three seconds before setting out again, so a patient they cannot reach
+  is not chased afresh every tick. A finished or interrupted treatment has no
+  delay; the start gate already keeps an empty pool from restarting.
 - **Never the medic themselves.** This is the same rule as field aid.
 - A patient qualifies below 70% health, or with armor below 50% of capacity
   (including broken). The worst-hurt qualifying squadmate wins, and health
   outranks armor at equal need.
 - Squadmates only. Not other squads, not allied factions.
 
-The channel ends when its time is up, when the patient is healed to its maxima,
-when either marine dies, or when the patient leaves reach. Breaking under fire
+The treatment ends when the patient is healed to its maxima, when the pool is
+empty, when either marine dies, or when the patient leaves reach. Breaking under fire
 was considered and **not** adopted. The limits are supplies, recovery and
 cooldown, plus the two costs below.
 
@@ -97,21 +128,13 @@ cooldown, plus the two costs below.
 for its duration. This is decided, not a balance knob: hands on the patient are
 the price of the treatment.
 
-**Whether treatment stops movement is left to the balance pass**, so both modes
-are built and selectable:
-
-- **Planted.** The patient holds from the moment they are chosen, so the medic
-  can reach them, and both hold for the channel. This is the
-  cheaper and more vulnerable treatment: two marines stationary for five
-  seconds. A squad advancing under orders leaves them behind for that time and
-  the cohesion pull brings them back afterwards.
-- **Keep moving.** Neither marine stops. The medic follows the patient and keeps
-  treating while the patient is within reach, so a squad on the move is not
-  slowed by its own medicine. Reach failing is the usual way it ends.
-
-A battle switch picks the mode for measurement. Whether "keep moving" then
-becomes a player-facing option, such as a squad stance or per-order choice, is
-decided from that measurement (open question 2).
+**Treatment never stops the squad** (owner, 2026-10-23). Neither marine is held:
+the patient carries on with whatever the squad is doing, and the medic follows
+and keeps treating while the patient is within reach, so a squad on the move is
+not slowed by its own medicine. Reach failing is the usual way a treatment ends
+early. A planted mode, holding both marines for the treatment, was built and
+measured against this and deleted: it cost the march time and bought nothing the
+energy pool does not already limit.
 
 ## Re-plating broken armor
 
@@ -152,10 +175,8 @@ This must stay inside the yield and goal rules the scenes have already enforced:
   clears the zone; the medic peels off only within the leash.
 - A medic with nobody to treat does not invent work (`YieldFreezeScene`'s
   lesson). Plan-less ticks and wandering are both regressions.
-- In planted mode a held marine is held by exactly one caller per tick. The
-  treatment owns the hold and hands it back when the channel ends, so the
-  `FiringLineScene` one-mover rule still holds. In keep-moving mode the
-  treatment never moves the patient; only the medic follows.
+- The treatment never moves or holds the patient; only the medic follows, so
+  the `FiringLineScene` one-mover rule holds.
 
 ## Out of scope
 
@@ -173,11 +194,8 @@ This must stay inside the yield and goal rules the scenes have already enforced:
 
 1. **Player-chosen medic billet.** The fixed billet is legible. A per-squad
    choice in the company view is more flexible but is new UI.
-2. **Planted or keep moving.** Both are built behind
-   `battle.infantry.medicKeepMoving` (per simulation via
-   `SquadMedicSystem.setKeepMoving`; planted by default). The balance pass
-   decides the default, and whether "keep moving" becomes a player-facing option
-   (squad stance or per-order choice) rather than only a tuning control.
+2. ~~Planted or keep moving.~~ Closed 2026-10-23: keep moving is the only
+   behaviour, and not a player option.
 3. **Specialty copy** against the `FIELD_MEDIC` trait, above.
 
 ## Evidence so far
@@ -191,11 +209,10 @@ first look rather than balance:
 | loop | reached order (tick) | treatments | restored | deaths | medic rounds while treating |
 | --- | --- | --- | --- | --- | --- |
 | control | 959 | — | — | 2 | — |
-| planted | 977 | 2 of 2 | 23.6 health, 5 armor, 1 re-plated | 3 | 0 |
-| keep-moving | 947 | 2 of 3 (1 interrupted) | 25.2 health, 10 armor, 2 re-plated | 2 | 0 |
+| medic (energy pool, rank 1) | 944 | 4 started: 1 made whole, 1 interrupted, 1 ran the pool dry | 32.5 health, 6.9 armor, 2 re-plated | 3 | 0 |
 
-Planted costs the march about 0.6 s here; keep-moving costs nothing. In both
-medic loops the medic was killed once by the target and replaced. A patient
+The march is not slowed. The medic was killed twice by the target and replaced,
+and the pool ended the minute at 2.5 of 30. A patient
 walking out of reach mid-treatment is covered by `SquadMedicSystemTest`, since
 nothing in the shipped game slows one marine against another to stage it.
 

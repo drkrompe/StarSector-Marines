@@ -12,12 +12,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The treatment rules on a squad of plain numbers: who the medic is, who they
- * pick, what a treatment costs and restores, and how it ends.
+ * pick, what a treatment costs and restores, and how it ends. The medicine is
+ * built here rather than read from the shipped table, so these rules do not move
+ * when the numbers are retuned.
  */
 public class SquadMedicSystemTest {
 
     private static final float DT = 1f / 30f;
-    private static final SquadMedicine RANK_ONE = SquadMedicine.forRank(1);
+    private static final SquadMedicine RANK_ONE = new SquadMedicine(30f, 0.2f, 1f, 7.5f, 0.05f, 3f,
+            2.5f, 1f, 1.5f, InfantryCohesion.COHESION_RADIUS, 8f, 0.7f, 0.5f, 2f);
 
     @Test
     public void theMedicIsTheFirstMiddleTeamSquadmateAndNeverTheLeader() {
@@ -66,7 +69,7 @@ public class SquadMedicSystemTest {
     }
 
     @Test
-    public void aFullTreatmentSpendsOneSupplyAndRestoresItsAuthoredAmount() {
+    public void aTreatmentPaysForEveryPointItRestoresAndRunsUntilThePatientIsWhole() {
         Ward ward = squad();
         ward.hp.put(4L, 5f);
         ward.armor.put(4L, 1f);
@@ -76,16 +79,76 @@ public class SquadMedicSystemTest {
         SquadMedicSystem.step(medic, ward, DT);
         assertEquals(SquadMedic.Phase.TREATING, medic.phase());
         assertEquals(4L, medic.patientId());
-        assertEquals(RANK_ONE.supplies() - 1, medic.supplies(), "the supply is spent at the start");
 
-        runUntilIdle(medic, ward);
-        float expectedHealth = RANK_ONE.healthPerSecond() * RANK_ONE.channelSeconds();
-        float expectedArmor = Math.min(4f, RANK_ONE.armorPerSecond() * RANK_ONE.channelSeconds());
-        assertEquals(5f + expectedHealth, ward.hp.get(4L), 0.2f);
-        assertEquals(1f + expectedArmor, ward.armor.get(4L), 0.2f);
+        int ticks = 1 + runUntilIdle(medic, ward);
+        assertEquals(25f, ward.hp.get(4L), 1e-4f);
+        assertEquals(5f, ward.armor.get(4L), 1e-4f);
         assertEquals(1, medic.completed());
         assertEquals(0, medic.interrupted());
-        assertEquals(RANK_ONE.cooldownSeconds(), medic.cooldownTimer(), 0.05f);
+        float spent = medic.healthRestored() + medic.armorRestored();
+        assertEquals(24f, spent, 1e-3f);
+        assertEquals(RANK_ONE.energyMax() - spent + RANK_ONE.energyRegenPerSecond() * ticks * DT,
+                medic.energy(), 0.05f, "the pool regenerates throughout and pays one per point");
+    }
+
+    @Test
+    public void belowTheStartGateTheMedicDoesNotSetOut() {
+        Ward ward = squad();
+        ward.hp.put(4L, 5f);
+        ward.x.put(4L, 2.5f);
+        SquadMedic medic = medicFor(ward);
+        medic.energy = RANK_ONE.minStartEnergy() - 1f;
+        SquadMedicSystem.step(medic, ward, DT);
+        assertEquals(SquadMedic.Phase.IDLE, medic.phase());
+        assertEquals(5f, ward.hp.get(4L), 1e-6f);
+    }
+
+    @Test
+    public void atTheGateATreatmentRunsUntilThePoolIsEmptyAndHealingStopsThere() {
+        Ward ward = squad();
+        ward.hp.put(4L, 5f);
+        ward.x.put(4L, 2.5f);
+        SquadMedic medic = medicFor(ward);
+        medic.energy = RANK_ONE.minStartEnergy();
+        SquadMedicSystem.step(medic, ward, DT);
+        assertEquals(SquadMedic.Phase.TREATING, medic.phase());
+        runUntilIdle(medic, ward);
+        assertEquals(1, medic.exhausted(), "the pool ran dry before the patient was whole");
+        assertEquals(0, medic.completed());
+        float healed = ward.hp.get(4L);
+        assertTrue(healed > 5f + RANK_ONE.minStartEnergy() - 1e-3f && healed < 25f,
+                "it ran past the gate on regeneration, to empty: " + healed);
+
+        for (int i = 0; i < 30; i++) SquadMedicSystem.step(medic, ward, DT);
+        assertEquals(SquadMedic.Phase.IDLE, medic.phase(), "an empty pool waits for the gate again");
+        assertEquals(healed, ward.hp.get(4L), 1e-6f, "no healing from an empty pool");
+    }
+
+    @Test
+    public void aTreatmentNeverRestoresMoreThanThePoolPays() {
+        Ward ward = squad();
+        ward.hp.put(4L, 1f);
+        ward.armor.put(4L, 0f);
+        ward.x.put(4L, 2.5f);
+        SquadMedic medic = medicFor(ward);
+        medic.energy = 10f;
+        int ticks = 1 + runUntilIdle(medic, ward);
+        float paidFor = 10f + RANK_ONE.energyRegenPerSecond() * ticks * DT;
+        assertTrue(medic.healthRestored() + medic.armorRestored() <= paidFor + 1e-3f);
+    }
+
+    @Test
+    public void aSmallPoolStillTopsOffANearlyWholePatient() {
+        Ward ward = squad();
+        ward.hp.put(4L, 23f);
+        SquadMedic medic = medicFor(ward);
+        medic.energy = 3f;
+        assertTrue(SquadMedicSystem.mayStart(medic, ward, 4L), "the pool covers the whole wound");
+        medic.energy = 1f;
+        assertTrue(!SquadMedicSystem.mayStart(medic, ward, 4L), "and not when it does not");
+        ward.hp.put(4L, 24.5f);
+        medic.energy = RANK_ONE.energyMax();
+        assertTrue(!SquadMedicSystem.mayStart(medic, ward, 4L), "a scratch under the wound floor");
     }
 
     @Test
@@ -117,21 +180,8 @@ public class SquadMedicSystemTest {
         assertEquals(SquadMedic.Phase.IDLE, medic.phase());
         assertEquals(1, medic.interrupted());
         assertEquals(partial, ward.hp.get(4L), 1e-5f);
-        assertEquals(RANK_ONE.supplies() - 1, medic.supplies(), "an interrupted supply is gone");
-    }
-
-    @Test
-    public void suppliesRecoverOneAtATimeToTheCapAndNoFurther() {
-        Ward ward = squad();
-        SquadMedic medic = medicFor(ward);
-        medic.supplies = 0;
-        int ticksPerSupply = Math.round(RANK_ONE.supplyRecoverySeconds() / DT);
-        for (int i = 0; i < ticksPerSupply + 1; i++) SquadMedicSystem.step(medic, ward, DT);
-        assertEquals(1, medic.supplies());
-        for (int i = 0; i < ticksPerSupply * (RANK_ONE.supplies() + 2); i++) {
-            SquadMedicSystem.step(medic, ward, DT);
-        }
-        assertEquals(RANK_ONE.supplies(), medic.supplies());
+        float spent = medic.healthRestored() + medic.armorRestored();
+        assertEquals(partial - 5f, spent, 1e-4f, "only what landed was paid for");
     }
 
     @Test
@@ -167,8 +217,9 @@ public class SquadMedicSystemTest {
             SquadMedicSystem.step(medic, ward, DT);
         }
         assertEquals(SquadMedic.Phase.IDLE, medic.phase());
-        assertEquals(RANK_ONE.supplies(), medic.supplies());
+        assertEquals(RANK_ONE.energyMax(), medic.energy(), 1e-6f);
         assertEquals(0, medic.started());
+        assertTrue(medic.retryTimer > 0f, "the medic waits before setting out again");
     }
 
     @Test
@@ -226,16 +277,20 @@ public class SquadMedicSystemTest {
     }
 
     private static SquadMedic medicFor(Ward ward) {
-        SquadMedic medic = new SquadMedic(RANK_ONE, false);
+        SquadMedic medic = new SquadMedic(RANK_ONE);
         medic.medicId = SquadMedicSystem.designate(ward);
         return medic;
     }
 
-    private static void runUntilIdle(SquadMedic medic, Ward ward) {
+    /** Steps until the medic is idle again; returns the steps taken. */
+    private static int runUntilIdle(SquadMedic medic, Ward ward) {
         SquadMedicSystem.step(medic, ward, DT);
+        int steps = 1;
         for (int i = 0; i < 1000 && medic.phase() != SquadMedic.Phase.IDLE; i++) {
             SquadMedicSystem.step(medic, ward, DT);
+            steps++;
         }
+        return steps;
     }
 
     /** Marines on one line: distance is the difference of their x. */

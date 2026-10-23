@@ -237,7 +237,7 @@
         "burstCount": 4, "burstSpacing": 0.09, "accuracyFalloff": 0.35, "hitSpread": 0.5,
         "roundVelocity": 55.0
       },
-      "render": { "tracerColor": "60CFFF" },
+      "render": { "tracerColor": "60CFFF", "energy": true },
       "fx": {
         "muzzle": [ { "kind": "glow", "radius": 0.34, "lifetime": 0.07, "color": "8FE0FF" } ],
         "impact": [

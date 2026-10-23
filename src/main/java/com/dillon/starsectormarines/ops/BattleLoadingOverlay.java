@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ops.battleview.LoadingProgress;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
@@ -18,14 +19,10 @@ final class BattleLoadingOverlay {
     static final String COMPONENT_PATH =
             "data/ui/components/battle/battle-loading-overlay.mlx";
 
-    /** The look the battle ships with until the owner picks (`battle-textures.md`). */
-    static final BattleLoadingOverlayModel.Look LOOK = BattleLoadingOverlayModel.Look.CARD;
-    static final BattleLoadingOverlayModel.Detail DETAIL = BattleLoadingOverlayModel.Detail.STEP;
-
     private final Reactor reactor = new Reactor();
     private final MarkupLoader markup = new MarkupLoader(
             path -> Global.getSettings().loadText(path), List.of(COMPONENT_PATH));
-    private final BattleLoadingOverlayModel model = new BattleLoadingOverlayModel(reactor, LOOK, DETAIL);
+    private final BattleLoadingOverlayModel model = new BattleLoadingOverlayModel(reactor);
 
     private UiViewport viewport;
     private UiDocument document;
@@ -59,8 +56,8 @@ final class BattleLoadingOverlay {
         markupInstance = candidate;
     }
 
-    void update(float realDt, float progress, String step, long bytesLoaded) {
-        model.update(progress, step, bytesLoaded);
+    void update(float realDt, LoadingProgress progress) {
+        model.update(realDt, progress);
         if (markupInstance != null) markupInstance.flush();
         if (document != null) document.advance(realDt);
     }

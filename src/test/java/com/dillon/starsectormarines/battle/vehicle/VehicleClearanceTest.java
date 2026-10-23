@@ -26,18 +26,25 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class VehicleClearanceTest {
 
     @Test
-    public void edgeAwareErosionRefusesAFootprintAcrossAWalledEdge() {
+    public void erosionRefusesAFootprintAcrossAWalledEdge() {
         NavigationGrid grid = new NavigationGrid(9, 9);
         for (int y = 0; y < 9; y++) for (int x = 0; x < 9; x++) grid.setWalkableFloor(x, y);
+        VehicleClearance before = VehicleClearance.erode(grid, 1);
         // A fence on the edge between (4,4) and (5,4): both cells stay walkable.
         grid.blockSharedEdge(4, 4, Direction.E);
-        VehicleClearance plain = VehicleClearance.erode(grid, 1);
-        VehicleClearance edges = VehicleClearance.erodeRespectingEdges(grid, 1);
-        assertTrue(plain.isPassable(4, 4), "the plain mask sees open cells only");
+        VehicleClearance edges = VehicleClearance.erode(grid, 1);
         assertFalse(edges.isPassable(4, 4), "a footprint the fence runs through");
         assertFalse(edges.isPassable(5, 5), "the fence inside the block, off its centre line");
         assertTrue(edges.isPassable(2, 4), "clear of the fence");
         assertTrue(edges.isPassable(7, 4), "clear of the fence on the other side");
+        VehicleClearance patched = VehicleClearance.copyOf(before);
+        patched.refreshAround(grid, 4, 4);
+        for (int y = 0; y < 9; y++) {
+            for (int x = 0; x < 9; x++) {
+                assertEquals(edges.isPassable(x, y), patched.isPassable(x, y),
+                        "catch-up from the fenced cell at (" + x + "," + y + ")");
+            }
+        }
     }
 
     @Test

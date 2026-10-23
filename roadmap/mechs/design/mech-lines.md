@@ -1,6 +1,6 @@
 # Mech lines: tech family by weight class
 
-Status: DRAFT — the direction for growing the mech roster beyond the three first chassis.
+Status: DRAFT — the direction for growing the mech roster beyond the three first chassis; planned for v0.2 (`v0.2.md`).
 
 Written: 2026-10-23
 

@@ -428,7 +428,7 @@ public class BattleRenderer {
         sprites.ensureSmokeSprites();
         registerSmokeFieldBatch();
         sprites.ensureSatchelSprite();
-        impactFx.ensureSprites();
+        impactFx.ensureSprites(sprites.lease());
     }
 
     /** Builds the six per-sheet tile batches from the loaded sheets. Called from {@code BattleScreen.attach()}. */
@@ -583,6 +583,14 @@ public class BattleRenderer {
 
     /** Accessor for the host's combat-event presentation pass. */
     public GroundLightService getGroundLights() { return groundLights; }
+
+    /**
+     * Lights the ground composite from {@code lights} instead of this renderer's own; null restores its own. A
+     * headless review keeps the presentation state the screen feeds every tick in a feed of its own, lights among it.
+     */
+    void useGroundLights(GroundLightService lights) {
+        groundParallax.useLights(lights != null ? lights : groundLights);
+    }
 
     /** Releases night lighting targets, the aircraft's reflected-light shader and the creep's textures. */
     public void disposeLighting() {

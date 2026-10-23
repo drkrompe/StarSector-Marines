@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.world.tiles;
 
 import com.dillon.starsectormarines.render2d.texture.ModTextures;
+import com.dillon.starsectormarines.render2d.texture.TextureLease;
+import com.dillon.starsectormarines.render2d.texture.TextureLedger;
 import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
@@ -83,10 +85,15 @@ public final class SheetTexture {
      * retrying every frame.
      */
     public void ensureLoaded() {
+        ensureLoaded(TextureLedger.shared().session());
+    }
+
+    /** {@link #ensureLoaded()} under {@code lease}, which keeps the texture until it is released. */
+    public void ensureLoaded(TextureLease lease) {
         if (loadAttempted) return;
         loadAttempted = true;
         try {
-            ModTextures.loadTexture(path);
+            ModTextures.loadTexture(path, lease);
             sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("SheetTexture: getSprite returned null for " + path);

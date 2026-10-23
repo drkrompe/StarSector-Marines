@@ -269,7 +269,8 @@ does not set Conquest alight.
 The fire field drawn (`FireRenderSystem`), from what the field already holds;
 nothing is drawn for a battle that never lit anything.
 
-- **Scorch** lies on the ground under everything that stands on it, and
+- **Scorch** lies on the ground under everything that stands on it (the grass
+  under a wire fence or a prop chars like the grass beside it), and
   reads as a field burnt days ago: singed straw-brown, black only where heavy
   fuel stood, pale ash drifting over it. It is not a fill: it darkens and
   browns the ground's own albedo, so the texture always reads, and lays straw,

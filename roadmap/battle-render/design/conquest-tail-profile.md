@@ -174,7 +174,7 @@ returned entries, not every primitive entry visited inside the spatial index.
 Flat A* omits the unavoidable additive crowding toll of a fixed goal during
 search; intermediate crowding and terrain costs still rank routes.
 Tail reports
-record the squad-traffic switches, include counts at 30/40/50 ms,
+include counts at 30/40/50 ms,
 and exclude warmup from async-route cumulative deltas. Pass
 `-Dbattle.tail.sourceRevision=<commit>` to retain an explicit source revision;
 omission records `unknown`, not a guessed checkout. Lifetime latency maxima

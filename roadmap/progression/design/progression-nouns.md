@@ -240,13 +240,19 @@ loadout: the first middle-team marine other than the leader, in roster order,
 replaced when they fall. That one billet rule is shared by the battle and the
 company squad card, so the marine marked on the card is the one who treats. The medic walks to the worst-hurt squadmate within
 the cohesion leash, holds fire while treating, and restores health and armor
-over a short channel from a few supplies that recover slowly; never their own
-patient. In battle the medic wears a small cross badge. A treatment is shown in
+at a steady rate, paid for point by point out of an energy pool that
+regenerates slowly (authored per rank in `squad-medicine.json`); never their
+own patient. A treatment starts only when the pool holds a worthwhile amount, or
+enough to make the patient whole if that is less, and never for a scratch below
+the wound floor; once started it spends until the patient is whole, the pool is
+empty, or reach is broken, so a medic does not stop fighting to dribble out each
+sliver as it regenerates. An interrupted treatment keeps what landed and simply
+stops spending. The squad never stops for medicine: the patient carries on with
+the squad and the medic walks at their side while treating. In battle the medic wears a small cross badge. A treatment is shown in
 the world, not as an overlay: the medic kneels over an open kit in place of
 whatever special they carry, and the patient gives off hands-on work rather than
 a glow -- pale dressing mist for health, grey-blue sealant flecks settling onto
-the suit for armor -- on the medic's side of the body. Whether medic and patient
-stand still for it is a balance-pass switch (`squad-medic.md`). These are independent
+the suit for armor -- on the medic's side of the body. These are independent
 of legacy recruitment traits and the one-shot moral outlook. Every officer
 who actually leads engaged marines receives their own mission XP and service
 entry; operation command is also credited. Per-attempt receipts prevent repeat
