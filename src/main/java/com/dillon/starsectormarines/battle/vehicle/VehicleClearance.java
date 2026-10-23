@@ -33,7 +33,8 @@ public final class VehicleClearance {
 
     /**
      * {@code -Dbattle.vehicle.edgeClearance=false} reads cells alone, the mask every planner used
-     * before edge walls counted: the control run for the edge test, not a mode to play.
+     * before edge walls counted: the control run for the edge test, not a mode to play. Remove once
+     * the edge rule has shipped and a later Cordon/Heart evidence pass ran without reaching for it.
      */
     static final boolean EDGES = Boolean.parseBoolean(System.getProperty("battle.vehicle.edgeClearance", "true"));
 
