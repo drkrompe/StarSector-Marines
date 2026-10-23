@@ -44,6 +44,7 @@ plume at its exhaust anchor or the .ship's engine slot.
 import json
 import math
 import os
+import re
 import subprocess
 import sys
 import zlib
@@ -2040,23 +2041,76 @@ def blender_main(cfg):
         obj(name, plume_me, mat, Matrix.Translation(p0) @ q.to_matrix().to_4x4()
             @ Matrix.Diagonal((radius, radius, d.length, 1)))
 
+    def chain(o):
+        """An appended object's matrix in its build's root frame (hull units): an object outside the
+        scene has no evaluated matrix_world, so its parent chain is composed."""
+        w = o.matrix_basis
+        while o.parent:
+            w = o.parent.matrix_basis @ o.matrix_parent_inverse @ w
+            o = o.parent
+        return w
+
+    def build_objects(key):
+        """The objects a placed ship is drawn from: her own hull copy (ShipFx, its turrets trained)
+        first, then the shared build."""
+        sfx = placed[key].get('fx')
+        own = list(sfx.hull.all_objects) if sfx is not None and sfx.hull is not placed[key]['lib']['coll'] else []
+        return own + list(placed[key]['lib']['coll'].all_objects)
+
+    def barrel_tip(objs, name):
+        """A muzzle the build does not name, found from the gun itself the way swfx_guns.trainers
+        finds a mount's joints: the mount ('Turret 2', 'Weapon WS 005') from the anchor's name, its
+        elevation (else pivot) for the bore, and the vertex of its gun, recoil or barrel meshes
+        furthest along that bore. None when the mount has no such geometry."""
+        m = re.search(r'(turret \d+|weapon ws \d+)', name, re.I)
+        if m is None:
+            return None
+        stem = m.group(1).lower()
+        joint = next((o for suffix in (' elevation', ' pivot') for o in objs
+                      if ship_fx.base_name(o.name).lower() == stem + suffix), None)
+        meshes = [o for o in objs if o.type == 'MESH' and ship_fx.base_name(o.name).lower().startswith(stem + ' ')
+                  and any(w in ship_fx.base_name(o.name).lower() for w in (' gun', ' recoil', ' barrel'))]
+        if joint is None or not meshes:
+            return None
+        bore = (chain(joint).to_3x3() @ Vector((1.0, 0.0, 0.0))).normalized()
+        best = None
+        for o in meshes:
+            w = chain(o)
+            for v in o.data.vertices:
+                q = w @ v.co
+                if best is None or q.dot(bore) > best.dot(bore):
+                    best = q
+        return best
+
     def muzzle_world(key, muzzle):
-        """A shot's start: the bearing mount's muzzle (bearing()), on the placed ship."""
+        """A shot's start: the bearing mount's muzzle (bearing()), on the placed ship. A named anchor
+        is matched by its kit name (ship_fx.base_name), so it is found in her own hull copy while
+        ShipFx.kit() has the names swapped (that swap made every anchor looked up inside a kit read
+        as missing and fire from the hull centre, animatic 2026-10-23); an anchor the build lacks is
+        taken from the barrel (barrel_tip). One with neither is recorded in muzzle_world.missing,
+        which SceneFx.projectile_check fails on."""
         if muzzle is None:
             return at(key)
         if muzzle[0] == 'anchor':
             lib = placed[key]['lib']
-            o = next((o for o in lib['coll'].all_objects if o.name.split('.')[0] == muzzle[1]), None)
-            if o is None:
-                print('ASHARU muzzle anchor missing, firing from the hull centre:', key, muzzle[1], flush=True)
-                return at(key)
-            # an appended object outside the scene has no evaluated matrix_world: compose its chain
-            w = o.matrix_basis
-            while o.parent:
-                w = o.parent.matrix_basis @ o.matrix_parent_inverse @ w
-                o = o.parent
-            return at(key, w.translation * lib['mpu'])
+            objs = build_objects(key)
+            o = next((o for o in objs if ship_fx.base_name(o.name) == muzzle[1]), None)
+            if o is not None:
+                return at(key, chain(o).translation * lib['mpu'])
+            tip = barrel_tip(objs, muzzle[1])
+            if tip is not None:
+                if (key, muzzle[1]) not in muzzle_world.derived:
+                    muzzle_world.derived.add((key, muzzle[1]))
+                    print('ASHARU muzzle anchor not in the build, taken from its barrel tip:', key, muzzle[1], flush=True)
+                return at(key, tip * lib['mpu'])
+            if (key, muzzle[1]) not in muzzle_world.missing:
+                muzzle_world.missing.append((key, muzzle[1]))
+                print('ASHARU ERROR muzzle anchor missing and no barrel to take it from:', key, muzzle[1], flush=True)
+            return at(key)
         return at(key, muzzle[1])
+
+    muzzle_world.missing = []       # (ship, anchor) with no muzzle at all: fails projectile_check
+    muzzle_world.derived = set()
 
     CLEAR_GUNS = {}     # (kind, shooter, target) -> every bearing muzzle with a clear line, the chosen one first
 

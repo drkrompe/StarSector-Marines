@@ -19,6 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -49,10 +50,19 @@ public final class LookReview {
      * Where a shot stands: the ground, the freshly generated map, and the window chosen on it; and the subjects the
      * stage named ({@link #subject}), which a {@link View#follow following view} keeps in frame.
      */
-    public record Placement(LookGround ground, MapResult map, LookGround.Site site, Map<String, Long> subjects) {
+    public record Placement(LookGround ground, MapResult map, LookGround.Site site, Map<String, Long> subjects,
+                            List<Consumer<BattleSimulation>> beforeTicks) {
 
         public Placement(LookGround ground, MapResult map, LookGround.Site site) {
-            this(ground, map, site, new LinkedHashMap<>());
+            this(ground, map, site, new LinkedHashMap<>(), new ArrayList<>());
+        }
+
+        /**
+         * Runs {@code step} before every simulation tick of the recording, as a mission's own serial tick drives what
+         * it owns (an allied command, a screened advance) in a real battle.
+         */
+        public void beforeTick(Consumer<BattleSimulation> step) {
+            beforeTicks.add(step);
         }
 
         /** Names a spawned unit or hull, so a following view can find it. Returns the id. */
@@ -246,6 +256,7 @@ public final class LookReview {
             int fired = 0;
             for (int tick = 0; tick <= shot.ticks(); tick++) {
                 if (tick > 0) {
+                    for (Consumer<BattleSimulation> step : placement.beforeTicks()) step.accept(sim);
                     sim.advance(BattleSimulation.TICK_DT);
                     fx.feed(sim);
                     fired += sim.getShotsThisFrame().size();
