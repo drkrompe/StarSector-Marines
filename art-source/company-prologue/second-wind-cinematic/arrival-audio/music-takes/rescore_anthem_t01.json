@@ -1,0 +1,150 @@
+{
+  "requestId": null,
+  "characterCost": null,
+  "modelId": "music_v1",
+  "prompt": null,
+  "request": {
+    "composition_plan": {
+      "positive_global_styles": [
+        "epic martial orchestral film score",
+        "sombre beginning building to a heroic military anthem",
+        "heavy low brass, trombones and tubas, bold trumpet fanfares at the climax",
+        "snare drums, timpani and big orchestral percussion",
+        "C minor resolving to C major, broad and noble"
+      ],
+      "negative_global_styles": [
+        "vocals",
+        "choir",
+        "lyrics",
+        "electronic",
+        "synth",
+        "rock drums",
+        "electric guitar",
+        "dance beat"
+      ],
+      "sections": [
+        {
+          "section_name": "Cold approach",
+          "positive_local_styles": [
+            "near silence, sombre and cold",
+            "a low string drone, very quiet",
+            "one distant solemn horn note, far away",
+            "no percussion, vast empty space"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 12300,
+          "lines": []
+        },
+        {
+          "section_name": "Under the hails",
+          "positive_local_styles": [
+            "quiet and sombre, leaving room for radio voices",
+            "low strings hold slow dark minor chords",
+            "a hushed solo horn hints a four-note theme once",
+            "a faint soft timpani roll far off near the end",
+            "no snare, no melody over the voices"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 25400,
+          "lines": []
+        },
+        {
+          "section_name": "Bridge",
+          "positive_local_styles": [
+            "still sombre but tense",
+            "a soft muffled snare drum pattern enters very quietly, like a distant drill",
+            "low brass sustains underneath",
+            "slowly gathering, restrained, in a low register"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 15000,
+          "lines": []
+        },
+        {
+          "section_name": "Through the fire",
+          "positive_local_styles": [
+            "a steady rising crescendo",
+            "timpani and snare roll build together",
+            "low brass swell climbs",
+            "cuts off with one big low hit at about 5.5 seconds"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 7000,
+          "lines": []
+        },
+        {
+          "section_name": "Open sky",
+          "positive_local_styles": [
+            "the marching theme is stated for the first time by unison French horns, noble and broad",
+            "strings underneath, a light steady snare march pulse at a moderate march tempo",
+            "moves from minor toward major",
+            "mid volume, room for a voice from 7 to 12 seconds"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 16000,
+          "lines": []
+        },
+        {
+          "section_name": "Descent",
+          "positive_local_styles": [
+            "a driving military snare ostinato and field drums",
+            "low brass and strings carry the march under a voice for the first 8 seconds",
+            "then a steady, building crescendo: trumpets join, the theme climbs",
+            "momentum and resolve, heroic"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 16400,
+          "lines": []
+        },
+        {
+          "section_name": "Touchdown",
+          "positive_local_styles": [
+            "a big full brass statement and cymbal crash at the start",
+            "drums keep driving"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 5000,
+          "lines": []
+        },
+        {
+          "section_name": "The march",
+          "positive_local_styles": [
+            "full heroic martial march: brass carries the rousing marching theme over driving snare and military percussion",
+            "trumpets and horns in harmony, strings in fast ostinato",
+            "stirring and proud",
+            "slightly held back from 5 to 12 seconds under a voice, then pushing on"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 19600,
+          "lines": []
+        },
+        {
+          "section_name": "Peak and title",
+          "positive_local_styles": [
+            "the climax: the whole orchestra, a big heroic brass statement of the marching theme",
+            "crashing cymbals, timpani and snare",
+            "lands on a huge bright major chord at about 4.5 seconds"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 9400,
+          "lines": []
+        },
+        {
+          "section_name": "Resolve",
+          "positive_local_styles": [
+            "the final major chord held broad and proud by the brass, then a timpani roll",
+            "a grand closing cadence that decays and fades to complete silence by 9.5 seconds"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 11025,
+          "lines": []
+        }
+      ]
+    },
+    "respect_sections_durations": true
+  },
+  "audioSha256": "fdca3335c60017979cfb8f34e3e66eb775907eec090cccf15c4f689de272c546",
+  "durationSeconds": 137.17,
+  "peakDb": -0.0,
+  "integratedLufs": -10.6
+}
