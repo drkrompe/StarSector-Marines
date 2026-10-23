@@ -10,7 +10,6 @@ import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -25,26 +24,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * patrols. A live battle showed it at sixty-two: three threatened tracks drew
  * six squads and fifty-six sat on a home-track hold while the base was taken
  * compound by compound. These pin both ends of the range — a three-patrol pool
- * behaves exactly as it did, a sixty-patrol pool commits most of itself, and
- * the control flag restores the old numbers on the same frame.
+ * behaves exactly as it did, and a sixty-patrol pool commits most of itself.
  *
  * <p>Measured on the sixty-patrol frame: caps 30/8/8 for believed contacts of
- * 4/1/1, forty-five committed as 30/8/7, fifteen held. The same frame with the
- * flag off commits six and holds fifty-four.
+ * 4/1/1, forty-five committed as 30/8/7, fifteen held.
  */
 class ConquestDefenderCommandScalingTest {
 
     private static final int W = 30;
     private static final int H = 60;
-
-    private final boolean scaledResponseAtStart =
-            ConquestDefenderCommand.isScaledResponseEnabled();
-
-    @AfterEach
-    void restoreScaledResponse() {
-        ConquestDefenderCommand.setScaledResponseForEvidence(
-                scaledResponseAtStart);
-    }
 
     @Test
     void threePatrolPoolStillSendsTwoAndHoldsOne() {
@@ -94,19 +82,6 @@ class ConquestDefenderCommandScalingTest {
                             <= plan.detail().track(track).responderCap(),
                     "track " + track + " exceeded its published cap");
         }
-    }
-
-    @Test
-    void controlFlagRestoresTheFixedTwoPerTrackCap() {
-        BattleSimulation sim = threeTrackThreat();
-        ConquestDefenderCommand.setScaledResponseForEvidence(false);
-
-        CommandPlan<ConquestFrontSnapshot> plan = plan(sim);
-
-        assertEquals(2, responders(plan, 0));
-        assertEquals(2, responders(plan, 1));
-        assertEquals(2, responders(plan, 2));
-        assertEquals(54, plan.reserveCount());
     }
 
     /**

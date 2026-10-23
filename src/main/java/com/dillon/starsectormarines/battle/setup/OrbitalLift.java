@@ -39,14 +39,6 @@ import com.dillon.starsectormarines.ops.LandingShare;
 public final class OrbitalLift {
 
     /**
-     * The descent, on by default:
-     * {@code -Dbattle.conquest.orbitalLift=false} restores the crossing of the
-     * map edge nearest the force. On because it is measured better on both
-     * canonical fixtures against that crossing — see {@code conquest-nouns.md}.
-     */
-    public static final String PROPERTY = "battle.conquest.orbitalLift";
-
-    /**
      * The seat-sized lift, <b>off</b> by default:
      * {@code -Dbattle.conquest.derivedLift=true} sizes the pairs from the
      * committed seats and the landing share instead of flying the ferry's
@@ -71,9 +63,6 @@ public final class OrbitalLift {
      * with something else.
      */
     public static final String DERIVED_LIFT_PROPERTY = "battle.conquest.derivedLift";
-
-    private static final boolean ENABLED =
-            Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
 
     private static final boolean DERIVED_LIFT =
             Boolean.parseBoolean(System.getProperty(DERIVED_LIFT_PROPERTY, "false"));
@@ -111,11 +100,6 @@ public final class OrbitalLift {
     public static final int FERRY_DROP_ZONES = 3;
 
     private OrbitalLift() {}
-
-    /** Whether marine arrivals descend from orbit on this run. */
-    public static boolean enabled() {
-        return ENABLED;
-    }
 
     /**
      * Fills in whatever the mission left to the lift.

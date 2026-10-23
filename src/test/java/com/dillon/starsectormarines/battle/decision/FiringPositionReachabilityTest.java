@@ -11,11 +11,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** The firing picker needs a boolean proof, never the route it used to discard. */
+/** The firing picker needs a boolean reachability proof, which must agree with the infantry A*. */
 class FiringPositionReachabilityTest {
 
     @Test
-    void componentProofMatchesDiscardedSearchWithBothMovementPolicies() {
+    void componentProofMatchesSearchWithBothMovementPolicies() {
         boolean originalPolicy = GridPathfinder.USE_CARDINAL_NAVIGATION;
         try {
             for (boolean cardinal : new boolean[]{false, true}) {
@@ -26,8 +26,8 @@ class FiringPositionReachabilityTest {
                         for (int to = 0; to < 20; to++) {
                             int sx = from % 5, sy = from / 5;
                             int gx = to % 5, gy = to / 5;
-                            assertEquals(reachable(grid, sx, sy, gx, gy, false),
-                                    reachable(grid, sx, sy, gx, gy, true),
+                            assertEquals(searched(grid, sx, sy, gx, gy),
+                                    proof(grid, sx, sy, gx, gy),
                                     "cardinal=" + cardinal + ", seed=" + seed
                                             + ", from=" + from + ", to=" + to);
                         }
@@ -43,14 +43,12 @@ class FiringPositionReachabilityTest {
     void sameCellMustBeWalkableAndEndpointsMustBeInBounds() {
         NavigationGrid grid = new NavigationGrid(2, 1);
         grid.setWalkableFloor(0, 0);
-        for (boolean components : new boolean[]{false, true}) {
-            assertTrue(reachable(grid, 0, 0, 0, 0, components));
-            assertFalse(reachable(grid, 1, 0, 1, 0, components));
-            assertFalse(reachable(grid, 0, 0, 1, 0, components));
-            assertFalse(reachable(grid, 1, 0, 0, 0, components));
-            assertFalse(reachable(grid, -1, 0, 0, 0, components));
-            assertFalse(reachable(grid, 0, 0, 2, 0, components));
-        }
+        assertTrue(proof(grid, 0, 0, 0, 0));
+        assertFalse(proof(grid, 1, 0, 1, 0));
+        assertFalse(proof(grid, 0, 0, 1, 0));
+        assertFalse(proof(grid, 1, 0, 0, 0));
+        assertFalse(proof(grid, -1, 0, 0, 0));
+        assertFalse(proof(grid, 0, 0, 2, 0));
     }
 
     @Test
@@ -82,9 +80,7 @@ class FiringPositionReachabilityTest {
             grid.setEdgePassable(0, 1, Direction.S, false);
             for (boolean cardinal : new boolean[]{false, true, false}) {
                 GridPathfinder.USE_CARDINAL_NAVIGATION = cardinal;
-                for (boolean components : new boolean[]{true, false}) {
-                    assertEquals(!cardinal, reachable(grid, 0, 0, 1, 1, components));
-                }
+                assertEquals(!cardinal, proof(grid, 0, 0, 1, 1));
             }
         } finally {
             GridPathfinder.USE_CARDINAL_NAVIGATION = originalPolicy;
@@ -92,15 +88,19 @@ class FiringPositionReachabilityTest {
     }
 
     private static void assertProof(NavigationGrid grid, boolean expected) {
-        // Ask the component path first so the control cannot hide stale labels.
-        assertEquals(expected, reachable(grid, 0, 0, 2, 0, true));
-        assertEquals(expected, reachable(grid, 0, 0, 2, 0, false));
-        assertEquals(expected, reachable(grid, 2, 0, 0, 0, true));
+        assertEquals(expected, proof(grid, 0, 0, 2, 0));
+        assertEquals(expected, searched(grid, 0, 0, 2, 0));
+        assertEquals(expected, proof(grid, 2, 0, 0, 0));
     }
 
-    private static boolean reachable(NavigationGrid grid, int sx, int sy,
-                                     int gx, int gy, boolean components) {
-        return TacticalScoring.isFiringPositionReachable(grid, sx, sy, gx, gy, components);
+    /** The component proof the firing picker asks. */
+    private static boolean proof(NavigationGrid grid, int sx, int sy, int gx, int gy) {
+        return grid.arePathConnected(sx, sy, gx, gy, GridPathfinder.USE_CARDINAL_NAVIGATION);
+    }
+
+    /** The infantry A* the proof must agree with. */
+    private static boolean searched(NavigationGrid grid, int sx, int sy, int gx, int gy) {
+        return GridPathfinder.findPath(grid, sx, sy, gx, gy).length > 0;
     }
 
     private static NavigationGrid randomGrid(int seed) {

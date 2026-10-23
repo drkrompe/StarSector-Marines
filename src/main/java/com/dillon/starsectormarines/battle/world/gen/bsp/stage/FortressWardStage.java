@@ -400,15 +400,10 @@ public final class FortressWardStage implements GenStage {
     }
 
     /**
-     * How the ward chose its through route before the corridor was authored:
-     * the shortest run of road across the band, dilated by a cell.
-     *
-     * <p>Retained as the fallback for a map with no corridor bound — which in
-     * practice means a control run with
-     * {@code -Dbattle.mapgen.vehicleCorridor=false}, so that switch produces
-     * the fortress exactly as it generated before this layer existed rather
-     * than one with no road at all. See {@link #wardCorridor} for why the
-     * derivation was not good enough to keep as the production path.
+     * The ward's through route on a map with no corridor bound (a trunk plan
+     * with no arterial along the axis): the shortest run of road across the
+     * band, dilated by a cell, so the fortress keeps a road rather than none.
+     * See {@link #wardCorridor} for why this derivation is only the fallback.
      */
     private static boolean[][] wardRoads(GenContext ctx, int[] ward, TraversalAxis axis) {
         boolean[][] kept = new boolean[ctx.width][ctx.height];

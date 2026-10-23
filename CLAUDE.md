@@ -611,12 +611,7 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   counts as well**; the times are medians of nine frames after a thirty-frame
   warm-up and carry about 0.06 ms of run-to-run spread per layer. Compare a
   lever against **its own run's control**
-  (`-Dbattle.render.zoomGates=false`, `-Dbattle.render.groundMesh=false`,
-  `-Dbattle.render.residentRelief=false`, `-Dbattle.render.fogField=false`,
-  `-Dbattle.render.groundAtlas=false`,
-  `-Dbattle.render.residentDecoration=false`, `-Dbattle.render.unitAtlas=false`,
-  `-Dbattle.render.doodadAtlas=false`,
-  `-Dbattle.render.residentRoofs=false`, `-Dbattle.render.creep=false`,
+  (`-Dbattle.render.doodadAtlas=false`, `-Dbattle.render.creep=false`,
   `-Dbattle.render.cliffLook=false` (with `-PrenderMaps=overlook`),
   `-Dbattle.render.settledBodyMesh=false`,
   `-Dbattle.render.collectCulling=false`,
@@ -894,6 +889,25 @@ comparison measures every other difference between the two trees at the same
 time, which is how a seven-thousand-tick swing in the Conquest matrix was once
 credited to a squad behaviour and turned out to be another session's
 reinforcement work arriving on a merge.
+
+**A switch added for an A/B is temporary** (owner, 2026-10-23). Switches pile
+up because nothing retires them: an audit that day found about 260 `-D` reads
+in `src/main`, most of them settled comparisons whose losing arm was still
+carried as dead code. So:
+
+- A new `-Dbattle.*` (or `-Dmarines.*`) switch is temporary unless you say
+  otherwise. Its property constant's Javadoc states its **removal condition**:
+  which comparison decides it and what reading settles it.
+- Every switch is listed in `switches.md` (`roadmap/switches.md`) with its kind,
+  date and removal condition. `SwitchRegistryTest` fails on a `battle.*` or
+  `marines.*` property read in `src/main` that the registry does not list, and
+  on a registry row whose switch no longer exists.
+- The session that added a switch removes it, together with the losing code
+  path and any tests of that arm, as soon as the comparison is decided. Do not
+  leave a hard-coded `true` behind.
+- A permanent lever (real configuration, a determinism or concurrency switch,
+  or a standing control that an evidence task or scene deliberately runs) needs
+  a stated reason in its registry row.
 
 A suite artifact is a PNG or, for a suite whose evidence is a played battle
 rather than a composition, an animated GIF built from a frame sequence. The

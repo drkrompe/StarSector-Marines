@@ -43,7 +43,7 @@ MATCH_M = 15.0          # a shot's fx entry this close to a ledger hit is the sh
 MAX_FIRES = 2           # persistent fire volumes per ship per shot (volumes are the render's cost)
 MAX_VENTS = 1           # persistent vents per ship per shot
 MAX_SMOKE = 2           # persistent smoke threads per ship per shot
-LOOK = 'v1'             # 'v1': the first look (small soot marks only), kept as the control
+LOOK = 'v2'             # 'v1': the first look (small soot marks only), kept as the control
 
 
 # ======================================================================================= levels
@@ -64,8 +64,8 @@ LEVELS = {
 }
 
 # v2 (coordinator, 2026-10-23: at 5-15% of frame width v1 "barely reads"): what reads at a distance is
-# contrast and size, not detail. Scorch patches several times larger, with a heat-tinted metal fringe
-# (bronze and blue, glossy) that catches the sun against the paint; holes larger and black, with a torn
+# contrast and size, not detail. Scorch patches several times larger, with a lighter fringe of burnt
+# paint and primer that catches the sun against the paint; holes larger and black, with a torn
 # bare-metal rim; and a thin dark smoke thread from every hit that holed her (smoke_s), so a beaten
 # ship trails smoke from where she was hurt. Fire and venting are as v1.
 LEVELS_V2 = {
@@ -436,8 +436,9 @@ def _scar_material(ctx, name, owner, seed, hole, glow_s, smoulder, gain):
 
 
 def _scar_material_v2(ctx, name, owner, seed, hole, glow_s, smoulder, gain):
-    """v2's scar, made to read at a distance. A black soot core ringed by a heat-tinted fringe of bare,
-    blued and bronzed metal (glossy, so it catches the sun against the paint), patchy and streaked. A
+    """v2's scar, made to read at a distance. A black soot core ringed by a lighter fringe of burnt
+    paint and primer (rust-brown and grey, diffuse, so it catches the sun against the paint), patchy and
+    streaked. A
     hole is a black core ringed by torn bare-metal petals. The embers along the torn edge are v1's.
     Timed by owner['imp_frame']."""
     from swfx_core import node_material, value_node
@@ -463,9 +464,11 @@ def _scar_material_v2(ctx, name, owner, seed, hole, glow_s, smoulder, gain):
     sootb = g.node('ShaderNodeBsdfDiffuse')
     sootb.inputs['Color'].default_value = (.01, .009, .008, 1)
     tintb = g.node('ShaderNodeBsdfPrincipled')
-    g._in(tintb.inputs['Base Color'], g.mix(blotch, (.32, .19, .09, 1), (.12, .14, .2, 1)))
-    tintb.inputs['Metallic'].default_value = 1.0
-    tintb.inputs['Roughness'].default_value = .38
+    # burnt paint and primer: diffuse and light, so it reads under the sun (a metallic fringe only
+    # mirrors the black sky)
+    g._in(tintb.inputs['Base Color'], g.mix(blotch, (.42, .27, .14, 1), (.3, .29, .27, 1)))
+    tintb.inputs['Metallic'].default_value = .15
+    tintb.inputs['Roughness'].default_value = .7
     surf = g.node('ShaderNodeMixShader')
     g._in(surf.inputs[0], g.m('DIVIDE', soot, g.m('MAXIMUM', g.m('ADD', soot, tint), .001)))
     links.new(tintb.outputs[0], surf.inputs[1])
@@ -477,9 +480,9 @@ def _scar_material_v2(ctx, name, owner, seed, hole, glow_s, smoulder, gain):
         rim = g.m('MULTIPLY', g.m('MULTIPLY', g.mr(rr, .14, .19), g.m('SUBTRACT', 1.0, g.mr(rr, .26, .34))),
                   g.mr(petal, .35, .5))
         metal = g.node('ShaderNodeBsdfPrincipled')
-        metal.inputs['Base Color'].default_value = (.62, .6, .58, 1)
-        metal.inputs['Metallic'].default_value = 1.0
-        metal.inputs['Roughness'].default_value = .3
+        metal.inputs['Base Color'].default_value = (.75, .73, .7, 1)
+        metal.inputs['Metallic'].default_value = .35
+        metal.inputs['Roughness'].default_value = .5
         torn = g.node('ShaderNodeMixShader')
         g._in(torn.inputs[0], rim)
         links.new(body, torn.inputs[1])

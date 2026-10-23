@@ -22,7 +22,6 @@ import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.awt.Color;
-import java.util.Arrays;
 
 /**
  * Emits the {@link RenderLayer#GROUND} layer — the tiled floor/wall terrain pass.
@@ -235,7 +234,7 @@ public final class GroundRenderSystem implements RenderSystem {
      */
     private void bindAtlas(RenderContext ctx) {
         atlasSheet = null;
-        if (atlas == null || !GroundAtlas.enabled()) return;
+        if (atlas == null) return;
         if (!atlas.isServing()) {
             // Planning belongs to whoever built the batch that draws the atlas
             // (BattleRenderer.buildTileBatches). A host that never did has no
@@ -314,17 +313,11 @@ public final class GroundRenderSystem implements RenderSystem {
         // per-sheet coordinates would draw from them for the rest of the battle
         // and the atlas would serve nothing. One extra warm-up frame per
         // battle, on top of the one the bake already costs.
-        boolean atlasReady = atlas == null || !GroundAtlas.enabled() || atlas.isServing();
-        boolean resident = mesh != null && ctx.hostProfile.residentGroundAllowed()
-                && GroundMesh.enabled() && atlasReady;
-        boolean residentDecoration = resident && GroundMesh.decorationEnabled();
+        boolean atlasReady = atlas == null || atlas.isServing();
+        boolean resident = mesh != null && ctx.hostProfile.residentGroundAllowed() && atlasReady;
 
-        // Every sub-layer this system knows how to draw, always. Which of them
-        // the mesh is asked to hold is a separate question, and the ones it is
-        // not asked to hold are drawn from this same array cell by cell —
-        // building a shorter array for the mesh and then reading the stream off
-        // it is how the control run for this lever silently drew no decoration
-        // at all while reporting a perfectly plausible command count.
+        // Every sub-layer this system knows how to draw. The mesh holds all of
+        // them; the streamed path below draws the same array cell by cell.
         BaseTerrain base = new BaseTerrain(grid, topology);
         GroundMesh.CellResolver[] sublayers = topology.roadSurface()==null
                 ? new GroundMesh.CellResolver[]{base,base::resolveEdge,new GroundDamage(topology),new Scatter(topology),new DoorDecals(grid,topology)}
@@ -357,9 +350,8 @@ public final class GroundRenderSystem implements RenderSystem {
             System.arraycopy(sublayers,existing,expanded,existing+TerrainSurface.LAYERS,DECORATION_LAYERS);sublayers=expanded;
         }
         int terrainLayers=sublayers.length-DECORATION_LAYERS;
-        int resident0 = residentDecoration ? sublayers.length : terrainLayers;
-        GroundMesh.CellResolver[] meshLayers = residentDecoration
-                ? sublayers : Arrays.copyOf(sublayers,terrainLayers);
+        int resident0 = sublayers.length;
+        GroundMesh.CellResolver[] meshLayers = sublayers;
 
         if (resident && mesh.isServing(topology)
                 && mesh.sublayerCount() == resident0) {
@@ -369,11 +361,7 @@ public final class GroundRenderSystem implements RenderSystem {
             emitResidentFills(view);
             out.addCustom(RenderLayer.GROUND, () -> mesh.draw(cam, alpha, 1, terrainLayers));
             emitCrosswalks(grid, topology, view);
-            if (residentDecoration) {
-                out.addCustom(RenderLayer.GROUND, () -> mesh.draw(cam, alpha, terrainLayers, resident0));
-            } else {
-                emitDecorations(sublayers, view);
-            }
+            out.addCustom(RenderLayer.GROUND, () -> mesh.draw(cam, alpha, terrainLayers, resident0));
             return;
         }
         if (resident) {
