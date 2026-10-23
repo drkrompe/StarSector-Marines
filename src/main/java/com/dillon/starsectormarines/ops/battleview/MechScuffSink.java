@@ -33,6 +33,30 @@ final class MechScuffSink implements LayeredMechComposer.Sink {
     private MechSection section;
     private int part;
 
+    /**
+     * Builds the masks of every part of {@code assets} that can carry marks, so no frame reads a part's pixels the
+     * first time it is drawn damaged: the chassis split into plates as the torso, the arms, pods and foot whole.
+     * Leg bones and muzzle flashes carry none. Called where the battle's sheets are registered.
+     */
+    static void prepare(BattleSprites sprites, LayeredMechAssets assets) {
+        if (assets == null) return;
+        for (LayeredSpriteCache torso : new LayeredSpriteCache[] {assets.chassis, assets.socketedChassis,
+                assets.houndChassis, assets.wardenChassis}) {
+            prepare(sprites, torso, true);
+        }
+        for (LayeredSpriteCache part : new LayeredSpriteCache[] {assets.foot, assets.chaingunArm,
+                assets.linearCannon, assets.heavyCannon, assets.srmPod, assets.lrmPod, assets.shoulderLaser,
+                assets.pulseLaserArm, assets.bastionAutocannon, assets.demolitionCannon, assets.thermalLance,
+                assets.musterAutogun, assets.quarryBreakerCannon, assets.pioneerRocketCradle}) {
+            prepare(sprites, part, false);
+        }
+    }
+
+    private static void prepare(BattleSprites sprites, LayeredSpriteCache part, boolean torso) {
+        if (part == null || part.pxWidth <= 0 || part.pxHeight <= 0) return;
+        VehicleScuffs.partMask(sprites, part.sourcePath, part.pxWidth, part.pxHeight, torso);
+    }
+
     MechScuffSink(BattleSprites sprites) {
         this.sprites = sprites;
     }
