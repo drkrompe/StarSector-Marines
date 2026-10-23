@@ -98,7 +98,8 @@ class GoapMechBehaviorPlayerOrderTest {
 
         boolean fired = false;
         for (MechWeaponMount mount : loadout.mounts()) {
-            if (mount != null && mount.cycleRemaining > 0f) fired = true;
+            // A rotary gun's trigger is a lease the fire pass spends; any other mount starts its cycle.
+            if (mount != null && (mount.cycleRemaining > 0f || mount.isRotary() && mount.rotary.leased())) fired = true;
         }
         assertTrue(fired, "the Hound fires on an enemy four cells from its post");
     }

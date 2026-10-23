@@ -103,11 +103,15 @@ public final class WeaponDef {
     private int incendiaryHeat;
     /** Detachable feed for a handheld primary, or {@code null} for a weapon that only cycles. */
     private MagazineDef magazine;
+    /** A mech rotary gun's spin and belt, or {@code null} for a weapon fired a trigger pull at a time. */
+    private RotaryFeedDef rotary;
 
     /** Incendiary heat a blast of this weapon carries, 0 for an ordinary one. */
     public int incendiaryHeat() { return incendiaryHeat; }
     /** The handheld primary's magazine, or {@code null} when the weapon cycles without one. */
     public MagazineDef magazine() { return magazine; }
+    /** The rotary feed of a held-trigger mech gun, or {@code null}. */
+    public RotaryFeedDef rotary() { return rotary; }
     /** Carrier-owned pre-fire commitment window for handheld specials. */
     public final float aimDuration;
     /** Maximum-range travel time retained for projectile presentation. */
@@ -396,6 +400,10 @@ public final class WeaponDef {
         def.magazine = MagazineDef.parse(sim.optJSONObject("magazine"), id);
         if (def.magazine != null && def.mount != MountClass.MARINE_PRIMARY) {
             throw new JSONException("Weapon '" + id + "' declares a magazine outside the marine-primary mount class");
+        }
+        def.rotary = RotaryFeedDef.parse(sim.optJSONObject("rotary"), id);
+        if (def.rotary != null && def.mount != MountClass.MECH_MOUNT) {
+            throw new JSONException("Weapon '" + id + "' declares a rotary feed outside the mech-mount class");
         }
         validateMountFields(def);
         return def;

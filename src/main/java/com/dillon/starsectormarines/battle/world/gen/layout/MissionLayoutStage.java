@@ -6,13 +6,16 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -85,9 +88,19 @@ public final class MissionLayoutStage implements GenStage {
                 for (int y = Math.max(0, site.y0()); y <= Math.min(ctx.height - 1, site.y1()); y++) held[x][y] = true;
             }
         }
+        // Ridges first, so the works resolved along them are dug on their crests.
+        Map<String, List<int[]>> ridges = new HashMap<>();
+        boolean closed = false;
+        if (phase == Phase.WORKS) {
+            for (Piece piece : pieces) {
+                if (!(piece instanceof Ridge ridge) || ridges.containsKey(ridge.name())) continue;
+                List<int[]> feet = OutdoorLandscapeStage.raiseRidges(ctx, List.of(ridge.band()), held);
+                ridges.put(ridge.name(), feet);
+                closed |= !feet.isEmpty();
+            }
+        }
         Set<String> names = new HashSet<>();
         for (Laid laid : out) names.add(laid.name());
-        boolean closed = false;
         for (Piece piece : pieces) {
             if (!names.add(piece.name())) {
                 out.add(Laid.refused(piece.name(), Laid.Kind.SITE, false, "named twice"));
@@ -103,6 +116,13 @@ public final class MissionLayoutStage implements GenStage {
             } else if (phase == Phase.STRUCTURES) {
                 out.add(Laid.refused(piece.name(), Laid.Kind.SITE, piece.required(),
                         "only structures are raised in the structures phase"));
+            } else if (piece instanceof Ridge ridge) {
+                List<int[]> feet = ridges.getOrDefault(ridge.name(), List.of());
+                // Reported by its ramps' feet, the ways up: a ridge's cells are the elevation map's.
+                out.add(feet.isEmpty()
+                        ? Laid.refused(ridge.name(), Laid.Kind.GROUND, ridge.required(), "no stretch of its band fits")
+                        : new Laid(ridge.name(), Laid.Kind.GROUND, Laid.Status.LAID, feet.size() + " segments",
+                                ridge.required(), List.of(), feet, List.of()));
             } else if (piece instanceof Line line) {
                 Laid laid = lay(ctx, ground, line, held);
                 out.add(laid);

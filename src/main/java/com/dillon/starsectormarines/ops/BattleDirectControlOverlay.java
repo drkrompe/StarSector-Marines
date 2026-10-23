@@ -79,6 +79,8 @@ final class BattleDirectControlOverlay {
     private UiViewport helpViewport;
     private Layout helpLayout;
     private Carrier helpCarrier = Carrier.NONE;
+    /** False for a vehicle with no working gun, whose help leaves the aim and fire rows off. */
+    private boolean helpArmed = true;
     private boolean helpPointerKnown;
     private float helpPointerX, helpPointerY;
     private boolean visible;
@@ -227,6 +229,7 @@ final class BattleDirectControlOverlay {
         if (active) {
             var status = BattleDirectControlStatus.snapshot(sim);
             helpCarrier = status.carrier();
+            helpArmed = status.carrier() != Carrier.VEHICLE || !status.weapons().isEmpty();
             actionModel.update(status, sim.directControl().selectedWeapon(), speedMultiplier == 0f);
             if (sectionPlate != null) updateDoll(sim, status);
         } else if (sectionPlate != null) {
@@ -348,10 +351,10 @@ final class BattleDirectControlOverlay {
         UiViewport strip = actionsViewport(position);
         float top = strip.screenY() + strip.height();
         Layout layout = BattleDirectControlHelp.layout(strip.screenX(), top, strip.documentScale(),
-                BattleDirectControlHelpPlate.rowCount(helpCarrier));
+                BattleDirectControlHelpPlate.rowCount(helpCarrier, helpArmed));
         helpLayout = layout;
         boolean expanded = helpHover.update(true, helpPointerKnown, helpPointerX, helpPointerY, layout);
-        helpPlate.update(expanded, helpCarrier);
+        helpPlate.update(expanded, helpCarrier, helpArmed);
         helpMarkup.flush();
         var bounds = expanded ? layout.union() : layout.tab();
         float scale = strip.documentScale();
