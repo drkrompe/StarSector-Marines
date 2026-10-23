@@ -169,7 +169,7 @@ rises 39–47, her last line ends at 45.4, the title from 46, black by 54.
 | `c5_ramp_drop` | The stern ramp: hydraulic whine, then the clunk as it meets the slab | 27.0–31.0, the clunk at 30.0 | Spot | −8 | Gen |
 | `c5_crowd_murmur` | The families as a far murmur, low-passed at 900 Hz: from 220 m up there are no footsteps (owner, 2026-10-19) | 29.9–46.4, from when they come out from under the stern, well under Castle | Bed | −24 | Gen |
 | `c5_port_wide` | The whole port opening up as the camera rises: distant cranes, a lifter climbing, trucks; no horns | 38.4–54.9, up from −17 to −5 at 47.4, then fading to silence by 53.9 under the title | Bed | −17 → −5 → out | Gen |
-| Music | **One march score, C1 to the black** (owner, 2026-10-23: open quiet and sombre, build to a heroic martial finish): `rescore_anthem_t01` from `make_music.py march`, sombre low strings under the hails, gathering snare and brass from the bridge, the marching theme from the open sky, full brass and drums on the descent, the peak at the title, resolved to silence before the black. Replaces the strings score and Ending A. Ducked under the voices; levels in `arrival-mix.json` | 0–137.1 on the arrival clock | Music | +5.6 (duck −8) | Gen |
+| Music | **One march score, C1 to the black** (owner, 2026-10-23: open quiet and sombre, build to a heroic martial finish): `rescore_horns_t01` from `make_music.py march` (owner pick, 2026-10-23), a French horn theme over low strings under the hails growing into a full brass march with snare on the descent, the peak at the title. Replaces the strings score and Ending A. Ducked under the voices; levels in `arrival-mix.json` | 0–137.1 on the arrival clock | Music | +5.1 (duck −8) | Gen |
 
 ## What is still open
 
