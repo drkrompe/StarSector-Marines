@@ -412,11 +412,6 @@ public final class BoatDeckScreen implements Screen {
     }
 
     @Override
-    public boolean drawsCompanyDeck() {
-        return true;
-    }
-
-    @Override
     public void detach() {
         // The deck outlives the page, on both senses of the word: the ship is
         // run by the panel, and the company's boats are campaign state that a

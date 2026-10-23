@@ -560,6 +560,25 @@ public class BattleRenderer {
         }
     }
 
+    /** {@link BattleSprites#terrainSheetCount()} when the terrain batches were last brought up to date. */
+    private int terrainBatchesFor = -1;
+
+    /**
+     * A batch for every catalog sheet loaded since attach — one a host loads on first ask
+     * ({@link BattleSprites#extraTerrainSheet}) — so its quads draw rather than drop in the drain.
+     */
+    private void registerLateTerrainBatches() {
+        int count = sprites.terrainSheetCount();
+        if (count == terrainBatchesFor) return;
+        terrainBatchesFor = count;
+        for (SpriteAPI sheet : sprites.extraTerrainSheets()) {
+            if (batchBySheet.containsKey(sheet)) continue;
+            registerBatch(sheet, new QuadBatch(sheet,
+                    Math.max(1, Math.round(sheet.getWidth())),
+                    Math.max(1, Math.round(sheet.getHeight())), 4096));
+        }
+    }
+
     private void registerBatch(SpriteAPI sheet, QuadBatch batch) {
         if (sheet != null && batch != null) batchBySheet.put(sheet, batch);
     }
@@ -1238,6 +1257,7 @@ public class BattleRenderer {
      */
     void renderWorld(RenderContext rc, EnumSet<RenderLayer> layers, FrameCensus census, DrawList leading) {
         collectWorld(rc, layers, census);
+        registerLateTerrainBatches();
         boolean parallax = (rc.hostProfile.surfaceReliefEnabled() || GroundParallaxPipeline.deckWaterVisible(rc))
                 && DevConfig.SURFACE_RELIEF_PARALLAX
                 && layers.contains(RenderLayer.GROUND);

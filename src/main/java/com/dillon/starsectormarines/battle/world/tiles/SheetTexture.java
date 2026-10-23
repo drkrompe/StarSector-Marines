@@ -99,6 +99,18 @@ public final class SheetTexture {
                 LOG.warn("SheetTexture: getSprite returned null for " + path);
                 return;
             }
+            if (!sliced) {
+                int[] size = ModTextures.readSize(path);
+                if (size == null) {
+                    LOG.warn("SheetTexture: ImageIO could not read the size of " + path);
+                    sprite = null;
+                    return;
+                }
+                pxW = size[0];
+                pxH = size[1];
+                LOG.debug("SheetTexture: loaded " + path + " (" + pxW + "x" + pxH + ")");
+                return;
+            }
             {
                 BufferedImage img = ModTextures.readImage(path);
                 if (img == null) {
