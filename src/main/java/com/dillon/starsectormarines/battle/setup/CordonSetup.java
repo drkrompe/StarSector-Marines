@@ -15,7 +15,9 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.cordon.CordonCommand;
 import com.dillon.starsectormarines.battle.cordon.CordonRefugees;
+import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
 import com.dillon.starsectormarines.battle.cordon.CordonCorridor;
+import com.dillon.starsectormarines.battle.cordon.CordonGround;
 import com.dillon.starsectormarines.battle.cordon.CordonGarrisons;
 import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
@@ -23,6 +25,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonFront;
 import com.dillon.starsectormarines.battle.cordon.CordonPlan;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
+import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
@@ -173,7 +176,7 @@ public final class CordonSetup {
             VehicleType.HEAVY_APC, VehicleType.MILITIA_TECHNICAL);
     private static final long BASE_SALT = 0x4C4F474953544943L;
     /** The base's shed is a production line, not a garrison's sideline (`FabricationService.setPace`). */
-    static final float BASE_PACE = 4f;
+    static final float BASE_PACE = Float.parseFloat(System.getProperty("battle.cordon.basePace", "4"));
     /** Technicians posted to the base's shed. */
     static final int BASE_CREW = 3;
     /** Teams in each allied column. */
@@ -199,7 +202,7 @@ public final class CordonSetup {
                                           TargetProfile profile, CordonSequence.Timetable timetable) {
         MapResult map = cordon.map();
         Random rng = new Random(cordon.battleSeed());
-        List<Doodad> vehicles = BattleSetup.stampVehicles(map, rng);
+        List<Doodad> vehicles = BattleSetup.stampVehicles(map, rng, corridorClear(map, cordon.corridor()));
         int shuttles = manifest == null || manifest.isEmpty() ? 4 : manifest.size();
         List<LandingPad> pads = LandingPadSelector.select(map, shuttles, BattleSetup.LZ_MIN_SEPARATION);
         BattleSimulation sim = BattleSetup.buildMap(map, vehicles, Collections.emptyList(),
@@ -233,6 +236,9 @@ public final class CordonSetup {
             armour.deploy(sim, ARMOUR.get(i), WIDTH * (i + 1) / (ARMOUR.size() + 1), reserveY);
         }
         sequence.attachArmour(armour);
+        if (variant == CordonVariant.ROAD && cordon.corridor() != null) {
+            sequence.attachConvoys(convoys(sim, cordon, timetable));
+        }
         CordonLogistics logistics = logisticsBase(sim, cordon, armour, redoubts);
         if (logistics != null) sequence.attachLogistics(logistics);
         sim.setAutonomousCommander(Faction.MARINE, new CordonCommand(WIDTH / 2, reserveY),
@@ -286,6 +292,63 @@ public final class CordonSetup {
         }
         return open;
     }
+
+    /**
+     * The corridor and the ground either side of it, kept clear of parked vehicles: nothing is parked
+     * on the relief road ({@code cordon-nouns.md}, Corridor). {@code null} where there is no corridor.
+     */
+    static boolean[][] corridorClear(MapResult map, List<int[]> corridor) {
+        if (corridor == null) return null;
+        int w = map.grid.getWidth(), h = map.grid.getHeight();
+        boolean[][] clear = new boolean[w][h];
+        for (int[] cell : corridor) {
+            for (int dx = -CORRIDOR_MARGIN; dx <= CORRIDOR_MARGIN; dx++) {
+                for (int dy = -CORRIDOR_MARGIN; dy <= CORRIDOR_MARGIN; dy++) {
+                    int x = cell[0] + dx, y = cell[1] + dy;
+                    if (x >= 0 && y >= 0 && x < w && y < h) clear[x][y] = true;
+                }
+            }
+        }
+        return clear;
+    }
+
+    /** Cells either side of the corridor kept clear with it: a truck is three wide and a parked car two. */
+    private static final int CORRIDOR_MARGIN = 3;
+
+    /**
+     * The Road's relief convoys on the corridor, and the cut-off town's people and militia in its
+     * compound at the corridor's far end ({@code cordon-nouns.md}, Convoy, Cut-off town).
+     */
+    static CordonConvoys convoys(BattleSimulation sim, CordonMap cordon,
+                                 CordonSequence.Timetable timetable) {
+        List<int[]> corridor = cordon.corridor();
+        float line = CordonFront.lineY(cordon.plan());
+        int frontward = CordonFront.frontward(cordon.plan());
+        int gapIndex = corridor.size() - 1;
+        for (int i = 0; i < corridor.size(); i++) {
+            if ((corridor.get(i)[1] - line) * frontward >= 0) {
+                gapIndex = i;
+                break;
+            }
+        }
+        List<Integer> departTicks = new ArrayList<>();
+        for (int seconds : timetable.convoySeconds()) departTicks.add(Math.round(seconds / BattleSimulation.TICK_DT));
+        int[] gate = corridor.get(corridor.size() - 1);
+        Random rng = new Random(cordon.battleSeed() ^ TOWN_SALT);
+        for (int team = 0; team < TOWN_TEAMS; team++) {
+            List<int[]> cells = CordonGround.clusterNear(sim, gate[0], gate[1] + frontward * (TOWN_DEPTH + team * 3), TOWN_TEAM_SIZE);
+            if (!cells.isEmpty()) ColonyMilitia.seatTeam(sim, cells, "Town militia " + (team + 1), GARRISON_RISK, rng);
+        }
+        return new CordonConvoys(corridor, gapIndex, departTicks,
+                timetable.convoySeconds().size() * CordonConvoys.TRUCKS * CordonConvoys.SEATS);
+    }
+
+    /** The town militia still holding the compound when the convoys come. */
+    private static final int TOWN_TEAMS = 2;
+    private static final int TOWN_TEAM_SIZE = 6;
+    /** Cells into the compound past the gate the town's militia stand. */
+    private static final int TOWN_DEPTH = 6;
+    private static final long TOWN_SALT = 0x544F574E4D494CL;
 
     /**
      * On the Road, the two redoubts either side of where the corridor crosses

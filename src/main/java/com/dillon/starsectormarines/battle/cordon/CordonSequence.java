@@ -40,23 +40,29 @@ public final class CordonSequence implements Objective {
      */
     public record Timetable(List<Integer> tideSeconds, int tideLengthSeconds, float ordinaryPressure,
                             float tidePressure, List<Integer> eruptionSeconds, List<Integer> refugeeSeconds,
-                            List<Integer> columnSeconds, int windowSeconds, int allowedFallen) {
+                            List<Integer> columnSeconds, int windowSeconds, int allowedFallen,
+                            List<Integer> convoySeconds, int convoysNeeded) {
         /**
          * The briefing's ordinary timetable: three tides of a minute in a
          * fifteen-minute window, the swarm at a third of its strength between
          * them and two thirds in one, a new bore erupting between each pair of
          * tides, six refugee groups two minutes apart, a column up from the
          * rear two minutes before each tide (a column takes about that to march
-         * up), one redoubt may fall.
+         * up), one redoubt may fall. On the Road three convoys come on four minutes apart, the
+         * last with time to be out before the window closes, and two of them must come back out.
          */
         public static final Timetable STANDARD = new Timetable(List.of(240, 480, 720), 60, 0.2f, 0.66f,
-                List.of(360, 600), List.of(30, 150, 270, 390, 510, 630), List.of(120, 360, 600), 900, 1);
+                List.of(360, 600), List.of(30, 150, 270, 390, 510, 630), List.of(120, 360, 600), 900, 1,
+                List.of(60, 300, 540), 2);
 
         public Timetable {
             tideSeconds = List.copyOf(tideSeconds);
             eruptionSeconds = List.copyOf(eruptionSeconds);
             refugeeSeconds = List.copyOf(refugeeSeconds);
             columnSeconds = List.copyOf(columnSeconds);
+            convoySeconds = List.copyOf(convoySeconds);
+            if (convoysNeeded > convoySeconds.size())
+                throw new IllegalArgumentException("more convoys needed than come: " + convoysNeeded);
             if (windowSeconds <= 0 || allowedFallen < 0 || tideLengthSeconds <= 0)
                 throw new IllegalArgumentException("a Cordon needs a window");
             if (!(ordinaryPressure > 0f && ordinaryPressure <= tidePressure && tidePressure <= 1f))
@@ -83,6 +89,7 @@ public final class CordonSequence implements Objective {
     private AlliedColumns columns;
     private CordonArmour armour;
     private CordonLogistics logistics;
+    private CordonConvoys convoys;
     /** The tick the running tide ebbs on, or -1 between tides. */
     private int ebb = -1;
     private boolean landed, contact;
@@ -119,6 +126,14 @@ public final class CordonSequence implements Objective {
     /** Gives the line its allied armour; at setup, before the first tick. */
     public void attachArmour(CordonArmour armour) {
         this.armour = armour;
+    }
+
+    /** The Road's relief convoys, or {@code null}. */
+    public CordonConvoys convoys() { return convoys; }
+
+    /** Gives the Road its relief convoys; at setup, before the first tick. */
+    public void attachConvoys(CordonConvoys convoys) {
+        this.convoys = convoys;
     }
 
     /** Gives the line its logistics base: columns then march to it and are carried forward from it. */
@@ -195,6 +210,7 @@ public final class CordonSequence implements Objective {
         if (refugees != null) refugees.advance(sim, tick, beat -> emit(tick, beat));
         if (armour != null) armour.advance(sim, redoubts);
         if (logistics != null) logistics.advance(sim, redoubts, beat -> emit(tick, beat));
+        if (convoys != null) convoys.advance(sim, tick, beat -> emit(tick, beat));
         AlliedColumns.Orders orders = logistics != null ? logistics.columnOrders() : new ColumnOrders();
         if (columns != null) columns.advance(sim, tick, orders, (beat, observer) ->
                 log.emitOnce(tick, "cordon." + beat, observer ? StoryBeatLog.Audience.OBSERVER_ONLY
@@ -209,6 +225,13 @@ public final class CordonSequence implements Objective {
         } else if (variant == CordonVariant.ROAD && gapClosed()) {
             outcome = Outcome.BROKEN;
             emit(tick, "gap_closed");
+        } else if (convoys != null && convoys.convoys() - convoys.lost() < timetable.convoysNeeded()) {
+            outcome = Outcome.BROKEN;
+            emit(tick, "convoys_lost");
+        } else if (convoys != null && tick >= ticks(timetable.windowSeconds())
+                && convoys.out() < timetable.convoysNeeded()) {
+            outcome = Outcome.BROKEN;
+            emit(tick, "convoys_short");
         } else if (tick >= ticks(timetable.windowSeconds())) {
             outcome = Outcome.HELD;
             if (refugees != null) emit(tick, "evacuation_complete");

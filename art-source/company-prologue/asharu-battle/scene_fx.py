@@ -198,8 +198,10 @@ class SceneFx:
         if target is not None and hit_l is not None and landed:
             he = any(self.weapon(a, int(f.split()[0][1:])) in HE for f in fired)
             if self.span:        # in motion: the strikes this frame can see (each placed by its own frame)
-                lo = (self.cur if self.cur is not None else end) - round(1.5 * self.fps)
-                landed = [f for f in landed if f >= lo]
+                if self.cur is not None:
+                    landed = [f for f in landed if f >= self.cur - round(1.5 * self.fps)]
+                else:            # built once for the whole shot (--kit-once): every other strike in it
+                    landed = [f for f in landed if f >= self.span[0] - round(1.5 * self.fps)][::2]
             self.strikes(b, landed if self.span else landed[-8:], hit_l, normal, 'he' if he else 'kinetic')
         self.rows.append(f'tracer {a} -> {b}: {", ".join(fired)}, {len(landed)} landed')
         return True

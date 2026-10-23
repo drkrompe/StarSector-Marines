@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.cordon;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -9,7 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 /** Ground the Cordon sets people down on mid-battle. */
-final class CordonGround {
+public final class CordonGround {
 
     /** Cells searched outward before giving up on a cluster. */
     private static final int SEARCH = 4_000;
@@ -21,6 +22,12 @@ final class CordonGround {
      * distance, the seed's own region first: where a group stands up together.
      * Starts from the nearest walkable cell when the seed itself is not.
      */
+    /** {@link #cluster} round the open cell nearest a point, for setup outside this package. */
+    public static List<int[]> clusterNear(BattleSimulation sim, int x, int y, int count) {
+        int[] at = nearestWalkable(sim.getGrid(), x, y);
+        return at == null ? List.of() : cluster(sim.getGrid(), sim.getOccupancyMap(), at[0], at[1], count);
+    }
+
     static List<int[]> cluster(NavigationGrid grid, byte[] occupancy, int x, int y, int count) {
         List<int[]> out = new ArrayList<>();
         int[] start = nearestWalkable(grid, x, y);

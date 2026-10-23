@@ -1182,7 +1182,7 @@ def add_span(arg):
         t = t0 + n / fps
         cam = dict(path(t))
         cam['at'] = path
-        spec = dict(base, camera=cam, t=t, title='%s at %.2f s' % (base['title'], t), key_t=key_t, span_t=t,
+        spec = dict(base, camera=cam, t=t, title='%s at %.2f s' % (base['title'], t), key_t=key_t, span_t=t, span_of=kf,
                     shot_t=(path.keys[0]['t'], path.keys[-1]['t']),
                     ships={k: at_time(p, t) if hasattr(p, 'at') else p for k, p in base['ships'].items()})
         key = '%s_f%05d' % (kf, int(round(t * fps)))
@@ -2673,12 +2673,19 @@ def blender_main(cfg):
     labels = {}
     anchor = scene.frame_current      # every frame's effects are built at this frame (the key frame's instant)
     fps_s = scene.render.fps / scene.render.fps_base
+    built_for, kit_drew = [None], set()
     for kf in cfg['frames']:
+        # --kit-once: a motion span's frames share one kit build. The first frame of a run builds every
+        # ship's copy with the whole shot's effects keyed (scene_fx fires through the shot); the rest only
+        # re-place the hulls, redraw the world-space stand-ins and step the scene frame.
+        span_of = SHOTS[kf].get('span_of') if kf in SHOTS and cfg.get('kit_once') else None
+        step = span_of is not None and span_of == built_for[0]
         scene.frame_set(anchor)
         clear_stage()
-        for s in ships_fx.values():      # every ship's copy is rebuilt per key frame: one frame's kit effects
-            s.remove()                   # (rounds, impacts, shields) never show on another
-        ships_fx.clear()
+        if not step:
+            for s in ships_fx.values():      # every ship's copy is rebuilt per key frame: one frame's kit effects
+                s.remove()                   # (rounds, impacts, shields) never show on another
+            ships_fx.clear()
         air.hide_render = False
         ground.hide_render = False
         sun.data.energy = 4.6
@@ -2691,38 +2698,39 @@ def blender_main(cfg):
             span_now['dt'] = spec['span_t'] - spec['key_t'] if 'span_t' in spec else 0.0
             for key, sp in spec['ships'].items():
                 place(key, sp, spec.get('states', {}).get(key))
-            for lib in library.values():     # a build's control knobs: this frame's pose, else its saved pose
-                if lib.get('ctl') is not None:
-                    for name, rest in lib['knobs'].items():
-                        lib['ctl'][name] = rest
-            for s in ships_fx.values():      # every ship's own copy: saved pose, no flashes
-                s.reset()
-            for key, pl in placed.items():   # the kit's drives follow the placement's throttle
-                if pl['fx'] is not None and pl['fx'].fx is not None and not pl['lib']['swfx']:
-                    pl['fx'].set('thr_throttle', pl['throttle'])
-                if pl['fx'] is not None and pl['fx'].fx is not None:
-                    pl['fx'].vacuum()        # Asharu is fought in orbit: no hanging haze, no landing dust
-            for key, kn in spec.get('knobs', {}).items():
-                for name, val in kn.items():
-                    if isinstance(val, dict):     # {'ago_s': t}: a frame t seconds before this one
-                        val = scene.frame_current - round(val['ago_s'] * scene.render.fps / scene.render.fps_base)
-                    if placed[key]['fx'] is not None:
-                        placed[key]['fx'].set(name, val)
-                    else:
-                        placed[key]['lib']['ctl'][name] = val
-            for key, cue in spec.get('cues', {}).items() if cfg.get('swfx') else ():
-                apply_cue(key, placed[key]['fx'], cue)
-            if ships_fx or any(lib.get('ctl') is not None for lib in library.values()):
-                ship_fx.refresh(scene)     # drivers read the knobs
-                bpy.context.view_layer.update()
-            if cfg.get('swfx'):            # no orb explosions: a built cook-off becomes bursts at its break_frame
-                for key, pl in placed.items():
-                    if pl['fx'] is not None and pl['fx'].groups.get('SWFX | Fire') is not None:
-                        import swfx_fire
-                        with pl['fx'].kit() as (ctx, _kit):
-                            print(f'ASHARU cook-off bursts {key}', swfx_fire.jagged_cookoff(ctx), flush=True)
-                ship_fx.refresh(scene)
-                bpy.context.view_layer.update()
+            if not step:                     # the kit's build: once per run under --kit-once
+                for lib in library.values():     # a build's control knobs: this frame's pose, else its saved pose
+                    if lib.get('ctl') is not None:
+                        for name, rest in lib['knobs'].items():
+                            lib['ctl'][name] = rest
+                for s in ships_fx.values():      # every ship's own copy: saved pose, no flashes
+                    s.reset()
+                for key, pl in placed.items():   # the kit's drives follow the placement's throttle
+                    if pl['fx'] is not None and pl['fx'].fx is not None and not pl['lib']['swfx']:
+                        pl['fx'].set('thr_throttle', pl['throttle'])
+                    if pl['fx'] is not None and pl['fx'].fx is not None:
+                        pl['fx'].vacuum()        # Asharu is fought in orbit: no hanging haze, no landing dust
+                for key, kn in spec.get('knobs', {}).items():
+                    for name, val in kn.items():
+                        if isinstance(val, dict):     # {'ago_s': t}: a frame t seconds before this one
+                            val = scene.frame_current - round(val['ago_s'] * scene.render.fps / scene.render.fps_base)
+                        if placed[key]['fx'] is not None:
+                            placed[key]['fx'].set(name, val)
+                        else:
+                            placed[key]['lib']['ctl'][name] = val
+                for key, cue in spec.get('cues', {}).items() if cfg.get('swfx') else ():
+                    apply_cue(key, placed[key]['fx'], cue)
+                if ships_fx or any(lib.get('ctl') is not None for lib in library.values()):
+                    ship_fx.refresh(scene)     # drivers read the knobs
+                    bpy.context.view_layer.update()
+                if cfg.get('swfx'):            # no orb explosions: a built cook-off becomes bursts at its break_frame
+                    for key, pl in placed.items():
+                        if pl['fx'] is not None and pl['fx'].groups.get('SWFX | Fire') is not None:
+                            import swfx_fire
+                            with pl['fx'].kit() as (ctx, _kit):
+                                print(f'ASHARU cook-off bursts {key}', swfx_fire.jagged_cookoff(ctx), flush=True)
+                    ship_fx.refresh(scene)
+                    bpy.context.view_layer.update()
             extra3d = {}
             if spec.get('platform'):
                 platform(spec['platform'], spec.get('platform_t', K1B_T))
@@ -2731,15 +2739,16 @@ def blender_main(cfg):
             CLEAR_GUNS.clear()
             line_of_sight(kf, spec, muzzles, cfg.get('los'))     # picks, per shot, a bearing gun with a clear line
             seat_check(kf, spec)
-            kit_drew = set()
-            if cfg.get('swfx'):          # the finished kit draws what it can (scene_fx); the stand-ins draw the rest
+            if not step:
+                kit_drew = set()
+            if cfg.get('swfx') and not step:     # the finished kit draws what it can (scene_fx); the stand-ins the rest
                 import scene_fx
                 sfx_ = scene_fx.SceneFx(scene, placed, lambda k: placed[k]['build'],
                                         muzzle_world, scene.frame_current, log=lambda t: print(t, flush=True),
                                         span=tuple(anchor + round((t_ - spec['key_t']) * fps_s)
                                                    for t_ in spec['shot_t']) if 'span_t' in spec else None,
                                         cur=anchor + round((spec['span_t'] - spec['key_t']) * fps_s)
-                                        if 'span_t' in spec else None)
+                                        if 'span_t' in spec and not cfg.get('kit_once') else None)
                 for key, sh in spec.get('shields', {}).items():
                     sfx_.shield(key, sh)
                 for i, fx in enumerate(spec.get('fx', ())):
@@ -2769,6 +2778,10 @@ def blender_main(cfg):
                     print(f'ASHARU kit {kf} {row}', flush=True)
                 ship_fx.refresh(scene)
                 bpy.context.view_layer.update()
+            if not step:
+                built_for[0] = span_of
+            else:
+                print(f'ASHARU kit {kf}: stepped (the {span_of} kit, built on the first frame of the run)', flush=True)
             if cfg.get('fx_check'):
                 fx_report(kf)
                 FX_AUDIT.append(fx_audit(list(ships_fx.values()), [lib.get('fx') for lib in library.values()]))
@@ -3648,6 +3661,7 @@ def main():
                        layers=layers, plates=plates, volume_step_rate=opt('--volume-step-rate'),
                        volume_max_steps=opt('--volume-max-steps'), percent=opt('--percent'),
                        volume_biased='--volume-biased' in argv,
+                       kit_once='--kit-once' in argv,
                        hide_volumes=opt('--hide-volumes'), blockout_wrecks='--blockout-wrecks' in argv)
             env = dict(os.environ, ASHARU_CFG=json.dumps(cfg))
             subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python', __file__], env=env)
