@@ -21,6 +21,7 @@ public final class CordonRedoubt {
     private final List<Long> guns;
     private int garrison;
     private State state = State.HOLDING;
+    private boolean pressed;
 
     public CordonRedoubt(int number, int left, int top, int right, int bottom,
                          List<Integer> teams, List<Long> guns, int garrison) {
@@ -53,6 +54,19 @@ public final class CordonRedoubt {
     public State state() { return state; }
 
     void setState(State state) { this.state = state; }
+
+    /**
+     * Whether the swarm is inside its wall, whatever its state: a relieved redoubt still pressed
+     * so wants its relief to stay.
+     */
+    public boolean pressed() { return pressed; }
+
+    void setPressed(boolean pressed) { this.pressed = pressed; }
+
+    /** Whether the company should come or stay: it is calling, or relieved and still pressed. */
+    public boolean wantsHelp() {
+        return state == State.CALLING || state == State.RELIEVED && pressed;
+    }
 
     /** An allied column joins the garrison: its squad is a wall team from here on. */
     void reinforce(int squad, int members) {
