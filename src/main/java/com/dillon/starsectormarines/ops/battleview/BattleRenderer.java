@@ -428,7 +428,7 @@ public class BattleRenderer {
         sprites.ensureSmokeSprites();
         registerSmokeFieldBatch();
         sprites.ensureSatchelSprite();
-        impactFx.ensureSprites();
+        impactFx.ensureSprites(sprites.lease());
     }
 
     /** Builds the six per-sheet tile batches from the loaded sheets. Called from {@code BattleScreen.attach()}. */

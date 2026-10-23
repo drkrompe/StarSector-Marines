@@ -1,0 +1,119 @@
+package com.dillon.starsectormarines.ops.battleview;
+
+import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.power.CommandPower;
+import com.dillon.starsectormarines.battle.power.MechSupport;
+import com.dillon.starsectormarines.battle.power.VehicleSupport;
+import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
+import com.dillon.starsectormarines.ops.RiskLevel;
+
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Set;
+
+/**
+ * What one battle draws, of the art that only some battles use ({@code battle-textures.md}):
+ * the infantry armour families its bodies wear, whether the Rav Bloom's rigs are on the field,
+ * which sides field mechs, and its vehicle lines.
+ *
+ * <p>Read from the simulation as it stands before the first tick, plus what its mission has
+ * declared it can bring later: the ground roster's reinforcement kit, a swarm's strains, a mech
+ * drop allowance, the command powers' payloads. What none of those declare is not in the set,
+ * and is loaded the first time it is drawn — a hitch rather than a blank, and in the dev build a
+ * log line saying the set missed it.
+ *
+ * <p>GL-free and pure, so it can be asked of a battle no screen is showing.
+ */
+public record BattleTextureSet(Set<LayeredArmorFamily> families, boolean ravRigs,
+                               Set<Faction> mechSides, Set<VehicleType> vehicles) {
+
+    public BattleTextureSet {
+        families = Collections.unmodifiableSet(families.isEmpty()
+                ? EnumSet.noneOf(LayeredArmorFamily.class) : EnumSet.copyOf(families));
+        mechSides = Collections.unmodifiableSet(mechSides.isEmpty()
+                ? EnumSet.noneOf(Faction.class) : EnumSet.copyOf(mechSides));
+        vehicles = Collections.unmodifiableSet(vehicles.isEmpty()
+                ? EnumSet.noneOf(VehicleType.class) : EnumSet.copyOf(vehicles));
+    }
+
+    /** The swarm's bodies: spawned by bores during the battle, so known only by the strains. */
+    private static final Set<LayeredArmorFamily> SWARM_FAMILIES = EnumSet.of(
+            LayeredArmorFamily.XENO, LayeredArmorFamily.XENO_BRUTE, LayeredArmorFamily.XENO_SPITTER);
+
+    public static BattleTextureSet of(BattleSimulation sim) {
+        Set<LayeredArmorFamily> families = EnumSet.noneOf(LayeredArmorFamily.class);
+        Set<Faction> mechSides = EnumSet.noneOf(Faction.class);
+        Set<VehicleType> vehicles = EnumSet.noneOf(VehicleType.class);
+        boolean rav = false;
+
+        // Every layered body on the field, riders aboard vehicles included: they draw once they deboard.
+        BattleComponents c = sim.getBattleComponents();
+        for (ArchetypeTable table : sim.getEntityWorld().matched(c.layeredSprites)) {
+            int[] body = table.ints(c.LAYERED_ANIMATION, BattleComponents.LAYERED_BODY_FAMILY).array();
+            int[] head = table.ints(c.LAYERED_ANIMATION, BattleComponents.LAYERED_HEAD_FAMILY).array();
+            for (int r = 0; r < table.rowCount(); r++) {
+                addFamily(families, body[r]);
+                addFamily(families, head[r]);
+            }
+        }
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long id = sim.liveUnitAt(i);
+            UnitType type = sim.identity().type(id);
+            if (type == null) continue;
+            if (type.drawnAsMechLayers()) mechSides.add(sim.identity().faction(id));
+            if (type == UnitType.SWARM_RUNNER || type == UnitType.SWARM_BRUTE
+                    || type == UnitType.SWARM_MATRIARCH) {
+                rav = true;
+            }
+        }
+        for (long id : sim.getConvoyVehicleIds()) {
+            VehicleType type = sim.convoy().vehicleType(id);
+            if (type != null) vehicles.add(type);
+        }
+
+        // What can arrive later. Reinforcements wear the ground roster's issue, at whatever risk.
+        GroundRosterProfile roster = sim.getGroundRoster();
+        if (roster != null) {
+            for (GroundRosterProfile.ForceTier tier : GroundRosterProfile.ForceTier.values()) {
+                for (RiskLevel risk : RiskLevel.values()) {
+                    for (MarineArmorCatalogDef armor : roster.issue(tier).armorPatterns(risk)) {
+                        if (armor.appearanceFamily() != null) families.add(armor.appearanceFamily());
+                    }
+                }
+            }
+        }
+        if (sim.getReinforcementService() != null && sim.getReinforcementService().dispatchesConvoys()) {
+            vehicles.add(VehicleType.HEAVY_APC);
+        }
+        if (sim.isSwarmReinforcementConfigured() || !sim.swarmBores().bores().isEmpty()) {
+            families.addAll(SWARM_FAMILIES);
+            rav = true;
+        }
+        for (Faction side : Faction.values()) {
+            if (sim.mechDrops().lancesRemaining(side) > 0) mechSides.add(side);
+        }
+        for (CommandPower power : sim.getCommandPowerService().getAvailablePowers()) {
+            if (power instanceof MechSupport support) {
+                if (!support.deployments().isEmpty()) mechSides.add(Faction.MARINE);
+                for (VehicleDeploymentSpec spec : support.vehicles()) vehicles.add(spec.type());
+            } else if (power instanceof VehicleSupport support) {
+                for (VehicleDeploymentSpec spec : support.deployments()) vehicles.add(spec.type());
+            }
+        }
+        return new BattleTextureSet(families, rav, mechSides, vehicles);
+    }
+
+    private static void addFamily(Set<LayeredArmorFamily> families, int ordinal) {
+        if (ordinal < 0) return;
+        LayeredArmorFamily family = LayeredArmorFamily.fromOrdinal(ordinal);
+        if (family != null) families.add(family);
+    }
+}
