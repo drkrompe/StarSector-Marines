@@ -72,6 +72,16 @@ public class HeavyWeapons {
 
     /** The battle's seeded stream — see {@code BattleSimulation.random()}. */
     private final Random rng;
+    private boolean laneDiscipline;
+
+    /**
+     * Whether a chassis's own fire control holds a round with a friend in its lane or a burst that would reach a
+     * friend or the chassis itself ({@link BallisticResolver#friendInLane}, {@link BallisticResolver#friendInBlast}).
+     * A pilot's own point fire is never held.
+     */
+    public void setLaneDiscipline(boolean laneDiscipline) {
+        this.laneDiscipline = laneDiscipline;
+    }
 
     public HeavyWeapons(UnitRosterService roster, NavigationGrid grid,
                         BallisticResolver resolver,
@@ -324,10 +334,16 @@ public class HeavyWeapons {
                 world.x(target), world.y(target));
         float effectiveSpread = RangeFalloff.spread(
                 weapon.hitSpread, distToTarget, weapon.range);
+        // Fire control looks down the lane first: a friend between the barrel and the target holds the round.
+        if (laneDiscipline && resolver.friendInLane(shooter, fromX, fromY, shooterFaction,
+                world.x(target), world.y(target), target)) return;
         BallisticResolver.Source source = new BallisticResolver.Source(shooter, fromX, fromY, 0f, shooterFaction);
         BallisticResolver.Resolution res = resolver.resolve(source, target,
                 effectiveAccuracy, effectiveSpread, weapon.roundVelocity,
                 weapon.range, weapon.bodyPenetrations, rng);
+        // And on where the round will burst: one that would reach a friend, or the chassis itself, is not fired.
+        if (laneDiscipline && weapon.aoeRadius > 0f && res.impacts()
+                && resolver.friendInBlast(shooter, shooterFaction, res.endX(), res.endY(), weapon.aoeRadius)) return;
         deliverDirectRound(shooter, weapon, res, fromX, fromY);
     }
 
@@ -462,6 +478,8 @@ public class HeavyWeapons {
         ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(
                 world.renderX(target), world.renderY(target),
                 hit, effectiveSpread, rng);
+        if (laneDiscipline && weapon.aoeRadius > 0f
+                && resolver.friendInBlast(shooter, shooterFaction, ep.x(), ep.y(), weapon.aoeRadius)) return;
         launchArc(shooter, weapon, ep, hit, fromX, fromY, shooterFaction, moraleImpact,
                 hit && weapon.contactDamage > 0f ? target : 0L);
     }
