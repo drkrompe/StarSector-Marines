@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
+import com.dillon.starsectormarines.battle.mech.RotaryFeed;
 import com.dillon.starsectormarines.battle.mech.MechGaitState;
 import com.dillon.starsectormarines.battle.mech.MechHardpointGeometry;
 import com.dillon.starsectormarines.battle.mech.MechSections;
@@ -111,10 +112,12 @@ public class HeavyWeapons {
      * The left button fires what its pick names in the primary group (LINKED, or one mount) and the
      * right button what its pick names in the secondary group; see {@link MechFireGroups}. A mount
      * neither pick names holds fire. Each mount still obeys its own cycle, burst, ammunition and the
-     * chassis flux reservoir.
+     * chassis flux reservoir. A rotary mount fires for as long as its button is held
+     * ({@link #advanceRotary}).
      */
     public void tick(long controlledId, PointFireAim aim, boolean primary, boolean secondary, MechTriggerPicks picks) {
         int continuing = 0;
+        int held = 0;
         if (roster.isAliveById(controlledId) && roster.world().hasMechLoadout(controlledId)) {
             MechLoadoutComponent loadout = roster.world().mechLoadout(controlledId);
             MechWeaponMount[] mounts = loadout.mounts();
@@ -123,8 +126,10 @@ public class HeavyWeapons {
             continuing = left | right;
             if (primary || secondary) {
                 int pulled = (primary ? left : 0) | (secondary ? right : 0);
+                held = pulled;
                 for (MechWeaponMount mount : mounts) {
-                    if (mount == null || mount.cycleRemaining > 0f || mount.burstRemaining > 0 || !mount.hasAmmo()) continue;
+                    if (mount == null || mount.isRotary()) continue;
+                    if (mount.cycleRemaining > 0f || mount.burstRemaining > 0 || !mount.hasAmmo()) continue;
                     if (!MechFireGroups.contains(pulled, mount)
                             || !loadout.flux.permits(mount.component.fluxPerTrigger(), false)) continue;
                     if (fireRoundAtPoint(controlledId, mount, aim, true)) {
@@ -134,7 +139,7 @@ public class HeavyWeapons {
                 }
             }
         }
-        advanceMechWeapons(controlledId, aim, continuing);
+        advanceMechWeapons(controlledId, aim, continuing, held);
     }
 
     /**
@@ -148,11 +153,29 @@ public class HeavyWeapons {
             return false;
         }
         MechLoadoutComponent loadout = roster.world().mechLoadout(shooter);
+        if (mount.isRotary()) return fireRotaryAtPoint(shooter, loadout, mount, aim);
         if (mount.cycleRemaining > 0f || mount.burstRemaining > 0 || !mount.hasAmmo()
                 || !loadout.flux.permits(mount.component.fluxPerTrigger(), true)) return false;
         if (!fireRoundAtPoint(shooter, mount, aim, false)) return false;
         loadout.flux.commit(mount.component.fluxPerTrigger());
         mount.commitTrigger(0L, aim);
+        return true;
+    }
+
+    /**
+     * A rotary gun opening a wall: one round off the belt at a time, spaced at its full rate, with the
+     * flux each round costs. The belt is the limit, as it is for any other fire.
+     */
+    private boolean fireRotaryAtPoint(long shooter, MechLoadoutComponent loadout, MechWeaponMount mount,
+                                      PointFireAim aim) {
+        float flux = mount.component.fluxPerRound();
+        if (mount.cycleRemaining > 0f || mount.rotary.beltRounds() < 1 || !loadout.flux.permits(flux, true)) {
+            return false;
+        }
+        if (!fireRoundAtPoint(shooter, mount, aim, false)) return false;
+        loadout.flux.commit(flux);
+        mount.rotary.spend();
+        mount.cycleRemaining = 1f / mount.rotary.def().fullRate();
         return true;
     }
 
@@ -523,7 +546,7 @@ public class HeavyWeapons {
      * ticks down mechanical loader/cycler clocks, and advances each finite missile rack's
      * installed replenisher cadence.
      */
-    private void advanceMechWeapons(long controlledId, PointFireAim aim, int controlledMask) {
+    private void advanceMechWeapons(long controlledId, PointFireAim aim, int controlledMask, int heldMask) {
         // Gather the live mechs first (walking the MECH_LOADOUT query — only mech
         // entities match it, so no scan over the whole registry), then run the
         // continuation pass over the snapshot. Other arrivals in this phase
@@ -552,6 +575,10 @@ public class HeavyWeapons {
                 mount.advanceReplenishment(BattleSimulation.TICK_DT,
                         m.missileReplenisher());
                 mount.cycleRemaining = Math.max(0f, mount.cycleRemaining - BattleSimulation.TICK_DT);
+                if (mount.isRotary()) {
+                    advanceRotary(u, m, mount, u == controlledId, MechFireGroups.contains(heldMask, mount), aim);
+                    continue;
+                }
                 if (mount.burstRemaining <= 0) continue;
                 mount.burstTimer -= BattleSimulation.TICK_DT;
                 if (mount.burstTimer > 0f) continue;
@@ -590,6 +617,35 @@ public class HeavyWeapons {
                 fireMechWeapon(u, target, mount, accuracyMult);
                 finishBurstRound(mount);
             }
+        }
+    }
+
+    /**
+     * A rotary mount's tick: spin, coast and belt advance under one rule, and the rounds it asks for go to
+     * the pilot's cursor or the AI's leased target. Each round commits its own flux; a round its gates refuse
+     * uses its slot and spends nothing ({@link RotaryFeed}).
+     */
+    private void advanceRotary(long u, MechLoadoutComponent m, MechWeaponMount mount, boolean controlled,
+                               boolean held, PointFireAim aim) {
+        RotaryFeed feed = mount.rotary;
+        if (controlled) feed.releaseLease();
+        int rounds = feed.advance(BattleSimulation.TICK_DT, controlled && held && aim != null);
+        float flux = mount.component.fluxPerRound();
+        for (int r = 0; r < rounds; r++) {
+            if (!m.flux.permits(flux, !controlled)) break;
+            if (controlled) {
+                if (!fireRoundAtPoint(u, mount, aim, true)) break;
+            } else {
+                long target = feed.leaseTarget();
+                if (!roster.isAliveById(target)) {
+                    feed.releaseLease();
+                    break;
+                }
+                if (!m.isAimedAt(target) || !canFireMechMount(u, mount)) break;
+                fireMechWeapon(u, target, mount, 1f);
+            }
+            m.flux.commit(flux);
+            feed.spend();
         }
     }
 

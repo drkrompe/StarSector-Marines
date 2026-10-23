@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
+import com.dillon.starsectormarines.battle.weapon.RotaryFeedDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 
@@ -23,6 +24,13 @@ public enum MechWeaponComponent {
             6, -1, LayeredMechAppearance.ARMS_CHAINGUN),
     NOSE_CHAINGUN("component.mech-nose-chaingun", "@gearMechWeaponComponentNOSECHAINGUN", MountFamily.ARMS,
             HardpointType.BALLISTIC, 2, 2, "weapon.mech-chaingun",
+            6, -1, LayeredMechAppearance.ARMS_NOSE_CHAINGUN),
+    // The better chaingun: the same gun on a faster drive and a bigger feed (mechs-nouns.md, Rotary guns).
+    CHAINGUN_HF("component.mech-chaingun-hf", "@gearMechWeaponComponentCHAINGUNHF", MountFamily.ARMS,
+            HardpointType.BALLISTIC, 2, 2, WeaponRegistry.MECH_CHAINGUN_HF_ID,
+            6, -1, LayeredMechAppearance.ARMS_CHAINGUN),
+    NOSE_CHAINGUN_HF("component.mech-nose-chaingun-hf", "@gearMechWeaponComponentNOSECHAINGUNHF", MountFamily.ARMS,
+            HardpointType.BALLISTIC, 2, 2, WeaponRegistry.MECH_CHAINGUN_HF_ID,
             6, -1, LayeredMechAppearance.ARMS_NOSE_CHAINGUN),
     LINEAR_CANNON("component.mech-linear-cannon", "@gearMechWeaponComponentLINEARCANNON",
             MountFamily.ARMS, HardpointType.BALLISTIC, 2, 2, "weapon.mech-linear-cannon",
@@ -138,7 +146,7 @@ public enum MechWeaponComponent {
      */
     public boolean centrelineOnly() {
         return switch (this) {
-            case NOSE_CHAINGUN, NOSE_MUSTER_AUTOGUN, SINGLE_HEAVY_CANNON,
+            case NOSE_CHAINGUN, NOSE_CHAINGUN_HF, NOSE_MUSTER_AUTOGUN, SINGLE_HEAVY_CANNON,
                  DEMOLITION_CANNON, QUARRY_BREAKER_CANNON -> true;
             default -> false;
         };
@@ -156,7 +164,10 @@ public enum MechWeaponComponent {
     public final int slotCost;
     /** Stable catalog id for the installed gun or launcher. */
     public final String weaponId;
-    /** Representative projectiles emitted per trigger, not literal launcher tubes. */
+    /**
+     * Representative projectiles emitted per trigger, not literal launcher tubes. A rotary gun has no
+     * trigger pull; for it this is only the unit its rated cycle is quoted in.
+     */
     public final int projectilesPerTrigger;
     /** Trigger pulls available at full supply; negative means unlimited. */
     public final int ammoCapacity;
@@ -187,15 +198,22 @@ public enum MechWeaponComponent {
         this.appearanceSelector = appearanceSelector;
     }
 
-    /** Mechanical trigger-to-trigger time, independent of flux headroom and pack supply. */
+    /** The rotary feed of a held-trigger gun (the chainguns), or null for a gun fired a pull at a time. */
+    public RotaryFeedDef rotary() { return weaponDef().rotary(); }
+
+    /**
+     * Mechanical trigger-to-trigger time, independent of flux headroom and pack supply. A rotary gun has no
+     * trigger cycle; its figure is {@link #projectilesPerTrigger} rounds at its rated rate, so estimates that
+     * read rounds over cycle read what the gun delivers over an engagement.
+     */
     public float cycleSeconds() {
         return tuned("cycle", authoredCycleSeconds());
     }
 
     private float authoredCycleSeconds() {
         return switch (this) {
-            case NOSE_CHAINGUN -> .65f;
-            case CHAINGUN -> 1.05f;
+            case CHAINGUN, NOSE_CHAINGUN, CHAINGUN_HF, NOSE_CHAINGUN_HF ->
+                    projectilesPerTrigger / rotary().ratedRoundsPerSecond();
             case SRM_5, SRM_5_FRAG -> 1.8f;
             case SRM_15, SRM_15_FRAG -> 2.6f;
             case LRM_5, LRM_15, LRM_5_FRAG, LRM_15_FRAG -> 9f;
@@ -218,9 +236,18 @@ public enum MechWeaponComponent {
     private static final float HEAVY_CANNON_FLUX = Float.parseFloat(
             System.getProperty("battle.mech.heavyCannonFlux", "34"));
 
-    /** Whole-packet flux reservation: scheduled rounds cannot stall halfway through a salvo. */
+    /**
+     * Whole-packet flux reservation: scheduled rounds cannot stall halfway through a salvo. A rotary gun
+     * commits {@link #fluxPerRound} a round instead; this is that over {@link #projectilesPerTrigger} rounds.
+     */
     public float fluxPerTrigger() {
-        return tuned("flux", authoredFlux());
+        return rotary() != null ? fluxPerRound() * projectilesPerTrigger : tuned("flux", authoredFlux());
+    }
+
+    /** What one round of a rotary gun commits to the reservoir; {@link #fluxPerTrigger} for any other gun. */
+    public float fluxPerRound() {
+        RotaryFeedDef rotary = rotary();
+        return rotary != null ? tuned("fluxPerRound", rotary.fluxPerRound()) : fluxPerTrigger();
     }
 
     /**
@@ -240,9 +267,8 @@ public enum MechWeaponComponent {
 
     private float authoredFlux() {
         return switch (this) {
-            case NOSE_CHAINGUN -> 18f;
-            // Arm guns are reserved per gun: a pair on two arms costs what the old twin mount did.
-            case CHAINGUN -> 15f;
+            // Unused: a rotary gun's flux is authored per round on its weapon (fluxPerRound).
+            case CHAINGUN, NOSE_CHAINGUN, CHAINGUN_HF, NOSE_CHAINGUN_HF -> 0f;
             case SRM_5, SRM_5_FRAG -> 28f;
             case SRM_15, SRM_15_FRAG -> 42f;
             case LRM_5, LRM_5_FRAG -> 22f;

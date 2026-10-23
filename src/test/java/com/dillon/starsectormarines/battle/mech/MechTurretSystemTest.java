@@ -52,8 +52,7 @@ class MechTurretSystemTest {
         assertFalse(loadout.isAimedAt(target));
         MechCombatantBehavior.tryFireChaingun(mech, loadout, target, 3.7f, sim, true);
         MechWeaponMount arms = loadout.mount(MechMountSlot.LEFT_ARM);
-        assertEquals(0f, arms.cycleRemaining, 0.001f,
-                "a weapon must wait for the torso to traverse onto its target");
+        assertFalse(arms.rotary.leased(), "a weapon must wait for the torso to traverse onto its target");
 
         for (int i = 0; i < 60 && !loadout.isAimedAt(target); i++) {
             turrets.tick(BattleSimulation.TICK_DT);
@@ -61,7 +60,7 @@ class MechTurretSystemTest {
 
         assertTrue(loadout.isAimedAt(target));
         MechCombatantBehavior.tryFireChaingun(mech, loadout, target, 3.7f, sim, true);
-        assertEquals(arms.component.cycleSeconds(), arms.cycleRemaining, 0.001f);
+        assertEquals(target, arms.rotary.leaseTarget(), "aligned, the chaingun takes the trigger on its target");
     }
 
     @Test

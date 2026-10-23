@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
 import com.dillon.starsectormarines.battle.infantry.SmokeThrowCommit;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
+import com.dillon.starsectormarines.battle.mech.RotaryFeed;
 import com.dillon.starsectormarines.battle.mech.MechFlux;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -38,8 +39,10 @@ final class BattleDirectControlStatus {
     private BattleDirectControlStatus() { }
 
     enum Carrier { NONE, MARINE, MECH, VEHICLE, WARSHIP, TENDER }
-    enum FireKind { SINGLE, BURST, PACKET, INDIRECT }
-    enum WeaponState { BURST, RELOADING, CYCLING, LOADED, EMPTY, TOO_CLOSE }
+    /** {@code ROTARY} fires while held, off a belt, at the rate its spin has reached. */
+    enum FireKind { SINGLE, BURST, PACKET, INDIRECT, ROTARY }
+    /** {@code SPINNING}: a rotary gun's barrels turning, its cycle fields carrying the spin. */
+    enum WeaponState { BURST, RELOADING, CYCLING, LOADED, EMPTY, TOO_CLOSE, SPINNING }
     enum AmmoUnit { UNTRACKED, ROUNDS, TRIGGER_PACKS }
 
     record Snapshot(long entityId, String name, Carrier carrier, Durability durability,
@@ -197,6 +200,9 @@ final class BattleDirectControlStatus {
                 return WeaponState.EMPTY;
             }
             if (tooClose) return WeaponState.TOO_CLOSE;
+            if (behavior.kind() == FireKind.ROTARY) {
+                return cycleFraction() > 0f ? WeaponState.SPINNING : WeaponState.LOADED;
+            }
             return cooldownSeconds > 0f ? WeaponState.CYCLING : WeaponState.LOADED;
         }
 
@@ -346,6 +352,10 @@ final class BattleDirectControlStatus {
         for (MechWeaponMount mount : mounts) {
             if (mount == null) continue;
             WeaponDef weapon = mount.weaponDef();
+            if (mount.isRotary()) {
+                weapons.add(rotaryWeapon(mount, mounts, flux, picks, aimDistance));
+                continue;
+            }
             weapons.add(new WeaponStatus(mount.slot.ordinal() + 1, mount.slot.name(),
                     mount.component.displayName(), behavior(weapon, mount.component.projectilesPerTrigger,
                             Ordnance.of(mount.component.hardpointType)),
@@ -359,6 +369,28 @@ final class BattleDirectControlStatus {
         }
         weapons.sort(Comparator.comparingInt(WeaponStatus::number));
         return List.copyOf(weapons);
+    }
+
+    /** Rounds per block of a rotary gun's belt strip: what the folded belt is read in. */
+    static final int BELT_BLOCK_ROUNDS = 10;
+
+    /**
+     * A rotary mount: its belt as rounds, its spin as the cycle (the cooldown is the spin still to come, so
+     * the row's bar fills as the barrels come up to speed), and the flux of one round as its hold.
+     */
+    private static WeaponStatus rotaryWeapon(MechWeaponMount mount, MechWeaponMount[] mounts, MechFlux flux,
+                                             MechTriggerPicks picks, float aimDistance) {
+        RotaryFeed feed = mount.rotary;
+        WeaponDef weapon = mount.weaponDef();
+        float spinUp = feed.def().spinUpSeconds();
+        return new WeaponStatus(mount.slot.ordinal() + 1, mount.slot.name(), mount.component.displayName(),
+                new Behavior(FireKind.ROTARY, BELT_BLOCK_ROUNDS, 0f, weapon.projectilesPerShot, null,
+                        Ordnance.of(mount.component.hardpointType)),
+                HeavyWeapons.supportsPointFire(mount), (1f - feed.spin()) * spinUp, spinUp, 0, 0f,
+                new Ammo(feed.beltRounds(), feed.def().belt(), AmmoUnit.ROUNDS, false),
+                !flux.permits(mount.component.fluxPerRound(), false), mount.component.cycleLabel(),
+                MechFireGroups.badge(mounts, picks, mount),
+                HeavyWeapons.tooClose(mount, aimDistance), false, MechFireGroups.group(mounts, mount));
     }
 
     static WeaponStatus vehicleWeapon(GroundTurret turret, TurretMountDef mount) {

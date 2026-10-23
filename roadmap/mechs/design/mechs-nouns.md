@@ -58,6 +58,17 @@ increasing an encounter's total armored threat.
   their mechanical trigger cycle and ready-ammunition capacity. Replenishment repeats
   for the life of the mech; the installed component is the future item-upgrade
   seam for changing that cadence.
+- A **rotary gun** (the chainguns) has no trigger pull. It fires while its
+  trigger is held: its **spin** ramps from a first-turn rate to its full rate over
+  the spin-up time, the barrels **coast** at speed for a moment after release, so a
+  quick re-press fires at full rate, then spin down. Its rounds come off a **belt**
+  of a few hundred, which a **hopper** refills at a fixed rate every tick for the
+  life of the mech, firing or not: the chaingun's counterpart of the replenisher's
+  cadence, owned by the gun. Ammunition is unlimited over a fight; a long hold
+  empties the belt, and then the gun fires only as fast as the hopper. Spin-up,
+  refill and the round's damage are what make a better chaingun, so the feed is
+  authored on the weapon (`sim.rotary`), not on the chassis, and the better gun
+  is a better component (the Advanced high-feed chaingun and its nose fit).
 - A **campaign mech** is one persistent player-owned chassis plus its doctrine
   and installed components. It is the campaign authority that produces a
   frozen battle loadout; the live battle mech never reaches back into it.
@@ -1061,6 +1072,13 @@ support sortie, subject only to practical runtime resources.
 - Missile weapon hardware owns capacity and projectile behavior; the installed
   replenisher owns refill cadence. Upgrade content changes the subsystem rather
   than encoding reload speed in a chassis, role, or weapon definition.
+- A rotary gun's belt and hopper belong to the gun: a better feed is a better gun,
+  never a chassis or role value. One rule advances spin and belt for the pilot and
+  the AI. An autonomous gunner leases the trigger while a target is exposed, keeps
+  the barrels turning while engaged without a shot, and keeps a reserve: below a
+  fifth of the belt it stops asking for rounds until the hopper has put a third
+  back, so it eases off rather than running dry. A pilot may empty the belt. A
+  round a gate refuses uses its slot, so a blocked gun never dumps a backlog.
 - Owned subsystem quantity includes installed copies. A failed refit changes
   neither inventory accounting nor the target mech's installed loadout.
 - A custom refit validates socket type, complete rectangular footprint, component inventory,
@@ -1286,8 +1304,10 @@ adds dissipation. A mech's flux and a warship's flux share one gauge on the dire
 HUD. Never call it heat, which reads as a separate mod mechanic.
 
 A weapon component owns its mechanical trigger-to-trigger period and its flux
-reservation. The Hound nose chaingun cycles every 0.65 seconds for a six-round
-burst costing 18 flux. SRM-5 loads every 1.8 seconds for a two-rocket packet
+reservation. A rotary gun commits its flux round by round instead (0.75 a round
+for the stock chaingun), small enough that a long hold runs the belt dry before it
+vents a single-gun frame, while a Bulwark holding both arm guns still runs hot.
+SRM-5 loads every 1.8 seconds for a two-rocket packet
 costing 28 flux. Burst continuation must also finish before another trigger.
 Projectile damage and spacing are unchanged. Larger and specialist components
 have explicit profiles; ordinary infantry/vehicle weapon cadence is unchanged.

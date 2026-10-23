@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.marine.ArmorClass;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
@@ -191,6 +192,10 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, ordnanceMech(),
                         sectionPlate(context.modRoot(), new MechLoadoutComponent(MechVariant.BULWARK, null)).document(),
                         false)));
+        artifacts.add(new SnapshotArtifact("active-mech-chaingun-belt-1920x1080-ui100.png",
+                activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, chaingunBelts(),
+                        sectionPlate(context.modRoot(), new MechLoadoutComponent(MechVariant.BULWARK, null)).document(),
+                        false)));
         artifacts.add(new SnapshotArtifact("active-vehicle-ordnance-1920x1080-ui100.png",
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, ordnanceVehicle(),
                         vehiclePlate(context.modRoot()).document(), false)));
@@ -242,7 +247,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
 
     /**
      * A mech mid-fight on missile and energy mounts: an LRM-15 one salvo down, an SRM-5 part way
-     * through a salvo, a pulse laser two bolts into its burst and a chaingun that counts nothing.
+     * through a salvo, a pulse laser two bolts into its burst and a chaingun on a full belt.
      */
     private static BattleDirectControlStatus.Snapshot ordnanceMech() {
         MechWeaponMount[] mounts = {
@@ -254,6 +259,35 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         return new BattleDirectControlStatus.Snapshot(base.entityId(), "Bulwark Lead",
                 BattleDirectControlStatus.Carrier.MECH, base.durability(),
                 BattleDirectControlStatus.mechWeapons(mounts, new MechFlux()));
+    }
+
+    /**
+     * A Bulwark's two chainguns mid-fight, played through the feed's own rule rather than set: the left gun
+     * half spun up again on a belt it has already run down by half, the right gun at full speed on a belt
+     * held long enough to run low (the hopper keeps it from empty).
+     */
+    private static BattleDirectControlStatus.Snapshot chaingunBelts() {
+        MechWeaponMount left = new MechWeaponMount(MechMountSlot.LEFT_ARM, MechWeaponComponent.CHAINGUN);
+        MechWeaponMount right = new MechWeaponMount(MechMountSlot.RIGHT_ARM, MechWeaponComponent.CHAINGUN);
+        hold(left, true, 10f);
+        hold(left, false, 3f);
+        hold(left, true, 0.6f);
+        hold(right, true, 18f);
+        MechWeaponMount[] mounts = {left, right,
+                new MechWeaponMount(MechMountSlot.LEFT_SHOULDER, MechWeaponComponent.SRM_15),
+                new MechWeaponMount(MechMountSlot.RIGHT_SHOULDER, MechWeaponComponent.SRM_15)};
+        var base = BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.MECH, false);
+        return new BattleDirectControlStatus.Snapshot(base.entityId(), "Bulwark Lead",
+                BattleDirectControlStatus.Carrier.MECH, base.durability(),
+                BattleDirectControlStatus.mechWeapons(mounts, new MechFlux()));
+    }
+
+    /** Holds (or releases) a rotary mount's trigger for {@code seconds}, every round it asks for fired. */
+    private static void hold(MechWeaponMount mount, boolean held, float seconds) {
+        for (int i = 0; i < Math.round(seconds / BattleSimulation.TICK_DT); i++) {
+            int rounds = mount.rotary.advance(BattleSimulation.TICK_DT, held);
+            for (int r = 0; r < rounds; r++) mount.rotary.spend();
+        }
     }
 
     private static MechWeaponMount mount(MechMountSlot slot, MechWeaponComponent component, int ammo, int burst) {
