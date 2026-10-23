@@ -63,7 +63,14 @@ them.
   The theme layer cascades after a component's own sheet, so for any property the
   theme sets (the root fill, `button`, `.panel`) it wins over component rules;
   only an element's inline `style` outranks it. A surface that must not wear the
-  theme's console material, such as the boxless battle HUD, says so inline.
+  theme's console material says so inline, or takes a theme layer that answers it.
+- **Battle glass** is that layer for the battlefield. Every panel drawn over a
+  fight, in command mode and under direct control alike, has no box: text and bars
+  float on the field with a shadow so the battle shows through. A document opts in
+  with `hud-glass` on its root; the theme then turns its buttons into hairlines on a
+  faint smoke that light when hovered and fill gold when chosen, and its rows read
+  as fading bands rather than framed cards. A popup that holds reading text, such as
+  a tooltip, keeps a dark glass backing.
 - A **binding** is an explicit invalidation edge from view-model state to one
   element mutation. It updates retained identity rather than rebuilding the
   document.
