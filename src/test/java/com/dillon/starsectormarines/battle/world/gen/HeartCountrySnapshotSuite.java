@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.creep.CreepVegetation;
 import com.dillon.starsectormarines.battle.evacuation.HeartBores;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
@@ -51,7 +52,7 @@ public final class HeartCountrySnapshotSuite implements SnapshotSuite {
             String slug = form == Form.BROAD_FRONT ? "broad-front" : "the-burn";
             for (String token : System.getProperty("snapshot.heartCountry.seeds", "101,202,303").split(",")) {
                 long seed = Long.parseLong(token.trim());
-                BloomHeartSetup.Built built = BloomHeartSetup.country(form, seed);
+                BloomHeartSetup.Built built = BloomHeartSetup.country(form, SurfacePalette.VERDANT, seed);
                 try (BattleSimulation sim = built.sim()) {
                     String tag = slug + "-seed" + seed + "-";
                     String head = slug + " seed " + seed + " | " + facts(sim);

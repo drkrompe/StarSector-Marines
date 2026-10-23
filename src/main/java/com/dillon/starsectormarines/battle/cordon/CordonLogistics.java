@@ -335,7 +335,8 @@ public final class CordonLogistics {
             int dropX = drop[0] + lane * DROP_SPACING, dropY = drop[1];
             command.carry(sim, hull, squad, dropX, dropY, (s, riders, x, y) -> {
                 List<int[]> cells = CordonGround.cluster(s.getGrid(), s.getOccupancyMap(), x, y, riders);
-                if (cells.isEmpty()) return;
+                // Ground too cramped for the whole team is treated as none: seating assumes a cell each.
+                if (cells.size() < ColonyMilitia.POST_SIZE) return;
                 carried++;
                 int team = ColonyMilitia.seatTeam(s, cells, "Carried team " + carried, risk, rng);
                 CordonSequence.join(s, to, List.of(team));

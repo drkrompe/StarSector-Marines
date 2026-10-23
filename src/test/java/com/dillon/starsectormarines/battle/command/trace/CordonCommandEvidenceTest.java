@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPool;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Assumptions;
@@ -88,7 +89,7 @@ class CordonCommandEvidenceTest {
                 .append("Every seed of the ").append(variant).append("'s story-map pool (`story-map-pools.md`), ")
                 .append(EvidenceFanOut.replayWording(repeat)).append(". Outcomes are readings, not assertions; ")
                 .append("each seed's report is in its own folder.\n\n")
-                .append("| seed | outcome | winner | ended (min) | redoubts fallen |\n|---|---|---|---|---|\n");
+                .append("| biome | seed | outcome | winner | ended (min) | redoubts fallen |\n|---|---|---|---|---|---|\n");
         JSONArray all = new JSONArray();
         List<String> broken = new ArrayList<>();
         for (int i = 0; i < fixtures.size(); i++) {
@@ -104,6 +105,7 @@ class CordonCommandEvidenceTest {
                     .put("schemaVersion", 1)
                     .put("schedulerMode", "SERIAL_DETERMINISTIC")
                     .put("fixture", selected.source())
+                    .put("biome", selected.fixture().biome().name())
                     .put("seed", selected.fixture().seed())
                     .put("maxTicks", maxTicks)
                     .put("repeatCount", repeat)
@@ -116,10 +118,11 @@ class CordonCommandEvidenceTest {
                     .put("timeline", first.timeline());
             Files.writeString(dir.resolve("summary.json"), summary.toString(2) + '\n', StandardCharsets.UTF_8);
             Files.writeString(dir.resolve("summary.md"), first.report(), StandardCharsets.UTF_8);
-            all.put(new JSONObject().put("seed", selected.fixture().seed()).put("folder", pool ? selected.id() : ".")
+            all.put(new JSONObject().put("biome", selected.fixture().biome().name()).put("seed", selected.fixture().seed()).put("folder", pool ? selected.id() : ".")
                     .put("outcome", first.outcome()).put("winner", first.winner() != null ? first.winner() : JSONObject.NULL)
                     .put("ticks", first.ticks()).put("fallen", first.fallen()));
-            matrix.append(String.format(Locale.ROOT, "| %d | %s | %s | %.1f | %d |%n", selected.fixture().seed(),
+            matrix.append(String.format(Locale.ROOT, "| %s | %d | %s | %s | %.1f | %d |%n",
+                    selected.fixture().biome().name().toLowerCase(Locale.ROOT), selected.fixture().seed(),
                     first.outcome(), first.winner() != null ? first.winner() : "—",
                     first.ticks() * BattleSimulation.TICK_DT / 60f, first.fallen()));
             broken.addAll(mechanics(selected.id(), first));
@@ -163,9 +166,12 @@ class CordonCommandEvidenceTest {
         if (!selected.isBlank()) return List.of(new Selected(loadFixture(selected, variant), mission, selected));
         CordonBattleFixture template = loadFixture(fallback, variant);
         List<Selected> out = new ArrayList<>();
-        for (StoryMapPool.Entry entry : StoryMapPools.pool(CordonSetup.storyMap(variant)).entries()) {
-            out.add(new Selected(new CordonBattleFixture(entry.seed(), variant, template.manifest()),
-                    mission + "-seed" + entry.seed(), fallback + " at pooled seed " + entry.seed()));
+        for (SurfacePalette biome : SurfacePalette.values()) {
+            String b = biome.name().toLowerCase(Locale.ROOT);
+            for (StoryMapPool.Entry entry : StoryMapPools.pool(CordonSetup.storyMap(variant)).entries(biome)) {
+                out.add(new Selected(new CordonBattleFixture(entry.seed(), variant, biome, template.manifest()),
+                        mission + "-" + b + "-seed" + entry.seed(), fallback + " at pooled " + b + " seed " + entry.seed()));
+            }
         }
         return out;
     }

@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.cordon;
 import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
@@ -87,9 +87,9 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
             for (String token : System.getProperty("snapshot.cordonMapgen.seeds", "7117,3,11").split(",")) {
                 long seed = Long.parseLong(token.trim());
                 String tag = name + "-seed" + seed + "-";
-                CordonSetup.CordonMap cordon = CordonSetup.map(variant, seed, TargetProfile.NEUTRAL);
+                CordonSetup.CordonMap cordon = CordonSetup.map(variant, SurfacePalette.VERDANT, seed);
                 PrecinctPlan plan = cordon.plan();
-                try (BattleSimulation sim = CordonSetup.create(cordon, variant, List.of(), TargetProfile.NEUTRAL,
+                try (BattleSimulation sim = CordonSetup.create(cordon, variant, List.of(),
                         CordonSequence.Timetable.STANDARD)) {
                     out.add(new SnapshotArtifact(tag + "01-whole-map.png",
                             whole.render(sim, "the " + name + ", seed " + seed + ", whole map", annotations(sim, cordon))));
