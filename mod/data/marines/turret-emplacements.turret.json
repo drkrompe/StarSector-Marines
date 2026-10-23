@@ -19,6 +19,7 @@
       "sim": { "ammoCapacity": 160, "turnRateDegPerSec": 170.0 },
       "render": { "visualCells": 2.625, "muzzleOffsetCells": 0.574, "muzzleLateralOffsetCells": 0.077 } },
     { "id": "mount.tank-burst-laser", "weapon": "weapon.tank-burst-laser",
+      "engagesAir": true,
       "sim": { "ammoCapacity": 600, "turnRateDegPerSec": 110.0, "charges": 10, "chargeRechargeSec": 2.0 },
       "render": { "visualCells": 2.4, "muzzleOffsetCells": 0.9, "muzzleLateralOffsetCells": 0.0, "sprite": "graphics/weapons/burstpdheavy_turret_base.png" } },
     { "id": "mount.tank-heavy-gun", "weapon": "weapon.tank-heavy-gun",

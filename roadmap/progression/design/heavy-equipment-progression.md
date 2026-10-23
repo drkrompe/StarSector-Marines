@@ -1159,7 +1159,17 @@ four seeds, three grounds):
 Without the bank, the same burst at penetration 3 took every street fight and every
 open-ground attack from the cannon tank: the armor pool is the only thing penetration
 discounts, and once it is stripped the structure under it takes every hit in full.
-Power suits are the laser's hard case on purpose. Not tuned beyond this: readings.
+Power suits are the laser's hard case on purpose.
+
+The gun also reaches the air. Under a hostile Mudskipper on station overhead
+(`tank-versus-air`, three seeds), the laser tank brought the craft down in every play,
+1.5 s after its first air round on average. The cannon tank never fired at it. With
+eight riflemen in reach as well, it split 33 air rounds against 48 at the ground and
+still downed the craft, 4.0 s after its first air round. A Mudskipper's 60 points are
+one burst at 85% accuracy, where a dual-flak position (36 at 40% every 0.8 s) needs
+about three seconds. That makes the laser tank the deadliest thing on the ground to
+light air, and the lever, if it is too much, is the weapon's accuracy against the
+air. Not tuned beyond this: readings.
 
 Faction variants (a Hegemony APC, a Tri-Tachyon tank) arrive as Prestige or
 Restricted cards weighted by faction, as faction mech weapons are.

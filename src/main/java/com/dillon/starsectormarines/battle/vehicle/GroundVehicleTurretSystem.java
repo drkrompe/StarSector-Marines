@@ -33,6 +33,7 @@ public final class GroundVehicleTurretSystem {
     private final World world;
     private final TurretFireSink fireSink;
     private SideSpotting spotting = SideSpotting.NONE;
+    private VehicleAirFire airFire = VehicleAirFire.NONE;
     /** Standing assaults whose fire directives this pass serves; null when none are given. */
     private VehicleMoveOrderService assaults;
 
@@ -53,6 +54,11 @@ public final class GroundVehicleTurretSystem {
     /** Who calls targets for an indirect-fire launcher that cannot see them itself. */
     public void setSpotting(SideSpotting spotting) {
         this.spotting = spotting != null ? spotting : SideSpotting.NONE;
+    }
+
+    /** Where the craft are, for a mount that engages air ({@link TurretMountDef#engagesAir}). */
+    public void setAirFire(VehicleAirFire airFire) {
+        this.airFire = airFire != null ? airFire : VehicleAirFire.NONE;
     }
 
     /** The order mailbox whose standing assaults direct autonomous turrets ({@code MachineAssaults}). */
@@ -167,6 +173,10 @@ public final class GroundVehicleTurretSystem {
             return;
         }
         WeaponDef weapon = mount.weapon;
+        if (turret.burstAir) {
+            tickAirBurst(id, turret, structure, mountX, mountY, dt);
+            return;
+        }
         long burstTarget = roster.isAliveById(turret.burstTargetId) ? turret.burstTargetId : 0L;
         // Keep autonomous APC cadence: no cooldown or traverse tick during a committed burst.
         if (turret.burstRemaining > 0) {
@@ -195,6 +205,10 @@ public final class GroundVehicleTurretSystem {
         }
 
         long held = roster.isAliveById(turret.targetId) ? turret.targetId : 0L;
+        if (mount.engagesAir && !closeThreat(held, mountX, mountY)
+                && tickAir(id, turret, structure, mountX, mountY, dt)) {
+            return;
+        }
         MachineAssault assault = assaults != null ? assaults.assault(id) : null;
         // An assault directs the gun ahead of the ordinary pick, except that a visible enemy
         // close enough to be self-defence keeps the gun: the believed occupant first, then the
@@ -247,6 +261,63 @@ public final class GroundVehicleTurretSystem {
                 turret.burstTargetId = aim.target;
             }
         }
+    }
+
+    /**
+     * The air half of a gun that reaches it. A hostile craft in reach takes the gun ahead of the ground pick, since
+     * it is overhead for seconds and the ground will still be there; a man close enough to be self-defence keeps it
+     * (the caller asks that first). The gun slews onto the craft and fires its burst on its own cadence, magazine and
+     * bank. Returns false when the sky in reach is empty, and the ground pick runs as before.
+     */
+    private boolean tickAir(long id, GroundTurret turret, StructureDef structure, float mountX, float mountY,
+                            float dt) {
+        TurretMountDef mount = structure.mount;
+        WeaponDef weapon = mount.weapon;
+        Faction side = convoy.faction(id);
+        long craft = airFire.pick(side, mountX, mountY, weapon.range, turret.airTargetId);
+        turret.airTargetId = craft;
+        if (craft == 0L) return false;
+        turret.targetId = 0L;
+        float bearing = TurretAim.bearingTo(mountX, mountY, world.x(craft), world.y(craft));
+        turret.facingDeg = TurretAim.slewToward(turret.facingDeg, bearing, mount.turnRateDegPerSec * dt);
+        if (turret.cooldownTimer > 0f) turret.cooldownTimer -= dt;
+        if (turret.cooldownTimer > 0f || !charged(turret, mount)
+                || Math.abs(TurretAim.shortestAngleDelta(turret.facingDeg, bearing)) > TurretAim.FIRE_ARC_DEG) {
+            return true;
+        }
+        TurretMountGeometry.Point muzzle = TurretMountGeometry.muzzle(mountX, mountY, turret.facingDeg, mount, 0);
+        airFire.fire(id, side, structure, craft, muzzle.x(), muzzle.y());
+        turret.ammo--;
+        spendCharge(turret, mount);
+        turret.cooldownTimer = weapon.cooldown;
+        if (turret.ammo > 0 && weapon.burstCount > 1) {
+            turret.burstRemaining = weapon.burstCount - 1;
+            turret.burstTimer = weapon.burstSpacing;
+            turret.burstAir = true;
+        }
+        return true;
+    }
+
+    /** The rest of a burst committed into the air: it follows its craft, and ends when the craft leaves the gun. */
+    private void tickAirBurst(long id, GroundTurret turret, StructureDef structure, float mountX, float mountY,
+                              float dt) {
+        TurretMountDef mount = structure.mount;
+        Faction side = convoy.faction(id);
+        long craft = turret.airTargetId;
+        if (!airFire.valid(side, mountX, mountY, mount.weapon.range, craft)) {
+            turret.clearQueuedFire();
+            return;
+        }
+        turret.facingDeg = TurretAim.slewToward(turret.facingDeg,
+                TurretAim.bearingTo(mountX, mountY, world.x(craft), world.y(craft)), mount.turnRateDegPerSec * dt);
+        turret.burstTimer -= dt;
+        if (turret.burstTimer > 0f) return;
+        int release = TurretMountGeometry.releaseIndex(mount.weapon.burstCount, turret.burstRemaining);
+        TurretMountGeometry.Point muzzle = TurretMountGeometry.muzzle(mountX, mountY, turret.facingDeg, mount, release);
+        airFire.fire(id, side, structure, craft, muzzle.x(), muzzle.y());
+        turret.ammo--;
+        finishBurstRound(turret, mount.weapon);
+        if (turret.burstRemaining == 0) turret.burstAir = false;
     }
 
     /**

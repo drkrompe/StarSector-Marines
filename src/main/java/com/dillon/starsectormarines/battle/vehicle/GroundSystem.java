@@ -131,6 +131,9 @@ public class GroundSystem {
     /** Gives bladed hulls the blade that opens ground ahead of them. */
     public void setBlade(DozerBlade blade) { controlSystem.setBlade(blade); }
 
+    /** Where the craft are, for a vehicle gun that reaches the air ({@link VehicleAirFire}). */
+    public void setAirFire(VehicleAirFire airFire) { turrets.setAirFire(airFire); }
+
     /** Hulls that hold still this tick (a Brute's charge stalls them; {@code colony-breach-nouns.md}). */
     public void setStall(LongPredicate stalled) { controlSystem.setStall(stalled); }
 

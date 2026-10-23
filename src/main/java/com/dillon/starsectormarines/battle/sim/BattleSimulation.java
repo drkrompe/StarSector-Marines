@@ -1599,6 +1599,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                     ? TurretFireSystem.CREW_FRIENDLY_HOLD_CHANCE : 0f, this::friendsInBlast);
         }
         groundSystem.setBlade(new DozerBlade(navigation, mapEditor, doodadService));
+        groundSystem.setAirFire(groundAntiAir.vehicleAirFire(this));
         groundSystem.setStall(id -> rosterService.stagger().isStaggered(id));
         groundSystem.setAssaultPlanner((vehicle, cellX, cellY) -> MachineAssaults.planVehicle(this, vehicle, cellX, cellY));
         groundSystem.setGuardPlanner((vehicle, cellX, cellY) -> MachineGuards.planVehicle(this, vehicle, cellX, cellY));

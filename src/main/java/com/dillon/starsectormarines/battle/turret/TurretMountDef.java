@@ -54,6 +54,14 @@ public final class TurretMountDef {
     /** Seconds to refill one charge; zero when the mount has no bank. */
     public final float chargeRechargeSeconds;
 
+    /**
+     * Whether a vehicle carrying this mount also puts its gun on hostile aircraft: fighters, gunships and
+     * shuttles in the air within its reach, with a clear line up. The gun is the same gun, on the same magazine,
+     * cadence and bank, so a craft it takes is ground it leaves. Read by the vehicle turret pass only; an
+     * emplacement's air role is its structure's {@code targetRole}.
+     */
+    public final boolean engagesAir;
+
     /** Optional whole-texture mount body. Null lets a carrier own sheet-frame art. */
     public final String spritePath;
     /** Optional recoil/barrel layer paired with {@link #spritePath}. */
@@ -64,8 +72,9 @@ public final class TurretMountDef {
                            float visualCells, float muzzleOffsetCells,
                            float muzzleLateralOffsetCells, List<Muzzle> muzzles,
                            boolean hardenedTargetsOnly, int charges, float chargeRechargeSeconds,
-                           String spritePath, String recoilSpritePath) {
+                           boolean engagesAir, String spritePath, String recoilSpritePath) {
         this.id = id;
+        this.engagesAir = engagesAir;
         this.charges = charges;
         this.chargeRechargeSeconds = chargeRechargeSeconds;
         this.hardenedTargetsOnly = hardenedTargetsOnly;
@@ -153,7 +162,7 @@ public final class TurretMountDef {
         return new TurretMountDef(
                 id, weaponId, weapon, ammoCapacity, turnRate, visualCells, muzzleOffsetCells,
                 muzzleLateralOffsetCells, muzzles, json.optBoolean("hardenedTargetsOnly", false),
-                charges, chargeRechargeSeconds, sprite, recoilSprite);
+                charges, chargeRechargeSeconds, json.optBoolean("engagesAir", false), sprite, recoilSprite);
     }
 
     static String requireText(JSONObject json, String key) throws JSONException {
