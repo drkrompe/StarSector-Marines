@@ -33,7 +33,7 @@ class BattleUiLocalizationTest {
             "ops/battleview/ColdAccountMarkers.java", "ops/battleview/BattlefieldMarkerPresentation.java",
             "battle/ui/comms/WaylineHoundCommsPresenter.java", "battle/ui/comms/CounterattackCommsPresenter.java",
             "battle/ui/comms/FieldSalvageCommsPresenter.java", "battle/ui/comms/HostileShipCommsPresenter.java",
-            "battle/ui/panel/TaskForceStatusPanel.java", "battle/ui/panel/BattleCommsPanel.java",
+            "battle/ui/panel/BattleCommsPanel.java",
             "battle/ui/panel/CommandPowerTargetingPanel.java", "battle/ui/panel/OrderIntentCursorPanel.java",
             "battle/ui/panel/SquadOrderTargetingPanel.java");
     private static final Path MLX_DIR = Path.of("mod/data/ui/components/battle");
