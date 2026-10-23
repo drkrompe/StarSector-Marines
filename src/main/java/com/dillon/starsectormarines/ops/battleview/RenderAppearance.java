@@ -50,20 +50,17 @@ public final class RenderAppearance {
     public final boolean barsOnlyWhenUnderFire;
     /** Has a corpse sheet, so a {@code deathPoseIdx >= 0} entity no other corpse art claims is drawn from it. */
     public final boolean hasDeathPose;
-    /** Facing→frame convention for the sprite sweep. Meaningful only when {@link #spriteKind} is {@link SpriteKind#SHEET}. */
-    public final UnitType.FrameLayout frameLayout;
     /** Multiplier on the per-cell sprite size (mirrors {@link UnitType#renderScale}). */
     public final float renderScale;
 
     private RenderAppearance(SpriteKind spriteKind, boolean drawsFootprint, boolean drawsDurabilityBar,
                              boolean barsOnlyWhenUnderFire, boolean hasDeathPose,
-                             UnitType.FrameLayout frameLayout, float renderScale) {
+                             float renderScale) {
         this.spriteKind = spriteKind;
         this.drawsFootprint = drawsFootprint;
         this.drawsDurabilityBar = drawsDurabilityBar;
         this.barsOnlyWhenUnderFire = barsOnlyWhenUnderFire;
         this.hasDeathPose = hasDeathPose;
-        this.frameLayout = frameLayout;
         this.renderScale = renderScale;
     }
 
@@ -116,6 +113,6 @@ public final class RenderAppearance {
                 && t != UnitType.RANGE_TARGET;
         boolean deathPose = t.deadSpritePath != null;
         return new RenderAppearance(kind, footprint, hpBar, t.isTurret(), deathPose,
-                t.frameLayout, t.renderScale);
+                t.renderScale);
     }
 }
