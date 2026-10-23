@@ -261,7 +261,8 @@ class CordonCommandEvidenceTest {
                 .put("marines", marines).put("allies", allies).put("swarm", swarm)
                 .put("livingBores", bores).put("armour", hulls).put("armourAtCall", atCall)
                 .put("redoubts", redoubts)
-                .put("convoys", cordon.convoys() == null ? "-" : cordon.convoys().describe(sim));
+                .put("convoys", cordon.convoys() == null ? "-" : cordon.convoys().describe(sim))
+                .put("objectives", cordon.beats() == null ? new JSONArray() : new JSONArray(cordon.beats().describe(sim)));
     }
 
     private static String tableRow(JSONObject row) throws Exception {
@@ -351,6 +352,9 @@ class CordonCommandEvidenceTest {
             out.append("- Redoubt ").append(r.number()).append(": cells ").append(r.left()).append(',').append(r.top())
                     .append(" to ").append(r.right()).append(',').append(r.bottom()).append(", guns ")
                     .append(r.guns().size()).append('\n');
+        }
+        if (cordon.beats() != null) {
+            for (String line : cordon.beats().describe(sim)) out.append("  - ").append(line).append('\n');
         }
         out.append("\n## Beats\n\n| min | beat |\n|---|---|\n");
         for (StoryBeatLog.Event event : sim.getStoryBeats()) {

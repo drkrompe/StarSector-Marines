@@ -8,11 +8,11 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import java.util.List;
 
 /**
- * R4, The militia ride out ({@code cordon-nouns.md}, Optional objectives): when the last convoy is loaded
+ * R4, The militia ride out ({@code cordon-nouns.md}, Optional objectives): when the last convoy is at the gate
  * the town's militia come out too, down the corridor to the gap, and hold it beside the company. They stay
  * allied, under garrison authority, never in the player's command pool (the Cordon's law: the company
  * commands none of the allies). Succeeds when one of them reaches the gap; fails when every one of them
- * dies on the way; lapses when the last convoy is never loaded or no militiaman is left to ride.
+ * dies on the way; lapses when the last convoy never reaches the town or no militiaman is left to ride.
  */
 final class MilitiaBeat extends CordonBeat {
 
@@ -39,7 +39,7 @@ final class MilitiaBeat extends CordonBeat {
         if (squads == null) {
             int last = convoys.convoys();
             if (sim.getStoryBeatLog().has("cordon.convoy_lost_" + last)) return Status.LAPSED;
-            if (!sim.getStoryBeatLog().has("cordon.convoy_loaded_" + last)) return Status.ACTIVE;
+            if (!sim.getStoryBeatLog().has("cordon.convoy_at_town_" + last)) return Status.ACTIVE;
             squads = convoys.townMilitia();
             int standing = 0;
             for (int squad : squads) standing += sim.squadMemberCount(squad);

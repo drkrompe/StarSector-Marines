@@ -47,6 +47,9 @@ abstract class CordonBeat implements ObjectiveRuntime {
      */
     void watch(BattleSimulation sim, int tick) { }
 
+    /** What the beat is doing, in a line for evidence; empty when it has nothing to add to its status. */
+    String describe(BattleSimulation sim) { return ""; }
+
     /** Where the beat wants the company now, {x, y, squads}, or {@code null}. Asked only while active. */
     int[] call(BattleSimulation sim) { return null; }
 

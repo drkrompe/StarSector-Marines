@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.List;
 
 /**
@@ -80,6 +81,17 @@ public final class CordonBeats {
             if (!beat.active()) continue;
             int[] call = beat.call(sim);
             if (call != null) out.add(call);
+        }
+        return out;
+    }
+
+    /** Each running beat's status and what it is doing, one line each, for evidence. */
+    public List<String> describe(BattleSimulation sim) {
+        List<String> out = new ArrayList<>();
+        for (CordonBeat beat : running) {
+            String what = beat.describe(sim);
+            out.add(beat.getClass().getSimpleName() + " " + beat.status().name().toLowerCase(Locale.ROOT)
+                    + (what.isEmpty() ? "" : ": " + what));
         }
         return out;
     }

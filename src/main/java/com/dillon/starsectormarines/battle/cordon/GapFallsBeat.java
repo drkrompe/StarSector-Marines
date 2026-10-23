@@ -36,6 +36,8 @@ final class GapFallsBeat extends CordonBeat {
         }
         if (!fallen) {
             if (down == 0) return Status.ACTIVE;
+            // Every convoy already home or lost: there is nothing left to hold the gap for.
+            if (convoys.out() + convoys.lost() >= convoys.convoys()) return Status.LAPSED;
             fallen = true;
             lostAtFall = convoys.lost();
         }
@@ -43,11 +45,16 @@ final class GapFallsBeat extends CordonBeat {
                 convoys.out() + convoys.lost(), convoys.convoys());
     }
 
-    /** The window closed with the gap held since the fall and no convoy lost: held to the end. */
+    /**
+     * The battle ended with convoys still out: held when the Road was won with none lost since the fall, failed when
+     * it was not; lapsed when no gap redoubt fell.
+     */
     @Override
     protected Status ended(BattleSimulation sim) {
+        if (!fallen) return Status.LAPSED;
         CordonConvoys convoys = beats.sequence().convoys();
-        return fallen && convoys != null && convoys.lost() == lostAtFall ? Status.SUCCEEDED : Status.LAPSED;
+        boolean held = beats.sequence().outcome() == CordonSequence.Outcome.HELD;
+        return held && convoys != null && convoys.lost() == lostAtFall ? Status.SUCCEEDED : Status.FAILED;
     }
 
     @Override

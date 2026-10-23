@@ -127,6 +127,18 @@ final class BoreBeat extends CordonBeat {
     }
 
     @Override
+    String describe(BattleSimulation sim) {
+        if (site == null) return "";
+        for (SwarmBore b : sim.swarmBores().bores()) {
+            if (!b.mother() && b.number() == number) {
+                return "bore " + number + " at " + b.x() + "," + b.y() + " " + b.tier().beatName
+                        + (b.collapsed() ? " collapsed" : "");
+            }
+        }
+        return "bore " + number + " waiting for clear ground at " + site[0] + "," + site[1];
+    }
+
+    @Override
     int[] call(BattleSimulation sim) {
         return site == null ? null : new int[]{site[0], site[1], 3};
     }

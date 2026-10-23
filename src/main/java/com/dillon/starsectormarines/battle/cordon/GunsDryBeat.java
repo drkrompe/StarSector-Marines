@@ -116,6 +116,14 @@ final class GunsDryBeat extends CordonBeat {
     CordonRedoubt redoubt() { return redoubt; }
 
     @Override
+    String describe(BattleSimulation sim) {
+        if (redoubt == null) return "";
+        String truckAt = CordonBeats.alive(sim, truck) ? (int) sim.convoy().body(truck).x + "," + (int) sim.convoy().body(truck).y
+                : arrived ? "arrived" : "gone";
+        return "redoubt " + redoubt.number() + ", truck " + truckAt;
+    }
+
+    @Override
     int[] call(BattleSimulation sim) {
         if (!started || arrived || !CordonBeats.alive(sim, truck)) return null;
         GroundBody body = sim.convoy().body(truck);

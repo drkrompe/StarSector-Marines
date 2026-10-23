@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.List;
 
 /**
@@ -27,9 +28,11 @@ import java.util.List;
 final class ClearRoadBeat extends CordonBeat {
 
     /** Cells either side of the road's middle that must be open for a truck. */
-    static final int ROAD_HALF = 2;
-    /** Corridor cells past the wreck the dozer is sent to. */
-    static final int PAST = 6;
+    static final int ROAD_HALF = 1;
+    /** Corridor cells past the wreck the dozer is sent on to once it is at the wreck. */
+    static final int PAST = 8;
+    /** Cells from the wreck's middle the dozer is at it. */
+    static final int AT_WRECK = 4;
     /** Corridor cells short of the wreck a convoy's truck needs the road open. */
     static final int NEEDED = 12;
     private static final String CRATES = "doodad.industrial-crate-stack";
@@ -39,7 +42,7 @@ final class ClearRoadBeat extends CordonBeat {
     private final List<int[]> road = new ArrayList<>();
     private int wreckIndex = -1;
     private long dozer;
-    private boolean sent, cleared;
+    private boolean sent, through, cleared;
 
     ClearRoadBeat(CordonBeats beats) {
         super(beats);
@@ -118,11 +121,22 @@ final class ClearRoadBeat extends CordonBeat {
             int[] from = corridor.get(convoys.entry());
             dozer = beats.deploy(sim, VehicleType.DOZER_BREACHER, from[0], from[1]);
             if (dozer == 0L) return Status.LAPSED;
-            int[] past = corridor.get(Math.min(corridor.size() - 1, wreckIndex + PAST));
-            beats.command().station(sim, dozer, past[0], past[1]);
+            // Onto the wreck's own middle, which only the blade's view of the ground opens: sent past it, the dozer
+            // drove round the wreck through the fields and pushed nothing.
+            int[] at = corridor.get(wreckIndex);
+            beats.command().station(sim, dozer, at[0], at[1]);
+        }
+        if (!through && CordonBeats.alive(sim, dozer)) {
+            int[] at = corridor.get(wreckIndex);
+            GroundBody body = sim.convoy().body(dozer);
+            if (Math.abs(body.x - at[0]) <= AT_WRECK && Math.abs(body.y - at[1]) <= AT_WRECK) {
+                through = true;
+                int[] past = corridor.get(Math.min(corridor.size() - 1, wreckIndex + PAST));
+                beats.command().station(sim, dozer, past[0], past[1]);
+            }
         }
         int[] lead = convoys.truck(sim, 1, 0);
-        boolean atWreck = lead != null && convoys.corridor() == corridor && lead[0] >= wreckIndex - NEEDED;
+        boolean atWreck = lead != null && !convoys.detoured() && lead[0] >= wreckIndex - NEEDED;
         return rule(cleared, CordonBeats.alive(sim, dozer), atWreck);
     }
 
@@ -138,6 +152,17 @@ final class ClearRoadBeat extends CordonBeat {
     @Override
     protected Status ended(BattleSimulation sim) {
         return sent && dozer != 0L ? Status.FAILED : Status.LAPSED;
+    }
+
+    @Override
+    String describe(BattleSimulation sim) {
+        int open = 0;
+        for (int[] c : road) if (sim.getGrid().isWalkable(c[0], c[1])) open++;
+        String hull = !CordonBeats.alive(sim, dozer) ? "dozer gone" : String.format(Locale.ROOT,
+                "dozer at %.0f,%.0f structure %.0f", sim.convoy().body(dozer).x, sim.convoy().body(dozer).y,
+                sim.convoy().structure(dozer));
+        return "wreck " + wreck.size() + " cells at corridor cell " + wreckIndex + ", " + open + "/" + road.size()
+                + " road cells open; " + hull;
     }
 
     @Override
