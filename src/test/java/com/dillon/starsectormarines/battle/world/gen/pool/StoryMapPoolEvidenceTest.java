@@ -78,10 +78,9 @@ class StoryMapPoolEvidenceTest {
         String failure = null, detail = "";
         try {
             switch (job.map()) {
-                case CORDON_LINE -> detail = cordon(CordonVariant.LINE, job.biome(), job.entry());
-                case CORDON_ROAD -> detail = cordon(CordonVariant.ROAD, job.biome(), job.entry());
                 case HEART_BURN -> detail = heart(Form.THE_BURN, job.biome(), job.entry());
                 case HEART_FRONT -> detail = heart(Form.BROAD_FRONT, job.biome(), job.entry());
+                default -> detail = cordon(job.map(), job.biome(), job.entry());
             }
         } catch (Exception | AssertionError e) {
             failure = String.valueOf(e.getMessage());
@@ -90,8 +89,9 @@ class StoryMapPoolEvidenceTest {
     }
 
     /** Generates the pooled map (which throws on a failed acceptance), checks the line and stands the battle up. */
-    private static String cordon(CordonVariant variant, SurfacePalette biome, StoryMapPool.Entry entry) throws Exception {
-        CordonSetup.CordonMap cordon = CordonSetup.map(variant, biome, entry);
+    private static String cordon(StoryMap map, SurfacePalette biome, StoryMapPool.Entry entry) throws Exception {
+        CordonVariant variant = CordonSetup.variantOf(map);
+        CordonSetup.CordonMap cordon = CordonSetup.map(variant, CordonSetup.densityOf(map), biome, entry);
         List<Precinct> redoubts = CordonPlan.redoubts(cordon.plan());
         if (redoubts.size() != CordonPlan.REDOUBTS) throw new AssertionError(redoubts.size() + " redoubts");
         for (int i = 1; i < redoubts.size(); i++) {

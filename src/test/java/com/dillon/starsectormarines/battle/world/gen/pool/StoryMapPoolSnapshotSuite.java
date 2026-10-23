@@ -60,9 +60,9 @@ public final class StoryMapPoolSnapshotSuite implements SnapshotSuite {
     private static BufferedImage frame(BattleReviewFrameRenderer whole, StoryMap map, SurfacePalette biome,
                                        StoryMapPool.Entry entry, String head) throws Exception {
         switch (map) {
-            case CORDON_LINE, CORDON_ROAD -> {
-                CordonVariant variant = map == StoryMap.CORDON_LINE ? CordonVariant.LINE : CordonVariant.ROAD;
-                CordonSetup.CordonMap cordon = CordonSetup.map(variant, biome, entry);
+            case CORDON_LINE, CORDON_ROAD, CORDON_LINE_TOWN, CORDON_ROAD_TOWN, CORDON_LINE_URBAN, CORDON_ROAD_URBAN -> {
+                CordonVariant variant = CordonSetup.variantOf(map);
+                CordonSetup.CordonMap cordon = CordonSetup.map(variant, CordonSetup.densityOf(map), biome, entry);
                 try (BattleSimulation sim = CordonSetup.create(cordon, variant, List.of(),
                         CordonSequence.Timetable.STANDARD)) {
                     return whole.render(sim, head, CordonMapgenSnapshotSuite.annotations(sim, cordon));

@@ -4,6 +4,10 @@ package com.dillon.starsectormarines.battle.world.gen.pool;
 public enum StoryMap {
     CORDON_LINE("cordon-line"),
     CORDON_ROAD("cordon-road"),
+    CORDON_LINE_TOWN("cordon-line-town"),
+    CORDON_ROAD_TOWN("cordon-road-town"),
+    CORDON_LINE_URBAN("cordon-line-urban"),
+    CORDON_ROAD_URBAN("cordon-road-urban"),
     HEART_BURN("heart-burn"),
     HEART_FRONT("heart-front");
 
