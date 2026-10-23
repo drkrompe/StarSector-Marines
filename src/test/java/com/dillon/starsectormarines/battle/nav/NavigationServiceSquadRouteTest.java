@@ -177,7 +177,7 @@ class NavigationServiceSquadRouteTest {
         NavigationGrid grid = openGrid(160, 160);
         NavigationService navigation = new NavigationService(grid,
                 new CellTopology(160, 160));
-        int budget = SharedGoalPolicy.maximumSquadRouteBuildsPerTick();
+        int budget = SharedGoalPolicy.MAX_SQUAD_ROUTE_BUILDS_PER_TICK;
         assertTrue(budget > 0, "shipping default must make forward progress");
         List<SquadRouteRequest> requests = IntStream.range(0, budget + 2)
                 .mapToObj(id -> new SquadRouteRequest(id, 1L, new Object(),
@@ -205,7 +205,7 @@ class NavigationServiceSquadRouteTest {
         }
         NavigationService navigation = new NavigationService(grid,
                 new CellTopology(grid.getWidth(), grid.getHeight()));
-        int budget = SharedGoalPolicy.maximumSquadRouteBuildsPerTick();
+        int budget = SharedGoalPolicy.MAX_SQUAD_ROUTE_BUILDS_PER_TICK;
         List<SquadRouteRequest> requests = IntStream.range(0, budget + 1)
                 .mapToObj(id -> id < budget
                         ? new SquadRouteRequest(id, 1L, new Object(), 18, 1,

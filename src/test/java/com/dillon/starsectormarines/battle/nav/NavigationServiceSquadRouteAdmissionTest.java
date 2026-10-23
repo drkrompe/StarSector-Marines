@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.nav;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -15,17 +14,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NavigationServiceSquadRouteAdmissionTest {
-    private final String previous = System.getProperty(NavigationService.SQUAD_ROUTE_ADMISSION_PROPERTY);
-
-    @BeforeEach
-    void enableAdmission() {
-        System.setProperty(NavigationService.SQUAD_ROUTE_ADMISSION_PROPERTY, "true");
-    }
-
     @AfterEach
-    void restore() {
-        if (previous == null) System.clearProperty(NavigationService.SQUAD_ROUTE_ADMISSION_PROPERTY);
-        else System.setProperty(NavigationService.SQUAD_ROUTE_ADMISSION_PROPERTY, previous);
+    void releaseProfile() {
         TickInnerProfile.releaseCurrentThread();
     }
 
@@ -173,7 +163,7 @@ class NavigationServiceSquadRouteAdmissionTest {
     }
 
     @Test
-    void controlAndTopologyResetClearPendingWithoutReclassifyingUnpreparedCalls() {
+    void topologyResetClearsPendingAndTheNextPreparationRequeues() {
         try (NavigationService navigation = navigation()) {
             List<SquadRouteRequest> requests = wave(budget() + 1, 1, 6);
             SquadRouteRequest deferred = requests.get(budget());
@@ -185,39 +175,6 @@ class NavigationServiceSquadRouteAdmissionTest {
             assertEquals(1, navigation.lastSquadRoutePending(), "flush retains last-preparation diagnostics");
             navigation.prepareSquadRoutes(requests, 2);
             assertTrue(pending(navigation, deferred));
-            System.setProperty(NavigationService.SQUAD_ROUTE_ADMISSION_PROPERTY, "false");
-            // Replacing every goal prevents the existing successful fields being reused.
-            requests = wave(budget() + 1, 2, 5);
-            deferred = requests.get(budget());
-            navigation.prepareSquadRoutes(requests, 3);
-            assertEquals(0, navigation.lastSquadRoutePending());
-            assertFalse(pending(navigation, deferred));
-            TickInnerProfile profile = new TickInnerProfile();
-            TickInnerProfile.setCurrent(profile);
-            assertTrue(path(navigation, deferred, 1).length > 0);
-            assertEquals(1, profile.countOf(TickInnerProfile.Bucket.SQUAD_PATH_FIELD_FALLBACK));
-            assertEquals("MISSING_FIELD", profile.slowPathSearches().get(0).fallbackReason());
-        }
-    }
-
-    @Test
-    void zeroBuildAllowanceRetiresWaitersAndPreservesLegacyFallback() {
-        try (NavigationService navigation = navigation()) {
-            List<SquadRouteRequest> requests = wave(2, 1, 6);
-            SquadRouteRequest deferred = requests.get(1);
-            navigation.prepareSquadRoutes(requests, 1, 1);
-            assertTrue(pending(navigation, deferred));
-
-            navigation.prepareSquadRoutes(requests, 2, 0);
-            assertEquals(0, navigation.lastSquadRouteAdmissions());
-            assertEquals(0, navigation.lastSquadRouteBuilds());
-            assertEquals(0, navigation.lastSquadRoutePending());
-            assertFalse(pending(navigation, deferred), "zero allowance must not create an endless wait");
-            TickInnerProfile profile = new TickInnerProfile();
-            TickInnerProfile.setCurrent(profile);
-            assertTrue(path(navigation, deferred, 1).length > 0);
-            assertEquals(1, profile.countOf(TickInnerProfile.Bucket.SQUAD_PATH_FIELD_FALLBACK));
-            assertEquals("MISSING_FIELD", profile.slowPathSearches().get(0).fallbackReason());
         }
     }
 
@@ -230,7 +187,7 @@ class NavigationServiceSquadRouteAdmissionTest {
     }
 
     private static int budget() {
-        int value = SharedGoalPolicy.maximumSquadRouteBuildsPerTick();
+        int value = SharedGoalPolicy.MAX_SQUAD_ROUTE_BUILDS_PER_TICK;
         assertTrue(value > 0);
         return value;
     }
