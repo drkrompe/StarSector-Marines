@@ -1165,20 +1165,27 @@ WRECKFALL = _wreckfall()
 
 def add_span(arg):
     """--span kf:t0:t1:fps (owner, 2026-10-22: the plasma judged moving, not as a still): a lit
-    motion span as one generated key frame per step, '<kf>s00', '<kf>s01', ..., each with the ships,
-    the camera and the effects at its own time. Returns their ids. The env var carries it into Blender."""
+    motion span as one generated key frame per step, each with the ships,
+    the camera and the effects at its own time. Returns their ids. The env var carries it into Blender.
+    The frames are named by sequence frame, '<kf>_f<round(t * fps)>', so two chunks of one shot never
+    collide; t1 is exclusive (the frame at t1 is the next chunk's, or the next shot's).
+    Each step also carries the key frame's own time ('key_t', which the kit's effects are timed
+    against) and the shot's span ('shot_t'): the effects play through the shot (blender_main sets the
+    scene frame to t; scene_fx fires the guns across the whole shot)."""
     kf, t0, t1, fps = arg.split(':')
     t0, t1, fps = float(t0), float(t1), float(fps)
     base = KEYFRAMES[kf]
     path = base['camera']['at']
+    key_t = next(p.t for p in base['ships'].values() if hasattr(p, 'at'))
     ids = []
-    for n in range(int(round((t1 - t0) * fps)) + 1):
+    for n in range(int(round((t1 - t0) * fps))):
         t = t0 + n / fps
         cam = dict(path(t))
         cam['at'] = path
-        spec = dict(base, camera=cam, t=t, title='%s at %.2f s' % (base['title'], t),
-                    ships={k: at_time(p, t) for k, p in base['ships'].items()})
-        key = '%ss%02d' % (kf, n)
+        spec = dict(base, camera=cam, t=t, title='%s at %.2f s' % (base['title'], t), key_t=key_t, span_t=t,
+                    shot_t=(path.keys[0]['t'], path.keys[-1]['t']),
+                    ships={k: at_time(p, t) if hasattr(p, 'at') else p for k, p in base['ships'].items()})
+        key = '%s_f%05d' % (kf, int(round(t * fps)))
         KEYFRAMES[key] = SHOTS[key] = spec
         ids.append(key)
     return ids
@@ -2012,6 +2019,11 @@ def blender_main(cfg):
         return o
 
     rng = np.random.default_rng(7)
+    span_now = {}
+
+    def span_dt():
+        """Seconds from the key frame's instant in a motion span (add_span), else 0."""
+        return span_now.get('dt', 0.0)
 
     def segment(p0, p1, radius, mat, name):
         d = p1 - p0
@@ -2147,14 +2159,14 @@ def blender_main(cfg):
         p0 = muzzle_world(a, muzzle)
         p1 = at(b, local or (0, 0, 0)) + Vector(rng.normal(0, 12, 3))
         for i in range(n):
-            f0 = rng.uniform(.08, .95)
+            f0 = .08 + (rng.uniform(0, .87) + span_dt() * 1200.0 / (p1 - p0).length) % .87   # rounds travel in a span
             f1 = min(1.0, f0 + 30.0 / (p1 - p0).length)
             segment(p0.lerp(p1, f1), p0.lerp(p1, f0), .7, tracer_mat, 'Tracer')
 
     def missiles(a, b, n=5, muzzle=None):
         p0, p1 = muzzle_world(a, muzzle), at(b)
         for i in range(n):
-            f = rng.uniform(.3, .9)
+            f = .3 + (rng.uniform(0, .6) + span_dt() * 250.0 / (p1 - p0).length) % .6
             p = p0.lerp(p1, f) + Vector(rng.normal(0, 60, 3))
             obj('Missile', bead_me, missile_mat, Matrix.Translation(p) @ Matrix.Scale(2.2, 4))
             back = (p0 - p1).normalized()
@@ -2659,7 +2671,10 @@ def blender_main(cfg):
         return h.hexdigest()[:16]
 
     labels = {}
+    anchor = scene.frame_current      # every frame's effects are built at this frame (the key frame's instant)
+    fps_s = scene.render.fps / scene.render.fps_base
     for kf in cfg['frames']:
+        scene.frame_set(anchor)
         clear_stage()
         for s in ships_fx.values():      # every ship's copy is rebuilt per key frame: one frame's kit effects
             s.remove()                   # (rounds, impacts, shields) never show on another
@@ -2672,6 +2687,8 @@ def blender_main(cfg):
         world.node_tree.nodes['Star gain'].inputs[1].default_value = STAR_GAIN
         if kf in SHOTS:
             spec = SHOTS[kf]
+            rng = np.random.default_rng(7)     # every frame draws the same stand-ins: a span's do not flicker
+            span_now['dt'] = spec['span_t'] - spec['key_t'] if 'span_t' in spec else 0.0
             for key, sp in spec['ships'].items():
                 place(key, sp, spec.get('states', {}).get(key))
             for lib in library.values():     # a build's control knobs: this frame's pose, else its saved pose
@@ -2718,7 +2735,9 @@ def blender_main(cfg):
             if cfg.get('swfx'):          # the finished kit draws what it can (scene_fx); the stand-ins draw the rest
                 import scene_fx
                 sfx_ = scene_fx.SceneFx(scene, placed, lambda k: placed[k]['build'],
-                                        muzzle_world, scene.frame_current, log=lambda t: print(t, flush=True))
+                                        muzzle_world, scene.frame_current, log=lambda t: print(t, flush=True),
+                                        span=tuple(anchor + round((t_ - spec['key_t']) * fps_s)
+                                                   for t_ in spec['shot_t']) if 'span_t' in spec else None)
                 for key, sh in spec.get('shields', {}).items():
                     sfx_.shield(key, sh)
                 for i, fx in enumerate(spec.get('fx', ())):
@@ -2799,6 +2818,10 @@ def blender_main(cfg):
                 for s_ in ships_fx.values():
                     s_.vacuum()
                 ship_fx.refresh(scene)
+            if 'span_t' in spec:         # a motion span: the effects built at the key instant play on to this one
+                scene.frame_set(anchor + round((spec['span_t'] - spec['key_t']) * fps_s))
+                print(f"ASHARU span {kf}: scene frame {scene.frame_current} ({spec['span_t'] - spec['key_t']:+.3f} s "
+                      f"from the key)", flush=True)
             lab = {}
             for key in spec['labels']:
                 if key in extra3d:
@@ -3626,6 +3649,8 @@ def main():
                        hide_volumes=opt('--hide-volumes'), blockout_wrecks='--blockout-wrecks' in argv)
             env = dict(os.environ, ASHARU_CFG=json.dumps(cfg))
             subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python', __file__], env=env)
+    if '--final' in argv:       # final frames: raw/<kf>_f<frame>.png is the clean composite; nothing labelled
+        return
     outputs = [orbit_diagram(run)] + label_frames(run)
     print('\n'.join(str(run / o) for o in outputs))
     post = opt('--post')
