@@ -61,6 +61,11 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
 
     private final HeartLane lane;
     private final BarrageScreen screen;
+    /** Whether the company holds its taken ground while any satellite stands, rather than going on to a mother alone. */
+    private boolean waitForSatellites;
+    /** Where the company is holding, fixed when it starts to, so the order does not follow its own drift. */
+    private int holdX = Integer.MIN_VALUE, holdY;
+    private int fallBackX = Integer.MIN_VALUE, fallBackY;
 
     /** @param lane the company's own lane */
     public HeartAssaultCommand(HeartLane lane) {
@@ -74,6 +79,29 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
     public HeartAssaultCommand(HeartLane lane, BarrageScreen screen) {
         this.lane = lane;
         this.screen = screen;
+    }
+
+    /**
+     * Broad Front: its own satellite down, the company holds that ground until the lanes have taken theirs, and
+     * goes for the mothers with them (`heart-nouns.md`, Broad Front, the bores fall in turn).
+     */
+    public HeartAssaultCommand waitingForSatellites() {
+        waitForSatellites = true;
+        return this;
+    }
+
+    /** As {@link #waitingForSatellites()}, falling back to {@code (x, y)} to wait rather than holding the ground it took. */
+    public HeartAssaultCommand waitingForSatellites(int x, int y) {
+        waitForSatellites = true;
+        fallBackX = x;
+        fallBackY = y;
+        return this;
+    }
+
+    /** Whether any satellite still stands. */
+    static boolean satelliteStanding(List<KnownBore> bores) {
+        for (KnownBore bore : bores) if (bore.living() && !bore.mother()) return true;
+        return false;
     }
 
     @Override public Faction faction() { return Faction.MARINE; }
@@ -99,7 +127,13 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
         KnownBore target = target(frame.bores, cx, cy);
         int tick = frame.tick();
         boolean held = target != null && screen != null && screen.beyond(screen.along(target.x(), target.y()), tick);
-        String phase = target == null ? "HEART_DOWN"
+        boolean waiting = waitForSatellites && target != null && target.mother() && satelliteStanding(frame.bores);
+        if (!waiting) holdX = Integer.MIN_VALUE;
+        else if (holdX == Integer.MIN_VALUE) {
+            holdX = fallBackX != Integer.MIN_VALUE ? fallBackX : Math.round(cx);
+            holdY = fallBackX != Integer.MIN_VALUE ? fallBackY : Math.round(cy);
+        }
+        String phase = target == null ? "HEART_DOWN" : waiting ? "HOLD_FOR_LANES"
                 : (held ? "FOLLOW_" : "") + (target.mother() ? "MOTHER_" : "SATELLITE_") + target.key();
         company.sort(Comparator.comparingInt(CommandSquadState::squadId));
         int sign = target == null ? 0 : screen != null ? screen.sign()
@@ -109,6 +143,8 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
             ObjectiveAssignment next;
             if (target == null) {
                 next = ObjectiveAssignment.defendArea(squad.squadId(), Math.round(squad.centroidX()), Math.round(squad.centroidY()));
+            } else if (waiting) {
+                next = ObjectiveAssignment.defendArea(squad.squadId(), holdX, holdY);
             } else {
                 int offset = FRONTAGE ? Math.round((i - (company.size() - 1) / 2f) * FRONTAGE_SPACING) : 0;
                 int along = held ? screen.holdAlong(tick) : along(target) - sign * ASSAULT_STANDOFF;

@@ -252,11 +252,7 @@ collapses a bore by fiat.
    goes for its satellite with the lanes up beside it rather than alone. Its
    own sector gets armour too, a breakthrough tank and a Hound pair stationed
    on its target and a fresh tank every two minutes, so no part of the front
-   goes in without it. `-Dbattle.heart.broadStrength=false`,
-   `-Dbattle.heart.broadFormUp=0` and `-Dbattle.heart.broadCompanyArmour=false`
-   are the controls. Measured on seeds 202-606: the lanes' strength alone wins
-   1 of 5, with the form-up 2, with the company's armour 3. Sending the lanes
-   across to the company's satellite once their own fell measured worse.
+   goes in without it.
 2. **Advance to contact.** The satellites surge on their own clocks from the
    start and hunt whatever they sense, so contact comes lane by lane. The
    mothers **sleep**: they grow, but send nothing.
@@ -270,12 +266,33 @@ collapses a bore by fiat.
    surviving mother surge at once** (owner's pick): the heart fights harder as
    it dies. Beats `bore_collapsed_N`, `matriarch_emerged_mother-N`,
    `mother_collapsed_N`.
+
+   **The company falls back.** Its own satellite down, the company does not go
+   on alone to a mother. It falls back to its landing and holds there while
+   any satellite still stands. When the last one falls it goes for the mothers
+   with the converging lanes. Its satellite sits nearest the heart, so the
+   heart's waking surge and the first Matriarchs come for it first. Holding
+   the taken ground kept more of the company alive but still lost it there on
+   one seed; falling back won every seed. The company is the spearhead onto
+   its satellite and the backstop after.
+
+   Controls: `-Dbattle.heart.broadStrength=false`, `-Dbattle.heart.broadFormUp=0`,
+   `-Dbattle.heart.broadCompanyArmour=false`, `-Dbattle.heart.broadWaitForLanes=false`
+   and `-Dbattle.heart.broadFallBack=false`. Measured on seeds 202-606:
+   - lanes' strength alone: 1 of 5 won;
+   - with the form-up: 2;
+   - with the company's armour: 3;
+   - holding its taken ground: 3, with far more of the company alive;
+   - falling back to its landing: 5.
+   Sending the lanes across to the company's satellite once their own fell
+   measured worse.
 5. **Heart down.** The last mother collapses: `heart_down`, the win. Allied
    lanes broken are a cost on the outcome, never a loss.
 
-The allied columns are scripted (`HeartLanes`): three militia teams at the foot
-of each of the four lanes step off together at the opening and march to their
-lane's first satellite as the Cordon's scripted columns march to a redoubt
+The allied columns are scripted (`HeartLanes`): a wave of militia teams at the
+foot of each of the four lanes steps off at the opening, and the rest follow
+on the lane's cadence, each marching to wherever its lane is aimed then. The
+first wave marches to its lane's first satellite as the Cordon's scripted columns march to a redoubt
 (`cordon-nouns.md`, Allied column). Once a column has arrived it is the lane's:
 when the bore it is on falls it goes on to its lane's next satellite, then to
 the nearest living mother. An allied lane's band is about a tenth of the front's
