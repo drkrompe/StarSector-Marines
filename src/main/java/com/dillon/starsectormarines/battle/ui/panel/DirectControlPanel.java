@@ -16,7 +16,10 @@ import com.fs.starfarer.api.input.InputEventAPI;
 import java.awt.Color;
 import java.util.List;
 
-/** World-space identity bracket and point-aim cursor; the retained plate owns actions. */
+/**
+ * World-space point-aim cursor, aim lanes and scatter ring; the retained plate owns actions. A ground body draws no
+ * bracket of its own: the action camera follows it, which already says which body is controlled.
+ */
 public final class DirectControlPanel implements HudPanel {
     private static final Color CONTROLLED = new Color(0x6E, 0xD7, 0xFF);
     /** A warship's laid ground: guns in the controlled blue, missiles in orange, danger in amber-red. */
@@ -45,12 +48,7 @@ public final class DirectControlPanel implements HudPanel {
             return;
         }
         long id = sim.directControl().activeUnitId();
-        float x = camera.cellToScreenX(sim.world().renderX(id));
-        float y = camera.cellToScreenY(sim.world().renderY(id));
-        float radius = Math.max(9f, camera.cellPxSize() * Math.max(0.7f, sim.physicalRadius(id) + 0.15f));
         HudDraw.prepBlend();
-        HudDraw.borderRect(x - radius, y - radius, radius * 2f, radius * 2f,
-                CONTROLLED, alpha);
         if (!context.directControlAimVisible()) return;
         var aim = sim.directControl().intent();
         if (!Float.isFinite(aim.aimX()) || !Float.isFinite(aim.aimY())) return;
@@ -121,7 +119,7 @@ public final class DirectControlPanel implements HudPanel {
         return ring.warning() ? DANGER_AREA : MISSILES_AREA;
     }
 
-    /** The controlled body's bracket and the cursor's crosshair colour. */
+    /** The cursor's crosshair colour. */
     public static Color controlledColor() {
         return CONTROLLED;
     }

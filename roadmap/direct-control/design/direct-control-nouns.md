@@ -67,8 +67,9 @@ Selecting an exact eligible Marine infantry member, Mech, or APC exposes an ente
 control: a compact action beside that unit's details. No entry panel or disabled
 selection prompt appears without an eligible unit, and hidden controls retain no
 pointer or keyboard focus. Tab toggles takeover and Escape releases it. Tab is reserved before
-retained UI focus traversal, and holding it never repeatedly switches modes. A bracket identifies the controlled body and a
-crosshair shows its point aim. The battle screen owns the mode indicator and
+retained UI focus traversal, and holding it never repeatedly switches modes. The action camera follows the controlled body, which
+is how the player knows which body is theirs: a ground body draws no bracket.
+A crosshair shows its point aim. The battle screen owns the mode indicator and
 routes input before ordinary
 world picking, contextual orders, and camera keys. During control, strategic
 chrome is hidden: commander rails, squad and Mech panels, command
@@ -132,7 +133,7 @@ mode. It has no squad commands or camera-jump action; the action camera continue
 following the controlled body. Pointer input over the list scrolls it and suspends
 world fire, while movement and ability bindings retain their existing routing.
 The world retains public objective locators, capture footprints, off-screen
-objective directions, health bars, the controlled bracket, and aim crosshair.
+objective directions, health bars, and aim crosshair.
 A lone controlled ground body counts through the ordinary objective's physical
 presence rules. Capture and recovery do not require the rest of its squad to be
 nearby; contesting enemies, required rooms, dwell times, equipment and specialist
