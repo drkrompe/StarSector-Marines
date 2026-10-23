@@ -258,6 +258,112 @@ public final class BallisticResolver {
         this.held = held == null ? id -> false : held;
     }
 
+    /**
+     * How far, in cells beyond a friend's own body radius, the lane a shooter checks before firing reaches either
+     * side of the line to the target. A round's lateral error is the reason it is wider than the body: a friend
+     * whose shoulder is a hand's breadth off the line is still in it.
+     */
+    public static final float FRIENDLY_LANE_CLEARANCE = 0.25f;
+
+    /**
+     * How far past the target, in cells, the checked lane runs. A round that misses flies on, and a friend
+     * standing just behind the man being shot at is where it goes first.
+     */
+    public static final float FRIENDLY_LANE_OVERSHOOT = 1.5f;
+
+    private static final ThreadLocal<LongBucket> LANE_SCRATCH = ThreadLocal.withInitial(LongBucket::new);
+
+    /**
+     * Whether a friend of {@code shooter} stands in the lane from it to {@code target}: the check a shooter makes
+     * before pulling the trigger, as against the discipline roll it makes after the round is committed. Reads only
+     * and draws nothing from any random stream. The lane starts where the resolver starts to let a round strike a
+     * friend ({@link #PROXIMITY_CATCH_ZERO_DISTANCE}), so a man at his squadmate's shoulder is not blocked by him.
+     */
+    public boolean friendInLane(long shooter, long target) {
+        World world = roster.world();
+        return friendInLane(shooter, world.renderX(shooter), world.renderY(shooter),
+                roster.identity().faction(shooter), world.renderX(target), world.renderY(target), target);
+    }
+
+    /**
+     * {@link #friendInLane(long, long)} from an explicit muzzle toward a point; {@code shooter} and {@code target}
+     * are never counted as friends in the way (zero for none).
+     */
+    public boolean friendInLane(long shooter, float fromX, float fromY, Faction side,
+                                float toX, float toY, long target) {
+        LongBucket candidates = LANE_SCRATCH.get();
+        candidates.clear();
+        unitIndex.gatherAlongSegment(fromX, fromY, toX, toY, FRIENDLY_LANE_CLEARANCE + FRIENDLY_LANE_OVERSHOOT,
+                candidates);
+        World world = roster.world();
+        for (int i = 0; i < candidates.size; i++) {
+            long id = candidates.ids[i];
+            if (id == shooter || id == target || held.test(id)) continue;
+            BodyCarrier carrier = bodies.carrierOf(id);
+            if (carrier != null ? !carrier.isTargetable(id) : !roster.isAliveById(id)) continue;
+            Faction faction = carrier != null ? carrier.faction(id) : roster.identity().faction(id);
+            if (faction == Faction.CIVILIAN || !side.friendlyTo(faction)) continue;
+            if (inLane(fromX, fromY, toX, toY, world.x(id), world.y(id), roster.radius(id))) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Whether a burst of {@code radius} at ({@code x}, {@code y}) would reach a body on {@code side}, the shooter's
+     * own included: the danger-close check a gunner makes on where the round is going to land. A body's footprint
+     * counts, as it does in {@code Detonations}. Reads only.
+     */
+    public boolean friendInBlast(long shooter, Faction side, float x, float y, float radius) {
+        if (shooter != 0L && bodyInBlast(shooter, x, y, radius)) return true;
+        LongBucket candidates = LANE_SCRATCH.get();
+        candidates.clear();
+        unitIndex.gather(x, y, radius + BLAST_FOOTPRINT_PAD, candidates);
+        for (int i = 0; i < candidates.size; i++) {
+            long id = candidates.ids[i];
+            if (id == shooter || held.test(id)) continue;
+            BodyCarrier carrier = bodies.carrierOf(id);
+            if (carrier != null ? !carrier.isTargetable(id) : !roster.isAliveById(id)) continue;
+            if (roster.isRiding(id)) continue;
+            Faction faction = carrier != null ? carrier.faction(id) : roster.identity().faction(id);
+            if (side.friendlyTo(faction) && bodyInBlast(id, x, y, radius)) return true;
+        }
+        return false;
+    }
+
+    /** Whether body {@code id}'s footprint reaches into a burst of {@code radius} at ({@code x}, {@code y}). */
+    public boolean bodyInBlast(long id, float x, float y, float radius) {
+        World world = roster.world();
+        float dx = world.x(id) - x;
+        float dy = world.y(id) - y;
+        float reach = radius + roster.radius(id);
+        return dx * dx + dy * dy <= reach * reach;
+    }
+
+    /** How far past a blast's radius {@link #friendInBlast} gathers for a body whose footprint reaches into it. */
+    private static final float BLAST_FOOTPRINT_PAD = 2f;
+
+    /**
+     * The lane geometry on its own: whether a body of {@code radius} at ({@code bx}, {@code by}) stands in the lane
+     * from ({@code fromX}, {@code fromY}) to ({@code toX}, {@code toY}) -- no nearer the muzzle than
+     * {@link #PROXIMITY_CATCH_ZERO_DISTANCE}, no further along than {@link #FRIENDLY_LANE_OVERSHOOT} past the target,
+     * and within its radius plus {@link #FRIENDLY_LANE_CLEARANCE} of the line.
+     */
+    public static boolean inLane(float fromX, float fromY, float toX, float toY,
+                                 float bx, float by, float radius) {
+        float dx = toX - fromX;
+        float dy = toY - fromY;
+        float length = (float) Math.sqrt(dx * dx + dy * dy);
+        if (length < 1e-6f) return false;
+        float ux = dx / length;
+        float uy = dy / length;
+        float rx = bx - fromX;
+        float ry = by - fromY;
+        float along = rx * ux + ry * uy;
+        if (along < PROXIMITY_CATCH_ZERO_DISTANCE || along > length + FRIENDLY_LANE_OVERSHOOT) return false;
+        float lateral = Math.abs(rx * uy - ry * ux);
+        return lateral <= radius + FRIENDLY_LANE_CLEARANCE;
+    }
+
     /** {@code target}'s ground velocity in cells/sec, as this resolver's own lead reads it. */
     public float targetVelocityX(long target) {
         return TargetMotion.velocityX(bodies, roster.movement(), target);

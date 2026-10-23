@@ -23,7 +23,9 @@ or an opened ramp keep their wear.
 
 Hound specifics:
 - WS 002 (small turret, slot angle 145) trains: `Weapon WS 002 pivot` turns about
-  hull +Z; everything above the traverse gap rides it, the barbette stays.
+  hull +Z; everything above the traverse gap rides it, the barbette stays. The gun
+  elevates: `Weapon WS 002 elevation` (hd_elevation.py), a child of the pivot on the
+  trunnion axis, carries the mantlet, barrels and muzzle anchors about its local Y.
 - WS 001 (medium hardpoint) is fixed: the turret kit's chaingun on `Weapon WS 001 mount`,
   its parts kept on their own empties (recoil 1, rotor); `Anchor weapon WS 001 muzzle`
   sits on the kit's `Weapon WS 001 muzzle anchor 1`, held by the root. WS 003 (hidden flare system) has its slot
@@ -42,6 +44,8 @@ import bpy
 from mathutils import Matrix, Vector
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+import hd_elevation  # noqa: E402
 PROLOGUE = HERE.parent
 GEOM_JSON = PROLOGUE / 'hound-geometry' / 'geometry.json'
 VFX = PROLOGUE / 'second-wind-vfx'
@@ -257,6 +261,10 @@ for slot_id, slot in SLOTS.items():
         a['scale'] = scale
         rec['muzzles'].append({'anchor': a.name, 'at': rounded(tip), 'axis': rounded(axis), 'scale': scale})
     rec['muzzle'] = rec['muzzles'][0] if rec['muzzles'] else None
+    if slot['mount'] == 'TURRET':
+        # The gun lifts on its trunnions: `Weapon WS 002 elevation` under the pivot carries the
+        # mantlet, barrels and muzzle anchors (hd_elevation.py, the turret kit's chain).
+        rec['elevation'] = hd_elevation.rig(bpy, STATE, anchors_coll)
     weapons.append(rec)
 
 # 5. Engines: the geometry's declared mouth anchors, +X aft.
@@ -389,8 +397,7 @@ manifest = {
     'conventions': {
         'root': 'Every ship part and anchor descends from the root; move, rotate or scale the root only.',
         'anchors': 'Local +X is the effect axis (drive exhaust aft; gun line of fire); +Z as near hull-dorsal as that allows.',
-        'turrets': 'Rotate `Weapon WS 002 pivot` about its local Z to train (rest pose is the slot angle, 145 deg; '
-                   'arc 290). Its muzzle anchor and slot anchor ride it.',
+        'turrets': hd_elevation.CONVENTION,
         'ramp': 'Rotate the hinge about its local Y; negative lowers the aft end.',
         'metric': 'Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres.',
     },

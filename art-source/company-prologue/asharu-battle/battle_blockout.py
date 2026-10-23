@@ -844,6 +844,8 @@ KEYFRAMES = {
         fx=[('tracer', 'manticore-p', 'lasher-lead'), ('tracer', 'falcon-p', 'lasher-lead'),
             ('tracer', 'falcon-p', 'lasher-b'), ('tracer', 'lasher-lead', 'manticore-p'),
             ('tracer', 'lasher-b', 'wolf-p-a'), ('missiles', 'manticore-p', 'phaeton'),
+            # the second salvo: the lead Lasher's 55.9 s breach is a Harpoon's (fire-control plan)
+            ('missiles', 'manticore-p', 'lasher-lead', 55.9),
             ('fire_on', 'lasher-a', (-20, 10, 6)),
             ('blast_on', 'lasher-lead', 14, (8, 6, 6))],
         cues={'lasher-lead': {'fire': 'all'}, 'lasher-b': {'fire': ['t3_1']},
@@ -1165,20 +1167,27 @@ WRECKFALL = _wreckfall()
 
 def add_span(arg):
     """--span kf:t0:t1:fps (owner, 2026-10-22: the plasma judged moving, not as a still): a lit
-    motion span as one generated key frame per step, '<kf>s00', '<kf>s01', ..., each with the ships,
-    the camera and the effects at its own time. Returns their ids. The env var carries it into Blender."""
+    motion span as one generated key frame per step, each with the ships,
+    the camera and the effects at its own time. Returns their ids. The env var carries it into Blender.
+    The frames are named by sequence frame, '<kf>_f<round(t * fps)>', so two chunks of one shot never
+    collide; t1 is exclusive (the frame at t1 is the next chunk's, or the next shot's).
+    Each step also carries the key frame's own time ('key_t', which the kit's effects are timed
+    against) and the shot's span ('shot_t'): the effects play through the shot (blender_main sets the
+    scene frame to t; scene_fx fires the guns across the whole shot)."""
     kf, t0, t1, fps = arg.split(':')
     t0, t1, fps = float(t0), float(t1), float(fps)
     base = KEYFRAMES[kf]
     path = base['camera']['at']
+    key_t = next(p.t for p in base['ships'].values() if hasattr(p, 'at'))
     ids = []
-    for n in range(int(round((t1 - t0) * fps)) + 1):
+    for n in range(int(round((t1 - t0) * fps))):
         t = t0 + n / fps
         cam = dict(path(t))
         cam['at'] = path
-        spec = dict(base, camera=cam, t=t, title='%s at %.2f s' % (base['title'], t),
-                    ships={k: at_time(p, t) for k, p in base['ships'].items()})
-        key = '%ss%02d' % (kf, n)
+        spec = dict(base, camera=cam, t=t, title='%s at %.2f s' % (base['title'], t), key_t=key_t, span_t=t, span_of=kf,
+                    shot_t=(path.keys[0]['t'], path.keys[-1]['t']),
+                    ships={k: at_time(p, t) if hasattr(p, 'at') else p for k, p in base['ships'].items()})
+        key = '%s_f%05d' % (kf, int(round(t * fps)))
         KEYFRAMES[key] = SHOTS[key] = spec
         ids.append(key)
     return ids
@@ -2012,6 +2021,11 @@ def blender_main(cfg):
         return o
 
     rng = np.random.default_rng(7)
+    span_now = {}
+
+    def span_dt():
+        """Seconds from the key frame's instant in a motion span (add_span), else 0."""
+        return span_now.get('dt', 0.0)
 
     def segment(p0, p1, radius, mat, name):
         d = p1 - p0
@@ -2146,25 +2160,71 @@ def blender_main(cfg):
     def tracer(a, b, local=None, n=6, muzzle=None):
         p0 = muzzle_world(a, muzzle)
         p1 = at(b, local or (0, 0, 0)) + Vector(rng.normal(0, 12, 3))
+        firing = True
+        if span_now.get('span'):     # in motion: bursts with gaps (owner: no long bursts at nothing)
+            import random as _random
+            r, t, firing = _random.Random(f'stand-in bursts|{a}|{b}'), -10.0 + _random.Random(a).uniform(0, 1.5), False
+            while t < 10.0 and not firing:
+                on = r.uniform(.8, 2.0)
+                firing = t <= span_dt() < t + on
+                t += on + r.uniform(1.0, 2.6)
+        fam = streak_family(a)
         for i in range(n):
-            f0 = rng.uniform(.08, .95)
-            f1 = min(1.0, f0 + 30.0 / (p1 - p0).length)
-            segment(p0.lerp(p1, f1), p0.lerp(p1, f0), .7, tracer_mat, 'Tracer')
+            length = STREAK_LEN_M[fam]
+            f0 = .08 + (rng.uniform(0, .87) + span_dt() * 1200.0 / (p1 - p0).length) % .87   # rounds travel in a span
+            f1 = min(1.0, f0 + length / (p1 - p0).length)
+            if firing:
+                head, tail = p0.lerp(p1, f1), p0.lerp(p1, f0)
+                segment(head, tail, streak_radius((head + tail) / 2, STREAK_R_M[fam]), tracer_mat, 'Tracer')
+
+    # A streak is as wide as its round (owner, 2026-10-23, S6c: "how 'wide' a streak should be related
+    # to its gun bore"): by weapon family, and never thinner or wider on screen than a believable
+    # tracer (STREAK_PX, at 1920 px across), whatever the camera's distance.
+    STREAK_R_M = {'mg': .09, 'ac': .16, 'heavy': .3, 'energy': .2}
+    STREAK_LEN_M = {'mg': 14.0, 'ac': 18.0, 'heavy': 10.0, 'energy': 22.0}
+    STREAK_PX = (.5, 1.4)        # radius: a streak 1 to 3 px wide
+
+    def streak_family(key):
+        import scene_fx
+        b = placed[key].get('build') if key in placed else None
+        w = (scene_fx.WEAPON_OF.get(b) or {}).get(1) or scene_fx.DEFAULT_WEAPON.get(b) or 'lightmg'
+        return scene_fx.SceneFx.FAMILY.get(w, "mg")
+
+    def streak_radius(p, r_m):
+        c = spec['camera']          # this frame's camera (the scene camera is aimed after the stand-ins)
+        d = max(1.0, (Vector(c['loc']) - p).length)
+        mpp = 2.0 * d * (18.0 / c['lens']) / 1920.0       # metres per pixel there (36 mm sensor, horizontal)
+        return min(max(r_m, STREAK_PX[0] * mpp), STREAK_PX[1] * mpp)
+
+    def cam_at_of(spec):
+        """scene frame -> (camera world location, horizontal fov rad) along a span's camera path."""
+        path = spec['camera'].get('at')
+
+        def cam_at(f):
+            c = path(spec['key_t'] + (f - anchor) / fps_s) if path is not None else spec['camera']
+            return Vector(c['loc']), 2.0 * math.atan(18.0 / c['lens'])
+        return cam_at
 
     def missiles(a, b, n=5, muzzle=None):
         p0, p1 = muzzle_world(a, muzzle), at(b)
         for i in range(n):
-            f = rng.uniform(.3, .9)
+            f = .3 + (rng.uniform(0, .6) + span_dt() * 250.0 / (p1 - p0).length) % .6
             p = p0.lerp(p1, f) + Vector(rng.normal(0, 60, 3))
-            obj('Missile', bead_me, missile_mat, Matrix.Translation(p) @ Matrix.Scale(2.2, 4))
             back = (p0 - p1).normalized()
-            segment(p, p + back * 140, 2.5, plume_mats['LOW_TECH'], 'Missile trail')
+            # no orbs (owner, 2026-10-23: "white orbs"): the body is a short streak along its flight
+            segment(p + back * 9, p, .9, missile_mat, 'Missile')
+            segment(p + back * 9, p + back * 140, 2.5, plume_mats['LOW_TECH'], 'Missile trail')
 
     def blast(p, radius):
-        obj('Blast', bead_me, blast_mat, Matrix.Translation(p) @ Matrix.Scale(radius * .55, 4))
-        for i in range(9):
-            o = Vector(rng.normal(0, radius * .45, 3))
-            obj('Blast lobe', bead_me, blast_mat, Matrix.Translation(p + o) @ Matrix.Scale(radius * rng.uniform(.2, .45), 4))
+        """No orbs: a torn, spiked burst (swfx_burst's jagged mesh), turned at random, in smoke."""
+        if str(PROLOGUE / 'second-wind-vfx') not in sys.path:
+            sys.path.insert(0, str(PROLOGUE / 'second-wind-vfx'))
+        import random as _random
+        import swfx_burst
+        me, _ = swfx_burst.lobed_mesh('Blast burst', blast_mat, _random.Random(int(rng.integers(1 << 30))),
+                                      lobes=(4, 7), spikes=(5, 9), lean=.3)
+        obj('Blast', me, blast_mat, Matrix.Translation(p) @ Euler(rng.uniform(0, 6.3, 3)).to_matrix().to_4x4()
+            @ Matrix.Scale(radius * .7, 4))
         obj('Blast smoke', bead_me, smoke_mat, Matrix.Translation(p) @ Matrix.Scale(radius * 1.15, 4))
 
     def debris(p, spread, n=40):
@@ -2186,10 +2246,51 @@ def blender_main(cfg):
             o = toward * (20 + 180 * f) + Vector(rng.normal(0, 6 + 20 * f, 3))
             obj('Smoke', bead_me, smoke_mat, Matrix.Translation(p + o) @ Matrix.Scale(5 + 14 * f, 4))
 
-    def flares(key):
+    def flares(key, life=1.6):
+        """Decoy flares (a stand-in for a ship the kit has no flare muzzles on). No orbs (owner,
+        2026-10-23: "white orbs around the hound"): each is thrown off her flank at its own moment
+        through the shot, a short hot streak along its motion with a smoke tail, slowing and fading,
+        and gone after `life` seconds; nothing is drawn before it is thrown or after it burns out."""
+        # In the world (owner, 2026-10-23, S6d: flares "stay in relation to the hound = wrong"): each
+        # leaves her flank where she was when she threw it, with her velocity then plus its own
+        # ejection, which slows; her later turns and rolls do not carry it.
+        import random as _random
+        dt = span_dt()
+        world = None
+        if 'span_t' in spec and hasattr(spec['ships'].get(key), 'at'):
+            ms = ship_matrix_at(spec)
+            world = lambda t_s: ms(key, anchor + t_s * fps_s)        # t_s: seconds from the key frame
         for i in range(10):
-            p = at(key, (rng.uniform(-60, 40), rng.choice((-1, 1)) * rng.uniform(50, 120), rng.uniform(-10, 40)))
-            obj('Flare', bead_me, flare_mat, Matrix.Translation(p) @ Matrix.Scale(1.6, 4))
+            side = rng.choice((-1, 1))
+            s0 = Vector((rng.uniform(-20, 10), side * rng.uniform(8, 15), rng.uniform(0, 8)))
+            out = Vector((rng.uniform(-60, 40), side * rng.uniform(50, 120), rng.uniform(-10, 40))).normalized()
+            thrown = rng.uniform(-2.0, 4.0)              # seconds from the key frame
+            age = dt - thrown
+            if not 0.0 <= age <= life:
+                continue
+            go = lambda a, s0=s0, out=out: s0 + out * 70.0 * (a - a * a / (2.2 * life))     # thrown hard, slowing
+            if world is None:
+                pos = lambda a, go=go: at(key, go(a))
+            else:
+                m0 = world(thrown)
+                v = (world(thrown + .05).translation - world(thrown - .05).translation) / .1
+                pos = lambda a, m0=m0, v=v, go=go, s0=s0: m0 @ s0 + v * a + m0.to_3x3() @ (go(a) - s0)
+            heat = 1.0 - age / life
+            head, tail = pos(age), pos(max(0.0, age - .12))
+            if (head - tail).length > .05:
+                segment(tail, head, streak_radius(head, .12 + .1 * heat), flare_mat, 'Flare')
+            # thin smoke, broken into wisps that widen and drift apart as they age, not one rod
+            wr = _random.Random(f'flare wisps|{key}|{i}')
+            for k in range(1, 9):
+                a1, a2 = age - .07 * k, age - .07 * (k + 1)
+                if a2 < 0:
+                    break
+                if wr.random() < .35:
+                    continue
+                spread = age - a1
+                j1 = Vector([wr.gauss(0, .2 + 1.4 * spread) for _ in range(3)])
+                j2 = Vector([wr.gauss(0, .2 + 1.4 * spread) for _ in range(3)])
+                segment(pos(a2) + j2, pos(a1) + j1, .1 + .6 * spread, smoke_mat, 'Flare smoke')
 
     def entry_trails(labels3d):
         """Two entry trails 150-45 km up, 150-800 km downrange and heading north, from orbit: each
@@ -2658,12 +2759,31 @@ def blender_main(cfg):
                                        frame_meta(0, False, cfg.get('surface', SURFACE_DETAIL))]).encode())
         return h.hexdigest()[:16]
 
+    def ship_matrix_at(spec):
+        """(key, scene frame) -> that ship's world matrix (metres) at the frame's time in a motion span:
+        the kit's guns track their targets along both ships' flights (scene_fx.SceneFx.tracking)."""
+        def at(key, f):
+            sp = spec['ships'][key]
+            x, y, z, hd, pt, rl, _thr = sp.at(spec['key_t'] + (f - anchor) / fps_s) if hasattr(sp, 'at') else sp
+            return frame_of((x, y, z), hd, pt, rl)
+        return at
+
     labels = {}
+    anchor = scene.frame_current      # every frame's effects are built at this frame (the key frame's instant)
+    fps_s = scene.render.fps / scene.render.fps_base
+    built_for, kit_drew = [None], set()
     for kf in cfg['frames']:
+        # --kit-once: a motion span's frames share one kit build. The first frame of a run builds every
+        # ship's copy with the whole shot's effects keyed (scene_fx fires through the shot); the rest only
+        # re-place the hulls, redraw the world-space stand-ins and step the scene frame.
+        span_of = SHOTS[kf].get('span_of') if kf in SHOTS and cfg.get('kit_once') else None
+        step = span_of is not None and span_of == built_for[0]
+        scene.frame_set(anchor)
         clear_stage()
-        for s in ships_fx.values():      # every ship's copy is rebuilt per key frame: one frame's kit effects
-            s.remove()                   # (rounds, impacts, shields) never show on another
-        ships_fx.clear()
+        if not step:
+            for s in ships_fx.values():      # every ship's copy is rebuilt per key frame: one frame's kit effects
+                s.remove()                   # (rounds, impacts, shields) never show on another
+            ships_fx.clear()
         air.hide_render = False
         ground.hide_render = False
         sun.data.energy = 4.6
@@ -2672,40 +2792,46 @@ def blender_main(cfg):
         world.node_tree.nodes['Star gain'].inputs[1].default_value = STAR_GAIN
         if kf in SHOTS:
             spec = SHOTS[kf]
+            rng = np.random.default_rng(7)     # every frame draws the same stand-ins: a span's do not flicker
+            span_now['dt'] = spec['span_t'] - spec['key_t'] if 'span_t' in spec else 0.0
+            span_now['span'] = 'span_t' in spec
             for key, sp in spec['ships'].items():
                 place(key, sp, spec.get('states', {}).get(key))
-            for lib in library.values():     # a build's control knobs: this frame's pose, else its saved pose
-                if lib.get('ctl') is not None:
-                    for name, rest in lib['knobs'].items():
-                        lib['ctl'][name] = rest
-            for s in ships_fx.values():      # every ship's own copy: saved pose, no flashes
-                s.reset()
-            for key, pl in placed.items():   # the kit's drives follow the placement's throttle
-                if pl['fx'] is not None and pl['fx'].fx is not None and not pl['lib']['swfx']:
-                    pl['fx'].set('thr_throttle', pl['throttle'])
-                if pl['fx'] is not None and pl['fx'].fx is not None:
-                    pl['fx'].vacuum()        # Asharu is fought in orbit: no hanging haze, no landing dust
-            for key, kn in spec.get('knobs', {}).items():
-                for name, val in kn.items():
-                    if isinstance(val, dict):     # {'ago_s': t}: a frame t seconds before this one
-                        val = scene.frame_current - round(val['ago_s'] * scene.render.fps / scene.render.fps_base)
-                    if placed[key]['fx'] is not None:
-                        placed[key]['fx'].set(name, val)
-                    else:
-                        placed[key]['lib']['ctl'][name] = val
-            for key, cue in spec.get('cues', {}).items() if cfg.get('swfx') else ():
-                apply_cue(key, placed[key]['fx'], cue)
-            if ships_fx or any(lib.get('ctl') is not None for lib in library.values()):
-                ship_fx.refresh(scene)     # drivers read the knobs
-                bpy.context.view_layer.update()
-            if cfg.get('swfx'):            # no orb explosions: a built cook-off becomes bursts at its break_frame
-                for key, pl in placed.items():
-                    if pl['fx'] is not None and pl['fx'].groups.get('SWFX | Fire') is not None:
-                        import swfx_fire
-                        with pl['fx'].kit() as (ctx, _kit):
-                            print(f'ASHARU cook-off bursts {key}', swfx_fire.jagged_cookoff(ctx), flush=True)
-                ship_fx.refresh(scene)
-                bpy.context.view_layer.update()
+            if not step:                     # the kit's build: once per run under --kit-once
+                for lib in library.values():     # a build's control knobs: this frame's pose, else its saved pose
+                    if lib.get('ctl') is not None:
+                        for name, rest in lib['knobs'].items():
+                            lib['ctl'][name] = rest
+                for s in ships_fx.values():      # every ship's own copy: saved pose, no flashes
+                    s.reset()
+                for key, pl in placed.items():   # the kit's drives follow the placement's throttle
+                    if pl['fx'] is not None and pl['fx'].fx is not None and not pl['lib']['swfx']:
+                        pl['fx'].set('thr_throttle', pl['throttle'])
+                    if pl['fx'] is not None and pl['fx'].fx is not None:
+                        pl['fx'].vacuum()        # Asharu is fought in orbit: no hanging haze, no landing dust
+                for key, kn in spec.get('knobs', {}).items():
+                    for name, val in kn.items():
+                        if isinstance(val, dict):     # {'ago_s': t}: a frame t seconds before this one
+                            val = scene.frame_current - round(val['ago_s'] * scene.render.fps / scene.render.fps_base)
+                        if placed[key]['fx'] is not None:
+                            placed[key]['fx'].set(name, val)
+                        else:
+                            placed[key]['lib']['ctl'][name] = val
+                for key, cue in spec.get('cues', {}).items() if cfg.get('swfx') else ():
+                    if 'span_t' in spec:     # in motion a gun flashes when it fires a round, not on cue
+                        cue = {k: v for k, v in cue.items() if k != 'fire'}
+                    apply_cue(key, placed[key]['fx'], cue)
+                if ships_fx or any(lib.get('ctl') is not None for lib in library.values()):
+                    ship_fx.refresh(scene)     # drivers read the knobs
+                    bpy.context.view_layer.update()
+                if cfg.get('swfx'):            # no orb explosions: a built cook-off becomes bursts at its break_frame
+                    for key, pl in placed.items():
+                        if pl['fx'] is not None and pl['fx'].groups.get('SWFX | Fire') is not None:
+                            import swfx_fire
+                            with pl['fx'].kit() as (ctx, _kit):
+                                print(f'ASHARU cook-off bursts {key}', swfx_fire.jagged_cookoff(ctx), flush=True)
+                    ship_fx.refresh(scene)
+                    bpy.context.view_layer.update()
             extra3d = {}
             if spec.get('platform'):
                 platform(spec['platform'], spec.get('platform_t', K1B_T))
@@ -2714,11 +2840,18 @@ def blender_main(cfg):
             CLEAR_GUNS.clear()
             line_of_sight(kf, spec, muzzles, cfg.get('los'))     # picks, per shot, a bearing gun with a clear line
             seat_check(kf, spec)
-            kit_drew = set()
-            if cfg.get('swfx'):          # the finished kit draws what it can (scene_fx); the stand-ins draw the rest
+            if not step:
+                kit_drew = set()
+            if cfg.get('swfx') and not step:     # the finished kit draws what it can (scene_fx); the stand-ins the rest
                 import scene_fx
                 sfx_ = scene_fx.SceneFx(scene, placed, lambda k: placed[k]['build'],
-                                        muzzle_world, scene.frame_current, log=lambda t: print(t, flush=True))
+                                        muzzle_world, scene.frame_current, log=lambda t: print(t, flush=True),
+                                        span=tuple(anchor + round((t_ - spec['key_t']) * fps_s)
+                                                   for t_ in spec['shot_t']) if 'span_t' in spec else None,
+                                        cur=anchor + round((spec['span_t'] - spec['key_t']) * fps_s)
+                                        if 'span_t' in spec and not cfg.get('kit_once') else None,
+                                        matrix_at=ship_matrix_at(spec) if 'span_t' in spec else None,
+                                        cam_at=cam_at_of(spec) if 'span_t' in spec else None)
                 for key, sh in spec.get('shields', {}).items():
                     sfx_.shield(key, sh)
                 for i, fx in enumerate(spec.get('fx', ())):
@@ -2729,8 +2862,10 @@ def blender_main(cfg):
                     elif kind == 'missiles':
                         try:         # a salvo on a ship that breaks arrives on her break_frame (the cook-off)
                             bf = int(placed[fx[2]]['fx'].get('break_frame'))
-                        except (AttributeError, KeyError):
+                        except (AttributeError, KeyError, TypeError):
                             bf = None
+                        if len(fx) > 3:       # ('missiles', a, b, t): the salvo arrives at sequence time t
+                            bf = anchor + round((fx[3] - spec.get('key_t', fx[3])) * fps_s)
                         done = sfx_.missiles(fx[1], fx[2], arrive=bf)
                     elif kind == 'blast_on':
                         done = sfx_.blast_on(fx[1], fx[2], fx[3])
@@ -2744,10 +2879,26 @@ def blender_main(cfg):
                         done = sfx_.flares(fx[1])
                     if done:
                         kit_drew.add(i)
-                for row in sfx_.rows:
-                    print(f'ASHARU kit {kf} {row}', flush=True)
+                # the battle's damage so far, and this shot's hits as they land (asharu_damage's ledger)
+                kt = spec.get('key_t', next((p_.t for p_ in spec['ships'].values() if hasattr(p_, 'at')), None))
+                if kt is not None:
+                    import asharu_damage
+                    t0_, t1_ = spec['shot_t'] if 'span_t' in spec else (kt, kt)
+                    asharu_damage.apply_all(placed, t0_, t1_, lambda t_, kt=kt: anchor + round((t_ - kt) * fps_s),
+                                            log=lambda t: print(t, flush=True), shot_fx=spec.get('fx'))
+                else:
+                    print(f'ASHARU damage {kf}: no key time (no flown ship), ledger not applied', flush=True)
+                try:
+                    sfx_.projectile_check()
+                finally:
+                    for row in sfx_.rows:
+                        print(f'ASHARU kit {kf} {row}', flush=True)
                 ship_fx.refresh(scene)
                 bpy.context.view_layer.update()
+            if not step:
+                built_for[0] = span_of
+            else:
+                print(f'ASHARU kit {kf}: stepped (the {span_of} kit, built on the first frame of the run)', flush=True)
             if cfg.get('fx_check'):
                 fx_report(kf)
                 FX_AUDIT.append(fx_audit(list(ships_fx.values()), [lib.get('fx') for lib in library.values()]))
@@ -2799,6 +2950,10 @@ def blender_main(cfg):
                 for s_ in ships_fx.values():
                     s_.vacuum()
                 ship_fx.refresh(scene)
+            if 'span_t' in spec:         # a motion span: the effects built at the key instant play on to this one
+                scene.frame_set(anchor + round((spec['span_t'] - spec['key_t']) * fps_s))
+                print(f"ASHARU span {kf}: scene frame {scene.frame_current} ({spec['span_t'] - spec['key_t']:+.3f} s "
+                      f"from the key)", flush=True)
             lab = {}
             for key in spec['labels']:
                 if key in extra3d:
@@ -2838,6 +2993,14 @@ def blender_main(cfg):
                         o_.hide_render = True
                         gone += 1
             print(f'ASHARU hid {gone} volume objects ({cfg["hide_volumes"]})', flush=True)
+        if cfg.get('swfx'):     # no orbs (owner, 2026-10-21 and 2026-10-23): flag any round emissive effect
+            if str(PROLOGUE / 'second-wind-vfx') not in sys.path:
+                sys.path.insert(0, str(PROLOGUE / 'second-wind-vfx'))
+            import swfx_lint
+            # measured as at full size: the lint counts pixels at the render's own percentage
+            orb_rows = swfx_lint.orbs(scene, min_px=4.0 * scene.render.resolution_percentage / 100.0)
+            print(f'ASHARU lint {kf}: {len(orb_rows)} orbs' + ''.join(
+                f'; {r_["object"]} {r_["px"]} px ratio {r_["ratio"]} ({r_["why"]})' for r_ in orb_rows[:4]), flush=True)
         partial = raw / f'{kf}.partial'           # not *.png, so a queue's frame count never counts it
         t_render = time.time()
         scene.render.use_file_extension = False
@@ -3605,7 +3768,8 @@ def main():
                                                           fx_check='--fx-check' in argv,
                                                           volume_audit='--volume-audit' in argv,
                                                           layers=layers, plates=plates,
-                                                          blockout_wrecks='--blockout-wrecks' in argv)))
+                                                          blockout_wrecks='--blockout-wrecks' in argv,
+                                                          kit_once='--kit-once' in argv)))
         subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python-exit-code', '1',
                                '--python', __file__], env=env)
         return
@@ -3623,9 +3787,12 @@ def main():
                        layers=layers, plates=plates, volume_step_rate=opt('--volume-step-rate'),
                        volume_max_steps=opt('--volume-max-steps'), percent=opt('--percent'),
                        volume_biased='--volume-biased' in argv,
+                       kit_once='--kit-once' in argv,
                        hide_volumes=opt('--hide-volumes'), blockout_wrecks='--blockout-wrecks' in argv)
             env = dict(os.environ, ASHARU_CFG=json.dumps(cfg))
             subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python', __file__], env=env)
+    if '--final' in argv:       # final frames: raw/<kf>_f<frame>.png is the clean composite; nothing labelled
+        return
     outputs = [orbit_diagram(run)] + label_frames(run)
     print('\n'.join(str(run / o) for o in outputs))
     post = opt('--post')
@@ -3652,6 +3819,9 @@ if __name__ == '__main__':
     except ImportError:
         bpy = None
     if bpy is not None and os.environ.get('ASHARU_CFG'):
+        if os.environ.get('ASHARU_STACKS'):     # a build that hangs: every thread's stack, every N seconds
+            import faulthandler
+            faulthandler.dump_traceback_later(int(os.environ['ASHARU_STACKS']), repeat=True)
         blender_main(json.loads(os.environ['ASHARU_CFG']))
     else:
         main()

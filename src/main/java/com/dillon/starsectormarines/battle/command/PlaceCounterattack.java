@@ -54,11 +54,9 @@ final class PlaceCounterattack {
 
     /** {@code -Dbattle.counterattack=false} is the same-build control: no reserve, no group, no probe. */
     static final String PROPERTY = "battle.counterattack";
-    /** The fort counter-attack's old switch, still honoured when the new one is not given. */
-    static final String LEGACY_PROPERTY = "battle.conquest.fortCounterattack";
 
     private static volatile boolean enabled = Boolean.parseBoolean(
-            System.getProperty(PROPERTY, System.getProperty(LEGACY_PROPERTY, "true")));
+            System.getProperty(PROPERTY, "true"));
 
     /** A place further than this from home is not worth leaving home for. UNTUNED. */
     static final int MAX_RETAKE_CELLS = 220;
@@ -123,7 +121,7 @@ final class PlaceCounterattack {
     static final float RESERVE_SHARE = 0.5f;
 
     /*
-     * Evidence knobs (`-Dbattle.counterattack.<name>`, or the old `-Dbattle.conquest.fortCounterattack.<name>`), read
+     * Evidence knobs (`-Dbattle.counterattack.<name>`), read
      * once, so a tuning variant is one command away from its control. The defaults are the constants above.
      */
     static volatile float reserveShare = knob("reserveShare", RESERVE_SHARE);
@@ -167,7 +165,7 @@ final class PlaceCounterattack {
     static volatile boolean lendToBelt = knob("lendToBelt", 1f) > 0f;
 
     private static float knob(String name, float fallback) {
-        String value = System.getProperty(PROPERTY + "." + name, System.getProperty(LEGACY_PROPERTY + "." + name));
+        String value = System.getProperty(PROPERTY + "." + name);
         if (value == null) return fallback;
         if (value.equalsIgnoreCase("true")) return 1f;
         if (value.equalsIgnoreCase("false")) return 0f;

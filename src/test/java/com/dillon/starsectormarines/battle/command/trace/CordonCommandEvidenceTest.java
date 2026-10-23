@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.command.trace;
 
+import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
 import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
 import com.dillon.starsectormarines.battle.cordon.CordonRefugees;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
@@ -9,8 +10,10 @@ import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.CordonBattleFixture;
+import com.dillon.starsectormarines.battle.fabrication.FabricationService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import org.json.JSONArray;
@@ -41,8 +44,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Tag("cordon-command-evidence")
 class CordonCommandEvidenceTest {
 
-    /** Cells from a calling redoubt's centre an allied hull counts as answering it. */
-    private static final float ARMOUR_AT_CALL = 20f;
+    /** Cells from a calling redoubt's walls an allied hull counts as answering it. */
+    private static final float ARMOUR_AT_CALL = 12f;
+    private static final String NL = "\n";
 
     /** The window and a minute over, so a held line finishes inside the budget. */
     private static final int DEFAULT_MAX_TICKS = 28_800;
@@ -105,7 +109,8 @@ class CordonCommandEvidenceTest {
             assertTrue(first.fallen() <= CordonSequence.Timetable.STANDARD.allowedFallen(), "a held line lost no more than allowed");
         }
         if ("BROKEN".equals(first.outcome())) {
-            assertTrue(first.beatIds().contains("cordon.line_broken") || first.beatIds().contains("cordon.gap_closed"),
+            assertTrue(first.beatIds().contains("cordon.line_broken") || first.beatIds().contains("cordon.gap_closed")
+                            || first.beatIds().contains("cordon.convoys_lost") || first.beatIds().contains("cordon.convoys_short"),
                     "a broken cordon says how");
         }
     }
@@ -166,8 +171,9 @@ class CordonCommandEvidenceTest {
                 hulls++;
                 GroundBody body = sim.convoy().body(hull);
                 for (CordonRedoubt r : cordon.redoubts()) {
-                    if (r.state() == CordonRedoubt.State.CALLING
-                            && body.distanceTo(r.centreX(), r.centreY()) <= ARMOUR_AT_CALL) {
+                    float nearX = Math.max(r.left(), Math.min(r.right(), body.x));
+                    float nearY = Math.max(Math.min(r.top(), r.bottom()), Math.min(Math.max(r.top(), r.bottom()), body.y));
+                    if (r.state() == CordonRedoubt.State.CALLING && body.distanceTo(nearX, nearY) <= ARMOUR_AT_CALL) {
                         atCall++;
                         break;
                     }
@@ -178,7 +184,8 @@ class CordonCommandEvidenceTest {
                 .put("minute", sim.getSimTickIndex() * BattleSimulation.TICK_DT / 60f)
                 .put("marines", marines).put("allies", allies).put("swarm", swarm)
                 .put("livingBores", bores).put("armour", hulls).put("armourAtCall", atCall)
-                .put("redoubts", redoubts);
+                .put("redoubts", redoubts)
+                .put("convoys", cordon.convoys() == null ? "-" : cordon.convoys().describe(sim));
     }
 
     private static String tableRow(JSONObject row) throws Exception {
@@ -191,7 +198,7 @@ class CordonCommandEvidenceTest {
             line.append(' ').append(r.getString("state").toLowerCase(Locale.ROOT)).append(' ')
                     .append(r.getInt("standing")).append('/').append(r.getInt("garrison")).append(" |");
         }
-        return line.append('\n').toString();
+        return line.append(' ').append(row.getString("convoys")).append(" |\n").toString();
     }
 
     private static String report(String runId, BattleSimulation sim, CordonSequence cordon, String winner,
@@ -218,6 +225,50 @@ class CordonCommandEvidenceTest {
             out.append("- Allied columns joined: ").append(cordon.columns().joined()).append(" of ")
                     .append(cordon.timetable().columnSeconds().size()).append('\n');
         }
+        if (cordon.convoys() != null) {
+            CordonConvoys convoys = cordon.convoys();
+            out.append("- Convoys: ").append(convoys.out()).append(" out, ").append(convoys.lost())
+                    .append(" lost of ").append(convoys.convoys()).append(" (")
+                    .append(cordon.timetable().convoysNeeded()).append(" needed); townspeople ")
+                    .append(convoys.peopleOut()).append(" out, ").append(convoys.peopleLost())
+                    .append(" lost, ").append(convoys.town()).append(" still in the town").append(NL);
+            for (long truck : convoys.trucks()) {
+                GroundBody body = sim.convoy().body(truck);
+                out.append(String.format(Locale.ROOT, "  - Truck %d at %.0f,%.0f, structure %.0f/%.0f%s%s",
+                        truck, body.x, body.y, sim.world().hp(truck), sim.world().maxHp(truck),
+                        sim.convoy().mission(truck).authoredRoutePaused ? ", held" : "", NL));
+            }
+        }
+        if (cordon.logistics() != null) {
+            out.append("- Logistics base: ").append(cordon.logistics().built()).append(" machines built, ")
+                    .append(cordon.logistics().carried()).append(" squads carried up, ")
+                    .append(cordon.logistics().waiting()).append(" waiting at the base, ")
+                    .append(cordon.logistics().queued()).append(" machines waiting to leave the shed, ")
+                    .append(cordon.logistics().carriers().size()).append(" carriers and ")
+                    .append(cordon.armour() == null ? 0 : cordon.armour().command().hulls().size())
+                    .append(" allied hulls alive\n");
+            out.append("  - Machine door: ").append(cordon.logistics().doorX()).append(',')
+                    .append(cordon.logistics().doorY()).append("; apron muster ")
+                    .append(cordon.logistics().musterX()).append(',')
+                    .append(cordon.logistics().musterY()).append(NL);
+            for (long hull : cordon.armour().command().hulls()) {
+                GroundBody body = sim.convoy().body(hull);
+                VehicleMoveOrderService.RefusedOrder refused = sim.getVehicleMoveOrderService().refusal(hull);
+                out.append(String.format(Locale.ROOT, "  - Hull %d %s at %.0f,%.0f, structure %.0f/%.0f%s%s",
+                        hull, sim.convoy().vehicleType(hull), body.x, body.y, sim.world().hp(hull),
+                        sim.world().maxHp(hull), refused == null ? "" : ", refused " + refused.reason()
+                                + " to " + refused.requestedX() + "," + refused.requestedY(), NL));
+            }
+            if (sim.getFabrication() != null) {
+                for (FabricationService.Works bay : sim.getFabrication().bays()) {
+                    out.append("  - Shed bay ").append(bay.siteId).append(": ").append(bay.completed)
+                            .append(" finished, on the stocks ").append(bay.hasFrame()
+                                    ? String.format(Locale.ROOT, "%s at %.0f%%", bay.vehicle,
+                                    100f * sim.world().hp(bay.frameId) / sim.world().maxHp(bay.frameId)) : "nothing")
+                            .append('\n');
+                }
+            }
+        }
         for (CordonRedoubt r : cordon.redoubts()) {
             out.append("- Redoubt ").append(r.number()).append(": cells ").append(r.left()).append(',').append(r.top())
                     .append(" to ").append(r.right()).append(',').append(r.bottom()).append(", guns ")
@@ -228,11 +279,13 @@ class CordonCommandEvidenceTest {
             out.append(String.format(Locale.ROOT, "| %.2f | %s |%n", event.tick() * BattleSimulation.TICK_DT / 60f,
                     event.id()));
         }
-        out.append("\n## The line each minute\n\nArmour: allied hulls alive (at a calling redoubt).\n\n"
-                + "| min | marines | allies | swarm | bores | armour |");
+        out.append("\n## The line each minute\n\nArmour: allied hulls alive (at a calling redoubt). Convoys: each on "
+                + "the road, its lead truck's cell along the corridor")
+                .append(cordon.convoys() == null ? "" : " (the gap is cell " + cordon.convoys().gapIndex() + ")")
+                .append(", and why it is held.\n\n| min | marines | allies | swarm | bores | armour |");
         for (CordonRedoubt r : cordon.redoubts()) out.append(" redoubt ").append(r.number()).append(" |");
-        out.append("\n|---|---|---|---|---|---|");
-        for (int i = 0; i < cordon.redoubts().size(); i++) out.append("---|");
+        out.append(" convoys |\n|---|---|---|---|---|---|");
+        for (int i = 0; i <= cordon.redoubts().size(); i++) out.append("---|");
         return out.append('\n').append(table).toString();
     }
 

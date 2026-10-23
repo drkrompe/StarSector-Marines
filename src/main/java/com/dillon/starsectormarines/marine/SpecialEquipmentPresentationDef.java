@@ -9,7 +9,6 @@ import java.io.Serializable;
 /** Catalog, actor-composition, deployed-world, and preview art for one special item. */
 public record SpecialEquipmentPresentationDef(
         String armoryIconPath,
-        String aimSpritePath,
         SpecialUsePose usePose,
         EquipmentLayerDef carrierLayer,
         Thrown thrown,
@@ -21,21 +20,21 @@ public record SpecialEquipmentPresentationDef(
         EquipmentLayerDef packedLayer) implements Serializable {
 
     /** Presentation without a hand-held layer, as every item but a radio authors it. */
-    public SpecialEquipmentPresentationDef(String armoryIconPath, String aimSpritePath,
+    public SpecialEquipmentPresentationDef(String armoryIconPath,
                                            SpecialUsePose usePose, EquipmentLayerDef carrierLayer,
                                            Thrown thrown, Field field, Deployed deployed,
                                            LayerClips layerClips, Preview preview) {
-        this(armoryIconPath, aimSpritePath, usePose, carrierLayer, thrown, field,
+        this(armoryIconPath, usePose, carrierLayer, thrown, field,
                 deployed, layerClips, preview, null, null);
     }
 
     /** Presentation without packed art: the carrier layer is all the item draws. */
-    public SpecialEquipmentPresentationDef(String armoryIconPath, String aimSpritePath,
+    public SpecialEquipmentPresentationDef(String armoryIconPath,
                                            SpecialUsePose usePose, EquipmentLayerDef carrierLayer,
                                            Thrown thrown, Field field, Deployed deployed,
                                            LayerClips layerClips, Preview preview,
                                            HandsetLayer handsetLayer) {
-        this(armoryIconPath, aimSpritePath, usePose, carrierLayer, thrown, field,
+        this(armoryIconPath, usePose, carrierLayer, thrown, field,
                 deployed, layerClips, preview, handsetLayer, null);
     }
 
@@ -102,7 +101,6 @@ public record SpecialEquipmentPresentationDef(
     static SpecialEquipmentPresentationDef parse(JSONObject json, String equipmentId)
             throws JSONException {
         String armoryIcon = requireText(json, "armoryIcon", equipmentId);
-        String aimSprite = optionalText(json, "aimSprite");
         SpecialUsePose usePose = SpecialUsePose.fromKey(
                 requireText(json, "usePose", equipmentId), equipmentId);
         JSONObject carrierJson = json.optJSONObject("carrierLayer");
@@ -164,7 +162,7 @@ public record SpecialEquipmentPresentationDef(
                     + "' authors a packed layer without the carrier layer it stands in for");
         }
         return new SpecialEquipmentPresentationDef(
-                armoryIcon, aimSprite, usePose, carrier, thrown, field,
+                armoryIcon, usePose, carrier, thrown, field,
                 deployed, layerClips, preview, handset, packed);
     }
 

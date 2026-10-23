@@ -40,23 +40,29 @@ public final class CordonSequence implements Objective {
      */
     public record Timetable(List<Integer> tideSeconds, int tideLengthSeconds, float ordinaryPressure,
                             float tidePressure, List<Integer> eruptionSeconds, List<Integer> refugeeSeconds,
-                            List<Integer> columnSeconds, int windowSeconds, int allowedFallen) {
+                            List<Integer> columnSeconds, int windowSeconds, int allowedFallen,
+                            List<Integer> convoySeconds, int convoysNeeded) {
         /**
          * The briefing's ordinary timetable: three tides of a minute in a
          * fifteen-minute window, the swarm at a third of its strength between
          * them and two thirds in one, a new bore erupting between each pair of
          * tides, six refugee groups two minutes apart, a column up from the
          * rear two minutes before each tide (a column takes about that to march
-         * up), one redoubt may fall.
+         * up), one redoubt may fall. On the Road three convoys come on four minutes apart, the
+         * last with time to be out before the window closes, and two of them must come back out.
          */
-        public static final Timetable STANDARD = new Timetable(List.of(240, 480, 720), 60, 0.33f, 0.66f,
-                List.of(360, 600), List.of(30, 150, 270, 390, 510, 630), List.of(120, 360, 600), 900, 1);
+        public static final Timetable STANDARD = new Timetable(List.of(240, 480, 720), 60, 0.2f, 0.66f,
+                List.of(360, 600), List.of(30, 150, 270, 390, 510, 630), List.of(120, 360, 600), 900, 1,
+                List.of(60, 300, 540), 2);
 
         public Timetable {
             tideSeconds = List.copyOf(tideSeconds);
             eruptionSeconds = List.copyOf(eruptionSeconds);
             refugeeSeconds = List.copyOf(refugeeSeconds);
             columnSeconds = List.copyOf(columnSeconds);
+            convoySeconds = List.copyOf(convoySeconds);
+            if (convoysNeeded > convoySeconds.size())
+                throw new IllegalArgumentException("more convoys needed than come: " + convoysNeeded);
             if (windowSeconds <= 0 || allowedFallen < 0 || tideLengthSeconds <= 0)
                 throw new IllegalArgumentException("a Cordon needs a window");
             if (!(ordinaryPressure > 0f && ordinaryPressure <= tidePressure && tidePressure <= 1f))
@@ -82,6 +88,8 @@ public final class CordonSequence implements Objective {
     private CordonRefugees refugees;
     private AlliedColumns columns;
     private CordonArmour armour;
+    private CordonLogistics logistics;
+    private CordonConvoys convoys;
     /** The tick the running tide ebbs on, or -1 between tides. */
     private int ebb = -1;
     private boolean landed, contact;
@@ -106,18 +114,34 @@ public final class CordonSequence implements Objective {
     public int eruptions() { return eruptions; }
     /** The Line's refugees, or {@code null}. */
     public CordonRefugees refugees() { return refugees; }
-    /** The Line's allied columns, or {@code null}. */
+    /** The allied columns walking in off the rear edge, or {@code null}. */
     public AlliedColumns columns() { return columns; }
 
-    /** Gives the Line its people on the move and its columns; at setup, before the first tick. */
     /** The allies' light armour behind the line, or {@code null}. */
     public CordonArmour armour() { return armour; }
+
+    /** The allies' logistics base, or {@code null}. */
+    public CordonLogistics logistics() { return logistics; }
 
     /** Gives the line its allied armour; at setup, before the first tick. */
     public void attachArmour(CordonArmour armour) {
         this.armour = armour;
     }
 
+    /** The Road's relief convoys, or {@code null}. */
+    public CordonConvoys convoys() { return convoys; }
+
+    /** Gives the Road its relief convoys; at setup, before the first tick. */
+    public void attachConvoys(CordonConvoys convoys) {
+        this.convoys = convoys;
+    }
+
+    /** Gives the line its logistics base: columns then march to it and are carried forward from it. */
+    public void attachLogistics(CordonLogistics logistics) {
+        this.logistics = logistics;
+    }
+
+    /** Gives the line its people on the move (the Line's; {@code null} on the Road) and its columns; at setup, before the first tick. */
     public void attach(CordonRefugees refugees, AlliedColumns columns) {
         this.refugees = refugees;
         this.columns = columns;
@@ -185,7 +209,10 @@ public final class CordonSequence implements Objective {
         }
         if (refugees != null) refugees.advance(sim, tick, beat -> emit(tick, beat));
         if (armour != null) armour.advance(sim, redoubts);
-        if (columns != null) columns.advance(sim, tick, new ColumnOrders(), (beat, observer) ->
+        if (logistics != null) logistics.advance(sim, redoubts, beat -> emit(tick, beat));
+        if (convoys != null) convoys.advance(sim, tick, beat -> emit(tick, beat));
+        AlliedColumns.Orders orders = logistics != null ? logistics.columnOrders() : new ColumnOrders();
+        if (columns != null) columns.advance(sim, tick, orders, (beat, observer) ->
                 log.emitOnce(tick, "cordon." + beat, observer ? StoryBeatLog.Audience.OBSERVER_ONLY
                         : StoryBeatLog.Audience.PLAYER));
         if (ebb >= 0 && tick >= ebb) {
@@ -198,6 +225,13 @@ public final class CordonSequence implements Objective {
         } else if (variant == CordonVariant.ROAD && gapClosed()) {
             outcome = Outcome.BROKEN;
             emit(tick, "gap_closed");
+        } else if (convoys != null && convoys.convoys() - convoys.lost() < timetable.convoysNeeded()) {
+            outcome = Outcome.BROKEN;
+            emit(tick, "convoys_lost");
+        } else if (convoys != null && tick >= ticks(timetable.windowSeconds())
+                && convoys.out() < timetable.convoysNeeded()) {
+            outcome = Outcome.BROKEN;
+            emit(tick, "convoys_short");
         } else if (tick >= ticks(timetable.windowSeconds())) {
             outcome = Outcome.HELD;
             if (refugees != null) emit(tick, "evacuation_complete");
@@ -267,13 +301,7 @@ public final class CordonSequence implements Objective {
 
         @Override public void joined(BattleSimulation sim, int number, List<Integer> squads, int destX, int destY) {
             CordonRedoubt r = at(destX, destY);
-            if (r == null) return;
-            int radius = Math.max(r.right() - r.left(), r.bottom() - r.top()) / 2 + 2;
-            for (int squad : squads) {
-                r.reinforce(squad, sim.squadMemberCount(squad));
-                sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad, r.centreX(), r.centreY(), radius),
-                        CommandAuthority.GARRISON, CordonGarrisons.ISSUER, "hold redoubt " + r.number());
-            }
+            if (r != null) join(sim, r, squads);
         }
 
         private CordonRedoubt at(int x, int y) {
@@ -282,7 +310,17 @@ public final class CordonSequence implements Objective {
         }
     }
 
-    private static int standing(BattleSimulation sim, CordonRedoubt redoubt) {
+    /** Squads that have come up to a redoubt join its garrison as wall teams. */
+    static void join(BattleSimulation sim, CordonRedoubt r, List<Integer> squads) {
+        int radius = Math.max(r.right() - r.left(), r.bottom() - r.top()) / 2 + 2;
+        for (int squad : squads) {
+            r.reinforce(squad, sim.squadMemberCount(squad));
+            sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad, r.centreX(), r.centreY(), radius),
+                    CommandAuthority.GARRISON, CordonGarrisons.ISSUER, "hold redoubt " + r.number());
+        }
+    }
+
+    static int standing(BattleSimulation sim, CordonRedoubt redoubt) {
         int standing = 0;
         for (int squad : redoubt.teams()) standing += sim.squadMemberCount(squad);
         return standing;

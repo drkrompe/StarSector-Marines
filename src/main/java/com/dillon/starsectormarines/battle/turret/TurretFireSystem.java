@@ -97,6 +97,16 @@ public final class TurretFireSystem implements TurretFireSink {
 
     private FriendsInBlast friendsInBlast = FriendsInBlast.NONE;
 
+    /**
+     * Whether a disciplined crew (one with a {@link FriendlyFireHold}) also checks the lane before firing and never
+     * bursts a round over its own hull ({@link BallisticResolver#friendInLane}, {@link BallisticResolver#bodyInBlast}).
+     */
+    private boolean laneDiscipline;
+
+    public void setLaneDiscipline(boolean laneDiscipline) {
+        this.laneDiscipline = laneDiscipline;
+    }
+
     /** Incendiary heat a shooter's next round carries beyond its weapon's own: a tube loaded for an incendiary mission. */
     @FunctionalInterface
     public interface RoundHeat {
@@ -287,15 +297,22 @@ public final class TurretFireSystem implements TurretFireSink {
         WeaponDef weapon = structure.mount.weapon;
         float effectiveSpread = weapon.hitSpread
                 * Math.min(1f, distToTarget / Math.max(0.0001f, weapon.range));
+        float holdChance = friendlyFireHold.chance(shooterId);
+        // A crew that holds for friends also looks down the lane before it fires: a friend between the gun and its
+        // target holds the round outright, before anything is committed or drawn.
+        if (laneDiscipline && holdChance > 0f && resolver.friendInLane(shooterId, fromX, fromY, shooterFaction,
+                world.x(target), world.y(target), target)) return false;
         BallisticResolver.Source source = new BallisticResolver.Source(
                 shooterId, fromX, fromY, 0f, shooterFaction);
         BallisticResolver.Resolution res = resolver.resolve(
                 source, target, effectiveAccuracy, effectiveSpread,
                 weapon.directRoundVelocity(), weapon.range, rng);
+        // Nor does it put a burst where its own hull is: the round lands too close, and that is not a judgement call.
+        if (laneDiscipline && holdChance > 0f && weapon.aoeRadius > 0f && res.impacts()
+                && resolver.bodyInBlast(shooterId, res.endX(), res.endY(), weapon.aoeRadius)) return false;
         // The round is resolved before the crew decides, as a rifleman's trigger pull is: the hold is on what
         // this round would actually hit -- a friend it strikes, or one inside the burst where it lands -- not on
         // a friend merely standing near the line.
-        float holdChance = friendlyFireHold.chance(shooterId);
         if (holdChance > 0f) {
             boolean friendlyThreat = res.friendlyHit()
                     || weapon.aoeRadius > 0f && res.impacts()

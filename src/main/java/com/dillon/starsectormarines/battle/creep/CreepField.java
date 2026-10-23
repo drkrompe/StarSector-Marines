@@ -52,8 +52,9 @@ public final class CreepField {
 
     /** Seconds per simulation tick; the field is ticked once per sim tick. */
     static final float TICK_SECONDS = 1f / 30f;
-    /** Rate multiplier while a source is fed. */
-    static final float FEED_MULTIPLIER = 3f;
+    /** Rate multiplier while a source is fed (owner pick, 2026-10-23: 1.5, was 3); {@code -Dbattle.creep.feedMultiplier} overrides it. */
+    static final float FEED_MULTIPLIER = 1.5f;
+    public static final String FEED_MULTIPLIER_PROPERTY = "battle.creep.feedMultiplier";
     /** Coverage a growing cell gains per tick (about three seconds to fill). */
     static final int FILL_PER_TICK = 3;
     /** Ticks per point of coverage on a climbed (unwalkable) cell: about a hundred seconds from first veins to full crust. */
@@ -74,6 +75,14 @@ public final class CreepField {
     static final int MAX_SETTLES_PER_TICK = 4000;
     /** Path cost of growing over a cell of natural growth, against the ground's. */
     static final int OVERGROW_COST = 3;
+    /**
+     * Multiplies every source's reach rate, fed or not: how fast the front walks
+     * out, never how far it goes or how fast a claimed cell fills.
+     * {@code -Dbattle.creep.spreadScale=1} restores the pre-2026-10-23 rate; the default, 0.5, is the owner's pick.
+     */
+    public static final String SPREAD_SCALE_PROPERTY = "battle.creep.spreadScale";
+    /** The default of {@link #SPREAD_SCALE_PROPERTY}: half the presets' rate. */
+    static final float SPREAD_SCALE = 0.5f;
 
     private static final int COST_SCALE = 10;
     private static final int RING = 64;
@@ -98,6 +107,8 @@ public final class CreepField {
     /** Cells the creep grows over rather than climbs; null while none are declared. */
     private BitSet overgrown;
     private int now;
+    private final float spreadScale = nonNegative(SPREAD_SCALE_PROPERTY, SPREAD_SCALE);
+    private final float feedMultiplier = nonNegative(FEED_MULTIPLIER_PROPERTY, FEED_MULTIPLIER);
     /** Cells the creep is held off (`fire-nouns.md`, Firebreak); null while nothing refuses. */
     private IntPredicate refusal;
 
@@ -253,9 +264,9 @@ public final class CreepField {
     }
 
     private void grow(Source source) {
-        float rate = source.growth.cellsPerSecond() * source.variance;
+        float rate = source.growth.cellsPerSecond() * source.variance * spreadScale;
         if (source.boostSeconds > 0f) {
-            rate *= FEED_MULTIPLIER;
+            rate *= feedMultiplier;
             source.boostSeconds = Math.max(0f, source.boostSeconds - TICK_SECONDS);
         }
         float max = source.growth.maxReachCells();
@@ -481,6 +492,13 @@ public final class CreepField {
             }
         }
         return -1;
+    }
+
+    /** A rate switch, read when a field is made. */
+    private static float nonNegative(String property, float fallback) {
+        float value = Float.parseFloat(System.getProperty(property, Float.toString(fallback)));
+        if (!(value >= 0f)) throw new IllegalArgumentException(property + " must be non-negative: " + value);
+        return value;
     }
 
     private float rateVariance(long id) {

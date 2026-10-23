@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.unit;
 import com.dillon.starsectormarines.battle.mech.CompanyMechLedger;
 import com.dillon.starsectormarines.battle.mech.MechSectionModifier;
 import com.dillon.starsectormarines.battle.air.AirTargetService;
-import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.RavBruteRig;
@@ -601,8 +600,8 @@ public final class UnitRosterService {
         //     IS the capability (like SECONDARY_WEAPON; no inert path/cadence columns
         //     on a turret).
         //   - SECONDARY_WEAPON iff the unit carries one.
-        //   - SPRITE iff the type is sheet-drawn (UnitType.drawnAsSheet) —
-        //     presence IS "draws as a sheet frame", authored per-tick by
+        //   - SPRITE iff the type carries a facing pose (UnitType.carriesSprite) —
+        //     presence IS "has a facing frame and a death pose", authored per-tick by
         //     FacingSystem (battle.appearance); seeded to the south-idle frame
         //     so a unit spawned between the facing pass and render still draws
         //     sanely. Kept on the row through the corpse transmute (the death
@@ -639,8 +638,8 @@ public final class UnitRosterService {
         // live-only, so a treatment can neither cost an archetype move per
         // activation nor outlive its wearer.
         boolean hasSystemFx = hasIntegralSystem;
-        // SPRITE iff sheet-drawn (UnitType.drawnAsSheet) — see the bullet above.
-        boolean sheetDrawn = spec.type.drawnAsSheet();
+        // SPRITE iff the body faces and falls (UnitType.carriesSprite) — see the bullet above.
+        boolean posed = spec.type.carriesSprite();
         boolean layerDrawn = spec.type.drawnAsLayers();
         // KINEMATICS iff the unit carries a continuous-flight body (a drone today).
         // Optional like SECONDARY_WEAPON — presence IS the "is a flier" capability;
@@ -688,7 +687,7 @@ public final class UnitRosterService {
                   + (hasIntegralSystem ? 1 : 0) + (hasMitigation ? 1 : 0)
                   + (hasSystemFx ? 1 : 0)
                   + (hasBody ? 1 : 0) + (inSquad ? 1 : 0) + (hasHome ? 1 : 0) + (hasTask ? 1 : 0)
-                  + (sheetDrawn ? 1 : 0) + (layerDrawn ? 1 : 0) + (mechLayerDrawn ? 3 : 0) + (ravRigged ? 1 : 0)
+                  + (posed ? 1 : 0) + (layerDrawn ? 1 : 0) + (mechLayerDrawn ? 3 : 0) + (ravRigged ? 1 : 0)
                   + (isHub ? 1 : 0) + (isTurret ? 1 : 0) + (isDrone ? 1 : 0)];
         int c = 0;
         archetype[c++] = components.IDENTITY;
@@ -714,7 +713,7 @@ public final class UnitRosterService {
         if (inSquad) archetype[c++] = components.SQUAD;
         if (hasHome) archetype[c++] = components.HOME;
         if (hasTask) archetype[c++] = components.TASK;
-        if (sheetDrawn) archetype[c++] = components.SPRITE;
+        if (posed) archetype[c++] = components.SPRITE;
         if (layerDrawn) archetype[c++] = components.LAYERED_ANIMATION;
         if (mechLayerDrawn) {
             archetype[c++] = components.MECH_LAYERED_ANIMATION;
@@ -726,12 +725,6 @@ public final class UnitRosterService {
         if (isTurret) archetype[c++] = components.TURRET_STATE;
         if (isDrone) archetype[c++] = components.DRONE_STATE;
         entityWorld.createEntity(id, archetype);
-        // SHEET/FLIP_V stay 0 from the zero-init append; INDEX is seeded to the
-        // south-idle frame so a unit spawned between this tick's FacingSystem
-        // pass and render still draws sanely instead of frame 0.
-        if (sheetDrawn) {
-            entityWorld.setInt(id, components.SPRITE, BattleComponents.SPRITE_INDEX, LiveAppearance.SOUTH_IDLE_FRAME);
-        }
         if (layerDrawn) {
             int armorFamily = (spec.layeredArmorFamily != null
                     ? spec.layeredArmorFamily

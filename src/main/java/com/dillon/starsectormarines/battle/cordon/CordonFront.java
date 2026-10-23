@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.cordon;
 
+import com.dillon.starsectormarines.battle.creep.CreepGrowth;
 import com.dillon.starsectormarines.battle.evacuation.BoreTier;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -48,6 +49,15 @@ public final class CordonFront {
     private static final long ERUPTION_SALT = 0x45525550544E4557L;
     /** Cells either side of a redoubt an eruption in front of it may open. */
     static final int ERUPTION_SPREAD = 40;
+    /**
+     * Cells beyond its creep's full reach a bore keeps from every redoubt's middle: about a
+     * redoubt's half-width and a little ground in front of its wall. Measured from each redoubt,
+     * not from the line's mean row, since one redoubt can stand twenty cells in front of the rest;
+     * and by the bore's own reach, since a maw's creep runs eighty cells to a bore's fifty. A near
+     * maw at the line's mean distance grew its creep over the redoubt in front of it, and the swarm
+     * began the battle at its walls.
+     */
+    static final int REDOUBT_CLEAR = 24;
 
     private CordonFront() {}
 
@@ -57,7 +67,7 @@ public final class CordonFront {
      */
     public static List<SwarmBore> grow(BattleSimulation sim, PrecinctPlan plan, List<int[]> corridor,
                                        List<BoreTier> tiers, long seed) {
-        int[][] sites = sites(sim.getGrid(), sim.getTopology(), plan, corridor, tiers.size(), seed);
+        int[][] sites = sites(sim.getGrid(), sim.getTopology(), plan, corridor, tiers, seed);
         List<SwarmBore> opened = new ArrayList<>();
         for (int i = 0; i < sites.length; i++) {
             if (sites[i] == null) continue;
@@ -94,14 +104,18 @@ public final class CordonFront {
 
     /** One site per slot, west to east; {@code null} where the slot has no open ground. */
     static int[][] sites(NavigationGrid grid, CellTopology topology, PrecinctPlan plan, List<int[]> corridor,
-                         int count, long seed) {
+                         List<BoreTier> tiers, long seed) {
+        int count = tiers.size();
         SplittableRandom rng = new SplittableRandom(seed ^ SEED_SALT);
         int width = grid.getWidth();
         int[][] out = new int[count][];
         for (int slot = 0; slot < count; slot++) {
             int x0 = Math.max(EDGE, slot * width / count + EDGE), x1 = Math.min(width - 1 - EDGE, (slot + 1) * width / count - EDGE);
             boolean near = slot % 2 == 0;
-            out[slot] = site(grid, topology, plan, corridor, x0, x1, near ? NEAR : MID, near ? MID : DEEP, rng);
+            int keepOff = Math.round(CreepGrowth.forTier(tiers.get(slot).ordinal()).maxReachCells()) + REDOUBT_CLEAR;
+            out[slot] = site(grid, topology, plan, corridor, x0, x1, near ? NEAR : MID, near ? MID : DEEP, keepOff, rng);
+            // A near slot whose band is all too close for its tier's creep stands deep instead.
+            if (out[slot] == null && near) out[slot] = site(grid, topology, plan, corridor, x0, x1, MID, DEEP, keepOff, rng);
         }
         return out;
     }
@@ -126,15 +140,19 @@ public final class CordonFront {
         for (int n = 0; n < count && !order.isEmpty(); n++) {
             Precinct redoubt = redoubts.get(order.get(n % order.size()));
             out[n] = site(grid, topology, plan, corridor, redoubt.seedX() - ERUPTION_SPREAD,
-                    redoubt.seedX() + ERUPTION_SPREAD, NEAR, MID, rng);
+                    redoubt.seedX() + ERUPTION_SPREAD, NEAR, MID, 0, rng);
         }
         return out;
     }
 
-    /** A seeded open site between {@code x0} and {@code x1}, {@code d0} to {@code d1} cells in front of the line. */
+    /**
+     * A seeded open site between {@code x0} and {@code x1}, {@code d0} to {@code d1} cells in front
+     * of the line, and at least {@code keepOff} cells from every redoubt's middle.
+     */
     private static int[] site(NavigationGrid grid, CellTopology topology, PrecinctPlan plan, List<int[]> corridor,
-                              int x0, int x1, int d0, int d1, SplittableRandom rng) {
+                              int x0, int x1, int d0, int d1, int keepOff, SplittableRandom rng) {
         Precinct compound = CordonCorridor.compound(plan);
+        List<Precinct> redoubts = CordonPlan.redoubts(plan);
         int line = Math.round(lineY(plan));
         int dir = frontward(plan);
         int width = grid.getWidth(), height = grid.getHeight();
@@ -147,10 +165,16 @@ public final class CordonFront {
             for (int x = x0; x <= x1; x += PITCH) {
                 if (!open(grid, topology, x, y) || near(corridor, x, y, OFF_CORRIDOR)) continue;
                 if (compound != null && Math.hypot(x - compound.seedX(), y - compound.seedY()) < OFF_COMPOUND) continue;
+                if (nearRedoubt(redoubts, x, y, keepOff)) continue;
                 candidates.add(new int[]{x, y});
             }
         }
         return candidates.isEmpty() ? null : candidates.get(rng.nextInt(candidates.size()));
+    }
+
+    private static boolean nearRedoubt(List<Precinct> redoubts, int x, int y, int within) {
+        for (Precinct r : redoubts) if (Math.hypot(x - r.seedX(), y - r.seedY()) < within) return true;
+        return false;
     }
 
     private static boolean near(List<int[]> cells, int x, int y, int within) {

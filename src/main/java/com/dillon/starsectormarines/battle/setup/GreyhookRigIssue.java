@@ -16,8 +16,7 @@ import java.util.Objects;
  * crew markings — while the company's issue keeps the catalog family. Paint is presentation only.
  * Should the pattern ever declare its presentation pending again,
  * the rig falls back to the {@link #STAND_IN} shell — the registration the Boarding Jack's own
- * layers are cut to — rather than the legacy sheet, which draws a powered rig as one more
- * rifleman. The stand-in is presentation only; it changes no number.
+ * layers are cut to — rather than a plain marker with no art at all. The stand-in is presentation only; it changes no number.
  */
 public final class GreyhookRigIssue {
     public static final String PATTERN = "armor.boarding-jack";

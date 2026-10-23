@@ -150,8 +150,16 @@ Jobs run at low CPU priority (Windows below-normal, Mac nice 10).
 - `frames`: completion is decided by counting non-empty files matching `glob`
   in `dir`. The exit status does not decide it. Without `frames`, exit status
   0 is success.
-- `keep_checkout: true` keeps the worktree after success; `low_priority:
-  false` runs the job at normal priority.
+- `keep_checkout: true` keeps the worktree (and work scratch) after the job;
+  `low_priority: false` runs the job at normal priority. Without it the runner
+  keeps the `rq-<id>` checkout and `work/<id>` scratch after the job, and an
+  idle sweep (every ten minutes, never while a job runs) removes them later:
+  12 h after an ok result (`retain_ok_hours`; a copy into the Drive folder only
+  means Drive accepted it locally, not that it uploaded), 48 h after a failed or
+  cancelled one (`retain_failed_hours`). A job whose output copy failed is
+  never swept: the runner logs it and leaves the files for a person to copy.
+  Active, queued and held jobs are never touched. Don't name a session worktree
+  `rq-*`: the sweep treats that prefix as the queue's own.
 
 ## Checking and collecting
 

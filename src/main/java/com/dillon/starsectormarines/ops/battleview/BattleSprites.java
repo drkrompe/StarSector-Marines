@@ -67,14 +67,11 @@ public class BattleSprites {
      * {@code art-source/fx/build_shadow_blob.py}.
      */
     static final String SHADOW_BLOB_SPRITE  = "graphics/battle/fx/shadow-blob.png";
-    private static final String ICON_ALARM          = "graphics/icons/Alarm 512 px.png";
     private static final String ICON_DANGER         = "graphics/icons/Danger sign 1 512 px.png";
     private static final String ICON_STAR           = "graphics/icons/Star 512 px.png";
 
-    // ---- unit sheets --------------------------------------------------------
+    // ---- unit corpse sheets -------------------------------------------------
 
-    private final java.util.EnumMap<UnitType, UnitSpriteCache> unitSprites =
-            new java.util.EnumMap<>(UnitType.class);
     private final java.util.EnumMap<UnitType, UnitSpriteCache> unitDeadSprites =
             new java.util.EnumMap<>(UnitType.class);
     private boolean unitSpritesLoadAttempted;
@@ -124,7 +121,6 @@ public class BattleSprites {
      */
     private final java.util.Map<String, ShuttleSpriteCache> projectileSpriteByPath =
             new java.util.HashMap<>();
-    private final Map<String, UnitSpriteCache> specialEquipmentAimSheets = new LinkedHashMap<>();
     private boolean marineSecondarySpritesLoadAttempted;
 
     // ---- decal sheet --------------------------------------------------------
@@ -180,12 +176,14 @@ public class BattleSprites {
     private SpriteAPI engineFlameSprite;
     private SpriteAPI engineGlowSprite;
     private SpriteAPI shadowBlobSprite;
+    /** The disc's size as loaded, before any draw resizes the sprite; see {@link UnitAtlas#offer}. */
+    private int shadowBlobPxW;
+    private int shadowBlobPxH;
     private boolean shadowBlobLoadAttempted;
     private boolean engineFxSpritesLoadAttempted;
 
     // ---- objective icons ----------------------------------------------------
 
-    private SpriteAPI iconAlarm;
     private SpriteAPI iconDanger;
     private SpriteAPI iconStar;
     private boolean iconsLoadAttempted;
@@ -203,7 +201,6 @@ public class BattleSprites {
     // Accessors
     // =========================================================================
 
-    public java.util.EnumMap<UnitType, UnitSpriteCache> unitSprites()          { return unitSprites; }
     public java.util.EnumMap<UnitType, UnitSpriteCache> unitDeadSprites()      { return unitDeadSprites; }
     public java.util.EnumMap<LayeredArmorFamily, LayeredUnitAssets> layeredUnitSprites() { return layeredUnitSprites; }
     /** The Runner's skeleton bones, or null when they did not all load. */
@@ -249,9 +246,6 @@ public class BattleSprites {
     public Map<String, ShuttleSpriteCache> turretRecoilSprites() { return turretRecoilSprites; }
     /** Carrier-agnostic projectile-sprite lookup by texture path (what {@code ShotFx.Sprite} resolves against). Null if not loaded / no such path. */
     public ShuttleSpriteCache projectileSprite(String path) { return path == null ? null : projectileSpriteByPath.get(path); }
-    public Map<String, UnitSpriteCache> specialEquipmentAimSheets() {
-        return specialEquipmentAimSheets;
-    }
     public SpriteAPI smokeGrenadeSprite() { return smokeGrenadeSprite; }
     /** The deployed smoke field's flipbook sheet; frames are addressed by {@code SpecialEquipmentPresentationDef.Field}. */
     public SpriteAPI smokeFieldSheet() { return smokeFieldSheet; }
@@ -304,7 +298,8 @@ public class BattleSprites {
     public SpriteAPI engineFlameSprite()           { return engineFlameSprite; }
     public SpriteAPI engineGlowSprite()            { return engineGlowSprite; }
     public SpriteAPI shadowBlobSprite()            { return shadowBlobSprite; }
-    public SpriteAPI iconAlarm()                   { return iconAlarm; }
+    public int shadowBlobPxW()                     { return shadowBlobPxW; }
+    public int shadowBlobPxH()                     { return shadowBlobPxH; }
     public SpriteAPI iconDanger()                  { return iconDanger; }
     public SpriteAPI iconStar()                    { return iconStar; }
     /** Authored pose authority; overridable by tooling that loads assets off disk. */
@@ -410,6 +405,10 @@ public class BattleSprites {
         if (shadowBlobLoadAttempted) return;
         shadowBlobLoadAttempted = true;
         shadowBlobSprite = loadEngineFxSpriteOrNull(SHADOW_BLOB_SPRITE);
+        if (shadowBlobSprite != null) {
+            shadowBlobPxW = Math.round(shadowBlobSprite.getWidth());
+            shadowBlobPxH = Math.round(shadowBlobSprite.getHeight());
+        }
     }
 
     public SpriteAPI loadEngineFxSpriteOrNull(String path) {
@@ -524,7 +523,6 @@ public class BattleSprites {
     public void ensureObjectiveIcons() {
         if (iconsLoadAttempted) return;
         iconsLoadAttempted = true;
-        iconAlarm  = loadIconOrNull(ICON_ALARM);
         iconDanger = loadIconOrNull(ICON_DANGER);
         iconStar   = loadIconOrNull(ICON_STAR);
     }
@@ -546,19 +544,17 @@ public class BattleSprites {
     }
 
     /**
-     * Loads every {@link UnitType} sprite sheet on first call and auto-slices
-     * each into per-frame bounding boxes. A type whose load fails is recorded
-     * with a null entry so its units fall back to the color-quad path without
-     * retrying every frame.
+     * Loads every {@link UnitType} corpse sheet on first call and auto-slices
+     * each into per-frame bounding boxes. Live bodies have no sheet: they are
+     * drawn from modular art. A corpse sheet is declared only by a type whose
+     * fallen no layered downed pose or Rav rig lays down; a sheet that fails to
+     * load leaves its bodies undrawn.
      */
     public void ensureUnitSheets() {
         if (unitSpritesLoadAttempted) return;
         unitSpritesLoadAttempted = true;
         for (UnitType type : UnitType.values()) {
-            // Whole-sprite, separately rendered, and invisible types do not own
-            // a unit sheet. UnitType is the authority for that distinction.
-            if (!type.drawnAsSheet()) continue;
-            unitSprites.put(type, loadUnitSheet(type.spritePath));
+            if (!type.carriesSprite()) continue;
             if (type.deadSpritePath != null) {
                 UnitSpriteCache dead = loadUnitSheet(type.deadSpritePath);
                 if (dead != null) unitDeadSprites.put(type, dead);
@@ -566,7 +562,7 @@ public class BattleSprites {
         }
     }
 
-    /** Lazy-loads each marine secondary's projectile sprite AND the marine-pose sheet shown during the weapon's aim cycle. The projectile is a single sprite rotated at draw time; the aim sheet is auto-sliced into 7 frames matching the regular marine convention. */
+    /** Lazy-loads each marine secondary's projectile sprite, a single sprite rotated at draw time, and the primary weapons' projectile sprites. */
     public void ensureMarineSecondarySprites() {
         if (marineSecondarySpritesLoadAttempted) return;
         marineSecondarySpritesLoadAttempted = true;
@@ -590,12 +586,6 @@ public class BattleSprites {
                     }
                 } catch (Exception e) {
                     LOG.error("BattleSprites: failed to load secondary projectile " + sec.projectileSpritePath(), e);
-                }
-            }
-            if (sec.aimSpritePath() != null) {
-                UnitSpriteCache aim = loadUnitSheet(sec.aimSpritePath());
-                if (aim != null) {
-                    specialEquipmentAimSheets.put(sec.id(), aim);
                 }
             }
         }
@@ -709,7 +699,7 @@ public class BattleSprites {
     /**
      * Loads independent body/head/feet/weapon textures for converted infantry
      * archetypes. A family is published only when every required layer
-     * loaded; otherwise {@code UnitRenderService} keeps using its legacy sheet.
+     * loaded; otherwise {@code UnitRenderService} draws its actors as plain markers.
      */
     public void ensureLayeredUnitSprites() {
         if (layeredUnitSpritesLoadAttempted) return;
@@ -780,7 +770,7 @@ public class BattleSprites {
         if (foot == null || rifle == null || laser == null || smg == null || dmr == null
                 || rocket == null || amr == null || flash == null || surplusRifle == null
                 || masterworkDmr == null) {
-            LOG.warn("BattleSprites: modular shared layers incomplete; legacy unit sheets remain active");
+            LOG.warn("BattleSprites: modular shared layers incomplete; infantry fall back to plain markers");
             return;
         }
 
@@ -869,7 +859,7 @@ public class BattleSprites {
         }
     }
 
-    /** Loads the all-or-nothing modular heavy-mech set; legacy sheet remains fallback. */
+    /** Loads the all-or-nothing modular heavy-mech set; without it mechs draw as plain markers. */
     public void ensureLayeredMechSprites() {
         if (layeredMechSpritesLoadAttempted) return;
         layeredMechSpritesLoadAttempted = true;
@@ -908,7 +898,7 @@ public class BattleSprites {
                 || demolitionCannon == null || thermalLance == null
                 || musterAutogun == null || quarryBreakerCannon == null
                 || pioneerRocketCradle == null || flash == null) {
-            LOG.warn("BattleSprites: modular mech layers incomplete; legacy heavy-mech sheet remains active");
+            LOG.warn("BattleSprites: modular mech layers incomplete; mechs fall back to plain markers");
             return;
         }
         layeredMechSprites = new LayeredMechAssets(chassis, socketedChassis,
@@ -1018,7 +1008,7 @@ public class BattleSprites {
         if (body == null || head == null || foot == null
                 || (familyId.isXeno() && foreClaw == null)) {
             LOG.warn("BattleSprites: modular family " + familyId
-                    + " incomplete; actors using it keep their legacy sheet");
+                    + " incomplete; actors using it draw as plain markers");
             return;
         }
         LayeredUnitAssets assets = new LayeredUnitAssets(body, head, foot, foreClaw,

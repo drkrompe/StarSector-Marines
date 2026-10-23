@@ -27,6 +27,8 @@ import static org.lwjgl.opengl.GL11.glBegin;
 import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL11.glColor4f;
 import static org.lwjgl.opengl.GL11.glDeleteTextures;
+import static org.lwjgl.opengl.GL11.glDisable;
+import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glEnd;
 import static org.lwjgl.opengl.GL11.glGenTextures;
 import static org.lwjgl.opengl.GL11.glPixelStorei;
@@ -38,6 +40,10 @@ import static org.lwjgl.opengl.GL11.glTexImage2D;
 import static org.lwjgl.opengl.GL11.glTexParameteri;
 import static org.lwjgl.opengl.GL11.glTexSubImage2D;
 import static org.lwjgl.opengl.GL11.glVertex2f;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE1;
+import static org.lwjgl.opengl.GL13.glActiveTexture;
+import static org.lwjgl.opengl.GL13.glMultiTexCoord2f;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 
 /**
@@ -251,9 +257,23 @@ public final class FogField {
      * entitled to invent.
      */
     public void draw(BattleCamera camera, float alphaMult) {
+        draw(camera, alphaMult, null);
+    }
+
+    /**
+     * {@link #draw(BattleCamera, float)}, with the fog thinned where a night burn lights it: the
+     * clearing's bytes ride a second texture unit, whose alpha multiplies the fog's under the same
+     * {@code GL_MODULATE}.
+     */
+    void draw(BattleCamera camera, float alphaMult, FireFogClearing clearing) {
         if (broken || texture == 0 || camera == null) return;
+        boolean thinned = clearing != null && clearing.active()
+                && clearing.width() == gridW && clearing.height() == gridH;
         try (GlStateBracket bracket = GlStateBracket.textured2D()) {
-            glColor4f(0f, 0f, 0f, alphaMult);
+            if (thinned) bindClearing(clearing);
+            float[] colour = clearing == null ? null : clearing.fogColour();
+            if (colour == null) glColor4f(0f, 0f, 0f, alphaMult);
+            else glColor4f(colour[0], colour[1], colour[2], alphaMult);
             glBindTexture(GL_TEXTURE_2D, texture);
             // An alpha texture under MODULATE leaves the primary colour alone and
             // multiplies the alphas, which is fog colour times fog level times the
@@ -266,20 +286,63 @@ public final class FogField {
             float x1 = camera.cellToScreenX(gridW);
             float y1 = camera.cellToScreenY(gridH);
             glBegin(GL_QUADS);
-            glTexCoord2f(0f, 0f); glVertex2f(x0, y0);
-            glTexCoord2f(1f, 0f); glVertex2f(x1, y0);
-            glTexCoord2f(1f, 1f); glVertex2f(x1, y1);
-            glTexCoord2f(0f, 1f); glVertex2f(x0, y1);
+            glTexCoord2f(0f, 0f); glMultiTexCoord2f(GL_TEXTURE1, 0f, 0f); glVertex2f(x0, y0);
+            glTexCoord2f(1f, 0f); glMultiTexCoord2f(GL_TEXTURE1, 1f, 0f); glVertex2f(x1, y0);
+            glTexCoord2f(1f, 1f); glMultiTexCoord2f(GL_TEXTURE1, 1f, 1f); glVertex2f(x1, y1);
+            glTexCoord2f(0f, 1f); glMultiTexCoord2f(GL_TEXTURE1, 0f, 1f); glVertex2f(x0, y1);
             glEnd();
         } catch (RuntimeException failure) {
             broken = true;
+        } finally {
+            if (thinned) unbindClearing();
         }
+    }
+
+    private int clearingTexture;
+    private long clearingVersion = -1;
+
+    /** Uploads the clearing when it has changed and sets it on unit 1; leaves unit 0 active. */
+    private void bindClearing(FireFogClearing clearing) {
+        glActiveTexture(GL_TEXTURE1);
+        glEnable(GL_TEXTURE_2D);
+        if (clearingTexture == 0) {
+            clearingTexture = glGenTextures();
+            clearingVersion = -1;
+        }
+        glBindTexture(GL_TEXTURE_2D, clearingTexture);
+        if (clearingVersion != clearing.version()) {
+            ByteBuffer bytes = BufferUtils.createByteBuffer(gridW * gridH);
+            bytes.put(clearing.keepBytes(), 0, gridW * gridH).flip();
+            glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
+            try {
+                glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA8, gridW, gridH, 0, GL_ALPHA, GL_UNSIGNED_BYTE, bytes);
+            } finally {
+                glPopClientAttrib();
+            }
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            clearingVersion = clearing.version();
+        }
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+        glActiveTexture(GL_TEXTURE0);
+    }
+
+    private void unbindClearing() {
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glDisable(GL_TEXTURE_2D);
+        glActiveTexture(GL_TEXTURE0);
     }
 
     /** Releases the texture. The context that made it must still be current. */
     public void dispose() {
         if (texture != 0) glDeleteTextures(texture);
         texture = 0;
+        if (clearingTexture != 0) glDeleteTextures(clearingTexture);
+        clearingTexture = 0;
         bound = null;
         caughtUpTo = 0L;
         wholeDirty = true;

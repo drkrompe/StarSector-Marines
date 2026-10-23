@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
 
@@ -23,6 +24,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * </ul>
  */
 public class VehicleClearanceTest {
+
+    @Test
+    public void edgeAwareErosionRefusesAFootprintAcrossAWalledEdge() {
+        NavigationGrid grid = new NavigationGrid(9, 9);
+        for (int y = 0; y < 9; y++) for (int x = 0; x < 9; x++) grid.setWalkableFloor(x, y);
+        // A fence on the edge between (4,4) and (5,4): both cells stay walkable.
+        grid.blockSharedEdge(4, 4, Direction.E);
+        VehicleClearance plain = VehicleClearance.erode(grid, 1);
+        VehicleClearance edges = VehicleClearance.erodeRespectingEdges(grid, 1);
+        assertTrue(plain.isPassable(4, 4), "the plain mask sees open cells only");
+        assertFalse(edges.isPassable(4, 4), "a footprint the fence runs through");
+        assertFalse(edges.isPassable(5, 5), "the fence inside the block, off its centre line");
+        assertTrue(edges.isPassable(2, 4), "clear of the fence");
+        assertTrue(edges.isPassable(7, 4), "clear of the fence on the other side");
+    }
 
     @Test
     public void localFootprintProbeMatchesFullErosionAtEveryCell() {

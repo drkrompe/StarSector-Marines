@@ -58,6 +58,7 @@ public class InfantryWeapons {
      * (a small fraction), so the copy is cheap.
      */
     private final LongArrayList burstScratch = new LongArrayList();
+    private boolean laneDiscipline;
 
     /**
      * Visible lifetime of a close-contact strike record. Short because there is
@@ -85,6 +86,14 @@ public class InfantryWeapons {
         this.shots = shots;
         this.grid = grid;
         this.rng = rng;
+    }
+
+    /**
+     * Whether a trained shooter checks the lane before each follow-up round of a burst
+     * ({@link BallisticResolver#friendInLane}); the first round's check is {@code FiringSystem}'s.
+     */
+    public void setLaneDiscipline(boolean laneDiscipline) {
+        this.laneDiscipline = laneDiscipline;
     }
 
     /**
@@ -150,6 +159,14 @@ public class InfantryWeapons {
             // burstRemaining stays 0 and it never enters burstScratch above. If
             // turrets are ever rewired to burst via the COMBAT columns, gate
             // this on world.hasMovement(id) (a non-mover is always STANCED).
+            // The lane is checked again for every round of the burst: a friend who stepped into it since the
+            // first round ends the burst rather than taking the rest of it.
+            if (laneDiscipline && roster.identity().type(id).usesInfantryTraining()
+                    && resolver.friendInLane(id, burstTargetId)) {
+                world.setBurstRemaining(id, 0);
+                world.setBurstTargetId(id, 0L);
+                continue;
+            }
             fireShot(id, burstTargetId, FireStance.stanceFor(!roster.movement().settled(id)));
             // Combat state is keyed by entity id, so a killing round that
             // swap-and-pops the dense registry (relocating u's slot) can't
