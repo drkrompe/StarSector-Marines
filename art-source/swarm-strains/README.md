@@ -9,8 +9,8 @@ Colony Breach strains, in the Runner's chitin (`art-source/alien-modular-topdown
 | Reskin one part (one paid call) | `bash art-source/swarm-strains/generate.sh <strain>-<part>` | `raw/<part>.raw.png` + provenance |
 | Export live layers | `python art-source/swarm-strains/export.py` | `mod/graphics/battle/swarm-{brute,spitter}-modular-topdown/*.png` |
 | Corpse guides (from the accepted raws) | `python art-source/swarm-strains/make_corpse_guide.py` | `art-source/templates/swarm-<strain>-corpse-guide.png` |
-| Reskin corpses | `tools/codex_imagegen.py` with `prompts/<strain>-corpse.prompt.txt`, the corpse guide as geometry and `mod/graphics/battle/alien-dead.png` as material reference | `raw/<strain>-corpse.raw.png` |
-| Export corpse sheets | `python art-source/swarm-strains/export_corpses.py` | `mod/graphics/battle/swarm-{brute,spitter}-dead.png` |
+| Reskin corpses | `tools/codex_imagegen.py` with `prompts/<strain>-corpse.prompt.txt`, the corpse guide as geometry and the old alien corpse sheet (`mod/graphics/battle/alien-dead.png`, removed 2026-10-23; recover it from Git) as material reference | `raw/<strain>-corpse.raw.png` |
+| Export corpse sheets | `python art-source/swarm-strains/export_corpses.py` | `mod/graphics/battle/swarm-spitter-dead.png` (the Brute bursts on its rig) |
 
 Art direction: the swarm is one engineered organism with designed stages
 (`colony-breach-nouns.md`, Origin), so a strain is the Runner's body plan grown

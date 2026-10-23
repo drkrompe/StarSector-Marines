@@ -1,17 +1,46 @@
 """One final shot's frames -> its MP4 (the render queue's follow-up job after a shot's chunks).
 
     python assemble_shot.py <frames dir> <kf> <first frame> <count> <out.mp4> [--wait-minutes 30] [--ffmpeg <path>] [--fps 24]
+        [--label "S6c The column is cut | 68.5-70.5 s | df837c8dc"]
 
 The frames are battle_blockout's final composites, '<kf>_f<frame>.png' at --fps (24; the lit
 animatic is 12), copied to Drive by
 chunk jobs that may have run on the other machine; Drive can take a while to bring them here, so this
 waits (up to --wait-minutes) until every one is present before encoding. Exits 1 if any are still
 missing, naming them.
+
+--label burns a caption into every frame (owner, 2026-10-23: "no labels on these clips"): the text
+given (shot id and name, span, commit) and the frame's own sequence frame number, top left.
 """
+import os
 import subprocess
+import tempfile
 import sys
 import time
 from pathlib import Path
+
+
+def _font():
+    for f in ('C:/Windows/Fonts/bahnschrift.ttf', '/System/Library/Fonts/Supplemental/Arial.ttf',
+              '/Library/Fonts/Arial.ttf', '/System/Library/Fonts/Helvetica.ttc'):
+        if os.path.exists(f):
+            return f
+    return None
+
+
+def _path(p):
+    """A path for a drawtext option: forward slashes, the drive colon escaped."""
+    return str(p).replace('\\', '/').replace(':', r'\:')
+
+
+def burn(label_file, first):
+    """An ffmpeg drawtext chain: the label (read from label_file, so it needs no escaping), then
+    'frame N' (the sequence frame), top left, on a dark box, sized to the frame's height."""
+    font = _font()
+    ff = f"fontfile='{_path(font)}':" if font else ''
+    box = 'fontcolor=white:box=1:boxcolor=black@0.55:boxborderw=6:fontsize=h/30'
+    return (f"drawtext={ff}textfile='{_path(label_file)}':x=12:y=10:{box},"
+            f"drawtext={ff}text='frame %{{eif\\:n+{first}\\:d}}':x=12:y=10+h/22:{box}")
 
 
 def main(argv):
@@ -19,6 +48,7 @@ def main(argv):
     ffmpeg = argv[argv.index('--ffmpeg') + 1] if '--ffmpeg' in argv else 'ffmpeg'
     fps = argv[argv.index('--fps') + 1] if '--fps' in argv else '24'
     wait = float(argv[argv.index('--wait-minutes') + 1]) if '--wait-minutes' in argv else 30.0
+    label = argv[argv.index('--label') + 1] if '--label' in argv else None
     names = [frames / f'{kf}_f{first + i:05d}.png' for i in range(count)]
     deadline = time.time() + wait * 60
     while True:
@@ -32,10 +62,20 @@ def main(argv):
         time.sleep(60)
     out.parent.mkdir(parents=True, exist_ok=True)
     tmp = out.with_suffix('.partial.mp4')
-    subprocess.check_call([ffmpeg, '-y', '-framerate', fps, '-start_number', str(first),
-                           '-i', str(frames / f'{kf}_f%05d.png'), '-frames:v', str(count),
-                           '-c:v', 'libx264', '-preset', 'slow', '-crf', '14', '-pix_fmt', 'yuv420p',
-                           str(tmp)])
+    vf, label_file = [], None
+    if label:
+        with tempfile.NamedTemporaryFile('w', suffix='.txt', delete=False, encoding='utf-8') as fh:
+            fh.write(label)
+            label_file = fh.name
+        vf = ['-vf', burn(label_file, first)]
+    try:
+        subprocess.check_call([ffmpeg, '-y', '-framerate', fps, '-start_number', str(first),
+                               '-i', str(frames / f'{kf}_f%05d.png'), '-frames:v', str(count), *vf,
+                               '-c:v', 'libx264', '-preset', 'slow', '-crf', '14', '-pix_fmt', 'yuv420p',
+                               str(tmp)])
+    finally:
+        if label_file:
+            os.unlink(label_file)
     tmp.replace(out)
     print(f'ASSEMBLE {kf}: {count} frames -> {out}', flush=True)
     return 0

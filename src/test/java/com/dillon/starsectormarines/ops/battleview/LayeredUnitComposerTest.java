@@ -178,7 +178,7 @@ class LayeredUnitComposerTest {
             EquipmentLayerDef carrier = new EquipmentLayerDef("special", 1f, 1f, .5f, .5f,
                     state, state, 0f, occlusion, true, true);
             SpecialEquipmentPresentationDef presentation = new SpecialEquipmentPresentationDef(
-                    null, null, SpecialUsePose.SHOULDER_LAUNCHER, carrier,
+                    null, SpecialUsePose.SHOULDER_LAUNCHER, carrier,
                     null, null, null, null, null);
             SpecialEquipmentDef special = new SpecialEquipmentDef("special", "Special", null,
                     null, null, null, null, null, 0, null, presentation,
@@ -210,7 +210,7 @@ class LayeredUnitComposerTest {
         EquipmentLayerDef packed = new EquipmentLayerDef("packed", .3f, .96f, .5f, .5f,
                 slung, slung, 0f, null, true, false, EquipmentLayerDef.Attachment.BODY);
         SpecialEquipmentPresentationDef presentation = new SpecialEquipmentPresentationDef(
-                null, null, SpecialUsePose.SHOULDER_LAUNCHER, carrier,
+                null, SpecialUsePose.SHOULDER_LAUNCHER, carrier,
                 null, null, null, null, null, null, packed);
         SpecialEquipmentDef special = new SpecialEquipmentDef("special", "Special", null,
                 null, null, null, null, null, 0, null, presentation,
@@ -243,7 +243,7 @@ class LayeredUnitComposerTest {
         EquipmentLayerDef carrier = new EquipmentLayerDef("special", 1f, 1f, .5f, .5f,
                 state, state, 0f, EquipmentLayerDef.Occlusion.OVER_BODY, false, true);
         SpecialEquipmentPresentationDef presentation = new SpecialEquipmentPresentationDef(
-                null, null, SpecialUsePose.PLANT, carrier, null, null, null, null, null);
+                null, SpecialUsePose.PLANT, carrier, null, null, null, null, null);
         SpecialEquipmentDef special = new SpecialEquipmentDef("special", "Special", null,
                 null, null, null, null, null, 0, null, presentation,
                 null, null, null, null, null);
@@ -333,7 +333,7 @@ class LayeredUnitComposerTest {
         HandsetLayer handset = new HandsetLayer("handset", "cord", .16f, .4f, .05f,
                 .5f, .99f, .07f, .37f);
         SpecialEquipmentPresentationDef presentation = new SpecialEquipmentPresentationDef(
-                null, null, SpecialUsePose.PLANT, carrier, null, null, null, null, null, handset);
+                null, SpecialUsePose.PLANT, carrier, null, null, null, null, null, handset);
         SpecialEquipmentDef radio = new SpecialEquipmentDef("radio", "Radio", null,
                 null, null, null, null, null, 0, null, presentation,
                 null, null, null, null, null);

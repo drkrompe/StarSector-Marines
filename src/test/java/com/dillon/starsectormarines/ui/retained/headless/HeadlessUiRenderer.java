@@ -595,6 +595,12 @@ public final class HeadlessUiRenderer {
         }
 
         @Override
+        public float[] imageSize(String path) {
+            BufferedImage image = path == null || path.isBlank() ? null : resources.imageOrNull(path);
+            return image == null ? null : new float[]{image.getWidth(), image.getHeight()};
+        }
+
+        @Override
         protected void drawSprite(String sourcePath, SpriteAPI liveSprite,
                                   float centerX, float centerY, float width, float height,
                                   float angleDegrees, Color tint,

@@ -1,12 +1,8 @@
 package com.dillon.starsectormarines.battle.appearance;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
-import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
-import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -23,12 +19,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * End-to-end + column-walk coverage for {@link FacingSystem}: membership
- * (every {@link UnitType#drawnAsSheet()} type carries {@code SPRITE} at
- * spawn, seeded to the south-idle frame), the facing-source fallback chain
- * (target &rarr; path &rarr; SOUTH), the weapon-up window, the eight-way
- * mech convention, and the corpse handoff (a dead unit's authored selector/
- * flip get re-asserted to the corpse invariant and the row drops out of
- * {@link BattleComponents#liveSprites}).
+ * (every {@link UnitType#carriesSprite()} type carries {@code SPRITE} at
+ * spawn), layered torso tracking, and the corpse handoff (the row drops out
+ * of {@link BattleComponents#liveSprites}).
  *
  * <p>Most scenarios construct the system directly and call {@link
  * FacingSystem#tick()} by hand — the {@code DeadBodySystemTest} arena
@@ -59,16 +52,6 @@ public class FacingSystemTest {
         return sim.getEntityWorld().getInt(id, c.SPRITE, BattleComponents.SPRITE_INDEX);
     }
 
-    private static int spriteFlipV(BattleSimulation sim, long id) {
-        BattleComponents c = sim.getBattleComponents();
-        return sim.getEntityWorld().getInt(id, c.SPRITE, BattleComponents.SPRITE_FLIP_V);
-    }
-
-    private static int spriteSheet(BattleSimulation sim, long id) {
-        BattleComponents c = sim.getBattleComponents();
-        return sim.getEntityWorld().getInt(id, c.SPRITE, BattleComponents.SPRITE_SHEET);
-    }
-
     private static float layeredFacing(BattleSimulation sim, long id) {
         BattleComponents c = sim.getBattleComponents();
         return sim.getEntityWorld().getFloat(id, c.LAYERED_ANIMATION,
@@ -76,20 +59,20 @@ public class FacingSystemTest {
     }
 
     @Test
-    public void drawnAsSheetTruthTable() {
+    public void carriesSpriteTruthTable() {
         for (UnitType t : UnitType.values()) {
-            boolean expectSheetDrawn = t != UnitType.TURRET
+            boolean expectPosed = t != UnitType.TURRET
                     && t != UnitType.DRONE_HUB_STRUCTURE
                     && t != UnitType.BASED_AIRCRAFT
                     && t != UnitType.RANGE_TARGET
                     && t != UnitType.DRONE
                     && t != UnitType.GROUND_VEHICLE;
-            assertEquals(expectSheetDrawn, t.drawnAsSheet(), t.name());
+            assertEquals(expectPosed, t.carriesSprite(), t.name());
         }
     }
 
     @Test
-    public void liveSheetUnitsSpawnWithSouthIdleSprite() {
+    public void liveSheetUnitsSpawnWithSprite() {
         BattleSimulation sim = openArena(40, 40);
         long marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 5, 5));
         long civilian = sim.spawn(new EntitySpec("c0", Faction.CIVILIAN, UnitType.CIVILIAN, 10, 10));
@@ -98,9 +81,6 @@ public class FacingSystemTest {
         BattleComponents c = sim.getBattleComponents();
         for (long u : new long[]{marine, civilian}) {
             assertTrue(world.has(u, c.SPRITE), sim.identity().name(u) + " carries SPRITE at spawn");
-            assertEquals(3, spriteIndex(sim, u), sim.identity().name(u) + " seeds the south-idle frame");
-            assertEquals(0, spriteSheet(sim, u), sim.identity().name(u));
-            assertEquals(0, spriteFlipV(sim, u), sim.identity().name(u));
         }
 
         // Negative membership: a live non-sheet unit (whole-sprite turret)
@@ -108,35 +88,6 @@ public class FacingSystemTest {
         long turret = sim.spawn(MapTurret.create("t0", Faction.DEFENDER,
                 TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 20, 20));
         assertFalse(world.has(turret, c.SPRITE), "live turret carries no SPRITE");
-    }
-
-    @Test
-    public void idleUnitStaysAtSouthIdleFrame() {
-        BattleSimulation sim = openArena(40, 40);
-        long marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 5, 5));
-
-        systemFor(sim).tick();
-
-        assertEquals(3, spriteIndex(sim, marine));
-        assertEquals(0, spriteFlipV(sim, marine));
-        assertEquals(0, spriteSheet(sim, marine));
-    }
-
-    @Test
-    public void targetFacingIdleThenWeaponUp() {
-        BattleSimulation sim = openArena(40, 40);
-        long marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 5, 5));
-        long enemy = sim.spawn(new EntitySpec("d0", Faction.DEFENDER, UnitType.MARINE, 8, 5));
-        sim.world().setTargetId(marine, enemy);
-
-        FacingSystem system = systemFor(sim);
-        system.tick();
-        assertEquals(2, spriteIndex(sim, marine), "east idle, cooldown still at 0");
-        assertEquals(0, spriteFlipV(sim, marine));
-
-        sim.world().setCooldownTimer(marine, sim.world().attackCooldown(marine));
-        system.tick();
-        assertEquals(5, spriteIndex(sim, marine), "east weapon-up");
     }
 
     @Test
@@ -172,138 +123,13 @@ public class FacingSystemTest {
     }
 
     @Test
-    public void southFacingWeaponUpFlipsVertically() {
-        BattleSimulation sim = openArena(40, 40);
-        long marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 5, 5));
-        // dy<0 -> SOUTH (facingFromDelta's convention; matches the renderer).
-        long enemy = sim.spawn(new EntitySpec("d0", Faction.DEFENDER, UnitType.MARINE, 5, 2));
-        sim.world().setTargetId(marine, enemy);
-        sim.world().setCooldownTimer(marine, sim.world().attackCooldown(marine));
-
-        systemFor(sim).tick();
-
-        assertEquals(6, spriteIndex(sim, marine), "south weapon-up frame");
-        assertEquals(1, spriteFlipV(sim, marine), "south weapon-up mirrors vertically");
-    }
-
-    @Test
-    public void pathFacingWhenNoTarget() {
-        BattleSimulation sim = openArena(40, 40);
-        long marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 5, 5));
-        // The next path cell sits at y+1. In this sim's cell space dy>0 is NORTH
-        // (facingFromDelta's convention, matching the renderer) — trust the
-        // delta math over screen-direction intuition. Facing follows the
-        // velocity the mover applied this tick, so advance it once.
-        sim.setPath(marine, new int[]{5, 5, 5, 6});
-        sim.advanceMovement(marine);
-
-        systemFor(sim).tick();
-
-        assertEquals(1, spriteIndex(sim, marine), "north idle from the path direction");
-        assertEquals(0, spriteFlipV(sim, marine));
-    }
-
-    @Test
-    public void subThresholdVelocityReadsAsStanding() {
-        BattleSimulation sim = openArena(40, 40);
-        long marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 5, 5));
-        EntityWorld world = sim.getEntityWorld();
-        BattleComponents c = sim.getBattleComponents();
-
-        // Residual separation jostle: nonzero applied velocity well under the
-        // travel deadband, pointing east. Must NOT turn the body.
-        world.setFloat(marine, c.MOVEMENT, BattleComponents.MOVEMENT_VEL_X,
-                FacingSystem.MIN_TRAVEL_SPEED * 0.4f);
-        world.setFloat(marine, c.MOVEMENT, BattleComponents.MOVEMENT_VEL_Y, 0f);
-        systemFor(sim).tick();
-        assertEquals(3, spriteIndex(sim, marine),
-                "sub-threshold velocity reads as standing — stays south idle");
-
-        // The same direction above the deadband is genuine travel.
-        world.setFloat(marine, c.MOVEMENT, BattleComponents.MOVEMENT_VEL_X,
-                FacingSystem.MIN_TRAVEL_SPEED * 2f);
-        systemFor(sim).tick();
-        assertEquals(2, spriteIndex(sim, marine), "above-threshold velocity faces east");
-    }
-
-    @Test
-    public void deadTargetFallsBackToSouthIdle() {
-        BattleSimulation sim = openArena(40, 40);
-        long marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 5, 5));
-        long keepalive = sim.spawn(new EntitySpec("d-keepalive", Faction.DEFENDER, UnitType.MARINE, 38, 38));
-        long enemy = sim.spawn(new EntitySpec("d0", Faction.DEFENDER, UnitType.MARINE, 8, 5));
-        sim.world().setTargetId(marine, enemy);
-
-        sim.applyDamage(enemy, 100_000f, 1f, 0f);
-        sim.advance(BattleSimulation.TICK_DT);
-        assertFalse(sim.getRoster().isLive(enemy), "the target is dead");
-        // Re-affirm the stale reference in case the tick's own AI already
-        // cleared it — this scenario targets the roster.isLive gate
-        // specifically, not the tid==0 fast path. Clear the path + cooldown
-        // the tick's AI may have set, so the assertion pins the dead-target
-        // fallthrough rather than whatever the AI decided that tick.
-        sim.world().setTargetId(marine, enemy);
-        sim.clearPath(marine);
-        sim.world().setCooldownTimer(marine, 0f);
-
-        systemFor(sim).tick();
-
-        assertEquals(3, spriteIndex(sim, marine), "falls through to SOUTH — no path either");
-        assertEquals(0, spriteFlipV(sim, marine));
-    }
-
-    @Test
-    public void eightWayFacingFromTarget() {
-        BattleSimulation sim = openArena(40, 40);
-        long mech = sim.spawn(new EntitySpec("mech0", Faction.MARINE, UnitType.HEAVY_MECH, 10, 10));
-        long enemy = sim.spawn(new EntitySpec("d0", Faction.DEFENDER, UnitType.MARINE, 13, 13));
-        sim.world().setTargetId(mech, enemy);
-
-        FacingSystem system = systemFor(sim);
-        system.tick();
-        assertEquals(5, spriteIndex(sim, mech), "NE diagonal");
-        assertEquals(0, spriteFlipV(sim, mech), "eight-way never flips");
-
-        sim.world().setCellPos(enemy, 10, 13);
-        system.tick();
-        assertEquals(1, spriteIndex(sim, mech), "due N borrows the NW frame");
-        assertEquals(0, spriteFlipV(sim, mech));
-    }
-
-    @Test
-    public void secondaryAimSelectsAimSheetAndForcesWeaponUp() {
-        BattleSimulation sim = openArena(40, 40);
-        long marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 5, 5)
-                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), 0));
-        long enemy = sim.spawn(new EntitySpec("d0", Faction.DEFENDER, UnitType.MARINE, 8, 5));
-        sim.world().setTargetId(marine, enemy);
-        sim.world().setSecondaryActionTimer(marine, 0.5f);
-
-        FacingSystem system = systemFor(sim);
-        system.tick();
-
-        assertEquals(1, spriteSheet(sim, marine), "aiming selects the secondary-aim sheet");
-        assertEquals(5, spriteIndex(sim, marine),
-                "inAim forces weapon-up even at cooldown 0 — east weapon-up frame");
-        assertEquals(0, spriteFlipV(sim, marine));
-
-        sim.world().setSecondaryActionTimer(marine, 0f);
-        system.tick();
-        assertEquals(0, spriteSheet(sim, marine), "timer expired — back to the base sheet");
-        assertEquals(2, spriteIndex(sim, marine), "east idle again");
-    }
-
-    @Test
-    public void corpseFreezesPoseAndZeroesSelectorAndFlip() {
+    public void corpseFreezesPoseAndLeavesLiveSprites() {
         BattleSimulation sim = openArena(40, 40);
         long marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 5, 5));
         long keepalive = sim.spawn(new EntitySpec("d-keepalive", Faction.DEFENDER, UnitType.MARINE, 38, 38));
         long id = marine;
         EntityWorld world = sim.getEntityWorld();
         BattleComponents c = sim.getBattleComponents();
-        // Simulate an authored mid-secondary-aim pose on the live row.
-        world.setInt(id, c.SPRITE, BattleComponents.SPRITE_SHEET, 1);
-        world.setInt(id, c.SPRITE, BattleComponents.SPRITE_FLIP_V, 1);
 
         sim.applyDamage(marine, 100_000f, 1f, 0f);
         sim.advance(BattleSimulation.TICK_DT);
@@ -311,8 +137,6 @@ public class FacingSystemTest {
         assertFalse(sim.getRoster().isLive(id));
         int pose = spriteIndex(sim, id);
         assertTrue(pose >= 0 && pose < 4, "a valid death-pose frame");
-        assertEquals(0, spriteSheet(sim, id), "corpse re-asserts the base sheet");
-        assertEquals(0, spriteFlipV(sim, id), "corpse re-asserts unflipped");
 
         boolean matchesLiveSprites = false;
         for (ArchetypeTable t : world.matched(c.liveSprites)) {
@@ -323,62 +147,4 @@ public class FacingSystemTest {
         assertFalse(matchesLiveSprites, "a corpse carries no HEALTH, so liveSprites excludes it");
     }
 
-    @Test
-    public void endToEndFrameMatchesIndependentDerivation() {
-        BattleSimulation sim = openArena(40, 40);
-        long marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 10, 10));
-        long enemy = sim.spawn(new EntitySpec("d0", Faction.DEFENDER, UnitType.MARINE, 13, 10));
-
-        // Well inside the 1.0s attack-cooldown window (30 ticks) — no shots
-        // fired yet, so both units are guaranteed still alive.
-        for (int i = 0; i < 10; i++) {
-            sim.advance(BattleSimulation.TICK_DT);
-        }
-        assertTrue(sim.getRoster().isLive(marine));
-
-        World world = sim.world();
-        long id = marine;
-
-        boolean hasCombat = world.hasCombat(id);
-        boolean hasSecondary = world.hasSecondaryWeapon(id);
-        boolean inAim = hasSecondary && world.secondaryActionTimer(id) > 0f;
-        boolean up = LiveAppearance.weaponUp(inAim, UnitType.MARINE.combatant,
-                hasCombat ? world.cooldownTimer(id) : 0f, hasCombat ? world.attackCooldown(id) : 0f);
-
-        int dx = 0;
-        int dy = 0;
-        boolean haveDelta = false;
-        if (hasCombat) {
-            long tid = world.targetId(id);
-            if (tid != 0L && sim.getRoster().isLive(tid)) {
-                int ddx = world.cellX(tid) - world.cellX(id);
-                int ddy = world.cellY(tid) - world.cellY(id);
-                if (ddx != 0 || ddy != 0) {
-                    dx = ddx;
-                    dy = ddy;
-                    haveDelta = true;
-                }
-            }
-        }
-        if (!haveDelta && world.hasMovement(id)) {
-            int[] path = world.path(id);
-            int idx = world.pathIdx(id);
-            if (idx < Paths.cellCount(path)) {
-                int ddx = Paths.cellX(path, idx) - world.cellX(id);
-                int ddy = Paths.cellY(path, idx) - world.cellY(id);
-                if (ddx != 0 || ddy != 0) {
-                    dx = ddx;
-                    dy = ddy;
-                    haveDelta = true;
-                }
-            }
-        }
-        LiveAppearance.Facing facing = haveDelta
-                ? LiveAppearance.facingFromDelta(dx, dy) : LiveAppearance.Facing.SOUTH;
-        int expectedFrame = LiveAppearance.pickFrame(facing, up);
-        int expectedFlip = LiveAppearance.flipV(facing, up) ? 1 : 0;
-
-        assertEquals(expectedFrame, spriteIndex(sim, id));
-        assertEquals(expectedFlip, spriteFlipV(sim, id));
-    }
 }

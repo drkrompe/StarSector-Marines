@@ -9,7 +9,8 @@ import java.util.Arrays;
 
 
 /**
- * Outdoor night treatment shared by battle and map-review hosts. Lamps never reveal fog.
+ * Outdoor night treatment shared by battle and map-review hosts. Lamps never reveal fog; a burn's
+ * light shows through it ({@link FireFogClearing}).
  * A burn lights the night as a lamp does, in fire's colour and flickering
  * ({@link FireLight}); its pools are refilled each frame, only where its lights reach.
  */
@@ -72,8 +73,12 @@ final class NightLightingRenderSystem implements RenderSystem {
                 if (ground.getGroundKind(x,y) == CellTopology.GroundKind.VOID) { dimRun.flush(); litRun.flush(); continue; }
                 int cellIndex = y * gridW + x;
                 boolean hidden = shown != null && !shown[cellIndex];
-                boolean unlit = RUNS && unlit(x, y, burning);
-                boolean dimUniform = RUNS && (hidden || unlit), litUniform = unlit;
+                boolean lampDark = zero9(pools, (2 * y) * width + 2 * x);
+                boolean fireDark = !burning || zero9(firePools, (2 * y) * width + 2 * x);
+                boolean unlit = RUNS && lampDark && fireDark;
+                // Fog hides a lamp's light; a burn's is seen from anywhere (FireFogClearing).
+                boolean dimUniform = RUNS && (hidden || lampDark)
+                        && (fireDark || hidden && !FireFogClearing.ENABLED), litUniform = unlit;
                 float cellX0 = Math.round(camera.cellToScreenX(x)), cellX1 = Math.round(camera.cellToScreenX(x + 1f));
                 if (dimUniform) dimRun.extend(cellX0, cellX1, unlitColour); else dimRun.flush();
                 if (masked) { if (litUniform) litRun.extend(cellX0, cellX1, unlitColour); else litRun.flush(); }
@@ -86,7 +91,7 @@ final class NightLightingRenderSystem implements RenderSystem {
                     float y1=Math.round(camera.cellToScreenY(y+(sy+1f)/steps));
                     if (!dimUniform) {
                         float pool=hidden ? 0f : sample(pools,px,py);
-                        float firePool=hidden || !burning ? 0f : sample(firePools,px,py);
+                        float firePool=!burning || hidden && !FireFogClearing.ENABLED ? 0f : sample(firePools,px,py);
                         appendShade(dimMesh, night, pool, firePool, px, py, x0, y0, x1, y1, ctx.alphaMult);
                     }
                     if (masked && !litUniform) appendShade(pass.litShade(), night, sample(pools,px,py),
@@ -151,12 +156,6 @@ final class NightLightingRenderSystem implements RenderSystem {
         if (cellPx >= 24) return 8;
         if (cellPx >= 12) return 4;
         return COARSE && cellPx < 6 ? 1 : 2;
-    }
-
-    /** True when no lamp and no fire light reaches anywhere in the cell, so every sample in it reads zero. */
-    private boolean unlit(int x, int y, boolean burning) {
-        int i = (2 * y) * width + 2 * x;
-        return zero9(pools, i) && (!burning || zero9(firePools, i));
     }
 
     private boolean zero9(float[] values, int i) {

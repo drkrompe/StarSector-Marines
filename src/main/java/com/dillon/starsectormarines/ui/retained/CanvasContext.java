@@ -180,6 +180,17 @@ public abstract class CanvasContext {
                 angleDegrees, requireColor(tint), region, blend);
     }
 
+    /**
+     * Pixel size of an image asset as {width, height}, or null when it cannot be
+     * resolved. A producer that sizes a draw by its art asks here rather than
+     * reading the file: Starsector's script sandbox forbids file access in mod
+     * code, and the headless renderer answers from its own resource roots.
+     */
+    public float[] imageSize(String path) {
+        UiImage image = UiSpriteCache.shared().resolve(path);
+        return image == null ? null : new float[]{image.width(), image.height()};
+    }
+
     /** Host adapters may draw a textured subcell quad; vertices are normalized, Y-up. */
     public void spritePatch(String path,float cx,float cy,float width,float height,
                             Color tint,CanvasSpriteRegion region,float[] vertices) {

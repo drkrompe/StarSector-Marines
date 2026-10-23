@@ -115,31 +115,41 @@ public final class UnitAtlas extends SpriteAtlas {
         addLayers(candidates, sprites.bloodPools());
         LayeredMechAssets baseMech = sprites.layeredMechSprites();
         if (baseMech != null) addLayers(candidates, baseMech.layers());
-        addHulls(candidates, sprites.turretSprites().values());
-        addHulls(candidates, sprites.turretRecoilSprites().values());
-        addHull(candidates, sprites.droneHubSprite());
-        addHulls(candidates, sprites.airframeSprites().values());
+        addHulls(candidates, sprites.turretSprites().values(), "turret");
+        addHulls(candidates, sprites.turretRecoilSprites().values(), "turret recoil");
+        addHull(candidates, sprites.droneHubSprite(), "drone hub");
+        addHulls(candidates, sprites.airframeSprites().values(), "airframe");
+        // The soft disc every body without its own shape casts on the ground:
+        // UNIT_SHADOWS draws one per body, and out of the atlas each is a bind.
+        consider(candidates, sprites.shadowBlobSprite(),
+                sprites.shadowBlobPxW(), sprites.shadowBlobPxH(), "shadow blob");
         // Two images is already two binds and an atlas of them saves one; the
         // point of the layout is a field of bodies, so a host that loaded almost
         // no unit art stays on the sprite path rather than paying for a copy.
         return plan(candidates, 4);
     }
 
-    private static void addLayers(List<Source> into, List<LayeredSpriteCache> layers) {
+    private void addLayers(List<Source> into, List<LayeredSpriteCache> layers) {
         if (layers == null) return;
         for (LayeredSpriteCache layer : layers) {
             if (layer == null) continue;
-            offer(into, layer.sprite, layer.pxWidth, layer.pxHeight);
+            consider(into, layer.sprite, layer.pxWidth, layer.pxHeight, layer.sourcePath);
         }
     }
 
-    private static void addHulls(List<Source> into, Iterable<ShuttleSpriteCache> caches) {
-        for (ShuttleSpriteCache cache : caches) addHull(into, cache);
+    private void addHulls(List<Source> into, Iterable<ShuttleSpriteCache> caches, String kind) {
+        for (ShuttleSpriteCache cache : caches) addHull(into, cache, kind);
     }
 
-    private static void addHull(List<Source> into, ShuttleSpriteCache cache) {
+    private void addHull(List<Source> into, ShuttleSpriteCache cache, String kind) {
         if (cache == null) return;
-        offer(into, cache.sprite, cache.pxW, cache.pxH);
+        consider(into, cache.sprite, cache.pxW, cache.pxH, kind + " " + cache.pxW + "x" + cache.pxH);
+    }
+
+    /** {@link #offer}, recording whatever it turns away. */
+    private void consider(List<Source> into, SpriteAPI sprite, int recordedW, int recordedH, String name) {
+        Exclusion refused = offer(into, sprite, recordedW, recordedH, name);
+        if (refused != null) exclude(refused, (name == null ? "image" : name) + " " + recordedW + "x" + recordedH);
     }
 
     /**
@@ -149,13 +159,22 @@ public final class UnitAtlas extends SpriteAtlas {
      * whole-sprite frame resizes them, and the same caches survive battle
      * re-entry. Only the dimensions captured by the loader can size a texture
      * copy. An image without recorded dimensions stays on the sprite path.
+     *
+     * @return why the image was not offered, or null when it was (or there was none)
      */
-    static void offer(List<Source> into, SpriteAPI sprite, int recordedW, int recordedH) {
-        if (sprite == null || recordedW <= 0 || recordedH <= 0) return;
-        if (recordedW > MAX_IMAGE_PX || recordedH > MAX_IMAGE_PX) return;
-        // A whole-image slot holds the texels the texture really has: a fitted image's slot is
-        // its shipped size, which is what lets the atlas shrink with the art.
-        into.add(new Source(sprite, ModTextures.shippedWidth(sprite, recordedW),
-                ModTextures.shippedHeight(sprite, recordedH)));
+    static Exclusion offer(List<Source> into, SpriteAPI sprite, int recordedW, int recordedH) {
+        return offer(into, sprite, recordedW, recordedH, null);
+    }
+
+    static Exclusion offer(List<Source> into, SpriteAPI sprite, int recordedW, int recordedH, String name) {
+        if (sprite == null) return null;
+        if (recordedW <= 0 || recordedH <= 0) return Exclusion.NO_SIZE;
+        // A whole-image slot holds the texels the texture really has: a fitted image's slot is its
+        // shipped size (texture-fit.md), so the cap and the atlas both see the art as it ships.
+        int texW = ModTextures.shippedWidth(sprite, recordedW);
+        int texH = ModTextures.shippedHeight(sprite, recordedH);
+        if (texW > MAX_IMAGE_PX || texH > MAX_IMAGE_PX) return Exclusion.OVER_CAP;
+        into.add(new Source(sprite, texW, texH, name));
+        return null;
     }
 }
