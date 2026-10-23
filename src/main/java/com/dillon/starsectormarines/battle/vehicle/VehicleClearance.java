@@ -12,8 +12,12 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
  * construction, rather than committing to a pinch and relying on recovery. See
  * {@code convoy-nouns.md}.
  *
- * <p>Erosion model (slice-0 starting point): a cell is passable iff it and every
- * cell within Chebyshev distance {@code radiusCells} are walkable. The radius is
+ * <p>Erosion model: a cell is passable iff it and every cell within Chebyshev
+ * distance {@code radiusCells} are walkable, and no wall stands on an edge
+ * between two cells of that block. A fence or a low wall along a cell edge
+ * leaves both its cells walkable, but a hull's body collides with it
+ * ({@code VehicleFootprint}); a mask that read cells alone let a route graze such
+ * an edge beside its centre line, and a body three cells wide was pinned on it. The radius is
  * the footprint <em>half-width</em> (the vehicle aligns its length down a
  * corridor, so width is the binding dimension) — e.g. a HEAVY_APC at
  * visualWidth 1.4 erodes by radius 1. A 3-wide street therefore leaves a 1-cell
@@ -26,6 +30,12 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
  * Pure: {@code (grid, radius) -> mask}. Tuned in slice 4.
  */
 public final class VehicleClearance {
+
+    /**
+     * {@code -Dbattle.vehicle.edgeClearance=false} reads cells alone, the mask every planner used
+     * before edge walls counted: the control run for the edge test, not a mode to play.
+     */
+    static final boolean EDGES = Boolean.parseBoolean(System.getProperty("battle.vehicle.edgeClearance", "true"));
 
     private final int width;
     private final int height;
@@ -44,7 +54,7 @@ public final class VehicleClearance {
     /**
      * Erode the grid's walkable set by {@code radiusCells} (clamped to ≥0). A
      * cell is passable iff the full {@code (2r+1)×(2r+1)} Chebyshev block
-     * centered on it is in-bounds and walkable.
+     * centered on it is in-bounds and walkable with no closed edge inside it.
      */
     public static VehicleClearance erode(NavigationGrid grid, int radiusCells) {
         int r = Math.max(0, radiusCells);
@@ -58,39 +68,6 @@ public final class VehicleClearance {
             }
         }
         return mask;
-    }
-
-    /**
-     * {@link #erode}, and a cell is passable only where no wall stands on an edge between two cells
-     * of its block either: a fence or a low wall along a cell edge, which a hull's body collides
-     * with ({@code VehicleFootprint}) though both cells are walkable. A plain erosion lets a route
-     * graze such an edge beside its centre line, and a body three cells wide is stopped on it.
-     *
-     * <p>Opt-in: the plain erosion is what every planner is proved against, and changing it moves
-     * every vehicle's route.
-     */
-    public static VehicleClearance erodeRespectingEdges(NavigationGrid grid, int radiusCells) {
-        VehicleClearance mask = erode(grid, radiusCells);
-        int r = mask.radiusCells;
-        for (int y = 0; y < mask.height; y++) {
-            for (int x = 0; x < mask.width; x++) {
-                int idx = y * mask.width + x;
-                if (mask.passable[idx] && edgeInside(grid, x, y, r)) mask.passable[idx] = false;
-            }
-        }
-        return mask;
-    }
-
-    /** Whether a wall stands on an edge between two cells of the block of radius {@code r} round a cell. */
-    private static boolean edgeInside(NavigationGrid grid, int cx, int cy, int r) {
-        for (int dy = -r; dy <= r; dy++) {
-            for (int dx = -r; dx <= r; dx++) {
-                int x = cx + dx, y = cy + dy;
-                if (dx < r && !grid.canTraverseCellStep(x, y, Direction.E)) return true;
-                if (dy < r && !grid.canTraverseCellStep(x, y, Direction.N)) return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -154,13 +131,27 @@ public final class VehicleClearance {
         return fitsAt(grid, cx, cy, r);
     }
 
-    /** One footprint probe without allocating or eroding a whole-map mask. */
+    /**
+     * One footprint probe without allocating or eroding a whole-map mask: every
+     * cell of the block walkable, and every edge between two of its cells open.
+     * A changed edge is logged against one of its two cells, and every block
+     * holding both lies within Chebyshev {@code r} of either, so
+     * {@link #refreshAround} reaches all of them.
+     */
     public static boolean fitsAt(NavigationGrid grid, int cx, int cy,
                                  int radiusCells) {
         int r = Math.max(0, radiusCells);
         for (int dy = -r; dy <= r; dy++) {
             for (int dx = -r; dx <= r; dx++) {
                 if (!grid.isWalkable(cx + dx, cy + dy)) return false;
+            }
+        }
+        if (!EDGES) return true;
+        for (int dy = -r; dy <= r; dy++) {
+            for (int dx = -r; dx <= r; dx++) {
+                int x = cx + dx, y = cy + dy;
+                if (dx < r && !grid.canTraverseCellStep(x, y, Direction.E)) return false;
+                if (dy < r && !grid.canTraverseCellStep(x, y, Direction.N)) return false;
             }
         }
         return true;

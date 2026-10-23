@@ -438,7 +438,12 @@ Roads are a **cost preference**, not topology a vehicle must follow. A route
 search favors road and hardscape cells, accepts costlier open terrain for a
 genuine shortcut, and avoids ugly terrain where possible. A clearance mask for
 the vehicle's width gates the search and its straight-line simplification, so a
-route never deliberately threads a static gap the vehicle cannot fit. Endpoint
+route never deliberately threads a static gap the vehicle cannot fit. A cell is
+in the mask only when the hull's whole block is walkable **and no wall stands on
+an edge inside it**: a fence or low wall along a cell edge leaves both its cells
+walkable, but the body collides with it, so a mask of cells alone proved routes
+that pinned trucks on fences beside their centre line. Every vehicle planner
+reads this one mask (`VehicleClearance.fitsAt`); there is no plain variant. Endpoint
 snapping accounts for perimeter and wall-adjacent cells removed by clearance.
 The sparse result then receives a vehicle-specific turn pass: material vertices
 become footprint-checked minimum-radius fillets. A bend that the chassis cannot
