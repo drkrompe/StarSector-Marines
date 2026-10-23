@@ -4,12 +4,15 @@ import com.dillon.starsectormarines.battle.command.allied.AlliedCommand;
 import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
+import com.dillon.starsectormarines.battle.vehicle.VehicleFootprint;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
+import java.util.ArrayDeque;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -141,6 +144,62 @@ public final class CordonLogistics {
             door = new int[]{cell[0], cell[1], 0, 0};
         }
         return new CordonLogistics(armour, door, slots, armourHomes, risk, rng);
+    }
+
+    /** Cells from a redoubt's middle the apron's carriers must be able to drive to. */
+    static final int APRON_REACH = 20;
+
+    /**
+     * Whether a carrier set down on the apron outside the shed's machine door can drive to every
+     * one of {@code places}: ground its footprint's clearance holds, joined to the apron's, within
+     * {@link #APRON_REACH} cells of each, stepping as the route planner steps. A base whose fence and lanes are too narrow for a carrier
+     * kept every one it built standing on its apron, refused a route to the line, and the shed's
+     * lane jammed behind them. Off a map without a machine door it is {@code true}: such a base
+     * builds nothing.
+     */
+    public static boolean apronReaches(NavigationGrid grid, List<Gantry> berths, List<int[]> places) {
+        int[] door = machineDoor(grid, berths);
+        if (door == null) return true;
+        VehicleClearance mask = VehicleClearance.erode(grid,
+                VehicleClearance.radiusForWidth(VehicleType.HEAVY_APC.visualWidthCells));
+        int w = mask.getWidth(), h = mask.getHeight();
+        int[] start = null;
+        int ax = door[0] + door[2] * APRON_DEPTH, ay = door[1] + door[3] * APRON_DEPTH;
+        for (int r = 0; r <= APRON_DEPTH && start == null; r++) {
+            for (int dx = -r; dx <= r && start == null; dx++) {
+                for (int dy = -r; dy <= r; dy++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                    if (mask.isPassable(ax + dx, ay + dy)) { start = new int[]{ax + dx, ay + dy}; break; }
+                }
+            }
+        }
+        if (start == null) return false;
+        boolean[] seen = new boolean[w * h];
+        ArrayDeque<Integer> open = new ArrayDeque<>();
+        seen[start[1] * w + start[0]] = true;
+        open.add(start[1] * w + start[0]);
+        boolean[] reached = new boolean[places.size()];
+        int left = places.size();
+        while (!open.isEmpty() && left > 0) {
+            int idx = open.poll(), x = idx % w, y = idx / w;
+            for (int i = 0; i < places.size(); i++) {
+                if (!reached[i] && Math.max(Math.abs(x - places.get(i)[0]), Math.abs(y - places.get(i)[1])) <= APRON_REACH) {
+                    reached[i] = true;
+                    left--;
+                }
+            }
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
+                    int nx = x + dx, ny = y + dy;
+                    if (nx < 0 || ny < 0 || nx >= w || ny >= h || seen[ny * w + nx] || !mask.isPassable(nx, ny)) continue;
+                    // The route planner's own step: no wall along the edge crossed, no corner cut.
+                    if (!grid.canTraverseCellStep(x, y, nx, ny)) continue;
+                    seen[ny * w + nx] = true;
+                    open.add(ny * w + nx);
+                }
+            }
+        }
+        return left == 0;
     }
 
     /**
@@ -327,6 +386,14 @@ public final class CordonLogistics {
             if (!gone && !near(sim.convoy().body(exiting), new int[]{doorX, doorY}, DOOR_CLEAR)
                     && pastDoor(sim.convoy().body(exiting))) {
                 exiting = 0L;
+            } else if (!gone && sim.getSimTickIndex() - exitingSince > EXIT_PATIENCE_TICKS
+                    && !pastDoor(sim.convoy().body(exiting))) {
+                // Still inside the door: the tug tows it out to the threshold, or waits to.
+                if (!towOut(sim, exiting)) {
+                    exitingSince = sim.getSimTickIndex() - EXIT_PATIENCE_TICKS + TOW_RETRY_TICKS;
+                    return;
+                }
+                exiting = 0L;
             } else if (gone || sim.getSimTickIndex() - exitingSince > EXIT_PATIENCE_TICKS) {
                 exiting = 0L;
             } else {
@@ -383,11 +450,61 @@ public final class CordonLogistics {
         if (!VehicleClearance.fitsAt(sim.getGrid(), (int) x, (int) y, radius)) return true;
         for (long other : sim.convoy().entityIds()) {
             if (other == hull || sim.convoy().structure(other) <= 0f) continue;
-            if (sim.convoy().body(other).distanceTo(x, y) < LANE_CLEAR) return false;
+            GroundBody blocker = sim.convoy().body(other);
+            if (blocker.distanceTo(x, y) >= LANE_CLEAR) continue;
+            // A hull standing in the lane inside the door (a carrier pulled back into the doorway on
+            // its way home, one never proved a way out) is towed out of the way; else wait.
+            boolean stranded = !pastDoor(blocker) && Math.abs(blocker.speed) < STANDING
+                    && sim.convoy().faction(other) == Faction.ALLY;
+            if (!stranded || !towOut(sim, other)) return false;
         }
         float heading = (float) Math.toDegrees(Math.atan2(outY, outX)) - 90f;
         body.teleport(x, y, heading);
         return true;
+    }
+
+    /** Speed, cells a second, below which a hull in the lane is standing. */
+    static final float STANDING = 0.1f;
+    /** Ticks before the tug looks again at a threshold it could not tow a hull onto. */
+    static final int TOW_RETRY_TICKS = 60 * 5;
+
+    /**
+     * The tug's second pull: a hull let out that is still inside the door when its patience is up
+     * is towed through it onto the threshold, facing out, where that ground takes its footprint and
+     * no other hull stands; it then goes on to where it was going. A carrier steers too wide to be
+     * proved a route out of a service lane narrower than its footprint's clearance, and one that
+     * stood there stopped the shed: the next machine is drawn out into that same stretch of lane.
+     * So is a hull standing in the lane when the next is to be drawn out.
+     *
+     * @return whether it was towed
+     */
+    private boolean towOut(BattleSimulation sim, long hull) {
+        GroundBody body = sim.convoy().body(hull);
+        VehicleType type = sim.convoy().vehicleType(hull);
+        if (type == null) return false;
+        int outX = Integer.signum(musterX - doorX), outY = Integer.signum(musterY - doorY);
+        float heading = (float) Math.toDegrees(Math.atan2(outY, outX)) - 90f;
+        // The threshold, or a little further out where a long hull's tail would still be in the door.
+        for (int step = 0; step <= TOW_REACH; step++) {
+            float x = thresholdX + outX * step + 0.5f, y = thresholdY + outY * step + 0.5f;
+            if (!VehicleFootprint.isPoseFeasible(x, y, heading, type.visualLengthCells, type.visualWidthCells,
+                    sim.getGrid()) || crowdedAt(sim, hull, x, y)) continue;
+            body.teleport(x, y, heading);
+            armour.command().station(sim, hull, (int) x, (int) y);
+            return true;
+        }
+        return false;
+    }
+
+    /** Cells past the threshold the tug may tow a hull to find ground its footprint fits. */
+    static final int TOW_REACH = 6;
+
+    private static boolean crowdedAt(BattleSimulation sim, long hull, float x, float y) {
+        for (long other : sim.convoy().entityIds()) {
+            if (other == hull || sim.convoy().structure(other) <= 0f) continue;
+            if (sim.convoy().body(other).distanceTo(x, y) < LANE_CLEAR) return true;
+        }
+        return false;
     }
 
     /** Whether a hull is on the apron's side of the door rather than still in the shed. */

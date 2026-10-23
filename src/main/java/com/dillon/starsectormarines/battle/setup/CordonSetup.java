@@ -116,6 +116,11 @@ public final class CordonSetup {
                 return "the logistics base packed no shed";
             }
         }
+        List<int[]> lineMiddles = new ArrayList<>();
+        for (Precinct r : redoubts) lineMiddles.add(new int[]{r.seedX(), r.seedY()});
+        if (!CordonLogistics.apronReaches(map.grid, map.gantries, lineMiddles)) {
+            return "the logistics base's apron has no way to the line for a carrier";
+        }
         if (variant == CordonVariant.ROAD) {
             for (Precinct precinct : plan.precincts()) {
                 if (precinct.name().equals(CivilDefenceCompound.PLACE) && !walled(map.topology, precinct)) {

@@ -160,7 +160,12 @@ The base controls its exits so nothing piles up in the shed. A finished
 machine waits on its berth until the one before it has driven clear of the
 machine door; it is then drawn out into the service lane in front of its
 berth facing the door (the shed's tug: a berth's mouth is no wider than the
-hull, and a hull cannot turn out of it alone) and driven out. A carrier waits
+hull, and a hull cannot turn out of it alone) and driven out. One still inside
+the door when its time to get clear is up (a carrier steers too wide to be
+proved a way out of a lane narrower than its clearance) is towed out onto the
+threshold by the tug when that ground is clear, and goes on from there; one that
+stood in the lane stopped the shed, since the next machine is drawn out into
+that same stretch. A carrier waits
 on a **staging slot** of its own on the apron outside the door, never in the
 doorway, on ground its footprint fits; there are as many carriers as slots,
 and an APC beyond that fights with the armour. Every machine drives straight
@@ -275,7 +280,10 @@ square), so they claim first and the rest grows round them. Their roads are
 short arms, and their gates are where roads cross their walls, so a road may
 run through a redoubt rather than beside it: the redoubt then guards that
 road's way through the line. A map on which a redoubt has no wall, or the
-landing's field of fire is not clear, re-rolls.
+landing's field of fire is not clear, re-rolls; so does one whose logistics
+base packed no shed, or whose apron a carrier cannot drive from to every
+redoubt (a base fenced too narrowly for a carrier kept every one it built
+standing on its apron, refused a route, with the shed's lane jammed behind).
 
 The Road keeps the colony's civil-defence compound on the town's near side
 (depth 0.6 to 0.7). Its **corridor** (CordonCorridor) is found on the
@@ -292,9 +300,14 @@ with no drivable way re-rolls.
 **The front is grown at setup** (CordonFront). The front is cut across the
 width into one slot per bore, west to east (six by default: bore, maw, bore,
 bore, maw, bore). Even slots stand 60 to 100 cells in front of the line, odd
-ones 100 to 165; a bore-tier creep reaches fifty cells and a maw's eighty, so
-the creep's edge lies in front of the line and only now and then against a
-redoubt's wall, never behind it. A bore keeps fourteen cells off the Road's
+ones 100 to 165; a bore-tier creep reaches fifty cells and a maw's eighty, and
+every bore stands at least its own creep's reach and some twenty cells more from
+each redoubt's middle, taking the deep band where the near one has no such
+ground, so the creep's edge lies in front of the line and only now and then
+against a redoubt's wall, never behind it. Measured from each redoubt rather than
+the line's mean row, since one redoubt can stand twenty cells in front of the
+rest: a near maw at the mean distance grew over the redoubt in front of it, and
+the swarm began the battle at its walls. A bore keeps fourteen cells off the Road's
 corridor and seventy off the town's compound (the town is besieged, not yet
 eaten). Each bore opens through the ordinary seam and is fed to its tier one
 body at a time, so its age mix is a fed bore's. Then the creep is **matured**:
