@@ -268,6 +268,7 @@ public final class CordonSetup {
         if (variant == CordonVariant.ROAD && cordon.corridor() != null) {
             CordonConvoys convoys = convoys(sim, cordon, timetable, logistics);
             sequence.attachConvoys(convoys);
+            armour.escortConvoys(convoys::guardPosts);
         }
         sim.setAutonomousCommander(Faction.MARINE, new CordonCommand(WIDTH / 2, reserveY),
                 CordonCommand.disclosure(sequence));

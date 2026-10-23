@@ -78,17 +78,6 @@ public final class CordonConvoys {
     static final int ESCORT_FROM = 12;
     /** Corridor cells ahead of a convoy's lead truck its escort walks. */
     static final int ESCORT_LEAD = 14;
-    /**
-     * The gun truck at the head of every convoy: armour that drives the convoy's own proven road,
-     * held, paced and given a way on as its trucks are. Line hulls sent to posts beside a moving
-     * convoy were refused routes past the gap and stood thirty-odd cells behind, and every gun the
-     * line lent broke it sooner.
-     */
-    static final VehicleType GUN = VehicleType.MILITIA_TECHNICAL;
-    /** Hulls in a convoy: its gun truck and its trucks. */
-    static final int MEMBERS = TRUCKS + 1;
-    /** Corridor cells the gun truck may lead the nearest truck by before it waits for it. */
-    static final int GUN_LEAD = 16;
     /** Corridor cells in each stretch the road's route is proved over. */
     static final int STRETCH = 30;
     /** Ticks a truck may make no headway along an open route before it is given a way on again. */
@@ -98,8 +87,6 @@ public final class CordonConvoys {
 
     private static final class Truck {
         long hull;
-        /** The convoy's gun truck: carries nobody, and its loss does not lose the convoy. */
-        boolean gun;
         /** Which way along the corridor its route runs: +1 to the town, -1 out. */
         int direction;
         int people;
@@ -213,17 +200,6 @@ public final class CordonConvoys {
     /** The corridor cell where the road crosses the line. */
     public int gapIndex() { return gapIndex; }
 
-    /** Where the road crosses the line, {x, y}: the gap the company holds while convoys run. */
-    public int[] gap() { return corridor.get(gapIndex).clone(); }
-
-    /** Whether a convoy is on the road: driving in, loading at the gate, or driving out. */
-    public boolean running() {
-        for (Convoy c : convoys) {
-            if (c.phase == Phase.INBOUND || c.phase == Phase.LOADING || c.phase == Phase.OUTBOUND) return true;
-        }
-        return false;
-    }
-
     /** Live trucks, for evidence. */
     public List<Long> trucks() {
         List<Long> out = new ArrayList<>();
@@ -247,10 +223,9 @@ public final class CordonConvoys {
             }
             comeOn(sim, c);
             bury(sim, c);
-            if (c.trucks.isEmpty() || allGone(c) || cargoGone(c)) {
-                if (c.trucks.size() >= MEMBERS || c.phase != Phase.INBOUND) {
+            if (c.trucks.isEmpty() || allGone(c)) {
+                if (c.trucks.size() >= TRUCKS || c.phase != Phase.INBOUND) {
                     c.phase = Phase.LOST;
-                    sendHome(sim, c);
                     beat.accept("convoy_lost_" + c.number);
                 }
                 continue;
@@ -261,7 +236,7 @@ public final class CordonConvoys {
                 case LOADING -> {
                     if (tick - c.loadingSince < LOADING_TICKS) continue;
                     for (Truck t : c.trucks) {
-                        if (t.gone || t.gun) continue;
+                        if (t.gone) continue;
                         t.people = Math.min(SEATS, town);
                         town -= t.people;
                     }
@@ -280,7 +255,7 @@ public final class CordonConvoys {
 
     /** Trucks come on one at a time at the rear end, each once the one ahead has made room. */
     private void comeOn(BattleSimulation sim, Convoy c) {
-        if (c.phase != Phase.INBOUND || c.trucks.size() >= MEMBERS) return;
+        if (c.phase != Phase.INBOUND || c.trucks.size() >= TRUCKS) return;
         if (!c.trucks.isEmpty()) {
             Truck ahead = c.trucks.get(c.trucks.size() - 1);
             if (!ahead.gone && nearestIndex(sim.convoy().body(ahead.hull)) < entry + SPACING) return;
@@ -289,13 +264,11 @@ public final class CordonConvoys {
         int[] toward = corridor.get(Math.min(corridor.size() - 1, entry + 3));
         float facing = (float) Math.toDegrees(Math.atan2(toward[1] - start[1], toward[0] - start[0])) - 90f;
         float x = start[0] + 0.5f, y = start[1] + 0.5f;
-        boolean gun = c.trucks.isEmpty();
-        long hull = sim.convoy().spawn(gun ? GUN : VehicleType.SUPPLY_TRUCK, Faction.ALLY, VehicleMission.deployed(x, y));
+        long hull = sim.convoy().spawn(VehicleType.SUPPLY_TRUCK, Faction.ALLY, VehicleMission.deployed(x, y));
         // Initial pose, before it has moved; later motion goes through the chassis controller.
         sim.convoy().body(hull).teleport(x, y, facing);
         Truck t = new Truck();
         t.hull = hull;
-        t.gun = gun;
         c.trucks.add(t);
         route(sim, t, +1);
     }
@@ -318,7 +291,7 @@ public final class CordonConvoys {
             }
             drive(sim, c, t, at, +1, swarm);
         }
-        if (atGate && c.trucks.size() >= MEMBERS) {
+        if (atGate && c.trucks.size() >= TRUCKS) {
             c.phase = Phase.LOADING;
             c.loadingSince = tick;
             beat.accept("convoy_at_town_" + c.number);
@@ -362,8 +335,7 @@ public final class CordonConvoys {
         t.halted = block != null;
         // In the swarm's country a convoy waits for an escort beside it; one escort is the convoy's.
         t.unescorted = at >= gapIndex - ESCORT_FROM && !escorted(sim, c);
-        mission.authoredRoutePaused = t.halted || t.unescorted || crowded(sim, c, t, at, direction)
-                || (t.gun && outrunning(sim, c, at, direction));
+        mission.authoredRoutePaused = t.halted || t.unescorted || crowded(sim, c, t, at, direction);
         int tick = sim.getSimTickIndex();
         // Stuck is no headway along the road, not standing still: a truck circling a point it cannot
         // turn onto is moving all the time.
@@ -656,38 +628,6 @@ public final class CordonConvoys {
             t.gone = true;
             peopleLost += t.people;
             t.people = 0;
-        }
-    }
-
-    /** Whether the gun truck is more than {@link #GUN_LEAD} cells ahead of every truck behind it. */
-    private boolean outrunning(BattleSimulation sim, Convoy c, int at, int direction) {
-        boolean behind = false;
-        for (Truck other : c.trucks) {
-            if (other.gone || other.gun) continue;
-            int gap = (at - nearestIndex(sim.convoy().body(other.hull))) * direction;
-            if (gap <= 0 || gap <= GUN_LEAD) return false;
-            behind = true;
-        }
-        return behind;
-    }
-
-    /** Whether every truck of a convoy that has them all on the road was destroyed, its gun truck aside. */
-    private static boolean cargoGone(Convoy c) {
-        int trucks = 0;
-        for (Truck t : c.trucks) {
-            if (t.gun) continue;
-            trucks++;
-            if (!t.gone) return false;
-        }
-        return trucks >= TRUCKS;
-    }
-
-    /** A lost convoy's gun truck drives off the field with it. */
-    private static void sendHome(BattleSimulation sim, Convoy c) {
-        for (Truck t : c.trucks) {
-            if (t.gone) continue;
-            t.gone = true;
-            sim.convoy().despawn(t.hull);
         }
     }
 
