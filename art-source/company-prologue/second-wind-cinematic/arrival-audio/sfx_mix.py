@@ -129,6 +129,8 @@ SHOTS = {
         # The Legion: two layers of engine hum and the swell, all loudest at the beam (8.0).
         # The Legion's engines: two synthesised rocket clusters along the hull, a beat apart.
         synth("legion_drives", -7, fade_in=1.0),
+        # The burn once its engines are in view (7.15 s, synth_flyby.LEGION_BURN_T), over the bass.
+        synth("legion_burn", -6),
         synth("legion_forward", -9, fade_in=1.0),
         # The camera moves on the bridge (c2-camera, 340 m pass): leaning on the forward console at
         # 1.5, the step down off the dais at 5.0 and four paces, brushing past Castle at 5.55, and
