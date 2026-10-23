@@ -140,10 +140,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.sallyDoors.closable` | experiment | 2026-10-21 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.sallyDoors.derived` | experiment | 2026-10-20 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.separation.capsules` | experiment | 2026-10-21 | Continuous positions (continuous-positions-nouns.md): remove once capsule separation is accepted. |
-| `battle.squad.apertureSpread` | undecided | 2026-10-11 | Default off since 2026-10-11 (conquest-command.md). Ship it or delete the code. |
-| `battle.squad.contactDrill` | undecided | 2026-08-30 | Default off since 2026-08-30 (ai-nouns.md). Ship it or delete the code. |
 | `battle.squad.prosecutionFallThrough` | control | 2026-09-01 | Standing control: the frozen-control loop of ProsecutionHoldScene runs the off arm and its verdict depends on it. Retire it with that loop. |
-| `battle.squad.roomCellSpread` | undecided | 2026-10-11 | Default off since 2026-10-11 (conquest-command.md). Ship it or delete the code. |
 | `battle.squad.routeCommitNeedsFreshContact` | experiment | 2026-10-13 | Squad zone actions (2026-10-13): remove once the squad zone-action evidence has been read against it. |
 | `battle.squad.traffic` | undecided | 2026-09-26 | Default off; SquadTrafficScene compares it. The owner decides whether to ship it (drop the switch, keep the code) or drop it (delete the code). |
 | `battle.squad.trafficYield` | experiment | 2026-09-26 | Part of the squad-traffic experiment (squad-traffic.md): its off arm isolates spreading from the speed preference. Remove it together with battle.squad.traffic. |
@@ -161,8 +158,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.swarm.packLeaders` | experiment | 2026-10-21 | Swarm/Bloom sessions: remove each once colony-breach evidence accepts it (colony-breach-nouns.md). |
 | `battle.swarm.packSplit` | experiment | 2026-10-22 | Swarm/Bloom sessions: remove each once colony-breach evidence accepts it (colony-breach-nouns.md). |
 | `battle.tail.replanCpu` | config | 2026-09-27 | Permanent: opt-in profileConquestTail instrumentation, off in play. |
-| `battle.targeting.friendlyLanePenalty` | undecided | 2026-09-01 | Default off since 2026-09-01 (ai-nouns.md). Ship it or delete the code. |
-| `battle.targeting.squadFiringPositions` | undecided | 2026-09-26 | Default off with its own profileSquadFiringPositions task (squad-firing-positions.md). Ship it, or delete the code together with that task. |
 | `battle.tender.fairThreat` | control | 2026-10-12 | Standing control: TenderBuildScene runs the off arm as its control loop. Retire it with that loop. |
 | `battle.thunderRun.reactiveColumn` | experiment | 2026-10-15 | Thunder Run: remove once commanderEvidence -Pmission=thunder-run accepts the reactive column. |
 | `battle.turret.crewFriendlyHold` | experiment | 2026-10-22 | Lane-discipline work: remove once lane discipline is accepted (ballistics-nouns.md). |

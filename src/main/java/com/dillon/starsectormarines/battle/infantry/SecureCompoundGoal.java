@@ -9,7 +9,6 @@ import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.action.ClearZone;
 import com.dillon.starsectormarines.battle.decision.goap.action.EnterZone;
 import com.dillon.starsectormarines.battle.decision.goap.action.HoldZone;
-import com.dillon.starsectormarines.battle.decision.goap.world.ApertureSpread;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.decision.goap.world.GarrisonArea;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
@@ -110,13 +109,12 @@ public final class SecureCompoundGoal implements Goal {
             return new SquadPlan(steps);
         }
 
-        return synthesizeSecurePlan(from, to, node, squad.autonomousMemberCount(sim), sim,
-                ApertureSpread.variant(squad));
+        return synthesizeSecurePlan(from, to, node, squad.autonomousMemberCount(sim), sim);
     }
 
     private static SquadPlan synthesizeSecurePlan(int fromZone, int toZone, TacticalNode node,
-                                                   int memberCount, BattleView sim, int variant) {
-        List<Integer> path = ZoneQueries.zonePathBfs(fromZone, toZone, sim, variant);
+                                                   int memberCount, BattleView sim) {
+        List<Integer> path = ZoneQueries.zonePathBfs(fromZone, toZone, sim);
         if (path.size() < 2) return null;
 
         var graph = sim.getZoneGraph();
@@ -134,11 +132,9 @@ public final class SecureCompoundGoal implements Goal {
             // keeps the squad from parking on a ClearZone against the unbounded
             // outdoor zone (it always holds a stray defender) — see story 17.
             boolean finalHop = i == path.size() - 1;
-            var previous = graph.zoneById(path.get(i - 1));
             steps.add(new SquadPlan.Step(finalHop
-                    ? EnterZone.committedForZone(zone, previous, variant, graph, grid)
-                    : EnterZone.forZone(zone, previous, variant, graph, grid)
-                            .spaced()));
+                    ? EnterZone.committedForZone(zone, grid)
+                    : EnterZone.forZone(zone, grid).spaced()));
             if (GarrisonArea.isGarrisonZone(zone, node.left, node.top, node.right, node.bottom, grid)) {
                 steps.add(new SquadPlan.Step(new ClearZone(zoneId)));
             }

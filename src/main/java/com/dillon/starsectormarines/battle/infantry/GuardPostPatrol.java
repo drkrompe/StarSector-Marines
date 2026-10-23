@@ -192,15 +192,8 @@ public final class GuardPostPatrol implements Action {
             return ActionStatus.RUNNING;
         }
 
-        var selection = sim.getTacticalScoring().selectSquadFiringPositionWithin(
-                member, target, squad, sim.getSimTickIndex(), anchorX, anchorY, leash,
-                TacticalScoring.ANY_ZONE);
-        if (selection.deferred()) {
-            // Waiting for geometry must not trigger N alternative-target scans.
-            PatrolMotion.hold(member, sim);
-            return ActionStatus.RUNNING;
-        }
-        int[] firingPos = selection.cell();
+        int[] firingPos = sim.getTacticalScoring().findSquadFiringPositionWithin(
+                member, target, squad, sim.getSimTickIndex(), anchorX, anchorY, leash);
         if (firingPos == null) {
             long alt = sim.getTacticalScoring().findEngageableEnemyWithin(
                     member, anchorX, anchorY, leash);

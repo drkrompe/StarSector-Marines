@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.command.trace;
 
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
-import com.dillon.starsectormarines.battle.decision.goap.world.ApertureSpread;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
@@ -127,12 +127,13 @@ final class SquadDensityProbe {
             if (sim.getZoneGraph().zoneIdAt((int) cx, (int) cy) == task.targetZoneId()) {
                 where = "in-zone";
             } else {
-                int[] cell = ApertureSpread.roomCell(
-                        sim.getZoneGraph().zoneById(task.targetZoneId()),
-                        sim.getGrid(), 0);
-                if (cell != null) {
-                    float dx = cell[0] + 0.5f - cx;
-                    float dy = cell[1] + 0.5f - cy;
+                NavigationZone zone = sim.getZoneGraph().zoneById(task.targetZoneId());
+                int[] cells = zone == null ? null : zone.getCellIndices();
+                if (cells != null && cells.length > 0) {
+                    int middle = cells[cells.length / 2];
+                    int width = sim.getGrid().getWidth();
+                    float dx = middle % width + 0.5f - cx;
+                    float dy = middle / width + 0.5f - cy;
                     where = dx * dx + dy * dy <= 18 * 18 ? "near<=18" : "far>18";
                 }
             }
