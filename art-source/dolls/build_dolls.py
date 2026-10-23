@@ -415,7 +415,6 @@ def marine(name, suit=False):
 def main():
     written = [
         tank("tank"),
-        tank("tank-heavy-gun", heavy=True),
         tank("tank-screened", screened=True),
         tank("tank-dozer", turret_w=16, turret_top=58, dozer=True),
         apc("apc"),

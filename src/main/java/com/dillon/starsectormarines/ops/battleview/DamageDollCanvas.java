@@ -143,7 +143,6 @@ public final class DamageDollCanvas implements CanvasProducer {
         String name = switch (type) {
             case HEAVY_APC, UP_ARMORED_APC, FIRE_SUPPORT_APC, ESCORT_APC -> "apc";
             case BREAKTHROUGH_TANK, LASER_TANK -> "tank";
-            case HEAVY_GUN_TANK -> "tank-heavy-gun";
             case SCREENED_TANK -> "tank-screened";
             case DOZER_BREACHER -> "tank-dozer";
             case MILITIA_TECHNICAL -> "technical";

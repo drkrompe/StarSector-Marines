@@ -43,7 +43,6 @@ public final class MechPatternCredits {
         vehicle(VehicleType.UP_ARMORED_APC, hegemony, HEGEMONY);
         vehicle(VehicleType.LRM_CARRIER, hegemony, HEGEMONY);
         vehicle(VehicleType.BREAKTHROUGH_TANK, hegemony, HEGEMONY);
-        vehicle(VehicleType.HEAVY_GUN_TANK, hegemony, HEGEMONY);
         vehicle(VehicleType.SCREENED_TANK, hegemony, HEGEMONY);
         vehicle(VehicleType.ESCORT_APC, "persean", LEAGUE);
         vehicle(VehicleType.FIRE_SUPPORT_APC, FactionMechLoadouts.LIONS_GUARD_ID, LIONS_GUARD);
