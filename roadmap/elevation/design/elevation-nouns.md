@@ -228,6 +228,17 @@ Generators place plateaus where a mission wants them:
   ground around it connected. Dense maps simply get fewer or none.
 - **Mission maps** author their plateaus and ramps (the Cordon's line, a
   redoubt on a rise, an overlook over a crossing).
+- **Ridges.** A mission names a band of high ground along any path through
+  its plan's landscape (`RidgePlanner`, the heart's cordon ridge). A brook may
+  ask for its **valley sides**: a ridge along each bank, clear of the water,
+  stopping short of every ford and climbed from the country, so the fords and
+  bridges are the ways down to the water. The mission says where
+  the high ground is and the map says where it is broken: wherever a road, a
+  lane, a building, a landing or other reserved ground crosses the band, the
+  band breaks into a pass, so a ridge never puts a cliff across a road. Each
+  unbroken run becomes a hill segment, a plateau with one ramp up from the side
+  the mission names. A segment is left out when it would not fit or would cut
+  the host's ground apart. Nothing grows on a ridge's ramps.
 - City blocks do not get plateaus; a city's height is its buildings. A city's
   countryside margin may.
 

@@ -1,6 +1,6 @@
 # The Heart — story beats (candidates)
 
-Status: DRAFT. Candidates for the owner's pick; nothing here is built.
+Status: ACTIVE. The owner picked every beat (2026-10-23); they become a pool of optional objectives once the maps hold their structures (`heart-mission-depth.md`). Nothing here is built.
 
 Written: 2026-10-23
 
@@ -95,6 +95,6 @@ mechanic: the presentation marks it (`barrage_ended` already exists).
 
 ## Open
 
-Which beats each variant carries is the owner's pick
-(`heart-story-beats-pick`). After that, step 2 lays out the ground the picked
-beats need.
+Every beat is picked. Each becomes an optional objective that a battle may
+activate when its map holds the structure it needs, with a reward on success
+and a cost on failure (`heart-mission-depth.md`).

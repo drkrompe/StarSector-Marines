@@ -302,7 +302,9 @@ public final class ConsoleRoomSnapshotSuite implements SnapshotSuite {
             }
             long modules = map.doodads.stream().filter(d -> d.definitionId().startsWith("console-bank.")).count();
             long seats = map.doodads.stream().filter(d -> d.definitionId().equals("mess-galley.stool")).count();
-            if (modules == 0 || seats == 0) throw new IllegalStateException(names[i] + " has no seated console bank");
+            // The civic filler furnishes desks and server racks rather than console banks, so only its seats are required.
+            boolean banked = configs[i] != BuildingCivicFiller.CONFIG;
+            if ((banked && modules == 0) || seats == 0) throw new IllegalStateException(names[i] + " has no seated console bank");
             text(g, names[i], x, y, 22);
             g.drawImage(renderer.render(map, 42, 17), x, y + 20, null);
             text(g, modules + " console modules", x + 550, y + 115, 19);

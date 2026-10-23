@@ -156,7 +156,7 @@ public final class ArmorPlay {
     }
 
     public static Result play(ArmorScenarios.ArmorScenario scenario, ArmorSide attacker, ArmorSide defender,
-                              long seed, FightWatcher recording) {
+                              long seed, MatchupRecording recording) {
         if (ATTACKER_SPREAD > 0f && !scenario.id().equals("open-ground")) {
             throw new IllegalArgumentException("-PattackerSpread is for open-ground only, not " + scenario.id());
         }

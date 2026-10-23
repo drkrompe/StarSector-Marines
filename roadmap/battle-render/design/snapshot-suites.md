@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-16
 
-Updated: 2026-10-23 — `deck-props` and `elevation-look` opt-in
+Updated: 2026-10-23 — look frames (`look/`) for owner-facing pictures
 
 A guide to the notable `createSnapshots` suites: what each one shows and where it writes.
 How to run them, and the rules every preview obeys, are in `CLAUDE.md` (Visual snapshot
@@ -12,6 +12,18 @@ workflow). This table is not the catalog. Suites register through `META-INF/serv
 and `tools/authoring.sh snapshot_list_suites` lists every registered id; many registered
 suites have no row here. Add a row when a suite is evidence someone will want to find
 by name.
+
+**Look frames are what the owner is shown.** A behaviour scene's loops are verdict evidence: a bare arena with
+no ground art, faction dots, labels and a caption band, and by default no smoke, contrails or shadows. A scene suite
+that overrides `lookShots()` also writes `look/<shot>-<view>.gif` and `look/<shot>-<view>-NN.png`: its subject stood
+on real generated ground (`LookGround`, a production map of a small colony on a chosen world, with its doodads,
+buildings and nature cover handed to the simulation) and drawn through the look preset
+(`BattleReviewFrameRenderer.look`, the presentation mode `asPresentation()` plus: shots, launch, trail, contrail, smoke, impact and aftermath effects, unit
+shadows and roofs on, no markers, annotations or caption), at play zoom (60 cells across, 32 px a cell) and close,
+1920x1080. The stills are each view's busiest moments. `-Dsnapshot.lookOnly=true` skips the verdict loops and
+writes only the look frames. Any other suite calls `LookReview.record`. Scenes with look shots: `fire-support-apc`
+(`apc-shelling`), `mech-duel-range` (`mech-duel`), `field-mortar` (`mortar-section`); the LRM carrier's look is its
+own suite, `lrm-carrier-look`.
 
 A suite can be **opt-in**: `all` leaves it out and only `-Psnapshot=<id>` runs it
 (`SnapshotSuite.inAll`). That is for slow look studies that matter only while their
@@ -149,8 +161,9 @@ art is being changed; `deck-props` and `elevation-look` are opt-in.
 | `fire-support-apc` | A fire-support APC parked ~33 cells off shells a plated twelve-defender position with its roof heavy mortar while a troop heavy APC delivery sets four marines down beside it, against a no-mortar control; two spotters keep the position in the player's fog picture. 1920x1080 at 100% scale, whole map plus close view, close PNG stills. Verdicts are `sceneEvidence`'s | `build/snapshots/fire-support-apc/` |
 | `supply-truck` | A supply truck's carried resupply cache: spent grenadiers beside the halted truck refilled while a squad out of reach is not (`parked`), nothing handed out while it drives up and service from the tick it halts (`driving`), stock lost with the wreck (`wrecked`), and a no-truck `control`. The service ring is drawn green when open, grey when shut. 1920x1080 at 100% scale, whole map plus close view, close PNG stills. Verdicts are `sceneEvidence`'s | `build/snapshots/supply-truck/` |
 | `scout-car` | A scout car's mast sights a position no marine can see behind a long wall, reaching the commander as squadless contacts and the player's fog (`scouted`); a wall across its view blinds it (`walled-in`); a no-scout `control`. The review renderer draws no fog, so the caption carries sightings, commander contacts and revealed cells. 1920x1080 at 100% scale, whole map plus close view, close PNG stills. Verdicts are `sceneEvidence`'s | `build/snapshots/scout-car/` |
-| `missile-carriers` | The missile carriers: an LRM carrier arcs anti-armor salvos over a solid wall onto a pinned tank a scout car is watching (`lrm-spotted`), holds with no spotter (`lrm-no-spotter`), and an SRM technical behind a building corner holds until a tank driving the road is inside its 18 cells, then fires (`srm-ambush`); Defender infantry in each launcher's own sight and reach are never fired on. Walls, the building and the road are boxed, each hull labelled. 1920x1080 at 100% scale, whole map plus close view, close PNG stills. Verdicts are `sceneEvidence`'s | `build/snapshots/missile-carriers/` |
-| `lrm-carrier-look` | Opt-in look study, not a verdict: the LRM carrier against a tank on the armor matchup's open ground, drawn as a player sees it (`BattleReviewFrameRenderer.asPresentation`: no markers or captions) with impact effects, contrails and shadows. Play zoom (40 cells, carrier and target) and close (12 cells on the carrier): idle, mid-salvo and the pod standing raised after its salvo, plus the close salvo as a GIF. 1920x1080/100% | `build/snapshots/lrm-carrier-look/` |
+| `<scene>/look` | The look frames of any scene suite with `lookShots()`: the subject on real generated ground through the look preset, at play zoom and close, a full-colour GIF and the busiest stills a view. **The pictures to show the owner**; `-Dsnapshot.lookOnly=true` writes only these | `build/snapshots/<scene>/look/` |
+| `missile-carriers` | The missile carriers: an LRM carrier arcs anti-armor salvos over a solid wall onto a pinned tank a scout car is watching (`lrm-spotted`), holds with no spotter (`lrm-no-spotter`), and an SRM technical behind a building corner holds until a tank driving the road is inside its 18 cells, then fires (`srm-ambush`); Defender infantry in each launcher's own sight and reach are never fired on. Walls, the building and the road are boxed, each hull labelled. 1920x1080 at 100% scale, whole map plus close view, close PNG stills. Verdicts are `sceneEvidence`'s. | `build/snapshots/missile-carriers/` |
+| `lrm-carrier-look` | Opt-in look study: the LRM carrier through `LookReview` on real generated colony ground (look preset: effects, contrails, shadows, no markers or captions). `lrm-idle` (pod lying flat along the hull) and `lrm-salvo` (a scout car watching a pinned tank 36 cells off, so the pod turns, stands up and ripples its salvos), each at play zoom and close on the carrier, the salvo also close on the tank; GIF plus the busiest stills a view. 1920x1080/100%. The verdicts are `missile-carriers`' | `build/snapshots/lrm-carrier-look/look/` |
 | `hover-line` | Tri-Tachyon's hover line: a hover scout floats across a river a wheeled APC is refused at (`river`), drives over standing marines and shoves none (`crowd`) against the spotter pickup's control (`crowd-wheels`), and a drone skimmer's tethered drones fight on their leash and its strike drone detonates and is rebuilt (`skimmer`), the flight falls with the hull (`skimmer-loss`), a scout's sensor pair sees past a wall (`sensors`), and halo drones shoot down rockets (`halo`). Wheel dust and skirt haze are drawn. Water is marked cell by cell. 1920x1080 at 100% scale, whole map plus close view, close PNG stills. Verdicts are `sceneEvidence`'s | `build/snapshots/hover-line/` |
 
 ## Warship fights: the duel camera

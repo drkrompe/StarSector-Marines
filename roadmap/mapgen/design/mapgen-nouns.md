@@ -882,7 +882,9 @@ meandering across the map with sand banks, crossed on foot at a sand ford at a
 fixed interval along their length. A track or brook is reserved from trees; a
 brook is unwalkable, see-through water that creep does not climb, so it is a
 natural firebreak and a creep line broken only at its fords and wherever a road
-or street crosses it. The heart's country is the first plan to state one
+or street crosses it. A landscape may also name **ridges**, bands of high
+ground raised as hill segments with passes wherever the plan's own ground
+crosses them (`elevation-nouns.md`, Ridges). The heart's country is the first plan to state one
 (`heart-nouns.md`).
 
 Open countryside can gain small cliff-backed hills where their entire visible

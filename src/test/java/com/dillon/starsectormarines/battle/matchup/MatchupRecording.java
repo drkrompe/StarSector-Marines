@@ -22,7 +22,7 @@ import java.util.Arrays;
  * to follow. The recording only reads the simulation; it never changes what happens, and the fight it records is the fight
  * the figures report.
  */
-public final class MatchupRecording implements FightWatcher {
+public final class MatchupRecording {
 
     /** Ticks between frames while nobody has been hurt yet: a quick look at the approach. */
     static final int APPROACH_EVERY_TICKS = 60;
@@ -67,8 +67,8 @@ public final class MatchupRecording implements FightWatcher {
         }
     }
 
-    @Override
-    public void observe(BattleSimulation sim, int tick, boolean damageDealt, String status, long[][] sides) {
+    /** Called once per tick before the sim advances. {@code status} is the caption's live reading. */
+    void observe(BattleSimulation sim, int tick, boolean damageDealt, String status, long[][] sides) {
         if (damageDealt) engaged = true;
         sinceFrame++;
         int every = engaged ? ENGAGED_EVERY_TICKS : APPROACH_EVERY_TICKS;
@@ -77,16 +77,15 @@ public final class MatchupRecording implements FightWatcher {
         capture(sim, tick, status, sides);
     }
 
-    @Override
-    public void advanced(BattleSimulation sim) {
+    /** Called once per tick after the sim advanced, so shots fired this tick can be drawn as impacts. */
+    void advanced(BattleSimulation sim) {
         synchronized (RENDER_LOCK) {
             fx.feed(sim);
         }
     }
 
     /** The final state, so the recording always ends on the result. */
-    @Override
-    public void finish(BattleSimulation sim, int tick, String status, long[][] sides) {
+    void finish(BattleSimulation sim, int tick, String status, long[][] sides) {
         capture(sim, tick, FINAL + status, sides);
     }
 

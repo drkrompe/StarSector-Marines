@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.VehicleSupport;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
+import com.dillon.starsectormarines.battle.setup.InfantryLoadoutRolls;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -13,6 +14,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
+import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.Collections;
@@ -65,10 +67,16 @@ public record BattleTextureSet(Set<LayeredArmorFamily> families, boolean ravRigs
                 }
             }
         }
+        // A colony raises militia posts during the battle, armoured by the generic roll.
+        if (sim.getColonyBreach() != null) {
+            for (MarineArmorPattern armor : InfantryLoadoutRolls.defenderArmors(UnitType.MILITIA)) {
+                families.add(armor.layeredFamily());
+            }
+        }
         if (sim.getReinforcementService() != null && sim.getReinforcementService().dispatchesConvoys()) {
             vehicles.add(VehicleType.HEAVY_APC);
         }
-        if (sim.isSwarmReinforcementConfigured() || !sim.swarmBores().bores().isEmpty()) {
+        if (swarmCanArrive(sim)) {
             families.addAll(SWARM_FAMILIES);
             rav = true;
         }
@@ -86,6 +94,26 @@ public record BattleTextureSet(Set<LayeredArmorFamily> families, boolean ravRigs
             }
         }
         return new BattleTextureSet(families, rav, mechSides, vehicles);
+    }
+
+    /** Whether the swarm can come onto the field later: reinforcements configured, or bores open. */
+    private static boolean swarmCanArrive(BattleSimulation sim) {
+        return sim.isSwarmReinforcementConfigured() || !sim.swarmBores().bores().isEmpty();
+    }
+
+    /**
+     * Whether Rav Bloom creep can spread in this battle, so its blight stages may be drawn: creep is
+     * already down, a colony breach can erupt, or the swarm is on the field or can arrive.
+     */
+    public static boolean creepCanSpread(BattleSimulation sim) {
+        if (sim.creepFieldIfPresent() != null || sim.getColonyBreach() != null || swarmCanArrive(sim)) return true;
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            UnitType type = sim.identity().type(sim.liveUnitAt(i));
+            if (type == UnitType.SWARM_RUNNER || type == UnitType.SWARM_BRUTE || type == UnitType.SWARM_MATRIARCH) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

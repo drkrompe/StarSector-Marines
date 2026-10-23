@@ -2134,8 +2134,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             instance.styles().forEach(document::addStyleSheet); document.theme(MarineOpsThemes.standard());
             document.canvases().set(instance.requireElement("boat-deck-canvas"), new BoatDeckCanvas(ship, () -> bay,
                     boats::selectedBerthIndex, () -> 0, berth -> deck.boats().get(berth) != null));
-            var guide = preparationGuide(context, document, () -> CompanyPreparationGuide.boats(roster, boats, () -> { }));
+            // While the company is still being prepared the lesson says the boats can wait and holds input to
+            // Barracks; the player commissions after that, with the lesson gone, so the clicks run without it.
+            boolean[] lessonOn = {true};
+            var guide = preparationGuide(context, document,
+                    () -> lessonOn[0] ? CompanyPreparationGuide.boats(roster, boats, () -> { }) : null);
             frames.add(preparationFrame("02-berth", renderer, document, guide, scale));
+            lessonOn[0] = false; guide.update();
             clickBarracksFlow(document, instance, "boat:0"); guide.update();
             frames.add(preparationFrame("03-commission", renderer, document, guide, scale));
             clickBarracksFlow(document, instance, "boat-fabricate"); guide.update();

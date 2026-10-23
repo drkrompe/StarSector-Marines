@@ -1,6 +1,6 @@
 # The Heart — maps with intent
 
-Status: DRAFT. Direction for step 2 of `heart-mission-depth.md`; nothing here is built.
+Status: ACTIVE. Direction for step 2 of `heart-mission-depth.md`. The owner picked the ridge layout for both forms (2026-10-23); the cordon ridge and The Burn's brook valley are built, the rest is not.
 
 Written: 2026-10-23
 
@@ -75,6 +75,20 @@ Each pooled map carries its density, so the pool can offer all three on each
 biome. The layout's placements are measured against density's ground: a
 logistics base on a rural farm road, in a town's goods yard, or in a city
 car park.
+
+### What generation leaves room for
+
+Authored ground is raised in the landscape pass, after the settlements, roads,
+fields and landing are laid, and elevation never touches any of them. So the
+ground is broken wherever generation built something. That works for the
+cordon ridge, which lies in open country. It fails for the heart's hollow:
+on every pooled seed of both forms the workings stand among their own roads,
+fields and paved yards, and a rim round them finds no stretch long enough. A
+knoll under Broad Front's town fails for the same reason. Ground that has to
+sit among built places needs to be laid **before** generation grows them, so
+the town, the roads and the workings grow around the terrain. That is a
+change to generation's order, shared with the mission layout
+(`MissionLayout`, bloom-m2), and is the next step for the hollow and the knoll.
 
 ## The cordon's works (both forms)
 

@@ -1,0 +1,100 @@
+# The Cordon: maps with intent
+
+Status: DRAFT. Direction for the Cordon's controlled maps (step 2). Nothing here is built.
+
+Written: 2026-10-23
+
+`cordon-nouns.md` is the model. Today the Cordon's map is generated country
+with four redoubts and a base dropped into fixed bands. Nothing on it says
+that a field commander has held this line for weeks, chosen where to stand,
+and dug in. This doc says what the mission places and why; generation only
+grows the country around it.
+
+## The law: the mission places its structures
+
+The same law as the heart's (`heart-map-intent.md`; owner, 2026-10-23):
+structure placement belongs to the mission, not to map generation. The
+Cordon's **layout** lays every structure that the line, its logistics or a
+story beat needs, at a place the mission chose, over the grown country.
+
+- **Shared machinery.** The layout is mission-neutral and lives in map
+  generation (`MissionLayout`). It is built once for the Cordon and the heart,
+  with the heart's authored ground beside it. Placements are named and
+  reported, so an optional objective's "fits this map" is a lookup
+  (*Order of work*, step 4).
+- **Placed, then proven.** `storyMapPools` checks every layout on every pooled
+  seed at every density: each placement on walkable ground, and the line,
+  base and corridor still reachable.
+
+## Where a field commander stands
+
+A line drawn across country by someone who has had weeks to choose:
+
+- **The line on the high ground.** The redoubts stand on the rise the
+  country offers nearest the bloom: a low ridge across the map at the line's
+  depth (authored ground), with the front falling away below it. Redoubts sit
+  on its crest at the roads, because roads are how the swarm comes and how
+  the allies move.
+- **Redoubts where roads cross.** Each redoubt guards a road through the line.
+  The gaps between them are covered from both sides, never wider than two
+  redoubts' guns can reach.
+- **A picket line between them.** A trench with wire in front runs redoubt to
+  redoubt along the crest, broken where roads pass (the gaps). Nests stand at
+  each end of a course.
+- **A switch line behind.** A second, shorter trench behind the middle of the
+  line, unmanned at the start: where a garrison falls back to (beat L3).
+- **Supply roads.** A road from the logistics base to the rear gate of each
+  redoubt (beat L2). The base stands on the main road behind the middle, as it
+  does now.
+- **Observation.** A sandbagged post forward of the line on each side's high
+  point.
+
+## By density
+
+The same works at each density (`cordon-nouns.md`, Density). Density changes
+what they are built from:
+
+| | Rural | Town | Urban |
+| --- | --- | --- | --- |
+| Redoubt | Earth-and-timber work on the crest at a crossroads | A fortified farm or school at the village's edge | A fortified block: the buildings round a crossroads walled up |
+| Picket line | Trench and wire across fields | Trench across fields, barricades across streets | Barricaded street mouths and loopholed houses; no trench |
+| Switch line | A trench behind the middle | A trench and a barricaded street | A second row of barricaded blocks |
+| Supply road | Farm tracks to each rear gate | The town's streets | Cleared streets; armour held to the boulevard |
+| Base | A fenced yard on the main road | The town's goods yard | A depot in a car park or a warehouse block |
+
+## The beats' set pieces
+
+Every beat the owner picked (all twelve) declares its set piece. The layout
+reserves it on every map that can hold it; the objective roll then decides
+which beats run.
+
+| Beat | Set piece | Where |
+| --- | --- | --- |
+| L1 Stragglers | A farmstead: a house, a barn and a yard | In the near front between two redoubts, with a lane back to the gap |
+| L2 The guns run dry | An ammo dump in the base, and supply roads | Base to each rear gate |
+| L3 The switch line | The switch line | Behind the middle redoubt that has the most room |
+| L4 A bore behind the line | An eruption site: open ground, no structure | Between the line and the base, off the supply roads |
+| L5 The last hamlet | A meeting point: a square with a bell | In the rear hamlet farthest from the base |
+| L6 Burn the granary | A granary: a long store building | In the colony, toward the line |
+| R1 Clear the road | A wreck across the corridor, and a dozer at the base | On the corridor in the suburb, past the gap |
+| R2 A truck goes down | No new structure (the corridor's built stretch) | The corridor through the suburb |
+| R3 The last loading | The compound's gate square, holdable | At the compound |
+| R4 The militia ride out | No new structure (the compound's militia) | At the compound |
+| R5 A maw on the road | A second drivable road through the line | Through redoubt 2's gap, rejoining the corridor |
+| R6 The gap falls | Sandbag positions either side of the road in the gap | In the gap |
+
+## Order of work
+
+1. The layout machinery, and the Cordon's line, picket courses, supply roads
+   and base placed through it.
+2. The authored ground (the ridge), from the heart's side of the machinery.
+3. The set pieces, one per beat, each checked on the pools.
+4. Then the optional-objective mechanism, shared with the heart, which rolls
+   beats against what the layout placed.
+
+## Open
+
+- The split of the machinery between the Cordon and the heart (proposed: the
+  Cordon builds placements, lines and roads; the heart builds authored
+  ground).
+- The `place` op on a pooled seed's patch (`story-map-pools.md`).
