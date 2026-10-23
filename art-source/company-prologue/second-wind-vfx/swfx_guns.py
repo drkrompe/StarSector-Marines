@@ -848,7 +848,7 @@ def _ac(**kw):
              flash=(1.0, .4, .1), flash_tint=(165, 225, 185), flash_size=(1.25, 1.35, 1.35),
              flash_light=(165, 225, 185), flash_light_gain=1.6,
              cloud=dict(rgb=(165, 225, 185), r=(.7, 2.4), frames=3, peak=2),
-             round=dict(speed=320, range=600, length=1.6, core=.14, corona=.32, fringe=(235, 255, 215),
+             round=dict(speed=320, range=600, length=1.6, core=.14, corona=.22, fringe=(235, 255, 215),
                         hot=(240, 255, 230), glow=(120, 235, 150), core_gain=18, corona_gain=3.0,
                         trail=dict(length=5.0, radius=.08, gain=3.5, ember=(70, 150, 80), fleck_m=.8)),
              heavy=dict(recoil=dict(m=.2, return_s=.2), ring=dict(r=(.25, 1.6), frames=3, peak=1.6),
@@ -880,7 +880,7 @@ WEAPONS = {
     'heavyac': _ac(name='Heavy Autocannon', burst=3, burst_delay=.2, cooldown=1.0, flash_size=(1.5, 1.6, 1.6),
                    flash_light_gain=2.2,
                    cloud=dict(rgb=(165, 225, 185), r=(1.0, 3.2), frames=3, peak=2.2),
-                   round=dict(speed=290, range=800, length=2.2, core=.22, corona=.45, fringe=(235, 255, 215),
+                   round=dict(speed=290, range=800, length=2.2, core=.22, corona=.34, fringe=(235, 255, 215),
                               hot=(240, 255, 230), glow=(120, 235, 150), core_gain=18, corona_gain=3.0,
                               trail=dict(length=8.0, radius=.11, gain=3.5, ember=(70, 150, 80), fleck_m=1.0)),
                    heavy=dict(recoil=dict(m=.35, return_s=.25), ring=dict(r=(.35, 2.2), frames=3, peak=1.8),
@@ -889,23 +889,24 @@ WEAPONS = {
     'mark9': _ac(name='Mark IX Autocannon', burst=4, burst_delay=.1, cooldown=2.0, flash=(1.0, .45, .12),
                  flash_size=(1.4, 1.5, 1.5), flash_light_gain=2.5,
                  cloud=dict(rgb=(165, 225, 185), r=(1.2, 3.8), frames=3, peak=2.2),
-                 round=dict(speed=300, range=800, length=2.4, core=.24, corona=.5, fringe=(235, 255, 215),
+                 round=dict(speed=300, range=800, length=2.4, core=.24, corona=.36, fringe=(235, 255, 215),
                             hot=(240, 255, 230), glow=(120, 235, 150), core_gain=18, corona_gain=3.0,
                             trail=dict(length=9.0, radius=.12, gain=3.5, ember=(70, 150, 80), fleck_m=1.0)),
                  heavy=dict(recoil=dict(m=.45, return_s=.2), ring=dict(r=(.4, 2.6), frames=3, peak=1.8),
                             smoke=dict(r=(.7, 4.2), life_s=1.2, heat_s=.15, density=.5, glow=1.2))),
     # Hellbore: one heavy HE slug every 3 s, slow, orange-white; the game's biggest flash (255,120,50).
-    # Here the blast is hard and short and the linger is its smoke, cooling from orange to grey
-    # (no orbs: the round's 60-unit glow is a torn wake stretched behind the slug, not a ball).
+    # Here the blast is hard and short and the linger is its smoke, cooling from orange to grey.
+    # No orbs (owner, 2026-10-23: S6's Manticore fired "an orb glowing blob"): the round is an
+    # elongated white-hot slug with a short heat streak, and the game's 60-unit glow is left out
+    # (its light stays, off the camera).
     'hellbore': dict(name='Hellbore Cannon', energy=False, burst=1, burst_delay=0, cooldown=3.0,
                      barrels='alternating', spread=.001,
                      flash=(1.0, .6, .25, .1), flash_tint=(255, 120, 50),
                      flash_size=(1.9, 2.0, 2.0), flash_light=(255, 120, 50), flash_light_gain=6.0,
                      cloud=dict(rgb=(255, 120, 50), r=(1.5, 6.5), frames=7, peak=2.6),
-                     round=dict(speed=150, range=900, length=4.0, core=.5, corona=.85, fringe=(255, 165, 30),
-                                hot=(255, 245, 225), core_gain=16, corona_gain=1.6, light=40000,
-                                halo=dict(r=1.6, stretch=3.2, peak=.7),
-                                trail=dict(length=26.0, radius=.3, gain=5.0, ember=(220, 60, 15), fleck_m=2.0)),
+                     round=dict(speed=150, range=900, length=6.0, core=.45, corona=.65, fringe=(255, 165, 30),
+                                hot=(255, 250, 240), core_gain=20, corona_gain=1.4, light=40000,
+                                trail=dict(length=14.0, radius=.28, gain=5.0, ember=(220, 60, 15), fleck_m=1.5)),
                      heavy=dict(recoil=dict(m=1.2, return_s=.7), ring=dict(r=(.6, 5.5), frames=5, peak=2.5),
                                 smoke=dict(r=(1.5, 9.0), life_s=2.2, heat_s=.35, density=.6, glow=2.5, drift=.8)),
                      puff=False, brass=False),
@@ -913,7 +914,7 @@ WEAPONS = {
     'lightag': _ac(name='Light Assault Gun', cooldown=.25, flash=(1.0, .5, .18), flash_tint=(255, 155, 105),
                    flash_size=(1.1, 1.2, 1.2), flash_light=(255, 155, 105), flash_light_gain=1.8,
                    cloud=dict(rgb=(255, 155, 105), r=(.7, 2.2), frames=3, peak=2),
-                   round=dict(speed=300, range=600, length=1.8, core=.15, corona=.36, fringe=(255, 200, 70),
+                   round=dict(speed=300, range=600, length=1.8, core=.15, corona=.24, fringe=(255, 200, 70),
                               hot=(255, 240, 220), core_gain=18, corona_gain=2.2,
                               trail=dict(length=6.0, radius=.08, gain=3.5, ember=(200, 60, 15), fleck_m=.8)),
                    heavy=dict(recoil=dict(m=.2, return_s=.15), ring=dict(r=(.25, 1.5), frames=3, peak=1.6),
@@ -944,7 +945,7 @@ WEAPONS = {
                           barrels='alternating', spread=.002, flash=(1.0, .45, .15), flash_tint=(255, 100, 100),
                           flash_size=(1.25, 1.4, 1.4), flash_light=(255, 100, 100),
                           cloud=dict(rgb=(255, 100, 100), r=(.6, 2.0), frames=3, peak=2),
-                          round=dict(speed=600, range=500, length=9.0, core=.35, corona=1.6, fringe=(255, 100, 100),
+                          round=dict(speed=600, range=500, length=12.0, core=.35, corona=.95, fringe=(255, 100, 100),
                                      hot=(255, 255, 255), core_gain=22, corona_gain=3.0, light=10000,
                                      light_rgb=(255, 60, 60)),
                           puff=False, brass=False),
@@ -952,7 +953,7 @@ WEAPONS = {
                          barrels='alternating', spread=.002, flash=(1.0, .45, .15), flash_tint=(100, 100, 255),
                          flash_size=(1.25, 1.4, 1.4), flash_light=(100, 100, 255),
                          cloud=dict(rgb=(100, 100, 255), r=(.6, 2.0), frames=3, peak=2),
-                         round=dict(speed=600, range=600, length=9.0, core=.4, corona=1.8, fringe=(100, 100, 255),
+                         round=dict(speed=600, range=600, length=12.0, core=.4, corona=.95, fringe=(100, 100, 255),
                                     hot=(255, 255, 255), core_gain=22, corona_gain=3.0, light=12000,
                                     light_rgb=(100, 100, 255)),
                          puff=False, brass=False),
@@ -1288,8 +1289,9 @@ def _charge(ctx, a, frame, frames, w):
     coll = ctx.collection(GROUP)
     label = gun_label(a)
     rgb = _lin(spec['rgb'])
-    ob = _glow_object(ctx, coll, f'{PREFIX} charge {label} f{frame:04d}', rgb)
+    ob = _glow_object(ctx, coll, f'{PREFIX} charge {label} f{frame:04d}', rgb, jag=True)
     swfx_core.attach(ob, a.empty, local=(swfx_core.units(.2), 0, 0))
+    stretch = (1.8, .8, .7)          # gathering down the bore, torn (owner: no orbs)
     r0, r1 = spec['r']
     f0 = frame - max(1, frames)
     rnd = random.Random(f'charge|{label}|{frame}')
@@ -1302,7 +1304,7 @@ def _charge(ctx, a, frame, frames, w):
         fade.append((.25 + .75 * t * t) * rnd.uniform(.8, 1.0))
         kk.append(_hull_glow(spec['peak'] / (2 * r)) / 20.0)
     for i in range(3):
-        _bake(ob, 'scale', i, fr, sc)
+        _bake(ob, 'scale', i, fr, [v * stretch[i] for v in sc])
     t = _glow_keys(ob)
     _bake(t, GLOW_PATH, 0, fr, fade)
     _bake(t, GLOW_PATH, 1, [f0], [rnd.random()], 'CONSTANT')
@@ -2054,7 +2056,7 @@ def _hot_smoke(ctx, coll, a, label, frame, rnd, spec, rgb):
     ob.visible_shadow = False
     swfx_core.attach(ob, a.empty)
     ob.rotation_euler = (rnd.uniform(0, 2 * math.pi), 0, 0)
-    stretch = (1.5, rnd.uniform(.8, 1.0), rnd.uniform(.7, .9))
+    stretch = (1.8, rnd.uniform(.8, 1.0), rnd.uniform(.7, .9))       # thrown downrange, never a ball
     r0, r1 = spec['r']
     d0 = spec['density'] * (.35 + .65 * atm) * gain
     fr, sc, lx, dd, hh = [], [], [], [], []

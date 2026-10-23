@@ -490,7 +490,12 @@ def _key_beam(ctx, coll, e, inv, muzzle, mpu, rnd, width_m=.9):
         coll.objects.link(fl)
         fl.visible_shadow = False
         r = (2.2 if tag == 'emitter' else 3.2) / mpu
-        fl.scale = (r, r, r)
+        # Drawn out along the beam, as the rod is turned (owner, 2026-10-23: no orbs): a glare
+        # streaked down the line of fire, not a ball at either end.
+        fl.rotation_mode = 'QUATERNION'
+        for i in range(4):
+            swfx_guns._bake(fl, 'rotation_quaternion', i, frames, [q[i] for q in quats])
+        fl.scale = (r * 2.6, r * .6, r * .6)
         for i in range(3):
             swfx_guns._bake(fl, 'location', i, frames, [p[i] for p in places])
         swfx_guns._bake(fl, 'color', 0, frames, power)
@@ -586,8 +591,20 @@ def key_flares(ctx, flares, space, mpu=None, glare_m=3.5, trail=None, light_w=2.
             swfx_guns._bake(ob, 'location', i, frames, [p[i] for p in locs])
         r = glare_m / mpu
         size = [r * (.6 + .4 * min(1, j / 3)) * (1 - .5 * (j / len(frames)) ** 3) for j in range(len(frames))]
-        for i in range(3):
-            swfx_guns._bake(ob, 'scale', i, frames, size)
+        # A burning flare streaks along its flight (owner, 2026-10-23: no orbs): its glare drawn out
+        # down its own velocity, turned onto it each frame.
+        prev = None
+        for j, f in enumerate(frames):
+            v = (locs[min(j + 1, len(locs) - 1)] - locs[max(j - 1, 0)]) if len(locs) > 1 else Vector((1, 0, 0))
+            if v.length < 1e-9:
+                v = Vector((1, 0, 0))
+            e = v.to_track_quat('X', 'Z').to_euler('XYZ', prev) if prev is not None else v.to_track_quat('X', 'Z').to_euler()
+            prev = e
+            ob.rotation_euler = e
+            ob.keyframe_insert('rotation_euler', frame=f)
+        swfx_guns._bake(ob, 'scale', 0, frames, [v * 2.8 for v in size])
+        for i in (1, 2):
+            swfx_guns._bake(ob, 'scale', i, frames, [v * .6 for v in size])
         flick = [(1.0 + .35 * math.sin(2.7 * j + 6.3 * fr.flicker) * rnd.uniform(.6, 1)) *
                  (1 - (j / len(frames)) ** 4) for j in range(len(frames))]
         swfx_guns._bake(ob, 'color', 0, frames, flick)

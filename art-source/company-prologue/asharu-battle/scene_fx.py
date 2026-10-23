@@ -213,19 +213,19 @@ class SceneFx:
         if not fired:
             return False
         if placed_hits:      # planned rounds: each strike where its own straight line met her hull
-            he = any(self.weapon(a, int(f.split()[0][1:])) in HE for f in fired)
+            he = self.hit_kind(a, fired)
             placed_hits = [h for h in sorted(placed_hits, key=lambda h: h[0])
                            if h[0] >= self.span[0] - round(1.5 * self.fps)]
-            self.strikes_at(b, placed_hits[::2], 'he' if he else 'kinetic')
+            self.strikes_at(b, placed_hits[::2], he)
         landed = sorted(set(landed))
         if target is not None and hit_l is not None and landed:
-            he = any(self.weapon(a, int(f.split()[0][1:])) in HE for f in fired)
+            he = self.hit_kind(a, fired)
             if self.span:        # in motion: the strikes this frame can see (each placed by its own frame)
                 if self.cur is not None:
                     landed = [f for f in landed if f >= self.cur - round(1.5 * self.fps)]
                 else:            # built once for the whole shot (--kit-once): every other strike in it
                     landed = [f for f in landed if f >= self.span[0] - round(1.5 * self.fps)][::2]
-            self.strikes(b, landed if self.span else landed[-8:], hit_l, normal, 'he' if he else 'kinetic')
+            self.strikes(b, landed if self.span else landed[-8:], hit_l, normal, he)
         self.rows.append(f'tracer {a} -> {b}: {", ".join(fired)}, {len(landed) + len(placed_hits)} landed')
         return True
 
@@ -403,6 +403,12 @@ class SceneFx:
                          f'skipped {stats}; elevation {"none (traverse only)" if elev is None else f"{min(aims):+.1f}..{max(aims):+.1f} deg"}; '
                          f'traverse {math.degrees(plan[F0][0]):+.1f} -> {math.degrees(plan[F1][0]):+.1f} deg')
         return recs
+
+    def hit_kind(self, a, fired):
+        """The impact a's fire draws: the Hellbore's own large jagged HE hit when it fired, an HE hit
+        for any other HE weapon, else a kinetic one (swfx_impacts.strike kinds)."""
+        ws = {self.weapon(a, int(f.split()[0][1:])) for f in fired}
+        return 'hellbore' if 'hellbore' in ws else 'he' if ws & HE else 'kinetic'
 
     def strikes_at(self, key, hits, kind):
         """Rounds arriving on key's hull where each met it: hits are (frame, at_l, normal)."""

@@ -258,6 +258,9 @@ class ShipFx:
     def metre_scale(self):
         """This copy's lights and volumes, from hull units to the metre scene (idempotent)."""
         r = metre_scale(self.ids, self.mpu)
+        # A point light with a radius is a ball the camera sees (owner: no orbs); its light stays.
+        import swfx_lint
+        r['quiet_lights'] = swfx_lint.quiet_lights(self.ids)
         if r['unhandled']:
             print(f'SHIP_FX {self.key}: volume inputs not metre-scaled:', sorted(set(r['unhandled'])), flush=True)
         return r
