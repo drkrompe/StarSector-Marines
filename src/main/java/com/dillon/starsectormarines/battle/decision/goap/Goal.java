@@ -139,18 +139,9 @@ public interface Goal {
 
     record Choice(Goal goal, Evaluation evaluation) {}
 
-    /** Same-build control for eager evaluation of every priority bucket. */
-    static boolean priorityOrderedEvaluationEnabled() {
-        return Boolean.parseBoolean(System.getProperty(
-                "battle.goap.priorityOrderedEvaluation", "true"));
-    }
-
     static Choice pickMostRelevantPrepared(List<Goal> goals,
                                            EvaluationContext context,
                                            Set<Goal> declined) {
-        if (!priorityOrderedEvaluationEnabled()) {
-            return pickMostRelevantExhaustive(goals, context, declined);
-        }
         // Relevance competes only within a bucket. Lower buckets cannot change
         // this choice, and are evaluated only if planning declines every winner
         // above them. The caller retains this context throughout that descent.
@@ -166,28 +157,6 @@ public interface Goal {
                 }
             }
             if (best != null) return best;
-        }
-        return null;
-    }
-
-    private static Choice pickMostRelevantExhaustive(List<Goal> goals,
-                                                    EvaluationContext context,
-                                                    Set<Goal> declined) {
-        Priority[] buckets = Priority.values();
-        Choice[] best = new Choice[buckets.length];
-        for (Goal goal : goals) {
-            if (declined.contains(goal)) continue;
-            Evaluation evaluation = context.evaluate(goal);
-            float relevance = evaluation.relevance();
-            if (relevance <= 0f) continue;
-            int bucket = goal.priority().ordinal();
-            if (best[bucket] == null
-                    || relevance > best[bucket].evaluation().relevance()) {
-                best[bucket] = new Choice(goal, evaluation);
-            }
-        }
-        for (Choice choice : best) {
-            if (choice != null) return choice;
         }
         return null;
     }

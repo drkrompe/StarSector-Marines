@@ -31,7 +31,7 @@ class SpriteAtlasLayoutTest {
     /** A {@link SpriteAtlas} whose contents are stated rather than loaded. */
     private static final class Fixture extends SpriteAtlas {
         Fixture(int... sides) {
-            super("test atlas", true, sides);
+            super("test atlas", sides);
         }
 
         boolean layOut(List<Source> sources, int minimum) {

@@ -208,9 +208,6 @@ class BattleFixtureTailProfileTest {
             }
             assertNotNull(sim.asyncDefendTrackRoutes());
             assertEquals(Boolean.parseBoolean(System.getProperty(
-                            "battle.targeting.firingReachabilityComponents", "true")),
-                    sim.getTacticalScoring().firingReachabilityComponentsEnabled());
-            assertEquals(Boolean.parseBoolean(System.getProperty(
                             CommanderInfluenceService.ASYNC_PROPERTY, "true")),
                     sim.getCommanderInfluenceMetrics().asynchronous());
             setupPendingMeshChanges = sim.getNavigationMesh().pendingGridChanges();
@@ -574,16 +571,12 @@ class BattleFixtureTailProfileTest {
                 "battle.vehicle.progressiveRecovery", "true")));
         report.put("vehicleRecoveryExpansionsPerTick", Math.max(1,
                 Integer.getInteger("battle.vehicle.recoveryExpansionsPerTick", 2048)));
-        report.put("localGrenadeAvoidance", Boolean.parseBoolean(System.getProperty(
-                "battle.infantry.localGrenadeAvoidance", "true")));
         report.put("compactPublicTopology", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.compactPublicTopology", "true")));
         report.put("commandTopologyCpu", Boolean.getBoolean("battle.profile.commandTopologyCpu"));
         report.put("commandFrameDetail", Boolean.getBoolean("battle.profile.commandFrameDetail"));
         report.put("commandFrameStageSemantics", "ASSIGNMENTS, SQUADS, INFLUENCE and FACTS are disjoint wall stages nested within FRAME, but do not cover all frame work. FRAME_CPU overlaps wall stages and is host-thread CPU. Opt-in SQUAD_ROSTER, MEMBERS, CONTACT and PUBLICATION accumulate per-row wall slices within SQUADS; PUBLICATION includes row construction and final sort. Their sample counts are perspective freezes, not rows. SQUAD_ROWS, MEMBER_INPUTS and BELIEF_INPUTS count inputs; belief inputs are retained list size, not visited contacts. Zero detail counts mean disabled or no inputs, not zero cost.");
         report.put("replanCpu", Boolean.getBoolean("battle.tail.replanCpu"));
-        report.put("filteredSquadAwareness", Boolean.parseBoolean(System.getProperty(
-                "battle.perception.filteredSquadAwareness", "true")));
         report.put("replanCpuSemantics", "Opt-in current-host-thread CPU for actual infantry replans and their goal-selection envelopes. Selection CPU accumulates across declined goals; individual goal probes remain wall-only. Actual replan excludes idle eligibility checks. CPU milliseconds are -1 when disabled, unsupported, or incomplete; wall minus CPU is not proof of lock contention. Selection is nested in actual replan and must not be added to it.");
         report.put("squadRouteWorkBudget", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.squadRouteWorkBudget", "true")));
@@ -640,30 +633,8 @@ class BattleFixtureTailProfileTest {
         report.put("pathSearchTimingSemantics", "Flat search samples and expansion totals include squad-field fallbacks; worker elapsed times overlap. goalOccupancy is the unsigned destination reservation count, -1 when unknown.");
         report.put("squadFiringPositions", Boolean.parseBoolean(System.getProperty(
                 "battle.targeting.squadFiringPositions", "false")));
-        report.put("firingReachabilityComponents", Boolean.parseBoolean(System.getProperty(
-                "battle.targeting.firingReachabilityComponents", "true")));
-        report.put("localHoldPositions", Boolean.parseBoolean(System.getProperty(
-                "battle.goap.localHoldPositions", "true")));
-        report.put("priorityOrderedEvaluation", Boolean.parseBoolean(System.getProperty(
-                "battle.goap.priorityOrderedEvaluation", "true")));
-        report.put("localBreachChecks", Boolean.parseBoolean(System.getProperty(
-                "battle.goap.localBreachChecks", "true")));
-        report.put("retainFiringPositions", Boolean.parseBoolean(System.getProperty(
-                "battle.targeting.retainFiringPositions", "true")));
-        report.put("boundKnownContactScan", Boolean.parseBoolean(System.getProperty(
-                "battle.targeting.boundKnownContactScan", "true")));
-        report.put("pruneClearZoneSelection", Boolean.parseBoolean(System.getProperty(
-                "battle.targeting.pruneClearZoneSelection", "true")));
-        report.put("clearZoneDecisionCadence", Boolean.parseBoolean(System.getProperty(
-                "battle.goap.clearZoneDecisionCadence", "true")));
-        report.put("localFiringSpread", Boolean.parseBoolean(System.getProperty(
-                "battle.targeting.localFiringSpread", "true")));
-        report.put("isolatedAdvanceThreat", Boolean.parseBoolean(System.getProperty(
-                "battle.squad.isolatedAdvanceThreat", "true")));
         report.put("phaseOwnedRallyRequests", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.phaseOwnedRallyRequests", "true")));
-        report.put("phaseOwnedProjectiles", Boolean.parseBoolean(System.getProperty(
-                "battle.projectiles.phaseOwnedPublication", "true")));
         report.put("asyncDefendSite", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.asyncDefendSite", "true")));
         report.put("minimumParallelUnits",

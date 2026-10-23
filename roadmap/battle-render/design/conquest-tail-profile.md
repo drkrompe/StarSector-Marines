@@ -190,9 +190,8 @@ contention. `ALERT_*` buckets split squad alert into noise-mailbox drain,
 belief maintenance, awareness, noise detection, incoming fire and final
 publication; candidate and LOS counts describe visited entries and actual
 visibility calls, not cache misses or ray steps.
-`-Dbattle.perception.filteredSquadAwareness=false` restores broad all-body
-gathering for squad awareness. The default uses the existing hostile-combatant
-projection before live range and visibility checks. Candidate counts measure
+Squad awareness gathers through the hostile-combatant projection before live
+range and visibility checks. Candidate counts measure
 returned entries, not every primitive entry visited inside the spatial index.
 `-Dbattle.pathfinding.omitFixedGoalOccupancy=false` restores the unavoidable
 terminal crowding toll in flat A*. By default only that additive constant is
@@ -210,20 +209,16 @@ Configurable orders such as DefendSite and DefendTrack are reported separately.
 shared constrained firing-position experiment for patrol and zone-entry
 execution. `FIRING_POOL_*` and `FIRING_INDIVIDUAL_*` inner counters expose
 reuse and candidate/ray work (count-only counters have zero time).
-`-Dbattle.targeting.firingReachabilityComponents=false` restores discarded A*
-reachability proofs for unconstrained firing positions. The default uses the
-grid's topology-revision component cache without changing movement rules.
-`-Dbattle.goap.localHoldPositions=false` restores whole-zone capture-post
-spreading; the default scopes posts to the compound footprint and maintains
-nearest-selected distances incrementally. `HOLD_POSITION` records total picker
+Unconstrained firing positions prove reachability against the grid's
+topology-revision component cache rather than a discarded A* route, without
+changing movement rules. Capture posts are spread within the compound footprint,
+maintaining nearest-selected distances incrementally. `HOLD_POSITION` records total picker
 time, `HOLD_POSITION_CELL` inspected cells, and `HOLD_POSITION_FALLBACK` the
 exceptional nearest-zone-cell fallback when no local intersection exists.
-`-Dbattle.goap.priorityOrderedEvaluation=false` evaluates every goal category
-eagerly; the default descends only after higher-category goals cannot supply
-a plan. `-Dbattle.goap.localBreachChecks=false` restores whole-roster breach
-eligibility scans. `-Dbattle.targeting.retainFiringPositions=false` disables
-positive execution-position retention. The default validates one chosen cell
-and retains it for 300–360 ticks unless intent or legality changes; eligibility
+Goal selection evaluates a lower priority category only after every goal above
+it has failed to supply a plan. Breach eligibility walks the squad's own members
+and hostile-combatant buckets, not the whole roster. Execution firing positions
+are retained: one chosen cell is validated and kept for 300–360 ticks unless intent or legality changes; eligibility
 probes and negative/vantage-only answers are not retained. `FIRING_RETAIN_*`
 counters distinguish validation time, reuse, and fresh searches. The older
 shared-pool experiment remains independent and off; enabling it bypasses the
@@ -232,18 +227,15 @@ JFR tail recordings explicitly capture 1 ms monitor/park waits, full safepoint
 lifecycle, GC pause and VM-operation events, and a `UnitDispatch` event around
 parallel submission/join. Its `wallNanos` is the real elapsed interval; the
 outer `awaitWorkers` metric includes useful execution as well as waiting.
-`-Dbattle.targeting.boundKnownContactScan=false` restores target-ring expansion
-beyond the sight/known-contact bound. `TARGET_SCAN_VISIT/RING/RAY` count its
-candidates, completed rings, and visibility checks. Distant beliefs still
-extend the default bound; unknown enemies cannot become eligible merely
+Target-ring expansion stops at the sight/known-contact bound.
+`TARGET_SCAN_VISIT/RING/RAY` count its candidates, completed rings, and
+visibility checks. Distant beliefs extend the bound; unknown enemies cannot become eligible merely
 because no visible winner was found nearby.
-`-Dbattle.targeting.pruneClearZoneSelection=false` restores separate unpruned
-visible/nearest room-target scans. `CLEAR_ZONE_TARGET_SELECT/VISIT/RAY` report
-selection wall time, roster visits, and LOS checks. The default preserves exact
-room scope and first-dense-roster ties without a visibility-radius cap.
-`-Dbattle.squad.isolatedAdvanceThreat=false` restores the broad squad monitor
-for route-threat publication. The default uses a dedicated once-per-tick
-monitor, preserving complete current-tick decisions and hysteresis.
+Room-target selection is one distance-pruned pass that keeps both the nearest
+visible and the nearest room enemy. `CLEAR_ZONE_TARGET_SELECT/VISIT/RAY` report
+selection wall time, roster visits, and LOS checks. It preserves exact room scope and first-dense-roster ties without a visibility-radius cap.
+Route-threat publication holds a dedicated once-per-tick monitor rather than
+the broad squad monitor, preserving complete current-tick decisions and hysteresis.
 `-Dbattle.pathfinding.phaseOwnedRallyRequests=false` restores worker-side
 synchronized route requests. The default publishes member-owned intents after
 join; `RALLY_REQUEST_PREPARE/COMMIT` separates host work from worker dispatch,
@@ -285,14 +277,11 @@ Precise movement, casualty routing costs, and the production 8-cell resolution
 remain unchanged. Graph connectivity and block-value aliasing are different:
 disconnected rooms within one block may share its displayed scalar value
 without becoming connected in propagation.
-`-Dbattle.projectiles.phaseOwnedPublication=false` restores per-reader copies
-and synchronized projectile appends. The default shares an update-start
-hazard view and collects launch intents before projectile physics; fresh
+During member updates projectile readers share an update-start hazard view and
+launches are collected as intents before projectile physics; fresh
 launches remain visible to reservation checks. `PROJECTILE_PUBLICATION_*`
 records host preparation and collection rather than hiding moved work.
-`-Dbattle.infantry.localGrenadeAvoidance=false` restores the old full-route
-danger scan and grenade-centered A* fan-out. By default grenade avoidance
-considers only imminent travel before impact: a safe unit pauses its path,
+Grenade avoidance considers only imminent travel before impact: a safe unit pauses its path,
 while an exposed unit seeks a bounded local escape and reuses it while the
 hazard, terrain and owned path remain compatible. `GRENADE_PATH_HOLD` and
 `GRENADE_ESCAPE_SEARCH/EXPANDED/REUSE/NO_ROUTE` distinguish decisions and

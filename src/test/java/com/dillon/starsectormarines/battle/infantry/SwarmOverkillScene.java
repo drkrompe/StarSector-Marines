@@ -36,10 +36,6 @@ import java.util.Random;
  * having lost half its strength has not done well, and one that survives by the
  * rush running out of bodies has not either. The runners still standing at the
  * end says which of those happened.
- *
- * <p>The control is the same scene with {@code -Dbattle.targeting.committedFire=false},
- * which restores the per-body count. Nothing else differs — same seed, same
- * geometry, same rush.
  */
 final class SwarmOverkillScene {
 

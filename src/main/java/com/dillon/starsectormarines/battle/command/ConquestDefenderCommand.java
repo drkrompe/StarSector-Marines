@@ -50,28 +50,27 @@ import java.util.function.IntBinaryOperator;
  * pressure field: a contact is a counted report, while pressure is sampled at
  * influence-block centres and measures the block grid as much as the front.
  *
- * <p>Conquest evidence, the shipped default against
- * {@code -Dbattle.command.conquest.scaledDefenderResponse=false}:
+ * <p>Conquest evidence, the scaled response against the fixed bound:
  *
  * <table>
- *   <caption>Conquest matrix, scaled response on vs. off</caption>
+ *   <caption>Conquest matrix, scaled response vs. fixed bound</caption>
  *   <tr><th>fixture</th><th>captures</th><th>held at end</th>
  *       <th>marines lost</th><th>defenders lost</th><th>ticks</th>
  *       <th>result</th><th>defender reserve (squad-ticks)</th></tr>
- *   <tr><td>reinforced-south on</td><td>7</td><td>4</td><td>241</td>
+ *   <tr><td>reinforced-south scaled</td><td>7</td><td>4</td><td>241</td>
  *       <td>348</td><td>18000</td><td>TIMEOUT</td><td>57599</td></tr>
- *   <tr><td>reinforced-south off</td><td>12</td><td>11</td><td>216</td>
+ *   <tr><td>reinforced-south fixed</td><td>12</td><td>11</td><td>216</td>
  *       <td>390</td><td>18000</td><td>TIMEOUT</td><td>267524</td></tr>
- *   <tr><td>full-strength-west on</td><td>2</td><td>0</td><td>420</td>
+ *   <tr><td>full-strength-west scaled</td><td>2</td><td>0</td><td>420</td>
  *       <td>470</td><td>15599</td><td>TERMINAL DEFENDER</td><td>188386</td></tr>
- *   <tr><td>full-strength-west off</td><td>3</td><td>3</td><td>426</td>
+ *   <tr><td>full-strength-west fixed</td><td>3</td><td>3</td><td>426</td>
  *       <td>311</td><td>16445</td><td>TERMINAL DEFENDER</td><td>1078704</td></tr>
  * </table>
  *
  * <p>Captures fall and ground held falls, which is the point rather than a
  * regression: the attacker was taking compounds against a defence that was
- * standing still. It ships on because the marines still take compounds on both
- * fixtures and both runs still end the way they did, while the defender's
+ * standing still. The scaled response stands because the marines still take
+ * compounds on both fixtures and both runs still end the way they did, while the defender's
  * published {@code DEFEND_TRACK} share rises from 7% to 14% and from 3% to 19%
  * of its squad-pulses and its reserve time falls by roughly four fifths.
  */
@@ -89,24 +88,6 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
      * the garrison grows instead of becoming a rounding error.
      */
     static final float RESERVE_SHARE = 0.25f;
-
-    /**
-     * {@code -Dbattle.command.conquest.scaledDefenderResponse=false} restores
-     * the fixed two-per-track cap and the single-squad reserve, which is the
-     * control this layer has to be measured against. Reaching that control by
-     * checking out an older commit measures every other difference between the
-     * two trees at the same time.
-     */
-    public static final String SCALED_DEFENDER_RESPONSE_PROPERTY =
-            "battle.command.conquest.scaledDefenderResponse";
-
-    /**
-     * Read once at class load and settable for evidence. Volatile because a
-     * control run flips it on one thread while command pulses read it from
-     * whichever thread the commander service is ticking on.
-     */
-    private static volatile boolean scaledResponse = Boolean.parseBoolean(
-            System.getProperty(SCALED_DEFENDER_RESPONSE_PROPERTY, "true"));
 
     static final int COARSE_BAND_CELLS = 16;
     static final int RALLY_REAR_OFFSET_CELLS = 6;
@@ -337,23 +318,6 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
 
     @Override public Faction faction() { return Faction.DEFENDER; }
     @Override public ConquestFrontSnapshot frontSnapshot() { return frontSnapshot; }
-
-    /** Whether the reserve share and the threat-weighted per-track cap are in effect. */
-    public static boolean isScaledResponseEnabled() {
-        return scaledResponse;
-    }
-
-    /**
-     * Evidence seam: switches the scaling on or off for the rest of this JVM.
-     *
-     * <p>Exists so a harness can play its subject and its control in one run.
-     * Restore the previous value in a {@code finally}; production never calls
-     * this, and {@link #SCALED_DEFENDER_RESPONSE_PROPERTY} is what a Conquest
-     * control run switches.
-     */
-    public static void setScaledResponseForEvidence(boolean enabled) {
-        scaledResponse = enabled;
-    }
 
     @Override
     public String strategyId() {
@@ -692,7 +656,6 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
      */
     private int mobileReserveFor(int poolSize) {
         if (poolSize < 2) return 0;
-        if (!scaledResponse) return MIN_MOBILE_RESERVE;
         return Math.max(MIN_MOBILE_RESERVE, Math.round(poolSize * RESERVE_SHARE));
     }
 
@@ -713,7 +676,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         int totalContacts = 0;
         for (Threat threat : activeThreats) totalContacts += threat.contacts;
         for (Threat threat : activeThreats) {
-            if (!scaledResponse || totalContacts <= 0) {
+            if (totalContacts <= 0) {
                 caps[threat.track] = MAX_RESPONDERS_PER_TRACK;
                 continue;
             }

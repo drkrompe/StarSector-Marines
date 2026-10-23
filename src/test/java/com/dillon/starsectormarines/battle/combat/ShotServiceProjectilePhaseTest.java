@@ -17,13 +17,13 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Direct phase ownership/physics tests without a battle, renderer, or map. */
 class ShotServiceProjectilePhaseTest {
     @Test void sharedHazardViewExcludesFreshLaunchesButReservationsIncludeThem() {
-        ShotService shots = new ShotService(null, true);
+        ShotService shots = new ShotService();
         Projectile existing = projectile(1, 2f);
         Projectile firstLaunch = projectile(2, 1f);
         Projectile secondLaunch = projectile(3, 1f);
         shots.queueProjectile(existing);
 
-        assertTrue(shots.beginMemberUpdates());
+        shots.beginMemberUpdates();
         List<Projectile> hazards = shots.snapshotActiveProjectiles();
         assertSame(hazards, shots.snapshotActiveProjectiles());
         assertThrows(UnsupportedOperationException.class, () -> hazards.add(firstLaunch));
@@ -38,27 +38,14 @@ class ShotServiceProjectilePhaseTest {
         shots.finishMemberUpdates();
         assertEquals(List.of(existing, firstLaunch, secondLaunch), shots.getActiveProjectiles());
 
-        assertTrue(shots.beginMemberUpdates());
+        shots.beginMemberUpdates();
         assertEquals(List.of(existing, firstLaunch, secondLaunch), shots.snapshotActiveProjectiles());
         assertNotSame(hazards, shots.snapshotActiveProjectiles());
         shots.finishMemberUpdates();
     }
 
-    @Test void disabledControlRetainsImmediateVisibilityAndIndependentCopies() {
-        ShotService shots = new ShotService(null, false);
-        assertFalse(shots.beginMemberUpdates());
-        List<Projectile> before = shots.snapshotActiveProjectiles();
-        Projectile launch = projectile(1, 1f);
-        shots.queueProjectile(launch);
-        assertTrue(before.isEmpty());
-        assertEquals(List.of(launch), shots.getActiveProjectiles());
-        assertEquals(List.of(launch), shots.snapshotActiveProjectiles());
-        assertNotSame(shots.snapshotActiveProjectiles(), shots.snapshotActiveProjectiles());
-        assertEquals(List.of(launch), collect(shots.committedProjectiles()));
-    }
-
     @Test void successfulJoinPreservesLaunchTickAgingInterceptionAndLaterSerialFire() {
-        ShotService shots = new ShotService(null, true);
+        ShotService shots = new ShotService();
         Projectile arriving = projectile(1, 0.1f);
         Projectile intercepted = projectile(2, 1f);
         shots.beginMemberUpdates();
@@ -82,7 +69,7 @@ class ShotServiceProjectilePhaseTest {
     }
 
     @Test void concurrentAppendIntentsPublishExactlyOnceAfterJoin() throws Exception {
-        ShotService shots = new ShotService(null, true);
+        ShotService shots = new ShotService();
         shots.beginMemberUpdates();
         List<Projectile> hazards = shots.snapshotActiveProjectiles();
         ExecutorService workers = Executors.newFixedThreadPool(4);
@@ -115,7 +102,7 @@ class ShotServiceProjectilePhaseTest {
     }
 
     @Test void abandonedPhaseNeverPublishesPartialOrLateWorkerIntents() throws Exception {
-        ShotService shots = new ShotService(null, true);
+        ShotService shots = new ShotService();
         Projectile existing = projectile(1, 2f);
         shots.queueProjectile(existing);
         shots.beginMemberUpdates();
@@ -145,10 +132,10 @@ class ShotServiceProjectilePhaseTest {
             assertThrows(IllegalStateException.class, () -> shots.tickProjectiles(1f, det -> fail()));
 
             // The terminal failure belongs to this battle, not another owner.
-            ShotService otherBattle = new ShotService(null, true);
+            ShotService otherBattle = new ShotService();
             Projectile independent = projectile(4, 1f);
             otherBattle.queueProjectile(independent);
-            assertTrue(otherBattle.beginMemberUpdates());
+            otherBattle.beginMemberUpdates();
             assertEquals(List.of(independent), otherBattle.snapshotActiveProjectiles());
             otherBattle.finishMemberUpdates();
         } finally {
@@ -158,7 +145,7 @@ class ShotServiceProjectilePhaseTest {
     }
 
     @Test void workerCannotPublishOrAbandonTheHostPhase() throws Exception {
-        ShotService shots = new ShotService(null, true);
+        ShotService shots = new ShotService();
         shots.beginMemberUpdates();
         ExecutorService worker = Executors.newSingleThreadExecutor();
         try {
@@ -176,7 +163,7 @@ class ShotServiceProjectilePhaseTest {
     }
 
     @Test void memberPublicationAndReadsDoNotAcquireTheActiveListMonitor() throws Exception {
-        ShotService shots = new ShotService(null, true);
+        ShotService shots = new ShotService();
         Projectile existing = projectile(1, 2f);
         Projectile launch = projectile(2, 1f);
         shots.queueProjectile(existing);
@@ -184,7 +171,7 @@ class ShotServiceProjectilePhaseTest {
         List<Projectile> hazards = shots.snapshotActiveProjectiles();
         ExecutorService worker = Executors.newSingleThreadExecutor();
         try {
-            // Hold the exact monitor used by the legacy append/copy path.
+            // Hold the exact monitor used by the serial append/copy path.
             // The worker must finish all three operations without acquiring it.
             synchronized (shots.getActiveProjectiles()) {
                 worker.submit(() -> {

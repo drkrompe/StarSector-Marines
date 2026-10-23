@@ -48,20 +48,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public final class ShotService {
 
     private final NoiseEventBus noiseEvents;
-    private final boolean phaseOwnedPublication;
 
     public ShotService() {
         this(null);
     }
 
     public ShotService(NoiseEventBus noiseEvents) {
-        this(noiseEvents, Boolean.parseBoolean(System.getProperty(
-                "battle.projectiles.phaseOwnedPublication", "true")));
-    }
-
-    ShotService(NoiseEventBus noiseEvents, boolean phaseOwnedPublication) {
         this.noiseEvents = noiseEvents;
-        this.phaseOwnedPublication = phaseOwnedPublication;
     }
 
     /** Callback the projectile-arrival path uses to hand a {@link PendingDetonation} to the weapons subsystem. Functional interface so the BattleSimulation site is a lambda. */
@@ -254,18 +247,14 @@ public final class ShotService {
      * must remain untouched until the workers join. The shared view is
      * structurally immutable; its projectile objects are immutable by phase
      * ownership, not copies of the physical rounds.
-     *
-     * @return whether phase-owned publication is enabled for this service
      */
-    public boolean beginMemberUpdates() {
-        if (!phaseOwnedPublication) return false;
+    public void beginMemberUpdates() {
         if (memberPhase != null) {
             throw new IllegalStateException("Projectile member phase is already active or abandoned");
         }
         synchronized (activeProjectiles) {
             memberPhase = new ProjectilePhase(List.copyOf(activeProjectiles));
         }
-        return true;
     }
 
     /**
@@ -395,8 +384,7 @@ public final class ShotService {
     /**
      * Hazard view, shared throughout member updates. Newly launched rounds
      * appear in the next member phase, without per-reader copying or locking.
-     * Outside that phase (or with the control disabled), returns the legacy
-     * synchronized copy. Do not retain a phase view past worker join: the
+     * Outside that phase, returns a synchronized copy. Do not retain a phase view past worker join: the
      * host subsequently advances the physical projectile objects.
      */
     public List<Projectile> snapshotActiveProjectiles() {
