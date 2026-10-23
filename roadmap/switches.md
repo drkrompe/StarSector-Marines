@@ -46,14 +46,8 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.colonyBreach.roadblocks` | experiment | 2026-10-22 | Colony Breach / Bloom sessions: remove each once its colony-breach reading is accepted (colony-breach-nouns.md). |
 | `battle.colonyBreach.strikes` | experiment | 2026-10-21 | Colony Breach / Bloom sessions: remove each once its colony-breach reading is accepted (colony-breach-nouns.md). |
 | `battle.command.conquest.balancedHomeTracks` | experiment | 2026-10-11 | Conquest command (2026-10-11): remove once commanderEvidence -Pmission=conquest has been read against it. |
-| `battle.command.conquest.homeTrackCaptures` | experiment | 2026-09-01 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.command.conquest.scaledDefenderResponse` | experiment | 2026-09-01 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.command.emptyTrackAdvance` | experiment | 2026-08-30 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.conquest.attackerHoldsGround` | experiment | 2026-10-20 | Conquest command (2026-10-20): remove once commanderEvidence -Pmission=conquest accepts it. |
 | `battle.conquest.derivedLift` | undecided | 2026-09-02 | Default off since 2026-09-02 (conquest-nouns.md). Ship it or delete the code. |
-| `battle.conquest.laneChain` | experiment | 2026-09-02 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.conquest.orbitalLift` | experiment | 2026-09-02 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.conquest.zoneTargetCap` | experiment | 2026-09-03 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.cordon.basePace` | experiment | 2026-10-22 | The owner's three Cordon picks (2026-10-22, cordon-nouns.md): remove once the owner has played the picks. |
 | `battle.cordon.basePlace` | experiment | 2026-10-22 | The owner's three Cordon picks (2026-10-22, cordon-nouns.md): remove once the owner has played the picks. |
 | `battle.cordon.carrierAfterDrop` | experiment | 2026-10-22 | The owner's three Cordon picks (2026-10-22, cordon-nouns.md): remove once the owner has played the picks. |
@@ -91,9 +85,9 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.heart.frontage` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
 | `battle.heart.holdBack` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
 | `battle.infantry.fightingPositions` | experiment | 2026-10-13 | Fighting positions (ai-nouns.md): remove once the defender fighting-position work is accepted. |
-| `battle.infantry.laneSidestep` | experiment | 2026-09-01 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
+| `battle.infantry.laneSidestep` | control | 2026-09-01 | Standing control: FiringLineScene runs the off arm as its control loop (behavior-scenes.md). Retire it with that loop. |
 | `battle.infantry.medicKeepMoving` | undecided | 2026-10-14 | Default off since 2026-10-14 (squad-medic.md). Ship it or delete the code. |
-| `battle.infantry.rejoin` | experiment | 2026-09-01 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
+| `battle.infantry.rejoin` | control | 2026-09-01 | Standing control: the control and contested-control loops of LateArrivalScene run the off arm. Retire it with those loops. |
 | `battle.influence.async` | config | 2026-09-26 | Permanent: determinism. Test and evidence tasks force the synchronous arm, and the live game runs async. |
 | `battle.junction.talonTwo` | experiment | 2026-10-15 | Junction (commander-evidence-missions.md): remove once commanderEvidence -Pmission=junction accepts Talon Two. |
 | `battle.mapgen.cityLaneMarkings` | experiment | 2026-10-21 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
@@ -106,7 +100,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.mapgen.ruralLandUse` | experiment | 2026-10-22 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mapgen.settlementLots` | experiment | 2026-10-22 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mapgen.townFields` | experiment | 2026-10-22 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
-| `battle.mapgen.vehicleCorridor` | experiment | 2026-08-30 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mech.<axis>.<short id>` | tuning | 2026-10-18 | Balance control over one authored mech-weapon value (MechWeaponComponent.tuned). Kept while armorMatchup balances mech weapons; fold the readings into the data files and drop it when that pass closes. |
 | `battle.mech.armorArcs` | control | 2026-10-19 | Standing control alongside battle.vehicle.armorArcs. Retire with it. |
 | `battle.mech.armorFireOrder` | experiment | 2026-10-18 | Mech doctrine/armour pass (mechs-nouns.md, heavy-equipment-progression.md): remove each once armorMatchup has been read against it. Numeric ones fold into constants. |
@@ -171,31 +164,21 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.render.doodadAtlas` | experiment | 2026-10-23 | Doodad decoration atlas: remove it with the per-cut bind path once renderEvidence has read the atlas against its control. |
 | `battle.render.fire` | experiment | 2026-10-22 | Fire-system session: remove once the owner's fire look is final (fire-nouns.md). |
 | `battle.render.fireLook` | experiment | 2026-10-22 | Fire-system session: remove once the owner's fire look is final (fire-nouns.md). |
-| `battle.render.fogField` | control | 2026-09-02 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
-| `battle.render.groundAtlas` | control | 2026-09-03 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.groundFeathering` | control | 2026-10-22 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
-| `battle.render.groundMesh` | control | 2026-09-02 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.nightCoarse` | experiment | 2026-10-22 | Night-shade session: remove once renderEvidence on the burn at night accepts the lever. |
 | `battle.render.nightFireFogClears` | experiment | 2026-10-23 | Night-shade session: remove once renderEvidence on the burn at night accepts the lever. |
 | `battle.render.nightFireThroughFog` | experiment | 2026-10-23 | Night-shade session: remove once renderEvidence on the burn at night accepts the lever. |
 | `battle.render.nightRuns` | experiment | 2026-10-22 | Night-shade session: remove once renderEvidence on the burn at night accepts the lever. |
 | `battle.render.nightUnseenTint` | experiment | 2026-10-23 | Night-shade session: remove once renderEvidence on the burn at night accepts the lever. |
-| `battle.render.residentDecoration` | control | 2026-09-03 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
-| `battle.render.residentRelief` | control | 2026-09-02 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
-| `battle.render.residentRoofs` | control | 2026-09-03 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.settledBodyMesh` | control | 2026-10-22 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.smokeDensity` | tuning | 2026-10-22 | Fire-system session: fold into a constant once the smoke look is picked. |
-| `battle.render.unitAtlas` | control | 2026-09-03 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
-| `battle.render.zoomGates` | control | 2026-09-02 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.sallyDoors` | experiment | 2026-10-20 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.sallyDoors.closable` | experiment | 2026-10-21 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.sallyDoors.derived` | experiment | 2026-10-20 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.separation.capsules` | experiment | 2026-10-21 | Continuous positions (continuous-positions-nouns.md): remove once capsule separation is accepted. |
 | `battle.squad.apertureSpread` | undecided | 2026-10-11 | Default off since 2026-10-11 (conquest-command.md). Ship it or delete the code. |
 | `battle.squad.contactDrill` | undecided | 2026-08-30 | Default off since 2026-08-30 (ai-nouns.md). Ship it or delete the code. |
-| `battle.squad.contactOnset` | experiment | 2026-08-30 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.squad.objectiveFiringInZone` | experiment | 2026-09-01 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.squad.prosecutionFallThrough` | experiment | 2026-09-01 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
+| `battle.squad.prosecutionFallThrough` | control | 2026-09-01 | Standing control: the frozen-control loop of ProsecutionHoldScene runs the off arm and its verdict depends on it. Retire it with that loop. |
 | `battle.squad.roomCellSpread` | undecided | 2026-10-11 | Default off since 2026-10-11 (conquest-command.md). Ship it or delete the code. |
 | `battle.squad.routeCommitNeedsFreshContact` | experiment | 2026-10-13 | Squad zone actions (2026-10-13): remove once the squad zone-action evidence has been read against it. |
 | `battle.squad.traffic` | undecided | 2026-09-26 | Default off; SquadTrafficScene compares it. The owner decides whether to ship it (drop the switch, keep the code) or drop it (delete the code). |
@@ -214,9 +197,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.swarm.packLeaders` | experiment | 2026-10-21 | Swarm/Bloom sessions: remove each once colony-breach evidence accepts it (colony-breach-nouns.md). |
 | `battle.swarm.packSplit` | experiment | 2026-10-22 | Swarm/Bloom sessions: remove each once colony-breach evidence accepts it (colony-breach-nouns.md). |
 | `battle.tail.replanCpu` | config | 2026-09-27 | Permanent: opt-in profileConquestTail instrumentation, off in play. |
-| `battle.targeting.committedFire` | experiment | 2026-09-01 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.targeting.friendlyLanePenalty` | undecided | 2026-09-01 | Default off since 2026-09-01 (ai-nouns.md). Ship it or delete the code. |
-| `battle.targeting.perceptionGated` | experiment | 2026-09-01 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.targeting.squadFiringPositions` | undecided | 2026-09-26 | Default off with its own profileSquadFiringPositions task (squad-firing-positions.md). Ship it, or delete the code together with that task. |
 | `battle.tender.fairThreat` | control | 2026-10-12 | Standing control: TenderBuildScene runs the off arm as its control loop. Retire it with that loop. |
 | `battle.thunderRun.reactiveColumn` | experiment | 2026-10-15 | Thunder Run: remove once commanderEvidence -Pmission=thunder-run accepts the reactive column. |
