@@ -1,0 +1,79 @@
+<template props="rootClasses,title,area,detail,progressStyle">
+  <div id="battle-loading-overlay" class="{rootClasses}">
+    <div id="battle-loading-before" class="loading-before" />
+    <div id="battle-loading-row" class="loading-row">
+      <div id="battle-loading-left" class="loading-side" />
+      <div id="battle-loading-panel" class="loading-panel">
+        <div id="battle-loading-title" class="label heading loading-title">{title}</div>
+        <div id="battle-loading-area" class="label loading-area">{area}</div>
+        <div id="battle-loading-track" class="loading-track"><div id="battle-loading-progress" class="loading-progress" style="{progressStyle}" /></div>
+        <div id="battle-loading-detail" class="label loading-detail">{detail}</div>
+      </div>
+      <div id="battle-loading-right" class="loading-side" />
+    </div>
+    <div id="battle-loading-after" class="loading-after" />
+  </div>
+</template>
+
+<style>
+  .label { overflow: hidden; white-space: nowrap; }
+  .heading { font-family: heading; }
+
+  .battle-loading-overlay {
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    overflow: hidden;
+    background-color: #070b09;
+    background-image: linear-gradient(to bottom, #0d1611 0%, #070b09 70%, #050806 100%);
+  }
+
+  .loading-before, .loading-after { flex-grow: 1; width: 1px; height: 1px; }
+  .loading-side { flex-grow: 1; width: 1px; height: 1px; }
+  .loading-row { width: 100%; height: 134px; flex-direction: row; }
+
+  .loading-panel {
+    width: 560px;
+    height: 100px;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 20px;
+    border-width: 1px;
+    border-color: #727b7966;
+    background-color: #101914ee;
+  }
+
+  .loading-title { width: 100%; height: 24px; color: #e6e7da; }
+  .loading-area { width: 100%; height: 16px; color: #a0ada8; }
+  .loading-track {
+    width: 100%;
+    height: 6px;
+    flex-direction: row;
+    background-color: #c3cec91c;
+  }
+  .loading-progress { height: 6px; background-color: #a7ccc4; }
+  .loading-detail { width: 100%; height: 16px; color: #a7ccc4; }
+
+  /* A strip along the bottom of the screen instead of a card in the middle. */
+  /* MLX sizes are content boxes: the row is the panel's 64px plus its 32px of padding. */
+  .loading-strip .loading-row { height: 96px; }
+  .loading-strip .loading-panel {
+    width: 0px;
+    flex-grow: 1;
+    height: 64px;
+    padding: 16px 40px;
+    gap: 4px;
+    border-width: 0px;
+    background-color: transparent;
+    background-image: linear-gradient(to bottom, #10191400 0%, #101914dd 60%, #101914ff 100%);
+  }
+  .loading-strip .loading-side { width: 0px; flex-grow: 0; }
+  .loading-strip .loading-after { height: 0px; flex-grow: 0; }
+
+  /* Only the bar: no names, no step. */
+  .loading-minimal .loading-panel { width: 320px; height: 22px; padding: 8px 0px; border-width: 0px; background-color: transparent; }
+  .loading-minimal .loading-row { height: 22px; }
+  .loading-minimal .loading-title,
+  .loading-minimal .loading-area,
+  .loading-minimal .loading-detail { width: 0px; height: 0px; opacity: 0; }
+</style>

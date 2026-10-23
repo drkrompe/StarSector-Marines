@@ -45,7 +45,7 @@ grass under a hedge under creep is three loads.
 | Crown | a standing tree's crown cells | 200 | 40 s | hard | Slow to catch from a grass fire, long and hot once it does, and throws heat a ring further (a crown fire). Each crown cell that burns out spends part of its tree's structure through `MapEditor.damageWall`, so a tree falls once three have, leaving its ordinary destroyed art and passable ground. |
 | Living creep | `CreepField` coverage, alive | 75 | 15 s | moderately | Creep over a crown makes it catch as creep does: an overgrown tree goes up readily. |
 | Dead creep | creep dying back | 40 | 8 s | easily | Dry; the edge a source has abandoned goes up fast. |
-| Debris | timber and furniture rubble | 50 | 10 s | moderately | Defined, not yet read off the map. |
+| Debris | a standing wooden prop: a crate or box, a pallet stack, wooden furniture (the props `EnvironmentMaterial` calls wood) | 50 | 10 s | moderately | The prop is destroyed when its cell burns out and stays as its destroyed art. Wire fences, drums, sandbags, hedgehogs, machinery and stone do not burn. |
 | Structure | a light wall or window: one of at most 100 hit points, in a structure that is not fortified | 120 | 24 s | hard | Catches only from fire held against it, so a passing grass front catches it some of the time; a cell that burns through falls to rubble (Buildings). |
 | Furnishing | a plain indoor or panelled floor (`INDOOR`, `TILE`) of a building that is not fortified | 80 | 16 s | moderately | A room's furniture and boards; a room that catches loses its roof. |
 

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.render;
 
+import com.dillon.starsectormarines.render2d.texture.ModTextures;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;
@@ -135,8 +136,8 @@ public class PlanetSphereDrawable implements Drawable {
     private boolean ensureSprite() {
         if (sprite != null) return true;
         try {
-            Global.getSettings().loadTexture(texturePath);
-            sprite = Global.getSettings().getSprite(texturePath);
+            ModTextures.loadTexture(texturePath);
+            sprite = ModTextures.sprite(texturePath);
             if (sprite == null) {
                 LOG.error("Sprite for planet texture not found: " + texturePath);
                 failed = true;

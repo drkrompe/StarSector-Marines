@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-16
 
-Updated: 2026-10-21 — ground ward and berth boards (`ground-quarters`)
+Updated: 2026-10-23 — battle loading screen options (`battle-loading`)
 
 A guide to the notable `createSnapshots` suites: what each one shows and where it writes.
 How to run them, and the rules every preview obeys, are in `CLAUDE.md` (Visual snapshot
@@ -23,7 +23,7 @@ by name.
 | `city-junctions` | Colony Breach's town at tick zero on seeds 7117 and 3 (`-Dsnapshot.cityJunctions.seeds=`): up to twelve T and cross junctions a seed (`.count`), where whole asphalt runs six cells or more three or four ways, framed 40 cells across (`.cells`). Look evidence for how street pavement joins (`mapgen-nouns.md`, A street ends where it meets another), 1920x1080 | `build/snapshots/city-junctions/` |
 | `roadblocks` | Colony Breach's map at tick zero on seeds 7117, 3 and 11 (`-Dsnapshot.roadblocks.seeds=`): the whole map, then every militia roadblock at play zoom (32 px a cell) with its team on the bags. `-Dbattle.colonyBreach.roadblockSpan=kerb` renders the kerb-to-kerb control (`colony-breach-nouns.md`, Roadblock), 1920x1080 | `build/snapshots/roadblocks/` |
 | `roadblock` | The roadblock behaviour scene's two loops (`gap`, `closed`): Runners down a street at a manned line, from the same run as its verdicts (`sceneEvidence -Pscene=roadblock`), 1920x1080 | `build/snapshots/roadblock/` |
-| `screened-advance` | The screened-advance behaviour scene's three loops (`infantry-screen`, `armour-screen`, `control`): militia and allied armour bounding to a rally point, each bound drawn across the route, the rally point marked, from the same run as its verdicts (`sceneEvidence -Pscene=screened-advance`), 1920x1080 | `build/snapshots/screened-advance/` |
+| `screened-advance` | The screened-advance behaviour scene's three loops (`infantry-screen`, `armour-screen`, `control`): militia and allied armour moving to a rally point in formation, a line through each element's centre and the rally point marked, from the same run as its verdicts (`sceneEvidence -Pscene=screened-advance`), 1920x1080 | `build/snapshots/screened-advance/` |
 | Suite | Evidence | Output |
 |-------|----------|--------|
 | `deck-props` | The generated, manned Valkyrie's moving props: belt conveyor, rack lift, treadmill and rower, engine-room fans, the vehicle bay's travelling cranes over alternately occupied berths. One 1920x1080 GIF per room on the deck's own clock, power up for the first half and at a deficit for the second; the console says how often each worked machine was worked | `build/snapshots/deck-props/` |
@@ -61,6 +61,7 @@ by name.
 | `aircraft-thrusters-night` | The same six aircraft under production night shade, with native steering and smoothed engine demand through idle, acceleration, cruise and braking; 16 seconds at 1920x1080, 15 fps. Controlled throttle inputs, not a combat sortie | `build/snapshots/aircraft-thrusters-night/` |
 | `aircraft-crash` | Six existing fighters through controlled lethal damage, fall, breakup and permanent wreck settlement with shared production effects; 12 seconds at 1920x1080, 15 fps, plus Mudskipper before-contact, contact and settled stills | `build/snapshots/aircraft-crash/` |
 | `turrets` | Authored mount-state strips, including projectile and impact effects | `build/snapshots/turrets/` |
+| `battle-loading` | The screen a battle shows while its textures load: the three looks, the three progress lines and the minimum display time as timelines of a fast load (`battle-textures.md`, Loading screen), 1920x1080/100% | `build/snapshots/battle-loading/` |
 | `ui` | Marine Ops screens at authored viewport sizes, including the scale-invariant battle task-force plate and MLX command rail | `build/snapshots/ui/` |
 | `hq-intel` | Animated HQ receivers, dossier selection and a labelled fixture arrival at 1920x1080, 100% scale | `build/snapshots/hq-intel/` |
 | `hq-holo` | The command-deck banner alone at its 1872x372 size on the 1920x1080 / 100% HQ page, with the action board hologram over the plot table: markers rising in, settled, and with a selection beam and hover; plus a GIF | `build/snapshots/hq-holo/` |

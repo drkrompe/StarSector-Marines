@@ -21,11 +21,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * What a marine does about his own man standing in his firing lane.
  *
- * <p>The arena is deliberately the one {@code FriendlyLanePenaltyTest} uses —
- * open floor, a shooter, a squadmate on the line, an enemy beyond — because
- * these two are the two halves of one question and the geometry they ask it of
- * should be the same. That test pins what the <em>picker</em> does, which is
- * nothing; this pins what the marine does instead.
+ * <p>The arena is open floor, a shooter, a squadmate on the line and an enemy
+ * beyond: the geometry {@code FiringLaneTest} asks directly. The target picker
+ * does nothing about a blocked lane; this pins what the marine does instead.
  *
  * <p>Each case is one gate. A reflex is a list of reasons to decline and one
  * reason to act, so a test that set up the acting case and asserted a move

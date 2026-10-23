@@ -840,9 +840,8 @@ without its front bonus. `-Dbattle.vehicle.armorArcs=false` is the control.
     reverse speed (13° a second at full lock) a rear-on turn then takes longer
     than its rehearsal allows, so it was never made. A turn that starts forward
     stays forward, a full-lock circle that does not close on the target.
-  - *A gunless tank backing out of reach nose on* before it drives its route
-    (`-Dbattle.vehicle.withdrawNoseOn=true`, off). See the withdrawal readings
-    above.
+  - *A gunless tank backing out of reach nose on* before it drives its route:
+    measured and rejected. See the withdrawal readings above.
 - **One front, and a turn that costs** (`convoy-nouns.md`, what presents the
   front). The owner's brief: no arbitrary slowness, and flanking should pay. A
   hull now faces the worst threat it knows of (harm into its plate), turns only

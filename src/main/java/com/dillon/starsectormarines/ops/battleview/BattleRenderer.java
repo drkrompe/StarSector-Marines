@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSna
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
+import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.dillon.starsectormarines.render2d.DecalAccumulator;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
@@ -722,9 +723,8 @@ public class BattleRenderer {
 
                 float sx = rc.camera.cellToScreenX(cx);
                 float sy = rc.camera.cellToScreenY(cy);
-                float[] colour = fireFogClearing.fogColour();
                 out.addSolidRect(RenderLayer.FOG, sx, sy, sx + cellPx, sy + cellPx,
-                        colour[0], colour[1], colour[2], fogAlpha * alphaMult);
+                        0f, 0f, 0f, fogAlpha * alphaMult);
             }
         }
     }
@@ -1203,6 +1203,15 @@ public class BattleRenderer {
      */
     public void renderWorld(RenderContext rc, EnumSet<RenderLayer> layers,
                             FrameCensus census) {
+        renderWorld(rc, layers, census, null);
+    }
+
+    /**
+     * As {@link #renderWorld(RenderContext, EnumSet, FrameCensus)}, draining {@code leading}'s commands for each
+     * layer ahead of the layer's own. A headless review feeds presentation services the live screen ticks itself
+     * (contrails, delivered rounds, beams) and hands their commands in here, the order the screen draws them in.
+     */
+    void renderWorld(RenderContext rc, EnumSet<RenderLayer> layers, FrameCensus census, DrawList leading) {
         collectWorld(rc, layers, census);
         boolean parallax = (rc.hostProfile.surfaceReliefEnabled() || GroundParallaxPipeline.deckWaterVisible(rc))
                 && DevConfig.SURFACE_RELIEF_PARALLAX
@@ -1210,6 +1219,10 @@ public class BattleRenderer {
         for (RenderLayer layer : RenderLayer.values()) {
             if (!layers.contains(layer)) continue;
             long started = census == null ? 0L : System.nanoTime();
+            if (leading != null && leading.count(layer) > 0) {
+                DrawListRenderer.drain(leading.buffer(layer), leading.count(layer), batchBySheet, solidBatch,
+                        lineBatch, contrailBatch, rc.camera, null);
+            }
             if (layer == RenderLayer.GROUND && parallax) {
                 // S2/S3: redirect GROUND through the relief FBOs + composite instead
                 // of draining straight to the backbuffer. groundParallax falls back to
@@ -1266,6 +1279,9 @@ public class BattleRenderer {
         }
         this.rc = rc;
         drawList.clear();
+        if (TextureUsage.isEnabled() && rc.camera != null) {
+            TextureUsage.beginWorld(rc.camera.cellPxSize(), rc.camera.worldCellsW(), rc.camera.worldCellsH());
+        }
         for (RenderSystem system : worldSystems) {
             if (!layers.contains(system.layer())) continue;
             if (census == null) {
