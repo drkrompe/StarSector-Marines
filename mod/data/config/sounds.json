@@ -499,6 +499,10 @@
 	# core files (resolves against the read-only core install at runtime, same no-redistribution
 	# trick as the flyby weapon block below). All clips are mono → positional playLoop.
 	#
+	# A mech or laser tank venting flux (MachineAudio). Vanilla flux_loop also lists the Dweller's lightning loop,
+	# so the held vent has its own id naming the ordinary flush loop alone.
+	"marines_vent_loop":[ {"file":"sounds/sfx_flux/flux_flush_loop.ogg","pitch":1,"volume":0.8} ],
+	#
 	# Ground vehicle engines (MachineAudio): one id per hull class, pointing at the picked take.
 	# Takes are vehicle-engines/*.mp3 from ElevenLabs; volume evens each take to the same level (about 0.09 RMS).
 	# The unpicked take of each class stays registered under its own id for auditioning.

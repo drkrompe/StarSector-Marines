@@ -38,8 +38,9 @@ public final class MachineAudio {
 
     /** Vanilla: a ship venting flux, once, as the vent opens. */
     static final String VENT_CUE = "vent_flux";
-    /** Vanilla: the flux flush loop a venting ship holds. */
-    static final String VENT_LOOP = "flux_loop";
+    /** Vanilla's flux flush loop a venting ship holds, under our own id: vanilla {@code flux_loop} also lists the
+     *  Dweller's lightning loop. */
+    static final String VENT_LOOP = "marines_vent_loop";
 
     public static final String ENGINE_TRACKED = "marines_engine_tracked";
     public static final String ENGINE_WHEELED = "marines_engine_wheeled";
