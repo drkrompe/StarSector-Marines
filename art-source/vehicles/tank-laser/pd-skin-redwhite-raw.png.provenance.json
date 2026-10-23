@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16653-fb65-7471-9b68-03c738783cc5",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16653-fb65-7471-9b68-03c738783cc5\\exec-96c7a433-798c-4e08-a6c1-7fbd05c19010.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\tank-laser\\pd-skin-redwhite-raw.png",
+    "sha256": "ebdbf5da44e9d813ac821bc20d3546e5e8ae0593d33f4893f5f6aebfd7192823",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\tank-laser\\pd-skin-redwhite-prompt.txt",
+  "promptSha256": "4cbfeb3f77d52bafbf3402abb24fd1fe46d54a75d104a1eae18ec5e023f6c833",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Shape authority: the exact module to repaint, same canvas, pose and scale\nImage 2: Livery and wear reference only: the vehicle this module sits on; not shape, size or position\n\nEdit image 1, an approved high-resolution top-down painted sprite of a small spaceship turret module pointing LEFT, on a square transparent canvas. Keep its SHAPE exactly: the same silhouette, every part, panel line, bolt and edge in the same place, the same lighting from the top left, the same position and scale on the canvas. Only the paint and finish change.\nKeep the RED-lacquered collar and the white vent bars exactly as they are, but repaint the dome, the base ring, the base plate and the rear stub in off-white ceramic armour with fine panel lines and dark graphite recesses, so a red band sits on a white body. Light, cool, neutral field wear: grey dust in recesses, small chips on the red edges. No yellow, brown or gold tint anywhere.\nNo glow halos, no beams, no light rays, no new parts.\nStrict 90-degree overhead orthographic, no perspective tilt. Exactly one object. No scene, labels, background, checkerboard, shadow or border. True transparent background with genuine alpha outside the silhouette. Same canvas size and aspect as image 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\tank-laser\\pd-upres-raw.png",
+      "sha256": "b45504852426e3155fccb43daa9ef29b7bf9664be87c95093f2e5b36150aa026",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Shape authority: the exact module to repaint, same canvas, pose and scale"
+    },
+    {
+      "path": "art-source\\vehicles\\tank-laser\\hull-raw-b4.png",
+      "sha256": "88e6b37c90b6719f2579e485ad5010a77540b108411e7741ae6cf1dc11d43e8c",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Livery and wear reference only: the vehicle this module sits on; not shape, size or position"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image generation to repaint the module, preserving its shape, red collar, and white vent bars, with the vehicle as the finish reference.\n"
+  ],
+  "usage": {
+    "input_tokens": 45015,
+    "cached_input_tokens": 34304,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 487,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 56.4
+}

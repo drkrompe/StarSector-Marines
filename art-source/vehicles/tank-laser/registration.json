@@ -1,65 +1,17 @@
 {
- "outputSize": [
-  3072,
-  768
- ],
- "frameCells": 7.789194,
+ "outputSize": [3840, 768],
+ "turretCells": 1.6,
+ "turretBodyCells": 1.25,
  "frames": [
-  {
-   "copy": "../../../mod/graphics/battle/vehicles/army-tank.png",
-   "frame": 0,
-   "note": "Live hull, verbatim from the breakthrough sheet: the laser tank is that hull."
-  },
-  {
-   "source": "turret-raw-a.png",
-   "sourceSize": [
-    1774,
-    887
-   ],
-   "alphaFloor": 8,
-   "scale": 0.469799,
-   "sourceCenter": [
-    1420,
-    449
-   ],
-   "targetCenter": [
-    1152,
-    384
-   ],
-   "sourceMuzzles": [
-    [
-     1094,
-     415
-    ],
-    [
-     1094,
-     483
-    ]
-   ],
-   "note": "Option a. ImageGen drew the turret 1.49x the target (alpha IoU 0.993 on the housing, best fit about (1420,442)); 0.7 / 1.49 restores the breakthrough turret's 98.6 frame px per cell. The bearing sits on the lens axis (y 449, lenses 415 / 483.5), 3 frame px off the housing fit, so both lenses lie symmetric about the gun line: muzzles 1.553 cells forward, 0.163 lateral."
-  },
-  {
-   "copy": "../../../mod/graphics/battle/vehicles/army-tank.png",
-   "frame": 2,
-   "note": "Wreck hull, verbatim from the breakthrough sheet."
-  },
-  {
-   "source": "wreck-raw-a.png",
-   "sourceSize": [
-    1774,
-    887
-   ],
-   "alphaFloor": 8,
-   "scale": 0.626374,
-   "sourceCenter": [
-    1350,
-    449
-   ],
-   "targetCenter": [
-    2688,
-    384
-   ],
-   "note": "ImageGen drew the wreck 1.365x wreck-target.png about (1350,449) (alpha IoU 0.979 on the housing); 0.855 / 1.365 restores the breakthrough wreck turret's scale."
-  }
+  {"role": "hull", "source": "hull-raw-b4.png", "scale": 0.73, "sourceCenter": [508, 451],
+   "note": "Live hull: the breakthrough master re-liveried (hull-raw-b, pass 4: window on the deck, sloped glacis, cool wear), edited on the master's own canvas, so the master's registration holds and the tread strips VehicleTreadRender scrolls sit on its tracks."},
+  {"role": "turret", "source": "pd-skin-red-raw.png",
+   "note": "Live turret: the up-res vanilla PD laser, weathered (skin 'red'). Pivot at the vanilla sprite's centre."},
+  {"role": "hull", "source": "hull-wreck-raw.png", "scale": 0.73, "sourceCenter": [508, 451],
+   "note": "Wreck hull, edited from hull-raw-b4.png on the same canvas."},
+  {"role": "turret", "source": "pd-skin-red-wreck-raw.png",
+   "note": "Wreck turret, edited from the live skin; ImageGen drew it about 1.3x, which the fit takes back out."},
+  {"role": "turret", "source": "pd-skin-red-open-raw.png",
+   "note": "Firing turret: the same skin with the dome's shutter open on its lens (VehicleType.turretFiringFrame)."}
  ]
 }

@@ -1040,10 +1040,16 @@ every engagement question. A section dies inside one bank; a tank needs several,
 the laser falls back to its refill rate long before the tank is dead.
 
 The power plant takes the shell stowage's room and weight, so the hull is a little
-faster than the breakthrough tank and carries a little less plate. Its sheet is the
-breakthrough hull with its own turret (`art-source/vehicles/tank-laser/`): two stubby
-lens barrels in an armored housing where the gun was, radiator fin banks on the rear
-flanks and power conduits along the roof; its bursts alternate between the two lenses.
+faster than the breakthrough tank and carries a little less plate.
+
+It is Tri-Tachyon's tank, and it looks it (`art-source/vehicles/tank-laser/`): the
+breakthrough hull in the company's white livery, a sloped glacis under a crew window,
+and a capacitor pack of ten cells over the rear deck where the engine grilles were. Its
+turret is the space game's own PD laser, up-res'd from the vanilla sprite and set on a
+ship's turret mount in the deck, small for a tank turret, so a player recognises the
+weapon from fleet combat. The turret has a **firing frame** (`VehicleType.turretFiringFrame`,
+a law any sheet may author): while the gun is engaged, with a target on the ground or in
+the air or a burst under way, its dome's shutter stands open on the lens; idle, it closes.
 Acceptance is the `tank-versus-infantry` scene (the laser
 fires at men, and none of its rounds carries blast or wall damage) and the
 `tank-versus-air` scene (the laser fires into the air at a hostile gunship, the

@@ -21,7 +21,7 @@
     { "id": "mount.tank-burst-laser", "weapon": "weapon.tank-burst-laser",
       "engagesAir": true,
       "sim": { "ammoCapacity": 600, "turnRateDegPerSec": 110.0, "charges": 10, "chargeRechargeSec": 2.0 },
-      "render": { "visualCells": 4.5, "muzzleOffsetCells": 1.553, "muzzleLateralOffsetCells": 0.163 } },
+      "render": { "visualCells": 1.6, "muzzleOffsetCells": 0.62, "muzzleLateralOffsetCells": 0.0 } },
     { "id": "mount.tank-twin-cannon", "weapon": "weapon.tank-twin-cannon",
       "sim": { "ammoCapacity": 48, "turnRateDegPerSec": 55.0 },
       "render": { "visualCells": 4.5, "muzzleOffsetCells": 2.2434501, "muzzleLateralOffsetCells": 0.0 } },
