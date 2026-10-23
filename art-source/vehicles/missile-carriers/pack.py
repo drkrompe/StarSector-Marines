@@ -3,12 +3,13 @@
   mod/graphics/battle/vehicles/lrm-carrier.png   4 x 768x576: APC hull, LRM launcher, APC wreck, wrecked launcher
   mod/graphics/battle/vehicles/srm-technical.png 4 x 768x576: technical hull, SRM pod, technical wreck, wrecked pod
 
-LRM carrier: the heavy APC's live and wreck hulls verbatim (`army-apc.png`, slots 0 and 2), with one LRM-15 launcher
-box (`lrm15-master.png`, ImageGen's reskin of `lrm15-guide.png`; see README.md) on a turntable plate where the twin
-MG stood.
+LRM carrier: the heavy APC's live and wreck hulls (`army-apc.png`, slots 0 and 2) with a turntable plate painted on
+the roof where the twin MG stood, and ONE mech LRM pod (`mech-modular-topdown/lrm-pod.png`) alone in its turret
+frame. The plate stays on the hull because the renderer foreshortens the turret frame as the pod stands up to fire
+(`VehicleType.turretRaiseFold`), and a flat turntable must not tilt with it.
 SRM technical: the militia technical's hulls verbatim (`militia-technical.png`, slots 0 and 2) with the mech SRM pod
 (`mech-modular-topdown/srm-pod.png`) on a pintle plate. The pods are the same launchers a mech carries, which is
-what the SRM technical fires.
+what the hulls fire.
 
 Turret frames are drawn at the hull's own pixel scale, so each `VehicleType` sets turretVisualCells to its hull's
 visual length and the frame's centre is the turntable's pivot. Pods are drawn nose-up in their own sprites and
@@ -25,16 +26,15 @@ GRAPHICS = ROOT / "mod" / "graphics"
 VEHICLES = GRAPHICS / "battle" / "vehicles"
 APC = VEHICLES / "army-apc.png"
 TECHNICAL = VEHICLES / "militia-technical.png"
-LRM15_MASTER = HERE / "lrm15-master.png"
+LRM_POD = GRAPHICS / "battle" / "mech-modular-topdown" / "lrm-pod.png"
 SRM_POD = GRAPHICS / "battle" / "mech-modular-topdown" / "srm-pod.png"
 
 SLOT_W, SLOT_H = 768, 576
 LIVE, TURRET, WRECK, WRECK_TURRET = 0, 1, 2, 3
 APC_PX_PER_CELL = SLOT_W / 2.4
 TECHNICAL_PX_PER_CELL = SLOT_W / 3.0
-# The LRM-15 master is the guide's 1024 canvas returned at 1254; the guide's box is 780 px nose to tail.
-LRM15_MASTER_BOX_PX = 780 * 1254 / 1024
-LRM15_BOX_CELLS = 0.72
+LRM_POD_CELLS = 0.72                 # nose to tail; VehicleType.LRM_CARRIER's raise hinge is half of it
+APC_ROOF_BEARING = (335, 288)       # the twin MG's bearing in the APC's live and wreck frames (apc/README.md)
 
 
 def slot(sheet, index):
@@ -76,35 +76,21 @@ def plate(frame, center, radius, broken=False):
               outline=(34, 36, 32, 255), width=3)
 
 
-def clean_alpha(sprite):
-    """ImageGen returns its opaque pixels at alpha 250-253 and a faint haze around them: snap both ends."""
-    alpha = sprite.getchannel("A").point(lambda v: 0 if v < 6 else 255 if v > 240 else round((v - 6) * 255 / 234))
-    out = sprite.copy()
-    out.putalpha(alpha)
-    return out
-
-
-def lrm15_box():
-    """The LRM-15 box nose-left, centred where the master's canvas is centred, at the hull's pixel scale."""
-    src = clean_alpha(Image.open(LRM15_MASTER).convert("RGBA"))
-    scale = LRM15_BOX_CELLS * APC_PX_PER_CELL / LRM15_MASTER_BOX_PX
-    size = (round(src.width * scale), round(src.height * scale))
-    out = src.convert("RGBa").resize(size, Image.LANCZOS).convert("RGBA")
-    out = out.filter(ImageFilter.UnsharpMask(radius=1.5, percent=50, threshold=2))
-    return out.crop(out.getbbox()), (out.width / 2 - out.getbbox()[0], out.height / 2 - out.getbbox()[1])
-
-
 def lrm_launcher(broken=False):
+    """One LRM pod centred on the frame centre (the turntable pivot); the plate is on the hull."""
     frame = Image.new("RGBA", (SLOT_W, SLOT_H), (0, 0, 0, 0))
     center = (SLOT_W // 2, SLOT_H // 2)
-    plate(frame, center, round(0.36 * APC_PX_PER_CELL), broken)
-    box, pivot = lrm15_box()
-    # Where the box's own centre sits relative to its cropped sprite's centre, so the canvas centre stays the pivot.
-    dx, dy = box.width / 2 - pivot[0], box.height / 2 - pivot[1]
+    one = pod(LRM_POD, round(LRM_POD_CELLS * APC_PX_PER_CELL))
     if broken:
-        box = char(box, 0.45).rotate(-9, resample=Image.BICUBIC, expand=True)
-    shadowed(frame, box, (center[0] + dx, center[1] + dy))
+        one = char(one, 0.45).rotate(-11, resample=Image.BICUBIC, expand=True)
+    shadowed(frame, one, center)
     return frame
+
+
+def with_plate(hull_frame, broken=False):
+    out = hull_frame.copy()
+    plate(out, APC_ROOF_BEARING, round(0.36 * APC_PX_PER_CELL), broken)
+    return out
 
 
 def srm_pod(broken=False):
@@ -118,11 +104,14 @@ def srm_pod(broken=False):
     return frame
 
 
-def sheet(hulls, live_turret, wreck_turret):
+def sheet(hulls, live_turret, wreck_turret, plated=False):
     out = Image.new("RGBA", (SLOT_W * 4, SLOT_H), (0, 0, 0, 0))
-    out.paste(slot(hulls, LIVE), (LIVE * SLOT_W, 0))
+    live, wreck = slot(hulls, LIVE), slot(hulls, WRECK)
+    if plated:
+        live, wreck = with_plate(live), with_plate(wreck, broken=True)
+    out.paste(live, (LIVE * SLOT_W, 0))
     out.paste(live_turret, (TURRET * SLOT_W, 0))
-    out.paste(slot(hulls, WRECK), (WRECK * SLOT_W, 0))
+    out.paste(wreck, (WRECK * SLOT_W, 0))
     out.paste(wreck_turret, (WRECK_TURRET * SLOT_W, 0))
     return out
 
@@ -134,7 +123,7 @@ def main():
         if hulls.size != (SLOT_W * 4, SLOT_H):
             raise SystemExit(f"{name} changed size; re-measure before re-packing")
     sheets = (
-        ("lrm-carrier.png", sheet(apc, lrm_launcher(), lrm_launcher(broken=True))),
+        ("lrm-carrier.png", sheet(apc, lrm_launcher(), lrm_launcher(broken=True), plated=True)),
         ("srm-technical.png", sheet(technical, srm_pod(), srm_pod(broken=True))),
     )
     for name, packed in sheets:
