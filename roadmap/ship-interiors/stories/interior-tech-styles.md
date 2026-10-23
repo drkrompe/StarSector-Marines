@@ -17,6 +17,9 @@ low-tech has one. Today every generated hull is drawn low-tech.
   ImageGen concepts over the game's own framing, then a geometry-first kit, then the light model.
 - Restoration stays inside a style. A restored low-tech ship never turns midline.
 
+Each style is the interior expression of its tech family (`tech-families.md`); its materials,
+light and wear follow that family's visual language.
+
 ## Open questions
 
 - The light language for each. Low-tech is caged lamps strung on exposed cable. Midline might be
