@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.command.objective.HeartObjective;
 import com.dillon.starsectormarines.battle.evacuation.HeartBores;
 import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.evacuation.HeartObjectives;
+import com.dillon.starsectormarines.battle.evacuation.HeartVehiclePark;
 import com.dillon.starsectormarines.battle.evacuation.HeartSequence;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveContext;
@@ -191,6 +192,9 @@ public final class BloomHeartSetup {
             sim.addObjective(new BatteryObjective(guns));
         }
         HeartLanes lanes = form == Form.BROAD_FRONT ? alliedLanes(sim, form, built.battleSeed()) : null;
+        // The armour waves come up the supply road from the vehicle park the layout laid, while it stands.
+        HeartVehiclePark park = form == Form.BROAD_FRONT ? HeartVehiclePark.of(built.map().layout) : null;
+        if (lanes != null && park != null) lanes.sentFrom(park);
         boolean front = barrage != null && burnFront();
         if (front) lanes = burnFront(sim, form, burnScreen(form, barrage.plan()), built.battleSeed());
         sim.installHeart(form, barrage, lanes, built.map().layout);

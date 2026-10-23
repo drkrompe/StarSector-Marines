@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
+import com.dillon.starsectormarines.battle.command.allied.AlliedDepot;
 import com.dillon.starsectormarines.battle.command.HeartLane;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.RescueCommandFacts.KnownBore;
@@ -109,6 +110,8 @@ public final class HeartLanes {
 
     private final List<Lane> lanes = new ArrayList<>();
     private BarrageScreen screen;
+    /** Where scheduled armour sets out from; {@code null} sets it down at its own lane's foot. */
+    private AlliedDepot depot;
     /** Which way the lanes advance along their axis, +1 or -1, for armour that follows no barrage. */
     private int advanceSign;
     /** How far behind its lane's aim the armour stands; negative stands it ahead, leading its infantry. */
@@ -158,6 +161,15 @@ public final class HeartLanes {
         return this;
     }
 
+    /**
+     * Scheduled armour sets out from {@code depot} rather than its lane's foot, and waits while the depot cannot
+     * send; it then drives up to its lane like the rest of the lane's armour.
+     */
+    public HeartLanes sentFrom(AlliedDepot depot) {
+        this.depot = depot;
+        return this;
+    }
+
     /** Where a lane goes for {@code bore}: the bore, or its line's cell short of the guns while they are on its ground. */
     private int[] aim(BattleSimulation sim, HeartLane ground, KnownBore bore) {
         int tick = sim.getSimTickIndex();
@@ -198,6 +210,8 @@ public final class HeartLanes {
         for (var due = armourDue.iterator(); due.hasNext(); ) {
             int[] a = due.next();
             if (a[0] > tick) continue;
+            int[] from = depot == null ? new int[]{a[3], a[4]} : depot.dispatchCell(sim);
+            if (from == null) continue;
             due.remove();
             // Later armour keeps clear of the machines standing now, not of where the first ones were set down.
             if (!refreshed) {
@@ -210,7 +224,7 @@ public final class HeartLanes {
                         placed.add(new float[]{sim.world().x(mech), sim.world().y(mech)});
                 }
             }
-            addArmour(sim, a[1], a[2] < 0 ? null : VehicleType.values()[a[2]], a[3], a[4], a[5]);
+            addArmour(sim, a[1], a[2] < 0 ? null : VehicleType.values()[a[2]], from[0], from[1], a[5]);
         }
         for (Lane lane : lanes) {
             if (tick % RETARGET_TICKS == 0) driveArmour(sim, lane);
