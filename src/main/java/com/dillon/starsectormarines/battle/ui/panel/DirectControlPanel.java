@@ -76,14 +76,13 @@ public final class DirectControlPanel implements HudPanel {
     }
 
     /**
-     * The hull's outline, each battery's laid ground as a ring (red when a round aimed into
-     * it would reach a friendly), and the cursor's crosshair. A ship fires on ground rather
-     * than along a lane, so there is no aim lane.
+     * Each battery's laid ground as a ring (red when a round aimed into it would reach a friendly),
+     * and the cursor's crosshair. A ship fires on ground rather than along a lane, so there is no aim
+     * lane; and the camera is leashed to the piloted hull, so it draws no outline of its own.
      */
     private void renderWarship(BattleSimulation sim, BattleCamera camera, Warship ship, float alpha) {
         if (ship == null) return;
         HudDraw.prepBlend();
-        HudDraw.outline(hullOutline(camera, ship), CONTROLLED, alpha, 1.5f);
         ring(sim, camera, ship, ship.laidArea(Warship.FireGroup.GUNS), GUNS_AREA, alpha);
         ring(sim, camera, ship, ship.laidArea(Warship.FireGroup.MISSILES), MISSILES_AREA, alpha);
         if (!context.directControlAimVisible()) return;
@@ -124,24 +123,9 @@ public final class DirectControlPanel implements HudPanel {
         crosshair(cx, cy, alpha * 0.8f, shown);
     }
 
-    /** The four corners of the hull's footprint on screen, as x,y pairs. */
-    private static float[] hullOutline(BattleCamera camera, Warship ship) {
-        double r = Math.toRadians(ship.facingDegrees);
-        float c = (float) Math.cos(r);
-        float s = (float) Math.sin(r);
-        float centreX = ship.x + ship.pivotX * c - ship.pivotY * s;
-        float centreY = ship.y + ship.pivotX * s + ship.pivotY * c;
-        float halfW = ship.widthCells * 0.5f;
-        float halfL = ship.lengthCells * 0.5f;
-        float[] out = new float[8];
-        int[][] signs = {{-1, -1}, {1, -1}, {1, 1}, {-1, 1}};
-        for (int i = 0; i < 4; i++) {
-            float lx = signs[i][0] * halfW;
-            float ly = signs[i][1] * halfL;
-            out[i * 2] = camera.cellToScreenX(centreX + lx * c - ly * s);
-            out[i * 2 + 1] = camera.cellToScreenY(centreY + lx * s + ly * c);
-        }
-        return out;
+    /** A battery's laid-ground ring colour before any danger: guns in the controlled blue, missiles in orange. */
+    public static Color laidAreaColor(Warship.FireGroup group) {
+        return group == Warship.FireGroup.MISSILES ? MISSILES_AREA : GUNS_AREA;
     }
 
     private static void crosshair(float x, float y, float alpha) {
