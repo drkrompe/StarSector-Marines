@@ -2737,7 +2737,9 @@ def blender_main(cfg):
                 sfx_ = scene_fx.SceneFx(scene, placed, lambda k: placed[k]['build'],
                                         muzzle_world, scene.frame_current, log=lambda t: print(t, flush=True),
                                         span=tuple(anchor + round((t_ - spec['key_t']) * fps_s)
-                                                   for t_ in spec['shot_t']) if 'span_t' in spec else None)
+                                                   for t_ in spec['shot_t']) if 'span_t' in spec else None,
+                                        cur=anchor + round((spec['span_t'] - spec['key_t']) * fps_s)
+                                        if 'span_t' in spec else None)
                 for key, sh in spec.get('shields', {}).items():
                     sfx_.shield(key, sh)
                 for i, fx in enumerate(spec.get('fx', ())):

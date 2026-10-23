@@ -1008,13 +1008,16 @@ def cadence(weapon, seconds, feeder=False):
     return out
 
 
-def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, tag=None, train=True):
+def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, tag=None, train=True, only=None):
     """Fire an armed mount for `seconds` from `start_frame` at the game's cadence (cadence()):
     barrels alternate per round ('alternating'), per burst ('alternating_burst') or fire together
     ('linked'). target: a point in the ship's own (copy) space the rounds fly to and stop at, as
     on a hit; None flies them down the bore to their range. With a target and `train`, the
     turret is trained onto it (aim()) before each round, so the flash points along the rounds.
-    Returns one record per round, with 'hit_frame' when a target was given."""
+    Returns one record per round, with 'hit_frame' when a target was given.
+    only: (first, last) frames: rounds fired outside them are counted but not built. A motion span
+    renders each frame from its own rebuild, so a frame builds only the rounds it can see, on the
+    same cadence and the same per-round seeds as the whole burst."""
     guns = [g for g in ctx.anchors.guns if g.turret == turret and getattr(g, 'kind', 'gun') != 'launcher'
             and (tag is None or g.tag == tag)]
     if not guns or not ctx.spec.get('guns', True):
@@ -1031,6 +1034,10 @@ def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, ta
         f = int(round(exact))
         mode = w['barrels']
         pick = guns if mode == 'linked' else [guns[(k if mode == 'alternating_burst' else n) % len(guns)]]
+        if only is not None and not only[0] <= f <= only[1]:
+            for g in pick:
+                _rig(ctx, g)['count'] += 1
+            continue
         if target is not None and train:
             aim(ctx, turret, target, f, tag=tag, turn_rate=w.get('turn'))
         for g in pick:
