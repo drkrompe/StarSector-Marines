@@ -176,7 +176,7 @@ public final class CordonSetup {
             VehicleType.HEAVY_APC, VehicleType.MILITIA_TECHNICAL);
     private static final long BASE_SALT = 0x4C4F474953544943L;
     /** The base's shed is a production line, not a garrison's sideline (`FabricationService.setPace`). */
-    static final float BASE_PACE = 4f;
+    static final float BASE_PACE = Float.parseFloat(System.getProperty("battle.cordon.basePace", "4"));
     /** Technicians posted to the base's shed. */
     static final int BASE_CREW = 3;
     /** Teams in each allied column. */

@@ -66,8 +66,15 @@ public final class CordonPlan {
             new GrownTrunkPlan.Profile(3, 0.5f, 0.04f, 0.09f, 0.3f, 8, SettlementLink.ROAD);
     /** The logistics base's place name; not a rear hamlet, so its people do not walk out. */
     public static final String BASE_PLACE = "logistics-base";
-    /** Where the base sits: across the middle of the map, between the rear edge and the line. */
-    static final float BASE_X0 = 0.38f, BASE_X1 = 0.62f, BASE_NEAR = 0.04f, BASE_FAR = 0.26f;
+    /**
+     * Where the base sits, {@code -Dbattle.cordon.basePlace}: {@code middle} (the default) across the
+     * middle of the map between the rear edge and the line; {@code west}, behind the west end of the line, past the west hamlet.
+     */
+    static final String BASE_PLACE_SWITCH = System.getProperty("battle.cordon.basePlace", "middle");
+    static final float BASE_X0 = BASE_PLACE_SWITCH.equals("west") ? 0.08f : 0.38f;
+    static final float BASE_X1 = BASE_PLACE_SWITCH.equals("west") ? 0.32f : 0.62f;
+    static final float BASE_NEAR = BASE_PLACE_SWITCH.equals("west") ? 0.2f : 0.04f;
+    static final float BASE_FAR = BASE_PLACE_SWITCH.equals("west") ? 0.34f : 0.26f;
     /** A fence, not a redoubt's wall: the base is not meant to be fought from. */
     private static final int BASE_GATES = 2;
     private static final int BASE_FENCE_HP = 60;
