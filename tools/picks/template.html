@@ -78,20 +78,22 @@ const QUESTIONS = __QUESTIONS__;
 const picks = {};
 let db = null, local = false;
 const $ = id => document.getElementById(id);
+const keysOf = c => String(c || "").split(",").filter(Boolean);
+const on = (p, k) => keysOf(p.choice).includes(k);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function render(){
   $("list").innerHTML = QUESTIONS.length ? QUESTIONS.slice().sort((a, b) => (picks[a.id]?.choice ? 1 : 0) - (picks[b.id]?.choice ? 1 : 0)).map(q => {
     const p = picks[q.id] || {};
-    const chosen = q.options.find(o => o.key === p.choice);
+    const chosen = q.options.filter(o => on(p, o.key));
     return `<section class="q" id="q-${q.id}">
       <div class="q-head"><span class="owner">${esc(q.area)}</span><h2>${esc(q.question)}</h2>
-      ${chosen ? `<span class="chosen">Picked ${esc(chosen.key)}: ${esc(chosen.label)}</span>` : ""}</div>
-      <div class="opts">${q.options.map(o => `<div class="opt" id="o-${q.id}-${o.key}" aria-pressed="${p.choice === o.key}">
+      ${chosen.length ? `<span class="chosen">Picked ${chosen.map(c => esc(c.key) + ": " + esc(c.label)).join("; ")}</span>` : (q.multi ? `<span class="owner">Pick any number</span>` : "")}</div>
+      <div class="opts">${q.options.map(o => `<div class="opt" id="o-${q.id}-${o.key}" aria-pressed="${on(p, o.key)}">
         <button type="button" class="shot" data-zoom="${esc(o.file)}" data-title="${esc(o.key + ' — ' + o.label)}" aria-label="Zoom ${esc(o.label)}"><img src="${esc(o.file)}" alt="${esc(o.label)}" loading="lazy"><span class="zoomhint">Tap to zoom</span></button>
         ${(o.extra || []).length ? `<div class="extras">${o.extra.map(x => `<button type="button" class="shot" data-zoom="${esc(x.file)}" data-title="${esc(o.key + ' — ' + (x.label || ''))}" aria-label="Zoom ${esc(x.label || o.label)}"><img src="${esc(x.file)}" alt="${esc(x.label || '')}" loading="lazy"></button>`).join("")}</div>` : ""}
         <span class="lab"><span class="key">${esc(o.key)}</span><span class="name">${esc(o.label)}</span></span>
         ${o.note ? `<span class="note">${esc(o.note)}</span>` : ""}
-        <button type="button" class="pick" data-q="${q.id}" data-k="${esc(o.key)}">${p.choice === o.key ? "Picked ✓ (tap to clear)" : "Pick " + esc(o.key)}</button></div>`).join("")}</div>
+        <button type="button" class="pick" data-q="${q.id}" data-k="${esc(o.key)}">${on(p, o.key) ? "Picked ✓ (tap to clear)" : "Pick " + esc(o.key)}</button></div>`).join("")}</div>
       <label class="comment"><input id="c-${q.id}" type="text" placeholder="Note (optional): what to change, or a mix of options" value="${esc(p.note)}" aria-label="Note on ${esc(q.question)}"></label>
     </section>`;
   }).join("") : `<div class="empty">Options are being rendered by the sessions that own each piece. They appear here as they land.</div>`;
@@ -123,7 +125,9 @@ document.addEventListener("click", e => {
   const z = e.target.closest("[data-zoom]"); if (z) { openZoom(z.dataset.zoom, z.dataset.title); return; }
   const b = e.target.closest(".pick[data-q]"); if (!b) return;
   const id = b.dataset.q, k = b.dataset.k;
-  picks[id] = {...(picks[id] || {}), choice: picks[id]?.choice === k ? "" : k};
+  const q = QUESTIONS.find(x => x.id === id), cur = keysOf(picks[id]?.choice);
+  const next = q && q.multi ? (cur.includes(k) ? cur.filter(x => x !== k) : [...cur, k]).join(",") : (cur.includes(k) ? "" : k);
+  picks[id] = {...(picks[id] || {}), choice: next};
   render(); write(id);
 });
 const timers = {};
