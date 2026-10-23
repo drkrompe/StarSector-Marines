@@ -37,7 +37,6 @@ public final class FragGrenadeTactics {
     private static final float MIN_CONTACT_CONFIDENCE = 0.5f;
     private static final int MIN_SOFT_TARGETS = 2;
     private static final float SAFETY_MARGIN = 0.4f;
-    private static final int ESCAPE_DIRECTIONS = 16;
 
     private FragGrenadeTactics() {
     }
@@ -90,28 +89,8 @@ public final class FragGrenadeTactics {
 
     /** Evades a known friendly grenade or a hostile grenade honestly observed by the squad. */
     public static boolean evadeKnownGrenade(long unit, BattleControl sim) {
-        return evadeKnownGrenade(unit, sim, localGrenadeAvoidanceEnabled());
-    }
-
-    public static boolean localGrenadeAvoidanceEnabled() {
-        return Boolean.parseBoolean(System.getProperty("battle.infantry.localGrenadeAvoidance", "true"));
-    }
-
-    static boolean evadeKnownGrenade(long unit, BattleControl sim, boolean local) {
-        if (!local) {
-            if (sim.world().hasMovement(unit)) retireEscape(unit, sim);
-            TickInnerProfile profile = TickInnerProfile.currentIfBound();
-            Squad squad = sim.squadOf(unit);
-            if (profile != null) profile.enterAction(unit, squad == null ? -1 : squad.id,
-                    "REFLEX_KNOWN_GRENADE");
-            try {
-                return evadeKnownGrenadeLegacy(unit, sim);
-            } finally {
-                if (profile != null) profile.exitAction();
-            }
-        }
         if (!sim.world().hasMovement(unit)) return false;
-        Projectile hazard = nearestKnownHazard(unit, sim, true);
+        Projectile hazard = nearestKnownHazard(unit, sim);
         if (hazard == null) {
             retireEscape(unit, sim);
             return false;
@@ -165,41 +144,6 @@ public final class FragGrenadeTactics {
         if (retained == null) return;
         if (sim.world().path(unit) == retained.path()) sim.clearPath(unit);
         sim.movement().setGrenadeEscape(unit, null);
-    }
-
-    private static boolean evadeKnownGrenadeLegacy(long unit, BattleControl sim) {
-        Projectile hazard = nearestKnownHazard(unit, sim, false);
-        if (hazard == null || hazard.onArrival == null) return false;
-        NavigationGrid grid = sim.getGrid();
-        float safeRadius = hazard.onArrival.aoeRadius + SAFETY_MARGIN + 0.75f;
-        int fromX = sim.world().cellX(unit);
-        int fromY = sim.world().cellY(unit);
-        int[] bestPath = null;
-        float bestDistanceSq = -1f;
-        for (int i = 0; i < ESCAPE_DIRECTIONS; i++) {
-            float angle = (float) (Math.PI * 2.0 * i / ESCAPE_DIRECTIONS);
-            int x = (int) Math.floor(hazard.toX + Math.cos(angle) * safeRadius);
-            int y = (int) Math.floor(hazard.toY + Math.sin(angle) * safeRadius);
-            if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) continue;
-            int[] path = GridPathfinder.findPath(grid, fromX, fromY, x, y,
-                    sim.getOccupancyMap());
-            if (path.length == 0) continue;
-            float dx = x + 0.5f - hazard.toX;
-            float dy = y + 0.5f - hazard.toY;
-            float distanceSq = dx * dx + dy * dy;
-            if (distanceSq > bestDistanceSq
-                    || distanceSq == bestDistanceSq
-                    && (bestPath == null || path.length < bestPath.length)) {
-                bestPath = path;
-                bestDistanceSq = distanceSq;
-            }
-        }
-        if (bestPath == null) sim.clearPath(unit);
-        else {
-            sim.setPath(unit, bestPath);
-            sim.advanceMovement(unit);
-        }
-        return true;
     }
 
     public static void cleanupReservations(BattleView sim) {
@@ -291,41 +235,38 @@ public final class FragGrenadeTactics {
         return false;
     }
 
-    private static Projectile nearestKnownHazard(long unit, BattleView sim, boolean local) {
+    private static Projectile nearestKnownHazard(long unit, BattleView sim) {
         Faction faction = sim.identity().faction(unit);
         Squad squad = sim.squadOf(unit);
         Projectile nearest = null;
         float nearestSq = Float.MAX_VALUE;
         boolean nearestCurrent = false;
-        LocalGrenadeEscape.Retained retained = local ? sim.movement().grenadeEscape(unit) : null;
+        LocalGrenadeEscape.Retained retained = sim.movement().grenadeEscape(unit);
         for (Projectile projectile : sim.snapshotActiveProjectiles()) {
             if (!isArcExplosiveWeapon(projectile.sourceWeaponId)
                     || projectile.onArrival == null) continue;
-            if (local && (projectile.intercepted || projectile.isExpired())) continue;
+            if (projectile.intercepted || projectile.isExpired()) continue;
             if (projectile.shooterFaction != faction
                     && !squadObservesProjectile(squad, unit, projectile, sim)) continue;
             float reach = projectile.onArrival.aoeRadius + SAFETY_MARGIN;
-            if (local) {
-                boolean finishingEscape = retained != null && retained.hazard() == projectile
-                        && retained.usable(projectile, sim.getGrid(), sim.world().path(unit),
-                        sim.world().pathIdx(unit), sim.world().cellX(unit), sim.world().cellY(unit));
-                if (distanceSq(sim.world().x(unit), sim.world().y(unit), projectile.toX,
-                        projectile.toY) > reach * reach
-                        && !finishingEscape
-                        && !LocalGrenadeEscape.pathThreatened(sim.world().x(unit),
-                        sim.world().y(unit), sim.world().path(unit), sim.world().pathIdx(unit),
-                        Math.max(0f, sim.world().moveSpeed(unit))
-                                // Movement precedes projectile expiry: conservatively
-                                // include the final full movement tick before impact.
-                                * (projectile.remainingTime + TICK_DT),
-                        projectile.toX, projectile.toY, reach)) continue;
-            } else if (!unitOrPathThreatened(unit, projectile.toX, projectile.toY,
-                    reach * reach, sim)) continue;
+            boolean finishingEscape = retained != null && retained.hazard() == projectile
+                    && retained.usable(projectile, sim.getGrid(), sim.world().path(unit),
+                    sim.world().pathIdx(unit), sim.world().cellX(unit), sim.world().cellY(unit));
+            if (distanceSq(sim.world().x(unit), sim.world().y(unit), projectile.toX,
+                    projectile.toY) > reach * reach
+                    && !finishingEscape
+                    && !LocalGrenadeEscape.pathThreatened(sim.world().x(unit),
+                    sim.world().y(unit), sim.world().path(unit), sim.world().pathIdx(unit),
+                    Math.max(0f, sim.world().moveSpeed(unit))
+                            // Movement precedes projectile expiry: conservatively
+                            // include the final full movement tick before impact.
+                            * (projectile.remainingTime + TICK_DT),
+                    projectile.toX, projectile.toY, reach)) continue;
             float distanceSq = distanceSq(sim.world().x(unit), sim.world().y(unit),
                     projectile.toX, projectile.toY);
             boolean current = distanceSq <= reach * reach;
-            if (nearest == null || local && current && !nearestCurrent
-                    || (!local || current == nearestCurrent) && distanceSq < nearestSq) {
+            if (nearest == null || current && !nearestCurrent
+                    || current == nearestCurrent && distanceSq < nearestSq) {
                 nearest = projectile;
                 nearestSq = distanceSq;
                 nearestCurrent = current;
@@ -358,21 +299,6 @@ public final class FragGrenadeTactics {
                 && TacticalScoring.canSeePair(sim.getGrid(),
                 sim.world().cellX(observer), sim.world().cellY(observer), px, py,
                 sim.vision().airLosRadius(observer), 0f);
-    }
-
-    private static boolean unitOrPathThreatened(long unit, float x, float y,
-                                                float dangerSq, BattleView sim) {
-        if (distanceSq(sim.world().x(unit), sim.world().y(unit), x, y) <= dangerSq) {
-            return true;
-        }
-        if (!sim.world().hasMovement(unit)) return false;
-        int[] path = sim.world().path(unit);
-        for (int cell = Math.max(0, sim.world().pathIdx(unit)),
-             count = Paths.cellCount(path); cell < count; cell++) {
-            if (distanceSq(Paths.cellX(path, cell) + 0.5f,
-                    Paths.cellY(path, cell) + 0.5f, x, y) <= dangerSq) return true;
-        }
-        return false;
     }
 
     private static float distanceSq(float ax, float ay, float bx, float by) {

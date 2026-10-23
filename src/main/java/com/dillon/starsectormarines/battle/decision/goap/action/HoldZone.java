@@ -14,9 +14,6 @@ import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
-import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
-import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 
@@ -53,12 +50,7 @@ import java.util.List;
  */
 public final class HoldZone extends AbstractZoneAction {
 
-    public static boolean localHoldPositionsEnabled() {
-        return Boolean.parseBoolean(System.getProperty("battle.goap.localHoldPositions", "true"));
-    }
-
     private final TacticalNode compoundNode;
-    private final boolean localHoldPositions = localHoldPositionsEnabled();
     /**
      * Per-member hold cells, distinct and spread across the compound's capture
      * room (parallel x/y arrays). Picked once at plan-synthesis time
@@ -154,7 +146,7 @@ public final class HoldZone extends AbstractZoneAction {
     int postX(int slot) {
         if (holdX != null && holdX.length > 0) {
             if (slot >= 0 && slot < holdX.length) return holdX[slot];
-            if (localHoldPositions) return holdX[0];
+            return holdX[0];
         }
         return compoundNode.anchorX;
     }
@@ -162,7 +154,7 @@ public final class HoldZone extends AbstractZoneAction {
     int postY(int slot) {
         if (holdY != null && holdY.length > 0) {
             if (slot >= 0 && slot < holdY.length) return holdY[slot];
-            if (localHoldPositions) return holdY[0];
+            return holdY[0];
         }
         return compoundNode.anchorY;
     }
@@ -300,72 +292,10 @@ public final class HoldZone extends AbstractZoneAction {
         TickInnerProfile profile = TickInnerProfile.currentIfBound();
         long started = profile == null ? 0L : System.nanoTime();
         try {
-            return localHoldPositionsEnabled()
-                    ? HoldPositionPicker.pick(node, targetZone, count, sim.getGrid(), sim.getZoneGraph())
-                    : pickLegacyHoldCells(node, targetZone, count, sim);
+            return HoldPositionPicker.pick(node, targetZone, count, sim.getGrid(), sim.getZoneGraph());
         } finally {
             if (profile != null) profile.record(TickInnerProfile.Bucket.HOLD_POSITION,
                     System.nanoTime() - started);
         }
-    }
-
-    /** Whole-zone allocation-heavy control retained for same-build profiling. */
-    private static int[][] pickLegacyHoldCells(TacticalNode node, int targetZone, int count, BattleView sim) {
-        NavigationGrid grid = sim.getGrid();
-        ZoneGraph zones = sim.getZoneGraph();
-        int width = grid.getWidth();
-
-        List<int[]> cand = new ArrayList<>();
-        NavigationZone z = zones.zoneById(targetZone);
-        TickInnerProfile profile = TickInnerProfile.currentIfBound();
-        if (z != null) {
-            for (int idx : z.getCellIndices()) {
-                if (profile != null) profile.record(TickInnerProfile.Bucket.HOLD_POSITION_CELL, 0L);
-                cand.add(new int[]{ idx % width, idx / width });
-            }
-        }
-        if (cand.isEmpty()) {
-            return new int[][]{ { node.anchorX }, { node.anchorY } };
-        }
-
-        int n = Math.max(1, Math.min(count, cand.size()));
-        List<int[]> picked = new ArrayList<>(n);
-
-        int[] seed = cand.get(0);
-        float seedDist = dist2(seed[0], seed[1], node.anchorX, node.anchorY);
-        for (int[] c : cand) {
-            float d = dist2(c[0], c[1], node.anchorX, node.anchorY);
-            if (d < seedDist) { seedDist = d; seed = c; }
-        }
-        picked.add(seed);
-
-        while (picked.size() < n) {
-            int[] best = null;
-            float bestMin = 0f;
-            for (int[] c : cand) {
-                float minD = Float.MAX_VALUE;
-                for (int[] p : picked) {
-                    float d = dist2(c[0], c[1], p[0], p[1]);
-                    if (d < minD) minD = d;
-                }
-                if (minD > bestMin) { bestMin = minD; best = c; }
-            }
-            if (best == null) break;   // every remaining candidate already picked
-            picked.add(best);
-        }
-
-        int[] xs = new int[picked.size()];
-        int[] ys = new int[picked.size()];
-        for (int i = 0; i < picked.size(); i++) {
-            xs[i] = picked.get(i)[0];
-            ys[i] = picked.get(i)[1];
-        }
-        return new int[][]{ xs, ys };
-    }
-
-    private static float dist2(int ax, int ay, int bx, int by) {
-        float dx = ax - bx;
-        float dy = ay - by;
-        return dx * dx + dy * dy;
     }
 }
