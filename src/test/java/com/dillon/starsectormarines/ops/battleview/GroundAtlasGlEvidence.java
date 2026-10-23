@@ -185,10 +185,12 @@ class GroundAtlasGlEvidence {
                             BattleRenderHostProfile.STANDALONE_BATTLE);
                     assertTrue(renderer.getGroundMesh().residentQuads() > 0,
                             "the mesh has to have baked something to have baked it anywhere");
-                    assertEquals(renderer.getGroundMesh().sublayerCount(),
-                            renderer.getGroundMesh().bucketCount(),
-                            "a mesh baked against the atlas is one buffer per sub-layer, "
-                                    + "not one per sheet");
+                    // Per sub-layer rather than in total: feathering and the
+                    // surface layers add sub-layers that a flat fixture leaves
+                    // empty, and an empty one holds no buffer at all.
+                    assertEquals(1, renderer.getGroundMesh().mostBucketsInOneSublayer(),
+                            "a mesh baked against the atlas is at most one buffer per "
+                                    + "sub-layer, not one per sheet");
                 }
             } finally {
                 if (renderer != null) {

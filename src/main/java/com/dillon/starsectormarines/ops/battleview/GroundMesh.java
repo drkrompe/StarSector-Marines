@@ -372,6 +372,17 @@ public final class GroundMesh {
     }
 
     /**
+     * The most buffers any one sub-layer holds: one when every sheet it draws
+     * from is the {@link GroundAtlas}, more when it baked per-sheet coordinates.
+     * A sub-layer with nothing in it on this map holds none.
+     */
+    int mostBucketsInOneSublayer() {
+        int most = 0;
+        for (Sublayer sublayer : sublayers) most = Math.max(most, sublayer.buckets.size());
+        return most;
+    }
+
+    /**
      * Draws the resident ground.
      *
      * <p>Owns its complete GL lifecycle, as a custom pass must
