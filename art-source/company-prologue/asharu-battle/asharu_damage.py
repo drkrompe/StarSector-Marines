@@ -42,6 +42,8 @@ FPS = 24
 MATCH_M = 15.0          # a shot's fx entry this close to a ledger hit is the shot drawing that hit
 MAX_FIRES = 2           # persistent fire volumes per ship per shot (volumes are the render's cost)
 MAX_VENTS = 1           # persistent vents per ship per shot
+MAX_SMOKE = 2           # persistent smoke threads per ship per shot
+LOOK = 'v1'             # 'v1': the first look (small soot marks only), kept as the control
 
 
 # ======================================================================================= levels
@@ -60,6 +62,20 @@ LEVELS = {
     3: dict(name='burning', scorch=(5, 1.4, 2.8), hole=3.4, glow_s=90.0, smoulder=.45, fire=2.6, vent_s=0.0),
     4: dict(name='broken', scorch=(7, 1.6, 3.2), hole=4.6, glow_s=1e6, smoulder=.6, fire=3.8, vent_s=30.0),
 }
+
+# v2 (coordinator, 2026-10-23: at 5-15% of frame width v1 "barely reads"): what reads at a distance is
+# contrast and size, not detail. Scorch patches several times larger, with a heat-tinted metal fringe
+# (bronze and blue, glossy) that catches the sun against the paint; holes larger and black, with a torn
+# bare-metal rim; and a thin dark smoke thread from every hit that holed her (smoke_s), so a beaten
+# ship trails smoke from where she was hurt. Fire and venting are as v1.
+LEVELS_V2 = {
+    0: dict(LEVELS[0], scorch=(1, 2.0, 3.0), rake_every=4.0, smoke_s=0.0),
+    1: dict(LEVELS[1], scorch=(3, 2.6, 4.2), rake_every=3.5, smoke_s=0.0),
+    2: dict(LEVELS[2], scorch=(5, 3.5, 6.0), hole=4.5, rake_every=3.5, smoke_s=45.0),
+    3: dict(LEVELS[3], scorch=(6, 4.5, 8.0), hole=6.0, rake_every=3.5, smoke_s=1e6),
+    4: dict(LEVELS[4], scorch=(8, 5.5, 10.0), hole=8.0, rake_every=3.5, smoke_s=1e6),
+}
+LOOKS = {'v1': LEVELS, 'v2': LEVELS_V2}
 
 
 class Hit:
@@ -109,11 +125,11 @@ def H(*a, **kw):
 # 1.5 s before, smoke 5 s before, a tracer's strikes through the shot.
 LEDGER = [
     # ---- WARDEN LEAD, the lead Lasher: hit turning back in S6, smoking into S9b, finished there
-    H('lasher-lead', 53.8, 'rake', 1, (20, 8, 4), (.3, 1, .5), to=(2, 9, 5), by='tracer',
-      src='S6 k3 tracer manticore-p', note="the Manticore's light guns walk along her port bow as she comes about"),
-    H('lasher-lead', 55.4, 'he', 2, (-6, 9, 5), (-.2, 1, .6), by='tracer', src='S6 k3 tracer falcon-p',
+    H('lasher-lead', 53.8, 'rake', 1, (20, 8, 4), (.3, 1, .5), to=(2, 9, 5),
+      src='story (S6; the Manticore at range, unseen)', note="the Manticore's light guns walk along her port bow as she comes about"),
+    H('lasher-lead', 55.4, 'he', 2, (-6, 9, 5), (-.2, 1, .6), src='story (S6; the Falcon at 3.8 km is past the kit 6 s round limit)',
       note="a Falcon (P) bolt holes her port quarter; she vents"),
-    H('lasher-lead', 55.9, 'breach', 3, (8, 6, 6), (.2, .6, 1), by='blast_on', src='S6 k3 blast_on',
+    H('lasher-lead', 55.9, 'breach', 3, (8, 6, 6), (.2, .6, 1), by='blast_on', src='S6 k3 missiles manticore-p',
       note='the hit that turns her: her forward deck opens and burns; smoking from here to S9b'),
     H('lasher-lead', 103.5, 'breach', 3, (-20, 10, 6), (-.2, .5, 1), by='fire_on', src='S9b k4b fire_on',
       note="the Falcon's point guns as she rolls in: her aft deck catches"),
@@ -121,7 +137,7 @@ LEDGER = [
       note='plating shed off her port side as she dives'),
     H('lasher-lead', 107.6, 'breach', 4, (-30, 0, 6), (0, 0, 1), by='tracer', src='S9b k4b tracer falcon-p',
       note="the Falcon's broadside opens her stern: she tumbles away burning"),
-    H('lasher-lead', 108.0, 'rake', 1, (12, -4, 6), (0, 0, 1), to=(-18, -6, 6), by='tracer',
+    H('lasher-lead', 106.9, 'rake', 1, (12, -4, 6), (0, 0, 1), to=(-18, -6, 6), by='tracer',
       src='S9b k4b tracer falcon-p', note='the rest of the broadside walks her deck'),
 
     # ---- Lasher A: burns in S6
@@ -131,10 +147,10 @@ LEDGER = [
       note='Lasher A burns'),
 
     # ---- WARDEN THREE, Lasher B: scored, gets away
-    H('lasher-b', 55.0, 'rake', 1, (15, -9, 3), (0, -1, .3), to=(0, -10, 3), by='tracer',
-      src='S6 k3 tracer falcon-p', note="the Falcon's fire scores her starboard bow"),
-    H('lasher-b', 61.5, 'rake', 1, (-5, 0, 8), (0, 0, 1), to=(-18, 2, 8), by='tracer',
-      src='S6b k3c tracer buffalo2-a', note="the Buffalo Mk.II's fire scores her deck as she rolls over"),
+    H('lasher-b', 55.0, 'rake', 1, (15, -9, 3), (0, -1, .3), to=(0, -10, 3),
+      src='story (S6; the Falcon at range, unseen)', note="the Falcon's fire scores her starboard bow"),
+    H('lasher-b', 61.5, 'rake', 1, (-5, 0, 8), (0, 0, 1), to=(-18, 2, 8),
+      src='story (S6b; the Buffalo Mk.II at 3.8 km is past the kit 6 s round limit)', note="the Buffalo Mk.II's fire scores her deck as she rolls over"),
 
     # ---- WARDEN FOUR, the merchant Wolf: a graze, gets away
     H('wolf-m', 73.0, 'he', 1, (5, -8, 3), (0, -1, .2), src='story (S6c)',
@@ -159,8 +175,8 @@ LEDGER = [
       src='S7 k3b tracer wolf-p-b', note="the covering Wolf (P)'s inverted gun run scores her forward deck"),
 
     # ---- CARAVEL, the Colossus: port pod shot out in S8, the other failing, she falls
-    H('colossus', 89.0, 'rake', 1, (-40, 26, 8), (0, .5, 1), to=(-58, 30, 6), by='tracer',
-      src='S8-S9 k4 tracer colossus3', note="the Mk.III's guns walk onto the port pod from above"),
+    H('colossus', 89.0, 'rake', 1, (-40, 26, 8), (0, .5, 1), to=(-58, 30, 6),
+      src='story (S8-S9; the Mk.III cannot depress onto her until her flight changes)', note="the Mk.III's guns walk onto the port pod from above"),
     H('colossus', 93.5, 'breach', 3, (-55, 36, 4), (-.3, 1, .5), by='fire_on', src='S8-S9 k4 fire_on',
       note='the port pod burns, and burns into the atmosphere'),
     H('colossus', 94.9, 'he', 4, (-62, 30, 0), (-.4, 1, .2), by=('blast_on', 'debris'), src='S8-S9 k4 blast_on + debris',
@@ -183,8 +199,8 @@ LEDGER = [
       note="the Lasher's last rounds hole her further aft, venting"),
 
     # ---- the Manticore (P): scored by the lead's guns
-    H('manticore-p', 55.5, 'rake', 1, (25, 8, 4), (.4, 1, .3), to=(10, 10, 4), by='tracer',
-      src='S6 k3 tracer lasher-lead', note="the lead's light MGs as she turns back"),
+    H('manticore-p', 55.5, 'rake', 1, (25, 8, 4), (.4, 1, .3), to=(10, 10, 4),
+      src='story (S6; the lead at 3.4 km is past the kit 6 s round limit)', note="the lead's light MGs as she turns back"),
 
     # ---- Wolf (P) A: grazed, then cut by a Borer
     H('wolf-p-a', 56.8, 'rake', 0, (10, 6, 3), (0, 1, .2), to=(0, 7, 3), by='tracer',
@@ -193,10 +209,10 @@ LEDGER = [
       note="the merchant Wolf's bolt, past her front shield onto the flank"),
     H('wolf-p-a', 97.5, 'cut', 2, (20, -8, 4), (0, -1, .3), to=(-20, -9, 4), by='mining', vent_s=0.0,
       src='S8-S9 k4 mining borer-c', note="a Borer's mining laser cuts a long glowing seam down her side"),
-    H('wolf-p-a', 99.0, 'he', 1, (-15, -9, 3), (0, -1, .3), by='tracer', src='S8-S9 k4 tracer colossus'),
+    H('wolf-p-a', 95.8, 'he', 1, (-15, -9, 3), (0, -1, .3), by='tracer', src='S8-S9 k4 tracer colossus'),
 
     # ---- Wolf (P) B: a graze through her shield
-    H('wolf-p-b', 71.2, 'rake', 0, (8, -8, 3), (0, -1, .2), to=(-4, -8, 3), by='tracer',
+    H('wolf-p-b', 72.4, 'rake', 0, (8, -8, 3), (0, -1, .2), to=(-4, -8, 3), by='tracer',
       src='S6c k3d tracer mule', note="the Mule's guns, mostly on her shield"),
 
     # ---- Kite (P) B: driven off by the Colossus in S9
@@ -212,9 +228,9 @@ LEDGER = [
       note='a second burst as she swings her grapples away'),
 
     # ---- the Hounds (P) the convoy kills
-    H('hound-p-c', 60.0, 'rake', 1, (5, 8, 4), (0, .3, 1), to=(-10, 8, 4), by='tracer',
-      src='S6b k3c tracer lasher-b', note='bare armour soaks the first burst'),
-    H('hound-p-c', 61.0, 'rake', 1, (-5, -8, 4), (0, -.3, 1), to=(10, -8, 4), by='tracer',
+    H('hound-p-c', 60.0, 'rake', 1, (5, 8, 4), (0, .3, 1), to=(-10, 8, 4),
+      src='story (S6b; Lasher B is out of reach until after the kill)', note='bare armour soaks the first burst'),
+    H('hound-p-c', 61.6, 'rake', 1, (-5, -8, 4), (0, -.3, 1), to=(10, -8, 4), by='tracer',
       src='S6b k3c tracer wolf-m'),
     H('hound-p-c', 61.9, 'kill', 4, (0, 0, 0), (0, 0, 1), by=('blast_on', 'debris'), src='S6b k3c blast_on + debris',
       note='the Ammo Feeder burst breaks her up'),
@@ -223,6 +239,25 @@ LEDGER = [
     H('hound-p-a', 76.9, 'kill', 4, (0, 0, 0), (0, 0, 1), by=('blast_on', 'debris'), src='S6d k3e blast_on + debris',
       note='killed at close range'),
 ]
+# Where the shooter really is (asharu_gunnery, 2026-10-23): the unit vector from the target toward
+# the shooter at the hit's time, target frame. A hit is cast onto the face that shooter sees, so a
+# hit whose `at` lies on the far side lands on the near face in line with it.
+SHOOTER_SIDE = {
+    'hound-m@75.2:rake': (0.40, -0.61, 0.68), 'tarsus@69.6:he': (0.69, -0.72, -0.08),
+    'lasher-lead@106.9:rake': (-0.70, -0.64, 0.31), 'wolf-p-a@95.8:he': (0.74, 0.61, -0.29),
+    'kite-p-b@96.5:he': (-0.81, -0.43, 0.39), 'tarsus@68.0:rake': (-0.09, -0.99, -0.10), 'tarsus@70.5:breach': (0.85, -0.52, -0.07),
+    'lasher-lead@103.5:breach': (0.98, -0.17, -0.06), 'falcon-p@105.0:breach': (0.69, 0.55, 0.46),
+    'colossus3@96.0:rake': (0.40, -0.91, -0.05), 'hound-m@75.5:breach': (0.62, -0.39, 0.68),
+    'falcon-p@104.8:rake': (0.75, 0.51, 0.43), 'wolf-p-b@72.4:rake': (0.39, -0.36, -0.85),
+    'hound-p-a@76.9:kill': (0.87, -0.45, 0.19), 'hound-p-a@75.0:rake': (0.97, 0.15, 0.18),
+    'tarsus@84.0:rake': (-0.27, 0.78, 0.57), 'lasher-b@55.0:rake': (-0.86, -0.45, -0.25),
+    'hound-p-c@60.0:rake': (0.92, 0.27, 0.30), 'lasher-lead@107.6:breach': (-0.83, 0.43, 0.36),
+    'hound-p-c@61.9:kill': (0.92, 0.12, 0.37), 'hound-p-c@61.6:rake': (0.89, 0.13, 0.44),
+    'lasher-lead@55.9:breach': (0.72, 0.70, -0.04), 'wolf-p-a@56.8:rake': (0.62, 0.55, -0.56),
+    'wolf-p-a@71.6:he': (-0.94, 0.18, 0.30),
+}
+for _h in LEDGER:
+    _h.frm = SHOOTER_SIDE.get(_h.id, _h.frm)
 LEDGER.sort(key=lambda h: (h.ship, h.t))
 
 # Ships the ledger leaves clean on purpose: the Phaeton (her wreck state carries its own cook-off),
@@ -284,7 +319,7 @@ def fire_drawn(h, on):
 
 # ======================================================================================= Blender
 
-def _cast(scene, matrix, ship_fx, p_m, frm, standoff=30.0):
+def _cast(scene, matrix, ship_fx, p_m, frm, standoff=70.0):
     """Where a hit at p_m coming from direction frm meets this ship's plating: (at_m, normal_m) in the
     ship's frame, or the authored point and frm when nothing is found. Casts from `standoff` metres out
     along frm, accepting only this ship's hull objects (a neighbour's hull, or any kit volume, is passed
@@ -298,7 +333,7 @@ def _cast(scene, matrix, ship_fx, p_m, frm, standoff=30.0):
     dg = bpy.context.evaluated_depsgraph_get()
     o = matrix @ (Vector(p_m) + d_l * standoff)
     d = (matrix.to_3x3() @ -d_l).normalized()
-    far = standoff * 2.5
+    far = standoff * 2.2
     gone = 0.0
     inv = matrix.inverted()
     for _ in range(48):
@@ -400,17 +435,134 @@ def _scar_material(ctx, name, owner, seed, hole, glow_s, smoulder, gain):
     return m
 
 
+def _scar_material_v2(ctx, name, owner, seed, hole, glow_s, smoulder, gain):
+    """v2's scar, made to read at a distance. A black soot core ringed by a heat-tinted fringe of bare,
+    blued and bronzed metal (glossy, so it catches the sun against the paint), patchy and streaked. A
+    hole is a black core ringed by torn bare-metal petals. The embers along the torn edge are v1's.
+    Timed by owner['imp_frame']."""
+    from swfx_core import node_material, value_node
+    from swfx_smoke import G
+    m, nodes, links = node_material(name)
+    g = G(m.node_tree)
+    extra = {'t0': (owner, '["imp_frame"]')}
+    age = f'((frame-t0)/{FPS})'
+    on = value_node(ctx, nodes, 'on', f'({age}>=0)', extra=extra)
+    fresh = value_node(ctx, nodes, 'fresh', f'({age}>=0)*exp(-max({age},0)/.7)', extra=extra)
+    ember = value_node(ctx, nodes, 'ember', f'({age}>=0)*max(exp(-max({age},0)/1.5),'
+                                            f'{smoulder:.3f}*exp(-max({age},0)/{glow_s:.1f}))', extra=extra)
+    clock = value_node(ctx, nodes, 'clock', f'frame/{FPS}')
+    co = g.node('ShaderNodeTexCoord').outputs['Object']
+    r = g.v('LENGTH', co)
+    n1 = g.noise(co, float(seed % 97), 2.0, detail=4.0, rough=.62, distortion=.35)
+    rr = g.m('MULTIPLY_ADD', g.m('SUBTRACT', n1, .5), .8, r)              # ragged, lobed edge
+    streak = g.noise(g.v('MULTIPLY', co, (.4, 2.4, 1.0)), float(seed % 89) + .3, 1.5, detail=3.0, rough=.6)
+    blotch = g.noise(co, float(seed % 79) + .7, 4.0, detail=2.0, rough=.5)
+    soot = g.m('MULTIPLY', g.m('SUBTRACT', 1.0, g.mr(rr, .38, .62, smooth=True)), g.mr(streak, .2, .45))
+    tint = g.m('MULTIPLY', g.m('MULTIPLY', g.mr(rr, .3, .5, smooth=True),
+                               g.m('SUBTRACT', 1.0, g.mr(rr, .78, .97, smooth=True))), g.mr(blotch, .3, .55))
+    sootb = g.node('ShaderNodeBsdfDiffuse')
+    sootb.inputs['Color'].default_value = (.01, .009, .008, 1)
+    tintb = g.node('ShaderNodeBsdfPrincipled')
+    g._in(tintb.inputs['Base Color'], g.mix(blotch, (.32, .19, .09, 1), (.12, .14, .2, 1)))
+    tintb.inputs['Metallic'].default_value = 1.0
+    tintb.inputs['Roughness'].default_value = .38
+    surf = g.node('ShaderNodeMixShader')
+    g._in(surf.inputs[0], g.m('DIVIDE', soot, g.m('MAXIMUM', g.m('ADD', soot, tint), .001)))
+    links.new(tintb.outputs[0], surf.inputs[1])
+    links.new(sootb.outputs[0], surf.inputs[2])
+    body, alpha = surf.outputs[0], g.m('MINIMUM', g.m('ADD', soot, tint), 1.0)
+    if hole:
+        core = g.m('SUBTRACT', 1.0, g.mr(rr, .14, .2, smooth=True))
+        petal = g.noise(co, float(seed % 71) + .2, 7.0, detail=2.0, rough=.5)
+        rim = g.m('MULTIPLY', g.m('MULTIPLY', g.mr(rr, .14, .19), g.m('SUBTRACT', 1.0, g.mr(rr, .26, .34))),
+                  g.mr(petal, .35, .5))
+        metal = g.node('ShaderNodeBsdfPrincipled')
+        metal.inputs['Base Color'].default_value = (.62, .6, .58, 1)
+        metal.inputs['Metallic'].default_value = 1.0
+        metal.inputs['Roughness'].default_value = .3
+        torn = g.node('ShaderNodeMixShader')
+        g._in(torn.inputs[0], rim)
+        links.new(body, torn.inputs[1])
+        links.new(metal.outputs[0], torn.inputs[2])
+        black = g.node('ShaderNodeEmission')
+        black.inputs['Color'].default_value = (0, 0, 0, 1)
+        dark = g.node('ShaderNodeMixShader')
+        g._in(dark.inputs[0], core)
+        links.new(torn.outputs[0], dark.inputs[1])
+        links.new(black.outputs[0], dark.inputs[2])
+        body = dark.outputs[0]
+        alpha = g.m('MINIMUM', g.m('ADD', g.m('ADD', alpha, core), rim), 1.0)
+    # embers: specks in the torn band (round the core, or through the soot on a scar with no hole)
+    speck = g.noise(co, g.m('MULTIPLY_ADD', clock, .9, float(seed % 83)), 6.5, detail=2.0, rough=.5)
+    lo, hi = (.18, .36) if hole else (.0, .4)
+    band = g.m('MULTIPLY', g.mr(rr, lo - .06, lo, smooth=True),
+               g.m('SUBTRACT', 1.0, g.mr(rr, hi, hi + .12, smooth=True)))
+    specks = g.m('MULTIPLY', band, g.mr(speck, .56, .7, smooth=True))
+    hot = g.m('MULTIPLY', g.m('SUBTRACT', 1.0, g.mr(rr, .05, .4, smooth=True)), fresh)
+    glow = g.m('ADD', g.m('MULTIPLY', specks, ember), g.m('MULTIPLY', hot, 1.6))
+    temp = g.m('MULTIPLY_ADD', g.m('ADD', g.m('MULTIPLY', ember, .5), g.m('MULTIPLY', fresh, .8)), 1300.0, 780.0)
+    bb = g.node('ShaderNodeBlackbody')
+    g._in(bb.inputs['Temperature'], temp)
+    em = g.node('ShaderNodeEmission')
+    g.links.new(bb.outputs[0], em.inputs['Color'])
+    g._in(em.inputs['Strength'], g.m('MULTIPLY', g.m('MULTIPLY', glow, on), gain))
+    tr = g.node('ShaderNodeBsdfTransparent')
+    mix = g.node('ShaderNodeMixShader')
+    g._in(mix.inputs[0], g.m('MULTIPLY', alpha, on))
+    links.new(tr.outputs[0], mix.inputs[1])
+    links.new(body, mix.inputs[2])
+    add = g.node('ShaderNodeAddShader')
+    links.new(mix.outputs[0], add.inputs[0])
+    links.new(em.outputs[0], add.inputs[1])
+    out = g.node('ShaderNodeOutputMaterial')
+    links.new(add.outputs[0], out.inputs['Surface'])
+    return m
+
+
+def _smoke_thread(ctx, coll, axis, owner, seed, length_m, mouth_m):
+    """A thin, torn thread of dark smoke streaming along axis +X from a hole. It comes up over a second
+    from owner['imp_frame'] and drifts outward. In vacuum it neither rises nor billows; it streams and
+    thins. A volume in a box, like the kit's vent."""
+    import swfx_core
+    from swfx_core import node_material, units, value_node
+    from swfx_smoke import G, box_mesh, volume_output
+    L = units(length_m)
+    m, nodes, links = node_material(f'SWFX damage smoke {seed}')
+    g = G(m.node_tree)
+    co = g.node('ShaderNodeTexCoord').outputs['Object']
+    x, y, z = g.sep(co)
+    t = value_node(ctx, nodes, 't', f'frame/{FPS}')
+    amount = value_node(ctx, nodes, 'amount', f'min(max((frame-t0)/{FPS},0),1)',
+                        extra={'t0': (owner, '["imp_frame"]')})
+    u = g.m('DIVIDE', x, L)
+    rad = g.m('MULTIPLY_ADD', u, L * .14, units(mouth_m))
+    r = g.m('DIVIDE', g.v('LENGTH', g.comb(0.0, y, z)), rad)
+    along = g.m('MULTIPLY', g.mr(u, -.02, .04), g.m('SUBTRACT', 1.0, g.mr(u, .3, 1.0)))
+    flow = g.comb(g.m('SUBTRACT', x, g.m('MULTIPLY', t, units(7.0))), y, z)
+    n = g.noise(flow, g.m('MULTIPLY_ADD', t, .25, float(seed % 97)), 4.0 / L, detail=5.0, rough=.62, distortion=.3)
+    n2 = g.noise(flow, float(seed % 61), 1.6 / L, detail=2.0, rough=.5)
+    shape = g.m('MULTIPLY', g.m('MULTIPLY', g.gauss(r, 1.0, 1.5), along),
+                g.m('MULTIPLY', g.mr(n, .38, .7), g.mr(n2, .3, .6)))
+    dens = g.m('MULTIPLY', g.m('MULTIPLY', shape, 1.1 / units(1.0)), amount)
+    volume_output(g, dens, (0.06, 0.055, 0.05, 1), (0.55, 0.55, 0.57, 1), .3)
+    half = L * .3
+    ob = box_mesh(f'SWFX damage smoke | {owner.name}', coll, (-units(.5), -half, -half), (L, half, half), m)
+    swfx_core.attach(ob, axis)
+    return ob
+
+
 class _Builder:
     """One ship's damage for one shot build, inside its kit() block."""
 
-    def __init__(self, ctx, ship_key, ship_fx, matrix, frame_of, log):
+    def __init__(self, ctx, ship_key, ship_fx, matrix, frame_of, log, look=LOOK):
         import swfx_core
         import swfx_impacts
         self.ctx, self.key, self.ship, self.matrix = ctx, ship_key, ship_fx, matrix
         self.frame_of, self.log = frame_of, log
         self.core, self.imp = swfx_core, swfx_impacts
         self.mats = {}
-        self.made = dict(scars=0, holes=0, fires=0, vents=0, keyed=0)
+        self.look, self.lv = look, LOOKS[look]
+        self.made = dict(scars=0, holes=0, fires=0, vents=0, smoke=0, keyed=0)
 
     def seed(self, h, salt=''):
         return zlib.crc32(f'asharu-damage|{h.id}|{salt}'.encode()) % 100003
@@ -425,13 +577,13 @@ class _Builder:
     def _sites(self, h):
         """(point, scale, delay_s) of every scar decal the hit leaves, before casting."""
         from mathutils import Vector
-        lv = LEVELS[h.sev]
+        lv = self.lv[h.sev]
         rnd = random.Random(self.seed(h, 'sites'))
         count, s0, s1 = lv['scorch']
         at = Vector(h.at)
         if h.kind in ('rake', 'cut') and h.to:
             to = Vector(h.to)
-            n = max(2, int((to - at).length / (3.0 if h.kind == 'rake' else 1.6)) + 1)
+            n = max(2, int((to - at).length / (lv.get('rake_every', 3.0) if h.kind == 'rake' else 1.6)) + 1)
             over = .4 if h.kind == 'rake' else 1.5
             out = []
             for i in range(n):
@@ -453,7 +605,7 @@ class _Builder:
         from mathutils import Matrix, Vector
         import bpy
         from swfx_smoke import _no_shadow_catch
-        lv = LEVELS[h.sev]
+        lv = self.lv[h.sev]
         units = self.core.units
         coll = self.ctx.collection(self.imp.GROUP)
         rnd = random.Random(self.seed(h, 'decals'))
@@ -476,7 +628,8 @@ class _Builder:
                 spin, aspect = rnd.uniform(0, 2 * math.pi), rnd.uniform(1.0, 1.9)
             key = (f, hole)
             if key not in self.mats:
-                self.mats[key] = _scar_material(self.ctx, f'SWFX damage scar {self.seed(h, key)}', e,
+                make = _scar_material_v2 if self.look == 'v2' else _scar_material
+                self.mats[key] = make(self.ctx, f'SWFX damage scar {self.seed(h, key)}', e,
                                                 self.seed(h, key), hole, lv['glow_s'] if h.kind != 'cut' else 25.0,
                                                 lv['smoulder'] if h.kind != 'cut' else .25,
                                                 9.0 if hole else (6.0 if h.kind == 'cut' else 5.0))
@@ -524,6 +677,17 @@ class _Builder:
         self.imp._retime([bpy.data.objects[o] for o in rec['objects']], e)
         self.made['vents'] += 1
 
+    def smoke(self, h, frame, at, n):
+        """A thin dark smoke thread streaming out of the hole along its normal, from the hit on."""
+        e = self.empty(h, frame, at, n, 'damage smoke')
+        coll = self.ctx.collection(self.imp.GROUP)
+        v = self.core.empty(f'{self.imp.PREFIX} damage smoke axis {self.seed(h, "smoke")}', coll,
+                            size=self.core.units(.5))
+        self.core.attach(v, e, (0, 0, self.core.units(.3)), (0, -math.pi / 2, 0))     # +X along the normal
+        v.hide_render = True
+        _smoke_thread(self.ctx, coll, v, e, self.seed(h, 'smoke'), 22.0 + 8.0 * h.sev, .8 + .25 * h.sev)
+        self.made['smoke'] += 1
+
     def moment(self, h, frame, at, n):
         """The hit's moment, for a hit the shot does not draw: the kit's own impacts (through the shield
         where one is up), a breach's blast, debris for a ship coming apart."""
@@ -546,7 +710,7 @@ class _Builder:
 
 
 def apply(ship_key, ship_fx, t_shot0, t_shot1, frame_of, matrix=None, log=print, shot_fx=None,
-          max_fires=MAX_FIRES, max_vents=MAX_VENTS, ctx_kit=None):
+          max_fires=MAX_FIRES, max_vents=MAX_VENTS, ctx_kit=None, look=None, max_smoke=MAX_SMOKE):
     """Every ledger hit on `ship_key` up to t_shot1, on that ship's ShipFx copy for one shot build.
 
     ship_fx: the placed ship's ShipFx (battle_blockout's placed[key]['fx']); a ship without a kit copy
@@ -557,7 +721,8 @@ def apply(ship_key, ship_fx, t_shot0, t_shot1, frame_of, matrix=None, log=print,
       (spec['fx']), so what the shot draws itself is not drawn twice. max_fires / max_vents: how many
       persistent fire and vent volumes this ship may carry in this shot (0 for a shot that cannot
       afford volumes). ctx_kit: an open (ctx, kit) of this ship's kit() to build into, else one is
-      opened here.
+      opened here. look: 'v2' (the default, LOOK) or 'v1' (the control). max_smoke: how many smoke
+      threads (a volume each) this ship may trail in this shot.
 
     Hits before t_shot0 are persistent: their scars (embers cooling by their age), their fires if
     still burning and their vents if still venting, up to the caps, the most severe and newest first.
@@ -576,15 +741,19 @@ def apply(ship_key, ship_fx, t_shot0, t_shot1, frame_of, matrix=None, log=print,
     if ctx_kit is None:
         with ship_fx.kit() as ck:
             return apply(ship_key, ship_fx, t_shot0, t_shot1, frame_of, matrix, log, shot_fx,
-                         max_fires, max_vents, ctx_kit=ck)
+                         max_fires, max_vents, ctx_kit=ck, look=look, max_smoke=max_smoke)
     ctx, _kit = ctx_kit
-    b = _Builder(ctx, ship_key, ship_fx, matrix, frame_of, log)
+    b = _Builder(ctx, ship_key, ship_fx, matrix, frame_of, log, look or LOOK)
+
+    def smoke_s(h):
+        return b.lv[h.sev].get('smoke_s', 0.0)
     past = [h for h in todo if h.t < t_shot0]
     now = [h for h in todo if h.t >= t_shot0]
     # persistent: fires and vents by priority, under the caps
     rank = sorted(past, key=lambda h: (-h.sev, -h.t))
     fires = [h for h in rank if h.burning(t_shot0) and not fire_drawn(h, on)][:max_fires]
     vents = [h for h in sorted(past, key=lambda h: -h.t) if h.venting(t_shot0)][:max_vents]
+    smokes = [h for h in rank if h.kind != 'kill' and h.t + smoke_s(h) > t_shot0][:max_smoke]
     rows = []
     for h in past:
         f = b.frame(h.t)
@@ -598,6 +767,9 @@ def apply(ship_key, ship_fx, t_shot0, t_shot1, frame_of, matrix=None, log=print,
         if h in vents:
             b.vent(h, f, at, n)
             tag.append('vent')
+        if h in smokes:
+            b.smoke(h, f, at, n)
+            tag.append('smoke')
         rows.append(f'{h.t:6.1f} {h.kind:6} sev{h.sev} past' + (f' ({", ".join(tag)})' if tag else ''))
     for h in now:
         f = b.frame(h.t)
@@ -617,6 +789,9 @@ def apply(ship_key, ship_fx, t_shot0, t_shot1, frame_of, matrix=None, log=print,
         if h.vent_s > 0 and h.kind != 'kill':
             b.vent(h, f, at, n, ignite_s=.1)
             tag.append('vent')
+        if h.kind != 'kill' and h.sev >= 3 and smoke_s(h) > 0:
+            b.smoke(h, f, at, n)
+            tag.append('smoke')
         rows.append(f'{h.t:6.1f} {h.kind:6} sev{h.sev} in shot ({", ".join(tag)})')
     for r in rows:
         log(f'ASHARU damage {ship_key} {r}')
@@ -671,7 +846,7 @@ def check():
                 continue
             if ship in CLEAN or (k, fx[1], ship) in NOT_DAMAGE:
                 continue
-            ok = any(h.ship == ship and t0 - 6 <= h.t <= t1 and k in h.bys
+            ok = any(h.ship == ship and t0 - 6 <= h.t <= t1 and (k in h.bys or (k == 'tracer' and h.by is None))
                      and (at is None or _near(at, h.at)) for h in LEDGER)
             if k in ('fire_on', 'smoke'):        # a fire still burning from an earlier shot, drawn again
                 ok = ok or any(h.ship == ship and h.t <= t1 and (h.burning(t0) or h.burning(t1)) and _near(at, h.at)

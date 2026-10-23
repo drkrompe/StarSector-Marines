@@ -1008,6 +1008,9 @@ def cadence(weapon, seconds, feeder=False):
     return out
 
 
+DEGENERATE_REACHES = 20.0
+
+
 def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, tag=None, train=True, only=None,
                 allow=None, pose=None, after=None, passes=None):
     """Fire an armed mount for `seconds` from `start_frame` at the game's cadence (cadence()):
@@ -1048,7 +1051,10 @@ def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, ta
         except ValueError:
             far = float('inf')
         reach = swfx_core.units(w['round']['speed'] if w.get('round') else 1000.0) * MAX_FLIGHT_S
-        if not math.isfinite(far) or far > reach:
+        # Out of reach is not degenerate: a target 3 km off a Hellbore is a range question, which
+        # the caller's own gating answers (Asharu S6's Manticore refused every gun at 1.5-3x reach).
+        # Degenerate is absurd: S7's anchor put its target 370 reaches away.
+        if not math.isfinite(far) or far > reach * DEGENERATE_REACHES:
             chain, o = [], guns[0].empty
             while o is not None:
                 b = o.matrix_basis
@@ -1581,8 +1587,10 @@ def world_rounds(objs, delta_at):
     the ship stood when it fired; delta_at(frame) is the matrix from that space to the copy space
     on `frame`. A keyed mover gets location and rotation keys through it on each of its keyed
     frames; a static object (one bolt strike, shown on one frame) is moved by its first shown
-    frame's delta. Parented objects (flash, cloud, puff, brass) ride the turret and are not passed."""
+    frame's delta. Parented objects (flash, cloud, puff, brass) ride the turret and are not passed.
+    Each object passed is tagged 'world_space' so a later sweep (Asharu's SceneFx.to_world) skips it."""
     for ob in objs:
+        ob['world_space'] = True
         fcs = [swfx_core.find_fcurve(ob, 'location', i) for i in range(3)]
         if all(fc is not None and len(fc.keyframe_points) for fc in fcs):
             frames = [kp.co.x for kp in fcs[0].keyframe_points]

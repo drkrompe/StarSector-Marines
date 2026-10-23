@@ -571,7 +571,7 @@ public final class BattleComponents {
      * Authored appearance — {@code int sheet, index, flipV}. The authoritative
      * "draw this"; one {@code Sprite} = one drawn quad, written by presentation
      * systems, read by the render collector. No longer corpse-only:
-     * every live {@link com.dillon.starsectormarines.battle.unit.UnitType#drawnAsSheet()}
+     * every live {@link com.dillon.starsectormarines.battle.unit.UnitType#carriesSprite()}
      * unit carries one too, authored per-tick by {@code
      * battle.appearance.FacingSystem} (facing/pose frame + the weapon-up
      * vertical mirror + the base/secondary-aim sheet selector); a corpse's
@@ -1130,9 +1130,9 @@ public final class BattleComponents {
     public final Query corpses;
 
     /**
-     * Every live sheet-drawn unit ({@code {IDENTITY, POSITION,
+     * Every live posed unit ({@code {IDENTITY, POSITION,
      * SPRITE, HEALTH}}) — {@code SPRITE} now lives on the live archetype for every
-     * {@link com.dillon.starsectormarines.battle.unit.UnitType#drawnAsSheet()}
+     * {@link com.dillon.starsectormarines.battle.unit.UnitType#carriesSprite()}
      * type, authored per-tick by {@code battle.appearance.FacingSystem}.
      * Requiring {@code HEALTH} excludes corpses (the death transmute removes
      * it) without an explicit {@code CORPSE} exclusion. Walked by

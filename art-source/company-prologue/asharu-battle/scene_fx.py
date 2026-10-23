@@ -22,9 +22,11 @@ key frame's still lands in the middle of the action:
 An entry this module cannot draw (a stand-in shooter, a ship with no flare muzzles) returns False
 and the blockout draws its stand-in. Runs inside Blender only.
 """
+import contextlib
 import importlib
 import math
 import random
+import re
 
 import bpy
 from mathutils import Matrix, Vector
@@ -73,6 +75,7 @@ class SceneFx:
         self.log = log
         self.m = _mods()
         self.rows = []
+        self.before = set(bpy.data.objects)     # what the builds brought: projectile_check looks past it
         for pl in placed.values():
             if pl['fx'] is not None:
                 pl['fx'].matrix = pl['matrix']      # swfx_missile_paths.space_of reads ship.matrix
@@ -165,7 +168,7 @@ class SceneFx:
                 self.strikes(b, [self.now - k * 3 for k in range(4)], hit_l, normal, 'kinetic')
             return False
         landed, fired, placed_hits = [], [], []
-        with shooter.kit() as (ctx, kit):
+        with self.fired(a), shooter.kit() as (ctx, kit):
             turrets = []
             for m in muzzles:
                 t, _tag = self.nearest_gun(a, ctx, self.muzzle_world(a, m) if m is not None else mz)
@@ -248,7 +251,7 @@ class SceneFx:
     # every frame at its turn rate, both axes, easing in; it fires in bursts with gaps, and only
     # while it is on target, in range and with no other hull in the way; its rounds fly straight.
     ON_TARGET_DEG = 5.0
-    MAX_FLIGHT_S = 2.2
+    MAX_FLIGHT_S = 3.0      # long enough for the story rakes at 1.1-1.3 km (fire-control plan, 2026-10-23)
     MAX_RANGE_M = 3500.0
     BURST_S, GAP_S = (.8, 2.0), (1.0, 2.6)
     # Burst rhythm by weapon (owner, 2026-10-23: Vulcans fire long bursts of the streak; cannons
@@ -260,6 +263,7 @@ class SceneFx:
               'lightac': 'ac', 'heavyac': 'ac', 'mark9': 'ac', 'lightag': 'ac', 'hellbore': 'heavy',
               'ioncannon': 'energy', 'miningblaster': 'energy', 'heavyblaster': 'energy'}
     PREROLL_S = 2.0
+    ELEV_MAX_DEG = 65.0      # a mount's elevation travel either way from rest; past it, it cannot bear
     # Bursts walk (owner, 2026-10-23: "we don't need everything to hit; tasteful missing of burst
     # fire weapons around a ship is good"): each burst opens off to one side of the aim point and
     # walks across and past her; a round hits only where its straight line meets her hull, and
@@ -277,6 +281,8 @@ class SceneFx:
         piv, elev = g.trainers(guns[0].empty)
         if piv is None:
             return None
+        if elev is None:
+            elev = self.add_elevation(a, piv, guns)
         w = g.WEAPONS[weapon]
         rate = math.radians(w.get('turn', 30.0)) / fps
         F0, F1 = self.span[0] - round(self.PREROLL_S * fps), self.span[1]
@@ -294,6 +300,10 @@ class SceneFx:
             last = (yd, pd)
             y += max(-rate, min(rate, ey * .3 + dy))
             p += max(-rate, min(rate, ep * .3 + dp))
+            lim = math.radians(self.ELEV_MAX_DEG)
+            if abs(p) > lim:             # past its mount's travel: it cannot bear, so it is off target
+                p = math.copysign(lim, p)
+                ep = max(abs(ep), abs(pd) - lim)
             plan[f] = (y, p, math.degrees(max(abs(ey), abs(ep))))
         frames = list(range(F0, F1 + 1))
         g._bake(piv, 'rotation_euler', 2, frames, [plan[f][0] for f in frames])
@@ -404,6 +414,131 @@ class SceneFx:
                          f'traverse {math.degrees(plan[F0][0]):+.1f} -> {math.degrees(plan[F1][0]):+.1f} deg')
         return recs
 
+    # ------------------------------------------------------------------ projectiles in the world
+    # Owner, 2026-10-23 (S6: the Manticore's rounds turned with her): a projectile, once it leaves
+    # the muzzle, owes the ship nothing. The kit builds rounds, missiles, flares and their trails in
+    # the firing ship's copy space, which moves and turns with her; to_world re-keys each one so it
+    # stays where the world put it: from its birth frame on, through the copy's own motion, it is
+    # held in the space the ship had at that instant. A mover then flies its line from the muzzle
+    # (the ship's motion at the fire instant is in that line: it was aimed at where the target
+    # would be); a laid trail stays laid. Impacts belong to the target and ride her.
+    PROJECTILE = re.compile(r' (round|bolt|tracer|missile|motor|glare|contrail|flare|canister|puff|casing)\b')
+
+    @contextlib.contextmanager
+    def fired(self, a):
+        """Every unparented object made inside the block is a's projectile: to_world it after."""
+        before = set(bpy.data.objects)
+        try:
+            yield
+        finally:
+            self.to_world(a, [o for o in bpy.data.objects if o not in before])
+
+    def to_world(self, a, objs):
+        if self.matrix_at is None or a not in self.placed:
+            return 0
+        import swfx_core
+        import swfx_guns
+        mpu = self.placed[a]['mpu']
+        copy_at = lambda f: self.matrix_at(a, f) @ Matrix.Scale(mpu, 4)
+        hi = self.span[1] if self.span else self.now
+        n = 0
+        for ob in objs:
+            if ob.parent is not None or ob.get('world_space'):
+                continue
+            f0 = self._birth(ob, swfx_core)
+            if f0 is None:
+                continue
+            base = copy_at(f0)
+            fcs = [swfx_core.find_fcurve(ob, 'location', i) for i in range(3)]
+            if all(fc is not None and len(fc.keyframe_points) for fc in fcs):
+                swfx_guns.world_rounds([ob], lambda k, base=base: copy_at(k).inverted() @ base)
+            else:            # laid in place (a contrail, a bolt strike): held there every frame it may show
+                m0 = ob.matrix_basis.copy()
+                frames = list(range(f0, max(f0, hi) + 2))
+                locs, rots, prev = [], [], ob.rotation_euler.copy()
+                for k in frames:
+                    m = copy_at(k).inverted() @ base @ m0
+                    locs.append(m.translation)
+                    e = m.to_3x3().normalized().to_euler('XYZ', prev)
+                    rots.append(e)
+                    prev = e
+                for i in range(3):
+                    swfx_guns._bake(ob, 'location', i, frames, [v[i] for v in locs])
+                    if ob.type != 'LIGHT':
+                        swfx_guns._bake(ob, 'rotation_euler', i, frames, [e[i] for e in rots])
+                ob['world_space'] = True
+            n += 1
+        if n:
+            self.rows.append(f'world space: {n} of the projectiles {a} made held in the world from their fire frame')
+        return n
+
+    @staticmethod
+    def _birth(ob, core):
+        """The frame an object came into the world: its first shown frame, else its first key,
+        else the f<frame> in its name."""
+        vis = core.find_fcurve(ob, 'hide_render')
+        shown = [kp.co.x for kp in vis.keyframe_points if kp.co.y < .5] if vis is not None else []
+        if shown:
+            return int(round(min(shown)))
+        fc = core.find_fcurve(ob, 'location', 0)
+        if fc is not None and len(fc.keyframe_points):
+            return int(round(min(kp.co.x for kp in fc.keyframe_points)))
+        m = re.search(r' f(-?\d{3,})\b', ob.name)
+        return int(m.group(1)) if m else None
+
+    def projectile_check(self):
+        """Fail the build if a projectile still rides its ship: every top-level kit object named as
+        a round, bolt, missile, trail or flare must have been held in the world (to_world)."""
+        bad = [o.name for o in bpy.data.objects if o not in self.before and o.parent is None
+               and o.name.startswith('SWFX')
+               and self.PROJECTILE.search(o.name) and not o.get('world_space')]
+        self.rows.append(f'projectile check: {len(bad)} riding a ship')
+        if bad and self.matrix_at is not None and self.span:
+            raise RuntimeError(f'{len(bad)} projectiles still in the space of the ship that fired them '
+                               f'(owner, 2026-10-23: projectiles fly in world space), e.g. {bad[:6]}')
+        return bad
+
+    def add_elevation(self, a, piv, guns):
+        """A mount the build gave only a traverse pivot (the Hound's WS 002): an elevation joint made
+        here so its gun can lift onto a target above or below her (owner, 2026-10-23, S6d: the
+        Hound's gun must angle up to track). It sits on the pivot's train axis at the barrels'
+        height and carries everything the pivot carried, so the whole head lifts. Only on a ship
+        with her own hull copy (training a shared turret trains every copy). A stopgap until the
+        build has a joint of its own: a guarded fallback that warns (every Hound build has a real
+        joint since 87356990e, which trainers() finds first)."""
+        ship = self.ship(a)
+        if ship is None or not ship.own_hull:
+            return None
+        import swfx_guns
+        inv_piv = swfx_guns.anchor_matrix(piv).inverted()
+        zs = [(inv_piv @ swfx_guns.anchor_matrix(g.empty).translation).z for g in guns]
+        z = sum(zs) / len(zs) if zs else 0.0
+        name = piv.name.replace(' pivot', ' elevation') if ' pivot' in piv.name else piv.name + ' elevation'
+        elev = bpy.data.objects.new(name, None)
+        for c in piv.users_collection:
+            c.objects.link(elev)
+        elev.parent = piv
+        elev.matrix_parent_inverse = Matrix()
+        # its own X along the bore (flattened onto the train plane), so it lifts about the axis
+        # across the barrels, as aim_solve turns an elevation about its local Y
+        bore = Vector((0.0, 0.0, 0.0))
+        for g in guns:
+            bore += (inv_piv @ swfx_guns.anchor_matrix(g.empty)).to_3x3() @ Vector((1, 0, 0))
+        bore.z = 0.0
+        bx = bore.normalized() if bore.length > 1e-6 else Vector((1, 0, 0))
+        R = Matrix((bx, Vector((0, 0, 1)).cross(bx), Vector((0, 0, 1)))).transposed().to_4x4()
+        elev.matrix_basis = Matrix.Translation((0.0, 0.0, z)) @ R
+        elev['elevation_synthesized'] = True
+        inv = elev.matrix_basis.inverted()
+        for ch in [c for c in piv.children if c is not elev]:
+            ch.parent = elev
+            ch.matrix_parent_inverse = inv @ ch.matrix_parent_inverse
+        msg = (f'WARNING: elevation joint made for the {piv.name} of {a} at {z:.2f} u above its train '
+               f'axis: the build has none (the Hound builds have had one since 87356990e; update this build)')
+        self.rows.append(msg)
+        self.log(f'ASHARU kit {msg}')
+        return elev
+
     def strikes_at(self, key, hits, kind):
         """Rounds arriving on key's hull where each met it: hits are (frame, at_l, normal)."""
         imp = self.m['swfx_impacts']
@@ -450,7 +585,17 @@ class SceneFx:
         shift = arrive - max(f.end['frame'] for f in fl if f.end)
         fl = mp.salvo('harpoon', starts, target, mp.space_of(shooter), frames=[f + shift for f in frames],
                       target_name=b, width=.18)
-        with shooter.kit() as (ctx, kit):
+        if self.matrix_at is not None and self.span:
+            # A seeker flies to where she will be when it arrives, in the world: the flights are
+            # held in the shooter's space as it stood at launch (to_world), so the target goes
+            # into that space, then back through the space salvo works in.
+            f0 = min(f.frame for f in fl)
+            launch = self.matrix_at(a, f0) @ Matrix.Scale(self.placed[a]['mpu'], 4)
+            at_end = self.matrix_at(b, max(f.end['frame'] for f in fl if f.end)).translation
+            target = mp.space_of(shooter) @ (launch.inverted() @ at_end)
+            fl = mp.salvo('harpoon', starts, target, mp.space_of(shooter), frames=[f + shift for f in frames],
+                          target_name=b, width=.18)
+        with self.fired(a), shooter.kit() as (ctx, kit):
             kit.guns.launch_flights(ctx, fl)
         self.rows.append(f'missiles {a} -> {b}: {len(fl)} Harpoons, launched {frames[0] + shift}, '
                          f'arriving {[f.end["frame"] for f in fl if f.end]}')
@@ -498,7 +643,7 @@ class SceneFx:
         if not anchors:
             return False
         fl = pd.plan_flares(anchors, self.now - round(1.2 * self.fps))
-        with ship.kit() as (ctx, kit):
+        with self.fired(key), ship.kit() as (ctx, kit):
             # small bright points with thin smoke (coordinator's default, 2026-10-23, pending the owner):
             # a glare of 0.6 m, a faint grey trail, a dimmer light
             pd.key_flares(ctx, fl, self.space(key), ship.mpu, glare_m=.6, light_w=4.0e3,
