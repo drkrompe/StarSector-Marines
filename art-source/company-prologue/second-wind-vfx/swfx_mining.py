@@ -24,6 +24,7 @@ import swfx_burst
 import swfx_entry as se
 
 PREFIX = 'SWFX mining'
+CORE, FRINGE = (255, 155, 155), (255, 0, 0)     # mininglaser.wpn coreColor, fringeColor
 
 
 def _beam_material(name, rgb, strength, soft, cell_m):
@@ -93,10 +94,13 @@ def laser(name, emitter, contact, normal, coll, lights=None, seed=0, width_m=.3,
     pts = [a.lerp(b, i / 15) for i in range(16)]
     us = [1 - i / 15 for i in range(16)]
     cell = max(length / 6.0, 2.0)
+    # the game's own Mining Laser (mininglaser.wpn): a pink core (255,155,155) in a red fringe
+    # (255,0,0), not the white-hot rod it was, which at quarter size clipped to a solid white line
+    # and read as some other weapon's beam (owner, 2026-10-23, S8-S9: "wonky laser effects")
     se._tube(f'{name} core', pts, [width_m] * 16, us, coll,
-             _beam_material(f'{PREFIX} core', (1.0, .86, .62), 70.0 * glow, .6, cell), segments=10)
+             _beam_material(f'{PREFIX} core', swfx_burst.srgb(CORE), 14.0 * glow, .6, cell), segments=10)
     se._tube(f'{name} halo', pts, [width_m * 4.0] * 16, us, coll,
-             _beam_material(f'{PREFIX} halo', (1.0, .4, .1), 5.0 * glow, 2.2, cell), segments=14)
+             _beam_material(f'{PREFIX} halo', swfx_burst.srgb(FRINGE), 4.0 * glow, 2.2, cell), segments=14)
     # the cut: a small jagged flash leaning out of the plating, flattened against it
     flash_me, _ = swfx_burst.lobed_mesh(f'{name} flash', _hot_material(f'{PREFIX} flash', 30.0 * glow, .92), rnd,
                                         lobes=(3, 5), spikes=(3, 6), lean=1.0)

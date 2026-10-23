@@ -275,6 +275,9 @@ class SceneFx:
     # S6: the rounds of a burst should fly roughly parallel, not all converge on one point): the
     # aim point scatters by range x tan(SPREAD_DEG), so the spread grows with distance as a gun's does.
     SPREAD_DEG = .25
+    # A Harpoon salvo: tubes fire SALVO_GAP_F frames apart, their swings fanned across SALVO_FAN_DEG
+    # about the line of fire, landing scattered by SALVO_SPREAD x the target's length
+    SALVO_GAP_F, SALVO_FAN_DEG, SALVO_SPREAD = 6, 120.0, .15
 
     def planned(self, ctx, kit, a, b, turret, weapon, muzzle_l, hit_l, speed, feeder, track):
         """Fire turret on a at b over the whole shot as a gun would: returns the round records, or
@@ -614,11 +617,15 @@ class SceneFx:
             return False
         target = self.world(b)
         arrive = arrive if arrive is not None else self.now + 6
-        frames = [3 * i for i in range(len(starts))]
-        fl = mp.salvo('harpoon', starts, target, mp.space_of(shooter), frames=frames, target_name=b, width=.18)
+        frames = [self.SALVO_GAP_F * i for i in range(len(starts))]
+        # side by side, not from one point onto one point (owner, 2026-10-23, S6): the swings spread
+        # evenly across SALVO_FAN_DEG and the seekers land along her hull, not on one spot
+        lay = dict(roll_fan_deg=self.SALVO_FAN_DEG,
+                   spread_m=max(6.0, self.SALVO_SPREAD * self.placed[b].get('length', 40.0)) if b in self.placed else 6.0)
+        fl = mp.salvo('harpoon', starts, target, mp.space_of(shooter), frames=frames, target_name=b, width=.18, **lay)
         shift = arrive - max(f.end['frame'] for f in fl if f.end)
         fl = mp.salvo('harpoon', starts, target, mp.space_of(shooter), frames=[f + shift for f in frames],
-                      target_name=b, width=.18)
+                      target_name=b, width=.18, **lay)
         if self.matrix_at is not None and self.span:
             # A seeker flies to where she will be when it arrives, in the world: the flights are
             # held in the shooter's space as it stood at launch (to_world), so the target goes
@@ -628,7 +635,7 @@ class SceneFx:
             at_end = self.matrix_at(b, max(f.end['frame'] for f in fl if f.end)).translation
             target = mp.space_of(shooter) @ (launch.inverted() @ at_end)
             fl = mp.salvo('harpoon', starts, target, mp.space_of(shooter), frames=[f + shift for f in frames],
-                          target_name=b, width=.18)
+                          target_name=b, width=.18, **lay)
         taken = self._decoy(a, b, fl, decoys) if decoys else []
         with self.fired(a), shooter.kit() as (ctx, kit):
             kit.guns.launch_flights(ctx, fl)
