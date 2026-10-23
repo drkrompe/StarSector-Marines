@@ -6,3 +6,4 @@ One picks page per top-level parent session (see "Questions for the owner" in
 | Parent session | Page |
 |---|---|
 | Alien swarm attack colony mission refresh (Rav Bloom) | https://claude.ai/artifact/Q2unCoyCvyuFBFomsCxuDU |
+| Cinematic ship pipeline coordinator (Asharu cinematic) | https://claude.ai/artifact/F2SSYaaEth68gbqSYgYJWP |
