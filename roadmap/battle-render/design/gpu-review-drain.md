@@ -63,21 +63,28 @@ the other suites' 536s and 446s of writing unchanged, the 55 minutes become
 roughly 27. What is left is simulation, GIF encoding and the 39 suites that do
 not use this renderer.
 
-**GIF writing went side by side next** (2026-10-23). Once frames were drawn on the GPU, a
-suite's GIFs cost as much as drawing it, because each one was a single thread through ImageIO:
-median-cut palette, then the JDK's LZW, frame by frame. A frame's patch depends only on its own
-pixels and its predecessor's, so `AnimatedGifWriter.write` keys, quantises and compresses a
-recording's frames on `SnapshotWorkers.encode()` and only concatenates them in order. It writes
-the JDK's exact stream (layout, interlace, LZW code sequence), so every output file is
-byte-identical to before. The median cut keeps the same picks for less work. The palette's 7 MB
-of scratch is reused per thread. ImageIO's metadata round trip is gone. On colony-threat, whose
-two 165-frame adaptive GIFs were the slow part, the write phase went from 17.7s / 21.8s to
-9.4s / 13.7s across two alternating pairs of full runs. Writing those two GIFs alone, in one
-process, went from 8-9s to 1.5-4s. On one thread it used about a quarter less CPU (12s against
-15-17s). The machine was loaded throughout, so these readings are indicative. fire-line, whose four
-GIFs were already written side by side and whose stills dominate, did not move. A lower
-PNG deflate level was tried for the stills and was slower than ImageIO's default, so it was left
-alone.
+**Writing artifacts is no longer ImageIO** (2026-10-23). Once frames were drawn on the GPU, a
+suite's writing cost as much as drawing it. Each GIF was one thread through ImageIO: a median-cut
+palette, then the JDK's LZW, frame by frame. Each PNG still was read one sample at a time through
+`Raster.getPixels`. Both encoders write ImageIO's exact bytes, so every artifact is byte-identical
+to before:
+
+- `AnimatedGifWriter.write` keys, quantises and compresses a recording's frames side by side on
+  `SnapshotWorkers.encode()`, and only concatenates them in order. A frame's patch depends only on
+  its own pixels and its predecessor's.
+- The palette adds a run of one colour in one step, into an interleaved per-bin array. It
+  measures each box's channels in one pass.
+- The LZW dictionary is a 48 KB hash table that stays in cache. The old table was 4 MB and missed
+  on nearly every lookup.
+- `PngStillWriter` writes a still's unfiltered rows straight from the frame's bytes, which is all
+  ImageIO does for an RGB image.
+
+Read the effect off JFR shares, not wall clocks. On a shared machine an execution sample counts
+time in Java, scheduled or not. On colony-threat plus fire-line, write-path samples went from
+about 1,650 to 550 between consecutive runs. The palette went from 474 to 54, the PNG stills from
+309 to 92 and LZW from 336 to 120. What is left is spread over per-pixel passes every frame needs:
+LZW, BGR to ARGB, the changed-box scan and the index fill. A lower PNG deflate level was slower
+than ImageIO's level 4.
 
 ## Which GL: LWJGL 2 on Windows, LWJGL 3 on the Mac
 
