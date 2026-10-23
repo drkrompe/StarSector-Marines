@@ -95,32 +95,9 @@ import static org.lwjgl.opengl.GL15.glGenBuffers;
  * <p><b>It fails soft.</b> A driver without buffer objects, a failed allocation,
  * any GL error at all — {@code sync} answers false and the caller emits the
  * ordinary per-cell command stream, with the same paint order and the same
- * picture. Turn it off for a control run with
- * {@code -Dbattle.render.groundMesh=false}, or leave the base terrain resident
- * and the decoration in the stream with
- * {@code -Dbattle.render.residentDecoration=false}.
+ * picture.
  */
 public final class GroundMesh {
-
-    /** Control-run switch; see the class note. On by default. */
-    public static final String PROPERTY = "battle.render.groundMesh";
-
-    /**
-     * Control-run switch for the decoration sub-layers alone.
-     *
-     * <p>Separate from {@link #PROPERTY} because they are separate questions
-     * with separate answers: whether a static base terrain should be resident
-     * was settled by one measurement, and whether the scatter and door decals
-     * laid over it should join it is another. A run with this off keeps the
-     * base resident and puts the decoration back in the stream.
-     */
-    public static final String DECORATION_PROPERTY = "battle.render.residentDecoration";
-
-    private static final boolean ENABLED =
-            Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
-
-    private static final boolean DECORATION_ENABLED =
-            Boolean.parseBoolean(System.getProperty(DECORATION_PROPERTY, "true"));
 
     /**
      * Slots past the baked count each bucket keeps spare.
@@ -139,16 +116,6 @@ public final class GroundMesh {
      * demolition rather than a bullet hole.
      */
     private static final int PATCH_LIMIT = 128;
-
-    /** Whether the mesh is armed at all — for evidence that reports which run it was. */
-    public static boolean enabled() {
-        return ENABLED;
-    }
-
-    /** Whether the decoration sub-layers are armed — for the same reason. */
-    public static boolean decorationEnabled() {
-        return ENABLED && DECORATION_ENABLED;
-    }
 
     /**
      * Where a resolved cell goes.
@@ -232,11 +199,11 @@ public final class GroundMesh {
      * that needed a GPU to ask about arithmetic would not be run.
      */
     boolean catchUp(CellTopology topology, CellResolver... resolvers) {
-        if (!ENABLED || broken || topology == null || resolvers.length == 0) return false;
+        if (broken || topology == null || resolvers.length == 0) return false;
         try {
-            // A caller that has changed how many sub-layers it has — the
-            // decoration switched off, an embedded host asking for the base
-            // alone — is asking for a different mesh, not a patch of this one.
+            // A caller that has changed how many sub-layers it has — an embedded
+            // host asking for the base alone — is asking for a different mesh,
+            // not a patch of this one.
             if (topology != bound || sublayers.length != resolvers.length) {
                 build(topology, resolvers);
                 return true;
@@ -263,7 +230,7 @@ public final class GroundMesh {
      * rather than something a host has to know about.
      */
     public boolean isServing(CellTopology topology) {
-        return ENABLED && !broken && topology != null && topology == bound;
+        return !broken && topology != null && topology == bound;
     }
 
     /** How many sub-layers the mesh currently holds; zero before its first bake. */
@@ -369,6 +336,17 @@ public final class GroundMesh {
         int total = 0;
         for (Sublayer sublayer : sublayers) total += sublayer.buckets.size();
         return total;
+    }
+
+    /**
+     * The most buffers any one sub-layer holds: one when every sheet it draws
+     * from is the {@link GroundAtlas}, more when it baked per-sheet coordinates.
+     * A sub-layer with nothing in it on this map holds none.
+     */
+    int mostBucketsInOneSublayer() {
+        int most = 0;
+        for (Sublayer sublayer : sublayers) most = Math.max(most, sublayer.buckets.size());
+        return most;
     }
 
     /**

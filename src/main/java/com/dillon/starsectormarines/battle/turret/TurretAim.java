@@ -28,6 +28,12 @@ public final class TurretAim {
     public static final float FIRE_ARC_DEG = 12f;
 
     /**
+     * How far off its target a beam opens, in degrees. Wider than a gun's arc on purpose: a beam leaves along the
+     * turret's facing, so a lance that opens off target lands short and drags across onto it as the turret tracks.
+     */
+    public static final float BEAM_OPEN_ARC_DEG = 20f;
+
+    /**
      * Mutable per-tick state for one turret. Reuse across ticks — the same
      * instance carries facing/cooldown/target forward. Caller is responsible
      * for refreshing position fields each tick when the mount moves.
@@ -47,6 +53,8 @@ public final class TurretAim {
         /** Current barrel facing, degrees. Mutated by the slew each tick. */
         public float facingDegrees;
         public float turnRateDegPerSec;
+        /** How far off the bearing the turret may be and still fire; a beam opens wider ({@link #BEAM_OPEN_ARC_DEG}). */
+        public float fireArcDeg = FIRE_ARC_DEG;
         public float attackRange;
         /** Minimum engagement range in cells. Targets closer than this are dropped without firing — keeps lobbed-AoE weapons from dropping rounds on top of friendlies. {@code 0} = no minimum. */
         public float minRange;
@@ -136,7 +144,7 @@ public final class TurretAim {
         float maxStep = s.turnRateDegPerSec * dt;
         s.facingDegrees = slewToward(s.facingDegrees, bearing, maxStep);
 
-        if (Math.abs(shortestAngleDelta(s.facingDegrees, bearing)) <= FIRE_ARC_DEG
+        if (Math.abs(shortestAngleDelta(s.facingDegrees, bearing)) <= s.fireArcDeg
                 && s.cooldownTimer <= 0f) {
             s.fireThisTick = true;
             s.lastFireHadLos = visible;

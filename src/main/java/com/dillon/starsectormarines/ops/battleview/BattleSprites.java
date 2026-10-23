@@ -673,10 +673,8 @@ public class BattleSprites {
             smokeFieldSheet = ModTextures.sprite(fieldPath);
             ModTextures.loadTexture(FIRE_SHEET_PATH);
             fireSheet = ModTextures.sprite(FIRE_SHEET_PATH);
-            if (FireRenderSystem.FLAME_SHEET_PATH != null) {
-                ModTextures.loadTexture(FireRenderSystem.FLAME_SHEET_PATH);
-                flameSheet = ModTextures.sprite(FireRenderSystem.FLAME_SHEET_PATH);
-            }
+            ModTextures.loadTexture(FireRenderSystem.FLAME_SHEET_PATH);
+            flameSheet = ModTextures.sprite(FireRenderSystem.FLAME_SHEET_PATH);
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load smoke utility sprites", e);
         }

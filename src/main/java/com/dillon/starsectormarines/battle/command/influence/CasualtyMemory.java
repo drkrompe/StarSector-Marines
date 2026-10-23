@@ -92,17 +92,8 @@ public final class CasualtyMemory {
     private static final boolean ROUTE_COST_ENABLED = Boolean.parseBoolean(
             System.getProperty(ROUTE_COST_PROPERTY, "true"));
 
-    /** Same-build evidence control for storage and lookup cost, not routing behavior. */
-    public static final String COMPACT_ROUTE_COST_PROPERTY =
-            "battle.pathfinding.compactCasualtyRouteCost";
-
-    private static final boolean COMPACT_ROUTE_COST_ENABLED = Boolean.parseBoolean(
-            System.getProperty(COMPACT_ROUTE_COST_PROPERTY, "true"));
-
     private final UnitRosterService roster;
     private final int blockSize;
-    private final int cellWidth;
-    private final int cellHeight;
     private final int blockWidth;
     private final int blockHeight;
     private final RouteCostField.BlockLayout routeCostLayout;
@@ -120,8 +111,6 @@ public final class CasualtyMemory {
                           int cellWidth, int cellHeight) {
         this.roster = roster;
         this.blockSize = blockSize;
-        this.cellWidth = cellWidth;
-        this.cellHeight = cellHeight;
         this.routeCostLayout = new RouteCostField.BlockLayout(cellWidth, cellHeight, blockSize);
         this.blockWidth = routeCostLayout.blockWidth();
         this.blockHeight = routeCostLayout.blockHeight();
@@ -205,19 +194,7 @@ public final class CasualtyMemory {
         float[] multipliers = new float[blocks.length];
         for (int i = 0; i < blocks.length; i++) multipliers[i] = multiplierFor(blocks[i]);
         long revision = RouteCostField.nextRevision();
-        if (COMPACT_ROUTE_COST_ENABLED) return routeCostLayout.snapshot(multipliers, revision);
-
-        // Conservative dense control: it too derives each block's multiplier
-        // only once, isolating expansion/storage from repeated arithmetic.
-        float[] cells = new float[cellWidth * cellHeight];
-        for (int y = 0; y < cellHeight; y++) {
-            int blockRow = (y / blockSize) * blockWidth;
-            int row = y * cellWidth;
-            for (int x = 0; x < cellWidth; x++) {
-                cells[row + x] = multipliers[blockRow + x / blockSize];
-            }
-        }
-        return new RouteCostField(cells, revision);
+        return routeCostLayout.snapshot(multipliers, revision);
     }
 
     /** Saturating penalty on remembered weight; see {@link #HALF_PENALTY_LOSSES}. */

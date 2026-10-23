@@ -91,27 +91,15 @@ import static org.lwjgl.opengl.GL15.glGenBuffers;
  *
  * <p><b>It fails soft.</b> A driver without buffer objects, a failed allocation,
  * any GL error at all — {@link #sync} answers false and the caller re-rasterises
- * the field cell by cell with the same picture. Turn it off for a control run
- * with {@code -Dbattle.render.residentRelief=false}.
+ * the field cell by cell with the same picture.
  */
 final class ReliefFieldMesh {
-
-    /** Control-run switch; see the class note. On by default. */
-    static final String PROPERTY = "battle.render.residentRelief";
-
-    private static final boolean ENABLED =
-            Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
 
     /** Slots past the baked count each bucket keeps spare; see {@code GroundMesh}. */
     private static final int SPARE_SLOTS = 256;
 
     /** Dirty slots past which a bucket re-uploads whole instead of patching. */
     private static final int PATCH_LIMIT = 128;
-
-    /** Whether resident relief is armed at all — for evidence that reports which run it was. */
-    static boolean enabled() {
-        return ENABLED;
-    }
 
     /** Where a resolved cell of the field goes. */
     interface CellSink {
@@ -210,7 +198,7 @@ final class ReliefFieldMesh {
      * arithmetic would not be run.
      */
     boolean catchUp(CellTopology topology, CellResolver resolver) {
-        if (!ENABLED || broken || topology == null) return false;
+        if (broken || topology == null) return false;
         try {
             if (topology != bound) {
                 build(topology, resolver);
@@ -235,7 +223,7 @@ final class ReliefFieldMesh {
      * about.
      */
     boolean isServing(CellTopology topology) {
-        return ENABLED && !broken && topology != null && topology == bound;
+        return !broken && topology != null && topology == bound;
     }
 
     /**
@@ -246,7 +234,7 @@ final class ReliefFieldMesh {
      * frame on the way to being told so again.
      */
     boolean isUsable() {
-        return ENABLED && !broken;
+        return !broken;
     }
 
     /**

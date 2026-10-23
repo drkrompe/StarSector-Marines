@@ -1143,8 +1143,9 @@ those rows read nothing. Not tuned: the duel numbers are readings.
 defence because it barely marks proper plate; at ground scale almost nothing is
 proper plate. The tank's identity is the split between the two, and it is held by
 cadence rather than by a damage type: a four-pulse burst at penetration 3 every
-0.55 s from a ten-charge capacitor bank refilling one charge every 2 s
-(`convoy-nouns.md`, The laser tank). A section dies inside the bank; a tank does not.
+0.55 s, each pulse adding flux the gun dissipates far slower than it builds, so it
+overloads and vents for seconds at a time in a long fight (`convoy-nouns.md`, The
+laser tanks). A section dies inside one charge-up; a tank does not.
 Readings against the breakthrough tank's twin cannon (`tank-versus-infantry`, four
 seeds, one planted tank and a twelve-strong section eighteen cells off; `armorMatchup`,
 four seeds, three grounds):

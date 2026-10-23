@@ -197,11 +197,10 @@ So a mission that says nothing flies the ferry's three pairs down the descent.
 Against the map-edge crossing that shape is better on both fixtures:
 reinforced-south holds 19 compounds against 17 for 5 fewer losses on the same 22
 captures, and full-strength-west holds 7 against 6, its force finally on the map
-— 333 live marines at peak — at a cost of 430 losses against 300. The whole
-policy is switchable: `battle.conquest.orbitalLift=false` restores the edge
-crossing, and `battle.conquest.derivedLift=true` restores the seat-sized lift,
-so the next attempt at the western approach can move either dial beside whatever
-it is really testing.
+— 333 live marines at peak — at a cost of 430 losses against 300. The lift's
+size stays switchable: `battle.conquest.derivedLift=true` restores the
+seat-sized lift, so the next attempt at the western approach can move that dial
+beside whatever it is really testing.
 
 **How far out the force lands is stated, not the map edge.** A Conquest states
 a standoff alongside its sprawl and its arrival config — how many cells of

@@ -35,17 +35,9 @@ import java.util.List;
  * order, and the drain still breaks a run wherever a different sheet or a solid
  * fill interrupts it.
  *
- * <p>{@link SpriteAtlas} owns the mechanism. What is here is which images go in,
- * and the switch that takes them back out for a control run:
- * {@code -Dbattle.render.unitAtlas=false}.
+ * <p>{@link SpriteAtlas} owns the mechanism. What is here is which images go in.
  */
 public final class UnitAtlas extends SpriteAtlas {
-
-    /** Control-run switch; see the class note. On by default. */
-    public static final String PROPERTY = "battle.render.unitAtlas";
-
-    private static final boolean ENABLED =
-            Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
 
     /**
      * Widths the layout may use, smallest first.
@@ -79,12 +71,7 @@ public final class UnitAtlas extends SpriteAtlas {
     private static final int MAX_IMAGE_PX = 320;
 
     public UnitAtlas() {
-        super("unit atlas", ENABLED, SIDES);
-    }
-
-    /** Whether the atlas is armed at all — for evidence that reports which run it was. */
-    public static boolean enabled() {
-        return ENABLED;
+        super("unit atlas", SIDES);
     }
 
     /**

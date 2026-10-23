@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16655-0d00-7873-b691-2bb33054a391",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16655-0d00-7873-b691-2bb33054a391\\exec-f65ef537-c918-4fd0-a2e4-afe1b27c1ce5.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\tank-laser\\pd-skin-red-open-raw.png",
+    "sha256": "43dc793f714a579025965c0b92dcf30946272605bc1704d010726f0be5143159",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\tank-laser\\pd-skin-open-prompt.txt",
+  "promptSha256": "fc6cc37ae39d896613b02b84e297d9173a65a21f1704bf19f7b6382e7e6867d9",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity authority: the exact sprite to keep; only the front dome changes\nImage 2: Reference only: how the opened shutter and lens look; not its paint\n\nEdit image 1, an approved high-resolution top-down painted sprite of a small spaceship turret module pointing LEFT. Keep EVERYTHING exactly as it is, pixel for pixel: the red collar, the three white vent bars, the dark grey mounting ring and base plate, the bolts, the rear stub, the lighting, the scale and the position on the canvas.\nChange ONLY the pale grey-white dome at the left end: it is an armoured shutter, and in this frame it is OPEN. Its plates have split along their seams and retracted back into the collar like an iris or an opened eyelid, so the dome now shows a recessed round LENS: a deep, polished crystal glass lens in a thin steel bezel, filling the opening, with a dark smoky interior, curved highlight reflections from the top left and a faint red tint deep in the glass; the open shutter plates keep the module's own paint. The thin edges of the retracted shutter plates remain visible as a slim pale rim around the lens. The outline of the module stays the same.\nNo beam, no glow halo, no light rays, no sparks.\nExactly one object, strict 90-degree overhead orthographic, no perspective tilt. No scene, labels, background, checkerboard, shadow or border. True transparent background with genuine alpha outside the silhouette. Same canvas size and aspect as image 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\tank-laser\\pd-skin-red-raw.png",
+      "sha256": "532cfe135039cd674f2cb3cae4a0e5026aacf34355f8f541f574ce4970e18cec",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Identity authority: the exact sprite to keep; only the front dome changes"
+    },
+    {
+      "path": "art-source\\vehicles\\tank-laser\\pd-upres-open-raw.png",
+      "sha256": "1ad912170b0d584545d122ce9416e5a2e9b573c84901d8ef4ccd9211c00baeb6",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Reference only: how the opened shutter and lens look; not its paint"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to open the front shutter, preserving Image 1’s paint and structure and using Image 2 only as the lens reference.\n"
+  ],
+  "usage": {
+    "input_tokens": 45175,
+    "cached_input_tokens": 34432,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 489,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 70.8
+}

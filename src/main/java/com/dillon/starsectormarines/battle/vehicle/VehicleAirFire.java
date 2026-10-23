@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 
 /**
  * What a vehicle gun that reaches the air ({@code TurretMountDef#engagesAir}) needs from the air layer: which hostile
- * craft it can put a round into, and the round itself. The gun's aim, magazine, cadence and capacitor bank stay with
+ * craft it can put a round into, and the round itself. The gun's aim, magazine, cadence and flux stay with
  * {@link GroundVehicleTurretSystem}, the one authority over a vehicle turret; this is only where the craft are and how
  * a round meets one. The anti-air emplacements' own pass ({@code GroundAntiAirSystem}) answers both, so a vehicle's
  * round against a fighter is rolled and landed the way an emplacement's is.

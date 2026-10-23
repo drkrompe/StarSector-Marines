@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16638-fc6f-7c02-8b49-54ec13dae635",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16638-fc6f-7c02-8b49-54ec13dae635\\exec-3e7731a7-724d-4edc-9e61-0f8a1b865d40.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\tank-laser\\pd-upres-open-raw.png",
+    "sha256": "1ad912170b0d584545d122ce9416e5a2e9b573c84901d8ef4ccd9211c00baeb6",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\tank-laser\\pd-open-prompt.txt",
+  "promptSha256": "ddecff40d71285472d3fdc9730163a2f489922b8834bf2c50a341e3eead50dd5",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity authority: the exact sprite to keep; only the front dome changes\n\nEdit image 1, an approved high-resolution top-down painted sprite of a small spaceship turret module pointing LEFT. Keep EVERYTHING exactly as it is, pixel for pixel: the red collar, the three white vent bars, the dark grey mounting ring and base plate, the bolts, the rear stub, the lighting, the scale and the position on the canvas.\nChange ONLY the pale grey-white dome at the left end: it is an armoured shutter, and in this frame it is OPEN. Its plates have split along their seams and retracted back into the collar like an iris or an opened eyelid, so the dome now shows a recessed round LENS: a deep, polished crystal glass lens in a thin steel bezel, filling the opening, with a dark smoky interior, curved highlight reflections from the top left and a faint red tint deep in the glass. The thin edges of the retracted shutter plates remain visible as a slim pale rim around the lens. The outline of the module stays the same.\nNo beam, no glow halo, no light rays, no sparks.\nExactly one object, strict 90-degree overhead orthographic, no perspective tilt. No scene, labels, background, checkerboard, shadow or border. True transparent background with genuine alpha outside the silhouette. Same canvas size and aspect as image 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\tank-laser\\pd-upres-raw.png",
+      "sha256": "b45504852426e3155fccb43daa9ef29b7bf9664be87c95093f2e5b36150aa026",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Identity authority: the exact sprite to keep; only the front dome changes"
+    }
+  ],
+  "agentMessages": [
+    "I’ll edit only the front dome into the recessed lens, preserving the rest of the sprite and its transparent background."
+  ],
+  "usage": {
+    "input_tokens": 39200,
+    "cached_input_tokens": 31616,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 341,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 47.5
+}

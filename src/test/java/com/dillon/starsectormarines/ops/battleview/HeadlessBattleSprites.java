@@ -392,7 +392,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public synchronized SpriteAPI flameSheet() {
         if (!flameLoaded) {
             flameLoaded = true;
-            flameSheet = FireRenderSystem.FLAME_SHEET_PATH == null ? null : spriteOrNull(FireRenderSystem.FLAME_SHEET_PATH);
+            flameSheet = spriteOrNull(FireRenderSystem.FLAME_SHEET_PATH);
         }
         return flameSheet;
     }
