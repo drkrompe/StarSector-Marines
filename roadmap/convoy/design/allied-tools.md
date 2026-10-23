@@ -120,7 +120,14 @@ The producer's seam is `AlliedProducer` (an `AlliedDepot` that also takes
 `request(AlliedRequest)`, a tool to a named place for a reason, and answers
 `onRoad(tool, place)`), so a commander draws on its stock by need rather than
 every machine coming on a timer. The heart's commander and the Cordon's both
-call it. No producer implements it yet.
+call it. `AlliedToolShed` is the producer: per tool a stock, a cap and a
+restock pace, an optional gate (a sortie behind the air gate), and a maker
+that sets one down at the depot's cell and sends it on; it refuses a request
+with none in stock, the gate shut or the depot unable to send, and counts what
+is on the road where until it arrives or is lost. `AlliedMakers` has the shared
+makers (an armour pair or more, a Hound lance, an ammunition truck as a
+`SupplyDelivery`); a mission with its own way of setting a tool down (a lane's
+ground, a shed's berths and tug) supplies its own maker.
 
 Proposed: one mission-neutral **producer** (working name `AlliedToolShed`)
 that takes a mission's table and a base found on the layout, and schedules

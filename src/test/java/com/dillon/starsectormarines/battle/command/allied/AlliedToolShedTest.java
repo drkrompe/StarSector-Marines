@@ -1,0 +1,67 @@
+package com.dillon.starsectormarines.battle.command.allied;
+
+import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+class AlliedToolShedTest {
+
+    private static final AlliedRequest PAIR = new AlliedRequest(AlliedTool.ARMOUR_PAIR, "lane-1", 50, 50, "uncovered");
+
+    @Test
+    void aRequestDrawsOnStockAndIsOnTheRoadUntilDone() {
+        AtomicBoolean arrived = new AtomicBoolean();
+        AlliedToolShed shed = new AlliedToolShed(sim -> new int[]{0, 0})
+                .stock(AlliedTool.ARMOUR_PAIR, (sim, from, r) -> s -> arrived.get(), 1, 1, 0);
+        assertTrue(shed.request(null, PAIR, 10));
+        assertEquals(0, shed.stock(AlliedTool.ARMOUR_PAIR));
+        assertEquals(1, shed.onRoad(AlliedTool.ARMOUR_PAIR, "lane-1"));
+        assertEquals(0, shed.onRoad(AlliedTool.ARMOUR_PAIR, "lane-2"));
+        assertFalse(shed.request(null, PAIR, 11));
+        assertEquals("empty", shed.refusal(null, AlliedTool.ARMOUR_PAIR));
+        arrived.set(true);
+        shed.advance(null, 12);
+        assertEquals(0, shed.onRoad(AlliedTool.ARMOUR_PAIR, "lane-1"));
+        assertEquals(1, shed.granted().size());
+    }
+
+    @Test
+    void stockComesBackOnItsPaceUpToItsCap() {
+        AlliedToolShed shed = new AlliedToolShed(sim -> new int[]{0, 0})
+                .stock(AlliedTool.ARMOUR_PAIR, (sim, from, r) -> s -> true, 2, 2, 100);
+        assertTrue(shed.request(null, PAIR, 0));
+        shed.advance(null, 99);
+        assertEquals(1, shed.stock(AlliedTool.ARMOUR_PAIR));
+        shed.advance(null, 100);
+        assertEquals(2, shed.stock(AlliedTool.ARMOUR_PAIR));
+        shed.advance(null, 400);
+        assertEquals(2, shed.stock(AlliedTool.ARMOUR_PAIR));
+    }
+
+    @Test
+    void anOverrunDepotAClosedGateOrAFailedMakerSendsNothing() {
+        AlliedToolShed overrun = new AlliedToolShed(sim -> null)
+                .stock(AlliedTool.ARMOUR_PAIR, (sim, from, r) -> s -> true, 1, 1, 0);
+        assertFalse(overrun.request(null, PAIR, 0));
+        assertEquals("depot", overrun.refusal(null, AlliedTool.ARMOUR_PAIR));
+
+        AtomicBoolean open = new AtomicBoolean();
+        AlliedRequest sortie = new AlliedRequest(AlliedTool.GUNSHIP, "bore-2", 0, 0, "matriarch");
+        AlliedToolShed gated = new AlliedToolShed(sim -> new int[]{0, 0})
+                .stock(AlliedTool.GUNSHIP, (sim, from, r) -> s -> true, 1, 1, 0)
+                .gated(AlliedTool.GUNSHIP, sim -> open.get());
+        assertFalse(gated.request(null, sortie, 0));
+        open.set(true);
+        assertTrue(gated.request(null, sortie, 0));
+
+        AlliedToolShed noGround = new AlliedToolShed(sim -> new int[]{0, 0})
+                .stock(AlliedTool.ARMOUR_PAIR, (sim, from, r) -> null, 1, 1, 0);
+        assertFalse(noGround.request(null, PAIR, 0));
+        assertEquals(1, noGround.stock(AlliedTool.ARMOUR_PAIR));
+        assertEquals("none", noGround.refusal(null, AlliedTool.COLUMN));
+    }
+}
