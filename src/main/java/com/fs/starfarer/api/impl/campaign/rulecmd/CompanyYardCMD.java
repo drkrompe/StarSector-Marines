@@ -5,11 +5,17 @@ import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.campaign.start.CompanyYard;
 import com.dillon.starsectormarines.campaign.start.MercenaryCompanyConversion;
 import com.dillon.starsectormarines.ops.CompanyManagementGuide;
+import com.dillon.starsectormarines.ops.CompanyShipDesignation;
+import com.dillon.starsectormarines.ops.DialogHandOff;
+import com.dillon.starsectormarines.ops.MarineOpsContext;
+import com.dillon.starsectormarines.ops.MarineOpsDialogDelegate;
+import com.dillon.starsectormarines.ops.MarineOpsDialogSize;
 import com.dillon.starsectormarines.ops.CompanyStoryDialogDelegate;
 import com.dillon.starsectormarines.ops.CompanyYardScreen;
 import com.dillon.starsectormarines.ops.MenuTheme;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
+import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.rules.MemKeys;
 import com.fs.starfarer.api.campaign.rules.MemoryAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
@@ -72,11 +78,31 @@ public final class CompanyYardCMD extends BaseCommandPlugin {
                 CompanyStoryDialogDelegate.storybook(new CompanyYardScreen(ship), () -> {
                     // The theme carries on over the port menu into Marine operations; undocking ends it.
                     MenuTheme.shared().holdWhileOpen(dialog);
-                    dialog.showTextPanel();
-                    dialog.showVisualPanel();
-                    FireBest.fire(null, dialog, memoryMap, "OpenInteractionDialog");
+                    // Left before paying: back to port, and the next visit opens the yard again.
+                    if (CerberusCompanyStart.conversionRequired()) {
+                        returnToPort(dialog, memoryMap);
+                        return;
+                    }
+                    // Paid: the company moves aboard her now, and the walk carries on to Sabine.
+                    CompanyShipDesignation.designateFoundingShip();
+                    DialogHandOff.next(dialog, () -> openOperations(dialog, memoryMap),
+                            () -> returnToPort(dialog, memoryMap));
                 }));
         return true;
+    }
+
+    /** Marine operations at Sabine's induction, over the same port dialog; leaving it rebuilds the port menu. */
+    private static void openOperations(InteractionDialogAPI dialog, Map<String, MemoryAPI> memoryMap) {
+        PlanetAPI planet = dialog.getInteractionTarget() instanceof PlanetAPI docked ? docked : null;
+        dialog.showCustomVisualDialog(MarineOpsDialogSize.requestedWidth(), MarineOpsDialogSize.requestedHeight(),
+                new MarineOpsDialogDelegate(planet, MarineOpsContext::openOfficerInduction,
+                        () -> returnToPort(dialog, memoryMap)));
+    }
+
+    private static void returnToPort(InteractionDialogAPI dialog, Map<String, MemoryAPI> memoryMap) {
+        dialog.showTextPanel();
+        dialog.showVisualPanel();
+        FireBest.fire(null, dialog, memoryMap, "OpenInteractionDialog");
     }
     private static List<FleetMemberAPI> candidates() {
         if (Global.getSector() == null || Global.getSector().getPlayerFleet() == null) return List.of();
