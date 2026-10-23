@@ -43,7 +43,7 @@ MATCH_M = 15.0          # a shot's fx entry this close to a ledger hit is the sh
 MAX_FIRES = 2           # persistent fire volumes per ship per shot (volumes are the render's cost)
 MAX_VENTS = 1           # persistent vents per ship per shot
 MAX_SMOKE = 2           # persistent smoke threads per ship per shot
-LOOK = 'v1'             # 'v1': the first look (small soot marks only), kept as the control
+LOOK = 'v2'             # 'v1': the first look (small soot marks only), kept as the control
 
 
 # ======================================================================================= levels
