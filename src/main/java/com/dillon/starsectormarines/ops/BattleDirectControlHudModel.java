@@ -369,6 +369,7 @@ final class BattleDirectControlHudModel {
                     behavior.projectilesPerTrigger(), ammo.capacity(), ammo.remaining(),
                     weapon.reloading() ? weapon.cooldownSeconds() : 0f, weapon.cycleDurationSeconds());
         }
+        gauge = gauge.withHeld(weapon.heldRounds());
         return gauge.fits() ? gauge : null;
     }
 

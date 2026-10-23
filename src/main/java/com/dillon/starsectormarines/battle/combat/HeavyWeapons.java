@@ -121,16 +121,22 @@ public class HeavyWeapons {
             int left = picks.leftMask(mounts);
             int right = picks.rightMask(mounts);
             continuing = left | right;
-            if (primary || secondary) {
-                int pulled = (primary ? left : 0) | (secondary ? right : 0);
-                for (MechWeaponMount mount : mounts) {
-                    if (mount == null || mount.cycleRemaining > 0f || mount.burstRemaining > 0 || !mount.hasAmmo()) continue;
-                    if (!MechFireGroups.contains(pulled, mount)
-                            || !loadout.flux.permits(mount.component.fluxPerTrigger(), false)) continue;
-                    if (fireRoundAtPoint(controlledId, mount, aim, true)) {
-                        loadout.flux.commit(mount.component.fluxPerTrigger());
-                        mount.commitTrigger(0L, aim);
-                    }
+            int pulled = (primary ? left : 0) | (secondary ? right : 0);
+            for (MechWeaponMount mount : mounts) {
+                if (mount == null) continue;
+                // A held rack chains its salvos (SalvoChain); letting go starts its cycle from the last one.
+                if (!MechFireGroups.contains(pulled, mount)) {
+                    mount.releaseChain();
+                    continue;
+                }
+                mount.holdChain();
+                if (!mount.triggerReady()) continue;
+                float flux = mount.triggerFlux();
+                if (!loadout.flux.permits(flux, false)) continue;
+                if (fireRoundAtPoint(controlledId, mount, aim, true)) {
+                    loadout.flux.commit(flux);
+                    mount.commitTrigger(0L, aim);
+                    if (mount.chains()) mount.holdSalvos++;
                 }
             }
         }
@@ -551,7 +557,7 @@ public class HeavyWeapons {
                 if (mount == null) continue;
                 mount.advanceReplenishment(BattleSimulation.TICK_DT,
                         m.missileReplenisher());
-                mount.cycleRemaining = Math.max(0f, mount.cycleRemaining - BattleSimulation.TICK_DT);
+                mount.advanceClocks(BattleSimulation.TICK_DT);
                 if (mount.burstRemaining <= 0) continue;
                 mount.burstTimer -= BattleSimulation.TICK_DT;
                 if (mount.burstTimer > 0f) continue;
