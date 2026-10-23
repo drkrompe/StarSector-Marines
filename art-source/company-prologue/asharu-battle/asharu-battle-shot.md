@@ -482,7 +482,7 @@ About 2 minutes 15 (134 s): 10 s of recording, 40 s of setup and ambush, 60 s of
 | S9b **K** | 8 s | The lead's last run. Smoking since S6, the lead Lasher dives over the Falcon (P) on her back. The Falcon's broad front shield takes it and flares, then overloads in a burst of arcs, and the Lasher's guns walk down the flagship's open flank. The Falcon's broadside answers, and the Lasher tumbles away burning. | lead Lasher, Falcon (P) | 28 mm, close, just above the Lasher | **Pass-by:** the camera drifts while the Lasher dives past and away, panning after her; jolted by the hits. |
 | S10 **K** | 8 s | The prize taken: the Tarsus clamped to the Colossus Mk.III; far below, the Colossus nose-down and losing her orbit, Morrow with her. | Falcon (P), Colossus Mk.III, Tarsus; Colossus and Morrow below | 35 mm, behind and above | **ZOOM OUT to scale:** long on the clamped prize (85 mm), widening and tilting down to the Colossus falling away (24 mm). |
 | S11 | 8 s | Entry: from just behind, plasma builds round both hulls; Morrow drifts apart from her. The radio breaks up, the picture breaks into the recording screen's static, the channels drop out, and END OF RECORDING. | Colossus, Morrow | 50 mm, chase | **Chase:** just behind and above the Colossus, closing a little and shaking harder as the plasma builds (42 to 38 mm), framed to keep Morrow as she drifts apart. From 124.5 s the picture breaks into the recording screen's static, and CARAVEL's and MORROW's channels drop out. END OF RECORDING is in S13, back on the log. Blocked for the preview only (`m11`). Entry plasma is **new effects work**: the preview draws it as a sheath cone from each bow, building from 118 to 124 s. |
-| S12 **K** | 8 s | After the recording breaks up: two trails down the track toward the horizon and the canyon country, in silence. | (trails only) | 50 mm from the pirates' orbit | **Slow push-in + pan:** from 45 mm, easing in to 70 mm and tilting down after the trails as they fall toward the canyons. |
+| S12 **K** | 8 s | **The wreckfall.** After the recording breaks up, in silence: the Colossus and Morrow come down belly first, tilted back as if still trying to climb, each burning in plasma shaped by her own hull (`swfx_entry.sheath`): hot on the front and belly, flames peeling off the windward edges into a smoke wake. Around them, thin and behind, four burning chunks and ten faint streaks of the ships the battle lost. Look passed (owner, 2026-10-22, close still 9: "this would work enough for me. Not perfect but passable"). | colossus, morrow, the wreckfall | 50 mm at the key, from the pirates' orbit | **Tracking push-in:** rides down with the Colossus, 40 mm to the plate's 50 mm at the key, on to 85 mm holding both hulls. |
 | S13 | 13 s | **Back on the log.** The recording screen again, with CARAVEL's and MORROW's channels dark. The survivors call each other; Warden gives up on Caravel and the Morrow and reads the pirates as content with what they caught (owner, 2026-10-22: no pirate sign-off), and the log ends on END OF RECORDING. | (none) | (a screen, not a camera) | **Timed 2D layout** (`asharu_preview.recording_screen`, mode `close`), synced to `radio_log.CLOSING`. |
 
 ## Radio traffic (draft)
@@ -738,16 +738,15 @@ One line each, with its owner. Keep this list current, and remove an item when i
   whether the station still matches `platform_parts()` (if not, the wreck session rebuilds it),
   and which hulks the boxes draw. The box contract stays stable. The S3/S4 wrecks read as
   wreckage (owner, 2026-10-22). Wreck session and blockout session.
-- **S11 entry plasma:** new effects work (W7, `asharu-effects-plan.md`). The preview shows a proxy
-  only. Effects.
 - **The Hermes boarding craft's pirate livery,** if the owner wants it. Hermes build (pinned:
   read it, never edit it).
 - **The r9b k3 and k3b review frames** are held in the queue, for the render coordinator to
   release or cancel. Their next lit render uses `--volume-biased --volume-step-rate 4`.
-- **The layered r10 lit renders,** after the motion is accepted, on the plates `1d5ec7781`
-  (`roster.PLATES` = `builds/asharu-plates/1d5ec7781`, confirmed). Their job needs two more
-  drive inputs than round 8's: the plates, to `build/asharu-battle/plates`, and the wreck kit,
-  to `build/asharu-battle/builds/asharu-wrecks`. Blockout session.
+- **The layered r10 lit renders** (plates `1d5ec7781`, wreck kit `33513e7f8`): every key frame is
+  rendered at `421c526b6`, which has the derelict at 4.5 km, so S3 (k1b) and S4 (k2) are current;
+  their layers are on Drive under `builds/asharu-layers/r10_*`. S12 (k6) is the old trails look and
+  is re-queued on the passed burn (`asharu-r10b-k6-s12`, review lane: it waits for the gate).
+  Blockout session.
 - **The planet:** S12's far tile, and the plates over the rendered planet for S1a and S12. Plates
   session.
 - **The Colossus's shield in S9:** the shielded build is needed if she raises it against the
