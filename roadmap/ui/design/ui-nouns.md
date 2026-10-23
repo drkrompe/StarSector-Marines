@@ -677,7 +677,7 @@ center and owns the defensive behavior.
 
 The direct-control entry plate reserves a stable position above the taller of
 infantry and Mech/lance selection panels. It offers takeover of an exact eligible
-player Marine, combat Mech, or deployed APC. With one infantry squad selected,
+player Marine, combat Mech, or deployed vehicle the player owns. With one infantry squad selected,
 clicking a populated fire-team card focuses that exact soldier without changing
 the squad command scope. An amber card and the soldier’s ground ring identify
 the focus; empty cards and group-selection cards do not change it. Selection

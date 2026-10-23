@@ -26,6 +26,7 @@ final class BattleDirectControlHelpPlate {
     private final MutableSignal<List<Row>> rows;
     private boolean lastExpanded;
     private Carrier lastCarrier = Carrier.NONE;
+    private boolean lastArmed = true;
     private boolean primed;
 
     BattleDirectControlHelpPlate(Reactor reactor) {
@@ -49,14 +50,24 @@ final class BattleDirectControlHelpPlate {
 
     Map<String, Object> props() { return props; }
 
+    /** Row count the expanded panel will show for a carrier with a gun. */
+    static int rowCount(Carrier carrier) { return rowCount(carrier, true); }
+
     /** Row count the expanded panel will show for a carrier. */
-    static int rowCount(Carrier carrier) { return BattleDirectControlHelp.lines(carrier).size(); }
+    static int rowCount(Carrier carrier, boolean armed) {
+        return BattleDirectControlHelp.lines(carrier, armed).size();
+    }
 
     void update(boolean expanded, Carrier carrier) {
-        if (primed && expanded == lastExpanded && carrier == lastCarrier) return;
+        update(expanded, carrier, true);
+    }
+
+    void update(boolean expanded, Carrier carrier, boolean armed) {
+        if (primed && expanded == lastExpanded && carrier == lastCarrier && armed == lastArmed) return;
         primed = true;
         lastExpanded = expanded;
         lastCarrier = carrier;
+        lastArmed = armed;
         reactor.untracked(() -> {
             tabClasses.set(expanded ? "help-tab help-tab-open" : "help-tab");
             panelClasses.set(expanded ? "help-panel" : "help-panel help-panel-hidden");
@@ -64,7 +75,7 @@ final class BattleDirectControlHelpPlate {
             if (expanded) {
                 title.set(copy.apply(BattleDirectControlHelp.titleKey(carrier)));
                 int index = 0;
-                for (var line : BattleDirectControlHelp.lines(carrier)) {
+                for (var line : BattleDirectControlHelp.lines(carrier, armed)) {
                     built.add(new Row("direct-help-row-" + index++, line.keys(), copy.apply(line.textKey())));
                 }
             } else {

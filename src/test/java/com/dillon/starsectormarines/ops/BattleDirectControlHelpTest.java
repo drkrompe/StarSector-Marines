@@ -103,6 +103,12 @@ class BattleDirectControlHelpTest {
         assertTrue(has(apc, "A / D", "VehicleSteer"));
         assertTrue(has(apc, "LMB hold", "VehicleFire"));
         assertFalse(apc.stream().anyMatch(l -> l.keys().equals("RMB") || l.keys().equals("RMB hold")));
+
+        var unarmed = BattleDirectControlHelp.lines(Carrier.VEHICLE, false);
+        assertTrue(has(unarmed, "W / S", "VehicleDrive"));
+        assertTrue(has(unarmed, "A / D", "VehicleSteer"));
+        assertFalse(unarmed.stream().anyMatch(l -> l.textKey().endsWith("VehicleAim")
+                || l.textKey().endsWith("VehicleFire")));
     }
 
     @Test
