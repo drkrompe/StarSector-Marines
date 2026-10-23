@@ -12,7 +12,7 @@ import java.util.EnumMap;
 import java.util.Map;
 
 /**
- * Worn plate drawn on a live ground hull ({@code body-scuffs.md}): which scuff, crack and hole marks a hull shows,
+ * Worn plate drawn on a live ground hull ({@code body-scuffs.md}): which scrape, scorch and gouge marks a hull shows,
  * as a pure function of its plates' armour. Nothing is recorded per hit, so a re-plated side comes back clean and a
  * review frame draws what the screen does.
  *
@@ -32,16 +32,24 @@ final class VehicleScuffs {
     /** Wear over which a mark fades in once past its threshold. */
     static final float FADE = 0.05f;
     /** A mark's side as a share of the hull's narrower extent. */
-    static final float DECAL_SHARE = 0.26f;
+    static final float DECAL_SHARE = 0.3f;
+    /**
+     * How far a mark's paint reaches from its centre, as a share of its drawn side: a turned mark stays inside this.
+     * The scuff sheet keeps every mark inside the middle of its cell (its widest reaches 0.52).
+     */
+    static final float MARK_REACH = 0.53f;
+    /** Variants of each stage on the scuff sheet: its columns. */
+    static final int VARIANTS = 4;
     /** Alpha at or above which a pixel counts as hull. */
     static final int OPAQUE_ALPHA = 230;
-    /** Slots below this index are scuffs and scorch; below {@link #HOLE_FROM}, cracks; the rest, holes. */
-    static final int CRACK_FROM = 4;
-    static final int HOLE_FROM = 7;
+    /** Slots below this index are scrapes and pocks; below {@link #GOUGE_FROM}, scorch; the rest, gouges and dents. */
+    static final int SCORCH_FROM = 4;
+    static final int GOUGE_FROM = 7;
 
-    static final int BURN = 0;
-    static final int CRACK = 1;
-    static final int HOLE = 2;
+    /** The stages, which are the scuff sheet's rows. */
+    static final int SCRAPE = 0;
+    static final int SCORCH = 1;
+    static final int GOUGE = 2;
 
     private static final HullLocations.Plate[] PLATES = HullLocations.Plate.values();
     /** Per vehicle line: its hull frame's mask and its turret frame's; an entry is null where there is none. */
@@ -166,7 +174,7 @@ final class VehicleScuffs {
         int regions = byPlate ? PLATES.length : 1;
         if (halfRight <= 0f || halfFwd <= 0f) return new Mask(f.w, f.h, 0f, new short[regions][0]);
         float decalPx = DECAL_SHARE * Math.min(maxR - minR, maxF - minF);
-        float need = decalPx * 0.7072f;
+        float need = decalPx * MARK_REACH;
 
         int[] counts = new int[regions];
         short[][] points = new short[regions][cols * rows * 2];
@@ -211,9 +219,9 @@ final class VehicleScuffs {
             float alpha = Math.min(1f, (wear - threshold) / FADE);
             if (alpha <= 0f) break;
             int at = (int) Math.floorMod(h, (long) count) * 2;
-            int kind = slot < CRACK_FROM ? BURN : slot < HOLE_FROM ? CRACK : HOLE;
+            int kind = slot < SCORCH_FROM ? SCRAPE : slot < GOUGE_FROM ? SCORCH : GOUGE;
             float spin = ((h >>> 20) & 0x3FF) * (360f / 1024f);
-            sink.mark(points[at], points[at + 1], kind, (int) ((h >>> 56) & 7), spin, alpha);
+            sink.mark(points[at], points[at + 1], kind, (int) ((h >>> 56) % VARIANTS), spin, alpha);
             placed++;
         }
         return placed;

@@ -93,6 +93,36 @@ public final class PreparedGround {
         return true;
     }
 
+    /**
+     * A one-cell obstacle prop at the world cell — a hedgehog or a crate stack, by doodad id. Closed to movement,
+     * open to sight, and a registered cover prop, so it is a barricade: shells and charges break it and a dozer
+     * blade pushes it down. Refused quietly where the cell is not {@linkplain #open open} or the art is missing.
+     */
+    public static boolean obstacle(GenContext ctx, int x, int y, String doodadId) {
+        if (!open(ctx, x, y)) return false;
+        DoodadDef def = TileRegistry.installed().doodad(doodadId);
+        if (def == null) return false;
+        ctx.grid.setWalkable(x, y, false);
+        ctx.grid.setSeeThrough(x, y, true);
+        ctx.topology.setFixture(x, y, true);
+        ctx.doodads.add(new Doodad(x, y, def));
+        ctx.markMadeGround(x, y);
+        return true;
+    }
+
+    /**
+     * Ground worked by spades: bare earth, its grass and scrub gone, nothing built. What reads a line of works from a
+     * distance is the band of turned earth round it. Refused quietly where the cell is not {@linkplain #open open}.
+     */
+    public static boolean workedGround(GenContext ctx, int x, int y) {
+        if (!open(ctx, x, y)) return false;
+        ctx.topology.setGroundKind(x, y, GroundKind.DIRT);
+        ctx.topology.setSurface(x, y, ctx.topology.surfaceIndex("floors.dirt"));
+        ctx.topology.setNatureOverlayIndex(x, y, -1);
+        ctx.markMadeGround(x, y);
+        return true;
+    }
+
     private static char letter(int[] dir) {
         if (dir[1] > 0) return 'n';
         if (dir[1] < 0) return 's';

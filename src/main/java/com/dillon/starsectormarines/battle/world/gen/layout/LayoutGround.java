@@ -1,11 +1,16 @@
 package com.dillon.starsectormarines.battle.world.gen.layout;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The grown ground as a {@link Deferred} piece may read it: where the places
@@ -17,12 +22,15 @@ public final class LayoutGround {
 
     private final GenContext ctx;
     private final boolean[][] roads, roadCells;
+    private final int[][] roadOwner, claim;
     private int[][] bounds;
 
     public LayoutGround(GenContext ctx) {
         this.ctx = ctx;
         this.roads = ctx.get(BspKeys.ROAD_RESERVATION);
         this.roadCells = ctx.get(BspKeys.ROAD_CELLS);
+        this.roadOwner = ctx.get(BspKeys.PRECINCT_ROAD);
+        this.claim = ctx.get(BspKeys.PRECINCT_CLAIM);
     }
 
     public int width() { return ctx.width; }
@@ -38,10 +46,15 @@ public final class LayoutGround {
         return ctx.seed ^ (0x9E3779B97F4A7C15L * (place.hashCode() + 1L));
     }
 
-    /** Whether the cell is road (reserved for traffic, or painted as a road). */
+    /**
+     * Whether the cell is road: reserved for traffic, painted as a road, or a road the places' network holds in open
+     * country (a weld, an artery, a road the layout carved).
+     */
     public boolean isRoad(int x, int y) {
         if (x < 0 || y < 0 || x >= ctx.width || y >= ctx.height) return false;
-        return (roads != null && roads[x][y]) || (roadCells != null && roadCells[x][y]);
+        if ((roads != null && roads[x][y]) || (roadCells != null && roadCells[x][y])) return true;
+        return roadOwner != null && claim != null && roadOwner[x][y] != GrownTrunkPlan.UNOWNED
+                && claim[x][y] == GrownTrunkPlan.UNOWNED;
     }
 
     /** Whether any place claimed the cell: a town's, a garrison's or a base's ground rather than open country. */
@@ -53,6 +66,27 @@ public final class LayoutGround {
 
     public boolean walkable(int x, int y) {
         return ctx.grid.inBounds(x, y) && ctx.grid.isWalkable(x, y);
+    }
+
+    /**
+     * Whether something may be built on the cell: open ground (walkable, no door, prop or wall) that is not road and
+     * not a place's built ground (a building's floor).
+     */
+    public boolean buildable(int x, int y) {
+        return PreparedGround.open(ctx, x, y) && !isRoad(x, y) && ctx.topology.getBuildingId(x, y) == 0
+                && ctx.topology.getGroundKind(x, y) != CellTopology.GroundKind.INDOOR;
+    }
+
+    /** The plan the map is laid out from (its places where they were pinned). */
+    public PrecinctPlan plan() {
+        return ctx.get(BspKeys.PRECINCTS);
+    }
+
+    /** The middles {x, y} of the vehicle berths the places packed, if any. */
+    public List<int[]> berths() {
+        List<int[]> out = new ArrayList<>();
+        for (Gantry g : ctx.gantries) out.add(new int[]{g.centerX, g.centerY});
+        return out;
     }
 
     /**

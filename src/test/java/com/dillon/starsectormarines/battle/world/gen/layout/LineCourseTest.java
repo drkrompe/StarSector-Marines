@@ -3,7 +3,9 @@ package com.dillon.starsectormarines.battle.world.gen.layout;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -65,6 +67,39 @@ class LineCourseTest {
         List<Integer> open = new ArrayList<>();
         for (int[] f : course.funnels()) open.add(f[0]);
         assertTrue(open.contains(7) && open.contains(8) && open.contains(21) && open.contains(35));
+    }
+
+    @Test
+    void aDugCourseIsTwoDeepWithAParapetInFrontAndItsWireFurtherOut() {
+        LineCourse.Course course = LineCourse.plan(List.of(new int[]{0, 10}, new int[]{30, 10}),
+                (x, y) -> false, 2, NORTH, 14, 2, true, 0);
+        assertEquals(31, course.rear().size());
+        for (int[] r : course.rear()) assertEquals(9, r[1], "the second row is dug behind the course");
+        assertEquals(31, course.parapet().size());
+        for (int[] p : course.parapet()) assertEquals(11, p[1], "the parapet stands on the front lip");
+        for (int[] w : course.wire()) assertEquals(10 + LineCourse.PARAPET_WIRE_OFFSET, w[1]);
+    }
+
+    @Test
+    void aLongRunTakesANestAtEachPitchBetweenItsEnds() {
+        LineCourse.Course course = LineCourse.plan(List.of(new int[]{0, 10}, new int[]{100, 10}),
+                (x, y) -> false, 2, NORTH, 0, 1, false, 40);
+        List<Integer> at = new ArrayList<>();
+        for (int[] n : course.nests()) at.add(n[0]);
+        assertEquals(List.of(0, 40, 80, 100), at);
+    }
+
+    @Test
+    void aSteppedCourseNeverPutsTwoRowsOfWorksOnOneCell() {
+        LineCourse.Course course = LineCourse.plan(List.of(new int[]{0, 10}, new int[]{30, 16}),
+                (x, y) -> false, 2, NORTH, 14, 2, true, 0);
+        Set<Long> seen = new HashSet<>();
+        List<int[]> all = new ArrayList<>(course.rear());
+        all.addAll(course.parapet());
+        all.addAll(course.nests());
+        all.addAll(course.wire());
+        for (List<int[]> run : course.runs()) all.addAll(run);
+        for (int[] c : all) assertTrue(seen.add((long) c[0] << 32 | c[1]), "cell " + c[0] + "," + c[1] + " laid twice");
     }
 
     @Test

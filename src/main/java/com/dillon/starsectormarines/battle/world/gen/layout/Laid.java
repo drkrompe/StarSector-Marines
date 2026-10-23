@@ -10,8 +10,11 @@ import java.util.List;
 public record Laid(String name, Kind kind, Status status, String reason, boolean required,
                    List<int[]> cells, List<int[]> gaps, List<int[]> nests) {
 
-    /** A line of works, an open site, or ground held for authored terrain ({@link SitePurpose}). */
-    public enum Kind { LINE, SITE, GROUND }
+    /**
+     * A line of works, an open site, ground held for authored terrain ({@link SitePurpose}), or a road carved into
+     * the network (its {@code gaps} are its two ends), a structure (its two corners, as a site's) or a block.
+     */
+    public enum Kind { LINE, SITE, GROUND, ROAD, STRUCTURE, BLOCK }
 
     public enum Status {
         /** Laid as asked. */

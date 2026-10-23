@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationWalls;
+import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
+import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -95,6 +97,24 @@ public final class CordonGarrisons {
             teams.add(squad);
         }
         return new CordonRedoubt(number, left, top, right, bottom, teams, guns, seats);
+    }
+
+    /**
+     * Seats an allied gun in every nest the picket courses laid
+     * ({@code cordon-nouns.md}, Picket line): the garrison's own light guns,
+     * not the map's. Returns the guns, west to east by course.
+     */
+    public static List<Long> manPickets(BattleSimulation sim, LaidLayout layout) {
+        List<Long> guns = new ArrayList<>();
+        for (Laid laid : layout.pieces()) {
+            if (laid.kind() != Laid.Kind.LINE || !laid.name().startsWith(CordonPlan.PICKET_LINE)) continue;
+            String course = laid.name().substring(CordonPlan.PICKET_LINE.length());
+            int k = 0;
+            for (int[] nest : laid.nests()) {
+                guns.add(ColonyMilitia.seatEmplacement(sim, nest, "Picket " + course + " nest " + (++k)));
+            }
+        }
+        return guns;
     }
 
     /** The bounds of a redoubt's perimeter wall, {@code [left, top, right, bottom]}, or {@code null}. */
