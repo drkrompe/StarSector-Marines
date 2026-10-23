@@ -483,7 +483,7 @@ About 2 minutes 15 (134 s): 10 s of recording, 40 s of setup and ambush, 60 s of
 | S10 **K** | 8 s | The prize taken: the Tarsus clamped to the Colossus Mk.III; far below, the Colossus nose-down and losing her orbit, Morrow with her. | Falcon (P), Colossus Mk.III, Tarsus; Colossus and Morrow below | 35 mm, behind and above | **ZOOM OUT to scale:** long on the clamped prize (85 mm), widening and tilting down to the Colossus falling away (24 mm). |
 | S11 | 8 s | Entry: from just behind, plasma builds round both hulls; Morrow drifts apart from her. The radio breaks up, the picture breaks into the recording screen's static, the channels drop out, and END OF RECORDING. | Colossus, Morrow | 50 mm, chase | **Chase:** just behind and above the Colossus, closing a little and shaking harder as the plasma builds (42 to 38 mm), framed to keep Morrow as she drifts apart. From 124.5 s the picture breaks into the recording screen's static, and CARAVEL's and MORROW's channels drop out. END OF RECORDING is in S13, back on the log. Blocked for the preview only (`m11`). Entry plasma is **new effects work**: the preview draws it as a sheath cone from each bow, building from 118 to 124 s. |
 | S12 **K** | 8 s | After the recording breaks up: two trails down the track toward the horizon and the canyon country, in silence. | (trails only) | 50 mm from the pirates' orbit | **Slow push-in + pan:** from 45 mm, easing in to 70 mm and tilting down after the trails as they fall toward the canyons. |
-| S13 | 13 s | **Back on the log.** The recording screen again, with CARAVEL's and MORROW's channels dark. The survivors call each other, the pirate flag signs off, and the log ends on END OF RECORDING. | (none) | (a screen, not a camera) | **Timed 2D layout** (`asharu_preview.recording_screen`, mode `close`), synced to `radio_log.CLOSING`. |
+| S13 | 13 s | **Back on the log.** The recording screen again, with CARAVEL's and MORROW's channels dark. The survivors call each other; Warden gives up on Caravel and the Morrow and reads the pirates as content with what they caught (owner, 2026-10-22: no pirate sign-off), and the log ends on END OF RECORDING. | (none) | (a screen, not a camera) | **Timed 2D layout** (`asharu_preview.recording_screen`, mode `close`), synced to `radio_log.CLOSING`. |
 
 ## Radio traffic (draft)
 
@@ -582,7 +582,7 @@ Rules:
 | S11 | 124.5- | | static; the plasma takes the channel; CARAVEL and MORROW drop out |
 | S13 | 135.2-138.4 | CARAVEL FOUR | All Caravel ships, Caravel Four. Who is still with me? |
 | S13 | 139.0-141.4 | WARDEN THREE | Warden Three. Still here. The column is scattered. |
-| S13 | 141.9-144.6 | BARON | Baron to all hands. We have what we came for. Burn out. |
+| S13 | 141.9-144.6 | WARDEN THREE | Nothing from Caravel or the Morrow. ... They're not chasing. Looks like they're happy with what they caught. |
 | S13 | 145.6 | | END OF RECORDING |
 
 Open for the owner:
@@ -724,8 +724,9 @@ To check a scene without rendering, run `python battle_blockout.py --check`; `py
 
 One line each, with its owner. Keep this list current, and remove an item when it closes.
 
-- **Owner's verdict on motion preview 13**, including the radio's density and the S13 bookend.
-  Owner. Nothing is lit-rendered until the motion is accepted.
+- **Owner's verdict on motion preview 13**, including the radio's density. Owner. Nothing is
+  lit-rendered until the motion is accepted. The S13 bookend stands (owner, 2026-10-22), with
+  Warden Three's line in place of the Baron's sign-off.
 - **Owner to confirm the derelict at 4.5 km** (closed the 7 km S4 to S5 jump; the coordinator's
   call). Each pirate's launch now eases onto her next shot's flight (`REJOIN`; S5's two ships share
   it with S5), so no cut jumps her; `--check`'s rejoin report flags it when a flight moves. Owner.
@@ -735,8 +736,8 @@ One line each, with its owner. Keep this list current, and remove an item when i
   pinned by sha256): the station as one modelled piece, and each box filled by `wreck_kit.pick`.
   The motion preview, and `--blockout-wrecks`, keep the stand-ins. `--check` reports the kit:
   whether the station still matches `platform_parts()` (if not, the wreck session rebuilds it),
-  and which hulks the boxes draw. The box contract stays stable. Wreck session and blockout
-  session.
+  and which hulks the boxes draw. The box contract stays stable. The S3/S4 wrecks read as
+  wreckage (owner, 2026-10-22). Wreck session and blockout session.
 - **S11 entry plasma:** new effects work (W7, `asharu-effects-plan.md`). The preview shows a proxy
   only. Effects.
 - **The Hermes boarding craft's pirate livery,** if the owner wants it. Hermes build (pinned:

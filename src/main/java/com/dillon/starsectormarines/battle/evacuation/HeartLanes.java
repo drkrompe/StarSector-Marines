@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 import com.dillon.starsectormarines.battle.command.BarrageScreen;
+import com.dillon.starsectormarines.battle.command.allied.AlliedCommand;
 
 import com.dillon.starsectormarines.battle.mech.FactionMechLoadouts;
 import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
@@ -17,11 +18,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
-import com.dillon.starsectormarines.battle.vehicle.GroundBody;
-import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
-import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
-import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 import java.util.ArrayList;
@@ -61,10 +58,9 @@ public final class HeartLanes {
         List<Integer> squads;
         int targetX = -1, targetY = -1;
         boolean broken;
-        /** The lane's armour (The Burn's battlegroups): hulls driven on planned routes, mechs ordered as squads. */
+        /** The lane's armour (The Burn's battlegroups): hulls and mechs both stationed by the allied command. */
         final List<Long> hulls = new ArrayList<>();
-        final List<Integer> mechs = new ArrayList<>();
-        int armourAimX = Integer.MIN_VALUE, armourAimY = Integer.MIN_VALUE;
+        final List<Long> mechs = new ArrayList<>();
 
         Lane(int number, HeartLane ground, int entryX, int entryY, RiskLevel risk, Random rng) {
             this.number = number;
@@ -131,6 +127,7 @@ public final class HeartLanes {
     /** One tick; the lanes' beats go into {@code beats}. */
     public void tick(BattleSimulation sim, List<String> beats) {
         int tick = sim.getSimTickIndex();
+        allied.advance(sim);
         for (Lane lane : lanes) {
             if (tick % RETARGET_TICKS == 0) driveArmour(sim, lane);
             if (lane.squads == null) {
@@ -187,7 +184,7 @@ public final class HeartLanes {
             s.leaderId = mech;
             s.originalSize = 1;
             sim.claimSquadCommand(squad, CommandAuthority.GARRISON, ISSUER, "lane " + lane.number + " walker");
-            lane.mechs.add(squad);
+            lane.mechs.add(mech);
             return true;
         }
         VehicleClearance clearance = clearance(sim, type);
@@ -198,9 +195,7 @@ public final class HeartLanes {
                         && clearOfArmour(x + dx + .5f, y + dy + .5f)) cell = new int[]{x + dx, y + dy};
         if (cell == null) return false;
         placed.add(new float[]{cell[0] + .5f, cell[1] + .5f});
-        long id = sim.convoy().spawn(type, Faction.ALLY, VehicleMission.deployed(cell[0] + .5f, cell[1] + .5f));
-        sim.convoy().body(id).teleport(cell[0] + .5f, cell[1] + .5f, facing);
-        lane.hulls.add(id);
+        lane.hulls.add(allied.deploy(sim, type, cell[0], cell[1], facing));
         return true;
     }
 
@@ -210,86 +205,25 @@ public final class HeartLanes {
         KnownBore bore = lane.ground.target(known(sim), lane.entryX, lane.entryY);
         if (bore == null) return;
         int[] aim = aim(sim, lane.ground, bore);
-        if (aim[0] == lane.armourAimX && aim[1] == lane.armourAimY) return;
         boolean alongY = lane.ground.advancesAlongY();
         int toward = screen == null ? 0 : screen.sign();
         int count = lane.hulls.size() + lane.mechs.size(), i = 0;
-        boolean routed = true;
+        // The allied command drives each machine to its post and fights it from there; it re-orders only
+        // when a post has moved, and pulls a goal the woods bar back toward the machine.
         for (long hull : lane.hulls) {
             int[] at = station(aim, alongY, toward, i++, count);
             if (sim.convoy().structure(hull) <= 0f) continue;
-            routed &= route(sim, hull, at[0], at[1], alongY, toward);
+            allied.station(sim, hull, at[0], at[1]);
         }
-        // An aim is kept only once every hull has a route to it; one that found none tries again next time.
-        if (routed) {
-            lane.armourAimX = aim[0];
-            lane.armourAimY = aim[1];
-        }
-        for (int squad : lane.mechs) {
+        for (long mech : lane.mechs) {
             int[] at = station(aim, alongY, toward, i++, count);
-            if (sim.squadMemberCount(squad) == 0) continue;
-            int[] stand = standable(sim, at, alongY, toward);
-            if (stand == null) continue;
-            sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad, stand[0], stand[1]),
-                    CommandAuthority.GARRISON, ISSUER, "lane " + lane.number + " walker comes up");
+            allied.stationMech(sim, mech, at[0], at[1]);
         }
-    }
-
-    /** The nearest ground a Hound can stand on at {@code at}, pulled back along the advance where the woods bar it. */
-    private static int[] standable(BattleSimulation sim, int[] at, boolean alongY, int toward) {
-        for (int k = 0; k <= FALLBACK_STEPS; k++) {
-            int back = toward * FALLBACK_STEP * k;
-            int gx = alongY ? at[0] : at[0] - back, gy = alongY ? at[1] - back : at[1];
-            MechSpawnPlacement.Point p = MechSpawnPlacement.nearCell(sim.getGrid(), MechVariant.HOUND.radius, gx, gy,
-                    (px, py) -> true, (px, py) -> true);
-            if (p != null) return new int[]{p.cellX(), p.cellY()};
-        }
-        return null;
     }
 
     private static int[] station(int[] aim, boolean alongY, int toward, int i, int count) {
         int across = Math.round((i - (count - 1) / 2f) * ARMOUR_SPACING), back = -toward * ARMOUR_BEHIND;
         return alongY ? new int[]{aim[0] + across, aim[1] + back} : new int[]{aim[0] + back, aim[1] + across};
-    }
-
-    /** Plans a hull's drive to {@code (x, y)} round what it cannot cross; a hull with no route holds. */
-    /** How far a hull's goal is pulled back toward the start line, a step at a time, when the woods bar it. */
-    static final int FALLBACK_STEP = 6, FALLBACK_STEPS = 12;
-
-    /**
-     * Drives a hull to {@code (x, y)}, or as far toward it as it can: a goal it has no route to is pulled
-     * back along the advance a step at a time, since the forest's crowns bar hulls and its rides and
-     * clearings do not. False when no step finds a route.
-     */
-    private boolean route(BattleSimulation sim, long hull, int x, int y, boolean alongY, int toward) {
-        GroundBody body = sim.convoy().body(hull);
-        float here = alongY ? body.y : body.x;
-        for (int k = 0; k <= FALLBACK_STEPS; k++) {
-            int back = toward * FALLBACK_STEP * k;
-            int gx = alongY ? x : x - back, gy = alongY ? y - back : y;
-            // Never back off: a goal no further on than the hull stands is where it already is.
-            if (k > 0 && toward * ((alongY ? gy : gx) - here) <= 0) return true;
-            if (routeTo(sim, hull, gx, gy)) return true;
-        }
-        return false;
-    }
-
-    private boolean routeTo(BattleSimulation sim, long hull, int x, int y) {
-        VehicleType type = sim.convoy().vehicleType(hull);
-        VehicleClearance clearance = clearance(sim, type);
-        GroundBody body = sim.convoy().body(hull);
-        int[] from = VehicleRoutePlanner.snapToMask(clearance, (int) body.x, (int) body.y, 6);
-        int[] to = VehicleRoutePlanner.snapToMask(clearance, x, y, 8);
-        if (from == null || to == null) return false;
-        if (Math.abs(from[0] - to[0]) <= 1 && Math.abs(from[1] - to[1]) <= 1) return true;
-        if (costs == null) costs = TerrainCostField.from(sim.getTopology());
-        float[][] path = VehicleRoutePlanner.routeDrivable(from[0], from[1], to[0], to[1], sim.getGrid(), costs, clearance, type);
-        if (path == null) return false;
-        VehicleMission mission = sim.convoy().mission(hull);
-        mission.authoredRouteX = path[0];
-        mission.authoredRouteY = path[1];
-        mission.authoredRoutePaused = false;
-        return true;
     }
 
     /** Where armour has been set down, so no two machines start on each other. */
@@ -302,7 +236,8 @@ public final class HeartLanes {
     }
 
     private final Map<Integer, VehicleClearance> clearances = new HashMap<>();
-    private TerrainCostField costs;
+    /** Drives and fights the lanes' hulls (`allied-command.md`). */
+    private final AlliedCommand allied = new AlliedCommand(ISSUER);
 
     private VehicleClearance clearance(BattleSimulation sim, VehicleType type) {
         int radius = VehicleClearance.radiusForWidth(type.visualWidthCells);
