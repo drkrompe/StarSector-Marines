@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, deployed APC, friendly Warship, and drone Tende
 
 Written: 2026-09-23
 
-Updated: 2026-10-23 — the ground aim reticle: one mark per mouse button, coloured by what a click would do; the scatter ring takes its palette.
+Updated: 2026-10-23 — the ground aim reticle: a side tick per mouse button, coloured by what a click would do; the scatter ring takes its palette.
 
 Direct control lets the player temporarily inhabit one of their ground units, or a
 friendly capital hovering over the battle, in
@@ -165,13 +165,17 @@ an arcing rack flies over walls and draws no lane.
 
 On a ground body the crosshair is an **aim reticle** that answers, per mouse
 button, what a click would do now: one **mark** per button, read from that
-button's current pick, around a neutral centre dot on the aim point (owner,
-2026-10-23). A button with nothing on it draws no mark. **White** fires well,
+button's current pick, as a short tick either side of a neutral centre dot on
+the aim point, the left tick for the left button and the right tick for the
+right (owner, 2026-10-23; side ticks chosen over split brackets and concentric
+rings). A button with nothing on it draws no mark. **White** fires well,
 inside optimal range; **yellow** fires with accuracy falling off, between
 optimal and maximum range; **red** fires but is wasted, past maximum range, and
-carries a short outward tick; **grey** will not fire: too close (inside a manual
-minimum), out of the mount's alignment, barrel blocked, or out of ammunition.
-Grey is also drawn thin and broken, so it does not rest on hue. LINKED, or any
+carries a short bar across its outer end; **grey** will not fire: too close
+(inside a manual minimum), out of the mount's alignment, barrel blocked, or out
+of ammunition. Grey is also drawn broken, so it does not rest on hue. Every tick
+sits on a dark outline, which keeps a grey tick from vanishing on busy or light
+ground. LINKED, or any
 pick of several mounts, shows the best mark among them and is grey only when
 none would fire. Cooldown, reload, burst and flux never change a mark: those
 are clocks, and the panel's ammunition strips own them, so a Marine's empty
@@ -183,10 +187,8 @@ keeps 80% of its point-blank chance of landing on one body (half a cell,
 widened by the round's blast radius). The manual error disk is sized at weapon
 range from the weapon's accuracy and spread there and scales with distance, so
 the chance is the share of the disk the body covers; a weapon that stays on
-target to maximum range has no yellow band. The shape is on the owner's picks
-page (split brackets `[ · ]`, the left bracket the left button; built on
-meanwhile), against concentric rings and side ticks. Warship and tender
-reticles are out of this model.
+target to maximum range has no yellow band. Warship and tender reticles are out
+of this model.
 
 When an armed mount's rounds burst where they are thrown (rockets and LRM
 racks), a **scatter ring** circles the cursor at the widest landing disk among

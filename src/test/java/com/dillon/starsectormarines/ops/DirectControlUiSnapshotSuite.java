@@ -344,11 +344,11 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         WeaponDef weapon = type.turretStructure().mount.weapon;
         var marks = new DirectControlFireMarks.Marks(DirectControlFireMarks.of(!ManualPointFire.tooClose(weapon, cells),
                 cells, ManualPointFire.optimalRangeCells(weapon), weapon.range), DirectControlFireMarks.Mark.NONE);
-        strokes.addAll(DirectControlReticle.strokes(DirectControlReticle.LIVE, marks, aimX, aimY,
+        strokes.addAll(DirectControlReticle.strokes(marks, aimX, aimY,
                 DirectControlPanel.controlledColor()));
         for (var stroke : strokes) {
             Color c = stroke.color();
-            graphics.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), Math.round(255 * 0.8f)));
+            graphics.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), Math.round(c.getAlpha() * 0.8f)));
             graphics.setStroke(new BasicStroke(stroke.width()));
             graphics.draw(new Line2D.Float(stroke.x(), stroke.y(), stroke.endX(), stroke.endY()));
         }

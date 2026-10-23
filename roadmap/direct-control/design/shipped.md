@@ -14,3 +14,4 @@ Written: 2026-09-26
 | `controlled-mech.md` | 2026-09-26 | this commit | `direct-control-nouns.md` — Mech control and handback; `mechs-nouns.md` — autonomous lance ownership; `ballistics-nouns.md` — posed mount sources |
 | `controlled-vehicle.md` | 2026-09-26 | this commit | `direct-control-nouns.md` — deployed APC control; `convoy-nouns.md` — swept motion, turret ownership, and suspended-order handback |
 | `click-weapon-groups` | 2026-10-12 | this commit | `direct-control-nouns.md` — mouse buttons and weapon groups (Mech primary/secondary groups, Marine secondary equipment) |
+| `aim-reticle.md` | 2026-10-23 | this commit | `direct-control-nouns.md` — the aim reticle and scatter ring paragraphs (side ticks, marks, derived optimal range) |
