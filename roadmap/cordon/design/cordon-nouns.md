@@ -322,6 +322,24 @@ standing on its apron, refused a route, with the shed's lane jammed behind).
 That proof keeps clear of walls along cell edges as well as walled cells, as a
 hull's body does.
 
+**The line stands on a ridge** (`cordon-map-intent.md`, The line on the high
+ground). A low ridge (`elevation-nouns.md`, Ridges) runs edge to edge along the
+line: through each redoubt at the depth of its middle and straight between
+neighbours, the course the picket lines are dug along, a cell to the front of
+it. It is a layout piece raised in the works phase before the lines are laid,
+so each picket trench, its parapet and its wire stand on the crest with the
+front's cliff just beyond the wire, and its ramps (wide enough for a tank)
+climb from the rear. Wherever a road, a redoubt, a structure or a place crosses
+the band it breaks into a pass, so the redoubts stand in the passes at their
+roads with the crest running off either side, and the swarm meets a cliff
+everywhere else. The redoubts themselves are on the low ground of their pass:
+a place is built before elevation goes down, and elevation never touches
+built ground. In open country the band's ground is held before the places grow
+(`Landscape.held`); in a town only the fields keep off it, since holding it
+from the town's growth cost five pooled town maps their Cordon, so a town's
+ridge rises only on the stretches its streets and houses leave open. A city's
+height is its buildings: an urban line has no ridge.
+
 The Road keeps the colony's civil-defence compound on the town's near side
 (depth 0.6 to 0.7). Its **corridor** (CordonCorridor) is found on the
 finished map, not carved: the cheapest way a truck can drive from where the

@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.cordon;
 import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationPlan;
+import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 import com.dillon.starsectormarines.battle.world.gen.layout.Deferred;
 import com.dillon.starsectormarines.battle.world.gen.layout.Endpoint;
@@ -13,6 +15,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.LineStyle;
 import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayout;
 import com.dillon.starsectormarines.battle.world.gen.layout.Phase;
 import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
+import com.dillon.starsectormarines.battle.world.gen.layout.Ridge;
 import com.dillon.starsectormarines.battle.world.gen.layout.Road;
 import com.dillon.starsectormarines.battle.world.gen.layout.Side;
 import com.dillon.starsectormarines.battle.world.gen.layout.Site;
@@ -108,18 +111,24 @@ public final class CordonPlan {
      * infantry and walkers more than for wheels.
      */
     public enum Density {
-        RURAL(null, COLONY_GROWTH, HAMLET_GROWTH),
+        RURAL(null, COLONY_GROWTH, HAMLET_GROWTH, true),
         TOWN(new GrownTrunkPlan.Profile(5, 0.6f, 0.04f, 0.1f, 0.4f, 10, SettlementLink.ROAD),
                 new GrownTrunkPlan.Profile(10, 0.7f, 0.06f, 0.13f, 0.4f, 14, SettlementLink.ROAD),
-                new GrownTrunkPlan.Profile(6, 0.6f, 0.05f, 0.11f, 0.4f, 10, SettlementLink.ROAD)),
+                new GrownTrunkPlan.Profile(6, 0.6f, 0.05f, 0.11f, 0.4f, 10, SettlementLink.ROAD), true),
         URBAN(GrownTrunkPlan.Profile.city(),
                 GrownTrunkPlan.Profile.city(),
-                GrownTrunkPlan.Profile.of(0.9f, SettlementLink.ROAD));
+                GrownTrunkPlan.Profile.of(0.9f, SettlementLink.ROAD), false);
 
         /** Growth of the built ground the line runs through, or null where it runs through fields. */
         final GrownTrunkPlan.Profile lineGrowth;
         final GrownTrunkPlan.Profile colonyGrowth;
         final GrownTrunkPlan.Profile placeGrowth;
+        /**
+         * Whether the line stands on a ridge. A city's height is its buildings (`elevation-nouns.md`): an urban
+         * line is built across the whole width, every stretch of a ridge there would be broken, and ground held
+         * for one would gut the streets the line is fought in.
+         */
+        final boolean ridge;
 
         /** Smallest vanilla market size that is a town world, and a city. */
         static final int TOWN_SIZE = 5, URBAN_SIZE = 7;
@@ -130,10 +139,11 @@ public final class CordonPlan {
         }
 
         Density(GrownTrunkPlan.Profile lineGrowth, GrownTrunkPlan.Profile colonyGrowth,
-                GrownTrunkPlan.Profile placeGrowth) {
+                GrownTrunkPlan.Profile placeGrowth, boolean ridge) {
             this.lineGrowth = lineGrowth;
             this.colonyGrowth = colonyGrowth;
             this.placeGrowth = placeGrowth;
+            this.ridge = ridge;
         }
     }
 
@@ -189,8 +199,86 @@ public final class CordonPlan {
                     REDOUBT_GROWTH, FortressProgram.civilDefence(),
                     new Fortification(CivilDefenceCompound.GATES, CivilDefenceCompound.WALL_HP).laidSquare()));
         }
-        return PrecinctPlan.laidOut(places, south ? MapPlacement.SOUTH : MapPlacement.NORTH,
+        PrecinctPlan plan = PrecinctPlan.laidOut(places, south ? MapPlacement.SOUTH : MapPlacement.NORTH,
                 LandingKind.OPEN_FIELD, width, height, rng).withLayout(layout(south, density, variant));
+        if (!density.ridge) return plan;
+        List<int[]> seeds = new ArrayList<>();
+        for (Precinct r : redoubts(plan)) seeds.add(new int[]{r.seedX(), r.seedY(), r.seedX(), r.seedY()});
+        List<RidgePlanner.Band> held = heldBands(seeds, new int[]{0, south ? 1 : -1}, width);
+        // In open country the band is held from everything that grows; a town's places grow as they would and only
+        // its fields keep off (held from its growth, five of the pooled town maps lost their Cordon).
+        return plan.withLandscape(density == Density.RURAL ? plan.landscape().withHeld(held)
+                : plan.landscape().withUnploughed(held));
+    }
+
+    /** The ridge the line stands on ({@code cordon-map-intent.md}, The line on the high ground). */
+    public static final String RIDGE = "line-ridge";
+    /** Cells through the ridge, rear to front: room on its crest for the trench, its parapet and its wire. */
+    static final int RIDGE_THICKNESS = 16;
+    /**
+     * Cells the ridge's middle lies in front of the picket courses' line, so the trench and the ground worked
+     * behind it stand on the crest and the wire just behind its front edge.
+     */
+    static final int RIDGE_FORWARD = 1;
+    /** Cells across each ridge segment's ramp, climbed from the rear: wide enough for a tank. */
+    static final int RIDGE_RAMP_WIDTH = 9;
+    /** Cells through the ground held for the ridge before the places grow: the ridge's own, with room for a claim off its seed. */
+    static final int HELD_THICKNESS = 24;
+    /** Cells kept from the map's side edges by the ridge's path. */
+    static final int RIDGE_EDGE = 2;
+
+    /**
+     * The ridge along the line: from the map's west edge to its east, through
+     * each redoubt at the depth of its middle and straight between neighbours'
+     * facing edges, which is the course each picket line is dug along, lying
+     * {@link #RIDGE_FORWARD} cells to the front of it. Climbed from the rear.
+     * The redoubts and the roads through the line break it into passes when it
+     * is raised.
+     *
+     * @param bounds each redoubt's claimed ground west to east, {x0, y0, x1, y1} inclusive
+     * @param front  the unit step toward the front, {0, +1} or {0, -1}
+     */
+    static RidgePlanner.Band ridgeBand(List<int[]> bounds, int[] front, int width) {
+        return new RidgePlanner.Band(path(bounds, front, width), RIDGE_THICKNESS, -front[1], RIDGE_RAMP_WIDTH);
+    }
+
+    /**
+     * The ground held for the ridge before the places grow: the same course
+     * through the redoubts' seeds, thick enough that the ridge raised off their
+     * claims lies inside it. None unless every redoubt has its seed.
+     */
+    static List<RidgePlanner.Band> heldBands(List<int[]> seeds, int[] front, int width) {
+        if (seeds.size() != REDOUBTS) return List.of();
+        return List.of(new RidgePlanner.Band(path(seeds, front, width), HELD_THICKNESS, -front[1], RIDGE_RAMP_WIDTH));
+    }
+
+    /**
+     * West edge, each box's west and east edge at its middle depth, east edge;
+     * shifted {@link #RIDGE_FORWARD} cells to the front.
+     */
+    private static List<ElevationPlan.Point> path(List<int[]> bounds, int[] front, int width) {
+        List<ElevationPlan.Point> path = new ArrayList<>();
+        double shift = front[1] * (double) RIDGE_FORWARD;
+        int[] first = bounds.get(0), last = bounds.get(bounds.size() - 1);
+        path.add(new ElevationPlan.Point(RIDGE_EDGE, (first[1] + first[3]) / 2 + shift));
+        for (int[] b : bounds) {
+            double y = (b[1] + b[3]) / 2 + shift;
+            path.add(new ElevationPlan.Point(b[0] - 1, y));
+            path.add(new ElevationPlan.Point(b[2] + 1, y));
+        }
+        path.add(new ElevationPlan.Point(width - 1 - RIDGE_EDGE, (last[1] + last[3]) / 2 + shift));
+        return path;
+    }
+
+    /** The ridge resolved off the redoubts' claimed ground, or none when a redoubt has none. */
+    static List<Piece> ridge(LayoutGround ground, int[] front) {
+        List<int[]> bounds = new ArrayList<>();
+        for (int n = 1; n <= REDOUBTS; n++) {
+            int[] b = ground.claimBounds(REDOUBT_PLACE + n);
+            if (b == null) return List.of();
+            bounds.add(b);
+        }
+        return List.of(new Ridge(RIDGE, ridgeBand(bounds, front, ground.width()), false));
     }
 
     /** The layout's picket courses, resolved once the redoubts have claimed their ground. */
@@ -266,6 +354,7 @@ public final class CordonPlan {
         if (variant == CordonVariant.ROAD) {
             pieces.add(new Deferred(CORRIDOR_PIECES, Phase.WORKS, CordonSetPieces::corridorPieces, false));
         }
+        if (density.ridge) pieces.add(new Deferred(RIDGE, Phase.WORKS, ground -> ridge(ground, front), false));
         pieces.add(new Deferred(PICKETS, Phase.WORKS, ground -> pickets(ground, front, style, streets), false));
         pieces.add(new Deferred(SWITCH, Phase.WORKS, ground -> switchLine(ground, front, fallback, streets), false));
         return new MissionLayout(pieces);
