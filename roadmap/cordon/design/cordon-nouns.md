@@ -59,10 +59,16 @@ a ground colony's spines open it. Each redoubt is numbered across the line from
 west to east, from 1.
 
 **Picket line.** The ground between two neighbouring redoubts, held by works
-rather than walls: a sandbag course with a nest at each end, the outer belt of
-`forts.md` run out from one redoubt to the next (`fortified-lines.md`). A
+rather than walls, run from one redoubt's claimed edge to the next's at their
+depth and facing the front, with a nest at each end of every run
+(`fortified-lines.md`). The mission lays it through its layout
+(`mission-layout.md`) once the redoubts stand; what it is built of follows the
+density: a trench with wire in front, opened in funnels, across rural and town
+country, and a sandbag course in a city, where the buildings break it. A
 picket line is broken by gaps the roads pass through, so the line is a set of
-prepared positions, never a wall: routes through always exist. A picket team
+prepared positions, never a wall: routes through always exist, and works that
+would seal the ground are not laid. A picket line is optional: one the town
+breaks is still a Cordon. A picket team
 mans its course under the same order a holdout's line team has, and falls back
 into the nearer redoubt when it breaks.
 

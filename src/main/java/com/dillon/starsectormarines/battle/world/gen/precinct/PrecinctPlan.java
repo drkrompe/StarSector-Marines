@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
+import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayout;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,7 +33,7 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
                            Standoff standoff, Lanes lanes,
                            List<String> unplacedLanePlaces,
                            List<String> movedLaneWaypoints,
-                           Landscape landscape) {
+                           Landscape landscape, MissionLayout layout) {
 
     public PrecinctPlan {
         precincts = List.copyOf(precincts);
@@ -46,6 +47,17 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
                 ? List.of() : List.copyOf(movedLaneWaypoints);
         // A plan that says nothing about its country gets the stock landscape.
         if (landscape == null) landscape = Landscape.STOCK;
+        // And no mission layout: the layout stage is not run at all.
+        if (layout == null) layout = MissionLayout.NONE;
+    }
+
+    /** A plan with every lane diagnostic and a stated landscape, and no mission layout. */
+    public PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
+                        Standoff standoff, Lanes lanes,
+                        List<String> unplacedLanePlaces,
+                        List<String> movedLaneWaypoints,
+                        Landscape landscape) {
+        this(precincts, attackerFrom, standoff, lanes, unplacedLanePlaces, movedLaneWaypoints, landscape, null);
     }
 
     /** A plan with every lane diagnostic and the stock landscape. */
@@ -53,7 +65,7 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
                         Standoff standoff, Lanes lanes,
                         List<String> unplacedLanePlaces,
                         List<String> movedLaneWaypoints) {
-        this(precincts, attackerFrom, standoff, lanes, unplacedLanePlaces, movedLaneWaypoints, null);
+        this(precincts, attackerFrom, standoff, lanes, unplacedLanePlaces, movedLaneWaypoints, null, null);
     }
 
     /** A plan whose lane diagnostics are only what could not be seated. */
@@ -96,7 +108,7 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      */
     public PrecinctPlan withStandoff(Standoff standoff) {
         return new PrecinctPlan(precincts, attackerFrom, standoff, lanes,
-                unplacedLanePlaces, movedLaneWaypoints, landscape);
+                unplacedLanePlaces, movedLaneWaypoints, landscape, layout);
     }
 
     /**
@@ -106,7 +118,17 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      */
     public PrecinctPlan withLandscape(Landscape landscape) {
         return new PrecinctPlan(precincts, attackerFrom, standoff, lanes,
-                unplacedLanePlaces, movedLaneWaypoints, landscape);
+                unplacedLanePlaces, movedLaneWaypoints, landscape, layout);
+    }
+
+    /**
+     * The same plan with the structures its mission lays over the grown
+     * country ({@code mission-layout.md}). A mission's statement about its
+     * battle, as a landscape is.
+     */
+    public PrecinctPlan withLayout(MissionLayout layout) {
+        return new PrecinctPlan(precincts, attackerFrom, standoff, lanes,
+                unplacedLanePlaces, movedLaneWaypoints, landscape, layout);
     }
 
     /**

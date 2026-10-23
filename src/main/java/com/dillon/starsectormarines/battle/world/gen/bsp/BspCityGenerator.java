@@ -55,6 +55,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FortressWardStage
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OpeningOperationFacilityStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
+import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayoutStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.RoadSurfaceStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FrontDepthStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InteriorAnchorFitStage;
@@ -604,6 +605,7 @@ public final class BspCityGenerator implements MapGenerator {
         // omits the conquest-only stages rather than running them as no-ops).
         GenRecipe recipe = recipeFor(axis, profile, precincts);
         if (openingPlan != null) recipe = openingOperationRecipe(recipe);
+        if (precincts != null && !precincts.layout().isEmpty()) recipe = missionLayoutRecipe(recipe);
         recipe.run(ctx);
         if (axis != null) requireExactlyOneCentralKeep(ctx);
         if (precincts != null && precincts.objective() != null) {
@@ -642,6 +644,25 @@ public final class BspCityGenerator implements MapGenerator {
             throw new IllegalStateException("base city recipe has no FinalizeStage");
         }
         return new GenRecipe("FirstContractOpening", stages);
+    }
+
+    /**
+     * The recipe with the mission layout laid between the finished lane routes
+     * and the landscape ({@code mission-layout.md}). Added only for a plan that
+     * states a layout, so every other map runs exactly the recipe it did.
+     */
+    private static GenRecipe missionLayoutRecipe(GenRecipe base) {
+        List<GenStage> stages = new ArrayList<>(base.stages().size() + 1);
+        boolean inserted = false;
+        for (GenStage stage : base.stages()) {
+            if (stage instanceof OutdoorLandscapeStage && !inserted) {
+                stages.add(new MissionLayoutStage());
+                inserted = true;
+            }
+            stages.add(stage);
+        }
+        if (!inserted) throw new IllegalStateException("recipe " + base.name() + " has no landscape stage to lay a layout before");
+        return new GenRecipe(base.name(), stages);
     }
 
     private record GeneratedMap(MapResult map, PointOfInterest openingPlace) {}
@@ -806,7 +827,8 @@ public final class BspCityGenerator implements MapGenerator {
                 biomeMap, ctx.gantries, ctx.fixtureTasks,
                 ctx.runways, ctx.shelters, ctx.get(BspKeys.VEHICLE_CORRIDOR),
                 ctx.get(BspKeys.FRONT_DEPTH), ctx.get(BspKeys.LANES))
-                .withFieldOfFire(FieldOfFire.of(ctx.get(BspKeys.PRECINCTS)));
+                .withFieldOfFire(FieldOfFire.of(ctx.get(BspKeys.PRECINCTS)))
+                .withLayout(ctx.get(BspKeys.MISSION_LAYOUT_LAID));
 
         this.lastBiomeMap = biomeMap;
         this.lastDistrictMap = ctx.get(BspKeys.DISTRICT_MAP);

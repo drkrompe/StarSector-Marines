@@ -47,6 +47,58 @@ public final class PreparedGround {
         ctx.doodads.add(new Doodad(worldX, worldY, def));
     }
 
+    /** Whether the world cell is open enough to take a prop: in bounds, walkable, not a doorway, fixture or wall. */
+    public static boolean open(GenContext ctx, int x, int y) {
+        return ctx.grid.inBounds(x, y) && ctx.grid.isWalkable(x, y) && !ctx.grid.isDoorway(x, y)
+                && !ctx.topology.isFixture(x, y) && !ctx.topology.isWall(x, y);
+    }
+
+    /**
+     * A sandbag piece at the world cell, bags toward world direction {@code toward}, and for a corner a second
+     * direction {@code corner} (null for a straight piece). Knee-high cover everyone steps over: the cell stays
+     * walkable and the doodad supplies the cover. Refused quietly where the cell is not {@linkplain #open open}.
+     */
+    public static boolean sandbag(GenContext ctx, int x, int y, int[] toward, int[] corner) {
+        if (!open(ctx, x, y)) return false;
+        String name;
+        if (corner != null && (corner[0] != 0 || corner[1] != 0)) {
+            int[] ns = toward[1] != 0 ? toward : corner;
+            int[] ew = toward[0] != 0 ? toward : corner;
+            name = "corner-" + letter(ns) + letter(ew);
+        } else {
+            name = String.valueOf(letter(toward));
+        }
+        DoodadDef def = TileRegistry.installed().doodad("doodad.fort-sandbag-" + name);
+        if (def == null) return false;
+        ctx.grid.setSeeThrough(x, y, true);
+        ctx.topology.setFixture(x, y, true);
+        ctx.doodads.add(new Doodad(x, y, def));
+        ctx.markMadeGround(x, y);
+        return true;
+    }
+
+    /**
+     * One piece of industrial fence at the world cell, run east-west when {@code horizontal}. Closed to movement, and a
+     * destructible cover prop: shells, charges and heavy bodies open it, the same as any other fence in the city.
+     */
+    public static boolean fence(GenContext ctx, int x, int y, boolean horizontal) {
+        if (!open(ctx, x, y)) return false;
+        DoodadDef def = TileRegistry.installed().doodad("doodad.industrial-fence-straight-" + (horizontal ? "h" : "v"));
+        if (def == null) return false;
+        ctx.grid.setWalkable(x, y, false);
+        ctx.grid.setSeeThrough(x, y, true);
+        ctx.topology.setFixture(x, y, true);
+        ctx.doodads.add(new Doodad(x, y, def));
+        ctx.markMadeGround(x, y);
+        return true;
+    }
+
+    private static char letter(int[] dir) {
+        if (dir[1] > 0) return 'n';
+        if (dir[1] < 0) return 's';
+        return dir[0] > 0 ? 'e' : 'w';
+    }
+
     /** The key {@link #trench} reads its neighbours by. */
     public static long key(int x, int y) {
         return (long) x << 32 | (y & 0xffffffffL);
