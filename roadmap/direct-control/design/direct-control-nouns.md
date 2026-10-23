@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, any player-owned deployed vehicle, friendly War
 
 Written: 2026-09-23
 
-Updated: 2026-10-23 — a Marine's right button cycles smoke, a hand grenade and the shield on E; grenades are a committed manual throw.
+Updated: 2026-10-23 — a Marine's left button toggles into a direct-fire special on Q, its right button cycles smoke, a hand grenade and the shield on E; grenades are a committed manual throw.
 
 Direct control lets the player temporarily inhabit one of their ground units, or a
 friendly capital hovering over the battle, in
@@ -199,9 +199,11 @@ falling-off tick carries less ink), and grey lowest at 60%. LINKED, or any
 pick of several mounts, shows the best mark among them and is grey only when
 none would fire. Cooldown, reload, burst and flux never change a mark: those
 are clocks, and the panel's ammunition strips own them, so a Marine's empty
-magazine is a reload rather than grey. A Marine's left mark is the primary; the
-right mark is the right-button pick: a throw, smoke or a hand grenade (red past
-its throw reach, where it lands short; grey with none left), or the shield. A vehicle's turret is its left mark.
+magazine is a reload rather than grey. A Marine's left mark is its pick: the
+primary, or the special it is on, read at that special's range and accuracy and
+grey once the special is empty; the right mark is the right-button pick: a throw,
+smoke or a hand grenade (red past its throw reach, where it lands short; grey with
+none left), or the shield. A vehicle's turret is its left mark.
 **Optimal range** is derived, not authored: the distance at which a cursor round
 keeps 80% of its point-blank chance of landing on one body (half a cell,
 widened by the round's blast radius). The manual error disk is sized at weapon
@@ -216,9 +218,10 @@ thrown (rockets and LRM racks), the tick **blooms**: it keeps its length and
 thickness and opens away from the dot so that its inner end sits on the widest
 landing disk among them, the way a shooter's crosshair opens, and it never
 opens further than 40 pixels. A vehicle turret's launcher blooms the same way,
-measured from its turret ring. A Marine's picked hand grenade blooms its right
-tick by the grenade's burst radius, so the tick shows what the blast will cover
-(owner, 2026-10-23). Guns, which have no ground burst, keep the
+measured from its turret ring, and so does a Marine's left tick while it is on a
+rocket launcher. A Marine's picked hand grenade blooms its right tick by the
+grenade's burst radius, so the tick shows what the blast will cover (owner,
+2026-10-23). Guns, which have no ground burst, keep the
 resting tick, and so does a grey tick, since a refused trigger lands nothing.
 The spread is the clear-air figure; smoke on a rocket's lane widens it. Bloom
 was chosen over a tick that grows longer instead (owner, 2026-10-23).
@@ -523,10 +526,9 @@ dropped when its mount is no longer what either trigger's pick fires. Repeated
 input cannot replay a cancelled burst. Neither picks nor groups change the
 installed equipment, authored packet size, or AI firing policy. The authored
 single shot, timed burst, or simultaneous volley remains distinct from this
-player choice. A vehicle's triggers have single-member lists for now, and a
-warship has no cycle, so Q and E do nothing there. A Marine's right button has its
-own list (below); the Marine's direct-fire specials join its left button under
-`weapon-cycling.md`.
+player choice. A vehicle's trigger has a single-member list for now and a warship
+has no cycle, so Q and E do nothing there. A Marine's left and right lists are
+described below.
 
 The weapon-groups panel lists each mount under the button whose list it is in:
 an LMB group (guns), an RMB group (racks), and OTHER MOUNTS for a hardpoint
@@ -535,9 +537,34 @@ for example `LMB  LINKED  [Q]` or `LMB  R arm Chaingun  [Q]`, and `[E]` on the R
 named with its hardpoint when another member shares its name). The picked rows
 carry the wash; the others, which hold fire, dim. Gun rows carry their number
 key. Clicking a trigger header cycles it, clicking a gun row is its number key,
-and clicking a rack row picks that rack.
+and clicking a rack row picks that rack. A Marine with a direct-fire special
+shows an LMB group of the primary and each special, under the same header; a
+special's row draws its rockets as missiles and its rifle rounds as cartridges,
+as the doll's kit column does, and its clock is the readying and then the
+cooldown.
 
-A Marine's primary weapon stays on the left button. The right button holds the
+A Marine's left button **toggles into a secondary weapon** (owner, 2026-10-23).
+Its list is the primary and then each direct-fire special the Marine carries that
+spends ammunition, rockets before anti-materiel rifles, with no LINKED: one pair
+of hands fires one weapon. Q steps through it and wraps to the primary; key 1 is
+the primary and key 2 the special. A picked special is under a **manual
+contract**. Picking it readies it over its authored aim time, and a press then
+fires one round at the cursor through the same point-fire path a company uses to
+open a wall with rockets: the launcher's round bursts at the point or on the
+first thing in its lane, and the rifle's strikes the first body on it. The round
+spends the special's own ammunition and starts its own cooldown. A press made
+while the special is still readying or cooling stays armed for as long as the
+button is held, and a held button fires once. The primary holds while a special
+is picked, and sprinting lowers the special, which is readied again afterwards.
+An empty special keeps the pick and reads EMPTY; it never falls back to the
+primary on its own. The pick resets to the primary on takeover and handback, and
+a special no longer carried returns it there. The controlled Marine **holds the
+picked special** in place of the primary, the launcher on the shoulder or the
+rifle in the hands: raised over the wind-up, through its firing clip for the
+follow-through after a round, and in its aim pose on walking feet while moving.
+Autonomous Marines use their specials through their AI policy as before.
+
+The right button holds the
 Marine's **thrown and utility items** (owner, 2026-10-23): grenades are a throw, not
 a gun, so they sit beside smoke and the shield. Its list is, in this order, carried
 smoke, a carried hand grenade (frag or incendiary), then the integral shield; only
@@ -689,9 +716,10 @@ weapon-groups panel, titled SHIP SYSTEMS, holds read-only rows for the gun batte
 the automation (director, missile preset, ground-fire policy), each with its laid area
 or a no-area/auto note and a readiness fill. Armour is a rating in this model and is
 never spent down, so its line is shown whole. The camera frames the hull by its beam so
-the cursor can lead beyond the bow. The hull outline, the two laid rings and a
-crosshair are drawn in the world; there is no aim lane, since a ship fires on ground
-and not along a line. The F6-F11 debug keys of the debug mission still work outside
+the cursor can lead beyond the bow. The two laid rings and a crosshair are drawn
+in the world; there is no aim lane, since a ship fires on ground and not along a
+line, and no hull outline, since the camera is leashed to the piloted ship. Its
+selection circle belongs to the strategic view and stays there. The F6-F11 debug keys of the debug mission still work outside
 control and are hidden during it.
 
 ### Tender

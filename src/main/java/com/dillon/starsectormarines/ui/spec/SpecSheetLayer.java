@@ -271,6 +271,7 @@ public final class SpecSheetLayer {
         Objects.requireNonNull(sheet, "sheet");
         Objects.requireNonNull(anchor, "anchor");
         fill(sheet);
+        raiseToTop();
         root.removeClass(HIDDEN_CLASS);
         root.style("left: 0px; top: 0px");
         relayout();
@@ -278,6 +279,19 @@ public final class SpecSheetLayer {
         relayout();
         place(anchor.box().borderBox(), measuredHeight());
         relayout();
+    }
+
+    /**
+     * Keeps the overlay last in paint order. Being added last at install is not
+     * enough: a screen mounts its tutorial shade and callout on the same root
+     * afterwards ({@code PreparationGuide}), and the shade then dimmed every part
+     * of an open sheet that lay outside the spotlit region.
+     */
+    private void raiseToTop() {
+        UiElement parent = root.parent();
+        if (parent == null) return;
+        List<UiElement> siblings = parent.children();
+        if (siblings.get(siblings.size() - 1) != root) parent.child(root);
     }
 
     /** Closes the overlay, leaving its filled content retained for reuse. */

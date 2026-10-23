@@ -193,8 +193,8 @@ final class BattleDirectControlHudModel {
             else other.add(weapon);
         }
         List<WeaponGroup> result = new ArrayList<>();
-        result.add(triggerGroup(snapshot, FireTrigger.LEFT, left, unknown, selected));
-        if (!right.isEmpty()) result.add(triggerGroup(snapshot, FireTrigger.RIGHT, right, false, 0));
+        result.add(triggerGroup(snapshot, FireTrigger.LEFT, left, unknown, selected, true));
+        if (!right.isEmpty()) result.add(triggerGroup(snapshot, FireTrigger.RIGHT, right, false, 0, true));
         if (!other.isEmpty()) {
             List<WeaponRow> rows = new ArrayList<>();
             for (WeaponStatus weapon : other) rows.add(weaponRow(weapon, true, false, false, "", () -> { }));
@@ -205,11 +205,13 @@ final class BattleDirectControlHudModel {
     }
 
     /**
-     * One trigger's header and rows. Its list is LINKED and then each member, so a left member's
-     * number key is its place after key 1; a group of one has only key 1.
+     * One trigger's header and rows. A mech's list is LINKED and then each member, so a left member's
+     * number key is its place after key 1; a group of one has only key 1. A Marine's left list has no
+     * LINKED ({@code linkedFirst} false): the primary is key 1 and each special the next.
      */
     private WeaponGroup triggerGroup(BattleDirectControlStatus.Snapshot snapshot, FireTrigger trigger,
-                                     List<WeaponStatus> members, boolean unknown, int selected) {
+                                     List<WeaponStatus> members, boolean unknown, int selected,
+                                     boolean linkedFirst) {
         boolean leftButton = trigger == FireTrigger.LEFT;
         String letter = leftButton ? "L" : "R";
         List<Boolean> picked = new ArrayList<>(members.size());
@@ -233,7 +235,7 @@ final class BattleDirectControlHudModel {
         List<WeaponRow> rows = new ArrayList<>();
         for (int i = 0; i < members.size(); i++) {
             WeaponStatus weapon = members.get(i);
-            int keyIndex = cycles ? i + 1 : 0;
+            int keyIndex = cycles && linkedFirst ? i + 1 : i;
             String key = leftButton ? String.valueOf(keyIndex + 1) : "";
             Runnable action = leftButton ? () -> select.select(keyIndex)
                     : () -> select.pick(trigger, weapon.number());
@@ -277,6 +279,12 @@ final class BattleDirectControlHudModel {
     /** Single-weapon carriers: the left button's weapon, then keyed abilities or a ship's systems. */
     private List<WeaponGroup> otherGroups(BattleDirectControlStatus.Snapshot snapshot, boolean ship) {
         List<WeaponGroup> result = new ArrayList<>();
+        if (snapshot.carrier() == Carrier.MARINE && snapshot.weapons().size() > 1) {
+            // A Marine with a direct-fire special: Q cycles the left button from the primary to it.
+            result.add(triggerGroup(snapshot, FireTrigger.LEFT, snapshot.weapons(), false, 0, false));
+            addAbilities(snapshot, result);
+            return result;
+        }
         List<WeaponRow> fire = new ArrayList<>();
         for (WeaponStatus weapon : snapshot.weapons()) {
             fire.add(weaponRow(weapon, false, false, false, "", () -> select.select(weapon.number())));
@@ -291,9 +299,15 @@ final class BattleDirectControlHudModel {
             result.add(new WeaponGroup("direct-hud-group-systems", "", "badge badge-none",
                     label("GroupSystems"), "", "group-header", false, () -> {}, systems));
         }
+        addAbilities(snapshot, result);
+        return result;
+    }
+
+    /** A Marine's right-button items under RMB; another body's keyed abilities under KEYS, when it has any. */
+    private void addAbilities(BattleDirectControlStatus.Snapshot snapshot, List<WeaponGroup> result) {
         if (snapshot.carrier() == Carrier.MARINE) {
             if (!snapshot.abilities().isEmpty()) result.add(marineRightGroup(snapshot.abilities()));
-            return result;
+            return;
         }
         List<WeaponRow> abilities = new ArrayList<>();
         for (var ability : snapshot.abilities()) abilities.add(abilityRow(ability, false, false, () -> {}));
@@ -301,7 +315,6 @@ final class BattleDirectControlHudModel {
             result.add(new WeaponGroup("direct-hud-group-abilities", label("BadgeKeys"), "badge badge-keys",
                     label("GroupAbilities"), "", "group-header", false, () -> {}, abilities));
         }
-        return result;
     }
 
     /** {@code dimmed}: a member its trigger's pick leaves out, which holds fire. */

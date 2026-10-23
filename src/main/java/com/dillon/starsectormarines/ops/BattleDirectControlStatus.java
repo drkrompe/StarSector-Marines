@@ -233,6 +233,13 @@ final class BattleDirectControlStatus {
             return cooldownSeconds > 0f ? WeaponState.CYCLING : WeaponState.LOADED;
         }
 
+        /** The same status on button list {@code group}, picked when {@code trigger} names that button. */
+        WeaponStatus onList(String trigger, String group) {
+            return new WeaponStatus(number, slotKey, name, behavior, directEligible, cooldownSeconds,
+                    cycleDurationSeconds, burstRemaining, burstSeconds, ammo, fluxBlocked, mechanism, trigger,
+                    tooClose, reloading, group, heldRounds);
+        }
+
         /** The button whose list this weapon is in, read off its trigger when the status carries no group. */
         String listedOn() { return group.isEmpty() ? trigger : group; }
 
@@ -280,10 +287,48 @@ final class BattleDirectControlStatus {
                 : List.of(marineWeapon(primary, combat.equipmentGrade(id), combat.cooldownTimer(id),
                 combat.attackCooldown(id), combat.burstRemaining(id), combat.burstTimer(id),
                 combat.roundsLoaded(id), combat.reloadTimer(id), combat.reloadSeconds(id)));
+        weapons = marineLeftList(sim, id, weapons);
         return new Snapshot(id, name, Carrier.MARINE, durability, weapons,
                 marineAbilities(sim.getRoster(), id, sim.directControl()::canUseAbility,
                         sim.directControl().marineRightPick(), sim.directControl().manualThrowActive()),
                 sim.directControl().sprintStatus());
+    }
+
+    /**
+     * A Marine's left button list: the primary, then each direct-fire special Q cycles to, the picked one
+     * marked {@code L}. A Marine with no such special keeps the primary alone, unlisted.
+     */
+    private static List<WeaponStatus> marineLeftList(BattleSimulation sim, long id, List<WeaponStatus> primary) {
+        List<SpecialEquipmentDef> specials = sim.directControl().marineSpecials();
+        if (specials.isEmpty()) return primary;
+        var left = sim.directControl().marineLeft();
+        World world = sim.world();
+        float distance = aimDistance(sim, id);
+        List<WeaponStatus> out = new ArrayList<>(primary.size() + specials.size());
+        for (WeaponStatus weapon : primary) out.add(weapon.onList(left.onSpecial() ? "" : "L", "L"));
+        for (int i = 0; i < specials.size(); i++) {
+            boolean picked = left.pick() == i + 1;
+            out.add(marineSpecial(i + 2, specials.get(i), world.secondaryAmmo(id),
+                    world.secondaryCooldownTimer(id), picked ? left.readiness() : 1f, distance)
+                    .onList(picked ? "L" : "", "L"));
+        }
+        return out;
+    }
+
+    /**
+     * A direct-fire special as a left-button row: its rounds left of what it was issued, and its clock, which
+     * is the readying while it is raised and its cooldown after a round.
+     */
+    static WeaponStatus marineSpecial(int number, SpecialEquipmentDef special, int ammo, float cooldown,
+                                      float readiness, float aimDistance) {
+        WeaponDef weapon = special.weaponDef();
+        float windup = (1f - Math.max(0f, Math.min(1f, readiness))) * special.aimDuration();
+        boolean readying = windup > cooldown;
+        return new WeaponStatus(number, "SPECIAL" + (number - 2), special.displayName(),
+                behavior(weapon, 1), true,
+                readying ? windup : Math.max(0f, cooldown), readying ? special.aimDuration() : special.cooldown(),
+                0, 0f, new Ammo(ammo, special.startingAmmo(), AmmoUnit.ROUNDS, false),
+                false, "", "", ManualPointFire.tooClose(weapon, aimDistance), false);
     }
 
     static List<AbilityStatus> marineAbilities(UnitRosterService roster, long id,

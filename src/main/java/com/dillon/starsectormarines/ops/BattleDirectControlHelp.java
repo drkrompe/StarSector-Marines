@@ -52,6 +52,7 @@ final class BattleDirectControlHelp {
                 add(out, "WASD", "MarineMove");
                 add(out, Strings.get("battleDirectHelpKeyMouse"), "MarineAim");
                 add(out, Strings.get("battleDirectHelpKeyLmbHold"), "MarineFire");
+                add(out, "Q", "MarineCycleLeft");
                 add(out, "RMB", "MarineSecondary");
                 add(out, "C", "MarineShield");
                 add(out, "G", "MarineSmoke");

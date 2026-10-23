@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
 import com.dillon.starsectormarines.battle.vehicle.GroundVehicleTurretSystem;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 
 /**
  * How widely a button's thrown rockets or LRM salvo would land at the cursor: the widest landing disk among the
@@ -28,8 +29,9 @@ public final class DirectControlScatter {
     }
 
     /**
-     * The controlled ground body's spread at its cursor, or none for a warship or no cursor. A Marine's right
-     * button carries a hand grenade's burst radius when the grenade is its pick and it has one to throw.
+     * The controlled ground body's spread at its cursor, or none for a warship or no cursor. A Marine's left
+     * button blooms with a rocket on it; its right button carries a hand grenade's burst radius when the
+     * grenade is its pick and it has one to throw.
      */
     public static Spread read(BattleSimulation sim) {
         if (sim == null || !sim.directControl().active() || sim.directControl().warshipControl()) return Spread.NONE;
@@ -46,9 +48,14 @@ public final class DirectControlScatter {
                     (float) Math.hypot(aim.aimX() - ring.x(), aim.aimY() - ring.y())), -1f);
         }
         if (!sim.world().hasMechLoadout(id)) {
-            return sim.directControl().marineRightPick() == MarineRightTrigger.Item.GRENADE
-                    && sim.world().secondaryAmmo(id) > 0
-                    ? new Spread(-1f, sim.world().specialEquipment(id).aoeRadius()) : Spread.NONE;
+            // A Marine's left button blooms only with a rocket on it; a rifle's round flies a lane.
+            SpecialEquipmentDef picked = sim.directControl().leftSpecial();
+            float reach = (float) Math.hypot(aim.aimX() - sim.world().renderX(id), aim.aimY() - sim.world().renderY(id));
+            float left = picked == null ? -1f : ManualPointFire.scatterRadiusCells(picked.weaponDef(),
+                    DirectControlFireMarks.specialAccuracy(sim, id, picked), reach, 0f);
+            float right = sim.directControl().marineRightPick() == MarineRightTrigger.Item.GRENADE
+                    && sim.world().secondaryAmmo(id) > 0 ? sim.world().specialEquipment(id).aoeRadius() : -1f;
+            return new Spread(left, right);
         }
         float distance = (float) Math.hypot(aim.aimX() - sim.world().renderX(id), aim.aimY() - sim.world().renderY(id));
         var loadout = sim.world().mechLoadout(id);

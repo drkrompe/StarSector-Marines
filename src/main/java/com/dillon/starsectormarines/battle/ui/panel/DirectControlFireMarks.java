@@ -154,7 +154,8 @@ public final class DirectControlFireMarks {
     }
 
     /**
-     * The primary on the left; on the right, the right-button pick: smoke, a hand grenade or the shield.
+     * The primary, or the special the left button is on, on the left; on the right, the right-button pick:
+     * smoke, a hand grenade or the shield.
      * A magazine run dry is a reload, a clock, so the primary is never grey for it.
      */
     private static Marks marine(BattleSimulation sim, long id, float aimX, float aimY) {
@@ -163,7 +164,15 @@ public final class DirectControlFireMarks {
         var combat = sim.combat();
         WeaponDef primary = combat.has(id) ? combat.primaryWeaponDef(id) : null;
         Mark left = Mark.NONE;
-        if (primary != null && PointFireAim.supports(primary)) {
+        SpecialEquipmentDef picked = sim.directControl().leftSpecial();
+        if (picked != null) {
+            // The left button on a special reads the special: its reach, its accuracy, and grey once it is empty.
+            WeaponDef weapon = picked.weaponDef();
+            boolean fires = world.secondaryAmmo(id) > 0 && !ManualPointFire.tooClose(weapon, distance);
+            float optimal = ManualPointFire.optimalRangeCells(weapon.range, specialAccuracy(sim, id, picked), 0f,
+                    weapon.aoeRadius, PointAimDispersion.CONTROLLED);
+            left = of(fires, distance, optimal, weapon.range);
+        } else if (primary != null && PointFireAim.supports(primary)) {
             float range = world.attackRange(id);
             float accuracy = RangeFalloff.accuracy(world.accuracy(id), primary.accuracyFalloff, range, range);
             float spread = InfantryCombatStats.spread(primary, combat.equipmentGrade(id), combat.soldierProfile(id));
@@ -172,6 +181,12 @@ public final class DirectControlFireMarks {
             left = of(true, distance, optimal, range);
         }
         return new Marks(left, marineSecondary(sim, id, distance));
+    }
+
+    /** A carried special's accuracy in this Marine's hands, as its round is resolved with. */
+    public static float specialAccuracy(BattleSimulation sim, long id, SpecialEquipmentDef special) {
+        return Math.min(1f, special.accuracy()
+                * InfantryCombatStats.shooterAccuracyMult(sim.combat().soldierProfile(id)));
     }
 
     private static Mark marineSecondary(BattleSimulation sim, long id, float distance) {
