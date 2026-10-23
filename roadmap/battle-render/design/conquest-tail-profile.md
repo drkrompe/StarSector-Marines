@@ -180,10 +180,8 @@ and exclude warmup from async-route cumulative deltas. Pass
 omission records `unknown`, not a guessed checkout. Lifetime latency maxima
 remain explicitly warmup-inclusive.
 Configurable orders such as DefendSite and DefendTrack are reported separately.
-`-Dbattle.targeting.squadFiringPositions=true` enables the off-by-default
-shared constrained firing-position experiment for patrol and zone-entry
-execution. `FIRING_POOL_*` and `FIRING_INDIVIDUAL_*` inner counters expose
-reuse and candidate/ray work (count-only counters have zero time).
+`FIRING_INDIVIDUAL_*` inner counters expose firing-position candidate and ray
+work (count-only counters have zero time).
 Unconstrained firing positions prove reachability against the grid's
 topology-revision component cache rather than a discarded A* route, without
 changing movement rules. Capture posts are spread within the compound footprint,
@@ -195,9 +193,7 @@ it has failed to supply a plan. Breach eligibility walks the squad's own members
 and hostile-combatant buckets, not the whole roster. Execution firing positions
 are retained: one chosen cell is validated and kept for 300–360 ticks unless intent or legality changes; eligibility
 probes and negative/vantage-only answers are not retained. `FIRING_RETAIN_*`
-counters distinguish validation time, reuse, and fresh searches. The older
-shared-pool experiment remains independent and off; enabling it bypasses the
-per-member constrained retention path so controls remain separable.
+counters distinguish validation time, reuse, and fresh searches.
 JFR tail recordings explicitly capture 1 ms monitor/park waits, full safepoint
 lifecycle, GC pause and VM-operation events, and a `UnitDispatch` event around
 parallel submission/join. Its `wallNanos` is the real elapsed interval; the
