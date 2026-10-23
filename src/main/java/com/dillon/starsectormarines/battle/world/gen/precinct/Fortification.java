@@ -241,6 +241,16 @@ public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer>
      */
     public static final int GLACIS = 3;
 
+    /**
+     * The widest gate a square place's wall leaves open. A road that runs along
+     * the inside of the wall rather than through it reads, cell for cell, as a
+     * crossing the length of that side; left open it is a side with no wall,
+     * which no gate tower can stand beside. A gate is where a road goes out,
+     * so the wider crossing is walled up but for the stretch where the road
+     * runs on furthest outward.
+     */
+    public static final int SQUARE_GATE_WIDTH = 7;
+
     /** The same wall drawn on a square claim, with a glacis of open ground outside it. */
     public Fortification laidSquare() {
         return new Fortification(gates, wallHp, posts, true);

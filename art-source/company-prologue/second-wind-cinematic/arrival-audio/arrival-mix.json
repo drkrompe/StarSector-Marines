@@ -10,8 +10,8 @@
    "sound": "jangala_arrival_score_march",
    "t": 0.0,
    "until_end_of": "c5",
-   "level_db": 5.6,
-   "source_lufs": -10.6,
+   "level_db": 5.1,
+   "source_lufs": -13.0,
    "fade_in": 0.75,
    "fade_out": 0.5,
    "duck_db": -8.0

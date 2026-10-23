@@ -197,6 +197,40 @@ class PrecinctBoundaryTest {
                         + "hole in it that opens onto nothing");
     }
 
+    /**
+     * A road along the inside of a square's side is not a gate the length of the side.
+     *
+     * <p>The claim's bottom rows carry a road that runs on past its edge, so every outline
+     * cell of that side, and of the corner, reads as a crossing. The gate is where a street
+     * leaves it, and the corner stays wall so the gate has a wall on both sides.
+     */
+    @Test
+    void aRoadAlongASquareSideOpensOnlyWhereAStreetLeaves() {
+        int[][] claim = new int[GW][GH];
+        int[][] owner = new int[GW][GH];
+        for (int x = 0; x < GW; x++) {
+            for (int y = 0; y < GH; y++) {
+                claim[x][y] = x >= 5 && x <= 24 && y >= 5 && y <= 24 ? 1 : GrownTrunkPlan.UNOWNED;
+                // A road along the bottom, half in the claim and running past its west end ...
+                boolean along = y >= 23 && y <= 26 && x >= 2 && x <= 24;
+                // ... and a street leaving it south.
+                boolean street = x >= 13 && x <= 15 && y >= 23;
+                owner[x][y] = along || street ? 0 : GrownTrunkPlan.UNOWNED;
+            }
+        }
+        List<PrecinctBoundary.Gate> gates = PrecinctBoundary.openGates(claim, owner, 1, GW, GH, 2,
+                Fortification.SQUARE_GATE_WIDTH);
+        assertTrue(gates.size() == 1, gates.size() + " gates");
+        PrecinctBoundary.Gate gate = gates.get(0);
+        assertTrue(gate.width() <= Fortification.SQUARE_GATE_WIDTH, "a gate " + gate.width() + " cells wide");
+        for (int x = 13; x <= 15; x++) {
+            final int sx = x;
+            assertTrue(gate.cells().stream().anyMatch(c -> c[0] == sx && c[1] == 24),
+                    "the street leaving at x " + x + " was walled up");
+        }
+        assertTrue(gate.cells().stream().noneMatch(c -> c[0] == 5 && c[1] == 24), "the corner was left open");
+    }
+
     private static final int GW = 40;
     private static final int GH = 30;
 
