@@ -2,9 +2,9 @@
 
 > Two buttons, two groups; each button cycles what it fires.
 
-Status: IN PROGRESS — steps 1 and 2 shipped (owner picked the keycap header look); steps 3-5 open
+Status: IN PROGRESS — steps 1, 2 and 4 shipped (keycap header; Marine right button with grenades); steps 3 and 5 open
 Written: 2026-10-23
-Updated: 2026-10-23 — trigger model and HUD landed; keycap header chosen, the other looks removed
+Updated: 2026-10-23 — Marine grenades on the right button, folded into the noun doc's Mouse buttons section
 
 Read `direct-control-nouns.md` first, in particular "Mouse buttons and weapon
 groups". This story extends that model, so the groups it describes stay true.
@@ -82,7 +82,9 @@ chooses what the button fires without a key per weapon.
    the keycap header, `LMB  LINKED  [Q]` (picks page, 2026-10-23).
 3. Marine direct-fire specials: a manual contract for the rocket launcher and
    the anti-materiel rifle on the left trigger.
-4. Marine grenades: the manual throw on the right trigger.
+4. ~~Marine grenades~~ (shipped): the right button's list (smoke, a hand grenade,
+   the shield) on E, and the grenade's committed manual throw; the flamer is a
+   left-button weapon, not a throw. Frames in `marine-right-button`.
 5. Vehicles: wire the right trigger to a second weapon when a hull gains one;
    add data for crewed defensive mounts if one appears outside the
    point-defence service.
@@ -93,7 +95,9 @@ chooses what the button fires without a key per weapon.
   Its racks cycle on E.
 - A Marine with a rocket launcher presses Q, fires one rocket at the cursor,
   presses Q again and is back on the rifle.
-- A Marine with grenades and smoke cycles the right trigger between them.
+- A Marine with a throw (smoke or a grenade) and a shield cycles the right trigger
+  between them (shipped). A Marine carries one special item, so smoke and a grenade
+  together would need a second special slot first.
 - Nothing unpicked fires, except crewed defences, which keep intercepting.
 - The noun doc's "Mouse buttons and weapon groups" describes the cycle, and
   this story is folded and deleted.

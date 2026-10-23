@@ -31,6 +31,16 @@ public final class FragGrenadeService {
         return true;
     }
 
+    /**
+     * Records a player's committed throw. The player decides where it lands, so it is never refused for
+     * overlapping a squadmate's footprint; autonomous throwers see it as they see any other reservation.
+     */
+    public synchronized void reserveManual(long carrierId, int squadId, Faction faction,
+                                           float targetX, float targetY, float blastRadius) {
+        byCarrier.put(carrierId, new Reservation(carrierId, squadId, faction,
+                targetX, targetY, blastRadius));
+    }
+
     public synchronized Reservation reservationFor(long carrierId) {
         return byCarrier.get(carrierId);
     }

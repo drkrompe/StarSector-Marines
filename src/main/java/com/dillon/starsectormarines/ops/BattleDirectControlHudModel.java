@@ -291,8 +291,12 @@ final class BattleDirectControlHudModel {
             result.add(new WeaponGroup("direct-hud-group-systems", "", "badge badge-none",
                     label("GroupSystems"), "", "group-header", false, () -> {}, systems));
         }
+        if (snapshot.carrier() == Carrier.MARINE) {
+            if (!snapshot.abilities().isEmpty()) result.add(marineRightGroup(snapshot.abilities()));
+            return result;
+        }
         List<WeaponRow> abilities = new ArrayList<>();
-        for (var ability : snapshot.abilities()) abilities.add(abilityRow(ability));
+        for (var ability : snapshot.abilities()) abilities.add(abilityRow(ability, false, false, () -> {}));
         if (!abilities.isEmpty()) {
             result.add(new WeaponGroup("direct-hud-group-abilities", label("BadgeKeys"), "badge badge-keys",
                     label("GroupAbilities"), "", "group-header", false, () -> {}, abilities));
@@ -396,7 +400,41 @@ final class BattleDirectControlHudModel {
         return blocks;
     }
 
-    private WeaponRow abilityRow(BattleDirectControlStatus.AbilityStatus ability) {
+    /**
+     * A Marine's right button: its items in list order (smoke, a hand grenade, the shield) under a header that
+     * names the pick and, when there is more than one, the E that cycles it, as a mech's trigger does. The pick
+     * carries the wash. The others do not dim: G and C still use smoke and the shield whatever the pick is.
+     */
+    private WeaponGroup marineRightGroup(List<BattleDirectControlStatus.AbilityStatus> items) {
+        boolean cycles = items.size() > 1;
+        String pickName = abilityName(items.get(0));
+        List<WeaponRow> rows = new ArrayList<>();
+        for (int i = 0; i < items.size(); i++) {
+            var item = items.get(i);
+            if (item.picked()) pickName = abilityName(item);
+            int member = i;
+            rows.add(abilityRow(item, cycles && item.picked(), cycles,
+                    cycles ? () -> select.pick(FireTrigger.RIGHT, member) : () -> {}));
+        }
+        return new WeaponGroup("direct-hud-group-rmb", label("BadgeRMB"), "badge badge-rmb", pickName,
+                cycles ? label("KeyCycleRight") : "", HINT,
+                cycles ? "group-header group-header-action" : "group-header", !cycles,
+                () -> select.cycle(FireTrigger.RIGHT), rows);
+    }
+
+    /** Each item by its kind; a grenade's model ("Shattercap") goes on its row's second line. */
+    private String abilityName(BattleDirectControlStatus.AbilityStatus ability) {
+        return switch (ability.ability()) {
+            case SHIELD -> label("Shield");
+            case SMOKE -> label("Smoke");
+            case GRENADE -> label("Grenade");
+            default -> ability.name();
+        };
+    }
+
+    /** {@code picked}: the right button's pick, which carries the wash; {@code clickable} rows pick themselves through {@code action}. */
+    private WeaponRow abilityRow(BattleDirectControlStatus.AbilityStatus ability, boolean picked,
+                                 boolean clickable, Runnable action) {
         boolean shield = ability.ability() == DirectControlAbility.SHIELD;
         boolean active = ability.activeSeconds() > 0f;
         boolean broken = shield && ability.broken();
@@ -405,7 +443,9 @@ final class BattleDirectControlHudModel {
                 : empty ? label("EMPTY")
                 : ability.cooldownSeconds() > 0f ? seconds(ability.cooldownSeconds())
                 : label(ability.ready() ? "Ready" : "Busy");
-        String detail = active ? seconds(ability.activeSeconds()) : label(shield ? "Directional" : "CursorThrow");
+        String detail = active ? seconds(ability.activeSeconds())
+                : ability.ability() == DirectControlAbility.GRENADE ? ability.name()
+                : label(shield ? "Directional" : "CursorThrow");
         String resource = shield ? (active ? Math.round(ability.soakRemaining()) + " / "
                 + Math.round(ability.soakCapacity()) : "")
                 : ability.remaining() + " / " + ability.capacity();
@@ -413,10 +453,12 @@ final class BattleDirectControlHudModel {
                 : active ? 1f - fraction(ability.activeSeconds(), ability.durationSeconds())
                 : ability.cooldownSeconds() > 0f ? 1f - fraction(ability.cooldownSeconds(), ability.cooldownDurationSeconds())
                 : ability.ready() ? 1f : 0f;
-        return new WeaponRow("direct-hud-ability-" + ability.ability().name(), "weapon ability",
-                rowStyle(false, 1f), true, shield ? "C" : "G", "key", label(shield ? "Shield" : "Smoke"),
-                detail, resource, state, "weapon-state" + (broken || empty ? " weapon-empty"
-                : !ability.ready() ? " weapon-busy" : ""), width(fill), () -> {});
+        String key = shield ? "C" : ability.ability() == DirectControlAbility.SMOKE ? "G" : "";
+        return new WeaponRow("direct-hud-ability-" + ability.ability().name(),
+                "weapon ability" + (picked ? " weapon-selected selected" : ""),
+                rowStyle(picked, 1f), !clickable, key, key.isEmpty() ? "key key-none" : "key",
+                abilityName(ability), detail, resource, state, "weapon-state" + (broken || empty ? " weapon-empty"
+                : !ability.ready() ? " weapon-busy" : ""), width(fill), action);
     }
 
     /**

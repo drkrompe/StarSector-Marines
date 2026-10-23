@@ -282,5 +282,6 @@ com.dillon.starsectormarines.ops.GroundTurretLookSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.bsp.LargePostLookSnapshotSuite
 com.dillon.starsectormarines.battle.turret.RaisedGunSceneSnapshotSuite
 com.dillon.starsectormarines.ops.AimReticleSnapshotSuite
+com.dillon.starsectormarines.ops.MarineRightButtonSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.VehicleScuffsSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechScuffsSnapshotSuite

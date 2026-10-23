@@ -134,18 +134,22 @@ class BattleDirectControlHudTest {
     }
 
     @Test
-    void marineAbilitiesSitUnderTheirKeysAndStaminaJoinsTheStatus() throws Exception {
+    void marineRightButtonItemsSitUnderRmbWithThePickAndStaminaJoinsTheStatus() throws Exception {
         for (int state = 0; state < 4; state++) {
             try (Fixture fixture = fixture(Path.of("mod"), abilityPreview(state), 0,
-                    false, ignored -> fail("Ability readouts cannot select weapons"), () -> {}, () -> {})) {
-                assertEquals(List.of("direct-hud-ability-SHIELD", "direct-hud-ability-SMOKE"),
-                        rows(fixture.weapons, "direct-hud-group-abilities"));
+                    false, ignored -> fail("Right-button rows cannot select a left-button weapon"), () -> {}, () -> {})) {
+                assertEquals(List.of("direct-hud-ability-SMOKE", "direct-hud-ability-SHIELD"),
+                        rows(fixture.weapons, "direct-hud-group-rmb"));
+                assertEquals("Smoke", fixture.weapons.requireElement("direct-hud-group-rmb-name").text(),
+                        "the RMB header names the pick");
                 assertEquals("C", fixture.weapons.requireElement("direct-hud-ability-SHIELD-key").text());
                 assertEquals("G", fixture.weapons.requireElement("direct-hud-ability-SMOKE-key").text());
+                assertTrue(fixture.weapons.requireElement("direct-hud-ability-SMOKE").classes()
+                        .contains("weapon-selected"), "the pick carries the wash");
                 for (String id : List.of("direct-hud-ability-SHIELD", "direct-hud-ability-SMOKE")) {
                     var row = fixture.weapons.requireElement(id);
-                    assertTrue(row.disabled());
-                    assertEquals(1f, row.opacity());
+                    assertFalse(row.disabled(), "a row picks itself when the list has more than one item");
+                    assertEquals(1f, row.opacity(), "C and G still work, so the unpicked row does not dim");
                 }
                 assertEquals(new String[]{"READY", "UP", "6.0s", "BROKEN"}[state],
                         fixture.weapons.requireElement("direct-hud-ability-SHIELD-state").text());
@@ -170,7 +174,7 @@ class BattleDirectControlHudTest {
         try (Fixture fixture = fixture(Path.of("mod"), preview(Carrier.MARINE, false), 0,
                 false, ignored -> {}, () -> {}, () -> {})) {
             assertThrows(IllegalArgumentException.class,
-                    () -> fixture.weapons.requireElement("direct-hud-group-abilities"));
+                    () -> fixture.weapons.requireElement("direct-hud-group-rmb"));
             assertEquals("100%", fixture.status.requireElement("direct-status-stamina-value").text(),
                     "unmodified Marines still have stamina");
             var primary = fixture.weapons.requireElement("direct-hud-weapon-PRIMARY");
@@ -178,6 +182,35 @@ class BattleDirectControlHudTest {
             assertEquals(1f, primary.opacity(), "read-only primary status must remain legible");
             assertEquals("", fixture.weapons.requireElement("direct-hud-weapon-PRIMARY-ammo").text(),
                     "an infantry primary has no ammunition counter to show");
+        }
+    }
+
+    @Test
+    void aPickedGrenadeNamesTheRmbHeaderAndCountsWhatIsLeft() throws Exception {
+        var base = preview(Carrier.MARINE, false);
+        var frag = new AbilityStatus(DirectControlAbility.GRENADE, "Shattercap", true,
+                0f, .75f, 0f, 0f, 2, 3, 0f, 0f).withPicked(true);
+        var shield = new AbilityStatus(DirectControlAbility.SHIELD, "Breacher shield", true,
+                0f, 6f, 0f, 12f, -1, -1, 0f, 120f, false, 90f, 120f);
+        List<String> picks = new ArrayList<>();
+        var actions = new BattleDirectControlHudModel.WeaponActions() {
+            @Override public void select(int key) { fail("no left-button pick"); }
+            @Override public void cycle(FireTrigger trigger) { picks.add("cycle " + trigger); }
+            @Override public void pick(FireTrigger trigger, int member) { picks.add(trigger + " " + member); }
+        };
+        try (Fixture fixture = fixture(Path.of("mod"), new Snapshot(base.entityId(), base.name(), base.carrier(),
+                base.durability(), base.weapons(), List.of(frag, shield)), 0, false, actions, () -> {}, () -> {})) {
+            assertEquals("Grenade", fixture.weapons.requireElement("direct-hud-group-rmb-name").text());
+            assertEquals("Shattercap", fixture.weapons.requireElement("direct-hud-ability-GRENADE-behavior").text(),
+                    "the model goes on the row's second line");
+            assertEquals("[E]", fixture.weapons.requireElement("direct-hud-group-rmb-hint").text());
+            assertEquals("", fixture.weapons.requireElement("direct-hud-ability-GRENADE-key").text(),
+                    "a grenade has no hotkey of its own; E and the right button reach it");
+            assertEquals("2 / 3", fixture.weapons.requireElement("direct-hud-ability-GRENADE-ammo").text());
+            click(fixture.weapons, fixture.weaponsDocument, "direct-hud-ability-SHIELD");
+            click(fixture.weapons, fixture.weaponsDocument, "direct-hud-group-rmb-header");
+            assertEquals(List.of("RIGHT 1", "cycle RIGHT"), picks,
+                    "a row click picks that item and the header cycles, as on a mech");
         }
     }
 
@@ -381,9 +414,9 @@ class BattleDirectControlHudTest {
                 -1, -1, state == 1 ? 60f : 0f, 120f, state == 3, 90f, 120f);
         var smoke = new AbilityStatus(DirectControlAbility.SMOKE, "Smoke grenade", state == 0 || state == 3,
                 state == 1 ? .4f : 0f, .8f, 0f, 0f, state == 2 ? 0 : 2, 2,
-                0f, 0f);
+                0f, 0f).withPicked(true);
         return new Snapshot(base.entityId(), base.name(), base.carrier(), base.durability(),
-                base.weapons(), List.of(shield, smoke), switch (state) {
+                base.weapons(), List.of(smoke, shield), switch (state) {
                     case 0 -> MarineSprint.EMPTY;
                     case 1 -> new MarineSprint.Status(.61f, true, false);
                     case 2 -> new MarineSprint.Status(0f, false, true);

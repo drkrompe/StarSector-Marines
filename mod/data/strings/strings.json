@@ -5009,6 +5009,7 @@
 		"battleDirectHudTRIGGER_PACKS": "packs",
 		"battleDirectHudShield": "Shield",
 		"battleDirectHudSmoke": "Smoke",
+		"battleDirectHudGrenade": "Grenade",
 		"battleDirectHudReady": "READY",
 		"battleDirectHudBusy": "BUSY",
 		"battleDirectHudActive": "UP",
