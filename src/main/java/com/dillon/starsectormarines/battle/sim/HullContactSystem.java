@@ -12,7 +12,9 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -22,6 +24,13 @@ import java.util.Set;
  * through the same terrain guard a hull's own slide uses, so a shove never puts a hull in a wall. Hostile hulls
  * that meet ram each other ({@link HullRam}) on the tick they first touch. Faction does not change the shove.
  *
+ * <p>A pair that has stayed in contact for {@link #JAM_SECONDS} without both hulls getting {@link #JAM_PROGRESS}
+ * is jammed: two hulls nose to nose in a lane too narrow to pass, a column backed into the trucks coming out, or
+ * a truck inching a parked scout car along a road it cannot leave. A column on the move and two hulls pulling
+ * past each other both get somewhere. Neither planner reverses out of that, so the pair is let through each other, as hulls drove
+ * before there was contact, until they are clear. That is the backstop, not the rule: a meet that can be
+ * passed is passed long before it.
+ *
  * <p>A wreck is not a hull here: it is left where it died, and a live hull passing it is not stopped by it.
  * Serial; the convoy is a handful of hulls, so the pair walk is all of them against all of them.
  */
@@ -29,6 +38,11 @@ public final class HullContactSystem {
 
     /** Most a shove moves a hull in one tick, cells: two hulls set down inside each other part over a few ticks. */
     static final float MAX_STEP = .25f;
+    /** How long a pair may stay in contact without either hull getting anywhere before it is jammed, seconds. */
+    static final float JAM_SECONDS = 6f;
+    /** How far both hulls must get, cells, for a pair in contact to count as moving. */
+    static final float JAM_PROGRESS = .5f;
+    private static final int JAM_TICKS = Math.round(JAM_SECONDS / BattleSimulation.TICK_DT);
 
     private final ConvoyService convoy;
     private final UnitRosterService roster;
@@ -37,7 +51,9 @@ public final class HullContactSystem {
     private final float[] side = new float[2];
     private final float[] unmet = new float[2];
     private Set<Long> touching = new HashSet<>(), touched = new HashSet<>();
-    private long contacts, rams;
+    /** Per pair in contact: ticks without progress, then where each hull stood when that count began. */
+    private Map<Long, float[]> stuck = new HashMap<>(), stuckNext = new HashMap<>();
+    private long contacts, rams, jams;
     private float worstOverlap;
 
     public HullContactSystem(UnitRosterService roster, NavigationGrid grid) {
@@ -51,6 +67,9 @@ public final class HullContactSystem {
 
     /** Rams between hostile hulls since the battle began; evidence. */
     public long rams() { return rams; }
+
+    /** Hull pairs let through each other because they were jammed, since the battle began; evidence. */
+    public long jams() { return jams; }
 
     /** The deepest two bare footprints were found inside each other before a resolve, cells; evidence. */
     public float worstOverlap() { return worstOverlap; }
@@ -68,6 +87,10 @@ public final class HullContactSystem {
         touched = touching;
         touching = swap;
         touching.clear();
+        Map<Long, float[]> swapStuck = stuck;
+        stuck = stuckNext;
+        stuckNext = swapStuck;
+        stuckNext.clear();
     }
 
     private boolean live(long id) {
@@ -82,6 +105,8 @@ public final class HullContactSystem {
         if (!HullContact.overlap(ba.x, ba.y, ba.facingDegrees, ta.visualLengthCells * .5f, ta.visualWidthCells * .5f,
                 bb.x, bb.y, bb.facingDegrees, tb.visualLengthCells * .5f, tb.visualWidthCells * .5f,
                 HullContact.SKIN, contact)) return;
+        long pair = a * 0x9E3779B97F4A7C15L ^ b;
+        if (jammed(pair, ba, bb)) return;
         float nx = contact[0], ny = contact[1];
         float depth = contact[2] - HullContact.SKIN;
         float ma = ta.massTonnes(), mb = tb.massTonnes();
@@ -96,7 +121,6 @@ public final class HullContactSystem {
             contacts++;
             worstOverlap = Math.max(worstOverlap, depth);
             if (hostile) {
-                long pair = a * 0x9E3779B97F4A7C15L ^ b;
                 touching.add(pair);
                 if (!touched.contains(pair)) ram(a, ba, ma, aInto, b, bb, mb, bInto, aClosing + bClosing);
                 aClosing = ba.speed * aInto;
@@ -133,6 +157,28 @@ public final class HullContactSystem {
         }
         if (ax == 0f && ay == 0f && bx == 0f && by == 0f) return;
         part(a, ba, ax, ay, b, bb, bx, by);
+    }
+
+    /**
+     * Carries the pair's jam count into the next tick and says whether it has run out: for {@link #JAM_SECONDS} one
+     * of the two has not got {@link #JAM_PROGRESS} from where it stood when the count began. A jammed pair stays
+     * jammed until its footprints are clear, which drops it from the count.
+     */
+    private boolean jammed(long pair, GroundBody ba, GroundBody bb) {
+        float[] s = stuck.get(pair);
+        if (s != null && s[0] >= JAM_TICKS) {
+            // Jammed stays jammed until the two are clear of each other, or they would be shoved apart half through.
+            s[0]++;
+        } else if (s == null || Math.hypot(ba.x - s[1], ba.y - s[2]) > JAM_PROGRESS
+                && Math.hypot(bb.x - s[3], bb.y - s[4]) > JAM_PROGRESS) {
+            s = new float[] {0f, ba.x, ba.y, bb.x, bb.y};
+        } else {
+            s[0]++;
+        }
+        stuckNext.put(pair, s);
+        if (s[0] < JAM_TICKS) return false;
+        if (s[0] == JAM_TICKS) jams++;
+        return true;
     }
 
     /**
