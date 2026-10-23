@@ -678,7 +678,7 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   trade our cost for the driver's — a resident mesh draws the whole map however
   close the camera is — and every other column here would call that a win.
 - `gradlew.bat createSnapshots` → every deterministic visual-evidence suite under
-  `build/snapshots/` without launching Starsector or creating an OpenGL context.
+  `build/snapshots/` without launching Starsector.
   It reads art from `mod/` first and the installed game second — the game's own
   order — so vanilla-sourced sprites such as aircraft hulls appear in headless
   frames. The install is already required to build at all (`starsectorDir`), and
@@ -696,13 +696,15 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   (maximum and mean channel difference, worst frame side by side) — accept a
   renderer change on that, never on GIFs, whose palette hides and invents
   differences.
-  **`-Dsnapshot.backend=gl` draws review frames on the GPU** through the
-  shipping `BattleRenderer` into a `HeadlessGl` pbuffer (`ReviewSceneBackend`;
-  `java2d` is the default and the reference). Creep- and fire-heavy scenes
-  render about ten times faster; a machine with no context (the Mac today) says
-  so once and uses Java2D. GL pixels depend on the driver, so compare raw
-  frames only between two runs on the same backend and machine. See
-  `gpu-review-drain.md`.
+  **Review frames are drawn on the GPU by default** through the shipping
+  `BattleRenderer` into a `HeadlessGl` pbuffer (`ReviewSceneBackend`), with
+  surface relief, sun shadows and event lights the Java2D drain never drew.
+  Creep- and fire-heavy scenes render ten times faster or more; small plain
+  views are about even. `-Dsnapshot.backend=java2d` is the reference drain;
+  `-Dsnapshot.gl.relief=false` drops the relief composite. A machine with no
+  context (the Mac today) says so once and uses Java2D. GL pixels depend on the
+  driver, so compare raw frames only between two runs on the same backend and
+  machine. See `gpu-review-drain.md`.
 - `gradlew.bat battleProbe -Pbattle=<source> -Pscript=<file>` → **ask a battle
   questions instead of bisecting for them.** Stands one battle up, steps it on
   command and answers queries between steps, one JSON line each: `until T`,

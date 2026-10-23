@@ -9,6 +9,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
+import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.file.Path;
@@ -145,6 +146,8 @@ final class GlSpriteTokens implements HeadlessBattleSprites.SpriteTokens, AutoCl
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, TRANSPARENT);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+        // LWJGL 2 keeps only the address; without this the collector may free the pixels mid-upload.
+        Reference.reachabilityFence(pixels);
         return name;
     }
 

@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 import org.lwjgl.BufferUtils;
 
 import java.awt.Color;
+import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -598,8 +599,13 @@ public abstract class SpriteAtlas {
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
             glBindTexture(GL_TEXTURE_2D, texture);
             GlErrors.clear();
+            ByteBuffer zeroed = transparent();
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0,
-                    GL_RGBA, GL_UNSIGNED_BYTE, transparent());
+                    GL_RGBA, GL_UNSIGNED_BYTE, zeroed);
+            // LWJGL 2 hands the driver the buffer's address and keeps no reference to it, so a compiled caller may
+            // let the collector free tens of megabytes of direct memory while the driver is still reading them: an
+            // access violation inside the driver, under heap pressure, seen headless and possible in the game.
+            Reference.reachabilityFence(zeroed);
             if (GlErrors.check("glTexImage2D (" + label + ")")) {
                 broken = true;
                 refusal = "glTexImage2D " + width + "x" + height;
@@ -747,6 +753,7 @@ public abstract class SpriteAtlas {
         GlErrors.clear();
         glTexSubImage2D(GL_TEXTURE_2D, 0, slot.x() - a, height - (slot.y() - a) - h,
                 w, h, GL_RGBA, GL_UNSIGNED_BYTE, out);
+        Reference.reachabilityFence(out);   // LWJGL 2 keeps only the address
     }
 
     /** A cleared atlas, so a slot nobody fills is transparent rather than driver noise. */

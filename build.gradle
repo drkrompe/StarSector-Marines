@@ -876,6 +876,9 @@ tasks.register('createSnapshots', JavaExec) {
     // Snapshot scenes play the same worlds `sceneEvidence` does and must read the same: serial, overridable by a -Dbattle switch.
     systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
     forwardBattleSwitches(delegate)
+    // Review frames are drawn on the GPU through the shipping renderer, falling back to Java2D where no context can be
+    // made (`ReviewSceneBackend`, `gpu-review-drain.md`). `-Dsnapshot.backend=java2d` is the reference, and overrides.
+    systemProperty 'snapshot.backend', 'gl'
     // `-Dsnapshot.threads=N` (`SnapshotWorkers`; 1 is the serial control) and any other snapshot switch.
     System.properties.each { key, value ->
         if (key.toString().startsWith('snapshot.')) systemProperty key.toString(), value

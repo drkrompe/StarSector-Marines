@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.GlStateBracket;
 import org.lwjgl.BufferUtils;
 
+import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 
 import static org.lwjgl.opengl.GL11.GL_ALPHA;
@@ -303,6 +304,7 @@ public final class FogField {
             try {
                 glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA8, gridW, gridH, 0, GL_ALPHA, GL_UNSIGNED_BYTE, bytes);
+                Reference.reachabilityFence(bytes);   // LWJGL 2 keeps only the address
             } finally {
                 glPopClientAttrib();
             }
