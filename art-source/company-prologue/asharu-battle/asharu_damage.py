@@ -111,7 +111,7 @@ LEDGER = [
     # ---- WARDEN LEAD, the lead Lasher: hit turning back in S6, smoking into S9b, finished there
     H('lasher-lead', 53.8, 'rake', 1, (20, 8, 4), (.3, 1, .5), to=(2, 9, 5), by='tracer',
       src='S6 k3 tracer manticore-p', note="the Manticore's light guns walk along her port bow as she comes about"),
-    H('lasher-lead', 55.4, 'he', 2, (-6, 9, 5), (-.2, 1, .6), by='tracer', src='S6 k3 tracer falcon-p',
+    H('lasher-lead', 55.4, 'he', 2, (-6, 9, 5), (-.2, 1, .6), src='story (S6; the Falcon at 3.8 km is past the kit 6 s round limit)',
       note="a Falcon (P) bolt holes her port quarter; she vents"),
     H('lasher-lead', 55.9, 'breach', 3, (8, 6, 6), (.2, .6, 1), by='blast_on', src='S6 k3 blast_on',
       note='the hit that turns her: her forward deck opens and burns; smoking from here to S9b'),
@@ -133,8 +133,8 @@ LEDGER = [
     # ---- WARDEN THREE, Lasher B: scored, gets away
     H('lasher-b', 55.0, 'rake', 1, (15, -9, 3), (0, -1, .3), to=(0, -10, 3), by='tracer',
       src='S6 k3 tracer falcon-p', note="the Falcon's fire scores her starboard bow"),
-    H('lasher-b', 61.5, 'rake', 1, (-5, 0, 8), (0, 0, 1), to=(-18, 2, 8), by='tracer',
-      src='S6b k3c tracer buffalo2-a', note="the Buffalo Mk.II's fire scores her deck as she rolls over"),
+    H('lasher-b', 61.5, 'rake', 1, (-5, 0, 8), (0, 0, 1), to=(-18, 2, 8),
+      src='story (S6b; the Buffalo Mk.II at 3.8 km is past the kit 6 s round limit)', note="the Buffalo Mk.II's fire scores her deck as she rolls over"),
 
     # ---- WARDEN FOUR, the merchant Wolf: a graze, gets away
     H('wolf-m', 73.0, 'he', 1, (5, -8, 3), (0, -1, .2), src='story (S6c)',
@@ -159,8 +159,8 @@ LEDGER = [
       src='S7 k3b tracer wolf-p-b', note="the covering Wolf (P)'s inverted gun run scores her forward deck"),
 
     # ---- CARAVEL, the Colossus: port pod shot out in S8, the other failing, she falls
-    H('colossus', 89.0, 'rake', 1, (-40, 26, 8), (0, .5, 1), to=(-58, 30, 6), by='tracer',
-      src='S8-S9 k4 tracer colossus3', note="the Mk.III's guns walk onto the port pod from above"),
+    H('colossus', 89.0, 'rake', 1, (-40, 26, 8), (0, .5, 1), to=(-58, 30, 6),
+      src='story (S8-S9; the Mk.III cannot depress onto her until her flight changes)', note="the Mk.III's guns walk onto the port pod from above"),
     H('colossus', 93.5, 'breach', 3, (-55, 36, 4), (-.3, 1, .5), by='fire_on', src='S8-S9 k4 fire_on',
       note='the port pod burns, and burns into the atmosphere'),
     H('colossus', 94.9, 'he', 4, (-62, 30, 0), (-.4, 1, .2), by=('blast_on', 'debris'), src='S8-S9 k4 blast_on + debris',
@@ -183,8 +183,8 @@ LEDGER = [
       note="the Lasher's last rounds hole her further aft, venting"),
 
     # ---- the Manticore (P): scored by the lead's guns
-    H('manticore-p', 55.5, 'rake', 1, (25, 8, 4), (.4, 1, .3), to=(10, 10, 4), by='tracer',
-      src='S6 k3 tracer lasher-lead', note="the lead's light MGs as she turns back"),
+    H('manticore-p', 55.5, 'rake', 1, (25, 8, 4), (.4, 1, .3), to=(10, 10, 4),
+      src='story (S6; the lead at 3.4 km is past the kit 6 s round limit)', note="the lead's light MGs as she turns back"),
 
     # ---- Wolf (P) A: grazed, then cut by a Borer
     H('wolf-p-a', 56.8, 'rake', 0, (10, 6, 3), (0, 1, .2), to=(0, 7, 3), by='tracer',
@@ -193,7 +193,7 @@ LEDGER = [
       note="the merchant Wolf's bolt, past her front shield onto the flank"),
     H('wolf-p-a', 97.5, 'cut', 2, (20, -8, 4), (0, -1, .3), to=(-20, -9, 4), by='mining', vent_s=0.0,
       src='S8-S9 k4 mining borer-c', note="a Borer's mining laser cuts a long glowing seam down her side"),
-    H('wolf-p-a', 99.0, 'he', 1, (-15, -9, 3), (0, -1, .3), by='tracer', src='S8-S9 k4 tracer colossus'),
+    H('wolf-p-a', 95.8, 'he', 1, (-15, -9, 3), (0, -1, .3), by='tracer', src='S8-S9 k4 tracer colossus'),
 
     # ---- Wolf (P) B: a graze through her shield
     H('wolf-p-b', 71.2, 'rake', 0, (8, -8, 3), (0, -1, .2), to=(-4, -8, 3), by='tracer',
@@ -223,6 +223,24 @@ LEDGER = [
     H('hound-p-a', 76.9, 'kill', 4, (0, 0, 0), (0, 0, 1), by=('blast_on', 'debris'), src='S6d k3e blast_on + debris',
       note='killed at close range'),
 ]
+# Where the shooter really is (asharu_gunnery, 2026-10-23): the unit vector from the target toward
+# the shooter at the hit's time, target frame. A hit is cast onto the face that shooter sees, so a
+# hit whose `at` lies on the far side lands on the near face in line with it.
+SHOOTER_SIDE = {
+    'hound-m@75.2:rake': (0.40, -0.61, 0.68), 'tarsus@69.6:he': (0.69, -0.72, -0.08),
+    'lasher-lead@108.0:rake': (-0.60, 0.63, -0.49), 'tarsus@70.5:breach': (0.85, -0.52, -0.07),
+    'lasher-lead@103.5:breach': (0.98, -0.17, -0.06), 'falcon-p@105.0:breach': (0.69, 0.55, 0.46),
+    'colossus3@96.0:rake': (0.40, -0.91, -0.05), 'hound-m@75.5:breach': (0.62, -0.39, 0.68),
+    'falcon-p@104.8:rake': (0.75, 0.51, 0.43), 'wolf-p-b@71.2:rake': (0.39, -0.36, -0.85),
+    'hound-p-a@76.9:kill': (0.87, -0.45, 0.19), 'hound-p-a@75.0:rake': (0.97, 0.15, 0.18),
+    'tarsus@84.0:rake': (-0.27, 0.78, 0.57), 'lasher-b@55.0:rake': (-0.86, -0.45, -0.25),
+    'hound-p-c@60.0:rake': (0.92, 0.27, 0.30), 'lasher-lead@107.6:breach': (-0.83, 0.43, 0.36),
+    'hound-p-c@61.9:kill': (0.92, 0.12, 0.37), 'hound-p-c@61.0:rake': (0.89, 0.13, 0.44),
+    'lasher-lead@55.9:breach': (0.72, 0.70, -0.04), 'wolf-p-a@56.8:rake': (0.62, 0.55, -0.56),
+    'wolf-p-a@71.6:he': (-0.94, 0.18, 0.30),
+}
+for _h in LEDGER:
+    _h.frm = SHOOTER_SIDE.get(_h.id, _h.frm)
 LEDGER.sort(key=lambda h: (h.ship, h.t))
 
 # Ships the ledger leaves clean on purpose: the Phaeton (her wreck state carries its own cook-off),
@@ -284,7 +302,7 @@ def fire_drawn(h, on):
 
 # ======================================================================================= Blender
 
-def _cast(scene, matrix, ship_fx, p_m, frm, standoff=30.0):
+def _cast(scene, matrix, ship_fx, p_m, frm, standoff=70.0):
     """Where a hit at p_m coming from direction frm meets this ship's plating: (at_m, normal_m) in the
     ship's frame, or the authored point and frm when nothing is found. Casts from `standoff` metres out
     along frm, accepting only this ship's hull objects (a neighbour's hull, or any kit volume, is passed
@@ -298,7 +316,7 @@ def _cast(scene, matrix, ship_fx, p_m, frm, standoff=30.0):
     dg = bpy.context.evaluated_depsgraph_get()
     o = matrix @ (Vector(p_m) + d_l * standoff)
     d = (matrix.to_3x3() @ -d_l).normalized()
-    far = standoff * 2.5
+    far = standoff * 2.2
     gone = 0.0
     inv = matrix.inverted()
     for _ in range(48):
@@ -671,7 +689,7 @@ def check():
                 continue
             if ship in CLEAN or (k, fx[1], ship) in NOT_DAMAGE:
                 continue
-            ok = any(h.ship == ship and t0 - 6 <= h.t <= t1 and k in h.bys
+            ok = any(h.ship == ship and t0 - 6 <= h.t <= t1 and (k in h.bys or (k == 'tracer' and h.by is None))
                      and (at is None or _near(at, h.at)) for h in LEDGER)
             if k in ('fire_on', 'smoke'):        # a fire still burning from an earlier shot, drawn again
                 ok = ok or any(h.ship == ship and h.t <= t1 and (h.burning(t0) or h.burning(t1)) and _near(at, h.at)

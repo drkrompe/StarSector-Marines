@@ -55,7 +55,7 @@ public record MarineArmorCatalogDef(
      * authored (combat values, system, sheet) before its art exists; it then declares why in
      * {@code presentationPending}, and no card carrying it can become cargo
      * ({@link LoadoutCard#presentationDeclared}). Its appearance family meanwhile has no
-     * layered assets, so a debug or test deployment draws the legacy unit sheet rather than
+     * layered assets, so a debug or test deployment draws a plain marker rather than
      * borrowing another suit's look.
      */
     public boolean presentationDeclared() { return presentationPending == null; }

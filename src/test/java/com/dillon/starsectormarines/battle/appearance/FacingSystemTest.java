@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * End-to-end + column-walk coverage for {@link FacingSystem}: membership
- * (every {@link UnitType#drawnAsSheet()} type carries {@code SPRITE} at
+ * (every {@link UnitType#carriesSprite()} type carries {@code SPRITE} at
  * spawn, seeded to the south-idle frame), the facing-source fallback chain
  * (target &rarr; path &rarr; SOUTH), the weapon-up window, the eight-way
  * mech convention, and the corpse handoff (a dead unit's authored selector/
@@ -76,15 +76,15 @@ public class FacingSystemTest {
     }
 
     @Test
-    public void drawnAsSheetTruthTable() {
+    public void carriesSpriteTruthTable() {
         for (UnitType t : UnitType.values()) {
-            boolean expectSheetDrawn = t != UnitType.TURRET
+            boolean expectPosed = t != UnitType.TURRET
                     && t != UnitType.DRONE_HUB_STRUCTURE
                     && t != UnitType.BASED_AIRCRAFT
                     && t != UnitType.RANGE_TARGET
                     && t != UnitType.DRONE
                     && t != UnitType.GROUND_VEHICLE;
-            assertEquals(expectSheetDrawn, t.drawnAsSheet(), t.name());
+            assertEquals(expectPosed, t.carriesSprite(), t.name());
         }
     }
 

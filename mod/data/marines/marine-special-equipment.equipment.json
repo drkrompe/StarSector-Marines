@@ -21,7 +21,6 @@
       },
       "presentation": {
         "armoryIcon": "graphics/ui/armory/special-rocket-launcher.png",
-        "aimSprite": "graphics/battle/marine-rocket.png",
         "usePose": "shoulder-launcher",
         "carrierLayer": {
           "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher.png",
@@ -93,7 +92,6 @@
       },
       "presentation": {
         "armoryIcon": "graphics/ui/armory/special-rocket-launcher.png",
-        "aimSprite": "graphics/battle/marine-rocket.png",
         "usePose": "shoulder-launcher",
         "carrierLayer": {
           "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher.png",
@@ -156,7 +154,6 @@
       },
       "presentation": {
         "armoryIcon": "graphics/ui/armory/special-anti-materiel-rifle.png",
-        "aimSprite": null,
         "usePose": "braced-rifle",
         "carrierLayer": {
           "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/anti-materiel-rifle.png",
@@ -213,7 +210,6 @@
       },
       "presentation": {
         "armoryIcon": "graphics/ui/armory/special-smoke-grenades.png",
-        "aimSprite": null,
         "usePose": "throw",
         "carrierLayer": {
           "sprite": "graphics/ui/armory/special-smoke-grenades.png",
@@ -282,7 +278,6 @@
       },
       "presentation": {
         "armoryIcon": "graphics/ui/armory/special-smoke-grenades.png",
-        "aimSprite": null,
         "usePose": "throw",
         "carrierLayer": {
           "sprite": "graphics/ui/armory/special-smoke-grenades.png",
@@ -345,7 +340,6 @@
       },
       "presentation": {
         "armoryIcon": "graphics/ui/armory/special-frag-grenade.png",
-        "aimSprite": null,
         "usePose": "throw",
         "carrierLayer": {
           "sprite": "graphics/ui/armory/special-frag-grenade.png",
@@ -401,7 +395,6 @@
       },
       "presentation": {
         "armoryIcon": "graphics/ui/armory/special-breaching-cutter.png",
-        "aimSprite": null,
         "usePose": "plant",
         "carrierLayer": {
           "sprite": "graphics/ui/armory/special-breaching-cutter.png",
@@ -454,7 +447,6 @@
       },
       "presentation": {
         "armoryIcon": "graphics/ui/armory/special-vibro-blade.png",
-        "aimSprite": null,
         "usePose": "plant",
         "carrierLayer": {
           "sprite": "graphics/ui/armory/special-vibro-blade.png",
@@ -511,7 +503,6 @@
       },
       "presentation": {
         "armoryIcon": "graphics/ui/armory/special-satchel-charge.png",
-        "aimSprite": null,
         "usePose": "plant",
         "carrierLayer": {
           "sprite": "graphics/battle/fx/satchel-charge-armed.png",
@@ -569,7 +560,6 @@
       },
       "presentation": {
         "armoryIcon": "graphics/ui/armory/special-comms-radio.png",
-        "aimSprite": null,
         "usePose": "plant",
         "carrierLayer": {
           "sprite": "graphics/battle/fx/comms-radio-pack.png",
@@ -632,7 +622,6 @@
       },
       "presentation": {
         "armoryIcon": "graphics/ui/armory/special-point-defence-pod.png",
-        "aimSprite": null,
         "usePose": "plant",
         "carrierLayer": {
           "sprite": "graphics/ui/armory/special-point-defence-pod.png",
@@ -686,7 +675,6 @@
       },
       "presentation": {
         "armoryIcon": "graphics/ui/armory/special-point-defence-pack.png",
-        "aimSprite": null,
         "usePose": "plant",
         "carrierLayer": {
           "sprite": "graphics/battle/fx/pd-pack.png",
@@ -742,7 +730,6 @@
       },
       "presentation": {
         "armoryIcon": "graphics/ui/armory/special-field-mortar.png",
-        "aimSprite": null,
         "usePose": "plant",
         "carrierLayer": {
           "sprite": "graphics/ui/armory/special-field-mortar.png",
@@ -795,7 +782,6 @@
       },
       "presentation": {
         "armoryIcon": "graphics/ui/armory/special-field-revetment.png",
-        "aimSprite": null,
         "usePose": "plant",
         "carrierLayer": {
           "sprite": "graphics/ui/armory/special-field-revetment.png",
@@ -846,7 +832,6 @@
       },
       "presentation": {
         "armoryIcon": "graphics/ui/armory/special-frag-grenade.png",
-        "aimSprite": null,
         "usePose": "throw",
         "carrierLayer": {
           "sprite": "graphics/ui/armory/special-frag-grenade.png",
@@ -909,7 +894,6 @@
       },
       "presentation": {
         "armoryIcon": "graphics/ui/armory/special-frag-grenade.png",
-        "aimSprite": null,
         "usePose": "throw",
         "carrierLayer": {
           "sprite": "graphics/ui/armory/special-frag-grenade.png",
