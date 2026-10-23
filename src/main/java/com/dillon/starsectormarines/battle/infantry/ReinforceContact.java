@@ -58,16 +58,8 @@ public final class ReinforceContact implements Goal {
     static final int MAX_FLANK_DETOUR_SLACK = 4;
     /** Absolute dogleg allowance; prevents a farther candidate gaming the ratio denominator. */
     static final int MAX_FLANK_EXTRA_STEPS = 8;
-    /** Same-build exhaustive candidate-search control; pruning preserves the winning cell exactly. */
-    public static final String PRUNE_FLANK_CANDIDATES_PROPERTY = "battle.pathfinding.pruneFlankCandidates";
-    /** Same-build control for detour-bounded route proofs, independent of candidate pruning. */
-    public static final String BOUND_FLANK_PROOFS_PROPERTY = "battle.pathfinding.boundFlankProofs";
-    /** Independent control for shared, rejection-only minimum-step proofs. */
-    public static final String FLANK_STEP_GATE_PROPERTY = "battle.pathfinding.flankStepGate";
-    /** Independent same-build control for best-effort, whole-selection work admission. */
-    public static final String BUDGET_FLANK_SELECTION_PROPERTY = "battle.pathfinding.budgetFlankSelection";
+    /** A* and step-gate expansions one whole flank selection may spend. */
     public static final int FLANK_SELECTION_EXPANSIONS = 8192;
-    public static final String RETAIN_FLANK_PLANS_PROPERTY = "battle.goap.retainFlankPlans";
     private static final ThreadLocal<BoundedStepReachability> STEP_GATE =
             ThreadLocal.withInitial(BoundedStepReachability::new);
 
@@ -127,18 +119,17 @@ public final class ReinforceContact implements Goal {
 
     @Override
     public SquadPlan customPlan(Squad squad, BattleView sim) {
-        boolean retain = Boolean.parseBoolean(System.getProperty(RETAIN_FLANK_PLANS_PROPERTY, "true"));
-        if (!retain || squad.currentGoal != INSTANCE || squad.currentPlan == null
+        if (squad.currentGoal != INSTANCE || squad.currentPlan == null
                 || squad.currentPlan.isComplete() || squad.currentPlan != squad.retainedFlankPlan) {
             squad.retainedFlankWaypoint.clear();
         }
         TickInnerProfile profile = TickInnerProfile.currentIfBound();
         if (profile != null) profile.enterAction(0L, squad.id, "ReinforceContact");
         try {
-            FlankSelection choice = computeFlankSelection(squad, sim, retain);
+            FlankSelection choice = computeFlankSelection(squad, sim, true);
             SquadPlan plan = new SquadPlan(List.of(new SquadPlan.Step(
                     new FlankApproach(choice.x(), choice.y(), choice.refused()))));
-            squad.retainedFlankPlan = retain ? plan : null;
+            squad.retainedFlankPlan = plan;
             return plan;
         } finally {
             if (profile != null) profile.exitAction();
@@ -208,10 +199,7 @@ public final class ReinforceContact implements Goal {
         }
         if (profile != null) profile.recordCount(TickInnerProfile.Bucket.FLANK_PLAN_SELECT, 1);
         int[] waypoint = snapToReachable(rawX, rawY, grid, origin[0], origin[1],
-                Boolean.parseBoolean(System.getProperty(PRUNE_FLANK_CANDIDATES_PROPERTY, "true")),
-                Boolean.parseBoolean(System.getProperty(BOUND_FLANK_PROOFS_PROPERTY, "true")),
-                Boolean.parseBoolean(System.getProperty(FLANK_STEP_GATE_PROPERTY, "true")),
-                selectionExpansionAllowance());
+                FLANK_SELECTION_EXPANSIONS);
         if (retain) squad.retainedFlankWaypoint.remember(grid, squad.assignmentForExecution(),
                 contactId, contactX, contactY, origin[0], origin[1], rawX, rawY, cardinal, tick,
                 waypoint[0], waypoint[1]);
@@ -304,17 +292,9 @@ public final class ReinforceContact implements Goal {
         NavigationGrid grid = sim.getGrid();
         int[] origin = squadOrigin(squad, sim);
         int[] waypoint = snapToReachable(x, y, grid, origin[0], origin[1],
-                Boolean.parseBoolean(System.getProperty(PRUNE_FLANK_CANDIDATES_PROPERTY, "true")),
-                Boolean.parseBoolean(System.getProperty(BOUND_FLANK_PROOFS_PROPERTY, "true")),
-                Boolean.parseBoolean(System.getProperty(FLANK_STEP_GATE_PROPERTY, "true")),
-                selectionExpansionAllowance());
+                FLANK_SELECTION_EXPANSIONS);
         return new FlankSelection(waypoint[0], waypoint[1],
                 waypoint[0] == origin[0] && waypoint[1] == origin[1]);
-    }
-
-    private static int selectionExpansionAllowance() {
-        return Boolean.parseBoolean(System.getProperty(BUDGET_FLANK_SELECTION_PROPERTY, "true"))
-                ? FLANK_SELECTION_EXPANSIONS : Integer.MAX_VALUE;
     }
 
     /**
@@ -323,29 +303,15 @@ public final class ReinforceContact implements Goal {
      * so a candidate whose lower bound ties or exceeds the incumbent cannot
      * win the strict-less comparison. Pruning neither asserts reachability nor
      * relaxes detour rejection; an absent incumbent still requires proof.
+     * This overload sets no expansion allowance.
      */
-    static int[] snapToReachable(int x, int y, NavigationGrid grid,
-                                 int originX, int originY, boolean prune) {
-        return snapToReachable(x, y, grid, originX, originY, prune, true);
+    static int[] snapToReachable(int x, int y, NavigationGrid grid, int originX, int originY) {
+        return snapToReachable(x, y, grid, originX, originY, Integer.MAX_VALUE);
     }
 
     static int[] snapToReachable(int x, int y, NavigationGrid grid,
-                                 int originX, int originY, boolean prune, boolean boundProofs) {
-        return snapToReachable(x, y, grid, originX, originY, prune, boundProofs, false);
-    }
-
-    static int[] snapToReachable(int x, int y, NavigationGrid grid,
-                                 int originX, int originY, boolean prune, boolean boundProofs,
-                                 boolean stepGate) {
-        return snapToReachable(x, y, grid, originX, originY, prune, boundProofs,
-                stepGate, Integer.MAX_VALUE);
-    }
-
-    static int[] snapToReachable(int x, int y, NavigationGrid grid,
-                                 int originX, int originY, boolean prune, boolean boundProofs,
-                                 boolean stepGate, int maxExpandedNodes) {
+                                 int originX, int originY, int maxExpandedNodes) {
         if (maxExpandedNodes < 0) throw new IllegalArgumentException("negative expansion allowance");
-        boolean budgeted = maxExpandedNodes != Integer.MAX_VALUE;
         int remaining = maxExpandedNodes;
         int bestX = originX;
         int bestY = originY;
@@ -369,22 +335,20 @@ public final class ReinforceContact implements Goal {
                             Math.abs(candidateX - originX),
                             Math.abs(candidateY - originY));
                     float rawDistance2 = dx * dx + dy * dy;
-                    if (prune && rawDistance2 * 1000f + directSteps >= bestScore) continue;
-                    if (budgeted && remaining == 0) {
-                        break candidates;
-                    }
+                    if (rawDistance2 * 1000f + directSteps >= bestScore) continue;
+                    if (remaining == 0) break candidates;
                     int maxSteps = Math.min(directSteps + MAX_FLANK_EXTRA_STEPS,
                             (int) Math.floor(directSteps * MAX_FLANK_DETOUR_RATIO
                                     + MAX_FLANK_DETOUR_SLACK));
                     // Ordinary open-ground queries finish before this gate is needed.
                     // Cap both radius and expansion work: an incomplete proof may
                     // reject only completed BFS depths, never unknown territory.
-                    if (stepGate && gate == null && proofs >= 4 && maximumSteps <= 96) {
+                    if (gate == null && proofs >= 4 && maximumSteps <= 96) {
                         gate = STEP_GATE.get();
                         long started = profile == null ? 0L : System.nanoTime();
                         gate.prepare(grid, originX, originY, GridPathfinder.USE_CARDINAL_NAVIGATION,
                                 maximumSteps, Math.min(8192, remaining));
-                        if (budgeted) remaining -= gate.expandedNodes();
+                        remaining -= gate.expandedNodes();
                         if (profile != null) {
                             profile.recordCount(TickInnerProfile.Bucket.FLANK_SELECTION_EXPANDED, gate.expandedNodes());
                             profile.record(TickInnerProfile.Bucket.FLANK_STEP_FIELD, System.nanoTime() - started);
@@ -395,34 +359,19 @@ public final class ReinforceContact implements Goal {
                         if (profile != null) profile.recordCount(TickInnerProfile.Bucket.FLANK_STEP_REJECT, 1);
                         continue;
                     }
-                    if (budgeted && remaining == 0) {
-                        break candidates;
-                    }
+                    if (remaining == 0) break candidates;
                     proofs++;
                     if (profile != null) profile.routeReason("FLANK_SNAP");
                     int[] path;
                     try {
-                        if (budgeted) {
-                            path = boundProofs
-                                    ? GridPathfinder.findPathWithinStepEnvelope(grid,
-                                            originX, originY, candidateX, candidateY,
-                                            GridPathfinder.USE_CARDINAL_NAVIGATION, maxSteps, remaining)
-                                    : GridPathfinder.findPathWithinExpansionBudget(grid,
-                                            originX, originY, candidateX, candidateY,
-                                            GridPathfinder.USE_CARDINAL_NAVIGATION, remaining);
-                        } else {
-                            path = boundProofs
-                                    ? GridPathfinder.findPathWithinStepEnvelope(grid,
-                                            originX, originY, candidateX, candidateY,
-                                            GridPathfinder.USE_CARDINAL_NAVIGATION, maxSteps)
-                                    : GridPathfinder.findPath(grid,
-                                            originX, originY, candidateX, candidateY);
-                        }
+                        path = GridPathfinder.findPathWithinStepEnvelope(grid,
+                                originX, originY, candidateX, candidateY,
+                                GridPathfinder.USE_CARDINAL_NAVIGATION, maxSteps, remaining);
                     } finally {
                         if (profile != null) profile.routeReason(null);
                     }
                     int expanded = GridPathfinder.lastSearchExpandedNodes();
-                    if (budgeted) remaining -= expanded;
+                    remaining -= expanded;
                     if (profile != null) profile.recordCount(TickInnerProfile.Bucket.FLANK_SELECTION_EXPANDED, expanded);
                     if (Paths.isEmpty(path)) continue;
                     int routeSteps = Math.max(0, Paths.cellCount(path) - 1);
@@ -438,7 +387,7 @@ public final class ReinforceContact implements Goal {
                 }
             }
         }
-        if (budgeted && remaining == 0 && profile != null) {
+        if (remaining == 0 && profile != null) {
             profile.recordCount(TickInnerProfile.Bucket.FLANK_SELECTION_LIMIT, 1);
             if (bestX == originX && bestY == originY) {
                 profile.recordCount(TickInnerProfile.Bucket.FLANK_SELECTION_LIMIT_REFUSAL, 1);

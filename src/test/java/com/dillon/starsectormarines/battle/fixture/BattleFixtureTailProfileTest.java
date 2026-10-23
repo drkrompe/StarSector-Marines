@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
 import com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior;
 import com.dillon.starsectormarines.battle.infantry.ReinforceContact;
 import com.dillon.starsectormarines.battle.nav.AsyncDefendTrackRoutes;
+import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.nav.mesh.GreedyNavigationMesh;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
@@ -142,8 +143,7 @@ class BattleFixtureTailProfileTest {
         TailSquadRouteAdmission.Totals admissionTotals =
                 new TailSquadRouteAdmission.Totals(warmupTicks + 1);
         TailSquadRouteWork routeWorkTotals = new TailSquadRouteWork(warmupTicks + 1,
-                Math.max(1, Integer.getInteger("battle.pathfinding.squadRouteWorkPerTick", 8192)),
-                Boolean.parseBoolean(System.getProperty("battle.pathfinding.squadRouteWorkBudget", "true")));
+                NavigationService.SquadRouteWorkBudget.DEFAULT.perTick());
         Path outputDir = Path.of(System.getProperty("battle.tail.outputDir",
                 "build/reports/performance/conquest-tail"));
         Files.createDirectories(outputDir);
@@ -561,47 +561,21 @@ class BattleFixtureTailProfileTest {
         }
         JSONObject report = new JSONObject();
         report.put("schemaVersion", 27);
-        report.put("mechReachabilityComponents", Boolean.parseBoolean(System.getProperty(
-                "battle.pathfinding.mechReachabilityComponents", "true")));
-        report.put("boundGuardPatrol", Boolean.parseBoolean(System.getProperty(
-                "battle.pathfinding.boundGuardPatrol", "true")));
-        report.put("boundDistrictPatrol", Boolean.parseBoolean(System.getProperty(
-                "battle.pathfinding.boundDistrictPatrol", "true")));
         report.put("progressiveVehicleRecovery", Boolean.parseBoolean(System.getProperty(
                 "battle.vehicle.progressiveRecovery", "true")));
         report.put("vehicleRecoveryExpansionsPerTick", Math.max(1,
                 Integer.getInteger("battle.vehicle.recoveryExpansionsPerTick", 2048)));
-        report.put("compactPublicTopology", Boolean.parseBoolean(System.getProperty(
-                "battle.pathfinding.compactPublicTopology", "true")));
         report.put("commandTopologyCpu", Boolean.getBoolean("battle.profile.commandTopologyCpu"));
         report.put("commandFrameDetail", Boolean.getBoolean("battle.profile.commandFrameDetail"));
         report.put("commandFrameStageSemantics", "ASSIGNMENTS, SQUADS, INFLUENCE and FACTS are disjoint wall stages nested within FRAME, but do not cover all frame work. FRAME_CPU overlaps wall stages and is host-thread CPU. Opt-in SQUAD_ROSTER, MEMBERS, CONTACT and PUBLICATION accumulate per-row wall slices within SQUADS; PUBLICATION includes row construction and final sort. Their sample counts are perspective freezes, not rows. SQUAD_ROWS, MEMBER_INPUTS and BELIEF_INPUTS count inputs; belief inputs are retained list size, not visited contacts. Zero detail counts mean disabled or no inputs, not zero cost.");
         report.put("replanCpu", Boolean.getBoolean("battle.tail.replanCpu"));
         report.put("replanCpuSemantics", "Opt-in current-host-thread CPU for actual infantry replans and their goal-selection envelopes. Selection CPU accumulates across declined goals; individual goal probes remain wall-only. Actual replan excludes idle eligibility checks. CPU milliseconds are -1 when disabled, unsupported, or incomplete; wall minus CPU is not proof of lock contention. Selection is nested in actual replan and must not be added to it.");
-        report.put("squadRouteWorkBudget", Boolean.parseBoolean(System.getProperty(
-                "battle.pathfinding.squadRouteWorkBudget", "true")));
-        report.put("squadRouteWorkPerTick", Math.max(1, Integer.getInteger("battle.pathfinding.squadRouteWorkPerTick", 8192)));
-        report.put("squadRouteWorkPerSlice", Math.max(1, Integer.getInteger("battle.pathfinding.squadRouteWorkPerSlice", 4096)));
-        report.put("squadRouteWorkPerRequest", Math.max(1, Integer.getInteger("battle.pathfinding.squadRouteWorkPerRequest", 524288)));
-        report.put("squadRouteRetryTicks", Math.max(1, Integer.getInteger("battle.pathfinding.squadRouteRetryTicks", 120)));
         report.put("squadRouteWorkSemantics", "top eight work slices per retained tick by wall duration, not complete-build timings; slice work/expansion counts are increments; lifetimeWorkUnits and ageTicks describe the request at slice end and must not be summed; lastSeedStart is a global cell index, lastSeedExpanded is cumulative for the current or last seed, maxSeedExpanded is the request's cumulative per-seed maximum; innerTotals SQUAD_ROUTE_WORK count covers all measured work units including unretained ticks and slices");
-        report.put("retainSingletonSeeds", Boolean.parseBoolean(System.getProperty(
-                "battle.pathfinding.retainSingletonSeeds", "true")));
         report.put("singletonRouteSemantics", "direct singleton fields store only seed cells; corridor/settled cell volumes describe retained coverage, not reverse expansions; unpadded region area is zero");
         report.put("squadRouteBuildSemantics", "top eight builds by wall duration; NEW means no prior entry, including after a flush; COST includes bounded-age refresh; seedPathCells sums seed lengths; cell volumes may overlap between builds");
-        report.put("retainSquadRouteCosts", Boolean.parseBoolean(System.getProperty(
-                "battle.pathfinding.retainSquadRouteCosts", "true")));
-        report.put("flankStepGate", Boolean.parseBoolean(System.getProperty(
-                "battle.pathfinding.flankStepGate", "true")));
-        report.put("budgetFlankSelection", Boolean.parseBoolean(System.getProperty(
-                "battle.pathfinding.budgetFlankSelection", "true")));
         report.put("flankSelectionExpansionAllowance", ReinforceContact.FLANK_SELECTION_EXPANSIONS);
         report.put("flankSelectionWorkSemantics", "Per-selection A* plus shared step-gate expansions; not a per-squad or per-tick limit. FLANK_SELECTION_LIMIT counts selections consuming the entire allowance, including a last-node success; the result is the best verified candidate or origin fallback, not a disconnection proof. Counts aggregate all callers, including parallel AttackMove selections. Allocation, scratch reset, heap operations and runtime scheduling are not time-bounded by this count.");
-        report.put("retainFlankPlans", Boolean.parseBoolean(System.getProperty(
-                "battle.goap.retainFlankPlans", "true")));
         report.put("sourceRevision", System.getProperty("battle.tail.sourceRevision", "unknown"));
-        report.put("squadRouteAdmissionEnabled", Boolean.parseBoolean(System.getProperty(
-                "battle.pathfinding.squadRouteAdmission", "true")));
         report.put("rejectInvalidPlannerStart", Boolean.parseBoolean(System.getProperty(
                 "battle.vehicle.rejectInvalidPlannerStart", "true")));
         report.put("reuseFailedRecovery", Boolean.parseBoolean(System.getProperty(
@@ -624,17 +598,9 @@ class BattleFixtureTailProfileTest {
         report.put("squadTraffic", Boolean.getBoolean("battle.squad.traffic"));
         report.put("squadTrafficYield", Boolean.parseBoolean(System.getProperty(
                 "battle.squad.trafficYield", "true")));
-        report.put("pruneFlankCandidates", Boolean.parseBoolean(System.getProperty(
-                "battle.pathfinding.pruneFlankCandidates", "true")));
-        report.put("boundFlankProofs", Boolean.parseBoolean(System.getProperty(
-                "battle.pathfinding.boundFlankProofs", "true")));
-        report.put("omitFixedGoalOccupancy", Boolean.parseBoolean(System.getProperty(
-                "battle.pathfinding.omitFixedGoalOccupancy", "true")));
         report.put("pathSearchTimingSemantics", "Flat search samples and expansion totals include squad-field fallbacks; worker elapsed times overlap. goalOccupancy is the unsigned destination reservation count, -1 when unknown.");
         report.put("squadFiringPositions", Boolean.parseBoolean(System.getProperty(
                 "battle.targeting.squadFiringPositions", "false")));
-        report.put("phaseOwnedRallyRequests", Boolean.parseBoolean(System.getProperty(
-                "battle.pathfinding.phaseOwnedRallyRequests", "true")));
         report.put("asyncDefendSite", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.asyncDefendSite", "true")));
         report.put("minimumParallelUnits",

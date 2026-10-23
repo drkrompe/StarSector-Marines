@@ -60,10 +60,6 @@ public final class GridPathfinder {
      */
     public static final float OCCUPANCY_PENALTY = 2f;
 
-    /** Same-build control retaining the unavoidable terminal occupancy toll. */
-    public static final String OMIT_FIXED_GOAL_OCCUPANCY_PROPERTY =
-            "battle.pathfinding.omitFixedGoalOccupancy";
-
     private static final float SQRT2 = (float) Math.sqrt(2.0);
     private static final float INF = Float.MAX_VALUE;
 
@@ -407,10 +403,9 @@ public final class GridPathfinder {
      * {@link #OCCUPANCY_PENALTY} × {@code occupancy[idx]} to the cost of
      * stepping into each cell, so A* routes around stacked allies when a
      * reasonable detour exists. For a fixed goal, its unavoidable additive
-     * occupancy toll is omitted from the search objective by default: every
-     * complete route pays it once, so it cannot favor one route over another.
+     * occupancy toll is omitted from the search objective: every complete
+     * route pays it once, so it cannot favor one route over another.
      * Intermediate occupancy and direction-sensitive goal terrain are retained.
-     * Float-rounding and equal-cost route ties may differ from the control.
      * Pass {@code null} for vanilla pathing.
      */
     public static int[] findPath(NavigationGrid grid, int startX, int startY, int goalX, int goalY,
@@ -894,9 +889,7 @@ public final class GridPathfinder {
         // it in g while omitting it from the heuristic needlessly floods the
         // frontier before the goal can win. Omit only that toll, not terrain
         // (whose diagonal multiplier depends on the approach) or intermediate
-        // occupancy. This changes float rounding/ties, not the real cost model.
-        boolean omitGoalOccupancy = occupancy != null && Boolean.parseBoolean(
-                System.getProperty(OMIT_FIXED_GOAL_OCCUPANCY_PROPERTY, "true"));
+        // occupancy.
 
         while (heapSize > 0) {
             if (ws.expandedNodes >= maxExpandedNodes) return EMPTY_PATH;
@@ -940,7 +933,7 @@ public final class GridPathfinder {
 
                 if (heapPos[nIdx] == CLOSED) continue;
 
-                byte[] stepOccupancy = omitGoalOccupancy && nIdx == goalIdx ? null : occupancy;
+                byte[] stepOccupancy = nIdx == goalIdx ? null : occupancy;
                 float stepCost = indexedCost == null
                         ? stepCost(dirI, nIdx, stepOccupancy, costField)
                         : stepCost(dirI, nIdx, stepOccupancy, indexedCost.costAt(nIdx, nx, ny));

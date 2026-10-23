@@ -144,7 +144,7 @@ class SquadRoutePendingActionTest {
             nav.getUnitIndex().rebuild(roster);
             TacticalScoring scoring = new TacticalScoring(nav, roster, new AttackerIndexService(roster),
                     null, new DoodadService(grid));
-            int routedPopulation = Math.max(1, SharedGoalPolicy.configuredMinimumSharedGoalUnits());
+            int routedPopulation = Math.max(1, SharedGoalPolicy.minimumSharedGoalUnits());
             assertTrue(SharedGoalPolicy.usesSquadRouteCorridors(routedPopulation));
             sim = (BattleControl) Proxy.newProxyInstance(BattleControl.class.getClassLoader(),
                     new Class<?>[]{BattleControl.class}, (proxy, method, args) -> switch (method.getName()) {

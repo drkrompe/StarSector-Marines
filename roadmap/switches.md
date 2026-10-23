@@ -67,7 +67,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.fort.restraint` | control | 2026-10-13 | Standing control: ShieldFortScene runs the off arm as its control loop. Retire it with that loop. |
 | `battle.garrison.envelopes` | experiment | 2026-10-20 | Garrisonables (garrisonables.md): remove once garrisonEvidence and the reactive-defence evidence accept it. |
 | `battle.garrison.stretches` | experiment | 2026-10-20 | Garrisonables (garrisonables.md): remove once garrisonEvidence and the reactive-defence evidence accept it. |
-| `battle.goap.retainFlankPlans` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.heart.broadCompanyArmour` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
 | `battle.heart.broadFallBack` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
 | `battle.heart.broadFormUp` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
@@ -117,39 +116,15 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.mission.flow.forward` | experiment | 2026-10-21 | Mission reactive defence and flow (garrisonables.md): remove each once commanderEvidence on the story missions accepts it. Its composed .triggered/.dutyShare/.dutyPressure knobs go with it. |
 | `battle.mission.reactiveDefence` | experiment | 2026-10-20 | Mission reactive defence and flow (garrisonables.md): remove each once commanderEvidence on the story missions accepts it. Its composed .triggered/.dutyShare/.dutyPressure knobs go with it. |
 | `battle.party.places` | experiment | 2026-10-21 | As battle.mission.*. |
-| `battle.pathfinding.<budget>` | tuning | 2026-09-27 | Squad-route work budgets (NavigationService). Fold into constants. |
 | `battle.pathfinding.asyncClearance` | config | 2026-09-26 | Permanent: determinism, as for battle.influence.async. |
 | `battle.pathfinding.asyncDefendSite` | config | 2026-09-26 | Permanent: determinism, as for battle.influence.async. |
 | `battle.pathfinding.asyncDefendTrack` | config | 2026-09-22 | Permanent: determinism, as for battle.influence.async. |
 | `battle.pathfinding.asyncDefendTrack.queueCapacity` | config | 2026-09-22 | Permanent: the capacity of the async route queue. |
 | `battle.pathfinding.asyncDefendTrack.workers` | config | 2026-09-22 | Permanent: the size of the async route worker pool. |
-| `battle.pathfinding.boundDistrictPatrol` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.boundFlankProofs` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.boundGuardPatrol` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.budgetFlankSelection` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.pathfinding.casualtyRouteCost` | control | 2026-08-30 | Standing control: the CLAUDE.md worked example of a control run (killing-ground). Retire it when the example moves to another switch. |
 | `battle.pathfinding.clearanceFailureBackoff` | experiment | 2026-10-14 | Mech clearance routing (mechs-nouns.md, 2026-10-14): remove once profileConvoyRoute has been read against it. |
-| `battle.pathfinding.compactCasualtyRouteCost` | experiment | 2026-09-26 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.compactPublicTopology` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.pathfinding.fireRouteCost` | control | 2026-10-22 | Standing control: FireFearScene and FireHarmScene compare against the off arm. Fire-system session; retire with those loops. |
-| `battle.pathfinding.flankStepGate` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.maxSquadRouteBuildsPerTick` | experiment | 2026-09-22 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.mechReachabilityComponents` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.minimumSharedGoalUnits` | experiment | 2026-08-24 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.omitFixedGoalOccupancy` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.phaseOwnedRallyRequests` | experiment | 2026-09-26 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.pruneFlankCandidates` | experiment | 2026-09-26 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.retainSingletonSeeds` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.retainSquadRouteCosts` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.pathfinding.shareExhaustedFlood` | experiment | 2026-10-14 | As clearanceFailureBackoff. |
-| `battle.pathfinding.sharedGoalFields` | experiment | 2026-08-28 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.squadRouteAdmission` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.squadRouteCorridors` | experiment | 2026-09-22 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.squadRouteRetryTicks` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.squadRouteWorkBudget` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.squadRouteWorkPerRequest` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.squadRouteWorkPerSlice` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.pathfinding.squadRouteWorkPerTick` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.power.armorDropCooldownSeconds` | tuning | 2026-10-18 | Heavy-equipment pass: fold into a constant once the cooldown is accepted. |
 | `battle.profile.commandFrameDetail` | config | 2026-09-27 | Permanent: opt-in profiling instrumentation, off in play. |
 | `battle.profile.commandTopologyCpu` | config | 2026-09-27 | Permanent: opt-in profiling instrumentation, off in play. |
