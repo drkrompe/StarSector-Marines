@@ -93,6 +93,7 @@ import com.dillon.starsectormarines.ops.battleview.OrdnanceFxRuntime;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceTraceFxService;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
 import com.dillon.starsectormarines.ops.battleview.TextureLoadQueue;
+import com.dillon.starsectormarines.ops.battleview.BattleTerrainSheets;
 import com.dillon.starsectormarines.ops.battleview.BattleTextureSet;
 import com.dillon.starsectormarines.render2d.texture.TextureLease;
 import com.dillon.starsectormarines.render2d.texture.TextureLedger;
@@ -428,7 +429,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         // Only what this battle places, spawns and can bring in.
         BattleSimulation sim = ctx != null ? ctx.getBattleSimulation() : null;
         BattleTextureSet set = sim != null ? BattleTextureSet.of(sim) : null;
-        List<TextureLoadQueue.Step> steps = new ArrayList<>(sprites.battleLoadSteps(set, Strings::get));
+        Set<String> terrain = sim != null ? BattleTerrainSheets.of(sim) : null;
+        List<TextureLoadQueue.Step> steps = new ArrayList<>(sprites.battleLoadSteps(set, terrain, Strings::get));
         steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingAtlases"), () -> {
             renderer.buildTileBatches();
             renderer.onAttach();

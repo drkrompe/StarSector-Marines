@@ -122,7 +122,9 @@ the village: water five cells wide with sand on either bank and no crown
 overhanging it, crossed on foot
 at a stony ford every forty-six cells (stone, not sand, so the creep over a ford is a film and the ford holds as a break) and wherever a road bridges it. Nobody walks
 through water and creep does not climb it, so the brook is the map's natural
-firebreak and a line the creep crosses only at its fords and bridges. A road
+firebreak and a line the creep crosses only at its fords and bridges. It runs in a shallow valley: raised banks either side,
+climbed from the country, broken at every ford and road, so a crossing is a
+descent to a ford (`elevation-nouns.md`, Ridges). A road
 over it is its bridge; where the settlement's streets cross its line it runs
 under them.
 

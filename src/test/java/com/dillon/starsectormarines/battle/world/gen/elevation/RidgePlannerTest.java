@@ -19,15 +19,15 @@ class RidgePlannerTest {
 
     @Test
     void protectedGroundAcrossTheBandIsAPassBetweenTwoSegments() {
-        RidgePlanner.Band band = new RidgePlanner.Band(4, 20, W - 5, 29, true, -1, 5);
+        RidgePlanner.Band band = RidgePlanner.Band.rect(4, 20, W - 5, 29, true, -1, 5);
         List<int[]> runs = RidgePlanner.runs(band, W, H, RidgePlannerTest::free);
         assertEquals(2, runs.size());
-        assertTrue(runs.get(0)[1] < 58 && runs.get(1)[0] > 61, "the road lies between the segments");
+        assertTrue(4 + runs.get(0)[1] < 58 && 4 + runs.get(1)[0] > 61, "the road lies between the segments");
     }
 
     @Test
     void everySegmentIsRaisedAndRampedFromItsSide() {
-        RidgePlanner.Band band = new RidgePlanner.Band(4, 20, W - 5, 29, true, -1, 5);
+        RidgePlanner.Band band = RidgePlanner.Band.rect(4, 20, W - 5, 29, true, -1, 5);
         ElevationPlan plan = RidgePlanner.plan(W, H, 1L, List.of(band), RidgePlannerTest::free, layout -> true);
         assertNotNull(plan);
         assertEquals(2, plan.plateaus().size());

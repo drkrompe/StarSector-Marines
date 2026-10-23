@@ -1086,6 +1086,15 @@ A test that asserts what an image, a data file or a tuned number currently conta
 reworked while nothing is broken; do not write one, and delete one you find failing
 for that reason rather than updating it to the new content.
 
+**Minimize the necessity of end-to-end tests** (owner, 2026-10-23). Before reaching
+for a whole battle, ask whether the change can be proved at the unit or
+integration level, and structure the code so it can: a rule that guarantees an
+invariant is tested where it is decided, and a change whose failure mode is a
+logged fallback (a hitch, never a wrong picture) is measured, not gated on a
+played battle. A battle run costs its own session minutes and slows every other
+session on the machine; the more sessions simulate whole battles, the slower
+development is for all of them.
+
 **Things that are not tests do not go in `test`:**
 
 - **Mission and battle runs** — anything that plays a simulation forward for

@@ -477,7 +477,8 @@ public final class GroundRenderSystem implements RenderSystem {
                 GridBlockDef b = tileReg.block(id);
                 if (b == null) continue; // a sliced-tile mapping (e.g. STREET) — special-cased below
                 kindBlock[k.ordinal()] = b;
-                // Not loaded here: a kind the map has none of would load a sheet nobody draws.
+                // Not loaded here: a kind the map has none of would load a sheet nobody draws. One
+                // asked for later is loaded then (kindSheet(int)).
                 kindSheet[k.ordinal()] = loadedSheetFor(b.sheetPath);
                 if (b.fillRgb != null) kindFill[k.ordinal()] = new Color(b.fillRgb);
             }
@@ -506,13 +507,28 @@ public final class GroundRenderSystem implements RenderSystem {
                 // rather than to nothing, so a stale document is a room that looks
                 // ordinary instead of a hole in the ship.
                 surfaceBlock[i] = block != null ? block : wallBlock;
-                if(block!=null && block.id.startsWith("pavement.")) for(int mask=1;mask<16;mask++) {
+                // Edges blend pavement only where no road surface smooths it (edgeMask), so only then is their sheet asked for.
+                if(block!=null && block.id.startsWith("pavement.") && topology.roadSurface()==null) for(int mask=1;mask<16;mask++) {
                     GridBlockDef edge=tileReg.block(block.id+".edge-"+mask);
                     if(edge!=null && sheetFor(edge.sheetPath)!=null) edgeBlocks[i][mask]=edge;
                 }
                 surfaceFill[i] = (surfaceBlock[i] != null && surfaceBlock[i].fillRgb != null)
                         ? new Color(surfaceBlock[i].fillRgb) : wallFill;
             }
+        }
+
+        /**
+         * The sheet of a kind's block, loaded the first time a cell of that kind is drawn when
+         * nobody loaded it before the pass was built: a kind a wall's fall uncovers, or one the
+         * battle's terrain set missed. A miss draws its art a frame late, never its flat fill.
+         */
+        private SpriteAPI kindSheet(int ord) {
+            SpriteAPI sheet = kindSheet[ord];
+            if (sheet == null && kindBlock[ord] != null) {
+                sheet = sheetFor(kindBlock[ord].sheetPath);
+                kindSheet[ord] = sheet;
+            }
+            return sheet;
         }
 
         @Override
@@ -675,7 +691,7 @@ public final class GroundRenderSystem implements RenderSystem {
                     if (nature != null && tileReg != null) {
                         natureTile(tileReg.tile(GroundTileSelector.natureTileId(kind, x, y)), sink);
                     } else {
-                        groundBlock(kindBlock[ord], kindSheet[ord], kindFill[ord],
+                        groundBlock(kindBlock[ord], kindSheet(ord), kindFill[ord],
                                 nWall, sWall, eWall, wWall, x, y, sink);
                     }
                     break;
@@ -684,7 +700,7 @@ public final class GroundRenderSystem implements RenderSystem {
                 default:
                     // INDOOR/RUBBLE/COURTYARD/TILE/STRIPED/STONE/SAND/SNOW/WATER/BRICK:
                     // generic resolve+draw from the kind's mapped block.
-                    groundBlock(kindBlock[ord], kindSheet[ord], kindFill[ord],
+                    groundBlock(kindBlock[ord], kindSheet(ord), kindFill[ord],
                             nWall, sWall, eWall, wWall, x, y, sink);
                     break;
             }
