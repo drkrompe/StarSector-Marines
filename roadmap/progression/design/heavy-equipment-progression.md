@@ -5,7 +5,7 @@ vehicles in the mech bay, heavy lift and the drop choice have shipped; vehicle
 variants are planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-23 — located plates ship: a held flank pays, a free tank in a pincer outlasts the one pool (readings under Facing); earlier: one front for the worst known threat and a gun that shakes while its hull turns: two fire-support APCs from opposite sides take 0.50 of their fights against a tank against 0.17-0.33 from one approach, and the lone flanker stays modest (readings below); a stalled hold in band moves to a clear lane (street undecided fights 227 to 141 of 828, facing gains untouched); keeping the front: a flanked tank turns onto its target (backing out to 120° off the nose, a forward turn beyond, rehearsed first and never off a berm), which takes the escort APC's side-on and rear-on wins against a tank from 0.42-0.46 to 0.12 and 0.08; a gunless tank backing out of reach nose on was measured and rejected (readings below); balance is not parity (a law: read rows against bill and tier), and the dozer's and SRM technical's facing rows retuned to it; facing: a hull's plate, and a mech torso's, depend on the arc they are hit on (readings below; the matchup harness now sets hulls down facing the enemy, which re-baselines the street rows); earlier: the AT LRM against a tank: the screened tank, a tank-line rung with top-attack active protection (fit 0.78 to 0.66), rack levers measured and rejected; a tank that loses its gun withdraws (readings below); earlier: missile carriers: the LRM carrier (APC line) and the SRM technical (field rig), bills hull plus racks; a tank's gun can be shot away (readings below); anti-armor racks close on a tie in mech duels; tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and flux 28, pulse laser flux 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, flux 34, Warden rated 39); earlier: engines carry mass, military capacitors 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
+Updated: 2026-10-23 — crossfire: a tank crew hit by two machines from 90° apart shoots at a moving shooter's accuracy, and two Hounds in a pincer beat the burst laser tank 25 / 7 against 13 / 18 from one approach (readings under Facing); side plates drawing on the front pool rejected by the owner (a pincer pays through attention, not shared armor); located plates ship: a held flank pays, a free tank in a pincer outlasts the one pool (readings under Facing); earlier: one front for the worst known threat and a gun that shakes while its hull turns: two fire-support APCs from opposite sides take 0.50 of their fights against a tank against 0.17-0.33 from one approach, and the lone flanker stays modest (readings below); a stalled hold in band moves to a clear lane (street undecided fights 227 to 141 of 828, facing gains untouched); keeping the front: a flanked tank turns onto its target (backing out to 120° off the nose, a forward turn beyond, rehearsed first and never off a berm), which takes the escort APC's side-on and rear-on wins against a tank from 0.42-0.46 to 0.12 and 0.08; a gunless tank backing out of reach nose on was measured and rejected (readings below); balance is not parity (a law: read rows against bill and tier), and the dozer's and SRM technical's facing rows retuned to it; facing: a hull's plate, and a mech torso's, depend on the arc they are hit on (readings below; the matchup harness now sets hulls down facing the enemy, which re-baselines the street rows); earlier: the AT LRM against a tank: the screened tank, a tank-line rung with top-attack active protection (fit 0.78 to 0.66), rack levers measured and rejected; a tank that loses its gun withdraws (readings below); earlier: missile carriers: the LRM carrier (APC line) and the SRM technical (field rig), bills hull plus racks; a tank's gun can be shot away (readings below); anti-armor racks close on a tie in mech duels; tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and flux 28, pulse laser flux 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, flux 34, Warden rated 39); earlier: engines carry mass, military capacitors 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -919,17 +919,50 @@ without its front bonus. `-Dbattle.vehicle.armorArcs=false` is the control.
     of 612 vehicle rows 72 move by a fight, in both directions; median TTK
     ratios 1.00-1.04 by ground; mechs attacking hulls win 86 of 216 fights
     against 94.
-  - *Rejected alternatives.* Making the side and rear plates windows onto the
-    front pool (a flank hit spends the facing plate and the same armor from the
-    front, so nothing is stranded) would keep head-on exact and end the free
+  - *Rejected by the owner (2026-10-23): side plates as windows onto the front
+    pool* (a flank hit spends the facing plate and the same armor from the
+    front, so nothing is stranded). It would keep head-on exact and end the free
     pincer's stranded armor, at the cost that a left-only tank no longer keeps
-    its front whole. Holding the pincer by behaviour (attackers that re-establish
+    its front whole. The owner's reason: armor is local, and a pincer pays
+    through attention, not shared armor: one attacker draws the tank's front
+    and fire head-on while the other shoots the weaker side without taking
+    return fire. The pincer's payoff belongs in what the tank attends to.
+  - *Rejected alternatives.* Holding the pincer by behaviour (attackers that re-establish
     a flank against a moving hull, a tank that does not reverse into its second
     attacker) is real work in both duel rules. Thinner flanks (plates 1 / .25 /
     .25 / .15) took the free pincer from about 60 s to 53-54 s, head-on
     unchanged; the drive pool made no measurable difference; a mech stepping to
     an in-band cell on a weaker face (`MechDuelRange`) was within noise, because
     the tank keeps moving and the step is stale by arrival. None was taken.
+- **Crossfire** (`convoy-nouns.md`, a crew watches one way). The owner's
+  direction for the pincer: it pays through attention, not shared armor.
+  - *What a tank already did.* Its gun keeps the machine it locked until that
+    machine dies or leaves reach or sight, and never swung to a Hound at six
+    cells off its rear; the hull keeps its front and its retreat on the machine
+    it duels. Both Hounds start inside the tank's band, so it backs off the
+    first nose on (the too-close retreat, not the worst-threat front, which is
+    only read in band), and backing straight away from one Hound runs it past
+    the other: inside about twenty seconds both stand on its front. The
+    turret traverses on its own at 55° a second (twin cannon) or 110° (burst
+    laser). Nothing rattled a crew fired on from two sides.
+  - *The rule.* Hits from two machines at least 90° apart, each within ten
+    seconds, and the gun fires at a moving shooter's accuracy. At four seconds
+    it almost never held: a Hound fires in volleys several seconds apart while
+    it sheds flux. Seven seconds took the laser row to 20 / 12.
+  - *Two Hounds, 20 cells, 32 seeds*, Hound wins / tank wins, mean / median
+    TTK of decided fights in seconds, control (`-Dbattle.vehicle.crossfire=false`) then crossfire:
+
+    | Tank | Pincer, control | Pincer, crossfire | One approach (both arms) |
+    | --- | --- | --- | --- |
+    | Burst laser | 16 / 15, 41.4 / 40.3 | 25 / 7, 50.4 / 50.3 | 13 / 18, 41.5 / 40.8 |
+    | Breakthrough | 23 / 9, 60.7 / 58.0 | 23 / 9, 55.0 / 59.3 | 2 / 21, 67.2 / 63.7 |
+    | Screened | 23 / 7, 63.5 / 59.8 | 22 / 9, 61.1 / 63.2 | 6 / 17, 67.7 / 65.4 |
+
+    The pincer now beats the single approach against all three; the laser tank,
+    which killed the first Hound before the second mattered, no longer shrugs
+    it off. The cannon tanks were already beaten by it and stay so.
+  - *The default ladder* (2 seeds, every pairing both ways): all 1,410 fights
+    identical to the control, as the rule requires two machines.
 - **The mech torso** has arcs too (`mechs-nouns.md`, the torso's plate depends
   on its arc): front as the chassis rating stands, sides 0.95 / 0.85, rear
   0.75 / 0.6, with `-Dbattle.mech.armorArcs=false` the control. Over the mech and

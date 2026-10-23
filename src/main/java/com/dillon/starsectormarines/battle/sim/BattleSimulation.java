@@ -156,6 +156,7 @@ import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
 import com.dillon.starsectormarines.battle.vehicle.DozerBlade;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
+import com.dillon.starsectormarines.battle.vehicle.Crossfire;
 import com.dillon.starsectormarines.battle.vehicle.HullPivot;
 import com.dillon.starsectormarines.battle.vehicle.HullSlide;
 import com.dillon.starsectormarines.battle.vehicle.ScoutSight;
@@ -1599,8 +1600,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world,
                 turretFire, rng, this::spawn, this, effects, transport);
         rosterService.convoy().setDestructionSink(groundSystem::destroyVehicle);
-        // A gun on a turning hull shakes the way a moving shooter's does.
-        turretFire.setShooterAccuracy(new HullPivot(rosterService.convoy()));
+        // A gun on a turning hull shakes the way a moving shooter's does, and so does a crew caught in crossfire;
+        // the gun is never shakier than a moving shooter's.
+        HullPivot pivot = new HullPivot(rosterService.convoy());
+        turretFire.setShooterAccuracy(id -> Math.min(pivot.multiplier(id),
+                Crossfire.accuracyMultiplier(rosterService.convoy(), id)));
         // A tube loaded for an incendiary fire mission puts that heat into its round (`fire-nouns.md`, Starting fires).
         turretFire.setRoundHeat(id -> {
             FieldMortarService.Tube tube = fieldMortars().tubeOfEntity(id);
