@@ -291,6 +291,16 @@ public final class BallisticResolver {
      */
     public boolean friendInLane(long shooter, float fromX, float fromY, Faction side,
                                 float toX, float toY, long target) {
+        return friendInLane(shooter, fromX, fromY, 0f, side, toX, toY, target);
+    }
+
+    /**
+     * {@link #friendInLane(long, float, float, Faction, float, float, long)} from a muzzle standing {@code fromZ}
+     * cells above the target plane, as a gun on a plinth does: a friend under the line the round descends along
+     * ({@link #overhead}) is not in its way.
+     */
+    public boolean friendInLane(long shooter, float fromX, float fromY, float fromZ, Faction side,
+                                float toX, float toY, long target) {
         LongBucket candidates = LANE_SCRATCH.get();
         candidates.clear();
         unitIndex.gatherAlongSegment(fromX, fromY, toX, toY, FRIENDLY_LANE_CLEARANCE + FRIENDLY_LANE_OVERSHOOT,
@@ -303,9 +313,30 @@ public final class BallisticResolver {
             if (carrier != null ? !carrier.isTargetable(id) : !roster.isAliveById(id)) continue;
             Faction faction = carrier != null ? carrier.faction(id) : roster.identity().faction(id);
             if (faction == Faction.CIVILIAN || !side.friendlyTo(faction)) continue;
-            if (inLane(fromX, fromY, toX, toY, world.x(id), world.y(id), roster.radius(id))) return true;
+            if (!inLane(fromX, fromY, toX, toY, world.x(id), world.y(id), roster.radius(id))) continue;
+            if (fromZ > 0f && overhead(fromX, fromY, fromZ, toX, toY, world.x(id), world.y(id),
+                    roster.hitHalfHeight(id))) continue;
+            return true;
         }
         return false;
+    }
+
+    /**
+     * Whether a round leaving {@code fromZ} cells above the target plane at ({@code fromX}, {@code fromY}) and
+     * descending in a straight line to the plane at ({@code toX}, {@code toY}) passes over the top of a body of
+     * {@code halfHeight} at ({@code bx}, {@code by}): the round's height where it crosses the body is above it.
+     * Zero height overflies nothing.
+     */
+    public static boolean overhead(float fromX, float fromY, float fromZ, float toX, float toY,
+                                   float bx, float by, float halfHeight) {
+        if (!(fromZ > 0f)) return false;
+        float dx = toX - fromX;
+        float dy = toY - fromY;
+        float length = (float) Math.sqrt(dx * dx + dy * dy);
+        if (length < 1e-6f) return false;
+        float along = ((bx - fromX) * dx + (by - fromY) * dy) / length;
+        float zThere = fromZ * (1f - Math.max(0f, Math.min(1f, along / length)));
+        return zThere > halfHeight;
     }
 
     /**

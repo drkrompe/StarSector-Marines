@@ -87,7 +87,7 @@ public final class MacroReliefField {
      * Metres one tier of raised ground stands above the one below: a storey,
      * so a plateau's shadow reaches about as far as a building's.
      */
-    public static final float TIER_RISE_METERS = 4f;
+    public static final float TIER_RISE_METERS = ElevationMap.TIER_RISE_METERS;
 
     public MacroReliefField(CellTopology topology, NavigationGrid grid,
                             Buildings buildings, GenMappingRegistry mapping) {

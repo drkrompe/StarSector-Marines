@@ -4,7 +4,7 @@ Status: ACTIVE — modeled ground direct fire is shipped; one manual feel pass r
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — a committed outcome names the environment feature that stopped the round, and arrival wears it.
+Updated: 2026-10-23 — a gun on a plinth fires from its height. Earlier: a committed outcome names the environment feature that stopped the round, and arrival wears it.
 
 Ballistics makes a direct shot a committed physical event instead of an
 accuracy result applied at the muzzle. It owns contact along the predicted
@@ -17,7 +17,11 @@ projectile.
   across its complete modeled flight. It is not a per-tick collision actor.
 - A **source** supplies the round's origin, faction, and optional owning body.
   It lets infantry, mounts, and ground emplacements share one contact model
-  without inventing a fake shooter.
+  without inventing a fake shooter. Its height above the target plane is zero
+  for everything on the ground except a gun on a plinth, whose rounds leave from
+  the plinth's height and descend along their line to the aim; anything they
+  pass over is not met, and a disciplined crew's lane check ignores a friend the
+  round passes over (`ground-turret-tiers.md`). Walls stay full height.
 - The **target plane** is the lateral and lightweight vertical plane through
   the intended target. It makes an accuracy result an actual wide, high, or
   low path rather than a second hidden hit roll.

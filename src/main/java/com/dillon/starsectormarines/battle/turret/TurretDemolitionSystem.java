@@ -68,6 +68,14 @@ public final class TurretDemolitionSystem {
     /** Every structure's remains so far, in the order they died. */
     public List<Remains> remains() { return remainsView; }
 
+    /** Guns standing on a plinth, whose raised eye is lowered when they die. */
+    private final LongOpenHashSet plinths = new LongOpenHashSet();
+
+    /** Records that {@code turretId} sees from a plinth ({@code StructureDef.plinthTiers}), to be lowered when it dies. */
+    public void registerPlinth(long turretId) {
+        plinths.add(turretId);
+    }
+
     /** Records that {@code turretId} stands on a multi-cell footprint, to be cleared when it dies. */
     public void registerFootprint(long turretId, StructureDef structure) {
         if (structure.isMultiCell()) multiCellStructures.put(turretId, structure);
@@ -115,6 +123,8 @@ public final class TurretDemolitionSystem {
                 }
             }
         }
+        // The height was the gun's: its cell sees from the ground again.
+        if (plinths.remove(u)) mapEditor.setRaisedEye(cx, cy, 0);
         StructureDef left = leavesRemains.remove(u);
         if (left != null) remains.add(new Remains(left, left.art.variantFor(u), event.x(), event.y()));
         // Mount cell keeps smoking for a while so the player can see the

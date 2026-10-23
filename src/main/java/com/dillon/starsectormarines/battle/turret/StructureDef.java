@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.turret;
 
+import com.dillon.starsectormarines.battle.air.AirScale;
+import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.fort.FortAspect;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.fort.FortBuildingArt;
@@ -26,6 +28,12 @@ public final class StructureDef {
     public final float hitHalfHeight;
     public final int footprintCellsX;
     public final int footprintCellsY;
+    /**
+     * Whole elevation tiers the gun stands above the ground under it: zero for a gun at ground level, one for a
+     * gun on a storey-high plinth. The height is real: rounds leave from it ({@link #muzzleHeightCells}), the gun
+     * sees from it, and a mount that cannot point steeply down has a dead zone at its foot ({@link #minRangeCells}).
+     */
+    public final int plinthTiers;
     public final float forceScore;
     public final String mountId;
     public final TurretMountDef mount;
@@ -50,7 +58,7 @@ public final class StructureDef {
     private StructureDef(String id, String displayName,
                          float maxStructure, float armorCapacity, float armorRating,
                          float radius, float hitHalfHeight,
-                         int footprintCellsX, int footprintCellsY, float forceScore,
+                         int footprintCellsX, int footprintCellsY, int plinthTiers, float forceScore,
                          String mountId, TurretMountDef mount,
                          String batteryLoadoutId, float fireControlRadius, DomeSpec dome,
                          StructureArt art, TurretRole targetRole, FortAspect fortAspect,
@@ -70,6 +78,7 @@ public final class StructureDef {
         this.hitHalfHeight = hitHalfHeight;
         this.footprintCellsX = footprintCellsX;
         this.footprintCellsY = footprintCellsY;
+        this.plinthTiers = plinthTiers;
         this.forceScore = forceScore;
         this.mountId = mountId;
         this.mount = mount;
@@ -90,6 +99,24 @@ public final class StructureDef {
     /** Whether this structure projects a planetary shield dome. */
     public boolean isShieldGenerator() {
         return dome != null;
+    }
+
+    /** How high above the ground its rounds leave, in cells (a cell is a metre): the plinth's tiers at a storey each. */
+    public float muzzleHeightCells() {
+        return plinthTiers * ElevationMap.TIER_RISE_METERS / AirScale.METERS_PER_CELL;
+    }
+
+    /**
+     * The nearest a ground target may stand for this gun to engage it: its weapon's own minimum, or, on a plinth,
+     * the distance at which a line from the muzzle down to the ground reaches the mount's depression limit,
+     * whichever is further.
+     */
+    public float minRangeCells() {
+        float own = Math.max(0f, mount.weapon.minRange);
+        float height = muzzleHeightCells();
+        if (height <= 0f || mount.maxDepressionDeg >= 90f) return own;
+        float underTheGuns = height / (float) Math.tan(Math.toRadians(mount.maxDepressionDeg));
+        return Math.max(own, underTheGuns);
     }
 
     /** Whether this structure stands on more than its anchor cell. */
@@ -133,6 +160,11 @@ public final class StructureDef {
                     + "' footprintCells must be odd positive cell counts, got ["
                     + footprintCellsX + ", " + footprintCellsY + "]");
         }
+        int plinthTiers = physics.optInt("plinthTiers", 0);
+        if (plinthTiers < 0 || plinthTiers > ElevationMap.MAX_TIER) {
+            throw new JSONException("Structure '" + id + "' plinthTiers must be between 0 and "
+                    + ElevationMap.MAX_TIER + ", got " + plinthTiers);
+        }
         JSONObject domeJson = json.optJSONObject("dome");
         DomeSpec dome = domeJson != null ? DomeSpec.parse(domeJson) : null;
         String batteryLoadoutId = null;
@@ -158,7 +190,7 @@ public final class StructureDef {
         return new StructureDef(
                 id, Strings.resolve(TurretMountDef.requireText(catalog, "displayName")),
                 maxStructure, armorCapacity, armorRating, radius, hitHalfHeight,
-                footprintCellsX, footprintCellsY, forceScore, mountId, mount,
+                footprintCellsX, footprintCellsY, plinthTiers, forceScore, mountId, mount,
                 batteryLoadoutId, fireControlRadius, dome, art,
                 role,
                 json.has("fortAspect") ? FortAspect.valueOf(json.getString("fortAspect")) : null,

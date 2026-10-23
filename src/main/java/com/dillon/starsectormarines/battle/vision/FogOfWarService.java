@@ -569,7 +569,12 @@ public final class FogOfWarService {
      * only, the way the shadowcast would have shown it from its height.
      */
     private int revealExposed(int total) {
-        int[] exposed = grid.exposedCells();
+        total = revealSeenBack(grid.exposedCells(), total);
+        return revealSeenBack(grid.raisedCells(), total);
+    }
+
+    /** {@link #revealExposed} for one set of cells seen back from their own height. */
+    private int revealSeenBack(int[] exposed, int total) {
         for (int idx : exposed) {
             int ex = idx % gridWidth, ey = idx / gridWidth;
             if (!seenByContributor(ex, ey)) continue;

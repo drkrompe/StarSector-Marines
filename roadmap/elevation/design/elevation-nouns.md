@@ -4,6 +4,8 @@ Status: ACTIVE — StarCraft-style raised ground: a few discrete tiers, impassab
 
 Written: 2026-10-22
 
+Updated: 2026-10-23 — a gun on a plinth sees from its height and is seen back from it.
+
 Read `stories.md` for open work.
 
 ## Purpose
@@ -126,6 +128,12 @@ for elevation's sake.
   both tiers.
 - Higher ground between two units on lower ground blocks them from each other
   like a building does.
+- A **raised gun** (a gun on a plinth of whole tiers, `ground-turret-tiers.md`)
+  sees from its ground's tier plus its plinth, and like an exposed holder it
+  is seen back from that height: sight and direct fire between it and lower
+  ground are judged from its eye. The height is the gun's, not the ground's:
+  the plinth's cells are not raised ground, nobody stands on them, and the
+  gun's death lowers its cell again (`NavigationGrid.setRaisedEye`).
 - Air observers (shuttles, flybys, recon) see every tier: their footprint is
   not limited by ground height, which is how a side without the high ground
   spots onto it.
