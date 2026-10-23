@@ -796,7 +796,7 @@ def _turret_plan(kf, key, turret, weapon):
         if s[0] is not None and s[0][1] is None and (s[2] - s[1] + 1) * DT < .6:
             s[0] = None
     out = []
-    prev_dir, prev_tgt = None, None
+    prev_dir, prev_tgt, free_at = None, None, sh.times[0]
     for lab, i0, i1 in segs:
         if lab is None:
             prev_tgt = None
@@ -825,7 +825,10 @@ def _turret_plan(kf, key, turret, weapon):
         ang = math.degrees(math.acos(max(-1.0, min(1.0, sum(dirn[k] * prev_dir[k] for k in range(3))))))
         slew = 0.0 if mount[3] == HP or tgt == prev_tgt else min(3.0, ang / max(1.0, turn_rate(weapon)))
         prev_dir, prev_tgt = dirn, tgt
-        start, end = sh.times[i0] + slew, sh.times[i1] + DT
+        # the gun starts its swing when it comes free of its last target, not when the new one
+        # enters its arc: it trains toward the arc edge meanwhile
+        start, end = max(sh.times[i0], free_at + slew), sh.times[i1] + DT
+        free_at = end
         if mom:                      # the decisive burst: the trigger held through the moment, on target
             start, end = sh.times[i0], sh.times[i1] + DT
             hit, walk = max(hit, MOMENT_HIT), round(.35 * L, 1)
@@ -912,8 +915,18 @@ def track(shot_kf, ship_key, turret, weapon, t0, t1):
             out.append((t, e['start'], e['target'], e['aim']))
         out.append((max(t, e['start']), e['end'], e['target'], e['aim']))
         t = max(t, e['end'])
-    if t < t1:
-        out.append((t, t1, engs[-1]['target'], engs[-1]['aim']))
+    if t < t1:                       # after its last: on that target while she lives, else the nearest living hostile
+        last = engs[-1]
+        k = killed(last['target'])
+        if k is not None and k <= t:
+            sh = _shot(base_kf(shot_kf))
+            i = sh.i(t)
+            alive = [h for h in sh.ships if side(h) != side(ship_key) and (killed(h) is None or killed(h) > t)]
+            if alive:
+                near = min(alive, key=lambda h: math.dist(sh.fr[ship_key][i][0], sh.fr[h][i][0]))
+                out.append((t, t1, near, (0, 0, 0)))
+                return [r for r in out if r[1] > r[0]]
+        out.append((t, t1, last['target'], last['aim']))
     return [r for r in out if r[1] > r[0]]
 
 
