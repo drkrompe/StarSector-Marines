@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 import com.dillon.starsectormarines.battle.world.gen.layout.Deferred;
+import com.dillon.starsectormarines.battle.world.gen.layout.Endpoint;
 import com.dillon.starsectormarines.battle.world.gen.layout.LayoutGround;
 import com.dillon.starsectormarines.battle.world.gen.layout.Line;
 import com.dillon.starsectormarines.battle.world.gen.layout.LineCourse;
@@ -12,6 +13,8 @@ import com.dillon.starsectormarines.battle.world.gen.layout.LineStyle;
 import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayout;
 import com.dillon.starsectormarines.battle.world.gen.layout.Phase;
 import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
+import com.dillon.starsectormarines.battle.world.gen.layout.Road;
+import com.dillon.starsectormarines.battle.world.gen.layout.Side;
 import com.dillon.starsectormarines.battle.world.gen.layout.Site;
 import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
@@ -187,7 +190,7 @@ public final class CordonPlan {
                     new Fortification(CivilDefenceCompound.GATES, CivilDefenceCompound.WALL_HP).laidSquare()));
         }
         return PrecinctPlan.laidOut(places, south ? MapPlacement.SOUTH : MapPlacement.NORTH,
-                LandingKind.OPEN_FIELD, width, height, rng).withLayout(layout(south, density));
+                LandingKind.OPEN_FIELD, width, height, rng).withLayout(layout(south, density, variant));
     }
 
     /** The layout's picket courses, resolved once the redoubts have claimed their ground. */
@@ -200,6 +203,14 @@ public final class CordonPlan {
     /** The eruption site (beat L4), resolved behind the middle of the line. */
     public static final String ERUPTION = "eruption";
     public static final String ERUPTION_SITE = "eruption-site";
+    /** The supply road from the base to redoubt {@code n} (beat L2) is this plus n. */
+    public static final String SUPPLY_ROAD = "supply-";
+    /** The Road's second drivable way through the line, beside redoubt 2 (beat R5). */
+    public static final String SECOND_ROAD = "second-road";
+    /** Cells wide a supply road and the second road are carved. */
+    static final int ROAD_WIDTH = 5;
+    /** Where the second road crosses the line: this far east of redoubt 2. */
+    static final int SECOND_ROAD_ASIDE = 12;
     /** Cells of road margin a picket course leaves open either side of a road it crosses. */
     static final int PICKET_ROAD_GAP = 2;
     /** Pitch of the funnels opened in a picket course's wire. */
@@ -219,16 +230,29 @@ public final class CordonPlan {
      * front, a switch line behind the middle, and the open ground a bore may
      * erupt on behind the line.
      */
-    static MissionLayout layout(boolean south, Density density) {
+    static MissionLayout layout(boolean south, Density density, CordonVariant variant) {
         int[] front = {0, south ? 1 : -1};
+        Side toward = south ? Side.NORTH : Side.SOUTH;
+        List<Piece> pieces = new ArrayList<>();
+        // Supply roads first: they are carved as the places grow, so the works resolved later see them as road.
+        for (int n = 1; n <= REDOUBTS; n++) {
+            pieces.add(new Road(SUPPLY_ROAD + n, Endpoint.gate(BASE_PLACE, toward),
+                    Endpoint.gate(REDOUBT_PLACE + n, toward.opposite()), ROAD_WIDTH, false));
+        }
+        if (variant == CordonVariant.ROAD) {
+            // From the base's own gate, so the base keeps the gates it had, through the line beside redoubt 2.
+            pieces.add(new Road(SECOND_ROAD, Endpoint.gate(BASE_PLACE, toward),
+                    Endpoint.beside(REDOUBT_PLACE + 2, Side.EAST, SECOND_ROAD_ASIDE, 0),
+                    Endpoint.gate(CivilDefenceCompound.PLACE, toward.opposite()), ROAD_WIDTH, false));
+        }
         LineStyle style = density == Density.URBAN ? LineStyle.STREETS : LineStyle.TRENCH_WIRE;
         LineStyle fallback = density == Density.URBAN ? LineStyle.STREETS : LineStyle.TRENCH;
         boolean streets = density != Density.RURAL;
-        return new MissionLayout(List.of(
-                // The eruption site first: it holds its ground against the works resolved after it.
-                new Deferred(ERUPTION, Phase.WORKS, ground -> eruptionSite(ground, south), false),
-                new Deferred(PICKETS, Phase.WORKS, ground -> pickets(ground, front, style, streets), false),
-                new Deferred(SWITCH, Phase.WORKS, ground -> switchLine(ground, front, fallback, streets), false)));
+        // The eruption site before the works: it holds its ground against the works resolved after it.
+        pieces.add(new Deferred(ERUPTION, Phase.WORKS, ground -> eruptionSite(ground, south), false));
+        pieces.add(new Deferred(PICKETS, Phase.WORKS, ground -> pickets(ground, front, style, streets), false));
+        pieces.add(new Deferred(SWITCH, Phase.WORKS, ground -> switchLine(ground, front, fallback, streets), false));
+        return new MissionLayout(pieces);
     }
 
     /** A picket course from each redoubt's claimed edge to the next's, at their depths. */

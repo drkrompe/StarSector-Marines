@@ -33,7 +33,12 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapGenerator;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
+import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
+import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayout;
 import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayoutCheck;
+import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
+import com.dillon.starsectormarines.battle.world.gen.layout.Road;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -191,7 +196,38 @@ public final class CordonSetup {
     private static Generated generate(CordonVariant variant, CordonPlan.Density density, SurfacePalette biome,
                                       long battleSeed, MapPatch patch) {
         PrecinctPlan plan = patch.pinned(CordonPlan.planFor(variant, density, WIDTH, HEIGHT, battleSeed));
+        Generated whole = generate(variant, biome, battleSeed, plan, List.of(), null);
+        if (whole.missing() == null) return whole;
+        // A layout road moves the ground the places grow round, and a map can come out without the Cordon for it
+        // (a base whose shed faces a wall). An optional road is not worth the map: try the map without it.
+        List<String> roads = new ArrayList<>();
+        for (Piece piece : plan.layout().pieces()) if (piece instanceof Road && !piece.required()) roads.add(piece.name());
+        List<List<String>> fallbacks = new ArrayList<>();
+        if (roads.contains(CordonPlan.SECOND_ROAD)) fallbacks.add(List.of(CordonPlan.SECOND_ROAD));
+        if (!roads.isEmpty()) fallbacks.add(roads);
+        for (List<String> drop : fallbacks) {
+            Generated without = generate(variant, biome, battleSeed, plan, drop, whole.missing());
+            if (without.missing() == null) return without;
+        }
+        return whole;
+    }
+
+    /** The map from {@code plan} less the layout pieces named in {@code drop}, reported refused for {@code why}. */
+    private static Generated generate(CordonVariant variant, SurfacePalette biome, long battleSeed, PrecinctPlan plan,
+                                      List<String> drop, String why) {
+        if (!drop.isEmpty()) {
+            List<Piece> kept = new ArrayList<>();
+            for (Piece piece : plan.layout().pieces()) if (!drop.contains(piece.name())) kept.add(piece);
+            plan = plan.withLayout(new MissionLayout(kept));
+        }
         MapResult map = MAP_GEN.generate(WIDTH, HEIGHT, battleSeed, null, country(biome), plan);
+        if (!drop.isEmpty()) {
+            List<Laid> laid = new ArrayList<>(map.layout.pieces());
+            for (String name : drop) {
+                laid.add(Laid.refused(name, Laid.Kind.ROAD, false, "left out: with it, " + why));
+            }
+            map = map.withLayout(new LaidLayout(laid));
+        }
         String missing = missing(variant, map, plan);
         if (missing != null) return new Generated(null, missing);
         List<int[]> corridor = variant == CordonVariant.ROAD ? CordonCorridor.find(map.grid, map.topology, plan) : null;

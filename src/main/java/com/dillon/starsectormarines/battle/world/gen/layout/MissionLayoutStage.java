@@ -43,8 +43,12 @@ public final class MissionLayoutStage implements GenStage {
         LayoutGround ground = new LayoutGround(ctx);
         boolean[][] held = layout.keepClear(ctx.width, ctx.height);
         List<Piece> pieces = new ArrayList<>();
+        // Roads were carved as the places grew; they are reported here with the rest.
         List<Laid> out = new ArrayList<>();
+        List<Laid> roads = ctx.get(BspKeys.LAYOUT_ROADS);
+        if (roads != null) out.addAll(roads);
         for (Piece piece : layout.pieces()) {
+            if (piece instanceof Road) continue;
             if (piece instanceof Deferred deferred) {
                 if (deferred.phase() != Phase.WORKS) {
                     out.add(Laid.refused(deferred.name(), Laid.Kind.SITE, deferred.required(),

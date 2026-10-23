@@ -160,7 +160,10 @@ redoubt it fed and answers the nearest call as the armour does, beside the
 armour rather than on it. When squads wait at the base, one carrier a squad
 goes back for them, the nearest first, and the rest stay on the line. A
 finished car or technical joins the allied armour with a post behind a
-redoubt as its home. The base opens with one carrier.
+redoubt as its home. The base opens with one carrier. **Supply roads** run from the
+base's gate toward the line to each redoubt's rear gate across open country
+(`mission-layout.md`), so the line has a road behind it; across a town's or a
+city's ground its own streets are the supply road.
 
 The base controls its exits so nothing piles up in the shed. A finished
 machine waits on its berth until the one before it has driven clear of the
@@ -252,6 +255,11 @@ turn onto is moving all the time. On a map whose corridor does not pass the
 base, trucks come on a few cells in from the rear edge, since a hull set down
 on the edge row has no route out of it. Nothing is parked within a few cells of
 the corridor.
+
+The Road also has a **second road** through the line, from the base's gate
+through the gap beside redoubt 2 to the compound's rear gate (beat R5),
+carved where the country is open; the corridor is still the cheapest way,
+whichever that is.
 
 **Line posture.** The briefing's choice of how far the company goes out, the
 Cordon's version of the hive posture (`colony-breach-nouns.md`, Hive posture),

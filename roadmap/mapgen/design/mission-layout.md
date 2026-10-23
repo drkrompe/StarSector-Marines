@@ -1,6 +1,6 @@
 # Mission layout
 
-Status: ACTIVE — lines of works and sites are built; roads, structures and
+Status: ACTIVE — lines of works, sites and roads are built; structures and
 blocks are not.
 
 Written: 2026-10-23
@@ -35,6 +35,15 @@ optional (reported, and the map stands).
   a set piece or an event, kept clear of trees, rises and props. A **ground**
   site is held for authored terrain: nothing is built on it, and ridges and
   rises are free to use it.
+- **Road.** A drivable road between two named places' sides (or their open
+  gate nearest that side, so it arrives where the wall lets it in), by a
+  dog-leg (out, across at halfway, in) and optionally through a point on the
+  way. It is carved into the road network as the places grow, so the gates,
+  paving and road graph come from the stages that make every road. It is laid
+  only on open country, not across another place's ground or the surveyed
+  country (that ground's own streets serve), and only where it joins the
+  network: a stretch cut off is left out rather than welded across somebody's
+  ground.
 - **Deferred.** Pieces that can only be stated once the ground exists — a line
   from one place's claimed edge to the next's. A deferred piece resolves at
   its **phase** against a read-only view of the grown ground (claims, roads,
@@ -46,6 +55,8 @@ optional (reported, and the map stands).
 
 - **Before growth.** A site stated in the layout itself is known before
   anything grows: no road arm, claimed place, field or farm grows onto it.
+- **As the places grow.** Once the places have claimed their ground, their
+  ways out are cut and the country is surveyed, roads are carved.
 - **Works phase.** Once the places, roads and lanes stand and before the
   landscape grows round them, deferred pieces resolve and every line and site
   is laid. The landscape then keeps clear of what was laid, except ground held
@@ -69,8 +80,9 @@ optional (reported, and the map stands).
 
 ## Not yet
 
-Roads (supply roads to a redoubt's rear gate), structures (a farmstead, a
-granary) and authored blocks are further piece kinds, with the structures
-phase they need. A nest is published as a light defence post; a mission that
+Structures (a farmstead, a granary) and authored blocks are further piece
+kinds, with the structures phase they need. A road changes what grows round
+it, so on a vetted map a mission may have to leave an optional road out to
+keep the map (the Cordon does, and reports it refused). A nest is published as a light defence post; a mission that
 does not seat map posts seats its own guns in the nests it is reported (the
 Cordon's garrison does).

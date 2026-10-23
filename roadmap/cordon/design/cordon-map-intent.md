@@ -1,6 +1,6 @@
 # The Cordon: maps with intent
 
-Status: DRAFT. Direction for the Cordon's controlled maps (step 2). Built: the layout machinery, the picket courses as fieldworks with the garrison's guns in their nests, the switch line and a placeholder eruption site.
+Status: DRAFT. Direction for the Cordon's controlled maps (step 2). Built: the layout machinery, the picket courses as fieldworks with the garrison's guns in their nests, the switch line, the supply roads, the Road's second road and a placeholder eruption site.
 
 Written: 2026-10-23
 
@@ -90,8 +90,11 @@ which beats run.
    pieces, the shared check), the picket courses (a two-deep trench, parapet,
    wire and turned earth in the country, barricaded street mouths in a town,
    a street line along the house fronts in a city; allied guns in the nests),
-   the switch line, and the L4 eruption site as a placeholder open site.
-   Next: supply roads and the base.
+   the switch line, the supply roads (base gate to each redoubt's rear gate,
+   across open country; a town's or city's streets where its ground is in the
+   way), the Road's second road through redoubt 2's gap, and the L4 eruption
+   site as a placeholder open site. An optional road that would cost a pooled
+   map its Cordon is left out of that map and reported.
 2. The authored ground (the ridge), from the heart's side of the machinery.
 3. The set pieces, one per beat, each checked on the pools.
 4. Then the optional-objective mechanism, shared with the heart, which rolls

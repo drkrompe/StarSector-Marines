@@ -62,6 +62,13 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
         }
         for (Laid laid : cordon.map().layout.pieces()) {
             if (!laid.isLaid() || laid.cells().isEmpty()) continue;
+            String state = laid.status() == Laid.Status.LAID ? "" : " (" + laid.status().name().toLowerCase() + ")";
+            if (laid.kind() == Laid.Kind.ROAD) {
+                // A road's box would be the whole dog-leg: name it at the middle of what was carved.
+                int[] mid = laid.cells().get(laid.cells().size() / 2);
+                marks.label(mid[0], mid[1], laid.name() + state, ReviewStyle.ROUTE);
+                continue;
+            }
             int x0 = Integer.MAX_VALUE, y0 = Integer.MAX_VALUE, x1 = Integer.MIN_VALUE, y1 = Integer.MIN_VALUE;
             for (int[] c : laid.cells()) {
                 x0 = Math.min(x0, c[0]);
@@ -69,7 +76,6 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
                 x1 = Math.max(x1, c[0]);
                 y1 = Math.max(y1, c[1]);
             }
-            String state = laid.status() == Laid.Status.LAID ? "" : " (" + laid.status().name().toLowerCase() + ")";
             marks.box(x0, y0, x1, y1, laid.name() + state, laid.kind() == Laid.Kind.LINE ? ReviewStyle.ROUTE : ReviewStyle.NOTE);
             for (int[] nest : laid.nests()) marks.box(nest[0] - 1, nest[1] - 1, nest[0] + 1, nest[1] + 1, "nest", ReviewStyle.OBJECTIVE);
         }
