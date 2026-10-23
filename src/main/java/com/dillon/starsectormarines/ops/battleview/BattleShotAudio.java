@@ -48,23 +48,17 @@ public final class BattleShotAudio {
      * sounds rather than UI cues, so routing them through {@code playUISound}
      * can silently drop them even though the simulation emitted the shot.
      */
-    public static void playCampaignLocal(List<ShotEvent> shots, float volumeScale,
-                                         HeldFireLoops loops, float dt) {
+    public static void playCampaignLocal(List<ShotEvent> shots, float volumeScale) {
         float scale = Math.max(0f, volumeScale);
-        loops.advance(dt);
         Vector2f anchor = campaignAnchor();
         if (anchor == null) return;
         Vector2f zeroVelocity = new Vector2f(0f, 0f);
         for (ShotEvent shot : shots) {
             Cue cue = cue(shot);
-            if (!startsSound(shot, cue, loops)) continue;
+            if (cue.soundId() == null) continue;
             Global.getSoundPlayer().playSound(
                     cue.soundId(), pitch(), cue.volume() * scale,
                     anchor, zeroVelocity);
-        }
-        for (HeldFireLoops.Voice voice : loops.held()) {
-            Global.getSoundPlayer().playLoop(voice.loopSoundId(), voice, 1f,
-                    voice.volume() * scale, anchor, zeroVelocity);
         }
     }
 
