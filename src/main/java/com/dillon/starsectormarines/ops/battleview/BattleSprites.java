@@ -67,7 +67,6 @@ public class BattleSprites {
      * {@code art-source/fx/build_shadow_blob.py}.
      */
     static final String SHADOW_BLOB_SPRITE  = "graphics/battle/fx/shadow-blob.png";
-    private static final String ICON_ALARM          = "graphics/icons/Alarm 512 px.png";
     private static final String ICON_DANGER         = "graphics/icons/Danger sign 1 512 px.png";
     private static final String ICON_STAR           = "graphics/icons/Star 512 px.png";
 
@@ -185,7 +184,6 @@ public class BattleSprites {
 
     // ---- objective icons ----------------------------------------------------
 
-    private SpriteAPI iconAlarm;
     private SpriteAPI iconDanger;
     private SpriteAPI iconStar;
     private boolean iconsLoadAttempted;
@@ -304,7 +302,6 @@ public class BattleSprites {
     public SpriteAPI engineFlameSprite()           { return engineFlameSprite; }
     public SpriteAPI engineGlowSprite()            { return engineGlowSprite; }
     public SpriteAPI shadowBlobSprite()            { return shadowBlobSprite; }
-    public SpriteAPI iconAlarm()                   { return iconAlarm; }
     public SpriteAPI iconDanger()                  { return iconDanger; }
     public SpriteAPI iconStar()                    { return iconStar; }
     /** Authored pose authority; overridable by tooling that loads assets off disk. */
@@ -524,7 +521,6 @@ public class BattleSprites {
     public void ensureObjectiveIcons() {
         if (iconsLoadAttempted) return;
         iconsLoadAttempted = true;
-        iconAlarm  = loadIconOrNull(ICON_ALARM);
         iconDanger = loadIconOrNull(ICON_DANGER);
         iconStar   = loadIconOrNull(ICON_STAR);
     }

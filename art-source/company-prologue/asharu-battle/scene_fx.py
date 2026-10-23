@@ -59,11 +59,15 @@ def _mods():
 class SceneFx:
     """One key frame's kit effects. placed: battle_blockout's placed ships (each with 'fx', its
     ShipFx or None, 'matrix' in metres, 'mpu'); build_of(key): the ship's finished build key;
-    muzzle_world(key, muzzle): a muzzle's world point."""
+    muzzle_world(key, muzzle): a muzzle's world point. span: (first, last) scene frame of the shot when
+    it is rendered in motion (battle_blockout.add_span): the guns then fire through the whole shot, not
+    only for the rounds in flight at the key instant. cur: the scene frame this span frame renders at;
+    only the rounds and strikes it can see are built (swfx_guns.fire_weapon's `only`)."""
 
-    def __init__(self, scene, placed, build_of, muzzle_world, frame, log=print):
+    def __init__(self, scene, placed, build_of, muzzle_world, frame, log=print, span=None, cur=None):
         self.scene, self.placed, self.build_of, self.muzzle_world = scene, placed, build_of, muzzle_world
         self.now, self.fps = frame, scene.render.fps / scene.render.fps_base
+        self.span, self.cur = span, cur
         self.log = log
         self.m = _mods()
         self.rows = []
@@ -172,20 +176,31 @@ class SceneFx:
                 dist = (Vector(hit_w) - Vector(mz)).length
                 window = min(2.5, max(.6, dist / speed + .5)) + .1     # the last half second's rounds have landed
                 f0 = self.now - round(window * self.fps) - 2 * len(fired)     # mounts not in step
+                end = self.now
+                if self.span:        # in motion: firing from before the shot opens until it cuts
+                    f0 = min(f0, self.span[0] - round((dist / speed) * self.fps)) - 2 * len(fired)
+                    end = self.span[1]
+                    window = (end - f0) / self.fps
                 feeder = self.build_of(a) in FEEDER
                 if feeder:
-                    kit.guns.feeder(ctx, turret, f0 - 6, self.now + 6)
+                    kit.guns.feeder(ctx, turret, f0 - 6, end + 6)
+                only = None
+                if self.span and self.cur is not None:     # this frame's rounds: in flight, or just landed
+                    only = (self.cur - round((dist / speed + 1.5) * self.fps), self.cur + 1)
                 recs = kit.guns.fire_weapon(ctx, turret, f0, window + 1.0 / self.fps, feeder=feeder,
                                             target=self.space(a).inverted() @ Vector(hit_w),
-                                            train=shooter.own_hull)
-                landed += [r['hit_frame'] for r in recs if r.get('hit_frame') is not None and r['hit_frame'] <= self.now]
+                                            train=shooter.own_hull, only=only)
+                landed += [r['hit_frame'] for r in recs if r.get('hit_frame') is not None and r['hit_frame'] <= end]
                 fired.append(f't{turret} {weapon} x{len(recs)}' + (' (feeder)' if feeder else ''))
         if not fired:
             return False
         landed = sorted(set(landed))
         if target is not None and hit_l is not None and landed:
             he = any(self.weapon(a, int(f.split()[0][1:])) in HE for f in fired)
-            self.strikes(b, landed[-8:], hit_l, normal, 'he' if he else 'kinetic')
+            if self.span:        # in motion: the strikes this frame can see (each placed by its own frame)
+                lo = (self.cur if self.cur is not None else end) - round(1.5 * self.fps)
+                landed = [f for f in landed if f >= lo]
+            self.strikes(b, landed if self.span else landed[-8:], hit_l, normal, 'he' if he else 'kinetic')
         self.rows.append(f'tracer {a} -> {b}: {", ".join(fired)}, {len(landed)} landed')
         return True
 
@@ -195,10 +210,10 @@ class SceneFx:
         ship = self.ship(key)
         if ship is None:
             return
-        rnd = random.Random(f'asharu-strikes|{key}|{frames}')
         out = {}
         with ship.kit() as (ctx, kit):
             for f in frames:
+                rnd = random.Random(f'asharu-strikes|{key}|{f}')      # a strike lands where it did on any frame
                 j = Vector((rnd.gauss(0, 1.2), rnd.gauss(0, 1.2), rnd.gauss(0, .6)))
                 where = imp.strike(ctx, f, tuple(at_l + j), tuple(normal), kind=kind)
                 out[where] = out.get(where, 0) + 1

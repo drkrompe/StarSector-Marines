@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.ambient.RoomSite;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
@@ -13,6 +14,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.LongConsumer;
 
 /**
  * What every vehicle bay on this map has on the stocks.
@@ -95,8 +97,12 @@ public final class FabricationService {
         public final List<Integer> berths;
         /** The one worked, where the machine on the stocks stands. */
         public final int stocks;
-        /** What is being made. */
+        /** What is being made, when the shed builds mechs. */
         public MechVariant chassis;
+        /** What is being made, when the shed is tooled for vehicles; then {@link #chassis} is null. */
+        public VehicleType vehicle;
+        /** The rounds a vehicle on the stocks gets when it is finished: its gun stands empty until then. */
+        public int frameAmmo;
         /** The body standing on the stocks, or 0 while there is none. */
         public long frameId;
         /** How many machines this bay has put out. */
@@ -107,6 +113,11 @@ public final class FabricationService {
             this.berths = List.copyOf(berths);
             this.stocks = stocks;
             this.chassis = chassis;
+        }
+
+        /** Whether the bay has anything to build. */
+        public boolean tooled() {
+            return chassis != null || vehicle != null;
         }
 
         /** Whether anything is standing on the stocks right now. */
@@ -120,6 +131,9 @@ public final class FabricationService {
     /** Standing cell of every berth-bound servicing point, to the bay it belongs to. */
     private final Map<Long, Integer> serviceCells = new HashMap<>();
     private final List<MechVariant> buildable;
+    private List<VehicleType> vehicleLine = List.of();
+    private float pace = 1f;
+    private LongConsumer rolledOut = id -> { };
     private final String factionId;
     private Faction lastBuilder = Faction.DEFENDER;
 
@@ -253,6 +267,41 @@ public final class FabricationService {
         return factionId;
     }
 
+    /**
+     * Tools every bay for vehicles instead of mechs, built in this order and round again
+     * ({@code allied-command.md}: the allies' shed behind a cordon builds their cars and carriers).
+     * A machine already on the stocks is finished as what it is.
+     */
+    public void toolForVehicles(List<VehicleType> line) {
+        vehicleLine = List.copyOf(line);
+        for (Works works : bays.values()) {
+            if (works.hasFrame()) continue;
+            works.chassis = null;
+            works.vehicle = vehicleLine.isEmpty() ? null : vehicleLine.get(0);
+        }
+    }
+
+    /**
+     * How many times a garrison shed's pace these works build at. A garrison's motor pool is a
+     * sideline of its crew's shift; a mission whose shed is the point of the place (the allies' base
+     * behind a cordon) runs it as a production line. Still counted in hands: a shed nobody works
+     * builds nothing at any pace.
+     */
+    public void setPace(float pace) {
+        this.pace = Math.max(0f, pace);
+    }
+
+    public float pace() { return pace; }
+
+    /** Told the id of every finished machine as it rolls out: the mech, or the hull. */
+    public void onRollOut(LongConsumer listener) {
+        rolledOut = listener == null ? id -> { } : listener;
+    }
+
+    void announce(long id) {
+        rolledOut.accept(id);
+    }
+
     /** Whether any bay on this map is working. */
     public boolean isEmpty() {
         return bays.isEmpty();
@@ -312,7 +361,18 @@ public final class FabricationService {
         if (works == null) return;
         works.frameId = 0L;
         works.completed++;
-        works.chassis = next(works.chassis);
+        if (works.vehicle != null || !vehicleLine.isEmpty()) {
+            works.chassis = null;
+            works.vehicle = nextVehicle(works.vehicle);
+        } else {
+            works.chassis = next(works.chassis);
+        }
+    }
+
+    private VehicleType nextVehicle(VehicleType finished) {
+        if (vehicleLine.isEmpty()) return null;
+        int index = vehicleLine.indexOf(finished);
+        return vehicleLine.get(Math.floorMod(index + 1, vehicleLine.size()));
     }
 
     private MechVariant next(MechVariant finished) {
