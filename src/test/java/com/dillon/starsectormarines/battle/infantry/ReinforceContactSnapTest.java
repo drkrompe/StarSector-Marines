@@ -5,13 +5,9 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
-import com.dillon.starsectormarines.battle.sim.BattleView;
-import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Faction;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Proxy;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -24,7 +20,7 @@ class ReinforceContactSnapTest {
     void releaseProfile() { TickInnerProfile.releaseCurrentThread(); }
 
     @Test
-    void boundedProofsPreserveBothMovementModesAndIndependentPruningControls() {
+    void selectionMatchesExhaustiveOracleInBothMovementModes() {
         boolean previousCardinal = GridPathfinder.USE_CARDINAL_NAVIGATION;
         try {
             for (boolean cardinal : new boolean[]{true, false}) {
@@ -43,14 +39,8 @@ class ReinforceContactSnapTest {
                     grid.setWalkableFloor(2, 7);
                     int rawX = 6 + random.nextInt(12), rawY = random.nextInt(15);
                     int[] oracle = exhaustiveOracle(grid, rawX, rawY, 2, 7);
-                    for (boolean prune : new boolean[]{false, true}) {
-                        assertArrayEquals(oracle, ReinforceContact.snapToReachable(
-                                rawX, rawY, grid, 2, 7, prune, true));
-                        assertArrayEquals(oracle, ReinforceContact.snapToReachable(
-                                rawX, rawY, grid, 2, 7, prune, false));
-                        assertArrayEquals(oracle, ReinforceContact.snapToReachable(
-                                rawX, rawY, grid, 2, 7, prune, true, true));
-                    }
+                    assertArrayEquals(oracle, ReinforceContact.snapToReachable(
+                            rawX, rawY, grid, 2, 7));
                 }
             }
         } finally {
@@ -66,20 +56,13 @@ class ReinforceContactSnapTest {
         try {
             for (boolean cardinal : new boolean[]{true, false}) {
                 GridPathfinder.USE_CARDINAL_NAVIGATION = cardinal;
-                TickInnerProfile control = new TickInnerProfile();
-                TickInnerProfile.setCurrent(control);
-                int[] old = ReinforceContact.snapToReachable(36, 50, grid, 25, 50, true, true, false);
                 TickInnerProfile subject = new TickInnerProfile();
                 TickInnerProfile.setCurrent(subject);
-                int[] result = ReinforceContact.snapToReachable(36, 50, grid, 25, 50, true, true, true);
-                assertArrayEquals(old, result);
+                int[] result = ReinforceContact.snapToReachable(36, 50, grid, 25, 50);
+                assertArrayEquals(new int[]{25, 50}, result);
                 assertEquals(4, subject.countOf(TickInnerProfile.Bucket.PATHFIND));
                 assertEquals(117, subject.countOf(TickInnerProfile.Bucket.FLANK_STEP_REJECT));
                 assertEquals(1, subject.countOf(TickInnerProfile.Bucket.FLANK_STEP_FIELD));
-                long allExpanded = subject.pathfindExpandedNodes()
-                        + subject.countOf(TickInnerProfile.Bucket.FLANK_STEP_EXPANDED);
-                assertTrue(allExpanded < control.pathfindExpandedNodes() / 4,
-                        () -> "control=" + control.pathfindExpandedNodes() + ", all subject=" + allExpanded);
             }
         } finally {
             GridPathfinder.USE_CARDINAL_NAVIGATION = previousCardinal;
@@ -92,51 +75,20 @@ class ReinforceContactSnapTest {
         TickInnerProfile profile = new TickInnerProfile();
         TickInnerProfile.setCurrent(profile);
         assertArrayEquals(new int[]{15, 15}, ReinforceContact.snapToReachable(
-                15, 15, grid, 3, 3, true, true, true));
+                15, 15, grid, 3, 3));
         assertEquals(1, profile.countOf(TickInnerProfile.Bucket.PATHFIND));
         assertEquals(0, profile.countOf(TickInnerProfile.Bucket.FLANK_STEP_FIELD));
     }
 
     @Test
-    void nearbyButLongDoglegCandidatesStopBeforeProvingRoutesWeWouldReject() {
-        NavigationGrid grid = openGrid(60, 70);
-        for (int y = 2; y < 70; y++) grid.setWalkable(30, y, false);
-        boolean previousCardinal = GridPathfinder.USE_CARDINAL_NAVIGATION;
-        try {
-            for (boolean cardinal : new boolean[]{true, false}) {
-                GridPathfinder.USE_CARDINAL_NAVIGATION = cardinal;
-                TickInnerProfile control = new TickInnerProfile();
-                TickInnerProfile.setCurrent(control);
-                int[] unbounded = ReinforceContact.snapToReachable(36, 50, grid, 25, 50, true, false);
-                TickInnerProfile subject = new TickInnerProfile();
-                TickInnerProfile.setCurrent(subject);
-                int[] bounded = ReinforceContact.snapToReachable(36, 50, grid, 25, 50, true, true);
-                assertArrayEquals(new int[]{25, 50}, unbounded);
-                assertArrayEquals(unbounded, bounded);
-                assertEquals(control.countOf(TickInnerProfile.Bucket.PATHFIND),
-                        subject.countOf(TickInnerProfile.Bucket.PATHFIND));
-                assertTrue(subject.pathfindExpandedNodes() < control.pathfindExpandedNodes() / 3,
-                        () -> "bounded=" + subject.pathfindExpandedNodes()
-                                + ", control=" + control.pathfindExpandedNodes());
-            }
-        } finally {
-            GridPathfinder.USE_CARDINAL_NAVIGATION = previousCardinal;
-        }
-    }
-
-    @Test
-    void openGroundMakesOneSearchInsteadOf121AndPreservesAttribution() {
+    void openGroundMakesOneSearchAndPreservesAttribution() {
         NavigationGrid grid = openGrid(30, 30);
         TickInnerProfile profile = new TickInnerProfile();
         TickInnerProfile.setCurrent(profile);
-        int[] exhaustive = ReinforceContact.snapToReachable(15, 15, grid, 3, 3, false);
-        assertEquals(121, profile.countOf(TickInnerProfile.Bucket.PATHFIND));
-        profile.reset();
         profile.enterAction(17L, 3, "AttackMove");
 
-        int[] pruned = ReinforceContact.snapToReachable(15, 15, grid, 3, 3, true);
+        int[] pruned = ReinforceContact.snapToReachable(15, 15, grid, 3, 3);
 
-        assertArrayEquals(exhaustive, pruned);
         assertArrayEquals(new int[]{15, 15}, pruned);
         assertEquals(1, profile.countOf(TickInnerProfile.Bucket.PATHFIND));
         TickInnerProfile.PathSearch sample = profile.slowPathSearches().get(0);
@@ -154,7 +106,7 @@ class ReinforceContactSnapTest {
     void equalScoresKeepTheOriginalRingEnumerationWinner() {
         NavigationGrid grid = openGrid(24, 24);
         grid.setWalkable(10, 10, false);
-        int[] result = ReinforceContact.snapToReachable(10, 10, grid, 0, 0, true);
+        int[] result = ReinforceContact.snapToReachable(10, 10, grid, 0, 0);
         assertArrayEquals(new int[]{10, 9}, result);
         assertArrayEquals(exhaustiveOracle(grid, 10, 10, 0, 0), result);
     }
@@ -166,7 +118,7 @@ class ReinforceContactSnapTest {
         grid.setWalkableFloor(8, 8);
         grid.setDoorway(8, 8, true);
         grid.setDoorway(15, 8, true);
-        int[] result = ReinforceContact.snapToReachable(15, 8, grid, 3, 8, true);
+        int[] result = ReinforceContact.snapToReachable(15, 8, grid, 3, 8);
         assertArrayEquals(exhaustiveOracle(grid, 15, 8, 3, 8), result);
         assertFalse(grid.isDoorway(result[0], result[1]));
         assertTrue(result[0] > 8, "the door may be crossed, not selected as the flank post");
@@ -180,7 +132,7 @@ class ReinforceContactSnapTest {
         }
         grid.setWalkableFloor(15, 1);
         grid.setDoorway(15, 1, true);
-        int[] result = ReinforceContact.snapToReachable(20, 15, grid, 10, 15, true);
+        int[] result = ReinforceContact.snapToReachable(20, 15, grid, 10, 15);
         assertArrayEquals(new int[]{10, 15}, result);
         assertArrayEquals(exhaustiveOracle(grid, 20, 15, 10, 15), result);
     }
@@ -191,9 +143,10 @@ class ReinforceContactSnapTest {
         for (int y = 0; y < 18; y++) grid.setWalkable(8, y, false);
         TickInnerProfile profile = new TickInnerProfile();
         TickInnerProfile.setCurrent(profile);
-        int[] result = ReinforceContact.snapToReachable(16, 8, grid, 3, 8, true);
+        int[] result = ReinforceContact.snapToReachable(16, 8, grid, 3, 8);
         assertArrayEquals(new int[]{3, 8}, result);
-        assertEquals(121, profile.countOf(TickInnerProfile.Bucket.PATHFIND),
+        assertEquals(121, profile.countOf(TickInnerProfile.Bucket.PATHFIND)
+                        + profile.countOf(TickInnerProfile.Bucket.FLANK_STEP_REJECT),
                 "the score bound alone cannot prove disconnected candidates unreachable");
     }
 
@@ -202,7 +155,7 @@ class ReinforceContactSnapTest {
         NavigationGrid grid = openGrid(1110, 13);
         TickInnerProfile profile = new TickInnerProfile();
         TickInnerProfile.setCurrent(profile);
-        int[] result = ReinforceContact.snapToReachable(1100, 6, grid, 0, 6, true);
+        int[] result = ReinforceContact.snapToReachable(1100, 6, grid, 0, 6);
         assertArrayEquals(new int[]{1100, 6}, result);
         assertEquals(1, profile.countOf(TickInnerProfile.Bucket.PATHFIND),
                 "raw-distance penalty alone is smaller than this incumbent's route length");
@@ -210,7 +163,7 @@ class ReinforceContactSnapTest {
     }
 
     @Test
-    void optimizedAndControlMatchIndependentExhaustiveOracleOnSmallRandomGrids() {
+    void selectionMatchesIndependentExhaustiveOracleOnSmallRandomGrids() {
         Random random = new Random(0x5A17C0DEL);
         for (int trial = 0; trial < 24; trial++) {
             NavigationGrid grid = new NavigationGrid(12, 12);
@@ -231,43 +184,11 @@ class ReinforceContactSnapTest {
             int rawX = random.nextInt(18) - 3, rawY = random.nextInt(18) - 3;
             int[] oracle = exhaustiveOracle(grid, rawX, rawY, originX, originY);
             assertArrayEquals(oracle, ReinforceContact.snapToReachable(
-                    rawX, rawY, grid, originX, originY, true), "pruned trial " + trial);
-            assertArrayEquals(oracle, ReinforceContact.snapToReachable(
-                    rawX, rawY, grid, originX, originY, false), "control trial " + trial);
+                    rawX, rawY, grid, originX, originY), "trial " + trial);
         }
     }
 
-    @Test
-    void publicSameBuildSwitchSelectsExhaustiveOrPrunedWork() {
-        NavigationGrid grid = openGrid(30, 30);
-        Squad squad = new Squad(1, Faction.MARINE);
-        squad.centroidX = squad.centroidY = 3.5f;
-        BattleView view = (BattleView) Proxy.newProxyInstance(BattleView.class.getClassLoader(),
-                new Class<?>[]{BattleView.class}, (proxy, method, args) -> switch (method.getName()) {
-                    case "getGrid" -> grid;
-                    case "resolveUnit" -> 0L;
-                    case "squadMemberCount" -> 0;
-                    default -> throw new AssertionError("Unexpected query: " + method.getName());
-                });
-        String property = ReinforceContact.PRUNE_FLANK_CANDIDATES_PROPERTY;
-        String previous = System.getProperty(property);
-        TickInnerProfile profile = new TickInnerProfile();
-        TickInnerProfile.setCurrent(profile);
-        try {
-            System.setProperty(property, "false");
-            int[] control = ReinforceContact.snapToReachable(15, 15, squad, view);
-            assertEquals(121, profile.countOf(TickInnerProfile.Bucket.PATHFIND));
-            profile.reset();
-            System.clearProperty(property);
-            assertArrayEquals(control, ReinforceContact.snapToReachable(15, 15, squad, view));
-            assertEquals(1, profile.countOf(TickInnerProfile.Bucket.PATHFIND));
-        } finally {
-            if (previous == null) System.clearProperty(property);
-            else System.setProperty(property, previous);
-        }
-    }
-
-    /** The pre-pruning exhaustive implementation, kept separate from the subject helper. */
+    /** An exhaustive implementation, kept separate from the subject helper. */
     private static int[] exhaustiveOracle(NavigationGrid grid, int rawX, int rawY,
                                            int originX, int originY) {
         float best = Float.MAX_VALUE;
