@@ -138,9 +138,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.render.doodadAtlas` | experiment | 2026-10-23 | Doodad decoration atlas: remove it with the per-cut bind path once renderEvidence has read the atlas against its control. |
 | `battle.render.fire` | control | 2026-10-22 | Standing control: fire render cost control for renderEvidence, as for battle.fire. |
 | `battle.render.groundFeathering` | control | 2026-10-22 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
-| `battle.render.nightFireFogClears` | tuning | 2026-10-23 | Night shade: thinning strength for options a/b of night-fire-fog. Fold into a constant once the owner answers. |
-| `battle.render.nightFireThroughFog` | experiment | 2026-10-23 | Night shade: option d (off) of the owner picks question night-fire-fog. Remove when the owner answers. |
-| `battle.render.nightUnseenTint` | undecided | 2026-10-23 | Night shade: option c of night-fire-fog. If c loses, delete it with the COOL colour in FireFogClearing; if c wins, make it the default and drop the switch. |
 | `battle.render.settledBodyMesh` | control | 2026-10-22 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.sallyDoors` | experiment | 2026-10-20 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.sallyDoors.closable` | experiment | 2026-10-21 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
