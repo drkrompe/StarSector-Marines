@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -41,5 +43,27 @@ class DirectControlScatterTest {
         assertFalse(ring.tooClose());
         assertTrue(DirectControlScatter.mech(warden, 0, 3f).tooClose());
         assertTrue(DirectControlScatter.mech(warden, 0, 3f).warning());
+    }
+
+    @Test
+    void aVehicleLauncherRingsLikeAMechRackAndAVehicleGunHasNone() {
+        WeaponDef lrm = VehicleType.LRM_CARRIER.turretStructure().mount.weapon;
+        var inRange = DirectControlScatter.vehicle(lrm, lrm.range * 0.6f);
+        assertNotNull(inRange);
+        assertFalse(inRange.warning());
+        assertTrue(DirectControlScatter.vehicle(lrm, lrm.range * 1.2f).beyondRange());
+        var close = DirectControlScatter.vehicle(lrm, 4f);
+        assertTrue(close.tooClose());
+        assertTrue(close.warning());
+        assertNull(DirectControlScatter.vehicle(VehicleType.HEAVY_APC.turretStructure().mount.weapon, 15f));
+    }
+
+    @Test
+    void aWarningRingStaysVisibleWhereAnOrdinaryOneWouldHideUnderTheCrosshair() {
+        var tiny = new DirectControlScatter.Ring(0.05f, false, false);
+        assertTrue(DirectControlPanel.scatterRingPx(tiny, 20f) < 0f);
+        var refused = new DirectControlScatter.Ring(0.05f, false, true);
+        assertEquals(DirectControlPanel.MIN_WARNING_RING_PX, DirectControlPanel.scatterRingPx(refused, 20f));
+        assertEquals(60f, DirectControlPanel.scatterRingPx(new DirectControlScatter.Ring(3f, true, false), 20f));
     }
 }

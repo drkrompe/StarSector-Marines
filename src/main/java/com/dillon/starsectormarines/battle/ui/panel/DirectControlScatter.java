@@ -1,9 +1,11 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
 import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
+import com.dillon.starsectormarines.battle.combat.ManualPointFire;
 import com.dillon.starsectormarines.battle.combat.MechFireGroups;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 /**
  * The cursor ring a pilot reads before throwing rockets or an LRM salvo: the widest landing disk among the armed
@@ -38,5 +40,15 @@ public final class DirectControlScatter {
             close |= HeavyWeapons.tooClose(mount, distance);
         }
         return radius < 0f ? null : new Ring(radius, beyond, close);
+    }
+
+    /**
+     * The ring for a vehicle turret's weapon with the cursor {@code distance} cells from its turret ring, or null
+     * for a gun. The same rules as a mech rack's: the LRM carrier's launcher reads TOO CLOSE inside its minimum.
+     */
+    public static Ring vehicle(WeaponDef weapon, float distance) {
+        float radius = ManualPointFire.scatterRadiusCells(weapon, weapon.accuracy, distance, 0f);
+        return radius < 0f ? null
+                : new Ring(radius, distance > weapon.range, ManualPointFire.tooClose(weapon, distance));
     }
 }
