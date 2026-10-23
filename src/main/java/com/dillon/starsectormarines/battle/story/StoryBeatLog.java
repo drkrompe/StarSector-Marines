@@ -42,6 +42,18 @@ public final class StoryBeatLog {
         published = List.copyOf(events);
     }
 
+    /** Whether a beat of this key has been published in this attempt. */
+    public boolean has(String id) {
+        for (Event event : published) if (event.id().equals(id)) return true;
+        return false;
+    }
+
+    /** The tick this key was first published at, or {@code -1} when it has not been. */
+    public int tickOf(String id) {
+        for (Event event : published) if (event.id().equals(id)) return event.tick();
+        return -1;
+    }
+
     /** Immutable neutral-observer history; never feed this into a faction planner. */
     public List<Event> events() { return published; }
 

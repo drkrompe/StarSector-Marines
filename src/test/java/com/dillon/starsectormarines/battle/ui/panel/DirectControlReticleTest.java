@@ -14,7 +14,7 @@ class DirectControlReticleTest {
 
     /** The midpoint of the left button's tick, relative to the aim point at the origin. */
     private static float[] leftTick(float fireX, float fireY) {
-        var strokes = DirectControlReticle.strokes(DirectControlReticle.SpreadLook.BLOOM, LEFT_ONLY, -1f, -1f,
+        var strokes = DirectControlReticle.strokes(LEFT_ONLY, -1f, -1f,
                 0f, 0f, fireX, fireY, Color.CYAN);
         var tick = strokes.get(0);
         return new float[]{(tick.x() + tick.endX()) * 0.5f, (tick.y() + tick.endY()) * 0.5f};
