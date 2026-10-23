@@ -32,6 +32,16 @@ def lint(bench, frames, label):
     print(f'BENCH lint {label}: {len(rows)} orb(s)', flush=True)
 
 
+def clamp(bench, ship, label):
+    """swfx_guns.screen_clamp on a ship's rounds at the bench camera, as scene_fx.to_world calls it."""
+    import swfx_guns
+    from bench_guns import _M
+    obs = [o for o in bench.bpy.data.objects if swfx_guns.ROUND_NAME.search(o.name)]
+    n = swfx_guns.screen_clamp(obs, lambda f: (bench.cam.location.copy(), bench.cam.data.angle_x),
+                               to_world=lambda f: _M(ship))
+    print(f'BENCH clamp {label}: {len(obs)} round parts, {n} keyed', flush=True)
+
+
 def _manticore(bench, weapon, seconds):
     m = bench.ship('manticore', 'manticore-p', throttle=.3, own_hull=True)
     with m.kit() as (ctx, k):
@@ -39,6 +49,7 @@ def _manticore(bench, weapon, seconds):
         recs = k.guns.fire_weapon(ctx, 1, 2, seconds)
     print(f'BENCH {weapon} recoil', [(r['frame'], r.get('recoil')) for r in recs], flush=True)
     p, _ = muzzle(m, 1, 'barrel 1')
+    bench.m = m
     return p
 
 
@@ -53,6 +64,7 @@ def hellbore_flight(bench):
     """The Hellbore's slug in flight, side-on over its first 250 m, and the second shot 3 s on."""
     p = _manticore(bench, 'hellbore', 3.2)
     bench.camera(tuple(p + _v(110, -230, 50)), tuple(p + _v(110, 0, 0)), 30)
+    clamp(bench, bench.m, 'hellbore-flight')
     lint(bench, TESTS['hellbore-flight']['frames'], 'hellbore-flight')
 
 
@@ -67,6 +79,7 @@ def mark9_flight(bench):
     """The Mark IX's shells in flight, side-on."""
     p = _manticore(bench, 'mark9', .5)
     bench.camera(tuple(p + _v(110, -230, 50)), tuple(p + _v(110, 0, 0)), 30)
+    clamp(bench, bench.m, 'mark9-flight')
     lint(bench, TESTS['mark9-flight']['frames'], 'mark9-flight')
 
 

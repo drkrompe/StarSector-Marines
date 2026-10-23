@@ -966,6 +966,25 @@ TURN_RATES = {'lightmg': 50, 'lightdualmg': 50, 'vulcan': 75, 'lightac': 20, 'he
 for _k, _v in TURN_RATES.items():
     WEAPONS[_k].setdefault('turn', _v)
 
+# A round's width follows its calibre (owner, 2026-10-23: "how 'wide' a streak should be related
+# to its gun bore"): the corona's radius in metres in proportion to the game's own shot width
+# (weapon_data proj "width": a light MG 3.5, an autocannon 5-7.5, a blaster 7, the Hellbore 12, the
+# ion bolt 20), the core a hot fraction of it, and a heavy slug's ember trail thinner still. This
+# table is the authority for those radii; screen_clamp() then keeps the drawn width inside a
+# believable tracer's pixel band at the camera's distance.
+CALIBRE = {   # weapon: (core m, corona m, trail m or None)
+    'lightmg': (.05, .12, None), 'lightdualmg': (.05, .12, None), 'vulcan': (.05, .12, None),
+    'chaingun': (.06, .14, None), 'lightneedler': (.04, .11, None),
+    'lightac': (.11, .19, .06), 'lightag': (.10, .17, .06), 'heavyac': (.13, .23, .08),
+    'mark9': (.15, .26, .09), 'hellbore': (.26, .42, .18),
+    'miningblaster': (.12, .24, None), 'heavyblaster': (.12, .24, None), 'ioncannon': (.22, .6, None),
+}
+for _k, (_core, _corona, _trail) in CALIBRE.items():
+    _r = WEAPONS[_k]['round']
+    _r['core'], _r['corona'] = _core, _corona
+    if _trail is not None and _r.get('trail'):
+        _r['trail'] = dict(_r['trail'], radius=_trail)
+
 FEEDER_RGB = (255, 200, 0)          # Accelerated Ammo Feeder weapon glow
 
 
@@ -2174,6 +2193,84 @@ def _slug_trail(ctx, coll, label, frame, weapon, frames, heads, burn, M, d, rot,
     _visible_between(ob, frame, frame + len(frames) - 1)
     return ob.name
 
+
+# --- screen width ---------------------------------------------------------------
+ROUND_NAME = re.compile(r'SWFX guns (round(?: core| trail)?|bolt) (.+?) (f\d{4})')
+STREAK_PX = (.5, 1.4)     # a round's corona radius on screen, pixels at 1920 across
+
+
+def _mesh_radius(me, cache):
+    """A rod mesh's radius about its X axis (hull units)."""
+    if me.name not in cache:
+        cache[me.name] = max((math.hypot(v.co.y, v.co.z) for v in me.vertices), default=0.0)
+    return cache[me.name]
+
+
+def _fc_at(ob, path, index, frame, default):
+    fc = swfx_core.find_fcurve(ob, path, index)
+    return fc.evaluate(frame) if fc is not None and len(fc.keyframe_points) else default
+
+
+def screen_clamp(objs, cam_at, to_world=None, px=STREAK_PX, width_px=1920):
+    """Keep each round's drawn width inside a believable tracer's pixel band at the camera's
+    distance (owner, 2026-10-23: streaks "very large at this zoom"). For every round among `objs`
+    (its corona, core, ember trail, or an ion bolt strike, grouped by gun and fire frame), on each
+    frame it is keyed or shown, the corona's radius in pixels is measured and, outside px=(lo, hi),
+    the whole round's cross-section (scale Y and Z of each part, one factor, so core and sheath
+    keep their proportion) is keyed to bring it to the band's edge. Length and flight are left
+    alone.
+
+    cam_at(frame) -> (camera world location, horizontal fov in radians). to_world(frame) -> the
+    Matrix from the objects' own space to the world in metres on that frame (default identity:
+    objects already in the world). width_px: the render's width. Returns the number of frames
+    keyed."""
+    from mathutils import Matrix as _M
+    to_world = to_world or (lambda f: _M.Identity(4))
+    groups = {}
+    for ob in objs:
+        if ob.type != 'MESH':
+            continue
+        m = ROUND_NAME.search(ob.name)
+        if m:
+            groups.setdefault((m.group(2), m.group(3)), []).append((m.group(1), ob))
+    cache, keyed = {}, 0
+    for parts in groups.values():
+        ref = next((ob for kind, ob in parts if kind == 'round'), None) or \
+            next((ob for kind, ob in parts if kind == 'bolt'), None)
+        if ref is None:
+            continue
+        r0 = _mesh_radius(ref.data, cache)
+        if r0 <= 0:
+            continue
+        fc = swfx_core.find_fcurve(ref, 'location', 0)
+        frames = sorted({int(round(k.co.x)) for k in fc.keyframe_points}) if fc is not None else []
+        if not frames:
+            frames = sorted(_shown_frames(ref)) or [ref.get('swfx_frame', 0)]
+        factors = []
+        for f in frames:
+            M = to_world(f)
+            loc = Vector([_fc_at(ref, 'location', i, f, ref.location[i]) for i in range(3)])
+            here = M @ loc
+            cam, fov = cam_at(f)
+            depth = max(1e-3, (here - Vector(cam)).length)
+            r_world = r0 * M.to_scale()[1]
+            r_px = r_world / (2 * depth * math.tan(fov / 2)) * width_px
+            want = min(max(r_px, px[0]), px[1])
+            factors.append(want / r_px if r_px > 0 else 1.0)
+        for kind, ob in parts:
+            if kind == 'bolt':          # one strike shown on one frame: its own frame's factor
+                shown = sorted(_shown_frames(ob))
+                f = shown[0] if shown else frames[0]
+                k = factors[min(range(len(frames)), key=lambda i: abs(frames[i] - f))]
+                ob.scale.y *= k
+                ob.scale.z *= k
+                keyed += 1
+                continue
+            for i in (1, 2):
+                base = ob.scale[i]
+                _bake(ob, 'scale', i, frames, [base * k for k in factors])
+            keyed += len(frames)
+    return keyed
 
 def _feeder_material(ctx, knob):
     name = f'{PREFIX} feeder {knob}'
