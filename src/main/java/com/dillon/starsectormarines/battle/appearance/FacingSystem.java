@@ -120,7 +120,7 @@ public final class FacingSystem {
         this.treatmentPatient = treatmentPatient != null ? treatmentPatient : unit -> 0L;
     }
 
-    /** Authors {@code SPRITE_INDEX}/{@code SPRITE_FLIP_V}/{@code SPRITE_SHEET} for every row in {@link BattleComponents#liveSprites}. */
+    /** Authors the layered facing and pose columns for every row in {@link BattleComponents#liveSprites}. */
     public void tick() {
         tick(0L, Float.NaN, Float.NaN, false);
     }
@@ -147,10 +147,6 @@ public final class FacingSystem {
             // grid cells below, while travel facing uses the applied velocity.
             float[] posX = t.floats(components.POSITION, BattleComponents.POSITION_X).array();
             float[] posY = t.floats(components.POSITION, BattleComponents.POSITION_Y).array();
-            int[] sheetSel = t.ints(components.SPRITE, BattleComponents.SPRITE_SHEET).array();
-            int[] frameIdx = t.ints(components.SPRITE, BattleComponents.SPRITE_INDEX).array();
-            int[] flipV = t.ints(components.SPRITE, BattleComponents.SPRITE_FLIP_V).array();
-
             float[] cooldownTimer = hasCombat
                     ? t.floats(components.COMBAT, BattleComponents.COMBAT_COOLDOWN_TIMER).array() : null;
             float[] attackCooldown = hasCombat
@@ -233,31 +229,20 @@ public final class FacingSystem {
                         && type == UnitType.MARINE;
                 float manualFacing = manualAim
                         ? AirBody.facingToward(manualDx, manualDy) : Float.NaN;
-                boolean up = !sprintRow && !treating && (manualAim || LiveAppearance.weaponUp(inAim, type.combatant,
-                        hasCombat ? cooldownTimer[r] : 0f, hasCombat ? attackCooldown[r] : 0f));
-
                 // The grid cell this row occupies — floored locally because target
                 // facing uses an integer cell delta while movement retains continuous
                 // position.
                 int rowCellX = (int) Math.floor(posX[r]);
                 int rowCellY = (int) Math.floor(posY[r]);
 
-                // Facing source: aim at a live target first, else use the applied
-                // travel velocity below, else none (defaults to SOUTH / S below).
-                // Non-combatants carry no
-                // COMBAT — they have no target anyway, so this gates on both
-                // hasCombat and type.combatant before any target read.
-                int dx = 0;
-                int dy = 0;
-                boolean haveDelta = false;
+                // Target bearing: the treated patient, else the secondary aim
+                // target, else the reflex or current target. Non-combatants carry
+                // no COMBAT, so this gates on both hasCombat and type.combatant
+                // before any target read.
                 int targetDx = 0;
                 int targetDy = 0;
                 boolean haveTargetDelta = false;
-                if (manualAim) {
-                    dx = octantComponent(manualDx, manualDy);
-                    dy = octantComponent(manualDy, manualDx);
-                    haveDelta = true;
-                } else if (hasCombat && type.combatant) {
+                if (!manualAim && hasCombat && type.combatant) {
                     long tid = treating ? patient
                             : inAim && secondaryAimTarget != null && secondaryAimTarget[r] != 0L
                             ? secondaryAimTarget[r]
@@ -271,20 +256,13 @@ public final class FacingSystem {
                             targetDx = tdx;
                             targetDy = tdy;
                             haveTargetDelta = true;
-                            dx = tdx;
-                            dy = tdy;
-                            haveDelta = true;
                         }
                     }
                 }
                 // Travel bearing from the velocity the mover actually applied
-                // this tick, quantized to the same octants the old next-cell
-                // delta produced. Cell deltas are unusable under the carrot
-                // mover: nextPathCell − flooredCell is (0,0) for the second
-                // half of every segment, which strobed the walk pose/facing.
-                // Layered actors can walk while looking/aiming independently at
-                // a target, so the travel delta is kept even when the legacy
-                // sheet's target-first fallback already resolved.
+                // this tick, quantized to octants. Cell deltas are unusable under
+                // the carrot mover: nextPathCell - flooredCell is (0,0) for the
+                // second half of every segment, which strobed the walk pose/facing.
                 int travelDx = 0;
                 int travelDy = 0;
                 boolean haveTravelDelta = false;
@@ -293,40 +271,7 @@ public final class FacingSystem {
                     travelDx = octantComponent(velX[r], velY[r]);
                     travelDy = octantComponent(velY[r], velX[r]);
                     haveTravelDelta = travelDx != 0 || travelDy != 0;
-                    if (!haveDelta && haveTravelDelta) {
-                        dx = travelDx;
-                        dy = travelDy;
-                        haveDelta = true;
-                    }
                 }
-
-                if (type.frameLayout == UnitType.FrameLayout.EIGHT_WAY_NO_WEAPON_UP) {
-                    LiveAppearance.EightWayFacing facing8 = haveDelta
-                            ? LiveAppearance.eightWayFromDelta(dx, dy) : LiveAppearance.EightWayFacing.S;
-                    frameIdx[r] = LiveAppearance.pickFrameEightWay(facing8);
-                    flipV[r] = 0;
-                } else {
-                    LiveAppearance.Facing facing = haveDelta
-                            ? LiveAppearance.facingFromDelta(dx, dy) : LiveAppearance.Facing.SOUTH;
-                    if (manualAim) {
-                        facing = Math.abs(manualDx) > Math.abs(manualDy)
-                                ? manualDx > 0f ? LiveAppearance.Facing.EAST : LiveAppearance.Facing.WEST
-                                : manualDy > 0f ? LiveAppearance.Facing.NORTH : LiveAppearance.Facing.SOUTH;
-                    }
-                    frameIdx[r] = LiveAppearance.pickFrame(facing, up);
-                    flipV[r] = LiveAppearance.flipV(facing, up) ? 1 : 0;
-                }
-                // Render-tier's frameIdx-out-of-range clamp (sheet-cache-dependent)
-                // stays out of this system — it authors the unclamped logical frame.
-                SpecialEquipmentDef secondary = inAim && secondarySpec != null
-                        ? (SpecialEquipmentDef) secondarySpec[r] : null;
-                boolean utilityAction = secondary != null
-                        && (secondary.activation() == SpecialActivation.UTILITY_SMOKE
-                        || secondary.activation() == SpecialActivation.UTILITY_SATCHEL
-                        || secondary.activation() == SpecialActivation.ARC_EXPLOSIVE);
-                sheetSel[r] = inAim && !utilityAction
-                        ? LiveAppearance.SHEET_SECONDARY_AIM
-                        : LiveAppearance.SHEET_BASE;
 
                 if (hasLayeredAnimation) {
                     authorLayeredRow(r, type, hasCombat, hasMovement, inAim,

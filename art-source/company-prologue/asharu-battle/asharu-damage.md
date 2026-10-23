@@ -54,6 +54,21 @@ every shot. Its embers are specks along the torn edge that flicker and cool, not
 A mining laser's cut (`cut`) is a seam: narrow soot marks laid along the beam's line, walking along
 it over 1.5 s as it cuts, with embers fading over about 25 s.
 
+### The v2 look (the default)
+
+v1 only drew small soot marks, which barely read at the distance the shots see these hulls (5-15% of
+the frame). v2, the default (`LOOK`), keeps v1 behind `look='v1'` as the control and changes four things:
+- the scorch patches are several times larger;
+- around the soot is a lighter fringe of burnt paint and primer, rust-brown and grey and diffuse, so it
+  catches the sun (a metallic fringe only mirrored the black sky);
+- holes are larger and black, with torn, light metal petals round them;
+- every hit that holed the ship trails a thin dark smoke thread from the hole: for 45 s at level 2,
+  and for the rest of the battle at levels 3 and 4, at most two per ship per shot (`max_smoke`).
+
+Before/after (lead Lasher at 58 and 110 s): Drive `review/asharu-fx-damage/2026-10-23_damage-v2b-before-after_mac/`.
+Up close the beaten ship reads clearly. At shot distance what carries is the fires, the smoke threads
+and the embers.
+
 ## The story in damage
 
 - **WARDEN LEAD (lead Lasher)** is holed and set burning forward when she turns back in S6. She

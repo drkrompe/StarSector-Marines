@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.unit;
 import com.dillon.starsectormarines.battle.mech.CompanyMechLedger;
 import com.dillon.starsectormarines.battle.mech.MechSectionModifier;
 import com.dillon.starsectormarines.battle.air.AirTargetService;
-import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.RavBruteRig;
@@ -726,12 +725,6 @@ public final class UnitRosterService {
         if (isTurret) archetype[c++] = components.TURRET_STATE;
         if (isDrone) archetype[c++] = components.DRONE_STATE;
         entityWorld.createEntity(id, archetype);
-        // SHEET/FLIP_V stay 0 from the zero-init append; INDEX is seeded to the
-        // south-idle frame so a unit spawned between this tick's FacingSystem
-        // pass and render still draws sanely instead of frame 0.
-        if (posed) {
-            entityWorld.setInt(id, components.SPRITE, BattleComponents.SPRITE_INDEX, LiveAppearance.SOUTH_IDLE_FRAME);
-        }
         if (layerDrawn) {
             int armorFamily = (spec.layeredArmorFamily != null
                     ? spec.layeredArmorFamily

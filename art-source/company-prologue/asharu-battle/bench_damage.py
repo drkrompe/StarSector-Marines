@@ -26,7 +26,8 @@ def lead_lasher(bench):
     bench.scene.cycles.volume_max_steps = 256
 
 
-# before-after: v1 (left column) against v2 (right column), 58 s (top row) and 110 s (bottom row).
+# before-after: v2 (left column) against v1 (right column); the camera looks from the port side, so +X is
+# screen-left, 58 s (top row) and 110 s (bottom row).
 # Frame F frames the four from as far as the shots see a Lasher (one hull about a tenth of the
 # frame's width); frame F + 1 is the close view.
 GRID = [(f'{look}-{int(t)}', look, t, x, z) for look, x in (('v1', -60.0), ('v2', 60.0))
@@ -51,9 +52,6 @@ def before_after(bench):
         cam.keyframe_insert('location', frame=f)
         cam.keyframe_insert('rotation_euler', frame=f)
         cam.data.keyframe_insert('lens', frame=f)
-    for fc in (cam.animation_data.action.fcurves if cam.animation_data and cam.animation_data.action else ()):
-        for kp in fc.keyframe_points:
-            kp.interpolation = 'CONSTANT'
     bench.scene.cycles.volume_step_rate = 2.0
     bench.scene.cycles.volume_max_steps = 256
 
@@ -66,7 +64,7 @@ TESTS = {
         setup=lead_lasher),
     'before-after': dict(
         builds=['lasher'], frames=[F, F + 1],
-        note='Lead Lasher, v1 look (left column) against v2 (right), at 58 s (top row) and 110 s (bottom row). '
+        note='Lead Lasher, v2 look (left column) against v1 (right), at 58 s (top row) and 110 s (bottom row). '
              'Left frame from shot distance, right frame close.',
         setup=before_after),
 }

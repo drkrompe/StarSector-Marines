@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.control;
 
 import com.dillon.starsectormarines.battle.appearance.FacingSystem;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
-import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
@@ -106,9 +105,6 @@ class MarineSprintTest {
         int sprintPose = roster.entityWorld().getInt(marine, roster.components().LAYERED_ANIMATION,
                 BattleComponents.LAYERED_WEAPON_POSE);
         assertEquals(LayeredAppearance.POSE_IDLE, sprintPose);
-        assertEquals(LiveAppearance.pickFrame(LiveAppearance.Facing.NORTH, false),
-                roster.entityWorld().getInt(marine, roster.components().SPRITE,
-                        BattleComponents.SPRITE_INDEX));
         assertEquals(AirBody.facingToward(10.5f - roster.world().renderX(marine),
                         15f - roster.world().renderY(marine)),
                 roster.entityWorld().getFloat(marine, roster.components().LAYERED_ANIMATION,

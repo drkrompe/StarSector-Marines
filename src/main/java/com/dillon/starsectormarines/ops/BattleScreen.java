@@ -757,6 +757,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         renderer.getGroundAtlas().dispose();
         // And the composited unit atlas, for the same reason.
         renderer.getUnitAtlas().dispose();
+        // And this battle's props, which were cut from this battle's placements.
+        renderer.disposeDecorationAtlas();
         renderer.getGroundLights().clear();
         if (retainedOverlay != null) retainedOverlay.detach();
         if (retainedSquadOverlay != null) retainedSquadOverlay.detach();
