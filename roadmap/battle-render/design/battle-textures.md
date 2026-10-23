@@ -1,11 +1,11 @@
 # Battle textures: what a battle loads, who owns it, and when it goes
 
 Status: ACTIVE — the ledger, the loading screen, the battle texture set, the release at
-battle exit, and the company deck's, Armory's and ops dialog's own leases are built; filtering
-terrain sheets per map is next.
+battle exit, the company deck's preloaded lease with its own terrain set, and the Armory's and
+ops dialog's leases are built; filtering a battle's terrain sheets per map is next.
 
 Written: 2026-10-23
-Updated: 2026-10-23 — the ops dialog's screens own their textures; measured before and after.
+Updated: 2026-10-23 — the deck preloads behind the dialog's other pages and never shows a load.
 
 The canonical model of the render pipeline is `battle-render-nouns.md`; this doc owns the
 texture lifecycle under it: which textures a battle owns, which it shares, and how they are
@@ -40,12 +40,12 @@ Starsector is a heavily modded game, and that is video memory every other mod is
   liveries, its vehicle lines and airframes, its structures and their projectiles, and what
   its mission can bring in later (reinforcements, command powers). It is derived from the
   battle, never from the catalogs.
-- The **deck texture set** is what the company deck's scene draws: the terrain sheets, the
-  armour families her crew and company wear as they stand (`BattleTextureSet.onField`), the
-  unpainted mech set (nothing aboard binds a livery to a side), the aircraft and the
-  projectiles. The deck holds it under the **deck lease** only while a **deck screen** is up —
-  one that draws her scene: the ship view, the boat deck and the Mech Lab
-  (`Screen.drawsCompanyDeck`).
+- The **deck texture set** is what the company deck's scene draws: the catalog sheets her
+  deck places (`ShipDeckBattleScene.terrainSheets`), the armour families her crew and company
+  wear as they stand (`BattleTextureSet.onField`), the unpainted mech set (nothing aboard binds
+  a livery to a side), the aircraft and the projectiles. The deck holds it under the **deck
+  lease** for as long as the ops dialog is open, except while a battle is
+  (`Screen.releasesCompanyDeckTextures`).
 - The **Armory lease** holds the armour families and catalog icons the Armory's soldier
   previews have asked for, while the Armory is open.
 - The **dialog UI lease** holds the retained-UI images first painted while the ops dialog is
@@ -197,27 +197,45 @@ least half a second for a fresh battle, so a fast load does not flicker.
 ## The company deck
 
 The deck is one scene with one clock that every deck screen frames, and it keeps running
-whichever page is up (`CompanyDeck`). Its textures follow the screens, not the scene:
+whichever page is up (`CompanyDeck`). **The deck UI never shows a load** (owner, 2026-10-23):
+no loading screen, no blank frame, no hitch on opening a deck screen. So her textures follow
+the dialog rather than the page:
 
-1. **Open.** The first time a deck screen draws her (`CompanyDeck.drawable`), she opens a deck
-   lease and a sprite set under it, and queues the deck texture set. The queue runs a frame's
-   budget per draw, and until it is done the screen draws her as it draws a ship still being got
-   ready, so walking aboard never freezes the frame on an upload. Then her renderer is built
-   over the new sprites.
-2. **Leave.** When the panel moves to a screen that does not draw her, she detaches her
-   renderer, disposing every GL resource it made (`BattleRenderer.disposeGlResources`), and
-   releases the lease. A battle is such a screen, so a battle never stands on top of the deck's
-   art.
-3. **Laid out again.** A deck rebuilt in place (a transfer, a boat built or lost) hands its lease
+1. **Preload.** From the first frame she is crewed, the panel spends a small budget of every
+   frame on which she is not drawn loading her set (`CompanyDeck.preloadTextures`), a texture or
+   a catalog sheet a step, while the player reads the HQ or the briefing. The last steps build
+   her renderer and collect one whole-ship frame without drawing it (`ShipDeckBattleScene.prewarm`),
+   so a deck screen's first frame is an ordinary one. If one opens before the preload is done,
+   what is left finishes at once (`CompanyDeck.drawable`); it never draws her blank.
+2. **What she draws.** Her catalog sheets are derived from her deck: the blocks of the floor
+   kinds she has and of every surface with their variants, the surface roles' blocks, and every
+   doodad, lamp and facility piece on her — not every sheet the tile registry names, which put
+   pavement edges and forest blight on a ship. What that misses (damage variants found by id,
+   wear and dressing planned later) the first preload finds by **surveying**: one whole-ship
+   frame collected through a throwaway renderer while the sprite set records, instead of
+   loading, every catalog sheet asked for (`ShipDeckBattleScene.surveyTerrain`); each is then a
+   step of its own. A sheet asked for after that loads on first ask
+   (`BattleSprites.extraTerrainSheet`) and gets its batch before the next drain — a hitch, never
+   a blank, and an unplanned load in the dev log.
+3. **Remembered.** When she gives her textures back she writes the files she held to the game's
+   common folder (`CompanyDeck.HELD_FILE`), and every later preload — after a battle, in a dialog
+   opened again, in the next game session — loads that list a texture a step before her loaders
+   run and skips the survey. Only the first visit after an install has to find out what she
+   draws.
+4. **Battle.** A battle is the one page that takes the card for itself: entering it, she
+   detaches her renderer, disposing every GL resource it made (`BattleRenderer.disposeGlResources`),
+   and releases the lease. After it she preloads again behind Results.
+5. **Laid out again.** A deck rebuilt in place (a transfer, a boat built or lost) hands its lease
    to its successor (`CompanyDeck.handTexturesTo`) rather than unloading what the new deck will
    load straight back.
-4. **Close.** Dismissing the dialog dismisses the deck, which releases; the Armory releases on
+6. **Close.** Dismissing the dialog dismisses the deck, which releases; the Armory releases on
    its own detach; the panel's dismiss closes the dialog UI lease
    (`UiSpriteCache.leave`), which forgets the images loaded under it so a later paint loads them
    afresh rather than drawing a deleted texture.
 
-A family that joins the deck after her set was queued (a recruit mustered aboard) loads on its
-first draw, as a battle's miss does.
+A grid sheet's and a layered sprite's size is read from the image header (`ModTextures.readSize`)
+rather than by decoding it a second time on the frame that uploads it, which was most of what
+loading the infantry cost.
 
 ## Evidence
 
@@ -233,25 +251,29 @@ its queue finishes, and after its release, and the same for the deck's lease.
 sequence on a real driver: the campaign map with the dialog closed, the deck drawn, the Armory
 opened, a small battle loaded through `BattleSprites.battleLoadSteps` as the battle screen
 loads it, back aboard, and the dialog closed. Back aboard it asserts the same set reloads with
-the same pixels and the deck's sprites are bound to the reloaded textures. Measured 2026-10-23
-(transport hull, a starting company, nothing fitted):
+the same pixels and the deck's sprites are bound to the reloaded textures. It drives the preload
+a frame at a time as the panel does and asserts that a deck screen's first frame loads nothing;
+it reports the longest preload frame and every step over 30 ms. Measured 2026-10-23 (transport
+hull, a starting company, nothing fitted):
 
 | Mod textures on the card | Before | After |
 |---|--:|--:|
 | Campaign map, dialog closed (once the deck had been opened) | 541.7 MB | 0.0 MB |
-| Deck drawn | 541.7 MB | 341.9 MB |
-| Armory previews open | 541.7 MB | 341.9 MB |
+| Deck drawn | 541.7 MB | 183.6 MB |
+| Armory previews open | 541.7 MB | 183.6 MB |
 | Small battle | 771.7 MB | 316.1 MB |
 | A battle naming every family, livery and line | 771.7 MB | 771.7 MB |
 | After the battle, dialog closed | 541.7 MB | 0.0 MB |
 
-Of the deck's 342 MB, 184 MB is terrain sheets: `ensureTileSheet` loads every sheet the tile
-registry names, outdoor ones (forest blight, pavement edges, the basin's scrap) among them.
+A deck screen's first frame takes 0 ms of loading. Preloading again after a battle, the
+longest frame was about 110 ms (a single 16 MB sheet) with the machine shared; the first visit
+after an install, surveying, has steps of several hundred milliseconds (the infantry's shared
+layers are one step) and happens once. The `HELD_FILE` list is what turns every later visit
+into the second kind.
 
 ## Boundaries
 
-- Terrain sheets are not filtered, for the deck or a battle: the renderer registers a batch
-  per sheet when it attaches, so a sheet loaded later would draw blank. Deriving the sheets a
-  map and its dressing can place, with a batch made for a sheet that arrives late, is the next
-  step, and the largest one left: about half of the deck's set.
+- A battle's terrain sheets are not filtered: it still loads every sheet the tile registry
+  names (`ensureTileSheet`). The deck's derivation, survey and late batches are the pieces a
+  battle's filter would reuse; that is the next step.
 - Shrinking each image is `texture-fit.md`'s; this doc only decides how long it is resident.
