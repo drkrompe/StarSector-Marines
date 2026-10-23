@@ -42,7 +42,11 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
  */
 public final class ViewCull {
 
-    /** Control-run switch; see the class note. On by default. */
+    /**
+     * Standing control: {@code renderEvidence} reads every framing back culled
+     * and unculled in one process and asserts the frames pixel-identical, the
+     * only check that catches a wrongly culled body. On by default.
+     */
     public static final String PROPERTY = "battle.render.collectCulling";
 
     /** Rejects nothing: the camera could not describe a view, or culling is off. */

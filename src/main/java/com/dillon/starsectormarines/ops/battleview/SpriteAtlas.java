@@ -144,6 +144,7 @@ public abstract class SpriteAtlas {
     private static final int NAMES_PER_REASON = 6;
 
     private final String label;
+    /** Off only for {@link DecorationAtlas} under its {@code battle.render.doodadAtlas} control. */
     private final boolean enabled;
     /**
      * Widths the layout may use, smallest first.
@@ -176,6 +177,10 @@ public abstract class SpriteAtlas {
     private int width;
     private int height;
     private int texture;
+
+    protected SpriteAtlas(String label, int... candidateSides) {
+        this(label, true, candidateSides);
+    }
 
     protected SpriteAtlas(String label, boolean enabled, int... candidateSides) {
         this.label = label;
@@ -348,7 +353,7 @@ public abstract class SpriteAtlas {
      *
      * <p>A layout that will not fit is silent by design — every quad simply goes
      * back to its own image — so an atlas that quietly stopped serving looks
-     * exactly like an atlas nobody switched on. This says which it was, in the
+     * exactly like an atlas that was never built. This says which it was, in the
      * one sentence that is worth having: how much art was offered and how wide
      * the widest piece is.
      */
@@ -468,11 +473,6 @@ public abstract class SpriteAtlas {
         return out;
     }
 
-    /** Whether the atlas is armed at all — for evidence that reports which run it was. */
-    public final boolean isEnabled() {
-        return enabled;
-    }
-
     /**
      * Whether quads may address the atlas.
      *
@@ -481,7 +481,7 @@ public abstract class SpriteAtlas {
      * texture, and false forever once anything has failed.
      */
     public final boolean isServing() {
-        return enabled && built && !broken;
+        return built && !broken;
     }
 
     /**
@@ -563,7 +563,7 @@ public abstract class SpriteAtlas {
      * @return whether the atlas can be addressed from the next frame
      */
     public final boolean sync() {
-        if (!enabled || broken || built) return isServing();
+        if (broken || built) return isServing();
         if (!planned || slots.isEmpty()) return false;
         try {
             build();
