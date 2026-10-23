@@ -4,6 +4,16 @@ import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
+import com.dillon.starsectormarines.battle.world.gen.layout.Deferred;
+import com.dillon.starsectormarines.battle.world.gen.layout.LayoutGround;
+import com.dillon.starsectormarines.battle.world.gen.layout.Line;
+import com.dillon.starsectormarines.battle.world.gen.layout.LineCourse;
+import com.dillon.starsectormarines.battle.world.gen.layout.LineStyle;
+import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayout;
+import com.dillon.starsectormarines.battle.world.gen.layout.Phase;
+import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
+import com.dillon.starsectormarines.battle.world.gen.layout.Site;
+import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LandingKind;
 import com.dillon.starsectormarines.battle.world.gen.precinct.MapPlacement;
@@ -177,7 +187,90 @@ public final class CordonPlan {
                     new Fortification(CivilDefenceCompound.GATES, CivilDefenceCompound.WALL_HP).laidSquare()));
         }
         return PrecinctPlan.laidOut(places, south ? MapPlacement.SOUTH : MapPlacement.NORTH,
-                LandingKind.OPEN_FIELD, width, height, rng);
+                LandingKind.OPEN_FIELD, width, height, rng).withLayout(layout(south, density));
+    }
+
+    /** The layout's picket courses, resolved once the redoubts have claimed their ground. */
+    public static final String PICKETS = "picket";
+    /** The picket course between redoubts {@code n} and {@code n + 1} is this plus "n-(n+1)". */
+    public static final String PICKET_LINE = "picket-";
+    /** The eruption site (beat L4), resolved behind the middle of the line. */
+    public static final String ERUPTION = "eruption";
+    public static final String ERUPTION_SITE = "eruption-site";
+    /** Cells of road margin a picket course leaves open either side of a road it crosses. */
+    static final int PICKET_ROAD_GAP = 2;
+    /** Pitch of the funnels opened in a picket course's wire. */
+    static final int PICKET_FUNNEL_EVERY = 14;
+    /** Side of the eruption site, in cells. */
+    static final int ERUPTION_SIDE = 12;
+
+    /**
+     * What the Cordon lays over its country ({@code cordon-map-intent.md}): a
+     * picket course between each pair of neighbouring redoubts, facing the
+     * front, and the open ground a bore may erupt on behind the line.
+     */
+    static MissionLayout layout(boolean south, Density density) {
+        int[] front = {0, south ? 1 : -1};
+        LineStyle style = density == Density.URBAN ? LineStyle.SANDBAG : LineStyle.TRENCH_WIRE;
+        return new MissionLayout(List.of(
+                new Deferred(PICKETS, Phase.WORKS, ground -> pickets(ground, front, style), false),
+                new Deferred(ERUPTION, Phase.WORKS, ground -> eruptionSite(ground, south), false)));
+    }
+
+    /** A picket course from each redoubt's claimed edge to the next's, at their depths. */
+    static List<Piece> pickets(LayoutGround ground, int[] front, LineStyle style) {
+        List<Piece> out = new ArrayList<>();
+        for (int n = 1; n < REDOUBTS; n++) {
+            int[] a = ground.claimBounds(REDOUBT_PLACE + n), b = ground.claimBounds(REDOUBT_PLACE + (n + 1));
+            if (a == null || b == null) continue;
+            int[] from = {a[2] + 1, (a[1] + a[3]) / 2}, to = {b[0] - 1, (b[1] + b[3]) / 2};
+            if (to[0] - from[0] < LineCourse.MIN_RUN) continue;
+            out.add(new Line(PICKET_LINE + n + "-" + (n + 1), List.of(from, to), style, front,
+                    PICKET_ROAD_GAP, PICKET_FUNNEL_EVERY, true, false));
+        }
+        return out;
+    }
+
+    /**
+     * Open ground between the line and the logistics base, behind the middle,
+     * clear of roads and of every place's ground: the nearest such square to
+     * the middle of that band.
+     */
+    static List<Piece> eruptionSite(LayoutGround ground, boolean south) {
+        int w = ground.width();
+        int[] base = ground.claimBounds(BASE_PLACE);
+        if (base == null) return List.of();
+        // The ground between the base's front edge and the nearest redoubt's rear edge.
+        int y0 = south ? base[3] + 1 : 0, y1 = south ? ground.height() - 1 : base[1] - 1;
+        for (int n = 1; n <= REDOUBTS; n++) {
+            int[] r = ground.claimBounds(REDOUBT_PLACE + n);
+            if (r == null) continue;
+            if (south) y1 = Math.min(y1, r[1] - 1);
+            else y0 = Math.max(y0, r[3] + 1);
+        }
+        int cx = (base[0] + base[2]) / 2 - ERUPTION_SIDE / 2, cy = (y0 + y1) / 2 - ERUPTION_SIDE / 2;
+        int[] best = null;
+        long bestDistance = Long.MAX_VALUE;
+        for (int y = y0; y + ERUPTION_SIDE - 1 <= y1; y += 2) {
+            for (int x = Math.round(w * 0.3f); x + ERUPTION_SIDE - 1 <= Math.round(w * 0.7f); x += 2) {
+                long d = (long) (x - cx) * (x - cx) + (long) (y - cy) * (y - cy);
+                if (d >= bestDistance || !open(ground, x, y)) continue;
+                best = new int[]{x, y};
+                bestDistance = d;
+            }
+        }
+        if (best == null) return List.of();
+        return List.of(new Site(ERUPTION_SITE, best[0], best[1], best[0] + ERUPTION_SIDE - 1,
+                best[1] + ERUPTION_SIDE - 1, SitePurpose.OPEN, false));
+    }
+
+    private static boolean open(LayoutGround ground, int x0, int y0) {
+        for (int y = y0; y < y0 + ERUPTION_SIDE; y++) {
+            for (int x = x0; x < x0 + ERUPTION_SIDE; x++) {
+                if (ground.isRoad(x, y) || ground.isClaimed(x, y) || !ground.walkable(x, y)) return false;
+            }
+        }
+        return true;
     }
 
     /** The redoubts of a plan laid out by {@link #planFor}, west to east. */

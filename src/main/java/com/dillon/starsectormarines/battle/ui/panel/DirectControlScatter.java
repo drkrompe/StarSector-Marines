@@ -17,12 +17,24 @@ public final class DirectControlScatter {
     private DirectControlScatter() {}
 
     /**
-     * {@code beyondRange} is true when the point lies past the nominal range of a mount the ring covers, and
-     * {@code tooClose} when it lies inside the minimum of one (an arcing rack refuses such a point).
+     * {@code beyondRange} is true when the point lies past the nominal range of a mount the ring covers,
+     * {@code tooClose} when it lies inside the minimum of one (an arcing rack refuses such a point), and
+     * {@code pastOptimal} when it lies past the optimal range of one.
      */
-    public record Ring(float radiusCells, boolean beyondRange, boolean tooClose) {
+    public record Ring(float radiusCells, boolean beyondRange, boolean tooClose, boolean pastOptimal) {
+        public Ring(float radiusCells, boolean beyondRange, boolean tooClose) {
+            this(radiusCells, beyondRange, tooClose, beyondRange);
+        }
+
         /** Either condition draws the ring as a warning. */
         public boolean warning() { return beyondRange || tooClose; }
+
+        /** The reticle's palette: grey inside a minimum, red past range, yellow past optimal, white within it. */
+        public DirectControlFireMarks.Mark mark() {
+            if (tooClose) return DirectControlFireMarks.Mark.HELD;
+            if (beyondRange) return DirectControlFireMarks.Mark.WASTED;
+            return pastOptimal ? DirectControlFireMarks.Mark.FALLING_OFF : DirectControlFireMarks.Mark.GOOD;
+        }
     }
 
     /** The ring for a cursor {@code distance} cells from the chassis centre, or null when no armed mount bursts. */
@@ -32,6 +44,7 @@ public final class DirectControlScatter {
         float radius = -1f;
         boolean beyond = false;
         boolean close = false;
+        boolean pastOptimal = false;
         for (MechWeaponMount mount : mounts) {
             if (mount == null || !MechFireGroups.contains(armed, mount)) continue;
             float r = HeavyWeapons.manualScatterRadiusCells(loadout, mount, distance);
@@ -39,8 +52,9 @@ public final class DirectControlScatter {
             radius = Math.max(radius, r);
             beyond |= distance > mount.weaponDef().range;
             close |= HeavyWeapons.tooClose(mount, distance);
+            pastOptimal |= distance > HeavyWeapons.manualOptimalRangeCells(loadout, mount);
         }
-        return radius < 0f ? null : new Ring(radius, beyond, close);
+        return radius < 0f ? null : new Ring(radius, beyond, close, pastOptimal);
     }
 
     /**
@@ -49,7 +63,9 @@ public final class DirectControlScatter {
      */
     public static Ring vehicle(WeaponDef weapon, float distance) {
         float radius = ManualPointFire.scatterRadiusCells(weapon, weapon.accuracy, distance, 0f);
+        float optimal = ManualPointFire.optimalRangeCells(weapon);
         return radius < 0f ? null
-                : new Ring(radius, distance > weapon.range, ManualPointFire.tooClose(weapon, distance));
+                : new Ring(radius, distance > weapon.range, ManualPointFire.tooClose(weapon, distance),
+                        distance > optimal);
     }
 }

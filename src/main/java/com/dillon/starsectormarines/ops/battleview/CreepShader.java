@@ -11,7 +11,8 @@ import java.util.Locale;
  * sampled linearly so coverage blends between cell centres, {@link CreepNoise}
  * on unit 1 and {@link CreepSurface} on unit 2, both repeating, the surface
  * mipmapped, and the ground under the creep (R blight, G vegetated) on unit 3,
- * sampled linearly as the field is.
+ * sampled linearly as the field is, and {@link CliffFaceMask} on unit 4, its
+ * texture coordinates the field's, so the creep can stand back from cliff faces.
  */
 final class CreepShader {
 
@@ -30,6 +31,10 @@ final class CreepShader {
             + "uniform sampler2D noise;\n"
             + "uniform sampler2D surface;\n"
             + "uniform sampler2D ground;\n"
+            + "uniform sampler2D faces;\n"
+            + "uniform float faceCut;\n"
+            + "uniform float faceVein;\n"
+            + "uniform float faceFilm;\n"
             + "uniform vec2 fieldSize;\n"
             + "uniform float time;\n"
             + "uniform float alpha;\n"
@@ -45,7 +50,8 @@ final class CreepShader {
             + "uniform vec3 dead;\n"
             + "uniform vec3 wilt;\n"
             + "vec4 F(vec2 p) { return texture2D(field, p / fieldSize); }\n"
-            + "float C(vec2 p) { return texture2D(field, p / fieldSize).r; }\n"
+            + "float M(vec2 p) { return texture2D(faces, p / fieldSize).a; }\n"
+            + "float C(vec2 p) { return max(texture2D(field, p / fieldSize).r - faceCut * M(p), 0.0); }\n"
             + "vec4 S(vec2 p) { return texture2D(surface, p / " + lit(CreepSurface.CELLS) + "); }\n"
             + "float bump(float d, float c, float w) { float t = (d - c) / w; return exp(-t * t); }\n"
             + "vec2 BIG(vec2 p) { return p * " + lit(CreepShading.BIG_SCALE) + " + vec2(1.3, 0.7); }\n"
@@ -91,6 +97,9 @@ final class CreepShader {
             + "    vec2 p = vCell;\n"
             + "    vec4 own = F(floor(p) + vec2(0.5));\n"
             + "    vec4 here = F(p);\n"
+            + "    float faceHere = M(p);\n"
+            + "    float rawHere = here.r;\n"
+            + "    here.r = max(here.r - faceCut * faceHere, 0.0);\n"
             + "    float tap = " + lit(CreepShading.TAP) + ";\n"
             + "    float e = C(p + vec2(tap, 0.0)), w = C(p - vec2(tap, 0.0));\n"
             + "    float nn = C(p + vec2(0.0, tap)), ss = C(p - vec2(0.0, tap));\n"
@@ -119,6 +128,15 @@ final class CreepShader {
             + "            if (reachV > 0.0) wvb = 0.85 * clamp(S(p * " + lit(CreepShading.WALL_VEIN_SCALE)
             + ").b * 1.6, 0.0, 1.0) * reachV * gd.g;\n"
             + "        }\n"
+            + "        float rock = 1.0 - faceCut * faceHere;\n"
+            + "        wa *= rock;\n"
+            + "        wvb *= rock;\n"
+            + "        float fv = 0.0, film = 0.0;\n"
+            + "        if (faceHere > 0.0 && (faceVein > 0.0 || faceFilm > 0.0)) {\n"
+            + "            float climb = faceHere * smoothstep(0.35, 0.65, rawHere + (cloud - 0.5) * " + lit(CreepShading.EDGE_NOISE) + ");\n"
+            + "            fv = faceVein * clamp(S(p * " + lit(CreepShading.WALL_VEIN_SCALE) + ").b * 1.6, 0.0, 1.0) * climb;\n"
+            + "            film = faceFilm * climb;\n"
+            + "        }\n"
             + "        float d = (soft - 0.5 + lobes) / gl;\n"
             + "        float a = clamp(d * cellPx + 0.5, 0.0, 1.0);\n"
             + "        float shadow = 0.0;\n"
@@ -128,7 +146,7 @@ final class CreepShader {
             + shadowStep(CreepShading.SHADOW_STEPS[2])
             + "        }\n"
             + "        float sa = " + lit(CreepShading.SHADOW_ALPHA) + " * shadow * sunStrength;\n"
-            + "        if (a <= 0.0 && sa <= 0.002 && wa <= 0.002 && wvb <= 0.002) discard;\n"
+            + "        if (a <= 0.0 && sa <= 0.002 && wa <= 0.002 && wvb <= 0.002 && fv <= 0.002 && film <= 0.002) discard;\n"
             + "        vec3 col = vec3(0.0);\n"
             + "        if (a > 0.0) {\n"
             + "            col = body(clamp(d, 0.0, 2.0), p, u, here.g, pulseCells, cloud, patch);\n"
@@ -139,6 +157,8 @@ final class CreepShader {
             + "        vec3 acc = wilt * wa;\n"
             + "        float outA = wa;\n"
             + "        acc = mix(flesh, rim, 0.35) * wvb + acc * (1.0 - wvb); outA = wvb + outA * (1.0 - wvb);\n"
+            + "        acc = base * film + acc * (1.0 - film); outA = film + outA * (1.0 - film);\n"
+            + "        acc = mix(flesh, rim, 0.35) * fv + acc * (1.0 - fv); outA = fv + outA * (1.0 - fv);\n"
             + "        acc = tint * sa + acc * (1.0 - sa); outA = sa + outA * (1.0 - sa);\n"
             + "        acc = col * a + acc * (1.0 - a); outA = a + outA * (1.0 - a);\n"
             + "        gl_FragColor = vec4(clamp(acc / max(outA, 0.0001), 0.0, 1.0), outA * alpha);\n"
@@ -197,6 +217,10 @@ final class CreepShader {
         program.set1i("noise", 1);
         program.set1i("surface", 2);
         program.set1i("ground", 3);
+        program.set1i("faces", 4);
+        program.set1f("faceCut", pass.cliffs.cut);
+        program.set1f("faceVein", pass.cliffs.vein);
+        program.set1f("faceFilm", pass.cliffs.film);
         program.set2f("fieldSize", fieldW, fieldH);
         program.set1f("time", pass.timeSeconds);
         program.set1f("alpha", pass.alpha);

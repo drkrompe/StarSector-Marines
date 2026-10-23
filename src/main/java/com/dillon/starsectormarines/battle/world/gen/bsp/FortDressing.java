@@ -39,32 +39,14 @@ final class FortDressing {
 
     /** Whether the world cell is open enough to take a prop: in bounds, walkable, not a doorway, fixture or wall. */
     boolean open(int x, int y) {
-        return ctx.grid.inBounds(x, y) && ctx.grid.isWalkable(x, y) && !ctx.grid.isDoorway(x, y)
-                && !ctx.topology.isFixture(x, y) && !ctx.topology.isWall(x, y);
+        return PreparedGround.open(ctx, x, y);
     }
 
     /** A sandbag piece in the local cell, bags toward the given local direction (and a second for a corner). */
     boolean sandbag(int lx, int ly, int dx, int dy, int cornerDx, int cornerDy) {
         int[] cell = at.cell(lx, ly);
-        if (!open(cell[0], cell[1])) return false;
-        String name;
-        int[] a = turn(lx, ly, dx, dy);
-        if (cornerDx != 0 || cornerDy != 0) {
-            int[] b = turn(lx, ly, cornerDx, cornerDy);
-            int[] ns = a[1] != 0 ? a : b;
-            int[] ew = a[0] != 0 ? a : b;
-            name = "corner-" + letter(ns) + letter(ew);
-        } else {
-            name = String.valueOf(letter(a));
-        }
-        DoodadDef def = TileRegistry.installed().doodad("doodad.fort-sandbag-" + name);
-        if (def == null) return false;
-        // Knee-high cover everyone steps over: the cell stays walkable and the doodad supplies the cover.
-        ctx.grid.setSeeThrough(cell[0], cell[1], true);
-        ctx.topology.setFixture(cell[0], cell[1], true);
-        ctx.doodads.add(new Doodad(cell[0], cell[1], def));
-        ctx.markMadeGround(cell[0], cell[1]);
-        return true;
+        int[] corner = cornerDx != 0 || cornerDy != 0 ? turn(lx, ly, cornerDx, cornerDy) : null;
+        return PreparedGround.sandbag(ctx, cell[0], cell[1], turn(lx, ly, dx, dy), corner);
     }
 
     boolean sandbag(int lx, int ly, int dx, int dy) {
@@ -123,16 +105,8 @@ final class FortDressing {
      */
     boolean fence(int lx, int ly, boolean horizontal) {
         int[] cell = at.cell(lx, ly);
-        if (!open(cell[0], cell[1])) return false;
         int[] run = turn(lx, ly, horizontal ? 1 : 0, horizontal ? 0 : 1);
-        DoodadDef def = TileRegistry.installed().doodad("doodad.industrial-fence-straight-" + (run[0] != 0 ? "h" : "v"));
-        if (def == null) return false;
-        ctx.grid.setWalkable(cell[0], cell[1], false);
-        ctx.grid.setSeeThrough(cell[0], cell[1], true);
-        ctx.topology.setFixture(cell[0], cell[1], true);
-        ctx.doodads.add(new Doodad(cell[0], cell[1], def));
-        ctx.markMadeGround(cell[0], cell[1]);
-        return true;
+        return PreparedGround.fence(ctx, cell[0], cell[1], run[0] != 0);
     }
 
     /** A trench section at the world cell, joined to whichever world neighbours are also trench. */
@@ -196,11 +170,5 @@ final class FortDressing {
         }
         ctx.doodads.add(prop);
         return true;
-    }
-
-    private static char letter(int[] dir) {
-        if (dir[1] > 0) return 'n';
-        if (dir[1] < 0) return 's';
-        return dir[0] > 0 ? 'e' : 'w';
     }
 }

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.pool;
 
+import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 import com.dillon.starsectormarines.battle.cordon.CordonCorridor;
 import com.dillon.starsectormarines.battle.cordon.CordonPlan;
 import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
@@ -109,6 +110,11 @@ class StoryMapPoolEvidenceTest {
             detail += String.format(Locale.ROOT, "; corridor %d cells, %.0f%% on road", cordon.corridor().size(),
                     100f * CordonCorridor.pavedShare(cordon.map().topology, cordon.corridor()));
         }
+        StringBuilder works = new StringBuilder();
+        for (Laid laid : cordon.map().layout.pieces()) {
+            works.append(works.length() == 0 ? "" : ", ").append(laid.name()).append(' ').append(laid.status().name().toLowerCase(Locale.ROOT));
+        }
+        detail += "; layout " + works;
         try (BattleSimulation sim = CordonSetup.create(cordon, variant, List.of(), CordonSequence.Timetable.STANDARD)) {
             if (sim.getCordon() == null) throw new AssertionError("the battle has no cordon");
             StringBuilder guns = new StringBuilder();

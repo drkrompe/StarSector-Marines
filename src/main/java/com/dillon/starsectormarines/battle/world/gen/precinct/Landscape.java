@@ -28,9 +28,13 @@ import java.util.List;
  * @param ridges   high ground the mission names: each band raised as hill
  *                 segments, broken into passes wherever roads, buildings or
  *                 the landing cross it ({@link RidgePlanner})
+ * @param held     ridges whose ground is held open before the places grow, so
+ *                 the town, its roads and its fields grow round them: high
+ *                 ground that has to stand among built places, such as a rim
+ *                 round a settlement ({@link RidgePlanner#heldGround})
  */
 public record Landscape(float woodland, List<Track> tracks, List<Brook> brooks, int raggedMargin,
-                        List<RidgePlanner.Band> ridges) {
+                        List<RidgePlanner.Band> ridges, List<RidgePlanner.Band> held) {
 
     /** The groves' share of wild ground in the stock landscape pass. */
     public static final float STOCK_WOODLAND = 0.58f;
@@ -48,12 +52,24 @@ public record Landscape(float woodland, List<Track> tracks, List<Brook> brooks, 
         this(woodland, tracks, brooks, raggedMargin, List.of());
     }
 
+    /** A landscape with no held ground. */
+    public Landscape(float woodland, List<Track> tracks, List<Brook> brooks, int raggedMargin,
+                     List<RidgePlanner.Band> ridges) {
+        this(woodland, tracks, brooks, raggedMargin, ridges, List.of());
+    }
+
+    /** This landscape with these ridges held open before the places grow. */
+    public Landscape withHeld(List<RidgePlanner.Band> held) {
+        return new Landscape(woodland, tracks, brooks, raggedMargin, ridges, held);
+    }
+
     public Landscape {
         if (raggedMargin < 0) throw new IllegalArgumentException("a margin is a width: " + raggedMargin);
         if (!(woodland >= 0f && woodland <= 1f)) throw new IllegalArgumentException("woodland is a share: " + woodland);
         tracks = tracks == null ? List.of() : List.copyOf(tracks);
         brooks = brooks == null ? List.of() : List.copyOf(brooks);
         ridges = ridges == null ? List.of() : List.copyOf(ridges);
+        held = held == null ? List.of() : List.copyOf(held);
     }
 
     /**

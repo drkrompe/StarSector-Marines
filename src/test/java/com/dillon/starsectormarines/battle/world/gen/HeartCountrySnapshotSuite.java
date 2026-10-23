@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.evacuation.HeartBores;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
+import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationLayout;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
@@ -27,7 +28,9 @@ import java.util.Locale;
  * old, on several seeds. Whole map, then play zoom (32 px a cell) on the
  * creep front ahead of the start line, a dead wood, the dark settlement, a
  * satellite bore, a mother bore, the heart 140 cells across and, where there is
- * one, the brook at a ford. Look evidence, 1920x1080.
+ * one, the brook at a ford; then, where the map has raised ground, the cliff
+ * face and the ramp deepest in the creep, which is where the creep's look over
+ * a face ({@code -Dbattle.render.creepCliffs}) is judged. Look evidence, 1920x1080.
  *
  * <p>{@code -Dsnapshot.heartCountry.seeds=101,202,303} picks the seeds and
  * {@code -Dsnapshot.heartCountry.forms=BROAD_FRONT,THE_BURN} the forms.
@@ -74,6 +77,10 @@ public final class HeartCountrySnapshotSuite implements SnapshotSuite {
                         int[] ford = ford(sim, brook);
                         if (ford != null) view(out, near, sim, tag + "08-brook-ford.png", ford[0], ford[1], head + " | the brook at a ford");
                     }
+                    int[] face = deepInCreep(sim, false);
+                    if (face != null) view(out, near, sim, tag + "09-cliff-in-creep.png", face[0], face[1], head + " | a cliff face deep in the creep");
+                    int[] ramp = deepInCreep(sim, true);
+                    if (ramp != null) view(out, near, sim, tag + "10-ramp-in-creep.png", ramp[0], ramp[1], head + " | a ramp deep in the creep");
                 }
             }
         }
@@ -110,6 +117,29 @@ public final class HeartCountrySnapshotSuite implements SnapshotSuite {
             }
         }
         return null;
+    }
+
+    /**
+     * The face cell (or ramp cell) with the most creeped cells within eight of it, or {@code null} with no raised
+     * ground or none in the creep.
+     */
+    private static int[] deepInCreep(BattleSimulation sim, boolean ramp) {
+        ElevationLayout layout = sim.getTopology().cliffArt();
+        if (layout == null) return null;
+        int[] best = null;
+        int bestCount = 0;
+        for (int y = 8; y < layout.height() - 8; y += 2) {
+            for (int x = 8; x < layout.width() - 8; x += 2) {
+                if (ramp ? !layout.isRamp(x, y) : !layout.isFace(x, y)) continue;
+                int count = 0;
+                for (int j = -8; j <= 8; j += 2) for (int i = -8; i <= 8; i += 2) if (sim.creepField().isCreeped(x + i, y + j)) count++;
+                if (count > bestCount) {
+                    bestCount = count;
+                    best = new int[]{x, y};
+                }
+            }
+        }
+        return best;
     }
 
     private static String facts(BattleSimulation sim) {

@@ -76,7 +76,7 @@ public final class BattleReviewFrameRenderer {
     private boolean impactEffects;
     private boolean unitShadows;
     private boolean roofs;
-    private boolean look;
+    private boolean presentation;
 
     public BattleReviewFrameRenderer(Path modRoot, int width, int height) {
         this.backend = ReviewSceneBackend.select(modRoot.toAbsolutePath().normalize());
@@ -101,12 +101,19 @@ public final class BattleReviewFrameRenderer {
                                                  float focusX, float focusY, float cellsAcross) {
         BattleReviewFrameRenderer renderer = new BattleReviewFrameRenderer(modRoot, width, height,
                 focusX, focusY, cellsAcross);
-        renderer.look = true;
-        return renderer.withImpactEffects().withUnitShadows().withRoofs();
+        return renderer.asPresentation().withImpactEffects().withUnitShadows().withRoofs();
     }
 
-    /** Whether this renderer is the {@link #look} preset. */
-    public boolean isLook() { return look; }
+    /**
+     * Draws the battle as a player would see it, for a look review rather than a behaviour one: no caption band, no
+     * unit, wreck or ordnance markers and no annotations, and a focused camera fills the whole frame. Markers are
+     * how a reader follows bodies across a whole-map frame; on a close look at art they read as debug marks.
+     * {@link #look} is this with the effects, shadows and roofs a look frame wants turned on as well.
+     */
+    public BattleReviewFrameRenderer asPresentation() {
+        this.presentation = true;
+        return this;
+    }
 
     /**
      * Opts this renderer into the shot and impact-effect layers on a whole-map
@@ -195,7 +202,7 @@ public final class BattleReviewFrameRenderer {
             impacts.paint(image, cameraFor(image.getWidth(), image.getHeight(), simulation));
         }
         long particles = System.nanoTime();
-        if (!look) annotate(image, simulation, caption, annotations);
+        if (!presentation) annotate(image, simulation, caption, annotations);
         if (ReviewRenderProfile.ENABLED) {
             long end = System.nanoTime();
             ReviewRenderProfile.phase("scene (collect+drain)", scene - start);
@@ -345,7 +352,7 @@ public final class BattleReviewFrameRenderer {
     /** Fits the whole grid under the caption band, so a frame never crops the battlefield. */
     private BattleCamera cameraFor(float viewportWidth, float viewportHeight,
                                           BattleSimulation simulation) {
-        int header = look ? 0 : HEADER_HEIGHT;
+        int header = presentation ? 0 : HEADER_HEIGHT;
         if (!Float.isFinite(focusX)) return cameraFor(viewportWidth, viewportHeight + HEADER_HEIGHT - header,
                 simulation.getGrid().getWidth(), simulation.getGrid().getHeight());
         BattleCamera camera = new BattleCamera(simulation.getGrid().getWidth(), simulation.getGrid().getHeight());

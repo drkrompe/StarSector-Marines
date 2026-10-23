@@ -299,7 +299,7 @@ public final class TurretFireSystem implements TurretFireSink {
             return true;
         }
         BallisticResolver.Source source = new BallisticResolver.Source(
-                shooterId, muzzle.x(), muzzle.y(), 0f, shooterFaction);
+                shooterId, muzzle.x(), muzzle.y(), structure.muzzleHeightCells(), shooterFaction);
         if (weapon.projectileCellsPerSec() > 0f) {
             BallisticResolver.Resolution res = resolver.resolveGroundBurst(source, aim.x(), aim.y(), accuracy,
                     weapon.hitSpread, weapon.directRoundVelocity(), weapon.range, 0, rng);
@@ -346,10 +346,12 @@ public final class TurretFireSystem implements TurretFireSink {
         float holdChance = friendlyFireHold.chance(shooterId);
         // A crew that holds for friends also looks down the lane before it fires: a friend between the gun and its
         // target holds the round outright, before anything is committed or drawn.
-        if (laneDiscipline && holdChance > 0f && resolver.friendInLane(shooterId, fromX, fromY, shooterFaction,
-                world.x(target), world.y(target), target)) return false;
+        // A gun on a plinth fires from its height: a friend under the round's line is not in its way.
+        float muzzleZ = structure.muzzleHeightCells();
+        if (laneDiscipline && holdChance > 0f && resolver.friendInLane(shooterId, fromX, fromY, muzzleZ,
+                shooterFaction, world.x(target), world.y(target), target)) return false;
         BallisticResolver.Source source = new BallisticResolver.Source(
-                shooterId, fromX, fromY, 0f, shooterFaction);
+                shooterId, fromX, fromY, muzzleZ, shooterFaction);
         BallisticResolver.Resolution res = resolver.resolve(
                 source, target, effectiveAccuracy, effectiveSpread,
                 weapon.directRoundVelocity(), weapon.range, rng);
@@ -395,7 +397,8 @@ public final class TurretFireSystem implements TurretFireSink {
         float aimX = fromX + (float) Math.cos(rad) * reach;
         float aimY = fromY + (float) Math.sin(rad) * reach;
         float effectiveSpread = weapon.hitSpread * Math.min(1f, distance / Math.max(0.0001f, weapon.range));
-        BallisticResolver.Source source = new BallisticResolver.Source(shooterId, fromX, fromY, 0f, shooterFaction);
+        BallisticResolver.Source source = new BallisticResolver.Source(shooterId, fromX, fromY,
+                structure.muzzleHeightCells(), shooterFaction);
         BallisticResolver.Resolution res = resolver.resolveGroundBurst(source, aimX, aimY, effectiveAccuracy,
                 effectiveSpread, weapon.directRoundVelocity(), weapon.range, 0, rng);
         float holdChance = friendlyFireHold.chance(shooterId);

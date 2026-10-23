@@ -357,14 +357,18 @@ def hellbore(ctx, frame, at_m, normal, scale=1.0, style=None, **kw):
     return he(ctx, frame, at_m, normal, scale=scale, style=style, **spec)
 
 
-def breach(ctx, frame, at_m, normal, size_m=3.0, vent=True, vent_m=24.0, ignite_s=.15, blast_m=None, style=None):
+def breach(ctx, frame, at_m, normal, size_m=3.0, vent=True, vent_m=24.0, ignite_s=.15, blast_m=None, style=None,
+           flame=None):
     """The hull opens at at_m on `frame`: an HE blast in the hole, then the fire group's flame,
     smoke and flickering light coming up over a second (from ignite_s after the blast), and,
     with vent, a cone of pale vapour along the normal. The fire group's knobs (fir_fire,
-    fir_smoke, fir_vent) scale it; its timing is the breach's own (imp_frame, imp_ignite)."""
+    fir_smoke, fir_vent) scale it; its timing is the breach's own (imp_frame, imp_ignite).
+    flame='stream': the flame streams off the breach edge (swfx_fire.build_fire), not a churning ball."""
     import swfx_fire
     rec = he(ctx, frame, at_m, normal, size_m=blast_m or size_m * 1.1, style=style)
     e, seed = anchor(ctx, 'breach', frame, at_m, normal, size_m=size_m, imp_ignite=ignite_s, length_m=vent_m)
+    if flame:
+        e['flame'] = flame
     swfx_fire._knobs(ctx)
     coll = ctx.collection(GROUP)
     fire = swfx_fire.build_fire(ctx, coll, e)

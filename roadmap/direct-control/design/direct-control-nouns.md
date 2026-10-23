@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, deployed APC, friendly Warship, and drone Tende
 
 Written: 2026-09-23
 
-Updated: 2026-10-22 — a Marine doll (figure, limb wounds, carried kit) stands in the corner as a machine's damage doll does.
+Updated: 2026-10-23 — the ground aim reticle: a side tick per mouse button, coloured by what a click would do; the scatter ring takes its palette.
 
 Direct control lets the player temporarily inhabit one of their ground units, or a
 friendly capital hovering over the battle, in
@@ -161,15 +161,44 @@ clear segment ends at the first structural projectile blocker, marked in amber;
 a fainter dashed segment continues beyond that obstruction. Marine origin is
 the ordinary point-shot source. Mech and APC lanes use their actual posed
 muzzles, and the Mech's trigger picks determine which flat-fire hardpoints appear;
-an arcing rack flies over walls and draws no lane. When an armed mount's rounds
-burst where they are thrown (rockets and LRM racks), a **scatter ring** circles
-the cursor at the widest landing disk among them: orange inside every covered
-mount's range, red past it, where the disk grows faster than distance, and red
-inside an arcing mount's minimum. A vehicle turret's launcher draws the same
-ring, measured from its turret ring. Guns draw no ring. A red ring never draws
-smaller than the crosshair it surrounds: close in, the disk is a fraction of a
-cell, and the warning would otherwise vanish. The ring is the clear-air figure;
-smoke on a rocket's lane widens it.
+an arcing rack flies over walls and draws no lane.
+
+On a ground body the crosshair is an **aim reticle** that answers, per mouse
+button, what a click would do now: one **mark** per button, read from that
+button's current pick, as a short tick either side of a neutral centre dot on
+the aim point, the left tick for the left button and the right tick for the
+right (owner, 2026-10-23; side ticks chosen over split brackets and concentric
+rings). A button with nothing on it draws no mark. **White** fires well,
+inside optimal range; **yellow** fires with accuracy falling off, between
+optimal and maximum range; **red** fires but is wasted, past maximum range, and
+carries a short bar across its outer end; **grey** will not fire: too close
+(inside a manual minimum), out of the mount's alignment, barrel blocked, or out
+of ammunition. Grey is also drawn broken, so it does not rest on hue. Every tick
+sits on a dark outline, which keeps a grey tick from vanishing on busy or light
+ground. LINKED, or any
+pick of several mounts, shows the best mark among them and is grey only when
+none would fire. Cooldown, reload, burst and flux never change a mark: those
+are clocks, and the panel's ammunition strips own them, so a Marine's empty
+magazine is a reload rather than grey. A Marine's left mark is the primary; the
+right mark is the right-button item, carried smoke (red past its throw reach,
+where it lands short) or the shield. A vehicle's turret is its left mark.
+**Optimal range** is derived, not authored: the distance at which a cursor round
+keeps 80% of its point-blank chance of landing on one body (half a cell,
+widened by the round's blast radius). The manual error disk is sized at weapon
+range from the weapon's accuracy and spread there and scales with distance, so
+the chance is the share of the disk the body covers; a weapon that stays on
+target to maximum range has no yellow band. Warship and tender reticles are out
+of this model.
+
+When an armed mount's rounds burst where they are thrown (rockets and LRM
+racks), a **scatter ring** circles the cursor at the widest landing disk among
+them, in the reticle's palette: white inside every covered mount's optimal
+range, yellow past it, red past maximum range, where the disk grows faster than
+distance, and grey (broken) inside an arcing mount's minimum. A vehicle
+turret's launcher draws the same ring, measured from its turret ring. Guns draw
+no ring. A warning ring never draws smaller than the reticle it surrounds: close
+in, the disk is a fraction of a cell, and the warning would otherwise vanish.
+The ring is the clear-air figure; smoke on a rocket's lane widens it.
 A blocked body-to-barrel segment cannot masquerade as an open lane from a
 muzzle beyond the wall. The guide uses current continuous terrain and shared
 edge profiles, so opening or destroying structure changes the next preview.
@@ -493,7 +522,7 @@ weapon's authored minimum, where larger) is **too close**: the rack's trigger is
 refused without spending ammunition, flux or its cycle, while the other mounts
 on the same button still fire. Its HUD row reads TOO CLOSE, the hint on the
 header of the button that fires it reads TOO CLOSE in red, and the scatter ring
-turns red. Every mount keeps one clock and resource stream under the ordinary
+turns grey. Every mount keeps one clock and resource stream under the ordinary
 heavy-weapon pass; manual control neither advances it twice nor applies an
 infantry training multiplier to Mech accuracy. The live cursor owns torso aim
 and each scheduled round of a manual Mech burst. A round still requires the
