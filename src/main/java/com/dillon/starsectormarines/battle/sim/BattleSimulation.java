@@ -3509,7 +3509,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // LRM) come from CombatantBehavior. (The dead-mech smoking wreck now
         // fires off the MechWreckSystem death handler, not this pass.)
         heavy.tick(directControl.controlledMechId(), directControl.pointAim(), directControl.intent().firing(),
-                directControl.intent().secondary(), directControl.selectedWeapon());
+                directControl.intent().secondary(), directControl.mechPicks());
         tickProfile.lap(TickProfile.Phase.HEAVY_TICK);
         // Squads told to open a wall spend what their ordinary firing left on it.
         wallBreach.tick(this);

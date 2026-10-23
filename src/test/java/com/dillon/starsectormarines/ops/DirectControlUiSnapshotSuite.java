@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.ui.panel.SquadOrderTargetingPanel.Mode;
 
+import com.dillon.starsectormarines.battle.combat.MechFireGroups;
+import com.dillon.starsectormarines.battle.combat.MechTriggerPicks;
 import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.battle.mech.MechRole;
@@ -78,7 +80,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
             var loadout = new MechLoadoutComponent(MechVariant.BULWARK, null);
             loadout.torsoFacingDegrees = 90f;
             var origins = scenario.equals("carrier-muzzles")
-                    ? DirectControlAimOrigins.mech(loadout, 0, 2.5f, 3.5f, .2f, -.1f)
+                    ? DirectControlAimOrigins.mech(loadout, MechTriggerPicks.LINKED, 2.5f, 3.5f, .2f, -.1f)
                     : List.of(new DirectControlAimOrigins.Origin(2.5f, 3.5f, 2.5f, 3.5f));
             for (var origin : origins) {
                 var lane = DirectControlAimLane.observed(grid, origin, 13.5f, aimY, (x, y) -> true);
@@ -135,7 +137,8 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
             }
         }
         try (var fixture = BattleDirectControlHudTest.fixture(context.modRoot(),
-                BattleDirectControlHudTest.triggered(2), 2, true,
+                BattleDirectControlHudTest.bulwark(new MechTriggerPicks(MechMountSlot.RIGHT_ARM.ordinal() + 1,
+                        MechFireGroups.LINKED)), 0, true,
                 ignored -> {}, () -> {}, () -> {})) {
             artifacts.add(new SnapshotArtifact("panels-mech-one-mount.png", panels(renderer, fixture)));
             artifacts.add(new SnapshotArtifact("action-controls.png", renderer.render(fixture.actionsDocument(),
@@ -188,6 +191,21 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                         marinePlate(context.modRoot(), true).document(), false)));
         artifacts.add(new SnapshotArtifact("marine-doll-states-1920x1080-ui100.png",
                 marineStates(renderer, context.modRoot())));
+        // The trigger-pick header looks for the picks page: a Bulwark on LINKED, then on one arm gun.
+        var oneGun = new MechTriggerPicks(MechMountSlot.RIGHT_ARM.ordinal() + 1, MechMountSlot.LEFT_SHOULDER.ordinal() + 1);
+        for (var look : BattleDirectControlHudModel.PickLook.values()) {
+            String name = look.name().toLowerCase(Locale.ROOT);
+            artifacts.add(new SnapshotArtifact("pick-" + name + "-linked-1920x1080-ui100.png",
+                    activeComposite(renderer, context.modRoot(), 1920, 1080, 1f,
+                            BattleDirectControlHudTest.bulwark(MechTriggerPicks.LINKED),
+                            sectionPlate(context.modRoot(), new MechLoadoutComponent(MechVariant.BULWARK, null)).document(),
+                            false, false, look)));
+            artifacts.add(new SnapshotArtifact("pick-" + name + "-one-mount-1920x1080-ui100.png",
+                    activeComposite(renderer, context.modRoot(), 1920, 1080, 1f,
+                            BattleDirectControlHudTest.bulwark(oneGun),
+                            sectionPlate(context.modRoot(), new MechLoadoutComponent(MechVariant.BULWARK, null)).document(),
+                            false, false, look)));
+        }
         return artifacts;
     }
 
@@ -378,6 +396,17 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                                                   BattleDirectControlStatus.Snapshot snapshot,
                                                   UiDocument doll,
                                                   boolean paused, boolean wideStatus) throws Exception {
+        return activeComposite(renderer, modRoot, width, height, uiScale, snapshot, doll, paused, wideStatus,
+                BattleDirectControlHudModel.PickLook.KEYCAP);
+    }
+
+    /** {@code look}: how the trigger headers read their picks. */
+    private static BufferedImage activeComposite(HeadlessUiRenderer renderer, Path modRoot,
+                                                  int width, int height, float uiScale,
+                                                  BattleDirectControlStatus.Snapshot snapshot,
+                                                  UiDocument doll,
+                                                  boolean paused, boolean wideStatus,
+                                                  BattleDirectControlHudModel.PickLook look) throws Exception {
         var layout = BattleDirectControlOverlayTest.layout(width, height, uiScale);
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = image.createGraphics();
@@ -397,7 +426,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 draw(graphics, renderer, markup, layout.manualObjectives(), layout.host(), uiScale);
             }
             try (var fixture = BattleDirectControlHudTest.fixture(modRoot,
-                    snapshot, 0, paused, ignored -> {}, () -> {}, () -> {})) {
+                    snapshot, 0, paused, ignored -> {}, () -> {}, () -> {}, look)) {
                 float[] measured = measure(renderer, fixture);
                 var status = BattleDirectControlOverlayTest.activeStatus(width, height, uiScale, measured[0], doll != null);
                 if (wideStatus) {

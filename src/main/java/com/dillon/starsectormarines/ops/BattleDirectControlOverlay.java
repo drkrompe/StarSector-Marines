@@ -19,7 +19,6 @@ import com.fs.starfarer.api.ui.PositionAPI;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
-import java.util.function.IntConsumer;
 
 /**
  * Strategic entry above selection. During takeover the HUD follows the game's own combat HUD:
@@ -94,7 +93,7 @@ final class BattleDirectControlOverlay {
     }
 
     BattleDirectControlOverlay(Selection selection, Runnable toggle, Runnable togglePause,
-                              IntConsumer selectWeapon) {
+                              BattleDirectControlHudModel.WeaponActions selectWeapon) {
         this.selection = selection;
         this.toggle = toggle;
         actionModel = new BattleDirectControlHudModel(reactor, selectWeapon, toggle, togglePause);

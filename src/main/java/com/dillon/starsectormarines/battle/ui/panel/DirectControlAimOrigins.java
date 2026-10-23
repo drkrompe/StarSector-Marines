@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.ui.panel;
 
 import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
 import com.dillon.starsectormarines.battle.combat.MechFireGroups;
+import com.dillon.starsectormarines.battle.combat.MechTriggerPicks;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.mech.MechGaitState;
 import com.dillon.starsectormarines.battle.mech.MechHardpointGeometry;
@@ -15,11 +16,10 @@ import java.util.List;
 public final class DirectControlAimOrigins {
     private DirectControlAimOrigins() {}
     public record Origin(float x, float y, float bodyX, float bodyY) {}
-    public static List<Origin> mech(MechLoadoutComponent loadout, int selected,
+    public static List<Origin> mech(MechLoadoutComponent loadout, MechTriggerPicks picks,
                                     float x, float y, float waistX, float waistY) {
         List<Origin> origins = new ArrayList<>();
-        int fired = MechFireGroups.leftMask(loadout.mounts(), selected)
-                | MechFireGroups.rightMask(loadout.mounts(), selected);
+        int fired = picks.firedMask(loadout.mounts());
         for (var mount : loadout.mounts()) {
             // An arcing rack flies over walls, so a lane from its muzzle would say nothing true.
             if (!HeavyWeapons.firesFlat(mount) || !MechFireGroups.contains(fired, mount)) continue;
@@ -58,7 +58,7 @@ public final class DirectControlAimOrigins {
                         BattleComponents.MECH_GAIT_STATE_STATE);
                 if (gait != null) { waistX = gait.waistOffsetX(); waistY = gait.waistOffsetY(); }
             }
-            origins.addAll(mech(loadout, sim.directControl().selectedWeapon(), x, y, waistX, waistY));
+            origins.addAll(mech(loadout, sim.directControl().mechPicks(), x, y, waistX, waistY));
         } else origins.add(new Origin(x, y, x, y));
         return origins;
     }

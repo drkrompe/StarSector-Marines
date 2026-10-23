@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.control;
 
+import com.dillon.starsectormarines.battle.combat.FireTrigger;
+import com.dillon.starsectormarines.battle.combat.MechFireGroups;
+import com.dillon.starsectormarines.battle.combat.MechTriggerPicks;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
@@ -171,14 +174,14 @@ class MechDirectControlSessionTest {
     }
 
     @Test
-    void selectorValidatesDirectEquipmentAndCancelsBurstsWithoutChangingResourcesOrMovement() {
+    void aPickChangeCancelsQueuedRoundsAndReleasesFireWithoutChangingResourcesOrMovement() {
         long mech = spawn();
         var loadout = new MechLoadoutComponent(MechVariant.BULWARK, MechWeaponComponent.CHAINGUN,
                 MechWeaponComponent.SRM_5, MechWeaponComponent.LRM_5, MechRole.BALANCED);
         roster.world().attachMechLoadout(mech, loadout);
-        assertFalse(session.selectWeapon(key(MechMountSlot.LEFT_ARM)), "inactive session cannot retain a choice");
+        assertFalse(session.cycle(FireTrigger.LEFT), "inactive session cannot retain a choice");
         assertTrue(session.enter(mech));
-        assertEquals(0, session.selectedWeapon());
+        assertEquals(MechTriggerPicks.LINKED, session.mechPicks());
         var arms = loadout.mount(MechMountSlot.LEFT_ARM);
         var srm = loadout.mount(MechMountSlot.LEFT_SHOULDER);
         arms.burstRemaining = 3;
@@ -189,10 +192,9 @@ class MechDirectControlSessionTest {
         srm.burstRemaining = 1;
         srm.burstPointAim = new PointFireAim(20, 5);
         session.submit(new ManualIntent(1, -1, 20, 5, true));
-        int rack = key(MechMountSlot.LEFT_SHOULDER);
-        assertTrue(session.canSelectWeapon(rack), "an empty rack remains selectable");
-        assertTrue(session.selectWeapon(rack));
-        assertEquals(rack, session.selectedWeapon());
+        assertTrue(session.cycle(FireTrigger.RIGHT), "an empty rack stays in the cycle");
+        assertEquals(key(MechMountSlot.LEFT_SHOULDER), session.mechPicks().right());
+        assertEquals(MechFireGroups.LINKED, session.mechPicks().left(), "C leaves the left button alone");
         assertEquals(0, arms.burstRemaining);
         assertEquals(0, srm.burstRemaining);
         assertEquals(3f, srm.cycleRemaining);
@@ -202,25 +204,36 @@ class MechDirectControlSessionTest {
         assertEquals(-1f, session.intent().moveY());
         assertEquals(20f, session.intent().aimX());
         assertFalse(session.intent().firing());
-        assertTrue(session.canSelectWeapon(key(MechMountSlot.RIGHT_SHOULDER)),
-                "an arcing rack is aimed at the cursor point too");
-        for (int invalid : new int[]{-1, MechMountSlot.values().length + 1}) {
-            assertFalse(session.selectWeapon(invalid));
-        }
-        assertEquals(rack, session.selectedWeapon(), "invalid choices cannot change selection");
+        for (int invalid : new int[]{-1, 3}) assertFalse(session.selectWeapon(invalid));
+        assertFalse(session.pick(FireTrigger.LEFT, key(MechMountSlot.LEFT_SHOULDER)), "a rack is not a gun");
         session.suspendInput();
-        assertEquals(rack, session.selectedWeapon(), "pause and chrome suspension retain equipment choice");
+        assertEquals(key(MechMountSlot.LEFT_SHOULDER), session.mechPicks().right(), "pause and chrome keep the pick");
         session.exit();
-        assertEquals(0, session.selectedWeapon());
+        assertEquals(MechTriggerPicks.LINKED, session.mechPicks());
         assertTrue(session.enter(mech));
-        assertEquals(0, session.selectedWeapon());
+        assertEquals(MechTriggerPicks.LINKED, session.mechPicks(), "a takeover starts on LINKED");
     }
 
     @Test
-    void lostSelectedHardpointReturnsToAllAndReleasesFireAtValidationBoundary() {
+    void qWalksTheGunsAndNumberKeysJumpStraightToOne() {
         long mech = spawn();
         assertTrue(session.enter(mech));
-        assertTrue(session.selectWeapon(key(MechMountSlot.LEFT_ARM)));
+        int[] expected = {key(MechMountSlot.LEFT_ARM), key(MechMountSlot.RIGHT_ARM), MechFireGroups.LINKED};
+        for (int pick : expected) {
+            assertTrue(session.cycle(FireTrigger.LEFT));
+            assertEquals(pick, session.mechPicks().left());
+        }
+        assertTrue(session.selectWeapon(2), "key 3");
+        assertEquals(key(MechMountSlot.RIGHT_ARM), session.mechPicks().left());
+        assertTrue(session.selectWeapon(0), "key 1");
+        assertEquals(MechFireGroups.LINKED, session.mechPicks().left());
+    }
+
+    @Test
+    void lostPickedHardpointReturnsToLinkedAndReleasesFireAtValidationBoundary() {
+        long mech = spawn();
+        assertTrue(session.enter(mech));
+        assertTrue(session.pick(FireTrigger.LEFT, key(MechMountSlot.LEFT_ARM)));
         var replacement = new MechLoadoutComponent(MechVariant.BULWARK, null,
                 MechWeaponComponent.SRM_5, null, MechRole.BALANCED);
         roster.world().attachMechLoadout(mech, replacement);
@@ -228,12 +241,10 @@ class MechDirectControlSessionTest {
         session.submit(new ManualIntent(1, 0, 20, 5, true));
         session.validate();
         assertTrue(session.active());
-        assertEquals(0, session.selectedWeapon());
+        assertEquals(MechTriggerPicks.LINKED, session.mechPicks());
         assertFalse(session.intent().firing());
         assertEquals(0, replacement.mount(MechMountSlot.LEFT_SHOULDER).burstRemaining);
-        assertFalse(session.canSelectWeapon(key(MechMountSlot.LEFT_ARM)));
-        assertTrue(session.canSelectWeapon(key(MechMountSlot.LEFT_SHOULDER)));
-        assertFalse(session.canSelectWeapon(key(MechMountSlot.RIGHT_SHOULDER)));
+        assertFalse(session.cycle(FireTrigger.LEFT), "one rack left is its own LINKED: nothing to cycle");
     }
 
     @Test
