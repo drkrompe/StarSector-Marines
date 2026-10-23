@@ -428,13 +428,13 @@ def _skin(name, verts, faces, voxel_m):
     return bm
 
 
-def _shell(name, skin, wind, length, coll, mat, base, windward, power, rough, seed):
+def _shell(name, skin, hot, length, coll, mat, base, windward, power, rough, seed):
     """A shell offset from the skin along its normals: base everywhere, plus windward times the point's
-    windward share (to that power), roughened by noise; all in fractions of the hull's length. Carries
-    entry_wind (that share, 0 to 1) for its material."""
+    share of the heat (how squarely it faces hot, to that power), roughened by noise; all in fractions
+    of the hull's length. Carries entry_wind (that share, 0 to 1) for its material."""
     from mathutils import noise
     bm = skin.copy()
-    into = -Vector(wind)
+    into = Vector(hot).normalized()
     wl = bm.verts.layers.float.new('entry_wind')
     off = Vector((seed * 13.1, seed * 7.7, seed * 3.3))
     moves = []
@@ -514,8 +514,8 @@ def _sheath_material(name, strength, cell_m):
     w = at.outputs['Fac']
     nz, _ = _noise(nt, cell_m)
     mottle = _math(nt, 'ADD', .35, _math(nt, 'MULTIPLY', nz, 1.3))
-    heat = _math(nt, 'MINIMUM', _math(nt, 'POWER', w, .8), 1.0)
-    glow = _math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', _math(nt, 'POWER', w, 1.6), mottle), strength)
+    heat = _math(nt, 'MINIMUM', _math(nt, 'POWER', w, 1.2), 1.0)
+    glow = _math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', _math(nt, 'POWER', w, 2.6), mottle), strength)
     _additive(nt, _blackbody(nt, heat), glow)
     return mat
 
@@ -660,14 +660,15 @@ def _glow_lights(name, skin, c, into, length, glow, coll, count=3):
         coll.objects.link(lo)
 
 
-def sheath(name, verts, faces, coll, wind, length, glow=1.0, streamers=36, seed=0, grow=1.0, voxel=None,
-           lights=None, wake=True):
+def sheath(name, verts, faces, coll, wind, length, glow=1.0, streamers=22, seed=0, grow=1.0, voxel=None,
+           lights=None, wake=True, belly=None):
     """A hull burning into the air, its plasma shaped by the hull (verts/faces: its world-space mesh,
     hull_soup). wind: the direction the plasma streams off it (the airflow over it); length: its length
     in metres; grow: 0 to 1, how far its flames have grown (they lengthen as it goes deeper). Builds the
     envelope, the windward sheath, the shock layer, thin flame tongues peeling off its silhouette as the
     air sees it and merging into a volume wake, and (lights: a collection) the sheath's warm light on its
-    windward plates. Returns the hull's centre."""
+    windward plates. belly: the world direction her underside faces; the heat leans to it.
+    Returns the hull's centre."""
     import random
     from mathutils import noise
     rnd = random.Random(seed)
@@ -678,12 +679,16 @@ def sheath(name, verts, faces, coll, wind, length, glow=1.0, streamers=36, seed=
         skin.free()
         return None
     c = sum((v.co for v in skin.verts), Vector()) / len(skin.verts)
-    _shell(name + ' sheath', skin, W, length, coll,
-           _sheath_material(f'{PREFIX} sheath', 40.0 * glow, length * .03), .005, .02, 1.2, .6, seed)
-    _shell(name + ' shock', skin, W, length, coll, _shock_material(f'{PREFIX} shock layer', 9.0 * glow),
-           .014, .1, 1.6, .35, seed + 1)
-    # the flames leave her silhouette on its windward side, never the deck in her lee
-    rim = [v for v in skin.verts if -.05 < v.normal.dot(into) < .3]
+    # owner, 2026-10-22: "focus the friction and fires along the front and underside the most". The heat
+    # follows a hot direction, into the air and leaning to her belly: the front and the belly burn
+    # brightest and shed the flames, the flanks glow faintly, the top and the lee stay dark.
+    hot = (into + Vector(belly).normalized() * .6).normalized() if belly is not None else into
+    _shell(name + ' sheath', skin, hot, length, coll,
+           _sheath_material(f'{PREFIX} sheath', 40.0 * glow, length * .03), .003, .012, 1.2, .6, seed)
+    _shell(name + ' shock', skin, hot, length, coll, _shock_material(f'{PREFIX} shock layer', 9.0 * glow),
+           .008, .05, 1.6, .35, seed + 1)
+    # the flames leave the edge of her hot side (front and belly), never the deck in her lee
+    rim = [v for v in skin.verts if -.05 < v.normal.dot(hot) < .3 and v.normal.dot(into) > -.1]
     rim = rim or list(skin.verts)
     for k in range(min(streamers, len(rim))):
         v = rnd.choice(rim)
@@ -691,7 +696,7 @@ def sheath(name, verts, faces, coll, wind, length, glow=1.0, streamers=36, seed=
         ln = length * rnd.uniform(.35, 1.4) * (.3 + .7 * grow)
         rel = p0 - c
         perp = rel - W * rel.dot(W)
-        r0 = length * rnd.uniform(.0025, .006)
+        r0 = length * rnd.uniform(.0015, .004)
         pts, us, radii = [], [], []
         for j in range(16):
             s = 1 - j / 15                                   # tail first: s 1 at the tail, 0 at the edge
@@ -707,10 +712,10 @@ def sheath(name, verts, faces, coll, wind, length, glow=1.0, streamers=36, seed=
     if wake:
         ext = max((v.co - c).dot(W) for v in skin.verts)
         span = length * (.8 + 3.0 * grow)
-        _wake_volume(f'{name} wake', c + W * (ext - length * .1), W, span, length * .16, length * .55, coll,
+        _wake_volume(f'{name} wake', c + W * (ext - length * .1), W, span, length * .08, length * .4, coll,
                      30.0 * glow, length * .12, seed)
     if lights is not None:
-        _glow_lights(name, skin, c, into, length, glow, lights)
+        _glow_lights(name, skin, c, hot, length, glow, lights)
     skin.free()
     return c
 
