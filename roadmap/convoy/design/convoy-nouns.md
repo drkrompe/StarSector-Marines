@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-10-23 — the laser tank splits into two cards: the burst laser tank (Tri-Tachyon) and the PD laser tank (League), each with its own beam; a gun's capacitor bank becomes flux (built per round, dissipated, an overload vents with the trigger held), shown as a haze on the hull's vents; a beam leaves along its turret and drags onto its target; earlier: the heavy-gun tank is removed; the laser tank: a tank-line rung with a ship's burst laser that also takes hostile aircraft in its reach, its cadence bounded by a capacitor bank (charges spent per trigger pull, refilled on a clock, separate from the magazine); earlier: an armed hull clicked onto a garrisonable its side mans guards it from a cell beside it, idle gun on the believed threat; one its side believes is enemy-held it assaults from a stand-off, directing its turret; earlier: a hull keeps its front on the worst threat it knows of (harm into its plate, own sight or a spotter's), and a turning hull's gun shakes by the share of its turret's traverse its yaw takes; a hull holding in band without wearing its target down (a stalled hold) moves to another in-band firing position with a clear lane; a hull turns its front back onto a threat off its nose (a backing turn out to 120°, a forward turn beyond; rehearsed first, never off a parapet), and a disarmed hull still drives its withdrawal rear on (nose-on backing measured and rejected); a hull's plate depends on the arc a hit arrives on (front, side, rear; the turret on its own facing); the screened tank (a tank-line rung) carries active protection against top-attack rounds; a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
+Updated: 2026-10-23 — a hull holds damage where it lands (four plates, a drive, the hull; located armor ships); earlier: the laser tank splits into two cards: the burst laser tank (Tri-Tachyon) and the PD laser tank (League), each with its own beam; a gun's capacitor bank becomes flux (built per round, dissipated, an overload vents with the trigger held), shown as a haze on the hull's vents; a beam leaves along its turret and drags onto its target; earlier: the heavy-gun tank is removed; the laser tank: a tank-line rung with a ship's burst laser that also takes hostile aircraft in its reach, its cadence bounded by a capacitor bank (charges spent per trigger pull, refilled on a clock, separate from the magazine); earlier: an armed hull clicked onto a garrisonable its side mans guards it from a cell beside it, idle gun on the believed threat; one its side believes is enemy-held it assaults from a stand-off, directing its turret; earlier: a hull keeps its front on the worst threat it knows of (harm into its plate, own sight or a spotter's), and a turning hull's gun shakes by the share of its turret's traverse its yaw takes; a hull holding in band without wearing its target down (a stalled hold) moves to another in-band firing position with a clear lane; a hull turns its front back onto a threat off its nose (a backing turn out to 120°, a forward turn beyond; rehearsed first, never off a parapet), and a disarmed hull still drives its withdrawal rear on (nose-on backing measured and rejected); a hull's plate depends on the arc a hit arrives on (front, side, rear; the turret on its own facing); the screened tank (a tank-line rung) carries active protection against top-attack rounds; a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
 
 ## Purpose and boundary
 
@@ -254,10 +254,10 @@ hull takes land on it, rolled on the battle's random stream. The hull's
 health bar, a threat estimate, a matchup's integrity) still sees one hull. A
 hit on the turret meets the turret's armor and then its structure. What the
 turret cannot hold goes on into the hull, which meets it with its own armor
-first. A hit on a turret already at zero goes through the hole to the hull's
-plate. Both pools resolve against the hull's one armor rating: one plate per
-machine, as a mech's sections share their chassis's rating. What that plate is
-worth on a given hit depends on its arc (below).
+first, on the plate the hit arrives on (below). A hit on a turret already at
+zero goes through the hole to that plate. Every pool resolves against the hull's
+one armor rating, as a mech's sections share their chassis's rating. What that
+rating and plate are worth on a given hit depends on its arc (below).
 
 - **Only the hull's own structure kills.** The turret's remainder dies with it.
 - **The turret at zero destroys the gun, and nothing else.** The hull drives on
@@ -286,9 +286,55 @@ worth on a given hit depends on its arc (below).
   never extra plate on top of them.
 - **The roll is drawn only for a hull with a section.** A battle with none
   draws exactly what it drew before. `-Dbattle.vehicle.turretDamage=false` is
-  the whole-body control. `battle.vehicle.turretHitShare` and
+  the control with no turret section. `battle.vehicle.turretHitShare` and
   `battle.vehicle.turretPoolShare` override the authored shares for evidence
   runs.
+
+**A hull holds its damage where it lands** (`HullLocations`), as a mech does,
+so a flank is a tactic and a damage doll can show something true (owner,
+2026-10-20; shipped 2026-10-23). Vehicles join mechs as the deliberate exception
+to the law that a mitigation arc is no argument for localized armor
+(`combat-durability-nouns.md`).
+
+- **Locations.** Four armor **plates**, `FRONT`, `LEFT`, `RIGHT` and `REAR`;
+  the **hull**, the structure behind them and the only pool whose zero is
+  death; the **turret** section above (armor and structure, optional); and the
+  **drive** (tracks, wheels, lift fans), a structure pool whose zero
+  **immobilises** the hull: it can no longer drive or turn, still traverses its
+  turret and fires, and is not dead. These names are the contract the damage
+  doll draws (`direct-control-nouns.md`) and change only in both.
+- **Which plate.** A hit meets the plate on the side it arrives from: front and
+  rear by the arc (below), a side hit split left or right by which side of the
+  hull its origin stands. The arc's rating and plate multipliers still apply to
+  that plate, so a front plate is both larger and more effective. What the plate
+  cannot hold reaches the hull, and every hit on a side whose plate is gone goes
+  straight through, while the other plates stay whole.
+- **The drive** takes an authored share of hull hits by arc
+  (`VehicleType.driveHitShares`), larger from the sides and rear where the
+  running gear shows, rolled on the battle's random stream after the turret
+  roll. Such a hit still meets that side's plate first; what gets through
+  spends the drive, and what the drive cannot hold goes on into the hull.
+- **Sizing.** The front plate holds the whole of the armor a hull of one pool
+  had, and the side and rear plates (`VehicleType.plateArmor`, multiples of it)
+  and the drive (`driveStructureShare`) are held on top. A hull shot head-on
+  lasts as long as it did; splitting the old pool instead made every head-on
+  fight about 35% shorter, a broad nerf rather than a flank bonus. The
+  `HEALTH`/`ARMOR` columns carry the totals (every plate and the turret's armor;
+  hull, turret and drive structure), so whole-body readers still see one
+  machine.
+- **No origin, front plate.** A hit with no origin meets the front plate and
+  never rolls the drive: letting it pick a plate walked unattributed damage
+  across all four.
+- **A hull that turns its face spreads the damage.** A hull held side- or
+  rear-on dies much sooner than a hull of one pool; a free hull that turns its
+  front onto its attackers spends the side plates they stripped meanwhile on
+  top of the front's whole pool, so a fight it un-flanks runs longer. That is
+  accepted as the model, not a defect (`heavy-equipment-progression.md`,
+  located plates, which keeps the readings and the alternatives rejected).
+- **Prediction reads the location too.** An infantry special's commit gate and
+  the projection target choice prices crowding by (`TacticalScoring`) resolve a
+  contribution against the plate facing its source and the hull's own
+  structure, never the summed columns, which over-read both.
 
 **A hull's plate depends on the arc a hit arrives on** (`ArmorArcs`,
 `VehicleType.armorArcs`), so flanking a machine pays. The arc is read from the
@@ -297,9 +343,9 @@ bearing of the hit's origin against the facing of the part it lands on: front is
 each side the ninety between. An arc carries two multipliers. Its **rating**
 scales the hull's armor rating, the number penetration is read against, so it
 only matters to rounds that do not already out-penetrate the plate. Its
-**plate** is what each point of the hull's one armor pool counts for on that
+**plate** is what each point of armor counts for on that
 arc: thick front plate strips more slowly, thin rear plate faster, whatever the
-round. The pool stays one column, so whole-body readers still see one hull.
+round. It applies to whichever plate the hit meets (above).
 
 - **One shared profile, per-type overrides.** Every hull's front is rating 1.0
   and plate 1.1, its sides 0.9 / 0.9, its rear 0.75 / 0.7. The tank line has a
