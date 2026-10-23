@@ -500,4 +500,9 @@ public final class MapEditor {
         grid.recomputeCoverAt(cellX, cellY - 1);
         navigation.markCellOpened(cellX, cellY);
     }
+
+    /** Raises or lowers the eye of a gun on a plinth in one cell ({@link NavigationGrid#setRaisedEye}). */
+    public void setRaisedEye(int x, int y, int tiers) {
+        grid.setRaisedEye(x, y, tiers);
+    }
 }

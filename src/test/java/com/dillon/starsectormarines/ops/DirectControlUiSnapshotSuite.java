@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.ui.panel.SquadOrderTargetingPanel.Mode;
 
+import com.dillon.starsectormarines.battle.combat.ManualPointFire;
 import com.dillon.starsectormarines.battle.combat.MechFireGroups;
 import com.dillon.starsectormarines.battle.combat.MechTriggerPicks;
 import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
@@ -23,7 +24,9 @@ import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlAimLane;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlAimOrigins;
+import com.dillon.starsectormarines.battle.ui.panel.DirectControlFireMarks;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlPanel;
+import com.dillon.starsectormarines.battle.ui.panel.DirectControlReticle;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlScatter;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
@@ -47,7 +50,6 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import java.awt.BasicStroke;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Ellipse2D;
 import javax.imageio.ImageIO;
 import java.util.function.Consumer;
 import java.awt.geom.Line2D;
@@ -293,9 +295,9 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
 
     /**
      * The controlled LRM carrier with its cursor and scatter ring, and the HUD's launcher row for the same cursor.
-     * The ring and its colour are {@link DirectControlScatter#vehicle} and {@link DirectControlPanel#scatterColor},
-     * the production figures; the world beneath is a plain grid, and the strokes are Java2D copies of the panel's
-     * GL ring and crosshair.
+     * The ring and its colour are {@link DirectControlScatter#vehicle} and its mark, and the reticle is
+     * {@link DirectControlReticle}'s, the production figures; the world beneath is a plain grid, and the strokes
+     * are drawn through Java2D rather than the panel's GL.
      */
     private static BufferedImage launcherFrame(HeadlessUiRenderer renderer, Path modRoot, LauncherAim aim)
             throws Exception {
@@ -336,19 +338,20 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         graphics.drawImage(sheet.getSubimage(frame, 0, frame, sheet.getHeight()), -frame / 2, -sheet.getHeight() / 2,
                 null);
         graphics.setTransform(saved);
-        Color blue = DirectControlPanel.controlledColor();
         float r = ring != null ? DirectControlPanel.scatterRingPx(ring, px) : -1f;
-        if (r >= 0f) {
-            Color c = DirectControlPanel.scatterColor(ring);
-            graphics.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), Math.round(255 * 0.8f)));
-            graphics.setStroke(new BasicStroke(1.5f));
-            graphics.draw(new Ellipse2D.Float(aimX - r, aimY - r, r * 2f, r * 2f));
+        List<DirectControlAimLane.Stroke> strokes = new ArrayList<>();
+        if (r >= 0f) strokes.addAll(DirectControlReticle.scatterRing(ring.mark(), aimX, aimY, r));
+        WeaponDef weapon = type.turretStructure().mount.weapon;
+        var marks = new DirectControlFireMarks.Marks(DirectControlFireMarks.of(!ManualPointFire.tooClose(weapon, cells),
+                cells, ManualPointFire.optimalRangeCells(weapon), weapon.range), DirectControlFireMarks.Mark.NONE);
+        strokes.addAll(DirectControlReticle.strokes(marks, aimX, aimY,
+                DirectControlPanel.controlledColor()));
+        for (var stroke : strokes) {
+            Color c = stroke.color();
+            graphics.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), Math.round(c.getAlpha() * 0.8f)));
+            graphics.setStroke(new BasicStroke(stroke.width()));
+            graphics.draw(new Line2D.Float(stroke.x(), stroke.y(), stroke.endX(), stroke.endY()));
         }
-        graphics.setColor(blue);
-        graphics.fillRect(Math.round(aimX - 8f), Math.round(aimY - 1f), 5, 2);
-        graphics.fillRect(Math.round(aimX + 3f), Math.round(aimY - 1f), 5, 2);
-        graphics.fillRect(Math.round(aimX - 1f), Math.round(aimY - 8f), 2, 5);
-        graphics.fillRect(Math.round(aimX - 1f), Math.round(aimY + 3f), 2, 5);
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
     }
 

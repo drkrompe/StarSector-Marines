@@ -2455,6 +2455,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public long spawn(EntitySpec spec) {
         long id = rosterService.spawn(spec);
         sealMultiCellStructure(id, spec);
+        raisePlinthEye(id, spec);
         registerShieldDome(id, spec);
         registerFortressBattery(id, spec);
         if (spec.turretStructureId != null) {
@@ -2464,6 +2465,15 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             fogOfWar.addContributor(id, rosterService);
         }
         return id;
+    }
+
+    /** A gun on a plinth sees from its height for as long as it stands; its death lowers the cell again. */
+    private void raisePlinthEye(long id, EntitySpec spec) {
+        if (spec.turretStructureId == null) return;
+        StructureDef structure = TurretCatalogRegistry.requireStructure(spec.turretStructureId);
+        if (structure.plinthTiers <= 0) return;
+        mapEditor.setRaisedEye(spec.cellX, spec.cellY, structure.plinthTiers);
+        turretDemolition.registerPlinth(id);
     }
 
     /** A shield generator's dome comes into being with it, for whichever side spawned it. */

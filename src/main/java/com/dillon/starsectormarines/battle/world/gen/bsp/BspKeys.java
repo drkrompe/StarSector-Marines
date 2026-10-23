@@ -139,6 +139,14 @@ public final class BspKeys {
     public static final GenKey<int[][]> PRECINCT_CLAIM = GenKey.of("precinctClaim");
 
     /**
+     * Ground the plan's landscape held open before the places grew
+     * ({@code Landscape.held}): growth, claims and the partition kept off it, so
+     * the landscape pass can raise its ridges there among built places. Bound
+     * only when the landscape holds some; {@code [x][y]}.
+     */
+    public static final GenKey<boolean[][]> HELD_GROUND = GenKey.of("heldGround");
+
+    /**
      * Per-cell road ownership by precinct index. Kept beside the claim because
      * a place's circulation and its ground are different questions: the wall
      * goes round the claim, and the gates are where the road crosses it.

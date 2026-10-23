@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-23 — Creep spreads at half rate with a 1.5x feed boost (owner pick), and Creep explains why feeding set the old pace.
+Updated: 2026-10-23 — Creep stands back from cliff faces and ramp walls, so raised ground reads inside a bloom.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -1197,6 +1197,14 @@ against its own control in `renderEvidence`.
   one is crusted over. It reads as a matter of time. An overgrown wall still
   reads as a barrier: its crust is lighter than the floor's, lit and shaded on
   its edges as a raised block is, and outlined dark where it meets the floor.
+- **Raised ground stays readable under it.** The creep grows over plateaus and
+  valley floors as over any ground, but it stands back from bare rock: a cliff
+  face, a brook's bank or a ramp's cut walls (`CliffFaceMask`, the rock the cliff
+  art draws). Its own beaded edge runs along the lip and the foot, the rock shows
+  between with no wilt on it, and by default the wall-vein lattice and a thin
+  membrane are laid back over the rock where creep stands on both sides, so the
+  face reads as rock the creep is climbing (`-Dbattle.render.creepCliffs`,
+  `veined`; `bare` and `over` are the owner's other two picks).
 - **Trees die under it** (`CreepVegetation`). A tree whose crown living creep
   has held to the tree's own seeded share of about a minute and a half of
   climbing is dead, and stays dead if the creep later withers. A dead tree has

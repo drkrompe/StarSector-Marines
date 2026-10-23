@@ -83,6 +83,32 @@ final class CreepShading {
 
         /** Bilinear ground under the creep: blight and vegetated in 0..1 into {@code out[0..1]}. */
         void ground(float cellX, float cellY, float[] out);
+
+        /** How much of the point is cliff face or ramp wall ({@link CliffFaceMask}), 0..1; 0 on flat ground. */
+        default float face(float cellX, float cellY) { return 0f; }
+    }
+
+    /**
+     * What the creep does over a cliff face or a ramp's wall. {@code cut} pulls the creep's coverage back by the
+     * face's cover, so the creep's own beaded edge runs along the lip and the foot and the rock shows between;
+     * {@code vein} and {@code film} then lay the wall-vein lattice and a thin membrane back over the bare rock, as
+     * creep that is climbing it, where creep stands on either side.
+     */
+    enum CliffLook {
+        /** The faces bare: the creep stops at the lip and at the foot. */
+        BARE(1f, 0f, 0f),
+        /** The faces bare of the body, veined and lightly filmed: the creep climbing the rock. */
+        VEINED(1f, 0.7f, 0.18f),
+        /** The creep's body over the faces as over any ground; the faces disappear under it. */
+        OVER(0f, 0f, 0f);
+
+        final float cut, vein, film;
+
+        CliffLook(float cut, float vein, float film) {
+            this.cut = cut;
+            this.vein = vein;
+            this.film = film;
+        }
     }
 
     /** The scene's sun, as the creep reads it: toward the sun on the map, rise per cell, shadow strength. */
@@ -96,11 +122,21 @@ final class CreepShading {
      */
     static void shade(Field f, float x, float y, float cellPx, float time, CreepPalette pal, Sun sun,
                       Scratch tmp, float[] out) {
+        shade(f, x, y, cellPx, time, pal, sun, CliffLook.OVER, tmp, out);
+    }
+
+    /** As {@link #shade(Field, float, float, float, float, CreepPalette, Sun, Scratch, float[])}, over raised ground's faces as {@code cliffs} says. */
+    static void shade(Field f, float x, float y, float cellPx, float time, CreepPalette pal, Sun sun, CliffLook cliffs,
+                      Scratch tmp, float[] out) {
         float[] own = tmp.own, here = tmp.here, noise = tmp.noise, fine = tmp.fine, surf = tmp.surf, col = tmp.col, turned = tmp.turned;
         f.sample((float) Math.floor(x) + 0.5f, (float) Math.floor(y) + 0.5f, own);
         f.sample(x, y, here);
-        float e = f.coverage(x + TAP, y), w = f.coverage(x - TAP, y);
-        float n = f.coverage(x, y + TAP), s = f.coverage(x, y - TAP);
+        float cut = cliffs.cut;
+        float faceHere = cut > 0f || cliffs.vein > 0f ? f.face(x, y) : 0f;
+        float rawHere = here[0];
+        here[0] = Math.max(0f, here[0] - cut * faceHere);
+        float e = cov(f, x + TAP, y, cut), w = cov(f, x - TAP, y, cut);
+        float n = cov(f, x, y + TAP, cut), s = cov(f, x, y - TAP, cut);
         float soft = 0.4f * here[0] + 0.15f * (e + w + n + s);
         float gx = (e - w) / (2f * TAP), gy = (n - s) / (2f * TAP);
         float g = (float) Math.sqrt(gx * gx + gy * gy);
@@ -121,7 +157,7 @@ final class CreepShading {
             // Vegetation ahead of the edge: the grass wilts, then veins reach out into it.
             float[] gnd = tmp.gnd;
             f.ground(x, y, gnd);
-            float wa = 0f, wv = 0f;
+            float wa = 0f, wv = 0f, fv = 0f, film = 0f;
             if (gnd[1] > 0f && gnd[0] > 0f) {
                 wa = gnd[1] * smoothstep(WILT_LO, WILT_HI, gnd[0] + (fine[0] - 0.5f) * WILT_BREAK) * WILT_ALPHA;
                 float reachV = smoothstep(BAND_VEIN_LO, BAND_VEIN_HI, gnd[0] + (noise[0] - 0.5f) * BAND_VEIN_BREAK);
@@ -130,19 +166,32 @@ final class CreepShading {
                     wv = 0.85f * clamp01(surf[2] * 1.6f) * reachV * gnd[1];
                 }
             }
+            // Bare rock is not grass: no wilt and no blight veins on the part of a face the creep stands back from.
+            float rock = 1f - cut * faceHere;
+            wa *= rock;
+            wv *= rock;
+            // Creep climbing a face it has been pulled back from: veins and a thin film where it stands round it.
+            if (faceHere > 0f && (cliffs.vein > 0f || cliffs.film > 0f)) {
+                float climb = faceHere * smoothstep(0.35f, 0.65f, rawHere + (noise[0] - 0.5f) * EDGE_NOISE);
+                if (climb > 0f) {
+                    CreepSurface.sample(x * WALL_VEIN_SCALE, y * WALL_VEIN_SCALE, tpp * WALL_VEIN_SCALE, surf);
+                    fv = cliffs.vein * clamp01(surf[2] * 1.6f) * climb;
+                    film = cliffs.film * climb;
+                }
+            }
             float d = (soft - 0.5f + lobes) / gl;
             float a = clamp01(d * cellPx + 0.5f);
             float shadow = 0f;
             if (a < 1f && sun.strength() > 0f) {
                 for (float t : SHADOW_STEPS) {
-                    float ds = (f.coverage(x + sun.dirX() * t, y + sun.dirY() * t) - 0.5f + lobes) / gl;
+                    float ds = (cov(f, x + sun.dirX() * t, y + sun.dirY() * t, cut) - 0.5f + lobes) / gl;
                     if (ds <= 0f) continue;
                     float lip = PLATEAU + bump(Math.min(ds, 2f), LIP_AT, LIP_WIDTH) * (LIP_LOW + 0.5f * LIP_BLISTER);
                     shadow = Math.max(shadow, clamp01((lip - t * sun.rise()) / 0.04f));
                 }
             }
             float sa = SHADOW_ALPHA * shadow * sun.strength();
-            if (a <= 0f && sa <= 0.002f && wa <= 0.002f && wv <= 0.002f) {
+            if (a <= 0f && sa <= 0.002f && wa <= 0.002f && wv <= 0.002f && fv <= 0.002f && film <= 0.002f) {
                 out[0] = out[1] = out[2] = out[3] = 0f;
                 return;
             }
@@ -156,6 +205,8 @@ final class CreepShading {
             for (int c = 0; c < 3; c++) out[c] = 0f;
             alpha = over(out, alpha, pal.wilt(), 1f, wa);
             alpha = over(out, alpha, pal.flesh(), pal.rim(), wv);
+            alpha = over(out, alpha, pal.base(), 1f, film);
+            alpha = over(out, alpha, pal.flesh(), pal.rim(), fv);
             alpha = over(out, alpha, SHADOW_TINT, 1f, sa);
             alpha = over(out, alpha, col, 1f, a);
             for (int c = 0; c < 3; c++) out[c] = clamp01(out[c] / Math.max(alpha, 1e-4f));
@@ -206,6 +257,12 @@ final class CreepShading {
         float alpha = ac + va * (1f - ac);
         for (int c = 0; c < 3; c++) out[c] = clamp01((col[c] * ac + out[c] * va * (1f - ac)) / Math.max(alpha, 1e-4f));
         out[3] = alpha;
+    }
+
+    /** Coverage at a point with the faces' cover taken out of it, {@code cut} of the way. */
+    private static float cov(Field f, float x, float y, float cut) {
+        float c = f.coverage(x, y);
+        return cut > 0f ? Math.max(0f, c - cut * f.face(x, y)) : c;
     }
 
     /** Per-thread working arrays for {@link #shade}. */
