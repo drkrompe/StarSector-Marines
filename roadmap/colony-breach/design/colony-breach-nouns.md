@@ -1204,7 +1204,9 @@ against its own control in `renderEvidence`.
   between with no wilt on it, and the wall-vein lattice and a thin membrane are
   laid back over the rock where creep stands on both sides, so the face reads
   as rock the creep is climbing (owner's pick, over bare rock and over creep
-  covering the face).
+  covering the face). A ramp's floor is not rock: the creep runs up its steps
+  between the bare cut walls, so a ramp shows as a creep-filled break in the
+  cliff, a hint to where the way up is (owner).
 - **Trees die under it** (`CreepVegetation`). A tree whose crown living creep
   has held to the tree's own seeded share of about a minute and a half of
   climbing is dead, and stays dead if the creep later withers. A dead tree has
