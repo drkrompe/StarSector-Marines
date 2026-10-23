@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.command.trace;
 
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveResult;
 import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
 import com.dillon.starsectormarines.battle.cordon.CordonRefugees;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
@@ -89,7 +91,7 @@ class CordonCommandEvidenceTest {
                 .append("Every seed of the ").append(variant).append("'s story-map pool (`story-map-pools.md`), ")
                 .append(EvidenceFanOut.replayWording(repeat)).append(". Outcomes are readings, not assertions; ")
                 .append("each seed's report is in its own folder.\n\n")
-                .append("| biome | seed | outcome | winner | ended (min) | redoubts fallen |\n|---|---|---|---|---|---|\n");
+                .append("| biome | seed | outcome | winner | ended (min) | redoubts fallen | objectives |\n|---|---|---|---|---|---|---|\n");
         JSONArray all = new JSONArray();
         List<String> broken = new ArrayList<>();
         for (int i = 0; i < fixtures.size(); i++) {
@@ -115,16 +117,18 @@ class CordonCommandEvidenceTest {
                     .put("ticks", first.ticks())
                     .put("fallen", first.fallen())
                     .put("beats", first.beats())
+                    .put("objectives", first.objectives())
                     .put("timeline", first.timeline());
             Files.writeString(dir.resolve("summary.json"), summary.toString(2) + '\n', StandardCharsets.UTF_8);
             Files.writeString(dir.resolve("summary.md"), first.report(), StandardCharsets.UTF_8);
             all.put(new JSONObject().put("biome", selected.fixture().biome().name()).put("seed", selected.fixture().seed()).put("folder", pool ? selected.id() : ".")
                     .put("outcome", first.outcome()).put("winner", first.winner() != null ? first.winner() : JSONObject.NULL)
-                    .put("ticks", first.ticks()).put("fallen", first.fallen()));
-            matrix.append(String.format(Locale.ROOT, "| %s | %d | %s | %s | %.1f | %d |%n",
+                    .put("ticks", first.ticks()).put("fallen", first.fallen()).put("objectives", first.objectives()));
+            matrix.append(String.format(Locale.ROOT, "| %s | %d | %s | %s | %.1f | %d | %s |%n",
                     selected.fixture().biome().name().toLowerCase(Locale.ROOT), selected.fixture().seed(),
                     first.outcome(), first.winner() != null ? first.winner() : "—",
-                    first.ticks() * BattleSimulation.TICK_DT / 60f, first.fallen()));
+                    first.ticks() * BattleSimulation.TICK_DT / 60f, first.fallen(),
+                    first.objectives().isEmpty() ? "—" : first.objectives()));
             broken.addAll(mechanics(selected.id(), first));
         }
         if (pool) {
@@ -193,6 +197,16 @@ class CordonCommandEvidenceTest {
                 }
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
+            // The campaign hand-off ends the board; evidence ends it here to read how each beat came out.
+            StringBuilder objectives = new StringBuilder();
+            ObjectiveBoard board = sim.getOptionalObjectives();
+            if (board != null) {
+                board.end(sim.getSimTickIndex());
+                for (ObjectiveResult result : board.results()) {
+                    if (objectives.length() > 0) objectives.append(", ");
+                    objectives.append(result.key()).append(' ').append(result.status().name().toLowerCase(Locale.ROOT));
+                }
+            }
             JSONArray beats = StoryBeatEvidence.snapshot(sim);
             List<String> ids = new ArrayList<>();
             for (StoryBeatLog.Event event : sim.getStoryBeats()) ids.add(event.id());
@@ -201,9 +215,10 @@ class CordonCommandEvidenceTest {
                 if (Math.round(seconds / BattleSimulation.TICK_DT) < sim.getSimTickIndex()) tidesDue++;
             }
             String winner = sim.getWinner() != null ? sim.getWinner().name() : null;
-            String report = report(runId, sim, cordon, winner, table.toString());
+            String report = report(runId, sim, cordon, winner, table.toString(), objectives.toString());
             return new RunResult(sim.getCommandTraceJsonLines(), sim.getSimTickIndex(), sim.isComplete(), winner,
-                    cordon.outcome().name(), cordon.fallen(), beats, ids, timeline, tidesDue, report);
+                    cordon.outcome().name(), cordon.fallen(), beats, ids, timeline, tidesDue, report,
+                    objectives.toString());
         }
     }
 
@@ -246,7 +261,8 @@ class CordonCommandEvidenceTest {
                 .put("marines", marines).put("allies", allies).put("swarm", swarm)
                 .put("livingBores", bores).put("armour", hulls).put("armourAtCall", atCall)
                 .put("redoubts", redoubts)
-                .put("convoys", cordon.convoys() == null ? "-" : cordon.convoys().describe(sim));
+                .put("convoys", cordon.convoys() == null ? "-" : cordon.convoys().describe(sim))
+                .put("objectives", cordon.beats() == null ? new JSONArray() : new JSONArray(cordon.beats().describe(sim)));
     }
 
     private static String tableRow(JSONObject row) throws Exception {
@@ -263,7 +279,7 @@ class CordonCommandEvidenceTest {
     }
 
     private static String report(String runId, BattleSimulation sim, CordonSequence cordon, String winner,
-                                 String table) {
+                                 String table, String objectives) {
         StringBuilder out = new StringBuilder("# Cordon evidence: ").append(runId).append("\n\n")
                 .append("Forced-serial, zero-input production Cordon (").append(cordon.variant())
                 .append("). Outcomes are readings, not assertions.\n\n")
@@ -275,7 +291,8 @@ class CordonCommandEvidenceTest {
                 .append(" (").append(cordon.timetable().allowedFallen()).append(" allowed)\n")
                 .append("- Gap redoubts: ").append(cordon.gap()).append('\n')
                 .append("- Eruptions: ").append(cordon.eruptions()).append(" of ")
-                .append(cordon.timetable().eruptionSeconds().size()).append(" on the timetable\n");
+                .append(cordon.timetable().eruptionSeconds().size()).append(" on the timetable\n")
+                .append("- Optional objectives: ").append(objectives.isEmpty() ? "none" : objectives).append('\n');
         if (cordon.refugees() != null) {
             out.append("- Refugees: ").append(cordon.refugees().out()).append(" out, ")
                     .append(cordon.refugees().lost()).append(" lost of ")
@@ -292,7 +309,8 @@ class CordonCommandEvidenceTest {
                     .append(" lost of ").append(convoys.convoys()).append(" (")
                     .append(cordon.timetable().convoysNeeded()).append(" needed); townspeople ")
                     .append(convoys.peopleOut()).append(" out, ").append(convoys.peopleLost())
-                    .append(" lost, ").append(convoys.town()).append(" still in the town").append(NL);
+                    .append(" lost, ").append(convoys.town()).append(" still in the town")
+                    .append(convoys.detoured() ? "; the convoys took the detour" : "").append(NL);
             for (long truck : convoys.trucks()) {
                 GroundBody body = sim.convoy().body(truck);
                 out.append(String.format(Locale.ROOT, "  - Truck %d at %.0f,%.0f, structure %.0f/%.0f%s%s",
@@ -335,6 +353,9 @@ class CordonCommandEvidenceTest {
                     .append(" to ").append(r.right()).append(',').append(r.bottom()).append(", guns ")
                     .append(r.guns().size()).append('\n');
         }
+        if (cordon.beats() != null) {
+            for (String line : cordon.beats().describe(sim)) out.append("  - ").append(line).append('\n');
+        }
         out.append("\n## Beats\n\n| min | beat |\n|---|---|\n");
         for (StoryBeatLog.Event event : sim.getStoryBeats()) {
             out.append(String.format(Locale.ROOT, "| %.2f | %s |%n", event.tick() * BattleSimulation.TICK_DT / 60f,
@@ -369,5 +390,6 @@ class CordonCommandEvidenceTest {
     }
 
     private record RunResult(String trace, int ticks, boolean complete, String winner, String outcome, int fallen,
-                             JSONArray beats, List<String> beatIds, JSONArray timeline, int tidesDue, String report) { }
+                             JSONArray beats, List<String> beatIds, JSONArray timeline, int tidesDue, String report,
+                             String objectives) { }
 }
