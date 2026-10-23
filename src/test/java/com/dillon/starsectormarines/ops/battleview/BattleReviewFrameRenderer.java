@@ -70,6 +70,7 @@ public final class BattleReviewFrameRenderer {
     private boolean impactEffects;
     private boolean unitShadows;
     private boolean roofs;
+    private boolean presentation;
 
     public BattleReviewFrameRenderer(Path modRoot, int width, int height) {
         this.backend = ReviewSceneBackend.select(modRoot.toAbsolutePath().normalize());
@@ -123,6 +124,16 @@ public final class BattleReviewFrameRenderer {
      */
     public BattleReviewFrameRenderer atClock(float seconds) {
         this.clockSeconds = seconds;
+        return this;
+    }
+
+    /**
+     * Draws the battle as a player would see it, for a look review rather than a behaviour one: no caption band, no
+     * unit, wreck or ordnance markers and no annotations, and a focused camera fills the whole frame. Markers are
+     * how a reader follows bodies across a whole-map frame; on a close look at art they read as debug marks.
+     */
+    public BattleReviewFrameRenderer asPresentation() {
+        this.presentation = true;
         return this;
     }
 
@@ -184,6 +195,7 @@ public final class BattleReviewFrameRenderer {
 
     private void annotate(BufferedImage image, BattleSimulation simulation,
                           String caption, ReviewAnnotations annotations) {
+        if (presentation) return;
         Graphics2D graphics = image.createGraphics();
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                 RenderingHints.VALUE_ANTIALIAS_ON);
@@ -323,7 +335,8 @@ public final class BattleReviewFrameRenderer {
         if (!Float.isFinite(focusX)) return cameraFor(viewportWidth, viewportHeight,
                 simulation.getGrid().getWidth(), simulation.getGrid().getHeight());
         BattleCamera camera = new BattleCamera(simulation.getGrid().getWidth(), simulation.getGrid().getHeight());
-        camera.setViewport(0, 0, viewportWidth, viewportHeight - HEADER_HEIGHT, (float)Math.floor(viewportWidth / focusWidth));
+        float header = presentation ? 0f : HEADER_HEIGHT;
+        camera.setViewport(0, 0, viewportWidth, viewportHeight - header, (float)Math.floor(viewportWidth / focusWidth));
         camera.centerOn(focusX, focusY);
         return camera;
     }
