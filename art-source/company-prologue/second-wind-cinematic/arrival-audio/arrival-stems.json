@@ -91,18 +91,18 @@
   },
   {
    "shot": "c2",
-   "t": 0.089,
+   "t": 0.09,
    "sound": "jangala_sfx_c2_legion_forward",
-   "gain_db": -14.8,
+   "gain_db": -17.3,
    "seconds": 14.91,
    "layer": "legion_forward"
   },
   {
    "shot": "c2",
-   "t": 0.114,
+   "t": 0.092,
    "sound": "jangala_sfx_c2_legion_drives",
-   "gain_db": -15.9,
-   "seconds": 14.88,
+   "gain_db": -16.4,
+   "seconds": 14.91,
    "layer": "legion_drives"
   },
   {

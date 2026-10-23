@@ -43,14 +43,14 @@
    "volume": 0.1096
   },
   {
-   "t": 0.089,
+   "t": 0.09,
    "sound": "jangala_sfx_c2_legion_forward",
-   "volume": 0.182
+   "volume": 0.1365
   },
   {
-   "t": 0.114,
+   "t": 0.092,
    "sound": "jangala_sfx_c2_legion_drives",
-   "volume": 0.1603
+   "volume": 0.1514
   },
   {
    "t": 0.141,

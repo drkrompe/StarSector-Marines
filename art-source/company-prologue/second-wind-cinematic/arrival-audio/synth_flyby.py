@@ -170,7 +170,8 @@ LEGION = dict(HOUND, start=0.0, end=15.0, sound_speed=340.0, muffle_far=60.0, mu
               bass=3.0, crackle=0.25, rush_gain=0.05, distance_power=1.4, pan="c2", pan_width=0.5)
 # The Legion's weight (owner, 2026-10-23: "HEAVY"): a dark muffle, a big sub, a low-mid body band
 # under it, a slow heave in the roar, and thrust swelling to the beam at C2_ABEAM_T and easing off.
-LEGION_HEAVY = dict(muffle_far=60.0, muffle_near=170.0, bass=5.5, body=1.1, heave=0.22, crackle=0.05,
+LEGION_HEAVY = dict(muffle_far=60.0, muffle_near=170.0, bass=8.0, body=1.1, heave=0.22, crackle=0.05,
+                    boom=2.2, boom_hz=46.0, boom_drive=2.5,
                     rush_gain=0.0, distance_power=1.0,
                     thrust=[(0.0, 0.5), (3.0, 0.62), (6.0, 0.85), (C2_ABEAM_T, 1.0), (10.0, 1.0), (15.0, 0.8)])
 LEGION_BURN_T = 7.15      # C2 seconds: the Legion's engine plume comes into view (see legion_drives)
@@ -194,7 +195,8 @@ PASSES = {
     "legion_drives": dict(LEGION, path=legion_at(-130.0), seed=21, source="c4_launch_burn_t02", **LEGION_HEAVY),
     # The burn alone, its own cue so its level is mixed apart from the bass: the drives' voice opened
     # up to a broadband roar with hard crackle, lit over half a second from LEGION_BURN_T.
-    "legion_burn": dict(LEGION, path=legion_at(-130.0), seed=21, source="c4_launch_burn_t02", **LEGION_HEAVY,
+    "legion_burn": dict(LEGION, path=legion_at(-130.0), seed=21, source="c4_launch_burn_t02",
+                        **dict(LEGION_HEAVY, boom=0.0, bass=5.5),      # the fire on top; the 808 is the bass stems
                         burn=dict(t=LEGION_BURN_T, ramp=0.5, corner=3000.0, crackle=0.9, roar=1.3, gain=1.0, alone=True)),
     # Its forward cluster: the Legion's mass before its engines are in view (owner, 2026-10-23: "It
     # should sound HEAVY"). A deep sustained roar, all sub and low-mid body, heaving slowly and
@@ -384,6 +386,21 @@ def render(spec):
     if spec["thrust"]:
         points = np.array(spec["thrust"], float)
         mono = mono * np.interp(t, points[:, 0], points[:, 1])
+    if spec.get("boom"):
+        # Owner, 2026-10-23: "bass boosted like a 2010s high school kids trap playlist". An 808-style
+        # sub on purpose, not tasteful: a tone near 46 Hz drifting with the engine, under the voice's
+        # own 38-80 Hz band, following the engine's swell, then driven into saturation so its
+        # harmonics rattle a small speaker. The peak is held by the saturation, never by turning it down.
+        follow = one_pole(one_pole(np.abs(mono), 3.0), 3.0)
+        follow /= max(1e-9, follow.max())
+        drift = one_pole(coloured(len(t), rng, 2.0), 0.5)
+        drift /= max(1e-9, np.abs(drift).max())
+        tone = np.sin(2 * np.pi * np.cumsum(spec.get("boom_hz", 46.0) * (1.0 + 0.04 * drift)) / SR)
+        low = one_pole(one_pole(voice, 80.0), 80.0)
+        low = low - one_pole(one_pole(low, 38.0), 38.0)
+        boom = (tone + 0.8 * low / max(1e-9, np.abs(low).max())) * follow
+        mono = mono / max(1e-9, np.abs(mono).max()) + spec["boom"] * boom / max(1e-9, np.abs(boom).max())
+        mono = np.tanh(spec.get("boom_drive", 2.5) * mono / max(1e-9, np.abs(mono).max()))
     for when in spec["thumps"]:
         # Ignition: a deep, short hit under the engine as it lights.
         k = np.clip(t - when, 0, None)
