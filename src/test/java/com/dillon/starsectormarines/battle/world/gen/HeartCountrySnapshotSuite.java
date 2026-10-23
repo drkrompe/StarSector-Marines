@@ -30,7 +30,7 @@ import java.util.Locale;
  * satellite bore, a mother bore, the heart 140 cells across and, where there is
  * one, the brook at a ford; then, where the map has raised ground, the cliff
  * face and the ramp deepest in the creep, which is where the creep's look over
- * a face ({@code -Dbattle.render.creepCliffs}) is judged. Look evidence, 1920x1080.
+ * a face is judged. Look evidence, 1920x1080.
  *
  * <p>{@code -Dsnapshot.heartCountry.seeds=101,202,303} picks the seeds and
  * {@code -Dsnapshot.heartCountry.forms=BROAD_FRONT,THE_BURN} the forms.
