@@ -129,12 +129,18 @@ public final class AnimatedGifWriter implements AutoCloseable {
     /**
      * A frame's pixel keys, which identify a pixel's colour for the change test: the cube index in COMPACT mode
      * (so sub-quantum noise never counts as change), the source colour itself in ADAPTIVE mode — where the array
-     * doubles as the frame's colours, alpha dropped, since nothing reads the alpha.
+     * doubles as the frame's colours, alpha dropped, since nothing reads the alpha. An opaque layout's alpha is
+     * always {@code 0xff}, so it compares and bins the same left on, and is not masked.
      */
     private static int[] keys(BufferedImage image, Palette palette) {
         int[] rgb = FramePixels.argb(image);
-        for (int i = 0; i < rgb.length; i++) {
-            rgb[i] = palette == Palette.ADAPTIVE ? rgb[i] & 0xffffff : cubeIndex(rgb[i]);
+        if (palette == Palette.ADAPTIVE) {
+            int type = image.getType();
+            if (type != BufferedImage.TYPE_3BYTE_BGR && type != BufferedImage.TYPE_INT_RGB) {
+                for (int i = 0; i < rgb.length; i++) rgb[i] &= 0xffffff;
+            }
+        } else {
+            for (int i = 0; i < rgb.length; i++) rgb[i] = cubeIndex(rgb[i]);
         }
         return rgb;
     }
@@ -158,14 +164,14 @@ public final class AnimatedGifWriter implements AutoCloseable {
         } else {
             for (int y = 0; y < height; y++) {
                 int row = y * width;
-                for (int x = 0; x < width; x++) {
-                    if (keys[row + x] != previousKeys[row + x]) {
-                        if (x < minX) minX = x;
-                        if (x > maxX) maxX = x;
-                        if (y < minY) minY = y;
-                        if (y > maxY) maxY = y;
-                    }
-                }
+                int first = Arrays.mismatch(keys, row, row + width, previousKeys, row, row + width);
+                if (first < 0) continue;
+                int last = width - 1;
+                while (keys[row + last] == previousKeys[row + last]) last--;
+                if (first < minX) minX = first;
+                if (last > maxX) maxX = last;
+                if (y < minY) minY = y;
+                maxY = y;
             }
             if (maxX < 0) { // identical frame: a one-pixel transparent patch keeps the timing
                 minX = 0;
@@ -310,21 +316,19 @@ public final class AnimatedGifWriter implements AutoCloseable {
     }
 
     private static int cubeIndex(int rgb) {
-        return level((rgb >> 16) & 0xff) * LEVELS * LEVELS
-                + level((rgb >> 8) & 0xff) * LEVELS + level(rgb & 0xff);
+        return CUBE_R[(rgb >> 16) & 0xff] + CUBE_G[(rgb >> 8) & 0xff] + CUBE_B[rgb & 0xff];
     }
 
-    /** Per-thread working arrays of the adaptive palette: 7 MB a frame that need not be allocated a frame. */
+    /** Per-thread working arrays of the adaptive palette: 9 MB a frame that need not be allocated a frame. */
     private static final class Scratch {
-        final long[] sumR = new long[BINS];
-        final long[] sumG = new long[BINS];
-        final long[] sumB = new long[BINS];
-        final int[] count = new int[BINS];
+        /** Per bin: pixel count, then red, green and blue sums, side by side so a pixel touches one cache line. */
+        final long[] sums = new long[4 * BINS];
         final int[] lookup = new int[BINS];
         final byte[] reds = new byte[256];
         final byte[] greens = new byte[256];
         final byte[] blues = new byte[256];
         int[] used = new int[1024];
+        int usedCount;
     }
 
     private static final ThreadLocal<Scratch> SCRATCH = ThreadLocal.withInitial(Scratch::new);
@@ -340,28 +344,29 @@ public final class AnimatedGifWriter implements AutoCloseable {
     private static int adaptivePalette(int[] rgb, int[] previousKeys, int width, int minX,
                                        int minY, int boxWidth, int boxHeight,
                                        boolean delta, Scratch scratch) {
-        long[] sumR = scratch.sumR;
-        long[] sumG = scratch.sumG;
-        long[] sumB = scratch.sumB;
-        int[] count = scratch.count;
-        int[] used = scratch.used;
-        int usedCount = 0;
+        long[] sums = scratch.sums;
+        // A run of one colour is added in one step: flat ground is most of a review frame. Bins are recorded in the
+        // order their first pixel is met, as before.
+        int run = 0, runLength = 0;
         for (int y = 0; y < boxHeight; y++) {
             int row = (minY + y) * width + minX;
             for (int x = 0; x < boxWidth; x++) {
                 int at = row + x;
-                if (delta && rgb[at] == previousKeys[at]) continue;
                 int c = rgb[at];
-                int bin = bin(c);
-                if (count[bin]++ == 0) {
-                    if (usedCount == used.length) used = scratch.used = Arrays.copyOf(used, usedCount * 2);
-                    used[usedCount++] = bin;
+                if (delta && c == previousKeys[at]) continue;
+                if (runLength > 0 && c == run) {
+                    runLength++;
+                    continue;
                 }
-                sumR[bin] += (c >> 16) & 0xff;
-                sumG[bin] += (c >> 8) & 0xff;
-                sumB[bin] += c & 0xff;
+                if (runLength > 0) accumulate(scratch, run, runLength);
+                run = c;
+                runLength = 1;
             }
         }
+        if (runLength > 0) accumulate(scratch, run, runLength);
+        int[] used = scratch.used;
+        int usedCount = scratch.usedCount;
+        scratch.usedCount = 0;
         // Median cut over the occupied bins, splitting the box whose widest
         // channel spread (weighted by nothing) is largest, at the weighted median.
         // Each box's widest channel is measured once, when it is made; ties go
@@ -398,11 +403,11 @@ public final class AnimatedGifWriter implements AutoCloseable {
                 at += bucketSizes[v];
             }
             long total = 0;
-            for (int bin : sorted) total += count[bin];
+            for (int bin : sorted) total += sums[bin << 2];
             long running = 0;
             int cut = 1;
             for (int i = 0; i < sorted.length - 1; i++) {
-                running += count[sorted[i]];
+                running += sums[sorted[i] << 2];
                 cut = i + 1;
                 if (running * 2 >= total) break;
             }
@@ -420,10 +425,11 @@ public final class AnimatedGifWriter implements AutoCloseable {
         for (int i = 0; i < boxes.size(); i++) {
             long r = 0, g = 0, b = 0, n = 0;
             for (int bin : boxes.get(i).bins) {
-                r += sumR[bin];
-                g += sumG[bin];
-                b += sumB[bin];
-                n += count[bin];
+                int at = bin << 2;
+                n += sums[at];
+                r += sums[at + 1];
+                g += sums[at + 2];
+                b += sums[at + 3];
                 lookup[bin] = i;
             }
             if (n == 0) continue; // identical frame: nothing to colour
@@ -434,13 +440,30 @@ public final class AnimatedGifWriter implements AutoCloseable {
         // Leave the sums clear for the next frame on this thread; the lookup is
         // only ever read for bins this frame filled in.
         for (int i = 0; i < usedCount; i++) {
-            int bin = used[i];
-            sumR[bin] = 0;
-            sumG[bin] = 0;
-            sumB[bin] = 0;
-            count[bin] = 0;
+            int at = used[i] << 2;
+            sums[at] = 0;
+            sums[at + 1] = 0;
+            sums[at + 2] = 0;
+            sums[at + 3] = 0;
         }
         return size;
+    }
+
+    /** Adds {@code length} pixels of {@code colour} to its bin, recording the bin in {@code used} the first time. */
+    private static void accumulate(Scratch scratch, int colour, int length) {
+        int bin = bin(colour);
+        int at = bin << 2;
+        long[] sums = scratch.sums;
+        if (sums[at] == 0) {
+            if (scratch.usedCount == scratch.used.length) {
+                scratch.used = Arrays.copyOf(scratch.used, scratch.usedCount * 2);
+            }
+            scratch.used[scratch.usedCount++] = bin;
+        }
+        sums[at] += length;
+        sums[at + 1] += (long) length * ((colour >> 16) & 0xff);
+        sums[at + 2] += (long) length * ((colour >> 8) & 0xff);
+        sums[at + 3] += (long) length * (colour & 0xff);
     }
 
     /** A median-cut box: its bins, and its widest channel with that channel's spread. */
@@ -451,16 +474,22 @@ public final class AnimatedGifWriter implements AutoCloseable {
 
         Box(int[] bins) {
             this.bins = bins;
+            // All three channels' extents in one pass over the bins.
+            int loR = 63, hiR = 0, loG = 63, hiG = 0, loB = 63, hiB = 0;
+            for (int bin : bins) {
+                int r = bin >> 12 & 0x3f, g = bin >> 6 & 0x3f, b = bin & 0x3f;
+                if (r < loR) loR = r;
+                if (r > hiR) hiR = r;
+                if (g < loG) loG = g;
+                if (g > hiG) hiG = g;
+                if (b < loB) loB = b;
+                if (b > hiB) hiB = b;
+            }
+            int[] ranges = {(hiR - loR) << 2, (hiG - loG) << 2, (hiB - loB) << 2};
             int bestChannel = 0, bestRange = 0;
             for (int channel = 0; channel < 3; channel++) {
-                int lo = 255, hi = 0;
-                for (int bin : bins) {
-                    int v = channelOf(bin, channel);
-                    if (v < lo) lo = v;
-                    if (v > hi) hi = v;
-                }
-                if (hi - lo > bestRange) {
-                    bestRange = hi - lo;
+                if (ranges[channel] > bestRange) {
+                    bestRange = ranges[channel];
                     bestChannel = channel;
                 }
             }
@@ -487,6 +516,19 @@ public final class AnimatedGifWriter implements AutoCloseable {
 
     /** Levels per channel in the shared colour cube. Six gives 216 entries and leaves room to spare in a 256-entry GIF palette. */
     private static final int LEVELS = 6;
+
+    /** {@link #level} of every channel value, scaled to the channel's stride in the cube. */
+    private static final int[] CUBE_R = new int[256];
+    private static final int[] CUBE_G = new int[256];
+    private static final int[] CUBE_B = new int[256];
+
+    static {
+        for (int v = 0; v < 256; v++) {
+            CUBE_B[v] = level(v);
+            CUBE_G[v] = level(v) * LEVELS;
+            CUBE_R[v] = level(v) * LEVELS * LEVELS;
+        }
+    }
 
     /** The cube, then spare black slots whose last one is the transparent index. */
     private static final byte[] CUBE_TABLE = buildCubeTable();
@@ -518,12 +560,14 @@ public final class AnimatedGifWriter implements AutoCloseable {
         private static final int END = 257;
         private static final int MAX_CODES = 4096;
 
-        /** {@code (prefix << 8 | byte) -> stamp << 12 | code}; a stale stamp is an empty slot, so clearing is free. */
-        private static final ThreadLocal<int[]> TABLE = ThreadLocal.withInitial(() -> new int[MAX_CODES << 8]);
-        private static final ThreadLocal<int[]> STAMP = ThreadLocal.withInitial(() -> new int[1]);
-
-        private final int[] table = TABLE.get();
-        private final int[] stamp = STAMP.get();
+        /**
+         * Open-addressed dictionary of 8192 slots for at most 3838 strings: {@code (prefix << 8 | byte) + 1} in
+         * {@code keys} (0 is empty) and its code in {@code codes}. 48 KB that stay in cache, where a direct table
+         * over every prefix and byte was 4 MB and missed on nearly every lookup.
+         */
+        private static final int SLOTS = 1 << 13;
+        private final int[] keys = new int[SLOTS];
+        private final short[] codes = new short[SLOTS];
         private final ByteArrayOutputStream out;
         private final byte[] block = new byte[256];
         private int blockLength;
@@ -551,41 +595,42 @@ public final class AnimatedGifWriter implements AutoCloseable {
         }
 
         private void reset() {
-            if (++stamp[0] >= 1 << 19) {
-                Arrays.fill(table, 0);
-                stamp[0] = 1;
-            }
+            Arrays.fill(keys, 0);
             codeSize = 9;
             nextCode = 258;
         }
 
         private void compress(byte[] data, int offset, int length) {
-            int[] table = this.table;
-            int current = stamp[0] << 12;
+            int[] keys = this.keys;
+            short[] codes = this.codes;
+            int prefix = this.prefix;
             for (int i = offset, end = offset + length; i < end; i++) {
                 int c = data[i] & 0xff;
                 if (prefix < 0) {
                     prefix = c;
                     continue;
                 }
-                int key = prefix << 8 | c;
-                int entry = table[key];
-                if ((entry & ~0xfff) == current) {
-                    prefix = entry & 0xfff;
+                int key = (prefix << 8 | c) + 1;
+                int slot = (key * 0x9E3779B1) >>> 19;
+                int found;
+                while ((found = keys[slot]) != 0 && found != key) slot = (slot + 1) & (SLOTS - 1);
+                if (found == key) {
+                    prefix = codes[slot];
                     continue;
                 }
                 writeCode(prefix);
                 if (nextCode < MAX_CODES) {
-                    table[key] = current | nextCode;
+                    keys[slot] = key;
+                    codes[slot] = (short) nextCode;
                     if (nextCode++ == (1 << codeSize) && codeSize < 12) codeSize++;
                     // Matches the JDK: the width grows once the code just assigned passes the current limit.
                 } else {
                     writeCode(CLEAR);
                     reset();
-                    current = stamp[0] << 12;
                 }
                 prefix = c;
             }
+            this.prefix = prefix;
         }
 
         private void writeCode(int code) {
