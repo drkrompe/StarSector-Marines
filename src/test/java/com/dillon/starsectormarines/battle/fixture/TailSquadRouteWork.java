@@ -10,16 +10,14 @@ import java.util.List;
 final class TailSquadRouteWork {
     private final int firstMeasuredTick;
     private final int workBudget;
-    private final boolean budgetEnabled;
     private long measuredTicks, totalWorkUnits, budgetViolationTicks, readySlices;
     private long maximumRoutePreparationNanos, maximumFieldBuildNanos;
     private int maximumTickWorkUnits, maximumTickWorkTick = -1, maximumReadyAgeTicks;
     private int maximumRoutePreparationTick = -1, maximumFieldBuildTick = -1;
 
-    TailSquadRouteWork(int firstMeasuredTick, int workBudget, boolean budgetEnabled) {
+    TailSquadRouteWork(int firstMeasuredTick, int workBudget) {
         this.firstMeasuredTick = firstMeasuredTick;
         this.workBudget = workBudget;
-        this.budgetEnabled = budgetEnabled;
     }
 
     void observe(int tick, TickInnerProfile profile) {
@@ -43,7 +41,7 @@ final class TailSquadRouteWork {
             maximumTickWorkUnits = workUnits;
             maximumTickWorkTick = tick;
         }
-        if (budgetEnabled && workUnits > workBudget) budgetViolationTicks++;
+        if (workUnits > workBudget) budgetViolationTicks++;
         if (routePreparationNanos > maximumRoutePreparationNanos) {
             maximumRoutePreparationNanos = routePreparationNanos;
             maximumRoutePreparationTick = tick;
@@ -61,7 +59,7 @@ final class TailSquadRouteWork {
 
     JSONObject json() throws JSONException {
         return new JSONObject().put("firstMeasuredTick", firstMeasuredTick)
-                .put("measuredTicks", measuredTicks).put("budgetEnabled", budgetEnabled)
+                .put("measuredTicks", measuredTicks)
                 .put("workBudgetPerTick", workBudget).put("totalWorkUnits", totalWorkUnits)
                 .put("maximumTickWorkUnits", maximumTickWorkUnits)
                 .put("maximumTickWorkTick", maximumTickWorkTick)
@@ -71,6 +69,6 @@ final class TailSquadRouteWork {
                 .put("maximumRoutePreparationTick", maximumRoutePreparationTick)
                 .put("maximumFieldBuildMs", maximumFieldBuildNanos / 1_000_000.0)
                 .put("maximumFieldBuildTick", maximumFieldBuildTick)
-                .put("semantics", "All ticks after warmup, not only retained slow ticks. Work totals and maxima use the exact tick counter; lifetime slice work is never summed. Preparation and field-build maxima are independent maxima of each tick's bucket time, not one slice; field building is nested in route preparation and must not be added to it. A violation is a budget-enabled tick strictly exceeding its configured allowance. READY counts completed usable fields, not YIELD, FAILED, STARTS_CHANGED, LIMIT, or admissions; admissions are work slices in budgeted mode. Ready age may originate before warmup. Completion ages are complete while the maximum four slices per tick fit the eight retained work samples; the synchronous control emits no work slices.");
+                .put("semantics", "All ticks after warmup, not only retained slow ticks. Work totals and maxima use the exact tick counter; lifetime slice work is never summed. Preparation and field-build maxima are independent maxima of each tick's bucket time, not one slice; field building is nested in route preparation and must not be added to it. A violation is a tick strictly exceeding its allowance. READY counts completed usable fields, not YIELD, FAILED, STARTS_CHANGED, LIMIT, or admissions; admissions are work slices. Ready age may originate before warmup. Completion ages are complete while the maximum four slices per tick fit the eight retained work samples.");
     }
 }

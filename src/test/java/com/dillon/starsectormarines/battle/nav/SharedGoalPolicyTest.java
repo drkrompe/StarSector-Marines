@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SharedGoalPolicyTest {
 
     @Test
-    void sharedGoalFieldsStartAtConfiguredCrossover() {
-        int crossover = SharedGoalPolicy.configuredMinimumSharedGoalUnits();
+    void sharedGoalFieldsStartAtTheCrossover() {
+        int crossover = SharedGoalPolicy.minimumSharedGoalUnits();
 
         if (crossover > 0) {
             assertFalse(SharedGoalPolicy.usesSharedGoalFields(crossover - 1));
