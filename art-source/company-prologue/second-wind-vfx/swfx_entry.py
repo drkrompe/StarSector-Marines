@@ -514,7 +514,7 @@ def _sheath_material(name, strength, cell_m):
     w = at.outputs['Fac']
     nz, _ = _noise(nt, cell_m)
     mottle = _math(nt, 'ADD', .35, _math(nt, 'MULTIPLY', nz, 1.3))
-    heat = _math(nt, 'MINIMUM', _math(nt, 'POWER', w, 1.2), 1.0)
+    heat = _math(nt, 'MINIMUM', _math(nt, 'MULTIPLY', _math(nt, 'POWER', w, 1.6), .9), 1.0)
     glow = _math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', _math(nt, 'POWER', w, 2.6), mottle), strength)
     _additive(nt, _blackbody(nt, heat), glow)
     return mat
@@ -534,7 +534,7 @@ def _shock_material(name, strength):
     lw = nt.nodes.new('ShaderNodeLayerWeight')
     lw.inputs['Blend'].default_value = .5
     rim = _math(nt, 'SUBTRACT', 1.0, lw.outputs['Facing'])
-    hot = _blackbody(nt, _math(nt, 'ADD', .45, _math(nt, 'MULTIPLY', w, .5)))
+    hot = _blackbody(nt, _math(nt, 'ADD', .28, _math(nt, 'MULTIPLY', w, .42)))
     tint = nt.nodes.new('ShaderNodeMix')
     tint.data_type = 'RGBA'
     nt.links.new(_math(nt, 'MULTIPLY', _math(nt, 'POWER', rim, 3.0), .4), tint.inputs['Factor'])
@@ -611,13 +611,13 @@ def _wake_volume(name, start, wind, span, r0, r1, coll, strength, cell_m, seed):
         rn = _math(nt, 'ADD', r0, _math(nt, 'MULTIPLY', _math(nt, 'POWER', u, .7), r1 - r0))
         radial = _math(nt, 'MAXIMUM', _math(nt, 'SUBTRACT', 1.0, _math(nt, 'POWER', _math(nt, 'DIVIDE', rad, rn), 2.0)), 0.0)
         nz, _ = _noise(nt, cell_m, detail=6.0)
-        patch = _math(nt, 'MINIMUM', _math(nt, 'MAXIMUM', _math(nt, 'MULTIPLY', _math(nt, 'SUBTRACT', nz, .34), 2.6), 0.0), 1.0)
+        patch = _math(nt, 'MINIMUM', _math(nt, 'MAXIMUM', _math(nt, 'MULTIPLY', _math(nt, 'SUBTRACT', nz, .42), 3.4), 0.0), 1.0)
         along = _ramp(nt, [(0, (.7, .7, .7)), (.08, (1, 1, 1)), (.6, (.55, .55, .55)), (1, (0, 0, 0))], u)
         dens = _math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', radial, patch), along.outputs['Color'])
-        heat = _ramp(nt, [(0, (1, 1, 1)), (.15, (.55, .55, .55)), (.4, (.12, .12, .12)), (.55, (0, 0, 0))], u)
+        heat = _ramp(nt, [(0, (1, 1, 1)), (.06, (.45, .45, .45)), (.2, (.12, .12, .12)), (.38, (0, 0, 0))], u)
         hcol = heat.outputs['Color']
         em = nt.nodes.new('ShaderNodeEmission')
-        nt.links.new(_blackbody(nt, _math(nt, 'POWER', hcol, .6), hot=5200.0), em.inputs['Color'])
+        nt.links.new(_blackbody(nt, hcol, hot=4200.0), em.inputs['Color'])
         nt.links.new(_math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', dens, hcol), strength / max(r1, 1.0)),
                      em.inputs['Strength'])
         smoke = _ramp(nt, [(.3, (0, 0, 0)), (.6, (1, 1, 1))], u)
@@ -684,14 +684,16 @@ def sheath(name, verts, faces, coll, wind, length, glow=1.0, streamers=22, seed=
     # brightest and shed the flames, the flanks glow faintly, the top and the lee stay dark.
     hot = (into + Vector(belly).normalized() * .6).normalized() if belly is not None else into
     _shell(name + ' sheath', skin, hot, length, coll,
-           _sheath_material(f'{PREFIX} sheath', 40.0 * glow, length * .03), .003, .012, 1.2, .6, seed)
-    _shell(name + ' shock', skin, hot, length, coll, _shock_material(f'{PREFIX} shock layer', 9.0 * glow),
+           _sheath_material(f'{PREFIX} sheath', 32.0 * glow, length * .03), .003, .012, 1.2, .6, seed)
+    _shell(name + ' shock', skin, hot, length, coll, _shock_material(f'{PREFIX} shock layer', 7.0 * glow),
            .008, .05, 1.6, .35, seed + 1)
     # the flames leave the edge of her hot side (front and belly), never the deck in her lee
     rim = [v for v in skin.verts if -.05 < v.normal.dot(hot) < .3 and v.normal.dot(into) > -.1]
     rim = rim or list(skin.verts)
+    down = Vector(belly).normalized() if belly is not None else hot
+    weights = [max(0.0, v.normal.dot(down)) + .12 for v in rim]       # most of them off the belly's edge
     for k in range(min(streamers, len(rim))):
-        v = rnd.choice(rim)
+        v = rnd.choices(rim, weights)[0]
         p0 = v.co + v.normal * length * .01
         ln = length * rnd.uniform(.35, 1.4) * (.3 + .7 * grow)
         rel = p0 - c
@@ -712,8 +714,8 @@ def sheath(name, verts, faces, coll, wind, length, glow=1.0, streamers=22, seed=
     if wake:
         ext = max((v.co - c).dot(W) for v in skin.verts)
         span = length * (.8 + 3.0 * grow)
-        _wake_volume(f'{name} wake', c + W * (ext - length * .1), W, span, length * .08, length * .4, coll,
-                     30.0 * glow, length * .12, seed)
+        _wake_volume(f'{name} wake', c + W * (ext - length * .1), W, span, length * .05, length * .4, coll,
+                     10.0 * glow, length * .1, seed)
     if lights is not None:
         _glow_lights(name, skin, c, hot, length, glow, lights)
     skin.free()
