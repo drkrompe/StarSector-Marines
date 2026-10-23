@@ -96,8 +96,9 @@ def flip_lines(lines):
 
 
 class Doll:
-    def __init__(self, name):
+    def __init__(self, name, width=W):
         self.name = name
+        self.width = width
         self.parts = {}   # location -> list of panels, in drawing order
         self.details = {}  # location -> thin lines drawn inside its panels
 
@@ -140,9 +141,9 @@ class Doll:
                     if lines else "")
             body.append(f'<g id="part-{location}" fill="currentColor" fill-opacity="{FILL_OPACITY}" '
                         f'stroke="currentColor" stroke-width="{STROKE}" stroke-linejoin="miter">{shapes}{thin}</g>')
-        svg = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}">'
+        svg = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {self.width} {H}">'
                f'<title>{self.name} damage doll</title>' + "".join(body) + "</svg>\n")
-        (OUT / f"{self.name}.svg").write_text(svg, encoding="utf-8")
+        (OUT / f"{self.name}.svg").write_text(svg, encoding="utf-8", newline="\n")
         return self.name
 
 
@@ -377,6 +378,40 @@ def bulwark(name):
     return d.write()
 
 
+# --------------------------------------------------------------------- marines
+#
+# A Marine is one front figure in a narrow drawing of its own (MARINE_W wide):
+# there is no rear view, because a person's armor is one pool with no back plate.
+# Its locations are the parts a round can strike (``body-part-cover.md``): head,
+# torso, arms and legs. Only the limbs carry wounds of their own; the head and
+# torso read the body's one armor and health pool.
+
+MARINE_W, MARINE_X = 76, 38
+
+
+def marine(name, suit=False):
+    """A Marine seen from the front; a power suit is the same person in a broader, blockier shell."""
+    d = Doll(name, MARINE_W)
+    cx = MARINE_X
+    if suit:
+        d.panel("HEAD", octagon(-10, 8, 10, 32, 5), cx)
+        d.shape("TORSO", [(-20, 34), (20, 34), (23, 44), (20, 72), (15, 94), (-15, 94), (-20, 72), (-23, 44)], cx,
+                [((-20, 60), (20, 60)), ((0, 62), (0, 92))])
+        arm = [(-25, 34), (-36, 38), (-39, 50), (-37, 98), (-26, 98), (-25, 50)]
+        d.mirrored("ARMS", "ARMS", arm, cx, [((-38, 52), (-25, 52)), ((-38, 74), (-25, 74))])
+        leg = [(-16, 96), (-1, 96), (-2, 128), (-1, 150), (1, 160), (-18, 160), (-17, 150), (-17, 128)]
+        d.mirrored("LEGS", "LEGS", leg, cx, [((-17, 128), (-2, 128))])
+    else:
+        d.panel("HEAD", octagon(-9, 6, 9, 30, 5), cx)
+        d.shape("TORSO", [(-17, 34), (17, 34), (20, 42), (17, 68), (13, 90), (-13, 90), (-17, 68), (-20, 42)], cx,
+                [((-17, 62), (17, 62))])
+        arm = [(-22, 35), (-31, 40), (-34, 66), (-33, 96), (-24, 96), (-23, 66), (-22, 46)]
+        d.mirrored("ARMS", "ARMS", arm, cx, [((-34, 66), (-23, 66))])
+        leg = [(-14, 93), (-1, 93), (-2, 126), (-2, 152), (1, 162), (-16, 162), (-15, 152), (-15, 126)]
+        d.mirrored("LEGS", "LEGS", leg, cx, [((-15, 126), (-2, 126))])
+    return d.write()
+
+
 def main():
     written = [
         tank("tank"),
@@ -395,6 +430,8 @@ def main():
         bulwark("mech-bulwark"),
         hound("mech-hound"),
         warden("mech-warden"),
+        marine("marine"),
+        marine("marine-suit", suit=True),
     ]
     print("wrote", ", ".join(written))
 

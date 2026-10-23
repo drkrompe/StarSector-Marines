@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, deployed APC, friendly Warship, and drone Tende
 
 Written: 2026-09-23
 
-Updated: 2026-10-20 — a damage doll (front and rear, coloured by location) stands in the corner for a Mech or a vehicle.
+Updated: 2026-10-22 — a Marine doll (figure, limb wounds, carried kit) stands in the corner as a machine's damage doll does.
 
 Direct control lets the player temporarily inhabit one of their ground units, or a
 friendly capital hovering over the battle, in
@@ -86,7 +86,17 @@ orange once it is gone, red as structure goes, dark red destroyed) with two flag
 beneath, CRIPPLED and SENSORS LOST for a Mech, IMMOBILE and GUN LOST for a vehicle.
 A hull's side plates are the cheeks either side of each view, so a side reads in
 both; a Mech's rear view drops the legs, which are thin and the same from behind.
-The locations are owned by `d5-located-armor.md`; see `damage-doll.md`. Filled lengths reflect the exact body's remaining fractions;
+The locations are owned by `d5-located-armor.md`; see `damage-doll.md`. A Marine
+shows a **Marine doll** in the same place and size: one front figure, since a person
+has one armor pool and no back plate. Its head and torso read that pool and health on
+the machine doll's colours. Its arms and legs read only the limb wounds the
+simulation keeps (`WoundService`): green when sound, orange at the first wound, red
+once wounds stack to the floor. LEG WOUND (slowed) and ARM WOUND (aim) flags sit
+beneath. A power suit draws as a broader shell. Beside the figure a kit column
+lists what the Marine carries and what is left: special equipment with its rounds or
+cooldown, the integral system's charges or cooldown, and the medic kit's supplies
+when this Marine is the squad medic. The doll invents no hit location: a head or
+torso hit only spends the shared pools. Filled lengths reflect the exact body's remaining fractions;
 armor depletion empties its bar independently of health, and an armorless body
 has no armor row. A **weapon-groups panel** at bottom right lists equipment under
 the button that fires it (see Mouse buttons and weapon groups). At top right,

@@ -113,6 +113,11 @@ public final class DamageDollCanvas implements CanvasProducer {
         return STRUCTURE_RAMP[step(hasArmor ? structure : structure * 2f)];
     }
 
+    /** The structure ramp at {@code fraction}: red at none left, orange whole. */
+    static Color structureColor(float fraction) {
+        return STRUCTURE_RAMP[step(fraction)];
+    }
+
     private static int step(float fraction) {
         return Math.round(Math.max(0f, Math.min(1f, fraction)) * STEPS);
     }
