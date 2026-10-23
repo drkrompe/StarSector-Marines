@@ -729,9 +729,12 @@ def key(ctx, coll, fl, a, motor_mat, body_mat, cylinder_mesh, mpu):
     glare.location = (-2.6, 0, 0)
     glare.visible_shadow = False
     gr = prof['glare_m'] / mpu / s
-    _bake(glare, 'scale', 0, [fi, fi + 3], [gr * .3, gr])
-    _bake(glare, 'scale', 1, [fi, fi + 3], [gr * .3, gr])
-    _bake(glare, 'scale', 2, [fi, fi + 3], [gr * .3, gr])
+    # No orbs (owner, 2026-10-23: the Harpoons' heads read as "white orbs"): the glare is a streak
+    # drawn out behind the motor along the flight, thin across it, never a round ball.
+    glare.location = (-2.6 - gr * 1.4, 0, 0)
+    _bake(glare, 'scale', 0, [fi, fi + 3], [gr * .5, gr * 1.8])
+    _bake(glare, 'scale', 1, [fi, fi + 3], [gr * .12, gr * .3])
+    _bake(glare, 'scale', 2, [fi, fi + 3], [gr * .12, gr * .3])
     gf, gv, gh = [fi, burn_end], [1.0, 1.0], [0.0, 0.0]
     if fl.hot:                                  # in a PD laser's beam: heating toward white
         h0, h1 = fl.hot

@@ -100,12 +100,30 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  */
 public final class FiringSystem {
 
+    /** Whether a friend of the shooter stands in the lane to the target ({@code BallisticResolver.friendInLane}). */
+    @FunctionalInterface
+    public interface FriendInLane {
+        FriendInLane NONE = (shooter, target) -> false;
+
+        boolean test(long shooter, long target);
+    }
+
     private final NavigationGrid grid;
     private final UnitRosterService roster;
+    private FriendInLane friendInLane = FriendInLane.NONE;
 
     public FiringSystem(NavigationGrid grid, UnitRosterService roster) {
         this.grid = grid;
         this.roster = roster;
+    }
+
+    /**
+     * Who answers the lane check a trained shooter makes before firing on a target: a friend in the lane holds the
+     * trigger ({@link FireGate#FRIENDLY_IN_LANE}) without spending the cooldown, so the round goes the tick the lane
+     * clears. {@link FriendInLane#NONE} is the control, where only the after-the-fact discipline roll is left.
+     */
+    public void setFriendInLane(FriendInLane friendInLane) {
+        this.friendInLane = friendInLane != null ? friendInLane : FriendInLane.NONE;
     }
 
     /**
@@ -221,6 +239,13 @@ public final class FiringSystem {
                 if (!grid.hasLineOfFire(w.x(shooterId), w.y(shooterId),
                         w.x(ft), w.y(ft))) {
                     lastFireGate[r] = FireGate.NO_LOS.ordinal();
+                    continue;
+                }
+                // A trained shooter does not fire through his own side: a friend in the lane holds the trigger
+                // before the round is committed, not after (the discipline roll in InfantryWeapons is what is
+                // left for a friend who steps in during the flight or a round that strays off the line).
+                if (type.usesInfantryTraining() && friendInLane.test(shooterId, ft)) {
+                    lastFireGate[r] = FireGate.FRIENDLY_IN_LANE.ordinal();
                     continue;
                 }
 

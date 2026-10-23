@@ -268,6 +268,24 @@ clear line plays exactly as before. Crew-served tubes keep their own stricter
 refusal (no round onto ground a friend stands on); aircraft guns do not hold
 yet, and a player's point-aimed round is never held. `-Dbattle.turret.crewFriendlyHold=false` is the control.
 
+**Check the lane before the trigger.** The rolls above act on a round already
+committed; they are what is left for a friend who steps in mid-flight or a
+round that strays. Before that, every disciplined shooter looks: a trained
+rifleman (marine or militia, on any side) firing on a target, a ground gun crew
+that holds for friends, and a mech's own fire control each refuse to fire while
+a friendly body stands in the lane (`BallisticResolver.friendInLane`): from where
+the resolver first lets a round strike a friend (two cells out) to a cell and a
+half past the target, within the friend's radius plus a quarter cell of the
+line. The rifleman's refusal spends no cooldown, so the round goes the tick the
+lane clears, and each round of a burst checks again. A crew or a chassis also
+never puts a burst over its own hull, and a chassis never bursts a round where a
+friend's footprint reaches (`BallisticResolver.friendInBlast`). The checks read
+only and draw nothing from the battle's random stream. Point fire a player aims
+is never held. Before it, an allied front of militia waves, technicals and
+Hounds spent much of its fire on itself: on the Broad Front at seed 404, 584
+allied hits on allies and 74 kills by tick 9,500, plus 133 hits by vehicles and
+mechs on their own hulls. `-Dbattle.fire.laneDiscipline=false` is the control.
+
 ## Resolution, payload, and presentation
 
 `BallisticResolver` owns pure fire-time trajectory and contact resolution.
