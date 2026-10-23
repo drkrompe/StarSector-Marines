@@ -73,6 +73,15 @@ final class HamletBeat extends CordonBeat {
     }
 
     @Override
+    String describe(BattleSimulation sim) {
+        int[] place = beats.centre(CordonSetPieces.BELL_SQUARE);
+        String at = place == null ? "no place" : "at " + place[0] + "," + place[1];
+        if (group == null) return at;
+        return at + ", " + group.onField() + " on the field, " + group.out() + " out, " + group.lost() + " lost"
+                + (reached ? ", reached" : "");
+    }
+
+    @Override
     int[] call(BattleSimulation sim) {
         if (group == null || reached) return null;
         int[] at = group.where(sim);

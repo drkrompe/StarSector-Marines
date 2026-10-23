@@ -75,6 +75,15 @@ final class StragglersBeat extends CordonBeat {
     }
 
     @Override
+    String describe(BattleSimulation sim) {
+        int[] place = beats.centre(CordonSetPieces.FARMSTEAD);
+        String at = place == null ? "no place" : "at " + place[0] + "," + place[1];
+        if (family == null) return at;
+        return at + ", " + family.onField() + " on the field, " + family.out() + " out, " + family.lost() + " lost"
+                + (reached ? ", reached" : "");
+    }
+
+    @Override
     int[] call(BattleSimulation sim) {
         if (family == null) return null;
         int[] at = family.where(sim);
