@@ -258,6 +258,25 @@ public final class ConvoyService implements BodyCarrier {
         return type != null ? Math.max(type.visualLengthCells, type.visualWidthCells) * 0.5f : 0f;
     }
 
+    /** The hull's footprint, as {@code HullImpact} meets it: its drawn length and width. */
+    @Override
+    public float hullHalfLength(long id) {
+        VehicleType type = vehicleType(id);
+        return type != null ? type.visualLengthCells * 0.5f : 0f;
+    }
+
+    @Override
+    public float hullHalfWidth(long id) {
+        VehicleType type = vehicleType(id);
+        return type != null ? type.visualWidthCells * 0.5f : 0f;
+    }
+
+    @Override
+    public float hullFacingDegrees(long id) {
+        GroundBody body = body(id);
+        return body != null ? body.facingDegrees : 0f;
+    }
+
     @Override
     public float hitHalfHeight(long id) {
         VehicleType type = vehicleType(id);
