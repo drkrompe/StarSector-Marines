@@ -27,6 +27,8 @@ flow back into the campaign.
 ## Current focus
 
 The cross-feature status for a first public alpha is tracked in `v0.1-alpha.md`.
+Work assigned to the release after it is collected in `v0.2.md`; the new mech
+lines (`mech-lines.md`) are its first item.
 Its current direction is toned-down Conquest for early progression, with one
 to twenty Marine squads and two to eight heavy lances of up to four chassis
 each. Mech and vehicle rosters are separate, and maps may exceed 300 dimensions
