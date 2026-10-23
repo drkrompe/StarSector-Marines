@@ -481,11 +481,19 @@ surges instead of waiting for headroom it never gets.
 
 ### The company
 
-Until `cordon-company-command.md`, the company's autonomous commander is the
-minimum the evidence needs: the company stands as the reserve behind the middle
-of the line, each squad goes to the calling redoubt nearest it, and returns to
-the reserve when no redoubt calls. It hears every call and knows where every
-redoubt stands; it sees the swarm only through its own squads.
+The company's autonomous commander hears the allies' **radio**: a redoubt is
+*breached* (the swarm inside its wall), *bled* (half its garrison down), and
+the allies say whether help is coming. It answers a breach with a two-squad
+**relief** that holds until the redoubt has been quiet for a settle window, a
+bleed only when no help is coming, the road's convoys and the optional
+objectives as before, and the base when it is overrun; outside a tide a third
+of the company stays uncommitted. The uncommitted wait by density: the reserve
+behind the middle of the line in open country, the hinge between the middle
+redoubts in a town (up in its gap in a tide), two hammers behind the redoubt
+pairs in a city. It knows where every redoubt stands and sees the swarm only
+through its own squads. The rules, and the allied line command's for its own
+machines: `cordon-allied-command.md`; posture and strikes:
+`cordon-company-command.md`.
 
 ### Evidence
 

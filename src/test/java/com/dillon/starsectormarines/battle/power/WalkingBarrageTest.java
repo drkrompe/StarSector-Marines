@@ -28,6 +28,17 @@ class WalkingBarrageTest {
     }
 
     @Test
+    void oneMoreLineOpensAsTheLastLifts() {
+        WalkingBarrage barrage = new WalkingBarrage(new WalkingBarrage.Plan(List.of(
+                new WalkingBarrage.Line(0.3f, 10f, 20f, 0)), SHELL, 2f, 0.01f), (depth, across) -> new int[]{0, 0},
+                null, 1L);
+        assertEquals(true, barrage.extend(0.06f, 15f));
+        assertEquals(1, barrage.plan().firingAt(30f), "the new line takes over as the last lifts");
+        assertEquals(0.36f, barrage.plan().lines().get(1).depth(), 1e-6f);
+        assertEquals(45f, barrage.plan().endSeconds());
+    }
+
+    @Test
     void aLineMayNotOpenBeforeTheLastLifts() {
         assertThrows(IllegalArgumentException.class, () -> new WalkingBarrage.Plan(List.of(
                 new WalkingBarrage.Line(0.3f, 10f, 20f, 0),

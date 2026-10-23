@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.command.HeartLane;
+import com.dillon.starsectormarines.battle.command.allied.AlliedCommand;
+import com.dillon.starsectormarines.battle.command.allied.SupplyDelivery;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierLook;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierRules;
 import com.dillon.starsectormarines.battle.evacuation.flier.SwarmFliers;
@@ -34,11 +36,12 @@ import java.util.Set;
  * piece it is staged in, so a map that could not hold the piece never rolls the
  * beat, and the battle's board publishes {@code heart.objective_<key>_*}.
  *
- * <p>The runtimes read the battle and decide; they never order a unit. Two
- * stage what their beat needs when they start: the guns' and the spores' beats
- * dig a flak position for the company and raise Harrier packs, which fly only
- * under that cover (`colony-breach-nouns.md`, Harrier). The ammunition convoy
- * (B5) and the lost column's survivors joining a lane wait on allied forces.
+ * <p>The runtimes read the battle and decide; they never order the company.
+ * Some stage what their beat needs: the guns' and the spores' beats dig a flak
+ * position for the company and raise Harrier packs, which fly only under that
+ * cover (`colony-breach-nouns.md`, Harrier), and the ammunition beat sends its
+ * trucks up through the shared supply delivery (`allied-tools.md`). The lost
+ * column's survivors joining a lane wait on allied forces.
  */
 public final class HeartObjectives {
 
@@ -65,6 +68,8 @@ public final class HeartObjectives {
     public static final String ROAD = "road_open";
     /** B1: the company never close enough to stop a gun. */
     public static final String CLEAR = "clear_of_the_walk";
+    /** B5: an ammunition truck through to the guns, for one more line. */
+    public static final String AMMUNITION = "one_more_line";
     /** B6: every mother down in the quiet after the last line. */
     public static final String LAST = "last_stretch";
 
@@ -86,6 +91,13 @@ public final class HeartObjectives {
     static final int APPROACH_SATELLITES = 2;
     /** The barrage line whose opening sends a pack out along the flank toward the guns. */
     static final int BREAKOUT_LINE = 2;
+
+    /** The barrage line whose opening sends the ammunition trucks up. */
+    static final int AMMUNITION_LINE = 3;
+    /** Trucks in the ammunition run, and ticks between them leaving the park. */
+    static final int TRUCKS = 2, TRUCK_GAP_TICKS = 300;
+    /** The extra line: as deep past the last as the Burn's plan steps, and as long as one of its lines fires. */
+    static final float EXTRA_LINE_STEP = 0.06f, EXTRA_LINE_SECONDS = 40f;
 
     /** Seconds the lost column holds out before it falls. */
     static final int HOLDOUT_FALLS_SECONDS = 420;
@@ -148,6 +160,12 @@ public final class HeartObjectives {
                         "Follow the barrage close, but never so close that a gun holds its fire for you.",
                         Set.of(), Set.of(), 2,
                         new Reward(2000, Map.of(), Map.of()), Cost.NONE, ctx -> clear(ctx)),
+                new OptionalObjective(AMMUNITION, "One more line",
+                        "The battery is low. Ammunition trucks come up from the vehicle park when the third line"
+                                + " opens; if one reaches the guns before the last line lifts, the plan gains one"
+                                + " more line.",
+                        Set.of(HeartLayout.VEHICLE_PARK), Set.of(), 2,
+                        new Reward(2000, Map.of(), Map.of()), Cost.NONE, ctx -> ammunition(ctx)),
                 new OptionalObjective(LAST, "The guns fall silent",
                         "When the last line lifts, finish the mothers before the swarm regrows.",
                         Set.of(), Set.of(), 2,
@@ -236,9 +254,8 @@ public final class HeartObjectives {
                     if (bore != null) {
                         float dx = bore.x() - middle[0], dy = bore.y() - middle[1];
                         float d = (float) Math.max(1.0, Math.sqrt(dx * dx + dy * dy)), r = Math.min(d, PACK_STANDOFF);
-                        if (raisePack(c.sim(), middle[0] + dx / d * r, middle[1] + dy / d * r)) {
-                            c.publish(tick, "battery_threatened");
-                        }
+                        c.publish(tick, raisePack(c.sim(), middle[0] + dx / d * r, middle[1] + dy / d * r)
+                                ? "battery_threatened" : "harriers_grounded");
                     }
                 }
                 for (long gun : guns) if (!standing(c.sim(), gun)) return Status.FAILED;
@@ -330,10 +347,15 @@ public final class HeartObjectives {
                         sprouted = true;
                         if (!standing(sim, colony)) continue;
                         standing = true;
-                        if (packs < SPORE_PACKS && tick >= nextPack && preyNear(sim, colony)
-                                && raisePack(sim, sim.world().x(colony), sim.world().y(colony))) {
-                            packs++;
-                            nextPack = tick + SPORE_PACK_SECONDS * TICKS_PER_SECOND;
+                        if (packs < SPORE_PACKS && tick >= nextPack && preyNear(sim, colony)) {
+                            if (raisePack(sim, sim.world().x(colony), sim.world().y(colony))) {
+                                packs++;
+                                nextPack = tick + SPORE_PACK_SECONDS * TICKS_PER_SECOND;
+                                c.publish(tick, "harrier_pack_" + packs);
+                            } else {
+                                // The colony would launch, but nothing on the company's side can answer a flier.
+                                c.publish(tick, "harriers_grounded");
+                            }
                         }
                     }
                 }
@@ -438,6 +460,72 @@ public final class HeartObjectives {
             if (barrage == null) return Status.LAPSED;
             if (barrage.vetoed() > 0) return Status.FAILED;
             return c.hasBeat("barrage_ended") ? Status.SUCCEEDED : Status.ACTIVE;
+        };
+    }
+
+    /**
+     * B5: when the barrage's third line opens, {@link #TRUCKS} ammunition trucks leave the vehicle park
+     * ({@link HeartVehiclePark}, waiting while the swarm is on it) for the battery. The first through adds one more
+     * line to the plan, if the last has not lifted; every truck lost, or the battle ending first, fails it.
+     */
+    static ObjectiveRuntime ammunition(ObjectiveContext ctx) {
+        HeartVehiclePark park = HeartVehiclePark.of(ctx.laid());
+        return new ObjectiveRuntime() {
+            final AlliedCommand command = new AlliedCommand("heart-ammunition");
+            final List<SupplyDelivery> trucks = new ArrayList<>();
+            int sentAt = -1;
+            Status outcome;
+
+            @Override public Status advance(ObjectiveContext c, int tick) {
+                if (outcome != null) return outcome;
+                HeartSequence heart = c.sim().getHeart();
+                WalkingBarrage barrage = heart == null ? null : heart.barrage();
+                if (park == null || barrage == null) return Status.LAPSED;
+                if (sentAt < 0) {
+                    if (!c.hasBeat("barrage_line_" + AMMUNITION_LINE)) return Status.ACTIVE;
+                    sentAt = tick;
+                }
+                if (trucks.size() < TRUCKS && tick >= sentAt + trucks.size() * TRUCK_GAP_TICKS) {
+                    trucks.add(SupplyDelivery.ammunition(battery(barrage), park));
+                }
+                command.advance(c.sim());
+                boolean lost = trucks.size() == TRUCKS;
+                for (SupplyDelivery truck : trucks) {
+                    SupplyDelivery.State state = truck.advance(c.sim(), command);
+                    if (state == SupplyDelivery.State.DELIVERED) {
+                        boolean added = barrage.extend(EXTRA_LINE_STEP, EXTRA_LINE_SECONDS);
+                        c.publish(tick, added ? "ammunition_up" : "ammunition_late");
+                        outcome = added ? Status.SUCCEEDED : Status.FAILED;
+                        return outcome;
+                    }
+                    if (state != SupplyDelivery.State.LOST) lost = false;
+                }
+                if (lost) {
+                    c.publish(tick, "ammunition_lost");
+                    outcome = Status.FAILED;
+                    return outcome;
+                }
+                return Status.ACTIVE;
+            }
+
+            @Override public Status end(ObjectiveContext c) {
+                if (outcome != null) return outcome;
+                return sentAt < 0 ? Status.LAPSED : Status.FAILED;
+            }
+        };
+    }
+
+    /** The battery as a delivery's recipient: the middle of its standing guns, gone once none stands. */
+    private static SupplyDelivery.Recipient battery(WalkingBarrage barrage) {
+        return new SupplyDelivery.Recipient() {
+            @Override public String name() { return "battery"; }
+
+            @Override public int[] where(BattleSimulation sim) {
+                float[] middle = centroid(sim, barrage.guns());
+                return middle == null ? null : new int[]{(int) middle[0], (int) middle[1]};
+            }
+
+            @Override public void arrived(BattleSimulation sim) { }
         };
     }
 
