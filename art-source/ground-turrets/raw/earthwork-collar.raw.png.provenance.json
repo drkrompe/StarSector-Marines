@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16a23-e30f-76d2-83ad-31ad3704c3bd",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16a23-e30f-76d2-83ad-31ad3704c3bd\\exec-35e306d5-a153-4335-b343-bd201b895b38.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ground-turrets\\raw\\earthwork-collar.raw.png",
+    "sha256": "06d4145664a0910ceb18a2fcb519a1ba6ea246ffbbb5b45b7abddfe48b06a2cc",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ground-turrets\\prompts\\earthwork-collar.prompt.txt",
+  "promptSha256": "b89dd30f4f09b9dcde5c2e56deedb5f5294424a39ccb7223b8ff530b3bdfb11f",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target: keep the silhouette, position and size\nImage 2: Material and colour reference only (same family); not layout\n\nUse case: sketch-to-render, game sprite. Image 1 is the authoritative geometry guide and edit target: reskin it, keeping the shape exactly where and how big it is on the 1536x1024 canvas. It holds one object seen from directly above: a ring of plump tan burlap sacks with tied ends, laid in a circle like a garden planter ring, around a round dark hole in packed earth (leave the hole dark and plain: something else sits over it later). Rustic frontier-farm construction, khaki and tan sacking, sagging, dusty, a little packed dirt between the sacks. Straight 90-degree overhead orthographic camera, top-down like a strategy-game map sprite, no perspective tilt. Sun from the upper left: the sacks on the upper-left of the ring are lit, the lower-right ones are in shade. Hand-painted science-fiction game-sprite look like Starsector, restrained desaturated palette, coarse readable detail that survives being shrunk to about 40 pixels across. No text, no labels, no watermark, no UI, no ground or grass outside the ring, no cast shadow outside the object, no border. Transparent background outside the silhouette (if transparency is impossible, a flat pure white background). Change only material, surface detail and subtle shading, never placement, size or silhouette.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\ground-turrets\\guides\\earthwork-collar-guide.png",
+      "sha256": "baee390e1c4d8d18e5427d5b57c3154a75033caa9c36c4121990cda63964d48d",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target: keep the silhouette, position and size"
+    },
+    {
+      "path": "art-source\\ground-turrets\\raw\\earthwork-hardpoint.raw.png",
+      "sha256": "6289b0915af7dffbdfc1879278e5d53850e84f8ed6bb32413e9e436fa7f6c74e",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material and colour reference only (same family); not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render one sprite, preserving Image 1’s geometry and using Image 2 only for materials and colour."
+  ],
+  "usage": {
+    "input_tokens": 81217,
+    "cached_input_tokens": 62464,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 654,
+    "reasoning_output_tokens": 24
+  },
+  "elapsedSeconds": 53.5
+}

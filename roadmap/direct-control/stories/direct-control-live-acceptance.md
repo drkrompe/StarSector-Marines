@@ -30,6 +30,11 @@ including its transition back to autonomous play.
   transitions into and out of control; aim and the crosshair must agree. The
   thin HUD must leave the body visible, docking at the top when map clamping
   places it near the bottom edge.
+- Sweep the cursor across each reticle mark on a Bulwark, a Hound, an APC and a
+  Marine. Each tick's colour matches what its click does, no mark moves for
+  cooldown, reload, burst or flux, and the grey a slewing torso shows for a
+  moment does not read as a flicker. Check whether the 80% optimal share puts
+  yellow where accuracy feels like it falls off.
 - Sweep the cursor during a Bulwark burst, including behind the hips and while
   a barrel is blocked. The torso must follow current input within its physical
   limits, without an old burst pulling aim back or crossing the rear blind wedge.

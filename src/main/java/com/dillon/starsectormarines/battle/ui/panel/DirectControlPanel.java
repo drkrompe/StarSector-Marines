@@ -63,7 +63,7 @@ public final class DirectControlPanel implements HudPanel {
                     camera.cellToScreenX(0f), camera.cellToScreenY(0f))) HudDraw.stroke(stroke, alpha);
         }
         scatterRing(sim, id, aim.aimX(), aim.aimY(), aimX, aimY, camera.cellPxSize(), alpha);
-        for (var stroke : DirectControlReticle.strokes(DirectControlReticle.LIVE, DirectControlFireMarks.read(sim),
+        for (var stroke : DirectControlReticle.strokes(DirectControlFireMarks.read(sim),
                 aimX, aimY, CONTROLLED)) HudDraw.stroke(stroke, alpha);
     }
 

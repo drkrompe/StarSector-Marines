@@ -12,4 +12,3 @@ Read `direct-control-nouns.md` before changing these stories.
 | `direct-control-live-acceptance.md` | LIVE ACCEPTANCE | Validate feel, AI handback, combat parity, and lifecycle in a real battle before wider availability. |
 | `damage-doll.md` | IN PROGRESS | Line-art front and rear doll for mechs and vehicles, each location coloured by its state; live pass left. |
 | `weapon-cycling.md` | IN PROGRESS: mech Q/E cycle and keycap HUD headers shipped; Marine specials, grenades, vehicles open | Left and right buttons each cycle their group (LINKED, then each); Marines toggle the left button into a rocket or rifle special, grenades join the right. |
-| `aim-reticle.md` | IN PROGRESS: marks and split brackets live; shape on the picks page | One mark per mouse button at the cursor, coloured by what a click would do now. |

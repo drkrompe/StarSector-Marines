@@ -59,15 +59,15 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * The aim reticle's shape options on a real battle: a Bulwark under direct control, chainguns on the left button
+ * The aim reticle's marks on a real battle: a Bulwark under direct control, chainguns on the left button
  * and two LRM racks on the right, with the cursor where the chainguns fall off, inside the racks' minimum and past
  * the chainguns' range; then a Marine with smoke on the right button. The marks are {@link DirectControlFireMarks#read}, the strokes
  * {@link DirectControlReticle}'s, both production; only the stroke drain is a Java2D copy of the GL panel's.
- * A look study for the picks page, so it is left out of {@code all}.
+ * A look study, so it is left out of {@code all}.
  */
 public final class AimReticleSnapshotSuite implements SnapshotSuite {
     @Override public String id() { return "aim-reticle"; }
-    @Override public String label() { return "Direct-control aim reticle shape options"; }
+    @Override public String label() { return "Direct-control aim reticle marks"; }
     @Override public boolean inAll() { return false; }
 
     private static final int WIDTH = 1920;
@@ -107,12 +107,9 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
                 selection.selectUnit(world.squadId("lance"), mech);
                 require(sim.directControl().enter(mech), "The Bulwark can take control");
                 int index = 1;
-                for (DirectControlReticle.Look look : DirectControlReticle.Look.values()) {
-                    for (Aim aim : MECH_AIMS) {
-                        frames.add(frame(context, sim, selection, mech, aim, look,
-                                String.format(Locale.ROOT, "%02d-%s-bulwark-%s", index++,
-                                        look.name().toLowerCase(Locale.ROOT), aim.name())));
-                    }
+                for (Aim aim : MECH_AIMS) {
+                    frames.add(frame(context, sim, selection, mech, aim,
+                            String.format(Locale.ROOT, "%02d-bulwark-%s", index++, aim.name())));
                 }
                 sim.directControl().exit();
                 long marine = world.members("infantry")[0];
@@ -120,8 +117,7 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
                 require(sim.directControl().enter(marine), "The Marine can take control");
                 float range = sim.world().attackRange(marine);
                 frames.add(frame(context, sim, selection, marine, new Aim("marine", range * 0.75f),
-                        DirectControlReticle.LIVE, String.format(Locale.ROOT, "%02d-%s-marine", index,
-                                DirectControlReticle.LIVE.name().toLowerCase(Locale.ROOT))));
+                        String.format(Locale.ROOT, "%02d-marine", index)));
                 sim.directControl().exit();
             }
         } finally { Global.setSettings(previous); }
@@ -129,7 +125,7 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
     }
 
     private static SnapshotArtifact frame(SnapshotContext context, BattleSimulation sim, Selection selection,
-                                          long id, Aim aim, DirectControlReticle.Look look, String name)
+                                          long id, Aim aim, String name)
             throws Exception {
         float x = sim.world().renderX(id);
         float y = sim.world().renderY(id);
@@ -181,8 +177,8 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
                 float r = ring != null ? DirectControlPanel.scatterRingPx(ring, camera.cellPxSize()) : -1f;
                 if (r >= 0f) draw(graphics, DirectControlReticle.scatterRing(ring.mark(), sx, sy, r), 0.8f);
             }
-            draw(graphics, DirectControlReticle.strokes(look, marks, sx, sy, DirectControlPanel.controlledColor()), 1f);
-            caption(graphics, look, aim, marks);
+            draw(graphics, DirectControlReticle.strokes(marks, sx, sy, DirectControlPanel.controlledColor()), 1f);
+            caption(graphics, aim, marks);
             inset(graphics, image, sx, HEIGHT - sy);
             graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
             for (var surface : control.surfaces()) {
@@ -199,10 +195,10 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
         return new SnapshotArtifact(name + "-1920x1080-ui100.png", image);
     }
 
-    /** The review label: which shape, where the cursor is, and what each button's mark reads. */
-    private static void caption(Graphics2D graphics, DirectControlReticle.Look look, Aim aim,
+    /** The review label: where the cursor is, and what each button's mark reads. */
+    private static void caption(Graphics2D graphics, Aim aim,
                                 DirectControlFireMarks.Marks marks) {
-        String text = String.format(Locale.ROOT, "%s   cursor %.0f cells   LMB %s   RMB %s", look.name(), aim.cells(),
+        String text = String.format(Locale.ROOT, "cursor %.0f cells   LMB %s   RMB %s", aim.cells(),
                 label(marks.left()), label(marks.right()));
         graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
         graphics.setColor(new Color(0, 0, 0, 170));
