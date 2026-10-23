@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-22 — Living field (homesteads, militia knots, refugee families walking out toward the company, stragglers; prey by the existing rules, read not scored); pack press and sub-packs (strike slots, holders wheel and waiters circle, surplus peeled onto other prey, re-merge on quarry death); Creep on green worlds as built (grown over trees, which die to bare bone-pale skeletons that no longer hide or shelter anyone, the owner's choice; grass and crops wilt ahead of its edge); campaign: blooms as built, frequent, at the benign first severity tier with spores carried on traffic, and the owner's arc as direction; growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
+Updated: 2026-10-22 — Living field at the owner's picks, dense and militia-armed (homesteads, militia knots, refugee families walking out toward the company, stragglers; prey by the existing rules, read not scored); pack press and sub-packs (strike slots, holders wheel and waiters circle, surplus peeled onto other prey, re-merge on quarry death); Creep on green worlds as built (grown over trees, which die to bare bone-pale skeletons that no longer hide or shelter anyone, the owner's choice; grass and crops wilt ahead of its edge); campaign: blooms as built, frequent, at the benign first severity tier with spores carried on traffic, and the owner's arc as direction; growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -297,7 +297,7 @@ sixteen cells of the map's edge, where the opening seepage comes in:
 - **Homesteads**: houses on the colony's spread held by a few armed colonists
   with their family indoors behind them, held as any building is held (a
   hold-the-place order on the house). How they are armed is a choice: *militia*
-  (four guns at the colony militia's grade, the default) hold through the
+  (four guns at the colony militia's grade, the default and the owner's pick) hold through the
   opening seepage and fall during the breach, where their bodies feed the
   bores; *farm* (three guns at the lowest grade) are mostly gone to the seepage
   before any bore opens.
@@ -319,8 +319,10 @@ sixteen cells of the map's edge, where the opening seepage comes in:
 - **Stragglers**: lone colonists out in the open, wandering as an ambient
   civilian does.
 
-How much of it the colony carries is a **density** (sparse, standard, dense:
-homesteads, knots, families and stragglers). Nothing here is scored: the win is
+How much of it the colony carries is a **density**, counted as homesteads,
+knots, families and stragglers: sparse (2, 2, 4, 4), standard (4, 3, 6, 8) or
+**dense** (6, 5, 9, 12). The owner picked dense, a colony still full of
+people (2026-10-22). Nothing here is scored: the win is
 still the cohort, and what the field records (placed, alive, refugees set out,
 got away) is a reading the breach evidence reports beside the harvest. It is
 deterministic in the seed: places are drawn at setup, and the families'
