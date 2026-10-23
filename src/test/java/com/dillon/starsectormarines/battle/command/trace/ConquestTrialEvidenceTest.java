@@ -377,7 +377,7 @@ class ConquestTrialEvidenceTest {
                 ground.fort().plan().height() / 2);
 
         BattleSetup.MapBuild build = BattleSetup.populateConquest(ground.map(), seed, TraversalAxis.SOUTH_TO_NORTH,
-                new Random(seed), manifest, arrival, arrival.sizedConfigFor(manifest), false,
+                new Random(seed), manifest, arrival, arrival.sizedConfig(), false,
                 OperationTier.ESTABLISHED, risk, profileOf(f), FlybyRoster.EMPTY, FlybyRoster.EMPTY,
                 GroundRosterRegistry.resolve(""), roster);
         try (BattleSimulation sim = build.sim();

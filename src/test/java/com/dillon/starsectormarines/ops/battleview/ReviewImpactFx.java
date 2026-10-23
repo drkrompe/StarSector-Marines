@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.render2d.texture.FittedTextureOverlay;
+import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
@@ -13,7 +15,6 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.SettingsAPI;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
-import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -136,7 +137,9 @@ public final class ReviewImpactFx {
     private OrdnanceTraceFxService traces() {
         if (traces == null) {
             try {
-                traces = new OrdnanceTraceFxService(HeadlessBattleSceneRenderer.spritesFor(modRoot));
+                // Its falling rounds are drawn by whichever drain draws the frame, so they carry that drain's tokens.
+                GlReviewDrain gpu = ReviewSceneBackend.gpu(modRoot);
+                traces = new OrdnanceTraceFxService(gpu != null ? gpu.sprites() : HeadlessBattleSceneRenderer.spritesFor(modRoot));
             } catch (Exception failure) {
                 throw new IllegalStateException("Could not prepare headless sprites for ordnance traces", failure);
             }
@@ -235,7 +238,7 @@ public final class ReviewImpactFx {
             Path file = root.resolve(path);
             if (!Files.isRegularFile(file)) continue;
             try {
-                image = ImageIO.read(file.toFile());
+                image = FittedTextureOverlay.read(path, file);
             } catch (IOException unreadable) {
                 image = null;
             }
@@ -334,6 +337,13 @@ public final class ReviewImpactFx {
     }
 
     private SpriteAPI recordingSprite(String path) {
+        SpriteAPI sprite = recordingSpriteFor(path);
+        BufferedImage image = art(path);
+        if (image != null) TextureUsage.name(sprite, path, image.getWidth(), image.getHeight());
+        return sprite;
+    }
+
+    private SpriteAPI recordingSpriteFor(String path) {
         State state = new State(path);
         return (SpriteAPI) Proxy.newProxyInstance(
                 SpriteAPI.class.getClassLoader(), new Class<?>[]{SpriteAPI.class},
