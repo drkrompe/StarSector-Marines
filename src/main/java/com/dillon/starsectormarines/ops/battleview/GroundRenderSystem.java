@@ -341,12 +341,12 @@ public final class GroundRenderSystem implements RenderSystem {
             sublayers = expanded;
         }
         // The shore lies over the feathered ground and under everything laid on it.
-        Shore shore = WaterShore.enabled() ? Shore.of(this, topology) : null;
+        Shore shore = Shore.of(this, topology);
         if (shore != null) {
             int at = 1 + (feather != null ? GroundFeather.RANKS * 4 : 0);
             WaterShore.Band[] bands = WaterShore.Band.values();
-            // The bands, then a ford's pebble bed and its stepping stones over its shallows.
-            int pieces = (bands.length + 2) * WaterShore.TRIANGLES;
+            // The bands, then a ford's pebble bed over its shallows.
+            int pieces = (bands.length + 1) * WaterShore.TRIANGLES;
             GroundMesh.CellResolver[] expanded = new GroundMesh.CellResolver[sublayers.length + pieces];
             System.arraycopy(sublayers, 0, expanded, 0, at);
             for (int band = 0; band < bands.length; band++) {
@@ -359,7 +359,6 @@ public final class GroundRenderSystem implements RenderSystem {
             for (int triangle = 0; triangle < WaterShore.TRIANGLES; triangle++) {
                 final int t = triangle;
                 expanded[at + bands.length * WaterShore.TRIANGLES + triangle] = (x, y, sink) -> shore.resolveBed(t, x, y, sink);
-                expanded[at + (bands.length + 1) * WaterShore.TRIANGLES + triangle] = (x, y, sink) -> shore.resolveStone(t, x, y, sink);
             }
             System.arraycopy(sublayers, at, expanded, at + pieces, sublayers.length - at);
             sublayers = expanded;
@@ -647,7 +646,7 @@ public final class GroundRenderSystem implements RenderSystem {
 
         private void resolveFloor(int x, int y, GroundMesh.CellSink sink) {
             CellTopology.GroundKind kind = topology.getGroundKind(x, y);
-            if (kind == CellTopology.GroundKind.WATER && WaterShore.enabled()
+            if (kind == CellTopology.GroundKind.WATER
                     && WaterShore.isShoreWater(topology, x, y)) {
                 // The shore bands draw this cell's water; what they cut away is the bank's ground.
                 int[] donor = WaterShore.groundDonor(topology, x, y);
@@ -857,19 +856,17 @@ public final class GroundRenderSystem implements RenderSystem {
         private final CellTopology topology;
         private final GridBlockDef[] blocks;
         private final SpriteAPI[] sheets;
-        /** A ford's pebble bed and stepping stones, each null when the look has none or its art is not loaded. */
-        private final GridBlockDef bed, stone;
-        private final SpriteAPI bedSheet, stoneSheet;
+        /** A ford's pebble bed, null when its art is not loaded. */
+        private final GridBlockDef bed;
+        private final SpriteAPI bedSheet;
 
         private Shore(CellTopology topology, GridBlockDef[] blocks, SpriteAPI[] sheets,
-                      GridBlockDef bed, SpriteAPI bedSheet, GridBlockDef stone, SpriteAPI stoneSheet) {
+                      GridBlockDef bed, SpriteAPI bedSheet) {
             this.topology = topology;
             this.blocks = blocks;
             this.sheets = sheets;
             this.bed = bedSheet == null ? null : bed;
             this.bedSheet = bedSheet;
-            this.stone = stoneSheet == null ? null : stone;
-            this.stoneSheet = stoneSheet;
         }
 
         /** The shore for this pass, or null when its art is not loaded. */
@@ -887,10 +884,8 @@ public final class GroundRenderSystem implements RenderSystem {
                 blocks[band.ordinal()] = block;
                 sheets[band.ordinal()] = sheet;
             }
-            GridBlockDef bed = WaterShore.PEBBLE_BLOCK == null ? null : system.tileReg.block(WaterShore.PEBBLE_BLOCK);
-            GridBlockDef stone = WaterShore.STONE_BLOCK == null ? null : system.tileReg.block(WaterShore.STONE_BLOCK);
-            return new Shore(topology, blocks, sheets, bed, bed == null ? null : system.sheetFor(bed.sheetPath),
-                    stone, stone == null ? null : system.sheetFor(stone.sheetPath));
+            GridBlockDef bed = system.tileReg.block(WaterShore.PEBBLE_BLOCK);
+            return new Shore(topology, blocks, sheets, bed, bed == null ? null : system.sheetFor(bed.sheetPath));
         }
 
         void resolve(WaterShore.Band band, int triangle, int x, int y, GroundMesh.CellSink sink) {
@@ -902,11 +897,6 @@ public final class GroundRenderSystem implements RenderSystem {
         void resolveBed(int triangle, int x, int y, GroundMesh.CellSink sink) {
             if (bed == null || !topology.isShallowWater(x, y)) return;
             draw(bed, bedSheet, WaterShore.bedPatch(topology, x, y, triangle), x, y, sink);
-        }
-
-        void resolveStone(int triangle, int x, int y, GroundMesh.CellSink sink) {
-            if (stone == null || !WaterShore.isSteppingStone(topology, x, y)) return;
-            draw(stone, stoneSheet, WaterShore.bedPatch(topology, x, y, triangle), x, y, sink);
         }
 
         private static void draw(GridBlockDef block, SpriteAPI sheet, float[] vertices, int x, int y,
