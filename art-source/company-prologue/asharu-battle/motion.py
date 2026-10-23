@@ -221,7 +221,9 @@ def _hit_offsets(hits, jumps, tt):
     """Summed effect of hits and jumps at tt: battle-frame shove (m), body-frame turn (roll, pitch,
     yaw deg) and body-frame shove (m, fore/port/up). A hit with kick=True is transient: it peaks at
     its push/spin/bpush values decay seconds after t and dies away (a gun's recoil); otherwise it is
-    a lasting shove that builds over decay seconds (spin and push in deg/s and m/s)."""
+    a lasting shove that builds over decay seconds (spin and push in deg/s and m/s). held=True: the
+    spin is a tumble that keeps its rate (vacuum has no drag to stop it), reached over the quarter
+    second the impulse takes; push still builds over decay (owner, 2026-10-23, S9b: no pinwheel)."""
     dp, ang, bdp = [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]
     for h in hits:
         if tt <= h['t']:
@@ -229,9 +231,10 @@ def _hit_offsets(hits, jumps, tt):
         tau = h.get('decay', 2.0)
         x = tt - h['t']
         k = (x / tau) * math.exp(1 - x / tau) if h.get('kick') else tau * (1 - math.exp(-x / tau))
+        ks = x - .25 * (1 - math.exp(-x / .25)) if h.get('held') else k
         for n in range(3):
             dp[n] += h.get('push', (0, 0, 0))[n] * k
-            ang[n] += h.get('spin', (0, 0, 0))[n] * k
+            ang[n] += h.get('spin', (0, 0, 0))[n] * ks
             bdp[n] += h.get('bpush', (0, 0, 0))[n] * k
     for tj, off in jumps:
         # A Phase Skimmer jump is a dash, not a teleport (owner, 2026-10-23, S6c: a Wolf "pop in on

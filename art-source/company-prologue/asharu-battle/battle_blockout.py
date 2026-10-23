@@ -726,12 +726,14 @@ K4_RAKES = [('borer-c',) + r for r in K4_RAKES_C] + [('borer-d',) + r for r in K
 
 
 # S9b: the lead Lasher rolls onto her back over the Falcon (P), guns walking down her flank; the
-# Falcon is hit and her broadside answers, and the Lasher tumbles away
+# Falcon is hit and her broadside answers, and the Lasher tumbles away: a held roll-dominant tumble of
+# about 20 deg/s, what a heavy round off her centre could plausibly give a 90 m frigate in a film (owner,
+# 2026-10-23: the 150 deg/s pinwheel was overdone; physically it would be under 1 deg/s)
 K4B_T = 105
 K4B_LEAD = fly('lasher-lead', (-560, 380, 30, -160, -20, 160, 1), K4B_T, [
     dict(t=102, hd=-150, pt=-4, rl=25, v=170), dict(t=103.8, hd=-157, pt=-16, rl=120),
     dict(t=106.6, hd=-163, pt=-25, rl=172), dict(t=110, hd=-170, pt=-30, rl=190, v=130)], v=165,
-    hits=recoil([103.5], every=.15, until=106.8) + [dict(t=107.2, spin=(150, 50, 60), push=(0, 20, 8), decay=2.5, thr=.1)])
+    hits=recoil([103.5], every=.15, until=106.8) + [dict(t=107.2, spin=(20, 3, 5), push=(0, 20, 8), decay=2.5, thr=.1, held=True)])
 K4B_SHIPS = {
     'falcon-p': fly('falcon-p', (-700, 200, -100, 10, 6, -4, .8), K4B_T, [
         dict(t=102, hd=8, pt=5, rl=-2), dict(t=110, hd=16, pt=3, rl=-12, v=30)], v=45,
