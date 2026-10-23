@@ -92,7 +92,6 @@ public abstract class SpriteAtlas {
     public record Source(SpriteAPI sheet, int contentW, int contentH) { }
 
     private final String label;
-    private final boolean enabled;
     /**
      * Widths the layout may use, smallest first.
      *
@@ -118,9 +117,8 @@ public abstract class SpriteAtlas {
     private int height;
     private int texture;
 
-    protected SpriteAtlas(String label, boolean enabled, int... candidateSides) {
+    protected SpriteAtlas(String label, int... candidateSides) {
         this.label = label;
-        this.enabled = enabled;
         this.candidateSides = candidateSides.clone();
     }
 
@@ -136,7 +134,7 @@ public abstract class SpriteAtlas {
      *         per-image path
      */
     protected final boolean plan(List<Source> candidates, int minimumSheets) {
-        if (planned || broken || !enabled || candidates == null) return planned;
+        if (planned || broken || candidates == null) return planned;
         planned = true;
         List<Slot> distinct = new ArrayList<>();
         for (Source source : candidates) add(distinct, source);
@@ -157,7 +155,7 @@ public abstract class SpriteAtlas {
      *
      * <p>A layout that will not fit is silent by design — every quad simply goes
      * back to its own image — so an atlas that quietly stopped serving looks
-     * exactly like an atlas nobody switched on. This says which it was, in the
+     * exactly like an atlas that was never built. This says which it was, in the
      * one sentence that is worth having: how much art was offered and how wide
      * the widest piece is.
      */
@@ -259,11 +257,6 @@ public abstract class SpriteAtlas {
         return out;
     }
 
-    /** Whether the atlas is armed at all — for evidence that reports which run it was. */
-    public final boolean isEnabled() {
-        return enabled;
-    }
-
     /**
      * Whether quads may address the atlas.
      *
@@ -272,7 +265,7 @@ public abstract class SpriteAtlas {
      * texture, and false forever once anything has failed.
      */
     public final boolean isServing() {
-        return enabled && built && !broken;
+        return built && !broken;
     }
 
     /**
@@ -338,7 +331,7 @@ public abstract class SpriteAtlas {
      * @return whether the atlas can be addressed from the next frame
      */
     public final boolean sync() {
-        if (!enabled || broken || built) return isServing();
+        if (broken || built) return isServing();
         if (!planned || slots.isEmpty()) return false;
         try {
             build();

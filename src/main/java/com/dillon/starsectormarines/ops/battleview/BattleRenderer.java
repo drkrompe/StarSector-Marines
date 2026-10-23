@@ -664,7 +664,7 @@ public class BattleRenderer {
 
         fireFogClearing.update(FireRenderSystem.enabled() ? ctx.sim.fireFieldIfPresent() : null,
                 ctx.sim.getTopology().nightLighting() != null, vis.gridWidth(), vis.gridHeight());
-        boolean resident = ctx.hostProfile.residentFogAllowed() && FogField.enabled();
+        boolean resident = ctx.hostProfile.residentFogAllowed();
         if (resident && fogField.isServing(vis)) {
             float alpha = ctx.alphaMult;
             out.addCustom(RenderLayer.FOG, () -> {
@@ -746,7 +746,7 @@ public class BattleRenderer {
         if (brick == null) return;
 
         CellTopology topology = sim.getTopology();
-        if (RoofMesh.enabled() && rc.hostProfile.residentGroundAllowed()) {
+        if (rc.hostProfile.residentGroundAllowed()) {
             FortService forts = sim.forts();
             TurretCatalogRegistry catalog = TurretCatalogRegistry.installed();
             RoofMesh.RoofResolver resolver = (x, y, sink) -> {
