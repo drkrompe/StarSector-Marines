@@ -120,8 +120,7 @@ refilling over the cycle and held violet when flux refuses the shot. A rack or
 belt too long for the row folds to one icon per salvo or burst (several whole
 bursts per icon for a long belt) and then keeps its exact count beside it; a
 load too long even folded keeps only the number. Finite Mech stores count
-trigger packs, while a vehicle turret counts individual rounds. Indirect mounts
-remain visible as unavailable for manual fire. In the Marine doll's kit column,
+trigger packs, while a vehicle turret counts individual rounds. In the Marine doll's kit column,
 a rocket or precision-rifle special with a short load draws it as missiles or
 cartridges in place of its count.
 
@@ -501,10 +500,14 @@ ballistics without turning the cursor into a target identity.
 The player may point at ground they can see without creating a squad belief
 or revealing an unseen enemy. A physically struck unknown body is resolved
 normally, but its identity is presented only when the player's observation
-rules allow it. A mech's arcing racks have that ground-point contract: a pilot
-lobs a salvo at the cursor, scattered about the thrown point and refused inside
-a minimum range. A vehicle turret's point fire is still flat-trajectory only, so
-an arcing turret (the LRM carrier's launcher) stays under its crew's control and
+rules allow it. Arcing mounts share one ground-point contract on every hull
+(`ManualPointFire`): a pilot lobs a salvo at the cursor, scattered about the
+thrown point and refused inside a minimum range. A vehicle turret obeys it as a
+mech rack does, measured from its turret ring: the LRM carrier's launcher drops
+each salvo on the thrown point, and inside eight cells its trigger is refused
+and its row reads TOO CLOSE. A turret rocket that does not arc (the SRM pod) is
+thrown at ground as a mech's rockets are, bursting at the point or on the first
+thing in its lane. Any ranged turret can therefore be fired by hand, and none
 reads AI ONLY. Mech mounts also retain their
 hardpoint arcs and per-mount clocks; a vehicle turret retains its independent
 aim and fire authority.
