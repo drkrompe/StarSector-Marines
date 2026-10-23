@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.render2d.ShaderProgram;
 import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import org.lwjgl.BufferUtils;
 
+import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -533,6 +534,7 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
             ByteBuffer noise = BufferUtils.createByteBuffer(CreepNoise.SIZE * CreepNoise.SIZE * 4);
             noise.put(CreepNoise.rgba()).flip();
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, CreepNoise.SIZE, CreepNoise.SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, noise);
+            Reference.reachabilityFence(noise);   // LWJGL 2 keeps only the address
         }
         if (surfaceTexture == 0) {
             surfaceTexture = glGenTextures();
@@ -545,6 +547,7 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
             ByteBuffer surface = BufferUtils.createByteBuffer(CreepSurface.SIZE * CreepSurface.SIZE * 4);
             surface.put(CreepSurface.rgba()).flip();
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, CreepSurface.SIZE, CreepSurface.SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, surface);
+            Reference.reachabilityFence(surface);   // LWJGL 2 keeps only the address
         }
         if (fieldTexture == 0) {
             fieldTexture = glGenTextures();

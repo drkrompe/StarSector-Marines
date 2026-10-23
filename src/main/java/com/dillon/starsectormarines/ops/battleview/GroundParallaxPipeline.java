@@ -316,7 +316,7 @@ public final class GroundParallaxPipeline {
     private final GroundMicroHeightSampler materialSampler;
     private final GroundHeightPass heightPass;
     private final GroundNormalPass normalPass;
-    private final GroundLightService lights;
+    private GroundLightService lights;
 
     /** Runtime-tunable through the battle debug panel; read every composite. */
     private float structureStrength = DEFAULT_STRENGTH;
@@ -375,6 +375,11 @@ public final class GroundParallaxPipeline {
         this.normalPass = new GroundNormalPass(materialSampler);
         this.lights = lights;
         this.sun = sun;
+    }
+
+    /** The event lights the composite adds, for a host that feeds its own rather than the renderer's. */
+    void useLights(GroundLightService lights) {
+        this.lights = lights;
     }
 
     public float parallaxStrength() { return structureStrength; }

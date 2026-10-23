@@ -1,6 +1,6 @@
 # GPU review drain
 
-Status: DRAFT
+Status: ACTIVE
 
 Written: 2026-10-23
 
@@ -132,14 +132,16 @@ comes from a `ReviewSceneBackend`: a scene (simulation, camera, layers, clock,
 feed) in, a top-row-first `BufferedImage` out. Two implementations:
 
 - `Java2dReviewBackend` — the existing drain, unchanged: collect, then replay
-  through `HeadlessBattleSceneRenderer` in fixed bands. The default, and the
-  deterministic reference.
+  through `HeadlessBattleSceneRenderer` in fixed bands. The code's default (so
+  unit tests and the workbench never open a context), and the deterministic
+  reference.
 - `GlReviewDrain` — the shipping `BattleRenderer.renderWorld` into a
   `HeadlessGl` pbuffer, read back with one packed BGRA `glReadPixels`.
 
 A run chooses with `-Dsnapshot.backend=java2d|gl` (Gradle already forwards
-`snapshot.*`). `gl` on a machine with no context prints one line and uses
-Java2D, so the same command works on both machines. A third backend (LWJGL 3
+`snapshot.*`). **`createSnapshots` defaults to `gl`**; `gl` on a machine with
+no context prints one line and uses Java2D, so the same command works on both
+machines. A third backend (LWJGL 3
 for the Mac) is a third class behind the same interface, plus its classpath.
 
 **Every suite that draws through the review renderer moves at once**: the 50
@@ -157,21 +159,46 @@ waits. The CPU the Java2D drain used to fill with bands is free for the
 simulation of the next frame, the GIF encoders, and other sessions.
 
 **One renderer per battle.** A `BattleRenderer` bakes resident ground, roofs,
-fog and a decoration atlas for the map it drew last. The drain keeps a small
-least-recently-drawn set of renderers keyed by simulation and releases the
-oldest the way `BattleScreen.detach` does, so a suite that alternates between
-battles (matchup recordings, close and wide views) does not rebuild them every
-frame.
+fog and a decoration atlas for the map it drew last. The drain keeps up to
+sixteen renderers keyed by simulation, least recently drawn first, and
+releases the oldest the way `BattleScreen.detach` does. The cap has to sit
+above the most battles a suite draws in turn: `aircraft-crash` draws six side
+by side every frame, and at a cap of four it evicted and rebuilt atlases every
+view (233s against Java2D's 36s).
 
 **What a GL frame gains** over the Java2D table in CLAUDE.md ("What a review
 frame draws"): every GL custom pass drawn by the code that ships rather than a
 CPU model of it (creep, scorch, night lighting, shield domes, engine plumes,
 hull lights, roofs and the fort's building art), and the sprite and ribbon
-batches as the driver draws them. With the profile switched to one with
-surface relief (a follow-up below), also terrain relief, sun shading and
-normal-mapped lighting, which Java2D never draws. Muzzle and impact lights
-need the review feed to drive `GroundLightService` as `BattleScreen.advance`
-does; that is a feed change, not a drain change, and the same for both.
+batches as the driver draws them. The drain draws with `OBSERVER_GL`, the
+observer's profile with the surface-relief composite and resident buffers on,
+so a frame also has the composite's sun shadows, relief and normal-mapped
+lighting, which Java2D never draws. `ReviewImpactFx` keeps a
+`GroundLightService` fed tick by tick as `BattleScreen.advance` feeds the
+renderer's (muzzles, impacts, blasts, bolts, fires, ordnance), and the drain
+points the composite at it, so shots light the ground at night.
+`-Dsnapshot.gl.relief=false` draws the plain `OBSERVER_SCENE` instead: the
+control for what the composite costs and changes.
+
+**Where it does not win.** A frame's GPU cost is mostly fixed, and Java2D's
+scales with pixels and with the custom passes it imitates. On a creep- or
+fire-heavy 1920x1080 frame GL is tens of times cheaper; on a small, plain view
+it is about even. `aircraft-crash` (six 600x414 views a frame) draws at about
+22 ms a frame on either backend once its renderers are kept, and the relief
+composite is most of the GL share there (25 ms a frame with it, 4 without).
+Starting the context and the GL sprite set costs about 15s once per run, which
+the whole catalog pays once and a one-suite run pays in full.
+
+**Direct buffers must outlive the call.** The first broad GL run died with an
+access violation inside the driver, in `SpriteAtlas.build`'s
+`glTexImage2D`. LWJGL 2 passes the driver a direct buffer's address and keeps
+no reference to the buffer, so once the caller is compiled the collector may
+free a freshly allocated buffer while the driver is still reading it; the
+review's heap churn made that likely. Every one-shot upload in the renderer
+(the atlas clear and apron copies, cliff art, creep and scorch noise, creep
+surface, fog, relief colours) now holds its buffer with
+`Reference.reachabilityFence` across the call. The game runs the same code on
+the same library, so this is a latent crash there too, only rarer.
 
 **What it gives up.** Pixels are a function of the driver as well as the
 battle, so the two machines may differ in the last bit, and the Java2D drain's
@@ -184,15 +211,9 @@ still made with both arms on the same backend on the same machine.
 The backend switch adds no test and no task; `shaderEvidence` and
 `renderEvidence` keep their own contexts.
 
-### Follow-ups, in order
+### Follow-ups
 
-1. Make `gl` the default on a machine where the context comes up, once the
-   owner has looked at a few suites drawn both ways.
-2. A review host profile with surface relief on (`OBSERVER_SCENE` turns it
-   off), so a GL frame shows the terrain the player sees.
-3. Feed `GroundLightService` from `ReviewImpactFx`, so night battles' shots
-   light the ground.
-4. The Mac: run `tools/gl-probe/gl-probe-mac.sh` in Terminal on its desktop.
+1. The Mac: run `tools/gl-probe/gl-probe-mac.sh` in Terminal on its desktop.
    If LWJGL 2 comes up under Rosetta, point `HeadlessGl` at the Mac layout and
    decide whether a Rosetta simulation is worth it (probably not). Otherwise,
    or anyway, the LWJGL 3 backend above.

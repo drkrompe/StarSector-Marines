@@ -38,6 +38,10 @@ profile. The seed is part of the contract: identical request inputs and recipe
 composition produce the same map. A stage must not add an RNG draw for a silent
 or absent feature, and unordered iteration must never decide an outcome.
 
+A story map does not take any seed: it plays from a **pool** of vetted seeds,
+each with an optional patch, regenerated every time so generator changes still
+arrive, and checked by `storyMapPools` (`story-map-pools.md`).
+
 A **map result** is the finished tactical contract: terrain and movement
 topology, reachable spawns, points of interest, tactical nodes, buildings,
 defense posts, landing pads, decorative placements, and the authored road,

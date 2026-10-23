@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.render2d.ShaderProgram;
 import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import org.lwjgl.BufferUtils;
 
+import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -278,6 +279,7 @@ final class ScorchLayer implements RenderSystem, ScorchShading.Field {
             ByteBuffer noise = BufferUtils.createByteBuffer(CreepNoise.SIZE * CreepNoise.SIZE * 4);
             noise.put(CreepNoise.rgba()).flip();
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, CreepNoise.SIZE, CreepNoise.SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, noise);
+            Reference.reachabilityFence(noise);   // LWJGL 2 keeps only the address
         }
         if (fieldTexture == 0) {
             fieldTexture = glGenTextures();

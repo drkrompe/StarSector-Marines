@@ -178,7 +178,7 @@ test {
                 'crew-liveliness', 'shader-evidence', 'render-evidence', 'garrison-evidence',
                 'generated-space-evidence',
                 'loadout-card-sheet', 'loadout-matchup', 'armor-matchup', 'armor-economy-evidence',
-                'bloom-evidence'
+                'bloom-evidence', 'story-map-pool-evidence'
     }
     testLogging {
         // Audit-style tests print their report to stdout — stream it to the
@@ -309,6 +309,31 @@ tasks.register('bloomEvidence', Test) {
     systemProperty 'bloom.evidence.seeds', providers.gradleProperty('seeds').getOrElse('8')
     systemProperty 'bloom.evidence.outputDir',
             providers.gradleProperty('evidenceDir').getOrElse(layout.buildDirectory.dir('reports/blooms').get().asFile.absolutePath)
+    testLogging {
+        showStandardStreams = true
+    }
+}
+
+// Regenerates every story map pool's seeds (story-map-pools.md) and fails when one no
+// longer meets its mission's acceptance, so a mapgen change that breaks a pooled map is
+// caught rather than shipped. -Pcandidates=cordon-line:1-40,heart-burn:1-20 screens seeds
+// that are not pooled yet and reports them without failing. Generates whole maps: opt-in.
+tasks.register('storyMapPools', Test) {
+    group = 'verification'
+    description = 'Regenerate every pooled story-map seed and check its acceptance; opt-in, excluded from test.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'story-map-pool-evidence'
+    }
+    maxParallelForks = 1
+    outputs.upToDateWhen { false }
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    systemProperty 'storyMapPools.candidates', providers.gradleProperty('candidates').getOrElse('')
+    systemProperty 'storyMapPools.parallelism', providers.gradleProperty('parallelism')
+            .getOrElse(String.valueOf(Math.max(1, Runtime.runtime.availableProcessors().intdiv(2))))
+    systemProperty 'storyMapPools.outputDir',
+            providers.gradleProperty('evidenceDir').getOrElse(layout.buildDirectory.dir('reports/story-map-pools').get().asFile.absolutePath)
     testLogging {
         showStandardStreams = true
     }
@@ -860,6 +885,9 @@ tasks.register('createSnapshots', JavaExec) {
     // Snapshot scenes play the same worlds `sceneEvidence` does and must read the same: serial, overridable by a -Dbattle switch.
     systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
     forwardBattleSwitches(delegate)
+    // Review frames are drawn on the GPU through the shipping renderer, falling back to Java2D where no context can be
+    // made (`ReviewSceneBackend`, `gpu-review-drain.md`). `-Dsnapshot.backend=java2d` is the reference, and overrides.
+    systemProperty 'snapshot.backend', 'gl'
     // `-Dsnapshot.threads=N` (`SnapshotWorkers`; 1 is the serial control) and any other snapshot switch.
     System.properties.each { key, value ->
         if (key.toString().startsWith('snapshot.')) systemProperty key.toString(), value

@@ -38,7 +38,7 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
     @Override public String label() { return "Cordon mapgen: the line, the front and the rear"; }
 
     /** What a whole-map frame names: each redoubt, the places, the bores and the Road's corridor. */
-    static ReviewAnnotations annotations(BattleSimulation sim, CordonSetup.CordonMap cordon) {
+    public static ReviewAnnotations annotations(BattleSimulation sim, CordonSetup.CordonMap cordon) {
         ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
         List<Precinct> redoubts = CordonPlan.redoubts(cordon.plan());
         for (int i = 0; i < redoubts.size(); i++) {
