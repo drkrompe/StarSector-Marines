@@ -221,6 +221,14 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   order so the folder reads in the order the notes describe.
 - Images obey the preview rule (1920x1080, 100% scale). Copy finished images
   only, never frame sequences or scratch.
+- **Owner-facing images come from the look preset, never from a verdict
+  scene's arena frames** (2026-10-23). A behaviour scene's loops are
+  drawn on a bare arena with faction dots, labels and a caption, and without
+  smoke, contrails or shadows: evidence for a verdict, not a picture of how
+  anything looks. Give the scene suite a `lookShots()` (`LookReview`: the
+  subject on real generated ground, effects and shadows on, no annotations,
+  play zoom and close) and show the owner `build/snapshots/<scene>/look/`;
+  `-Dsnapshot.lookOnly=true` renders only those. See `snapshot-suites.md`.
 - **Show the owner the images; never send them to Drive to look** (owner,
   2026-10-22). The run folder is storage and transfer, not how a set is
   delivered. When a set is ready, put the images themselves in front of the
