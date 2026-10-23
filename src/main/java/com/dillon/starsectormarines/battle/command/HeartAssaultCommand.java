@@ -66,8 +66,6 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
     /** Where the company is holding, fixed when it starts to, so the order does not follow its own drift. */
     private int holdX = Integer.MIN_VALUE, holdY;
     private int fallBackX = Integer.MIN_VALUE, fallBackY;
-    /** The longest the company waits, in ticks, before it goes for the mothers anyway; and when it began. */
-    private int maxWaitTicks = Integer.MAX_VALUE, waitingSince = -1;
 
     /** @param lane the company's own lane */
     public HeartAssaultCommand(HeartLane lane) {
@@ -97,12 +95,6 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
         waitForSatellites = true;
         fallBackX = x;
         fallBackY = y;
-        return this;
-    }
-
-    /** Waits no longer than {@code ticks} once it has begun to, then goes for the mothers with whoever is up. */
-    public HeartAssaultCommand waitingAtMost(int ticks) {
-        maxWaitTicks = ticks;
         return this;
     }
 
@@ -136,8 +128,6 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
         int tick = frame.tick();
         boolean held = target != null && screen != null && screen.beyond(screen.along(target.x(), target.y()), tick);
         boolean waiting = waitForSatellites && target != null && target.mother() && satelliteStanding(frame.bores);
-        if (waiting && waitingSince < 0) waitingSince = tick;
-        if (waiting && tick - waitingSince > maxWaitTicks) waiting = false;
         if (!waiting) holdX = Integer.MIN_VALUE;
         else if (holdX == Integer.MIN_VALUE) {
             holdX = fallBackX != Integer.MIN_VALUE ? fallBackX : Math.round(cx);

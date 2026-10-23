@@ -135,7 +135,6 @@ public final class BloomHeartSetup {
         if (form == Form.BROAD_FRONT && BROAD_WAIT_FOR_LANES) {
             if (BROAD_FALL_BACK) company.waitingForSatellites(landing.seedX(), landing.seedY());
             else company.waitingForSatellites();
-            if (BROAD_MAX_WAIT_SECONDS > 0) company.waitingAtMost(Math.round(BROAD_MAX_WAIT_SECONDS / BattleSimulation.TICK_DT));
         }
         sim.setAutonomousCommander(Faction.MARINE, company, HeartAssaultCommand.DISCLOSURE);
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(HeartAssaultCommand.ISSUER, "Company support joins the push"));
@@ -240,8 +239,6 @@ public final class BloomHeartSetup {
     /** Broad Front's company holds its taken ground until every satellite is down ({@code -Dbattle.heart.broadWaitForLanes}). */
     /** Whether it waits back on its landing rather than on the ground it took ({@code -Dbattle.heart.broadFallBack}). */
     static final boolean BROAD_FALL_BACK = Boolean.parseBoolean(System.getProperty("battle.heart.broadFallBack", "true"));
-    /** The longest it waits there before going for the mothers anyway ({@code -Dbattle.heart.broadMaxWait}, 0 for no limit). */
-    static final int BROAD_MAX_WAIT_SECONDS = Integer.getInteger("battle.heart.broadMaxWait", 0);
     static final boolean BROAD_WAIT_FOR_LANES =
             Boolean.parseBoolean(System.getProperty("battle.heart.broadWaitForLanes", "true"));
 
