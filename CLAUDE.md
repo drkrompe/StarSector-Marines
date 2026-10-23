@@ -428,11 +428,6 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   the 560x336 map under `build/reports/performance/convoy-route/summary.json`.
   Use `-Dbattle.convoyRoute.outputDir=<absolute path>` to redirect the report.
   Its timings are diagnostic, not a cross-host gate.
-- `gradlew.bat profileSquadFiringPositions` → opt-in paired scorer evidence on
-  six mixed-weapon infantry, target motion and topology repair; writes
-  `build/reports/performance/squad-firing-positions/summary.json`.
-  `-Dbattle.squadFiringEvidence.outputDir=<path>` redirects it. This measures
-  selected-cell validity, spread and reachability, not autonomous combat outcomes.
 - `gradlew.bat profileSwarmFlow` → swarm strategic-movement cost on generated
   cities at 280x168, 400x240 and 560x336 with 64 to 1000 runners chasing three
   walking Marine columns, flow field on and off in the same run (serial

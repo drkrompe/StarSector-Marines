@@ -43,8 +43,7 @@ import java.util.Map;
  * {@link #WITHDRAW_MARGIN} cells outside each one's reach, and there it holds. It drives a route where one exists,
  * rear on, and backs off the nearest threat, nose on it, where none does. Backing out of reach nose on was measured
  * and rejected: at a tank's reverse speed it stays in reach three times as long, which the front plate does not buy
- * back. {@code -Dbattle.vehicle.withdrawNoseOn=true} is that trial (it backs out of the nearest threat's reach before
- * it routes). An empty magazine is not this: the gun is still there.
+ * back. An empty magazine is not this: the gun is still there.
  * {@code -Dbattle.vehicle.disarmedWithdraw=false} is the control, in which it holds where it stands.
  *
  * <p>A hull keeps its front on the machine it duels ({@code convoy-nouns.md}, what presents the front). A bicycle hull
@@ -86,15 +85,6 @@ public final class VehicleEngagement {
     public static final String WITHDRAW_PROPERTY = "battle.vehicle.disarmedWithdraw";
 
     private static final boolean withdraws = Boolean.parseBoolean(System.getProperty(WITHDRAW_PROPERTY, "true"));
-
-    /**
-     * {@code true} is a measured trial, off: a disarmed hull backs out of the nearest threat's reach nose on before it
-     * drives its withdrawal route, rather than driving the route from the start, rear on.
-     */
-    public static final String WITHDRAW_NOSE_ON_PROPERTY = "battle.vehicle.withdrawNoseOn";
-
-    private static final boolean withdrawsNoseOn =
-            Boolean.parseBoolean(System.getProperty(WITHDRAW_NOSE_ON_PROPERTY, "false"));
 
     /** {@code false} is the control: a hull holding in its band never turns toward a target off its front arc. */
     public static final String FACE_IN_BAND_PROPERTY = "battle.vehicle.faceInBand";
@@ -511,7 +501,6 @@ public final class VehicleEngagement {
         List<float[]> threats = new ArrayList<>();
         long nearest = 0L;
         float nearestDistance = Float.MAX_VALUE;
-        float nearestReach = 0f;
         World world = roster.world();
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             long candidate = roster.get(i);
@@ -527,7 +516,6 @@ public final class VehicleEngagement {
             if (d < reach + WITHDRAW_MARGIN && d < nearestDistance) {
                 nearest = candidate;
                 nearestDistance = d;
-                nearestReach = reach;
             }
         }
         for (long candidate : convoy.entityIds()) {
@@ -541,7 +529,6 @@ public final class VehicleEngagement {
             if (d < reach + WITHDRAW_MARGIN && d < nearestDistance) {
                 nearest = candidate;
                 nearestDistance = d;
-                nearestReach = reach;
             }
         }
         float[] away = withdrawal(body.x, body.y, threats);
@@ -553,15 +540,6 @@ public final class VehicleEngagement {
             if (plan.routeX != null) controlSystem.clearRoute(id);
             plan.routeX = null;
             plan.routeY = null;
-            return;
-        }
-        if (withdrawsNoseOn && nearest != 0L && nearestDistance < nearestReach && plan.restIn <= 0f) {
-            // Still inside the nearest gun's reach: back out of it with the front plate toward it, and drive a
-            // route only once clear of it, where showing the rear costs nothing.
-            if (plan.routeX != null) controlSystem.clearRoute(id);
-            plan.routeX = null;
-            plan.routeY = null;
-            plan.retreating = true;
             return;
         }
         if (plan.replanIn > 0f) return;

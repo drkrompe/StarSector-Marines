@@ -375,8 +375,7 @@ round. The pool stays one column, so whole-body readers still see one hull.
     route, and backs off nose-on only where no route exists. Backing out of
     reach nose-on first was measured and rejected: at a tank's reverse speed the
     hull stays in reach about three times as long, and the front plate does not
-    buy that back. `-Dbattle.vehicle.withdrawNoseOn=true` is that trial
-    (`heavy-equipment-progression.md`, facing).
+    buy that back (`heavy-equipment-progression.md`, facing).
   - **A hold that does no harm is not kept.** Being in band is a distance, and
     sight is read cell centre to cell centre, so a hull can hold in band, in
     sight, and put every round into the building corner its target stands in the

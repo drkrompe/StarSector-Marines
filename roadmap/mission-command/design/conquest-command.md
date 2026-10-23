@@ -339,9 +339,8 @@ never applies to a squad in contact, none waits more than thirty seconds on one
 hop, and only a squad strictly ahead can hold another, so two squads cannot hold
 each other. Its answer is cached on the squad for a second, so the cost is one
 pass over the squad list per squad per second rather than a per-tick scan. A
-per-squad choice of door (`battle.squad.apertureSpread`) and of the cell to clear
-toward in a room (`battle.squad.roomCellSpread`) were also built and measured;
-neither added anything once the approach was spaced and both stay off.
+per-squad choice of door and of the cell to clear toward in a room were also
+tried and rejected: neither added anything once the approach was spaced.
 
 Measured at full length, marines on `full-strength-west`: squads standing within
 six cells of another 43% on average, 75% at worst, falling to 16% and 52%; the
