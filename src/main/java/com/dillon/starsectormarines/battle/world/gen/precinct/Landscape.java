@@ -79,11 +79,24 @@ public record Landscape(float woodland, List<Track> tracks, List<Brook> brooks, 
      *
      * @param path cells the stream's centre line passes through, in order, each {@code {x, y}}
      */
-    public record Brook(List<int[]> path, int width, int fordEvery, int fordWidth) {
+    /**
+     * A stream: its path, its water's width, and a ford every {@code fordEvery}
+     * cells along it, {@code fordWidth} wide. {@code banks} raises its valley's
+     * sides: a ridge that many cells through along each bank, broken at every
+     * ford and wherever a road crosses, climbed from the country away from the
+     * water, so the fords and bridges are the only ways down to it; 0 for none.
+     */
+    public record Brook(List<int[]> path, int width, int fordEvery, int fordWidth, int banks) {
         public Brook {
             if (path == null || path.size() < 2) throw new IllegalArgumentException("a brook runs between two points at least");
             if (width < 1 || fordEvery < 1 || fordWidth < 1) throw new IllegalArgumentException("a brook's sizes are positive");
+            if (banks < 0) throw new IllegalArgumentException("banks are a thickness: " + banks);
             path = List.copyOf(path);
+        }
+
+        /** A brook in open country, with no valley sides. */
+        public Brook(List<int[]> path, int width, int fordEvery, int fordWidth) {
+            this(path, width, fordEvery, fordWidth, 0);
         }
     }
 }

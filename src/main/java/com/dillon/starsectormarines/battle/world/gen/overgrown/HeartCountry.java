@@ -198,6 +198,7 @@ public final class HeartCountry {
      */
     static Landscape landscapeFor(Form form, long seed) {
         int w = form.scale.width, h = form.scale.height;
+        List<RidgePlanner.Band> ridges = List.of(ridge(form));
         List<Landscape.Track> tracks = new ArrayList<>();
         if (form == Form.BROAD_FRONT) {
             int top = Math.round(LANE_DEPTH * (h - 1));
@@ -205,14 +206,13 @@ public final class HeartCountry {
                 int x = Math.round(across * (w - 1)) - TRACK_WIDTH / 2;
                 tracks.add(new Landscape.Track(x, 0, x + TRACK_WIDTH - 1, top));
             }
-            return new Landscape(BROAD_FRONT_WOODLAND, tracks, List.of(), FIELD_MARGIN, List.of(ridge(Form.BROAD_FRONT)));
+            return new Landscape(BROAD_FRONT_WOODLAND, tracks, List.of(), FIELD_MARGIN, ridges);
         }
         for (float depth : RIDE_DEPTH) {
             int x = Math.round(depth * (w - 1)) - RIDE_WIDTH / 2;
             tracks.add(new Landscape.Track(x, 0, x + RIDE_WIDTH - 1, h - 1));
         }
-        return new Landscape(THE_BURN_WOODLAND, tracks, List.of(brook(w, h, seed)), FIELD_MARGIN,
-                List.of(ridge(Form.THE_BURN)));
+        return new Landscape(THE_BURN_WOODLAND, tracks, List.of(brook(w, h, seed)), FIELD_MARGIN, ridges);
     }
 
     /**
@@ -236,11 +236,14 @@ public final class HeartCountry {
         int w = form.scale.width, h = form.scale.height;
         if (form.advancesAlongY()) {
             int y0 = Math.round(BROAD_FRONT_RIDGE_DEPTH * (h - 1));
-            return new RidgePlanner.Band(0, y0, w - 1, y0 + RIDGE_THICKNESS - 1, true, -1, RIDGE_RAMP_WIDTH);
+            return RidgePlanner.Band.rect(0, y0, w - 1, y0 + RIDGE_THICKNESS - 1, true, -1, RIDGE_RAMP_WIDTH);
         }
         int x0 = Math.round(THE_BURN_RIDGE_DEPTH * (w - 1));
-        return new RidgePlanner.Band(x0, 0, x0 + RIDGE_THICKNESS - 1, h - 1, false, -1, RIDGE_RAMP_WIDTH);
+        return RidgePlanner.Band.rect(x0, 0, x0 + RIDGE_THICKNESS - 1, h - 1, false, -1, RIDGE_RAMP_WIDTH);
     }
+
+    /** Cells through each side of The Burn's brook valley. */
+    static final int VALLEY_SIDE = 10;
 
     /**
      * The Burn's brook: from the north edge to the south across the approach,
@@ -256,7 +259,7 @@ public final class HeartCountry {
             x = Math.max(line - BROOK_MEANDER, Math.min(line + BROOK_MEANDER, x + rng.nextInt(13) - 6));
         }
         path.add(new int[]{x, h - 1});
-        return new Landscape.Brook(path, BROOK_WIDTH, BROOK_FORD_EVERY, BROOK_FORD_WIDTH);
+        return new Landscape.Brook(path, BROOK_WIDTH, BROOK_FORD_EVERY, BROOK_FORD_WIDTH, VALLEY_SIDE);
     }
 
     /** The plan's place of this name, or {@code null}. */

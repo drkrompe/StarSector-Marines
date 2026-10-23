@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.function.IntPredicate;
 
 /**
- * Raises a mission's authored ridges ({@code elevation-nouns.md}, Ridge): a
- * band of ground the mission names, broken into hill segments wherever the
- * host's ground crosses it, each segment a plateau with one ramp up from the
- * side the mission names.
+ * Raises a mission's authored ridges ({@code elevation-nouns.md}, Ridges): a
+ * band of ground the mission names along a path, broken into hill segments
+ * wherever the host's ground crosses it, each segment a plateau with one ramp
+ * up from the side the mission names.
  *
  * <p>The mission says where the high ground is; the map says where it is
  * broken. A road, a lane, a building or a landing crossing the band is a pass
@@ -26,20 +26,36 @@ public final class RidgePlanner {
     private RidgePlanner() {}
 
     /**
-     * One authored ridge: a rectangle of cells, inclusive, whose long axis runs
-     * along x when {@code alongX}; its ramps climb from the side of the short
-     * axis that {@code rampSide} points to (-1 toward the lower coordinate,
-     * +1 toward the higher), {@code rampWidth} cells wide.
+     * One authored ridge: a band {@code thickness} cells through, centred on a
+     * path of cell points. Its ramps climb from the side {@code rampSide} names:
+     * +1 is the left of the path's direction of travel (counter-clockwise from
+     * it, in cell coordinates), -1 the right. {@code rampWidth} cells wide.
      */
-    public record Band(int x0, int y0, int x1, int y1, boolean alongX, int rampSide, int rampWidth) {
+    public record Band(List<Point> path, int thickness, int rampSide, int rampWidth) {
         public Band {
-            if (x1 < x0 || y1 < y0) throw new IllegalArgumentException("a band is a rectangle");
+            path = List.copyOf(path);
+            if (path.size() < 2) throw new IllegalArgumentException("a band runs along at least two points");
+            if (thickness < 4 || thickness > 64) throw new IllegalArgumentException("thickness 4-64");
             if (rampSide != -1 && rampSide != 1) throw new IllegalArgumentException("a ramp climbs from one side");
             if (rampWidth < 1 || rampWidth > 16) throw new IllegalArgumentException("ramp width 1-16");
         }
 
-        int length() { return alongX ? x1 - x0 + 1 : y1 - y0 + 1; }
-        int thickness() { return alongX ? y1 - y0 + 1 : x1 - x0 + 1; }
+        /**
+         * A straight band filling a rectangle of cells, inclusive, along its long
+         * axis ({@code alongX}); {@code toward} names the short-axis side its ramps
+         * climb from, -1 the lower coordinate and +1 the higher.
+         */
+        public static Band rect(int x0, int y0, int x1, int y1, boolean alongX, int toward, int rampWidth) {
+            if (x1 < x0 || y1 < y0) throw new IllegalArgumentException("a band is a rectangle");
+            if (alongX) {
+                double y = (y0 + y1) / 2.0;
+                // Travelling +x, the left (counter-clockwise) side is +y.
+                return new Band(List.of(new Point(x0, y), new Point(x1, y)), y1 - y0 + 1, toward, rampWidth);
+            }
+            double x = (x0 + x1) / 2.0;
+            // Travelling +y, the left side is -x.
+            return new Band(List.of(new Point(x, y0), new Point(x, y1)), x1 - x0 + 1, -toward, rampWidth);
+        }
     }
 
     /** Cells a segment must run to be worth raising, as a multiple of the band's thickness. */
@@ -58,10 +74,13 @@ public final class RidgePlanner {
         List<Ramp> ramps = new ArrayList<>();
         boolean[] footprint = new boolean[width * height];
         for (Band band : bands) {
-            for (int[] run : runs(band, width, height, free)) {
+            List<Sample> samples = samples(band);
+            for (int[] run : runs(band, samples, width, height, free)) {
                 List<Plateau> nextPlateaus = new ArrayList<>(plateaus);
                 List<Ramp> nextRamps = new ArrayList<>(ramps);
-                if (!segment(band, run[0], run[1], width, height, nextPlateaus, nextRamps)) continue;
+                if (!segment(band, samples.subList(run[0], run[1] + 1), width, height, nextPlateaus, nextRamps)) {
+                    continue;
+                }
                 ElevationLayout layout;
                 try {
                     layout = ElevationLayout.resolve(new ElevationPlan(width, height, PlateauPlanner.FACE_WIDTH,
@@ -84,23 +103,52 @@ public final class RidgePlanner {
                 plateaus, ramps);
     }
 
+    /** One step along a band's path: where it is and the unit normal to its left. */
+    record Sample(double x, double y, double nx, double ny) { }
+
+    /** The band's path walked a cell at a time. */
+    static List<Sample> samples(Band band) {
+        List<Sample> out = new ArrayList<>();
+        List<Point> path = band.path();
+        for (int i = 0; i + 1 < path.size(); i++) {
+            Point a = path.get(i), b = path.get(i + 1);
+            double dx = b.x() - a.x(), dy = b.y() - a.y(), len = Math.hypot(dx, dy);
+            if (len < 1e-9) continue;
+            double ux = dx / len, uy = dy / len;
+            int steps = (int) Math.ceil(len);
+            for (int s = 0; s < steps; s++) {
+                double t = s / (double) steps;
+                out.add(new Sample(a.x() + dx * t, a.y() + dy * t, -uy, ux));
+            }
+        }
+        Point last = path.get(path.size() - 1);
+        Sample end = out.get(out.size() - 1);
+        out.add(new Sample(last.x(), last.y(), end.nx(), end.ny()));
+        return out;
+    }
+
+    /** {@link #runs(Band, List, int, int, IntPredicate)} over the band's own samples. */
+    static List<int[]> runs(Band band, int width, int height, IntPredicate free) {
+        return runs(band, samples(band), width, height, free);
+    }
+
     /**
-     * The band's unbroken runs along its long axis, each as {@code [from, to]}
-     * inclusive: a position is broken when any cell across the band there, or
+     * The band's unbroken runs, each as {@code [from, to]} sample indices,
+     * inclusive: a sample is broken when any cell across the band there, or
      * within the apron either side of it, is not free.
      */
-    static List<int[]> runs(Band band, int width, int height, IntPredicate free) {
-        int apron = (int) Math.ceil(PlateauPlanner.FACE_WIDTH + PlateauPlanner.SOUTH_FACE + 1);
-        int from = band.alongX ? band.x0 : band.y0, to = band.alongX ? band.x1 : band.y1;
-        int lo = (band.alongX ? band.y0 : band.x0) - apron, hi = (band.alongX ? band.y1 : band.x1) + apron;
-        boolean[] open = new boolean[to - from + 1];
-        for (int t = from; t <= to; t++) {
+    static List<int[]> runs(Band band, List<Sample> samples, int width, int height, IntPredicate free) {
+        int apron = PlateauPlanner.FACE_WIDTH + PlateauPlanner.SOUTH_FACE + 1;
+        double reach = band.thickness() / 2.0 + apron;
+        boolean[] open = new boolean[samples.size()];
+        for (int i = 0; i < samples.size(); i++) {
+            Sample s = samples.get(i);
             boolean ok = true;
-            for (int s = lo; s <= hi && ok; s++) {
-                int x = band.alongX ? t : s, y = band.alongX ? s : t;
+            for (double d = -reach; d <= reach && ok; d += 0.5) {
+                int x = (int) Math.round(s.x() + s.nx() * d), y = (int) Math.round(s.y() + s.ny() * d);
                 if (x < 1 || y < 1 || x >= width - 1 || y >= height - 1 || !free.test(y * width + x)) ok = false;
             }
-            open[t - from] = ok;
+            open[i] = ok;
         }
         List<int[]> out = new ArrayList<>();
         int minRun = (int) Math.ceil(MIN_RUN * band.thickness());
@@ -109,7 +157,7 @@ public final class RidgePlanner {
             boolean ok = i < open.length && open[i];
             if (ok && start < 0) start = i;
             if (!ok && start >= 0) {
-                int a = from + start + END_GAP, b = from + i - 1 - END_GAP;
+                int a = start + END_GAP, b = i - 1 - END_GAP;
                 if (b - a + 1 >= minRun) out.add(new int[]{a, b});
                 start = -1;
             }
@@ -118,30 +166,27 @@ public final class RidgePlanner {
     }
 
     /** Adds one segment's plateau and its ramp, at the run's middle; false when the run is too short to hold them. */
-    private static boolean segment(Band band, int a, int b, int width, int height,
+    private static boolean segment(Band band, List<Sample> run, int width, int height,
                                    List<Plateau> plateaus, List<Ramp> ramps) {
         double radius = band.thickness() / 2.0;
-        if (radius < 2) return false;
-        double centre = band.alongX ? (band.y0 + band.y1) / 2.0 : (band.x0 + band.x1) / 2.0;
         // A capsule chain: its round ends lie inside the run, so the cliffs close round the segment's ends.
-        double first = a + radius, last = b - radius;
-        if (last < first) return false;
+        int trim = (int) Math.ceil(radius);
+        if (run.size() <= 2 * trim) return false;
+        List<Sample> body = run.subList(trim, run.size() - trim);
         List<Point> points = new ArrayList<>();
-        int steps = Math.max(1, (int) Math.ceil((last - first) / radius));
-        for (int i = 0; i <= steps; i++) {
-            double t = first + (last - first) * i / steps;
-            points.add(band.alongX ? new Point(t, centre) : new Point(centre, t));
-        }
+        int stride = Math.max(1, (int) Math.floor(radius));
+        for (int i = 0; i < body.size(); i += stride) points.add(new Point(body.get(i).x(), body.get(i).y()));
+        Sample tail = body.get(body.size() - 1);
+        points.add(new Point(tail.x(), tail.y()));
         plateaus.add(new Plateau(1, radius, points));
-        double mid = (a + b) / 2.0;
+        Sample mid = run.get(run.size() / 2);
+        double fx = mid.nx() * band.rampSide(), fy = mid.ny() * band.rampSide();
         // A ramp cut deeper where it climbs a tall south face, as the plateau planner cuts its own.
-        boolean climbsSouthFace = !band.alongX ? false : band.rampSide < 0;
-        double south = climbsSouthFace ? PlateauPlanner.SOUTH_FACE : 0;
-        double footAcross = clamp(centre + band.rampSide * (radius + 3), band.alongX ? height : width);
-        double headAcross = clamp(centre + band.rampSide * (radius - 4 - south), band.alongX ? height : width);
-        Point foot = band.alongX ? new Point(mid, footAcross) : new Point(footAcross, mid);
-        Point head = band.alongX ? new Point(mid, headAcross) : new Point(headAcross, mid);
-        ramps.add(new Ramp(foot, head, band.rampWidth));
+        double south = Math.max(0, -fy) * PlateauPlanner.SOUTH_FACE;
+        Point foot = new Point(clamp(mid.x() + fx * (radius + 3), width), clamp(mid.y() + fy * (radius + 3), height));
+        Point head = new Point(clamp(mid.x() + fx * (radius - 4 - south), width),
+                clamp(mid.y() + fy * (radius - 4 - south), height));
+        ramps.add(new Ramp(foot, head, band.rampWidth()));
         return true;
     }
 
