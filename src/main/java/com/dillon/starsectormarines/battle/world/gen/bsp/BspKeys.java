@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.battle.fort.FortKind;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortSiting;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
+import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
+import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.VehicleCorridor;
@@ -110,6 +112,22 @@ public final class BspKeys {
     public static final GenKey<PrecinctPlan> PRECINCTS = GenKey.of("precincts");
 
     /**
+     * The plan's mission layout as laid ({@code mission-layout.md}): bound by the layout stage, which runs only on a
+     * map whose plan states a layout. Read back into the map's result, never kept on the generator.
+     */
+    public static final GenKey<LaidLayout> MISSION_LAYOUT_LAID = GenKey.of("missionLayoutLaid");
+
+    /**
+     * The layout's roads as the skeleton stage carved them into the network ({@code mission-layout.md}); the layout
+     * stage reports them with everything else it laid.
+     */
+    public static final GenKey<List<Laid>> LAYOUT_ROADS =
+            GenKey.of("layoutRoads");
+
+    /** The layout's structures as the structures phase raised them; the works phase reports them with the rest. */
+    public static final GenKey<List<Laid>> LAYOUT_STRUCTURES = GenKey.of("layoutStructures");
+
+    /**
      * Where a mission sited its forts as barriers, by kind and in declaration order: the ground reserved for each while
      * the town was still growing, slid off any place the plan programs. Present (possibly empty) once the reservation has
      * run, absent when nothing was sited; {@code FortStage} stands each fort as near its entry as the ground allows.
@@ -130,6 +148,14 @@ public final class BspKeys {
      * without re-deriving where it is.
      */
     public static final GenKey<int[][]> PRECINCT_CLAIM = GenKey.of("precinctClaim");
+
+    /**
+     * Ground the plan's landscape held open before the places grew
+     * ({@code Landscape.held}): growth, claims and the partition kept off it, so
+     * the landscape pass can raise its ridges there among built places. Bound
+     * only when the landscape holds some; {@code [x][y]}.
+     */
+    public static final GenKey<boolean[][]> HELD_GROUND = GenKey.of("heldGround");
 
     /**
      * Per-cell road ownership by precinct index. Kept beside the claim because

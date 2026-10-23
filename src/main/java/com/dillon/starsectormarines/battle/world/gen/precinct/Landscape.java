@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.precinct;
 
 import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,9 +29,13 @@ import java.util.List;
  * @param ridges   high ground the mission names: each band raised as hill
  *                 segments, broken into passes wherever roads, buildings or
  *                 the landing cross it ({@link RidgePlanner})
+ * @param held     ridges whose ground is held open before the places grow, so
+ *                 the town, its roads and its fields grow round them: high
+ *                 ground that has to stand among built places, such as a rim
+ *                 round a settlement ({@link RidgePlanner#heldGround})
  */
 public record Landscape(float woodland, List<Track> tracks, List<Brook> brooks, int raggedMargin,
-                        List<RidgePlanner.Band> ridges) {
+                        List<RidgePlanner.Band> ridges, List<RidgePlanner.Band> held) {
 
     /** The groves' share of wild ground in the stock landscape pass. */
     public static final float STOCK_WOODLAND = 0.58f;
@@ -48,12 +53,24 @@ public record Landscape(float woodland, List<Track> tracks, List<Brook> brooks, 
         this(woodland, tracks, brooks, raggedMargin, List.of());
     }
 
+    /** A landscape with no held ground. */
+    public Landscape(float woodland, List<Track> tracks, List<Brook> brooks, int raggedMargin,
+                     List<RidgePlanner.Band> ridges) {
+        this(woodland, tracks, brooks, raggedMargin, ridges, List.of());
+    }
+
+    /** This landscape with these ridges held open before the places grow. */
+    public Landscape withHeld(List<RidgePlanner.Band> held) {
+        return new Landscape(woodland, tracks, brooks, raggedMargin, ridges, held);
+    }
+
     public Landscape {
         if (raggedMargin < 0) throw new IllegalArgumentException("a margin is a width: " + raggedMargin);
         if (!(woodland >= 0f && woodland <= 1f)) throw new IllegalArgumentException("woodland is a share: " + woodland);
         tracks = tracks == null ? List.of() : List.copyOf(tracks);
         brooks = brooks == null ? List.of() : List.copyOf(brooks);
         ridges = ridges == null ? List.of() : List.copyOf(ridges);
+        held = held == null ? List.of() : List.copyOf(held);
     }
 
     /**
@@ -97,6 +114,25 @@ public record Landscape(float woodland, List<Track> tracks, List<Brook> brooks, 
         /** A brook in open country, with no valley sides. */
         public Brook(List<int[]> path, int width, int fordEvery, int fordWidth) {
             this(path, width, fordEvery, fordWidth, 0);
+        }
+
+        /** The brook's middle a cell at a time along its path, source to mouth. */
+        public List<int[]> line() {
+            List<int[]> line = new ArrayList<>();
+            for (int i = 0; i + 1 < path.size(); i++) {
+                int[] a = path.get(i), b = path.get(i + 1);
+                int steps = Math.max(Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1]));
+                for (int k = i == 0 ? 0 : 1; k <= steps; k++) {
+                    line.add(new int[]{Math.round(a[0] + (b[0] - a[0]) * k / (float) Math.max(1, steps)),
+                            Math.round(a[1] + (b[1] - a[1]) * k / (float) Math.max(1, steps))});
+                }
+            }
+            return line;
+        }
+
+        /** Whether the {@code i}th cell of {@link #line} is a ford: one every {@code fordEvery}, never at the source. */
+        public boolean isFord(int i) {
+            return i >= fordWidth && i % fordEvery < fordWidth;
         }
     }
 }

@@ -37,6 +37,7 @@ import com.dillon.starsectormarines.battle.deployable.DeployedCoverService;
 import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
 import com.dillon.starsectormarines.battle.infantry.SquadSupportDeclaration;
 import com.dillon.starsectormarines.battle.deployable.PointDefenseService;
+import com.dillon.starsectormarines.battle.combat.SalvoChain;
 import com.dillon.starsectormarines.battle.drone.DroneBaySystem;
 import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
@@ -63,6 +64,7 @@ import com.dillon.starsectormarines.battle.fort.FortService;
 import com.dillon.starsectormarines.battle.fort.FortSystem;
 import com.dillon.starsectormarines.battle.sally.SallyDoors;
 import com.dillon.starsectormarines.battle.fort.FortTag;
+import com.dillon.starsectormarines.battle.turret.EmplacementStyle;
 import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretFireSystem;
@@ -76,6 +78,7 @@ import com.dillon.starsectormarines.battle.tender.TenderSystem;
 import com.dillon.starsectormarines.battle.warship.MissionStance;
 import com.dillon.starsectormarines.battle.warship.ShipStationing;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.warship.WarshipSystem;
 import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
@@ -315,6 +318,7 @@ import com.dillon.starsectormarines.battle.infantry.MortarTactics;
 import com.dillon.starsectormarines.battle.infantry.InfantryWeapons;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -914,13 +918,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /**
      * Installs the heart's battle (`heart-nouns.md`) over its opened bores: the
      * mothers go to sleep and the heart's wake rules and beats take over.
+     * {@code places} is what the map's mission layout laid, by name.
      */
-    public void installHeart(Form form, WalkingBarrage barrage, HeartLanes lanes) {
+    public void installHeart(Form form, WalkingBarrage barrage, HeartLanes lanes, LaidLayout places) {
         if (simTickIndex != 0 || heart != null || colonyBreach != null)
             throw new IllegalStateException("Install the heart once at setup");
         if (!swarmReinforcements.isConfigured())
             throw new IllegalStateException("The heart needs a configured swarm director");
-        heart = new HeartSequence(form, storyBeats, barrage, lanes);
+        heart = new HeartSequence(form, storyBeats, barrage, lanes, places);
         heart.install(this);
     }
     /** Ends the swarm director's opening seepage; the breach has begun. Idempotent. */
@@ -1628,6 +1633,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         }
         groundSystem.setBlade(new DozerBlade(navigation, mapEditor, doodadService));
         groundSystem.setAirFire(groundAntiAir.vehicleAirFire(this));
+        groundSystem.setScreening(target -> SalvoChain.screened(this, target));
         groundSystem.setStall(id -> rosterService.stagger().isStaggered(id));
         groundSystem.setAssaultPlanner((vehicle, cellX, cellY) -> MachineAssaults.planVehicle(this, vehicle, cellX, cellY));
         groundSystem.setGuardPlanner((vehicle, cellX, cellY) -> MachineGuards.planVehicle(this, vehicle, cellX, cellY));
@@ -1646,7 +1652,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         });
         fogOfWar.init(grid, 256);
         this.directControl = new DirectControlSession(this, rosterService,
-                id -> transport.isRiding(id) || ambientTasks.isControlling(id), this::isComplete,
+                id -> transport.isRiding(id) || ambientTasks.isControlling(id)
+                        || fabrication != null && fabrication.onStocks(id), this::isComplete,
                 warships, tenders, (x, y) -> fogOfWar.isCellRevealed(x, y));
     }
 
@@ -1795,6 +1802,21 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Data owner for the TURRET_STATE component (turret facing/recoil/burst) — {@code sim.turretState().isTurret(id)} / {@code facingDegrees(id)}. */
     public TurretStateService turretState() { return rosterService.turretState(); }
+
+    /** Structures built in a style other than the default, by entity; kept for the battle, through a change of hands. */
+    private final Long2ObjectOpenHashMap<EmplacementStyle> structureStyles = new Long2ObjectOpenHashMap<>();
+
+    /** Records how structure {@code id} was built ({@link DefensePost#style}); presentation only. */
+    public void setStructureStyle(long id, EmplacementStyle style) {
+        if (style == null || style == EmplacementStyle.BRUTALIST) structureStyles.remove(id);
+        else structureStyles.put(id, style);
+    }
+
+    /** How structure {@code id} was built: {@link EmplacementStyle#BRUTALIST} unless its post said otherwise. */
+    public EmplacementStyle structureStyle(long id) {
+        EmplacementStyle style = structureStyles.get(id);
+        return style != null ? style : EmplacementStyle.BRUTALIST;
+    }
 
     /** Data owner for the DRONE_STATE component (drone patrol/pursuit vectors) — {@code sim.droneState().isDrone(id)} / {@code patrolGoalX(id)}. */
     public DroneStateService droneState() { return rosterService.droneState(); }
@@ -2455,6 +2477,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public long spawn(EntitySpec spec) {
         long id = rosterService.spawn(spec);
         sealMultiCellStructure(id, spec);
+        raisePlinthEye(id, spec);
         registerShieldDome(id, spec);
         registerFortressBattery(id, spec);
         if (spec.turretStructureId != null) {
@@ -2464,6 +2487,15 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             fogOfWar.addContributor(id, rosterService);
         }
         return id;
+    }
+
+    /** A gun on a plinth sees from its height for as long as it stands; its death lowers the cell again. */
+    private void raisePlinthEye(long id, EntitySpec spec) {
+        if (spec.turretStructureId == null) return;
+        StructureDef structure = TurretCatalogRegistry.requireStructure(spec.turretStructureId);
+        if (structure.plinthTiers <= 0) return;
+        mapEditor.setRaisedEye(spec.cellX, spec.cellY, structure.plinthTiers);
+        turretDemolition.registerPlinth(id);
     }
 
     /** A shield generator's dome comes into being with it, for whichever side spawned it. */

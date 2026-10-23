@@ -10,6 +10,9 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortSiting;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
+import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayout;
+import com.dillon.starsectormarines.battle.world.gen.layout.Site;
+import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LandingKind;
 import com.dillon.starsectormarines.battle.world.gen.precinct.MapPlacement;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
@@ -114,5 +117,16 @@ class FortReservationsTest {
         GenContext ctx = context(FortSitingPolicy.LEFTOVER_GROUND, false);
         assertNull(FortReservations.keepClear(ctx, ctx.get(BspKeys.PRECINCTS)));
         assertTrue(ctx.get(BspKeys.FORT_TARGETS).isEmpty());
+    }
+
+    @Test
+    void groundHeldForAuthoredTerrainIsKeptClearOfGrowth() {
+        GenContext ctx = context(FortSitingPolicy.LEFTOVER_GROUND, false);
+        PrecinctPlan plan = ctx.get(BspKeys.PRECINCTS).withLayout(new MissionLayout(List.of(
+                new Site("ridge", 200, 40, 260, 70, SitePurpose.GROUND, false))));
+        boolean[][] mask = FortReservations.keepClear(ctx, plan);
+        assertNotNull(mask);
+        assertTrue(mask[200][40] && mask[260][70] && mask[230][55]);
+        assertTrue(!mask[199][55] && !mask[261][55] && !mask[230][71]);
     }
 }

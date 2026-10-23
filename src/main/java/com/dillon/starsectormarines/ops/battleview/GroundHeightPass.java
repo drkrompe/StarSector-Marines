@@ -378,7 +378,10 @@ final class GroundHeightPass {
     }
 
     private static boolean isWaterSurface(CellTopology topology, int x, int y) {
-        return topology.inBounds(x, y) && !topology.isWall(x, y) && topology.isWater(x, y);
+        // A shore cell's water is drawn by the shore's contour, and moving it with
+        // the waves would tear that contour along the cell's own edges.
+        return topology.inBounds(x, y) && !topology.isWall(x, y) && topology.isWater(x, y)
+                && !(WaterShore.enabled() && WaterShore.isShoreWater(topology, x, y));
     }
 
     private void appendMetadata(float cx, float cy, float cellPx,

@@ -15,6 +15,8 @@ import com.dillon.starsectormarines.battle.world.gen.forest.ForestBrush;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestField;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestPlan;
 import com.dillon.starsectormarines.battle.world.gen.forest.LandscapeAccess;
+import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
+import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.world.gen.nature.FormationBrush;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
@@ -60,11 +62,14 @@ public final class OutdoorLandscapeStage implements GenStage {
         for (int[] cell : brookCells) reserve(c, reserved, cell[0] - bank, cell[1] - bank, cell[0] + bank, cell[1] + bank);
         // Own substream: absent nature never moves facilities, force positions or later RNG draws.
         Random random = new Random(c.seed ^ 0x574f4f444c414e44L);
-        if (c.topology.terrainSurface() == null) hills(c, surface, reserved, random);
+        List<RidgePlanner.Band> ridges = new ArrayList<>(landscape.ridges());
+        ridges.addAll(landscape.held());
+        ridges.addAll(valleySides(c, landscape));
+        // No stock hill grows where the mission named high ground: it would be all the ridge found there.
+        boolean[][] ridgeGround = ridges.isEmpty() ? null : RidgePlanner.heldGround(ridges, c.width, c.height, 0);
+        if (c.topology.terrainSurface() == null) hills(c, surface, reserved, ridgeGround, random);
         int plateaus = plateausWanted(c);
         if (plateaus > 0) plateaus(c, reserved, plateaus, new Random(c.seed ^ 0x504c4154L));
-        List<RidgePlanner.Band> ridges = new ArrayList<>(landscape.ridges());
-        ridges.addAll(valleySides(c, landscape));
         if (!ridges.isEmpty() && c.grid.elevation() == null) ridges(c, reserved, ridges);
         if (surface == SurfacePalette.VERDANT) trees(c, reserved, landscape.woodland());
         else FormationBrush.scatter(c,surface,reserved);
@@ -126,12 +131,25 @@ public final class OutdoorLandscapeStage implements GenStage {
         var lanes = c.get(BspKeys.LANES);
         if (lanes != null) for (var lane : lanes) for (var cell : lane.route())
             reserve(c, reserved, cell.x() - 2, cell.y() - 2, cell.x() + 2, cell.y() + 2);
+        // A mission layout's works, the ways through them and its open sites stay as they were laid. Ground held
+        // for authored terrain is not reserved here: ridges and rises are what it is for.
+        LaidLayout laid = c.get(BspKeys.MISSION_LAYOUT_LAID);
+        if (laid != null) for (Laid piece : laid.pieces()) {
+            if (piece.kind() == Laid.Kind.GROUND) continue;
+            if ((piece.kind() == Laid.Kind.SITE || piece.kind() == Laid.Kind.STRUCTURE) && piece.cells().size() == 2) {
+                reserve(c, reserved, piece.cells().get(0)[0], piece.cells().get(0)[1], piece.cells().get(1)[0], piece.cells().get(1)[1]);
+                continue;
+            }
+            for (List<int[]> cells : List.of(piece.cells(), piece.gaps(), piece.nests()))
+                for (int[] cell : cells) reserve(c, reserved, cell[0] - 2, cell[1] - 2, cell[0] + 2, cell[1] + 2);
+        }
         for (int[] point : anchors) reserve(c, reserved, point[0] - 5, point[1] - 5, point[0] + 5, point[1] + 5);
         LandscapeAccess.reserveRoutes(c.grid, anchors, reserved);
         return reserved;
     }
 
-    private static void hills(GenContext c, SurfacePalette surface, boolean[] reserved, Random random) {
+    private static void hills(GenContext c, SurfacePalette surface, boolean[] reserved, boolean[][] ridgeGround,
+                              Random random) {
         TerrainPlan plan = new TerrainPlan(c.width, c.height,
                 surface == SurfacePalette.VERDANT ? TerrainPlan.Finish.GRASS_TOP
                         : surface == SurfacePalette.FROZEN ? TerrainPlan.Finish.ICE : TerrainPlan.Finish.ROCK,
@@ -151,7 +169,8 @@ public final class OutdoorLandscapeStage implements GenStage {
             boolean fits = true;
             for (int yy = b; yy <= t && fits; yy++) for (int xx = l; xx <= r; xx++) {
                 if (field.maximum(xx, yy) < -.65) continue;
-                if (reserved[yy * c.width + xx] || occupied[yy * c.width + xx] || !openGround(c, xx, yy)) {
+                if (reserved[yy * c.width + xx] || occupied[yy * c.width + xx] || !openGround(c, xx, yy)
+                        || (ridgeGround != null && ridgeGround[xx][yy])) {
                     fits = false; break;
                 }
             }
@@ -191,9 +210,14 @@ public final class OutdoorLandscapeStage implements GenStage {
      */
     private static void ridges(GenContext c, boolean[] reserved, List<RidgePlanner.Band> bands) {
         int w = c.width;
+        // Proved a segment at a time: each new segment's faces in a box round
+        // them alone, with the faces already kept counted closed. One box round
+        // every ridge at once spans half the map, and any pocket in it refuses
+        // them all.
+        boolean[] kept = new boolean[c.width * c.height];
         ElevationPlan plan = RidgePlanner.plan(c.width, c.height, c.seed ^ 0x52494447L, bands,
                 i -> !reserved[i] && openGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
-                layout -> keepsAccess(c, layout));
+                layout -> keepsAccess(c, layout, kept));
         if (plan == null) return;
         ElevationBrush.stamp(plan, c.grid, c.topology, reserved);
         // A ridge's ramps are its only ways up: no tree may grow on one and close it.
@@ -217,7 +241,7 @@ public final class OutdoorLandscapeStage implements GenStage {
         List<RidgePlanner.Band> out = new ArrayList<>();
         for (Landscape.Brook brook : landscape.brooks()) {
             if (brook.banks() <= 0) continue;
-            List<int[]> line = brookLine(brook);
+            List<int[]> line = brook.line();
             int bank = brook.width() / 2 + 2;
             double offset = bank + VALLEY_FLOOR + PlateauPlanner.FACE_WIDTH + PlateauPlanner.SOUTH_FACE + 1
                     + brook.banks() / 2.0;
@@ -225,7 +249,7 @@ public final class OutdoorLandscapeStage implements GenStage {
             List<int[]> stretches = new ArrayList<>();
             int from = 0;
             for (int i = 0; i < line.size(); i++) {
-                boolean ford = i >= brook.fordWidth() && i % brook.fordEvery() < brook.fordWidth();
+                boolean ford = brook.isFord(i);
                 if (!ford) continue;
                 stretches.add(new int[]{from, i - FORD_APPROACH});
                 from = i + brook.fordWidth() + FORD_APPROACH;
@@ -252,21 +276,24 @@ public final class OutdoorLandscapeStage implements GenStage {
         return new ElevationPlan.Point(p[0] - dy / len * by, p[1] + dx / len * by);
     }
 
-    /** A brook's centre line walked a cell at a time, as {@link #runBrooks} lays its water. */
-    private static List<int[]> brookLine(Landscape.Brook brook) {
-        List<int[]> line = new ArrayList<>();
-        for (int i = 0; i + 1 < brook.path().size(); i++) {
-            int[] a = brook.path().get(i), b = brook.path().get(i + 1);
-            int steps = Math.max(Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1]));
-            for (int k = i == 0 ? 0 : 1; k <= steps; k++) {
-                line.add(new int[]{Math.round(a[0] + (b[0] - a[0]) * k / (float) Math.max(1, steps)),
-                        Math.round(a[1] + (b[1] - a[1]) * k / (float) Math.max(1, steps))});
-            }
+    /** Whether the ground around a layout's faces stays one connected piece once they close. */
+    /**
+     * Whether the faces this layout adds to {@code kept} leave the ground round
+     * them connected; on yes, adds them to {@code kept}.
+     */
+    private static boolean keepsAccess(GenContext c, ElevationLayout layout, boolean[] kept) {
+        int l = c.width, b = c.height, r = -1, t = -1;
+        for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) {
+            if (!layout.isFace(x, y) || kept[y * c.width + x]) continue;
+            l = Math.min(l, x); r = Math.max(r, x); b = Math.min(b, y); t = Math.max(t, y);
         }
-        return line;
+        if (r >= 0 && !LandscapeAccess.canClose(c.grid, kept, l, b, r, t, layout::isFace)) return false;
+        for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) {
+            if (layout.isFace(x, y)) kept[y * c.width + x] = true;
+        }
+        return true;
     }
 
-    /** Whether the ground around a layout's faces stays one connected piece once they close. */
     private static boolean keepsAccess(GenContext c, ElevationLayout layout) {
         int l = c.width, b = c.height, r = -1, t = -1;
         for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) {
@@ -424,7 +451,7 @@ public final class OutdoorLandscapeStage implements GenStage {
     private static List<int[]> runBrooks(GenContext c, Landscape landscape) {
         List<int[]> centres = new ArrayList<>();
         for (Landscape.Brook brook : landscape.brooks()) {
-            List<int[]> line = brookLine(brook);
+            List<int[]> line = brook.line();
             float r = brook.width() / 2f;
             int reach = (int) Math.ceil(r) + 1;
             for (int[] centre : line) {
@@ -450,7 +477,7 @@ public final class OutdoorLandscapeStage implements GenStage {
             }
             // Fords last, so a ford is open across the whole stream whatever drew water over it.
             for (int i = 0; i < line.size(); i++) {
-                if (i % brook.fordEvery() >= brook.fordWidth() || i < brook.fordWidth()) continue;
+                if (!brook.isFord(i)) continue;
                 int[] centre = line.get(i);
                 for (int dy = -reach; dy <= reach; dy++) for (int dx = -reach; dx <= reach; dx++) {
                     int x = centre[0] + dx, y = centre[1] + dy;

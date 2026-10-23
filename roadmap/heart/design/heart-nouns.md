@@ -91,6 +91,29 @@ settlement crosses it (`elevation-nouns.md`, Ridges). The line was dug along
 it, and it looks down into the overgrowth. The Burn's village stands across most of its
 band, so The Burn's ridge is short.
 
+**Hollow.** The low ground the workings sit in: a rim of high ground wrapped
+round them on the attack's side, climbed from outside, its inner face a cliff
+over the yard, with a pass straight toward the start and wherever a road or
+route crosses it. The rim's ground is held before the places grow
+(`elevation-nouns.md`, Held ground), so the workings' roads and the town's
+fields grow round it. Today it stands as one to three arcs rather than a ring
+(`heart-map-intent.md`).
+
+**Cordon's works.** What the cordon dug and built facing the bloom, laid as
+named pieces of the heart's mission layout: the forward line of trench and
+wire just past the ridge, broken at every lane; an observation post forward
+of it in each half of the front; and on the farmland behind it the logistics
+base's ammunition dumps and vehicle park. Each beat's set piece is laid the
+same way (the lost column's holdout, the reservoir yard, the battery's flank
+works, the village holdout, the company's ford). The heart's runtime holds
+what was laid by name, so a beat that needs a place asks whether it is there
+(`heart-map-intent.md`).
+
+**Density.** How built-up the country between the cordon and the heart is:
+rural, town or city, from the world's market size. Denser country has more
+streets for the lanes to pass through and less open ground for armour; works
+yield to what is built.
+
 **Start line.** The near edge of the cordon's farmland, along the farm road the
 fields are worked from. Where the attack steps off and, in The Burn, the first
 firebreak behind the fire line.

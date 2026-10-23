@@ -177,6 +177,28 @@ final class CliffShading {
     }
 
     /**
+     * How much of a point is bare rock, 0 to 1: the face's share of what {@link #shade} lays over the ground there,
+     * so the turf hanging over the lip and the apron at the foot count for nothing, and a ramp's walls count in
+     * full. A ramp's floor counts for nothing however steep it is: creep runs up the steps between the bare walls,
+     * which marks the way up. What creep stands back from ({@link CliffFaceMask}).
+     */
+    float faceCover(float wx, float wy, float[] scratch) {
+        float gx = (warped(wx + E, wy) - warped(wx - E, wy)) / (2 * E);
+        float gy = (warped(wx, wy + E) - warped(wx, wy - E)) / (2 * E);
+        float face = smooth(.1, .38, Math.hypot(gx, gy));
+        float rock = 0f;
+        if (face > 0f) {
+            shade(wx, wy, scratch);
+            rock = face * scratch[3];
+        }
+        float[] step = steps(wx, wy);
+        if (step == null) return rock;
+        // The floor carries .88 coverage at most; under it the slope is the ramp's, not a face's.
+        float floor = Math.min(1f, step[3] / .88f);
+        return Math.max(rock * (1f - floor), step[7]);
+    }
+
+    /**
      * Whether a cell can show any of the look: it lies within reach of a face
      * or a ramp. Cells farther out bake to nothing and need not be evaluated.
      */

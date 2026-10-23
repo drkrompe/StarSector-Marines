@@ -38,7 +38,9 @@ public enum DefensePostShape {
     LINE_V            ("line-v"),
     WEDGE             ("wedge"),
     TRAPEZOID         ("trapezoid"),
-    TRIANGLE_FORMATION("triangle-formation");
+    TRIANGLE_FORMATION("triangle-formation"),
+    /** One raised gun on a 3x3 plinth with a paved apron round it ({@code ground-turret-tiers.md}). */
+    HARDPOINT         ("hardpoint");
 
     /** Stable compatibility key for the data-authored LARGE layout variant. */
     public final String key;

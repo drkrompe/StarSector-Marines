@@ -337,6 +337,38 @@ class GroundVehicleTurretSystemTest {
     }
 
     @Test
+    void aHeldLauncherChainsItsSalvosUntilReleaseWhileAClickIsOne() {
+        Fixture click = new Fixture(VehicleType.LRM_CARRIER);
+        click.tick(click.north(), true);
+        for (int i = 0; i < 300; i++) click.tick(click.north(), false);
+        assertEquals(click.weapon.burstCount, click.shots.getActiveShots().size(), "a click is one salvo");
+
+        Fixture held = new Fixture(VehicleType.LRM_CARRIER);
+        int salvos = 3;
+        float salvoSeconds = held.weapon.burstCount * held.weapon.burstSpacing;
+        int guard = 2000;
+        while (held.shots.getActiveShots().size() < (salvos - 1) * held.weapon.burstCount + 1 && guard-- > 0) {
+            held.tick(held.north(), true);
+        }
+        assertEquals((salvos - 1) * held.weapon.burstCount + 1, held.turret.holdRounds);
+        for (int i = 0; i < 300; i++) held.tick(held.north(), false);
+        assertEquals(salvos * held.weapon.burstCount, held.shots.getActiveShots().size(),
+                "release ends the chain after the salvo in flight");
+        assertEquals(0, held.turret.holdRounds);
+        assertTrue(salvos * salvoSeconds < held.weapon.cooldown, "three salvos inside one cooldown");
+    }
+
+    @Test
+    void anAutonomousLauncherChainsTwoSalvosIntoATank() {
+        Fixture f = new Fixture(VehicleType.LRM_CARRIER);
+        long tank = f.hostileHull(VehicleType.BREAKTHROUGH_TANK, 20.5f, 45.5f);
+        f.system.setSpotting((side, target) -> side == Faction.MARINE && target == tank);
+        for (int i = 0; i < (int) (f.weapon.cooldown * 0.9f / DT); i++) f.auto();
+        assertEquals(2 * f.weapon.burstCount, f.shots.getActiveShots().size(),
+                "half a capped load at armor that is not a mech");
+    }
+
+    @Test
     void ownSightBeatsASpottersCallThenTheNearerThenTheLowerId() {
         int own = GroundVehicleTurretSystem.OWN_SIGHT;
         int spotted = GroundVehicleTurretSystem.SPOTTED;

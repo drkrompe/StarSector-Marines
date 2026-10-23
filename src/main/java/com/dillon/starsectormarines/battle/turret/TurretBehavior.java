@@ -79,7 +79,7 @@ public final class TurretBehavior implements UnitBehavior {
         s.facingDegrees = turretState.facingDegrees(id);
         s.turnRateDegPerSec = mount.turnRateDegPerSec;
         s.attackRange = sim.world().attackRange(id);
-        s.minRange = weapon.minRange;
+        s.minRange = structure.minRangeCells();
         s.cooldownTimer = sim.world().cooldownTimer(id);
         s.attackCooldown = sim.combat().attackCooldown(id);
         s.target = sim.targetOf(u);

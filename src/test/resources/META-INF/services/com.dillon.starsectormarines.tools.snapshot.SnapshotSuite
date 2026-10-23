@@ -209,6 +209,7 @@ com.dillon.starsectormarines.ops.BlackSluiceSnapshotSuite
 com.dillon.starsectormarines.ops.LandedShipsSnapshotSuite
 com.dillon.starsectormarines.ops.TermsOfProtectionSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.bsp.DefencePostSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.bsp.GroundTurretSiteSnapshotSuite
 com.dillon.starsectormarines.battle.setup.GreyhookDuelSceneSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechLocationalDamageSceneSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechHullDownSceneSnapshotSuite
@@ -255,6 +256,7 @@ com.dillon.starsectormarines.battle.creep.CreepRoofCollapseSceneSnapshotSuite
 com.dillon.starsectormarines.battle.creep.CreepVegetationSceneSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.RuralMapgenSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.HeartCountrySnapshotSuite
+com.dillon.starsectormarines.ops.battleview.WaterShoreSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.CityJunctionSnapshotSuite
 com.dillon.starsectormarines.battle.fire.FireLineSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.ColonyRoadblockSnapshotSuite
@@ -276,3 +278,7 @@ com.dillon.starsectormarines.ops.BattleLoadingSnapshotSuite
 com.dillon.starsectormarines.battle.infantry.MedicPoolSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.VehicleRamSceneSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.LrmCarrierLookSuite
+com.dillon.starsectormarines.ops.GroundTurretLookSnapshotSuite
+com.dillon.starsectormarines.battle.turret.RaisedGunSceneSnapshotSuite
+com.dillon.starsectormarines.ops.AimReticleSnapshotSuite
+com.dillon.starsectormarines.battle.vehicle.VehicleScuffsSnapshotSuite

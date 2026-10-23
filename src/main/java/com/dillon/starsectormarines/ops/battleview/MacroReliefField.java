@@ -87,7 +87,7 @@ public final class MacroReliefField {
      * Metres one tier of raised ground stands above the one below: a storey,
      * so a plateau's shadow reaches about as far as a building's.
      */
-    public static final float TIER_RISE_METERS = 4f;
+    public static final float TIER_RISE_METERS = ElevationMap.TIER_RISE_METERS;
 
     public MacroReliefField(CellTopology topology, NavigationGrid grid,
                             Buildings buildings, GenMappingRegistry mapping) {
@@ -130,6 +130,10 @@ public final class MacroReliefField {
             return topology.isWindow(x, y) ? windowSillMeters : wallMeters;
         }
         if (roofed[topology.index(x, y)]) return roofMeters;
+        // Water is level with its bank wherever the shore's contour draws the
+        // waterline: sunken square cells would cast it back in steps, at the bank
+        // and again wherever open water meets the shore cells around it.
+        if (WaterShore.enabled() && topology.isWater(x, y)) return 0f;
         return mapping != null ? mapping.macroHeightMeters(topology.getGroundKind(x, y)) : 0f;
     }
 

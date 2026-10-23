@@ -57,6 +57,17 @@ public final class GroundTurret {
     public float raiseRangeCells = Float.NaN;
     /** World point committed by a manual trigger; null for autonomous bursts. */
     public PointFireAim burstPointAim;
+    /**
+     * Further salvos the launcher's trigger has committed to without waiting out its cooldown
+     * ({@code SalvoChain}): the rest of the crew's chosen count, or unbounded while a driver holds the button.
+     */
+    public int chainSalvos;
+    /** The body the crew's chain was committed against. */
+    public long chainTargetId;
+    /** Seconds until a chained salvo may follow the one that has just gone. */
+    public float chainGap;
+    /** Rounds a driver's current hold has fired, for the HUD; zero when the button is up. */
+    public int holdRounds;
 
     /** The turret as a section of the hull, or null when the hull authors none (its gun cannot be shot away). */
     public final HullTurretSection section;
@@ -90,5 +101,22 @@ public final class GroundTurret {
         burstPointAim = null;
         burstRemaining = 0;
         burstTimer = 0f;
+        chainSalvos = 0;
+        holdRounds = 0;
+    }
+
+    /** Whether the next trigger would be a chained salvo: its cooldown is running, but a chain is pending. */
+    public boolean chainedTrigger() {
+        return cooldownTimer > 0f && chainSalvos > 0;
+    }
+
+    /** Whether the cadence admits a trigger: the cooldown is done, or a chained salvo's predecessor has gone. */
+    public boolean clockReady() {
+        return cooldownTimer <= 0f || chainedTrigger() && chainGap <= 0f;
+    }
+
+    /** Books a trigger: a chained one spends a salvo of the chain. */
+    public void commitChained() {
+        if (chainedTrigger() && chainSalvos != Integer.MAX_VALUE) chainSalvos--;
     }
 }

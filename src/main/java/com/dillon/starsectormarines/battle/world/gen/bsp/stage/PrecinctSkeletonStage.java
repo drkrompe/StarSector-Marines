@@ -4,6 +4,10 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
+import com.dillon.starsectormarines.battle.world.gen.layout.LayoutRoads;
+import com.dillon.starsectormarines.battle.world.gen.layout.Site;
+import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LaneResistance;
@@ -89,6 +93,12 @@ public final class PrecinctSkeletonStage implements GenStage {
         RuralLayout rural = survey(plan, grown, ctx);
         if (rural != null) ctx.put(BspKeys.RURAL_LAYOUT, rural);
 
+        // The roads the mission's layout asks for, carved into the network as any grown arm is, so its gates, its
+        // paving and the road graph come from the stages that do that for every road.
+        List<Laid> layoutRoads = LayoutRoads.carve(plan, claim, grown.owner(), rural,
+                ctx.width, ctx.height);
+        if (!layoutRoads.isEmpty()) ctx.put(BspKeys.LAYOUT_ROADS, layoutRoads);
+
         List<TrunkPlan.TrunkSegment> trunks = grown.plan().trunks;
         boolean[][] trunkPainted = new boolean[ctx.width][ctx.height];
         for (TrunkPlan.TrunkSegment trunk : trunks) {
@@ -140,6 +150,10 @@ public final class PrecinctSkeletonStage implements GenStage {
             for (int y = 0; y < ctx.height; y++) town[x][y] = owner[x][y] != GrownTrunkPlan.UNOWNED;
         }
         RuralLayout rural = RuralLayout.plan(ctx.width, ctx.height, field, town, ctx.seed);
+        // Ground the mission holds for its own terrain is nobody's field and nobody's farm.
+        for (Site site : plan.layout().planSites()) {
+            if (site.purpose() == SitePurpose.GROUND) rural = rural.without(site.x0(), site.y0(), site.x1(), site.y1());
+        }
         for (int x = 0; x < ctx.width; x++) {
             for (int y = 0; y < ctx.height; y++) {
                 if (!rural.inCountry(x, y)) continue;

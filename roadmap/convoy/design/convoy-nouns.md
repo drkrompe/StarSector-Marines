@@ -1,6 +1,6 @@
 # Convoy
 
-Status: ACTIVE — ground delivery, deployed APC orders, and direct control share vehicle authority; shared vehicle/infantry interaction and terminal recovery remain extension paths.
+Status: ACTIVE — ground delivery, deployed vehicle orders, and direct control share vehicle authority; shared vehicle/infantry interaction and terminal recovery remain extension paths.
 
 Written: 2026-08-23
 
@@ -640,10 +640,10 @@ ground is neither passable nor blocked until queried. Another convoy captures
 the current map; a vehicle wreck closes no navigation cell, so it does not
 change the next convoy's clearance.
 
-## Direct control of a deployed APC
+## Direct control of a deployed vehicle
 
 The session in `direct-control-nouns.md` may temporarily own an exact live
-Marine HEAVY_APC in DEPLOYED state. Delivery legs, non-Marine hulls, and terminal
+Marine-faction vehicle of any type in DEPLOYED state. Delivery legs, non-Marine hulls, and terminal
 states remain outside that authority. Entry checks the complete oriented body
 against current terrain. A vehicle keeps its own ground kinematics, mission,
 and turret components; it does not acquire infantry position, movement, combat,

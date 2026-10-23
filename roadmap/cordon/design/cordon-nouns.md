@@ -59,10 +59,27 @@ a ground colony's spines open it. Each redoubt is numbered across the line from
 west to east, from 1.
 
 **Picket line.** The ground between two neighbouring redoubts, held by works
-rather than walls: a sandbag course with a nest at each end, the outer belt of
-`forts.md` run out from one redoubt to the next (`fortified-lines.md`). A
+rather than walls, run from one redoubt's claimed edge to the next's at their
+depth and facing the front, with a nest at each end of every run
+(`fortified-lines.md`). The mission lays it through its layout
+(`mission-layout.md`) once the redoubts stand; what it is built of follows the
+density: a trench two deep with a sandbag parapet and wire in front, opened in
+funnels, across rural and town country, its street mouths barricaded in a
+town; in a city a sandbag course that runs along the house fronts where the
+buildings stand across it, and barricaded street mouths. The garrison seats
+its own light gun (`ALLY`) in every nest of the picket, so the works between
+redoubts are covered from the first tick. Behind the middle of the line, the
+redoubt with the most room has an unmanned **switch line**, a shorter trench
+a garrison falls back to (beat L3). The beats' other set pieces stand where the layout found
+room for them (`cordon-map-intent.md`): a farmstead in the near front, an
+ammo dump in the base, a square in the far rear hamlet, a granary on the
+colony's near side, an observation post forward of each flank redoubt and,
+on the Road, sandbag positions either side of the corridor where it crosses
+the line. A
 picket line is broken by gaps the roads pass through, so the line is a set of
-prepared positions, never a wall: routes through always exist. A picket team
+prepared positions, never a wall: routes through always exist, and works that
+would seal the ground are not laid. A picket line is optional: one the town
+breaks is still a Cordon. A picket team
 mans its course under the same order a holdout's line team has, and falls back
 into the nearer redoubt when it breaks.
 
@@ -148,7 +165,10 @@ redoubt it fed and answers the nearest call as the armour does, beside the
 armour rather than on it. When squads wait at the base, one carrier a squad
 goes back for them, the nearest first, and the rest stay on the line. A
 finished car or technical joins the allied armour with a post behind a
-redoubt as its home. The base opens with one carrier.
+redoubt as its home. The base opens with one carrier. **Supply roads** run from the
+base's gate toward the line to each redoubt's rear gate across open country
+(`mission-layout.md`), so the line has a road behind it; across a town's or a
+city's ground its own streets are the supply road.
 
 The base controls its exits so nothing piles up in the shed. A finished
 machine waits on its berth until the one before it has driven clear of the
@@ -240,6 +260,11 @@ turn onto is moving all the time. On a map whose corridor does not pass the
 base, trucks come on a few cells in from the rear edge, since a hull set down
 on the edge row has no route out of it. Nothing is parked within a few cells of
 the corridor.
+
+The Road also has a **second road** through the line, from the base's gate
+through the gap beside redoubt 2 to the compound's rear gate (beat R5),
+carved where the country is open; the corridor is still the cheapest way,
+whichever that is.
 
 **Line posture.** The briefing's choice of how far the company goes out, the
 Cordon's version of the hive posture (`colony-breach-nouns.md`, Hive posture),

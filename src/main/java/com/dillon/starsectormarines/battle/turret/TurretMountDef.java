@@ -59,6 +59,14 @@ public final class TurretMountDef {
      */
     public final boolean engagesAir;
 
+    /**
+     * How far below level the gun can point, in degrees. It matters only on a raised mount
+     * ({@link StructureDef#plinthTiers}): a gun standing that high cannot reach the ground at its own foot,
+     * so the plinth's height over the tangent of this angle is a range it cannot engage inside. Ninety, the
+     * default, is a gun that can point straight down.
+     */
+    public final float maxDepressionDeg;
+
     /** Optional whole-texture mount body. Null lets a carrier own sheet-frame art. */
     public final String spritePath;
     /** Optional recoil/barrel layer paired with {@link #spritePath}. */
@@ -69,8 +77,10 @@ public final class TurretMountDef {
                            float visualCells, float muzzleOffsetCells,
                            float muzzleLateralOffsetCells, List<Muzzle> muzzles,
                            boolean hardenedTargetsOnly, Flux flux,
-                           boolean engagesAir, String spritePath, String recoilSpritePath) {
+                           boolean engagesAir, float maxDepressionDeg,
+                           String spritePath, String recoilSpritePath) {
         this.id = id;
+        this.maxDepressionDeg = maxDepressionDeg;
         this.engagesAir = engagesAir;
         this.flux = flux;
         this.hardenedTargetsOnly = hardenedTargetsOnly;
@@ -101,6 +111,10 @@ public final class TurretMountDef {
         JSONObject render = json.optJSONObject("render");
         int ammoCapacity = sim.getInt("ammoCapacity");
         float turnRate = (float) sim.getDouble("turnRateDegPerSec");
+        float maxDepressionDeg = (float) sim.optDouble("maxDepressionDeg", 90.0);
+        if (!(maxDepressionDeg > 0f && maxDepressionDeg <= 90f)) {
+            throw new JSONException("Turret mount '" + id + "' maxDepressionDeg must be in (0, 90]");
+        }
         Flux flux = null;
         JSONObject fluxJson = sim.optJSONObject("flux");
         if (fluxJson != null) {
@@ -166,7 +180,7 @@ public final class TurretMountDef {
         return new TurretMountDef(
                 id, weaponId, weapon, ammoCapacity, turnRate, visualCells, muzzleOffsetCells,
                 muzzleLateralOffsetCells, muzzles, json.optBoolean("hardenedTargetsOnly", false),
-                flux, json.optBoolean("engagesAir", false), sprite, recoilSprite);
+                flux, json.optBoolean("engagesAir", false), maxDepressionDeg, sprite, recoilSprite);
     }
 
     /** A mount's flux frame ({@link TurretMountDef#flux}). */
@@ -180,7 +194,7 @@ public final class TurretMountDef {
         return value.trim();
     }
 
-    private static String optionalText(JSONObject json, String key) {
+    static String optionalText(JSONObject json, String key) {
         String value = json.optString(key, null);
         if (value == null) return null;
         String trimmed = value.trim();

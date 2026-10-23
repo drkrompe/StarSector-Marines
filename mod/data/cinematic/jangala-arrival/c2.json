@@ -43,14 +43,14 @@
    "volume": 0.1096
   },
   {
-   "t": 0.09,
+   "t": 0.089,
    "sound": "jangala_sfx_c2_legion_forward",
-   "volume": 0.2483
+   "volume": 0.2512
   },
   {
-   "t": 0.114,
+   "t": 0.091,
    "sound": "jangala_sfx_c2_legion_drives",
-   "volume": 0.1603
+   "volume": 0.2512
   },
   {
    "t": 0.141,
@@ -75,7 +75,7 @@
   {
    "t": 0.3,
    "sound": "jangala_squelch_open",
-   "volume": 1.0
+   "volume": 0.3981
   },
   {
    "t": 0.362,
@@ -118,9 +118,14 @@
    "volume": 0.1531
   },
   {
+   "t": 7.156,
+   "sound": "jangala_sfx_c2_legion_burn",
+   "volume": 0.1972
+  },
+  {
    "t": 8.94,
    "sound": "jangala_squelch_close",
-   "volume": 1.0
+   "volume": 0.3981
   },
   {
    "t": 9.534,

@@ -34,12 +34,12 @@
     {
       "id": "mount.turret-vulcan", "weapon": "weapon.turret-vulcan",
       "sim": { "ammoCapacity": 120, "turnRateDegPerSec": 120.0 },
-      "render": { "visualCells": 1.6, "muzzleOffsetCells": 0.58, "muzzleLateralOffsetCells": 0.13, "sprite": "graphics/weapons/vulcan_cannon_turret_base.png", "recoilSprite": "graphics/weapons/vulcan_cannon_turret_recoil.png" }
+      "render": { "visualCells": 1.25, "muzzleOffsetCells": 0.57, "muzzles": [[-0.055, 0.57], [0.07, 0.57]], "sprite": "graphics/structures/ground-turrets/brutalist/autogun-head.png", "recoilSprite": "graphics/structures/ground-turrets/brutalist/autogun-barrel.png" }
     },
     {
       "id": "mount.turret-arbalest", "weapon": "weapon.turret-arbalest",
       "sim": { "ammoCapacity": 60, "turnRateDegPerSec": 90.0 },
-      "render": { "visualCells": 1.8, "muzzleOffsetCells": 0.58, "sprite": "graphics/weapons/arbalest_turret_base.png", "recoilSprite": "graphics/weapons/arbalest_turret_recoil.png" }
+      "render": { "visualCells": 1.25, "muzzleOffsetCells": 0.586, "muzzles": [[0.0, 0.586]], "sprite": "graphics/structures/ground-turrets/brutalist/cannon-head.png", "recoilSprite": "graphics/structures/ground-turrets/brutalist/cannon-barrel.png" }
     },
     {
       "id": "mount.turret-heavy-mortar", "weapon": "weapon.turret-heavy-mortar",
@@ -49,17 +49,17 @@
     {
       "id": "mount.turret-dual-flak", "weapon": "weapon.turret-dual-flak",
       "sim": { "ammoCapacity": 80, "turnRateDegPerSec": 100.0 },
-      "render": { "visualCells": 2.0, "muzzleOffsetCells": 0.58, "sprite": "graphics/weapons/double_flak_cannon_turret_base.png", "recoilSprite": "graphics/weapons/double_flak_cannon_turret_recoil.png" }
+      "render": { "visualCells": 1.25, "muzzleOffsetCells": 0.44, "muzzles": [[-0.082, 0.438], [0.082, 0.445]], "sprite": "graphics/structures/ground-turrets/brutalist/grenade-head.png", "recoilSprite": "graphics/structures/ground-turrets/brutalist/grenade-barrel.png" }
     },
     {
       "id": "mount.turret-hephaestus", "weapon": "weapon.turret-hephaestus",
       "sim": { "ammoCapacity": 50, "turnRateDegPerSec": 75.0 },
-      "render": { "visualCells": 2.2, "muzzleOffsetCells": 0.58, "sprite": "graphics/weapons/hephaestus_turret_base.png", "recoilSprite": "graphics/weapons/hephaestus_turret_recoil.png" }
+      "render": { "visualCells": 1.25, "muzzleOffsetCells": 0.586, "muzzles": [[0.0, 0.586]], "sprite": "graphics/structures/ground-turrets/brutalist/cannon-head.png", "recoilSprite": "graphics/structures/ground-turrets/brutalist/cannon-barrel.png" }
     },
     {
       "id": "mount.turret-grenade-launcher", "weapon": "weapon.turret-grenade-launcher",
       "sim": { "ammoCapacity": 60, "turnRateDegPerSec": 80.0 },
-      "render": { "visualCells": 1.7, "muzzleOffsetCells": 0.58, "sprite": "graphics/weapons/light_mortar_turret_base.png", "recoilSprite": "graphics/weapons/light_mortar_turret_recoil.png" }
+      "render": { "visualCells": 1.25, "muzzleOffsetCells": 0.44, "muzzles": [[-0.082, 0.438], [0.082, 0.445]], "sprite": "graphics/structures/ground-turrets/brutalist/grenade-head.png", "recoilSprite": "graphics/structures/ground-turrets/brutalist/grenade-barrel.png" }
     },
     {
       "id": "mount.turret-locust", "weapon": "weapon.turret-locust",
@@ -74,8 +74,16 @@
     {
       "id": "mount.turret-heavy-mg", "weapon": "weapon.turret-heavy-mg",
       "sim": { "ammoCapacity": 200, "turnRateDegPerSec": 110.0 },
-      "render": { "visualCells": 1.6, "muzzleOffsetCells": 0.58, "muzzleLateralOffsetCells": 0.13, "sprite": "graphics/weapons/vulcan_cannon_turret_base.png", "recoilSprite": "graphics/weapons/vulcan_cannon_turret_recoil.png" }
+      "render": { "visualCells": 1.25, "muzzleOffsetCells": 0.57, "muzzles": [[-0.055, 0.57], [0.07, 0.57]], "sprite": "graphics/structures/ground-turrets/brutalist/autogun-head.png", "recoilSprite": "graphics/structures/ground-turrets/brutalist/autogun-barrel.png" }
     },
+    {
+      "id": "mount.hardpoint-cannon", "weapon": "weapon.turret-hephaestus",
+      "sim": { "ammoCapacity": 50, "turnRateDegPerSec": 60.0, "maxDepressionDeg": 15.0 },
+      "render": { "visualCells": 3.0, "muzzleOffsetCells": 1.414, "muzzles": [[0.0, 1.414]], "sprite": "graphics/structures/ground-turrets/brutalist/heavy-head.png", "recoilSprite": "graphics/structures/ground-turrets/brutalist/heavy-barrel.png" }
+    },
+    { "id": "mount.hardpoint-locust", "weapon": "weapon.turret-locust",
+      "sim": { "ammoCapacity": 30, "turnRateDegPerSec": 50.0 },
+      "render": { "visualCells": 2.4, "muzzleOffsetCells": 0.7, "sprite": "graphics/weapons/locust_turret.png" } },
     {
       "id": "mount.fortress-battery", "weapon": "weapon.turret-heavy-mortar",
       "sim": { "ammoCapacity": 15, "turnRateDegPerSec": 40.0 },
@@ -91,7 +99,7 @@
     { "id": "mount.spore-colony-bore", "weapon": "weapon.spore-burst-bore", "sim": { "ammoCapacity": 0, "turnRateDegPerSec": 360.0 } },
     { "id": "mount.spore-colony-maw", "weapon": "weapon.spore-burst-maw", "sim": { "ammoCapacity": 0, "turnRateDegPerSec": 360.0 } },
     { "id": "mount.ground-colony", "weapon": "weapon.ground-spines", "sim": { "ammoCapacity": 0, "turnRateDegPerSec": 360.0 } },
-    { "id": "mount.pd-interceptor", "weapon": "weapon.pd-interceptor", "sim": { "ammoCapacity": 8, "turnRateDegPerSec": 300.0 }, "render": { "visualCells": 0.95, "muzzleOffsetCells": 0.34, "sprite": "graphics/weapons/burstpd_turret_base.png" } },
+    { "id": "mount.pd-interceptor", "weapon": "weapon.pd-interceptor", "sim": { "ammoCapacity": 8, "turnRateDegPerSec": 300.0 }, "render": { "visualCells": 1.25, "muzzleOffsetCells": 0.367, "muzzles": [[0.0, 0.367]], "sprite": "graphics/structures/ground-turrets/brutalist/pd-head.png", "recoilSprite": "graphics/structures/ground-turrets/brutalist/pd-barrel.png" } },
     { "id": "mount.drone-pd-halo", "weapon": "weapon.drone-pd-laser", "sim": { "ammoCapacity": 24, "turnRateDegPerSec": 360.0 }, "render": { "visualCells": 0.5, "muzzleOffsetCells": 0.2, "sprite": "graphics/weapons/burstpd_turret_base.png" } },
     { "id": "mount.tank-aps", "weapon": "weapon.tank-aps", "sim": { "ammoCapacity": 30, "turnRateDegPerSec": 720.0 } },
     { "id": "mount.pd-pack", "weapon": "weapon.pd-pack", "sim": { "ammoCapacity": 6, "turnRateDegPerSec": 300.0 }, "render": { "visualCells": 0.95, "muzzleOffsetCells": 0.34, "sprite": "graphics/weapons/burstpd_turret_base.png" } }
@@ -105,28 +113,48 @@
       "durability": { "structure": 130.0, "armorCapacity": 65.0, "armorRating": 6.0 },
       "physics": { "radius": 1.1, "hitHalfHeight": 0.8, "footprintCells": [3, 3] }, "forceScore": 16.0,
       "art": { "base": "graphics/structures/ridge-aa-base.png" } },
-    { "id": "structure.turret-anti-air-flak", "mount": "mount.turret-dual-flak", "targetRole": "AA", "catalog": { "displayName": "Anti-air Flak Position" }, "durability": { "structure": 60.0, "armorCapacity": 60.0, "armorRating": 6.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 12.0 },
+    { "id": "structure.turret-anti-air-flak", "mount": "mount.turret-dual-flak", "targetRole": "AA", "catalog": { "displayName": "Anti-air Flak Position" }, "durability": { "structure": 60.0, "armorCapacity": 60.0, "armorRating": 6.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 12.0,
+      "art": { "base": "graphics/structures/ground-turrets/brutalist/collar-round.png" },
+      "looks": { "earthwork": { "base": "graphics/structures/ground-turrets/earthwork/collar-round.png", "sprite": "graphics/structures/ground-turrets/earthwork/grenade-head.png", "recoilSprite": "graphics/structures/ground-turrets/earthwork/grenade-barrel.png" }, "derelict": { "base": "graphics/structures/ground-turrets/derelict/collar-round.png", "sprite": "graphics/structures/ground-turrets/derelict/grenade-head.png", "recoilSprite": "graphics/structures/ground-turrets/derelict/grenade-barrel.png" } } },
     { "id": "structure.vehicle-lrm", "mount": "mount.vehicle-lrm", "catalog": { "displayName": "LRM Launcher" }, "durability": { "structure": 60.0, "armorCapacity": 60.0, "armorRating": 6.0 }, "physics": { "radius": 0.4, "hitHalfHeight": 0.5, "footprintCells": [1, 1] }, "forceScore": 16.0 },
     { "id": "structure.vehicle-srm", "mount": "mount.vehicle-srm", "catalog": { "displayName": "SRM Pod" }, "durability": { "structure": 40.0, "armorCapacity": 30.0, "armorRating": 4.0 }, "physics": { "radius": 0.3, "hitHalfHeight": 0.4, "footprintCells": [1, 1] }, "forceScore": 9.0 },
     { "id": "structure.hover-pulse", "mount": "mount.hover-pulse", "catalog": { "displayName": "Hover Pulse Emitter" }, "durability": { "structure": 40.0, "armorCapacity": 40.0, "armorRating": 5.0 }, "physics": { "radius": 0.35, "hitHalfHeight": 0.45, "footprintCells": [1, 1] }, "forceScore": 7.0 },
     { "id": "structure.tank-burst-laser", "mount": "mount.tank-burst-laser", "catalog": { "displayName": "Burst Laser Turret" }, "durability": { "structure": 90.0, "armorCapacity": 145.0, "armorRating": 14.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 18.0 },
     { "id": "structure.tank-pd-laser", "mount": "mount.tank-pd-laser", "catalog": { "displayName": "PD Laser Turret" }, "durability": { "structure": 90.0, "armorCapacity": 145.0, "armorRating": 14.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 14.0 },
     { "id": "structure.tank-twin-cannon", "mount": "mount.tank-twin-cannon", "catalog": { "displayName": "Twin Breach Cannon" }, "durability": { "structure": 90.0, "armorCapacity": 145.0, "armorRating": 14.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 20.0 },
-    { "id": "structure.turret-vulcan", "mount": "mount.turret-vulcan", "catalog": { "displayName": "Vulcan Emplacement" }, "durability": { "structure": 60.0, "armorCapacity": 80.0, "armorRating": 8.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 8.0 },
-    { "id": "structure.turret-arbalest", "mount": "mount.turret-arbalest", "catalog": { "displayName": "Arbalest Emplacement" }, "durability": { "structure": 70.0, "armorCapacity": 110.0, "armorRating": 10.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 10.0 },
+    { "id": "structure.turret-vulcan", "mount": "mount.turret-vulcan", "catalog": { "displayName": "Vulcan Emplacement" }, "durability": { "structure": 60.0, "armorCapacity": 80.0, "armorRating": 8.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 8.0,
+      "art": { "base": "graphics/structures/ground-turrets/brutalist/collar-octagon.png" },
+      "looks": { "earthwork": { "base": "graphics/structures/ground-turrets/earthwork/collar-octagon.png", "sprite": "graphics/structures/ground-turrets/earthwork/autogun-head.png", "recoilSprite": "graphics/structures/ground-turrets/earthwork/autogun-barrel.png" }, "derelict": { "base": "graphics/structures/ground-turrets/derelict/collar-octagon.png", "sprite": "graphics/structures/ground-turrets/derelict/autogun-head.png", "recoilSprite": "graphics/structures/ground-turrets/derelict/autogun-barrel.png" } } },
+    { "id": "structure.turret-arbalest", "mount": "mount.turret-arbalest", "catalog": { "displayName": "Arbalest Emplacement" }, "durability": { "structure": 70.0, "armorCapacity": 110.0, "armorRating": 10.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 10.0,
+      "art": { "base": "graphics/structures/ground-turrets/brutalist/collar-octagon.png" },
+      "looks": { "earthwork": { "base": "graphics/structures/ground-turrets/earthwork/collar-octagon.png", "sprite": "graphics/structures/ground-turrets/earthwork/cannon-head.png", "recoilSprite": "graphics/structures/ground-turrets/earthwork/cannon-barrel.png" }, "derelict": { "base": "graphics/structures/ground-turrets/derelict/collar-octagon.png", "sprite": "graphics/structures/ground-turrets/derelict/cannon-head.png", "recoilSprite": "graphics/structures/ground-turrets/derelict/cannon-barrel.png" } } },
     { "id": "structure.turret-heavy-mortar", "mount": "mount.turret-heavy-mortar", "catalog": { "displayName": "Heavy Mortar Emplacement" }, "durability": { "structure": 80.0, "armorCapacity": 130.0, "armorRating": 12.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 14.0 },
-    { "id": "structure.turret-dual-flak", "mount": "mount.turret-dual-flak", "catalog": { "displayName": "Dual Flak Emplacement" }, "durability": { "structure": 75.0, "armorCapacity": 120.0, "armorRating": 10.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 12.0 },
-    { "id": "structure.turret-hephaestus", "mount": "mount.turret-hephaestus", "catalog": { "displayName": "Hephaestus Emplacement" }, "durability": { "structure": 90.0, "armorCapacity": 145.0, "armorRating": 14.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 16.0 },
-    { "id": "structure.turret-grenade-launcher", "mount": "mount.turret-grenade-launcher", "catalog": { "displayName": "Grenade Launcher Emplacement" }, "durability": { "structure": 75.0, "armorCapacity": 120.0, "armorRating": 10.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 12.0 },
+    { "id": "structure.turret-dual-flak", "mount": "mount.turret-dual-flak", "catalog": { "displayName": "Dual Flak Emplacement" }, "durability": { "structure": 75.0, "armorCapacity": 120.0, "armorRating": 10.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 12.0,
+      "art": { "base": "graphics/structures/ground-turrets/brutalist/collar-round.png" },
+      "looks": { "earthwork": { "base": "graphics/structures/ground-turrets/earthwork/collar-round.png", "sprite": "graphics/structures/ground-turrets/earthwork/grenade-head.png", "recoilSprite": "graphics/structures/ground-turrets/earthwork/grenade-barrel.png" }, "derelict": { "base": "graphics/structures/ground-turrets/derelict/collar-round.png", "sprite": "graphics/structures/ground-turrets/derelict/grenade-head.png", "recoilSprite": "graphics/structures/ground-turrets/derelict/grenade-barrel.png" } } },
+    { "id": "structure.turret-hephaestus", "mount": "mount.turret-hephaestus", "catalog": { "displayName": "Hephaestus Emplacement" }, "durability": { "structure": 90.0, "armorCapacity": 145.0, "armorRating": 14.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 16.0,
+      "art": { "base": "graphics/structures/ground-turrets/brutalist/collar-octagon.png" },
+      "looks": { "earthwork": { "base": "graphics/structures/ground-turrets/earthwork/collar-octagon.png", "sprite": "graphics/structures/ground-turrets/earthwork/cannon-head.png", "recoilSprite": "graphics/structures/ground-turrets/earthwork/cannon-barrel.png" }, "derelict": { "base": "graphics/structures/ground-turrets/derelict/collar-octagon.png", "sprite": "graphics/structures/ground-turrets/derelict/cannon-head.png", "recoilSprite": "graphics/structures/ground-turrets/derelict/cannon-barrel.png" } } },
+    { "id": "structure.turret-grenade-launcher", "mount": "mount.turret-grenade-launcher", "catalog": { "displayName": "Grenade Launcher Emplacement" }, "durability": { "structure": 75.0, "armorCapacity": 120.0, "armorRating": 10.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 12.0,
+      "art": { "base": "graphics/structures/ground-turrets/brutalist/collar-round.png" },
+      "looks": { "earthwork": { "base": "graphics/structures/ground-turrets/earthwork/collar-round.png", "sprite": "graphics/structures/ground-turrets/earthwork/grenade-head.png", "recoilSprite": "graphics/structures/ground-turrets/earthwork/grenade-barrel.png" }, "derelict": { "base": "graphics/structures/ground-turrets/derelict/collar-round.png", "sprite": "graphics/structures/ground-turrets/derelict/grenade-head.png", "recoilSprite": "graphics/structures/ground-turrets/derelict/grenade-barrel.png" } } },
     { "id": "structure.turret-locust", "mount": "mount.turret-locust", "catalog": { "displayName": "Locust Emplacement" }, "durability": { "structure": 85.0, "armorCapacity": 135.0, "armorRating": 12.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 18.0 },
     { "id": "structure.battery-locust", "mount": "mount.battery-locust", "catalog": { "displayName": "Locust Battery Emplacement" }, "durability": { "structure": 160.0, "armorCapacity": 220.0, "armorRating": 14.0 }, "physics": { "radius": 0.6, "hitHalfHeight": 0.7, "footprintCells": [1, 1] }, "forceScore": 24.0 },
-    { "id": "structure.turret-heavy-mg", "mount": "mount.turret-heavy-mg", "catalog": { "displayName": "Heavy MG Emplacement" }, "durability": { "structure": 70.0, "armorCapacity": 110.0, "armorRating": 10.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 10.0 },
+    { "id": "structure.turret-heavy-mg", "mount": "mount.turret-heavy-mg", "catalog": { "displayName": "Heavy MG Emplacement" }, "durability": { "structure": 70.0, "armorCapacity": 110.0, "armorRating": 10.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 10.0,
+      "art": { "base": "graphics/structures/ground-turrets/brutalist/collar-octagon.png" },
+      "looks": { "earthwork": { "base": "graphics/structures/ground-turrets/earthwork/collar-octagon.png", "sprite": "graphics/structures/ground-turrets/earthwork/autogun-head.png", "recoilSprite": "graphics/structures/ground-turrets/earthwork/autogun-barrel.png" }, "derelict": { "base": "graphics/structures/ground-turrets/derelict/collar-octagon.png", "sprite": "graphics/structures/ground-turrets/derelict/autogun-head.png", "recoilSprite": "graphics/structures/ground-turrets/derelict/autogun-barrel.png" } } },
     { "id": "structure.deployable-field-mortar", "mount": "mount.field-mortar", "catalog": { "displayName": "Field Mortar" }, "durability": { "structure": 34.0, "armorCapacity": 16.0, "armorRating": 3.0 }, "physics": { "radius": 0.32, "hitHalfHeight": 0.3, "footprintCells": [1, 1] }, "forceScore": 5.0,
       "art": { "base": "graphics/structures/field-mortar-base.png" } },
     { "id": "structure.deployable-point-defence", "mount": "mount.pd-interceptor", "catalog": { "displayName": "Palisade Interceptor Pod" }, "durability": { "structure": 26.0, "armorCapacity": 18.0, "armorRating": 3.0 }, "physics": { "radius": 0.3, "hitHalfHeight": 0.32, "footprintCells": [1, 1] }, "forceScore": 3.0 },
     { "id": "structure.drone-pd-halo", "mount": "mount.drone-pd-halo", "catalog": { "displayName": "Halo Drone Laser" }, "durability": { "structure": 20.0, "armorCapacity": 10.0, "armorRating": 3.0 }, "physics": { "radius": 0.3, "hitHalfHeight": 0.32, "footprintCells": [1, 1] }, "forceScore": 1.0 },
     { "id": "structure.carried-point-defence", "mount": "mount.pd-pack", "catalog": { "displayName": "Arrestor Interceptor Pack" }, "durability": { "structure": 26.0, "armorCapacity": 18.0, "armorRating": 3.0 }, "physics": { "radius": 0.3, "hitHalfHeight": 0.32, "footprintCells": [1, 1] }, "forceScore": 3.0 },
     { "id": "structure.tank-aps", "mount": "mount.tank-aps", "catalog": { "displayName": "Hull Active Protection" }, "durability": { "structure": 1.0, "armorCapacity": 1.0, "armorRating": 1.0 }, "physics": { "radius": 0.3, "hitHalfHeight": 0.32, "footprintCells": [1, 1] }, "forceScore": 0.1 },
+    { "id": "structure.hardpoint-cannon", "mount": "mount.hardpoint-cannon", "catalog": { "displayName": "Cannon Hardpoint" }, "durability": { "structure": 220.0, "armorCapacity": 260.0, "armorRating": 16.0 }, "physics": { "radius": 1.3, "hitHalfHeight": 1.0, "footprintCells": [3, 3], "plinthTiers": 1 }, "forceScore": 28.0,
+      "art": { "base": "graphics/structures/ground-turrets/brutalist/plinth.png" },
+      "looks": { "earthwork": { "base": "graphics/structures/ground-turrets/earthwork/plinth.png", "sprite": "graphics/structures/ground-turrets/earthwork/heavy-head.png", "recoilSprite": "graphics/structures/ground-turrets/earthwork/heavy-barrel.png" }, "derelict": { "base": "graphics/structures/ground-turrets/derelict/plinth.png", "sprite": "graphics/structures/ground-turrets/derelict/heavy-head.png", "recoilSprite": "graphics/structures/ground-turrets/derelict/heavy-barrel.png" } } },
+    { "id": "structure.hardpoint-locust", "mount": "mount.hardpoint-locust", "catalog": { "displayName": "Locust Hardpoint" }, "durability": { "structure": 220.0, "armorCapacity": 260.0, "armorRating": 16.0 }, "physics": { "radius": 1.3, "hitHalfHeight": 1.0, "footprintCells": [3, 3], "plinthTiers": 1 }, "forceScore": 28.0,
+      "art": { "base": "graphics/structures/ground-turrets/brutalist/plinth.png" },
+      "looks": { "earthwork": { "base": "graphics/structures/ground-turrets/earthwork/plinth.png" }, "derelict": { "base": "graphics/structures/ground-turrets/derelict/plinth.png" } } },
     { "id": "structure.fortress-battery-placeholder", "mount": "mount.fortress-battery", "catalog": { "displayName": "Fortress Battery" }, "durability": { "structure": 1800.0, "armorCapacity": 1200.0, "armorRating": 40.0 }, "physics": { "radius": 1.4, "hitHalfHeight": 1.0, "footprintCells": [3, 3] }, "forceScore": 60.0, "battery": { "loadout": "citadel", "fireControlRadius": 4.5 },
       "art": { "base": "graphics/structures/fortress-battery-base.png" },
       "gatehouseArt": { "tower": "graphics/fort/gate-tower.png", "towerDamaged": "graphics/fort/gate-tower-damaged.png", "gate": "graphics/fort/gate-leaves.png" } },

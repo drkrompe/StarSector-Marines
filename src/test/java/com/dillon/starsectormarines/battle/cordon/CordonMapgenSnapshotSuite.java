@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.setup.CordonSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
+import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
@@ -59,6 +60,25 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
             };
             if (text != null) marks.label(p.seedX(), p.seedY(), text, ReviewStyle.NOTE);
         }
+        for (Laid laid : cordon.map().layout.pieces()) {
+            if (!laid.isLaid() || laid.cells().isEmpty()) continue;
+            String state = laid.status() == Laid.Status.LAID ? "" : " (" + laid.status().name().toLowerCase() + ")";
+            if (laid.kind() == Laid.Kind.ROAD) {
+                // A road's box would be the whole dog-leg: name it at the middle of what was carved.
+                int[] mid = laid.cells().get(laid.cells().size() / 2);
+                marks.label(mid[0], mid[1], laid.name() + state, ReviewStyle.ROUTE);
+                continue;
+            }
+            int x0 = Integer.MAX_VALUE, y0 = Integer.MAX_VALUE, x1 = Integer.MIN_VALUE, y1 = Integer.MIN_VALUE;
+            for (int[] c : laid.cells()) {
+                x0 = Math.min(x0, c[0]);
+                y0 = Math.min(y0, c[1]);
+                x1 = Math.max(x1, c[0]);
+                y1 = Math.max(y1, c[1]);
+            }
+            marks.box(x0, y0, x1, y1, laid.name() + state, laid.kind() == Laid.Kind.LINE ? ReviewStyle.ROUTE : ReviewStyle.NOTE);
+            for (int[] nest : laid.nests()) marks.box(nest[0] - 1, nest[1] - 1, nest[0] + 1, nest[1] + 1, "nest", ReviewStyle.OBJECTIVE);
+        }
         CordonLogistics base = sim.getCordon() == null ? null : sim.getCordon().logistics();
         if (base != null) {
             marks.box(base.doorX() - 2, base.doorY() - 2, base.doorX() + 2, base.doorY() + 2, "machine door",
@@ -106,7 +126,8 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
                     lineY /= Math.max(1, redoubts.size());
                     near.refocus(CordonSetup.WIDTH / 2f, lineY, 300f);
                     out.add(new SnapshotArtifact(tag + "02-the-line.png",
-                            near.render(sim, "the " + name + ", seed " + seed + ", the line, 300 cells across")));
+                            near.render(sim, "the " + name + ", seed " + seed + ", the line, 300 cells across",
+                                    annotations(sim, cordon))));
                     if (cordon.corridor() != null) {
                         int[] cross = cordon.corridor().get(0);
                         for (int[] cell : cordon.corridor()) {

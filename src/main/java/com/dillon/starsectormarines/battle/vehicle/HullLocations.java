@@ -118,6 +118,20 @@ public final class HullLocations {
         return maxArmor[plate.ordinal()];
     }
 
+    /**
+     * Sets {@code plate}'s armor to {@code share} of its maximum, outside the damage path and without touching the
+     * world's columns: for staging a look at a worn hull, never for play.
+     */
+    void stageArmorShare(Plate plate, float share) {
+        armor[plate.ordinal()] = maxArmor[plate.ordinal()] * Math.max(0f, Math.min(1f, share));
+    }
+
+    /** {@link #stageArmorShare(Plate, float)} for every plate and the turret. */
+    void stageArmorShare(float share) {
+        for (Plate plate : PLATES) stageArmorShare(plate, share);
+        if (turret != null) turret.stageArmorShare(share);
+    }
+
     public float drive() {
         return drive;
     }

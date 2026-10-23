@@ -24,6 +24,12 @@ public final class ElevationMap {
     /** Tiers above the base the model supports. */
     public static final int MAX_TIER = 3;
 
+    /**
+     * Metres one tier stands above the one below: a storey. The relief composite raises its
+     * ground by it, and a gun on a plinth of whole tiers fires from that high.
+     */
+    public static final float TIER_RISE_METERS = 4f;
+
     /** Ordinary ground or plateau top: walkable, on {@link #tier}. */
     public static final byte GROUND = 0;
     /** Cliff face: unwalkable, standing at the tier it holds up. */

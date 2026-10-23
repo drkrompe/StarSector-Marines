@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.overgrown;
 
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationPlan;
 import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LandingKind;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
@@ -131,15 +132,71 @@ public final class HeartCountry {
 
     private HeartCountry() { }
 
-    /** The places of a heart country of this form, laid out on its map. */
+    /**
+     * How built-up the country between the cordon and the heart is
+     * (`heart-map-intent.md`, Density): the bloom rooted wherever it rooted.
+     * Rural is farms, woods and a village; a town world puts market towns
+     * across the approach; a city puts the colony's suburbs most of the way to
+     * the workings, ground for infantry and walkers more than for wheels.
+     */
+    public enum Density {
+        RURAL, TOWN, CITY;
+
+        /** The density of a bloomed world of this vanilla market size. */
+        public static Density of(int marketSize) {
+            return marketSize >= CITY_SIZE ? CITY : marketSize >= TOWN_SIZE ? TOWN : RURAL;
+        }
+
+        /** Smallest vanilla market size that is a town world, and a city. */
+        static final int TOWN_SIZE = 5, CITY_SIZE = 7;
+    }
+
+    /** A town world's market towns: bigger than the rural ones, still with fields between. */
+    private static final GrownTrunkPlan.Profile MARKET_TOWN_GROWTH =
+            new GrownTrunkPlan.Profile(10, 0.7f, 0.06f, 0.13f, 0.4f, 14, SettlementLink.ROAD);
+    /** The second town a town world has across the approach. */
+    static final String SECOND_TOWN = "town-2";
+    /** A city's suburbs across the middle of the approach. */
+    static final String SUBURBS = "suburbs";
+
+    /** The places of a heart country of this form, laid out on its map, in open country. */
     public static PrecinctPlan planFor(Form form, long seed) {
+        return planFor(form, Density.RURAL, seed);
+    }
+
+    /** The places of a heart country of this form and density, laid out on its map. */
+    public static PrecinctPlan planFor(Form form, Density density, long seed) {
         Random rng = new Random(seed ^ PLAN_SALT);
-        List<PrecinctBrief> places = List.of(
-                PrecinctBrief.settlement(SETTLEMENT, form == Form.BROAD_FRONT ? MapPlacement.CENTRE : VILLAGE_PLACE,
-                        form == Form.BROAD_FRONT ? TOWN_GROWTH : VILLAGE_GROWTH, PrecinctCharacter.TOWN),
-                PrecinctBrief.settlement(WORKINGS, form.heartEdge, WORKINGS_GROWTH, PrecinctCharacter.DEPOT));
-        return PrecinctPlan.laidOut(places, form.startEdge, LandingKind.OPEN_FIELD,
-                form.scale.width, form.scale.height, rng).withLandscape(landscapeFor(form, seed));
+        boolean broad = form == Form.BROAD_FRONT;
+        GrownTrunkPlan.Profile settlementGrowth = switch (density) {
+            case RURAL -> broad ? TOWN_GROWTH : VILLAGE_GROWTH;
+            case TOWN -> broad ? MARKET_TOWN_GROWTH : TOWN_GROWTH;
+            case CITY -> GrownTrunkPlan.Profile.city();
+        };
+        List<PrecinctBrief> places = new ArrayList<>(List.of(
+                PrecinctBrief.settlement(SETTLEMENT, broad ? MapPlacement.CENTRE : VILLAGE_PLACE,
+                        settlementGrowth, PrecinctCharacter.TOWN),
+                PrecinctBrief.settlement(WORKINGS, form.heartEdge, WORKINGS_GROWTH, PrecinctCharacter.DEPOT)));
+        // Rural places stay first and alone, so an open-country plan draws exactly what it always drew.
+        if (density == Density.TOWN) {
+            places.add(PrecinctBrief.settlement(SECOND_TOWN, placement(form, 0.35f, 0.6f, 0.7f, 0.92f),
+                    MARKET_TOWN_GROWTH, PrecinctCharacter.TOWN));
+        } else if (density == Density.CITY) {
+            places.add(PrecinctBrief.settlement(SUBURBS, placement(form, 0.35f, 0.62f, 0.05f, 0.95f),
+                    GrownTrunkPlan.Profile.of(0.9f), PrecinctCharacter.SUBURB));
+        }
+        PrecinctPlan plan = PrecinctPlan.laidOut(places, form.startEdge, LandingKind.OPEN_FIELD,
+                form.scale.width, form.scale.height, rng);
+        Precinct workings = place(plan, WORKINGS);
+        Landscape landscape = landscapeFor(form, seed);
+        if (workings != null) landscape = landscape.withHeld(hollow(form, workings.seedX(), workings.seedY()));
+        return plan.withLandscape(landscape).withLayout(HeartLayout.layout(form, seed));
+    }
+
+    /** A placement given as depth and across shares, whichever way the form advances. */
+    static MapPlacement placement(Form form, float depth0, float depth1, float across0, float across1) {
+        return form.advancesAlongY() ? new MapPlacement(across0, depth0, across1, depth1)
+                : new MapPlacement(depth0, across0, depth1, across1);
     }
 
     /** Wild ground the woods cover on Broad Front: wooded, with room between the groves for lanes to deploy. */
@@ -240,6 +297,59 @@ public final class HeartCountry {
         }
         int x0 = Math.round(THE_BURN_RIDGE_DEPTH * (w - 1));
         return RidgePlanner.Band.rect(x0, 0, x0 + RIDGE_THICKNESS - 1, h - 1, false, -1, RIDGE_RAMP_WIDTH);
+    }
+
+    /** Cells from the workings' seed to the middle of the hollow's rim, by form. */
+    static final int BROAD_FRONT_HOLLOW_RADIUS = 52, THE_BURN_HOLLOW_RADIUS = 44;
+    /** Cells through the hollow's rim. */
+    static final int HOLLOW_RIM = 10;
+    /** Degrees either side of the start's direction that the rim wraps round the workings. */
+    static final double HOLLOW_SWEEP = 100;
+    /**
+     * Degrees between the rim's passes: one straight toward the start. Roads and
+     * routes generation lays across the rim break it into more.
+     */
+    static final double HOLLOW_PASS_EVERY = 180;
+    /** Cells across each pass through the rim. */
+    static final int HOLLOW_PASS = 16;
+    /** Cells across each rim segment's ramp, climbed from outside. */
+    static final int HOLLOW_RAMP_WIDTH = 7;
+
+    /**
+     * The hollow the workings sit in (`heart-map-intent.md`): a rim of high
+     * ground wrapped round the workings on the side the attack comes from,
+     * broken by a pass straight toward the start and wherever a road or route crosses it,
+     * so the last stretch to the heart goes down into it. Each rim segment is
+     * climbed from outside; its inner face is a cliff over the yard. Held
+     * before the places grow ({@link Landscape#held}), because the workings'
+     * roads and yards would otherwise leave no room for it.
+     */
+    static List<RidgePlanner.Band> hollow(Form form, int cx, int cy) {
+        int radius = form == Form.BROAD_FRONT ? BROAD_FRONT_HOLLOW_RADIUS : THE_BURN_HOLLOW_RADIUS;
+        // The direction from the workings toward the start edge.
+        double facing = form.advancesAlongY() ? -90 : 180;
+        double pass = Math.toDegrees(HOLLOW_PASS / (double) radius) / 2;
+        List<RidgePlanner.Band> out = new ArrayList<>();
+        for (double from = -HOLLOW_SWEEP; from < HOLLOW_SWEEP; ) {
+            double next = Math.floor((from + pass) / HOLLOW_PASS_EVERY + 1) * HOLLOW_PASS_EVERY;
+            double to = Math.min(HOLLOW_SWEEP, next);
+            double a = from == -HOLLOW_SWEEP ? from : from + pass;
+            double b = to == HOLLOW_SWEEP ? to : to - pass;
+            if (b > a) out.add(arc(cx, cy, radius, facing + a, facing + b));
+            from = to;
+        }
+        return out;
+    }
+
+    /** One rim segment: an arc travelled counter-clockwise, so its left is the inside and it is climbed from the right. */
+    private static RidgePlanner.Band arc(int cx, int cy, int radius, double fromDeg, double toDeg) {
+        List<ElevationPlan.Point> path = new ArrayList<>();
+        int steps = Math.max(2, (int) Math.ceil(Math.toRadians(toDeg - fromDeg) * radius / 4));
+        for (int i = 0; i <= steps; i++) {
+            double t = Math.toRadians(fromDeg + (toDeg - fromDeg) * i / steps);
+            path.add(new ElevationPlan.Point(cx + radius * Math.cos(t), cy + radius * Math.sin(t)));
+        }
+        return new RidgePlanner.Band(path, HOLLOW_RIM, -1, HOLLOW_RAMP_WIDTH);
     }
 
     /** Cells through each side of The Burn's brook valley. */

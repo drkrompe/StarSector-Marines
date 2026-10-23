@@ -34,6 +34,13 @@ final class CreepShading {
     static final float EDGE_NOISE = 0.30f, EDGE_FINE = 0.12f;
     /** Half-spacing of the coverage taps the gradient and softening use, in cells. */
     static final float TAP = 0.5f;
+    /**
+     * Over a cliff face or a ramp's wall (the owner's pick): the creep's coverage is pulled back by the face's
+     * cover, so its own beaded edge runs along the lip and the foot and the rock shows between; the wall-vein
+     * lattice at {@code FACE_VEIN} and a membrane film at {@code FACE_FILM} are laid back over the rock where creep
+     * stands round it, as creep climbing it.
+     */
+    static final float FACE_VEIN = 0.7f, FACE_FILM = 0.18f;
     /** Floor on the coverage gradient, so the distance estimate stays finite in the flat interior. */
     static final float GRADIENT_FLOOR = 0.35f;
     /** Pulse phase per cell of path distance and per second; positive both, so a crest walks toward the source. */
@@ -83,7 +90,14 @@ final class CreepShading {
 
         /** Bilinear ground under the creep: blight and vegetated in 0..1 into {@code out[0..1]}. */
         void ground(float cellX, float cellY, float[] out);
+
+        /** How much of the point is cliff face or ramp wall ({@link CliffFaceMask}), 0..1; 0 on flat ground. */
+        default float face(float cellX, float cellY) { return 0f; }
+
+        /** How much of the point the shore draws as water or wet bank ({@link ShoreWaterMask}), 0..1; 0 inland. */
+        default float water(float cellX, float cellY) { return 0f; }
     }
+
 
     /** The scene's sun, as the creep reads it: toward the sun on the map, rise per cell, shadow strength. */
     record Sun(float dirX, float dirY, float rise, float strength) { }
@@ -99,8 +113,12 @@ final class CreepShading {
         float[] own = tmp.own, here = tmp.here, noise = tmp.noise, fine = tmp.fine, surf = tmp.surf, col = tmp.col, turned = tmp.turned;
         f.sample((float) Math.floor(x) + 0.5f, (float) Math.floor(y) + 0.5f, own);
         f.sample(x, y, here);
-        float e = f.coverage(x + TAP, y), w = f.coverage(x - TAP, y);
-        float n = f.coverage(x, y + TAP), s = f.coverage(x, y - TAP);
+        float faceHere = f.face(x, y);
+        float waterHere = f.water(x, y);
+        float rawHere = here[0];
+        here[0] = Math.max(0f, here[0] - faceHere - waterHere);
+        float e = cov(f, x + TAP, y), w = cov(f, x - TAP, y);
+        float n = cov(f, x, y + TAP), s = cov(f, x, y - TAP);
         float soft = 0.4f * here[0] + 0.15f * (e + w + n + s);
         float gx = (e - w) / (2f * TAP), gy = (n - s) / (2f * TAP);
         float g = (float) Math.sqrt(gx * gx + gy * gy);
@@ -121,7 +139,7 @@ final class CreepShading {
             // Vegetation ahead of the edge: the grass wilts, then veins reach out into it.
             float[] gnd = tmp.gnd;
             f.ground(x, y, gnd);
-            float wa = 0f, wv = 0f;
+            float wa = 0f, wv = 0f, fv = 0f, film = 0f;
             if (gnd[1] > 0f && gnd[0] > 0f) {
                 wa = gnd[1] * smoothstep(WILT_LO, WILT_HI, gnd[0] + (fine[0] - 0.5f) * WILT_BREAK) * WILT_ALPHA;
                 float reachV = smoothstep(BAND_VEIN_LO, BAND_VEIN_HI, gnd[0] + (noise[0] - 0.5f) * BAND_VEIN_BREAK);
@@ -130,19 +148,33 @@ final class CreepShading {
                     wv = 0.85f * clamp01(surf[2] * 1.6f) * reachV * gnd[1];
                 }
             }
+            // Bare rock is not grass: no wilt and no blight veins on the part of a face the creep stands back from.
+            // Nor is water: the blight stops at the bank too.
+            float rock = (1f - faceHere) * (1f - waterHere);
+            wa *= rock;
+            wv *= rock;
+            // Creep climbing a face it has been pulled back from: veins and a thin film where it stands round it.
+            if (faceHere > 0f) {
+                float climb = faceHere * smoothstep(0.35f, 0.65f, rawHere + (noise[0] - 0.5f) * EDGE_NOISE);
+                if (climb > 0f) {
+                    CreepSurface.sample(x * WALL_VEIN_SCALE, y * WALL_VEIN_SCALE, tpp * WALL_VEIN_SCALE, surf);
+                    fv = FACE_VEIN * clamp01(surf[2] * 1.6f) * climb;
+                    film = FACE_FILM * climb;
+                }
+            }
             float d = (soft - 0.5f + lobes) / gl;
             float a = clamp01(d * cellPx + 0.5f);
             float shadow = 0f;
             if (a < 1f && sun.strength() > 0f) {
                 for (float t : SHADOW_STEPS) {
-                    float ds = (f.coverage(x + sun.dirX() * t, y + sun.dirY() * t) - 0.5f + lobes) / gl;
+                    float ds = (cov(f, x + sun.dirX() * t, y + sun.dirY() * t) - 0.5f + lobes) / gl;
                     if (ds <= 0f) continue;
                     float lip = PLATEAU + bump(Math.min(ds, 2f), LIP_AT, LIP_WIDTH) * (LIP_LOW + 0.5f * LIP_BLISTER);
                     shadow = Math.max(shadow, clamp01((lip - t * sun.rise()) / 0.04f));
                 }
             }
             float sa = SHADOW_ALPHA * shadow * sun.strength();
-            if (a <= 0f && sa <= 0.002f && wa <= 0.002f && wv <= 0.002f) {
+            if (a <= 0f && sa <= 0.002f && wa <= 0.002f && wv <= 0.002f && fv <= 0.002f && film <= 0.002f) {
                 out[0] = out[1] = out[2] = out[3] = 0f;
                 return;
             }
@@ -156,6 +188,8 @@ final class CreepShading {
             for (int c = 0; c < 3; c++) out[c] = 0f;
             alpha = over(out, alpha, pal.wilt(), 1f, wa);
             alpha = over(out, alpha, pal.flesh(), pal.rim(), wv);
+            alpha = over(out, alpha, pal.base(), 1f, film);
+            alpha = over(out, alpha, pal.flesh(), pal.rim(), fv);
             alpha = over(out, alpha, SHADOW_TINT, 1f, sa);
             alpha = over(out, alpha, col, 1f, a);
             for (int c = 0; c < 3; c++) out[c] = clamp01(out[c] / Math.max(alpha, 1e-4f));
@@ -206,6 +240,11 @@ final class CreepShading {
         float alpha = ac + va * (1f - ac);
         for (int c = 0; c < 3; c++) out[c] = clamp01((col[c] * ac + out[c] * va * (1f - ac)) / Math.max(alpha, 1e-4f));
         out[3] = alpha;
+    }
+
+    /** Coverage at a point with the faces' and the shore's water taken out of it. */
+    private static float cov(Field f, float x, float y) {
+        return Math.max(0f, f.coverage(x, y) - f.face(x, y) - f.water(x, y));
     }
 
     /** Per-thread working arrays for {@link #shade}. */
