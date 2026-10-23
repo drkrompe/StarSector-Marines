@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.command.trace;
 
+import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
 import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
 import com.dillon.starsectormarines.battle.cordon.CordonRefugees;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
@@ -43,8 +44,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Tag("cordon-command-evidence")
 class CordonCommandEvidenceTest {
 
-    /** Cells from a calling redoubt's centre an allied hull counts as answering it. */
-    private static final float ARMOUR_AT_CALL = 20f;
+    /** Cells from a calling redoubt's walls an allied hull counts as answering it. */
+    private static final float ARMOUR_AT_CALL = 12f;
     private static final String NL = "\n";
 
     /** The window and a minute over, so a held line finishes inside the budget. */
@@ -169,8 +170,9 @@ class CordonCommandEvidenceTest {
                 hulls++;
                 GroundBody body = sim.convoy().body(hull);
                 for (CordonRedoubt r : cordon.redoubts()) {
-                    if (r.state() == CordonRedoubt.State.CALLING
-                            && body.distanceTo(r.centreX(), r.centreY()) <= ARMOUR_AT_CALL) {
+                    float nearX = Math.max(r.left(), Math.min(r.right(), body.x));
+                    float nearY = Math.max(Math.min(r.top(), r.bottom()), Math.min(Math.max(r.top(), r.bottom()), body.y));
+                    if (r.state() == CordonRedoubt.State.CALLING && body.distanceTo(nearX, nearY) <= ARMOUR_AT_CALL) {
                         atCall++;
                         break;
                     }
@@ -220,6 +222,20 @@ class CordonCommandEvidenceTest {
         if (cordon.columns() != null) {
             out.append("- Allied columns joined: ").append(cordon.columns().joined()).append(" of ")
                     .append(cordon.timetable().columnSeconds().size()).append('\n');
+        }
+        if (cordon.convoys() != null) {
+            CordonConvoys convoys = cordon.convoys();
+            out.append("- Convoys: ").append(convoys.out()).append(" out, ").append(convoys.lost())
+                    .append(" lost of ").append(convoys.convoys()).append(" (")
+                    .append(cordon.timetable().convoysNeeded()).append(" needed); townspeople ")
+                    .append(convoys.peopleOut()).append(" out, ").append(convoys.peopleLost())
+                    .append(" lost, ").append(convoys.town()).append(" still in the town").append(NL);
+            for (long truck : convoys.trucks()) {
+                GroundBody body = sim.convoy().body(truck);
+                out.append(String.format(Locale.ROOT, "  - Truck %d at %.0f,%.0f, structure %.0f/%.0f%s%s",
+                        truck, body.x, body.y, sim.world().hp(truck), sim.world().maxHp(truck),
+                        sim.convoy().mission(truck).authoredRoutePaused ? ", held" : "", NL));
+            }
         }
         if (cordon.logistics() != null) {
             out.append("- Logistics base: ").append(cordon.logistics().built()).append(" machines built, ")

@@ -11,10 +11,14 @@ import com.dillon.starsectormarines.battle.command.CommandSquadState;
 import com.dillon.starsectormarines.battle.command.CommandStabilityBreak;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The company as the mobile reserve ({@code cordon-nouns.md}, Flow): the
@@ -33,15 +37,25 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
     static final int RESERVE_SPACING = 8;
     /** How near the asked-for cell a squad's ground is looked for. */
     private static final int SNAP = 5;
+    /** Squads sent to clear the road ahead of each halted convoy. */
+    static final int ROAD_SQUADS = 2;
+    /** Squads that walk ahead of each convoy past the gap. */
+    static final int ESCORT_SQUADS = 3;
 
     /** A redoubt as the company knows it: where it is and whether it is calling. */
     public record Call(int number, int x, int y, boolean calling) { }
 
     public static final class Frame extends CommandFrame {
         final List<Call> redoubts;
-        Frame(CommandFrame base, List<Call> redoubts) {
+        /** On the Road, where a halted convoy's road is blocked; empty otherwise. */
+        final List<int[]> roadBlocks;
+        /** On the Road, where each convoy on the road wants its escort; empty otherwise. */
+        final List<int[]> escorts;
+        Frame(CommandFrame base, List<Call> redoubts, List<int[]> roadBlocks, List<int[]> escorts) {
             super(base.tick(), base.perspective(), base.squads(), base.influence(), base.topology(), base.assignments());
             this.redoubts = redoubts;
+            this.roadBlocks = roadBlocks;
+            this.escorts = escorts;
         }
     }
 
@@ -53,7 +67,10 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
             for (CordonRedoubt r : sequence.redoubts()) {
                 calls.add(new Call(r.number(), r.centreX(), r.centreY(), r.state() == CordonRedoubt.State.CALLING));
             }
-            return new Frame(base, List.copyOf(calls));
+            List<int[]> blocks = sequence.convoys() == null ? List.of() : sequence.convoys().roadBlocks();
+            List<int[]> escorts = sequence.convoys() == null || !(view instanceof BattleSimulation sim)
+                    ? List.of() : sequence.convoys().escorts(sim);
+            return new Frame(base, List.copyOf(calls), blocks, escorts);
         };
     }
 
@@ -80,13 +97,24 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         }
         int calling = 0;
         for (Call call : frame.redoubts) if (call.calling()) calling++;
-        String phase = calling > 0 ? "ANSWERING_CALLS" : "RESERVE";
+        String phase = !frame.roadBlocks.isEmpty() ? "CLEARING_ROAD" : !frame.escorts.isEmpty() ? "ESCORTING"
+                : calling > 0 ? "ANSWERING_CALLS" : "RESERVE";
+        // The convoys first: the nearest squads clear the road ahead of a halted one, and walk ahead
+        // of one on the road past the gap.
+        Map<Integer, int[]> roadDuty = new HashMap<>();
+        for (int[] block : frame.roadBlocks) take(owned, roadDuty, block, ROAD_SQUADS);
+        for (int[] escort : frame.escorts) take(owned, roadDuty, escort, ESCORT_SQUADS);
         for (int i = 0; i < owned.size(); i++) {
             CommandSquadState squad = owned.get(i);
             Call answer = nearestCall(frame.redoubts, squad.centroidX(), squad.centroidY());
+            int[] road = roadDuty.get(squad.squadId());
             ObjectiveAssignment next;
             String reason;
-            if (answer != null) {
+            if (road != null) {
+                int[] cell = ground(frame, squad, road[0], road[1]);
+                next = ObjectiveAssignment.attackMove(squad.squadId(), cell[0], cell[1]);
+                reason = "CORDON_CLEAR_ROAD";
+            } else if (answer != null) {
                 int[] cell = ground(frame, squad, answer.x(), answer.y());
                 next = ObjectiveAssignment.attackMove(squad.squadId(), cell[0], cell[1]);
                 reason = "CORDON_RELIEVE_" + answer.number();
@@ -105,6 +133,14 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         return new CommandPlan<>(faction(), strategyId(), phase, frame.tick(),
                 frame.influence() == null ? -1 : frame.influence().updatedTick(), owned.size(), 0,
                 List.of(phase), proposals, phase);
+    }
+
+    /** Gives the {@code count} nearest squads not yet on the road to a place on it. */
+    private static void take(List<CommandSquadState> owned, Map<Integer, int[]> duty, int[] at, int count) {
+        List<CommandSquadState> free = new ArrayList<>();
+        for (CommandSquadState s : owned) if (!duty.containsKey(s.squadId())) free.add(s);
+        free.sort(Comparator.comparingDouble(s -> Math.hypot(s.centroidX() - at[0], s.centroidY() - at[1])));
+        for (int k = 0; k < Math.min(count, free.size()); k++) duty.put(free.get(k).squadId(), at);
     }
 
     private boolean owned(CommandDirective directive, int tick) {

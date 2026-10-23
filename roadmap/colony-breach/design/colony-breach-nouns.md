@@ -1160,6 +1160,15 @@ against its own control in `renderEvidence`.
   cost along walkable ground, weighted by seeded noise so the front runs out in
   fingers, dearer on pavement. Until bores stand up on eruption sites, each opened site is itself a
   source that never dies.
+- **How fast the front walks is one dial** (`-Dbattle.creep.spreadScale`, 1 by
+  default). It multiplies every source's reach rate, fed or not, so it sets how
+  soon the ground turns and never how far the creep goes, how fast a claimed
+  cell fills, or how long burnt ground refuses it. Matured creep is grown whole
+  at setup, so on the Cordon and the heart it moves only what grows in the
+  battle: a bore's new tier, a satellite opened late. In Colony Breach the bores
+  are fed nearly without pause, so the feed boost (three times the rate,
+  `-Dbattle.creep.feedMultiplier`) and how soon a bore grows to maw set the pace
+  at least as much as the base rate does.
 - **Trees are grown over, never only climbed.** A tree's crown cells are growth
   the creep crosses, cell by cell at three times the ground's cost, so a grove
   is overgrown from its edge inward and its interior and far side are reached
