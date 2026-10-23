@@ -1,8 +1,14 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.combat.FireTrigger;
+import com.dillon.starsectormarines.battle.combat.MechFireGroups;
+import com.dillon.starsectormarines.battle.combat.MechTriggerPicks;
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
 import com.dillon.starsectormarines.battle.control.MarineSprint;
 import com.dillon.starsectormarines.battle.mech.MechFlux;
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
@@ -18,9 +24,9 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.IntConsumer;
 
 import static com.dillon.starsectormarines.ops.BattleDirectControlStatus.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -83,37 +89,47 @@ class BattleDirectControlHudTest {
     }
 
     @Test
-    void mechMountsAreListedUnderTheButtonThatFiresThem() throws Exception {
-        AtomicInteger selection = new AtomicInteger(-1);
-        try (Fixture fixture = fixture(Path.of("mod"), triggered(0), 0, false, selection::set, () -> {}, () -> {})) {
+    void triggerHeadersNameThePickAndOnlyPickedRowsCarryTheWash() throws Exception {
+        AtomicInteger key = new AtomicInteger(-1);
+        List<String> asked = new ArrayList<>();
+        BattleDirectControlHudModel.WeaponActions actions = new BattleDirectControlHudModel.WeaponActions() {
+            @Override public void select(int selected) { key.set(selected); }
+            @Override public void cycle(FireTrigger trigger) { asked.add("cycle " + trigger); }
+            @Override public void pick(FireTrigger trigger, int member) { asked.add("pick " + trigger + " " + member); }
+        };
+        try (Fixture fixture = fixture(Path.of("mod"), bulwark(MechTriggerPicks.LINKED), 0, false,
+                actions, () -> {}, () -> {})) {
             assertEquals("WEAPON GROUPS", fixture.weapons.requireElement("direct-weapons-title").text());
-            assertEquals(List.of("direct-hud-weapon-ARMS"), rows(fixture.weapons, "direct-hud-group-lmb"));
-            assertEquals(List.of("direct-hud-weapon-LEFT_SHOULDER"), rows(fixture.weapons, "direct-hud-group-rmb"));
-            assertEquals(List.of("direct-hud-weapon-RIGHT_SHOULDER"), rows(fixture.weapons, "direct-hud-group-other"));
-            assertEquals("LMB", fixture.weapons.requireElement("direct-hud-group-lmb-badge").text());
-            assertEquals("RMB", fixture.weapons.requireElement("direct-hud-group-rmb-badge").text());
-            assertEquals("PRIMARY GROUP", fixture.weapons.requireElement("direct-hud-group-lmb-name").text());
-            assertEquals("3", fixture.weapons.requireElement("direct-hud-weapon-LEFT_SHOULDER-key").text(),
-                    "keys 2-4 point the left button at the arms and shoulders");
-            assertEquals("AI ONLY", fixture.weapons.requireElement("direct-hud-weapon-RIGHT_SHOULDER-state").text());
-            assertTrue(fixture.weapons.requireElement("direct-hud-weapon-RIGHT_SHOULDER").disabled());
-            click(fixture.weapons, fixture.weaponsDocument, "direct-hud-weapon-LEFT_SHOULDER");
-            assertEquals(2, selection.get());
+            assertEquals(List.of("direct-hud-weapon-LEFT_ARM", "direct-hud-weapon-RIGHT_ARM"),
+                    rows(fixture.weapons, "direct-hud-group-lmb"));
+            assertEquals(List.of("direct-hud-weapon-LEFT_SHOULDER", "direct-hud-weapon-RIGHT_SHOULDER"),
+                    rows(fixture.weapons, "direct-hud-group-rmb"));
+            assertEquals("LINKED", fixture.weapons.requireElement("direct-hud-group-lmb-name").text());
+            assertEquals("[Q]", fixture.weapons.requireElement("direct-hud-group-lmb-hint").text());
+            assertEquals("LINKED", fixture.weapons.requireElement("direct-hud-group-rmb-name").text());
+            assertEquals("[E]", fixture.weapons.requireElement("direct-hud-group-rmb-hint").text());
+            assertEquals("3", fixture.weapons.requireElement("direct-hud-weapon-RIGHT_ARM-key").text(),
+                    "key 1 is LINKED, then each gun");
+            for (String id : List.of("LEFT_ARM", "RIGHT_ARM", "LEFT_SHOULDER", "RIGHT_SHOULDER")) {
+                assertTrue(fixture.weapons.requireElement("direct-hud-weapon-" + id).classes().contains("weapon-selected"),
+                        id + " fires on LINKED");
+            }
+            click(fixture.weapons, fixture.weaponsDocument, "direct-hud-weapon-RIGHT_ARM");
+            assertEquals(2, key.get(), "a gun's row is its number key");
             click(fixture.weapons, fixture.weaponsDocument, "direct-hud-group-lmb-header");
-            assertEquals(0, selection.get(), "the left button's header returns it to its whole group");
             click(fixture.weapons, fixture.weaponsDocument, "direct-hud-weapon-RIGHT_SHOULDER");
-            assertEquals(0, selection.get(), "an indirect rack cannot take the left button");
-            assertInside(fixture.weapons, fixture.weaponsHeight, BattleDirectControlOverlay.WEAPONS_WIDTH);
+            assertEquals(List.of("cycle LEFT", "pick RIGHT " + (MechMountSlot.RIGHT_SHOULDER.ordinal() + 1)), asked);
         }
-        try (Fixture fixture = fixture(Path.of("mod"), triggered(2), 2, false, ignored -> {}, () -> {}, () -> {})) {
-            assertEquals("ONE MOUNT", fixture.weapons.requireElement("direct-hud-group-lmb-name").text());
-            assertEquals(List.of("direct-hud-weapon-LEFT_SHOULDER"), rows(fixture.weapons, "direct-hud-group-lmb"));
-            assertEquals("SRM-4 Rack · LR",
-                    fixture.weapons.requireElement("direct-hud-weapon-LEFT_SHOULDER-name").text());
-            assertTrue(fixture.weapons.requireElement("direct-hud-weapon-LEFT_SHOULDER").classes()
-                    .contains("weapon-selected"));
-            assertEquals(List.of("direct-hud-weapon-ARMS", "direct-hud-weapon-RIGHT_SHOULDER"),
-                    rows(fixture.weapons, "direct-hud-group-other"));
+        var rightArm = new MechTriggerPicks(MechMountSlot.RIGHT_ARM.ordinal() + 1, MechFireGroups.LINKED);
+        try (Fixture fixture = fixture(Path.of("mod"), bulwark(rightArm), 0, false, actions, () -> {}, () -> {})) {
+            var picked = fixture.weapons.requireElement("direct-hud-weapon-RIGHT_ARM");
+            var held = fixture.weapons.requireElement("direct-hud-weapon-LEFT_ARM");
+            assertEquals("R arm " + MechWeaponComponent.CHAINGUN.displayName(),
+                    fixture.weapons.requireElement("direct-hud-group-lmb-name").text(),
+                    "two chainguns: the header says which arm");
+            assertTrue(picked.classes().contains("weapon-selected"));
+            assertFalse(held.classes().contains("weapon-selected"), "the unpicked gun holds fire");
+            assertEquals(.45f, held.opacity(), 1e-4f);
         }
     }
 
@@ -124,7 +140,7 @@ class BattleDirectControlHudTest {
                     false, ignored -> fail("Ability readouts cannot select weapons"), () -> {}, () -> {})) {
                 assertEquals(List.of("direct-hud-ability-SHIELD", "direct-hud-ability-SMOKE"),
                         rows(fixture.weapons, "direct-hud-group-abilities"));
-                assertEquals("E", fixture.weapons.requireElement("direct-hud-ability-SHIELD-key").text());
+                assertEquals("C", fixture.weapons.requireElement("direct-hud-ability-SHIELD-key").text());
                 assertEquals("G", fixture.weapons.requireElement("direct-hud-ability-SMOKE-key").text());
                 for (String id : List.of("direct-hud-ability-SHIELD", "direct-hud-ability-SMOKE")) {
                     var row = fixture.weapons.requireElement(id);
@@ -233,7 +249,8 @@ class BattleDirectControlHudTest {
 
     /** Builds both panels and the session buttons, each laid out at the height its content measures. */
     static Fixture fixture(Path modRoot, Snapshot snapshot, int selected, boolean paused,
-                           IntConsumer selection, Runnable exit, Runnable pause) throws Exception {
+                           BattleDirectControlHudModel.WeaponActions selection, Runnable exit, Runnable pause)
+            throws Exception {
         Reactor reactor = new Reactor();
         var model = new BattleDirectControlHudModel(reactor, selection, exit, pause, ModStrings.fromDisk(modRoot));
         model.update(snapshot, selected, paused);
@@ -328,6 +345,20 @@ class BattleDirectControlHudTest {
             assertFalse(fixture.weapons.requireElement("direct-hud-group-lmb-hint").classes().contains("group-hint-warn"),
                     "the guns on the other button are not refusing anything");
         }
+    }
+
+    /** A Bulwark with a chaingun on each arm and an SRM-5 on each shoulder, on {@code picks}. */
+    static Snapshot bulwark(MechTriggerPicks picks) {
+        MechWeaponMount[] mounts = new MechWeaponMount[MechMountSlot.values().length];
+        mounts[MechMountSlot.LEFT_ARM.ordinal()] = new MechWeaponMount(MechMountSlot.LEFT_ARM, MechWeaponComponent.CHAINGUN);
+        mounts[MechMountSlot.RIGHT_ARM.ordinal()] = new MechWeaponMount(MechMountSlot.RIGHT_ARM, MechWeaponComponent.CHAINGUN);
+        mounts[MechMountSlot.LEFT_SHOULDER.ordinal()] = new MechWeaponMount(MechMountSlot.LEFT_SHOULDER, MechWeaponComponent.SRM_5);
+        mounts[MechMountSlot.RIGHT_SHOULDER.ordinal()] = new MechWeaponMount(MechMountSlot.RIGHT_SHOULDER, MechWeaponComponent.SRM_5);
+        mounts[MechMountSlot.RIGHT_SHOULDER.ordinal()].ammo -= 2;
+        mounts[MechMountSlot.LEFT_ARM.ordinal()].cycleRemaining = .3f;
+        var base = preview(Carrier.MECH, false);
+        return new Snapshot(base.entityId(), "Bulwark Lead", Carrier.MECH, base.durability(),
+                mechWeapons(mounts, new MechFlux(), picks));
     }
 
     static Snapshot triggered(int selected) {

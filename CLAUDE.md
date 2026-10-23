@@ -221,6 +221,14 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   order so the folder reads in the order the notes describe.
 - Images obey the preview rule (1920x1080, 100% scale). Copy finished images
   only, never frame sequences or scratch.
+- **Owner-facing images come from the look preset, never from a verdict
+  scene's arena frames** (2026-10-23). A behaviour scene's loops are
+  drawn on a bare arena with faction dots, labels and a caption, and without
+  smoke, contrails or shadows: evidence for a verdict, not a picture of how
+  anything looks. Give the scene suite a `lookShots()` (`LookReview`: the
+  subject on real generated ground, effects and shadows on, no annotations,
+  play zoom and close) and show the owner `build/snapshots/<scene>/look/`;
+  `-Dsnapshot.lookOnly=true` renders only those. See `snapshot-suites.md`.
 - **Show the owner the images; never send them to Drive to look** (owner,
   2026-10-22). The run folder is storage and transfer, not how a set is
   delivered. When a set is ready, put the images themselves in front of the
@@ -552,12 +560,12 @@ yet creates one when it has its first question and adds a row to
   fifteen seconds. Readings, not acceptance; opt-in and excluded from `test`.
 - `gradlew.bat storyMapPools` → the Rav Bloom story maps (Cordon Line and
   Road, The Burn, Broad Front) play only from their pools of vetted seeds,
-  `mod/data/world/pools/<map>.pool.json`, each seed with a note and an
-  optional patch (`story-map-pools.md`). This regenerates every pooled seed
+  three per world biome, `mod/data/world/pools/<map>.pool.json`, each seed with
+  a note and an optional patch (`story-map-pools.md`). This regenerates every pooled seed
   and fails when one no longer passes its mission's acceptance on the first
   generation: **run it after any mapgen change that may move a story map.**
-  `-Pcandidates=cordon-line:1-40,heart-burn:1-20` screens seeds that are not
-  pooled yet (reported, never failing). About 30 seconds; writes
+  `-Pcandidates=cordon-line:1-40,heart-burn/frozen:1-20` screens seeds that
+  are not pooled yet, on every biome or the one named (reported, never failing). About 30 seconds; writes
   `build/reports/story-map-pools/summary.md`. `commanderEvidence` on
   `cordon-line`, `cordon-road` and `heart` plays the whole pool by default, and
   `createSnapshots -Psnapshot=story-map-pools` renders every pooled map whole.
@@ -1077,6 +1085,15 @@ A test that asserts what an image, a data file or a tuned number currently conta
 (a pixel window, a sprite's size, a curve's constants) fails whenever the content is
 reworked while nothing is broken; do not write one, and delete one you find failing
 for that reason rather than updating it to the new content.
+
+**Minimize the necessity of end-to-end tests** (owner, 2026-10-23). Before reaching
+for a whole battle, ask whether the change can be proved at the unit or
+integration level, and structure the code so it can: a rule that guarantees an
+invariant is tested where it is decided, and a change whose failure mode is a
+logged fallback (a hitch, never a wrong picture) is measured, not gated on a
+played battle. A battle run costs its own session minutes and slows every other
+session on the machine; the more sessions simulate whole battles, the slower
+development is for all of them.
 
 **Things that are not tests do not go in `test`:**
 

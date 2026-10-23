@@ -54,7 +54,7 @@ class BattleDirectControlHelpTest {
         assertTrue(has(lines, "2", "ShipDirector"));
         assertTrue(has(lines, "3", "ShipPreset"));
         assertTrue(has(lines, "4", "ShipPolicy"));
-        assertTrue(has(lines, "E", "ShipShield"));
+        assertTrue(has(lines, "C", "ShipShield"));
         assertTrue(has(lines, "Tab / Esc", "Leave"));
         assertTrue(has(lines, "", "ShipDanger"));
         assertTrue(has(lines, "", "ShipSeen"));
@@ -71,7 +71,7 @@ class BattleDirectControlHelpTest {
         assertTrue(has(lines, "1", "TenderOption"));
         assertTrue(has(lines, "2 3 4", "TenderSoon"));
         assertTrue(has(lines, "X", "TenderCancel"));
-        assertTrue(has(lines, "E", "ShipShield"));
+        assertTrue(has(lines, "C", "ShipShield"));
         assertTrue(has(lines, "Tab / Esc", "TenderLeave"));
         assertTrue(has(lines, "", "TenderSeen"));
         assertFalse(lines.stream().anyMatch(l -> l.textKey().contains("ShipGuns")
@@ -84,7 +84,7 @@ class BattleDirectControlHelpTest {
         var marine = BattleDirectControlHelp.lines(Carrier.MARINE);
         assertTrue(has(marine, "LMB hold", "MarineFire"));
         assertTrue(has(marine, "RMB", "MarineSecondary"));
-        assertTrue(has(marine, "E", "MarineShield"));
+        assertTrue(has(marine, "C", "MarineShield"));
         assertTrue(has(marine, "G", "MarineSmoke"));
         assertTrue(has(marine, "Shift", "MarineSprint"));
         assertTrue(has(marine, "Tab / Esc", "Leave"));
@@ -92,9 +92,10 @@ class BattleDirectControlHelpTest {
         var mech = BattleDirectControlHelp.lines(Carrier.MECH);
         assertTrue(has(mech, "LMB hold", "MechPrimary"));
         assertTrue(has(mech, "RMB hold", "MechSecondary"));
-        assertTrue(has(mech, "1", "MechDefault"));
-        assertTrue(has(mech, "2 3 4", "MechPick"));
-        assertFalse(mech.stream().anyMatch(l -> l.keys().equals("E") || l.keys().equals("G")
+        assertTrue(has(mech, "Q", "MechCycleLeft"));
+        assertTrue(has(mech, "E", "MechCycleRight"));
+        assertTrue(has(mech, "1 2 3", "MechPick"));
+        assertFalse(mech.stream().anyMatch(l -> l.keys().equals("C") || l.keys().equals("G")
                 || l.keys().equals("Shift")));
 
         var apc = BattleDirectControlHelp.lines(Carrier.VEHICLE);

@@ -126,9 +126,32 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
         return new int[0];
     }
 
+    /**
+     * Owner-facing look recordings to make alongside the verdict loops: the scene's subject stood on real generated
+     * ground and drawn through the look preset, written under {@code look/}. <b>These, not the loops above, are what
+     * is shown to the owner</b> for any question about how something looks; the loops are verdict evidence drawn on
+     * a bare arena with diagnostic marks. None by default. See {@link LookReview}.
+     */
+    protected List<LookReview.Shot> lookShots() {
+        return List.of();
+    }
+
+    /**
+     * {@code -Dsnapshot.lookOnly=true} records only the {@link #lookShots() look shots} and skips the verdict loops,
+     * for a session that wants the owner's pictures without replaying every loop the scene asserts on.
+     */
+    static boolean lookOnly() {
+        return Boolean.getBoolean("snapshot.lookOnly");
+    }
+
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         SceneRegistries.installArmoury(context.projectRoot());
+        if (lookOnly()) {
+            List<SnapshotArtifact> looks = new ArrayList<>();
+            for (LookReview.Shot shot : lookShots()) looks.addAll(LookReview.record(context.modRoot(), shot));
+            return looks;
+        }
         boolean impacts = showImpactEffects();
         BattleReviewFrameRenderer renderer =
                 new BattleReviewFrameRenderer(context.modRoot(), width, height);
@@ -222,6 +245,9 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
                 artifacts.add(new SnapshotArtifact(loop.getKey() + "-frame-" + index + ".png",
                         loop.getValue().get(index)));
             }
+        }
+        for (LookReview.Shot shot : lookShots()) {
+            artifacts.addAll(LookReview.record(context.modRoot(), shot));
         }
         return artifacts;
     }

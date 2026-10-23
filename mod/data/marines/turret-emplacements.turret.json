@@ -10,7 +10,7 @@
     { "id": "mount.vehicle-lrm", "weapon": "weapon.vehicle-lrm",
       "hardenedTargetsOnly": true,
       "sim": { "ammoCapacity": 60, "turnRateDegPerSec": 60.0 },
-      "render": { "visualCells": 2.4, "muzzleOffsetCells": 0.33, "muzzles": [[-0.36, 0.33], [0.18, 0.33], [-0.18, 0.33], [0.36, 0.33], [0.0, 0.33]] } },
+      "render": { "visualCells": 2.4, "muzzleOffsetCells": 0.269, "muzzles": [[0.0, 0.269], [-0.244, 0.149], [0.244, 0.029], [-0.122, 0.269], [0.122, 0.149], [0.0, 0.029], [-0.244, 0.269], [0.244, 0.149], [-0.122, 0.029], [0.122, 0.269], [0.0, 0.149], [-0.244, 0.029], [0.244, 0.269], [-0.122, 0.149], [0.122, 0.029]] } },
     { "id": "mount.vehicle-srm", "weapon": "weapon.vehicle-srm",
       "hardenedTargetsOnly": true,
       "sim": { "ammoCapacity": 32, "turnRateDegPerSec": 90.0 },

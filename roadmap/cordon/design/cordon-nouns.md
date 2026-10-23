@@ -161,7 +161,11 @@ threshold by the tug when that ground is clear, and goes on from there; one that
 stood in the lane stopped the shed, since the next machine is drawn out into
 that same stretch. A carrier waits
 on a **staging slot** of its own on the apron outside the door, never in the
-doorway, on ground its footprint fits; there are as many carriers as slots,
+doorway, on ground its footprint fits and can drive away from: every hull of
+the allies' is set down on the main body of the map's ground for its width,
+never in a pocket (the nearest cell that merely fitted once put the first slot
+inside a walled pen beside the shed, and nothing from the base reached the
+line); there are as many carriers as slots,
 and an APC beyond that fights with the armour. Every machine drives straight
 out to a **threshold** a few cells beyond the door first, then on to its slot
 or its post behind a redoubt: a carrier steers too wide to turn from the lane
@@ -250,9 +254,9 @@ people on the move, (c) a capable detachment exists.
 ## The map
 
 One plan for both variants (CordonPlan), 560x336, mission-owned, the long
-axis across the front. It is green colony country whatever world the event
-names (the VERDANT palette, as the colony is laid out the same whatever
-market raised the call). Every place is stated by its depth from the rear
+axis across the front. It is fought on the event world's own ground, its
+biome's palette (verdant, arid, rock or frozen), with the colony laid out the
+same whatever market raised the call; each biome has its own pooled maps. Every place is stated by its depth from the rear
 edge, which is the north or the south (the seed's choice), as a fraction of
 the ground the landing's country leaves:
 
@@ -268,6 +272,18 @@ a third of the map's short side, and at 560x336 that grew one town across the
 whole map with the redoubts buried in its streets. The colony's streets reach
 a twentieth to a ninth of the short side and a hamlet's less, so the map
 reads as country with places in it and the line stands in open ground.
+
+**Density.** How built-up the country is follows the bloomed world's market
+size (CordonPlan.Density; owner, 2026-10-23). **Rural** (size 4 and less) is
+the country above. **Town** (5 and 6) grows the rear hamlets and the front's
+places into small towns and puts a village on the line between the middle
+redoubts, with fields still between them. **Urban** (7 and up) is built across
+the whole width either side of the line: the redoubts stand as fortified blocks
+among streets and the front is suburbs. Density changes the country, not the
+places: the four redoubts, the base, the landing's country and, on the Road,
+the compound are where they are at every density. Dense country is ground for
+infantry and walkers more than for wheels, so the allies a city's Cordon fields
+should lean on mechs and walking columns rather than carriers (open work).
 
 The redoubts are programmed places (FortressProgram.fieldRedoubt, laid
 square), so they claim first and the rest grows round them. Their roads are
@@ -315,7 +331,7 @@ many bores and at what tiers will follow what Colony Breach left
 (cordon-campaign.md): bores it collapsed stay collapsed, and biomass it fed
 shows as higher tiers.
 
-**Each variant plays from its own pool of vetted maps** (`story-map-pools.md`):
+**Each variant plays from its own pool of vetted maps at each density** (`story-map-pools.md`; `cordon-line`, `cordon-line-town`, `cordon-line-urban` and the Road's three):
 a few seeds that pass every test above on their first generation, never
 re-rolled, each with a note and an optional patch. The re-roll loop is left
 only for trying a seed that is not pooled yet. `storyMapPools` regenerates

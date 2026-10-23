@@ -39,6 +39,27 @@ class TextureLoadQueueTest {
     }
 
     @Test
+    void aStepCanQueueWhatItFoundStillToLoad() {
+        StepClock clock = new StepClock();
+        List<String> ran = new ArrayList<>();
+        TextureLoadQueue[] queue = new TextureLoadQueue[1];
+        List<TextureLoadQueue.Step> first = new ArrayList<>();
+        first.add(new TextureLoadQueue.Step("survey", () -> {
+            ran.add("survey");
+            clock.now += 4;
+            queue[0].append(steps(clock, ran, 4, "found-1", "found-2"));
+        }));
+        queue[0] = new TextureLoadQueue(first, () -> clock.now);
+
+        queue[0].advance(4);
+        assertFalse(queue[0].done(), "what the survey found is still to load");
+        queue[0].advance(100);
+
+        assertEquals(List.of("survey", "found-1", "found-2"), ran);
+        assertTrue(queue[0].done());
+    }
+
+    @Test
     void aStepLargerThanTheBudgetStillRunsAlone() {
         StepClock clock = new StepClock();
         List<String> ran = new ArrayList<>();

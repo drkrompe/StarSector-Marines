@@ -44,6 +44,8 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.LinkedHashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -384,19 +386,40 @@ public class BattleSprites {
      * the loading screen shows. The battle screen appends its atlas step after these.
      */
     public List<TextureLoadQueue.Step> battleLoadSteps(BattleTextureSet set, Function<String, String> stage) {
+        return battleLoadSteps(set, null, stage);
+    }
+
+    /**
+     * {@link #battleLoadSteps(BattleTextureSet, Function)}, loading of the catalog's terrain sheets
+     * only {@code terrainSheets} ({@link BattleTerrainSheets#of}), a step each, in catalog order.
+     * Null loads every sheet the catalog names in the first step, as a battle did before its
+     * terrain was filtered. Either way a catalog sheet asked for and not loaded is loaded on first
+     * ask ({@link #extraTerrainSheet}).
+     */
+    public List<TextureLoadQueue.Step> battleLoadSteps(BattleTextureSet set, Set<String> terrainSheets,
+                                                       Function<String, String> stage) {
         List<TextureLoadQueue.Step> steps = new ArrayList<>();
-        steps.add(new TextureLoadQueue.Step(stage.apply("battleLoadingTerrain"), () -> {
-            ensureTileSheet();
+        String loadingTerrain = stage.apply("battleLoadingTerrain");
+        steps.add(new TextureLoadQueue.Step(loadingTerrain, () -> {
+            if (terrainSheets == null) ensureTileSheet();
+            else ensureUrbanSheet();
             ensureRoadSheet();
             ensureFloorsSheet();
             ensureNatureSheet();
         }));
-        steps.add(new TextureLoadQueue.Step(stage.apply("battleLoadingTerrain"), () -> {
+        steps.add(new TextureLoadQueue.Step(loadingTerrain, () -> {
             ensureWaterSheet();
             ensureUrbanTile3Sheet();
             ensureDoodadSheet();
             ensureDecalSheet();
         }));
+        if (terrainSheets != null) {
+            for (String path : terrainSheetPaths()) {
+                if (terrainSheets.contains(path)) {
+                    steps.add(new TextureLoadQueue.Step(loadingTerrain, () -> ensureTerrainSheet(path)));
+                }
+            }
+        }
         // Only what this battle places, spawns and can bring in; a step per family, livery and
         // vehicle line, so no one step holds the GL thread long enough to stop the spinner.
         String loadingSprites = stage.apply("battleLoadingSprites");
@@ -440,27 +463,108 @@ public class BattleSprites {
      * all six tile sheets.
      */
     public void ensureTileSheet() {
+        ensureUrbanSheet();
+        for (String path : terrainSheetPaths()) ensureTerrainSheet(path);
+    }
+
+    /**
+     * The indoor tileset alone, without the catalog's other sheets. From here on a catalog sheet
+     * nobody loaded is loaded the first time it is asked for ({@link #extraTerrainSheet}).
+     */
+    public void ensureUrbanSheet() {
         tileTex.ensureLoaded(lease);
+        terrainOnDemand = true;
+    }
+
+    /** Whether a catalog sheet asked for and not loaded is loaded then; see {@link #ensureUrbanSheet()}. */
+    private boolean terrainOnDemand;
+    /** {@link #terrainSheetPaths()}, as a set, once asked. */
+    private Set<String> terrainCatalog;
+
+    /**
+     * Every catalog-declared grid sheet {@link #ensureTileSheet()} loads besides the indoor
+     * tileset, in its order, so a caller can load them one at a time.
+     */
+    public List<String> terrainSheetPaths() {
         TileRegistry registry = TileRegistry.installed();
-        if (registry == null) return;
+        if (registry == null) return List.of();
+        LinkedHashSet<String> paths = new LinkedHashSet<>();
         for (GridBlockDef block : registry.blocks()) {
             String path = block.sheetPath;
             if (path.equals(TileManifest.SHEET) || path.equals(TileManifest.ROAD_SHEET)
                     || path.equals(TileManifest.FLOORS_SHEET) || path.equals(TileManifest.WATER_SHEET)) continue;
-            extraTerrainSheets.computeIfAbsent(path, SheetTexture::grid).ensureLoaded(lease);
+            paths.add(path);
         }
         for (DoodadDef doodad : registry.doodads()) {
             String path = doodad.sheetPath;
             if (path.equals(TileManifest.SHEET) || path.equals(TileManifest.ROAD_SHEET)
                     || path.equals(TileManifest.DOODAD_SHEET) || path.equals(TileManifest.PARKED_VEHICLE_SHEET)) continue;
-            extraTerrainSheets.computeIfAbsent(path, SheetTexture::grid).ensureLoaded(lease);
+            paths.add(path);
         }
+        return List.copyOf(paths);
     }
 
-    /** Catalog-declared grid sheets loaded with terrain assets, before collection. */
+    /** One catalog sheet from {@link #terrainSheetPaths()}. */
+    public void ensureTerrainSheet(String path) {
+        extraTerrainSheets.computeIfAbsent(path, SheetTexture::grid).ensureLoaded(lease);
+    }
+
+    /**
+     * A catalog-declared grid sheet. One a host loads only some of ({@code CompanyDeck} loads what
+     * her deck places) is loaded the first time it is asked for, under this lease: a hitch rather
+     * than a blank, logged in the dev build as unplanned. The renderer registers its batch before
+     * the next drain.
+     */
     public SpriteAPI extraTerrainSheet(String path) {
         SheetTexture texture = extraTerrainSheets.get(path);
+        if (texture == null && terrainOnDemand && path != null) {
+            if (terrainCatalog == null) terrainCatalog = new HashSet<>(terrainSheetPaths());
+            if (terrainCatalog.contains(path)) {
+                if (terrainSurvey != null) {
+                    terrainSurvey.add(path);
+                    return null;
+                }
+                unplanned("terrain sheet " + path);
+                ensureTerrainSheet(path);
+                texture = extraTerrainSheets.get(path);
+            }
+        }
         return texture == null ? null : texture.sprite();
+    }
+
+    /** While a survey runs, the catalog sheets asked for and not loaded, instead of loading them. */
+    private Set<String> terrainSurvey;
+
+    /**
+     * From here until {@link #endTerrainSurvey()}, a catalog sheet asked for and not loaded is
+     * recorded rather than loaded, so a host can learn what a frame would load and load it a sheet
+     * at a time. Whatever drew during the survey drew without those sheets and is thrown away.
+     */
+    public void beginTerrainSurvey() {
+        terrainSurvey = new LinkedHashSet<>();
+    }
+
+    /** The sheets asked for since {@link #beginTerrainSurvey()}; loading on demand resumes. */
+    public List<String> endTerrainSurvey() {
+        List<String> asked = terrainSurvey == null ? List.of() : List.copyOf(terrainSurvey);
+        terrainSurvey = null;
+        return asked;
+    }
+
+    /**
+     * {@link #extraTerrainSheet} without loading it: null when nobody has. Where nothing loads on
+     * demand the two are the same question, so a set that answers {@link #extraTerrainSheet} its
+     * own way (the headless review set) is asked that way.
+     */
+    public SpriteAPI loadedTerrainSheet(String path) {
+        if (!terrainOnDemand) return extraTerrainSheet(path);
+        SheetTexture texture = extraTerrainSheets.get(path);
+        return texture == null ? null : texture.sprite();
+    }
+
+    /** How many catalog sheets have been loaded or tried; a renderer re-registers batches when it changes. */
+    public int terrainSheetCount() {
+        return extraTerrainSheets.size();
     }
 
     /** Loaded catalog sheets for batch registration at attach time. */
@@ -653,7 +757,16 @@ public class BattleSprites {
      * a blank. The dev build says so, since it means {@link BattleTextureSet} missed a way the
      * battle can bring it on.
      */
+    /** What was loaded on first draw because its owner's set did not name it, in order. */
+    private final List<String> unplanned = new ArrayList<>();
+
+    /** Everything loaded on first draw because the set did not name it; empty when the set was right. */
+    public List<String> unplannedLoads() {
+        return List.copyOf(unplanned);
+    }
+
     private void unplanned(String what) {
+        unplanned.add(what);
         if (DevConfig.DEV_MODE) {
             LOG.info("battle textures: loading " + what + " on first draw; the battle's texture set missed it");
         }
@@ -1223,17 +1336,15 @@ public class BattleSprites {
                 LOG.warn("BattleSprites: getSprite returned null for modular layer " + path);
                 return null;
             }
-            {
-                BufferedImage image = ModTextures.readImage(path);
-                if (image == null) {
-                    LOG.warn("BattleSprites: ImageIO.read returned null for modular layer " + path);
-                    return null;
-                }
-                LOG.info("BattleSprites: loaded modular layer " + path + " ("
-                        + image.getWidth() + "x" + image.getHeight() + ")");
-                return new LayeredSpriteCache(sprite, path,
-                        image.getWidth(), image.getHeight());
+            // Its size from the header: decoding every layer a second time on the frame that
+            // uploads it was most of what loading the infantry cost.
+            int[] size = ModTextures.readSize(path);
+            if (size == null) {
+                LOG.warn("BattleSprites: ImageIO could not read the size of modular layer " + path);
+                return null;
             }
+            LOG.debug("BattleSprites: loaded modular layer " + path + " (" + size[0] + "x" + size[1] + ")");
+            return new LayeredSpriteCache(sprite, path, size[0], size[1]);
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load modular layer " + path, e);
             return null;

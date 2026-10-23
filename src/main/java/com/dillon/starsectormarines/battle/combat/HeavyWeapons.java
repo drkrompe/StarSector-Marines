@@ -104,26 +104,22 @@ public class HeavyWeapons {
 
     /** Manual triggers join the same mount clocks and continuation pass as autonomous fire. */
     public void tick(long controlledId, PointFireAim aim, boolean trigger) {
-        tick(controlledId, aim, trigger, 0);
-    }
-
-    /** Left button only: the default groups' primary trigger or a single hardpoint under a number key. */
-    public void tick(long controlledId, PointFireAim aim, boolean trigger, int selectedWeapon) {
-        tick(controlledId, aim, trigger, false, selectedWeapon);
+        tick(controlledId, aim, trigger, false, MechTriggerPicks.LINKED);
     }
 
     /**
-     * The left button fires {@link MechFireGroups#leftMask} (the primary group, or the one hardpoint
-     * a number key chose) and the right button fires {@link MechFireGroups#rightMask} (the secondary
-     * group). Each mount still obeys its own cycle, burst, ammunition and the chassis flux reservoir.
+     * The left button fires what its pick names in the primary group (LINKED, or one mount) and the
+     * right button what its pick names in the secondary group; see {@link MechFireGroups}. A mount
+     * neither pick names holds fire. Each mount still obeys its own cycle, burst, ammunition and the
+     * chassis flux reservoir.
      */
-    public void tick(long controlledId, PointFireAim aim, boolean primary, boolean secondary, int selectedWeapon) {
+    public void tick(long controlledId, PointFireAim aim, boolean primary, boolean secondary, MechTriggerPicks picks) {
         int continuing = 0;
         if (roster.isAliveById(controlledId) && roster.world().hasMechLoadout(controlledId)) {
             MechLoadoutComponent loadout = roster.world().mechLoadout(controlledId);
             MechWeaponMount[] mounts = loadout.mounts();
-            int left = MechFireGroups.leftMask(mounts, selectedWeapon);
-            int right = MechFireGroups.rightMask(mounts, selectedWeapon);
+            int left = picks.leftMask(mounts);
+            int right = picks.rightMask(mounts);
             continuing = left | right;
             if (primary || secondary) {
                 int pulled = (primary ? left : 0) | (secondary ? right : 0);
@@ -230,13 +226,10 @@ public class HeavyWeapons {
      * gun). Smoke on the lane widens a rocket's disk further when it fires; this is the clear-air figure.
      */
     public static float manualScatterRadiusCells(MechLoadoutComponent loadout, MechWeaponMount mount, float distance) {
-        if (!supportsPointFire(mount)) return -1f;
+        if (mount == null) return -1f;
         WeaponDef weapon = mount.weaponDef();
-        if (firesFlat(mount) && !bursts(weapon)) return -1f;
-        float thrown = Math.min(Math.max(distance, standoffCells(loadout)),
-                weapon.range * BallisticResolver.MAX_GROUND_BURST_RANGE_MULTIPLIER);
-        return GroundBurstAim.errorRadius(weapon.accuracy * sensorAccuracy(loadout),
-                RangeFalloff.spread(weapon.hitSpread, weapon.range, weapon.range), weapon.range, thrown);
+        return ManualPointFire.scatterRadiusCells(weapon, weapon.accuracy * sensorAccuracy(loadout), distance,
+                standoffCells(loadout));
     }
 
     private static float standoffCells(MechLoadoutComponent loadout) {
@@ -594,7 +587,7 @@ public class HeavyWeapons {
 
     /** A rocket with a warhead: the rounds a pilot throws at ground rather than along a bearing. */
     private static boolean bursts(WeaponDef weapon) {
-        return weapon.interceptableProjectile && weapon.aoeRadius > 0f;
+        return ManualPointFire.bursts(weapon);
     }
 
     /** The aim point, pushed out along its bearing from the centre to at least {@code minimum} cells. */

@@ -94,6 +94,18 @@ public final class DecorationAtlas extends SpriteAtlas {
      */
     public boolean plan(Iterable<Doodad> placed, TileRegistry registry,
                         Function<Doodad, SpriteAPI> sheets, Function<SpriteAPI, QuadBatch> batches) {
+        return plan(placed, registry, sheets, sheets, batches);
+    }
+
+    /**
+     * {@link #plan(Iterable, TileRegistry, Function, Function)}, asking {@code familySheets} for the
+     * sheet of a placed prop's family state rather than {@code sheets}. A host that loads only what
+     * its battle draws answers it with sheets already loaded, so the family's wide net (every
+     * sibling under a placed id's last {@code -}) packs the states the battle loaded and never
+     * loads a sheet for a sibling nobody placed ({@code battle-textures.md}).
+     */
+    public boolean plan(Iterable<Doodad> placed, TileRegistry registry, Function<Doodad, SpriteAPI> sheets,
+                        Function<Doodad, SpriteAPI> familySheets, Function<SpriteAPI, QuadBatch> batches) {
         if (placed == null) return isPlanned();
         List<Region> candidates = new ArrayList<>();
         Set<String> placedIds = new HashSet<>();
@@ -105,7 +117,7 @@ public final class DecorationAtlas extends SpriteAtlas {
             for (DoodadDef def : registry.doodads()) {
                 if (def == null || def.id == null || placedIds.contains(def.id)
                         || !inPlacedFamily(def.id, placedIds)) continue;
-                offer(candidates, new Doodad(0, 0, def), sheets, batches, familyCuts);
+                offer(candidates, new Doodad(0, 0, def), familySheets, batches, familyCuts);
             }
         }
         // One cut is already one bind; a map with almost no props has nothing to gain.

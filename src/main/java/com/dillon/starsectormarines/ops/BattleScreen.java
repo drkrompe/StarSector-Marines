@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.ui.debug.VehicleStateDumper;
 import com.dillon.starsectormarines.battle.ui.debug.CommanderTraceDumper;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.combat.FireTrigger;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
@@ -92,6 +93,7 @@ import com.dillon.starsectormarines.ops.battleview.OrdnanceFxRuntime;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceTraceFxService;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
 import com.dillon.starsectormarines.ops.battleview.TextureLoadQueue;
+import com.dillon.starsectormarines.ops.battleview.BattleTerrainSheets;
 import com.dillon.starsectormarines.ops.battleview.BattleTextureSet;
 import com.dillon.starsectormarines.render2d.texture.TextureLease;
 import com.dillon.starsectormarines.render2d.texture.TextureLedger;
@@ -372,6 +374,11 @@ public class BattleScreen implements Screen, BattleUiContext {
     boolean rangeFinished() { return rangeFinished; }
 
     @Override
+    public boolean releasesCompanyDeckTextures() {
+        return true;
+    }
+
+    @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
         if (rangeContext != null) ctx = rangeContext;
         BattleSimulation nextSimulation = ctx != null ? ctx.getBattleSimulation() : null;
@@ -422,7 +429,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         // Only what this battle places, spawns and can bring in.
         BattleSimulation sim = ctx != null ? ctx.getBattleSimulation() : null;
         BattleTextureSet set = sim != null ? BattleTextureSet.of(sim) : null;
-        List<TextureLoadQueue.Step> steps = new ArrayList<>(sprites.battleLoadSteps(set, Strings::get));
+        Set<String> terrain = sim != null ? BattleTerrainSheets.of(sim) : null;
+        List<TextureLoadQueue.Step> steps = new ArrayList<>(sprites.battleLoadSteps(set, terrain, Strings::get));
         steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingAtlases"), () -> {
             renderer.buildTileBatches();
             renderer.onAttach();
@@ -1057,7 +1065,11 @@ public class BattleScreen implements Screen, BattleUiContext {
         retainedRetreatOverlay.attach(position, sim != null && sim.isComplete());
         if (directControlOverlay == null) {
             directControlOverlay = new BattleDirectControlOverlay(selection, this::toggleDirectControl,
-                    this::togglePause, this::selectDirectWeapon);
+                    this::togglePause, new BattleDirectControlHudModel.WeaponActions() {
+                        @Override public void select(int key) { selectDirectWeapon(key); }
+                        @Override public void cycle(FireTrigger trigger) { cycleDirectTrigger(trigger); }
+                        @Override public void pick(FireTrigger trigger, int member) { pickDirectTrigger(trigger, member); }
+                    });
         }
         directControlOverlay.attach(position, sim, speedMultiplier);
         if (rangeTrial != null) directControlOverlay.setExitLabelKey("armoryRangeExit");
@@ -1689,7 +1701,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (Display.isCreated() && Display.isActive() && Keyboard.isCreated()) {
             directControlInput.reconcileToggleKeyRelease(Keyboard.isKeyDown(Keyboard.KEY_TAB));
             directControlInput.reconcileAbilityKeyReleases(
-                    Keyboard.isKeyDown(Keyboard.KEY_E), Keyboard.isKeyDown(Keyboard.KEY_G),
+                    Keyboard.isKeyDown(Keyboard.KEY_C), Keyboard.isKeyDown(Keyboard.KEY_G),
                     Keyboard.isKeyDown(Keyboard.KEY_X), Keyboard.isKeyDown(Keyboard.KEY_F),
                     Keyboard.isKeyDown(Keyboard.KEY_R));
             directControlInput.reconcileShiftKeyReleases(
@@ -1697,6 +1709,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         directControlInput.process(manualSamples, this::toggleDirectControl,
                 this::exitDirectControl, this::selectDirectWeapon, this::requestDirectAbility,
+                this::cycleDirectTrigger,
                 this::battleChromeBlocksWorldPointer);
         if (rangeFinished) return;
         if (shipOrderTargeting != null) shipOrderTargeting.pointer(directControlInput.pointerX(),
@@ -1745,7 +1758,23 @@ public class BattleScreen implements Screen, BattleUiContext {
     private boolean selectDirectWeapon(int selection) {
         BattleSimulation sim = getSim();
         if (sim == null || !sim.directControl().selectWeapon(selection)) return false;
-        directControlInput.syncSelectedWeapon(sim.directControl().selectedWeapon());
+        directControlInput.syncSelectedWeapon(sim.directControl().selectionKey());
+        directControlInput.releaseFire();
+        return true;
+    }
+
+    private boolean cycleDirectTrigger(FireTrigger trigger) {
+        BattleSimulation sim = getSim();
+        if (sim == null || !sim.directControl().cycle(trigger)) return false;
+        directControlInput.syncSelectedWeapon(sim.directControl().selectionKey());
+        directControlInput.releaseFire();
+        return true;
+    }
+
+    private boolean pickDirectTrigger(FireTrigger trigger, int member) {
+        BattleSimulation sim = getSim();
+        if (sim == null || !sim.directControl().pick(trigger, member)) return false;
+        directControlInput.syncSelectedWeapon(sim.directControl().selectionKey());
         directControlInput.releaseFire();
         return true;
     }
@@ -1836,7 +1865,7 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     private void submitDirectControlIntent() {
         if (directControlSimulation == null || !directControlInput.active()) return;
-        directControlInput.syncSelectedWeapon(directControlSimulation.directControl().selectedWeapon());
+        directControlInput.syncSelectedWeapon(directControlSimulation.directControl().selectionKey());
         if (directControlInput.blocked(camera, speedMultiplier == 0f,
                 this::battleChromeBlocksWorldPointer)) {
             directControlSimulation.directControl().suspendInput();

@@ -84,6 +84,13 @@ every tree it holds to a bone-pale skeleton and brought down every roof it
 stands under. Nothing is painted on. A bore collapsed in the battle withers its
 creep back as any bore does.
 
+**Cordon ridge.** The last high ground before the bloom, just past the
+farmland: a band of hill segments across the whole front, each climbed by a
+ramp from the cordon's side, with a pass wherever a road, a lane, a ride or a
+settlement crosses it (`elevation-nouns.md`, Ridges). The line was dug along
+it, and it looks down into the overgrowth. The Burn's village stands across most of its
+band, so The Burn's ridge is short.
+
 **Start line.** The near edge of the cordon's farmland, along the farm road the
 fields are worked from. Where the attack steps off and, in The Burn, the first
 firebreak behind the fire line.
@@ -115,7 +122,9 @@ the village: water five cells wide with sand on either bank and no crown
 overhanging it, crossed on foot
 at a stony ford every forty-six cells (stone, not sand, so the creep over a ford is a film and the ford holds as a break) and wherever a road bridges it. Nobody walks
 through water and creep does not climb it, so the brook is the map's natural
-firebreak and a line the creep crosses only at its fords and bridges. A road
+firebreak and a line the creep crosses only at its fords and bridges. It runs in a shallow valley: raised banks either side,
+climbed from the country, broken at every ford and road, so a crossing is a
+descent to a ford (`elevation-nouns.md`, Ridges). A road
 over it is its bridge; where the settlement's streets cross its line it runs
 under them.
 
@@ -212,9 +221,9 @@ cell the veto refuses.
 ## The map
 
 Both variants are laid out by one plan, `HeartCountry`, in one of two **forms**,
-on a living world (`SurfacePalette.VERDANT`) whatever world the bloom is on:
-the heart is the same kind of place on every green world, and a fixture names
-no market.
+on the bloom world's own ground (its `SurfacePalette`, with pooled maps for
+each): the heart is the same kind of place on every world, and a fixture names
+a biome, never a market.
 
 | | **Broad Front** | **The Burn** |
 | --- | --- | --- |

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.salvage.SalvageCache;
+import com.dillon.starsectormarines.battle.salvage.SalvageResource;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.render2d.PolyMesh;
@@ -17,7 +18,12 @@ public final class SalvageCacheRenderSystem implements RenderSystem {
     @Override public RenderLayer layer() { return RenderLayer.OBJECTIVES; }
 
     private static String spriteId(SalvageCache cache) {
-        return switch (cache.resource) {
+        return spriteId(cache.resource);
+    }
+
+    /** The catalog doodad a cache of this resource is drawn with. */
+    static String spriteId(SalvageResource resource) {
+        return switch (resource) {
             case METALS -> "doodad.field-salvage-metals";
             case MACHINERY -> "doodad.field-salvage-machinery";
             case SUPPLIES -> "doodad.field-salvage-supplies";

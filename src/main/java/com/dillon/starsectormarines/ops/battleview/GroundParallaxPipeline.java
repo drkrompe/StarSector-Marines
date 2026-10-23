@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.render2d.texture.TextureLease;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -361,18 +362,24 @@ public final class GroundParallaxPipeline {
     }
 
     public GroundParallaxPipeline(BattleSprites sprites, SunLight sun) {
-        this(new GroundMicroHeightSampler(sprites), new GroundLightService(), sun);
+        this(new GroundMicroHeightSampler(sprites), sprites.lease(), new GroundLightService(), sun);
     }
 
     GroundParallaxPipeline(BattleSprites sprites, GroundLightService lights, SunLight sun) {
-        this(new GroundMicroHeightSampler(sprites), lights, sun);
+        this(new GroundMicroHeightSampler(sprites), sprites.lease(), lights, sun);
     }
 
     private GroundParallaxPipeline(GroundMicroHeightSampler materialSampler,
                                    GroundLightService lights, SunLight sun) {
+        this(materialSampler, null, lights, sun);
+    }
+
+    /** @param lease the sprite set's lease, so the relief's companion sheets go when its owner releases */
+    private GroundParallaxPipeline(GroundMicroHeightSampler materialSampler, TextureLease lease,
+                                   GroundLightService lights, SunLight sun) {
         this.materialSampler = materialSampler;
-        this.heightPass = new GroundHeightPass(materialSampler);
-        this.normalPass = new GroundNormalPass(materialSampler);
+        this.heightPass = new GroundHeightPass(materialSampler, lease);
+        this.normalPass = new GroundNormalPass(materialSampler, lease);
         this.lights = lights;
         this.sun = sun;
     }

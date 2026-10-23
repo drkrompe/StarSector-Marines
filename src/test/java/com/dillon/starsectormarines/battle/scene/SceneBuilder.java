@@ -18,6 +18,8 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
@@ -70,6 +72,12 @@ public final class SceneBuilder {
     private boolean missionCompletion;
     private boolean built;
     private Long simSeed;
+    /** The generated map a look scene stands on, built through the production path; null for an arena. */
+    private MapResult terrain;
+    private SurfacePalette surface;
+    /** Added to every coordinate the builder is given: the corner of the window a look scene stands in. */
+    private int originX;
+    private int originY;
 
     private SceneBuilder(int width, int height) {
         if (width <= 0 || height <= 0) {
@@ -86,8 +94,12 @@ public final class SceneBuilder {
     }
 
     private SceneBuilder(NavigationGrid grid, CellTopology topology) {
-        this.width = grid.getWidth();
-        this.height = grid.getHeight();
+        this(grid, topology, grid.getWidth(), grid.getHeight());
+    }
+
+    private SceneBuilder(NavigationGrid grid, CellTopology topology, int width, int height) {
+        this.width = width;
+        this.height = height;
         this.grid = grid;
         this.topology = topology;
     }
@@ -116,6 +128,23 @@ public final class SceneBuilder {
         checkOpen();
         posts.addAll(stamped);
         return this;
+    }
+
+    /**
+     * A scene over real generated ground, for a look frame rather than a verdict: {@code site} is a window of
+     * {@code map} (see {@link LookGround#openSite}) and every coordinate given to this builder, its squads and units
+     * is local to it, so a scene written for a {@code site.width() x site.height()} arena stands in the window
+     * unchanged. The simulation is built as {@code BattleSetup.buildMap} builds a battle's — the map's tactical map,
+     * buildings, nature cover and doodads — with {@code ground}'s surface. A scene that spawns hulls itself turns its
+     * coordinates with {@link LookGround.Site#x(float)} and {@link LookGround.Site#y(float)}.
+     */
+    public static SceneBuilder onTerrain(LookGround ground, MapResult map, LookGround.Site site) {
+        SceneBuilder builder = new SceneBuilder(map.grid, map.topology, site.width(), site.height());
+        builder.terrain = map;
+        builder.surface = ground.surface();
+        builder.originX = site.x0();
+        builder.originY = site.y0();
+        return builder;
     }
 
     /** An arena of walkable floor, which every scene then cuts walls into. */
@@ -153,8 +182,8 @@ public final class SceneBuilder {
         int hiX = Math.max(x0, x1);
         int loY = Math.min(y0, y1);
         int hiY = Math.max(y0, y1);
-        for (int y = loY; y <= hiY; y++) {
-            for (int x = loX; x <= hiX; x++) {
+        for (int y = loY + originY; y <= hiY + originY; y++) {
+            for (int x = loX + originX; x <= hiX + originX; x++) {
                 if (grid.inBounds(x, y)) grid.setWalkable(x, y, false);
             }
         }
@@ -174,10 +203,7 @@ public final class SceneBuilder {
      */
     public SceneBuilder wallWithDoor(int x, int doorY) {
         seal(x);
-        checkOpen();
-        grid.setWalkableFloor(x, doorY);
-        grid.setDoorway(x, doorY, true);
-        return this;
+        return doorway(x, doorY);
     }
 
     /**
@@ -195,6 +221,8 @@ public final class SceneBuilder {
      */
     public SceneBuilder doorway(int x, int y) {
         checkOpen();
+        x += originX;
+        y += originY;
         if (grid.inBounds(x, y)) {
             grid.setWalkableFloor(x, y);
             grid.setDoorway(x, y, true);
@@ -248,9 +276,15 @@ public final class SceneBuilder {
     public SceneWorld build() {
         checkOpen();
         built = true;
-        BattleSimulation sim = simSeed == null
-                ? new BattleSimulation(grid, topology)
-                : new BattleSimulation(grid, topology, simSeed);
+        BattleSimulation sim;
+        if (terrain != null) {
+            sim = BattleSetup.buildMap(terrain, List.of(), List.of(), simSeed == null ? BattleSimulation.DEFAULT_SEED : simSeed).sim();
+            sim.setSurface(surface);
+        } else {
+            sim = simSeed == null
+                    ? new BattleSimulation(grid, topology)
+                    : new BattleSimulation(grid, topology, simSeed);
+        }
         sim.setMissionCompletionEnabled(missionCompletion);
         for (Doodad doodad : doodads) sim.addDoodad(doodad);
         long[] structures = new long[0];
@@ -269,7 +303,7 @@ public final class SceneBuilder {
                 members.put(squad.key, squad.spawned);
             } else {
                 UnitEntry unit = (UnitEntry) entry;
-                unitIds.put(unit.key, unit.spawnInto(sim));
+                unitIds.put(unit.key, unit.spawnInto(sim, originX, originY));
             }
         }
         return new SceneWorld(sim, width, height, squadIds, members, unitIds, structures);
@@ -544,9 +578,9 @@ public final class SceneBuilder {
                 boolean inFile = fileStepX != 0 || fileStepY != 0;
                 EntitySpec spec = inFile
                         ? new EntitySpec(key + "-" + i, faction, type,
-                                atX + i * fileStepX, atY + i * fileStepY)
+                                owner.originX + atX + i * fileStepX, owner.originY + atY + i * fileStepY)
                         : new EntitySpec(key + "-" + i, faction, type,
-                                atX - 2 + i % 4, atY + i / 4);
+                                owner.originX + atX - 2 + i % 4, owner.originY + atY + i / 4);
                 if (mechVariant != null) mechVariant.applyTo(spec);
                 if (mechDeployment != null) {
                     mechDeployment.applyTo(spec);
@@ -588,8 +622,8 @@ public final class SceneBuilder {
     private record UnitEntry(String key, Faction faction, UnitType type, int x, int y,
                              Consumer<EntitySpec> customiser) {
 
-        private long spawnInto(BattleSimulation sim) {
-            EntitySpec spec = new EntitySpec(key, faction, type, x, y);
+        private long spawnInto(BattleSimulation sim, int originX, int originY) {
+            EntitySpec spec = new EntitySpec(key, faction, type, originX + x, originY + y);
             customiser.accept(spec);
             return sim.spawn(spec);
         }

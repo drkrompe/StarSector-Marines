@@ -115,7 +115,10 @@ public final class CompressedFrameList extends AbstractList<BufferedImage> imple
     @Override
     public BufferedImage get(int index) {
         Packed p = packed(index);
-        byte[] raw = new byte[p.rawLength()];
+        // Inflated straight into the frame's own buffer: a separate array copied in was six megabytes a read.
+        BufferedImage frame = new BufferedImage(p.width(), p.height(), BufferedImage.TYPE_3BYTE_BGR);
+        byte[] raw = ((DataBufferByte) frame.getRaster().getDataBuffer()).getData();
+        if (raw.length != p.rawLength()) throw new IllegalStateException("frame " + index + " changed size");
         Inflater inflater = new Inflater();
         inflater.setInput(p.bytes() != null ? p.bytes() : unspill(p));
         try {
@@ -127,8 +130,6 @@ public final class CompressedFrameList extends AbstractList<BufferedImage> imple
         } finally {
             inflater.end();
         }
-        BufferedImage frame = new BufferedImage(p.width(), p.height(), BufferedImage.TYPE_3BYTE_BGR);
-        System.arraycopy(raw, 0, ((DataBufferByte) frame.getRaster().getDataBuffer()).getData(), 0, raw.length);
         return frame;
     }
 

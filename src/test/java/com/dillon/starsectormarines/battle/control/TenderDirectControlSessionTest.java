@@ -124,7 +124,7 @@ class TenderDirectControlSessionTest {
         assertTrue(session.requestAbility(DirectControlAbility.CANCEL_BUILDS, new PointFireAim(1f, 1f)));
         assertEquals(0, TenderPilot.liveSites(tender));
         assertFalse(session.canUseAbility(DirectControlAbility.SMOKE));
-        assertTrue(session.canUseAbility(DirectControlAbility.SHIELD), "the Shepherd has a shield, raised with E");
+        assertTrue(session.canUseAbility(DirectControlAbility.SHIELD), "the Shepherd has a shield, raised with C");
     }
 
     @Test

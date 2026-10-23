@@ -143,6 +143,9 @@ public final class WalkingBarrage {
         return this;
     }
 
+    /** The battery's guns as they were set up, living or dead; empty before {@link #battery}. */
+    public long[] guns() { return guns == null ? new long[0] : guns.clone(); }
+
     /** Whether the battery has been overrun: it had guns and none of them is left. */
     public boolean overrun(BattleSimulation sim) {
         return battery != null && guns.length > 0 && nearestGun(sim, 0f, 0f) == 0L;

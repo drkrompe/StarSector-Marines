@@ -1,15 +1,18 @@
 # Story map pools
 
 Status: ACTIVE — the four Rav Bloom story maps (Cordon Line, Cordon Road, the
-Heart's The Burn and Broad Front) play from pools; Conquest and skirmish stay
-fully random.
+Heart's The Burn and Broad Front) play from pools, three maps for each world
+biome; Conquest and skirmish stay fully random.
 
 Written: 2026-10-23
 
+Updated: 2026-10-23 — pools are per biome (owner): the story is fought on the
+event world's own ground, three owned maps for each.
+
 A story mission's map is the generator's, but the mission does not take any
-seed the dice offer. It plays from a **pool**: a short, vetted list of seeds
-the team has looked at and owns, each optionally carrying a small authored
-**patch**. Generation still makes the map every time, so the pool rides
+seed the dice offer. It plays from a **pool**: for each world biome, a short,
+vetted list of seeds the team has looked at and owns, each optionally carrying
+a small authored **patch**. Generation still makes the map every time, so the pool rides
 generator improvements; the pool decides only *which* maps a player can get.
 
 ## Why
@@ -33,27 +36,50 @@ One data file per story map, `mod/data/world/pools/<map>.pool.json`
 load):
 
 ```json
-{ "version": 1, "map": "cordon-line",
-  "seeds": [
-    { "seed": 2, "note": "rear edge north; base by the west hamlet" },
-    { "seed": 9, "note": "...", "patch": { "pin": [...], "ruin": [...] } } ] }
+{ "version": 2, "map": "cordon-line",
+  "biomes": {
+    "VERDANT": [
+      { "seed": 3, "note": "rear south; redoubt guns 1-2-2-2" },
+      { "seed": 9, "note": "...", "patch": { "pin": [...], "ruin": [...] } } ],
+    "ARID": [ ... ], "ROCK": [ ... ], "FROZEN": [ ... ] } }
 ```
 
-A pool **seed** is the battle seed itself: the map it names passes the
-mission's acceptance on the first generation, with no re-roll. The note is
-for people: what the map is and why it is in.
+**Biomes.** A bloom surfaces on any world, so its story is fought on that
+world's own ground: the event world's `SurfacePalette` (verdant, arid, rock,
+frozen) picks the pool, and every biome must have maps. A seed names a
+different map on each biome (the palette feeds generation), so a seed is
+vetted per biome; the same seed pooled on several biomes keeps one layout
+under different ground, which makes the biome the only difference between
+those readings.
 
-**Choosing.** A campaign battle picks `entries[floorMod(roll, size)]` from a
-roll its event already carries (`StoryMapPool.pick`), so the choice is
-deterministic per event and saved with it. A fixture names a seed: a pooled
-seed plays that entry with its patch; a seed outside the pool plays the old
-unvetted path, re-rolls and all, which is how a candidate is tried before it
-is added. Nothing on the campaign path reaches the unvetted path.
+**Density.** The Cordon is also laid out at its world's density (rural, town
+or urban, from the market size; `cordon-nouns.md`, Density), and each density
+is a story map of its own with its own pool: `cordon-line-town`,
+`cordon-road-urban` and so on. A density changes the whole map a seed names,
+so it is vetted as a biome is.
 
-**Size.** Six to ten per map. Fewer and a returning player sees repeats;
-more and the full-pool evidence run stops being cheap enough to run on every
-balance question. The pool is a dial, not a constant: add a map when one
-earns it.
+A pool **seed** is the battle seed itself: the map it names on its biome
+passes the mission's acceptance on the first generation, with no re-roll. The
+note is for people: what the map is and why it is in.
+
+**Choosing.** A campaign battle picks `entries[floorMod(roll, size)]` of its
+world's biome from a roll its event already carries (`StoryMapPool.pick`), so
+the choice is deterministic per event and saved with it. A fixture names a
+seed and a biome (absent means verdant): a pooled seed plays that entry with
+its patch; a seed outside the pool plays the old unvetted path, re-rolls and
+all, which is how a candidate is tried before it is added. Nothing on the
+campaign path reaches the unvetted path.
+
+**Size.** Three per biome, twelve per story map (owner, 2026-10-23): few
+enough that each is owned and tuned, and the whole pool plays in one evidence
+run. The pool is a dial, not a constant: add a map when one earns it.
+
+**How the first pools were chosen.** Seeds 2 to 25 screened on every biome
+(the Cordon passes on 60 to 72% of them, the Heart on all); for the Cordon the
+three with the fewest gunless redoubts, both rear edges represented, and on
+the Road a corridor at least 80% on road; for the Heart the first three seeds
+that grow two mothers (the seed alone decides two or three), the same three on
+every biome.
 
 ## Seeds age; the regeneration check
 
@@ -136,6 +162,6 @@ question about one map.
   different forms at different sizes, so each has its own.
 - The pool does not hold the setup's tuning, timetables or rosters; those
   stay in the mission's code and story docs.
-- The check generates each map on the mission's own country (the verdant
-  colony). A campaign profile with a world of its own would generate a map
-  the check has not seen, so the story campaign passes the mission country.
+- The check generates each map on its biome with no market behind it. The
+  story campaign passes only the world's biome, never the market's profile,
+  so the map it plays is the map the check saw.

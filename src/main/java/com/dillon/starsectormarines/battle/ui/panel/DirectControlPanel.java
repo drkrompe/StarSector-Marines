@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
 import com.dillon.starsectormarines.battle.tender.Tender;
 import com.dillon.starsectormarines.battle.tender.TenderPilot;
+import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
+import com.dillon.starsectormarines.battle.vehicle.GroundVehicleTurretSystem;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipOrder;
 import com.dillon.starsectormarines.battle.warship.WarshipPilot;
@@ -14,7 +16,10 @@ import com.fs.starfarer.api.input.InputEventAPI;
 import java.awt.Color;
 import java.util.List;
 
-/** World-space identity bracket and point-aim cursor; the retained plate owns actions. */
+/**
+ * World-space point-aim cursor, aim lanes and scatter ring; the retained plate owns actions. A ground body draws no
+ * bracket of its own: the action camera follows it, which already says which body is controlled.
+ */
 public final class DirectControlPanel implements HudPanel {
     private static final Color CONTROLLED = new Color(0x6E, 0xD7, 0xFF);
     /** A warship's laid ground: guns in the controlled blue, missiles in orange, danger in amber-red. */
@@ -43,12 +48,7 @@ public final class DirectControlPanel implements HudPanel {
             return;
         }
         long id = sim.directControl().activeUnitId();
-        float x = camera.cellToScreenX(sim.world().renderX(id));
-        float y = camera.cellToScreenY(sim.world().renderY(id));
-        float radius = Math.max(9f, camera.cellPxSize() * Math.max(0.7f, sim.physicalRadius(id) + 0.15f));
         HudDraw.prepBlend();
-        HudDraw.borderRect(x - radius, y - radius, radius * 2f, radius * 2f,
-                CONTROLLED, alpha);
         if (!context.directControlAimVisible()) return;
         var aim = sim.directControl().intent();
         if (!Float.isFinite(aim.aimX()) || !Float.isFinite(aim.aimY())) return;
@@ -69,16 +69,59 @@ public final class DirectControlPanel implements HudPanel {
     /**
      * Where a thrown rocket or LRM salvo will land: orange inside every covered mount's range, red past it,
      * where the disk grows faster than distance, and red inside an arcing rack's minimum, where it will not fire.
+     * A mech's ring covers its armed mounts, measured from the chassis centre; a vehicle's is its turret's,
+     * measured from the turret ring, where the turret's own point fire measures.
      */
     private static void scatterRing(BattleSimulation sim, long id, float aimCellX, float aimCellY,
                                     float aimX, float aimY, float cellPx, float alpha) {
-        if (!sim.world().hasMechLoadout(id)) return;
-        float distance = (float) Math.hypot(aimCellX - sim.world().renderX(id), aimCellY - sim.world().renderY(id));
-        var ring = DirectControlScatter.mech(sim.world().mechLoadout(id), sim.directControl().selectedWeapon(), distance);
+        DirectControlScatter.Ring ring;
+        if (sim.world().hasMechLoadout(id)) {
+            float distance = (float) Math.hypot(aimCellX - sim.world().renderX(id),
+                    aimCellY - sim.world().renderY(id));
+            ring = DirectControlScatter.mech(sim.world().mechLoadout(id), sim.directControl().mechPicks(),
+                    distance);
+        } else if (sim.directControl().controlledVehicleId() == id) {
+            var turret = sim.convoy().turret(id);
+            var type = sim.convoy().vehicleType(id);
+            var structure = type.turretStructure();
+            if (turret == null || structure == null || turret.destroyed()) return;
+            TurretMountGeometry.Point mount = GroundVehicleTurretSystem.mountPoint(type, sim.convoy().body(id));
+            ring = DirectControlScatter.vehicle(structure.mount.weapon,
+                    (float) Math.hypot(aimCellX - mount.x(), aimCellY - mount.y()));
+        } else {
+            return;
+        }
         if (ring == null) return;
+        float r = scatterRingPx(ring, cellPx);
+        if (r < 0f) return;
+        HudDraw.ring(aimX, aimY, r, scatterColor(ring), alpha * 0.8f, RING_SEGMENTS, 1.5f);
+    }
+
+    /** A disk smaller than this many pixels is not drawn: it would hide under the crosshair. */
+    static final float MIN_RING_PX = 4f;
+
+    /**
+     * A warning ring never draws smaller than this, so it clears the crosshair's arms: inside an arcing rack's
+     * minimum the disk is a fraction of a cell, and the red that says the trigger is refused would otherwise be
+     * too small to see, or not drawn at all.
+     */
+    static final float MIN_WARNING_RING_PX = 16f;
+
+    /** The scatter ring's on-screen radius at {@code cellPx} pixels a cell, or a negative value for none. */
+    public static float scatterRingPx(DirectControlScatter.Ring ring, float cellPx) {
         float r = ring.radiusCells() * cellPx;
-        if (r < 4f) return;
-        HudDraw.ring(aimX, aimY, r, ring.warning() ? DANGER_AREA : MISSILES_AREA, alpha * 0.8f, RING_SEGMENTS, 1.5f);
+        if (ring.warning()) return Math.max(r, MIN_WARNING_RING_PX);
+        return r < MIN_RING_PX ? -1f : r;
+    }
+
+    /** The scatter ring's colour: missile orange, or danger red past range or inside the minimum. */
+    public static Color scatterColor(DirectControlScatter.Ring ring) {
+        return ring.warning() ? DANGER_AREA : MISSILES_AREA;
+    }
+
+    /** The cursor's crosshair colour. */
+    public static Color controlledColor() {
+        return CONTROLLED;
     }
 
     /**

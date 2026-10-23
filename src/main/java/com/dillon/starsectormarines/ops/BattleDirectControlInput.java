@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.combat.FireTrigger;
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
 import com.dillon.starsectormarines.battle.control.ManualIntent;
 import com.dillon.starsectormarines.render2d.BattleCamera;
@@ -24,6 +25,8 @@ final class BattleDirectControlInput {
     private boolean toggleHeld;
     private final boolean[] weaponKeyHeld = new boolean[6];
     private final boolean[] abilityKeyHeld = new boolean[5];
+    /** Q and E, in {@link FireTrigger} order: a held key cycles its trigger once. */
+    private final boolean[] cycleKeyHeld = new boolean[FireTrigger.values().length];
     private int selectedWeapon;
 
     /** Read host values before retained chrome consumes and invalidates them. */
@@ -63,6 +66,13 @@ final class BattleDirectControlInput {
     void process(List<Sample> samples, Runnable toggle, Runnable exit,
                  IntPredicate selectWeapon, Predicate<DirectControlAbility> requestAbility,
                  BiPredicate<Float, Float> chrome) {
+        process(samples, toggle, exit, selectWeapon, requestAbility, trigger -> false, chrome);
+    }
+
+    /** {@code cycleTrigger} moves a trigger to the next member of its list: Q the left button, E the right. */
+    void process(List<Sample> samples, Runnable toggle, Runnable exit,
+                 IntPredicate selectWeapon, Predicate<DirectControlAbility> requestAbility,
+                 Predicate<FireTrigger> cycleTrigger, BiPredicate<Float, Float> chrome) {
         for (Sample sample : samples) {
             if (sample.pointer) {
                 pointerKnown = true;
@@ -80,6 +90,8 @@ final class BattleDirectControlInput {
             if (sample.keyUp && sample.key == Keyboard.KEY_TAB) toggleHeld = false;
             int weaponKey = weaponKey(sample.key);
             if (sample.keyUp && weaponKey >= 0) weaponKeyHeld[weaponKey] = false;
+            int cycleKey = cycleKey(sample.key);
+            if (sample.keyUp && cycleKey >= 0) cycleKeyHeld[cycleKey] = false;
             int abilityKey = abilityKey(sample.key);
             boolean newAbilityPress = sample.keyDown && abilityKey >= 0 && !abilityKeyHeld[abilityKey];
             if (sample.keyUp && abilityKey >= 0) abilityKeyHeld[abilityKey] = false;
@@ -108,6 +120,14 @@ final class BattleDirectControlInput {
                 if (sample.keyDown && !weaponKeyHeld[weaponKey]) {
                     weaponKeyHeld[weaponKey] = true;
                     if (selectWeapon.test(weaponKey)) releaseFire();
+                }
+                sample.event.consume();
+                continue;
+            }
+            if ((sample.keyDown || sample.keyUp) && cycleKey >= 0) {
+                if (sample.keyDown && !cycleKeyHeld[cycleKey]) {
+                    cycleKeyHeld[cycleKey] = true;
+                    if (cycleTrigger.test(FireTrigger.values()[cycleKey])) releaseFire();
                 }
                 sample.event.consume();
                 continue;
@@ -174,6 +194,7 @@ final class BattleDirectControlInput {
     void releaseHeld() {
         north = south = west = east = firing = secondaryFiring = leftShift = rightShift = false;
         for (int i = 0; i < weaponKeyHeld.length; i++) weaponKeyHeld[i] = false;
+        for (int i = 0; i < cycleKeyHeld.length; i++) cycleKeyHeld[i] = false;
         // Ability presses have no held intent. Keep their physical debounce until
         // keyup so pause, rejected input, or handback cannot turn repeat into a new use.
     }
@@ -265,13 +286,19 @@ final class BattleDirectControlInput {
         return -1;
     }
 
+    private static int cycleKey(int key) {
+        if (key == Keyboard.KEY_Q) return FireTrigger.LEFT.ordinal();
+        if (key == Keyboard.KEY_E) return FireTrigger.RIGHT.ordinal();
+        return -1;
+    }
+
     /** What each ability key asks for, in {@link #abilityKey} order. */
     private static final DirectControlAbility[] ABILITIES = {
             DirectControlAbility.SHIELD, DirectControlAbility.SMOKE, DirectControlAbility.CANCEL_BUILDS,
             DirectControlAbility.LOW_PASS, DirectControlAbility.RELOAD};
 
     private static int abilityKey(int key) {
-        if (key == Keyboard.KEY_E) return 0;
+        if (key == Keyboard.KEY_C) return 0;
         if (key == Keyboard.KEY_G) return 1;
         if (key == Keyboard.KEY_X) return 2;
         if (key == Keyboard.KEY_F) return 3;

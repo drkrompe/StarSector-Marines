@@ -50,6 +50,9 @@ public final class GroundTurret {
     /** The turret as a section of the hull, or null when the hull authors none (its gun cannot be shot away). */
     public final HullTurretSection section;
 
+    /** Who has been hitting the hull, and from where: whether its crew is caught in crossfire. */
+    public final Crossfire crossfire = new Crossfire();
+
     public GroundTurret(int startingAmmo) {
         this(startingAmmo, null);
     }

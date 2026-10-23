@@ -389,7 +389,10 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
                 else if (command.customDraw() instanceof NightLightingPass night) drawNightLighting(context, viewport, night, prepared, bandTop, bandBottom);
                 else if (command.customDraw() instanceof EngineFxPass engine) drawEngineFx(context, viewport, engine, prepared);
                 else if (command.customDraw() instanceof EngineHullLightPass light) drawEngineHullLight(context, viewport, light, prepared);
-                else if (!skipUnsupportedCommands) throw new IllegalStateException("Unsupported custom draw");
+                // A bare lambda is GL housekeeping (the doodad atlas building or releasing its texture): it draws nothing,
+                // and leaving it unrun keeps the atlas unserving, so doodads keep drawing from their sheets here.
+                else if (command.customDraw().getClass().isHidden()) { }
+                else if (!skipUnsupportedCommands) throw new IllegalStateException("Unsupported custom draw: " + command.customDraw().getClass().getName());
             }
             case RIBBON -> drawRibbon(context, viewport.height(), command);
             case MESH -> drawMesh(context, surfaceHeight, command, bandTop, bandBottom);
