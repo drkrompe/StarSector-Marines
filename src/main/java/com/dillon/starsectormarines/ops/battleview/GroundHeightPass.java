@@ -381,7 +381,7 @@ final class GroundHeightPass {
         // A shore cell's water is drawn by the shore's contour, and moving it with
         // the waves would tear that contour along the cell's own edges.
         return topology.inBounds(x, y) && !topology.isWall(x, y) && topology.isWater(x, y)
-                && !(WaterShore.enabled() && WaterShore.isShoreWater(topology, x, y));
+                && !WaterShore.isShoreWater(topology, x, y);
     }
 
     private void appendMetadata(float cx, float cy, float cellPx,

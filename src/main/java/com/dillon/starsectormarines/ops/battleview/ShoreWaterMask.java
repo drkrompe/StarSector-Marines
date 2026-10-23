@@ -33,9 +33,8 @@ final class ShoreWaterMask {
         this.texels = texels;
     }
 
-    /** The mask over a map, or null when the shore is drawn square or the map has no natural water. */
+    /** The mask over a map, or null when the map has no natural water. */
     static ShoreWaterMask of(CellTopology topology) {
-        if (!WaterShore.enabled()) return null;
         int cellsW = topology.getWidth(), cellsH = topology.getHeight();
         boolean any = false;
         for (int y = 0; y < cellsH && !any; y++) {

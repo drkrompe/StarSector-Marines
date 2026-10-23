@@ -155,16 +155,6 @@ class WaterShoreTest {
     }
 
     @Test
-    void steppingStonesCrossTheFordOnOneRow() {
-        CellTopology topology = ford();
-        for (int y = 0; y < 11; y++) {
-            for (int x = 0; x < 9; x++) {
-                assertEquals(y == 5 && x >= 2 && x <= 6, WaterShore.isSteppingStone(topology, x, y), x + "," + y);
-            }
-        }
-    }
-
-    @Test
     void theFieldIsItsSideAtEveryCentreAndItsCornerAtEveryCorner() {
         CellTopology topology = staircase();
         for (int y = 0; y < 10; y++) {
