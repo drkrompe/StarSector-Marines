@@ -32,9 +32,13 @@ import java.util.List;
  *                 the town, its roads and its fields grow round them: high
  *                 ground that has to stand among built places, such as a rim
  *                 round a settlement ({@link RidgePlanner#heldGround})
+ * @param heldFromGrowth whether the places' growth and claims keep off the held
+ *                 ground as well as their fields; false holds it from the
+ *                 fields alone, so the places grow exactly as they would have
+ *                 and only ploughing yields to the ridge
  */
 public record Landscape(float woodland, List<Track> tracks, List<Brook> brooks, int raggedMargin,
-                        List<RidgePlanner.Band> ridges, List<RidgePlanner.Band> held) {
+                        List<RidgePlanner.Band> ridges, List<RidgePlanner.Band> held, boolean heldFromGrowth) {
 
     /** The groves' share of wild ground in the stock landscape pass. */
     public static final float STOCK_WOODLAND = 0.58f;
@@ -55,12 +59,20 @@ public record Landscape(float woodland, List<Track> tracks, List<Brook> brooks, 
     /** A landscape with no held ground. */
     public Landscape(float woodland, List<Track> tracks, List<Brook> brooks, int raggedMargin,
                      List<RidgePlanner.Band> ridges) {
-        this(woodland, tracks, brooks, raggedMargin, ridges, List.of());
+        this(woodland, tracks, brooks, raggedMargin, ridges, List.of(), true);
     }
 
     /** This landscape with these ridges held open before the places grow. */
     public Landscape withHeld(List<RidgePlanner.Band> held) {
-        return new Landscape(woodland, tracks, brooks, raggedMargin, ridges, held);
+        return new Landscape(woodland, tracks, brooks, raggedMargin, ridges, held, true);
+    }
+
+    /**
+     * This landscape with these ridges held from the fields alone: the places
+     * grow and claim as they would have, and no field is ploughed on the band.
+     */
+    public Landscape withUnploughed(List<RidgePlanner.Band> held) {
+        return new Landscape(woodland, tracks, brooks, raggedMargin, ridges, held, false);
     }
 
     public Landscape {
