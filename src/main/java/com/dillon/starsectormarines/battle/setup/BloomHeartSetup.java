@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry;
+import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Density;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
@@ -74,20 +75,29 @@ public final class BloomHeartSetup {
      * a candidate is tried before it is pooled; the campaign reaches only the first.
      */
     public static Built country(Form form, SurfacePalette biome, long seed) {
-        StoryMapPool.Entry entry = StoryMapPools.installed()
+        return country(form, biome, Density.RURAL, seed);
+    }
+
+    /**
+     * As {@link #country(Form, SurfacePalette, long)} in country as built-up as
+     * {@code density}. The pools hold open-country maps, so a town or city
+     * country is the first from the seed whose bores seat.
+     */
+    public static Built country(Form form, SurfacePalette biome, Density density, long seed) {
+        StoryMapPool.Entry entry = density == Density.RURAL && StoryMapPools.installed()
                 ? StoryMapPools.pool(storyMap(form)).entry(biome, seed) : null;
         if (entry != null) return country(form, biome, entry);
         for (int attempt = 0; attempt < ATTEMPTS; attempt++) {
-            Built built = build(form, biome, seed + attempt * 0x9E3779B97F4A7C15L, MapPatch.NONE);
+            Built built = build(form, biome, density, seed + attempt * 0x9E3779B97F4A7C15L, MapPatch.NONE);
             if (built != null) return built;
         }
-        throw new IllegalStateException("no " + biome + " heart country of form " + form + " seated its bores in "
-                + ATTEMPTS + " attempts from seed " + seed);
+        throw new IllegalStateException("no " + biome + " " + density + " heart country of form " + form
+                + " seated its bores in " + ATTEMPTS + " attempts from seed " + seed);
     }
 
     /** A pooled heart country: never re-rolled, so a pooled seed whose bores no longer seat is a broken pool. */
     public static Built country(Form form, SurfacePalette biome, StoryMapPool.Entry entry) {
-        Built built = build(form, biome, entry.seed(), entry.patch());
+        Built built = build(form, biome, Density.RURAL, entry.seed(), entry.patch());
         if (built == null) {
             throw new IllegalStateException(storyMap(form).id + " " + biome + " seed " + entry.seed()
                     + " does not seat its bores");
@@ -104,9 +114,9 @@ public final class BloomHeartSetup {
     }
 
     /** The country from one seed with its patch, or {@code null} when its bores do not seat. */
-    private static Built build(Form form, SurfacePalette biome, long battleSeed, MapPatch patch) {
+    private static Built build(Form form, SurfacePalette biome, Density density, long battleSeed, MapPatch patch) {
         TargetProfile profile = world(biome);
-        PrecinctPlan plan = patch.pinned(HeartCountry.planFor(form, battleSeed));
+        PrecinctPlan plan = patch.pinned(HeartCountry.planFor(form, density, battleSeed));
         MapResult map = MAP_GEN.generate(form.scale.width, form.scale.height, battleSeed, null, profile, plan);
         HeartBores heart = bores(form, map, plan, battleSeed);
         if (heart == null) return null;
@@ -137,8 +147,14 @@ public final class BloomHeartSetup {
      */
     public static BattleSimulation mission(Form form, SurfacePalette biome, long seed,
                                            List<ShuttleAssignment> manifest) {
+        return mission(form, biome, Density.RURAL, seed, manifest);
+    }
+
+    /** As {@link #mission(Form, SurfacePalette, long, List)} in country as built-up as {@code density}. */
+    public static BattleSimulation mission(Form form, SurfacePalette biome, Density density, long seed,
+                                           List<ShuttleAssignment> manifest) {
         if (manifest == null || manifest.isEmpty()) throw new IllegalArgumentException("the heart needs a company to land");
-        Built built = country(form, biome, seed);
+        Built built = country(form, biome, density, seed);
         BattleSimulation sim = built.sim();
         sim.getBattleResources().disableCompoundProduction();
         // The company is broken when its people are: the Burn's guns standing on do not keep it in the fight.
@@ -162,7 +178,7 @@ public final class BloomHeartSetup {
         HeartLanes lanes = form == Form.BROAD_FRONT ? alliedLanes(sim, form, built.battleSeed()) : null;
         boolean front = barrage != null && burnFront();
         if (front) lanes = burnFront(sim, form, burnScreen(form, barrage.plan()), built.battleSeed());
-        sim.installHeart(form, barrage, lanes);
+        sim.installHeart(form, barrage, lanes, built.map().layout);
         Precinct landing = built.plan().landingPlace();
         int laneAcross = form.advancesAlongY() ? landing.seedX() : landing.seedY();
         int laneHalfWidth = form == Form.BROAD_FRONT

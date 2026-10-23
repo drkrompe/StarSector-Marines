@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
+import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.command.ConquestLaneChain;
 import com.dillon.starsectormarines.battle.command.HeartLane;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
@@ -23,6 +25,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.function.IntPredicate;
 
@@ -100,14 +103,30 @@ public final class BattleReviewAnnotations {
         float[] landing = addLandingZones(marks, simulation);
         if (left <= right) {
             marks.box(left - YARD_MARGIN, top - YARD_MARGIN, right + YARD_MARGIN, bottom + YARD_MARGIN,
-                    "RESERVOIR YARD", ReviewStyle.OBJECTIVE);
+                    "MOTHERS", ReviewStyle.OBJECTIVE);
             if (landing != null) {
                 marks.arrow(landing[0], landing[1], (left + right) / 2f + 0.5f, (top + bottom) / 2f + 0.5f,
                         "to the heart", ReviewStyle.APPROACH);
             }
         }
         addGunLine(marks, simulation, heart.barrage());
+        addPlaces(marks, heart.places());
         return marks.build();
+    }
+
+    /** Every laid piece of the heart's layout, boxed and named: the cordon's works and the beats' set pieces. */
+    private static void addPlaces(ReviewAnnotations.Builder marks, LaidLayout places) {
+        for (Laid laid : places.pieces()) {
+            if (!laid.isLaid() || laid.cells().isEmpty()) continue;
+            int left = Integer.MAX_VALUE, top = Integer.MAX_VALUE, right = Integer.MIN_VALUE, bottom = Integer.MIN_VALUE;
+            for (int[] c : laid.cells()) {
+                left = Math.min(left, c[0]); top = Math.min(top, c[1]);
+                right = Math.max(right, c[0]); bottom = Math.max(bottom, c[1]);
+            }
+            boolean works = laid.kind() == Laid.Kind.LINE;
+            marks.box(left, top, right, bottom, laid.name().toUpperCase(Locale.ROOT).replace('-', ' '),
+                    works ? ReviewStyle.POSITION : ReviewStyle.NOTE);
+        }
     }
 
     /** The Burn's battery: one box round its guns, with how many are left standing. */

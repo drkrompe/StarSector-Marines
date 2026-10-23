@@ -206,6 +206,37 @@ public final class WaterShore {
     }
 
     /**
+     * The wet field at a point, in cells: inside the fan triangle the point
+     * falls in, linear between the cell's centre and that triangle's two
+     * corners, so it crosses a waterline band's level exactly where
+     * {@link #patch} clips that band. Shallow water is water here. Continuous
+     * across the edge between two cells that take part. NaN on a built cell,
+     * which has no shore.
+     */
+    public static double fieldAt(CellTopology topology, double worldX, double worldY) {
+        int x = (int) Math.floor(worldX), y = (int) Math.floor(worldY);
+        int self = kind(topology, x, y);
+        if (self == BUILT) return Double.NaN;
+        double centre = water(self, false) ? 1 : -1;
+        double fx = worldX - x, fy = worldY - y;
+        // The triangle is the one on the nearest edge; v is the way in from that
+        // edge toward the centre, u the way along it from its first corner.
+        int triangle = 0;
+        double v = fy, u = fx;
+        if (1 - fx < v) { triangle = 1; v = 1 - fx; u = fy; }
+        if (1 - fy < v) { triangle = 2; v = 1 - fy; u = 1 - fx; }
+        if (fx < v) { triangle = 3; v = fx; u = 1 - fy; }
+        int[] a = CORNERS[triangle], b = CORNERS[(triangle + 1) % 4];
+        double va = corner(topology, x + a[0], y + a[1]);
+        double vb = corner(topology, x + b[0], y + b[1]);
+        if (Double.isNaN(va)) va = centre;
+        if (Double.isNaN(vb)) vb = centre;
+        // Barycentric: the centre stands half a cell in from the edge.
+        double wc = 2 * v, wb = u - v;
+        return wc * centre + (1 - wc - wb) * va + wb * vb;
+    }
+
+    /**
      * One band's piece of one of a cell's triangles, as four clipped-patch
      * vertices normalized within the cell; null when the band does not reach it.
      *

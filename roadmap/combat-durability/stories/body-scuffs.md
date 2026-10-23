@@ -58,7 +58,7 @@ per vehicle line, from the image alone.
    (`geometry-first-imagegen.md`, sources in `art-source/vehicles/scuffs/`): a row per stage (scrapes and bullet
    pocks, scorch, gouges and dents) and four variants of each, coloured to sit on any paint. The base game's
    ship decals were tried first and read only as smudges on a tank. A mark is a hull-width share across
-   (`DECAL_SHARE`); the owner has a size question open.
+   (`DECAL_SHARE`), 0.3: the owner picked it over 0.22 and 0.4 (2026-10-23).
 4. **Mechs.** Section wear drawn on the part sprite that carries the section (torso, each arm and shoulder, legs
    on the chassis), since the torso, hips and arms turn independently. Uses the same placement rule over each
    part's own mask.

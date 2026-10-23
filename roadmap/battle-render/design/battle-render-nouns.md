@@ -124,6 +124,9 @@ Updated: 2026-10-23 — Texture leases: a battle, the company deck, the Armory p
   middle, at right angles to the way the water runs (comparison switch
   `-Dbattle.render.fordLook=pebbles|stones|both`; art from
   `art-source/terrain/bake_water_ford.py`).
+  Hive creep meets the same contour: it stands back from the shore's water and
+  wet bank as from a cliff face (`ShoreWaterMask`, the field sampled
+  continuously by `WaterShore.fieldAt`), so its edge runs along the wet band.
   The bands are resident sub-layers over the feathers and under road edges,
   raised terrain and decoration; their art is derived from the water tiles
   (`art-source/terrain/bake_water_shore.py`). Comparison switch:

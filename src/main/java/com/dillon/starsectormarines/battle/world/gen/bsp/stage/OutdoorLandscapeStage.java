@@ -243,7 +243,7 @@ public final class OutdoorLandscapeStage implements GenStage {
         List<RidgePlanner.Band> out = new ArrayList<>();
         for (Landscape.Brook brook : landscape.brooks()) {
             if (brook.banks() <= 0) continue;
-            List<int[]> line = brookLine(brook);
+            List<int[]> line = brook.line();
             int bank = brook.width() / 2 + 2;
             double offset = bank + VALLEY_FLOOR + PlateauPlanner.FACE_WIDTH + PlateauPlanner.SOUTH_FACE + 1
                     + brook.banks() / 2.0;
@@ -251,7 +251,7 @@ public final class OutdoorLandscapeStage implements GenStage {
             List<int[]> stretches = new ArrayList<>();
             int from = 0;
             for (int i = 0; i < line.size(); i++) {
-                boolean ford = i >= brook.fordWidth() && i % brook.fordEvery() < brook.fordWidth();
+                boolean ford = brook.isFord(i);
                 if (!ford) continue;
                 stretches.add(new int[]{from, i - FORD_APPROACH});
                 from = i + brook.fordWidth() + FORD_APPROACH;
@@ -276,20 +276,6 @@ public final class OutdoorLandscapeStage implements GenStage {
         int[] a = line.get(Math.max(0, i - 3)), b = line.get(Math.min(line.size() - 1, i + 3)), p = line.get(i);
         double dx = b[0] - a[0], dy = b[1] - a[1], len = Math.max(1e-9, Math.hypot(dx, dy));
         return new ElevationPlan.Point(p[0] - dy / len * by, p[1] + dx / len * by);
-    }
-
-    /** A brook's centre line walked a cell at a time, as {@link #runBrooks} lays its water. */
-    private static List<int[]> brookLine(Landscape.Brook brook) {
-        List<int[]> line = new ArrayList<>();
-        for (int i = 0; i + 1 < brook.path().size(); i++) {
-            int[] a = brook.path().get(i), b = brook.path().get(i + 1);
-            int steps = Math.max(Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1]));
-            for (int k = i == 0 ? 0 : 1; k <= steps; k++) {
-                line.add(new int[]{Math.round(a[0] + (b[0] - a[0]) * k / (float) Math.max(1, steps)),
-                        Math.round(a[1] + (b[1] - a[1]) * k / (float) Math.max(1, steps))});
-            }
-        }
-        return line;
     }
 
     /** Whether the ground around a layout's faces stays one connected piece once they close. */
@@ -468,7 +454,7 @@ public final class OutdoorLandscapeStage implements GenStage {
     private static List<int[]> runBrooks(GenContext c, Landscape landscape) {
         List<int[]> centres = new ArrayList<>();
         for (Landscape.Brook brook : landscape.brooks()) {
-            List<int[]> line = brookLine(brook);
+            List<int[]> line = brook.line();
             float r = brook.width() / 2f;
             int reach = (int) Math.ceil(r) + 1;
             for (int[] centre : line) {
@@ -494,7 +480,7 @@ public final class OutdoorLandscapeStage implements GenStage {
             }
             // Fords last, so a ford is open across the whole stream whatever drew water over it.
             for (int i = 0; i < line.size(); i++) {
-                if (i % brook.fordEvery() >= brook.fordWidth() || i < brook.fordWidth()) continue;
+                if (!brook.isFord(i)) continue;
                 int[] centre = line.get(i);
                 for (int dy = -reach; dy <= reach; dy++) for (int dx = -reach; dx <= reach; dx++) {
                     int x = centre[0] + dx, y = centre[1] + dy;

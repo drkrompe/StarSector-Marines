@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, deployed APC, friendly Warship, and drone Tende
 
 Written: 2026-09-23
 
-Updated: 2026-10-23 — the ground aim reticle: a quiet side tick per mouse button, coloured and patterned by what a click would do; landing spread blooms the tick; no scatter ring.
+Updated: 2026-10-23 — the reticle ticks lie across the line of fire; held racks chain salvos and the strip lights them; landing spread blooms the tick, no scatter ring.
 
 Direct control lets the player temporarily inhabit one of their ground units, or a
 friendly capital hovering over the battle, in
@@ -122,7 +122,9 @@ fires in bursts (a mech's chaingun) shows the burst one click sends as
 cartridges, spent as the burst goes out and chambered again over the cycle. A rack or
 belt too long for the row folds to one icon per salvo or burst (several whole
 bursts per icon for a long belt) and then keeps its exact count beside it; a
-load too long even folded keeps only the number. Finite Mech stores count
+load too long even folded keeps only the number. While a rack's button is held, the missiles (or
+folded salvos) that hold has fired draw lit beside the live ones, so a chain is seen building
+salvo by salvo, and go back to spent when the button comes up. Finite Mech stores count
 trigger packs, while a vehicle turret counts individual rounds. In the Marine doll's kit column,
 a rocket or precision-rifle special with a short load draws it as missiles or
 cartridges in place of its count.
@@ -166,9 +168,13 @@ an arcing rack flies over walls and draws no lane.
 On a ground body the crosshair is an **aim reticle** that answers, per mouse
 button, what a click would do now: one **mark** per button, read from that
 button's current pick, as a short tick either side of a neutral centre dot on
-the aim point, the left tick for the left button and the right tick for the
-right (owner, 2026-10-23; side ticks chosen over split brackets and concentric
-rings). A button with nothing on it draws no mark. **White** fires well,
+the aim point (owner, 2026-10-23; side ticks chosen over split brackets and
+concentric rings). The ticks lie across the **line of fire**, from the body (a
+vehicle's turret ring) to the cursor, so they never run along the aim lane: the
+left button's tick is on the body's own left of that line and the right
+button's on its right, as a gunsight turns with its gun. Aiming down the screen
+therefore puts the left button's tick on the screen's right; the player reads
+left and right relative to the body (owner, 2026-10-23). A button with nothing on it draws no mark. **White** fires well,
 inside optimal range; **yellow** fires with accuracy falling off, between
 optimal and maximum range; **red** fires but is wasted, past maximum range;
 **grey** will not fire: too close (inside a manual minimum), out of the mount's
@@ -518,6 +524,10 @@ cooldown and the committed throw are the equipment's own. No other secondary ite
 has a manual contract (grenade launchers and satchels are autonomous), so a Marine
 carrying only those leaves the right button inert rather than inventing a new free
 action. C and G keep working.
+
+A held rack chains its salvos (`mechs-nouns.md`, `salvo-chain.md`): a click is one salvo, and a
+hold that has fired one keeps firing the next as soon as the last has gone, without the cycle, until
+release or an empty rack. A vehicle turret's launcher does the same under manual fire.
 
 An arcing LRM rack drops its salvo on the thrown point: the aim point, pulled in
 to twice its range if further, plus the same growing scatter disk a rocket's ground
