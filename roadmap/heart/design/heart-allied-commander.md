@@ -29,14 +29,17 @@ its next bore, re-routed when that bore falls.
 
 The pictures compare the two screens with today's control.
 
-**When to call armour up the road.** It replaces the timer with need. The
-park sends a pair to the lane whose armour is weakest, when:
-- that lane has lost a machine;
-- its screen broke (F2's `lane_broken_N`);
-- or its formation stalled at the cap twice running.
+**When to call armour up the road.** It replaces the timer with need, read
+with the Cordon commander's signal names (`cordon-allied-command.md`). The
+commander asks the base for a pair (`AlliedProducer.request`, the lane as the
+place) for the lane whose armour is weakest, when that lane is:
+- **uncovered**: it has lost a machine;
+- broken: its screen broke (F2's `lane_broken_N`);
+- stalled: its formation stalled at the cap twice running.
 
-There is never more than one pair on the road per lane. The pace by density is
-the base's own (`allied-tools.md`).
+There is never more than one pair on the road per lane (`onRoad`). The base
+keeps its pace by density as stock, and requests draw on it
+(`allied-tools.md`).
 
 **When to commit the gunship.** Only once the air is open (F3's
 `air_corridor_open`), and only onto something worth one sortie, in this order:
@@ -45,7 +48,9 @@ the base's own (`allied-tools.md`).
 3. the satellite against the road (F6);
 4. the bore the most lanes are stalled on.
 
-It comes off station at half structure, and the next sortie waits for the base.
+It comes off station at half structure, and the next sortie waits for the
+base. The air gate sits inside the base's `request`, so the commander may ask
+and be refused.
 
 **Where the company stands in it.** The company is not under this commander.
 The commander reads the company's position as one more fact:
