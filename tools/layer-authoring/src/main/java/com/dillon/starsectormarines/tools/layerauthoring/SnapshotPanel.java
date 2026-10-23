@@ -43,7 +43,7 @@ final class SnapshotPanel extends JPanel {
         SnapshotCatalog catalog = SnapshotCatalog.discover();
         List<SnapshotSuite> suites = catalog.suites();
         if (suites.size() > 1) {
-            selection.addItem(new Selection("All snapshots", suites));
+            selection.addItem(new Selection("All snapshots", catalog.select("all")));
         }
         for (SnapshotSuite suite : suites) {
             selection.addItem(new Selection(suite.label(), List.of(suite)));

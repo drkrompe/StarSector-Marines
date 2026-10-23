@@ -24,6 +24,13 @@ class SnapshotCatalogTest {
     }
 
     @Test
+    void allLeavesOutOptInSuitesButNamingOneRunsIt() {
+        SnapshotCatalog catalog = new SnapshotCatalog(List.of(suite("ui"), optIn("slow-look")));
+        assertEquals(List.of("ui"), ids(catalog.select("all")));
+        assertEquals(List.of("slow-look"), ids(catalog.select("slow-look")));
+    }
+
+    @Test
     void rejectsDuplicateInvalidAndUnknownSuiteIds() {
         assertThrows(IllegalArgumentException.class,
                 () -> new SnapshotCatalog(List.of(suite("ui"), suite("ui"))));
@@ -40,6 +47,18 @@ class SnapshotCatalogTest {
             @Override public List<SnapshotArtifact> render(SnapshotContext context) {
                 return List.of(new SnapshotArtifact("sample.png",
                         new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB)));
+            }
+        };
+    }
+
+    private static SnapshotSuite optIn(String id) {
+        SnapshotSuite inner = suite(id);
+        return new SnapshotSuite() {
+            @Override public String id() { return id; }
+            @Override public String label() { return id; }
+            @Override public boolean inAll() { return false; }
+            @Override public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
+                return inner.render(context);
             }
         };
     }

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-16
 
-Updated: 2026-10-23 — battle loading screen options (`battle-loading`)
+Updated: 2026-10-23 — `deck-props` and `elevation-look` opt-in
 
 A guide to the notable `createSnapshots` suites: what each one shows and where it writes.
 How to run them, and the rules every preview obeys, are in `CLAUDE.md` (Visual snapshot
@@ -12,6 +12,10 @@ workflow). This table is not the catalog. Suites register through `META-INF/serv
 and `tools/authoring.sh snapshot_list_suites` lists every registered id; many registered
 suites have no row here. Add a row when a suite is evidence someone will want to find
 by name.
+
+A suite can be **opt-in**: `all` leaves it out and only `-Psnapshot=<id>` runs it
+(`SnapshotSuite.inAll`). That is for slow look studies that matter only while their
+art is being changed; `deck-props` and `elevation-look` are opt-in.
 
 | Suite | Evidence | Output |
 |-------|----------|--------|
@@ -27,7 +31,7 @@ by name.
 | `screened-advance` | The screened-advance behaviour scene's three loops (`infantry-screen`, `armour-screen`, `control`): militia and allied armour moving to a rally point in formation, a line through each element's centre and the rally point marked, from the same run as its verdicts (`sceneEvidence -Pscene=screened-advance`), 1920x1080 | `build/snapshots/screened-advance/` |
 | Suite | Evidence | Output |
 |-------|----------|--------|
-| `deck-props` | The generated, manned Valkyrie's moving props: belt conveyor, rack lift, treadmill and rower, engine-room fans, the vehicle bay's travelling cranes over alternately occupied berths. One 1920x1080 GIF per room on the deck's own clock, power up for the first half and at a deficit for the second; the console says how often each worked machine was worked | `build/snapshots/deck-props/` |
+| `deck-props` | Opt-in. The generated, manned Valkyrie's moving props: belt conveyor, rack lift, treadmill and rower, engine-room fans, the vehicle bay's travelling cranes over alternately occupied berths. One 1920x1080 GIF per room on the deck's own clock, power up for the first half and at a deficit for the second; the console says how often each worked machine was worked | `build/snapshots/deck-props/` |
 | `apc` | Registered live/wreck APCs at four headings and both sizes, twin-MG muzzle rotation, distance-driven tire treads and compact destruction effects on Thunder Run beside the tank and freight; controlled 1920x1080/100% art/motion evidence, not mission acceptance | `build/snapshots/apc/` |
 | `tank` | Registered tracked hull and short single-cannon turret at four headings, full posed rotation with muzzle marks, real autonomous-fire recoil, the production Thunder Run staging column alongside APCs, a technical and freight haulers, controlled forward/brake/reverse tread motion, and registered destruction with roof/engine effects; 1920x1080/100% art evidence, not mission acceptance | `build/snapshots/tank/` |
 | `tank-variants` | The breakthrough tank, screened tank and dozer breacher side by side, live and wrecked, with each ballistic muzzle marked, at close and battle scale; then all three firing autonomously at a defended line (`battle.png` is the busiest frame, `battle.gif` the run). 1920x1080/100% art evidence, not balance | `build/snapshots/tank-variants/` |
@@ -108,7 +112,7 @@ by name.
 | `yield-freeze` | One squad under one order, recorded four ways: the order worth having and the same order over a zone that turns out to be empty, as infantry and again as a mech lance. Counts plan-less ticks rather than distance | `build/snapshots/yield-freeze/` |
 | `sun-shadows` | One generated city under the directional sun: an elevation ladder, a bearing sweep, one building's roof caved in beside itself intact, marines casting beside the same marines with the shadow layer left out, and one craft at three altitudes walking its shadow away from itself — each against a control. Terrain shading is the **CPU model of the composite shader, not the shader**; the bodies panel is the real `UnitShadowRenderSystem` collected and drained | `build/snapshots/sun-shadows/` |
 | `elevation` | The overlook test map (`ElevationTestMaps`): two tiers, three ramps, at play zoom (64x36 cells at 30 px), on grass and dirt, unlit and under the default sun, then generated mission maps asked for three plateaus each (framed on a ramp where one fits). Terrain shading is the CPU model of the composite shader | `build/snapshots/elevation/` |
-| `elevation-look` | Look study for raised ground on the overlook with tall south faces, at play zoom and a 2x close-up of the west ramp: the shipped cliff tiles against gradient shading of one smooth height surface (`ElevationGradientLook`), with scree and ramp steps, and the tiles under the gradients; then three ramp looks (graded earth, worn track, cut steps) painted over the cliff tiles, the walls of each cut tapering as its floor climbs. CPU models of the composite, for the owner's pick | `build/snapshots/elevation-look/` |
+| `elevation-look` | Opt-in. Look study for raised ground on the overlook with tall south faces, at play zoom and a 2x close-up of the west ramp: the shipped cliff tiles against gradient shading of one smooth height surface (`ElevationGradientLook`), with scree and ramp steps, and the tiles under the gradients; then three ramp looks (graded earth, worn track, cut steps) painted over the cliff tiles, the walls of each cut tapering as its floor climbs. CPU models of the composite, for the owner's pick | `build/snapshots/elevation-look/` |
 | `elevation-options` | The owner's elevation decisions as picture cards on the overlook: cliff look, sight rule (fog of six marines at a cliff foot, hidden defenders ringed), firing up, the swarm on cliffs, and whether firing down reveals a holder (a strip of three moments, drawn rather than simulated). Rings, routes and captions are review aids | `build/snapshots/elevation-options/` |
 | `shield-dome-look` | The planetary shield dome over a generated city at 1920x1080, game scale: steady state (friendly and hostile), the fill ladder, a scripted six-round impact sequence as a still sheet and a GIF, and collapse with recovery. Shaded through `ShieldDomeShading`, the **CPU model of the dome shader**, which `shaderEvidence` compares against the driver pixel for pixel | `build/snapshots/shield-dome-look/` |
 | `ship-arrival` | A capital dropping through the cloud deck at the map edge and climbing back out, 1920x1080, whole map and close: the shadow sweeping in from a great height and sharpening as it closes on the hull, the re-entry glow and cloud streaming off it, the downwash dust and the touchdown shock ring, then the climb with its exhaust wake. Full-colour palette plus PNG stills of the key moments. Presentation only: the verdicts are the clocks and the once-only sounds | `build/snapshots/ship-arrival/` |
