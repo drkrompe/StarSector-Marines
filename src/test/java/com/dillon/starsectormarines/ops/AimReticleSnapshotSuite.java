@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.combat.ManualPointFire;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.control.ManualIntent;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
@@ -19,7 +20,12 @@ import com.dillon.starsectormarines.battle.ui.panel.DirectControlReticle;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlScatter;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.turret.TurretAim;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vehicle.GroundVehicleTurretSystem;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.ops.battleview.BattleRenderHostProfile;
 import com.dillon.starsectormarines.ops.battleview.BattleSceneFrame;
@@ -61,7 +67,8 @@ import java.util.Locale;
 /**
  * The aim reticle's marks on a real battle: a Bulwark under direct control, chainguns on the left button
  * and two LRM racks on the right, with the cursor where the chainguns fall off, inside the racks' minimum and past
- * the chainguns' range; then a Marine with smoke on the right button. The marks are {@link DirectControlFireMarks#read}, the strokes
+ * the chainguns' range, in each way a tick can carry landing spread; then the LRM carrier, and a Marine with smoke
+ * on the right button. The marks are {@link DirectControlFireMarks#read}, the strokes
  * {@link DirectControlReticle}'s, both production; only the stroke drain is a Java2D copy of the GL panel's.
  * A look study, so it is left out of {@code all}.
  */
@@ -100,6 +107,8 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
                 for (int y = 0; y < 68; y++) for (int x = 0; x < 120; x++) {
                     sim.getTopology().setGroundKind(x, y, y >= 36 && y <= 44 ? GroundKind.STREET : GroundKind.DIRT);
                 }
+                long carrier = sim.convoy().spawn(VehicleType.LRM_CARRIER, Faction.MARINE,
+                        VehicleMission.deployed(80.5f, 14.5f));
                 // Long enough for the drop-in to finish, so the Bulwark stands on the street rather than descending.
                 for (int tick = 0; tick < 300; tick++) sim.advance(BattleSimulation.TICK_DT);
                 Selection selection = new Selection();
@@ -107,17 +116,28 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
                 selection.selectUnit(world.squadId("lance"), mech);
                 require(sim.directControl().enter(mech), "The Bulwark can take control");
                 int index = 1;
-                for (Aim aim : MECH_AIMS) {
-                    frames.add(frame(context, sim, selection, mech, aim,
-                            String.format(Locale.ROOT, "%02d-bulwark-%s", index++, aim.name())));
+                for (DirectControlReticle.SpreadLook look : DirectControlReticle.SpreadLook.values()) {
+                    for (Aim aim : MECH_AIMS) {
+                        frames.add(frame(context, sim, selection, mech, aim, look,
+                                String.format(Locale.ROOT, "%02d-%s-bulwark-%s", index++, slug(look), aim.name())));
+                    }
                 }
                 sim.directControl().exit();
+                // Only the APC takes manual control today, so the carrier's frames are uncontrolled: the reticle is drawn
+                // from the same rules the panel reads for a controlled launcher, and no control HUD is shown.
+                selection.selectVehicle(carrier);
+                WeaponDef launcher = VehicleType.LRM_CARRIER.turretStructure().mount.weapon;
+                for (DirectControlReticle.SpreadLook look : DirectControlReticle.SpreadLook.values()) {
+                    frames.add(frame(context, sim, selection, carrier, new Aim("lrm-carrier", launcher.range * 0.8f),
+                            look, String.format(Locale.ROOT, "%02d-%s-lrm-carrier", index++, slug(look))));
+                }
                 long marine = world.members("infantry")[0];
                 selection.selectUnit(world.squadId("infantry"), marine);
                 require(sim.directControl().enter(marine), "The Marine can take control");
                 float range = sim.world().attackRange(marine);
                 frames.add(frame(context, sim, selection, marine, new Aim("marine", range * 0.75f),
-                        String.format(Locale.ROOT, "%02d-marine", index)));
+                        DirectControlReticle.LIVE, String.format(Locale.ROOT, "%02d-%s-marine", index,
+                                slug(DirectControlReticle.LIVE))));
                 sim.directControl().exit();
             }
         } finally { Global.setSettings(previous); }
@@ -125,17 +145,30 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
     }
 
     private static SnapshotArtifact frame(SnapshotContext context, BattleSimulation sim, Selection selection,
-                                          long id, Aim aim, String name)
+                                          long id, Aim aim, DirectControlReticle.SpreadLook look, String name)
             throws Exception {
-        float x = sim.world().renderX(id);
-        float y = sim.world().renderY(id);
+        boolean vehicle = sim.convoy().isVehicle(id);
+        var mountPoint = vehicle
+                ? GroundVehicleTurretSystem.mountPoint(sim.convoy().vehicleType(id), sim.convoy().body(id)) : null;
+        float x = vehicle ? mountPoint.x() : sim.world().renderX(id);
+        float y = vehicle ? mountPoint.y() : sim.world().renderY(id);
         // Along the body's own facing, so a mech's torso is aligned without a turn.
         double bearing = Math.toRadians(facing(sim, id) + 90.0);
         float aimX = x + (float) Math.cos(bearing) * aim.cells();
         float aimY = y + (float) Math.sin(bearing) * aim.cells();
-        sim.directControl().submit(new ManualIntent(0f, 0f, aimX, aimY, false, false, false));
+        if (!vehicle) sim.directControl().submit(new ManualIntent(0f, 0f, aimX, aimY, false, false, false));
         if (sim.world().hasMechLoadout(id)) sim.world().mechLoadout(id).torsoFacingDegrees = facing(sim, id);
         var marks = DirectControlFireMarks.read(sim);
+        var spread = DirectControlScatter.read(sim);
+        if (vehicle) {
+            // The turret laid on the cursor, as it is once it has slewed there.
+            sim.convoy().turret(id).facingDeg = TurretAim.bearingTo(x, y, aimX, aimY);
+            WeaponDef weapon = sim.convoy().vehicleType(id).turretStructure().mount.weapon;
+            marks = new DirectControlFireMarks.Marks(DirectControlFireMarks.of(
+                    !ManualPointFire.tooClose(weapon, aim.cells()), aim.cells(),
+                    ManualPointFire.optimalRangeCells(weapon), weapon.range), Mark.NONE);
+            spread = new DirectControlScatter.Spread(DirectControlScatter.vehicle(weapon, aim.cells()), -1f);
+        }
 
         PositionAPI position = position();
         BattleCamera camera = new BattleCamera(sim.getGrid().getWidth(), sim.getGrid().getHeight());
@@ -165,20 +198,16 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
             graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             float sx = camera.cellToScreenX(aimX);
             float sy = camera.cellToScreenY(aimY);
-            for (var origin : DirectControlAimOrigins.read(sim)) {
+            for (var origin : vehicle ? List.<DirectControlAimOrigins.Origin>of() : DirectControlAimOrigins.read(sim)) {
                 var lane = DirectControlAimLane.observed(sim.getGrid(), origin, aimX, aimY, (cx, cy) -> true);
                 if (lane == null) continue;
                 draw(graphics, DirectControlAimLane.strokes(lane, camera.cellPxSize(),
                         camera.cellToScreenX(0f), camera.cellToScreenY(0f)), 1f);
             }
-            if (sim.world().hasMechLoadout(id)) {
-                var ring = DirectControlScatter.mech(sim.world().mechLoadout(id), sim.directControl().mechPicks(),
-                        aim.cells());
-                float r = ring != null ? DirectControlPanel.scatterRingPx(ring, camera.cellPxSize()) : -1f;
-                if (r >= 0f) draw(graphics, DirectControlReticle.scatterRing(ring.mark(), sx, sy, r), 0.8f);
-            }
-            draw(graphics, DirectControlReticle.strokes(marks, sx, sy, DirectControlPanel.controlledColor()), 1f);
-            caption(graphics, aim, marks);
+            float cellPx = camera.cellPxSize();
+            draw(graphics, DirectControlReticle.strokes(look, marks, spread.leftCells() * cellPx,
+                    spread.rightCells() * cellPx, sx, sy, DirectControlPanel.controlledColor()), 1f);
+            caption(graphics, look, aim, marks);
             inset(graphics, image, sx, HEIGHT - sy);
             graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
             for (var surface : control.surfaces()) {
@@ -196,9 +225,9 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
     }
 
     /** The review label: where the cursor is, and what each button's mark reads. */
-    private static void caption(Graphics2D graphics, Aim aim,
+    private static void caption(Graphics2D graphics, DirectControlReticle.SpreadLook look, Aim aim,
                                 DirectControlFireMarks.Marks marks) {
-        String text = String.format(Locale.ROOT, "cursor %.0f cells   LMB %s   RMB %s", aim.cells(),
+        String text = String.format(Locale.ROOT, "%s   cursor %.0f cells   LMB %s   RMB %s", look.name(), aim.cells(),
                 label(marks.left()), label(marks.right()));
         graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
         graphics.setColor(new Color(0, 0, 0, 170));
@@ -207,10 +236,10 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
         graphics.drawString(text, 36, 49);
     }
 
-    /** The cursor's surroundings at four times, top right, so the shape can be judged; the frame keeps 100%. */
+    /** The cursor's surroundings at three times, top right, so the shape can be judged; the frame keeps 100%. */
     private static void inset(Graphics2D graphics, BufferedImage image, float x, float y) {
-        int half = 40;
-        int zoom = 4;
+        int half = 60;
+        int zoom = 3;
         int left = Math.max(0, Math.min(WIDTH - half * 2, Math.round(x) - half));
         int top = Math.max(0, Math.min(HEIGHT - half * 2, Math.round(y) - half));
         BufferedImage crop = new BufferedImage(half * 2, half * 2, BufferedImage.TYPE_INT_ARGB);
@@ -227,8 +256,10 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
         graphics.drawRect(insetX, insetY, size, size);
         graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
         graphics.setColor(Color.WHITE);
-        graphics.drawString("cursor at 4x", insetX + 8, insetY + size - 10);
+        graphics.drawString("cursor at 3x", insetX + 8, insetY + size - 10);
     }
+
+    private static String slug(DirectControlReticle.SpreadLook look) { return look.name().toLowerCase(Locale.ROOT); }
 
     private static String label(Mark mark) {
         return switch (mark) {
