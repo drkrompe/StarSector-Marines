@@ -5,9 +5,8 @@ import java.util.List;
 
 /**
  * The way a screened advance goes ({@code allied-command.md}, Screened advance): a line of cells
- * from the start line to the rally point, measured by distance along it. Bounds are distances
- * along the route; a machine or a squad is "ahead" of another when its point projects further
- * along. Pure geometry, no simulation.
+ * from the start line to the rally point, measured by distance along it. A machine or a squad is
+ * "ahead" of another when its point projects further along. Pure geometry, no simulation.
  */
 public final class AdvanceRoute {
 
@@ -50,18 +49,6 @@ public final class AdvanceRoute {
     /** Length of the route in cells. */
     public float length() {
         return cum[cum.length - 1];
-    }
-
-    /**
-     * Bounds every {@code every} cells along the route, the last one the rally point itself: a short
-     * remainder is folded into the last bound rather than left as a step of its own.
-     */
-    public float[] bounds(float every) {
-        if (every <= 0f) throw new IllegalArgumentException("a bound must be longer than nothing");
-        int n = Math.max(1, Math.round(length() / every));
-        float[] out = new float[n];
-        for (int i = 0; i < n; i++) out[i] = length() * (i + 1) / n;
-        return out;
     }
 
     /** How far along the route a point lies: the distance at its nearest point on the route. */
