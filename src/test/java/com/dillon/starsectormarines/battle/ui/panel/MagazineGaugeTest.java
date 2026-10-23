@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** The magazine both the strip and the cursor ring draw. */
+/** The counted load the strip under a weapon row draws. */
 class MagazineGaugeTest {
 
     @Test
@@ -38,5 +38,26 @@ class MagazineGaugeTest {
         assertFalse(MagazineGauge.of(1, 1, 4, 2, 0f, 3f).low());
         assertTrue(MagazineGauge.of(1, 8, 48, 12, 0f, 4f).low());
         assertFalse(MagazineGauge.of(1, 1, 4, 0, 1f, 3f).low());
+    }
+
+    @Test
+    void aRackTooLongForTheRowFoldsIntoSalvosAndAPartSalvoReadsPart() {
+        MagazineGauge rack = MagazineGauge.of(Ordnance.MISSILE, 1, 10, 60, 37, 0f, 0f);
+        assertEquals(MagazineGauge.Kind.MISSILE, rack.kind());
+        assertEquals(10, rack.fold());
+        assertEquals(6, rack.icons());
+        assertEquals("live", rack.iconState(2));
+        assertEquals("part", rack.iconState(3));
+        assertEquals("spent", rack.iconState(4));
+        assertTrue(rack.fits());
+        assertFalse(MagazineGauge.of(Ordnance.MISSILE, 1, 5, 15, 10, 0f, 0f).folded(), "a short rack stays missile by missile");
+    }
+
+    @Test
+    void aLongBeltFoldsWholeBurstsPerIconUntilItFits() {
+        MagazineGauge belt = MagazineGauge.of(Ordnance.BALLISTIC, 1, 5, 200, 131, 0f, 0f);
+        assertEquals(0, belt.fold() % 5);
+        assertTrue(belt.fits());
+        assertEquals((200 + belt.fold() - 1) / belt.fold(), belt.icons());
     }
 }

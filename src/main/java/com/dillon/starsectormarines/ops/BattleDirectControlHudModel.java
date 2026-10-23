@@ -3,7 +3,10 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
 import com.dillon.starsectormarines.battle.control.MarineSprint;
 import com.dillon.starsectormarines.battle.mech.MechFlux;
+import com.dillon.starsectormarines.battle.ui.panel.AmmoStrip;
+import com.dillon.starsectormarines.battle.ui.panel.ChargeGauge;
 import com.dillon.starsectormarines.battle.ui.panel.MagazineGauge;
+import com.dillon.starsectormarines.battle.ui.panel.Ordnance;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.BattleDirectControlStatus.Carrier;
 import com.dillon.starsectormarines.ops.BattleDirectControlStatus.Tone;
@@ -16,7 +19,6 @@ import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
@@ -257,42 +259,60 @@ final class BattleDirectControlHudModel {
         String key = mech ? String.valueOf(weapon.number() + 1) : "";
         String name = weapon.name() + (tag.isEmpty() ? "" : " · " + tag);
         String id = "direct-hud-weapon-" + weapon.slotKey();
-        MagazineGauge gauge = gauge(weapon);
-        return new WeaponRow(id, classes + (gauge != null ? " weapon-magazine" : ""),
-                rowStyle(highlighted, enabled ? 1f : .6f) + (gauge != null ? " height: 74px;" : ""),
+        AmmoStrip strip = strip(weapon);
+        // A folded strip is read to the burst, so its exact count stays beside it.
+        boolean counted = strip instanceof MagazineGauge gauge && !gauge.folded()
+                || strip != null && weapon.ammo().unlimited();
+        return new WeaponRow(id, classes + (strip != null ? " weapon-magazine" : ""),
+                rowStyle(highlighted, enabled ? 1f : .6f) + (strip != null ? " height: 74px;" : ""),
                 !enabled || !mech, key,
                 key.isEmpty() ? "key key-none" : "key", name, behavior(weapon.behavior()),
-                gauge != null ? "" : ammo(weapon.ammo()), state, stateClasses, width(weapon.cycleFraction()),
-                () -> select.accept(weapon.number()), roundBlocks(id, gauge),
-                gauge != null ? "weapon-rounds" : "weapon-rounds weapon-rounds-none");
+                counted ? "" : ammo(weapon.ammo()), state, stateClasses, width(weapon.cycleFraction()),
+                () -> select.accept(weapon.number()), roundBlocks(id, strip),
+                strip != null ? "weapon-rounds" : "weapon-rounds weapon-rounds-none");
     }
 
-    /** A magazine-fed primary's rounds, or null for a weapon that counts nothing or counts packs. */
-    private static MagazineGauge gauge(WeaponStatus weapon) {
-        if (weapon.behavior().trigger() == null
-                || weapon.ammo().unit() != BattleDirectControlStatus.AmmoUnit.ROUNDS) return null;
-        return MagazineGauge.of(weapon.behavior().projectilesPerShot(), weapon.behavior().projectilesPerTrigger(),
-                weapon.ammo().capacity(), weapon.ammo().remaining(),
-                weapon.reloading() ? weapon.cooldownSeconds() : 0f, weapon.cycleDurationSeconds());
+    /**
+     * The load drawn under a row: an energy weapon's charge cells, or a counted load round by round
+     * (a Marine's magazine, a mech's racks in salvos, a vehicle's belt). Null for a weapon with nothing
+     * to count, and for a load too long to draw even folded, which keeps its number.
+     */
+    static AmmoStrip strip(WeaponStatus weapon) {
+        var behavior = weapon.behavior();
+        var ammo = weapon.ammo();
+        if (behavior.ordnance() == Ordnance.ENERGY) {
+            return ChargeGauge.of(behavior.projectilesPerTrigger(), weapon.burstRemaining(),
+                    weapon.cycleFraction(), weapon.fluxBlocked());
+        }
+        if (ammo.unit() == BattleDirectControlStatus.AmmoUnit.UNTRACKED || ammo.unlimited()
+                || ammo.capacity() <= 0) return null;
+        MagazineGauge gauge;
+        if (ammo.unit() == BattleDirectControlStatus.AmmoUnit.TRIGGER_PACKS) {
+            int perPack = Math.max(1, behavior.projectilesPerTrigger());
+            gauge = MagazineGauge.of(behavior.ordnance(), behavior.projectilesPerShot(), perPack,
+                    ammo.capacity() * perPack, ammo.remaining() * perPack, 0f, 0f);
+        } else {
+            gauge = MagazineGauge.of(behavior.ordnance(), behavior.projectilesPerShot(),
+                    behavior.projectilesPerTrigger(), ammo.capacity(), ammo.remaining(),
+                    weapon.reloading() ? weapon.cooldownSeconds() : 0f, weapon.cycleDurationSeconds());
+        }
+        return gauge.fits() ? gauge : null;
     }
 
-    /** The strip under the bar: one block per burst for a belt, otherwise one block of every round. */
-    private static List<RoundBlock> roundBlocks(String rowId, MagazineGauge gauge) {
-        if (gauge == null) return List.of();
-        String kind = gauge.kind().name().toLowerCase(Locale.ROOT);
+    /** The strip under the bar, in its groups: bursts or salvos, otherwise one block of everything. */
+    private static List<RoundBlock> roundBlocks(String rowId, AmmoStrip strip) {
+        if (strip == null) return List.of();
+        String kind = strip.iconKind();
         List<RoundBlock> blocks = new ArrayList<>();
         List<RoundIcon> current = new ArrayList<>();
-        for (int i = 0; i < gauge.capacity(); i++) {
-            String state = gauge.round(i).name().toLowerCase(Locale.ROOT);
+        for (int i = 0; i < strip.icons(); i++) {
             current.add(new RoundIcon(rowId + "-round-" + i, "round round-" + kind,
-                    "graphics/ui/direct-control/round-" + kind + "-" + state + ".svg"));
-            if (gauge.groupEnd(i) || i == gauge.capacity() - 1) {
+                    "graphics/ui/direct-control/round-" + kind + "-" + strip.iconState(i) + ".svg"));
+            if (strip.iconGroupEnd(i) || i == strip.icons() - 1) {
                 // This layout sizes a row to its own width rather than its children's, so a block is told it.
-                int roundWidth = switch (gauge.kind()) { case RIFLE -> 10; case SHELL -> 11; case LINK -> 3; };
-                int gap = gauge.kind() == MagazineGauge.Kind.LINK ? 1 : 4;
-                int width = current.size() * roundWidth + (current.size() - 1) * gap;
+                int width = current.size() * strip.iconWidth() + (current.size() - 1) * strip.iconGap();
                 blocks.add(new RoundBlock(rowId + "-block-" + blocks.size(), "round-block round-block-" + kind,
-                        "width: " + width + "px;", current));
+                        "width: " + width + "px; gap: " + strip.iconGap() + "px;", current));
                 current = new ArrayList<>();
             }
         }
