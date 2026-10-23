@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, deployed APC, friendly Warship, and drone Tende
 
 Written: 2026-09-23
 
-Updated: 2026-10-23 — held racks chain salvos and the strip lights them; earlier: the ground aim reticle side ticks, landing spread blooming the tick, no scatter ring.
+Updated: 2026-10-23 — the reticle ticks lie across the line of fire; held racks chain salvos and the strip lights them; landing spread blooms the tick, no scatter ring.
 
 Direct control lets the player temporarily inhabit one of their ground units, or a
 friendly capital hovering over the battle, in
@@ -172,9 +172,13 @@ an arcing rack flies over walls and draws no lane.
 On a ground body the crosshair is an **aim reticle** that answers, per mouse
 button, what a click would do now: one **mark** per button, read from that
 button's current pick, as a short tick either side of a neutral centre dot on
-the aim point, the left tick for the left button and the right tick for the
-right (owner, 2026-10-23; side ticks chosen over split brackets and concentric
-rings). A button with nothing on it draws no mark. **White** fires well,
+the aim point (owner, 2026-10-23; side ticks chosen over split brackets and
+concentric rings). The ticks lie across the **line of fire**, from the body (a
+vehicle's turret ring) to the cursor, so they never run along the aim lane: the
+left button's tick is on the body's own left of that line and the right
+button's on its right, as a gunsight turns with its gun. Aiming down the screen
+therefore puts the left button's tick on the screen's right; the player reads
+left and right relative to the body (owner, 2026-10-23). A button with nothing on it draws no mark. **White** fires well,
 inside optimal range; **yellow** fires with accuracy falling off, between
 optimal and maximum range; **red** fires but is wasted, past maximum range;
 **grey** will not fire: too close (inside a manual minimum), out of the mount's

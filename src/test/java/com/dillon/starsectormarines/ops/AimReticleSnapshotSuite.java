@@ -81,8 +81,17 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
     private static final int HEIGHT = 1080;
     private static final float CELLS_ACROSS = 80f;
 
-    /** A cursor {@code cells} from the controlled body, along its facing. */
-    private record Aim(String name, float cells) { }
+    /**
+     * A cursor {@code cells} from the controlled body, along {@code facing} (degrees, the sim's convention: 0 is up
+     * the screen) or, when that is null, along the body's own facing.
+     */
+    private record Aim(String name, float cells, Float facing) {
+        Aim(String name, float cells) { this(name, cells, null); }
+    }
+
+    /** The reticle turns with the line of fire: right, up, and down-left, where the body's left is the screen's right. */
+    private static final List<Aim> BEARING_AIMS = List.of(
+            new Aim("aim-east", 22f, -90f), new Aim("aim-north", 22f, 0f), new Aim("aim-south-west", 22f, 135f));
 
     private static final List<Aim> MECH_AIMS = List.of(
             new Aim("falling-off", 22f), new Aim("too-close", 5f), new Aim("past-range", 34f));
@@ -99,12 +108,12 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
             var bulwark = new MechDeploymentSpec(MechVariant.BULWARK, MechRole.BALANCED,
                     MissileReplenisherComponent.STANDARD, MechWeaponComponent.CHAINGUN,
                     MechWeaponComponent.LRM_5, MechWeaponComponent.LRM_5);
-            var world = SceneBuilder.openGround(120, 68).missionCompletion(false)
+            var world = SceneBuilder.openGround(120, 90).missionCompletion(false)
                     .squad("infantry").size(6).primary("weapon.field-rifle").special("special.smoke-grenade", 6, 2).inFile(30, 22, 1, 0).done()
                     .squad("lance").size(1).mech(bulwark).inFile(40, 40, 3, 0).done()
-                    .unit("enemy", Faction.DEFENDER, UnitType.MARINE, 116, 65).build();
+                    .unit("enemy", Faction.DEFENDER, UnitType.MARINE, 116, 87).build();
             try (BattleSimulation sim = world.sim()) {
-                for (int y = 0; y < 68; y++) for (int x = 0; x < 120; x++) {
+                for (int y = 0; y < 90; y++) for (int x = 0; x < 120; x++) {
                     sim.getTopology().setGroundKind(x, y, y >= 36 && y <= 44 ? GroundKind.STREET : GroundKind.DIRT);
                 }
                 long carrier = sim.convoy().spawn(VehicleType.LRM_CARRIER, Faction.MARINE,
@@ -121,6 +130,11 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
                         frames.add(frame(context, sim, selection, mech, aim, look,
                                 String.format(Locale.ROOT, "%02d-%s-bulwark-%s", index++, slug(look), aim.name())));
                     }
+                }
+                for (Aim aim : BEARING_AIMS) {
+                    frames.add(frame(context, sim, selection, mech, aim, DirectControlReticle.LIVE,
+                            String.format(Locale.ROOT, "%02d-%s-bulwark-%s", index++, slug(DirectControlReticle.LIVE),
+                                    aim.name())));
                 }
                 sim.directControl().exit();
                 // Only the APC takes manual control today, so the carrier's frames are uncontrolled: the reticle is drawn
@@ -152,8 +166,13 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
                 ? GroundVehicleTurretSystem.mountPoint(sim.convoy().vehicleType(id), sim.convoy().body(id)) : null;
         float x = vehicle ? mountPoint.x() : sim.world().renderX(id);
         float y = vehicle ? mountPoint.y() : sim.world().renderY(id);
+        if (aim.facing() != null && sim.world().hasMechLoadout(id)) {
+            // Hips and torso turned onto the bearing, as they are once the pilot has turned there.
+            sim.getEntityWorld().setFloat(id, sim.getRoster().components().MECH_LOCOMOTION,
+                    BattleComponents.MECH_LOCOMOTION_FACING_DEGREES, aim.facing());
+        }
         // Along the body's own facing, so a mech's torso is aligned without a turn.
-        double bearing = Math.toRadians(facing(sim, id) + 90.0);
+        double bearing = Math.toRadians((aim.facing() != null ? aim.facing() : facing(sim, id)) + 90.0);
         float aimX = x + (float) Math.cos(bearing) * aim.cells();
         float aimY = y + (float) Math.sin(bearing) * aim.cells();
         if (!vehicle) sim.directControl().submit(new ManualIntent(0f, 0f, aimX, aimY, false, false, false));
@@ -206,7 +225,8 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
             }
             float cellPx = camera.cellPxSize();
             draw(graphics, DirectControlReticle.strokes(look, marks, spread.leftCells() * cellPx,
-                    spread.rightCells() * cellPx, sx, sy, DirectControlPanel.controlledColor()), 1f);
+                    spread.rightCells() * cellPx, sx, sy, sx - camera.cellToScreenX(x), sy - camera.cellToScreenY(y),
+                    DirectControlPanel.controlledColor()), 1f);
             caption(graphics, look, aim, marks);
             inset(graphics, image, sx, HEIGHT - sy);
             graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
@@ -227,7 +247,8 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
     /** The review label: where the cursor is, and what each button's mark reads. */
     private static void caption(Graphics2D graphics, DirectControlReticle.SpreadLook look, Aim aim,
                                 DirectControlFireMarks.Marks marks) {
-        String text = String.format(Locale.ROOT, "%s   cursor %.0f cells   LMB %s   RMB %s", look.name(), aim.cells(),
+        String text = String.format(Locale.ROOT, "%s   %s   cursor %.0f cells   LMB %s   RMB %s", look.name(),
+                aim.name(), aim.cells(),
                 label(marks.left()), label(marks.right()));
         graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
         graphics.setColor(new Color(0, 0, 0, 170));
