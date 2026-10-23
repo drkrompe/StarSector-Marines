@@ -284,3 +284,5 @@ com.dillon.starsectormarines.battle.turret.RaisedGunSceneSnapshotSuite
 com.dillon.starsectormarines.ops.AimReticleSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.VehicleScuffsSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechScuffsSnapshotSuite
+com.dillon.starsectormarines.battle.vehicle.VehicleDamageSmokeSnapshotSuite
+com.dillon.starsectormarines.battle.mech.MechFluxHazeSnapshotSuite

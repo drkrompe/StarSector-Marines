@@ -56,6 +56,17 @@ public final class MechFlux {
         if (flux <= scaled(40f)) aiDissipating = false;
     }
 
+    /**
+     * Holds the reservoir at {@code value}, venting or not, with dissipation off so it stays there: for staging a
+     * look at a hot mech, never for play.
+     */
+    void stage(float value, boolean venting) {
+        this.dissipation = 0f;
+        this.flux = Math.max(0f, Math.min(capacity, value));
+        this.venting = venting;
+        this.aiDissipating = venting || flux >= scaled(WARNING);
+    }
+
     /** A stock-100 threshold expressed as the same fraction of this reservoir. */
     private float scaled(float stockThreshold) {
         return capacity == CAPACITY ? stockThreshold : stockThreshold * capacity / CAPACITY;
