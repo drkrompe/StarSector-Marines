@@ -65,7 +65,8 @@ public final class RidgePlanner {
 
     /**
      * @param free     cells a ridge, its faces and its apron may cover
-     * @param closable whether closing these face cells keeps the host's ground connected
+     * @param closable whether closing these face cells keeps the host's ground connected; asked
+     *                 last for each segment, so a layout it allows is the one kept
      * @return the ridges' plan, or {@code null} when no segment fits
      */
     public static ElevationPlan plan(int width, int height, long seed, List<Band> bands, IntPredicate free,
@@ -89,10 +90,12 @@ public final class RidgePlanner {
                     continue;
                 }
                 boolean[] next = PlateauPlanner.footprint(layout);
-                if (!PlateauPlanner.fits(next, footprint, width, height, free) || !closable.allows(layout)) continue;
+                if (!PlateauPlanner.fits(next, footprint, width, height, free)) continue;
                 Ramp ramp = nextRamps.get(nextRamps.size() - 1);
                 int footX = (int) Math.round(ramp.foot().x()), footY = (int) Math.round(ramp.foot().y());
                 if (!free.test(footY * width + footX)) continue;
+                // Asked last, so a closable that allows a layout knows it is the one kept.
+                if (!closable.allows(layout)) continue;
                 plateaus = nextPlateaus;
                 ramps = nextRamps;
                 footprint = next;
@@ -101,6 +104,30 @@ public final class RidgePlanner {
         return plateaus.isEmpty() ? null
                 : new ElevationPlan(width, height, PlateauPlanner.FACE_WIDTH, PlateauPlanner.SOUTH_FACE, .6, seed,
                 plateaus, ramps);
+    }
+
+    /**
+     * The ground these bands need held open before the places grow: every cell
+     * a segment's plateau, faces or apron could cover, plus {@code margin}
+     * cells either side for the reservations the landscape pass keeps round
+     * whatever was built beside it. Held ground left open is what lets a band
+     * fit among built places (`elevation-nouns.md`, Held ground).
+     */
+    public static boolean[][] heldGround(List<Band> bands, int width, int height, int margin) {
+        boolean[][] held = new boolean[width][height];
+        int apron = PlateauPlanner.FACE_WIDTH + PlateauPlanner.SOUTH_FACE + 1;
+        for (Band band : bands) {
+            int reach = (int) Math.ceil(band.thickness() / 2.0) + apron + margin;
+            for (Sample s : samples(band)) {
+                int cx = (int) Math.round(s.x()), cy = (int) Math.round(s.y());
+                for (int x = Math.max(0, cx - reach); x <= Math.min(width - 1, cx + reach); x++) {
+                    for (int y = Math.max(0, cy - reach); y <= Math.min(height - 1, cy + reach); y++) {
+                        if ((x - cx) * (x - cx) + (y - cy) * (y - cy) <= reach * reach) held[x][y] = true;
+                    }
+                }
+            }
+        }
+        return held;
     }
 
     /** One step along a band's path: where it is and the unit normal to its left. */

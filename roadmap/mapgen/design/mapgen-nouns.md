@@ -884,8 +884,12 @@ brook is unwalkable, see-through water that creep does not climb, so it is a
 natural firebreak and a creep line broken only at its fords and wherever a road
 or street crosses it. A landscape may also name **ridges**, bands of high
 ground raised as hill segments with passes wherever the plan's own ground
-crosses them (`elevation-nouns.md`, Ridges). The heart's country is the first plan to state one
-(`heart-nouns.md`).
+crosses them (`elevation-nouns.md`, Ridges). A ridge that must stand among
+built places is **held**: its ground is kept clear before the places grow, by
+the same mask that keeps a mission's fort sites open
+(`FortReservations.keepClear`), and published as `BspKeys.HELD_GROUND`
+(`elevation-nouns.md`, Held ground). The heart's country is the first plan to
+state one (`heart-nouns.md`).
 
 Open countryside can gain small cliff-backed hills where their entire visible
 footprint fits, using the same terrain brush as authored hills. A map with an
