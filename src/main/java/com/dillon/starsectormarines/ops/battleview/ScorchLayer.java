@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.render2d.ShaderProgram;
 import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import org.lwjgl.BufferUtils;
 
+import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -203,7 +204,10 @@ final class ScorchLayer implements RenderSystem, ScorchShading.Field {
         if (FireFuel.CREEP.in(mask) || FireFuel.DEAD_CREEP.in(mask)) return ScorchShading.CREEP;
         // A burnt room's boards char as burnt ground does; a burnt-through wall is rubble.
         if (FireFuel.CROWN.in(mask) || FireFuel.FURNISHING.in(mask) || FireFuel.STRUCTURE.in(mask)) return ScorchShading.SOIL;
-        if (!grid.isWalkableAt(idx)) return ScorchShading.NONE;
+        // A cell that burnt under a fence or a prop chars as its own ground: the grass under a wire fence is kindling
+        // even though nobody can stand there, and the fence standing over it does not keep it green. A wall or
+        // fixture that never burnt takes no singe.
+        if (mask == 0 && !grid.isWalkableAt(idx)) return ScorchShading.NONE;
         CellTopology.GroundKind kind = topology == null ? null : topology.getGroundKind(x, y);
         if (kind == null) return ScorchShading.PAVED;
         return switch (kind) {
@@ -275,6 +279,7 @@ final class ScorchLayer implements RenderSystem, ScorchShading.Field {
             ByteBuffer noise = BufferUtils.createByteBuffer(CreepNoise.SIZE * CreepNoise.SIZE * 4);
             noise.put(CreepNoise.rgba()).flip();
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, CreepNoise.SIZE, CreepNoise.SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, noise);
+            Reference.reachabilityFence(noise);   // LWJGL 2 keeps only the address
         }
         if (fieldTexture == 0) {
             fieldTexture = glGenTextures();

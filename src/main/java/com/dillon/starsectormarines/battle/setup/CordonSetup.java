@@ -43,6 +43,11 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
+import com.dillon.starsectormarines.battle.world.gen.pool.MapPatch;
+import com.dillon.starsectormarines.battle.world.gen.pool.StoryMap;
+import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPool;
+import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -84,24 +89,62 @@ public final class CordonSetup {
         return new TargetProfile(0, 0, 0, 0, "", Set.of(), SurfacePalette.VERDANT, SettlementLink.ROAD);
     }
 
-    /** The first map from {@code seed} that carries the whole Cordon. */
+    /** The story map a variant plays from ({@code story-map-pools.md}). */
+    public static StoryMap storyMap(CordonVariant variant) {
+        return variant == CordonVariant.LINE ? StoryMap.CORDON_LINE : StoryMap.CORDON_ROAD;
+    }
+
+    /**
+     * The map for {@code seed}: its pooled map, patch and all, when the
+     * variant's pool holds it, else the first map from it that carries the
+     * whole Cordon. The second is how a candidate is tried before it is pooled;
+     * the campaign reaches only the first ({@link #pooled}).
+     */
     public static CordonMap map(CordonVariant variant, long seed, TargetProfile profile) {
+        StoryMapPool.Entry entry = StoryMapPools.installed() ? StoryMapPools.pool(storyMap(variant)).entry(seed) : null;
+        if (entry != null) return map(variant, entry, profile);
         profile = country(profile);
         List<String> failures = new ArrayList<>();
         for (int attempt = 0; attempt < ATTEMPTS; attempt++) {
             long battleSeed = seed + attempt * 0x9E3779B97F4A7C15L;
-            PrecinctPlan plan = CordonPlan.planFor(variant, WIDTH, HEIGHT, battleSeed);
-            MapResult map = MAP_GEN.generate(WIDTH, HEIGHT, battleSeed, null, profile, plan);
-            String missing = missing(variant, map, plan);
-            if (missing == null) {
-                List<int[]> corridor = variant == CordonVariant.ROAD
-                        ? CordonCorridor.find(map.grid, map.topology, plan) : null;
-                return new CordonMap(map, plan, battleSeed, corridor);
-            }
-            failures.add("attempt " + attempt + ": " + missing);
+            Generated generated = generate(variant, battleSeed, MapPatch.NONE, profile);
+            if (generated.missing() == null) return generated.cordon();
+            failures.add("attempt " + attempt + ": " + generated.missing());
         }
         throw new IllegalStateException("no Cordon map from seed " + seed + " in " + ATTEMPTS
                 + " attempts: " + String.join("; ", failures));
+    }
+
+    /** The pooled map a campaign battle plays for a roll its event carries. */
+    public static CordonMap pooled(CordonVariant variant, long roll, TargetProfile profile) {
+        return map(variant, StoryMapPools.pool(storyMap(variant)).pick(roll), profile);
+    }
+
+    /**
+     * A pooled map: generated from its seed with its places pinned, never
+     * re-rolled, and carrying its ruin to battle assembly. A pooled seed that no
+     * longer carries the whole Cordon is a broken pool, not a map to roll past.
+     */
+    public static CordonMap map(CordonVariant variant, StoryMapPool.Entry entry, TargetProfile profile) {
+        Generated generated = generate(variant, entry.seed(), entry.patch(), country(profile));
+        if (generated.missing() != null) {
+            throw new IllegalStateException(storyMap(variant).id + " seed " + entry.seed()
+                    + " does not carry the Cordon: " + generated.missing());
+        }
+        CordonMap cordon = generated.cordon();
+        return new CordonMap(entry.patch().ruined(cordon.map(), entry.seed()), cordon.plan(), cordon.battleSeed(),
+                cordon.corridor());
+    }
+
+    private record Generated(CordonMap cordon, String missing) { }
+
+    private static Generated generate(CordonVariant variant, long battleSeed, MapPatch patch, TargetProfile profile) {
+        PrecinctPlan plan = patch.pinned(CordonPlan.planFor(variant, WIDTH, HEIGHT, battleSeed));
+        MapResult map = MAP_GEN.generate(WIDTH, HEIGHT, battleSeed, null, profile, plan);
+        String missing = missing(variant, map, plan);
+        if (missing != null) return new Generated(null, missing);
+        List<int[]> corridor = variant == CordonVariant.ROAD ? CordonCorridor.find(map.grid, map.topology, plan) : null;
+        return new Generated(new CordonMap(map, plan, battleSeed, corridor), null);
     }
 
     /** What this map lacks, or {@code null} when it carries the whole Cordon. */
@@ -127,7 +170,11 @@ public final class CordonSetup {
                     return "the town's compound has no wall";
                 }
             }
-            if (CordonCorridor.find(map.grid, map.topology, plan) == null) return "no drivable way from the rear edge to the compound";
+            List<int[]> corridor = CordonCorridor.find(map.grid, map.topology, plan);
+            if (corridor == null) return "no drivable way from the rear edge to the compound";
+            if (!CordonCorridor.truckReaches(map.grid, corridor)) {
+                return "an edge wall cuts a truck's way from the rear edge to the compound";
+            }
         }
         return null;
     }

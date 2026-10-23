@@ -92,6 +92,12 @@ import com.dillon.starsectormarines.ops.battleview.OrdnanceFxRuntime;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceTraceFxService;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
 import com.dillon.starsectormarines.ops.battleview.TextureLoadQueue;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.appearance.MechLivery;
+import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.ops.battleview.BattleTextureSet;
+import com.dillon.starsectormarines.render2d.texture.TextureLease;
+import com.dillon.starsectormarines.render2d.texture.TextureLedger;
 import com.dillon.starsectormarines.ops.battleview.GroundParallaxPipeline;
 import com.dillon.starsectormarines.ops.battleview.SunLight;
 import com.dillon.starsectormarines.ops.battleview.ShotFx;
@@ -289,10 +295,16 @@ public class BattleScreen implements Screen, BattleUiContext {
     private float loadingShownSeconds;
     /** The simulation whose textures the last attach loaded, to tell a fresh battle from a re-attach. */
     private BattleSimulation loadedSimulation;
-    /** Owns all loaded sprite sheets, frame data, and ensure/load methods. */
-    private final BattleSprites sprites = new BattleSprites();
+    /**
+     * The textures this battle loaded ({@code battle-textures.md}): opened when a battle attaches,
+     * released when it detaches, at which point {@link #sprites} and {@link #renderer} are dead
+     * and the next attach makes new ones. Null while no battle holds any.
+     */
+    private TextureLease battleLease;
+    /** Owns all loaded sprite sheets, frame data, and ensure/load methods; one per battle lease. */
+    private BattleSprites sprites = new BattleSprites();
     /** World-layer render pipeline — owns tile batches, FX systems, and all render/draw methods. */
-    private final BattleRenderer renderer = new BattleRenderer(sprites);
+    private BattleRenderer renderer = new BattleRenderer(sprites);
     /** Weapon and impact cues for rounds an aircraft delivers onto the ground. */
     private final OrdnanceAudio ordnanceAudio = new OrdnanceAudio();
     private final HeldFireLoops heldFireLoops = new HeldFireLoops();
@@ -388,6 +400,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         boolean freshBattle = loadedSimulation != nextSimulation;
         loadedSimulation = nextSimulation;
+        if (freshBattle || battleLease == null) openBattleTextures();
         this.position = position;
         this.ctx = ctx;
         configureMechLiveries();
@@ -422,20 +435,36 @@ public class BattleScreen implements Screen, BattleUiContext {
             sprites.ensureDoodadSheet();
             sprites.ensureDecalSheet();
         }));
-        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingSprites"), () -> {
+        // Only what this battle places, spawns and can bring in; a step per family, livery and
+        // vehicle line, so no one step holds the GL thread long enough to stop the spinner.
+        BattleSimulation sim = ctx != null ? ctx.getBattleSimulation() : null;
+        BattleTextureSet set = sim != null ? BattleTextureSet.of(sim) : null;
+        String loadingSprites = Strings.get("battleLoadingSprites");
+        steps.add(new TextureLoadQueue.Step(loadingSprites, () -> {
             sprites.ensureUnitSheets();
-            sprites.ensureLayeredUnitSprites();
+            sprites.ensureInfantryShared();
         }));
-        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingSprites"), sprites::ensureLayeredMechSprites));
-        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingSprites"), sprites::ensureTurretSprites));
-        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingSprites"), sprites::ensureMarineSecondarySprites));
-        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingSprites"), () -> {
+        for (LayeredArmorFamily family : set != null ? set.families() : EnumSet.allOf(LayeredArmorFamily.class)) {
+            steps.add(new TextureLoadQueue.Step(loadingSprites, () -> sprites.ensureLayeredFamily(family)));
+        }
+        if (set == null || set.ravRigs()) steps.add(new TextureLoadQueue.Step(loadingSprites, sprites::ensureRavRigs));
+        Set<MechLivery> liveries = set != null ? sprites.liveriesWornBy(set.mechSides()) : EnumSet.allOf(MechLivery.class);
+        steps.add(new TextureLoadQueue.Step(loadingSprites, () -> sprites.ensureLayeredMechSprites(Set.of())));
+        for (MechLivery livery : liveries) {
+            steps.add(new TextureLoadQueue.Step(loadingSprites, () -> sprites.ensureMechLivery(livery)));
+        }
+        steps.add(new TextureLoadQueue.Step(loadingSprites, sprites::ensureTurretSprites));
+        steps.add(new TextureLoadQueue.Step(loadingSprites, sprites::ensureMarineSecondarySprites));
+        steps.add(new TextureLoadQueue.Step(loadingSprites, () -> {
             sprites.ensureAirframeSprites();
             sprites.ensureDroneSprite();
             sprites.ensureDroneHubSprite();
             sprites.ensureEngineFxSprites();
         }));
-        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingSprites"), sprites::ensureConvoySprites));
+        steps.add(new TextureLoadQueue.Step(loadingSprites, () -> sprites.ensureConvoySprites(Set.of())));
+        for (VehicleType type : set != null ? set.vehicles() : EnumSet.allOf(VehicleType.class)) {
+            steps.add(new TextureLoadQueue.Step(loadingSprites, () -> sprites.loadConvoySprite(type)));
+        }
         steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingEffects"), sprites::ensureObjectiveIcons));
         steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingAtlases"), () -> {
             renderer.buildTileBatches();
@@ -454,6 +483,41 @@ public class BattleScreen implements Screen, BattleUiContext {
                 mission != null ? mission.targetPlanetName : null);
     }
 
+    /**
+     * A new lease, and a sprite set and renderer that load under it. Whatever a previous battle
+     * still held is released first, so two battles' textures are never resident together.
+     */
+    private void openBattleTextures() {
+        releaseBattleTextures();
+        battleLease = TextureLedger.shared().lease("battle");
+        sprites = new BattleSprites(battleLease);
+        renderer = new BattleRenderer(sprites);
+        if (DevConfig.DEV_MODE) {
+            LOG.info("battle textures: " + megabytes(TextureLedger.shared().residentBytes())
+                    + " MB of mod textures resident before the battle loads");
+        }
+    }
+
+    /**
+     * Gives the battle's textures back. The ledger unloads, and deletes on the card, every one no
+     * other screen holds; the sprites that referred to them go with the sprite set.
+     */
+    private void releaseBattleTextures() {
+        if (battleLease == null) return;
+        TextureLedger.Release release = battleLease.release();
+        battleLease = null;
+        if (DevConfig.DEV_MODE) {
+            LOG.info("battle textures: released " + release.unloaded() + " textures, "
+                    + megabytes(release.bytesFreed()) + " MB freed (" + release.kept()
+                    + " kept, still held by other screens or the game's own); "
+                    + megabytes(TextureLedger.shared().residentBytes()) + " MB of mod textures resident after");
+        }
+    }
+
+    private static long megabytes(long bytes) {
+        return Math.round(bytes / (1024.0 * 1024.0));
+    }
+
     /** Whether the battle is still behind its loading screen. */
     private boolean loading() {
         return loadQueue != null && (!loadQueue.done() || loadingShownSeconds < LOADING_MINIMUM_SECONDS);
@@ -461,7 +525,13 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     /** Runs a frame's worth of the load queue and keeps the loading screen current. */
     private void advanceLoading(float realDt) {
+        boolean wasDone = loadQueue.done();
         loadQueue.advance(LOADING_FRAME_BUDGET_NANOS);
+        if (!wasDone && loadQueue.done() && DevConfig.DEV_MODE && battleLease != null) {
+            LOG.info("battle textures: loaded; the battle holds " + megabytes(battleLease.bytesHeld())
+                    + " MB, " + megabytes(TextureLedger.shared().residentBytes())
+                    + " MB of mod textures resident in all");
+        }
         loadingShownSeconds += realDt;
         loadingOverlay.update(realDt, loadQueue);
     }
@@ -825,6 +895,10 @@ public class BattleScreen implements Screen, BattleUiContext {
         renderer.getUnitAtlas().dispose();
         // And this battle's props, which were cut from this battle's placements.
         renderer.disposeDecorationAtlas();
+        // And every texture the battle loaded that no other screen holds. A re-attach opens a
+        // new lease and loads again behind the loading screen.
+        releaseBattleTextures();
+        loadQueue = null;
         renderer.getGroundLights().clear();
         if (retainedOverlay != null) retainedOverlay.detach();
         if (retainedSquadOverlay != null) retainedSquadOverlay.detach();

@@ -101,9 +101,21 @@ public final class ModTextures {
         return entry == null ? logicalHeight : entry.shippedHeight();
     }
 
-    /** {@code SettingsAPI.loadTexture} of the file that ships for {@code path}. */
+    /**
+     * Loads the file that ships for {@code path} and keeps it for the rest of the session: the
+     * {@linkplain TextureLedger#session() session lease}, for screens that do not manage their
+     * textures ({@code battle-textures.md}).
+     */
     public static void loadTexture(String path) throws IOException {
-        Global.getSettings().loadTexture(file(path));
+        loadTexture(path, TextureLedger.shared().session());
+    }
+
+    /**
+     * Loads the file that ships for {@code path} under {@code lease}, through the ledger, so the
+     * texture is unloaded once no lease holds it. Every mod texture load goes through here.
+     */
+    public static void loadTexture(String path, TextureLease lease) throws IOException {
+        lease.acquire(file(path));
     }
 
     /**

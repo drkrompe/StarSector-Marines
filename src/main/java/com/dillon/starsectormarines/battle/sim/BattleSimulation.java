@@ -1537,8 +1537,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.separation = new SeparationSystem(rosterService, unitIndex, grid);
         separation.spareHeld(swarmHarvest::isCarried);
         this.vehicleRepulsion = new VehicleRepulsionSystem(rosterService, unitIndex, grid);
-        this.squadTraffic = Boolean.getBoolean(SquadTrafficSystem.PROPERTY)
-                ? new SquadTrafficSystem(grid, rosterService) : null;
+        this.squadTraffic = new SquadTrafficSystem(grid, rosterService);
         this.mechCollisionEscape = new com.dillon.starsectormarines.battle.mech.MechCollisionEscapeSystem(
                 entityWorld, battleComponents);
         this.hitResponse = new HitResponseSystem(
@@ -3402,12 +3401,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         navigation.prepareSquadRoutes(routeRequests, simTickIndex);
         tickInnerProfile.record(TickInnerProfile.Bucket.GOAP_ROUTE_PREPARATION,
                 System.nanoTime() - goapStageStart);
-        if (squadTraffic != null) {
-            goapStageStart = System.nanoTime();
-            squadTraffic.prepare(this, directControl.activeUnitId(), TICK_DT);
-            tickInnerProfile.record(TickInnerProfile.Bucket.SQUAD_TRAFFIC_PREPARE,
-                    System.nanoTime() - goapStageStart);
-        }
+        goapStageStart = System.nanoTime();
+        squadTraffic.prepare(this, directControl.activeUnitId(), TICK_DT);
+        tickInnerProfile.record(TickInnerProfile.Bucket.SQUAD_TRAFFIC_PREPARE,
+                System.nanoTime() - goapStageStart);
         tickProfile.lap(TickProfile.Phase.GOAP_REPLAN);
         if (asyncDefendTrackRoutes != null) {
             asyncDefendTrackRoutes.beginTick(simTickIndex);
@@ -4048,7 +4045,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     @Override
     public void advanceSquadTravel(long member, Squad squad, int goalX, int goalY) {
-        if (squadTraffic == null || !squadTraffic.advance(member, squad, goalX, goalY, TICK_DT)) {
+        if (!squadTraffic.advance(member, squad, goalX, goalY, TICK_DT)) {
             advanceMovement(member);
         }
     }

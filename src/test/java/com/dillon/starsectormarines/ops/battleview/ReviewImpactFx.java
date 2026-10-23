@@ -56,6 +56,8 @@ public final class ReviewImpactFx {
     private final ContrailFxService contrails = new ContrailFxService();
     private final ProjectileTrailFxService trails = new ProjectileTrailFxService();
     private final BeamFxService beams = new BeamFxService();
+    /** Muzzle, impact, blast and fire lights, fed as the screen feeds its renderer's; only a GL frame draws them. */
+    private final GroundLightService lights = new GroundLightService();
     private OrdnanceTraceFxService traces;
     private final DrawList overlay = new DrawList();
     private final Path modRoot;
@@ -99,38 +101,52 @@ public final class ReviewImpactFx {
         beams.advance(dt);
         for (ShotEvent shot : sim.getShotsThisFrame()) {
             beams.spawn(shot);
+            lights.spawnMuzzle(shot);
             WeaponFxRuntime.spawnMuzzle(fx, shot);
             // A line tracer lands its impact the instant it fires; a travelling body lands it when it expires.
             if (ShotFx.of(shot).travels() || !shot.impacts()) continue;
             WeaponFxRuntime.spawnImpactAndAftermath(fx, shot, isWallAt(grid, shot.toX, shot.toY));
+            lights.spawnImpact(WeaponFxRuntime.definition(shot), shot.toX, shot.visualToY());
         }
         for (ShotEvent shot : sim.getShotsExpiredThisFrame()) {
             if (!ShotFx.of(shot).travels() || !shot.impacts()) continue;
             WeaponFxRuntime.spawnImpactAndAftermath(fx, shot, isWallAt(grid, shot.toX, shot.toY));
+            lights.spawnImpact(WeaponFxRuntime.definition(shot), shot.toX, shot.visualToY());
         }
         for (float[] point : sim.getShots().getInterceptPointsThisFrame()) {
             fx.spawnHeavyImpact(point[0], point[1], BattleScreen.INTERCEPT_BURST_CELLS);
+            lights.spawnImpact(null, point[0], point[1]);
         }
         for (float[] impact : sim.getHeavyImpactsThisFrame()) {
-            fx.spawnHeavyImpact(impact[0], impact[1], impact[2],
-                    impact.length >= 6 ? new Color(impact[3], impact[4], impact[5]) : null);
+            Color tint = impact.length >= 6 ? new Color(impact[3], impact[4], impact[5]) : null;
+            fx.spawnHeavyImpact(impact[0], impact[1], impact[2], tint);
+            lights.spawnHeavyImpact(impact[0], impact[1], impact[2], tint);
         }
-        for (var blast : sim.getRollingBlastsThisFrame()) fx.spawnRollingBlast(blast);
+        for (var blast : sim.getRollingBlastsThisFrame()) {
+            fx.spawnRollingBlast(blast);
+            lights.spawnHeavyImpact(blast.x(), blast.y(), blast.radius(), null);
+        }
         for (float[] puff : sim.getSmokePuffsThisFrame()) fx.spawnAmbientSmoke(puff[0], puff[1], puff[2]);
         for (float[] dust : sim.getGroundDustThisFrame()) {
             fx.spawnGroundDust(dust[0], dust[1], dust[2], dust[3], dust[4], (int) dust[5]);
         }
-        for (float[] burst : sim.getFireBurstsThisFrame()) fx.spawnAmbientFire(burst[0], burst[1], burst[2]);
+        for (float[] burst : sim.getFireBurstsThisFrame()) {
+            fx.spawnAmbientFire(burst[0], burst[1], burst[2]);
+            lights.spawnFire(burst[0], burst[1], burst[2]);
+        }
         for (OrdnanceRelease release : sim.getOrdnanceReleasesThisFrame()) {
             traces().spawn(release);
-            OrdnanceFxRuntime.spawnRelease(fx, null, release);
+            OrdnanceFxRuntime.spawnRelease(fx, lights, release);
         }
         if (traces != null) {
             traces.advance(dt);
-            for (OrdnanceRelease arrival : traces.arrivalsThisFrame()) OrdnanceFxRuntime.spawnArrival(fx, null, arrival);
+            for (OrdnanceRelease arrival : traces.arrivalsThisFrame()) OrdnanceFxRuntime.spawnArrival(fx, lights, arrival);
         }
         trails.tick(sim.getActiveShots(), fx);
         fx.advance(dt);
+        lights.advance(dt);
+        lights.syncBoltLights(sim.getActiveShots());
+        lights.syncFireLights(sim.fireFieldIfPresent());
         contrails.tick(sim.getActiveShots(), dt);
     }
 
@@ -152,6 +168,11 @@ public final class ReviewImpactFx {
         int cx = (int) Math.floor(x);
         int cy = (int) Math.floor(y);
         return grid.inBounds(cx, cy) && !grid.isWalkable(cx, cy);
+    }
+
+    /** The event lights this feed has been keeping, for a drain whose ground composite draws them. */
+    GroundLightService lights() {
+        return lights;
     }
 
     /**

@@ -80,8 +80,9 @@ public final class BarracksScreen implements Screen {
             viewModel.refresh();
         }
         if (context.takeOfficerInductionRequest()) viewModel.command().resumeGuide();
+        // A prepared company's next step is a contract, so it goes to the board rather than back to HQ.
         viewModel.command().onPreparationComplete(() -> context.goTo(
-                context.getSelectedMission() != null ? ScreenId.BRIEFING : ScreenId.COMPANY_HQ));
+                context.getSelectedMission() != null ? ScreenId.BRIEFING : ScreenId.MISSION_SELECT));
         viewModel.command().returnToBriefing(context.getSelectedMission() != null);
         viewModel.command().navigation(
                 context::openSquadEquipmentFromBarracks,
