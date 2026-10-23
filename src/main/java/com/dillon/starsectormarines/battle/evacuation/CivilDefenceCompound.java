@@ -56,6 +56,8 @@ public final class CivilDefenceCompound {
     private static final int LEAK = 6;
     /** How far outside the hall its doorstep is looked for: through the building it stands in, to open ground. */
     private static final int DOORSTEP_REACH = 12;
+    /** Cells along the wall from a gate's edge a gun tower's centre may stand: beside it, or past what abuts it. */
+    private static final int TOWER_REACH = 4;
     private static final String LIGHT_CIRCUIT = "civil-defence";
 
     enum Kind { WALL, SLIT, GUN }
@@ -200,7 +202,7 @@ public final class CivilDefenceCompound {
         for (int y = t; y <= b; y++) {
             for (int x = l; x <= r; x++) {
                 if (wall.contains(key(x, y)) || !grid.isWalkable(x, y)) continue;
-                if (spans(wall, grid, x, y, 1, 0) || spans(wall, grid, x, y, 0, 1)) gate.add(key(x, y));
+                if (spans(wall, grid, topology, x, y, 1, 0) || spans(wall, grid, topology, x, y, 0, 1)) gate.add(key(x, y));
             }
         }
         // Inside: what the shelter door reaches without crossing the wall or a gate.
@@ -230,6 +232,9 @@ public final class CivilDefenceCompound {
                 && topology.getBuildingId(x, y) == 0 && !topology.isFixture(x, y) && !topology.isWall(x, y)
                 && !dressed.contains(key(x, y)) && !gate.contains(key(x, y));
 
+        // A building against the inside of the wall: its walls and floor, not its doors, and not a gate.
+        Open standing = (x, y) -> grid.inBounds(x, y) && !grid.isDoorway(x, y) && !gate.contains(key(x, y))
+                && (topology.getBuildingId(x, y) != 0 || wallAt(topology, x, y));
         Map<Long, Kind> cells = new LinkedHashMap<>();
         Set<Long> keepOpen = new HashSet<>();
         List<int[]> guns = new ArrayList<>();
@@ -248,9 +253,16 @@ public final class CivilDefenceCompound {
             for (int[] cell : crossing) {
                 for (int depth = -3; depth <= 3; depth++) keepOpen.add(key(cell[0] + in[0] * depth, cell[1] + in[1] * depth));
             }
-            gunTower(crossing, in, wall, inside, open, cells, guns, lamps);
+            gunTower(crossing, in, wall, inside, open, standing, cells, guns, lamps);
         }
         if (main == null) return null;
+        // A compound with fewer gates than it keeps, or a gate with a building against one flank,
+        // still mounts its guns: a second tower on a gate's other flank, the gatehouse a single way in has.
+        for (List<int[]> crossing : gates) {
+            if (guns.size() >= GATES) break;
+            int[] in = inward(crossing.get(0), inside);
+            if (in != null) gunTower(crossing, in, wall, inside, open, standing, cells, guns, lamps);
+        }
 
         // A squat tower on each outer corner of the wall, the one furthest out each way.
         for (int[] diagonal : new int[][]{{-1, -1}, {1, -1}, {-1, 1}, {1, 1}}) {
@@ -336,13 +348,27 @@ public final class CivilDefenceCompound {
                 List.copyOf(posts), plan.gateX(), plan.gateY());
     }
 
-    /** A gun tower on one flank of a gate: its gun on the line of the wall behind slits, a floodlight inside the other flank. */
+    /**
+     * A gun tower on one flank of a gate: its gun on the line of the wall behind slits, a floodlight
+     * inside the other flank. Beside the gate where it can be, else a step or two further along the
+     * wall, past a building that stands against it; none when neither flank has room within
+     * {@link #TOWER_REACH}. A flank already holding a tower has none to spare, so a second call puts
+     * the gate's second tower on its other flank.
+     */
     private static void gunTower(List<int[]> crossing, int[] in, Set<Long> wall, Set<Long> inside, Open open,
-                                 Map<Long, Kind> cells, List<int[]> guns, List<NightLighting.Lamp> lamps) {
+                                 Open standing, Map<Long, Kind> cells, List<int[]> guns,
+                                 List<NightLighting.Lamp> lamps) {
         int ax = in[1] != 0 ? 1 : 0, ay = in[0] != 0 ? 1 : 0;
         int[] first = crossing.get(0), last = crossing.get(crossing.size() - 1);
-        int[][] flanks = {{first[0] - ax * 2, first[1] - ay * 2}, {last[0] + ax * 2, last[1] + ay * 2}};
-        for (int f = 0; f < flanks.length; f++) {
+        int[][] flanks = new int[2 * (TOWER_REACH - 1)][];
+        for (int d = 2, f = 0; d <= TOWER_REACH; d++) {
+            flanks[f++] = new int[]{first[0] - ax * d, first[1] - ay * d};
+            flanks[f++] = new int[]{last[0] + ax * d, last[1] + ay * d};
+        }
+        // Free ground inside the wall first; then past a building standing against it, which keeps its walls.
+        for (int pass = 0; pass < 2 * flanks.length; pass++) {
+            int f = pass % flanks.length;
+            boolean against = pass >= flanks.length;
             int gx = flanks[f][0], gy = flanks[f][1];
             if (!wall.contains(key(gx, gy))) continue;
             // The line of the wall and the row inside it must be free; the row outside is built
@@ -352,7 +378,9 @@ public final class CivilDefenceCompound {
                 for (int dx = -1; dx <= 1 && fits; dx++) {
                     if (dx * in[0] + dy * in[1] < 0) continue;
                     long k = key(gx + dx, gy + dy);
-                    fits = !cells.containsKey(k) && (wall.contains(k) || open.at(gx + dx, gy + dy));
+                    boolean line = dx * in[0] + dy * in[1] == 0;
+                    fits = !cells.containsKey(k) && (wall.contains(k) || open.at(gx + dx, gy + dy)
+                            || against && !line && standing.at(gx + dx, gy + dy));
                 }
             }
             if (!fits) continue;
@@ -360,14 +388,16 @@ public final class CivilDefenceCompound {
                 for (int dx = -1; dx <= 1; dx++) {
                     long k = key(gx + dx, gy + dy);
                     boolean outer = dx * in[0] + dy * in[1] < 0;
-                    if (outer && (cells.containsKey(k) || !(wall.contains(k) || open.at(gx + dx, gy + dy)))) continue;
+                    boolean inner = dx * in[0] + dy * in[1] > 0;
+                    if ((outer || inner) && (cells.containsKey(k) || !(wall.contains(k) || open.at(gx + dx, gy + dy)))) continue;
                     cells.put(k, dx == 0 && dy == 0 ? Kind.GUN : Kind.SLIT);
                 }
             }
             guns.add(new int[]{gx, gy});
-            int[] other = flanks[1 - f];
+            int[] other = flanks[(f & 1) ^ 1];
             int lx = other[0] + in[0] * 2, ly = other[1] + in[1] * 2;
-            if (open.at(lx, ly) && inside.contains(key(lx, ly))) {
+            boolean lit = lamps.stream().anyMatch(l -> (int) l.x() == lx && (int) l.y() == ly);
+            if (!lit && open.at(lx, ly) && inside.contains(key(lx, ly))) {
                 lamps.add(floodlight(lx, ly, -in[0], -in[1]));
             }
             return;
@@ -441,21 +471,41 @@ public final class CivilDefenceCompound {
         topology.setNightLighting(new NightLighting(night == null ? 0f : night.darkness(), lamps, powered));
     }
 
-    /** Whether an open cell lies across a gap in the wall along one axis, the gap no wider than a gate. */
-    private static boolean spans(Set<Long> wall, NavigationGrid grid, int x, int y, int dx, int dy) {
+    /**
+     * Whether an open cell lies across a gap in the wall along one axis, the gap no wider than a gate.
+     * Each side of the gap is the wall, or a building standing on the line of the wall whose own wall
+     * runs on along it to the wall: a building packed against the outline closes the gate's side.
+     */
+    private static boolean spans(Set<Long> wall, NavigationGrid grid, CellTopology topology, int x, int y,
+                                 int dx, int dy) {
         if (wall.contains(key(x + dy, y + dx)) || wall.contains(key(x - dy, y - dx))) return false;
         int width = 1;
         int a = 1;
-        while (!wall.contains(key(x - dx * a, y - dy * a))) {
-            if (!grid.inBounds(x - dx * a, y - dy * a) || !grid.isWalkable(x - dx * a, y - dy * a) || ++width > MAX_GATE) return false;
+        while (grid.inBounds(x - dx * a, y - dy * a) && grid.isWalkable(x - dx * a, y - dy * a)) {
+            if (++width > MAX_GATE) return false;
             a++;
         }
         int b = 1;
-        while (!wall.contains(key(x + dx * b, y + dy * b))) {
-            if (!grid.inBounds(x + dx * b, y + dy * b) || !grid.isWalkable(x + dx * b, y + dy * b) || ++width > MAX_GATE) return false;
+        while (grid.inBounds(x + dx * b, y + dy * b) && grid.isWalkable(x + dx * b, y + dy * b)) {
+            if (++width > MAX_GATE) return false;
             b++;
         }
-        return true;
+        return closes(wall, topology, x - dx * a, y - dy * a, -dx, -dy)
+                && closes(wall, topology, x + dx * b, y + dy * b, dx, dy);
+    }
+
+    /**
+     * Whether {@code (x, y)} is the wall, or standing wall from it runs along {@code (dx, dy)} into
+     * the wall where the wall runs on the same way: a building on the line of the wall, not one
+     * standing beside the wall along it.
+     */
+    private static boolean closes(Set<Long> wall, CellTopology topology, int x, int y, int dx, int dy) {
+        for (int k = 0; k <= MAX_GATE; k++) {
+            int cx = x + dx * k, cy = y + dy * k;
+            if (wall.contains(key(cx, cy))) return k == 0 || wall.contains(key(cx + dx, cy + dy));
+            if (!wallAt(topology, cx, cy)) return false;
+        }
+        return false;
     }
 
     /** Gate cells grouped into crossings that touch the inside, each in order along the wall. */
