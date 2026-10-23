@@ -67,11 +67,12 @@ class SceneFx:
     only the rounds and strikes it can see are built (swfx_guns.fire_weapon's `only`)."""
 
     def __init__(self, scene, placed, build_of, muzzle_world, frame, log=print, span=None, cur=None,
-                 matrix_at=None):
+                 matrix_at=None, cam_at=None):
         self.scene, self.placed, self.build_of, self.muzzle_world = scene, placed, build_of, muzzle_world
         self.now, self.fps = frame, scene.render.fps / scene.render.fps_base
         self.span, self.cur = span, cur
         self.matrix_at = matrix_at      # (key, scene frame) -> that ship's world matrix then, metres
+        self.cam_at = cam_at            # scene frame -> (camera world location, horizontal fov rad)
         self.log = log
         self.m = _mods()
         self.rows = []
@@ -428,6 +429,7 @@ class SceneFx:
     # held in the space the ship had at that instant. A mover then flies its line from the muzzle
     # (the ship's motion at the fire instant is in that line: it was aimed at where the target
     # would be); a laid trail stays laid. Impacts belong to the target and ride her.
+    INHERIT = re.compile(r'flare|puff|casing')
     PROJECTILE = re.compile(r' (round|bolt|tracer|missile|motor|glare|contrail|flare|canister|puff|casing)\b')
 
     @contextlib.contextmanager
@@ -455,15 +457,22 @@ class SceneFx:
             if f0 is None:
                 continue
             base = copy_at(f0)
+            if self.INHERIT.search(ob.name):
+                # thrown, not aimed (a flare, a puff, a casing): it keeps the ship's velocity at the
+                # instant it left her (owner, 2026-10-23: flares "stay in relation to the hound")
+                v = (self.matrix_at(a, f0 + 1).translation - self.matrix_at(a, f0 - 1).translation) / 2
+                delta = lambda k, base=base, v=v, f0=f0: copy_at(k).inverted() @ Matrix.Translation(v * (k - f0)) @ base
+            else:
+                delta = lambda k, base=base: copy_at(k).inverted() @ base
             fcs = [swfx_core.find_fcurve(ob, 'location', i) for i in range(3)]
             if all(fc is not None and len(fc.keyframe_points) for fc in fcs):
-                swfx_guns.world_rounds([ob], lambda k, base=base: copy_at(k).inverted() @ base)
+                swfx_guns.world_rounds([ob], delta)
             else:            # laid in place (a contrail, a bolt strike): held there every frame it may show
                 m0 = ob.matrix_basis.copy()
                 frames = list(range(f0, max(f0, hi) + 2))
                 locs, rots, prev = [], [], ob.rotation_euler.copy()
                 for k in frames:
-                    m = copy_at(k).inverted() @ base @ m0
+                    m = delta(k) @ m0
                     locs.append(m.translation)
                     e = m.to_3x3().normalized().to_euler('XYZ', prev)
                     rots.append(e)
@@ -476,12 +485,22 @@ class SceneFx:
             n += 1
         if n:
             self.rows.append(f'world space: {n} of the projectiles {a} made held in the world from their fire frame')
+        if self.cam_at is not None and hasattr(swfx_guns, 'screen_clamp'):
+            # every round 1-3 px across on screen whatever the camera's distance (owner, 2026-10-23)
+            k = swfx_guns.screen_clamp(objs, self.cam_at, to_world=copy_at)
+            self.rows.append(f'screen clamp: {k} round frames held to the streak width band')
         return n
 
     @staticmethod
     def _birth(ob, core):
-        """The frame an object came into the world: its first shown frame, else its first key,
-        else the f<frame> in its name."""
+        """The frame an object left the ship: the f<frame> the kit names it by (its fire or launch
+        frame), else its first shown frame, else its first key. The name comes first: a missile's
+        contrail shows only from ignition, its body from the launch before it, and holding each
+        from its own first shown frame put the trail tens of metres off the missile (owner,
+        2026-10-23, S6: "disconnected from its gas trail")."""
+        m = re.search(r' f(-?\d{3,})\b', ob.name)
+        if m:
+            return int(m.group(1))
         vis = core.find_fcurve(ob, 'hide_render')
         shown = [kp.co.x for kp in vis.keyframe_points if kp.co.y < .5] if vis is not None else []
         if shown:
@@ -489,8 +508,7 @@ class SceneFx:
         fc = core.find_fcurve(ob, 'location', 0)
         if fc is not None and len(fc.keyframe_points):
             return int(round(min(kp.co.x for kp in fc.keyframe_points)))
-        m = re.search(r' f(-?\d{3,})\b', ob.name)
-        return int(m.group(1)) if m else None
+        return None
 
     def projectile_check(self):
         """Fail the build if a projectile still rides its ship: every top-level kit object named as

@@ -77,7 +77,7 @@ import random
 import re
 
 import bpy
-from mathutils import Matrix, Vector
+from mathutils import Matrix, Quaternion, Vector
 
 import swfx_core
 import swfx_hull
@@ -1641,19 +1641,30 @@ def world_rounds(objs, delta_at):
         fcs = [swfx_core.find_fcurve(ob, 'location', i) for i in range(3)]
         if all(fc is not None and len(fc.keyframe_points) for fc in fcs):
             frames = [kp.co.x for kp in fcs[0].keyframe_points]
+            quat = ob.rotation_mode == 'QUATERNION'      # a missile body turns along its flight
+            qcs = [swfx_core.find_fcurve(ob, 'rotation_quaternion', i) for i in range(4)] if quat else []
             r0 = ob.rotation_euler.to_matrix()
-            locs, rots, prev = [], [], ob.rotation_euler.copy()
+            locs, rots, prev = [], [], (None if quat else ob.rotation_euler.copy())
             for f in frames:
                 d = delta_at(int(round(f)))
                 locs.append(d @ Vector([fc.evaluate(f) for fc in fcs]))
-                e = (d.to_3x3().normalized() @ r0).to_euler('XYZ', prev)
-                rots.append(e)
-                prev = e
+                if quat:
+                    q0 = (Quaternion([qc.evaluate(f) for qc in qcs]) if all(qcs)
+                          else ob.rotation_quaternion.copy())
+                    q = d.to_3x3().normalized().to_quaternion() @ q0
+                    if prev is not None and q.dot(prev) < 0:
+                        q.negate()
+                    rots.append(q)
+                    prev = q
+                else:
+                    e = (d.to_3x3().normalized() @ r0).to_euler('XYZ', prev)
+                    rots.append(e)
+                    prev = e
             for i in range(3):
                 _bake(ob, 'location', i, frames, [v[i] for v in locs])
             if ob.type != 'LIGHT':
-                for i in range(3):
-                    _bake(ob, 'rotation_euler', i, frames, [e[i] for e in rots])
+                for i in range(4 if quat else 3):
+                    _bake(ob, 'rotation_quaternion' if quat else 'rotation_euler', i, frames, [r[i] for r in rots])
             continue
         vis = swfx_core.find_fcurve(ob, 'hide_render')
         shown = [kp.co.x for kp in vis.keyframe_points if kp.co.y < .5] if vis is not None else []
