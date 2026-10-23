@@ -778,7 +778,10 @@ def _film_material(ctx, s, R, Rm, flat=(0.0, 2)):
         c = g.add(.5, g.mul(g.op('COSINE', g.mul(g.add(g.mul(h, BANDS), off), 2 * math.pi)), .5))
         links.new(c, bands.inputs[i])
     band_w = g.mul(g.mul(g.mul(thin, h), 4.0 * BAND_PEAK), g.mul(flux, v('band', 'shield_band', ('shield_band',))))
-    band_s = g.mul(g.mul(g.mul(g.mul(band_w, solid), film), cover), env)
+    # Banding is a grazing look (a soap film's colours show toward its edge): weighted like the rim,
+    # so a worn film seen edge-on does not fill with colour like a plate (S9b, 2026-10-23).
+    graze = g.mul(g.pow(g.clamp01(lw.outputs['Facing']), 2.0), g.sub(1.0, g.mul(side, 1.0 - FLAT_RIM)))
+    band_s = g.mul(g.mul(g.mul(g.mul(g.mul(band_w, solid), film), cover), env), graze)
     on = v('shield on', '(shield_t > 0.001) * 1.0', ('shield_t',))
     shade = g.mul(g.mul(g.clamp01(g.mul(g.mul(hit_s, cover), film)), on),
                   g.add(HIT_SHADE, g.mul(fort, HIT_SHADE_FORTRESS - HIT_SHADE)))
