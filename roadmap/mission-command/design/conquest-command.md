@@ -48,10 +48,6 @@ compounds to take on the way (see `precincts.md`).
 
 ## The chain is the front; the track is the fence
 
-**On by default: `battle.conquest.laneChain=false` puts the fraction back.**
-The switch is kept as the control a balance run needs, not as a hedge. The
-numbers are at the end of the section.
-
 **A lane's state is ownership along its chain.** A lane is its ordered places
 from the beachhead to the keep — the recorded links of `MapResult.lanes`, each
 holding the compounds the packer stamped on its claimed ground. The lane's
@@ -93,14 +89,15 @@ neighbour support, cohesion and the capture allocation's home-track bound are
 all still track questions and are unchanged. What a track stopped being is the
 measure of progress.
 
-**One switch governs both sides**, or a run measures a half-changed battle:
-with the chain off the attacker uses the forward fraction and the axis
-derivation, and the defender's reinforcement layer buckets by front band. The
-chain is map geometry and compound ownership — neutral referee facts either
-side may read — so a shared switch is not shared belief.
+**Both sides read the same chain**: the attacker to decide what to take next,
+the defender's reinforcement layer to decide what to hold and retake. The chain
+is map geometry and compound ownership — neutral referee facts either side may
+read — so reading it on both sides is not shared belief. A map with no lanes
+leaves the attacker on the forward fraction and the axis derivation and the
+defender bucketing by front band.
 
-**What it measures, and why it is on.** The canonical matrix, both ways from
-one tree at 18,000 ticks:
+**Why the chain and not the fraction.** The canonical matrix, both readings
+from one tree at 18,000 ticks:
 
 | fixture | reading | captures | held | marine losses | defender losses | retargets |
 |---|---|---:|---:|---:|---:|---:|
@@ -112,8 +109,7 @@ one tree at 18,000 ticks:
 Held compounds is the outcome a Conquest is decided on, and the chain ties the
 fraction on `reinforced-south` and gives one back on `full-strength-west` while
 taking more on both — two more captures on the south for thirty-eight fewer
-marines lost, five more on the west for forty-two more. That is what turned it
-on.
+marines lost, five more on the west for forty-two more.
 
 **The bar did not move; the map did.** Read against the maps this project had a
 day earlier, the same code cost `reinforced-south` a held compound of seventeen
@@ -280,7 +276,7 @@ fall-through fix removed the squad that produced them: a squad under
 hold-and-prosecute with no firing cell inside its leash used to freeze for as
 long as the contact stayed visible, and a frozen squad is exactly the
 uncommitted, work-free squad the distant fill reaches for. The first measurement
-of this switch was taken before that fix and read the opposite — 6 captures and
+of the bound was taken before that fix and read the opposite — 6 captures and
 2 held against 12 and 11 — which is an artifact of the freeze rather than a
 trade, and should not be re-derived.
 
@@ -289,9 +285,10 @@ assignment reason, because a far-track refusal and an empty map are otherwise
 the same sentence.
 
 **The force is divided across tracks first, then across a strip's zones, and
-then spaced on the way.** All three are on by default, each with a switch that
-restores the control: `battle.command.conquest.balancedHomeTracks=false`,
-`battle.conquest.zoneTargetCap=false` and `battle.squad.transitSpacing=false`.
+then spaced on the way.** All three are on by default; the first and last
+have a switch that restores the control:
+`battle.command.conquest.balancedHomeTracks=false` and
+`battle.squad.transitSpacing=false`.
 
 A squad's home track used to be the one it stood in when first seen, and the
 whole force lands in one place. On `full-strength-west` the three tracks held 0,

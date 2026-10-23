@@ -186,9 +186,8 @@ public final class CommandTraceAnalyzer {
      * same track. The lane and the rung say which place, and a report about a
      * battle measured in places held has to be able to name them.
      *
-     * <p>Empty for a mission with no lanes, and under the lane-chain control,
-     * where there are no places to key to and the track share is the whole of
-     * the answer.
+     * <p>Empty for a mission with no lanes, where there are no places to key
+     * to and the track share is the whole of the answer.
      */
     public record LaneChainMetrics(List<LaneProgress> lanes,
                                    List<PlaceWork> places) {

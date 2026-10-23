@@ -3716,12 +3716,10 @@ public final class BattleSetup {
      * <p>Built from the same recorded routes the marine commander is handed and
      * the same compound records the capture rule runs on, so the two sides
      * agree about what stands where without sharing anything either of them
-     * believes. Empty under the lane-chain control, so a control run restores
-     * the band-only defender exactly as it restores the attacker's fraction.
+     * believes.
      */
     private static ConquestLaneChain conquestLaneChain(BattleSimulation sim,
                                                        MapResult map) {
-        if (!ConquestCommand.laneChainEnabled()) return ConquestLaneChain.NONE;
         CompoundService compounds = sim.getCompoundService();
         if (compounds == null || map.lanes.isEmpty()) return ConquestLaneChain.NONE;
         List<ConquestLaneChain.Compound> places = new ArrayList<>();
