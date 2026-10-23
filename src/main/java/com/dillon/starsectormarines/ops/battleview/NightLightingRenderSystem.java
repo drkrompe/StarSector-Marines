@@ -30,13 +30,6 @@ final class NightLightingRenderSystem implements RenderSystem {
     private float[] firePools;
     /** The most fire lights one frame fills: a whole-map view of a country alight keeps its brightest. */
     static final int MAX_FILLED = 160;
-    /**
-     * Control-run switch: {@code -Dbattle.render.nightRuns=false} draws every unlit cell as its own samples,
-     * as before, instead of one quad per run of them. The two draw the same pixels.
-     */
-    static final boolean RUNS = Boolean.parseBoolean(System.getProperty("battle.render.nightRuns", "true"));
-    /** Control-run switch: {@code -Dbattle.render.nightCoarse=false} keeps two samples a cell edge below six pixels a cell. */
-    static final boolean COARSE = Boolean.parseBoolean(System.getProperty("battle.render.nightCoarse", "true"));
     private int[] filled = new int[MAX_FILLED * 4];
     private int filledCount;
     private int[] inView = new int[64];
@@ -64,7 +57,7 @@ final class NightLightingRenderSystem implements RenderSystem {
         int gridW = ground.getWidth();
         boolean[] shown = useFog ? fog.cellShownArray() : null;
         // The shade where no light reaches is one colour; a run of such cells is drawn as one quad.
-        float[] unlitColour = RUNS ? shadeColour(night, 0f, 0f, 0f, 0f, 0f, ctx.alphaMult) : null;
+        float[] unlitColour = shadeColour(night, 0f, 0f, 0f, 0f, 0f, ctx.alphaMult);
         for (int y = visible.minY(); y <= visible.maxY(); y++) {
             float rowY0 = Math.round(camera.cellToScreenY(y)), rowY1 = Math.round(camera.cellToScreenY(y + 1f));
             dimRun.start(dimMesh, rowY0, rowY1);
@@ -75,9 +68,9 @@ final class NightLightingRenderSystem implements RenderSystem {
                 boolean hidden = shown != null && !shown[cellIndex];
                 boolean lampDark = zero9(pools, (2 * y) * width + 2 * x);
                 boolean fireDark = !burning || zero9(firePools, (2 * y) * width + 2 * x);
-                boolean unlit = RUNS && lampDark && fireDark;
+                boolean unlit = lampDark && fireDark;
                 // Fog hides a lamp's light; a burn's is seen from anywhere (FireFogClearing).
-                boolean dimUniform = RUNS && (hidden || lampDark)
+                boolean dimUniform = (hidden || lampDark)
                         && (fireDark || hidden && !FireFogClearing.ENABLED), litUniform = unlit;
                 float cellX0 = Math.round(camera.cellToScreenX(x)), cellX1 = Math.round(camera.cellToScreenX(x + 1f));
                 if (dimUniform) dimRun.extend(cellX0, cellX1, unlitColour); else dimRun.flush();
@@ -150,12 +143,12 @@ final class NightLightingRenderSystem implements RenderSystem {
 
     /**
      * Shade samples per cell edge at this many pixels a cell. Zoomed out, a sample is a few pixels across
-     * and the pools change over cells, so fewer of them draw the same picture.
+     * and the pools change over cells, so fewer of them draw the same picture: one below six pixels a cell.
      */
     static int shadeSteps(float cellPx) {
         if (cellPx >= 24) return 8;
         if (cellPx >= 12) return 4;
-        return COARSE && cellPx < 6 ? 1 : 2;
+        return cellPx < 6 ? 1 : 2;
     }
 
     private boolean zero9(float[] values, int i) {
