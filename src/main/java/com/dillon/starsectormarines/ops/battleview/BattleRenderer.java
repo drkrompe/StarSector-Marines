@@ -567,23 +567,34 @@ public class BattleRenderer {
         }
     }
 
-    /** {@link BattleSprites#terrainSheetCount()} when the terrain batches were last brought up to date. */
-    private int terrainBatchesFor = -1;
+    /** Tracks {@link BattleSprites#terrainSheetCount()} so terrain batches are brought up to date only on growth. */
+    private final GrowthGate terrainGate = new GrowthGate();
+    /** Tracks the convoy sheet count; a vehicle line the texture set did not plan loads on first draw. */
+    private final GrowthGate convoyGate = new GrowthGate();
 
     /**
      * A batch for every catalog sheet loaded since attach — one a host loads on first ask
      * ({@link BattleSprites#extraTerrainSheet}) — so its quads draw rather than drop in the drain.
      */
     private void registerLateTerrainBatches() {
-        int count = sprites.terrainSheetCount();
-        if (count == terrainBatchesFor) return;
-        terrainBatchesFor = count;
+        if (!terrainGate.changed(sprites.terrainSheetCount())) return;
         for (SpriteAPI sheet : sprites.extraTerrainSheets()) {
             if (batchBySheet.containsKey(sheet)) continue;
             registerBatch(sheet, new QuadBatch(sheet,
                     Math.max(1, Math.round(sheet.getWidth())),
                     Math.max(1, Math.round(sheet.getHeight())), 4096));
         }
+    }
+
+    /**
+     * A batch for every convoy sheet loaded since attach (a vehicle line {@code BattleTextureSet} did not plan loads
+     * on first draw), and the scuff sheet worn plate draws from, so those quads draw rather than drop in the drain.
+     */
+    private void registerLateConvoyBatches() {
+        if (!convoyGate.changed(sprites.convoySprites().size())) return;
+        registerSpriteSheetBatches(sprites.convoySprites().values());
+        ShuttleSpriteCache scuffs = sprites.spriteByPath(VehicleScuffs.SHEET);
+        if (scuffs != null) registerHullBatches(List.of(scuffs));
     }
 
     private void registerBatch(SpriteAPI sheet, QuadBatch batch) {
@@ -1265,6 +1276,7 @@ public class BattleRenderer {
     void renderWorld(RenderContext rc, EnumSet<RenderLayer> layers, FrameCensus census, DrawList leading) {
         collectWorld(rc, layers, census);
         registerLateTerrainBatches();
+        registerLateConvoyBatches();
         boolean parallax = (rc.hostProfile.surfaceReliefEnabled() || GroundParallaxPipeline.deckWaterVisible(rc))
                 && DevConfig.SURFACE_RELIEF_PARALLAX
                 && layers.contains(RenderLayer.GROUND);
