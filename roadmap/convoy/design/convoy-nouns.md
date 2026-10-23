@@ -1082,6 +1082,10 @@ ROUGH beam texture: knots of energy ride down a continuous lance from the muzzle
 the lance swells and fades with the power delivered to it. The knots run on one
 presentation clock, so a stream of short overlapping pulses reads as one lance being
 fed: the PD laser's held red throbs, the burst laser's blue comes in bursts.
+It is heard the same way: a weapon that authors `audio.loopSound` holds the loop while pulses keep
+arriving, after its fire clip (if it names one) once as the lance starts. The PD laser holds the
+tactical laser's `laser_loop` with no intro, since a lance every second and a quarter would repeat the
+wind-up; the burst laser is heard one `burst_pd_fire` per shot.
 
 Acceptance is the `tank-versus-infantry` scene (each laser fires at men, and none of
 its rounds carries blast or wall damage) and the `tank-versus-air` scene (each laser

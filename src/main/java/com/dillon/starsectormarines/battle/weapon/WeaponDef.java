@@ -161,6 +161,12 @@ public final class WeaponDef {
     public final String fireSoundId;
     /** Optional impact sound for projectile or detonation presentation. */
     public final String impactSoundId;
+    /**
+     * Optional held loop for a sustained beam: the fire sound plays once as a
+     * lance starts and this loops while its pulses keep arriving
+     * ({@code HeldFireLoops}). Null for a weapon heard one clip per shot.
+     */
+    public final String loopSoundId;
 
     private WeaponDef(String id, MountClass mount, String displayName, String modelName,
                       String designation, boolean designationTiered,
@@ -184,7 +190,7 @@ public final class WeaponDef {
                       String projectileSpritePath, float projectileVisualCells,
                       ContrailProfile contrailProfile,
                       WeaponFxDef fx,
-                      String fireSoundId, String impactSoundId) {
+                      String fireSoundId, String impactSoundId, String loopSoundId) {
         this.id = id;
         this.mount = mount;
         this.displayName = displayName;
@@ -235,6 +241,7 @@ public final class WeaponDef {
         this.fx = fx;
         this.fireSoundId = fireSoundId;
         this.impactSoundId = impactSoundId;
+        this.loopSoundId = loopSoundId;
     }
 
     /** Catalog designation for one equipment tier — "PLS-2", or "FR-1" for an untiered entry. */
@@ -370,7 +377,8 @@ public final class WeaponDef {
                         render != null ? render.optString("contrail", null) : null, id),
                 fx,
                 audio != null ? emptyToNull(audio.optString("fireSound", null)) : null,
-                audio != null ? emptyToNull(audio.optString("impactSound", null)) : null);
+                audio != null ? emptyToNull(audio.optString("impactSound", null)) : null,
+                audio != null ? emptyToNull(audio.optString("loopSound", null)) : null);
         if (render != null && render.has("beam") && !render.isNull("beam")
                 && def.projectileSpritePath != null) {
             throw new JSONException("Weapon '" + def.id
