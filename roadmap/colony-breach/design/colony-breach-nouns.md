@@ -1046,6 +1046,50 @@ not read in a soft shadow at play zoom.
   pair about the head, and are long enough that a reap reads past the crown
   (owner's pick over mounting them further out or turning them with the head).
   It dies with its back broken, in one of four poses of that death.
+- **Harrier** — the swarm's flier, a winged strain that hunts in **packs** of
+  six to twenty (`SwarmFliers`, `HarrierPack`). Prototype: no mission releases
+  it yet. It is the swarm's answer to a line it cannot walk through: the ground
+  swarm is channelled by ridges, passes, wire and redoubts, and a flier is not.
+  - **What it is to a gun.** A roster body in the low air, as a drone is (it is
+    shot, takes damage and dies by the ordinary laws), with two differences
+    from a drone: it is **engaged only by a weapon that can track it**
+    (`WeaponDef.tracksFliers`: small arms, machine guns, autocannon,
+    point-defence lasers and anti-air; a heavy cannon, a mortar, a rocket or a
+    grenade cannot, and its shooter never picks one), and **no ground blast
+    reaches it**; only an anti-air burst does. Unplated, 28 health: two rifle
+    hits or one flak hit.
+  - **What it hunts.** What the line is there to protect, over the line
+    itself: a gun or emplacement first, then a supply truck, then a medic,
+    then a marine standing alone, and a rifleman in a squad last; an armed
+    hull or a mech it only scratches. A target is worth less by every air gun
+    whose reach covers it, so anti-air protects a line without shooting
+    anything down (`HarrierTargeting`). It senses from the air, inside its
+    sense range, as every swarm body senses rather than knows.
+  - **How a pack fights.** A pack **loiters** on a ring out of its prey's
+    reach (past a rifle's, a machine gun's and a flak mount's), on its own side
+    of the prey. Once it has circled a while and gathered it **commits**: every
+    member dives on the one target, low and fast, each biting once as it
+    passes, then the pack **pulls up**, flying on and climbing, and loiters
+    again on the far side. That is the trade it offers the ground: a committed
+    pack is tight and low, so one anti-air burst catches several (a hit bursts
+    among the packmates round it); a pack that lost a third of itself on a dive
+    **splits** in two, and the halves come on separately and bleed the line
+    slowly. A pack escorting a Matriarch loiters over her with no prey in
+    reach, and scatters into fliers of one when she dies.
+  - **How it flies.** Its own steering, never the ground flow field, which is a
+    map of walls a flier is not in: seek a goal, push off packmates, turn at a
+    capped rate, move along the nose. Serial, in pack and slot order, with no
+    random draw, so a replay flies the same; a pack of twenty costs four
+    hundred distance checks a tick.
+  - **Where it comes from** (design, not built). A Matriarch's brood: a pack
+    rises from her as she emerges and flies as her escort. Wiring it into a
+    mission is open work (`stories.md`).
+  - **Look.** Three round-one looks are in game while the owner picks one
+    (`HarrierLook`): the Runner's lilac with bat wings grown from its spike
+    arms, a plum manta, and the Matriarch's charcoal brood with blade wings.
+    Glide, wingbeat and dive drawings, drawn over the roofs, larger the higher
+    it flies, with its own silhouette cast down-sun as its shadow, nearer under
+    it as it dives.
 
 **Growth stage.** How old a rav is: **whelp**, **adult** or **elder**. Every
 strain has the same three stages, so a stage is a property of one body, never
@@ -1675,6 +1719,11 @@ argument.
   is real.
 - **Strains by tier.** Which strains spawn is a function of the bore's tier and
   the director's budget, deterministic under the battle seed.
+- **A flier pack flies only over a map that can answer it.** A mission
+  releases a Harrier pack only where the marines or an ally have anti-air on
+  the map (an anti-air emplacement, or a hull with a mount that engages air;
+  `SwarmFliers.releaseUnderCover` refuses otherwise). A scene's control may
+  break this; a mission may not.
 - **Air cannot clear the map.** Every living bore has spore colonies round it
   until they are killed; they die with the bore.
 - **Posture is frozen, the gate is live.** The hive posture is set at launch;

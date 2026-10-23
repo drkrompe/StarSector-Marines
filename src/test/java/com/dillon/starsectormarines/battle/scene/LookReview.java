@@ -183,26 +183,43 @@ public final class LookReview {
      * @param ticks      ticks to play
      * @param everyTicks a frame is recorded every this many ticks
      * @param stills     how many stills of the busiest moments to keep per view
+     * @param stillFrames recorded-frame indices to keep as stills instead of the busiest moments; empty for those
      */
     public record Shot(String name, LookGround ground, int footprintW, int footprintH,
                        Function<Placement, BattleSimulation> stage, Function<Placement, List<View>> views,
-                       int ticks, int everyTicks, int stills) {
+                       int ticks, int everyTicks, int stills, int[] stillFrames) {
         public Shot {
             Objects.requireNonNull(name, "name");
             Objects.requireNonNull(ground, "ground");
             Objects.requireNonNull(stage, "stage");
             Objects.requireNonNull(views, "views");
             if (ticks <= 0 || everyTicks <= 0) throw new IllegalArgumentException("ticks and everyTicks must be positive");
+            stillFrames = stillFrames == null ? new int[0] : stillFrames.clone();
+        }
+
+        /** A shot whose stills are its busiest moments. */
+        public Shot(String name, LookGround ground, int footprintW, int footprintH,
+                    Function<Placement, BattleSimulation> stage, Function<Placement, List<View>> views,
+                    int ticks, int everyTicks, int stills) {
+            this(name, ground, footprintW, footprintH, stage, views, ticks, everyTicks, stills, null);
         }
 
         /** A shot on {@link LookGround#verdant()} ground, a frame every 6 ticks, four stills a view. */
         public static Shot of(String name, int footprintW, int footprintH, Function<Placement, BattleSimulation> stage,
                               Function<Placement, List<View>> views, int ticks) {
-            return new Shot(name, LookGround.verdant(), footprintW, footprintH, stage, views, ticks, 6, 4);
+            return new Shot(name, LookGround.verdant(), footprintW, footprintH, stage, views, ticks, 6, 4, null);
         }
 
         public Shot on(LookGround other) {
-            return new Shot(name, other, footprintW, footprintH, stage, views, ticks, everyTicks, stills);
+            return new Shot(name, other, footprintW, footprintH, stage, views, ticks, everyTicks, stills, stillFrames);
+        }
+
+        /**
+         * Keeps these recorded frames (a frame every {@code everyTicks}) as each view's stills, for a subject whose
+         * telling moment is not its busiest: a pack circling before it dives fires nothing.
+         */
+        public Shot withStills(int... frames) {
+            return new Shot(name, ground, footprintW, footprintH, stage, views, ticks, everyTicks, stills, frames);
         }
     }
 
@@ -247,7 +264,10 @@ public final class LookReview {
             List<SnapshotArtifact> artifacts = new ArrayList<>();
             StringBuilder stillsAt = new StringBuilder();
             for (int v = 0; v < views.size(); v++) {
-                int[] picked = busiest(activity.get(v), shot.stills(), gap);
+                int recorded = activity.get(v).size();
+                int[] picked = shot.stillFrames().length > 0
+                        ? Arrays.stream(shot.stillFrames()).filter(f -> f >= 0 && f < recorded).toArray()
+                        : busiest(activity.get(v), shot.stills(), gap);
                 stillsAt.append(' ').append(views.get(v).name()).append(Arrays.toString(picked));
                 String stem = "look/" + shot.name() + "-" + views.get(v).name();
                 artifacts.add(SnapshotArtifact.colorAnimation(stem + ".gif", frames.get(v), delay));

@@ -66,6 +66,7 @@ public class FacingSystemTest {
                     && t != UnitType.BASED_AIRCRAFT
                     && t != UnitType.RANGE_TARGET
                     && t != UnitType.DRONE
+                    && t != UnitType.SWARM_HARRIER
                     && t != UnitType.GROUND_VEHICLE;
             assertEquals(expectPosed, t.carriesSprite(), t.name());
         }

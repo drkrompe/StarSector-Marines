@@ -291,6 +291,7 @@ import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
 import com.dillon.starsectormarines.battle.evacuation.SwarmHarvest;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPackPlans;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPacks;
+import com.dillon.starsectormarines.battle.evacuation.flier.SwarmFliers;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
@@ -865,6 +866,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SwarmPacks swarmPacks = new SwarmPacks();
     /** Packs and their leaders (`colony-breach-nouns.md`, Pack, pack leader). */
     public SwarmPacks swarmPacks() { return swarmPacks; }
+    private final SwarmFliers swarmFliers = new SwarmFliers();
+    /** The swarm's flier packs (`colony-breach-nouns.md`, Harrier). */
+    public SwarmFliers swarmFliers() { return swarmFliers; }
     private final SwarmPackPlans swarmPackPlans;
     /** What each pack is doing as it moves (`colony-breach-nouns.md`, Pack movement). */
     public SwarmPackPlans swarmPackPlans() { return swarmPackPlans; }
@@ -3759,6 +3763,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             groundAntiAir.tick(this);
             airToAir.tick(this);
             airSystem.finishMissileContacts();
+        } else {
+            groundAntiAir.tickFliersOnly(this);
         }
         tickProfile.lap(TickProfile.Phase.AIR_SYSTEM);
         // Ground convoys ride the same ordering rule for the same reason —
@@ -3810,6 +3816,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         swarmReinforcements.tick(TICK_DT, this);
         // After the director, so a body released this tick is already in its pack.
         swarmPacks.tick(this);
+        swarmFliers.tick(this);
         boreCreep.sync(this);
         if (creep != null) creep.tick(simTickIndex);
         creepDigestion.tick(this);
