@@ -114,7 +114,7 @@ public final class CordonSequence implements Objective {
     public int eruptions() { return eruptions; }
     /** The Line's refugees, or {@code null}. */
     public CordonRefugees refugees() { return refugees; }
-    /** The Line's allied columns, or {@code null}. */
+    /** The allied columns walking in off the rear edge, or {@code null}. */
     public AlliedColumns columns() { return columns; }
 
     /** The allies' light armour behind the line, or {@code null}. */
@@ -141,7 +141,7 @@ public final class CordonSequence implements Objective {
         this.logistics = logistics;
     }
 
-    /** Gives the Line its people on the move and its columns; at setup, before the first tick. */
+    /** Gives the line its people on the move (the Line's; {@code null} on the Road) and its columns; at setup, before the first tick. */
     public void attach(CordonRefugees refugees, AlliedColumns columns) {
         this.refugees = refugees;
         this.columns = columns;
