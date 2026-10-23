@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.marine.OfficerCommandProfile;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
+import com.dillon.starsectormarines.testsupport.DiskRegistries;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -27,8 +28,8 @@ import java.util.Map;
 
 /**
  * A wounded squad on the march with a Field Medicine officer: <b>does the
- * medic patch people up without stopping the squad's fire or its order more
- * than the movement mode says it should?</b> ({@code squad-medic.md}).
+ * medic patch people up on the march, holding fire while treating, without
+ * stopping the squad?</b> ({@code squad-medic.md}).
  *
  * <p>Eight armored marines march east under a commander's attack move. Four
  * start hurt: one badly with their plate shot away, one moderately, one with
@@ -46,12 +47,12 @@ import java.util.Map;
  * where the same hit on somebody at six health costs six. Compare {@code deaths}
  * and the survivors' {@code squadHpEnd} instead.
  *
- * <p>Three loops on the same world. {@code planted} holds medic and patient
- * still for each treatment; {@code keep-moving} lets the patient carry on with
- * the medic at their side; {@code control} is the same squad under an officer
- * without the specialty. The control carries only the verdict that it really
- * had no medic: its numbers exist so the other two can be read against them,
- * above all the tick the squad reached its objective.
+ * <p>Two loops on the same world. {@code medic} is the shipped behaviour: the
+ * patient carries on with the squad and the medic walks at their side while
+ * treating; {@code control} is the same squad under an officer without the
+ * specialty. The control carries only the verdict that it really had no medic:
+ * its numbers exist so the medic loop can be read against them, above all the
+ * tick the squad reached its objective.
  *
  * <p>A patient walking out of reach mid-treatment is covered by
  * {@code SquadMedicSystemTest} rather than here: nothing in the shipped game
@@ -102,21 +103,19 @@ public final class SquadMedicScene implements BehaviorScene {
     @Override
     public String label() {
         return "Squad medic: does a Field Medicine squad patch up its wounded on the march,"
-                + " holding fire while treating, in planted and keep-moving modes?";
+                + " holding fire while treating and walking with the squad?";
     }
 
     @Override
     public List<SceneReport> play(FrameSink frames) {
         return List.of(
-                loop(frames, "planted", 1, false),
-                loop(frames, "keep-moving", 1, true),
-                loop(frames, "control", 0, false));
+                loop(frames, "medic", 1),
+                loop(frames, "control", 0));
     }
 
-    private SceneReport loop(FrameSink frames, String loopId, int rank, boolean keepMoving) {
+    private SceneReport loop(FrameSink frames, String loopId, int rank) {
         SceneWorld world = build(rank);
         BattleSimulation sim = world.sim();
-        sim.squadMedics().setKeepMoving(keepMoving);
         Squad squad = world.squad(MARINES);
         long[] members = world.members(MARINES);
         Instrument instrument = new Instrument(squad, members);
@@ -148,10 +147,11 @@ public final class SquadMedicScene implements BehaviorScene {
         if (medic == null) {
             return new SceneReport(id(), loopId, TICKS, verdicts, instrument.metrics(null));
         }
-        verdicts.add(Verdict.of("treated", medic.completed() >= 2,
+        verdicts.add(Verdict.of("treated", medic.started() >= 2,
                 medic.started() + " treatment(s) started, " + medic.completed()
-                        + " completed, " + medic.interrupted() + " interrupted (wanted at least 2"
-                        + " completed: two marines start below the health threshold)"));
+                        + " completed, " + medic.interrupted() + " interrupted, " + medic.exhausted()
+                        + " ran the pool dry (wanted at least 2 started: two marines start below"
+                        + " the health threshold)"));
         verdicts.add(Verdict.of("re-plated", medic.armorReplated() >= 1,
                 medic.armorReplated() + " broken plate(s) brought back (wanted at least 1)"));
         verdicts.add(Verdict.of("never-self", !instrument.medicHealed,
@@ -160,26 +160,27 @@ public final class SquadMedicScene implements BehaviorScene {
         verdicts.add(Verdict.of("held-fire", instrument.shotsWhileTreating == 0,
                 instrument.shotsWhileTreating + " round(s) fired by the medic while treating, against "
                         + instrument.medicShots + " over the whole loop (wanted 0 while treating)"));
-        verdicts.add(Verdict.of("within-supplies",
-                medic.started() <= SquadMedicine.forRank(rank).supplies() + instrument.suppliesRecovered,
-                medic.started() + " treatment(s) from " + SquadMedicine.forRank(rank).supplies()
-                        + " carried and " + instrument.suppliesRecovered + " recovered"));
-        if (keepMoving) {
-            verdicts.add(Verdict.of("kept-moving", instrument.patientMovingTicks > 0,
-                    instrument.patientMovingTicks + " of " + instrument.treatingTicks
-                            + " treating tick(s) had the patient moving (wanted some)"));
-        } else {
-            int allowance = Math.round(instrument.treatingTicks * 0.1f);
-            verdicts.add(Verdict.of("planted", instrument.patientMovingTicks <= allowance,
-                    instrument.patientMovingTicks + " of " + instrument.treatingTicks
-                            + " treating tick(s) had the patient moving (allowance " + allowance + ")"));
-        }
+        SquadMedicine m = SquadMedicine.forRank(rank);
+        float restored = medic.healthRestored() + medic.armorRestored();
+        float budget = (m.energyMax() + m.energyRegenPerSecond() * TICKS * BattleSimulation.TICK_DT)
+                / m.energyPerPoint();
+        verdicts.add(Verdict.of("within-energy", restored <= budget + 0.01f,
+                String.format(Locale.ROOT, "%.1f point(s) restored against %.1f the pool could pay for"
+                        + " (a full pool plus regeneration)", restored, budget)));
+        verdicts.add(Verdict.of("kept-moving", instrument.patientMovingTicks > 0,
+                instrument.patientMovingTicks + " of " + instrument.treatingTicks
+                        + " treating tick(s) had the patient moving (wanted some)"));
         verdicts.add(Verdict.of("no-plan-less-ticks", instrument.planLessTicks <= 1,
                 instrument.planLessTicks + " tick(s) with no squad plan (wanted at most the first)"));
         return new SceneReport(id(), loopId, TICKS, verdicts, instrument.metrics(medic));
     }
 
     private static SceneWorld build(int rank) {
+        try {
+            DiskRegistries.install();
+        } catch (Exception e) {
+            throw new IllegalStateException("Could not install the mod's data for the squad-medic scene", e);
+        }
         SceneBuilder builder = SceneBuilder.openGround(WIDTH, HEIGHT).missionCompletion(false);
         builder.squad(MARINES)
                 .faction(Faction.MARINE)
@@ -251,8 +252,8 @@ public final class SquadMedicScene implements BehaviorScene {
     private static String caption(String loopId, Squad squad, Instrument instrument, int tick) {
         SquadMedic medic = squad.medic;
         String state = medic == null ? "no medic"
-                : String.format(Locale.ROOT, "medic %s, %d supplies, %d done",
-                        medic.phase().name().toLowerCase(Locale.ROOT), medic.supplies(), medic.completed());
+                : String.format(Locale.ROOT, "medic %s, energy %.1f, %d done",
+                        medic.phase().name().toLowerCase(Locale.ROOT), medic.energy(), medic.completed());
         return String.format(Locale.ROOT, "squad medic [%s]  t=%d  %s  squad hp %.0f",
                 loopId, tick, state, instrument.lastSquadHp);
     }
@@ -284,9 +285,6 @@ public final class SquadMedicScene implements BehaviorScene {
         private int patientMovingTicks;
         private int planLessTicks;
         private int arrivedTick = -1;
-        private int suppliesRecovered;
-        private int lastSupplies = -1;
-        private int lastStarted;
         private float startSquadHp = -1f;
         private float lastSquadHp;
         private float lastCentroidX;
@@ -370,15 +368,6 @@ public final class SquadMedicScene implements BehaviorScene {
             }
 
             SquadMedic medic = squad.medic;
-            if (medic != null) {
-                if (lastSupplies >= 0) {
-                    int spent = medic.started() - lastStarted;
-                    int recovered = medic.supplies() - lastSupplies + spent;
-                    if (recovered > 0) suppliesRecovered += recovered;
-                }
-                lastSupplies = medic.supplies();
-                lastStarted = medic.started();
-            }
             boolean treating = medic != null && medic.phase() == SquadMedic.Phase.TREATING;
             for (ShotEvent shot : sim.getShotsThisFrame()) {
                 if (medicUnit == 0L || shot.shooterId != medicUnit) continue;
@@ -437,8 +426,8 @@ public final class SquadMedicScene implements BehaviorScene {
                 metrics.put("healthRestored", Math.round(medic.healthRestored() * 10f) / 10f);
                 metrics.put("armorRestored", Math.round(medic.armorRestored() * 10f) / 10f);
                 metrics.put("armorReplated", medic.armorReplated());
-                metrics.put("suppliesLeft", medic.supplies());
-                metrics.put("suppliesRecovered", suppliesRecovered);
+                metrics.put("treatmentsExhausted", medic.exhausted());
+                metrics.put("energyLeft", Math.round(medic.energy() * 10f) / 10f);
             }
             return metrics;
         }

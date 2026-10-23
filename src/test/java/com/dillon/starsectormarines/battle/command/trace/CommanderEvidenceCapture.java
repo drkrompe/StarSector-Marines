@@ -84,6 +84,10 @@ final class CommanderEvidenceCapture implements AutoCloseable {
     private int nextTick;
     private int lastTick = -1;
     private boolean closed;
+    /** The first replay's ground vehicles against geometry, frames or no frames; null on a repeat. */
+    private VehiclePinLedger pins;
+    private BattleSimulation pinSimulation;
+    private String pinFixture;
 
     /**
      * How one frame is drawn. The battle review renderer in production; the
@@ -114,7 +118,7 @@ final class CommanderEvidenceCapture implements AutoCloseable {
         if (cadence < 1) {
             if (cadence == 0) {
                 EvidenceCleanup.deleteTree(outputPath(reportRoot, fixtureId));
-                return new CommanderEvidenceCapture();
+                return new CommanderEvidenceCapture().ledger(simulation, fixtureId);
             }
             throw new IllegalArgumentException(
                     CADENCE_PROPERTY + " must be positive");
@@ -125,7 +129,16 @@ final class CommanderEvidenceCapture implements AutoCloseable {
                         DEFAULT_FRAME_DELAY_MILLIS, 10, 60_000),
                 boundedProperty(WIDTH_PROPERTY, DEFAULT_WIDTH, 160, 4_096),
                 boundedProperty(HEIGHT_PROPERTY, DEFAULT_HEIGHT, 120, 4_096),
-                booleanProperty(ANNOTATIONS_PROPERTY, true), frameSource);
+                booleanProperty(ANNOTATIONS_PROPERTY, true), frameSource)
+                .ledger(simulation, fixtureId);
+    }
+
+    private CommanderEvidenceCapture ledger(BattleSimulation simulation, String fixtureId) {
+        if (simulation == null) return this;
+        pins = new VehiclePinLedger();
+        pinSimulation = simulation;
+        pinFixture = sanitize(fixtureId);
+        return this;
     }
 
     private CommanderEvidenceCapture() {
@@ -182,6 +195,7 @@ final class CommanderEvidenceCapture implements AutoCloseable {
     }
 
     void afterAdvance() throws IOException {
+        if (pins != null) pins.afterAdvance(pinSimulation);
         if (!enabled()) return;
         int tick = simulation.getSimTickIndex();
         if (frameSource == null && tick >= feedFromTick) {
@@ -265,6 +279,10 @@ final class CommanderEvidenceCapture implements AutoCloseable {
      */
     @Override
     public void close() throws IOException {
+        if (pins != null) {
+            System.out.println(pins.line(pinFixture));
+            pins = null;
+        }
         if (!enabled() || closed) return;
         closed = true;
         Throwable failure = null;

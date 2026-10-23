@@ -50,10 +50,6 @@ import java.util.List;
  */
 public class NavigationGrid {
 
-    /** Same-build storage control for commander and async infantry topology snapshots. */
-    public static final String COMPACT_PUBLIC_TOPOLOGY_PROPERTY =
-            "battle.pathfinding.compactPublicTopology";
-
     /**
      * Tags the pathfinder + zone graph care about. Strictly nav concerns —
      * rendering / categorization tags (FLOOR, STREET, RUBBLE, WALL, VEHICLE,

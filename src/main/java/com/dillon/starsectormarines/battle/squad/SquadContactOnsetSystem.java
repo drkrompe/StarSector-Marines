@@ -37,18 +37,6 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
  */
 public final class SquadContactOnsetSystem {
 
-    /**
-     * {@code -Dbattle.squad.contactOnset=false} stops publishing, which leaves
-     * every squad advancing exactly as it did before this existed. Here because
-     * the only honest control for a behaviour change is the same battle with
-     * the behaviour absent, and reaching that by checking out an older commit
-     * measures every other difference between the two trees at once.
-     */
-    public static final String ENABLED_PROPERTY = "battle.squad.contactOnset";
-
-    private static final boolean ENABLED = Boolean.parseBoolean(
-            System.getProperty(ENABLED_PROPERTY, "true"));
-
     private final UnitRosterService roster;
     private final TacticalScoring scoring;
 
@@ -59,7 +47,6 @@ public final class SquadContactOnsetSystem {
 
     /** Publishes at most one onset contact per live squad. */
     public void tick(int currentTick) {
-        if (!ENABLED) return;
         for (Squad squad : roster.getSquads()) {
             publishFor(squad, currentTick);
         }

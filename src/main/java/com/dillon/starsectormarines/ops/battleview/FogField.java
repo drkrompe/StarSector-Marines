@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.GlStateBracket;
 import org.lwjgl.BufferUtils;
 
+import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 
 import static org.lwjgl.opengl.GL11.GL_ALPHA;
@@ -86,21 +87,9 @@ import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
  *
  * <p><b>It fails soft.</b> No texture, a failed allocation, any GL error at all
  * — {@link #sync} answers false and the collector emits the ordinary per-cell
- * stream, with the same paint order and the same picture. Turn it off for a
- * control run with {@code -Dbattle.render.fogField=false}.
+ * stream, with the same paint order and the same picture.
  */
 public final class FogField {
-
-    /** Control-run switch; see the class note. On by default. */
-    public static final String PROPERTY = "battle.render.fogField";
-
-    private static final boolean ENABLED =
-            Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
-
-    /** Whether the field is armed at all — for evidence that reports which run it was. */
-    public static boolean enabled() {
-        return ENABLED;
-    }
 
     // ---- the picture ---------------------------------------------------------
 
@@ -189,7 +178,7 @@ public final class FogField {
      * automatic rather than something a host has to know about.
      */
     public boolean isServing(FogOfWarService fog) {
-        return ENABLED && !broken && fog != null && fog.isInitialized() && fog == bound;
+        return !broken && fog != null && fog.isInitialized() && fog == bound;
     }
 
     /**
@@ -219,7 +208,7 @@ public final class FogField {
      * that needed a GPU to ask about arithmetic would not be run.
      */
     boolean catchUp(FogOfWarService fog) {
-        if (!ENABLED || broken || fog == null || !fog.isInitialized()) return false;
+        if (broken || fog == null || !fog.isInitialized()) return false;
         try {
             if (fog != bound) {
                 build(fog);
@@ -271,9 +260,7 @@ public final class FogField {
                 && clearing.width() == gridW && clearing.height() == gridH;
         try (GlStateBracket bracket = GlStateBracket.textured2D()) {
             if (thinned) bindClearing(clearing);
-            float[] colour = clearing == null ? null : clearing.fogColour();
-            if (colour == null) glColor4f(0f, 0f, 0f, alphaMult);
-            else glColor4f(colour[0], colour[1], colour[2], alphaMult);
+            glColor4f(0f, 0f, 0f, alphaMult);
             glBindTexture(GL_TEXTURE_2D, texture);
             // An alpha texture under MODULATE leaves the primary colour alone and
             // multiplies the alphas, which is fog colour times fog level times the
@@ -317,6 +304,7 @@ public final class FogField {
             try {
                 glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA8, gridW, gridH, 0, GL_ALPHA, GL_UNSIGNED_BYTE, bytes);
+                Reference.reachabilityFence(bytes);   // LWJGL 2 keeps only the address
             } finally {
                 glPopClientAttrib();
             }

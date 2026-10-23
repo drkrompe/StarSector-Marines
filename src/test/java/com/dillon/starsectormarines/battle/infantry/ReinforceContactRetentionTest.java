@@ -11,7 +11,6 @@ import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Proxy;
@@ -22,18 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Plan construction and ownership on a tiny grid, without advancing a battle. */
 class ReinforceContactRetentionTest {
-    private String previousRetention;
-
-    @BeforeEach
-    void enableRetention() {
-        previousRetention = System.getProperty(ReinforceContact.RETAIN_FLANK_PLANS_PROPERTY);
-        System.setProperty(ReinforceContact.RETAIN_FLANK_PLANS_PROPERTY, "true");
-    }
-
     @AfterEach
-    void restoreControls() {
-        if (previousRetention == null) System.clearProperty(ReinforceContact.RETAIN_FLANK_PLANS_PROPERTY);
-        else System.setProperty(ReinforceContact.RETAIN_FLANK_PLANS_PROPERTY, previousRetention);
+    void releaseProfile() {
         TickInnerProfile.releaseCurrentThread();
     }
 
@@ -79,20 +68,10 @@ class ReinforceContactRetentionTest {
     }
 
     @Test
-    void topologyChangeAndDisabledControlRequireFreshSelection() {
+    void topologyChangeRequiresFreshSelection() {
         Fixture fixture = new Fixture();
         fixture.replan();
         fixture.grid.blockSharedEdge(0, 0, Direction.E);
-        fixture.tick++;
-        fixture.replan();
-        fixture.assertFreshSelection();
-
-        System.setProperty(ReinforceContact.RETAIN_FLANK_PLANS_PROPERTY, "false");
-        fixture.tick++;
-        fixture.replan();
-        fixture.assertFreshSelection();
-
-        System.setProperty(ReinforceContact.RETAIN_FLANK_PLANS_PROPERTY, "true");
         fixture.tick++;
         fixture.replan();
         fixture.assertFreshSelection();

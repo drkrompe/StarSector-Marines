@@ -28,50 +28,48 @@ import static org.junit.jupiter.api.Assertions.*;
 class AdvanceThreatPublicationTest {
     @Test
     void parallelMembersPublishOneCompleteDecisionPerTick() throws Exception {
-        for (boolean isolated : new boolean[]{false, true}) {
-            try (Fixture f = new Fixture()) {
-                ExecutorService workers = Executors.newFixedThreadPool(2);
-                CountDownLatch computing = new CountDownLatch(1);
-                CountDownLatch finish = new CountDownLatch(1);
-                CountDownLatch contenderEntered = new CountDownLatch(1);
-                f.beforeScoring = () -> {
-                    assertTrue(Thread.holdsLock(isolated ? f.squad.advanceThreatLock : f.squad.lock));
-                    computing.countDown();
-                    await(finish);
-                };
-                try {
-                    Future<?> owner = workers.submit(() -> f.update(isolated));
-                    assertTrue(computing.await(2, TimeUnit.SECONDS));
-                    Future<?> contender = workers.submit(() -> {
-                        contenderEntered.countDown();
-                        f.update(isolated);
-                        f.assertCompleteDecision();
-                    });
-                    assertTrue(contenderEntered.await(2, TimeUnit.SECONDS));
-                    assertEquals(-1, f.squad.advanceThreatTick, "in-progress scoring is not published");
-                    assertFalse(contender.isDone(), "a sibling cannot consume a partial decision");
-                    finish.countDown();
-                    owner.get(2, TimeUnit.SECONDS);
-                    contender.get(2, TimeUnit.SECONDS);
-                    assertEquals(1, f.computations.get());
+        try (Fixture f = new Fixture()) {
+            ExecutorService workers = Executors.newFixedThreadPool(2);
+            CountDownLatch computing = new CountDownLatch(1);
+            CountDownLatch finish = new CountDownLatch(1);
+            CountDownLatch contenderEntered = new CountDownLatch(1);
+            f.beforeScoring = () -> {
+                assertTrue(Thread.holdsLock(f.squad.advanceThreatLock));
+                computing.countDown();
+                await(finish);
+            };
+            try {
+                Future<?> owner = workers.submit(() -> f.update());
+                assertTrue(computing.await(2, TimeUnit.SECONDS));
+                Future<?> contender = workers.submit(() -> {
+                    contenderEntered.countDown();
+                    f.update();
                     f.assertCompleteDecision();
-                    f.update(isolated);
-                    assertEquals(1, f.computations.get(), "same-tick fast path reuses the publication");
-                    f.tick++;
-                    f.update(isolated);
-                    assertEquals(2, f.computations.get(), "next tick refreshes immediately");
-                    f.assertCompleteDecision();
-                } finally {
-                    finish.countDown();
-                    workers.shutdownNow();
-                    assertTrue(workers.awaitTermination(2, TimeUnit.SECONDS));
-                }
+                });
+                assertTrue(contenderEntered.await(2, TimeUnit.SECONDS));
+                assertEquals(-1, f.squad.advanceThreatTick, "in-progress scoring is not published");
+                assertFalse(contender.isDone(), "a sibling cannot consume a partial decision");
+                finish.countDown();
+                owner.get(2, TimeUnit.SECONDS);
+                contender.get(2, TimeUnit.SECONDS);
+                assertEquals(1, f.computations.get());
+                f.assertCompleteDecision();
+                f.update();
+                assertEquals(1, f.computations.get(), "same-tick fast path reuses the publication");
+                f.tick++;
+                f.update();
+                assertEquals(2, f.computations.get(), "next tick refreshes immediately");
+                f.assertCompleteDecision();
+            } finally {
+                finish.countDown();
+                workers.shutdownNow();
+                assertTrue(workers.awaitTermination(2, TimeUnit.SECONDS));
             }
         }
     }
 
     @Test
-    void isolatedDecisionCompletesWhileAnotherThreadOwnsTheBroadSquadLock() throws Exception {
+    void decisionCompletesWhileAnotherThreadOwnsTheBroadSquadLock() throws Exception {
         try (Fixture f = new Fixture()) {
             ExecutorService worker = Executors.newSingleThreadExecutor();
             f.beforeScoring = () -> {
@@ -80,7 +78,7 @@ class AdvanceThreatPublicationTest {
             };
             try {
                 synchronized (f.squad.lock) {
-                    worker.submit(() -> f.update(true)).get(2, TimeUnit.SECONDS);
+                    worker.submit(() -> f.update()).get(2, TimeUnit.SECONDS);
                     f.assertCompleteDecision();
                 }
             } finally {
@@ -91,15 +89,11 @@ class AdvanceThreatPublicationTest {
     }
 
     @Test
-    void controlKeepsOriginalMonitorAndHostResetCanRefreshTheSameTick() {
+    void hostResetCanRefreshTheSameTick() {
         try (Fixture f = new Fixture()) {
-            f.beforeScoring = () -> {
-                assertTrue(Thread.holdsLock(f.squad.lock));
-                assertFalse(Thread.holdsLock(f.squad.advanceThreatLock));
-            };
-            f.update(false);
+            f.update();
             f.squad.advanceThreatTick = -1; // Host control-entry boundary, after workers joined.
-            f.update(false);
+            f.update();
             assertEquals(2, f.computations.get());
             f.assertCompleteDecision();
         }
@@ -109,22 +103,11 @@ class AdvanceThreatPublicationTest {
     void failedScorerAccessDoesNotMarkThisTickComplete() {
         try (Fixture f = new Fixture()) {
             f.beforeScoring = () -> { throw new IllegalStateException("test failure"); };
-            assertThrows(IllegalStateException.class, () -> f.update(true));
+            assertThrows(IllegalStateException.class, () -> f.update());
             assertEquals(-1, f.squad.advanceThreatTick);
             f.beforeScoring = () -> {};
-            f.update(true);
+            f.update();
             f.assertCompleteDecision();
-        }
-    }
-
-    @Test
-    void configuredProductionEntryDelegatesToTheSameScoringAndPublicationPath() {
-        try (Fixture f = new Fixture()) {
-            AbstractZoneAction.updateAdvanceThreat(f.squad, f.sim, 25, 3);
-            f.assertCompleteDecision();
-            assertEquals(1, f.computations.get());
-            AbstractZoneAction.updateAdvanceThreat(f.squad, f.sim, 25, 3);
-            assertEquals(1, f.computations.get());
         }
     }
 
@@ -167,8 +150,8 @@ class AdvanceThreatPublicationTest {
                     });
         }
 
-        void update(boolean isolated) {
-            AbstractZoneAction.updateAdvanceThreat(squad, sim, 25, 3, isolated);
+        void update() {
+            AbstractZoneAction.updateAdvanceThreat(squad, sim, 25, 3);
         }
 
         void assertCompleteDecision() {

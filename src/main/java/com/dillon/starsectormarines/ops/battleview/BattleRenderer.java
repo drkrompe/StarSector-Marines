@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSna
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
+import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.dillon.starsectormarines.render2d.DecalAccumulator;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
@@ -427,7 +428,7 @@ public class BattleRenderer {
         sprites.ensureSmokeSprites();
         registerSmokeFieldBatch();
         sprites.ensureSatchelSprite();
-        impactFx.ensureSprites();
+        impactFx.ensureSprites(sprites.lease());
     }
 
     /** Builds the six per-sheet tile batches from the loaded sheets. Called from {@code BattleScreen.attach()}. */
@@ -583,6 +584,14 @@ public class BattleRenderer {
     /** Accessor for the host's combat-event presentation pass. */
     public GroundLightService getGroundLights() { return groundLights; }
 
+    /**
+     * Lights the ground composite from {@code lights} instead of this renderer's own; null restores its own. A
+     * headless review keeps the presentation state the screen feeds every tick in a feed of its own, lights among it.
+     */
+    void useGroundLights(GroundLightService lights) {
+        groundParallax.useLights(lights != null ? lights : groundLights);
+    }
+
     /** Releases night lighting targets, the aircraft's reflected-light shader and the creep's textures. */
     public void disposeLighting() {
         creep.dispose();
@@ -681,7 +690,7 @@ public class BattleRenderer {
 
         fireFogClearing.update(FireRenderSystem.enabled() ? ctx.sim.fireFieldIfPresent() : null,
                 ctx.sim.getTopology().nightLighting() != null, vis.gridWidth(), vis.gridHeight());
-        boolean resident = ctx.hostProfile.residentFogAllowed() && FogField.enabled();
+        boolean resident = ctx.hostProfile.residentFogAllowed();
         if (resident && fogField.isServing(vis)) {
             float alpha = ctx.alphaMult;
             out.addCustom(RenderLayer.FOG, () -> {
@@ -722,9 +731,8 @@ public class BattleRenderer {
 
                 float sx = rc.camera.cellToScreenX(cx);
                 float sy = rc.camera.cellToScreenY(cy);
-                float[] colour = fireFogClearing.fogColour();
                 out.addSolidRect(RenderLayer.FOG, sx, sy, sx + cellPx, sy + cellPx,
-                        colour[0], colour[1], colour[2], fogAlpha * alphaMult);
+                        0f, 0f, 0f, fogAlpha * alphaMult);
             }
         }
     }
@@ -763,7 +771,7 @@ public class BattleRenderer {
         if (brick == null) return;
 
         CellTopology topology = sim.getTopology();
-        if (RoofMesh.enabled() && rc.hostProfile.residentGroundAllowed()) {
+        if (rc.hostProfile.residentGroundAllowed()) {
             FortService forts = sim.forts();
             TurretCatalogRegistry catalog = TurretCatalogRegistry.installed();
             RoofMesh.RoofResolver resolver = (x, y, sink) -> {
@@ -1203,6 +1211,15 @@ public class BattleRenderer {
      */
     public void renderWorld(RenderContext rc, EnumSet<RenderLayer> layers,
                             FrameCensus census) {
+        renderWorld(rc, layers, census, null);
+    }
+
+    /**
+     * As {@link #renderWorld(RenderContext, EnumSet, FrameCensus)}, draining {@code leading}'s commands for each
+     * layer ahead of the layer's own. A headless review feeds presentation services the live screen ticks itself
+     * (contrails, delivered rounds, beams) and hands their commands in here, the order the screen draws them in.
+     */
+    void renderWorld(RenderContext rc, EnumSet<RenderLayer> layers, FrameCensus census, DrawList leading) {
         collectWorld(rc, layers, census);
         boolean parallax = (rc.hostProfile.surfaceReliefEnabled() || GroundParallaxPipeline.deckWaterVisible(rc))
                 && DevConfig.SURFACE_RELIEF_PARALLAX
@@ -1210,6 +1227,10 @@ public class BattleRenderer {
         for (RenderLayer layer : RenderLayer.values()) {
             if (!layers.contains(layer)) continue;
             long started = census == null ? 0L : System.nanoTime();
+            if (leading != null && leading.count(layer) > 0) {
+                DrawListRenderer.drain(leading.buffer(layer), leading.count(layer), batchBySheet, solidBatch,
+                        lineBatch, contrailBatch, rc.camera, null);
+            }
             if (layer == RenderLayer.GROUND && parallax) {
                 // S2/S3: redirect GROUND through the relief FBOs + composite instead
                 // of draining straight to the backbuffer. groundParallax falls back to
@@ -1266,6 +1287,9 @@ public class BattleRenderer {
         }
         this.rc = rc;
         drawList.clear();
+        if (TextureUsage.isEnabled() && rc.camera != null) {
+            TextureUsage.beginWorld(rc.camera.cellPxSize(), rc.camera.worldCellsW(), rc.camera.worldCellsH());
+        }
         for (RenderSystem system : worldSystems) {
             if (!layers.contains(system.layer())) continue;
             if (census == null) {

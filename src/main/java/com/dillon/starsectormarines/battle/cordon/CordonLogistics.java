@@ -38,13 +38,6 @@ import java.util.function.Consumer;
  */
 public final class CordonLogistics {
 
-    /**
-     * What a carrier does after it sets its squad down, {@code -Dbattle.cordon.carrierAfterDrop}:
-     * {@code support} (the default) stays on the line and answers calls until squads wait;
-     * {@code return} drives straight back to its slot on the apron.
-     */
-    static final boolean CARRIERS_RETURN = "return".equals(System.getProperty("battle.cordon.carrierAfterDrop", "support"));
-
     /** Cells from a slot a column counts as at the base, and a carrier as home. */
     static final int AT_BASE = 8;
     /** Cells out from the machine door the apron's slots stand: past the threshold, room to turn. */
@@ -323,7 +316,7 @@ public final class CordonLogistics {
         List<Long> recalled = recall(sim);
         for (long hull : carriers) {
             if (command.carrying(hull) || outbound.containsKey(hull)) continue;
-            if (!recalled.contains(hull) && !CARRIERS_RETURN) {
+            if (!recalled.contains(hull)) {
                 support(sim, hull, redoubts);
                 continue;
             }

@@ -100,14 +100,11 @@ public final class SquadAlertSystem {
      * differ by up to sqrt(2) more than the cell-coordinate distance.
      */
     private static final float VISION_GATHER_PADDING = 1.414214f;
-    public static final String FILTERED_AWARENESS_PROPERTY =
-            "battle.perception.filteredSquadAwareness";
 
     private final NavigationService navigation;
     private final UnitRosterService roster;
     private final ShotService shots;
     private final NoiseEventBus noiseEvents;
-    private final boolean filteredAwareness;
     /** Serial-pass scratch reused by every member query; grows only to the largest local crowd. */
     private final LongBucket awarenessCandidates = new LongBucket();
     /** Serial-pass scratch reused by hostile-shot endpoint queries. */
@@ -122,18 +119,10 @@ public final class SquadAlertSystem {
                             UnitRosterService roster,
                             ShotService shots,
                             NoiseEventBus noiseEvents) {
-        this(navigation, roster, shots, noiseEvents,
-                Boolean.parseBoolean(System.getProperty(FILTERED_AWARENESS_PROPERTY, "true")));
-    }
-
-    /** Explicit same-world control for the candidate enumeration optimization. */
-    SquadAlertSystem(NavigationService navigation, UnitRosterService roster,
-                     ShotService shots, NoiseEventBus noiseEvents, boolean filteredAwareness) {
         this.navigation = navigation;
         this.roster = roster;
         this.shots = shots;
         this.noiseEvents = noiseEvents;
-        this.filteredAwareness = filteredAwareness;
     }
 
     /**
@@ -233,12 +222,8 @@ public final class SquadAlertSystem {
             float gatherRange = needsKillZone
                     ? Math.max(awarenessGatherRange, KILL_ZONE_RANGE_CELLS)
                     : awarenessGatherRange;
-            if (filteredAwareness) {
-                unitIndex.gatherHostileCombatants(uX, uY, gatherRange,
-                        squad.faction, awarenessCandidates);
-            } else {
-                unitIndex.gather(uX, uY, gatherRange, awarenessCandidates);
-            }
+            unitIndex.gatherHostileCombatants(uX, uY, gatherRange,
+                    squad.faction, awarenessCandidates);
             // Returned candidates, not every primitive entry scanned by the
             // spatial query. Live faction/type checks below remain authoritative.
             if (profile != null) awarenessVisits += awarenessCandidates.size;

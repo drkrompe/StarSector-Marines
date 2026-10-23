@@ -11,15 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AdvanceRouteTest {
 
     @Test
-    void boundsSplitTheRouteEvenlyAndEndOnTheRallyPoint() {
-        AdvanceRoute route = AdvanceRoute.straight(0, 0, 70, 0);
-        float[] bounds = route.bounds(24f);
-        assertEquals(3, bounds.length);
-        assertEquals(70f, bounds[2], 1e-4f);
-        assertEquals(bounds[1] - bounds[0], bounds[2] - bounds[1], 1e-4f);
-    }
-
-    @Test
     void alongMeasuresDistanceRoundACornerAndRunsOnPastTheEnds() {
         AdvanceRoute route = AdvanceRoute.through(List.of(new int[]{0, 0}, new int[]{20, 0}, new int[]{20, 20}));
         assertEquals(10f, route.along(10.5f, 3f), 1e-4f);

@@ -160,10 +160,6 @@ public final class TickProfileDumper {
                 actionsArr.put(ao);
             }
             root.put("actions", actionsArr);
-            root.put("retainSquadRouteCosts", Boolean.parseBoolean(System.getProperty(
-                    "battle.pathfinding.retainSquadRouteCosts", "true")));
-            root.put("retainSingletonSeeds", Boolean.parseBoolean(System.getProperty(
-                    "battle.pathfinding.retainSingletonSeeds", "true")));
             putSquadRouteBuilds(root, innerSnap != null
                     ? innerSnap.slowSquadRouteBuilds : liveInner.slowSquadRouteBuilds());
             putSquadRouteWork(root, innerSnap != null
@@ -226,12 +222,6 @@ public final class TickProfileDumper {
 
     static void putSquadRouteWork(JSONObject root, List<TickInnerProfile.SquadRouteWork> slices)
             throws JSONException {
-        root.put("squadRouteWorkBudget", Boolean.parseBoolean(System.getProperty(
-                "battle.pathfinding.squadRouteWorkBudget", "true")));
-        root.put("squadRouteWorkPerTick", Math.max(1, Integer.getInteger("battle.pathfinding.squadRouteWorkPerTick", 8192)));
-        root.put("squadRouteWorkPerSlice", Math.max(1, Integer.getInteger("battle.pathfinding.squadRouteWorkPerSlice", 4096)));
-        root.put("squadRouteWorkPerRequest", Math.max(1, Integer.getInteger("battle.pathfinding.squadRouteWorkPerRequest", 524288)));
-        root.put("squadRouteRetryTicks", Math.max(1, Integer.getInteger("battle.pathfinding.squadRouteRetryTicks", 120)));
         root.put("squadRouteWorkSemantics", "top eight work slices by wall duration, not complete-build timings; slice work/expansion counts are increments; lifetimeWorkUnits and ageTicks describe the request at slice end and must not be summed; lastSeedStart is a global cell index, lastSeedExpanded is cumulative for the current or last seed, maxSeedExpanded is the request's cumulative per-seed maximum; SQUAD_ROUTE_WORK counts all work units this tick, including unretained slices");
         JSONArray samples = new JSONArray();
         for (TickInnerProfile.SquadRouteWork slice : slices) {

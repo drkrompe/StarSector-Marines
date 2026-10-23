@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 /**
- * One squad's medic: who it is, what they have left, and the treatment in hand.
+ * One squad's medic: who it is, the energy they have left, and the treatment in hand.
  *
  * <p>Written only by {@link SquadMedicSystem}'s serial pass, ahead of the
  * parallel unit dispatch, and only read during it. That split is what lets a
@@ -16,57 +16,58 @@ public final class SquadMedic {
         IDLE,
         /** A patient is chosen and the medic is walking to them; nothing spent yet. */
         APPROACHING,
-        /** Kneeling over the patient; a supply is spent and restoration is landing. */
+        /** Hands on the patient; restoration is landing and energy is being spent. */
         TREATING
     }
 
     public final SquadMedicine medicine;
-    /** Neither marine stops for a treatment; the medic follows the patient instead. */
-    public final boolean keepMoving;
 
     long medicId;
     long patientId;
     Phase phase = Phase.IDLE;
-    int supplies;
-    float recoveryTimer;
-    float cooldownTimer;
-    float phaseTimer;
+    float energy;
+    /** Seconds before the medic may set out again after abandoning an approach. */
+    float retryTimer;
+    /** Seconds on the approach under way. */
+    float approachTimer;
+    /** Seconds the treatment in hand has run. */
+    float treatingSeconds;
 
     int started;
     int completed;
     int interrupted;
+    int exhausted;
     int armorReplated;
     float healthRestored;
     float armorRestored;
 
-    SquadMedic(SquadMedicine medicine, boolean keepMoving) {
+    SquadMedic(SquadMedicine medicine) {
         this.medicine = medicine;
-        this.keepMoving = keepMoving;
-        this.supplies = medicine.supplies();
+        this.energy = medicine.energyMax();
     }
 
     public long medicId() { return medicId; }
     public long patientId() { return patientId; }
     public Phase phase() { return phase; }
-    public int supplies() { return supplies; }
-    public float cooldownTimer() { return cooldownTimer; }
+    /** Energy left in the pool. */
+    public float energy() { return energy; }
 
-    /** Treatments begun, each spending one supply. */
+    /** Treatments begun. */
     public int started() { return started; }
-    /** Treatments that ran their full length or left the patient whole. */
+    /** Treatments that left the patient whole. */
     public int completed() { return completed; }
-    /** Treatments ended early by death, separation, or the medic's fire team breaking. */
+    /** Treatments ended by death, separation, or the medic's fire team breaking. */
     public int interrupted() { return interrupted; }
+    /** Treatments that ended because the pool ran dry. */
+    public int exhausted() { return exhausted; }
     /** Times a treatment brought armor back from zero. */
     public int armorReplated() { return armorReplated; }
     public float healthRestored() { return healthRestored; }
     public float armorRestored() { return armorRestored; }
 
-    /** How far through the current treatment, 0 to 1; 0 when not treating. */
-    public float treatmentProgress() {
-        if (phase != Phase.TREATING) return 0f;
-        float channel = medicine.channelSeconds();
-        return Math.max(0f, Math.min(1f, (channel - phaseTimer) / channel));
+    /** Seconds the current treatment has run; 0 when not treating. */
+    public float treatmentSeconds() {
+        return phase == Phase.TREATING ? treatingSeconds : 0f;
     }
 
     /** Whether {@code unit} is the medic with hands on a patient this tick. */

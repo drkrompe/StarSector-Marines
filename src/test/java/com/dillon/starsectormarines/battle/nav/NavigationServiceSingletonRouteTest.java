@@ -12,20 +12,15 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class NavigationServiceSingletonRouteTest {
-    private String previous;
     private final TickInnerProfile profile = new TickInnerProfile();
 
     @BeforeEach
-    void enable() {
-        previous = System.getProperty(NavigationService.RETAIN_SINGLETON_SEEDS_PROPERTY);
-        System.setProperty(NavigationService.RETAIN_SINGLETON_SEEDS_PROPERTY, "true");
+    void bindProfile() {
         TickInnerProfile.setCurrent(profile);
     }
 
     @AfterEach
-    void restore() {
-        if (previous == null) System.clearProperty(NavigationService.RETAIN_SINGLETON_SEEDS_PROPERTY);
-        else System.setProperty(NavigationService.RETAIN_SINGLETON_SEEDS_PROPERTY, previous);
+    void releaseProfile() {
         TickInnerProfile.releaseCurrentThread();
     }
 
@@ -47,29 +42,6 @@ class NavigationServiceSingletonRouteTest {
             assertEquals(0, count(TickInnerProfile.Bucket.SQUAD_PATH_FIELD_FALLBACK));
             assertEquals(0, profile.pathfindExpandedNodes());
         }
-    }
-
-    @Test
-    void sameInputControlPaysForReverseFieldButNotAnotherSeed() {
-        NavigationGrid grid = openGrid(70, 5);
-        int[] cells = new int[2];
-        int[] expansions = new int[2];
-        for (int arm = 0; arm < 2; arm++) {
-            System.setProperty(NavigationService.RETAIN_SINGLETON_SEEDS_PROPERTY, Boolean.toString(arm == 1));
-            profile.reset();
-            try (NavigationService nav = navigation(grid)) {
-                SquadRouteRequest request = request(grid, 1, 1, 2, 68, 2);
-                nav.prepareSquadRoutes(List.of(request), 1);
-                cells[arm] = nav.lastSquadRouteSettledCells();
-                expansions[arm] = count(TickInnerProfile.Bucket.SQUAD_ROUTE_SEED_EXPANDED);
-                assertEquals(1, count(TickInnerProfile.Bucket.SQUAD_ROUTE_SEED_SEARCH));
-                assertEquals(1 - arm, count(TickInnerProfile.Bucket.SQUAD_PATH_FIELD_REVERSE));
-                assertEquals(arm, count(TickInnerProfile.Bucket.SQUAD_PATH_FIELD_DIRECT));
-                assertEquals(68, Paths.cellCount(path(nav, request, 1, 2)));
-            }
-        }
-        assertEquals(expansions[0], expansions[1]);
-        assertTrue(cells[1] < cells[0] / 2);
     }
 
     @Test

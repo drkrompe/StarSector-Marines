@@ -170,14 +170,12 @@ class MechDropServiceTest {
         ShuttleMission marine = sim.world().mission(service.drops().get(0).carrier());
         ShuttleMission defender = sim.world().mission(service.drops().get(1).carrier());
 
-        if (OrbitalLift.enabled()) {
-            float lzX = service.drops().get(0).lzCellX() + 0.5f;
-            float lzY = service.drops().get(0).lzCellY() + 0.5f;
-            assertEquals(OrbitalLift.DESCENT_CELLS,
-                    (float) Math.hypot(marine.entryX - lzX, marine.entryY - lzY), 0.01f);
-            assertArrayEquals(new float[]{marine.entryX, marine.entryY},
-                    new float[]{marine.exitX, marine.exitY}, "the descent is left where it was entered");
-        }
+        float lzX = service.drops().get(0).lzCellX() + 0.5f;
+        float lzY = service.drops().get(0).lzCellY() + 0.5f;
+        assertEquals(OrbitalLift.DESCENT_CELLS,
+                (float) Math.hypot(marine.entryX - lzX, marine.entryY - lzY), 0.01f);
+        assertArrayEquals(new float[]{marine.entryX, marine.entryY},
+                new float[]{marine.exitX, marine.exitY}, "the descent is left where it was entered");
         boolean offMap = defender.entryX < 0 || defender.entryX > W || defender.entryY < 0 || defender.entryY > H;
         assertTrue(offMap, "a planetary delivery crosses the map edge");
     }

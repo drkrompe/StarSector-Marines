@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.turret;
 
+import com.dillon.starsectormarines.render2d.texture.ModTextures;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.fs.starfarer.api.Global;
@@ -50,6 +51,8 @@ public final class TurretCatalogRegistry {
     public static final String TANK_CANNON_STRUCTURE_ID = "structure.tank-twin-cannon";
     /** The laser tank's burst laser: a starship's point-defence emitter turned on the ground. */
     public static final String TANK_BURST_LASER_STRUCTURE_ID = "structure.tank-burst-laser";
+    /** The PD laser tank's emitter: the plain PD laser, a steady lance where the burst laser fires in bursts. */
+    public static final String TANK_PD_LASER_STRUCTURE_ID = "structure.tank-pd-laser";
     /** The hover scout's twin pulse emitter, a vehicle mount of the Wisp drone-emitter family. */
     public static final String HOVER_PULSE_STRUCTURE_ID = "structure.hover-pulse";
     /** The LRM carrier's twin rail launcher: the mech anti-armor LRM rack on a vehicle turntable. */
@@ -179,7 +182,7 @@ public final class TurretCatalogRegistry {
 
     private static void validateAsset(String ownerId, String field, String path) {
         if (path == null) return;
-        try (InputStream ignored = Global.getSettings().openStream(path)) {
+        try (InputStream ignored = Global.getSettings().openStream(ModTextures.file(path))) {
             // Opening the stream is the load-time existence check; rendering remains lazy.
         } catch (Exception e) {
             throw new IllegalStateException("Definition '" + ownerId + "' field '" + field

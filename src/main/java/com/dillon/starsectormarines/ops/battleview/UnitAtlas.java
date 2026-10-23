@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.render2d.texture.ModTextures;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.util.ArrayList;
@@ -34,17 +35,9 @@ import java.util.List;
  * order, and the drain still breaks a run wherever a different sheet or a solid
  * fill interrupts it.
  *
- * <p>{@link SpriteAtlas} owns the mechanism. What is here is which images go in,
- * and the switch that takes them back out for a control run:
- * {@code -Dbattle.render.unitAtlas=false}.
+ * <p>{@link SpriteAtlas} owns the mechanism. What is here is which images go in.
  */
 public final class UnitAtlas extends SpriteAtlas {
-
-    /** Control-run switch; see the class note. On by default. */
-    public static final String PROPERTY = "battle.render.unitAtlas";
-
-    private static final boolean ENABLED =
-            Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
 
     /**
      * Widths the layout may use, smallest first.
@@ -78,12 +71,7 @@ public final class UnitAtlas extends SpriteAtlas {
     private static final int MAX_IMAGE_PX = 320;
 
     public UnitAtlas() {
-        super("unit atlas", ENABLED, SIDES);
-    }
-
-    /** Whether the atlas is armed at all — for evidence that reports which run it was. */
-    public static boolean enabled() {
-        return ENABLED;
+        super("unit atlas", SIDES);
     }
 
     /**
@@ -168,8 +156,12 @@ public final class UnitAtlas extends SpriteAtlas {
     static Exclusion offer(List<Source> into, SpriteAPI sprite, int recordedW, int recordedH, String name) {
         if (sprite == null) return null;
         if (recordedW <= 0 || recordedH <= 0) return Exclusion.NO_SIZE;
-        if (recordedW > MAX_IMAGE_PX || recordedH > MAX_IMAGE_PX) return Exclusion.OVER_CAP;
-        into.add(new Source(sprite, recordedW, recordedH, name));
+        // A whole-image slot holds the texels the texture really has: a fitted image's slot is its
+        // shipped size (texture-fit.md), so the cap and the atlas both see the art as it ships.
+        int texW = ModTextures.shippedWidth(sprite, recordedW);
+        int texH = ModTextures.shippedHeight(sprite, recordedH);
+        if (texW > MAX_IMAGE_PX || texH > MAX_IMAGE_PX) return Exclusion.OVER_CAP;
+        into.add(new Source(sprite, texW, texH, name));
         return null;
     }
 }

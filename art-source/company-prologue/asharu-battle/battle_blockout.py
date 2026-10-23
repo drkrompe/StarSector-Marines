@@ -885,7 +885,7 @@ KEYFRAMES = {
     'k3e': dict(
         shot='S6d', title='The rear guard',
         caption='The convoy\'s Hound turns to face two Hounds (P) climbing at her. She kills the first at close range '
-                'and takes the second\'s fire full on, flares going out as she falls back on the column.',
+                'and takes the second\'s fire full on as she falls back on the column.',
         # HANDHELD CHASE: close behind the Hound, riding her roll-over, jolted by her kill and her hit
         camera=camera('k3e', [dict(t=t, loc=track(K3E_SHIPS['hound-m'], (-1450, 120, 160), .95, .15),
                                    target=track(K3E_SHIPS['hound-m'], (-1650, -180, 20), .8, .05), lens=lens)
@@ -893,7 +893,9 @@ KEYFRAMES = {
         ships=K3E_SHIPS,
         fx=[('tracer', 'hound-m', 'hound-p-a'), ('tracer', 'hound-p-b', 'hound-m'),
             ('blast_on', 'hound-p-a', 14, (0, 0, 0)), ('debris', 'hound-p-a', 40, (0, 0, 0)),
-            ('fire_on', 'hound-m', (-12, 4, 3)), ('flares', 'hound-m')],
+            # no flares: a Hound mounts no missiles, so nothing here is a seeker for them to answer (owner,
+            # 2026-10-23: flares need a visible cause, an inbound seeker on screen)
+            ('fire_on', 'hound-m', (-12, 4, 3))],
         cues={'hound-m': {'fire': 'all'}, 'hound-p-b': {'fire': 'all'}},
         labels=['hound-m', 'hound-p-a', 'hound-p-b']),
     'k3b': dict(
