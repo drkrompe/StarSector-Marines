@@ -1030,9 +1030,11 @@ every engagement question. A section dies inside one bank; a tank needs several,
 the laser falls back to its refill rate long before the tank is dead.
 
 The power plant takes the shell stowage's room and weight, so the hull is a little
-faster than the breakthrough tank and carries a little less plate. Until it has
-turret art of its own, the turret is drawn from the mount's sprite and the variant
-is not offered as a card. Acceptance is the `tank-versus-infantry` scene (the laser
+faster than the breakthrough tank and carries a little less plate. Its sheet is the
+breakthrough hull with its own turret (`art-source/vehicles/tank-laser/`): two stubby
+lens barrels in an armored housing where the gun was, radiator fin banks on the rear
+flanks and power conduits along the roof; its bursts alternate between the two lenses.
+Acceptance is the `tank-versus-infantry` scene (the laser
 fires at men, and none of its rounds carries blast or wall damage) and the
 `tank-versus-air` scene (the laser fires into the air at a hostile gunship, the
 cannon tank never does, and with men in reach as well the laser still fires at the

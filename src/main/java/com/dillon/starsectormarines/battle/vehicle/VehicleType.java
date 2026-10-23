@@ -147,12 +147,13 @@ public enum VehicleType {
      * answers each target in a short burst a second, hits nearly where it aims and turns fast, so it clears
      * infantry and drones far quicker than a cannon tank. It carries no blast and no wall damage, so it cannot open a
      * building, and its low penetration leaves it chipping at armor. The power plant takes the shell stowage's
-     * room and weight, so the hull runs a little faster. Its turret is drawn from the mount's sprite until it has
-     * art of its own, and until then the variant is not offered as a card.
+     * room and weight, so the hull runs a little faster. Its sheet is the breakthrough hull with an ImageGen
+     * turret carrying the emitter: two stubby lens barrels in an armored housing where the gun was, radiator fin
+     * banks on the rear flanks and power conduits along the roof (art-source/vehicles/tank-laser).
      */
-    LASER_TANK("graphics/battle/vehicles/army-tank.png", 0, 4, -90f,
+    LASER_TANK("graphics/battle/vehicles/army-tank-laser.png", 0, 4, -90f,
             0, 4.3f, 3.9f, 3.3f, 1.05f, 3.0f, .8f, 3.0f,
-            -1, 0f, 0f, 0f, 0f, 0f, 0f,
+            1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
             TurretCatalogRegistry.TANK_BURST_LASER_STRUCTURE_ID, 750f, 500f, 18f, 1.4f, 1.1f) {
         @Override public GroundBody createBody() {
             return new BicycleBody(2.6f, 32f, 95f, accel, brakingAccel, maxSpeed, TANK_REVERSE_FRACTION);
@@ -160,8 +161,6 @@ public enum VehicleType {
         @Override public float turretHitShare() { return TANK_TURRET_HIT_SHARE; }
         @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
         @Override public ArmorArcs.Profile armorArcs() { return arcs(TANK_ARCS); }
-        @Override public boolean turretArtFromMount() { return true; }
-        @Override public boolean presentationDeclared() { return false; }
     },
     /**
      * Breaching sidegrade on the breakthrough hull: a dozer blade and the APC's twin MG instead of

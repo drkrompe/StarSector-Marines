@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16641-cd1a-7421-81df-bb89262d962f",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16641-cd1a-7421-81df-bb89262d962f\\exec-2196c56f-0b92-4722-b852-5ed5a863eef2.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\tank-laser\\hull-raw-b.png",
+    "sha256": "60ab562641ff9f95da86cc6e902860ff21e29f0d1957accb57b92a0012e708e9",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\tank-laser\\hull-prompt-b.txt",
+  "promptSha256": "0378d451aab61782048934a3d4140486345b4d0071979949fc837e9cb3e54857",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity and shape authority: the hull to keep, same canvas, pose and scale\nImage 2: Geometry authority: the new parts and mount ring to fill exactly\nImage 3: Livery and material reference only: paint scheme, panel finish, light strips; not shape, size or position\n\nEdit image 1, an approved painted top-down sprite of a tracked vehicle HULL (no top module) on a wide transparent canvas, nose pointing LEFT. Image 2 is the geometry guide: the same hull with new parts blocked in as flat shapes and a round ship-style mount ring already set into the deck. Image 3 is a LIVERY reference only: a corporate high-tech hover vehicle from the same game; borrow its paint scheme and materials, never its shape, size or position.\nKeep the hull's outline, proportions, plate layout, nose, flanks and overhead camera of image 1, at the same position and scale on the same canvas. Keep the round mount ring of image 2 exactly as drawn (its metal ring and four-armed centre), only blending its rim into the new paint.\nREPAINT the whole hull in the livery of image 3: clean off-white and pale grey ceramic armour panels with fine panel lines, dark graphite trim and recesses, a few thin cyan light strips along the hull sides, small corporate hazard markings; crisp, well-kept, high-tech, light wear only. No olive paint, no rust, no orange patches.\nChange the blocked shapes as follows; the dark tracks stay visible and unchanged:\n- the slate block over the rear deck becomes a raised CAPACITOR PACK: a heavy graphite housing holding two rows of five round energy cells, each cell a capped cylinder seen from above with a small cyan charge window (the cyan dots);\n- the striped strip at the very rear becomes a bank of radiator fins with dark gaps, heat-darkened graphite.\n\nStrict 90-degree overhead orthographic, no perspective tilt. Exactly one object: the hull; no top module, no scene, labels, background, checkerboard, ground shadow or border. True transparent background with genuine alpha outside the silhouette. Same canvas size and aspect as image 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\tank-laser\\hull-target.png",
+      "sha256": "ea199177f97002e4c2860f7eafe98a643a378bc1bf245e644c4e2f01dd8b9c85",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Identity and shape authority: the hull to keep, same canvas, pose and scale"
+    },
+    {
+      "path": "art-source\\vehicles\\tank-laser\\hull-guide-b.png",
+      "sha256": "359891baf8aeaca0e6c584fd59891a82158e9dee58c4ac439051fcb60b6df2ee",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority: the new parts and mount ring to fill exactly"
+    },
+    {
+      "path": "art-source\\vehicles\\tt-hover\\scout-hull-raw.png",
+      "sha256": "da500f2259aa4a84d1ea253f96e6edba42ad153ae92a4e4d4a2d9ae3758b623f",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Livery and material reference only: paint scheme, panel finish, light strips; not shape, size or position"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to make the single hull edit, keeping the reference geometry and transparent canvas.\n"
+  ],
+  "usage": {
+    "input_tokens": 122969,
+    "cached_input_tokens": 100864,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 868,
+    "reasoning_output_tokens": 29
+  },
+  "elapsedSeconds": 72.9
+}
