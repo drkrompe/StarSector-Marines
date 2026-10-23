@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
 import com.dillon.starsectormarines.battle.vehicle.GroundVehicleTurretSystem;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 
 /**
  * How widely a button's thrown rockets or LRM salvo would land at the cursor: the widest landing disk among the
@@ -26,7 +27,10 @@ public final class DirectControlScatter {
         public float of(FireTrigger trigger) { return trigger == FireTrigger.LEFT ? leftCells : rightCells; }
     }
 
-    /** The controlled ground body's spread at its cursor, or none for a Marine, a warship or no cursor. */
+    /**
+     * The controlled ground body's spread at its cursor, or none for a warship, no cursor, or a Marine whose left
+     * button is not on a rocket.
+     */
     public static Spread read(BattleSimulation sim) {
         if (sim == null || !sim.directControl().active() || sim.directControl().warshipControl()) return Spread.NONE;
         var aim = sim.directControl().intent();
@@ -41,7 +45,14 @@ public final class DirectControlScatter {
             return new Spread(vehicle(structure.mount.weapon,
                     (float) Math.hypot(aim.aimX() - ring.x(), aim.aimY() - ring.y())), -1f);
         }
-        if (!sim.world().hasMechLoadout(id)) return Spread.NONE;
+        if (!sim.world().hasMechLoadout(id)) {
+            // A Marine blooms only with a rocket on the left button; a rifle's round flies a lane.
+            SpecialEquipmentDef picked = sim.directControl().leftSpecial();
+            if (picked == null) return Spread.NONE;
+            float reach = (float) Math.hypot(aim.aimX() - sim.world().renderX(id), aim.aimY() - sim.world().renderY(id));
+            return new Spread(ManualPointFire.scatterRadiusCells(picked.weaponDef(),
+                    DirectControlFireMarks.specialAccuracy(sim, id, picked), reach, 0f), -1f);
+        }
         float distance = (float) Math.hypot(aim.aimX() - sim.world().renderX(id), aim.aimY() - sim.world().renderY(id));
         var loadout = sim.world().mechLoadout(id);
         var picks = sim.directControl().mechPicks();

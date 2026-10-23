@@ -29,6 +29,7 @@ com.dillon.starsectormarines.battle.infantry.FiringLineSceneSnapshotSuite
 com.dillon.starsectormarines.battle.decision.goap.action.ProsecutionHoldSceneSnapshotSuite
 com.dillon.starsectormarines.battle.squad.LateArrivalSceneSnapshotSuite
 com.dillon.starsectormarines.ops.DirectControlUiSnapshotSuite
+com.dillon.starsectormarines.ops.MarineLeftSpecialSnapshotSuite
 com.dillon.starsectormarines.battle.squad.SquadTrafficSceneSnapshotSuite
 com.dillon.starsectormarines.ops.MissionUiSnapshotSuite
 
