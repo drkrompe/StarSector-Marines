@@ -2,9 +2,9 @@
 
 > Two buttons, two groups; each button cycles what it fires.
 
-Status: IN PROGRESS — steps 1 and 2 shipped (owner picked the keycap header look); steps 3-5 open
+Status: IN PROGRESS — steps 1-4 shipped (keycap header; Marine left-button specials; Marine right button with grenades); step 5 open
 Written: 2026-10-23
-Updated: 2026-10-23 — trigger model and HUD landed; keycap header chosen, the other looks removed
+Updated: 2026-10-23 — Marine grenades on the right button (step 4); held-weapon art question open
 
 Read `direct-control-nouns.md` first, in particular "Mouse buttons and weapon
 groups". This story extends that model, so the groups it describes stay true.
@@ -80,12 +80,28 @@ chooses what the button fires without a key per weapon.
 2. ~~HUD~~ (shipped): trigger headers and row wash/dim from the picks; frames
    `pick-linked` and `pick-one-mount` in `direct-control-ui`. The owner chose
    the keycap header, `LMB  LINKED  [Q]` (picks page, 2026-10-23).
-3. Marine direct-fire specials: a manual contract for the rocket launcher and
-   the anti-materiel rifle on the left trigger.
-4. Marine grenades: the manual throw on the right trigger.
+3. ~~Marine direct-fire specials~~ (shipped): `MarineLeftTrigger` in the
+   session, the special's own point-fire path, the reticle and HUD rows, and
+   the held pose from the existing aim and firing clips over walking feet;
+   frames in `marine-left-special`. Open: whether the owner wants dedicated
+   carry-and-walk art for the launcher and the rifle (see the art note below).
+4. ~~Marine grenades~~ (shipped): the right button's list (smoke, a hand grenade,
+   the shield) on E, and the grenade's committed manual throw; the flamer is a
+   left-button weapon, not a throw. Frames in `marine-right-button`.
 5. Vehicles: wire the right trigger to a second weapon when a hull gains one;
    add data for crewed defensive mounts if one appears outside the
    point-defence service.
+
+## Art note (step 3)
+
+The held special reuses art that already exists: the launcher and anti-materiel
+rifle sprites and their `aiming` and `firing` clips in the `rocket` and
+`anti-materiel` variants of `unit-layer-layouts`, with the rifle's walking
+feet under them while the Marine moves. Nothing new was drawn. What is missing,
+if the owner wants it, is a **walking clip per special**: the launcher carried at
+the shoulder or at port and the rifle at low ready, with the arms and shoulders
+moving in the stride, so a Marine walking with the special is not frozen in its
+firing stance from the waist up.
 
 ## Acceptance
 
@@ -93,7 +109,9 @@ chooses what the button fires without a key per weapon.
   Its racks cycle on E.
 - A Marine with a rocket launcher presses Q, fires one rocket at the cursor,
   presses Q again and is back on the rifle.
-- A Marine with grenades and smoke cycles the right trigger between them.
+- A Marine with a throw (smoke or a grenade) and a shield cycles the right trigger
+  between them (shipped). A Marine carries one special item, so smoke and a grenade
+  together would need a second special slot first.
 - Nothing unpicked fires, except crewed defences, which keep intercepting.
 - The noun doc's "Mouse buttons and weapon groups" describes the cycle, and
   this story is folded and deleted.

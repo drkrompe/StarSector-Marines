@@ -108,17 +108,18 @@ public final class MissionMarkerRenderSystem implements RenderSystem {
                 if (!overlaps) break;
             }
             labels.add(new float[]{x, top, height});
-            out.addSolidRect(layer(), x - WIDTH / 2, top - height, x + WIDTH / 2, top,
-                    .035f, .045f, .048f, .94f * alpha);
+            // Battle glass: no panel behind the card, so units beneath it stay visible;
+            // the text carries the HUD's shadow halo to read on any ground.
             out.addLine(layer(), x - WIDTH / 2, top, x + WIDTH / 2, top, 2, r, g, b, alpha);
             float textY = top - 5;
             for (String line : title) {
-                out.addCustom(layer(), new WorldLabel(Fonts.ORBITRON_12_BOLD, line, x, textY, PAPER, alpha));
+                out.addCustom(layer(), new WorldLabel(Fonts.ORBITRON_12_BOLD, line, x, textY, PAPER, alpha,
+                        WorldLabel.GLASS_HALO));
                 textY -= 16;
             }
             for (int i = 0; i < details.size(); i++) {
                 out.addCustom(layer(), new WorldLabel(Fonts.INSIGNIA_15_AA, details.get(i), x, textY,
-                        blocked || i == 0 ? tone : MUTED, alpha));
+                        blocked || i == 0 ? tone : MUTED, alpha, WorldLabel.GLASS_HALO));
                 textY -= 17;
             }
             if (bar) {

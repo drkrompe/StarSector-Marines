@@ -1,6 +1,6 @@
 # The Cordon: maps with intent
 
-Status: DRAFT. Direction for the Cordon's controlled maps (step 2). Built: the layout machinery, the picket courses as fieldworks with the garrison's guns in their nests, the switch line, the supply roads, the Road's second road, a placeholder eruption site, and the ridge the line stands on (rural and town; the redoubts stand in its passes, not on its crest).
+Status: DRAFT. Direction for the Cordon's controlled maps (step 2). Built: the layout machinery, the picket courses as fieldworks with the garrison's guns in their nests, the switch line, the supply roads, the Road's second road, a placeholder eruption site, the ridge the line stands on (rural and town; the redoubts stand in its passes, not on its crest), and the beats as optional objectives over the set pieces.
 
 Written: 2026-10-23
 
@@ -94,8 +94,8 @@ road to every convoy for the whole battle (`cordon-road` evidence,
 2026-10-23: a convoy stood at it from minute five to the end; one pool map in
 twelve held with it laid, four with its ground only held), and nothing
 clears it until the base fields a dozer. The beat lays
-it when it runs; the corridor is then proved through it, as a dozer will
-clear it. R2 to R4 need no new structure.
+it at setup only when R1 is rolled, and fields the dozer that clears it; the
+corridor is proved through its ground. R2 to R4 need no new structure.
 
 ## Order of work
 
@@ -114,11 +114,12 @@ clear it. R2 to R4 need no new structure.
    so the picket lines are dug on its crest; the redoubts stand in its passes
    at their roads, on the low ground, because a place is built before
    elevation goes down. Rural and town; an urban line has none.
-3. The set pieces, one per beat, each checked on the pools. Built, but R1's
-   wreck (above) and the dozer.
+3. The set pieces, one per beat, each checked on the pools. Built; R1's
+   wreck is laid by its beat (above).
 4. Then the optional-objective mechanism, shared with the heart, which rolls
-   beats against what the layout placed. The mechanism is built
-   (`optional-objectives.md`); the Cordon's pool and runtimes are not.
+   beats against what the layout placed. Built: the mechanism
+   (`optional-objectives.md`) and the Cordon's pool and runtimes
+   (`cordon-nouns.md`, Optional objectives).
 
 ## Open
 

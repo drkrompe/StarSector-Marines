@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-23 — held racks chain their salvos (`salvo-chain.md`); earlier: torso rear plate, torso arcs, missile warheads, duel range against armor.
+Updated: 2026-10-23 — a mech's flux shows as a haze on its vents; held racks chain their salvos; earlier: torso rear plate, torso arcs, missile warheads, duel range against armor.
 
 ## Purpose
 
@@ -438,7 +438,14 @@ increasing an encounter's total armored threat.
   it builds one into stores and fits nothing, and is dimmed while the materials are
   short. A row with a spare offers no build at all: the spare is what to drag, and
   stripping a part back to stores takes the offer away again. Plating is the one exception: it covers the whole frame and
-  has no mount to drop on, so a spare plate is fitted from its row. The fitting
+  has no mount to drop on, so a spare plate is fitted from its row. Internals
+  drag off like weapons, but a frame always holds an engine and a capacitor bank:
+  dragging either back to stores refits the stock part from stores in its place,
+  and is refused when the fitted part is already stock or no stock spare is held.
+  Only the vent array leaves its socket empty. The stores filters follow the
+  socket: a weapon mount sorts by hardpoint type, and every other socket offers
+  All and In stock. The whole stores row is the drag handle and the hover target
+  for its spec sheet. The fitting
   view has no call-sign or status bars: a BACK button returns to the lance
   overview, as the Mech Lab tab itself does.
 - A **fitting doll** is the asset-authored maintenance presentation of one mech
@@ -1319,16 +1326,20 @@ nothing; cancelled packets retain spent flux and ammo. Dissipation runs once in 
 serial heavy-weapon pass, including on unselected mounts and autonomous chassis.
 Direct-control entry, exit, pause and input suspension never reset these resources.
 
-**A held rack chains its salvos** (`salvo-chain.md`, `SalvoChain`). A rack's trigger is one
+**A held rack chains its salvos** (`SalvoChain`). A rack's trigger is one
 salvo; once a hold has fired one, the next follows as soon as the last has gone, without the
 rack's cycle, until the button is released or the rack is empty, and the cycle then runs from the
 last salvo. So an LRM-15 is 5 on a click, 10 on a short hold and 15 on a long one, and a deeper rack
-is a bigger spike. A chained salvo reserves half its trigger's flux, which lets an LRM-15 empty
-inside the stock reservoir while flux still bounds the deepest racks. The replenisher restores the
+is a bigger spike. A fresh press after release waits out the cycle like any trigger. A chained
+salvo reserves half its trigger's flux (owner, 2026-10-23): at the full share an LRM-15's fifteen
+would cost 120 and could never leave inside the stock 100, while at half they cost 80, and flux still
+bounds the deepest racks (an SRM-15's six salvos would cost 147). The replenisher restores the
 spent salvos one pack at a time, as ever. An autonomous mech chooses its count on a fresh trigger:
 one salvo at a soft target, the whole load at a mech or at a target its own side's point defence
-covers, and half the load at other armor; a chained salvo goes only to the body its chain began
-on. `-Dbattle.salvoChain=false` is the control.
+covers, and half the load (rounded up) at other armor; a chained salvo goes only to the body its
+chain began on. A vehicle turret's missile launcher obeys the same hold and choice, except that its
+crew chains at most three salvos (owner, 2026-10-23): a vehicle magazine is its whole stock and is
+never replenished in battle, so it is not one rack's buffer to empty at the first machine it sees.
 
 **Against a machine, the mount that best defeats its armor fires first.** The
 reservoir admits one packet at a time, so whichever mount an autonomous mech tries
@@ -1350,6 +1361,12 @@ headroom; at 95 it vents until 55, with no damage or movement shutdown. A trigge
 waits for enough headroom even below that interlock. The HUD shows shared flux
 and per-mount flux holds separately from cycler/loader progress and pack
 supply. Mech Lab hover sheets expose both costs and dissipation time per burst.
+
+Flux shows on the body as a ground hull's gun shows it, in the same look
+(`FluxHaze`, `convoy-nouns.md`): a purple haze over the vents across the torso's
+back, turning with the torso, that thickens with the square of the reservoir's
+share, wisps drifting aft off it, and a bright lavender plume for as long as the
+mech vents. It is drawn from current flux and simulation time alone.
 
 Evidence: `hound-flux` compares held fire, paced bursts, autonomous dissipation and
 reverse/strafe motion; its snapshot suite overlays the live production HUD on

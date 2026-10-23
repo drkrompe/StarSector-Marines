@@ -1,6 +1,6 @@
 # The Heart — story beats (candidates)
 
-Status: ACTIVE. The owner picked every beat (2026-10-23); they become a pool of optional objectives once the maps hold their structures (`heart-mission-depth.md`). Nothing here is built.
+Status: ACTIVE. The owner picked every beat (2026-10-23). Every beat but B5 is in the heart's optional-objective pool (`HeartObjectives`); B5 waits on the ammunition convoy.
 
 Written: 2026-10-23
 
@@ -93,9 +93,43 @@ heart; the extra line stays short of it. Needs: a convoy on the farm road
 are the company's alone for the last stretch. It is a pacing beat, not a
 mechanic: the presentation marks it (`barrage_ended` already exists).
 
-## Open
+## As optional objectives
 
-Every beat is picked. Each becomes an optional objective that a battle may
-activate when its map holds the structure it needs, with a reward on success
-and a cost on failure (`heart-mission-depth.md`). The shared mechanism that
-rolls and runs them is `optional-objectives.md`.
+Each beat becomes an optional objective (`optional-objectives.md`) that a
+battle may roll when its map laid the place it needs, with a reward on
+success and a cost on failure. A rural battle runs one or two, a town or city
+two or three, drawn from the battle seed over what the map laid.
+
+| Beat | Key | Needs | Succeeds | Fails | Reward / cost |
+| --- | --- | --- | --- | --- | --- |
+| F1 | `lost_column` | `holdout` | the company reaches it | seven minutes pass first | credits and supplies / one more satellite |
+| F5 | `linkup` | `reservoir-yard` | the company and an allied lane in the yard together | never; lapses | credits |
+| B2 | `village` | `village-holdout` | the company reaches it | the barrage's third line opens first | regard |
+| B3 | `guns_hold` | `gun-flank-1` | every gun standing at the end | the first gun lost | credits / the battery weakened |
+| B4 | `ford` | `company-ford` | the company at its ford | never; lapses | credits |
+| F2 | `plug_the_gap` | nothing | once a lane breaks, the company in its ground within 90 s | the 90 s pass | credits |
+| F3 | `air_corridor` | `ammo-dump-1` | the colonies of the two satellites nearest the company all dead | never; lapses | credits |
+| F4 | `matriarch_down` | nothing | the first Matriarchs out dead within 150 s | she lives longer | credits |
+| F6 | `road_open` | `supply-road` | the satellite nearest the road collapses | the battle ends first | credits |
+| B1 | `clear_of_the_walk` | nothing | the barrage ends without a gun holding its fire for the company | the first held round | credits |
+| B6 | `last_stretch` | nothing | every mother down within four minutes of the barrage's end | the four minutes pass | credits |
+
+The air beats bring the Harrier in under the flier's law (`colony-breach-nouns.md`,
+Harrier): a pack flies only where the company or an ally has anti-air.
+- B3 digs a flak position among the guns. When the barrage's second line opens, a pack rises on the flank toward the battery, on the side of the nearest living bore, and `battery_threatened` is published.
+- F3 digs one at the ammunition dump. While a target satellite's colonies stand, one raises a pack whenever the company or an ally comes within a Harrier's sense of it: at most three packs, two minutes apart.
+- With no anti-air standing, no pack rises.
+
+Two beats are read as objectives the moment does not say outright. B1's
+ranging smoke is presentation, so its objective asks what the walk asks of
+the company: follow close, never close enough to stop a gun. B6's quiet is
+presentation too, so its objective is the finish inside it.
+
+Not in the pool yet:
+- B5 needs the ammunition convoy.
+- F2's re-aimed wave and F4's hull-seeking Matriarch need the commander and the swarm-side behaviour they name. Their objectives run without them.
+- F3's close air support is step 3.
+- The lost column's survivors do not join a lane yet.
+
+The shared mechanism that rolls and runs them is `optional-objectives.md`.
+

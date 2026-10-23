@@ -129,6 +129,14 @@ public final class WeaponDef {
      * id list, so a new warhead is engageable the moment its data says so.
      */
     public final boolean pointDefenseTarget;
+    /**
+     * Whether the weapon can follow a flier ({@code UnitType.isFlier}) closely enough to engage it: small arms,
+     * machine guns, autocannon, point-defence lasers and anti-air. A heavy cannon, a mortar, a rocket or a
+     * grenade cannot, and its shooter never picks a flier. Authored per weapon; absent means it cannot.
+     */
+    private boolean tracksFliers;
+
+    public boolean tracksFliers() { return tracksFliers; }
     /** Whether an interceptable projectile accelerates through the shared boost-then-cruise motion curve. */
     public final boolean boostRamp;
     /** A two-stage missile's unpowered coast out of the tube before its motor lights, or {@code null}. */
@@ -397,6 +405,7 @@ public final class WeaponDef {
                     + "' declares render.beam for a projectile-sprite weapon");
         }
         def.incendiaryHeat = Math.max(0, sim.optInt("incendiaryHeat", 0));
+        def.tracksFliers = sim.optBoolean("tracksFliers", false);
         def.magazine = MagazineDef.parse(sim.optJSONObject("magazine"), id);
         if (def.magazine != null && def.mount != MountClass.MARINE_PRIMARY) {
             throw new JSONException("Weapon '" + id + "' declares a magazine outside the marine-primary mount class");

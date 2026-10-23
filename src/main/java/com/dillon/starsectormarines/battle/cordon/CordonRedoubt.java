@@ -11,8 +11,11 @@ import java.util.List;
  */
 public final class CordonRedoubt {
 
-    /** {@code cordon-nouns.md}, Redoubt states. */
-    public enum State { HOLDING, CALLING, RELIEVED, FALLEN }
+    /**
+     * {@code cordon-nouns.md}, Redoubt states. {@code GIVEN_UP} is a redoubt the allied command ordered its garrison
+     * out of (beat L3): empty, never calling, and not fallen, so it does not count against the line.
+     */
+    public enum State { HOLDING, CALLING, RELIEVED, FALLEN, GIVEN_UP }
 
     private final int number;
     private final int left, top, right, bottom;
@@ -53,6 +56,9 @@ public final class CordonRedoubt {
     public State state() { return state; }
 
     void setState(State state) { this.state = state; }
+
+    /** Whether the allies still hold it: neither fallen nor given up. Columns, carriers and armour go only to these. */
+    public boolean manned() { return state != State.FALLEN && state != State.GIVEN_UP; }
 
     /** An allied column joins the garrison: its squad is a wall team from here on. */
     void reinforce(int squad, int members) {

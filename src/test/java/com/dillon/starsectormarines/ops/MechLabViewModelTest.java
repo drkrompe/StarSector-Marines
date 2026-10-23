@@ -561,8 +561,8 @@ class MechLabViewModelTest {
             for (MechLabViewModel.CatalogRow row : rows) {
                 boolean subject = row.chassisPreview() != null || row.weaponPreview() != null;
                 if (subject) subjects++;
-                assertEquals(subject, binder.isBound(instance.requireElement(row.nameId())),
-                        row.nameId() + " is bound the wrong way round");
+                assertEquals(subject, binder.isBound(instance.requireElement(row.id())),
+                        row.id() + " is bound the wrong way round");
             }
             assertTrue(subjects > 0, "the catalog offered nothing to describe");
             assertEquals(subjects + viewModel.materialStock().get().size() + rows.stream().mapToInt(row -> row.materials().size()).sum(), binder.size());
@@ -674,7 +674,9 @@ class MechLabViewModelTest {
         MechBay bay = MechBay.legacyStarterFixture();
         MechLabViewModel viewModel = new MechLabViewModel(reactor, bay);
         viewModel.gantryRows().get().get(0).select().run();
-        assertTrue(viewModel.categoryFilterPills().get().isEmpty(), "Mini-fabs have no weapon categories");
+        assertEquals(List.of("mech-filter:all", "mech-filter:in_stock"),
+                viewModel.categoryFilterPills().get().stream().map(MechLabViewModel.FilterPill::id).toList(),
+                "Mini-fabs have no weapon categories, only stock");
         viewModel.selectSlot(SocketId.LEFT_ARM);
         assertFalse(viewModel.categoryFilterPills().get().isEmpty());
 
@@ -806,6 +808,20 @@ class MechLabViewModelTest {
         assertEquals(mech.internal(MechInternal.Role.ENGINE).displayName(),
                 viewModel.slotRows().get().stream().filter(row -> row.socketId() == SocketId.CORE)
                         .findFirst().orElseThrow().component());
+
+        // Dragged off the doll, the engine goes back to stores and the stock one is refitted;
+        // the stock engine itself cannot leave, because a frame always holds one.
+        assertTrue(viewModel.removeInstalledInternal(SocketId.CORE), viewModel.feedbackText().get());
+        assertEquals(MechInternal.INDUSTRIAL_ENGINE, mech.internal(MechInternal.Role.ENGINE));
+        assertEquals(1, bay.availableInternal(MechInternal.UPRATED_ENGINE.id));
+        assertFalse(viewModel.removeInstalledInternal(SocketId.CORE));
+        assertEquals(MechInternal.INDUSTRIAL_ENGINE, mech.internal(MechInternal.Role.ENGINE));
+        assertTrue(viewModel.feedbackClasses().get().contains("tone-danger"));
+
+        viewModel.setFilter(MechLabViewModel.CategoryFilter.IN_STOCK);
+        assertTrue(viewModel.catalogRows().get().stream()
+                .allMatch(row -> bay.availableInternal(row.internalPreview().id) > 0));
+        viewModel.setFilter(MechLabViewModel.CategoryFilter.ALL);
 
         viewModel.selectSlot(SocketId.CAPACITORS);
         assertTrue(viewModel.catalogRows().get().stream().allMatch(row ->

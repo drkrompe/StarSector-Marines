@@ -294,17 +294,21 @@ public final class MechLabScreen implements Screen {
                             row.weaponPreview(), row.replenisherPreview(), row.internalPreview(),
                             this::previewMechs));
                 }
-                if (row.weaponPreview() != null || row.replenisherPreview() != null
-                        || row.internalPreview() != null
-                        && row.internalPreview().role != MechInternal.Role.PLATING) {
-                    canvas.onPointerDown(event -> beginCatalogDrag(event, row));
-                    canvas.onPointerMove(this::moveWeaponDrag);
-                    canvas.onPointerUp(this::finishWeaponDrag);
-                }
             }
+            // The whole row is the drag handle, not only its picture.
+            boolean draggable = row.weaponPreview() != null || row.replenisherPreview() != null
+                    || row.internalPreview() != null
+                    && row.internalPreview().role != MechInternal.Role.PLATING;
             UiElement card = instance.requireElement(row.id());
-            if (row.selectsOnClick()) card.onPointerDown(event -> row.action().run());
+            card.onPointerDown(event -> {
+                if (row.selectsOnClick()) row.action().run();
+                if (draggable) beginCatalogDrag(event, row);
+            });
             card.onPointerMove(event -> {
+                if (weaponDrag != null) {
+                    moveWeaponDrag(event);
+                    return;
+                }
                 if (row.weaponPreview() != null) {
                     viewModel.hoverWeapon(row.weaponPreview());
                     if (dollElement != null) target.canvases().invalidate(dollElement);
@@ -312,6 +316,7 @@ public final class MechLabScreen implements Screen {
                     viewModel.hoverInternal(row.internalPreview());
                 }
             });
+            card.onPointerUp(draggable ? this::finishWeaponDrag : null);
         }
         for (MechLabViewModel.SlotRow row : viewModel.selectedSlotRows().get()) {
             UiElement canvas = instance.requireElement(row.gridId());
@@ -376,6 +381,14 @@ public final class MechLabScreen implements Screen {
             beginWeaponDrag(event, component, socket);
             return;
         }
+        MechInternal internal = socket != null ? viewModel.installedInternal(socket) : null;
+        if (internal != null) {
+            weaponDrag = new WeaponDrag(null, internal, null, socket, event.x(), event.y());
+            weaponDragMoved = false;
+            event.capturePointer();
+            event.preventDefault();
+            return;
+        }
         if (socket != null) {
             viewModel.selectSocket(socket);
             document.canvases().invalidate(dollElement);
@@ -413,6 +426,10 @@ public final class MechLabScreen implements Screen {
     /** Picks a spare up out of stores; a row with none to carry only offers its FAB button. */
     private void beginCatalogDrag(UiPointerEvent event, MechLabViewModel.CatalogRow row) {
         if (event.button() != PointerButton.PRIMARY) return;
+        // A press on the row's own FAB button is that button's click, not a pick-up.
+        for (UiElement e = event.target(); e != null && e != event.currentTarget(); e = e.parent()) {
+            if (e.clickable()) return;
+        }
         MechWeaponComponent weapon = row.weaponPreview();
         MechInternal internal = row.internalPreview();
         MissileReplenisherComponent loader = row.replenisherPreview();
@@ -446,8 +463,9 @@ public final class MechLabScreen implements Screen {
         document.canvases().invalidate(ghostElement);
         CanvasPoint point = canvasPoint(event);
         SocketId target = point != null ? dollCanvas.socketAt(point.x(), point.y()) : null;
+        // An installed internal has only its own socket; it can go back to stores and nowhere else.
         boolean valid = target != null && (drag.source() != null
-                ? viewModel.canMoveInstalledWeapon(drag.source(), target)
+                ? drag.component() != null && viewModel.canMoveInstalledWeapon(drag.source(), target)
                 : drag.component() != null ? viewModel.canDropCatalogWeapon(drag.component(), target)
                 : drag.internal() != null ? viewModel.canDropCatalogInternal(drag.internal(), target)
                 : viewModel.canDropCatalogLoader(drag.loader(), target));
@@ -471,6 +489,10 @@ public final class MechLabScreen implements Screen {
         SocketId target = point != null ? dollCanvas.socketAt(point.x(), point.y()) : null;
         if (!weaponDragMoved) {
             if (drag.source() != null) viewModel.selectSocket(drag.source());
+        } else if (drag.source() != null && drag.component() == null) {
+            if (overInventory(event)) viewModel.removeInstalledInternal(drag.source());
+            else if (target == drag.source()) viewModel.selectSocket(target);
+            else viewModel.cancelWeaponDrag();
         } else if (target != null && target != drag.source()) {
             if (drag.source() == null) {
                 if (drag.component() != null) viewModel.dropCatalogWeapon(drag.component(), target);

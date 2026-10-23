@@ -39,6 +39,21 @@ class SpecSheetLayerTest {
         }
     }
 
+    /** A tutorial shade mounted after install must not paint over an open sheet. */
+    @Test
+    void paintsAboveLayersMountedAfterInstall() {
+        try (MarkupInstance instance = SpecSheetDocuments.instance()) {
+            UiDocument document = SpecSheetDocuments.laidOut(instance);
+            SpecSheetLayer layer = SpecSheetLayer.install(document);
+            document.root().child(new UiElement("late-shade"));
+
+            layer.show(SpecSheetDocuments.sheet("weapon"), instance.requireElement("near-left"));
+
+            List<UiElement> children = document.root().children();
+            assertSame(layer.element(), children.get(children.size() - 1));
+        }
+    }
+
     /** No room on the right is a flip, not a sheet hanging off the edge. */
     @Test
     void flipsToTheLeftWhenTheRightEdgeIsTooClose() {

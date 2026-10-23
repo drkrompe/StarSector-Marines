@@ -43,6 +43,7 @@ public class RenderAppearanceTest {
                     || t == UnitType.BASED_AIRCRAFT
                     || t == UnitType.RANGE_TARGET
                     || t == UnitType.DRONE
+                    || t == UnitType.SWARM_HARRIER
                     || t == UnitType.GROUND_VEHICLE;
             if (!structural) {
                 assertEquals(SpriteKind.SHEET, app.spriteKind, "non-structural type should be SHEET: " + t);

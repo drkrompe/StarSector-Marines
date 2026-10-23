@@ -71,6 +71,19 @@ public final class TurretMountDef {
     public final String spritePath;
     /** Optional recoil/barrel layer paired with {@link #spritePath}. */
     public final String recoilSpritePath;
+    /** How the barrel layer kicks back on a shot ({@code render.recoil}); {@link Recoil#DEFAULT} when not authored. */
+    public final Recoil recoil;
+    /** Whether the gun throws spent brass beside itself as it fires ({@code render.casings}). Presentation only. */
+    public final boolean ejectsCasings;
+
+    /**
+     * A barrel's kick: it jumps back {@code distanceFrac} of the mount's visual size when a round leaves and eases
+     * home over {@code seconds}. Presentation only: no rule reads it.
+     */
+    public record Recoil(float distanceFrac, float seconds) {
+        /** The kick every mount had before it could author its own. */
+        public static final Recoil DEFAULT = new Recoil(0.10f, 0.12f);
+    }
 
     private TurretMountDef(String id, String weaponId, WeaponDef weapon,
                            int ammoCapacity, float turnRateDegPerSec,
@@ -78,8 +91,11 @@ public final class TurretMountDef {
                            float muzzleLateralOffsetCells, List<Muzzle> muzzles,
                            boolean hardenedTargetsOnly, Flux flux,
                            boolean engagesAir, float maxDepressionDeg,
-                           String spritePath, String recoilSpritePath) {
+                           String spritePath, String recoilSpritePath, Recoil recoil,
+                           boolean ejectsCasings) {
         this.id = id;
+        this.recoil = recoil;
+        this.ejectsCasings = ejectsCasings;
         this.maxDepressionDeg = maxDepressionDeg;
         this.engagesAir = engagesAir;
         this.flux = flux;
@@ -177,10 +193,23 @@ public final class TurretMountDef {
             throw new JSONException("Turret mount '" + id
                     + "' declares sprite appearance without positive muzzleOffsetCells");
         }
+        Recoil recoil = Recoil.DEFAULT;
+        JSONObject kick = render != null ? render.optJSONObject("recoil") : null;
+        if (kick != null) {
+            float distance = (float) kick.optDouble("distanceFrac", Recoil.DEFAULT.distanceFrac());
+            float seconds = (float) kick.optDouble("seconds", Recoil.DEFAULT.seconds());
+            if (!Float.isFinite(distance) || distance < 0f || distance > 1f
+                    || !Float.isFinite(seconds) || seconds <= 0f) {
+                throw new JSONException("Turret mount '" + id
+                        + "' recoil needs distanceFrac in [0, 1] and positive seconds");
+            }
+            recoil = new Recoil(distance, seconds);
+        }
         return new TurretMountDef(
                 id, weaponId, weapon, ammoCapacity, turnRate, visualCells, muzzleOffsetCells,
                 muzzleLateralOffsetCells, muzzles, json.optBoolean("hardenedTargetsOnly", false),
-                flux, json.optBoolean("engagesAir", false), maxDepressionDeg, sprite, recoilSprite);
+                flux, json.optBoolean("engagesAir", false), maxDepressionDeg, sprite, recoilSprite, recoil,
+                render != null && render.optBoolean("casings", false));
     }
 
     /** A mount's flux frame ({@link TurretMountDef#flux}). */

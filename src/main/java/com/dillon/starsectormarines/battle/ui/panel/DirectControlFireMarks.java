@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.combat.PointAimDispersion;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.combat.RangeFalloff;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.control.MarineRightTrigger;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.mech.MechHardpointGeometry;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
@@ -153,7 +154,8 @@ public final class DirectControlFireMarks {
     }
 
     /**
-     * The primary on the left; on the right, carried smoke, or the integral shield for a Marine without smoke.
+     * The primary, or the special the left button is on, on the left; on the right, the right-button pick:
+     * smoke, a hand grenade or the shield.
      * A magazine run dry is a reload, a clock, so the primary is never grey for it.
      */
     private static Marks marine(BattleSimulation sim, long id, float aimX, float aimY) {
@@ -162,7 +164,15 @@ public final class DirectControlFireMarks {
         var combat = sim.combat();
         WeaponDef primary = combat.has(id) ? combat.primaryWeaponDef(id) : null;
         Mark left = Mark.NONE;
-        if (primary != null && PointFireAim.supports(primary)) {
+        SpecialEquipmentDef picked = sim.directControl().leftSpecial();
+        if (picked != null) {
+            // The left button on a special reads the special: its reach, its accuracy, and grey once it is empty.
+            WeaponDef weapon = picked.weaponDef();
+            boolean fires = world.secondaryAmmo(id) > 0 && !ManualPointFire.tooClose(weapon, distance);
+            float optimal = ManualPointFire.optimalRangeCells(weapon.range, specialAccuracy(sim, id, picked), 0f,
+                    weapon.aoeRadius, PointAimDispersion.CONTROLLED);
+            left = of(fires, distance, optimal, weapon.range);
+        } else if (primary != null && PointFireAim.supports(primary)) {
             float range = world.attackRange(id);
             float accuracy = RangeFalloff.accuracy(world.accuracy(id), primary.accuracyFalloff, range, range);
             float spread = InfantryCombatStats.spread(primary, combat.equipmentGrade(id), combat.soldierProfile(id));
@@ -173,21 +183,28 @@ public final class DirectControlFireMarks {
         return new Marks(left, marineSecondary(sim, id, distance));
     }
 
+    /** A carried special's accuracy in this Marine's hands, as its round is resolved with. */
+    public static float specialAccuracy(BattleSimulation sim, long id, SpecialEquipmentDef special) {
+        return Math.min(1f, special.accuracy()
+                * InfantryCombatStats.shooterAccuracyMult(sim.combat().soldierProfile(id)));
+    }
+
     private static Mark marineSecondary(BattleSimulation sim, long id, float distance) {
+        MarineRightTrigger.Item pick = sim.directControl().marineRightPick();
+        if (pick == null) return Mark.NONE;
         var world = sim.world();
-        SpecialEquipmentDef special = world.hasSecondaryWeapon(id) ? world.specialEquipment(id) : null;
-        boolean smoke = special != null && special.activation() == SpecialActivation.UTILITY_SMOKE
-                && special.smokeGrenadeSpec() != null;
-        if (smoke && world.secondaryAmmo(id) > 0) {
-            // A throw past its reach lands short, at its range: thrown, but not where the cursor is.
-            float reach = special.smokeGrenadeSpec().throwRange();
-            return of(true, distance, reach, reach);
+        if (pick == MarineRightTrigger.Item.SHIELD) {
+            var systems = sim.getRoster().integralSystems();
+            return systems.spec(id).usesAmmunition() && systems.ammo(id) <= 0 ? Mark.HELD : Mark.GOOD;
         }
-        var systems = sim.getRoster().integralSystems();
-        var shield = systems.spec(id);
-        if (shield != null && shield.grantsMitigation()) {
-            return shield.usesAmmunition() && systems.ammo(id) <= 0 ? Mark.HELD : Mark.GOOD;
-        }
-        return smoke ? Mark.HELD : Mark.NONE;
+        // A throw past its reach lands short, at its range: thrown, but not where the cursor is.
+        return world.secondaryAmmo(id) > 0 ? of(true, distance, throwReach(world.specialEquipment(id)),
+                throwReach(world.specialEquipment(id))) : Mark.HELD;
+    }
+
+    /** How far a carried smoke canister or hand grenade can be thrown, in cells. */
+    public static float throwReach(SpecialEquipmentDef special) {
+        return special.activation() == SpecialActivation.UTILITY_SMOKE ? special.smokeGrenadeSpec().throwRange()
+                : special.range();
     }
 }

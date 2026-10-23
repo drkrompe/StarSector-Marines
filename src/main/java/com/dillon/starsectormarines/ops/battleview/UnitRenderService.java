@@ -460,8 +460,8 @@ public final class UnitRenderService implements RenderSystem {
 
             TurretLayerPose pose = TurretLayerPose.resolve(
                     cx, cy, facingDegrees, structure.mount.visualCells, cellPx,
-                    turretState.recoilTimer(id), BattleRenderer.RECOIL_DURATION,
-                    BattleRenderer.RECOIL_DISTANCE_FRAC);
+                    turretState.recoilTimer(id), structure.mount.recoil.seconds(),
+                    structure.mount.recoil.distanceFrac());
 
             ShuttleSpriteCache barrel = look != null && look.recoilSpritePath() != null
                     ? sprites.spriteByPath(look.recoilSpritePath()) : sprites.turretRecoilSprites().get(structure.id);
@@ -1414,6 +1414,15 @@ public final class UnitRenderService implements RenderSystem {
                             mechArms[r], mechLeftArm[r], mechRightArm[r],
                             mechLeftShoulder[r], mechRightShoulder[r], unitAlpha,
                             authoredPose, gaitPose);
+                    if (world.hasMechLoadout(entityId)) {
+                        sprites.ensureEngineFxSprites();
+                        FluxHaze.collectMech(out, sprites.engineGlowSprite(), cam, cam.cellPxSize(),
+                                rx[r] + (gait != null ? gait.waistOffsetX() : 0f),
+                                ry[r] + (gait != null ? gait.waistOffsetY() : 0f), mechFacing[r],
+                                LayeredMechAppearance.hullWidthCells(roster.renderScale(entityId)),
+                                world.mechLoadout(entityId).flux,
+                                ctx.sim.getSimTickIndex() * BattleSimulation.TICK_DT, unitAlpha);
+                    }
                     continue;
                 }
                 Object rig = ravRigs != null ? ravRigs[r] : null;
@@ -1623,12 +1632,15 @@ public final class UnitRenderService implements RenderSystem {
         AnimationClip clip = layouts.clip("marine-line", variantId, animationId);
         if (clip == null) return null;
         LayerPose sampled = clip.sample(phase);
-        if (moving && (pose == LayeredAppearance.POSE_AIMED
-                || pose == LayeredAppearance.POSE_FIRING)) {
-            // A primary-weapon action owns the upper body, but it must not
-            // erase locomotion while the simulation is still translating the
-            // marine. Keep the action body/head/weapon and take both feet from
-            // the current distance-driven stride sample.
+        if (moving && pose != LayeredAppearance.POSE_IDLE
+                && pose != LayeredAppearance.POSE_SMOKE_THROW
+                && pose != LayeredAppearance.POSE_SATCHEL_PLANT) {
+            // A weapon action owns the upper body, but it must not erase
+            // locomotion while the simulation is still translating the marine:
+            // a primary fired on the move, or a controlled Marine walking with
+            // the launcher or anti-materiel rifle its left button is on. Keep
+            // the action body/head/weapon and take both feet from the current
+            // distance-driven stride sample.
             AnimationClip walking = layouts.clip("marine-line", "rifle", "walking");
             if (walking != null) {
                 sampled = sampled.withLayersFrom(walking.sample(locomotionPhase),

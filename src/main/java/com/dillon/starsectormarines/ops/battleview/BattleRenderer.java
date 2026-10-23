@@ -255,6 +255,8 @@ public class BattleRenderer {
 
     /** S3 render-side event lights consumed by the surface-relief composite. */
     private final GroundLightService groundLights = new GroundLightService();
+    /** Barrel smoke, ejected brass and damage smoke off map turrets; fed by the screen with the simulation's shots. */
+    private final TurretFx turretFx = new TurretFx(0x7A11E7L);
 
     /** S2/S3 ground FBO + parallax/bump-light composite. {@link DevConfig#SURFACE_RELIEF_PARALLAX}-gated. */
     private final SunLight sun = new SunLight();
@@ -370,6 +372,7 @@ public class BattleRenderer {
                 // Overhead machinery such as a bay's travelling crane passes over whoever stands beneath it.
                 new PropMotionRenderSystem(sprites, PropMotion.Layer.OVERHEAD, propPhases),
                 new DroneRenderSystem(sprites),
+                new HarrierRenderSystem(sprites),
                 new SalvageCacheRenderSystem(sprites),
                 new MissionMarkerRenderSystem(),
                 RenderSystem.of(RenderLayer.OBJECTIVES, (ctx, out) ->
@@ -567,23 +570,34 @@ public class BattleRenderer {
         }
     }
 
-    /** {@link BattleSprites#terrainSheetCount()} when the terrain batches were last brought up to date. */
-    private int terrainBatchesFor = -1;
+    /** Tracks {@link BattleSprites#terrainSheetCount()} so terrain batches are brought up to date only on growth. */
+    private final GrowthGate terrainGate = new GrowthGate();
+    /** Tracks the convoy sheet count; a vehicle line the texture set did not plan loads on first draw. */
+    private final GrowthGate convoyGate = new GrowthGate();
 
     /**
      * A batch for every catalog sheet loaded since attach — one a host loads on first ask
      * ({@link BattleSprites#extraTerrainSheet}) — so its quads draw rather than drop in the drain.
      */
     private void registerLateTerrainBatches() {
-        int count = sprites.terrainSheetCount();
-        if (count == terrainBatchesFor) return;
-        terrainBatchesFor = count;
+        if (!terrainGate.changed(sprites.terrainSheetCount())) return;
         for (SpriteAPI sheet : sprites.extraTerrainSheets()) {
             if (batchBySheet.containsKey(sheet)) continue;
             registerBatch(sheet, new QuadBatch(sheet,
                     Math.max(1, Math.round(sheet.getWidth())),
                     Math.max(1, Math.round(sheet.getHeight())), 4096));
         }
+    }
+
+    /**
+     * A batch for every convoy sheet loaded since attach (a vehicle line {@code BattleTextureSet} did not plan loads
+     * on first draw), and the scuff sheet worn plate draws from, so those quads draw rather than drop in the drain.
+     */
+    private void registerLateConvoyBatches() {
+        if (!convoyGate.changed(sprites.convoySprites().size())) return;
+        registerSpriteSheetBatches(sprites.convoySprites().values());
+        ShuttleSpriteCache scuffs = sprites.spriteByPath(VehicleScuffs.SHEET);
+        if (scuffs != null) registerHullBatches(List.of(scuffs));
     }
 
     private void registerBatch(SpriteAPI sheet, QuadBatch batch) {
@@ -609,6 +623,8 @@ public class BattleRenderer {
 
     /** Accessor for the host's combat-event presentation pass. */
     public GroundLightService getGroundLights() { return groundLights; }
+
+    public TurretFx getTurretFx() { return turretFx; }
 
     /**
      * Lights the ground composite from {@code lights} instead of this renderer's own; null restores its own. A
@@ -1265,6 +1281,7 @@ public class BattleRenderer {
     void renderWorld(RenderContext rc, EnumSet<RenderLayer> layers, FrameCensus census, DrawList leading) {
         collectWorld(rc, layers, census);
         registerLateTerrainBatches();
+        registerLateConvoyBatches();
         boolean parallax = (rc.hostProfile.surfaceReliefEnabled() || GroundParallaxPipeline.deckWaterVisible(rc))
                 && DevConfig.SURFACE_RELIEF_PARALLAX
                 && layers.contains(RenderLayer.GROUND);

@@ -95,6 +95,11 @@ public final class TurretAim {
          * back to the caller via {@link #lastFireHadLos}.
          */
         public boolean indirectFire;
+        /**
+         * Whether the mount's weapon can engage a flier ({@code WeaponDef.tracksFliers}). A mount that cannot never
+         * acquires one and drops one it was handed.
+         */
+        public boolean tracksFliers;
     }
 
     private TurretAim() {}
@@ -111,11 +116,12 @@ public final class TurretAim {
         s.fireThisTick = false;
         float shooterAirR = s.ignoreCloseWalls ? s.closeWallRadius : 0f;
 
+        if (s.target != 0L && !s.tracksFliers && scoring.isFlier(s.target)) s.target = 0L;
         if (s.target == 0L) {
             s.target = scoring.findBestTargetWithinRange(
                     s.originX, s.originY, s.faction, s.squadId, s.excludeFromCrowding,
                     shooterAirR, /*allowNoLos*/ s.indirectFire,
-                    s.minRange, s.attackRange);
+                    s.minRange, s.attackRange, s.tracksFliers);
         }
         if (s.cooldownTimer > 0f) s.cooldownTimer -= dt;
         if (s.target == 0L) return;

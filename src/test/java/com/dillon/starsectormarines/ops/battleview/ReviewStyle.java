@@ -58,6 +58,11 @@ public enum ReviewStyle {
     CLAIMED(new Color(255, 255, 255), 1.4f),
     /** The cell of a marine who is dug in. */
     DUG_IN(new Color(255, 92, 236), 2.0f),
+    /**
+     * An allied force a look staged on purpose (a mech pair, a rifle team, a tank): lime, heavy, so the
+     * option a picture is about reads at a glance among the garrison's own green dots.
+     */
+    ALLY(new Color(190, 255, 60), 2.6f),
     /** Anything else worth writing on the map. */
     NOTE(new Color(205, 205, 215), 1.4f);
 

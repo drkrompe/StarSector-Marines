@@ -32,43 +32,11 @@ import java.util.Map;
  */
 public final class LargePostLookSnapshotSuite implements SnapshotSuite {
 
-    /** Draft layouts not in the catalog yet, by variant key. */
+    /**
+     * Draft layouts not in the catalog yet, by variant key, each a whole layout entry in the catalog's JSON form.
+     * Empty between questions; the wedge drafts were decided against (owner, 2026-10-23: retire the wedge).
+     */
     private static final Map<String, String> DRAFTS = new LinkedHashMap<>();
-    static {
-        // The wedge with the gaps in its 5x3 box paved, so the post reads as one built piece.
-        DRAFTS.put("wedge-paved", """
-                {"id":"layout.draft-wedge-paved","tier":"large","variant":"wedge-paved","anchor":[0,0],
-                 "bounds":{"minOffset":[-2,-1],"maxOffset":[2,1]},
-                 "cells":[
-                  {"offset":[-2,1],"kind":"barrier","appearance":"concrete","facing":[-1,1]},
-                  {"offset":[-1,1],"kind":"barrier","appearance":"concrete","facing":[0,1]},
-                  {"offset":[0,1],"kind":"barrier","appearance":"concrete","facing":[0,1]},
-                  {"offset":[1,1],"kind":"barrier","appearance":"concrete","facing":[0,1]},
-                  {"offset":[2,1],"kind":"barrier","appearance":"concrete","facing":[1,1]},
-                  {"offset":[-1,0],"kind":"barrier","appearance":"concrete","facing":[-1,0]},
-                  {"offset":[1,0],"kind":"barrier","appearance":"concrete","facing":[1,0]},
-                  {"offset":[0,-1],"kind":"barrier","appearance":"concrete","facing":[0,-1]},
-                  {"offset":[0,0],"kind":"pad"},
-                  {"offset":[-2,0],"kind":"apron"},{"offset":[2,0],"kind":"apron"},
-                  {"offset":[-2,-1],"kind":"apron"},{"offset":[-1,-1],"kind":"apron"},
-                  {"offset":[1,-1],"kind":"apron"},{"offset":[2,-1],"kind":"apron"}],
-                 "turrets":[{"offset":[0,0],"structure":"structure.turret-hephaestus"}]}
-                """);
-        // A horseshoe: parapets on the front and both flanks, the back open and paved for the crew's way in.
-        DRAFTS.put("horseshoe", """
-                {"id":"layout.draft-horseshoe","tier":"large","variant":"horseshoe","anchor":[0,0],
-                 "bounds":{"minOffset":[-1,-1],"maxOffset":[1,1]},
-                 "cells":[
-                  {"offset":[-1,1],"kind":"barrier","appearance":"concrete","facing":[-1,1]},
-                  {"offset":[0,1],"kind":"barrier","appearance":"concrete","facing":[0,1]},
-                  {"offset":[1,1],"kind":"barrier","appearance":"concrete","facing":[1,1]},
-                  {"offset":[-1,0],"kind":"barrier","appearance":"concrete","facing":[-1,0]},
-                  {"offset":[1,0],"kind":"barrier","appearance":"concrete","facing":[1,0]},
-                  {"offset":[0,0],"kind":"pad"},
-                  {"offset":[-1,-1],"kind":"apron"},{"offset":[0,-1],"kind":"apron"},{"offset":[1,-1],"kind":"apron"}],
-                 "turrets":[{"offset":[0,0],"structure":"structure.turret-hephaestus"}]}
-                """);
-    }
 
     @Override public String id() { return "large-post-look"; }
 
@@ -83,11 +51,13 @@ public final class LargePostLookSnapshotSuite implements SnapshotSuite {
         for (DefensePostLayoutDef layout : DefensePostLayoutRegistry.requireInstalled().layoutsFor(DefensePostKind.LARGE)) {
             if (!layout.variant.startsWith("aa-")) layouts.put(layout.variant, layout);
         }
-        JSONArray drafts = new JSONArray();
-        for (String json : DRAFTS.values()) drafts.put(new JSONObject(json));
-        DefensePostLayoutRegistry draftRegistry = new DefensePostLayoutRegistry();
-        draftRegistry.ingest(new JSONObject().put("layouts", drafts), TurretCatalogRegistry.installed());
-        for (String key : DRAFTS.keySet()) layouts.put(key, draftRegistry.require(DefensePostKind.LARGE, key));
+        if (!DRAFTS.isEmpty()) {
+            JSONArray drafts = new JSONArray();
+            for (String json : DRAFTS.values()) drafts.put(new JSONObject(json));
+            DefensePostLayoutRegistry draftRegistry = new DefensePostLayoutRegistry();
+            draftRegistry.ingest(new JSONObject().put("layouts", drafts), TurretCatalogRegistry.installed());
+            for (String key : DRAFTS.keySet()) layouts.put(key, draftRegistry.require(DefensePostKind.LARGE, key));
+        }
 
         String selected = System.getProperty("snapshot.largePosts", "");
         List<SnapshotArtifact> artifacts = new ArrayList<>();

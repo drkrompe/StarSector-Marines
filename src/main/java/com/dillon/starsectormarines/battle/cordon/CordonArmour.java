@@ -168,7 +168,7 @@ public final class CordonArmour {
         List<Long> hulls = new ArrayList<>(command.hulls());
         home.keySet().retainAll(hulls);
         answering.keySet().retainAll(hulls);
-        answering.values().removeIf(r -> r.state() == CordonRedoubt.State.FALLEN);
+        answering.values().removeIf(r -> !r.manned());
         Set<Long> escorting = escort(sim, hulls);
         for (long hull : hulls) {
             if (command.carrying(hull) || !home.containsKey(hull) || escorting.contains(hull)) continue;
@@ -227,7 +227,7 @@ public final class CordonArmour {
         CordonRedoubt best = null;
         float bestScore = Float.MAX_VALUE;
         for (CordonRedoubt r : redoubts) {
-            if (r.state() == CordonRedoubt.State.FALLEN) continue;
+            if (!r.manned()) continue;
             long held = answering.values().stream().filter(x -> x == r).count();
             float score = held * 10_000f - (r.state() == CordonRedoubt.State.CALLING ? 5_000f : 0f)
                     + body.distanceTo(r.centreX(), r.centreY());

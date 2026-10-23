@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 /**
- * How a missile rack spends its load in one trigger (`salvo-chain.md`): a click is one salvo, and a held
+ * How a missile rack spends its load in one trigger (`mechs-nouns.md`, Flux): a click is one salvo, and a held
  * trigger chains the next salvo as soon as the last one has gone, without the rack's full cycle, until the
  * button is released or the rack is empty. The rack's cycle then runs from its last salvo. A mech's rack and a
  * vehicle's launcher obey the same rule; each salvo a mech spends is replenished on its own afterwards.
@@ -15,16 +15,6 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
  * ({@link #autonomousSalvos}): one at a soft target, more against armor or point defence.
  */
 public final class SalvoChain {
-
-    /**
-     * {@code -Dbattle.salvoChain=false} is the control: a held trigger repeats at the rack's cycle and an
-     * autonomous carrier fires one salvo a trigger, as before. Temporary: removed once the armor-matchup reading
-     * with and without it has been read by the owner (`switches.md`).
-     */
-    public static final String ENABLED_PROPERTY = "battle.salvoChain";
-
-    private static final boolean ENABLED =
-            Boolean.parseBoolean(System.getProperty(ENABLED_PROPERTY, "true"));
 
     /**
      * The share of a salvo's flux a chained salvo pays: the tubes are loaded already, so a follow-up salvo costs
@@ -41,11 +31,9 @@ public final class SalvoChain {
 
     private SalvoChain() { }
 
-    public static boolean enabled() { return ENABLED; }
-
     /** A turret's missile launcher whose trigger is a salvo of several: the vehicle racks that chain. */
     public static boolean chains(WeaponDef weapon) {
-        return ENABLED && weapon != null && weapon.boostRamp && weapon.burstCount > 1;
+        return weapon != null && weapon.boostRamp && weapon.burstCount > 1;
     }
 
     /** The flux a salvo reserves: in full on a fresh trigger, at {@link #CHAINED_FLUX_SHARE} when chained. */
@@ -62,7 +50,7 @@ public final class SalvoChain {
      */
     public static int autonomousSalvos(int loadedSalvos, int cap, boolean hardened, boolean mech, boolean screened) {
         int load = Math.min(Math.max(0, loadedSalvos), Math.max(1, cap));
-        if (load <= 1 || !ENABLED) return Math.min(1, load);
+        if (load <= 1) return load;
         if (mech || screened) return load;
         if (hardened) return (load + 1) / 2;
         return 1;

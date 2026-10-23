@@ -26,7 +26,8 @@ activate per map (another way there is variation here)".
    beat's set piece that needs ground, and the town and city densities.
    Open: a full hollow, the knoll, a satellite placed against the supply
    road (F6), and pooling the denser maps.
-2. **Beats as optional objectives** (`heart-story-beats.md`). The beats are a
+2. **Beats as optional objectives** (`heart-story-beats.md`). Every beat but
+   B5 is rolled and played on the shared board, the Harrier in B3 and F3. The beats are a
    pool. Each battle activates a subset, and how many and which vary by map,
    seed and density. Each beat declares the structure it needs, so a beat that
    does not fit a map is never rolled there. Each beat carries a reward on
@@ -39,7 +40,7 @@ activate per map (another way there is variation here)".
 3. **The allied forces.** What the militia would really have brought, by
    density: armour columns in the country, infantry and mech lances in the
    city. Close air support, and logistics bases that send up vehicles or call
-   in CAS.
+   in CAS. Drafted with picture options in `heart-allied-forces.md`.
 4. **The allied commander using them** intelligently.
 
 Tuning win rates comes after these steps (owner: no overtuning yet).
