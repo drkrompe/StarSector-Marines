@@ -194,7 +194,7 @@ public final class TurretMountDef {
         return value.trim();
     }
 
-    private static String optionalText(JSONObject json, String key) {
+    static String optionalText(JSONObject json, String key) {
         String value = json.optString(key, null);
         if (value == null) return null;
         String trimmed = value.trim();

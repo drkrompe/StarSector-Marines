@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.turret.DefensePost;
+import com.dillon.starsectormarines.battle.turret.EmplacementStyle;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.turret.DefensePostLayoutDef;
 import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
@@ -155,7 +156,7 @@ public final class DefensePostStamper implements GenStage {
                                 int bLeft, int bTop, int bRight, int bBot) {
         return placePostsInRect(grid, topology, where, roadReservation,
                 doodads, tactical, defensePosts, rng, tier, count, seeds,
-                bLeft, bTop, bRight, bBot);
+                bLeft, bTop, bRight, bBot, EmplacementStyle.BRUTALIST);
     }
 
     /**
@@ -185,6 +186,7 @@ public final class DefensePostStamper implements GenStage {
         Random rng = ctx.rng;
         int w = grid.getWidth();
         int h = grid.getHeight();
+        EmplacementStyle style = EmplacementStylePolicy.forDefenders(ctx.get(BspKeys.MARKET_PROFILE));
 
         int beachCount     = BEACH_LIGHT_MIN        + rng.nextInt(BEACH_LIGHT_MAX        - BEACH_LIGHT_MIN        + 1);
         int portCount      = PORT_MEDIUM_MIN        + rng.nextInt(PORT_MEDIUM_MAX        - PORT_MEDIUM_MIN        + 1);
@@ -193,20 +195,20 @@ public final class DefensePostStamper implements GenStage {
         int cityDroneHubCount = CITY_DRONE_HUB_MIN  + rng.nextInt(CITY_DRONE_HUB_MAX  - CITY_DRONE_HUB_MIN  + 1);
 
         placePosts(grid, topology, biomeMap, axis, roadReservation, doodads, tactical, defensePosts, rng,
-                BiomeKind.BEACH,             DefensePostKind.LIGHT,     beachCount,     w, h);
+                BiomeKind.BEACH,             DefensePostKind.LIGHT,     beachCount,     w, h, style);
         placePosts(grid, topology, biomeMap, axis, roadReservation, doodads, tactical, defensePosts, rng,
-                BiomeKind.PORT,              DefensePostKind.MEDIUM,    portCount,      w, h);
+                BiomeKind.PORT,              DefensePostKind.MEDIUM,    portCount,      w, h, style);
         placePosts(grid, topology, biomeMap, axis, roadReservation, doodads, tactical, defensePosts, rng,
-                BiomeKind.FORTRESS_DISTRICT, DefensePostKind.LARGE,     fortressCount,  w, h);
+                BiomeKind.FORTRESS_DISTRICT, DefensePostKind.LARGE,     fortressCount,  w, h, style);
         // Artillery shares the FORTRESS_DISTRICT biome but lives in a deeper
         // band — placePosts() reads the tier to pick the rear clamp.
         placePosts(grid, topology, biomeMap, axis, roadReservation, doodads, tactical, defensePosts, rng,
-                BiomeKind.FORTRESS_DISTRICT, DefensePostKind.ARTILLERY, artilleryCount, w, h);
+                BiomeKind.FORTRESS_DISTRICT, DefensePostKind.ARTILLERY, artilleryCount, w, h, style);
         // Drone hubs in the civilian core — reads as the city's air-defense
         // network. CITY has no special depth clamp (unlike FORTRESS) so the
         // bbox of every CITY cell is the placement rect.
         placePosts(grid, topology, biomeMap, axis, roadReservation, doodads, tactical, defensePosts, rng,
-                BiomeKind.CITY,              DefensePostKind.DRONE_HUB, cityDroneHubCount, w, h);
+                BiomeKind.CITY,              DefensePostKind.DRONE_HUB, cityDroneHubCount, w, h, style);
     }
 
     /**
@@ -262,22 +264,22 @@ public final class DefensePostStamper implements GenStage {
         placePostsInRect(grid, topology, Ground.ANYWHERE, roadReservation,
                 doodads, /*tactical*/ null, defensePosts, rng,
                 DefensePostKind.LARGE, largeCount, largeSeeds,
-                rectLeft, rectTop, rectRight, rectBot);
+                rectLeft, rectTop, rectRight, rectBot, EmplacementStyle.BRUTALIST);
         placePostsInRect(grid, topology, Ground.ANYWHERE, roadReservation,
                 doodads, null, defensePosts, rng,
                 DefensePostKind.MEDIUM, mediumCount, mediumSeeds,
-                rectLeft, rectTop, rectRight, rectBot);
+                rectLeft, rectTop, rectRight, rectBot, EmplacementStyle.BRUTALIST);
         placePostsInRect(grid, topology, Ground.ANYWHERE, roadReservation,
                 doodads, null, defensePosts, rng,
                 DefensePostKind.LIGHT, lightCount, lightSeeds,
-                rectLeft, rectTop, rectRight, rectBot);
+                rectLeft, rectTop, rectRight, rectBot, EmplacementStyle.BRUTALIST);
         // Drone hub — reuses the high-value-POI seed pool so the hub clusters
         // around the things worth defending from the air rather than landing
         // in an empty street tile.
         placePostsInRect(grid, topology, Ground.ANYWHERE, roadReservation,
                 doodads, null, defensePosts, rng,
                 DefensePostKind.DRONE_HUB, droneHubCount, mediumSeeds,
-                rectLeft, rectTop, rectRight, rectBot);
+                rectLeft, rectTop, rectRight, rectBot, EmplacementStyle.BRUTALIST);
     }
 
     /**
@@ -318,7 +320,7 @@ public final class DefensePostStamper implements GenStage {
                                    List<Doodad> doodads, List<TacticalNode> tactical,
                                    List<DefensePost> defensePosts, Random rng,
                                    BiomeKind biome, DefensePostKind tier, int count,
-                                   int w, int h) {
+                                   int w, int h, EmplacementStyle style) {
         int[] bbox = biomeBbox(biomeMap, biome, w, h);
         if (bbox == null) return;
         int bLeft = bbox[0], bTop = bbox[1], bRight = bbox[2], bBot = bbox[3];
@@ -343,7 +345,7 @@ public final class DefensePostStamper implements GenStage {
         placePostsInRect(grid, topology, (x, y) -> biomeMap.biomeAt(x, y) == biome,
                 roadReservation, doodads, tactical, defensePosts, rng,
                 tier, count, /*seeds*/ null,
-                bLeft, bTop, bRight, bBot);
+                bLeft, bTop, bRight, bBot, style);
     }
 
     /**
@@ -371,7 +373,8 @@ public final class DefensePostStamper implements GenStage {
                                         List<Doodad> doodads, List<TacticalNode> tactical,
                                         List<DefensePost> defensePosts, Random rng,
                                         DefensePostKind tier, int count, List<int[]> seeds,
-                                        int bLeft, int bTop, int bRight, int bBot) {
+                                        int bLeft, int bTop, int bRight, int bBot,
+                                        EmplacementStyle style) {
         if (count <= 0) return 0;
         // Minimum rect span every LARGE/ARTILLERY shape needs — 5×3 or 3×5
         // bbox. LIGHT/MEDIUM fit in 3×3.
@@ -424,7 +427,7 @@ public final class DefensePostStamper implements GenStage {
             // totalling 21 cells, it refused every one of 5605 candidate
             // anchors and the defence pass placed nothing at all, silently.
             if (PlacementGuards.wouldStrandGround(grid, blockedFootprint(layout, cx, cy))) continue;
-            DefensePost post = stampPost(grid, topology, doodads, layout, cx, cy);
+            DefensePost post = stampPost(grid, topology, doodads, layout, cx, cy, style);
             defensePosts.add(post);
             // Tiers with a zero garrison (DRONE_HUB) defend themselves via
             // their own spawned units, so we skip the GUARDPOST emission that
@@ -581,18 +584,32 @@ public final class DefensePostStamper implements GenStage {
                                          List<Doodad> doodads, DefensePostKind tier,
                                          DefensePostShape shape,
                                          int cx, int cy, Random rng) {
-        return stampPost(grid, topology, doodads, layout(tier, shape), cx, cy);
+        return stampPost(grid, topology, doodads, layout(tier, shape), cx, cy, EmplacementStyle.BRUTALIST);
+    }
+
+    /** As above, built in {@code style}: an earthwork post rings itself with sandbags and leaves its ground unpaved. */
+    static DefensePost stampPost(NavigationGrid grid, CellTopology topology,
+                                 List<Doodad> doodads, DefensePostKind tier,
+                                 DefensePostShape shape, int cx, int cy, EmplacementStyle style) {
+        return stampPost(grid, topology, doodads, layout(tier, shape), cx, cy, style);
     }
 
     private static DefensePost stampPost(NavigationGrid grid, CellTopology topology,
                                          List<Doodad> doodads, DefensePostLayoutDef layout,
-                                         int cx, int cy) {
+                                         int cx, int cy, EmplacementStyle style) {
         clearFootprint(doodads, layout, cx, cy);
+        boolean earthwork = style == EmplacementStyle.EARTHWORK;
         for (DefensePostLayoutDef.Cell cell : layout.cells) {
             if (cell.kind() != DefensePostLayoutDef.CellKind.BARRIER) continue;
             DefensePostLayoutDef.Offset offset = cell.offset();
             int x = cx + offset.x();
             int y = cy + offset.y();
+            if (earthwork) {
+                // Field works: the ring is sandbagged whatever the layout pours in a prepared post.
+                stampRingCell(grid, topology, doodads, x, y, barrierTile(withAppearance(cell,
+                        DefensePostLayoutDef.BarrierAppearance.EMBANKMENT)));
+                continue;
+            }
             Doodad concrete = cell.appearance() == DefensePostLayoutDef.BarrierAppearance.CONCRETE
                     ? TileManifest.emplacementTightParapet(x, y, cell.facing().x(), cell.facing().y())
                     : null;
@@ -603,10 +620,18 @@ public final class DefensePostStamper implements GenStage {
             }
         }
 
-        boolean concreteRing = false;
+        boolean concreteRing = !earthwork && layout.hasApron();
         for (DefensePostLayoutDef.Cell cell : layout.cells) {
             concreteRing |= cell.kind() == DefensePostLayoutDef.CellKind.BARRIER
                     && cell.appearance() == DefensePostLayoutDef.BarrierAppearance.CONCRETE;
+        }
+        for (DefensePostLayoutDef.Cell cell : layout.cells) {
+            if (earthwork || cell.kind() != DefensePostLayoutDef.CellKind.APRON) continue;
+            int x = cx + cell.offset().x();
+            int y = cy + cell.offset().y();
+            // Paved, not sealed: the apron stays walkable ground with the post's concrete on it.
+            if (grid.inBounds(x, y)) topology.setSurface(x, y, topology.surfaceIndex(
+                    Material.CONCRETE.block(RoadRasterizer.age(.55, 0L, x, y))));
         }
         Set<DefensePostLayoutDef.Offset> turretPads = new HashSet<>();
         for (DefensePostLayoutDef.TurretPlacement turret : layout.turrets) {
@@ -634,7 +659,12 @@ public final class DefensePostStamper implements GenStage {
         DefensePostLayoutDef.Offset hub = layout.droneHubOffset();
         return new DefensePost(layout.tier, layout.id, cx, cy, turrets,
                 hub != null ? cx + hub.x() : null,
-                hub != null ? cy + hub.y() : null);
+                hub != null ? cy + hub.y() : null).withStyle(style);
+    }
+
+    private static DefensePostLayoutDef.Cell withAppearance(DefensePostLayoutDef.Cell cell,
+                                                            DefensePostLayoutDef.BarrierAppearance appearance) {
+        return new DefensePostLayoutDef.Cell(cell.offset(), cell.kind(), appearance, cell.facing(), cell.padOccupant());
     }
 
     /** The shipped light post a defence nest is built from: the vent ring round one sealed mount. */
@@ -659,7 +689,7 @@ public final class DefensePostStamper implements GenStage {
     static DefensePost stampNest(NavigationGrid grid, CellTopology topology, List<Doodad> doodads,
                                  int cx, int cy, String structureId) {
         DefensePostLayoutDef layout = nestLayout();
-        DefensePost stamped = stampPost(grid, topology, doodads, layout, cx, cy);
+        DefensePost stamped = stampPost(grid, topology, doodads, layout, cx, cy, EmplacementStyle.BRUTALIST);
         List<DefensePost.TurretSpec> turrets = new ArrayList<>(stamped.turrets.size());
         for (DefensePost.TurretSpec t : stamped.turrets) {
             turrets.add(new DefensePost.TurretSpec(structureId, t.cellX, t.cellY));

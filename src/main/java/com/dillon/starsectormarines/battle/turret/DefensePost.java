@@ -36,6 +36,8 @@ public final class DefensePost {
     public final Integer droneHubCellY;
     /** The fort this post is part of and which part it is, or null for a post that belongs to no fort. */
     public final FortTag fort;
+    /** How the post is built, which decides how its structures are drawn; {@link EmplacementStyle#BRUTALIST} unless a generator says otherwise. */
+    public final EmplacementStyle style;
 
     public DefensePost(DefensePostKind tier, int anchorX, int anchorY, List<TurretSpec> turrets) {
         this(tier, null, anchorX, anchorY, turrets, null, null);
@@ -55,6 +57,13 @@ public final class DefensePost {
     private DefensePost(DefensePostKind tier, String layoutId,
                         int anchorX, int anchorY, List<TurretSpec> turrets,
                         Integer droneHubCellX, Integer droneHubCellY, FortTag fort) {
+        this(tier, layoutId, anchorX, anchorY, turrets, droneHubCellX, droneHubCellY, fort, EmplacementStyle.BRUTALIST);
+    }
+
+    private DefensePost(DefensePostKind tier, String layoutId,
+                        int anchorX, int anchorY, List<TurretSpec> turrets,
+                        Integer droneHubCellX, Integer droneHubCellY, FortTag fort, EmplacementStyle style) {
+        this.style = style;
         this.fort = fort;
         this.tier = tier;
         this.layoutId = layoutId;
@@ -63,6 +72,12 @@ public final class DefensePost {
         this.turrets = List.copyOf(turrets);
         this.droneHubCellX = droneHubCellX;
         this.droneHubCellY = droneHubCellY;
+    }
+
+    /** This post built in {@code style}. */
+    public DefensePost withStyle(EmplacementStyle style) {
+        if (style == this.style) return this;
+        return new DefensePost(tier, layoutId, anchorX, anchorY, turrets, droneHubCellX, droneHubCellY, fort, style);
     }
 
     /** Where to spawn one MapTurret + what kind. Coupled here so the generator picks the kind alongside the position rather than the setup re-rolling per cell. */

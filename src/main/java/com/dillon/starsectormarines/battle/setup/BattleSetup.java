@@ -5539,6 +5539,7 @@ public final class BattleSetup {
                         ? ShieldGenerator.create(name, Faction.DEFENDER, spec.cellX, spec.cellY)
                         : MapTurret.create(name, Faction.DEFENDER, spec.structureId, spec.cellX, spec.cellY));
                 if (post.fort != null) sim.tagFortPart(post.fort, turret, spec.structure(), Faction.DEFENDER);
+                sim.setStructureStyle(turret, post.style);
                 sim.getGrid().setWalkable(spec.cellX, spec.cellY, false);
                 sim.getGrid().setSeeThrough(spec.cellX, spec.cellY, true);
                 sim.getGrid().recomputeCoverAt(spec.cellX + 1, spec.cellY);
