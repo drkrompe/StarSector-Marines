@@ -88,9 +88,8 @@ def overlays():
 
 def audio_cues():
     """Castle to the Commander, off the hail (no squelch: the missing key-up is how the ear knows
-    the channel is closed), and the wind rising with the heat, which C3 carries on. No bed:
-    C1's cabin bed runs through the entry."""
-    return castle_lines.cues("entry") + [{"t": 0.35, "sound": "jangala_arrival_wind", "volume": 0.45}]
+    the channel is closed). Effects are the cue sheet's, added by the exporter (arrival-audio/build_arrival_stems.py)."""
+    return castle_lines.cues("entry")
 
 
 # ---------------------------------------------------------------- the stream

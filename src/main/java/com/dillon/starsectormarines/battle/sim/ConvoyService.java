@@ -96,6 +96,7 @@ public final class ConvoyService implements BodyCarrier {
         body.teleport(spawnX, spawnY, AirBody.facingToward(nextX - spawnX, nextY - spawnY));
         GroundTurret turret = type.hasTurretWeapon()
                 ? new GroundTurret(type.turretStructure().mount.ammoCapacity, HullTurretSection.forHull(type)) : null;
+        if (turret != null) turret.charge = type.turretStructure().mount.charges;
         HullLocations locations = HullLocations.forHull(type, turret != null ? turret.section : null);
 
         // VEHICLE_MISSION (mission bag) + VEHICLE_CONTROL (motion-control bag) are universal;

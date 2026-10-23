@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — an armed hull clicked onto a garrisonable its side mans guards it from a cell beside it, idle gun on the believed threat; one its side believes is enemy-held it assaults from a stand-off, directing its turret; earlier: a hull keeps its front on the worst threat it knows of (harm into its plate, own sight or a spotter's), and a turning hull's gun shakes by the share of its turret's traverse its yaw takes; a hull holding in band without wearing its target down (a stalled hold) moves to another in-band firing position with a clear lane; a hull turns its front back onto a threat off its nose (a backing turn out to 120°, a forward turn beyond; rehearsed first, never off a parapet), and a disarmed hull still drives its withdrawal rear on (nose-on backing measured and rejected); a hull's plate depends on the arc a hit arrives on (front, side, rear; the turret on its own facing); the screened tank (a tank-line rung) carries active protection against top-attack rounds; a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
+Updated: 2026-10-22 — the laser tank: a tank-line rung with a ship's burst laser that also takes hostile aircraft in its reach, its cadence bounded by a capacitor bank (charges spent per trigger pull, refilled on a clock, separate from the magazine); earlier: an armed hull clicked onto a garrisonable its side mans guards it from a cell beside it, idle gun on the believed threat; one its side believes is enemy-held it assaults from a stand-off, directing its turret; earlier: a hull keeps its front on the worst threat it knows of (harm into its plate, own sight or a spotter's), and a turning hull's gun shakes by the share of its turret's traverse its yaw takes; a hull holding in band without wearing its target down (a stalled hold) moves to another in-band firing position with a clear lane; a hull turns its front back onto a threat off its nose (a backing turn out to 120°, a forward turn beyond; rehearsed first, never off a parapet), and a disarmed hull still drives its withdrawal rear on (nose-on backing measured and rejected); a hull's plate depends on the arc a hit arrives on (front, side, rear; the turret on its own facing); the screened tank (a tank-line rung) carries active protection against top-attack rounds; a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
 
 ## Purpose and boundary
 
@@ -997,6 +997,46 @@ firing on the armor that comes into its reach. Cheap and fragile, a filler for a
 small lift budget that can still hurt a tank that drives past. Acceptance is the
 same scene: a technical behind cover holds still as a tank drives down the road
 and fires once it is inside its reach.
+
+### The laser tank
+
+The **laser tank** (`LASER_TANK`, Prestige, Heavy lift) is the breakthrough hull with
+a ship's burst laser where the twin cannons were. In orbit that emitter is point
+defence, because it barely marks a warship's plate; on the ground almost nothing it
+meets is plate like that. It is a rung of the tank line, not a point-defence system:
+it does not engage rounds in flight. Hostile rocket and shell interception stays
+with the hull systems built for it (the screened tank's active protection).
+
+**It does reach the air** (`TurretMountDef.engagesAir`, a mount law any vehicle gun
+may author). A hostile craft in the air within the gun's reach, with a clear line
+up, takes the gun ahead of the ground pick, because it is overhead for seconds and
+the ground will still be there. A man close enough to be self-defence keeps the gun.
+It is the same gun on the same magazine, cadence and bank, so a craft it takes is
+ground it leaves. Its rounds into the air are rolled and landed the way an anti-air
+emplacement's flak is (`VehicleAirFire`, answered by the emplacements' own pass).
+Against a light craft the burst laser is deadlier than a flak position.
+
+It answers a target in a short, accurate burst and turns quickly, so it clears
+infantry and drones far faster than a cannon tank. Its rounds carry **no blast and
+no wall damage**, so it cannot open a building or answer an assault's wall
+directive, and its low penetration leaves it chipping at armor.
+
+What keeps it from out-trading a cannon tank is a **capacitor bank**
+(`TurretMountDef.charges`), a mount law any turret may author: the bank starts
+full, each trigger pull spends one charge however many rounds the burst releases,
+and charges refill on a clock. An empty bank holds the trigger the way a cooldown
+does. It is not the magazine, so a hull waiting on its bank still reads as armed to
+every engagement question. A section dies inside one bank; a tank needs several, and
+the laser falls back to its refill rate long before the tank is dead.
+
+The power plant takes the shell stowage's room and weight, so the hull is a little
+faster than the breakthrough tank and carries a little less plate. Until it has
+turret art of its own, the turret is drawn from the mount's sprite and the variant
+is not offered as a card. Acceptance is the `tank-versus-infantry` scene (the laser
+fires at men, and none of its rounds carries blast or wall damage) and the
+`tank-versus-air` scene (the laser fires into the air at a hostile gunship, the
+cannon tank never does, and with men in reach as well the laser still fires at the
+ground).
 
 ### The hover line: hover scout and drone skimmer
 

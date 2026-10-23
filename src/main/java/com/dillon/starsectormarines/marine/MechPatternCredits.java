@@ -50,6 +50,7 @@ public final class MechPatternCredits {
         vehicle(VehicleType.DOZER_BREACHER, FactionMechLoadouts.LUDDIC_PATH_ID, PATH);
         vehicle(VehicleType.HOVER_SCOUT, FactionMechLoadouts.TRI_TACHYON_ID, TRI_TACHYON);
         vehicle(VehicleType.DRONE_SKIMMER, FactionMechLoadouts.TRI_TACHYON_ID, TRI_TACHYON);
+        vehicle(VehicleType.LASER_TANK, FactionMechLoadouts.TRI_TACHYON_ID, TRI_TACHYON);
         vehicle(VehicleType.MILITIA_TECHNICAL, "independent", INDEPENDENT);
         vehicle(VehicleType.SUPPLY_TRUCK, "independent", INDEPENDENT);
         vehicle(VehicleType.SCOUT_CAR, "independent", INDEPENDENT);
