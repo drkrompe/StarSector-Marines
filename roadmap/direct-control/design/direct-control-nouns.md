@@ -111,9 +111,19 @@ clear. A magazine-fed infantry primary draws its load as rounds rather than a
 number: a strip under the weapon row (rifle cartridges, shotgun shells, or a
 belt in blocks of one burst, so a long belt still reads at a glance), spent
 rounds hollow and a reload pressing them back in. The cursor carries no ammo
-mark. A primary without a magazine shows no counter. Finite Mech stores count
-trigger packs, while the APC turret counts individual rounds. Indirect mounts
-remain visible as unavailable for manual fire.
+mark. A primary without a magazine shows no counter. Machines draw their loads
+the same way, by what they throw (`Ordnance`): a missile mount is a rack of
+missiles in salvos of one trigger pull, a vehicle's belt is cartridges in
+bursts, and an energy weapon counts nothing but shows charge cells, one per
+bolt of its burst (five for a single shot), emptying through the burst,
+refilling over the cycle and held violet when flux refuses the shot. A rack or
+belt too long for the row folds to one icon per salvo or burst (several whole
+bursts per icon for a long belt) and then keeps its exact count beside it; a
+load too long even folded keeps only the number. Finite Mech stores count
+trigger packs, while a vehicle turret counts individual rounds. Indirect mounts
+remain visible as unavailable for manual fire. In the Marine doll's kit column,
+a rocket or precision-rifle special with a short load draws it as missiles or
+cartridges in place of its count.
 
 A bounded, scrollable objective list stays at the top left, showing the same
 public mission steps, instructions, measured progress and blockers as command
