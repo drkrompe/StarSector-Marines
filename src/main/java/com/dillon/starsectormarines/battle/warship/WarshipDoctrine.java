@@ -41,13 +41,6 @@ public final class WarshipDoctrine {
     public static final float WITHDRAW_HULL_WITH_COVER = 0.25f;
     /** Hull share under which an overloaded or shieldless ship that is threatened leaves. */
     public static final float WITHDRAW_HULL_THREATENED = 0.6f;
-    /**
-     * {@code -Dbattle.warship.hullFightWithdrawal=true} is the control: a ship fighting a hull may break off by the
-     * ordinary hull and shield-down rules, as it could before warship duels were fought to the end.
-     */
-    static final boolean HULL_FIGHT_WITHDRAWAL =
-            "true".equalsIgnoreCase(System.getProperty("battle.warship.hullFightWithdrawal"));
-
     /** A posture and the sentence that explains it. */
     public record Decision(WarshipPosture posture, String reason) {}
 
@@ -89,7 +82,7 @@ public final class WarshipDoctrine {
         // A ship fighting a hull fights it to the end: no doctrine breaks off a duel between warships. A mission may
         // still order a withdrawal; that is its order, not the ship's judgement.
         // A ship the mission keeps over the battle is never withdrawn by its doctrine, fight or no fight.
-        boolean duelling = holdsTheField || in.foeHullFraction() >= 0f && !HULL_FIGHT_WITHDRAWAL;
+        boolean duelling = holdsTheField || in.foeHullFraction() >= 0f;
         float hullLimit = in.ownAir() > 0 ? WITHDRAW_HULL_WITH_COVER : WITHDRAW_HULL;
         if (!duelling && in.hullFraction() < hullLimit) {
             return withdraw(String.format(Locale.ROOT, "hull %d%% under %d%%",
