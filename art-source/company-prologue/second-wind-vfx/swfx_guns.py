@@ -1028,6 +1028,19 @@ def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, ta
         raise ValueError(f'turret {turret} is not armed: call arm(ctx, {turret}, <weapon>) first')
     w = WEAPONS[weapon]
     fps = ctx.scene.render.fps or swfx_core.FPS
+    if target is not None:
+        # A gun whose anchor is degenerate (its muzzle anchor missing) puts any target absurdly far
+        # off in its own space; its rounds would fly the wrong way for minutes. It fires nothing, and
+        # the caller draws the shot some other way.
+        try:
+            far = (anchor_matrix(guns[0].empty).inverted() @ Vector(target)).length
+        except ValueError:
+            far = float('inf')
+        reach = swfx_core.units(w['round']['speed'] if w.get('round') else 1000.0) * MAX_FLIGHT_S
+        if not math.isfinite(far) or far > reach:
+            print(f'SWFX guns: turret {turret} cannot fire {weapon} at its target '
+                  f'({far:.4g} u off in the space of its anchor, reach {reach:.4g} u): degenerate anchor', flush=True)
+            return []
     out = []
     for n, (t, i, k) in enumerate(cadence(weapon, seconds, feeder)):
         exact = start_frame + t * fps

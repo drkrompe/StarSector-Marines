@@ -191,7 +191,8 @@ class SceneFx:
                                             target=self.space(a).inverted() @ Vector(hit_w),
                                             train=shooter.own_hull, only=only)
                 landed += [r['hit_frame'] for r in recs if r.get('hit_frame') is not None and r['hit_frame'] <= end]
-                fired.append(f't{turret} {weapon} x{len(recs)}' + (' (feeder)' if feeder else ''))
+                if recs:             # a degenerate gun fires nothing: the stand-in draws the shot
+                    fired.append(f't{turret} {weapon} x{len(recs)}' + (' (feeder)' if feeder else ''))
         if not fired:
             return False
         landed = sorted(set(landed))
