@@ -1,11 +1,11 @@
 """HE blast bench: the shell hit built the old way and the torn way, side by side, frame by frame,
 so how long the white core holds and how solid it reads can be judged without a battle.
 
-  blender --background --factory-startup --python bench_he.py -- --out DIR [--samples 16] [--frames 8]
+  blender --background --factory-startup --python bench_he.py -- --out DIR [--samples 16] [--frames 12]
 
 Top row an HE shell (swfx_impacts.he), bottom row a Hellbore slug (swfx_impacts.hellbore); left the
 whole flash held four frames (tear=False), right the flash torn after its first frame (the
-default). All thrown up and a little toward the camera off a grey plate. Writes one 960x540 PNG
+default). All thrown up and a little toward the camera, in empty space. Writes one 960x540 PNG
 per frame from the hit (frame 0) on, at 24 fps, to DIR.
 """
 import argparse
@@ -28,7 +28,7 @@ def main(argv):
     ap = argparse.ArgumentParser()
     ap.add_argument('--out', required=True)
     ap.add_argument('--samples', type=int, default=16)
-    ap.add_argument('--frames', type=int, default=8)
+    ap.add_argument('--frames', type=int, default=12)
     a = ap.parse_args(argv)
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -46,21 +46,18 @@ def main(argv):
     ctx = swfx_core.Context(scene, 'patched', None)
     swfx_impacts._knobs(ctx)
     u = swfx_core.units
-    bpy.ops.mesh.primitive_plane_add(size=u(120))
-    bpy.context.object.name = 'bench plate'
-    bpy.context.object.location.z = -u(2)
     sun = bpy.data.objects.new('bench sun', bpy.data.lights.new('bench sun', 'SUN'))
     sun.data.energy = 2.0
     sun.rotation_euler = (.6, .3, .8)
     scene.collection.objects.link(sun)
     throw = Vector(THROW).normalized()
     for x, tear in ((-16.0, False), (16.0, True)):
-        swfx_impacts.he(ctx, HIT, (x, 0.0, 12.0), throw, tear=tear)
-        swfx_impacts.hellbore(ctx, HIT, (x, 0.0, -14.0), throw, tear=tear)
+        swfx_impacts.he(ctx, HIT, (x, 0.0, 9.0), throw, tear=tear)
+        swfx_impacts.hellbore(ctx, HIT, (x, 0.0, -9.0), throw, tear=tear)
     cam = bpy.data.objects.new('bench cam', bpy.data.cameras.new('bench cam'))
     scene.collection.objects.link(cam)
     scene.camera = cam
-    cam.location = Vector([u(c) for c in (0, -95, 8)])
+    cam.location = Vector([u(c) for c in (0, -80, 0)])
     cam.rotation_euler = (Vector([u(c) for c in (0, 0, 0)]) - cam.location).to_track_quat('-Z', 'Y').to_euler()
     for j in range(a.frames):
         scene.frame_set(HIT + j)
