@@ -38,7 +38,7 @@ import java.nio.file.Paths;
  * this class says the shader compiles, binds and draws what it should; it does
  * not say the effect survives contact with the host's state.
  */
-public final class HeadlessGl implements AutoCloseable {
+public final class HeadlessGl implements GlSurface {
 
     /** LWJGL 2 reads this once, when its native loader first runs, so it must be set before any GL class touches it. */
     private static final String LIBRARY_PATH_PROPERTY = "org.lwjgl.librarypath";
@@ -84,6 +84,7 @@ public final class HeadlessGl implements AutoCloseable {
         return "no accelerated OpenGL context available on this machine";
     }
 
+    @Override
     public String rendererDescription() {
         return GL11.glGetString(GL11.GL_RENDERER)
                 + " / GL " + GL11.glGetString(GL11.GL_VERSION);
