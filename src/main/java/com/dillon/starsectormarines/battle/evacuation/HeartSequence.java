@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.fire.FireField;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
 import com.dillon.starsectormarines.battle.power.WalkingBarrage;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
@@ -107,6 +108,8 @@ public final class HeartSequence {
         if (form == Form.THE_BURN) hurtSurges(sim, bores, tick);
         if (barrage != null) barrage.tick(sim);
         if (lanes != null) lanes.tick(sim, pending);
+        ObjectiveBoard objectives = sim.getOptionalObjectives();
+        if (objectives != null) objectives.advance(tick);
     }
 
     /** Every living mother wakes and surges now. */
