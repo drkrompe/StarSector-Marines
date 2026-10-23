@@ -466,9 +466,16 @@ every seed of the variant's pool through production construction, side by
 side, the checked-in fixture standing in for everything but the seed
 (`-Pfixture` plays exactly one). The report opens on a matrix, one row a seed. Asserted mechanics: the
 company lands, every tide the timetable reached came on its tick, a held line
-lost no more redoubts than allowed, a broken one says how. Read, not asserted:
+lost no more redoubts than allowed, a broken one says how, and a battle that
+ended did so through the Cordon's own outcome, never with it still running.
+Read, not asserted:
 the beats in order, each redoubt's state and garrison minute by minute, the
-swarm's size, and how it ended.
+swarm's size, and how it ended. Review frames (`-PsnapshotEveryTicks`, and the
+`cordon-mapgen` suite) name the Cordon's own places through one annotation set
+(`CordonReviewAnnotations`): each redoubt with its number and state, the gap
+redoubts, the bores, the logistics base, the town's compound, the landing field,
+the layout's pieces with any objective rolled on them, and where a running
+objective wants the company; never Conquest's keep, barracks or armory.
 
 ## Beats
 
@@ -506,6 +513,7 @@ with the same keys.
 | `convoys_lost` | the Road | PLAYER | Too many convoys are lost for enough to come out |
 | `convoys_short` | the Road | PLAYER | The window closed with too few convoys out |
 | `line_broken` | both | PLAYER | More redoubts have fallen than the briefing allows |
+| `company_lost` | both | PLAYER | The company is wiped out (no Marine on the ground or still to come down); read before every other end rule |
 | `cordon_held` | both | PLAYER | The battle is won |
 | `objective_<key>_started` | both | PLAYER | A rolled optional objective starts (at setup) |
 | `objective_<key>_succeeded` / `_failed` / `_lapsed` | both | PLAYER | It goes final (*Optional objectives*) |

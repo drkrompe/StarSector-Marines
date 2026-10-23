@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.cordon;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
+import com.dillon.starsectormarines.battle.command.objective.ObjectiveFactionPresence;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
@@ -19,7 +20,7 @@ import java.util.List;
  *
  * <p>The company's objective. It is won when the window closes with no more
  * redoubts fallen than the briefing allows, and lost the moment the line
- * breaks, or, on the Road, the gap closes. Read-only against the battle except
+ * breaks, the company is wiped out, or, on the Road, the gap closes. Read-only against the battle except
  * for the tide, which brings every living bore's surge forward and lets the
  * swarm out at the tide's strength until it ebbs, and the eruption, which
  * opens a new bore in front of the line.
@@ -100,6 +101,7 @@ public final class CordonSequence implements Objective {
     /** What the next tide's pressure is scaled by: below one after the granary burns (beat L6). */
     private float nextTideScale = 1f;
     private Outcome outcome = Outcome.RUNNING;
+    private String endBeat;
 
     public CordonSequence(CordonVariant variant, List<CordonRedoubt> redoubts, List<Integer> gap,
                           int[][] eruptionSites, int firstEruptedNumber, Timetable timetable, StoryBeatLog log) {
@@ -261,25 +263,52 @@ public final class CordonSequence implements Objective {
             ebb = -1;
             sim.setSwarmPressureShare(timetable.ordinaryPressure());
         }
-        if (fallen() > timetable.allowedFallen()) {
-            outcome = Outcome.BROKEN;
-            emit(tick, "line_broken");
-        } else if (variant == CordonVariant.ROAD && gapClosed()) {
-            outcome = Outcome.BROKEN;
-            emit(tick, "gap_closed");
-        } else if (convoys != null && convoys.convoys() - convoys.lost() < timetable.convoysNeeded()) {
-            outcome = Outcome.BROKEN;
-            emit(tick, "convoys_lost");
-        } else if (convoys != null && tick >= ticks(timetable.windowSeconds())
-                && convoys.out() < timetable.convoysNeeded()) {
-            outcome = Outcome.BROKEN;
-            emit(tick, "convoys_short");
-        } else if (tick >= ticks(timetable.windowSeconds())) {
-            outcome = Outcome.HELD;
-            if (refugees != null) emit(tick, "evacuation_complete");
-            emit(tick, "cordon_held");
-        }
     }
+
+    /**
+     * The end rules. The objective list ticks after {@link #advance}, beside the elimination check
+     * that ends the battle when the company is gone, and reads the same company: so a wiped company
+     * breaks the Cordon on the tick the battle ends, rather than leaving it running under the
+     * elimination's verdict.
+     */
+    @Override
+    public void tick(BattleView view) {
+        if (outcome != Outcome.RUNNING) return;
+        int tick = view.getSimTickIndex();
+        boolean company = ObjectiveFactionPresence.anyInPlay(view, Faction.MARINE, unit -> true);
+        Ending end = ending(company, fallen(), timetable.allowedFallen(), variant == CordonVariant.ROAD && gapClosed(),
+                convoys != null, convoys != null ? convoys.convoys() - convoys.lost() : 0,
+                convoys != null ? convoys.out() : 0, timetable.convoysNeeded(),
+                tick >= ticks(timetable.windowSeconds()));
+        if (end == null) return;
+        outcome = end.outcome();
+        endBeat = end.beat();
+        if (outcome == Outcome.HELD && refugees != null) emit(tick, "evacuation_complete");
+        emit(tick, end.beat());
+    }
+
+    /** How the Cordon ended: the outcome and the beat that says why. */
+    public record Ending(Outcome outcome, String beat) { }
+
+    /**
+     * The Cordon's end rules ({@code cordon-nouns.md}, Flow, the end), first match wins, or
+     * {@code null} while it runs. A wiped company loses before anything else is read: nobody is left
+     * to hold the line the window would otherwise call held. A given-up redoubt (beat L3) is neither
+     * fallen nor manned, so it counts against no rule.
+     */
+    static Ending ending(boolean companyInPlay, int fallen, int allowedFallen, boolean gapClosed,
+                         boolean hasConvoys, int convoysLeft, int convoysOut, int convoysNeeded, boolean windowOver) {
+        if (!companyInPlay) return new Ending(Outcome.BROKEN, "company_lost");
+        if (fallen > allowedFallen) return new Ending(Outcome.BROKEN, "line_broken");
+        if (gapClosed) return new Ending(Outcome.BROKEN, "gap_closed");
+        if (hasConvoys && convoysLeft < convoysNeeded) return new Ending(Outcome.BROKEN, "convoys_lost");
+        if (hasConvoys && windowOver && convoysOut < convoysNeeded) return new Ending(Outcome.BROKEN, "convoys_short");
+        if (windowOver) return new Ending(Outcome.HELD, "cordon_held");
+        return null;
+    }
+
+    /** The beat the Cordon ended on ({@code company_lost}, {@code line_broken}, ...), or {@code null} while it runs. */
+    public String endBeat() { return endBeat; }
 
     /** One redoubt's state for this tick ({@code cordon-nouns.md}, Redoubt states). */
     private void step(BattleSimulation sim, int tick, CordonRedoubt redoubt, int swarmInside, boolean relief) {
@@ -387,7 +416,6 @@ public final class CordonSequence implements Objective {
     }
 
     @Override public Faction owningFaction() { return Faction.MARINE; }
-    @Override public void tick(BattleView ignored) { }
     @Override public boolean isComplete() { return outcome == Outcome.HELD; }
     @Override public boolean isFailed() { return outcome == Outcome.BROKEN; }
     @Override public String displayName() {

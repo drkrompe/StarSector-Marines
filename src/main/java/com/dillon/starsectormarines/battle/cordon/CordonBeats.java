@@ -11,8 +11,9 @@ import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 
 import java.util.ArrayList;
-import java.util.Locale;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * A Cordon battle's running beats ({@code cordon-nouns.md}, Optional objectives): what every beat may
@@ -55,6 +56,8 @@ public final class CordonBeats {
     long battleSeed() { return battleSeed; }
     CordonSequence sequence() { return sequence; }
     AlliedCommand command() { return command; }
+    /** The rolled beats' runtimes, in roll order (the board's results' order). */
+    List<CordonBeat> running() { return Collections.unmodifiableList(running); }
     /** The board the beats run on, or {@code null} before it is installed. */
     public ObjectiveBoard board() { return board; }
 
