@@ -513,10 +513,12 @@ def _sheath_material(name, strength, cell_m):
     at.attribute_name = 'entry_wind'
     w = at.outputs['Fac']
     nz, _ = _noise(nt, cell_m)
-    mottle = _math(nt, 'ADD', .35, _math(nt, 'MULTIPLY', nz, 1.3))
+    # close still 6: the edge still read as one neon line. Hot spots, not a band: below a threshold the
+    # noise leaves only a faint glow, above it the patch flares
+    mottle = _math(nt, 'ADD', .12, _math(nt, 'MAXIMUM', _math(nt, 'MULTIPLY', _math(nt, 'SUBTRACT', nz, .4), 3.0), 0.0))
     # owner, 2026-10-22: "bright in places", not white all over. The colour's heat is mottled as the
     # glow is, so only the squarest, hottest patches reach white; the rest of the face burns orange-yellow
-    heat = _math(nt, 'MINIMUM', _math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', _math(nt, 'POWER', w, 1.8), mottle), .62), 1.0)
+    heat = _math(nt, 'MINIMUM', _math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', _math(nt, 'POWER', w, 1.8), mottle), .5), 1.0)
     glow = _math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', _math(nt, 'POWER', w, 2.6), mottle), strength)
     _additive(nt, _blackbody(nt, heat), glow)
     return mat
@@ -559,7 +561,7 @@ def _flame_material(name, strength, cell_m):
     at = nt.nodes.new('ShaderNodeAttribute')
     at.attribute_name = 'entry_u'
     u = at.outputs['Fac']
-    life = _math(nt, 'MAXIMUM', _math(nt, 'SUBTRACT', 1.0, u), 0.0)
+    life = _math(nt, 'POWER', _math(nt, 'MAXIMUM', _math(nt, 'SUBTRACT', 1.0, u), 0.0), 1.4)
     nz, _ = _noise(nt, cell_m, detail=6.0)
     torn = _math(nt, 'MINIMUM', _math(nt, 'MAXIMUM', _math(nt, 'MULTIPLY', _math(nt, 'SUBTRACT', nz, .38), 3.5), 0.0), 1.0)
     lw = nt.nodes.new('ShaderNodeLayerWeight')
@@ -700,8 +702,8 @@ def sheath(name, verts, faces, coll, wind, length, glow=1.0, streamers=22, seed=
     # brightest and shed the flames, the flanks glow faintly, the top and the lee stay dark.
     hot = (into + Vector(belly).normalized() * .6).normalized() if belly is not None else into
     _shell(name + ' sheath', skin, hot, length, coll,
-           _sheath_material(f'{PREFIX} sheath', 32.0 * glow, length * .03), .003, .012, 1.2, .6, seed)
-    _shell(name + ' shock', skin, hot, length, coll, _shock_material(f'{PREFIX} shock layer', 7.0 * glow),
+           _sheath_material(f'{PREFIX} sheath', 22.0 * glow, length * .07), .003, .012, 1.2, .6, seed)
+    _shell(name + ' shock', skin, hot, length, coll, _shock_material(f'{PREFIX} shock layer', 5.0 * glow),
            .008, .05, 1.6, .35, seed + 1)
     # the flames leave the edge of her hot side (front and belly), never the deck in her lee
     rim = [v for v in skin.verts if -.05 < v.normal.dot(hot) < .3 and v.normal.dot(into) > -.1]
@@ -720,12 +722,13 @@ def sheath(name, verts, faces, coll, wind, length, glow=1.0, streamers=22, seed=
         pts, us, radii = [], [], []
         for j in range(16):
             s = 1 - j / 15                                   # tail first: s 1 at the tail, 0 at the edge
-            wob = noise.noise_vector(p0 / (length * .2) + Vector((s * 2.6, k * .37, 0))) * length * .06 * s
+            wob = noise.noise_vector(p0 / (length * .2) + Vector((s * (6.0 if long_ else 2.6), k * .37, 0)))                 * (ln * .14 if long_ else length * .06) * s
             pts.append(p0 + W * ln * s - perp * hug * (1 - math.exp(-5 * s)) + wob)
             us.append(s)
-            radii.append(r0 * (1 + 3.0 * s))
+            radii.append(r0 * (1 + 3.0 * s) * (1 - .55 * s ** 2 if long_ else 1))     # a long one tapers out
         tube = _ragged_tube(f'{name} flame {k}', pts, radii, us, coll,
-                            _flame_material(f'{PREFIX} flame', 30.0 * glow * rnd.uniform(.5, 1.3), length * .05),
+                            _flame_material(f'{PREFIX} flame', glow * (rnd.uniform(5, 9) if long_ else rnd.uniform(8, 18)),
+                                            length * .05),
                             rnd, segments=10)
         for p in tube.data.polygons:
             p.use_smooth = True
