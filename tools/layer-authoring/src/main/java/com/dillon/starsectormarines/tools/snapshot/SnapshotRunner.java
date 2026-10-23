@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.tools.snapshot;
 
 import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -142,10 +141,7 @@ public final class SnapshotRunner {
             }
             return;
         }
-        try (AnimatedGifWriter gif =
-                     new AnimatedGifWriter(output, artifact.frameDelayMillis(), artifact.palette())) {
-            for (BufferedImage frame : artifact.frames()) gif.append(frame);
-        }
+        AnimatedGifWriter.write(output, artifact.frames(), artifact.frameDelayMillis(), artifact.palette());
     }
 
     private record PlannedArtifact(Path output, SnapshotArtifact artifact) {

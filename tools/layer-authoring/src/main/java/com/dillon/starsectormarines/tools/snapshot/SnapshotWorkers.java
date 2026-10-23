@@ -12,10 +12,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * The worker threads snapshot evidence spends its pixel work on, so the simulation thread only simulates.
  *
- * <p>Two pools, because their work nests differently. {@link #raster()} takes the horizontal bands of one frame
+ * <p>Three pools, because their work nests differently. {@link #raster()} takes the horizontal bands of one frame
  * being drawn; its caller waits on them before the simulation moves, so it must never be queued behind anything
  * slow. {@link #background()} takes work nobody waits on until the end — compressing a finished frame, encoding a
- * finished GIF. Neither pool's tasks submit to their own pool, so neither can deadlock on itself.
+ * finished GIF. {@link #encode()} takes the frames of one GIF being written, whose writer is itself a task on
+ * {@link #raster()} waiting for them. No pool's tasks submit to their own pool, so none can deadlock on itself.
  *
  * <p>Sized by {@code -Dsnapshot.threads=N}, default half the machine's processors (the convention every
  * side-by-side evidence task here uses); {@code 1} is the serial control. Nothing here changes what is drawn: work
@@ -31,6 +32,7 @@ public final class SnapshotWorkers {
 
     private static volatile ExecutorService raster;
     private static volatile ExecutorService background;
+    private static volatile ExecutorService encode;
 
     private SnapshotWorkers() { }
 
@@ -56,6 +58,17 @@ public final class SnapshotWorkers {
             synchronized (SnapshotWorkers.class) {
                 if (background == null) background = pool("snapshot-background");
                 pool = background;
+            }
+        }
+        return pool;
+    }
+
+    public static ExecutorService encode() {
+        ExecutorService pool = encode;
+        if (pool == null) {
+            synchronized (SnapshotWorkers.class) {
+                if (encode == null) encode = pool("snapshot-encode");
+                pool = encode;
             }
         }
         return pool;
