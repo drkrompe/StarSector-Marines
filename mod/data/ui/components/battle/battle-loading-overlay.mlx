@@ -1,17 +1,24 @@
-<template props="rootClasses,title,area,detail,progressStyle">
-  <div id="battle-loading-overlay" class="{rootClasses}">
-    <div id="battle-loading-before" class="loading-before" />
+<template props="title,area,stage,progressStyle,dot0Classes,dot1Classes,dot2Classes">
+  <div id="battle-loading-overlay" class="battle-loading-overlay">
+    <div id="battle-loading-before" class="loading-fill" />
     <div id="battle-loading-row" class="loading-row">
       <div id="battle-loading-left" class="loading-side" />
       <div id="battle-loading-panel" class="loading-panel">
         <div id="battle-loading-title" class="label heading loading-title">{title}</div>
         <div id="battle-loading-area" class="label loading-area">{area}</div>
         <div id="battle-loading-track" class="loading-track"><div id="battle-loading-progress" class="loading-progress" style="{progressStyle}" /></div>
-        <div id="battle-loading-detail" class="label loading-detail">{detail}</div>
+        <div id="battle-loading-status" class="loading-status">
+          <div id="battle-loading-spinner" class="loading-spinner">
+            <div id="battle-loading-dot-0" class="{dot0Classes}" />
+            <div id="battle-loading-dot-1" class="{dot1Classes}" />
+            <div id="battle-loading-dot-2" class="{dot2Classes}" />
+          </div>
+          <div id="battle-loading-stage" class="label loading-stage">{stage}</div>
+        </div>
       </div>
       <div id="battle-loading-right" class="loading-side" />
     </div>
-    <div id="battle-loading-after" class="loading-after" />
+    <div id="battle-loading-after" class="loading-fill" />
   </div>
 </template>
 
@@ -28,8 +35,9 @@
     background-image: linear-gradient(to bottom, #0d1611 0%, #070b09 70%, #050806 100%);
   }
 
-  .loading-before, .loading-after { flex-grow: 1; width: 1px; height: 1px; }
+  .loading-fill { flex-grow: 1; width: 1px; height: 1px; }
   .loading-side { flex-grow: 1; width: 1px; height: 1px; }
+  /* MLX sizes are content boxes: the row is the panel's 100px plus its padding and border. */
   .loading-row { width: 100%; height: 134px; flex-direction: row; }
 
   .loading-panel {
@@ -52,28 +60,11 @@
     background-color: #c3cec91c;
   }
   .loading-progress { height: 6px; background-color: #a7ccc4; }
-  .loading-detail { width: 100%; height: 16px; color: #a7ccc4; }
 
-  /* A strip along the bottom of the screen instead of a card in the middle. */
-  /* MLX sizes are content boxes: the row is the panel's 64px plus its 32px of padding. */
-  .loading-strip .loading-row { height: 96px; }
-  .loading-strip .loading-panel {
-    width: 0px;
-    flex-grow: 1;
-    height: 64px;
-    padding: 16px 40px;
-    gap: 4px;
-    border-width: 0px;
-    background-color: transparent;
-    background-image: linear-gradient(to bottom, #10191400 0%, #101914dd 60%, #101914ff 100%);
-  }
-  .loading-strip .loading-side { width: 0px; flex-grow: 0; }
-  .loading-strip .loading-after { height: 0px; flex-grow: 0; }
-
-  /* Only the bar: no names, no step. */
-  .loading-minimal .loading-panel { width: 320px; height: 22px; padding: 8px 0px; border-width: 0px; background-color: transparent; }
-  .loading-minimal .loading-row { height: 22px; }
-  .loading-minimal .loading-title,
-  .loading-minimal .loading-area,
-  .loading-minimal .loading-detail { width: 0px; height: 0px; opacity: 0; }
+  .loading-status { width: 100%; height: 16px; flex-direction: row; }
+  /* The activity dots: one is lit at a time and the lit one walks along, on frame time. */
+  .loading-spinner { width: 28px; height: 6px; padding: 5px 0px; flex-direction: row; gap: 5px; }
+  .spin-dot { width: 6px; height: 6px; background-color: #a7ccc4; opacity: 0.22; }
+  .spin-lit { opacity: 1; }
+  .loading-stage { width: 0px; flex-grow: 1; height: 16px; padding: 0px 0px 0px 8px; color: #a7ccc4; }
 </style>

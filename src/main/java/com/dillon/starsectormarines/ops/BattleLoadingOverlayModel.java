@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ops.battleview.LoadingProgress;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 
@@ -8,59 +9,46 @@ import java.util.Map;
 
 /**
  * Render-free state of the screen a battle shows while its textures load
- * ({@code battle-textures.md}, Loading screen).
+ * ({@code battle-textures.md}, Loading screen): a card with the operation's name, where it is
+ * fought, a bar, the loader's stage and an activity spinner.
+ *
+ * <p>The spinner runs on frame time rather than on progress, so it keeps moving through a long
+ * step while the bar stands still; if it stops, the GL thread has stopped yielding.
  */
 final class BattleLoadingOverlayModel {
 
-    /** Where the progress sits on the screen. */
-    enum Look {
-        /** A card in the middle of a dark screen. */
-        CARD("battle-loading-overlay"),
-        /** A strip along the bottom of the screen. */
-        STRIP("battle-loading-overlay loading-strip"),
-        /** The bar alone. */
-        MINIMAL("battle-loading-overlay loading-minimal");
+    /** Dots in the spinner; one is lit at a time. */
+    static final int DOTS = 3;
+    /** Seconds for the lit dot to walk the row once. */
+    static final float SPIN_PERIOD_SECONDS = 0.9f;
 
-        final String classes;
+    private static final String DOT = "spin-dot";
+    private static final String DOT_LIT = "spin-dot spin-lit";
 
-        Look(String classes) {
-            this.classes = classes;
-        }
-    }
-
-    /** What the line under the bar says. */
-    enum Detail {
-        /** What is loading now: "Armor: Charcoal". */
-        STEP,
-        /** How far along it is: "42%". */
-        PERCENT,
-        /** How much is on the card so far: "212 MB". */
-        MEGABYTES
-    }
-
-    private final MutableSignal<String> rootClasses;
     private final MutableSignal<String> title;
     private final MutableSignal<String> area;
-    private final MutableSignal<String> detail;
+    private final MutableSignal<String> stage;
     private final MutableSignal<String> progressStyle;
-    private final Detail detailMode;
+    private final MutableSignal<String>[] dots;
+    private float spinSeconds;
 
-    BattleLoadingOverlayModel(Reactor reactor, Look look, Detail detailMode) {
-        this.detailMode = detailMode;
-        rootClasses = reactor.signal(look.classes);
+    @SuppressWarnings("unchecked")
+    BattleLoadingOverlayModel(Reactor reactor) {
         title = reactor.signal("");
         area = reactor.signal("");
-        detail = reactor.signal("");
+        stage = reactor.signal("");
         progressStyle = reactor.signal("width: 0%;");
+        dots = new MutableSignal[DOTS];
+        for (int i = 0; i < DOTS; i++) dots[i] = reactor.signal(i == 0 ? DOT_LIT : DOT);
     }
 
     Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("rootClasses", rootClasses);
         props.put("title", title);
         props.put("area", area);
-        props.put("detail", detail);
+        props.put("stage", stage);
         props.put("progressStyle", progressStyle);
+        for (int i = 0; i < DOTS; i++) props.put("dot" + i + "Classes", dots[i]);
         return props;
     }
 
@@ -70,27 +58,24 @@ final class BattleLoadingOverlayModel {
         area.set(where == null ? "" : where);
     }
 
-    /**
-     * @param progress share done, 0 to 1
-     * @param step what is loading now
-     * @param bytesLoaded what the battle holds on the card so far
-     */
-    void update(float progress, String step, long bytesLoaded) {
-        int percent = Math.round(100f * Math.max(0f, Math.min(1f, progress)));
+    /** Moves the spinner on by {@code realDt} and shows {@code progress}. */
+    void update(float realDt, LoadingProgress progress) {
+        spinSeconds = (spinSeconds + Math.max(0f, realDt)) % SPIN_PERIOD_SECONDS;
+        int lit = litDot(spinSeconds);
+        for (int i = 0; i < DOTS; i++) dots[i].set(i == lit ? DOT_LIT : DOT);
+        int percent = Math.round(100f * progress.fraction());
         progressStyle.set("width: " + percent + "%;");
-        detail.set(switch (detailMode) {
-            case STEP -> step == null ? "" : step;
-            case PERCENT -> percent + "%";
-            case MEGABYTES -> megabytes(bytesLoaded) + " MB";
-        });
+        stage.set(progress.stage());
     }
 
-    static long megabytes(long bytes) {
-        return Math.round(bytes / (1024.0 * 1024.0));
+    /** Which dot is lit {@code seconds} into a spin. */
+    static int litDot(float seconds) {
+        float phase = (seconds % SPIN_PERIOD_SECONDS) / SPIN_PERIOD_SECONDS;
+        return Math.min(DOTS - 1, (int) (phase * DOTS));
     }
 
-    String detail() {
-        return detail.get();
+    String stage() {
+        return stage.get();
     }
 
     String progressStyle() {
