@@ -164,7 +164,7 @@ class SceneFx:
             if target is not None and hit_l is not None:
                 self.strikes(b, [self.now - k * 3 for k in range(4)], hit_l, normal, 'kinetic')
             return False
-        landed, fired = [], []
+        landed, fired, placed_hits = [], [], []
         with shooter.kit() as (ctx, kit):
             turrets = []
             for m in muzzles:
@@ -193,7 +193,8 @@ class SceneFx:
                         recs = self.planned(ctx, kit, a, b, turret, weapon, self.local(a, mz), hit_l, speed,
                                             feeder, aim_at)
                         if recs is not None:
-                            landed += [r['hit_frame'] for r in recs if r.get('hit_frame') is not None]
+                            placed_hits += [(r['hit_frame'], r['hit_l'], r['hit_n']) for r in recs
+                                            if r.get('hit_frame') is not None and r.get('hit_l') is not None]
                             if recs:
                                 fired.append(f't{turret} {weapon} x{len(recs)}' + (' (feeder)' if feeder else ''))
                             continue
@@ -211,6 +212,11 @@ class SceneFx:
                     fired.append(f't{turret} {weapon} x{len(recs)}' + (' (feeder)' if feeder else ''))
         if not fired:
             return False
+        if placed_hits:      # planned rounds: each strike where its own straight line met her hull
+            he = any(self.weapon(a, int(f.split()[0][1:])) in HE for f in fired)
+            placed_hits = [h for h in sorted(placed_hits, key=lambda h: h[0])
+                           if h[0] >= self.span[0] - round(1.5 * self.fps)]
+            self.strikes_at(b, placed_hits[::2], 'he' if he else 'kinetic')
         landed = sorted(set(landed))
         if target is not None and hit_l is not None and landed:
             he = any(self.weapon(a, int(f.split()[0][1:])) in HE for f in fired)
@@ -220,7 +226,7 @@ class SceneFx:
                 else:            # built once for the whole shot (--kit-once): every other strike in it
                     landed = [f for f in landed if f >= self.span[0] - round(1.5 * self.fps)][::2]
             self.strikes(b, landed if self.span else landed[-8:], hit_l, normal, 'he' if he else 'kinetic')
-        self.rows.append(f'tracer {a} -> {b}: {", ".join(fired)}, {len(landed)} landed')
+        self.rows.append(f'tracer {a} -> {b}: {", ".join(fired)}, {len(landed) + len(placed_hits)} landed')
         return True
 
     def tracking(self, a, b, muzzle_l, hit_l, speed):
@@ -241,11 +247,24 @@ class SceneFx:
     # slewing, fire at nothing in long bursts, and shells that home): it trains on its target
     # every frame at its turn rate, both axes, easing in; it fires in bursts with gaps, and only
     # while it is on target, in range and with no other hull in the way; its rounds fly straight.
-    ON_TARGET_DEG = 3.0
+    ON_TARGET_DEG = 5.0
     MAX_FLIGHT_S = 2.2
     MAX_RANGE_M = 3500.0
     BURST_S, GAP_S = (.8, 2.0), (1.0, 2.6)
+    # Burst rhythm by weapon (owner, 2026-10-23: Vulcans fire long bursts of the streak; cannons
+    # and the Hellbore fire heavy, deliberate shots): (burst seconds, gap seconds). Inside a burst
+    # the weapon still fires at its own game cadence, so a Hellbore window holds one or two slugs.
+    RHYTHM = {'mg': ((2.0, 4.5), (1.0, 2.2)), 'ac': ((1.0, 2.2), (1.4, 3.0)),
+              'heavy': ((3.2, 6.5), (1.5, 3.0)), 'energy': ((1.0, 2.5), (1.2, 2.8))}
+    FAMILY = {'lightmg': 'mg', 'lightdualmg': 'mg', 'vulcan': 'mg', 'chaingun': 'mg', 'lightneedler': 'mg',
+              'lightac': 'ac', 'heavyac': 'ac', 'mark9': 'ac', 'lightag': 'ac', 'hellbore': 'heavy',
+              'ioncannon': 'energy', 'miningblaster': 'energy', 'heavyblaster': 'energy'}
     PREROLL_S = 2.0
+    # Bursts walk (owner, 2026-10-23: "we don't need everything to hit; tasteful missing of burst
+    # fire weapons around a ship is good"): each burst opens off to one side of the aim point and
+    # walks across and past her; a round hits only where its straight line meets her hull, and
+    # the rest fly on past her and fade. WALK_R is the walk's reach as a share of her length.
+    WALK_R = .3
 
     def planned(self, ctx, kit, a, b, turret, weapon, muzzle_l, hit_l, speed, feeder, track):
         """Fire turret on a at b over the whole shot as a gun would: returns the round records, or
@@ -262,14 +281,19 @@ class SceneFx:
         rate = math.radians(w.get('turn', 30.0)) / fps
         F0, F1 = self.span[0] - round(self.PREROLL_S * fps), self.span[1]
         y, p = piv.rotation_euler.z, (elev.rotation_euler.y if elev is not None else 0.0)
-        plan = {}
+        plan, last = {}, None
         for f in range(F0, F1 + 1):
             got = g.aim_solve(ctx, turret, track(f))
             yd, pd = got[2], (got[3] if got[3] is not None else 0.0)
             ey = math.atan2(math.sin(yd - y), math.cos(yd - y))
             ep = pd - p
-            y += max(-rate, min(rate, ey * .3))            # eased: slows as it closes, never past its rate
-            p += max(-rate, min(rate, ep * .3))
+            # eased onto the target, plus the target's own swing since last frame (a gun layer
+            # leads a crossing target rather than chasing it), never past the turn rate
+            dy = math.atan2(math.sin(yd - last[0]), math.cos(yd - last[0])) if last else 0.0
+            dp = pd - last[1] if last else 0.0
+            last = (yd, pd)
+            y += max(-rate, min(rate, ey * .3 + dy))
+            p += max(-rate, min(rate, ep * .3 + dp))
             plan[f] = (y, p, math.degrees(max(abs(ey), abs(ep))))
         frames = list(range(F0, F1 + 1))
         g._bake(piv, 'rotation_euler', 2, frames, [plan[f][0] for f in frames])
@@ -281,13 +305,54 @@ class SceneFx:
             if elev is not None:
                 elev.rotation_euler.y = plan[f][1]
         rnd = random.Random(f'asharu-bursts|{a}|{turret}|{b}')
+        burst_s, gap_s = self.RHYTHM.get(self.FAMILY.get(weapon), (self.BURST_S, self.GAP_S))
         bursts, t = [], F0 + rnd.uniform(0, 1.5) * fps
         while t < F1:
-            on = rnd.uniform(*self.BURST_S) * fps
+            on = rnd.uniform(*burst_s) * fps
             bursts.append((t, t + on))
-            t += on + rnd.uniform(*self.GAP_S) * fps
+            t += on + rnd.uniform(*gap_s) * fps
+        bm = self.placed[b]['matrix']
+        reach = self.placed[b]['length'] / (bm.to_scale()[0] or 1.0) * self.WALK_R
+        walks = []
+        for t0, t1 in bursts:
+            th = rnd.uniform(0, 2 * math.pi)
+            r0 = reach * rnd.uniform(.9, 1.6)
+            ph = th + math.pi + rnd.uniform(-.8, .8)
+            r1 = reach * rnd.uniform(0, 1.3)
+            walks.append((t0, t1, (math.cos(th) * r0, math.sin(th) * r0), (math.cos(ph) * r1, math.sin(ph) * r1)))
+        imp = self.m['swfx_impacts']
         mpu = self.placed[a]['mpu']
         copy_at = lambda f: self.matrix_at(a, f) @ Matrix.Scale(mpu, 4)
+        shots = {}
+
+        def shot(f):
+            """(aim point in a's copy space, hit on her hull (local, normal) or None) for a round on f."""
+            if f in shots:
+                return shots[f]
+            ma = self.matrix_at(a, f)
+            src = ma @ Vector(muzzle_l)
+            fl = (self.matrix_at(b, f) @ Vector(hit_l) - src).length / max(speed, 1.0) * fps
+            mb = self.matrix_at(b, f + fl)
+            line = (Vector(hit_l) - mb.inverted() @ src).normalized()
+            u = line.orthogonal().normalized()
+            v = line.cross(u)
+            ox = oy = 0.0
+            for t0, t1, c, e in walks:
+                if t0 <= f < t1:
+                    k = (f - t0) / max(t1 - t0, 1.0)
+                    ox, oy = c[0] + (e[0] - c[0]) * k, c[1] + (e[1] - c[1]) * k
+                    break
+            jr = random.Random(f'asharu-walk|{a}|{turret}|{b}|{f}')
+            ox += jr.gauss(0, reach * .08)
+            oy += jr.gauss(0, reach * .08)
+            aim_l = Vector(hit_l) + u * ox + v * oy
+            got = imp.ray_to_hull(self.scene, bm, tuple(aim_l - line * reach * 4), tuple(aim_l))
+            hit = None
+            if got is not None and (Vector(got[0]) - Vector(hit_l)).length < reach * 3:
+                hit = (Vector(got[0]), Vector(got[1]))
+                aim_l = hit[0]
+            shots[f] = ((ma @ Matrix.Scale(mpu, 4)).inverted() @ (mb @ aim_l), hit)
+            return shots[f]
         others = [k for k in self.placed if k not in (a, b)]
         clear = {}
 
@@ -324,14 +389,33 @@ class SceneFx:
                 return False
             stats['on'] += 1
             return True
-        recs = g.fire_weapon(ctx, turret, F0, (F1 - F0) / fps, feeder=feeder, target=track, train=False,
-                             allow=allow, pose=pose,
+        recs = g.fire_weapon(ctx, turret, F0, (F1 - F0) / fps, feeder=feeder, target=lambda f: shot(f)[0],
+                             train=False, allow=allow, pose=pose, passes=lambda f: shot(f)[1] is None,
                              after=lambda f, objs: g.world_rounds(objs, lambda k, f=f: copy_at(k).inverted() @ copy_at(f)))
+        hits = 0
+        for r in recs:
+            got = shots.get(r['frame'], (None, None))[1]
+            if got is not None and r.get('hit_frame') is not None:
+                r['hit_l'], r['hit_n'] = got
+                hits += 1
         aims = [math.degrees(plan[f][1]) for f in frames[::24]]
-        self.rows.append(f'planned {a} t{turret} -> {b}: {len(recs)} rounds in {len(bursts)} bursts; '
+        self.rows.append(f'planned {a} t{turret} -> {b}: {len(recs)} rounds in {len(bursts)} bursts, {hits} hit; '
                          f'skipped {stats}; elevation {"none (traverse only)" if elev is None else f"{min(aims):+.1f}..{max(aims):+.1f} deg"}; '
                          f'traverse {math.degrees(plan[F0][0]):+.1f} -> {math.degrees(plan[F1][0]):+.1f} deg')
         return recs
+
+    def strikes_at(self, key, hits, kind):
+        """Rounds arriving on key's hull where each met it: hits are (frame, at_l, normal)."""
+        imp = self.m['swfx_impacts']
+        ship = self.ship(key)
+        if ship is None:
+            return
+        out = {}
+        with ship.kit() as (ctx, kit):
+            for f, at_l, normal in hits:
+                where = imp.strike(ctx, f, tuple(at_l), tuple(normal), kind=kind)
+                out[where] = out.get(where, 0) + 1
+        self.rows.append(f'strikes on {key}: {out} (where each round met her)')
 
     def strikes(self, key, frames, at_l, normal, kind):
         """Rounds arriving on key's hull (or shield) around at_l on these frames."""

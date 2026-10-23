@@ -1009,7 +1009,7 @@ def cadence(weapon, seconds, feeder=False):
 
 
 def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, tag=None, train=True, only=None,
-                allow=None, pose=None, after=None):
+                allow=None, pose=None, after=None, passes=None):
     """Fire an armed mount for `seconds` from `start_frame` at the game's cadence (cadence()):
     barrels alternate per round ('alternating'), per burst ('alternating_burst') or fire together
     ('linked'). target: a point in the ship's own (copy) space the rounds fly to and stop at, as
@@ -1024,7 +1024,9 @@ def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, ta
     allow(frame) -> bool: a round on that frame fires only if it says so (counted either way, so
     seeds and barrels stay in step). pose(frame): called before a round is built, to stand the
     turret where a planned aim has it then (anchor_matrix reads the current pose, not the keys).
-    after(frame, objects): the unparented objects that round made (world_rounds' input)."""
+    after(frame, objects): the unparented objects that round made (world_rounds' input).
+    passes(frame) -> bool: that round misses: it flies through its target point and on to its
+    range, fading, with no 'hit_frame' (a burst walked across a ship, most rounds going past)."""
     guns = [g for g in ctx.anchors.guns if g.turret == turret and getattr(g, 'kind', 'gun') != 'launcher'
             and (tag is None or g.tag == tag)]
     if not guns or not ctx.spec.get('guns', True):
@@ -1081,7 +1083,8 @@ def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, ta
         for g in pick:
             if w.get('charge') and w.get('chargeup'):
                 _charge(ctx, g, f, int(round(w['chargeup'] * fps)), w)
-            out.append(_weapon_shot(ctx, g, f, lead=f - exact, target=tg))
+            out.append(_weapon_shot(ctx, g, f, lead=f - exact, target=tg,
+                                    through=passes is not None and tg is not None and passes(f)))
             if trained is not None:
                 out[-1]['aim'] = trained
         if after is not None:
@@ -1104,7 +1107,7 @@ def _key_flash(ctx, a, rig, label, frame, prof, gain, seed):
         _rebuild_visibility(box, lit)
 
 
-def _weapon_shot(ctx, a, frame, lead=0.0, target=None):
+def _weapon_shot(ctx, a, frame, lead=0.0, target=None, through=False):
     """One round of an armed mount at an integer frame. lead: frames by which the true firing
     instant precedes `frame` (the round has already flown that far)."""
     coll = ctx.collection(GROUP)
@@ -1119,7 +1122,7 @@ def _weapon_shot(ctx, a, frame, lead=0.0, target=None):
     rec = {'turret': a.turret, 'tag': a.tag, 'frame': frame, 'round': n, 'weapon': weapon,
            'flash_frames': len(w['flash'])}
     rec['cloud'] = _cloud(ctx, coll, a, label, frame, w['cloud'])
-    rec.update(_round(ctx, coll, a, label, frame, rnd, weapon, lead, target))
+    rec.update(_round(ctx, coll, a, label, frame, rnd, weapon, lead, target, through))
     if w.get('puff'):
         rec['puff'] = _puff(ctx, coll, a, label, frame, rnd)
     if w.get('brass') and _knob(ctx, 'gun_casings') >= .5:
@@ -1615,7 +1618,7 @@ def _braid_dir(a, converge_m):
     return Vector((swfx_core.units(converge_m), centre.y, centre.z)).normalized()
 
 
-def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target):
+def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target, through=False):
     """The round itself: core and corona rods (or a jagged bolt re-struck every frame), an
     optional glow halo and travelling light, flying from the muzzle to range or target."""
     w = WEAPONS[weapon]
@@ -1636,6 +1639,8 @@ def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target):
             stop = most
             if not all(math.isfinite(c) for c in d) or d.length < .5:
                 d = Vector((1, 0, 0))
+        if through:          # a miss: on past the target point to the round's range
+            stop = min(max(stop * 1.15, swfx_core.units(r['range'])), most)
     elif w.get('braid'):
         d = _braid_dir(a, w['braid'])
     yaw, pitch = rnd.gauss(0, w['spread']), rnd.gauss(0, w['spread'])
@@ -1655,9 +1660,10 @@ def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target):
         j += 1
     life = len(heads) - 1
     frames = [frame + j for j in range(life + 1)]
-    burn = [1.0 if target is not None else max(0.0, min(1.0, (1 - hh / stop) / .3)) for hh in heads]
+    hits = target is not None and not through
+    burn = [1.0 if hits else max(0.0, min(1.0, (1 - hh / stop) / .3)) for hh in heads]
     rec = {'flight_frames': life}
-    if target is not None:
+    if hits:
         rec['hit_frame'] = frame + life
 
     def mover(ob):
