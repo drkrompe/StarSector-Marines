@@ -176,7 +176,9 @@ alignment, barrel blocked, or out of ammunition. The reticle stays quiet,
 because the player looks straight through it: thin ticks with no backing, no
 shadow and no end caps (owner, 2026-10-23). Pattern carries what hue does, so
 the marks read without colour: white and yellow are solid, red is dotted, and
-grey is two wide dashes. LINKED, or any
+grey is two wide dashes. The ticks are also partly transparent (owner,
+2026-10-23): white at 80% opacity, yellow and red at 85% (a dotted or
+falling-off tick carries less ink), and grey lowest at 60%. LINKED, or any
 pick of several mounts, shows the best mark among them and is grey only when
 none would fire. Cooldown, reload, burst and flux never change a mark: those
 are clocks, and the panel's ammunition strips own them, so a Marine's empty
