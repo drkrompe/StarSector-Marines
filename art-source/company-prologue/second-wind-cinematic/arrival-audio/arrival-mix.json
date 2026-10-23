@@ -40,7 +40,7 @@
     "gain_db": -6.2
    },
    "jangala_squelch_open": {
-    "gain_db": 0.0
+    "gain_db": -8.0
    },
    "jangala_arrival_hail_01": {
     "gain_db": 0.0
@@ -52,7 +52,7 @@
     "gain_db": -21.0
    },
    "jangala_squelch_close": {
-    "gain_db": 0.0
+    "gain_db": -8.0
    },
    "jangala_arrival_hail_02": {
     "gain_db": 0.0
@@ -61,13 +61,13 @@
     "gain_db": -14.6
    },
    "jangala_squelch_open#2": {
-    "gain_db": 0.0
+    "gain_db": -8.0
    },
    "jangala_arrival_hail_03": {
     "gain_db": 0.0
    },
    "jangala_squelch_close#2": {
-    "gain_db": 0.0
+    "gain_db": -8.0
    },
    "jangala_sfx_c1_hull_creaks_2": {
     "gain_db": -13.8
@@ -90,10 +90,10 @@
     "gain_db": -19.2
    },
    "jangala_sfx_c2_legion_forward": {
-    "gain_db": -12.1
+    "gain_db": -17.3
    },
    "jangala_sfx_c2_legion_drives": {
-    "gain_db": -15.9
+    "gain_db": -16.4
    },
    "jangala_sfx_c2_fighter_02": {
     "gain_db": -8.0
@@ -108,7 +108,7 @@
     "gain_db": -12.7
    },
    "jangala_squelch_open": {
-    "gain_db": 0.0
+    "gain_db": -8.0
    },
    "jangala_sfx_c2_fighter_01": {
     "gain_db": -10.1
@@ -135,7 +135,7 @@
     "gain_db": -16.3
    },
    "jangala_squelch_close": {
-    "gain_db": 0.0
+    "gain_db": -8.0
    },
    "jangala_sfx_c2_switch_clicks": {
     "gain_db": -8.6
@@ -148,6 +148,9 @@
    },
    "jangala_sfx_c2_switch_clicks_2": {
     "gain_db": -8.9
+   },
+   "jangala_sfx_c2_legion_burn": {
+    "gain_db": -13.6
    }
   },
   "entry": {

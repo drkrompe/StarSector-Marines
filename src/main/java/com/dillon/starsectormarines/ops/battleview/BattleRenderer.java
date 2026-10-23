@@ -494,6 +494,15 @@ public class BattleRenderer {
         // sheets are loaded by ensureConvoySprites() before this runs
         // (BattleScreen.attach order). batchBySheet owns the QuadBatch refs.
         registerSpriteSheetBatches(sprites.convoySprites().values());
+        // Worn plate over live hulls (ConvoyRenderSystem) addresses quarters of the base game's damage decals,
+        // so each decal needs a batch or the drain drops its quads.
+        if (!sprites.convoySprites().isEmpty()) {
+            List<ShuttleSpriteCache> scuffs = new ArrayList<>();
+            for (String[] kind : ConvoyRenderSystem.SCUFF_DECALS) {
+                for (String path : kind) scuffs.add(sprites.spriteByPath(path));
+            }
+            registerHullBatches(scuffs);
+        }
 
         // Corpse sheets for the UNITS layer (UnitRenderService's corpse sweep) so
         // the fallen no layered or rig art lays down batch via SHEET_QUAD.

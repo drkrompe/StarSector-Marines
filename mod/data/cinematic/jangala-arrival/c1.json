@@ -540,7 +540,7 @@
   {
    "t": 3.0,
    "sound": "jangala_squelch_open",
-   "volume": 1.0
+   "volume": 0.3981
   },
   {
    "t": 3.16,
@@ -560,7 +560,7 @@
   {
    "t": 11.8,
    "sound": "jangala_squelch_close",
-   "volume": 1.0
+   "volume": 0.3981
   },
   {
    "t": 12.62,
@@ -575,7 +575,7 @@
   {
    "t": 23.7,
    "sound": "jangala_squelch_open",
-   "volume": 1.0
+   "volume": 0.3981
   },
   {
    "t": 23.86,
@@ -585,7 +585,7 @@
   {
    "t": 31.7,
    "sound": "jangala_squelch_close",
-   "volume": 1.0
+   "volume": 0.3981
   },
   {
    "t": 32.2,

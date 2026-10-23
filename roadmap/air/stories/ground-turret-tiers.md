@@ -3,6 +3,7 @@
 Status: IN PROGRESS
 
 Written: 2026-10-23
+Updated: 2026-10-23 — slices 3 to 5 built; follow-ups listed under Open.
 
 Read `ground-defences.md` (defence nests, multi-cell structures), `elevation-nouns.md`
 (tiers, sight) and `ballistics-nouns.md` (muzzle height, catch bands) first.
@@ -52,13 +53,35 @@ is approved; every look step is shown to the owner as renders.
    Hephaestus weapon, 15 degrees of depression, so a dead zone of about 15 cells) is the
    placeholder hardpoint until slice 5 gives it art. Not built: incoming fire at a raised gun
    still meets the low cover round its plinth as if the gun stood on the ground.
-3. **Art direction**: two or three looks for both tiers rendered on real scenes, put to
-   the owner on the picks page.
-4. **Point emplacement family**: the chosen look for the one-cell roles (autogun, light
-   cannon, grenade/flak, point defence) with a collar base, replacing the vanilla sprites
-   (the Locust excepted), and towers and nests sited to read as built.
-5. **Hardpoints**: 3x3 plinth structures (heavy cannon, Locust artillery) with concrete
-   under them, placed by the post stamper where a large post stood.
+3. **Art direction** (built): three looks, kept by the owner as **emplacement styles**
+   (`EmplacementStyle`): brutalist (low tech, prepared: poured collars and plinths),
+   earthwork (low tech, militia: sandbag and gabion works) and derelict (rusted colony
+   steel, for abandoned sites). A structure's `looks` in the turret catalog names each
+   style's base and head art; brutalist is its default art. Presentation only, as a tech
+   family is: no rule reads a style. Mid- and high-tech styles come later.
+4. **Point emplacement family** (built): the existing one-cell structures carry the new
+   art (Vulcan and heavy MG the autogun, Arbalest and Hephaestus the cannon, grenade
+   launcher and both flak positions the grenade head) on a collar, each with its
+   earthwork and derelict look. The carried point-defence pod takes the new head with no
+   collar, since it is set down in the field. The heavy mortar keeps its vanilla sprite.
+   The light post is four concrete parapets and a paved apron round its gun.
+5. **Hardpoints** (built): `structure.hardpoint-cannon` (heavy head) and
+   `structure.hardpoint-locust` (the vanilla Locust head) on the 3x3 plinth. A large post
+   may draw the 5x5 hardpoint layout (plinth plus paved apron); the artillery post is
+   now the Locust hardpoint. Apron is a post cell kind: walkable ground the stamper paves.
+
+A generated post takes its style from the defenders' market at generation
+(`EmplacementStylePolicy`): prepared defences (ground defences, heavy batteries or a
+defence level above one) build brutalist, the rest earthwork, and no market builds
+brutalist. An earthwork post's parapets are sandbags and it is not paved.
+
+## Open
+
+- Incoming fire at a raised gun still meets the low cover round its plinth as if the
+  gun stood on the ground.
+- A plinth casts no shadow past its footprint; the renderer needs an overhang margin or a
+  sun-offset shadow layer for it.
+- Missions choose the derelict style (nothing selects it yet).
 
 ## Acceptance
 

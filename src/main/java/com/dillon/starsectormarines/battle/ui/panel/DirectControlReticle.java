@@ -8,21 +8,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The ground body's aim reticle as screen strokes: a short tick either side of a neutral centre dot on the aim
+ * The ground body's aim reticle as screen strokes: a short thin tick either side of a neutral centre dot on the aim
  * point, the left tick for the left mouse button and the right tick for the right, each in its {@link Mark}'s
- * colour. Grey is also drawn broken, so a held trigger does not rely on hue; red carries a short end bar. Every tick
- * sits on a dark outline so it holds on busy or light ground. The strokes are pure geometry, drawn by the GL panel
- * and by review frames alike.
+ * colour. It stays quiet because the player looks straight through it: no backing and no end caps. Pattern carries
+ * what hue does, so the marks read without colour too: white and yellow are solid, red (past range) is dotted, and
+ * grey (will not fire) is two wide dashes. The strokes are pure geometry, drawn by the GL panel and by review frames
+ * alike.
  */
 public final class DirectControlReticle {
     private DirectControlReticle() {}
 
-    public static final Color GOOD = new Color(0xF4, 0xF6, 0xF8);
-    public static final Color FALLING_OFF = new Color(0xFF, 0xD2, 0x4A);
-    public static final Color WASTED = new Color(0xFF, 0x5A, 0x4A);
-    public static final Color HELD = new Color(0xB4, 0xBA, 0xC0);
-    /** The outline under every tick. */
-    static final Color OUTLINE = new Color(0x0A, 0x0C, 0x10, 0xB0);
+    /*
+     * Partly transparent, so the ticks stay quiet over the point the player is watching. Yellow and red keep a
+     * little more than white, since a falling-off or dotted tick carries less ink; grey sits lowest.
+     */
+    public static final Color GOOD = new Color(0xF4, 0xF6, 0xF8, alpha(0.80f));
+    public static final Color FALLING_OFF = new Color(0xFF, 0xD2, 0x4A, alpha(0.85f));
+    public static final Color WASTED = new Color(0xFF, 0x5A, 0x4A, alpha(0.85f));
+    public static final Color HELD = new Color(0xA4, 0xAA, 0xB0, alpha(0.60f));
+
+    private static int alpha(float share) { return Math.round(share * 255f); }
 
     /** The colour a mark draws in, or null for {@link Mark#NONE}. */
     public static Color color(Mark mark) {
@@ -35,22 +40,21 @@ public final class DirectControlReticle {
         };
     }
 
-    private static final float WIDTH = 2f;
-    private static final float OUTLINE_WIDTH = 4f;
-    private static final float DASH = 3f;
-    private static final float GAP = 2f;
-    private static final float END_BAR = 4f;
+    private static final float WIDTH = 1.5f;
     private static final float INNER = 5f;
     private static final float OUTER = 14f;
+    /** Past range: three short dots along the tick. */
+    private static final int DOTS = 3;
+    private static final float DOT = 2f;
+    /** Will not fire: two wide dashes. */
+    private static final int DASHES = 2;
+    private static final float DASH = 3.5f;
 
-    /** The strokes for {@code marks}, centred on screen point {@code (x, y)}, outlines first. */
+    /** The strokes for {@code marks}, centred on screen point {@code (x, y)}. */
     public static List<DirectControlAimLane.Stroke> strokes(Marks marks, float x, float y, Color centre) {
-        List<DirectControlAimLane.Stroke> lines = new ArrayList<>();
-        tick(lines, marks.left(), x, y, -1f);
-        tick(lines, marks.right(), x, y, 1f);
-        List<DirectControlAimLane.Stroke> out = new ArrayList<>(lines.size() * 2 + 1);
-        for (var line : lines) out.add(outline(line));
-        out.addAll(lines);
+        List<DirectControlAimLane.Stroke> out = new ArrayList<>();
+        tick(out, marks.left(), x, y, -1f);
+        tick(out, marks.right(), x, y, 1f);
         out.add(new DirectControlAimLane.Stroke(x - 1.25f, y, x + 1.25f, y, 2.5f, centre));
         return out;
     }
@@ -78,38 +82,23 @@ public final class DirectControlReticle {
     private static void tick(List<DirectControlAimLane.Stroke> out, Mark mark, float x, float y, float side) {
         Color color = color(mark);
         if (color == null) return;
-        float inner = x + side * INNER;
-        float outer = x + side * OUTER;
-        line(out, mark, inner, y, outer, y, color);
-        if (mark == Mark.WASTED) {
-            out.add(new DirectControlAimLane.Stroke(outer, y - END_BAR * 0.75f, outer, y + END_BAR * 0.75f,
-                    WIDTH, color));
+        float from = x + side * INNER;
+        float to = x + side * OUTER;
+        switch (mark) {
+            case WASTED -> pieces(out, from, to, y, DOTS, DOT, color);
+            case HELD -> pieces(out, from, to, y, DASHES, DASH, color);
+            default -> out.add(new DirectControlAimLane.Stroke(from, y, to, y, WIDTH, color));
         }
     }
 
-    /** A solid line, or dashes for a held mark. */
-    private static void line(List<DirectControlAimLane.Stroke> out, Mark mark, float x0, float y0,
-                             float x1, float y1, Color color) {
-        if (mark != Mark.HELD) {
-            out.add(new DirectControlAimLane.Stroke(x0, y0, x1, y1, WIDTH, color));
-            return;
+    /** {@code count} pieces {@code length} long, spread evenly from {@code from} to {@code to}, ends included. */
+    private static void pieces(List<DirectControlAimLane.Stroke> out, float from, float to, float y,
+                               int count, float length, Color color) {
+        float sign = Math.signum(to - from);
+        float pitch = (Math.abs(to - from) - length) / (count - 1);
+        for (int i = 0; i < count; i++) {
+            float start = from + sign * pitch * i;
+            out.add(new DirectControlAimLane.Stroke(start, y, start + sign * length, y, WIDTH, color));
         }
-        float length = (float) Math.hypot(x1 - x0, y1 - y0);
-        for (float at = 0f; at < length; at += DASH + GAP) {
-            float end = Math.min(length, at + DASH);
-            out.add(new DirectControlAimLane.Stroke(x0 + (x1 - x0) * at / length, y0 + (y1 - y0) * at / length,
-                    x0 + (x1 - x0) * end / length, y0 + (y1 - y0) * end / length, WIDTH, color));
-        }
-    }
-
-    /** The dark stroke under {@code line}, a pixel wider on each side and a pixel longer at each end. */
-    private static DirectControlAimLane.Stroke outline(DirectControlAimLane.Stroke line) {
-        float dx = line.endX() - line.x();
-        float dy = line.endY() - line.y();
-        float length = (float) Math.hypot(dx, dy);
-        float ux = length > 0f ? dx / length : 0f;
-        float uy = length > 0f ? dy / length : 0f;
-        return new DirectControlAimLane.Stroke(line.x() - ux, line.y() - uy, line.endX() + ux, line.endY() + uy,
-                OUTLINE_WIDTH, OUTLINE);
     }
 }
