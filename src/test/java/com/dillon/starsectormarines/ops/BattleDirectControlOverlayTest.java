@@ -104,10 +104,14 @@ class BattleDirectControlOverlayTest {
                                 UiViewport activeSections, UiViewport activeActions, UiViewport orders,
                                 UiViewport manualObjectives) { }
 
-    /** The status panel's production bounds at a measured {@code documentHeight}, beside a mech's doll. */
-    static UiViewport activeStatus(int physicalWidth, int physicalHeight, float uiScale, float documentHeight) {
+    /**
+     * The status panel's production bounds at a measured {@code documentHeight}: beside the damage doll
+     * for a machine, in the corner itself for a Marine.
+     */
+    static UiViewport activeStatus(int physicalWidth, int physicalHeight, float uiScale, float documentHeight,
+                                   boolean machine) {
         return withHost(physicalWidth, physicalHeight, uiScale,
-                position -> BattleDirectControlOverlay.statusViewport(position, documentHeight, true));
+                position -> BattleDirectControlOverlay.statusViewport(position, documentHeight, machine));
     }
 
     /** The weapon-groups panel's production bounds at a measured {@code documentHeight}. */

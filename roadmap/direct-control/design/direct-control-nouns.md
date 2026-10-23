@@ -100,10 +100,8 @@ resource and clock availability, not a guarantee that the barrel is aimed or
 clear. A magazine-fed infantry primary draws its load as rounds rather than a
 number: a strip under the weapon row (rifle cartridges, shotgun shells, or a
 belt in blocks of one burst, so a long belt still reads at a glance), spent
-rounds hollow and a reload pressing them back in, and the same rounds as a ring
-of pips beside the cursor, where the eye already is in a fight, the last quarter
-red. Both read one gauge, so they cannot disagree. A primary without a magazine
-shows no counter. Finite Mech stores count
+rounds hollow and a reload pressing them back in. The cursor carries no ammo
+mark. A primary without a magazine shows no counter. Finite Mech stores count
 trigger packs, while the APC turret counts individual rounds. Indirect mounts
 remain visible as unavailable for manual fire.
 
