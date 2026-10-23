@@ -112,7 +112,8 @@ increasing an encounter's total armored threat.
   an unrestricted workshop knows every chassis and weapon pattern but only the
   stock internals, which did not exist when it was written. Weight class is the
   access ladder: Hound (light) Common, Warden (medium) Advanced, Bulwark (heavy)
-  Prestige; weapons and internals carry their own authored tier. Vehicle patterns carry an authored tier too —
+  Prestige (the three are first stand-ins for a grid of mech lines, tech family by
+  weight class: `mech-lines.md`); weapons and internals carry their own authored tier. Vehicle patterns carry an authored tier too —
   heavy APC Common, escort APC and militia technical Advanced, breakthrough tank
   Prestige — and no vehicle is a starter: a company earns its first hull. A vehicle
   card's weight class is the lift its hull asks for, not its tier, so the card says
