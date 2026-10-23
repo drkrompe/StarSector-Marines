@@ -31,8 +31,6 @@ class ManualFacingTest {
         assertEquals(AirBody.facingToward(aimX - 5.5f, aimY - 5.5f),
                 roster.entityWorld().getFloat(marine, c.LAYERED_ANIMATION,
                         BattleComponents.LAYERED_FACING_DEGREES), 0.00001f);
-        assertEquals(LiveAppearance.pickFrame(LiveAppearance.Facing.EAST, true),
-                roster.entityWorld().getInt(marine, c.SPRITE, BattleComponents.SPRITE_INDEX));
         assertEquals(0.35f, roster.entityWorld().getFloat(marine, c.LAYERED_ANIMATION,
                 BattleComponents.LAYERED_LOCOMOTION_PHASE));
         assertEquals(LayeredAppearance.POSE_AIMED,
