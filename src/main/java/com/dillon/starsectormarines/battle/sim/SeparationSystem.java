@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.BodyCapsule;
 import com.dillon.starsectormarines.battle.unit.SwarmStage;
+import com.dillon.starsectormarines.battle.vehicle.HullRam;
 import com.dillon.starsectormarines.battle.unit.BodyRadius;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
@@ -59,7 +60,10 @@ import java.util.function.LongPredicate;
  * via {@code allocateAir}/{@code allocateVehicle}), never enter the dense
  * roster this system walks, and carry no POSITION component at all.
  *
- * <p><b>Mass model.</b> Each participant's mass is {@code radius²}; a heavier
+ * <p><b>Mass model.</b> A pair with a mech in it is weighed in tonnes, the one
+ * mass model hulls and mechs share ({@link HullRam#bodyTonnes}): a Hound shoves a
+ * marine aside almost entirely and a Bulwark outweighs a Hound, so the lighter
+ * machine yields. Any other pair weighs each participant's {@code radius²}; a heavier
  * {@code b} yields less, so a mech (radius 0.6, mass
  * 0.36) shoves a marine (radius 0.3, mass 0.09) roughly 4× as far as the
  * marine shoves back. Static emplacements ({@link
@@ -172,6 +176,10 @@ public final class SeparationSystem {
     static final int INFANTRY_CLEARANCE_LOOKAHEAD = 3;
     /** Compression-floor radius plus enough slack for one tick of ordinary mech movement. */
     private static final float MECH_FORMATION_QUERY_RADIUS = 2.75f;
+    /** A mech faster than this is walking: what stands ahead of it is shoved off its line (cells a second). */
+    private static final float MECH_WALKING_SPEED = 0.15f;
+    /** Nearer a walking mech's line than this, a body is dead ahead of it, and goes to the mech's left. */
+    private static final float MECH_LINE_TIE = 0.05f;
 
     /** Below this ratio of sideways to inward walking speed, a mover meets an immovable body head-on and steps aside. */
     private static final float HEAD_ON_TANGENT = 0.25f;
@@ -225,6 +233,8 @@ public final class SeparationSystem {
     private float[] collisionY = new float[0];
     private float[] collisionRadius = new float[0];
     private float[] collisionMass = new float[0];
+    /** Mass in tonnes ({@link HullRam#bodyTonnes}), read for any pair a mech is in. */
+    private float[] collisionTonnes = new float[0];
     private byte[] collisionFlags = new byte[0];
     private byte[] collisionFaction = new byte[0];
     /**
@@ -423,11 +433,32 @@ public final class SeparationSystem {
                     dirX = dx / dist;
                     dirY = dy / dist;
                 }
+                if (physicalOverlap > 0f && hasFlag(bFlags, MECH)) {
+                    // Ahead of a walking mech, a body is shoved off its line, not carried down it: to the side it
+                    // already stands on, or dead ahead to the mech's left, which for two mechs head-on is each one's own right.
+                    float bvx = collisionVelX[j], bvy = collisionVelY[j];
+                    float bv = (float) Math.sqrt(bvx * bvx + bvy * bvy);
+                    if (bv > MECH_WALKING_SPEED) {
+                        float ux = bvx / bv, uy = bvy / bv;
+                        float relX = ax - bx, relY = ay - by;
+                        if (relX * ux + relY * uy > 0f) {
+                            float left = -relX * uy + relY * ux;
+                            float s = Math.abs(left) > MECH_LINE_TIE ? Math.signum(left) : 1f;
+                            dirX += -uy * s;
+                            dirY += ux * s;
+                            float len = (float) Math.sqrt(dirX * dirX + dirY * dirY);
+                            dirX /= len;
+                            dirY /= len;
+                        }
+                    }
+                }
 
                 float correction = physicalOverlap * STIFFNESS
                         + formationGap * FORMATION_STIFFNESS;
                 float weight = hasFlag(bFlags, IMMOVABLE)
                         ? 1f
+                        : hasFlag(aFlags, MECH) || hasFlag(bFlags, MECH)
+                        ? collisionTonnes[j] / (collisionTonnes[i] + collisionTonnes[j])
                         : collisionMass[j]
                         / (collisionMass[i] + collisionMass[j]);
                 float mag = weight * correction;
@@ -599,6 +630,8 @@ public final class SeparationSystem {
                 collisionY[slot] = posY[row];
                 collisionRadius[slot] = radius;
                 collisionMass[slot] = radius * radius;
+                collisionTonnes[slot] = HullRam.bodyTonnes(type, (SwarmStage) stages[row],
+                        hasMechLoadout ? ((MechLoadoutComponent) mechLoadouts[row]).variant.relativeMass : 1f);
                 collisionFlags[slot] = flags;
                 collisionFaction[slot] =
                         (byte) ((Faction) factions[row]).ordinal();
@@ -1248,6 +1281,7 @@ public final class SeparationSystem {
         collisionY = new float[newCap];
         collisionRadius = new float[newCap];
         collisionMass = new float[newCap];
+        collisionTonnes = new float[newCap];
         collisionFlags = new byte[newCap];
         collisionFaction = new byte[newCap];
         shapeX = new float[newCap];

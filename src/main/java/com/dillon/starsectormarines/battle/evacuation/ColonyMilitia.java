@@ -295,8 +295,10 @@ public final class ColonyMilitia {
     }
 
     /**
-     * A militia fireteam of {@link #POST_SIZE} on the given cells, one each,
-     * with no order yet: the caller says what it holds.
+     * A militia fireteam on the given cells, one each and at most {@link #POST_SIZE},
+     * with no order yet: the caller says what it holds. Fewer cells seat fewer: a
+     * carried team set down is as many as rode, and a squad that lost men before it
+     * boarded once crashed the battle asking for a fourth cell.
      */
     public static int seatTeam(BattleSimulation sim, List<int[]> cells, String name, RiskLevel risk, Random rng) {
         int squadId = sim.mintSquad(Faction.ALLY, UnitType.MILITIA);
@@ -307,7 +309,8 @@ public final class ColonyMilitia {
     private static void seatMembers(BattleSimulation sim, Squad squad, List<int[]> cells, String name,
                                     RiskLevel risk, Random rng) {
         MarineLoadout[] loadouts = InfantryLoadoutRolls.defenderSquad(POST_SIZE, UnitType.MILITIA, risk, rng);
-        for (int i = 0; i < POST_SIZE; i++) {
+        int size = Math.min(POST_SIZE, cells.size());
+        for (int i = 0; i < size; i++) {
             int[] cell = cells.get(i);
             EntitySpec spec = new EntitySpec(name + "-" + (i + 1),
                     Faction.ALLY, UnitType.MILITIA, cell[0], cell[1])
@@ -318,7 +321,7 @@ public final class ColonyMilitia {
             long id = sim.spawn(spec);
             if (squad.leaderId == 0L) squad.leaderId = id;
         }
-        squad.originalSize = POST_SIZE;
+        squad.originalSize = size;
     }
 
     /** A colony gun on one cell: the post's heavy machine gun, sealed into its cell. */

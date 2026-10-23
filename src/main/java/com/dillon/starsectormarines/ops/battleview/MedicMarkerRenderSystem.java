@@ -11,11 +11,14 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
 /**
  * Which marine is the squad medic, and the treatment in hand ({@code squad-medic.md}).
  *
- * <p>The medic carries a small red cross on a white plate at the upper left of
- * the body, clear of the health bar above, so it reads as identity rather than
- * as a state. It is deliberately not amber: amber is the company's mark for
- * <em>wounded</em>. A treatment is shown in the world rather than as an
- * overlay: the medic kneels over an open kit, and the patient gives off
+ * <p>The medic carries a small green cross with a dark outline at the upper
+ * left of the body, clear of the health bar above, so it reads as identity
+ * rather than as a state. It is green, never red: a red cross is a protected
+ * emblem. It is not amber either, which is the company's mark for
+ * <em>wounded</em>. The cross is also the medic's energy pool, filling from the
+ * bottom as it regenerates and greyed below the start gate
+ * ({@link MedicPoolGauge}). A treatment is shown in the world rather than as
+ * an overlay: the medic kneels over an open kit, and the patient gives off
  * {@link TreatmentParticles} for whatever is being restored.
  *
  * <p>Drawn in {@link RenderLayer#UNITS} after the bodies, so it sits on top of
@@ -68,8 +71,10 @@ public final class MedicMarkerRenderSystem implements RenderSystem {
 
             if (!view.visible(mx, my, radius * 3f)) continue;
             float size = Math.max(MIN_CROSS_PX, Math.min(MAX_CROSS_PX, CROSS_CELLS * cellPx));
-            cross(out, camera.cellToScreenX(mx) - radius * cellPx,
-                    camera.cellToScreenY(my) + radius * cellPx, size, medicAlpha);
+            float fill = MedicPoolGauge.fill(medic.energy(), medic.medicine.energyMax());
+            boolean ready = MedicPoolGauge.ready(medic.energy(), medic.medicine.minStartEnergy());
+            mark(out, camera.cellToScreenX(mx) - radius * cellPx,
+                    camera.cellToScreenY(my) + radius * cellPx, size, fill, ready, medicAlpha);
         }
     }
 
@@ -130,13 +135,36 @@ public final class MedicMarkerRenderSystem implements RenderSystem {
         return markerAlpha(visibility, selected, fade);
     }
 
-    /** A red cross on a white plate, centred on {@code (x, y)}. */
-    static void cross(DrawList out, float x, float y, float size, float alpha) {
-        float h = size / 2f;
-        float arm = size * 0.16f;
-        float reach = size * 0.36f;
-        out.addSolidRect(RenderLayer.UNITS, x - h, y - h, x + h, y + h, 0.96f, 0.96f, 0.94f, alpha);
-        out.addSolidRect(RenderLayer.UNITS, x - reach, y - arm, x + reach, y + arm, 0.85f, 0.12f, 0.12f, alpha);
-        out.addSolidRect(RenderLayer.UNITS, x - arm, y - reach, x + arm, y + reach, 0.85f, 0.12f, 0.12f, alpha);
+    private static final float[] GREEN = {0.24f, 0.80f, 0.36f};
+    private static final float[] SPENT = {0.58f, 0.62f, 0.59f};
+    private static final float[] OUTLINE = {0.05f, 0.08f, 0.06f};
+    private static final float[] EMPTY = {0.13f, 0.22f, 0.15f};
+
+    /**
+     * The medic's green cross, outlined dark, filled from the bottom with the
+     * energy pool. Below the start gate the fill is grey, so a medic who cannot
+     * take on a patient reads as a dark, all-but-empty cross.
+     */
+    static void mark(DrawList out, float x, float y, float size, float fill, boolean ready, float alpha) {
+        float reach = size * 0.5f;
+        float arm = size * 0.19f;
+        float o = Math.max(1f, size * 0.1f);
+        crossRects(out, x, y, reach + o, arm + o, Float.MAX_VALUE, OUTLINE, alpha);
+        crossRects(out, x, y, reach, arm, Float.MAX_VALUE, EMPTY, alpha);
+        if (fill <= 0f) return;
+        float level = y - reach + fill * 2f * reach;
+        crossRects(out, x, y, reach, arm, level, ready ? GREEN : SPENT, alpha);
+    }
+
+    /** The cross's two bars, cut off above screen row {@code yMax} (screen y runs up). */
+    private static void crossRects(DrawList out, float x, float y, float reach, float arm,
+                                   float yMax, float[] c, float alpha) {
+        rect(out, x - reach, y - arm, x + reach, Math.min(y + arm, yMax), c, alpha);
+        rect(out, x - arm, y - reach, x + arm, Math.min(y + reach, yMax), c, alpha);
+    }
+
+    private static void rect(DrawList out, float x0, float y0, float x1, float y1, float[] c, float alpha) {
+        if (y1 <= y0) return;
+        out.addSolidRect(RenderLayer.UNITS, x0, y0, x1, y1, c[0], c[1], c[2], alpha);
     }
 }

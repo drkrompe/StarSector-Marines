@@ -63,6 +63,22 @@ the other suites' 536s and 446s of writing unchanged, the 55 minutes become
 roughly 27. What is left is simulation, GIF encoding and the 39 suites that do
 not use this renderer.
 
+**GIF writing went side by side next** (2026-10-23). Once frames were drawn on the GPU, a
+suite's GIFs cost as much as drawing it, because each one was a single thread through ImageIO:
+median-cut palette, then the JDK's LZW, frame by frame. A frame's patch depends only on its own
+pixels and its predecessor's, so `AnimatedGifWriter.write` keys, quantises and compresses a
+recording's frames on `SnapshotWorkers.encode()` and only concatenates them in order. It writes
+the JDK's exact stream (layout, interlace, LZW code sequence), so every output file is
+byte-identical to before. The median cut keeps the same picks for less work. The palette's 7 MB
+of scratch is reused per thread. ImageIO's metadata round trip is gone. On colony-threat, whose
+two 165-frame adaptive GIFs were the slow part, the write phase went from 17.7s / 21.8s to
+9.4s / 13.7s across two alternating pairs of full runs. Writing those two GIFs alone, in one
+process, went from 8-9s to 1.5-4s. On one thread it used about a quarter less CPU (12s against
+15-17s). The machine was loaded throughout, so these readings are indicative. fire-line, whose four
+GIFs were already written side by side and whose stills dominate, did not move. A lower
+PNG deflate level was tried for the stills and was slower than ImageIO's default, so it was left
+alone.
+
 ## Which GL: LWJGL 2 on Windows, LWJGL 3 on the Mac
 
 **Windows: LWJGL 2, from the game's install, through `HeadlessGl`.** It is
@@ -151,8 +167,10 @@ of 89 suites that account for 83% of the catalog's time, including every
 behaviour scene and every commander-evidence GIF. Nothing is migrated suite by
 suite, because a suite never names its drain. The 39 other suites (deck props,
 elevation looks, armory sheets, tileset previews) have their own renderers and
-are out of scope; the largest two, `elevation-look` and `deck-props`, are 9%
-of the run between them.
+are out of scope; the largest two, `elevation-look` and `deck-props`, were 9%
+of the run between them and are now opt-in (`SnapshotSuite.inAll`): `all`
+leaves them out and `-Psnapshot=<id>` runs them, since they answer only a look
+question about their own art.
 
 **One thread owns the context.** A GL context is current on one thread, and a
 suite may render from any thread, so the drain runs every frame on its own
@@ -219,7 +237,7 @@ The backend switch adds no test and no task; `shaderEvidence` and
 ### Not done
 
 - The 39 suites with their own renderers (deck props, elevation looks, armory
-  sheets) still draw with Java2D; `elevation-look` and `deck-props` are the
-  only large ones.
+  sheets) still draw with Java2D; `elevation-look` and `deck-props`, the only
+  large ones, are opt-in rather than ported.
 - `commanderEvidence` and the other `Test`-task evidence keep the Java2D
   default; they can pass `-Dsnapshot.backend=gl` when a run wants it.

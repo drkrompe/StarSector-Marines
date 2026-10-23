@@ -30,6 +30,9 @@ public final class ElevationLookSnapshotSuite implements SnapshotSuite {
 
     @Override public String id() { return "elevation-look"; }
 
+    /** A look study for its own art; minutes of CPU rendering, so it runs only when named. */
+    @Override public boolean inAll() { return false; }
+
     @Override public String label() { return "Raised ground look: tiles against gradients and scree"; }
 
     @Override

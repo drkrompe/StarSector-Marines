@@ -52,6 +52,57 @@ public record BattleTextureSet(Set<LayeredArmorFamily> families, boolean ravRigs
         Set<LayeredArmorFamily> families = EnumSet.noneOf(LayeredArmorFamily.class);
         Set<Faction> mechSides = EnumSet.noneOf(Faction.class);
         Set<VehicleType> vehicles = EnumSet.noneOf(VehicleType.class);
+        boolean rav = addField(sim, families, mechSides, vehicles);
+
+        // What can arrive later. Reinforcements wear the ground roster's issue, at whatever risk.
+        GroundRosterProfile roster = sim.getGroundRoster();
+        if (roster != null) {
+            for (GroundRosterProfile.ForceTier tier : GroundRosterProfile.ForceTier.values()) {
+                for (RiskLevel risk : RiskLevel.values()) {
+                    for (MarineArmorCatalogDef armor : roster.issue(tier).armorPatterns(risk)) {
+                        if (armor.appearanceFamily() != null) families.add(armor.appearanceFamily());
+                    }
+                }
+            }
+        }
+        if (sim.getReinforcementService() != null && sim.getReinforcementService().dispatchesConvoys()) {
+            vehicles.add(VehicleType.HEAVY_APC);
+        }
+        if (sim.isSwarmReinforcementConfigured() || !sim.swarmBores().bores().isEmpty()) {
+            families.addAll(SWARM_FAMILIES);
+            rav = true;
+        }
+        for (Faction side : Faction.values()) {
+            if (sim.mechDrops().lancesRemaining(side) > 0) mechSides.add(side);
+        }
+        if (sim.getCommandPowerService() != null) {
+            for (CommandPower power : sim.getCommandPowerService().getAvailablePowers()) {
+                if (power instanceof MechSupport support) {
+                    if (!support.deployments().isEmpty()) mechSides.add(Faction.MARINE);
+                    for (VehicleDeploymentSpec spec : support.vehicles()) vehicles.add(spec.type());
+                } else if (power instanceof VehicleSupport support) {
+                    for (VehicleDeploymentSpec spec : support.deployments()) vehicles.add(spec.type());
+                }
+            }
+        }
+        return new BattleTextureSet(families, rav, mechSides, vehicles);
+    }
+
+    /**
+     * Only what stands on the field now, with nothing a mission could bring later: the set of a
+     * scene that is not a battle, such as the company deck ({@code battle-textures.md}).
+     */
+    public static BattleTextureSet onField(BattleSimulation sim) {
+        Set<LayeredArmorFamily> families = EnumSet.noneOf(LayeredArmorFamily.class);
+        Set<Faction> mechSides = EnumSet.noneOf(Faction.class);
+        Set<VehicleType> vehicles = EnumSet.noneOf(VehicleType.class);
+        boolean rav = addField(sim, families, mechSides, vehicles);
+        return new BattleTextureSet(families, rav, mechSides, vehicles);
+    }
+
+    /** Adds what is on the field; whether a Rav Bloom rig is among it. */
+    private static boolean addField(BattleSimulation sim, Set<LayeredArmorFamily> families,
+                                    Set<Faction> mechSides, Set<VehicleType> vehicles) {
         boolean rav = false;
 
         // Every layered body on the field, riders aboard vehicles included: they draw once they deboard.
@@ -78,37 +129,7 @@ public record BattleTextureSet(Set<LayeredArmorFamily> families, boolean ravRigs
             VehicleType type = sim.convoy().vehicleType(id);
             if (type != null) vehicles.add(type);
         }
-
-        // What can arrive later. Reinforcements wear the ground roster's issue, at whatever risk.
-        GroundRosterProfile roster = sim.getGroundRoster();
-        if (roster != null) {
-            for (GroundRosterProfile.ForceTier tier : GroundRosterProfile.ForceTier.values()) {
-                for (RiskLevel risk : RiskLevel.values()) {
-                    for (MarineArmorCatalogDef armor : roster.issue(tier).armorPatterns(risk)) {
-                        if (armor.appearanceFamily() != null) families.add(armor.appearanceFamily());
-                    }
-                }
-            }
-        }
-        if (sim.getReinforcementService() != null && sim.getReinforcementService().dispatchesConvoys()) {
-            vehicles.add(VehicleType.HEAVY_APC);
-        }
-        if (sim.isSwarmReinforcementConfigured() || !sim.swarmBores().bores().isEmpty()) {
-            families.addAll(SWARM_FAMILIES);
-            rav = true;
-        }
-        for (Faction side : Faction.values()) {
-            if (sim.mechDrops().lancesRemaining(side) > 0) mechSides.add(side);
-        }
-        for (CommandPower power : sim.getCommandPowerService().getAvailablePowers()) {
-            if (power instanceof MechSupport support) {
-                if (!support.deployments().isEmpty()) mechSides.add(Faction.MARINE);
-                for (VehicleDeploymentSpec spec : support.vehicles()) vehicles.add(spec.type());
-            } else if (power instanceof VehicleSupport support) {
-                for (VehicleDeploymentSpec spec : support.deployments()) vehicles.add(spec.type());
-            }
-        }
-        return new BattleTextureSet(families, rav, mechSides, vehicles);
+        return rav;
     }
 
     private static void addFamily(Set<LayeredArmorFamily> families, int ordinal) {

@@ -143,7 +143,7 @@ public final class BoatDeckCanvas implements CanvasProducer {
     public void draw(CanvasContext context) {
         float width = context.metrics().surfaceWidth();
         float height = context.metrics().surfaceHeight();
-        ShipDeckBattleScene aboard = ship.live() ? ship.scene() : null;
+        ShipDeckBattleScene aboard = ship.drawable();
         DeckGraph.Compartment hangar = aboard != null ? bay.get() : null;
         if (hangar == null) {
             targets = List.of();

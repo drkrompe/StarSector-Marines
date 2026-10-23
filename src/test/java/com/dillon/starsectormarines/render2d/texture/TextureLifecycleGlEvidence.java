@@ -1,9 +1,23 @@
 package com.dillon.starsectormarines.render2d.texture;
 
+import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.scene.SceneBuilder;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.gen.ship.TestHulls;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineSoldier;
+import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.ops.battleview.ArmoryPreviewAssets;
+import com.dillon.starsectormarines.ops.battleview.BattleTextureSet;
+import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
+import com.dillon.starsectormarines.ops.battleview.TextureLoadQueue;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
-import com.dillon.starsectormarines.ops.battleview.UnitSpriteCache;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
 import com.dillon.starsectormarines.testsupport.GameLikeTextureStore;
 import com.dillon.starsectormarines.testsupport.HeadlessGl;
@@ -17,11 +31,13 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.zip.CRC32;
 
@@ -85,11 +101,12 @@ class TextureLifecycleGlEvidence {
     }
 
     /**
-     * The same through the shipping loaders: a session sprite set loaded as the company deck
-     * loads it, and a battle's loaded under its own lease as the battle screen loads it.
+     * The same through the shipping loaders and the real company deck, as the ops dialog drives
+     * it: the campaign map with the dialog closed, the deck drawn, the Armory opened from it, the
+     * player gone to a battle, back aboard afterwards, and the dialog closed again.
      */
     @Test
-    void aBattlesSpriteSetLeavesWithItsLeaseAndTheDeckKeepsDrawing() throws Exception {
+    void theDeckHoldsOnlyWhatItDrawsAndGivesItBackWhenTheDialogCloses() throws Exception {
         try (HeadlessGl gl = HeadlessGl.createOrNull(64, 64)) {
             if (gl == null) {
                 System.out.println("[shader-evidence] SKIPPED: " + HeadlessGl.unavailableReason());
@@ -105,25 +122,14 @@ class TextureLifecycleGlEvidence {
             SettingsAPI previous = Global.getSettings();
             Global.setSettings(store.settings());
             try {
-                runSpriteSets(store);
+                runDeck(store);
             } finally {
                 Global.setSettings(previous);
             }
         }
     }
 
-    /** What {@code CompanyDeck.ensureSceneSprites} loads. */
-    private static final Consumer<BattleSprites> DECK = s -> {
-        s.ensureTileSheet();
-        s.ensureRoadSheet();
-        s.ensureDoodadSheet();
-        s.ensureLayeredUnitSprites();
-        s.ensureLayeredMechSprites();
-        s.ensureMarineSecondarySprites();
-        s.ensureAirframeSprites();
-    };
-
-    /** What the battle screen's load queue loads. */
+    /** What the battle screen's load queue loads for a battle that names every family, livery and line. */
     private static final Consumer<BattleSprites> BATTLE = s -> {
         s.ensureTileSheet();
         s.ensureRoadSheet();
@@ -148,70 +154,138 @@ class TextureLifecycleGlEvidence {
         s.ensureSatchelSprite();
     };
 
-    private static void runSpriteSets(GameLikeTextureStore store) throws Exception {
+    private static final long READY_TIMEOUT_MS = 120_000L;
+
+    private static void runDeck(GameLikeTextureStore store) throws Exception {
         TextureLedger ledger = TextureLedger.shared();
-        DECK.accept(new BattleSprites());
-        Set<String> deckPaths = new HashSet<>(ledger.session().paths());
+        long closed = ledger.residentBytes();
+
+        MarineRoster roster = new MarineRoster();
+        roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
+        List<MarineSoldier> company = roster.soldiers();
+        CompanyDeck deck = CompanyDeck.home(TestHulls.transport(), 42L, null, List::of, () -> company,
+                () -> new boolean[]{true}).leasedFrom(ledger);
+        long deadline = System.currentTimeMillis() + READY_TIMEOUT_MS;
+        while (!deck.ready()) {
+            assertTrue(System.currentTimeMillis() < deadline, "the deck was never got ready");
+            Thread.sleep(10L);
+        }
+        assertFalse(deck.holdsTextures(), "a deck nobody has drawn holds nothing");
+        int frames = drawAboard(deck);
+        long deckOpen = ledger.residentBytes();
+        Set<String> deckPaths = new HashSet<>(deck.sprites().lease().paths());
+        Map<String, Integer> deckIds = new LinkedHashMap<>();
         Map<String, Long> deckPixels = new LinkedHashMap<>();
-        for (String path : deckPaths) deckPixels.put(path, checksum(store.texture(path)));
-        long beforeBattle = ledger.residentBytes();
-
-        TextureLease lease = ledger.lease("battle");
-        BATTLE.accept(new BattleSprites(lease));
-        long duringBattle = ledger.residentBytes();
-        Map<String, Integer> firstIds = new LinkedHashMap<>();
-        Map<String, Long> firstPixels = new LinkedHashMap<>();
-        for (String path : lease.paths()) {
-            GameLikeTextureStore.Texture texture = store.texture(path);
-            firstIds.put(path, texture.id());
-            firstPixels.put(path, checksum(texture));
-        }
-        Set<String> battleOnly = new HashSet<>(lease.paths());
-        battleOnly.removeAll(deckPaths);
-        assertTrue(battleOnly.size() > 0, "the battle loads art the deck does not");
-
-        TextureLedger.Release release = lease.release();
-
-        int foreign = 0;
-        for (String path : battleOnly) {
-            if (store.texture(path) != null) {
-                // Only the game's own art, already resident, may outlive the battle.
-                foreign++;
-                assertEquals(firstIds.get(path), store.texture(path).id());
-                continue;
-            }
-            assertFalse(glIsTexture(firstIds.get(path)), path + " is deleted on the card");
-        }
-        assertEquals(battleOnly.size() - foreign, release.unloaded());
+        Map<String, Long> byFolder = new TreeMap<>();
+        Map<String, Long> sizes = new LinkedHashMap<>();
         for (String path : deckPaths) {
             GameLikeTextureStore.Texture texture = store.texture(path);
-            assertNotNull(texture, path + " survives: the deck still draws it");
-            assertTrue(glIsTexture(texture.id()), path + " has a live texture");
-            assertEquals(deckPixels.get(path), checksum(texture), path + " still holds its image");
+            deckIds.put(path, texture.id());
+            deckPixels.put(path, checksum(texture));
+            byFolder.merge(folder(path), cardBytes(texture), Long::sum);
+            sizes.put(path, cardBytes(texture));
         }
-        assertEquals(beforeBattle, ledger.residentBytes(), "releasing the battle returns the card to where it was");
 
-        TextureLease againLease = ledger.lease("battle");
-        BattleSprites again = new BattleSprites(againLease);
-        BATTLE.accept(again);
-        assertEquals(firstPixels.keySet(), againLease.paths(), "the second battle loads the same set");
-        for (String path : againLease.paths()) {
+        // The Armory, opened from the deck: its previews hold the families they show, and give them back.
+        ArmoryPreviewAssets armory = new ArmoryPreviewAssets();
+        Set<LayeredArmorFamily> shown = new HashSet<>();
+        for (MarineSoldier soldier : company) {
+            LayeredArmorFamily family = soldier.armorDef().appearanceFamily();
+            if (family != null && shown.add(family)) assertNotNull(armory.layered(family), family + " previews in the Armory");
+        }
+        long armoryOpen = ledger.residentBytes();
+        armory.release();
+        assertEquals(deckOpen, ledger.residentBytes(), "the Armory gives its previews back");
+
+        // Off to a battle: the panel releases the deck, and the battle loads what it draws itself.
+        deck.releaseTextures();
+        assertFalse(deck.holdsTextures());
+        for (String path : deckPaths) {
+            if (store.texture(path) != null) continue;
+            assertFalse(glIsTexture(deckIds.get(path)), path + " is deleted on the card");
+        }
+        long betweenScreens = ledger.residentBytes();
+        assertEquals(closed, betweenScreens, "a deck no screen draws holds nothing");
+        // A small battle, loaded the way the battle screen's queue loads it: only its own set.
+        long inBattle;
+        TextureLedger.Release battleRelease;
+        var world = SceneBuilder.openGround(40, 30)
+                .squad("infantry").size(4).inFile(4, 4, 1, 0).done()
+                .squad("lance").size(1).mech(MechVariant.HOUND, MechRole.BALANCED).inFile(10, 10, 1, 0).done()
+                .unit("enemy", Faction.DEFENDER, UnitType.MARINE, 36, 26).build();
+        try (BattleSimulation sim = world.sim()) {
+            TextureLease battle = ledger.lease("battle");
+            BattleSprites battleSprites = new BattleSprites(battle);
+            for (TextureLoadQueue.Step step : battleSprites.battleLoadSteps(BattleTextureSet.of(sim), key -> key)) {
+                step.work().run();
+            }
+            inBattle = ledger.residentBytes();
+            battleRelease = battle.release();
+        }
+        assertEquals(closed, ledger.residentBytes(), "a battle leaves nothing behind");
+        // And the worst case, a battle that names every family, livery and vehicle line.
+        TextureLease everything = ledger.lease("battle");
+        BATTLE.accept(new BattleSprites(everything));
+        long inWorstBattle = ledger.residentBytes();
+        everything.release();
+        long afterBattle = ledger.residentBytes();
+        assertEquals(closed, afterBattle, "a battle leaves nothing behind");
+
+        // Back aboard: the same textures, loaded afresh, and a renderer drawing live ones.
+        int framesAgain = drawAboard(deck);
+        assertEquals(deckPaths, deck.sprites().lease().paths(), "back aboard loads the same set");
+        for (String path : deckPaths) {
             GameLikeTextureStore.Texture texture = store.texture(path);
-            assertTrue(glIsTexture(texture.id()), path + " has a live texture in the second battle");
-            assertEquals(firstPixels.get(path), checksum(texture), path + " draws the same image as before");
+            assertTrue(glIsTexture(texture.id()), path + " has a live texture back aboard");
+            assertEquals(deckPixels.get(path), checksum(texture), path + " draws the same image as before");
         }
-        // And the sprites the second set hands out are bound to those textures, not to the first battle's.
-        assertEquals(store.texture(TileManifest.SHEET).id(), again.tileSheet().getTextureId());
-        for (UnitSpriteCache cache : again.convoySprites().values()) {
-            assertTrue(glIsTexture(cache.sheet.getTextureId()), "a convoy sheet sprite draws a live texture");
-        }
-        TextureLedger.Release second = againLease.release();
+        assertEquals(store.texture(TileManifest.SHEET).id(), deck.sprites().tileSheet().getTextureId(),
+                "the deck's sprites are bound to the reloaded sheet, not the released one");
+        long backAboard = ledger.residentBytes();
 
-        System.out.printf("[shader-evidence] battle sprite set: %.1f MB of mod textures before the battle, %.1f during,"
-                        + " %.1f after; the battle held %d textures, released %d (%.1f MB), %d still drawn by the deck"
-                        + " or the game; second battle released %.1f MB%n",
-                mb(beforeBattle), mb(duringBattle), mb(ledger.residentBytes()), firstIds.size(),
-                release.unloaded(), mb(release.bytesFreed()), release.kept(), mb(second.bytesFreed()));
+        // And the dialog closes.
+        deck.dismiss();
+        long dialogClosed = ledger.residentBytes();
+        assertEquals(closed, dialogClosed, "closing the dialog returns the card to the campaign map's");
+
+        StringBuilder folders = new StringBuilder();
+        for (Map.Entry<String, Long> entry : byFolder.entrySet()) {
+            folders.append(String.format("%n    %-56s %7.1f MB", entry.getKey(), mb(entry.getValue())));
+        }
+        folders.append(String.format("%n  the largest:"));
+        deckPaths.stream()
+                .sorted((a, b) -> Long.compare(sizes.get(b), sizes.get(a)))
+                .limit(12)
+                .forEach(path -> folders.append(String.format("%n    %-72s %7.1f MB", path, mb(sizes.get(path)))));
+        System.out.printf("[shader-evidence] company deck: %.1f MB of mod textures on the campaign map with the dialog closed,"
+                        + " %.1f with the deck drawn (%d textures, %d frames to load), %.1f with the Armory's previews,"
+                        + " %.1f between screens, %.1f in a small battle (released %.1f MB; %.1f in a battle that names"
+                        + " everything), %.1f after the battle,"
+                        + " %.1f back aboard (%d frames), %.1f with the dialog closed%n  the deck's textures by folder:%s%n",
+                mb(closed), mb(deckOpen), deckPaths.size(), frames, mb(armoryOpen), mb(betweenScreens), mb(inBattle),
+                mb(battleRelease.bytesFreed()), mb(inWorstBattle), mb(afterBattle), mb(backAboard), framesAgain, mb(dialogClosed), folders);
+    }
+
+    /** Draws the deck the way a canvas does, a frame at a time, until she can be drawn; the frames it took. */
+    private static int drawAboard(CompanyDeck deck) {
+        int frames = 1;
+        while (deck.drawable() == null) {
+            frames++;
+            assertTrue(frames < 10_000, "the deck's textures never finished loading");
+        }
+        assertTrue(deck.drawable().hasRenderer(), "a drawn deck has a renderer");
+        return frames;
+    }
+
+    /** Bytes the texture holds on the card, padding included. */
+    private static long cardBytes(GameLikeTextureStore.Texture texture) {
+        return (long) texture.texWidth() * texture.texHeight() * 4L;
+    }
+
+    /** The image's folder, up to three levels deep, for the inventory. */
+    private static String folder(String path) {
+        String[] parts = path.split("/");
+        return String.join("/", Arrays.copyOf(parts, Math.min(parts.length - 1, 4)));
     }
 
     private static void run(GameLikeTextureStore store, boolean haveForeign) throws Exception {
