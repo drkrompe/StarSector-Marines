@@ -69,50 +69,41 @@ partial delivery is reported, not treated as complete delivery. A zero-input
 run can still contain construction/defender mechs. `MECH_DOCTRINE_*` times
 doctrine execution, nested inside the GOAP action; it excludes planning and
 reflexes and does not prove coverage of roles absent from the payload.
-`-Dbattle.pathfinding.mechReachabilityComponents=false` restores per-position-
-selection whole-map component floods in mech overwatch and medium-range
-positioning. The default reuses navigation's revision-cached raw-cell
-connectivity, preserving candidate order and separate body-clearance proof.
-`-Dbattle.pathfinding.compactCasualtyRouteCost=false` is the dense-storage
-control for casualty routing costs. Both representations calculate the same
-block multipliers; the control additionally expands them across the map.
+Mech overwatch and medium-range positioning read navigation's
+revision-cached raw-cell connectivity rather than flooding the map per
+selection, preserving candidate order and separate body-clearance proof.
+Casualty routing costs are published as block multipliers and read at cell
+indices without expanding them across the map.
 `-Dbattle.pathfinding.asyncDefendSite=false` keeps defended-site travel on
 synchronous A* while leaving track rallies asynchronous, for same-build
 coverage controls. Slow flat-search samples include member, squad, stable
 action identity, and route reason; action totals span all measured ticks.
-`-Dbattle.pathfinding.pruneFlankCandidates=false` restores exhaustive flank
-candidate A* fan-out. The default skips candidates whose admissible score
-bound cannot improve the incumbent, preserving the selected cell and tie order;
-actual proofs are labelled `FLANK_SNAP` in slow-search samples. Tail reports
-retain immutable post-tick goal, assignment, objective footprint, zone extent,
-and member/target positions alongside slow searches. This context is not a
-query-time snapshot. `-Dbattle.pathfinding.boundFlankProofs=false` disables
-the independent flank-proof ceiling: by default A* stops when its minimum
-frontier cost exceeds every route allowed by the existing detour-step limit.
-Accepted route ordering is unchanged; this is not a per-tick work budget.
-`-Dbattle.pathfinding.flankStepGate=false` disables the independent shared
-minimum-step rejection gate. Difficult flank selections may build one local,
-expansion-capped flood after four candidate proofs; it rejects impossible
-detour budgets, leaving unknown candidates and winner selection to ordinary
-A*. `FLANK_STEP_FIELD/EXPANDED/REJECT` separates this work from saved searches.
-`-Dbattle.pathfinding.budgetFlankSelection=false` restores unlimited total
-flank-selection expansion work. By default each selection shares 8192 node
-expansions across candidate A* and its optional step gate, without triggering
-cold whole-map connectivity labeling. Exhaustion keeps a verified incumbent
-or uses the origin refusal; it may change the tactical choice. This is not
-a shared squad/tick allowance or a wall-time guarantee. `FLANK_SELECTION_EXPANDED`
-counts both kinds of work, and `FLANK_SELECTION_LIMIT` counts selections using
-the entire allowance (including success on the last node). `FLANK_SELECTION`
-counts all fresh selections; `FLANK_SELECTION_LIMIT_REFUSAL` isolates those
-exhausting the allowance and returning the origin rather than an incumbent.
-Parallel attack-move
-callers may still duplicate selection. Allocation and scratch reset are not
-charged as node expansions. The other flank controls remain independent.
-`-Dbattle.goap.retainFlankPlans=false` disables positive ReinforceContact
-waypoint retention across routine replans. The default retains a choice for
-300–360 ticks with four-cell anchor-displacement and intent/terrain/plan
-invalidation. `FLANK_PLAN_REUSE/SELECT` records reuse and fresh choices. This
-does not extend the separate worker-side AttackMove memo's lifetime.
+Flank selection skips candidates whose admissible score bound cannot improve
+the incumbent, preserving the selected cell and tie order; actual proofs are
+labelled `FLANK_SNAP` in slow-search samples. Tail reports retain immutable
+post-tick goal, assignment, objective footprint, zone extent, and
+member/target positions alongside slow searches. This context is not a
+query-time snapshot. Each flank proof stops when its minimum frontier cost
+exceeds every route allowed by the detour-step limit; accepted route ordering
+is unchanged. Difficult flank selections may build one local,
+expansion-capped minimum-step flood after four candidate proofs; it rejects
+impossible detour budgets, leaving unknown candidates and winner selection to
+ordinary A*. `FLANK_STEP_FIELD/EXPANDED/REJECT` separates this work from saved
+searches. Each selection shares 8192 node expansions across candidate A* and
+the step gate, without triggering cold whole-map connectivity labeling.
+Exhaustion keeps a verified incumbent or uses the origin refusal; it may
+change the tactical choice. This is not a shared squad/tick allowance or a
+wall-time guarantee. `FLANK_SELECTION_EXPANDED` counts both kinds of work, and
+`FLANK_SELECTION_LIMIT` counts selections using the entire allowance
+(including success on the last node). `FLANK_SELECTION` counts all fresh
+selections; `FLANK_SELECTION_LIMIT_REFUSAL` isolates those exhausting the
+allowance and returning the origin rather than an incumbent. Parallel
+attack-move callers may still duplicate selection. Allocation and scratch
+reset are not charged as node expansions. ReinforceContact retains a positive
+waypoint choice across routine replans for 300–360 ticks, with four-cell
+anchor-displacement and intent/terrain/plan invalidation.
+`FLANK_PLAN_REUSE/SELECT` records reuse and fresh choices. This does not
+extend the separate worker-side AttackMove memo's lifetime.
 `GROUND_*` and `VEHICLE_*` counters separate ground stages, local trajectory
 heuristic/lattice work, and synchronous recovery searches from convoy
 dispatch proofs. These nested elapsed times overlap; expansion, failed-plan,
@@ -130,37 +121,25 @@ from reuse. Neither control changes physical clearance or terminal policy.
 Tail reports
 also include squad-field fallback searches, with their miss cause, expanded
 nodes, and unsigned destination occupancy (including path reservations).
-`-Dbattle.pathfinding.squadRouteAdmission=false` restores member A* when
-shared squad preparation defers an intent. The default publishes exact pending
-intents and admits older waits first; pending objective travel does not mutate
-or advance an old path. Failed, uncovered, mismatched, and intentionally
+Shared squad preparation publishes exact pending intents when it defers one
+and admits older waits first; pending objective travel does not mutate or
+advance an old path. Failed, uncovered, mismatched, and intentionally
 unprepared queries retain their ordinary fallbacks. Tail reports separate
 pending requests/calls, admissions, successful resumptions, and wait age.
-A zero `battle.pathfinding.maxSquadRouteBuildsPerTick` keeps legacy fallback
-instead of creating a queue that cannot make progress.
-`-Dbattle.pathfinding.retainSquadRouteCosts=false` restores cost-object identity
-as the cross-replan reuse requirement. By default covered, same-goal fields
-tolerate soft cost changes until the first replan at age 300–360 ticks;
-a route-local multiplier increase of 0.25 against original build costs asks
-for earlier refresh. Same-epoch freshness and compatible refresh deferral
-remain unchanged. `SQUAD_ROUTE_COST_CHECK/REUSE` separates validation from
-avoided builds. Build samples report causes, actual seed searches/expansions,
-and unpadded/padded/settled areas. `NEW` means no prior entry, including after
-a topology flush; `COST` also includes age refresh. Seed counts are separate
-from flat member A* counts. These diagnostics do not impose an expansion cap.
-`-Dbattle.pathfinding.retainSingletonSeeds=false` restores corridor/reverse
-construction for one-member requests. The default retains the exact seed
-directly, with only its cells covered. `SQUAD_PATH_FIELD_DIRECT` measures
-conversion/storage; corridor/settled cell counts then describe stored seed
-coverage, not reverse expansions. `SQUAD_ROUTE_UNCOVERED_FALLBACK/EXPANDED`
-measures off-field fallback work for both singleton and shared fields, so
-narrower coverage cannot hide searches displaced into member execution.
-`-Dbattle.pathfinding.squadRouteWorkBudget=false` restores whole-build
-admission. The default resumes seed, region/corridor, reverse, sorting and
-publication work across ticks using four reusable scratch slots. Defaults:
-`squadRouteWorkPerTick=8192`, `squadRouteWorkPerSlice=4096`,
-`squadRouteWorkPerRequest=524288`, and `squadRouteRetryTicks=120`, each prefixed
-with `battle.pathfinding.` and clamped to at least one. Work units charge
+Covered, same-goal fields tolerate soft cost changes until the first replan
+at age 300–360 ticks; a route-local multiplier increase of 0.25 against
+original build costs asks for earlier refresh. `SQUAD_ROUTE_COST_CHECK/REUSE`
+separates validation from avoided builds. Seed counts are separate from flat
+member A* counts. A one-member request retains its exact seed directly, with
+only its cells covered. `SQUAD_PATH_FIELD_DIRECT` measures conversion/storage;
+corridor/settled cell counts then describe stored seed coverage, not reverse
+expansions. `SQUAD_ROUTE_UNCOVERED_FALLBACK/EXPANDED` measures off-field
+fallback work for both singleton and shared fields, so narrower coverage
+cannot hide searches displaced into member execution. Construction resumes
+seed, region/corridor, reverse, sorting and publication work across ticks
+using four reusable scratch slots, starting at most four builds a tick under
+fixed allowances: 8192 work units a tick, 4096 a slice and 524288 a request,
+with a 120-tick backoff once a request reaches its cap. Work units charge
 visited entries/nodes and bounded heap operations, not nanoseconds; array
 allocation and VM scheduling are not preemptible. Total-limit backoff remains
 pending (no member fallback), survives routine epoch churn, and is released
@@ -173,9 +152,8 @@ field restarts under the same total allowance.
 samples expose action, goal, stage/status, slice work and expansions, lifetime
 work/age, and current/last/max seed expansions. Slice counts are additive;
 lifetime and per-seed cumulative samples are not. `SQUAD_PATH_FIELD_BUILD`
-measures slices in budgeted mode and whole attempts in the control; completed
-build counts remain separate. Legacy `slowSquadRouteBuilds` applies to the
-whole-build control. Inspect wait and cancellation alongside frame timings:
+measures slices; completed build counts remain separate. Inspect wait and
+cancellation alongside frame timings:
 pending means postponed objective travel, not successful movement.
 Corridor membership reads the mesh's existing cell-to-region index; it no
 longer stamps selected rectangles into a second per-cell mask. Coverage and
@@ -190,17 +168,13 @@ contention. `ALERT_*` buckets split squad alert into noise-mailbox drain,
 belief maintenance, awareness, noise detection, incoming fire and final
 publication; candidate and LOS counts describe visited entries and actual
 visibility calls, not cache misses or ray steps.
-`-Dbattle.perception.filteredSquadAwareness=false` restores broad all-body
-gathering for squad awareness. The default uses the existing hostile-combatant
-projection before live range and visibility checks. Candidate counts measure
+Squad awareness gathers through the hostile-combatant projection before live
+range and visibility checks. Candidate counts measure
 returned entries, not every primitive entry visited inside the spatial index.
-`-Dbattle.pathfinding.omitFixedGoalOccupancy=false` restores the unavoidable
-terminal crowding toll in flat A*. By default only that additive constant is
-omitted during search; intermediate crowding and terrain costs still rank
-routes. Equal-cost path ties need not match the control. The switch is
-recorded in tail reports so same-build comparisons remain identifiable.
+Flat A* omits the unavoidable additive crowding toll of a fixed goal during
+search; intermediate crowding and terrain costs still rank routes.
 Tail reports
-record this and the squad-traffic switches, include counts at 30/40/50 ms,
+record the squad-traffic switches, include counts at 30/40/50 ms,
 and exclude warmup from async-route cumulative deltas. Pass
 `-Dbattle.tail.sourceRevision=<commit>` to retain an explicit source revision;
 omission records `unknown`, not a guessed checkout. Lifetime latency maxima
@@ -210,20 +184,16 @@ Configurable orders such as DefendSite and DefendTrack are reported separately.
 shared constrained firing-position experiment for patrol and zone-entry
 execution. `FIRING_POOL_*` and `FIRING_INDIVIDUAL_*` inner counters expose
 reuse and candidate/ray work (count-only counters have zero time).
-`-Dbattle.targeting.firingReachabilityComponents=false` restores discarded A*
-reachability proofs for unconstrained firing positions. The default uses the
-grid's topology-revision component cache without changing movement rules.
-`-Dbattle.goap.localHoldPositions=false` restores whole-zone capture-post
-spreading; the default scopes posts to the compound footprint and maintains
-nearest-selected distances incrementally. `HOLD_POSITION` records total picker
+Unconstrained firing positions prove reachability against the grid's
+topology-revision component cache rather than a discarded A* route, without
+changing movement rules. Capture posts are spread within the compound footprint,
+maintaining nearest-selected distances incrementally. `HOLD_POSITION` records total picker
 time, `HOLD_POSITION_CELL` inspected cells, and `HOLD_POSITION_FALLBACK` the
 exceptional nearest-zone-cell fallback when no local intersection exists.
-`-Dbattle.goap.priorityOrderedEvaluation=false` evaluates every goal category
-eagerly; the default descends only after higher-category goals cannot supply
-a plan. `-Dbattle.goap.localBreachChecks=false` restores whole-roster breach
-eligibility scans. `-Dbattle.targeting.retainFiringPositions=false` disables
-positive execution-position retention. The default validates one chosen cell
-and retains it for 300–360 ticks unless intent or legality changes; eligibility
+Goal selection evaluates a lower priority category only after every goal above
+it has failed to supply a plan. Breach eligibility walks the squad's own members
+and hostile-combatant buckets, not the whole roster. Execution firing positions
+are retained: one chosen cell is validated and kept for 300–360 ticks unless intent or legality changes; eligibility
 probes and negative/vantage-only answers are not retained. `FIRING_RETAIN_*`
 counters distinguish validation time, reuse, and fresh searches. The older
 shared-pool experiment remains independent and off; enabling it bypasses the
@@ -232,22 +202,18 @@ JFR tail recordings explicitly capture 1 ms monitor/park waits, full safepoint
 lifecycle, GC pause and VM-operation events, and a `UnitDispatch` event around
 parallel submission/join. Its `wallNanos` is the real elapsed interval; the
 outer `awaitWorkers` metric includes useful execution as well as waiting.
-`-Dbattle.targeting.boundKnownContactScan=false` restores target-ring expansion
-beyond the sight/known-contact bound. `TARGET_SCAN_VISIT/RING/RAY` count its
-candidates, completed rings, and visibility checks. Distant beliefs still
-extend the default bound; unknown enemies cannot become eligible merely
+Target-ring expansion stops at the sight/known-contact bound.
+`TARGET_SCAN_VISIT/RING/RAY` count its candidates, completed rings, and
+visibility checks. Distant beliefs extend the bound; unknown enemies cannot become eligible merely
 because no visible winner was found nearby.
-`-Dbattle.targeting.pruneClearZoneSelection=false` restores separate unpruned
-visible/nearest room-target scans. `CLEAR_ZONE_TARGET_SELECT/VISIT/RAY` report
-selection wall time, roster visits, and LOS checks. The default preserves exact
-room scope and first-dense-roster ties without a visibility-radius cap.
-`-Dbattle.squad.isolatedAdvanceThreat=false` restores the broad squad monitor
-for route-threat publication. The default uses a dedicated once-per-tick
-monitor, preserving complete current-tick decisions and hysteresis.
-`-Dbattle.pathfinding.phaseOwnedRallyRequests=false` restores worker-side
-synchronized route requests. The default publishes member-owned intents after
-join; `RALLY_REQUEST_PREPARE/COMMIT` separates host work from worker dispatch,
-and route poll/cancel/no-op counters quantify the former contention surface.
+Room-target selection is one distance-pruned pass that keeps both the nearest
+visible and the nearest room enemy. `CLEAR_ZONE_TARGET_SELECT/VISIT/RAY` report
+selection wall time, roster visits, and LOS checks. It preserves exact room scope and first-dense-roster ties without a visibility-radius cap.
+Route-threat publication holds a dedicated once-per-tick monitor rather than
+the broad squad monitor, preserving complete current-tick decisions and hysteresis.
+Rally route requests are member-owned intents published after join;
+`RALLY_REQUEST_PREPARE/COMMIT` separates host work from worker dispatch, and
+route poll/cancel/no-op counters quantify the contention surface.
 Commander topology snapshots report disjoint `COMMANDER_TOPOLOGY_GRID_COPY`,
 `ZONE_COPY`, `CELL_COMPONENTS`, `ZONE_COMPONENTS`, and `PUBLICATION` wall stages
 nested under the existing rebuild/lookup timers. `MAP_CELLS`, `ZONE_CELLS`,
@@ -270,12 +236,10 @@ report input volumes. Belief input is retained list size, not contacts visited
 before a short-circuit. Tail reports retain every measured command-frame
 sample, including pulses outside the worst whole ticks. Detailed timing is
 off by default and does not change the frozen frame contents.
-`-Dbattle.pathfinding.compactPublicTopology=false` restores full combat-grid
-storage for commander and asynchronous route snapshots. By default these
-private navigation-only copies store flags and edges without allocating unused
-cover, wall-health, smoke and barrier-object arrays. The copied navigation
-data and exact route rules are unchanged; the generic full-copy API remains
-available for consumers needing full grid storage.
+Commander and asynchronous route snapshots are private navigation-only copies
+that store flags and edges without allocating unused cover, wall-health, smoke
+and barrier-object arrays; the generic full-copy API remains available for
+consumers needing full grid storage.
 `-Dbattle.tail.influenceResolution=true` adds an opt-in paired 8/16-cell influence
 experiment after the timed replay and JFR recording. Both resolutions use
 identical frozen geometry and current faction-local sources, with attenuation
@@ -285,14 +249,11 @@ Precise movement, casualty routing costs, and the production 8-cell resolution
 remain unchanged. Graph connectivity and block-value aliasing are different:
 disconnected rooms within one block may share its displayed scalar value
 without becoming connected in propagation.
-`-Dbattle.projectiles.phaseOwnedPublication=false` restores per-reader copies
-and synchronized projectile appends. The default shares an update-start
-hazard view and collects launch intents before projectile physics; fresh
+During member updates projectile readers share an update-start hazard view and
+launches are collected as intents before projectile physics; fresh
 launches remain visible to reservation checks. `PROJECTILE_PUBLICATION_*`
 records host preparation and collection rather than hiding moved work.
-`-Dbattle.infantry.localGrenadeAvoidance=false` restores the old full-route
-danger scan and grenade-centered A* fan-out. By default grenade avoidance
-considers only imminent travel before impact: a safe unit pauses its path,
+Grenade avoidance considers only imminent travel before impact: a safe unit pauses its path,
 while an exposed unit seeks a bounded local escape and reuses it while the
 hazard, terrain and owned path remain compatible. `GRENADE_PATH_HOLD` and
 `GRENADE_ESCAPE_SEARCH/EXPANDED/REUSE/NO_ROUTE` distinguish decisions and
@@ -303,17 +264,15 @@ fallback, engagement, investigation, quiet patrol and disengagement so a
 shared action name cannot hide which obligation requested an expensive path.
 District PatrolRoute samples likewise label quiet waypoints separately from
 investigation; a RoutinePatrol goal alone does not establish the branch.
-`-Dbattle.pathfinding.boundGuardPatrol=false` restores legacy quiet guard
-waypoint routing. The default bounds optional infantry patrol proofs to 1024
+Quiet guard waypoint routing bounds optional infantry patrol proofs to 1024
 expansions and the existing detour envelope, holding a squad dwell after
-refusal. Required home, investigation and engagement routes are unchanged.
+refusal. Required home, investigation and engagement routes are unbounded.
 `GUARD_PATROL_SEARCH/EXPANDED/REFUSAL/BACKOFF` distinguish proof and refusal;
-BACKOFF includes ordinary quiet dwell, not only refusal reuse.
-`-Dbattle.pathfinding.boundDistrictPatrol=false` independently restores legacy
-quiet district waypoint routing. The same optional proof and dwell policy
-applies by default, with separate `DISTRICT_PATROL_SEARCH/EXPANDED/REFUSAL/BACKOFF`
-counters. Random district waypoints are not a mandatory authored room tour;
-GarrisonPatrol remains outside both optional policies. These are per-member
+BACKOFF includes ordinary quiet dwell, not only refusal reuse. Quiet district
+waypoints follow the same optional proof and dwell policy, with separate
+`DISTRICT_PATROL_SEARCH/EXPANDED/REFUSAL/BACKOFF` counters. Random district
+waypoints are not a mandatory authored room tour; GarrisonPatrol remains
+outside both optional policies. These are per-member
 search ceilings, not per-squad, whole-tick, allocation or wall-time guarantees.
 Clearance-job cancellation follows immutable body identity: only mech path
 clears enter the async clearance coordinator. Infantry path set/clear/request

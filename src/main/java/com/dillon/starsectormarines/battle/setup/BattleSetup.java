@@ -3300,25 +3300,21 @@ public final class BattleSetup {
     /**
      * Where a Conquest marine arrival comes from and goes back to.
      *
-     * <p>Off orbit by default: one point {@link OrbitalLift#DESCENT_CELLS} off
-     * the berth on the side away from the objective, entered and left at the
-     * same place, so the leg is the descent and the round trip is a constant.
-     * With {@code -Dbattle.conquest.orbitalLift=false} — or on a map that gives
-     * no bearing to be away from — it is the old crossing of the map edge
-     * nearest the force, whose cadence grew with every cell the beachhead was
-     * slid inland.
+     * <p>Off orbit: one point {@link OrbitalLift#DESCENT_CELLS} off the berth
+     * on the side away from the objective, entered and left at the same place,
+     * so the leg is the descent and the round trip is a constant. On a map that
+     * gives no bearing to be away from it is the crossing of the map edge
+     * nearest the force.
      */
     private static float[] marineArrivalEntry(float lzCenterX, float lzCenterY,
                                               MapResult map, int gridW, int gridH,
                                               TraversalAxis axis) {
-        if (OrbitalLift.enabled()) {
-            AirCorridor descent = AirCorridor.descent("orbit", lzCenterX, lzCenterY,
-                    map.defenderSpawnX + 0.5f, map.defenderSpawnY + 0.5f,
-                    OrbitalLift.DESCENT_CELLS);
-            if (descent != null) {
-                return new float[]{descent.entryX, descent.entryY,
-                        descent.exitX, descent.exitY};
-            }
+        AirCorridor descent = AirCorridor.descent("orbit", lzCenterX, lzCenterY,
+                map.defenderSpawnX + 0.5f, map.defenderSpawnY + 0.5f,
+                OrbitalLift.DESCENT_CELLS);
+        if (descent != null) {
+            return new float[]{descent.entryX, descent.entryY,
+                    descent.exitX, descent.exitY};
         }
         return shuttleEntryFor(lzCenterX, lzCenterY, gridW, gridH, axis);
     }
@@ -3716,12 +3712,10 @@ public final class BattleSetup {
      * <p>Built from the same recorded routes the marine commander is handed and
      * the same compound records the capture rule runs on, so the two sides
      * agree about what stands where without sharing anything either of them
-     * believes. Empty under the lane-chain control, so a control run restores
-     * the band-only defender exactly as it restores the attacker's fraction.
+     * believes.
      */
     private static ConquestLaneChain conquestLaneChain(BattleSimulation sim,
                                                        MapResult map) {
-        if (!ConquestCommand.laneChainEnabled()) return ConquestLaneChain.NONE;
         CompoundService compounds = sim.getCompoundService();
         if (compounds == null || map.lanes.isEmpty()) return ConquestLaneChain.NONE;
         List<ConquestLaneChain.Compound> places = new ArrayList<>();

@@ -249,8 +249,8 @@ public final class UnitUpdateSystem implements AutoCloseable {
                 TickInnerProfile.Bucket.RALLY_REQUEST_PREPARE, System.nanoTime() - prepareStart);
         ShotService shots = sim.getShots();
         prepareStart = System.nanoTime();
-        boolean projectilePhase = shots.beginMemberUpdates();
-        if (projectilePhase) tickInnerProfile.record(
+        shots.beginMemberUpdates();
+        tickInnerProfile.record(
                 TickInnerProfile.Bucket.PROJECTILE_PUBLICATION_PREPARE, System.nanoTime() - prepareStart);
         long dispatchStart = captureDiagnostics ? System.nanoTime() : 0L;
         long awaitWorkersNanos = 0L;
@@ -265,7 +265,7 @@ public final class UnitUpdateSystem implements AutoCloseable {
                 }
             }
         } catch (RuntimeException | Error failure) {
-            if (projectilePhase) shots.abandonMemberUpdates();
+            shots.abandonMemberUpdates();
             throw failure;
         } finally {
             damageService.exitParallel();
@@ -283,12 +283,10 @@ public final class UnitUpdateSystem implements AutoCloseable {
             tickInnerProfile.record(TickInnerProfile.Bucket.RALLY_REQUEST_COMMIT,
                     System.nanoTime() - commitStart);
         }
-        if (projectilePhase) {
-            long commitStart = System.nanoTime();
-            shots.finishMemberUpdates();
-            tickInnerProfile.record(TickInnerProfile.Bucket.PROJECTILE_PUBLICATION_COMMIT,
-                    System.nanoTime() - commitStart);
-        }
+        long projectileCommitStart = System.nanoTime();
+        shots.finishMemberUpdates();
+        tickInnerProfile.record(TickInnerProfile.Bucket.PROJECTILE_PUBLICATION_COMMIT,
+                System.nanoTime() - projectileCommitStart);
         TickInnerProfile.mergeAllInto(tickInnerProfile);
         if (captureDiagnostics) {
             lastTickDiagnostics = collectDiagnostics(

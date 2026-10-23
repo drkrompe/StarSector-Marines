@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.decision.goap.action;
 
-import com.dillon.starsectormarines.battle.infantry.ReinforceContact;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -21,20 +20,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AttackMoveFlankRefusalTest {
     @Test
     void refusedLeaderOriginFallsBackToObjectiveDespiteDispersedCentroidAndMemoReuse() {
-        String before = System.getProperty(ReinforceContact.BUDGET_FLANK_SELECTION_PROPERTY);
-        System.setProperty(ReinforceContact.BUDGET_FLANK_SELECTION_PROPERTY, "true");
-        try {
-            Fixture fixture = new Fixture(true);
-            assertTrue(Math.abs(fixture.squad.centroidX - fixture.roster.world().x(fixture.leader)) > 1);
-            assertArrayEquals(new int[]{35, 5}, fixture.action.maneuverAim(
-                    fixture.squad, fixture.assault, fixture.view));
-            assertTrue(fixture.squad.flankAim.refused());
-            assertArrayEquals(new int[]{35, 5}, fixture.action.maneuverAim(
-                    fixture.squad, fixture.assault, fixture.view));
-        } finally {
-            if (before == null) System.clearProperty(ReinforceContact.BUDGET_FLANK_SELECTION_PROPERTY);
-            else System.setProperty(ReinforceContact.BUDGET_FLANK_SELECTION_PROPERTY, before);
-        }
+        Fixture fixture = new Fixture(true);
+        assertTrue(Math.abs(fixture.squad.centroidX - fixture.roster.world().x(fixture.leader)) > 1);
+        assertArrayEquals(new int[]{35, 5}, fixture.action.maneuverAim(
+                fixture.squad, fixture.assault, fixture.view));
+        assertTrue(fixture.squad.flankAim.refused());
+        assertArrayEquals(new int[]{35, 5}, fixture.action.maneuverAim(
+                fixture.squad, fixture.assault, fixture.view));
     }
 
     @Test

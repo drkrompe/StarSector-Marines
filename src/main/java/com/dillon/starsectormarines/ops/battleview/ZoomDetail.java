@@ -25,25 +25,16 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
  * <p><b>What it is worth, measured.</b> On the whole-map frame {@code
  * renderEvidence} profiled, the layers gated here come to about a fifth of a
  * millisecond against a frame of two hundred and seventy-six — nothing. The
- * ground drain is the ceiling and {@code battle.render.groundMesh} is what
+ * ground drain is the ceiling and the resident {@link GroundMesh} is what
  * moves it. They are worth having anyway, and the reason is what the frame looks
  * like <em>after</em> that: a body shadow is a whole-sprite draw with its own
  * texture bind that cannot batch with anything, so a late-Conquest field of four
  * hundred casters is four hundred binds for four hundred three-pixel smudges,
  * and against a ground layer costing a millisecond that is most of the frame.
- *
- * <p>Turn the gates off for a control run with
- * {@code -Dbattle.render.zoomGates=false}.
  */
 public final class ZoomDetail {
 
     private ZoomDetail() {}
-
-    /** Control-run switch; see the class note. On by default. */
-    public static final String PROPERTY = "battle.render.zoomGates";
-
-    private static final boolean ENABLED =
-            Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
 
     /**
      * Pixels per cell below which decoration attached to a body is not
@@ -107,11 +98,6 @@ public final class ZoomDetail {
         return visibleAt(camera, SMOKE_SCATTER_MIN_CELL_PX);
     }
 
-    /** Whether the gates are armed at all — for evidence that reports which run it was. */
-    public static boolean enabled() {
-        return ENABLED;
-    }
-
     private static boolean bodyDecorationVisible(BattleCamera camera) {
         return visibleAt(camera, BODY_DECORATION_MIN_CELL_PX);
     }
@@ -122,6 +108,6 @@ public final class ZoomDetail {
      * that.
      */
     private static boolean visibleAt(BattleCamera camera, float minCellPx) {
-        return !ENABLED || camera == null || camera.cellPxSize() >= minCellPx;
+        return camera == null || camera.cellPxSize() >= minCellPx;
     }
 }

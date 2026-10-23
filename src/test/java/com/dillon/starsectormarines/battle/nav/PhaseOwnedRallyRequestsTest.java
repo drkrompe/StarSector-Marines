@@ -128,7 +128,7 @@ class PhaseOwnedRallyRequestsTest {
                 }
             }
             return path(r);
-        }, true)) {
+        })) {
             routes.beginTick(1);
             routes.beginMemberUpdates(new long[]{1L, 2L, 3L}, 3);
             routes.pollOrSubmit(old, 1, grid, occupancy);
@@ -260,18 +260,6 @@ class PhaseOwnedRallyRequestsTest {
         }
     }
 
-    @Test
-    void explicitControlKeepsUnbracketedSubmission() {
-        NavigationGrid grid = grid();
-        try (AsyncDefendTrackRoutes routes = new AsyncDefendTrackRoutes(1, 4,
-                (g, o, r) -> path(r), false)) {
-            assertFalse(routes.phaseOwnedRequestsEnabled());
-            assertFalse(routes.beginMemberUpdates(new long[]{1L}, 1));
-            routes.pollOrSubmit(request(1L, new Object(), 8), 1, grid, new byte[100]);
-            assertEquals(1, routes.metrics().submitted());
-        }
-    }
-
     private static void stage(AsyncDefendTrackRoutes routes, AsyncDefendTrackRoutes.Request request,
                               NavigationGrid grid, byte[] occupancy, int tick) {
         routes.beginTick(tick);
@@ -302,7 +290,7 @@ class PhaseOwnedRallyRequestsTest {
     }
 
     private static AsyncDefendTrackRoutes service(AsyncDefendTrackRoutes.Search search) {
-        return new AsyncDefendTrackRoutes(1, 4, search, true);
+        return new AsyncDefendTrackRoutes(1, 4, search);
     }
 
     private static AsyncDefendTrackRoutes.Request request(long member, Object token, int goal) {

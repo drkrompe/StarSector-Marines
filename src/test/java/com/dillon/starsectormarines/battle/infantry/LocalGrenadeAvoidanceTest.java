@@ -23,31 +23,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Tiny roster/proxy and pure geometry tests: no simulation loop, map generation, or navigation owner. */
 class LocalGrenadeAvoidanceTest {
-    @Test void sameInputLegacyControlSearchesTowardTheDistantGrenade() {
-        try (Fixture f = new Fixture()) {
-            f.grid.rejectComponents = false;
-            int[] mission = {10, 10, 60, 10};
-            f.path(mission);
-            f.hazards.add(hazard(Faction.MARINE, 60.5f, 10.5f, 2f));
-            assertTrue(FragGrenadeTactics.evadeKnownGrenade(f.unit, f.sim, false));
-            assertEquals(16, f.profile.countOf(TickInnerProfile.Bucket.PATHFIND));
-            assertEquals(1, f.paths);
-            assertEquals(1, f.advances);
-            assertNotSame(mission, f.roster.world().path(f.unit));
-
-            f.path(mission);
-            f.profile.reset();
-            f.paths = f.advances = 0;
-            f.grid.rejectComponents = true;
-            assertFalse(f.evade());
-            assertSame(mission, f.roster.world().path(f.unit));
-            assertEquals(0, f.profile.countOf(TickInnerProfile.Bucket.PATHFIND));
-            assertEquals(0, f.searches());
-            assertEquals(0, f.paths);
-            assertEquals(0, f.advances);
-        }
-    }
-
     @Test void futureRouteIntersectionBeyondFuseDoesNothing() {
         try (Fixture f = new Fixture()) {
             int[] mission = {10, 10, 60, 10};
@@ -261,15 +236,13 @@ class LocalGrenadeAvoidanceTest {
 
     private static final class TestGrid extends NavigationGrid {
         boolean visible = true;
-        boolean rejectComponents = true;
         TestGrid(int width, int height) {
             super(width, height);
             for (int y = 0; y < height; y++) for (int x = 0; x < width; x++) setWalkableFloor(x, y);
         }
         @Override public boolean hasLineOfSight(int x0, int y0, int x1, int y1) { return visible; }
         @Override public boolean arePathConnected(int x0, int y0, int x1, int y1, boolean cardinal) {
-            if (rejectComponents) throw new AssertionError("local escape must never build whole-map components");
-            return super.arePathConnected(x0, y0, x1, y1, cardinal);
+            throw new AssertionError("local escape must never build whole-map components");
         }
     }
 
@@ -317,7 +290,7 @@ class LocalGrenadeAvoidanceTest {
             roster.movement().setPathRef(unit, path);
             roster.movement().setPathIdx(unit, path.length > 2 ? 1 : 0);
         }
-        boolean evade() { return FragGrenadeTactics.evadeKnownGrenade(unit, sim, true); }
+        boolean evade() { return FragGrenadeTactics.evadeKnownGrenade(unit, sim); }
         int searches() { return profile.countOf(TickInnerProfile.Bucket.GRENADE_ESCAPE_SEARCH); }
         double distanceFrom(float x, float y) {
             return Math.hypot(roster.world().x(unit) - x, roster.world().y(unit) - y);

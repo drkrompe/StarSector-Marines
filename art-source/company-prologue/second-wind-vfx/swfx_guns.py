@@ -77,7 +77,7 @@ import random
 import re
 
 import bpy
-from mathutils import Matrix, Vector
+from mathutils import Matrix, Quaternion, Vector
 
 import swfx_core
 import swfx_hull
@@ -845,12 +845,14 @@ def _mg(**kw):
 
 def _ac(**kw):
     w = dict(energy=False, burst=1, burst_delay=0, cooldown=.5, barrels='alternating', spread=.003,
-             flash=(1.0, .55, .25, .1), flash_tint=(165, 225, 185), flash_size=(1.25, 1.35, 1.35),
-             flash_light=(165, 225, 185),
-             cloud=dict(rgb=(165, 225, 185), r=(.8, 2.6), frames=5, peak=2),
-             round=dict(speed=360, range=600, length=2.6, core=.14, corona=.9, fringe=(235, 255, 215),
-                        hot=(225, 255, 200), glow=(120, 235, 150), core_gain=14, corona_gain=3.5),
-             puff=True, brass=True)
+             flash=(1.0, .4, .1), flash_tint=(165, 225, 185), flash_size=(1.25, 1.35, 1.35),
+             flash_light=(165, 225, 185), flash_light_gain=1.6,
+             cloud=dict(rgb=(165, 225, 185), r=(.7, 2.4), frames=3, peak=2),
+             round=dict(speed=320, range=600, length=1.6, core=.14, corona=.22, fringe=(235, 255, 215),
+                        hot=(240, 255, 230), glow=(120, 235, 150), core_gain=18, corona_gain=3.0,
+                        trail=dict(length=5.0, radius=.08, gain=3.5, ember=(70, 150, 80), fleck_m=.8)),
+             heavy=dict(recoil=dict(m=.2, return_s=.2), smoke=dict(r=(.4, 2.6), life_s=.8, heat_s=.12, density=1.2, glow=1.0)),
+             puff=False, brass=True)
     w.update(kw)
     return w
 
@@ -866,34 +868,57 @@ WEAPONS = {
                   cloud=dict(rgb=(255, 240, 165), r=(.3, .9), frames=3, peak=1.75),
                   round=dict(speed=480, range=300, length=7.0, core=.08, corona=.28, fringe=(240, 220, 180),
                              hot=(245, 245, 225), core_gain=22, corona_gain=1.6)),
-    # Autocannons: visible green-white shells with a broad pale-green flash.
+    # Cannons (owner, 2026-10-23): every shot an event, not a stream. A hard short flash, smoke
+    # that glows going out and hangs, the barrel kicking back into its sleeve (heavy: recoil m /
+    # return_s, smoke r m / life_s / heat_s; the Hellbore also a squat shock of gas, ring: a thin
+    # ring read as a bar edge-on and a hoop face-on, bench 2026-10-23), and a
+    # short thick hot slug, slower than a machine gun's streak, shedding an ember trail behind
+    # it. Cadence is the game's (weapon_data.csv burst size, burst delay, chargedown).
+    # Autocannons: green-white kinetic shells with a broad pale-green flash, one every 0.5 s.
     'lightac': _ac(name='Light Autocannon'),
+    # Heavy autocannon: three shells 0.2 s apart, then 1 s.
     'heavyac': _ac(name='Heavy Autocannon', burst=3, burst_delay=.2, cooldown=1.0, flash_size=(1.5, 1.6, 1.6),
-                   cloud=dict(rgb=(165, 225, 185), r=(1.2, 3.6), frames=4, peak=2),
-                   round=dict(speed=380, range=800, length=3.6, core=.2, corona=1.2, fringe=(235, 255, 215),
-                              hot=(225, 255, 205), glow=(120, 235, 150), core_gain=14, corona_gain=3.5)),
+                   flash_light_gain=2.2,
+                   cloud=dict(rgb=(165, 225, 185), r=(1.0, 3.2), frames=3, peak=2.2),
+                   round=dict(speed=290, range=800, length=2.2, core=.22, corona=.34, fringe=(235, 255, 215),
+                              hot=(240, 255, 230), glow=(120, 235, 150), core_gain=18, corona_gain=3.0,
+                              trail=dict(length=8.0, radius=.11, gain=3.5, ember=(70, 150, 80), fleck_m=1.0)),
+                   heavy=dict(recoil=dict(m=.35, return_s=.25),
+                              smoke=dict(r=(.6, 3.6), life_s=1.0, heat_s=.15, density=1.2, glow=1.2))),
     # Mark IX: the four-round slam every 2 s.
-    'mark9': _ac(name='Mark IX Autocannon', burst=4, burst_delay=.1, cooldown=2.0, flash=(1.0, .55, .22, .08),
-                 flash_size=(1.4, 1.5, 1.5), cloud=dict(rgb=(165, 225, 185), r=(1.4, 4.2), frames=4, peak=2),
-                 round=dict(speed=400, range=800, length=3.8, core=.22, corona=1.3, fringe=(235, 255, 215),
-                            hot=(225, 255, 205), glow=(120, 235, 150), core_gain=14, corona_gain=3.5)),
-    # Hellbore: one heavy HE slug every 3 s, slow, orange-white in a 60-unit glow; the game's
-    # biggest flash (50 particles, 0.75 s, 255,120,50), lingering.
+    'mark9': _ac(name='Mark IX Autocannon', burst=4, burst_delay=.1, cooldown=2.0, flash=(1.0, .45, .12),
+                 flash_size=(1.4, 1.5, 1.5), flash_light_gain=2.5,
+                 cloud=dict(rgb=(165, 225, 185), r=(1.2, 3.8), frames=3, peak=2.2),
+                 round=dict(speed=300, range=800, length=2.4, core=.24, corona=.36, fringe=(235, 255, 215),
+                            hot=(240, 255, 230), glow=(120, 235, 150), core_gain=18, corona_gain=3.0,
+                            trail=dict(length=9.0, radius=.12, gain=3.5, ember=(70, 150, 80), fleck_m=1.0)),
+                 heavy=dict(recoil=dict(m=.45, return_s=.2),
+                            smoke=dict(r=(.7, 4.2), life_s=1.2, heat_s=.15, density=1.2, glow=1.2))),
+    # Hellbore: one heavy HE slug every 3 s, slow, orange-white; the game's biggest flash (255,120,50).
+    # Here the blast is hard and short and the linger is its smoke, cooling from orange to grey.
+    # No orbs (owner, 2026-10-23: S6's Manticore fired "an orb glowing blob"): the round is an
+    # elongated white-hot slug with a short heat streak, and the game's 60-unit glow is left out
+    # (its light stays, off the camera).
     'hellbore': dict(name='Hellbore Cannon', energy=False, burst=1, burst_delay=0, cooldown=3.0,
                      barrels='alternating', spread=.001,
-                     flash=(1.0, .85, .65, .48, .34, .24, .16, .1, .06), flash_tint=(255, 120, 50),
-                     flash_size=(1.5, 1.6, 1.6), flash_light=(255, 120, 50), flash_light_gain=4.0,
-                     cloud=dict(rgb=(255, 120, 50), r=(2.0, 9.0), frames=18, peak=3.0),
-                     round=dict(speed=170, range=900, length=5.5, core=.6, corona=1.9, fringe=(255, 165, 30),
-                                hot=(255, 230, 170), core_gain=10, corona_gain=1.8, light=40000,
-                                halo=dict(r=5.0, peak=1.5)),
-                     puff=True, brass=False),
-    # High explosive: orange shells.
-    'lightag': _ac(name='Light Assault Gun', cooldown=.25, flash=(1.0, .6, .35, .18, .08), flash_tint=(255, 155, 105),
-                   flash_size=(1.1, 1.2, 1.2), flash_light=(255, 155, 105),
-                   cloud=dict(rgb=(255, 155, 105), r=(.7, 2.4), frames=8, peak=2),
-                   round=dict(speed=380, range=600, length=3.0, core=.15, corona=.6, fringe=(255, 200, 70),
-                              hot=(255, 235, 210), core_gain=16, corona_gain=2.2)),
+                     flash=(1.0, .6, .25, .1), flash_tint=(255, 120, 50),
+                     flash_size=(1.9, 2.0, 2.0), flash_light=(255, 120, 50), flash_light_gain=6.0,
+                     cloud=dict(rgb=(255, 120, 50), r=(1.5, 6.5), frames=7, peak=2.6),
+                     round=dict(speed=150, range=900, length=6.0, core=.45, corona=.65, fringe=(255, 165, 30),
+                                hot=(255, 250, 240), core_gain=20, corona_gain=1.4, light=40000,
+                                trail=dict(length=14.0, radius=.28, gain=5.0, ember=(220, 60, 15), fleck_m=1.5)),
+                     heavy=dict(recoil=dict(m=1.8, return_s=.8), ring=dict(r=(.6, 3.2), frames=4, peak=1.0, thick=.5),
+                                smoke=dict(r=(1.5, 9.0), life_s=2.2, heat_s=.35, density=1.6, glow=2.5, drift=.8)),
+                     puff=False, brass=False),
+    # Light assault gun: orange HE shells every 0.25 s.
+    'lightag': _ac(name='Light Assault Gun', cooldown=.25, flash=(1.0, .5, .18), flash_tint=(255, 155, 105),
+                   flash_size=(1.1, 1.2, 1.2), flash_light=(255, 155, 105), flash_light_gain=1.8,
+                   cloud=dict(rgb=(255, 155, 105), r=(.7, 2.2), frames=3, peak=2),
+                   round=dict(speed=300, range=600, length=1.8, core=.15, corona=.24, fringe=(255, 200, 70),
+                              hot=(255, 240, 220), core_gain=18, corona_gain=2.2,
+                              trail=dict(length=6.0, radius=.08, gain=3.5, ember=(200, 60, 15), fleck_m=.8)),
+                   heavy=dict(recoil=dict(m=.2, return_s=.15),
+                              smoke=dict(r=(.4, 2.4), life_s=.8, heat_s=.12, density=1.2, glow=1.0))),
     'chaingun': _mg(name='Assault Chaingun', burst=1, burst_delay=0, cooldown=.15, flash_size=(1.5, .8, .8),
                     cloud=dict(rgb=(255, 240, 165), r=(.5, 1.4), frames=4, peak=2),
                     round=dict(speed=420, range=450, length=5.0, core=.12, corona=.45, fringe=(255, 200, 70),
@@ -920,7 +945,7 @@ WEAPONS = {
                           barrels='alternating', spread=.002, flash=(1.0, .45, .15), flash_tint=(255, 100, 100),
                           flash_size=(1.25, 1.4, 1.4), flash_light=(255, 100, 100),
                           cloud=dict(rgb=(255, 100, 100), r=(.6, 2.0), frames=3, peak=2),
-                          round=dict(speed=600, range=500, length=9.0, core=.35, corona=1.6, fringe=(255, 100, 100),
+                          round=dict(speed=600, range=500, length=12.0, core=.35, corona=.95, fringe=(255, 100, 100),
                                      hot=(255, 255, 255), core_gain=22, corona_gain=3.0, light=10000,
                                      light_rgb=(255, 60, 60)),
                           puff=False, brass=False),
@@ -928,7 +953,7 @@ WEAPONS = {
                          barrels='alternating', spread=.002, flash=(1.0, .45, .15), flash_tint=(100, 100, 255),
                          flash_size=(1.25, 1.4, 1.4), flash_light=(100, 100, 255),
                          cloud=dict(rgb=(100, 100, 255), r=(.6, 2.0), frames=3, peak=2),
-                         round=dict(speed=600, range=600, length=9.0, core=.4, corona=1.8, fringe=(100, 100, 255),
+                         round=dict(speed=600, range=600, length=12.0, core=.4, corona=.95, fringe=(100, 100, 255),
                                     hot=(255, 255, 255), core_gain=22, corona_gain=3.0, light=12000,
                                     light_rgb=(100, 100, 255)),
                          puff=False, brass=False),
@@ -940,6 +965,25 @@ TURN_RATES = {'lightmg': 50, 'lightdualmg': 50, 'vulcan': 75, 'lightac': 20, 'he
               'miningblaster': 7, 'heavyblaster': 15}
 for _k, _v in TURN_RATES.items():
     WEAPONS[_k].setdefault('turn', _v)
+
+# A round's width follows its calibre (owner, 2026-10-23: "how 'wide' a streak should be related
+# to its gun bore"): the corona's radius in metres in proportion to the game's own shot width
+# (weapon_data proj "width": a light MG 3.5, an autocannon 5-7.5, a blaster 7, the Hellbore 12, the
+# ion bolt 20), the core a hot fraction of it, and a heavy slug's ember trail thinner still. This
+# table is the authority for those radii; screen_clamp() then keeps the drawn width inside a
+# believable tracer's pixel band at the camera's distance.
+CALIBRE = {   # weapon: (core m, corona m, trail m or None)
+    'lightmg': (.05, .12, None), 'lightdualmg': (.05, .12, None), 'vulcan': (.05, .12, None),
+    'chaingun': (.06, .14, None), 'lightneedler': (.04, .11, None),
+    'lightac': (.11, .19, .06), 'lightag': (.10, .17, .06), 'heavyac': (.13, .23, .08),
+    'mark9': (.15, .26, .09), 'hellbore': (.26, .42, .18),
+    'miningblaster': (.12, .24, None), 'heavyblaster': (.12, .24, None), 'ioncannon': (.22, .6, None),
+}
+for _k, (_core, _corona, _trail) in CALIBRE.items():
+    _r = WEAPONS[_k]['round']
+    _r['core'], _r['corona'] = _core, _corona
+    if _trail is not None and _r.get('trail'):
+        _r['trail'] = dict(_r['trail'], radius=_trail)
 
 FEEDER_RGB = (255, 200, 0)          # Accelerated Ammo Feeder weapon glow
 
@@ -1129,6 +1173,8 @@ def _weapon_shot(ctx, a, frame, lead=0.0, target=None, through=False):
            'flash_frames': len(w['flash'])}
     rec['cloud'] = _cloud(ctx, coll, a, label, frame, w['cloud'])
     rec.update(_round(ctx, coll, a, label, frame, rnd, weapon, lead, target, through))
+    if w.get('heavy'):
+        rec.update(_heavy(ctx, coll, a, rig, label, frame, rnd, w))
     if w.get('puff'):
         rec['puff'] = _puff(ctx, coll, a, label, frame, rnd)
     if w.get('brass') and _knob(ctx, 'gun_casings') >= .5:
@@ -1268,8 +1314,9 @@ def _charge(ctx, a, frame, frames, w):
     coll = ctx.collection(GROUP)
     label = gun_label(a)
     rgb = _lin(spec['rgb'])
-    ob = _glow_object(ctx, coll, f'{PREFIX} charge {label} f{frame:04d}', rgb)
+    ob = _glow_object(ctx, coll, f'{PREFIX} charge {label} f{frame:04d}', rgb, jag=True)
     swfx_core.attach(ob, a.empty, local=(swfx_core.units(.2), 0, 0))
+    stretch = (1.8, .8, .7)          # gathering down the bore, torn (owner: no orbs)
     r0, r1 = spec['r']
     f0 = frame - max(1, frames)
     rnd = random.Random(f'charge|{label}|{frame}')
@@ -1282,7 +1329,7 @@ def _charge(ctx, a, frame, frames, w):
         fade.append((.25 + .75 * t * t) * rnd.uniform(.8, 1.0))
         kk.append(_hull_glow(spec['peak'] / (2 * r)) / 20.0)
     for i in range(3):
-        _bake(ob, 'scale', i, fr, sc)
+        _bake(ob, 'scale', i, fr, [v * stretch[i] for v in sc])
     t = _glow_keys(ob)
     _bake(t, GLOW_PATH, 0, fr, fade)
     _bake(t, GLOW_PATH, 1, [f0], [rnd.random()], 'CONSTANT')
@@ -1594,19 +1641,30 @@ def world_rounds(objs, delta_at):
         fcs = [swfx_core.find_fcurve(ob, 'location', i) for i in range(3)]
         if all(fc is not None and len(fc.keyframe_points) for fc in fcs):
             frames = [kp.co.x for kp in fcs[0].keyframe_points]
+            quat = ob.rotation_mode == 'QUATERNION'      # a missile body turns along its flight
+            qcs = [swfx_core.find_fcurve(ob, 'rotation_quaternion', i) for i in range(4)] if quat else []
             r0 = ob.rotation_euler.to_matrix()
-            locs, rots, prev = [], [], ob.rotation_euler.copy()
+            locs, rots, prev = [], [], (None if quat else ob.rotation_euler.copy())
             for f in frames:
                 d = delta_at(int(round(f)))
                 locs.append(d @ Vector([fc.evaluate(f) for fc in fcs]))
-                e = (d.to_3x3().normalized() @ r0).to_euler('XYZ', prev)
-                rots.append(e)
-                prev = e
+                if quat:
+                    q0 = (Quaternion([qc.evaluate(f) for qc in qcs]) if all(qcs)
+                          else ob.rotation_quaternion.copy())
+                    q = d.to_3x3().normalized().to_quaternion() @ q0
+                    if prev is not None and q.dot(prev) < 0:
+                        q.negate()
+                    rots.append(q)
+                    prev = q
+                else:
+                    e = (d.to_3x3().normalized() @ r0).to_euler('XYZ', prev)
+                    rots.append(e)
+                    prev = e
             for i in range(3):
                 _bake(ob, 'location', i, frames, [v[i] for v in locs])
             if ob.type != 'LIGHT':
-                for i in range(3):
-                    _bake(ob, 'rotation_euler', i, frames, [e[i] for e in rots])
+                for i in range(4 if quat else 3):
+                    _bake(ob, 'rotation_quaternion' if quat else 'rotation_euler', i, frames, [r[i] for r in rots])
             continue
         vis = swfx_core.find_fcurve(ob, 'hide_render')
         shown = [kp.co.x for kp in vis.keyframe_points if kp.co.y < .5] if vis is not None else []
@@ -1709,12 +1767,19 @@ def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target, through=False)
         mover(bpy.data.objects.new(f'{PREFIX} round core {label} f{frame:04d}', _cylinder_mesh(
             f'{PREFIX} round core mesh {weapon}', swfx_core.units(r['core']), -L, 0.0, 10,
             _round_material(ctx, weapon, 'core'))))
+    if r.get('trail'):
+        rec['trail'] = _slug_trail(ctx, coll, label, frame, weapon, frames, heads, burn, M, d, rot, L)
     if r.get('halo'):
         h = r['halo']
-        ob = _glow_object(ctx, coll, f'{PREFIX} round halo {label} f{frame:04d}', _lin(r['fringe']))
+        # A wake, not a ball (owner: no orbs): stretched back along the flight, torn, sitting
+        # behind the slug's head.
+        st = h.get('stretch', 1.0)
+        ob = _glow_object(ctx, coll, f'{PREFIX} round halo {label} f{frame:04d}', _lin(r['fringe']), jag=st > 1.0)
+        back = L * .35 + swfx_core.units(h['r']) * (st - 1.0) * .7
         for i in range(3):
-            _bake(ob, 'location', i, frames, [(M @ (d * (hh - L * .35)))[i] for hh in heads])
-        ob.scale = (swfx_core.units(h['r']),) * 3
+            _bake(ob, 'location', i, frames, [(M @ (d * max(0.0, hh - back)))[i] for hh in heads])
+        ob.rotation_euler = rot
+        ob.scale = (swfx_core.units(h['r']) * st, swfx_core.units(h['r']), swfx_core.units(h['r']))
         t = _glow_keys(ob)
         _bake(t, GLOW_PATH, 0, frames, burn)
         _bake(t, GLOW_PATH, 1, [frame], [rnd.random()], 'CONSTANT')
@@ -1844,6 +1909,406 @@ def emp_arcs(ctx, frame, paths, frames=8, rgb=(140, 200, 255), seed=0, light=300
         names.append(lt.name)
     return names
 
+
+# --- heavy guns ----------------------------------------------------------------
+# A cannon's or a Hellbore's shot is an event, not a stream (owner, 2026-10-23: "heavier pulsed
+# firing and their in flight projectile needs to convey that"): a hard short blast, a pressure
+# ring thrown off the muzzle, the barrel kicking back into its sleeve, smoke that glows as it
+# leaves and then hangs, and a short hot slug trailing embers (_round, 'trail'). A WEAPONS entry
+# opts in with 'heavy'; the machine guns and the Vulcan's streak have none.
+
+def _recoil_empties(a):
+    """[(k, empty)] of the '<mount> recoil <k>' empties under the gun's elevation (turret_kit hangs
+    each barrel on one, sliding along -X to recoil), by k; [] for a mount built without them."""
+    _, elev = trainers(a.empty)
+    if elev is None:
+        return []
+    head = _kit_name(elev.name)
+    if not head.endswith(' elevation'):
+        return []
+    pat = re.compile(re.escape(head[:-len(' elevation')]) + r' recoil (\d+)')
+    found, stack = [], list(elev.children)
+    while stack:
+        o = stack.pop()
+        m = pat.fullmatch(_kit_name(o.name))
+        if m:
+            found.append((int(m.group(1)), o))
+        stack.extend(o.children)
+    return sorted(found, key=lambda t: t[0])
+
+
+def _recoil(ctx, a, rig, frame, spec):
+    """Kick the gun's barrel back along its bore into its sleeve at `frame` and run it out again
+    (spec m: travel in metres, return_s: run-out). It keys the barrel's recoil empty, a hull
+    object, never the pivot or elevation aim() keys, and only on a ship whose hull is its own
+    (ctx.own_hull, as ship_fx sets it): on a shared hull every copy of the build would kick.
+    A shot inside the last one's run-out kicks from where the barrel is. Returns the empties."""
+    if not getattr(ctx, 'own_hull', True):
+        return []
+    if 'recoil' not in rig:
+        rig['recoil'] = _recoil_empties(a)
+    found = rig['recoil']
+    if not found:
+        return []
+    k = gun_index(a)
+    pick = [o for n, o in found if n == k] if len(found) > 1 else [found[0][1]]
+    pick = pick or [o for _, o in found]
+    fps = ctx.scene.render.fps or swfx_core.FPS
+    n = max(2, int(round(spec['return_s'] * fps)))
+    bore = (anchor_matrix(a.empty).to_3x3() @ Vector((1, 0, 0))).normalized()
+    out = []
+    for e in pick:
+        rest = Vector(tuple(e['swfx_recoil_rest'])) if 'swfx_recoil_rest' in e else e.location.copy()
+        e['swfx_recoil_rest'] = list(rest)
+        B = (anchor_matrix(e.parent) @ e.matrix_parent_inverse).to_3x3() if e.parent else Matrix.Identity(3)
+        back = B.inverted() @ (-bore * swfx_core.units(spec['m']))
+        keys = {int(f): v for f, v in (e.get('swfx_recoil') or {}).items()}
+        keys.setdefault(frame - 1, 0.0)
+        # The shot frame already shows the barrel on its way; the next is full travel; then it
+        # runs out, quickly at first and settling.
+        keys[frame] = max(keys.get(frame, 0.0), .65)
+        keys[frame + 1] = 1.0
+        for j in range(1, n):
+            keys[frame + 1 + j] = (1 - j / (n - 1)) ** 2.2
+        e['swfx_recoil'] = {str(f): v for f, v in keys.items()}
+        fr = sorted(keys)
+        for i in range(3):
+            _bake(e, 'location', i, fr, [rest[i] + back[i] * keys[f] for f in fr])
+        e.location = rest
+        out.append(e.name)
+    return out
+
+
+def _ring_material(ctx, rgb, name):
+    """The pressure ring: a thin torus of hot gas about the bore (object X), in the unit box at
+    radius .72. Keyed like a glow (GLOW_NODE: R fade, G seed, B emission per metre / 20), and
+    torn by noise so it reads as a shock of gas, not a hoop."""
+    m, nodes, links = swfx_core.node_material(name)
+    g = _G(nodes, links)
+    out = nodes.new('ShaderNodeOutputMaterial')
+    tc = nodes.new('ShaderNodeTexCoord')
+    p = tc.outputs['Object']
+    ctl = nodes.new('ShaderNodeRGB')
+    ctl.name = ctl.label = GLOW_NODE
+    ctl.outputs[0].default_value = (0, 0, 0, 1)
+    sep = nodes.new('ShaderNodeSeparateColor')
+    links.new(ctl.outputs[0], sep.inputs[0])
+    fade, seed, k = sep.outputs[0], sep.outputs[1], sep.outputs[2]
+    x, y, z = g.xyz(p)
+    rho = g.op('SQRT', g.add(g.sq(y), g.sq(z)))
+    band = g.exp_neg(g.mul(g.sq(g.sub(rho, .72)), 60.0))
+    slab = g.exp_neg(g.mul(g.sq(x), 7.0))
+    n1 = g.noise(p, g.mul(seed, 41.0), 3.4, 3.0, .6)
+    lumps = g.mul(g.clamp01(g.mul(g.sub(n1, .34), 2.8)), 1.4)
+    dens = g.mul(g.mul(g.mul(band, slab), lumps), fade)
+    mix = nodes.new('ShaderNodeMix')
+    mix.data_type = 'RGBA'
+    links.new(g.mul(g.clamp01(g.sub(dens, .8)), .35), mix.inputs['Factor'])
+    mix.inputs['A'].default_value = (*rgb, 1)
+    mix.inputs['B'].default_value = (1, 1, 1, 1)
+    em = nodes.new('ShaderNodeEmission')
+    links.new(mix.outputs['Result'], em.inputs['Color'])
+    links.new(g.mul(dens, g.mul(k, 20.0)), em.inputs['Strength'])
+    links.new(em.outputs[0], out.inputs['Volume'])
+    return m
+
+
+def _ring(ctx, coll, a, label, frame, spec, rgb):
+    """The pressure ring a heavy round's gas throws off the muzzle: it snaps out from the bore to
+    r[1] metres over `frames`, a little downrange, and is gone."""
+    name = f'{PREFIX} ring {label} f{frame:04d}'
+    ob = bpy.data.objects.new(name, _unit_box_mesh(f'{name} mesh', _ring_material(ctx, rgb, f'{name} gas')))
+    coll.objects.link(ob)
+    ob.visible_shadow = False
+    swfx_core.attach(ob, a.empty)
+    r0, r1 = spec['r']
+    life = max(2, int(spec['frames']))
+    fr, sc, th, lx, fade, kk = [], [], [], [], [], []
+    for j in range(life + 1):
+        t = j / life
+        e = 1 - (1 - t) ** 3.0
+        R = (r0 + (r1 - r0) * e) / .72
+        thick = spec.get('thick', .18) * R + .1
+        fr.append(frame + j)
+        sc.append(swfx_core.units(R))
+        th.append(swfx_core.units(thick))
+        lx.append(swfx_core.units(.25 * r1 + .35 * r1 * e))
+        fade.append((1 - t) ** 1.8)
+        kk.append(_hull_glow(spec['peak'] / (1.2 * thick)) / 20.0)
+    _bake(ob, 'scale', 0, fr, th)
+    for i in (1, 2):
+        _bake(ob, 'scale', i, fr, sc)
+    _bake(ob, 'location', 0, fr, lx)
+    t = _glow_keys(ob)
+    _bake(t, GLOW_PATH, 0, fr, fade)
+    _bake(t, GLOW_PATH, 1, [frame], [random.Random(f'ring|{label}|{frame}').random()], 'CONSTANT')
+    _bake(t, GLOW_PATH, 2, fr, kk)
+    _visible_between(ob, frame, frame + life)
+    return ob.name
+
+
+def _hot_smoke_material(ctx, rgb, name):
+    """A heavy round's propellant smoke: grey lumpy gas that glows the weapon's colour while it is
+    hot and then only scatters the light. Its own GLOW_NODE: R density per metre (hull units), G a
+    seed, B emission per metre (hull units). Object coordinates span -1..1 in the unit box."""
+    m, nodes, links = swfx_core.node_material(name)
+    g = _G(nodes, links)
+    out = nodes.new('ShaderNodeOutputMaterial')
+    tc = nodes.new('ShaderNodeTexCoord')
+    p = tc.outputs['Object']
+    ctl = nodes.new('ShaderNodeRGB')
+    ctl.name = ctl.label = GLOW_NODE
+    ctl.outputs[0].default_value = (0, 0, 0, 1)
+    sep = nodes.new('ShaderNodeSeparateColor')
+    links.new(ctl.outputs[0], sep.inputs[0])
+    dens, seed, heat = sep.outputs[0], sep.outputs[1], sep.outputs[2]
+    x, y, z = g.xyz(p)
+    r2 = g.add(g.add(g.sq(x), g.sq(y)), g.sq(z))
+    shell = g.pow(g.mx(g.sub(1.0, r2), 0.0), 1.3)
+    w = g.mul(seed, 71.0)
+    n1 = g.noise(p, w, 2.2, 5.0, .64)
+    n2 = g.noise(p, g.add(w, 5.0), 6.0, 2.0, .5)
+    lumps = g.pow(g.clamp01(g.mul(g.sub(g.add(n1, g.mul(n2, .25)), .5), 3.0)), 1.4)
+    field = g.mul(shell, lumps)
+    vol = nodes.new('ShaderNodeVolumePrincipled')
+    vol.inputs['Color'].default_value = (.5, .48, .45, 1)
+    vol.inputs['Anisotropy'].default_value = .3
+    links.new(g.mul(field, dens), vol.inputs['Density'])
+    vol.inputs['Emission Color'].default_value = (*rgb, 1)
+    links.new(g.mul(g.pow(field, 1.5), heat), vol.inputs['Emission Strength'])
+    links.new(vol.outputs[0], out.inputs['Volume'])
+    return m
+
+
+def _hot_smoke(ctx, coll, a, label, frame, rnd, spec, rgb):
+    """The smoke a heavy round leaves: thrown downrange, glowing as it leaves the muzzle and
+    cooling over heat_s, then hanging and thinning over life_s (longer in air, gun_atmosphere)."""
+    fps = ctx.scene.render.fps or swfx_core.FPS
+    atm = _knob(ctx, 'gun_atmosphere')
+    gain = _knob(ctx, 'gun_smoke_gain')
+    life = max(4, int(round(fps * spec['life_s'] * (1 + .6 * atm) * rnd.uniform(.9, 1.1))))
+    hot = max(1, int(round(fps * spec['heat_s'])))
+    name = f'{PREFIX} smoke {label} f{frame:04d}'
+    ob = bpy.data.objects.new(name, _unit_box_mesh(f'{name} mesh', _hot_smoke_material(ctx, rgb, f'{name} gas')))
+    coll.objects.link(ob)
+    ob.visible_shadow = False
+    swfx_core.attach(ob, a.empty)
+    ob.rotation_euler = (rnd.uniform(0, 2 * math.pi), 0, 0)
+    stretch = (1.8, rnd.uniform(.8, 1.0), rnd.uniform(.7, .9))       # thrown downrange, never a ball
+    r0, r1 = spec['r']
+    d0 = spec['density'] * (.35 + .65 * atm) * gain
+    fr, sc, lx, dd, hh = [], [], [], [], []
+    for j in range(life + 1):
+        t = j / life
+        e = 1 - (1 - t) ** (2.6 - 1.2 * atm)
+        r = r0 + (r1 - r0) * e
+        fr.append(frame + j)
+        sc.append(swfx_core.units(r))
+        lx.append(swfx_core.units(.6 * r + spec.get('drift', .5) * r1 * e))
+        a_in = min(1.0, (j + 1) / 2.0)
+        # Thinning as it spreads (the same smoke in a larger volume), and fading at the end.
+        dd.append(_hull_glow(d0 * a_in * (r0 / r) ** 1.5 * (1 - t ** 2)))
+        ht = max(0.0, 1 - j / hot)
+        hh.append(_hull_glow(spec['glow'] * ht ** 2 / (2 * r)))
+    for i in range(3):
+        _bake(ob, 'scale', i, fr, [v * stretch[i] for v in sc])
+    _bake(ob, 'location', 0, fr, lx)
+    t = _glow_keys(ob)
+    _bake(t, GLOW_PATH, 0, fr, dd)
+    _bake(t, GLOW_PATH, 1, [frame], [rnd.random()], 'CONSTANT')
+    _bake(t, GLOW_PATH, 2, fr, hh)
+    _visible_between(ob, frame, frame + life)
+    return ob.name
+
+
+def _heavy(ctx, coll, a, rig, label, frame, rnd, w):
+    """The parts of a heavy shot beyond the flash and its gas: recoil, pressure ring, hot smoke."""
+    h = w['heavy']
+    rgb = _lin(w['flash_tint'] or w['flash_light'])
+    rec = {}
+    if h.get('recoil'):
+        rec['recoil'] = _recoil(ctx, a, rig, frame, h['recoil'])
+    if h.get('ring'):
+        rec['ring'] = _ring(ctx, coll, a, label, frame, h['ring'], rgb)
+    if h.get('smoke'):
+        rec['smoke'] = _hot_smoke(ctx, coll, a, label, frame, rnd, h['smoke'], rgb)
+    return rec
+
+
+def _slug_trail_material(ctx, weapon):
+    """A heavy slug's ember trail: a thin dim rod behind the slug (object X -1 tail .. 0 slug),
+    the weapon's fringe colour at the slug dying to ember red, broken into flecks by noise fixed
+    in space, so the embers stay where they were shed and the slug draws away from them. Object
+    colour R is the burn (keyed), as on the round."""
+    name = f'{PREFIX} round trail {weapon}'
+    m = bpy.data.materials.get(name)
+    if m:
+        return m
+    r = WEAPONS[weapon]['round']
+    spec = r['trail']
+    m, nodes, links = swfx_core.node_material(name)
+    g = _G(nodes, links)
+    out = nodes.new('ShaderNodeOutputMaterial')
+    tc = nodes.new('ShaderNodeTexCoord')
+    gx, _, _ = g.xyz(tc.outputs['Generated'])           # 0 tail .. 1 at the slug
+    geo = nodes.new('ShaderNodeNewGeometry')
+    info = _object_colour(nodes)
+    sep = nodes.new('ShaderNodeSeparateColor')
+    links.new(info.outputs['Color'], sep.inputs[0])
+    burn = sep.outputs[0]
+    lw = nodes.new('ShaderNodeLayerWeight')
+    lw.inputs['Blend'].default_value = .5
+    facing = g.pow(g.clamp01(g.sub(1.0, lw.outputs['Facing'])), 1.6)
+    flecks = g.noise(geo.outputs['Position'], 0.0, 1.0 / swfx_core.units(spec.get('fleck_m', 1.2)), 2.0, .55)
+    flecks = g.add(.25, g.mul(g.clamp01(g.mul(g.sub(flecks, .45), 4.0)), 1.6))
+    along = g.pow(gx, 2.4)
+    gain = swfx_core.value_node(ctx, nodes, 'tracer gain', 'gun_tracer_gain', ('gun_tracer_gain',))
+    strength = g.mul(g.mul(g.mul(along, flecks), g.mul(facing, burn)), g.mul(gain, float(spec['gain'])))
+    mix = nodes.new('ShaderNodeMix')
+    mix.data_type = 'RGBA'
+    links.new(g.pow(gx, 1.5), mix.inputs['Factor'])
+    mix.inputs['A'].default_value = (*_lin(spec.get('ember', (200, 45, 15))), 1)
+    mix.inputs['B'].default_value = (*_lin(r['fringe']), 1)
+    em = nodes.new('ShaderNodeEmission')
+    links.new(mix.outputs['Result'], em.inputs['Color'])
+    links.new(strength, em.inputs['Strength'])
+    tr = nodes.new('ShaderNodeBsdfTransparent')
+    add = nodes.new('ShaderNodeAddShader')
+    links.new(tr.outputs[0], add.inputs[0])
+    links.new(em.outputs[0], add.inputs[1])
+    links.new(add.outputs[0], out.inputs['Surface'])
+    try:
+        m.surface_render_method = 'BLENDED'
+    except Exception:
+        pass
+    return m
+
+
+def _slug_trail(ctx, coll, label, frame, weapon, frames, heads, burn, M, d, rot, L):
+    """The ember trail behind a heavy slug, its head on the slug's tail: it grows out of the
+    muzzle to its length and then rides behind the slug."""
+    spec = WEAPONS[weapon]['round']['trail']
+    Lt = swfx_core.units(spec['length'])
+    ob = bpy.data.objects.new(f'{PREFIX} round trail {label} f{frame:04d}', _cylinder_mesh(
+        f'{PREFIX} round trail mesh {weapon}', swfx_core.units(spec['radius']), -1.0, 0.0, 8,
+        _slug_trail_material(ctx, weapon)))
+    coll.objects.link(ob)
+    ob.rotation_euler = rot
+    ob.visible_shadow = False
+    tails = [max(0.0, hh - L) for hh in heads]
+    for i in range(3):
+        _bake(ob, 'location', i, frames, [(M @ (d * tt))[i] for tt in tails])
+    _bake(ob, 'scale', 0, frames, [max(1e-3, min(Lt, tt)) for tt in tails])
+    _bake(ob, 'color', 0, frames, burn)
+    ob.color = (1, 0, 0, 1)
+    _visible_between(ob, frame, frame + len(frames) - 1)
+    return ob.name
+
+
+# --- screen width ---------------------------------------------------------------
+ROUND_NAME = re.compile(r'SWFX guns (round(?: core| trail)?|bolt) (.+?) (f\d{4})')
+STREAK_PX = (.5, 1.4)     # a round's corona radius on screen, pixels at 1920 across
+FLARE_NAME = re.compile(r'SWFX pd flare \d+ f\d{4}')
+FLARE_PX = (.8, 1.8)      # a decoy flare's glare radius on screen: a bright point, never a disc;
+                          # under 4 px across, swfx_lint.orbs' threshold, so a clamped flare is never an orb
+
+
+def _mesh_radius(me, cache):
+    """A rod mesh's radius about its X axis (hull units)."""
+    if me.name not in cache:
+        cache[me.name] = max((math.hypot(v.co.y, v.co.z) for v in me.vertices), default=0.0)
+    return cache[me.name]
+
+
+def _fc_at(ob, path, index, frame, default):
+    fc = swfx_core.find_fcurve(ob, path, index)
+    return fc.evaluate(frame) if fc is not None and len(fc.keyframe_points) else default
+
+
+def screen_clamp(objs, cam_at, to_world=None, px=STREAK_PX, width_px=1920, flare_px=FLARE_PX):
+    """Keep each round's drawn width inside a believable tracer's pixel band at the camera's
+    distance (owner, 2026-10-23: streaks "very large at this zoom"). For every round among `objs`
+    (its corona, core, ember trail, or an ion bolt strike, grouped by gun and fire frame), on each
+    frame it is keyed or shown, the corona's radius in pixels is measured and, outside px=(lo, hi),
+    the whole round's cross-section (scale Y and Z of each part, one factor, so core and sheath
+    keep their proportion) is keyed to bring it to the band's edge. Length and flight are left
+    alone. A decoy flare's glare (swfx_pd.key_flares) is held to flare_px the same way, all three
+    axes, so one thrown toward the camera stays a bright point and never swells into a disc.
+
+    cam_at(frame) -> (camera world location, horizontal fov in radians). to_world(frame) -> the
+    Matrix from the objects' own space to the world in metres on that frame (default identity:
+    objects already in the world). width_px: the render's width. Returns the number of frames
+    keyed."""
+    from mathutils import Matrix as _M
+    to_world = to_world or (lambda f: _M.Identity(4))
+    groups = {}
+    for ob in objs:
+        if ob.type != 'MESH':
+            continue
+        m = ROUND_NAME.search(ob.name)
+        if m:
+            groups.setdefault((m.group(2), m.group(3)), []).append((m.group(1), ob))
+    cache, keyed = {}, 0
+
+    def factor(ob, r0, f, band):
+        M = to_world(f)
+        loc = Vector([_fc_at(ob, 'location', i, f, ob.location[i]) for i in range(3)])
+        cam, fov = cam_at(f)
+        depth = max(1e-3, (M @ loc - Vector(cam)).length)
+        r_px = r0 * M.to_scale()[1] / (2 * depth * math.tan(fov / 2)) * width_px
+        return min(max(r_px, band[0]), band[1]) / r_px if r_px > 0 else 1.0
+
+    for ob in objs:
+        if ob.type != 'MESH' or not FLARE_NAME.search(ob.name):
+            continue
+        fc = swfx_core.find_fcurve(ob, 'location', 0)
+        frames = sorted({int(round(k.co.x)) for k in fc.keyframe_points}) if fc is not None else []
+        r0 = max((v.co.length for v in ob.data.vertices), default=0.0)
+        if not frames or r0 <= 0:
+            continue
+        for i in range(3):
+            sc = [_fc_at(ob, 'scale', i, f, ob.scale[i]) for f in frames]
+            # the radius at this axis's own scale on each frame, so every frame lands in the band
+            ks = [factor(ob, r0 * sc[j], f, flare_px) for j, f in enumerate(frames)]
+            _bake(ob, 'scale', i, frames, [v * k for v, k in zip(sc, ks)])
+        keyed += len(frames)
+    for parts in groups.values():
+        ref = next((ob for kind, ob in parts if kind == 'round'), None) or \
+            next((ob for kind, ob in parts if kind == 'bolt'), None)
+        if ref is None:
+            continue
+        r0 = _mesh_radius(ref.data, cache)
+        if r0 <= 0:
+            continue
+        fc = swfx_core.find_fcurve(ref, 'location', 0)
+        frames = sorted({int(round(k.co.x)) for k in fc.keyframe_points}) if fc is not None else []
+        if not frames:
+            frames = sorted(_shown_frames(ref)) or [ref.get('swfx_frame', 0)]
+        factors = []
+        for f in frames:
+            M = to_world(f)
+            loc = Vector([_fc_at(ref, 'location', i, f, ref.location[i]) for i in range(3)])
+            here = M @ loc
+            cam, fov = cam_at(f)
+            depth = max(1e-3, (here - Vector(cam)).length)
+            r_world = r0 * M.to_scale()[1]
+            r_px = r_world / (2 * depth * math.tan(fov / 2)) * width_px
+            want = min(max(r_px, px[0]), px[1])
+            factors.append(want / r_px if r_px > 0 else 1.0)
+        for kind, ob in parts:
+            if kind == 'bolt':          # one strike shown on one frame: its own frame's factor
+                shown = sorted(_shown_frames(ob))
+                f = shown[0] if shown else frames[0]
+                k = factors[min(range(len(frames)), key=lambda i: abs(frames[i] - f))]
+                ob.scale.y *= k
+                ob.scale.z *= k
+                keyed += 1
+                continue
+            for i in (1, 2):
+                base = ob.scale[i]
+                _bake(ob, 'scale', i, frames, [base * k for k in factors])
+            keyed += len(frames)
+    return keyed
 
 def _feeder_material(ctx, knob):
     name = f'{PREFIX} feeder {knob}'

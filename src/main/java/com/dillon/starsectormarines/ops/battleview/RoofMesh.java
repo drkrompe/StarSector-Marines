@@ -77,16 +77,9 @@ import static org.lwjgl.opengl.GL15.glGenBuffers;
  * <p><b>It fails soft.</b> A driver without buffer objects, a failed allocation,
  * any GL error at all — {@code sync} answers false and the caller emits the
  * ordinary per-cell command stream, with the same paint order and the same
- * picture. Turn it off for a control run with
- * {@code -Dbattle.render.residentRoofs=false}.
+ * picture.
  */
 public final class RoofMesh {
-
-    /** Control-run switch; see the class note. On by default. */
-    public static final String PROPERTY = "battle.render.residentRoofs";
-
-    private static final boolean ENABLED =
-            Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
 
     /**
      * The fade below which a roof is not drawn at all.
@@ -97,11 +90,6 @@ public final class RoofMesh {
      * of brick over a revealed interior.
      */
     private static final float INVISIBLE_BELOW = 0.01f;
-
-    /** Whether the mesh is armed at all — for evidence that reports which run it was. */
-    public static boolean enabled() {
-        return ENABLED;
-    }
 
     /** Where a resolved roof cell's tile goes. */
     public interface RoofSink {
@@ -175,7 +163,7 @@ public final class RoofMesh {
      * once anything has failed.
      */
     public boolean isServing(CellTopology topology, Buildings buildings) {
-        return ENABLED && !broken && topology != null && topology == bound
+        return !broken && topology != null && topology == bound
                 && buildings == boundBuildings;
     }
 
@@ -243,7 +231,7 @@ public final class RoofMesh {
     boolean catchUp(CellTopology topology, Buildings buildings, SpriteAPI roofSheet,
                     int roofSheetPxW, int roofSheetPxH,
                     RoofResolver resolver, float frameAlpha) {
-        if (!ENABLED || broken || topology == null || buildings == null
+        if (broken || topology == null || buildings == null
                 || roofSheet == null || resolver == null) {
             return false;
         }

@@ -1,0 +1,17 @@
+{
+ "outputSize": [3840, 768],
+ "turretCells": 1.6,
+ "turretBodyCells": 1.25,
+ "frames": [
+  {"role": "hull", "source": "hull-raw-b4.png", "scale": 0.73, "sourceCenter": [508, 451],
+   "note": "Live hull: the breakthrough master re-liveried (hull-raw-b, pass 4: window on the deck, sloped glacis, cool wear), edited on the master's own canvas, so the master's registration holds and the tread strips VehicleTreadRender scrolls sit on its tracks."},
+  {"role": "turret", "source": "pd-skin-tt-raw.png",
+   "note": "Live turret: the up-res vanilla PD laser in Tri-Tachyon white, graphite and cyan (skin 'tt'). Pivot at the vanilla sprite's centre."},
+  {"role": "hull", "source": "hull-wreck-raw.png", "scale": 0.73, "sourceCenter": [508, 451],
+   "note": "Wreck hull, edited from hull-raw-b4.png on the same canvas."},
+  {"role": "turret", "source": "pd-skin-tt-wreck-raw.png",
+   "note": "Wreck turret, edited from the live skin; the fit takes out any scale ImageGen drifted to."},
+  {"role": "turret", "source": "pd-skin-tt-open-raw.png",
+   "note": "Firing turret: the same skin with the dome's shutter open on its lens (VehicleType.turretFiringFrame)."}
+ ]
+}

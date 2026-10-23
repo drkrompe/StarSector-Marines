@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16635-8ec1-7921-a9d0-53ec038fe8da",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16635-8ec1-7921-a9d0-53ec038fe8da\\exec-9a429790-aa56-4159-8ea8-103b67f07a63.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\tank-laser\\pd-upres-raw.png",
+    "sha256": "b45504852426e3155fccb43daa9ef29b7bf9664be87c95093f2e5b36150aa026",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\tank-laser\\pd-upres-prompt.txt",
+  "promptSha256": "6611261c52a9a3d52d5b3f1f6dd0c18d27b1d9fb8cce4be48a431bfeb3746b61",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Design, silhouette and colour authority: the sprite to repaint at high resolution, same canvas, pose and scale\n\nRepaint image 1 at high resolution. Image 1 is a tiny 24-pixel game sprite of a small spaceship turret module, enlarged with hard pixels and turned so it points LEFT, seen strictly from straight above. Keep its design exactly: the same silhouette, proportions, parts and colours, in the same position and size on the same canvas. Only replace the blocky pixels with crisp, detailed, painted sci-fi hardware.\nRead the parts as:\n- the pale grey-white rounded dome at the left end: a polished, smooth, domed lens housing with soft round shading and a few fine panel seams;\n- the red band behind it: a thick red-lacquered collar ring wrapping the module, worn at the edges;\n- the three white vertical bars in the red band: three cooling vent slots or fins set into the collar, with dark gaps between them;\n- the dark grey round shape behind the collar: the heavy round mounting ring and base plate, gunmetal grey, with bolts around its rim;\n- the small grey stub at the right end: a short rear cable or conduit housing.\nClean, well-made starship hardware in the Starsector style: semi-realistic painted metal, crisp edges, soft overhead light from the top left, subtle wear. No glow, no beam, no light rays, no sparks.\nExactly one object, strict 90-degree overhead orthographic, no perspective tilt. No scene, labels, background, checkerboard, ground shadow or border. True transparent background with genuine alpha outside the silhouette. Square canvas, same size and aspect as image 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\tank-laser\\pd-upres-guide.png",
+      "sha256": "9c5e517726c2b7114dc35a8343cd08de69d3e008ed2de6f715fd4bcfafe550b2",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Design, silhouette and colour authority: the sprite to repaint at high resolution, same canvas, pose and scale"
+    }
+  ],
+  "agentMessages": [
+    "I’ll repaint the sprite with crisp metal detail while preserving its silhouette, placement, colors, and transparent background."
+  ],
+  "usage": {
+    "input_tokens": 41217,
+    "cached_input_tokens": 32512,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 424,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 48.8
+}

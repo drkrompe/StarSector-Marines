@@ -104,7 +104,7 @@ class BattleFixtureJfrProfileTest {
         boundary.unitUpdateParallelism =
                 UnitUpdateSystem.configuredPoolParallelism();
         boundary.minimumSharedGoalUnits =
-                SharedGoalPolicy.configuredMinimumSharedGoalUnits();
+                SharedGoalPolicy.minimumSharedGoalUnits();
 
         RunStats measured;
         // Construct the ordinary measured sim before recording so map/scenario

@@ -13,17 +13,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** Direct picker-component tests: no battle construction or clearance workers. */
 class MechReachabilityTest {
     @Test
-    void cachedAndLegacyMembershipAgreeAcrossWallsEdgesAndOpenedDoorway() {
+    void membershipMatchesComponentLabelsAcrossWallsEdgesAndOpenedDoorway() {
         boolean previous = GridPathfinder.USE_CARDINAL_NAVIGATION;
         try {
             for (boolean cardinal : new boolean[]{false, true}) {
                 GridPathfinder.USE_CARDINAL_NAVIGATION = cardinal;
                 NavigationGrid grid = splitGrid();
-                assertEquivalentMembership(grid);
+                assertMembershipMatchesLabels(grid);
                 grid.setWalkableFloor(3, 2);
-                assertEquivalentMembership(grid);
+                assertMembershipMatchesLabels(grid);
                 grid.setWalkable(3, 2, false);
-                assertEquivalentMembership(grid);
+                assertMembershipMatchesLabels(grid);
             }
         } finally {
             GridPathfinder.USE_CARDINAL_NAVIGATION = previous;
@@ -36,12 +36,12 @@ class MechReachabilityTest {
         for (int y = 0; y < 5; y++) {
             for (int x = 0; x < 7; x++) grid.setWalkableFloor(x, y);
         }
-        MechReachability first = new MechReachability(grid, 0, 0, true);
+        MechReachability first = new MechReachability(grid, 0, 0);
         assertTrue(first.contains(6, 4));
         assertEquals(1, grid.labelReads);
 
         for (int i = 0; i < 20; i++) {
-            MechReachability next = new MechReachability(grid, i % 7, 0, true);
+            MechReachability next = new MechReachability(grid, i % 7, 0);
             assertTrue(next.contains(6, 4));
         }
         assertEquals(1, grid.labelReads, "new picker instances share the warmed grid cache");
@@ -49,35 +49,34 @@ class MechReachabilityTest {
         for (int y = 0; y < 5; y++) grid.setWalkable(3, y, false);
         assertFalse(first.contains(6, 4), "a retained query must observe the new topology");
         assertEquals(2, grid.labelReads);
-        assertFalse(new MechReachability(grid, 0, 0, true).contains(6, 4));
+        assertFalse(new MechReachability(grid, 0, 0).contains(6, 4));
         assertEquals(2, grid.labelReads);
-
-        new MechReachability(grid, 0, 0, false);
-        new MechReachability(grid, 0, 0, false);
-        assertEquals(4, grid.labelReads, "control preserves one eager flood per picker");
     }
 
     @Test
     void rawConnectivityDoesNotClaimChassisClearance() {
         NavigationGrid grid = splitGrid();
         grid.setWalkableFloor(3, 2);
-        assertTrue(new MechReachability(grid, 1, 2, true).contains(5, 2),
+        assertTrue(new MechReachability(grid, 1, 2).contains(5, 2),
                 "a one-cell doorway is raw reachable; body fit remains the route planner's job");
         assertFalse(ManualTerrainMotion.canStand(grid, 3.5f, 2.5f, 0.60f),
                 "raw connectivity must not be mistaken for Bulwark clearance");
-        assertFalse(new MechReachability(grid, 3, 0, true).contains(3, 0));
-        assertFalse(new MechReachability(grid, -1, 0, true).contains(0, 0));
-        assertFalse(new MechReachability(grid, 0, 0, true).contains(7, 0));
+        assertFalse(new MechReachability(grid, 3, 0).contains(3, 0));
+        assertFalse(new MechReachability(grid, -1, 0).contains(0, 0));
+        assertFalse(new MechReachability(grid, 0, 0).contains(7, 0));
     }
 
-    private static void assertEquivalentMembership(NavigationGrid grid) {
+    private static void assertMembershipMatchesLabels(NavigationGrid grid) {
+        int[] labels = GridPathfinder.labelConnectedComponents(grid);
         for (int ay = -1; ay <= grid.getHeight(); ay++) {
             for (int ax = -1; ax <= grid.getWidth(); ax++) {
-                MechReachability legacy = new MechReachability(grid, ax, ay, false);
-                MechReachability cached = new MechReachability(grid, ax, ay, true);
+                MechReachability reachable = new MechReachability(grid, ax, ay);
                 for (int by = -1; by <= grid.getHeight(); by++) {
                     for (int bx = -1; bx <= grid.getWidth(); bx++) {
-                        assertEquals(legacy.contains(bx, by), cached.contains(bx, by));
+                        boolean expected = grid.inBounds(ax, ay) && grid.inBounds(bx, by)
+                                && labels[grid.index(ax, ay)] >= 0
+                                && labels[grid.index(ax, ay)] == labels[grid.index(bx, by)];
+                        assertEquals(expected, reachable.contains(bx, by));
                     }
                 }
             }

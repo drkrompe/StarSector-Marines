@@ -125,8 +125,12 @@ class GroundDecorationGlEvidence {
                     // Frame one builds the atlas, frame two bakes the mesh
                     // against it, frame three is the one the mesh is serving.
                     for (int warmup = 0; warmup < 3; warmup++) draw(target[0], renderer, camera, sim);
-                    assertEquals(5, mesh.sublayerCount(),
-                            "base terrain, edge blends, ground damage, scatter and door decals");
+                    // At least these; feathering and road or terrain surfaces
+                    // add sub-layers of their own between the base and the
+                    // decoration, and how many is not this evidence's question.
+                    assertTrue(mesh.sublayerCount() >= 5,
+                            "base terrain, edge blends, ground damage, scatter and door "
+                                    + "decals all resident; got " + mesh.sublayerCount());
                     int baked = mesh.residentQuads();
                     assertTrue(baked > CELLS_W * CELLS_H,
                             "there has to be decoration on top of the terrain to compare; "

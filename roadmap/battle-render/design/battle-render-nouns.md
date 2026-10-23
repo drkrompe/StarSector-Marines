@@ -53,6 +53,14 @@ Updated: 2026-10-22 — Ground feathers: outdoor ground boundaries bleed into ea
   sheet's origin plus its own source rectangle, so the layer is one texture
   rather than six. It is a change of address and not of picture: the same quads
   in the same order over the same rectangles.
+- A **decoration atlas** is the same change of address for the `DOODADS`
+  layer, with two differences that follow from what props are. It holds
+  *cuts* rather than sheets — each placed prop's source rectangle, plus the
+  states its catalog family can swap it to (`-damaged`, `-destroyed`, blight
+  stages) — because the catalog is ninety sheets and a map places a few hundred
+  rectangles from a handful of them. And it is planned **per battle**, from that
+  battle's placements, the first time the layer sees them; a new battle's
+  placements retire the last one's.
 - The **resident ground** is the ground that is a function of the battle's cell
   topology, baked once into vertex buffers and drawn from them. Every cell that
   draws a tile owns four vertices in it and keeps them, in cell coordinates, so
@@ -442,6 +450,25 @@ change the physical crash corridor.
     than by what will fit: an atlas pays where many of its images are on screen
     at once, which a composed body is and a vanilla aircraft hull is not, so an
     image past a stated size keeps drawing as a whole sprite.
+
+    **A cut carries its neighbourhood.** A whole image's edge was always an
+    edge, so a transparent gutter changes nothing there; a rectangle cut from a
+    sheet had the next cell's art one texel away, and bilinear reads it. So a
+    cut's slot carries an apron of the sheet's own texels around it, clamped at
+    the sheet's edge as the driver's clamp would answer, and the gutter starts
+    beyond that. What is left between a cut and its sheet is the arithmetic of
+    the address itself: a power-of-two atlas states its coordinates exactly
+    where a sheet 896 wide rounds them, and a tap that lands on a filter-weight
+    boundary in one lands beside it in the other. That is a one-level
+    difference on isolated texels, never an edge or a slot, and it is the
+    accepted residue of moving art between textures of different sizes.
+
+    **An atlas that leaves something out says so.** The fallback is the image's
+    own texture and the same picture, which is exactly why nobody sees it: an
+    image over the cap, a layout with no room, a texture the driver refused all
+    look like an atlas that is working. Every atlas keeps the account — what it
+    left out and for which of those reasons — logs it once per plan, and the
+    render evidence prints it beside the layer it would have served.
 25. Residency is not only for the ground. A **roof** is a function of the
     topology and of which building owns the cell, and it paints *above* units —
     so the mesh is a resident layer in its own painter slot rather than another

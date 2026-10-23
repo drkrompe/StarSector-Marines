@@ -34,17 +34,9 @@ import java.util.List;
  * order, and the drain still breaks a run wherever a different sheet or a solid
  * fill interrupts it.
  *
- * <p>{@link SpriteAtlas} owns the mechanism. What is here is which images go in,
- * and the switch that takes them back out for a control run:
- * {@code -Dbattle.render.unitAtlas=false}.
+ * <p>{@link SpriteAtlas} owns the mechanism. What is here is which images go in.
  */
 public final class UnitAtlas extends SpriteAtlas {
-
-    /** Control-run switch; see the class note. On by default. */
-    public static final String PROPERTY = "battle.render.unitAtlas";
-
-    private static final boolean ENABLED =
-            Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
 
     /**
      * Widths the layout may use, smallest first.
@@ -78,12 +70,7 @@ public final class UnitAtlas extends SpriteAtlas {
     private static final int MAX_IMAGE_PX = 320;
 
     public UnitAtlas() {
-        super("unit atlas", ENABLED, SIDES);
-    }
-
-    /** Whether the atlas is armed at all — for evidence that reports which run it was. */
-    public static boolean enabled() {
-        return ENABLED;
+        super("unit atlas", SIDES);
     }
 
     /**
@@ -114,31 +101,41 @@ public final class UnitAtlas extends SpriteAtlas {
         addLayers(candidates, sprites.bloodPools());
         LayeredMechAssets baseMech = sprites.layeredMechSprites();
         if (baseMech != null) addLayers(candidates, baseMech.layers());
-        addHulls(candidates, sprites.turretSprites().values());
-        addHulls(candidates, sprites.turretRecoilSprites().values());
-        addHull(candidates, sprites.droneHubSprite());
-        addHulls(candidates, sprites.airframeSprites().values());
+        addHulls(candidates, sprites.turretSprites().values(), "turret");
+        addHulls(candidates, sprites.turretRecoilSprites().values(), "turret recoil");
+        addHull(candidates, sprites.droneHubSprite(), "drone hub");
+        addHulls(candidates, sprites.airframeSprites().values(), "airframe");
+        // The soft disc every body without its own shape casts on the ground:
+        // UNIT_SHADOWS draws one per body, and out of the atlas each is a bind.
+        consider(candidates, sprites.shadowBlobSprite(),
+                sprites.shadowBlobPxW(), sprites.shadowBlobPxH(), "shadow blob");
         // Two images is already two binds and an atlas of them saves one; the
         // point of the layout is a field of bodies, so a host that loaded almost
         // no unit art stays on the sprite path rather than paying for a copy.
         return plan(candidates, 4);
     }
 
-    private static void addLayers(List<Source> into, List<LayeredSpriteCache> layers) {
+    private void addLayers(List<Source> into, List<LayeredSpriteCache> layers) {
         if (layers == null) return;
         for (LayeredSpriteCache layer : layers) {
             if (layer == null) continue;
-            offer(into, layer.sprite, layer.pxWidth, layer.pxHeight);
+            consider(into, layer.sprite, layer.pxWidth, layer.pxHeight, layer.sourcePath);
         }
     }
 
-    private static void addHulls(List<Source> into, Iterable<ShuttleSpriteCache> caches) {
-        for (ShuttleSpriteCache cache : caches) addHull(into, cache);
+    private void addHulls(List<Source> into, Iterable<ShuttleSpriteCache> caches, String kind) {
+        for (ShuttleSpriteCache cache : caches) addHull(into, cache, kind);
     }
 
-    private static void addHull(List<Source> into, ShuttleSpriteCache cache) {
+    private void addHull(List<Source> into, ShuttleSpriteCache cache, String kind) {
         if (cache == null) return;
-        offer(into, cache.sprite, cache.pxW, cache.pxH);
+        consider(into, cache.sprite, cache.pxW, cache.pxH, kind + " " + cache.pxW + "x" + cache.pxH);
+    }
+
+    /** {@link #offer}, recording whatever it turns away. */
+    private void consider(List<Source> into, SpriteAPI sprite, int recordedW, int recordedH, String name) {
+        Exclusion refused = offer(into, sprite, recordedW, recordedH, name);
+        if (refused != null) exclude(refused, (name == null ? "image" : name) + " " + recordedW + "x" + recordedH);
     }
 
     /**
@@ -148,10 +145,18 @@ public final class UnitAtlas extends SpriteAtlas {
      * whole-sprite frame resizes them, and the same caches survive battle
      * re-entry. Only the dimensions captured by the loader can size a texture
      * copy. An image without recorded dimensions stays on the sprite path.
+     *
+     * @return why the image was not offered, or null when it was (or there was none)
      */
-    static void offer(List<Source> into, SpriteAPI sprite, int recordedW, int recordedH) {
-        if (sprite == null || recordedW <= 0 || recordedH <= 0) return;
-        if (recordedW > MAX_IMAGE_PX || recordedH > MAX_IMAGE_PX) return;
-        into.add(new Source(sprite, recordedW, recordedH));
+    static Exclusion offer(List<Source> into, SpriteAPI sprite, int recordedW, int recordedH) {
+        return offer(into, sprite, recordedW, recordedH, null);
+    }
+
+    static Exclusion offer(List<Source> into, SpriteAPI sprite, int recordedW, int recordedH, String name) {
+        if (sprite == null) return null;
+        if (recordedW <= 0 || recordedH <= 0) return Exclusion.NO_SIZE;
+        if (recordedW > MAX_IMAGE_PX || recordedH > MAX_IMAGE_PX) return Exclusion.OVER_CAP;
+        into.add(new Source(sprite, recordedW, recordedH, name));
+        return null;
     }
 }

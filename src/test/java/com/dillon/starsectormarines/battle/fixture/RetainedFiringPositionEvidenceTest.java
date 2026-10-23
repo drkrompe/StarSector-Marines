@@ -17,10 +17,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @Tag("squad-firing-evidence")
 class RetainedFiringPositionEvidenceTest {
     @Test void retainsLegalPositionThroughMotionAndPeriodicReplansButRepairsInvalidGeometry() {
-        String old = System.getProperty("battle.targeting.retainFiringPositions");
         String oldShared = System.getProperty("battle.targeting.squadFiringPositions");
         TickInnerProfile previous = TickInnerProfile.currentIfBound();
-        System.setProperty("battle.targeting.retainFiringPositions", "true");
         System.setProperty("battle.targeting.squadFiringPositions", "false");
         NavigationGrid grid = new NavigationGrid(40, 28);
         for (int y = 0; y < 28; y++) for (int x = 0; x < 40; x++) grid.setWalkableFloor(x, y);
@@ -58,8 +56,6 @@ class RetainedFiringPositionEvidenceTest {
             if (confined != null) assertTrue(Math.hypot(confined[0] - 18, confined[1] - 14) <= 1);
             System.out.println("Retained firing evidence: 250 unchanged legal selections; blocked-cell repair and live leash validation passed.");
         } finally {
-            if (old == null) System.clearProperty("battle.targeting.retainFiringPositions");
-            else System.setProperty("battle.targeting.retainFiringPositions", old);
             if (oldShared == null) System.clearProperty("battle.targeting.squadFiringPositions");
             else System.setProperty("battle.targeting.squadFiringPositions", oldShared);
             TickInnerProfile.setCurrent(previous);

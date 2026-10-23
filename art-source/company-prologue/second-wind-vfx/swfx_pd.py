@@ -299,6 +299,34 @@ def flare_anchors(ship):
     return out
 
 
+def flank_anchors(ship):
+    """(world position, world axis) for a ship whose build has no flare muzzles (a Hound): two a
+    side on her flanks, a little aft of amidships and up, thrown out and slightly back and up, as
+    the blockout's stand-in flares were, so the kit's own flares (bright points, torn smoke) can
+    replace those stand-ins' grey rods. Sized off her hull's extent in her own space."""
+    lo = Vector((float('inf'),) * 3)
+    hi = -lo
+    for o in ship.hull.all_objects:
+        if o.type != 'MESH':
+            continue
+        m = mp.anchor_matrix(o)
+        for c in o.bound_box:
+            q = m @ Vector(c)
+            lo = Vector(map(min, lo, q))
+            hi = Vector(map(max, hi, q))
+    if not all(math.isfinite(v) for v in (*lo, *hi)):
+        return []
+    S = mp.space_of(ship)
+    mid, half = (lo + hi) / 2, (hi - lo) / 2
+    out = []
+    for side in (-1, 1):
+        for fx in (-.25, .1):
+            p = Vector((mid.x + fx * half.x, mid.y + side * half.y * .9, mid.z + half.z * .3))
+            d = Vector((-.35, side, .3)).normalized()
+            out.append(((S @ p).copy(), (S.to_3x3() @ d).normalized()))
+    return out
+
+
 # ======================================================================================= keying
 
 def _bpy():
@@ -490,7 +518,12 @@ def _key_beam(ctx, coll, e, inv, muzzle, mpu, rnd, width_m=.9):
         coll.objects.link(fl)
         fl.visible_shadow = False
         r = (2.2 if tag == 'emitter' else 3.2) / mpu
-        fl.scale = (r, r, r)
+        # Drawn out along the beam, as the rod is turned (owner, 2026-10-23: no orbs): a glare
+        # streaked down the line of fire, not a ball at either end.
+        fl.rotation_mode = 'QUATERNION'
+        for i in range(4):
+            swfx_guns._bake(fl, 'rotation_quaternion', i, frames, [q[i] for q in quats])
+        fl.scale = (r * 2.6, r * .6, r * .6)
         for i in range(3):
             swfx_guns._bake(fl, 'location', i, frames, [p[i] for p in places])
         swfx_guns._bake(fl, 'color', 0, frames, power)
@@ -573,7 +606,7 @@ def key_flares(ctx, flares, space, mpu=None, glare_m=3.5, trail=None, light_w=2.
     mpu = mpu or swfx_core.METRES_PER_UNIT
     mat = mp.glow_material(ctx, f'{PREFIX} flare glow', FLARE, strength=30.0, core=.9)
     trail_prof = dict(mp.PROFILES['harpoon'], trail=FLARE, trail_alpha=.5, trail_glow=1.5, trail_r_m=1.6,
-                      trail_spread=2.2, trail_life_s=1.0, ignite_s=0.0)
+                      trail_spread=2.2, trail_life_s=1.0, ignite_s=0.0, trail_broken=True)
     trail_prof.update(trail or {})
     for k, fr in enumerate(flares):
         rnd = random.Random(f'swfx-flare-key|{k}|{fr.frame}')

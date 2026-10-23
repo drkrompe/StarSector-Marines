@@ -345,6 +345,18 @@ def he(ctx, frame, at_m, normal, size_m=None, scale=1.0, flash_colour=(1.0, .62,
     return _record('he', frame, at_m, e, obs)
 
 
+# The Hellbore's 750-damage HE slug (hitGlowRadius 150, against a light assault gun's 40 damage):
+# the HE hit at about two and a half times the size, in its own orange, its burst a jagged lobed
+# flash thrown out of the face like every HE hit's (owner, 2026-10-23: no orbs).
+HELLBORE = dict(size_m=6.5, flash_colour=(1.0, .5, .18))
+
+
+def hellbore(ctx, frame, at_m, normal, scale=1.0, style=None, **kw):
+    """A Hellbore slug on armour: he() at the Hellbore's size and colour. Returns its record."""
+    spec = dict(HELLBORE, **kw)
+    return he(ctx, frame, at_m, normal, scale=scale, style=style, **spec)
+
+
 def breach(ctx, frame, at_m, normal, size_m=3.0, vent=True, vent_m=24.0, ignite_s=.15, blast_m=None, style=None):
     """The hull opens at at_m on `frame`: an HE blast in the hole, then the fire group's flame,
     smoke and flickering light coming up over a second (from ignite_s after the blast), and,
@@ -559,7 +571,7 @@ def strike(ctx, frame, at_m, normal, kind='kinetic', shield_centre_m=(0, 0, 0), 
     facing = _knob_at(ctl, 'shield_facing', frame) or 0.0
     arc = float(arc if arc is not None else (_knob_at(ctl, 'shield_arc', frame) or 360.0))
     in_arc = abs((az - facing + 180.0) % 360.0 - 180.0) <= up * arc / 2
-    hit = kinetic if kind == 'kinetic' else he
+    hit = {'kinetic': kinetic, 'hellbore': hellbore}.get(kind, he)
     if not slots or up < .5 or not in_arc:
         hit(ctx, frame, at_m, normal, **kw)
         return 'armour'
@@ -655,7 +667,7 @@ def apply_cue(ctx, entries, frame_now=None, matrix=None):
     'at' and 'normal': the hit is put where that line meets the hull (ray_to_hull, with matrix
     the ship's world matrix)."""
     out = []
-    fns = {'kinetic': kinetic, 'he': he, 'breach': breach, 'debris': debris}
+    fns = {'kinetic': kinetic, 'he': he, 'hellbore': hellbore, 'breach': breach, 'debris': debris}
     for c in entries:
         c = dict(c)
         kind = c.pop('kind')

@@ -248,7 +248,7 @@ squad-samples, the most at once, dug-in member-samples and fall backs;
 A `DEFENDER counter-attacks its lost fort` line (and `counterattack` in `summary.json`) counts the
 defender's counter-attack reserves, musters and launches (squads and strength at each launch against
 the strength it believed it needed), retakes, failed attempts and forts abandoned, with the first tick
-of each; `-Dbattle.conquest.fortCounterattack=false` is its control.
+of each; `-Dbattle.counterattack=false` is its control.
 
 ## Conquest fixtures and fort control
 
