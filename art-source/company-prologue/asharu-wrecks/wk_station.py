@@ -44,7 +44,16 @@ def rot(hd, pt, rl):
 
 
 def parts_sha(parts):
-    return hashlib.sha256(json.dumps(parts, sort_keys=True).encode()).hexdigest()[:16]
+    """The parts list's hash, its floats rounded to the micrometre first: platform_parts() places
+    drums with cos and sin, whose last digit differs between the Mac's libm and Windows', and an
+    unrounded hash called the same station stale on one machine and current on the other."""
+    def fixed(v):
+        if isinstance(v, float):
+            return round(v, 6) + 0.0
+        if isinstance(v, (list, tuple)):
+            return [fixed(x) for x in v]
+        return v
+    return hashlib.sha256(json.dumps(fixed(parts), sort_keys=True).encode()).hexdigest()[:16]
 
 
 def _fit(m, full):

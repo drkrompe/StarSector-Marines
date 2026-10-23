@@ -1203,6 +1203,15 @@ public class BattleRenderer {
      */
     public void renderWorld(RenderContext rc, EnumSet<RenderLayer> layers,
                             FrameCensus census) {
+        renderWorld(rc, layers, census, null);
+    }
+
+    /**
+     * As {@link #renderWorld(RenderContext, EnumSet, FrameCensus)}, draining {@code leading}'s commands for each
+     * layer ahead of the layer's own. A headless review feeds presentation services the live screen ticks itself
+     * (contrails, delivered rounds, beams) and hands their commands in here, the order the screen draws them in.
+     */
+    void renderWorld(RenderContext rc, EnumSet<RenderLayer> layers, FrameCensus census, DrawList leading) {
         collectWorld(rc, layers, census);
         boolean parallax = (rc.hostProfile.surfaceReliefEnabled() || GroundParallaxPipeline.deckWaterVisible(rc))
                 && DevConfig.SURFACE_RELIEF_PARALLAX
@@ -1210,6 +1219,10 @@ public class BattleRenderer {
         for (RenderLayer layer : RenderLayer.values()) {
             if (!layers.contains(layer)) continue;
             long started = census == null ? 0L : System.nanoTime();
+            if (leading != null && leading.count(layer) > 0) {
+                DrawListRenderer.drain(leading.buffer(layer), leading.count(layer), batchBySheet, solidBatch,
+                        lineBatch, contrailBatch, rc.camera, null);
+            }
             if (layer == RenderLayer.GROUND && parallax) {
                 // S2/S3: redirect GROUND through the relief FBOs + composite instead
                 // of draining straight to the backbuffer. groundParallax falls back to

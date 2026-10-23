@@ -670,10 +670,8 @@ public class BattleSprites {
             smokeFieldSheet = Global.getSettings().getSprite(fieldPath);
             Global.getSettings().loadTexture(FIRE_SHEET_PATH);
             fireSheet = Global.getSettings().getSprite(FIRE_SHEET_PATH);
-            if (FireRenderSystem.FLAME_SHEET_PATH != null) {
-                Global.getSettings().loadTexture(FireRenderSystem.FLAME_SHEET_PATH);
-                flameSheet = Global.getSettings().getSprite(FireRenderSystem.FLAME_SHEET_PATH);
-            }
+            Global.getSettings().loadTexture(FireRenderSystem.FLAME_SHEET_PATH);
+            flameSheet = Global.getSettings().getSprite(FireRenderSystem.FLAME_SHEET_PATH);
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load smoke utility sprites", e);
         }

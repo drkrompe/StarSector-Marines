@@ -615,7 +615,6 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   `-Dbattle.render.cliffLook=false` (with `-PrenderMaps=overlook`),
   `-Dbattle.render.settledBodyMesh=false`,
   `-Dbattle.render.collectCulling=false`,
-  `-Dbattle.render.nightRuns=false`, `-Dbattle.render.nightCoarse=false`,
   `-Dbattle.render.nightFireThroughFog=false`
   (with `-PrenderMaps=the burn at night`)), never against a number in a
   document — and never against a delta smaller than that spread.
@@ -699,6 +698,13 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   (maximum and mean channel difference, worst frame side by side) — accept a
   renderer change on that, never on GIFs, whose palette hides and invents
   differences.
+  **`-Dsnapshot.backend=gl` draws review frames on the GPU** through the
+  shipping `BattleRenderer` into a `HeadlessGl` pbuffer (`ReviewSceneBackend`;
+  `java2d` is the default and the reference). Creep- and fire-heavy scenes
+  render about ten times faster; a machine with no context (the Mac today) says
+  so once and uses Java2D. GL pixels depend on the driver, so compare raw
+  frames only between two runs on the same backend and machine. See
+  `gpu-review-drain.md`.
 - `gradlew.bat battleProbe -Pbattle=<source> -Pscript=<file>` → **ask a battle
   questions instead of bisecting for them.** Stands one battle up, steps it on
   command and answers queries between steps, one JSON line each: `until T`,
