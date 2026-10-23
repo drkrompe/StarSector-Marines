@@ -271,7 +271,9 @@ public final class FogField {
                 && clearing.width() == gridW && clearing.height() == gridH;
         try (GlStateBracket bracket = GlStateBracket.textured2D()) {
             if (thinned) bindClearing(clearing);
-            glColor4f(0f, 0f, 0f, alphaMult);
+            float[] colour = clearing == null ? null : clearing.fogColour();
+            if (colour == null) glColor4f(0f, 0f, 0f, alphaMult);
+            else glColor4f(colour[0], colour[1], colour[2], alphaMult);
             glBindTexture(GL_TEXTURE_2D, texture);
             // An alpha texture under MODULATE leaves the primary colour alone and
             // multiplies the alphas, which is fog colour times fog level times the
