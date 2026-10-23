@@ -43,7 +43,7 @@ MATCH_M = 15.0          # a shot's fx entry this close to a ledger hit is the sh
 MAX_FIRES = 2           # persistent fire volumes per ship per shot (volumes are the render's cost)
 MAX_VENTS = 1           # persistent vents per ship per shot
 MAX_SMOKE = 2           # persistent smoke threads per ship per shot
-LOOK = 'v2'             # 'v1': the first look (small soot marks only), kept as the control
+LOOK = 'v1'             # 'v1': the first look (small soot marks only), kept as the control
 
 
 # ======================================================================================= levels
@@ -125,11 +125,11 @@ def H(*a, **kw):
 # 1.5 s before, smoke 5 s before, a tracer's strikes through the shot.
 LEDGER = [
     # ---- WARDEN LEAD, the lead Lasher: hit turning back in S6, smoking into S9b, finished there
-    H('lasher-lead', 53.8, 'rake', 1, (20, 8, 4), (.3, 1, .5), to=(2, 9, 5), by='tracer',
-      src='S6 k3 tracer manticore-p', note="the Manticore's light guns walk along her port bow as she comes about"),
+    H('lasher-lead', 53.8, 'rake', 1, (20, 8, 4), (.3, 1, .5), to=(2, 9, 5),
+      src='story (S6; the Manticore at range, unseen)', note="the Manticore's light guns walk along her port bow as she comes about"),
     H('lasher-lead', 55.4, 'he', 2, (-6, 9, 5), (-.2, 1, .6), src='story (S6; the Falcon at 3.8 km is past the kit 6 s round limit)',
       note="a Falcon (P) bolt holes her port quarter; she vents"),
-    H('lasher-lead', 55.9, 'breach', 3, (8, 6, 6), (.2, .6, 1), by='blast_on', src='S6 k3 blast_on',
+    H('lasher-lead', 55.9, 'breach', 3, (8, 6, 6), (.2, .6, 1), by='blast_on', src='S6 k3 missiles manticore-p',
       note='the hit that turns her: her forward deck opens and burns; smoking from here to S9b'),
     H('lasher-lead', 103.5, 'breach', 3, (-20, 10, 6), (-.2, .5, 1), by='fire_on', src='S9b k4b fire_on',
       note="the Falcon's point guns as she rolls in: her aft deck catches"),
@@ -137,7 +137,7 @@ LEDGER = [
       note='plating shed off her port side as she dives'),
     H('lasher-lead', 107.6, 'breach', 4, (-30, 0, 6), (0, 0, 1), by='tracer', src='S9b k4b tracer falcon-p',
       note="the Falcon's broadside opens her stern: she tumbles away burning"),
-    H('lasher-lead', 108.0, 'rake', 1, (12, -4, 6), (0, 0, 1), to=(-18, -6, 6), by='tracer',
+    H('lasher-lead', 106.9, 'rake', 1, (12, -4, 6), (0, 0, 1), to=(-18, -6, 6), by='tracer',
       src='S9b k4b tracer falcon-p', note='the rest of the broadside walks her deck'),
 
     # ---- Lasher A: burns in S6
@@ -147,8 +147,8 @@ LEDGER = [
       note='Lasher A burns'),
 
     # ---- WARDEN THREE, Lasher B: scored, gets away
-    H('lasher-b', 55.0, 'rake', 1, (15, -9, 3), (0, -1, .3), to=(0, -10, 3), by='tracer',
-      src='S6 k3 tracer falcon-p', note="the Falcon's fire scores her starboard bow"),
+    H('lasher-b', 55.0, 'rake', 1, (15, -9, 3), (0, -1, .3), to=(0, -10, 3),
+      src='story (S6; the Falcon at range, unseen)', note="the Falcon's fire scores her starboard bow"),
     H('lasher-b', 61.5, 'rake', 1, (-5, 0, 8), (0, 0, 1), to=(-18, 2, 8),
       src='story (S6b; the Buffalo Mk.II at 3.8 km is past the kit 6 s round limit)', note="the Buffalo Mk.II's fire scores her deck as she rolls over"),
 
@@ -212,7 +212,7 @@ LEDGER = [
     H('wolf-p-a', 95.8, 'he', 1, (-15, -9, 3), (0, -1, .3), by='tracer', src='S8-S9 k4 tracer colossus'),
 
     # ---- Wolf (P) B: a graze through her shield
-    H('wolf-p-b', 71.2, 'rake', 0, (8, -8, 3), (0, -1, .2), to=(-4, -8, 3), by='tracer',
+    H('wolf-p-b', 72.4, 'rake', 0, (8, -8, 3), (0, -1, .2), to=(-4, -8, 3), by='tracer',
       src='S6c k3d tracer mule', note="the Mule's guns, mostly on her shield"),
 
     # ---- Kite (P) B: driven off by the Colossus in S9
@@ -228,9 +228,9 @@ LEDGER = [
       note='a second burst as she swings her grapples away'),
 
     # ---- the Hounds (P) the convoy kills
-    H('hound-p-c', 60.0, 'rake', 1, (5, 8, 4), (0, .3, 1), to=(-10, 8, 4), by='tracer',
-      src='S6b k3c tracer lasher-b', note='bare armour soaks the first burst'),
-    H('hound-p-c', 61.0, 'rake', 1, (-5, -8, 4), (0, -.3, 1), to=(10, -8, 4), by='tracer',
+    H('hound-p-c', 60.0, 'rake', 1, (5, 8, 4), (0, .3, 1), to=(-10, 8, 4),
+      src='story (S6b; Lasher B is out of reach until after the kill)', note='bare armour soaks the first burst'),
+    H('hound-p-c', 61.6, 'rake', 1, (-5, -8, 4), (0, -.3, 1), to=(10, -8, 4), by='tracer',
       src='S6b k3c tracer wolf-m'),
     H('hound-p-c', 61.9, 'kill', 4, (0, 0, 0), (0, 0, 1), by=('blast_on', 'debris'), src='S6b k3c blast_on + debris',
       note='the Ammo Feeder burst breaks her up'),
@@ -244,14 +244,14 @@ LEDGER = [
 # hit whose `at` lies on the far side lands on the near face in line with it.
 SHOOTER_SIDE = {
     'hound-m@75.2:rake': (0.40, -0.61, 0.68), 'tarsus@69.6:he': (0.69, -0.72, -0.08),
-    'lasher-lead@108.0:rake': (-0.60, 0.63, -0.49), 'tarsus@70.5:breach': (0.85, -0.52, -0.07),
+    'lasher-lead@106.9:rake': (-0.60, 0.63, -0.49), 'tarsus@70.5:breach': (0.85, -0.52, -0.07),
     'lasher-lead@103.5:breach': (0.98, -0.17, -0.06), 'falcon-p@105.0:breach': (0.69, 0.55, 0.46),
     'colossus3@96.0:rake': (0.40, -0.91, -0.05), 'hound-m@75.5:breach': (0.62, -0.39, 0.68),
-    'falcon-p@104.8:rake': (0.75, 0.51, 0.43), 'wolf-p-b@71.2:rake': (0.39, -0.36, -0.85),
+    'falcon-p@104.8:rake': (0.75, 0.51, 0.43), 'wolf-p-b@72.4:rake': (0.39, -0.36, -0.85),
     'hound-p-a@76.9:kill': (0.87, -0.45, 0.19), 'hound-p-a@75.0:rake': (0.97, 0.15, 0.18),
     'tarsus@84.0:rake': (-0.27, 0.78, 0.57), 'lasher-b@55.0:rake': (-0.86, -0.45, -0.25),
     'hound-p-c@60.0:rake': (0.92, 0.27, 0.30), 'lasher-lead@107.6:breach': (-0.83, 0.43, 0.36),
-    'hound-p-c@61.9:kill': (0.92, 0.12, 0.37), 'hound-p-c@61.0:rake': (0.89, 0.13, 0.44),
+    'hound-p-c@61.9:kill': (0.92, 0.12, 0.37), 'hound-p-c@61.6:rake': (0.89, 0.13, 0.44),
     'lasher-lead@55.9:breach': (0.72, 0.70, -0.04), 'wolf-p-a@56.8:rake': (0.62, 0.55, -0.56),
     'wolf-p-a@71.6:he': (-0.94, 0.18, 0.30),
 }
