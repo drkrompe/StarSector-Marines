@@ -544,7 +544,7 @@
       },
       "render": {
         "projectileSprite": "graphics/missiles/missile_locust.png",
-        "projectileVisualCells": 1.3, "contrail": "missile-smoke"
+        "projectileVisualCells": 0.42, "contrail": "missile-smoke"
       },
       "fx": {
         "launch": [
