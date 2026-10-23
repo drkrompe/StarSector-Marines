@@ -6,9 +6,10 @@ The 2026-10-22 C1 final rendered the planet's air shell unscaled, so it came out
 grey ball (`render_planet.air_material`). `c1v2_scene.py --final --planet-layer` renders the
 planet alone, every other object held out and every volume hidden; rendered once with
 --air-legacy (before) and once without (after), the two differ only in the planet. Each frame
-here is the shipped frame plus (after - before), both premultiplied: a ship in front of the
-planet is a holdout in both layers and keeps its pixels, and a drive plume over the planet keeps
-its glow, which a plain alpha-over would have painted out. Frames with no layer are copied as
+here is the shipped frame plus (after - before) over the before layer's alpha: a ship in front
+of the planet is a holdout there and keeps its pixels, a drive plume over the planet keeps its
+glow, which a plain alpha-over would have painted out, and the after layer keeps the sky, so
+the stars the wider legacy shell hid around the rim come back. Frames with no layer are copied as
 they are. Display-referred arithmetic, which is close enough for a planet behind thin glows.
 """
 import argparse
@@ -21,11 +22,9 @@ import numpy as np
 from PIL import Image
 
 
-def premultiplied(path):
+def rgba(path):
     a = np.asarray(Image.open(path), dtype=np.float32)
-    scale = 65535.0 if a.max() > 255 else 255.0
-    a = a / scale
-    return a[..., :3] * a[..., 3:4]
+    return a / (65535.0 if a.max() > 255 else 255.0)
 
 
 def fix(job):
@@ -34,7 +33,9 @@ def fix(job):
         shutil.copyfile(src, out)
         return 0
     old = np.asarray(Image.open(src).convert('RGB'), dtype=np.float32) / 255.0
-    new = np.clip(old + premultiplied(after) - premultiplied(before), 0.0, 1.0)
+    b, a = rgba(before), rgba(after)
+    cover = b[..., 3:4]                      # the legacy ball's footprint; 0 on held-out craft
+    new = np.clip(old + cover * (a[..., :3] - b[..., :3]), 0.0, 1.0)
     Image.fromarray((new * 255.0 + 0.5).astype(np.uint8)).save(out, compress_level=3)
     return 1
 

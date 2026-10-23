@@ -823,7 +823,10 @@ def planet_layer(scene, out_dir, frames):
     import thrust_shots
     if thrust_shots._check_plumes in bpy.app.handlers.render_init:
         bpy.app.handlers.render_init.remove(thrust_shots._check_plumes)
-    scene.render.film_transparent = True
+    # The opaque legacy shell is wider than the true planet and hid the stars behind its rim, so
+    # the corrected layer keeps the sky: (after - before) then puts those stars back. The legacy
+    # layer is transparent, its alpha the footprint that difference is applied over.
+    scene.render.film_transparent = AIR_LEGACY
     scene.render.image_settings.color_mode = 'RGBA'
     scene.render.image_settings.color_depth = '16'
     scene.render.use_border = True
