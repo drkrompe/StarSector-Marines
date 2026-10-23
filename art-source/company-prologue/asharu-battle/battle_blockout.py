@@ -607,7 +607,11 @@ K3D_SHIPS = {
 K3E_T = 77
 K3E_SHIPS = {
     'hound-m': fly('hound-m', (-1500, -150, 110, -160, -25, 110, 1), K3E_T, [
-        dict(t=74, hd=0, pt=2, rl=5, v=160), dict(t=75.5, hd=-85, pt=-10, rl=75),
+        # She has rolled over onto them before the shot opens (72-74 s), so through S6d she is steady enough
+        # for her turret to stay on the first Hound (P) and fire down onto her: rolling over inside the shot
+        # swung the target 40-93 deg/s across her turret and the 5-degree gate held all but 5 late rounds
+        # (owner, 2026-10-23: "I don't see any shots coming out of our hero Hound")
+        dict(t=72, hd=0, pt=2, rl=5, v=160), dict(t=74, hd=-150, pt=-18, rl=95),
         dict(t=78.5, hd=-170, pt=-18, rl=125, v=120), dict(t=80, hd=-176, pt=-8, rl=145, v=60)],
         hits=recoil([75.8], every=.2, until=77.4) + [dict(t=77.4, push=(6, -4, 3), spin=(25, 10, -15), decay=1.5, thr=.25)]),
     'hound-p-a': fly('hound-p-a', (-1700, -50, -20, 10, 20, 0, .4), K3E_T, [
@@ -925,6 +929,9 @@ KEYFRAMES = {
                  'wolf-m': dict(toward='wolf-p-a', flux=.2)},
         fx=[('tracer', 'wolf-p-a', 'tarsus'), ('tracer', 'wolf-p-b', 'tarsus'),
             ('tracer', 'wolf-m', 'wolf-p-a'), ('tracer', 'mule', 'wolf-p-b'),
+            # the Colossus's guns on the raiders as they close inside 1.35 km (owner, 2026-10-23: "why are none
+            # of the Colossus turrets taking shots at those Wolfs"): her 360-degree mounts bear on both
+            ('tracer', 'colossus', 'wolf-p-a'), ('tracer', 'colossus', 'wolf-p-b'),
             ('fire_on', 'tarsus', (-40, 0, 6), (-.2, .5, 1))],
         labels=['wolf-p-a', 'wolf-p-b', 'tarsus', 'wolf-m', 'colossus']),
     'k3e': dict(
