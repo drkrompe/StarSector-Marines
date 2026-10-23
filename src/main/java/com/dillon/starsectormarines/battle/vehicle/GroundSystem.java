@@ -135,6 +135,9 @@ public class GroundSystem {
     /** Where the craft are, for a vehicle gun that reaches the air ({@link VehicleAirFire}). */
     public void setAirFire(VehicleAirFire airFire) { turrets.setAirFire(airFire); }
 
+    /** Whether point defence screens a body, for a launcher's salvo count ({@code SalvoChain}). */
+    public void setScreening(LongPredicate screened) { turrets.setScreening(screened); }
+
     /** Hulls that hold still this tick (a Brute's charge stalls them; {@code colony-breach-nouns.md}). */
     public void setStall(LongPredicate stalled) { controlSystem.setStall(stalled); }
 

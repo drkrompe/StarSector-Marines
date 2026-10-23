@@ -1,0 +1,94 @@
+{
+  "sheet": "graphics/tilesets/water-ford.png",
+  "cellPx": 64,
+  "blocks": [
+    {
+      "id": "shore.ford-pebbles",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          6,
+          0
+        ],
+        [
+          7,
+          0
+        ]
+      ]
+    }
+  ],
+  "cells": [
+    {
+      "col": 0,
+      "row": 0,
+      "name": "shore.ford-pebbles v1",
+      "description": "ford, pebbles, variant 1"
+    },
+    {
+      "col": 1,
+      "row": 0,
+      "name": "shore.ford-pebbles v2",
+      "description": "ford, pebbles, variant 2"
+    },
+    {
+      "col": 2,
+      "row": 0,
+      "name": "shore.ford-pebbles v3",
+      "description": "ford, pebbles, variant 3"
+    },
+    {
+      "col": 3,
+      "row": 0,
+      "name": "shore.ford-pebbles v4",
+      "description": "ford, pebbles, variant 4"
+    },
+    {
+      "col": 4,
+      "row": 0,
+      "name": "shore.ford-pebbles v5",
+      "description": "ford, pebbles, variant 5"
+    },
+    {
+      "col": 5,
+      "row": 0,
+      "name": "shore.ford-pebbles v6",
+      "description": "ford, pebbles, variant 6"
+    },
+    {
+      "col": 6,
+      "row": 0,
+      "name": "shore.ford-pebbles v7",
+      "description": "ford, pebbles, variant 7"
+    },
+    {
+      "col": 7,
+      "row": 0,
+      "name": "shore.ford-pebbles v8",
+      "description": "ford, pebbles, variant 8"
+    }
+  ],
+  "doodads": []
+}

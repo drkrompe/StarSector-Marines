@@ -1,6 +1,6 @@
 # Mission layout
 
-Status: ACTIVE — lines of works, sites, roads, structures and blocks are
+Status: ACTIVE — lines of works, sites, roads, structures, blocks and ridges are
 built.
 
 Written: 2026-10-23
@@ -56,6 +56,20 @@ optional (reported, and the map stands).
   crates, which fire breaks and a dozer blade pushes), a wreck across a road
   (closed to vehicles until a dozer clears it; laid as crate stacks until
   there is wreck art), or sandbag positions facing a direction.
+- **Ridge.** High ground the works stand on: a band along a path
+  (`elevation-nouns.md`, Ridges), raised at the start of the works phase,
+  before any line is laid, so a line resolved along it is dug on its crest. It
+  breaks into a pass wherever a road, a place, a structure or a site crosses
+  it, and lawn painted on open country does not break it. The access routes
+  the landscape keeps between places do not break it either: its own access
+  proof stands for them, and a route along a line would break every stretch.
+  Reported by its ramps' feet. Elevation is stamped once, so every ridge goes
+  up together: the layout's ridges and the landscape's own (its ridges, held
+  ground and valley sides) in one plan, with the landscape's tracks and brook
+  banks kept for them; a band held for a layout Ridge is raised once.
+  Plateaus are planned apart, so a plan asking for plateaus beside a Ridge is
+  refused at generation rather than losing them silently. The Cordon's line
+  and the heart's forward line stand on one.
 - **Deferred.** Pieces that can only be stated once the ground exists — a line
   from one place's claimed edge to the next's. A deferred piece resolves at
   its **phase** against a read-only view of the grown ground (claims, roads,
@@ -73,8 +87,8 @@ optional (reported, and the map stands).
   finished, structures are raised (deferred pieces of this phase resolve
   first), so the finishing stages treat their buildings as buildings.
 - **Works phase.** Once the places, roads and lanes stand and before the
-  landscape grows round them, deferred pieces resolve and every line, block
-  and site is laid. The landscape then keeps clear of what was laid, except ground held
+  landscape grows round them, deferred pieces resolve, ridges are raised, and
+  every line, block and site is laid. The landscape then keeps clear of what was laid, except ground held
   for authored terrain.
 - A map whose plan states no layout runs none of this and is generated exactly
   as before.

@@ -1,0 +1,326 @@
+package com.dillon.starsectormarines.battle.world.gen.overgrown;
+
+import com.dillon.starsectormarines.battle.world.gen.layout.Block;
+import com.dillon.starsectormarines.battle.world.gen.layout.BlockKind;
+import com.dillon.starsectormarines.battle.world.gen.layout.Deferred;
+import com.dillon.starsectormarines.battle.world.gen.layout.Endpoint;
+import com.dillon.starsectormarines.battle.world.gen.layout.LayoutGround;
+import com.dillon.starsectormarines.battle.world.gen.layout.Line;
+import com.dillon.starsectormarines.battle.world.gen.layout.LineCourse;
+import com.dillon.starsectormarines.battle.world.gen.layout.LineStyle;
+import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayout;
+import com.dillon.starsectormarines.battle.world.gen.layout.Phase;
+import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
+import com.dillon.starsectormarines.battle.world.gen.layout.Ridge;
+import com.dillon.starsectormarines.battle.world.gen.layout.Road;
+import com.dillon.starsectormarines.battle.world.gen.layout.Side;
+import com.dillon.starsectormarines.battle.world.gen.layout.Site;
+import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
+import com.dillon.starsectormarines.battle.world.gen.layout.Structure;
+import com.dillon.starsectormarines.battle.world.gen.layout.StructureFit;
+import com.dillon.starsectormarines.battle.world.gen.layout.StructureKind;
+import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * What the heart lays over its country (`heart-map-intent.md`): the works a
+ * cordon that has faced this bloom for weeks dug and built, and the places the
+ * story beats are staged in, each a named piece of the plan's mission layout
+ * ({@code mission-layout.md}), so an objective asks "is this here" by name.
+ *
+ * <p>Every piece is optional: a map that cannot hold one reports it refused and
+ * the battle stands. Nothing here is a plan-time site, so the places grow
+ * exactly as they did before the layout existed and the pooled maps keep the
+ * ground they were vetted on.
+ */
+public final class HeartLayout {
+
+    private HeartLayout() { }
+
+    /** The cordon ridge: the last high ground before the bloom, the forward line dug along its crest. */
+    public static final String CORDON_RIDGE = "cordon-ridge";
+    /** The forward line's runs, one between each pair of lane gaps: this plus 1, 2, ... */
+    public static final String FORWARD_LINE = "forward-line-";
+    /** The observation posts forward of the line: this plus 1 and 2. */
+    public static final String OBSERVATION_POSTS = "observation-posts";
+    public static final String OBSERVATION_POST = "op-";
+    /** The logistics base's ammunition dumps on the farmland behind the line. */
+    public static final String LOGISTICS = "logistics";
+    public static final String AMMO_DUMP = "ammo-dump-";
+    /** The supply road from the landing's farmland up to the settlement's near gate (F6), and its width. */
+    public static final String SUPPLY_ROAD = "supply-road";
+    static final int SUPPLY_ROAD_WIDTH = 5;
+    /** The plan's landing place, the cordon's farmland. */
+    static final String LANDING = "landing";
+    /** The logistics base's vehicle park: open ground where the armour forms up (F6, B5). */
+    public static final String VEHICLE_PARK = "vehicle-park";
+    /** The open yard by the workings the lanes' last stretches come out onto (F5). */
+    public static final String RESERVOIR_YARD = "reservoir-yard";
+    /** The lost column's holdout at the market town's near edge, and the wreck in its yard (F1). */
+    public static final String HOLDOUT = "holdout";
+    public static final String HOLDOUT_WRECK = "holdout-wreck";
+    /** The house still signalling at the village's near edge (B2). */
+    public static final String VILLAGE_HOLDOUT = "village-holdout";
+    /** The trench and wire on the battery's open flanks, where a breakout would come (B3). */
+    public static final String GUN_FLANK = "gun-flank-";
+    /** The company's ford over the brook (B4). */
+    public static final String COMPANY_FORD = "company-ford";
+
+    /** Cells either side of a lane's middle the line leaves open, so a column drives through. */
+    static final int LANE_GAP = 6;
+    /** Shortest run of line worth digging between two gaps. */
+    static final int MIN_RUN = 12;
+    /** Rows the forward line is dug, its road margin, funnel pitch and nest pitch. */
+    static final int LINE_DEPTH = 2, ROAD_GAP = 3, FUNNEL_EVERY = 14, NEST_EVERY = 40;
+    /** Where the lanes run through the forward line, as shares across: Broad Front's four and the company's road. */
+    static final float[] BROAD_GAPS = {0.15f, 0.33f, 0.50f, 0.67f, 0.85f};
+    /** The Burn's battlegroups' sectors and the company's, as shares across. */
+    static final float[] BURN_GAPS = {0.18f, 0.36f, 0.50f, 0.64f, 0.82f};
+    /** Cells forward of the line its listening posts stand, and where across. */
+    static final int OP_FORWARD = 6, OP_SEARCH = 10;
+    /** Cells past the ridge's far edge that its faces and apron take. */
+    static final int RIDGE_FOOT = 5;
+    static final float[] BROAD_OPS = {0.24f, 0.76f}, BURN_OPS = {0.27f, 0.73f};
+    /** Where the logistics base stands on the farmland, as depth and across. */
+    static final float BROAD_BASE_DEPTH = 0.14f, BROAD_BASE_ACROSS = 0.42f;
+    static final float BURN_BASE_DEPTH = 0.10f, BURN_BASE_ACROSS = 0.40f;
+    /** Cells round the base's middle searched for room, and the vehicle park's size. */
+    static final int BASE_SEARCH = 30, PARK_ALONG = 16, PARK_DEEP = 10;
+    /** The reservoir yard's side, how far toward the start of the workings' seed it is wanted, and the search. */
+    static final int YARD_SIDE = 16, YARD_TOWARD_START = 14, YARD_SEARCH = 36;
+    /** The holdout's side (a sandbag ring with a way in), and how far outside the place's claim it is searched. */
+    static final int HOLDOUT_SIDE = 9, HOLDOUT_SEARCH = 20;
+    /** The Burn's gun-flank trenches: how deep into the farmland they run and how far in from the map's sides. */
+    static final float GUN_FLANK_DEPTH = 0.10f;
+    static final int GUN_FLANK_INSET = 4;
+    /** Cells either side of the ford's middle the ford's site holds. */
+    static final int FORD_HALF = 4;
+
+    /** The heart's layout for this form of country. */
+    static MissionLayout layout(Form form, long seed) {
+        List<Piece> pieces = new ArrayList<>();
+        pieces.add(new Ridge(CORDON_RIDGE, HeartCountry.ridge(form), false));
+        pieces.addAll(forwardLine(form));
+        pieces.add(new Deferred(OBSERVATION_POSTS, Phase.STRUCTURES, ground -> observationPosts(ground, form), false));
+        Side front = form.advancesAlongY() ? Side.NORTH : Side.EAST;
+        pieces.add(new Road(SUPPLY_ROAD, Endpoint.beside(LANDING, front, 0, 0),
+                Endpoint.gate(HeartCountry.SETTLEMENT, front.opposite()), SUPPLY_ROAD_WIDTH, false));
+        pieces.add(new Deferred(LOGISTICS, Phase.STRUCTURES, ground -> ammoDumps(ground, form), false));
+        pieces.add(new Deferred(VEHICLE_PARK, Phase.WORKS, ground -> vehiclePark(ground, form), false));
+        pieces.add(new Deferred(RESERVOIR_YARD, Phase.WORKS, ground -> reservoirYard(ground, form), false));
+        if (form == Form.BROAD_FRONT) {
+            pieces.add(new Deferred(HOLDOUT, Phase.WORKS, ground -> holdout(ground, form, HOLDOUT, true), false));
+        } else {
+            pieces.add(new Deferred(VILLAGE_HOLDOUT, Phase.WORKS,
+                    ground -> holdout(ground, form, VILLAGE_HOLDOUT, false), false));
+            pieces.addAll(gunFlanks(form));
+            Landscape.Brook brook = HeartCountry.brook(form.scale.width, form.scale.height, seed);
+            pieces.add(new Deferred(COMPANY_FORD, Phase.WORKS, ground -> companyFord(form, brook), false));
+        }
+        return new MissionLayout(pieces);
+    }
+
+    /** The cell at a depth and an across, both in cells. */
+    static int[] cell(Form form, int depth, int across) {
+        return form.advancesAlongY() ? new int[]{across, depth} : new int[]{depth, across};
+    }
+
+    /** Cells across the front. */
+    private static int acrossCells(Form form) {
+        return form.advancesAlongY() ? form.scale.width : form.scale.height;
+    }
+
+    /** One cell toward the heart. */
+    private static int[] frontward(Form form) {
+        return form.advancesAlongY() ? new int[]{0, 1} : new int[]{1, 0};
+    }
+
+    /** Depth, in cells, of the ridge's near edge. */
+    private static int ridgeDepth(Form form) {
+        int depthCells = form.advancesAlongY() ? form.scale.height : form.scale.width;
+        float share = form.advancesAlongY() ? HeartCountry.BROAD_FRONT_RIDGE_DEPTH : HeartCountry.THE_BURN_RIDGE_DEPTH;
+        return Math.round(share * (depthCells - 1));
+    }
+
+    /** Depth, in cells, of the forward line: the ridge's crest, a little forward of its middle. */
+    static int lineDepth(Form form) {
+        return ridgeDepth(form) + HeartCountry.RIDGE_THICKNESS / 2 + 1;
+    }
+
+    /** Depth of the ground just past the ridge's foot on the bloom side. */
+    private static int pastRidge(Form form) {
+        return ridgeDepth(form) + HeartCountry.RIDGE_THICKNESS - 1 + RIDGE_FOOT;
+    }
+
+    /**
+     * The forward line: trench and wire across the whole front along the
+     * ridge's crest, facing the bloom, broken at every lane so the columns
+     * drive through.
+     */
+    static List<Piece> forwardLine(Form form) {
+        int across = acrossCells(form), depth = lineDepth(form);
+        float[] gaps = form == Form.BROAD_FRONT ? BROAD_GAPS : BURN_GAPS;
+        List<Piece> out = new ArrayList<>();
+        int from = 2, n = 1;
+        for (int i = 0; i <= gaps.length; i++) {
+            int to = i < gaps.length ? Math.round(gaps[i] * (across - 1)) - LANE_GAP : across - 3;
+            if (to - from >= MIN_RUN) {
+                out.add(new Line(FORWARD_LINE + n++, List.of(cell(form, depth, from), cell(form, depth, to)),
+                        LineStyle.TRENCH_WIRE, frontward(form), ROAD_GAP, FUNNEL_EVERY, true, false, LINE_DEPTH,
+                        NEST_EVERY, false));
+            }
+            if (i < gaps.length) from = Math.round(gaps[i] * (across - 1)) + LANE_GAP;
+        }
+        return out;
+    }
+
+    /** A listening post forward of the line in each half of the front, on the open ground nearest its place. */
+    static List<Piece> observationPosts(LayoutGround ground, Form form) {
+        float[] at = form == Form.BROAD_FRONT ? BROAD_OPS : BURN_OPS;
+        int across = acrossCells(form), depth = pastRidge(form) + OP_FORWARD, side = StructureKind.OBSERVATION_POST.along;
+        List<Piece> out = new ArrayList<>();
+        for (int i = 0; i < at.length; i++) {
+            int[] want = cell(form, depth, Math.round(at[i] * (across - 1)));
+            int[] c = StructureFit.nearest(country(ground), around(ground, want, OP_SEARCH), side, side,
+                    want[0], want[1], 1);
+            if (c != null) {
+                out.add(new Structure(OBSERVATION_POST + (i + 1), StructureKind.OBSERVATION_POST, c[0], c[1], 0, false));
+            }
+        }
+        return out;
+    }
+
+    /** Open ground nobody built on: the cordon's own farmland counts, the landing's ground claimed or not. */
+    private static LineCourse.CellTest country(LayoutGround ground) {
+        return ground::buildable;
+    }
+
+    /** The logistics base's middle: on the farmland behind the line, beside the company's road. */
+    private static int[] baseMiddle(Form form) {
+        return form == Form.BROAD_FRONT ? form.cellAt(BROAD_BASE_DEPTH, BROAD_BASE_ACROSS)
+                : form.cellAt(BURN_BASE_DEPTH, BURN_BASE_ACROSS);
+    }
+
+    private static int[] around(LayoutGround ground, int[] middle, int half) {
+        return new int[]{Math.max(1, middle[0] - half), Math.max(1, middle[1] - half),
+                Math.min(ground.width() - 2, middle[0] + half), Math.min(ground.height() - 2, middle[1] + half)};
+    }
+
+    /** Two ammunition dumps either side of the logistics base's middle. */
+    static List<Piece> ammoDumps(LayoutGround ground, Form form) {
+        int[] middle = baseMiddle(form);
+        int side = StructureKind.AMMO_DUMP.along, step = PARK_ALONG / 2 + side;
+        List<Piece> out = new ArrayList<>();
+        for (int i = 0; i < 2; i++) {
+            int offset = i == 0 ? -step : step;
+            int[] want = form.advancesAlongY() ? new int[]{middle[0] + offset, middle[1]}
+                    : new int[]{middle[0], middle[1] + offset};
+            int[] at = StructureFit.nearest(country(ground), around(ground, want, BASE_SEARCH / 2), side, side,
+                    want[0], want[1], 2);
+            if (at != null) out.add(new Structure(AMMO_DUMP + (i + 1), StructureKind.AMMO_DUMP, at[0], at[1], 0, false));
+        }
+        return out;
+    }
+
+    /** The vehicle park between the dumps: open ground the armour waves form up on. */
+    static List<Piece> vehiclePark(LayoutGround ground, Form form) {
+        int[] middle = baseMiddle(form);
+        int w = form.advancesAlongY() ? PARK_ALONG : PARK_DEEP, h = form.advancesAlongY() ? PARK_DEEP : PARK_ALONG;
+        int[] at = StructureFit.nearest(country(ground), around(ground, middle, BASE_SEARCH), w, h,
+                middle[0] - w / 2, middle[1] - h / 2, 2);
+        if (at == null) return List.of();
+        return List.of(new Site(VEHICLE_PARK, at[0], at[1], at[0] + w - 1, at[1] + h - 1, SitePurpose.OPEN, false));
+    }
+
+    /** The yard by the workings, on its start side where the lanes come in. */
+    static List<Piece> reservoirYard(LayoutGround ground, Form form) {
+        Precinct workings = HeartCountry.place(ground.plan(), HeartCountry.WORKINGS);
+        if (workings == null) return List.of();
+        int[] back = frontward(form);
+        int[] want = {workings.seedX() - back[0] * YARD_TOWARD_START, workings.seedY() - back[1] * YARD_TOWARD_START};
+        LineCourse.CellTest open = (x, y) -> ground.buildable(x, y);
+        int[] at = StructureFit.nearest(open, around(ground, want, YARD_SEARCH), YARD_SIDE, YARD_SIDE,
+                want[0] - YARD_SIDE / 2, want[1] - YARD_SIDE / 2, 2);
+        if (at == null) return List.of();
+        return List.of(new Site(RESERVOIR_YARD, at[0], at[1], at[0] + YARD_SIDE - 1, at[1] + YARD_SIDE - 1,
+                SitePurpose.OPEN, false));
+    }
+
+    /**
+     * A holdout at the settlement's near edge: a sandbag ring with its way in
+     * on the start side, facing the bloom, and, for the lost column, its
+     * wrecked carrier in the yard.
+     */
+    static List<Piece> holdout(LayoutGround ground, Form form, String name, boolean wreck) {
+        int[] claim = ground.claimBounds(HeartCountry.SETTLEMENT);
+        Precinct settlement = HeartCountry.place(ground.plan(), HeartCountry.SETTLEMENT);
+        if (claim == null || settlement == null) return List.of();
+        // The settlement's near edge, toward the start, at its seed's across.
+        int[] want = form.advancesAlongY() ? new int[]{settlement.seedX(), claim[1]}
+                : new int[]{claim[0], settlement.seedY()};
+        int s = HOLDOUT_SIDE;
+        int[] at = StructureFit.nearest((x, y) -> ground.buildable(x, y), around(ground, want, HOLDOUT_SEARCH), s, s,
+                want[0] - s / 2, want[1] - s / 2, 1);
+        if (at == null) return List.of();
+        int[] front = frontward(form);
+        List<int[]> ring = new ArrayList<>();
+        for (int x = at[0]; x < at[0] + s; x++) {
+            for (int y = at[1]; y < at[1] + s; y++) {
+                boolean edge = x == at[0] || y == at[1] || x == at[0] + s - 1 || y == at[1] + s - 1;
+                if (!edge) continue;
+                // The way in: the middle of the start-side wall.
+                int along = form.advancesAlongY() ? x - at[0] : y - at[1];
+                boolean startSide = form.advancesAlongY() ? y == at[1] : x == at[0];
+                if (startSide && Math.abs(along - s / 2) <= 1) continue;
+                ring.add(new int[]{x, y});
+            }
+        }
+        List<Piece> out = new ArrayList<>();
+        out.add(new Block(name, ring, BlockKind.SANDBAG, front, false));
+        if (wreck) {
+            int cx = at[0] + s / 2, cy = at[1] + s / 2;
+            out.add(new Block(HOLDOUT_WRECK, List.of(new int[]{cx, cy}, new int[]{cx + 1, cy}), BlockKind.WRECK,
+                    null, false));
+        }
+        return out;
+    }
+
+    /** Trench and wire along each side of The Burn's battery, facing out, where a breakout would come at the guns. */
+    static List<Piece> gunFlanks(Form form) {
+        int across = acrossCells(form);
+        int far = Math.round(GUN_FLANK_DEPTH * ((form.advancesAlongY() ? form.scale.height : form.scale.width) - 1));
+        List<Piece> out = new ArrayList<>();
+        int[][] sides = {{GUN_FLANK_INSET, -1}, {across - 1 - GUN_FLANK_INSET, 1}};
+        for (int i = 0; i < sides.length; i++) {
+            int a = sides[i][0];
+            int[] outward = form.advancesAlongY() ? new int[]{sides[i][1], 0} : new int[]{0, sides[i][1]};
+            out.add(new Line(GUN_FLANK + (i + 1), List.of(cell(form, 2, a), cell(form, far, a)), LineStyle.TRENCH_WIRE,
+                    outward, ROAD_GAP, FUNNEL_EVERY, false, false, LINE_DEPTH, 0, false));
+        }
+        return out;
+    }
+
+    /** The ford nearest the company's sector, held open with the banks either side of it. */
+    static List<Piece> companyFord(Form form, Landscape.Brook brook) {
+        List<int[]> line = brook.line();
+        int middle = acrossCells(form) / 2;
+        int[] best = null;
+        int bestD = Integer.MAX_VALUE;
+        for (int i = 0; i < line.size(); i++) {
+            if (!brook.isFord(i) || brook.isFord(i - 1)) continue;
+            int[] c = line.get(Math.min(line.size() - 1, i + brook.fordWidth() / 2));
+            int d = Math.abs((form.advancesAlongY() ? c[0] : c[1]) - middle);
+            if (d < bestD) {
+                bestD = d;
+                best = c;
+            }
+        }
+        if (best == null) return List.of();
+        return List.of(new Site(COMPANY_FORD, best[0] - FORD_HALF, best[1] - FORD_HALF, best[0] + FORD_HALF,
+                best[1] + FORD_HALF, SitePurpose.OPEN, false));
+    }
+}

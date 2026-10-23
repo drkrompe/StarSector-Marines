@@ -3,6 +3,7 @@
     python art-source/company-prologue/second-wind-cinematic/arrival-audio/make_music.py plan
     python art-source/company-prologue/second-wind-cinematic/arrival-audio/make_music.py generate [--candidate ID ...]
     python art-source/company-prologue/second-wind-cinematic/arrival-audio/make_music.py score [--take ID ...]
+    python art-source/company-prologue/second-wind-cinematic/arrival-audio/make_music.py march [--take ID ...]
 
 A score (owner, 2026-10-19: music for the whole arrival, C1 to the title) is one generation
 from a composition plan whose sections are timed to the shots, so one piece and one theme run
@@ -95,6 +96,57 @@ SCORE_NEGATIVE = ["vocals", "choir", "lyrics", "epic trailer drums", "brass fanf
                   "electronic dance beat", "fast tempo"]
 
 
+# The march score (owner, 2026-10-23: "start this with the quiet sombre, but ... build toward
+# starship troopers esque toward the end"): one piece for the whole arrival, C1 to the black, so
+# the build is never broken. Sombre under the hails, building from the de-orbit burn, the marching
+# theme in the open sky, the drums on the descent, the peak at the title and a resolve into the
+# black. The sections are on the arrival clock (C5 is 40 s): 137.125 s.
+MARCH_SECTIONS = [
+    ("Cold approach", 12300, ["near silence, sombre and cold", "a low string drone, very quiet",
+                              "one distant solemn horn note, far away", "no percussion, vast empty space"]),
+    ("Under the hails", 25400, ["quiet and sombre, leaving room for radio voices",
+                                "low strings hold slow dark minor chords", "a hushed solo horn hints a four-note theme once",
+                                "a faint soft timpani roll far off near the end", "no snare, no melody over the voices"]),
+    ("Bridge", 15000, ["still sombre but tense", "a soft muffled snare drum pattern enters very quietly, like a distant drill",
+                       "low brass sustains underneath", "slowly gathering, restrained, in a low register"]),
+    ("Through the fire", 7000, ["a steady rising crescendo", "timpani and snare roll build together",
+                                "low brass swell climbs", "cuts off with one big low hit at about 5.5 seconds"]),
+    ("Open sky", 16000, ["the marching theme is stated for the first time by unison French horns, noble and broad",
+                         "strings underneath, a light steady snare march pulse at a moderate march tempo",
+                         "moves from minor toward major", "mid volume, room for a voice from 7 to 12 seconds"]),
+    ("Descent", 16400, ["a driving military snare ostinato and field drums", "low brass and strings carry the march under a voice for the first 8 seconds",
+                        "then a steady, building crescendo: trumpets join, the theme climbs",
+                        "momentum and resolve, heroic"]),
+    ("Touchdown", 5000, ["a big full brass statement and cymbal crash at the start", "drums keep driving"]),
+    ("The march", 19600, ["full heroic martial march: brass carries the rousing marching theme over driving snare and military percussion",
+                          "trumpets and horns in harmony, strings in fast ostinato", "stirring and proud",
+                          "slightly held back from 5 to 12 seconds under a voice, then pushing on"]),
+    ("Peak and title", 9400, ["the climax: the whole orchestra, a big heroic brass statement of the marching theme",
+                              "crashing cymbals, timpani and snare", "lands on a huge bright major chord at about 4.5 seconds"]),
+    ("Resolve", 11025, ["the final major chord held broad and proud by the brass, then a timpani roll",
+                        "a grand closing cadence that decays and fades to complete silence by 9.5 seconds"]),
+]
+MARCH_TAKES = {
+    "march": ["heroic martial orchestral film score, a classic late-90s science-fiction military epic",
+              "big brass and French horns carry a rousing marching theme", "driving snare drum and military field percussion",
+              "full symphony orchestra, D minor resolving to D major", "patriotic, stirring, cinematic"],
+    "anthem": ["epic martial orchestral film score", "sombre beginning building to a heroic military anthem",
+               "heavy low brass, trombones and tubas, bold trumpet fanfares at the climax",
+               "snare drums, timpani and big orchestral percussion", "C minor resolving to C major, broad and noble"],
+    "horns": ["cinematic military orchestral score, sombre then heroic", "noble French horn theme that grows into a full brass march",
+              "string ostinatos, crisp marching snare and bass drum", "classic Hollywood orchestral sound, no synths",
+              "B-flat major march with minor-key opening"],
+}
+MARCH_NEGATIVE = ["vocals", "choir", "lyrics", "electronic", "synth", "rock drums", "electric guitar", "dance beat"]
+
+
+def march_plan(take):
+    return {"positive_global_styles": MARCH_TAKES[take], "negative_global_styles": MARCH_NEGATIVE,
+            "sections": [{"section_name": name, "positive_local_styles": styles,
+                          "negative_local_styles": [], "duration_ms": ms, "lines": []}
+                         for name, ms, styles in MARCH_SECTIONS]}
+
+
 # The ending (owner, 2026-10-19: strings up, an emotional build to the title, then a fade back into
 # the game): C5 from the yard to black, 33.5 s, laid over the strings score from C5 0 (arrival 97.1).
 ENDING_SECTIONS = [
@@ -174,12 +226,15 @@ def generate(candidates, score=False, plan=None, prefix="score_"):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("stage", choices=("plan", "generate", "score", "ending"))
+    parser.add_argument("stage", choices=("plan", "generate", "score", "ending", "march"))
     parser.add_argument("--candidate", action="append", choices=list(CANDIDATES))
-    parser.add_argument("--take", action="append", choices=sorted(set(SCORE_TAKES) | set(ENDING_TAKES)))
+    parser.add_argument("--take", action="append", choices=sorted(set(SCORE_TAKES) | set(ENDING_TAKES) | set(MARCH_TAKES)))
     args = parser.parse_args()
     if args.stage == "ending":
         generate(args.take or list(ENDING_TAKES), score=True, plan=ending_plan, prefix="ending_")
+        return
+    if args.stage == "march":
+        generate(args.take or list(MARCH_TAKES), score=True, plan=march_plan, prefix="rescore_")
         return
     if args.stage == "score":
         generate(args.take or list(SCORE_TAKES), score=True)

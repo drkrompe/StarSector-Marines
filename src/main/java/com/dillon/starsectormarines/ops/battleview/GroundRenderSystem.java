@@ -341,11 +341,12 @@ public final class GroundRenderSystem implements RenderSystem {
             sublayers = expanded;
         }
         // The shore lies over the feathered ground and under everything laid on it.
-        Shore shore = WaterShore.enabled() ? Shore.of(this, topology) : null;
+        Shore shore = Shore.of(this, topology);
         if (shore != null) {
             int at = 1 + (feather != null ? GroundFeather.RANKS * 4 : 0);
             WaterShore.Band[] bands = WaterShore.Band.values();
-            int pieces = bands.length * WaterShore.TRIANGLES;
+            // The bands, then a ford's pebble bed over its shallows.
+            int pieces = (bands.length + 1) * WaterShore.TRIANGLES;
             GroundMesh.CellResolver[] expanded = new GroundMesh.CellResolver[sublayers.length + pieces];
             System.arraycopy(sublayers, 0, expanded, 0, at);
             for (int band = 0; band < bands.length; band++) {
@@ -354,6 +355,10 @@ public final class GroundRenderSystem implements RenderSystem {
                     final int t = triangle;
                     expanded[at + band * WaterShore.TRIANGLES + triangle] = (x, y, sink) -> shore.resolve(b, t, x, y, sink);
                 }
+            }
+            for (int triangle = 0; triangle < WaterShore.TRIANGLES; triangle++) {
+                final int t = triangle;
+                expanded[at + bands.length * WaterShore.TRIANGLES + triangle] = (x, y, sink) -> shore.resolveBed(t, x, y, sink);
             }
             System.arraycopy(sublayers, at, expanded, at + pieces, sublayers.length - at);
             sublayers = expanded;
@@ -641,7 +646,7 @@ public final class GroundRenderSystem implements RenderSystem {
 
         private void resolveFloor(int x, int y, GroundMesh.CellSink sink) {
             CellTopology.GroundKind kind = topology.getGroundKind(x, y);
-            if (kind == CellTopology.GroundKind.WATER && WaterShore.enabled()
+            if (kind == CellTopology.GroundKind.WATER
                     && WaterShore.isShoreWater(topology, x, y)) {
                 // The shore bands draw this cell's water; what they cut away is the bank's ground.
                 int[] donor = WaterShore.groundDonor(topology, x, y);
@@ -851,11 +856,17 @@ public final class GroundRenderSystem implements RenderSystem {
         private final CellTopology topology;
         private final GridBlockDef[] blocks;
         private final SpriteAPI[] sheets;
+        /** A ford's pebble bed, null when its art is not loaded. */
+        private final GridBlockDef bed;
+        private final SpriteAPI bedSheet;
 
-        private Shore(CellTopology topology, GridBlockDef[] blocks, SpriteAPI[] sheets) {
+        private Shore(CellTopology topology, GridBlockDef[] blocks, SpriteAPI[] sheets,
+                      GridBlockDef bed, SpriteAPI bedSheet) {
             this.topology = topology;
             this.blocks = blocks;
             this.sheets = sheets;
+            this.bed = bedSheet == null ? null : bed;
+            this.bedSheet = bedSheet;
         }
 
         /** The shore for this pass, or null when its art is not loaded. */
@@ -873,18 +884,28 @@ public final class GroundRenderSystem implements RenderSystem {
                 blocks[band.ordinal()] = block;
                 sheets[band.ordinal()] = sheet;
             }
-            return new Shore(topology, blocks, sheets);
+            GridBlockDef bed = system.tileReg.block(WaterShore.PEBBLE_BLOCK);
+            return new Shore(topology, blocks, sheets, bed, bed == null ? null : system.sheetFor(bed.sheetPath));
         }
 
         void resolve(WaterShore.Band band, int triangle, int x, int y, GroundMesh.CellSink sink) {
             if (!WaterShore.takesPart(topology, x, y)) return;
-            float[] vertices = WaterShore.patch(topology, x, y, band, triangle);
+            draw(blocks[band.ordinal()], sheets[band.ordinal()],
+                    WaterShore.patch(topology, x, y, band, triangle), x, y, sink);
+        }
+
+        void resolveBed(int triangle, int x, int y, GroundMesh.CellSink sink) {
+            if (bed == null || !topology.isShallowWater(x, y)) return;
+            draw(bed, bedSheet, WaterShore.bedPatch(topology, x, y, triangle), x, y, sink);
+        }
+
+        private static void draw(GridBlockDef block, SpriteAPI sheet, float[] vertices, int x, int y,
+                                 GroundMesh.CellSink sink) {
             if (vertices == null) return;
-            GridBlockDef block = blocks[band.ordinal()];
             int[] cell = block.resolve(false, false, false, false, x, y);
             if (cell == null) return;
             int inset = block.cellPx >= TileManifest.TILE_SIZE ? GROUND_TILE_EDGE_INSET_PX : GROUND_SMALL_TILE_EDGE_INSET_PX;
-            sink.patch(sheets[band.ordinal()], cell[0] * block.cellPx + inset, cell[1] * block.cellPx + inset,
+            sink.patch(sheet, cell[0] * block.cellPx + inset, cell[1] * block.cellPx + inset,
                     block.cellPx - 2 * inset, block.cellPx - 2 * inset, vertices);
         }
     }

@@ -34,8 +34,17 @@ final class BattleDirectControlHelp {
         return carrier == null || carrier == Carrier.NONE ? "" : "battleDirectHelpTitle" + carrier.name();
     }
 
-    /** The rows for a carrier. Nothing controlled, nothing to explain. */
+    /** The rows for a carrier, with a gun to aim. Nothing controlled, nothing to explain. */
     static List<Line> lines(Carrier carrier) {
+        return lines(carrier, true);
+    }
+
+    /**
+     * The rows for a carrier. {@code armed} false is a vehicle with no working turret, a supply truck or a
+     * scout car: it drives and nothing else, so the aim and fire rows are left off rather than promising buttons
+     * that do nothing.
+     */
+    static List<Line> lines(Carrier carrier, boolean armed) {
         if (carrier == null) return List.of();
         List<Line> out = new ArrayList<>();
         switch (carrier) {
@@ -67,8 +76,10 @@ final class BattleDirectControlHelp {
             case VEHICLE -> {
                 add(out, "W / S", "VehicleDrive");
                 add(out, "A / D", "VehicleSteer");
-                add(out, Strings.get("battleDirectHelpKeyMouse"), "VehicleAim");
-                add(out, Strings.get("battleDirectHelpKeyLmbHold"), "VehicleFire");
+                if (armed) {
+                    add(out, Strings.get("battleDirectHelpKeyMouse"), "VehicleAim");
+                    add(out, Strings.get("battleDirectHelpKeyLmbHold"), "VehicleFire");
+                }
                 add(out, "Tab / Esc", "Leave");
                 add(out, "Space", "Pause");
             }

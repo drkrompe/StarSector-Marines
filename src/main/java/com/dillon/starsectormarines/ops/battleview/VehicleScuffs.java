@@ -9,12 +9,13 @@ import org.apache.log4j.Logger;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Worn plate drawn on a live ground hull ({@code body-scuffs.md}): which scrape, scorch and gouge marks a hull shows,
- * as a pure function of its plates' armour. Nothing is recorded per hit, so a re-plated side comes back clean and a
- * review frame draws what the screen does.
+ * Worn plate drawn on a live ground hull ({@code combat-durability-nouns.md}): which scrape, scorch and gouge marks a
+ * hull shows, as a pure function of its plates' armour. Nothing is recorded per hit, so a re-plated side comes back
+ * clean and a review frame draws what the screen does.
  *
  * <p>Each plate owns {@link #SLOTS} slots, each with a position, turn, kind and wear threshold hashed from the
  * body's id, the plate and the slot. A slot shows once the plate's wear passes its threshold and never moves after,
@@ -24,6 +25,13 @@ import java.util.Map;
 final class VehicleScuffs {
 
     private static final Logger LOG = Global.getLogger(VehicleScuffs.class);
+
+    /**
+     * The scuff sheet: one {@link #SHEET_CELL} px cell per mark, a row per stage (scrape, scorch, gouge) and a
+     * column per variant ({@code art-source/vehicles/scuffs/}).
+     */
+    static final String SHEET = "graphics/battle/vehicles/scuffs.png";
+    static final int SHEET_CELL = 128;
 
     /** Marks a fully stripped plate shows. */
     static final int SLOTS = 9;
@@ -42,9 +50,13 @@ final class VehicleScuffs {
     static final int VARIANTS = 4;
     /** Alpha at or above which a pixel counts as hull. */
     static final int OPAQUE_ALPHA = 230;
-    /** Slots below this index are scrapes and pocks; below {@link #GOUGE_FROM}, scorch; the rest, gouges and dents. */
-    static final int SCORCH_FROM = 4;
-    static final int GOUGE_FROM = 7;
+    /**
+     * Where a slot's stage changes, as a share of the region's slots (taken at the slot's middle): scrapes and pocks
+     * below {@link #SCORCH_FROM}, scorch below {@link #GOUGE_FROM}, gouges and dents beyond. Nine slots give four,
+     * three and two.
+     */
+    static final float SCORCH_FROM = 4f / 9f;
+    static final float GOUGE_FROM = 7f / 9f;
 
     /** The stages, which are the scuff sheet's rows. */
     static final int SCRAPE = 0;
@@ -54,6 +66,8 @@ final class VehicleScuffs {
     private static final HullLocations.Plate[] PLATES = HullLocations.Plate.values();
     /** Per vehicle line: its hull frame's mask and its turret frame's; an entry is null where there is none. */
     private static final Map<VehicleType, Mask[]> MASKS = new EnumMap<>(VehicleType.class);
+    /** Part-sprite masks by image path and region scheme; a null value is an image with no room for a mark. */
+    private static final Map<String, Mask> PART_MASKS = new HashMap<>();
 
     private VehicleScuffs() {}
 
@@ -83,6 +97,33 @@ final class VehicleScuffs {
 
         int count(int region) {
             return points[region].length / 2;
+        }
+    }
+
+    /**
+     * The mask of the whole image at {@code path}, {@code width x height} logical pixels, for a part sprite drawn on
+     * its own (a mech's torso, arm, pod or foot): north-authored, so the image's top is the part's front. Built
+     * once per process on first ask; part images are small, so that costs a fraction of a millisecond. Null when
+     * the image cannot be read or has no room for a mark.
+     */
+    static Mask partMask(BattleSprites sprites, String path, int width, int height, boolean byPlate) {
+        if (path == null) return null;
+        String key = path + (byPlate ? "#plates" : "#whole");
+        synchronized (PART_MASKS) {
+            if (PART_MASKS.containsKey(key)) return PART_MASKS.get(key);
+            Mask mask = null;
+            try {
+                BufferedImage image = sprites.readPixels(path);
+                if (image != null) {
+                    mask = build(image, new SpriteSheetFrames.Frame(0, 0, Math.min(width, image.getWidth()),
+                            Math.min(height, image.getHeight())), 0f, byPlate);
+                    if (mask.decalPx <= 0f) mask = null;
+                }
+            } catch (Exception e) {
+                LOG.warn("scuffs: could not read " + path + " — " + e.getMessage());
+            }
+            PART_MASKS.put(key, mask);
+            return mask;
         }
     }
 
@@ -208,18 +249,24 @@ final class VehicleScuffs {
      * {@code seed}, handed to {@code sink} in slot order. Returns how many were handed over.
      */
     static int place(Mask mask, int region, float wear, long seed, Sink sink) {
+        return place(mask, region, SLOTS, wear, seed, sink);
+    }
+
+    /** {@link #place(Mask, int, float, long, Sink)} with {@code slots} marks for a fully stripped region. */
+    static int place(Mask mask, int region, int slots, float wear, long seed, Sink sink) {
         int count = mask.count(region);
         if (wear <= 0f || count == 0) return 0;
         short[] points = mask.points[region];
         int placed = 0;
-        for (int slot = 0; slot < SLOTS; slot++) {
+        for (int slot = 0; slot < slots; slot++) {
             long h = mix(seed ^ (region + 1) * 0x9E3779B97F4A7C15L ^ (slot + 1) * 0xC2B2AE3D27D4EB4FL);
             float jitter = 0.15f + 0.7f * ((h >>> 40) & 0xFFFF) / 65535f;
-            float threshold = FULL_WEAR * (slot + jitter) / SLOTS;
+            float threshold = FULL_WEAR * (slot + jitter) / slots;
             float alpha = Math.min(1f, (wear - threshold) / FADE);
             if (alpha <= 0f) break;
             int at = (int) Math.floorMod(h, (long) count) * 2;
-            int kind = slot < SCORCH_FROM ? SCRAPE : slot < GOUGE_FROM ? SCORCH : GOUGE;
+            float stage = (slot + 0.5f) / slots;
+            int kind = stage < SCORCH_FROM ? SCRAPE : stage < GOUGE_FROM ? SCORCH : GOUGE;
             float spin = ((h >>> 20) & 0x3FF) * (360f / 1024f);
             sink.mark(points[at], points[at + 1], kind, (int) ((h >>> 56) % VARIANTS), spin, alpha);
             placed++;

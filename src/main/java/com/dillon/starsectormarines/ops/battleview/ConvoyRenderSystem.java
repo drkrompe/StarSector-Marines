@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.HullLocations;
@@ -142,19 +143,49 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     drawCellX += (float) Math.sin(bearing) * recoil;
                     drawCellY -= (float) Math.cos(bearing) * recoil;
                 }
+                float drawFacingDeg = turretFacingDeg;
+                if (!wrecked && turret != null && type.turretRaiseFold() < 1f && turret.elevation > 0f) {
+                    // Standing up to fire, pitched to the angle its rounds leave at. The battle is drawn with
+                    // height as screen-up, as the missiles' arcs are, so a pitched rack's nose rises up the screen
+                    // as well as running toward the target: it draws along the arc's first tangent, turned off the
+                    // true bearing and longer pointing north than south. It stays centred on its turntable, never
+                    // moved off it; the raise is only that turn and foreshortening, a nose a little wider for coming
+                    // up toward the eye, and a full-length shadow left on the deck down and right of it, like the
+                    // sheets' baked shadows.
+                    float lift = RAISE_SHADOW_CELLS * turret.elevation;
+                    out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
+                            tf.x, tf.y, tf.w, tf.h,
+                            cam.cellToScreenX(drawCellX + lift), cam.cellToScreenY(drawCellY + lift),
+                            tDrawLong, tDrawShort, turretFacingDeg,
+                            0f, 0f, 0f, alphaMult * RAISE_SHADOW_ALPHA * turret.elevation);
+                    WeaponDef weapon = type.turretStructure().mount.weapon;
+                    float bearing = (float) Math.toRadians(turretStateFacing);
+                    float ux = -(float) Math.sin(bearing);
+                    float uy = (float) Math.cos(bearing);
+                    float pitch = Math.min(launchPitch(weapon.arcHeight,
+                            Float.isFinite(turret.raiseRangeCells) ? turret.raiseRangeCells : weapon.range),
+                            readablePitch(uy)) * turret.elevation;
+                    float cos = (float) Math.cos(pitch);
+                    float axisX = ux * cos;
+                    float axisY = uy * cos + (float) Math.sin(pitch);
+                    drawFacingDeg = (float) Math.toDegrees(Math.atan2(-axisX, axisY))
+                            + type.turretSpriteFacingOffsetDeg;
+                    tDrawLong *= (float) Math.hypot(axisX, axisY);
+                    tDrawShort *= 1f + RAISE_WIDEN * (1f - cos);
+                }
                 out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
                         tf.x, tf.y, tf.w, tf.h,
                         cam.cellToScreenX(drawCellX), cam.cellToScreenY(drawCellY),
-                        tDrawLong, tDrawShort, turretFacingDeg,
+                        tDrawLong, tDrawShort, drawFacingDeg,
                         1f, 1f, 1f, alphaMult);
                 if (locations != null && locations.turret() != null) {
                     VehicleScuffs.Mask mask = VehicleScuffs.turretMask(sprites, type, frames);
                     float wear = VehicleScuffs.wear(locations.turret().armor(), locations.turret().maxArmor());
                     if (mask != null && wear > 0f) {
-                        scuffSink.begin(out, cam, tf, drawCellX, drawCellY, turretFacingDeg,
+                        beginScuffs(out, cam, tf, drawCellX, drawCellY, turretFacingDeg,
                                 type.turretVisualCells / tf.w, mask, alphaMult);
-                        VehicleScuffs.place(mask, 0, wear, id ^ TURRET_SEED, scuffSink);
-                        scuffSink.out = null;
+                        VehicleScuffs.place(mask, 0, wear, id ^ TURRET_SEED, scuffMark);
+                        scuffMark.out = null;
                     }
                 }
             }
@@ -166,77 +197,34 @@ public final class ConvoyRenderSystem implements RenderSystem {
         }
     }
 
-    /**
-     * The scuff sheet: one 128 px cell per mark, a row per stage (scrape, scorch, gouge) and a column per variant
-     * ({@code art-source/vehicles/scuffs/}).
-     */
-    static final String SCUFF_SHEET = "graphics/battle/vehicles/scuffs.png";
-    private static final int SCUFF_CELL = 128;
     /** Mixed into a turret's seed, so it does not repeat its hull's front plate. */
     private static final long TURRET_SEED = 0x5DEECE66DL;
 
-    private final ScuffSink scuffSink = new ScuffSink();
+    private final ScuffMark scuffMark = new ScuffMark();
 
     /**
-     * Worn plate over the hull and its treads, under the turret ({@code body-scuffs.md}): each plate's marks from
-     * {@link VehicleScuffs}, laid in the hull's own frame and turned with it.
+     * Worn plate over the hull and its treads, under the turret ({@code combat-durability-nouns.md}): each plate's
+     * marks from {@link VehicleScuffs}, laid in the hull's own frame and turned with it.
      */
     private void collectHullScuffs(VehicleType type, UnitSpriteCache cache, SpriteSheetFrames.Frame f,
                                    HullLocations locations, long id, GroundBody body, float angleDeg,
                                    BattleCamera cam, float alphaMult, DrawList out) {
         VehicleScuffs.Mask mask = VehicleScuffs.hullMask(sprites, type, cache.frames);
         if (mask == null) return;
-        scuffSink.begin(out, cam, f, body.x, body.y, angleDeg, type.visualLengthCells / f.w, mask, alphaMult);
+        beginScuffs(out, cam, f, body.x, body.y, angleDeg, type.visualLengthCells / f.w, mask, alphaMult);
         for (HullLocations.Plate plate : HullLocations.Plate.values()) {
             float wear = VehicleScuffs.wear(locations.armor(plate), locations.maxArmor(plate));
-            if (wear > 0f) VehicleScuffs.place(mask, plate.ordinal(), wear, id, scuffSink);
+            if (wear > 0f) VehicleScuffs.place(mask, plate.ordinal(), wear, id, scuffMark);
         }
-        scuffSink.out = null;
+        scuffMark.out = null;
     }
 
-    /** Lays one mark from {@link VehicleScuffs#place} on the frame it is being collected for; reused per frame. */
-    private final class ScuffSink implements VehicleScuffs.Sink {
-        DrawList out;
-        BattleCamera cam;
-        SpriteSheetFrames.Frame f;
-        float centreX;
-        float centreY;
-        float angleDeg;
-        float cellsPerPixel;
-        float cos;
-        float sin;
-        float sizePx;
-        float alpha;
-
-        /** Aims the sink at frame {@code f} drawn centred on cell {@code (x, y)}, turned {@code angleDeg}. */
-        void begin(DrawList out, BattleCamera cam, SpriteSheetFrames.Frame f, float x, float y, float angleDeg,
-                   float cellsPerPixel, VehicleScuffs.Mask mask, float alpha) {
-            this.out = out;
-            this.cam = cam;
-            this.f = f;
-            this.centreX = x;
-            this.centreY = y;
-            this.angleDeg = angleDeg;
-            this.cellsPerPixel = cellsPerPixel;
-            double rad = Math.toRadians(angleDeg);
-            this.cos = (float) Math.cos(rad);
-            this.sin = (float) Math.sin(rad);
-            this.sizePx = mask.decalPx * cellsPerPixel * cam.cellPxSize();
-            this.alpha = alpha;
-        }
-
-        @Override
-        public void mark(float x, float y, int kind, int variant, float spinDegrees, float strength) {
-            ShuttleSpriteCache sheet = sprites.spriteByPath(SCUFF_SHEET);
-            if (sheet == null || sheet.pxW <= 0) return;
-            float lx = (x - f.w * 0.5f) * cellsPerPixel;
-            float ly = (f.h * 0.5f - y) * cellsPerPixel;
-            float wx = centreX + lx * cos - ly * sin;
-            float wy = centreY + lx * sin + ly * cos;
-            out.addSheetQuad(RenderLayer.CONVOY, sheet.sprite, variant * SCUFF_CELL, kind * SCUFF_CELL,
-                    SCUFF_CELL, SCUFF_CELL, cam.cellToScreenX(wx), cam.cellToScreenY(wy), sizePx, sizePx,
-                    angleDeg + spinDegrees, 1f, 1f, 1f, strength * alpha);
-        }
+    /** Aims {@link #scuffMark} at frame {@code f} drawn centred on cell {@code (x, y)}, turned {@code angleDeg}. */
+    private void beginScuffs(DrawList out, BattleCamera cam, SpriteSheetFrames.Frame f, float x, float y,
+                             float angleDeg, float cellsPerPixel, VehicleScuffs.Mask mask, float alpha) {
+        float px = cellsPerPixel * cam.cellPxSize();
+        scuffMark.begin(out, RenderLayer.CONVOY, sprites, cam.cellToScreenX(x), cam.cellToScreenY(y), f.w, f.h,
+                px, px, angleDeg, mask.decalPx * px, alpha);
     }
 
     /** The haze over a hull's vents at full flux, and the vent plume of an overloaded gun: purple, then lavender. */
@@ -292,6 +280,38 @@ public final class ConvoyRenderSystem implements RenderSystem {
             out.addAdditiveSprite(RenderLayer.CONVOY, glow, cam.cellToScreenX(wx), cam.cellToScreenY(wy),
                     size, size, 0f, colour[0], colour[1], colour[2], 0.4f * strength * fade * alphaMult);
         }
+    }
+
+    /** How much wider a raised rack draws per unit it shortens: its nose has come up toward the eye. */
+    private static final float RAISE_WIDEN = .3f;
+    /** How far a fully raised rack stands off its own shadow, in cells, and how dark that shadow is. */
+    private static final float RAISE_SHADOW_CELLS = .14f;
+    private static final float RAISE_SHADOW_ALPHA = .45f;
+    /** The steepest a rack is drawn pitched, for a target so near its rounds would leave almost straight up. */
+    private static final float MAX_LAUNCH_PITCH = (float) Math.toRadians(70);
+    /** The least a raised rack draws along its own bearing, as a share of its length ({@link #readablePitch}). */
+    static final float MIN_RAISED_ALONG = .7f;
+
+    /**
+     * The angle an arcing round leaves the ground at, in radians: the slope of the drawn arc at its start. The arc
+     * rises {@code 4 * arcHeight} over its whole run ({@code ShotRenderService.spriteFlight}), so the slope is that
+     * over the range, and the same arc height lobbed at a nearer target leaves steeper.
+     */
+    static float launchPitch(float arcHeight, float rangeCells) {
+        if (arcHeight <= 0f) return 0f;
+        return Math.min(MAX_LAUNCH_PITCH, (float) Math.atan2(4f * arcHeight, Math.max(1f, rangeCells)));
+    }
+
+    /**
+     * The steepest a rack firing on this bearing can be drawn and still read as pointing at its target: its drawn
+     * length along the bearing, {@code cos + uy * sin} of the pitch, never under {@link #MIN_RAISED_ALONG}. Firing
+     * north or across the screen it never binds. Firing south, toward the bottom of the screen, a pitched nose
+     * comes back up the screen over its own tail, and the rack would fold to nothing and then point north, the
+     * way a lobbed round's drawn arc does leave; it stands only as tall as stays readable instead.
+     */
+    static float readablePitch(float uy) {
+        double reach = Math.hypot(1.0, uy);
+        return (float) (Math.atan2(uy, 1.0) + Math.acos(Math.min(1.0, MIN_RAISED_ALONG / reach)));
     }
 
     /** A gun with a target, ground or air, or a burst under way: what a firing frame is drawn for. */

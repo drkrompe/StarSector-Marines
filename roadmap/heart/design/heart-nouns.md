@@ -99,6 +99,22 @@ route crosses it. The rim's ground is held before the places grow
 fields grow round it. Today it stands as one to three arcs rather than a ring
 (`heart-map-intent.md`).
 
+**Cordon's works.** What the cordon dug and built facing the bloom, laid as
+named pieces of the heart's mission layout: the forward line of trench and
+wire along the cordon ridge's crest, broken at every lane; an observation post forward
+of it in each half of the front; and on the farmland behind it the logistics
+base's ammunition dumps and vehicle park, with a supply road up to the
+settlement. Each beat's set piece is laid the
+same way (the lost column's holdout, the reservoir yard, the battery's flank
+works, the village holdout, the company's ford). The heart's runtime holds
+what was laid by name, so a beat that needs a place asks whether it is there
+(`heart-map-intent.md`).
+
+**Density.** How built-up the country between the cordon and the heart is:
+rural, town or city, from the world's market size. Denser country has more
+streets for the lanes to pass through and less open ground for armour; works
+yield to what is built.
+
 **Start line.** The near edge of the cordon's farmland, along the farm road the
 fields are worked from. Where the attack steps off and, in The Burn, the first
 firebreak behind the fire line.
@@ -128,7 +144,7 @@ margins grow, so a margin never bridges one.
 **Brook** (The Burn). A stream across the approach, deep in the bloom beyond
 the village: water five cells wide with sand on either bank and no crown
 overhanging it, crossed on foot
-at a stony ford every forty-six cells (stone, not sand, so the creep over a ford is a film and the ford holds as a break) and wherever a road bridges it. Nobody walks
+at a stony ford every forty-six cells (stone, not sand, so the creep over a ford is a film and the ford holds as a break; shallow water over it, so it is waded slowly and reads as a crossing) and wherever a road bridges it. Nobody walks
 through water and creep does not climb it, so the brook is the map's natural
 firebreak and a line the creep crosses only at its fords and bridges. It runs in a shallow valley: raised banks either side,
 climbed from the country, broken at every ford and road, so a crossing is a

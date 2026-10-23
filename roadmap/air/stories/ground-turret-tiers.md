@@ -69,6 +69,9 @@ is approved; every look step is shown to the owner as renders.
    `structure.hardpoint-locust` (the vanilla Locust head) on the 3x3 plinth. A large post
    may draw the 5x5 hardpoint layout (plinth plus paved apron); the artillery post is
    now the Locust hardpoint. Apron is a post cell kind: walkable ground the stamper paves.
+   The wedge layout (one point gun behind a T of parapets) is retired: a single point
+   gun is the medium post, so large posts are multi-gun lines or the hardpoint. Drafts are
+   compared in `createSnapshots -Psnapshot=large-post-look`.
 
 A generated post takes its style from the defenders' market at generation
 (`EmplacementStylePolicy`): prepared defences (ground defences, heavy batteries or a

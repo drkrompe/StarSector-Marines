@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
+import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.fire.FireField;
 import com.dillon.starsectormarines.battle.power.WalkingBarrage;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -54,17 +55,23 @@ public final class HeartSequence {
     private boolean lineLit;
 
     private final HeartLanes lanes;
+    private final LaidLayout places;
 
     /**
      * @param barrage the guns' timetable (The Burn), or {@code null}
      * @param lanes   the allied lanes (Broad Front), or {@code null}
+     * @param places  what the map's mission layout laid: the cordon's works and the beats' set pieces
      */
-    public HeartSequence(Form form, StoryBeatLog log, WalkingBarrage barrage, HeartLanes lanes) {
+    public HeartSequence(Form form, StoryBeatLog log, WalkingBarrage barrage, HeartLanes lanes, LaidLayout places) {
         this.form = form;
         this.log = log;
         this.barrage = barrage;
         this.lanes = lanes;
+        this.places = places == null ? LaidLayout.EMPTY : places;
     }
+
+    /** The map's laid places by name ({@code HeartLayout}): what a beat asks "is this here" of. */
+    public LaidLayout places() { return places; }
 
     /** The allied lanes, or {@code null} when the heart has none. */
     public HeartLanes lanes() { return lanes; }

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-23 — Creep stands back from cliff faces and ramp walls, so raised ground reads inside a bloom.
+Updated: 2026-10-23 — Creep stops at the organic shore's wet band instead of the water cells' squares.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -494,8 +494,10 @@ militia make the rest of it when the battle is set up:
 
 - a squat **tower** on each outer corner of the wall;
 - a **gun tower** beside each gate: a heavy machine gun on the line of the
-  wall behind slits. Those guns are its whole armament: no layers, no bunkers,
-  no anti-air;
+  wall behind slits, a step further along the wall where a building stands
+  against it. A compound with one way in mounts its second gun on that gate's
+  other flank, so it always has two. Those guns are its whole armament: no
+  layers, no bunkers, no anti-air;
 - **firing slits** along the wall's straight runs;
 - a militia **wall team** standing behind the slits, holding the yard. Nothing
   is piled against the wall: the wall is the cover, so the compound has no
@@ -1207,6 +1209,17 @@ against its own control in `renderEvidence`.
   covering the face). A ramp's floor is not rock: the creep runs up its steps
   between the bare cut walls, so a ramp shows as a creep-filled break in the
   cliff, a hint to where the way up is (owner).
+- **It stops at the water's drawn edge.** Creep never grows on water, but the
+  shore is drawn as a contour rather than the cells' squares (a **shore**,
+  `battle-render-nouns.md`), so the creep's edge follows that contour instead:
+  it runs over the corners the contour cuts to bank, stops short of those it
+  floods, and leaves the wet band showing between it and the water
+  (`ShoreWaterMask`).
+  A ford is drawn as shallows over a stony bed, and the creep's body is kept
+  off it like the water's; where the creep holds a ford it lays only faint
+  veins and a thin film over the bed, as over a cliff face, while open water
+  takes nothing (owner). That is the picture alone: the ford is still a
+  firebreak.
 - **Trees die under it** (`CreepVegetation`). A tree whose crown living creep
   has held to the tree's own seeded share of about a minute and a half of
   climbing is dead, and stays dead if the creep later withers. A dead tree has

@@ -88,6 +88,32 @@ public final class DrawList {
         slot(layer).setSheetQuad(sheet, srcX, srcY, srcW, srcH, cx, cy, w, h, angleDeg, r, g, b, a);
     }
 
+    /**
+     * A rotated sub-rectangle of a whole image, {@code imageW x imageH} logical pixels: addressed inside the image's
+     * atlas slot when the {@link UnitAtlas} holds it, so it joins the run its neighbours are in, and as a quad of
+     * the image's own sheet otherwise. The atlas rule of {@link #addSprite}, for a caller that draws part of an
+     * image rather than all of it (a scuff mark, one cell of its sheet).
+     */
+    public void addImageRegion(RenderLayer layer, SpriteAPI image, int imageW, int imageH,
+                               int srcX, int srcY, int srcW, int srcH,
+                               float cx, float cy, float w, float h, float angleDeg,
+                               float r, float g, float b, float a) {
+        if (spriteAtlas != null && spriteAtlas.isServing()) {
+            SpriteAtlas.Placement at = spriteAtlas.placement(image);
+            if (at != null) {
+                // A fitted image's slot is its shipped size, so logical pixels scale into it.
+                float sx = at.width() / (float) imageW;
+                float sy = at.height() / (float) imageH;
+                TextureUsage.sheet(image, srcW, srcH, w, h);
+                slot(layer).setSheetQuad(spriteAtlas.sheet(),
+                        at.x() + Math.round(srcX * sx), at.y() + Math.round(srcY * sy),
+                        Math.round(srcW * sx), Math.round(srcH * sy), cx, cy, w, h, angleDeg, r, g, b, a);
+                return;
+            }
+        }
+        addSheetQuad(layer, image, srcX, srcY, srcW, srcH, cx, cy, w, h, angleDeg, r, g, b, a);
+    }
+
     /** Vertically-mirrored sheet-quad (axis-aligned): samples the sub-rect top↔bottom flipped. */
     public void addSheetQuadFlippedV(RenderLayer layer, SpriteAPI sheet,
                                      int srcX, int srcY, int srcW, int srcH,

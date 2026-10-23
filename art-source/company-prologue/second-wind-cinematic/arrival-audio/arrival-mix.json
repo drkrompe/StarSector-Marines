@@ -7,22 +7,11 @@
  "music": [
   {
    "shot": "c1",
-   "sound": "jangala_arrival_score_strings",
-   "t": 0.0,
-   "until_end_of": "c4",
-   "level_db": 6.0,
-   "source_lufs": -12.0,
-   "fade_in": 0.75,
-   "fade_out": 0.75,
-   "duck_db": -8.0
-  },
-  {
-   "shot": "c5",
-   "sound": "jangala_arrival_ending_a",
+   "sound": "jangala_arrival_score_march",
    "t": 0.0,
    "until_end_of": "c5",
-   "level_db": 4.0,
-   "source_lufs": -12.9,
+   "level_db": 5.1,
+   "source_lufs": -13.0,
    "fade_in": 0.75,
    "fade_out": 0.5,
    "duck_db": -8.0
@@ -90,10 +79,10 @@
     "gain_db": -19.2
    },
    "jangala_sfx_c2_legion_forward": {
-    "gain_db": -12.0
+    "gain_db": -14.8
    },
    "jangala_sfx_c2_legion_drives": {
-    "gain_db": -12.0
+    "gain_db": -15.9
    },
    "jangala_sfx_c2_fighter_02": {
     "gain_db": -8.0
@@ -150,7 +139,7 @@
     "gain_db": -8.9
    },
    "jangala_sfx_c2_legion_burn": {
-    "gain_db": -14.1
+    "gain_db": -13.6
    }
   },
   "entry": {
@@ -164,7 +153,7 @@
     "gain_db": -9.7
    },
    "jangala_sfx_entry_reentry_roar": {
-    "gain_db": -9.5
+    "gain_db": 0
    },
    "jangala_sfx_entry_c1_hull_creaks": {
     "gain_db": -8.2
@@ -181,7 +170,7 @@
     "gain_db": -20.8
    },
    "jangala_sfx_c3_wind_easing": {
-    "gain_db": -12.5
+    "gain_db": 0
    },
    "jangala_sfx_c3_cabin_flight_bed": {
     "gain_db": -21.3
@@ -210,7 +199,7 @@
     "gain_db": -12.6
    },
    "jangala_sfx_c4_second_wind_c4_drive": {
-    "gain_db": -25.8
+    "gain_db": -8
    },
    "jangala_arrival_castle_yard": {
     "gain_db": 0.0
@@ -228,7 +217,7 @@
     "gain_db": -20.6
    },
    "jangala_sfx_c4_landing_grit": {
-    "gain_db": -17.4
+    "gain_db": -24
    },
    "jangala_sfx_c4_landing_thump": {
     "gain_db": 0.0
