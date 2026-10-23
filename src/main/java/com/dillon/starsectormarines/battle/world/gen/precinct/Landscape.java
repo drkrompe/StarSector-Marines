@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.precinct;
 
+import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
+
 import java.util.List;
 
 /**
@@ -23,8 +25,12 @@ import java.util.List;
  *                 and scrub wanders either side of a field's straight edge,
  *                 over the bare earth beside it or into the parcel; 0 for none. A burn then stops on an organic line
  *                 rather than a field's ruler edge.
+ * @param ridges   high ground the mission names: each band raised as hill
+ *                 segments, broken into passes wherever roads, buildings or
+ *                 the landing cross it ({@link RidgePlanner})
  */
-public record Landscape(float woodland, List<Track> tracks, List<Brook> brooks, int raggedMargin) {
+public record Landscape(float woodland, List<Track> tracks, List<Brook> brooks, int raggedMargin,
+                        List<RidgePlanner.Band> ridges) {
 
     /** The groves' share of wild ground in the stock landscape pass. */
     public static final float STOCK_WOODLAND = 0.58f;
@@ -37,11 +43,17 @@ public record Landscape(float woodland, List<Track> tracks, List<Brook> brooks, 
         this(woodland, tracks, brooks, 0);
     }
 
+    /** A landscape with no ridges. */
+    public Landscape(float woodland, List<Track> tracks, List<Brook> brooks, int raggedMargin) {
+        this(woodland, tracks, brooks, raggedMargin, List.of());
+    }
+
     public Landscape {
         if (raggedMargin < 0) throw new IllegalArgumentException("a margin is a width: " + raggedMargin);
         if (!(woodland >= 0f && woodland <= 1f)) throw new IllegalArgumentException("woodland is a share: " + woodland);
         tracks = tracks == null ? List.of() : List.copyOf(tracks);
         brooks = brooks == null ? List.of() : List.copyOf(brooks);
+        ridges = ridges == null ? List.of() : List.copyOf(ridges);
     }
 
     /**

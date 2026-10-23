@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.overgrown;
 
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LandingKind;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
 import com.dillon.starsectormarines.battle.world.gen.precinct.MapPlacement;
@@ -204,13 +205,41 @@ public final class HeartCountry {
                 int x = Math.round(across * (w - 1)) - TRACK_WIDTH / 2;
                 tracks.add(new Landscape.Track(x, 0, x + TRACK_WIDTH - 1, top));
             }
-            return new Landscape(BROAD_FRONT_WOODLAND, tracks, List.of(), FIELD_MARGIN);
+            return new Landscape(BROAD_FRONT_WOODLAND, tracks, List.of(), FIELD_MARGIN, List.of(ridge(Form.BROAD_FRONT)));
         }
         for (float depth : RIDE_DEPTH) {
             int x = Math.round(depth * (w - 1)) - RIDE_WIDTH / 2;
             tracks.add(new Landscape.Track(x, 0, x + RIDE_WIDTH - 1, h - 1));
         }
-        return new Landscape(THE_BURN_WOODLAND, tracks, List.of(brook(w, h, seed)), FIELD_MARGIN);
+        return new Landscape(THE_BURN_WOODLAND, tracks, List.of(brook(w, h, seed)), FIELD_MARGIN,
+                List.of(ridge(Form.THE_BURN)));
+    }
+
+    /**
+     * Where the cordon's ridge stands, as a depth into the approach: the last
+     * high ground just past the farmland, which the line was dug along and
+     * which looks down into the bloom (`heart-map-intent.md`). Far enough out
+     * that the farm road along the farmland's edge stays clear of its apron;
+     * The Burn's lies short of its village, which stands just beyond.
+     */
+    static final float BROAD_FRONT_RIDGE_DEPTH = 0.27f, THE_BURN_RIDGE_DEPTH = 0.215f;
+    /** Cells through the ridge, start side to bloom side. */
+    static final int RIDGE_THICKNESS = 14;
+    /** Cells across each ridge segment's ramp: wide enough for a tank to climb it. */
+    static final int RIDGE_RAMP_WIDTH = 9;
+
+    /**
+     * The cordon's ridge across the whole front, climbed from the start side.
+     * Roads, lanes, rides and the settlement break it into passes.
+     */
+    static RidgePlanner.Band ridge(Form form) {
+        int w = form.scale.width, h = form.scale.height;
+        if (form.advancesAlongY()) {
+            int y0 = Math.round(BROAD_FRONT_RIDGE_DEPTH * (h - 1));
+            return new RidgePlanner.Band(0, y0, w - 1, y0 + RIDGE_THICKNESS - 1, true, -1, RIDGE_RAMP_WIDTH);
+        }
+        int x0 = Math.round(THE_BURN_RIDGE_DEPTH * (w - 1));
+        return new RidgePlanner.Band(x0, 0, x0 + RIDGE_THICKNESS - 1, h - 1, false, -1, RIDGE_RAMP_WIDTH);
     }
 
     /**

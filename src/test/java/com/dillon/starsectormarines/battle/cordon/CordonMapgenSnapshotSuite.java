@@ -25,7 +25,9 @@ import java.util.List;
  * front and the rear. Look evidence, 1920x1080.
  *
  * <p>{@code -Dsnapshot.cordonMapgen.seeds=7117,3,11} picks the seeds and
- * {@code -Dsnapshot.cordonMapgen.variants=line,road} the variants.
+ * {@code -Dsnapshot.cordonMapgen.variants=line,road} the variants, and
+ * {@code -Dsnapshot.cordonMapgen.density=town} how built-up the country is
+ * ({@link CordonPlan.Density}; rural, the default, plays the pools).
  */
 public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
 
@@ -81,18 +83,23 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
         BattleReviewFrameRenderer whole = new BattleReviewFrameRenderer(context.modRoot(), FRAME_W, FRAME_H);
         BattleReviewFrameRenderer near = new BattleReviewFrameRenderer(context.modRoot(), FRAME_W, FRAME_H, 0f, 0f, 1f);
         List<SnapshotArtifact> out = new ArrayList<>();
+        CordonPlan.Density density = CordonPlan.Density.valueOf(
+                System.getProperty("snapshot.cordonMapgen.density", "rural").trim().toUpperCase());
+        String built = density == CordonPlan.Density.RURAL ? "" : density.name().toLowerCase() + "-";
         for (String v : System.getProperty("snapshot.cordonMapgen.variants", "line,road").split(",")) {
             CordonVariant variant = CordonVariant.valueOf(v.trim().toUpperCase());
             String name = variant.name().toLowerCase();
             for (String token : System.getProperty("snapshot.cordonMapgen.seeds", "7117,3,11").split(",")) {
                 long seed = Long.parseLong(token.trim());
-                String tag = name + "-seed" + seed + "-";
-                CordonSetup.CordonMap cordon = CordonSetup.map(variant, SurfacePalette.VERDANT, seed);
+                String tag = built + name + "-seed" + seed + "-";
+                CordonSetup.CordonMap cordon = density == CordonPlan.Density.RURAL
+                        ? CordonSetup.map(variant, SurfacePalette.VERDANT, seed)
+                        : CordonSetup.rolled(variant, density, SurfacePalette.VERDANT, seed);
                 PrecinctPlan plan = cordon.plan();
                 try (BattleSimulation sim = CordonSetup.create(cordon, variant, List.of(),
                         CordonSequence.Timetable.STANDARD)) {
                     out.add(new SnapshotArtifact(tag + "01-whole-map.png",
-                            whole.render(sim, "the " + name + ", seed " + seed + ", whole map", annotations(sim, cordon))));
+                            whole.render(sim, "the " + name + (built.isEmpty() ? "" : ", " + density.name().toLowerCase()) + ", seed " + seed + ", whole map", annotations(sim, cordon))));
                     List<Precinct> redoubts = CordonPlan.redoubts(plan);
                     float lineY = 0f;
                     for (Precinct r : redoubts) lineY += r.seedY();

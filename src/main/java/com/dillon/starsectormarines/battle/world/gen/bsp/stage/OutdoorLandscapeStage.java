@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationBrush;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationLayout;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationPlan;
 import com.dillon.starsectormarines.battle.world.gen.elevation.PlateauPlanner;
+import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestBrush;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestField;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestPlan;
@@ -62,6 +63,7 @@ public final class OutdoorLandscapeStage implements GenStage {
         if (c.topology.terrainSurface() == null) hills(c, surface, reserved, random);
         int plateaus = plateausWanted(c);
         if (plateaus > 0) plateaus(c, reserved, plateaus, new Random(c.seed ^ 0x504c4154L));
+        if (!landscape.ridges().isEmpty() && c.grid.elevation() == null) ridges(c, reserved, landscape.ridges());
         if (surface == SurfacePalette.VERDANT) trees(c, reserved, landscape.woodland());
         else FormationBrush.scatter(c,surface,reserved);
         // Hills, trees and formations turn cells non-walkable after TacticalRegionStage
@@ -179,6 +181,24 @@ public final class OutdoorLandscapeStage implements GenStage {
                 i -> reserved[i],
                 layout -> keepsAccess(c, layout));
         if (plan != null) ElevationBrush.stamp(plan, c.grid, c.topology, reserved);
+    }
+
+    /**
+     * The mission's ridges: each band raised as hill segments on open ground,
+     * broken into passes wherever the host's ground crosses it.
+     */
+    private static void ridges(GenContext c, boolean[] reserved, List<RidgePlanner.Band> bands) {
+        int w = c.width;
+        ElevationPlan plan = RidgePlanner.plan(c.width, c.height, c.seed ^ 0x52494447L, bands,
+                i -> !reserved[i] && openGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
+                layout -> keepsAccess(c, layout));
+        if (plan == null) return;
+        ElevationBrush.stamp(plan, c.grid, c.topology, reserved);
+        // A ridge's ramps are its only ways up: no tree may grow on one and close it.
+        ElevationLayout layout = ElevationLayout.resolve(plan);
+        for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) {
+            if (layout.isRamp(x, y)) reserve(c, reserved, x - 1, y - 1, x + 1, y + 1);
+        }
     }
 
     /** Whether the ground around a layout's faces stays one connected piece once they close. */

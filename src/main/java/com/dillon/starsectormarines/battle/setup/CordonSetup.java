@@ -88,9 +88,39 @@ public final class CordonSetup {
         return new TargetProfile(0, 0, 0, 0, "", Set.of(), biome, SettlementLink.ROAD);
     }
 
-    /** The story map a variant plays from ({@code story-map-pools.md}). */
+    /** The story map a variant plays from in open country ({@code story-map-pools.md}). */
     public static StoryMap storyMap(CordonVariant variant) {
-        return variant == CordonVariant.LINE ? StoryMap.CORDON_LINE : StoryMap.CORDON_ROAD;
+        return storyMap(variant, CordonPlan.Density.RURAL);
+    }
+
+    /** The story map a variant plays from in country as built-up as {@code density}: one pool each. */
+    public static StoryMap storyMap(CordonVariant variant, CordonPlan.Density density) {
+        boolean line = variant == CordonVariant.LINE;
+        return switch (density) {
+            case RURAL -> line ? StoryMap.CORDON_LINE : StoryMap.CORDON_ROAD;
+            case TOWN -> line ? StoryMap.CORDON_LINE_TOWN : StoryMap.CORDON_ROAD_TOWN;
+            case URBAN -> line ? StoryMap.CORDON_LINE_URBAN : StoryMap.CORDON_ROAD_URBAN;
+        };
+    }
+
+    /** The variant a Cordon story map is, or null for another mission's map. */
+    public static CordonVariant variantOf(StoryMap map) {
+        for (CordonVariant variant : CordonVariant.values()) {
+            for (CordonPlan.Density density : CordonPlan.Density.values()) {
+                if (storyMap(variant, density) == map) return variant;
+            }
+        }
+        return null;
+    }
+
+    /** The density a Cordon story map is laid out at; rural for any other map. */
+    public static CordonPlan.Density densityOf(StoryMap map) {
+        for (CordonVariant variant : CordonVariant.values()) {
+            for (CordonPlan.Density density : CordonPlan.Density.values()) {
+                if (storyMap(variant, density) == map) return density;
+            }
+        }
+        return CordonPlan.Density.RURAL;
     }
 
     /**
@@ -104,10 +134,19 @@ public final class CordonSetup {
         StoryMapPool.Entry entry = StoryMapPools.installed()
                 ? StoryMapPools.pool(storyMap(variant)).entry(biome, seed) : null;
         if (entry != null) return map(variant, biome, entry);
+        return rolled(variant, CordonPlan.Density.RURAL, biome, seed);
+    }
+
+    /**
+     * The first map from {@code seed} that carries the whole Cordon in country as built-up as
+     * {@code density}: how a density is tried before any of its maps are pooled.
+     */
+    public static CordonMap rolled(CordonVariant variant, CordonPlan.Density density, SurfacePalette biome,
+                                   long seed) {
         List<String> failures = new ArrayList<>();
         for (int attempt = 0; attempt < ATTEMPTS; attempt++) {
             long battleSeed = seed + attempt * 0x9E3779B97F4A7C15L;
-            Generated generated = generate(variant, biome, battleSeed, MapPatch.NONE);
+            Generated generated = generate(variant, density, biome, battleSeed, MapPatch.NONE);
             if (generated.missing() == null) return generated.cordon();
             failures.add("attempt " + attempt + ": " + generated.missing());
         }
@@ -115,9 +154,13 @@ public final class CordonSetup {
                 + " attempts: " + String.join("; ", failures));
     }
 
-    /** The pooled map a campaign battle plays on a world of this biome, for a roll its event carries. */
-    public static CordonMap pooled(CordonVariant variant, SurfacePalette biome, long roll) {
-        return map(variant, biome, StoryMapPools.pool(storyMap(variant)).pick(biome, roll));
+    /**
+     * The pooled map a campaign battle plays on a world of this biome and market size, for a roll
+     * its event carries: a frontier world's farmland, a settled world's towns or a core world's city.
+     */
+    public static CordonMap pooled(CordonVariant variant, SurfacePalette biome, int marketSize, long roll) {
+        CordonPlan.Density density = CordonPlan.Density.of(marketSize);
+        return map(variant, density, biome, StoryMapPools.pool(storyMap(variant, density)).pick(biome, roll));
     }
 
     /**
@@ -126,9 +169,15 @@ public final class CordonSetup {
      * longer carries the whole Cordon is a broken pool, not a map to roll past.
      */
     public static CordonMap map(CordonVariant variant, SurfacePalette biome, StoryMapPool.Entry entry) {
-        Generated generated = generate(variant, biome, entry.seed(), entry.patch());
+        return map(variant, CordonPlan.Density.RURAL, biome, entry);
+    }
+
+    /** As {@link #map(CordonVariant, SurfacePalette, StoryMapPool.Entry)}, from the pool of a density. */
+    public static CordonMap map(CordonVariant variant, CordonPlan.Density density, SurfacePalette biome,
+                                StoryMapPool.Entry entry) {
+        Generated generated = generate(variant, density, biome, entry.seed(), entry.patch());
         if (generated.missing() != null) {
-            throw new IllegalStateException(storyMap(variant).id + " " + biome + " seed " + entry.seed()
+            throw new IllegalStateException(storyMap(variant, density).id + " " + biome + " seed " + entry.seed()
                     + " does not carry the Cordon: " + generated.missing());
         }
         CordonMap cordon = generated.cordon();
@@ -138,8 +187,9 @@ public final class CordonSetup {
 
     private record Generated(CordonMap cordon, String missing) { }
 
-    private static Generated generate(CordonVariant variant, SurfacePalette biome, long battleSeed, MapPatch patch) {
-        PrecinctPlan plan = patch.pinned(CordonPlan.planFor(variant, WIDTH, HEIGHT, battleSeed));
+    private static Generated generate(CordonVariant variant, CordonPlan.Density density, SurfacePalette biome,
+                                      long battleSeed, MapPatch patch) {
+        PrecinctPlan plan = patch.pinned(CordonPlan.planFor(variant, density, WIDTH, HEIGHT, battleSeed));
         MapResult map = MAP_GEN.generate(WIDTH, HEIGHT, battleSeed, null, country(biome), plan);
         String missing = missing(variant, map, plan);
         if (missing != null) return new Generated(null, missing);

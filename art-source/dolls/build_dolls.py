@@ -200,12 +200,12 @@ def tank(name, turret_w=24, turret_top=50, heavy=False, screened=False, dozer=Fa
     return d.write()
 
 
-def apc(name, pods=False):
+def apc(name, launcher=False):
     d = Doll(name)
     for cx, rear in views():
         vl, vr = sides(rear)
-        if pods:
-            d.pair("TURRET", "TURRET", [(-30, 36), (-2, 36), (-2, 58), (-30, 58)], cx)
+        if launcher:
+            d.panel("TURRET", [(-24, 36), (24, 36), (24, 58), (-24, 58)], cx)
         else:
             d.panel("TURRET", [(-10, 42), (10, 42), (14, 58), (-14, 58)], cx)
         d.panel("HULL", [(-34, 58), (34, 58), (40, 68), (-40, 68)], cx)
@@ -418,7 +418,7 @@ def main():
         tank("tank-screened", screened=True),
         tank("tank-dozer", turret_w=16, turret_top=58, dozer=True),
         apc("apc"),
-        apc("lrm-carrier", pods=True),
+        apc("lrm-carrier", launcher=True),
         pickup("technical", gun="mg"),
         pickup("technical-srm", gun="srm"),
         pickup("truck", cargo=True),

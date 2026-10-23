@@ -45,21 +45,11 @@ final class BattleDirectControlHudModel {
         default void pick(FireTrigger trigger, int member) { }
     }
 
-    /**
-     * How a trigger header reads its pick, while the owner chooses (picks page, 2026-10-23); the
-     * looks not chosen are removed with this enum. {@code KEYCAP}: {@code LMB  LINKED  [Q]}.
-     * {@code COUNTED}: the same with the pick's place in the list, {@code 1/3  [Q]}. {@code GROUP}: the
-     * group's noun before the pick, {@code LMB  GUNS: LINKED  [Q] cycle}. The heading font has no
-     * middle dot and draws parentheses thinly, so a header separates with a colon or a space.
-     */
-    enum PickLook { KEYCAP, COUNTED, GROUP }
-
     /** How far a member its trigger's pick leaves out fades: it holds fire. */
     private static final float UNPICKED_OPACITY = .45f;
 
     private final Reactor reactor;
     private final WeaponActions select;
-    private PickLook pickLook = PickLook.KEYCAP;
     private final Function<String, String> copy;
     private final Map<String, Object> statusProps = new LinkedHashMap<>();
     private final Map<String, Object> weaponsProps = new LinkedHashMap<>();
@@ -109,8 +99,6 @@ final class BattleDirectControlHudModel {
     Map<String, Object> weaponsProps() { return weaponsProps; }
     Map<String, Object> actionsProps() { return actionsProps; }
     void setExitLabelKey(String key) { exitLabelKey = key; }
-    /** For the picks-page renders; takes effect on the next update. */
-    void setPickLook(PickLook look) { pickLook = look; }
 
     /** Changes exactly when a panel gains or loses a row, so its host knows to re-measure it. */
     String structureKey() { return structureKey; }
@@ -233,14 +221,12 @@ final class BattleDirectControlHudModel {
         }
         boolean cycles = members.size() > 1;
         boolean linked = cycles && pickedCount == members.size();
-        int place = 0;
         String pickName = label("PickNone");
         if (members.size() == 1) pickName = members.get(0).name();
         else if (linked) pickName = label("PickLinked");
         else for (int i = 0; i < members.size(); i++) {
             if (picked.get(i)) {
                 pickName = pickName(members, i);
-                place = i + 1;
                 break;
             }
         }
@@ -254,26 +240,22 @@ final class BattleDirectControlHudModel {
             boolean on = picked.get(i);
             rows.add(weaponRow(weapon, true, on && cycles, cycles && !on, key, action));
         }
-        String cycleKey = label(leftButton ? "KeyCycleLeft" : "KeyCycleRight");
-        String name = switch (pickLook) {
-            case KEYCAP, COUNTED -> pickName;
-            case GROUP -> label(leftButton ? "GroupGuns" : "GroupRacks") + ": " + pickName;
-        };
-        String hint = !cycles ? "" : switch (pickLook) {
-            case KEYCAP -> cycleKey;
-            case COUNTED -> (place + 1) + "/" + (members.size() + 1) + "  " + cycleKey;
-            case GROUP -> cycleKey + " " + label("PickCycle");
-        };
+        // The header reads LMB  LINKED  [Q]: the pick, then the key that cycles it (owner, 2026-10-23).
+        String hint = cycles ? label(leftButton ? "KeyCycleLeft" : "KeyCycleRight") : "";
         boolean close = anyTooClose(snapshot, leftButton);
         String id = leftButton ? "direct-hud-group-lmb" : "direct-hud-group-rmb";
         return new WeaponGroup(id, label(leftButton ? "BadgeLMB" : "BadgeRMB"),
-                leftButton ? "badge badge-lmb" : "badge badge-rmb", name,
+                leftButton ? "badge badge-lmb" : "badge badge-rmb", pickName,
                 close ? label("TOO_CLOSE") : hint, close ? HINT_WARN : HINT,
                 cycles ? "group-header group-header-action" : "group-header", !cycles,
                 () -> select.cycle(trigger), rows);
     }
 
-    /** A picked member's name, with its hardpoint when another member shares it (a Bulwark's two chainguns). */
+    /**
+     * A picked member's name, with its hardpoint when another member shares it (a Bulwark's two
+     * chainguns). The heading font has no middle dot and draws parentheses thinly, so the hardpoint
+     * leads with a space.
+     */
     private String pickName(List<WeaponStatus> members, int index) {
         String name = members.get(index).name();
         for (int i = 0; i < members.size(); i++) {
@@ -370,7 +352,13 @@ final class BattleDirectControlHudModel {
                     weapon.cycleFraction(), weapon.fluxBlocked());
         }
         if (ammo.unit() == BattleDirectControlStatus.AmmoUnit.UNTRACKED || ammo.unlimited()
-                || ammo.capacity() <= 0) return null;
+                || ammo.capacity() <= 0) {
+            // A gun with nothing to count still shows the burst one click sends.
+            return behavior.ordnance() == Ordnance.BALLISTIC
+                    ? ChargeGauge.burst(behavior.projectilesPerTrigger(), weapon.burstRemaining(),
+                            weapon.cycleFraction())
+                    : null;
+        }
         MagazineGauge gauge;
         if (ammo.unit() == BattleDirectControlStatus.AmmoUnit.TRIGGER_PACKS) {
             int perPack = Math.max(1, behavior.projectilesPerTrigger());
@@ -422,7 +410,7 @@ final class BattleDirectControlHudModel {
                 : ability.cooldownSeconds() > 0f ? 1f - fraction(ability.cooldownSeconds(), ability.cooldownDurationSeconds())
                 : ability.ready() ? 1f : 0f;
         return new WeaponRow("direct-hud-ability-" + ability.ability().name(), "weapon ability",
-                rowStyle(false, 1f), true, shield ? "E" : "G", "key", label(shield ? "Shield" : "Smoke"),
+                rowStyle(false, 1f), true, shield ? "C" : "G", "key", label(shield ? "Shield" : "Smoke"),
                 detail, resource, state, "weapon-state" + (broken || empty ? " weapon-empty"
                 : !ability.ready() ? " weapon-busy" : ""), width(fill), () -> {});
     }

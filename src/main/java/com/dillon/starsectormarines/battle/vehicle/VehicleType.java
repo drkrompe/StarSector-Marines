@@ -267,12 +267,12 @@ public enum VehicleType {
         }
     },
     /**
-     * The heavy APC's hull with the troop bay given over to a launcher: two of the mech LRM-15's anti-armor racks
-     * on a turntable where the twin MG stood. It is the long arm against armor, where the fire-support APC's mortar
+     * The heavy APC's hull with the troop bay given over to a launcher: one fifteen-tube LRM-15 anti-armor box on a
+     * turntable where the twin MG stood. It is the long arm against armor, where the fire-support APC's mortar
      * is the short arm against men: its rounds arc over cover onto a machine somebody else on its side is looking
      * at ({@link SideObservers}), it holds fire at anything soft, and it fights from beyond its target's reach
      * ({@link Stance#STANDOFF}). It pays with no seats and thinner plate than the carrier it replaces. Its sheet is
-     * the APC's hulls with the mech LRM pod drawn at the hull's scale (art-source/vehicles/missile-carriers).
+     * the APC's hulls with the launcher box drawn at the hull's scale (art-source/vehicles/missile-carriers).
      */
     LRM_CARRIER("graphics/battle/vehicles/lrm-carrier.png", 0, 4, -90f,
             0, 2.4f, 1.4f, 2.6f, 1.6f, 3.5f, .8f, 2.2f,
