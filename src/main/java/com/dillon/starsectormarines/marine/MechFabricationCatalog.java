@@ -70,7 +70,6 @@ public final class MechFabricationCatalog {
             // Variants cost more than the hull they improve on: plate in metals, guns in transplutonics.
             vehicle(VehicleType.UP_ARMORED_APC, "@gearFabricationMediumVehicleStandardFit", 227, 57, 8),
             vehicle(VehicleType.FIRE_SUPPORT_APC, "@gearFabricationMediumVehicleStandardFit", 202, 57, 11),
-            vehicle(VehicleType.HEAVY_GUN_TANK, "@gearFabricationHeavyVehicleStandardFit", 472, 143, 38),
             vehicle(VehicleType.DOZER_BREACHER, "@gearFabricationHeavyVehicleStandardFit", 498, 152, 24),
             // The screened tank is the breakthrough tank plus its interceptor system: launchers and their sensor
             // are machinery and transplutonics, not plate.

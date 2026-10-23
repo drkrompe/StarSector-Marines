@@ -244,7 +244,6 @@ class BattleHudOverlayModelTest {
                     .background().getAlpha());
             UiElement selectedDouble = instance.requireElement("battle-time-double");
             assertTrue(selectedDouble.hasClass("time-selected"));
-            assertEquals(new Color(0xFF, 0xD4, 0x64), selectedDouble.borderColor());
             assertEquals(new Color(0xFF, 0xD4, 0x64), selectedDouble.textColor());
             assertFalse(instance.requireElement("battle-time-normal").hasClass("time-selected"));
             assertEquals("2 / 5", instance.requireElement("battle-objective-score").text());

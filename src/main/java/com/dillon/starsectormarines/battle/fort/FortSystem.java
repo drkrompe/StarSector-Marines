@@ -158,6 +158,7 @@ public final class FortSystem {
         Faction hostile = null;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);
+            if (sim.isRiding(unit)) continue;
             Faction faction = sim.identity().faction(unit);
             if (faction == Faction.CIVILIAN || !standsAtPoints(sim.identity().type(unit))) continue;
             int cellX = (int) Math.floor(sim.world().x(unit));

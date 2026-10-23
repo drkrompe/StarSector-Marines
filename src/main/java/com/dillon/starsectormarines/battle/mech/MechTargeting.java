@@ -133,6 +133,7 @@ public final class MechTargeting {
         Faction ownFaction = sim.identity().faction(mech);
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long candidate = sim.liveUnitAt(i);
+            if (sim.isRiding(candidate)) continue;
             if (candidate == mech
                     || !ownFaction.hostileTo(sim.identity().faction(candidate))
                     || !sim.identity().type(candidate).combatant) {

@@ -363,6 +363,7 @@ public final class SquadMoraleSystem {
         float bestDistSq = NEAR_MISS_RADIUS_SQ;
         for (int i = 0; i < liveCount; i++) {
             long member = dense[i];
+            if (roster.isRiding(member)) continue;
             // Dense iteration excludes released units — no isAlive() needed.
             if (!squads.hasSquad(member)) continue;
             Squad sq = roster.getSquad(squads.squadId(member));

@@ -264,6 +264,7 @@ public final class HoldZone extends AbstractZoneAction {
         float bestDist = Float.MAX_VALUE;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long other = sim.liveUnitAt(i);
+            if (sim.isRiding(other)) continue;
             if (!selfFaction.hostileTo(sim.identity().faction(other))) continue;
             if (!sim.identity().type(other).combatant) continue;
             if (!inTarget(sim.world().cellX(other), sim.world().cellY(other), sim)) continue;

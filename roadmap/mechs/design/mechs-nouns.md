@@ -138,8 +138,8 @@ increasing an encounter's total armored threat.
   Medium lift) and fire-support APC (a heavy mortar where the troop bay was, no seats,
   Medium lift) are Advanced, as is the LRM carrier (two LRM-15 anti-armor racks
   where the troop bay was, no seats, Medium lift, spotted indirect fire;
-  `convoy-nouns.md`, the missile carriers); the breakthrough tank's heavy-gun tank and dozer
-  breacher are Prestige and Heavy lift. A variant earns its place by a trade —
+  `convoy-nouns.md`, the missile carriers); the breakthrough tank's variants (screened tank, laser tank,
+  dozer breacher) are Prestige and Heavy lift. A variant earns its place by a trade —
   among fabricable hulls on the same lift with the same gun, none is at least as good
   at everything — and costs more than the hull it improves on. A faction weights up
   the variant it is known for (Hegemony the up-armored APC and the LRM carrier, the Lion's Guard the

@@ -237,6 +237,7 @@ class ClearZoneDecisionCadenceTest {
                         // No per-tick zone table: the clear test takes the live scan this suite counts.
                         case "zoneOccupancy" -> null;
                         case "liveUnitIndexOf" -> roster.indexOf((long) args[0]);
+                        case "isRiding" -> roster.isRiding((long) args[0]);
                         case "liveUnitCount" -> roster.liveCount();
                         case "liveUnitAt" -> { visits++; yield roster.get((int) args[0]); }
                         case "advanceMovement" -> { advances++; yield null; }

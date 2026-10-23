@@ -114,6 +114,7 @@ public final class GarrisonPatrol implements Action {
     private boolean zoneHasEngageableEnemy(int zoneId, long member, Faction selfFaction, BattleControl sim) {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long e = sim.liveUnitAt(i);
+            if (sim.isRiding(e)) continue;
             if (!selfFaction.hostileTo(sim.identity().faction(e))
                     || !sim.identity().type(e).combatant) continue;
             if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(e), sim.world().cellY(e)) != zoneId) continue;
