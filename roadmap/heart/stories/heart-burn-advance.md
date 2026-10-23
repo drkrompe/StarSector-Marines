@@ -10,8 +10,12 @@ Written: 2026-10-22
 
 ## Scope
 
-- The company commander follows the lifting line at danger close and relights the line past each firebreak with incendiaries.
-- Breakout beats when surges come through the fire.
+Already in place: the company follows the lifting line (`BarrageScreen`,
+`heart-nouns.md`, Following the barrage) and the `breakout_N` beats fire when a
+surge comes through. What is left:
+
+
+- The company relights the line past each firebreak with incendiaries.
 - Burnt creep scored on the outcome.
 - A behaviour scene that walks a barrage over a squad's front and shows the squad keeping to danger close.
 
