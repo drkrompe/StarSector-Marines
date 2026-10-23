@@ -125,6 +125,8 @@ about a sixth, a third, two thirds and five sixths of the way across, with the
 country road out of the middle of the farmland as the company's own. A lane is
 ground, not a corridor: a column may leave it, and the creep has grown over it.
 
+**Logistics base** (Broad Front). The allies' tool shed behind the start line: the layout's vehicle park, ammunition dumps and supply road (`heart-map-intent.md`). The lanes' armour waves set out from the park and drive up to their lanes, and none sets out while the swarm is on it, so losing the base is what stops the reinforcements. It never fights and never ends the battle. Which tools it sends beyond armour is `heart-allied-forces.md`, over the shared catalogue in `allied-tools.md`.
+
 **Ride** (The Burn). A straight strip a forester cuts across a wood to stop a
 fire: bare earth five cells wide across the whole approach, two of them, at
 about three tenths and a half of the way in. Fire jumps up to three cells of

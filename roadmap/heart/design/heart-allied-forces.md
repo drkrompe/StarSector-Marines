@@ -1,6 +1,6 @@
 # The Heart — allied forces and their tools
 
-Status: DRAFT — options out to the owner (question `heart-allied-tool`).
+Status: DRAFT — options out to the owner (question `heart-allied-tool`); armour up the road, the recommended one, is built.
 
 Written: 2026-10-23
 
@@ -37,8 +37,10 @@ the same swarm pack, so the four pictures read side by side.
 - **Armour up the road** (`allies-armour`): the vehicle park sends a tank pair
   and an APC up the supply road every few minutes to the nearest lane. F6 is
   what it hangs on: the satellite against the road cuts it until it falls.
-  Built from `HeartLanes.scheduleArmour` and `AlliedCommand`; most of it
-  exists.
+  Built: the lanes' armour waves set out from the laid vehicle park
+  (`HeartVehiclePark`, an `AlliedDepot`) and wait while the swarm is on it.
+  They drive cross-country to their lanes for now, not along the road, and
+  the road-cutting satellite does not stop them yet.
 - **Gunship on call** (`allies-gunship`): the base calls an allied gunship
   orbit over a bore, once F3's corridor is open (the spore colonies over the
   approach are dead). One sortie at a time; it can be shot down. Built from
