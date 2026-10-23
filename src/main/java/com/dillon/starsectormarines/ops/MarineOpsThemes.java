@@ -265,7 +265,7 @@ final class MarineOpsThemes {
                 .hud-glass button:active { background-color: #00000066; border-style: solid; }
                 .hud-glass button:focus-visible { border-color: #ffe1a0; }
                 .hud-glass button.selected, .hud-glass button.power-armed,
-                .hud-glass .doctrine-card-active, .hud-glass .pick-selected {
+                .hud-glass .doctrine-card-active, .hud-glass .pick-selected, .hud-glass .ship-selected {
                     background-color: #d6c27a24; border-color: #d6c27a99; color: #ffd464; border-style: solid;
                 }
                 .hud-glass .lance-order-card-active { background-color: #8ee3ff17; border-color: #a7ccc499; }

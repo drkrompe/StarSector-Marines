@@ -17,7 +17,7 @@
   </div>
 </template>
 <style>
-  .order-bar { width: 406px; height: 56px; padding: 6px; gap: 4px; border-width: 0px; background-color: transparent; }
+  .order-bar { width: 406px; height: 56px; padding: 6px; gap: 4px; border-width: 1px; border-color: transparent; background-color: transparent; }
   .order-header { height: 12px; flex-direction: row; gap: 6px; }
   .scope { width: 112px; font-family: compact; color: #c5d6cb; white-space: nowrap; }
   .hint { flex-grow: 1; font-family: compact; text-align: right; color: #a0ada8; white-space: nowrap; }

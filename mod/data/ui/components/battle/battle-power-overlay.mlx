@@ -57,7 +57,7 @@
     height: 14px;
     flex-direction: row;
     padding: 4px 7px;
-    border-width: 0px;
+    border-width: 1px; border-color: transparent;
     background-color: transparent;
     background-image: linear-gradient(to right, #ffd46433 0%, #ffd46414 60%, #ffd46400 100%);
   }
@@ -75,7 +75,7 @@
     flex-direction: row;
     padding: 3px 7px;
     gap: 4px;
-    border-width: 0px;
+    border-width: 1px; border-color: transparent;
     background-color: transparent;
     overflow: hidden;
   }
@@ -125,7 +125,7 @@
     flex-direction: row;
     padding: 5px;
     gap: 5px;
-    border-width: 0px;
+    border-width: 1px; border-color: transparent;
     background-color: transparent;
   }
 
