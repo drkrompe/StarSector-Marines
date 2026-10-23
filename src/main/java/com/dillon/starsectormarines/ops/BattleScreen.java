@@ -281,6 +281,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     private static final float LOADING_MINIMUM_SECONDS = 0.5f;
     /** GL upload time a loading frame may spend before the loading screen draws again. */
     private static final long LOADING_FRAME_BUDGET_NANOS = 12_000_000L;
+    /** A load step longer than this stops the loading screen's spinner long enough to notice. */
+    private static final long SLOW_LOAD_STEP_NANOS = 150_000_000L;
     /** The battle's texture loads, run a frame's budget at a time; null before the first attach. */
     private TextureLoadQueue loadQueue;
     private BattleLoadingOverlay loadingOverlay;
@@ -420,26 +422,31 @@ public class BattleScreen implements Screen, BattleUiContext {
             sprites.ensureDoodadSheet();
             sprites.ensureDecalSheet();
         }));
-        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingInfantry"), () -> {
+        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingSprites"), () -> {
             sprites.ensureUnitSheets();
             sprites.ensureLayeredUnitSprites();
         }));
-        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingMechs"), sprites::ensureLayeredMechSprites));
-        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingStructures"), sprites::ensureTurretSprites));
-        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingWeapons"), sprites::ensureMarineSecondarySprites));
-        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingAircraft"), () -> {
+        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingSprites"), sprites::ensureLayeredMechSprites));
+        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingSprites"), sprites::ensureTurretSprites));
+        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingSprites"), sprites::ensureMarineSecondarySprites));
+        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingSprites"), () -> {
             sprites.ensureAirframeSprites();
             sprites.ensureDroneSprite();
             sprites.ensureDroneHubSprite();
             sprites.ensureEngineFxSprites();
         }));
-        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingVehicles"), sprites::ensureConvoySprites));
+        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingSprites"), sprites::ensureConvoySprites));
         steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingEffects"), sprites::ensureObjectiveIcons));
-        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingField"), () -> {
+        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingAtlases"), () -> {
             renderer.buildTileBatches();
             renderer.onAttach();
         }));
         loadQueue = new TextureLoadQueue(steps);
+        if (DevConfig.DEV_MODE) {
+            loadQueue.onSlowStep(SLOW_LOAD_STEP_NANOS, (step, nanos) -> LOG.info("battle textures: a "
+                    + step.stage() + " step held the GL thread " + nanos / 1_000_000L
+                    + " ms, freezing the loading spinner; split it"));
+        }
         loadingShownSeconds = freshBattle ? 0f : LOADING_MINIMUM_SECONDS;
         if (loadingOverlay == null) loadingOverlay = new BattleLoadingOverlay();
         Mission mission = ctx != null ? ctx.getSelectedMission() : null;
@@ -456,7 +463,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     private void advanceLoading(float realDt) {
         loadQueue.advance(LOADING_FRAME_BUDGET_NANOS);
         loadingShownSeconds += realDt;
-        loadingOverlay.update(realDt, loadQueue.progress(), loadQueue.label(), 0L);
+        loadingOverlay.update(realDt, loadQueue);
     }
 
     /**

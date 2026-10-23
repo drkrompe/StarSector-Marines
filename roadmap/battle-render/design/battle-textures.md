@@ -45,7 +45,7 @@ Starsector is a heavily modded game, and that is video memory every other mod is
 - The **load queue** (`TextureLoadQueue`) is the battle texture set cut into steps and run a
   frame's budget at a time, so the loading screen keeps drawing while the GL thread uploads.
 - The **loading screen** (`BattleLoadingOverlay`) is what a battle shows while its queue runs:
-  the operation's name, where it is fought, a bar and a line saying what is loading.
+  the operation's name, where it is fought, a bar, a spinner and the loader's stage.
 
 ## Ownership and flow
 
@@ -133,11 +133,22 @@ battle screen's instance loads under a battle lease; the others stay on the sess
 
 ## Loading screen
 
-The battle shows a card in the middle of a dark screen with the operation's name, where it is
-fought, a bar, and a line naming what is loading (the recommended options on the picks page;
-the owner's choice of look, progress line and minimum display time replaces them). The screen
-is a retained-UI component (`battle-loading-overlay.mlx`) so the `battle-loading` snapshot
-suite renders the same markup the game draws.
+The owner chose it on 2026-10-23: a card in the middle of a dark screen with the operation's
+name, where it is fought, a bar, an activity spinner and the loader's **stage**. It stays up at
+least half a second for a fresh battle, so a fast load does not flicker.
+
+- **The line names the stage, never the content.** "Loading terrain", "Loading sprites",
+  "Loading effects", "Building atlases": the same fixed set in every battle. The art a battle
+  loads is what the player is about to face, so naming a family, a livery or a vehicle line
+  would be a spoiler (owner: "These are kind of spoilers").
+- **The spinner runs on frame time, not on progress**, so it keeps moving through a long step
+  while the bar stands still, and the player can tell the game has not stalled. It only moves
+  if the GL thread yields between steps, so a step that holds the thread longer than 150 ms is
+  logged in the dev build as one to split.
+- The screen reads a `LoadingProgress` (steps done, steps in all, stage), which the load queue
+  provides; it knows nothing of sprites or atlases. It is a retained-UI component
+  (`battle-loading-overlay.mlx`), so the `battle-loading` snapshot suite renders the markup the
+  game draws.
 
 ## Evidence
 
