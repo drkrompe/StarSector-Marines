@@ -175,7 +175,7 @@ public final class CordonArmour {
         for (CordonRedoubt r : redoubts) {
             if (r.state() == CordonRedoubt.State.FALLEN) continue;
             long held = answering.values().stream().filter(x -> x == r).count();
-            float score = held * 10_000f - (r.wantsHelp() ? 5_000f : 0f)
+            float score = held * 10_000f - (r.state() == CordonRedoubt.State.CALLING ? 5_000f : 0f)
                     + body.distanceTo(r.centreX(), r.centreY());
             if (score < bestScore) {
                 bestScore = score;
@@ -189,7 +189,7 @@ public final class CordonArmour {
         CordonRedoubt best = null;
         float bestDistance = Float.MAX_VALUE;
         for (CordonRedoubt r : redoubts) {
-            if (!r.wantsHelp()) continue;
+            if (r.state() != CordonRedoubt.State.CALLING) continue;
             float d = body.distanceTo(r.centreX(), r.centreY());
             if (d < bestDistance) {
                 bestDistance = d;

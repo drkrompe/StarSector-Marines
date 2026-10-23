@@ -23,9 +23,8 @@ import java.util.Map;
 /**
  * The company as the mobile reserve ({@code cordon-nouns.md}, Flow): the
  * minimum autonomous Marine commander the evidence needs. The company stands
- * behind the middle of the line; each redoubt wanting help (calling, or
- * relieved and still pressed) gets its nearest few squads, who spread through
- * it, and the rest stay in the reserve. Posture and
+ * behind the middle of the line; each squad answers the calling redoubt
+ * nearest it, and returns to the reserve when no redoubt calls. Posture and
  * strikes are {@code cordon-company-command.md}.
  *
  * <p>The company hears the calls and knows where the redoubts stand; it does
@@ -42,14 +41,6 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
     static final int ROAD_SQUADS = 2;
     /** Squads that walk ahead of each convoy past the gap. */
     static final int ESCORT_SQUADS = 3;
-    /**
-     * Squads sent to each redoubt wanting help, the nearest first. Every squad went to its own
-     * nearest call, so one call drew the whole company onto a single cell in the redoubt's middle,
-     * where the next tide killed thirty-four of thirty-six in two minutes.
-     */
-    static final int RELIEF_SQUADS = 3;
-    /** Cells round a redoubt's middle its relief defends, so it spreads through the redoubt. */
-    static final int RELIEF_HOLD = 9;
 
     /** A redoubt as the company knows it: where it is and whether it is calling. */
     public record Call(int number, int x, int y, boolean calling) { }
@@ -74,9 +65,7 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
             CommandFrame base = CommandFrame.freeze(view, faction, topology, assignments);
             List<Call> calls = new ArrayList<>();
             for (CordonRedoubt r : sequence.redoubts()) {
-                // A relieved redoubt still pressed keeps its call: one marine passing within reach of
-                // its wall relieved it, and the company, seeing no call, walked away as it fell.
-                calls.add(new Call(r.number(), r.centreX(), r.centreY(), r.wantsHelp()));
+                calls.add(new Call(r.number(), r.centreX(), r.centreY(), r.state() == CordonRedoubt.State.CALLING));
             }
             List<int[]> blocks = sequence.convoys() == null ? List.of() : sequence.convoys().roadBlocks();
             List<int[]> escorts = sequence.convoys() == null || !(view instanceof BattleSimulation sim)
@@ -115,15 +104,10 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         Map<Integer, int[]> roadDuty = new HashMap<>();
         for (int[] block : frame.roadBlocks) take(owned, roadDuty, block, ROAD_SQUADS);
         for (int[] escort : frame.escorts) take(owned, roadDuty, escort, ESCORT_SQUADS);
-        // Then the redoubts wanting help, a few squads each: the rest stay in reserve.
-        Map<Integer, int[]> relief = new HashMap<>(roadDuty);
-        for (Call call : frame.redoubts) {
-            if (call.calling()) take(owned, relief, new int[]{call.x(), call.y(), call.number()}, RELIEF_SQUADS);
-        }
         for (int i = 0; i < owned.size(); i++) {
             CommandSquadState squad = owned.get(i);
+            Call answer = nearestCall(frame.redoubts, squad.centroidX(), squad.centroidY());
             int[] road = roadDuty.get(squad.squadId());
-            int[] answer = road == null ? relief.get(squad.squadId()) : null;
             ObjectiveAssignment next;
             String reason;
             if (road != null) {
@@ -131,9 +115,9 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
                 next = ObjectiveAssignment.attackMove(squad.squadId(), cell[0], cell[1]);
                 reason = "CORDON_CLEAR_ROAD";
             } else if (answer != null) {
-                int[] cell = ground(frame, squad, answer[0], answer[1]);
-                next = ObjectiveAssignment.defendArea(squad.squadId(), cell[0], cell[1], RELIEF_HOLD);
-                reason = "CORDON_RELIEVE_" + answer[2];
+                int[] cell = ground(frame, squad, answer.x(), answer.y());
+                next = ObjectiveAssignment.attackMove(squad.squadId(), cell[0], cell[1]);
+                reason = "CORDON_RELIEVE_" + answer.number();
             } else {
                 int offset = (i - (owned.size() - 1) / 2) * RESERVE_SPACING;
                 int[] cell = ground(frame, squad, reserveX + offset, reserveY);
@@ -164,6 +148,20 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         return directive.authority() == CommandAuthority.MISSION_COMMAND && ISSUER.equals(directive.issuer())
                 || directive.authority() == CommandAuthority.PLAYER_INTERVENTION
                 && directive.leaseUntilTick() >= 0 && directive.leaseUntilTick() < tick;
+    }
+
+    private static Call nearestCall(List<Call> calls, float x, float y) {
+        Call best = null;
+        double bestDistance = Double.MAX_VALUE;
+        for (Call call : calls) {
+            if (!call.calling()) continue;
+            double distance = Math.hypot(call.x() - x, call.y() - y);
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                best = call;
+            }
+        }
+        return best;
     }
 
     /** The reachable open cell nearest the one asked for, or the squad's own ground. */

@@ -48,7 +48,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Tag("cordon-command-evidence")
 class CordonCommandEvidenceTest {
 
-    /** Cells from the walls of a redoubt wanting help an allied hull counts as answering it. */
+    /** Cells from a calling redoubt's walls an allied hull counts as answering it. */
     private static final float ARMOUR_AT_CALL = 12f;
     private static final String NL = "\n";
 
@@ -219,7 +219,7 @@ class CordonCommandEvidenceTest {
         }
         int bores = 0;
         for (SwarmBore bore : sim.swarmBores().bores()) if (!bore.collapsed()) bores++;
-        // Allied armour: hulls alive, and how many stand within reach of a redoubt wanting help.
+        // Allied armour: hulls alive, and how many stand within reach of a calling redoubt.
         int hulls = 0, atCall = 0;
         if (cordon.armour() != null) {
             for (long hull : cordon.armour().command().hulls()) {
@@ -228,7 +228,7 @@ class CordonCommandEvidenceTest {
                 for (CordonRedoubt r : cordon.redoubts()) {
                     float nearX = Math.max(r.left(), Math.min(r.right(), body.x));
                     float nearY = Math.max(Math.min(r.top(), r.bottom()), Math.min(Math.max(r.top(), r.bottom()), body.y));
-                    if (r.wantsHelp() && body.distanceTo(nearX, nearY) <= ARMOUR_AT_CALL) {
+                    if (r.state() == CordonRedoubt.State.CALLING && body.distanceTo(nearX, nearY) <= ARMOUR_AT_CALL) {
                         atCall++;
                         break;
                     }
@@ -334,7 +334,7 @@ class CordonCommandEvidenceTest {
             out.append(String.format(Locale.ROOT, "| %.2f | %s |%n", event.tick() * BattleSimulation.TICK_DT / 60f,
                     event.id()));
         }
-        out.append("\n## The line each minute\n\nArmour: allied hulls alive (at a redoubt wanting help: calling, or relieved and still pressed). Convoys: each on "
+        out.append("\n## The line each minute\n\nArmour: allied hulls alive (at a calling redoubt). Convoys: each on "
                 + "the road, its lead truck's cell along the corridor")
                 .append(cordon.convoys() == null ? "" : " (the gap is cell " + cordon.convoys().gapIndex() + ")")
                 .append(", and why it is held.\n\n| min | marines | allies | swarm | bores | armour |");

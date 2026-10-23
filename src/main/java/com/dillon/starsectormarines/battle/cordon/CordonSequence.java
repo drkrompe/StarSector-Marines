@@ -243,9 +243,6 @@ public final class CordonSequence implements Objective {
     private void step(BattleSimulation sim, int tick, CordonRedoubt redoubt, int swarmInside, boolean relief) {
         if (redoubt.state() == CordonRedoubt.State.FALLEN) return;
         int standing = standing(sim, redoubt);
-        // Not "half the garrison down": the dead stay dead, and a redoubt pressed for good kept its
-        // relief there until the company had bled out.
-        redoubt.setPressed(swarmInside > 0);
         if (standing == 0 && swarmInside > 0) {
             redoubt.setState(CordonRedoubt.State.FALLEN);
             emit(tick, "redoubt_fell_" + redoubt.number());

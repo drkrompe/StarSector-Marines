@@ -88,13 +88,8 @@ swarm body is inside its wall. It is **calling** (for relief) once a swarm
 body is inside the wall or half its garrison is down: the company hears the
 call. It is **relieved** when a Marine reaches its gate while it is calling:
 the call is answered, and it calls again only when a swarm body is inside its
-wall once more. Relief is a beat, not the end of the need: a redoubt that is
-calling, or relieved and still **pressed** (a swarm body inside its wall),
-**wants help**, and the company, the armour and the carriers
-keep coming to it until it is not. One marine passing within reach of a
-redoubt's wall on its way elsewhere relieved it, and the company, which saw no
-call, walked away as it fell. A relieved redoubt whose garrison is gone is held
-by the company while Marines stand in it. It has **fallen** when its garrison is dead
+wall once more. A relieved redoubt whose garrison is gone is held by the
+company while Marines stand in it. It has **fallen** when its garrison is dead
 and a swarm body is inside the wall. A
 fallen redoubt is not re-raised in the battle (see *Settled choices*). The line
 **breaks** when more redoubts have fallen than the briefing allows.

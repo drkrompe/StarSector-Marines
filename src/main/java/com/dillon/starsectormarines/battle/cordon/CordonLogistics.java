@@ -516,7 +516,7 @@ public final class CordonLogistics {
         int bestScore = Integer.MAX_VALUE;
         for (CordonRedoubt r : redoubts) {
             if (r.state() == CordonRedoubt.State.FALLEN) continue;
-            int score = CordonSequence.standing(sim, r) - (r.wantsHelp() ? 1000 : 0);
+            int score = CordonSequence.standing(sim, r) - (r.state() == CordonRedoubt.State.CALLING ? 1000 : 0);
             if (score < bestScore) {
                 bestScore = score;
                 best = r;
