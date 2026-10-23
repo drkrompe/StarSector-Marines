@@ -2197,6 +2197,8 @@ def _slug_trail(ctx, coll, label, frame, weapon, frames, heads, burn, M, d, rot,
 # --- screen width ---------------------------------------------------------------
 ROUND_NAME = re.compile(r'SWFX guns (round(?: core| trail)?|bolt) (.+?) (f\d{4})')
 STREAK_PX = (.5, 1.4)     # a round's corona radius on screen, pixels at 1920 across
+FLARE_NAME = re.compile(r'SWFX pd flare \d+ f\d{4}')
+FLARE_PX = (.8, 2.5)      # a decoy flare's glare radius on screen: a bright point, never a disc
 
 
 def _mesh_radius(me, cache):
@@ -2211,14 +2213,15 @@ def _fc_at(ob, path, index, frame, default):
     return fc.evaluate(frame) if fc is not None and len(fc.keyframe_points) else default
 
 
-def screen_clamp(objs, cam_at, to_world=None, px=STREAK_PX, width_px=1920):
+def screen_clamp(objs, cam_at, to_world=None, px=STREAK_PX, width_px=1920, flare_px=FLARE_PX):
     """Keep each round's drawn width inside a believable tracer's pixel band at the camera's
     distance (owner, 2026-10-23: streaks "very large at this zoom"). For every round among `objs`
     (its corona, core, ember trail, or an ion bolt strike, grouped by gun and fire frame), on each
     frame it is keyed or shown, the corona's radius in pixels is measured and, outside px=(lo, hi),
     the whole round's cross-section (scale Y and Z of each part, one factor, so core and sheath
     keep their proportion) is keyed to bring it to the band's edge. Length and flight are left
-    alone.
+    alone. A decoy flare's glare (swfx_pd.key_flares) is held to flare_px the same way, all three
+    axes, so one thrown toward the camera stays a bright point and never swells into a disc.
 
     cam_at(frame) -> (camera world location, horizontal fov in radians). to_world(frame) -> the
     Matrix from the objects' own space to the world in metres on that frame (default identity:
@@ -2234,6 +2237,29 @@ def screen_clamp(objs, cam_at, to_world=None, px=STREAK_PX, width_px=1920):
         if m:
             groups.setdefault((m.group(2), m.group(3)), []).append((m.group(1), ob))
     cache, keyed = {}, 0
+
+    def factor(ob, r0, f, band):
+        M = to_world(f)
+        loc = Vector([_fc_at(ob, 'location', i, f, ob.location[i]) for i in range(3)])
+        cam, fov = cam_at(f)
+        depth = max(1e-3, (M @ loc - Vector(cam)).length)
+        r_px = r0 * M.to_scale()[1] / (2 * depth * math.tan(fov / 2)) * width_px
+        return min(max(r_px, band[0]), band[1]) / r_px if r_px > 0 else 1.0
+
+    for ob in objs:
+        if ob.type != 'MESH' or not FLARE_NAME.search(ob.name):
+            continue
+        fc = swfx_core.find_fcurve(ob, 'location', 0)
+        frames = sorted({int(round(k.co.x)) for k in fc.keyframe_points}) if fc is not None else []
+        r0 = max((v.co.length for v in ob.data.vertices), default=0.0)
+        if not frames or r0 <= 0:
+            continue
+        for i in range(3):
+            sc = [_fc_at(ob, 'scale', i, f, ob.scale[i]) for f in frames]
+            # the radius at this axis's own scale on each frame, so every frame lands in the band
+            ks = [factor(ob, r0 * sc[j], f, flare_px) for j, f in enumerate(frames)]
+            _bake(ob, 'scale', i, frames, [v * k for v, k in zip(sc, ks)])
+        keyed += len(frames)
     for parts in groups.values():
         ref = next((ob for kind, ob in parts if kind == 'round'), None) or \
             next((ob for kind, ob in parts if kind == 'bolt'), None)
