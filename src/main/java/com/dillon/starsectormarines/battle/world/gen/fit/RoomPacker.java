@@ -1402,9 +1402,11 @@ public final class RoomPacker {
     private List<Doorway> commit(Candidate candidate,
                                                    RoomPurpose purpose, List<Access> accesses) {
         carveRoom(candidate, purpose);
+        RoomFitting fitting = RoomFittings.forRoom(ctx, purpose, candidate.shape());
+        boolean whole = fitting != null && fitting.wholeDoorways();
         List<Doorway> doors = new ArrayList<>();
         for (Access access : accesses) {
-            doors.addAll(cutDoor(candidate, access));
+            doors.addAll(cutDoor(candidate, access, whole));
         }
         rebuildSums();
         return List.copyOf(doors);
@@ -1436,7 +1438,7 @@ public final class RoomPacker {
 
     /** Cut one doorway and whatever passage was needed to reach it. */
     private List<Doorway> cutDoor(Candidate candidate,
-                                                     Access access) {
+                                                     Access access, boolean whole) {
         int[] anchor = null;
         for (int[] cell : access.passage()) {
             boolean crossing = claimed[cell[0] + 1][cell[1] + 1];
@@ -1448,9 +1450,49 @@ public final class RoomPacker {
         carveDoorway(access.doorX(), access.doorY());
         List<Doorway> doors = new ArrayList<>();
         doors.add(new Doorway(access.doorX(), access.doorY()));
+        if (whole && access.doorway() != null) {
+            doors.addAll(openWholeDoorway(candidate, access));
+            return doors;
+        }
         Doorway widened = widenDoorway(candidate, access);
         if (widened != null) doors.add(widened);
         return doors;
+    }
+
+    /**
+     * Take the door across its whole authored slot, both ways along the wall from the cell the
+     * access chose, as far as the slot runs and the room's own bulkhead opens onto floor outside
+     * ({@link RoomFitting#wholeDoorways}). The same tests as {@link #widenDoorway}, cell by cell.
+     */
+    private List<Doorway> openWholeDoorway(Candidate candidate, Access access) {
+        int perpX = access.dirY();
+        int perpY = access.dirX();
+        List<Doorway> opened = new ArrayList<>();
+        for (int side : new int[]{ 1, -1 }) {
+            for (int step = 1; ; step++) {
+                int nx = access.doorX() + perpX * side * step;
+                int ny = access.doorY() + perpY * side * step;
+                if (!inBounds(nx, ny) || floor[nx + 1][ny + 1]) break;
+                if (!permits(access.doorway(), nx, ny)) break;
+                if (backsOntoOtherRoom(candidate, nx, ny)) break;
+                int localX = nx - candidate.x();
+                int localY = ny - candidate.y();
+                if (candidate.shape().contains(localX, localY)) break;
+                if (!candidate.shape().contains(localX - access.dirX(), localY - access.dirY())) break;
+                int outsideX = nx + access.dirX();
+                int outsideY = ny + access.dirY();
+                if (!inBounds(outsideX, outsideY)) break;
+                // The ground outside is opened with the door: a machine door onto a strip of unbuilt
+                // ground is still a way out, and the yard beyond is what it opens onto.
+                if (!floor[outsideX + 1][outsideY + 1]) {
+                    if (claimed[outsideX + 1][outsideY + 1]) break;
+                    carveLane(outsideX, outsideY);
+                }
+                carveDoorway(nx, ny);
+                opened.add(new Doorway(nx, ny));
+            }
+        }
+        return opened;
     }
 
     /**

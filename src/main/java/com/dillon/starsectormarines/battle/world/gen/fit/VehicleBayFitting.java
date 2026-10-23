@@ -80,6 +80,12 @@ public final class VehicleBayFitting implements RoomFitting {
     public static final int BAY_GAP = 3;
     /** Clear deck down the middle, between the two ranks. The room's main lane. */
     public static final int SERVICE_LANE = 2;
+    /**
+     * The service lane of a shed on the ground, where machines are driven out as well as walked:
+     * wide enough for a carrier's footprint (three cells, `VehicleClearance`) with a cell to turn
+     * out of its berth in. It is also the width of the shed's machine door at the lane's end.
+     */
+    public static final int GROUND_SERVICE_LANE = 4;
     /** Cells at one end given over to the fab shop. */
     public static final int SHOP_WIDTH = 7;
     /** Cells of bulkhead a doorway may take, which is what a machine needs to pass. */
@@ -262,10 +268,41 @@ public final class VehicleBayFitting implements RoomFitting {
         return true;
     }
 
+    /**
+     * On the ground the shed's machine door is first: the vestibule end of the service lane, as wide
+     * as the lane, so a finished hull drives down the lane and straight out without turning in the
+     * vestibule. The drive-through and amidships doors stay as the alternatives where the deck
+     * cannot serve that end. A ship's bay keeps its mech-width doors; nothing drives out of it.
+     */
+    @Override
+    public boolean wholeDoorways() {
+        return !shipboard;
+    }
+
+    /**
+     * On the ground the shop end backs onto the compound's edge, so the machine door at the other
+     * end of the lane opens into the yard rather than onto the perimeter wall. A ship's bay states
+     * no side; the deck's circulation is what its doors meet.
+     */
+    @Override
+    public int[] outboard() {
+        return shipboard ? null : new int[]{1, 0};
+    }
+
     @Override
     public List<Hookup> hookups(RoomShape canonical) {
         int length = canonical.width();
         int depth = canonical.height();
+        if (!shipboard) {
+            Plan plan = Plan.of(length, depth, false);
+            return List.of(
+                    Hookup.of(Hookup.DoorSlot.run(-1, plan.laneFrom(), 1, plan.laneSpan())),
+                    Hookup.of(
+                            Hookup.DoorSlot.run(0, -1, DOORWAY, 1),
+                            Hookup.DoorSlot.run(0, depth, DOORWAY, 1)),
+                    Hookup.of(Hookup.DoorSlot.run(-1, depth / 2 - 1, 1, DOORWAY)),
+                    Hookup.of(Hookup.DoorSlot.run(length - DOORWAY, -1, DOORWAY, 1)));
+        }
         return List.of(
                 Hookup.of(
                         Hookup.DoorSlot.run(0, -1, DOORWAY, 1),

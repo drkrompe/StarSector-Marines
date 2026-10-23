@@ -991,6 +991,15 @@ support sortie, subject only to practical runtime resources.
   shed falls back to the whole light catalogue on a neutral fit — never to
   building nothing, which is indistinguishable from a shed whose crew have all
   been killed.
+- **A shed may be tooled for vehicles instead** (`FabricationService.toolForVehicles`):
+  the allies' base behind a cordon builds carriers and cars. The hull on the
+  stocks is then the real vehicle, laid at a keel's share of its structure with
+  its gun empty, so it is quiet while it is built and shootable where it stands;
+  finishing it is welding it whole and loading its gun, with nothing swapped out.
+  A new hull is laid only once the last has left the berth. A mission is told of
+  every machine that rolls out (`onRollOut`), and may run its shed at a
+  production line's pace rather than a garrison's sideline (`setPace`), still
+  counted in hands.
 - **The crew lays the keel.** A bay with nothing on its stocks starts the next
   machine on the first tick somebody is at the gantry to start it, so a crew that
   has stood down under fire lays nothing and a crew that is dead lays nothing
