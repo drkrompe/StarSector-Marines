@@ -107,7 +107,7 @@ class BattleDirectControlHudTest {
             assertEquals("LINKED", fixture.weapons.requireElement("direct-hud-group-lmb-name").text());
             assertEquals("[Q]", fixture.weapons.requireElement("direct-hud-group-lmb-hint").text());
             assertEquals("LINKED", fixture.weapons.requireElement("direct-hud-group-rmb-name").text());
-            assertEquals("[C]", fixture.weapons.requireElement("direct-hud-group-rmb-hint").text());
+            assertEquals("[E]", fixture.weapons.requireElement("direct-hud-group-rmb-hint").text());
             assertEquals("3", fixture.weapons.requireElement("direct-hud-weapon-RIGHT_ARM-key").text(),
                     "key 1 is LINKED, then each gun");
             for (String id : List.of("LEFT_ARM", "RIGHT_ARM", "LEFT_SHOULDER", "RIGHT_SHOULDER")) {
@@ -140,7 +140,7 @@ class BattleDirectControlHudTest {
                     false, ignored -> fail("Ability readouts cannot select weapons"), () -> {}, () -> {})) {
                 assertEquals(List.of("direct-hud-ability-SHIELD", "direct-hud-ability-SMOKE"),
                         rows(fixture.weapons, "direct-hud-group-abilities"));
-                assertEquals("E", fixture.weapons.requireElement("direct-hud-ability-SHIELD-key").text());
+                assertEquals("C", fixture.weapons.requireElement("direct-hud-ability-SHIELD-key").text());
                 assertEquals("G", fixture.weapons.requireElement("direct-hud-ability-SMOKE-key").text());
                 for (String id : List.of("direct-hud-ability-SHIELD", "direct-hud-ability-SMOKE")) {
                     var row = fixture.weapons.requireElement(id);
