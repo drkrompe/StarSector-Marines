@@ -65,9 +65,9 @@ class WeaponRegistryParityTest {
     @Test
     void mechWeaponMigrationPreservesShippedValues() {
         assertMech(WeaponRegistry.require(WeaponRegistry.MECH_CHAINGUN_ID),
-                30f, 13.5f, 0.55f, 2f, 5f,
+                30f, 5f, 0.55f, 2f, 5f,
                 12, 0.06f, 1.2f, 300f, 0.10f, 0f,
-                0.6f, 3, 0f, false, false, 1f,
+                0.6f, 1, 0f, false, false, 1f,
                 new Color(0xFF, 0xE8, 0xC0), ImpactKind.KINETIC,
                 "graphics/missiles/shell_small_yellow.png", 0.18f, "chaingun_fire");
         assertEquals(1.10f,

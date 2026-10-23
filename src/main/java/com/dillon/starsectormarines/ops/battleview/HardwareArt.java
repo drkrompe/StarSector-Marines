@@ -107,8 +107,8 @@ final class HardwareArt {
 
     private static String stem(MechWeaponComponent component) {
         return switch (component) {
-            case CHAINGUN -> "chaingun";
-            case NOSE_CHAINGUN -> "chaingun-nose";
+            case CHAINGUN, CHAINGUN_HF -> "chaingun";
+            case NOSE_CHAINGUN, NOSE_CHAINGUN_HF -> "chaingun-nose";
             case LINEAR_CANNON -> "linear-cannon";
             case SINGLE_HEAVY_CANNON -> "heavy-cannon";
             case PULSE_LASER -> "pulse-laser";

@@ -829,8 +829,7 @@
 	"jangala_sfx_c5_colossus_mains": [{"file": "sounds/story/jangala-arrival/sfx/jangala_sfx_c5_colossus_mains.ogg", "pitch": 1, "volume": 1.0}],
 	# arrival-stems: end
 	"jangala_arrival_wind": [{"file": "sounds/story/jangala-arrival/jangala_arrival_wind.ogg", "pitch": 1, "volume": 1.0}],
-	"jangala_arrival_score_strings": [{"file": "sounds/story/jangala-arrival/jangala_arrival_score_strings.ogg", "pitch": 1, "volume": 1.0}],
-	"jangala_arrival_ending_a": [{"file": "sounds/story/jangala-arrival/jangala_arrival_ending_a.ogg", "pitch": 1, "volume": 1.0}],
+	"jangala_arrival_score_march": [{"file": "sounds/story/jangala-arrival/jangala_arrival_score_march.ogg", "pitch": 1, "volume": 1.0}],
 	"c5_yard_spool_down": [{"file": "sounds/story/jangala-arrival/c5_yard_spool_down.ogg", "pitch": 1, "volume": 1.0}],
 	"c5_yard_jungle_bed": [{"file": "sounds/story/jangala-arrival/c5_yard_jungle_bed.ogg", "pitch": 1, "volume": 1.0}],
 	"c5_yard_steam_vent": [{"file": "sounds/story/jangala-arrival/c5_yard_steam_vent.ogg", "pitch": 1, "volume": 1.0}],

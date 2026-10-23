@@ -1,6 +1,6 @@
 # The Cordon: maps with intent
 
-Status: DRAFT. Direction for the Cordon's controlled maps (step 2). Built: the layout machinery, the picket courses as fieldworks with the garrison's guns in their nests, the switch line, the supply roads, the Road's second road and a placeholder eruption site.
+Status: DRAFT. Direction for the Cordon's controlled maps (step 2). Built: the layout machinery, the picket courses as fieldworks with the garrison's guns in their nests, the switch line, the supply roads, the Road's second road, a placeholder eruption site, and the ridge the line stands on (rural and town; the redoubts stand in its passes, not on its crest).
 
 Written: 2026-10-23
 
@@ -110,6 +110,10 @@ clear it. R2 to R4 need no new structure.
    site as a placeholder open site. An optional road that would cost a pooled
    map its Cordon is left out of that map and reported.
 2. The authored ground (the ridge), from the heart's side of the machinery.
+   Built (`cordon-nouns.md`, The map): a layout ridge raised before the works,
+   so the picket lines are dug on its crest; the redoubts stand in its passes
+   at their roads, on the low ground, because a place is built before
+   elevation goes down. Rural and town; an urban line has none.
 3. The set pieces, one per beat, each checked on the pools. Built, but R1's
    wreck (above) and the dozer.
 4. Then the optional-objective mechanism, shared with the heart, which rolls

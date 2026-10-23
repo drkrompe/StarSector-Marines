@@ -134,7 +134,7 @@ families, the rise and the title. C4 runs 0–21.4 and C5 follows; times below a
 joined clock, and C5's own beats are at their C5 time + 21.4.
 
 The approach is slower (owner: she named the landing zone after we were already landing).
-C5 is 40 s (owner, 2026-10-19: linger on the title, more of the port at work): the title rises from C5 24, holds to 38.0 and fades to black over 38.0–39.5. The port beds carry the hold and go out with the fade; Ending A (`ending_strings_piano_t02`, 40 s) swells at the title, carries the hold and resolves into the black. Rows below give the 33.5 s timings where they differ.
+C5 is 40 s (owner, 2026-10-19: linger on the title, more of the port at work): the title rises from C5 24, holds to 38.0 and fades to black over 38.0–39.5. The port beds carry the hold and go out with the fade; the march score peaks at the title and resolves before the black. Rows below give the 33.5 s timings where they differ.
 
 Castle's one C4 line is over before the ship starts down: "Set us down in that fenced yard on the
 east side. Nessa called in a favour to get us a berth for refit. Best behaviour." 1.0–8.2. Second Wind brakes into a
@@ -169,7 +169,7 @@ rises 39–47, her last line ends at 45.4, the title from 46, black by 54.
 | `c5_ramp_drop` | The stern ramp: hydraulic whine, then the clunk as it meets the slab | 27.0–31.0, the clunk at 30.0 | Spot | −8 | Gen |
 | `c5_crowd_murmur` | The families as a far murmur, low-passed at 900 Hz: from 220 m up there are no footsteps (owner, 2026-10-19) | 29.9–46.4, from when they come out from under the stern, well under Castle | Bed | −24 | Gen |
 | `c5_port_wide` | The whole port opening up as the camera rises: distant cranes, a lifter climbing, trucks; no horns | 38.4–54.9, up from −17 to −5 at 47.4, then fading to silence by 53.9 under the title | Bed | −17 → −5 → out | Gen |
-| Music | **Ending A chosen** (owner, 2026-10-19): `ending_strings_piano_t01` from `make_music.py ending`, strings with a soft piano on top, building from the yard to a peak at the title and fading to silence for the return to the game. Before it, the strings score (`score_strings_t01`) runs C1–C4 at +6 dB, with the piano-and-pad score layered into C3 as a suggestion. Laid out and ducked under the voices on the Arrival Score Desk (`score-desk.html`) | Ending 21.4–54.9 here | Music | +4 (ducked 8 dB under voices) | Gen (music) |
+| Music | **One march score, C1 to the black** (owner, 2026-10-23: open quiet and sombre, build to a heroic martial finish): `rescore_anthem_t01` from `make_music.py march`, sombre low strings under the hails, gathering snare and brass from the bridge, the marching theme from the open sky, full brass and drums on the descent, the peak at the title, resolved to silence before the black. Replaces the strings score and Ending A. Ducked under the voices; levels in `arrival-mix.json` | 0–137.1 on the arrival clock | Music | +5.6 (duck −8) | Gen |
 
 ## What is still open
 
