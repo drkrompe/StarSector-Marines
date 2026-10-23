@@ -1,7 +1,7 @@
 # Battle textures: what a battle loads, who owns it, and when it goes
 
-Status: ACTIVE — the ledger, the loading screen and the release at battle exit are built;
-loading only the battle texture set (rather than every family the catalogs ship) is next.
+Status: ACTIVE — the ledger, the loading screen, the battle texture set and the release at
+battle exit are built; the company deck's own lease is next.
 
 Written: 2026-10-23
 
@@ -102,17 +102,17 @@ holds, which is the number to quote for a battle.
 
 | Art | Loaded by | When | Shared with | Card |
 |---|---|---|---|--:|
-| Convoy and armor vehicle sheets, 14 lines (`graphics/battle/vehicles`) | `BattleSprites.ensureConvoySprites` | every battle attach, all lines | combat bridge backdrop | 212 MB |
+| Convoy and armor vehicle sheets, 14 lines (`graphics/battle/vehicles`) | `BattleSprites.ensureConvoySprites` | attach, the set's lines only | combat bridge backdrop | 212 MB |
 | Structures and turrets (`graphics/structures`) | `ensureTurretSprites` (whole `TurretCatalogRegistry`), `spriteByPath` | every attach; lazy on draw | combat bridge | 202 MB |
 | Tilesets (`graphics/tilesets`) | `SheetTexture` via `ensureTileSheet` and the other sheet `ensure*`, every sheet in `TileRegistry` | every attach | company deck (tile, road, doodad sheets), combat bridge | 190 MB |
-| Marine infantry, every armor family (`marine-modular-topdown`) | `ensureLayeredUnitSprites` | every attach, all families | company deck, Armory previews | 161 MB |
+| Marine infantry, every armor family (`marine-modular-topdown`) | `ensureLayeredUnitSprites` | attach, the set's families only | company deck, Armory previews | 161 MB |
 | Doodad and parked-vehicle sheets (`graphics/doodads`) | `ensureDoodadSheet` | every attach | company deck | 56 MB |
-| Ship-crew and colonist families | `ensureLayeredUnitSprites` | every attach | company deck | 61 MB |
+| Ship-crew and colonist families | `ensureLayeredUnitSprites` | attach, the set's families only | company deck | 61 MB |
 | Fort buildings (`graphics/fort`) | `spriteByPath` from `FortBuildingRenderSystem` | lazy, on draw | — | 30 MB |
 | Grounded warship hulls (`graphics/battle/ships`) | `spriteByPath` from `GroundHullArt` | lazy | — | 24 MB |
 | Battle FX (`graphics/battle/fx`), smoke, fire, satchel, decals | `ensureEngineFxSprites`, `ensureSmokeSprites`, `ensureSatchelSprite`, `ensureDecalSheet`, `ImpactFx.ensureSprites` | every attach | combat bridge | 21 MB |
-| Mech parts and every livery (`mech-modular-topdown`) | `ensureLayeredMechSprites` | every attach, all liveries | company deck | 17 MB |
-| Rav Bloom rigs, xeno families, blood pools | `ensureLayeredUnitSprites` | every attach | — | 15 MB |
+| Mech parts and every livery (`mech-modular-topdown`) | `ensureLayeredMechSprites` | attach, the liveries the set's sides wear | company deck | 17 MB |
+| Rav Bloom rigs, xeno families, blood pools | `ensureLayeredUnitSprites` | attach, when the set has a swarm (blood pools always) | — | 15 MB |
 | Aircraft, drones, objective icons | `ensureAirframeSprites`, `ensureDrone*`, `ensureObjectiveIcons` | every attach, all airframes | company deck (airframes) | 6 MB |
 | Mech Lab welding art (`graphics/battle/mech-lab`) | company deck scenes | deck scenes | — | 16 MB |
 | Armory icons (`graphics/ui/armory`), HQ deck UI, portraits | `UiSpriteCache`, `ArmoryPreviewAssets` | the screens that show them | all retained-UI screens | 61 MB |
@@ -136,6 +136,33 @@ Owners of `BattleSprites` instances, for reference when deciding which lease a l
 the battle screen (also used for the Armory range trial), the company deck (one per dialog,
 alive while the dialog is open), the Armory previews, and the combat bridge backdrop. Only the
 battle screen's instance loads under a battle lease; the others stay on the session lease.
+
+## The battle texture set
+
+`BattleTextureSet` is read from the simulation before its first tick, plus what its mission
+declares it can bring later. It names:
+
+- **infantry families**: every layered body and head on the field, riders included, and every
+  armour the ground roster can issue to reinforcements at any tier and risk;
+- **the swarm**: the three xeno families and the Rav Bloom's rigs, when a swarm is on the field,
+  bores exist or swarm reinforcement is configured;
+- **mech sides**: a side with a mech on the field, a mech drop allowance, or a mech command
+  power; the loader takes the liveries those sides wear;
+- **vehicle lines**: convoy vehicles on the field, the heavy APC when a convoy can bring
+  reinforcements, and the vehicles command powers deliver.
+
+What it does not filter, on purpose: **terrain sheets**, because the drain registers them at
+attach and a sheet loaded later would draw blank; **airframes, turret mounts and effects**,
+because they are small and the large structure art already loads lazily on first draw.
+
+A miss is never a blank. The family, livery and vehicle maps load an entry the set did not name
+the first time it is asked for, under the battle's lease, and the dev build logs it as an
+unplanned load. `BattleTextureSetEvidence` (`generatedSpaceEvidence`) stands a small field up
+and checks that the set names its families and mech side and none of the swarm or vehicles.
+
+Because the company deck holds every family and livery on the session lease while the ops
+dialog is open, the set mostly saves battle-only art today, the vehicle lines above all; it
+saves the rest once the deck has its own lease.
 
 ## Loading screen
 

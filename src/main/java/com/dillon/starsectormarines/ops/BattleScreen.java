@@ -92,6 +92,10 @@ import com.dillon.starsectormarines.ops.battleview.OrdnanceFxRuntime;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceTraceFxService;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
 import com.dillon.starsectormarines.ops.battleview.TextureLoadQueue;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.appearance.MechLivery;
+import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.ops.battleview.BattleTextureSet;
 import com.dillon.starsectormarines.render2d.texture.TextureLease;
 import com.dillon.starsectormarines.render2d.texture.TextureLedger;
 import com.dillon.starsectormarines.ops.battleview.GroundParallaxPipeline;
@@ -431,20 +435,36 @@ public class BattleScreen implements Screen, BattleUiContext {
             sprites.ensureDoodadSheet();
             sprites.ensureDecalSheet();
         }));
-        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingSprites"), () -> {
+        // Only what this battle places, spawns and can bring in; a step per family, livery and
+        // vehicle line, so no one step holds the GL thread long enough to stop the spinner.
+        BattleSimulation sim = ctx != null ? ctx.getBattleSimulation() : null;
+        BattleTextureSet set = sim != null ? BattleTextureSet.of(sim) : null;
+        String loadingSprites = Strings.get("battleLoadingSprites");
+        steps.add(new TextureLoadQueue.Step(loadingSprites, () -> {
             sprites.ensureUnitSheets();
-            sprites.ensureLayeredUnitSprites();
+            sprites.ensureInfantryShared();
         }));
-        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingSprites"), sprites::ensureLayeredMechSprites));
-        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingSprites"), sprites::ensureTurretSprites));
-        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingSprites"), sprites::ensureMarineSecondarySprites));
-        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingSprites"), () -> {
+        for (LayeredArmorFamily family : set != null ? set.families() : EnumSet.allOf(LayeredArmorFamily.class)) {
+            steps.add(new TextureLoadQueue.Step(loadingSprites, () -> sprites.ensureLayeredFamily(family)));
+        }
+        if (set == null || set.ravRigs()) steps.add(new TextureLoadQueue.Step(loadingSprites, sprites::ensureRavRigs));
+        Set<MechLivery> liveries = set != null ? sprites.liveriesWornBy(set.mechSides()) : EnumSet.allOf(MechLivery.class);
+        steps.add(new TextureLoadQueue.Step(loadingSprites, () -> sprites.ensureLayeredMechSprites(Set.of())));
+        for (MechLivery livery : liveries) {
+            steps.add(new TextureLoadQueue.Step(loadingSprites, () -> sprites.ensureMechLivery(livery)));
+        }
+        steps.add(new TextureLoadQueue.Step(loadingSprites, sprites::ensureTurretSprites));
+        steps.add(new TextureLoadQueue.Step(loadingSprites, sprites::ensureMarineSecondarySprites));
+        steps.add(new TextureLoadQueue.Step(loadingSprites, () -> {
             sprites.ensureAirframeSprites();
             sprites.ensureDroneSprite();
             sprites.ensureDroneHubSprite();
             sprites.ensureEngineFxSprites();
         }));
-        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingSprites"), sprites::ensureConvoySprites));
+        steps.add(new TextureLoadQueue.Step(loadingSprites, () -> sprites.ensureConvoySprites(Set.of())));
+        for (VehicleType type : set != null ? set.vehicles() : EnumSet.allOf(VehicleType.class)) {
+            steps.add(new TextureLoadQueue.Step(loadingSprites, () -> sprites.loadConvoySprite(type)));
+        }
         steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingEffects"), sprites::ensureObjectiveIcons));
         steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingAtlases"), () -> {
             renderer.buildTileBatches();
