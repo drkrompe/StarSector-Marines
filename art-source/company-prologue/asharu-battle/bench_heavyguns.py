@@ -96,6 +96,23 @@ def hellbore_hit(bench):
     lint(bench, TESTS['hellbore-hit']['frames'], 'hellbore-hit')
 
 
+def decoy_flares(bench):
+    """The Hound (P)'s decoy flares as scene_fx.flares throws them (glare 0.6 m, faint grey trail,
+    4 kW light): small bright points in thin smoke that breaks up as it disperses, not grey rods."""
+    import swfx_missile_paths as mp
+    import swfx_pd as pd
+    h = bench.ship('hound', 'hound-p', throttle=.4)
+    anchors = pd.flare_anchors(h)
+    fl = pd.plan_flares(anchors, 2)
+    with h.kit() as (ctx, k):
+        pd.key_flares(ctx, fl, mp.space_of(h), h.mpu, glare_m=.6, light_w=4.0e3,
+                      trail=dict(trail_glow=0.0, trail_alpha=.3, trail_r_m=.45, trail_spread=1.2,
+                                 trail=(.55, .55, .55)))
+    print('BENCH decoy-flares', len(anchors), 'anchors,', len(fl), 'flares', flush=True)
+    bench.camera(tuple(bench.at(h, (-30, -110, 45))), tuple(bench.at(h, (-25, 0, 0))), 35)
+    lint(bench, TESTS['decoy-flares']['frames'], 'decoy-flares')
+
+
 TESTS = {
     'hellbore-close': dict(builds=['manticore-p'], frames=[2, 3, 6, 14], setup=hellbore_close,
                            note='Hellbore at the muzzle: blast (2), ring and kick (3), recoil and smoke (6, 14).'),
@@ -107,4 +124,6 @@ TESTS = {
                          note='Mark IX shells in flight side-on.'),
     'hellbore-hit': dict(builds=['manticore-p', 'hound-p'], frames=[18, 31, 33, 38], setup=hellbore_hit,
                          note='Hellbore on a Hound (P) 185 m ahead: slug in flight, then its jagged HE hit.'),
+    'decoy-flares': dict(builds=['hound-p'], frames=[8, 16, 26, 40], setup=decoy_flares,
+                         note="Hound (P) decoy flares at scene_fx's settings: bright points, thin torn smoke."),
 }
