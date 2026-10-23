@@ -1,6 +1,8 @@
-"""Phase 2: cut the shipped brutalist ground-turret set into mod/graphics/structures/ground-turrets/.
+"""Cut the shipped ground-turret sets into mod/graphics/structures/ground-turrets/<look>/ (brutalist, earthwork, derelict).
 
-Mechanical, from the retained raws and their guides (make_guide.py), at 128 px a cell:
+Mechanical, from the retained raws and their guides (make_guide.py), at 128 px a cell. Every look has the same pieces
+at the same sizes, and every look's heads are fitted to the brutalist head's opaque box, so one set of muzzles serves
+all three (the table LOOKS says where each piece comes from):
 
   collar-octagon.png, collar-round.png         1x1 bases, 128x128
   <role>-head.png + <role>-barrel.png          rotating head and its recoil layer, 160x160 (visualCells 1.25),
@@ -124,48 +126,148 @@ def fit_object(raw, guide, index, frame):
     return canvas.crop(frame)
 
 
-def head_layers(sheet, guide, box, size, shadow_frac, index):
-    piece = fit_object(sheet, guide, index, box).resize((size, size), Image.LANCZOS)
-    head, barrel, _ = split(piece)
-    shaded = contact_shadow(size, shadow_frac)
-    shaded.alpha_composite(head)
-    return shaded, barrel
+def match_extent(piece, reference):
+    """`piece` moved and scaled (per axis) so its opaque extent equals `reference`'s: one set of muzzles then serves
+    every look, because each look's head and barrel span exactly the brutalist head's box."""
+    pb = piece.getchannel("A").point(lambda v: 255 if v > 32 else 0).getbbox()
+    rb = reference.getchannel("A").point(lambda v: 255 if v > 32 else 0).getbbox()
+    out = Image.new("RGBA", piece.size, (0, 0, 0, 0))
+    out.alpha_composite(piece.crop(pb).resize((rb[2] - rb[0], rb[3] - rb[1]), Image.LANCZOS), (rb[0], rb[1]))
+    return out
+
+
+def sand_khaki(image):
+    """Fallback only: recolour a painted piece to sand-and-khaki, keeping its luminance."""
+    from PIL import ImageOps
+    alpha = image.getchannel("A")
+    lum = ImageOps.autocontrast(image.convert("L"), cutoff=1)
+    out = ImageOps.colorize(lum, black=(38, 32, 22), mid=(150, 128, 88), white=(222, 206, 166)).convert("RGBA")
+    out.putalpha(alpha)
+    return out
+
+
+def fill_pit(collar, colour=(34, 28, 22, 255)):
+    """A collar whose well came back see-through gets a dark earth pit: transparent pixels the outside cannot reach."""
+    from PIL import ImageDraw
+    w, h = collar.size
+    mask = collar.getchannel("A").point(lambda v: 255 if v > 64 else 0).convert("RGB")
+    ImageDraw.floodfill(mask, (0, 0), (255, 0, 0))
+    m = mask.load()
+    out = collar.copy()
+    px = out.load()
+    for y in range(h):
+        for x in range(w):
+            if m[x, y] == (0, 0, 0):
+                px[x, y] = colour
+    return out
+
+
+CX = [18 + 500 * i + 250 for i in range(3)]
+COLLAR_BOX = (CX[0] - 200, 312, CX[0] + 200, 712)
+HEAVY_BOX = (768, 128, 1536, 896)
+PLINTH_BOX = (0, 128, 768, 896)
+SHADOW = {"autogun": 0.22, "cannon": 0.24, "grenade": 0.22, "pd": 0.19, "heavy": 0.2}
+
+
+def frame(i):
+    return CX[i] - 250, 262, CX[i] + 250, 762
+
+
+def sheet(raw_name, guide_name):
+    guide = Image.open(HERE / "guides" / guide_name)
+    return masked(Image.open(HERE / "raw" / raw_name), guide), guide
+
+
+# Per look, where each piece comes from: (raw, guide, object index on that sheet, box on the guide).
+LOOKS = {
+    "brutalist": {
+        "collar-octagon": ("brutalist-points.raw.png", "brutalist-points-guide.png", 0, COLLAR_BOX),
+        "collar-round": ("brutalist-points2.raw.png", "brutalist-points2-guide.png", 0, COLLAR_BOX),
+        "autogun": ("brutalist-points.raw.png", "brutalist-points-guide.png", 1, frame(1)),
+        "cannon": ("brutalist-points.raw.png", "brutalist-points-guide.png", 2, frame(2)),
+        "grenade": ("brutalist-points2.raw.png", "brutalist-points2-guide.png", 1, frame(1)),
+        "pd": ("brutalist-points2.raw.png", "brutalist-points2-guide.png", 2, frame(2)),
+        "plinth": ("brutalist-hardpoint.raw.png", "brutalist-hardpoint-guide.png", 0, PLINTH_BOX),
+        "heavy": ("brutalist-hardpoint.raw.png", "brutalist-hardpoint-guide.png", 1, HEAVY_BOX),
+    },
+    # Militia: sandbag-ring collars, the brutalist heads
+    # repainted as field work (earthwork-points*.raw.png edit the brutalist raws in place), the gabion mound.
+    "earthwork": {
+        "collar-octagon": ("earthwork-collar.raw.png", "earthwork-collar-guide.png", 0, COLLAR_BOX),
+        "collar-round": ("earthwork-points2.raw.png", "brutalist-points2-guide.png", 0, COLLAR_BOX),
+        # The image tool refused to repaint these two four times; field_dress.py dresses the brutalist heads in the
+        # generated earthwork grenade head's paint and roof sacks instead.
+        "autogun": ("brutalist-points.raw.png", "brutalist-points-guide.png", 1, frame(1)),
+        "cannon": ("brutalist-points.raw.png", "brutalist-points-guide.png", 2, frame(2)),
+        "grenade": ("earthwork-points2.raw.png", "brutalist-points2-guide.png", 1, frame(1)),
+        "pd": ("earthwork-points2.raw.png", "brutalist-points2-guide.png", 2, frame(2)),
+        "plinth": ("earthwork-hardpoint.raw.png", "earthwork-hardpoint-guide.png", 0, PLINTH_BOX),
+        "heavy": ("earthwork-hardpoint.raw.png", "earthwork-hardpoint-guide.png", 1, HEAVY_BOX),
+    },
+    # Derelict: the colony-steel direction, with the heavy head redesigned round with a centred barrel.
+    "derelict": {
+        "collar-octagon": ("colony-points.raw.png", "colony-points-guide.png", 0, COLLAR_BOX),
+        "collar-round": ("derelict-points2.raw.png", "brutalist-points2-guide.png", 0, COLLAR_BOX),
+        "autogun": ("colony-points.raw.png", "colony-points-guide.png", 1, frame(1)),
+        "cannon": ("colony-points.raw.png", "colony-points-guide.png", 2, frame(2)),
+        "grenade": ("derelict-points2.raw.png", "brutalist-points2-guide.png", 1, frame(1)),
+        "pd": ("derelict-points2.raw.png", "brutalist-points2-guide.png", 2, frame(2)),
+        "plinth": ("colony-hardpoint.raw.png", "colony-hardpoint-guide.png", 0, PLINTH_BOX),
+        "heavy": ("derelict-heavy.raw.png", "derelict-heavy-guide.png", 0, HEAVY_BOX),
+    },
+}
+
+
+def export_look(look, reference):
+    """Writes OUT/<look>/; returns this look's composed heads (before the split) and its measured muzzles."""
+    target = OUT / look
+    target.mkdir(parents=True, exist_ok=True)
+    composed, measured = {}, {}
+    order = sorted(LOOKS[look], key=lambda name: name not in ("grenade", "pd"))  # dress sources first
+    for piece in order:
+        raw_name, guide_name, index, box = LOOKS[look][piece]
+        raw_path = HERE / "raw" / raw_name
+        fallback = False
+        if not raw_path.exists() and look == "earthwork":
+            raw_name, fallback = raw_name.replace("earthwork-", "brutalist-"), True
+        image, guide = sheet(raw_name, guide_name)
+        fitted_piece = fit_object(image, guide, index, box)
+        if piece.startswith("collar"):
+            collar = fitted_piece.resize((PPC, PPC), Image.LANCZOS)
+            collar = fill_pit(collar)
+            collar.save(target / f"{piece}.png")
+            continue
+        if piece == "plinth":
+            plinth_with_shadow(fitted_piece, 3 * PPC).save(target / "plinth.png")
+            continue
+        size = 3 * PPC if piece == "heavy" else SMALL
+        cells = 3.0 if piece == "heavy" else SMALL_CELLS
+        composed_piece = fitted_piece.resize((size, size), Image.LANCZOS)
+        if fallback:
+            composed_piece = sand_khaki(composed_piece)
+        if look == "earthwork" and piece in ("autogun", "cannon"):
+            from field_dress import dress
+            composed_piece = dress(composed_piece, composed["grenade"])
+        if reference is not None:
+            composed_piece = match_extent(composed_piece, reference[piece])
+        composed[piece] = composed_piece
+        head, barrel, _ = split(composed_piece)
+        shaded = contact_shadow(size, SHADOW[piece])
+        shaded.alpha_composite(head)
+        shaded.save(target / f"{piece}-head.png")
+        barrel.save(target / f"{piece}-barrel.png")
+        measured[piece] = {"visualCells": cells, "muzzles": muzzles(barrel, cells)}
+    return composed, measured
 
 
 def main():
-    OUT.mkdir(parents=True, exist_ok=True)
-    cx = [18 + 500 * i + 250 for i in range(3)]
-    frame = lambda i: (cx[i] - 250, 262, cx[i] + 250, 762)  # noqa: E731
-    collar_box = (cx[0] - 200, 312, cx[0] + 200, 712)
-    measured = {}
-
-    def heads(raw_name, guide_name, roles):
-        guide = Image.open(HERE / "guides" / guide_name)
-        sheet = masked(Image.open(HERE / "raw" / raw_name), guide)
-        for index, (role, shadow) in roles.items():
-            if role.startswith("collar"):
-                fit_object(sheet, guide, index, collar_box).resize((PPC, PPC), Image.LANCZOS).save(OUT / f"{role}.png")
-                continue
-            head, barrel = head_layers(sheet, guide, frame(index), SMALL, shadow, index)
-            head.save(OUT / f"{role}-head.png")
-            barrel.save(OUT / f"{role}-barrel.png")
-            measured[role] = {"visualCells": SMALL_CELLS, "muzzles": muzzles(barrel, SMALL_CELLS)}
-
-    heads("brutalist-points.raw.png", "brutalist-points-guide.png",
-          {0: ("collar-octagon", 0), 1: ("autogun", 0.22), 2: ("cannon", 0.24)})
-    heads("brutalist-points2.raw.png", "brutalist-points2-guide.png",
-          {0: ("collar-round", 0), 1: ("grenade", 0.22), 2: ("pd", 0.19)})
-
-    guide = Image.open(HERE / "guides" / "brutalist-hardpoint-guide.png")
-    sheet = masked(Image.open(HERE / "raw" / "brutalist-hardpoint.raw.png"), guide)
-    plinth_with_shadow(fit_object(sheet, guide, 0, (0, 128, 768, 896)), 3 * PPC).save(OUT / "plinth.png")
-    head, barrel = head_layers(sheet, guide, (768, 128, 1536, 896), 3 * PPC, 0.2, 1)
-    head.save(OUT / "heavy-head.png")
-    barrel.save(OUT / "heavy-barrel.png")
-    measured["heavy"] = {"visualCells": 3.0, "muzzles": muzzles(barrel, 3.0)}
-
-    (HERE / "muzzles.json").write_text(json.dumps(measured, indent=2) + "\n")
-    print(json.dumps(measured, indent=2))
+    reference, measured = export_look("brutalist", None)
+    report = {"brutalist": measured}
+    for look in ("earthwork", "derelict"):
+        report[look] = export_look(look, reference)[1]
+    (HERE / "muzzles.json").write_text(json.dumps(report, indent=2) + "\n")
+    for look, pieces in report.items():
+        print(look, {k: v["muzzles"] for k, v in pieces.items()})
 
 
 if __name__ == "__main__":

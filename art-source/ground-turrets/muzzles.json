@@ -1,55 +1,167 @@
 {
-  "autogun": {
-    "visualCells": 1.25,
-    "muzzles": [
-      [
-        -0.055,
-        0.57
-      ],
-      [
-        0.07,
-        0.57
+  "brutalist": {
+    "grenade": {
+      "visualCells": 1.25,
+      "muzzles": [
+        [
+          -0.082,
+          0.438
+        ],
+        [
+          0.082,
+          0.445
+        ]
       ]
-    ]
+    },
+    "pd": {
+      "visualCells": 1.25,
+      "muzzles": [
+        [
+          0.0,
+          0.367
+        ]
+      ]
+    },
+    "autogun": {
+      "visualCells": 1.25,
+      "muzzles": [
+        [
+          -0.055,
+          0.57
+        ],
+        [
+          0.07,
+          0.57
+        ]
+      ]
+    },
+    "cannon": {
+      "visualCells": 1.25,
+      "muzzles": [
+        [
+          0.0,
+          0.586
+        ]
+      ]
+    },
+    "heavy": {
+      "visualCells": 3.0,
+      "muzzles": [
+        [
+          0.0,
+          1.414
+        ]
+      ]
+    }
   },
-  "cannon": {
-    "visualCells": 1.25,
-    "muzzles": [
-      [
-        0.0,
-        0.586
+  "earthwork": {
+    "grenade": {
+      "visualCells": 1.25,
+      "muzzles": [
+        [
+          -0.078,
+          0.445
+        ],
+        [
+          0.082,
+          0.445
+        ]
       ]
-    ]
+    },
+    "pd": {
+      "visualCells": 1.25,
+      "muzzles": [
+        [
+          0.0,
+          0.375
+        ]
+      ]
+    },
+    "autogun": {
+      "visualCells": 1.25,
+      "muzzles": [
+        [
+          -0.055,
+          0.57
+        ],
+        [
+          0.07,
+          0.57
+        ]
+      ]
+    },
+    "cannon": {
+      "visualCells": 1.25,
+      "muzzles": [
+        [
+          0.0,
+          0.586
+        ]
+      ]
+    },
+    "heavy": {
+      "visualCells": 3.0,
+      "muzzles": [
+        [
+          -0.004,
+          1.406
+        ]
+      ]
+    }
   },
-  "grenade": {
-    "visualCells": 1.25,
-    "muzzles": [
-      [
-        -0.082,
-        0.438
-      ],
-      [
-        0.082,
-        0.445
+  "derelict": {
+    "grenade": {
+      "visualCells": 1.25,
+      "muzzles": [
+        [
+          -0.082,
+          0.445
+        ],
+        [
+          0.078,
+          0.445
+        ]
       ]
-    ]
-  },
-  "pd": {
-    "visualCells": 1.25,
-    "muzzles": [
-      [
-        0.0,
-        0.367
+    },
+    "pd": {
+      "visualCells": 1.25,
+      "muzzles": [
+        [
+          0.012,
+          0.367
+        ]
       ]
-    ]
-  },
-  "heavy": {
-    "visualCells": 3.0,
-    "muzzles": [
-      [
-        0.0,
-        1.414
+    },
+    "autogun": {
+      "visualCells": 1.25,
+      "muzzles": [
+        [
+          -0.051,
+          0.57
+        ],
+        [
+          0.062,
+          0.57
+        ]
       ]
-    ]
+    },
+    "cannon": {
+      "visualCells": 1.25,
+      "muzzles": [
+        [
+          -0.004,
+          0.586
+        ]
+      ]
+    },
+    "heavy": {
+      "visualCells": 3.0,
+      "muzzles": [
+        [
+          -0.004,
+          1.414
+        ]
+      ]
+    }
   }
 }
