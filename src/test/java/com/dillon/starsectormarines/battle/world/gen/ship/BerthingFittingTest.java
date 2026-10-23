@@ -4,10 +4,9 @@ import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
-import com.dillon.starsectormarines.battle.world.gen.fit.Hookup;
-import com.dillon.starsectormarines.battle.world.gen.fit.RoomFittings;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -21,7 +20,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * What a generated berthing compartment owes: racks somebody can sleep in,
  * stowage they can square their kit away in, and hatches all on one side.
+ *
+ * <p>Evidence rather than a unit test: every case generates whole troop
+ * transport decks, so it runs under {@code generatedSpaceEvidence}. The
+ * fitting's own rules are unit-tested in {@code ShipBerthingFittingTest}.
  */
+@Tag("generated-space-evidence")
 class BerthingFittingTest {
 
     private static final long[] SEEDS = { 1L, 42L, 1337L };
@@ -90,42 +94,33 @@ class BerthingFittingTest {
     }
 
     /**
-     * Both hatches on one bulkhead, at the cells the room named.
+     * Both hatches on one bulkhead.
      *
      * <p>The side is the point. A berth entered from opposite sides is a passage
      * with bunks in it — the through route runs between the ranks, and everybody
      * asleep there gets walked past all watch. Keeping them together is what
      * leaves the far rank against unbroken hull.
+     *
+     * <p>Not that the bulkhead is the one the fitting authored: where no authored
+     * hookup can be served, {@code RoomPacker} places the berth with an ordinary
+     * door rather than leave the deck short a berth, and that door may open on
+     * an end bulkhead.
      */
     @Test
     void berthHatchesShareOneBulkhead() {
         RoomShape canonical = RoomRecipe.TROOP_BERTHING.shape();
-        Set<Long> authored = new HashSet<>();
-        for (Hookup hookup : RoomFittings.forPurpose(RoomPurpose.BARRACKS).hookups(canonical)) {
-            for (Hookup.DoorSlot slot : hookup.slots()) {
-                for (int[] cell : slot.cells()) {
-                    authored.add(((long) cell[0] << 32) ^ (cell[1] & 0xffffffffL));
-                }
-            }
-        }
-        assertTrue(!authored.isEmpty(), "berthing authored no hookups to check against");
-
         int twoHatched = 0;
         for (long seed : SEEDS) {
             Deck deck = generate(seed);
             for (DeckGraph.Compartment room : berths(deck.graph())) {
                 if (room.purpose() != RoomPurpose.BARRACKS) continue;
-                Set<Integer> sides = new HashSet<>();
+                Set<Integer> faces = new HashSet<>();
                 for (Doorway door : room.doors()) {
                     int[] cell = room.pose().unmap(door.x() - room.left(), door.y() - room.top(),
                             canonical.width(), canonical.height());
-                    assertTrue(authored.contains(
-                                    ((long) cell[0] << 32) ^ (cell[1] & 0xffffffffL)),
-                            "seed " + seed + ": a berth hatch sits at " + cell[0] + ","
-                                    + cell[1] + ", which is not a cell it hooks up on");
-                    sides.add(cell[1]);
+                    faces.add(face(cell, canonical));
                 }
-                assertEquals(1, sides.size(),
+                assertEquals(1, faces.size(),
                         "seed " + seed + ": berth " + room.id()
                                 + " is entered from more than one bulkhead");
                 if (room.doors().size() > 2) twoHatched++;
@@ -133,6 +128,13 @@ class BerthingFittingTest {
         }
         assertTrue(twoHatched > 0,
                 "no deck served a berth its second hatch, so nothing proves the pair works");
+    }
+
+    /** Which bulkhead of the canonical shape a door cell sits in. */
+    private static int face(int[] cell, RoomShape canonical) {
+        if (cell[1] < 0) return 0;
+        if (cell[1] >= canonical.height()) return 2;
+        return cell[0] < 0 ? 3 : 1;
     }
 
     /**

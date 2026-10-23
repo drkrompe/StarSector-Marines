@@ -840,9 +840,8 @@ without its front bonus. `-Dbattle.vehicle.armorArcs=false` is the control.
     reverse speed (13° a second at full lock) a rear-on turn then takes longer
     than its rehearsal allows, so it was never made. A turn that starts forward
     stays forward, a full-lock circle that does not close on the target.
-  - *A gunless tank backing out of reach nose on* before it drives its route
-    (`-Dbattle.vehicle.withdrawNoseOn=true`, off). See the withdrawal readings
-    above.
+  - *A gunless tank backing out of reach nose on* before it drives its route:
+    measured and rejected. See the withdrawal readings above.
 - **One front, and a turn that costs** (`convoy-nouns.md`, what presents the
   front). The owner's brief: no arbitrary slowness, and flanking should pay. A
   hull now faces the worst threat it knows of (harm into its plate), turns only
@@ -1143,8 +1142,9 @@ those rows read nothing. Not tuned: the duel numbers are readings.
 defence because it barely marks proper plate; at ground scale almost nothing is
 proper plate. The tank's identity is the split between the two, and it is held by
 cadence rather than by a damage type: a four-pulse burst at penetration 3 every
-0.55 s from a ten-charge capacitor bank refilling one charge every 2 s
-(`convoy-nouns.md`, The laser tank). A section dies inside the bank; a tank does not.
+0.55 s, each pulse adding flux the gun dissipates far slower than it builds, so it
+overloads and vents for seconds at a time in a long fight (`convoy-nouns.md`, The
+laser tanks). A section dies inside one charge-up; a tank does not.
 Readings against the breakthrough tank's twin cannon (`tank-versus-infantry`, four
 seeds, one planted tank and a twelve-strong section eighteen cells off; `armorMatchup`,
 four seeds, three grounds):

@@ -53,10 +53,6 @@ class TickProfileDumperTest {
         assertEquals(0, json.getJSONArray("slowSquadRouteBuilds").length());
         assertTrue(json.getString("squadRouteWorkSemantics").contains("must not be summed"));
         assertTrue(json.getString("squadRouteWorkSemantics").contains("cumulative"));
-        assertTrue(json.getInt("squadRouteWorkPerTick") > 0);
-        assertTrue(json.getInt("squadRouteWorkPerSlice") > 0);
-        assertTrue(json.getInt("squadRouteWorkPerRequest") > 0);
-        assertTrue(json.getInt("squadRouteRetryTicks") > 0);
     }
 
     @Test

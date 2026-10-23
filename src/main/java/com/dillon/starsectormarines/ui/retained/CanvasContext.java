@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ui.retained;
 
+import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.retained.svg.SvgAsset;
 import com.fs.starfarer.api.graphics.SpriteAPI;
@@ -171,8 +172,23 @@ public abstract class CanvasContext {
         if (region == null || blend == null) {
             throw new IllegalArgumentException("sprite region and blend are required");
         }
+        if (TextureUsage.isEnabled()) {
+            TextureUsage.ui(sourcePath, liveSprite, width * metrics.scaleX(), height * metrics.scaleY(),
+                    region.width(), region.height());
+        }
         drawSprite(sourcePath, liveSprite, centerX, centerY, width, height,
                 angleDegrees, requireColor(tint), region, blend);
+    }
+
+    /**
+     * Pixel size of an image asset as {width, height}, or null when it cannot be
+     * resolved. A producer that sizes a draw by its art asks here rather than
+     * reading the file: Starsector's script sandbox forbids file access in mod
+     * code, and the headless renderer answers from its own resource roots.
+     */
+    public float[] imageSize(String path) {
+        UiImage image = UiSpriteCache.shared().resolve(path);
+        return image == null ? null : new float[]{image.width(), image.height()};
     }
 
     /** Host adapters may draw a textured subcell quad; vertices are normalized, Y-up. */

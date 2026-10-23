@@ -4,10 +4,11 @@ Status: SHIPPED — folded legacy AI implementation stories.
 
 Written: 2026-08-23
 
-Updated: 2026-10-21 — folded party places and story garrisons; earlier, folded sally doors, reactive garrisons, the machine garrison assault, player reactive manning and the machine guard.
+Updated: 2026-10-23 — recorded the rejected squad-firing-positions experiment; earlier, folded party places, story garrisons, sally doors, reactive garrisons, the machine garrison assault, player reactive manning and the machine guard.
 
 | Retired story | Ship date | Evidence | Fold destination |
 |---|---|---|---|
+| `squad-firing-positions.md` | 2026-10-23 | Rejected, not shipped: off by default and stalled since 2026-09-26; code, `profileSquadFiringPositions` and `battle.targeting.squadFiringPositions` deleted | `ai-nouns.md` (one-line rejection under fighting positions) |
 | `party-places.md` | 2026-10-21 | `ca70645e8`, `83313925b` and the ship commit; `PlaceDirectivesTest`, `PartyPlacesTest`, `ThunderRunLocksTest`, `YardOwnersSitesTest`; scene `party-places` (11 verdicts); `commanderEvidence` on yard-owners, limited-warrant, thunder-run against `-Dbattle.party.places=false` | `garrisonables.md` (parties, place directives, locked positions, parties wired); `ai-nouns.md` (Sides); `mission-command-nouns.md`; `commander-evidence-missions.md` |
 | `story-garrisons.md` | 2026-10-21 | this change; `StoryGarrisonsTest`, `MissionGarrisonsTest` (holder cap); scene `story-defence` (5 verdicts) and the `mission-defence`, `mission-envelopes`, `machine-guard`, `sally-door`, `place-counterattack`, `reactive-belt` scenes green; `commanderEvidence` for Counterattack, Junction, Relay Nine, Thunder Run, Relief and Last Lift against `-Dbattle.story.reactiveDefence=false`: beat lists identical on every fixture | `garrisonables.md` (story commanders; open questions) |
 | `machine-guard.md` | 2026-10-20 | `aaaf0a627` and the ship commit; `MachineGuardOrderTest`, `MachineGuardDirectorTest`; the four-loop `machine-guard` scene (mech, tank, empty-building control, defender lances on a production fort: all verdicts pass; mech and tank guard 3 cells outside the building off its lanes, face the threat on every settled idle tick, fire at the approach, stand down 150 ticks after the garrison leaves; the defender attached 1 of 2 lances, its bound, on the pulse a run was manned) | `ai-nouns.md` (machine guard under fighting positions, mech tactical move); `garrisonables.md` (decided direction); `convoy-nouns.md`; `mechs-nouns.md` |

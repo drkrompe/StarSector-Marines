@@ -55,17 +55,17 @@ class BreachLocalChecksTest {
         f.zones.rebuild();
         f.unit(Faction.DEFENDER, UnitType.MARINE, 90, 1);
         int zone = f.zones.zoneIdAt(1, 1);
-        assertTrue(BreachToEngage.anyLocalInZoneEnemyVisible(f.squad, zone, f.view));
+        assertTrue(BreachToEngage.anyInZoneEnemyVisible(f.squad, zone, f.view));
         f.roster.release(distant);
-        assertFalse(BreachToEngage.anyLocalInZoneEnemyVisible(f.squad, zone, f.view));
+        assertFalse(BreachToEngage.anyInZoneEnemyVisible(f.squad, zone, f.view));
         f.grid.setWalkableFloor(20, 1);
         f.zones.rebuild();
-        assertTrue(BreachToEngage.anyLocalInZoneEnemyVisible(f.squad, zone, f.view),
+        assertTrue(BreachToEngage.anyInZoneEnemyVisible(f.squad, zone, f.view),
                 "no vision-range cap may be introduced into this LOS gate");
     }
 
     @Test
-    void exactZoneCombatantAndHostilityFiltersMatchTheOriginalGate() {
+    void exactZoneCombatantAndHostilityFiltersHold() {
         Fixture f = new Fixture(14, 5);
         f.member(2, 2);
         f.unit(Faction.ALLY, UnitType.MARINE, 3, 2);
@@ -76,43 +76,36 @@ class BreachLocalChecksTest {
         f.zones.rebuild();
         f.unit(Faction.DEFENDER, UnitType.MARINE, 10, 2);
         int zone = f.zones.zoneIdAt(2, 2);
-        assertFalse(BreachToEngage.anyLocalInZoneEnemyVisible(f.squad, zone, f.view),
+        assertFalse(BreachToEngage.anyInZoneEnemyVisible(f.squad, zone, f.view),
                 "a visible enemy across a doorway is not an in-zone enemy");
         long inside = f.unit(Faction.DEFENDER, UnitType.MARINE, 5, 2);
-        assertTrue(BreachToEngage.anyLocalInZoneEnemyVisible(f.squad, zone, f.view));
+        assertTrue(BreachToEngage.anyInZoneEnemyVisible(f.squad, zone, f.view));
         f.roster.release(inside);
-        assertFalse(BreachToEngage.anyLocalInZoneEnemyVisible(f.squad, zone, f.view));
+        assertFalse(BreachToEngage.anyInZoneEnemyVisible(f.squad, zone, f.view));
     }
 
     @Test
     void eligibilityDoesNotSynthesizeAnUnusedPlan() {
-        String old = System.getProperty("battle.goap.localBreachChecks");
-        System.setProperty("battle.goap.localBreachChecks", "true");
-        try {
-            Fixture f = new Fixture(14, 5);
-            long member = f.member(2, 2);
-            for (int y = 0; y < 5; y++) f.grid.setWalkable(7, y, false);
-            f.grid.setWalkableFloor(7, 2);
-            f.grid.setDoorway(7, 2, true);
-            f.zones.rebuild();
-            long enemy = f.unit(Faction.DEFENDER, UnitType.MARINE, 10, 2);
-            f.roster.combat().setTargetId(member, enemy);
-            Goal.EvaluationContext context = new Goal.EvaluationContext(
-                    WorldState.EMPTY, f.squad, f.view, null);
-            Goal.Evaluation result = context.evaluate(BreachToEngage.INSTANCE);
-            assertEquals(1f, result.relevance());
-            assertNull(result.preparedPlan());
-            assertEquals(0, f.coverReads, "eligibility must not score forward positions");
-            var plan = BreachToEngage.INSTANCE.customPlan(result, f.squad, f.view);
-            assertNotNull(plan);
-            assertTrue(f.coverReads > 0, "only the selected goal should synthesize its plan");
-            BreachAndAdvance action = (BreachAndAdvance) plan.steps().get(0).action;
-            assertEquals(1, action.slotCount());
-            assertTrue(action.forwardCellX(0) > 7);
-        } finally {
-            if (old == null) System.clearProperty("battle.goap.localBreachChecks");
-            else System.setProperty("battle.goap.localBreachChecks", old);
-        }
+        Fixture f = new Fixture(14, 5);
+        long member = f.member(2, 2);
+        for (int y = 0; y < 5; y++) f.grid.setWalkable(7, y, false);
+        f.grid.setWalkableFloor(7, 2);
+        f.grid.setDoorway(7, 2, true);
+        f.zones.rebuild();
+        long enemy = f.unit(Faction.DEFENDER, UnitType.MARINE, 10, 2);
+        f.roster.combat().setTargetId(member, enemy);
+        Goal.EvaluationContext context = new Goal.EvaluationContext(
+                WorldState.EMPTY, f.squad, f.view, null);
+        Goal.Evaluation result = context.evaluate(BreachToEngage.INSTANCE);
+        assertEquals(1f, result.relevance());
+        assertNull(result.preparedPlan());
+        assertEquals(0, f.coverReads, "eligibility must not score forward positions");
+        var plan = BreachToEngage.INSTANCE.customPlan(result, f.squad, f.view);
+        assertNotNull(plan);
+        assertTrue(f.coverReads > 0, "only the selected goal should synthesize its plan");
+        BreachAndAdvance action = (BreachAndAdvance) plan.steps().get(0).action;
+        assertEquals(1, action.slotCount());
+        assertTrue(action.forwardCellX(0) > 7);
     }
 
     private static final class Fixture {

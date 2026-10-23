@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a168dc-c3ea-75b3-bab2-bd728e89aa6f",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a168dc-c3ea-75b3-bab2-bd728e89aa6f\\exec-e90af316-8bdc-4fdd-a32e-47655cc55cfb.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\tank-laser\\hull-wreck-pd-raw.png",
+    "sha256": "fbffd1f80726ededd3f52d3b7afb178731cf290fae7f751e19769390efccd22d",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\tank-laser\\hull-wreck-pd-prompt.txt",
+  "promptSha256": "444508a116e4ab04e55adbb4fe3e87553e3ecae602814db4f00c99f4476d372f",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity authority: the hull to wreck, same canvas, pose, scale and outline\n\nEdit image 1, an approved painted top-down sprite of a tracked vehicle HULL in a worn gunmetal military livery with red-orange hazard trim, nose pointing LEFT, on a wide transparent canvas. Turn it into the burnt-out WRECK of that same vehicle, after a fight. Keep its outline, plate layout, tracks, round mount ring, radar dish, short power bank, radiator fins, sloped front glacis and viewing window in the same place, same camera, position and scale.\nDamage: large scorched and soot-blackened areas on the gunmetal armour, blistered and peeled panels, a few torn and buckled plates with dark recesses beneath, the viewing window shattered and dark, the radar dish crumpled and holed with its feed horn snapped off, the three power cells cracked and dead with no light in them, the red running lamps dark and broken, one track with a few links broken and sagging, small scattered metal fragments close beside the hull. The round mount ring is empty and scorched. Big legible soot-dark damage against surviving gunmetal paint, not a uniform black tint; cool neutral soot, no rust, no yellow or brown tint.\nNo flames, embers, smoke, glow, dust clouds, ground shadow or scenery.\nStrict 90-degree overhead orthographic, no perspective tilt. Exactly one object: the wrecked hull; no top module, no labels, background, checkerboard or border. True transparent background with genuine alpha outside the silhouette; internal dark recesses are opaque paint, not alpha holes. Same canvas size and aspect as image 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\tank-laser\\hull-raw-pd.png",
+      "sha256": "1bf114b1042be388016d8b3ddab5d91c039afd8ba8ce7e8ba82c86fc9f67cc04",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Identity authority: the hull to wreck, same canvas, pose, scale and outline"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one wrecked-hull edit, preserving the reference’s layout, scale, and transparent canvas."
+  ],
+  "usage": {
+    "input_tokens": 41159,
+    "cached_input_tokens": 32512,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 481,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 71.3
+}

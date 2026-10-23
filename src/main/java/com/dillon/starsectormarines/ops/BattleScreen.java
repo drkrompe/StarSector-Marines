@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.audio.BattleMusicPlaylist;
 import com.dillon.starsectormarines.battle.audio.BattleRadioChatter;
 import com.dillon.starsectormarines.battle.audio.CompanyOfficer;
 import com.dillon.starsectormarines.battle.audio.OperationRadio;
+import com.dillon.starsectormarines.battle.audio.MachineAudio;
 import com.dillon.starsectormarines.battle.audio.MechFootstepAudio;
 import com.dillon.starsectormarines.battle.audio.StoryNarrationPlayer;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
@@ -80,6 +81,7 @@ import com.dillon.starsectormarines.ops.battleview.RenderLayer;
 import com.dillon.starsectormarines.ops.battleview.RenderContext;
 import com.dillon.starsectormarines.ops.battleview.BattleShotAudio;
 import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
+import com.dillon.starsectormarines.ops.battleview.HeldFireLoops;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceAudio;
 import com.dillon.starsectormarines.ops.battleview.WarshipAudio;
 import com.dillon.starsectormarines.ops.battleview.BoreAudio;
@@ -89,6 +91,7 @@ import com.dillon.starsectormarines.ops.battleview.TenderAudio;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceFxRuntime;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceTraceFxService;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
+import com.dillon.starsectormarines.ops.battleview.TextureLoadQueue;
 import com.dillon.starsectormarines.ops.battleview.GroundParallaxPipeline;
 import com.dillon.starsectormarines.ops.battleview.SunLight;
 import com.dillon.starsectormarines.ops.battleview.ShotFx;
@@ -274,12 +277,25 @@ public class BattleScreen implements Screen, BattleUiContext {
     private float speedMultiplier = 1f;
     /** The speed Space returns to: the last running speed, so a pause at 2x resumes at 2x. */
     private float resumeSpeed = 1f;
+    /** How long a fresh battle's loading screen stays up at least, so a fast load does not flicker. */
+    private static final float LOADING_MINIMUM_SECONDS = 0.5f;
+    /** GL upload time a loading frame may spend before the loading screen draws again. */
+    private static final long LOADING_FRAME_BUDGET_NANOS = 12_000_000L;
+    /** A load step longer than this stops the loading screen's spinner long enough to notice. */
+    private static final long SLOW_LOAD_STEP_NANOS = 150_000_000L;
+    /** The battle's texture loads, run a frame's budget at a time; null before the first attach. */
+    private TextureLoadQueue loadQueue;
+    private BattleLoadingOverlay loadingOverlay;
+    private float loadingShownSeconds;
+    /** The simulation whose textures the last attach loaded, to tell a fresh battle from a re-attach. */
+    private BattleSimulation loadedSimulation;
     /** Owns all loaded sprite sheets, frame data, and ensure/load methods. */
     private final BattleSprites sprites = new BattleSprites();
     /** World-layer render pipeline — owns tile batches, FX systems, and all render/draw methods. */
     private final BattleRenderer renderer = new BattleRenderer(sprites);
     /** Weapon and impact cues for rounds an aircraft delivers onto the ground. */
     private final OrdnanceAudio ordnanceAudio = new OrdnanceAudio();
+    private final HeldFireLoops heldFireLoops = new HeldFireLoops();
     /**
      * Real-time {@code dt} from the most recent {@link #advance} call. Passed
      * into {@link com.dillon.starsectormarines.ops.battleview.RenderContext} so
@@ -321,6 +337,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     /** Shared squad-event policy for sparse positional marine radio calls. */
     private final BattleRadioChatter radioChatter = new BattleRadioChatter();
     private final MechFootstepAudio mechFootsteps = new MechFootstepAudio();
+    private final MachineAudio machineAudio = new MachineAudio();
     private final StorySubtitleOverlay storySubtitles = new StorySubtitleOverlay();
     private StoryNarrationPlayer storyNarration;
     private final CompanyOfficer companyOfficer = new CompanyOfficer();
@@ -360,6 +377,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             companyOfficer.reset();
             operationRadio.reset();
             mechFootsteps.reset();
+            machineAudio.reset();
             storyNarration = new StoryNarrationPlayer(WaylineNarration.builtins(),
                     WaylineNarration.narrationMissionId(ctx != null ? ctx.getSelectedMission() : null,
                             nextSimulation), line -> {
@@ -368,30 +386,12 @@ public class BattleScreen implements Screen, BattleUiContext {
                         radioChatter.reserveVoice(line.durationSeconds());
                     });
         }
+        boolean freshBattle = loadedSimulation != nextSimulation;
+        loadedSimulation = nextSimulation;
         this.position = position;
         this.ctx = ctx;
         configureMechLiveries();
-        sprites.ensureUnitSheets();
-        sprites.ensureLayeredUnitSprites();
-        sprites.ensureLayeredMechSprites();
-        sprites.ensureTurretSprites();
-        sprites.ensureMarineSecondarySprites();
-        sprites.ensureDecalSheet();
-        sprites.ensureTileSheet();
-        sprites.ensureRoadSheet();
-        sprites.ensureFloorsSheet();
-        sprites.ensureNatureSheet();
-        sprites.ensureWaterSheet();
-        sprites.ensureUrbanTile3Sheet();
-        sprites.ensureDoodadSheet();
-        sprites.ensureAirframeSprites();
-        sprites.ensureConvoySprites();
-        sprites.ensureDroneSprite();
-        sprites.ensureDroneHubSprite();
-        sprites.ensureEngineFxSprites();
-        sprites.ensureObjectiveIcons();
-        renderer.buildTileBatches();
-        renderer.onAttach();
+        beginLoading(freshBattle);
         storySubtitles.attach(position);
         if (rangeTrial == null) startBattleAudio();
         rebuild();
@@ -401,6 +401,69 @@ public class BattleScreen implements Screen, BattleUiContext {
             rangeEntered = true;
             rangeFinished = !directControlInput.active();
         }
+    }
+
+    /**
+     * Queues the battle's texture loads behind the loading screen ({@code battle-textures.md}).
+     * Every step is idempotent, so a re-attach of a battle whose textures are resident runs
+     * through the queue in a frame; only a fresh battle holds the screen for its minimum time.
+     */
+    private void beginLoading(boolean freshBattle) {
+        List<TextureLoadQueue.Step> steps = new ArrayList<>();
+        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingTerrain"), () -> {
+            sprites.ensureTileSheet();
+            sprites.ensureRoadSheet();
+            sprites.ensureFloorsSheet();
+            sprites.ensureNatureSheet();
+        }));
+        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingTerrain"), () -> {
+            sprites.ensureWaterSheet();
+            sprites.ensureUrbanTile3Sheet();
+            sprites.ensureDoodadSheet();
+            sprites.ensureDecalSheet();
+        }));
+        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingSprites"), () -> {
+            sprites.ensureUnitSheets();
+            sprites.ensureLayeredUnitSprites();
+        }));
+        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingSprites"), sprites::ensureLayeredMechSprites));
+        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingSprites"), sprites::ensureTurretSprites));
+        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingSprites"), sprites::ensureMarineSecondarySprites));
+        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingSprites"), () -> {
+            sprites.ensureAirframeSprites();
+            sprites.ensureDroneSprite();
+            sprites.ensureDroneHubSprite();
+            sprites.ensureEngineFxSprites();
+        }));
+        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingSprites"), sprites::ensureConvoySprites));
+        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingEffects"), sprites::ensureObjectiveIcons));
+        steps.add(new TextureLoadQueue.Step(Strings.get("battleLoadingAtlases"), () -> {
+            renderer.buildTileBatches();
+            renderer.onAttach();
+        }));
+        loadQueue = new TextureLoadQueue(steps);
+        if (DevConfig.DEV_MODE) {
+            loadQueue.onSlowStep(SLOW_LOAD_STEP_NANOS, (step, nanos) -> LOG.info("battle textures: a "
+                    + step.stage() + " step held the GL thread " + nanos / 1_000_000L
+                    + " ms, freezing the loading spinner; split it"));
+        }
+        loadingShownSeconds = freshBattle ? 0f : LOADING_MINIMUM_SECONDS;
+        if (loadingOverlay == null) loadingOverlay = new BattleLoadingOverlay();
+        Mission mission = ctx != null ? ctx.getSelectedMission() : null;
+        loadingOverlay.attach(position, mission != null ? mission.name : null,
+                mission != null ? mission.targetPlanetName : null);
+    }
+
+    /** Whether the battle is still behind its loading screen. */
+    private boolean loading() {
+        return loadQueue != null && (!loadQueue.done() || loadingShownSeconds < LOADING_MINIMUM_SECONDS);
+    }
+
+    /** Runs a frame's worth of the load queue and keeps the loading screen current. */
+    private void advanceLoading(float realDt) {
+        loadQueue.advance(LOADING_FRAME_BUDGET_NANOS);
+        loadingShownSeconds += realDt;
+        loadingOverlay.update(realDt, loadQueue);
     }
 
     /**
@@ -488,6 +551,10 @@ public class BattleScreen implements Screen, BattleUiContext {
     @Override
     public void advance(float dt) {
         lastAdvanceDt = dt;
+        if (loading()) {
+            advanceLoading(dt);
+            return;
+        }
         syncDirectControl();
         if (rangeFinished) return;
         // HUD ticks on real dt (not sim-scaled) so panel snapshots and hover
@@ -713,13 +780,14 @@ public class BattleScreen implements Screen, BattleUiContext {
         advanceRoofAlphaLerp(sim, dt);
         if (sim != null) sim.getFogOfWar().advanceFade(dt);
         driveShuttleEngineLoops(sim);
-        playCombatEventSounds(sim);
+        playCombatEventSounds(sim, dt);
         for (MechFootstepAudio.Cue cue : mechFootsteps.advance(
                 sim, camera.panCellX(), camera.panCellY())) {
             Global.getSoundPlayer().playSound(cue.soundId(), cue.pitch(), cue.volume(),
                     new Vector2f(cue.cellX() * AUDIO_WORLD_UNITS_PER_CELL,
                             cue.cellY() * AUDIO_WORLD_UNITS_PER_CELL), new Vector2f());
         }
+        playMachinery(sim);
         if (rangeTrial == null) advanceVoices(sim, dt);
     }
 
@@ -755,6 +823,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         renderer.getGroundAtlas().dispose();
         // And the composited unit atlas, for the same reason.
         renderer.getUnitAtlas().dispose();
+        // And this battle's props, which were cut from this battle's placements.
+        renderer.disposeDecorationAtlas();
         renderer.getGroundLights().clear();
         if (retainedOverlay != null) retainedOverlay.detach();
         if (retainedSquadOverlay != null) retainedSquadOverlay.detach();
@@ -1241,6 +1311,21 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
     }
 
+    /** Ground engines and flux vents ({@link MachineAudio}): loops held this frame, cues fired once. */
+    private void playMachinery(BattleSimulation sim) {
+        MachineAudio.Frame frame = machineAudio.advance(sim, camera.panCellX(), camera.panCellY());
+        for (MachineAudio.Loop loop : frame.loops()) {
+            Global.getSoundPlayer().playLoop(loop.soundId(), loop.key(), loop.pitch(), loop.volume(),
+                    new Vector2f(loop.cellX() * AUDIO_WORLD_UNITS_PER_CELL, loop.cellY() * AUDIO_WORLD_UNITS_PER_CELL),
+                    new Vector2f(loop.vxCells() * AUDIO_WORLD_UNITS_PER_CELL, loop.vyCells() * AUDIO_WORLD_UNITS_PER_CELL));
+        }
+        for (MachineAudio.Cue cue : frame.cues()) {
+            Global.getSoundPlayer().playSound(cue.soundId(), cue.pitch(), cue.volume(),
+                    new Vector2f(cue.cellX() * AUDIO_WORLD_UNITS_PER_CELL, cue.cellY() * AUDIO_WORLD_UNITS_PER_CELL),
+                    new Vector2f());
+        }
+    }
+
     /**
      * Per-frame velocity for {@link #driveShuttleEngineLoops} Doppler.
      *
@@ -1397,8 +1482,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         return !grid.isWalkable(cx, cy);
     }
 
-    private void playCombatEventSounds(BattleSimulation sim) {
-        BattleShotAudio.playPositional(sim.getShotsThisFrame());
+    private void playCombatEventSounds(BattleSimulation sim, float dt) {
+        BattleShotAudio.playPositional(sim.getShotsThisFrame(), heldFireLoops, dt);
         Vector2f zeroVel = new Vector2f(0f, 0f);
         playSystemActivationCues(sim, zeroVel);
         LongList deaths = sim.getDeathsThisFrame();
@@ -1504,6 +1589,7 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     @Override
     public void processInput(List<InputEventAPI> events) {
+        if (loading()) return;
         syncDirectControl();
         if (rangeFinished) return;
         syncAuthoringChrome();
@@ -2002,6 +2088,10 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     @Override
     public void render(float alphaMult) {
+        if (loading()) {
+            if (loadingOverlay != null) loadingOverlay.render(alphaMult);
+            return;
+        }
         syncAuthoringChrome();
         refreshSelectionChrome();
         if (layout == null) return;

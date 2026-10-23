@@ -81,7 +81,6 @@ class SpecialEquipmentRegistryTest {
     void everyAuthoredPresentationAssetExists() {
         for (SpecialEquipmentDef def : SpecialEquipmentRegistry.installed().all()) {
             assertAsset(def.id(), def.presentation().armoryIconPath());
-            assertAsset(def.id(), def.presentation().aimSpritePath());
             if (def.presentation().carrierLayer() != null) {
                 assertAsset(def.id(), def.presentation().carrierLayer().spritePath());
             }

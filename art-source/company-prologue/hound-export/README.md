@@ -40,6 +40,19 @@ well, append `HOUND (A) | clean` and `SWFX` in one load.
   - Everything above the traverse gap rides the pivot, along with the slot anchor and `Anchor weapon WS 002 muzzle`.
   - The barbette, ring and armour plates stay with the hull.
   - Rotating the pivot by -145 degrees trains the turret forward.
+  - The gun elevates on `Weapon WS 002 elevation`, a child of the pivot on the trunnion axis
+    (the mantlet drum's axis). Rotate it about its local Y; negative lifts the muzzles.
+  - The mantlet, drum, trunnions, barrel(s), jacket(s), muzzle brake(s) and the muzzle anchors
+    ride it. The house, cheeks, glacis and roof fittings stay on the pivot.
+  - Limits -10 to +85 degrees, stored as `elevation_min_deg` / `elevation_max_deg` on the empty,
+    as the turret kit stores them. It is the turret kit's chain, so the VFX kit's aim
+    (`swfx_guns.trainers`) finds it with no special case.
+  - `check_elevation.py` sweeps the gun against every other mesh at every bearing of the arc:
+    clear from -16 to +90 on every livery (first contact is the barrel dipping into the
+    traverse gap at -17). `hd_elevation.py` holds the rig and the limits.
+  - `elevate_export.py` adds the joint to an already published export without replaying the
+    surfacing (joint only; it asserts nothing else moved). The 2026-10-23 builds were made that
+    way from the accepted 5cb098e10 builds.
 - **WS 003.** The hidden flare system has its slot anchor (+X aft) and no muzzle.
 - **Ramp.** `Hull aft ventral ramp hinge` turns about its local Y.
   - Negative angles lower the aft end.

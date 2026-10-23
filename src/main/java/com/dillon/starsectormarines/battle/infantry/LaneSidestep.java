@@ -25,8 +25,9 @@ import com.dillon.starsectormarines.battle.unit.LongBucket;
  * in front read his lane as clear and fired into their back indefinitely.
  *
  * <p>The first verb was to <em>switch target</em>, and it was measured twice
- * and lost captures both times; {@link TacticalScoring#FRIENDLY_LANE_COST}
- * carries those numbers. The reason is worth restating because it is the reason
+ * and lost captures both times (four of fourteen on reinforced-south, and still
+ * a capture and a held compound when reduced to a tiebreak between near-equal
+ * targets), so it was removed. The reason is worth restating because it is the reason
  * this class exists: a blocked lane usually means a squadmate is between this
  * marine and the enemy the squad is already engaging, which is a firing line
  * working correctly, and moving somebody onto a different target breaks up the

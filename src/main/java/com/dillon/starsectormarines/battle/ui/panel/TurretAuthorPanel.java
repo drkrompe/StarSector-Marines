@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
+import com.dillon.starsectormarines.render2d.texture.ModTextures;
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.StarsectorMarinesModPlugin;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -17,7 +18,6 @@ import com.fs.starfarer.api.input.InputEventAPI;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
-import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.List;
@@ -424,14 +424,14 @@ public final class TurretAuthorPanel implements HudPanel {
         loadAttempted = true;
         VehicleType type = targetType();
         try {
-            Global.getSettings().loadTexture(type.spritePath);
-            sheet = Global.getSettings().getSprite(type.spritePath);
+            ModTextures.loadTexture(type.spritePath);
+            sheet = ModTextures.sprite(type.spritePath);
             if (sheet == null) {
                 LOG.warn("TurretAuthor: getSprite returned null for " + type.spritePath);
                 return;
             }
-            try (java.io.InputStream stream = Global.getSettings().openStream(type.spritePath)) {
-                BufferedImage img = ImageIO.read(stream);
+            {
+                BufferedImage img = ModTextures.readImage(type.spritePath);
                 if (img == null) {
                     LOG.warn("TurretAuthor: ImageIO.read returned null for " + type.spritePath);
                     return;

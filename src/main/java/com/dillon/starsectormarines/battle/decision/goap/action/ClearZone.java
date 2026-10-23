@@ -41,37 +41,20 @@ import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
  */
 public final class ClearZone extends AbstractZoneAction implements SquadRouteGoalProvider {
 
-    private final boolean pruneTargetSelection = prunedTargetSelectionEnabled();
-    private final ClearZoneDecisions decisions;
+    private final ClearZoneDecisions decisions = new ClearZoneDecisions(64);
     /** Bound within the zone, or null for the whole zone. */
     private final ObjectiveArea area;
     /** Where a member outside {@link #area} goes in, inside it and in the zone; unused without an area. */
     private final int areaCellX, areaCellY;
 
-    /** Same-build control for per-tick target reconsideration and failed searches. */
-    public static boolean decisionCadenceEnabled() {
-        return Boolean.parseBoolean(System.getProperty(
-                "battle.goap.clearZoneDecisionCadence", "true"));
-    }
-
-    /** Same-build control for the original two-pass, unpruned target selection. */
-    public static boolean prunedTargetSelectionEnabled() {
-        return Boolean.parseBoolean(System.getProperty(
-                "battle.targeting.pruneClearZoneSelection", "true"));
-    }
-
     @Override
     public Goal squadRouteGoal(Squad squad, BattleView sim) {
-        int[] interior = entryCell(sim, squad);
+        int[] interior = entryCell(sim);
         return interior == null ? null : new Goal(interior[0], interior[1]);
     }
 
     public ClearZone(int targetZoneId) {
-        this(targetZoneId, decisionCadenceEnabled());
-    }
-
-    ClearZone(int targetZoneId, boolean decisionCadence) {
-        this(targetZoneId, null, -1, -1, decisionCadence);
+        this(targetZoneId, null, -1, -1);
     }
 
     /**
@@ -79,22 +62,17 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
      * lie in both. A compound's clear: its room may have merged into the street.
      */
     public ClearZone(int targetZoneId, ObjectiveArea area, int cellX, int cellY) {
-        this(targetZoneId, area, cellX, cellY, decisionCadenceEnabled());
-    }
-
-    private ClearZone(int targetZoneId, ObjectiveArea area, int cellX, int cellY, boolean decisionCadence) {
         super(targetZoneId);
         this.area = area;
         this.areaCellX = cellX;
         this.areaCellY = cellY;
-        decisions = decisionCadence ? new ClearZoneDecisions(64) : null;
     }
 
     @Override protected ObjectiveArea area() { return area; }
 
-    private int[] entryCell(BattleView sim, Squad squad) {
+    private int[] entryCell(BattleView sim) {
         if (area != null) return new int[]{areaCellX, areaCellY};
-        return interiorCellOf(targetZoneId, sim, squad);
+        return interiorCellOf(targetZoneId, sim);
     }
 
     @Override public String name() { return "ClearZone[" + targetZoneId + "]"; }
@@ -106,8 +84,7 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
         // A live hostile in this zone is an exact NOT-clear witness. No cached
         // absence can finish the action: losing the witness immediately requires
         // the original current-roster predicate, including non-combatants.
-        boolean hostileWitness = decisions != null
-                && (liveHostileInZone(target, squad, sim) || decision != null);
+        boolean hostileWitness = liveHostileInZone(target, squad, sim) || decision != null;
         // Quick exit when the zone reads clear of everything this squad fights.
         // Checked from anywhere (global predicate) so an all-outside squad —
         // e.g. the lone in-zone member died — still advances the plan rather
@@ -120,7 +97,7 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
         // zone consolidates in — firing suppressively while it moves — before
         // it engages. Don't clear the room from the doorway.
         if (!memberInZone(member, sim)) {
-            int[] interior = entryCell(sim, squad);
+            int[] interior = entryCell(sim);
             if (interior != null) {
                 advanceIntoZone(member, squad, sim, interior[0], interior[1], false);
             }
@@ -132,10 +109,10 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
         // to the in-zone enemy and grab a visible adjacent-zone target via
         // findBestTarget get stuck (line 90 short-circuits movement, and
         // shouldKeepPursuing keeps voting yes because no closer visible
-        // alternative appears). pickInZoneTarget tries LOS first; when no
-        // in-zone enemy is visible (squad in zone but blocked from the
-        // surviving enemy by a wall), pickNearestInZoneEnemy returns the
-        // closest in-zone enemy unconditionally so we close through the
+        // alternative appears). pickZoneTarget prefers the closest visible
+        // in-zone enemy; when none is visible (squad in zone but blocked from
+        // the surviving enemy by a wall), it returns the closest in-zone
+        // enemy unconditionally so we close through the
         // wall via the pathfinder rather than freezing. Falls back to the
         // squad-aware best-target only when zone has no live enemies (rare —
         // zoneClear normally short-circuits first).
@@ -197,7 +174,7 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
             // not construct a trivial route every cooldown tick. An active old
             // route must still be replaced, and moving routes keep their normal
             // periodic topology repair.
-            if (decisions != null && dest != null && sim.movement().settled(member)
+            if (dest != null && sim.movement().settled(member)
                     && sim.world().x(member) == dest[0] + 0.5f
                     && sim.world().y(member) == dest[1] + 0.5f) {
                 return ActionStatus.RUNNING;
@@ -217,7 +194,7 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
                 // a cell on the wrong side of a wall. Setting that empty path
                 // would pin the unit in place forever (the SQ-96 garrison
                 // freeze, here on the assault path). Drop the target instead —
-                // pickInZoneTarget re-acquires after a bounded retry (Story K stays
+                // pickZoneTarget re-acquires after a bounded retry (Story K stays
                 // satisfied: we only ever clear within zone). A zone whose every
                 // survivor is unreachable idles here pending a make-passage /
                 // breach action — the documented limitation, surfaced via
@@ -241,7 +218,6 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
     }
 
     private ClearZoneDecisions.Entry retainedDecision(long member, long target, Squad squad, BattleView sim) {
-        if (decisions == null) return null;
         ClearZoneDecisions.Entry entry = decisions.lookup(member, squad, squad.assignmentForExecution(),
                 squad.currentGoal, sim.getGrid().topologyRevision(), sim.getSimTickIndex(),
                 sim.world().cellX(member), sim.world().cellY(member), target, sim.world().attackRange(member));
@@ -254,7 +230,6 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
     }
 
     private void rememberDecision(long member, long target, Squad squad, BattleView sim, boolean negative) {
-        if (decisions == null) return;
         decisions.remember(member, squad, squad.assignmentForExecution(), squad.currentGoal,
                 sim.getGrid().topologyRevision(), sim.getSimTickIndex(),
                 sim.world().cellX(member), sim.world().cellY(member), target,
@@ -290,10 +265,6 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
     }
 
     private long pickZoneTarget(long self, BattleView sim, TargetScanWork work) {
-        if (!pruneTargetSelection) {
-            long visible = pickInZoneTarget(self, sim, work);
-            return visible != 0L ? visible : pickNearestInZoneEnemy(self, sim, work);
-        }
         Faction selfFaction = sim.identity().faction(self);
         float selfX = sim.world().x(self), selfY = sim.world().y(self);
         int selfCellX = sim.world().cellX(self), selfCellY = sim.world().cellY(self);
@@ -321,63 +292,5 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
             }
         }
         return visible != 0L ? visible : nearest;
-    }
-
-    /** Original visible-only selector, retained as the same-build control. */
-    private long pickInZoneTarget(long self, BattleView sim, TargetScanWork work) {
-        Faction selfFaction = sim.identity().faction(self);
-        long best = 0L;
-        float bestDist = Float.MAX_VALUE;
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            if (work != null) work.visits++;
-            long other = sim.liveUnitAt(i);
-            if (sim.isRiding(other)) continue;
-            if (!selfFaction.hostileTo(sim.identity().faction(other))) continue;
-            if (!sim.identity().type(other).combatant) continue;
-            if (!inTarget(sim.world().cellX(other), sim.world().cellY(other), sim)) continue;
-            if (work != null) work.rays++;
-            if (!sim.getGrid().hasLineOfSight(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other), sim.world().cellY(other))) continue;
-            float d = TacticalScoring.cellDistance(sim.world().x(self), sim.world().y(self), sim.world().x(other), sim.world().y(other));
-            if (d < bestDist) {
-                bestDist = d;
-                best = other;
-            }
-        }
-        return best;
-    }
-
-    /**
-     * Closest alive enemy combatant in the target zone, ignoring LOS. The
-     * fallback for the original visible-only selector when a wall blocks LOS to every
-     * survivor in the zone — without this, the squad picks an out-of-zone
-     * target via findBestTarget and freezes (the action refuses to chase
-     * out-of-zone targets, see Story K). Linear scan; one zone-clearing
-     * squad pays it once per posture tick.
-     *
-     * <p>The squad ↔ zone-clear flood share the same walkability rules but
-     * the zone graph ignores edges ([[zone_graph_ignores_edges]]) — so a
-     * non-LOS in-zone enemy may still be unreachable. The pathfinder either
-     * routes around (members close, eventually gain LOS) or returns an
-     * empty path (next tick re-evaluates; if persistently empty the squad
-     * is geometrically stuck — surfaced via clearZoneReachability in
-     * {@link com.dillon.starsectormarines.battle.ui.debug.SquadStateDumper}).
-     */
-    private long pickNearestInZoneEnemy(long self, BattleView sim, TargetScanWork work) {
-        Faction selfFaction = sim.identity().faction(self);
-        long best = 0L;
-        float bestDist = Float.MAX_VALUE;
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            if (work != null) work.visits++;
-            long other = sim.liveUnitAt(i);
-            if (!selfFaction.hostileTo(sim.identity().faction(other))) continue;
-            if (!sim.identity().type(other).combatant) continue;
-            if (!inTarget(sim.world().cellX(other), sim.world().cellY(other), sim)) continue;
-            float d = TacticalScoring.cellDistance(sim.world().x(self), sim.world().y(self), sim.world().x(other), sim.world().y(other));
-            if (d < bestDist) {
-                bestDist = d;
-                best = other;
-            }
-        }
-        return best;
     }
 }

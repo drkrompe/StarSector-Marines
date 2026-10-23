@@ -1,11 +1,13 @@
 # Direction: the allies command their own machines
 
-Status: ACTIVE — enlistment and the allied command's two tasks have landed; the
-Cordon's logistics base and The Burn's advancing armour build on them.
+Status: ACTIVE — enlistment, the allied command's two tasks and the screened
+advance have landed; the Cordon's logistics base and The Burn's advancing armour
+build on them.
 Read `convoy-nouns.md` first; this extends `vehicle-as-commandable-unit.md` to
 the allied side.
 
 Written: 2026-10-22
+Updated: 2026-10-23 — the screened advance moves as one formation and is a fighting advance (owner); bounds dropped
 
 ## Why
 
@@ -62,10 +64,141 @@ a squad order, not a hull's; its doctrine fights it once there.
 Squads the allied command orders are under `GARRISON` authority, as every
 allied garrison's are.
 
+## Screened advance
+
+Owner, 2026-10-23: "consider how to make armor screened advances or marine
+screened advances toward a rally point make sense. We can somewhat have this be
+something we can script per mission for authored ones like these to make the
+commanders seem smarter than they are." An advance that is only a station the
+mission keeps moving sends every machine and squad at its own pace, so tanks
+leave their infantry behind and an advance looks like a crowd rather than a
+plan.
+
+A **screened advance** (`ScreenedAdvance`) is two elements moving to a **rally
+point** as **one formation**:
+
+- The **screen** goes a few cells in front, or abreast on the main's two
+  flanks. Infantry screen armour through woods or streets, where a tank alone is
+  blind and the swarm closes unseen. Armour screens infantry across open ground,
+  where the guns take the fire.
+- The **main** keeps its slot right behind the screen, close enough to give it
+  fire at any moment.
+- Either element may be squads, hulls, mechs or a mix. Squads take an
+  attack-move under `GARRISON` authority, and hulls and mechs take this
+  command's station orders. So each element fights on its own doctrine wherever
+  it stands, and the advance only moves it.
+
+**One formation, not bounds** (owner, 2026-10-23): "I don't necessarily like
+'bounded' advance. I'd rather they moved in a formation instead. Otherwise the
+marine screen results in the marines being out in the open while the vehicles
+are far behind." An earlier form bounded from phase line to phase line, each
+element waiting for the other at every line. That left the screen standing in
+the open with the main a bound behind. It is gone, and nothing replaces phase
+lines by default.
+
+**The anchor and the slots.** The formation has one **anchor**, a distance along
+the route (`AdvanceRoute`, a line of cells from the start line to the rally
+point). Every squad and machine has a **slot** fixed relative to the anchor:
+
+- With the screen ahead, the main's line abreast is on the anchor and the
+  screen's is six cells in front of it.
+- With the screen on the flanks, there is one line, with the screen's members on
+  its ends.
+- Neighbours stand six cells apart. A large formation closes up to fit a
+  **frontage**, such as a lane's width.
+
+**The slowest sets the pace.** The anchor moves on only as far as the slowest
+element's **body** keeps up with its slot, at a walking marine's pace at most.
+An element's body is the leading two thirds of its squads and machines along the
+route. So the slowest element walks on without stopping, and the fastest waits
+in its slot for it. A tank never leaves its infantry in the open, and a screen
+never stands out in front of armour that has fallen behind. A straggler (a hull
+pulling out to withdraw, a squad pinned down) is not the body: it is left to
+catch up and cannot freeze the formation. At the end, the screen's line is on
+the rally point and the main's just behind it, and both arrive together.
+
+**A fighting advance.** Owner, 2026-10-23: "is there a 'fighting advance' where
+they pause to fight when engaged, then resume the advance?", and "'stopping'
+might not be right as it may prevent re-orientation to handle the attack". When
+the formation is **engaged**, only its progress toward the rally point pauses.
+It does not freeze. It turns to face the threat:
+
+- The main holds where it stands on the route.
+- The slots rotate about it.
+- The screen swings round to stand between the main and the threat. From the
+  front it is there already; from a flank it walks round.
+- Every element fights from its slot. A stationed hull may still close on the
+  threat within its leash, so armour can swing onto a flank contact before the
+  infantry gets there.
+
+As the threat moves, the formation keeps facing it. "Engaged" means a hostile
+within contact range (sixteen cells) of any member, screen or main, or one that
+a squad or walker of the formation has seen within the last second, however far
+off: a picket its guns trade fire with at range. That is the commander's report
+of what its units see, and it is how the advance looks deliberate.
+
+The advance picks up again once the contact has **cleared**: nothing hostile in
+range and nothing seen, for five seconds. It is not a fixed timeout. A contact it
+cannot clear is **capped** at forty-five seconds by default. At the cap the
+mission's choice applies: the formation either **pushes through**, facing the
+route again and fighting as it moves, or **hands back**, suspending itself so
+the mission decides. A battle where contact never lets up (a swarm) can shorten
+both times.
+
+The fighting advance sits above a squad's own attack-move, and the two differ:
+
+- **Squad attack-move.** An attack-move is already a per-squad fighting advance
+  (`ai-nouns.md`, The attack move and its cooperating group). A squad that meets
+  a threat on its route commits to it, fights from firing positions held close
+  to the route, and walks on when the threat lets go. It shoots on the move at
+  contacts too slight or too far off its axis to earn that.
+- **What the formation adds.** Every squad decides that alone. One squad halts
+  to fight while its neighbours and the armour walk on, and nothing turns the
+  group to a flank.
+- **Together.** The formation pauses everyone's progress together and faces them
+  all toward the threat. Each squad still fights its own engagement inside its
+  slot.
+
+**Losses.** A screen worn below a third of its strength at step-off is
+**broken**. By the mission's choice, the advance then either halts where it
+stands, or the main takes the lead with the screen's remnants and goes on as one
+element. Squads, hulls and mechs that die drop out of their element. A late
+wave may join either element.
+
+**Side tasks.** A battle whose advance meets something to deal with on the way
+(a satellite the barrage has already passed, a gap that needs holding)
+**suspends** the advance: it gives no orders, and the mission's own orders
+stand. When it **resumes**, the formation re-forms where its slowest element now
+stands.
+
+**Scripted per mission.** An authored battle declares the advance:
+
+- its elements;
+- its route;
+- where the screen goes (ahead, and how far, or on the flanks);
+- a trigger for the step-off (a tick, a beat, a lifted barrage);
+- where something else sets how far it may go, a **limit** (a walking barrage's
+  hold line, an objective not yet taken).
+
+The defaults are what a generic commander would use. The advance raises beats
+(`<name>.step_off`, `.contact_N`, `.cleared_N`, `.pushed_N`, `.stalled`,
+`.rallied`, `.screen_broken`), and the mission
+is free to turn them into its own. It is advanced from the mission's serial
+tick, before the mission's `AlliedCommand`, which it drives. It never ends a
+battle.
+
+The behaviour scene `screened-advance` has four loops: infantry screening
+armour, armour screening infantry, a flank contact (a picket rising abreast of
+the formation, which it must wheel to meet), and a control that sends everything
+straight to the rally point, which is what station orders alone do. In the
+control the armour runs some fifty cells ahead of the militia.
+
 ## Boundaries
 
 - Choosing where the allies go is the mission's job; the command only carries
-  out those choices. A general allied commander that weighs the whole field
+  out those choices. A screened advance is a way of carrying them out, not a
+  choice of where to go: the mission still names the route and the rally
+  point. A general allied commander that weighs the whole field
   (`marine-side-reinforcement.md` applied to `ALLY`) is still later work.
 - A hull's turret picks its own targets; the command only moves the hull.
 - Making machines (a vehicle shop building hulls, `FabricationService`) and

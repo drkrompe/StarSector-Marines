@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.decision.goap.action;
 
 import com.dillon.starsectormarines.battle.command.compound.ObjectiveArea;
-import com.dillon.starsectormarines.battle.decision.goap.world.ApertureSpread;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -74,9 +73,6 @@ import java.util.Map;
  */
 abstract class AbstractZoneAction implements Action {
 
-    private static final boolean ISOLATED_ADVANCE_THREAT = Boolean.parseBoolean(
-            System.getProperty("battle.squad.isolatedAdvanceThreat", "true"));
-
     /**
      * Minimum sim-seconds since the last squad replan before a contact-halt is
      * allowed to force another. Without this throttle a pinned squad would
@@ -93,68 +89,6 @@ abstract class AbstractZoneAction implements Action {
     static final float ADVANCE_RELEASE_THRESHOLD = 0.30f;
     /** Minimum useful off-axis firing-position radius once the squad commits. */
     static final float ADVANCE_LEASH_MIN = 4f;
-    /**
-     * Range at which a contact one member is looking at stops the whole
-     * advance, whatever the route score made of it.
-     *
-     * <p>Much tighter than the range at which that contact is worth a screen,
-     * and the two must not be confused. Ten cells is a room: near enough that
-     * the bearing is known and something should go between the squad and it,
-     * and still far enough that pressing on with moving fire is a legitimate
-     * choice — a squad that outnumbers one weak contact four to one is
-     * <em>meant</em> to press, and the route score says so deliberately.
-     * Overriding that turns every passing straggler into a halt.
-     *
-     * <p>At knife range it stops being a judgement. Walking on past somebody
-     * this close is walking a file through their fire, and no odds computation
-     * makes that right.
-     */
-    static final float ONSET_COMMIT_CELLS = 4f;
-
-    /**
-     * Whether a knife-range onset stops the advance. <b>Off, because it was
-     * measured and it costs ground.</b>
-     *
-     * <p>Against a control on the same tree, the reinforced-south fixture gave
-     * up a capture and a held compound and killed eighteen fewer defenders,
-     * and full-strength-west ran fourteen percent longer. The mechanism is not
-     * mysterious: squads that stop for whatever is closest arrive later, and in
-     * a fixture that ends on a clock, later means fewer objectives taken.
-     *
-     * <p>Kept rather than deleted because the reasoning that produced it still
-     * looks right and the measurement is about Conquest's particular shape — a
-     * timed advance across open ground, where the cost of stopping is paid
-     * immediately and the benefit is diffuse. It wants a different trigger than
-     * range alone (what the contact <em>is</em>, whether it can be walked past
-     * safely, whether anybody is already answering it) before it earns being on
-     * by default. {@code -Dbattle.squad.contactDrill=true} turns it on for the
-     * next attempt to find that trigger, and everything it needs is built.
-     *
-     * <p>The publication it reads is unaffected and stays on: a squad still
-     * knows what one of its members is looking at, screens still answer it, and
-     * cooperating squads still group on it. Only the halt is withheld.
-     */
-    public static final String CONTACT_DRILL_PROPERTY = "battle.squad.contactDrill";
-
-    private static final boolean CONTACT_DRILL_ENABLED = Boolean.parseBoolean(
-            System.getProperty(CONTACT_DRILL_PROPERTY, "false"));
-
-    /**
-     * Turns off zone-contained objective firing positions, restoring the
-     * behaviour to the attack-move-only form it shipped in. On by default;
-     * {@code -Dbattle.squad.objectiveFiringInZone=false} is the control run.
-     *
-     * <p>It exists because the alternative control is a commit-to-commit
-     * comparison, and this repository has already charged a squad behaviour
-     * with a seven-thousand-tick swing that turned out to be another session's
-     * reinforcement work arriving on a merge. A switch measures one change.
-     */
-    public static final String OBJECTIVE_FIRING_IN_ZONE_PROPERTY =
-            "battle.squad.objectiveFiringInZone";
-
-    private static final boolean OBJECTIVE_FIRING_IN_ZONE = Boolean.parseBoolean(
-            System.getProperty(OBJECTIVE_FIRING_IN_ZONE_PROPERTY, "true"));
-
     /**
      * Whether a prosecuting member that can find <em>no</em> firing cell inside
      * its maneuver leash carries on with its assigned advance. On by default,
@@ -174,8 +108,7 @@ abstract class AbstractZoneAction implements Action {
      * contact stayed visible, which under {@code contactHoldIsFresh} is as
      * long as anybody can see it at all.
      *
-     * <p>A switch rather than a bare change for the reason the one above it
-     * exists: the alternative control is a commit-to-commit comparison, and
+     * <p>A switch rather than a bare change because the alternative control is a commit-to-commit comparison, and
      * this repository has already charged a squad behaviour with a swing that
      * belonged to another session's merge.
      */
@@ -259,7 +192,7 @@ abstract class AbstractZoneAction implements Action {
         routeCommitNeedsFreshContact = value;
     }
 
-    /** The commit the score and onset asked for, kept only while evidence for it is fresh. */
+    /** The commit the score asked for, kept only while evidence for it is fresh. */
     static boolean commitStands(boolean committed, boolean contactFresh) {
         return committed && (contactFresh || !routeCommitNeedsFreshContact);
     }
@@ -478,18 +411,9 @@ abstract class AbstractZoneAction implements Action {
         }
 
         if (committed && target != 0L && threatAnchorX >= 0 && threatAnchorY >= 0) {
-            var selection = sim.getTacticalScoring().selectSquadFiringPositionWithin(
+            int[] firingPos = sim.getTacticalScoring().findSquadFiringPositionWithin(
                     member, target, squad, sim.getSimTickIndex(), threatAnchorX,
-                    threatAnchorY, engageLeash, TacticalScoring.ANY_ZONE);
-            if (selection.deferred()) {
-                // A budget refusal says nothing about whether this commitment
-                // has a firing position. Pause locomotion without discarding
-                // the path or resuming the objective on an invented negative.
-                // Opportunity fire was already authored above. A validated
-                // incumbent is returned as a position, not as deferred.
-                return;
-            }
-            int[] firingPos = selection.cell();
+                    threatAnchorY, engageLeash);
             // The three refusals are different facts and get different
             // answers. No path at all means the commitment cannot be
             // prosecuted by walking, so the member holds and fights from
@@ -559,21 +483,15 @@ abstract class AbstractZoneAction implements Action {
         // for why the destination and not the member is the anchor.
         //
         // The footprint is the leash AND the room, when the order names one.
-        // This was restricted to an order with no target zone — the attack
-        // move, which is what it was built for — because the search knows
-        // nothing about rooms and would happily improve a member's angle by
-        // walking it into the room next door. That restriction turned out to
-        // exclude most of the population it was written for: instrumented
-        // over a Conquest matrix, 466,940 member-ticks reached this gate and
-        // 271,732 of them (58%) were refused for naming a zone, of which
-        // 39,342 had a legal firing cell inside their own leash. Containment
-        // is the answer rather than exclusion, and it belongs in the search,
-        // where every candidate can be tested — see the requiredZoneId
-        // overload of findFiringPositionWithin. targetZoneId carries both
-        // cases already: negative for an order with no room, and then the
-        // search is unconstrained exactly as before.
-        if (OBJECTIVE_FIRING_IN_ZONE
-                && haltOnContact && !committed && !inContact
+        // Left to itself the search knows nothing about rooms and would
+        // happily improve a member's angle by walking it into the room next
+        // door; excluding every order that names a zone instead refused 58%
+        // of the member-ticks reaching this gate over a Conquest matrix.
+        // Containment belongs in the search, where every candidate can be
+        // tested — see the requiredZoneId overload of
+        // findFiringPositionWithin. targetZoneId is negative for an order
+        // with no room, and then the search is unconstrained.
+        if (haltOnContact && !committed && !inContact
                 && target != 0L && clearShotOnTarget && opportune == 0L) {
             int[] firingPos = sim.getTacticalScoring().findSquadFiringPositionWithin(
                     member, target, squad, sim.getSimTickIndex(), destX, destY, OBJECTIVE_FIRING_LEASH, targetZoneId);
@@ -581,17 +499,6 @@ abstract class AbstractZoneAction implements Action {
             // refusal simply resumes the order it does have. This deliberately
             // includes a deferred shared-pool refresh: an optional improvement
             // must not stall travel toward the actual objective.
-            if (advanceToReachableFiringPosition(member, sim, firingPos)
-                    == FiringApproach.MOVED) return;
-        } else if (haltOnContact && !committed && !inContact && targetZoneId < 0
-                && target != 0L && clearShotOnTarget && opportune == 0L) {
-            // Control path for -Dbattle.squad.objectiveFiringInZone=false: the
-            // behaviour exactly as it shipped before containment, so a matrix
-            // run can be compared against one on the same tree rather than
-            // against an older commit carrying every other difference with it.
-            int[] firingPos = sim.getTacticalScoring().findSquadFiringPositionWithin(
-                    member, target, squad, sim.getSimTickIndex(), destX, destY, OBJECTIVE_FIRING_LEASH);
-            // As above, a deferred optional improvement may resume the order.
             if (advanceToReachableFiringPosition(member, sim, firingPos)
                     == FiringApproach.MOVED) return;
         }
@@ -747,15 +654,9 @@ abstract class AbstractZoneAction implements Action {
      * by squad.lock. Contact-onset publication has the same dedicated ownership.
      */
     protected static void updateAdvanceThreat(Squad squad, BattleControl sim, int destX, int destY) {
-        updateAdvanceThreat(squad, sim, destX, destY, ISOLATED_ADVANCE_THREAT);
-    }
-
-    /** Same production path with explicit monitor selection for focused controls. */
-    static void updateAdvanceThreat(Squad squad, BattleControl sim, int destX, int destY,
-                                    boolean isolated) {
         int tick = sim.getSimTickIndex();
         if (squad.advanceThreatTick == tick) return;
-        synchronized (isolated ? squad.advanceThreatLock : squad.lock) {
+        synchronized (squad.advanceThreatLock) {
             if (squad.advanceThreatTick == tick) return;
             computeAdvanceThreat(squad, sim, destX, destY, tick);
             // Volatile publication-last: the lock-free fast path must never
@@ -780,65 +681,10 @@ abstract class AbstractZoneAction implements Action {
         squad.advanceThreatAnchorX = threat.axisAnchorX();
         squad.advanceThreatAnchorY = threat.axisAnchorY();
         squad.advanceThreatRetreating = threat.primaryRetreating();
-        applyContactOnset(squad, sim, tick);
         if (!commitStands(squad.advanceEngageCommitted, TacticalScoring.hasFreshBelief(squad, tick))) {
             squad.advanceEngageCommitted = false;
             squad.advanceEngageLeash = 0f;
         }
-    }
-
-    /**
-     * Folds a member's contact onset into the squad's advance decision.
-     *
-     * <p><b>An advance does not walk past somebody one of its people is looking
-     * at.</b> The route score is an aggregate over believed contacts and is
-     * deliberately unhurried, which is right for deciding whether a defended
-     * line is worth committing to and wrong for the marine who has just come
-     * round a corner into a rifle. A single hostile inside ten cells may never
-     * move that score at all, and the squad walks through it in file — which is
-     * exactly the behaviour the attack move was built to stop, arriving one
-     * scale further down than it was fixed.
-     *
-     * <p>So an onset inside {@link #ONSET_COMMIT_CELLS} commits the squad
-     * outright rather than adding weight to be weighed, and supplies the anchor
-     * with it, because a contact that close is the thing to take firing
-     * positions against whatever the aggregate liked better.
-     *
-     * <p><b>The range is the release, and it has to be.</b> Forcing the commit
-     * flag every tick while a contact stands there defeats the hysteresis
-     * underneath it — the squad can never let go, so an enemy who breaks off
-     * and withdraws still pins it, which is a latch with no exit rather than a
-     * contact drill. Because the force applies only within knife range, an
-     * enemy who dies, breaks line of sight, or simply backs away stops being an
-     * onset and the ordinary release resumes from the score.
-     *
-     * <p>A singling-out at range is deliberately <em>not</em> enough to commit.
-     * Stopping an advance because somebody far off has taken an interest is how
-     * a squad is pinned by one rifle, and the answer to it is a screen and to
-     * keep moving — which the equipment layer already gives.
-     */
-    private static void applyContactOnset(Squad squad, BattleControl sim, int tick) {
-        if (!CONTACT_DRILL_ENABLED || !onsetForcesCommit(squad)) return;
-        long contact = sim.resolveUnit(squad.onsetContactId);
-        if (contact == 0L) return;
-        squad.advanceEngageCommitted = true;
-        squad.advanceEngageLeash = Math.max(squad.advanceEngageLeash,
-                ADVANCE_LEASH_MIN);
-        squad.advanceThreatId = contact;
-        squad.advanceThreatAnchorX = sim.world().cellX(contact);
-        squad.advanceThreatAnchorY = sim.world().cellY(contact);
-    }
-
-    /**
-     * Whether this squad's published onset is the kind that stops an advance,
-     * independent of whether the drill is switched on. Separated so the range
-     * distinction stays testable while the behaviour it gates is off: what
-     * could silently drift is the boundary, not the switch.
-     */
-    static boolean onsetForcesCommit(Squad squad) {
-        return squad.onsetAtCloseQuarters
-                && squad.onsetTick >= 0
-                && squad.onsetDistance <= ONSET_COMMIT_CELLS;
     }
 
     static boolean shouldCommitAdvance(boolean wasCommitted, float weight) {
@@ -858,12 +704,6 @@ abstract class AbstractZoneAction implements Action {
         if (cells.length == 0) return null;
         int pick = cells[cells.length / 2];
         return new int[]{ pick % grid.getWidth(), pick / grid.getWidth() };
-    }
-
-    /** {@link #interiorCellOf(int, BattleView)}, aimed at this squad's own cell when spread is on. */
-    protected static int[] interiorCellOf(int zoneId, BattleView sim, Squad squad) {
-        return ApertureSpread.roomCell(sim.getZoneGraph().zoneById(zoneId),
-                sim.getGrid(), ApertureSpread.variant(squad));
     }
 
     /** {@link #interiorCell} resolved from a zone id against the live graph/grid. */

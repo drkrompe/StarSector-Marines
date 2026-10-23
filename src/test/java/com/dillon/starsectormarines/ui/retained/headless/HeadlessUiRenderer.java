@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ui.retained.headless;
 
+import com.dillon.starsectormarines.render2d.texture.FittedTextureOverlay;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotWorkers;
 import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.retained.CanvasBlend;
@@ -18,7 +19,6 @@ import com.dillon.starsectormarines.ui.retained.UiPaintTarget;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
-import javax.imageio.ImageIO;
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -595,6 +595,12 @@ public final class HeadlessUiRenderer {
         }
 
         @Override
+        public float[] imageSize(String path) {
+            BufferedImage image = path == null || path.isBlank() ? null : resources.imageOrNull(path);
+            return image == null ? null : new float[]{image.getWidth(), image.getHeight()};
+        }
+
+        @Override
         protected void drawSprite(String sourcePath, SpriteAPI liveSprite,
                                   float centerX, float centerY, float width, float height,
                                   float angleDegrees, Color tint,
@@ -729,7 +735,7 @@ public final class HeadlessUiRenderer {
         private BufferedImage image(String resourcePath) {
             return images.computeIfAbsent(resourcePath, path -> {
                 try {
-                    BufferedImage image = ImageIO.read(resolve(path).toFile());
+                    BufferedImage image = FittedTextureOverlay.read(path, resolve(path));
                     if (image == null) throw new IOException("Unsupported image format");
                     return image;
                 } catch (IOException failure) {

@@ -4,9 +4,8 @@ Generic aliens and swarm runners use the infantry compositor's continuous body
 facing, independent head look, alternating-foot locomotion, and alternating
 contact swipes. Two rotated instances of the same neutral fore-claw tuck under
 the carapace at rest. On impact, one moves forward and is painted above the body
-so its three talons stay readable. Aliens never draw firearm layers;
-`alien.png` remains the live load-failure fallback and `alien-dead.png` remains
-the corpse sheet.
+so its three talons stay readable. Aliens never draw firearm layers. A
+dead Runner bursts on its rig; there is no alien sheet or corpse sheet.
 
 Runtime layers are `body.png`, `head.png`, `foot.png`, and `fore-claw.png`. The
 accepted built-in ImageGen outputs are retained under `art-source/alien-modular-topdown/sources/`;

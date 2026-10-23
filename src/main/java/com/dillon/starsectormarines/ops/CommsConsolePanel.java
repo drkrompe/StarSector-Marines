@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.render2d.texture.ModTextures;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractType;
@@ -377,7 +378,7 @@ public class CommsConsolePanel extends OpsPanel {
     private void renderMapBackground(float alphaMult) {
         if (ctx.planetTexture == null) return;
         try {
-            SpriteAPI flat = Global.getSettings().getSprite(ctx.planetTexture);
+            SpriteAPI flat = ModTextures.sprite(ctx.planetTexture);
             if (flat == null) return;
             flat.setTexX(0f);
             flat.setTexY(0f);
