@@ -136,7 +136,9 @@ public final class ReviewImpactFx {
     private OrdnanceTraceFxService traces() {
         if (traces == null) {
             try {
-                traces = new OrdnanceTraceFxService(HeadlessBattleSceneRenderer.spritesFor(modRoot));
+                // Its falling rounds are drawn by whichever drain draws the frame, so they carry that drain's tokens.
+                GlReviewDrain gpu = ReviewSceneBackend.gpu(modRoot);
+                traces = new OrdnanceTraceFxService(gpu != null ? gpu.sprites() : HeadlessBattleSceneRenderer.spritesFor(modRoot));
             } catch (Exception failure) {
                 throw new IllegalStateException("Could not prepare headless sprites for ordnance traces", failure);
             }
