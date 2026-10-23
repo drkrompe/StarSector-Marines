@@ -111,7 +111,7 @@ def _bez(p, s):
     return pos, der
 
 
-def boarding_run(launch, leave, seat, arrive, seated, t0, t1, t):
+def boarding_run(launch, leave, seat, arrive, seated, t0, t1, t, hold=0.0):
     """A boarding boat t seconds in, on its run from its mother craft to the prize (owner, 2026-10-22).
 
     launch: the point it leaves from, out of the camera's sight (under or behind its mother craft);
@@ -121,7 +121,48 @@ def boarding_run(launch, leave, seat, arrive, seated, t0, t1, t):
     burn, coast and brake: it burns out along the curve for the first 30%, coasts, yaws end for end
     (from 58% to 70%) and burns against its motion for the last 30%, so it arrives tail first, nose to
     the way it came, which is the way it sits down (seated's heading). Before t0 it is at the launch
-    point, at rest; from t1 it is seated."""
+    point, at rest; from t1 it is seated.
+
+    hold (seconds): the boat settles before it sets down (owner, 2026-10-23, S7: "somewhat still
+    navigating into a stable position near their target"). The run then brakes to rest at a hold
+    point HOLD_ASTERN m astern of the seat and HOLD_UP m above it, keeps station there for hold
+    seconds (sub-metre drift, a degree of attitude, short RCS pulses on the throttle), and eases down
+    onto the seat over SETTLE_S."""
+    if hold <= 0.0:
+        return _run(launch, leave, seat, arrive, seated, t0, t1, t)
+    t_hold = t1 - SETTLE_S - hold
+    over = [seat[i] - arrive[i] * HOLD_ASTERN + (HOLD_UP if i == 2 else 0.0) for i in range(3)]
+    if t < t_hold:
+        return _run(launch, leave, over, arrive, (*over, seated[3], seated[4], 0.0, .2), t0, t_hold, t)
+    if t >= t1:
+        return seated
+    import random
+    rnd = random.Random('boarding hold|%.1f|%.1f' % (launch[0], launch[1]))
+    ph = [rnd.uniform(0, 6.3) for _ in range(6)]
+    per = [rnd.uniform(2.0, 4.0) for _ in range(6)]
+    amp = [rnd.uniform(.3, .8) for _ in range(3)]
+    if t < t1 - SETTLE_S:
+        u, base = 0.0, over
+    else:
+        u = (t - (t1 - SETTLE_S)) / SETTLE_S
+        u = u * u * (3 - 2 * u)
+        base = [over[i] + (seat[i] - over[i]) * u for i in range(3)]
+    still = 1.0 - u                                              # the drift dies as she sets down
+    pos = [base[i] + amp[i] * still * math.sin(2 * math.pi * t / per[i] + ph[i]) for i in range(3)]
+    hd = seated[3] + 1.2 * still * math.sin(2 * math.pi * t / per[3] + ph[3])
+    pt = seated[4] + .8 * still * math.sin(2 * math.pi * t / per[4] + ph[4])
+    rl = .8 * still * math.sin(2 * math.pi * t / per[5] + ph[5])
+    # RCS: a short pulse every second or so, corrections against the drift
+    k = int(t * 1.3)
+    pulse = random.Random('rcs|%d|%.1f' % (k, launch[0])).uniform(.1, .45) if (t * 1.3 - k) < .25 else 0.0
+    return (pos[0], pos[1], pos[2], hd, pt, rl, .1 + pulse * still + .2 * u)
+
+
+HOLD_ASTERN, HOLD_UP, SETTLE_S = 14.0, 6.0, 3.0
+
+
+def _run(launch, leave, seat, arrive, seated, t0, t1, t):
+    """boarding_run's run itself: the cubic from launch to seat, burn, coast, flip and brake."""
     u = max(0.0, min(1.0, (t - t0) / (t1 - t0)))
     if u >= 1.0:
         return seated

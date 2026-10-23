@@ -270,7 +270,7 @@ def near(parent, offset, hd=0.0, pt=0.0, rl=0.0, thr=.3):
             math.degrees(math.atan2(m[2][1], m[2][2])), thr)
 
 
-def boat(mother, prize, seat_off, t0, t1, t, launch_off=(-8.0, 0.0, -12.0), carrier=None):
+def boat(mother, prize, seat_off, t0, t1, t, launch_off=(-8.0, 0.0, -12.0), carrier=None, hold=0.0):
     """A boarding boat (a Hermes) on its run from under its mother craft to a seat on the prize's deck
     (motion.boarding_run). launch_off and seat_off are metres in the mother's and the prize's frames;
     it leaves down and aft from the mother's belly, where the camera cannot see it launch, and comes in
@@ -281,7 +281,7 @@ def boat(mother, prize, seat_off, t0, t1, t, launch_off=(-8.0, 0.0, -12.0), carr
     n = math.hypot(*down_aft)
     args = (aboard(mother, launch_off)[:3], [c / n for c in down_aft], aboard(prize, seat_off)[:3],
             [p[i][0] for i in range(3)], near(prize, seat_off, hd=180.0, thr=0.0), t0, t1)
-    run = Pose(tuple(boarding_run(*args, t)), t, lambda tt: tuple(boarding_run(*args, tt)))
+    run = Pose(tuple(boarding_run(*args, t, hold=hold)), t, lambda tt: tuple(boarding_run(*args, tt, hold=hold)))
     return run if carrier is None else carried(run, carrier)     # the seat moves with the prize
 
 
@@ -628,9 +628,11 @@ K3B_SHIPS = {
     'kite-p-a': held('kite-p-a', K3B_KITE_A, K3B_T, wobble=1.5),
     'kite-p-b': held('kite-p-b', K3B_KITE_B, K3B_T, wobble=1.5),
     # the boats: one down on her deck, one braking in over her stern, one just out from under its Kite
-    'hermes-p-a': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-a'], 62, 80, K3B_T, carrier=K3B_TARSUS_FLOWN),
-    'hermes-p-b': boat(K3B_KITE_A, K3B_TARSUS, K3B_SEATS['hermes-p-b'], 70, 90, K3B_T, carrier=K3B_TARSUS_FLOWN),
-    'hermes-p-c': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-c'], 81, 99, K3B_T, carrier=K3B_TARSUS_FLOWN),
+    # S7 (80-88 s) sees all three settle: the first holds over her seat and sets down by the key time, the
+    # second brakes in and keeps station through the shot, the third is still on her way in
+    'hermes-p-a': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-a'], 64, 86, K3B_T, carrier=K3B_TARSUS_FLOWN, hold=5.0),
+    'hermes-p-b': boat(K3B_KITE_A, K3B_TARSUS, K3B_SEATS['hermes-p-b'], 70, 93, K3B_T, carrier=K3B_TARSUS_FLOWN, hold=7.0),
+    'hermes-p-c': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-c'], 74, 100, K3B_T, carrier=K3B_TARSUS_FLOWN, hold=6.0),
     'wolf-p-b': fly('wolf-p-b', (-420, 330, 120, -20, -32, 110, 1), K3B_T, [
         dict(t=80, hd=40, pt=-8, rl=40, v=200), dict(t=84, hd=5, pt=-25, rl=95), dict(t=88, hd=-60, pt=-20, rl=70)],
         hits=recoil([84.5], every=.25, until=87.0)),
