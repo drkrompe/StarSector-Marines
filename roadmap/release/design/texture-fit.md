@@ -55,7 +55,19 @@ the smallest policy scale at or above `need x margin` (1.15). It never
 upscales. The scales are multiples of 1/16 (1, 3/4, 1/2, 3/8, 1/4, 3/16, 1/8),
 so a sheet cut on a 16 px grid stays on whole pixels. A larger scale that pads
 to the same power-of-two texture costs no memory, so it is taken for free.
-Resampling is Lanczos on premultiplied alpha. An image is shipped **whole**,
+Resampling is Lanczos on premultiplied alpha.
+
+World needs are measured at 16x, the closest zoom, but the policy fits battle
+art for `battleZoom` (8): a world need is scaled by `battleZoom / 16`. Closer
+than that zoom the art is magnified, and softens a little, instead of every
+vehicle and effect paying full-size video memory for the last doubling of
+zoom. At 16 nothing is ever drawn coarser than its source. On the 2026-10-23
+record, padded memory is 1,063 MB at 16, 888 MB at 8 and 710 MB at 4, against
+1,134 MB unfitted. UI needs are not scaled. `forceScale` (`{path: scale}`)
+overrides the measurement for a proof run that wants to show a shrunk image
+still registers.
+
+An image is shipped **whole**,
 only losslessly recompressed, when it is:
 
 - **unmeasured**, meaning no run recorded drawing it. The report lists these,
@@ -104,7 +116,9 @@ exists and every image is its own source.
 
 `-PtextureUsage` on `createSnapshots`, `commanderEvidence` (with
 `-PsnapshotEveryTicks`, so it draws) or `renderEvidence` writes
-`build/texture-usage/<label>-<pid>.json`. A dev-mode game
+`build/texture-usage/<label>-<pid>.json`. `-PtextureUsageOnly` measures
+without painting battle frames: every world draw is measured when collected,
+so the raster is waste for a measuring run. A dev-mode game
 (`-Dmarines.dev=true`, which `runStarsector` passes) writes
 `saves/common/marines_texture_usage.data` every 30 s while battles draw.
 `gradlew.bat mergeTextureUsage` folds both into the record. `sceneEvidence`

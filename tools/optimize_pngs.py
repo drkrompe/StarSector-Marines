@@ -77,13 +77,17 @@ def engine_references(mod_dir):
     return refs
 
 
-def trusted_need(entry, w, h, ignore):
-    """Largest screen-pixels-per-source-pixel over trusted sources, and the source that set it."""
+def trusted_need(entry, w, h, ignore, battle_zoom=16.0):
+    """Largest screen-pixels-per-source-pixel over trusted sources, and the source that set it.
+
+    The record measures world draws at the closest zoom, 16x; a policy that fits battle art to a
+    lower zoom scales them by battle_zoom / 16 (closer than that, the art is magnified)."""
     best, by = 0.0, None
     for label, usage in (entry or {}).get("sources", {}).items():
         if match_any(label, ignore):
             continue
-        need = max(usage.get("displayWidth", 0) / w, usage.get("displayHeight", 0) / h)
+        k = battle_zoom / 16.0 if usage.get("domain") == "world" else 1.0
+        need = k * max(usage.get("displayWidth", 0) / w, usage.get("displayHeight", 0) / h)
         if need > best:
             best, by = need, label
     return best, by
@@ -109,7 +113,13 @@ def decide(rel, w, h, entry, policy, engine_refs):
         return {"action": "keep", "reason": "engine-loaded"}
     if match_any(rel, policy["neverFit"]):
         return {"action": "keep", "reason": "never-fit"}
-    need, by = trusted_need(entry, w, h, policy.get("ignoreSources", []))
+    forced = policy.get("forceScale", {}).get(rel)
+    if forced:
+        # A proof run's override: shrink this image whatever was measured, to show it still reads right.
+        return {"action": "fit", "reason": "forced", "scale": forced, "need": None, "by": "forceScale",
+                "jpg": False, "size": [max(1, round(w * forced)), max(1, round(h * forced))]}
+    need, by = trusted_need(entry, w, h, policy.get("ignoreSources", []),
+                            float(policy.get("battleZoom", 16.0)))
     if entry is None or by is None:
         return {"action": "keep", "reason": "unmeasured"}
     jpg = policy.get("jpg", {})
