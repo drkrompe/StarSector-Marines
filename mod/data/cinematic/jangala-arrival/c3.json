@@ -18,16 +18,43 @@
  "cues": [
   {
    "t": 0.0,
-   "sound": "jangala_arrival_cabin_bed",
-   "volume": 0.5495,
-   "until": 16.0,
-   "fade_in": 0.0,
-   "fade_out": 0.0
+   "sound": "jangala_sfx_c3_entry_buffet",
+   "volume": 0.0501
   },
   {
    "t": 0.0,
-   "sound": "jangala_arrival_wind",
-   "volume": 0.8035
+   "sound": "jangala_sfx_c3_entry_reentry_roar",
+   "volume": 0.0015
+  },
+  {
+   "t": 0.0,
+   "sound": "jangala_sfx_c3_second_wind_interior",
+   "volume": 0.0912
+  },
+  {
+   "t": 0.0,
+   "sound": "jangala_sfx_c3_wind_easing",
+   "volume": 0.2371
+  },
+  {
+   "t": 0.001,
+   "sound": "jangala_sfx_c3_cabin_flight_bed",
+   "volume": 0.0861
+  },
+  {
+   "t": 4.048,
+   "sound": "jangala_sfx_c3_nature_muffled",
+   "volume": 0.0813
+  },
+  {
+   "t": 4.077,
+   "sound": "jangala_sfx_c3_river_muffled",
+   "volume": 0.0385
+  },
+  {
+   "t": 5.6,
+   "sound": "jangala_sfx_c3_frame_settle",
+   "volume": 0.2344
   },
   {
    "t": 7.0,

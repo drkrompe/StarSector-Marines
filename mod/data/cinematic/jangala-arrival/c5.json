@@ -24,19 +24,6 @@
  "cues": [
   {
    "t": 0.0,
-   "sound": "c5_yard_jungle_bed",
-   "volume": 0.3981,
-   "until": 39.5,
-   "fade_in": 0.0,
-   "fade_out": 1.5
-  },
-  {
-   "t": 0.0,
-   "sound": "c5_yard_spool_down",
-   "volume": 0.5495
-  },
-  {
-   "t": 0.0,
    "sound": "jangala_arrival_ending_a",
    "volume": 0.4955,
    "until": 40.0,
@@ -45,37 +32,39 @@
    "duck": 0.3981
   },
   {
-   "t": 0.4,
-   "sound": "c5_yard_hull_ticks",
-   "volume": 0.5012
+   "t": 0.511,
+   "sound": "jangala_sfx_c5_vehicles_arrive",
+   "volume": 0.1161
   },
   {
-   "t": 1.0,
-   "sound": "c5_yard_winch",
-   "volume": 0.2188
+   "t": 0.648,
+   "sound": "jangala_sfx_c5_hull_ticks",
+   "volume": 0.1972
   },
   {
-   "t": 1.7,
-   "sound": "c5_yard_radio_chatter",
-   "volume": 0.1995
+   "t": 1.009,
+   "sound": "jangala_sfx_c5_vehicles_arrive_2",
+   "volume": 0.0923
   },
   {
-   "t": 3.2,
-   "sound": "c5_yard_crane_horn",
-   "volume": 0.2188
+   "t": 3.136,
+   "sound": "jangala_sfx_c5_car_doors",
+   "volume": 0.0484
   },
   {
-   "t": 4.0,
-   "sound": "c5_yard_steam_vent",
-   "volume": 0.4519,
-   "until": 22.0,
-   "fade_in": 0.4,
-   "fade_out": 6.0
+   "t": 4.096,
+   "sound": "jangala_sfx_c5_steam_vent",
+   "volume": 0.0759
   },
   {
-   "t": 5.0,
-   "sound": "c5_yard_winch",
-   "volume": 0.2188
+   "t": 4.136,
+   "sound": "jangala_sfx_c5_car_doors_2",
+   "volume": 0.0484
+  },
+  {
+   "t": 4.75,
+   "sound": "jangala_sfx_c5_pa_click",
+   "volume": 0.4365
   },
   {
    "t": 5.0,
@@ -83,19 +72,49 @@
    "volume": 1.0
   },
   {
-   "t": 10.0,
-   "sound": "c5_yard_hull_ticks",
-   "volume": 0.3508
+   "t": 5.136,
+   "sound": "jangala_sfx_c5_car_doors_3",
+   "volume": 0.0484
   },
   {
-   "t": 13.0,
-   "sound": "c5_yard_winch",
-   "volume": 0.1799
+   "t": 5.6,
+   "sound": "jangala_sfx_c5_ramp_drop",
+   "volume": 0.2188
   },
   {
-   "t": 14.5,
-   "sound": "c5_yard_radio_chatter",
-   "volume": 0.1603
+   "t": 5.636,
+   "sound": "jangala_sfx_c5_car_doors_4",
+   "volume": 0.138
+  },
+  {
+   "t": 6.514,
+   "sound": "jangala_sfx_c5_steam_vent_2",
+   "volume": 0.0603
+  },
+  {
+   "t": 8.571,
+   "sound": "jangala_sfx_c5_crowd_murmur",
+   "volume": 0.0372
+  },
+  {
+   "t": 11.891,
+   "sound": "jangala_sfx_c5_colossus_lift",
+   "volume": 0.1318
+  },
+  {
+   "t": 12.05,
+   "sound": "jangala_sfx_c5_pa_click_2",
+   "volume": 0.4365
+  },
+  {
+   "t": 17.019,
+   "sound": "jangala_sfx_c5_port_wide",
+   "volume": 0.3126
+  },
+  {
+   "t": 19.391,
+   "sound": "jangala_sfx_c5_colossus_mains",
+   "volume": 0.2723
   },
   {
    "t": 19.6,

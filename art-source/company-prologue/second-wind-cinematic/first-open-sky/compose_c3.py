@@ -73,13 +73,8 @@ def overlays():
 
 
 def audio_cues():
-    """(t, sound_id, volume[, until]). Built by :asset-pipeline:processAudio from
-    audio.json; sources from c3_audio.py. The bed loops for the whole shot; the wind
-    is one pass whose buffeting eases with the shake; Castle's line over the intercom."""
-    return [
-        (0.0, "jangala_arrival_cabin_bed", 0.55, DURATION),
-        (0.0, "jangala_arrival_wind", 0.80),
-    ] + [(c["t"], c["sound"], c["volume"]) for c in castle_lines.cues("c3")]
+    """(t, sound_id, volume): Castle's line over the intercom. Effects are the cue sheet's, added by the exporter (arrival-audio/build_arrival_stems.py)."""
+    return [(c["t"], c["sound"], c["volume"]) for c in castle_lines.cues("c3")]
 
 
 # ---------------------------------------------------------------- sources
