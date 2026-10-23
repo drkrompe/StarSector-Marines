@@ -15,9 +15,6 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -71,62 +68,32 @@ class SquadAlertProfileTest {
     }
 
     @Test
-    void filteredAndBroadQueriesPublishTheSameFactsAcrossCrowdsAndRadiusBoundaries() {
-        try (CrowdedFixture broad = new CrowdedFixture(false);
-             CrowdedFixture filtered = new CrowdedFixture(true)) {
+    void crowdedAwarenessKeepsInclusiveVisionAndKillZoneBoundaries() {
+        try (CrowdedFixture f = new CrowdedFixture(true)) {
             for (int tick = 1; tick <= SquadAlertSystem.KILL_ZONE_LOS_TICKS_THRESHOLD; tick++) {
-                TickInnerProfile broadProfile = new TickInnerProfile();
-                TickInnerProfile.setCurrent(broadProfile);
-                broad.alert.tick(1f / 30f, tick);
-                TickInnerProfile filteredProfile = new TickInnerProfile();
-                TickInnerProfile.setCurrent(filteredProfile);
-                filtered.alert.tick(1f / 30f, tick);
-
-                assertEquals(broad.snapshots(), filtered.snapshots(), "tick " + tick);
-                assertTrue(filteredProfile.countOf(TickInnerProfile.Bucket.ALERT_AWARENESS_CANDIDATE)
-                        < broadProfile.countOf(TickInnerProfile.Bucket.ALERT_AWARENESS_CANDIDATE));
-                for (TickInnerProfile.Bucket counter : new TickInnerProfile.Bucket[]{
-                        TickInnerProfile.Bucket.ALERT_AWARENESS_LOS,
-                        TickInnerProfile.Bucket.ALERT_NOISE_CONSIDERED,
-                        TickInnerProfile.Bucket.ALERT_NOISE_DETECTED,
-                        TickInnerProfile.Bucket.ALERT_INCOMING_CANDIDATE,
-                        TickInnerProfile.Bucket.ALERT_INCOMING_LOS}) {
-                    assertEquals(broadProfile.countOf(counter), filteredProfile.countOf(counter), counter.name());
-                }
-                assertTrue(filtered.observer.believedContact(filtered.atVisionBoundary) != null,
+                f.alert.tick(1f / 30f, tick);
+                assertTrue(f.observer.believedContact(f.atVisionBoundary) != null,
                         "cell-space range remains inclusive even when true positions need gather padding");
-                assertEquals(null, filtered.observer.believedContact(filtered.outsideVisionBoundary));
-                assertTrue(filtered.garrison._killZoneSightedThisTick,
+                assertEquals(null, f.observer.believedContact(f.outsideVisionBoundary));
+                assertTrue(f.garrison._killZoneSightedThisTick,
                         "an ally garrison with zero awareness range still sees its eight-cell kill zone");
-                assertTrue(filtered.garrison._underFireAtLosThisTick);
-                assertFalse(filtered.garrison._engagedThisTick,
+                assertTrue(f.garrison._underFireAtLosThisTick);
+                assertFalse(f.garrison._engagedThisTick,
                         "kill-zone visibility alone does not grant awareness outside zero vision range");
             }
-            assertEquals(SquadAlertSystem.KILL_ZONE_LOS_TICKS_THRESHOLD, filtered.garrison.killZoneLosTicks);
+            assertEquals(SquadAlertSystem.KILL_ZONE_LOS_TICKS_THRESHOLD, f.garrison.killZoneLosTicks);
         }
     }
 
     @Test
     void killZoneGatherRejectsTheFirstPointOutsideItsInclusiveRadius() {
-        try (CrowdedFixture broad = new CrowdedFixture(false, false);
-             CrowdedFixture filtered = new CrowdedFixture(true, false)) {
-            broad.alert.tick(1f / 30f, 1);
-            filtered.alert.tick(1f / 30f, 1);
-            assertEquals(broad.snapshots(), filtered.snapshots());
-            assertFalse(filtered.garrison._killZoneSightedThisTick,
+        try (CrowdedFixture f = new CrowdedFixture(false)) {
+            f.alert.tick(1f / 30f, 1);
+            assertFalse(f.garrison._killZoneSightedThisTick,
                     "the remaining enemy at offset (8,1) lies outside the eight-cell kill zone");
-            assertEquals(0, filtered.garrison.killZoneLosTicks);
+            assertEquals(0, f.garrison.killZoneLosTicks);
         }
     }
-
-    private record AlertFacts(List<BelievedContact> beliefs, AudibleBearing audible,
-                              SquadAlertLevel alert, int alive, int centroidMembers,
-                              float centroidX, float centroidY, float contactAge,
-                              int killZoneTicks, float sustainedFire,
-                              boolean engaged, boolean suspicious, boolean killZone,
-                              boolean underFire, boolean previouslyUnderFire,
-                              boolean directStarted, boolean alertChanged,
-                              int lastSeenX, int lastSeenY) {}
 
     /** Unsquadded bystanders are perception candidates, not extra observers. */
     private static final class CrowdedFixture implements AutoCloseable {
@@ -138,9 +105,7 @@ class SquadAlertProfileTest {
         final long atVisionBoundary;
         final long outsideVisionBoundary;
 
-        CrowdedFixture(boolean filtered) { this(filtered, true); }
-
-        CrowdedFixture(boolean filtered, boolean exactKillZoneTarget) {
+        CrowdedFixture(boolean exactKillZoneTarget) {
             NavigationGrid grid = new NavigationGrid(24, 20);
             for (int y = 0; y < 20; y++) {
                 for (int x = 0; x < 24; x++) grid.setWalkableFloor(x, y);
@@ -187,28 +152,7 @@ class SquadAlertProfileTest {
             noises.post(2.5f, 2.5f, 100f, 0L, Faction.DEFENDER, NoiseKind.SHOT);
             ShotService shots = new ShotService();
             shots.postShot(new ShotEvent(10.5f, 2.5f, 2.5f, 2.5f, true, Faction.DEFENDER, 1f));
-            alert = new SquadAlertSystem(navigation, roster, shots, noises, filtered);
-        }
-
-        List<AlertFacts> snapshots() {
-            List<AlertFacts> snapshots = new ArrayList<>();
-            for (Squad squad : roster.getSquads()) {
-                // Compare roster-relative identities so separate worlds need
-                // not share their allocator's entity-id namespace.
-                List<BelievedContact> beliefs = squad.believedContacts().stream()
-                        .map(contact -> new BelievedContact(roster.indexOf(contact.unitId()),
-                                contact.lastSeenCellX(), contact.lastSeenCellY(), contact.lastSeenTick(),
-                                contact.confidence(), contact.source(), contact.previousDirectCellX(),
-                                contact.previousDirectCellY(), contact.previousDirectTick())).toList();
-                snapshots.add(new AlertFacts(beliefs, squad.audibleBearing(), squad.alertLevel,
-                        squad.aliveMembers, squad.centroidMembers, squad.centroidX, squad.centroidY,
-                        squad.timeSinceContact, squad.killZoneLosTicks, squad.timeUnderSustainedFire,
-                        squad._engagedThisTick, squad._suspiciousThisTick, squad._killZoneSightedThisTick,
-                        squad._underFireAtLosThisTick, squad._underFireAtLosLastTick,
-                        squad._directContactStartedThisTick, squad._alertLevelChangedThisTick,
-                        squad.lastSeenEnemyX, squad.lastSeenEnemyY));
-            }
-            return List.copyOf(snapshots);
+            alert = new SquadAlertSystem(navigation, roster, shots, noises);
         }
 
         @Override public void close() { navigation.close(); }
@@ -246,7 +190,7 @@ class SquadAlertProfileTest {
             noises.post(x, y, 100f, 0L, Faction.DEFENDER, NoiseKind.SHOT);
             shots.postShot(new ShotEvent(roster.world().x(defender), roster.world().y(defender),
                     x, y, true, Faction.DEFENDER, 1f));
-            alert = new SquadAlertSystem(navigation, roster, shots, noises, true);
+            alert = new SquadAlertSystem(navigation, roster, shots, noises);
         }
 
         void tick() { alert.tick(1f / 30f, 1); }

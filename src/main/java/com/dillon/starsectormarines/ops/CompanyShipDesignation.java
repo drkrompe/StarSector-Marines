@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.marine.CampaignFabricationResources;
 import com.dillon.starsectormarines.marine.CompanyPreparation;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
+import com.dillon.starsectormarines.ops.battleview.LaidDecks;
 import com.dillon.starsectormarines.campaign.start.MercenaryCompanyConversion;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
@@ -227,6 +228,25 @@ public final class CompanyShipDesignation {
                 Math.round(member.getCargoCapacity()));
         LOG.info("CompanyShipDesignation: the company now lives aboard "
                 + member.getShipName() + " (" + member.getHullId() + ")");
+        return true;
+    }
+
+    /**
+     * Move the founding company aboard the converted Second Wind without asking.
+     *
+     * <p>On the opening there is no choice to make: she is the one hull the
+     * conversion was bought for, and her deck is pinned
+     * ({@code DeckArrangement.SECOND_WIND}), so the transfer screen would only
+     * ask the player to confirm the obvious. Her deck is laid out ahead of the
+     * first visit. Returns whether she was designated; a refusal (a start that
+     * lost her, a preparation bill the depot cannot cover) leaves the manual
+     * choice in place.
+     */
+    public static boolean designateFoundingShip() {
+        if (!CerberusCompanyStart.pendingDesignation()) return false;
+        FleetMemberAPI founding = CerberusCompanyStart.startingShip();
+        if (!designate(founding)) return false;
+        LaidDecks.layHomeAhead(CompanyShipResolver.read(founding), deckSeedFor(founding.getId()));
         return true;
     }
 

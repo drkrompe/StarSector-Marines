@@ -108,13 +108,17 @@ public final class FireRoundsScene implements BehaviorScene {
         SceneWorld world = builder.build();
         try (BattleSimulation sim = world.sim()) {
             long gunner = world.members("team")[0];
-            int[] fired = new int[3];
+            long[] near = friends ? world.members("friends") : new long[0];
+            // fired: rounds, mission rounds, incendiary rounds, incendiary rounds fired while a friend still stood.
+            int[] fired = new int[4];
             SceneRun.of(world).observe((s, tick) -> {
                 Tube tube = s.fieldMortars().tubeOfCarrier(gunner);
                 if (tube == null) return;
                 fired[0] = Math.max(fired[0], tube.roundsFired());
                 fired[1] = Math.max(fired[1], tube.missionRoundsFired());
-                fired[2] = Math.max(fired[2], tube.incendiaryRoundsFired());
+                int incendiary = tube.incendiaryRoundsFired();
+                if (incendiary > fired[2] && anyAlive(s, near)) fired[3] += incendiary - fired[2];
+                fired[2] = Math.max(fired[2], incendiary);
             }).frames(frames, loop, 30, tick -> loop + " / tick " + tick).run(TICKS);
             int burnt = touched(sim.fireFieldIfPresent(), ENEMY_X - 12, ENEMY_X + 12);
             List<Verdict> verdicts = new ArrayList<>();
@@ -122,17 +126,25 @@ public final class FireRoundsScene implements BehaviorScene {
                 verdicts.add(Verdict.of("incendiary-rounds-light-the-mission", fired[2] > 0 && burnt > 0,
                         fired[2] + " incendiary rounds of " + fired[0] + " fired, " + burnt + " cells caught round the mission"));
             } else {
-                verdicts.add(Verdict.of("shells-where-the-fire-could-come-back", fired[1] > 0 && fired[2] == 0 && burnt == 0,
-                        fired[2] + " incendiary rounds of " + fired[1] + " fired on the mission with two marines in its grass, "
-                                + burnt + " cells caught"));
+                // The rule holds while the friends stand; once the militia has killed them the fire can come back
+                // to nobody, and an incendiary round is right.
+                verdicts.add(Verdict.of("shells-where-the-fire-could-come-back", fired[1] > 0 && fired[3] == 0,
+                        fired[3] + " incendiary rounds fired while a marine stood in the mission's grass ("
+                                + fired[2] + " of " + fired[1] + " mission rounds incendiary in all, " + burnt + " cells caught)"));
             }
             Map<String, Number> metrics = new LinkedHashMap<>();
             metrics.put("roundsFired", fired[0]);
             metrics.put("missionRounds", fired[1]);
             metrics.put("incendiaryRounds", fired[2]);
             metrics.put("cellsCaught", burnt);
+            if (friends) metrics.put("incendiaryWithFriendsStanding", fired[3]);
             return new SceneReport(id(), loop, TICKS, verdicts, metrics);
         }
+    }
+
+    private static boolean anyAlive(BattleSimulation sim, long[] ids) {
+        for (long id : ids) if (sim.world().isAlive(id)) return true;
+        return false;
     }
 
     private SceneReport firebombs(String loop, boolean friends, FrameSink frames) throws Exception {

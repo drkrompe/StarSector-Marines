@@ -96,15 +96,13 @@ public final class ConvoyService implements BodyCarrier {
         body.teleport(spawnX, spawnY, AirBody.facingToward(nextX - spawnX, nextY - spawnY));
         GroundTurret turret = type.hasTurretWeapon()
                 ? new GroundTurret(type.turretStructure().mount.ammoCapacity, HullTurretSection.forHull(type)) : null;
-        if (turret != null) turret.charge = type.turretStructure().mount.charges;
-        HullLocations locations = HullLocations.forHull(type, turret != null ? turret.section : null);
+        HullLocations locations = HullLocations.of(type, turret != null ? turret.section : null);
 
         // VEHICLE_MISSION (mission bag) + VEHICLE_CONTROL (motion-control bag) are universal;
-        // GROUND_TURRET is present only when armed, HULL_LOCATIONS unless its control is off.
+        // GROUND_TURRET is present only when armed; HULL_LOCATIONS on every hull.
         List<ComponentType> components = new ArrayList<>(List.of(c.IDENTITY, c.GROUND_IDENTITY,
-                c.GROUND_KINEMATICS, c.VEHICLE_MISSION, c.VEHICLE_CONTROL, c.HEALTH, c.ARMOR));
+                c.GROUND_KINEMATICS, c.VEHICLE_MISSION, c.VEHICLE_CONTROL, c.HEALTH, c.ARMOR, c.HULL_LOCATIONS));
         if (turret != null) components.add(c.GROUND_TURRET);
-        if (locations != null) components.add(c.HULL_LOCATIONS);
         long id = roster.allocateVehicle(components.toArray(new ComponentType[0]));
         // IDENTITY makes the chassis a body the ordinary grid walks can read:
         // faction, archetype, and a greppable name, exactly as a turret or a
@@ -120,8 +118,8 @@ public final class ConvoyService implements BodyCarrier {
         world.setObject(id, c.VEHICLE_MISSION, BattleComponents.VEHICLE_MISSION_STATE, mission);
         world.setObject(id, c.VEHICLE_CONTROL, BattleComponents.VEHICLE_CONTROL_STATE, new VehicleControlComponent());
         // Located damage holds the drive and the side and rear plates on top of the hull's own pools.
-        float structure = type.maxStructure + (locations != null ? locations.maxDrive() : 0f);
-        float armor = locations != null ? locations.maxTotalArmor() : type.maxArmor;
+        float structure = type.maxStructure + locations.maxDrive();
+        float armor = locations.maxTotalArmor();
         world.setFloat(id, c.HEALTH, BattleComponents.HEALTH_HP, structure);
         world.setFloat(id, c.HEALTH, BattleComponents.HEALTH_MAX_HP, structure);
         world.setFloat(id, c.HEALTH, BattleComponents.HEALTH_DAMAGE_TAKEN_MULT, 1f);
@@ -133,9 +131,7 @@ public final class ConvoyService implements BodyCarrier {
         if (turret != null) {
             world.setObject(id, c.GROUND_TURRET, BattleComponents.GROUND_TURRET_STATE, turret);
         }
-        if (locations != null) {
-            world.setObject(id, c.HULL_LOCATIONS, BattleComponents.HULL_LOCATIONS_STATE, locations);
-        }
+        world.setObject(id, c.HULL_LOCATIONS, BattleComponents.HULL_LOCATIONS_STATE, locations);
         entityIds.add(id);
         roster.bodies().admit(id);
         // A chassis that spawns already on the map is a body somebody could be
@@ -259,6 +255,25 @@ public final class ConvoyService implements BodyCarrier {
         return type != null ? Math.max(type.visualLengthCells, type.visualWidthCells) * 0.5f : 0f;
     }
 
+    /** The hull's footprint, as {@code HullImpact} meets it: its drawn length and width. */
+    @Override
+    public float hullHalfLength(long id) {
+        VehicleType type = vehicleType(id);
+        return type != null ? type.visualLengthCells * 0.5f : 0f;
+    }
+
+    @Override
+    public float hullHalfWidth(long id) {
+        VehicleType type = vehicleType(id);
+        return type != null ? type.visualWidthCells * 0.5f : 0f;
+    }
+
+    @Override
+    public float hullFacingDegrees(long id) {
+        GroundBody body = body(id);
+        return body != null ? body.facingDegrees : 0f;
+    }
+
     @Override
     public float hitHalfHeight(long id) {
         VehicleType type = vehicleType(id);
@@ -356,7 +371,7 @@ public final class ConvoyService implements BodyCarrier {
                 : null;
     }
 
-    /** The vehicle's located damage ({@link HullLocations}), or {@code null} when the control is off or {@code id} isn't a live ground craft. */
+    /** The vehicle's located damage ({@link HullLocations}), or {@code null} when {@code id} isn't a live ground craft. */
     public HullLocations locations(long id) {
         BattleComponents c = roster.components();
         EntityWorld world = roster.entityWorld();

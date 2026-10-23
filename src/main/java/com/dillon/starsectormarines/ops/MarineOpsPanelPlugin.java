@@ -76,6 +76,9 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         screens.put(ScreenId.BATTLE,         new BattleScreen());
         screens.put(ScreenId.RESULTS,        new ResultsScreen());
         screens.put(ScreenId.LOOT,           new LootScreen());
+        // The founding company moves aboard the converted Second Wind by itself; the
+        // transfer screen below is for a company that genuinely has a choice to make.
+        CompanyShipDesignation.designateFoundingShip();
         if (seed != null) seed.accept(ctx);
         // A company with nowhere to live has nowhere to be shown. Every room
         // view is a camera on the company ship, so until the player has chosen

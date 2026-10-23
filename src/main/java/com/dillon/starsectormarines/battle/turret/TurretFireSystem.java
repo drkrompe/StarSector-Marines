@@ -3,9 +3,11 @@ package com.dillon.starsectormarines.battle.turret;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import com.dillon.starsectormarines.battle.combat.HitResponseSystem;
+import com.dillon.starsectormarines.battle.combat.ManualPointFire;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.combat.Projectile;
+import com.dillon.starsectormarines.battle.combat.ShotEndpoint;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.combat.ShotService;
@@ -195,6 +197,10 @@ public final class TurretFireSystem implements TurretFireSink {
             float losMult = hasLos ? 1f : weapon.noLosAccuracyMult;
             effectiveAccuracy *= distFalloff * losMult;
         }
+        if (!aerialShooter && weapon.hitscanBeam() && Float.isFinite(mountFacingDegrees)) {
+            return fireBeam(shooterId, fromX, fromY, shooterFaction, structure, target, facing,
+                    effectiveAccuracy);
+        }
         if (!aerialShooter && weapon.arcHeight <= 0f && weapon.projectileCellsPerSec() <= 0f) {
             return fireGroundDirect(shooterId, fromX, fromY, shooterFaction,
                     structure, target, distToTarget, effectiveAccuracy);
@@ -259,6 +265,12 @@ public final class TurretFireSystem implements TurretFireSink {
         return true;
     }
 
+    /**
+     * A player's round at a ground point, under {@link ManualPointFire}'s contract: refused inside the weapon's
+     * manual minimum (measured from the mount), an arcing rack's round dropped on the thrown point with its
+     * scatter, a rocket burst where it is thrown or on the first thing in its lane, and a gun round flown along
+     * the bearing.
+     */
     @Override
     public boolean firePoint(long shooterId, float fromX, float fromY, Faction shooterFaction,
                               StructureDef structure, PointFireAim aim,
@@ -266,23 +278,61 @@ public final class TurretFireSystem implements TurretFireSink {
         WeaponDef weapon = structure.mount.weapon;
         if (aim == null || !aim.validFrom(fromX, fromY)
                 || !Float.isFinite(mountFacingDegrees)
-                || weapon.indirectFire || weapon.arcHeight != 0f
-                || weapon.projectileCellsPerSec() > 0f
-                || !Float.isFinite(weapon.range) || weapon.range <= 0f) return false;
-        float dx = aim.x() - fromX;
-        float dy = aim.y() - fromY;
-        if (dx * dx + dy * dy < weapon.minRange * weapon.minRange) return false;
+                || !ManualPointFire.supportsPointFire(weapon)
+                || ManualPointFire.tooClose(weapon, (float) Math.hypot(aim.x() - fromX, aim.y() - fromY))) {
+            return false;
+        }
         TurretMountGeometry.Point muzzle = TurretMountGeometry.muzzle(
                 fromX, fromY, mountFacingDegrees, structure.mount, releaseIndex);
         if (!aim.validFrom(muzzle.x(), muzzle.y())) return false;
+        float accuracy = weapon.accuracy * shooterAccuracy.multiplier(shooterId);
+        if (ManualPointFire.arcs(weapon)) {
+            ShotEndpoint.Endpoint ep = ManualPointFire.arcEndpoint(fromX, fromY, aim.x(), aim.y(),
+                    accuracy, weapon, rng);
+            telemetry.recordRoundFired(shooterId);
+            float speed = weapon.projectileCellsPerSec();
+            float flight = speed > 0f
+                    ? (float) Math.hypot(ep.x() - muzzle.x(), ep.y() - muzzle.y()) / speed
+                    : weapon.flightSec > 0f ? weapon.flightSec : SHOT_LIFETIME;
+            launch(shooterId, muzzle.x(), muzzle.y(), shooterFaction, structure, ep.x(), ep.y(), flight,
+                    /*hit*/ true, 0L, 0f);
+            return true;
+        }
         BallisticResolver.Source source = new BallisticResolver.Source(
                 shooterId, muzzle.x(), muzzle.y(), 0f, shooterFaction);
+        if (weapon.projectileCellsPerSec() > 0f) {
+            BallisticResolver.Resolution res = resolver.resolveGroundBurst(source, aim.x(), aim.y(), accuracy,
+                    weapon.hitSpread, weapon.directRoundVelocity(), weapon.range, 0, rng);
+            telemetry.recordRoundFired(shooterId);
+            launchThrownRocket(shooterId, muzzle.x(), muzzle.y(), shooterFaction, structure, res);
+            return true;
+        }
         BallisticResolver.Resolution res = resolver.resolvePoint(source, aim.x(), aim.y(),
-                weapon.accuracy * shooterAccuracy.multiplier(shooterId), weapon.hitSpread,
-                weapon.directRoundVelocity(), weapon.range, rng);
+                accuracy, weapon.hitSpread, weapon.directRoundVelocity(), weapon.range, rng);
         telemetry.recordRoundFired(shooterId);
         deliverGroundDirect(shooterId, muzzle.x(), muzzle.y(), shooterFaction, structure, res);
         return true;
+    }
+
+    /**
+     * A rocket a player threw at ground: it flies to where its resolution ended, the first body or wall in its
+     * lane or the scattered point, and bursts there. Its contact warhead rides the detonation onto the first body
+     * it met, as an autonomous salvo's does, so point defence that stops the rocket stops the charge with it.
+     */
+    private void launchThrownRocket(long shooterId, float fromX, float fromY, Faction shooterFaction,
+                                    StructureDef structure, BallisticResolver.Resolution res) {
+        WeaponDef weapon = structure.mount.weapon;
+        float contact = weapon.contactDamage > 0f ? weapon.contactDamage
+                : weapon.aoeRadius <= 0f ? weapon.damage : 0f;
+        long contactTarget = 0L;
+        float contactDamage = 0f;
+        if (contact > 0f && !res.bodyHits().isEmpty()) {
+            BallisticResolver.BodyHit first = res.bodyHits().get(0);
+            contactTarget = first.victimId();
+            contactDamage = first.friendly() ? contact * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT : contact;
+        }
+        launch(shooterId, fromX, fromY, shooterFaction, structure, res.endX(), res.endY(),
+                Math.max(res.flightTime(), 0.05f), res.hitIntended(), contactTarget, contactDamage);
     }
 
     /** Modeled ground-level path for Vulcan/Heavy-MG bursts and any future direct mount. */
@@ -320,6 +370,52 @@ public final class TurretFireSystem implements TurretFireSink {
         deliverGroundDirect(shooterId, fromX, fromY, shooterFaction, structure, res);
         return true;
     }
+
+    /**
+     * One pulse of a ground beam. It leaves along the mount's facing, not toward the target: aimed at the target's
+     * distance on that line, pulled short by how far the turret is still off its target
+     * ({@link #beamReachFraction}), and traced as any round is, so it strikes the first body or wall on its way and
+     * otherwise scorches the ground. A lance that opens off target therefore lands short and drags across onto it
+     * as the turret tracks, and anything the sweep crosses is struck on the way; once on target, every pulse lands.
+     */
+    private boolean fireBeam(long shooterId, float fromX, float fromY, Faction shooterFaction,
+                             StructureDef structure, long target, float facingDeg, float effectiveAccuracy) {
+        WeaponDef weapon = structure.mount.weapon;
+        float tx = world.x(target);
+        float ty = world.y(target);
+        float distance = (float) Math.hypot(tx - fromX, ty - fromY);
+        if (distance <= 1e-3f) {
+            return fireGroundDirect(shooterId, fromX, fromY, shooterFaction, structure, target, distance,
+                    effectiveAccuracy);
+        }
+        float offDeg = TurretAim.shortestAngleDelta(facingDeg, TurretAim.bearingTo(fromX, fromY, tx, ty));
+        float reach = distance * beamReachFraction(offDeg);
+        // Sprite-angle convention: 0 deg is +Y, positive counter-clockwise (TurretAim.bearingTo).
+        double rad = Math.toRadians(facingDeg + 90f);
+        float aimX = fromX + (float) Math.cos(rad) * reach;
+        float aimY = fromY + (float) Math.sin(rad) * reach;
+        float effectiveSpread = weapon.hitSpread * Math.min(1f, distance / Math.max(0.0001f, weapon.range));
+        BallisticResolver.Source source = new BallisticResolver.Source(shooterId, fromX, fromY, 0f, shooterFaction);
+        BallisticResolver.Resolution res = resolver.resolveGroundBurst(source, aimX, aimY, effectiveAccuracy,
+                effectiveSpread, weapon.directRoundVelocity(), weapon.range, 0, rng);
+        float holdChance = friendlyFireHold.chance(shooterId);
+        if (holdChance > 0f && holdsRound(res.friendlyHit(), holdChance, rng)) return false;
+        telemetry.recordRoundFired(shooterId);
+        deliverGroundDirect(shooterId, fromX, fromY, shooterFaction, structure, res);
+        return true;
+    }
+
+    /**
+     * How much of the way to its target a beam reaches when the turret is {@code offDeg} off it: all of it on
+     * target, falling to {@link #BEAM_SHORT_FRACTION} at the widest a beam opens, so the lance visibly walks in.
+     */
+    static float beamReachFraction(float offDeg) {
+        float t = Math.min(1f, Math.abs(offDeg) / TurretAim.BEAM_OPEN_ARC_DEG);
+        return 1f - (1f - BEAM_SHORT_FRACTION) * t;
+    }
+
+    /** The share of the target's distance a beam reaches when it opens at the widest arc. */
+    static final float BEAM_SHORT_FRACTION = 0.7f;
 
     private void deliverGroundDirect(long shooterId, float fromX, float fromY,
                                      Faction shooterFaction, StructureDef structure,
@@ -405,6 +501,26 @@ public final class TurretFireSystem implements TurretFireSink {
         // that hit its roll lands the shaped charge on the target, which takes no share of the area,
         // and point defence that stops the rocket stops the charge with it.
         long contactTarget = hit && weapon.contactDamage > 0f ? target : 0L;
+        launch(shooterId, fromX, fromY, shooterFaction, structure, toX, toY, flightTime, hit,
+                contactTarget, weapon.contactDamage, aerialDelivery);
+    }
+
+    private void launch(long shooterId, float fromX, float fromY, Faction shooterFaction, StructureDef structure,
+                        float toX, float toY, float flightTime, boolean hit,
+                        long contactTarget, float contactDamage) {
+        launch(shooterId, fromX, fromY, shooterFaction, structure, toX, toY, flightTime, hit,
+                contactTarget, contactDamage, structure.mount.weapon.arcHeight > 0f);
+    }
+
+    /**
+     * The flight of a round whose endpoint is decided and the burst it carries: a travelling projectile that point
+     * defence can stop, or for a weapon with no travelling round a detonation timed to its flight. A
+     * {@code contactTarget} takes {@code contactDamage} from the warhead and no share of the area.
+     */
+    private void launch(long shooterId, float fromX, float fromY, Faction shooterFaction, StructureDef structure,
+                        float toX, float toY, float flightTime, boolean hit,
+                        long contactTarget, float contactDamage, boolean aerialDelivery) {
+        WeaponDef weapon = structure.mount.weapon;
         PendingDetonation onArrival = new PendingDetonation(
                 shooterId,
                 toX, toY, flightTime,
@@ -412,15 +528,19 @@ public final class TurretFireSystem implements TurretFireSink {
                 weapon.wallDamage, shooterFaction, aerialDelivery,
                 weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ true,
                 /*friendlyFireImmune*/ false,
-                contactTarget, contactTarget != 0L ? weapon.contactDamage : 0f,
+                contactTarget, contactTarget != 0L ? contactDamage : 0f,
                 contactTarget != 0L ? weapon.contactPenetration : 0f,
                 /*authoredAftermath*/ true,
                 contactTarget != 0L ? new long[] {contactTarget} : new long[0]);
         onArrival.incendiary(heatOf(shooterId, weapon));
-        shots.queueProjectile(new Projectile(fromX, fromY, toX, toY,
-                weapon.boostRamp, weapon.arcHeight,
-                shooterFaction, aerialDelivery, flightTime, onArrival, weapon.id,
-                weapon.pointDefenseTarget));
+        if (weapon.projectileCellsPerSec() > 0f) {
+            shots.queueProjectile(new Projectile(fromX, fromY, toX, toY,
+                    weapon.boostRamp, weapon.arcHeight,
+                    shooterFaction, aerialDelivery, flightTime, onArrival, weapon.id,
+                    weapon.pointDefenseTarget));
+        } else {
+            detonationSink.queue(onArrival);
+        }
         shots.postShot(new ShotEvent(shooterId, fromX, fromY, toX, toY, hit, shooterFaction,
                 flightTime, structure, null, null));
     }

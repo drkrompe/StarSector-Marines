@@ -10,12 +10,8 @@ import java.util.Random;
 import static org.junit.jupiter.api.Assertions.*;
 
 class GridPathfinderGoalOccupancyTest {
-    private final String previous = System.getProperty(GridPathfinder.OMIT_FIXED_GOAL_OCCUPANCY_PROPERTY);
-
     @AfterEach
-    void restoreProperty() {
-        if (previous == null) System.clearProperty(GridPathfinder.OMIT_FIXED_GOAL_OCCUPANCY_PROPERTY);
-        else System.setProperty(GridPathfinder.OMIT_FIXED_GOAL_OCCUPANCY_PROPERTY, previous);
+    void releaseProfile() {
         TickInnerProfile.releaseCurrentThread();
     }
 
@@ -25,17 +21,10 @@ class GridPathfinderGoalOccupancyTest {
         byte[] occupancy = new byte[40 * 24];
         occupancy[grid.index(24, 12)] = (byte) 255;
         for (boolean cardinal : new boolean[]{true, false}) {
-            TickInnerProfile control = new TickInnerProfile();
-            TickInnerProfile.setCurrent(control);
-            setOmission(false);
-            int[] before = GridPathfinder.findPath(grid, 14, 12, 24, 12, cardinal, occupancy);
             TickInnerProfile subject = new TickInnerProfile();
             TickInnerProfile.setCurrent(subject);
-            setOmission(true);
             int[] after = GridPathfinder.findPath(grid, 14, 12, 24, 12, cardinal, occupancy);
-            assertArrayEquals(before, after);
             assertEquals(11, after.length / 2);
-            assertEquals(960, control.pathfindExpandedNodes());
             assertEquals(11, subject.pathfindExpandedNodes());
             assertEquals(255, subject.slowPathSearches().get(0).goalOccupancy());
         }
@@ -43,7 +32,6 @@ class GridPathfinderGoalOccupancyTest {
 
     @Test
     void denseAndIndexedCostsRemainOptimalAgainstIndependentDijkstra() {
-        setOmission(true);
         for (boolean cardinal : new boolean[]{true, false}) {
             for (int seed = 0; seed < 24; seed++) {
                 Random random = new Random(seed);
@@ -79,7 +67,6 @@ class GridPathfinderGoalOccupancyTest {
 
     @Test
     void intermediateOccupancyStillRoutesAroundCrowding() {
-        setOmission(true);
         NavigationGrid grid = openGrid(5, 3);
         byte[] occupancy = new byte[15];
         occupancy[grid.index(2, 1)] = (byte) 255;
@@ -93,7 +80,6 @@ class GridPathfinderGoalOccupancyTest {
 
     @Test
     void startAtGoalAndBlockedEndpointsKeepTheirContracts() {
-        setOmission(true);
         NavigationGrid grid = openGrid(3, 1);
         byte[] occupancy = {(byte) 255, 0, (byte) 255};
         assertArrayEquals(new int[]{0, 0}, GridPathfinder.findPath(grid, 0, 0, 0, 0, occupancy));
@@ -104,20 +90,15 @@ class GridPathfinderGoalOccupancyTest {
     }
 
     @Test
-    void absentAndZeroOccupancyLeaveRouteUnchanged() {
+    void absentAndZeroOccupancyChooseTheSameRoute() {
         NavigationGrid grid = openGrid(7, 5);
         grid.setWalkable(3, 2, false);
-        for (byte[] occupancy : new byte[][]{null, new byte[35]}) {
-            setOmission(false);
-            int[] before = GridPathfinder.findPath(grid, 0, 2, 6, 2, false, occupancy);
-            setOmission(true);
-            assertArrayEquals(before, GridPathfinder.findPath(grid, 0, 2, 6, 2, false, occupancy));
-        }
+        int[] absent = GridPathfinder.findPath(grid, 0, 2, 6, 2, false, null);
+        assertArrayEquals(absent, GridPathfinder.findPath(grid, 0, 2, 6, 2, false, new byte[35]));
     }
 
     @Test
     void sampledFallbackDoesNotDoubleCountOuterScopeOrKeepOldExpansions() {
-        setOmission(true);
         NavigationGrid grid = openGrid(3, 1);
         TickInnerProfile profile = new TickInnerProfile();
         TickInnerProfile.setCurrent(profile);
@@ -137,7 +118,6 @@ class GridPathfinderGoalOccupancyTest {
 
     @Test
     void asynchronousSearchStillHonorsCancellation() {
-        setOmission(true);
         NavigationGrid grid = openGrid(48, 32);
         byte[] occupancy = new byte[48 * 32];
         Arrays.fill(occupancy, (byte) 255);
@@ -151,10 +131,6 @@ class GridPathfinderGoalOccupancyTest {
         }
         assertTrue(GridPathfinder.findPathAsyncUnprofiled(grid, 0, 0, 47, 31,
                 true, occupancy).length > 0, "cancelled workspace remains reusable");
-    }
-
-    private static void setOmission(boolean value) {
-        System.setProperty(GridPathfinder.OMIT_FIXED_GOAL_OCCUPANCY_PROPERTY, Boolean.toString(value));
     }
 
     private static NavigationGrid openGrid(int width, int height) {

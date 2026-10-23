@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
+import com.dillon.starsectormarines.battle.combat.ManualPointFire;
 import com.dillon.starsectormarines.battle.combat.MechFireGroups;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.combat.MitigationService;
@@ -14,7 +15,10 @@ import com.dillon.starsectormarines.battle.mech.MechFlux;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
+import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
+import com.dillon.starsectormarines.battle.ui.panel.Ordnance;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
+import com.dillon.starsectormarines.battle.vehicle.GroundVehicleTurretSystem;
 import com.dillon.starsectormarines.battle.weapon.MagazineDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -120,10 +124,15 @@ final class BattleDirectControlStatus {
 
     /**
      * Scheduled releases and simultaneous packets are separate authored dimensions. {@code trigger} is a
-     * magazine-fed primary's trigger mode, {@code null} for a weapon that only cycles.
+     * magazine-fed primary's trigger mode, {@code null} for a weapon that only cycles. {@code ordnance}
+     * is what it throws, which decides how its load is drawn.
      */
     record Behavior(FireKind kind, int projectilesPerTrigger, float burstSpacingSeconds,
-                    int projectilesPerShot, MagazineDef.Trigger trigger) {
+                    int projectilesPerShot, MagazineDef.Trigger trigger, Ordnance ordnance) {
+        Behavior(FireKind kind, int projectilesPerTrigger, float burstSpacingSeconds,
+                 int projectilesPerShot, MagazineDef.Trigger trigger) {
+            this(kind, projectilesPerTrigger, burstSpacingSeconds, projectilesPerShot, trigger, Ordnance.BALLISTIC);
+        }
         Behavior(FireKind kind, int projectilesPerTrigger, float burstSpacingSeconds, int projectilesPerShot) {
             this(kind, projectilesPerTrigger, burstSpacingSeconds, projectilesPerShot, null);
         }
@@ -202,9 +211,12 @@ final class BattleDirectControlStatus {
         String name = sim.identity().name(id);
         if (sim.directControl().controlledVehicleId() == id) {
             var turret = sim.convoy().turret(id);
-            var structure = sim.convoy().vehicleType(id).turretStructure();
+            var type = sim.convoy().vehicleType(id);
+            var structure = type.turretStructure();
             List<WeaponStatus> weapons = turret != null && structure != null && !turret.destroyed()
-                    ? List.of(vehicleWeapon(turret, structure.mount)) : List.of();
+                    ? List.of(vehicleWeapon(turret, structure.mount,
+                            vehicleAimDistance(sim, GroundVehicleTurretSystem.mountPoint(type, sim.convoy().body(id)))))
+                    : List.of();
             return new Snapshot(id, name, Carrier.VEHICLE, durability, weapons);
         }
         if (world.hasMechLoadout(id)) {
@@ -321,7 +333,8 @@ final class BattleDirectControlStatus {
             if (mount == null) continue;
             WeaponDef weapon = mount.weaponDef();
             weapons.add(new WeaponStatus(mount.slot.ordinal() + 1, mount.slot.name(),
-                    mount.component.displayName(), behavior(weapon, mount.component.projectilesPerTrigger),
+                    mount.component.displayName(), behavior(weapon, mount.component.projectilesPerTrigger,
+                            Ordnance.of(mount.component.hardpointType)),
                     HeavyWeapons.supportsPointFire(mount), mount.cycleRemaining, mount.component.cycleSeconds(),
                     mount.burstRemaining, mount.burstTimer,
                     new Ammo(mount.ammo, mount.component.ammoCapacity, AmmoUnit.TRIGGER_PACKS,
@@ -335,20 +348,40 @@ final class BattleDirectControlStatus {
     }
 
     static WeaponStatus vehicleWeapon(GroundTurret turret, TurretMountDef mount) {
+        return vehicleWeapon(turret, mount, Float.NaN);
+    }
+
+    /** The cursor's distance from the turret ring, or NaN without a finite aim. */
+    private static float vehicleAimDistance(BattleSimulation sim, TurretMountGeometry.Point ring) {
+        var intent = sim.directControl().intent();
+        if (!Float.isFinite(intent.aimX()) || !Float.isFinite(intent.aimY())) return Float.NaN;
+        return (float) Math.hypot(intent.aimX() - ring.x(), intent.aimY() - ring.y());
+    }
+
+    /**
+     * {@code aimDistance} is the cursor's distance from the turret ring, which is where the turret's point fire
+     * measures its minimum from; NaN reads as no cursor. Eligibility and the refusal are {@link ManualPointFire}'s,
+     * the same rules the turret fires by.
+     */
+    static WeaponStatus vehicleWeapon(GroundTurret turret, TurretMountDef mount, float aimDistance) {
         WeaponDef weapon = mount.weapon;
         return new WeaponStatus(1, "TURRET", weapon.displayName(), behavior(weapon, weapon.burstCount),
-                !weapon.indirectFire && weapon.arcHeight == 0f
-                        && Float.isFinite(weapon.range) && weapon.range > 0f,
+                ManualPointFire.supportsPointFire(weapon),
                 turret.cooldownTimer, weapon.cooldown, turret.burstRemaining, turret.burstTimer,
-                new Ammo(turret.ammo, mount.ammoCapacity, AmmoUnit.ROUNDS, mount.ammoCapacity == 0));
+                new Ammo(turret.ammo, mount.ammoCapacity, AmmoUnit.ROUNDS, mount.ammoCapacity == 0),
+                false, "", "", ManualPointFire.tooClose(weapon, aimDistance));
     }
 
     private static Behavior behavior(WeaponDef weapon, int releasesPerTrigger) {
+        return behavior(weapon, releasesPerTrigger, Ordnance.of(weapon));
+    }
+
+    private static Behavior behavior(WeaponDef weapon, int releasesPerTrigger, Ordnance ordnance) {
         FireKind kind = weapon.indirectFire || weapon.arcHeight > 0f ? FireKind.INDIRECT
                 : releasesPerTrigger > 1 ? FireKind.BURST
                 : weapon.projectilesPerShot > 1 ? FireKind.PACKET : FireKind.SINGLE;
         return new Behavior(kind, releasesPerTrigger, weapon.burstSpacing, weapon.projectilesPerShot,
-                weapon.magazine() != null ? weapon.magazine().trigger() : null);
+                weapon.magazine() != null ? weapon.magazine().trigger() : null, ordnance);
     }
 
     private static float fraction(float value, float maximum) {

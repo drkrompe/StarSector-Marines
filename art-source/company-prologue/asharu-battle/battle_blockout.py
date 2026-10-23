@@ -885,7 +885,7 @@ KEYFRAMES = {
     'k3e': dict(
         shot='S6d', title='The rear guard',
         caption='The convoy\'s Hound turns to face two Hounds (P) climbing at her. She kills the first at close range '
-                'and takes the second\'s fire full on, flares going out as she falls back on the column.',
+                'and takes the second\'s fire full on as she falls back on the column.',
         # HANDHELD CHASE: close behind the Hound, riding her roll-over, jolted by her kill and her hit
         camera=camera('k3e', [dict(t=t, loc=track(K3E_SHIPS['hound-m'], (-1450, 120, 160), .95, .15),
                                    target=track(K3E_SHIPS['hound-m'], (-1650, -180, 20), .8, .05), lens=lens)
@@ -893,7 +893,9 @@ KEYFRAMES = {
         ships=K3E_SHIPS,
         fx=[('tracer', 'hound-m', 'hound-p-a'), ('tracer', 'hound-p-b', 'hound-m'),
             ('blast_on', 'hound-p-a', 14, (0, 0, 0)), ('debris', 'hound-p-a', 40, (0, 0, 0)),
-            ('fire_on', 'hound-m', (-12, 4, 3)), ('flares', 'hound-m')],
+            # no flares: a Hound mounts no missiles, so nothing here is a seeker for them to answer (owner,
+            # 2026-10-23: flares need a visible cause, an inbound seeker on screen)
+            ('fire_on', 'hound-m', (-12, 4, 3))],
         cues={'hound-m': {'fire': 'all'}, 'hound-p-b': {'fire': 'all'}},
         labels=['hound-m', 'hound-p-a', 'hound-p-b']),
     'k3b': dict(
@@ -936,6 +938,10 @@ KEYFRAMES = {
             ('tracer', 'colossus3', 'colossus', (-60, 30, 6)), ('tracer', 'colossus', 'wolf-p-a'),
             ('tracer', 'colossus', 'kite-p-b'), ('tracer', 'colossus', 'colossus3'),
             ('flares', 'colossus'), ('debris', 'colossus', 45, (-60, 34, 0)),
+            # what her flares answer (owner, 2026-10-23: a flare needs a visible cause): the Wolf's
+            # Harpoons (the Mk.III mounts no missiles), landing after the flares go out at 93.8 s,
+            # one of them pulled off onto a flare
+            ('missiles', 'wolf-p-a', 'colossus', 95.6, 1),
             # two Borers cut the burning pod free, short beams onto its joint; two more, out of the bay,
             # reach for the attackers with long beams that cut their hulls
             ('mining', 'borer-a', 'colossus', (-56, 33, -1)), ('mining', 'borer-b', 'colossus', (-61, 29, -6)),
@@ -2866,7 +2872,11 @@ def blender_main(cfg):
                             bf = None
                         if len(fx) > 3:       # ('missiles', a, b, t): the salvo arrives at sequence time t
                             bf = anchor + round((fx[3] - spec.get('key_t', fx[3])) * fps_s)
-                        done = sfx_.missiles(fx[1], fx[2], arrive=bf)
+                        # ('missiles', a, b, t, n): n of its seekers take b's flares (thrown earlier in fx)
+                        done = sfx_.missiles(fx[1], fx[2], arrive=bf, decoys=fx[4] if len(fx) > 4 else 0)
+                        if not done and len(fx) > 4:
+                            print(f'ASHARU WARNING {kf} missiles {fx[1]} -> {fx[2]}: no launcher tubes on the '
+                                  f'{fx[1]} build, so the flares of {fx[2]} have no seeker to answer', flush=True)
                     elif kind == 'blast_on':
                         done = sfx_.blast_on(fx[1], fx[2], fx[3])
                     elif kind == 'debris':
@@ -2993,6 +3003,14 @@ def blender_main(cfg):
                         o_.hide_render = True
                         gone += 1
             print(f'ASHARU hid {gone} volume objects ({cfg["hide_volumes"]})', flush=True)
+        if cfg.get('swfx'):     # no orbs (owner, 2026-10-21 and 2026-10-23): flag any round emissive effect
+            if str(PROLOGUE / 'second-wind-vfx') not in sys.path:
+                sys.path.insert(0, str(PROLOGUE / 'second-wind-vfx'))
+            import swfx_lint
+            # measured as at full size: the lint counts pixels at the render's own percentage
+            orb_rows = swfx_lint.orbs(scene, min_px=4.0 * scene.render.resolution_percentage / 100.0)
+            print(f'ASHARU lint {kf}: {len(orb_rows)} orbs' + ''.join(
+                f'; {r_["object"]} {r_["px"]} px ratio {r_["ratio"]} ({r_["why"]})' for r_ in orb_rows[:4]), flush=True)
         partial = raw / f'{kf}.partial'           # not *.png, so a queue's frame count never counts it
         t_render = time.time()
         scene.render.use_file_extension = False

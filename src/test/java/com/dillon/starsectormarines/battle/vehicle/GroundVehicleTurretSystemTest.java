@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import com.dillon.starsectormarines.battle.combat.DurabilityModel;
+import com.dillon.starsectormarines.battle.combat.ManualPointFire;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.combat.Projectile;
@@ -12,7 +13,6 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
-import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretFireSystem;
 import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -36,27 +36,36 @@ class GroundVehicleTurretSystemTest {
     private static final float DT = BattleSimulation.TICK_DT;
 
     @Test
-    void aCapacitorBankHoldsTheTriggerWhenEmptyAndRefillsAtItsRateWithoutTouchingTheMagazine() {
-        TurretMountDef bank = VehicleType.LASER_TANK.turretStructure().mount;
-        GroundTurret turret = new GroundTurret(bank.ammoCapacity);
-        turret.charge = bank.charges;
-        for (int i = 0; i < bank.charges; i++) {
-            assertTrue(GroundVehicleTurretSystem.charged(turret, bank));
-            GroundVehicleTurretSystem.spendCharge(turret, bank);
+    void fluxOverloadsAtCapacityHoldsTheTriggerWhileVentingAndLeavesTheMagazine() {
+        TurretMountDef laser = VehicleType.LASER_TANK.turretStructure().mount;
+        TurretMountDef.Flux flux = laser.flux;
+        GroundTurret turret = new GroundTurret(laser.ammoCapacity);
+        int rounds = 0;
+        while (!turret.overloaded) {
+            assertTrue(GroundVehicleTurretSystem.ready(turret, laser));
+            GroundVehicleTurretSystem.addFlux(turret, laser);
+            rounds++;
         }
-        assertFalse(GroundVehicleTurretSystem.charged(turret, bank));
-        assertEquals(bank.chargeRechargeSeconds, GroundVehicleTurretSystem.chargeWait(turret, bank), 1e-5f);
-        assertEquals(bank.ammoCapacity, turret.ammo, "an empty bank leaves the hull armed");
-        GroundVehicleTurretSystem.recharge(turret, bank, bank.chargeRechargeSeconds);
-        assertTrue(GroundVehicleTurretSystem.charged(turret, bank));
-        GroundVehicleTurretSystem.recharge(turret, bank, bank.chargeRechargeSeconds * (bank.charges + 5));
-        assertEquals(bank.charges, turret.charge, 1e-5f, "a bank never fills past its charges");
+        assertEquals((int) Math.ceil(flux.capacity() / flux.perRound()), rounds);
+        assertFalse(GroundVehicleTurretSystem.ready(turret, laser));
+        assertEquals(flux.capacity() / flux.ventPerSec(), GroundVehicleTurretSystem.fluxWait(turret, laser), 1e-4f);
+        assertEquals(laser.ammoCapacity, turret.ammo, "an overloaded gun leaves the hull armed");
+        GroundVehicleTurretSystem.dissipate(turret, laser, flux.capacity() / flux.ventPerSec() * 0.5f);
+        assertFalse(GroundVehicleTurretSystem.ready(turret, laser), "a venting gun holds until it is empty");
+        GroundVehicleTurretSystem.dissipate(turret, laser, flux.capacity() / flux.ventPerSec());
+        assertTrue(GroundVehicleTurretSystem.ready(turret, laser));
+        assertEquals(0f, turret.flux);
+
+        GroundVehicleTurretSystem.addFlux(turret, laser);
+        GroundVehicleTurretSystem.dissipate(turret, laser, 1f);
+        assertEquals(Math.max(0f, flux.perRound() - flux.dissipationPerSec()), turret.flux, 1e-5f,
+                "below capacity flux bleeds at the dissipation rate");
 
         TurretMountDef magazine = VehicleType.HEAVY_APC.turretStructure().mount;
         GroundTurret gun = new GroundTurret(magazine.ammoCapacity);
-        GroundVehicleTurretSystem.spendCharge(gun, magazine);
-        assertTrue(GroundVehicleTurretSystem.charged(gun, magazine), "a mount without a bank is never held");
-        assertEquals(0f, GroundVehicleTurretSystem.chargeWait(gun, magazine));
+        GroundVehicleTurretSystem.addFlux(gun, magazine);
+        assertTrue(GroundVehicleTurretSystem.ready(gun, magazine), "a mount without flux is never held");
+        assertEquals(0f, GroundVehicleTurretSystem.fluxWait(gun, magazine));
     }
 
     @Test
@@ -156,7 +165,7 @@ class GroundVehicleTurretSystemTest {
     }
 
     @Test
-    void pausedOrInvalidTickDoesNothingAndIndirectMountCannotPointFire() {
+    void pausedOrInvalidTickDoesNothing() {
         Fixture f = new Fixture();
         f.turret.cooldownTimer = 0.5f;
         for (float dt : new float[]{0f, -1f, Float.NaN, Float.POSITIVE_INFINITY}) {
@@ -166,11 +175,28 @@ class GroundVehicleTurretSystemTest {
         assertEquals(0f, f.turret.facingDeg);
         assertEquals(f.mount.mount.ammoCapacity, f.turret.ammo);
         assertTrue(f.shots.getActiveShots().isEmpty());
-        assertFalse(f.fire.firePoint(f.id, f.mountX(), f.mountY(), Faction.MARINE,
-                TurretCatalogRegistry.requireStructure(TurretCatalogRegistry.LOCUST_STRUCTURE_ID),
-                f.north(), 0f, 0));
-        assertTrue(f.shots.getActiveShots().isEmpty());
         assertTrue(f.detonations.isEmpty());
+    }
+
+    @Test
+    void anArcingLauncherDropsItsRoundOnTheCursorOverAWallAndRefusesInsideItsMinimum() {
+        Fixture f = new Fixture(VehicleType.LRM_CARRIER);
+        StructureDef launcher = f.mount;
+        float tooNear = ManualPointFire.minRangeCells(f.weapon) - 0.5f;
+        assertFalse(f.fire.firePoint(f.id, f.mountX(), f.mountY(), Faction.MARINE, launcher,
+                new PointFireAim(f.mountX(), f.mountY() + tooNear), 0f, 0));
+        assertTrue(f.shots.getActiveProjectiles().isEmpty());
+
+        for (int x = 10; x < 32; x++) f.grid.setWalkable(x, 30, false);
+        PointFireAim cursor = new PointFireAim(f.mountX(), f.mountY() + 20f);
+        assertTrue(f.fire.firePoint(f.id, f.mountX(), f.mountY(), Faction.MARINE, launcher, cursor, 0f, 0));
+        Projectile round = f.shots.getActiveProjectiles().get(0);
+        // The fixture's draws are all zero, so the scatter disk collapses onto the thrown point.
+        assertEquals(cursor.x(), round.toX, 1e-4f);
+        assertEquals(cursor.y(), round.toY, 1e-4f, "the wall at y=30 does not stop an arcing round");
+        assertEquals(f.weapon.arcHeight, round.arcHeight);
+        assertEquals(cursor.x(), round.onArrival.endpointX, 1e-4f);
+        assertEquals(cursor.y(), round.onArrival.endpointY, 1e-4f);
     }
 
     @Test
@@ -328,8 +354,8 @@ class GroundVehicleTurretSystemTest {
         if (f.turret.section == null) return;
         DurabilityModel.Resolution scratch = new DurabilityModel.Resolution();
         HullTurretSection.Hit hit = new HullTurretSection.Hit();
-        f.turret.section.resolve(true, 10000f, 100f, f.type.armorRating,
-                f.type.maxArmor, f.type.maxStructure, scratch, hit);
+        f.turret.section.strike(10000f, 100f, f.type.armorRating, 1f, scratch, hit);
+
         assertTrue(f.turret.destroyed());
         assertFalse(f.roster.convoy().isArmed(f.id));
         assertEquals(0f, f.roster.convoy().weaponRange(f.id));

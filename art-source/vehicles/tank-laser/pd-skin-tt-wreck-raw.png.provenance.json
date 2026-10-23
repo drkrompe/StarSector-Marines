@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a168db-38b5-70a2-9253-9c99f19e8a46",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a168db-38b5-70a2-9253-9c99f19e8a46\\exec-eff630e2-23af-4b1d-8787-e3b716f2f56b.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\tank-laser\\pd-skin-tt-wreck-raw.png",
+    "sha256": "bc2a3852f28490393e2094479c50debe7e8b55a8f9d5d9384b19209984f2fb9c",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\tank-laser\\pd-skin-tt-wreck-prompt.txt",
+  "promptSha256": "acfe8a9b27aa57af0e338a1cbd052abe8cb20a1e0f6c11b443fd5af7f6ca658a",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity authority: the module to wreck, same canvas, pose and scale\n\nEdit image 1, an approved high-resolution top-down painted sprite of a small spaceship turret module pointing LEFT, on a square transparent canvas. Turn it into the burnt-out WRECK of the same module, knocked off its mount in a fight. Keep its silhouette, parts and position on the canvas almost the same, tilted a few degrees off-axis.\nDamage: the pale dome cracked open and caved in on one side, its lens shattered and dark; the white collar scorched, blistered and soot-blackened with patches of surviving white paint, its cyan light strips dead and dark; one of the three vent slats bent and one missing; the graphite base ring dented and torn at one edge with a few bolts sheared; heavy cool-grey soot over everything. Large legible soot-dark damage against surviving paint, not a uniform black tint; no rust, no yellow or brown tint.\nNo flames, embers, smoke, glow, ground shadow or scenery.\nStrict 90-degree overhead orthographic, no perspective tilt. Exactly one object. No labels, background, checkerboard or border. True transparent background with genuine alpha outside the silhouette; internal dark recesses are opaque paint, not alpha holes. Same canvas size and aspect as image 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\tank-laser\\pd-skin-tt-raw.png",
+      "sha256": "31a6ba9d1d09a68ff6e1d2a861638f705262b43d706d0fa825100c3dff1a03fe",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Identity authority: the module to wreck, same canvas, pose and scale"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one wrecked version, preserving the module’s shape, scale, and transparent canvas.\n"
+  ],
+  "usage": {
+    "input_tokens": 41110,
+    "cached_input_tokens": 35200,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 455,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 73.9
+}

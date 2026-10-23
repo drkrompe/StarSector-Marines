@@ -1,15 +1,18 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.render2d.texture.FittedTextureOverlay;
+
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.lwjgl.BufferUtils;
 
-import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
+import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,9 +42,11 @@ import static org.lwjgl.opengl.GL11.glTexCoord2f;
 import static org.lwjgl.opengl.GL11.glTexImage2D;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_S;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_T;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_BORDER_COLOR;
+import static org.lwjgl.opengl.GL11.glTexParameter;
 import static org.lwjgl.opengl.GL11.glTexParameteri;
 import static org.lwjgl.opengl.GL11.glVertex2f;
-import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
+import static org.lwjgl.opengl.GL13.GL_CLAMP_TO_BORDER;
 
 /**
  * Sprite tokens backed by real OpenGL textures.
@@ -71,12 +76,16 @@ import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 final class GlSpriteTokens implements HeadlessBattleSprites.SpriteTokens, AutoCloseable {
 
     /** Uploaded texture names by resource path, so a shared sheet uploads once. */
+    /** The border colour a tap past an image reads; see {@link #upload}. */
+    private static final FloatBuffer TRANSPARENT =
+            (FloatBuffer) BufferUtils.createFloatBuffer(4).put(new float[]{0f, 0f, 0f, 0f}).flip();
+
     private final Map<String, Integer> uploaded = new HashMap<>();
     private final List<Integer> owned = new ArrayList<>();
 
     @Override
-    public SpriteAPI token(String path, Path file, BufferedImage image) {
-        return new Token(path, file, image.getWidth(), image.getHeight()).proxy();
+    public SpriteAPI token(String path, Path file, int width, int height) {
+        return new Token(path, file, width, height).proxy();
     }
 
     /** How many distinct sheets a run actually bound — the working set, not the catalog. */
@@ -94,16 +103,17 @@ final class GlSpriteTokens implements HeadlessBattleSprites.SpriteTokens, AutoCl
     private int texture(String path, Path file) {
         Integer existing = uploaded.get(path);
         if (existing != null) return existing;
-        int name = upload(file);
+        int name = upload(path, file);
         uploaded.put(path, name);
         owned.add(name);
         return name;
     }
 
-    private int upload(Path file) {
+    private int upload(String path, Path file) {
         BufferedImage image;
         try {
-            image = ImageIO.read(file.toFile());
+            // Through the overlay, as the catalog sized it: a texture-fit A/B run draws the fitted build here too.
+            image = FittedTextureOverlay.read(path, file);
         } catch (IOException failure) {
             throw new IllegalStateException("Could not re-read " + file + " to upload it", failure);
         }
@@ -126,15 +136,20 @@ final class GlSpriteTokens implements HeadlessBattleSprites.SpriteTokens, AutoCl
         glBindTexture(GL_TEXTURE_2D, name);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        // Clamped rather than left at the default repeat. A bilinear tap at the
-        // outermost half-texel reaches past the image, and under repeat it comes
-        // back with the pixel from the opposite edge — a body's left shoulder
-        // sampled into its right. The game's own sprites sit inside a padded
-        // texture and never do that, so a token that did would be measuring an
-        // artefact of the test harness.
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        // A bilinear tap at the outermost half-texel reaches past the image. The
+        // game's own sprites sit inside a texture padded out to a power of two,
+        // so that tap reads transparent padding: neither the pixel from the
+        // opposite edge, as the default repeat would give (a body's left
+        // shoulder sampled into its right), nor the edge texel again, as
+        // clamp-to-edge would. A transparent border is the padding without the
+        // padding. Clamp-to-edge once made the unit atlas, whose gutter is that
+        // same transparency, look wrong wherever art touches its own border.
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+        glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, TRANSPARENT);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+        // LWJGL 2 keeps only the address; without this the collector may free the pixels mid-upload.
+        Reference.reachabilityFence(pixels);
         return name;
     }
 

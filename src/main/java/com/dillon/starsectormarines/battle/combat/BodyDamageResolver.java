@@ -30,20 +30,16 @@ import java.util.Random;
  * drop, squad-leader promotion, the death mailbox) has nothing to do for either
  * of these.
  *
- * <p>A hull whose turret is a section of it ({@link HullTurretSection}) is
- * resolved by section: a roll on the battle's random stream decides whether the
- * hit lands on the turret, and only the hull's own structure decides death. The
- * roll is drawn only for such a hull, so a battle without one, or with
- * {@code -Dbattle.vehicle.turretDamage=false}, draws exactly what it drew before.
- *
+
  * <p>A ground hull's plate depends on the arc a hit arrives on ({@link ArmorArcs}, profiles on
  * {@link VehicleType#armorArcs()}): the hull's arc is read against the hull's facing, a turret hit's against the
  * turret's. The arc is read from where the hit's shooter stands, which no random draw decides.
  *
- * <p>A hull with located damage ({@link HullLocations}) is resolved by location instead: the turret roll as above,
- * then a drive roll whose share depends on the arc, and the hit meets the plate on the side it arrives from. A hull
- * whose drive goes is immobilised where it stands. A hit with no origin meets the front plate and rolls no drive.
- * The control ({@code -Dbattle.vehicle.locatedArmor=false}) draws what it drew before.
+ * <p>A ground hull is resolved by location ({@link HullLocations}): for a hull whose turret is a section of it
+ * ({@link HullTurretSection}) a roll on the battle's random stream decides whether the hit lands on the turret,
+ * then a drive roll whose share depends on the arc, and the hit meets the plate on the side it arrives from. Only
+ * the hull's own structure decides death; a hull whose drive goes is immobilised where it stands. A hit with no
+ * origin meets the front plate and rolls no drive.
  *
  * <p>Serial only: it holds one reusable {@link DurabilityModel.Resolution},
  * which is the shape both resolvers it replaces already had.
@@ -53,7 +49,6 @@ public final class BodyDamageResolver {
     private final UnitRosterService roster;
     private final Random rng;
     private final DurabilityModel.Resolution durability = new DurabilityModel.Resolution();
-    private final HullTurretSection.Hit sectionHit = new HullTurretSection.Hit();
     private final HullLocations.Hit locatedHit = new HullLocations.Hit();
 
     public BodyDamageResolver(UnitRosterService roster, Random rng) {
@@ -119,20 +114,6 @@ public final class BodyDamageResolver {
             armorDamage = locatedHit.armorDamage();
             hpAfter = locatedHit.hullDestroyed() ? 0f : Math.max(0f, hpBefore - locatedHit.structureDamage());
             if (locatedHit.driveDestroyed() && body != null) body.immobilised = true;
-        } else if (section != null) {
-            // The turret faces its own way: a hit on it is read against the barrel, not the hull.
-            ArmorArcs.Arc turretArc = arcs == ArmorArcs.Profile.FLAT ? ArmorArcs.Arc.SIDE
-                    : ArmorArcs.classify(turret.facingDeg, dx, dy);
-            boolean onTurret = section.struck(rng.nextFloat());
-            if (onTurret) hitRating = rating * arcs.rating(turretArc);
-            hitPart = onTurret ? "TURRET" : "HULL";
-            section.resolve(onTurret, postCover, penetration,
-                    rating * arcs.rating(turretArc), arcs.plate(turretArc),
-                    rating * arcs.rating(hullArc), arcs.plate(hullArc),
-                    armorBefore, hpBefore, durability, sectionHit);
-            armorDamage = sectionHit.armorDamage();
-            // The hull's own structure is the only death; the turret's remainder goes with it.
-            hpAfter = sectionHit.hullDestroyed() ? 0f : Math.max(0f, hpBefore - sectionHit.structureDamage());
         } else {
             DurabilityModel.resolvePlatedInto(postCover, penetration,
                     armorBefore, rating * arcs.rating(hullArc), arcs.plate(hullArc), hpBefore, durability);

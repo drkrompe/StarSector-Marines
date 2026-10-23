@@ -24,10 +24,8 @@ class ClearZoneTargetSelectionTest {
         long nearest = f.enemy(3, 2);
         for (int x = 4; x <= 20; x++) f.enemy(x, 2);
 
-        assertEquals(nearest, f.pick(true));
+        assertEquals(nearest, f.pick());
         assertEquals(1, f.grid.rays);
-        assertEquals(nearest, f.pick(false));
-        assertEquals(18, f.grid.rays, "control really casts every candidate's ray");
     }
 
     @Test
@@ -36,9 +34,8 @@ class ClearZoneTargetSelectionTest {
         f.enemy(3, 2);
         long visible = f.enemy(8, 2);
         f.grid.hidden.add(f.grid.index(3, 2));
-        assertEquals(visible, f.pick(true));
+        assertEquals(visible, f.pick());
         assertEquals(2, f.grid.rays);
-        assertEquals(visible, f.pick(false));
     }
 
     @Test
@@ -48,10 +45,8 @@ class ClearZoneTargetSelectionTest {
         long nearest = f.enemy(3, 2);
         f.grid.hidden.add(f.grid.index(8, 2));
         f.grid.hidden.add(f.grid.index(3, 2));
-        assertEquals(nearest, f.pick(true));
+        assertEquals(nearest, f.pick());
         assertEquals(f.roster.liveCount(), f.visits);
-        assertEquals(nearest, f.pick(false));
-        assertEquals(2 * f.roster.liveCount(), f.visits);
     }
 
     @Test
@@ -59,12 +54,10 @@ class ClearZoneTargetSelectionTest {
         Fixture f = new Fixture();
         long first = f.enemy(3, 2);
         f.enemy(2, 3);
-        assertEquals(first, f.pick(true));
-        assertEquals(first, f.pick(false));
+        assertEquals(first, f.pick());
         f.grid.hidden.add(f.grid.index(3, 2));
         f.grid.hidden.add(f.grid.index(2, 3));
-        assertEquals(first, f.pick(true));
-        assertEquals(first, f.pick(false));
+        assertEquals(first, f.pick());
     }
 
     @Test
@@ -73,9 +66,8 @@ class ClearZoneTargetSelectionTest {
         f.enemy(10, 2);
         long nearer = f.enemy(5, 2);
         f.enemy(12, 2);
-        assertEquals(nearer, f.pick(true));
+        assertEquals(nearer, f.pick());
         assertEquals(2, f.grid.rays);
-        assertEquals(nearer, f.pick(false));
     }
 
     @Test
@@ -88,12 +80,10 @@ class ClearZoneTargetSelectionTest {
         f.unit(Faction.ALLY, UnitType.MARINE, 3, 2);
         f.unit(Faction.DEFENDER, UnitType.CIVILIAN, 4, 2);
         f.enemy(14, 2);
-        assertEquals(0L, f.pick(true));
+        assertEquals(0L, f.pick());
         assertEquals(0, f.grid.rays);
-        assertEquals(0L, f.pick(false));
         long inZone = f.enemy(10, 2);
-        assertEquals(inZone, f.pick(true));
-        assertEquals(inZone, f.pick(false));
+        assertEquals(inZone, f.pick());
     }
 
     @Test
@@ -101,8 +91,7 @@ class ClearZoneTargetSelectionTest {
         Fixture f = new Fixture();
         long target = f.enemy(20, 2);
         f.roster.world().setPos(target, 40.5f, 2.5f);
-        assertEquals(target, f.pick(true));
-        assertEquals(target, f.pick(false));
+        assertEquals(target, f.pick());
     }
 
     private static final class CountingGrid extends NavigationGrid {
@@ -152,19 +141,11 @@ class ClearZoneTargetSelectionTest {
             return roster.spawn(new EntitySpec("unit", faction, type, x, y));
         }
 
-        long pick(boolean pruned) {
-            String property = "battle.targeting.pruneClearZoneSelection";
-            String previous = System.getProperty(property);
-            System.setProperty(property, Boolean.toString(pruned));
-            try {
-                ClearZone action = new ClearZone(zones.zoneIdAt(2, 2));
-                grid.rays = 0;
-                visits = 0;
-                return action.pickZoneTarget(self, view);
-            } finally {
-                if (previous == null) System.clearProperty(property);
-                else System.setProperty(property, previous);
-            }
+        long pick() {
+            ClearZone action = new ClearZone(zones.zoneIdAt(2, 2));
+            grid.rays = 0;
+            visits = 0;
+            return action.pickZoneTarget(self, view);
         }
     }
 }

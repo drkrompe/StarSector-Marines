@@ -86,12 +86,11 @@ public final class GroundVehicleTurretSystem {
             }
             GroundBody body = convoy.body(id);
             StructureDef structure = type.turretStructure();
-            float radians = (float) Math.toRadians(body.facingDegrees);
-            float cos = (float) Math.cos(radians);
-            float sin = (float) Math.sin(radians);
-            float mountX = body.x + type.turretMountX * cos - type.turretMountY * sin;
-            float mountY = body.y + type.turretMountX * sin + type.turretMountY * cos;
-            recharge(turret, structure.mount, dt);
+            TurretMountGeometry.Point mount = mountPoint(type, body);
+            float mountX = mount.x();
+            float mountY = mount.y();
+            dissipate(turret, structure.mount, dt);
+            if (turret.overloaded && turret.burstRemaining > 0) turret.clearQueuedFire();
             if (id == controlledId) {
                 tickManual(id, turret, body, structure, mountX, mountY, dt, point, trigger);
             } else {
@@ -99,6 +98,18 @@ public final class GroundVehicleTurretSystem {
                 tickAutonomous(id, turret, body, structure, mountX, mountY, dt);
             }
         }
+    }
+
+    /**
+     * Where a hull's turret ring stands in the world: the type's mount offset turned by the hull's heading. A
+     * player's point fire is measured from here, so the HUD's minimum-range reading reads the same point.
+     */
+    public static TurretMountGeometry.Point mountPoint(VehicleType type, GroundBody body) {
+        float radians = (float) Math.toRadians(body.facingDegrees);
+        float cos = (float) Math.cos(radians);
+        float sin = (float) Math.sin(radians);
+        return new TurretMountGeometry.Point(body.x + type.turretMountX * cos - type.turretMountY * sin,
+                body.y + type.turretMountX * sin + type.turretMountY * cos);
     }
 
     private void tickManual(long id, GroundTurret turret, GroundBody body, StructureDef structure,
@@ -122,15 +133,16 @@ public final class GroundVehicleTurretSystem {
             if (turret.burstTimer <= 0f
                     && firePoint(id, turret, body, structure, mountX, mountY, aim, release)) {
                 turret.ammo--;
+                addFlux(turret, structure.mount);
                 finishBurstRound(turret, weapon);
             }
             return;
         }
         if (turret.cooldownTimer > 0f) turret.cooldownTimer -= dt;
-        if (!trigger || turret.cooldownTimer > 0f || !charged(turret, mount)
+        if (!trigger || turret.cooldownTimer > 0f || !ready(turret, mount)
                 || !firePoint(id, turret, body, structure, mountX, mountY, aim, 0)) return;
         turret.ammo--;
-        spendCharge(turret, mount);
+        addFlux(turret, structure.mount);
         turret.cooldownTimer = weapon.cooldown;
         turret.burstRemaining = turret.ammo > 0 ? Math.max(0, weapon.burstCount - 1) : 0;
         turret.burstTimer = turret.burstRemaining > 0 ? weapon.burstSpacing : 0f;
@@ -178,8 +190,14 @@ public final class GroundVehicleTurretSystem {
             return;
         }
         long burstTarget = roster.isAliveById(turret.burstTargetId) ? turret.burstTargetId : 0L;
-        // Keep autonomous APC cadence: no cooldown or traverse tick during a committed burst.
+        // Keep autonomous APC cadence: no cooldown or traverse tick during a committed burst. A beam is the
+        // exception: its lance is held, so the turret tracks its target through it and the beam drags with it.
         if (turret.burstRemaining > 0) {
+            if (weapon.hitscanBeam() && burstTarget != 0L && world.isAlive(burstTarget)) {
+                turret.facingDeg = TurretAim.slewToward(turret.facingDeg,
+                        TurretAim.bearingTo(mountX, mountY, world.x(burstTarget), world.y(burstTarget)),
+                        mount.turnRateDegPerSec * dt);
+            }
             turret.burstTimer -= dt;
             int release = TurretMountGeometry.releaseIndex(weapon.burstCount, turret.burstRemaining);
             if (turret.burstTimer <= 0f && burstTarget != 0L && world.isAlive(burstTarget)
@@ -188,6 +206,7 @@ public final class GroundVehicleTurretSystem {
                 if (fireSink.fire(id, mountX, mountY, convoy.faction(id), structure,
                         burstTarget, false, true, turret.facingDeg, release)) {
                     turret.ammo--;
+                    addFlux(turret, structure.mount);
                     finishBurstRound(turret, weapon);
                 } else {
                     // The crew held a round that would have hit their own side: the rest of the burst stays in
@@ -231,10 +250,11 @@ public final class GroundVehicleTurretSystem {
         aim.faction = convoy.faction(id);
         aim.facingDegrees = turret.facingDeg;
         aim.turnRateDegPerSec = mount.turnRateDegPerSec;
+        if (weapon.hitscanBeam()) aim.fireArcDeg = TurretAim.BEAM_OPEN_ARC_DEG;
         aim.attackRange = weapon.range;
         aim.minRange = weapon.minRange;
-        // An empty bank holds the trigger the way a cooldown does, until the next charge is in.
-        aim.cooldownTimer = Math.max(turret.cooldownTimer, chargeWait(turret, mount));
+        // A venting gun holds the trigger the way a cooldown does, until its flux is gone.
+        aim.cooldownTimer = Math.max(turret.cooldownTimer, fluxWait(turret, mount));
         aim.attackCooldown = weapon.cooldown;
         aim.target = held;
         float agedCooldown = turret.cooldownTimer > 0f ? turret.cooldownTimer - dt : turret.cooldownTimer;
@@ -254,7 +274,7 @@ public final class GroundVehicleTurretSystem {
             if (!fireSink.fire(id, mountX, mountY, convoy.faction(id), structure, aim.target,
                     false, aim.lastFireHadLos, turret.facingDeg, 0)) return;
             turret.ammo--;
-            spendCharge(turret, mount);
+            addFlux(turret, structure.mount);
             if (turret.ammo > 0 && weapon.burstCount > 1 && world.isAlive(aim.target)) {
                 turret.burstRemaining = weapon.burstCount - 1;
                 turret.burstTimer = weapon.burstSpacing;
@@ -281,14 +301,14 @@ public final class GroundVehicleTurretSystem {
         float bearing = TurretAim.bearingTo(mountX, mountY, world.x(craft), world.y(craft));
         turret.facingDeg = TurretAim.slewToward(turret.facingDeg, bearing, mount.turnRateDegPerSec * dt);
         if (turret.cooldownTimer > 0f) turret.cooldownTimer -= dt;
-        if (turret.cooldownTimer > 0f || !charged(turret, mount)
+        if (turret.cooldownTimer > 0f || !ready(turret, mount)
                 || Math.abs(TurretAim.shortestAngleDelta(turret.facingDeg, bearing)) > TurretAim.FIRE_ARC_DEG) {
             return true;
         }
         TurretMountGeometry.Point muzzle = TurretMountGeometry.muzzle(mountX, mountY, turret.facingDeg, mount, 0);
         airFire.fire(id, side, structure, craft, muzzle.x(), muzzle.y());
         turret.ammo--;
-        spendCharge(turret, mount);
+        addFlux(turret, structure.mount);
         turret.cooldownTimer = weapon.cooldown;
         if (turret.ammo > 0 && weapon.burstCount > 1) {
             turret.burstRemaining = weapon.burstCount - 1;
@@ -316,6 +336,7 @@ public final class GroundVehicleTurretSystem {
         TurretMountGeometry.Point muzzle = TurretMountGeometry.muzzle(mountX, mountY, turret.facingDeg, mount, release);
         airFire.fire(id, side, structure, craft, muzzle.x(), muzzle.y());
         turret.ammo--;
+        addFlux(turret, structure.mount);
         finishBurstRound(turret, mount.weapon);
         if (turret.burstRemaining == 0) turret.burstAir = false;
     }
@@ -351,10 +372,10 @@ public final class GroundVehicleTurretSystem {
                     structure.mount.turnRateDegPerSec * dt);
         }
         if (turret.cooldownTimer > 0f) turret.cooldownTimer -= dt;
-        if (turret.cooldownTimer > 0f || !charged(turret, structure.mount)
+        if (turret.cooldownTimer > 0f || !ready(turret, structure.mount)
                 || !firePoint(id, turret, body, structure, mountX, mountY, aim, 0)) return;
         turret.ammo--;
-        spendCharge(turret, structure.mount);
+        addFlux(turret, structure.mount);
         turret.cooldownTimer = weapon.cooldown;
     }
 
@@ -386,7 +407,7 @@ public final class GroundVehicleTurretSystem {
         }
         float bearing = TurretAim.bearingTo(mountX, mountY, world.x(target), world.y(target));
         turret.facingDeg = TurretAim.slewToward(turret.facingDeg, bearing, mount.turnRateDegPerSec * dt);
-        if (turret.cooldownTimer > 0f || !charged(turret, mount)
+        if (turret.cooldownTimer > 0f || !ready(turret, mount)
                 || Math.abs(TurretAim.shortestAngleDelta(turret.facingDeg, bearing)) > TurretAim.FIRE_ARC_DEG
                 || !barrelClear(body, TurretMountGeometry.muzzle(mountX, mountY, turret.facingDeg, mount, 0))) {
             return;
@@ -394,7 +415,7 @@ public final class GroundVehicleTurretSystem {
         // A spotted round is an observed round: the spotter's eyes stand in for the hull's, as a mortar's do.
         if (!fireSink.fire(id, mountX, mountY, side, structure, target, false, true, turret.facingDeg, 0)) return;
         turret.ammo--;
-        spendCharge(turret, mount);
+        addFlux(turret, structure.mount);
         turret.cooldownTimer = weapon.cooldown;
         if (turret.ammo > 0 && weapon.burstCount > 1) {
             turret.burstRemaining = weapon.burstCount - 1;
@@ -474,25 +495,37 @@ public final class GroundVehicleTurretSystem {
         return TurretAim.slewToward(turretFacing, hullFacing, turnRateDegPerSec * IDLE_RETURN_RATE_SHARE * dt);
     }
 
-    /** Refills the mount's capacitor bank ({@link TurretMountDef#charges}); nothing for a mount without one. */
-    static void recharge(GroundTurret turret, TurretMountDef mount, float dt) {
-        if (mount.charges <= 0 || turret.charge >= mount.charges) return;
-        turret.charge = Math.min(mount.charges, turret.charge + dt / mount.chargeRechargeSeconds);
+    /**
+     * Dissipates the gun's flux ({@link TurretMountDef#flux}), at the vent rate while it is overloaded; an overloaded
+     * gun is back in action once it is empty. Nothing for a mount without flux.
+     */
+    static void dissipate(GroundTurret turret, TurretMountDef mount, float dt) {
+        TurretMountDef.Flux flux = mount.flux;
+        if (flux == null) return;
+        float rate = turret.overloaded ? flux.ventPerSec() : flux.dissipationPerSec();
+        turret.flux = Math.max(0f, turret.flux - rate * dt);
+        if (turret.overloaded && turret.flux <= 0f) turret.overloaded = false;
     }
 
-    /** Whether a trigger pull has a charge to spend; always for a mount without a bank. */
-    static boolean charged(GroundTurret turret, TurretMountDef mount) {
-        return mount.charges <= 0 || turret.charge >= 1f;
+    /** Whether the gun may pull its trigger: always, unless it overloaded and is venting. */
+    static boolean ready(GroundTurret turret, TurretMountDef mount) {
+        return mount.flux == null || !turret.overloaded;
     }
 
-    /** Seconds until the bank holds a whole charge; zero when it does, or when the mount has no bank. */
-    static float chargeWait(GroundTurret turret, TurretMountDef mount) {
-        return charged(turret, mount) ? 0f : (1f - turret.charge) * mount.chargeRechargeSeconds;
+    /** Seconds until a venting gun is empty and ready; zero when it is ready. */
+    static float fluxWait(GroundTurret turret, TurretMountDef mount) {
+        return ready(turret, mount) ? 0f : turret.flux / mount.flux.ventPerSec();
     }
 
-    /** A trigger pull's charge: one burst, however many rounds it releases. */
-    static void spendCharge(GroundTurret turret, TurretMountDef mount) {
-        if (mount.charges > 0) turret.charge = Math.max(0f, turret.charge - 1f);
+    /**
+     * One round's flux. A round that fills the gun overloads it: its trigger is held until it has vented, and the
+     * rest of its burst is broken off on the next tick, before another round.
+     */
+    static void addFlux(GroundTurret turret, TurretMountDef mount) {
+        TurretMountDef.Flux flux = mount.flux;
+        if (flux == null) return;
+        turret.flux = Math.min(flux.capacity(), turret.flux + flux.perRound());
+        if (turret.flux >= flux.capacity()) turret.overloaded = true;
     }
 
     private static void finishBurstRound(GroundTurret turret, WeaponDef weapon) {

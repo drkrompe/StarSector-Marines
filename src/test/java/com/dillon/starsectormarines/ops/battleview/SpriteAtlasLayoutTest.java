@@ -31,11 +31,15 @@ class SpriteAtlasLayoutTest {
     /** A {@link SpriteAtlas} whose contents are stated rather than loaded. */
     private static final class Fixture extends SpriteAtlas {
         Fixture(int... sides) {
-            super("test atlas", true, sides);
+            super("test atlas", sides);
         }
 
         boolean layOut(List<Source> sources, int minimum) {
             return plan(sources, minimum);
+        }
+
+        boolean regions(List<Region> regions, int apron, int minimum) {
+            return planRegions(regions, apron, minimum);
         }
     }
 
@@ -90,6 +94,33 @@ class SpriteAtlasLayoutTest {
             assertEquals((at.x() << 16) | at.y(), atlas.origin(source.sheet()),
                     "the packed origin is the same slot the placement names");
         }
+    }
+
+    @Test
+    void aRegionIsFoundByItsExactRectangleAndSitsInsideItsApron() {
+        Fixture atlas = new Fixture(1024);
+        SpriteAPI sheet = token();
+        List<SpriteAtlas.Region> regions = List.of(
+                new SpriteAtlas.Region(sheet, 512, 256, 0, 0, 64, 64, "a"),
+                new SpriteAtlas.Region(sheet, 512, 256, 64, 0, 64, 128, "b"),
+                new SpriteAtlas.Region(sheet, 512, 256, 64, 0, 64, 128, "b again"));
+        assertTrue(atlas.regions(regions, 2, 2));
+        assertEquals(2, atlas.sheetCount(), "a rectangle offered twice is one slot");
+        int b = atlas.regionOrigin(sheet, 64, 0, 64, 128);
+        assertTrue(b >= 0);
+        assertTrue((b >>> 16) >= SpriteAtlas.GUTTER_PX + 2 && (b & 0xFFFF) >= SpriteAtlas.GUTTER_PX + 2,
+                "the cut's content sits inside its apron, inside the gutter");
+        assertEquals(-1, atlas.regionOrigin(sheet, 64, 0, 64, 64),
+                "another cut of the same sheet is not this slot");
+        assertEquals(-1, atlas.regionOrigin(token(), 0, 0, 64, 64), "nor is the same cut of another sheet");
+    }
+
+    @Test
+    void aLayoutThatDoesNotFitSaysWhatItLeftOut() {
+        Fixture atlas = new Fixture(1024);
+        assertFalse(atlas.layOut(plates(2, 2000, 200), 1));
+        assertEquals(2, atlas.exclusions().get(SpriteAtlas.Exclusion.NO_ROOM).size());
+        assertTrue(atlas.report().contains("NO_ROOM 2"), atlas.report());
     }
 
     private static List<SpriteAtlas.Source> plates(int count, int w, int h) {

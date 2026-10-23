@@ -1,16 +1,25 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.render2d.GlErrors;
+import com.dillon.starsectormarines.render2d.texture.ModTextures;
+import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
+import org.apache.log4j.Logger;
 import org.lwjgl.BufferUtils;
 
 import java.awt.Color;
+import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import static org.lwjgl.opengl.GL11.GL_CLIENT_PIXEL_STORE_BIT;
 import static org.lwjgl.opengl.GL11.GL_LINEAR;
@@ -24,6 +33,8 @@ import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_S;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_T;
 import static org.lwjgl.opengl.GL11.GL_UNPACK_ALIGNMENT;
 import static org.lwjgl.opengl.GL11.GL_UNPACK_ROW_LENGTH;
+import static org.lwjgl.opengl.GL11.GL_UNPACK_SKIP_PIXELS;
+import static org.lwjgl.opengl.GL11.GL_UNPACK_SKIP_ROWS;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
 import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL11.glDeleteTextures;
@@ -46,9 +57,11 @@ import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
  * its texture stays the same, so several sheets in painter order is a flush at
  * every change and one sheet is one flush. That reasoning is the same whether
  * the images are the six terrain sheets a {@code GROUND} quad is cut from
- * ({@link GroundAtlas}) or the several dozen separate PNGs a marine's body,
- * head, feet and weapon are drawn from ({@link UnitAtlas}) — which is why the
- * mechanism lives here and only the question "which images?" is a subclass's.
+ * ({@link GroundAtlas}), the several dozen separate PNGs a marine's body,
+ * head, feet and weapon are drawn from ({@link UnitAtlas}), or the props a map
+ * places from a dozen catalog sheets ({@link DecorationAtlas}) — which is why
+ * the mechanism lives here and only the question "which images?" is a
+ * subclass's.
  *
  * <p><b>Painter order is untouched.</b> This changes which texture a quad
  * addresses and where in it, and nothing else: the same quads in the same order
@@ -63,16 +76,26 @@ import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
  * written into its slot, so the atlas holds the images' exact texels rather than
  * a resample of them.
  *
+ * <p><b>Whole images or regions of them.</b> A slot holds either a whole image
+ * ({@link Source}) or one rectangle cut from a sheet ({@link Region}). A region
+ * carries an <em>apron</em> of the sheet's own neighbouring texels, clamped at
+ * the sheet's edge the way {@code GL_CLAMP_TO_EDGE} answers there, so a bilinear
+ * tap that reaches past the rectangle reads what it read on the sheet rather
+ * than the gutter's transparency.
+ *
  * <p><b>Slots carry a gutter</b> of {@link #GUTTER_PX} transparent texels.
  * Bilinear filtering reaches one texel past the rectangle it samples, and inside
  * one image that neighbour is the art it has always been; only at an image's
  * outer boundary does the atlas change what is next door, and the gutter is what
  * keeps that from being somebody else's art.
  *
- * <p><b>It fails soft.</b> No texture object, a layout that will not fit the
- * driver's maximum, a read-back that errors — {@link #isServing()} answers false
- * and every quad addresses its own image exactly as before, with the same
- * picture.
+ * <p><b>It fails soft, and says so.</b> No texture object, a layout that will
+ * not fit the driver's maximum, a read-back that errors — {@link #isServing()}
+ * answers false and every quad addresses its own image exactly as before, with
+ * the same picture. Because that fallback cannot be seen in the picture, every
+ * image left out — over a subclass's size cap, refused by the layout, or lost
+ * with a refused texture — is recorded as an {@link Exclusion}, and the whole
+ * account is logged once per plan ({@link #report()}).
  */
 public abstract class SpriteAtlas {
 
@@ -89,9 +112,41 @@ public abstract class SpriteAtlas {
     public record Placement(int x, int y, int width, int height) { }
 
     /** One image offered to the layout, with the content size it actually uses. */
-    public record Source(SpriteAPI sheet, int contentW, int contentH) { }
+    public record Source(SpriteAPI sheet, int contentW, int contentH, String name) {
+        public Source(SpriteAPI sheet, int contentW, int contentH) {
+            this(sheet, contentW, contentH, null);
+        }
+    }
+
+    /**
+     * One rectangle of a sheet offered to the layout.
+     *
+     * <p>{@code sheetW}/{@code sheetH} are the sheet's content size in texels —
+     * the numbers the sheet's own batch divides by — and the rectangle is
+     * stated the way a sheet quad states its source, {@code y} down from the top.
+     */
+    public record Region(SpriteAPI sheet, int sheetW, int sheetH,
+                         int srcX, int srcY, int width, int height, String name) { }
+
+    /** Why an image is not in the atlas. */
+    public enum Exclusion {
+        /** Larger than the subclass will give a slot. */
+        OVER_CAP,
+        /** No recorded size to copy it by. */
+        NO_SIZE,
+        /** The layout did not fit any of the atlas's sides. */
+        NO_ROOM,
+        /** The driver refused the texture or a copy into it. */
+        REFUSED
+    }
+
+    private static final Logger LOG = Global.getLogger(SpriteAtlas.class);
+
+    /** How many names a report lists per reason before it only counts. */
+    private static final int NAMES_PER_REASON = 6;
 
     private final String label;
+    /** Off only for {@link DecorationAtlas} under its {@code battle.render.doodadAtlas} control. */
     private final boolean enabled;
     /**
      * Widths the layout may use, smallest first.
@@ -106,10 +161,17 @@ public abstract class SpriteAtlas {
 
     private final List<Slot> slots = new ArrayList<>();
     private final Map<SpriteAPI, Placement> placementBySheet = new IdentityHashMap<>();
+    /** Each region slot's sheet, numbered for {@link RegionTable#key}. */
+    private final Map<SpriteAPI, Integer> sheetIndex = new IdentityHashMap<>();
+    private final RegionTable regions = new RegionTable();
+    private final Map<Exclusion, List<String>> excluded = new EnumMap<>(Exclusion.class);
     private final AtlasSprite sprite = new AtlasSprite();
 
     /** Why the last plan gave up, or null; see {@link #planDiagnostic()}. */
     private String diagnostic;
+    /** What the driver refused, or null. */
+    private String refusal;
+    private boolean reported;
 
     private boolean planned;
     private boolean broken;
@@ -118,13 +180,32 @@ public abstract class SpriteAtlas {
     private int height;
     private int texture;
 
+    protected SpriteAtlas(String label, int... candidateSides) {
+        this(label, true, candidateSides);
+    }
+
     protected SpriteAtlas(String label, boolean enabled, int... candidateSides) {
         this.label = label;
         this.enabled = enabled;
         this.candidateSides = candidateSides.clone();
     }
 
-    private record Slot(SpriteAPI sheet, int contentW, int contentH, int x, int y) { }
+    /**
+     * One slot: the rectangle {@code srcX, srcY, w, h} of {@code sheet}, whose
+     * content is {@code sheetW x sheetH}, copied with {@code apron} texels of its
+     * surroundings and its content placed at {@code x, y} in the atlas. A whole
+     * image is the rectangle that is all of it, with no apron.
+     */
+    private record Slot(SpriteAPI sheet, int sheetW, int sheetH, int srcX, int srcY,
+                        int w, int h, int apron, int x, int y, String name) {
+        Slot at(int px, int py) {
+            return new Slot(sheet, sheetW, sheetH, srcX, srcY, w, h, apron, px, py, name);
+        }
+
+        boolean wholeImage() {
+            return srcX == 0 && srcY == 0 && w == sheetW && h == sheetH && apron == 0;
+        }
+    }
 
     /**
      * Settles the layout from {@code candidates}. GL-free, idempotent, and the
@@ -137,19 +218,136 @@ public abstract class SpriteAtlas {
      */
     protected final boolean plan(List<Source> candidates, int minimumSheets) {
         if (planned || broken || !enabled || candidates == null) return planned;
-        planned = true;
         List<Slot> distinct = new ArrayList<>();
         for (Source source : candidates) add(distinct, source);
-        if (distinct.size() < minimumSheets) {
+        return settle(distinct, minimumSheets);
+    }
+
+    /**
+     * As {@link #plan(List, int)}, for rectangles cut from sheets: each slot is
+     * {@code apronPx} larger on every side than its rectangle, filled with the
+     * sheet's own texels around it.
+     */
+    protected final boolean planRegions(List<Region> candidates, int apronPx, int minimumRegions) {
+        if (planned || broken || !enabled || candidates == null) return planned;
+        List<Slot> distinct = new ArrayList<>();
+        Set<Long> seen = new HashSet<>();
+        Map<SpriteAPI, Integer> indices = new IdentityHashMap<>();
+        for (Region region : candidates) {
+            if (region == null || region.sheet() == null) continue;
+            if (region.width() <= 0 || region.height() <= 0
+                    || region.sheetW() <= 0 || region.sheetH() <= 0) {
+                exclude(Exclusion.NO_SIZE, region.name());
+                continue;
+            }
+            Integer index = indices.get(region.sheet());
+            if (index == null) {
+                index = indices.size();
+                indices.put(region.sheet(), index);
+            }
+            if (!seen.add(RegionTable.key(index, region.srcX(), region.srcY(),
+                    region.width(), region.height()))) continue;
+            distinct.add(new Slot(region.sheet(), region.sheetW(), region.sheetH(),
+                    region.srcX(), region.srcY(), region.width(), region.height(),
+                    Math.max(0, apronPx), 0, 0, region.name()));
+        }
+        return settle(distinct, minimumRegions);
+    }
+
+    private boolean settle(List<Slot> distinct, int minimum) {
+        planned = true;
+        if (distinct.size() < minimum) {
             broken = true;
+            diagnostic = distinct.size() + " images offered, fewer than the " + minimum
+                    + " an atlas is worth";
             return false;
         }
         if (!layOut(distinct)) {
             broken = true;
             diagnostic = describeOverflow(distinct);
+            List<String> names = excluded.computeIfAbsent(Exclusion.NO_ROOM, reason -> new ArrayList<>());
+            for (Slot slot : distinct) names.add(slotName(slot));
+            logOnce();
             return false;
         }
         return true;
+    }
+
+    /**
+     * Records an image a subclass did not offer, and why.
+     *
+     * <p>Called while gathering candidates. The fallback for it is the image's
+     * own texture, which draws the same picture, so this record is the only
+     * place the difference shows.
+     */
+    protected final void exclude(Exclusion reason, String what) {
+        List<String> names = excluded.computeIfAbsent(reason, r -> new ArrayList<>());
+        String name = what == null ? "(unnamed)" : what;
+        // One image is often offered by several families; it is one image left out.
+        if (!names.contains(name)) names.add(name);
+    }
+
+    /** Every image left out, by reason; empty when the atlas holds everything it was offered. */
+    public final Map<Exclusion, List<String>> exclusions() {
+        return Collections.unmodifiableMap(excluded);
+    }
+
+    /**
+     * One line on what this atlas is doing — off, serving, waiting to be built,
+     * or not serving — how many images in how large a texture, and each reason
+     * something was left out with its count and the first few names.
+     */
+    public final String report() {
+        StringBuilder out = new StringBuilder(label).append(": ");
+        if (!enabled) out.append("off");
+        else if (isServing()) out.append("serving");
+        else if (broken) out.append("not serving");
+        else if (isPlanned()) out.append("planned, not built");
+        else out.append("not planned");
+        if (enabled && !slots.isEmpty()) {
+            long content = 0;
+            for (Slot slot : slots) {
+                content += (long) (slot.w() + 2 * slot.apron()) * (slot.h() + 2 * slot.apron());
+            }
+            out.append(", ").append(slots.size()).append(" images in ")
+                    .append(width).append('x').append(height)
+                    .append(String.format(Locale.ROOT, " (%.0f%% filled, %.1f MB)",
+                            100.0 * content / Math.max(1L, (long) width * height),
+                            width * (double) height * 4 / (1 << 20)));
+        }
+        String detail = detail();
+        if (detail != null) out.append(", ").append(detail);
+        if (diagnostic != null) out.append(" (").append(diagnostic).append(')');
+        for (Map.Entry<Exclusion, List<String>> entry : excluded.entrySet()) {
+            List<String> names = entry.getValue();
+            out.append("; ").append(entry.getKey()).append(' ').append(names.size()).append(": ");
+            for (int i = 0; i < Math.min(NAMES_PER_REASON, names.size()); i++) {
+                if (i > 0) out.append(", ");
+                out.append(names.get(i));
+            }
+            if (names.size() > NAMES_PER_REASON) out.append(", ...");
+        }
+        return out.toString();
+    }
+
+    /** A subclass's own clause for {@link #report()}, such as where its images came from; null for none. */
+    protected String detail() {
+        return null;
+    }
+
+    /**
+     * Logs {@link #report()} once per plan, when the atlas has reached the
+     * state it will keep: refused at plan, or built or refused at its first sync.
+     */
+    private void logOnce() {
+        if (reported) return;
+        reported = true;
+        if (excluded.isEmpty() && !broken) LOG.info(report());
+        else LOG.warn(report());
+    }
+
+    private static String slotName(Slot slot) {
+        return slot.name() != null ? slot.name() : slot.w() + "x" + slot.h() + " image";
     }
 
     /**
@@ -157,7 +355,7 @@ public abstract class SpriteAtlas {
      *
      * <p>A layout that will not fit is silent by design — every quad simply goes
      * back to its own image — so an atlas that quietly stopped serving looks
-     * exactly like an atlas nobody switched on. This says which it was, in the
+     * exactly like an atlas that was never built. This says which it was, in the
      * one sentence that is worth having: how much art was offered and how wide
      * the widest piece is.
      */
@@ -170,41 +368,59 @@ public abstract class SpriteAtlas {
         int widest = 0;
         int tallest = 0;
         for (Slot slot : candidates) {
-            area += (long) (slot.contentW() + GUTTER_PX) * (slot.contentH() + GUTTER_PX);
-            widest = Math.max(widest, slot.contentW());
-            tallest = Math.max(tallest, slot.contentH());
+            int w = slot.w() + 2 * slot.apron();
+            int h = slot.h() + 2 * slot.apron();
+            area += (long) (w + GUTTER_PX) * (h + GUTTER_PX);
+            widest = Math.max(widest, w);
+            tallest = Math.max(tallest, h);
         }
         return label + ": " + candidates.size() + " images, " + area
                 + " texels with gutters, widest " + widest + ", tallest " + tallest
                 + ", would not fit " + Arrays.toString(candidateSides);
     }
 
-    private static void add(List<Slot> into, Source source) {
+    private void add(List<Slot> into, Source source) {
         if (source == null || source.sheet() == null) return;
-        if (source.contentW() <= 0 || source.contentH() <= 0) return;
+        if (source.contentW() <= 0 || source.contentH() <= 0) {
+            exclude(Exclusion.NO_SIZE, source.name());
+            return;
+        }
         for (Slot existing : into) if (existing.sheet() == source.sheet()) return;
-        into.add(new Slot(source.sheet(), source.contentW(), source.contentH(), 0, 0));
+        into.add(new Slot(source.sheet(), source.contentW(), source.contentH(), 0, 0,
+                source.contentW(), source.contentH(), 0, 0, 0, source.name()));
     }
 
     private boolean layOut(List<Slot> candidates) {
-        int[] contentW = new int[candidates.size()];
-        int[] contentH = new int[candidates.size()];
+        int[] packW = new int[candidates.size()];
+        int[] packH = new int[candidates.size()];
         for (int i = 0; i < candidates.size(); i++) {
-            contentW[i] = candidates.get(i).contentW();
-            contentH[i] = candidates.get(i).contentH();
+            Slot slot = candidates.get(i);
+            packW[i] = slot.w() + 2 * slot.apron();
+            packH[i] = slot.h() + 2 * slot.apron();
         }
         for (int side : candidateSides) {
-            int[] packed = shelfPack(contentW, contentH, side);
+            int[] packed = shelfPack(packW, packH, side);
             if (packed == null) continue;
             int packedHeight = packed[packed.length - 1];
             if (packedHeight > side) continue;
+            regions.reset(candidates.size());
             for (int i = 0; i < candidates.size(); i++) {
                 Slot proposed = candidates.get(i);
-                int x = packed[i * 2];
-                int y = packed[i * 2 + 1];
-                slots.add(new Slot(proposed.sheet(), proposed.contentW(), proposed.contentH(), x, y));
-                placementBySheet.put(proposed.sheet(),
-                        new Placement(x, y, proposed.contentW(), proposed.contentH()));
+                int x = packed[i * 2] + proposed.apron();
+                int y = packed[i * 2 + 1] + proposed.apron();
+                slots.add(proposed.at(x, y));
+                if (proposed.wholeImage()) {
+                    placementBySheet.put(proposed.sheet(),
+                            new Placement(x, y, proposed.w(), proposed.h()));
+                } else {
+                    Integer index = sheetIndex.get(proposed.sheet());
+                    if (index == null) {
+                        index = sheetIndex.size();
+                        sheetIndex.put(proposed.sheet(), index);
+                    }
+                    regions.put(RegionTable.key(index, proposed.srcX(), proposed.srcY(),
+                            proposed.w(), proposed.h()), (x << 16) | y);
+                }
             }
             width = side;
             height = packedHeight;
@@ -259,11 +475,6 @@ public abstract class SpriteAtlas {
         return out;
     }
 
-    /** Whether the atlas is armed at all — for evidence that reports which run it was. */
-    public final boolean isEnabled() {
-        return enabled;
-    }
-
     /**
      * Whether quads may address the atlas.
      *
@@ -272,7 +483,7 @@ public abstract class SpriteAtlas {
      * texture, and false forever once anything has failed.
      */
     public final boolean isServing() {
-        return enabled && built && !broken;
+        return built && !broken;
     }
 
     /**
@@ -326,6 +537,22 @@ public abstract class SpriteAtlas {
         return placementBySheet.get(sheet);
     }
 
+    /**
+     * Where the rectangle {@code srcX, srcY, srcW, srcH} of {@code sheet} sits,
+     * as {@code (x << 16) | y}, or {@code -1} when the atlas holds no slot for
+     * exactly that rectangle.
+     *
+     * <p>Exact rather than containing: a quad that addresses some other cut of
+     * a sheet the atlas also holds keeps its own sheet, which is the same
+     * picture through one more bind. Allocation-free, because it is asked once
+     * per quad in a collect.
+     */
+    public final int regionOrigin(SpriteAPI sheet, int srcX, int srcY, int srcW, int srcH) {
+        Integer index = sheetIndex.get(sheet);
+        if (index == null) return -1;
+        return regions.get(RegionTable.key(index, srcX, srcY, srcW, srcH));
+    }
+
     /** Images the atlas holds — for evidence that wants to name them. */
     public final int sheetCount() {
         return slots.size();
@@ -338,13 +565,19 @@ public abstract class SpriteAtlas {
      * @return whether the atlas can be addressed from the next frame
      */
     public final boolean sync() {
-        if (!enabled || broken || built) return isServing();
+        if (broken || built) return isServing();
         if (!planned || slots.isEmpty()) return false;
         try {
             build();
         } catch (RuntimeException failure) {
             broken = true;
+            if (refusal == null) refusal = failure.toString();
         }
+        if (broken) {
+            exclude(Exclusion.REFUSED, slots.size() + " images ("
+                    + (refusal == null ? "unknown" : refusal) + ")");
+        }
+        logOnce();
         return isServing();
     }
 
@@ -352,11 +585,13 @@ public abstract class SpriteAtlas {
         int driverMax = glGetInteger(GL_MAX_TEXTURE_SIZE);
         if (driverMax > 0 && (width > driverMax || height > driverMax)) {
             broken = true;
+            refusal = width + "x" + height + " is over the driver's " + driverMax;
             return;
         }
         texture = glGenTextures();
         if (texture == 0) {
             broken = true;
+            refusal = "no texture object";
             return;
         }
         ByteBuffer scratch = null;
@@ -365,10 +600,16 @@ public abstract class SpriteAtlas {
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
             glBindTexture(GL_TEXTURE_2D, texture);
             GlErrors.clear();
+            ByteBuffer zeroed = transparent();
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0,
-                    GL_RGBA, GL_UNSIGNED_BYTE, transparent());
+                    GL_RGBA, GL_UNSIGNED_BYTE, zeroed);
+            // LWJGL 2 hands the driver the buffer's address and keeps no reference to it, so a compiled caller may
+            // let the collector free tens of megabytes of direct memory while the driver is still reading them: an
+            // access violation inside the driver, under heap pressure, seen headless and possible in the game.
+            Reference.reachabilityFence(zeroed);
             if (GlErrors.check("glTexImage2D (" + label + ")")) {
                 broken = true;
+                refusal = "glTexImage2D " + width + "x" + height;
                 return;
             }
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -376,8 +617,21 @@ public abstract class SpriteAtlas {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
+            // Each sheet is read back once however many slots it fills: a
+            // decoration atlas cuts dozens of regions from one sheet.
+            Map<SpriteAPI, List<Slot>> bySheet = new IdentityHashMap<>();
+            List<SpriteAPI> order = new ArrayList<>();
             for (Slot slot : slots) {
-                scratch = copy(slot, scratch);
+                List<Slot> group = bySheet.get(slot.sheet());
+                if (group == null) {
+                    group = new ArrayList<>();
+                    bySheet.put(slot.sheet(), group);
+                    order.add(slot.sheet());
+                }
+                group.add(slot);
+            }
+            for (SpriteAPI sheet : order) {
+                scratch = copy(bySheet.get(sheet), scratch);
                 if (broken) return;
             }
             built = true;
@@ -388,7 +642,7 @@ public abstract class SpriteAtlas {
     }
 
     /**
-     * Copies one image's content into its slot.
+     * Copies every slot cut from one image into the atlas.
      *
      * <p>Through the driver rather than through a blit into a render target:
      * the image is already a texture and reading it back is the one way to be
@@ -396,22 +650,28 @@ public abstract class SpriteAtlas {
      * is exactly what the pixel-equality evidence asks of this.
      *
      * <p>The read-back is of the whole GL texture, padding included — that is
-     * all {@code glGetTexImage} will give — so the sub-image is unpacked with a
-     * row length of the padded width, and reads the content rows off the bottom
-     * of it. A sprite's content sits at the texture's origin with
+     * all {@code glGetTexImage} will give — so a slot is unpacked with a row
+     * length of the padded width, and reads the content rows off the bottom of
+     * it. A sprite's content sits at the texture's origin with
      * {@code getTextureWidth}/{@code getTextureHeight} of it used, which is the
      * same convention every UV in this renderer already assumes.
      */
-    private ByteBuffer copy(Slot slot, ByteBuffer scratch) {
-        SpriteAPI source = slot.sheet();
+    private ByteBuffer copy(List<Slot> group, ByteBuffer scratch) {
+        Slot first = group.get(0);
+        SpriteAPI source = first.sheet();
         float usedU = source.getTextureWidth();
         float usedV = source.getTextureHeight();
         if (usedU <= 0f || usedV <= 0f) {
             broken = true;
+            refusal = slotName(first) + " reports no used texture extent";
             return scratch;
         }
-        int paddedW = Math.max(slot.contentW(), Math.round(slot.contentW() / usedU));
-        int paddedH = Math.max(slot.contentH(), Math.round(slot.contentH() / usedV));
+        // The texture's own texel size: smaller than the sheet's logical size when the build fitted
+        // the image (texture-fit.md), and then the padding must be worked out from it.
+        int texW = ModTextures.shippedWidth(source, first.sheetW());
+        int texH = ModTextures.shippedHeight(source, first.sheetH());
+        int paddedW = Math.max(texW, Math.round(texW / usedU));
+        int paddedH = Math.max(texH, Math.round(texH / usedV));
         int needed = paddedW * paddedH * 4;
         ByteBuffer buffer = scratch;
         if (buffer == null || buffer.capacity() < needed) {
@@ -425,11 +685,85 @@ public abstract class SpriteAtlas {
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
         if (GlErrors.check("glGetTexImage (" + label + " source)")) {
             broken = true;
+            refusal = "glGetTexImage of " + slotName(first);
             return buffer;
         }
 
+        if (texW != first.sheetW() || texH != first.sheetH()) {
+            // Slots addressed in source pixels over a fitted texture: the sheet is resampled up to
+            // its logical size once, so every rectangle and apron reads where it always did.
+            buffer = resample(buffer, paddedW, texW, texH, first.sheetW(), first.sheetH());
+            paddedW = first.sheetW();
+        }
         glBindTexture(GL_TEXTURE_2D, texture);
+        for (Slot slot : group) {
+            if (slot.apron() == 0) uploadDirect(slot, buffer, paddedW);
+            else uploadWithApron(slot, buffer, paddedW);
+            if (GlErrors.check("glTexSubImage2D (" + label + " slot)")) {
+                broken = true;
+                refusal = "glTexSubImage2D of " + slotName(slot);
+                break;
+            }
+        }
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+        glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+        glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
+        return buffer;
+    }
+
+    /**
+     * Bilinear resample of the {@code w x h} image at the start of {@code src} (rows
+     * {@code stride} texels apart) into a tightly packed {@code outW x outH} buffer, rows in the
+     * same order. Premultiplied while filtering, so transparent texels lend no colour to an edge.
+     */
+    static ByteBuffer resample(ByteBuffer src, int stride, int w, int h, int outW, int outH) {
+        ByteBuffer out = BufferUtils.createByteBuffer(outW * outH * 4);
+        float sx = (float) w / outW;
+        float sy = (float) h / outH;
+        for (int y = 0; y < outH; y++) {
+            float fy = Math.max(0f, Math.min(h - 1f, (y + 0.5f) * sy - 0.5f));
+            int y0 = (int) fy;
+            int y1 = Math.min(h - 1, y0 + 1);
+            float ty = fy - y0;
+            for (int x = 0; x < outW; x++) {
+                float fx = Math.max(0f, Math.min(w - 1f, (x + 0.5f) * sx - 0.5f));
+                int x0 = (int) fx;
+                int x1 = Math.min(w - 1, x0 + 1);
+                float tx = fx - x0;
+                float r = 0f, g = 0f, b = 0f, a = 0f;
+                for (int k = 0; k < 4; k++) {
+                    int px = (k & 1) == 0 ? x0 : x1;
+                    int py = (k & 2) == 0 ? y0 : y1;
+                    float weight = ((k & 1) == 0 ? 1f - tx : tx) * ((k & 2) == 0 ? 1f - ty : ty);
+                    int at = (py * stride + px) * 4;
+                    float alpha = (src.get(at + 3) & 0xFF) * weight;
+                    r += (src.get(at) & 0xFF) * alpha;
+                    g += (src.get(at + 1) & 0xFF) * alpha;
+                    b += (src.get(at + 2) & 0xFF) * alpha;
+                    a += alpha;
+                }
+                int o = (y * outW + x) * 4;
+                out.put(o, (byte) (a > 0f ? Math.round(r / a) : 0));
+                out.put(o + 1, (byte) (a > 0f ? Math.round(g / a) : 0));
+                out.put(o + 2, (byte) (a > 0f ? Math.round(b / a) : 0));
+                out.put(o + 3, (byte) Math.round(a));
+            }
+        }
+        out.limit(outW * outH * 4);
+        return out;
+    }
+
+    /**
+     * A slot straight out of the read-back, by unpack state alone.
+     *
+     * <p>The read-back's rows run up from the content's bottom row, so the
+     * sheet's top row is row {@code sheetH - 1} and a rectangle {@code y} down
+     * from the top starts {@code sheetH - y - h} rows in.
+     */
+    private void uploadDirect(Slot slot, ByteBuffer sheet, int paddedW) {
         glPixelStorei(GL_UNPACK_ROW_LENGTH, paddedW);
+        glPixelStorei(GL_UNPACK_SKIP_PIXELS, slot.srcX());
+        glPixelStorei(GL_UNPACK_SKIP_ROWS, slot.sheetH() - slot.srcY() - slot.h());
         GlErrors.clear();
         // A slot's y is stated the way a sheet's source rectangle is — down
         // from the top — because that is the coordinate every caller adds its
@@ -437,12 +771,42 @@ public abstract class SpriteAtlas {
         // place the two meet. Getting it wrong is not subtle in the arithmetic
         // and is entirely invisible in the code: every quad still draws real
         // art, just somebody else's.
-        glTexSubImage2D(GL_TEXTURE_2D, 0, slot.x(), height - slot.y() - slot.contentH(),
-                slot.contentW(), slot.contentH(), GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-        boolean failed = GlErrors.check("glTexSubImage2D (" + label + " slot)");
+        glTexSubImage2D(GL_TEXTURE_2D, 0, slot.x(), height - slot.y() - slot.h(),
+                slot.w(), slot.h(), GL_RGBA, GL_UNSIGNED_BYTE, sheet);
+    }
+
+    /**
+     * A slot with its apron, assembled on the CPU: every texel of the enlarged
+     * rectangle is read from the sheet at that position clamped into the
+     * sheet's content — what {@code GL_CLAMP_TO_EDGE} answers for a tap past
+     * the sheet's edge, and what the sheet itself holds everywhere else.
+     */
+    private void uploadWithApron(Slot slot, ByteBuffer sheet, int paddedW) {
+        int a = slot.apron();
+        int w = slot.w() + 2 * a;
+        int h = slot.h() + 2 * a;
+        ByteBuffer out = BufferUtils.createByteBuffer(w * h * 4);
+        int maxX = slot.sheetW() - 1;
+        int maxRow = slot.sheetH() - 1;
+        for (int row = 0; row < h; row++) {
+            // Row 0 of the upload is the slot's bottom row, top-down row h - 1.
+            int topDown = slot.srcY() - a + (h - 1 - row);
+            int sourceRow = maxRow - Math.max(0, Math.min(maxRow, topDown));
+            int rowBase = sourceRow * paddedW * 4;
+            for (int col = 0; col < w; col++) {
+                int at = rowBase + Math.max(0, Math.min(maxX, slot.srcX() - a + col)) * 4;
+                out.put(sheet.get(at)).put(sheet.get(at + 1))
+                        .put(sheet.get(at + 2)).put(sheet.get(at + 3));
+            }
+        }
+        out.flip();
         glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-        if (failed) broken = true;
-        return buffer;
+        glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+        glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
+        GlErrors.clear();
+        glTexSubImage2D(GL_TEXTURE_2D, 0, slot.x() - a, height - (slot.y() - a) - h,
+                w, h, GL_RGBA, GL_UNSIGNED_BYTE, out);
+        Reference.reachabilityFence(out);   // LWJGL 2 keeps only the address
     }
 
     /** A cleared atlas, so a slot nobody fills is transparent rather than driver noise. */
@@ -471,6 +835,60 @@ public abstract class SpriteAtlas {
         height = 0;
         slots.clear();
         placementBySheet.clear();
+        sheetIndex.clear();
+        regions.reset(0);
+        excluded.clear();
+        diagnostic = null;
+        refusal = null;
+        reported = false;
+    }
+
+    /**
+     * Region origins by packed rectangle: open addressing over {@code long}
+     * keys, so the lookup a collect makes per quad allocates nothing.
+     */
+    private static final class RegionTable {
+        private long[] keys = new long[0];
+        private int[] values = new int[0];
+        private boolean[] used = new boolean[0];
+
+        /** Sheet number in 8 bits, then x, y, width and height in 14 each. */
+        static long key(int sheet, int x, int y, int w, int h) {
+            return ((long) (sheet & 0xFF) << 56) | ((long) (x & 0x3FFF) << 42)
+                    | ((long) (y & 0x3FFF) << 28) | ((long) (w & 0x3FFF) << 14) | (h & 0x3FFF);
+        }
+
+        void reset(int expected) {
+            int capacity = Integer.highestOneBit(Math.max(4, expected * 2) - 1) << 1;
+            keys = new long[capacity];
+            values = new int[capacity];
+            used = new boolean[capacity];
+        }
+
+        void put(long key, int value) {
+            int mask = keys.length - 1;
+            int at = hash(key) & mask;
+            while (used[at] && keys[at] != key) at = (at + 1) & mask;
+            used[at] = true;
+            keys[at] = key;
+            values[at] = value;
+        }
+
+        int get(long key) {
+            if (keys.length == 0) return -1;
+            int mask = keys.length - 1;
+            int at = hash(key) & mask;
+            while (used[at]) {
+                if (keys[at] == key) return values[at];
+                at = (at + 1) & mask;
+            }
+            return -1;
+        }
+
+        private static int hash(long key) {
+            long mixed = key * 0x9E3779B97F4A7C15L;
+            return (int) (mixed ^ (mixed >>> 32));
+        }
     }
 
     /**

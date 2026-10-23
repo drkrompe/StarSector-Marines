@@ -2,6 +2,7 @@
 
 Dry run: python tools/generate_mech_footsteps.py
 Generate missing takes: add --generate; optionally --clip ID (repeatable).
+Another catalog of the same shape: --set vehicle-engines (a folder under the audio sources).
 Changed takes require --replace. No automatic retries of paid requests.
 """
 import argparse
@@ -16,8 +17,7 @@ import urllib.request
 from generate_wayline_narration import credential
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCES = ROOT / "asset-pipeline/src/tool/resources/audio/mech-footsteps"
-CATALOG = SOURCES / "generation.json"
+AUDIO = ROOT / "asset-pipeline/src/tool/resources/audio"
 OUTPUT_FORMAT = "mp3_44100_128"
 
 
@@ -26,8 +26,12 @@ def main():
     parser.add_argument("--generate", action="store_true")
     parser.add_argument("--replace", action="store_true")
     parser.add_argument("--clip", action="append")
+    parser.add_argument("--set", default="mech-footsteps")
     args = parser.parse_args()
-    catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
+    if not re.fullmatch(r"[a-z0-9-]+", args.set):
+        raise SystemExit("Invalid set; no request sent.")
+    sources = AUDIO / args.set
+    catalog = json.loads((sources / "generation.json").read_text(encoding="utf-8"))
     if args.clip and set(args.clip) - {clip["id"] for clip in catalog["clips"]}:
         raise SystemExit("Unknown clip ID; no request sent.")
     if args.generate:
@@ -41,7 +45,7 @@ def main():
         payload = dict(catalog["settings"], text=clip["prompt"])
         body = json.dumps(payload, sort_keys=True, ensure_ascii=False).encode("utf-8")
         digest = hashlib.sha256(OUTPUT_FORMAT.encode() + b"\0" + body).hexdigest()
-        audio = SOURCES / (clip["id"] + ".mp3")
+        audio = sources / (clip["id"] + ".mp3")
         receipt = audio.with_suffix(".json")
         if audio.exists() and receipt.exists():
             saved = json.loads(receipt.read_text(encoding="utf-8"))

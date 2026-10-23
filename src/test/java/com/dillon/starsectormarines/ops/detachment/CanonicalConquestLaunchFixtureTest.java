@@ -88,9 +88,8 @@ class CanonicalConquestLaunchFixtureTest {
                 ConquestBattleFixture.class, fixture.construction());
         assertEquals(MarineArrivalPolicy.PAIRED_HALF_SQUAD,
                 construction.arrivalPlan().policy());
-        // The fixture leaves the shape to the lift, which by default flies the
-        // ferry's three pairs — see `OrbitalLift.DERIVED_LIFT_PROPERTY` for
-        // what the matrix said about sizing it from the seats instead.
+        // The fixture leaves the shape to the lift, which flies the ferry's
+        // three pairs — see `OrbitalLift.FERRY_DROP_ZONES`.
         assertEquals(ConquestArrivalConfig.DERIVED,
                 construction.arrivalPlan().arrivalConfig().dropZoneCount());
         assertEquals(ConquestArrivalConfig.DERIVED,

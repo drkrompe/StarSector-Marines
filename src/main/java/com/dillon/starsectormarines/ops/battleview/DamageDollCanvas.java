@@ -142,7 +142,7 @@ public final class DamageDollCanvas implements CanvasProducer {
     public static String dollPath(VehicleType type) {
         String name = switch (type) {
             case HEAVY_APC, UP_ARMORED_APC, FIRE_SUPPORT_APC, ESCORT_APC -> "apc";
-            case BREAKTHROUGH_TANK, LASER_TANK -> "tank";
+            case BREAKTHROUGH_TANK, LASER_TANK, PD_LASER_TANK -> "tank";
             case SCREENED_TANK -> "tank-screened";
             case DOZER_BREACHER -> "tank-dozer";
             case MILITIA_TECHNICAL -> "technical";
@@ -206,27 +206,12 @@ public final class DamageDollCanvas implements CanvasProducer {
         }
 
         /**
-         * Shows a vehicle from its hull pools and its turret section (null for a hull whose gun
-         * cannot be shot away). Until located armor lands the four plates read the hull's one
-         * armor pool, the hull its structure, and the drive is whole. A plate is armor alone: its
-         * colour never reads the hull's structure, which is the hull's own location.
+         * Shows a vehicle: each plate, the drive and the hull from their own pools ({@link HullLocations}), and its
+         * turret section (null for a hull whose gun cannot be shot away). A plate is armor alone: its colour never
+         * reads the hull's structure, which is the hull's own location.
          */
-        public void readVehicle(VehicleType type, float hp, float maxHp, float hullArmor, float maxHullArmor,
-                                HullTurretSection turret) {
-            readVehicle(type, hp, maxHp, hullArmor, maxHullArmor, turret, null);
-        }
-
-        /**
-         * Shows a vehicle, each plate, the drive and the hull from their own pools when it has located damage
-         * ({@code locations} non-null); otherwise as {@link #readVehicle(VehicleType, float, float, float, float,
-         * HullTurretSection)}.
-         */
-        public void readVehicle(VehicleType type, float hp, float maxHp, float hullArmor, float maxHullArmor,
-                                HullTurretSection turret, HullLocations locations) {
-            if (locations == null) {
-                readHullPool(type, hp, maxHp, hullArmor, maxHullArmor, turret);
-                return;
-            }
+        public void readVehicle(VehicleType type, float hp, float maxHp, HullTurretSection turret,
+                                HullLocations locations) {
             begin(dollPath(type));
             boolean dead = hp <= 0f;
             for (HullLocations.Plate plate : HullLocations.Plate.values()) {
@@ -242,24 +227,6 @@ public final class DamageDollCanvas implements CanvasProducer {
                     locations.immobilised());
             readTurret(turret, hull, dead);
             immobile = locations.immobilised();
-            crippled = false;
-            sensorsLost = false;
-        }
-
-        private void readHullPool(VehicleType type, float hp, float maxHp, float hullArmor, float maxHullArmor,
-                                  HullTurretSection turret) {
-            begin(dollPath(type));
-            boolean armored = maxHullArmor > 0f;
-            float plate = armored ? fraction(hullArmor, maxHullArmor) : 0f;
-            float hull = fraction(hp, maxHp);
-            boolean dead = hp <= 0f;
-            for (DollLocation location : PLATES) {
-                set(location.ordinal(), true, armored, plate, 1f, dead);
-            }
-            set(DollLocation.HULL.ordinal(), true, false, 0f, hull, dead);
-            set(DollLocation.DRIVE.ordinal(), true, false, 0f, 1f, false);
-            readTurret(turret, hull, dead);
-            immobile = false;
             crippled = false;
             sensorsLost = false;
         }

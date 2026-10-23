@@ -3,12 +3,8 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
-import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.render2d.BattleCamera;
-import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
-import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -21,8 +17,8 @@ import java.nio.file.Path;
 import java.util.EnumSet;
 
 /**
- * Renders one neutral-observer frame of a live battle through the GL-free
- * Java2D drain: the whole map fitted to the image, high-contrast faction
+ * Renders one neutral-observer frame of a live battle through the chosen
+ * {@link ReviewSceneBackend} (Java2D unless a run asks for the GPU): the whole map fitted to the image, high-contrast faction
  * markers over the live entities, and a caption band.
  *
  * <p>Shared by every animated battle review — commander evidence for a mission
@@ -67,7 +63,7 @@ public final class BattleReviewFrameRenderer {
             RenderLayer.DRONES, RenderLayer.OBJECTIVES, RenderLayer.COMPOUND,
             RenderLayer.CONVOY, RenderLayer.SHUTTLES, RenderLayer.NIGHT_LIGHTING, RenderLayer.AIRCRAFT_LIGHTS);
 
-    private final HeadlessUiRenderer renderer;
+    private final ReviewSceneBackend backend;
     private final int width;
     private final int height;
     private float focusX = Float.NaN, focusY, focusWidth;
@@ -76,13 +72,7 @@ public final class BattleReviewFrameRenderer {
     private boolean roofs;
 
     public BattleReviewFrameRenderer(Path modRoot, int width, int height) {
-        Path root = modRoot.toAbsolutePath().normalize();
-        // The canvas reads the same roots the scene does — mod first, then the
-        // installed game — so a hull loaded out of the install can be painted
-        // as well as collected.
-        this.renderer = new HeadlessUiRenderer(
-                HeadlessBattleSceneRenderer.resourceRoots(root),
-                new HeadlessBattleSceneRenderer(root, true));
+        this.backend = ReviewSceneBackend.select(modRoot.toAbsolutePath().normalize());
         this.width = width;
         this.height = height;
     }
@@ -173,7 +163,8 @@ public final class BattleReviewFrameRenderer {
                                 ReviewAnnotations annotations,
                                 ReviewImpactFx impacts) throws IOException {
         long start = System.nanoTime();
-        BufferedImage image = renderer.renderHostPass(pass(simulation, impacts), width, height);
+        BufferedImage image = backend.draw(new ReviewSceneBackend.Scene(simulation,
+                cameraFor(width, height, simulation), layers(), clockSeconds, impacts), width, height);
         long scene = System.nanoTime();
         if (impacts != null) {
             impacts.paint(image, cameraFor(image.getWidth(), image.getHeight(), simulation));
@@ -318,36 +309,13 @@ public final class BattleReviewFrameRenderer {
         };
     }
 
-    private BattleSceneHostPass pass(BattleSimulation simulation, ReviewImpactFx impacts) {
-        return new ReviewHostPass() {
-            @Override
-            public DrawList overlay(BattleCamera camera) {
-                return impacts == null ? null : impacts.overlay(camera);
-            }
-
-            @Override
-            public BattleSceneFrame prepare(CanvasHostViewport viewport, float alphaMult) {
-                BattleCamera camera = cameraFor(viewport.width(), viewport.height(), simulation);
-                RenderContext context = new RenderContext(simulation, camera,
-                        null, alphaMult, 0f, false,
-                        new HighlightOverlay(), new Selection(),
-                        BattleRenderHostProfile.OBSERVER_SCENE, clockSeconds);
-                EnumSet<RenderLayer> layers = EnumSet.copyOf(REVIEW_LAYERS);
-                if (impactEffects || Float.isFinite(focusX)) { layers.add(RenderLayer.SHOTS); layers.add(RenderLayer.IMPACT_FX); }
-                if (unitShadows) layers.add(RenderLayer.UNIT_SHADOWS);
-                if (roofs) layers.add(RenderLayer.ROOFS);
-                return new BattleSceneFrame(context, layers);
-            }
-
-            @Override
-            public void draw(CanvasHostViewport viewport, float alphaMult) {
-                throw new IllegalStateException("Visual review requires the headless scene drain");
-            }
-        };
+    private EnumSet<RenderLayer> layers() {
+        EnumSet<RenderLayer> layers = EnumSet.copyOf(REVIEW_LAYERS);
+        if (impactEffects || Float.isFinite(focusX)) { layers.add(RenderLayer.SHOTS); layers.add(RenderLayer.IMPACT_FX); }
+        if (unitShadows) layers.add(RenderLayer.UNIT_SHADOWS);
+        if (roofs) layers.add(RenderLayer.ROOFS);
+        return layers;
     }
-
-    /** The scene pass, with the presentation services a feed owns brought into the same drain. */
-    private interface ReviewHostPass extends BattleSceneHostPass, HeadlessBattleSceneRenderer.ReviewOverlayPass { }
 
     /** Fits the whole grid under the caption band, so a frame never crops the battlefield. */
     private BattleCamera cameraFor(float viewportWidth, float viewportHeight,

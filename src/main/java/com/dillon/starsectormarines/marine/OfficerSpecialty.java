@@ -25,11 +25,9 @@ public enum OfficerSpecialty {
     }
     private static String medicineEffect(SquadMedicine m) {
         if (m == null) return "";
-        return Strings.format("openingOfficerSpecialtySquadMedicTreatments", m.supplies(),
-                Math.round(m.supplyRecoverySeconds()),
-                trim(m.healthPerSecond() * m.channelSeconds()),
-                trim(m.armorPerSecond() * m.channelSeconds()),
-                Math.round(m.channelSeconds()));
+        return Strings.format("openingOfficerSpecialtySquadMedicTreatments", trim(m.energyMax()),
+                Math.round(m.energyMax() / m.energyRegenPerSecond()),
+                trim(m.healthPerSecond()), trim(m.armorPerSecond()));
     }
     private static String trim(float value) {
         return value == Math.rint(value) ? Integer.toString(Math.round(value)) : Float.toString(value);

@@ -194,7 +194,7 @@ public final class MechDropService {
      * any other side. {@code {entryX, entryY, exitX, exitY}}.
      */
     private static float[] routeFor(Faction side, BattleView battle, float lzX, float lzY) {
-        if (side == Faction.MARINE && OrbitalLift.enabled()) {
+        if (side == Faction.MARINE) {
             float[] toward = towardHostile(side, battle, lzX, lzY);
             AirCorridor descent = AirCorridor.descent("orbit", lzX, lzY, toward[0], toward[1],
                     OrbitalLift.DESCENT_CELLS);

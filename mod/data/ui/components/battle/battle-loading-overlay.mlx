@@ -1,0 +1,70 @@
+<template props="title,area,stage,progressStyle,dot0Classes,dot1Classes,dot2Classes">
+  <div id="battle-loading-overlay" class="battle-loading-overlay">
+    <div id="battle-loading-before" class="loading-fill" />
+    <div id="battle-loading-row" class="loading-row">
+      <div id="battle-loading-left" class="loading-side" />
+      <div id="battle-loading-panel" class="loading-panel">
+        <div id="battle-loading-title" class="label heading loading-title">{title}</div>
+        <div id="battle-loading-area" class="label loading-area">{area}</div>
+        <div id="battle-loading-track" class="loading-track"><div id="battle-loading-progress" class="loading-progress" style="{progressStyle}" /></div>
+        <div id="battle-loading-status" class="loading-status">
+          <div id="battle-loading-spinner" class="loading-spinner">
+            <div id="battle-loading-dot-0" class="{dot0Classes}" />
+            <div id="battle-loading-dot-1" class="{dot1Classes}" />
+            <div id="battle-loading-dot-2" class="{dot2Classes}" />
+          </div>
+          <div id="battle-loading-stage" class="label loading-stage">{stage}</div>
+        </div>
+      </div>
+      <div id="battle-loading-right" class="loading-side" />
+    </div>
+    <div id="battle-loading-after" class="loading-fill" />
+  </div>
+</template>
+
+<style>
+  .label { overflow: hidden; white-space: nowrap; }
+  .heading { font-family: heading; }
+
+  .battle-loading-overlay {
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    overflow: hidden;
+    background-color: #070b09;
+    background-image: linear-gradient(to bottom, #0d1611 0%, #070b09 70%, #050806 100%);
+  }
+
+  .loading-fill { flex-grow: 1; width: 1px; height: 1px; }
+  .loading-side { flex-grow: 1; width: 1px; height: 1px; }
+  /* MLX sizes are content boxes: the row is the panel's 100px plus its padding and border. */
+  .loading-row { width: 100%; height: 134px; flex-direction: row; }
+
+  .loading-panel {
+    width: 560px;
+    height: 100px;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 20px;
+    border-width: 1px;
+    border-color: #727b7966;
+    background-color: #101914ee;
+  }
+
+  .loading-title { width: 100%; height: 24px; color: #e6e7da; }
+  .loading-area { width: 100%; height: 16px; color: #a0ada8; }
+  .loading-track {
+    width: 100%;
+    height: 6px;
+    flex-direction: row;
+    background-color: #c3cec91c;
+  }
+  .loading-progress { height: 6px; background-color: #a7ccc4; }
+
+  .loading-status { width: 100%; height: 16px; flex-direction: row; }
+  /* The activity dots: one is lit at a time and the lit one walks along, on frame time. */
+  .loading-spinner { width: 28px; height: 6px; padding: 5px 0px; flex-direction: row; gap: 5px; }
+  .spin-dot { width: 6px; height: 6px; background-color: #a7ccc4; opacity: 0.22; }
+  .spin-lit { opacity: 1; }
+  .loading-stage { width: 0px; flex-grow: 1; height: 16px; padding: 0px 0px 0px 8px; color: #a7ccc4; }
+</style>

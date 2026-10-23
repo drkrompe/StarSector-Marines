@@ -11,11 +11,14 @@ import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.CordonBattleFixture;
 import com.dillon.starsectormarines.battle.fabrication.FabricationService;
+import com.dillon.starsectormarines.battle.setup.CordonSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPool;
+import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Assumptions;
@@ -36,7 +39,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The Cordon through production construction ({@code cordon-nouns.md}):
- * {@code commanderEvidence -Pmission=cordon-line} or {@code cordon-road}.
+ * {@code commanderEvidence -Pmission=cordon-line} or {@code cordon-road}, over
+ * every seed of the variant's story-map pool unless {@code -Pfixture} names one.
  * Asserts the mechanics (the company landed, every tide the timetable reached
  * came on its tick, the outcome agrees with the redoubts) and reports the
  * battle: beats in order, the line's state each minute, and how it ended.
@@ -68,51 +72,102 @@ class CordonCommandEvidenceTest {
         assertEquals(Integer.MAX_VALUE, UnitUpdateSystem.configuredMinimumParallelUnits());
         int maxTicks = Integer.getInteger(prefix + ".maxTicks", DEFAULT_MAX_TICKS);
         Path output = Path.of(System.getProperty(prefix + ".outputDir")).toAbsolutePath().normalize();
-        String fixtureName = "/battle-fixtures/" + mission + "-v1.json";
-        BattleFixture fixture = loadFixture(prefix, fixtureName, variant);
+        List<Selected> fixtures = selectedFixtures(prefix, mission, variant);
         int repeat = EvidenceFanOut.repeat();
-        List<Callable<RunResult>> replays = new ArrayList<>(repeat);
-        for (int replica = 0; replica < repeat; replica++) {
-            Path visualRoot = replica == 0 ? output : null;
-            replays.add(() -> play(fixture, maxTicks, visualRoot, mission));
+        List<Callable<RunResult>> replays = new ArrayList<>(fixtures.size() * repeat);
+        for (Selected selected : fixtures) {
+            for (int replica = 0; replica < repeat; replica++) {
+                Path visualRoot = replica == 0 ? output : null;
+                replays.add(() -> play(selected.fixture(), maxTicks, visualRoot, selected.id()));
+            }
         }
         List<RunResult> results = EvidenceFanOut.run(replays);
-        EvidenceFanOut.assertReplaysByteStable(mission, "command events",
-                results.stream().map(RunResult::trace).toList());
-        RunResult first = results.get(0);
 
-        Files.createDirectories(output.resolve("traces"));
-        Files.writeString(output.resolve("traces/" + mission + ".jsonl"), first.trace(), StandardCharsets.UTF_8);
-        JSONObject summary = new JSONObject()
-                .put("schemaVersion", 1)
-                .put("schedulerMode", "SERIAL_DETERMINISTIC")
-                .put("fixture", fixtureName)
-                .put("maxTicks", maxTicks)
-                .put("repeatCount", repeat)
-                .put("termination", first.complete() ? "COMPLETE" : "TIMEOUT")
-                .put("winner", first.winner() != null ? first.winner() : JSONObject.NULL)
-                .put("outcome", first.outcome())
-                .put("ticks", first.ticks())
-                .put("fallen", first.fallen())
-                .put("beats", first.beats())
-                .put("timeline", first.timeline());
-        Files.writeString(output.resolve("summary.json"), summary.toString(2) + '\n', StandardCharsets.UTF_8);
-        Files.writeString(output.resolve("summary.md"), first.report(), StandardCharsets.UTF_8);
+        boolean pool = fixtures.size() > 1;
+        StringBuilder matrix = new StringBuilder("# Cordon evidence: ").append(mission).append("\n\n")
+                .append("Every seed of the ").append(variant).append("'s story-map pool (`story-map-pools.md`), ")
+                .append(EvidenceFanOut.replayWording(repeat)).append(". Outcomes are readings, not assertions; ")
+                .append("each seed's report is in its own folder.\n\n")
+                .append("| seed | outcome | winner | ended (min) | redoubts fallen |\n|---|---|---|---|---|\n");
+        JSONArray all = new JSONArray();
+        List<String> broken = new ArrayList<>();
+        for (int i = 0; i < fixtures.size(); i++) {
+            Selected selected = fixtures.get(i);
+            List<RunResult> mine = results.subList(i * repeat, (i + 1) * repeat);
+            EvidenceFanOut.assertReplaysByteStable(selected.id(), "command events",
+                    mine.stream().map(RunResult::trace).toList());
+            RunResult first = mine.get(0);
+            Path dir = pool ? output.resolve(selected.id()) : output;
+            Files.createDirectories(dir.resolve("traces"));
+            Files.writeString(dir.resolve("traces/" + selected.id() + ".jsonl"), first.trace(), StandardCharsets.UTF_8);
+            JSONObject summary = new JSONObject()
+                    .put("schemaVersion", 1)
+                    .put("schedulerMode", "SERIAL_DETERMINISTIC")
+                    .put("fixture", selected.source())
+                    .put("seed", selected.fixture().seed())
+                    .put("maxTicks", maxTicks)
+                    .put("repeatCount", repeat)
+                    .put("termination", first.complete() ? "COMPLETE" : "TIMEOUT")
+                    .put("winner", first.winner() != null ? first.winner() : JSONObject.NULL)
+                    .put("outcome", first.outcome())
+                    .put("ticks", first.ticks())
+                    .put("fallen", first.fallen())
+                    .put("beats", first.beats())
+                    .put("timeline", first.timeline());
+            Files.writeString(dir.resolve("summary.json"), summary.toString(2) + '\n', StandardCharsets.UTF_8);
+            Files.writeString(dir.resolve("summary.md"), first.report(), StandardCharsets.UTF_8);
+            all.put(new JSONObject().put("seed", selected.fixture().seed()).put("folder", pool ? selected.id() : ".")
+                    .put("outcome", first.outcome()).put("winner", first.winner() != null ? first.winner() : JSONObject.NULL)
+                    .put("ticks", first.ticks()).put("fallen", first.fallen()));
+            matrix.append(String.format(Locale.ROOT, "| %d | %s | %s | %.1f | %d |%n", selected.fixture().seed(),
+                    first.outcome(), first.winner() != null ? first.winner() : "—",
+                    first.ticks() * BattleSimulation.TICK_DT / 60f, first.fallen()));
+            broken.addAll(mechanics(selected.id(), first));
+        }
+        if (pool) {
+            Files.writeString(output.resolve("summary.json"), new JSONObject().put("schemaVersion", 1)
+                    .put("mission", mission).put("seeds", all).toString(2) + '\n', StandardCharsets.UTF_8);
+            Files.writeString(output.resolve("summary.md"), matrix.toString(), StandardCharsets.UTF_8);
+        }
         System.out.println("[cordon-command-evidence] report " + output.resolve("summary.md"));
+        assertTrue(broken.isEmpty(), String.join("; ", broken));
+    }
 
-        // Mechanics, not outcomes (CLAUDE.md, Behavior scenes).
-        assertTrue(first.beatIds().contains("cordon.landfall"), "the company came down");
-        for (int t = 0; t < first.tidesDue(); t++) {
-            assertTrue(first.beatIds().contains("cordon.tide_" + (t + 1)), "tide " + (t + 1) + " came");
+    /** Mechanics, not outcomes (CLAUDE.md, Behavior scenes): what one run broke, if anything. */
+    private static List<String> mechanics(String id, RunResult run) {
+        List<String> broken = new ArrayList<>();
+        if (!run.beatIds().contains("cordon.landfall")) broken.add(id + ": the company never came down");
+        for (int t = 0; t < run.tidesDue(); t++) {
+            if (!run.beatIds().contains("cordon.tide_" + (t + 1))) broken.add(id + ": tide " + (t + 1) + " never came");
         }
-        if ("HELD".equals(first.outcome())) {
-            assertTrue(first.fallen() <= CordonSequence.Timetable.STANDARD.allowedFallen(), "a held line lost no more than allowed");
+        if ("HELD".equals(run.outcome()) && run.fallen() > CordonSequence.Timetable.STANDARD.allowedFallen()) {
+            broken.add(id + ": a held line lost more than allowed");
         }
-        if ("BROKEN".equals(first.outcome())) {
-            assertTrue(first.beatIds().contains("cordon.line_broken") || first.beatIds().contains("cordon.gap_closed")
-                            || first.beatIds().contains("cordon.convoys_lost") || first.beatIds().contains("cordon.convoys_short"),
-                    "a broken cordon says how");
+        if ("BROKEN".equals(run.outcome()) && !(run.beatIds().contains("cordon.line_broken")
+                || run.beatIds().contains("cordon.gap_closed") || run.beatIds().contains("cordon.convoys_lost")
+                || run.beatIds().contains("cordon.convoys_short"))) {
+            broken.add(id + ": a broken cordon does not say how");
         }
+        return broken;
+    }
+
+    private record Selected(CordonBattleFixture fixture, String id, String source) { }
+
+    /**
+     * The fixture {@code -Pfixture} names, or else every seed of the variant's
+     * story-map pool, the checked-in fixture standing in for everything but the seed.
+     */
+    private static List<Selected> selectedFixtures(String prefix, String mission, CordonVariant variant) throws Exception {
+        String fallback = "/battle-fixtures/" + mission + "-v1.json";
+        String selected = System.getProperty(prefix + ".fixture.path", "").trim();
+        if (!selected.isBlank()) return List.of(new Selected(loadFixture(selected, variant), mission, selected));
+        CordonBattleFixture template = loadFixture(fallback, variant);
+        List<Selected> out = new ArrayList<>();
+        for (StoryMapPool.Entry entry : StoryMapPools.pool(CordonSetup.storyMap(variant)).entries()) {
+            out.add(new Selected(new CordonBattleFixture(entry.seed(), variant, template.manifest()),
+                    mission + "-seed" + entry.seed(), fallback + " at pooled seed " + entry.seed()));
+        }
+        return out;
     }
 
     private static RunResult play(BattleFixture fixture, int maxTicks, Path visualRoot, String runId) throws Exception {
@@ -289,23 +344,22 @@ class CordonCommandEvidenceTest {
         return out.append('\n').append(table).toString();
     }
 
-    private static BattleFixture loadFixture(String prefix, String fallback, CordonVariant variant) throws Exception {
-        String selected = System.getProperty(prefix + ".fixture.path", "").trim();
+    private static CordonBattleFixture loadFixture(String path, CordonVariant variant) throws Exception {
         String json;
-        if (selected.isBlank()) {
-            try (InputStream stream = CordonCommandEvidenceTest.class.getResourceAsStream(fallback)) {
-                if (stream == null) throw new IllegalStateException("Missing Cordon fixture: " + fallback);
+        if (path.startsWith("/")) {
+            try (InputStream stream = CordonCommandEvidenceTest.class.getResourceAsStream(path)) {
+                if (stream == null) throw new IllegalStateException("Missing Cordon fixture: " + path);
                 json = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
             }
         } else {
-            json = Files.readString(Path.of(selected).toAbsolutePath().normalize());
+            json = Files.readString(Path.of(path).toAbsolutePath().normalize());
         }
         BattleFixture fixture = BattleFixtureJson.fromJson(new JSONObject(json));
         if (!(fixture instanceof CordonBattleFixture cordon) || cordon.variant() != variant) {
             throw new IllegalArgumentException("Cordon " + variant + " evidence requires a Cordon " + variant
                     + " fixture: " + fixture.kind());
         }
-        return fixture;
+        return cordon;
     }
 
     private record RunResult(String trace, int ticks, boolean complete, String winner, String outcome, int fallen,

@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.nav;
 import com.dillon.starsectormarines.battle.command.CommandTopology;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.sim.BattleView;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Array;
@@ -19,15 +18,6 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NavigationGridRoutingSnapshotTest {
-    private final String previousProperty =
-            System.getProperty(NavigationGrid.COMPACT_PUBLIC_TOPOLOGY_PROPERTY);
-
-    @AfterEach
-    void restoreProperty() {
-        if (previousProperty == null) System.clearProperty(NavigationGrid.COMPACT_PUBLIC_TOPOLOGY_PROPERTY);
-        else System.setProperty(NavigationGrid.COMPACT_PUBLIC_TOPOLOGY_PROPERTY, previousProperty);
-    }
-
     @Test
     void compactAndFullSnapshotsPreserveExactRoutingInBothMovementModes() {
         NavigationGrid live = fixture();
@@ -96,37 +86,33 @@ class NavigationGridRoutingSnapshotTest {
     }
 
     @Test
-    void commanderAndAsyncConsumersUseCompactDefaultAndHonorFullStorageControl() throws Exception {
-        for (boolean compact : new boolean[]{true, false}) {
-            if (compact) System.clearProperty(NavigationGrid.COMPACT_PUBLIC_TOPOLOGY_PROPERTY);
-            else System.setProperty(NavigationGrid.COMPACT_PUBLIC_TOPOLOGY_PROPERTY, "false");
-            CountingGrid grid = new CountingGrid();
-            for (int y = 0; y < 4; y++) {
-                for (int x = 0; x < 6; x++) grid.setWalkableFloor(x, y);
-            }
-            ZoneGraph graph = new ZoneGraph(grid);
-            graph.rebuild();
-            BattleView sim = (BattleView) Proxy.newProxyInstance(BattleView.class.getClassLoader(),
-                    new Class<?>[]{BattleView.class}, (proxy, method, args) -> switch (method.getName()) {
-                        case "getGrid" -> grid;
-                        case "getZoneGraph" -> graph;
-                        default -> throw new AssertionError("Unexpected battle read: " + method.getName());
-                    });
-            assertTrue(CommandTopology.freeze(sim).reachable(0, 0, 5, 3));
-            CountDownLatch searched = new CountDownLatch(1);
-            try (AsyncDefendTrackRoutes routes = new AsyncDefendTrackRoutes(1, 2,
-                    (snapshot, occupancy, request) -> {
-                        searched.countDown();
-                        return new int[]{0, 0, 1, 0};
-                    }, false)) {
-                routes.pollOrSubmit(new AsyncDefendTrackRoutes.Request(1L, 1, 1L,
-                                new Object(), 1, 0, 0, 0, 1, 0, 1, 0, true),
-                        1, grid, new byte[24]);
-                assertTrue(searched.await(5, TimeUnit.SECONDS), "async snapshot was submitted");
-            }
-            assertEquals(compact ? 2 : 0, grid.compactCopies);
-            assertEquals(compact ? 0 : 2, grid.fullCopies);
+    void commanderAndAsyncConsumersCopyCompactRoutingTopology() throws Exception {
+        CountingGrid grid = new CountingGrid();
+        for (int y = 0; y < 4; y++) {
+            for (int x = 0; x < 6; x++) grid.setWalkableFloor(x, y);
         }
+        ZoneGraph graph = new ZoneGraph(grid);
+        graph.rebuild();
+        BattleView sim = (BattleView) Proxy.newProxyInstance(BattleView.class.getClassLoader(),
+                new Class<?>[]{BattleView.class}, (proxy, method, args) -> switch (method.getName()) {
+                    case "getGrid" -> grid;
+                    case "getZoneGraph" -> graph;
+                    default -> throw new AssertionError("Unexpected battle read: " + method.getName());
+                });
+        assertTrue(CommandTopology.freeze(sim).reachable(0, 0, 5, 3));
+        CountDownLatch searched = new CountDownLatch(1);
+        try (AsyncDefendTrackRoutes routes = new AsyncDefendTrackRoutes(1, 2,
+                (snapshot, occupancy, request) -> {
+                    searched.countDown();
+                    return new int[]{0, 0, 1, 0};
+                })) {
+            routes.pollOrSubmit(new AsyncDefendTrackRoutes.Request(1L, 1, 1L,
+                            new Object(), 1, 0, 0, 0, 1, 0, 1, 0, true),
+                    1, grid, new byte[24]);
+            assertTrue(searched.await(5, TimeUnit.SECONDS), "async snapshot was submitted");
+        }
+        assertEquals(2, grid.compactCopies);
+        assertEquals(0, grid.fullCopies);
     }
 
     private static int arrayLength(NavigationGrid grid, String name) throws Exception {

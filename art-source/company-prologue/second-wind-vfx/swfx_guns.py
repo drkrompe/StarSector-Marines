@@ -2209,7 +2209,8 @@ def _slug_trail(ctx, coll, label, frame, weapon, frames, heads, burn, M, d, rot,
 ROUND_NAME = re.compile(r'SWFX guns (round(?: core| trail)?|bolt) (.+?) (f\d{4})')
 STREAK_PX = (.5, 1.4)     # a round's corona radius on screen, pixels at 1920 across
 FLARE_NAME = re.compile(r'SWFX pd flare \d+ f\d{4}')
-FLARE_PX = (.8, 2.5)      # a decoy flare's glare radius on screen: a bright point, never a disc
+FLARE_PX = (.8, 1.8)      # a decoy flare's glare radius on screen: a bright point, never a disc;
+                          # under 4 px across, swfx_lint.orbs' threshold, so a clamped flare is never an orb
 
 
 def _mesh_radius(me, cache):

@@ -6,9 +6,12 @@ import com.dillon.starsectormarines.battle.infantry.SquadMedic;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.ui.panel.Ordnance;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.ArmorClass;
+import com.dillon.starsectormarines.ops.BattleDirectControlHudModel.RoundIcon;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
+import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.ops.battleview.MarineDollCanvas;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
@@ -48,8 +51,34 @@ final class BattleMarineDollPlate {
     private static final String ROW_SPENT = "kit-row kit-row-spent";
     private static final String ROW_HIDDEN = "kit-row kit-row-hidden";
 
-    /** One item a Marine carries: its name and what is left of it ({@code "2/3"}, {@code "ready"}, {@code "12s"}). */
-    record Kit(String name, String count, boolean spent) { }
+    /** Rounds a kit row draws as icons rather than a count; more than this keeps its number. */
+    static final int MAX_KIT_ROUNDS = 6;
+    private static final int MISSILE_WIDTH = 6;
+    private static final int RIFLE_WIDTH = 8;
+    private static final int ROUND_GAP = 2;
+
+    /**
+     * One item a Marine carries: its name and what is left of it ({@code "2/3"}, {@code "ready"},
+     * {@code "12s"}). {@code round} names the icon a short load draws, one a round ({@code missile} for
+     * a rocket, {@code rifle} for a precision rifle's cartridges), or is null for a load kept as a count.
+     */
+    record Kit(String name, String count, boolean spent, String round, int left, int capacity) {
+        Kit(String name, String count, boolean spent) {
+            this(name, count, spent, null, 0, 0);
+        }
+
+        /** Whether the row draws its load as icons. */
+        boolean drawsRounds() {
+            return round != null && capacity > 0 && capacity <= MAX_KIT_ROUNDS;
+        }
+
+        /** The icon a special's load is drawn with: rockets as missiles, a precision rifle's cartridges. */
+        static String round(SpecialEquipmentDef special) {
+            if (!special.usesAmmunition() || !special.isDirectFireWeapon()) return null;
+            if (Ordnance.of(special.weaponDef()) == Ordnance.MISSILE) return "missile";
+            return special.activation() == SpecialActivation.DIRECT_PRECISION ? "rifle" : null;
+        }
+    }
 
     /**
      * What the plate shows of one Marine: a power suit or not, armor and health as fractions of their
@@ -70,7 +99,8 @@ final class BattleMarineDollPlate {
             if (special != null) {
                 int left = world.secondaryAmmo(id);
                 kit.add(special.usesAmmunition()
-                        ? new Kit(special.displayName(), left + "/" + special.startingAmmo(), left <= 0)
+                        ? new Kit(special.displayName(), left + "/" + special.startingAmmo(), left <= 0,
+                                Kit.round(special), left, special.startingAmmo())
                         : new Kit(special.displayName(), clock(world.secondaryCooldownTimer(id), copy), false));
             }
             IntegralSystemService systems = sim.integralSystems();
@@ -84,8 +114,9 @@ final class BattleMarineDollPlate {
             Squad squad = sim.squad().hasSquad(id) ? sim.getSquad(sim.squad().squadId(id)) : null;
             SquadMedic medic = squad != null ? squad.medic : null;
             if (medic != null && medic.medicId() == id) {
-                int left = medic.supplies();
-                kit.add(new Kit(copy.apply("battleMarineDollMedic"), left + "/" + medic.medicine.supplies(), left <= 0));
+                int left = (int) Math.floor(medic.energy());
+                kit.add(new Kit(copy.apply("battleMarineDollMedic"), left + "/" + Math.round(medic.medicine.energyMax()),
+                        left < medic.medicine.minStartEnergy()));
             }
             return new MarineDoll(sim.identity().armorClass(id) == ArmorClass.POWER_SUIT, armored,
                     armored ? fraction(world.armor(id), world.maxArmor(id)) : 0f,
@@ -109,6 +140,8 @@ final class BattleMarineDollPlate {
     private final List<MutableSignal<String>> rowClasses = new ArrayList<>(KIT_ROWS);
     private final List<MutableSignal<String>> rowNames = new ArrayList<>(KIT_ROWS);
     private final List<MutableSignal<String>> rowCounts = new ArrayList<>(KIT_ROWS);
+    private final List<MutableSignal<List<RoundIcon>>> rowRounds = new ArrayList<>(KIT_ROWS);
+    private final List<MutableSignal<String>> rowRoundsStyles = new ArrayList<>(KIT_ROWS);
     private final MutableSignal<String> armClasses = reactor.signal(FLAG_OFF);
     private final MutableSignal<String> legClasses = reactor.signal(FLAG_OFF);
     private final MarineDollCanvas.View view = new MarineDollCanvas.View();
@@ -135,6 +168,10 @@ final class BattleMarineDollPlate {
             props.put("kit" + i + "Classes", rowClasses.get(i));
             props.put("kit" + i + "Name", rowNames.get(i));
             props.put("kit" + i + "Count", rowCounts.get(i));
+            rowRounds.add(reactor.signal(List.of()));
+            rowRoundsStyles.add(reactor.signal(roundsStyle(0, 0)));
+            props.put("kit" + i + "Rounds", rowRounds.get(i));
+            props.put("kit" + i + "RoundsStyle", rowRoundsStyles.get(i));
         }
         props.put("arm", reactor.signal(copy.apply("battleMarineDollArmWound")));
         props.put("leg", reactor.signal(copy.apply("battleMarineDollLegWound")));
@@ -160,11 +197,32 @@ final class BattleMarineDollPlate {
             Kit kit = showKit && i < doll.kit().size() ? doll.kit().get(i) : null;
             rowClasses.get(i).set(kit == null ? ROW_HIDDEN : kit.spent() ? ROW_SPENT : ROW);
             rowNames.get(i).set(kit == null ? "" : kit.name());
-            rowCounts.get(i).set(kit == null ? "" : kit.count());
+            boolean icons = kit != null && kit.drawsRounds();
+            rowCounts.get(i).set(kit == null || icons ? "" : kit.count());
+            rowRounds.get(i).set(icons ? rounds(i, kit) : List.of());
+            rowRoundsStyles.get(i).set(icons ? roundsStyle(kit.capacity(), width(kit.round())) : roundsStyle(0, 0));
         }
         armClasses.set(doll.armWounds() > 0 ? FLAG_ON : FLAG_OFF);
         legClasses.set(doll.legWounds() > 0 ? FLAG_ON : FLAG_OFF);
         markup.flush();
+    }
+
+    /** A row's load, first to leave on the left, spent rounds as outlines. */
+    private static List<RoundIcon> rounds(int row, Kit kit) {
+        List<RoundIcon> rounds = new ArrayList<>(kit.capacity());
+        for (int i = 0; i < kit.capacity(); i++) {
+            String state = i < kit.left() ? "live" : "spent";
+            rounds.add(new RoundIcon("marine-doll-kit-" + row + "-round-" + i, "kit-round kit-round-" + kit.round(),
+                    "graphics/ui/direct-control/round-" + kit.round() + "-" + state + ".svg"));
+        }
+        return rounds;
+    }
+
+    private static int width(String round) { return "missile".equals(round) ? MISSILE_WIDTH : RIFLE_WIDTH; }
+
+    // This layout sizes a row to its own width rather than its children's, so the strip is told it.
+    private static String roundsStyle(int count, int width) {
+        return "width: " + (count > 0 ? count * width + (count - 1) * ROUND_GAP : 0) + "px;";
     }
 
     void clear() {
