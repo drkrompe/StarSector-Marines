@@ -29,6 +29,7 @@ import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayoutCatalo
 import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainCatalog;
 import com.dillon.starsectormarines.battle.world.gen.damage.DamageCatalog;
+import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
@@ -104,6 +105,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         RoadCatalog.loadBuiltins();
         TerrainCatalog.loadBuiltins();
         DamageCatalog.loadBuiltins();
+        StoryMapPools.loadBuiltins();
         WaylineNarration.loadBuiltins();
         CompanyManagementGuide.loadBuiltins();
         CompanyOfficer.loadBuiltins();

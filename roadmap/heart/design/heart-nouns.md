@@ -225,7 +225,10 @@ which tracks are cleared before the woods grow, which brooks run across it.
 grid, so a heart country could seal a mother behind a wood. The heart's sites
 are chosen only on ground walkable from the start line (`HeartBores`), and a
 map that cannot seat every mother and satellite on such ground re-rolls the
-seed. Fire is never counted on to open the way to a mother: a wood that burns
+seed. Each form plays from its own pool of vetted maps (`story-map-pools.md`),
+seeds whose sites seat on the first generation, so the campaign never reaches
+the re-roll and `commanderEvidence -Pmission=heart` plays every pooled map of
+both forms. Fire is never counted on to open the way to a mother: a wood that burns
 or is felled opens more ground, never the only way in.
 
 **The cordon's farmland stays green at the start.** Satellites stand deep

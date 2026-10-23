@@ -545,6 +545,18 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   answers all), and writes blooms a year, outcomes, spread and size lost to
   `build/reports/blooms/summary.md` / `summary.json` (`-PevidenceDir`). About
   fifteen seconds. Readings, not acceptance; opt-in and excluded from `test`.
+- `gradlew.bat storyMapPools` → the Rav Bloom story maps (Cordon Line and
+  Road, The Burn, Broad Front) play only from their pools of vetted seeds,
+  `mod/data/world/pools/<map>.pool.json`, each seed with a note and an
+  optional patch (`story-map-pools.md`). This regenerates every pooled seed
+  and fails when one no longer passes its mission's acceptance on the first
+  generation: **run it after any mapgen change that may move a story map.**
+  `-Pcandidates=cordon-line:1-40,heart-burn:1-20` screens seeds that are not
+  pooled yet (reported, never failing). About 30 seconds; writes
+  `build/reports/story-map-pools/summary.md`. `commanderEvidence` on
+  `cordon-line`, `cordon-road` and `heart` plays the whole pool by default, and
+  `createSnapshots -Psnapshot=story-map-pools` renders every pooled map whole.
+  Conquest and skirmish stay fully random. Opt-in and excluded from `test`.
 - `gradlew.bat crewEvidence` → crews a transport and a capital from their own
   room programs, runs each for four minutes of ship's time, and reports what the
   complement actually spent it doing: the idle share, the activity histogram, the
