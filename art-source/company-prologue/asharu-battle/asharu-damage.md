@@ -93,10 +93,10 @@ runs. Pass:
 
 Then `ship_fx.refresh(scene)` as the loop already does.
 
-**Known limit.** A tracer's strikes land where `scene_fx` aims them, near the target's centre or its
-aim point. The ledger's scar from that burst is where the ledger puts it, so in the shot itself the
-strike pocks and the lasting scar may sit a few metres apart. Either move the ledger points onto
-`scene_fx`'s aim points, or let `scene_fx` hand its hit points over.
+**Where the rounds land.** The fire-control plan (`asharu_gunnery`) reads the ledger. For every hit
+drawn by a tracer, it opens an engagement from the shooter named in `src`, aimed at the hit's place
+and walking toward its `to`. So in the shot itself the strikes land where the scar will stay. Its
+own check flags a ledger hit that no gun can bear on.
 
 ## The ledger
 ### colossus
