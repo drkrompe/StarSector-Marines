@@ -47,6 +47,7 @@ public final class WarshipDirector {
         int hostiles = 0;
         for (int i = 0; i < n; i++) {
             long u = dense[i];
+            if (roster.isRiding(u)) continue;
             Faction f = roster.identity().faction(u);
             if (!ship.faction.hostileTo(f)) continue;
             xs[hostiles] = world.x(u);
@@ -126,6 +127,7 @@ public final class WarshipDirector {
         int hostiles = 0;
         for (int i = 0; i < n; i++) {
             long u = dense[i];
+            if (roster.isRiding(u)) continue;
             if (!ship.faction.hostileTo(roster.identity().faction(u))) continue;
             xs[hostiles] = world.x(u);
             ys[hostiles] = world.y(u);

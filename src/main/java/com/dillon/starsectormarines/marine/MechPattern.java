@@ -66,7 +66,6 @@ public record MechPattern(Kind kind, String definitionId) {
         // The ladder above each line's first hull: each variant is its own card.
         VEHICLE_TIERS.put(VehicleType.UP_ARMORED_APC, EquipmentAccessTier.ADVANCED);
         VEHICLE_TIERS.put(VehicleType.FIRE_SUPPORT_APC, EquipmentAccessTier.ADVANCED);
-        VEHICLE_TIERS.put(VehicleType.HEAVY_GUN_TANK, EquipmentAccessTier.PRESTIGE);
         VEHICLE_TIERS.put(VehicleType.DOZER_BREACHER, EquipmentAccessTier.PRESTIGE);
         VEHICLE_TIERS.put(VehicleType.SCREENED_TANK, EquipmentAccessTier.PRESTIGE);
         VEHICLE_TIERS.put(VehicleType.LASER_TANK, EquipmentAccessTier.PRESTIGE);

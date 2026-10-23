@@ -187,6 +187,8 @@ the edge, for one to three frames. The old looks stay behind a switch as control
 
 ## Atmospheric entry: plasma shaped by the hull
 
+Look passed (owner, 2026-10-22, on S12 close still 9): "this would work enough for me. Not perfect but passable."
+
 S12 brings the Colossus and Morrow down into Asharu's air, with the battle's lost ships falling
 around them in pieces. Owner on lit span 3 (2026-10-22): "still pretty far off. Reads like hard
 shapes / arrowhead. The burn up doesn't take into account the shape of the ship." A cone or tube

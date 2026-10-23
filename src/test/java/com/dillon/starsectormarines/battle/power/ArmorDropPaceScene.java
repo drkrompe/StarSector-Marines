@@ -109,7 +109,7 @@ public final class ArmorDropPaceScene implements BehaviorScene {
             default -> power = MechSupport.configured(
                     List.of(named(MechVariant.BULWARK, "Anvil"), named(MechVariant.BULWARK, "Forge")),
                     List.of(new VehicleDeploymentSpec("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK),
-                            new VehicleDeploymentSpec("v2", "Gun", VehicleType.HEAVY_GUN_TANK)),
+                            new VehicleDeploymentSpec("v2", "Screen", VehicleType.SCREENED_TANK)),
                     null, true);
         }
         sim.setCommandPowers(List.of(power));

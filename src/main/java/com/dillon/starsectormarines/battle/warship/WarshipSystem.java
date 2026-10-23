@@ -702,6 +702,7 @@ public final class WarshipSystem {
         int hostiles = 0;
         for (int i = 0; i < n; i++) {
             long u = dense[i];
+            if (roster.isRiding(u)) continue;
             if (!ship.faction.hostileTo(roster.identity().faction(u))) continue;
             float ux = world.x(u);
             float uy = world.y(u);
@@ -991,6 +992,7 @@ public final class WarshipSystem {
         int count = 0;
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             long u = dense[i];
+            if (roster.isRiding(u)) continue;
             if (ship.faction.hostileTo(roster.identity().faction(u)) && area.contains(world.x(u), world.y(u))) {
                 count++;
             }
@@ -1610,6 +1612,7 @@ public final class WarshipSystem {
         float r2 = radius * radius;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long id = sim.liveUnitAt(i);
+            if (sim.isRiding(id)) continue;
             float dx = world.x(id) - x;
             float dy = world.y(id) - y;
             if (dx * dx + dy * dy <= r2) out.put(id, world.hp(id));
@@ -2251,6 +2254,7 @@ public final class WarshipSystem {
         long[] dense = roster.denseArray();
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             long u = dense[i];
+            if (roster.isRiding(u)) continue;
             Faction f = roster.identity().faction(u);
             if (!ship.faction.hostileTo(f)) continue;
             float ux = world.x(u);

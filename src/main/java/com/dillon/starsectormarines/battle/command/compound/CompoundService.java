@@ -270,6 +270,8 @@ public final class CompoundService {
             // the other question and is answered by identity — see the state
             // enum, which has no allied bucket and is not getting one.
             if (!faction.friendlyTo(sim.identity().faction(unit))) continue;
+            // A squad in a carrier parked on the compound holds no ground.
+            if (sim.isRiding(unit)) continue;
             int x = sim.world().cellX(unit);
             int y = sim.world().cellY(unit);
             if (!area.contains(x, y)) continue;

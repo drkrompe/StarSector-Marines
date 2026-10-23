@@ -519,7 +519,14 @@ def _sheath_material(name, strength, cell_m):
     # owner, 2026-10-22: "bright in places", not white all over. The colour's heat is mottled as the
     # glow is, so only the squarest, hottest patches reach white; the rest of the face burns orange-yellow
     heat = _math(nt, 'MINIMUM', _math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', _math(nt, 'POWER', w, 1.8), mottle), .5), 1.0)
-    glow = _math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', _math(nt, 'POWER', w, 2.6), mottle), strength)
+    # coordinator on close still 6: "a uniform tube" along the box edges. The glow spreads further across
+    # the hot faces (a softer power on the heat share), and is damped where the shell is seen edge-on,
+    # which is what stacked it into a neon line at every corner
+    lw = nt.nodes.new('ShaderNodeLayerWeight')
+    lw.inputs['Blend'].default_value = .5
+    face_on = _math(nt, 'ADD', .25, _math(nt, 'MULTIPLY', _math(nt, 'POWER', lw.outputs['Facing'], .7), .75))
+    glow = _math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', _math(nt, 'POWER', w, 1.7), mottle),
+                                       face_on), strength)
     _additive(nt, _blackbody(nt, heat), glow)
     return mat
 
@@ -563,7 +570,7 @@ def _flame_material(name, strength, cell_m):
     u = at.outputs['Fac']
     life = _math(nt, 'POWER', _math(nt, 'MAXIMUM', _math(nt, 'SUBTRACT', 1.0, u), 0.0), 1.4)
     nz, _ = _noise(nt, cell_m, detail=6.0)
-    torn = _math(nt, 'MINIMUM', _math(nt, 'MAXIMUM', _math(nt, 'MULTIPLY', _math(nt, 'SUBTRACT', nz, .38), 3.5), 0.0), 1.0)
+    torn = _math(nt, 'MINIMUM', _math(nt, 'MAXIMUM', _math(nt, 'MULTIPLY', _math(nt, 'SUBTRACT', nz, .45), 4.5), 0.0), 1.0)
     lw = nt.nodes.new('ShaderNodeLayerWeight')
     lw.inputs['Blend'].default_value = .5
     soft = _math(nt, 'POWER', lw.outputs['Facing'], 1.5)       # bright through the middle, gone at the sides
@@ -710,28 +717,70 @@ def sheath(name, verts, faces, coll, wind, length, glow=1.0, streamers=22, seed=
     rim = rim or list(skin.verts)
     down = Vector(belly).normalized() if belly is not None else hot
     weights = [max(0.0, v.normal.dot(down)) + .12 for v in rim]       # most of them off the belly's edge
+    # Owner on the close still: "long burn streaks that are going through the hull seemingly". A flame
+    # stays outside the envelope for its whole length: every point is tested against the skin and
+    # pushed out to a few metres off it, so a flame that would cross her bends round her instead. Its
+    # pull toward the wake's axis starts only once it is past her lee, never across her deck.
+    from mathutils.bvhtree import BVHTree
+    bvh = BVHTree.FromBMesh(skin)
+    clear = length * .025
+    lee = max((v.co - c).dot(W) for v in skin.verts)
+    pushed = inside_after = 0
+    # roots only where the air leaves her cleanly: a root whose line downstream runs into her own
+    # structure would have to crawl over her deck, so it is not a root (the push below is the guard)
+    clean = [v for v in rim if bvh.ray_cast(v.co + v.normal * clear, W, length * 1.2)[0] is None]
+    print(f'SWFX sheath {name}: {len(rim)} rim points, {len(clean)} with a clean line downstream', flush=True)
+    if len(clean) >= max(8, streamers // 3):
+        weights = [w_ for v, w_ in zip(rim, weights) if v in set(clean)]
+        rim = clean
+
+    def outside(p):
+        nonlocal pushed
+        for _ in range(3):
+            hit = bvh.find_nearest(p)
+            if hit[0] is None:
+                return p
+            loc, nrm = hit[0], hit[1]
+            if (p - loc).dot(nrm) >= clear:
+                return p
+            p = loc + nrm * clear
+            pushed += 1
+        return p
+
+    def is_inside(p):
+        hit = bvh.find_nearest(p)
+        return hit[0] is not None and (p - hit[0]).dot(hit[1]) < 0
     for k in range(min(streamers, len(rim))):
         long_ = k < 5           # coordinator: a few visibly longer, streaming back along her flanks
         v = rnd.choice(rim) if long_ else rnd.choices(rim, weights)[0]
-        p0 = v.co + v.normal * length * .01
-        ln = length * (rnd.uniform(1.5, 2.4) if long_ else rnd.uniform(.35, 1.4)) * (.3 + .7 * grow)
+        p0 = v.co + v.normal * clear
+        ln = length * (rnd.uniform(.8, 1.1) if long_ else rnd.uniform(.3, .7)) * (.3 + .7 * grow)   # gone in a hull length
         rel = p0 - c
         perp = rel - W * rel.dot(W)
         r0 = length * (rnd.uniform(.004, .007) if long_ else rnd.uniform(.0015, .004))
-        hug = .3 if long_ else .8          # a long flame keeps to her flank, then closes
+        hug = .3 if long_ else .8          # how far it closes toward the wake once past her lee
+        n_pts = 24
         pts, us, radii = [], [], []
-        for j in range(16):
-            s = 1 - j / 15                                   # tail first: s 1 at the tail, 0 at the edge
-            wob = noise.noise_vector(p0 / (length * .2) + Vector((s * (6.0 if long_ else 2.6), k * .37, 0)))                 * (ln * .14 if long_ else length * .06) * s
-            pts.append(p0 + W * ln * s - perp * hug * (1 - math.exp(-5 * s)) + wob)
+        for j in range(n_pts):
+            s = 1 - j / (n_pts - 1)                          # tail first: s 1 at the tail, 0 at the edge
+            wob = noise.noise_vector(p0 / (length * .2) + Vector((s * (6.0 if long_ else 2.6), k * .37, 0))) \
+                * (ln * .14 if long_ else length * .06) * s
+            p = p0 + W * ln * s + wob
+            past = (p - c).dot(W) - lee                      # how far beyond her lee this point is
+            if past > 0:
+                p = p - perp * hug * (1 - math.exp(-5 * past / max(ln, 1.0)))
+            pts.append(outside(p))
             us.append(s)
-            radii.append(r0 * (1 + 3.0 * s) * (1 - .55 * s ** 2 if long_ else 1))     # a long one tapers out
+            radii.append(r0 * 2.2 * (1 - .75 * s))        # wide at the root, tapering out
+        inside_after += sum(1 for p in pts if is_inside(p))
         tube = _ragged_tube(f'{name} flame {k}', pts, radii, us, coll,
                             _flame_material(f'{PREFIX} flame', glow * (rnd.uniform(5, 9) if long_ else rnd.uniform(8, 18)),
                                             length * .05),
                             rnd, segments=10)
         for p in tube.data.polygons:
             p.use_smooth = True
+    print(f'SWFX sheath {name}: {min(streamers, len(rim))} flames, {pushed} points pushed out of the hull, '
+          f'{inside_after} inside after', flush=True)
     if wake:
         # owner, 2026-10-22: the burn-up gas behind her was not the size of her flames or her structure.
         # It is sized from her own cross-section across the airflow: it starts as wide as the flames

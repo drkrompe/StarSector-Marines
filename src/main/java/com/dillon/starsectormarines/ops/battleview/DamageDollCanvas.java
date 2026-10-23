@@ -113,6 +113,11 @@ public final class DamageDollCanvas implements CanvasProducer {
         return STRUCTURE_RAMP[step(hasArmor ? structure : structure * 2f)];
     }
 
+    /** The structure ramp at {@code fraction}: red at none left, orange whole. */
+    static Color structureColor(float fraction) {
+        return STRUCTURE_RAMP[step(fraction)];
+    }
+
     private static int step(float fraction) {
         return Math.round(Math.max(0f, Math.min(1f, fraction)) * STEPS);
     }
@@ -138,7 +143,6 @@ public final class DamageDollCanvas implements CanvasProducer {
         String name = switch (type) {
             case HEAVY_APC, UP_ARMORED_APC, FIRE_SUPPORT_APC, ESCORT_APC -> "apc";
             case BREAKTHROUGH_TANK, LASER_TANK -> "tank";
-            case HEAVY_GUN_TANK -> "tank-heavy-gun";
             case SCREENED_TANK -> "tank-screened";
             case DOZER_BREACHER -> "tank-dozer";
             case MILITIA_TECHNICAL -> "technical";

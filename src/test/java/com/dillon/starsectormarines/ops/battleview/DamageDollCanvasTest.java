@@ -35,6 +35,13 @@ class DamageDollCanvasTest {
     }
 
     @Test
+    void aMarinesLimbReadsItsWoundsFromOrangeToRedAtTheFloor() {
+        assertNull(MarineDollCanvas.woundColor(0));
+        assertEquals(DamageDollCanvas.STRUCTURE_HIGH, MarineDollCanvas.woundColor(1));
+        assertEquals(DamageDollCanvas.STRUCTURE_LOW, MarineDollCanvas.woundColor(4), "four wounds reach the floor");
+    }
+
+    @Test
     void partNamesAreLocations() {
         assertEquals(DollLocation.TORSO_REAR, DollLocation.ofPart("TORSO_REAR"));
         assertNull(DollLocation.ofPart("WING"));

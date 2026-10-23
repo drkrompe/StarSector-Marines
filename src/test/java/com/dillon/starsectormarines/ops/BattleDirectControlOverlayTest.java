@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ops.BattleDirectControlStatus.Carrier;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -105,13 +106,13 @@ class BattleDirectControlOverlayTest {
                                 UiViewport manualObjectives) { }
 
     /**
-     * The status panel's production bounds at a measured {@code documentHeight}: beside the damage doll
-     * for a machine, in the corner itself for a Marine.
+     * The status panel's production bounds at a measured {@code documentHeight}: beside the body's doll,
+     * or in the corner itself when there is none.
      */
     static UiViewport activeStatus(int physicalWidth, int physicalHeight, float uiScale, float documentHeight,
-                                   boolean machine) {
+                                   boolean doll) {
         return withHost(physicalWidth, physicalHeight, uiScale,
-                position -> BattleDirectControlOverlay.statusViewport(position, documentHeight, machine));
+                position -> BattleDirectControlOverlay.statusViewport(position, documentHeight, doll));
     }
 
     /** The weapon-groups panel's production bounds at a measured {@code documentHeight}. */
@@ -245,6 +246,19 @@ class BattleDirectControlOverlayTest {
                 }
             }
         }
+    }
+
+    @Test
+    void everyGroundBodyStandsBesideADoll() {
+        for (Carrier carrier : List.of(Carrier.MARINE, Carrier.MECH, Carrier.VEHICLE)) {
+            assertTrue(BattleDirectControlOverlay.hasDoll(carrier), carrier + " has a doll in the corner");
+        }
+        for (Carrier carrier : List.of(Carrier.NONE, Carrier.WARSHIP, Carrier.TENDER)) {
+            assertFalse(BattleDirectControlOverlay.hasDoll(carrier), carrier + " keeps the corner for its status");
+        }
+        assertEquals(BattleDamageDollPlate.DOCUMENT_WIDTH, BattleMarineDollPlate.DOCUMENT_WIDTH,
+                "the status stands in one place beside either doll");
+        assertEquals(BattleDamageDollPlate.DOCUMENT_HEIGHT, BattleMarineDollPlate.DOCUMENT_HEIGHT);
     }
 
     @Test
