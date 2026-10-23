@@ -32,7 +32,7 @@ public final class LayeredUnitAssets {
             gradeWeapons = new EnumMap<>(LayeredWeaponFamily.class);
     private final Map<String, LayeredSpriteCache> specialEquipment = new LinkedHashMap<>();
     private final Map<String, LayeredSpriteCache> integralSystems = new LinkedHashMap<>();
-    /** Lying-body poses in pose order; empty for a family that falls through its legacy sheet. */
+    /** Lying-body poses in pose order; empty for a family whose fallen lie some other way. */
     private final List<LayeredSpriteCache> downed = new ArrayList<>();
     /** Forearms and hands out in front, drawn while at a console; null for a family without them. */
     private LayeredSpriteCache stationArmLeft, stationArmRight;
@@ -143,7 +143,7 @@ public final class LayeredUnitAssets {
 
     /**
      * The lying body for a corpse's death-pose roll, wrapped onto the poses this family has,
-     * or null when it has none and the corpse keeps its unit type's legacy sheet.
+     * or null when it has none and the corpse is laid down by its rig or its unit type's corpse sheet.
      */
     public void registerStationArms(LayeredSpriteCache left, LayeredSpriteCache right) {
         if (left == null || right == null) return;

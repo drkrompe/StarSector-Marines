@@ -13,8 +13,8 @@ import java.util.function.IntSupplier;
  * the live {@code {IDENTITY, POSITION, HEALTH, VISION, ROLE}}
  * archetype (plus optional {@code ARMOR}, the optional {@code COMBAT} a combatant carries, the
  * {@code MOVEMENT}, {@code AI_STATE}, {@code SECONDARY_WEAPON}, {@code SQUAD} a
- * mobile/armed/squadded unit carries, and the {@code SPRITE} every sheet-drawn
- * unit — {@link UnitType#drawnAsSheet()} — already carries live, authored
+ * mobile/armed/squadded unit carries, and the {@code SPRITE} every posed
+ * unit — {@link UnitType#carriesSprite()} — already carries live, authored
  * per-tick by {@code battle.appearance.FacingSystem}) to the
  * corpse archetype {@code {IDENTITY, POSITION, SPRITE, CORPSE}}:
  * {@code HEALTH}, any {@code ARMOR}, the universal {@code VISION} + {@code ROLE}, and any {@code COMBAT},
@@ -66,7 +66,7 @@ public final class DeadBodySystem {
         this.clock = clock;
         // POSITION is universal on the live archetype and stays off the remove
         // mask, so it rides the row-move (no add) — same for SPRITE, which every
-        // sheet-drawn unit (UnitType.drawnAsSheet) already carries live (authored
+        // posed unit (UnitType.carriesSprite) already carries live (authored
         // per-tick by FacingSystem). Listing SPRITE in the add mask anyway is safe
         // either way: transmute ORs the add mask in, so it's a no-op for a sheet
         // unit that already has it, and still adds it fresh for a non-sheet death

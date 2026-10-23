@@ -21,10 +21,10 @@ import java.util.function.LongUnaryOperator;
 
 /**
  * Authors the {@code SPRITE} component's facing/pose frame for every live
- * sheet-drawn unit ({@link BattleComponents#liveSprites}) — the presentation
+ * posed unit ({@link BattleComponents#liveSprites}) — the presentation
  * system that replaces {@code ops.battleview.UnitRenderService}'s former
  * per-frame derivation with authored component data (
- * {@link com.dillon.starsectormarines.battle.unit.UnitType#drawnAsSheet()}
+ * {@link com.dillon.starsectormarines.battle.unit.UnitType#carriesSprite()}
  * gates {@code SPRITE} membership at spawn; this system writes it every tick
  * thereafter). Pure column walk over {@link BattleComponents#liveSprites}; the facing/frame
  * math itself is the stateless {@link LiveAppearance} helper.

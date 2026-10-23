@@ -78,6 +78,15 @@ scope unless the owner asks for it.
   and debris that cool fast with distance, and smoke broken up by noise that
   disperses rather than billowing. Missile trails stay short (2026-10-21:
   the tails were too long; Harpoon 1.7 s).
+- No orb projectiles either (owner, 2026-10-23, on the Manticore (P)'s Hellbore in Asharu S6:
+  "I generally don't like 'orbs' as projectiles or explosions"). Rounds and tracers are thin
+  streaks along their flight, their length set by speed; a heavy shell is an elongated
+  white-hot slug with a short heat streak; energy bolts are jagged elongated cores with a
+  flickering halo; missiles are a body with a motor streak. No sphere, ico-sphere or round
+  billboard is visible as a projectile's head or light at any distance.
+- Projectiles fly in world space (owner, 2026-10-23: S6's rounds turned with the Manticore).
+  Once a round, missile or flare leaves the muzzle it owes the ship nothing: it flies its own
+  line (seekers alone steer), and its trail stays where it was laid.
 - Render only what the owner has something new to judge (owner,
   2026-10-20). A ship round or pass that changes what the owner sees gets one
   small look render (one light queue job). Completeness renders do not: no
