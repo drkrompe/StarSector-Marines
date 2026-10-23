@@ -386,19 +386,40 @@ public class BattleSprites {
      * the loading screen shows. The battle screen appends its atlas step after these.
      */
     public List<TextureLoadQueue.Step> battleLoadSteps(BattleTextureSet set, Function<String, String> stage) {
+        return battleLoadSteps(set, null, stage);
+    }
+
+    /**
+     * {@link #battleLoadSteps(BattleTextureSet, Function)}, loading of the catalog's terrain sheets
+     * only {@code terrainSheets} ({@link BattleTerrainSheets#of}), a step each, in catalog order.
+     * Null loads every sheet the catalog names in the first step, as a battle did before its
+     * terrain was filtered. Either way a catalog sheet asked for and not loaded is loaded on first
+     * ask ({@link #extraTerrainSheet}).
+     */
+    public List<TextureLoadQueue.Step> battleLoadSteps(BattleTextureSet set, Set<String> terrainSheets,
+                                                       Function<String, String> stage) {
         List<TextureLoadQueue.Step> steps = new ArrayList<>();
-        steps.add(new TextureLoadQueue.Step(stage.apply("battleLoadingTerrain"), () -> {
-            ensureTileSheet();
+        String loadingTerrain = stage.apply("battleLoadingTerrain");
+        steps.add(new TextureLoadQueue.Step(loadingTerrain, () -> {
+            if (terrainSheets == null) ensureTileSheet();
+            else ensureUrbanSheet();
             ensureRoadSheet();
             ensureFloorsSheet();
             ensureNatureSheet();
         }));
-        steps.add(new TextureLoadQueue.Step(stage.apply("battleLoadingTerrain"), () -> {
+        steps.add(new TextureLoadQueue.Step(loadingTerrain, () -> {
             ensureWaterSheet();
             ensureUrbanTile3Sheet();
             ensureDoodadSheet();
             ensureDecalSheet();
         }));
+        if (terrainSheets != null) {
+            for (String path : terrainSheetPaths()) {
+                if (terrainSheets.contains(path)) {
+                    steps.add(new TextureLoadQueue.Step(loadingTerrain, () -> ensureTerrainSheet(path)));
+                }
+            }
+        }
         // Only what this battle places, spawns and can bring in; a step per family, livery and
         // vehicle line, so no one step holds the GL thread long enough to stop the spinner.
         String loadingSprites = stage.apply("battleLoadingSprites");

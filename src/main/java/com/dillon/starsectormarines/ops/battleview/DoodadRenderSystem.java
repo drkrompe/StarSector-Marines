@@ -110,7 +110,7 @@ public final class DoodadRenderSystem implements RenderSystem {
             }
             atlas = new DecorationAtlas();
             atlasFor = placed;
-            if (atlas.plan(placed, TileRegistry.installed(), this::sheetFor, batches::get)) {
+            if (atlas.plan(placed, TileRegistry.installed(), this::sheetFor, this::loadedSheetFor, batches::get)) {
                 batches.put(atlas.sheet(), new QuadBatch(atlas.sheet(), atlas.width(), atlas.height(), 8192));
             }
         }
@@ -278,6 +278,15 @@ public final class DoodadRenderSystem implements RenderSystem {
     private static boolean isLegacySheet(String path) {
         return path.equals(TileManifest.SHEET) || path.equals(TileManifest.ROAD_SHEET)
                 || path.equals(TileManifest.DOODAD_SHEET) || path.equals(TileManifest.PARKED_VEHICLE_SHEET);
+    }
+
+    /** {@link #sheetFor} without loading a catalog sheet nobody has loaded. */
+    private SpriteAPI loadedSheetFor(Doodad d) {
+        return switch (d.sheetPath) {
+            case TileManifest.SHEET, TileManifest.ROAD_SHEET, TileManifest.DOODAD_SHEET,
+                 TileManifest.PARKED_VEHICLE_SHEET -> sheetFor(d);
+            default -> sprites.loadedTerrainSheet(d.sheetPath);
+        };
     }
 
     private SpriteAPI sheetFor(Doodad d) {

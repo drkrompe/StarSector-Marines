@@ -55,16 +55,12 @@ public final class CoverPropDamage {
     /** Returns true when the prop's physical cover belongs to this removable channel. */
     public boolean register(int index, Doodad prop, TileRegistry registry) {
         String id = prop.definitionId();
-        String prefix = familyPrefix(id);
         boolean crate = id != null && CRATES.contains(id);
-        boolean single = crate || id != null && HEDGEHOGS.contains(id);
-        if ((!single && prefix == null) || !grid.inBounds(prop.cellX, prop.cellY)) return false;
+        String[] states = damageStateIds(id);
+        if (states == null || !grid.inBounds(prop.cellX, prop.cellY)) return false;
         boolean physical = grid.isWalkable(prop.cellX, prop.cellY);
-        String shape = single ? "" : id.substring(prefix.length());
-        String damagedId = single ? id + "-damaged" : prefix + "damaged-" + shape;
-        String destroyedId = single ? id + "-destroyed" : prefix + "destroyed-" + shape;
-        DoodadDef damaged = registry == null ? null : registry.doodad(damagedId);
-        DoodadDef destroyed = registry == null ? null : registry.doodad(destroyedId);
+        DoodadDef damaged = registry == null ? null : registry.doodad(states[0]);
+        DoodadDef destroyed = registry == null ? null : registry.doodad(states[1]);
         if (damaged == null || destroyed == null)
             throw new IllegalStateException("Missing cover damage pair for " + id);
         int key = grid.index(prop.cellX, prop.cellY);
@@ -104,6 +100,20 @@ public final class CoverPropDamage {
         for (Entry current = entry; current != null; current = current.next)
             if (current.hp > 0) return current.original.definitionId();
         return null;
+    }
+
+    /**
+     * The damaged and destroyed doodad ids a destructible cover prop swaps to, or null for a prop
+     * this channel does not own: {@code <id>-damaged} for crates and hedgehogs, {@code
+     * <family>damaged-<shape>} for fence, sandbag and emplacement runs.
+     */
+    public static String[] damageStateIds(String id) {
+        if (id == null) return null;
+        if (CRATES.contains(id) || HEDGEHOGS.contains(id)) return new String[]{id + "-damaged", id + "-destroyed"};
+        String prefix = familyPrefix(id);
+        if (prefix == null) return null;
+        String shape = id.substring(prefix.length());
+        return new String[]{prefix + "damaged-" + shape, prefix + "destroyed-" + shape};
     }
 
     private static String familyPrefix(String id) {
