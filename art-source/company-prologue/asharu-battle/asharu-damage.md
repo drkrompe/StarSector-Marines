@@ -99,11 +99,14 @@ and walking toward its `to`. So in the shot itself the strikes land where the sc
 own check flags a ledger hit that no gun can bear on.
 
 ## The ledger
+
+Some story hits are gunfire the kit cannot deliver yet. Either the round would fly longer than 6 s, or no mount can bear. They stay story hits until the geometry changes, and `asharu_gunnery.check` names them.
+
 ### colossus
 
 | t (s) | Hit | Severity | Source | What |
 |---|---|---|---|---|
-| 89.0 | rake | 1 scored | S8-S9 k4 tracer colossus3 | the Mk.III's guns walk onto the port pod from above |
+| 89.0 | rake | 1 scored | story (S8-S9; the Mk.III cannot depress onto her until her flight changes) | the Mk.III's guns walk onto the port pod from above |
 | 93.5 | breach | 3 burning | S8-S9 k4 fire_on | the port pod burns, and burns into the atmosphere |
 | 94.9 | he | 4 broken | S8-S9 k4 blast_on + debris | the port tug pod is shot out: torn open, its lines venting |
 | 108.0 | he | 2 holed | story (between S9b and S10) | the starboard pod failing: an overstrained plate gives, venting |
@@ -166,14 +169,14 @@ own check flags a ledger hit that no gun can bear on.
 | t (s) | Hit | Severity | Source | What |
 |---|---|---|---|---|
 | 55.0 | rake | 1 scored | S6 k3 tracer falcon-p | the Falcon's fire scores her starboard bow |
-| 61.5 | rake | 1 scored | S6b k3c tracer buffalo2-a | the Buffalo Mk.II's fire scores her deck as she rolls over |
+| 61.5 | rake | 1 scored | story (S6b; the Buffalo Mk.II at 3.8 km is past the kit 6 s round limit) | the Buffalo Mk.II's fire scores her deck as she rolls over |
 
 ### lasher-lead
 
 | t (s) | Hit | Severity | Source | What |
 |---|---|---|---|---|
 | 53.8 | rake | 1 scored | S6 k3 tracer manticore-p | the Manticore's light guns walk along her port bow as she comes about |
-| 55.4 | he | 2 holed | S6 k3 tracer falcon-p | a Falcon (P) bolt holes her port quarter; she vents |
+| 55.4 | he | 2 holed | story (S6; the Falcon at 3.8 km is past the kit 6 s round limit) | a Falcon (P) bolt holes her port quarter; she vents |
 | 55.9 | breach | 3 burning | S6 k3 blast_on | the hit that turns her: her forward deck opens and burns; smoking from here to S9b |
 | 103.5 | breach | 3 burning | S9b k4b fire_on | the Falcon's point guns as she rolls in: her aft deck catches |
 | 104.6 | debris | 2 holed | S9b k4b debris | plating shed off her port side as she dives |
@@ -184,7 +187,7 @@ own check flags a ledger hit that no gun can bear on.
 
 | t (s) | Hit | Severity | Source | What |
 |---|---|---|---|---|
-| 55.5 | rake | 1 scored | S6 k3 tracer lasher-lead | the lead's light MGs as she turns back |
+| 55.5 | rake | 1 scored | story (S6; the lead at 3.4 km is past the kit 6 s round limit) | the lead's light MGs as she turns back |
 
 ### morrow
 
@@ -213,8 +216,8 @@ own check flags a ledger hit that no gun can bear on.
 |---|---|---|---|---|
 | 56.8 | rake | 0 graze | S6 k3 tracer lasher-b | Lasher B's fire |
 | 71.6 | he | 1 scored | S6c k3d tracer wolf-m | the merchant Wolf's bolt, past her front shield onto the flank |
+| 95.8 | he | 1 scored | S8-S9 k4 tracer colossus |  |
 | 97.5 | cut | 2 holed | S8-S9 k4 mining borer-c | a Borer's mining laser cuts a long glowing seam down her side |
-| 99.0 | he | 1 scored | S8-S9 k4 tracer colossus |  |
 
 ### wolf-p-b
 
