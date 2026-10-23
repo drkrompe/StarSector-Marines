@@ -141,8 +141,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.separation.capsules` | experiment | 2026-10-21 | Continuous positions (continuous-positions-nouns.md): remove once capsule separation is accepted. |
 | `battle.squad.prosecutionFallThrough` | control | 2026-09-01 | Standing control: the frozen-control loop of ProsecutionHoldScene runs the off arm and its verdict depends on it. Retire it with that loop. |
 | `battle.squad.routeCommitNeedsFreshContact` | experiment | 2026-10-13 | Squad zone actions (2026-10-13): remove once the squad zone-action evidence has been read against it. |
-| `battle.squad.traffic` | undecided | 2026-09-26 | Default off; SquadTrafficScene compares it. The owner decides whether to ship it (drop the switch, keep the code) or drop it (delete the code). |
-| `battle.squad.trafficYield` | experiment | 2026-09-26 | Part of the squad-traffic experiment (squad-traffic.md): its off arm isolates spreading from the speed preference. Remove it together with battle.squad.traffic. |
 | `battle.squad.transitSpacing` | experiment | 2026-10-11 | Conquest command (2026-10-11): remove once commanderEvidence -Pmission=conquest has been read against it. Its composed .cells/.maxHold knobs go with it. |
 | `battle.story.reactiveDefence` | experiment | 2026-10-21 | As battle.mission.reactiveDefence. Its composed .share knob goes with it. |
 | `battle.swarm.barricadeAssault` | experiment | 2026-10-22 | Swarm/Bloom sessions: remove each once colony-breach evidence accepts it (colony-breach-nouns.md). |

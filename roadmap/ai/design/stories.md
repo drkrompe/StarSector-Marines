@@ -4,12 +4,10 @@ Status: ACTIVE — squad doctrine, contact reasoning, and tactical AI extensions
 
 Written: 2026-08-23
 
-Updated: 2026-09-27 — bounded district patrol and clearance-owner isolation are folded; local traffic and shared
-firing positions remain opt-in experiments.
+Updated: 2026-10-23 — local squad traffic shipped and is folded.
 
 | Story | State | Intent |
 |---|---|---|
-| `squad-traffic.md` | EXPERIMENT | Compare local lateral spreading, terrain compression, and soft yielding without replacing squad goals or routes. |
 | `squad-flank-preparation.md` | DRAFT | Publish one coherent squad flank answer before parallel member execution; retire the legacy worker-written memo. |
 | `contact-reaction-doctrine.md` | IN PROGRESS | Close and validate the live contact-initiative gap, then finish doctrine, formation-tempo, and acquisition acceptance. |
 | `commander-field-analysis.md` | DRAFT | Add optional read-only frontline/bulge diagnostics over faction-local snapshots without granting assignment authority. |
