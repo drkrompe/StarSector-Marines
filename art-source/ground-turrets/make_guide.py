@@ -295,6 +295,27 @@ def extra_points_sheet():
     return c
 
 
+def derelict_heavy_head(c, cx, cy, ppc):
+    """Phase 3 redesign of the colony heavy head: a round gun house with one centred heavy barrel, a short rear
+    hatch, and nothing wide behind it. Same extents as heavy_head (1.16 cells across, 1.44 forward, 0.72 back)."""
+    c.ellipse(cx, cy, 0.56 * ppc, g(85))
+    c.rect(cx - 0.075 * ppc, cy - 1.42 * ppc, cx + 0.075 * ppc, cy - 0.45 * ppc, g(80))
+    c.rect(cx - 0.125 * ppc, cy - 1.44 * ppc, cx + 0.125 * ppc, cy - 1.27 * ppc, g(60))   # muzzle brake
+    c.rect(cx - 0.11 * ppc, cy - 0.95 * ppc, cx + 0.11 * ppc, cy - 0.78 * ppc, g(110))   # fume extractor
+    c.rect(cx - 0.16 * ppc, cy - 0.62 * ppc, cx + 0.16 * ppc, cy - 0.38 * ppc, g(125))   # mantlet sleeve
+    c.ellipse(cx, cy, 0.58 * ppc, g(140))
+    c.ellipse(cx - 0.06 * ppc, cy - 0.06 * ppc, 0.48 * ppc, g(165))                      # lit dome
+    c.ellipse(cx + 0.24 * ppc, cy + 0.10 * ppc, 0.11 * ppc, g(120))                      # cupola
+    c.rect(cx - 0.30 * ppc, cy + 0.02 * ppc, cx - 0.06 * ppc, cy + 0.26 * ppc, g(130), radius=0.03 * ppc)
+    c.rect(cx - 0.20 * ppc, cy + 0.50 * ppc, cx + 0.20 * ppc, cy + 0.72 * ppc, g(115), radius=0.03 * ppc)  # rear hatch
+
+
+def derelict_heavy_sheet():
+    c = Canvas()
+    derelict_heavy_head(c, 768 + 384, 128 + 384, 256)
+    return c
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     for direction in DIRECTIONS:
@@ -307,6 +328,8 @@ def main():
     collar_only.save(OUT / "earthwork-collar-guide.png")
     # Phase 2 (brutalist): the second collar and the grenade-launcher and point-defence heads, same frames as points.
     extra_points_sheet().save(OUT / "brutalist-points2-guide.png")
+    # Phase 3: the derelict (colony steel) heavy head, redesigned round with a centred barrel.
+    derelict_heavy_sheet().save(OUT / "derelict-heavy-guide.png")
     print("wrote guides")
 
 

@@ -20,67 +20,85 @@ import org.json.JSONObject;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Opt-in look study for the ground-turret art direction (phase 1): candidate point emplacements (1x1 collar with an
- * autogun or light-cannon head) and hardpoints (3x3 raised plinth carrying a heavy cannon, and one carrying the
- * vanilla Locust) stood on real generated ground through {@link LookReview}, with a marine squad beside them for scale.
+ * Opt-in look study for the ground turrets: the catalog's point emplacements ({@code structure.point-autogun},
+ * {@code -cannon}, {@code -grenade}, {@code -pd}) and hardpoints ({@code structure.hardpoint-cannon}, {@code -locust})
+ * stood on real generated ground through {@link LookReview}, with a marine squad beside them for scale, once per look.
  *
- * <p>The default direction, {@code shipped}, stands the catalog's own structures ({@code structure.hardpoint-cannon},
- * {@code structure.hardpoint-locust}, {@code structure.point-autogun}, {@code -cannon}, {@code -grenade},
- * {@code -pd}). The phase-1 candidate directions ({@code brutalist}, {@code colony}, {@code earthwork}) are not shipped:
- * {@code art-source/ground-turrets/export.py} cuts them into {@code build/ground-turret-art/<direction>/}, and this suite
- * registers throwaway mounts and structures that point there (a candidate has no grenade or point-defence head, so
- * those spots carry its autogun and cannon). Candidates whose art has not been exported are skipped.
- * {@code -Dsnapshot.groundTurrets.directions=} and {@code -Dsnapshot.groundTurrets.biomes=} narrow the run.
+ * <p>{@code brutalist} is the catalog's default art. Every other look ({@code earthwork}, {@code derelict}) is read
+ * from each structure's {@code looks} object in the turret catalog: until the runtime resolves a look itself, this
+ * suite registers a copy of each structure and its mount with that look's {@code base}, {@code sprite} and
+ * {@code recoilSprite} swapped in. {@code -Dsnapshot.groundTurrets.looks=} and {@code -Dsnapshot.groundTurrets.biomes=}
+ * narrow the run.
  */
 public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
 
-    private static final String SHIPPED = "shipped";
-    private static final String ART = "../build/ground-turret-art/";
+    private static final String CATALOG = "data/marines/turret-emplacements.turret.json";
+    private static final String DEFAULT_LOOK = "brutalist";
+    /** Role in the scene's layout to the catalog structure that fills it. */
+    private static final Map<String, String> ROLES = Map.of(
+            "heavy", "structure.hardpoint-cannon",
+            "locust", "structure.hardpoint-locust",
+            "autogun", "structure.point-autogun",
+            "cannon", "structure.point-cannon",
+            "grenade", "structure.point-grenade",
+            "pd", "structure.point-pd");
 
     @Override public String id() { return "ground-turret-look"; }
 
-    @Override public String label() { return "Ground turret art directions (look study)"; }
+    @Override public String label() { return "Ground turret looks (look study)"; }
 
     @Override public boolean inAll() { return false; }
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         SceneRegistries.installArmoury(context.projectRoot());
-        List<String> directions = new ArrayList<>();
-        for (String d : System.getProperty("snapshot.groundTurrets.directions", SHIPPED).split(",")) {
-            if (d.trim().equals(SHIPPED)) directions.add(SHIPPED);
-            else if (Files.isRegularFile(context.modRoot().resolve(ART + d + "/plinth.png"))) directions.add(d.trim());
-            else System.out.println("    [ground-turret-look] no exported art for " + d + ", skipped");
+        List<String> looks = new ArrayList<>();
+        for (String look : System.getProperty("snapshot.groundTurrets.looks", "brutalist,earthwork,derelict").split(",")) {
+            looks.add(look.trim());
         }
-        registerCandidates(directions);
+        registerLooks(context, looks);
         List<SnapshotArtifact> artifacts = new ArrayList<>();
         for (String biome : System.getProperty("snapshot.groundTurrets.biomes", "verdant,arid,frozen").split(",")) {
             SurfacePalette surface = SurfacePalette.valueOf(biome.trim().toUpperCase());
-            for (String direction : directions) {
-                artifacts.addAll(LookReview.record(context.modRoot(), shot(direction, biome.trim(), surface)));
+            for (String look : looks) {
+                artifacts.addAll(LookReview.record(context.modRoot(), shot(look, biome.trim(), surface)));
             }
         }
         return artifacts;
     }
 
-    /** Mounts and structures for each direction, pointing at its exported art. Idempotent within a JVM. */
-    private static void registerCandidates(List<String> directions) throws Exception {
+    private static String structureId(String look, String role) {
+        String id = ROLES.get(role);
+        return look.equals(DEFAULT_LOOK) ? id : id.replace("structure.", "structure.look-" + look + "-");
+    }
+
+    /** Copies of each ground-turret structure and its mount with a look's art swapped in. Idempotent within a JVM. */
+    private static void registerLooks(SnapshotContext context, List<String> looks) throws Exception {
         TurretCatalogRegistry registry = TurretCatalogRegistry.installed();
+        JSONObject catalog = new JSONObject(Files.readString(context.modRoot().resolve(CATALOG)));
         JSONArray mounts = new JSONArray();
         JSONArray structures = new JSONArray();
-        for (String d : directions) {
-            if (d.equals(SHIPPED)) continue;
-            if (registry.getStructure(structureId(d, "autogun")) != null) continue;
-            mounts.put(mount(d, "autogun", "weapon.turret-heavy-mg", 1.25f, ART + d + "/autogun.png"));
-            mounts.put(mount(d, "cannon", "weapon.turret-hephaestus", 1.25f, ART + d + "/cannon.png"));
-            mounts.put(mount(d, "heavy", "weapon.turret-arbalest", 3.0f, ART + d + "/heavy.png"));
-            mounts.put(mount(d, "locust", "weapon.turret-locust", 2.4f, "graphics/weapons/locust_turret.png"));
-            structures.put(structure(d, "autogun", 1, ART + d + "/collar.png"));
-            structures.put(structure(d, "cannon", 1, ART + d + "/collar.png"));
-            structures.put(structure(d, "heavy", 3, ART + d + "/plinth.png"));
-            structures.put(structure(d, "locust", 3, ART + d + "/plinth.png"));
+        for (String look : looks) {
+            if (look.equals(DEFAULT_LOOK) || registry.getStructure(structureId(look, "heavy")) != null) continue;
+            for (String role : ROLES.keySet()) {
+                JSONObject structure = find(catalog.getJSONArray("structures"), ROLES.get(role));
+                JSONObject override = structure.getJSONObject("looks").getJSONObject(look);
+                JSONObject mount = new JSONObject(find(catalog.getJSONArray("mounts"), structure.getString("mount")).toString());
+                String mountId = mount.getString("id").replace("mount.", "mount.look-" + look + "-");
+                mount.put("id", mountId);
+                JSONObject render = mount.getJSONObject("render");
+                if (override.has("sprite")) render.put("sprite", override.getString("sprite"));
+                if (override.has("recoilSprite")) render.put("recoilSprite", override.getString("recoilSprite"));
+                JSONObject copy = new JSONObject(structure.toString());
+                copy.remove("looks");
+                copy.put("id", structureId(look, role)).put("mount", mountId);
+                copy.getJSONObject("art").put("base", override.getString("base"));
+                mounts.put(mount);
+                structures.put(copy);
+            }
         }
         if (mounts.length() > 0) {
             registry.ingest(new JSONObject().put("mounts", mounts).put("structures", structures),
@@ -88,44 +106,22 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
         }
     }
 
-    private static String structureId(String direction, String role) {
-        if (direction.equals(SHIPPED)) {
-            if (role.equals("heavy")) return "structure.hardpoint-cannon";
-            if (role.equals("locust")) return "structure.hardpoint-locust";
-            return "structure.point-" + role;
+    private static JSONObject find(JSONArray entries, String id) throws Exception {
+        for (int i = 0; i < entries.length(); i++) {
+            if (entries.getJSONObject(i).getString("id").equals(id)) return entries.getJSONObject(i);
         }
-        if (role.equals("grenade")) role = "autogun";
-        if (role.equals("pd")) role = "cannon";
-        return "structure.gt-" + direction + "-" + role;
-    }
-
-    private static JSONObject mount(String direction, String role, String weapon, float cells, String sprite)
-            throws Exception {
-        return new JSONObject().put("id", "mount.gt-" + direction + "-" + role).put("weapon", weapon)
-                .put("sim", new JSONObject().put("ammoCapacity", 999).put("turnRateDegPerSec", 90.0))
-                .put("render", new JSONObject().put("visualCells", cells).put("muzzleOffsetCells", cells * 0.45f)
-                        .put("sprite", sprite));
-    }
-
-    private static JSONObject structure(String direction, String role, int cells, String base) throws Exception {
-        return new JSONObject().put("id", structureId(direction, role)).put("mount", "mount.gt-" + direction + "-" + role)
-                .put("catalog", new JSONObject().put("displayName", direction + " " + role))
-                .put("durability", new JSONObject().put("structure", 100.0).put("armorCapacity", 100.0)
-                        .put("armorRating", 10.0))
-                .put("physics", new JSONObject().put("radius", cells == 1 ? 0.45 : 1.1).put("hitHalfHeight", 0.6)
-                        .put("footprintCells", new JSONArray().put(cells).put(cells)))
-                .put("forceScore", 10.0)
-                .put("art", new JSONObject().put("base", base));
+        throw new IllegalStateException("No catalog entry " + id);
     }
 
     /**
      * A 40x22 window: a heavy-cannon hardpoint and a Locust hardpoint side by side, four point emplacements (autogun,
-     * light cannon, grenade launcher, point-defence pod) round them, and a six-marine squad standing between the hardpoints. Only tick zero
-     * is drawn, so the heads hold the bearings set here and no launch smoke covers them.
+     * light cannon, grenade launcher, point-defence pod) round them, and a six-marine squad standing between the
+     * hardpoints. The hardpoints' guns are laid away from their stairs. Only tick zero is drawn, so the heads hold
+     * the bearings set here and no launch smoke covers them.
      */
-    private static LookReview.Shot shot(String direction, String biome, SurfacePalette surface) {
+    private static LookReview.Shot shot(String look, String biome, SurfacePalette surface) {
         LookGround ground = LookGround.of(surface, 7L);
-        return new LookReview.Shot(direction + "-" + biome, ground, 40, 22, placement -> {
+        return new LookReview.Shot(look + "-" + biome, ground, 40, 22, placement -> {
             SceneBuilder builder = placement.builder();
             float[] squad = placement.openNear(20f, 12f);
             builder.squad("squad").faction(Faction.MARINE).size(6)
@@ -136,14 +132,14 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
             BattleSimulation sim = world.sim();
             int i = 0;
             Object[][] layout = {
-                    {"heavy", 12f, 11f, 200f}, {"locust", 28f, 11f, 150f},
+                    {"heavy", 12f, 11f, 25f}, {"locust", 28f, 11f, 330f},
                     {"autogun", 17f, 4f, 330f}, {"cannon", 23f, 18f, 120f},
                     {"grenade", 8f, 5f, 290f}, {"pd", 31f, 17f, 60f}};
             for (Object[] spot : layout) {
                 float[] at = placement.openNear((Float) spot[1], (Float) spot[2]);
                 int x = (int) at[0];
                 int y = (int) at[1];
-                long id = sim.spawn(MapTurret.create("gt" + i++, Faction.MARINE, structureId(direction, (String) spot[0]),
+                long id = sim.spawn(MapTurret.create("gt" + i++, Faction.MARINE, structureId(look, (String) spot[0]),
                         x, y));
                 sim.getGrid().setWalkable(x, y, false);
                 sim.turretState().setFacingDegrees(id, (Float) spot[3]);
