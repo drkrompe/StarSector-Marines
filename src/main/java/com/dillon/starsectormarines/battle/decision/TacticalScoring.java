@@ -130,16 +130,6 @@ public final class TacticalScoring {
     public static final float TARGET_SQUADMATE_EXTRA_COST = 6f;
 
     /**
-     * Turns off damage-aware crowding, restoring the per-body count this
-     * shipped with. On by default;
-     * {@code -Dbattle.targeting.committedFire=false} is the control run.
-     */
-    public static final String COMMITTED_FIRE_PROPERTY = "battle.targeting.committedFire";
-
-    private static final boolean COMMITTED_FIRE = Boolean.parseBoolean(
-            System.getProperty(COMMITTED_FIRE_PROPERTY, "true"));
-
-    /**
      * Per-ally-on-cell penalty added when picking a firing position. Pushes
      * units off cells already claimed by squadmates. Tuned against the
      * post-Slice-3 directional cover scale: a single occupant should turn a
@@ -333,34 +323,6 @@ public final class TacticalScoring {
      * follows rather than the test failing for having been left behind.
      */
     static boolean friendlyLanePenaltyEnabled() { return FRIENDLY_LANE_PENALTY; }
-
-    /**
-     * Turns off perception-gated target picking, restoring the omniscient
-     * acquisition this shipped with. On by default;
-     * {@code -Dbattle.targeting.perceptionGated=false} is the control run.
-     *
-     * <p>Two separate pieces of omniscience lived here. The visibility test is
-     * a line between two cells and carries no distance bound at all, so a
-     * marine saw anybody standing anywhere down an unobstructed lane, a
-     * corridor the length of the map included. And the any-distance fallback
-     * handed back the nearest hostile whether or not there was any line to it
-     * at all, so a unit with nothing in sight still acquired whoever happened
-     * to be closest through the walls and walked at them. Instrumented over a
-     * Conquest matrix, roughly five in six activations of one downstream
-     * consumer were acting on a target outside the marine's own sight.
-     *
-     * <p>Kept as a switch rather than deleted because the fallback is
-     * load-bearing: its own documentation says it exists so a unit pathfinds
-     * toward a target and visibility eventually opens. What replaces it has to
-     * carry that weight through belief and mission command instead, and a
-     * control is how that is measured on one tree rather than against an older
-     * commit carrying every other difference with it.
-     */
-    public static final String PERCEPTION_GATED_TARGETS_PROPERTY =
-            "battle.targeting.perceptionGated";
-
-    private static final boolean PERCEPTION_GATED_TARGETS = Boolean.parseBoolean(
-            System.getProperty(PERCEPTION_GATED_TARGETS_PROPERTY, "true"));
 
     /**
      * Penalty added when a candidate target is in a different navigation zone
@@ -838,7 +800,7 @@ public final class TacticalScoring {
                         // The existing scorer reads the live position of a believed identity.
                         // Use that same position only to bound enumeration, not last-seen cells
                         // (a remembered mover may already be far from its observation).
-                        if (scoring.boundTargetScans && PERCEPTION_GATED_TARGETS
+                        if (scoring.boundTargetScans
                                 && scoring.roster.isAliveById(contact.unitId())
                                 && !scoring.roster.isRiding(contact.unitId())) {
                             farthestBelief = Math.max(farthestBelief, cellDistance(selfX, selfY,
@@ -848,7 +810,7 @@ public final class TacticalScoring {
                 }
             }
             this.scanLimit = targetScanLimit(maxRange, perceptionRange, farthestBelief,
-                    scoring.boundTargetScans && PERCEPTION_GATED_TARGETS);
+                    scoring.boundTargetScans);
         }
 
         /**
@@ -900,10 +862,14 @@ public final class TacticalScoring {
             // rest of the AI already runs on: this unit's own eyes, or its
             // squad's belief -- that same seeing pooled over everybody who
             // shares a net, which already answers the fire team too, a fire
-            // team being part of one squad.
+            // team being part of one squad. A line between two cells carries
+            // no distance bound of its own, so sight is bounded here too: a
+            // marine does not see down a lane the length of the map, and a
+            // unit with nothing in sight does not acquire whoever is nearest
+            // through the walls.
             boolean visible = false;
             boolean visibilityResolved = false;
-            if (PERCEPTION_GATED_TARGETS && !believed.contains(id)) {
+            if (!believed.contains(id)) {
                 if (d > perceptionRange) return;
                 rays++;
                 visible = canSeePair(scoring.grid, selfCellX, selfCellY, ox, oy,
@@ -927,7 +893,7 @@ public final class TacticalScoring {
                 // of fire to where they are.
                 visible = canSeePair(scoring.grid, selfCellX, selfCellY, ox, oy,
                         shooterAirRadius, vision.targetAirLosRadius(id))
-                        && (!PERCEPTION_GATED_TARGETS || d <= perceptionRange);
+                        && d <= perceptionRange;
             }
             if (!visible && !allowNoLos) return;
             float score = scoring.scoreTargetCandidate(id, d, visible, selfFaction,
@@ -1871,7 +1837,6 @@ public final class TacticalScoring {
                 + (world.hasArmor(target) ? world.armor(target) : 0f);
         float committed = 0f;
         float committedBySquad = 0f;
-        float cost = 0f;
         for (int i = 0, n = attackers.size(); i < n; i++) {
             long u = attackers.getLong(i);
             if (u == exclude || !roster.isAliveById(u)) continue;
@@ -1879,16 +1844,10 @@ public final class TacticalScoring {
             boolean sameSquad = selfSquadId != Squad.NO_SQUAD
                     && roster.squad().hasSquad(u)
                     && roster.squad().squadId(u) == selfSquadId;
-            if (!COMMITTED_FIRE) {
-                cost += TARGET_CROWDING_COST;
-                if (sameSquad) cost += TARGET_SQUADMATE_EXTRA_COST;
-                continue;
-            }
             float share = projectedPrimaryDamage(u, target);
             committed += share;
             if (sameSquad) committedBySquad += share;
         }
-        if (!COMMITTED_FIRE) return cost;
         if (committed <= 0f || remaining <= 0f) return 0f;
         // Squared, and the exponent is the whole difference between this
         // working and not. Scaling the toll linearly with the committed share
