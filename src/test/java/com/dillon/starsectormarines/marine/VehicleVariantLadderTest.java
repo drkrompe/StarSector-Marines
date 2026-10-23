@@ -22,14 +22,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class VehicleVariantLadderTest {
 
     private static final List<VehicleType> VARIANTS = List.of(VehicleType.UP_ARMORED_APC,
-            VehicleType.FIRE_SUPPORT_APC, VehicleType.HEAVY_GUN_TANK, VehicleType.DOZER_BREACHER,
+            VehicleType.FIRE_SUPPORT_APC, VehicleType.DOZER_BREACHER,
             VehicleType.SCREENED_TANK);
 
     @Test
     void eachVariantIsItsOwnVehiclePatternAtAnAuthoredTier() {
         assertEquals(EquipmentAccessTier.ADVANCED, MechPattern.of(VehicleType.UP_ARMORED_APC).accessTier());
         assertEquals(EquipmentAccessTier.ADVANCED, MechPattern.of(VehicleType.FIRE_SUPPORT_APC).accessTier());
-        assertEquals(EquipmentAccessTier.PRESTIGE, MechPattern.of(VehicleType.HEAVY_GUN_TANK).accessTier());
         assertEquals(EquipmentAccessTier.PRESTIGE, MechPattern.of(VehicleType.DOZER_BREACHER).accessTier());
         assertEquals(EquipmentAccessTier.PRESTIGE, MechPattern.of(VehicleType.SCREENED_TANK).accessTier());
         for (VehicleType type : VARIANTS) {
@@ -45,7 +44,6 @@ class VehicleVariantLadderTest {
     void liftClassFollowsTheHullAndMatchesTheWeightClass() {
         assertEquals(LiftClass.MEDIUM, VehicleType.UP_ARMORED_APC.liftClass());
         assertEquals(LiftClass.MEDIUM, VehicleType.FIRE_SUPPORT_APC.liftClass());
-        assertEquals(LiftClass.HEAVY, VehicleType.HEAVY_GUN_TANK.liftClass());
         assertEquals(LiftClass.HEAVY, VehicleType.DOZER_BREACHER.liftClass());
         assertEquals(LiftClass.HEAVY, VehicleType.SCREENED_TANK.liftClass());
         for (VehicleType type : VARIANTS) {
@@ -69,14 +67,13 @@ class VehicleVariantLadderTest {
         assertEquals(MechPatternPicker.BASE_WEIGHT, MechPatternPicker.weight("independent", upArmored));
         // Tri-Tachyon is known for its hover line, not for anybody's tank.
         assertEquals(MechPatternPicker.BASE_WEIGHT,
-                MechPatternPicker.weight("tritachyon", MechPattern.of(VehicleType.HEAVY_GUN_TANK)));
+                MechPatternPicker.weight("tritachyon", MechPattern.of(VehicleType.SCREENED_TANK)));
     }
 
     @Test
     void everyVariantHasABillAboveTheHullItImprovesOn() {
         assertTrue(total(VehicleType.UP_ARMORED_APC) > total(VehicleType.HEAVY_APC));
         assertTrue(total(VehicleType.FIRE_SUPPORT_APC) > total(VehicleType.HEAVY_APC));
-        assertTrue(total(VehicleType.HEAVY_GUN_TANK) > total(VehicleType.BREAKTHROUGH_TANK));
         assertTrue(total(VehicleType.DOZER_BREACHER) > total(VehicleType.BREAKTHROUGH_TANK));
         assertTrue(total(VehicleType.SCREENED_TANK) > total(VehicleType.BREAKTHROUGH_TANK));
     }
@@ -94,9 +91,6 @@ class VehicleVariantLadderTest {
         assertTrue(support.hasTurretWeapon() && support.turretArtFromMount());
 
         VehicleType tank = VehicleType.BREAKTHROUGH_TANK;
-        VehicleType heavyGun = VehicleType.HEAVY_GUN_TANK;
-        assertEquals(TurretCatalogRegistry.TANK_HEAVY_GUN_STRUCTURE_ID, heavyGun.turretStructureId);
-        assertTrue(heavyGun.maxSpeed < tank.maxSpeed);
         VehicleType dozer = VehicleType.DOZER_BREACHER;
         assertTrue(dozer.maxArmor > tank.maxArmor && dozer.maxSpeed < tank.maxSpeed);
         assertEquals(TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, dozer.turretStructureId);

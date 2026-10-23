@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-10-22 — the laser tank: a tank-line rung with a ship's burst laser that also takes hostile aircraft in its reach, its cadence bounded by a capacitor bank (charges spent per trigger pull, refilled on a clock, separate from the magazine); earlier: an armed hull clicked onto a garrisonable its side mans guards it from a cell beside it, idle gun on the believed threat; one its side believes is enemy-held it assaults from a stand-off, directing its turret; earlier: a hull keeps its front on the worst threat it knows of (harm into its plate, own sight or a spotter's), and a turning hull's gun shakes by the share of its turret's traverse its yaw takes; a hull holding in band without wearing its target down (a stalled hold) moves to another in-band firing position with a clear lane; a hull turns its front back onto a threat off its nose (a backing turn out to 120°, a forward turn beyond; rehearsed first, never off a parapet), and a disarmed hull still drives its withdrawal rear on (nose-on backing measured and rejected); a hull's plate depends on the arc a hit arrives on (front, side, rear; the turret on its own facing); the screened tank (a tank-line rung) carries active protection against top-attack rounds; a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
+Updated: 2026-10-22 — the heavy-gun tank is removed; the laser tank: a tank-line rung with a ship's burst laser that also takes hostile aircraft in its reach, its cadence bounded by a capacitor bank (charges spent per trigger pull, refilled on a clock, separate from the magazine); earlier: an armed hull clicked onto a garrisonable its side mans guards it from a cell beside it, idle gun on the believed threat; one its side believes is enemy-held it assaults from a stand-off, directing its turret; earlier: a hull keeps its front on the worst threat it knows of (harm into its plate, own sight or a spotter's), and a turning hull's gun shakes by the share of its turret's traverse its yaw takes; a hull holding in band without wearing its target down (a stalled hold) moves to another in-band firing position with a clear lane; a hull turns its front back onto a threat off its nose (a backing turn out to 120°, a forward turn beyond; rehearsed first, never off a parapet), and a disarmed hull still drives its withdrawal rear on (nose-on backing measured and rejected); a hull's plate depends on the arc a hit arrives on (front, side, rear; the turret on its own facing); the screened tank (a tank-line rung) carries active protection against top-attack rounds; a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
 
 ## Purpose and boundary
 
@@ -276,7 +276,7 @@ worth on a given hit depends on its arc (below).
 - **An empty magazine is a different fact.** It ends fire but leaves the gun.
   The hull still threatens what it can see, and its threat reach stays its own.
 - **The section is authored per hull** (`VehicleType.turretHitShare` /
-  `turretPoolShare`). Today only the gun tanks (breakthrough, heavy-gun and screened) author one: a fifth of the
+  `turretPoolShare`). Today only the gun tanks (breakthrough, screened and laser) author one: a fifth of the
   hits, and a quarter of the pools (`heavy-equipment-progression.md`, a tank
   that loses its gun). A hull with no section is one body and its gun
   cannot be lost. That covers the APCs, the technical, the dozer's MG and the
@@ -875,17 +875,16 @@ permanent wreck. The tank-specific emitters expire by 90 seconds. These effects
 use the shared presentation drains and cause no secondary damage, cover,
 concealment or navigation changes.
 
-The tank's two variants each draw from their own sheet with the same four
-registered slots. The heavy-gun tank keeps the breakthrough hull exactly and
-swaps the turret for the same angular housing carrying one long, thick gun with
-a fume-extractor collar and muzzle brake; its ballistic hardpoint follows that
-longer barrel. The dozer breacher is the breakthrough hull with a broad blade on
+The tank's variants each draw from their own sheet with the same four
+registered slots. The dozer breacher is the breakthrough hull with a broad blade on
 push arms ahead of the glacis; its longer footprint frame draws the hull at the
 same on-screen size, so its tread bands are the tank's scaled about the frame
 center. In place of the cannon turret it carries the APC's twin roof MG at the APC's
 own registration, sitting on the empty turret ring. Both keep authored wreck
 frames; the dozer's blade buckles and tears with its hull
-(`art-source/vehicles/tank-heavy-gun/`, `art-source/vehicles/tank-dozer/`).
+(`art-source/vehicles/tank-dozer/`). There is no long-gun tank: the heavy-gun
+variant was removed (owner, 2026-10-22) because its single long barrel read as
+goofy at game scale; the tank line's anti-armor answer is the breakthrough cannon.
 
 The dozer's **blade** opens ground (`DozerBlade`). A blocking cell is
 *pushable* when its structure is spent through the ordinary wall channel — a
