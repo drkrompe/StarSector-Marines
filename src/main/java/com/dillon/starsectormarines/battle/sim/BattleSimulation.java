@@ -165,6 +165,7 @@ import com.dillon.starsectormarines.battle.vehicle.HullPivot;
 import com.dillon.starsectormarines.battle.vehicle.HullSlide;
 import com.dillon.starsectormarines.battle.vehicle.ScoutSight;
 import com.dillon.starsectormarines.battle.vehicle.SideObservers;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDamageFxSystem;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDustEmitter;
 import com.dillon.starsectormarines.battle.vehicle.SupplyTruckSystem;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
@@ -567,6 +568,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final ScoutSight scoutSight = new ScoutSight();
     private final DroneBaySystem droneBays = new DroneBaySystem();
     private final VehicleDustEmitter vehicleDust = new VehicleDustEmitter();
+    private final VehicleDamageFxSystem vehicleDamageFx = new VehicleDamageFxSystem();
     /** Per-faction strategic commander tier. Owns the slow-tick cadence; the {@link #setCommander}/{@link #getCommander} delegates below forward here, and the COMMANDER phase calls {@link CommanderService#tick}. */
     private final CommanderService commanders = new CommanderService();
     /** Opt-in battle-long perspective/referee diagnostic stream. */
@@ -3692,6 +3694,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // A crippled mech's leg smoke and a lost section's burst and smoulder: presentation
         // events into the same per-frame queues, read off settled section state.
         mechSectionFx.tick(simTickIndex);
+        // A worn hull's engine-deck smoke, an immobilised drive's and a lost turret's: the same queues, read off
+        // the hull's settled locations.
+        vehicleDamageFx.tick(simTickIndex, convoy(), effects);
         tickProfile.lap(TickProfile.Phase.PLUMES);
         // Compound capture state machine — updates DEFENDER_HELD / CONTESTED /
         // MARINE_HELD state. Runs before resource production and reinforcement

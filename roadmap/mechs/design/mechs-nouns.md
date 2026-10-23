@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-23 — held racks chain their salvos; earlier: torso rear plate, torso arcs, missile warheads, duel range against armor.
+Updated: 2026-10-23 — a mech's flux shows as a haze on its vents; held racks chain their salvos; earlier: torso rear plate, torso arcs, missile warheads, duel range against armor.
 
 ## Purpose
 
@@ -1354,6 +1354,12 @@ headroom; at 95 it vents until 55, with no damage or movement shutdown. A trigge
 waits for enough headroom even below that interlock. The HUD shows shared flux
 and per-mount flux holds separately from cycler/loader progress and pack
 supply. Mech Lab hover sheets expose both costs and dissipation time per burst.
+
+Flux shows on the body as a ground hull's gun shows it, in the same look
+(`FluxHaze`, `convoy-nouns.md`): a purple haze over the vents across the torso's
+back, turning with the torso, that thickens with the square of the reservoir's
+share, wisps drifting aft off it, and a bright lavender plume for as long as the
+mech vents. It is drawn from current flux and simulation time alone.
 
 Evidence: `hound-flux` compares held fire, paced bursts, autonomous dissipation and
 reverse/strafe motion; its snapshot suite overlays the live production HUD on

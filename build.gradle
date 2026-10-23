@@ -1192,6 +1192,10 @@ shadowJar {
     minimize {
         exclude(dependency('org.jcodec:jcodec'))
     }
+    // minimize() takes its reachability roots from every source set by default, which made the
+    // shipped jar wait on compiling test and gl3 (and kept fastutil classes only tests touch).
+    // The shipped jar's roots are the shipped code.
+    sourceSetsClassesDirs.setFrom(sourceSets.main.output.classesDirs)
 
     exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
     exclude 'META-INF/maven/**'

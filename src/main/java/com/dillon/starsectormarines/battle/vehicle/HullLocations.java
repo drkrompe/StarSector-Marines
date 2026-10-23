@@ -132,6 +132,15 @@ public final class HullLocations {
         if (turret != null) turret.stageArmorShare(share);
     }
 
+    /**
+     * Spends the drive outright, outside the damage path and without touching the world's columns (the caller lowers
+     * the structure column by {@link #maxDrive}): for staging a look at an immobilised hull, never for play.
+     */
+    void stageDriveLost() {
+        drive = 0f;
+        immobilised = true;
+    }
+
     public float drive() {
         return drive;
     }
