@@ -94,6 +94,7 @@ public final class MissionLayoutStage implements GenStage {
         Map<String, List<int[]>> ridges = new HashMap<>();
         boolean closed = false;
         if (phase == Phase.WORKS) {
+            refuseSecondElevation(ctx, pieces);
             List<Ridge> layoutRidges = new ArrayList<>();
             for (Piece piece : pieces) {
                 if (piece instanceof Ridge ridge && layoutRidges.stream().noneMatch(r -> r.name().equals(ridge.name()))) {
@@ -103,7 +104,10 @@ public final class MissionLayoutStage implements GenStage {
             if (!layoutRidges.isEmpty()) {
                 List<RidgePlanner.Band> bands = new ArrayList<>();
                 for (Ridge ridge : layoutRidges) bands.add(ridge.band());
-                bands.addAll(OutdoorLandscapeStage.landscapeBands(ctx));
+                // A band the landscape holds for a layout Ridge (the Cordon holds its line's) is the same ground once.
+                for (RidgePlanner.Band band : OutdoorLandscapeStage.landscapeBands(ctx)) {
+                    if (!bands.contains(band)) bands.add(band);
+                }
                 List<int[]> feet = OutdoorLandscapeStage.raiseRidges(ctx, bands, held);
                 closed = !feet.isEmpty();
                 // Each ramp's foot belongs to the ridge whose ground it stands on; the landscape's report none.
@@ -439,5 +443,26 @@ public final class MissionLayoutStage implements GenStage {
         Set<Long> out = new HashSet<>();
         for (int[] c : cells) out.add(PreparedGround.key(c[0], c[1]));
         return out;
+    }
+    /**
+     * Elevation is stamped once per map ({@code ElevationBrush}): whatever is raised first is the map's relief, and
+     * every later pass finds elevation already there and does nothing. A layout's ridges and the landscape's own
+     * ridges, held bands and valley sides go up together in one plan, but plateaus are planned on their own, so a
+     * plan that asks for plateaus beside a layout Ridge is refused here, loudly, rather than losing them without a
+     * word.
+     */
+    private static void refuseSecondElevation(GenContext ctx, List<Piece> pieces) {
+        String reason = secondElevation(pieces, OutdoorLandscapeStage.plateausWanted(ctx));
+        if (reason != null) throw new IllegalStateException(reason);
+    }
+
+    /** Why this layout's ridges cannot be raised on this map, or null when they can. */
+    static String secondElevation(List<Piece> pieces, int plateaus) {
+        boolean ridged = false;
+        for (Piece piece : pieces) ridged |= piece instanceof Ridge;
+        if (ridged && plateaus > 0) {
+            return "a mission layout Ridge and plateaus cannot share a map: elevation is stamped once";
+        }
+        return null;
     }
 }

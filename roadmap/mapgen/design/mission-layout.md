@@ -66,8 +66,10 @@ optional (reported, and the map stands).
   Reported by its ramps' feet. Elevation is stamped once, so every ridge goes
   up together: the layout's ridges and the landscape's own (its ridges, held
   ground and valley sides) in one plan, with the landscape's tracks and brook
-  banks kept for them. The Cordon's line and the heart's forward line stand on
-  one.
+  banks kept for them; a band held for a layout Ridge is raised once.
+  Plateaus are planned apart, so a plan asking for plateaus beside a Ridge is
+  refused at generation rather than losing them silently. The Cordon's line
+  and the heart's forward line stand on one.
 - **Deferred.** Pieces that can only be stated once the ground exists — a line
   from one place's claimed edge to the next's. A deferred piece resolves at
   its **phase** against a read-only view of the grown ground (claims, roads,

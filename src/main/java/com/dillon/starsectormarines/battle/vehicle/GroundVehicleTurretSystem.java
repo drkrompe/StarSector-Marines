@@ -110,6 +110,10 @@ public final class GroundVehicleTurretSystem {
                 if (turret.burstPointAim != null) turret.clearQueuedFire();
                 tickAutonomous(id, turret, body, structure, mountX, mountY, dt);
             }
+            if (type.turretRaiseFold() < 1f) {
+                raise(turret, structure.mount.weapon, dt);
+                aimRange(turret, mountX, mountY);
+            }
         }
     }
 
@@ -123,6 +127,34 @@ public final class GroundVehicleTurretSystem {
         float sin = (float) Math.sin(radians);
         return new TurretMountGeometry.Point(body.x + type.turretMountX * cos - type.turretMountY * sin,
                 body.y + type.turretMountX * sin + type.turretMountY * cos);
+    }
+
+    /** Remembers how far off a launcher's aim is ({@link GroundTurret#raiseRangeCells}); kept when it has none. */
+    private void aimRange(GroundTurret turret, float mountX, float mountY) {
+        long target = world.isAlive(turret.burstTargetId) ? turret.burstTargetId
+                : world.isAlive(turret.targetId) ? turret.targetId : 0L;
+        if (target != 0L) {
+            turret.raiseRangeCells = (float) Math.hypot(world.x(target) - mountX, world.y(target) - mountY);
+        } else if (turret.burstPointAim != null) {
+            turret.raiseRangeCells = (float) Math.hypot(turret.burstPointAim.x() - mountX,
+                    turret.burstPointAim.y() - mountY);
+        }
+    }
+
+    /** Seconds a launcher takes to stand up on its trunnion, or to lie back down. */
+    static final float RAISE_SECONDS = 0.6f;
+    /** Seconds a launcher stays raised after its last salvo before it lies back down without a target. */
+    static final float RAISED_AFTER_SALVO_SECONDS = 2.0f;
+
+    /**
+     * Stands a launcher up while it has something to fire at, is firing, or has just fired, and lays it back down
+     * otherwise ({@link GroundTurret#elevation}). Nothing in the sim reads it: it is how an arcing rack looks.
+     */
+    static void raise(GroundTurret turret, WeaponDef weapon, float dt) {
+        boolean raised = turret.targetId != 0L || turret.burstRemaining > 0 || turret.burstPointAim != null
+                || turret.cooldownTimer > weapon.cooldown - RAISED_AFTER_SALVO_SECONDS;
+        float step = dt / RAISE_SECONDS;
+        turret.elevation = raised ? Math.min(1f, turret.elevation + step) : Math.max(0f, turret.elevation - step);
     }
 
     private void tickManual(long id, GroundTurret turret, GroundBody body, StructureDef structure,
@@ -217,9 +249,12 @@ public final class GroundVehicleTurretSystem {
         }
         long burstTarget = roster.isAliveById(turret.burstTargetId) ? turret.burstTargetId : 0L;
         // Keep autonomous APC cadence: no cooldown or traverse tick during a committed burst. A beam is the
-        // exception: its lance is held, so the turret tracks its target through it and the beam drags with it.
+        // exception: its lance is held, so the turret tracks its target through it and the beam drags with it. So
+        // is a missile rack, which opens its salvo inside the fire arc and keeps coming round onto the target while
+        // it ripples, so the launcher points where its missiles go.
         if (turret.burstRemaining > 0) {
-            if (weapon.hitscanBeam() && burstTarget != 0L && world.isAlive(burstTarget)) {
+            boolean tracks = weapon.hitscanBeam() || mount.hardenedTargetsOnly || weapon.indirectFire;
+            if (tracks && burstTarget != 0L && world.isAlive(burstTarget)) {
                 turret.facingDeg = TurretAim.slewToward(turret.facingDeg,
                         TurretAim.bearingTo(mountX, mountY, world.x(burstTarget), world.y(burstTarget)),
                         mount.turnRateDegPerSec * dt);
