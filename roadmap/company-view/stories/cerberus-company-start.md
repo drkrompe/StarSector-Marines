@@ -2,7 +2,7 @@
 
 Status: IMPLEMENTED; live acceptance open
 Written: 2026-10-12
-Updated: 2026-10-20 — One story path at every start port; no starting fuel and no Galatia Academy stipend; start port locked through the shared OpeningPort order; a lost depot follows the company. Live acceptance remains.
+Updated: 2026-10-23 — arrival, yard and Marine operations chained; paying designates her
 
 ## Outcome
 
@@ -13,7 +13,7 @@ Castle directs the player to Jangala and Nessa Venn, an old freight colleague no
 working as a yard forewoman. When Jangala is unavailable the course goes to an
 accessible fallback port, but the story stays Jangala's. There the
 player reviews and pays from Castle's protected reserve for a permanent Mercenary Company Conversion hullmod before
-the ship can be designated as the company command vessel. Designation resumes the
+the ship is designated as the company command vessel, which paying does automatically. Designation resumes the
 existing Sabine specialty, squad founding and assignment tutorial, ending at the
 first Jangala contract. The prepaid Hermes waits for the first-lift lesson after Relief.
 
@@ -92,7 +92,8 @@ placement to Nexerelin when no port exists.
   Hermes repair in the first-lift lesson after Relief. Mission-board Barracks and other direct room entrances resume the
   current required step instead of bypassing it; battle settlement remains unaffected.
 - Additive selectable start, normal/easy choice, actual Cerberus flagship and player
-  captain, no automatic company designation or preinstalled conversion.
+  captain, no preinstalled conversion and no designation before it is paid; paying
+  designates the Second Wind and goes straight on to Sabine without the port menu.
 - Begin in space with a reachable planetary destination and Castle's portrait guidance.
 - A fresh selection opens the illustrated prologue once, when the campaign map is
   available; other dialogs and menus are never replaced. Back/Continue preserve

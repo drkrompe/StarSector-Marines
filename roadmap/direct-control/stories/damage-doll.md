@@ -2,12 +2,13 @@
 
 > Read where a machine is hurt at a glance, the way MechWarrior does.
 
-Status: IN PROGRESS — dolls, colouring and the HUD plate shipped; waits on located vehicle armor
+Status: IN PROGRESS — dolls, colouring and the HUD plate shipped; located vehicle armor shipped; live pass remains
 Written: 2026-10-20
-Updated: 2026-10-20 — MWO-style panels; Hound and Warden pods in thirds (side thirds are the shoulder sections), nose guns, one outline per leg
+Updated: 2026-10-23 — located vehicle armor is always on, so a vehicle doll reads each plate, the drive and the hull from its own pool
 
 Read `direct-control-nouns.md` and `ui-nouns.md` first. The locations the doll
-draws are owned by `d5-located-armor.md`.
+draws are owned by `convoy-nouns.md` (a hull holds its damage where it lands)
+and `mechs-nouns.md` (sections and the torso's rear plate).
 
 ## Goal
 
@@ -59,17 +60,11 @@ as goofy). Each part of the outline is a location, coloured by its state.
 
 ## Remaining
 
-- Reading each plate, the drive and the mech rear torso from their own pools is
-  done; vehicle plates only differ once `-Dbattle.vehicle.locatedArmor=true`
-  becomes the default (`d5-located-armor.md`). Until then a vehicle doll shows
-  the turret's own state and the hull's armor and structure across the plates.
 - Live pass: drive a mech and a vehicle in game and compare the doll with the
   hits taken.
 
 ## Acceptance
 
 - Mech and vehicle takeovers show the doll in the status corner; every location
-  named in `d5-located-armor.md` changes colour when damaged there.
-- Until located vehicle armor lands, a vehicle doll shows the turret's own state
-  and the hull's armor and structure across the plates.
+  named in `convoy-nouns.md` and `mechs-nouns.md` changes colour when damaged there.
 - Renders at 1920x1080 / 100% for each silhouette, intact and damaged.

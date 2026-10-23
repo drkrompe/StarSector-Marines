@@ -22,20 +22,13 @@ import com.dillon.starsectormarines.battle.combat.DurabilityModel;
  * it did; the side and rear plates and the drive are held on top of that and only matter to a hull caught from
  * there. The world's HEALTH and ARMOR columns carry the totals (plates and turret armor; hull, turret and drive
  * structure), so whole-body readers still see one machine; what is not a plate, the turret or the drive is the
- * hull's own, derived on every hit. Written only on the serialized damage path. See {@code d5-located-armor.md}.
+ * hull's own, derived on every hit. Written only on the serialized damage path. See {@code convoy-nouns.md}.
+ *
+ * <p>Every ground hull carries them. A hull that turns its face to its attackers spends the plates they stripped
+ * meanwhile on top of the front's whole pool, so a fight the hull un-flanks runs longer than a hull of one pool did;
+ * a flank held pays at once ({@code heavy-equipment-progression.md}, located plates).
  */
 public final class HullLocations {
-
-    /**
-     * {@code -Dbattle.vehicle.locatedArmor=true} turns located hull damage on. Off by default pending an owner call:
-     * a hull held side- or rear-on dies much sooner with plates, but a free tank caught between two attackers reverses
-     * until both are on its front, and the side plates they stripped meanwhile are spent on top of the front's whole
-     * pool, so the fight runs longer than without (see {@code d5-located-armor.md}).
-     */
-    public static final String PROPERTY = "battle.vehicle.locatedArmor";
-
-    /** Read once from the property above; tests may set it around a case. */
-    public static boolean ENABLED = Boolean.parseBoolean(System.getProperty(PROPERTY, "false"));
 
     /** The four plates, in the order the doll and the arrays use. */
     public enum Plate { FRONT, LEFT, RIGHT, REAR }
@@ -76,12 +69,7 @@ public final class HullLocations {
         this.turret = turret;
     }
 
-    /** The locations a hull of {@code type} deploys with, or null when the control is off. */
-    public static HullLocations forHull(VehicleType type, HullTurretSection turret) {
-        return ENABLED ? of(type, turret) : null;
-    }
-
-    /** {@code type}'s locations whether or not the switch is on: for a fixture that draws them. */
+    /** The locations a hull of {@code type} deploys with, around its turret section (null for none). */
     public static HullLocations of(VehicleType type, HullTurretSection turret) {
         float turretArmor = turret != null ? turret.maxArmor() : 0f;
         return new HullLocations(type.maxArmor - turretArmor, type.plateArmor(),
@@ -141,6 +129,15 @@ public final class HullLocations {
     /** Whether the drive is gone: the hull cannot move. Once true it stays true for the battle. */
     public boolean immobilised() {
         return immobilised;
+    }
+
+    /**
+     * The hull's own structure out of a HEALTH column standing at {@code totalStructure}: what is neither the
+     * turret's nor the drive's. Only its zero is death.
+     */
+    public float hullStructure(float totalStructure) {
+        float turretStructure = turret != null ? turret.structure() : 0f;
+        return Math.max(0f, totalStructure - turretStructure - drive);
     }
 
     /** The turret section, or null for a hull whose gun is not one. */

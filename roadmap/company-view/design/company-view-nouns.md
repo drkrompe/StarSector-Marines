@@ -1330,8 +1330,13 @@ Exterior views use an upscaled vanilla Cerberus sprite as their identity referen
 Runtime art is full-frame 1200x800 JPEG; larger masters and reference art stay outside `mod/`.
 
 A reviewed 4,986-credit yard order installs the permanent Mercenary Company
-Conversion on the owned, active hull. Company designation still uses the ordinary
-preparation preflight and resumes Sabine, squad founding and assignment.
+Conversion on the owned, active hull. Paying for it on the founding Second Wind
+designates her as the company ship without a transfer screen: she is the hull the
+conversion was bought for and her deck is pinned (`second-wind-refit-tree.md`), so
+there is no choice to offer, and her deck is laid out ahead of the first visit. The
+automatic designation still passes the ordinary preparation preflight; a refusal
+leaves the ordinary transfer choice. Designation resumes Sabine, squad founding and
+assignment.
 
 The Cerberus opening names **Mercenary Company Conversion** explicitly and directs
 the player to Marine operations in the planet menu, not the vanilla Refit picker.
@@ -1343,7 +1348,12 @@ road up; and the ore-dust papers that send the company to work (`opening-dialogu
 click-through with no exit control, and Back never returns to the paid bill. The order buys +18
 personnel places and trades away 25 cargo; the remaining damaged rooms, second
 bay and Mech Lab stay damaged. The planet interaction remains alive as the docking
-and depot authority, and its ordinary menu returns when the storybook closes. Until the
+and depot authority. The opening is one walk over that dialog, never a trip back
+through its menu: the Jangala arrival hands straight on to the yard storybook, and a
+storybook closed after paying hands straight on to Marine operations at Sabine's
+induction. The ordinary port menu returns only when the player leaves Marine
+operations, or leaves the yard before paying. Finishing the preparation opens the
+mission board, since the company's next step is its first contract. Until the
 founding conversion is installed, no alternative hull can bypass company designation.
 
 **The menu theme.** The opening storybook (the prologue's pages and the yard's) plays

@@ -44,4 +44,13 @@ public interface Screen {
      * must be torn down even though the screen instance lives on for re-entry.
      */
     default void detach() {}
+
+    /**
+     * Whether this screen draws the company deck's scene. The deck's textures are held only
+     * while such a screen is up; moving to any other screen gives them back
+     * ({@code battle-textures.md}).
+     */
+    default boolean drawsCompanyDeck() {
+        return false;
+    }
 }

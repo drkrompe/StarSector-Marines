@@ -59,11 +59,14 @@ public final class SnapshotCatalog {
         return suites;
     }
 
-    /** Selects all suites or a comma-separated set while preserving catalog order. */
+    /**
+     * Selects all suites or a comma-separated set while preserving catalog order. {@code all}
+     * leaves out suites that are opt-in ({@link SnapshotSuite#inAll()}); naming one runs it.
+     */
     public List<SnapshotSuite> select(String selector) {
         if (selector == null || selector.isBlank()
                 || selector.trim().equalsIgnoreCase("all")) {
-            return suites;
+            return suites.stream().filter(SnapshotSuite::inAll).toList();
         }
         Set<String> requested = new LinkedHashSet<>();
         for (String token : selector.split(",")) {

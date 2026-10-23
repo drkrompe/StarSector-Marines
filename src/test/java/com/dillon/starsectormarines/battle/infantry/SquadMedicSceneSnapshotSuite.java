@@ -58,6 +58,26 @@ public final class SquadMedicSceneSnapshotSuite extends BehaviorSceneSnapshotSui
         return new float[] {9.5f, 16.5f, 9f};
     }
 
+    /**
+     * Follows the medic, so the close view walks with the squad rather than
+     * staying on the start line it leaves within seconds.
+     */
+    @Override
+    protected float[] closeView(String loopId, BattleSimulation sim) {
+        float[] fixed = closeView(loopId);
+        for (Squad squad : sim.getSquads()) {
+            SquadMedic medic = squad.medic;
+            long carrier = medic == null ? 0L : sim.resolveUnit(medic.medicId());
+            if (carrier != 0L) {
+                return new float[] {sim.world().x(carrier), sim.world().y(carrier), FOLLOW_CELLS};
+            }
+        }
+        return fixed;
+    }
+
+    /** Wide enough to keep the file round the medic in view while it walks. */
+    private static final float FOLLOW_CELLS = 16f;
+
     @Override
     protected float closeViewScale() { return 1f; }
 

@@ -236,12 +236,21 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
 
 #### Questions for the owner: the picks page
 
-**Every decision the owner has to make goes on the picks page as picture
+**Every decision the owner has to make goes on a picks page as picture
 cards, never only in chat** (owner, 2026-10-22). A question asked in a chat
 message is lost the moment the owner switches to another session; the page is
-the one place they answer from. The page is the Artifact
-`https://claude.ai/artifact/Q2unCoyCvyuFBFomsCxuDU` ("Rav Bloom picks"); each
-answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
+the one place they answer from.
+
+**One picks page per top-level parent session** (owner, 2026-10-23). The
+owner works session by session: each top-level session in the sidebar is a
+parent with its own bundle of child sessions, and each parent owns one picks
+page for its bundle's questions. Never post to another parent's page. A
+parent's page is an Artifact built from `tools/picks/template.html` with
+`python tools/picks/build.py --title "<parent> picks" questions.json out.html`,
+published with the `db` capability; each answer is a `db` document
+`picks/<question id>` holding `{choice, note, at}`. A parent that has no page
+yet creates one when it has its first question and adds a row to
+`tools/picks/pages.md` (parent session title, page URL) in its next commit.
 
 - **A question is an `options.json`**: `[{id, question, options:[{key, label,
   file, note}]}]`, with one 1920x1080 image per option rendered on the real
@@ -252,15 +261,16 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   (owner, 2026-10-22). A session started by another session never posts to the
   page or asks the owner itself: it sends its parent the `options.json` path,
   the image paths and what it is building on meanwhile. The parent passes it up
-  the same way until it reaches the top-level coordinating session, which
-  publishes the question, reads the answer from the `db` and sends it back down
+  the same way until it reaches the top-level parent session, which
+  publishes the question on its own page, reads the answer from the `db` and sends it back down
   to the session that asked. A parent that is itself the top relays straight
   away.
-- **A top-level session with no coordinator** posts its own question: read
-  the page (`Artifact` `read`), add its question to the page's `QUESTIONS`
-  array and its images under `media/<question id>/`, republish to the same
-  URL (merging, never overwriting, if the publish reports a newer version),
-  and read the answer from `picks/<question id>`.
+- **The top-level parent posts.** Read its own page (`Artifact` `read`), add
+  the question to the page's `QUESTIONS` array and its images under
+  `media/<question id>/`, republish to the same URL (merging, never
+  overwriting, if the publish reports a newer version), and read the answer
+  from `picks/<question id>`. Use JPEG for option images: a page holds at most
+  256 MiB across its versions.
 - **Don't wait on the answer.** Build on the recommended option meanwhile and
   switch if the owner picks otherwise. Tell the owner in one line that a
   question is up, and nothing more.
@@ -690,7 +700,8 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   order — so vanilla-sourced sprites such as aircraft hulls appear in headless
   frames. The install is already required to build at all (`starsectorDir`), and
   a suite degrades to not drawing those sprites if it is missing. Select
-  suites with `-Psnapshot=<id>[,<id>...]` (default `all`; ids in
+  suites with `-Psnapshot=<id>[,<id>...]` (default `all`, which leaves out
+  opt-in look studies such as `deck-props` and `elevation-look`; ids in
   `snapshot-suites.md`) and redirect the common output root with `-PsnapshotDir=<path>`.
   **The pixel work runs on workers** (`SnapshotWorkers`, half the processors;
   `-Dsnapshot.threads=1` runs it all on the calling thread): a review frame

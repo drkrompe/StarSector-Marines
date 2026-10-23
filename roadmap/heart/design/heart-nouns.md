@@ -153,6 +153,16 @@ take the satellites, but the mothers fall only once fresh armour keeps coming
 up too. The barrage stays short of the mothers. Walking it onto them measured
 worse, because the front is held back behind the guns for longer.
 
+**Armour leads its infantry on The Burn.** A rifleman, a gun crew or a mech
+holds its fire while a friend stands in its lane, so armour posted behind its
+own militia mostly waits. The Burn's battlegroup armour posts four cells
+ahead of its infantry rather than four behind
+(`-Dbattle.heart.burnArmourBehind`), and on both forms a fresh tank and
+technical come up eight times, two minutes apart
+(`-Dbattle.heart.burnFrontArmourWaves`, `-Dbattle.heart.broadArmourWaves`).
+Broad Front's armour stays behind (`-Dbattle.heart.broadArmourBehind`),
+because its lanes march into the overgrowth before the armour can follow.
+
 **Battlegroup** (The Burn). One allied sector's force: the planetary militia
 committed in strength (owner, 2026-10-22: "no need to be stingy with infantry
 and vehicles"). Its infantry comes in **waves**: the first steps off at the
@@ -289,6 +299,14 @@ collapses a bore by fiat.
    - falling back to its landing: 5.
    Sending the lanes across to the company's satellite once their own fell
    measured worse.
+
+   Those readings predate the friendly-fire rule. Once allies held fire
+   through each other, allied damage on the swarm fell by about a quarter,
+   and the eight armour waves won back 4 of 5. Main's later combat changes
+   cost more: rounds landing on a hull's footprint flipped seed 404 to a
+   loss. On main of 2026-10-23 Broad Front wins 1 of 5 and The Burn 2 of 5
+   inside the fifteen-minute evidence cap. Retuning for that waits until
+   the combat changes settle (owner, 2026-10-23: no overtuning yet).
 5. **Heart down.** The last mother collapses: `heart_down`, the win. Allied
    lanes broken are a cost on the outcome, never a loss.
 
