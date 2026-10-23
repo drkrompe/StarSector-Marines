@@ -111,6 +111,8 @@ public final class HeartLanes {
     private BarrageScreen screen;
     /** Which way the lanes advance along their axis, +1 or -1, for armour that follows no barrage. */
     private int advanceSign;
+    /** How far behind its lane's aim the armour stands; negative stands it ahead, leading its infantry. */
+    private int armourBehind = ARMOUR_BEHIND;
 
     /** Each lane's ground across the front, in lane order. */
     public List<HeartLane> grounds() {
@@ -136,6 +138,12 @@ public final class HeartLanes {
     public int addSupport(HeartLane ground, int[] entry, long seed) {
         lanes.add(new Lane(lanes.size() + 1, ground, entry[0], entry[1], 0, new int[0], RiskLevel.MEDIUM, new Random(seed)));
         return lanes.size() - 1;
+    }
+
+    /** Stands the lanes' armour {@code cells} behind their aim, or ahead of it when negative. */
+    public HeartLanes armourBehind(int cells) {
+        armourBehind = cells;
+        return this;
     }
 
     /** Lanes that advance toward higher ({@code +1}) or lower ({@code -1}) cells, so armour without a barrage stands behind its aim. */
@@ -232,7 +240,7 @@ public final class HeartLanes {
         }
     }
 
-    /** Cells between neighbouring machines across a lane, and how far behind the lane's aim they stand. */
+    /** Cells between neighbouring machines across a lane, and by default how far behind the lane's aim they stand. */
     static final int ARMOUR_SPACING = 5, ARMOUR_BEHIND = 4;
 
     /** Brings a machine on at {@code tick} as {@link #addArmour} sets one down; one with no ground near is dropped. */
@@ -300,8 +308,8 @@ public final class HeartLanes {
         }
     }
 
-    private static int[] station(int[] aim, boolean alongY, int toward, int i, int count) {
-        int across = Math.round((i - (count - 1) / 2f) * ARMOUR_SPACING), back = -toward * ARMOUR_BEHIND;
+    private int[] station(int[] aim, boolean alongY, int toward, int i, int count) {
+        int across = Math.round((i - (count - 1) / 2f) * ARMOUR_SPACING), back = -toward * armourBehind;
         return alongY ? new int[]{aim[0] + across, aim[1] + back} : new int[]{aim[0] + back, aim[1] + across};
     }
 
