@@ -251,7 +251,7 @@ class SceneFx:
     # every frame at its turn rate, both axes, easing in; it fires in bursts with gaps, and only
     # while it is on target, in range and with no other hull in the way; its rounds fly straight.
     ON_TARGET_DEG = 5.0
-    MAX_FLIGHT_S = 2.2
+    MAX_FLIGHT_S = 3.0      # long enough for the story rakes at 1.1-1.3 km (fire-control plan, 2026-10-23)
     MAX_RANGE_M = 3500.0
     BURST_S, GAP_S = (.8, 2.0), (1.0, 2.6)
     # Burst rhythm by weapon (owner, 2026-10-23: Vulcans fire long bursts of the streak; cannons

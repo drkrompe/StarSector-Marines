@@ -52,8 +52,8 @@ public final class CreepField {
 
     /** Seconds per simulation tick; the field is ticked once per sim tick. */
     static final float TICK_SECONDS = 1f / 30f;
-    /** Rate multiplier while a source is fed; {@code -Dbattle.creep.feedMultiplier} overrides it. */
-    static final float FEED_MULTIPLIER = 3f;
+    /** Rate multiplier while a source is fed (owner pick, 2026-10-23: 1.5, was 3); {@code -Dbattle.creep.feedMultiplier} overrides it. */
+    static final float FEED_MULTIPLIER = 1.5f;
     public static final String FEED_MULTIPLIER_PROPERTY = "battle.creep.feedMultiplier";
     /** Coverage a growing cell gains per tick (about three seconds to fill). */
     static final int FILL_PER_TICK = 3;
@@ -78,9 +78,11 @@ public final class CreepField {
     /**
      * Multiplies every source's reach rate, fed or not: how fast the front walks
      * out, never how far it goes or how fast a claimed cell fills.
-     * {@code -Dbattle.creep.spreadScale=0.5} is half speed; 1 is the tuned rate.
+     * {@code -Dbattle.creep.spreadScale=1} restores the pre-2026-10-23 rate; the default, 0.5, is the owner's pick.
      */
     public static final String SPREAD_SCALE_PROPERTY = "battle.creep.spreadScale";
+    /** The default of {@link #SPREAD_SCALE_PROPERTY}: half the presets' rate. */
+    static final float SPREAD_SCALE = 0.5f;
 
     private static final int COST_SCALE = 10;
     private static final int RING = 64;
@@ -105,7 +107,7 @@ public final class CreepField {
     /** Cells the creep grows over rather than climbs; null while none are declared. */
     private BitSet overgrown;
     private int now;
-    private final float spreadScale = nonNegative(SPREAD_SCALE_PROPERTY, 1f);
+    private final float spreadScale = nonNegative(SPREAD_SCALE_PROPERTY, SPREAD_SCALE);
     private final float feedMultiplier = nonNegative(FEED_MULTIPLIER_PROPERTY, FEED_MULTIPLIER);
     /** Cells the creep is held off (`fire-nouns.md`, Firebreak); null while nothing refuses. */
     private IntPredicate refusal;
