@@ -13,7 +13,6 @@ import org.lwjgl.BufferUtils;
 import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.Locale;
 
 import static org.lwjgl.opengl.GL11.GL_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_ALPHA8;
@@ -95,7 +94,7 @@ import static org.lwjgl.opengl.GL14.GL_GENERATE_MIPMAP;
  * <p>Raised ground's cliff faces and ramp walls are drawn by {@link CliffArtLayer}
  * under the creep, so creep over them would hide every ridge and bank in a bloom.
  * The layer keeps the layout's {@link CliffFaceMask} beside the field and the
- * creep stands back from the rock as {@link #CLIFFS_PROPERTY} says.
+ * creep stands back from the rock, veining and filming it where it stands round.
  */
 final class CreepLayer implements RenderSystem, CreepShading.Field {
 
@@ -103,16 +102,6 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
     static final String PROPERTY = "battle.render.creep";
 
     private static final boolean ENABLED = Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
-
-    /**
-     * What the creep does over cliff faces: {@code veined} (default), {@code bare} or {@code over}
-     * ({@link CreepShading.CliffLook}). Temporary: the owner picks one of the three on the picks page
-     * (question {@code creep-cliffs}); remove the switch and the losing looks once that is answered.
-     */
-    static final String CLIFFS_PROPERTY = "battle.render.creepCliffs";
-
-    private static final CreepShading.CliffLook CLIFFS = CreepShading.CliffLook.valueOf(
-            System.getProperty(CLIFFS_PROPERTY, "veined").trim().toUpperCase(Locale.ROOT));
 
     /** Whether creep is drawn at all; for evidence that reports which run it was. */
     static boolean enabled() { return ENABLED; }
@@ -207,7 +196,6 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
         pass.timeSeconds = clockSeconds;
         pass.alpha = ctx.alphaMult;
         pass.palette = palette;
-        pass.cliffs = faces == null ? CreepShading.CliffLook.OVER : CLIFFS;
         pass.sun = new CreepShading.Sun(sun.dirX(), sun.dirY(), sun.risePerCell(), sun.casts() ? sun.shadowStrength() : 0f);
         out.addCustom(RenderLayer.CREEP, pass);
     }
@@ -229,7 +217,7 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
         ElevationLayout layout = topology == null ? null : topology.cliffArt();
         if (layout != faceLayout) {
             faceLayout = layout;
-            faces = layout == null || CLIFFS == CreepShading.CliffLook.OVER ? null : CliffFaceMask.of(layout);
+            faces = layout == null ? null : CliffFaceMask.of(layout);
             facesUploaded = false;
         }
         long revision = field.revision();

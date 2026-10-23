@@ -18,10 +18,16 @@ import java.util.List;
 public final class DirectControlReticle {
     private DirectControlReticle() {}
 
-    public static final Color GOOD = new Color(0xF4, 0xF6, 0xF8);
-    public static final Color FALLING_OFF = new Color(0xFF, 0xD2, 0x4A);
-    public static final Color WASTED = new Color(0xFF, 0x5A, 0x4A);
-    public static final Color HELD = new Color(0xA4, 0xAA, 0xB0);
+    /*
+     * Partly transparent, so the ticks stay quiet over the point the player is watching. Yellow and red keep a
+     * little more than white, since a falling-off or dotted tick carries less ink; grey sits lowest.
+     */
+    public static final Color GOOD = new Color(0xF4, 0xF6, 0xF8, alpha(0.80f));
+    public static final Color FALLING_OFF = new Color(0xFF, 0xD2, 0x4A, alpha(0.85f));
+    public static final Color WASTED = new Color(0xFF, 0x5A, 0x4A, alpha(0.85f));
+    public static final Color HELD = new Color(0xA4, 0xAA, 0xB0, alpha(0.60f));
+
+    private static int alpha(float share) { return Math.round(share * 255f); }
 
     /** The colour a mark draws in, or null for {@link Mark#NONE}. */
     public static Color color(Mark mark) {
