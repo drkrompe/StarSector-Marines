@@ -1,0 +1,79 @@
+{
+  "sheet": "graphics/tilesets/water-shore.png",
+  "cellPx": 16,
+  "blocks": [
+    {
+      "id": "shore.shallow",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ]
+    },
+    {
+      "id": "shore.wet",
+      "cells": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ]
+      ]
+    }
+  ],
+  "cells": [
+    {
+      "col": 0,
+      "row": 0,
+      "name": "shore.shallow v1",
+      "description": "shallows over a sandy bed, variant 1"
+    },
+    {
+      "col": 1,
+      "row": 0,
+      "name": "shore.shallow v2",
+      "description": "shallows over a sandy bed, variant 2"
+    },
+    {
+      "col": 2,
+      "row": 0,
+      "name": "shore.shallow v3",
+      "description": "shallows over a sandy bed, variant 3"
+    },
+    {
+      "col": 0,
+      "row": 1,
+      "name": "shore.wet v1",
+      "description": "translucent wet film over the bank, variant 1"
+    },
+    {
+      "col": 1,
+      "row": 1,
+      "name": "shore.wet v2",
+      "description": "translucent wet film over the bank, variant 2"
+    },
+    {
+      "col": 2,
+      "row": 1,
+      "name": "shore.wet v3",
+      "description": "translucent wet film over the bank, variant 3"
+    }
+  ],
+  "doodads": []
+}
