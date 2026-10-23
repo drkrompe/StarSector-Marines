@@ -179,7 +179,8 @@ final class CliffShading {
     /**
      * How much of a point is bare rock, 0 to 1: the face's share of what {@link #shade} lays over the ground there,
      * so the turf hanging over the lip and the apron at the foot count for nothing, and a ramp's walls count in
-     * full. What creep stands back from ({@link CliffFaceMask}).
+     * full. A ramp's floor counts for nothing however steep it is: creep runs up the steps between the bare walls,
+     * which marks the way up. What creep stands back from ({@link CliffFaceMask}).
      */
     float faceCover(float wx, float wy, float[] scratch) {
         float gx = (warped(wx + E, wy) - warped(wx - E, wy)) / (2 * E);
@@ -191,7 +192,10 @@ final class CliffShading {
             rock = face * scratch[3];
         }
         float[] step = steps(wx, wy);
-        return step == null ? rock : Math.max(rock, step[7]);
+        if (step == null) return rock;
+        // The floor carries .88 coverage at most; under it the slope is the ramp's, not a face's.
+        float floor = Math.min(1f, step[3] / .88f);
+        return Math.max(rock * (1f - floor), step[7]);
     }
 
     /**
