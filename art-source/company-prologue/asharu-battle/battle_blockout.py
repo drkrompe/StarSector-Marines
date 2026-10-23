@@ -916,7 +916,7 @@ KEYFRAMES = {
     'k3d': dict(
         shot='S6c', title='The column is cut',
         caption='Alongside the column at 300 m. The two Wolves (P) blink through the gap between the freighters, '
-                'raking the Tarsus\'s drives as they pass. The Mule\'s guns and the merchant Wolf chase them; '
+                'raking the Tarsus\'s drives as they pass. The Colossus, the Mule\'s guns and the merchant Wolf chase them; '
                 'shields flare on both sides.',
         # TRACKING DOLLY: dropping back along the column at 70 m/s, the Wolves (P) passing the lens
         camera=camera('k3d', [dict(t=66, loc=(120, -800, 105), target=(60, 0, 0), lens=28),
@@ -936,9 +936,9 @@ KEYFRAMES = {
         labels=['wolf-p-a', 'wolf-p-b', 'tarsus', 'wolf-m', 'colossus']),
     'k3e': dict(
         shot='S6d', title='The rear guard',
-        caption='The convoy\'s Hound turns to face two Hounds (P) climbing at her. She kills the first at close range '
+        caption='The convoy\'s Hound, rolled over onto two Hounds (P) climbing at her, fires down on the first and kills her at close range '
                 'and takes the second\'s fire full on as she falls back on the column.',
-        # HANDHELD CHASE: close behind the Hound, riding her roll-over, jolted by her kill and her hit
+        # HANDHELD CHASE: close behind the Hound, rolled over and firing, jolted by her kill and her hit
         camera=camera('k3e', [dict(t=t, loc=track(K3E_SHIPS['hound-m'], (-1450, 120, 160), .95, .15),
                                    target=track(K3E_SHIPS['hound-m'], (-1650, -180, 20), .8, .05), lens=lens)
                               for t, lens in ((74, 30), (77, 35), (80, 40))], K3E_T, shake=.45, kicks=[(77.0, .7), (77.4, 1.0)]),
