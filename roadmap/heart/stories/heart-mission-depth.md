@@ -1,6 +1,6 @@
 # Heart mission depth: from brawl to a thought-through battle
 
-Status: ACTIVE. Step 1: candidate beats in `heart-story-beats.md`, awaiting the owner's pick. Seeds: the pooled 2, 3 and 5 on every biome (`story-map-pools.md`).
+Status: ACTIVE. Step 1: candidate beats in `heart-story-beats.md`; step 2: direction in `heart-map-intent.md`; both awaiting the owner's picks. Seeds: the pooled 2, 3 and 5 on every biome (`story-map-pools.md`).
 
 Written: 2026-10-23
 
