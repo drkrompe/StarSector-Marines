@@ -339,6 +339,7 @@ public final class CordonSetup {
                 SquadCommandClaim.mission(CordonCommand.ISSUER, "Cordon company lift"));
         List<CordonRedoubt> redoubts = CordonGarrisons.man(sim, cordon.plan(), GARRISON_RISK,
                 new Random(cordon.battleSeed() ^ GARRISON_SALT));
+        CordonGarrisons.manPickets(sim, map.layout);
         CordonFront.grow(sim, cordon.plan(), cordon.corridor(), CordonFront.DEFAULT_TIERS, cordon.battleSeed());
         if (!sim.configureSwarmFromBores(cordon.battleSeed())) {
             throw new IllegalStateException("Cordon swarm director configuration failed");

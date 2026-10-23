@@ -1,6 +1,6 @@
 # The Cordon: maps with intent
 
-Status: DRAFT. Direction for the Cordon's controlled maps (step 2). The layout machinery, the picket courses and a placeholder eruption site are built (step 1, in part).
+Status: DRAFT. Direction for the Cordon's controlled maps (step 2). Built: the layout machinery, the picket courses as fieldworks with the garrison's guns in their nests, the switch line and a placeholder eruption site.
 
 Written: 2026-10-23
 
@@ -87,8 +87,11 @@ which beats run.
 
 1. The layout machinery, and the Cordon's line, picket courses, supply roads
    and base placed through it. Built: the machinery (lines, sites, deferred
-   pieces, the shared check) and the picket courses, with the L4 eruption site
-   as a placeholder open site. Next: supply roads and the base.
+   pieces, the shared check), the picket courses (a two-deep trench, parapet,
+   wire and turned earth in the country, barricaded street mouths in a town,
+   a street line along the house fronts in a city; allied guns in the nests),
+   the switch line, and the L4 eruption site as a placeholder open site.
+   Next: supply roads and the base.
 2. The authored ground (the ridge), from the heart's side of the machinery.
 3. The set pieces, one per beat, each checked on the pools.
 4. Then the optional-objective mechanism, shared with the heart, which rolls

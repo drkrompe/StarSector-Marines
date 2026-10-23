@@ -194,6 +194,9 @@ public final class CordonPlan {
     public static final String PICKETS = "picket";
     /** The picket course between redoubts {@code n} and {@code n + 1} is this plus "n-(n+1)". */
     public static final String PICKET_LINE = "picket-";
+    /** The switch line (beat L3), resolved behind the middle redoubt with the most room. */
+    public static final String SWITCH = "switch";
+    public static final String SWITCH_LINE = "switch-line";
     /** The eruption site (beat L4), resolved behind the middle of the line. */
     public static final String ERUPTION = "eruption";
     public static final String ERUPTION_SITE = "eruption-site";
@@ -201,24 +204,35 @@ public final class CordonPlan {
     static final int PICKET_ROAD_GAP = 2;
     /** Pitch of the funnels opened in a picket course's wire. */
     static final int PICKET_FUNNEL_EVERY = 14;
+    /** Rows a picket trench is dug, where the ground allows. */
+    static final int PICKET_DEPTH = 2;
+    /** Pitch of the nests along a picket run, between the ones at its ends. */
+    static final int PICKET_NEST_EVERY = 40;
+    /** Cells behind a middle redoubt's rear edge its switch line runs, and how far it reaches either side. */
+    static final int SWITCH_BACK = 16, SWITCH_HALF = 24;
     /** Side of the eruption site, in cells. */
     static final int ERUPTION_SIDE = 12;
 
     /**
      * What the Cordon lays over its country ({@code cordon-map-intent.md}): a
      * picket course between each pair of neighbouring redoubts, facing the
-     * front, and the open ground a bore may erupt on behind the line.
+     * front, a switch line behind the middle, and the open ground a bore may
+     * erupt on behind the line.
      */
     static MissionLayout layout(boolean south, Density density) {
         int[] front = {0, south ? 1 : -1};
-        LineStyle style = density == Density.URBAN ? LineStyle.SANDBAG : LineStyle.TRENCH_WIRE;
+        LineStyle style = density == Density.URBAN ? LineStyle.STREETS : LineStyle.TRENCH_WIRE;
+        LineStyle fallback = density == Density.URBAN ? LineStyle.STREETS : LineStyle.TRENCH;
+        boolean streets = density != Density.RURAL;
         return new MissionLayout(List.of(
-                new Deferred(PICKETS, Phase.WORKS, ground -> pickets(ground, front, style), false),
-                new Deferred(ERUPTION, Phase.WORKS, ground -> eruptionSite(ground, south), false)));
+                // The eruption site first: it holds its ground against the works resolved after it.
+                new Deferred(ERUPTION, Phase.WORKS, ground -> eruptionSite(ground, south), false),
+                new Deferred(PICKETS, Phase.WORKS, ground -> pickets(ground, front, style, streets), false),
+                new Deferred(SWITCH, Phase.WORKS, ground -> switchLine(ground, front, fallback, streets), false)));
     }
 
     /** A picket course from each redoubt's claimed edge to the next's, at their depths. */
-    static List<Piece> pickets(LayoutGround ground, int[] front, LineStyle style) {
+    static List<Piece> pickets(LayoutGround ground, int[] front, LineStyle style, boolean streets) {
         List<Piece> out = new ArrayList<>();
         for (int n = 1; n < REDOUBTS; n++) {
             int[] a = ground.claimBounds(REDOUBT_PLACE + n), b = ground.claimBounds(REDOUBT_PLACE + (n + 1));
@@ -226,9 +240,41 @@ public final class CordonPlan {
             int[] from = {a[2] + 1, (a[1] + a[3]) / 2}, to = {b[0] - 1, (b[1] + b[3]) / 2};
             if (to[0] - from[0] < LineCourse.MIN_RUN) continue;
             out.add(new Line(PICKET_LINE + n + "-" + (n + 1), List.of(from, to), style, front,
-                    PICKET_ROAD_GAP, PICKET_FUNNEL_EVERY, true, false));
+                    PICKET_ROAD_GAP, PICKET_FUNNEL_EVERY, true, false, PICKET_DEPTH, PICKET_NEST_EVERY, streets));
         }
         return out;
+    }
+
+    /**
+     * The switch line (beat L3): a shorter trench behind whichever middle
+     * redoubt has the most open ground behind it, unmanned, no wire and no
+     * nests, where a garrison falls back to.
+     */
+    static List<Piece> switchLine(LayoutGround ground, int[] front, LineStyle style, boolean streets) {
+        List<int[]> best = null;
+        int bestRoom = -1;
+        for (int n = 2; n <= REDOUBTS - 1; n++) {
+            int[] r = ground.claimBounds(REDOUBT_PLACE + n);
+            if (r == null) continue;
+            int cx = (r[0] + r[2]) / 2;
+            int y = front[1] > 0 ? r[1] - SWITCH_BACK : r[3] + SWITCH_BACK;
+            int x0 = Math.max(1, cx - SWITCH_HALF), x1 = Math.min(ground.width() - 2, cx + SWITCH_HALF);
+            if (y < 1 || y > ground.height() - 2 || x1 - x0 < LineCourse.MIN_NESTED_RUN) continue;
+            int room = 0;
+            for (int x = x0; x <= x1; x++) {
+                for (int row = 0; row < PICKET_DEPTH; row++) {
+                    int cy = y - front[1] * row;
+                    if (ground.walkable(x, cy) && !ground.isRoad(x, cy) && !ground.isClaimed(x, cy)) room++;
+                }
+            }
+            if (room > bestRoom) {
+                bestRoom = room;
+                best = List.of(new int[]{x0, y}, new int[]{x1, y});
+            }
+        }
+        if (best == null) return List.of();
+        return List.of(new Line(SWITCH_LINE, best, style, front, PICKET_ROAD_GAP, 0, false, false,
+                PICKET_DEPTH, 0, streets));
     }
 
     /**

@@ -71,6 +71,7 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
             }
             String state = laid.status() == Laid.Status.LAID ? "" : " (" + laid.status().name().toLowerCase() + ")";
             marks.box(x0, y0, x1, y1, laid.name() + state, laid.kind() == Laid.Kind.LINE ? ReviewStyle.ROUTE : ReviewStyle.NOTE);
+            for (int[] nest : laid.nests()) marks.box(nest[0] - 1, nest[1] - 1, nest[0] + 1, nest[1] + 1, "nest", ReviewStyle.OBJECTIVE);
         }
         CordonLogistics base = sim.getCordon() == null ? null : sim.getCordon().logistics();
         if (base != null) {
@@ -119,7 +120,8 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
                     lineY /= Math.max(1, redoubts.size());
                     near.refocus(CordonSetup.WIDTH / 2f, lineY, 300f);
                     out.add(new SnapshotArtifact(tag + "02-the-line.png",
-                            near.render(sim, "the " + name + ", seed " + seed + ", the line, 300 cells across")));
+                            near.render(sim, "the " + name + ", seed " + seed + ", the line, 300 cells across",
+                                    annotations(sim, cordon))));
                     if (cordon.corridor() != null) {
                         int[] cross = cordon.corridor().get(0);
                         for (int[] cell : cordon.corridor()) {

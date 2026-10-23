@@ -20,10 +20,17 @@ A layout is a list of **named pieces**; a name is used once. A piece is
 optional (reported, and the map stands).
 
 - **Line.** Works along a path of cells, facing the front: a trench with wire
-  in front, a trench alone, or a sandbag course. A line is broken wherever a
-  road crosses it, with a margin either side (the **gap**), so roads always
-  pass. Wire is opened in **funnels** at a fixed pitch. A run long enough
-  takes a nest at each end.
+  in front, a trench alone, a sandbag course, or a **street line** (a sandbag
+  course that, where a house stands across it, runs along the house's front
+  instead). A trench is dug as deep as the line asks where the ground allows,
+  with a sandbag parapet on its front lip, its wire a few cells further out,
+  and a band of turned earth either side: what makes a line read as a
+  fieldwork from a whole-map view rather than a hairline. A line is broken
+  wherever a road crosses it, with a margin either side (the **gap**), so
+  roads always pass; a line may barricade its gaps, closing each street mouth
+  with hedgehogs and crates but its middle lane. Wire is opened in **funnels**
+  at a fixed pitch. A run long enough takes a nest at each end and one at a
+  pitch between.
 - **Site.** Ground held by name, for a purpose. An **open** site is ground for
   a set piece or an event, kept clear of trees, rises and props. A **ground**
   site is held for authored terrain: nothing is built on it, and ridges and
@@ -32,7 +39,8 @@ optional (reported, and the map stands).
   from one place's claimed edge to the next's. A deferred piece resolves at
   its **phase** against a read-only view of the grown ground (claims, roads,
   walkability, and a seed per place, never the generation random stream), and
-  what it returns is laid under the returned pieces' own names.
+  what it returns is laid under the returned pieces' own names. A site it
+  returns holds its ground against the works resolved with it.
 
 ## When things are laid
 
@@ -49,8 +57,8 @@ optional (reported, and the map stands).
 
 - **Placements yield.** A work goes only on open ground that is not road: a
   line through a town is broken by its buildings and reported **partial**.
-- **Never sealed.** Works never cut the walkable ground apart. Wire and nests
-  that would are not laid, and the line says so. A line that closes ground
+- **Never sealed.** Works never cut the walkable ground apart. Wire, nests and
+  barricades that would are not laid, and the line says so. A line that closes ground
   leaves at least one way through.
 - **Reported by name.** Every piece comes back as laid, partial or refused,
   with its cells, its ways through and its nests, on the finished map. A later
@@ -64,5 +72,5 @@ optional (reported, and the map stands).
 Roads (supply roads to a redoubt's rear gate), structures (a farmstead, a
 granary) and authored blocks are further piece kinds, with the structures
 phase they need. A nest is published as a light defence post; a mission that
-does not seat map posts (the Cordon) leaves it empty until it seats its own
-guns there.
+does not seat map posts seats its own guns in the nests it is reported (the
+Cordon's garrison does).

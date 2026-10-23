@@ -63,8 +63,14 @@ rather than walls, run from one redoubt's claimed edge to the next's at their
 depth and facing the front, with a nest at each end of every run
 (`fortified-lines.md`). The mission lays it through its layout
 (`mission-layout.md`) once the redoubts stand; what it is built of follows the
-density: a trench with wire in front, opened in funnels, across rural and town
-country, and a sandbag course in a city, where the buildings break it. A
+density: a trench two deep with a sandbag parapet and wire in front, opened in
+funnels, across rural and town country, its street mouths barricaded in a
+town; in a city a sandbag course that runs along the house fronts where the
+buildings stand across it, and barricaded street mouths. The garrison seats
+its own light gun (`ALLY`) in every nest of the picket, so the works between
+redoubts are covered from the first tick. Behind the middle of the line, the
+redoubt with the most room has an unmanned **switch line**, a shorter trench
+a garrison falls back to (beat L3). A
 picket line is broken by gaps the roads pass through, so the line is a set of
 prepared positions, never a wall: routes through always exist, and works that
 would seal the ground are not laid. A picket line is optional: one the town
