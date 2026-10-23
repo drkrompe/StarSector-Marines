@@ -203,7 +203,10 @@ final class ScorchLayer implements RenderSystem, ScorchShading.Field {
         if (FireFuel.CREEP.in(mask) || FireFuel.DEAD_CREEP.in(mask)) return ScorchShading.CREEP;
         // A burnt room's boards char as burnt ground does; a burnt-through wall is rubble.
         if (FireFuel.CROWN.in(mask) || FireFuel.FURNISHING.in(mask) || FireFuel.STRUCTURE.in(mask)) return ScorchShading.SOIL;
-        if (!grid.isWalkableAt(idx)) return ScorchShading.NONE;
+        // A cell that burnt under a fence or a prop chars as its own ground: the grass under a wire fence is kindling
+        // even though nobody can stand there, and the fence standing over it does not keep it green. A wall or
+        // fixture that never burnt takes no singe.
+        if (mask == 0 && !grid.isWalkableAt(idx)) return ScorchShading.NONE;
         CellTopology.GroundKind kind = topology == null ? null : topology.getGroundKind(x, y);
         if (kind == null) return ScorchShading.PAVED;
         return switch (kind) {
