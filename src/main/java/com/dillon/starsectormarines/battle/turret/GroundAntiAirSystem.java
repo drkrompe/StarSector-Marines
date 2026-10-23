@@ -1,5 +1,10 @@
 package com.dillon.starsectormarines.battle.turret;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.evacuation.flier.HarrierFlight;
+import com.dillon.starsectormarines.battle.evacuation.flier.HarrierPack;
+import com.dillon.starsectormarines.battle.evacuation.flier.HarrierRules;
+
 import com.dillon.starsectormarines.battle.air.AirAppearance;
 import com.dillon.starsectormarines.battle.fort.Fort;
 import com.dillon.starsectormarines.battle.fort.FortFrame;
@@ -19,7 +24,13 @@ import java.util.List;
 public final class GroundAntiAirSystem {
     private static final float FLIGHT_SECONDS = .15f;
     private final List<Round> rounds = new ArrayList<>();
-    private record Round(long shooter, long target, float damage, float penetration, int arrival) {}
+    private record Round(long shooter, long target, float damage, float penetration, int arrival,
+                         float burstRadius, float burstX, float burstY) {
+        Round(long shooter, long target, float damage, float penetration, int arrival) {
+            this(shooter, target, damage, penetration, arrival, 0f, 0f, 0f);
+        }
+    }
+    private static final long[] NO_AIRCRAFT = new long[0];
     private final List<Missile> missiles = new ArrayList<>();
     private static final class Missile {
         final long shooter;
@@ -35,6 +46,18 @@ public final class GroundAntiAirSystem {
     }
 
     public void tick(BattleSimulation sim) {
+        run(sim, sim.getAirEntityIds());
+    }
+
+    /**
+     * The same pass with no aircraft in it, for a battle whose air layer the host owns: the mounts still engage the
+     * swarm's fliers, which are the battle's own bodies whoever owns the aircraft.
+     */
+    public void tickFliersOnly(BattleSimulation sim) {
+        run(sim, NO_AIRCRAFT);
+    }
+
+    private void run(BattleSimulation sim, long[] aircraft) {
         advanceMissiles(sim);
         for (var it = rounds.iterator(); it.hasNext();) {
             Round round = it.next();
@@ -43,9 +66,9 @@ public final class GroundAntiAirSystem {
                 sim.applyAimedDamage(round.target, round.shooter, round.damage, round.penetration);
                 sim.telemetry().recordRoundHit(round.shooter);
             }
+            if (round.burstRadius > 0f) airburst(sim, round);
             it.remove();
         }
-        long[] aircraft = sim.getAirEntityIds();
         for (int i = 0; i < sim.liveUnitCount(); i++) {
             long id = sim.liveUnitAt(i);
             if (!sim.world().isAlive(id) || !sim.turretState().isTurret(id)) continue;
@@ -87,6 +110,13 @@ public final class GroundAntiAirSystem {
             if (!airLineClear(sim, fort, id, candidate)) continue;
             target = candidate;
             nearest = distance;
+        }
+        if (target == 0L && (weapon.airMissile == null || state.burstRemaining(id) == 0)) {
+            long flier = nearestFlier(sim, id, weapon, fort);
+            if (flier != 0L) {
+                fireAtFlier(sim, id, structure, flier, dt, cooldown);
+                return;
+            }
         }
         sim.world().setTargetId(id, target);
         if (target == 0L && (weapon.airMissile == null || state.burstRemaining(id) == 0)) {
@@ -157,6 +187,95 @@ public final class GroundAntiAirSystem {
                 AirAppearance.visualAltitudeOffsetCells(sim.world().altitudeT(target)), hit,
                 sim.identity().faction(id), flight, structure, null, null, null,
                 0f, hit, null, id));
+    }
+
+    /**
+     * The nearest live Rav flier the mount can reach, or 0. Aircraft come first: this is asked only of a mount with
+     * no aircraft to shoot at.
+     */
+    private static long nearestFlier(BattleSimulation sim, long id, WeaponDef weapon, Fort fort) {
+        if (!sim.identity().faction(id).hostileTo(Faction.DEFENDER)) return 0L;
+        float x = sim.world().x(id), y = sim.world().y(id);
+        long best = 0L;
+        float nearest = weapon.range * weapon.range;
+        float min = weapon.minRange * weapon.minRange;
+        for (HarrierPack pack : sim.swarmFliers().packs()) {
+            for (HarrierFlight m : pack.members) {
+                if (!sim.world().isAlive(m.id)) continue;
+                float dx = m.body.x - x, dy = m.body.y - y;
+                float d = dx * dx + dy * dy;
+                if (d > nearest || d < min || d == nearest && best != 0L && m.id > best) continue;
+                if (!airLineClear(sim, fort, id, m.id)) continue;
+                best = m.id;
+                nearest = d;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Engages a flier as the mount engages a craft, on the same cooldown, burst and slew, with the round's flight
+     * solved against the flier's own velocity. A guided round is resolved as a timed round rather than flown: a
+     * flier carries no airframe for the missile path to home on. The hit bursts among the flier's packmates
+     * ({@link #airburst}), which is what a tight, committed pack pays for.
+     */
+    private void fireAtFlier(BattleSimulation sim, long id, StructureDef structure, long flier, float dt,
+                             float cooldown) {
+        var state = sim.turretState();
+        WeaponDef weapon = structure.mount.weapon;
+        sim.world().setTargetId(id, flier);
+        float ox = sim.world().x(id), oy = sim.world().y(id);
+        AirBody body = sim.world().kinematics(flier);
+        float fx = sim.world().x(flier), fy = sim.world().y(flier);
+        float distance = (float) Math.hypot(fx - ox, fy - oy);
+        float speed = weapon.airMissile != null ? weapon.airMissile.cruiseSpeed() : weapon.roundVelocity;
+        float flight = weapon.flightSec > 0f ? weapon.flightSec : speed > 0f ? distance / speed : FLIGHT_SECONDS;
+        flight = Math.max(BattleSimulation.TICK_DT, flight);
+        float aimX = fx + (body == null ? 0f : body.vx * flight);
+        float aimY = fy + (body == null ? 0f : body.vy * flight);
+        float bearing = TurretAim.bearingTo(ox, oy, aimX, aimY);
+        float facing = TurretAim.slewToward(state.facingDegrees(id), bearing, structure.mount.turnRateDegPerSec * dt);
+        state.setFacingDegrees(id, facing);
+        boolean burst = state.burstRemaining(id) > 0;
+        state.setBurstTimer(id, Math.max(0f, state.burstTimer(id) - dt));
+        if (burst ? state.burstTimer(id) > 0f : cooldown > 0f) return;
+        if (!burst && Math.abs(TurretAim.shortestAngleDelta(facing, bearing)) > TurretAim.FIRE_ARC_DEG) return;
+        int release = burst ? weapon.burstCount - state.burstRemaining(id) : 0;
+        state.setBurstRemaining(id, burst ? state.burstRemaining(id) - 1 : weapon.burstCount - 1);
+        state.setBurstTimer(id, weapon.burstSpacing);
+        if (!burst) sim.world().setCooldownTimer(id, weapon.cooldown);
+        state.setRecoilTimer(id, 0f);
+        var muzzle = TurretMountGeometry.muzzle(ox, oy, facing, structure.mount, release);
+        HarrierFlight own = sim.swarmFliers().flight(flier);
+        float z = own == null ? HarrierRules.LOITER_HEIGHT_CELLS : own.altitude * HarrierRules.LOITER_HEIGHT_CELLS;
+        boolean hit = sim.random().nextFloat() < weapon.accuracy;
+        float x = aimX, y = aimY;
+        if (!hit) { x += 2f; y += 1f; }
+        sim.telemetry().recordRoundFired(id);
+        float burstRadius = Math.max(HarrierRules.FLAK_MIN_BURST, Math.max(weapon.aoeRadius,
+                weapon.airMissile != null ? weapon.airMissile.blastRadius() : 0f));
+        if (hit) {
+            rounds.add(new Round(id, flier, weapon.damage, weapon.penetration,
+                    sim.getSimTickIndex() + Math.max(1, Math.round(flight / BattleSimulation.TICK_DT)),
+                    burstRadius, aimX, aimY));
+        }
+        sim.postShot(new ShotEvent(muzzle.x(), muzzle.y(), 0f, x, y, z, hit,
+                sim.identity().faction(id), flight, structure, null, null, null,
+                0f, hit, null, id));
+    }
+
+    /** A hit on a flier bursts among the fliers round it, each taking {@link HarrierRules#BURST_SHARE} of it. */
+    private static void airburst(BattleSimulation sim, Round round) {
+        float r2 = round.burstRadius * round.burstRadius;
+        for (HarrierPack pack : sim.swarmFliers().packs()) {
+            for (HarrierFlight m : pack.members) {
+                if (m.id == round.target || !sim.world().isAlive(m.id)) continue;
+                float dx = m.body.x - round.burstX, dy = m.body.y - round.burstY;
+                if (dx * dx + dy * dy > r2) continue;
+                sim.applyAimedDamage(m.id, round.shooter, round.damage * HarrierRules.BURST_SHARE, round.penetration);
+                sim.telemetry().recordRoundHit(round.shooter);
+            }
+        }
     }
 
     /**

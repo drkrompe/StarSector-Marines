@@ -133,6 +133,12 @@ public interface BattleControl extends BattleView, SquadDirectiveControl {
 
     void fireSecondary(long shooter, long target);
 
+    /**
+     * Fires a carried direct-fire special (launcher or precision rifle) at a world point and spends one
+     * of its rounds; the caller owns cooldown. Returns whether a round left.
+     */
+    boolean fireSecondaryAtPoint(long shooter, float x, float y);
+
     /** Consume and lob a fragmentation grenade toward a world-space landing point. */
     void throwFragmentationGrenade(long carrier, float targetX, float targetY);
 

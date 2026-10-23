@@ -665,7 +665,7 @@
     {"id": "jangala_arrival_wind", "source": "jangala-arrival/jangala_arrival_wind.flac", "kind": "ui", "out": "story/jangala-arrival"},
     // The arrival's music, played by the cinematic as looped UI cues so each shot's level, fades and
     // duck under the voices are timeline data (arrival-audio/arrival-mix.json), not a baked mix.
-    // One score from C1 to the black: a copy of arrival-audio/music-takes/rescore_anthem_t01.mp3.
+    // One score from C1 to the black: a copy of arrival-audio/music-takes/rescore_horns_t01.mp3.
     {"id": "jangala_arrival_score_march", "source": "jangala-arrival/jangala_arrival_score_march.mp3", "kind": "ui", "out": "story/jangala-arrival"},
     // Colony Breach (tools/generate_colony_breach_audio.py)
     {"id": "breach_landfall", "source": "colony-breach/speech/breach_landfall.mp3", "kind": "ui", "out": "story/colony-breach", "processing": "comms"},

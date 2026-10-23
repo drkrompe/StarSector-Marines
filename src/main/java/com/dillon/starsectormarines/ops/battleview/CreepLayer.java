@@ -16,6 +16,8 @@ import java.util.Arrays;
 
 import static org.lwjgl.opengl.GL11.GL_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_ALPHA8;
+import static org.lwjgl.opengl.GL11.GL_LUMINANCE8_ALPHA8;
+import static org.lwjgl.opengl.GL11.GL_LUMINANCE_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_CLIENT_PIXEL_STORE_BIT;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_CURRENT_BIT;
@@ -501,6 +503,9 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
     public float water(float cellX, float cellY) { return shore == null ? 0f : shore.sample(cellX, cellY); }
 
     @Override
+    public float ford(float cellX, float cellY) { return shore == null ? 0f : shore.sampleFord(cellX, cellY); }
+
+    @Override
     public void ground(float cellX, float cellY, float[] out) {
         float u = cellX - 0.5f, v = cellY - 0.5f;
         int x0 = (int) Math.floor(u), y0 = (int) Math.floor(v);
@@ -667,7 +672,7 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
         if (faceTexture == 0 || !facesUploaded) uploadFaces();
         if (shoreTexture == 0 || !shoreUploaded) {
             shoreTexture = uploadMask(shoreTexture, shore == null ? null : shore.texels(),
-                    shore == null ? 1 : shore.width(), shore == null ? 1 : shore.height());
+                    shore == null ? 1 : shore.width(), shore == null ? 1 : shore.height(), 2);
             shoreUploaded = true;
         }
         if (fieldTexture == 0) {
@@ -693,16 +698,19 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
     /** The face mask, or one clear texel where there is none (the shader then cuts nothing). */
     private void uploadFaces() {
         faceTexture = uploadMask(faceTexture, faces == null ? null : faces.texels(),
-                faces == null ? 1 : faces.width(), faces == null ? 1 : faces.height());
+                faces == null ? 1 : faces.width(), faces == null ? 1 : faces.height(), 1);
         facesUploaded = true;
     }
 
-    /** Uploads a one-byte mask into {@code texture} (made if 0), or one clear texel for none; returns the texture. */
-    private static int uploadMask(int texture, byte[] mask, int w, int h) {
+    /**
+     * Uploads a mask of one byte a texel (alpha) or two (luminance, alpha) into {@code texture} (made if 0), or one
+     * clear texel for none; returns the texture.
+     */
+    private static int uploadMask(int texture, byte[] mask, int w, int h, int channels) {
         if (texture == 0) texture = glGenTextures();
-        ByteBuffer texels = BufferUtils.createByteBuffer(w * h);
+        ByteBuffer texels = BufferUtils.createByteBuffer(w * h * channels);
         if (mask != null) texels.put(mask);
-        else texels.put((byte) 0);
+        else texels.put(new byte[channels]);
         texels.flip();
         glBindTexture(GL_TEXTURE_2D, texture);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -712,7 +720,8 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
         glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
         try {
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA8, w, h, 0, GL_ALPHA, GL_UNSIGNED_BYTE, texels);
+            if (channels == 2) glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8_ALPHA8, w, h, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, texels);
+            else glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA8, w, h, 0, GL_ALPHA, GL_UNSIGNED_BYTE, texels);
             Reference.reachabilityFence(texels);   // LWJGL 2 keeps only the address
         } finally {
             glPopClientAttrib();

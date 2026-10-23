@@ -35,7 +35,7 @@ public final class BattleHud {
 
     /**
      * Every panel ticks every frame regardless of visibility — panels that
-     * cache a per-frame snapshot of sim state (see {@link com.dillon.starsectormarines.battle.ui.panel.TaskForceStatusPanel})
+     * cache a per-frame snapshot of sim state
      * derive their own visibility from that snapshot, so gating update() on
      * isVisible() would make them invisible-forever (the cache stays empty).
      */

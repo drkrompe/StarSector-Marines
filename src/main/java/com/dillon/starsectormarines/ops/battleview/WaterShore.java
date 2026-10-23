@@ -184,10 +184,18 @@ public final class WaterShore {
      * which has no shore.
      */
     public static double fieldAt(CellTopology topology, double worldX, double worldY) {
+        return fieldAt(topology, worldX, worldY, false);
+    }
+
+    /**
+     * As {@link #fieldAt(CellTopology, double, double)}, in the deep field when
+     * {@code deep}: the one the open water is clipped by, in which a ford is ground.
+     */
+    public static double fieldAt(CellTopology topology, double worldX, double worldY, boolean deep) {
         int x = (int) Math.floor(worldX), y = (int) Math.floor(worldY);
         int self = kind(topology, x, y);
         if (self == BUILT) return Double.NaN;
-        double centre = water(self, false) ? 1 : -1;
+        double centre = water(self, deep) ? 1 : -1;
         double fx = worldX - x, fy = worldY - y;
         // The triangle is the one on the nearest edge; v is the way in from that
         // edge toward the centre, u the way along it from its first corner.
@@ -197,8 +205,8 @@ public final class WaterShore {
         if (1 - fy < v) { triangle = 2; v = 1 - fy; u = 1 - fx; }
         if (fx < v) { triangle = 3; v = fx; u = 1 - fy; }
         int[] a = CORNERS[triangle], b = CORNERS[(triangle + 1) % 4];
-        double va = corner(topology, x + a[0], y + a[1]);
-        double vb = corner(topology, x + b[0], y + b[1]);
+        double va = corner(topology, x + a[0], y + a[1], deep);
+        double vb = corner(topology, x + b[0], y + b[1], deep);
         if (Double.isNaN(va)) va = centre;
         if (Double.isNaN(vb)) vb = centre;
         // Barycentric: the centre stands half a cell in from the edge.

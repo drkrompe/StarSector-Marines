@@ -49,6 +49,7 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.battle.infantry.SmokeTactics;
 
 import com.dillon.starsectormarines.battle.appearance.FacingSystem;
+import com.dillon.starsectormarines.battle.appearance.HeldSpecialPose;
 import com.dillon.starsectormarines.battle.appearance.SystemFxSystem;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.battery.FortressBattery;
@@ -164,6 +165,7 @@ import com.dillon.starsectormarines.battle.vehicle.HullPivot;
 import com.dillon.starsectormarines.battle.vehicle.HullSlide;
 import com.dillon.starsectormarines.battle.vehicle.ScoutSight;
 import com.dillon.starsectormarines.battle.vehicle.SideObservers;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDamageFxSystem;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDustEmitter;
 import com.dillon.starsectormarines.battle.vehicle.SupplyTruckSystem;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
@@ -291,6 +293,7 @@ import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
 import com.dillon.starsectormarines.battle.evacuation.SwarmHarvest;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPackPlans;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPacks;
+import com.dillon.starsectormarines.battle.evacuation.flier.SwarmFliers;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
@@ -566,6 +569,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final ScoutSight scoutSight = new ScoutSight();
     private final DroneBaySystem droneBays = new DroneBaySystem();
     private final VehicleDustEmitter vehicleDust = new VehicleDustEmitter();
+    private final VehicleDamageFxSystem vehicleDamageFx = new VehicleDamageFxSystem();
     /** Per-faction strategic commander tier. Owns the slow-tick cadence; the {@link #setCommander}/{@link #getCommander} delegates below forward here, and the COMMANDER phase calls {@link CommanderService#tick}. */
     private final CommanderService commanders = new CommanderService();
     /** Opt-in battle-long perspective/referee diagnostic stream. */
@@ -865,6 +869,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SwarmPacks swarmPacks = new SwarmPacks();
     /** Packs and their leaders (`colony-breach-nouns.md`, Pack, pack leader). */
     public SwarmPacks swarmPacks() { return swarmPacks; }
+    private final SwarmFliers swarmFliers = new SwarmFliers();
+    /** The swarm's flier packs (`colony-breach-nouns.md`, Harrier). */
+    public SwarmFliers swarmFliers() { return swarmFliers; }
     private final SwarmPackPlans swarmPackPlans;
     /** What each pack is doing as it moves (`colony-breach-nouns.md`, Pack movement). */
     public SwarmPackPlans swarmPackPlans() { return swarmPackPlans; }
@@ -3691,6 +3698,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // A crippled mech's leg smoke and a lost section's burst and smoulder: presentation
         // events into the same per-frame queues, read off settled section state.
         mechSectionFx.tick(simTickIndex);
+        // A worn hull's engine-deck smoke, an immobilised drive's and a lost turret's: the same queues, read off
+        // the hull's settled locations.
+        vehicleDamageFx.tick(simTickIndex, convoy(), effects);
         tickProfile.lap(TickProfile.Phase.PLUMES);
         // Compound capture state machine — updates DEFENDER_HELD / CONTESTED /
         // MARINE_HELD state. Runs before resource production and reinforcement
@@ -3759,6 +3769,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             groundAntiAir.tick(this);
             airToAir.tick(this);
             airSystem.finishMissileContacts();
+        } else {
+            groundAntiAir.tickFliersOnly(this);
         }
         tickProfile.lap(TickProfile.Phase.AIR_SYSTEM);
         // Ground convoys ride the same ordering rule for the same reason —
@@ -3810,6 +3822,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         swarmReinforcements.tick(TICK_DT, this);
         // After the director, so a body released this tick is already in its pack.
         swarmPacks.tick(this);
+        swarmFliers.tick(this);
         boreCreep.sync(this);
         if (creep != null) creep.tick(simTickIndex);
         creepDigestion.tick(this);
@@ -3898,7 +3911,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         mechTurretSystem.tick(TICK_DT, directControl.controlledMechId(), directControl.pointAim());
         directControl.validate();
         facingSystem.tick(directControl.activeUnitId(), directControl.intent().aimX(),
-                directControl.intent().aimY(), directControl.sprintStatus().sprinting());
+                directControl.intent().aimY(), directControl.sprintStatus().sprinting(),
+                directControl.leftSpecial() == null ? null : new HeldSpecialPose(
+                        directControl.marineLeft().readiness(), directControl.marineLeft().sinceFired()));
         ravRunnerRigSystem.tick(TICK_DT);
         // Authors what a running integral system looks like, from the same
         // settled state and for the same reason: a treatment written here is
@@ -4195,7 +4210,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return heavy.fireMountAtPoint(shooter, mount, aim);
     }
 
-    /** Fires a carried launcher at a world point: a wall a company has been ordered to open. */
+    /**
+     * Fires a carried direct-fire special at a world point: a wall a company has been ordered to open, or a
+     * controlled Marine's left button on its launcher or rifle.
+     */
+    @Override
     public boolean fireSecondaryAtPoint(long shooter, float x, float y) {
         return infantry.fireSecondaryAtPoint(shooter, x, y);
     }

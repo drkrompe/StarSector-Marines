@@ -92,6 +92,16 @@ public final class HullTurretSection {
     }
 
     /**
+     * Shoots the gun away outside the damage path (the caller lowers the structure column by {@link #maxStructure}):
+     * for staging a look, never for play.
+     */
+    void stageDestroyed() {
+        armor = 0f;
+        structure = 0f;
+        destroyed = true;
+    }
+
+    /**
      * Takes a hit on the turret alone: its armor, then its structure. Writes the turret's own armor and structure
      * loss and whether the gun went into {@code out} and returns the damage that goes on through
      * the turret into the hull. A turret already at zero passes the whole hit through.

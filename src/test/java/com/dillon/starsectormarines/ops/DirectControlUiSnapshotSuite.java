@@ -30,6 +30,13 @@ import com.dillon.starsectormarines.battle.ui.panel.DirectControlFireMarks;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlPanel;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlReticle;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlScatter;
+import com.dillon.starsectormarines.battle.warship.VanillaData;
+import com.dillon.starsectormarines.battle.warship.Warship;
+import com.dillon.starsectormarines.battle.warship.WarshipOrder;
+import com.dillon.starsectormarines.battle.warship.WarshipPilot;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
+import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
@@ -52,6 +59,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import java.awt.BasicStroke;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
 import javax.imageio.ImageIO;
 import java.util.function.Consumer;
 import java.awt.geom.Line2D;
@@ -197,7 +205,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, chaingunBelts(),
                         sectionPlate(context.modRoot(), new MechLoadoutComponent(MechVariant.BULWARK, null)).document(),
                         false)));
-        // A held LRM-15 building its spike: each salvo the hold commits lights up in the strip (salvo-chain.md).
+        // A held LRM-15 building its spike: each salvo the hold commits lights up in the strip (mechs-nouns.md).
         for (int salvos = 1; salvos <= MechWeaponComponent.LRM_15.ammoCapacity; salvos++) {
             artifacts.add(new SnapshotArtifact("active-mech-lrm-hold-" + salvos + "-1920x1080-ui100.png",
                     activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, holdingMech(salvos),
@@ -211,6 +219,8 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
             artifacts.add(new SnapshotArtifact("active-vehicle-lrm-" + aim.name() + "-1920x1080-ui100.png",
                     launcherFrame(renderer, context.modRoot(), aim)));
         }
+        artifacts.add(new SnapshotArtifact("active-warship-1920x1080-ui100.png",
+                warshipFrame(renderer, context.modRoot(), context.starsectorCore())));
         artifacts.add(new SnapshotArtifact("active-marine-pulse-rifle-1920x1080-ui100.png",
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, pulseRifle(),
                         marinePlate(context.modRoot(), true).document(), false)));
@@ -381,6 +391,78 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 graphics -> drawLauncherWorld(graphics, sheet, type, spread, aim.cells()));
     }
 
+    /** Pixels per cell for the warship frame's world. */
+    private static final float WARSHIP_CELL_PX = 9f;
+
+    /**
+     * A piloted Enforcer with both batteries laid, the real ship strip beside it. The camera is leashed to the hull,
+     * so nothing outlines it. The rings' colours are {@link DirectControlPanel#laidAreaColor}; the strokes are Java2D
+     * copies of the panel's GL rings and crosshair over a plain grid. The hull and its sprite come from the game
+     * install.
+     */
+    private static BufferedImage warshipFrame(HeadlessUiRenderer renderer, Path modRoot, Path starsectorCore)
+            throws Exception {
+        InstalledHullSpecs.install(starsectorCore);
+        InstalledVanillaData.install(starsectorCore);
+        try {
+            Warship ship = Warship.fit("enforcer", "enforcer_Balanced", Faction.MARINE, 0f, 0f, 0f);
+            ship.takeHelm();
+            float r = WarshipPilot.AREA_RADIUS_CELLS;
+            var guns = new WarshipOrder.FireOnArea(-30f, -44f, r, true);
+            var missiles = new WarshipOrder.FireOnArea(34f, -36f, r, true);
+            ship.layArea(Warship.FireGroup.GUNS, guns);
+            ship.layArea(Warship.FireGroup.MISSILES, missiles);
+            BufferedImage sprite = ImageIO.read(starsectorCore.resolve(ship.spritePath).toFile());
+            return activeComposite(renderer, modRoot, 1920, 1080, 1f,
+                    BattleDirectWarshipStatus.snapshot(ship, false, false), null, false, false,
+                    graphics -> drawWarshipWorld(graphics, sprite, ship, guns, missiles));
+        } finally {
+            VanillaData.useSource(null);
+        }
+    }
+
+    /** Ship-relative cells to screen: the hull sits a little below centre, bow up. */
+    private static float warshipScreenX(float cells) { return 900f + cells * WARSHIP_CELL_PX; }
+    private static float warshipScreenY(float cells) { return 720f + cells * WARSHIP_CELL_PX; }
+
+    private static void drawWarshipWorld(Graphics2D graphics, BufferedImage sprite, Warship ship,
+                                         WarshipOrder.FireOnArea guns, WarshipOrder.FireOnArea missiles) {
+        float px = WARSHIP_CELL_PX;
+        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        double scale = ship.lengthCells * px / sprite.getHeight();
+        AffineTransform saved = graphics.getTransform();
+        graphics.translate(warshipScreenX(0f), warshipScreenY(0f));
+        graphics.scale(scale, scale);
+        graphics.drawImage(sprite, -sprite.getWidth() / 2, -sprite.getHeight() / 2, null);
+        graphics.setTransform(saved);
+        for (var laid : new Object[][]{{guns, Warship.FireGroup.GUNS}, {missiles, Warship.FireGroup.MISSILES}}) {
+            var area = (WarshipOrder.FireOnArea) laid[0];
+            Color c = DirectControlPanel.laidAreaColor((Warship.FireGroup) laid[1]);
+            float cx = warshipScreenX(area.x());
+            float cy = warshipScreenY(area.y());
+            float r = area.radius() * px;
+            graphics.setColor(c);
+            graphics.setStroke(new BasicStroke(2f));
+            graphics.draw(new Ellipse2D.Float(cx - r, cy - r, r * 2f, r * 2f));
+            graphics.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), Math.round(255 * 0.45f)));
+            graphics.setStroke(new BasicStroke(1f));
+            graphics.draw(new Ellipse2D.Float(cx - r * 0.5f, cy - r * 0.5f, r, r));
+            graphics.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), Math.round(255 * 0.8f)));
+            crosshair(graphics, cx, cy);
+        }
+        graphics.setColor(DirectControlPanel.controlledColor());
+        crosshair(graphics, warshipScreenX(6f), warshipScreenY(-58f));
+        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+    }
+
+    /** The panel's four-arm crosshair, in whatever colour the graphics holds. */
+    private static void crosshair(Graphics2D graphics, float x, float y) {
+        graphics.fillRect(Math.round(x - 8f), Math.round(y - 1f), 5, 2);
+        graphics.fillRect(Math.round(x + 3f), Math.round(y - 1f), 5, 2);
+        graphics.fillRect(Math.round(x - 1f), Math.round(y - 8f), 2, 5);
+        graphics.fillRect(Math.round(x - 1f), Math.round(y + 3f), 2, 5);
+    }
+
     private static void drawLauncherWorld(Graphics2D graphics, BufferedImage sheet, VehicleType type,
                                           float spreadCells, float cells) {
         float px = LAUNCHER_CELL_PX;
@@ -549,7 +631,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
     }
 
     /** {@code world}, when given, paints the battlefield over the backdrop and under the HUD. */
-    private static BufferedImage activeComposite(HeadlessUiRenderer renderer, Path modRoot,
+    static BufferedImage activeComposite(HeadlessUiRenderer renderer, Path modRoot,
                                                   int width, int height, float uiScale,
                                                   BattleDirectControlStatus.Snapshot snapshot,
                                                   UiDocument doll,

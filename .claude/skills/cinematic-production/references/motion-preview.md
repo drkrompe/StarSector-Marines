@@ -114,6 +114,12 @@ Check it yourself before the owner sees it, and write the result down shot by sh
 - **A beam looks like its weapon.** Only a beam weapon draws a continuous line, in that weapon's
   own vanilla colours (the Mining Laser: pink core, red fringe), never a white rod that reads as
   some other gun (owner, 2026-10-23, S8-S9: "wonky laser effects").
+- **No white blob holds.** An HE blast is a short bright flash that breaks into ragged,
+  directional debris, fire and smoke: the white-hot core lasts one frame at 24 fps, then the
+  flash tears into orange tongues thrown outward (`swfx_burst.burst(tear=True)`, the
+  `swfx_impacts.he` default). Step through the frames after each hit: a solid white lobed shape
+  on a second frame is a fail (coordinator, 2026-10-23, S6 f658 and f674). `bench_he.py` shows
+  the old and the torn flash side by side.
 - **Drives.** Every moving craft shows its drive (the `thrust_shots` guard).
 - **Solidity.** Nothing passes through a hull: rounds, debris, flares, other ships.
 - **Continuity.** No pops: turrets, ships, effects and cameras move smoothly frame to frame.

@@ -46,7 +46,6 @@ import com.dillon.starsectormarines.battle.ui.panel.DebugTogglesPanel;
 import com.dillon.starsectormarines.battle.ui.panel.DebugHudLayout;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TurretAuthorPanel;
-import com.dillon.starsectormarines.battle.ui.panel.TaskForceStatusPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadPlanDebugPanel;
 import com.dillon.starsectormarines.battle.ui.panel.WarshipDebugPanel;
 import com.dillon.starsectormarines.battle.ui.panel.OrderIntentCursorPanel;
@@ -737,6 +736,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             renderer.getImpactFx().spawnAmbientFire(burst[0], burst[1], burst[2]);
             renderer.getGroundLights().spawnFire(burst[0], burst[1], burst[2]);
         }
+        renderer.getTurretFx().advance(sim, renderer.getImpactFx(), frameSimDt);
         driveOrdnanceFx(sim, frameSimDt);
         renderer.getProjectileTrailFx().tick(sim.getActiveShots(), renderer.getImpactFx());
         renderer.getImpactFx().advance(frameSimDt);
@@ -908,7 +908,6 @@ public class BattleScreen implements Screen, BattleUiContext {
         orderIntentCursor = new OrderIntentCursorPanel(this);
         hud.addPanel(squadOrderTargeting);
         hud.addPanel(orderIntentCursor);
-        hud.addPanel(new TaskForceStatusPanel(this));
         // Per-squad GOAP plan readout. It has no all-squad overview: the
         // diagnostic opens only while WorldPicker has a squad in Selection.
         hud.addPanel(new SquadPlanDebugPanel(this));
@@ -1228,9 +1227,9 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     @Override public float bottomHudTop(float x, float width) {
         float top = position == null ? 0f : position.getY() + BattleLayout.PAD;
-        if (layout != null && x < layout.backX + TaskForceStatusPanel.PANEL_W && x + width > layout.backX
+        if (layout != null && x < layout.backX + BattleLayout.BACK_W && x + width > layout.backX
                 && !selection.hasSquadSelection()) {
-            top = layout.backY + BattleLayout.BACK_H + BattleLayout.CONTROLS_GAP + TaskForceStatusPanel.PANEL_H;
+            top = layout.backY + BattleLayout.BACK_H + BattleLayout.CONTROLS_GAP;
         }
         if (retainedSquadOverlay != null) top = occupiedTop(top, x, width, retainedSquadOverlay.surface());
         if (retainedMechOverlay != null) top = occupiedTop(top, x, width, retainedMechOverlay.surface());
@@ -1470,6 +1469,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 ImpactDecals.spawnShellCasing(sim, rng, s.fromX, s.fromY);
             }
             WeaponFxRuntime.spawnMuzzle(renderer.getImpactFx(), s);
+            renderer.getTurretFx().onShot(s, sim, renderer.getImpactFx());
             // Line tracers (no projectile sprite) land their impact instantly;
             // projectile-sprite shots defer it to arrival (handled below).
             if (ShotFx.of(s).travels()) continue;

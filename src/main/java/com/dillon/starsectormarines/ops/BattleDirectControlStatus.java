@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.combat.MechTriggerPicks;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.combat.MitigationService;
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
+import com.dillon.starsectormarines.battle.control.MarineRightTrigger;
 import com.dillon.starsectormarines.battle.control.MarineSprint;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
@@ -26,7 +27,6 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
-import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 
 import java.util.ArrayList;
@@ -104,12 +104,30 @@ final class BattleDirectControlStatus {
         }
     }
 
-    /** A broken screen is a durability fact; the suit's remaining boost is not shield uptime. */
+    /**
+     * A broken screen is a durability fact; the suit's remaining boost is not shield uptime. {@code picked} is
+     * the Marine's right-button pick, the item the right button uses.
+     */
     record AbilityStatus(DirectControlAbility ability, String name, boolean ready,
                          float activeSeconds, float durationSeconds,
                          float cooldownSeconds, float cooldownDurationSeconds,
                          int remaining, int capacity, float soakRemaining, float soakCapacity,
-                         boolean broken, float facingDegrees, float arcDegrees) {
+                         boolean broken, float facingDegrees, float arcDegrees, boolean picked) {
+        AbilityStatus(DirectControlAbility ability, String name, boolean ready,
+                      float activeSeconds, float durationSeconds,
+                      float cooldownSeconds, float cooldownDurationSeconds,
+                      int remaining, int capacity, float soakRemaining, float soakCapacity,
+                      boolean broken, float facingDegrees, float arcDegrees) {
+            this(ability, name, ready, activeSeconds, durationSeconds, cooldownSeconds, cooldownDurationSeconds,
+                    remaining, capacity, soakRemaining, soakCapacity, broken, facingDegrees, arcDegrees, false);
+        }
+
+        AbilityStatus withPicked(boolean on) {
+            return new AbilityStatus(ability, name, ready, activeSeconds, durationSeconds, cooldownSeconds,
+                    cooldownDurationSeconds, remaining, capacity, soakRemaining, soakCapacity, broken,
+                    facingDegrees, arcDegrees, on);
+        }
+
         AbilityStatus(DirectControlAbility ability, String name, boolean ready,
                       float activeSeconds, float durationSeconds,
                       float cooldownSeconds, float cooldownDurationSeconds,
@@ -215,6 +233,13 @@ final class BattleDirectControlStatus {
             return cooldownSeconds > 0f ? WeaponState.CYCLING : WeaponState.LOADED;
         }
 
+        /** The same status on button list {@code group}, picked when {@code trigger} names that button. */
+        WeaponStatus onList(String trigger, String group) {
+            return new WeaponStatus(number, slotKey, name, behavior, directEligible, cooldownSeconds,
+                    cycleDurationSeconds, burstRemaining, burstSeconds, ammo, fluxBlocked, mechanism, trigger,
+                    tooClose, reloading, group, heldRounds);
+        }
+
         /** The button whose list this weapon is in, read off its trigger when the status carries no group. */
         String listedOn() { return group.isEmpty() ? trigger : group; }
 
@@ -262,28 +287,77 @@ final class BattleDirectControlStatus {
                 : List.of(marineWeapon(primary, combat.equipmentGrade(id), combat.cooldownTimer(id),
                 combat.attackCooldown(id), combat.burstRemaining(id), combat.burstTimer(id),
                 combat.roundsLoaded(id), combat.reloadTimer(id), combat.reloadSeconds(id)));
+        weapons = marineLeftList(sim, id, weapons);
         return new Snapshot(id, name, Carrier.MARINE, durability, weapons,
-                marineAbilities(sim.getRoster(), id, sim.directControl()::canUseAbility),
+                marineAbilities(sim.getRoster(), id, sim.directControl()::canUseAbility,
+                        sim.directControl().marineRightPick(), sim.directControl().manualThrowActive()),
                 sim.directControl().sprintStatus());
+    }
+
+    /**
+     * A Marine's left button list: the primary, then each direct-fire special Q cycles to, the picked one
+     * marked {@code L}. A Marine with no such special keeps the primary alone, unlisted.
+     */
+    private static List<WeaponStatus> marineLeftList(BattleSimulation sim, long id, List<WeaponStatus> primary) {
+        List<SpecialEquipmentDef> specials = sim.directControl().marineSpecials();
+        if (specials.isEmpty()) return primary;
+        var left = sim.directControl().marineLeft();
+        World world = sim.world();
+        float distance = aimDistance(sim, id);
+        List<WeaponStatus> out = new ArrayList<>(primary.size() + specials.size());
+        for (WeaponStatus weapon : primary) out.add(weapon.onList(left.onSpecial() ? "" : "L", "L"));
+        for (int i = 0; i < specials.size(); i++) {
+            boolean picked = left.pick() == i + 1;
+            out.add(marineSpecial(i + 2, specials.get(i), world.secondaryAmmo(id),
+                    world.secondaryCooldownTimer(id), picked ? left.readiness() : 1f, distance)
+                    .onList(picked ? "L" : "", "L"));
+        }
+        return out;
+    }
+
+    /**
+     * A direct-fire special as a left-button row: its rounds left of what it was issued, and its clock, which
+     * is the readying while it is raised and its cooldown after a round.
+     */
+    static WeaponStatus marineSpecial(int number, SpecialEquipmentDef special, int ammo, float cooldown,
+                                      float readiness, float aimDistance) {
+        WeaponDef weapon = special.weaponDef();
+        float windup = (1f - Math.max(0f, Math.min(1f, readiness))) * special.aimDuration();
+        boolean readying = windup > cooldown;
+        return new WeaponStatus(number, "SPECIAL" + (number - 2), special.displayName(),
+                behavior(weapon, 1), true,
+                readying ? windup : Math.max(0f, cooldown), readying ? special.aimDuration() : special.cooldown(),
+                0, 0f, new Ammo(ammo, special.startingAmmo(), AmmoUnit.ROUNDS, false),
+                false, "", "", ManualPointFire.tooClose(weapon, aimDistance), false);
     }
 
     static List<AbilityStatus> marineAbilities(UnitRosterService roster, long id,
                                               Predicate<DirectControlAbility> available) {
+        return marineAbilities(roster, id, available, null, false);
+    }
+
+    /**
+     * The Marine's right-button items in list order (smoke, a hand grenade, the shield), {@code pick} marked.
+     * {@code manualThrow} is a grenade channel the player started, whose clock the grenade row shows.
+     */
+    static List<AbilityStatus> marineAbilities(UnitRosterService roster, long id,
+                                              Predicate<DirectControlAbility> available,
+                                              MarineRightTrigger.Item pick, boolean manualThrow) {
         World world = roster.world();
         if (!world.isAlive(id) || roster.identity().type(id) != UnitType.MARINE) return List.of();
-        List<AbilityStatus> abilities = new ArrayList<>(2);
         IntegralSystemDef system = roster.integralSystems().spec(id);
-        if (system != null && system.grantsMitigation()) {
-            abilities.add(shieldAbility(system, roster.integralSystems(), roster.mitigations(), id,
-                    available.test(DirectControlAbility.SHIELD)));
-        }
-        if (world.hasSecondaryWeapon(id)) {
-            SpecialEquipmentDef special = world.specialEquipment(id);
-            if (special != null && special.activation() == SpecialActivation.UTILITY_SMOKE
-                    && special.smokeGrenadeSpec() != null) {
-                abilities.add(smokeAbility(special, world.secondaryAmmo(id), world.smokeThrowCommit(id),
-                        world.secondaryActionTimer(id), available.test(DirectControlAbility.SMOKE)));
-            }
+        SpecialEquipmentDef special = world.hasSecondaryWeapon(id) ? world.specialEquipment(id) : null;
+        List<AbilityStatus> abilities = new ArrayList<>(3);
+        for (MarineRightTrigger.Item item : MarineRightTrigger.members(special, system)) {
+            AbilityStatus status = switch (item) {
+                case SMOKE -> smokeAbility(special, world.secondaryAmmo(id), world.smokeThrowCommit(id),
+                        world.secondaryActionTimer(id), available.test(DirectControlAbility.SMOKE));
+                case GRENADE -> grenadeAbility(special, world.secondaryAmmo(id), manualThrow,
+                        world.secondaryActionTimer(id), available.test(DirectControlAbility.GRENADE));
+                case SHIELD -> shieldAbility(system, roster.integralSystems(), roster.mitigations(), id,
+                        available.test(DirectControlAbility.SHIELD));
+            };
+            abilities.add(status.withPicked(item == pick));
         }
         return List.copyOf(abilities);
     }
@@ -306,6 +380,17 @@ final class BattleDirectControlStatus {
         return new AbilityStatus(DirectControlAbility.SMOKE, def.displayName(), ready,
                 active, def.smokeGrenadeSpec().throwDuration(), 0f, 0f,
                 ammo, def.startingAmmo(), 0f, 0f);
+    }
+
+    /**
+     * A hand grenade, named by its model ("Shattercap", "Firebrand"): grenades left of those issued, and a throw
+     * the player started on its clock.
+     */
+    static AbilityStatus grenadeAbility(SpecialEquipmentDef def, int ammo, boolean manualThrow,
+                                        float actionRemaining, boolean ready) {
+        float active = manualThrow ? Math.max(0f, actionRemaining) : 0f;
+        return new AbilityStatus(DirectControlAbility.GRENADE, def.weaponDef().modelName(), ready,
+                active, def.aimDuration(), 0f, 0f, ammo, def.startingAmmo(), 0f, 0f);
     }
 
     static WeaponStatus marineWeapon(WeaponDef weapon, EquipmentGrade grade,

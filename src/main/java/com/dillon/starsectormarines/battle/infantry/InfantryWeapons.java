@@ -416,16 +416,17 @@ public class InfantryWeapons {
     }
 
     /**
-     * Fires a carried direct-fire launcher at a world point, which is how a company opens a wall with rockets: the
+     * Fires a carried direct-fire special at a world point. That is how a company opens a wall with rockets: the
      * round flies to the point or stops at the first wall in its way, and its detonation does the structural damage the
-     * weapon's data says. Spends a round of the carrier's ammunition; the caller owns range, line and cooldown.
-     * Returns whether a round left.
+     * weapon's data says. A precision rifle's round flies the same lane and strikes the first body on it. It is also
+     * a controlled Marine's left button on a special. Spends a round of the carrier's ammunition; the caller owns
+     * range, line and cooldown. Returns whether a round left.
      */
     public boolean fireSecondaryAtPoint(long shooter, float aimX, float aimY) {
         World world = roster.world();
         if (!world.hasSecondaryWeapon(shooter)) return false;
         SpecialEquipmentDef sec = world.specialEquipment(shooter);
-        if (sec.activation() != SpecialActivation.DIRECT_EXPLOSIVE) return false;
+        if (!sec.isDirectFireWeapon()) return false;
         int ammo = world.secondaryAmmo(shooter);
         if (ammo <= 0) return false;
         float fromX = world.renderX(shooter);

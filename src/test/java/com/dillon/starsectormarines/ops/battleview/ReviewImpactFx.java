@@ -58,6 +58,7 @@ public final class ReviewImpactFx {
     private final BeamFxService beams = new BeamFxService();
     /** Muzzle, impact, blast and fire lights, fed as the screen feeds its renderer's; only a GL frame draws them. */
     private final GroundLightService lights = new GroundLightService();
+    private final TurretFx turretFx = new TurretFx(REVIEW_SEED);
     private OrdnanceTraceFxService traces;
     private final DrawList overlay = new DrawList();
     private final Path modRoot;
@@ -104,6 +105,7 @@ public final class ReviewImpactFx {
             beams.spawn(shot);
             lights.spawnMuzzle(shot);
             WeaponFxRuntime.spawnMuzzle(fx, shot);
+            turretFx.onShot(shot, sim, fx);
             // A line tracer lands its impact the instant it fires; a travelling body lands it when it expires.
             if (ShotFx.of(shot).travels() || !shot.impacts()) continue;
             WeaponFxRuntime.spawnImpactAndAftermath(fx, shot, isWallAt(grid, shot.toX, shot.toY));
@@ -135,6 +137,7 @@ public final class ReviewImpactFx {
             fx.spawnAmbientFire(burst[0], burst[1], burst[2]);
             lights.spawnFire(burst[0], burst[1], burst[2]);
         }
+        turretFx.advance(sim, fx, dt);
         for (OrdnanceRelease release : sim.getOrdnanceReleasesThisFrame()) {
             traces().spawn(release);
             OrdnanceFxRuntime.spawnRelease(fx, lights, release);

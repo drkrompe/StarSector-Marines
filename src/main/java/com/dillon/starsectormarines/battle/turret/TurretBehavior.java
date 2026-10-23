@@ -84,6 +84,7 @@ public final class TurretBehavior implements UnitBehavior {
         s.attackCooldown = sim.combat().attackCooldown(id);
         s.target = sim.targetOf(u);
         s.indirectFire = weapon.indirectFire;
+        s.tracksFliers = weapon.tracksFliers();
         if (tube != null) {
             // A tube fires for the squad that serves it: what that squad believes, and
             // nothing it has not been shown. A lone gunner works it at a slower cycle.

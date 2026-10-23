@@ -110,6 +110,21 @@ public final class MechSections {
         return maxArmor[section.ordinal()];
     }
 
+    /**
+     * Sets every section's armor and the rear plate to {@code armorShare} of their maximum and its structure to
+     * {@code structureShare}, outside the damage path and without touching the world's columns: for staging a look
+     * at a worn mech, never for play.
+     */
+    void stageWear(float armorShare, float structureShare) {
+        float a = Math.max(0f, Math.min(1f, armorShare));
+        float s = Math.max(0.01f, Math.min(1f, structureShare));
+        for (int i = 0; i < armor.length; i++) {
+            armor[i] = maxArmor[i] * a;
+            structure[i] = maxStructure[i] * s;
+        }
+        rearArmor = maxRearArmor * a;
+    }
+
     /** The torso's rear plate: what a hit from behind meets. Zero under the control. */
     public float rearArmor() {
         return rearArmor;

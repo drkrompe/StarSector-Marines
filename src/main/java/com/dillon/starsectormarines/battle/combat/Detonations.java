@@ -231,6 +231,8 @@ public class Detonations {
                 // (the body pass below), and what reaches the people inside is
                 // the wreck's to decide (VehicleTransportService.disembarkForWreck).
                 if (roster.isRiding(u)) continue;
+                // A flier is in the air over the blast, not in it: only an anti-air burst reaches it.
+                if (roster.identity().type(u).isFlier()) continue;
                 // A held contact target took no direct payload, so the splash is all that reaches it.
                 if (det.excludesAreaTarget(u) && !held.test(u)) continue;
                 if (!areaHitsHeld && held.test(u)) continue;

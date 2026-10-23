@@ -10,6 +10,7 @@
         "designationTiered": false
       },
       "sim": {
+        "tracksFliers": true,
         "range": 70,
         "damage": 200,
         "accuracy": 1,
@@ -193,6 +194,7 @@
         "designationTiered": false
       },
       "sim": {
+        "tracksFliers": true,
         "range": 50,
         "damage": 100,
         "accuracy": 1,
@@ -376,6 +378,7 @@
         "designationTiered": false
       },
       "sim": {
+        "tracksFliers": true,
         "range": 50,
         "damage": 500,
         "accuracy": 1,

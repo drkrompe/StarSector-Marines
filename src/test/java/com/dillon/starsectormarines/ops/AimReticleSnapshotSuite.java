@@ -84,7 +84,7 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
      * A cursor {@code cells} from the controlled body, along {@code facing} (degrees, the sim's convention: 0 is up
      * the screen) or, when that is null, along the body's own facing.
      */
-    private record Aim(String name, float cells, Float facing) {
+    record Aim(String name, float cells, Float facing) {
         Aim(String name, float cells) { this(name, cells, null); }
     }
 
@@ -155,8 +155,9 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
         return frames;
     }
 
-    private static SnapshotArtifact frame(SnapshotContext context, BattleSimulation sim, Selection selection,
-                                          long id, Aim aim, String name)
+    /** One reticle frame of {@code id} under control, the cursor placed by {@code aim}; shared with the Marine right-button suite. */
+    static SnapshotArtifact frame(SnapshotContext context, BattleSimulation sim, Selection selection,
+                                  long id, Aim aim, String name)
             throws Exception {
         boolean vehicle = sim.convoy().isVehicle(id);
         var mountPoint = vehicle
@@ -198,7 +199,7 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
                         EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS, RenderLayer.VEHICLES, RenderLayer.CONVOY,
                                 RenderLayer.HIGHLIGHTS, RenderLayer.UNIT_SHADOWS, RenderLayer.UNITS,
                                 RenderLayer.DRONES, RenderLayer.SHUTTLES, RenderLayer.AIRCRAFT_LIGHTS,
-                                RenderLayer.NIGHT_LIGHTING));
+                                RenderLayer.NIGHT_LIGHTING, RenderLayer.SHOTS, RenderLayer.SMOKE));
             }
             @Override public void draw(CanvasHostViewport viewport, float alpha) { throw new IllegalStateException("Headless only"); }
         }, WIDTH, HEIGHT);
@@ -299,7 +300,7 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
         return 0f;
     }
 
-    private static void require(boolean valid, String reading) { if (!valid) throw new IllegalStateException(reading); }
+    static void require(boolean valid, String reading) { if (!valid) throw new IllegalStateException(reading); }
 
     private static PositionAPI position() {
         return (PositionAPI) Proxy.newProxyInstance(PositionAPI.class.getClassLoader(), new Class<?>[]{PositionAPI.class},
@@ -309,7 +310,7 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
                 });
     }
 
-    private static SettingsAPI settings(SnapshotContext context, SettingsAPI previous) {
+    static SettingsAPI settings(SnapshotContext context, SettingsAPI previous) {
         return (SettingsAPI) Proxy.newProxyInstance(SettingsAPI.class.getClassLoader(), new Class<?>[]{SettingsAPI.class},
                 (proxy, method, args) -> {
                     if (method.getName().equals("getScreenScaleMult")) return 1f;

@@ -472,8 +472,11 @@ final class BriefingViewModel {
         props.put("carrierEmptyStyle", hasCarriers ? "height: 0px; padding: 0px;" : "height: 20px;");
         boolean hasForceCards = !((List<?>) props.getOrDefault("taskForceRows", List.of())).isEmpty();
         int cards = ((List<?>) props.getOrDefault("taskForceRows", List.of())).size();
-        int cardsHeight = cards > 4 ? 168 : 84;
-        props.put("forceSummaryStyle", hasForceCards ? "height: " + (248 + cardsHeight) + "px" : "height: 174px");
+        // Three cards (268x84 outside their padding and border) fit a row of the commitment
+        // column; past two rows the grid scrolls.
+        int cardRows = Math.min(2, (cards + 2) / 3);
+        int cardsHeight = cardRows * 84 + Math.max(0, cardRows - 1) * 8;
+        props.put("forceSummaryStyle", hasForceCards ? "height: " + (240 + cardsHeight) + "px" : "height: 174px");
         props.put("groupCommandStyle", hasForceCards ? "height: 54px" : "height: 0px; gap: 0px; overflow: hidden");
         props.put("forceCardsStyle", hasForceCards ? "height: " + cardsHeight + "px" : "height: 0px");
         for (String key : List.of("captainEmpty", "powerEmpty", "sourceEmpty")) {
@@ -481,6 +484,11 @@ final class BriefingViewModel {
             props.put(key + "Style", text.isBlank()
                     ? "height: 0px; padding: 0px; overflow: hidden"
                     : "height: auto; white-space: normal");
+        }
+        // An empty list gives its space to the empty-state line instead of leaving a blank well.
+        for (String key : List.of("power", "source")) {
+            boolean empty = ((List<?>) props.getOrDefault(key + "Rows", List.of())).isEmpty();
+            props.put(key + "ListStyle", empty ? "height: 0px; overflow: hidden" : "");
         }
         return props;
     }

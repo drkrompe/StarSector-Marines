@@ -245,6 +245,14 @@ public record SpecialEquipmentDef(
                 || activation == SpecialActivation.DIRECT_PRECISION;
     }
 
+    /**
+     * True for a hand grenade: an arcing explosive thrown over cover to a ground point. The flamer is
+     * also {@link SpecialActivation#ARC_EXPLOSIVE} but sprays a direct, flat jet, so it is not one.
+     */
+    public boolean isThrownGrenade() {
+        return activation == SpecialActivation.ARC_EXPLOSIVE && weaponId != null && weaponDef().indirectFire;
+    }
+
     /** True when the item is a tube the carrier sets down, serves and lifts again. */
     public boolean isCrewServed() {
         return aiPolicy == SpecialAiPolicy.CREW_SERVED_FIRE_SUPPORT;

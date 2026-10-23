@@ -4,7 +4,7 @@ Status: ACTIVE — armor-and-structure resolution is live; decision, evidence, a
 
 Written: 2026-08-23
 
-Updated: 2026-10-23 — a ground hull holds damage by location (plates, drive, hull) and an infantry special's commit gate reads the plate facing it; earlier: a tank's turret is a section of its hull, on the mech section law; mech missile racks split into contact (anti-armor) and area (fragmentation) warheads; a rocket's contact payload rides its detonation. Earlier: the heavy cannon's contact hit is fixed.
+Updated: 2026-10-23 — a damaged live hull smokes where it is hurt, and a mech's flux shows on its vents; worn plate draws located damage on live hulls and mechs; earlier: a ground hull holds damage by location (plates, drive, hull) and an infantry special's commit gate reads the plate facing it; earlier: a tank's turret is a section of its hull, on the mech section law; mech missile racks split into contact (anti-armor) and area (fragmentation) warheads; a rocket's contact payload rides its detonation. Earlier: the heavy cannon's contact hit is fixed.
 
 ## Purpose
 
@@ -382,6 +382,51 @@ These transitional readers are not another durability authority and must not
 be copied into new consumers. `stories.md` owns their bounded conversion to
 current-state decisions, real armor-break morale, split evidence, and legible
 armor, structure, rating, and penetration presentation.
+
+**Worn plate** is located damage drawn on the living body: scuff marks on a
+ground hull's plates and turret and on a mech's parts, so the side that has been
+stripped looks stripped (`VehicleScuffs`, `MechScuffSink`). It is presentation,
+and it observes, never records: a location's marks are a pure function of its
+current armor (a mech section's also of its structure, a quarter of its wear),
+so nothing is written per hit, a re-plated location comes back clean, and a
+review frame or a replay draws exactly what the screen did. Each location owns a
+fixed set of slots, each hashed from the body, the location and the slot into a
+position, turn, stage and wear threshold. A slot shows once the location's wear
+passes its threshold and never moves after, so marks build up in place, in three
+stages: scrapes and bullet pocks, then scorch, then gouges and dents.
+
+A mark belongs to the part of the silhouette its location covers. A hull frame's
+opaque footprint, turned into the hull's own axes, is split along its diagonals
+into front, rear, left and right plates; a turret frame is one region; a mech's
+torso is split the same way, its rear quarter wearing with the rear plate; each
+arm, shoulder pod and foot is its own part. A mark is laid in its part's frame
+and turns with it, which matters for a mech, whose torso, hips and arms turn
+independently, and a part drawn over another covers that one's marks as it
+covers its paint. A mark never hangs off the silhouette: it may only sit on an
+opaque point whose distance to the nearest transparent pixel covers the mark's
+reach. So a narrow part, such as a Hound's torso, carries few and small marks.
+That is the honest consequence of the law, not a defect. A wreck carries none,
+because its registered wreck art already shows what happened to it.
+
+The marks are the mod's own scuff sheet, sized for vehicle sprites at play zoom
+(`art-source/vehicles/scuffs/`). The base game's ship damage decals were tried
+first and read only as smudges on a tank. Their size, 0.3 of a part's narrower
+extent, was picked by the owner over 0.22 and 0.4.
+
+**Damage smoke** is the other half of located damage on a living body: what is
+spent smokes where it was spent. A mech's lost section bursts and smoulders and a
+crippled mech smokes at its legs (`mechs-nouns.md`). A ground hull smokes by the
+same law (`VehicleDamageFxSystem`): thinly off its engine deck once its own
+structure is half gone or its plates are three-quarters worn on average, more
+thickly once its structure is down to a quarter; a lost drive bursts at the
+running gear and then smokes low along it; a lost turret bursts on its ring and
+then smoulders there. A wreck takes none of this, because its own wreck smoke
+already shows what happened to it. Like worn plate it observes and never
+records: it reads current state, draws nothing from the battle's random stream
+(cadence and jitter are hashed from the body and the tick), and keeps only which
+losses it has already burst, so each loss bursts once. It emits into the effects
+queues every presentation host drains, so a review frame smokes as the screen
+does.
 
 ## Standing laws
 

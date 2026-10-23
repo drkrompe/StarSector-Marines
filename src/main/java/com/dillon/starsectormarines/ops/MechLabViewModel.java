@@ -865,6 +865,46 @@ public final class MechLabViewModel {
         return result.succeeded();
     }
 
+    /**
+     * Drags an internal off the doll back to stores. The vent array leaves its socket empty;
+     * an engine or capacitor bank cannot, so the stock part is refitted from stores in its
+     * place, and the drag is refused when the fitted part is already stock or no spare stock
+     * part is in stores.
+     */
+    public boolean removeInstalledInternal(SocketId source) {
+        CampaignMech mech = selectedMech();
+        MechInternal.Role role = source != null ? roleFor(source) : null;
+        if (mech == null || role == null) return false;
+        selectedSlot.set(source);
+        platingSelected.set(false);
+        if (role == MechInternal.Role.VENT_ARRAY) return stripVentArray();
+        MechInternal current = mech.internal(role);
+        MechInternal stock = role.stock();
+        if (current == stock) {
+            return refuse(Strings.format("openingMechLabInternalStockRequired", current.displayName()));
+        }
+        if (!inStores(stock)) {
+            return refuse(Strings.format("openingMechLabInternalNoStockSpare",
+                    stock.displayName(), current.displayName()));
+        }
+        MechFrameBudget.Fit proposed = mech.fit().withInternal(role, stock);
+        MechWorkshop.Result result = workshop.fitInternal(mech.id(), stock);
+        if (result.status() != MechWorkshop.Status.INSTALLED_FROM_STORES) {
+            return applyFitResult(result, stock.displayName(), proposed);
+        }
+        feedbackText.set(Strings.format("openingMechLabInternalReturned",
+                current.displayName(), stock.displayName()));
+        finishWeaponCommand(result);
+        return true;
+    }
+
+    private boolean refuse(String feedback) {
+        feedbackText.set(feedback);
+        feedbackClasses.set("mech-lab-feedback tone-danger surface-dark");
+        revision.update(value -> value + 1);
+        return false;
+    }
+
     public void cancelWeaponDrag() {
         feedbackText.set(Strings.get("openingMechLabRefitDragCancelledCampaignHardwareWasNot"));
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
@@ -1434,6 +1474,7 @@ public final class MechLabViewModel {
             MechInternal internal = recipe.internal();
             if (internal.role != role) continue;
             if (!bay.canFabricate(internal) && bay.availableInternal(internal.id) == 0) continue;
+            if (effectiveFilter() == CategoryFilter.IN_STOCK && bay.availableInternal(internal.id) <= 0) continue;
 
             int owned = bay.ownedInternal(internal.id);
             int free = bay.availableInternal(internal.id);
@@ -2344,15 +2385,34 @@ public final class MechLabViewModel {
 
     private List<FilterPill> buildFilterPills() {
         if (fabricatingChassis()) return weightPills();
-        if (selectedMech() == null || platingSelected.get() || mountFor(selectedSlot.get()) == null) return List.of();
-        CategoryFilter current = catalogFilter.get();
+        if (selectedMech() == null || selectedVehicle() != null) return List.of();
+        List<CategoryFilter> offered = offeredFilters();
+        if (offered.isEmpty()) return List.of();
+        CategoryFilter current = effectiveFilter();
         List<FilterPill> pills = new ArrayList<>();
-        for (CategoryFilter f : CategoryFilter.values()) {
+        for (CategoryFilter f : offered) {
             String id = "mech-filter:" + f.name().toLowerCase(Locale.ROOT);
             String classes = f == current ? "catalog-filter-pill selected" : "catalog-filter-pill";
             pills.add(new FilterPill(id, f.label(), classes, () -> setFilter(f)));
         }
         return List.copyOf(pills);
+    }
+
+    /**
+     * Hardpoint types sort weapons only: an internal's socket already decides its role, so
+     * engine, capacitor, utility and plating stores offer All and In stock.
+     */
+    private List<CategoryFilter> offeredFilters() {
+        if (platingSelected.get() || selectedSlot.get() != null && roleFor(selectedSlot.get()) != null) {
+            return List.of(CategoryFilter.ALL, CategoryFilter.IN_STOCK);
+        }
+        return mountFor(selectedSlot.get()) != null ? List.of(CategoryFilter.values()) : List.of();
+    }
+
+    /** The chosen filter where this socket offers it; a hardpoint filter reads as All elsewhere. */
+    private CategoryFilter effectiveFilter() {
+        CategoryFilter current = catalogFilter.get();
+        return offeredFilters().contains(current) ? current : CategoryFilter.ALL;
     }
 
     /** On a vacant pad the strip filters the build catalog by weight class instead of hardpoint. */

@@ -758,15 +758,24 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
     }
 
     private static void drawWorldLabel(CanvasContext context, float height, WorldLabel label) {
+        float left = label.centerX() - label.font().measureWidth(label.text()) / 2;
+        if (label.halo() != null) {
+            for (float[] offset : WorldLabel.HALO_OFFSETS)
+                drawWorldLabelGlyphs(context, height, label, left + offset[0], label.topY() + offset[1], label.halo());
+        }
+        drawWorldLabelGlyphs(context, height, label, left, label.topY(), label.color());
+    }
+
+    private static void drawWorldLabelGlyphs(CanvasContext context, float height, WorldLabel label,
+                                             float x, float topY, Color color) {
         var font = label.font();
-        float x = label.centerX() - font.measureWidth(label.text()) / 2;
-        Color tint = new Color(label.color().getRed(), label.color().getGreen(), label.color().getBlue(),
-                Math.round(label.alpha() * 255));
+        Color tint = new Color(color.getRed(), color.getGreen(), color.getBlue(),
+                Math.round(label.alpha() * color.getAlpha()));
         for (int code : label.text().codePoints().toArray()) {
             var glyph = font.glyph(code);
             if (glyph == null) continue;
             if (glyph.w > 0 && glyph.h > 0) context.sprite(font.pagePath(), null,
-                    x + glyph.xoffset + glyph.w / 2f, height - label.topY() + glyph.yoffset + glyph.h / 2f,
+                    x + glyph.xoffset + glyph.w / 2f, height - topY + glyph.yoffset + glyph.h / 2f,
                     glyph.w, glyph.h, 0, tint,
                     new CanvasSpriteRegion(glyph.x / (float) font.atlasWidth(), glyph.y / (float) font.atlasHeight(),
                             glyph.w / (float) font.atlasWidth(), glyph.h / (float) font.atlasHeight()), CanvasBlend.NORMAL);

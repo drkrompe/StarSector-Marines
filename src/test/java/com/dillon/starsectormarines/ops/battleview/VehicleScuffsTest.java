@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** The placement rule for worn plate ({@code body-scuffs.md}), on a synthetic hull. */
+/** The placement rule for worn plate ({@code combat-durability-nouns.md}), on a synthetic hull. */
 class VehicleScuffsTest {
 
     /** A 192x96 frame holding a 160x64 hull, nose to the image's left as the vehicle sheets draw it. */
@@ -50,6 +50,16 @@ class VehicleScuffsTest {
             assertEquals(0, marks(mask, plate, 0f).size());
             assertEquals(VehicleScuffs.SLOTS, marks(mask, plate, 1f).size());
         }
+    }
+
+    @Test
+    void aRegionOfFewSlotsStillRunsThroughEveryStage() {
+        VehicleScuffs.Mask mask = mask(hull());
+        List<Integer> kinds = new ArrayList<>();
+        VehicleScuffs.place(mask, Plate.FRONT.ordinal(), 4, 1f, 99L,
+                (x, y, kind, variant, spin, alpha) -> kinds.add(kind));
+        assertEquals(List.of(VehicleScuffs.SCRAPE, VehicleScuffs.SCRAPE, VehicleScuffs.SCORCH, VehicleScuffs.GOUGE),
+                kinds);
     }
 
     @Test

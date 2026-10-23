@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16a8c-9d6c-7813-89ec-c84bb0c8ea5a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16a8c-9d6c-7813-89ec-c84bb0c8ea5a\\exec-730af2ea-2977-4613-9b5a-bc83765920ed.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\flier\\round-1\\raw\\c.png",
+    "sha256": "c3239dce7409f6152eb184fab98caccff514c0221fde6f8dc81ec156af428017",
+    "dimensions": [
+      1942,
+      809
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\flier\\round-1\\prompts\\c-blood-scythe.brief.txt",
+  "promptSha256": "9829a9780ef0f54801e642b6814dd5af7f9334e5ea11030d07eefeeb0bdabf38",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity and material only (the Runner, ground cousin); not layout, pose or palette\nImage 2: Palette and finish only (the Matriarch): charcoal plates with dried-blood highlights; not layout or anatomy\n\nTop-down sprite concept sheet for a tactical game (Starsector mod: Marines against an engineered biological weapon, the Rav Bloom). ONE new creature, the SKIRR: the Rav Bloom's flier, a pack-hunting winged strain that loiters over the battle in flocks and dives together onto guns and medics. It must read at a glance as the same species as reference image 1 (the Runner, its ground cousin): overlapping glossy carapace plates over a muscled body, deep magenta-crimson sinew visible in every gap and joint, bone weapons (claws, fangs, a barbed tail spike) in ivory, two small hot amber eye points and nothing else glowing, a pale ridge of spine plates. BEAST, not insect: no antennae, no thin wasp waist, no compound eyes, no insect legs, no feathers. Original design; not a StarCraft Mutalisk or any existing creature. No outline rim, no cream border.\n\nSHEET LAYOUT: the SAME creature drawn THREE times side by side in a row, identical design, colours and size in each, evenly spaced with clear empty space between them, every one seen from strictly overhead orthographic (camera looking straight down at its back), facing UP (head toward the top of the image), light from the upper left:\n1. LEFT, GLIDE: wings fully spread flat and wide, the whole wingspan visible.\n2. MIDDLE, FLAP: wings in the upstroke, raised high over the back, so from directly above they look short, narrow and foreshortened, close to the body.\n3. RIGHT, DIVE: wings folded back tight along the flanks into a narrow arrowhead, tail straight, jaws open, claws forward, striking.\nWide landscape canvas. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no labels, no border.\nDESIGN C, \"BLOOD SCYTHE\": the Matriarch's brood, in her palette. Charcoal-black carapace plates with dried-blood red highlights on edges and ridges (reference image 2 shows the palette; take only its colours and finish), crimson sinew between plates. Each wing is a rigid fan of four long overlapping bone-and-carapace blades like scythes, splayed with dark crimson membrane slits between them, the outermost blade tip a hooked ivory point. A compact muscular torso, a narrow plated head with the Runner's fanged jaw, two forward-reaching clawed forelimbs, and a short forked tail of two bone spikes. Wingspan about twice the body length; the silhouette is sharp and jagged, like a thrown blade.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\hero.png",
+      "sha256": "1fd084bdf713b942ea09dca5767d4ee1ac913bf17c5bcea8ae0d6ac62bcb41e8",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Identity and material only (the Runner, ground cousin); not layout, pose or palette"
+    },
+    {
+      "path": "art-source\\rav-redesign\\exploration\\matriarch\\round-3\\raw\\c5.png",
+      "sha256": "9f2820dbf0752bc5172bbd209d0de312eee14488150839bcd23c368429ea33b6",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Palette and finish only (the Matriarch): charcoal plates with dried-blood highlights; not layout or anatomy"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one Skirr concept sheet with the three poses, using the references only for the specified identity, materials, palette, and finish."
+  ],
+  "usage": {
+    "input_tokens": 45821,
+    "cached_input_tokens": 26624,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 823,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 56.1
+}

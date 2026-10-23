@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.combat;
 import com.dillon.starsectormarines.battle.unit.BodyCarrier;
 import com.dillon.starsectormarines.battle.unit.BodyService;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 /**
  * Whether <em>this</em> shooter can engage <em>that</em> body, right now.
@@ -55,8 +56,25 @@ public final class EngagementService {
             if (!carrier.isPresent(candidateId)) return false;
             return !carrier.isAirborne(candidateId) || reachesAltitude(shooterId);
         }
+        if (roster.isAliveById(candidateId) && roster.isLive(candidateId)
+                && roster.identity().type(candidateId).isFlier()) {
+            return weaponTracksFliers(roster, shooterId);
+        }
         return roster.isAliveById(candidateId) && roster.isLive(candidateId)
                 && roster.identity().type(candidateId).combatant;
+    }
+
+    /**
+     * Whether what {@code shooter} fights with can engage a flier ({@code UnitType.isFlier}): an emplacement's
+     * mount weapon, anybody else's primary, read off {@code WeaponDef.tracksFliers}. A heavy cannon, a mortar or a
+     * rocket cannot follow one and never engages it.
+     */
+    public static boolean weaponTracksFliers(UnitRosterService roster, long shooter) {
+        if (shooter == 0L || !roster.identity().has(shooter)) return false;
+        WeaponDef weapon = roster.turretState().isTurret(shooter)
+                ? roster.turretState().structure(shooter).mount.weapon
+                : roster.combat().primaryWeapon(shooter);
+        return weapon != null && weapon.tracksFliers();
     }
 
     /**

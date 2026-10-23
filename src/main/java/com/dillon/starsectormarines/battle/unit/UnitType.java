@@ -118,7 +118,14 @@ public enum UnitType {
      * catches; the crown blow and the reap's arc live with its behaviour. {@link #renderScale} is its
      * length in cells, which sizes its corpse. Append-only.
      */
-    SWARM_MATRIARCH(true, "graphics/battle/rav-matriarch-dead.png", true, 1200.0f, 30.0f, 0.7f, 1.0f, 1.8f, 2.2f, 18.0f, 4.5f, 4.0f, 1.0f, 0.90f);
+    SWARM_MATRIARCH(true, "graphics/battle/rav-matriarch-dead.png", true, 1200.0f, 30.0f, 0.7f, 1.0f, 1.8f, 2.2f, 18.0f, 4.5f, 4.0f, 1.0f, 0.90f),
+    /**
+     * The Rav Bloom's flier: a winged strain that hunts in packs over the swarm ({@code SwarmFliers}). A roster
+     * body like a drone, flown by its pack rather than by a per-unit behaviour, shot only by weapons that can
+     * track it ({@link #isFlier}). Its numbers are issued at release ({@code HarrierRules}); these are
+     * placeholders, the {@link #DRONE} convention. Append-only.
+     */
+    SWARM_HARRIER(false, null, true, 28f, 9f, 0f, 1.0f, 1.0f, 0.9f, 44f, 1.0f, 1.4f, 0.35f, 0.35f);
 
     /** Whether the body carries a {@code SPRITE} component: see {@link #carriesSprite()}. */
     private final boolean carriesSprite;
@@ -270,6 +277,13 @@ public enum UnitType {
      * that used to cast to the subclass.
      */
     public boolean isDrone() { return this == DRONE; }
+
+    /**
+     * Whether this is a body in the low air: drawn above the roofs, out of every ground blast, and engaged only
+     * by a weapon that can track it ({@code WeaponDef.tracksFliers}). Today the Harrier; a drone keeps the
+     * older rule, under which anything may shoot it.
+     */
+    public boolean isFlier() { return this == SWARM_HARRIER; }
 
     /** Whether this archetype is a swarm strain body: runner, brute or spitter. */
     public boolean isSwarm() {

@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16a8c-9d60-74a1-89ea-14bd5aedabbd",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16a8c-9d60-74a1-89ea-14bd5aedabbd\\exec-bd73bbab-8f73-4161-8b7b-d2fad1860296.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\flier\\round-1\\raw\\b.png",
+    "sha256": "3afca118bc12b48be9e8fbfeca5a0f5636e8645a951f98166ae5c11f8204794f",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\flier\\round-1\\prompts\\b-plum-manta.brief.txt",
+  "promptSha256": "9ec33d58660c858382ff27c387bb87106686c5c76f2e34f25bd294af0a2ba3ef",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity and material only (the Runner, ground cousin); not layout, pose or palette\n\nTop-down sprite concept sheet for a tactical game (Starsector mod: Marines against an engineered biological weapon, the Rav Bloom). ONE new creature, the SKIRR: the Rav Bloom's flier, a pack-hunting winged strain that loiters over the battle in flocks and dives together onto guns and medics. It must read at a glance as the same species as reference image 1 (the Runner, its ground cousin): overlapping glossy carapace plates over a muscled body, deep magenta-crimson sinew visible in every gap and joint, bone weapons (claws, fangs, a barbed tail spike) in ivory, two small hot amber eye points and nothing else glowing, a pale ridge of spine plates. BEAST, not insect: no antennae, no thin wasp waist, no compound eyes, no insect legs, no feathers. Original design; not a StarCraft Mutalisk or any existing creature. No outline rim, no cream border.\n\nSHEET LAYOUT: the SAME creature drawn THREE times side by side in a row, identical design, colours and size in each, evenly spaced with clear empty space between them, every one seen from strictly overhead orthographic (camera looking straight down at its back), facing UP (head toward the top of the image), light from the upper left:\n1. LEFT, GLIDE: wings fully spread flat and wide, the whole wingspan visible.\n2. MIDDLE, FLAP: wings in the upstroke, raised high over the back, so from directly above they look short, narrow and foreshortened, close to the body.\n3. RIGHT, DIVE: wings folded back tight along the flanks into a narrow arrowhead, tail straight, jaws open, claws forward, striking.\nWide landscape canvas. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no labels, no border.\nDESIGN B, \"PLUM MANTA\": a broad, flat ray-like flier whose wings are part of the body. Darker plum-violet carapace with pale lilac on plate edges and the spine ridge (like an older Rav), crimson sinew in the gaps. The body widens straight into two broad fleshy wing lobes armoured along their leading edge with overlapping plates and bone hooks on the wing tips; the trailing edge is crimson membrane. A short blunt armoured head with the Runner's fanged jaw, two short clawed forelimbs tucked under the chin, and a long whip tail of plates ending in a barbed bone stinger. Wingspan about twice the body length; the silhouette is a wide diamond, very different from the four-legged ground strains.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\hero.png",
+      "sha256": "1fd084bdf713b942ea09dca5767d4ee1ac913bf17c5bcea8ae0d6ac62bcb41e8",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Identity and material only (the Runner, ground cousin); not layout, pose or palette"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one sheet with the three Skirr poses, using the reference for species identity and materials."
+  ],
+  "usage": {
+    "input_tokens": 41887,
+    "cached_input_tokens": 32768,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 806,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 47.8
+}

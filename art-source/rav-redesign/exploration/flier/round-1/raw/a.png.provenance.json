@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16a8c-9d59-78f2-9334-4db0fd82009a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16a8c-9d59-78f2-9334-4db0fd82009a\\exec-f76d6c9c-42dd-496d-81f1-56992c087060.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\flier\\round-1\\raw\\a.png",
+    "sha256": "030ac6fe70c53a306c56f8f357ad52790073865d535d719a6173e139fb97631c",
+    "dimensions": [
+      1942,
+      809
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\flier\\round-1\\prompts\\a-lilac-glider.brief.txt",
+  "promptSha256": "bd25a0e3feeb7419b5c6653065b07d787b82cf1434bad928d2e1f13f1f96f22d",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity, material and palette only (the Runner, ground cousin); not layout or pose\n\nTop-down sprite concept sheet for a tactical game (Starsector mod: Marines against an engineered biological weapon, the Rav Bloom). ONE new creature, the SKIRR: the Rav Bloom's flier, a pack-hunting winged strain that loiters over the battle in flocks and dives together onto guns and medics. It must read at a glance as the same species as reference image 1 (the Runner, its ground cousin): overlapping glossy carapace plates over a muscled body, deep magenta-crimson sinew visible in every gap and joint, bone weapons (claws, fangs, a barbed tail spike) in ivory, two small hot amber eye points and nothing else glowing, a pale ridge of spine plates. BEAST, not insect: no antennae, no thin wasp waist, no compound eyes, no insect legs, no feathers. Original design; not a StarCraft Mutalisk or any existing creature. No outline rim, no cream border.\n\nSHEET LAYOUT: the SAME creature drawn THREE times side by side in a row, identical design, colours and size in each, evenly spaced with clear empty space between them, every one seen from strictly overhead orthographic (camera looking straight down at its back), facing UP (head toward the top of the image), light from the upper left:\n1. LEFT, GLIDE: wings fully spread flat and wide, the whole wingspan visible.\n2. MIDDLE, FLAP: wings in the upstroke, raised high over the back, so from directly above they look short, narrow and foreshortened, close to the body.\n3. RIGHT, DIVE: wings folded back tight along the flanks into a narrow arrowhead, tail straight, jaws open, claws forward, striking.\nWide landscape canvas. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no labels, no border.\nDESIGN A, \"LILAC GLIDER\": the Runner's own palette and head, grown wings. Glossy pale lilac carapace plates exactly like reference image 1, crimson sinew between them. The Runner's two shoulder spike arms have become the wings: each wing is a long jointed bone arm (the Runner's spike arm, lengthened) with three bone finger spars fanning back from it, a translucent deep crimson-magenta membrane stretched between the spars, veined. A lean hound-like body, small tucked hind legs with ivory claws, a long segmented plated tail ending in a barbed bone spike. The Runner's heavy jaw head. Wingspan about two and a half times the body length.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\hero.png",
+      "sha256": "1fd084bdf713b942ea09dca5767d4ee1ac913bf17c5bcea8ae0d6ac62bcb41e8",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Identity, material and palette only (the Runner, ground cousin); not layout or pose"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image with the Skirr in three overhead poses, using the reference for its identity, materials, and palette."
+  ],
+  "usage": {
+    "input_tokens": 41793,
+    "cached_input_tokens": 36096,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 710,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 53.5
+}
