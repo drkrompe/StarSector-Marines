@@ -236,11 +236,11 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         return mount;
     }
 
-    /** Vehicle turrets on each long load: an LRM launcher in salvos, a heavy MG's belt, a burst laser. */
+    /** Vehicle turrets on each long load: an LRM launcher in salvos, a heavy MG's belt, a burst laser, a pulse emitter. */
     private static BattleDirectControlStatus.Snapshot ordnanceVehicle() {
         List<BattleDirectControlStatus.WeaponStatus> weapons = new ArrayList<>();
         String[][] turrets = {{"mount.vehicle-lrm", "37", "0"}, {"mount.turret-heavy-mg", "131", "0"},
-                {"mount.tank-burst-laser", "420", "2"}};
+                {"mount.tank-burst-laser", "420", "2"}, {"mount.hover-pulse", "160", "0"}};
         for (String[] turret : turrets) {
             var mount = TurretCatalogRegistry.requireMount(turret[0]);
             var ground = new GroundTurret(Integer.parseInt(turret[1]));
@@ -610,11 +610,11 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         return plate;
     }
 
-    /** The preview Heavy APC's doll: the same hull and armor fractions its status panel reads. */
+    /** The preview Heavy APC's doll: whole plates over a hull at the status panel's 610 of 900. */
     private static BattleDamageDollPlate vehiclePlate(Path modRoot) {
         var plate = new BattleDamageDollPlate(path -> Files.readString(modRoot.resolve(path)),
                 ModStrings.fromDisk(modRoot));
-        plate.updateVehicle(VehicleType.HEAVY_APC, 610f, 900f, 320f, 800f, null);
+        plate.updateVehicle(VehicleType.HEAVY_APC, 610f, 900f, null, HullLocations.of(VehicleType.HEAVY_APC, null));
         return plate;
     }
 
@@ -629,8 +629,10 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         VehicleType type = VehicleType.BREAKTHROUGH_TANK;
         HullTurretSection turret = HullTurretSection.forHull(type);
         HullLocations locations = HullLocations.of(type, turret);
-        float hp = type.maxStructure;
-        float armor = type.maxArmor;
+        float maxHp = type.maxStructure + locations.maxDrive();
+        float maxArmor = locations.maxTotalArmor();
+        float hp = maxHp;
+        float armor = maxArmor;
         var scratch = new DurabilityModel.Resolution();
         var hit = new HullLocations.Hit();
         float rating = type.armorRating;
@@ -647,11 +649,11 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         armor -= hit.armorDamage();
         var plate = new BattleDamageDollPlate(path -> Files.readString(modRoot.resolve(path)),
                 ModStrings.fromDisk(modRoot));
-        plate.updateVehicle(type, hp, type.maxStructure, armor, type.maxArmor, turret, locations);
+        plate.updateVehicle(type, hp, maxHp, turret, locations);
         var base = BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.VEHICLE, false);
         var status = new BattleDirectControlStatus.Snapshot(base.entityId(), "Breakthrough Tank",
                 BattleDirectControlStatus.Carrier.VEHICLE, new BattleDirectControlStatus.Durability(hp,
-                type.maxStructure, armor, type.maxArmor, rating), base.weapons());
+                maxHp, armor, maxArmor, rating), base.weapons());
         return new FlankedTank(status, plate);
     }
 

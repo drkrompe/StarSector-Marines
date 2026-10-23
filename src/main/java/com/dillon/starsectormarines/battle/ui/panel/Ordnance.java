@@ -13,11 +13,13 @@ public enum Ordnance {
 
     /**
      * Read off how the weapon is drawn, since the catalog keeps no separate family: a missile flies a
-     * missile sprite or trails a contrail, an energy weapon draws a beam or is held as a laser.
+     * missile sprite or trails a contrail, an energy weapon draws a beam, is held as a laser, or is authored
+     * {@code render.energy}.
      */
     public static Ordnance of(WeaponDef weapon) {
         if (weapon == null) return BALLISTIC;
-        if (weapon.beamStyle != WeaponDef.BeamStyle.DEFAULT || weapon.heldSpriteFamily == LayeredWeaponFamily.LASER_GUN) return ENERGY;
+        if (weapon.energy || weapon.beamStyle != WeaponDef.BeamStyle.DEFAULT
+                || weapon.heldSpriteFamily == LayeredWeaponFamily.LASER_GUN) return ENERGY;
         boolean missileSprite = weapon.projectileSpritePath != null
                 && weapon.projectileSpritePath.contains("/missiles/");
         if (missileSprite || weapon.contrailProfile != null || weapon.boostRamp) return MISSILE;

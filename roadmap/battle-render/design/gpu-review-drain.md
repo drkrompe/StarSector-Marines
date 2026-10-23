@@ -151,8 +151,10 @@ of 89 suites that account for 83% of the catalog's time, including every
 behaviour scene and every commander-evidence GIF. Nothing is migrated suite by
 suite, because a suite never names its drain. The 39 other suites (deck props,
 elevation looks, armory sheets, tileset previews) have their own renderers and
-are out of scope; the largest two, `elevation-look` and `deck-props`, are 9%
-of the run between them.
+are out of scope; the largest two, `elevation-look` and `deck-props`, were 9%
+of the run between them and are now opt-in (`SnapshotSuite.inAll`): `all`
+leaves them out and `-Psnapshot=<id>` runs them, since they answer only a look
+question about their own art.
 
 **One thread owns the context.** A GL context is current on one thread, and a
 suite may render from any thread, so the drain runs every frame on its own
@@ -188,8 +190,11 @@ fire-heavy 1920x1080 frame GL is tens of times cheaper; on a small, plain view
 it is about even. `aircraft-crash` (six 600x414 views a frame) draws at about
 22 ms a frame on either backend once its renderers are kept, and the relief
 composite is most of the GL share there (25 ms a frame with it, 4 without).
-Starting the context and the GL sprite set costs about 15s once per run, which
-the whole catalog pays once and a one-suite run pays in full.
+Starting the context and the sprite set costs under 2s once per run. It was
+about 15s, nearly all of it decoding all 1,478 catalog images to read their
+sizes; the catalog now reads sizes from the PNG header (or the texture-fit
+manifest) and decodes only the images a run draws, which helps the Java2D
+drain as much.
 
 **Direct buffers must outlive the call.** The first broad GL run died with an
 access violation inside the driver, in `SpriteAtlas.build`'s
@@ -216,7 +221,7 @@ The backend switch adds no test and no task; `shaderEvidence` and
 ### Not done
 
 - The 39 suites with their own renderers (deck props, elevation looks, armory
-  sheets) still draw with Java2D; `elevation-look` and `deck-props` are the
-  only large ones.
+  sheets) still draw with Java2D; `elevation-look` and `deck-props`, the only
+  large ones, are opt-in rather than ported.
 - `commanderEvidence` and the other `Test`-task evidence keep the Java2D
   default; they can pass `-Dsnapshot.backend=gl` when a run wants it.

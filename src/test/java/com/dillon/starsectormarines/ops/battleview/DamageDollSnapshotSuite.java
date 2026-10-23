@@ -48,6 +48,8 @@ public final class DamageDollSnapshotSuite implements SnapshotSuite {
         DAMAGED.put(DollLocation.TORSO, new float[] {0f, .55f, 0f});
         DAMAGED.put(DollLocation.TORSO_REAR, new float[] {.3f, 1f, 0f});
         DAMAGED.put(DollLocation.ARMS, new float[] {1f, 1f, 0f});
+        DAMAGED.put(DollLocation.LEFT_ARM, new float[] {.4f, 1f, 0f});
+        DAMAGED.put(DollLocation.RIGHT_ARM, new float[] {0f, .6f, 0f});
         DAMAGED.put(DollLocation.LEFT_SHOULDER, new float[] {0f, 0f, 1f});
         DAMAGED.put(DollLocation.RIGHT_SHOULDER, new float[] {.85f, 1f, 0f});
         DAMAGED.put(DollLocation.LEGS, new float[] {0f, .2f, 0f});

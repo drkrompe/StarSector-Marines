@@ -938,6 +938,10 @@ KEYFRAMES = {
             ('tracer', 'colossus3', 'colossus', (-60, 30, 6)), ('tracer', 'colossus', 'wolf-p-a'),
             ('tracer', 'colossus', 'kite-p-b'), ('tracer', 'colossus', 'colossus3'),
             ('flares', 'colossus'), ('debris', 'colossus', 45, (-60, 34, 0)),
+            # what her flares answer (owner, 2026-10-23: a flare needs a visible cause): the Wolf's
+            # Harpoons (the Mk.III mounts no missiles), landing after the flares go out at 93.8 s,
+            # one of them pulled off onto a flare
+            ('missiles', 'wolf-p-a', 'colossus', 95.6, 1),
             # two Borers cut the burning pod free, short beams onto its joint; two more, out of the bay,
             # reach for the attackers with long beams that cut their hulls
             ('mining', 'borer-a', 'colossus', (-56, 33, -1)), ('mining', 'borer-b', 'colossus', (-61, 29, -6)),
@@ -2868,7 +2872,11 @@ def blender_main(cfg):
                             bf = None
                         if len(fx) > 3:       # ('missiles', a, b, t): the salvo arrives at sequence time t
                             bf = anchor + round((fx[3] - spec.get('key_t', fx[3])) * fps_s)
-                        done = sfx_.missiles(fx[1], fx[2], arrive=bf)
+                        # ('missiles', a, b, t, n): n of its seekers take b's flares (thrown earlier in fx)
+                        done = sfx_.missiles(fx[1], fx[2], arrive=bf, decoys=fx[4] if len(fx) > 4 else 0)
+                        if not done and len(fx) > 4:
+                            print(f'ASHARU WARNING {kf} missiles {fx[1]} -> {fx[2]}: no launcher tubes on the '
+                                  f'{fx[1]} build, so the flares of {fx[2]} have no seeker to answer', flush=True)
                     elif kind == 'blast_on':
                         done = sfx_.blast_on(fx[1], fx[2], fx[3])
                     elif kind == 'debris':

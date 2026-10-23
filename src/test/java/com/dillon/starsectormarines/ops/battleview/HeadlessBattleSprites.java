@@ -68,9 +68,10 @@ final class HeadlessBattleSprites extends BattleSprites {
         /**
          * @param path the resource path, as the game would name it
          * @param file where that path actually resolved on disk
-         * @param image the decoded pixels, valid only for the duration of the call
+         * @param width the image's logical width in pixels
+         * @param height its logical height
          */
-        SpriteAPI token(String path, Path file, BufferedImage image);
+        SpriteAPI token(String path, Path file, int width, int height);
     }
 
     private static final String INFANTRY_ROOT =
@@ -668,12 +669,18 @@ final class HeadlessBattleSprites extends BattleSprites {
         return extraTerrainSheets.values();
     }
 
+    /** A token for {@code path}, sized from the file's header: neither drain needs its pixels here. */
     private SpriteAPI sprite(String path) throws IOException {
         Path file = resolve(path);
-        BufferedImage image = read(path);
-        SpriteAPI token = tokens.token(path, file, image);
-        assets.put(token, new Asset(path, image.getWidth(), image.getHeight()));
-        TextureUsage.name(token, path, image.getWidth(), image.getHeight());
+        int[] size;
+        try {
+            size = FittedTextureOverlay.size(path, file);
+        } catch (IOException failure) {
+            throw new IOException("Could not read " + path, failure);
+        }
+        SpriteAPI token = tokens.token(path, file, size[0], size[1]);
+        assets.put(token, new Asset(path, size[0], size[1]));
+        TextureUsage.name(token, path, size[0], size[1]);
         return token;
     }
 
@@ -693,9 +700,9 @@ final class HeadlessBattleSprites extends BattleSprites {
      * cap. The drain paints from {@code HeadlessUiRenderer}'s own store,
      * never from here.
      */
-    private static SpriteAPI identityToken(String path, Path file, BufferedImage image) {
-        float width = image.getWidth();
-        float height = image.getHeight();
+    private static SpriteAPI identityToken(String path, Path file, int pixelWidth, int pixelHeight) {
+        float width = pixelWidth;
+        float height = pixelHeight;
         return (SpriteAPI) Proxy.newProxyInstance(
                 SpriteAPI.class.getClassLoader(), new Class<?>[]{SpriteAPI.class},
                 (proxy, method, args) -> switch (method.getName()) {

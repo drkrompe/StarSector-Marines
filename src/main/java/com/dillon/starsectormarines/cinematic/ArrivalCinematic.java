@@ -57,7 +57,8 @@ public final class ArrivalCinematic {
 
     /**
      * Shows the arrival over the docking dialog and runs {@code after} when it ends or is skipped.
-     * Returns false, leaving the dialog alone, when no shot is available.
+     * The dialog's panels stay hidden: {@code after} either opens the next screen over them or puts
+     * them back. Returns false, leaving the dialog alone, when no shot is available.
      */
     public static boolean play(InteractionDialogAPI dialog, Runnable after) {
         CinematicSequence sequence = load();
@@ -67,11 +68,7 @@ public final class ArrivalCinematic {
         dialog.hideTextPanel();
         dialog.hideVisualPanel();
         dialog.showCustomVisualDialog(Global.getSettings().getScreenWidth(), Global.getSettings().getScreenHeight(),
-                CompanyStoryDialogDelegate.scored(new ArrivalCinematicScreen(sequence, ArrivalCinematic::readVideo), () -> {
-                    dialog.showTextPanel();
-                    dialog.showVisualPanel();
-                    after.run();
-                }));
+                CompanyStoryDialogDelegate.scored(new ArrivalCinematicScreen(sequence, ArrivalCinematic::readVideo), after));
         return true;
     }
 

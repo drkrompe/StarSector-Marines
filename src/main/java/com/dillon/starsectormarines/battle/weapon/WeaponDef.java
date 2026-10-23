@@ -143,6 +143,11 @@ public final class WeaponDef {
     public final Color tracerColor;
     /** Optional layered hitscan-beam treatment; defaults preserve the ordinary two-pixel tracer. */
     public final BeamStyle beamStyle;
+    /**
+     * Authored energy weapon, for one whose look does not say so (a bolt with no beam and no laser sprite): the
+     * HUD draws its load as charge cells. A beam or a held laser reads as energy without it.
+     */
+    public final boolean energy;
     /** Optional short line trailing a projectile sprite, in cells; zero disables it. */
     public final float tracerTailCells;
     /** Optional projectile sprite; null means the shared tinted bolt. */
@@ -186,6 +191,7 @@ public final class WeaponDef {
                       LayeredWeaponFamily heldSpriteFamily,
                       Color tracerColor,
                       BeamStyle beamStyle,
+                      boolean energy,
                       float tracerTailCells,
                       String projectileSpritePath, float projectileVisualCells,
                       ContrailProfile contrailProfile,
@@ -233,6 +239,7 @@ public final class WeaponDef {
         this.heldSpriteFamily = heldSpriteFamily;
         this.tracerColor = tracerColor;
         this.beamStyle = beamStyle;
+        this.energy = energy;
         this.tracerTailCells = tracerTailCells;
         this.projectileSpritePath = projectileSpritePath;
         this.projectileVisualCells = projectileVisualCells;
@@ -370,6 +377,7 @@ public final class WeaponDef {
                 parseHeldSpriteFamily(render, mount, id),
                 render != null ? parseColor(render.optString("tracerColor", null), id) : Color.WHITE,
                 parseBeamStyle(render, id),
+                render != null && render.optBoolean("energy", false),
                 render != null ? (float) render.optDouble("tracerTailCells", 0.0) : 0f,
                 render != null ? emptyToNull(render.optString("projectileSprite", null)) : null,
                 render != null ? (float) render.optDouble("projectileVisualCells", 0.0) : 0f,
