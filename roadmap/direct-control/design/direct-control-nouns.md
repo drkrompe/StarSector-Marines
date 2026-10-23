@@ -261,7 +261,7 @@ contract before it gains an activation key.
 
 Holding either Shift key requests sprint for every controllable Marine,
 independently of armor or carried equipment. Sprint is an individual movement
-choice; it does not add a squad order or a Mech/APC speed mode. A small Shift
+choice; it does not add a squad order or a Mech or vehicle speed mode. A small Shift
 card in the existing equipment row shows the exact Marine's stamina and running
 or exhausted state. Its bar is distinct from armor and health.
 
@@ -286,7 +286,7 @@ with point aiming and the crosshair. Right-click issues no world order while
 controlling. It is a second trigger for the carriers that have a second battery: a
 Warship's missiles (see Warship carrier), a Tender's drone recall (see Tender), a Mech's secondary weapon group, and a
 Marine's secondary equipment (see Mouse buttons). A carrier with nothing to put on
-it, such as the APC turret, lets the press fall on the floor; the press never
+it, such as a vehicle turret, lets the press fall on the floor; the press never
 reaches the world, the camera, or the command layer, and releasing input clears it
 exactly as it clears the left button.
 
