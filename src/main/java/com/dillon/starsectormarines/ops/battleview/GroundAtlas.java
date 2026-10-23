@@ -18,17 +18,9 @@ import java.util.List;
  * them one sheet.
  *
  * <p>{@link SpriteAtlas} owns the mechanism — the shelf pack, the read-back into
- * slots, the gutter, the fail-soft. What is here is which sheets go in, and the
- * switch that takes them back out for a control run:
- * {@code -Dbattle.render.groundAtlas=false}.
+ * slots, the gutter, the fail-soft. What is here is which sheets go in.
  */
 public final class GroundAtlas extends SpriteAtlas {
-
-    /** Control-run switch; see the class note. On by default. */
-    public static final String PROPERTY = "battle.render.groundAtlas";
-
-    private static final boolean ENABLED =
-            Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
 
     /** Transparent texels between one sheet's content and the next. */
     static final int GUTTER_PX = SpriteAtlas.GUTTER_PX;
@@ -43,12 +35,7 @@ public final class GroundAtlas extends SpriteAtlas {
     static final int MAX_SIDE_PX = 2048;
 
     public GroundAtlas() {
-        super("ground atlas", ENABLED, MAX_SIDE_PX);
-    }
-
-    /** Whether the atlas is armed at all — for evidence that reports which run it was. */
-    public static boolean enabled() {
-        return ENABLED;
+        super("ground atlas", MAX_SIDE_PX);
     }
 
     /** Visible for the layout test; see {@link SpriteAtlas#shelfPack}. */

@@ -43,6 +43,15 @@ public interface RoomFitting {
     }
 
     /**
+     * Whether a doorway of this room is cut across every cell of the slot it was placed on, rather
+     * than the usual two. A ground vehicle bay's machine door is as wide as its service lane, because
+     * a hull is: a two-cell threshold admits a walking mech and no vehicle.
+     */
+    default boolean wholeDoorways() {
+        return false;
+    }
+
+    /**
      * Where a door may be <em>added</em> later, beyond the ones this room is
      * entered by — or nothing, for an arrangement that has no room for another.
      *

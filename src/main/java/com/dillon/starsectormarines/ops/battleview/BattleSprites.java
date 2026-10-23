@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.render2d.texture.ModTextures;
+import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
@@ -33,9 +35,7 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -67,14 +67,11 @@ public class BattleSprites {
      * {@code art-source/fx/build_shadow_blob.py}.
      */
     static final String SHADOW_BLOB_SPRITE  = "graphics/battle/fx/shadow-blob.png";
-    private static final String ICON_ALARM          = "graphics/icons/Alarm 512 px.png";
     private static final String ICON_DANGER         = "graphics/icons/Danger sign 1 512 px.png";
     private static final String ICON_STAR           = "graphics/icons/Star 512 px.png";
 
-    // ---- unit sheets --------------------------------------------------------
+    // ---- unit corpse sheets -------------------------------------------------
 
-    private final java.util.EnumMap<UnitType, UnitSpriteCache> unitSprites =
-            new java.util.EnumMap<>(UnitType.class);
     private final java.util.EnumMap<UnitType, UnitSpriteCache> unitDeadSprites =
             new java.util.EnumMap<>(UnitType.class);
     private boolean unitSpritesLoadAttempted;
@@ -124,7 +121,6 @@ public class BattleSprites {
      */
     private final java.util.Map<String, ShuttleSpriteCache> projectileSpriteByPath =
             new java.util.HashMap<>();
-    private final Map<String, UnitSpriteCache> specialEquipmentAimSheets = new LinkedHashMap<>();
     private boolean marineSecondarySpritesLoadAttempted;
 
     // ---- decal sheet --------------------------------------------------------
@@ -180,12 +176,14 @@ public class BattleSprites {
     private SpriteAPI engineFlameSprite;
     private SpriteAPI engineGlowSprite;
     private SpriteAPI shadowBlobSprite;
+    /** The disc's size as loaded, before any draw resizes the sprite; see {@link UnitAtlas#offer}. */
+    private int shadowBlobPxW;
+    private int shadowBlobPxH;
     private boolean shadowBlobLoadAttempted;
     private boolean engineFxSpritesLoadAttempted;
 
     // ---- objective icons ----------------------------------------------------
 
-    private SpriteAPI iconAlarm;
     private SpriteAPI iconDanger;
     private SpriteAPI iconStar;
     private boolean iconsLoadAttempted;
@@ -203,7 +201,6 @@ public class BattleSprites {
     // Accessors
     // =========================================================================
 
-    public java.util.EnumMap<UnitType, UnitSpriteCache> unitSprites()          { return unitSprites; }
     public java.util.EnumMap<UnitType, UnitSpriteCache> unitDeadSprites()      { return unitDeadSprites; }
     public java.util.EnumMap<LayeredArmorFamily, LayeredUnitAssets> layeredUnitSprites() { return layeredUnitSprites; }
     /** The Runner's skeleton bones, or null when they did not all load. */
@@ -249,9 +246,6 @@ public class BattleSprites {
     public Map<String, ShuttleSpriteCache> turretRecoilSprites() { return turretRecoilSprites; }
     /** Carrier-agnostic projectile-sprite lookup by texture path (what {@code ShotFx.Sprite} resolves against). Null if not loaded / no such path. */
     public ShuttleSpriteCache projectileSprite(String path) { return path == null ? null : projectileSpriteByPath.get(path); }
-    public Map<String, UnitSpriteCache> specialEquipmentAimSheets() {
-        return specialEquipmentAimSheets;
-    }
     public SpriteAPI smokeGrenadeSprite() { return smokeGrenadeSprite; }
     /** The deployed smoke field's flipbook sheet; frames are addressed by {@code SpecialEquipmentPresentationDef.Field}. */
     public SpriteAPI smokeFieldSheet() { return smokeFieldSheet; }
@@ -304,7 +298,8 @@ public class BattleSprites {
     public SpriteAPI engineFlameSprite()           { return engineFlameSprite; }
     public SpriteAPI engineGlowSprite()            { return engineGlowSprite; }
     public SpriteAPI shadowBlobSprite()            { return shadowBlobSprite; }
-    public SpriteAPI iconAlarm()                   { return iconAlarm; }
+    public int shadowBlobPxW()                     { return shadowBlobPxW; }
+    public int shadowBlobPxH()                     { return shadowBlobPxH; }
     public SpriteAPI iconDanger()                  { return iconDanger; }
     public SpriteAPI iconStar()                    { return iconStar; }
     /** Authored pose authority; overridable by tooling that loads assets off disk. */
@@ -410,12 +405,16 @@ public class BattleSprites {
         if (shadowBlobLoadAttempted) return;
         shadowBlobLoadAttempted = true;
         shadowBlobSprite = loadEngineFxSpriteOrNull(SHADOW_BLOB_SPRITE);
+        if (shadowBlobSprite != null) {
+            shadowBlobPxW = Math.round(shadowBlobSprite.getWidth());
+            shadowBlobPxH = Math.round(shadowBlobSprite.getHeight());
+        }
     }
 
     public SpriteAPI loadEngineFxSpriteOrNull(String path) {
         try {
-            Global.getSettings().loadTexture(path);
-            SpriteAPI s = Global.getSettings().getSprite(path);
+            ModTextures.loadTexture(path);
+            SpriteAPI s = ModTextures.sprite(path);
             if (s == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + path);
             }
@@ -456,8 +455,8 @@ public class BattleSprites {
         if (pathSprites.containsKey(path)) return pathSprites.get(path);
         ShuttleSpriteCache cache = null;
         try {
-            Global.getSettings().loadTexture(path);
-            SpriteAPI sprite = Global.getSettings().getSprite(path);
+            ModTextures.loadTexture(path);
+            SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite != null) {
                 float w = sprite.getWidth();
                 float h = sprite.getHeight();
@@ -474,8 +473,8 @@ public class BattleSprites {
     private void loadAirframe(Airframe airframe) {
         String path = airframe.spritePath();
         try {
-            Global.getSettings().loadTexture(path);
-            SpriteAPI sprite = Global.getSettings().getSprite(path);
+            ModTextures.loadTexture(path);
+            SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + path);
                 return;
@@ -504,10 +503,13 @@ public class BattleSprites {
         convoySpritesLoadAttempted = true;
         for (com.dillon.starsectormarines.battle.vehicle.VehicleType type :
                 com.dillon.starsectormarines.battle.vehicle.VehicleType.values()) {
-            UnitSpriteCache cache = loadUnitSheet(type.spritePath);
-            if (cache != null) {
-                convoySprites.put(type, new UnitSpriteCache(cache.sheet,
-                        type.registeredSpriteFrames(cache.frames)));
+            SpriteAPI sheet = loadIconOrNull(type.spritePath);
+            if (sheet != null) {
+                // Registered sheets are equal horizontal slots: the frames follow from the
+                // sheet's logical size alone, so its pixels are never decoded or sliced.
+                SpriteSheetFrames size = new SpriteSheetFrames(Math.round(sheet.getWidth()),
+                        Math.round(sheet.getHeight()), new SpriteSheetFrames.Frame[0]);
+                convoySprites.put(type, new UnitSpriteCache(sheet, type.registeredSpriteFrames(size)));
             } else {
                 LOG.warn("convoy: failed to load sprite for " + type
                         + " (" + type.spritePath + ")");
@@ -524,15 +526,14 @@ public class BattleSprites {
     public void ensureObjectiveIcons() {
         if (iconsLoadAttempted) return;
         iconsLoadAttempted = true;
-        iconAlarm  = loadIconOrNull(ICON_ALARM);
         iconDanger = loadIconOrNull(ICON_DANGER);
         iconStar   = loadIconOrNull(ICON_STAR);
     }
 
     public SpriteAPI loadIconOrNull(String path) {
         try {
-            Global.getSettings().loadTexture(path);
-            SpriteAPI sprite = Global.getSettings().getSprite(path);
+            ModTextures.loadTexture(path);
+            SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + path);
                 return null;
@@ -546,19 +547,17 @@ public class BattleSprites {
     }
 
     /**
-     * Loads every {@link UnitType} sprite sheet on first call and auto-slices
-     * each into per-frame bounding boxes. A type whose load fails is recorded
-     * with a null entry so its units fall back to the color-quad path without
-     * retrying every frame.
+     * Loads every {@link UnitType} corpse sheet on first call and auto-slices
+     * each into per-frame bounding boxes. Live bodies have no sheet: they are
+     * drawn from modular art. A corpse sheet is declared only by a type whose
+     * fallen no layered downed pose or Rav rig lays down; a sheet that fails to
+     * load leaves its bodies undrawn.
      */
     public void ensureUnitSheets() {
         if (unitSpritesLoadAttempted) return;
         unitSpritesLoadAttempted = true;
         for (UnitType type : UnitType.values()) {
-            // Whole-sprite, separately rendered, and invisible types do not own
-            // a unit sheet. UnitType is the authority for that distinction.
-            if (!type.drawnAsSheet()) continue;
-            unitSprites.put(type, loadUnitSheet(type.spritePath));
+            if (!type.carriesSprite()) continue;
             if (type.deadSpritePath != null) {
                 UnitSpriteCache dead = loadUnitSheet(type.deadSpritePath);
                 if (dead != null) unitDeadSprites.put(type, dead);
@@ -566,7 +565,7 @@ public class BattleSprites {
         }
     }
 
-    /** Lazy-loads each marine secondary's projectile sprite AND the marine-pose sheet shown during the weapon's aim cycle. The projectile is a single sprite rotated at draw time; the aim sheet is auto-sliced into 7 frames matching the regular marine convention. */
+    /** Lazy-loads each marine secondary's projectile sprite, a single sprite rotated at draw time, and the primary weapons' projectile sprites. */
     public void ensureMarineSecondarySprites() {
         if (marineSecondarySpritesLoadAttempted) return;
         marineSecondarySpritesLoadAttempted = true;
@@ -575,8 +574,8 @@ public class BattleSprites {
         for (SpecialEquipmentDef sec : registry.all()) {
             if (sec.projectileSpritePath() != null) {
                 try {
-                    Global.getSettings().loadTexture(sec.projectileSpritePath());
-                    SpriteAPI sprite = Global.getSettings().getSprite(sec.projectileSpritePath());
+                    ModTextures.loadTexture(sec.projectileSpritePath());
+                    SpriteAPI sprite = ModTextures.sprite(sec.projectileSpritePath());
                     if (sprite == null) {
                         LOG.warn("BattleSprites: getSprite returned null for " + sec.projectileSpritePath());
                     } else {
@@ -592,12 +591,6 @@ public class BattleSprites {
                     LOG.error("BattleSprites: failed to load secondary projectile " + sec.projectileSpritePath(), e);
                 }
             }
-            if (sec.aimSpritePath() != null) {
-                UnitSpriteCache aim = loadUnitSheet(sec.aimSpritePath());
-                if (aim != null) {
-                    specialEquipmentAimSheets.put(sec.id(), aim);
-                }
-            }
         }
         // Primary projectile sprites (field-rifle / SMG shells today). Skip
         // weapons whose projectile path is null — those share the tinted bolt.
@@ -605,8 +598,8 @@ public class BattleSprites {
             if (w.mount != MountClass.MARINE_PRIMARY) continue;
             if (w.projectileSpritePath == null) continue;
             try {
-                Global.getSettings().loadTexture(w.projectileSpritePath);
-                SpriteAPI sprite = Global.getSettings().getSprite(w.projectileSpritePath);
+                ModTextures.loadTexture(w.projectileSpritePath);
+                SpriteAPI sprite = ModTextures.sprite(w.projectileSpritePath);
                 if (sprite == null) {
                     LOG.warn("BattleSprites: getSprite returned null for " + w.projectileSpritePath);
                     continue;
@@ -643,8 +636,8 @@ public class BattleSprites {
             String projectileSpritePath = weapon.projectileSpritePath;
             if (projectileSpritePath == null) continue;
             try {
-                Global.getSettings().loadTexture(projectileSpritePath);
-                SpriteAPI sprite = Global.getSettings().getSprite(projectileSpritePath);
+                ModTextures.loadTexture(projectileSpritePath);
+                SpriteAPI sprite = ModTextures.sprite(projectileSpritePath);
                 if (sprite == null) {
                     LOG.warn("BattleSprites: getSprite returned null for " + projectileSpritePath);
                     continue;
@@ -674,16 +667,14 @@ public class BattleSprites {
             }
             String grenadePath = smoke.presentation().thrown().spritePath();
             String fieldPath = smoke.presentation().field().sheetPath();
-            Global.getSettings().loadTexture(grenadePath);
-            smokeGrenadeSprite = Global.getSettings().getSprite(grenadePath);
-            Global.getSettings().loadTexture(fieldPath);
-            smokeFieldSheet = Global.getSettings().getSprite(fieldPath);
-            Global.getSettings().loadTexture(FIRE_SHEET_PATH);
-            fireSheet = Global.getSettings().getSprite(FIRE_SHEET_PATH);
-            if (FireRenderSystem.FLAME_SHEET_PATH != null) {
-                Global.getSettings().loadTexture(FireRenderSystem.FLAME_SHEET_PATH);
-                flameSheet = Global.getSettings().getSprite(FireRenderSystem.FLAME_SHEET_PATH);
-            }
+            ModTextures.loadTexture(grenadePath);
+            smokeGrenadeSprite = ModTextures.sprite(grenadePath);
+            ModTextures.loadTexture(fieldPath);
+            smokeFieldSheet = ModTextures.sprite(fieldPath);
+            ModTextures.loadTexture(FIRE_SHEET_PATH);
+            fireSheet = ModTextures.sprite(FIRE_SHEET_PATH);
+            ModTextures.loadTexture(FireRenderSystem.FLAME_SHEET_PATH);
+            flameSheet = ModTextures.sprite(FireRenderSystem.FLAME_SHEET_PATH);
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load smoke utility sprites", e);
         }
@@ -699,8 +690,8 @@ public class BattleSprites {
                 throw new IllegalStateException("Satchel equipment has no deployed presentation recipe");
             }
             String path = satchel.presentation().deployed().spritePath();
-            Global.getSettings().loadTexture(path);
-            satchelChargeSprite = Global.getSettings().getSprite(path);
+            ModTextures.loadTexture(path);
+            satchelChargeSprite = ModTextures.sprite(path);
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load satchel charge sprite", e);
         }
@@ -709,7 +700,7 @@ public class BattleSprites {
     /**
      * Loads independent body/head/feet/weapon textures for converted infantry
      * archetypes. A family is published only when every required layer
-     * loaded; otherwise {@code UnitRenderService} keeps using its legacy sheet.
+     * loaded; otherwise {@code UnitRenderService} draws its actors as plain markers.
      */
     public void ensureLayeredUnitSprites() {
         if (layeredUnitSpritesLoadAttempted) return;
@@ -780,7 +771,7 @@ public class BattleSprites {
         if (foot == null || rifle == null || laser == null || smg == null || dmr == null
                 || rocket == null || amr == null || flash == null || surplusRifle == null
                 || masterworkDmr == null) {
-            LOG.warn("BattleSprites: modular shared layers incomplete; legacy unit sheets remain active");
+            LOG.warn("BattleSprites: modular shared layers incomplete; infantry fall back to plain markers");
             return;
         }
 
@@ -869,7 +860,7 @@ public class BattleSprites {
         }
     }
 
-    /** Loads the all-or-nothing modular heavy-mech set; legacy sheet remains fallback. */
+    /** Loads the all-or-nothing modular heavy-mech set; without it mechs draw as plain markers. */
     public void ensureLayeredMechSprites() {
         if (layeredMechSpritesLoadAttempted) return;
         layeredMechSpritesLoadAttempted = true;
@@ -908,7 +899,7 @@ public class BattleSprites {
                 || demolitionCannon == null || thermalLance == null
                 || musterAutogun == null || quarryBreakerCannon == null
                 || pioneerRocketCradle == null || flash == null) {
-            LOG.warn("BattleSprites: modular mech layers incomplete; legacy heavy-mech sheet remains active");
+            LOG.warn("BattleSprites: modular mech layers incomplete; mechs fall back to plain markers");
             return;
         }
         layeredMechSprites = new LayeredMechAssets(chassis, socketedChassis,
@@ -1018,7 +1009,7 @@ public class BattleSprites {
         if (body == null || head == null || foot == null
                 || (familyId.isXeno() && foreClaw == null)) {
             LOG.warn("BattleSprites: modular family " + familyId
-                    + " incomplete; actors using it keep their legacy sheet");
+                    + " incomplete; actors using it draw as plain markers");
             return;
         }
         LayeredUnitAssets assets = new LayeredUnitAssets(body, head, foot, foreClaw,
@@ -1048,14 +1039,14 @@ public class BattleSprites {
     /** Whole transparent PNG loader that captures image pixels before SpriteAPI mutation. */
     public LayeredSpriteCache loadLayeredSprite(String path) {
         try {
-            Global.getSettings().loadTexture(path);
-            SpriteAPI sprite = Global.getSettings().getSprite(path);
+            ModTextures.loadTexture(path);
+            SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("BattleSprites: getSprite returned null for modular layer " + path);
                 return null;
             }
-            try (InputStream stream = Global.getSettings().openStream(path)) {
-                BufferedImage image = ImageIO.read(stream);
+            {
+                BufferedImage image = ModTextures.readImage(path);
                 if (image == null) {
                     LOG.warn("BattleSprites: ImageIO.read returned null for modular layer " + path);
                     return null;
@@ -1089,8 +1080,8 @@ public class BattleSprites {
         droneHubSpriteLoadAttempted = true;
         String path = DroneHub.SPRITE_PATH;
         try {
-            Global.getSettings().loadTexture(path);
-            SpriteAPI sprite = Global.getSettings().getSprite(path);
+            ModTextures.loadTexture(path);
+            SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + path);
                 return;
@@ -1110,8 +1101,8 @@ public class BattleSprites {
         droneSpriteLoadAttempted = true;
         String path = com.dillon.starsectormarines.battle.drone.Drone.SPRITE_PATH;
         try {
-            Global.getSettings().loadTexture(path);
-            SpriteAPI sprite = Global.getSettings().getSprite(path);
+            ModTextures.loadTexture(path);
+            SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + path);
                 return;
@@ -1134,8 +1125,8 @@ public class BattleSprites {
     public ShuttleSpriteCache loadTurretSprite(String path) {
         if (path == null) return null;
         try {
-            Global.getSettings().loadTexture(path);
-            SpriteAPI sprite = Global.getSettings().getSprite(path);
+            ModTextures.loadTexture(path);
+            SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + path);
                 return null;
@@ -1160,19 +1151,20 @@ public class BattleSprites {
 
     public UnitSpriteCache loadUnitSheet(String path) {
         try {
-            Global.getSettings().loadTexture(path);
-            SpriteAPI sprite = Global.getSettings().getSprite(path);
+            ModTextures.loadTexture(path);
+            SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + path);
                 return null;
             }
-            try (InputStream stream = Global.getSettings().openStream(path)) {
-                BufferedImage img = ImageIO.read(stream);
+            {
+                BufferedImage img = ModTextures.readImage(path);
                 if (img == null) {
                     LOG.warn("BattleSprites: ImageIO.read returned null for " + path);
                     return null;
                 }
                 SpriteSheetFrames frames = SpriteSheetSlicer.slice(img);
+                TextureUsage.sliced(path);
                 LOG.info("BattleSprites: auto-sliced " + path + " — " + frames.frames.length + " frames detected");
                 return new UnitSpriteCache(sprite, frames);
             }
@@ -1187,20 +1179,21 @@ public class BattleSprites {
         if (decalSheetLoadAttempted) return;
         decalSheetLoadAttempted = true;
         try {
-            Global.getSettings().loadTexture(SPRITE_DECAL_SHEET);
-            decalSheet = Global.getSettings().getSprite(SPRITE_DECAL_SHEET);
+            ModTextures.loadTexture(SPRITE_DECAL_SHEET);
+            decalSheet = ModTextures.sprite(SPRITE_DECAL_SHEET);
             if (decalSheet == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + SPRITE_DECAL_SHEET);
                 return;
             }
-            try (InputStream stream = Global.getSettings().openStream(SPRITE_DECAL_SHEET)) {
-                BufferedImage img = ImageIO.read(stream);
+            {
+                BufferedImage img = ModTextures.readImage(SPRITE_DECAL_SHEET);
                 if (img == null) {
                     LOG.warn("BattleSprites: ImageIO.read returned null for " + SPRITE_DECAL_SHEET);
                     decalSheet = null;
                     return;
                 }
                 decalFrames = SpriteSheetSlicer.slice(img);
+                TextureUsage.sliced(SPRITE_DECAL_SHEET);
                 LOG.info("BattleSprites: auto-sliced " + SPRITE_DECAL_SHEET
                         + " — " + decalFrames.frames.length + " frames");
             }

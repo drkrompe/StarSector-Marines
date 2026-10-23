@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Exercises the real action/scorer on two units and a tiny grid; no battle loop or generation. */
 class ClearZoneDecisionCadenceTest {
     @Test void stableTargetSkipsDecisionScansButChecksAndAuthorsFireEveryTick() {
-        try (Fixture f = new Fixture(true)) {
+        try (Fixture f = new Fixture()) {
             assertEquals(ActionStatus.RUNNING, f.execute());
             int visits = f.visits;
             int shotChecks = f.grid.shotChecks;
@@ -37,19 +37,8 @@ class ClearZoneDecisionCadenceTest {
         }
     }
 
-    @Test void controlStillPerformsTheZoneScanOnEveryTick() {
-        try (Fixture f = new Fixture(false)) {
-            f.execute();
-            int visits = f.visits;
-            f.tick++;
-            f.execute();
-            assertTrue(f.visits > visits);
-            assertEquals(0, f.profile.countOf(TickInnerProfile.Bucket.CLEAR_ZONE_DECISION_REUSE));
-        }
-    }
-
     @Test void failedSearchBackoffAvoidsSelectionAndNeverResumesAnOldPath() {
-        try (Fixture f = new Fixture(true)) {
+        try (Fixture f = new Fixture()) {
             f.grid.shots = false;
             f.grid.sight = false;
             f.execute();
@@ -72,7 +61,7 @@ class ClearZoneDecisionCadenceTest {
     }
 
     @Test void newlyLegalShotInterruptsNegativeBackoffImmediately() {
-        try (Fixture f = new Fixture(true)) {
+        try (Fixture f = new Fixture()) {
             f.grid.shots = false;
             f.grid.sight = false;
             f.execute();
@@ -87,7 +76,7 @@ class ClearZoneDecisionCadenceTest {
     }
 
     @Test void externalReplacementTargetIsNeverOverwrittenByNegativeIdentity() {
-        try (Fixture f = new Fixture(true)) {
+        try (Fixture f = new Fixture()) {
             f.grid.shots = false;
             f.grid.sight = false;
             f.execute();
@@ -104,7 +93,7 @@ class ClearZoneDecisionCadenceTest {
     }
 
     @Test void topologyChangeImmediatelyRetriesAFailedSearch() {
-        try (Fixture f = new Fixture(true)) {
+        try (Fixture f = new Fixture()) {
             f.grid.shots = false;
             f.grid.sight = false;
             f.execute();
@@ -119,7 +108,7 @@ class ClearZoneDecisionCadenceTest {
 
     @Test void releasedTargetCannotKeepTheRoomOccupiedEvenIfItsHealthRowSurvives() {
         for (boolean negative : new boolean[]{false, true}) {
-            try (Fixture f = new Fixture(true)) {
+            try (Fixture f = new Fixture()) {
                 f.grid.shots = !negative;
                 f.grid.sight = !negative;
                 f.execute();
@@ -131,7 +120,7 @@ class ClearZoneDecisionCadenceTest {
     }
 
     @Test void movedOutOfZoneTargetInvalidatesBeforeCadenceExpires() {
-        try (Fixture f = new Fixture(true)) {
+        try (Fixture f = new Fixture()) {
             f.execute();
             f.roster.world().setPos(f.enemy, 30.5f, 2.5f);
             f.tick++;
@@ -140,7 +129,7 @@ class ClearZoneDecisionCadenceTest {
     }
 
     @Test void successIsNeverCachedAcrossANewEnemyArrival() {
-        try (Fixture f = new Fixture(true)) {
+        try (Fixture f = new Fixture()) {
             f.roster.release(f.enemy);
             assertEquals(ActionStatus.SUCCESS, f.execute());
             long arrival = f.enemy(6, 2);
@@ -151,7 +140,7 @@ class ClearZoneDecisionCadenceTest {
     }
 
     @Test void centeredSettledMemberDoesNotBuildTrivialRoutesBetweenShots() {
-        try (Fixture f = new Fixture(true)) {
+        try (Fixture f = new Fixture()) {
             f.roster.combat().setCooldownTimer(f.self, 1f);
             f.execute();
             f.tick++;
@@ -164,7 +153,7 @@ class ClearZoneDecisionCadenceTest {
     }
 
     @Test void offCenterSettledMemberStillRoutesToTheClearFiringCellCenter() {
-        try (Fixture f = new Fixture(true)) {
+        try (Fixture f = new Fixture()) {
             f.grid.centerOnly = true;
             f.roster.world().setPos(f.self, 2.1f, 2.5f);
             f.execute();
@@ -210,7 +199,7 @@ class ClearZoneDecisionCadenceTest {
         int advances;
         int paths;
 
-        Fixture(boolean cadence) {
+        Fixture() {
             nav.setRoster(roster);
             roster.setNavigationGrid(grid);
             int squadId = roster.mintSquad(Faction.MARINE, UnitType.MARINE);
@@ -221,7 +210,7 @@ class ClearZoneDecisionCadenceTest {
             roster.combat().setCooldownTimer(self, 0f);
             scoring = new TacticalScoring(nav, roster, new AttackerIndexService(roster), null,
                     new DoodadService(grid));
-            action = new ClearZone(nav.getZoneGraph().zoneIdAt(2, 2), cadence);
+            action = new ClearZone(nav.getZoneGraph().zoneIdAt(2, 2));
             sim = (BattleControl) Proxy.newProxyInstance(BattleControl.class.getClassLoader(),
                     new Class<?>[]{BattleControl.class}, (proxy, method, args) -> switch (method.getName()) {
                         case "getGrid" -> grid;
@@ -237,6 +226,7 @@ class ClearZoneDecisionCadenceTest {
                         // No per-tick zone table: the clear test takes the live scan this suite counts.
                         case "zoneOccupancy" -> null;
                         case "liveUnitIndexOf" -> roster.indexOf((long) args[0]);
+                        case "isRiding" -> roster.isRiding((long) args[0]);
                         case "liveUnitCount" -> roster.liveCount();
                         case "liveUnitAt" -> { visits++; yield roster.get((int) args[0]); }
                         case "advanceMovement" -> { advances++; yield null; }

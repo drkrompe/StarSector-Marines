@@ -108,6 +108,10 @@ public final class QuadBatch {
     public int quadCount() { return quadCount; }
     public boolean isEmpty() { return quadCount == 0; }
 
+    /** The sheet's content size this batch divides source rectangles by. */
+    public int sheetPxW() { return sheetPxW; }
+    public int sheetPxH() { return sheetPxH; }
+
     /**
      * Queue one rotated textured quad. Same as {@link #append} but rotates
      * the destination rect by {@code rotationDeg} (CCW) around its center

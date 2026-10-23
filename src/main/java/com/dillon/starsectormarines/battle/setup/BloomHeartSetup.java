@@ -114,7 +114,7 @@ public final class BloomHeartSetup {
                     .battery(BURN_BATTERY_STRUCTURE, guns);
             sim.addObjective(new BatteryObjective(guns));
         }
-        HeartLanes lanes = form == Form.BROAD_FRONT ? alliedLanes(form, built.battleSeed()) : null;
+        HeartLanes lanes = form == Form.BROAD_FRONT ? alliedLanes(sim, form, built.battleSeed()) : null;
         boolean front = barrage != null && burnFront();
         if (front) lanes = burnFront(sim, form, burnScreen(form, barrage.plan()), built.battleSeed());
         sim.installHeart(form, barrage, lanes);
@@ -127,8 +127,15 @@ public final class BloomHeartSetup {
         // -Dbattle.heart.followBarrage=false is the control: the company goes straight for its bore.
         BarrageScreen screen = barrage == null || !Boolean.parseBoolean(System.getProperty("battle.heart.followBarrage", "true"))
                 ? null : burnScreen(form, barrage.plan());
+        if (form == Form.BROAD_FRONT && BROAD_FORM_UP_SECONDS > 0) screen = broadFormUp(form, landing);
+        HeartLane companyLane = new HeartLane(form.advancesAlongY(), laneAcross, laneHalfWidth);
+        if (form == Form.BROAD_FRONT && lanes != null && BROAD_COMPANY_ARMOUR) supportCompany(sim, form, lanes, companyLane, landing);
+        if (front) lanes.companySector(companyLane);
         sim.setAutonomousCommander(Faction.MARINE,
-                new HeartAssaultCommand(new HeartLane(form.advancesAlongY(), laneAcross, laneHalfWidth), screen),
+                form == Form.BROAD_FRONT && BROAD_WAIT_FOR_LANES
+                        ? (BROAD_FALL_BACK ? new HeartAssaultCommand(companyLane, screen).waitingForSatellites(landing.seedX(), landing.seedY())
+                                : new HeartAssaultCommand(companyLane, screen).waitingForSatellites())
+                        : new HeartAssaultCommand(companyLane, screen),
                 HeartAssaultCommand.DISCLOSURE);
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(HeartAssaultCommand.ISSUER, "Company support joins the push"));
         return sim;
@@ -140,21 +147,112 @@ public final class BloomHeartSetup {
     static final float LANE_FOOT_DEPTH = 0.05f;
 
     /** Broad Front's four allied lanes, each a column at its foot on the start line. */
-    static HeartLanes alliedLanes(Form form, long seed) {
+    static HeartLanes alliedLanes(BattleSimulation sim, Form form, long seed) {
         List<HeartLane> grounds = new ArrayList<>();
         List<int[]> entries = new ArrayList<>();
         int halfWidth = Math.round(ALLIED_LANE_HALF_WIDTH * form.scale.width);
-        for (float across : HeartCountry.laneAcross()) {
-            int[] foot = form.cellAt(LANE_FOOT_DEPTH, across);
+        float[] across = HeartCountry.laneAcross();
+        for (float a : across) {
+            int[] foot = form.cellAt(LANE_FOOT_DEPTH, a);
             grounds.add(new HeartLane(form.advancesAlongY(), form.advancesAlongY() ? foot[0] : foot[1], halfWidth));
             entries.add(foot);
         }
-        return new HeartLanes(grounds, entries, RiskLevel.MEDIUM, seed ^ LANES_SALT);
+        if (!broadStrength()) return new HeartLanes(grounds, entries, RiskLevel.MEDIUM, seed ^ LANES_SALT);
+        // The militia in strength, on its own clock: no barrage to follow, so the waves come at a steady cadence.
+        int[] waves = new int[1 + BROAD_WAVES];
+        waves[0] = HeartLanes.STEP_OFF_SECONDS;
+        for (int w = 1; w < waves.length; w++) waves[w] = HeartLanes.STEP_OFF_SECONDS + w * LATE_WAVE_SECONDS;
+        int axis = form.advancesAlongY() ? 1 : 0;
+        int sign = Integer.signum(form.cellAt(1f, 0.5f)[axis] - form.cellAt(0f, 0.5f)[axis]);
+        float facing = form.advancesAlongY() ? (sign > 0 ? 90f : -90f) : (sign > 0 ? 0f : 180f);
+        HeartLanes lanes = new HeartLanes(grounds, entries, BATTLEGROUP_TEAMS, waves, RiskLevel.MEDIUM, seed ^ LANES_SALT)
+                .advancing(sign);
+        for (int i = 0; i < across.length; i++) {
+            int[] base = form.cellAt(BROAD_ARMOUR_DEPTH, across[i]);
+            int slot = 0;
+            for (VehicleType type : List.of(VehicleType.ESCORT_APC, VehicleType.MILITIA_TECHNICAL, VehicleType.BREAKTHROUGH_TANK)) {
+                int[] at = offset(base, axis, slot++);
+                lanes.addArmour(sim, i, type, at[0], at[1], facing);
+            }
+            for (int h = 0; h < 2; h++) {
+                int[] at = offset(base, axis, slot++);
+                lanes.addArmour(sim, i, null, at[0], at[1], facing);
+            }
+            for (int w = 1; w <= ARMOUR_WAVES; w++) {
+                int tick = Math.round(w * ARMOUR_WAVE_SECONDS / BattleSimulation.TICK_DT);
+                int[] tank = offset(base, axis, 0), technical = offset(base, axis, 1);
+                lanes.scheduleArmour(tick, i, VehicleType.BREAKTHROUGH_TANK, tank[0], tank[1], facing);
+                lanes.scheduleArmour(tick, i, VehicleType.MILITIA_TECHNICAL, technical[0], technical[1], facing);
+            }
+        }
+        return lanes;
     }
 
-    /** {@code -Dbattle.heart.burnFront=true}: The Burn as an allied front (`heart-burn-front.md`). */
+    /**
+     * Broad Front's lanes in strength: militia waves, armour and armour waves as The Burn's battlegroups have,
+     * without the barrage. {@code -Dbattle.heart.broadStrength=false} is the control, one small column a lane.
+     */
+    static boolean broadStrength() {
+        return Boolean.parseBoolean(System.getProperty("battle.heart.broadStrength", "true"));
+    }
+
+    /**
+     * How long Broad Front's company holds its landing before it goes for its own satellite, so the lanes'
+     * first waves and armour are up beside it rather than behind it ({@code -Dbattle.heart.broadFormUp}, 0 for none).
+     */
+    static final int BROAD_FORM_UP_SECONDS = Integer.getInteger("battle.heart.broadFormUp", 120);
+
+    /** Broad Front's company on its landing until {@link #BROAD_FORM_UP_SECONDS}: a screen with form-up ground and no guns. */
+    static BarrageScreen broadFormUp(Form form, Precinct landing) {
+        int axis = form.advancesAlongY() ? 1 : 0;
+        int sign = Integer.signum(form.cellAt(1f, 0.5f)[axis] - form.cellAt(0f, 0.5f)[axis]);
+        int along = form.advancesAlongY() ? landing.seedY() : landing.seedX();
+        return new BarrageScreen(form.advancesAlongY(), sign, new int[0], new int[0], new int[0], 0, along,
+                Math.round(BROAD_FORM_UP_SECONDS / BattleSimulation.TICK_DT));
+    }
+
+    /**
+     * Broad Front's company gets armour in its own sector, a breakthrough tank and a Hound pair stationed on its
+     * target and a fresh tank every two minutes, as the lanes either side have ({@code -Dbattle.heart.broadCompanyArmour}).
+     */
+    static final boolean BROAD_COMPANY_ARMOUR =
+            Boolean.parseBoolean(System.getProperty("battle.heart.broadCompanyArmour", "true"));
+
+    static void supportCompany(BattleSimulation sim, Form form, HeartLanes lanes, HeartLane companyLane, Precinct landing) {
+        int axis = form.advancesAlongY() ? 1 : 0;
+        int sign = Integer.signum(form.cellAt(1f, 0.5f)[axis] - form.cellAt(0f, 0.5f)[axis]);
+        float facing = form.advancesAlongY() ? (sign > 0 ? 90f : -90f) : (sign > 0 ? 0f : 180f);
+        int[] base = {landing.seedX(), landing.seedY()};
+        int support = lanes.addSupport(companyLane, base, sim.getSimTickIndex() ^ LANES_SALT);
+        int slot = 0;
+        int[] tank = offset(base, axis, slot++);
+        lanes.addArmour(sim, support, VehicleType.BREAKTHROUGH_TANK, tank[0], tank[1], facing);
+        for (int h = 0; h < 2; h++) {
+            int[] at = offset(base, axis, slot++);
+            lanes.addArmour(sim, support, null, at[0], at[1], facing);
+        }
+        for (int w = 1; w <= ARMOUR_WAVES; w++)
+            lanes.scheduleArmour(Math.round(w * ARMOUR_WAVE_SECONDS / BattleSimulation.TICK_DT), support,
+                    VehicleType.BREAKTHROUGH_TANK, tank[0], tank[1], facing);
+    }
+
+    /** Broad Front's company holds its taken ground until every satellite is down ({@code -Dbattle.heart.broadWaitForLanes}). */
+    /** Whether it waits back on its landing rather than on the ground it took ({@code -Dbattle.heart.broadFallBack}). */
+    static final boolean BROAD_FALL_BACK = Boolean.parseBoolean(System.getProperty("battle.heart.broadFallBack", "true"));
+    static final boolean BROAD_WAIT_FOR_LANES =
+            Boolean.parseBoolean(System.getProperty("battle.heart.broadWaitForLanes", "true"));
+
+    /** Broad Front's waves after the first, {@link #LATE_WAVE_SECONDS} apart ({@code -Dbattle.heart.broadWaves}). */
+    static final int BROAD_WAVES = Integer.getInteger("battle.heart.broadWaves", 12);
+    /** Where a Broad Front lane's armour is set down: on its start line, beside the column's foot. */
+    static final float BROAD_ARMOUR_DEPTH = 0.03f;
+
+    /**
+     * The Burn as an allied front (`heart-nouns.md`, Allied front); {@code -Dbattle.heart.burnFront=false} is the
+     * control, the company alone behind the barrage.
+     */
     static boolean burnFront() {
-        return Boolean.getBoolean("battle.heart.burnFront");
+        return Boolean.parseBoolean(System.getProperty("battle.heart.burnFront", "true"));
     }
 
     /** The company's sector on The Burn's front: this share of the front's width either side of its landing. */
@@ -167,6 +265,26 @@ public final class BloomHeartSetup {
     static final boolean HEAVY_ARMOUR = !"standard".equals(System.getProperty("battle.heart.burnFrontArmour", "heavy"));
     /** A battlegroup's sector: this share of the front's width either side of its lane. */
     static final float BATTLEGROUP_HALF_WIDTH = 0.09f;
+    /**
+     * The planetary militia committed in strength (owner, 2026-10-22: "no need to be stingy with infantry and
+     * vehicles"): teams in each wave of each battlegroup, and how many waves follow the first, one stepping off as
+     * each of the barrage's first lines lifts. {@code -Dbattle.heart.burnFrontTeams} and
+     * {@code -Dbattle.heart.burnFrontWaves} tune them.
+     */
+    static final int BATTLEGROUP_TEAMS = Integer.getInteger("battle.heart.burnFrontTeams", 4);
+    static final int BATTLEGROUP_WAVES = Integer.getInteger("battle.heart.burnFrontWaves", 3);
+    /**
+     * Once the barrage has ended the militia keeps feeding the front against the mothers: this many more waves,
+     * one every {@link #LATE_WAVE_SECONDS} ({@code -Dbattle.heart.burnFrontLateWaves}).
+     */
+    static final int BATTLEGROUP_LATE_WAVES = Integer.getInteger("battle.heart.burnFrontLateWaves", 8);
+    static final int LATE_WAVE_SECONDS = 60;
+    /**
+     * Fresh armour for every battlegroup after the barrage, a tank and a technical at a time, this many times,
+     * {@link #ARMOUR_WAVE_SECONDS} apart from the barrage's end ({@code -Dbattle.heart.burnFrontArmourWaves}).
+     */
+    static final int ARMOUR_WAVES = Integer.getInteger("battle.heart.burnFrontArmourWaves", 4);
+    static final int ARMOUR_WAVE_SECONDS = 120;
     /** Where a battlegroup's armour is set down: at the farmland's open front, short of where the front forms up. */
     static final float ARMOUR_DEPTH = 0.12f;
 
@@ -189,13 +307,23 @@ public final class BloomHeartSetup {
             grounds.add(new HeartLane(form.advancesAlongY(), form.advancesAlongY() ? foot[0] : foot[1], halfWidth));
             entries.add(foot);
         }
-        HeartLanes lanes = new HeartLanes(grounds, entries, RiskLevel.MEDIUM, seed ^ LANES_SALT).following(screen);
+        int[] lifts = screen.liftTick();
+        int early = Math.min(BATTLEGROUP_WAVES, lifts.length);
+        int[] waves = new int[1 + early + BATTLEGROUP_LATE_WAVES];
+        waves[0] = HeartLanes.STEP_OFF_SECONDS;
+        for (int w = 1; w <= early; w++) waves[w] = Math.round(lifts[w - 1] * BattleSimulation.TICK_DT);
+        int ended = Math.round(lifts[lifts.length - 1] * BattleSimulation.TICK_DT);
+        for (int w = 0; w < BATTLEGROUP_LATE_WAVES; w++) waves[1 + early + w] = ended + w * LATE_WAVE_SECONDS;
+        HeartLanes lanes = new HeartLanes(grounds, entries, BATTLEGROUP_TEAMS, waves, RiskLevel.MEDIUM, seed ^ LANES_SALT)
+                .following(screen);
         int axis = form.advancesAlongY() ? 1 : 0;
         float facing = form.advancesAlongY() ? (screen.sign() > 0 ? 90f : -90f) : (screen.sign() > 0 ? 0f : 180f);
         for (int i = 0; i < across.length; i++) {
             List<VehicleType> hulls = new ArrayList<>(List.of(VehicleType.ESCORT_APC, VehicleType.MILITIA_TECHNICAL));
             boolean inner = i == 1 || i == across.length - 2;
             if (inner || HEAVY_ARMOUR) hulls.add(VehicleType.BREAKTHROUGH_TANK);
+            // The heavy front brings a second tank and a second technical to every battlegroup.
+            if (HEAVY_ARMOUR) hulls.addAll(List.of(VehicleType.BREAKTHROUGH_TANK, VehicleType.MILITIA_TECHNICAL));
             int[] base = form.cellAt(ARMOUR_DEPTH, across[i]);
             int slot = 0;
             for (VehicleType type : hulls) {
@@ -205,6 +333,12 @@ public final class BloomHeartSetup {
             for (int h = 0; (!inner || HEAVY_ARMOUR) && h < 2; h++) {
                 int[] at = offset(base, axis, slot++);
                 lanes.addArmour(sim, i, null, at[0], at[1], facing);
+            }
+            for (int w = 0; w < ARMOUR_WAVES; w++) {
+                int tick = Math.round((ended + w * ARMOUR_WAVE_SECONDS) / BattleSimulation.TICK_DT);
+                int[] tank = offset(base, axis, 0), technical = offset(base, axis, 1);
+                lanes.scheduleArmour(tick, i, VehicleType.BREAKTHROUGH_TANK, tank[0], tank[1], facing);
+                lanes.scheduleArmour(tick, i, VehicleType.MILITIA_TECHNICAL, technical[0], technical[1], facing);
             }
         }
         return lanes;

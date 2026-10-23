@@ -107,6 +107,12 @@ behind it, and hostile actors continue to use the ordinary reveal bitmap. The
 shown bitmap exists for fog and night drawing only; sight, unit visibility and
 roofs keep reading the reveal bitmap. This never expands observation, opens a
 roof or passes sight through the obstacle. Flat debris and floor decorations retain ordinary ground fog.
+At night a **burn is seen from anywhere**: its light carves the night shade
+whether or not anyone observes the cell, and the fog over ground it lights
+thins (by 40% at full glow), so the fire reads across the map while fogged fire
+stays a step darker than fire in sight. A lamp's light still stops at the fog.
+Neither reveals anything: hostile actors stay on the reveal bitmap
+(`FireFogClearing`).
 Opening or closing a structural sight blocker invalidates stationary
 observation through the same opacity revision used by smoke, so a felled tree
 or breached wall exposes its new sightline on the next vision update.

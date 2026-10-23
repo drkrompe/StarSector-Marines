@@ -3099,15 +3099,14 @@ public final class BattleSetup {
         // The target world's profile (planetary defenses, …) rides in so the
         // overwatch line reflects how fortified the planet is, and so the places
         // the map is made of are derived from the world it is on.
-        // The lift is sized before the map is generated, because the pairs it
-        // flies are also the berthing areas the landing place has to seat: the
-        // map is told what the force needs rather than the force being cut to
-        // what three drop zones can carry. See {@link OrbitalLift}.
+        // The lift is resolved before the map is generated, because the pairs
+        // it flies are also the berthing areas the landing place has to seat.
+        // See {@link OrbitalLift}.
         ShuttleArrivalPlan requestedArrivalPlan = arrivalPlan != null
                 ? arrivalPlan : ShuttleArrivalPlan.legacy();
         List<ShuttleAssignment> committedManifest = resolveManifest(manifest);
         ConquestArrivalConfig sizedArrivalConfig =
-                requestedArrivalPlan.sizedConfigFor(committedManifest);
+                requestedArrivalPlan.sizedConfig();
         ConquestMap generated = conquestMap(gridW, gridH, seed, axis, profile,
                 tier, risk, sprawl, standoff, laneCount, landing, lanePaths,
                 sizedArrivalConfig.dropZoneCount());
@@ -3300,25 +3299,21 @@ public final class BattleSetup {
     /**
      * Where a Conquest marine arrival comes from and goes back to.
      *
-     * <p>Off orbit by default: one point {@link OrbitalLift#DESCENT_CELLS} off
-     * the berth on the side away from the objective, entered and left at the
-     * same place, so the leg is the descent and the round trip is a constant.
-     * With {@code -Dbattle.conquest.orbitalLift=false} — or on a map that gives
-     * no bearing to be away from — it is the old crossing of the map edge
-     * nearest the force, whose cadence grew with every cell the beachhead was
-     * slid inland.
+     * <p>Off orbit: one point {@link OrbitalLift#DESCENT_CELLS} off the berth
+     * on the side away from the objective, entered and left at the same place,
+     * so the leg is the descent and the round trip is a constant. On a map that
+     * gives no bearing to be away from it is the crossing of the map edge
+     * nearest the force.
      */
     private static float[] marineArrivalEntry(float lzCenterX, float lzCenterY,
                                               MapResult map, int gridW, int gridH,
                                               TraversalAxis axis) {
-        if (OrbitalLift.enabled()) {
-            AirCorridor descent = AirCorridor.descent("orbit", lzCenterX, lzCenterY,
-                    map.defenderSpawnX + 0.5f, map.defenderSpawnY + 0.5f,
-                    OrbitalLift.DESCENT_CELLS);
-            if (descent != null) {
-                return new float[]{descent.entryX, descent.entryY,
-                        descent.exitX, descent.exitY};
-            }
+        AirCorridor descent = AirCorridor.descent("orbit", lzCenterX, lzCenterY,
+                map.defenderSpawnX + 0.5f, map.defenderSpawnY + 0.5f,
+                OrbitalLift.DESCENT_CELLS);
+        if (descent != null) {
+            return new float[]{descent.entryX, descent.entryY,
+                    descent.exitX, descent.exitY};
         }
         return shuttleEntryFor(lzCenterX, lzCenterY, gridW, gridH, axis);
     }
@@ -3716,12 +3711,10 @@ public final class BattleSetup {
      * <p>Built from the same recorded routes the marine commander is handed and
      * the same compound records the capture rule runs on, so the two sides
      * agree about what stands where without sharing anything either of them
-     * believes. Empty under the lane-chain control, so a control run restores
-     * the band-only defender exactly as it restores the attacker's fraction.
+     * believes.
      */
     private static ConquestLaneChain conquestLaneChain(BattleSimulation sim,
                                                        MapResult map) {
-        if (!ConquestCommand.laneChainEnabled()) return ConquestLaneChain.NONE;
         CompoundService compounds = sim.getCompoundService();
         if (compounds == null || map.lanes.isEmpty()) return ConquestLaneChain.NONE;
         List<ConquestLaneChain.Compound> places = new ArrayList<>();
@@ -5369,8 +5362,8 @@ public final class BattleSetup {
         return stampVehicles(map, rng, null);
     }
 
-    private static List<Doodad> stampVehicles(MapResult map, Random rng,
-                                              boolean[][] reserved) {
+    /** {@link #stampVehicles(MapResult, Random)} parking nothing on the reserved cells. */
+    static List<Doodad> stampVehicles(MapResult map, Random rng, boolean[][] reserved) {
         NavigationGrid grid = map.grid;
         CellTopology topology = map.topology;
         // A parked truck is cover, and a field promised to stay clear of cover

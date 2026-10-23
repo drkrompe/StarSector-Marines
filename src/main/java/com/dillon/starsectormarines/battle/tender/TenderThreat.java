@@ -61,6 +61,7 @@ public final class TenderThreat {
         if (!fair()) {
             for (int i = 0; i < n; i++) {
                 long u = dense[i];
+                if (roster.isRiding(u)) continue;
                 if (side.hostileTo(roster.identity().faction(u))) out.add(world.x(u), world.y(u));
             }
             return out.array();

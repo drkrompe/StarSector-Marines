@@ -91,6 +91,7 @@ public final class FortressBatterySystem {
         Faction hostile = null;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);
+            if (sim.isRiding(unit)) continue;
             Faction faction = sim.identity().faction(unit);
             if (faction == Faction.CIVILIAN || !standsAtPoints(sim.identity().type(unit))) continue;
             float dx = sim.world().x(unit) - battery.x();

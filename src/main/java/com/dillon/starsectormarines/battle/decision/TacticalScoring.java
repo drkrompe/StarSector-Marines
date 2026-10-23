@@ -90,22 +90,7 @@ public final class TacticalScoring {
     private final AttackerIndexService attackerIndex;
     private final ShotService shots;
     private final DoodadService doodads;
-    public static final String SQUAD_FIRING_PROPERTY = "battle.targeting.squadFiringPositions";
-    private final boolean squadFiringPositions = Boolean.parseBoolean(
-            System.getProperty(SQUAD_FIRING_PROPERTY, "false"));
-    /** Same-build control for the discarded A* reachability proof. */
-    public static final String FIRING_REACHABILITY_COMPONENTS_PROPERTY =
-            "battle.targeting.firingReachabilityComponents";
-    private final boolean firingReachabilityComponents = Boolean.parseBoolean(
-            System.getProperty(FIRING_REACHABILITY_COMPONENTS_PROPERTY, "true"));
-    private final FiringPositionRefreshBudget firingRefreshBudget = new FiringPositionRefreshBudget(8);
-    private final boolean retainFiringPositions = Boolean.parseBoolean(
-            System.getProperty("battle.targeting.retainFiringPositions", "true"));
     private final RetainedFiringPositions retainedFiringPositions = new RetainedFiringPositions(8192);
-    private final boolean boundTargetScans = Boolean.parseBoolean(
-            System.getProperty("battle.targeting.boundKnownContactScan", "true"));
-    private final boolean localFiringSpread = Boolean.parseBoolean(
-            System.getProperty("battle.targeting.localFiringSpread", "true"));
     private static final ThreadLocal<LocalFiringSpread> LOCAL_FIRING_SPREAD =
             ThreadLocal.withInitial(LocalFiringSpread::new);
 
@@ -128,16 +113,6 @@ public final class TacticalScoring {
     public static final float TARGET_CROWDING_COST = 6f;
     /** Extra penalty when the engager is a squadmate. Real fireteams cover sectors, not the same enemy. */
     public static final float TARGET_SQUADMATE_EXTRA_COST = 6f;
-
-    /**
-     * Turns off damage-aware crowding, restoring the per-body count this
-     * shipped with. On by default;
-     * {@code -Dbattle.targeting.committedFire=false} is the control run.
-     */
-    public static final String COMMITTED_FIRE_PROPERTY = "battle.targeting.committedFire";
-
-    private static final boolean COMMITTED_FIRE = Boolean.parseBoolean(
-            System.getProperty(COMMITTED_FIRE_PROPERTY, "true"));
 
     /**
      * Per-ally-on-cell penalty added when picking a firing position. Pushes
@@ -239,128 +214,6 @@ public final class TacticalScoring {
      * targets blindly regardless of whether a visible candidate was available.
      */
     public static final float TARGET_NO_LOS_COST = 10f;
-
-    /**
-     * Penalty added to a target whose lane holds one of the shooter's own.
-     * <b>Built, measured, and off.</b>
-     *
-     * <p>The reasoning is sound and the measurement disagreed with it. Nothing
-     * on the decision side had ever asked whether a friendly stood in the lane,
-     * while {@link com.dillon.starsectormarines.battle.combat.BallisticResolver}
-     * modelled it from the round's side all along — so a marine with a
-     * squadmate in front read its lane as clear and fired into their back, and
-     * about a third of those rounds arrived there at half damage. Preferring a
-     * target it could shoot cleanly looked like the obvious answer.
-     *
-     * <p>Against a control on the same tree, it cost the reinforced-south
-     * fixture four of its fourteen captures and four of its eleven held
-     * compounds, killed 56 fewer defenders, and lost more marines doing it;
-     * full-strength-west is lost either way, and this lost it 4,600 ticks
-     * sooner. The mechanism is not mysterious in hindsight. <b>A blocked lane
-     * usually means a squadmate is between this marine and the enemy the squad
-     * is already engaging</b> — which is a firing line working correctly — so
-     * moving somebody onto a different target breaks up concentrated fire, and
-     * concentration is what kills things. The defender-loss column is where
-     * that shows.
-     *
-     * <p>The weight is not the problem, which is the part worth knowing. Tried
-     * at {@code 3f}, a pure tiebreak that only switches between near-equal
-     * targets, it reproduced essentially the whole loss: eleven captures rather
-     * than fourteen, the same seven held, the same 334 defenders killed. So
-     * this is not a constant that wants tuning; the act of switching target for
-     * a lane is itself the cost. Left at a value matched to
-     * {@link #TARGET_NO_LOS_COST} because a future attempt should start from a
-     * principled figure rather than from a tuned-down one that measured the
-     * same.
-     *
-     * <p><b>Retested once concentration stopped being governed by a headcount,
-     * and it still costs.</b> The standing explanation for the first result was
-     * that this was a second blind anti-concentration pressure stacked on
-     * {@link #TARGET_CROWDING_COST}, which then charged the same toll whether a
-     * target needed one more rifle or six; on that reading, pricing crowding by
-     * what is already spoken for should have left this pulling marines only off
-     * targets that were dead anyway, where switching is free. It did not.
-     * Against the same tree it gives up a capture and a held compound on
-     * reinforced-south, and on full-strength-west it hands back exactly the gain
-     * the crowding change had just bought — three captures against seven, one
-     * held against three, and a defeat at 16,412 ticks where the run without it
-     * survives to the limit.
-     *
-     * <p>Reinforced-south is the more instructive half, because it kills
-     * <em>more</em> defenders with this on (402 against 361) while taking fewer
-     * compounds. That is what the cost actually is: a squad that switches
-     * targets for a lane stays in the fight longer instead of pressing on, and
-     * Conquest is decided partly on a clock.
-     *
-     * <p>So the earlier diagnosis was wrong and the verb is the problem rather
-     * than what surrounds it. What the measurement still does not condemn is the
-     * lane test itself, and the remaining candidate was to <b>step aside rather
-     * than switch</b>: a marine who moves a cell keeps the squad's fire where it
-     * is and stops shooting its own man, where retargeting trades the second for
-     * the first.
-     *
-     * <p><b>That was built, measured twice, and it is what ships.</b>
-     * {@link com.dillon.starsectormarines.battle.infantry.LaneSidestep} carries
-     * its own numbers. A step-aside that consumed the marine's tick cost
-     * reinforced-south ten of its fourteen captures; the same step with the
-     * tick handed back — the marine keeps shooting while he moves — holds 11
-     * compounds against a control's 9 and 3 against 0, and is on by default.
-     * The lane test itself has now survived four measurements across three
-     * verbs: what failed was always what the marine was made to do about a
-     * blocked lane, never the fact that {@code FiringLane} can tell it is
-     * blocked. This preference — switching target — remains the one verb that
-     * lost every time it was tried.
-     */
-    public static final float FRIENDLY_LANE_COST = 10f;
-
-    /**
-     * Turns the friendly-lane preference on. Off by default — see
-     * {@link #FRIENDLY_LANE_COST} for the measurement that put it there;
-     * {@code -Dbattle.targeting.friendlyLanePenalty=true} enables it for the
-     * next attempt, and everything it needs is built.
-     */
-    public static final String FRIENDLY_LANE_PENALTY_PROPERTY =
-            "battle.targeting.friendlyLanePenalty";
-
-    private static final boolean FRIENDLY_LANE_PENALTY = Boolean.parseBoolean(
-            System.getProperty(FRIENDLY_LANE_PENALTY_PROPERTY, "false"));
-
-    /**
-     * Whether the friendly-lane preference is in effect. Exposed for the
-     * search-equivalence reference, which re-implements the picker to check
-     * that two scan orders agree: it has to mirror whatever the picker is
-     * actually doing, so that if this default is ever flipped the reference
-     * follows rather than the test failing for having been left behind.
-     */
-    static boolean friendlyLanePenaltyEnabled() { return FRIENDLY_LANE_PENALTY; }
-
-    /**
-     * Turns off perception-gated target picking, restoring the omniscient
-     * acquisition this shipped with. On by default;
-     * {@code -Dbattle.targeting.perceptionGated=false} is the control run.
-     *
-     * <p>Two separate pieces of omniscience lived here. The visibility test is
-     * a line between two cells and carries no distance bound at all, so a
-     * marine saw anybody standing anywhere down an unobstructed lane, a
-     * corridor the length of the map included. And the any-distance fallback
-     * handed back the nearest hostile whether or not there was any line to it
-     * at all, so a unit with nothing in sight still acquired whoever happened
-     * to be closest through the walls and walked at them. Instrumented over a
-     * Conquest matrix, roughly five in six activations of one downstream
-     * consumer were acting on a target outside the marine's own sight.
-     *
-     * <p>Kept as a switch rather than deleted because the fallback is
-     * load-bearing: its own documentation says it exists so a unit pathfinds
-     * toward a target and visibility eventually opens. What replaces it has to
-     * carry that weight through belief and mission command instead, and a
-     * control is how that is measured on one tree rather than against an older
-     * commit carrying every other difference with it.
-     */
-    public static final String PERCEPTION_GATED_TARGETS_PROPERTY =
-            "battle.targeting.perceptionGated";
-
-    private static final boolean PERCEPTION_GATED_TARGETS = Boolean.parseBoolean(
-            System.getProperty(PERCEPTION_GATED_TARGETS_PROPERTY, "true"));
 
     /**
      * Penalty added when a candidate target is in a different navigation zone
@@ -701,10 +554,8 @@ public final class TacticalScoring {
     }
 
     /** Unknown contacts beyond sight cannot win, but remembered contacts retain their full reach. */
-    static float targetScanLimit(float maxRange, float perceptionRange, float farthestBelief,
-                                 boolean boundKnownContacts) {
-        return boundKnownContacts ? Math.min(maxRange, Math.max(perceptionRange, farthestBelief))
-                : maxRange;
+    static float targetScanLimit(float maxRange, float perceptionRange, float farthestBelief) {
+        return Math.min(maxRange, Math.max(perceptionRange, farthestBelief));
     }
 
     /**
@@ -785,14 +636,6 @@ public final class TacticalScoring {
         int visits, rings, rays;
         /** Ids this perceiver's squad believes in. Refilled once per scan. */
         private final LongOpenHashSet believed = new LongOpenHashSet();
-        /**
-         * The shooter's own faction-mates near it, gathered at most once per
-         * scan and only when a candidate actually survives far enough to be
-         * scored -- most scans never reach one.
-         */
-        private final FiringLane.Friendlies friendlies = new FiringLane.Friendlies();
-        private final LongBucket friendlyScratch = new LongBucket();
-        private boolean friendliesGathered;
 
         long best;
         float bestScore;
@@ -823,9 +666,7 @@ public final class TacticalScoring {
             this.bestAny = 0L;
             this.bestAnyDist = Float.MAX_VALUE;
             this.perceptionRange = resolvePerceptionRange(scoring, excludeFromCrowding, maxRange);
-            this.friendliesGathered = false;
             this.visits = this.rings = this.rays = 0;
-            this.friendlies.clear();
             believed.clear();
             float farthestBelief = 0f;
             if (selfSquadId != Squad.NO_SQUAD) {
@@ -838,8 +679,7 @@ public final class TacticalScoring {
                         // The existing scorer reads the live position of a believed identity.
                         // Use that same position only to bound enumeration, not last-seen cells
                         // (a remembered mover may already be far from its observation).
-                        if (scoring.boundTargetScans && PERCEPTION_GATED_TARGETS
-                                && scoring.roster.isAliveById(contact.unitId())
+                        if (scoring.roster.isAliveById(contact.unitId())
                                 && !scoring.roster.isRiding(contact.unitId())) {
                             farthestBelief = Math.max(farthestBelief, cellDistance(selfX, selfY,
                                     world.x(contact.unitId()), world.y(contact.unitId())));
@@ -847,8 +687,7 @@ public final class TacticalScoring {
                     }
                 }
             }
-            this.scanLimit = targetScanLimit(maxRange, perceptionRange, farthestBelief,
-                    scoring.boundTargetScans && PERCEPTION_GATED_TARGETS);
+            this.scanLimit = targetScanLimit(maxRange, perceptionRange, farthestBelief);
         }
 
         /**
@@ -900,10 +739,14 @@ public final class TacticalScoring {
             // rest of the AI already runs on: this unit's own eyes, or its
             // squad's belief -- that same seeing pooled over everybody who
             // shares a net, which already answers the fire team too, a fire
-            // team being part of one squad.
+            // team being part of one squad. A line between two cells carries
+            // no distance bound of its own, so sight is bounded here too: a
+            // marine does not see down a lane the length of the map, and a
+            // unit with nothing in sight does not acquire whoever is nearest
+            // through the walls.
             boolean visible = false;
             boolean visibilityResolved = false;
-            if (PERCEPTION_GATED_TARGETS && !believed.contains(id)) {
+            if (!believed.contains(id)) {
                 if (d > perceptionRange) return;
                 rays++;
                 visible = canSeePair(scoring.grid, selfCellX, selfCellY, ox, oy,
@@ -927,12 +770,11 @@ public final class TacticalScoring {
                 // of fire to where they are.
                 visible = canSeePair(scoring.grid, selfCellX, selfCellY, ox, oy,
                         shooterAirRadius, vision.targetAirLosRadius(id))
-                        && (!PERCEPTION_GATED_TARGETS || d <= perceptionRange);
+                        && d <= perceptionRange;
             }
             if (!visible && !allowNoLos) return;
             float score = scoring.scoreTargetCandidate(id, d, visible, selfFaction,
                     selfSquadId, excludeFromCrowding, selfCellX, selfCellY, ox, oy);
-            score += laneCost(id);
             if (score < bestScore
                     || (score == bestScore && best != 0L && earlierInRoster(id, best))) {
                 bestScore = score;
@@ -953,29 +795,6 @@ public final class TacticalScoring {
             // the scan expanding on its own.
             if (bestAny == 0L || bestAnyDist > reachable) return true;
             return reachable - MAX_TARGET_SCORE_BONUS <= bestScore;
-        }
-
-        /**
-         * What it costs to shoot at {@code id} through one of your own.
-         *
-         * <p>Needs a muzzle, so a scan run from a squad centroid rather than
-         * from a unit -- which names no shooter and has no body -- asks nothing
-         * and pays nothing. The gather is deferred to the first candidate that
-         * gets this far, because a scan that scores nobody should not pay for a
-         * spatial query.
-         */
-        private float laneCost(long id) {
-            if (!FRIENDLY_LANE_PENALTY) return 0f;
-            if (excludeFromCrowding == 0L) return 0f;
-            if (!friendliesGathered) {
-                friendliesGathered = true;
-                FiringLane.gather(scoring.unitIndex, scoring.roster,
-                        excludeFromCrowding, selfX, selfY, perceptionRange,
-                        selfFaction, friendlyScratch, friendlies);
-            }
-            if (friendlies.size() == 0) return 0f;
-            return FiringLane.blocked(friendlies, selfX, selfY,
-                    world.x(id), world.y(id)) ? FRIENDLY_LANE_COST : 0f;
         }
 
         private boolean earlierInRoster(long candidate, long incumbent) {
@@ -1871,7 +1690,6 @@ public final class TacticalScoring {
                 + (world.hasArmor(target) ? world.armor(target) : 0f);
         float committed = 0f;
         float committedBySquad = 0f;
-        float cost = 0f;
         for (int i = 0, n = attackers.size(); i < n; i++) {
             long u = attackers.getLong(i);
             if (u == exclude || !roster.isAliveById(u)) continue;
@@ -1879,16 +1697,10 @@ public final class TacticalScoring {
             boolean sameSquad = selfSquadId != Squad.NO_SQUAD
                     && roster.squad().hasSquad(u)
                     && roster.squad().squadId(u) == selfSquadId;
-            if (!COMMITTED_FIRE) {
-                cost += TARGET_CROWDING_COST;
-                if (sameSquad) cost += TARGET_SQUADMATE_EXTRA_COST;
-                continue;
-            }
             float share = projectedPrimaryDamage(u, target);
             committed += share;
             if (sameSquad) committedBySquad += share;
         }
-        if (!COMMITTED_FIRE) return cost;
         if (committed <= 0f || remaining <= 0f) return 0f;
         // Squared, and the exponent is the whole difference between this
         // working and not. Scaling the toll linearly with the committed share
@@ -1989,28 +1801,13 @@ public final class TacticalScoring {
         // cell that's walled off from self — in which case the vantage probe is
         // the real verdict on whether an approach exists at all.
         World world = roster.world();
-        if (isFiringPositionReachable(grid, world.cellX(self), world.cellY(self),
-                spot[0], spot[1], firingReachabilityComponents)) return spot;
+        // The proof asks only whether a route exists, not its cost or length: the
+        // ordinary infantry A* uses these same structural components and has no
+        // additional passability mask. The navigation owner warms the labels before
+        // unit dispatch and retires them on topology changes.
+        if (grid.arePathConnected(world.cellX(self), world.cellY(self), spot[0], spot[1],
+                GridPathfinder.USE_CARDINAL_NAVIGATION)) return spot;
         return pickReachableVantage(self, target);
-    }
-
-    public boolean firingReachabilityComponentsEnabled() {
-        return firingReachabilityComponents;
-    }
-
-    /**
-     * This proof asks only whether a route exists, not its cost or length. The
-     * ordinary infantry A* uses these same structural components and has no
-     * additional passability mask, so its discarded route adds no information.
-     * The navigation owner warms the labels before unit dispatch and retires
-     * them on topology changes; callers must not retain a second copy here.
-     */
-    static boolean isFiringPositionReachable(NavigationGrid grid, int startX, int startY,
-                                            int goalX, int goalY, boolean useComponents) {
-        return useComponents
-                ? grid.arePathConnected(startX, startY, goalX, goalY,
-                        GridPathfinder.USE_CARDINAL_NAVIGATION)
-                : GridPathfinder.findPath(grid, startX, startY, goalX, goalY).length > 0;
     }
 
     /**
@@ -2651,95 +2448,21 @@ public final class TacticalScoring {
     }
 
     /**
-     * Opt-in shared constrained search. Only execution calls participate;
-     * hypothetical target probes retain the independent scorer. A refused
-     * refresh is not permission to run the individual broad scan instead.
+     * Execution search for a member's firing cell inside a leash, retained per
+     * member while it stays legal. Hypothetical target probes keep the fresh
+     * find methods.
      */
     public int[] findSquadFiringPositionWithin(long self, long target, Squad squad, int tick,
             int anchorX, int anchorY, float leash, int requiredZoneId) {
-        return selectSquadFiringPositionWithin(self, target, squad, tick,
-                anchorX, anchorY, leash, requiredZoneId).cell();
-    }
-
-    /** Pending refresh is distinct from a searched pool having no usable cell. */
-    public record FiringPositionSelection(int[] cell, boolean deferred) { }
-
-    public FiringPositionSelection selectSquadFiringPositionWithin(long self, long target,
-            Squad squad, int tick, int anchorX, int anchorY, float leash, int requiredZoneId) {
-        if (retainFiringPositions && !squadFiringPositions) {
-            return new FiringPositionSelection(selectRetainedFiringPosition(self, target, squad, tick,
-                    true, anchorX, anchorY, leash, requiredZoneId, false), false);
-        }
-        if (!squadFiringPositions) {
-            return new FiringPositionSelection(findFiringPositionWithin(self, target,
-                    anchorX, anchorY, leash, requiredZoneId), false);
-        }
-        long started = System.nanoTime();
-        TickInnerProfile profile = TickInnerProfile.currentIfBound();
-        try {
-            if (!roster.isAliveById(self) || !roster.isAliveById(target)) {
-                return new FiringPositionSelection(null, false);
-            }
-            World world = roster.world();
-            float range = effectiveAttackRange(self, target, world.attackRange(self));
-            float selfAir = roster.vision().airLosRadius(self);
-            float targetAir = targetAirLosRadius(target);
-            var key = new SquadFiringPositions.Key(target, range, selfAir, targetAir,
-                    anchorX, anchorY, leash, requiredZoneId);
-            float tx = world.x(target), ty = world.y(target);
-            int sx = world.cellX(self), sy = world.cellY(self);
-            var result = squad.firingPositions.request(self, tick, squad.routingEpoch,
-                    grid.topologyRevision(), tx, ty, squad.centroidX, squad.centroidY, key,
-                    () -> buildSquadFiringCandidates(key, tx, ty, squad.centroidX, squad.centroidY, profile),
-                    cell -> {
-                        if (profile != null) profile.record(TickInnerProfile.Bucket.FIRING_POOL_VALIDATION, 0L);
-                        return legalSquadFiringCell(key, cell.x(), cell.y(), tx, ty)
-                                && grid.arePathConnected(sx, sy, cell.x(), cell.y(),
-                                        GridPathfinder.USE_CARDINAL_NAVIGATION);
-                    },
-                    cell -> cellDistance(sx, sy, cell.x(), cell.y())
-                            + FIRING_OCCUPANCY_COST * occupantsExcludingSelf(self, sx, sy, cell.x(), cell.y())
-                            + FIRING_AOE_SPREAD_COST * alliesNearForSpread(self, cell.x(), cell.y()),
-                    () -> firingRefreshBudget.acquire(tick));
-            if (profile != null) {
-                switch (result.outcome()) {
-                    case HIT -> profile.record(TickInnerProfile.Bucket.FIRING_POOL_HIT, 0L);
-                    case NEGATIVE -> profile.record(TickInnerProfile.Bucket.FIRING_POOL_NEGATIVE, 0L);
-                    case DEFERRED -> profile.record(TickInnerProfile.Bucket.FIRING_POOL_DEFERRED, 0L);
-                    default -> { }
-                }
-                if (result.assigned()) profile.record(TickInnerProfile.Bucket.FIRING_POOL_ASSIGN, 0L);
-                if (result.built()) {
-                    TickInnerProfile.Bucket reason = switch (result.refreshReason()) {
-                        case TTL -> TickInnerProfile.Bucket.FIRING_POOL_REFRESH_TTL;
-                        case TARGET_MOVED -> TickInnerProfile.Bucket.FIRING_POOL_REFRESH_TARGET;
-                        case SQUAD_MOVED -> TickInnerProfile.Bucket.FIRING_POOL_REFRESH_SQUAD;
-                        case EPOCH -> TickInnerProfile.Bucket.FIRING_POOL_REFRESH_EPOCH;
-                        case TOPOLOGY -> TickInnerProfile.Bucket.FIRING_POOL_REFRESH_TOPOLOGY;
-                        case KEY_CHANGE -> TickInnerProfile.Bucket.FIRING_POOL_REFRESH_KEY;
-                        default -> TickInnerProfile.Bucket.FIRING_POOL_REFRESH_COLD;
-                    };
-                    profile.record(reason, 0L);
-                }
-            }
-            var cell = result.position();
-            return new FiringPositionSelection(cell == null ? null : new int[]{cell.x(), cell.y()},
-                    cell == null && result.outcome() == SquadFiringPositions.Outcome.DEFERRED);
-        } finally {
-            if (profile != null) profile.record(TickInnerProfile.Bucket.FIRING_POSITION,
-                    System.nanoTime() - started);
-        }
+        return selectRetainedFiringPosition(self, target, squad, tick,
+                true, anchorX, anchorY, leash, requiredZoneId, false);
     }
 
     /** Execution-only seam: eligibility probes keep using the fresh find methods. */
     public int[] selectFiringPosition(long self, long target, Squad squad, int tick, boolean reachable) {
-        if (!retainFiringPositions) return reachable
-                ? findReachableFiringPosition(self, target) : findFiringPosition(self, target);
         return selectRetainedFiringPosition(self, target, squad, tick,
                 false, 0, 0, 0f, ANY_ZONE, reachable);
     }
-
-    public boolean retainedFiringPositionsEnabled() { return retainFiringPositions; }
 
     /** A caller refused the actual approach: geometric validity is not route acceptance. */
     public void forgetFiringPosition(long member) { retainedFiringPositions.forget(member); }
@@ -2790,82 +2513,6 @@ public final class TacticalScoring {
                 && canShootPair(grid, x + 0.5f, y + 0.5f, world.x(target), world.y(target), selfAir, targetAir)
                 && grid.arePathConnected(world.cellX(self), world.cellY(self), x, y,
                         GridPathfinder.USE_CARDINAL_NAVIGATION);
-    }
-
-    /** Live selected-cell check, including true-point firing geometry after sub-cell target motion. */
-    private boolean legalSquadFiringCell(SquadFiringPositions.Key key, int x, int y,
-                                         float tx, float ty) {
-        if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) return false;
-        if (cellDistance(key.anchorX(), key.anchorY(), x, y) > key.leash()) return false;
-        if (key.zone() >= 0 && zoneGraph.zoneIdAt(x, y) != key.zone()) return false;
-        float distance = cellDistance(x, y, (int) tx, (int) ty);
-        return distance <= key.range() && distance >= FIRING_MIN_DISTANCE
-                && canShootPair(grid, x + 0.5f, y + 0.5f, tx, ty, key.selfAir(), key.targetAir());
-    }
-
-    /**
-     * Bounded spatially diverse shortlist: best cell in each 2x2 tile, then
-     * best 64 tiles by centroid travel and directional cover. Large envelopes
-     * are sampled evenly (at most 4096 cells), never truncated at one map edge.
-     * This is intentionally approximate; ordinary per-member search is the control.
-     */
-    private List<SquadFiringPositions.Candidate> buildSquadFiringCandidates(
-            SquadFiringPositions.Key key, float tx, float ty, float centerX, float centerY,
-            TickInnerProfile profile) {
-        long started = System.nanoTime();
-        try {
-            int range = Math.max(1, (int) Math.floor(key.range()));
-            int leash = Math.max(0, (int) Math.floor(key.leash()));
-            int firstX = Math.max(0, Math.max((int) tx - range, key.anchorX() - leash));
-            int lastX = Math.min(grid.getWidth() - 1, Math.min((int) tx + range, key.anchorX() + leash));
-            int firstY = Math.max(0, Math.max((int) ty - range, key.anchorY() - leash));
-            int lastY = Math.min(grid.getHeight() - 1, Math.min((int) ty + range, key.anchorY() + leash));
-            if (firstX > lastX || firstY > lastY) return List.of();
-            int stride = 1;
-            while ((long) ((lastX - firstX) / stride + 1)
-                    * ((lastY - firstY) / stride + 1) > 4096) stride++;
-            var cells = new SquadFiringPositions.Candidate[64];
-            float[] ranks = new float[64];
-            int size = 0;
-            for (int y = firstY; y <= lastY; y += stride) {
-                for (int x = firstX; x <= lastX; x += stride) {
-                    if (profile != null) profile.record(TickInnerProfile.Bucket.FIRING_POOL_CELL, 0L);
-                    if (!grid.isWalkable(x, y)) continue;
-                    if (cellDistance(key.anchorX(), key.anchorY(), x, y) > key.leash()) continue;
-                    if (key.zone() >= 0 && zoneGraph.zoneIdAt(x, y) != key.zone()) continue;
-                    float distance = cellDistance(x, y, (int) tx, (int) ty);
-                    if (distance > key.range() || distance < FIRING_MIN_DISTANCE) continue;
-                    if (profile != null) profile.record(TickInnerProfile.Bucket.FIRING_POOL_RAY, 0L);
-                    if (!canShootPair(grid, x + 0.5f, y + 0.5f, tx, ty,
-                            key.selfAir(), key.targetAir())) continue;
-                    int dx = (int) tx - x, dy = (int) ty - y;
-                    float coverScore = -FIRING_COVER_BONUS * grid.getCoverAt(x, y, dx, dy)
-                            - FIRING_DOODAD_COVER_BONUS * doodads.getDoodadCoverAt(x, y, dx, dy);
-                    float rank = cellDistance(centerX, centerY, x, y) + coverScore;
-                    int slot = -1, worst = 0;
-                    for (int i = 0; i < size; i++) {
-                        if (cells[i].x() / 2 == x / 2 && cells[i].y() / 2 == y / 2) slot = i;
-                        if (ranks[i] > ranks[worst]) worst = i;
-                    }
-                    if (slot >= 0) {
-                        if (rank >= ranks[slot]) continue;
-                    } else if (size < cells.length) {
-                        slot = size++;
-                    } else {
-                        if (rank >= ranks[worst]) continue;
-                        slot = worst;
-                    }
-                    cells[slot] = new SquadFiringPositions.Candidate(x, y, coverScore);
-                    ranks[slot] = rank;
-                }
-            }
-            List<SquadFiringPositions.Candidate> result = new ArrayList<>(size);
-            for (int i = 0; i < size; i++) result.add(cells[i]);
-            return result;
-        } finally {
-            if (profile != null) profile.record(TickInnerProfile.Bucket.FIRING_POOL_BUILD,
-                    System.nanoTime() - started);
-        }
     }
 
     public int[] findFiringPositionWithin(long self, long target,
@@ -3736,6 +3383,7 @@ public final class TacticalScoring {
         int liveCount = roster.liveCount();
         for (int i = 0; i < liveCount; i++) {
             long u = dense[i];
+            if (roster.isRiding(u)) continue;
             int zid = zones.zoneIdAt(world.cellX(u), world.cellY(u));
             if (zid < 0 || zid >= control.length) continue;
             control[zid] += selfFaction.friendlyTo(
@@ -3894,7 +3542,6 @@ public final class TacticalScoring {
 
     /** Reserve bounded worker scratch; zeroing and gathering wait for a scored cell. */
     private LocalFiringSpread prepareFiringSpread(int x0, int y0, int x1, int y1) {
-        if (!localFiringSpread) return null;
         LocalFiringSpread spread = LOCAL_FIRING_SPREAD.get();
         return spread.reset(Math.max(0, x0), Math.max(0, y0),
                 Math.min(grid.getWidth() - 1, x1), Math.min(grid.getHeight() - 1, y1)) ? spread : null;

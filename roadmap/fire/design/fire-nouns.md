@@ -45,7 +45,7 @@ grass under a hedge under creep is three loads.
 | Crown | a standing tree's crown cells | 200 | 40 s | hard | Slow to catch from a grass fire, long and hot once it does, and throws heat a ring further (a crown fire). Each crown cell that burns out spends part of its tree's structure through `MapEditor.damageWall`, so a tree falls once three have, leaving its ordinary destroyed art and passable ground. |
 | Living creep | `CreepField` coverage, alive | 75 | 15 s | moderately | Creep over a crown makes it catch as creep does: an overgrown tree goes up readily. |
 | Dead creep | creep dying back | 40 | 8 s | easily | Dry; the edge a source has abandoned goes up fast. |
-| Debris | timber and furniture rubble | 50 | 10 s | moderately | Defined, not yet read off the map. |
+| Debris | a standing wooden prop: a crate or box, a pallet stack, wooden furniture (the props `EnvironmentMaterial` calls wood) | 50 | 10 s | moderately | The prop is destroyed when its cell burns out and stays as its destroyed art. Wire fences, drums, sandbags, hedgehogs, machinery and stone do not burn. |
 | Structure | a light wall or window: one of at most 100 hit points, in a structure that is not fortified | 120 | 24 s | hard | Catches only from fire held against it, so a passing grass front catches it some of the time; a cell that burns through falls to rubble (Buildings). |
 | Furnishing | a plain indoor or panelled floor (`INDOOR`, `TILE`) of a building that is not fortified | 80 | 16 s | moderately | A room's furniture and boards; a room that catches loses its roof. |
 
@@ -125,8 +125,7 @@ burnt ground behind a front someone lit on purpose.
 
 **Smoke.** A brush or crown fire smokes; a grass or creep fire burns too low
 and fast to screen and gives off only a thin haze, which is drawn and hides
-nothing (`-Dbattle.fire.lowSmoke=none|haze|screen`: none draws nothing over a
-low fire, screen makes it smoke as brush does). A smoking cell holds smoke over itself and, in a wind of
+nothing (`FireSmoke.hazes`). A smoking cell holds smoke over itself and, in a wind of
 any strength, over the cell downwind of it, for exactly as long as it burns
 (`FireSmoke`). The smoke is the grid's transient opacity, the same a smoke
 grenade's cloud holds, so sight, the fog and every observer read it with no
@@ -287,7 +286,7 @@ nothing is drawn for a battle that never lit anything.
   patches of burning ground, irregular, with several hot spots and a ragged
   rim, never a starburst (a ring of long tongues round one core reads from
   above as a blast), from a sheet of their own
-  (`graphics/fx/fire_topdown_<look>.png`, a bed's eight-frame loop and a grass
+  (`graphics/fx/fire_topdown_a-flame-bed.png`, a bed's eight-frame loop and a grass
   fire's few small flame islands). Each is drawn larger than its cell, so a
   front's patches run together into one carpet. The fuel sets the bed: grass
   burns as islands, brush, creep and debris as one bed, a building as two, a
@@ -302,8 +301,7 @@ nothing is drawn for a battle that never lit anything.
   Zoomed far out a cell keeps one bed and its glow. The sheet is built
   geometry first (`art-source/fx/fire-topdown/`: a code-drawn guide reskinned
   by ImageGen); the owner picked the flame bed of three looks (the others' sources stay
-  there); `-Dbattle.render.fireLook=<look>` picks a sheet, and `legacy`
-  draws the old side-view tongues off vanilla's smoke-and-fire sheet.
+  there).
 - **Embers** are a spark rising over each of the hottest cells, at play zoom
   only.
 - **Charred trees.** A tree whose middle burns darkens as it burns and is
@@ -312,8 +310,7 @@ nothing is drawn for a battle that never lit anything.
 - **Smoke** is a dark puff rising off each smoking cell and leaning
   downwind, at play zoom only: the picture of the screen it holds. It is
   drawn thick and dark enough to read over flame and over grey creep
-  (`-Dbattle.render.smokeDensity`, 3; at 1, the first faint grey, smoke that
-  blocked sight could barely be seen). A low fire's haze is a paler, thinner
+  (a faint grey puff left smoke that blocked sight barely visible). A low fire's haze is a paler, thinner
   puff over every other burning cell.
 - **Fire light.** A burn lights what is round it, as a few pooled lights
   rather than one per cell (`FireLight`): burning cells are gathered into

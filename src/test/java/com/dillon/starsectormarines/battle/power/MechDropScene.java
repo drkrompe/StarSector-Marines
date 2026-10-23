@@ -125,7 +125,7 @@ public final class MechDropScene implements BehaviorScene {
                     service.drops().size() + " call(s), first at tick "
                             + (service.drops().isEmpty() ? -1 : service.drops().get(0).tick())
                             + "; lances remaining " + service.lancesRemaining(Faction.MARINE)));
-            boolean orbital = !OrbitalLift.enabled() || Math.abs(t.entryDistance - OrbitalLift.DESCENT_CELLS) < 0.5f;
+            boolean orbital = Math.abs(t.entryDistance - OrbitalLift.DESCENT_CELLS) < 0.5f;
             verdicts.add(Verdict.of("descends-from-orbit", t.entryDistance > 0f && orbital,
                     String.format(Locale.ROOT, "carrier entered %.1f cells from its landing cell (descent %.0f)",
                             t.entryDistance, OrbitalLift.DESCENT_CELLS)));

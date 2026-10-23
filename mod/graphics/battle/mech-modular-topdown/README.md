@@ -1,8 +1,8 @@
 # Modular top-down mech family
 
 This set replaces directional live-mech frames with one true-overhead runtime
-composition. The legacy sheet remains the load-failure fallback and continues
-to provide corpse art.
+composition. `heavy-mech-dead.png` beside this folder provides the corpse
+art; there is no live sheet.
 
 Every normalized chassis uses the same 208-pixel canvas as its sizing unit.
 `foot.png` is derived from the accepted Bulwark hull's bottom armor tab

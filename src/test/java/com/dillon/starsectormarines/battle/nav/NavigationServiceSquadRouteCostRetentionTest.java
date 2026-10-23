@@ -1,8 +1,6 @@
 package com.dillon.starsectormarines.battle.nav;
 
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -14,20 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NavigationServiceSquadRouteCostRetentionTest {
-    private String previous;
-
-    @BeforeEach
-    void enableRetention() {
-        previous = System.getProperty(NavigationService.RETAIN_SQUAD_ROUTE_COSTS_PROPERTY);
-        System.setProperty(NavigationService.RETAIN_SQUAD_ROUTE_COSTS_PROPERTY, "true");
-    }
-
-    @AfterEach
-    void restoreRetention() {
-        if (previous == null) System.clearProperty(NavigationService.RETAIN_SQUAD_ROUTE_COSTS_PROPERTY);
-        else System.setProperty(NavigationService.RETAIN_SQUAD_ROUTE_COSTS_PROPERTY, previous);
-    }
-
     @Test
     void smallCostChangesRebindEpochAndStepWithoutSlidingOriginalDeadline() {
         for (int squad : new int[]{0, 60}) {
@@ -78,7 +62,7 @@ class NavigationServiceSquadRouteCostRetentionTest {
     }
 
     @Test
-    void sameEpochStillPinsCostUntilReplanningAndControlRestoresIdentityPolicy() {
+    void sameEpochStillPinsCostUntilReplanning() {
         try (NavigationService navigation = navigation()) {
             SquadRouteRequest first = prepare(navigation, 0, 1, 10, costs(1f));
             navigation.prepareSquadRoutes(List.of(new SquadRouteRequest(0, 1, first.routeToken(),
@@ -86,10 +70,6 @@ class NavigationServiceSquadRouteCostRetentionTest {
             assertEquals(0, navigation.lastSquadRouteBuilds());
             prepare(navigation, 0, 2, 12, costs(4f));
             assertEquals(1, navigation.lastSquadRouteBuilds());
-
-            System.setProperty(NavigationService.RETAIN_SQUAD_ROUTE_COSTS_PROPERTY, "false");
-            prepare(navigation, 0, 3, 13, costs(4f));
-            assertEquals(1, navigation.lastSquadRouteBuilds(), "control rebuilds even numerically identical snapshots");
         }
     }
 

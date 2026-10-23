@@ -20,7 +20,8 @@ def main():
         draw.text((x,40),name+" registered casing mask overlay",fill="white")
     for row,paint in enumerate(("slate","olive","oxide","sand")):
         draw.text((40,570+row*115),paint,fill="white")
-        directory=OUTPUT if paint=="slate" else OUTPUT/"paints"/paint
+        directory=(OUTPUT if paint=="slate" else OUTPUT/"paints"/paint if paint=="olive"
+                   else HERE.parent/"unshipped-paints/specter-heavy"/paint)
         for column,name in enumerate(("body","head","foot")):
             canvas.alpha_composite(Image.open(directory/f"{name}.png"),
                                    (220+column*240,555+row*115))

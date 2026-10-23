@@ -91,6 +91,19 @@ public interface BodyCarrier {
     float hitHalfHeight(long id);
 
     /**
+     * Half the length of the body's hull footprint along its facing, in cells, or {@code 0} for a body that is only
+     * its contact circle. A hull's circle decides whether a round touches it; the footprint decides where on the
+     * hull it lands, so a round into a long hull side-on ends on its side rather than at the circle's rim.
+     */
+    default float hullHalfLength(long id) { return 0f; }
+
+    /** Half the width of the hull footprint across its facing, in cells ({@link #hullHalfLength}). */
+    default float hullHalfWidth(long id) { return 0f; }
+
+    /** The hull's facing in the sprite convention (0 = +Y, counter-clockwise), for its footprint. */
+    default float hullFacingDegrees(long id) { return 0f; }
+
+    /**
      * How far this body can shoot, in cells, or {@code 0} for one that cannot.
      * Answered here rather than through {@code COMBAT} because a carried body
      * does not have that component: its weapon, if it has one, runs its own

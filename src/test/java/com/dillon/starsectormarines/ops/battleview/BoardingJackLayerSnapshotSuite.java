@@ -127,7 +127,7 @@ public final class BoardingJackLayerSnapshotSuite implements SnapshotSuite {
             text(g, labels[i], 70 + i * 255, 830, 15);
         }
         text(g, "Paints · one silhouette · pirate is Greyhook's", 1330, 600, 20);
-        String[] paints = {"rust-orange", "hull-grey", "oxide-green", "soot", "pirate"};
+        String[] paints = {"rust-orange", "pirate"};
         for (int i = 0; i < paints.length; i++) {
             LayeredUnitAssets painted = i == 0 ? jack : assets(JACK + "paints/" + paints[i] + "/", jackArmor);
             actor(g, painted, jackArmor, 1385 + i * 110, 715, 80, "walking", phase, 0,

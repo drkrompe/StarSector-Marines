@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16653-fb65-74e1-97e9-c27495b054a5",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16653-fb65-74e1-97e9-c27495b054a5\\exec-aa1da436-0ab2-4474-9ae9-96762e3cae2c.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\tank-laser\\hull-wreck-raw.png",
+    "sha256": "374278aa9e5f341f0a47214e140de3afae1b563e69d19af96573ab64ba56ec63",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\tank-laser\\hull-wreck-prompt.txt",
+  "promptSha256": "6cd4b3eb42ba70265cd97c378737b05924d90cb446c3fb8d8532a3e75337b01b",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity authority: the hull to wreck, same canvas, pose and scale\n\nEdit image 1, an approved painted top-down sprite of a tracked vehicle HULL in a corporate white-and-graphite livery, nose pointing LEFT, on a wide transparent canvas. Turn it into the burnt-out WRECK of that same vehicle, after a fight. Keep its outline, plate layout, tracks, round mount ring, capacitor pack, radiator fins, sloped front glacis and viewing window in the same place, same camera, position and scale.\nDamage: large scorched and soot-blackened areas on the white armour, blistered and peeled panels, a few torn and buckled plates with dark recesses beneath, the viewing window shattered and dark, the capacitor cells cracked and dead with no light in them, the cyan light strips dark and broken, one track with a few links broken and sagging, small scattered metal fragments close beside the hull. The round mount ring is empty and scorched. Big legible soot-dark damage against surviving white panels, not a uniform black tint; cool neutral soot, no rust, no yellow or brown tint.\nNo flames, embers, smoke, glow, dust clouds, ground shadow or scenery.\nStrict 90-degree overhead orthographic, no perspective tilt. Exactly one object: the wrecked hull; no top module, no labels, background, checkerboard or border. True transparent background with genuine alpha outside the silhouette; internal dark recesses are opaque paint, not alpha holes. Same canvas size and aspect as image 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\tank-laser\\hull-raw-b4.png",
+      "sha256": "88e6b37c90b6719f2579e485ad5010a77540b108411e7741ae6cf1dc11d43e8c",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Identity authority: the hull to wreck, same canvas, pose and scale"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one wrecked-hull edit, preserving the reference’s layout, scale, and transparent canvas."
+  ],
+  "usage": {
+    "input_tokens": 40169,
+    "cached_input_tokens": 25728,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 471,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 51.2
+}

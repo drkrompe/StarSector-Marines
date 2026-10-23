@@ -9,7 +9,8 @@ import java.util.Arrays;
 
 
 /**
- * Outdoor night treatment shared by battle and map-review hosts. Lamps never reveal fog.
+ * Outdoor night treatment shared by battle and map-review hosts. Lamps never reveal fog; a burn's
+ * light shows through it ({@link FireFogClearing}).
  * A burn lights the night as a lamp does, in fire's colour and flickering
  * ({@link FireLight}); its pools are refilled each frame, only where its lights reach.
  */
@@ -50,26 +51,47 @@ final class NightLightingRenderSystem implements RenderSystem {
         pass.reset(camera);
         if (useFog) doodads.collectLightingSurfaces(ctx, pass.surfaces());
         boolean masked = pass.surfaces().count(RenderLayer.FOG) > 0;
-        int steps = camera.cellPxSize() >= 24 ? 8 : camera.cellPxSize() >= 12 ? 4 : 2;
+        int steps = shadeSteps(camera.cellPxSize());
         shade.reset();
-        for (int y = visible.minY(); y <= visible.maxY(); y++) for (int x = visible.minX(); x <= visible.maxX(); x++) {
-            if (ground.getGroundKind(x,y) == CellTopology.GroundKind.VOID) continue;
-            for (int sy=0; sy<steps; sy++) for (int sx=0; sx<steps; sx++) {
-                float px=x+(sx+.5f)/steps, py=y+(sy+.5f)/steps;
-                int cellIndex = y * ground.getWidth() + x;
-                boolean hidden=useFog && !fog.cellShownArray()[cellIndex];
-                float pool=hidden ? 0f : sample(pools,px,py);
-                float firePool=hidden || !burning ? 0f : sample(firePools,px,py);
-                float x0=Math.round(camera.cellToScreenX(x+(float)sx/steps));
-                float x1=Math.round(camera.cellToScreenX(x+(sx+1f)/steps));
-                float y0=Math.round(camera.cellToScreenY(y+(float)sy/steps));
-                float y1=Math.round(camera.cellToScreenY(y+(sy+1f)/steps));
-                appendShade(masked ? pass.fogShade() : shade, night, pool, firePool, px, py,
-                        x0, y0, x1, y1, ctx.alphaMult);
-                if (masked) appendShade(pass.litShade(), night, sample(pools,px,py),
-                        burning ? sample(firePools,px,py) : 0f, px, py,
-                        x0, y0, x1, y1, ctx.alphaMult);
+        PolyMesh dimMesh = masked ? pass.fogShade() : shade;
+        int gridW = ground.getWidth();
+        boolean[] shown = useFog ? fog.cellShownArray() : null;
+        // The shade where no light reaches is one colour; a run of such cells is drawn as one quad.
+        float[] unlitColour = shadeColour(night, 0f, 0f, 0f, 0f, 0f, ctx.alphaMult);
+        for (int y = visible.minY(); y <= visible.maxY(); y++) {
+            float rowY0 = Math.round(camera.cellToScreenY(y)), rowY1 = Math.round(camera.cellToScreenY(y + 1f));
+            dimRun.start(dimMesh, rowY0, rowY1);
+            litRun.start(pass.litShade(), rowY0, rowY1);
+            for (int x = visible.minX(); x <= visible.maxX(); x++) {
+                if (ground.getGroundKind(x,y) == CellTopology.GroundKind.VOID) { dimRun.flush(); litRun.flush(); continue; }
+                int cellIndex = y * gridW + x;
+                boolean hidden = shown != null && !shown[cellIndex];
+                boolean lampDark = zero9(pools, (2 * y) * width + 2 * x);
+                boolean fireDark = !burning || zero9(firePools, (2 * y) * width + 2 * x);
+                boolean unlit = lampDark && fireDark;
+                // Fog hides a lamp's light; a burn's is seen from anywhere (FireFogClearing).
+                boolean dimUniform = (hidden || lampDark) && fireDark, litUniform = unlit;
+                float cellX0 = Math.round(camera.cellToScreenX(x)), cellX1 = Math.round(camera.cellToScreenX(x + 1f));
+                if (dimUniform) dimRun.extend(cellX0, cellX1, unlitColour); else dimRun.flush();
+                if (masked) { if (litUniform) litRun.extend(cellX0, cellX1, unlitColour); else litRun.flush(); }
+                if (dimUniform && (!masked || litUniform)) continue;
+                for (int sy=0; sy<steps; sy++) for (int sx=0; sx<steps; sx++) {
+                    float px=x+(sx+.5f)/steps, py=y+(sy+.5f)/steps;
+                    float x0=Math.round(camera.cellToScreenX(x+(float)sx/steps));
+                    float x1=Math.round(camera.cellToScreenX(x+(sx+1f)/steps));
+                    float y0=Math.round(camera.cellToScreenY(y+(float)sy/steps));
+                    float y1=Math.round(camera.cellToScreenY(y+(sy+1f)/steps));
+                    if (!dimUniform) {
+                        float pool=hidden ? 0f : sample(pools,px,py);
+                        float firePool=burning ? sample(firePools,px,py) : 0f;
+                        appendShade(dimMesh, night, pool, firePool, px, py, x0, y0, x1, y1, ctx.alphaMult);
+                    }
+                    if (masked && !litUniform) appendShade(pass.litShade(), night, sample(pools,px,py),
+                            burning ? sample(firePools,px,py) : 0f, px, py,
+                            x0, y0, x1, y1, ctx.alphaMult);
+                }
             }
+            dimRun.flush(); litRun.flush();
         }
         if (masked) out.addCustom(layer(), pass);
         else out.addPoly(layer(),shade);
@@ -91,18 +113,69 @@ final class NightLightingRenderSystem implements RenderSystem {
 
     private void appendShade(PolyMesh mesh, NightLighting night, float pool, float firePool, float px, float py,
                              float x0, float y0, float x1, float y1, float alphaMult) {
+        boolean warmed = pool + firePool > 0f;
+        float[] c = shadeColour(night, pool, firePool,
+                warmed ? sample(reds,px,py) : 0f, warmed ? sample(greens,px,py) : 0f, warmed ? sample(blues,px,py) : 0f,
+                alphaMult);
+        if (c != null) mesh.appendQuad(x0,y0,x1,y0,x1,y1,x0,y1,c[0],c[1],c[2],c[3]);
+    }
+
+    private final float[] colour = new float[4];
+
+    /** The shade over a point lit by {@code pool} of lamp light and {@code firePool} of fire; null where it is clear. */
+    private float[] shadeColour(NightLighting night, float pool, float firePool, float red, float green, float blue,
+                                float alphaMult) {
         float lit=pool+firePool;
         float dark=night.darkness()*(1-.92f*Math.min(1,lit));
         // Fire tints what it lights harder than a lamp does: it is the only light there.
         float warm=Math.min(1,.11f*Math.min(1,pool)+.2f*Math.min(1,firePool));
         float alpha=dark+warm*(1-dark), weight=dark*(1-warm);
-        if (alpha<=0f) return;
+        if (alpha<=0f) return null;
         float divisor=Math.max(.001f,lit);
-        float r=(.012f*weight+warm*(sample(reds,px,py)+firePool*FireLight.RED)/divisor)/alpha;
-        float g=(.019f*weight+warm*(sample(greens,px,py)+firePool*FireLight.GREEN)/divisor)/alpha;
-        float b=(.037f*weight+warm*(sample(blues,px,py)+firePool*FireLight.BLUE)/divisor)/alpha;
-        mesh.appendQuad(x0,y0,x1,y0,x1,y1,x0,y1,r,g,b,alpha*alphaMult);
+        float[] c = pool == 0f && firePool == 0f ? new float[4] : colour;
+        c[0]=(.012f*weight+warm*(red+firePool*FireLight.RED)/divisor)/alpha;
+        c[1]=(.019f*weight+warm*(green+firePool*FireLight.GREEN)/divisor)/alpha;
+        c[2]=(.037f*weight+warm*(blue+firePool*FireLight.BLUE)/divisor)/alpha;
+        c[3]=alpha*alphaMult;
+        return c;
     }
+
+    /**
+     * Shade samples per cell edge at this many pixels a cell. Zoomed out, a sample is a few pixels across
+     * and the pools change over cells, so fewer of them draw the same picture: one below six pixels a cell.
+     */
+    static int shadeSteps(float cellPx) {
+        if (cellPx >= 24) return 8;
+        if (cellPx >= 12) return 4;
+        return cellPx < 6 ? 1 : 2;
+    }
+
+    private boolean zero9(float[] values, int i) {
+        for (int row = 0; row < 3; row++, i += width)
+            if (values[i] != 0f || values[i + 1] != 0f || values[i + 2] != 0f) return false;
+        return true;
+    }
+
+    /** A row's run of one-colour cells, appended as one quad when it ends. */
+    private static final class Run {
+        private PolyMesh mesh;
+        private float y0, y1, x0, x1;
+        private float[] colour;
+        void start(PolyMesh target, float rowY0, float rowY1) { mesh = target; y0 = rowY0; y1 = rowY1; colour = null; }
+        void extend(float cellX0, float cellX1, float[] c) {
+            if (c == null) { flush(); return; }
+            if (colour != null && cellX0 == x1) { x1 = cellX1; return; }
+            flush();
+            colour = c; x0 = cellX0; x1 = cellX1;
+        }
+        void flush() {
+            if (colour != null && x1 != x0)
+                mesh.appendQuad(x0,y0,x1,y0,x1,y1,x0,y1,colour[0],colour[1],colour[2],colour[3]);
+            colour = null;
+        }
+    }
+    private final Run dimRun = new Run(), litRun = new Run();
+
     /**
      * A floodlight seen from straight above, as everything on the map is: a
      * square footplate on the ground, the lamp housing across it, the lens on

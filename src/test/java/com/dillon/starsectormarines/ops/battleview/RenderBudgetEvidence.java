@@ -31,10 +31,13 @@ import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.DrawCensus;
+import com.dillon.starsectormarines.render2d.DrawCommand;
+import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.dillon.starsectormarines.testsupport.HeadlessGl;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.SettingsAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.lwjgl.BufferUtils;
 import org.junit.jupiter.api.Tag;
@@ -58,6 +61,7 @@ import java.util.Map;
 import java.util.IdentityHashMap;
 import java.util.Random;
 import java.util.Set;
+import java.util.TreeMap;
 
 import javax.imageio.ImageIO;
 
@@ -212,6 +216,8 @@ class RenderBudgetEvidence {
             Path modRoot = Path.of("mod").toAbsolutePath().normalize();
             List<Row> rows = new ArrayList<>();
             List<FrameCost> frameCosts = new ArrayList<>();
+            List<String> runs = new ArrayList<>();
+            List<String> atlases = new ArrayList<>();
             try (GlSpriteTokens tokens = new GlSpriteTokens()) {
                 HeadlessBattleSprites sprites = new HeadlessBattleSprites(modRoot, tokens);
                 sprites.ensureUnitSheets();
@@ -224,7 +230,10 @@ class RenderBudgetEvidence {
                     try (BattleSimulation sim = spec.build()) {
                         play(sim, ticks);
                         List<EqualityCheck> checks = new ArrayList<>();
-                        rows.addAll(profile(spec, sim, renderer, frames, frameCosts, checks));
+                        rows.addAll(profile(spec, sim, renderer, frames, frameCosts, checks, runs));
+                        DecorationAtlas decoration = renderer.getDecorationAtlas();
+                        atlases.add(spec.id() + " — " + (decoration == null
+                                ? "decoration atlas: never planned" : decoration.report()));
                         // After every timed frame on this map, never between
                         // them: a readback is eight megabytes off the card and
                         // an allocation to match, and interleaved it landed in
@@ -245,14 +254,16 @@ class RenderBudgetEvidence {
                 if (MapSpec.selected().stream().anyMatch(spec -> spec.id().equals(MapSpec.CONQUEST_ID))) {
                     assertStandUpRepeats(renderer, rows, ticks);
                 }
+                atlases.add(0, renderer.getUnitAtlas().report());
+                atlases.add(0, renderer.getGroundAtlas().report());
                 System.out.println("[render-evidence] textures uploaded: "
                         + tokens.uploadedTextures());
             }
 
-            String markdown = markdown(rows, frameCosts, ticks, frames);
+            String markdown = markdown(rows, frameCosts, ticks, frames, atlases, runs);
             Files.writeString(output.resolve("summary.md"), markdown, StandardCharsets.UTF_8);
             Files.writeString(output.resolve("summary.json"),
-                    json(rows, frameCosts, ticks, frames), StandardCharsets.UTF_8);
+                    json(rows, frameCosts, ticks, frames, atlases), StandardCharsets.UTF_8);
             System.out.println(markdown);
             System.out.println("[render-evidence] wrote " + output.resolve("summary.md"));
             } finally {
@@ -639,7 +650,7 @@ class RenderBudgetEvidence {
         List<Row> repeat;
         try (BattleSimulation sim = spec.build()) {
             play(sim, ticks);
-            repeat = profile(spec, sim, renderer, 1, new ArrayList<>(), new ArrayList<>());
+            repeat = profile(spec, sim, renderer, 1, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
         }
         // Keyed rather than positional, and only where something was collected:
         // a layer that emitted nothing is kept or dropped from the report by a
@@ -685,7 +696,8 @@ class RenderBudgetEvidence {
     private static List<Row> profile(MapSpec spec, BattleSimulation sim,
                                      BattleRenderer renderer, int frames,
                                      List<FrameCost> frameCosts,
-                                     List<EqualityCheck> equalityChecks) {
+                                     List<EqualityCheck> equalityChecks,
+                                     List<String> runs) {
         int gridW = sim.getGrid().getWidth();
         int gridH = sim.getGrid().getHeight();
         String mapId = spec.id();
@@ -705,6 +717,13 @@ class RenderBudgetEvidence {
                     null, null, BattleRenderHostProfile.STANDALONE_BATTLE, ANIMATION_CLOCK_SECONDS);
 
             for (int warmup = 0; warmup < WARMUP_FRAMES; warmup++) drawFrame(renderer, rc, null);
+            if (!framing.id().equals("close")) {
+                DrawList collected = renderer.collectWorld(rc, ALL_LAYERS);
+                for (RenderLayer layer : RUN_LAYERS) {
+                    String line = runBreakdown(collected, layer, renderer);
+                    if (line != null) runs.add("- **" + mapId + " / " + framing.id() + " / " + layer + "** — " + line);
+                }
+            }
 
             FrameCensus census = new FrameCensus();
             long[][] collect = new long[frames][];
@@ -962,10 +981,82 @@ class RenderBudgetEvidence {
         return values[values.length / 2] / 1_000_000.0;
     }
 
+    // ---- where a layer's runs break -------------------------------------------
+
+    /** The layers whose runs are reported: the props, and the two that draw bodies. */
+    private static final List<RenderLayer> RUN_LAYERS =
+            List.of(RenderLayer.DOODADS, RenderLayer.UNIT_SHADOWS, RenderLayer.UNITS);
+
+    /**
+     * What one layer's command stream is made of: each texture with the quads drawn from it, how many times the
+     * run broke and on what, and every whole sprite by image. A run breaks wherever the drain must flush — a
+     * different sheet, a solid fill or line between quads, a sprite drawn through its own call — and the binds
+     * column cannot say which of those it was.
+     */
+    private static String runBreakdown(DrawList list, RenderLayer layer, BattleRenderer renderer) {
+        DrawCommand[] buffer = list.buffer(layer);
+        int count = list.count(layer);
+        if (count == 0) return null;
+        Map<String, Integer> quadsBySheet = new TreeMap<>();
+        Map<String, Integer> breaks = new TreeMap<>();
+        Map<String, Integer> sprites = new TreeMap<>();
+        Object previous = null;
+        for (int i = 0; i < count; i++) {
+            DrawCommand c = buffer[i];
+            Object key;
+            String reason;
+            switch (c.kind()) {
+                case SHEET_QUAD -> {
+                    key = c.sprite();
+                    reason = "sheet change";
+                    quadsBySheet.merge(sheetName(c.sprite(), renderer), 1, Integer::sum);
+                }
+                case MESH -> {
+                    key = c.sprite() != null ? c.sprite() : c.mesh();
+                    reason = "mesh";
+                    quadsBySheet.merge(c.sprite() != null ? sheetName(c.sprite(), renderer) : "(mesh images)",
+                            1, Integer::sum);
+                }
+                case SOLID_RECT, POLY -> { key = "solid"; reason = "solid fill"; }
+                case LINE -> { key = "line@" + c.angleDegrees(); reason = "line"; }
+                case RIBBON -> { key = "ribbon"; reason = "ribbon"; }
+                case SPRITE -> {
+                    key = new Object();
+                    reason = c.additive() ? "additive sprite" : "sprite";
+                    String name = sheetName(c.sprite(), renderer) + (c.additive() ? " (additive)" : "");
+                    sprites.merge(name, 1, Integer::sum);
+                }
+                default -> { key = new Object(); reason = "custom"; }
+            }
+            if (previous != null && !key.equals(previous)) breaks.merge(reason, 1, Integer::sum);
+            previous = key;
+        }
+        StringBuilder out = new StringBuilder();
+        out.append(count).append(" commands; breaks ").append(breaks.isEmpty() ? "none" : breaks.toString());
+        if (!quadsBySheet.isEmpty()) out.append("; quads by sheet ").append(quadsBySheet);
+        if (!sprites.isEmpty()) out.append("; whole sprites ").append(sprites);
+        return out.toString();
+    }
+
+    private static String sheetName(SpriteAPI sheet, BattleRenderer renderer) {
+        if (sheet == null) return "(none)";
+        if (sheet == renderer.getGroundAtlas().sheet()) return "ground atlas";
+        if (sheet == renderer.getUnitAtlas().sheet()) return "unit atlas";
+        DecorationAtlas decoration = renderer.getDecorationAtlas();
+        if (decoration != null && sheet == decoration.sheet()) return "decoration atlas";
+        String name = sheet.toString();
+        int open = name.indexOf('[');
+        if (open >= 0 && name.endsWith("]")) name = name.substring(open + 1, name.length() - 1);
+        // The file and its folder: a family's body.png is only a name with the folder it is in.
+        int slash = name.lastIndexOf('/');
+        int parent = slash > 0 ? name.lastIndexOf('/', slash - 1) : -1;
+        return name.substring(parent + 1);
+    }
+
     // ---- the report ----------------------------------------------------------
 
     private static String markdown(List<Row> rows, List<FrameCost> frameCosts,
-                                   int ticks, int frames) {
+                                   int ticks, int frames, List<String> atlases, List<String> runs) {
         StringBuilder out = new StringBuilder();
         out.append("# Render budget\n\n");
         out.append("Collected and drained through the shipping `BattleRenderer` on a real\n")
@@ -977,28 +1068,20 @@ class RenderBudgetEvidence {
                 .append("frame around ours are not in these numbers.\n\n");
         out.append("A `CUSTOM` pass owns its GL, so its draws and binds are its own and are\n")
                 .append("not counted in the draw-call column; its time is.\n\n");
-        out.append("Levers this run: zoom gates **")
-                .append(ZoomDetail.enabled() ? "on" : "off")
-                .append("**, resident ground mesh **")
-                .append(GroundMesh.enabled() ? "on" : "off")
-                .append("**, resident relief fields **")
-                .append(ReliefFieldMesh.enabled() ? "on" : "off")
-                .append("**, resident fog field **")
-                .append(FogField.enabled() ? "on" : "off")
-                .append("**, ground atlas **")
-                .append(GroundAtlas.enabled() ? "on" : "off")
-                .append("**, resident decoration **")
-                .append(GroundMesh.decorationEnabled() ? "on" : "off")
-                .append("**, unit atlas **")
-                .append(UnitAtlas.enabled() ? "on" : "off")
-                .append("**, resident roofs **")
-                .append(RoofMesh.enabled() ? "on" : "off")
+        out.append("Levers this run: decoration atlas **")
+                .append(DecorationAtlas.enabled() ? "on" : "off")
                 .append("**, creep **")
                 .append(CreepLayer.enabled() ? "on" : "off")
                 .append("**, fire **")
                 .append(FireRenderSystem.enabled() ? "on" : "off")
                 .append("**, collect culling **")
                 .append(ViewCull.enabled() ? "on" : "off").append("**.\n\n");
+
+        out.append("## Atlases\n\n")
+                .append("What each atlas holds, and everything it left out and why. An image left out\n")
+                .append("draws from its own texture: the same picture, one more bind.\n\n");
+        for (String atlas : atlases) out.append("- ").append(atlas).append('\n');
+        out.append('\n');
 
         out.append("## Whole frames\n\n")
                 .append("Wall clock with the GPU waited on, against the sum of our own\n")
@@ -1043,6 +1126,11 @@ class RenderBudgetEvidence {
                     .append(" |\n");
         }
 
+        out.append("\n## Where the runs break\n\n")
+                .append("Mid and whole-map framings. A break is a flush the drain had to make: a\n")
+                .append("different sheet, a fill or a line between quads, or a whole sprite.\n\n");
+        for (String run : runs) out.append(run).append('\n');
+
         out.append("\n## The ceiling\n\n");
         for (String scope : rows.stream().map(Row::map).distinct().toList()) {
             for (String frameId : rows.stream().filter(r -> r.map().equals(scope))
@@ -1070,20 +1158,14 @@ class RenderBudgetEvidence {
     }
 
     private static String json(List<Row> rows, List<FrameCost> frameCosts,
-                               int ticks, int frames) throws Exception {
+                               int ticks, int frames, List<String> atlases) throws Exception {
         JSONObject root = new JSONObject();
         root.put("surfaceWidth", SURFACE_W);
         root.put("surfaceHeight", SURFACE_H);
         root.put("ticks", ticks);
         root.put("frames", frames);
-        root.put("zoomGates", ZoomDetail.enabled());
-        root.put("groundMesh", GroundMesh.enabled());
-        root.put("residentRelief", ReliefFieldMesh.enabled());
-        root.put("fogField", FogField.enabled());
-        root.put("groundAtlas", GroundAtlas.enabled());
-        root.put("residentDecoration", GroundMesh.decorationEnabled());
-        root.put("unitAtlas", UnitAtlas.enabled());
-        root.put("residentRoofs", RoofMesh.enabled());
+        root.put("decorationAtlas", DecorationAtlas.enabled());
+        root.put("atlasReports", new JSONArray(atlases));
         root.put("creep", CreepLayer.enabled());
         root.put("fire", FireRenderSystem.enabled());
         root.put("collectCulling", ViewCull.enabled());

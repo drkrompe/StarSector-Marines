@@ -48,8 +48,7 @@ final class SquadRouteBuildJob {
         settled = new int[size]; distance = new float[size]; priority = new float[size];
     }
 
-    void begin(SquadRouteRequest request, GreedyNavigationMesh.Snapshot mesh,
-               boolean retainSingleton) {
+    void begin(SquadRouteRequest request, GreedyNavigationMesh.Snapshot mesh) {
         if (request.cost() != null && request.cost().size() != size) {
             throw new IllegalArgumentException("field dimensions must match navigation grid");
         }
@@ -68,7 +67,7 @@ final class SquadRouteBuildJob {
         }
         goal = grid.inBounds(request.goalX(), request.goalY())
                 ? grid.index(request.goalX(), request.goalY()) : -1;
-        direct = retainSingleton && starts.length == 1;
+        direct = starts.length == 1;
         hasRoute = invalidated = false;
         field = null;
         publishedCells = publishedNext = null;

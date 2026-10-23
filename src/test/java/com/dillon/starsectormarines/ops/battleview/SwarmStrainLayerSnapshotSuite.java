@@ -64,7 +64,7 @@ public final class SwarmStrainLayerSnapshotSuite implements SnapshotSuite {
         g.setColor(new Color(0x111920));
         g.fillRect(0, 0, 1920, 1080);
         text(g, "SWARM STRAINS / RUNNER, BRUTE, SPITTER", 40, 48, 28);
-        text(g, "1920 × 1080 · 100% UI scale · production layered composition · corpses from each strain's sheet",
+        text(g, "1920 × 1080 · 100% UI scale · production layered composition · corpses from each sheet-lying strain's sheet",
                 40, 79, 17);
 
         LayeredUnitAssets runner = assets(ALIEN, ALIEN + "foot.png", ALIEN + "fore-claw.png");
@@ -92,6 +92,8 @@ public final class SwarmStrainLayerSnapshotSuite implements SnapshotSuite {
         // Corpse sheets, magnified.
         text(g, "Corpse sheets · all four poses, magnified ×2.5", 40, 510, 20);
         for (int s = 1; s < 3; s++) {
+            // The Runner and the Brute burst on their rigs instead of lying on a sheet.
+            if (types[s].deadSpritePath == null) continue;
             BufferedImage sheet = image(types[s].deadSpritePath);
             SpriteSheetFrames frames = SpriteSheetSlicer.slice(sheet);
             float longSide = CELL_PX * types[s].renderScale * 2.5f * 2f;
@@ -127,6 +129,7 @@ public final class SwarmStrainLayerSnapshotSuite implements SnapshotSuite {
         }
         int cx = 1100;
         for (int s = 0; s < 3; s++) {
+            if (types[s].deadSpritePath == null) continue;
             BufferedImage sheet = image(types[s].deadSpritePath);
             SpriteSheetFrames frames = SpriteSheetSlicer.slice(sheet);
             for (int i = 0; i < Math.min(4, frames.frames.length); i++) {

@@ -170,7 +170,7 @@ void forwardBattleSwitches(task) {
 test {
     useJUnitPlatform {
         excludeTags 'battle-profile', 'battle-tail-profile', 'convoy-route-evidence',
-                'squad-firing-evidence', 'swarm-flow-evidence',
+                'swarm-flow-evidence',
                 'commander-balance', 'conquest-trial-evidence',
                 'sabotage-command-evidence', 'assault-command-evidence', 'relief-command-evidence', 'counterattack-command-evidence', 'junction-command-evidence', 'relay-nine-command-evidence', 'thunder-run-command-evidence', 'last-lift-command-evidence', 'supply-route-campaign-evidence',
                 'raid-command-evidence', 'extraction-command-evidence', 'colony-breach-command-evidence', 'cordon-command-evidence', 'heart-command-evidence', 'corvus-command-evidence', 'power-suit-campaign-evidence',
@@ -208,6 +208,8 @@ test {
     inputs.dir('mod/data')
     // Opening localization checks catalog references in production code.
     inputs.dir('src/main/java')
+    // SwitchRegistryTest holds every -Dbattle.*/-Dmarines.* read against it.
+    inputs.file('roadmap/switches.md')
     inputs.file('asset-pipeline/src/tool/resources/audio/audio.json')
     inputs.dir('asset-pipeline/src/tool/resources/audio/wayline')
     inputs.dir('art-source/audio/shepherd')
@@ -734,10 +736,6 @@ tasks.register('profileBattleFixture', Test) {
     ['battle.profile.warmupTicks', 'battle.profile.prerollTicks',
      'battle.profile.sliceTicks', 'battle.profile.minimumMillis',
      'battle.unitUpdate.minimumParallelUnits',
-     'battle.pathfinding.sharedGoalFields',
-     'battle.pathfinding.minimumSharedGoalUnits',
-     'battle.pathfinding.squadRouteCorridors',
-     'battle.pathfinding.maxSquadRouteBuildsPerTick',
      'battle.pathfinding.casualtyRouteCost'].each { propertyName ->
         def propertyValue = System.getProperty(propertyName, '')
         if (!propertyValue.isBlank()) {
@@ -831,22 +829,6 @@ tasks.register('profileSwarmFlow', Test) {
     systemProperty 'battle.pathfinding.asyncDefendTrack', 'false'
     systemProperty 'battle.swarmFlow.outputDir', System.getProperty('battle.swarmFlow.outputDir',
             layout.buildDirectory.dir('reports/performance/swarm-flow').get().asFile.absolutePath)
-    forwardBattleSwitches(delegate)
-    testLogging { showStandardStreams = true }
-}
-
-// Scorer-level quality/work evidence, not a played battle or a timing gate.
-tasks.register('profileSquadFiringPositions', Test) {
-    group = 'verification'
-    description = 'Compare individual and experimental shared firing-position scoring in a bounded six-member arena.'
-    testClassesDirs = sourceSets.test.output.classesDirs
-    classpath = sourceSets.test.runtimeClasspath
-    useJUnitPlatform { includeTags 'squad-firing-evidence' }
-    maxParallelForks = 1
-    outputs.upToDateWhen { false }
-    systemProperty 'starsectorDir', starsectorDir.absolutePath
-    systemProperty 'battle.influence.async', 'false'
-    systemProperty 'battle.pathfinding.asyncDefendTrack', 'false'
     forwardBattleSwitches(delegate)
     testLogging { showStandardStreams = true }
 }
@@ -1199,6 +1181,11 @@ tasks.named('check').configure { dependsOn tasks.named('verifyModJarBoundary') }
 // produces the mod jar without needing to name `shadowJar` explicitly.
 tasks.named('assemble').configure { dependsOn tasks.named('shadowJar') }
 
+// Deploy ships the fitted textures too (see optimizePngs), so a dev game runs on what players
+// get; -PfitTextures=false deploys the source PNGs as they are.
+def deployFittedTextures = !project.hasProperty('fitTextures') || project.property('fitTextures').toString() != 'false'
+def fittedTextureRoot = layout.buildDirectory.dir('optimized-png').get().asFile
+
 tasks.register('deployMod', Sync) {
     group = 'starsector'
     description = "Copy the mod folder into the Starsector mods directory ($starsectorModsDir)"
@@ -1206,11 +1193,58 @@ tasks.register('deployMod', Sync) {
     // manifest before Sync snapshots mod/, otherwise a newly-added sound ID
     // can deploy without its matching Ogg and make Starsector fail at startup.
     dependsOn tasks.named('shadowJar'), ':asset-pipeline:processAudio'
-    from modOutputDir
+    if (deployFittedTextures) dependsOn tasks.named('optimizePngs')
+    from(modOutputDir) {
+        // Authoring notes (art-folder READMEs, the generated tileset cards) sit
+        // beside the assets they describe; nothing in the game reads them.
+        exclude '**/*.md'
+        if (deployFittedTextures) exclude 'graphics/**/*.png'
+    }
+    if (deployFittedTextures) {
+        from(fittedTextureRoot) { include 'graphics/**', 'data/**' }
+    }
     into new File(starsectorModsDir, modName)
     preserve {
         // Saves and logs the user might drop in the mod folder while testing.
         include '.git/**'
+    }
+}
+
+// The shipped textures: every image fitted to the largest size it is measured being drawn at
+// (art-source/texture-usage/usage.json), never upscaled, then losslessly recompressed; unmeasured
+// images ship at full size. Outputs live under build/; tracked art in mod/ is never rewritten.
+// build/optimized-png/data/config/marines_texture_fit.json gives the code each fitted image's
+// logical size (ModTextures), and build/reports/texture-fit/report.md says what was measured,
+// what was not, and what each fit saved. A warm run reuses every unchanged output.
+// See roadmap/release/design/texture-fit.md.
+def pythonExe = org.gradle.internal.os.OperatingSystem.current().isWindows() ? 'python' : 'python3'
+def textureUsageRecord = file('art-source/texture-usage/usage.json')
+tasks.register('optimizePngs', Exec) {
+    group = 'starsector'
+    description = 'Fit and recompress mod/graphics into build/optimized-png (report: build/reports/texture-fit)'
+    def report = layout.buildDirectory.dir('reports/texture-fit').get().asFile
+    inputs.dir(new File(modOutputDir, 'graphics')).withPropertyName('graphics')
+    inputs.dir(new File(modOutputDir, 'data')).withPropertyName('data')
+    inputs.files(textureUsageRecord)
+    inputs.files('tools/optimize_pngs.py', 'tools/texture_fit_policy.json')
+    outputs.dir(fittedTextureRoot)
+    outputs.dir(report)
+    commandLine(pythonExe, file('tools/optimize_pngs.py').absolutePath, modOutputDir.absolutePath,
+            fittedTextureRoot.absolutePath, '--record', textureUsageRecord.absolutePath,
+            '--policy', file('tools/texture_fit_policy.json').absolutePath, '--report', report.absolutePath)
+}
+
+// Folds the recordings of evidence runs made with -PtextureUsage (build/texture-usage/) and of a
+// dev-mode game (saves/common/marines_texture_usage.data) into the checked-in usage record.
+tasks.register('mergeTextureUsage', Exec) {
+    group = 'starsector'
+    description = 'Merge texture-usage recordings into art-source/texture-usage/usage.json'
+    def game = new File(starsectorDir, 'saves/common/marines_texture_usage.data')
+    doFirst {
+        def sources = [layout.buildDirectory.dir('texture-usage').get().asFile.absolutePath]
+        if (game.isFile()) sources << game.absolutePath
+        commandLine([pythonExe, file('tools/texture_usage.py').absolutePath, 'merge',
+                     textureUsageRecord.absolutePath] + sources)
     }
 }
 
@@ -1222,7 +1256,8 @@ tasks.register('deployMod', Sync) {
 tasks.register('packageRelease', Zip) {
     group = 'starsector'
     description = 'Zip the shippable mod into build/release/StarsectorMarines-<version>.zip'
-    dependsOn tasks.named('verifyModJarBoundary'), ':asset-pipeline:processReleaseAudio'
+    dependsOn tasks.named('verifyModJarBoundary'), ':asset-pipeline:processReleaseAudio',
+            tasks.named('optimizePngs')
 
     def releaseSounds = layout.buildDirectory.dir("release/sounds").get().asFile
     def manifest = new File(modOutputDir, 'mod_info.json')
@@ -1232,8 +1267,10 @@ tasks.register('packageRelease', Zip) {
 
     into(modName) {
         from(modOutputDir) {
-            exclude 'jars/**', 'sounds/**', '**/.gitkeep'
+            exclude 'jars/**', 'sounds/**', '**/.gitkeep', '**/*.md', 'graphics/**/*.png'
         }
+        into('graphics') { from new File(fittedTextureRoot, 'graphics') }
+        into('data/config') { from new File(fittedTextureRoot, 'data/config') }
         into('jars') { from tasks.named('shadowJar') }
         into('sounds') { from releaseSounds }
     }
@@ -1535,4 +1572,29 @@ tasks.register('groundFeather', JavaExec) {
     mainClass = 'com.dillon.starsectormarines.tools.terrainauthoring.GroundFeatherBaker'
     workingDir projectDir
     args projectDir.absolutePath
+}
+
+// Texture fit evidence (roadmap/release/design/texture-fit.md). -PtextureUsage records how large
+// every texture is drawn into build/texture-usage/, one file per run, for mergeTextureUsage to
+// fold into the checked-in record; -PtextureUsageOnly does the same but leaves battle frames
+// unpainted (their draws are measured when collected), much faster and useless as pictures; -PtextureFitOverlay draws headless frames from the fitted build
+// (build/optimized-png, or the directory given) instead of the source art, the A/B half of the
+// raw-frame proof. Both reach every Test task and createSnapshots.
+def textureUsageDir = project.hasProperty('textureUsage')
+        ? layout.buildDirectory.dir('texture-usage').get().asFile : null
+def textureFitOverlay = project.findProperty('textureFitOverlay')?.toString()
+def textureFitOverlayDir = textureFitOverlay == null ? null
+        : (textureFitOverlay in ['', 'true'] ? layout.buildDirectory.dir('optimized-png').get().asFile
+                                             : file(textureFitOverlay))
+def textureUsageOnly = project.hasProperty('textureUsageOnly')
+if (textureUsageOnly && textureUsageDir == null) textureUsageDir = layout.buildDirectory.dir('texture-usage').get().asFile
+def textureSwitches = { task ->
+    if (textureUsageDir != null) task.systemProperty 'marines.textureUsage.dir', textureUsageDir.absolutePath
+    if (textureUsageOnly) task.systemProperty 'marines.textureUsage.only', 'true'
+    if (textureFitOverlayDir != null) task.systemProperty 'marines.textureFit.overlay', textureFitOverlayDir.absolutePath
+}
+tasks.withType(Test).configureEach { textureSwitches(it) }
+tasks.named('createSnapshots').configure { textureSwitches(it) }
+tasks.named('commanderEvidence').configure {
+    if (textureUsageDir != null) systemProperty 'marines.textureUsage.label', "commander-${commanderEvidenceMission}"
 }

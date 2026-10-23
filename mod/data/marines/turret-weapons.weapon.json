@@ -257,173 +257,50 @@
         "roundVelocity": 320.0, "flightSec": 0.05, "noiseMagnitude": 0.5
       },
       "render": {
-        "tracerColor": "E4FBFF",
-        "beam": { "coreWidthPx": 2.5, "glowColor": "3FB0FF", "glowWidthPx": 9.0, "pulseCycles": 1.0, "lifetimeSec": 0.1 },
+        "tracerColor": "EEF2FF",
+        "beam": { "coreWidthPx": 2.5, "glowColor": "4A6BFF", "glowWidthPx": 13.0, "pulseCycles": 1.0, "lifetimeSec": 0.1,
+          "texture": { "texelCells": 0.5, "scrollCellsPerSec": 11.0, "roughness": 0.85, "throbHz": 0.0 } },
         "projectileSprite": null,
         "projectileVisualCells": 0.0
       },
       "fx": {
         "muzzle": [
-          { "kind": "glow", "radius": 0.6, "lifetime": 0.07, "color": "68D8FF" },
-          { "kind": "ring", "radius": 0.28, "lifetime": 0.09, "color": "D8FCFF" }
+          { "kind": "glow", "radius": 0.6, "lifetime": 0.07, "color": "7A8CFF" },
+          { "kind": "ring", "radius": 0.28, "lifetime": 0.09, "color": "DCE2FF" }
         ],
         "impact": [
-          { "kind": "glow", "radius": 0.4, "lifetime": 0.12, "color": "58C8FF" },
+          { "kind": "glow", "radius": 0.4, "lifetime": 0.12, "color": "6A7EFF" },
           { "kind": "dust", "radius": 0.2, "lifetime": 0.18 }
         ]
       },
       "audio": { "fireSound": "burst_pd_fire" }
     },
     {
-      "id": "weapon.tank-heavy-gun",
+      "id": "weapon.tank-pd-laser",
       "mount": "turret-mount",
-      "catalog": {
-        "displayName": "@gearCatalogWeaponTankHeavyGunDisplayName",
-        "modelName": "@gearCatalogWeaponTankHeavyGunModelName",
-        "designation": "HG",
-        "designationTiered": false
-      },
+      "catalog": { "displayName": "@gearCatalogWeaponTankPdLaserDisplayName", "modelName": "@gearCatalogWeaponTankPdLaserModelName", "designation": "PDL", "designationTiered": false },
       "sim": {
-        "range": 40.0,
-        "damage": 95.0,
-        "accuracy": 0.72,
-        "cooldown": 7.0,
-        "penetration": 12.0,
-        "contact": {
-          "damage": 135.0,
-          "penetration": 40.0
-        },
-        "hitSpread": 0.1,
-        "aoeRadius": 1.5,
-        "wallDamage": 48,
-        "wallDamageRadius": 1.4,
-        "flightSec": 0.6
+        "range": 26.0, "damage": 7.0, "accuracy": 0.95, "cooldown": 0.35, "penetration": 2.0,
+        "burstCount": 10, "burstSpacing": 0.1, "hitSpread": 0.12,
+        "roundVelocity": 320.0, "flightSec": 0.05, "noiseMagnitude": 0.4
       },
       "render": {
-        "projectileSprite": "graphics/missiles/shell_hephag.png",
-        "projectileVisualCells": 0.48,
-        "tracerTailCells": 0.9,
-        "tracerColor": "FFC875"
+        "tracerColor": "FFF4F2",
+        "beam": { "coreWidthPx": 2.2, "glowColor": "E01A12", "glowWidthPx": 11.0, "lifetimeSec": 0.105,
+          "texture": { "texelCells": 0.45, "scrollCellsPerSec": 5.0, "roughness": 0.9, "throbHz": 6.0 } },
+        "projectileSprite": null,
+        "projectileVisualCells": 0.0
       },
       "fx": {
         "muzzle": [
-          {
-            "kind": "glow",
-            "radius": 0.96,
-            "lifetime": 0.12,
-            "color": "FFE080"
-          },
-          {
-            "kind": "fire",
-            "radius": 0.52,
-            "lifetime": 0.32
-          },
-          {
-            "kind": "smoke",
-            "radius": [
-              0.35,
-              0.5
-            ],
-            "lifetime": [
-              0.75,
-              1.1
-            ],
-            "count": 3,
-            "jitter": 0.3
-          }
+          { "kind": "glow", "radius": 0.5, "lifetime": 0.12, "color": "FF6464" }
         ],
         "impact": [
-          {
-            "kind": "glow",
-            "radius": 1.3,
-            "lifetime": 0.2,
-            "color": "FFE080"
-          },
-          {
-            "kind": "explosion",
-            "radius": 0.96,
-            "lifetime": 0.48
-          },
-          {
-            "kind": "ring",
-            "radius": 0.68,
-            "lifetime": 0.42
-          },
-          {
-            "kind": "fire",
-            "radius": 1.0,
-            "lifetime": 0.75
-          },
-          {
-            "kind": "smoke",
-            "radius": [
-              0.8,
-              1.3
-            ],
-            "lifetime": [
-              1.45,
-              2.15
-            ],
-            "count": [
-              6,
-              8
-            ],
-            "jitter": 0.9
-          },
-          {
-            "kind": "dust",
-            "radius": 1.15,
-            "lifetime": 0.55
-          }
-        ],
-        "aftermath": [
-          {
-            "kind": "fire",
-            "radius": [
-              0.32,
-              0.58
-            ],
-            "lifetime": [
-              0.4,
-              0.68
-            ],
-            "jitter": 0.48,
-            "delay": [
-              0.05,
-              0.12
-            ],
-            "emissionDuration": 0.8,
-            "emissionInterval": [
-              0.16,
-              0.24
-            ]
-          },
-          {
-            "kind": "smoke",
-            "radius": [
-              0.55,
-              1.05
-            ],
-            "lifetime": [
-              1.25,
-              2.0
-            ],
-            "jitter": 0.85,
-            "delay": [
-              0.42,
-              0.58
-            ],
-            "emissionDuration": 2.1,
-            "emissionInterval": [
-              0.24,
-              0.36
-            ]
-          }
+          { "kind": "glow", "radius": 0.36, "lifetime": 0.14, "color": "FF5A4A" },
+          { "kind": "dust", "radius": 0.16, "lifetime": 0.16 }
         ]
       },
-      "audio": {
-        "fireSound": "hephaestus_fire"
-      }
+      "audio": { "loopSound": "laser_loop" }
     },
     {
       "id": "weapon.turret-vulcan",
@@ -695,7 +572,7 @@
       },
       "render": {
         "projectileSprite": "graphics/missiles/missile_locust.png",
-        "projectileVisualCells": 1.3, "contrail": "missile-smoke"
+        "projectileVisualCells": 0.42, "contrail": "missile-smoke"
       },
       "fx": {
         "launch": [

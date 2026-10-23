@@ -112,7 +112,8 @@ increasing an encounter's total armored threat.
   an unrestricted workshop knows every chassis and weapon pattern but only the
   stock internals, which did not exist when it was written. Weight class is the
   access ladder: Hound (light) Common, Warden (medium) Advanced, Bulwark (heavy)
-  Prestige; weapons and internals carry their own authored tier. Vehicle patterns carry an authored tier too —
+  Prestige (the three are first stand-ins for a grid of mech lines, tech family by
+  weight class: `mech-lines.md`); weapons and internals carry their own authored tier. Vehicle patterns carry an authored tier too —
   heavy APC Common, escort APC and militia technical Advanced, breakthrough tank
   Prestige — and no vehicle is a starter: a company earns its first hull. A vehicle
   card's weight class is the lift its hull asks for, not its tier, so the card says
@@ -138,8 +139,8 @@ increasing an encounter's total armored threat.
   Medium lift) and fire-support APC (a heavy mortar where the troop bay was, no seats,
   Medium lift) are Advanced, as is the LRM carrier (two LRM-15 anti-armor racks
   where the troop bay was, no seats, Medium lift, spotted indirect fire;
-  `convoy-nouns.md`, the missile carriers); the breakthrough tank's heavy-gun tank and dozer
-  breacher are Prestige and Heavy lift. A variant earns its place by a trade —
+  `convoy-nouns.md`, the missile carriers); the breakthrough tank's variants (screened tank, laser tank,
+  dozer breacher) are Prestige and Heavy lift. A variant earns its place by a trade —
   among fabricable hulls on the same lift with the same gun, none is at least as good
   at everything — and costs more than the hull it improves on. A faction weights up
   the variant it is known for (Hegemony the up-armored APC and the LRM carrier, the Lion's Guard the
@@ -991,6 +992,15 @@ support sortie, subject only to practical runtime resources.
   shed falls back to the whole light catalogue on a neutral fit — never to
   building nothing, which is indistinguishable from a shed whose crew have all
   been killed.
+- **A shed may be tooled for vehicles instead** (`FabricationService.toolForVehicles`):
+  the allies' base behind a cordon builds carriers and cars. The hull on the
+  stocks is then the real vehicle, laid at a keel's share of its structure with
+  its gun empty, so it is quiet while it is built and shootable where it stands;
+  finishing it is welding it whole and loading its gun, with nothing swapped out.
+  A new hull is laid only once the last has left the berth. A mission is told of
+  every machine that rolls out (`onRollOut`), and may run its shed at a
+  production line's pace rather than a garrison's sideline (`setPace`), still
+  counted in hands.
 - **The crew lays the keel.** A bay with nothing on its stocks starts the next
   machine on the first tick somebody is at the gantry to start it, so a crew that
   has stood down under fire lays nothing and a crew that is dead lays nothing

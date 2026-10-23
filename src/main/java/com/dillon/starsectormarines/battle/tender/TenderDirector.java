@@ -90,6 +90,7 @@ public final class TenderDirector {
             Points turrets = new Points();
             for (int i = 0, n = roster.liveCount(); i < n; i++) {
                 long u = dense[i];
+                if (roster.isRiding(u)) continue;
                 Faction f = roster.identity().faction(u);
                 if (f == null) continue;
                 float x = world.x(u);

@@ -99,25 +99,11 @@ public final class BattleComponents {
     public static final int POSITION_Y = 1;
 
     /**
-     * {@link #SPRITE} field 0: sheet selector (INT) — {@code 0} = the type's
-     * base sheet, {@code 1} = the secondary-aim sheet (the renderer maps the
-     * selector to a {@code SpriteAPI}; the component itself stays tier-neutral,
-     * never a sprite handle). A corpse is always {@code 0} (the base sheet).
+     * {@link #SPRITE} field 0: corpse frame index (INT); {@code < 0} = nothing to
+     * draw. Written once at the death transmute as the frozen death-pose frame;
+     * a live unit's value is unused (layered units draw from their layered columns).
      */
-    public static final int SPRITE_SHEET = 0;
-    /**
-     * {@link #SPRITE} field 1: frame index within the sheet (INT); {@code < 0}
-     * = nothing to draw. Live: the per-tick facing/pose frame authored by
-     * {@code battle.appearance.FacingSystem}. Corpse: the frozen death-pose
-     * frame, written once at the death transmute.
-     */
-    public static final int SPRITE_INDEX = 1;
-    /**
-     * {@link #SPRITE} field 2: vertical flip as 0/1 (INT). Live: the
-     * weapon-up SOUTH vertical mirror, authored by {@code
-     * battle.appearance.FacingSystem}. Corpse: always {@code 0}.
-     */
-    public static final int SPRITE_FLIP_V = 2;
+    public static final int SPRITE_INDEX = 0;
 
     /** {@link #LAYERED_ANIMATION} field 0: torso facing in continuous sprite degrees (FLOAT). */
     public static final int LAYERED_FACING_DEGREES = 0;
@@ -571,7 +557,7 @@ public final class BattleComponents {
      * Authored appearance — {@code int sheet, index, flipV}. The authoritative
      * "draw this"; one {@code Sprite} = one drawn quad, written by presentation
      * systems, read by the render collector. No longer corpse-only:
-     * every live {@link com.dillon.starsectormarines.battle.unit.UnitType#drawnAsSheet()}
+     * every live {@link com.dillon.starsectormarines.battle.unit.UnitType#carriesSprite()}
      * unit carries one too, authored per-tick by {@code
      * battle.appearance.FacingSystem} (facing/pose frame + the weapon-up
      * vertical mirror + the base/secondary-aim sheet selector); a corpse's
@@ -1130,9 +1116,9 @@ public final class BattleComponents {
     public final Query corpses;
 
     /**
-     * Every live sheet-drawn unit ({@code {IDENTITY, POSITION,
+     * Every live posed unit ({@code {IDENTITY, POSITION,
      * SPRITE, HEALTH}}) — {@code SPRITE} now lives on the live archetype for every
-     * {@link com.dillon.starsectormarines.battle.unit.UnitType#drawnAsSheet()}
+     * {@link com.dillon.starsectormarines.battle.unit.UnitType#carriesSprite()}
      * type, authored per-tick by {@code battle.appearance.FacingSystem}.
      * Requiring {@code HEALTH} excludes corpses (the death transmute removes
      * it) without an explicit {@code CORPSE} exclusion. Walked by
@@ -1214,7 +1200,7 @@ public final class BattleComponents {
                 FieldKind.OBJECT, FieldKind.OBJECT, FieldKind.OBJECT, FieldKind.OBJECT,
                 FieldKind.OBJECT, FieldKind.OBJECT, FieldKind.OBJECT);
         POSITION        = world.register(1, "Position", FieldKind.FLOAT, FieldKind.FLOAT);
-        SPRITE          = world.register(3, "Sprite", FieldKind.INT, FieldKind.INT, FieldKind.INT);
+        SPRITE          = world.register(3, "Sprite", FieldKind.INT);
         CORPSE          = world.register(4, "Corpse", FieldKind.FLOAT, FieldKind.INT, FieldKind.INT);
         HEALTH          = world.register(5, "Health", FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.FLOAT, FieldKind.FLOAT);

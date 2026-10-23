@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.render2d.ContrailTrail;
 import com.dillon.starsectormarines.render2d.DrawCommand;
 import com.dillon.starsectormarines.render2d.PolyMesh;
 import com.dillon.starsectormarines.render2d.QuadMesh;
+import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.util.Arrays;
@@ -67,12 +68,14 @@ public final class DrawList {
                              int srcX, int srcY, int srcW, int srcH,
                              float cx, float cy, float w, float h,
                              float r, float g, float b, float a) {
+        TextureUsage.sheet(sheet, srcW, srcH, w, h);
         slot(layer).setSheetQuad(sheet, srcX, srcY, srcW, srcH, cx, cy, w, h, r, g, b, a);
     }
 
     /** A convex clipped part of a tile; vertices are normalized within its uncut destination. */
     public void addSheetPatch(RenderLayer layer, SpriteAPI sheet,int sx,int sy,int sw,int sh,
                               float cx,float cy,float w,float h,float alpha,float[] patch) {
+        TextureUsage.sheet(sheet, sw, sh, w, h);
         DrawCommand cmd=slot(layer);cmd.setSheetQuad(sheet,sx,sy,sw,sh,cx,cy,w,h,1,1,1,alpha);cmd.setPatch(patch);
     }
 
@@ -81,6 +84,7 @@ public final class DrawList {
                              int srcX, int srcY, int srcW, int srcH,
                              float cx, float cy, float w, float h, float angleDeg,
                              float r, float g, float b, float a) {
+        TextureUsage.sheet(sheet, srcW, srcH, w, h);
         slot(layer).setSheetQuad(sheet, srcX, srcY, srcW, srcH, cx, cy, w, h, angleDeg, r, g, b, a);
     }
 
@@ -89,6 +93,7 @@ public final class DrawList {
                                      int srcX, int srcY, int srcW, int srcH,
                                      float cx, float cy, float w, float h,
                                      float r, float g, float b, float a) {
+        TextureUsage.sheet(sheet, srcW, srcH, w, h);
         slot(layer).setSheetQuadFlippedV(sheet, srcX, srcY, srcW, srcH, cx, cy, w, h, r, g, b, a);
     }
 
@@ -97,6 +102,7 @@ public final class DrawList {
                                      int srcX, int srcY, int srcW, int srcH,
                                      float cx, float cy, float w, float h, float angleDeg,
                                      float r, float g, float b, float a) {
+        TextureUsage.sheet(sheet, srcW, srcH, w, h);
         slot(layer).setSheetQuadFlippedV(sheet, srcX, srcY, srcW, srcH,
                 cx, cy, w, h, angleDeg, r, g, b, a);
     }
@@ -117,6 +123,7 @@ public final class DrawList {
     public void addSprite(RenderLayer layer, SpriteAPI sprite,
                           float cx, float cy, float w, float h, float angleDeg,
                           float r, float g, float b, float a) {
+        TextureUsage.sprite(sprite, w, h);
         if (spriteAtlas != null && spriteAtlas.isServing()) {
             SpriteAtlas.Placement at = spriteAtlas.placement(sprite);
             if (at != null) {
@@ -138,6 +145,11 @@ public final class DrawList {
      * images otherwise.
      */
     public void addMesh(RenderLayer layer, QuadMesh mesh, float x, float y, float scale, float alphaMult) {
+        if (TextureUsage.isEnabled()) {
+            for (int i = 0; i < mesh.size(); i++) {
+                TextureUsage.sprite(mesh.image(i), mesh.width(i) * scale, mesh.height(i) * scale);
+            }
+        }
         SpriteAPI sheet = null;
         if (spriteAtlas != null && spriteAtlas.isServing()) {
             if (mesh.addressAtlas(spriteAtlas, spriteAtlas.sheet(), atlasAddress)) sheet = spriteAtlas.sheet();
@@ -160,6 +172,7 @@ public final class DrawList {
     public void addAdditiveSprite(RenderLayer layer, SpriteAPI sprite,
                                   float cx, float cy, float w, float h, float angleDeg,
                                   float r, float g, float b, float a) {
+        TextureUsage.sprite(sprite, w, h);
         slot(layer).setSprite(sprite, cx, cy, w, h, angleDeg, r, g, b, a, true);
     }
 

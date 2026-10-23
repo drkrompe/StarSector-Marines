@@ -64,6 +64,16 @@ public final class CordonPlan {
     /** A hamlet in open country: a few short roads. */
     private static final GrownTrunkPlan.Profile HAMLET_GROWTH =
             new GrownTrunkPlan.Profile(3, 0.5f, 0.04f, 0.09f, 0.3f, 8, SettlementLink.ROAD);
+    /** The logistics base's place name; not a rear hamlet, so its people do not walk out. */
+    public static final String BASE_PLACE = "logistics-base";
+    /** Where the base sits: across the middle of the map, between the rear edge and the line. */
+    static final float BASE_X0 = 0.38f;
+    static final float BASE_X1 = 0.62f;
+    static final float BASE_NEAR = 0.04f;
+    static final float BASE_FAR = 0.26f;
+    /** A fence, not a redoubt's wall: the base is not meant to be fought from. */
+    private static final int BASE_GATES = 2;
+    private static final int BASE_FENCE_HP = 60;
     private static final long SEED_SALT = 0x434F52444F4E504CL;
     /** The rear's side, its own splittable draw (see {@code BattleSetup.colonyPlanFor}). */
     private static final long REAR_SIDE_SALT = 0x5245415253494445L;
@@ -104,6 +114,11 @@ public final class CordonPlan {
                 HAMLET_GROWTH, PrecinctCharacter.HAMLET));
         places.add(PrecinctBrief.settlement("rear-east", band(south, 0.65f, 0.9f, 0.04f, 0.2f),
                 HAMLET_GROWTH, PrecinctCharacter.HAMLET));
+        // The allies' logistics base, behind the middle of the line: where their machines are built
+        // and their squads form up to be carried forward.
+        places.add(PrecinctBrief.garrison(BASE_PLACE, band(south, BASE_X0, BASE_X1, BASE_NEAR, BASE_FAR),
+                REDOUBT_GROWTH, FortressProgram.logisticsBase(),
+                new Fortification(BASE_GATES, BASE_FENCE_HP).laidSquare()));
         if (variant == CordonVariant.ROAD) {
             // The colony's people are still in its compound, on the town's near side where the road comes in.
             places.add(PrecinctBrief.garrison(CivilDefenceCompound.PLACE, band(south, 0.42f, 0.58f, 0.6f, 0.7f),

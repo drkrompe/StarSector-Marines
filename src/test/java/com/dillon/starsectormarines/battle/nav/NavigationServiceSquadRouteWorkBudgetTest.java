@@ -8,9 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -18,36 +16,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Tiny navigation-only maps exercise scheduling rather than elapsed-time thresholds. */
 class NavigationServiceSquadRouteWorkBudgetTest {
-    private static final String PREFIX = "battle.pathfinding.";
-    private static final String ENABLED = PREFIX + "squadRouteWorkBudget";
-    private static final String PER_TICK = PREFIX + "squadRouteWorkPerTick";
-    private static final String PER_SLICE = PREFIX + "squadRouteWorkPerSlice";
-    private static final String PER_REQUEST = PREFIX + "squadRouteWorkPerRequest";
-    private static final String RETRY = PREFIX + "squadRouteRetryTicks";
     private static final int WIDTH = 32;
     private static final int HEIGHT = 5;
-    private final Map<String, String> previousProperties = new HashMap<>();
+    private static final int RETRY_TICKS = 20;
+    private int perTick = 7;
+    private int perSlice = 3;
+    private int perRequest = 10000;
     private TickInnerProfile previousProfile;
 
     @BeforeEach
-    void configure() {
+    void rememberProfile() {
         previousProfile = TickInnerProfile.currentIfBound();
-        configure(ENABLED, "true");
-        configure(PER_TICK, "7");
-        configure(PER_SLICE, "3");
-        configure(PER_REQUEST, "10000");
-        configure(RETRY, "20");
-        configure(NavigationService.SQUAD_ROUTE_ADMISSION_PROPERTY, "true");
-        configure(NavigationService.RETAIN_SINGLETON_SEEDS_PROPERTY, "true");
-        configure(NavigationService.RETAIN_SQUAD_ROUTE_COSTS_PROPERTY, "true");
     }
 
     @AfterEach
     void restore() {
-        previousProperties.forEach((key, value) -> {
-            if (value == null) System.clearProperty(key);
-            else System.setProperty(key, value);
-        });
         if (previousProfile == null) TickInnerProfile.releaseCurrentThread();
         else TickInnerProfile.setCurrent(previousProfile);
     }
@@ -82,7 +65,7 @@ class NavigationServiceSquadRouteWorkBudgetTest {
 
     @Test
     void inspectionSeparatesWorkLimitBackoffFromCompletedGeometricFailure() {
-        System.setProperty(PER_REQUEST, "2");
+        perRequest = 2;
         try (NavigationService navigation = navigation()) {
             SquadRouteRequest request = request(9, 1, new Object(), 28, cell(1, 2), null);
             navigation.prepareSquadRoutes(List.of(request), 10, 4);
@@ -93,7 +76,7 @@ class NavigationServiceSquadRouteWorkBudgetTest {
             navigation.prepareSquadRoutes(List.of(request), 11, 4);
             assertEquals(19, inspect(navigation, request).retryRemainingTicks());
         }
-        System.setProperty(PER_REQUEST, "10000");
+        perRequest = 10000;
         try (NavigationService navigation = navigation()) {
             navigation.getGrid().getCellFlagsArray()[cell(28, 2)] = 0L;
             SquadRouteRequest request = request(9, 1, new Object(), 28, cell(1, 2), null);
@@ -148,8 +131,8 @@ class NavigationServiceSquadRouteWorkBudgetTest {
 
     @Test
     void freshShortRequestChurnCannotStarveAnAlreadyRunningLongRoute() {
-        System.setProperty(PER_TICK, "32");
-        System.setProperty(PER_SLICE, "32");
+        perTick = 32;
+        perSlice = 32;
         try (NavigationService navigation = navigation()) {
             SquadRouteRequest longRoute = request(1, 1, new Object(), 28, cell(1, 2), null);
             navigation.prepareSquadRoutes(List.of(longRoute), 1, 4);
@@ -184,8 +167,8 @@ class NavigationServiceSquadRouteWorkBudgetTest {
 
     @Test
     void queuedReplansRetainSeniorityAgainstFreshLowIdRequests() {
-        System.setProperty(PER_TICK, "32");
-        System.setProperty(PER_SLICE, "32");
+        perTick = 32;
+        perSlice = 32;
         try (NavigationService navigation = navigation()) {
             SquadRouteRequest occupyingSlot = request(0, 1, new Object(), 28, cell(1, 2), null);
             SquadRouteRequest waiting = request(1000, 1, new Object(), 28, cell(1, 2), null);
@@ -293,9 +276,9 @@ class NavigationServiceSquadRouteWorkBudgetTest {
 
     @Test
     void repeatedReplansCannotRenewTheLifetimeWorkAllowanceBeforeExhaustion() {
-        System.setProperty(PER_TICK, "8");
-        System.setProperty(PER_SLICE, "8");
-        System.setProperty(PER_REQUEST, "16");
+        perTick = 8;
+        perSlice = 8;
+        perRequest = 16;
         try (NavigationService navigation = navigation()) {
             SquadRouteRequest previous = null;
             long total = 0;
@@ -409,9 +392,9 @@ class NavigationServiceSquadRouteWorkBudgetTest {
 
     @Test
     void totalLimitBacksOffWithoutFallbackAndRoutineEpochChurnCannotBypassIt() {
-        System.setProperty(PER_TICK, "8");
-        System.setProperty(PER_SLICE, "8");
-        System.setProperty(PER_REQUEST, "16");
+        perTick = 8;
+        perSlice = 8;
+        perRequest = 16;
         try (NavigationService navigation = navigation()) {
             SquadRouteRequest request = request(1, 1, new Object(), 28, cell(1, 2), null);
             int backoffTick = awaitBackoff(navigation, request);
@@ -429,9 +412,9 @@ class NavigationServiceSquadRouteWorkBudgetTest {
 
     @Test
     void genuinelyChangedDestinationReleasesBackoff() {
-        System.setProperty(PER_TICK, "8");
-        System.setProperty(PER_SLICE, "8");
-        System.setProperty(PER_REQUEST, "16");
+        perTick = 8;
+        perSlice = 8;
+        perRequest = 16;
         try (NavigationService navigation = navigation()) {
             SquadRouteRequest old = request(1, 1, new Object(), 28, cell(1, 2), null);
             int backoffTick = awaitBackoff(navigation, old);
@@ -445,13 +428,14 @@ class NavigationServiceSquadRouteWorkBudgetTest {
 
     @Test
     void compatibleFieldContinuesServingDuringBudgetedRefresh() {
-        System.setProperty(PER_TICK, "10000");
-        System.setProperty(PER_SLICE, "10000");
+        perTick = 10000;
+        perSlice = 10000;
         try (NavigationService navigation = navigation()) {
             SquadRouteRequest old = request(1, 1, new Object(), 28, cell(1, 2), null);
             finish(navigation, old, 1);
-            System.setProperty(PER_TICK, "1");
-            System.setProperty(PER_SLICE, "1");
+            perTick = 1;
+            perSlice = 1;
+            navigation.setSquadRouteWorkBudget(budget());
             SquadRouteRequest refresh = request(1, 2, new Object(), 28, cell(1, 2), costs(2f));
             navigation.prepareSquadRoutes(List.of(refresh), 100, 4);
             assertTrue(navigation.lastSquadRouteWorkUnits() <= 1);
@@ -476,8 +460,8 @@ class NavigationServiceSquadRouteWorkBudgetTest {
         throw new AssertionError("exhausted request never entered backoff");
     }
 
-    private static void finish(NavigationService navigation, SquadRouteRequest request, int firstTick) {
-        int budget = Integer.parseInt(System.getProperty(PER_TICK));
+    private void finish(NavigationService navigation, SquadRouteRequest request, int firstTick) {
+        int budget = perTick;
         for (int tick = firstTick; tick < firstTick + 2000; tick++) {
             navigation.prepareSquadRoutes(List.of(request), tick, 4);
             assertTrue(navigation.lastSquadRouteWorkUnits() <= budget);
@@ -501,12 +485,18 @@ class NavigationServiceSquadRouteWorkBudgetTest {
         assertEquals(0, profile.countOf(TickInnerProfile.Bucket.SQUAD_PATH_FIELD_FALLBACK));
     }
 
-    private static NavigationService navigation() {
+    private NavigationService navigation() {
         NavigationGrid grid = new NavigationGrid(WIDTH, HEIGHT);
         for (int y = 0; y < HEIGHT; y++) {
             for (int x = 0; x < WIDTH; x++) grid.setWalkableFloor(x, y);
         }
-        return new NavigationService(grid, new CellTopology(WIDTH, HEIGHT));
+        NavigationService navigation = new NavigationService(grid, new CellTopology(WIDTH, HEIGHT));
+        navigation.setSquadRouteWorkBudget(budget());
+        return navigation;
+    }
+
+    private NavigationService.SquadRouteWorkBudget budget() {
+        return new NavigationService.SquadRouteWorkBudget(perTick, perSlice, perRequest, RETRY_TICKS);
     }
 
     private static SquadRouteRequest request(int id, long epoch, Object token,
@@ -526,9 +516,4 @@ class NavigationServiceSquadRouteWorkBudgetTest {
     }
 
     private static int cell(int x, int y) { return y * WIDTH + x; }
-
-    private void configure(String key, String value) {
-        previousProperties.put(key, System.getProperty(key));
-        System.setProperty(key, value);
-    }
 }

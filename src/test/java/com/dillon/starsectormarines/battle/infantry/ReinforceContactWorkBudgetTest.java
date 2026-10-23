@@ -34,45 +34,41 @@ class ReinforceContactWorkBudgetTest {
         for (int y = 2; y < 100; y++) grid.setWalkable(65, y, false);
         TickInnerProfile control = bindProfile();
         assertArrayEquals(new int[]{4, 90}, ReinforceContact.snapToReachable(
-                115, 90, grid, 4, 90, true, true, true));
+                115, 90, grid, 4, 90));
         assertTrue(control.countOf(TickInnerProfile.Bucket.PATHFIND) >= 100);
         assertTrue(control.pathfindExpandedNodes() > 8192);
         assertEquals(0, control.countOf(TickInnerProfile.Bucket.FLANK_STEP_FIELD));
 
-        // The whole-selection ceiling is independent of the older per-proof
-        // detour envelope. Both arms stop the very first expensive search.
-        for (boolean boundProofs : new boolean[]{true, false}) {
-            TickInnerProfile subject = bindProfile();
-            assertArrayEquals(new int[]{4, 90}, ReinforceContact.snapToReachable(
-                    115, 90, grid, 4, 90, true, boundProofs, true, 128));
-            assertEquals(1, subject.countOf(TickInnerProfile.Bucket.PATHFIND));
-            assertEquals(0, subject.countOf(TickInnerProfile.Bucket.FLANK_STEP_FIELD));
-            assertWork(subject, 128, true);
-            assertEquals(1, subject.countOf(TickInnerProfile.Bucket.FLANK_SELECTION_LIMIT_REFUSAL));
-        }
+        // The whole-selection ceiling stops the very first expensive search.
+        TickInnerProfile subject = bindProfile();
+        assertArrayEquals(new int[]{4, 90}, ReinforceContact.snapToReachable(
+                115, 90, grid, 4, 90, 128));
+        assertEquals(1, subject.countOf(TickInnerProfile.Bucket.PATHFIND));
+        assertEquals(0, subject.countOf(TickInnerProfile.Bucket.FLANK_STEP_FIELD));
+        assertWork(subject, 128, true);
+        assertEquals(1, subject.countOf(TickInnerProfile.Bucket.FLANK_SELECTION_LIMIT_REFUSAL));
     }
 
     @Test
     void multipleProofsShareOneAllowanceAndKeepTheAlreadyVerifiedIncumbent() {
+        // The ring-zero cell is blocked, so the diagonal (14, 7) is proved
+        // first and the nearer (15, 7) can still beat it and is proved next.
         NavigationGrid grid = openGrid(30, 20);
+        grid.setWalkable(15, 8, false);
         for (boolean cardinal : new boolean[]{true, false}) {
             GridPathfinder.USE_CARDINAL_NAVIGATION = cardinal;
-            for (boolean boundProofs : new boolean[]{true, false}) {
-                TickInnerProfile first = bindProfile();
-                int[] path = boundProofs
-                        ? GridPathfinder.findPathWithinStepEnvelope(grid, 3, 8, 15, 8, cardinal, 20)
-                        : GridPathfinder.findPath(grid, 3, 8, 15, 8);
-                assertFalse(Paths.isEmpty(path));
-                int budget = (int) first.pathfindExpandedNodes() + 2;
-                TickInnerProfile subject = bindProfile();
-                assertArrayEquals(new int[]{15, 8}, ReinforceContact.snapToReachable(
-                        15, 8, grid, 3, 8, false, boundProofs, false, budget));
-                assertEquals(2, subject.countOf(TickInnerProfile.Bucket.PATHFIND),
-                        "the first completed proof and next partial proof share the same budget");
-                assertWork(subject, budget, true);
-                assertEquals(0, subject.countOf(TickInnerProfile.Bucket.FLANK_SELECTION_LIMIT_REFUSAL),
-                        "exhaustion retains the verified incumbent rather than refusing the flank");
-            }
+            TickInnerProfile first = bindProfile();
+            assertFalse(Paths.isEmpty(GridPathfinder.findPathWithinStepEnvelope(
+                    grid, 3, 8, 14, 7, cardinal, 19, Integer.MAX_VALUE)));
+            int budget = (int) first.pathfindExpandedNodes() + 2;
+            TickInnerProfile subject = bindProfile();
+            assertArrayEquals(new int[]{14, 7}, ReinforceContact.snapToReachable(
+                    15, 8, grid, 3, 8, budget));
+            assertEquals(2, subject.countOf(TickInnerProfile.Bucket.PATHFIND),
+                    "the first completed proof and next partial proof share the same budget");
+            assertWork(subject, budget, true);
+            assertEquals(0, subject.countOf(TickInnerProfile.Bucket.FLANK_SELECTION_LIMIT_REFUSAL),
+                    "exhaustion retains the verified incumbent rather than refusing the flank");
         }
     }
 
@@ -95,7 +91,7 @@ class ReinforceContactWorkBudgetTest {
             int budget = (int) firstFour.pathfindExpandedNodes() + 17;
             TickInnerProfile subject = bindProfile();
             assertArrayEquals(new int[]{25, 50}, ReinforceContact.snapToReachable(
-                    36, 50, grid, 25, 50, true, true, true, budget));
+                    36, 50, grid, 25, 50, budget));
             assertEquals(4, subject.countOf(TickInnerProfile.Bucket.PATHFIND));
             assertEquals(1, subject.countOf(TickInnerProfile.Bucket.FLANK_STEP_FIELD));
             assertEquals(17, subject.countOf(TickInnerProfile.Bucket.FLANK_STEP_EXPANDED));
@@ -110,22 +106,16 @@ class ReinforceContactWorkBudgetTest {
         grid.setDoorway(15, 8, true);
         for (boolean cardinal : new boolean[]{true, false}) {
             GridPathfinder.USE_CARDINAL_NAVIGATION = cardinal;
-            for (boolean boundProofs : new boolean[]{true, false}) {
-                for (boolean prune : new boolean[]{true, false}) {
-                    bindProfile();
-                    int[] expected = ReinforceContact.snapToReachable(
-                            15, 8, grid, 3, 8, prune, boundProofs, true);
-                    TickInnerProfile subject = bindProfile();
-                    int[] result = ReinforceContact.snapToReachable(
-                            15, 8, grid, 3, 8, prune, boundProofs, true, 100_000);
-                    assertArrayEquals(expected, result);
-                    assertFalse(grid.isDoorway(result[0], result[1]));
-                    assertEquals(0, subject.countOf(TickInnerProfile.Bucket.FLANK_SELECTION_LIMIT));
-                    assertEquals(subject.pathfindExpandedNodes()
-                                    + subject.countOf(TickInnerProfile.Bucket.FLANK_STEP_EXPANDED),
-                            subject.countOf(TickInnerProfile.Bucket.FLANK_SELECTION_EXPANDED));
-                }
-            }
+            bindProfile();
+            int[] expected = ReinforceContact.snapToReachable(15, 8, grid, 3, 8);
+            TickInnerProfile subject = bindProfile();
+            int[] result = ReinforceContact.snapToReachable(15, 8, grid, 3, 8, 100_000);
+            assertArrayEquals(expected, result);
+            assertFalse(grid.isDoorway(result[0], result[1]));
+            assertEquals(0, subject.countOf(TickInnerProfile.Bucket.FLANK_SELECTION_LIMIT));
+            assertEquals(subject.pathfindExpandedNodes()
+                            + subject.countOf(TickInnerProfile.Bucket.FLANK_STEP_EXPANDED),
+                    subject.countOf(TickInnerProfile.Bucket.FLANK_SELECTION_EXPANDED));
         }
     }
 
@@ -134,17 +124,17 @@ class ReinforceContactWorkBudgetTest {
         NavigationGrid grid = openGrid(30, 20);
         TickInnerProfile profile = bindProfile();
         assertArrayEquals(new int[]{3, 8}, ReinforceContact.snapToReachable(
-                15, 8, grid, 3, 8, true, true, true, 0));
+                15, 8, grid, 3, 8, 0));
         assertEquals(0, profile.countOf(TickInnerProfile.Bucket.PATHFIND));
         assertWork(profile, 0, true);
         assertEquals(1, profile.countOf(TickInnerProfile.Bucket.FLANK_SELECTION_LIMIT_REFUSAL));
         TickInnerProfile.releaseCurrentThread();
         assertArrayEquals(new int[]{3, 8}, ReinforceContact.snapToReachable(
-                15, 8, grid, 3, 8, true, true, true, 1));
+                15, 8, grid, 3, 8, 1));
     }
 
     @Test
-    void bothProductionEntrypointsDefaultToTheCapAndKeepAnIndependentControl() {
+    void bothProductionEntrypointsSpendTheCap() {
         GridPathfinder.USE_CARDINAL_NAVIGATION = true;
         NavigationGrid grid = openGrid(130, 100);
         for (int y = 2; y < 100; y++) grid.setWalkable(65, y, false);
@@ -156,43 +146,20 @@ class ReinforceContactWorkBudgetTest {
                     case "getSquads" -> List.of();
                     default -> throw new AssertionError("Unexpected query: " + method.getName());
                 });
-        String[] properties = {ReinforceContact.BUDGET_FLANK_SELECTION_PROPERTY,
-                ReinforceContact.PRUNE_FLANK_CANDIDATES_PROPERTY,
-                ReinforceContact.BOUND_FLANK_PROOFS_PROPERTY,
-                ReinforceContact.FLANK_STEP_GATE_PROPERTY};
-        String[] previous = new String[properties.length];
-        for (int i = 0; i < properties.length; i++) previous[i] = System.getProperty(properties[i]);
-        try {
-            for (String property : properties) System.clearProperty(property);
-            for (boolean planEntry : new boolean[]{false, true}) {
-                for (boolean budgeted : new boolean[]{false, true}) {
-                    if (budgeted) System.clearProperty(ReinforceContact.BUDGET_FLANK_SELECTION_PROPERTY);
-                    else System.setProperty(ReinforceContact.BUDGET_FLANK_SELECTION_PROPERTY, "false");
-                    Squad squad = new Squad(1, Faction.MARINE);
-                    squad.centroidX = 4.5f;
-                    squad.centroidY = 90.5f;
-                    // Its perpendicular flank lands near (116, 90), also beyond
-                    // the shared step gate's radius cap on the far side of the wall.
-                    squad.lastSeenEnemyX = 115;
-                    squad.lastSeenEnemyY = 80;
-                    TickInnerProfile profile = bindProfile();
-                    if (planEntry) ReinforceContact.INSTANCE.customPlan(squad, view);
-                    else assertArrayEquals(new int[]{4, 90},
-                            ReinforceContact.snapToReachable(115, 90, squad, view));
-                    assertEquals(0, profile.countOf(TickInnerProfile.Bucket.FLANK_STEP_FIELD));
-                    if (budgeted) assertWork(profile, ReinforceContact.FLANK_SELECTION_EXPANSIONS, true);
-                    else {
-                        assertTrue(profile.pathfindExpandedNodes() > ReinforceContact.FLANK_SELECTION_EXPANSIONS);
-                        assertTrue(profile.countOf(TickInnerProfile.Bucket.PATHFIND) >= 100);
-                        assertEquals(0, profile.countOf(TickInnerProfile.Bucket.FLANK_SELECTION_LIMIT));
-                    }
-                }
-            }
-        } finally {
-            for (int i = 0; i < properties.length; i++) {
-                if (previous[i] == null) System.clearProperty(properties[i]);
-                else System.setProperty(properties[i], previous[i]);
-            }
+        for (boolean planEntry : new boolean[]{false, true}) {
+            Squad squad = new Squad(1, Faction.MARINE);
+            squad.centroidX = 4.5f;
+            squad.centroidY = 90.5f;
+            // Its perpendicular flank lands near (116, 90), also beyond
+            // the shared step gate's radius cap on the far side of the wall.
+            squad.lastSeenEnemyX = 115;
+            squad.lastSeenEnemyY = 80;
+            TickInnerProfile profile = bindProfile();
+            if (planEntry) ReinforceContact.INSTANCE.customPlan(squad, view);
+            else assertArrayEquals(new int[]{4, 90},
+                    ReinforceContact.snapToReachable(115, 90, squad, view));
+            assertEquals(0, profile.countOf(TickInnerProfile.Bucket.FLANK_STEP_FIELD));
+            assertWork(profile, ReinforceContact.FLANK_SELECTION_EXPANSIONS, true);
         }
     }
 

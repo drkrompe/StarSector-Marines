@@ -48,8 +48,7 @@ import java.util.function.IntBinaryOperator;
  *       and at least one executable actionable squad remains on the front.
  *       The reserve budget is global across compounds; the <em>pairing</em> is
  *       not. A fresh distant detachment reaches its own track and one
- *       neighbour, own track first (see
- *       {@link #HOME_TRACK_CAPTURES_PROPERTY}). The two convergence phases
+ *       neighbour, own track first. The two convergence phases
  *       below stay map-global for a reason no measurement can move: once the
  *       keep or one contested compound is the whole remaining objective there
  *       is no other front to hold. A squad already holding or standing at a
@@ -178,17 +177,6 @@ public final class ConquestCommand implements ConquestFrontCommand,
     public static final int ZONE_TARGET_OVERFLOW_SQUADS = 2;
 
     /**
-     * {@code -Dbattle.conquest.zoneTargetCap=false} restores ranking every
-     * squad onto the nearest zone, which is the control the cap has to be
-     * measured against. <b>On</b> by default: it divides the front push across
-     * a strip's zones. Measured alongside balanced home tracks and transit
-     * spacing, where the three together cut the densest block of marines on
-     * {@code full-strength-west} from 62 bodies to 28.
-     */
-    public static final String ZONE_TARGET_CAP_PROPERTY =
-            "battle.conquest.zoneTargetCap";
-
-    /**
      * {@code -Dbattle.command.conquest.balancedHomeTracks=false} restores the
      * home track being the one a squad happened to be standing in when first
      * seen. <b>On</b> by default: each new squad takes the least-loaded track.
@@ -209,10 +197,6 @@ public final class ConquestCommand implements ConquestFrontCommand,
 
     static boolean BALANCED_HOME_TRACKS_ENABLED = Boolean.parseBoolean(
             System.getProperty(BALANCED_HOME_TRACKS_PROPERTY, "true"));
-
-    /** Read once from the property above; see {@link #HOME_TRACK_CAPTURES_ENABLED}. */
-    static boolean ZONE_TARGET_CAP_ENABLED = Boolean.parseBoolean(
-            System.getProperty(ZONE_TARGET_CAP_PROPERTY, "true"));
 
     /**
      * How far outside a compound's own footprint a squad may stand and still
@@ -241,121 +225,6 @@ public final class ConquestCommand implements ConquestFrontCommand,
     private static final int NO_FRIENDLY_LEAD = Integer.MIN_VALUE;
 
     /**
-     * {@code -Dbattle.command.emptyTrackAdvance=false} restores the behaviour
-     * where a track holding no believed hostile at all receives no staging
-     * order, which is the control this layer's change has to be measured
-     * against. Reaching that control by checking out an older commit measures
-     * every other difference between the two trees at the same time.
-     */
-    public static final String EMPTY_TRACK_ADVANCE_PROPERTY =
-            "battle.command.emptyTrackAdvance";
-
-    static final boolean EMPTY_TRACK_ADVANCE_ENABLED = Boolean.parseBoolean(
-            System.getProperty(EMPTY_TRACK_ADVANCE_PROPERTY, "true"));
-
-    /**
-     * {@code -Dbattle.command.conquest.homeTrackCaptures=false} restores the
-     * map-global greedy nearest-pair capture fill, which is the control this
-     * layer has to be measured against.
-     *
-     * <p>The track partition already limited <em>front</em> support to the
-     * preferred track or one neighbour. The capture allocation never did: it
-     * ranked every uncaptured compound on the map against every uncommitted
-     * squad by straight-line distance and nothing else, and the preserve pass
-     * then kept whatever that produced for the rest of the battle. Observed in
-     * a live Conquest: a six-marine squad born on the top track, standing at
-     * lateral 48, holding {@code SECURE_COMPOUND} on a barracks at lateral 157
-     * — the bottom track, 110 cells away — while its own track was left to
-     * three marines facing sixteen known contacts and the receiving track
-     * already held nine squads. The walk is a squad out of the battle for about
-     * a minute, and the track it left does not advance while it is gone.
-     *
-     * <p>So a fresh distant detachment reaches one track either side of home
-     * and no further, and takes a neighbour's compound only while its own track
-     * has nothing worth doing. "A neighbour" is the bound the front push
-     * already runs on; two tracks over is not a neighbour on any reading of it.
-     *
-     * <p><b>The canonical matrix, on against off</b> — it costs nothing either
-     * fixture is decided on:
-     *
-     * <ul>
-     *   <li><i>reinforced-south</i> — 7 compounds captured and 2 held, both
-     *       ways. 377 defenders killed against 370, 232 marines lost against
-     *       228. Both timed out at 18000 ticks.</li>
-     *   <li><i>full-strength-west</i> — 3 captured against 2, 0 held either
-     *       way, 464 defenders killed against 457, 425 marines lost against
-     *       426. Both end TERMINAL to the DEFENDER; the bound survives to
-     *       12315 ticks where the control falls at 10812.</li>
-     * </ul>
-     *
-     * <p><b>What the bound is now mostly buying is that the pathology cannot
-     * come back.</b> On this tree the unbounded fill barely commits a far-track
-     * pairing anyway — capture directives more than one track from home are 1
-     * and 0 across the two fixtures with the bound off. That is the prosecution
-     * fall-through fix upstream of it: a squad under HOLD/PROSECUTE with no
-     * firing cell inside its leash used to freeze for as long as the contact
-     * stayed visible, and a frozen squad is exactly the uncommitted, work-free
-     * squad the distant fill reaches for. Fix the freeze and most of the far
-     * pairings stop being offered. With the bound on the fill's own reason
-     * never appears beyond one track at all; the 18 far pulses that remain are
-     * one squad's <em>preserved</em> capture whose published effective track
-     * drifted late in the battle, which is a held objective rather than a fresh
-     * detachment and is not the allocation this governs.
-     *
-     * <p><b>The first measurement of this switch was taken before that fix and
-     * read the opposite</b> — reinforced-south at 6 captures and 2 held with
-     * the bound on against 12 and 11 off — which is why it briefly shipped off.
-     * That number is an artifact of the freeze, not of the track bound; do not
-     * re-derive a trade from it.
-     */
-    public static final String HOME_TRACK_CAPTURES_PROPERTY =
-            "battle.command.conquest.homeTrackCaptures";
-
-    /**
-     * Read once from the property above. Not {@code final} so the control path
-     * is reachable from a test as well as from an evidence run — a switch only
-     * a whole JVM can flip is a switch whose off state nothing small ever
-     * exercises. Nothing in the shipped command writes it.
-     */
-    static boolean HOME_TRACK_CAPTURES_ENABLED = Boolean.parseBoolean(
-            System.getProperty(HOME_TRACK_CAPTURES_PROPERTY, "true"));
-
-    /**
-     * {@code -Dbattle.conquest.laneChain=false} puts the reading back to a
-     * forward fraction of the map. On by default: a lane is a chain of places,
-     * the only one worth assaulting is the first the marines do not hold, and a
-     * staging order is derived along the road the map recorded between two of
-     * them.
-     *
-     * <p>The reading it replaces is close to meaningless on a map grown from
-     * places — a compound becomes assignable once the track's friendly lead is
-     * within {@link #CAPTURE_FRONT_REACH_CELLS} of its depth, so a track reads
-     * 0.8 advanced with its strongpoint still the defenders', and it cannot
-     * record a place retaken at all.
-     *
-     * <p><b>It was off for a year of measurement, and what turned it on was a
-     * map defect rather than anything in this class.</b> Read against a map
-     * whose middle lane was silently one rung short, the chain cost
-     * {@code reinforced-south} a held compound of seventeen and five captures
-     * of twenty-five. Once every lane seated the whole ladder it asks for — see
-     * "And what stands between the two" in {@code precincts.md} — the same code
-     * measured on the same tree takes more and holds at least as much on both
-     * canonical fixtures: 22 captures and 17 held on the south against the
-     * fraction's 20 and 17, and 12 and 6 on the west against 7 and 5. A reading
-     * that walks a ladder cannot be judged against a ladder with a rung missing.
-     *
-     * <p>The switch governs the whole reading rather than one side of it, so
-     * either state is a whole battle. It is a switch rather than an older
-     * commit because a commit-to-commit comparison measures every other
-     * difference between the two trees at the same time.
-     *
-     * <p>A map with no lanes on it is unaffected either way: the chain is empty
-     * and every compound falls through to the fraction, which is what every
-     * mission but Conquest and every Conquest on an ungrown map does.
-     */
-    public static final String LANE_CHAIN_PROPERTY = "battle.conquest.laneChain";
-
-    /**
      * Whether the company holds what it takes (`garrisonables.md`, Decided direction): the runs of a fort it has taken
      * are manned from the lane pool while it believes a counter-attack near them ({@link HeldGround}). Default on;
      * {@code false} is the control a trial-ground comparison runs against.
@@ -365,24 +234,6 @@ public final class ConquestCommand implements ConquestFrontCommand,
     /** Read once from the property above; settable for a control in the same JVM. */
     static boolean HOLDS_GROUND_ENABLED = Boolean.parseBoolean(
             System.getProperty(HOLDS_GROUND_PROPERTY, "true"));
-
-    /** Read once from the property above; see {@link #HOME_TRACK_CAPTURES_ENABLED}. */
-    static boolean LANE_CHAIN_ENABLED = Boolean.parseBoolean(
-            System.getProperty(LANE_CHAIN_PROPERTY, "true"));
-
-    /**
-     * Whether the chain reading is in force, for the defender's own layer.
-     *
-     * <p>Both sides of the duel read the same map the same way — the attacker
-     * to decide what to take next, the defender to decide what to hold and
-     * retake — so one switch governs both, or a control run measures a
-     * half-changed battle. This is not shared belief: the chain is map
-     * geometry and compound ownership, both of which are neutral referee
-     * facts either side may read.
-     */
-    public static boolean laneChainEnabled() {
-        return LANE_CHAIN_ENABLED;
-    }
 
     /** Stand this many cells behind the nearest believed hostile in a track. */
     static final int TRACK_LINE_STANDOFF_CELLS = 8;
@@ -909,7 +760,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
             // choice against a tally that is still filling up.
             Int2IntOpenHashMap standingTargets = new Int2IntOpenHashMap();
             standingTargets.defaultReturnValue(-1);
-            if (ZONE_TARGET_CAP_ENABLED && !finalCompoundConvergence) {
+            if (!finalCompoundConvergence) {
                 for (PlanningSquad squad : squads) {
                     if (committed.contains(squad.id)) continue;
                     int zone = standingZoneTarget(squad, frame);
@@ -1859,12 +1710,10 @@ public final class ConquestCommand implements ConquestFrontCommand,
         // somebody else takes during this loop simply frees the squad on the
         // next pulse, which is when its own track really has run out of work.
         IntOpenHashSet homeTrackWork = new IntOpenHashSet();
-        if (HOME_TRACK_CAPTURES_ENABLED) {
-            for (PlanningSquad squad : squads) {
-                if (committed.contains(squad.id)) continue;
-                if (homeTrackHasWork(squad, slots, contested, frame)) {
-                    homeTrackWork.add(squad.id);
-                }
+        for (PlanningSquad squad : squads) {
+            if (committed.contains(squad.id)) continue;
+            if (homeTrackHasWork(squad, slots, contested, frame)) {
+                homeTrackWork.add(squad.id);
             }
         }
 
@@ -1950,7 +1799,6 @@ public final class ConquestCommand implements ConquestFrontCommand,
         // could otherwise have filled is more than one track from home. Its
         // published reason would otherwise be the generic no-actionable-target
         // one, which reads identically to an empty map.
-        if (!HOME_TRACK_CAPTURES_ENABLED) return;
         for (PlanningSquad squad : squads) {
             if (committed.contains(squad.id)) continue;
             if (deferredCaptures.contains(squad.id)) continue;
@@ -1975,6 +1823,12 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * map is not one. One track away is support, and support waits: a squad
      * whose own track still has work takes its own track's compound or none.
      *
+     * <p>Distance alone is the wrong pairing: a squad born on the top track
+     * was once held on a barracks 110 cells away on the bottom track while its
+     * own track was left to three marines facing sixteen known contacts. The
+     * walk is a squad out of the battle for about a minute, and the track it
+     * left does not advance while it is gone.
+     *
      * <p>A capture zone no track claims is left alone rather than refused. The
      * bound is a coordination preference and there is nothing here to prefer;
      * refusing on an unclassifiable coordinate would quietly strand the
@@ -1982,7 +1836,6 @@ public final class ConquestCommand implements ConquestFrontCommand,
      */
     private boolean captureTrackAllowed(PlanningSquad squad, int index,
                                         IntOpenHashSet homeTrackWork) {
-        if (!HOME_TRACK_CAPTURES_ENABLED) return true;
         int away = tracksFromHome(squad, compoundTargets.get(index));
         if (away >= 2) return false;
         return away == 0 || !homeTrackWork.contains(squad.id);
@@ -2565,9 +2418,18 @@ public final class ConquestCommand implements ConquestFrontCommand,
         }
     }
 
-    /** Whether the chain is the reading in force for this battle. */
+    /**
+     * Whether the chain is the reading in force for this battle. A lane is a
+     * chain of places, the only one worth assaulting is the first the marines
+     * do not hold, and a staging order is derived along the road the map
+     * recorded between two of them. A forward fraction of the map is close to
+     * meaningless on a map grown from places — a track reads 0.8 advanced with
+     * its strongpoint still the defenders', and it cannot record a place
+     * retaken — so it is read only on a map with no lanes, where every
+     * compound falls through to it.
+     */
     private boolean laneChainInForce() {
-        return LANE_CHAIN_ENABLED && laneChain.laneCount() > 0
+        return laneChain.laneCount() > 0
                 && laneChain.hasChains();
     }
 
@@ -2818,8 +2680,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         // The gate stands in front of the route derivation as well: a road to
         // the next place is a better line to walk than the axis, and it is not
         // a reason to issue an order the commander has decided not to issue.
-        if (!front.believed()
-                && (attacking || !EMPTY_TRACK_ADVANCE_ENABLED)) return null;
+        if (!front.believed() && attacking) return null;
 
         TrackStage onRoute = laneRouteChoice(squad, track, frame, attacking);
         if (onRoute != null) return onRoute;
@@ -3373,9 +3234,6 @@ public final class ConquestCommand implements ConquestFrontCommand,
      */
     private int nearestDefenderZoneInStrip(PlanningSquad squad, int stripIdx,
                                            ConquestCommandFrame frame) {
-        if (!ZONE_TARGET_CAP_ENABLED) {
-            return nearestDefenderZoneInStrip(squad, stripIdx, frame, false);
-        }
         int spare = nearestDefenderZoneInStrip(squad, stripIdx, frame, true);
         return spare >= 0 ? spare
                 : nearestDefenderZoneInStrip(squad, stripIdx, frame, false);
@@ -3388,8 +3246,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
      *                     offered instead. The caller above runs this pass
      *                     first and repeats without it, which is what makes
      *                     the cap a preference rather than a refusal.
-     *                     <p>The repeat is not the old rule verbatim: it ranks
-     *                     a candidate by how many squads are already on it
+     *                     <p>The repeat ranks a candidate by how many squads are already on it
      *                     before it ranks it by distance. A strip whose zones
      *                     are all at cap has a surplus to place either way, and
      *                     putting all of it on the nearest zone is the queue
@@ -3417,8 +3274,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
             if (!reachableZone(squad, zoneId, frame)) continue;
             // Under the cap every survivor is equally unburdened, so this is
             // the plain nearest rule; over it, the load is what separates them.
-            int load = underCapOnly || !ZONE_TARGET_CAP_ENABLED
-                    ? 0 : zoneTargetSquads[zoneId];
+            int load = underCapOnly ? 0 : zoneTargetSquads[zoneId];
             float zoneForward = zoneForwardCoord[zoneId];
             float delta = zoneForward - squadForward;
             if (delta >= 0f) {
@@ -3448,7 +3304,6 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * footprint to say otherwise, and a room is a room.
      */
     private boolean zoneTargetIsFull(int zoneId) {
-        if (!ZONE_TARGET_CAP_ENABLED) return false;
         if (zoneId < 0 || zoneId >= zoneTargetSquads.length) return false;
         int quota = 1;
         int index = targetIndexForCaptureZone(zoneId);
@@ -3464,10 +3319,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * {@link #nearestDefenderZoneInStrip} would apply to the zone as a fresh
      * candidate, asked of the order the squad is already executing.
      *
-     * <p>Only consulted under {@link #ZONE_TARGET_CAP_PROPERTY}. The plain
-     * nearest-forward rule is a pure function of the squad's own position and
-     * needs no stickiness; the capped rule depends on who chose first, so
-     * without this a reordering of the queue is a retarget.
+     * <p>The capped rule depends on who chose first, so without this a
+     * reordering of the queue is a retarget.
      */
     private int standingZoneTarget(PlanningSquad squad, ConquestCommandFrame frame) {
         ObjectiveAssignment held = squad.assignedObjective;

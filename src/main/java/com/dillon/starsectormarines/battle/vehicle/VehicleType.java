@@ -103,23 +103,6 @@ public enum VehicleType {
         @Override public ArmorArcs.Profile armorArcs() { return arcs(TANK_ARCS); }
     },
     /**
-     * Breakthrough hull carrying one long heavy gun instead of the twin breach cannons:
-     * more reach and penetration per round, a slower cycle and a slower hull. The breakthrough
-     * hull art with its own long-gun turret frames (art-source/vehicles/tank-heavy-gun).
-     */
-    HEAVY_GUN_TANK("graphics/battle/vehicles/army-tank-heavy-gun.png", 0, 4, -90f,
-            0, 4.3f, 3.9f, 2.6f, .85f, 3.0f, .8f, 3.0f,
-            1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
-            TurretCatalogRegistry.TANK_HEAVY_GUN_STRUCTURE_ID, 700f, 600f, 20f, 1.4f, 1.1f) {
-        @Override public GroundBody createBody() {
-            return new BicycleBody(2.6f, 30f, 80f, accel, brakingAccel, maxSpeed, TANK_REVERSE_FRACTION);
-        }
-        @Override public float turretRecoilCells() { return .24f; }
-        @Override public float turretHitShare() { return TANK_TURRET_HIT_SHARE; }
-        @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
-        @Override public ArmorArcs.Profile armorArcs() { return arcs(TANK_ARCS); }
-    },
-    /**
      * The breakthrough tank with a hull interceptor system: the same hull, twin cannons and plate, plus active
      * protection that takes top-attack rounds coming down on it ({@link #activeProtectionStructureId}), paid for in
      * a little speed for the launcher boxes and their power. The tank
@@ -147,12 +130,15 @@ public enum VehicleType {
      * answers each target in a short burst a second, hits nearly where it aims and turns fast, so it clears
      * infantry and drones far quicker than a cannon tank. It carries no blast and no wall damage, so it cannot open a
      * building, and its low penetration leaves it chipping at armor. The power plant takes the shell stowage's
-     * room and weight, so the hull runs a little faster. Its turret is drawn from the mount's sprite until it has
-     * art of its own, and until then the variant is not offered as a card.
+     * room and weight, so the hull runs a little faster. Its sheet is Tri-Tachyon's: the breakthrough hull in the
+     * company's white livery with a capacitor pack over the rear deck, and for a turret the vanilla PD laser's shape,
+     * up-res'd and in the company's white, graphite and cyan, on a ship's turret mount, its shutter opening on the
+     * lens while it fires ({@link #turretFiringFrame}; art-source/vehicles/tank-laser). Its lance is the burst PD
+     * laser's blue.
      */
-    LASER_TANK("graphics/battle/vehicles/army-tank.png", 0, 4, -90f,
+    LASER_TANK("graphics/battle/vehicles/army-tank-laser.png", 0, 5, -90f,
             0, 4.3f, 3.9f, 3.3f, 1.05f, 3.0f, .8f, 3.0f,
-            -1, 0f, 0f, 0f, 0f, 0f, 0f,
+            1, 0f, 0f, 0f, 0f, 1.6f, -90f,
             TurretCatalogRegistry.TANK_BURST_LASER_STRUCTURE_ID, 750f, 500f, 18f, 1.4f, 1.1f) {
         @Override public GroundBody createBody() {
             return new BicycleBody(2.6f, 32f, 95f, accel, brakingAccel, maxSpeed, TANK_REVERSE_FRACTION);
@@ -160,8 +146,31 @@ public enum VehicleType {
         @Override public float turretHitShare() { return TANK_TURRET_HIT_SHARE; }
         @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
         @Override public ArmorArcs.Profile armorArcs() { return arcs(TANK_ARCS); }
-        @Override public boolean turretArtFromMount() { return true; }
-        @Override public boolean presentationDeclared() { return false; }
+        @Override public int turretFiringFrame() { return 4; }
+        @Override public float fluxVentAftCells() { return LASER_VENT_AFT_CELLS; }
+        @Override public float fluxVentHalfSpanCells() { return LASER_VENT_HALF_SPAN_CELLS; }
+    },
+    /**
+     * The laser tank's midline sibling: the same hull with the plain PD laser every frigate carries. It holds one
+     * steady red lance on a target, ten pulses a second, and runs cool, overloading only after a long held fight,
+     * where the burst laser hits harder in bursts and is a flux hog. The fire-control radar and the three cells that feed it take less room
+     * than a capacitor pack, so the hull keeps the breakthrough tank's plate and pace. Its sheet is the same hull in
+     * worn gunmetal with red running lamps, the radar over the rear deck, and the vanilla PD laser in its own red
+     * (art-source/vehicles/tank-laser).
+     */
+    PD_LASER_TANK("graphics/battle/vehicles/army-tank-pd-laser.png", 0, 5, -90f,
+            0, 4.3f, 3.9f, 3.1f, 1.0f, 3.0f, .8f, 3.0f,
+            1, 0f, 0f, 0f, 0f, 1.6f, -90f,
+            TurretCatalogRegistry.TANK_PD_LASER_STRUCTURE_ID, 750f, 550f, 18f, 1.4f, 1.1f) {
+        @Override public GroundBody createBody() {
+            return new BicycleBody(2.6f, 32f, 95f, accel, brakingAccel, maxSpeed, TANK_REVERSE_FRACTION);
+        }
+        @Override public float turretHitShare() { return TANK_TURRET_HIT_SHARE; }
+        @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
+        @Override public ArmorArcs.Profile armorArcs() { return arcs(TANK_ARCS); }
+        @Override public int turretFiringFrame() { return 4; }
+        @Override public float fluxVentAftCells() { return LASER_VENT_AFT_CELLS; }
+        @Override public float fluxVentHalfSpanCells() { return LASER_VENT_HALF_SPAN_CELLS; }
     },
     /**
      * Breaching sidegrade on the breakthrough hull: a dozer blade and the APC's twin MG instead of
@@ -465,8 +474,8 @@ public enum VehicleType {
 
     /** The breakthrough hull and the variants built on it. */
     public boolean isTank() {
-        return this == BREAKTHROUGH_TANK || this == HEAVY_GUN_TANK || this == SCREENED_TANK || this == LASER_TANK
-                || this == DOZER_BREACHER;
+        return this == BREAKTHROUGH_TANK || this == SCREENED_TANK || this == LASER_TANK
+                || this == PD_LASER_TANK || this == DOZER_BREACHER;
     }
 
     /**
@@ -483,7 +492,7 @@ public enum VehicleType {
      * carriers and the dozer medium, the gun tanks heavy. Read only by a Brute's charge so far.
      */
     public Weight weight() {
-        if (this == BREAKTHROUGH_TANK || this == HEAVY_GUN_TANK || this == SCREENED_TANK || this == LASER_TANK) {
+        if (this == BREAKTHROUGH_TANK || this == SCREENED_TANK || this == LASER_TANK || this == PD_LASER_TANK) {
             return Weight.HEAVY;
         }
         if (isApc() || this == SRM_TECHNICAL || this == DOZER_BREACHER) return Weight.MEDIUM;
@@ -539,6 +548,26 @@ public enum VehicleType {
 
     public int wreckHullFrame() { return this == CARGO_CARRIER ? 1 : 2; }
     public int wreckTurretFrame() { return turretFrame < 0 ? -1 : 3; }
+
+    /**
+     * The sheet frame the live turret draws while its gun is engaged (a target on the ground or in the air, or a
+     * burst under way), or -1 for a turret drawn the same whether or not it fires.
+     */
+    /** The laser hulls' radiator fins, aft of centre on the breakthrough master (art-source/vehicles/tank-laser). */
+    static final float LASER_VENT_AFT_CELLS = 1.8f;
+    static final float LASER_VENT_HALF_SPAN_CELLS = 0.55f;
+
+    public int turretFiringFrame() { return -1; }
+
+    /**
+     * How far aft of the hull's centre, in cells, the vents its gun's flux haze rises from
+     * ({@code TurretMountDef#flux}), or zero for a hull that draws none. They span {@link #fluxVentHalfSpanCells}
+     * either side of the centre line.
+     */
+    public float fluxVentAftCells() { return 0f; }
+
+    /** Half the width of the flux vents across the hull, in cells ({@link #fluxVentAftCells}). */
+    public float fluxVentHalfSpanCells() { return 0f; }
 
     /** Keep authored vehicle bearings and live/wreck registration for every chassis. */
     public SpriteSheetFrames registeredSpriteFrames(SpriteSheetFrames detected) {
@@ -676,7 +705,7 @@ public enum VehicleType {
             case HEAVY_APC, SUPPLY_TRUCK, SCOUT_CAR, HOVER_SCOUT, SRM_TECHNICAL -> LiftClass.LIGHT;
             case ESCORT_APC, MILITIA_TECHNICAL, UP_ARMORED_APC, FIRE_SUPPORT_APC, DRONE_SKIMMER,
                  LRM_CARRIER -> LiftClass.MEDIUM;
-            case BREAKTHROUGH_TANK, HEAVY_GUN_TANK, SCREENED_TANK, LASER_TANK, DOZER_BREACHER -> LiftClass.HEAVY;
+            case BREAKTHROUGH_TANK, SCREENED_TANK, LASER_TANK, PD_LASER_TANK, DOZER_BREACHER -> LiftClass.HEAVY;
             case CARGO_CARRIER -> null;
         };
     }

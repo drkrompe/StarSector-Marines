@@ -76,3 +76,10 @@ must live on the geometry or on a camera projection. See `parallax.md`.
   owner has to see.
 - **Missing drives are a composite repair; do not let them happen.** C4's first finals
   needed a plume pass. `thrust_shots.require_plumes` now refuses such a build.
+
+## Prove the layers on a lit animatic
+
+A shot's layer plan is proved on the lit animatic (see
+[motion previews](motion-preview.md#lit-animatic)) before any final renders: the animatic uses
+the same layers and composite as the finals, at the same commit, so a wrong occlusion or an
+effect in the wrong layer shows there at a hundredth of the cost (owner, 2026-10-23).

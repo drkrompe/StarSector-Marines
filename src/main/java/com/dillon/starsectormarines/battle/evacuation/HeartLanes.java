@@ -45,9 +45,11 @@ public final class HeartLanes {
     /** Militia teams in each column. */
     static final int TEAMS = 3;
     /** Seconds after the battle opens that the columns step off, together. */
-    static final int STEP_OFF_SECONDS = 2;
+    public static final int STEP_OFF_SECONDS = 2;
     /** A member this close to its bore has arrived at it. */
     static final int ARRIVE_CELLS = 12;
+    /** A marching column's destination this far from its lane's current aim is stale, and it is sent on. */
+    static final int REAIM_CELLS = 3;
     static final int RETARGET_TICKS = Math.round(1f / BattleSimulation.TICK_DT);
 
     private final class Lane implements AlliedColumns.Orders {
@@ -56,19 +58,24 @@ public final class HeartLanes {
         final int entryX, entryY;
         final AlliedColumns column;
         List<Integer> squads;
+        /** The militia the lane's arrived waves were raised with: what "broken" is measured against. */
+        int joinedMembers;
+        final int teams;
         int targetX = -1, targetY = -1;
         boolean broken;
         /** The lane's armour (The Burn's battlegroups): hulls and mechs both stationed by the allied command. */
         final List<Long> hulls = new ArrayList<>();
         final List<Long> mechs = new ArrayList<>();
 
-        Lane(int number, HeartLane ground, int entryX, int entryY, RiskLevel risk, Random rng) {
+        Lane(int number, HeartLane ground, int entryX, int entryY, int teams, int[] waveSeconds, RiskLevel risk, Random rng) {
             this.number = number;
             this.ground = ground;
             this.entryX = entryX;
             this.entryY = entryY;
-            this.column = new AlliedColumns(List.of(new AlliedColumns.Departure(STEP_OFF_SECONDS, entryX, entryY)),
-                    TEAMS, ISSUER, risk, rng);
+            this.teams = teams;
+            List<AlliedColumns.Departure> departures = new ArrayList<>();
+            for (int seconds : waveSeconds) departures.add(new AlliedColumns.Departure(seconds, entryX, entryY));
+            this.column = new AlliedColumns(departures, teams, ISSUER, risk, rng);
         }
 
         @Override public int[] destination(BattleSimulation sim) {
@@ -77,7 +84,11 @@ public final class HeartLanes {
         }
 
         @Override public boolean stillNeeded(BattleSimulation sim, int x, int y) {
-            return screen != null || livingBoreAt(sim, x, y);
+            if (screen == null) return livingBoreAt(sim, x, y);
+            // Following the guns, a column marches to where its lane is aimed now: the hold moves up as each
+            // line lifts, and the bore it was sent for may have fallen.
+            int[] now = destination(sim);
+            return now != null && Math.max(Math.abs(now[0] - x), Math.abs(now[1] - y)) <= REAIM_CELLS;
         }
 
         @Override public boolean arrived(int x, int y, int destX, int destY) {
@@ -85,14 +96,53 @@ public final class HeartLanes {
         }
 
         @Override public void joined(BattleSimulation sim, int ignored, List<Integer> joined, int destX, int destY) {
-            squads = new ArrayList<>(joined);
-            targetX = destX;
-            targetY = destY;
+            // A later wave joins the lane where it stands: the lane's own retarget sends it on with the rest.
+            if (squads == null) {
+                squads = new ArrayList<>();
+                targetX = destX;
+                targetY = destY;
+            }
+            squads.addAll(joined);
+            joinedMembers += teams * ColonyMilitia.POST_SIZE;
         }
     }
 
     private final List<Lane> lanes = new ArrayList<>();
     private BarrageScreen screen;
+    /** Which way the lanes advance along their axis, +1 or -1, for armour that follows no barrage. */
+    private int advanceSign;
+
+    /** Each lane's ground across the front, in lane order. */
+    public List<HeartLane> grounds() {
+        List<HeartLane> out = new ArrayList<>();
+        for (Lane lane : lanes) out.add(lane.ground);
+        return out;
+    }
+
+    /** The company's own sector on The Burn's front, recorded so a review can show it; null without a front. */
+    public HeartLane companySector() {
+        return companySector;
+    }
+
+    public HeartLanes companySector(HeartLane sector) {
+        companySector = sector;
+        return this;
+    }
+
+    /**
+     * Adds armour-only ground beside the company: no columns of its own, so it raises no lane beats; its
+     * machines are stationed on its ground's target as any lane's are. Returns its index for {@link #addArmour}.
+     */
+    public int addSupport(HeartLane ground, int[] entry, long seed) {
+        lanes.add(new Lane(lanes.size() + 1, ground, entry[0], entry[1], 0, new int[0], RiskLevel.MEDIUM, new Random(seed)));
+        return lanes.size() - 1;
+    }
+
+    /** Lanes that advance toward higher ({@code +1}) or lower ({@code -1}) cells, so armour without a barrage stands behind its aim. */
+    public HeartLanes advancing(int sign) {
+        advanceSign = sign;
+        return this;
+    }
 
     /** Columns that follow a walking barrage: short of the firing line while their bore lies past it. */
     public HeartLanes following(BarrageScreen screen) {
@@ -118,9 +168,17 @@ public final class HeartLanes {
      * @param entries each lane's foot on the start line, {@code [x, y]}, in the same order
      */
     public HeartLanes(List<HeartLane> grounds, List<int[]> entries, RiskLevel risk, long seed) {
+        this(grounds, entries, TEAMS, new int[]{STEP_OFF_SECONDS}, risk, seed);
+    }
+
+    /**
+     * @param teams       militia teams in each wave of each lane
+     * @param waveSeconds when each wave steps off, in seconds from the opening; the first is the lane's column
+     */
+    public HeartLanes(List<HeartLane> grounds, List<int[]> entries, int teams, int[] waveSeconds, RiskLevel risk, long seed) {
         Random rng = new Random(seed);
         for (int i = 0; i < grounds.size(); i++) {
-            lanes.add(new Lane(i + 1, grounds.get(i), entries.get(i)[0], entries.get(i)[1], risk, rng));
+            lanes.add(new Lane(i + 1, grounds.get(i), entries.get(i)[0], entries.get(i)[1], teams, waveSeconds, risk, rng));
         }
     }
 
@@ -128,18 +186,34 @@ public final class HeartLanes {
     public void tick(BattleSimulation sim, List<String> beats) {
         int tick = sim.getSimTickIndex();
         allied.advance(sim);
+        boolean refreshed = false;
+        for (var due = armourDue.iterator(); due.hasNext(); ) {
+            int[] a = due.next();
+            if (a[0] > tick) continue;
+            due.remove();
+            // Later armour keeps clear of the machines standing now, not of where the first ones were set down.
+            if (!refreshed) {
+                refreshed = true;
+                placed.clear();
+                for (Lane lane : lanes) {
+                    for (long hull : lane.hulls) if (sim.convoy().structure(hull) > 0f)
+                        placed.add(new float[]{sim.convoy().body(hull).x, sim.convoy().body(hull).y});
+                    for (long mech : lane.mechs) if (sim.resolveUnit(mech) != 0L && sim.world().isAlive(mech))
+                        placed.add(new float[]{sim.world().x(mech), sim.world().y(mech)});
+                }
+            }
+            addArmour(sim, a[1], a[2] < 0 ? null : VehicleType.values()[a[2]], a[3], a[4], a[5]);
+        }
         for (Lane lane : lanes) {
             if (tick % RETARGET_TICKS == 0) driveArmour(sim, lane);
-            if (lane.squads == null) {
-                lane.column.advance(sim, tick, lane, (beat, observerOnly) -> {
-                    if (beat.startsWith("column_arrived_")) beats.add("lane_arrived_" + lane.number);
-                });
-                continue;
-            }
+            lane.column.advance(sim, tick, lane, (beat, observerOnly) -> {
+                if (beat.equals("column_arrived_1")) beats.add("lane_arrived_" + lane.number);
+            });
+            if (lane.squads == null) continue;
             lane.squads.removeIf(squad -> sim.squadMemberCount(squad) == 0);
             int alive = 0;
             for (int squad : lane.squads) alive += sim.squadMemberCount(squad);
-            if (!lane.broken && alive * 3 < TEAMS * ColonyMilitia.POST_SIZE) {
+            if (!lane.broken && alive * 3 < lane.joinedMembers) {
                 lane.broken = true;
                 beats.add("lane_broken_" + lane.number);
             }
@@ -160,6 +234,11 @@ public final class HeartLanes {
 
     /** Cells between neighbouring machines across a lane, and how far behind the lane's aim they stand. */
     static final int ARMOUR_SPACING = 5, ARMOUR_BEHIND = 4;
+
+    /** Brings a machine on at {@code tick} as {@link #addArmour} sets one down; one with no ground near is dropped. */
+    public void scheduleArmour(int tick, int index, VehicleType type, int x, int y, float facing) {
+        armourDue.add(new int[]{tick, index, type == null ? -1 : type.ordinal(), x, y, Math.round(facing)});
+    }
 
     /**
      * Sets a machine down on lane {@code index}'s ground near {@code (x, y)}, facing the advance: a hull
@@ -206,7 +285,7 @@ public final class HeartLanes {
         if (bore == null) return;
         int[] aim = aim(sim, lane.ground, bore);
         boolean alongY = lane.ground.advancesAlongY();
-        int toward = screen == null ? 0 : screen.sign();
+        int toward = screen == null ? advanceSign : screen.sign();
         int count = lane.hulls.size() + lane.mechs.size(), i = 0;
         // The allied command drives each machine to its post and fights it from there; it re-orders only
         // when a post has moved, and pulls a goal the woods bar back toward the machine.
@@ -238,6 +317,9 @@ public final class HeartLanes {
     private final Map<Integer, VehicleClearance> clearances = new HashMap<>();
     /** Drives and fights the lanes' hulls (`allied-command.md`). */
     private final AlliedCommand allied = new AlliedCommand(ISSUER);
+    private HeartLane companySector;
+    /** Armour still to come, in the order it was scheduled: {@code [tick, lane, type ordinal or -1 for a Hound, x, y, facing]}. */
+    private final List<int[]> armourDue = new ArrayList<>();
 
     private VehicleClearance clearance(BattleSimulation sim, VehicleType type) {
         int radius = VehicleClearance.radiusForWidth(type.visualWidthCells);

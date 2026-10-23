@@ -227,6 +227,10 @@ public class Detonations {
             for (int i = 0, n = roster.liveCount(); i < n; i++) {
                 long u = dense[i];
                 if (crashStruck != null && crashStruck.contains(u)) continue;
+                // A passenger is behind the hull: the blast reaches the vehicle
+                // (the body pass below), and what reaches the people inside is
+                // the wreck's to decide (VehicleTransportService.disembarkForWreck).
+                if (roster.isRiding(u)) continue;
                 // A held contact target took no direct payload, so the splash is all that reaches it.
                 if (det.excludesAreaTarget(u) && !held.test(u)) continue;
                 if (!areaHitsHeld && held.test(u)) continue;

@@ -220,10 +220,6 @@ public record SpecialEquipmentDef(
         return activation == SpecialActivation.CLOSE_CONTACT;
     }
 
-    public String aimSpritePath() {
-        return presentation.aimSpritePath();
-    }
-
     public String armoryIconPath() {
         return presentation.armoryIconPath();
     }

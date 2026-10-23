@@ -140,11 +140,28 @@ and the whole front follows the barrage together. The company's is a local
 task inside a larger push, not the push itself (owner, 2026-10-22: "a proper
 battlefield with the player's forces playing a more localized role"). Broad
 Front stays lanes into overgrowth; The Burn's front is a walking barrage with
-fire. In build behind `-Dbattle.heart.burnFront` (`heart-burn-front.md`).
+fire. `-Dbattle.heart.burnFront=false` is the control: the company alone
+behind the barrage, which lost on every measured seed whatever single lever
+was tried (following the guns, frontage, forming on the farmland, more
+shuttles, calmer bores, weaker Spitters). The swarm's numbers beat 24 marines,
+not any one creature.
 
-**Battlegroup** (The Burn). One allied sector's force: militia infantry with
-armour (an escort APC, a technical, a breakthrough tank and a Hound pair).
-It follows the barrage on its own line across the front, armour stepping with
+The front is won by **sustained** strength, not an opening blow. Measured on
+seeds 202-606: a front committed only while the barrage walks breaks after
+it ends, while the mothers keep surging. Infantry waves after the barrage
+take the satellites, but the mothers fall only once fresh armour keeps coming
+up too. The barrage stays short of the mothers. Walking it onto them measured
+worse, because the front is held back behind the guns for longer.
+
+**Battlegroup** (The Burn). One allied sector's force: the planetary militia
+committed in strength (owner, 2026-10-22: "no need to be stingy with infantry
+and vehicles"). Its infantry comes in **waves**: the first steps off at the
+opening, one more as each of the barrage's first lines lifts, and more at a
+steady cadence once the barrage has ended, feeding the push on the mothers. A
+wave marches to wherever its lane is aimed now and joins the lane there. Its
+armour is an escort APC, two technicals, two breakthrough tanks and a Hound
+pair, with a fresh tank and technical coming up every two minutes once the
+barrage has ended. It follows the barrage on its own line across the front, armour stepping with
 its infantry. Its armour is the allied commander's (`allied-command.md`):
 the mission names each machine's post and the commander drives and fights it, a
 machine the woods bar holding as far forward as it can drive. It owns its sector's satellites, then goes on to the
@@ -227,7 +244,15 @@ collapses a bore by fiat.
 1. **Step-off.** The company comes down by shuttle in the cordon's farmland at
    the middle of the start edge (`landfall`). Four allied columns stand on the
    start line, one at the foot of each lane, and go up their lanes together;
-   the company's own lane is the country road.
+   the company's own lane is the country road. Each lane is the planetary
+   militia in strength, as The Burn's battlegroups are: four teams a wave, a
+   wave a minute, an escort APC, a technical, a breakthrough tank and a Hound
+   pair, and a fresh tank and technical every two minutes. With no barrage to
+   wait for, the company holds its landing for its first two minutes, so it
+   goes for its satellite with the lanes up beside it rather than alone. Its
+   own sector gets armour too, a breakthrough tank and a Hound pair stationed
+   on its target and a fresh tank every two minutes, so no part of the front
+   goes in without it.
 2. **Advance to contact.** The satellites surge on their own clocks from the
    start and hunt whatever they sense, so contact comes lane by lane. The
    mothers **sleep**: they grow, but send nothing.
@@ -241,12 +266,33 @@ collapses a bore by fiat.
    surviving mother surge at once** (owner's pick): the heart fights harder as
    it dies. Beats `bore_collapsed_N`, `matriarch_emerged_mother-N`,
    `mother_collapsed_N`.
+
+   **The company falls back.** Its own satellite down, the company does not go
+   on alone to a mother. It falls back to its landing and holds there while
+   any satellite still stands. When the last one falls it goes for the mothers
+   with the converging lanes. Its satellite sits nearest the heart, so the
+   heart's waking surge and the first Matriarchs come for it first. Holding
+   the taken ground kept more of the company alive but still lost it there on
+   one seed; falling back won every seed. The company is the spearhead onto
+   its satellite and the backstop after.
+
+   Controls: `-Dbattle.heart.broadStrength=false`, `-Dbattle.heart.broadFormUp=0`,
+   `-Dbattle.heart.broadCompanyArmour=false`, `-Dbattle.heart.broadWaitForLanes=false`
+   and `-Dbattle.heart.broadFallBack=false`. Measured on seeds 202-606:
+   - lanes' strength alone: 1 of 5 won;
+   - with the form-up: 2;
+   - with the company's armour: 3;
+   - holding its taken ground: 3, with far more of the company alive;
+   - falling back to its landing: 5.
+   Sending the lanes across to the company's satellite once their own fell
+   measured worse.
 5. **Heart down.** The last mother collapses: `heart_down`, the win. Allied
    lanes broken are a cost on the outcome, never a loss.
 
-The allied columns are scripted (`HeartLanes`): three militia teams at the foot
-of each of the four lanes step off together at the opening and march to their
-lane's first satellite as the Cordon's scripted columns march to a redoubt
+The allied columns are scripted (`HeartLanes`): a wave of militia teams at the
+foot of each of the four lanes steps off at the opening, and the rest follow
+on the lane's cadence, each marching to wherever its lane is aimed then. The
+first wave marches to its lane's first satellite as the Cordon's scripted columns march to a redoubt
 (`cordon-nouns.md`, Allied column). Once a column has arrived it is the lane's:
 when the bore it is on falls it goes on to its lane's next satellite, then to
 the nearest living mother. An allied lane's band is about a tenth of the front's

@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSna
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
+import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.dillon.starsectormarines.render2d.DecalAccumulator;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
@@ -224,6 +225,13 @@ public class BattleRenderer {
     private final UnitAtlas unitAtlas = new UnitAtlas();
 
     /**
+     * The props layer, held for its {@link DecorationAtlas}: planned per battle
+     * by the layer itself, and released here with the rest of the renderer's
+     * GPU state.
+     */
+    private final DoodadRenderSystem doodads;
+
+    /**
      * The battle's roofs, baked once and patched from the same change log the
      * ground reads. Held here because it owns GL buffers and the host releases
      * it with the rest of the renderer's GPU state.
@@ -237,6 +245,8 @@ public class BattleRenderer {
      * state.
      */
     private final FogField fogField = new FogField();
+    /** Where a night burn thins the fog over its own glow; see {@link FireFogClearing}. */
+    private final FireFogClearing fireFogClearing = new FireFogClearing();
     private final CreepLayer creep = new CreepLayer();
     /** Grass-topped raised ground, baked once per battle and drawn over the ground tiles. */
     private final CliffArtLayer cliffArt = new CliffArtLayer();
@@ -281,7 +291,11 @@ public class BattleRenderer {
         // debug overlay producers sit right after the body producer they paint over.
         // Stateful/own-GL passes keep their state + render* bodies on this class and
         // join via RenderSystem.of(...) emitting a Custom (the FBO/own-GL escape hatch).
-        DoodadRenderSystem doodads = new DoodadRenderSystem(sprites);
+        this.doodads = new DoodadRenderSystem(sprites, new DoodadRenderSystem.Batches() {
+            @Override public QuadBatch get(SpriteAPI sheet) { return batchBySheet.get(sheet); }
+            @Override public void put(SpriteAPI sheet, QuadBatch batch) { registerBatch(sheet, batch); }
+            @Override public void remove(SpriteAPI sheet) { batchBySheet.remove(sheet); }
+        });
         ShipDressingRenderSystem dressing = new ShipDressingRenderSystem(doodads);
         PropMotionRenderSystem.Phases propPhases = new PropMotionRenderSystem.Phases();
         this.nightLighting = new NightLightingRenderSystem(sprites);
@@ -481,13 +495,10 @@ public class BattleRenderer {
         // (BattleScreen.attach order). batchBySheet owns the QuadBatch refs.
         registerSpriteSheetBatches(sprites.convoySprites().values());
 
-        // Entity sheets for the UNITS layer (UnitRenderService sprite sweeps) so
-        // dead + live infantry and secondary-aim poses batch via SHEET_QUAD.
-        // Loaded by ensureUnitSheets()/ensureMarineSecondarySprites() before this
-        // runs (BattleScreen.attach order).
+        // Corpse sheets for the UNITS layer (UnitRenderService's corpse sweep) so
+        // the fallen no layered or rig art lays down batch via SHEET_QUAD.
+        // Loaded by ensureUnitSheets() before this runs (BattleScreen.attach order).
         registerSpriteSheetBatches(sprites.unitDeadSprites().values());
-        registerSpriteSheetBatches(sprites.unitSprites().values());
-        registerSpriteSheetBatches(sprites.specialEquipmentAimSheets().values());
 
         // Hull sheets for the UNITS layer, so a burnt airframe can be drawn as
         // source strips of its own sprite (UnitRenderService's wreck pass).
@@ -594,6 +605,12 @@ public class BattleRenderer {
     /** Accessor for {@code BattleScreen.detach()} — release the composited unit atlas. */
     public UnitAtlas getUnitAtlas() { return unitAtlas; }
 
+    /** The current battle's decoration atlas, or null before the props layer has seen one. */
+    public DecorationAtlas getDecorationAtlas() { return doodads.atlas(); }
+
+    /** Accessor for {@code BattleScreen.detach()} — release the current battle's decoration atlas. */
+    public void disposeDecorationAtlas() { doodads.disposeAtlas(); }
+
     /** Accessor for {@code BattleScreen.detach()} — release the resident roof buffers. */
     public RoofMesh getRoofMesh() { return roofMesh; }
 
@@ -663,11 +680,13 @@ public class BattleRenderer {
         FogOfWarService vis = ctx.sim.getFogOfWar();
         if (!vis.isInitialized()) return;
 
-        boolean resident = ctx.hostProfile.residentFogAllowed() && FogField.enabled();
+        fireFogClearing.update(FireRenderSystem.enabled() ? ctx.sim.fireFieldIfPresent() : null,
+                ctx.sim.getTopology().nightLighting() != null, vis.gridWidth(), vis.gridHeight());
+        boolean resident = ctx.hostProfile.residentFogAllowed();
         if (resident && fogField.isServing(vis)) {
             float alpha = ctx.alphaMult;
             out.addCustom(RenderLayer.FOG, () -> {
-                if (fogField.sync(vis)) fogField.draw(rc.camera, alpha);
+                if (fogField.sync(vis)) fogField.draw(rc.camera, alpha, fireFogClearing);
             });
             return;
         }
@@ -699,7 +718,7 @@ public class BattleRenderer {
                     if (cx < gw-1 && !revealed[idx + 1])  darkNeighbors++;
                 }
                 float fogAlpha = fogAlphaForCell(revealed[idx], darkNeighbors,
-                        vis.wouldBeRevealedWithoutTransientOpacity(cx, cy));
+                        vis.wouldBeRevealedWithoutTransientOpacity(cx, cy)) * fireFogClearing.keep(idx);
                 if (fogAlpha <= 0f) continue;
 
                 float sx = rc.camera.cellToScreenX(cx);
@@ -744,7 +763,7 @@ public class BattleRenderer {
         if (brick == null) return;
 
         CellTopology topology = sim.getTopology();
-        if (RoofMesh.enabled() && rc.hostProfile.residentGroundAllowed()) {
+        if (rc.hostProfile.residentGroundAllowed()) {
             FortService forts = sim.forts();
             TurretCatalogRegistry catalog = TurretCatalogRegistry.installed();
             RoofMesh.RoofResolver resolver = (x, y, sink) -> {
@@ -1184,6 +1203,15 @@ public class BattleRenderer {
      */
     public void renderWorld(RenderContext rc, EnumSet<RenderLayer> layers,
                             FrameCensus census) {
+        renderWorld(rc, layers, census, null);
+    }
+
+    /**
+     * As {@link #renderWorld(RenderContext, EnumSet, FrameCensus)}, draining {@code leading}'s commands for each
+     * layer ahead of the layer's own. A headless review feeds presentation services the live screen ticks itself
+     * (contrails, delivered rounds, beams) and hands their commands in here, the order the screen draws them in.
+     */
+    void renderWorld(RenderContext rc, EnumSet<RenderLayer> layers, FrameCensus census, DrawList leading) {
         collectWorld(rc, layers, census);
         boolean parallax = (rc.hostProfile.surfaceReliefEnabled() || GroundParallaxPipeline.deckWaterVisible(rc))
                 && DevConfig.SURFACE_RELIEF_PARALLAX
@@ -1191,6 +1219,10 @@ public class BattleRenderer {
         for (RenderLayer layer : RenderLayer.values()) {
             if (!layers.contains(layer)) continue;
             long started = census == null ? 0L : System.nanoTime();
+            if (leading != null && leading.count(layer) > 0) {
+                DrawListRenderer.drain(leading.buffer(layer), leading.count(layer), batchBySheet, solidBatch,
+                        lineBatch, contrailBatch, rc.camera, null);
+            }
             if (layer == RenderLayer.GROUND && parallax) {
                 // S2/S3: redirect GROUND through the relief FBOs + composite instead
                 // of draining straight to the backbuffer. groundParallax falls back to
@@ -1247,6 +1279,9 @@ public class BattleRenderer {
         }
         this.rc = rc;
         drawList.clear();
+        if (TextureUsage.isEnabled() && rc.camera != null) {
+            TextureUsage.beginWorld(rc.camera.cellPxSize(), rc.camera.worldCellsW(), rc.camera.worldCellsH());
+        }
         for (RenderSystem system : worldSystems) {
             if (!layers.contains(system.layer())) continue;
             if (census == null) {

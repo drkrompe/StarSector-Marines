@@ -23,7 +23,7 @@ import java.util.Set;
  * The Burn at its peak (`fire-nouns.md`, Look and Smoke): the heart mission's burn variant at seed 202, the whole
  * battle played to {@link #PEAK_SECONDS}, framed on the burning cell nearest the company. Play zoom and close up by
  * day, play zoom at night with no lamps, and a short GIF at play zoom: what a big grass-and-creep fire looks like in
- * the mission it was built for, and how much smoke it gives off ({@code -Dbattle.fire.lowSmoke}).
+ * the mission it was built for, and how much smoke it gives off.
  */
 public final class FireBurnSnapshotSuite implements SnapshotSuite {
 
@@ -49,18 +49,16 @@ public final class FireBurnSnapshotSuite implements SnapshotSuite {
             float[] at = frontNearCompany(sim);
             BattleReviewFrameRenderer play = new BattleReviewFrameRenderer(context.modRoot(), FRAME_W, FRAME_H, at[0], at[1], PLAY_CELLS);
             BattleReviewFrameRenderer close = new BattleReviewFrameRenderer(context.modRoot(), FRAME_W, FRAME_H, at[0], at[1], CLOSE_CELLS);
-            String smoke = "low smoke " + FireSmoke.LOW_SMOKE.name().toLowerCase(Locale.ROOT)
-                    + ", smoke density " + System.getProperty("battle.render.smokeDensity", "3");
-            out.add(still(whole, sim, "01-whole-map.png", "whole map, " + smoke));
-            out.add(still(play, sim, "02-play.png", "play zoom at the front, " + smoke));
-            out.add(still(close, sim, "03-close.png", "close up at the front, " + smoke));
+            out.add(still(whole, sim, "01-whole-map.png", "whole map"));
+            out.add(still(play, sim, "02-play.png", "play zoom at the front"));
+            out.add(still(close, sim, "03-close.png", "close up at the front"));
             sim.getTopology().setNightLighting(NIGHT);
-            out.add(still(play, sim, "04-night-play.png", "night, play zoom, " + smoke));
+            out.add(still(play, sim, "04-night-play.png", "night, play zoom"));
             sim.getTopology().setNightLighting(null);
             List<BufferedImage> frames = new ArrayList<>();
             for (int k = 0; k < GIF_FRAMES; k++) {
                 for (int s = 0; s < GIF_STEP; s++) sim.advance(BattleSimulation.TICK_DT);
-                frames.add(play.atClock(sim.getSimTickIndex() / 30f).render(sim, caption("play zoom at the front, " + smoke, sim)));
+                frames.add(play.atClock(sim.getSimTickIndex() / 30f).render(sim, caption("play zoom at the front", sim)));
             }
             out.add(SnapshotArtifact.colorAnimation("05-play.gif", frames, GIF_DELAY_MS));
         }

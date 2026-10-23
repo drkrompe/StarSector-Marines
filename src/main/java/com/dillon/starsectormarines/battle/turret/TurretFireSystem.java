@@ -97,6 +97,16 @@ public final class TurretFireSystem implements TurretFireSink {
 
     private FriendsInBlast friendsInBlast = FriendsInBlast.NONE;
 
+    /**
+     * Whether a disciplined crew (one with a {@link FriendlyFireHold}) also checks the lane before firing and never
+     * bursts a round over its own hull ({@link BallisticResolver#friendInLane}, {@link BallisticResolver#bodyInBlast}).
+     */
+    private boolean laneDiscipline;
+
+    public void setLaneDiscipline(boolean laneDiscipline) {
+        this.laneDiscipline = laneDiscipline;
+    }
+
     /** Incendiary heat a shooter's next round carries beyond its weapon's own: a tube loaded for an incendiary mission. */
     @FunctionalInterface
     public interface RoundHeat {
@@ -184,6 +194,10 @@ public final class TurretFireSystem implements TurretFireSink {
             float distFalloff = Math.max(0f, 1f - distNorm * distNorm);
             float losMult = hasLos ? 1f : weapon.noLosAccuracyMult;
             effectiveAccuracy *= distFalloff * losMult;
+        }
+        if (!aerialShooter && weapon.hitscanBeam() && Float.isFinite(mountFacingDegrees)) {
+            return fireBeam(shooterId, fromX, fromY, shooterFaction, structure, target, facing,
+                    effectiveAccuracy);
         }
         if (!aerialShooter && weapon.arcHeight <= 0f && weapon.projectileCellsPerSec() <= 0f) {
             return fireGroundDirect(shooterId, fromX, fromY, shooterFaction,
@@ -283,15 +297,22 @@ public final class TurretFireSystem implements TurretFireSink {
         WeaponDef weapon = structure.mount.weapon;
         float effectiveSpread = weapon.hitSpread
                 * Math.min(1f, distToTarget / Math.max(0.0001f, weapon.range));
+        float holdChance = friendlyFireHold.chance(shooterId);
+        // A crew that holds for friends also looks down the lane before it fires: a friend between the gun and its
+        // target holds the round outright, before anything is committed or drawn.
+        if (laneDiscipline && holdChance > 0f && resolver.friendInLane(shooterId, fromX, fromY, shooterFaction,
+                world.x(target), world.y(target), target)) return false;
         BallisticResolver.Source source = new BallisticResolver.Source(
                 shooterId, fromX, fromY, 0f, shooterFaction);
         BallisticResolver.Resolution res = resolver.resolve(
                 source, target, effectiveAccuracy, effectiveSpread,
                 weapon.directRoundVelocity(), weapon.range, rng);
+        // Nor does it put a burst where its own hull is: the round lands too close, and that is not a judgement call.
+        if (laneDiscipline && holdChance > 0f && weapon.aoeRadius > 0f && res.impacts()
+                && resolver.bodyInBlast(shooterId, res.endX(), res.endY(), weapon.aoeRadius)) return false;
         // The round is resolved before the crew decides, as a rifleman's trigger pull is: the hold is on what
         // this round would actually hit -- a friend it strikes, or one inside the burst where it lands -- not on
         // a friend merely standing near the line.
-        float holdChance = friendlyFireHold.chance(shooterId);
         if (holdChance > 0f) {
             boolean friendlyThreat = res.friendlyHit()
                     || weapon.aoeRadius > 0f && res.impacts()
@@ -303,6 +324,52 @@ public final class TurretFireSystem implements TurretFireSink {
         deliverGroundDirect(shooterId, fromX, fromY, shooterFaction, structure, res);
         return true;
     }
+
+    /**
+     * One pulse of a ground beam. It leaves along the mount's facing, not toward the target: aimed at the target's
+     * distance on that line, pulled short by how far the turret is still off its target
+     * ({@link #beamReachFraction}), and traced as any round is, so it strikes the first body or wall on its way and
+     * otherwise scorches the ground. A lance that opens off target therefore lands short and drags across onto it
+     * as the turret tracks, and anything the sweep crosses is struck on the way; once on target, every pulse lands.
+     */
+    private boolean fireBeam(long shooterId, float fromX, float fromY, Faction shooterFaction,
+                             StructureDef structure, long target, float facingDeg, float effectiveAccuracy) {
+        WeaponDef weapon = structure.mount.weapon;
+        float tx = world.x(target);
+        float ty = world.y(target);
+        float distance = (float) Math.hypot(tx - fromX, ty - fromY);
+        if (distance <= 1e-3f) {
+            return fireGroundDirect(shooterId, fromX, fromY, shooterFaction, structure, target, distance,
+                    effectiveAccuracy);
+        }
+        float offDeg = TurretAim.shortestAngleDelta(facingDeg, TurretAim.bearingTo(fromX, fromY, tx, ty));
+        float reach = distance * beamReachFraction(offDeg);
+        // Sprite-angle convention: 0 deg is +Y, positive counter-clockwise (TurretAim.bearingTo).
+        double rad = Math.toRadians(facingDeg + 90f);
+        float aimX = fromX + (float) Math.cos(rad) * reach;
+        float aimY = fromY + (float) Math.sin(rad) * reach;
+        float effectiveSpread = weapon.hitSpread * Math.min(1f, distance / Math.max(0.0001f, weapon.range));
+        BallisticResolver.Source source = new BallisticResolver.Source(shooterId, fromX, fromY, 0f, shooterFaction);
+        BallisticResolver.Resolution res = resolver.resolveGroundBurst(source, aimX, aimY, effectiveAccuracy,
+                effectiveSpread, weapon.directRoundVelocity(), weapon.range, 0, rng);
+        float holdChance = friendlyFireHold.chance(shooterId);
+        if (holdChance > 0f && holdsRound(res.friendlyHit(), holdChance, rng)) return false;
+        telemetry.recordRoundFired(shooterId);
+        deliverGroundDirect(shooterId, fromX, fromY, shooterFaction, structure, res);
+        return true;
+    }
+
+    /**
+     * How much of the way to its target a beam reaches when the turret is {@code offDeg} off it: all of it on
+     * target, falling to {@link #BEAM_SHORT_FRACTION} at the widest a beam opens, so the lance visibly walks in.
+     */
+    static float beamReachFraction(float offDeg) {
+        float t = Math.min(1f, Math.abs(offDeg) / TurretAim.BEAM_OPEN_ARC_DEG);
+        return 1f - (1f - BEAM_SHORT_FRACTION) * t;
+    }
+
+    /** The share of the target's distance a beam reaches when it opens at the widest arc. */
+    static final float BEAM_SHORT_FRACTION = 0.7f;
 
     private void deliverGroundDirect(long shooterId, float fromX, float fromY,
                                      Faction shooterFaction, StructureDef structure,
