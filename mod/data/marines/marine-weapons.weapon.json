@@ -313,7 +313,7 @@
       },
       "sim": {
         "range": 30.0,
-        "damage": 13.5,
+        "damage": 5.0,
         "accuracy": 0.55,
         "cooldown": 2.0,
         "penetration": 5.0,
@@ -323,7 +323,68 @@
         "roundVelocity": 300.0,
         "flightSec": 0.10,
         "aoeRadius": 0.6,
-        "wallDamage": 3
+        "wallDamage": 1,
+        "rotary": {
+          "spinUp": 1.2,
+          "coast": 0.6,
+          "spinDown": 2.0,
+          "firstTurnRate": 3.0,
+          "fullRate": 12.0,
+          "belt": 200,
+          "refill": 2.5,
+          "fluxPerRound": 0.75
+        }
+      },
+      "render": {
+        "tracerColor": "FFE8C0",
+        "tracerTailCells": 1.10,
+        "projectileSprite": "graphics/missiles/shell_small_yellow.png",
+        "projectileVisualCells": 0.18
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.55, "lifetime": 0.08, "color": "FFE080" }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.42, "lifetime": 0.14, "color": "FFC860" },
+          { "kind": "dust", "radius": 0.32, "lifetime": 0.28 },
+          { "kind": "smoke", "radius": 0.35, "lifetime": 0.70 }
+        ]
+      },
+      "audio": { "fireSound": "chaingun_fire" }
+    },
+    {
+      "id": "weapon.mech-chaingun-hf",
+      "mount": "mech-mount",
+      "catalog": {
+        "displayName": "@gearCatalogWeaponMechChaingunHfDisplayName",
+        "modelName": "@gearCatalogWeaponMechChaingunHfModelName",
+        "designation": "MCG-H",
+        "designationTiered": false
+      },
+      "sim": {
+        "range": 30.0,
+        "damage": 6.0,
+        "accuracy": 0.55,
+        "cooldown": 2.0,
+        "penetration": 5.0,
+        "burstCount": 12,
+        "burstSpacing": 0.06,
+        "hitSpread": 1.2,
+        "roundVelocity": 300.0,
+        "flightSec": 0.10,
+        "aoeRadius": 0.6,
+        "wallDamage": 1,
+        "rotary": {
+          "spinUp": 0.6,
+          "coast": 0.6,
+          "spinDown": 2.0,
+          "firstTurnRate": 3.0,
+          "fullRate": 12.0,
+          "belt": 200,
+          "refill": 3.5,
+          "fluxPerRound": 0.75
+        }
       },
       "render": {
         "tracerColor": "FFE8C0",

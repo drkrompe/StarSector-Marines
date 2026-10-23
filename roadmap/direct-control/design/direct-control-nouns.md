@@ -124,8 +124,12 @@ missiles in salvos of one trigger pull, a vehicle's belt is cartridges in
 bursts, and an energy weapon counts nothing but shows charge cells, one per
 bolt of its burst (five for a single shot), emptying through the burst,
 refilling over the cycle and held violet when flux refuses the shot. A gun with nothing to count that
-fires in bursts (a mech's chaingun) shows the burst one click sends as
-cartridges, spent as the burst goes out and chambered again over the cycle. A rack or
+fires in bursts shows the burst one click sends as cartridges, spent as the burst
+goes out and chambered again over the cycle. A mech's chaingun is a **rotary gun**
+(`mechs-nouns.md`, Rotary guns): it fires while its button is held, its strip is
+its belt (folded, with the count beside it, emptying as it fires and filling from
+the hopper whether it fires or not), and its row's cycle bar is the barrels' spin,
+filling as they come up to speed and reading SPIN with the percentage. A rack or
 belt too long for the row folds to one icon per salvo or burst (several whole
 bursts per icon for a long belt) and then keeps its exact count beside it; a
 load too long even folded keeps only the number. While a rack's button is held, the missiles (or
@@ -504,7 +508,8 @@ mount is lost returns its trigger to LINKED at the next validation. The picks
 belong to the control session, survive pause, and reset to LINKED on takeover or
 handback. Changing a pick cancels queued manual rounds and releases held fire
 while preserving movement, aim, ammunition, and clocks; a new press must trigger
-the new choice. A queued burst keeps firing after its button is released and is
+the new choice. A rotary gun fires only while its button is held and its pick names
+it; let go, its barrels coast and spin down. A queued burst keeps firing after its button is released and is
 dropped when its mount is no longer what either trigger's pick fires. Repeated
 input cannot replay a cancelled burst. Neither picks nor groups change the
 installed equipment, authored packet size, or AI firing policy. The authored

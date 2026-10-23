@@ -5,7 +5,7 @@ and data-authored fitting dolls remain.
 
 Written: 2026-08-23
 
-Updated: 2026-10-19 — campaign callsigns, mech kit-retriever exclusion and Mech Lab doll UX folded; earlier: mech missile warheads, vehicles in the mech bay, mech internals, armor drop selection, the vehicle variant ladder, tank-variant art and the dozer's breach shipped.
+Updated: 2026-10-23 — rotary chainguns shipped; earlier: campaign callsigns, mech kit-retriever exclusion and Mech Lab doll UX folded; earlier: mech missile warheads, vehicles in the mech bay, mech internals, armor drop selection, the vehicle variant ladder, tank-variant art and the dozer's breach shipped.
 
 Read `mechs-nouns.md` before changing the live story.
 

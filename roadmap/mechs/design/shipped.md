@@ -22,3 +22,4 @@ Written: 2026-08-23
 | `mech-lab-equipment-doll-ux.md` | 2026-10-19 | `f9c1640b7` | `mechs-nouns.md` — Laws: catalog filters, stock vs fabrication cards, telemetry deltas, strip action, presentation-only ghosting. |
 | `mech-kit-retriever-exclusion.md` | 2026-10-19 | `e7afd2088`, this change | `mechs-nouns.md` — Boundaries: `MECH_LOADOUT` membership keeps mechs out of kit recovery. |
 | `mech-campaign-callsigns.md` | 2026-10-19 | `003667897`, this change | `mechs-nouns.md` — callsign: bounded Mech Lab rename, frozen at commitment, landed name with legacy fallback. |
+| `rotary-chaingun.md` | 2026-10-23 | `295a84e64` (story), this change | `mechs-nouns.md` — rotary guns: hold to fire, spin, coast, belt and hopper, per-round flux, AI lease and reserve, the high-feed tier; `direct-control-nouns.md` — the belt strip and spin bar. |

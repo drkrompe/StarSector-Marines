@@ -322,7 +322,7 @@ public final class FacingSystem {
             srm = representativeMount(loadout, WeaponRegistry.MECH_PIONEER_ROCKET_ID);
         }
         MechWeaponMount lrm = representativeMount(loadout, WeaponRegistry.MECH_LRM_ARTILLERY_ID);
-        boolean chaingunActive = arms != null && arms.burstRemaining > 0;
+        boolean chaingunActive = arms != null && arms.firing();
         boolean srmActive = activeMount(loadout, WeaponRegistry.MECH_SRM_POD_ID) != null
                 || activeMount(loadout, WeaponRegistry.MECH_PIONEER_ROCKET_ID) != null;
         boolean lrmActive = activeMount(loadout, WeaponRegistry.MECH_LRM_ARTILLERY_ID) != null;
@@ -381,12 +381,18 @@ public final class FacingSystem {
     }
 
     private static float trackPhase(MechWeaponMount mount) {
+        if (mount != null && mount.isRotary()) {
+            // A rotary gun recoils round by round at the rate its spin has reached.
+            float spacing = 1f / mount.rotary.rate();
+            return LayeredMechAppearance.trackPhase(spacing - Math.min(spacing, mount.rotary.sinceRound()), spacing);
+        }
         return mount != null
                 ? LayeredMechAppearance.trackPhase(mount.burstTimer, mount.weaponDef().burstSpacing)
                 : 0f;
     }
 
     private static boolean trackFlash(MechWeaponMount mount) {
+        if (mount != null && mount.isRotary()) return mount.rotary.sinceRound() <= LayeredMechAppearance.FLASH_SECONDS;
         return mount != null && LayeredMechAppearance.trackFlash(
                 mount.cycleRemaining, mount.component.cycleSeconds(), mount.burstRemaining,
                 mount.burstTimer, mount.weaponDef().burstSpacing);
@@ -396,7 +402,7 @@ public final class FacingSystem {
     private static MechWeaponMount activeArm(MechLoadoutComponent loadout) {
         for (MechMountSlot slot : MechLoadoutComponent.ARM_SLOTS) {
             MechWeaponMount mount = loadout.mount(slot);
-            if (mount != null && mount.burstRemaining > 0) return mount;
+            if (mount != null && mount.firing()) return mount;
         }
         return loadout.primaryArm();
     }

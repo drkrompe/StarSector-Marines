@@ -115,8 +115,12 @@ class MechMoveOrderSystemTest {
 
         assertTrue(sim.getMechMoveOrderSystem().executeIfActive(mech, squad, sim));
         assertEquals(enemy, sim.world().targetId(mech));
-        assertFalse(sim.getShotsThisFrame().isEmpty(),
-                "the ordinary installed-weapon pass remains live while moving");
+        boolean firing = !sim.getShotsThisFrame().isEmpty();
+        for (MechWeaponMount mount : loadout.mounts()) {
+            // A rotary gun's trigger is a lease the heavy-weapon pass spends on the next tick.
+            if (mount != null && mount.isRotary() && mount.rotary.leased()) firing = true;
+        }
+        assertTrue(firing, "the ordinary installed-weapon pass remains live while moving");
         assertEquals(12, Paths.destX(sim.world().path(mech)));
         assertEquals(4, Paths.destY(sim.world().path(mech)));
 

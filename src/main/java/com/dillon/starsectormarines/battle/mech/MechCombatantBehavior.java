@@ -152,6 +152,10 @@ public final class MechCombatantBehavior implements UnitBehavior {
                                      MechWeaponMount mount, long target, float dist,
                                      BattleControl sim, boolean hasLos) {
         if (mount == null) return;
+        if (mount.isRotary()) {
+            tryFireRotary(u, loadout, mount, target, dist, sim, hasLos);
+            return;
+        }
         // A chained salvo goes to the body its chain was committed against, and to no other.
         if (mount.chainedTrigger() && mount.chainTargetId != target) mount.releaseChain();
         float flux = mount.triggerFlux();
@@ -180,5 +184,27 @@ public final class MechCombatantBehavior implements UnitBehavior {
             mount.chainSalvos = salvos - 1;
             mount.chainTargetId = target;
         }
+    }
+
+    /**
+     * How far past its reach a rotary gun's target may stand and still count as an engagement, for which
+     * the barrels are kept turning rather than left to spin down.
+     */
+    static final float ROTARY_ENGAGED_REACH = 1.5f;
+
+    /**
+     * A rotary gun fires while a target is exposed to it: the gunner leases the trigger on that target for
+     * a few ticks, and the fire pass releases rounds at the spin's rate off the belt, holding the reserve
+     * back ({@link RotaryFeed}). Engaged without a shot (the torso still turning, the lane blocked, the
+     * target behind cover or just out of reach), the barrels are kept turning so the next shot comes at
+     * speed.
+     */
+    private static void tryFireRotary(long u, MechLoadoutComponent loadout, MechWeaponMount mount,
+                                      long target, float dist, BattleControl sim, boolean hasLos) {
+        WeaponDef weapon = mount.weaponDef();
+        boolean exposed = hasLos && dist <= weapon.range && loadout.isAimedAt(target)
+                && sim.canFireMechMount(u, mount);
+        if (exposed) mount.rotary.demand(target);
+        else if (dist <= weapon.range * ROTARY_ENGAGED_REACH) mount.rotary.hold();
     }
 }
