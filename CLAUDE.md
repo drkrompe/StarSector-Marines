@@ -615,11 +615,13 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   `-Dbattle.render.residentRelief=false`, `-Dbattle.render.fogField=false`,
   `-Dbattle.render.groundAtlas=false`,
   `-Dbattle.render.residentDecoration=false`, `-Dbattle.render.unitAtlas=false`,
+  `-Dbattle.render.doodadAtlas=false`,
   `-Dbattle.render.residentRoofs=false`, `-Dbattle.render.creep=false`,
   `-Dbattle.render.cliffLook=false` (with `-PrenderMaps=overlook`),
   `-Dbattle.render.settledBodyMesh=false`,
   `-Dbattle.render.collectCulling=false`,
-  `-Dbattle.render.nightRuns=false`, `-Dbattle.render.nightCoarse=false`
+  `-Dbattle.render.nightRuns=false`, `-Dbattle.render.nightCoarse=false`,
+  `-Dbattle.render.nightFireThroughFog=false`
   (with `-PrenderMaps=the burn at night`)), never against a number in a
   document — and never against a delta smaller than that spread.
   **The world it profiles has to be the same world every run**, which it was
@@ -657,6 +659,14 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   collection-bound any more. What is left is `GROUND` at the whole map, 0.27 ms
   over 929 commands that are all genuinely on screen; culling cannot reach that
   and the next lever there is a framing gate or cheaper per-cell resolution.
+  `DOODADS` is one bind on every map at every framing (two draws: the props
+  through the per-battle decoration atlas, and the doors as one solid mesh),
+  where it was up to 2,454 draws over 720 binds; `UNIT_SHADOWS` is one.
+  The summary opens with **Atlases** — each atlas's size and fill, and every
+  image it left out with the reason (over its cap, no room, refused) — and
+  closes with **Where the runs break**: per layer, quads by sheet, what each
+  flush was, and every whole sprite by image. Read those before guessing why a
+  layer has more binds than it should.
   **The harness does not advance the simulation between frames**, so a resident
   thing's patch cost is charged once, in the frame that catches it up, and every
   later frame in a framing reads as the steady state. That is the shape of the
@@ -884,6 +894,25 @@ comparison measures every other difference between the two trees at the same
 time, which is how a seven-thousand-tick swing in the Conquest matrix was once
 credited to a squad behaviour and turned out to be another session's
 reinforcement work arriving on a merge.
+
+**A switch added for an A/B is temporary** (owner, 2026-10-23). Switches pile
+up because nothing retires them: an audit that day found about 260 `-D` reads
+in `src/main`, most of them settled comparisons whose losing arm was still
+carried as dead code. So:
+
+- A new `-Dbattle.*` (or `-Dmarines.*`) switch is temporary unless you say
+  otherwise. Its property constant's Javadoc states its **removal condition**:
+  which comparison decides it and what reading settles it.
+- Every switch is listed in `switches.md` (`roadmap/switches.md`) with its kind,
+  date and removal condition. `SwitchRegistryTest` fails on a `battle.*` or
+  `marines.*` property read in `src/main` that the registry does not list, and
+  on a registry row whose switch no longer exists.
+- The session that added a switch removes it, together with the losing code
+  path and any tests of that arm, as soon as the comparison is decided. Do not
+  leave a hard-coded `true` behind.
+- A permanent lever (real configuration, a determinism or concurrency switch,
+  or a standing control that an evidence task or scene deliberately runs) needs
+  a stated reason in its registry row.
 
 A suite artifact is a PNG or, for a suite whose evidence is a played battle
 rather than a composition, an animated GIF built from a frame sequence. The

@@ -2,12 +2,15 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import com.dillon.starsectormarines.render2d.QuadBatch;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import com.dillon.starsectormarines.battle.fire.FireField;
 import com.fs.starfarer.api.graphics.SpriteAPI;
+import java.util.List;
 import java.util.Map;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
 
@@ -22,6 +25,13 @@ import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
  * catalog sheets preserve placement order: a room lays its deck covering before
  * its fixtures, and grouping an unknown sheet last could hide that machinery.
  * The drain batches adjacent runs on that path.
+ *
+ * <p><b>One sheet for the whole layer.</b> Either path, a run of props breaks
+ * at every change of sheet, so each battle gets a {@link DecorationAtlas}
+ * planned from its own placements the first time this layer sees them. Quads
+ * are re-addressed into it in {@link #emit} and nowhere else; order, position
+ * and tint are untouched. A placement the atlas does not hold draws from its
+ * own sheet as before.
  */
 public final class DoodadRenderSystem implements RenderSystem {
 
@@ -29,8 +39,29 @@ public final class DoodadRenderSystem implements RenderSystem {
     /** Crowns and stage doodads of the trees the creep is overgrowing, made once per placement. */
     private final Map<Doodad, CreepTreeTwins.Entry> creepTreeStages = CreepTreeTwins.cache();
 
+    /** Where a sheet's batch lives, for the atlas's own batch to be put beside them. */
+    interface Batches {
+        QuadBatch get(SpriteAPI sheet);
+        void put(SpriteAPI sheet, QuadBatch batch);
+        void remove(SpriteAPI sheet);
+    }
+
+    /** Null in a host that never registers sheet batches; there is then no atlas. */
+    private final Batches batches;
+    /** The current battle's atlas, planned from {@link #atlasFor}. */
+    private DecorationAtlas atlas;
+    /** The placement list {@link #atlas} was planned from: a different list is a different battle. */
+    private List<Doodad> atlasFor;
+    /** {@link #atlas} while it serves, and only during {@link #collect}. */
+    private DecorationAtlas serving;
+
     public DoodadRenderSystem(BattleSprites sprites) {
+        this(sprites, null);
+    }
+
+    DoodadRenderSystem(BattleSprites sprites, Batches batches) {
         this.sprites = sprites;
+        this.batches = batches;
     }
 
     @Override
@@ -47,11 +78,62 @@ public final class DoodadRenderSystem implements RenderSystem {
         Twins twins = wornTwins(ctx);
         if (twins == null) twins = CreepTreeTwins.of(ctx.sim, creepTreeStages);
         fire = FireRenderSystem.enabled() ? ctx.sim.fireFieldIfPresent() : null;
-        collectPlacements(ctx.sim.getDoodads(), out, cam, view, ctx.alphaMult, twins);
-        fire = null;
-        // Facility tiers fitted into existing rooms stand with the furniture, presentation only.
-        if (!ctx.facilityPieces.isEmpty() && ctx.hostProfile == BattleRenderHostProfile.DECK_SCENE)
-            collectPlacements(ctx.facilityPieces, out, cam, view, ctx.alphaMult);
+        serving = settleAtlas(ctx.sim.getDoodads(), out);
+        try {
+            collectPlacements(ctx.sim.getDoodads(), out, cam, view, ctx.alphaMult, twins);
+            // Facility tiers fitted into existing rooms stand with the furniture, presentation only.
+            if (!ctx.facilityPieces.isEmpty() && ctx.hostProfile == BattleRenderHostProfile.DECK_SCENE)
+                collectPlacements(ctx.facilityPieces, out, cam, view, ctx.alphaMult);
+        } finally {
+            fire = null;
+            serving = null;
+        }
+    }
+
+    /**
+     * The atlas this collect may address, or null.
+     *
+     * <p>Planned the first time a battle's placements are seen, which is the
+     * earliest point every host has them, and GL-free; the texture is built by
+     * a custom pass in this layer, so the frame that builds it still draws from
+     * the sheets and the atlas serves from the next. A new battle's list
+     * retires the last battle's atlas, its texture released by a custom pass
+     * since a collector performs no GL.
+     */
+    private DecorationAtlas settleAtlas(List<Doodad> placed, DrawList out) {
+        if (batches == null || !DecorationAtlas.enabled()) return null;
+        if (placed != atlasFor) {
+            DecorationAtlas retired = atlas;
+            if (retired != null) {
+                batches.remove(retired.sheet());
+                out.addCustom(RenderLayer.DOODADS, retired::dispose);
+            }
+            atlas = new DecorationAtlas();
+            atlasFor = placed;
+            if (atlas.plan(placed, TileRegistry.installed(), this::sheetFor, batches::get)) {
+                batches.put(atlas.sheet(), new QuadBatch(atlas.sheet(), atlas.width(), atlas.height(), 8192));
+            }
+        }
+        if (!atlas.isPlanned()) return null;
+        if (!atlas.isServing()) {
+            out.addCustom(RenderLayer.DOODADS, atlas::sync);
+            return null;
+        }
+        return atlas;
+    }
+
+    /** The current battle's atlas, or null: for evidence that reports on it. */
+    DecorationAtlas atlas() {
+        return atlas;
+    }
+
+    /** Releases the current battle's atlas. The context that made it must still be current. */
+    void disposeAtlas() {
+        if (atlas == null) return;
+        if (batches != null) batches.remove(atlas.sheet());
+        atlas.dispose();
+        atlas = null;
+        atlasFor = null;
     }
 
     /**
@@ -208,7 +290,7 @@ public final class DoodadRenderSystem implements RenderSystem {
         };
     }
 
-    private static void emitLegacySheet(Iterable<Doodad> placements, DrawList out, BattleCamera cam,
+    private void emitLegacySheet(Iterable<Doodad> placements, DrawList out, BattleCamera cam,
                                         VisibleCellRect view, SpriteAPI sheet, String path, float alpha) {
         if (sheet == null) return;
         for (Doodad d : placements) {
@@ -218,19 +300,19 @@ public final class DoodadRenderSystem implements RenderSystem {
         }
     }
 
-    private static void emit(DrawList out, BattleCamera cam, SpriteAPI sheet,
-                             Doodad d, float cellPx, float alphaMult) {
+    private void emit(DrawList out, BattleCamera cam, SpriteAPI sheet,
+                      Doodad d, float cellPx, float alphaMult) {
         emit(out, cam, sheet, d, cellPx, alphaMult, RenderLayer.DOODADS);
     }
 
-    private static void emit(DrawList out, BattleCamera cam, SpriteAPI sheet,
-                             Doodad d, float cellPx, float alphaMult, RenderLayer layer) {
+    private void emit(DrawList out, BattleCamera cam, SpriteAPI sheet,
+                      Doodad d, float cellPx, float alphaMult, RenderLayer layer) {
         emit(out, cam, sheet, d, cellPx, alphaMult, layer, 1f, 1f, 1f);
     }
 
-    private static void emit(DrawList out, BattleCamera cam, SpriteAPI sheet,
-                             Doodad d, float cellPx, float alphaMult, RenderLayer layer,
-                             float r, float g, float b) {
+    private void emit(DrawList out, BattleCamera cam, SpriteAPI sheet,
+                      Doodad d, float cellPx, float alphaMult, RenderLayer layer,
+                      float r, float g, float b) {
         // Source rectangle is read at the sheet's own cell size, not the
         // game's. A sheet drawn finer than the grid keeps its detail; one drawn
         // at the grid behaves exactly as before. The quad then stretches that
@@ -238,12 +320,20 @@ public final class DoodadRenderSystem implements RenderSystem {
         // footprint really says is how much deck the art is stretched across.
         // Rotation keeps that source span canonical and turns the destination
         // around the center of the already-rotated tactical footprint.
-        TileManifest.TileFrame f = d.tile;
-        int cell = d.sourceCellPx;
-        int srcX = f.col * cell;
-        int srcY = f.row * cell;
-        int sourceWidth = cell * d.sourceCellsX;
-        int sourceHeight = cell * d.sourceCellsY;
+        int srcX = sourceX(d);
+        int srcY = sourceY(d);
+        int sourceWidth = sourceWidth(d);
+        int sourceHeight = sourceHeight(d);
+        // Only this layer's own quads move: the fog and lighting passes that
+        // reuse this projection keep their sheets, which is what they had.
+        if (serving != null && layer == RenderLayer.DOODADS) {
+            int origin = serving.regionOrigin(sheet, srcX, srcY, sourceWidth, sourceHeight);
+            if (origin >= 0) {
+                sheet = serving.sheet();
+                srcX = origin >>> 16;
+                srcY = origin & 0xFFFF;
+            }
+        }
         float cx = cam.cellToScreenX(d.cellX + d.footprintCellsX * 0.5f);
         float cy = cam.cellToScreenY(d.cellY + d.footprintCellsY * 0.5f);
         if (d.mirrored) {
@@ -262,5 +352,22 @@ public final class DoodadRenderSystem implements RenderSystem {
                 cx, cy, cellPx * d.sourceCellsX, cellPx * d.sourceCellsY,
                 d.quarterTurns * 90f,
                 r, g, b, alphaMult);
+    }
+
+    /** Where a placement's art starts on its sheet, read at the sheet's own cell size rather than the game's. */
+    static int sourceX(Doodad d) {
+        return d.tile.col * d.sourceCellPx;
+    }
+
+    static int sourceY(Doodad d) {
+        return d.tile.row * d.sourceCellPx;
+    }
+
+    static int sourceWidth(Doodad d) {
+        return d.sourceCellPx * d.sourceCellsX;
+    }
+
+    static int sourceHeight(Doodad d) {
+        return d.sourceCellPx * d.sourceCellsY;
     }
 }

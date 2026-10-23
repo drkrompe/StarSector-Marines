@@ -224,6 +224,13 @@ public class BattleRenderer {
     private final UnitAtlas unitAtlas = new UnitAtlas();
 
     /**
+     * The props layer, held for its {@link DecorationAtlas}: planned per battle
+     * by the layer itself, and released here with the rest of the renderer's
+     * GPU state.
+     */
+    private final DoodadRenderSystem doodads;
+
+    /**
      * The battle's roofs, baked once and patched from the same change log the
      * ground reads. Held here because it owns GL buffers and the host releases
      * it with the rest of the renderer's GPU state.
@@ -237,6 +244,8 @@ public class BattleRenderer {
      * state.
      */
     private final FogField fogField = new FogField();
+    /** Where a night burn thins the fog over its own glow; see {@link FireFogClearing}. */
+    private final FireFogClearing fireFogClearing = new FireFogClearing();
     private final CreepLayer creep = new CreepLayer();
     /** Grass-topped raised ground, baked once per battle and drawn over the ground tiles. */
     private final CliffArtLayer cliffArt = new CliffArtLayer();
@@ -281,7 +290,11 @@ public class BattleRenderer {
         // debug overlay producers sit right after the body producer they paint over.
         // Stateful/own-GL passes keep their state + render* bodies on this class and
         // join via RenderSystem.of(...) emitting a Custom (the FBO/own-GL escape hatch).
-        DoodadRenderSystem doodads = new DoodadRenderSystem(sprites);
+        this.doodads = new DoodadRenderSystem(sprites, new DoodadRenderSystem.Batches() {
+            @Override public QuadBatch get(SpriteAPI sheet) { return batchBySheet.get(sheet); }
+            @Override public void put(SpriteAPI sheet, QuadBatch batch) { registerBatch(sheet, batch); }
+            @Override public void remove(SpriteAPI sheet) { batchBySheet.remove(sheet); }
+        });
         ShipDressingRenderSystem dressing = new ShipDressingRenderSystem(doodads);
         PropMotionRenderSystem.Phases propPhases = new PropMotionRenderSystem.Phases();
         this.nightLighting = new NightLightingRenderSystem(sprites);
@@ -591,6 +604,12 @@ public class BattleRenderer {
     /** Accessor for {@code BattleScreen.detach()} — release the composited unit atlas. */
     public UnitAtlas getUnitAtlas() { return unitAtlas; }
 
+    /** The current battle's decoration atlas, or null before the props layer has seen one. */
+    public DecorationAtlas getDecorationAtlas() { return doodads.atlas(); }
+
+    /** Accessor for {@code BattleScreen.detach()} — release the current battle's decoration atlas. */
+    public void disposeDecorationAtlas() { doodads.disposeAtlas(); }
+
     /** Accessor for {@code BattleScreen.detach()} — release the resident roof buffers. */
     public RoofMesh getRoofMesh() { return roofMesh; }
 
@@ -660,11 +679,13 @@ public class BattleRenderer {
         FogOfWarService vis = ctx.sim.getFogOfWar();
         if (!vis.isInitialized()) return;
 
+        fireFogClearing.update(FireRenderSystem.enabled() ? ctx.sim.fireFieldIfPresent() : null,
+                ctx.sim.getTopology().nightLighting() != null, vis.gridWidth(), vis.gridHeight());
         boolean resident = ctx.hostProfile.residentFogAllowed() && FogField.enabled();
         if (resident && fogField.isServing(vis)) {
             float alpha = ctx.alphaMult;
             out.addCustom(RenderLayer.FOG, () -> {
-                if (fogField.sync(vis)) fogField.draw(rc.camera, alpha);
+                if (fogField.sync(vis)) fogField.draw(rc.camera, alpha, fireFogClearing);
             });
             return;
         }
@@ -696,13 +717,14 @@ public class BattleRenderer {
                     if (cx < gw-1 && !revealed[idx + 1])  darkNeighbors++;
                 }
                 float fogAlpha = fogAlphaForCell(revealed[idx], darkNeighbors,
-                        vis.wouldBeRevealedWithoutTransientOpacity(cx, cy));
+                        vis.wouldBeRevealedWithoutTransientOpacity(cx, cy)) * fireFogClearing.keep(idx);
                 if (fogAlpha <= 0f) continue;
 
                 float sx = rc.camera.cellToScreenX(cx);
                 float sy = rc.camera.cellToScreenY(cy);
+                float[] colour = fireFogClearing.fogColour();
                 out.addSolidRect(RenderLayer.FOG, sx, sy, sx + cellPx, sy + cellPx,
-                        0f, 0f, 0f, fogAlpha * alphaMult);
+                        colour[0], colour[1], colour[2], fogAlpha * alphaMult);
             }
         }
     }
