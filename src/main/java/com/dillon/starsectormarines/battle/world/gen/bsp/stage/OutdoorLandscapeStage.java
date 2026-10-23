@@ -63,7 +63,9 @@ public final class OutdoorLandscapeStage implements GenStage {
         if (c.topology.terrainSurface() == null) hills(c, surface, reserved, random);
         int plateaus = plateausWanted(c);
         if (plateaus > 0) plateaus(c, reserved, plateaus, new Random(c.seed ^ 0x504c4154L));
-        if (!landscape.ridges().isEmpty() && c.grid.elevation() == null) ridges(c, reserved, landscape.ridges());
+        List<RidgePlanner.Band> ridges = new ArrayList<>(landscape.ridges());
+        ridges.addAll(valleySides(c, landscape));
+        if (!ridges.isEmpty() && c.grid.elevation() == null) ridges(c, reserved, ridges);
         if (surface == SurfacePalette.VERDANT) trees(c, reserved, landscape.woodland());
         else FormationBrush.scatter(c,surface,reserved);
         // Hills, trees and formations turn cells non-walkable after TacticalRegionStage
@@ -199,6 +201,69 @@ public final class OutdoorLandscapeStage implements GenStage {
         for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) {
             if (layout.isRamp(x, y)) reserve(c, reserved, x - 1, y - 1, x + 1, y + 1);
         }
+    }
+
+    /** Cells of low ground kept between a brook's sand and the foot of its valley side. */
+    static final int VALLEY_FLOOR = 3;
+    /** Cells a valley side stops short of a ford, either side of it, so the way down to the ford is open. */
+    static final int FORD_APPROACH = 6;
+
+    /**
+     * Each banked brook's valley sides: a band along either bank, offset clear of
+     * the water, the sand and the bank kept free of trees, broken at every ford
+     * and climbed from the country away from the water.
+     */
+    private static List<RidgePlanner.Band> valleySides(GenContext c, Landscape landscape) {
+        List<RidgePlanner.Band> out = new ArrayList<>();
+        for (Landscape.Brook brook : landscape.brooks()) {
+            if (brook.banks() <= 0) continue;
+            List<int[]> line = brookLine(brook);
+            int bank = brook.width() / 2 + 2;
+            double offset = bank + VALLEY_FLOOR + PlateauPlanner.FACE_WIDTH + PlateauPlanner.SOUTH_FACE + 1
+                    + brook.banks() / 2.0;
+            // Stretches between fords, each its own pair of sides.
+            List<int[]> stretches = new ArrayList<>();
+            int from = 0;
+            for (int i = 0; i < line.size(); i++) {
+                boolean ford = i >= brook.fordWidth() && i % brook.fordEvery() < brook.fordWidth();
+                if (!ford) continue;
+                stretches.add(new int[]{from, i - FORD_APPROACH});
+                from = i + brook.fordWidth() + FORD_APPROACH;
+                i += brook.fordWidth();
+            }
+            stretches.add(new int[]{from, line.size() - 1});
+            for (int[] stretch : stretches) {
+                if (stretch[1] - stretch[0] < 8) continue;
+                for (int side : new int[]{1, -1}) {
+                    List<ElevationPlan.Point> path = new ArrayList<>();
+                    for (int i = stretch[0]; i <= stretch[1]; i += 4) path.add(offsetPoint(line, i, side * offset));
+                    path.add(offsetPoint(line, stretch[1], side * offset));
+                    if (path.size() >= 2) out.add(new RidgePlanner.Band(path, brook.banks(), side, 5));
+                }
+            }
+        }
+        return out;
+    }
+
+    /** The point {@code by} cells to the left of a brook's line at step {@code i}. */
+    private static ElevationPlan.Point offsetPoint(List<int[]> line, int i, double by) {
+        int[] a = line.get(Math.max(0, i - 3)), b = line.get(Math.min(line.size() - 1, i + 3)), p = line.get(i);
+        double dx = b[0] - a[0], dy = b[1] - a[1], len = Math.max(1e-9, Math.hypot(dx, dy));
+        return new ElevationPlan.Point(p[0] - dy / len * by, p[1] + dx / len * by);
+    }
+
+    /** A brook's centre line walked a cell at a time, as {@link #runBrooks} lays its water. */
+    private static List<int[]> brookLine(Landscape.Brook brook) {
+        List<int[]> line = new ArrayList<>();
+        for (int i = 0; i + 1 < brook.path().size(); i++) {
+            int[] a = brook.path().get(i), b = brook.path().get(i + 1);
+            int steps = Math.max(Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1]));
+            for (int k = i == 0 ? 0 : 1; k <= steps; k++) {
+                line.add(new int[]{Math.round(a[0] + (b[0] - a[0]) * k / (float) Math.max(1, steps)),
+                        Math.round(a[1] + (b[1] - a[1]) * k / (float) Math.max(1, steps))});
+            }
+        }
+        return line;
     }
 
     /** Whether the ground around a layout's faces stays one connected piece once they close. */
@@ -359,15 +424,7 @@ public final class OutdoorLandscapeStage implements GenStage {
     private static List<int[]> runBrooks(GenContext c, Landscape landscape) {
         List<int[]> centres = new ArrayList<>();
         for (Landscape.Brook brook : landscape.brooks()) {
-            List<int[]> line = new ArrayList<>();
-            for (int i = 0; i + 1 < brook.path().size(); i++) {
-                int[] a = brook.path().get(i), b = brook.path().get(i + 1);
-                int steps = Math.max(Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1]));
-                for (int k = i == 0 ? 0 : 1; k <= steps; k++) {
-                    line.add(new int[]{Math.round(a[0] + (b[0] - a[0]) * k / (float) Math.max(1, steps)),
-                            Math.round(a[1] + (b[1] - a[1]) * k / (float) Math.max(1, steps))});
-                }
-            }
+            List<int[]> line = brookLine(brook);
             float r = brook.width() / 2f;
             int reach = (int) Math.ceil(r) + 1;
             for (int[] centre : line) {
