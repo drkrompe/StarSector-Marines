@@ -112,7 +112,7 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
     /**
      * A 40x22 window on arid ground: the autogun, cannon and grenade emplacements in a column at the west with the
      * heavy-cannon hardpoint behind them, all defenders, and a line of marine targets sixteen cells east that outlast
-     * the run (bodies, not squads, so only the guns fire). Played for {@link #FIRING_TICKS} ticks at one frame a tick
+     * the run (bodies, not squads, so only the guns fire). Two of the guns start hurt, for their damage smoke. Played for {@link #FIRING_TICKS} ticks at one frame a tick
      * so a barrel's kick and a muzzle's flash land in the animation.
      */
     private static LookReview.Shot firing(String look) {
@@ -121,7 +121,10 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
             SceneBuilder builder = placement.builder();
             placement.holdouts(builder);
             BattleSimulation sim = builder.build().sim();
-            Object[][] guns = {{"autogun", 16f, 8f}, {"cannon", 16f, 11f}, {"grenade", 16f, 14f}, {"heavy", 11f, 11f}};
+            // Role, local x and y, and the share of its structure left: the grenade launcher is worn enough to smoke and
+            // the hardpoint hurt enough to throw sparks as well.
+            Object[][] guns = {{"autogun", 16f, 8f, 1f}, {"cannon", 16f, 11f, 1f}, {"grenade", 16f, 14f, .4f},
+                    {"heavy", 11f, 11f, .2f}};
             int i = 0;
             for (Object[] gun : guns) {
                 float[] at = placement.openNear((Float) gun[1], (Float) gun[2]);
@@ -131,6 +134,7 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
                 sim.setStructureStyle(id, EmplacementStyle.valueOf(look.toUpperCase()));
                 sim.getGrid().setWalkable(x, y, false);
                 sim.turretState().setFacingDegrees(id, 90f);
+                sim.world().setHp(id, sim.world().maxHp(id) * (Float) gun[3]);
             }
             for (int t = 0; t < 5; t++) {
                 float[] at = placement.openNear(31f, 7f + t * 2f);

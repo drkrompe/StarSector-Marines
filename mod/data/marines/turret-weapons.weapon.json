@@ -342,7 +342,8 @@
         "muzzle": [
           { "kind": "glow", "radius": 0.58, "lifetime": 0.09, "color": "FFE080" },
           { "kind": "fire", "radius": 0.28, "lifetime": 0.16 },
-          { "kind": "smoke", "radius": 0.24, "lifetime": 0.42 }
+          { "kind": "smoke", "radius": 0.24, "lifetime": 0.42 },
+          { "kind": "dust", "radius": [0.30, 0.45], "lifetime": [0.45, 0.70], "count": 3, "jitter": 0.15, "offsetForward": [0.10, 0.45], "offsetLateral": [-0.30, 0.30], "velocityForward": [0.8, 1.6], "velocityLateral": [-1.1, 1.1] }
         ],
         "impact": [
           { "kind": "glow", "radius": 0.42, "lifetime": 0.14, "color": "FFC860" },
@@ -467,7 +468,8 @@
         "muzzle": [
           { "kind": "glow", "radius": 0.96, "lifetime": 0.12, "color": "FFE080" },
           { "kind": "fire", "radius": 0.52, "lifetime": 0.32 },
-          { "kind": "smoke", "radius": [0.35, 0.50], "lifetime": [0.75, 1.10], "count": 3, "jitter": 0.30 }
+          { "kind": "smoke", "radius": [0.35, 0.50], "lifetime": [0.75, 1.10], "count": 3, "jitter": 0.30 },
+          { "kind": "dust", "radius": [0.45, 0.75], "lifetime": [0.6, 0.95], "count": 5, "jitter": 0.25, "offsetForward": [0.15, 0.80], "offsetLateral": [-0.55, 0.55], "velocityForward": [1.2, 2.4], "velocityLateral": [-1.8, 1.8] }
         ],
         "impact": [
           { "kind": "glow", "radius": 1.30, "lifetime": 0.20, "color": "FFE080" },
