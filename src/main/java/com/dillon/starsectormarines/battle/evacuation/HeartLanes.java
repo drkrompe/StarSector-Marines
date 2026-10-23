@@ -109,6 +109,8 @@ public final class HeartLanes {
 
     private final List<Lane> lanes = new ArrayList<>();
     private BarrageScreen screen;
+    /** Which way the lanes advance along their axis, +1 or -1, for armour that follows no barrage. */
+    private int advanceSign;
 
     /** Each lane's ground across the front, in lane order. */
     public List<HeartLane> grounds() {
@@ -124,6 +126,12 @@ public final class HeartLanes {
 
     public HeartLanes companySector(HeartLane sector) {
         companySector = sector;
+        return this;
+    }
+
+    /** Lanes that advance toward higher ({@code +1}) or lower ({@code -1}) cells, so armour without a barrage stands behind its aim. */
+    public HeartLanes advancing(int sign) {
+        advanceSign = sign;
         return this;
     }
 
@@ -268,7 +276,7 @@ public final class HeartLanes {
         if (bore == null) return;
         int[] aim = aim(sim, lane.ground, bore);
         boolean alongY = lane.ground.advancesAlongY();
-        int toward = screen == null ? 0 : screen.sign();
+        int toward = screen == null ? advanceSign : screen.sign();
         int count = lane.hulls.size() + lane.mechs.size(), i = 0;
         // The allied command drives each machine to its post and fights it from there; it re-orders only
         // when a post has moved, and pulls a goal the woods bar back toward the machine.
