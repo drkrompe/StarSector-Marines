@@ -1,0 +1,42 @@
+{
+  "documentation": "https://elevenlabs.io/docs/api-reference/text-to-sound-effects/convert",
+  "note": "Engine loops for ground vehicles, played by MachineAudio with pitch and volume following speed. Each is recorded at one steady mid throttle; the game bends it toward idle and full. Two takes per hull class for the owner to pick by ear.",
+  "settings": {
+    "model_id": "eleven_text_to_sound_v2",
+    "duration_seconds": 6,
+    "prompt_influence": 0.6,
+    "loop": true
+  },
+  "clips": [
+    {
+      "id": "marines_engine_tracked_a",
+      "kind": "tracked",
+      "prompt": "Seamless loop of a heavy armored tank's diesel engine running at a steady mid throttle, heard from outside the vehicle. Deep throbbing multi-cylinder industrial diesel, thick low-end rumble, a gritty mechanical chug and a faint exhaust roar. Constant and even with no revving up or down. No track clanking, no gunfire, no voices, no music, no ambience."
+    },
+    {
+      "id": "marines_engine_tracked_b",
+      "kind": "tracked",
+      "prompt": "Seamless loop of a heavy armored vehicle's gas turbine power plant at steady operation, heard from outside. A dense low turbine roar with a restrained high whine riding on top, an industrial jet-like hum and deep mechanical vibration. Constant and even with no spool up or down. No track clanking, no gunfire, no voices, no music, no ambience."
+    },
+    {
+      "id": "marines_engine_wheeled_a",
+      "kind": "wheeled",
+      "prompt": "Seamless loop of a heavy military truck's diesel engine at a steady mid throttle, heard from outside. Mid-low diesel rumble with a rhythmic knocking chug and a light turbocharger whistle. Constant and even with no gear changes or revving. No tire noise, no horn, no voices, no music, no ambience."
+    },
+    {
+      "id": "marines_engine_wheeled_b",
+      "kind": "wheeled",
+      "prompt": "Seamless loop of a worn, rattling old industrial diesel engine in a workshop pickup truck at a steady fast idle, heard from outside. Loose clattering valves, uneven gruff chug, a slightly ragged exhaust and loose sheet metal buzzing. Constant with no revving. No tire noise, no horn, no voices, no music, no ambience."
+    },
+    {
+      "id": "marines_engine_hover_a",
+      "kind": "hover",
+      "prompt": "Seamless loop of a hovercraft's large lift fans at steady operation, heard from outside. A powerful low whooshing air roar with a smooth rotating fan pulse and a soft electric motor hum underneath. Constant and even with no spin up or down. No water splashing, no voices, no music, no ambience."
+    },
+    {
+      "id": "marines_engine_hover_b",
+      "kind": "hover",
+      "prompt": "Seamless loop of a sleek high-tech hover vehicle's ducted turbofans at steady operation, heard from outside. A clean pressurized air rush with a tonal electric turbine hum and a subtle pulsing throb. Constant and even. No splashing, no beeps, no voices, no music, no ambience."
+    }
+  ]
+}

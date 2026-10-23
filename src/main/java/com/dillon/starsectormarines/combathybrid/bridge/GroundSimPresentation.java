@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.combathybrid.bridge;
 
 import com.dillon.starsectormarines.DebugOnly;
+import com.dillon.starsectormarines.battle.audio.MachineAudio;
 import com.dillon.starsectormarines.battle.audio.MechFootstepAudio;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
@@ -69,6 +70,7 @@ public final class GroundSimPresentation {
 
     private final GroundBattleConfig cfg;
     private final MechFootstepAudio mechFootsteps = new MechFootstepAudio();
+    private final MachineAudio machineAudio = new MachineAudio();
     /** The listener's cell, as the footstep pass last placed it; swarm footfalls are drawn nearest it. */
     private float listenerCellX;
     private float listenerCellY;
@@ -111,6 +113,16 @@ public final class GroundSimPresentation {
         listenerCellX = scratch.x / cfg.worldUnitsPerCell() + cfg.gridW() * 0.5f;
         listenerCellY = scratch.y / cfg.worldUnitsPerCell() + cfg.gridH() * 0.5f;
         for (MechFootstepAudio.Cue cue : mechFootsteps.advance(sim, listenerCellX, listenerCellY)) {
+            playAtCell(cue.soundId(), cue.pitch(), cue.volume(), cue.cellX(), cue.cellY());
+        }
+        MachineAudio.Frame machinery = machineAudio.advance(sim, listenerCellX, listenerCellY);
+        for (MachineAudio.Loop loop : machinery.loops()) {
+            Global.getSoundPlayer().playLoop(loop.soundId(), loop.key(), loop.pitch(), loop.volume(),
+                    new Vector2f((loop.cellX() - cfg.gridW() * 0.5f) * cfg.worldUnitsPerCell(),
+                            (loop.cellY() - cfg.gridH() * 0.5f) * cfg.worldUnitsPerCell()),
+                    new Vector2f(loop.vxCells() * cfg.worldUnitsPerCell(), loop.vyCells() * cfg.worldUnitsPerCell()));
+        }
+        for (MachineAudio.Cue cue : machinery.cues()) {
             playAtCell(cue.soundId(), cue.pitch(), cue.volume(), cue.cellX(), cue.cellY());
         }
         playDeathVoice(sim);
