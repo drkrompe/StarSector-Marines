@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-10-23 — the laser tank splits into two cards: the burst laser tank (Tri-Tachyon) and the PD laser tank (League), each with its own beam; earlier: the heavy-gun tank is removed; the laser tank: a tank-line rung with a ship's burst laser that also takes hostile aircraft in its reach, its cadence bounded by a capacitor bank (charges spent per trigger pull, refilled on a clock, separate from the magazine); earlier: an armed hull clicked onto a garrisonable its side mans guards it from a cell beside it, idle gun on the believed threat; one its side believes is enemy-held it assaults from a stand-off, directing its turret; earlier: a hull keeps its front on the worst threat it knows of (harm into its plate, own sight or a spotter's), and a turning hull's gun shakes by the share of its turret's traverse its yaw takes; a hull holding in band without wearing its target down (a stalled hold) moves to another in-band firing position with a clear lane; a hull turns its front back onto a threat off its nose (a backing turn out to 120°, a forward turn beyond; rehearsed first, never off a parapet), and a disarmed hull still drives its withdrawal rear on (nose-on backing measured and rejected); a hull's plate depends on the arc a hit arrives on (front, side, rear; the turret on its own facing); the screened tank (a tank-line rung) carries active protection against top-attack rounds; a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
+Updated: 2026-10-23 — the laser tank splits into two cards: the burst laser tank (Tri-Tachyon) and the PD laser tank (League), each with its own beam; a gun's capacitor bank becomes flux (built per round, dissipated, an overload vents with the trigger held), shown as a haze on the hull's vents; a beam leaves along its turret and drags onto its target; earlier: the heavy-gun tank is removed; the laser tank: a tank-line rung with a ship's burst laser that also takes hostile aircraft in its reach, its cadence bounded by a capacitor bank (charges spent per trigger pull, refilled on a clock, separate from the magazine); earlier: an armed hull clicked onto a garrisonable its side mans guards it from a cell beside it, idle gun on the believed threat; one its side believes is enemy-held it assaults from a stand-off, directing its turret; earlier: a hull keeps its front on the worst threat it knows of (harm into its plate, own sight or a spotter's), and a turning hull's gun shakes by the share of its turret's traverse its yaw takes; a hull holding in band without wearing its target down (a stalled hold) moves to another in-band firing position with a clear lane; a hull turns its front back onto a threat off its nose (a backing turn out to 120°, a forward turn beyond; rehearsed first, never off a parapet), and a disarmed hull still drives its withdrawal rear on (nose-on backing measured and rejected); a hull's plate depends on the arc a hit arrives on (front, side, rear; the turret on its own facing); the screened tank (a tank-line rung) carries active protection against top-attack rounds; a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
 
 ## Purpose and boundary
 
@@ -1031,13 +1031,18 @@ infantry and drones far faster than a cannon tank. Its rounds carry **no blast a
 no wall damage**, so it cannot open a building or answer an assault's wall
 directive, and its low penetration leaves it chipping at armor.
 
-What keeps it from out-trading a cannon tank is a **capacitor bank**
-(`TurretMountDef.charges`), a mount law any turret may author: the bank starts
-full, each trigger pull spends one charge however many rounds the burst releases,
-and charges refill on a clock. An empty bank holds the trigger the way a cooldown
-does. It is not the magazine, so a hull waiting on its bank still reads as armed to
-every engagement question. A section dies inside one bank; a tank needs several, and
-the laser falls back to its refill rate long before the tank is dead.
+What keeps it from out-trading a cannon tank is **flux** (`TurretMountDef.flux`), a
+mount law any turret may author, as a starship's energy weapon builds it: every round
+adds flux, flux dissipates at a steady rate, and a gun whose flux reaches capacity
+**overloads**. An overloaded gun breaks off its burst and holds its trigger while it
+vents, faster than it dissipates, until it is empty. Flux is not the magazine, so a
+hull venting still reads as armed to every engagement question. The burst laser is a
+flux hog, as it is in space: it fires far faster than it dissipates, so a section
+dies inside one charge-up, while a tank sees it fall silent and vent for seconds at a
+time long before the tank is dead. The flux is visible, as a starship's is: a purple
+haze thickens over the hull's radiator fins as it builds
+(`VehicleType.fluxVentAftCells`), and an overloaded gun vents a bright lavender plume
+off them.
 
 The power plant takes the shell stowage's room and weight, so the hull is a little
 faster than the breakthrough tank and carries a little less plate.
@@ -1056,17 +1061,23 @@ The **PD laser tank** (`PD_LASER_TANK`, Prestige, Heavy lift) is its midline sib
 the League's: the same hull with the plain PD laser every frigate carries. Everything
 above about reach, the air, and carrying no blast holds for it too. What differs is
 how it delivers. It holds one steady lance on a target, ten pulses a second for a
-second at a time, and has no capacitor bank to ration it, so it never runs dry; each
-pulse hits for far less than a burst, so the burst laser trades harder and the PD
-laser trades longer. A fire-control radar and three cells take less room than the
+second at a time, and runs cool: its flux barely outpaces its dissipation, so it
+overloads only after a long held fight. Each pulse hits for far less than a burst,
+so the burst laser trades harder and the PD laser trades longer. A fire-control radar and three cells take less room than the
 capacitor pack, so the hull keeps the breakthrough tank's plate and pace. It looks
 it: the same hull in worn gunmetal with red running lamps, the radar over the rear
 deck, and the vanilla PD laser in its own red on the same mount, with the same
 firing frame.
 
 **A laser's lance is drawn as the space game draws a beam.** A turret weapon with no
-projectile art that authors a beam (`WeaponDef.BeamStyle`) is a hitscan beam, as a
-mech's is. A beam may author a **texture** (`WeaponDef.BeamTexture`), after the game's
+projectile art that authors a beam (`WeaponDef.hitscanBeam`) is a hitscan beam, as a
+mech's is. **A beam leaves along its turret, not toward its target.** Each pulse is
+aimed down the turret's facing at the target's distance, pulled short by how far the
+turret is still off, and traced as any round is, so it strikes the first body or wall
+on its way and otherwise scorches the ground. The turret tracks its target through a
+held lance, and a beam opens wider off its target than a gun fires
+(`TurretAim.BEAM_OPEN_ARC_DEG`), so a lance that opens off target lands short and
+drags across onto it, striking whatever it crosses. A beam may author a **texture** (`WeaponDef.BeamTexture`), after the game's
 ROUGH beam texture: knots of energy ride down a continuous lance from the muzzle, and
 the lance swells and fades with the power delivered to it. The knots run on one
 presentation clock, so a stream of short overlapping pulses reads as one lance being
