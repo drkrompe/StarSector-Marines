@@ -88,16 +88,9 @@ final class BattleDamageDollPlate {
         refresh();
     }
 
-    /** Shows a vehicle from its hull pools and turret section (null when its gun is part of the hull). */
-    void updateVehicle(VehicleType type, float hp, float maxHp, float armor, float maxArmor,
-                       HullTurretSection turret) {
-        updateVehicle(type, hp, maxHp, armor, maxArmor, turret, null);
-    }
-
-    /** Shows a vehicle by location: plates, drive and hull from {@code locations} when it has them. */
-    void updateVehicle(VehicleType type, float hp, float maxHp, float armor, float maxArmor,
-                       HullTurretSection turret, HullLocations locations) {
-        view.readVehicle(type, hp, maxHp, armor, maxArmor, turret, locations);
+    /** Shows a vehicle by location: plates, drive and hull from {@code locations}, and its turret section. */
+    void updateVehicle(VehicleType type, float hp, float maxHp, HullTurretSection turret, HullLocations locations) {
+        view.readVehicle(type, hp, maxHp, turret, locations);
         vehicle = true;
         firstOn = view.immobile();
         secondOn = turret != null && turret.destroyed();

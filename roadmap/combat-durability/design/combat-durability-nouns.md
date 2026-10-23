@@ -4,7 +4,7 @@ Status: ACTIVE — armor-and-structure resolution is live; decision, evidence, a
 
 Written: 2026-08-23
 
-Updated: 2026-10-18 — a tank's turret is a section of its hull, on the mech section law; mech missile racks split into contact (anti-armor) and area (fragmentation) warheads; a rocket's contact payload rides its detonation. Earlier: the heavy cannon's contact hit is fixed.
+Updated: 2026-10-23 — a ground hull holds damage by location (plates, drive, hull) and an infantry special's commit gate reads the plate facing it; earlier: a tank's turret is a section of its hull, on the mech section law; mech missile racks split into contact (anti-armor) and area (fragmentation) warheads; a rocket's contact payload rides its detonation. Earlier: the heavy cannon's contact hit is fixed.
 
 ## Purpose
 
@@ -241,7 +241,9 @@ whether the arc asymmetry moved.
 The first model deliberately has no through-armor structure bypass, damage
 types, passive armor regeneration, localized facings, or ablative segments.
 Those are possible extensions only after a weapon or platform demonstrates a
-gameplay need that the armour-and-structure model cannot express.
+gameplay need that the armour-and-structure model cannot express. Machines have
+demonstrated one: a mech's sections and a ground hull's plates are localized
+armor, each by its own model (Standing laws).
 
 **Treatment is the one way armor rises in battle.** A squad medic
 (`progression-nouns.md`, Field Medicine) restores structure and armor capacity
@@ -357,7 +359,10 @@ Durability-aware decisions evaluate expected armor loss, time to armor break,
 and expected structure loss from current target state. Scarce anti-armor
 ammunition should not be selected merely because a target's type once counted
 as hardened, especially when its armor is already gone or another attack has
-already committed enough damage to break it.
+already committed enough damage to break it. A localized target is predicted by
+location: an infantry special's commit gate reads a ground hull's plate facing
+each contribution's source and the hull's own structure, never the summed
+columns, which over-read both (`convoy-nouns.md`).
 
 Morale, evidence, and presentation that claim to represent durability consume
 the real armor-break fact or current armor and structure state. Structure
@@ -423,10 +428,12 @@ armor, structure, rating, and penetration presentation.
   segments. Mechs are the deliberate exception, by their own model: a chassis
   divides its armor capacity and structure into section pools
   (`mechs-nouns.md`), each resolved by the same calculation with the chassis's
-  one armor rating, and only the torso's structure decides death. A hull that
-  authors a turret section is the same exception with one section: the turret
-  holds a share of the hull's pools and loses only the gun at zero, and only the
-  hull's own structure decides death (`convoy-nouns.md`).
+  one armor rating, and only the torso's structure decides death. Ground hulls
+  are the same exception by theirs (`convoy-nouns.md`, a hull holds its damage
+  where it lands): four armor plates read by the side a hit arrives from, a
+  drive whose loss immobilises, an optional turret section that loses only the
+  gun, and the hull's own structure behind them, the only pool whose zero is
+  death. Each pool resolves by the same calculation and the hull's one rating.
 - Armor does not alter hit chance. Movement and incoming-accuracy modifiers
   remain independently authored profile traits.
 - The queued damage path remains allocation-free and deterministic.

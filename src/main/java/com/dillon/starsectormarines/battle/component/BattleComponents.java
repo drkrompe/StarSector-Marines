@@ -997,8 +997,8 @@ public final class BattleComponents {
     public final ComponentType GROUND_TURRET;
     /**
      * A ground hull's located damage: its plates, drive and turret section
-     * ({@link com.dillon.starsectormarines.battle.vehicle.HullLocations}). Present on every hull unless
-     * {@code -Dbattle.vehicle.locatedArmor=false}; {@code has}-gate every read.
+     * ({@link com.dillon.starsectormarines.battle.vehicle.HullLocations}). Present on every ground hull;
+     * {@code has}-gate every read, since other bodies share the damage path.
      */
     public final ComponentType HULL_LOCATIONS;
     /**
