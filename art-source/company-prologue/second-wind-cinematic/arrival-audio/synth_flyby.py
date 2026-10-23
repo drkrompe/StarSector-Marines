@@ -168,10 +168,6 @@ FIGHTER = dict(HOUND, start=0.0, end=7.0, sound_speed=330.0, muffle_far=150.0, m
 FIGHTER = dict(FIGHTER, **SMALL)                       # Broadswords: small thrusters
 LEGION = dict(HOUND, start=0.0, end=15.0, sound_speed=340.0, muffle_far=60.0, muffle_near=380.0,
               bass=3.0, crackle=0.25, rush_gain=0.05, distance_power=1.4, pan="c2", pan_width=0.5)
-# The two ships trim to look at each other (c2_bridge_blockout): the Legion's attitude thrusters
-# fire in bursts along its hull while it closes and as it slows to the beam.
-LEGION_RCS = ((1.6, 0.5, 0.8), (3.4, 0.35, 0.6), (5.1, 0.8, 1.0), (6.3, 0.4, 0.7), (7.2, 1.1, 1.0),
-              (8.9, 0.45, 0.8), (10.4, 0.7, 0.9), (12.0, 0.5, 0.7))
 PASSES = {
     "hound_flyby_a": dict(HOUND, **SMALL),                # the customs Hound: a small thruster
     # Heavier and more muffled: more bass, a darker roar, a slower swell.
@@ -186,7 +182,11 @@ PASSES = {
     # loudest just past the beam), a forward cluster, and attitude thrusters along the hull.
     # Its main drives: the generated single heavy thruster (c4_launch_burn_t02) flown along the hull.
     "legion_drives": dict(LEGION, path=legion_at(-130.0), seed=21, source="c4_launch_burn_t02"),
-    "legion_forward": dict(LEGION, path=legion_at(90.0, up_m=-10.0), seed=22, rcs=LEGION_RCS, **HEAVY_RANGE),
+    # Its forward cluster as a heavy capital main drive (owner, 2026-10-23: "ROCKET SHIP BOOST THRUST",
+    # not gas): a deep, sustained roar, all body and sub. No attitude-thruster hiss bursts (they
+    # read as gas) and next to no crackle; the muffle stays under 200 Hz so it never turns airy.
+    "legion_forward": dict(LEGION, path=legion_at(90.0, up_m=-10.0), seed=22, muffle_far=70.0, muffle_near=190.0,
+                           bass=4.5, crackle=0.06, rush_gain=0.0),
     # The fighters: two vics of three, a hard thruster roar each, abeam at 3.0 and 4.2 s.
     **{"fighter_%d%d" % (flight, n): dict(FIGHTER, path=fighter(t_pass + back / 160.0, out + dy, up + dz),
                                           seed=30 + 3 * flight + n)
