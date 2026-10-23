@@ -56,7 +56,7 @@ import time
 import traceback
 from pathlib import Path
 
-VERSION = "2026-10-20.6"
+VERSION = "2026-10-23.1"
 MACHINES = ("mac", "windows")
 LANES = ("light", "review", "final")
 DEFAULT_CONFIG = {
@@ -86,6 +86,13 @@ DEFAULT_CONFIG = {
     "low_priority": True,
     # A light job running longer than this is stopped and failed.
     "light_max_seconds": 1800,
+    # How long a finished job's checkout and scratch stay on disk before the idle
+    # sweep removes them. A copy into the Drive folder only means Drive accepted it
+    # locally, not that it uploaded, so an ok job keeps its local copy a while; a
+    # failed or cancelled job keeps it longer for a look or a hand copy. A job whose
+    # output copy failed is never swept: it is logged and left for a person.
+    "retain_ok_hours": 12,
+    "retain_failed_hours": 48,
     # A busy machine leaves a fresh `any` job this long for an idle one to claim.
     "any_grace_seconds": 120,
     # Do not start a job while a background Blender this runner did not start is
@@ -758,6 +765,8 @@ class Runner:
         self.note = None
         self.last_status = None
         self.last_status_time = 0.0
+        self.last_sweep = 0.0
+        self.copy_error_logged = set()
 
     # -- bookkeeping
     def save(self):
@@ -844,6 +853,12 @@ class Runner:
             best = self.pick(jobs, done)
             if best:
                 self.start_or_resume(best, jobs[best])
+        if not self.running_id() and time.time() - self.last_sweep > 600:
+            self.last_sweep = time.time()
+            try:
+                self.sweep_orphans(jobs, done)
+            except Exception:
+                self.log("sweep error: " + traceback.format_exc().replace("\n", " | "))
         self.set_awake(self.running_id() is not None)
         self.publish(jobs)
 
@@ -1271,8 +1286,71 @@ class Runner:
         self.log(f"{result} {jid}: {reason}; {len(copied)} file(s) copied")
         del self.state["active"][jid]
         self.save()
-        if result == "ok" and copied and not job.get("keep_checkout"):
-            self.cleanup_inputs(jid, job, rec)
+        # Nothing is removed here: an output may live in the checkout or the scratch,
+        # and the Drive copy may not have uploaded yet. The idle sweep removes both
+        # once the done record is old enough (retain_ok_hours / retain_failed_hours).
+
+    def remove_work(self, jid):
+        work = self.local / "work" / jid
+        if work.exists():
+            shutil.rmtree(work, ignore_errors=True)
+            if work.exists():
+                self.log(f"could not remove scratch {work}")
+
+    def sweepable(self, jid, jobs, done, path) -> bool:
+        """True when a finished job's local checkout or scratch may go: the job is
+        not active or queued, not keep_checkout, its own done record here shows no
+        failed output copy, and that record is older than the retention for its
+        result. A folder with no job file and no record of this machine is swept
+        only once it is older than the failed-job retention."""
+        if jid in self.state["active"] or jobs.get(jid, {}).get("keep_checkout"):
+            return False
+        if jid in jobs and jid not in done:
+            return False
+        rec = done.get(jid, {}).get(self.machine)
+        now = time.time()
+        hours = float(self.cfg.get("retain_failed_hours", 48))
+        if rec is None:
+            try:
+                return now - path.stat().st_mtime > hours * 3600
+            except OSError:
+                return False
+        if rec.get("copy_error") or rec.get("result") == "unreadable":
+            if jid not in self.copy_error_logged:
+                self.copy_error_logged.add(jid)
+                self.log(f"keeping {path}: {jid} has no clean output copy; copy it by hand, then delete")
+            return False
+        if rec.get("result") == "ok":
+            hours = float(self.cfg.get("retain_ok_hours", 12))
+        finished = rec.get("finished_epoch")
+        return isinstance(finished, (int, float)) and now - finished > hours * 3600
+
+    def sweep_orphans(self, jobs, done):
+        """Remove rq-* checkouts and work/ folders of finished jobs once sweepable()
+        allows it, then prune dead worktree entries."""
+        repo = self.settings.get("repo")
+        swept = 0
+        wt = Path(repo) / ".claude" / "worktrees" if repo else None
+        if wt and wt.is_dir():
+            for p in sorted(wt.glob("rq-*")):
+                jid = p.name[3:]
+                if not self.sweepable(jid, jobs, done, p):
+                    continue
+                self.cleanup_inputs(jid, jobs.get(jid, {}), {"checkout": str(p)})
+                if p.exists():
+                    shutil.rmtree(p, ignore_errors=True)
+                if not p.exists():
+                    swept += 1
+        wk = self.local / "work"
+        if wk.is_dir():
+            for p in sorted(wk.iterdir()):
+                if p.is_dir() and self.sweepable(p.name, jobs, done, p):
+                    self.remove_work(p.name)
+                    swept += 1
+        if repo:
+            run(["git", "-C", repo, "worktree", "prune"], check=False)
+        if swept:
+            self.log(f"swept {swept} orphaned checkout/scratch folder(s)")
 
     def cleanup_inputs(self, jid, job, rec):
         repo = self.settings.get("repo")

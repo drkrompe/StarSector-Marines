@@ -240,8 +240,9 @@ def build_beam(ctx, coll, b, muzzle):
         env = (f'max(beam_t_{i}, beam_charge_{i})' if which == 'muzzle' else f'beam_t_{i}')
         props = (f'beam_t_{i}', f'beam_charge_{i}', 'beam_flare') if which == 'muzzle' else (f'beam_t_{i}', 'beam_flare')
         s = f'(0.35 + 0.65 * {env}) * ({env} > 0.001) * min(beam_flare, 2.0)'
-        for ax in range(3):
-            ctx.drive(ob, 'scale', s, props, index=ax)
+        # Drawn out along the beam (local X), never a ball at either end (owner, 2026-10-23: no orbs).
+        for ax, k in ((0, 2.6), (1, .6), (2, .6)):
+            ctx.drive(ob, 'scale', f'{k:g} * {s}', props, index=ax)
     power = LIGHT_W * (w / 25.0) ** 2
     lights = []
     for which, at in (('muzzle', (w * .6, 0, 0)), ('impact', None)):
