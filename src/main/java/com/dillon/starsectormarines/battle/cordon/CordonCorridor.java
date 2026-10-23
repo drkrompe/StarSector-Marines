@@ -2,10 +2,13 @@ package com.dillon.starsectormarines.battle.cordon;
 
 import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -99,6 +102,54 @@ public final class CordonCorridor {
         int paved = 0;
         for (int[] c : corridor) if (road(topology, c[0], c[1])) paved++;
         return paved / (float) corridor.size();
+    }
+
+    /** How far from a corridor's end a truck's mask looks for ground to stand on. */
+    private static final int END_REACH = 3;
+
+    /**
+     * Whether a supply truck can drive the corridor end to end on the mask its
+     * convoy lays routes on, which keeps clear of walls along cell edges too
+     * (a fence beside the road stops a hull the 3x3 test lets through). A gate
+     * on the map, not the route: the corridor's cells are unchanged.
+     */
+    public static boolean truckReaches(NavigationGrid grid, List<int[]> corridor) {
+        if (corridor == null || corridor.isEmpty()) return false;
+        VehicleClearance mask = VehicleClearance.erode(grid,
+                VehicleClearance.radiusForWidth(VehicleType.SUPPLY_TRUCK.visualWidthCells));
+        int[] from = standing(mask, corridor.get(0)), to = standing(mask, corridor.get(corridor.size() - 1));
+        if (from == null || to == null) return false;
+        int w = mask.getWidth(), h = mask.getHeight();
+        boolean[] seen = new boolean[w * h];
+        ArrayDeque<Integer> open = new ArrayDeque<>();
+        seen[from[1] * w + from[0]] = true;
+        open.add(from[1] * w + from[0]);
+        int goal = to[1] * w + to[0];
+        int[] dx = {1, -1, 0, 0}, dy = {0, 0, 1, -1};
+        while (!open.isEmpty()) {
+            int at = open.poll();
+            if (at == goal) return true;
+            int x = at % w, y = at / w;
+            for (int d = 0; d < 4; d++) {
+                int nx = x + dx[d], ny = y + dy[d];
+                if (nx < 0 || ny < 0 || nx >= w || ny >= h || seen[ny * w + nx] || !mask.isPassable(nx, ny)) continue;
+                seen[ny * w + nx] = true;
+                open.add(ny * w + nx);
+            }
+        }
+        return false;
+    }
+
+    private static int[] standing(VehicleClearance mask, int[] cell) {
+        for (int r = 0; r <= END_REACH; r++) {
+            for (int dy = -r; dy <= r; dy++) {
+                for (int dx = -r; dx <= r; dx++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                    if (mask.isPassable(cell[0] + dx, cell[1] + dy)) return new int[]{cell[0] + dx, cell[1] + dy};
+                }
+            }
+        }
+        return null;
     }
 
     /** A cell a truck can stand on: open, with open ground all round it. */

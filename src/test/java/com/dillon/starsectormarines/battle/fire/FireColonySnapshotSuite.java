@@ -69,6 +69,10 @@ public final class FireColonySnapshotSuite implements SnapshotSuite {
             grove = groveCentre(sim, ignite, w);
         }
         int[] front = frontCell(ignite, w, window);
+        int[] fence;
+        try (BattleSimulation sim = CreepVegetationSnapshotSuite.verdantColony()) {
+            fence = burntFence(sim, ignite, w, window);
+        }
         int frontTick = medianIgnite(ignite, w, window[0], window[1], WIN_W, WIN_H);
         int groveTick = grove == null ? -1 : medianIgnite(ignite, w, grove[0] - 4, grove[1] - 4, 8, 8);
 
@@ -97,6 +101,11 @@ public final class FireColonySnapshotSuite implements SnapshotSuite {
                 front[0] + 0.5f, front[1] + 0.5f, CLOSE_CELLS);
         shots.add(new Shot(front[2] + 20, "11-front-close.png", frontClose, "close: the front crossing grass"));
         shots.add(new Shot(front[2] + 20, "12-night-front-close.png", frontClose, "night, close: the front crossing grass", true));
+        if (fence != null) {
+            BattleReviewFrameRenderer fenceClose = new BattleReviewFrameRenderer(context.modRoot(), FRAME_W, FRAME_H,
+                    fence[0] + 0.5f, fence[1] + 0.5f, CLOSE_CELLS);
+            shots.add(new Shot(endTick + 30, "13-fence-close.png", fenceClose, "close: burnt grass under a wire fence"));
+        }
         for (int k = 0; k < GIF_FRAMES; k++) {
             shots.add(new Shot(frontTick + 60 + k * GIF_STEP, null, play, "front crossing grass, road and pavement", false, "front.gif"));
             shots.add(new Shot(front[2] + 20 + k * GIF_STEP, null, frontClose, "close: the front crossing grass", false, "front-close.gif"));
@@ -132,6 +141,25 @@ public final class FireColonySnapshotSuite implements SnapshotSuite {
         Shot(int tick, String file, BattleReviewFrameRenderer renderer, String view, boolean night) {
             this(tick, file, renderer, view, night, null);
         }
+    }
+
+    /**
+     * The fence cell on grass that the first burn lit nearest the play window's middle: a wire fence does not burn,
+     * the grass under it does, and its scorch must show though nobody can stand there. Null when no fence burnt.
+     */
+    private static int[] burntFence(BattleSimulation sim, int[] ignite, int w, int[] window) {
+        float cx = window[0] + WIN_W / 2f, cy = window[1] + WIN_H / 2f, best = Float.MAX_VALUE;
+        int[] out = null;
+        for (Doodad d : sim.getDoodads()) {
+            if (d.definitionId() == null || !d.definitionId().contains("fence")) continue;
+            for (int dy = 0; dy < d.footprintCellsY; dy++) for (int dx = 0; dx < d.footprintCellsX; dx++) {
+                int x = d.cellX + dx, y = d.cellY + dy;
+                if (sim.getTopology().getGroundKind(x, y) != GroundKind.GRASS || ignite[y * w + x] < 0) continue;
+                float dist = (x - cx) * (x - cx) + (y - cy) * (y - cy);
+                if (dist < best) { best = dist; out = new int[]{x, y}; }
+            }
+        }
+        return out;
     }
 
     /**

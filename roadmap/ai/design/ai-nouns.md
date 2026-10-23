@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-21 — an allied party believes from its own picture and mans places by the shared planner, place directives and locked positions (`garrisonables.md`, parties); a holder shuts its sally door again behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body (`garrisonables.md`, sally doors); a machine guard is barred only by an enemy seen in its place, and a refused guard passes its place over for the next; a holder sorties through a sally door in its own wall (`garrisonables.md`, sally doors); a manned building draws a machine guard as a manned run does.
+Updated: 2026-10-23 — local squad traffic is standing behaviour, no longer an opt-in experiment. Earlier (2026-10-21): an allied party believes from its own picture and mans places by the shared planner, place directives and locked positions (`garrisonables.md`, parties); a holder shuts its sally door again behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body (`garrisonables.md`, sally doors); a machine guard is barred only by an enemy seen in its place, and a refused guard passes its place over for the next; a holder sorties through a sally door in its own wall (`garrisonables.md`, sally doors); a manned building draws a machine guard as a manned run does.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -1618,7 +1618,7 @@ contact-bound maneuver override decorative formation pressure. Acquisition
 may retain a legal target through near-equal alternatives so reflex delay and
 visual facing do not chatter.
 
-An experimental **local traffic preference** coordinates nearby friendly
+A **local traffic preference** coordinates nearby friendly
 infantry squads during quiet objective travel. It spreads coherent parallel
 travel sideways on open ground, releases that spacing before constrained
 terrain, and gently slows a lower-priority conflicting flow. It is neither a
@@ -1638,8 +1638,19 @@ return to the unshifted route; a refused join does not clear the route or reset
 the repath clock. Losing traffic eligibility drops the steering and speed
 preference, but a displaced member retains terrain-checked cell-path following
 until it finishes a route. New combat intent does not make an unsafe return
-legal. This remains off by default pending late-battle cost and
-behavior evidence; `squad-traffic.md` owns adoption.
+legal.
+
+Traffic shapes how a squad travels, never where it goes or how it gets there.
+It chooses no goal, runs no path search, keeps the destination and arrival
+semantics and the repath throttles, and waiting for traffic is never a route
+failure. Yielding is soft and bounded: a yielding flow keeps most of its
+ordinary speed, and lateral offset is capped at a few cells. Mechs, vehicles
+and drones keep their own movement authority. The layer does not repair
+shared-field coverage, synchronous-fallback budgets or fixed-goal occupancy
+search; those are independent routing problems and must not be credited to it.
+The `squad-traffic` behaviour scene is its showcase and acceptance: open-ground
+spreading, compression through a five-cell neck and recovery after it, and two
+flows crossing, with nobody lost, no blocked ground and bounded waiting.
 
 A chosen **execution firing position** likewise persists while it remains
 usable. Ordinary periodic squad replanning, movement toward the position, or a

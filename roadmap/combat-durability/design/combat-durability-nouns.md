@@ -245,11 +245,12 @@ gameplay need that the armour-and-structure model cannot express.
 
 **Treatment is the one way armor rises in battle.** A squad medic
 (`progression-nouns.md`, Field Medicine) restores structure and armor capacity
-to a squadmate over a timed treatment, and may bring a broken plate back from
-zero. That is repair done to one marine by another, out of finite supplies — not
-regeneration, not self-repair, and never a mitigation. Rating is unchanged: a
-re-plated suit is the same suit with capacity back. A treatment that runs to
-completion also dresses the patient's limb wounds; one interrupted leaves them. Armor break remains a
+to a squadmate over a treatment, and may bring a broken plate back from
+zero. That is repair done to one marine by another, paid for out of the medic's
+slowly regenerating energy pool — not regeneration of the patient, not
+self-repair, and never a mitigation. Rating is unchanged: a re-plated suit is the
+same suit with capacity back. A treatment that makes the patient whole also
+dresses their limb wounds; one interrupted, or ended by an empty pool, leaves them. Armor break remains a
 *transition* rather than a once-per-life event, so a re-plated marine whose
 armor is shot away again breaks a second time.
 

@@ -540,6 +540,18 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   answers all), and writes blooms a year, outcomes, spread and size lost to
   `build/reports/blooms/summary.md` / `summary.json` (`-PevidenceDir`). About
   fifteen seconds. Readings, not acceptance; opt-in and excluded from `test`.
+- `gradlew.bat storyMapPools` → the Rav Bloom story maps (Cordon Line and
+  Road, The Burn, Broad Front) play only from their pools of vetted seeds,
+  `mod/data/world/pools/<map>.pool.json`, each seed with a note and an
+  optional patch (`story-map-pools.md`). This regenerates every pooled seed
+  and fails when one no longer passes its mission's acceptance on the first
+  generation: **run it after any mapgen change that may move a story map.**
+  `-Pcandidates=cordon-line:1-40,heart-burn:1-20` screens seeds that are not
+  pooled yet (reported, never failing). About 30 seconds; writes
+  `build/reports/story-map-pools/summary.md`. `commanderEvidence` on
+  `cordon-line`, `cordon-road` and `heart` plays the whole pool by default, and
+  `createSnapshots -Psnapshot=story-map-pools` renders every pooled map whole.
+  Conquest and skirmish stay fully random. Opt-in and excluded from `test`.
 - `gradlew.bat crewEvidence` → crews a transport and a capital from their own
   room programs, runs each for four minutes of ship's time, and reports what the
   complement actually spent it doing: the idle share, the activity histogram, the
@@ -673,7 +685,7 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   trade our cost for the driver's — a resident mesh draws the whole map however
   close the camera is — and every other column here would call that a win.
 - `gradlew.bat createSnapshots` → every deterministic visual-evidence suite under
-  `build/snapshots/` without launching Starsector or creating an OpenGL context.
+  `build/snapshots/` without launching Starsector.
   It reads art from `mod/` first and the installed game second — the game's own
   order — so vanilla-sourced sprites such as aircraft hulls appear in headless
   frames. The install is already required to build at all (`starsectorDir`), and
@@ -691,13 +703,17 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   (maximum and mean channel difference, worst frame side by side) — accept a
   renderer change on that, never on GIFs, whose palette hides and invents
   differences.
-  **`-Dsnapshot.backend=gl` draws review frames on the GPU** through the
-  shipping `BattleRenderer` into a `HeadlessGl` pbuffer (`ReviewSceneBackend`;
-  `java2d` is the default and the reference). Creep- and fire-heavy scenes
-  render about ten times faster; a machine with no context (the Mac today) says
-  so once and uses Java2D. GL pixels depend on the driver, so compare raw
-  frames only between two runs on the same backend and machine. See
-  `gpu-review-drain.md`.
+  **Review frames are drawn on the GPU by default** through the shipping
+  `BattleRenderer` into a `HeadlessGl` pbuffer (`ReviewSceneBackend`), with
+  surface relief, sun shadows and event lights the Java2D drain never drew.
+  Creep- and fire-heavy scenes render ten times faster or more; small plain
+  views are about even. `-Dsnapshot.backend=java2d` is the reference drain;
+  `-Dsnapshot.gl.relief=false` drops the relief composite. On the Mac, whose
+  game ships an x86_64-only LWJGL 2, the task runs on LWJGL 3 through a
+  windowless CGL context instead (`-PsnapshotGl=lwjgl3` does the same on
+  Windows); a machine with no context at all says so once and uses Java2D. GL pixels depend on the
+  driver, so compare raw frames only between two runs on the same backend and
+  machine. See `gpu-review-drain.md`.
 - `gradlew.bat battleProbe -Pbattle=<source> -Pscript=<file>` → **ask a battle
   questions instead of bisecting for them.** Stands one battle up, steps it on
   command and answers queries between steps, one JSON line each: `until T`,

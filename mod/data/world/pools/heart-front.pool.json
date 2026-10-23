@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "map": "heart-front",
+  "seeds": [
+    { "seed": 2, "note": "two mothers" },
+    { "seed": 3, "note": "two mothers" },
+    { "seed": 5, "note": "two mothers" },
+    { "seed": 7, "note": "two mothers" },
+    { "seed": 8, "note": "two mothers" },
+    { "seed": 10, "note": "two mothers" },
+    { "seed": 11, "note": "two mothers" },
+    { "seed": 13, "note": "two mothers" }
+  ]
+}

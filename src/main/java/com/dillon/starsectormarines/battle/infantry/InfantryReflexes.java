@@ -152,8 +152,8 @@ public final class InfantryReflexes {
     };
 
     /**
-     * A squad medic walking to a patient or treating one, and a planted patient
-     * holding still for it.
+     * A squad medic walking to a patient or treating one, keeping at the
+     * patient's side as the squad moves on.
      *
      * <p><b>Ranked here</b> for the reason {@link #MORTAR_SECTION} is: below the
      * hazards already in the air and the marine still closing on the squad, and
