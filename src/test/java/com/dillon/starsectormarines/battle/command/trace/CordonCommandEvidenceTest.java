@@ -308,7 +308,8 @@ class CordonCommandEvidenceTest {
                     .append(" lost of ").append(convoys.convoys()).append(" (")
                     .append(cordon.timetable().convoysNeeded()).append(" needed); townspeople ")
                     .append(convoys.peopleOut()).append(" out, ").append(convoys.peopleLost())
-                    .append(" lost, ").append(convoys.town()).append(" still in the town").append(NL);
+                    .append(" lost, ").append(convoys.town()).append(" still in the town")
+                    .append(convoys.detoured() ? "; the convoys took the detour" : "").append(NL);
             for (long truck : convoys.trucks()) {
                 GroundBody body = sim.convoy().body(truck);
                 out.append(String.format(Locale.ROOT, "  - Truck %d at %.0f,%.0f, structure %.0f/%.0f%s%s",

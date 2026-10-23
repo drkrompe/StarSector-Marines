@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.cordon;
 
+import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.AutonomousMissionCommand;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
@@ -117,7 +118,15 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
             if (want <= 0) break;
             List<CommandSquadState> free = new ArrayList<>();
             for (CommandSquadState s : owned) if (!roadDuty.containsKey(s.squadId())) free.add(s);
-            take(free, beatDuty, call, want);
+            // The squads already on this call keep it: re-choosing the nearest each frame swapped them
+            // back and forth, and neither ever got there.
+            int kept = 0;
+            for (CommandSquadState s : free) {
+                if (kept >= want || beatDuty.containsKey(s.squadId()) || !onCall(s, call)) continue;
+                beatDuty.put(s.squadId(), call);
+                kept++;
+            }
+            take(free, beatDuty, call, want - kept);
         }
         for (int i = 0; i < owned.size(); i++) {
             CommandSquadState squad = owned.get(i);
@@ -161,6 +170,15 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         for (CommandSquadState s : owned) if (!duty.containsKey(s.squadId())) free.add(s);
         free.sort(Comparator.comparingDouble(s -> Math.hypot(s.centroidX() - at[0], s.centroidY() - at[1])));
         for (int k = 0; k < Math.min(count, free.size()); k++) duty.put(free.get(k).squadId(), at);
+    }
+
+    /** Cells from a beat's call a squad's attack-move may point and still be on that call (it moves with a truck). */
+    static final int BEAT_STICK = 24;
+
+    private static boolean onCall(CommandSquadState squad, int[] call) {
+        ObjectiveAssignment old = squad.directive() == null ? null : squad.directive().assignment();
+        return old != null && old.kind() == AssignmentKind.ATTACK_MOVE
+                && Math.hypot(old.targetCellX() - call[0], old.targetCellY() - call[1]) <= BEAT_STICK;
     }
 
     private boolean owned(CommandDirective directive, int tick) {

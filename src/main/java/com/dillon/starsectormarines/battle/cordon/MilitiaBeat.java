@@ -12,7 +12,7 @@ import java.util.List;
  * the town's militia come out too, down the corridor to the gap, and hold it beside the company. They stay
  * allied, under garrison authority, never in the player's command pool (the Cordon's law: the company
  * commands none of the allies). Succeeds when one of them reaches the gap; fails when every one of them
- * dies on the way; lapses when the last convoy is never loaded.
+ * dies on the way; lapses when the last convoy is never loaded or no militiaman is left to ride.
  */
 final class MilitiaBeat extends CordonBeat {
 
@@ -41,7 +41,10 @@ final class MilitiaBeat extends CordonBeat {
             if (sim.getStoryBeatLog().has("cordon.convoy_lost_" + last)) return Status.LAPSED;
             if (!sim.getStoryBeatLog().has("cordon.convoy_loaded_" + last)) return Status.ACTIVE;
             squads = convoys.townMilitia();
-            if (squads.isEmpty()) return Status.LAPSED;
+            int standing = 0;
+            for (int squad : squads) standing += sim.squadMemberCount(squad);
+            // Nobody left in the compound to ride out: the beat never came.
+            if (standing == 0) return Status.LAPSED;
             int[] crossing = convoys.corridor().get(convoys.gapIndex());
             gap = CordonGround.nearestWalkable(sim.getGrid(), crossing[0], crossing[1]);
             if (gap == null) return Status.LAPSED;
