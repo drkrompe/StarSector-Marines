@@ -377,14 +377,10 @@ def guide_shape(guide, s):
     return 0.0
 
 
-def salvo(kind, starts, target, space, frames, spread_m=6.0, seed=0, target_name=None, on='armour',
-          roll_fan_deg=None, **override):
+def salvo(kind, starts, target, space, frames, spread_m=6.0, seed=0, target_name=None, on='armour', **override):
     """A salvo: one flight per (start, axis, label) in `starts`, launched on the matching
     entry of `frames`, each at `target` plus a seeded scatter of `spread_m` across the line of
-    fire (they converge on the hull, not on one point). Rockets take the profile's fan.
-    roll_fan_deg: spread the flights' swing sides evenly across this many degrees about the line
-    of fire instead of a seeded roll each, so the trails run side by side rather than bunching
-    (owner, 2026-10-23, S6)."""
+    fire (they converge on the hull, not on one point). Rockets take the profile's fan."""
     rnd = random.Random(f'swfx-salvo|{kind}|{seed}')
     prof = PROFILES[kind]
     T = Vector(target)
@@ -395,8 +391,6 @@ def salvo(kind, starts, target, space, frames, spread_m=6.0, seed=0, target_name
         b = u.cross(a)
         tgt = T + a * rnd.gauss(0, spread_m) + b * rnd.gauss(0, spread_m)
         kw = dict(override)
-        if roll_fan_deg is not None and len(starts) > 1:
-            kw.setdefault('roll_deg', roll_fan_deg * (i / (len(starts) - 1) - .5))
         if prof['guide'] == 'straight' and prof.get('fan_deg'):
             kw.setdefault('fan_deg', prof['fan_deg'][i % len(prof['fan_deg'])])
         out.append(plan(kind, f, start, axis, tgt, space, label=label, seed=seed * 101 + i,
