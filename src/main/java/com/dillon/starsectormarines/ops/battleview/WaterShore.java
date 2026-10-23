@@ -53,30 +53,56 @@ public final class WaterShore {
      */
     static final double NOISE = MODE.equals("diagonal") ? 0 : 0.6;
 
+    /**
+     * Comparison switch for what a ford shows through its shallows:
+     * {@code pebbles} (a stony bed), {@code stones} (a line of stepping stones
+     * across it) or {@code both}, the default. Temporary: removed with the
+     * losing looks once the {@code ford-look} picks question is answered.
+     */
+    public static final String FORD_PROPERTY = "battle.render.fordLook";
+
+    private static final String FORD_LOOK = System.getProperty(FORD_PROPERTY, "both");
+
+    /** The block a ford's pebble bed draws from, or null when the look has none. */
+    public static final String PEBBLE_BLOCK = FORD_LOOK.equals("stones") ? null : "shore.ford-pebbles";
+
+    /** The block a ford's stepping stones draw from, or null when the look has none. */
+    public static final String STONE_BLOCK = FORD_LOOK.equals("pebbles") ? null : "shore.ford-stones";
+
     /** Triangles a cell is drawn in, fanned from its centre. */
     public static final int TRIANGLES = 4;
 
-    /** The bands of a shore, in paint order: each lies over the one before. */
+    /**
+     * The bands of a shore, in paint order: each lies over the one before.
+     *
+     * <p>Two fields are read. The waterline bands read the <em>wet</em> field,
+     * in which shallow water counts as water; the open water reads the
+     * <em>deep</em> field, in which it counts as ground. On a bank with no
+     * shallows the two are the same field.
+     */
     public enum Band {
         /** A translucent dark film over the land just above the waterline. */
-        WET(-0.45, "shore.wet"),
+        WET(-0.45, "shore.wet", false),
         /** The light shallows between the waterline and the open water. */
-        SHALLOW(0, "shore.shallow"),
+        SHALLOW(0, "shore.shallow", false),
         /** The open water itself, drawn from the water's own tiles. */
-        WATER(0.5, null);
+        WATER(0.5, null, true);
 
         /** The field value the band starts at; the field changes by two a cell across a bank. */
         public final double level;
         /** The block it draws from, or null for the water's own. */
         public final String block;
+        /** Whether the band reads the deep field rather than the wet one. */
+        public final boolean deep;
 
-        Band(double level, String block) {
+        Band(double level, String block, boolean deep) {
             this.level = level;
             this.block = block;
+            this.deep = deep;
         }
     }
 
-    static final int WATER = 1, NATURAL = 0, BUILT = -1;
+    static final int WATER = 1, NATURAL = 0, BUILT = -1, SHALLOW = 2;
 
     /** The cell's corners counter-clockwise from the south-west, north up. */
     private static final int[][] CORNERS = {{0, 0}, {1, 0}, {1, 1}, {0, 1}};
@@ -96,6 +122,7 @@ public final class WaterShore {
         x = Math.max(0, Math.min(topology.getWidth() - 1, x));
         y = Math.max(0, Math.min(topology.getHeight() - 1, y));
         if (topology.isWall(x, y) || topology.isFixture(x, y)) return BUILT;
+        if (topology.isShallowWater(x, y)) return SHALLOW;
         GroundKind ground = topology.getGroundKind(x, y);
         if (ground == GroundKind.WATER) return WATER;
         if (topology.roadSurface() != null && topology.roadSurface().underlay(x, y) != null) return BUILT;
@@ -106,21 +133,21 @@ public final class WaterShore {
     }
 
     /**
-     * Whether a cell draws any part of a shore: water or natural ground with
-     * both somewhere among the nine cells around it.
+     * Whether a cell draws any part of a shore: shallow water always, and
+     * water or natural ground with another of the three somewhere among the
+     * nine cells around it.
      */
     public static boolean takesPart(CellTopology topology, int x, int y) {
         int self = kind(topology, x, y);
         if (self == BUILT) return false;
-        boolean water = false, land = false;
+        if (self == SHALLOW) return true;
         for (int dy = -1; dy <= 1; dy++) {
             for (int dx = -1; dx <= 1; dx++) {
                 int k = kind(topology, x + dx, y + dy);
-                if (k == WATER) water = true;
-                else if (k == NATURAL) land = true;
+                if (k != BUILT && k != self) return true;
             }
         }
-        return water && land;
+        return false;
     }
 
     /**
@@ -145,17 +172,29 @@ public final class WaterShore {
         return null;
     }
 
-    /**
-     * The field at the corner {@code (cx, cy)} — the south-west corner of cell
-     * {@code (cx, cy)} — or NaN when a built cell touches it.
-     */
+    /** Whether a cell of this kind is water in the deep or the wet field. */
+    private static boolean water(int kind, boolean deep) {
+        return kind == WATER || (!deep && kind == SHALLOW);
+    }
+
+    /** The wet field at a corner; see {@link #corner(CellTopology, int, int, boolean)}. */
     static double corner(CellTopology topology, int cx, int cy) {
+        return corner(topology, cx, cy, false);
+    }
+
+    /**
+     * A field at the corner {@code (cx, cy)} — the south-west corner of cell
+     * {@code (cx, cy)} — or NaN when a built cell touches it.
+     *
+     * @param deep the deep field, in which shallow water is ground, rather than the wet one
+     */
+    static double corner(CellTopology topology, int cx, int cy, boolean deep) {
         int water = 0;
         for (int dy = -1; dy <= 0; dy++) {
             for (int dx = -1; dx <= 0; dx++) {
                 int k = kind(topology, cx + dx, cy + dy);
                 if (k == BUILT) return Double.NaN;
-                if (k == WATER) water++;
+                if (water(k, deep)) water++;
             }
         }
         // Twice the mean of the cells' signs: the scale at which a straight bank's
@@ -174,17 +213,55 @@ public final class WaterShore {
      *                 counter-clockwise from the one along the south edge
      */
     public static float[] patch(CellTopology topology, int x, int y, Band band, int triangle) {
+        return clip(topology, x, y, band.deep, band.level, triangle, true);
+    }
+
+    /**
+     * The stony bed of a shallow cell, for one of its triangles: everywhere the
+     * open water does not cover, so the stones never show through deep water.
+     * Null for a cell that is not shallow water.
+     */
+    public static float[] bedPatch(CellTopology topology, int x, int y, int triangle) {
+        if (kind(topology, x, y) != SHALLOW) return null;
+        return clip(topology, x, y, true, Band.WATER.level, triangle, false);
+    }
+
+    /**
+     * Whether a shallow cell is on its ford's line of stepping stones: the
+     * middle row across the ford, at right angles to the longer of the ford's
+     * two runs through the cell, which is the way the water flows.
+     */
+    public static boolean isSteppingStone(CellTopology topology, int x, int y) {
+        if (!topology.isShallowWater(x, y)) return false;
+        int north = run(topology, x, y, 0, 1), south = run(topology, x, y, 0, -1);
+        int east = run(topology, x, y, 1, 0), west = run(topology, x, y, -1, 0);
+        return north + south >= east + west
+                ? north == south || north == south + 1
+                : east == west || east == west + 1;
+    }
+
+    /** Shallow cells beyond {@code (x, y)} in one direction, before the first that is not. */
+    private static int run(CellTopology topology, int x, int y, int dx, int dy) {
+        int n = 0;
+        while (topology.isShallowWater(x + dx * (n + 1), y + dy * (n + 1))) n++;
+        return n;
+    }
+
+    /** One triangle clipped to where a field is at least {@code level}, or below it. */
+    private static float[] clip(CellTopology topology, int x, int y, boolean deep, double level,
+                                int triangle, boolean above) {
         int self = kind(topology, x, y);
         if (self == BUILT) return null;
-        double centre = self == WATER ? 1 : -1;
+        double centre = water(self, deep) ? 1 : -1;
         int[] a = CORNERS[triangle], b = CORNERS[(triangle + 1) % 4];
-        double va = corner(topology, x + a[0], y + a[1]);
-        double vb = corner(topology, x + b[0], y + b[1]);
+        double va = corner(topology, x + a[0], y + a[1], deep);
+        double vb = corner(topology, x + b[0], y + b[1], deep);
         // Against something built, the cell runs square to its own edge.
         if (Double.isNaN(va)) va = centre;
         if (Double.isNaN(vb)) vb = centre;
+        double sign = above ? 1 : -1;
         return CellContour.clip(new float[]{.5f, .5f, a[0], a[1], b[0], b[1]},
-                new double[]{centre - band.level, va - band.level, vb - band.level});
+                new double[]{sign * (centre - level), sign * (va - level), sign * (vb - level)});
     }
 
     /** A corner's own noise, in {@code [-1, 1]}. */

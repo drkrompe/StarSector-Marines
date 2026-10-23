@@ -142,7 +142,13 @@ public class CellTopology {
         /** Feather authored pavement over adjacent outdoor terrain; visual only. */
         ROAD_EDGE_BLEND,
         /** Persistent cosmetic ground damage; does not change navigation or the material identity. */
-        GROUND_DAMAGED;
+        GROUND_DAMAGED,
+        /**
+         * Shallow water over the cell's own firm ground, a brook's ford: drawn as
+         * shallows with a stony bed, walked at a wade. The ground kind stays what
+         * the bed is, so fire, creep and cover read it as that ground.
+         */
+        SHALLOW_WATER;
 
         public long mask() { return 1L << ordinal(); }
 
@@ -168,7 +174,7 @@ public class CellTopology {
         public boolean drawn() {
             return this == WALL || this == CROSSWALK || this == CROSSWALK_HORIZ
                     || this == ROOF_DESTROYED || this == WINDOW || this == ROAD_EDGE_BLEND
-                    || this == GROUND_DAMAGED;
+                    || this == GROUND_DAMAGED || this == SHALLOW_WATER;
         }
     }
 
@@ -446,6 +452,7 @@ public class CellTopology {
     public boolean isRoofDestroyed(int x, int y)                           { return hasTag(x, y, Tag.ROOF_DESTROYED); }
     public void    setRoofDestroyed(int x, int y, boolean v)               { setTag(x, y, Tag.ROOF_DESTROYED, v); }
     public boolean isFixture(int x, int y)                                 { return hasTag(x, y, Tag.FIXTURE); }
+    public boolean isShallowWater(int x, int y)                            { return hasTag(x, y, Tag.SHALLOW_WATER); }
     public void    setFixture(int x, int y, boolean v)                     { setTag(x, y, Tag.FIXTURE, v); }
     public boolean isWindow(int x, int y)                                  { return hasTag(x, y, Tag.WINDOW); }
     public void    setWindow(int x, int y, boolean v)                      { setTag(x, y, Tag.WINDOW, v); }

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.PatchField;
@@ -26,6 +27,7 @@ import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainField;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainPlan;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainSurface;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.ArrayDeque;
@@ -460,7 +462,8 @@ public final class OutdoorLandscapeStage implements GenStage {
     /**
      * A plan's brooks run across the country: water on open natural ground
      * along each centre line, a sand strip on either bank, and at every ford
-     * sand right across. Returns the centre cells, for the reservations.
+     * a stony bed right across under shallow water, waded slowly. Returns the
+     * centre cells, for the reservations.
      */
     private static List<int[]> runBrooks(GenContext c, Landscape landscape) {
         List<int[]> centres = new ArrayList<>();
@@ -499,6 +502,9 @@ public final class OutdoorLandscapeStage implements GenStage {
                     if (c.topology.getGroundKind(x, y) != GroundKind.WATER) continue;
                     // A stony bed, not sand: creep over it is a film that does not burn, so a ford holds as a break.
                     c.topology.setGroundKind(x, y, GroundKind.STONE);
+                    // Under shallow water: waded slowly, drawn as shallows over the stones.
+                    c.topology.setTag(x, y, CellTopology.Tag.SHALLOW_WATER, true);
+                    c.grid.setTag(x, y, NavigationGrid.CellTag.SHALLOW_WATER, true);
                     c.grid.setWalkable(x, y, true);
                     c.grid.setEdgeCoverSuppressed(x, y, false);
                 }
