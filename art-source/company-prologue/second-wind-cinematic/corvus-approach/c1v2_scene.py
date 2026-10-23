@@ -817,6 +817,12 @@ def planet_layer(scene, out_dir, frames):
             obj.is_holdout = True
     for lc in bpy.context.view_layer.layer_collection.children:
         lc.holdout = True
+    # The plume guard asks whether every thrusting craft shows its drive. In this layer no craft
+    # shows anything (held out, plumes hidden on purpose): build() has already passed the guard
+    # with the plumes on, so its render-time re-check is disarmed here and only here.
+    import thrust_shots
+    if thrust_shots._check_plumes in bpy.app.handlers.render_init:
+        bpy.app.handlers.render_init.remove(thrust_shots._check_plumes)
     scene.render.film_transparent = True
     scene.render.image_settings.color_mode = 'RGBA'
     scene.render.image_settings.color_depth = '16'
