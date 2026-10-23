@@ -161,7 +161,11 @@ threshold by the tug when that ground is clear, and goes on from there; one that
 stood in the lane stopped the shed, since the next machine is drawn out into
 that same stretch. A carrier waits
 on a **staging slot** of its own on the apron outside the door, never in the
-doorway, on ground its footprint fits; there are as many carriers as slots,
+doorway, on ground its footprint fits and can drive away from: every hull of
+the allies' is set down on the main body of the map's ground for its width,
+never in a pocket (the nearest cell that merely fitted once put the first slot
+inside a walled pen beside the shed, and nothing from the base reached the
+line); there are as many carriers as slots,
 and an APC beyond that fights with the armour. Every machine drives straight
 out to a **threshold** a few cells beyond the door first, then on to its slot
 or its post behind a redoubt: a carrier steers too wide to turn from the lane
