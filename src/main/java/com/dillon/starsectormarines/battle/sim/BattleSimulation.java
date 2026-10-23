@@ -174,6 +174,7 @@ import com.dillon.starsectormarines.battle.air.ParkedAircraft;
 import com.dillon.starsectormarines.battle.command.MissionCommand;
 import com.dillon.starsectormarines.battle.command.ReliefAssault;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
 import com.dillon.starsectormarines.battle.story.OpeningOperationStoryObserver;
 import com.dillon.starsectormarines.battle.story.JunctionStoryObserver;
 import com.dillon.starsectormarines.battle.story.RelayNineStoryObserver;
@@ -961,6 +962,27 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * overhead, say) uses to reach the battle's radio without holding the log.
      */
     public void emitStoryBeat(String id) { storyBeats.emitOnce(simTickIndex, id, StoryBeatLog.Audience.PLAYER); }
+    /**
+     * The battle's beat log itself, for mission machinery that publishes under its own prefix (an
+     * {@link ObjectiveBoard}'s context). Presentation reads through the event accessors below.
+     */
+    public StoryBeatLog getStoryBeatLog() { return storyBeats; }
+
+    private ObjectiveBoard optionalObjectives;
+
+    /**
+     * Hands the battle its rolled optional objectives ({@code optional-objectives.md}). The mission keeps
+     * advancing the board from its own story sequence; the battle only holds it so the campaign hand-off
+     * ({@code MissionResolver}) can end it and read its results. Once, at setup.
+     */
+    public void installOptionalObjectives(ObjectiveBoard board) {
+        if (optionalObjectives != null || simTickIndex != 0)
+            throw new IllegalStateException("Install optional objectives once at setup");
+        optionalObjectives = board;
+    }
+
+    /** The battle's optional objectives, or {@code null} when its mission rolled none. */
+    public ObjectiveBoard getOptionalObjectives() { return optionalObjectives; }
     /** Full immutable history for neutral diagnostic tools, including hidden scenario facts. */
     public List<StoryBeatLog.Event> getStoryBeats() { return storyBeats.events(); }
     /** Presentation reads after advance; each consumer owns a battle-local sequence cursor. */

@@ -97,4 +97,5 @@ mechanic: the presentation marks it (`barrage_ended` already exists).
 
 Every beat is picked. Each becomes an optional objective that a battle may
 activate when its map holds the structure it needs, with a reward on success
-and a cost on failure (`heart-mission-depth.md`).
+and a cost on failure (`heart-mission-depth.md`). The shared mechanism that
+rolls and runs them is `optional-objectives.md`.
