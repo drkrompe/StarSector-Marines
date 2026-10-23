@@ -74,9 +74,6 @@ import java.util.Map;
  */
 abstract class AbstractZoneAction implements Action {
 
-    private static final boolean ISOLATED_ADVANCE_THREAT = Boolean.parseBoolean(
-            System.getProperty("battle.squad.isolatedAdvanceThreat", "true"));
-
     /**
      * Minimum sim-seconds since the last squad replan before a contact-halt is
      * allowed to force another. Without this throttle a pinned squad would
@@ -747,15 +744,9 @@ abstract class AbstractZoneAction implements Action {
      * by squad.lock. Contact-onset publication has the same dedicated ownership.
      */
     protected static void updateAdvanceThreat(Squad squad, BattleControl sim, int destX, int destY) {
-        updateAdvanceThreat(squad, sim, destX, destY, ISOLATED_ADVANCE_THREAT);
-    }
-
-    /** Same production path with explicit monitor selection for focused controls. */
-    static void updateAdvanceThreat(Squad squad, BattleControl sim, int destX, int destY,
-                                    boolean isolated) {
         int tick = sim.getSimTickIndex();
         if (squad.advanceThreatTick == tick) return;
-        synchronized (isolated ? squad.advanceThreatLock : squad.lock) {
+        synchronized (squad.advanceThreatLock) {
             if (squad.advanceThreatTick == tick) return;
             computeAdvanceThreat(squad, sim, destX, destY, tick);
             // Volatile publication-last: the lock-free fast path must never
