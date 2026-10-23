@@ -185,8 +185,9 @@ groups of six, two minutes apart, from the two rear villages in turn.
 
 **Cut-off town (the Road).** The colony's own town in the front, beyond the
 line, where the people Colony Breach left behind are still holding out in its
-civil-defence compound with what is left of the militia. Its people are the
-Road's score.
+civil-defence compound with what is left of the militia (two teams, seated
+inside the gate). Its people are the Road's score: a count the compound holds,
+which ride out as a count.
 
 **Corridor.** The relief road from the rear edge through the line to the
 cut-off town's compound: the way the convoys drive (*The map*). Nothing is
@@ -196,8 +197,21 @@ in the way.
 **Convoy (the Road).** An allied column of trucks that drives the corridor to
 the town, waits at the compound's gate while the townspeople board, and drives
 back out. It does not fight its way through: it stops when the road ahead is
-blocked by the swarm, and goes on when it is clear. A convoy is **lost** when
-all its trucks are destroyed; its passengers die with their truck.
+blocked by the swarm, and goes on when it is clear. Past the gap, in the
+swarm's country, it rolls only with the company beside it: a convoy nobody
+escorts waits at the line. A convoy is **lost** when all its trucks are
+destroyed; its passengers die with their truck. The standard timetable sends
+three convoys of two trucks, four minutes apart from minute one; each truck
+brings out six of the town's thirty-six, and two convoys must come back out.
+
+A truck drives a route laid along the corridor once: each stretch of the road
+a route the planner proves drivable for a truck, and where it proves none (a
+country lane's corner tighter than it will prove a truck's turn through) the
+road's own cells, which the truck drives with ordinary steering and recovery.
+A truck that stands still on an open route is given the rest of it again from
+where it stands. Trucks come on a few cells in from the rear edge, since a hull
+set down on the edge row has no route out of it, and nothing is parked within
+a few cells of the corridor.
 
 **Line posture.** The briefing's choice of how far the company goes out, the
 Cordon's version of the hive posture (`colony-breach-nouns.md`, Hive posture),
@@ -381,6 +395,8 @@ with the same keys.
 | `convoy_out_N` | the Road | PLAYER | Convoy N leaves the map with its people |
 | `convoy_lost_N` | the Road | PLAYER | Convoy N's last truck is destroyed |
 | `gap_closed` | the Road | PLAYER | Both redoubts beside the gap have fallen |
+| `convoys_lost` | the Road | PLAYER | Too many convoys are lost for enough to come out |
+| `convoys_short` | the Road | PLAYER | The window closed with too few convoys out |
 | `line_broken` | both | PLAYER | More redoubts have fallen than the briefing allows |
 | `cordon_held` | both | PLAYER | The battle is won |
 

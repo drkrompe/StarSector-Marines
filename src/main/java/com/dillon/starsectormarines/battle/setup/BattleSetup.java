@@ -5369,8 +5369,8 @@ public final class BattleSetup {
         return stampVehicles(map, rng, null);
     }
 
-    private static List<Doodad> stampVehicles(MapResult map, Random rng,
-                                              boolean[][] reserved) {
+    /** {@link #stampVehicles(MapResult, Random)} parking nothing on the reserved cells. */
+    static List<Doodad> stampVehicles(MapResult map, Random rng, boolean[][] reserved) {
         NavigationGrid grid = map.grid;
         CellTopology topology = map.topology;
         // A parked truck is cover, and a field promised to stay clear of cover

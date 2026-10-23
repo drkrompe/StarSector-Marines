@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.command.trace;
 
+import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
 import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
 import com.dillon.starsectormarines.battle.cordon.CordonRefugees;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
@@ -221,6 +222,20 @@ class CordonCommandEvidenceTest {
         if (cordon.columns() != null) {
             out.append("- Allied columns joined: ").append(cordon.columns().joined()).append(" of ")
                     .append(cordon.timetable().columnSeconds().size()).append('\n');
+        }
+        if (cordon.convoys() != null) {
+            CordonConvoys convoys = cordon.convoys();
+            out.append("- Convoys: ").append(convoys.out()).append(" out, ").append(convoys.lost())
+                    .append(" lost of ").append(convoys.convoys()).append(" (")
+                    .append(cordon.timetable().convoysNeeded()).append(" needed); townspeople ")
+                    .append(convoys.peopleOut()).append(" out, ").append(convoys.peopleLost())
+                    .append(" lost, ").append(convoys.town()).append(" still in the town").append(NL);
+            for (long truck : convoys.trucks()) {
+                GroundBody body = sim.convoy().body(truck);
+                out.append(String.format(Locale.ROOT, "  - Truck %d at %.0f,%.0f, structure %.0f/%.0f%s%s",
+                        truck, body.x, body.y, sim.world().hp(truck), sim.world().maxHp(truck),
+                        sim.convoy().mission(truck).authoredRoutePaused ? ", held" : "", NL));
+            }
         }
         if (cordon.logistics() != null) {
             out.append("- Logistics base: ").append(cordon.logistics().built()).append(" machines built, ")
