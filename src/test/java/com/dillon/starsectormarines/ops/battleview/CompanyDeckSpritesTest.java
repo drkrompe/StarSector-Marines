@@ -21,6 +21,7 @@ class CompanyDeckSpritesTest {
                 (proxy, method, args) -> switch (method.getName()) {
                     case "getWidth" -> 64f;
                     case "getHeight" -> 96f;
+                    case "getTextureId" -> 0;
                     default -> null;
                 });
         var settings = (SettingsAPI) Proxy.newProxyInstance(SettingsAPI.class.getClassLoader(), new Class<?>[]{SettingsAPI.class},

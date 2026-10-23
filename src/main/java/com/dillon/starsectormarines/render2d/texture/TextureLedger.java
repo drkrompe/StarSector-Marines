@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.render2d.texture;
 
+import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.SettingsAPI;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -65,6 +68,8 @@ public final class TextureLedger {
     public record Release(int unloaded, long bytesFreed, int kept, List<Integer> deletedIds) { }
 
     private static TextureLedger shared;
+    /** The game settings {@link #shared} was made over; another one means another texture store. */
+    private static SettingsAPI sharedSettings;
 
     private final Backend backend;
     private final Map<String, Entry> entries = new LinkedHashMap<>();
@@ -75,9 +80,18 @@ public final class TextureLedger {
         this.session = new TextureLease(this, "session", true);
     }
 
-    /** The ledger over the game's own texture store. */
+    /**
+     * The ledger over the game's own texture store. The game installs its settings once, so in
+     * play this is one ledger for the whole process; a test that installs its own settings has
+     * its own store, and gets a ledger of its own rather than one remembering another store's
+     * textures.
+     */
     public static synchronized TextureLedger shared() {
-        if (shared == null) shared = new TextureLedger(new GameTextureBackend());
+        SettingsAPI settings = Global.getSettings();
+        if (shared == null || settings != sharedSettings) {
+            shared = new TextureLedger(new GameTextureBackend());
+            sharedSettings = settings;
+        }
         return shared;
     }
 
