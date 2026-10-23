@@ -2188,7 +2188,7 @@ def blender_main(cfg):
         import scene_fx
         b = placed[key].get('build') if key in placed else None
         w = (scene_fx.WEAPON_OF.get(b) or {}).get(1) or scene_fx.DEFAULT_WEAPON.get(b) or 'lightmg'
-        return scene_fx.FAMILY.get(w, 'mg')
+        return scene_fx.SceneFx.FAMILY.get(w, "mg")
 
     def streak_radius(p, r_m):
         c = spec['camera']          # this frame's camera (the scene camera is aimed after the stand-ins)
