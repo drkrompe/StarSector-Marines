@@ -77,6 +77,11 @@
       "render": { "visualCells": 1.6, "muzzleOffsetCells": 0.58, "muzzleLateralOffsetCells": 0.13, "sprite": "graphics/weapons/vulcan_cannon_turret_base.png", "recoilSprite": "graphics/weapons/vulcan_cannon_turret_recoil.png" }
     },
     {
+      "id": "mount.hardpoint-cannon", "weapon": "weapon.turret-hephaestus",
+      "sim": { "ammoCapacity": 50, "turnRateDegPerSec": 60.0, "maxDepressionDeg": 15.0 },
+      "render": { "visualCells": 3.0, "muzzleOffsetCells": 0.9, "sprite": "graphics/weapons/hephaestus_turret_base.png", "recoilSprite": "graphics/weapons/hephaestus_turret_recoil.png" }
+    },
+    {
       "id": "mount.fortress-battery", "weapon": "weapon.turret-heavy-mortar",
       "sim": { "ammoCapacity": 15, "turnRateDegPerSec": 40.0 },
       "render": { "visualCells": 3.2604, "muzzleOffsetCells": 1.5, "sprite": "graphics/structures/fortress-battery-turret.png", "recoilSprite": "graphics/structures/fortress-battery-barrels.png" }
@@ -127,6 +132,7 @@
     { "id": "structure.drone-pd-halo", "mount": "mount.drone-pd-halo", "catalog": { "displayName": "Halo Drone Laser" }, "durability": { "structure": 20.0, "armorCapacity": 10.0, "armorRating": 3.0 }, "physics": { "radius": 0.3, "hitHalfHeight": 0.32, "footprintCells": [1, 1] }, "forceScore": 1.0 },
     { "id": "structure.carried-point-defence", "mount": "mount.pd-pack", "catalog": { "displayName": "Arrestor Interceptor Pack" }, "durability": { "structure": 26.0, "armorCapacity": 18.0, "armorRating": 3.0 }, "physics": { "radius": 0.3, "hitHalfHeight": 0.32, "footprintCells": [1, 1] }, "forceScore": 3.0 },
     { "id": "structure.tank-aps", "mount": "mount.tank-aps", "catalog": { "displayName": "Hull Active Protection" }, "durability": { "structure": 1.0, "armorCapacity": 1.0, "armorRating": 1.0 }, "physics": { "radius": 0.3, "hitHalfHeight": 0.32, "footprintCells": [1, 1] }, "forceScore": 0.1 },
+    { "id": "structure.hardpoint-cannon", "mount": "mount.hardpoint-cannon", "catalog": { "displayName": "Cannon Hardpoint" }, "durability": { "structure": 220.0, "armorCapacity": 260.0, "armorRating": 16.0 }, "physics": { "radius": 1.3, "hitHalfHeight": 1.0, "footprintCells": [3, 3], "plinthTiers": 1 }, "forceScore": 28.0 },
     { "id": "structure.fortress-battery-placeholder", "mount": "mount.fortress-battery", "catalog": { "displayName": "Fortress Battery" }, "durability": { "structure": 1800.0, "armorCapacity": 1200.0, "armorRating": 40.0 }, "physics": { "radius": 1.4, "hitHalfHeight": 1.0, "footprintCells": [3, 3] }, "forceScore": 60.0, "battery": { "loadout": "citadel", "fireControlRadius": 4.5 },
       "art": { "base": "graphics/structures/fortress-battery-base.png" },
       "gatehouseArt": { "tower": "graphics/fort/gate-tower.png", "towerDamaged": "graphics/fort/gate-tower-damaged.png", "gate": "graphics/fort/gate-leaves.png" } },

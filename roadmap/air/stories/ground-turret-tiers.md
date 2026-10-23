@@ -45,9 +45,13 @@ is approved; every look step is shown to the owner as renders.
 
 1. **Before evidence** (built): `createSnapshots -Psnapshot=ground-turret-sites` frames
    every kind of generated turret site on Conquest maps at play zoom.
-2. **Raised guns**: `plinthTiers` and `maxDepressionDeg` in the turret catalog; muzzle
+2. **Raised guns** (built): `plinthTiers` and `maxDepressionDeg` in the turret catalog; muzzle
    height in turret fire and in the disciplined crew's lane check; eye height in sight;
-   a scene showing a raised gun firing over its own line against a ground-level control.
+   a scene showing a raised gun firing over its own line against a ground-level control
+   (`sceneEvidence -Pscene=raised-gun`). `structure.hardpoint-cannon` (3x3, one tier, the
+   Hephaestus weapon, 15 degrees of depression, so a dead zone of about 15 cells) is the
+   placeholder hardpoint until slice 5 gives it art. Not built: incoming fire at a raised gun
+   still meets the low cover round its plinth as if the gun stood on the ground.
 3. **Art direction**: two or three looks for both tiers rendered on real scenes, put to
    the owner on the picks page.
 4. **Point emplacement family**: the chosen look for the one-cell roles (autogun, light

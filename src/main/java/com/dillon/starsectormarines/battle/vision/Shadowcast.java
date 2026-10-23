@@ -70,7 +70,7 @@ public final class Shadowcast {
         float airR2 = airLosRadius * airLosRadius;
         ElevationMap elevation = grid.elevation();
         int eye = elevation == null ? 0
-                : airborne ? ElevationMap.MAX_TIER : elevation.eyeTier(sx, sy);
+                : airborne ? ElevationMap.MAX_TIER : grid.eyeTierAt(sx, sy);
         int count = 0;
 
         if (sx >= 0 && sx < w && sy >= 0 && sy < h) {

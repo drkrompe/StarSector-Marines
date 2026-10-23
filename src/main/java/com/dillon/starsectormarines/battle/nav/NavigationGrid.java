@@ -300,15 +300,60 @@ public class NavigationGrid {
     /** Cells exposed by firing down this tick, ascending; see {@link #setExposedCells}. */
     public int[] exposedCells() { return exposedCells; }
 
+    /** Tiers above its ground a gun on a plinth sees from, by cell; null until one stands. */
+    private byte[] raisedEye;
+    private int[] raisedCells = new int[0];
+
+    /**
+     * Raises the eye in one cell by {@code tiers} whole tiers above its ground, or lowers it again with zero: the
+     * cell a gun on a plinth stands in ({@code StructureDef.plinthTiers}). Its gun sees from that height, and, as
+     * with a holder exposed by firing down, sight from lower ground to it is judged from the same height, so
+     * whatever it can see down to sees it back. Sight answers change, so the caches are swept.
+     */
+    public void setRaisedEye(int x, int y, int tiers) {
+        if (!inBounds(x, y)) return;
+        int idx = index(x, y);
+        int value = Math.max(0, Math.min(ElevationMap.MAX_TIER, tiers));
+        if (raisedEye == null) {
+            if (value == 0) return;
+            raisedEye = new byte[width * height];
+        }
+        if (raisedEye[idx] == value) return;
+        raisedEye[idx] = (byte) value;
+        int count = 0;
+        int[] cells = new int[raisedCells.length + 1];
+        for (int cell : raisedCells) if (cell != idx) cells[count++] = cell;
+        if (value > 0) cells[count++] = idx;
+        Arrays.sort(cells, 0, count);
+        raisedCells = Arrays.copyOf(cells, count);
+        opacityRevision++;
+        losCaches.clearAll();
+    }
+
+    /** Cells whose eye stands raised on a plinth, ascending; see {@link #setRaisedEye}. */
+    public int[] raisedCells() { return raisedCells; }
+
+    /**
+     * The tier an eye in this cell sees from: its ground's, plus the plinth a gun there stands on. Zero off the
+     * map, and the plinth alone on a map with no raised ground.
+     */
+    public int eyeTierAt(int x, int y) {
+        if (!inBounds(x, y)) return 0;
+        int ground = elevation != null ? elevation.eyeTier(x, y) : 0;
+        return raisedEye != null ? ground + raisedEye[index(x, y)] : ground;
+    }
+
     /**
      * The tier sight and fire are judged from along a line from {@code (x0, y0)}
      * to {@code (x1, y1)}: the observer's own, or the far cell's when that cell
-     * is an exposed holder standing higher.
+     * is an exposed holder or a raised gun standing higher.
      */
     private int sightEye(ElevationMap elevation, int x0, int y0, int x1, int y1) {
-        int eye = elevation.eyeTier(x0, y0);
-        if (exposed != null && inBounds(x1, y1) && exposed[index(x1, y1)]) {
-            eye = Math.max(eye, elevation.eyeTier(x1, y1));
+        int eye = eyeTierAt(x0, y0);
+        if (inBounds(x1, y1)) {
+            int far = index(x1, y1);
+            boolean seenBack = exposed != null && exposed[far] || raisedEye != null && raisedEye[far] > 0;
+            if (seenBack) eye = Math.max(eye, eyeTierAt(x1, y1));
         }
         return eye;
     }
@@ -971,7 +1016,7 @@ public class NavigationGrid {
         int nx = x + (facing == FACING_E ? 1 : facing == FACING_W ? -1 : 0);
         int ny = y + (facing == FACING_S ? 1 : facing == FACING_N ? -1 : 0);
         if (!inBounds(nx, ny) || !elevation.isFaceAt(index(nx, ny))) return level;
-        if (elevation.eyeTier(shooterX, shooterY) <= elevation.eyeTier(x, y)) return level;
+        if (eyeTierAt(shooterX, shooterY) <= eyeTierAt(x, y)) return level;
         return edgeBarrierCoverByFacing[index(x, y) * FACING_COUNT + facing] & 0xFF;
     }
 
