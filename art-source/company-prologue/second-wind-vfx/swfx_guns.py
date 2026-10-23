@@ -1321,6 +1321,23 @@ def _jag_mesh(name, lines, radius, sides=4, mat=None):
     return me
 
 
+BOLT_POOL = 12      # jagged bolt strikes per gun
+
+
+def _bolt_pool(label, weapon, length, amp, radius, mat):
+    """BOLT_POOL jagged bolt meshes for one gun, made once and reused by every round it fires (a
+    bolt is drawn along its own length, so any strike fits any frame of any round)."""
+    out = []
+    for i in range(BOLT_POOL):
+        name = f'{PREFIX} bolt mesh {label} {weapon} {length:.4f} {i}'
+        me = bpy.data.meshes.get(name)
+        if me is None:
+            rnd = random.Random(f'bolt-pool|{label}|{weapon}|{i}')
+            me = _jag_mesh(name, _jagged(rnd, Vector((-length, 0, 0)), Vector(), 12, amp, forks=2), radius, 5, mat)
+        out.append(me)
+    return out
+
+
 def _jagged(rnd, p0, p1, n, amp, forks=0, fork_len=.25):
     """A crackling polyline from p0 to p1 in n segments, jittered sideways by about `amp`; plus
     `forks` short side branches. Returns the list of polylines."""
@@ -1546,12 +1563,13 @@ def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target):
     rec['round'] = cor.name
     if r.get('jag'):
         # The bolt crackles: a fresh jagged core every frame of its flight.
+        # The strikes come from a small pool per gun (_bolt_pool): a long burst re-strikes hundreds of
+        # frames, and a mesh each cost a whole-shot build (Asharu S7's ion cannon) most of an hour.
         mat = _round_material(ctx, weapon, 'core')
+        pool = _bolt_pool(label, weapon, L, swfx_core.units(r['corona']) * .35, swfx_core.units(r['core']), mat)
         for j, f in enumerate(frames):
-            lines = _jagged(rnd, Vector((-L, 0, 0)), Vector(), 12, swfx_core.units(r['corona']) * .35, forks=2)
-            ob = bpy.data.objects.new(f'{PREFIX} bolt {label} f{frame:04d} {j}',
-                                      _jag_mesh(f'{PREFIX} bolt mesh {label} f{frame:04d} {j}', lines,
-                                                swfx_core.units(r['core']), 5, mat))
+            pick = random.Random(f'bolt|{label}|{frame}|{j}').randrange(len(pool))
+            ob = bpy.data.objects.new(f'{PREFIX} bolt {label} f{frame:04d} {j}', pool[pick])
             coll.objects.link(ob)
             ob.location, ob.rotation_euler = M @ (d * heads[j]), rot
             ob.scale.x = max(.05, min(1.0, heads[j] / L))

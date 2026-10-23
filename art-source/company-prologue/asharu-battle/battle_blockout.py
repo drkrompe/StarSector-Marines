@@ -3643,7 +3643,8 @@ def main():
                                                           fx_check='--fx-check' in argv,
                                                           volume_audit='--volume-audit' in argv,
                                                           layers=layers, plates=plates,
-                                                          blockout_wrecks='--blockout-wrecks' in argv)))
+                                                          blockout_wrecks='--blockout-wrecks' in argv,
+                                                          kit_once='--kit-once' in argv)))
         subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python-exit-code', '1',
                                '--python', __file__], env=env)
         return
@@ -3693,6 +3694,9 @@ if __name__ == '__main__':
     except ImportError:
         bpy = None
     if bpy is not None and os.environ.get('ASHARU_CFG'):
+        if os.environ.get('ASHARU_STACKS'):     # a build that hangs: every thread's stack, every N seconds
+            import faulthandler
+            faulthandler.dump_traceback_later(int(os.environ['ASHARU_STACKS']), repeat=True)
         blender_main(json.loads(os.environ['ASHARU_CFG']))
     else:
         main()
