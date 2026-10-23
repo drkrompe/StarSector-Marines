@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.testsupport.HeadlessGl;
+import com.dillon.starsectormarines.testsupport.GlSurface;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.SettingsAPI;
 import org.lwjgl.BufferUtils;
@@ -37,7 +37,7 @@ import static org.lwjgl.opengl.GL12.GL_UNSIGNED_INT_8_8_8_8_REV;
 
 /**
  * The review frame's scene drawn by the GPU: the shipping {@link BattleRenderer} collect and drain into a
- * {@link HeadlessGl} pbuffer, read back as a {@link BufferedImage} for the CPU to caption and annotate.
+ * {@link GlSurface} (an LWJGL 2 pbuffer, or LWJGL 3 on the Mac), read back as a {@link BufferedImage} for the CPU to caption and annotate.
  *
  * <p>Opt-in with {@code -Dsnapshot.backend=gl} ({@link ReviewSceneBackend}). Where no context can be made it says so once and every frame falls
  * back to the Java2D drain, which stays the deterministic reference: a GL frame is a function of the driver as
@@ -49,6 +49,14 @@ import static org.lwjgl.opengl.GL12.GL_UNSIGNED_INT_8_8_8_8_REV;
  */
 final class GlReviewDrain implements ReviewSceneBackend {
 
+    /**
+     * The surface-relief composite (sun shadows, relief, event lights) is on unless {@code -Dsnapshot.gl.relief=false},
+     * which draws the plain observer scene: the control for what the composite costs and changes.
+     */
+    private static final BattleRenderHostProfile PROFILE =
+            Boolean.parseBoolean(System.getProperty("snapshot.gl.relief", "true"))
+                    ? BattleRenderHostProfile.OBSERVER_GL : BattleRenderHostProfile.OBSERVER_SCENE;
+
     private static final Object LOCK = new Object();
     private static GlReviewDrain shared;
     private static boolean tried;
@@ -59,7 +67,7 @@ final class GlReviewDrain implements ReviewSceneBackend {
         return owner;
     });
     private final Path modRoot;
-    private HeadlessGl gl;
+    private GlSurface gl;
     private int surfaceW;
     private int surfaceH;
     private GlSpriteTokens tokens;
@@ -70,7 +78,11 @@ final class GlReviewDrain implements ReviewSceneBackend {
      * Least recently drawn first; the oldest is released the way {@code BattleScreen.detach} releases its own.
      */
     private final Map<BattleSimulation, BattleRenderer> renderers = new LinkedHashMap<>(8, 0.75f, true);
-    private static final int MAX_RENDERERS = 4;
+    /**
+     * Above the most battles any suite draws in turn: `aircraft-crash` draws six side by side every frame, and at a
+     * cap of four every frame evicted one and rebuilt its atlases, which cost a hundred milliseconds a view.
+     */
+    private static final int MAX_RENDERERS = 16;
     private int frameW;
     private int frameH;
     private IntBuffer readBuffer;
@@ -89,7 +101,7 @@ final class GlReviewDrain implements ReviewSceneBackend {
             try {
                 String renderer = drain.call(() -> drain.start(1920, 1080));
                 if (renderer == null) {
-                    System.out.println("[gl-review] falling back to the Java2D drain: " + HeadlessGl.unavailableReason());
+                    System.out.println("[gl-review] falling back to the Java2D drain: " + GlSurface.unavailableReason());
                     drain.thread.shutdown();
                     return null;
                 }
@@ -112,7 +124,9 @@ final class GlReviewDrain implements ReviewSceneBackend {
     public BufferedImage draw(Scene scene, int width, int height) {
         // Collected on the caller's thread: the feed's services are not the drain's to touch.
         DrawList leading = scene.impacts() == null ? null : scene.impacts().overlay(scene.camera());
+        long queued = System.nanoTime();
         return call(() -> {
+            if (ReviewRenderProfile.ENABLED) ReviewRenderProfile.phase("gl handoff wait", System.nanoTime() - queued);
             ensureSurface(width, height);
             long start = System.nanoTime();
             frameW = width;
@@ -126,13 +140,15 @@ final class GlReviewDrain implements ReviewSceneBackend {
             glClearColor(0f, 0f, 0f, 1f);
             glClear(GL_COLOR_BUFFER_BIT);
             RenderContext context = new RenderContext(scene.simulation(), scene.camera(), null, 1f, 0f, false,
-                    null, null, BattleRenderHostProfile.OBSERVER_SCENE, scene.clockSeconds());
+                    null, null, PROFILE, scene.clockSeconds());
             // The suite's own code may install settings of its own between frames, and the composite reads the
             // screen off whatever is installed, so the drain's are in place only while it draws.
             SettingsAPI previous = Global.getSettings();
             Global.setSettings(settings);
             try {
-                rendererFor(scene.simulation()).renderWorld(context, scene.layers(), null, leading);
+                BattleRenderer renderer = rendererFor(scene.simulation());
+                renderer.useGroundLights(scene.impacts() == null ? null : scene.impacts().lights());
+                renderer.renderWorld(context, scene.layers(), null, leading);
             } finally {
                 Global.setSettings(previous);
             }
@@ -147,15 +163,17 @@ final class GlReviewDrain implements ReviewSceneBackend {
     }
 
     private String start(int width, int height) throws Exception {
-        gl = HeadlessGl.createOrNull(width, height);
+        gl = GlSurface.createOrNull(width, height);
         if (gl == null) return null;
         surfaceW = width;
         surfaceH = height;
         tokens = new GlSpriteTokens();
-        HeadlessBattleSceneRenderer.spritesFor(modRoot);   // installs the catalogs the sprite set reads
+        long started = System.nanoTime();
+        HeadlessBattleSceneRenderer.installCatalogs(modRoot);
         sprites = new HeadlessBattleSprites(modRoot, tokens);
         sprites.ensureUnitSheets();
         sprites.ensureEngineFxSprites();
+        if (ReviewRenderProfile.ENABLED) ReviewRenderProfile.phase("gl context and sprite set (once)", System.nanoTime() - started);
         return gl.rendererDescription();
     }
 
@@ -168,10 +186,12 @@ final class GlReviewDrain implements ReviewSceneBackend {
             release(oldest.next().getValue());
             oldest.remove();
         }
+        long started = System.nanoTime();
         BattleRenderer renderer = new BattleRenderer(sprites);
         renderer.onAttach();
         renderer.buildTileBatches();
         renderers.put(simulation, renderer);
+        if (ReviewRenderProfile.ENABLED) ReviewRenderProfile.phase("gl renderer setup (per battle)", System.nanoTime() - started);
         return renderer;
     }
 
@@ -208,12 +228,15 @@ final class GlReviewDrain implements ReviewSceneBackend {
         readBuffer.clear();
         glPixelStorei(GL_PACK_ALIGNMENT, 4);
         glReadPixels(0, 0, width, height, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, readBuffer);
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        // ARGB, as the Java2D drain returns: the particle painter and the frame store take their fast paths on it.
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         int[] target = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
         for (int y = 0; y < height; y++) {
             readBuffer.position((height - 1 - y) * width);
             readBuffer.get(target, y * width, width);
         }
+        // The framebuffer's alpha is whatever the blends left in it; the frame is a picture, so it is opaque.
+        for (int i = 0; i < target.length; i++) target[i] |= 0xFF000000;
         return image;
     }
 

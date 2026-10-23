@@ -5,6 +5,8 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import java.awt.RenderingHints;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -12,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -101,9 +104,21 @@ public final class ModTextures {
         return entry == null ? logicalHeight : entry.shippedHeight();
     }
 
-    /** {@code SettingsAPI.loadTexture} of the file that ships for {@code path}. */
+    /**
+     * Loads the file that ships for {@code path} and keeps it for the rest of the session: the
+     * {@linkplain TextureLedger#session() session lease}, for screens that do not manage their
+     * textures ({@code battle-textures.md}).
+     */
     public static void loadTexture(String path) throws IOException {
-        Global.getSettings().loadTexture(file(path));
+        loadTexture(path, TextureLedger.shared().session());
+    }
+
+    /**
+     * Loads the file that ships for {@code path} under {@code lease}, through the ledger, so the
+     * texture is unloaded once no lease holds it. Every mod texture load goes through here.
+     */
+    public static void loadTexture(String path, TextureLease lease) throws IOException {
+        lease.acquire(file(path));
     }
 
     /**
@@ -120,6 +135,29 @@ public final class ModTextures {
         }
         TextureUsage.name(sprite, path, sprite.getWidth(), sprite.getHeight());
         return sprite;
+    }
+
+    /**
+     * {@code path}'s logical width and height, read from the image's header rather than by decoding
+     * it; null when ImageIO cannot read it. A grid sheet needs only this, and decoding a large sheet
+     * a second time on the frame that uploads it doubles what loading it costs.
+     */
+    public static int[] readSize(String path) throws IOException {
+        TextureFitManifest.Entry entry = manifest().entry(path);
+        if (entry != null) return new int[]{entry.width(), entry.height()};
+        try (InputStream stream = Global.getSettings().openStream(file(path));
+             ImageInputStream input = ImageIO.createImageInputStream(stream)) {
+            if (input == null) return null;
+            Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
+            if (!readers.hasNext()) return null;
+            ImageReader reader = readers.next();
+            try {
+                reader.setInput(input, true, true);
+                return new int[]{reader.getWidth(0), reader.getHeight(0)};
+            } finally {
+                reader.dispose();
+            }
+        }
     }
 
     /** Decodes {@code path}'s pixels at its logical size; null when ImageIO cannot read it. */

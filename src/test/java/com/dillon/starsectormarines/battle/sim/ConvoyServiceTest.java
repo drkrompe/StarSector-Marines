@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.HullLocations;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import org.junit.jupiter.api.Test;
@@ -74,8 +75,11 @@ public class ConvoyServiceTest {
 
         // The handed-in mission bag is the VEHICLE_MISSION payload (the id→mission resolution).
         assertSame(m, convoy.mission(id), "convoy.mission(id) resolves the seeded mission bag");
-        assertEquals(VehicleType.HEAVY_APC.maxStructure, convoy.structure(id), 1e-4f);
-        assertEquals(VehicleType.HEAVY_APC.maxArmor, convoy.armor(id), 1e-4f);
+        // The columns carry the located totals: the hull's structure plus its drive, every plate's armor.
+        HullLocations locations = convoy.locations(id);
+        assertNotNull(locations, "every ground hull carries HULL_LOCATIONS");
+        assertEquals(VehicleType.HEAVY_APC.maxStructure + locations.maxDrive(), convoy.structure(id), 1e-4f);
+        assertEquals(locations.maxTotalArmor(), convoy.armor(id), 1e-4f);
         assertEquals(VehicleType.HEAVY_APC.armorRating, convoy.armorRating(id), 1e-4f);
         assertTrue(r.isAliveById(id), "HEALTH makes held-id liveness work without dense-roster membership");
 

@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "map": "heart-burn",
+  "biomes": {
+    "VERDANT": [
+      { "seed": 2, "note": "two mothers" },
+      { "seed": 3, "note": "two mothers" },
+      { "seed": 5, "note": "two mothers" }
+    ],
+    "ARID": [
+      { "seed": 2, "note": "two mothers" },
+      { "seed": 3, "note": "two mothers" },
+      { "seed": 5, "note": "two mothers" }
+    ],
+    "ROCK": [
+      { "seed": 2, "note": "two mothers" },
+      { "seed": 3, "note": "two mothers" },
+      { "seed": 5, "note": "two mothers" }
+    ],
+    "FROZEN": [
+      { "seed": 2, "note": "two mothers" },
+      { "seed": 3, "note": "two mothers" },
+      { "seed": 5, "note": "two mothers" }
+    ]
+  }
+}

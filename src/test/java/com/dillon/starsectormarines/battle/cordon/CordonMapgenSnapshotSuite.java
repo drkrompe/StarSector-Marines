@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.cordon;
 import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
@@ -38,7 +38,7 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
     @Override public String label() { return "Cordon mapgen: the line, the front and the rear"; }
 
     /** What a whole-map frame names: each redoubt, the places, the bores and the Road's corridor. */
-    static ReviewAnnotations annotations(BattleSimulation sim, CordonSetup.CordonMap cordon) {
+    public static ReviewAnnotations annotations(BattleSimulation sim, CordonSetup.CordonMap cordon) {
         ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
         List<Precinct> redoubts = CordonPlan.redoubts(cordon.plan());
         for (int i = 0; i < redoubts.size(); i++) {
@@ -87,9 +87,9 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
             for (String token : System.getProperty("snapshot.cordonMapgen.seeds", "7117,3,11").split(",")) {
                 long seed = Long.parseLong(token.trim());
                 String tag = name + "-seed" + seed + "-";
-                CordonSetup.CordonMap cordon = CordonSetup.map(variant, seed, TargetProfile.NEUTRAL);
+                CordonSetup.CordonMap cordon = CordonSetup.map(variant, SurfacePalette.VERDANT, seed);
                 PrecinctPlan plan = cordon.plan();
-                try (BattleSimulation sim = CordonSetup.create(cordon, variant, List.of(), TargetProfile.NEUTRAL,
+                try (BattleSimulation sim = CordonSetup.create(cordon, variant, List.of(),
                         CordonSequence.Timetable.STANDARD)) {
                     out.add(new SnapshotArtifact(tag + "01-whole-map.png",
                             whole.render(sim, "the " + name + ", seed " + seed + ", whole map", annotations(sim, cordon))));

@@ -161,7 +161,11 @@ threshold by the tug when that ground is clear, and goes on from there; one that
 stood in the lane stopped the shed, since the next machine is drawn out into
 that same stretch. A carrier waits
 on a **staging slot** of its own on the apron outside the door, never in the
-doorway, on ground its footprint fits; there are as many carriers as slots,
+doorway, on ground its footprint fits and can drive away from: every hull of
+the allies' is set down on the main body of the map's ground for its width,
+never in a pocket (the nearest cell that merely fitted once put the first slot
+inside a walled pen beside the shed, and nothing from the base reached the
+line); there are as many carriers as slots,
 and an APC beyond that fights with the armour. Every machine drives straight
 out to a **threshold** a few cells beyond the door first, then on to its slot
 or its post behind a redoubt: a carrier steers too wide to turn from the lane
@@ -250,9 +254,9 @@ people on the move, (c) a capable detachment exists.
 ## The map
 
 One plan for both variants (CordonPlan), 560x336, mission-owned, the long
-axis across the front. It is green colony country whatever world the event
-names (the VERDANT palette, as the colony is laid out the same whatever
-market raised the call). Every place is stated by its depth from the rear
+axis across the front. It is fought on the event world's own ground, its
+biome's palette (verdant, arid, rock or frozen), with the colony laid out the
+same whatever market raised the call; each biome has its own pooled maps. Every place is stated by its depth from the rear
 edge, which is the north or the south (the seed's choice), as a fraction of
 the ground the landing's country leaves:
 
@@ -278,6 +282,8 @@ landing's field of fire is not clear, re-rolls; so does one whose logistics
 base packed no shed, or whose apron a carrier cannot drive from to every
 redoubt (a base fenced too narrowly for a carrier kept every one it built
 standing on its apron, refused a route, with the shed's lane jammed behind).
+That proof keeps clear of walls along cell edges as well as walled cells, as a
+hull's body does.
 
 The Road keeps the colony's civil-defence compound on the town's near side
 (depth 0.6 to 0.7). Its **corridor** (CordonCorridor) is found on the
@@ -289,7 +295,8 @@ country where the generator left no road (it prunes links between places
 that carry nobody to a map edge). On the first seeds it runs 76 to 91% on
 road and wanders through a hamlet, a redoubt and the bloomed suburb on its
 way; a single paved relief road is open work (cordon-battle.md). A map
-with no drivable way re-rolls.
+with no drivable way re-rolls, and so does one where a truck's edge-aware mask
+(the one its convoy lays routes on) does not connect the corridor's ends.
 
 **The front is grown at setup** (CordonFront). The front is cut across the
 width into one slot per bore, west to east (six by default: bore, maw, bore,
@@ -312,12 +319,17 @@ many bores and at what tiers will follow what Colony Breach left
 (cordon-campaign.md): bores it collapsed stay collapsed, and biomass it fed
 shows as higher tiers.
 
+**Each variant plays from its own pool of vetted maps** (`story-map-pools.md`):
+a few seeds that pass every test above on their first generation, never
+re-rolled, each with a note and an optional patch. The re-roll loop is left
+only for trying a seed that is not pooled yet. `storyMapPools` regenerates
+every pooled seed and fails when one no longer carries the whole Cordon, and
+also checks four redoubts west to east spanning the map.
+
 cordon-mapgen (createSnapshots) renders both variants on three seeds:
 the whole map with the redoubts, places, bores and corridor named, the line,
-a redoubt and the colony at closer zooms. CordonMapEvidenceTest
-(generatedSpaceEvidence) checks four seeds of each variant: the map within
-its re-rolls, four redoubts west to east spanning the map, and the Road's
-corridor.
+a redoubt and the colony at closer zooms; story-map-pools renders every pooled
+map whole.
 ## Flow
 
 ### The Line
@@ -387,8 +399,10 @@ redoubt stands; it sees the swarm only through its own squads.
 
 ### Evidence
 
-`commanderEvidence -Pmission=cordon-line` and `-Pmission=cordon-road` play a
-fixture per variant through production construction. Asserted mechanics: the
+`commanderEvidence -Pmission=cordon-line` and `-Pmission=cordon-road` play
+every seed of the variant's pool through production construction, side by
+side, the checked-in fixture standing in for everything but the seed
+(`-Pfixture` plays exactly one). The report opens on a matrix, one row a seed. Asserted mechanics: the
 company lands, every tide the timetable reached came on its tick, a held line
 lost no more redoubts than allowed, a broken one says how. Read, not asserted:
 the beats in order, each redoubt's state and garrison minute by minute, the

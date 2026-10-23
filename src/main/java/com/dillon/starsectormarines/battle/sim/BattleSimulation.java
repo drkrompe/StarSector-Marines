@@ -156,6 +156,7 @@ import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
 import com.dillon.starsectormarines.battle.vehicle.DozerBlade;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
+import com.dillon.starsectormarines.battle.vehicle.Crossfire;
 import com.dillon.starsectormarines.battle.vehicle.HullPivot;
 import com.dillon.starsectormarines.battle.vehicle.HullSlide;
 import com.dillon.starsectormarines.battle.vehicle.ScoutSight;
@@ -1311,6 +1312,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SeparationSystem separation;
     /** Moving and parked ground hulls push infantry out of their footprint and bow wave. See {@link VehicleRepulsionSystem}. */
     private final VehicleRepulsionSystem vehicleRepulsion;
+    /** Hulls keep out of each other, and the lighter yields. See {@link HullContactSystem}. */
+    private final HullContactSystem hullContact;
+    /** Walking mechs ram the other side. See {@link MechRamSystem}. */
+    private final MechRamSystem mechRam;
     /** Off-by-default, bounded quiet-infantry spreading/yielding experiment. */
     private final SquadTrafficSystem squadTraffic;
     /** Short-range allied-infantry steer away from hostile alien bodies. */
@@ -1537,8 +1542,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.separation = new SeparationSystem(rosterService, unitIndex, grid);
         separation.spareHeld(swarmHarvest::isCarried);
         this.vehicleRepulsion = new VehicleRepulsionSystem(rosterService, unitIndex, grid);
-        this.squadTraffic = Boolean.getBoolean(SquadTrafficSystem.PROPERTY)
-                ? new SquadTrafficSystem(grid, rosterService) : null;
+        this.hullContact = new HullContactSystem(rosterService, grid);
+        this.mechRam = new MechRamSystem(rosterService, unitIndex);
+        this.squadTraffic = new SquadTrafficSystem(grid, rosterService);
         this.mechCollisionEscape = new com.dillon.starsectormarines.battle.mech.MechCollisionEscapeSystem(
                 entityWorld, battleComponents);
         this.hitResponse = new HitResponseSystem(
@@ -1594,8 +1600,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world,
                 turretFire, rng, this::spawn, this, effects, transport);
         rosterService.convoy().setDestructionSink(groundSystem::destroyVehicle);
-        // A gun on a turning hull shakes the way a moving shooter's does.
-        turretFire.setShooterAccuracy(new HullPivot(rosterService.convoy()));
+        // A gun on a turning hull shakes the way a moving shooter's does, and so does a crew caught in crossfire;
+        // the gun is never shakier than a moving shooter's.
+        HullPivot pivot = new HullPivot(rosterService.convoy());
+        turretFire.setShooterAccuracy(id -> Math.min(pivot.multiplier(id),
+                Crossfire.accuracyMultiplier(rosterService.convoy(), id)));
         // A tube loaded for an incendiary fire mission puts that heat into its round (`fire-nouns.md`, Starting fires).
         turretFire.setRoundHeat(id -> {
             FieldMortarService.Tube tube = fieldMortars().tubeOfEntity(id);
@@ -1844,6 +1853,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Who is riding in what — the data owner for {@code RIDING}, and the gate a pass consults to skip a passenger. */
     public VehicleTransportService transport() { return transport; }
     public VehicleRepulsionSystem vehicleRepulsion() { return vehicleRepulsion; }
+    public HullContactSystem hullContact() { return hullContact; }
+    public MechRamSystem mechRam() { return mechRam; }
 
     @Override
     public boolean isRiding(long id) { return rosterService.isRiding(id); }
@@ -3402,12 +3413,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         navigation.prepareSquadRoutes(routeRequests, simTickIndex);
         tickInnerProfile.record(TickInnerProfile.Bucket.GOAP_ROUTE_PREPARATION,
                 System.nanoTime() - goapStageStart);
-        if (squadTraffic != null) {
-            goapStageStart = System.nanoTime();
-            squadTraffic.prepare(this, directControl.activeUnitId(), TICK_DT);
-            tickInnerProfile.record(TickInnerProfile.Bucket.SQUAD_TRAFFIC_PREPARE,
-                    System.nanoTime() - goapStageStart);
-        }
+        goapStageStart = System.nanoTime();
+        squadTraffic.prepare(this, directControl.activeUnitId(), TICK_DT);
+        tickInnerProfile.record(TickInnerProfile.Bucket.SQUAD_TRAFFIC_PREPARE,
+                System.nanoTime() - goapStageStart);
         tickProfile.lap(TickProfile.Phase.GOAP_REPLAN);
         if (asyncDefendTrackRoutes != null) {
             asyncDefendTrackRoutes.beginTick(simTickIndex);
@@ -3465,6 +3474,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // Hulls win against bodies: after relaxation so a shove apart cannot
         // put somebody back under a truck.
         vehicleRepulsion.tick(TICK_DT);
+        // A walking mech that has reached a hostile body rams it.
+        mechRam.tick();
         mechCollisionEscape.tick(TICK_DT);
         if (directControl.unitActive()) {
             MitigationSystem.faceManual(directControl.activeUnitId(), rosterService.mitigations(),
@@ -3512,7 +3523,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // LRM) come from CombatantBehavior. (The dead-mech smoking wreck now
         // fires off the MechWreckSystem death handler, not this pass.)
         heavy.tick(directControl.controlledMechId(), directControl.pointAim(), directControl.intent().firing(),
-                directControl.intent().secondary(), directControl.selectedWeapon());
+                directControl.intent().secondary(), directControl.mechPicks());
         tickProfile.lap(TickProfile.Phase.HEAVY_TICK);
         // Squads told to open a wall spend what their ordinary firing left on it.
         wallBreach.tick(this);
@@ -3709,6 +3720,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 HullSlide.tick(body, convoy().vehicleType(hull), grid, rosterService.radius(hull), TICK_DT);
             }
         }
+        // Then hulls that drove into each other are parted, and whoever must yield brakes.
+        hullContact.tick();
         tickProfile.lap(TickProfile.Phase.GROUND_SYSTEM);
         // Ballistic-round impact clock — a resolved round's damage/hit-response
         // applies here, on its flight-time delay, rather than inline at fire
@@ -4048,7 +4061,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     @Override
     public void advanceSquadTravel(long member, Squad squad, int goalX, int goalY) {
-        if (squadTraffic == null || !squadTraffic.advance(member, squad, goalX, goalY, TICK_DT)) {
+        if (!squadTraffic.advance(member, squad, goalX, goalY, TICK_DT)) {
             advanceMovement(member);
         }
     }

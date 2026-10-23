@@ -13,6 +13,9 @@ missions, dialogue, or command behavior. It is an interpretation boundary, not a
 parallel rules system: faction identity selects authored content and bounded
 preferences, while the owning feature documents still define mechanics.
 
+`tech-families.md` defines the low-tech, midline and high-tech design languages that
+faction-shaped art and sound are drawn and voiced in.
+
 `equipment-lore-catalog.md` records the shipped in-universe models, their mod-authored
 origins, credible circulation, and deliberate faction absences.
 

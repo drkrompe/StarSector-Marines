@@ -60,7 +60,7 @@ class MechPointFireTest {
     }
 
     @Test
-    void selectedHardpointIsTheOnlyManualTriggerAndOtherMountClocksStillAdvanceOnce() {
+    void pickedHardpointIsTheOnlyManualTriggerAndOtherMountClocksStillAdvanceOnce() {
         Fixture f = new Fixture(MechWeaponComponent.CHAINGUN,
                 MechWeaponComponent.SRM_5, MechWeaponComponent.LRM_5);
         var arms = f.loadout.mount(MechMountSlot.ARMS);
@@ -68,7 +68,8 @@ class MechPointFireTest {
         var lrm = f.loadout.mount(MechMountSlot.RIGHT_SHOULDER);
         arms.cycleRemaining = 1f;
         int ammo = srm.ammo;
-        f.weapons.tick(f.shooter, NORTH, true, LEFT_SHOULDER_KEY);
+        var srmPicked = new MechTriggerPicks(MechFireGroups.LINKED, LEFT_SHOULDER_KEY);
+        f.weapons.tick(f.shooter, NORTH, true, true, srmPicked);
         assertEquals(1, f.shots.getActiveShots().size());
         assertEquals(0, arms.burstRemaining);
         assertEquals(1f - BattleSimulation.TICK_DT, arms.cycleRemaining, 0.00001f);
@@ -78,12 +79,12 @@ class MechPointFireTest {
         assertEquals(lrm.component.ammoCapacity, lrm.ammo);
         assertTrue(HeavyWeapons.supportsPointFire(lrm));
         assertFalse(HeavyWeapons.firesFlat(lrm));
-        for (int i = 0; i < 12; i++) f.weapons.tick(f.shooter, NORTH, false, 2);
+        for (int i = 0; i < 12; i++) f.weapons.tick(f.shooter, NORTH, false, false, srmPicked);
         assertEquals(srm.component.projectilesPerTrigger, f.shots.getActiveShots().size());
-        assertEquals(ammo - 1, srm.ammo, "selection does not split or reprice the authored trigger pack");
+        assertEquals(ammo - 1, srm.ammo, "a pick does not split or reprice the authored trigger pack");
 
         Fixture invalid = new Fixture(MechWeaponComponent.CHAINGUN, null, null);
-        invalid.weapons.tick(invalid.shooter, NORTH, true, 9);
+        invalid.weapons.tick(invalid.shooter, NORTH, true, false, new MechTriggerPicks(9, MechFireGroups.LINKED));
         assertTrue(invalid.shots.getActiveShots().isEmpty());
     }
 
@@ -388,11 +389,11 @@ class MechPointFireTest {
         MechWeaponMount arms = f.loadout.mount(MechMountSlot.ARMS);
         MechWeaponMount left = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
         MechWeaponMount right = f.loadout.mount(MechMountSlot.RIGHT_SHOULDER);
-        f.weapons.tick(f.shooter, NORTH, true, false, 0);
+        f.weapons.tick(f.shooter, NORTH, true, false, MechTriggerPicks.LINKED);
         assertEquals(arms.component.cycleSeconds() - BattleSimulation.TICK_DT, arms.cycleRemaining, 0.00001f);
         assertEquals(0f, left.cycleRemaining, "the left button leaves the rockets alone");
         assertEquals(left.component.ammoCapacity, left.ammo);
-        f.weapons.tick(f.shooter, NORTH, false, true, 0);
+        f.weapons.tick(f.shooter, NORTH, false, true, MechTriggerPicks.LINKED);
         assertEquals(left.component.ammoCapacity - 1, left.ammo);
         assertEquals(right.component.ammoCapacity - 1, right.ammo);
         assertEquals(arms.component.ammoCapacity, arms.ammo);
@@ -403,29 +404,34 @@ class MechPointFireTest {
         Fixture f = new Fixture(MechWeaponComponent.NOSE_CHAINGUN, MechWeaponComponent.SRM_5, null);
         MechWeaponMount arms = f.loadout.mount(MechMountSlot.ARMS);
         MechWeaponMount srm = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
-        f.weapons.tick(f.shooter, NORTH, false, true, 0);
+        f.weapons.tick(f.shooter, NORTH, false, true, MechTriggerPicks.LINKED);
         assertEquals(0f, arms.cycleRemaining);
         assertEquals(srm.component.ammoCapacity - 1, srm.ammo);
         Fixture both = new Fixture(MechWeaponComponent.NOSE_CHAINGUN, MechWeaponComponent.SRM_5, null);
-        both.weapons.tick(both.shooter, NORTH, true, true, 0);
+        both.weapons.tick(both.shooter, NORTH, true, true, MechTriggerPicks.LINKED);
         assertTrue(both.loadout.mount(MechMountSlot.ARMS).cycleRemaining > 0f);
         assertTrue(both.loadout.mount(MechMountSlot.LEFT_SHOULDER).cycleRemaining > 0f);
     }
 
     @Test
-    void numberKeyRepointsTheLeftButtonOnlyAndRightStaysSecondary() {
-        Fixture f = new Fixture(MechWeaponComponent.NOSE_CHAINGUN, MechWeaponComponent.SRM_5, null);
-        MechWeaponMount arms = f.loadout.mount(MechMountSlot.ARMS);
-        MechWeaponMount srm = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
-        f.weapons.tick(f.shooter, NORTH, true, false, LEFT_SHOULDER_KEY);
-        assertEquals(0f, arms.cycleRemaining, "a number key moved the left button onto the left shoulder");
-        assertEquals(srm.component.ammoCapacity - 1, srm.ammo);
+    void linkedFiresBothArmGunsAndAOneMountPickHoldsTheOther() {
+        Fixture linked = Fixture.bulwark(MechWeaponComponent.CHAINGUN, null, null);
+        linked.weapons.tick(linked.shooter, NORTH, true, false, MechTriggerPicks.LINKED);
+        assertTrue(linked.loadout.mount(MechMountSlot.LEFT_ARM).cycleRemaining > 0f);
+        assertTrue(linked.loadout.mount(MechMountSlot.RIGHT_ARM).cycleRemaining > 0f);
+
+        Fixture one = Fixture.bulwark(MechWeaponComponent.CHAINGUN, null, null);
+        var leftArm = new MechTriggerPicks(MechMountSlot.LEFT_ARM.ordinal() + 1, MechFireGroups.LINKED);
+        one.weapons.tick(one.shooter, NORTH, true, false, leftArm);
+        assertTrue(one.loadout.mount(MechMountSlot.LEFT_ARM).cycleRemaining > 0f);
+        assertEquals(0f, one.loadout.mount(MechMountSlot.RIGHT_ARM).cycleRemaining, "the unpicked arm holds fire");
+        assertEquals(0, one.loadout.mount(MechMountSlot.RIGHT_ARM).burstRemaining);
     }
 
     @Test
     void aSingleGroupChassisLeavesTheRightButtonIdle() {
         Fixture f = new Fixture(MechWeaponComponent.NOSE_CHAINGUN, null, null);
-        f.weapons.tick(f.shooter, NORTH, false, true, 0);
+        f.weapons.tick(f.shooter, NORTH, false, true, MechTriggerPicks.LINKED);
         assertTrue(f.shots.getActiveShots().isEmpty());
         assertEquals(0f, f.loadout.mount(MechMountSlot.ARMS).cycleRemaining);
     }
@@ -434,14 +440,14 @@ class MechPointFireTest {
     void releasingAGroupButtonLetsItsQueuedBurstFinishButAnotherSelectionDropsIt() {
         Fixture f = new Fixture(MechWeaponComponent.CHAINGUN, MechWeaponComponent.SRM_5, null);
         MechWeaponMount srm = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
-        f.weapons.tick(f.shooter, NORTH, false, true, 0);
+        f.weapons.tick(f.shooter, NORTH, false, true, MechTriggerPicks.LINKED);
         assertEquals(1, srm.burstRemaining);
-        f.weapons.tick(f.shooter, NORTH, false, false, 0);
-        for (int i = 0; i < 12; i++) f.weapons.tick(f.shooter, NORTH, false, false, 0);
+        f.weapons.tick(f.shooter, NORTH, false, false, MechTriggerPicks.LINKED);
+        for (int i = 0; i < 12; i++) f.weapons.tick(f.shooter, NORTH, false, false, MechTriggerPicks.LINKED);
         assertEquals(srm.component.projectilesPerTrigger, f.shots.getActiveShots().size());
     }
 
-    /** The number-key selection that points the left button at the left shoulder. */
+    /** The pick that puts the right button on the left shoulder's rack alone. */
     private static final int LEFT_SHOULDER_KEY = MechMountSlot.LEFT_SHOULDER.ordinal() + 1;
 
     /**
@@ -482,6 +488,6 @@ class MechPointFireTest {
         }
 
         /** Both mouse buttons down: every point-fire mount is triggered. */
-        void fire(PointFireAim aim) { weapons.tick(shooter, aim, true, true, 0); }
+        void fire(PointFireAim aim) { weapons.tick(shooter, aim, true, true, MechTriggerPicks.LINKED); }
     }
 }

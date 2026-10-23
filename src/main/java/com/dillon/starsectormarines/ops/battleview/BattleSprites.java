@@ -1,7 +1,10 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.render2d.texture.ModTextures;
+import com.dillon.starsectormarines.render2d.texture.TextureLease;
+import com.dillon.starsectormarines.render2d.texture.TextureLedger;
 import com.dillon.starsectormarines.render2d.texture.TextureUsage;
+import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
@@ -13,6 +16,7 @@ import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.weapon.MountClass;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
@@ -37,9 +41,14 @@ import org.apache.log4j.Logger;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.Set;
 import java.util.LinkedHashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Asset/sprite-cache registry for the battle screen. Owns all loaded
@@ -51,6 +60,29 @@ import java.util.Map;
 public class BattleSprites {
 
     private static final Logger LOG = Global.getLogger(BattleSprites.class);
+
+    /**
+     * Everything this instance loads is held under this lease ({@code battle-textures.md}). The
+     * battle screen gives each battle its own and releases it when the battle ends, after which
+     * this instance's sprites are dead and the instance is dropped; every other owner loads on
+     * the session lease and keeps its textures as it always did.
+     */
+    private final TextureLease lease;
+
+    /** Loads for the whole session: the company deck, the Armory, the combat bridge. */
+    public BattleSprites() {
+        this(TextureLedger.shared().session());
+    }
+
+    /** Loads under {@code lease}, which keeps the textures until it is released. */
+    public BattleSprites(TextureLease lease) {
+        this.lease = lease;
+    }
+
+    /** The lease this instance's textures are held under. */
+    public TextureLease lease() {
+        return lease;
+    }
 
     // ---- asset-path constants -----------------------------------------------
 
@@ -83,8 +115,21 @@ public class BattleSprites {
     private RavRunnerAssets ravRunner;
     private RavBruteAssets ravBrute;
     private RavMatriarchAssets ravMatriarch;
+    /** Loaded families; asking for one not loaded loads it, once the shared layers have been. */
     private final java.util.EnumMap<LayeredArmorFamily, LayeredUnitAssets> layeredUnitSprites =
-            new java.util.EnumMap<>(LayeredArmorFamily.class);
+            new java.util.EnumMap<>(LayeredArmorFamily.class) {
+                @Override
+                public LayeredUnitAssets get(Object key) {
+                    LayeredUnitAssets assets = super.get(key);
+                    if (assets == null && key instanceof LayeredArmorFamily family
+                            && layeredUnitSpritesLoadAttempted && !familiesAttempted.contains(family)) {
+                        unplanned("infantry family " + family);
+                        ensureLayeredFamily(family);
+                        assets = super.get(key);
+                    }
+                    return assets;
+                }
+            };
     private final Map<String, LayeredSpriteCache> specialEquipmentLayers = new LinkedHashMap<>();
     private final Map<String, LayeredSpriteCache> integralSystemLayers = new LinkedHashMap<>();
     private boolean layeredUnitSpritesLoadAttempted;
@@ -165,8 +210,22 @@ public class BattleSprites {
 
     // ---- convoy sprites -----------------------------------------------------
 
-    private final java.util.EnumMap<com.dillon.starsectormarines.battle.vehicle.VehicleType, UnitSpriteCache> convoySprites =
-            new java.util.EnumMap<>(com.dillon.starsectormarines.battle.vehicle.VehicleType.class);
+    /** Loaded vehicle sheets; asking for a line not loaded loads it, once a load has been asked for. */
+    private final java.util.EnumMap<VehicleType, UnitSpriteCache> convoySprites =
+            new java.util.EnumMap<>(VehicleType.class) {
+                @Override
+                public UnitSpriteCache get(Object key) {
+                    UnitSpriteCache cache = super.get(key);
+                    if (cache == null && key instanceof VehicleType type
+                            && convoySpritesLoadAttempted && !vehiclesAttempted.contains(type)) {
+                        unplanned("vehicle line " + type);
+                        loadConvoySprite(type);
+                        cache = super.get(key);
+                    }
+                    return cache;
+                }
+            };
+    private final EnumSet<VehicleType> vehiclesAttempted = EnumSet.noneOf(VehicleType.class);
     private boolean convoySpritesLoadAttempted;
 
     // ---- engine FX sprites --------------------------------------------------
@@ -229,6 +288,12 @@ public class BattleSprites {
     public LayeredMechAssets layeredMechSprites(Faction side) {
         MechLivery livery = mechLiveryBySide.getOrDefault(side, MechLivery.BASE);
         LayeredMechAssets selected = layeredMechLiveries.get(livery);
+        if (selected == null && layeredMechSpritesLoadAttempted && livery != MechLivery.BASE
+                && !liveriesAttempted.contains(livery)) {
+            unplanned("mech livery " + livery);
+            ensureMechLivery(livery);
+            selected = layeredMechLiveries.get(livery);
+        }
         return selected != null ? selected : layeredMechSprites();
     }
 
@@ -237,6 +302,13 @@ public class BattleSprites {
      * state only and may be refreshed on every screen attachment, before or
      * after the immutable sprite families have loaded.
      */
+    /** The liveries {@code sides} wear, as {@link #configureMechLiveries} bound them. */
+    public Set<MechLivery> liveriesWornBy(Set<Faction> sides) {
+        EnumSet<MechLivery> worn = EnumSet.noneOf(MechLivery.class);
+        for (Faction side : sides) worn.add(mechLiveryBySide.getOrDefault(side, MechLivery.BASE));
+        return worn;
+    }
+
     public void configureMechLiveries(String marineFactionId, String defenderFactionId) {
         mechLiveryBySide.put(Faction.MARINE, MechLivery.forFactionId(marineFactionId));
         mechLiveryBySide.put(Faction.DEFENDER, MechLivery.forFactionId(defenderFactionId));
@@ -292,7 +364,7 @@ public class BattleSprites {
         return airframeSprites().get(pattern != null ? pattern : frame);
     }
 
-    public java.util.EnumMap<com.dillon.starsectormarines.battle.vehicle.VehicleType, UnitSpriteCache> convoySprites() { return convoySprites; }
+    public java.util.EnumMap<VehicleType, UnitSpriteCache> convoySprites() { return convoySprites; }
     public SpriteAPI warshipEngineFlameSprite() { return warshipEngineFlameSprite; }
     public SpriteAPI warshipEngineGlowSprite() { return warshipEngineGlowSprite; }
     public SpriteAPI engineFlameSprite()           { return engineFlameSprite; }
@@ -305,6 +377,60 @@ public class BattleSprites {
     /** Authored pose authority; overridable by tooling that loads assets off disk. */
     public UnitLayerLayouts unitLayerLayouts()     { return UnitLayerLayouts.get(); }
 
+
+    /**
+     * A battle's texture loads as load-queue steps ({@code battle-textures.md}): its terrain, then
+     * only the families, liveries and vehicle lines {@code set} names — every one shipped when it
+     * is null — a step per family, livery and line so no one step holds the GL thread long enough
+     * to stop the loading screen's spinner. {@code stage} turns a stage's string key into the line
+     * the loading screen shows. The battle screen appends its atlas step after these.
+     */
+    public List<TextureLoadQueue.Step> battleLoadSteps(BattleTextureSet set, Function<String, String> stage) {
+        List<TextureLoadQueue.Step> steps = new ArrayList<>();
+        steps.add(new TextureLoadQueue.Step(stage.apply("battleLoadingTerrain"), () -> {
+            ensureTileSheet();
+            ensureRoadSheet();
+            ensureFloorsSheet();
+            ensureNatureSheet();
+        }));
+        steps.add(new TextureLoadQueue.Step(stage.apply("battleLoadingTerrain"), () -> {
+            ensureWaterSheet();
+            ensureUrbanTile3Sheet();
+            ensureDoodadSheet();
+            ensureDecalSheet();
+        }));
+        // Only what this battle places, spawns and can bring in; a step per family, livery and
+        // vehicle line, so no one step holds the GL thread long enough to stop the spinner.
+        String loadingSprites = stage.apply("battleLoadingSprites");
+        steps.add(new TextureLoadQueue.Step(loadingSprites, () -> {
+            ensureUnitSheets();
+            ensureInfantryShared();
+        }));
+        for (LayeredArmorFamily family : set != null ? set.families() : EnumSet.allOf(LayeredArmorFamily.class)) {
+            steps.add(new TextureLoadQueue.Step(loadingSprites, () -> ensureLayeredFamily(family)));
+        }
+        if (set == null || set.ravRigs()) steps.add(new TextureLoadQueue.Step(loadingSprites, this::ensureRavRigs));
+        Set<MechLivery> liveries = set != null ? liveriesWornBy(set.mechSides()) : EnumSet.allOf(MechLivery.class);
+        steps.add(new TextureLoadQueue.Step(loadingSprites, () -> ensureLayeredMechSprites(Set.of())));
+        for (MechLivery livery : liveries) {
+            steps.add(new TextureLoadQueue.Step(loadingSprites, () -> ensureMechLivery(livery)));
+        }
+        steps.add(new TextureLoadQueue.Step(loadingSprites, this::ensureTurretSprites));
+        steps.add(new TextureLoadQueue.Step(loadingSprites, this::ensureMarineSecondarySprites));
+        steps.add(new TextureLoadQueue.Step(loadingSprites, () -> {
+            ensureAirframeSprites();
+            ensureDroneSprite();
+            ensureDroneHubSprite();
+            ensureEngineFxSprites();
+        }));
+        steps.add(new TextureLoadQueue.Step(loadingSprites, () -> ensureConvoySprites(Set.of())));
+        for (VehicleType type : set != null ? set.vehicles() : EnumSet.allOf(VehicleType.class)) {
+            steps.add(new TextureLoadQueue.Step(loadingSprites, () -> loadConvoySprite(type)));
+        }
+        steps.add(new TextureLoadQueue.Step(stage.apply("battleLoadingEffects"), this::ensureObjectiveIcons));
+        return steps;
+    }
+
     // =========================================================================
     // Ensure methods (moved verbatim from BattleScreen; batch lines deleted)
     // =========================================================================
@@ -316,27 +442,108 @@ public class BattleSprites {
      * all six tile sheets.
      */
     public void ensureTileSheet() {
-        tileTex.ensureLoaded();
+        ensureUrbanSheet();
+        for (String path : terrainSheetPaths()) ensureTerrainSheet(path);
+    }
+
+    /**
+     * The indoor tileset alone, without the catalog's other sheets. From here on a catalog sheet
+     * nobody loaded is loaded the first time it is asked for ({@link #extraTerrainSheet}).
+     */
+    public void ensureUrbanSheet() {
+        tileTex.ensureLoaded(lease);
+        terrainOnDemand = true;
+    }
+
+    /** Whether a catalog sheet asked for and not loaded is loaded then; see {@link #ensureUrbanSheet()}. */
+    private boolean terrainOnDemand;
+    /** {@link #terrainSheetPaths()}, as a set, once asked. */
+    private Set<String> terrainCatalog;
+
+    /**
+     * Every catalog-declared grid sheet {@link #ensureTileSheet()} loads besides the indoor
+     * tileset, in its order, so a caller can load them one at a time.
+     */
+    public List<String> terrainSheetPaths() {
         TileRegistry registry = TileRegistry.installed();
-        if (registry == null) return;
+        if (registry == null) return List.of();
+        LinkedHashSet<String> paths = new LinkedHashSet<>();
         for (GridBlockDef block : registry.blocks()) {
             String path = block.sheetPath;
             if (path.equals(TileManifest.SHEET) || path.equals(TileManifest.ROAD_SHEET)
                     || path.equals(TileManifest.FLOORS_SHEET) || path.equals(TileManifest.WATER_SHEET)) continue;
-            extraTerrainSheets.computeIfAbsent(path, SheetTexture::grid).ensureLoaded();
+            paths.add(path);
         }
         for (DoodadDef doodad : registry.doodads()) {
             String path = doodad.sheetPath;
             if (path.equals(TileManifest.SHEET) || path.equals(TileManifest.ROAD_SHEET)
                     || path.equals(TileManifest.DOODAD_SHEET) || path.equals(TileManifest.PARKED_VEHICLE_SHEET)) continue;
-            extraTerrainSheets.computeIfAbsent(path, SheetTexture::grid).ensureLoaded();
+            paths.add(path);
         }
+        return List.copyOf(paths);
     }
 
-    /** Catalog-declared grid sheets loaded with terrain assets, before collection. */
+    /** One catalog sheet from {@link #terrainSheetPaths()}. */
+    public void ensureTerrainSheet(String path) {
+        extraTerrainSheets.computeIfAbsent(path, SheetTexture::grid).ensureLoaded(lease);
+    }
+
+    /**
+     * A catalog-declared grid sheet. One a host loads only some of ({@code CompanyDeck} loads what
+     * her deck places) is loaded the first time it is asked for, under this lease: a hitch rather
+     * than a blank, logged in the dev build as unplanned. The renderer registers its batch before
+     * the next drain.
+     */
     public SpriteAPI extraTerrainSheet(String path) {
         SheetTexture texture = extraTerrainSheets.get(path);
+        if (texture == null && terrainOnDemand && path != null) {
+            if (terrainCatalog == null) terrainCatalog = new HashSet<>(terrainSheetPaths());
+            if (terrainCatalog.contains(path)) {
+                if (terrainSurvey != null) {
+                    terrainSurvey.add(path);
+                    return null;
+                }
+                unplanned("terrain sheet " + path);
+                ensureTerrainSheet(path);
+                texture = extraTerrainSheets.get(path);
+            }
+        }
         return texture == null ? null : texture.sprite();
+    }
+
+    /** While a survey runs, the catalog sheets asked for and not loaded, instead of loading them. */
+    private Set<String> terrainSurvey;
+
+    /**
+     * From here until {@link #endTerrainSurvey()}, a catalog sheet asked for and not loaded is
+     * recorded rather than loaded, so a host can learn what a frame would load and load it a sheet
+     * at a time. Whatever drew during the survey drew without those sheets and is thrown away.
+     */
+    public void beginTerrainSurvey() {
+        terrainSurvey = new LinkedHashSet<>();
+    }
+
+    /** The sheets asked for since {@link #beginTerrainSurvey()}; loading on demand resumes. */
+    public List<String> endTerrainSurvey() {
+        List<String> asked = terrainSurvey == null ? List.of() : List.copyOf(terrainSurvey);
+        terrainSurvey = null;
+        return asked;
+    }
+
+    /**
+     * {@link #extraTerrainSheet} without loading it: null when nobody has. Where nothing loads on
+     * demand the two are the same question, so a set that answers {@link #extraTerrainSheet} its
+     * own way (the headless review set) is asked that way.
+     */
+    public SpriteAPI loadedTerrainSheet(String path) {
+        if (!terrainOnDemand) return extraTerrainSheet(path);
+        SheetTexture texture = extraTerrainSheets.get(path);
+        return texture == null ? null : texture.sprite();
+    }
+
+    /** How many catalog sheets have been loaded or tried; a renderer re-registers batches when it changes. */
+    public int terrainSheetCount() {
+        return extraTerrainSheets.size();
     }
 
     /** Loaded catalog sheets for batch registration at attach time. */
@@ -349,13 +556,13 @@ public class BattleSprites {
     }
 
     /** Lazy-loads the road sheet (urban-tileset-2.png) — its own PNG so road art iterates independently of the indoor floors. */
-    public void ensureRoadSheet()       { roadTex.ensureLoaded(); }
+    public void ensureRoadSheet()       { roadTex.ensureLoaded(lease); }
 
     /** Lazy-loads the high-resolution outdoor surfaces sheet (Floors_Tiles.png), with 56px source cells drawn into the 32px nav grid. */
-    public void ensureFloorsSheet()     { floorsTex.ensureLoaded(); }
+    public void ensureFloorsSheet()     { floorsTex.ensureLoaded(lease); }
 
     /** Lazy-loads the Water_tiles sheet (legacy 16px cells, upscaled to the 32px nav grid). */
-    public void ensureWaterSheet()      { waterTex.ensureLoaded(); }
+    public void ensureWaterSheet()      { waterTex.ensureLoaded(lease); }
 
     /**
      * Lazy-loads the nature-tiles sheet — a sliced strip (grass / dirt / sand /
@@ -363,7 +570,7 @@ public class BattleSprites {
      * mismatch the handle nulls itself so the renderer falls back to the legacy
      * Floors_Tiles grass/dirt; {@link #natureFrames()} is null in that case.
      */
-    public void ensureNatureSheet()     { natureTex.ensureLoaded(); }
+    public void ensureNatureSheet()     { natureTex.ensureLoaded(lease); }
 
     /**
      * Lazy-loads the urban-tileset-3 sheet — a sliced strip (modern road +
@@ -371,14 +578,14 @@ public class BattleSprites {
      * itself so STREET cells fall back to the legacy road autotile;
      * {@link #urbanTile3Frames()} is null in that case.
      */
-    public void ensureUrbanTile3Sheet() { urbanTile3Tex.ensureLoaded(); }
+    public void ensureUrbanTile3Sheet() { urbanTile3Tex.ensureLoaded(lease); }
 
     /** Lazy-loads the dedicated 32px generated-doodad atlas. */
     /** Loads both prop atlases — the generated doodad sheet and the parked-vehicle
      *  sheet. One call because they are one layer's art: a caller that wants props
      *  drawn wants trucks drawn, and splitting the two only invites a host that
      *  loads one and silently drops the other. */
-    public void ensureDoodadSheet()     { doodadTex.ensureLoaded(); parkedVehicleTex.ensureLoaded(); }
+    public void ensureDoodadSheet()     { doodadTex.ensureLoaded(lease); parkedVehicleTex.ensureLoaded(lease); }
 
     /**
      * Lazy-loads aircraft textures and the separate vanilla warship textures. Same one-shot
@@ -413,7 +620,7 @@ public class BattleSprites {
 
     public SpriteAPI loadEngineFxSpriteOrNull(String path) {
         try {
-            ModTextures.loadTexture(path);
+            ModTextures.loadTexture(path, lease);
             SpriteAPI s = ModTextures.sprite(path);
             if (s == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + path);
@@ -455,7 +662,7 @@ public class BattleSprites {
         if (pathSprites.containsKey(path)) return pathSprites.get(path);
         ShuttleSpriteCache cache = null;
         try {
-            ModTextures.loadTexture(path);
+            ModTextures.loadTexture(path, lease);
             SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite != null) {
                 float w = sprite.getWidth();
@@ -473,7 +680,7 @@ public class BattleSprites {
     private void loadAirframe(Airframe airframe) {
         String path = airframe.spritePath();
         try {
-            ModTextures.loadTexture(path);
+            ModTextures.loadTexture(path, lease);
             SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + path);
@@ -499,21 +706,48 @@ public class BattleSprites {
      * the convoy render pass silently skips vehicles whose cache entry is null.
      */
     public void ensureConvoySprites() {
-        if (convoySpritesLoadAttempted) return;
+        ensureConvoySprites(EnumSet.allOf(VehicleType.class));
+    }
+
+    /** {@link #ensureConvoySprites()} for only the lines a battle fields ({@code battle-textures.md}). */
+    public void ensureConvoySprites(Set<VehicleType> types) {
         convoySpritesLoadAttempted = true;
-        for (com.dillon.starsectormarines.battle.vehicle.VehicleType type :
-                com.dillon.starsectormarines.battle.vehicle.VehicleType.values()) {
-            SpriteAPI sheet = loadIconOrNull(type.spritePath);
-            if (sheet != null) {
-                // Registered sheets are equal horizontal slots: the frames follow from the
-                // sheet's logical size alone, so its pixels are never decoded or sliced.
-                SpriteSheetFrames size = new SpriteSheetFrames(Math.round(sheet.getWidth()),
-                        Math.round(sheet.getHeight()), new SpriteSheetFrames.Frame[0]);
-                convoySprites.put(type, new UnitSpriteCache(sheet, type.registeredSpriteFrames(size)));
-            } else {
-                LOG.warn("convoy: failed to load sprite for " + type
-                        + " (" + type.spritePath + ")");
-            }
+        for (VehicleType type : types) loadConvoySprite(type);
+    }
+
+    /** One vehicle line's sheet, once. */
+    public void loadConvoySprite(VehicleType type) {
+        if (!vehiclesAttempted.add(type)) return;
+        SpriteAPI sheet = loadIconOrNull(type.spritePath);
+        if (sheet != null) {
+            // Registered sheets are equal horizontal slots: the frames follow from the
+            // sheet's logical size alone, so its pixels are never decoded or sliced.
+            SpriteSheetFrames size = new SpriteSheetFrames(Math.round(sheet.getWidth()),
+                    Math.round(sheet.getHeight()), new SpriteSheetFrames.Frame[0]);
+            convoySprites.put(type, new UnitSpriteCache(sheet, type.registeredSpriteFrames(size)));
+        } else {
+            LOG.warn("convoy: failed to load sprite for " + type
+                    + " (" + type.spritePath + ")");
+        }
+    }
+
+    /**
+     * Art a battle's texture set did not name, loaded the first time it is drawn: a hitch, not
+     * a blank. The dev build says so, since it means {@link BattleTextureSet} missed a way the
+     * battle can bring it on.
+     */
+    /** What was loaded on first draw because its owner's set did not name it, in order. */
+    private final List<String> unplanned = new ArrayList<>();
+
+    /** Everything loaded on first draw because the set did not name it; empty when the set was right. */
+    public List<String> unplannedLoads() {
+        return List.copyOf(unplanned);
+    }
+
+    private void unplanned(String what) {
+        unplanned.add(what);
+        if (DevConfig.DEV_MODE) {
+            LOG.info("battle textures: loading " + what + " on first draw; the battle's texture set missed it");
         }
     }
 
@@ -532,7 +766,7 @@ public class BattleSprites {
 
     public SpriteAPI loadIconOrNull(String path) {
         try {
-            ModTextures.loadTexture(path);
+            ModTextures.loadTexture(path, lease);
             SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + path);
@@ -574,7 +808,7 @@ public class BattleSprites {
         for (SpecialEquipmentDef sec : registry.all()) {
             if (sec.projectileSpritePath() != null) {
                 try {
-                    ModTextures.loadTexture(sec.projectileSpritePath());
+                    ModTextures.loadTexture(sec.projectileSpritePath(), lease);
                     SpriteAPI sprite = ModTextures.sprite(sec.projectileSpritePath());
                     if (sprite == null) {
                         LOG.warn("BattleSprites: getSprite returned null for " + sec.projectileSpritePath());
@@ -598,7 +832,7 @@ public class BattleSprites {
             if (w.mount != MountClass.MARINE_PRIMARY) continue;
             if (w.projectileSpritePath == null) continue;
             try {
-                ModTextures.loadTexture(w.projectileSpritePath);
+                ModTextures.loadTexture(w.projectileSpritePath, lease);
                 SpriteAPI sprite = ModTextures.sprite(w.projectileSpritePath);
                 if (sprite == null) {
                     LOG.warn("BattleSprites: getSprite returned null for " + w.projectileSpritePath);
@@ -636,7 +870,7 @@ public class BattleSprites {
             String projectileSpritePath = weapon.projectileSpritePath;
             if (projectileSpritePath == null) continue;
             try {
-                ModTextures.loadTexture(projectileSpritePath);
+                ModTextures.loadTexture(projectileSpritePath, lease);
                 SpriteAPI sprite = ModTextures.sprite(projectileSpritePath);
                 if (sprite == null) {
                     LOG.warn("BattleSprites: getSprite returned null for " + projectileSpritePath);
@@ -667,13 +901,13 @@ public class BattleSprites {
             }
             String grenadePath = smoke.presentation().thrown().spritePath();
             String fieldPath = smoke.presentation().field().sheetPath();
-            ModTextures.loadTexture(grenadePath);
+            ModTextures.loadTexture(grenadePath, lease);
             smokeGrenadeSprite = ModTextures.sprite(grenadePath);
-            ModTextures.loadTexture(fieldPath);
+            ModTextures.loadTexture(fieldPath, lease);
             smokeFieldSheet = ModTextures.sprite(fieldPath);
-            ModTextures.loadTexture(FIRE_SHEET_PATH);
+            ModTextures.loadTexture(FIRE_SHEET_PATH, lease);
             fireSheet = ModTextures.sprite(FIRE_SHEET_PATH);
-            ModTextures.loadTexture(FireRenderSystem.FLAME_SHEET_PATH);
+            ModTextures.loadTexture(FireRenderSystem.FLAME_SHEET_PATH, lease);
             flameSheet = ModTextures.sprite(FireRenderSystem.FLAME_SHEET_PATH);
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load smoke utility sprites", e);
@@ -690,7 +924,7 @@ public class BattleSprites {
                 throw new IllegalStateException("Satchel equipment has no deployed presentation recipe");
             }
             String path = satchel.presentation().deployed().spritePath();
-            ModTextures.loadTexture(path);
+            ModTextures.loadTexture(path, lease);
             satchelChargeSprite = ModTextures.sprite(path);
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load satchel charge sprite", e);
@@ -699,10 +933,30 @@ public class BattleSprites {
 
     /**
      * Loads independent body/head/feet/weapon textures for converted infantry
-     * archetypes. A family is published only when every required layer
+     * archetypes: every family. A family is published only when every required layer
      * loaded; otherwise {@code UnitRenderService} draws its actors as plain markers.
      */
     public void ensureLayeredUnitSprites() {
+        ensureLayeredUnitSprites(EnumSet.allOf(LayeredArmorFamily.class), true);
+    }
+
+    /**
+     * {@link #ensureLayeredUnitSprites()} for only the families a battle draws, and the Rav
+     * Bloom's rigs only when they are on its field ({@code battle-textures.md}). A family the
+     * set missed loads the first time {@link #layeredUnitSprites()} is asked for it.
+     */
+    public void ensureLayeredUnitSprites(Set<LayeredArmorFamily> families, boolean ravRigs) {
+        ensureInfantryShared();
+        for (LayeredArmorFamily family : families) ensureLayeredFamily(family);
+        if (ravRigs) ensureRavRigs();
+    }
+
+    /**
+     * The layers every infantry family shares — feet, weapons, muzzle flash, carried equipment,
+     * a medic's kit, crew work props — and the blood pools under a fallen body. Families are
+     * loaded after it, since each registers the equipment layers loaded here.
+     */
+    public void ensureInfantryShared() {
         if (layeredUnitSpritesLoadAttempted) return;
         layeredUnitSpritesLoadAttempted = true;
 
@@ -768,80 +1022,105 @@ public class BattleSprites {
             LayeredSpriteCache sprite = loadLayeredSprite(prop.getValue());
             if (sprite != null) specialEquipmentLayers.put(prop.getKey(), sprite);
         }
+        for (int pool = 0; pool < BLOOD_POOLS; pool++) {
+            LayeredSpriteCache sprite = loadLayeredSprite(BLOOD_POOL_ROOT + pool + ".png");
+            if (sprite != null) bloodPools.add(sprite);
+        }
         if (foot == null || rifle == null || laser == null || smg == null || dmr == null
                 || rocket == null || amr == null || flash == null || surplusRifle == null
                 || masterworkDmr == null) {
             LOG.warn("BattleSprites: modular shared layers incomplete; infantry fall back to plain markers");
             return;
         }
+        infantryShared = new InfantryShared(foot, rifle, laser, smg, dmr, rocket, amr, flash,
+                surplusRifle, masterworkDmr);
+    }
 
-        loadLayeredFamily(LayeredArmorFamily.ARMORLESS, "armorless", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.CHARCOAL, "charcoal", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.BLUE_SCOUT, "blue-scout", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.RED_ELITE, "red-heavy", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.OUTLAW, "outlaw", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.ARMY_GREEN, "army-green", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.MILITIA, "militia", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.AEGIS_COMPOSITE, "aegis", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.PALATINE, "palatine", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.FURNACE_LINE, "furnace-line", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.REAVER, "reaver", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.SPECTER_HEAVY, "specter-heavy",
-                loadLayeredSprite(MODULAR_ROOT + "armor/specter-heavy/foot.png"),
-                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.ARBALEST_HEAVY, "specter-heavy/paints/olive",
-                loadLayeredSprite(MODULAR_ROOT + "armor/specter-heavy/paints/olive/foot.png"),
-                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.BOARDING_JACK, "boarding-jack",
-                loadLayeredSprite(MODULAR_ROOT + "armor/boarding-jack/foot.png"),
-                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.BOARDING_JACK_PIRATE, "boarding-jack/paints/pirate",
-                loadLayeredSprite(MODULAR_ROOT + "armor/boarding-jack/paints/pirate/foot.png"),
-                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.BULWARK_HEAVY, "bulwark-heavy", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.RELIQUARY_HEAVY, "reliquary-heavy", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.LIONS_MANTLE, "lions-mantle", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.FOUNDRY_BREAKER, "foundry-breaker", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamilyAt(LayeredArmorFamily.CIVILIAN_COLONIST,
-                "graphics/battle/colonist-modular-topdown/civilian/", loadLayeredSprite("graphics/battle/colonist-modular-topdown/civilian/foot.png"),
-                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamilyAt(LayeredArmorFamily.ENGINEER,
-                "graphics/battle/colonist-modular-topdown/engineer/", loadLayeredSprite("graphics/battle/colonist-modular-topdown/engineer/foot.png"),
-                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamilyAt(LayeredArmorFamily.SCIENTIST,
-                "graphics/battle/colonist-modular-topdown/scientist/", loadLayeredSprite("graphics/battle/colonist-modular-topdown/scientist/foot.png"),
-                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamilyAt(LayeredArmorFamily.SHIP_COMMAND,
-                "graphics/battle/ship-crew-modular-topdown/command/", loadLayeredSprite("graphics/battle/ship-crew-modular-topdown/command/foot.png"),
-                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamilyAt(LayeredArmorFamily.SHIP_ENGINEERING,
-                "graphics/battle/ship-crew-modular-topdown/engineering/", loadLayeredSprite("graphics/battle/ship-crew-modular-topdown/engineering/foot.png"),
-                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamilyAt(LayeredArmorFamily.SHIP_MEDICAL,
-                "graphics/battle/ship-crew-modular-topdown/medical/", loadLayeredSprite("graphics/battle/ship-crew-modular-topdown/medical/foot.png"),
-                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamilyAt(LayeredArmorFamily.SHIP_SERVICE,
-                "graphics/battle/ship-crew-modular-topdown/service/", loadLayeredSprite("graphics/battle/ship-crew-modular-topdown/service/foot.png"),
-                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        LayeredSpriteCache alienFoot = loadLayeredSprite(
-                "graphics/battle/alien-modular-topdown/foot.png");
-        LayeredSpriteCache alienForeClaw = loadLayeredSprite(
-                "graphics/battle/alien-modular-topdown/fore-claw.png");
-        loadLayeredFamilyAt(LayeredArmorFamily.XENO,
-                "graphics/battle/alien-modular-topdown/",
-                alienFoot, alienForeClaw, rifle, laser, smg, dmr, rocket, amr, flash,
-                surplusRifle, masterworkDmr);
-        // The Brute walks and strikes on its own heavier foot and claw; the Spitter is the
-        // Runner's lineage below the shoulders and keeps its feet and claws.
-        loadLayeredFamilyAt(LayeredArmorFamily.XENO_BRUTE,
-                "graphics/battle/swarm-brute-modular-topdown/",
-                loadLayeredSprite("graphics/battle/swarm-brute-modular-topdown/foot.png"),
-                loadLayeredSprite("graphics/battle/swarm-brute-modular-topdown/fore-claw.png"),
-                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamilyAt(LayeredArmorFamily.XENO_SPITTER,
-                "graphics/battle/swarm-spitter-modular-topdown/",
-                alienFoot, alienForeClaw, rifle, laser, smg, dmr, rocket, amr, flash,
-                surplusRifle, masterworkDmr);
+    /** The layers {@link #ensureInfantryShared()} loaded, or null when one of them would not. */
+    private InfantryShared infantryShared;
+    /** Families already tried, so one that will not load is not retried on every draw. */
+    private final EnumSet<LayeredArmorFamily> familiesAttempted = EnumSet.noneOf(LayeredArmorFamily.class);
+    private boolean ravRigsAttempted;
+
+    private record InfantryShared(LayeredSpriteCache foot, LayeredSpriteCache rifle,
+                                  LayeredSpriteCache laser, LayeredSpriteCache smg,
+                                  LayeredSpriteCache dmr, LayeredSpriteCache rocket,
+                                  LayeredSpriteCache amr, LayeredSpriteCache flash,
+                                  LayeredSpriteCache surplusRifle, LayeredSpriteCache masterworkDmr) { }
+
+    /** Where a family's art lives: its folder, and its own feet and fore claws where it has them. */
+    private record FamilyArt(String root, String footPath, String clawPath) { }
+
+    private static final String ALIEN_ROOT = "graphics/battle/alien-modular-topdown/";
+    private static final String SWARM_BRUTE_ROOT = "graphics/battle/swarm-brute-modular-topdown/";
+
+    private static FamilyArt familyArt(LayeredArmorFamily family) {
+        return switch (family) {
+            case ARMORLESS -> marine("armorless", false);
+            case CHARCOAL -> marine("charcoal", false);
+            case BLUE_SCOUT -> marine("blue-scout", false);
+            case RED_ELITE -> marine("red-heavy", false);
+            case OUTLAW -> marine("outlaw", false);
+            case ARMY_GREEN -> marine("army-green", false);
+            case MILITIA -> marine("militia", false);
+            case AEGIS_COMPOSITE -> marine("aegis", false);
+            case PALATINE -> marine("palatine", false);
+            case FURNACE_LINE -> marine("furnace-line", false);
+            case REAVER -> marine("reaver", false);
+            case SPECTER_HEAVY -> marine("specter-heavy", true);
+            case ARBALEST_HEAVY -> marine("specter-heavy/paints/olive", true);
+            case BOARDING_JACK -> marine("boarding-jack", true);
+            case BOARDING_JACK_PIRATE -> marine("boarding-jack/paints/pirate", true);
+            case BULWARK_HEAVY -> marine("bulwark-heavy", false);
+            case RELIQUARY_HEAVY -> marine("reliquary-heavy", false);
+            case LIONS_MANTLE -> marine("lions-mantle", false);
+            case FOUNDRY_BREAKER -> marine("foundry-breaker", false);
+            case CIVILIAN_COLONIST -> own("graphics/battle/colonist-modular-topdown/civilian/");
+            case ENGINEER -> own("graphics/battle/colonist-modular-topdown/engineer/");
+            case SCIENTIST -> own("graphics/battle/colonist-modular-topdown/scientist/");
+            case SHIP_COMMAND -> own("graphics/battle/ship-crew-modular-topdown/command/");
+            case SHIP_ENGINEERING -> own("graphics/battle/ship-crew-modular-topdown/engineering/");
+            case SHIP_MEDICAL -> own("graphics/battle/ship-crew-modular-topdown/medical/");
+            case SHIP_SERVICE -> own("graphics/battle/ship-crew-modular-topdown/service/");
+            // The Brute walks and strikes on its own heavier foot and claw; the Spitter is the
+            // Runner's lineage below the shoulders and keeps its feet and claws.
+            case XENO -> new FamilyArt(ALIEN_ROOT, ALIEN_ROOT + "foot.png", ALIEN_ROOT + "fore-claw.png");
+            case XENO_BRUTE -> new FamilyArt(SWARM_BRUTE_ROOT, SWARM_BRUTE_ROOT + "foot.png",
+                    SWARM_BRUTE_ROOT + "fore-claw.png");
+            case XENO_SPITTER -> new FamilyArt("graphics/battle/swarm-spitter-modular-topdown/",
+                    ALIEN_ROOT + "foot.png", ALIEN_ROOT + "fore-claw.png");
+        };
+    }
+
+    /** A marine armour under the variants folder, on the shared foot or on its own. */
+    private static FamilyArt marine(String folder, boolean ownFoot) {
+        String root = MODULAR_ROOT + "armor/" + folder + "/";
+        return new FamilyArt(root, ownFoot ? root + "foot.png" : null, null);
+    }
+
+    /** A family in its own folder with its own feet. */
+    private static FamilyArt own(String root) {
+        return new FamilyArt(root, root + "foot.png", null);
+    }
+
+    /** Loads one family once; the shared layers first if nobody has yet. */
+    public void ensureLayeredFamily(LayeredArmorFamily family) {
+        ensureInfantryShared();
+        if (family == null || !familiesAttempted.add(family)) return;
+        InfantryShared shared = infantryShared;
+        if (shared == null) return;
+        FamilyArt art = familyArt(family);
+        LayeredSpriteCache foot = art.footPath() == null ? shared.foot() : loadLayeredSprite(art.footPath());
+        LayeredSpriteCache claw = art.clawPath() == null ? null : loadLayeredSprite(art.clawPath());
+        loadLayeredFamilyAt(family, art.root(), foot, claw, shared.rifle(), shared.laser(), shared.smg(),
+                shared.dmr(), shared.rocket(), shared.amr(), shared.flash(), shared.surplusRifle(),
+                shared.masterworkDmr());
+    }
+
+    /** The Rav Bloom's Runner, Brute and Matriarch rigs. */
+    public void ensureRavRigs() {
+        if (ravRigsAttempted) return;
+        ravRigsAttempted = true;
         ravRunner = RavRunnerAssets.load(this::loadLayeredSprite);
         if (ravRunner == null) {
             LOG.warn("BattleSprites: Rav Runner bones incomplete; the Runner keeps its layered art");
@@ -854,17 +1133,42 @@ public class BattleSprites {
         if (ravMatriarch == null) {
             LOG.warn("BattleSprites: Rav Matriarch rig sprites incomplete");
         }
-        for (int pool = 0; pool < BLOOD_POOLS; pool++) {
-            LayeredSpriteCache sprite = loadLayeredSprite(BLOOD_POOL_ROOT + pool + ".png");
-            if (sprite != null) bloodPools.add(sprite);
-        }
     }
 
     /** Loads the all-or-nothing modular heavy-mech set; without it mechs draw as plain markers. */
     public void ensureLayeredMechSprites() {
+        ensureLayeredMechSprites(EnumSet.allOf(MechLivery.class));
+    }
+
+    /**
+     * The base mech set and only the {@code liveries} named, which for a battle are the ones
+     * its sides wear ({@code battle-textures.md}); another loads when a side asks for it.
+     */
+    public void ensureLayeredMechSprites(Set<MechLivery> liveries) {
+        ensureMechBase();
+        for (MechLivery livery : liveries) ensureMechLivery(livery);
+    }
+
+    /** One painted livery, once; the base set first. A livery that will not load falls back to the base. */
+    public void ensureMechLivery(MechLivery livery) {
+        ensureMechBase();
+        if (livery == null || livery == MechLivery.BASE || mechBase == null || !liveriesAttempted.add(livery)) return;
+        loadMechLivery(MECH_ROOT, livery, mechBase.socketedChassis(), mechBase.foot(), mechBase.thighBone(),
+                mechBase.flash());
+    }
+
+    private static final String MECH_ROOT = "graphics/battle/mech-modular-topdown/";
+    /** The unpainted layers every livery shares, or null when the base set would not load. */
+    private MechBase mechBase;
+    private final EnumSet<MechLivery> liveriesAttempted = EnumSet.noneOf(MechLivery.class);
+
+    private record MechBase(LayeredSpriteCache socketedChassis, LayeredSpriteCache foot,
+                            LayeredSpriteCache thighBone, LayeredSpriteCache flash) { }
+
+    private void ensureMechBase() {
         if (layeredMechSpritesLoadAttempted) return;
         layeredMechSpritesLoadAttempted = true;
-        String root = "graphics/battle/mech-modular-topdown/";
+        String root = MECH_ROOT;
         LayeredSpriteCache chassis = loadLayeredSprite(root + "chassis.png");
         LayeredSpriteCache socketedChassis = loadLayeredSprite(root + "chassis-socketed-variant.png");
         LayeredSpriteCache houndChassis = loadLayeredSprite(root + "chassis-hound.png");
@@ -908,10 +1212,7 @@ public class BattleSprites {
                 demolitionCannon, thermalLance, musterAutogun,
                 quarryBreakerCannon, pioneerRocketCradle, flash);
         layeredMechLiveries.put(MechLivery.BASE, layeredMechSprites);
-        for (MechLivery livery : MechLivery.values()) {
-            if (livery == MechLivery.BASE) continue;
-            loadMechLivery(root, livery, socketedChassis, foot, thighBone, flash);
-        }
+        mechBase = new MechBase(socketedChassis, foot, thighBone, flash);
     }
 
     /** A skin is usable only when every faction-painted chassis and weapon layer exists. */
@@ -961,37 +1262,6 @@ public class BattleSprites {
                 quarryBreakerCannon, pioneerRocketCradle, flash));
     }
 
-    private void loadLayeredFamily(LayeredArmorFamily familyId, String family,
-                                   LayeredSpriteCache foot,
-                                   LayeredSpriteCache rifle,
-                                   LayeredSpriteCache laser,
-                                   LayeredSpriteCache smg,
-                                   LayeredSpriteCache dmr,
-                                   LayeredSpriteCache rocket,
-                                   LayeredSpriteCache amr,
-                                   LayeredSpriteCache flash,
-                                   LayeredSpriteCache surplusRifle,
-                                   LayeredSpriteCache masterworkDmr) {
-        loadLayeredFamilyAt(familyId, MODULAR_ROOT + "armor/" + family + "/",
-                foot, null, rifle, laser, smg, dmr, rocket, amr, flash,
-                surplusRifle, masterworkDmr);
-    }
-
-    private void loadLayeredFamilyAt(LayeredArmorFamily familyId, String familyRoot,
-                                     LayeredSpriteCache foot,
-                                     LayeredSpriteCache rifle,
-                                     LayeredSpriteCache laser,
-                                     LayeredSpriteCache smg,
-                                     LayeredSpriteCache dmr,
-                                     LayeredSpriteCache rocket,
-                                     LayeredSpriteCache amr,
-                                     LayeredSpriteCache flash,
-                                     LayeredSpriteCache surplusRifle,
-                                     LayeredSpriteCache masterworkDmr) {
-        loadLayeredFamilyAt(familyId, familyRoot, foot, null, rifle, laser, smg, dmr,
-                rocket, amr, flash, surplusRifle, masterworkDmr);
-    }
-
     private void loadLayeredFamilyAt(LayeredArmorFamily familyId, String familyRoot,
                                      LayeredSpriteCache foot,
                                      LayeredSpriteCache foreClaw,
@@ -1039,23 +1309,21 @@ public class BattleSprites {
     /** Whole transparent PNG loader that captures image pixels before SpriteAPI mutation. */
     public LayeredSpriteCache loadLayeredSprite(String path) {
         try {
-            ModTextures.loadTexture(path);
+            ModTextures.loadTexture(path, lease);
             SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("BattleSprites: getSprite returned null for modular layer " + path);
                 return null;
             }
-            {
-                BufferedImage image = ModTextures.readImage(path);
-                if (image == null) {
-                    LOG.warn("BattleSprites: ImageIO.read returned null for modular layer " + path);
-                    return null;
-                }
-                LOG.info("BattleSprites: loaded modular layer " + path + " ("
-                        + image.getWidth() + "x" + image.getHeight() + ")");
-                return new LayeredSpriteCache(sprite, path,
-                        image.getWidth(), image.getHeight());
+            // Its size from the header: decoding every layer a second time on the frame that
+            // uploads it was most of what loading the infantry cost.
+            int[] size = ModTextures.readSize(path);
+            if (size == null) {
+                LOG.warn("BattleSprites: ImageIO could not read the size of modular layer " + path);
+                return null;
             }
+            LOG.debug("BattleSprites: loaded modular layer " + path + " (" + size[0] + "x" + size[1] + ")");
+            return new LayeredSpriteCache(sprite, path, size[0], size[1]);
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load modular layer " + path, e);
             return null;
@@ -1080,7 +1348,7 @@ public class BattleSprites {
         droneHubSpriteLoadAttempted = true;
         String path = DroneHub.SPRITE_PATH;
         try {
-            ModTextures.loadTexture(path);
+            ModTextures.loadTexture(path, lease);
             SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + path);
@@ -1101,7 +1369,7 @@ public class BattleSprites {
         droneSpriteLoadAttempted = true;
         String path = com.dillon.starsectormarines.battle.drone.Drone.SPRITE_PATH;
         try {
-            ModTextures.loadTexture(path);
+            ModTextures.loadTexture(path, lease);
             SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + path);
@@ -1125,7 +1393,7 @@ public class BattleSprites {
     public ShuttleSpriteCache loadTurretSprite(String path) {
         if (path == null) return null;
         try {
-            ModTextures.loadTexture(path);
+            ModTextures.loadTexture(path, lease);
             SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + path);
@@ -1151,7 +1419,7 @@ public class BattleSprites {
 
     public UnitSpriteCache loadUnitSheet(String path) {
         try {
-            ModTextures.loadTexture(path);
+            ModTextures.loadTexture(path, lease);
             SpriteAPI sprite = ModTextures.sprite(path);
             if (sprite == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + path);
@@ -1179,7 +1447,7 @@ public class BattleSprites {
         if (decalSheetLoadAttempted) return;
         decalSheetLoadAttempted = true;
         try {
-            ModTextures.loadTexture(SPRITE_DECAL_SHEET);
+            ModTextures.loadTexture(SPRITE_DECAL_SHEET, lease);
             decalSheet = ModTextures.sprite(SPRITE_DECAL_SHEET);
             if (decalSheet == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + SPRITE_DECAL_SHEET);

@@ -44,4 +44,14 @@ public interface Screen {
      * must be torn down even though the screen instance lives on for re-entry.
      */
     default void detach() {}
+
+    /**
+     * Whether the company deck gives its textures back while this screen is up
+     * ({@code battle-textures.md}). True for a battle, which loads its own set and is the one
+     * screen worth the card; every other screen leaves the deck's art resident, so walking back
+     * aboard is instant.
+     */
+    default boolean releasesCompanyDeckTextures() {
+        return false;
+    }
 }

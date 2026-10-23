@@ -86,7 +86,7 @@ orange once it is gone, red as structure goes, dark red destroyed) with two flag
 beneath, CRIPPLED and SENSORS LOST for a Mech, IMMOBILE and GUN LOST for a vehicle.
 A hull's side plates are the cheeks either side of each view, so a side reads in
 both; a Mech's rear view drops the legs, which are thin and the same from behind.
-The locations are owned by `d5-located-armor.md`; see `damage-doll.md`. A Marine
+The locations are owned by `convoy-nouns.md` and `mechs-nouns.md`; see `damage-doll.md`. A Marine
 shows a **Marine doll** in the same place and size: one front figure, since a person
 has one armor pool and no back plate. Its head and torso read that pool and health on
 the machine doll's colours. Its arms and legs read only the limb wounds the
@@ -111,9 +111,18 @@ clear. A magazine-fed infantry primary draws its load as rounds rather than a
 number: a strip under the weapon row (rifle cartridges, shotgun shells, or a
 belt in blocks of one burst, so a long belt still reads at a glance), spent
 rounds hollow and a reload pressing them back in. The cursor carries no ammo
-mark. A primary without a magazine shows no counter. Finite Mech stores count
-trigger packs, while the APC turret counts individual rounds. Indirect mounts
-remain visible as unavailable for manual fire.
+mark. A primary without a magazine shows no counter. Machines draw their loads
+the same way, by what they throw (`Ordnance`): a missile mount is a rack of
+missiles in salvos of one trigger pull, a vehicle's belt is cartridges in
+bursts, and an energy weapon counts nothing but shows charge cells, one per
+bolt of its burst (five for a single shot), emptying through the burst,
+refilling over the cycle and held violet when flux refuses the shot. A rack or
+belt too long for the row folds to one icon per salvo or burst (several whole
+bursts per icon for a long belt) and then keeps its exact count beside it; a
+load too long even folded keeps only the number. Finite Mech stores count
+trigger packs, while a vehicle turret counts individual rounds. In the Marine doll's kit column,
+a rocket or precision-rifle special with a short load draws it as missiles or
+cartridges in place of its count.
 
 A bounded, scrollable objective list stays at the top left, showing the same
 public mission steps, instructions, measured progress and blockers as command
@@ -148,7 +157,7 @@ A faint aim lane connects the current firing origin toward the cursor. Its
 clear segment ends at the first structural projectile blocker, marked in amber;
 a fainter dashed segment continues beyond that obstruction. Marine origin is
 the ordinary point-shot source. Mech and APC lanes use their actual posed
-muzzles, and Mech weapon selection determines which flat-fire hardpoints appear;
+muzzles, and the Mech's trigger picks determine which flat-fire hardpoints appear;
 an arcing rack flies over walls and draws no lane. When an armed mount's rounds
 burst where they are thrown (rockets and LRM racks), a **scatter ring** circles
 the cursor at the widest landing disk among them: orange inside every covered
@@ -414,28 +423,48 @@ secondary group, arcing LRM racks included. The Hound therefore fires its nose c
 SRM pod on the right; a Bulwark fires its chainguns left and both SRM racks right.
 A chassis whose point-fire mounts are all one role keeps them all on the left
 button and leaves the right one inert (an all-rack chassis is not stranded without
-a primary). Each button's trigger still requests only its own group's mounts,
-subject to each mount's arc, alignment, cooldown, ammunition, flux and burst gates.
+a primary).
 
-Keys 1-4 keep their place but act on the left button only. Key 1 is the default
-(left = primary group); keys 2-4 re-point the left button at a single hardpoint
-(arms, left shoulder, right shoulder), including a rack. The right button always
-fires the secondary group. The weapon-groups panel lists each mount under the
-button that fires it: an LMB group (PRIMARY GROUP, or ONE MOUNT while keys 2-4
-point it at a hardpoint), an RMB group (SECONDARY GROUP), and OTHER MOUNTS for an
-unfired hardpoint. A mount on both buttons is listed once,
-under LMB, marked `LR`. Each row carries its number key; clicking a row selects
-that mount and clicking the LMB header returns the left button to its group.
-Empty hardpoints cannot be selected; an installed mount remains
-selectable when its ammunition is exhausted. Selection belongs to the control
-session, survives pause, and resets on takeover or handback. Changing it cancels
-queued manual rounds and releases held fire while preserving movement, aim,
-ammunition, and clocks; a new press must trigger the new choice. A queued burst
-keeps firing after its button is released and is dropped only when its mount leaves
-both buttons' groups. Repeated input cannot replay a cancelled burst. Neither
-selection nor groups change the installed equipment, authored packet size, or AI
-firing policy. The authored single shot,
-timed burst, or simultaneous volley remains distinct from this player choice.
+Each button is a **trigger**, a delegation with its own **sub-cycle** (owner,
+2026-10-23): an ordered list of **members** and a **pick** into it, and the press
+fires the pick. A mech trigger's list is **LINKED** (the whole group at once, each
+mount under its own arc, alignment, cooldown, ammunition, flux and burst gates),
+then each mount of its group in hardpoint order. A Bulwark therefore fires both
+arm chainguns on LINKED, or one of them alone. A group of one mount has only
+LINKED, which is that mount, and an empty group has no list. LINKED is the
+default pick. **Q** moves the left trigger to its next member and **C** the right,
+wrapping back to LINKED; the mouse wheel stays on zoom. Number keys are direct
+jumps on the left trigger only: key 1 is LINKED and keys 2 onward are its guns in
+list order. **A member its trigger's pick leaves out holds fire**: no manual round
+and no autonomous one, since the controlled body takes no AI trigger. A **crewed
+defence** (a mount with its own gunner, such as a tank's active protection) never
+joins a list and keeps firing autonomously under control; today's tank APS is a
+point-defence structure already, and a future defensive mount declares itself
+crewed in data rather than being inferred.
+
+A destroyed or empty hardpoint is never a member, so cycling skips it; a mount
+whose ammunition is exhausted stays in its list and reads EMPTY. A pick whose
+mount is lost returns its trigger to LINKED at the next validation. The picks
+belong to the control session, survive pause, and reset to LINKED on takeover or
+handback. Changing a pick cancels queued manual rounds and releases held fire
+while preserving movement, aim, ammunition, and clocks; a new press must trigger
+the new choice. A queued burst keeps firing after its button is released and is
+dropped when its mount is no longer what either trigger's pick fires. Repeated
+input cannot replay a cancelled burst. Neither picks nor groups change the
+installed equipment, authored packet size, or AI firing policy. The authored
+single shot, timed burst, or simultaneous volley remains distinct from this
+player choice. A Marine's and a vehicle's triggers have single-member lists for
+now, so Q and C do nothing there; the Marine's direct-fire specials and grenades
+join them under `weapon-cycling.md`.
+
+The weapon-groups panel lists each mount under the button whose list it is in:
+an LMB group (guns), an RMB group (racks), and OTHER MOUNTS for a hardpoint
+neither lists. Each trigger header names its pick and the key that cycles it,
+for example `LMB  LINKED  [Q]` or `LMB  R arm Chaingun  [Q]` (a picked mount is
+named with its hardpoint when another member shares its name). The picked rows
+carry the wash; the others, which hold fire, dim. Gun rows carry their number
+key. Clicking a trigger header cycles it, clicking a gun row is its number key,
+and clicking a rack row picks that rack.
 
 A Marine's primary weapon stays on the left button. The right button is the
 Marine's secondary equipment, through the same one-shot request as the G and E
@@ -491,9 +520,15 @@ ballistics without turning the cursor into a target identity.
 The player may point at ground they can see without creating a squad belief
 or revealing an unseen enemy. A physically struck unknown body is resolved
 normally, but its identity is presented only when the player's observation
-rules allow it. Weapon families outside modeled ground direct fire, including
-indirect missiles, need their own ground-point targeting contract before they can be
-triggered manually. Mech mounts also retain their
+rules allow it. Arcing mounts share one ground-point contract on every hull
+(`ManualPointFire`): a pilot lobs a salvo at the cursor, scattered about the
+thrown point and refused inside a minimum range. A vehicle turret obeys it as a
+mech rack does, measured from its turret ring: the LRM carrier's launcher drops
+each salvo on the thrown point, and inside eight cells its trigger is refused
+and its row reads TOO CLOSE. A turret rocket that does not arc (the SRM pod) is
+thrown at ground as a mech's rockets are, bursting at the point or on the first
+thing in its lane. Any ranged turret can therefore be fired by hand, and none
+reads AI ONLY. Mech mounts also retain their
 hardpoint arcs and per-mount clocks; a vehicle turret retains its independent
 aim and fire authority.
 

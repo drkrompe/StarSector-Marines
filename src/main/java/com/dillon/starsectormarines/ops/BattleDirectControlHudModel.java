@@ -1,9 +1,13 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.combat.FireTrigger;
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
 import com.dillon.starsectormarines.battle.control.MarineSprint;
 import com.dillon.starsectormarines.battle.mech.MechFlux;
+import com.dillon.starsectormarines.battle.ui.panel.AmmoStrip;
+import com.dillon.starsectormarines.battle.ui.panel.ChargeGauge;
 import com.dillon.starsectormarines.battle.ui.panel.MagazineGauge;
+import com.dillon.starsectormarines.battle.ui.panel.Ordnance;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.BattleDirectControlStatus.Carrier;
 import com.dillon.starsectormarines.ops.BattleDirectControlStatus.Tone;
@@ -16,10 +20,8 @@ import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.function.IntConsumer;
 
 /**
  * The direct-control HUD as two panels, after the game's own combat HUD: a status panel
@@ -32,8 +34,32 @@ final class BattleDirectControlHudModel {
     private static final String FLUX_FILL = "#a594f9";
     private static final String HIDDEN_ROW = "row row-hidden";
 
+    /**
+     * What the weapons panel's clicks ask for. {@code select} is a number key; a mech's trigger
+     * headers cycle and its rows pick, which a host without triggers may ignore.
+     */
+    interface WeaponActions {
+        void select(int key);
+        default void cycle(FireTrigger trigger) { }
+        /** {@code member} is LINKED or a hardpoint ({@code slot.ordinal() + 1}) of that trigger's group. */
+        default void pick(FireTrigger trigger, int member) { }
+    }
+
+    /**
+     * How a trigger header reads its pick, while the owner chooses (picks page, 2026-10-23); the
+     * looks not chosen are removed with this enum. {@code KEYCAP}: {@code LMB  LINKED  [Q]}.
+     * {@code COUNTED}: the same with the pick's place in the list, {@code 1/3  [Q]}. {@code GROUP}: the
+     * group's noun before the pick, {@code LMB  GUNS: LINKED  [Q] cycle}. The heading font has no
+     * middle dot and draws parentheses thinly, so a header separates with a colon or a space.
+     */
+    enum PickLook { KEYCAP, COUNTED, GROUP }
+
+    /** How far a member its trigger's pick leaves out fades: it holds fire. */
+    private static final float UNPICKED_OPACITY = .45f;
+
     private final Reactor reactor;
-    private final IntConsumer select;
+    private final WeaponActions select;
+    private PickLook pickLook = PickLook.KEYCAP;
     private final Function<String, String> copy;
     private final Map<String, Object> statusProps = new LinkedHashMap<>();
     private final Map<String, Object> weaponsProps = new LinkedHashMap<>();
@@ -44,11 +70,11 @@ final class BattleDirectControlHudModel {
     private String structureKey = "";
     private Carrier carrier = Carrier.NONE;
 
-    BattleDirectControlHudModel(Reactor reactor, IntConsumer select, Runnable exit, Runnable pause) {
+    BattleDirectControlHudModel(Reactor reactor, WeaponActions select, Runnable exit, Runnable pause) {
         this(reactor, select, exit, pause, Strings::get);
     }
 
-    BattleDirectControlHudModel(Reactor reactor, IntConsumer select, Runnable exit,
+    BattleDirectControlHudModel(Reactor reactor, WeaponActions select, Runnable exit,
                                Runnable pause, Function<String, String> copy) {
         this.reactor = reactor;
         this.select = select;
@@ -83,6 +109,8 @@ final class BattleDirectControlHudModel {
     Map<String, Object> weaponsProps() { return weaponsProps; }
     Map<String, Object> actionsProps() { return actionsProps; }
     void setExitLabelKey(String key) { exitLabelKey = key; }
+    /** For the picks-page renders; takes effect on the next update. */
+    void setPickLook(PickLook look) { pickLook = look; }
 
     /** Changes exactly when a panel gains or loses a row, so its host knows to re-measure it. */
     String structureKey() { return structureKey; }
@@ -163,42 +191,97 @@ final class BattleDirectControlHudModel {
     }
 
     /**
-     * A mech's mounts under the button that fires them: the left button's group (or the one mount
-     * keys 2-6 pointed it at), the right button's racks, and whatever no button fires. A mount fired
-     * by both buttons is listed once, under the left.
+     * A mech's mounts under the button whose list they are in: the left button's guns, the right
+     * button's racks, and whatever neither lists. Each header names its trigger's pick and the key
+     * that cycles it; the picked rows carry the wash and the rest, which hold fire, dim.
      */
     private List<WeaponGroup> mechGroups(BattleDirectControlStatus.Snapshot snapshot, int selected) {
         boolean unknown = weaponTriggerUnknown(snapshot);
-        List<WeaponRow> left = new ArrayList<>(), right = new ArrayList<>(), other = new ArrayList<>();
+        List<WeaponStatus> left = new ArrayList<>(), right = new ArrayList<>(), other = new ArrayList<>();
         for (WeaponStatus weapon : snapshot.weapons()) {
-            String trigger = weapon.trigger();
-            boolean onLeft = unknown ? weapon.directEligible() && (selected == 0 || selected == weapon.number())
-                    : trigger.contains("L");
-            boolean onRight = !unknown && trigger.contains("R");
-            WeaponRow row = weaponRow(weapon, true, onLeft, onLeft && onRight ? "LR" : "");
-            if (onLeft) left.add(row);
-            else if (onRight) right.add(row);
-            else other.add(row);
+            String listed = weapon.listedOn();
+            if (unknown ? weapon.directEligible() : listed.contains("L")) left.add(weapon);
+            else if (listed.contains("R")) right.add(weapon);
+            else other.add(weapon);
         }
         List<WeaponGroup> result = new ArrayList<>();
-        boolean single = selected != 0;
-        boolean leftClose = anyTooClose(snapshot, true);
-        result.add(new WeaponGroup("direct-hud-group-lmb", label("BadgeLMB"), "badge badge-lmb",
-                label(single ? "GroupSingle" : "GroupPrimary"),
-                leftClose ? label("TOO_CLOSE") : label(single ? "GroupSingleHint" : "GroupPrimaryHint"),
-                leftClose ? HINT_WARN : HINT,
-                "group-header group-header-action", false, () -> select.accept(0), left));
-        if (!right.isEmpty()) {
-            boolean close = anyTooClose(snapshot, false);
-            result.add(new WeaponGroup("direct-hud-group-rmb", label("BadgeRMB"), "badge badge-rmb",
-                    label("GroupSecondary"), close ? label("TOO_CLOSE") : label("GroupSecondaryHint"),
-                    close ? HINT_WARN : HINT, "group-header", false, () -> {}, right));
-        }
+        result.add(triggerGroup(snapshot, FireTrigger.LEFT, left, unknown, selected));
+        if (!right.isEmpty()) result.add(triggerGroup(snapshot, FireTrigger.RIGHT, right, false, 0));
         if (!other.isEmpty()) {
+            List<WeaponRow> rows = new ArrayList<>();
+            for (WeaponStatus weapon : other) rows.add(weaponRow(weapon, true, false, false, "", () -> { }));
             result.add(new WeaponGroup("direct-hud-group-other", label("BadgeAI"), "badge badge-ai",
-                    label("GroupOther"), label("GroupOtherHint"), "group-header", false, () -> {}, other));
+                    label("GroupOther"), label("GroupOtherHint"), "group-header", false, () -> {}, rows));
         }
         return result;
+    }
+
+    /**
+     * One trigger's header and rows. Its list is LINKED and then each member, so a left member's
+     * number key is its place after key 1; a group of one has only key 1.
+     */
+    private WeaponGroup triggerGroup(BattleDirectControlStatus.Snapshot snapshot, FireTrigger trigger,
+                                     List<WeaponStatus> members, boolean unknown, int selected) {
+        boolean leftButton = trigger == FireTrigger.LEFT;
+        String letter = leftButton ? "L" : "R";
+        List<Boolean> picked = new ArrayList<>(members.size());
+        int pickedCount = 0;
+        for (WeaponStatus weapon : members) {
+            boolean on = unknown ? selected == 0 || selected == weapon.number() : weapon.trigger().contains(letter);
+            picked.add(on);
+            if (on) pickedCount++;
+        }
+        boolean cycles = members.size() > 1;
+        boolean linked = cycles && pickedCount == members.size();
+        int place = 0;
+        String pickName = label("PickNone");
+        if (members.size() == 1) pickName = members.get(0).name();
+        else if (linked) pickName = label("PickLinked");
+        else for (int i = 0; i < members.size(); i++) {
+            if (picked.get(i)) {
+                pickName = pickName(members, i);
+                place = i + 1;
+                break;
+            }
+        }
+        List<WeaponRow> rows = new ArrayList<>();
+        for (int i = 0; i < members.size(); i++) {
+            WeaponStatus weapon = members.get(i);
+            int keyIndex = cycles ? i + 1 : 0;
+            String key = leftButton ? String.valueOf(keyIndex + 1) : "";
+            Runnable action = leftButton ? () -> select.select(keyIndex)
+                    : () -> select.pick(trigger, weapon.number());
+            boolean on = picked.get(i);
+            rows.add(weaponRow(weapon, true, on && cycles, cycles && !on, key, action));
+        }
+        String cycleKey = label(leftButton ? "KeyCycleLeft" : "KeyCycleRight");
+        String name = switch (pickLook) {
+            case KEYCAP, COUNTED -> pickName;
+            case GROUP -> label(leftButton ? "GroupGuns" : "GroupRacks") + ": " + pickName;
+        };
+        String hint = !cycles ? "" : switch (pickLook) {
+            case KEYCAP -> cycleKey;
+            case COUNTED -> (place + 1) + "/" + (members.size() + 1) + "  " + cycleKey;
+            case GROUP -> cycleKey + " " + label("PickCycle");
+        };
+        boolean close = anyTooClose(snapshot, leftButton);
+        String id = leftButton ? "direct-hud-group-lmb" : "direct-hud-group-rmb";
+        return new WeaponGroup(id, label(leftButton ? "BadgeLMB" : "BadgeRMB"),
+                leftButton ? "badge badge-lmb" : "badge badge-rmb", name,
+                close ? label("TOO_CLOSE") : hint, close ? HINT_WARN : HINT,
+                cycles ? "group-header group-header-action" : "group-header", !cycles,
+                () -> select.cycle(trigger), rows);
+    }
+
+    /** A picked member's name, with its hardpoint when another member shares it (a Bulwark's two chainguns). */
+    private String pickName(List<WeaponStatus> members, int index) {
+        String name = members.get(index).name();
+        for (int i = 0; i < members.size(); i++) {
+            if (i != index && members.get(i).name().equals(name)) {
+                return label("Side" + members.get(index).slotKey()) + " " + name;
+            }
+        }
+        return name;
     }
 
     /** Whether a mount the left (or right) button fires is refusing the cursor as too close. */
@@ -213,7 +296,9 @@ final class BattleDirectControlHudModel {
     private List<WeaponGroup> otherGroups(BattleDirectControlStatus.Snapshot snapshot, boolean ship) {
         List<WeaponGroup> result = new ArrayList<>();
         List<WeaponRow> fire = new ArrayList<>();
-        for (WeaponStatus weapon : snapshot.weapons()) fire.add(weaponRow(weapon, false, false, ""));
+        for (WeaponStatus weapon : snapshot.weapons()) {
+            fire.add(weaponRow(weapon, false, false, false, "", () -> select.select(weapon.number())));
+        }
         if (!fire.isEmpty()) {
             result.add(new WeaponGroup("direct-hud-group-lmb", label("BadgeLMB"), "badge badge-lmb",
                     label("GroupFire"), "", "group-header", false, () -> {}, fire));
@@ -233,7 +318,9 @@ final class BattleDirectControlHudModel {
         return result;
     }
 
-    private WeaponRow weaponRow(WeaponStatus weapon, boolean mech, boolean highlighted, String tag) {
+    /** {@code dimmed}: a member its trigger's pick leaves out, which holds fire. */
+    private WeaponRow weaponRow(WeaponStatus weapon, boolean mech, boolean highlighted, boolean dimmed,
+                                String key, Runnable action) {
         boolean enabled = weapon.directEligible();
         String state = enabled ? label(weapon.state().name()) : label("Indirect");
         if (enabled && weapon.state() == WeaponState.BURST) state += " " + weapon.burstRemaining();
@@ -254,45 +341,63 @@ final class BattleDirectControlHudModel {
         else if (weapon.state() != WeaponState.LOADED) stateClasses += " weapon-busy";
         String classes = "weapon" + (highlighted ? " weapon-selected selected" : "")
                 + (!enabled ? " weapon-unsupported" : "");
-        String key = mech ? String.valueOf(weapon.number() + 1) : "";
-        String name = weapon.name() + (tag.isEmpty() ? "" : " · " + tag);
+        String name = weapon.name();
         String id = "direct-hud-weapon-" + weapon.slotKey();
-        MagazineGauge gauge = gauge(weapon);
-        return new WeaponRow(id, classes + (gauge != null ? " weapon-magazine" : ""),
-                rowStyle(highlighted, enabled ? 1f : .6f) + (gauge != null ? " height: 74px;" : ""),
+        AmmoStrip strip = strip(weapon);
+        // A folded strip is read to the burst, so its exact count stays beside it.
+        boolean counted = strip instanceof MagazineGauge gauge && !gauge.folded()
+                || strip != null && weapon.ammo().unlimited();
+        return new WeaponRow(id, classes + (strip != null ? " weapon-magazine" : ""),
+                rowStyle(highlighted, !enabled ? .6f : dimmed ? UNPICKED_OPACITY : 1f)
+                        + (strip != null ? " height: 74px;" : ""),
                 !enabled || !mech, key,
                 key.isEmpty() ? "key key-none" : "key", name, behavior(weapon.behavior()),
-                gauge != null ? "" : ammo(weapon.ammo()), state, stateClasses, width(weapon.cycleFraction()),
-                () -> select.accept(weapon.number()), roundBlocks(id, gauge),
-                gauge != null ? "weapon-rounds" : "weapon-rounds weapon-rounds-none");
+                counted ? "" : ammo(weapon.ammo()), state, stateClasses, width(weapon.cycleFraction()),
+                action, roundBlocks(id, strip),
+                strip != null ? "weapon-rounds" : "weapon-rounds weapon-rounds-none");
     }
 
-    /** A magazine-fed primary's rounds, or null for a weapon that counts nothing or counts packs. */
-    private static MagazineGauge gauge(WeaponStatus weapon) {
-        if (weapon.behavior().trigger() == null
-                || weapon.ammo().unit() != BattleDirectControlStatus.AmmoUnit.ROUNDS) return null;
-        return MagazineGauge.of(weapon.behavior().projectilesPerShot(), weapon.behavior().projectilesPerTrigger(),
-                weapon.ammo().capacity(), weapon.ammo().remaining(),
-                weapon.reloading() ? weapon.cooldownSeconds() : 0f, weapon.cycleDurationSeconds());
+    /**
+     * The load drawn under a row: an energy weapon's charge cells, or a counted load round by round
+     * (a Marine's magazine, a mech's racks in salvos, a vehicle's belt). Null for a weapon with nothing
+     * to count, and for a load too long to draw even folded, which keeps its number.
+     */
+    static AmmoStrip strip(WeaponStatus weapon) {
+        var behavior = weapon.behavior();
+        var ammo = weapon.ammo();
+        if (behavior.ordnance() == Ordnance.ENERGY) {
+            return ChargeGauge.of(behavior.projectilesPerTrigger(), weapon.burstRemaining(),
+                    weapon.cycleFraction(), weapon.fluxBlocked());
+        }
+        if (ammo.unit() == BattleDirectControlStatus.AmmoUnit.UNTRACKED || ammo.unlimited()
+                || ammo.capacity() <= 0) return null;
+        MagazineGauge gauge;
+        if (ammo.unit() == BattleDirectControlStatus.AmmoUnit.TRIGGER_PACKS) {
+            int perPack = Math.max(1, behavior.projectilesPerTrigger());
+            gauge = MagazineGauge.of(behavior.ordnance(), behavior.projectilesPerShot(), perPack,
+                    ammo.capacity() * perPack, ammo.remaining() * perPack, 0f, 0f);
+        } else {
+            gauge = MagazineGauge.of(behavior.ordnance(), behavior.projectilesPerShot(),
+                    behavior.projectilesPerTrigger(), ammo.capacity(), ammo.remaining(),
+                    weapon.reloading() ? weapon.cooldownSeconds() : 0f, weapon.cycleDurationSeconds());
+        }
+        return gauge.fits() ? gauge : null;
     }
 
-    /** The strip under the bar: one block per burst for a belt, otherwise one block of every round. */
-    private static List<RoundBlock> roundBlocks(String rowId, MagazineGauge gauge) {
-        if (gauge == null) return List.of();
-        String kind = gauge.kind().name().toLowerCase(Locale.ROOT);
+    /** The strip under the bar, in its groups: bursts or salvos, otherwise one block of everything. */
+    private static List<RoundBlock> roundBlocks(String rowId, AmmoStrip strip) {
+        if (strip == null) return List.of();
+        String kind = strip.iconKind();
         List<RoundBlock> blocks = new ArrayList<>();
         List<RoundIcon> current = new ArrayList<>();
-        for (int i = 0; i < gauge.capacity(); i++) {
-            String state = gauge.round(i).name().toLowerCase(Locale.ROOT);
+        for (int i = 0; i < strip.icons(); i++) {
             current.add(new RoundIcon(rowId + "-round-" + i, "round round-" + kind,
-                    "graphics/ui/direct-control/round-" + kind + "-" + state + ".svg"));
-            if (gauge.groupEnd(i) || i == gauge.capacity() - 1) {
+                    "graphics/ui/direct-control/round-" + kind + "-" + strip.iconState(i) + ".svg"));
+            if (strip.iconGroupEnd(i) || i == strip.icons() - 1) {
                 // This layout sizes a row to its own width rather than its children's, so a block is told it.
-                int roundWidth = switch (gauge.kind()) { case RIFLE -> 10; case SHELL -> 11; case LINK -> 3; };
-                int gap = gauge.kind() == MagazineGauge.Kind.LINK ? 1 : 4;
-                int width = current.size() * roundWidth + (current.size() - 1) * gap;
+                int width = current.size() * strip.iconWidth() + (current.size() - 1) * strip.iconGap();
                 blocks.add(new RoundBlock(rowId + "-block-" + blocks.size(), "round-block round-block-" + kind,
-                        "width: " + width + "px;", current));
+                        "width: " + width + "px; gap: " + strip.iconGap() + "px;", current));
                 current = new ArrayList<>();
             }
         }
@@ -347,7 +452,7 @@ final class BattleDirectControlHudModel {
 
     /** A status assembled without button assignments (no weapon carries one) falls back to the selection alone. */
     private static boolean weaponTriggerUnknown(BattleDirectControlStatus.Snapshot snapshot) {
-        for (var weapon : snapshot.weapons()) if (!weapon.trigger().isEmpty()) return false;
+        for (var weapon : snapshot.weapons()) if (!weapon.listedOn().isEmpty()) return false;
         return true;
     }
 

@@ -62,6 +62,12 @@ public final class ReinforcementService {
 
     public boolean isEmpty() { return triggers.isEmpty() && means.isEmpty(); }
 
+    /** Whether a convoy can bring reinforcements, and so a {@link ConvoyMeans} APC can arrive. */
+    public boolean dispatchesConvoys() {
+        for (ReinforcementMeans m : means) if (m instanceof ConvoyMeans) return true;
+        return false;
+    }
+
     // ---- System-facing accessors (driven by ReinforcementSystem) ----
 
     List<ReinforcementTrigger> triggers() { return triggers; }

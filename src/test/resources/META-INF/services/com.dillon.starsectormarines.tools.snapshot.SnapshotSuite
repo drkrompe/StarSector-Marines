@@ -271,3 +271,7 @@ com.dillon.starsectormarines.battle.world.gen.elevation.HighGroundSceneSnapshotS
 com.dillon.starsectormarines.battle.world.gen.elevation.FiringDownSceneSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.ElevationLookSnapshotSuite
 com.dillon.starsectormarines.battle.command.allied.ScreenedAdvanceSceneSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPoolSnapshotSuite
+com.dillon.starsectormarines.ops.BattleLoadingSnapshotSuite
+com.dillon.starsectormarines.battle.infantry.MedicPoolSnapshotSuite
+com.dillon.starsectormarines.battle.vehicle.VehicleRamSceneSnapshotSuite

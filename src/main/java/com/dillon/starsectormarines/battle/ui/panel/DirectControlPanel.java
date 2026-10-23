@@ -74,7 +74,7 @@ public final class DirectControlPanel implements HudPanel {
                                     float aimX, float aimY, float cellPx, float alpha) {
         if (!sim.world().hasMechLoadout(id)) return;
         float distance = (float) Math.hypot(aimCellX - sim.world().renderX(id), aimCellY - sim.world().renderY(id));
-        var ring = DirectControlScatter.mech(sim.world().mechLoadout(id), sim.directControl().selectedWeapon(), distance);
+        var ring = DirectControlScatter.mech(sim.world().mechLoadout(id), sim.directControl().mechPicks(), distance);
         if (ring == null) return;
         float r = ring.radiusCells() * cellPx;
         if (r < 4f) return;

@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.ui.panel.SquadOrderTargetingPanel.Mode;
 
+import com.dillon.starsectormarines.battle.combat.MechFireGroups;
+import com.dillon.starsectormarines.battle.combat.MechTriggerPicks;
 import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.battle.mech.MechRole;
@@ -23,6 +25,11 @@ import com.dillon.starsectormarines.battle.ui.panel.DirectControlAimLane;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlAimOrigins;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
+import com.dillon.starsectormarines.battle.mech.MechFlux;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.mech.MechSection;
 import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.combat.DurabilityModel;
@@ -73,7 +80,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
             var loadout = new MechLoadoutComponent(MechVariant.BULWARK, null);
             loadout.torsoFacingDegrees = 90f;
             var origins = scenario.equals("carrier-muzzles")
-                    ? DirectControlAimOrigins.mech(loadout, 0, 2.5f, 3.5f, .2f, -.1f)
+                    ? DirectControlAimOrigins.mech(loadout, MechTriggerPicks.LINKED, 2.5f, 3.5f, .2f, -.1f)
                     : List.of(new DirectControlAimOrigins.Origin(2.5f, 3.5f, 2.5f, 3.5f));
             for (var origin : origins) {
                 var lane = DirectControlAimLane.observed(grid, origin, 13.5f, aimY, (x, y) -> true);
@@ -130,7 +137,8 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
             }
         }
         try (var fixture = BattleDirectControlHudTest.fixture(context.modRoot(),
-                BattleDirectControlHudTest.triggered(2), 2, true,
+                BattleDirectControlHudTest.bulwark(new MechTriggerPicks(MechMountSlot.RIGHT_ARM.ordinal() + 1,
+                        MechFireGroups.LINKED)), 0, true,
                 ignored -> {}, () -> {}, () -> {})) {
             artifacts.add(new SnapshotArtifact("panels-mech-one-mount.png", panels(renderer, fixture)));
             artifacts.add(new SnapshotArtifact("action-controls.png", renderer.render(fixture.actionsDocument(),
@@ -171,8 +179,33 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                         marinePlate(context.modRoot(), false).document(), false)));
         artifacts.add(new SnapshotArtifact("active-marine-wide-status-1920x1080-ui100.png",
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, marine, null, false, true)));
+        artifacts.add(new SnapshotArtifact("active-mech-ordnance-1920x1080-ui100.png",
+                activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, ordnanceMech(),
+                        sectionPlate(context.modRoot(), new MechLoadoutComponent(MechVariant.BULWARK, null)).document(),
+                        false)));
+        artifacts.add(new SnapshotArtifact("active-vehicle-ordnance-1920x1080-ui100.png",
+                activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, ordnanceVehicle(),
+                        vehiclePlate(context.modRoot()).document(), false)));
+        artifacts.add(new SnapshotArtifact("active-marine-pulse-rifle-1920x1080-ui100.png",
+                activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, pulseRifle(),
+                        marinePlate(context.modRoot(), true).document(), false)));
         artifacts.add(new SnapshotArtifact("marine-doll-states-1920x1080-ui100.png",
                 marineStates(renderer, context.modRoot())));
+        // The trigger-pick header looks for the picks page: a Bulwark on LINKED, then on one arm gun.
+        var oneGun = new MechTriggerPicks(MechMountSlot.RIGHT_ARM.ordinal() + 1, MechMountSlot.LEFT_SHOULDER.ordinal() + 1);
+        for (var look : BattleDirectControlHudModel.PickLook.values()) {
+            String name = look.name().toLowerCase(Locale.ROOT);
+            artifacts.add(new SnapshotArtifact("pick-" + name + "-linked-1920x1080-ui100.png",
+                    activeComposite(renderer, context.modRoot(), 1920, 1080, 1f,
+                            BattleDirectControlHudTest.bulwark(MechTriggerPicks.LINKED),
+                            sectionPlate(context.modRoot(), new MechLoadoutComponent(MechVariant.BULWARK, null)).document(),
+                            false, false, look)));
+            artifacts.add(new SnapshotArtifact("pick-" + name + "-one-mount-1920x1080-ui100.png",
+                    activeComposite(renderer, context.modRoot(), 1920, 1080, 1f,
+                            BattleDirectControlHudTest.bulwark(oneGun),
+                            sectionPlate(context.modRoot(), new MechLoadoutComponent(MechVariant.BULWARK, null)).document(),
+                            false, false, look)));
+        }
         return artifacts;
     }
 
@@ -197,6 +230,59 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
             new MagazineFrame("stalwart-belt", "weapon.squad-automatic", EquipmentGrade.MILSPEC, 27, 0f, 0f),
             new MagazineFrame("carbine-shells", "weapon.smg", EquipmentGrade.SERVICE, 3, 0f, 0f),
             new MagazineFrame("longbow-masterwork", "weapon.dmr", EquipmentGrade.MASTERWORK, 10, 0f, 0f));
+
+    /**
+     * A mech mid-fight on missile and energy mounts: an LRM-15 one salvo down, an SRM-5 part way
+     * through a salvo, a pulse laser two bolts into its burst and a chaingun that counts nothing.
+     */
+    private static BattleDirectControlStatus.Snapshot ordnanceMech() {
+        MechWeaponMount[] mounts = {
+                mount(MechMountSlot.LEFT_SHOULDER, MechWeaponComponent.LRM_15, 2, 0),
+                mount(MechMountSlot.RIGHT_SHOULDER, MechWeaponComponent.SRM_5, 4, 1),
+                mount(MechMountSlot.LEFT_ARM, MechWeaponComponent.PULSE_LASER, -1, 2),
+                mount(MechMountSlot.RIGHT_ARM, MechWeaponComponent.CHAINGUN, -1, 0)};
+        var base = BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.MECH, false);
+        return new BattleDirectControlStatus.Snapshot(base.entityId(), "Bulwark Lead",
+                BattleDirectControlStatus.Carrier.MECH, base.durability(),
+                BattleDirectControlStatus.mechWeapons(mounts, new MechFlux()));
+    }
+
+    private static MechWeaponMount mount(MechMountSlot slot, MechWeaponComponent component, int ammo, int burst) {
+        var mount = new MechWeaponMount(slot, component);
+        if (ammo >= 0) mount.ammo = ammo;
+        mount.burstRemaining = burst;
+        return mount;
+    }
+
+    /** Vehicle turrets on each long load: an LRM launcher in salvos, a heavy MG's belt, a burst laser, a pulse emitter. */
+    private static BattleDirectControlStatus.Snapshot ordnanceVehicle() {
+        List<BattleDirectControlStatus.WeaponStatus> weapons = new ArrayList<>();
+        String[][] turrets = {{"mount.vehicle-lrm", "37", "0"}, {"mount.turret-heavy-mg", "131", "0"},
+                {"mount.tank-burst-laser", "420", "2"}, {"mount.hover-pulse", "160", "0"}};
+        for (String[] turret : turrets) {
+            var mount = TurretCatalogRegistry.requireMount(turret[0]);
+            var ground = new GroundTurret(Integer.parseInt(turret[1]));
+            ground.burstRemaining = Integer.parseInt(turret[2]);
+            var status = BattleDirectControlStatus.vehicleWeapon(ground, mount);
+            weapons.add(new BattleDirectControlStatus.WeaponStatus(weapons.size() + 1, status.slotKey() + weapons.size(),
+                    status.name(), status.behavior(), status.directEligible(), status.cooldownSeconds(),
+                    status.cycleDurationSeconds(), status.burstRemaining(), status.burstSeconds(), status.ammo()));
+        }
+        var base = BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.VEHICLE, false);
+        return new BattleDirectControlStatus.Snapshot(base.entityId(), "Breakthrough Tank",
+                BattleDirectControlStatus.Carrier.VEHICLE, base.durability(), weapons);
+    }
+
+    /** A Marine on the pulse rifle, one bolt into its three-bolt burst. */
+    private static BattleDirectControlStatus.Snapshot pulseRifle() {
+        WeaponDef weapon = WeaponRegistry.require("weapon.pulse-rifle");
+        float cycle = InfantryCombatStats.cooldown(weapon, EquipmentGrade.SERVICE, SoldierProfile.REGULAR);
+        var status = BattleDirectControlStatus.marineWeapon(weapon, EquipmentGrade.SERVICE, cycle * .5f, cycle,
+                2, weapon.burstSpacing);
+        var base = BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.MARINE, false);
+        return new BattleDirectControlStatus.Snapshot(base.entityId(), base.name(), base.carrier(),
+                base.durability(), List.of(status), List.of(), MarineSprint.EMPTY);
+    }
 
     /** The hover-only help tab: collapsed ({@code carrier == null}) or opened for a carrier. */
     private static BufferedImage helpFrame(HeadlessUiRenderer renderer, Path modRoot,
@@ -310,6 +396,17 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                                                   BattleDirectControlStatus.Snapshot snapshot,
                                                   UiDocument doll,
                                                   boolean paused, boolean wideStatus) throws Exception {
+        return activeComposite(renderer, modRoot, width, height, uiScale, snapshot, doll, paused, wideStatus,
+                BattleDirectControlHudModel.PickLook.KEYCAP);
+    }
+
+    /** {@code look}: how the trigger headers read their picks. */
+    private static BufferedImage activeComposite(HeadlessUiRenderer renderer, Path modRoot,
+                                                  int width, int height, float uiScale,
+                                                  BattleDirectControlStatus.Snapshot snapshot,
+                                                  UiDocument doll,
+                                                  boolean paused, boolean wideStatus,
+                                                  BattleDirectControlHudModel.PickLook look) throws Exception {
         var layout = BattleDirectControlOverlayTest.layout(width, height, uiScale);
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = image.createGraphics();
@@ -329,7 +426,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 draw(graphics, renderer, markup, layout.manualObjectives(), layout.host(), uiScale);
             }
             try (var fixture = BattleDirectControlHudTest.fixture(modRoot,
-                    snapshot, 0, paused, ignored -> {}, () -> {}, () -> {})) {
+                    snapshot, 0, paused, ignored -> {}, () -> {}, () -> {}, look)) {
                 float[] measured = measure(renderer, fixture);
                 var status = BattleDirectControlOverlayTest.activeStatus(width, height, uiScale, measured[0], doll != null);
                 if (wideStatus) {
@@ -475,7 +572,8 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                                                           float armor, float health) {
         var copy = ModStrings.fromDisk(modRoot);
         List<BattleMarineDollPlate.Kit> items = List.of(
-                new BattleMarineDollPlate.Kit(copy.apply("gearCatalogSpecialRocketLauncherDisplayName"), "1/2", false),
+                new BattleMarineDollPlate.Kit(copy.apply("gearCatalogSpecialRocketLauncherDisplayName"), "1/3", false,
+                        "missile", 1, 3),
                 new BattleMarineDollPlate.Kit(copy.apply("gearCatalogSystemBreacherAssistDisplayName"),
                         copy.apply("battleMarineDollReady"), false),
                 new BattleMarineDollPlate.Kit(copy.apply("battleMarineDollMedic"), "0/3", true));
@@ -541,11 +639,11 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         return plate;
     }
 
-    /** The preview Heavy APC's doll: the same hull and armor fractions its status panel reads. */
+    /** The preview Heavy APC's doll: whole plates over a hull at the status panel's 610 of 900. */
     private static BattleDamageDollPlate vehiclePlate(Path modRoot) {
         var plate = new BattleDamageDollPlate(path -> Files.readString(modRoot.resolve(path)),
                 ModStrings.fromDisk(modRoot));
-        plate.updateVehicle(VehicleType.HEAVY_APC, 610f, 900f, 320f, 800f, null);
+        plate.updateVehicle(VehicleType.HEAVY_APC, 610f, 900f, null, HullLocations.of(VehicleType.HEAVY_APC, null));
         return plate;
     }
 
@@ -560,8 +658,10 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         VehicleType type = VehicleType.BREAKTHROUGH_TANK;
         HullTurretSection turret = HullTurretSection.forHull(type);
         HullLocations locations = HullLocations.of(type, turret);
-        float hp = type.maxStructure;
-        float armor = type.maxArmor;
+        float maxHp = type.maxStructure + locations.maxDrive();
+        float maxArmor = locations.maxTotalArmor();
+        float hp = maxHp;
+        float armor = maxArmor;
         var scratch = new DurabilityModel.Resolution();
         var hit = new HullLocations.Hit();
         float rating = type.armorRating;
@@ -578,11 +678,11 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         armor -= hit.armorDamage();
         var plate = new BattleDamageDollPlate(path -> Files.readString(modRoot.resolve(path)),
                 ModStrings.fromDisk(modRoot));
-        plate.updateVehicle(type, hp, type.maxStructure, armor, type.maxArmor, turret, locations);
+        plate.updateVehicle(type, hp, maxHp, turret, locations);
         var base = BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.VEHICLE, false);
         var status = new BattleDirectControlStatus.Snapshot(base.entityId(), "Breakthrough Tank",
                 BattleDirectControlStatus.Carrier.VEHICLE, new BattleDirectControlStatus.Durability(hp,
-                type.maxStructure, armor, type.maxArmor, rating), base.weapons());
+                maxHp, armor, maxArmor, rating), base.weapons());
         return new FlankedTank(status, plate);
     }
 

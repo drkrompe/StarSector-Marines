@@ -8,10 +8,14 @@ import com.dillon.starsectormarines.battle.evacuation.SwarmPressureSnapshot;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.BloomHeartBattleFixture;
+import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
+import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPool;
+import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Tag;
@@ -61,13 +65,16 @@ class HeartEvidenceTest {
                 .toAbsolutePath().normalize();
         Files.createDirectories(output);
         List<Callable<JSONObject>> jobs = new ArrayList<>();
-        for (String selected : selectedFixtures()) jobs.add(() -> runFixture(selected, output, maxTicks));
+        for (Selected selected : selectedFixtures()) {
+            jobs.add(() -> runFixture(selected.fixture(), selected.id(), selected.source(), output, maxTicks));
+        }
         List<JSONObject> summaries = EvidenceFanOut.run(jobs);
 
         JSONArray matrix = new JSONArray();
         StringBuilder md = new StringBuilder("# The heart evidence\n\n")
                 .append("Each fixture ").append(EvidenceFanOut.replayWording(EvidenceFanOut.repeat()))
-                .append(". Each fixture's report is in its own folder.\n\n")
+                .append(". Without `-Pfixture` every seed of each form's story-map pool is played (`story-map-pools.md`). ")
+                .append("Each fixture's report is in its own folder.\n\n")
                 .append("| fixture | form | end | winner | woken | mothers down | satellites down | marines left | swarm left |\n")
                 .append("|---|---|---|---|---|---|---|---|---|\n");
         for (JSONObject s : summaries) {
@@ -85,10 +92,9 @@ class HeartEvidenceTest {
         System.out.println("[heart-evidence] report " + output.resolve("summary.md"));
     }
 
-    private static JSONObject runFixture(String selected, Path root, int maxTicks) throws Exception {
-        BattleFixture fixture = loadFixture(selected);
+    private static JSONObject runFixture(BattleFixture fixture, String fixtureId, String selected, Path root,
+                                         int maxTicks) throws Exception {
         Form form = ((BloomHeartBattleFixture) fixture).form();
-        String fixtureId = fixtureId(selected);
         Path output = root.resolve(fixtureId);
         Files.createDirectories(output);
         String firstTrace = null;
@@ -247,10 +253,32 @@ class HeartEvidenceTest {
         return BattleFixtureJson.fromJson(new JSONObject(json));
     }
 
-    private static List<String> selectedFixtures() {
+    private record Selected(BattleFixture fixture, String id, String source) { }
+
+    /**
+     * The fixtures named by {@code -Pfixture} (several separated by ';' play side
+     * by side), or else every seed of each form's story-map pool, the matrix
+     * fixture standing in for everything but the seed.
+     */
+    private static List<Selected> selectedFixtures() throws Exception {
         String selected = System.getProperty(PREFIX + "fixture.path", "").trim();
-        // Several fixtures, separated by ';', play side by side like the matrix does.
-        return selected.isBlank() ? MATRIX : List.of(selected.split(";"));
+        List<Selected> out = new ArrayList<>();
+        if (!selected.isBlank()) {
+            for (String path : selected.split(";")) out.add(new Selected(loadFixture(path), fixtureId(path), path));
+            return out;
+        }
+        for (String template : MATRIX) {
+            BloomHeartBattleFixture heart = (BloomHeartBattleFixture) loadFixture(template);
+            for (SurfacePalette biome : SurfacePalette.values()) {
+                String b = biome.name().toLowerCase(Locale.ROOT);
+                for (StoryMapPool.Entry entry : StoryMapPools.pool(BloomHeartSetup.storyMap(heart.form())).entries(biome)) {
+                    out.add(new Selected(new BloomHeartBattleFixture(entry.seed(), heart.form(), biome, heart.manifest()),
+                            fixtureId(template) + "-" + b + "-seed" + entry.seed(),
+                            template + " at pooled " + b + " seed " + entry.seed()));
+                }
+            }
+        }
+        return out;
     }
 
     private static String fixtureId(String selected) {

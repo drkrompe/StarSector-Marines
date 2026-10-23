@@ -53,7 +53,7 @@ public class HeavyWeapons {
      * weapon's own authored minimum, where larger): the trigger is refused and the HUD reads TOO CLOSE, rather than
      * the salvo coming down on the mech that threw it.
      */
-    public static final float MIN_MANUAL_ARC_RANGE_CELLS = 8f;
+    public static final float MIN_MANUAL_ARC_RANGE_CELLS = ManualPointFire.MIN_ARC_RANGE_CELLS;
 
     private final UnitRosterService roster;
     private final NavigationGrid grid;
@@ -104,26 +104,22 @@ public class HeavyWeapons {
 
     /** Manual triggers join the same mount clocks and continuation pass as autonomous fire. */
     public void tick(long controlledId, PointFireAim aim, boolean trigger) {
-        tick(controlledId, aim, trigger, 0);
-    }
-
-    /** Left button only: the default groups' primary trigger or a single hardpoint under a number key. */
-    public void tick(long controlledId, PointFireAim aim, boolean trigger, int selectedWeapon) {
-        tick(controlledId, aim, trigger, false, selectedWeapon);
+        tick(controlledId, aim, trigger, false, MechTriggerPicks.LINKED);
     }
 
     /**
-     * The left button fires {@link MechFireGroups#leftMask} (the primary group, or the one hardpoint
-     * a number key chose) and the right button fires {@link MechFireGroups#rightMask} (the secondary
-     * group). Each mount still obeys its own cycle, burst, ammunition and the chassis flux reservoir.
+     * The left button fires what its pick names in the primary group (LINKED, or one mount) and the
+     * right button what its pick names in the secondary group; see {@link MechFireGroups}. A mount
+     * neither pick names holds fire. Each mount still obeys its own cycle, burst, ammunition and the
+     * chassis flux reservoir.
      */
-    public void tick(long controlledId, PointFireAim aim, boolean primary, boolean secondary, int selectedWeapon) {
+    public void tick(long controlledId, PointFireAim aim, boolean primary, boolean secondary, MechTriggerPicks picks) {
         int continuing = 0;
         if (roster.isAliveById(controlledId) && roster.world().hasMechLoadout(controlledId)) {
             MechLoadoutComponent loadout = roster.world().mechLoadout(controlledId);
             MechWeaponMount[] mounts = loadout.mounts();
-            int left = MechFireGroups.leftMask(mounts, selectedWeapon);
-            int right = MechFireGroups.rightMask(mounts, selectedWeapon);
+            int left = picks.leftMask(mounts);
+            int right = picks.rightMask(mounts);
             continuing = left | right;
             if (primary || secondary) {
                 int pulled = (primary ? left : 0) | (secondary ? right : 0);
@@ -185,13 +181,7 @@ public class HeavyWeapons {
         if (manual) {
             if (tooClose(mount, (float) Math.hypot(aim.x() - centreX, aim.y() - centreY))) return false;
             PointFireAim target = withStandoff(aim, centreX, centreY, standoffCells(loadout));
-            float dx = target.x() - centreX;
-            float dy = target.y() - centreY;
-            float distance = (float) Math.hypot(dx, dy);
-            float thrown = Math.min(distance, weapon.range * BallisticResolver.MAX_GROUND_BURST_RANGE_MULTIPLIER);
-            GroundBurstAim.Offset scatter = GroundBurstAim.sample(accuracy, weapon.hitSpread, weapon.range, thrown, rng);
-            float scale = distance > 1e-6f ? thrown / distance : 0f;
-            ep = new ShotEndpoint.Endpoint(centreX + dx * scale + scatter.dx(), centreY + dy * scale + scatter.dy());
+            ep = ManualPointFire.arcEndpoint(centreX, centreY, target.x(), target.y(), accuracy, weapon, rng);
             hit = true;
         } else {
             float distance = RangeFalloff.dist(world.x(shooter), world.y(shooter), aim.x(), aim.y());
@@ -209,9 +199,7 @@ public class HeavyWeapons {
      * fired at a cursor point. Ammunition is readiness, not eligibility.
      */
     public static boolean supportsPointFire(MechWeaponMount mount) {
-        if (mount == null) return false;
-        WeaponDef weapon = mount.weaponDef();
-        return Float.isFinite(weapon.range) && weapon.range > 0f;
+        return mount != null && ManualPointFire.supportsPointFire(mount.weaponDef());
     }
 
     /**
@@ -219,9 +207,7 @@ public class HeavyWeapons {
      * mount, {@link #MIN_MANUAL_ARC_RANGE_CELLS} or the weapon's authored minimum for an arcing rack.
      */
     public static float manualMinRangeCells(MechWeaponMount mount) {
-        if (!supportsPointFire(mount)) return 0f;
-        float authored = Math.max(0f, mount.weaponDef().minRange);
-        return firesFlat(mount) ? authored : Math.max(authored, MIN_MANUAL_ARC_RANGE_CELLS);
+        return mount != null ? ManualPointFire.minRangeCells(mount.weaponDef()) : 0f;
     }
 
     /** Whether a pilot's point {@code distance} cells from the chassis centre is inside this mount's minimum. */
@@ -231,7 +217,7 @@ public class HeavyWeapons {
 
     /** A flat-trajectory mount, whose round flies a lane to the point rather than arcing over it. */
     public static boolean firesFlat(MechWeaponMount mount) {
-        return supportsPointFire(mount) && mount.weaponDef().arcHeight == 0f && !mount.weaponDef().indirectFire;
+        return supportsPointFire(mount) && !ManualPointFire.arcs(mount.weaponDef());
     }
 
     /**

@@ -144,9 +144,14 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
 
     /** The shared sprite set for a mod root, with the catalogs it reads installed first, for a feed built before any frame renderer. */
     static HeadlessBattleSprites spritesFor(Path modRoot) throws Exception {
+        installCatalogs(modRoot);
+        return sharedSprites(modRoot);
+    }
+
+    /** The catalogs a sprite set reads, for a drain that builds a sprite set of its own. */
+    static void installCatalogs(Path modRoot) throws Exception {
         HeadlessArmoryPreviewRenderer.installCatalogs(modRoot);
         installTileCatalogs(modRoot);
-        return sharedSprites(modRoot);
     }
 
     static HeadlessBattleSprites sharedSprites(Path modRoot) throws Exception {

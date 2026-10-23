@@ -1,0 +1,159 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+
+
+<title>__TITLE__</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one decision per band; options laid out as large image tiles, tap one to choose it. A sticky tally shows how many decisions are made. */
+:root{
+  --bg:#f3f1f6; --surface:#ffffff; --ink:#221d2b; --muted:#6c6478; --line:#ddd7e5;
+  --accent:#7a4fa8; --accent-soft:#ece3f6; --done:#1f7a4d;
+  --display:"Chakra Petch","Segoe UI",system-ui,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#17141c; --surface:#211d28; --ink:#ece8f2; --muted:#a79fb4; --line:#3a3346;
+  --accent:#b996e0; --accent-soft:#33284a; --done:#5fcf95; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17141c; --surface:#211d28; --ink:#ece8f2; --muted:#a79fb4; --line:#3a3346;
+  --accent:#b996e0; --accent-soft:#33284a; --done:#5fcf95; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body)}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 64px;display:grid;gap:32px}
+header h1{font:700 clamp(26px,5vw,36px)/1.1 var(--display);margin:0;text-wrap:balance}
+header p{margin:8px 0 0;color:var(--muted);max-width:64ch}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px 18px;align-items:baseline;font:500 14px var(--mono)}
+.bar b{color:var(--done)}
+.store{font:13px var(--body);color:var(--muted)}
+.q{display:grid;gap:14px;border-top:2px solid var(--ink);padding-top:14px}
+.q-head{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline}
+.q h2{margin:0;font:600 22px/1.25 var(--display);text-wrap:balance;flex:1 1 30ch}
+.owner{font:500 12px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.chosen{font:600 13px var(--body);color:var(--done)}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px}
+.opt{display:grid;gap:8px;text-align:left;padding:10px;border:2px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);cursor:pointer;font:inherit;min-width:0}
+.opt img{width:100%;height:auto;display:block;border-radius:6px;background:#0d0b10}
+.shot{position:relative;display:block;padding:0;border:0;background:none;cursor:zoom-in;border-radius:6px}
+.shot .zoomhint{position:absolute;right:8px;bottom:8px;font:600 12px var(--body);background:rgba(13,11,16,.75);color:#fff;padding:3px 8px;border-radius:4px}
+.extras{display:flex;gap:6px;flex-wrap:wrap}
+.extras .shot{width:calc(33.3% - 4px)}
+.lb{position:fixed;inset:0;z-index:50;background:rgba(8,6,12,.94);display:flex;flex-direction:column}
+.lb[hidden]{display:none!important}
+.lb-bar{display:flex;gap:10px;align-items:center;padding:calc(10px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));color:#fff;font:500 14px var(--body)}
+.lb-bar .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb-bar button{font:600 14px var(--body);padding:7px 12px;border-radius:6px;border:1px solid #6b5a85;background:#2a2234;color:#fff;cursor:pointer}
+.lb-view{flex:1;overflow:auto;touch-action:pan-x pan-y pinch-zoom}
+.lb-view img{display:block;margin:auto;max-width:none}
+.lb-view.fit img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain}
+.lb-view.fit{display:flex;align-items:center;justify-content:center}
+.pick{font:600 14px var(--body);padding:8px 12px;border-radius:6px;border:1px solid var(--accent);background:var(--accent-soft);color:var(--ink);cursor:pointer;justify-self:start}
+.opt{cursor:default}
+.opt .lab{display:flex;gap:10px;align-items:baseline}
+.opt .key{font:700 20px var(--display);color:var(--accent);min-width:1.2em}
+.opt .name{font-weight:600}
+.opt .note{font-size:13px;color:var(--muted)}
+.opt:hover{border-color:var(--accent)}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 2px var(--accent) inset}
+.opt[aria-pressed="true"] .key::after{content:" ✓";color:var(--done)}
+.comment input{width:100%;box-sizing:border-box;font:14px var(--body);padding:9px 11px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+.empty{border:1px dashed var(--line);border-radius:10px;padding:20px;color:var(--muted);background:var(--surface)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+</style>
+<div class="wrap">
+  <header>
+    <h1>__TITLE__</h1>
+    <p>Open look decisions for Colony Breach, as pictures. Tap the option you want under each question; tap it again to clear it. Add a note if none is quite right. Choices save as you go and go back to the session that owns each piece.</p>
+  </header>
+  <div class="bar" role="region" aria-label="Progress"><span><b id="n-done">0</b> of <span id="n-all">0</span> decided</span><span class="store" id="store">Connecting to saved choices…</span></div>
+  <main id="list" style="display:grid;gap:36px"></main>
+</div>
+<div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Zoomed image">
+  <div class="lb-bar"><span class="t" id="lb-t"></span><button type="button" id="lb-size">Actual size</button><button type="button" id="lb-close">Close</button></div>
+  <div class="lb-view fit" id="lb-view"><img id="lb-img" alt=""></div>
+</div>
+<script>
+const QUESTIONS = __QUESTIONS__;
+const picks = {};
+let db = null, local = false;
+const $ = id => document.getElementById(id);
+const keysOf = c => String(c || "").split(",").filter(Boolean);
+const on = (p, k) => keysOf(p.choice).includes(k);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function render(){
+  $("list").innerHTML = QUESTIONS.length ? QUESTIONS.slice().sort((a, b) => (picks[a.id]?.choice ? 1 : 0) - (picks[b.id]?.choice ? 1 : 0)).map(q => {
+    const p = picks[q.id] || {};
+    const chosen = q.options.filter(o => on(p, o.key));
+    return `<section class="q" id="q-${q.id}">
+      <div class="q-head"><span class="owner">${esc(q.area)}</span><h2>${esc(q.question)}</h2>
+      ${chosen.length ? `<span class="chosen">Picked ${chosen.map(c => esc(c.key) + ": " + esc(c.label)).join("; ")}</span>` : (q.multi ? `<span class="owner">Pick any number</span>` : "")}</div>
+      <div class="opts">${q.options.map(o => `<div class="opt" id="o-${q.id}-${o.key}" aria-pressed="${on(p, o.key)}">
+        <button type="button" class="shot" data-zoom="${esc(o.file)}" data-title="${esc(o.key + ' — ' + o.label)}" aria-label="Zoom ${esc(o.label)}"><img src="${esc(o.file)}" alt="${esc(o.label)}" loading="lazy"><span class="zoomhint">Tap to zoom</span></button>
+        ${(o.extra || []).length ? `<div class="extras">${o.extra.map(x => `<button type="button" class="shot" data-zoom="${esc(x.file)}" data-title="${esc(o.key + ' — ' + (x.label || ''))}" aria-label="Zoom ${esc(x.label || o.label)}"><img src="${esc(x.file)}" alt="${esc(x.label || '')}" loading="lazy"></button>`).join("")}</div>` : ""}
+        <span class="lab"><span class="key">${esc(o.key)}</span><span class="name">${esc(o.label)}</span></span>
+        ${o.note ? `<span class="note">${esc(o.note)}</span>` : ""}
+        <button type="button" class="pick" data-q="${q.id}" data-k="${esc(o.key)}">${on(p, o.key) ? "Picked ✓ (tap to clear)" : "Pick " + esc(o.key)}</button></div>`).join("")}</div>
+      <label class="comment"><input id="c-${q.id}" type="text" placeholder="Note (optional): what to change, or a mix of options" value="${esc(p.note)}" aria-label="Note on ${esc(q.question)}"></label>
+    </section>`;
+  }).join("") : `<div class="empty">Options are being rendered by the sessions that own each piece. They appear here as they land.</div>`;
+  $("n-all").textContent = QUESTIONS.length;
+  $("n-done").textContent = QUESTIONS.filter(q => picks[q.id]?.choice).length;
+}
+const LKEY = "rav-picks";
+async function write(id){
+  const v = picks[id];
+  if (local || !db) { try { localStorage.setItem(LKEY, JSON.stringify(picks)); } catch {} return; }
+  try {
+    const ref = db.doc("picks/" + id);
+    if (v && (v.choice || v.note)) await ref.set({choice: v.choice || "", note: v.note || "", at: new Date().toISOString()});
+    else await ref.delete();
+  } catch (e) {
+    $("store").textContent = e.code === "invalid_argument" ? "You can look, but only the owner's picks are saved." : "Couldn't save that pick. Check the connection and tap it again.";
+  }
+}
+function openZoom(src, title){
+  $("lb-img").src = src; $("lb-t").textContent = title; $("lb-view").className = "lb-view fit"; $("lb-size").textContent = "Actual size";
+  $("lb").hidden = false; document.body.style.overflow = "hidden"; $("lb-close").focus();
+}
+function closeZoom(){ $("lb").hidden = true; document.body.style.overflow = ""; }
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("lb").hidden) closeZoom(); });
+document.addEventListener("click", e => {
+  if (e.target.closest("#lb-close")) { closeZoom(); return; }
+  if (e.target.closest("#lb-size")) { const v = $("lb-view"), fit = v.classList.toggle("fit"); $("lb-size").textContent = fit ? "Actual size" : "Fit to screen"; return; }
+  if (e.target.id === "lb-img") { $("lb-size").click(); return; }
+  const z = e.target.closest("[data-zoom]"); if (z) { openZoom(z.dataset.zoom, z.dataset.title); return; }
+  const b = e.target.closest(".pick[data-q]"); if (!b) return;
+  const id = b.dataset.q, k = b.dataset.k;
+  const q = QUESTIONS.find(x => x.id === id), cur = keysOf(picks[id]?.choice);
+  const next = q && q.multi ? (cur.includes(k) ? cur.filter(x => x !== k) : [...cur, k]).join(",") : (cur.includes(k) ? "" : k);
+  picks[id] = {...(picks[id] || {}), choice: next};
+  render(); write(id);
+});
+const timers = {};
+document.addEventListener("input", e => {
+  if (!e.target.id.startsWith("c-")) return;
+  const id = e.target.id.slice(2);
+  picks[id] = {...(picks[id] || {}), note: e.target.value};
+  clearTimeout(timers[id]); timers[id] = setTimeout(() => write(id), 700);
+});
+try { Object.assign(picks, JSON.parse(localStorage.getItem(LKEY) || "{}")); } catch {}
+render();
+(async () => {
+  db = await (window.claude?.use?.("db") ?? null);
+  if (!db) { local = true; $("store").textContent = "Saved picks aren't available in this view, so they stay in this browser only."; return; }
+  for (const k of Object.keys(picks)) delete picks[k];
+  db.collection("picks").onSnapshot(snap => {
+    const editing = document.activeElement?.id?.startsWith("c-") ? document.activeElement.id.slice(2) : null;
+    for (const k of Object.keys(picks)) if (k !== editing) delete picks[k];
+    snap.docs.forEach(d => { if (d.id !== editing) picks[d.id] = d.data(); });
+    $("store").textContent = "Picks are saved and go back to the sessions.";
+    if (!editing) render(); else { $("n-done").textContent = QUESTIONS.filter(q => picks[q.id]?.choice).length; }
+  }, () => { $("store").textContent = "Lost the connection to saved picks. Reload the page to reconnect."; });
+})();
+</script>
+
+
+
+
+</body></html>

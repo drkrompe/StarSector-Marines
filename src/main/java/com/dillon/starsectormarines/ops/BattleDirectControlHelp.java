@@ -56,8 +56,9 @@ final class BattleDirectControlHelp {
                 add(out, Strings.get("battleDirectHelpKeyMouse"), "MechAim");
                 add(out, Strings.get("battleDirectHelpKeyLmbHold"), "MechPrimary");
                 add(out, Strings.get("battleDirectHelpKeyRmbHold"), "MechSecondary");
-                add(out, "1", "MechDefault");
-                add(out, "2 3 4", "MechPick");
+                add(out, "Q", "MechCycleLeft");
+                add(out, "C", "MechCycleRight");
+                add(out, "1 2 3", "MechPick");
                 add(out, "", "MechFlux");
                 add(out, "", "MechIndirect");
                 add(out, "Tab / Esc", "Leave");

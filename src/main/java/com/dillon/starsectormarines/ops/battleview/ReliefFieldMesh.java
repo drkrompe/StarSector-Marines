@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.lwjgl.BufferUtils;
 
+import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
@@ -713,6 +714,7 @@ final class ReliefFieldMesh {
             colors.put(col).flip();
             glBindBuffer(GL_ARRAY_BUFFER, colVbo);
             glBufferData(GL_ARRAY_BUFFER, colors, GL_STATIC_DRAW);
+            Reference.reachabilityFence(colors);   // LWJGL 2 keeps only the address
             glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
 

@@ -125,7 +125,7 @@ public final class CordonLogistics {
             for (int i = 0; i < SLOTS; i++) {
                 int offset = (i - (SLOTS - 1) / 2) * SLOT_PITCH;
                 // Ground a carrier's footprint fits on, not merely ground a man can stand on.
-                int[] cell = CordonArmour.drivable(sim, VehicleType.HEAVY_APC,
+                int[] cell = armour.drivable(sim, VehicleType.HEAVY_APC,
                         door[0] + outX * APRON_DEPTH + outY * offset, door[1] + outY * APRON_DEPTH + outX * offset);
                 if (cell != null) slots.add(cell);
             }
@@ -335,7 +335,8 @@ public final class CordonLogistics {
             int dropX = drop[0] + lane * DROP_SPACING, dropY = drop[1];
             command.carry(sim, hull, squad, dropX, dropY, (s, riders, x, y) -> {
                 List<int[]> cells = CordonGround.cluster(s.getGrid(), s.getOccupancyMap(), x, y, riders);
-                if (cells.isEmpty()) return;
+                // Ground too cramped for the whole team is treated as none: seating assumes a cell each.
+                if (cells.size() < ColonyMilitia.POST_SIZE) return;
                 carried++;
                 int team = ColonyMilitia.seatTeam(s, cells, "Carried team " + carried, risk, rng);
                 CordonSequence.join(s, to, List.of(team));

@@ -42,6 +42,12 @@ class ConvoyRouteProofEvidenceTest {
         Path output = outputDir.resolve("summary.json");
         Files.writeString(output, report.toString(2), StandardCharsets.UTF_8);
         System.out.println("Convoy route evidence: " + output.toAbsolutePath());
+        for (TraversalAxis axis : TraversalAxis.values()) {
+            if (!report.has(axis.name())) continue;
+            assertEquals(ReinforcementDispatchResult.COMMITTED.name(),
+                    report.getJSONObject(axis.name()).getString("result"),
+                    axis + ": large Conquest map should admit its generated rear convoy");
+        }
     }
 
     private static JSONObject run(TraversalAxis axis) throws Exception {
@@ -100,15 +106,8 @@ class ConvoyRouteProofEvidenceTest {
                     result = means.dispatch(sim, request);
                 }
             }
-            assertEquals(ReinforcementDispatchResult.COMMITTED, result,
-                    "large Conquest map should admit its generated rear convoy");
-            long[] ids = sim.getConvoyVehicleIds();
-            assertEquals(1, ids.length);
-            VehicleMission mission = sim.convoyMission(ids[0]);
-            assertNotNull(mission.routeFields);
-            assertTrue(maxExpanded <= RouteProofJob.EXPANSIONS_PER_TICK);
             int cells = map.grid.getWidth() * map.grid.getHeight();
-            return new JSONObject()
+            JSONObject row = new JSONObject()
                     .put("result", result.name())
                     .put("cells", cells)
                     .put("proofTicks", ticks)
@@ -119,7 +118,15 @@ class ConvoyRouteProofEvidenceTest {
                     .put("worstStep", worstStep)
                     .put("maxExpandedNodesPerStep", maxExpanded)
                     .put("totalExpandedNodes", totalExpanded)
-                    .put("searchesStarted", searches)
+                    .put("searchesStarted", searches);
+            // A proof that never commits still cost what it cost: report it, and fail after the report is written.
+            if (result != ReinforcementDispatchResult.COMMITTED) return row;
+            long[] ids = sim.getConvoyVehicleIds();
+            assertEquals(1, ids.length);
+            VehicleMission mission = sim.convoyMission(ids[0]);
+            assertNotNull(mission.routeFields);
+            assertTrue(maxExpanded <= RouteProofJob.EXPANSIONS_PER_TICK);
+            return row
                     .put("clearanceCells", mission.routeFields.clearanceEvaluations())
                     .put("terrainCostCells", mission.routeFields.costEvaluations());
         } finally {

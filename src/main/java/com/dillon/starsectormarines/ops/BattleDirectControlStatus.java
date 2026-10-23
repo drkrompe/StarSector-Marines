@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
+import com.dillon.starsectormarines.battle.combat.ManualPointFire;
 import com.dillon.starsectormarines.battle.combat.MechFireGroups;
+import com.dillon.starsectormarines.battle.combat.MechTriggerPicks;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.combat.MitigationService;
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
@@ -14,7 +16,10 @@ import com.dillon.starsectormarines.battle.mech.MechFlux;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
+import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
+import com.dillon.starsectormarines.battle.ui.panel.Ordnance;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
+import com.dillon.starsectormarines.battle.vehicle.GroundVehicleTurretSystem;
 import com.dillon.starsectormarines.battle.weapon.MagazineDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -120,10 +125,15 @@ final class BattleDirectControlStatus {
 
     /**
      * Scheduled releases and simultaneous packets are separate authored dimensions. {@code trigger} is a
-     * magazine-fed primary's trigger mode, {@code null} for a weapon that only cycles.
+     * magazine-fed primary's trigger mode, {@code null} for a weapon that only cycles. {@code ordnance}
+     * is what it throws, which decides how its load is drawn.
      */
     record Behavior(FireKind kind, int projectilesPerTrigger, float burstSpacingSeconds,
-                    int projectilesPerShot, MagazineDef.Trigger trigger) {
+                    int projectilesPerShot, MagazineDef.Trigger trigger, Ordnance ordnance) {
+        Behavior(FireKind kind, int projectilesPerTrigger, float burstSpacingSeconds,
+                 int projectilesPerShot, MagazineDef.Trigger trigger) {
+            this(kind, projectilesPerTrigger, burstSpacingSeconds, projectilesPerShot, trigger, Ordnance.BALLISTIC);
+        }
         Behavior(FireKind kind, int projectilesPerTrigger, float burstSpacingSeconds, int projectilesPerShot) {
             this(kind, projectilesPerTrigger, burstSpacingSeconds, projectilesPerShot, null);
         }
@@ -133,8 +143,10 @@ final class BattleDirectControlStatus {
     record Ammo(int remaining, int capacity, AmmoUnit unit, boolean unlimited) { }
 
     /**
-     * {@code trigger} names the mouse button(s) that fire this weapon: {@code L}, {@code R}, {@code LR}
-     * or empty when none does. {@code tooClose} is a cursor inside the mount's manual minimum range, where
+     * {@code trigger} names the mouse button that fires this weapon under its trigger's current pick:
+     * {@code L}, {@code R}, or empty when none does. {@code group} is the button whose list it is in,
+     * picked or not ({@code L}, {@code R}, or empty); empty for a status built without groups, which
+     * reads its group off {@code trigger}. {@code tooClose} is a cursor inside the mount's manual minimum range, where
      * its trigger is refused. {@code reloading} is a magazine being changed, in which case the cooldown
      * and cycle fields carry the reload clock instead of the action's.
      */
@@ -142,7 +154,15 @@ final class BattleDirectControlStatus {
                         boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
                         int burstRemaining, float burstSeconds, Ammo ammo,
                         boolean fluxBlocked, String mechanism, String trigger, boolean tooClose,
-                        boolean reloading) {
+                        boolean reloading, String group) {
+        WeaponStatus(int number, String slotKey, String name, Behavior behavior,
+                     boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
+                     int burstRemaining, float burstSeconds, Ammo ammo,
+                     boolean fluxBlocked, String mechanism, String trigger, boolean tooClose,
+                     boolean reloading) {
+            this(number, slotKey, name, behavior, directEligible, cooldownSeconds, cycleDurationSeconds,
+                    burstRemaining, burstSeconds, ammo, fluxBlocked, mechanism, trigger, tooClose, reloading, "");
+        }
         WeaponStatus(int number, String slotKey, String name, Behavior behavior,
                      boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
                      int burstRemaining, float burstSeconds, Ammo ammo,
@@ -180,6 +200,9 @@ final class BattleDirectControlStatus {
             return cooldownSeconds > 0f ? WeaponState.CYCLING : WeaponState.LOADED;
         }
 
+        /** The button whose list this weapon is in, read off its trigger when the status carries no group. */
+        String listedOn() { return group.isEmpty() ? trigger : group; }
+
         /** Clock completion only: pose, alignment and the actual muzzle gate still decide a shot. */
         float cycleFraction() { return 1f - fraction(cooldownSeconds, cycleDurationSeconds); }
     }
@@ -202,15 +225,18 @@ final class BattleDirectControlStatus {
         String name = sim.identity().name(id);
         if (sim.directControl().controlledVehicleId() == id) {
             var turret = sim.convoy().turret(id);
-            var structure = sim.convoy().vehicleType(id).turretStructure();
+            var type = sim.convoy().vehicleType(id);
+            var structure = type.turretStructure();
             List<WeaponStatus> weapons = turret != null && structure != null && !turret.destroyed()
-                    ? List.of(vehicleWeapon(turret, structure.mount)) : List.of();
+                    ? List.of(vehicleWeapon(turret, structure.mount,
+                            vehicleAimDistance(sim, GroundVehicleTurretSystem.mountPoint(type, sim.convoy().body(id)))))
+                    : List.of();
             return new Snapshot(id, name, Carrier.VEHICLE, durability, weapons);
         }
         if (world.hasMechLoadout(id)) {
             return new Snapshot(id, name, Carrier.MECH, durability,
                     mechWeapons(world.mechLoadout(id).mounts(), world.mechLoadout(id).flux,
-                    sim.directControl().selectedWeapon(), aimDistance(sim, id)), List.of(),
+                    sim.directControl().mechPicks(), aimDistance(sim, id)), List.of(),
                     MarineSprint.EMPTY, new MechFluxStatus(world.mechLoadout(id).flux.value(),
                     world.mechLoadout(id).flux.venting(),
                     world.mechLoadout(id).flux.capacity()));
@@ -299,11 +325,11 @@ final class BattleDirectControlStatus {
     }
 
     static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts, MechFlux flux) {
-        return mechWeapons(mounts, flux, MechFireGroups.DEFAULT_SELECTION);
+        return mechWeapons(mounts, flux, MechTriggerPicks.LINKED);
     }
 
-    static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts, MechFlux flux, int selection) {
-        return mechWeapons(mounts, flux, selection, Float.NaN);
+    static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts, MechFlux flux, MechTriggerPicks picks) {
+        return mechWeapons(mounts, flux, picks, Float.NaN);
     }
 
     /** The cursor's distance from the chassis centre, or NaN without a finite aim. */
@@ -314,41 +340,62 @@ final class BattleDirectControlStatus {
     }
 
     /** {@code aimDistance} is the cursor's distance from the chassis centre; NaN reads as no cursor. */
-    static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts, MechFlux flux, int selection,
+    static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts, MechFlux flux, MechTriggerPicks picks,
                                           float aimDistance) {
         List<WeaponStatus> weapons = new ArrayList<>();
         for (MechWeaponMount mount : mounts) {
             if (mount == null) continue;
             WeaponDef weapon = mount.weaponDef();
             weapons.add(new WeaponStatus(mount.slot.ordinal() + 1, mount.slot.name(),
-                    mount.component.displayName(), behavior(weapon, mount.component.projectilesPerTrigger),
+                    mount.component.displayName(), behavior(weapon, mount.component.projectilesPerTrigger,
+                            Ordnance.of(mount.component.hardpointType)),
                     HeavyWeapons.supportsPointFire(mount), mount.cycleRemaining, mount.component.cycleSeconds(),
                     mount.burstRemaining, mount.burstTimer,
                     new Ammo(mount.ammo, mount.component.ammoCapacity, AmmoUnit.TRIGGER_PACKS,
                             mount.component.ammoCapacity < 0),
                     !flux.permits(mount.component.fluxPerTrigger(), false), mount.component.cycleLabel(),
-                    MechFireGroups.badge(mounts, selection, mount),
-                    HeavyWeapons.tooClose(mount, aimDistance)));
+                    MechFireGroups.badge(mounts, picks, mount),
+                    HeavyWeapons.tooClose(mount, aimDistance), false, MechFireGroups.group(mounts, mount)));
         }
         weapons.sort(Comparator.comparingInt(WeaponStatus::number));
         return List.copyOf(weapons);
     }
 
     static WeaponStatus vehicleWeapon(GroundTurret turret, TurretMountDef mount) {
+        return vehicleWeapon(turret, mount, Float.NaN);
+    }
+
+    /** The cursor's distance from the turret ring, or NaN without a finite aim. */
+    private static float vehicleAimDistance(BattleSimulation sim, TurretMountGeometry.Point ring) {
+        var intent = sim.directControl().intent();
+        if (!Float.isFinite(intent.aimX()) || !Float.isFinite(intent.aimY())) return Float.NaN;
+        return (float) Math.hypot(intent.aimX() - ring.x(), intent.aimY() - ring.y());
+    }
+
+    /**
+     * {@code aimDistance} is the cursor's distance from the turret ring, which is where the turret's point fire
+     * measures its minimum from; NaN reads as no cursor. Eligibility and the refusal are {@link ManualPointFire}'s,
+     * the same rules the turret fires by.
+     */
+    static WeaponStatus vehicleWeapon(GroundTurret turret, TurretMountDef mount, float aimDistance) {
         WeaponDef weapon = mount.weapon;
         return new WeaponStatus(1, "TURRET", weapon.displayName(), behavior(weapon, weapon.burstCount),
-                !weapon.indirectFire && weapon.arcHeight == 0f
-                        && Float.isFinite(weapon.range) && weapon.range > 0f,
+                ManualPointFire.supportsPointFire(weapon),
                 turret.cooldownTimer, weapon.cooldown, turret.burstRemaining, turret.burstTimer,
-                new Ammo(turret.ammo, mount.ammoCapacity, AmmoUnit.ROUNDS, mount.ammoCapacity == 0));
+                new Ammo(turret.ammo, mount.ammoCapacity, AmmoUnit.ROUNDS, mount.ammoCapacity == 0),
+                false, "", "", ManualPointFire.tooClose(weapon, aimDistance));
     }
 
     private static Behavior behavior(WeaponDef weapon, int releasesPerTrigger) {
+        return behavior(weapon, releasesPerTrigger, Ordnance.of(weapon));
+    }
+
+    private static Behavior behavior(WeaponDef weapon, int releasesPerTrigger, Ordnance ordnance) {
         FireKind kind = weapon.indirectFire || weapon.arcHeight > 0f ? FireKind.INDIRECT
                 : releasesPerTrigger > 1 ? FireKind.BURST
                 : weapon.projectilesPerShot > 1 ? FireKind.PACKET : FireKind.SINGLE;
         return new Behavior(kind, releasesPerTrigger, weapon.burstSpacing, weapon.projectilesPerShot,
-                weapon.magazine() != null ? weapon.magazine().trigger() : null);
+                weapon.magazine() != null ? weapon.magazine().trigger() : null, ordnance);
     }
 
     private static float fraction(float value, float maximum) {

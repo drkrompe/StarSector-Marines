@@ -1,18 +1,26 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.combat.StaggerService.Cause;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.HullRam;
+import com.dillon.starsectormarines.battle.vehicle.HullShove;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Ground vehicles shove people out of their way.
@@ -32,12 +40,24 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  *       faster the hull is going and the closer the body is. People step out of
  *       a column's path before it reaches them.</li>
  * </ul>
- * Mechs take part with a reduced share ({@link #MECH_SHARE}); emplacements,
- * aircraft, drones and other vehicles do not. A hover hull pushes nobody: its
+ * Emplacements, aircraft, drones and other vehicles do not take part (hulls meet
+ * each other in {@link HullContactSystem}). A hover hull pushes nobody: its
  * skirt has no purchase on a body ({@link VehicleType#repelsBodies()}). Every displacement goes through
  * the same topology guard separation uses (full move, then either axis slide),
  * so a push can never put somebody inside a wall; a body pinned against one is
- * left where it is. Faction does not matter: a hull is physical.
+ * left where it is. Faction does not matter to the shove: a hull is physical.
+ *
+ * <p><b>Mass and ramming</b> ({@link HullRam}). A body takes the share of a contact
+ * push its mass leaves it ({@link HullRam#shoveShare}) and the rest comes back onto
+ * the hull, so a pickup is held up by a Brute or a mech instead of driving into it;
+ * a parked hull's brakes hold it against anything lighter, which takes the whole push.
+ * Against the other side the hull gives no bow wave, and the first tick a body is on
+ * a moving bow the two exchange an impulse: the body is hurt, knocked down or
+ * staggered by the velocity change it took, and the hull is slowed, hurt and
+ * stalled by its own. A hostile mech meets the hull from any side, and its own walk
+ * into the hull closes the gap as the hull's drive does: one mass model, so a mech
+ * against a tank resolves by weight like any other pair ({@link MechRamSystem} is
+ * a mech against bodies). Friendly, allied and civilian bodies are shoved and never hurt.
  *
  * <p>Runs in the separation slot, after soft-collision relaxation, so it reads
  * the hulls where last tick's ground pass left them. Applied displacement is
@@ -64,8 +84,6 @@ public final class VehicleRepulsionSystem {
     static final float BASE_PUSH_SPEED = 2.5f;
     /** Additional push-speed ceiling per cell per second of hull speed. */
     static final float SPEED_PUSH_GAIN = 1.6f;
-    /** Fraction of the push a mech accepts; it is heavy and mostly holds its ground. */
-    static final float MECH_SHARE = 0.3f;
 
     private final UnitRosterService roster;
     private final ConvoyService convoy;
@@ -75,8 +93,11 @@ public final class VehicleRepulsionSystem {
     private final EntityWorld entityWorld;
     private final BattleComponents components;
     private final LongBucket scratch = new LongBucket();
-    private final float[] push = new float[2];
-    private long pushes;
+    private final float[] push = new float[4];
+    /** Hostile body-on-bow pairs this tick and last; a ram lands on the tick a pair first touches. */
+    private Set<Long> touching = new HashSet<>(), touched = new HashSet<>();
+    private long pushes, rams;
+    private float ramDamageDealt, ramDamageTaken, fastestRam;
 
     public VehicleRepulsionSystem(UnitRosterService roster, UnitSpatialIndex unitIndex, NavigationGrid grid) {
         this.roster = roster;
@@ -91,6 +112,16 @@ public final class VehicleRepulsionSystem {
     /** Bodies displaced by a hull since the battle began; evidence, not state anything reads. */
     public long pushes() { return pushes; }
 
+    /** Rams landed on hostile bodies since the battle began; evidence. */
+    public long rams() { return rams; }
+
+    /** Damage those rams dealt the bodies, and cost the hulls back; evidence. */
+    public float ramDamageDealt() { return ramDamageDealt; }
+    public float ramDamageTaken() { return ramDamageTaken; }
+
+    /** The highest closing speed a ram was struck at, cells a second; evidence. */
+    public float fastestRam() { return fastestRam; }
+
     public void tick(float dt) {
         if (!ENABLED || !(dt > 0f) || convoy.vehicleCount() == 0) return;
         for (long vehicle : convoy.entityIds()) {
@@ -102,6 +133,10 @@ public final class VehicleRepulsionSystem {
                     || !type.repelsBodies()) continue;
             repel(vehicle, body, type, dt);
         }
+        Set<Long> swap = touched;
+        touched = touching;
+        touching = swap;
+        touching.clear();
     }
 
     private void repel(long vehicle, GroundBody body, VehicleType type, float dt) {
@@ -111,6 +146,9 @@ public final class VehicleRepulsionSystem {
         float reach = (float) Math.hypot(halfL + bow + 1f, halfW + BOW_LATERAL_MARGIN + 1f);
         unitIndex.gather(body.x, body.y, reach, scratch);
         float maxStep = (BASE_PUSH_SPEED + SPEED_PUSH_GAIN * speed) * dt;
+        Faction side = convoy.faction(vehicle);
+        float hullMass = type.massTonnes();
+        float backX = 0f, backY = 0f;
         for (int k = 0, n = scratch.size; k < n; k++) {
             long unit = scratch.ids[k];
             if (unit == vehicle || convoy.isVehicle(unit) || !roster.isAliveById(unit)
@@ -121,14 +159,108 @@ public final class VehicleRepulsionSystem {
                     || entityWorld.getInt(unit, components.ROLE, BattleComponents.ROLE_ORDINAL)
                     == UnitRole.STRUCTURE.ordinal()) continue;
             float radius = roster.radius(unit);
+            boolean hostile = side != null && side.hostileTo(roster.identity().faction(unit));
+            // A walking mech that meets a hull slides round its side rather than being stood off its end.
+            boolean slide = unitType.isMech() && walking(unit);
             if (!displacement(body.x, body.y, body.facingDegrees, body.speed, halfL, halfW,
-                    world.x(unit), world.y(unit), radius, dt, unit, push)) continue;
-            float share = unitType.isMech() ? MECH_SHARE : 1f;
-            float px = push[0] * share, py = push[1] * share;
+                    world.x(unit), world.y(unit), radius, dt, unit, !hostile, slide, push)) continue;
+            boolean contact = push[2] != 0f;
+            float bodyMass = bodyTonnes(unit, unitType);
+            // A machine meets a hull from any side; anything else is struck only by the bow.
+            if (hostile && (push[3] != 0f || contact && unitType.isMech())) {
+                long pair = pairKey(vehicle, unit);
+                touching.add(pair);
+                if (!touched.contains(pair)) ram(vehicle, body, hullMass, unit, unitType, bodyMass, push[3] != 0f);
+                if (!roster.isAliveById(unit)) continue;
+            }
+            // A parked hull's brakes hold it against anything lighter than itself: that body takes the whole push.
+            boolean braked = Math.abs(body.speed) < MOVING_SPEED && bodyMass < hullMass;
+            float share = braked ? 1f : HullRam.shoveShare(hullMass, bodyMass);
+            float px = push[0], py = push[1];
             float mag = (float) Math.hypot(px, py);
             if (mag > maxStep) { px *= maxStep / mag; py *= maxStep / mag; }
-            if (apply(unit, unitType, radius, px, py, dt)) pushes++;
+            if (apply(unit, unitType, radius, px * share, py * share, dt)) pushes++;
+            // What the body did not give comes back onto the hull: a heavy one holds it up.
+            if (contact && !braked) {
+                backX -= px * (1f - share);
+                backY -= py * (1f - share);
+            }
         }
+        // A crowd of men leaning on a hull moves it by hairs; only sweep for a push worth a sweep.
+        if (Math.abs(backX) + Math.abs(backY) > 1e-3f) {
+            float mag = (float) Math.hypot(backX, backY);
+            if (mag > maxStep) { backX *= maxStep / mag; backY *= maxStep / mag; }
+            HullShove.move(body, type, grid, backX, backY, false, push);
+        }
+    }
+
+    /**
+     * The bow lands on a hostile body ({@link HullRam}): the impulse of the hull's travel against the body's
+     * retreat, damage both ways through the shared armour law, the body knocked down or staggered and the hull
+     * slowed and stalled by what each could not shed.
+     */
+    private void ram(long vehicle, GroundBody body, float hullMass, long unit, UnitType unitType, float bodyMass,
+                     boolean onBow) {
+        double rad = Math.toRadians(body.facingDegrees);
+        float travel = Math.signum(body.speed);
+        float fx = (float) -Math.sin(rad), fy = (float) Math.cos(rad);
+        // The contact normal, hull toward body: the bow's travel, or for a mech beside the hull the way it is pushed out.
+        float nx, ny;
+        if (onBow) {
+            nx = fx * travel;
+            ny = fy * travel;
+        } else {
+            float len = (float) Math.hypot(push[0], push[1]);
+            if (len < 1e-6f) return;
+            nx = push[0] / len;
+            ny = push[1] / len;
+        }
+        float toward = body.speed * (fx * nx + fy * ny);
+        float away = entityWorld.getFloat(unit, components.MOVEMENT, BattleComponents.MOVEMENT_VEL_X) * nx
+                + entityWorld.getFloat(unit, components.MOVEMENT, BattleComponents.MOVEMENT_VEL_Y) * ny;
+        // A mech's own walk into the hull closes the gap as the hull's drive does; a man's or a creature's does not.
+        float closing = unitType.isMech() ? HullRam.machineClosing(toward, away) : HullRam.closing(toward, away);
+        HullRam.Exchange hit = HullRam.exchange(closing, hullMass, bodyMass);
+        if (hit.impulse() <= 0f) return;
+        rams++;
+        fastestRam = Math.max(fastestRam, closing);
+        float along = Math.abs(fx * nx + fy * ny);
+        body.speed -= Math.signum(body.speed) * Math.min(Math.abs(body.speed), hit.hullDv() * along);
+        if (hit.bodyDamage() > 0f) {
+            ramDamageDealt += hit.bodyDamage();
+            roster.damageService().applyDamage(unit, vehicle, hit.bodyDamage(), HullRam.PENETRATION, 1f);
+        }
+        if (hit.hullDamage() > 0f) {
+            ramDamageTaken += hit.hullDamage();
+            roster.damageService().applyDamage(vehicle, unit, hit.hullDamage(), HullRam.PENETRATION, 0f);
+        }
+        if (hit.bodyDv() >= HullRam.KNOCKDOWN_DV && roster.isAliveById(unit)) {
+            roster.stagger().stagger(unit, ticks(HullRam.KNOCKDOWN_SECONDS),
+                    unitType.isMech() ? Cause.STAGGERED : Cause.KNOCKED_DOWN);
+        }
+        if (hit.hullDv() >= HullRam.STALL_DV) {
+            roster.stagger().stagger(vehicle, ticks(HullRam.STALL_SECONDS), Cause.STALLED);
+        }
+    }
+
+    private boolean walking(long unit) {
+        float vx = entityWorld.getFloat(unit, components.MOVEMENT, BattleComponents.MOVEMENT_VEL_X);
+        float vy = entityWorld.getFloat(unit, components.MOVEMENT, BattleComponents.MOVEMENT_VEL_Y);
+        return vx * vx + vy * vy > MOVING_SPEED * MOVING_SPEED;
+    }
+
+    private float bodyTonnes(long unit, UnitType type) {
+        MechLoadoutComponent loadout = type.isMech() ? world.mechLoadout(unit) : null;
+        return HullRam.bodyTonnes(type, roster.identity().swarmStage(unit),
+                loadout == null ? 1f : loadout.variant.relativeMass);
+    }
+
+    private static long pairKey(long vehicle, long unit) {
+        return vehicle * 0x9E3779B97F4A7C15L ^ unit;
+    }
+
+    private static int ticks(float seconds) {
+        return Math.max(1, Math.round(seconds / BattleSimulation.TICK_DT));
     }
 
     /**
@@ -136,11 +268,22 @@ public final class VehicleRepulsionSystem {
      * per-tick ceiling. Pure geometry: {@code facingDegrees} uses the chassis
      * convention (forward is {@code (-sin, cos)}) and a negative {@code speed}
      * is reversing. Writes {@code out} and returns {@code true} when there is
-     * anything to do.
+     * anything to do: {@code out[0..1]} the push, {@code out[2]} nonzero for a body
+     * overlapping the hull (rather than in its bow wave), {@code out[3]} nonzero for
+     * one on the bow of a moving hull. {@code bowWave} false leaves the road ahead
+     * alone, for a body the hull means to hit.
      */
     static boolean displacement(float vx, float vy, float facingDegrees, float speed,
                                 float halfL, float halfW, float ux, float uy, float radius,
-                                float dt, long tiebreak, float[] out) {
+                                float dt, long tiebreak, boolean bowWave, float[] out) {
+        return displacement(vx, vy, facingDegrees, speed, halfL, halfW, ux, uy, radius, dt, tiebreak, bowWave,
+                false, out);
+    }
+
+    /** {@link #displacement}, with {@code slide} pushing an overlapping body out sideways wherever it touches. */
+    static boolean displacement(float vx, float vy, float facingDegrees, float speed,
+                                float halfL, float halfW, float ux, float uy, float radius,
+                                float dt, long tiebreak, boolean bowWave, boolean slide, float[] out) {
         double rad = Math.toRadians(facingDegrees);
         float fx = (float) -Math.sin(rad), fy = (float) Math.cos(rad);
         float sx = fy, sy = -fx;
@@ -150,15 +293,24 @@ public final class VehicleRepulsionSystem {
         float ef = halfL + radius + CLEARANCE, ew = halfW + radius + CLEARANCE;
         float side = across > 1e-3f ? 1f : across < -1e-3f ? -1f : ((tiebreak & 1L) == 0L ? 1f : -1f);
         float absAlong = Math.abs(along), absAcross = Math.abs(across);
+        out[2] = out[3] = 0f;
         if (absAlong < ef && absAcross < ew) {
             float outAcross = ew - absAcross, outAlong = ef - absAlong;
             boolean inFront = travel != 0f && along * travel > 0f;
-            if (inFront || outAcross <= outAlong) {
+            out[2] = 1f;
+            out[3] = inFront ? 1f : 0f;
+            if (inFront || slide || outAcross <= outAlong) {
                 // Out the near side. In front of a moving hull, ride the bow
                 // forward too so the hull cannot overtake the body mid-slide.
                 float carry = inFront ? Math.abs(speed) * dt : 0f;
                 out[0] = sx * side * outAcross + fx * travel * carry;
                 out[1] = sy * side * outAcross + fy * travel * carry;
+                if (slide && !inFront && outAlong < outAcross) {
+                    // Sliding round an end: held off it as it goes, so it rounds the corner instead of cutting it.
+                    float end = along >= 0f ? 1f : -1f;
+                    out[0] += fx * end * outAlong;
+                    out[1] += fy * end * outAlong;
+                }
             } else {
                 float end = along >= 0f ? 1f : -1f;
                 out[0] = fx * end * outAlong;
@@ -166,7 +318,7 @@ public final class VehicleRepulsionSystem {
             }
             return true;
         }
-        if (travel == 0f) return false;
+        if (travel == 0f || !bowWave) return false;
         float ahead = along * travel - ef;
         float bow = BOW_MIN_CELLS + Math.abs(speed) * BOW_SECONDS;
         if (ahead < 0f || ahead > bow || absAcross >= ew + BOW_LATERAL_MARGIN) return false;

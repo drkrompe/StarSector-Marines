@@ -14,32 +14,22 @@ import java.util.Arrays;
  * ({@code squad-medic.md}).
  *
  * <p>Two halves, split by who may write what. {@link #tick} is serial and runs
- * ahead of the unit dispatch: it designates the medic, recovers supplies,
+ * ahead of the unit dispatch: it designates the medic, regenerates their energy,
  * chooses a patient, and lands the treatment on the patient's health and armor.
  * {@link #serve} is the per-marine reflex that runs inside the dispatch and
- * moves, plants, or silences only the marine it is updating. No worker ever
- * writes another marine's health.
+ * moves or silences only the marine it is updating. No worker ever writes
+ * another marine's health.
  *
- * <p>The medic holds fire while treating. Whether the two marines stand still
- * for it is the open balance question, so both are built: planted holds both
- * in place from the moment the patient is chosen, keep-moving lets the patient
- * carry on and the medic follow.
+ * <p>The medic holds fire while treating and walks with the squad: the patient
+ * carries on with whatever the squad is doing, and the medic keeps at their
+ * side. Treatment is paid for out of an energy pool ({@link MedicEnergy}).
  */
 public final class SquadMedicSystem {
-
-    /** Selects keep-moving treatment for squads designated after it is read; planted otherwise. */
-    public static final String KEEP_MOVING_PROPERTY = "battle.infantry.medicKeepMoving";
-
-    private boolean keepMoving = Boolean.getBoolean(KEEP_MOVING_PROPERTY);
 
     /** Medic-to-patient pairs treating this tick, for presentation to read by unit. */
     private long[] treatingMedics = new long[8];
     private long[] treatingPatients = new long[8];
     private int treatingCount;
-
-    /** Per-simulation movement mode, so two scenes in one JVM can compare the two. */
-    public void setKeepMoving(boolean keepMoving) { this.keepMoving = keepMoving; }
-    public boolean keepMoving() { return keepMoving; }
 
     /**
      * The patient {@code unit} is treating as of the last serial pass, or zero.
@@ -59,9 +49,9 @@ public final class SquadMedicSystem {
         for (Squad squad : sim.getSquads()) {
             if (squad.aliveMembers <= 0) continue;
             if (squad.medic == null) {
-                SquadMedicine medicine = SquadMedicine.forRank(rankOf(squad));
-                if (medicine == null) continue;
-                squad.medic = new SquadMedic(medicine, keepMoving);
+                int rank = rankOf(squad);
+                if (rank <= 0) continue;
+                squad.medic = new SquadMedic(SquadMedicine.forRank(rank));
             }
             step(squad.medic, new SimWard(squad, sim, controlled), dt);
             if (squad.medic.phase == SquadMedic.Phase.TREATING) {
@@ -94,16 +84,8 @@ public final class SquadMedicSystem {
      */
     static void step(SquadMedic medic, Ward ward, float dt) {
         SquadMedicine m = medic.medicine;
-        if (medic.supplies < m.supplies()) {
-            medic.recoveryTimer += dt;
-            if (medic.recoveryTimer >= m.supplyRecoverySeconds()) {
-                medic.recoveryTimer = 0f;
-                medic.supplies++;
-            }
-        } else {
-            medic.recoveryTimer = 0f;
-        }
-        if (medic.cooldownTimer > 0f) medic.cooldownTimer = Math.max(0f, medic.cooldownTimer - dt);
+        medic.energy = MedicEnergy.regenerate(medic.energy, m.energyMax(), m.energyRegenPerSecond(), dt);
+        if (medic.retryTimer > 0f) medic.retryTimer = Math.max(0f, medic.retryTimer - dt);
 
         if (medic.medicId == 0L || !ward.alive(medic.medicId)) {
             if (medic.phase == SquadMedic.Phase.TREATING) interrupt(medic);
@@ -134,15 +116,26 @@ public final class SquadMedicSystem {
     private static void choose(SquadMedic medic, Ward ward) {
         SquadMedicine m = medic.medicine;
         long carrier = medic.medicId;
-        if (medic.supplies <= 0 || medic.cooldownTimer > 0f) return;
+        if (medic.retryTimer > 0f || MedicEnergy.empty(medic.energy)) return;
         if (!ward.mayAct(carrier)) return;
         if (ward.incomingPressure(carrier) >= m.heavyFirePressure()) return;
         long patient = worstHurt(medic, ward);
-        if (patient == 0L) return;
+        if (patient == 0L || !mayStart(medic, ward, patient)) return;
         medic.patientId = patient;
         medic.phase = SquadMedic.Phase.APPROACHING;
-        medic.phaseTimer = 0f;
+        medic.approachTimer = 0f;
         if (ward.distance(carrier, patient) <= m.reachCells()) begin(medic);
+    }
+
+    /** The start gate and wound floor of {@link MedicEnergy#mayStart}, against one patient. */
+    static boolean mayStart(SquadMedic medic, Ward ward, long patient) {
+        SquadMedicine m = medic.medicine;
+        float maxHp = ward.maxHp(patient);
+        float maxArmor = ward.maxArmor(patient);
+        float missing = Math.max(0f, maxHp - ward.hp(patient))
+                + (maxArmor > 0f ? Math.max(0f, maxArmor - ward.armor(patient)) : 0f);
+        return MedicEnergy.mayStart(medic.energy, missing, maxHp + Math.max(0f, maxArmor),
+                m.energyPerPoint(), m.minStartEnergy(), m.woundFloorFraction());
     }
 
     /**
@@ -182,14 +175,15 @@ public final class SquadMedicSystem {
     private static void approach(SquadMedic medic, Ward ward, float dt) {
         SquadMedicine m = medic.medicine;
         long patient = medic.patientId;
-        medic.phaseTimer += dt;
+        medic.approachTimer += dt;
         if (!ward.alive(patient) || !ward.mayAct(medic.medicId)
-                || medic.phaseTimer > m.approachSeconds()
+                || medic.approachTimer > m.approachSeconds()
                 || ward.distance(medic.medicId, patient) > m.leashCells()
                 || !needsTreatment(medic, ward, patient)) {
-            // Nothing spent, but the cooldown still runs, so a patient the medic
-            // cannot reach is not set out for again on the very next tick.
-            medic.cooldownTimer = m.cooldownSeconds();
+            // Nothing spent, but the medic waits a moment before setting out
+            // again, so a patient they cannot reach is not chased afresh on the
+            // very next tick.
+            medic.retryTimer = m.retrySeconds();
             drop(medic);
             return;
         }
@@ -197,13 +191,19 @@ public final class SquadMedicSystem {
     }
 
     private static void begin(SquadMedic medic) {
-        medic.supplies--;
         medic.started++;
         medic.phase = SquadMedic.Phase.TREATING;
-        medic.phaseTimer = medic.medicine.channelSeconds();
+        medic.treatingSeconds = 0f;
     }
 
-    private static void treat(SquadMedic medic, Ward ward, float dt) {
+    /**
+     * One tick of treatment. Both restorations run at their own rates, clamped
+     * to the patient's maxima, and both are paid out of the pool at the same
+     * price per point; when the pool cannot pay for the whole tick, both are
+     * scaled down together. Ends when the patient is whole, the pool is empty,
+     * or reach is broken; the start gate is not checked again.
+     */
+    static void treat(SquadMedic medic, Ward ward, float dt) {
         SquadMedicine m = medic.medicine;
         long patient = medic.patientId;
         if (!ward.alive(patient) || !ward.mayAct(medic.medicId)
@@ -213,30 +213,40 @@ public final class SquadMedicSystem {
         }
         float maxHp = ward.maxHp(patient);
         float hp = ward.hp(patient);
-        if (hp < maxHp) {
-            float healed = Math.min(maxHp, hp + m.healthPerSecond() * dt);
+        float maxArmor = ward.maxArmor(patient);
+        float armor = ward.armor(patient);
+        float wantHealth = hp < maxHp ? Math.min(maxHp - hp, m.healthPerSecond() * dt) : 0f;
+        float wantArmor = maxArmor > 0f && armor < maxArmor
+                ? Math.min(maxArmor - armor, m.armorPerSecond() * dt) : 0f;
+        float wanted = wantHealth + wantArmor;
+        float paid = MedicEnergy.affordable(medic.energy, wanted, m.energyPerPoint());
+        float share = wanted > 0f ? paid / wanted : 0f;
+        if (wantHealth > 0f) {
+            float healed = Math.min(maxHp, hp + wantHealth * share);
             ward.setHp(patient, healed);
             medic.healthRestored += healed - hp;
         }
-        float maxArmor = ward.maxArmor(patient);
-        float armor = ward.armor(patient);
-        if (maxArmor > 0f && armor < maxArmor) {
-            float plated = Math.min(maxArmor, armor + m.armorPerSecond() * dt);
+        if (wantArmor > 0f) {
+            float plated = Math.min(maxArmor, armor + wantArmor * share);
             ward.setArmor(patient, plated);
             medic.armorRestored += plated - armor;
             // Re-plating is the one way armor rises in battle: a broken plate
             // made good again, and able to break a second time.
             if (armor <= 0f && plated > 0f) medic.armorReplated++;
         }
-        medic.phaseTimer -= dt;
+        medic.energy = MedicEnergy.spend(medic.energy, paid, m.energyPerPoint());
+        medic.treatingSeconds += dt;
         boolean whole = ward.hp(patient) >= maxHp
                 && (maxArmor <= 0f || ward.armor(patient) >= maxArmor);
-        if (medic.phaseTimer <= 0f || whole) {
+        if (whole) {
             medic.completed++;
             // A finished treatment dresses the limb wounds too: the slowed walk and the
-            // shaken aim end with it. An interrupted one leaves them.
+            // shaken aim end with it. An interrupted or exhausted one leaves them.
             ward.dressWounds(patient);
-            finish(medic);
+            drop(medic);
+        } else if (MedicEnergy.empty(medic.energy)) {
+            medic.exhausted++;
+            drop(medic);
         }
     }
 
@@ -247,71 +257,56 @@ public final class SquadMedicSystem {
         return maxArmor > 0f && ward.armor(patient) / maxArmor < m.treatBelowArmor();
     }
 
+    /** Ends a treatment early; what landed stays and nothing further is spent. */
     private static void interrupt(SquadMedic medic) {
         medic.interrupted++;
-        finish(medic);
-    }
-
-    /** Ends a treatment: the supply is already gone and the cooldown starts. */
-    private static void finish(SquadMedic medic) {
-        medic.cooldownTimer = medic.medicine.cooldownSeconds();
         drop(medic);
     }
 
-    /** Abandons a patient without having spent anything on them. */
     private static void drop(SquadMedic medic) {
         medic.patientId = 0L;
         medic.phase = SquadMedic.Phase.IDLE;
-        medic.phaseTimer = 0f;
+        medic.approachTimer = 0f;
+        medic.treatingSeconds = 0f;
     }
 
     /**
-     * The medic's and patient's part, run as a reflex inside the unit
-     * dispatch. Returns whether the marine spent the tick.
+     * The medic's part, run as a reflex inside the unit dispatch. Returns
+     * whether the marine spent the tick.
      *
      * <ul>
      *   <li>The medic walking to a patient walks, and may answer what is
      *       already in range; it starts nothing.</li>
-     *   <li>The medic treating holds fire. Planted, they stand; keeping moving,
-     *       they stay at the patient's side.</li>
-     *   <li>A planted patient waits for the medic and stands still for the
-     *       treatment, and may still shoot.</li>
+     *   <li>The medic treating holds fire and stays at the patient's side,
+     *       following them when they move on.</li>
+     *   <li>The patient is never held: they carry on with the squad.</li>
      * </ul>
      *
-     * A marine whose fire team has broken is never held: the morale law comes
+     * A medic whose fire team has broken is never held: the morale law comes
      * first, and the serial pass ends the treatment on the next tick.
      */
     public static boolean serve(long unit, Squad squad, BattleControl sim) {
         SquadMedic medic = squad == null ? null : squad.medic;
         if (medic == null || medic.phase == SquadMedic.Phase.IDLE) return false;
-        if (unit != medic.medicId && unit != medic.patientId) return false;
+        if (unit != medic.medicId) return false;
         if (squad.fireTeamBroken(sim.squad().fireTeamIndex(unit))) return false;
-        if (unit == medic.medicId) {
-            if (medic.phase == SquadMedic.Phase.APPROACHING) {
-                walkTo(unit, medic.patientId, sim);
-                InfantryUnitPrep.tryOpportunityPrimary(unit, sim);
-                return true;
-            }
-            // Hands on the patient: a burst already in the air stops with them.
-            World world = sim.world();
-            if (world.burstRemaining(unit) > 0) {
-                world.setBurstRemaining(unit, 0);
-                world.setBurstTargetId(unit, 0L);
-            }
-            if (medic.keepMoving && sim.world().isAlive(medic.patientId)
-                    && distance(sim.world(), unit, medic.patientId)
-                    > medic.medicine.reachCells() * 0.5f) {
-                walkTo(unit, medic.patientId, sim);
-            } else if (!sim.movement().settled(unit)) {
-                sim.clearPath(unit);
-            }
+        if (medic.phase == SquadMedic.Phase.APPROACHING) {
+            walkTo(unit, medic.patientId, sim);
+            InfantryUnitPrep.tryOpportunityPrimary(unit, sim);
             return true;
         }
-        // Planted holds both: the patient waits for the medic to arrive, then for
-        // the treatment. A patient walking on at the medic's own pace is never caught.
-        if (medic.keepMoving) return false;
-        if (!sim.movement().settled(unit)) sim.clearPath(unit);
-        InfantryUnitPrep.tryOpportunityPrimary(unit, sim);
+        // Hands on the patient: a burst already in the air stops with them.
+        World world = sim.world();
+        if (world.burstRemaining(unit) > 0) {
+            world.setBurstRemaining(unit, 0);
+            world.setBurstTargetId(unit, 0L);
+        }
+        if (world.isAlive(medic.patientId)
+                && distance(world, unit, medic.patientId) > medic.medicine.reachCells() * 0.5f) {
+            walkTo(unit, medic.patientId, sim);
+        } else if (!sim.movement().settled(unit)) {
+            sim.clearPath(unit);
+        }
         return true;
     }
 

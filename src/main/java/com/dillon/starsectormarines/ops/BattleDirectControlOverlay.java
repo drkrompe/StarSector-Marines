@@ -19,7 +19,6 @@ import com.fs.starfarer.api.ui.PositionAPI;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
-import java.util.function.IntConsumer;
 
 /**
  * Strategic entry above selection. During takeover the HUD follows the game's own combat HUD:
@@ -94,7 +93,7 @@ final class BattleDirectControlOverlay {
     }
 
     BattleDirectControlOverlay(Selection selection, Runnable toggle, Runnable togglePause,
-                              IntConsumer selectWeapon) {
+                              BattleDirectControlHudModel.WeaponActions selectWeapon) {
         this.selection = selection;
         this.toggle = toggle;
         actionModel = new BattleDirectControlHudModel(reactor, selectWeapon, toggle, togglePause);
@@ -276,12 +275,11 @@ final class BattleDirectControlOverlay {
         marinePlate.clear();
         if (status.carrier() == Carrier.MECH) {
             sectionPlate.update(sim.world().mechLoadout(id));
-        } else if (status.carrier() == Carrier.VEHICLE) {
+        } else if (status.carrier() == Carrier.VEHICLE && sim.convoy().locations(id) != null) {
             var durability = status.durability();
             var turret = sim.convoy().turret(id);
             sectionPlate.updateVehicle(sim.convoy().vehicleType(id), durability.hp(), durability.maxHp(),
-                    durability.armor(), durability.maxArmor(), turret != null ? turret.section : null,
-                    sim.convoy().locations(id));
+                    turret != null ? turret.section : null, sim.convoy().locations(id));
         } else {
             sectionPlate.clear();
         }
