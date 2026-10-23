@@ -436,7 +436,6 @@ GUN_MADE = {
     'hound-m@75.5:breach': ('hound-p-b',),                  # drives hit (S6d)
     'hound-m@77.4:he': ('hound-p-b',),                      # the round that takes her thrust (S6d)
     'hound-p-a@76.9:kill': ('hound-m',),                    # killed at close range (S6d)
-    'colossus@94.9:he': ('colossus3',),                     # the port pod shot out (S8-S9)
     'falcon-p@105.0:breach': ('lasher-lead',),              # the flank opened after the overload (S9b)
     'falcon-p@106.0:he': ('lasher-lead',),                  # her last rounds (S9b)
     'lasher-lead@103.5:breach': ('falcon-p',),              # the Falcon's point guns as she rolls in (S9b)
