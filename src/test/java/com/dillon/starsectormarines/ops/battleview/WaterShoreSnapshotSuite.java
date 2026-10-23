@@ -36,10 +36,8 @@ import java.util.Locale;
  * stretch well away from the first, then the first ford (shallow water over
  * a stony bed) at play zoom and close. Look evidence, 1920x1080.
  *
- * <p>Render once per arm of {@code -Dbattle.render.shore=organic|diagonal|square}
- * into its own {@code -PsnapshotDir} to compare them. Run with
- * {@code -Dbattle.render.creep=false} to see the heart's banks under its creep,
- * and once per {@code -Dbattle.render.fordLook=pebbles|stones|both} to compare fords.
+ * <p>Run with {@code -Dbattle.render.creep=false} to see the heart's banks
+ * without its creep.
  * {@code -Dsnapshot.waterShore.burnSeeds=202} and
  * {@code -Dsnapshot.waterShore.conquestSeeds=4} pick the maps.
  */
@@ -57,13 +55,12 @@ public final class WaterShoreSnapshotSuite implements SnapshotSuite {
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         TileRegistryTestInstaller.install(context.projectRoot());
         InstalledVanillaData.install();
-        String mode = System.getProperty(WaterShore.PROPERTY, "organic");
         List<SnapshotArtifact> out = new ArrayList<>();
         for (String token : System.getProperty("snapshot.waterShore.burnSeeds", "202").split(",")) {
             if (token.isBlank()) continue;
             long seed = Long.parseLong(token.trim());
             try (BattleSimulation sim = BloomHeartSetup.country(Form.THE_BURN, SurfacePalette.VERDANT, seed).sim()) {
-                views(context, out, sim, "burn-seed" + seed, "The Burn seed " + seed + " | shore " + mode);
+                views(context, out, sim, "burn-seed" + seed, "The Burn seed " + seed + " | organic shore");
             }
         }
         TargetProfile profile = fixtureProfile();
@@ -74,7 +71,7 @@ public final class WaterShoreSnapshotSuite implements SnapshotSuite {
             try (BattleSimulation sim = BattleSetup.createConquest(seed,
                     List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1, 6)), false,
                     OperationTier.FIRST_CONTRACT, RiskLevel.LOW, profile)) {
-                views(context, out, sim, "conquest-seed" + seed, "Conquest seed " + seed + " | shore " + mode);
+                views(context, out, sim, "conquest-seed" + seed, "Conquest seed " + seed + " | organic shore");
             }
         }
         return out;

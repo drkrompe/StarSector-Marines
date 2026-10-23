@@ -881,7 +881,7 @@ the share of wild ground that is wood (the stock city's is a little over half),
 meandering across the map with sand banks, crossed on foot at a ford at a
 fixed interval along their length: a stony bed under **shallow water**, walked
 at a wade (`NavigationGrid.SHALLOW_WATER_SPEED`) and drawn as shallows with a
-line of stepping stones across it, so what can be crossed reads at a glance. A track or brook is reserved from trees; a
+pebble bed showing through, so what can be crossed reads at a glance. A track or brook is reserved from trees; a
 brook is unwalkable, see-through water that creep does not climb, so it is a
 natural firebreak and a creep line broken only at its fords and wherever a road
 or street crosses it. A landscape may also name **ridges**, bands of high
