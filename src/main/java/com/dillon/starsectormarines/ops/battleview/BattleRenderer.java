@@ -601,6 +601,23 @@ public class BattleRenderer {
         aircraft.disposeLighting();
     }
 
+    /**
+     * Releases every GL resource this renderer made for itself — targets, resident meshes, the
+     * fog texture, lighting and the three atlases — for a host that is done with it and will
+     * build another before it draws again. The sprites it drew from are not its own and stay.
+     */
+    public void disposeGlResources() {
+        decalAccumulator.dispose();
+        groundParallax.dispose();
+        groundMesh.dispose();
+        roofMesh.dispose();
+        fogField.dispose();
+        disposeLighting();
+        groundAtlas.dispose();
+        unitAtlas.dispose();
+        disposeDecorationAtlas();
+    }
+
     /** Accessor for {@code BattleScreen.detach()} — release FBO resources. */
     public DecalAccumulator getDecalAccumulator() { return decalAccumulator; }
 

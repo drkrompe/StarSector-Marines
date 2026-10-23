@@ -202,7 +202,7 @@ public final class ShipViewCanvas implements CanvasProducer {
     public void draw(CanvasContext context) {
         float width = context.metrics().surfaceWidth();
         float height = context.metrics().surfaceHeight();
-        ShipDeckBattleScene aboard = ship.live() ? ship.scene() : null;
+        ShipDeckBattleScene aboard = ship.drawable();
         // The deck is drawn by a host pass, so a backend that runs none has no
         // ship to show and no rectangle in which to frame her.
         CanvasHostViewport rect = context.hostViewport();
