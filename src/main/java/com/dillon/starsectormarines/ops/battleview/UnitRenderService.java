@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.combat.StaggerService;
-import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
 import com.dillon.starsectormarines.battle.appearance.SystemFxService;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
@@ -1146,6 +1145,25 @@ public final class UnitRenderService implements RenderSystem {
                     else RavRunnerComposer.emit(out, runnerArt, ravRig, bx, by, ppc, 1f, alpha);
                     continue;
                 }
+                // Died since its rig last stepped: the rig bursts on the next tick, so for
+                // this frame the body still stands as it was last posed rather than vanishing.
+                Object fresh = ravRigs != null ? ravRigs[r] : null;
+                if (RavRigStandIn.needed(fresh)) {
+                    fresh = RavRigStandIn.of(fresh, t.entityAt(r), rx[r], ry[r], corpseFacing[r],
+                            ctx.sim.identity().swarmStage(t.entityAt(r)));
+                }
+                if (deadBruteArt != null && fresh instanceof RavBruteRig standingBrute) {
+                    RavBruteComposer.emit(out, deadBruteArt.forStage(standingBrute.stage()), standingBrute,
+                            cam.cellToScreenX(standingBrute.bodyX()), cam.cellToScreenY(standingBrute.bodyY()),
+                            cam.cellPxSize() * standingBrute.scale() * shrink, alpha);
+                    continue;
+                }
+                if (ravArt != null && fresh instanceof RavRunnerRig standingRunner) {
+                    RavRunnerComposer.emit(out, ravArt.forStage(standingRunner.stage()), standingRunner,
+                            cam.cellToScreenX(standingRunner.bodyX()), cam.cellToScreenY(standingRunner.bodyY()),
+                            cam.cellPxSize() * type.renderScale * standingRunner.scale() * shrink, 1f, alpha);
+                    continue;
+                }
                 // A body that wore layered art lies as itself: its outfit's own pose,
                 // at the live shoulder scale, turned to the facing it fell with.
                 LayeredUnitAssets outfit = corpseFamily[r] >= 0
@@ -1215,19 +1233,16 @@ public final class UnitRenderService implements RenderSystem {
     }
 
     /**
-     * Live infantry/civilians/mechs: the authored {@code SPRITE} frame as a batched
-     * {@code SHEET_QUAD} (the SOUTH-weapon-up pose flipped vertically via the
-     * engine's {@link DrawList#addSheetQuadFlippedV} mirror). A pure {@code Query}
-     * column walk over {@link BattleComponents#liveSprites} — the facing/frame
-     * derivation ({@code computeFacing}/{@code pickFrame}/weapon-up) is gone from
-     * this class; {@code battle.appearance.FacingSystem} authors
-     * {@code SPRITE_INDEX}/{@code SPRITE_FLIP_V}/{@code SPRITE_SHEET} once per tick
-     * and this sweep just reads them, the {@link #sweepDeadSprites} pattern
-     * extended to the live side. Membership itself is the sheet-drawn gate — every
-     * matched row already is a
-     * {@link com.dillon.starsectormarines.battle.unit.UnitType#drawnAsSheet()} type
+     * Live bodies that face and fall — infantry, civilians, mechs, the Rav — each
+     * drawn from its own modular art: a layered mech, a Rav rig, or layered
+     * infantry. A pure {@code Query} column walk over
+     * {@link BattleComponents#liveSprites}; membership is the posed-body gate —
+     * every matched row already is a
+     * {@link com.dillon.starsectormarines.battle.unit.UnitType#carriesSprite()} type
      * (no {@code RenderAppearance.spriteKind} check needed), and requiring
-     * {@code HEALTH} excludes corpses without a separate check.
+     * {@code HEALTH} excludes corpses without a separate check. A body whose
+     * modular art did not load draws as a plain marker in its side's colour; there
+     * is no single-sheet unit art any more.
      *
      * <p>Two gates:
      * <ol>
@@ -1248,26 +1263,6 @@ public final class UnitRenderService implements RenderSystem {
      *   multiplies in the fade alpha.</li>
      * </ol>
      *
-     * <p>Cache resolution: the base cache is {@code sprites.unitSprites().get(type)}.
-     * When the authored selector is {@code SPRITE_SHEET ==
-     * LiveAppearance.SHEET_SECONDARY_AIM} and the row carries a
-     * {@code SECONDARY_WEAPON}, the aim cache is looked up by <em>that weapon's own
-     * equipment id</em> — {@code sprites.specialEquipmentAimSheets().get(id)},
-     * joined off the row's {@code SECONDARY_WEAPON_SPEC} definition, not the unit's type (aim
-     * sheets are keyed by weapon kind, so resolving off {@code IDENTITY_TYPE} would
-     * draw the wrong — or no — aim sheet the moment a second secondary with aim art
-     * exists) — and used only if it's non-null with loaded frames; otherwise the
-     * base cache stands in (the fall-back-to-base-on-missing-aim-art behavior,
-     * preserved from the old {@code emitLiveSprite}). The colored-quad fallback
-     * covers a missing/unloaded base sheet.
-     *
-     * <p><b>One accepted seam.</b> A unit spawned during battle setup (before the
-     * first sim tick) draws its seeded south-idle frame
-     * ({@code UnitRosterService.allocate}'s {@code SPRITE_INDEX} seed) for its
-     * first render(s), until the first {@code FacingSystem} pass authors real
-     * facing — the old per-frame derivation would have shown path-facing one frame
-     * earlier. Imperceptible; accepted in
-     * {@code ecs-nouns.md}.
      */
     private void sweepLiveSprites(RenderContext ctx, DrawList out) {
         BattleComponents c = ctx.sim.getBattleComponents();
@@ -1292,9 +1287,6 @@ public final class UnitRenderService implements RenderSystem {
             float[] hp = t.floats(c.HEALTH, BattleComponents.HEALTH_HP).array();
             float[] rx = t.floats(c.POSITION, BattleComponents.POSITION_X).array();
             float[] ry = t.floats(c.POSITION, BattleComponents.POSITION_Y).array();
-            int[] sheetSel = t.ints(c.SPRITE, BattleComponents.SPRITE_SHEET).array();
-            int[] frameIdx = t.ints(c.SPRITE, BattleComponents.SPRITE_INDEX).array();
-            int[] flipV = t.ints(c.SPRITE, BattleComponents.SPRITE_FLIP_V).array();
             boolean hasSecondary = t.has(c.SECONDARY_WEAPON);
             boolean hasLayered = t.has(c.LAYERED_ANIMATION);
             boolean hasMechLayered = t.has(c.MECH_LAYERED_ANIMATION);
@@ -1543,28 +1535,13 @@ public final class UnitRenderService implements RenderSystem {
                             authoredPose, integralSystem, launch);
                     continue;
                 }
-                UnitSpriteCache cache = sprites.unitSprites().get(type);
-                if (sheetSel[r] == LiveAppearance.SHEET_SECONDARY_AIM && secSpec != null) {
-                    SpecialEquipmentDef equipment = (SpecialEquipmentDef) secSpec[r];
-                    UnitSpriteCache aim = sprites.specialEquipmentAimSheets().get(equipment.id());
-                    if (aim != null && aim.sheet != null && aim.frames != null
-                            && aim.frames.frames.length > 0) {
-                        cache = aim;
-                    }
-                }
-                if (cache == null || cache.sheet == null || cache.frames == null
-                        || cache.frames.frames.length == 0) {
-                    Allegiance allegiance = Allegiance.of((Faction) factions[r]);
-                    Color col = allegiance.friendly() ? MARINE_COLOR
-                            : allegiance == Allegiance.NEUTRAL
-                            ? CIVILIAN_COLOR : DEFENDER_COLOR;
-                    float cx = cam.cellToScreenX(rx[r]);
-                    float cy = cam.cellToScreenY(ry[r]);
-                    emitSolidQuad(out, cx, cy, half, col, unitAlpha);
-                    continue;
-                }
-                emitLiveSprite(out, cam, type, cache, frameIdx[r], flipV[r] != 0,
-                        rx[r], ry[r], unitSize, unitAlpha);
+                // Its modular art did not load: a plain marker in its side's colour.
+                Allegiance allegiance = Allegiance.of((Faction) factions[r]);
+                Color col = allegiance.friendly() ? MARINE_COLOR
+                        : allegiance == Allegiance.NEUTRAL
+                        ? CIVILIAN_COLOR : DEFENDER_COLOR;
+                emitSolidQuad(out, cam.cellToScreenX(rx[r]), cam.cellToScreenY(ry[r]),
+                        half, col, unitAlpha);
             }
         }
     }
@@ -1673,36 +1650,6 @@ public final class UnitRenderService implements RenderSystem {
         AnimationClip clip = UnitLayerLayouts.get().clip(unitId, "field-loadout",
                 stepping ? "walking" : "idle");
         return clip != null ? clip.sample(stepping ? locomotionPhase : 0f) : null;
-    }
-
-    /**
-     * Emits the authored {@code SPRITE} frame — {@code frameIdx}/{@code flipV} are
-     * read straight off the {@link BattleComponents#SPRITE} columns
-     * {@code battle.appearance.FacingSystem} wrote last tick; no facing/weapon-up
-     * derivation happens here anymore. Sizing: {@code renderScale}d cell height,
-     * width by the frame's aspect — unchanged from the old {@code renderUnitSprite}.
-     */
-    private static void emitLiveSprite(DrawList out, BattleCamera cam, UnitType type,
-                                       UnitSpriteCache cache, int frameIdx, boolean flipV,
-                                       float rx, float ry, float unitSize, float alphaMult) {
-        SpriteSheetFrames frames = cache.frames;
-        // Sheet-cache-dependent clamp stays render-side — FacingSystem deliberately
-        // authors the unclamped logical frame (the render tier owns defending
-        // against whatever the currently-loaded cache's frame count is).
-        if (frameIdx >= frames.frames.length) frameIdx = 0;
-        SpriteSheetFrames.Frame f = frames.frames[frameIdx];
-
-        float targetH = unitSize * type.renderScale;
-        float targetW = targetH * f.w / (float) f.h;
-        float cx = cam.cellToScreenX(rx);
-        float cy = cam.cellToScreenY(ry);
-        if (flipV) {
-            out.addSheetQuadFlippedV(RenderLayer.UNITS, cache.sheet, f.x, f.y, f.w, f.h,
-                    cx, cy, targetW, targetH, 1f, 1f, 1f, alphaMult);
-        } else {
-            out.addSheetQuad(RenderLayer.UNITS, cache.sheet, f.x, f.y, f.w, f.h,
-                    cx, cy, targetW, targetH, 1f, 1f, 1f, alphaMult);
-        }
     }
 
     /** Centered {@code SOLID_RECT} of half-extent {@code half} — the sprite-missing quad fallback. */
