@@ -924,7 +924,10 @@ def track(shot_kf, ship_key, turret, weapon, t0, t1):
     if t < t1:                       # after its last: on that target while she lives, else the nearest living hostile
         last = engs[-1]
         k = killed(last['target'])
-        if k is not None and k <= t:
+        if k is not None and k < t1:  # her rounds are still in flight to the kill: hold until it lands
+            if k > t:
+                out.append((t, k, last['target'], last['aim']))
+                t = k
             sh = _shot(base_kf(shot_kf))
             i = sh.i(t)
             alive = [h for h in sh.ships if side(h) != side(ship_key) and (killed(h) is None or killed(h) > t)]

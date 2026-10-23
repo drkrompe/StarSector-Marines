@@ -2,7 +2,7 @@
 
 Status: DRAFT. The decision layer is in code (`asharu_gunnery.py`). `scene_fx.planned` does not consume it yet.
 Written: 2026-10-23
-Updated: 2026-10-23. Every ledger gunfire hit delivered (asharu_damage 43ac3f985). Matched to `scene_fx.planned` (139192a23): its range gate, round flight lead, `walk_r`, `track()`; ledger `by=None` hits left to the ledger.
+Updated: 2026-10-23. Every ledger gunfire hit delivered (asharu_damage 0b7c2166d); 3.0 s flight gate; exact arrival timing. Matched to `scene_fx.planned` (139192a23): its range gate, round flight lead, `walk_r`, `track()`; ledger `by=None` hits left to the ledger.
 
 `scene_fx.planned` executes gunfire. It slews each turret on both axes at its turn rate, with feed-forward. It fires in bursts gated on target (5 degrees), in range and with a clear line, and walks each burst across the target (`WALK_R`). Each round hits only where its straight line meets the hull.
 
@@ -100,30 +100,25 @@ From the command line: `python asharu_gunnery.py --summary | --table [kf ...] | 
    - `HOLD_ON`: nobody shoots the prize in S7 while the boats land, except the order to silence her guns.
    - The Wolves (P) hold through each Displacer blink.
 
-**Range.** The plan asks only for what `planned()` will fire. Every round, a story moment's included,
-is gated as `scene_fx` gates it: no further than its speed x `EXEC_FLIGHT_S` (2.2 s, mirrored from
-`MAX_FLIGHT_S`), `EXEC_RANGE_M` (3500 m) or the game's range x `RANGE_SCALE` (5). That gives a
-light MG 990 m, the needler 1980 m, the ion cannon 1540 m, the blasters 1320 m and the Hellbore 374 m.
-`planned()` has no `force`, so a moment past the gate would only be range-skipped there (S6 verify
-span, 52-54 s); `FORCE_PAST_GATE` stays False and `--check` reports the moment instead.
+**Range.** The plan asks only for what `planned()` will fire. Every round is gated as `scene_fx` gates it, story moments included. Its reach is the smallest of:
+- its speed x `EXEC_FLIGHT_S` (3.0 s, matching `MAX_FLIGHT_S` since cc7532591);
+- `EXEC_RANGE_M` (3500 m);
+- the game's range x `RANGE_SCALE` (5).
 
-**What fires at long range: missiles.** At the kit's round speeds no gun reaches 2.5-4 km.
-- **S5 and the first half of S6 belong to the Harpoons.** `shot_plan()` lists each shot's salvos (`missiles`) and when each ship's guns first have a hostile in reach (`opening`).
-- **In S6 the first guns in reach** are the Wolves (P) at 48-49 s and the Manticore's needler at 51.5 s, all on the convoy's Hound, and Lasher B on Wolf (P) A at 53.9 s.
-- **Out of reach for the whole shot:** the lead Lasher and the Manticore never close to gun range on each other in S6 (2.6 km at the cut), and the Falcon (P) is 2.7 km from everyone.
+That gives a light MG 1350 m, the needler 2700 m, the ion cannon 2100 m, the blasters 1800 m and the Hellbore 510 m.
 
-**The 2.2 s gate also costs the 1.1-1.3 km fights.** It drops five story rakes:
-- Lasher B and the merchant Wolf on Hound (P) C (S6b);
-- the Mule on Wolf (P) B (S6c);
-- Hound (P) B on the convoy's Hound, twice (S6d).
+**A story moment's rounds must land on the ledger's time.** Each step's round is flown at the range it leaves at, and must land within 0.4 s of the hit (up to 0.9 s after, for a kill's finishing burst). `arrival_windows(kf, shooter, target, at)` gives, per turret, when a ship's rounds can land, which is how the ledger times its gunfire hits.
 
-At 3.0 s (light MG 1350 m), all but one come back: Lasher B's opening rake at 60.0 s on Hound (P) C, which the ledger could retime. **Recommended: `MAX_FLIGHT_S` 3.0 in `scene_fx` and `EXEC_FLIGHT_S` 3.0 here, together.** The S6 long-range hits on the lead Lasher and Lasher B stay out of reach either way. They want Harpoons (a second salvo onto the lead, whose 55.9 s breach is a warhead's), or the ledger's own story hits.
+**What fires at long range: missiles.** No gun reaches 2.5-4 km at the kit's round speeds.
+- S5 and the first half of S6 belong to the Harpoons. `shot_plan()` lists each shot's salvos (`missiles`) and when every ship's guns first have a hostile in reach (`opening`).
+- The lead Lasher's 55.9 s breach is a warhead from a second Manticore salvo. **It needs a `missiles` entry, manticore-p -> lasher-lead, in `k3`'s fx.**
+- The Manticore's 53.8 s rake and the Falcon's 55.0 s rake are the ledger's own story hits.
 
 **The S6d Hound** (owner, 2026-10-23: angle its gun up to track):
-- Her dorsal turret (t2) takes Hound (P) A from −9 degrees up to +33 degrees over 72.5-73.3 s.
+- Her dorsal turret (t2) takes Hound (P) A from −9 degrees, firing the 75.0 s rake over 72.3-73.3 s.
 - She rolls over, and Hound (P) A passes under her deck. The gun holds and keeps tracking (`track()`).
-- She comes back up at +36 to +44 degrees for the kill burst at 76.9-77.2 s.
-- Then `track()` swings her gun onto Hound (P) B. At the turret's 50 degrees a second the swing (about 150 degrees) runs to the end of the shot, so she does not fire again in S6d.
+- She fires the kill burst at 74.6-75.6 s, at up to +48 degrees. The rounds take about 2 s, so they land on the 76.9 s kill.
+- The gun holds on Hound (P) A until the kill lands, then `track()` swings it onto Hound (P) B. At the turret's 50 degrees a second, the swing runs to the end of the shot, so she does not fire again in S6d.
 
 **Mounts.** `MOUNTS` is each finished build's kit turrets (pivot, rest bearing, arc), from the manifests. The turret limit is −10 to +85 degrees off the deck, and straight up past 75 degrees in any azimuth. Stand-ins use the game's weapon slots.
 
@@ -133,18 +128,22 @@ Assumptions to confirm against the kit anchors:
 
 ## What the plan contradicts or cannot satisfy
 
-`--check` lists these. Nothing is faked.
+`--check` reports every ledger gunfire hit delivered, against asharu_damage 0b7c2166d. The ledger retimed or redrew the rest to fit the guns (agreed 2026-10-23):
+- 53.8, 55.0 and 60.0 became the ledger's own story hits;
+- 61.0 moved to 61.6, 71.2 to 72.4, and 108.0 to 106.9.
 
-1. **At `scene_fx`'s 2.2 s gate, eight ledger gunfire hits are out of reach.**
-   - Three long-range S6 hits: `lasher-lead@53.8` and `@55.9` from the Manticore, and `lasher-b@55.0` from the Falcon.
-   - Five 1.1-1.3 km rakes in S6b, S6c and S6d.
-   - At 3.0 s only the three S6 hits and `hound-p-c@60.0` remain (see Range). Until the gate is settled, the ledger should not convert them.
+What the story still asks and the geometry does not give:
+
+1. **S6b: Lasher B's Feeder burst lands after Hound (P) C breaks up.**
+   - Lasher B is out of arc until about 59.8 s, and her rounds then take 2.5-3 s to cross 1.2 km. The first lands at 62.8 s; the breakup is at 61.9.
+   - The merchant Wolf's rounds land from 61.5 and deliver the kill, and Lasher B's burst lands into the breaking wreck.
+   - If the Feeder burst must be what breaks her up, the breakup has to move to about 63 s (`k3c`'s flight hits and blast_on).
 2. **S8-S9: the Colossus Mk.III cannot fire on the Colossus at all.**
    - At 64 degrees of roll the Colossus sits 13-23 degrees below her deck on her low side, past the −10 degree limit, on all twelve turrets.
    - The 89 s pod hit is the ledger's own story hit.
    - Fix: about 10-15 degrees more roll (to roughly 75-80) over 88-96 s, or sit her higher.
 3. **S6: the Phaeton cannot defend herself.** S6 uses her gunless wreck build throughout.
-4. **The Falcon (P) reads as lightly armed.** She has two kit gun turrets firing a stand-in heavy blaster, and is out of gun reach in S6. Her broadside is missiles: S6 and S9b may want `missiles` entries for her.
+4. **The Falcon (P) reads as lightly armed.** She has two kit gun turrets firing a stand-in heavy blaster, and is out of gun reach in S6. Her broadside is missiles.
 5. **Incidental fire the story does not mention.** Doctrine finds it, mostly misses, with `ledger` None:
    - the Wolves (P) on the convoy's Hound (S6);
    - the column's guns on Wolf (P) B (S6c);
@@ -158,102 +157,101 @@ Generated by `python asharu_gunnery.py --summary`: turrets grouped per ship, tar
 
 | ship | turrets | target | aim | window s | hit | rounds | intent |
 |---|---|---|---|---|---|---|---|
-| wolf-p-b | t1 | hound-m | belly | 48.9-50.0 | 16%-16% | 2 | doctrine: closest threat in arc and range |
+| manticore-p | t3 | hound-m | belly | 45.5-50.0 | 20%-20% | 3 | doctrine: closest threat in arc and range |
+| wolf-p-b | t1 | hound-m | belly | 46.5-50.0 | 19%-19% | 5 | doctrine: closest threat in arc and range |
 
 Missiles: manticore-p -> phaeton (Harpoons)
 
-Guns in reach: wolf-p-b from 48.9 s on hound-m; phaeton never (nearest wolf-p-b at 3803 m at the cut); tarsus never (nearest wolf-p-b at 3515 m at the cut); buffalo-b never (nearest wolf-p-b at 3304 m at the cut); dram never (nearest wolf-p-b at 3091 m at the cut); hound-m never (nearest wolf-p-b at 2851 m at the cut); manticore-p never (nearest hound-m at 3221 m at the cut)
+Guns in reach: manticore-p from 45.5 s on hound-m; wolf-p-b from 46.5 s on hound-m; phaeton never (nearest wolf-p-b at 3803 m at the cut); tarsus never (nearest wolf-p-b at 3515 m at the cut); buffalo-b never (nearest wolf-p-b at 3304 m at the cut); dram never (nearest wolf-p-b at 3091 m at the cut); hound-m never (nearest wolf-p-b at 2851 m at the cut)
 
 ### S6 (k3) 50-58 s: The screen breaks
 
 | ship | turrets | target | aim | window s | hit | rounds | intent |
 |---|---|---|---|---|---|---|---|
-| wolf-p-a | t1 | hound-m | belly | 48.3-54.5 | 22%-22% | 7 | doctrine: closest threat in arc and range |
-| wolf-p-b | t1 | hound-m | starboard flank | 49.4-56.6 | 18%-18% | 11 | doctrine: closest threat in arc and range |
-| manticore-p | t3 | hound-m | starboard flank | 51.5-58.0 | 17%-17% | 6 | doctrine: closest threat in arc and range |
-| hound-m | t2 | wolf-p-b | deck | 53.5-57.4 | 15%-15% | 17 | doctrine: closest threat in arc and range |
-| lasher-b | t2, t3 | wolf-p-a | belly, port flank | 53.9-58.0 | 12%-15% | 16 | story order |
-| lasher-b | t2 | wolf-p-a | bridge | 54.8-56.0 | 60%-60% | 7 | story moment: wolf-p-a@56.8:rake |
-| wolf-p-a | t2 | phaeton | engines | 55.0-56.2 | 19%-19% | 5 | doctrine: closest threat in arc and range |
-| wolf-p-a | t1 | lasher-b | starboard flank | 55.4-55.8 | 28%-28% | 1 | doctrine: answering the ship shooting at her |
-| wolf-p-b | t1 | buffalo-b | belly | 56.7-58.0 | 20%-20% | 3 | doctrine: closest threat in arc and range |
-| wolf-p-a | t1 | tarsus | belly | 56.8-58.0 | 31%-31% | 3 | doctrine: closest threat in arc and range |
-| buffalo-b | t1 | wolf-p-a | deck | 57.0-58.0 | 16%-16% | 5 | doctrine: closest threat in arc and range |
+| wolf-p-a | t1 | lasher-b | engines | 48.6-52.7 | 25%-25% | 6 | doctrine: answering the ship shooting at her |
+| wolf-p-a | t1, t2 | tarsus | belly, engines | 48.7-58.0 | 15%-32% | 10 | doctrine: closest threat in arc and range |
+| wolf-p-b | t1 | hound-m | starboard flank | 48.9-56.6 | 21%-21% | 10 | doctrine: closest threat in arc and range |
+| manticore-p | t3 | hound-m | starboard flank | 49.3-57.6 | 21%-21% | 6 | doctrine: closest threat in arc and range |
+| hound-m | t2 | wolf-p-b | deck | 50.8-57.4 | 18%-18% | 27 | doctrine: closest threat in arc and range |
+| wolf-p-a | t2 | phaeton | engines | 50.9-56.2 | 13%-22% | 15 | doctrine: closest threat in arc and range |
+| tarsus | t1, t2 | wolf-p-a | bow | 51.5-53.1 | 16%-16% | 13 | doctrine: closest threat in arc and range |
+| lasher-b | t2, t3 | wolf-p-a | belly, bow | 51.6-58.0 | 13%-17% | 23 | story order |
+| wolf-p-a | t2 | colossus | engines | 53.7-54.3 | 16%-16% | 3 | doctrine: closest threat in arc and range |
+| wolf-p-a | t1 | hound-m | belly | 54.2-54.5 | 22%-22% | 1 | doctrine: closest threat in arc and range |
+| lasher-b | t2 | wolf-p-a | bridge | 54.4-55.7 | 60%-60% | 8 | story moment: wolf-p-a@56.8:rake |
+| falcon-p | t7, t8 | hound-m | starboard flank | 56.3-58.0 | 15%-15% | 3 | doctrine: closest threat in arc and range |
+| wolf-p-a | t2 | mule | engines | 56.3-58.0 | 17%-17% | 7 | doctrine: closest threat in arc and range |
+| wolf-p-b | t1 | buffalo-b | belly | 56.9-58.0 | 21%-21% | 3 | doctrine: closest threat in arc and range |
+| buffalo-b | t1 | wolf-p-a | deck | 57.0-58.0 | 18%-18% | 5 | doctrine: closest threat in arc and range |
+| hound-m | t2 | manticore-p | port flank | 57.8-58.0 | 17%-17% | 2 | doctrine: closest threat in arc and range |
 
 Silent: lasher-a (t1, t2, t3): burning and falling back out of the fight (S6)
 
 Missiles: manticore-p -> phaeton (Harpoons)
 
-Guns in reach: wolf-p-a from 48.0 s on hound-m; wolf-p-b from 49.4 s on hound-m; manticore-p from 51.5 s on hound-m; hound-m from 53.5 s on wolf-p-b; lasher-b from 53.9 s on wolf-p-a; buffalo-b from 57.0 s on wolf-p-a; mule never (nearest wolf-p-a at 3312 m at the cut); buffalo-a never (nearest wolf-p-a at 3036 m at the cut); colossus never (nearest wolf-p-a at 2655 m at the cut); morrow never (nearest wolf-p-a at 2617 m at the cut); tarsus never (nearest wolf-p-a at 1980 m at the cut); dram never (nearest wolf-p-a at 1488 m at the cut); lasher-lead never (nearest wolf-p-a at 2649 m at the cut); lasher-a never (nearest wolf-p-a at 2574 m at the cut); falcon-p never (nearest hound-m at 2680 m at the cut); buffalo2-a never (nearest hound-m at 3381 m at the cut)
-
-Cannot deliver: lasher-b@55.0:rake (falcon-p t7 nearest: heavyblaster at 2838 m: round flight 4.7 s, past the execution gate (1320 m)); lasher-lead@53.8:rake (manticore-p t3 nearest: lightneedler at 3691 m: round flight 4.1 s, past the execution gate (1980 m)); lasher-lead@55.9:breach (manticore-p t3 nearest: lightneedler at 3199 m: round flight 3.6 s, past the execution gate (1980 m))
+Guns in reach: manticore-p from 48.0 s on hound-m; wolf-p-a from 48.0 s on hound-m; wolf-p-b from 48.0 s on hound-m; hound-m from 50.9 s on wolf-p-b; tarsus from 51.7 s on wolf-p-a; lasher-b from 51.8 s on wolf-p-a; falcon-p from 56.3 s on hound-m; buffalo-b from 57.0 s on wolf-p-a; morrow from 57.9 s on wolf-p-b; mule never (nearest wolf-p-a at 3312 m at the cut); buffalo-a never (nearest wolf-p-a at 3036 m at the cut); colossus never (nearest wolf-p-a at 2655 m at the cut); dram never (nearest wolf-p-a at 1488 m at the cut); lasher-lead never (nearest wolf-p-a at 2649 m at the cut); lasher-a never (nearest wolf-p-a at 2574 m at the cut); buffalo2-a never (nearest hound-m at 3381 m at the cut)
 
 ### S6b (k3c) 58-66 s: The escorts answer
 
 | ship | turrets | target | aim | window s | hit | rounds | intent |
 |---|---|---|---|---|---|---|---|
-| wolf-m | t1, t2, t3 | hound-p-c | centre | 60.3-62.0 | 60%-60% | 10 | story moment: hound-p-c@61.9:kill |
-| hound-p-c | t2 | lasher-b | deck | 61.0-61.9 | 18%-18% | 6 | story order |
-| lasher-b | t1, t2, t3 | hound-p-c | centre | 61.0-61.4 | 60%-60% | 9 | story moment: hound-p-c@61.9:kill |
-| lasher-b | t1, t2, t3 | hound-p-c | deck | 61.4-62.4 | 14%-14% | 15 | story order |
-| wolf-m | t2, t3 | hound-p-c | deck | 61.4-62.4 | 13%-14% | 8 | story order |
-| manticore-p | t3 | lasher-b | starboard flank | 62.7-66.0 | 16%-16% | 3 | doctrine: closest threat in arc and range |
-| wolf-m | t1 | manticore-p | port flank | 64.5-66.0 | 9%-9% | 2 | doctrine: closest threat in arc and range |
+| manticore-p | t3 | wolf-m | deck | 57.5-66.0 | 16%-16% | 6 | doctrine: closest threat in arc and range |
+| wolf-m | t1, t2 | hound-p-c | centre, starboard flank | 58.6-62.0 | 60%-60% | 8 | story moment: hound-p-c@61.6:rake, hound-p-c@61.9:kill |
+| wolf-m | t2, t3 | hound-p-c | deck | 59.2-62.4 | 10%-15% | 17 | story order |
+| lasher-b | t1, t2, t3 | hound-p-c | deck | 59.8-62.4 | 12%-12% | 38 | story order |
+| hound-p-c | t2 | lasher-b | deck | 59.9-61.9 | 19%-19% | 10 | story order |
+| wolf-m | t1, t2 | manticore-p | port flank | 63.8-66.0 | 8%-17% | 7 | doctrine: closest threat in arc and range |
 
 Silent: hound-p-c (t1, t2): destroyed
 
-Guns in reach: wolf-m from 60.3 s on hound-p-c; hound-p-c from 60.8 s on wolf-m; lasher-b from 61.0 s on hound-p-c; manticore-p from 62.8 s on lasher-b; buffalo2-a never (nearest wolf-m at 4040 m at the cut)
-
-Cannot deliver: hound-p-c@60.0:rake (lasher-b t2 nearest: lightmg at 1295 m: round flight 2.9 s, past the execution gate (990 m)); hound-p-c@61.0:rake (wolf-m t2 nearest: out of range (1261 m > 990))
+Guns in reach: manticore-p from 56.0 s on wolf-m; wolf-m from 58.6 s on hound-p-c; lasher-b from 59.9 s on hound-p-c; hound-p-c from 59.9 s on wolf-m; buffalo2-a never (nearest wolf-m at 4040 m at the cut)
 
 ### S6c (k3d) 66-74 s: The column is cut
 
 | ship | turrets | target | aim | window s | hit | rounds | intent |
 |---|---|---|---|---|---|---|---|
-| wolf-p-a | t1 | buffalo-b | starboard flank | 64.7-65.8 | 18%-18% | 2 | doctrine: closest threat in arc and range |
-| wolf-m | t1, t3 | wolf-p-a | deck, port flank | 64.8-74.0 | 26%-33% | 38 | story order |
-| wolf-p-b | t1 | buffalo-b | starboard flank | 65.1-65.5 | 18%-18% | 1 | doctrine: closest threat in arc and range |
-| wolf-p-b | t1 | tarsus | drives | 65.8-74.0 | 22%-31% | 7 | story order |
-| wolf-p-a | t1 | tarsus | drives, engines | 65.8-70.3 | 60%-60% | 5 | story moment: tarsus@68.0:rake, tarsus@70.5:breach |
-| wolf-p-b | t2 | morrow | starboard flank | 66.4-68.5 | 14%-14% | 5 | doctrine: closest threat in arc and range |
-| buffalo-b | t1 | wolf-p-a | deck | 66.5-74.0 | 17%-17% | 27 | doctrine: closest threat in arc and range |
-| wolf-p-a | t1 | tarsus | drives | 66.9-72.3 | 25%-26% | 6 | story order |
-| morrow | t1 | wolf-p-b | bow | 67.2-70.6 | 20%-20% | 13 | doctrine: closest threat in arc and range |
-| wolf-p-b | t1 | tarsus | drives | 67.8-69.0 | 60%-60% | 3 | story moment: tarsus@69.6:he, tarsus@70.5:breach |
-| colossus | t1, t2, t3, t4 | wolf-p-b | bow, engines | 67.9-74.0 | 17%-22% | 41 | doctrine: closest threat in arc and range |
-| tarsus | t2, t3, t4 | wolf-p-b | deck | 68.4-74.0 | 14%-17% | 48 | story order |
-| wolf-p-b | t2 | colossus | starboard flank | 68.5-69.2 | 17%-17% | 3 | doctrine: closest threat in arc and range |
-| wolf-m | t1, t3 | wolf-p-a | port flank | 70.2-71.6 | 60%-60% | 10 | story moment: wolf-p-a@71.6:he |
-| mule | t1, t2, t3 | wolf-p-b | belly | 70.5-73.9 | 13%-13% | 29 | story order |
+| wolf-p-a | t1 | tarsus | drives | 64.7-72.3 | 23%-30% | 6 | story order |
+| wolf-m | t1, t3 | wolf-p-a | deck, port flank | 64.8-74.0 | 27%-34% | 40 | story order |
+| wolf-p-a | t2 | morrow | starboard flank | 64.8-66.9 | 13%-13% | 7 | doctrine: closest threat in arc and range |
+| wolf-p-b | t1 | tarsus | drives | 64.9-74.0 | 26%-33% | 9 | story order |
+| wolf-p-a | t1 | tarsus | drives, engines | 65.3-70.2 | 60%-60% | 5 | story moment: tarsus@68.0:rake, tarsus@70.5:breach |
+| morrow | t1 | wolf-p-b | bow | 65.5-70.6 | 22%-22% | 15 | doctrine: closest threat in arc and range |
+| buffalo-b | t1 | wolf-p-b | deck | 65.6-74.0 | 18%-18% | 33 | doctrine: closest threat in arc and range |
+| colossus | t1, t2, t3, t4 | wolf-p-b | bow, engines | 66.3-74.0 | 21%-23% | 50 | doctrine: closest threat in arc and range |
+| wolf-p-b | t2 | morrow | starboard flank | 66.4-68.5 | 17%-17% | 5 | doctrine: closest threat in arc and range |
+| tarsus | t2, t3, t4 | wolf-p-b | deck | 66.5-74.0 | 17%-19% | 66 | story order |
+| wolf-p-a | t2 | colossus | starboard flank | 66.9-67.7 | 16%-16% | 4 | doctrine: closest threat in arc and range |
+| wolf-p-b | t1 | tarsus | drives | 67.6-69.2 | 60%-60% | 3 | story moment: tarsus@69.6:he, tarsus@70.5:breach |
+| wolf-p-b | t2 | colossus | starboard flank | 68.5-69.2 | 19%-19% | 3 | doctrine: closest threat in arc and range |
+| mule | t2, t3 | wolf-p-b | starboard flank | 69.2-70.7 | 60%-60% | 18 | story moment: wolf-p-b@72.4:rake |
+| wolf-m | t1, t3 | wolf-p-a | port flank | 70.6-71.6 | 60%-60% | 7 | story moment: wolf-p-a@71.6:he |
+| mule | t1, t2, t3 | wolf-p-b | belly | 71.6-74.0 | 17%-17% | 25 | story order |
 
-Silent: tarsus (t1, t2): her aft deck burning over the shot-out drives; wolf-p-a (t1): displacer blink; wolf-p-b (t1): displacer blink
+Silent: tarsus (t1, t2): her aft deck burning over the shot-out drives; wolf-p-a (t1, t2): displacer blink; wolf-p-b (t1): displacer blink
 
-Guns in reach: wolf-p-a from 64.0 s on buffalo-b; wolf-p-b from 64.0 s on buffalo-b; wolf-m from 64.0 s on wolf-p-a; buffalo-b from 66.5 s on wolf-p-a; morrow from 67.3 s on wolf-p-b; colossus from 68.0 s on wolf-p-b; tarsus from 68.4 s on wolf-p-b; mule from 70.6 s on wolf-p-b
-
-Cannot deliver: wolf-p-b@71.2:rake (mule t2 nearest: out of range (1255 m > 990))
+Guns in reach: wolf-p-a from 64.0 s on buffalo-b; wolf-p-b from 64.0 s on buffalo-b; wolf-m from 64.0 s on wolf-p-a; buffalo-b from 64.5 s on wolf-p-b; morrow from 65.7 s on wolf-p-b; colossus from 66.4 s on wolf-p-b; tarsus from 66.5 s on wolf-p-b; mule from 69.2 s on wolf-p-b
 
 ### S6d (k3e) 74-80 s: The rear guard
 
 | ship | turrets | target | aim | window s | hit | rounds | intent |
 |---|---|---|---|---|---|---|---|
-| hound-m | t2 | hound-p-a | bridge, centre | 72.8-77.2 | 60%-60% | 7 | story moment: hound-p-a@75.0:rake, hound-p-a@76.9:kill |
-| hound-p-a | t1, t2 | hound-m | deck, starboard flank | 74.8-76.2 | 14%-15% | 8 | story order |
-| hound-p-b | t2 | hound-m | belly | 75.0-80.0 | 19%-19% | 21 | story order |
+| hound-p-b | t2 | hound-m | deck, port flank | 72.1-73.4 | 60%-60% | 10 | story moment: hound-m@75.2:rake, hound-m@75.5:breach |
+| hound-m | t2 | hound-p-a | bridge, centre | 72.3-75.6 | 60%-60% | 16 | story moment: hound-p-a@75.0:rake, hound-p-a@76.9:kill |
+| hound-p-b | t2 | hound-m | belly | 73.4-80.0 | 20%-20% | 26 | story order |
+| hound-p-a | t1, t2 | hound-m | belly, deck | 74.8-76.2 | 17%-17% | 10 | story order |
 
 Silent: hound-p-a (t1, t2): destroyed
 
-Guns in reach: hound-m from 72.8 s on hound-p-a; hound-p-a from 72.9 s on hound-m; hound-p-b from 75.0 s on hound-m
-
-Cannot deliver: hound-m@75.2:rake (hound-p-b t2 nearest: out of range (1179 m > 990)); hound-m@75.5:breach (hound-p-b t2 nearest: out of range (1144 m > 990))
+Guns in reach: hound-m from 72.0 s on hound-p-a; hound-p-a from 72.0 s on hound-m; hound-p-b from 72.0 s on hound-m
 
 ### S7 (k3b) 80-88 s: Boarding the Tarsus
 
 | ship | turrets | target | aim | window s | hit | rounds | intent |
 |---|---|---|---|---|---|---|---|
 | tarsus | t3 | kite-p-a | starboard flank | 78.3-80.6 | 27%-27% | 11 | doctrine: closest threat in arc and range |
-| wolf-p-b | t1 | tarsus | forward guns | 79.1-86.4 | 25%-25% | 9 | story order |
-| tarsus | t3 | wolf-p-b | starboard flank | 82.7-84.4 | 17%-17% | 5 | story order |
-| wolf-p-b | t1 | tarsus | bridge | 82.7-83.9 | 60%-60% | 3 | story moment: tarsus@84.0:rake |
+| wolf-p-b | t1 | tarsus | forward guns | 79.1-86.4 | 27%-28% | 9 | story order |
+| tarsus | t3 | wolf-p-b | starboard flank | 82.7-84.4 | 20%-20% | 5 | story order |
+| wolf-p-b | t1 | tarsus | bridge | 82.8-83.8 | 60%-60% | 2 | story moment: tarsus@84.0:rake |
 
 Silent: tarsus (t1, t2): her aft deck burning over the shot-out drives; tarsus (t3, t4): silenced by the Wolf (P)'s covering run before the boats land
 
@@ -263,29 +261,29 @@ Guns in reach: tarsus from 78.0 s on kite-p-a; kite-p-b from 78.0 s on tarsus; w
 
 | ship | turrets | target | aim | window s | hit | rounds | intent |
 |---|---|---|---|---|---|---|---|
-| colossus | t1, t2 | kite-p-b | bow | 89.8-94.8 | 19%-19% | 36 | story order |
-| kite-p-b | t3 | colossus | port flank | 90.1-95.6 | 24%-24% | 27 | story order |
-| colossus | t2 | wolf-p-a | starboard flank | 94.7-95.9 | 60%-60% | 7 | story moment: wolf-p-a@95.8:he |
-| colossus | t1 | colossus3 | port flank | 94.8-95.8 | 60%-60% | 6 | story moment: colossus3@96.0:rake |
-| morrow | t1 | kite-p-b | engines | 95.6-100.2 | 18%-18% | 16 | doctrine: closest threat in arc and range |
-| colossus | t1 | kite-p-b | starboard flank | 95.8-96.0 | 60%-60% | 2 | story moment: kite-p-b@96.5:he |
+| wolf-p-a | t1 | colossus | port flank | 86.8-89.0 | 24%-24% | 3 | story order |
+| colossus | t1, t2 | kite-p-b | bow | 87.2-95.2 | 19%-19% | 56 | story order |
+| kite-p-b | t3 | colossus | port flank | 87.6-95.6 | 26%-26% | 36 | story order |
+| colossus | t2 | wolf-p-a | starboard flank | 94.5-95.9 | 60%-60% | 8 | story moment: wolf-p-a@95.8:he |
+| colossus | t1 | colossus3 | port flank | 95.2-95.9 | 60%-60% | 4 | story moment: colossus3@96.0:rake |
+| morrow | t1 | kite-p-b | engines | 95.6-102.0 | 18%-18% | 21 | doctrine: closest threat in arc and range |
+| colossus | t1 | kite-p-b | starboard flank | 95.9-96.0 | 60%-60% | 1 | story moment: kite-p-b@96.5:he |
 | colossus | t2 | wolf-p-a | port flank | 95.9-96.5 | 12%-12% | 3 | story order |
 | colossus3 | t3, t4, t5, t7, t9 | borer-c | deck | 96.6-97.7 | 5%-5% | 20 | point defence |
-| colossus | t1, t2 | colossus3 | starboard flank | 97.5-102.0 | 36%-37% | 34 | story order |
-| colossus3 | t10, t11, t12, t3, t7, t8, t9 | borer-d | deck | 97.7-100.1 | 5%-5% | 45 | point defence |
+| colossus | t1, t2 | colossus3 | starboard flank | 97.5-102.0 | 37%-38% | 34 | story order |
+| colossus3 | t1, t10, t11, t12, t3, t7, t8, t9 | borer-d | deck | 97.7-101.1 | 5%-5% | 51 | point defence |
 | wolf-p-a | t1 | borer-c | deck | 99.2-100.3 | 5%-5% | 2 | point defence |
-| colossus3 | t9 | colossus | port pod | 101.5-102.0 | 36%-36% | 2 | story order |
 
-Guns in reach: wolf-p-a from 88.9 s on colossus; kite-p-b from 89.7 s on borer-a; colossus from 89.9 s on kite-p-b; colossus3 from 91.9 s on colossus; morrow from 95.6 s on kite-p-b
+Guns in reach: wolf-p-a from 86.0 s on borer-d; kite-p-b from 87.2 s on borer-a; colossus from 87.4 s on kite-p-b; colossus3 from 91.9 s on colossus; morrow from 95.6 s on kite-p-b
 
 ### S9b (k4b) 102-110 s: The lead's last run
 
 | ship | turrets | target | aim | window s | hit | rounds | intent |
 |---|---|---|---|---|---|---|---|
-| falcon-p | t7, t8 | lasher-lead | bridge, engines | 101.8-107.1 | 60%-60% | 5 | story moment: lasher-lead@103.5:breach, lasher-lead@107.6:breach, lasher-lead@108.0:rake |
-| lasher-lead | t1, t2, t3 | falcon-p | starboard flank | 102.1-107.2 | 21%-26% | 53 | story order |
-| falcon-p | t7 | lasher-lead | starboard flank | 103.1-106.3 | 18%-18% | 3 | story order |
-| lasher-lead | t1, t2, t3 | falcon-p | bridge, starboard flank | 103.4-104.8 | 60%-60% | 17 | story moment: falcon-p@104.8:rake, falcon-p@105.0:breach |
+| falcon-p | t7, t8 | lasher-lead | bridge, deck, engines | 101.6-107.1 | 60%-60% | 6 | story moment: lasher-lead@103.5:breach, lasher-lead@106.9:rake, lasher-lead@107.6:breach |
+| lasher-lead | t1, t2, t3 | falcon-p | starboard flank | 102.1-107.2 | 22%-30% | 44 | story order |
+| falcon-p | t7 | lasher-lead | starboard flank | 102.8-106.3 | 20%-20% | 3 | story order |
+| lasher-lead | t1, t2, t3 | falcon-p | bridge, starboard flank | 103.0-104.7 | 60%-60% | 23 | story moment: falcon-p@104.8:rake, falcon-p@105.0:breach |
 
 Silent: lasher-lead (t1, t2, t3): tumbling away burning after the broadside (S9b)
 
