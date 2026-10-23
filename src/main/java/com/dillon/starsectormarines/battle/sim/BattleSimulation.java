@@ -49,6 +49,7 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.battle.infantry.SmokeTactics;
 
 import com.dillon.starsectormarines.battle.appearance.FacingSystem;
+import com.dillon.starsectormarines.battle.appearance.HeldSpecialPose;
 import com.dillon.starsectormarines.battle.appearance.SystemFxSystem;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.battery.FortressBattery;
@@ -3898,7 +3899,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         mechTurretSystem.tick(TICK_DT, directControl.controlledMechId(), directControl.pointAim());
         directControl.validate();
         facingSystem.tick(directControl.activeUnitId(), directControl.intent().aimX(),
-                directControl.intent().aimY(), directControl.sprintStatus().sprinting());
+                directControl.intent().aimY(), directControl.sprintStatus().sprinting(),
+                directControl.leftSpecial() == null ? null : new HeldSpecialPose(
+                        directControl.marineLeft().readiness(), directControl.marineLeft().sinceFired()));
         ravRunnerRigSystem.tick(TICK_DT);
         // Authors what a running integral system looks like, from the same
         // settled state and for the same reason: a treatment written here is
@@ -4195,7 +4198,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return heavy.fireMountAtPoint(shooter, mount, aim);
     }
 
-    /** Fires a carried launcher at a world point: a wall a company has been ordered to open. */
+    /**
+     * Fires a carried direct-fire special at a world point: a wall a company has been ordered to open, or a
+     * controlled Marine's left button on its launcher or rifle.
+     */
+    @Override
     public boolean fireSecondaryAtPoint(long shooter, float x, float y) {
         return infantry.fireSecondaryAtPoint(shooter, x, y);
     }

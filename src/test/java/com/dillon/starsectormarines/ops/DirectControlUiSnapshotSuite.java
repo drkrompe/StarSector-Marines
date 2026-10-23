@@ -549,7 +549,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
     }
 
     /** {@code world}, when given, paints the battlefield over the backdrop and under the HUD. */
-    private static BufferedImage activeComposite(HeadlessUiRenderer renderer, Path modRoot,
+    static BufferedImage activeComposite(HeadlessUiRenderer renderer, Path modRoot,
                                                   int width, int height, float uiScale,
                                                   BattleDirectControlStatus.Snapshot snapshot,
                                                   UiDocument doll,
