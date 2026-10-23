@@ -170,6 +170,19 @@ class BattleDirectControlStatusTest {
     }
 
     @Test
+    void anArcingVehicleLauncherIsHandFireableAndReadsTooCloseInsideItsMinimum() {
+        var mount = VehicleType.LRM_CARRIER.turretStructure().mount;
+        GroundTurret turret = new GroundTurret(mount.ammoCapacity);
+        assertTrue(BattleDirectControlStatus.vehicleWeapon(turret, mount).directEligible());
+        assertEquals(BattleDirectControlStatus.WeaponState.LOADED,
+                BattleDirectControlStatus.vehicleWeapon(turret, mount).state());
+        var near = BattleDirectControlStatus.vehicleWeapon(turret, mount, 4f);
+        assertTrue(near.tooClose());
+        assertEquals(BattleDirectControlStatus.WeaponState.TOO_CLOSE, near.state());
+        assertFalse(BattleDirectControlStatus.vehicleWeapon(turret, mount, 20f).tooClose());
+    }
+
+    @Test
     void shieldReportsTheLivePoolAndBreakFactWithoutCallingRemainingBoostProtection() {
         var roster = roster();
         IntegralSystemDef def = shield(SpecialResourceMode.COOLDOWN, 40f);

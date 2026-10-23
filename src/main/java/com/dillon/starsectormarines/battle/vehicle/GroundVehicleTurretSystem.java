@@ -86,11 +86,9 @@ public final class GroundVehicleTurretSystem {
             }
             GroundBody body = convoy.body(id);
             StructureDef structure = type.turretStructure();
-            float radians = (float) Math.toRadians(body.facingDegrees);
-            float cos = (float) Math.cos(radians);
-            float sin = (float) Math.sin(radians);
-            float mountX = body.x + type.turretMountX * cos - type.turretMountY * sin;
-            float mountY = body.y + type.turretMountX * sin + type.turretMountY * cos;
+            TurretMountGeometry.Point mount = mountPoint(type, body);
+            float mountX = mount.x();
+            float mountY = mount.y();
             dissipate(turret, structure.mount, dt);
             if (turret.overloaded && turret.burstRemaining > 0) turret.clearQueuedFire();
             if (id == controlledId) {
@@ -100,6 +98,18 @@ public final class GroundVehicleTurretSystem {
                 tickAutonomous(id, turret, body, structure, mountX, mountY, dt);
             }
         }
+    }
+
+    /**
+     * Where a hull's turret ring stands in the world: the type's mount offset turned by the hull's heading. A
+     * player's point fire is measured from here, so the HUD's minimum-range reading reads the same point.
+     */
+    public static TurretMountGeometry.Point mountPoint(VehicleType type, GroundBody body) {
+        float radians = (float) Math.toRadians(body.facingDegrees);
+        float cos = (float) Math.cos(radians);
+        float sin = (float) Math.sin(radians);
+        return new TurretMountGeometry.Point(body.x + type.turretMountX * cos - type.turretMountY * sin,
+                body.y + type.turretMountX * sin + type.turretMountY * cos);
     }
 
     private void tickManual(long id, GroundTurret turret, GroundBody body, StructureDef structure,
