@@ -343,6 +343,13 @@ public final class FabricationService {
         if (works != null) works.frameId = frameId;
     }
 
+    /** Whether {@code id} is a body still being built on some bay's stocks. */
+    public boolean onStocks(long id) {
+        if (id == 0L) return false;
+        for (Works works : bays.values()) if (works.frameId == id) return true;
+        return false;
+    }
+
     /** Forget a body that is no longer standing there, however it went. */
     public void clearStocks(int siteId) {
         Works works = bays.get(siteId);
