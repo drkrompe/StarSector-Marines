@@ -1,7 +1,10 @@
 """The arrival's sound mix as data: every level in one file, applied to the timelines, and heard
 without the game.
 
-`arrival-audio/arrival-mix.json` holds every cue's level for every shot plus the music cues.
+`arrival-audio/arrival-mix.json` holds every cue's level for every shot plus the music cues. A
+shot's cues are its composer's (the voices and squelches) and the cue sheet's effects, which
+`arrival-audio/build_arrival_stems.py` renders one clip per layer and lists in arrival-stems.json;
+each clip's starting gain_db there is the sheet's level, and it plays as a one-shot.
 `cinematic_export.py` applies it whenever it writes a timeline, so a level change is an edit there
 and `cinematic_export.py --timeline-only` (no frames, no encode), and `--preview` mixes the shipped
 timelines the way the player plays them onto the shipped video to hear it.
@@ -35,6 +38,7 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 MIX = HERE / "arrival-audio" / "arrival-mix.json"
+STEMS = HERE / "arrival-audio" / "arrival-stems.json"   # the cue sheet's effects (build_arrival_stems.py)
 MOD = ROOT / "mod"
 SOUNDS = MOD / "data" / "config" / "sounds.json"
 TIMELINE_DIR = MOD / "data" / "cinematic" / "jangala-arrival"
@@ -71,10 +75,17 @@ def _levels(cue, entry):
         cue["duck"] = db_volume(entry["duck_db"])
 
 
+def stems(shot_id):
+    """The cue sheet's effects in this shot: one-shot clips at their sheet times and levels."""
+    rows = json.loads(STEMS.read_text(encoding="utf-8"))["stems"]
+    return [{"t": r["t"], "sound": r["sound"], "volume": db_volume(r["gain_db"])} for r in rows if r["shot"] == shot_id]
+
+
 def apply(shot_id, cues, shot_ids, duration_of, mix=None):
-    """The shot's cues with the mix's levels on them, plus the music cues that start in it.
-    Returns (cues, problems)."""
+    """The shot's cues (the composer's voices and the cue sheet's effects) with the mix's levels on
+    them, plus the music cues that start in it. Returns (cues, problems)."""
     mix = mix or load()
+    cues = list(cues) + stems(shot_id)
     levels = mix.get("shots", {}).get(shot_id, {})
     problems, out = [], []
     keys = set()

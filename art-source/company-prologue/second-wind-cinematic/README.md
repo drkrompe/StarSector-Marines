@@ -43,8 +43,11 @@ strings, sounds).
    `python art-source/company-prologue/second-wind-cinematic/cinematic_export.py --timeline-only --preview`
    (`--shot c5` for one shot) rewrites the timelines and writes
    `build/cinematic/preview/arrival.mp4` to hear it, in seconds and without re-encoding video.
-   C4 and C5's effects are still a stand-in from the sounds already shipped; `sfx-cues.md`'s
-   C4-C5 design is not yet in `audio.json` / `sounds.json`.
+   Every effect on `sfx-cues.md` is in the game: `arrival-audio/build_arrival_stems.py` renders
+   each layer of `sfx_mix.SHOTS` (chosen take or synth stem, offset, filter, loop, fades and dB
+   envelope) to one clip, `jangala_sfx_<shot>_<layer>`, played as a one-shot at the sheet's time
+   with the sheet's level as its starting `gain_db`. Re-run it, then `processAudio` and
+   `--timeline-only`, after changing the sheet itself.
 2. An in-game play-through of the packaged cut (`runStarsector`).
 
 **Packaging.** All six finals are in the game (2026-10-22). `cinematic_export.py --from-drive`

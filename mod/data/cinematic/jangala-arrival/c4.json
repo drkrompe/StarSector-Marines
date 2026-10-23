@@ -18,16 +18,23 @@
  "cues": [
   {
    "t": 0.0,
-   "sound": "jangala_arrival_cabin_bed",
-   "volume": 0.2985,
-   "until": 1.0,
-   "fade_in": 0.0,
-   "fade_out": 0.9
+   "sound": "jangala_sfx_c4_c3_cabin_flight_bed",
+   "volume": 0.0427
   },
   {
    "t": 0.0,
-   "sound": "jangala_arrival_wind",
-   "volume": 0.5495
+   "sound": "jangala_sfx_c4_ground_distant",
+   "volume": 0.0596
+  },
+  {
+   "t": 0.0,
+   "sound": "jangala_sfx_c4_high_wind_bed",
+   "volume": 0.2344
+  },
+  {
+   "t": 0.054,
+   "sound": "jangala_sfx_c4_second_wind_c4_drive",
+   "volume": 0.0513
   },
   {
    "t": 1.0,
@@ -35,17 +42,59 @@
    "volume": 1.0
   },
   {
-   "t": 10.5,
-   "sound": "jangala_arrival_wind",
-   "volume": 0.3508
+   "t": 1.007,
+   "sound": "jangala_sfx_c4_freeway",
+   "volume": 0.1274
   },
   {
-   "t": 17.4,
-   "sound": "c5_yard_jungle_bed",
-   "volume": 0.3981,
-   "until": 21.4,
-   "fade_in": 2.0,
-   "fade_out": 0.0
+   "t": 3.659,
+   "sound": "jangala_sfx_c4_port_heavy",
+   "volume": 0.3936
+  },
+  {
+   "t": 5.037,
+   "sound": "jangala_sfx_c4_port_ambience",
+   "volume": 0.1059
+  },
+  {
+   "t": 9.993,
+   "sound": "jangala_sfx_c4_second_wind_c4_lift",
+   "volume": 0.0933
+  },
+  {
+   "t": 10.25,
+   "sound": "jangala_sfx_c4_landing_grit",
+   "volume": 0.1349
+  },
+  {
+   "t": 16.39,
+   "sound": "jangala_sfx_c4_landing_thump",
+   "volume": 1.0
+  },
+  {
+   "t": 16.59,
+   "sound": "jangala_sfx_c4_landing_spool",
+   "volume": 0.4074
+  },
+  {
+   "t": 16.924,
+   "sound": "jangala_sfx_c4_landing_settle",
+   "volume": 0.1109
+  },
+  {
+   "t": 17.426,
+   "sound": "jangala_sfx_c4_c5_yard_bed",
+   "volume": 0.0902
+  },
+  {
+   "t": 19.94,
+   "sound": "jangala_sfx_c4_c5_vehicles_arrive",
+   "volume": 0.1462
+  },
+  {
+   "t": 20.905,
+   "sound": "jangala_sfx_c4_c5_vehicles_arrive_2",
+   "volume": 0.1303
   }
  ],
  "speakers": {

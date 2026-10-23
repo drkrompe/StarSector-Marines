@@ -20,7 +20,7 @@ import math
 
 import bmesh
 import bpy
-from mathutils import Vector
+from mathutils import Matrix, Vector
 
 PREFIX = 'SWFX entry'
 HOT = (1.0, .82, .55)          # orange-white: the shock's core
@@ -344,10 +344,15 @@ def trail(name, pts, coll, width_m=1500.0, glow=1.0, sparks=0, seed=0, ion=True,
 # point meets the airflow, a shock layer standing off the windward side, and flames peeling off the
 # hull's silhouette as the air sees it (Lindner's edge extrusion) into one wake. See asharu-effects.md,
 # "Atmospheric entry".
+#
+# Coordinator on the first close still (2026-10-22): it read as "white foam, cotton or snow, and
+# cream-coloured noodles". Plasma is self-lit: every layer here is emission over full transparency
+# (additive, no surface response, so the hull and the planet show through), coloured by blackbody
+# temperature, and only the wake's far end is smoke, a sun-lit grey volume.
 
 def hull_soup(instancer, skip=('SWFX',)):
-    """The world-space polygons of everything a collection-instance empty draws: (verts, faces).
-    Hidden objects and kit objects are left out."""
+    """The world-space polygons of everything a collection-instance empty draws: (verts, faces), read
+    from whichever view layer draws it. Hidden objects and kit objects are left out."""
     for vl in bpy.context.scene.view_layers:
         vl.update()
         verts, faces = _soup(vl.depsgraph, instancer, skip)
@@ -423,13 +428,13 @@ def _skin(name, verts, faces, voxel_m):
     return bm
 
 
-def _shell(name, skin, wind, length, coll, mat, base, windward, power, rough, seed):
+def _shell(name, skin, hot, length, coll, mat, base, windward, power, rough, seed):
     """A shell offset from the skin along its normals: base everywhere, plus windward times the point's
-    windward share (to that power), roughened by noise; all in fractions of the hull's length. Carries
-    entry_wind (that share, 0 to 1) for its material."""
+    share of the heat (how squarely it faces hot, to that power), roughened by noise; all in fractions
+    of the hull's length. Carries entry_wind (that share, 0 to 1) for its material."""
     from mathutils import noise
     bm = skin.copy()
-    into = -Vector(wind)
+    into = Vector(hot).normalized()
     wl = bm.verts.layers.float.new('entry_wind')
     off = Vector((seed * 13.1, seed * 7.7, seed * 3.3))
     moves = []
@@ -453,130 +458,264 @@ def _shell(name, skin, wind, length, coll, mat, base, windward, power, rough, se
     return o
 
 
-def _sheath_material(name, strength, cell_m):
-    """The sheath on the hull: colour and glow from entry_wind (dull red at the flanks through orange
-    to white on the faces square to the airflow), transparent on the lee, mottled by noise."""
-    name = '%s %.2f %.1f' % (name, strength, cell_m)
-    mat = bpy.data.materials.get(name)
-    if mat:
-        return mat
+def _new_material(name):
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
     nt = mat.node_tree
     nt.nodes.remove(nt.nodes['Principled BSDF'])
-    at = nt.nodes.new('ShaderNodeAttribute')
-    at.attribute_name = 'entry_wind'
-    w = at.outputs['Fac']
-    col = _ramp(nt, [(0, (.55, .1, .04)), (.25, PLASMA), (.55, (1.0, .78, .42)), (.8, (1.0, .94, .84)),
-                     (1, (1, 1, 1))], w)
+    return mat, nt
+
+
+def _blackbody(nt, heat, cold=1300.0, hot=6500.0):
+    """A blackbody colour for heat 0..1: deep red at cold kelvin, white-yellow at hot."""
+    bb = nt.nodes.new('ShaderNodeBlackbody')
+    nt.links.new(_math(nt, 'ADD', cold, _math(nt, 'MULTIPLY', heat, hot - cold)), bb.inputs['Temperature'])
+    return bb.outputs['Color']
+
+
+def _additive(nt, colour, strength):
+    """Emission added over full transparency: light, and nothing else."""
+    em = nt.nodes.new('ShaderNodeEmission')
+    nt.links.new(colour, em.inputs['Color'])
+    if isinstance(strength, (int, float)):
+        em.inputs['Strength'].default_value = strength
+    else:
+        nt.links.new(strength, em.inputs['Strength'])
+    clear = nt.nodes.new('ShaderNodeBsdfTransparent')
+    add = nt.nodes.new('ShaderNodeAddShader')
+    nt.links.new(clear.outputs[0], add.inputs[0])
+    nt.links.new(em.outputs[0], add.inputs[1])
+    nt.links.new(add.outputs[0], nt.nodes['Material Output'].inputs['Surface'])
+
+
+def _noise(nt, cell_m, detail=5.0, coords='Object'):
     tc = nt.nodes.new('ShaderNodeTexCoord')
     sc = nt.nodes.new('ShaderNodeVectorMath')
     sc.operation = 'SCALE'
     sc.inputs['Scale'].default_value = 1.0 / cell_m
-    nt.links.new(tc.outputs['Object'], sc.inputs[0])
+    nt.links.new(tc.outputs[coords], sc.inputs[0])
     nz = nt.nodes.new('ShaderNodeTexNoise')
-    nz.inputs['Detail'].default_value = 5.0
+    nz.inputs['Detail'].default_value = detail
+    nz.inputs['Roughness'].default_value = .6
     nt.links.new(sc.outputs['Vector'], nz.inputs['Vector'])
-    mottle = _math(nt, 'ADD', .45, _math(nt, 'MULTIPLY', nz.outputs['Fac'], 1.1))
-    op = _ramp(nt, [(0, (0, 0, 0)), (.06, (.25, .25, .25)), (.3, (.85, .85, .85)), (1, (1, 1, 1))], w)
-    fac = _math(nt, 'MINIMUM', _math(nt, 'MULTIPLY', op.outputs['Color'], mottle), 1.0)
-    em = nt.nodes.new('ShaderNodeEmission')
-    nt.links.new(col.outputs['Color'], em.inputs['Color'])
-    nt.links.new(_math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', _math(nt, 'POWER', w, 1.4), mottle), strength),
-                 em.inputs['Strength'])
-    clear = nt.nodes.new('ShaderNodeBsdfTransparent')
-    mix = nt.nodes.new('ShaderNodeMixShader')
-    nt.links.new(fac, mix.inputs['Fac'])
-    nt.links.new(clear.outputs[0], mix.inputs[1])
-    nt.links.new(em.outputs[0], mix.inputs[2])
-    nt.links.new(mix.outputs[0], nt.nodes['Material Output'].inputs['Surface'])
+    return nz.outputs['Fac'], tc
+
+
+def _sheath_material(name, strength, cell_m):
+    """The sheath on the hull, self-lit: by entry_wind, deep red at the flanks through orange to white
+    on the faces square to the airflow (hot enough there to clip), nothing on the lee; mottled."""
+    name = '%s %.2f %.1f' % (name, strength, cell_m)
+    mat = bpy.data.materials.get(name)
+    if mat:
+        return mat
+    mat, nt = _new_material(name)
+    at = nt.nodes.new('ShaderNodeAttribute')
+    at.attribute_name = 'entry_wind'
+    w = at.outputs['Fac']
+    nz, _ = _noise(nt, cell_m)
+    mottle = _math(nt, 'ADD', .35, _math(nt, 'MULTIPLY', nz, 1.3))
+    heat = _math(nt, 'MINIMUM', _math(nt, 'POWER', w, 1.2), 1.0)
+    glow = _math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', _math(nt, 'POWER', w, 2.6), mottle), strength)
+    _additive(nt, _blackbody(nt, heat), glow)
     return mat
 
 
 def _shock_material(name, strength):
-    """The shock layer standing off the windward side: faint where it faces the camera, brightest at
-    its rim, warm at its heart and faintly magenta at its edge; nothing on the lee."""
+    """The shock layer standing off the windward side, self-lit: faint where it faces the camera,
+    brightest at its rim, hot, with a faint magenta at its edge; nothing on the lee."""
     name = '%s %.2f' % (name, strength)
     mat = bpy.data.materials.get(name)
     if mat:
         return mat
-    mat = bpy.data.materials.new(name)
-    mat.use_nodes = True
-    nt = mat.node_tree
-    nt.nodes.remove(nt.nodes['Principled BSDF'])
+    mat, nt = _new_material(name)
     at = nt.nodes.new('ShaderNodeAttribute')
     at.attribute_name = 'entry_wind'
     w = at.outputs['Fac']
     lw = nt.nodes.new('ShaderNodeLayerWeight')
     lw.inputs['Blend'].default_value = .5
     rim = _math(nt, 'SUBTRACT', 1.0, lw.outputs['Facing'])
-    col = _ramp(nt, [(0, (1.0, .86, .62)), (.55, (1.0, .6, .3)), (.85, (.95, .45, .7)), (1, (.8, .4, .85))], rim)
-    wf = _math(nt, 'POWER', w, 1.6)
-    em = nt.nodes.new('ShaderNodeEmission')
-    nt.links.new(col.outputs['Color'], em.inputs['Color'])
-    glow = _math(nt, 'MULTIPLY', wf, _math(nt, 'ADD', .25, _math(nt, 'POWER', rim, 2.0)))
-    nt.links.new(_math(nt, 'MULTIPLY', glow, strength), em.inputs['Strength'])
-    fac = _math(nt, 'MINIMUM', _math(nt, 'MULTIPLY', wf, _math(nt, 'ADD', .12, _math(nt, 'POWER', rim, 1.5))), 1.0)
-    clear = nt.nodes.new('ShaderNodeBsdfTransparent')
-    mix = nt.nodes.new('ShaderNodeMixShader')
-    nt.links.new(fac, mix.inputs['Fac'])
-    nt.links.new(clear.outputs[0], mix.inputs[1])
-    nt.links.new(em.outputs[0], mix.inputs[2])
-    nt.links.new(mix.outputs[0], nt.nodes['Material Output'].inputs['Surface'])
+    hot = _blackbody(nt, _math(nt, 'ADD', .45, _math(nt, 'MULTIPLY', w, .5)))
+    tint = nt.nodes.new('ShaderNodeMix')
+    tint.data_type = 'RGBA'
+    nt.links.new(_math(nt, 'MULTIPLY', _math(nt, 'POWER', rim, 3.0), .4), tint.inputs['Factor'])
+    nt.links.new(hot, tint.inputs['A'])
+    tint.inputs['B'].default_value = (1.0, .5, .9, 1)
+    glow = _math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', _math(nt, 'POWER', w, 1.8),
+                                       _math(nt, 'ADD', .08, _math(nt, 'POWER', rim, 2.5))), strength)
+    _additive(nt, tint.outputs['Result'], glow)
     return mat
 
 
-def sheath(name, verts, faces, coll, wind, length, glow=1.0, streamers=90, seed=0, grow=1.0, voxel=None,
-           sparks=10, wake=True):
+def _flame_material(name, strength, cell_m):
+    """A flame tongue peeling off the hull, self-lit: hot where it leaves the edge (entry_u 0), cooling
+    to deep red and gone along its length, soft at its sides, torn by noise along it."""
+    name = '%s %.2f %.1f' % (name, strength, cell_m)
+    mat = bpy.data.materials.get(name)
+    if mat:
+        return mat
+    mat, nt = _new_material(name)
+    at = nt.nodes.new('ShaderNodeAttribute')
+    at.attribute_name = 'entry_u'
+    u = at.outputs['Fac']
+    life = _math(nt, 'MAXIMUM', _math(nt, 'SUBTRACT', 1.0, u), 0.0)
+    nz, _ = _noise(nt, cell_m, detail=6.0)
+    torn = _math(nt, 'MINIMUM', _math(nt, 'MAXIMUM', _math(nt, 'MULTIPLY', _math(nt, 'SUBTRACT', nz, .38), 3.5), 0.0), 1.0)
+    lw = nt.nodes.new('ShaderNodeLayerWeight')
+    lw.inputs['Blend'].default_value = .5
+    soft = _math(nt, 'POWER', lw.outputs['Facing'], 1.5)       # bright through the middle, gone at the sides
+    glow = _math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', _math(nt, 'POWER', life, 1.8), torn),
+                                       soft), strength)
+    _additive(nt, _blackbody(nt, _math(nt, 'POWER', life, 1.2), hot=5200.0), glow)
+    return mat
+
+
+def _wake_volume(name, start, wind, span, r0, r1, coll, strength, cell_m, seed):
+    """The merged wake behind a hull as a volume, not a shell (coordinator: the faceted wake): a capped
+    tube in its own frame (x along the wind from 0 to span, so the shader knows where along the wake a
+    point is), filled with noise-broken density that widens and cools: blackbody glow near the hull,
+    gone by mid-wake, then a thin sun-lit grey smoke that fades out."""
+    import random
+    rnd = random.Random(seed)
+    W = Vector(wind).normalized()
+    ref = Vector((0, 0, 1)) if abs(W.z) < .9 else Vector((0, 1, 0))
+    Y = W.cross(ref).normalized()
+    Z = W.cross(Y).normalized()
+    rot = Matrix((W, Y, Z)).transposed().to_4x4()
+    bm = bmesh.new()
+    seg, n = 20, 32
+    rings = []
+    for i in range(n + 1):
+        u = i / n
+        r = (r0 + (r1 - r0) * u ** .7) * 1.5
+        rings.append([bm.verts.new((u * span, r * math.cos(2 * math.pi * k / seg), r * math.sin(2 * math.pi * k / seg)))
+                      for k in range(seg)])
+    for i in range(n):
+        for k in range(seg):
+            bm.faces.new((rings[i][k], rings[i][(k + 1) % seg], rings[i + 1][(k + 1) % seg], rings[i + 1][k]))
+    bm.faces.new(list(reversed(rings[0])))
+    bm.faces.new(rings[-1])
+    bm.normal_update()
+    me = bpy.data.meshes.new(name)
+    bm.to_mesh(me)
+    bm.free()
+    mname = '%s %.2f %.0f %.0f %.0f %.0f' % (f'{PREFIX} wake volume', strength, span, r0, r1, cell_m)
+    mat = bpy.data.materials.get(mname)
+    if mat is None:
+        mat, nt = _new_material(mname)
+        tc = nt.nodes.new('ShaderNodeTexCoord')
+        sep = nt.nodes.new('ShaderNodeSeparateXYZ')
+        nt.links.new(tc.outputs['Object'], sep.inputs[0])
+        u = _math(nt, 'MINIMUM', _math(nt, 'MAXIMUM', _math(nt, 'DIVIDE', sep.outputs['X'], span), 0.0), 1.0)
+        rad = _math(nt, 'SQRT', _math(nt, 'ADD', _math(nt, 'MULTIPLY', sep.outputs['Y'], sep.outputs['Y']),
+                                      _math(nt, 'MULTIPLY', sep.outputs['Z'], sep.outputs['Z'])))
+        rn = _math(nt, 'ADD', r0, _math(nt, 'MULTIPLY', _math(nt, 'POWER', u, .7), r1 - r0))
+        radial = _math(nt, 'MAXIMUM', _math(nt, 'SUBTRACT', 1.0, _math(nt, 'POWER', _math(nt, 'DIVIDE', rad, rn), 2.0)), 0.0)
+        nz, _ = _noise(nt, cell_m, detail=6.0)
+        patch = _math(nt, 'MINIMUM', _math(nt, 'MAXIMUM', _math(nt, 'MULTIPLY', _math(nt, 'SUBTRACT', nz, .34), 2.6), 0.0), 1.0)
+        along = _ramp(nt, [(0, (.7, .7, .7)), (.08, (1, 1, 1)), (.6, (.55, .55, .55)), (1, (0, 0, 0))], u)
+        dens = _math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', radial, patch), along.outputs['Color'])
+        heat = _ramp(nt, [(0, (1, 1, 1)), (.15, (.55, .55, .55)), (.4, (.12, .12, .12)), (.55, (0, 0, 0))], u)
+        hcol = heat.outputs['Color']
+        em = nt.nodes.new('ShaderNodeEmission')
+        nt.links.new(_blackbody(nt, _math(nt, 'POWER', hcol, .6), hot=5200.0), em.inputs['Color'])
+        nt.links.new(_math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', dens, hcol), strength / max(r1, 1.0)),
+                     em.inputs['Strength'])
+        smoke = _ramp(nt, [(.3, (0, 0, 0)), (.6, (1, 1, 1))], u)
+        sd = _math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', dens, smoke.outputs['Color']), 1.2 / max(r1, 1.0))
+        sc = nt.nodes.new('ShaderNodeVolumeScatter')
+        sc.inputs['Color'].default_value = (.42, .4, .38, 1)
+        nt.links.new(sd, sc.inputs['Density'])
+        ab = nt.nodes.new('ShaderNodeVolumeAbsorption')
+        ab.inputs['Color'].default_value = (.5, .48, .46, 1)
+        nt.links.new(_math(nt, 'MULTIPLY', sd, .5), ab.inputs['Density'])
+        a1 = nt.nodes.new('ShaderNodeAddShader')
+        nt.links.new(em.outputs[0], a1.inputs[0])
+        nt.links.new(sc.outputs[0], a1.inputs[1])
+        a2 = nt.nodes.new('ShaderNodeAddShader')
+        nt.links.new(a1.outputs[0], a2.inputs[0])
+        nt.links.new(ab.outputs[0], a2.inputs[1])
+        nt.links.new(a2.outputs[0], nt.nodes['Material Output'].inputs['Volume'])
+    me.materials.append(mat)
+    o = bpy.data.objects.new(name, me)
+    o.matrix_world = Matrix.Translation(start) @ rot
+    coll.objects.link(o)
+    o.visible_shadow = False
+    return o
+
+
+def _glow_lights(name, skin, c, into, length, glow, coll, count=3):
+    """The sheath's light on the hull's own windward plates: a few warm soft lights just off her
+    windward-most points, spread along her."""
+    pts = sorted(skin.verts, key=lambda v: -(v.co - c).dot(into))[:max(60, len(skin.verts) // 40)]
+    chosen = [pts[0].co.copy()]
+    while len(chosen) < count and len(chosen) < len(pts):
+        chosen.append(max((v.co for v in pts), key=lambda p: min((p - q).length for q in chosen)).copy())
+    for k, p in enumerate(chosen):
+        ld = bpy.data.lights.new(f'{name} glow {k}', 'POINT')
+        ld.energy = 2.4e5 * glow * (length / 108.0) ** 2 / count
+        ld.color = (1.0, .5, .2)
+        ld.shadow_soft_size = length * .2
+        lo = bpy.data.objects.new(f'{name} glow {k}', ld)
+        lo.location = p + into * length * .18
+        coll.objects.link(lo)
+
+
+def sheath(name, verts, faces, coll, wind, length, glow=1.0, streamers=22, seed=0, grow=1.0, voxel=None,
+           lights=None, wake=True, belly=None):
     """A hull burning into the air, its plasma shaped by the hull (verts/faces: its world-space mesh,
     hull_soup). wind: the direction the plasma streams off it (the airflow over it); length: its length
     in metres; grow: 0 to 1, how far its flames have grown (they lengthen as it goes deeper). Builds the
-    envelope, the windward sheath, the shock layer, streamers peeling off its silhouette as the air
-    sees it and converging into one wake behind it, and a few sparks. Returns the hull's centre."""
+    envelope, the windward sheath, the shock layer, thin flame tongues peeling off its silhouette as the
+    air sees it and merging into a volume wake, and (lights: a collection) the sheath's warm light on its
+    windward plates. belly: the world direction her underside faces; the heat leans to it.
+    Returns the hull's centre."""
     import random
     from mathutils import noise
     rnd = random.Random(seed)
     W = Vector(wind).normalized()
+    into = -W
     skin = _skin(name + ' skin', verts, faces, voxel or length / 70.0)
     if not skin.verts:
         skin.free()
         return None
     c = sum((v.co for v in skin.verts), Vector()) / len(skin.verts)
-    _shell(name + ' sheath', skin, W, length, coll,
-           _sheath_material(f'{PREFIX} sheath', 18.0 * glow, length * .035), .006, .035, 1.2, .6, seed)
-    _shell(name + ' shock', skin, W, length, coll, _shock_material(f'{PREFIX} shock layer', 6.0 * glow),
-           .016, .13, 1.6, .35, seed + 1)
-    into = -W
-    rim = [v for v in skin.verts if abs(v.normal.dot(into)) < .22]          # the silhouette, as the air sees it
+    # owner, 2026-10-22: "focus the friction and fires along the front and underside the most". The heat
+    # follows a hot direction, into the air and leaning to her belly: the front and the belly burn
+    # brightest and shed the flames, the flanks glow faintly, the top and the lee stay dark.
+    hot = (into + Vector(belly).normalized() * .6).normalized() if belly is not None else into
+    _shell(name + ' sheath', skin, hot, length, coll,
+           _sheath_material(f'{PREFIX} sheath', 40.0 * glow, length * .03), .003, .012, 1.2, .6, seed)
+    _shell(name + ' shock', skin, hot, length, coll, _shock_material(f'{PREFIX} shock layer', 9.0 * glow),
+           .008, .05, 1.6, .35, seed + 1)
+    # the flames leave the edge of her hot side (front and belly), never the deck in her lee
+    rim = [v for v in skin.verts if -.05 < v.normal.dot(hot) < .3 and v.normal.dot(into) > -.1]
     rim = rim or list(skin.verts)
-    wake_mat = _wake_material(f'{PREFIX} wake', 9.0 * glow, max(length * .045, .5))
     for k in range(min(streamers, len(rim))):
         v = rnd.choice(rim)
-        p0 = v.co + v.normal * length * .012
-        ln = length * rnd.uniform(.45, 2.2) * (.25 + .75 * grow)
+        p0 = v.co + v.normal * length * .01
+        ln = length * rnd.uniform(.35, 1.4) * (.3 + .7 * grow)
         rel = p0 - c
         perp = rel - W * rel.dot(W)
-        r0 = length * rnd.uniform(.004, .012)
+        r0 = length * rnd.uniform(.0015, .004)
         pts, us, radii = [], [], []
         for j in range(16):
             s = 1 - j / 15                                   # tail first: s 1 at the tail, 0 at the edge
-            wob = noise.noise_vector(p0 / (length * .25) + Vector((s * 2.2, k * .37, 0))) * length * .07 * s
-            pts.append(p0 + W * ln * s - perp * .55 * (1 - math.exp(-3 * s)) + wob)
+            wob = noise.noise_vector(p0 / (length * .2) + Vector((s * 2.6, k * .37, 0))) * length * .06 * s
+            pts.append(p0 + W * ln * s - perp * .8 * (1 - math.exp(-5 * s)) + wob)
             us.append(s)
-            radii.append(r0 * (1 + 4.5 * s))
-        _ragged_tube(f'{name} flame {k}', pts, radii, us, coll, wake_mat, rnd, segments=8)
-    if wake:            # the merged wake behind it, from its lee
+            radii.append(r0 * (1 + 3.0 * s))
+        tube = _ragged_tube(f'{name} flame {k}', pts, radii, us, coll,
+                            _flame_material(f'{PREFIX} flame', 30.0 * glow * rnd.uniform(.5, 1.3), length * .05),
+                            rnd, segments=10)
+        for p in tube.data.polygons:
+            p.use_smooth = True
+    if wake:
         ext = max((v.co - c).dot(W) for v in skin.verts)
-        span = length * (.6 + 2.6 * grow)
-        pts = [c + W * (ext + span * (1 - i / 47)) for i in range(48)]
-        us = [1 - i / 47 for i in range(48)]
-        _ragged_tube(f'{name} wake', pts, [length * (.12 + .5 * u ** .7) for u in us], us, coll,
-                     _wake_material(f'{PREFIX} wake', 5.0 * glow, max(length * .12, .5)), rnd)
-    for k in range(sparks):
-        v = rnd.choice(rim)
-        p0 = v.co + v.normal * length * rnd.uniform(.02, .12)
-        ln = length * rnd.uniform(.05, .25)
-        _tube(f'{name} spark {k}', [p0 + W * ln, p0], [ln * .01, ln * .02], [1.0, .2], coll, wake_mat, segments=6)
+        span = length * (.8 + 3.0 * grow)
+        _wake_volume(f'{name} wake', c + W * (ext - length * .1), W, span, length * .08, length * .4, coll,
+                     30.0 * glow, length * .12, seed)
+    if lights is not None:
+        _glow_lights(name, skin, c, hot, length, glow, lights)
     skin.free()
     return c
 
