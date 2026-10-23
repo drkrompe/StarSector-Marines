@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-16
 
-Updated: 2026-10-21 — ground ward and berth boards (`ground-quarters`)
+Updated: 2026-10-23 — battle loading screen options (`battle-loading`)
 
 A guide to the notable `createSnapshots` suites: what each one shows and where it writes.
 How to run them, and the rules every preview obeys, are in `CLAUDE.md` (Visual snapshot
@@ -61,6 +61,7 @@ by name.
 | `aircraft-thrusters-night` | The same six aircraft under production night shade, with native steering and smoothed engine demand through idle, acceleration, cruise and braking; 16 seconds at 1920x1080, 15 fps. Controlled throttle inputs, not a combat sortie | `build/snapshots/aircraft-thrusters-night/` |
 | `aircraft-crash` | Six existing fighters through controlled lethal damage, fall, breakup and permanent wreck settlement with shared production effects; 12 seconds at 1920x1080, 15 fps, plus Mudskipper before-contact, contact and settled stills | `build/snapshots/aircraft-crash/` |
 | `turrets` | Authored mount-state strips, including projectile and impact effects | `build/snapshots/turrets/` |
+| `battle-loading` | The screen a battle shows while its textures load: the three looks, the three progress lines and the minimum display time as timelines of a fast load (`battle-textures.md`, Loading screen), 1920x1080/100% | `build/snapshots/battle-loading/` |
 | `ui` | Marine Ops screens at authored viewport sizes, including the scale-invariant battle task-force plate and MLX command rail | `build/snapshots/ui/` |
 | `hq-intel` | Animated HQ receivers, dossier selection and a labelled fixture arrival at 1920x1080, 100% scale | `build/snapshots/hq-intel/` |
 | `hq-holo` | The command-deck banner alone at its 1872x372 size on the 1920x1080 / 100% HQ page, with the action board hologram over the plot table: markers rising in, settled, and with a selection beam and hover; plus a GIF | `build/snapshots/hq-holo/` |
