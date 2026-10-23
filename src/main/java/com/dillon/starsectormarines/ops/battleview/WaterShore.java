@@ -35,39 +35,14 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 public final class WaterShore {
 
     /**
-     * Control-run switch for the owner's comparison: {@code organic} (the
-     * default), {@code diagonal} (the same contour without its noise) or
-     * {@code square} (the cells' own steps). Temporary: removed with the losing
-     * arms once the {@code water-shore} picks question is answered.
-     */
-    public static final String PROPERTY = "battle.render.shore";
-
-    private static final String MODE = System.getProperty(PROPERTY, "organic");
-
-    private static final boolean ENABLED = !MODE.equals("square");
-
-    /**
      * How far a corner's value may wander, in field units; a straight bank
      * wanders half this in cells. Under one, so a bank never wanders as far
      * as half a cell.
      */
-    static final double NOISE = MODE.equals("diagonal") ? 0 : 0.6;
+    static final double NOISE = 0.6;
 
-    /**
-     * Comparison switch for what a ford shows through its shallows:
-     * {@code pebbles} (a stony bed), {@code stones} (a line of stepping stones
-     * across it) or {@code both}, the default. Temporary: removed with the
-     * losing looks once the {@code ford-look} picks question is answered.
-     */
-    public static final String FORD_PROPERTY = "battle.render.fordLook";
-
-    private static final String FORD_LOOK = System.getProperty(FORD_PROPERTY, "both");
-
-    /** The block a ford's pebble bed draws from, or null when the look has none. */
-    public static final String PEBBLE_BLOCK = FORD_LOOK.equals("stones") ? null : "shore.ford-pebbles";
-
-    /** The block a ford's stepping stones draw from, or null when the look has none. */
-    public static final String STONE_BLOCK = FORD_LOOK.equals("pebbles") ? null : "shore.ford-stones";
+    /** The block a ford's pebble bed draws from. */
+    public static final String PEBBLE_BLOCK = "shore.ford-pebbles";
 
     /** Triangles a cell is drawn in, fanned from its centre. */
     public static final int TRIANGLES = 4;
@@ -108,11 +83,6 @@ public final class WaterShore {
     private static final int[][] CORNERS = {{0, 0}, {1, 0}, {1, 1}, {0, 1}};
 
     private WaterShore() {}
-
-    /** Whether the organic shore is drawn at all. */
-    public static boolean enabled() {
-        return ENABLED;
-    }
 
     /**
      * What a cell is to the shore. Past the map's edge the nearest cell
@@ -263,27 +233,6 @@ public final class WaterShore {
     public static float[] bedPatch(CellTopology topology, int x, int y, int triangle) {
         if (kind(topology, x, y) != SHALLOW) return null;
         return clip(topology, x, y, true, Band.WATER.level, triangle, false);
-    }
-
-    /**
-     * Whether a shallow cell is on its ford's line of stepping stones: the
-     * middle row across the ford, at right angles to the longer of the ford's
-     * two runs through the cell, which is the way the water flows.
-     */
-    public static boolean isSteppingStone(CellTopology topology, int x, int y) {
-        if (!topology.isShallowWater(x, y)) return false;
-        int north = run(topology, x, y, 0, 1), south = run(topology, x, y, 0, -1);
-        int east = run(topology, x, y, 1, 0), west = run(topology, x, y, -1, 0);
-        return north + south >= east + west
-                ? north == south || north == south + 1
-                : east == west || east == west + 1;
-    }
-
-    /** Shallow cells beyond {@code (x, y)} in one direction, before the first that is not. */
-    private static int run(CellTopology topology, int x, int y, int dx, int dy) {
-        int n = 0;
-        while (topology.isShallowWater(x + dx * (n + 1), y + dy * (n + 1))) n++;
-        return n;
     }
 
     /** One triangle clipped to where a field is at least {@code level}, or below it. */

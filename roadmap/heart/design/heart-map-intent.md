@@ -116,12 +116,13 @@ laid by the heart's mission layout (`mission-layout.md`, `HeartLayout`) as
 named pieces, every one optional, none of them ground held before growth, so
 the pooled maps keep the ground they were vetted on:
 
+- **The cordon ridge** (`cordon-ridge`): a layout ridge, raised before the
+  works with the hollow's rim and the valley sides in one stamp.
 - **The forward line** (`forward-line-N`): trench and wire across the whole
-  front just past the cordon ridge, facing the bloom, dug two rows deep with
-  nests along it. It is broken at every lane (Broad Front's four and the
+  front along the cordon ridge's crest, facing the bloom, dug two rows deep
+  with nests along it. It is broken at every lane (Broad Front's four and the
   company's road; The Burn's battlegroup sectors and the company's) so the
-  columns drive through, and wherever a road crosses it. The ridge behind it
-  is its overwatch.
+  columns drive through the ridge's passes, and wherever a road crosses it.
 - **Observation posts** (`op-1`, `op-2`): a sandbagged post forward of the
   line in each half of the front.
 - **The logistics base** on the farmland behind the line, beside the
@@ -129,8 +130,8 @@ the pooled maps keep the ground they were vetted on:
   vehicle park between them (`vehicle-park`), open ground where the armour
   waves and convoys form up (`F6`, `B5`). It is works and ground, not yet a
   fenced base that spawns machines: that is step 3's.
-- **The supply road** is the country road the company's lane already runs
-  up; the layout lays no second one.
+- **The supply road** (`supply-road`): a drivable road from the landing's
+  farmland up to the settlement's near gate.
 
 ## The beats' set pieces
 
@@ -138,7 +139,7 @@ the pooled maps keep the ground they were vetted on:
 | --- | --- | --- |
 | F1 The lost column | `holdout`: a sandbag ring at the market town's near edge, its way in on the start side, with `holdout-wreck`, the carrier, in its yard. | yes |
 | F5 Linkup | `reservoir-yard`: open ground on the workings' start side that the lanes' last stretches come out onto. | yes |
-| F6 The supply road | The country road and the vehicle park. A satellite placed within surge reach of the road is not done. | partly |
+| F6 The supply road | `supply-road` and the vehicle park. A satellite placed within surge reach of the road is not done. | partly |
 | B1 Ranging / B3 the guns | `gun-flank-1`, `gun-flank-2`: trench and wire along each open side of the battery, facing out. | yes |
 | B2 The village | `village-holdout`: a sandbag ring at the village's near edge. | yes |
 | B4 The ford | `company-ford`: the ford nearest the company's sector held open, its banks either side. | yes |

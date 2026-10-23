@@ -120,10 +120,9 @@ Updated: 2026-10-23 — Texture leases: a battle, the company deck, the Armory p
   to the waterline and ground to the open water, so the shore reads two
   fields — wet and deep, the same field on a bank with no shallows — and a
   ford is shallows from bank to bank with open water beginning beyond it. Its
-  bed shows through: a pebble bed, and a line of stepping stones across its
-  middle, at right angles to the way the water runs (comparison switch
-  `-Dbattle.render.fordLook=pebbles|stones|both`; art from
-  `art-source/terrain/bake_water_ford.py`).
+  bed shows through as pebbles on every ford cell, where the open water does
+  not cover it (art from `art-source/terrain/bake_water_ford.py`; the owner
+  chose the plain pebble bed over a line of stepping stones).
   Hive creep meets the same contour: it stands back from the shore's water and
   wet bank as from a cliff face (`ShoreWaterMask`, the field sampled
   continuously by `WaterShore.fieldAt`), so its edge runs along the wet band.
@@ -131,8 +130,9 @@ Updated: 2026-10-23 — Texture leases: a battle, the company deck, the Armory p
   only faint veins and a film.
   The bands are resident sub-layers over the feathers and under road edges,
   raised terrain and decoration; their art is derived from the water tiles
-  (`art-source/terrain/bake_water_shore.py`). Comparison switch:
-  `-Dbattle.render.shore=organic|diagonal|square`.
+  (`art-source/terrain/bake_water_shore.py`). The owner chose this organic
+  contour, noise and all, over the same contour without its noise and over
+  the cells' own steps.
 - A **visible cell rectangle** is the camera-derived dense-world cull. It reduces work for cell-backed terrain passes; it does not replace the simulation's cell grid.
 - A **view cull** is the same idea for things that are not cells: the camera's
   viewport in cell space, asked whether a body's own drawn extent can land in

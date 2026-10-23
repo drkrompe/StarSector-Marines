@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.overgrown;
 import com.dillon.starsectormarines.battle.world.gen.layout.Block;
 import com.dillon.starsectormarines.battle.world.gen.layout.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.layout.Deferred;
+import com.dillon.starsectormarines.battle.world.gen.layout.Endpoint;
 import com.dillon.starsectormarines.battle.world.gen.layout.LayoutGround;
 import com.dillon.starsectormarines.battle.world.gen.layout.Line;
 import com.dillon.starsectormarines.battle.world.gen.layout.LineCourse;
@@ -10,6 +11,9 @@ import com.dillon.starsectormarines.battle.world.gen.layout.LineStyle;
 import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayout;
 import com.dillon.starsectormarines.battle.world.gen.layout.Phase;
 import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
+import com.dillon.starsectormarines.battle.world.gen.layout.Ridge;
+import com.dillon.starsectormarines.battle.world.gen.layout.Road;
+import com.dillon.starsectormarines.battle.world.gen.layout.Side;
 import com.dillon.starsectormarines.battle.world.gen.layout.Site;
 import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 import com.dillon.starsectormarines.battle.world.gen.layout.Structure;
@@ -37,6 +41,8 @@ public final class HeartLayout {
 
     private HeartLayout() { }
 
+    /** The cordon ridge: the last high ground before the bloom, the forward line dug along its crest. */
+    public static final String CORDON_RIDGE = "cordon-ridge";
     /** The forward line's runs, one between each pair of lane gaps: this plus 1, 2, ... */
     public static final String FORWARD_LINE = "forward-line-";
     /** The observation posts forward of the line: this plus 1 and 2. */
@@ -45,6 +51,11 @@ public final class HeartLayout {
     /** The logistics base's ammunition dumps on the farmland behind the line. */
     public static final String LOGISTICS = "logistics";
     public static final String AMMO_DUMP = "ammo-dump-";
+    /** The supply road from the landing's farmland up to the settlement's near gate (F6), and its width. */
+    public static final String SUPPLY_ROAD = "supply-road";
+    static final int SUPPLY_ROAD_WIDTH = 5;
+    /** The plan's landing place, the cordon's farmland. */
+    static final String LANDING = "landing";
     /** The logistics base's vehicle park: open ground where the armour forms up (F6, B5). */
     public static final String VEHICLE_PARK = "vehicle-park";
     /** The open yard by the workings the lanes' last stretches come out onto (F5). */
@@ -59,8 +70,6 @@ public final class HeartLayout {
     /** The company's ford over the brook (B4). */
     public static final String COMPANY_FORD = "company-ford";
 
-    /** Cells past the ridge's far edge the forward line is dug: clear of the ridge's apron, under its overwatch. */
-    static final int LINE_BEYOND_RIDGE = 12;
     /** Cells either side of a lane's middle the line leaves open, so a column drives through. */
     static final int LANE_GAP = 6;
     /** Shortest run of line worth digging between two gaps. */
@@ -73,6 +82,8 @@ public final class HeartLayout {
     static final float[] BURN_GAPS = {0.18f, 0.36f, 0.50f, 0.64f, 0.82f};
     /** Cells forward of the line its listening posts stand, and where across. */
     static final int OP_FORWARD = 6, OP_SEARCH = 10;
+    /** Cells past the ridge's far edge that its faces and apron take. */
+    static final int RIDGE_FOOT = 5;
     static final float[] BROAD_OPS = {0.24f, 0.76f}, BURN_OPS = {0.27f, 0.73f};
     /** Where the logistics base stands on the farmland, as depth and across. */
     static final float BROAD_BASE_DEPTH = 0.14f, BROAD_BASE_ACROSS = 0.42f;
@@ -91,8 +102,13 @@ public final class HeartLayout {
 
     /** The heart's layout for this form of country. */
     static MissionLayout layout(Form form, long seed) {
-        List<Piece> pieces = new ArrayList<>(forwardLine(form));
+        List<Piece> pieces = new ArrayList<>();
+        pieces.add(new Ridge(CORDON_RIDGE, HeartCountry.ridge(form), false));
+        pieces.addAll(forwardLine(form));
         pieces.add(new Deferred(OBSERVATION_POSTS, Phase.STRUCTURES, ground -> observationPosts(ground, form), false));
+        Side front = form.advancesAlongY() ? Side.NORTH : Side.EAST;
+        pieces.add(new Road(SUPPLY_ROAD, Endpoint.beside(LANDING, front, 0, 0),
+                Endpoint.gate(HeartCountry.SETTLEMENT, front.opposite()), SUPPLY_ROAD_WIDTH, false));
         pieces.add(new Deferred(LOGISTICS, Phase.STRUCTURES, ground -> ammoDumps(ground, form), false));
         pieces.add(new Deferred(VEHICLE_PARK, Phase.WORKS, ground -> vehiclePark(ground, form), false));
         pieces.add(new Deferred(RESERVOIR_YARD, Phase.WORKS, ground -> reservoirYard(ground, form), false));
@@ -123,17 +139,27 @@ public final class HeartLayout {
         return form.advancesAlongY() ? new int[]{0, 1} : new int[]{1, 0};
     }
 
-    /** Depth, in cells, of the forward line: just past the ridge's far edge. */
-    static int lineDepth(Form form) {
+    /** Depth, in cells, of the ridge's near edge. */
+    private static int ridgeDepth(Form form) {
         int depthCells = form.advancesAlongY() ? form.scale.height : form.scale.width;
         float share = form.advancesAlongY() ? HeartCountry.BROAD_FRONT_RIDGE_DEPTH : HeartCountry.THE_BURN_RIDGE_DEPTH;
-        return Math.round(share * (depthCells - 1)) + HeartCountry.RIDGE_THICKNESS - 1 + LINE_BEYOND_RIDGE;
+        return Math.round(share * (depthCells - 1));
+    }
+
+    /** Depth, in cells, of the forward line: the ridge's crest, a little forward of its middle. */
+    static int lineDepth(Form form) {
+        return ridgeDepth(form) + HeartCountry.RIDGE_THICKNESS / 2 + 1;
+    }
+
+    /** Depth of the ground just past the ridge's foot on the bloom side. */
+    private static int pastRidge(Form form) {
+        return ridgeDepth(form) + HeartCountry.RIDGE_THICKNESS - 1 + RIDGE_FOOT;
     }
 
     /**
-     * The forward line: trench and wire across the whole front just past the
-     * ridge, facing the bloom, broken at every lane so the columns drive
-     * through. The ridge behind it is its overwatch.
+     * The forward line: trench and wire across the whole front along the
+     * ridge's crest, facing the bloom, broken at every lane so the columns
+     * drive through.
      */
     static List<Piece> forwardLine(Form form) {
         int across = acrossCells(form), depth = lineDepth(form);
@@ -155,7 +181,7 @@ public final class HeartLayout {
     /** A listening post forward of the line in each half of the front, on the open ground nearest its place. */
     static List<Piece> observationPosts(LayoutGround ground, Form form) {
         float[] at = form == Form.BROAD_FRONT ? BROAD_OPS : BURN_OPS;
-        int across = acrossCells(form), depth = lineDepth(form) + OP_FORWARD, side = StructureKind.OBSERVATION_POST.along;
+        int across = acrossCells(form), depth = pastRidge(form) + OP_FORWARD, side = StructureKind.OBSERVATION_POST.along;
         List<Piece> out = new ArrayList<>();
         for (int i = 0; i < at.length; i++) {
             int[] want = cell(form, depth, Math.round(at[i] * (across - 1)));

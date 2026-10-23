@@ -101,9 +101,10 @@ fields grow round it. Today it stands as one to three arcs rather than a ring
 
 **Cordon's works.** What the cordon dug and built facing the bloom, laid as
 named pieces of the heart's mission layout: the forward line of trench and
-wire just past the ridge, broken at every lane; an observation post forward
+wire along the cordon ridge's crest, broken at every lane; an observation post forward
 of it in each half of the front; and on the farmland behind it the logistics
-base's ammunition dumps and vehicle park. Each beat's set piece is laid the
+base's ammunition dumps and vehicle park, with a supply road up to the
+settlement. Each beat's set piece is laid the
 same way (the lost column's holdout, the reservoir yard, the battery's flank
 works, the village holdout, the company's ford). The heart's runtime holds
 what was laid by name, so a beat that needs a place asks whether it is there
