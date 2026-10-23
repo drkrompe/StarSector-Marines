@@ -519,7 +519,14 @@ def _sheath_material(name, strength, cell_m):
     # owner, 2026-10-22: "bright in places", not white all over. The colour's heat is mottled as the
     # glow is, so only the squarest, hottest patches reach white; the rest of the face burns orange-yellow
     heat = _math(nt, 'MINIMUM', _math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', _math(nt, 'POWER', w, 1.8), mottle), .5), 1.0)
-    glow = _math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', _math(nt, 'POWER', w, 2.6), mottle), strength)
+    # coordinator on close still 6: "a uniform tube" along the box edges. The glow spreads further across
+    # the hot faces (a softer power on the heat share), and is damped where the shell is seen edge-on,
+    # which is what stacked it into a neon line at every corner
+    lw = nt.nodes.new('ShaderNodeLayerWeight')
+    lw.inputs['Blend'].default_value = .5
+    face_on = _math(nt, 'ADD', .25, _math(nt, 'MULTIPLY', _math(nt, 'POWER', lw.outputs['Facing'], .7), .75))
+    glow = _math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', _math(nt, 'POWER', w, 1.7), mottle),
+                                       face_on), strength)
     _additive(nt, _blackbody(nt, heat), glow)
     return mat
 
@@ -563,7 +570,7 @@ def _flame_material(name, strength, cell_m):
     u = at.outputs['Fac']
     life = _math(nt, 'POWER', _math(nt, 'MAXIMUM', _math(nt, 'SUBTRACT', 1.0, u), 0.0), 1.4)
     nz, _ = _noise(nt, cell_m, detail=6.0)
-    torn = _math(nt, 'MINIMUM', _math(nt, 'MAXIMUM', _math(nt, 'MULTIPLY', _math(nt, 'SUBTRACT', nz, .38), 3.5), 0.0), 1.0)
+    torn = _math(nt, 'MINIMUM', _math(nt, 'MAXIMUM', _math(nt, 'MULTIPLY', _math(nt, 'SUBTRACT', nz, .45), 4.5), 0.0), 1.0)
     lw = nt.nodes.new('ShaderNodeLayerWeight')
     lw.inputs['Blend'].default_value = .5
     soft = _math(nt, 'POWER', lw.outputs['Facing'], 1.5)       # bright through the middle, gone at the sides
@@ -714,7 +721,7 @@ def sheath(name, verts, faces, coll, wind, length, glow=1.0, streamers=22, seed=
         long_ = k < 5           # coordinator: a few visibly longer, streaming back along her flanks
         v = rnd.choice(rim) if long_ else rnd.choices(rim, weights)[0]
         p0 = v.co + v.normal * length * .01
-        ln = length * (rnd.uniform(1.5, 2.4) if long_ else rnd.uniform(.35, 1.4)) * (.3 + .7 * grow)
+        ln = length * (rnd.uniform(.8, 1.1) if long_ else rnd.uniform(.3, .7)) * (.3 + .7 * grow)   # gone in a hull length
         rel = p0 - c
         perp = rel - W * rel.dot(W)
         r0 = length * (rnd.uniform(.004, .007) if long_ else rnd.uniform(.0015, .004))
@@ -725,7 +732,7 @@ def sheath(name, verts, faces, coll, wind, length, glow=1.0, streamers=22, seed=
             wob = noise.noise_vector(p0 / (length * .2) + Vector((s * (6.0 if long_ else 2.6), k * .37, 0)))                 * (ln * .14 if long_ else length * .06) * s
             pts.append(p0 + W * ln * s - perp * hug * (1 - math.exp(-5 * s)) + wob)
             us.append(s)
-            radii.append(r0 * (1 + 3.0 * s) * (1 - .55 * s ** 2 if long_ else 1))     # a long one tapers out
+            radii.append(r0 * 2.2 * (1 - .75 * s))        # wide at the root, tapering out
         tube = _ragged_tube(f'{name} flame {k}', pts, radii, us, coll,
                             _flame_material(f'{PREFIX} flame', glow * (rnd.uniform(5, 9) if long_ else rnd.uniform(8, 18)),
                                             length * .05),
