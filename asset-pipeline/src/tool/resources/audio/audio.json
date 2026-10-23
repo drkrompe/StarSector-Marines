@@ -614,6 +614,7 @@
     {"id": "jangala_sfx_c2_steps", "source": "jangala-arrival/sfx/jangala_sfx_c2_steps.ogg", "kind": "ui", "out": "story/jangala-arrival/sfx"},
     {"id": "jangala_sfx_c2_brush_past", "source": "jangala-arrival/sfx/jangala_sfx_c2_brush_past.ogg", "kind": "ui", "out": "story/jangala-arrival/sfx"},
     {"id": "jangala_sfx_c2_console_lean_2", "source": "jangala-arrival/sfx/jangala_sfx_c2_console_lean_2.ogg", "kind": "ui", "out": "story/jangala-arrival/sfx"},
+    {"id": "jangala_sfx_c2_legion_burn", "source": "jangala-arrival/sfx/jangala_sfx_c2_legion_burn.ogg", "kind": "ui", "out": "story/jangala-arrival/sfx"},
     {"id": "jangala_sfx_c2_switch_clicks", "source": "jangala-arrival/sfx/jangala_sfx_c2_switch_clicks.ogg", "kind": "ui", "out": "story/jangala-arrival/sfx"},
     {"id": "jangala_sfx_c2_c1_hull_creaks", "source": "jangala-arrival/sfx/jangala_sfx_c2_c1_hull_creaks.ogg", "kind": "ui", "out": "story/jangala-arrival/sfx"},
     {"id": "jangala_sfx_c2_switch_clicks_2", "source": "jangala-arrival/sfx/jangala_sfx_c2_switch_clicks_2.ogg", "kind": "ui", "out": "story/jangala-arrival/sfx"},

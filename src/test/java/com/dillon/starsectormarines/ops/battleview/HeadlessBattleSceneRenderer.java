@@ -665,7 +665,7 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
                 int color = 0;
                 if (layer.coverageNear(cellX, cellY)) {
                     CreepShading.shade(layer, cellX, cellY, pass.cellPx, pass.timeSeconds, pass.palette, pass.sun,
-                            pass.cliffs, scratch, rgba);
+                            scratch, rgba);
                     color = argb(rgba, pass.alpha);
                 }
                 if (color == runColor) continue;

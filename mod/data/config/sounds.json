@@ -780,6 +780,7 @@
 	"jangala_sfx_c2_steps": [{"file": "sounds/story/jangala-arrival/sfx/jangala_sfx_c2_steps.ogg", "pitch": 1, "volume": 1.0}],
 	"jangala_sfx_c2_brush_past": [{"file": "sounds/story/jangala-arrival/sfx/jangala_sfx_c2_brush_past.ogg", "pitch": 1, "volume": 1.0}],
 	"jangala_sfx_c2_console_lean_2": [{"file": "sounds/story/jangala-arrival/sfx/jangala_sfx_c2_console_lean_2.ogg", "pitch": 1, "volume": 1.0}],
+	"jangala_sfx_c2_legion_burn": [{"file": "sounds/story/jangala-arrival/sfx/jangala_sfx_c2_legion_burn.ogg", "pitch": 1, "volume": 1.0}],
 	"jangala_sfx_c2_switch_clicks": [{"file": "sounds/story/jangala-arrival/sfx/jangala_sfx_c2_switch_clicks.ogg", "pitch": 1, "volume": 1.0}],
 	"jangala_sfx_c2_c1_hull_creaks": [{"file": "sounds/story/jangala-arrival/sfx/jangala_sfx_c2_c1_hull_creaks.ogg", "pitch": 1, "volume": 1.0}],
 	"jangala_sfx_c2_switch_clicks_2": [{"file": "sounds/story/jangala-arrival/sfx/jangala_sfx_c2_switch_clicks_2.ogg", "pitch": 1, "volume": 1.0}],
