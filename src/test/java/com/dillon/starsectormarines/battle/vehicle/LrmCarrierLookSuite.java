@@ -15,11 +15,10 @@ import java.util.List;
 
 /**
  * How the LRM carrier looks in play, for the owner rather than for a verdict: the look preset on real generated
- * colony ground ({@link LookReview}), effects, contrails and shadows on, no markers or captions. Two shots:
- * {@code lrm-idle}, the carrier with nothing to shoot at and its pod lying flat along the hull; and
- * {@code lrm-salvo}, the carrier with a pinned tank 36 cells east that a scout car beside it is watching, so the
- * pod comes round, stands up and ripples its salvos. Each at play zoom and close on the carrier; the salvo also
- * close on the tank. Opt-in: a look study, not part of {@code all}. The verdicts are {@code missile-carriers}'.
+ * colony ground ({@link LookReview}), effects, contrails and shadows on, no markers or captions. {@code lrm-idle}, the
+ * carrier with nothing to shoot at and its pod lying flat along the hull; and {@code lrm-salvo-<bearing>}, the
+ * carrier firing on a pinned, unarmed scout car east, north-east, south (nearer, so steeper) and west, so the pod comes round,
+ * stands up pitched to its missiles' climb and ripples its salvos. Each at play zoom and close on the carrier. Opt-in: a look study, not part of {@code all}. The verdicts are {@code missile-carriers}'.
  */
 public final class LrmCarrierLookSuite implements SnapshotSuite {
 
@@ -39,7 +38,10 @@ public final class LrmCarrierLookSuite implements SnapshotSuite {
         SceneRegistries.installArmoury(context.projectRoot());
         List<SnapshotArtifact> out = new ArrayList<>();
         out.addAll(LookReview.record(context.modRoot(), idle()));
-        out.addAll(LookReview.record(context.modRoot(), salvo()));
+        out.addAll(LookReview.record(context.modRoot(), salvo("lrm-salvo-east", 30f, 0f)));
+        out.addAll(LookReview.record(context.modRoot(), salvo("lrm-salvo-northeast", 20f, 16f)));
+        out.addAll(LookReview.record(context.modRoot(), salvo("lrm-salvo-south", 0f, -16f)));
+        out.addAll(LookReview.record(context.modRoot(), salvo("lrm-salvo-west", -30f, 0f)));
         return out;
     }
 
@@ -60,32 +62,37 @@ public final class LrmCarrierLookSuite implements SnapshotSuite {
         }, IDLE_TICKS);
     }
 
-    static LookReview.Shot salvo() {
-        return LookReview.Shot.of("lrm-salvo", 64, 36, placement -> {
+    /**
+     * The carrier firing on a pinned, unarmed scout car at one bearing and range, so the rack's pitch can be read against its
+     * missiles' climb: {@code dx, dy} is the target's offset from the carrier in cells. A scout car beside the carrier
+     * does the spotting.
+     */
+    static LookReview.Shot salvo(String name, float dx, float dy) {
+        float cx = 32f;
+        float cy = 24f;
+        return LookReview.Shot.of(name, 64, 48, placement -> {
             SceneWorld world = placement.holdouts(placement.builder()).build();
             BattleSimulation sim = world.sim();
-            float[] carrierAt = placement.openNear(8.5f, 18.5f);
-            float[] tankAt = placement.openNear(44.5f, 18.5f);
-            float[] scoutAt = placement.openNear(6.5f, 26.5f);
+            float[] carrierAt = placement.openNear(cx, cy);
+            float[] targetAt = placement.openNear(cx + dx, cy + dy);
+            float[] scoutAt = placement.openNear(cx - 2f, cy - 6f);
             long carrier = placement.subject("carrier", sim.convoy().spawn(VehicleType.LRM_CARRIER, Faction.MARINE,
                     VehicleMission.deployed(carrierAt[0], carrierAt[1])));
             sim.convoy().body(carrier).teleport(carrierAt[0], carrierAt[1], 0f);
-            long tank = placement.subject("tank", sim.convoy().spawn(VehicleType.BREAKTHROUGH_TANK, Faction.DEFENDER,
-                    VehicleMission.deployed(tankAt[0], tankAt[1])));
-            sim.convoy().body(tank).teleport(tankAt[0], tankAt[1], 180f);
-            pin(sim, tank);
+            pin(sim, carrier);
+            long target = placement.subject("target", sim.convoy().spawn(VehicleType.SCOUT_CAR, Faction.DEFENDER,
+                    VehicleMission.deployed(targetAt[0], targetAt[1])));
+            sim.convoy().body(target).teleport(targetAt[0], targetAt[1], 0f);
+            pin(sim, target);
             long car = sim.convoy().spawn(VehicleType.SCOUT_CAR, Faction.MARINE,
                     VehicleMission.deployed(scoutAt[0], scoutAt[1]));
             sim.convoy().body(car).teleport(scoutAt[0], scoutAt[1], 0f);
             return sim;
-        }, placement -> {
-            return List.of(LookReview.View.followAtPlay(placement, "carrier", "tank"),
-                    LookReview.View.follow("carrier", placement, CLOSE_CELLS, "carrier"),
-                    LookReview.View.follow("target", placement, 24f, "tank"));
-        }, SALVO_TICKS);
+        }, placement -> List.of(LookReview.View.followAtPlay(placement, "carrier", "target"),
+                LookReview.View.follow("carrier", placement, CLOSE_CELLS, "carrier")), SALVO_TICKS);
     }
 
-    /** Holds a Defender hull where it stands: a paused authored route keeps engagement off it; its turret works. */
+    /** Holds a hull where it stands: a paused authored route keeps engagement off it; its turret works. */
     private static void pin(BattleSimulation sim, long id) {
         VehicleMission mission = sim.convoy().mission(id);
         GroundBody body = sim.convoy().body(id);

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
@@ -139,28 +140,42 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     drawCellX += (float) Math.sin(bearing) * recoil;
                     drawCellY -= (float) Math.cos(bearing) * recoil;
                 }
+                float drawFacingDeg = turretFacingDeg;
                 if (!wrecked && turret != null && type.turretRaiseFold() < 1f && turret.elevation > 0f) {
-                    // Standing up on its tail hinge: the rack shortens along its firing axis, its tail stays where
-                    // it was, and its nose, now nearer the eye, reads a little wider. Its shadow stays on the deck
-                    // at full length and the rack lifts off it, down and right like the sheets' baked shadows.
+                    // Standing up on its tail hinge, pitched to the angle its rounds leave at. The battle is drawn
+                    // with height as screen-up, as the missiles' arcs are, so a pitched rack's nose rises up the
+                    // screen as well as running toward the target: it draws along the arc's first tangent, turned
+                    // off the true bearing and longer pointing north than south. Its tail stays where it was, its
+                    // nose reads a little wider for coming up toward the eye, and its shadow stays on the deck at
+                    // full length, the rack lifting off it down and right like the sheets' baked shadows.
                     float lift = RAISE_SHADOW_CELLS * turret.elevation;
                     out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
                             tf.x, tf.y, tf.w, tf.h,
                             cam.cellToScreenX(drawCellX + lift), cam.cellToScreenY(drawCellY + lift),
                             tDrawLong, tDrawShort, turretFacingDeg,
                             0f, 0f, 0f, alphaMult * RAISE_SHADOW_ALPHA * turret.elevation);
-                    float fold = 1f - (1f - type.turretRaiseFold()) * turret.elevation;
-                    float aft = (1f - fold) * type.turretRaiseHingeCells();
+                    WeaponDef weapon = type.turretStructure().mount.weapon;
                     float bearing = (float) Math.toRadians(turretStateFacing);
-                    drawCellX += (float) Math.sin(bearing) * aft;
-                    drawCellY -= (float) Math.cos(bearing) * aft;
-                    tDrawLong *= fold;
-                    tDrawShort *= 1f + RAISE_WIDEN * (1f - fold);
+                    float ux = -(float) Math.sin(bearing);
+                    float uy = (float) Math.cos(bearing);
+                    float pitch = Math.min(launchPitch(weapon.arcHeight,
+                            Float.isFinite(turret.raiseRangeCells) ? turret.raiseRangeCells : weapon.range),
+                            readablePitch(uy)) * turret.elevation;
+                    float cos = (float) Math.cos(pitch);
+                    float axisX = ux * cos;
+                    float axisY = uy * cos + (float) Math.sin(pitch);
+                    float hinge = type.turretRaiseHingeCells();
+                    drawCellX += (axisX - ux) * hinge;
+                    drawCellY += (axisY - uy) * hinge;
+                    drawFacingDeg = (float) Math.toDegrees(Math.atan2(-axisX, axisY))
+                            + type.turretSpriteFacingOffsetDeg;
+                    tDrawLong *= (float) Math.hypot(axisX, axisY);
+                    tDrawShort *= 1f + RAISE_WIDEN * (1f - cos);
                 }
                 out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
                         tf.x, tf.y, tf.w, tf.h,
                         cam.cellToScreenX(drawCellX), cam.cellToScreenY(drawCellY),
-                        tDrawLong, tDrawShort, turretFacingDeg,
+                        tDrawLong, tDrawShort, drawFacingDeg,
                         1f, 1f, 1f, alphaMult);
             }
 
@@ -226,13 +241,39 @@ public final class ConvoyRenderSystem implements RenderSystem {
         }
     }
 
-    /** A gun with a target, ground or air, or a burst under way: what a firing frame is drawn for. */
     /** How much wider a raised rack draws per unit it shortens: its nose has come up toward the eye. */
     private static final float RAISE_WIDEN = .3f;
     /** How far a fully raised rack stands off its own shadow, in cells, and how dark that shadow is. */
     private static final float RAISE_SHADOW_CELLS = .14f;
     private static final float RAISE_SHADOW_ALPHA = .45f;
+    /** The steepest a rack is drawn pitched, for a target so near its rounds would leave almost straight up. */
+    private static final float MAX_LAUNCH_PITCH = (float) Math.toRadians(70);
+    /** The least a raised rack draws along its own bearing, as a share of its length ({@link #readablePitch}). */
+    static final float MIN_RAISED_ALONG = .5f;
 
+    /**
+     * The angle an arcing round leaves the ground at, in radians: the slope of the drawn arc at its start. The arc
+     * rises {@code 4 * arcHeight} over its whole run ({@code ShotRenderService.spriteFlight}), so the slope is that
+     * over the range, and the same arc height lobbed at a nearer target leaves steeper.
+     */
+    static float launchPitch(float arcHeight, float rangeCells) {
+        if (arcHeight <= 0f) return 0f;
+        return Math.min(MAX_LAUNCH_PITCH, (float) Math.atan2(4f * arcHeight, Math.max(1f, rangeCells)));
+    }
+
+    /**
+     * The steepest a rack firing on this bearing can be drawn and still read as pointing at its target: its drawn
+     * length along the bearing, {@code cos + uy * sin} of the pitch, never under {@link #MIN_RAISED_ALONG}. Firing
+     * north or across the screen it never binds. Firing south, toward the bottom of the screen, a pitched nose
+     * comes back up the screen over its own tail, and the rack would fold to nothing and then point north, the
+     * way a lobbed round's drawn arc does leave; it stands only as tall as stays readable instead.
+     */
+    static float readablePitch(float uy) {
+        double reach = Math.hypot(1.0, uy);
+        return (float) (Math.atan2(uy, 1.0) + Math.acos(Math.min(1.0, MIN_RAISED_ALONG / reach)));
+    }
+
+    /** A gun with a target, ground or air, or a burst under way: what a firing frame is drawn for. */
     private static boolean engaged(GroundTurret turret) {
         return turret.targetId != 0L || turret.airTargetId != 0L || turret.burstRemaining > 0;
     }
