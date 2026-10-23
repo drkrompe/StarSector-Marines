@@ -1137,8 +1137,13 @@ support sortie, subject only to practical runtime resources.
   vehicle-pattern catalog. **Choosing is not buying:** clicking a pattern selects it,
   stands it on the pad as a translucent preview at the scene's own scale (a mech in its
   standard fit, a vehicle nose-up) on the right of the view, and fills a build card floating over the
-  left of the scene with its name, kind, figures, lore and
-  bill; only the card's BUILD spends anything. With nothing chosen the first pattern
+  left of the scene with its maker's crest, name, procurement credit, kind, figures, lore and
+  bill; only the card's BUILD spends anything. Every chassis and vehicle pattern is
+  credited to a faction in the loadout cards' voice (`MechPatternCredits`: a square
+  faction crest and a procurement line such as the Ordnance Board heavy schedule), and
+  the credit must agree with which faction's markets weight the pattern up
+  (`MechPatternPicker`): a navy's issue is that navy's, and a pickup-based field rig is a
+  frontier or pirate workshop's. With nothing chosen the first pattern
   the filter shows is previewed. A successful cargo-backed BUILD puts one persistent
   standard-fit chassis, or one vehicle, onto that exact pad and immediately makes
   it part of the active lance. A gantry holding a vehicle is selectable and shows its
