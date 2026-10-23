@@ -110,6 +110,14 @@ public enum MechWeaponComponent {
         static String lrm() { return ON ? WeaponRegistry.MECH_LRM_ARTILLERY_ID : WeaponRegistry.MECH_LRM_LEGACY_ID; }
     }
 
+    /**
+     * A missile rack holding more than one salvo: a held trigger chains its salvos (`salvo-chain.md`,
+     * {@link com.dillon.starsectormarines.battle.combat.SalvoChain}).
+     */
+    public boolean chainsSalvos() {
+        return hardpointType == HardpointType.MISSILE && ammoCapacity > 1;
+    }
+
     /** An anti-armor rack: it holds fire at anything that is not a hardened target. */
     public boolean antiArmorOnly() {
         return Variants.ON && switch (this) {
