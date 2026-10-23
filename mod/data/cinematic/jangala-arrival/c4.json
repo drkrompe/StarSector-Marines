@@ -34,7 +34,7 @@
   {
    "t": 0.054,
    "sound": "jangala_sfx_c4_second_wind_c4_drive",
-   "volume": 0.0513
+   "volume": 0.3981
   },
   {
    "t": 1.0,
@@ -64,7 +64,7 @@
   {
    "t": 10.25,
    "sound": "jangala_sfx_c4_landing_grit",
-   "volume": 0.1349
+   "volume": 0.0631
   },
   {
    "t": 16.39,
