@@ -145,9 +145,9 @@ fire. In build behind `-Dbattle.heart.burnFront` (`heart-burn-front.md`).
 **Battlegroup** (The Burn). One allied sector's force: militia infantry with
 armour (an escort APC, a technical, a breakthrough tank and a Hound pair).
 It follows the barrage on its own line across the front, armour stepping with
-its infantry. Its hulls are the allied commander's (`allied-command.md`):
-the mission names each one's post and the commander drives and fights it, a
-hull the woods bar holding as far forward as it can drive. It owns its sector's satellites, then goes on to the
+its infantry. Its armour is the allied commander's (`allied-command.md`):
+the mission names each machine's post and the commander drives and fights it, a
+machine the woods bar holding as far forward as it can drive. It owns its sector's satellites, then goes on to the
 nearest mother. It is `ALLY` (`ai-nouns.md`, Sides): it never ends the battle
 and never touches the roster.
 

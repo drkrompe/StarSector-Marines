@@ -2,7 +2,7 @@ Status: IN PROGRESS (behind `-Dbattle.heart.burnFront=true`)
 
 Written: 2026-10-22
 
-Updated: 2026-10-22 — built behind the switch and measured; armour mix and sector width are with the owner (`heart-burn-front-armour`, `heart-burn-company-sector`); hulls now driven by the shared allied commander (`allied-command.md`); Hounds stay mission-driven until it stations mechs.
+Updated: 2026-10-22 — built behind the switch and measured; armour mix and sector width are with the owner (`heart-burn-front-armour`, `heart-burn-company-sector`); hulls and Hounds now stationed by the shared allied commander (`allied-command.md`).
 
 # The Burn's front
 
@@ -57,15 +57,16 @@ commander of `cordon-allied-columns.md`.
 Main: no satellite down on any seed, the company broken by ticks 6,900-22,800.
 Standard front: 1 satellite (404); company broken later (15,000-26,000), 303
 times out. Heavy front: 3 satellites on 404, 1 on 202, 303 and 505; swarm
-killed nearly doubled. No mother is touched in any run: the next step is the
-company and the front reaching the mothers.
+killed nearly doubled. No mother is touched in any run. Heavy front with
+its armour stationed by the allied commander: satellites 1/0/2/2/2 (202-606),
+and on 606 the first mother down (the battle times out with four marines
+left). The next step is the company and the front reaching the mothers.
 
 ## Plan
 
 1. Battlegroup spawning and ordering on the barrage screen (`HeartLanes`
-   extended with armour and the screen). Hulls are deployed and stationed
+   extended with armour and the screen). Hulls and Hounds are stationed
    through `AlliedCommand` (`allied-command.md`); each post is the lane's
-   across, short of the hold. Hounds stay on the lane's own squad orders until
-   the allied commander stations mechs.
+   across, short of the hold.
 2. The company's sector width in `BloomHeartSetup`.
 3. Measure, render, picks.

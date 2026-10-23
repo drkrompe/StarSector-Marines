@@ -58,10 +58,9 @@ public final class HeartLanes {
         List<Integer> squads;
         int targetX = -1, targetY = -1;
         boolean broken;
-        /** The lane's armour (The Burn's battlegroups): hulls driven on planned routes, mechs ordered as squads. */
+        /** The lane's armour (The Burn's battlegroups): hulls and mechs both stationed by the allied command. */
         final List<Long> hulls = new ArrayList<>();
-        final List<Integer> mechs = new ArrayList<>();
-        int armourAimX = Integer.MIN_VALUE, armourAimY = Integer.MIN_VALUE;
+        final List<Long> mechs = new ArrayList<>();
 
         Lane(int number, HeartLane ground, int entryX, int entryY, RiskLevel risk, Random rng) {
             this.number = number;
@@ -185,7 +184,7 @@ public final class HeartLanes {
             s.leaderId = mech;
             s.originalSize = 1;
             sim.claimSquadCommand(squad, CommandAuthority.GARRISON, ISSUER, "lane " + lane.number + " walker");
-            lane.mechs.add(squad);
+            lane.mechs.add(mech);
             return true;
         }
         VehicleClearance clearance = clearance(sim, type);
@@ -209,47 +208,23 @@ public final class HeartLanes {
         boolean alongY = lane.ground.advancesAlongY();
         int toward = screen == null ? 0 : screen.sign();
         int count = lane.hulls.size() + lane.mechs.size(), i = 0;
-        // The allied command drives each hull to its post and fights it from there; it re-orders only when a
-        // post has moved, and pulls a goal the woods bar back toward the hull.
+        // The allied command drives each machine to its post and fights it from there; it re-orders only
+        // when a post has moved, and pulls a goal the woods bar back toward the machine.
         for (long hull : lane.hulls) {
             int[] at = station(aim, alongY, toward, i++, count);
             if (sim.convoy().structure(hull) <= 0f) continue;
             allied.station(sim, hull, at[0], at[1]);
         }
-        boolean moved = aim[0] != lane.armourAimX || aim[1] != lane.armourAimY;
-        lane.armourAimX = aim[0];
-        lane.armourAimY = aim[1];
-        if (!moved) return;
-        for (int squad : lane.mechs) {
+        for (long mech : lane.mechs) {
             int[] at = station(aim, alongY, toward, i++, count);
-            if (sim.squadMemberCount(squad) == 0) continue;
-            int[] stand = standable(sim, at, alongY, toward);
-            if (stand == null) continue;
-            sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad, stand[0], stand[1]),
-                    CommandAuthority.GARRISON, ISSUER, "lane " + lane.number + " walker comes up");
+            allied.stationMech(sim, mech, at[0], at[1]);
         }
-    }
-
-    /** The nearest ground a Hound can stand on at {@code at}, pulled back along the advance where the woods bar it. */
-    private static int[] standable(BattleSimulation sim, int[] at, boolean alongY, int toward) {
-        for (int k = 0; k <= FALLBACK_STEPS; k++) {
-            int back = toward * FALLBACK_STEP * k;
-            int gx = alongY ? at[0] : at[0] - back, gy = alongY ? at[1] - back : at[1];
-            MechSpawnPlacement.Point p = MechSpawnPlacement.nearCell(sim.getGrid(), MechVariant.HOUND.radius, gx, gy,
-                    (px, py) -> true, (px, py) -> true);
-            if (p != null) return new int[]{p.cellX(), p.cellY()};
-        }
-        return null;
     }
 
     private static int[] station(int[] aim, boolean alongY, int toward, int i, int count) {
         int across = Math.round((i - (count - 1) / 2f) * ARMOUR_SPACING), back = -toward * ARMOUR_BEHIND;
         return alongY ? new int[]{aim[0] + across, aim[1] + back} : new int[]{aim[0] + back, aim[1] + across};
     }
-
-    /** Plans a hull's drive to {@code (x, y)} round what it cannot cross; a hull with no route holds. */
-    /** How far a Hound's goal is pulled back toward the start line, a step at a time, when the woods bar it. */
-    static final int FALLBACK_STEP = AlliedCommand.PULLBACK_STEP, FALLBACK_STEPS = AlliedCommand.PULLBACK_LIMIT;
 
     /** Where armour has been set down, so no two machines start on each other. */
     private final List<float[]> placed = new ArrayList<>();
