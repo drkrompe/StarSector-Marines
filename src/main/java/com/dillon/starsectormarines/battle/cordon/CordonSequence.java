@@ -119,6 +119,8 @@ public final class CordonSequence implements Objective {
     public List<Integer> gap() { return gap; }
     public Timetable timetable() { return timetable; }
     public int tides() { return tides; }
+    /** Whether a tide is running now (heard on the radio when it comes, never foreseen). */
+    public boolean inTide() { return ebb >= 0; }
     public int eruptions() { return eruptions; }
     /** The Line's refugees, or {@code null}. */
     public CordonRefugees refugees() { return refugees; }
@@ -312,6 +314,7 @@ public final class CordonSequence implements Objective {
 
     /** One redoubt's state for this tick ({@code cordon-nouns.md}, Redoubt states). */
     private void step(BattleSimulation sim, int tick, CordonRedoubt redoubt, int swarmInside, boolean relief) {
+        redoubt.observe(swarmInside, tick);
         if (!redoubt.manned()) return;
         int standing = standing(sim, redoubt);
         if (standing == 0 && swarmInside > 0) {

@@ -24,6 +24,8 @@ public final class CordonRedoubt {
     private final List<Long> guns;
     private int garrison;
     private State state = State.HOLDING;
+    private int swarmInside;
+    private int lastBreachTick = Integer.MIN_VALUE / 2;
 
     public CordonRedoubt(int number, int left, int top, int right, int bottom,
                          List<Integer> teams, List<Long> guns, int garrison) {
@@ -54,6 +56,16 @@ public final class CordonRedoubt {
     /** How many the wall teams stood up with, and every column that has joined them since. */
     public int garrison() { return garrison; }
     public State state() { return state; }
+    /** Swarm bodies inside the wall at the last look. */
+    public int swarmInside() { return swarmInside; }
+    /** Ticks at {@code tick} since a swarm body was last inside the wall; very large for never. */
+    public int quietTicks(int tick) { return tick - lastBreachTick; }
+
+    /** The sequence's look inside the wall this tick. */
+    void observe(int inside, int tick) {
+        swarmInside = inside;
+        if (inside > 0) lastBreachTick = tick;
+    }
 
     void setState(State state) { this.state = state; }
 

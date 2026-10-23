@@ -116,6 +116,12 @@ fixed line of hulls (`CordonSetup.BASE_LINE`, `FabricationService`), carriers
 staged on its apron, columns mustering in its yard. The heart schedules its
 armour separately (`HeartLanes.scheduleArmour`).
 
+The producer's seam is `AlliedProducer` (an `AlliedDepot` that also takes
+`request(AlliedRequest)`, a tool to a named place for a reason, and answers
+`onRoad(tool, place)`), so a commander draws on its stock by need rather than
+every machine coming on a timer. The heart's commander and the Cordon's both
+call it. No producer implements it yet.
+
 Proposed: one mission-neutral **producer** (working name `AlliedToolShed`)
 that takes a mission's table and a base found on the layout, and schedules
 any tool kind from its own origin:

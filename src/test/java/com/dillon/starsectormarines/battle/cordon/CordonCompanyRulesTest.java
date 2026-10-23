@@ -1,0 +1,126 @@
+package com.dillon.starsectormarines.battle.cordon;
+
+import com.dillon.starsectormarines.battle.cordon.CordonCompanyRules.Duty;
+import com.dillon.starsectormarines.battle.cordon.CordonCompanyRules.Kind;
+import com.dillon.starsectormarines.battle.cordon.CordonCompanyRules.Squad;
+import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+class CordonCompanyRulesTest {
+
+    private static final int NEVER = Integer.MAX_VALUE / 2;
+
+    private static CordonRadio quiet(int n, int x) {
+        return CordonRadio.report(n, x, 100, true, 0, 10, 10, NEVER, false, false);
+    }
+
+    private static List<Squad> company(int count) {
+        List<Squad> out = new ArrayList<>();
+        for (int i = 0; i < count; i++) out.add(new Squad(i, 200 + i * 8, 130, null));
+        return out;
+    }
+
+    @Test
+    void radioSplitsTheCallByItsCause() {
+        CordonRadio breached = CordonRadio.report(1, 0, 0, true, 3, 10, 10, 0, false, false);
+        assertTrue(breached.breached() && breached.unsettled() && !breached.bled());
+        CordonRadio settling = CordonRadio.report(1, 0, 0, true, 0, 10, 10, CordonRadio.SETTLE_TICKS - 1, false, false);
+        assertTrue(settling.unsettled() && !settling.breached());
+        assertFalse(CordonRadio.report(1, 0, 0, true, 0, 10, 10, CordonRadio.SETTLE_TICKS, false, false).unsettled());
+        CordonRadio bled = CordonRadio.report(1, 0, 0, true, 0, 5, 10, NEVER, false, false);
+        assertTrue(bled.bled() && bled.wantsRelief());
+        assertFalse(CordonRadio.report(1, 0, 0, true, 0, 5, 10, NEVER, false, true).wantsRelief());
+        assertFalse(CordonRadio.report(1, 0, 0, false, 9, 0, 10, 0, true, false).wantsRelief());
+    }
+
+    @Test
+    void aBreachTakesADetachmentNotTheCompany() {
+        List<CordonRadio> radio = List.of(quiet(1, 100), CordonRadio.report(2, 220, 100, true, 4, 10, 10, 0, false, false));
+        List<Duty> duties = CordonCompanyRules.duties(radio, List.of(), List.of(), List.of(), null);
+        Map<Integer, Duty> out = CordonCompanyRules.assign(duties, company(6), CordonCompanyRules.reserveFloor(6, false));
+        assertEquals(CordonCompanyRules.DETACHMENT, out.size());
+        out.values().forEach(d -> assertEquals("relieve-2", d.key()));
+    }
+
+    @Test
+    void theReliefHoldsUntilSettledAndKeepsItsSquads() {
+        CordonRadio settling = CordonRadio.report(2, 220, 100, true, 0, 10, 10, 100, false, false);
+        List<Duty> duties = CordonCompanyRules.duties(List.of(settling), List.of(), List.of(), List.of(), null);
+        List<Squad> squads = new ArrayList<>(company(6));
+        // Squads 5 and 4 are already on it, though 0 and 1 stand nearer.
+        squads.set(5, new Squad(5, 900, 900, "relieve-2"));
+        squads.set(4, new Squad(4, 900, 900, "relieve-2"));
+        Map<Integer, Duty> out = CordonCompanyRules.assign(duties, squads, 2);
+        assertEquals(2, out.size());
+        assertTrue(out.containsKey(4) && out.containsKey(5));
+    }
+
+    @Test
+    void bledWithHelpComingAsksForNobody() {
+        CordonRadio helped = CordonRadio.report(2, 220, 100, true, 0, 4, 10, NEVER, false, true);
+        assertTrue(CordonCompanyRules.duties(List.of(helped), List.of(), List.of(), List.of(), null).isEmpty());
+        CordonRadio alone = CordonRadio.report(2, 220, 100, true, 0, 4, 10, NEVER, false, false);
+        assertEquals(Kind.BLED, CordonCompanyRules.duties(List.of(alone), List.of(), List.of(), List.of(), null).get(0).kind());
+    }
+
+    @Test
+    void theFloorHoldsOutsideATideAndGoesInOne() {
+        List<CordonRadio> radio = new ArrayList<>();
+        for (int n = 1; n <= 4; n++) radio.add(CordonRadio.report(n, n * 100, 100, true, 2, 10, 10, 0, false, false));
+        List<Duty> duties = CordonCompanyRules.duties(radio, List.of(), List.of(), List.of(), null);
+        assertEquals(4, CordonCompanyRules.assign(duties, company(6), CordonCompanyRules.reserveFloor(6, false)).size());
+        assertEquals(6, CordonCompanyRules.assign(duties, company(6), CordonCompanyRules.reserveFloor(6, true)).size());
+    }
+
+    @Test
+    void theRoadIsNotHeldToTheFloor() {
+        List<Duty> duties = CordonCompanyRules.duties(List.of(), List.of(new int[]{0, 0}), List.of(new int[]{50, 0}),
+                List.of(), null);
+        assertEquals(5, CordonCompanyRules.assign(duties, company(6), 2).size());
+    }
+
+    @Test
+    void beatsTakeAtMostHalfTheCompanyAndKeepTheirKeyAsTheTruckMoves() {
+        List<int[]> beats = List.of(new int[]{10, 10, 2}, new int[]{20, 20, 2});
+        List<Duty> duties = CordonCompanyRules.duties(List.of(), List.of(), List.of(), beats, null);
+        assertEquals("beat-0", duties.get(0).key());
+        assertEquals(3, CordonCompanyRules.assign(duties, company(6), 0).size());
+    }
+
+    @Test
+    void urbanWaitsAsTwoHammersAndTheTownAtItsHinge() {
+        List<int[]> line = List.of(new int[]{100, 100}, new int[]{200, 100}, new int[]{300, 100}, new int[]{400, 100});
+        List<int[]> hammers = CordonCompanyRules.reservePosts(CordonPlan.Density.URBAN, line, 250, 130, 6, false);
+        assertEquals(6, hammers.size());
+        assertEquals(150, hammers.get(1)[0]);
+        assertEquals(350, hammers.get(4)[0]);
+        assertEquals(130, hammers.get(0)[1]);
+        List<int[]> hinge = CordonCompanyRules.reservePosts(CordonPlan.Density.TOWN, line, 250, 130, 2, true);
+        assertEquals(100, hinge.get(0)[1]);
+        assertEquals(250, hinge.get(0)[0]);
+        List<int[]> rural = CordonCompanyRules.reservePosts(CordonPlan.Density.RURAL, line, 250, 130, 1, true);
+        assertEquals(250, rural.get(0)[0]);
+    }
+
+    @Test
+    void aLiftIsWorthItOnlyFarOutsideACityWithACarrierNearer() {
+        assertTrue(CordonCompanyRules.liftWorth(CordonPlan.Density.RURAL, 0, 0, 150, 0, 10, 0));
+        assertFalse(CordonCompanyRules.liftWorth(CordonPlan.Density.URBAN, 0, 0, 150, 0, 10, 0));
+        assertFalse(CordonCompanyRules.liftWorth(CordonPlan.Density.TOWN, 0, 0, 80, 0, 10, 0));
+        assertFalse(CordonCompanyRules.liftWorth(CordonPlan.Density.TOWN, 0, 0, 150, 0, 200, 0));
+    }
+
+    @Test
+    void theBaseOverrunIsServedLast() {
+        List<Duty> duties = CordonCompanyRules.duties(List.of(quiet(1, 0)), List.of(), List.of(), List.of(), new int[]{5, 5});
+        assertEquals(Kind.BASE, duties.get(duties.size() - 1).kind());
+        assertEquals("RESERVE", CordonCommand.phase(Map.of()));
+    }
+}

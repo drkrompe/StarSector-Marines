@@ -3,6 +3,11 @@
 Status: DRAFT — three questions out to the owner (`cordon-answer-call`,
 `cordon-urban-hammer`, `cordon-beat-escort`), seen in `cordon-command-look`
 (opt-in `createSnapshots` suite); built on the recommended options meanwhile.
+The company's side is built (`CordonRadio`, `CordonCompanyRules`, behind
+`CordonCommand`); Uncovered and Help coming are reported false until the
+allied line command says them, and the lift is decided (`liftWorth`) but not
+asked for until a Marine carry exists. The allied line command's rules are
+not built yet.
 
 Written: 2026-10-23
 
@@ -147,7 +152,8 @@ duty stands, rather than being re-chosen each frame.
 3. **A breached redoubt: a relief detachment.** The two nearest free squads
    go at once and fight in behind the rear wall. They **hold until the
    redoubt is settled**: holding, nothing inside its wall and nothing in their
-   own sight within reach of it for twenty seconds. Then they go back. (Today
+   own sight within reach of it for twenty seconds (built on the wall alone
+   for now: twenty seconds with no swarm body inside). Then they go back. (Today
    they turn back the moment one touches the gate.)
 4. **A bled redoubt: the allies' first.** With *Help coming* the company sends
    nobody. Without it, it is answered as a breach.
