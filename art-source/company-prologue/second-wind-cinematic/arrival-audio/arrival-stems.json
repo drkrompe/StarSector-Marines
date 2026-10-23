@@ -1,0 +1,565 @@
+{
+ "_doc": "Written by build_arrival_stems.py; each row is one cue of the cue sheet as a one-shot clip. Levels are edited in arrival-mix.json.",
+ "stems": [
+  {
+   "shot": "c1",
+   "t": 0.015,
+   "sound": "jangala_sfx_c1_cabin_bed",
+   "gain_db": -18.0,
+   "seconds": 37.68,
+   "layer": "c1_cabin_bed"
+  },
+  {
+   "shot": "c1",
+   "t": 0.5,
+   "sound": "jangala_sfx_c1_hull_creaks",
+   "gain_db": -13.8,
+   "seconds": 2.5,
+   "layer": "c1_hull_creaks"
+  },
+  {
+   "shot": "c1",
+   "t": 1.786,
+   "sound": "jangala_sfx_c1_second_wind_pass",
+   "gain_db": -6.2,
+   "seconds": 35.9,
+   "layer": "second_wind_pass"
+  },
+  {
+   "shot": "c1",
+   "t": 5.01,
+   "sound": "jangala_sfx_c1_rcs_puffs",
+   "gain_db": -11.9,
+   "seconds": 1.99,
+   "layer": "c1_rcs_puffs"
+  },
+  {
+   "shot": "c1",
+   "t": 6.0,
+   "sound": "jangala_sfx_c1_sparks",
+   "gain_db": -21.0,
+   "seconds": 4.0,
+   "layer": "c1_sparks"
+  },
+  {
+   "shot": "c1",
+   "t": 21.502,
+   "sound": "jangala_sfx_c1_hound_flyby_a",
+   "gain_db": -14.6,
+   "seconds": 13.0,
+   "layer": "hound_flyby_a"
+  },
+  {
+   "shot": "c1",
+   "t": 32.2,
+   "sound": "jangala_sfx_c1_hull_creaks_2",
+   "gain_db": -13.8,
+   "seconds": 2.29,
+   "layer": "c1_hull_creaks"
+  },
+  {
+   "shot": "c2",
+   "t": 0.0,
+   "sound": "jangala_sfx_c2_c1_cabin_bed",
+   "gain_db": -25.7,
+   "seconds": 0.98,
+   "layer": "c1_cabin_bed"
+  },
+  {
+   "shot": "c2",
+   "t": 0.003,
+   "sound": "jangala_sfx_c2_bridge_bed",
+   "gain_db": -20.5,
+   "seconds": 15.0,
+   "layer": "c2_bridge_bed"
+  },
+  {
+   "shot": "c2",
+   "t": 0.007,
+   "sound": "jangala_sfx_c2_second_wind_interior",
+   "gain_db": -14.8,
+   "seconds": 14.99,
+   "layer": "second_wind_interior"
+  },
+  {
+   "shot": "c2",
+   "t": 0.085,
+   "sound": "jangala_sfx_c2_console_beeps",
+   "gain_db": -19.2,
+   "seconds": 0.65,
+   "layer": "c2_console_beeps"
+  },
+  {
+   "shot": "c2",
+   "t": 0.09,
+   "sound": "jangala_sfx_c2_legion_forward",
+   "gain_db": -12.1,
+   "seconds": 14.91,
+   "layer": "legion_forward"
+  },
+  {
+   "shot": "c2",
+   "t": 0.114,
+   "sound": "jangala_sfx_c2_legion_drives",
+   "gain_db": -15.9,
+   "seconds": 14.88,
+   "layer": "legion_drives"
+  },
+  {
+   "shot": "c2",
+   "t": 0.141,
+   "sound": "jangala_sfx_c2_fighter_02",
+   "gain_db": -8.0,
+   "seconds": 6.82,
+   "layer": "fighter_02"
+  },
+  {
+   "shot": "c2",
+   "t": 0.215,
+   "sound": "jangala_sfx_c2_fighter_00",
+   "gain_db": -7.4,
+   "seconds": 6.75,
+   "layer": "fighter_00"
+  },
+  {
+   "shot": "c2",
+   "t": 0.223,
+   "sound": "jangala_sfx_c2_fighter_10",
+   "gain_db": -10.9,
+   "seconds": 6.76,
+   "layer": "fighter_10"
+  },
+  {
+   "shot": "c2",
+   "t": 0.231,
+   "sound": "jangala_sfx_c2_fighter_12",
+   "gain_db": -12.7,
+   "seconds": 6.75,
+   "layer": "fighter_12"
+  },
+  {
+   "shot": "c2",
+   "t": 0.362,
+   "sound": "jangala_sfx_c2_fighter_01",
+   "gain_db": -10.1,
+   "seconds": 6.58,
+   "layer": "fighter_01"
+  },
+  {
+   "shot": "c2",
+   "t": 0.516,
+   "sound": "jangala_sfx_c2_fighter_11",
+   "gain_db": -13.3,
+   "seconds": 6.45,
+   "layer": "fighter_11"
+  },
+  {
+   "shot": "c2",
+   "t": 1.47,
+   "sound": "jangala_sfx_c2_console_lean",
+   "gain_db": -15.3,
+   "seconds": 0.84,
+   "layer": "c2_console_lean"
+  },
+  {
+   "shot": "c2",
+   "t": 2.036,
+   "sound": "jangala_sfx_c2_console_beeps_2",
+   "gain_db": -16.1,
+   "seconds": 1.34,
+   "layer": "c2_console_beeps"
+  },
+  {
+   "shot": "c2",
+   "t": 4.972,
+   "sound": "jangala_sfx_c2_steps",
+   "gain_db": -16.7,
+   "seconds": 0.85,
+   "layer": "c2_steps"
+  },
+  {
+   "shot": "c2",
+   "t": 5.33,
+   "sound": "jangala_sfx_c2_brush_past",
+   "gain_db": -18.2,
+   "seconds": 0.82,
+   "layer": "c2_brush_past"
+  },
+  {
+   "shot": "c2",
+   "t": 6.57,
+   "sound": "jangala_sfx_c2_console_lean_2",
+   "gain_db": -16.3,
+   "seconds": 0.84,
+   "layer": "c2_console_lean"
+  },
+  {
+   "shot": "c2",
+   "t": 9.534,
+   "sound": "jangala_sfx_c2_switch_clicks",
+   "gain_db": -8.6,
+   "seconds": 0.25,
+   "layer": "c2_switch_clicks"
+  },
+  {
+   "shot": "c2",
+   "t": 10.8,
+   "sound": "jangala_sfx_c2_c1_hull_creaks",
+   "gain_db": -12.2,
+   "seconds": 1.5,
+   "layer": "c1_hull_creaks"
+  },
+  {
+   "shot": "c2",
+   "t": 14.35,
+   "sound": "jangala_sfx_c2_switch_clicks_2",
+   "gain_db": -8.9,
+   "seconds": 0.42,
+   "layer": "c2_switch_clicks"
+  },
+  {
+   "shot": "entry",
+   "t": 0.0,
+   "sound": "jangala_sfx_entry_second_wind_interior",
+   "gain_db": -17.7,
+   "seconds": 7.0,
+   "layer": "second_wind_interior"
+  },
+  {
+   "shot": "entry",
+   "t": 0.605,
+   "sound": "jangala_sfx_entry_buffet",
+   "gain_db": -9.7,
+   "seconds": 6.39,
+   "layer": "entry_buffet"
+  },
+  {
+   "shot": "entry",
+   "t": 1.202,
+   "sound": "jangala_sfx_entry_reentry_roar",
+   "gain_db": -9.5,
+   "seconds": 5.8,
+   "layer": "entry_reentry_roar"
+  },
+  {
+   "shot": "entry",
+   "t": 3.6,
+   "sound": "jangala_sfx_entry_c1_hull_creaks",
+   "gain_db": -8.2,
+   "seconds": 1.5,
+   "layer": "c1_hull_creaks"
+  },
+  {
+   "shot": "c3",
+   "t": 0.0,
+   "sound": "jangala_sfx_c3_entry_buffet",
+   "gain_db": -26.0,
+   "seconds": 5.48,
+   "layer": "entry_buffet"
+  },
+  {
+   "shot": "c3",
+   "t": 0.0,
+   "sound": "jangala_sfx_c3_entry_reentry_roar",
+   "gain_db": -56.3,
+   "seconds": 0.13,
+   "layer": "entry_reentry_roar"
+  },
+  {
+   "shot": "c3",
+   "t": 0.0,
+   "sound": "jangala_sfx_c3_second_wind_interior",
+   "gain_db": -20.8,
+   "seconds": 1.95,
+   "layer": "second_wind_interior"
+  },
+  {
+   "shot": "c3",
+   "t": 0.0,
+   "sound": "jangala_sfx_c3_wind_easing",
+   "gain_db": -12.5,
+   "seconds": 15.98,
+   "layer": "c3_wind_easing"
+  },
+  {
+   "shot": "c3",
+   "t": 0.001,
+   "sound": "jangala_sfx_c3_cabin_flight_bed",
+   "gain_db": -21.3,
+   "seconds": 16.0,
+   "layer": "c3_cabin_flight_bed"
+  },
+  {
+   "shot": "c3",
+   "t": 4.048,
+   "sound": "jangala_sfx_c3_nature_muffled",
+   "gain_db": -21.8,
+   "seconds": 11.95,
+   "layer": "c3_nature_muffled"
+  },
+  {
+   "shot": "c3",
+   "t": 4.077,
+   "sound": "jangala_sfx_c3_river_muffled",
+   "gain_db": -28.3,
+   "seconds": 11.92,
+   "layer": "c3_river_muffled"
+  },
+  {
+   "shot": "c3",
+   "t": 5.6,
+   "sound": "jangala_sfx_c3_frame_settle",
+   "gain_db": -12.6,
+   "seconds": 2.97,
+   "layer": "c3_frame_settle"
+  },
+  {
+   "shot": "c4",
+   "t": 0.0,
+   "sound": "jangala_sfx_c4_c3_cabin_flight_bed",
+   "gain_db": -27.4,
+   "seconds": 1.0,
+   "layer": "c3_cabin_flight_bed"
+  },
+  {
+   "shot": "c4",
+   "t": 0.0,
+   "sound": "jangala_sfx_c4_ground_distant",
+   "gain_db": -24.5,
+   "seconds": 10.99,
+   "layer": "c4_ground_distant"
+  },
+  {
+   "shot": "c4",
+   "t": 0.0,
+   "sound": "jangala_sfx_c4_high_wind_bed",
+   "gain_db": -12.6,
+   "seconds": 20.4,
+   "layer": "c4_high_wind_bed"
+  },
+  {
+   "shot": "c4",
+   "t": 0.054,
+   "sound": "jangala_sfx_c4_second_wind_c4_drive",
+   "gain_db": -25.8,
+   "seconds": 17.84,
+   "layer": "second_wind_c4_drive"
+  },
+  {
+   "shot": "c4",
+   "t": 1.007,
+   "sound": "jangala_sfx_c4_freeway",
+   "gain_db": -17.9,
+   "seconds": 59.89,
+   "layer": "c4_freeway"
+  },
+  {
+   "shot": "c4",
+   "t": 3.659,
+   "sound": "jangala_sfx_c4_port_heavy",
+   "gain_db": -8.1,
+   "seconds": 57.21,
+   "layer": "c4_port_heavy"
+  },
+  {
+   "shot": "c4",
+   "t": 5.037,
+   "sound": "jangala_sfx_c4_port_ambience",
+   "gain_db": -19.5,
+   "seconds": 34.35,
+   "layer": "c4_port_ambience"
+  },
+  {
+   "shot": "c4",
+   "t": 9.993,
+   "sound": "jangala_sfx_c4_second_wind_c4_lift",
+   "gain_db": -20.6,
+   "seconds": 6.67,
+   "layer": "second_wind_c4_lift"
+  },
+  {
+   "shot": "c4",
+   "t": 10.25,
+   "sound": "jangala_sfx_c4_landing_grit",
+   "gain_db": -17.4,
+   "seconds": 6.71,
+   "layer": "landing_grit"
+  },
+  {
+   "shot": "c4",
+   "t": 16.39,
+   "sound": "jangala_sfx_c4_landing_thump",
+   "gain_db": 0.0,
+   "seconds": 2.85,
+   "layer": "landing_thump"
+  },
+  {
+   "shot": "c4",
+   "t": 16.59,
+   "sound": "jangala_sfx_c4_landing_spool",
+   "gain_db": -7.8,
+   "seconds": 4.75,
+   "layer": "landing_spool"
+  },
+  {
+   "shot": "c4",
+   "t": 16.924,
+   "sound": "jangala_sfx_c4_landing_settle",
+   "gain_db": -19.1,
+   "seconds": 4.3,
+   "layer": "landing_settle"
+  },
+  {
+   "shot": "c4",
+   "t": 17.426,
+   "sound": "jangala_sfx_c4_c5_yard_bed",
+   "gain_db": -20.9,
+   "seconds": 43.95,
+   "layer": "c5_yard_bed"
+  },
+  {
+   "shot": "c4",
+   "t": 19.94,
+   "sound": "jangala_sfx_c4_c5_vehicles_arrive",
+   "gain_db": -16.7,
+   "seconds": 5.9,
+   "layer": "c5_vehicles_arrive"
+  },
+  {
+   "shot": "c4",
+   "t": 20.905,
+   "sound": "jangala_sfx_c4_c5_vehicles_arrive_2",
+   "gain_db": -17.7,
+   "seconds": 5.6,
+   "layer": "c5_vehicles_arrive"
+  },
+  {
+   "shot": "c5",
+   "t": 0.511,
+   "sound": "jangala_sfx_c5_vehicles_arrive",
+   "gain_db": -18.7,
+   "seconds": 5.3,
+   "layer": "c5_vehicles_arrive"
+  },
+  {
+   "shot": "c5",
+   "t": 0.648,
+   "sound": "jangala_sfx_c5_hull_ticks",
+   "gain_db": -14.1,
+   "seconds": 13.24,
+   "layer": "c5_hull_ticks"
+  },
+  {
+   "shot": "c5",
+   "t": 1.009,
+   "sound": "jangala_sfx_c5_vehicles_arrive_2",
+   "gain_db": -20.7,
+   "seconds": 5.0,
+   "layer": "c5_vehicles_arrive"
+  },
+  {
+   "shot": "c5",
+   "t": 3.136,
+   "sound": "jangala_sfx_c5_car_doors",
+   "gain_db": -26.3,
+   "seconds": 0.53,
+   "layer": "c5_car_doors"
+  },
+  {
+   "shot": "c5",
+   "t": 4.096,
+   "sound": "jangala_sfx_c5_steam_vent",
+   "gain_db": -22.4,
+   "seconds": 2.39,
+   "layer": "c5_steam_vent"
+  },
+  {
+   "shot": "c5",
+   "t": 4.136,
+   "sound": "jangala_sfx_c5_car_doors_2",
+   "gain_db": -26.3,
+   "seconds": 0.53,
+   "layer": "c5_car_doors"
+  },
+  {
+   "shot": "c5",
+   "t": 4.75,
+   "sound": "jangala_sfx_c5_pa_click",
+   "gain_db": -7.2,
+   "seconds": 0.25,
+   "layer": "c5_pa_click"
+  },
+  {
+   "shot": "c5",
+   "t": 5.136,
+   "sound": "jangala_sfx_c5_car_doors_3",
+   "gain_db": -26.3,
+   "seconds": 0.53,
+   "layer": "c5_car_doors"
+  },
+  {
+   "shot": "c5",
+   "t": 5.6,
+   "sound": "jangala_sfx_c5_ramp_drop",
+   "gain_db": -13.2,
+   "seconds": 3.96,
+   "layer": "c5_ramp_drop"
+  },
+  {
+   "shot": "c5",
+   "t": 5.636,
+   "sound": "jangala_sfx_c5_car_doors_4",
+   "gain_db": -17.2,
+   "seconds": 2.59,
+   "layer": "c5_car_doors"
+  },
+  {
+   "shot": "c5",
+   "t": 6.514,
+   "sound": "jangala_sfx_c5_steam_vent_2",
+   "gain_db": -24.4,
+   "seconds": 2.07,
+   "layer": "c5_steam_vent"
+  },
+  {
+   "shot": "c5",
+   "t": 8.571,
+   "sound": "jangala_sfx_c5_crowd_murmur",
+   "gain_db": -28.6,
+   "seconds": 16.32,
+   "layer": "c5_crowd_murmur"
+  },
+  {
+   "shot": "c5",
+   "t": 11.891,
+   "sound": "jangala_sfx_c5_colossus_lift",
+   "gain_db": -17.6,
+   "seconds": 28.1,
+   "layer": "colossus_lift"
+  },
+  {
+   "shot": "c5",
+   "t": 12.05,
+   "sound": "jangala_sfx_c5_pa_click_2",
+   "gain_db": -7.2,
+   "seconds": 0.25,
+   "layer": "c5_pa_click"
+  },
+  {
+   "shot": "c5",
+   "t": 17.019,
+   "sound": "jangala_sfx_c5_port_wide",
+   "gain_db": -10.1,
+   "seconds": 22.96,
+   "layer": "c5_port_wide"
+  },
+  {
+   "shot": "c5",
+   "t": 19.391,
+   "sound": "jangala_sfx_c5_colossus_mains",
+   "gain_db": -11.3,
+   "seconds": 20.6,
+   "layer": "colossus_mains"
+  }
+ ]
+}
