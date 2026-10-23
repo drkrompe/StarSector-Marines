@@ -44,7 +44,7 @@ final class BattleDirectControlHelp {
                 add(out, Strings.get("battleDirectHelpKeyMouse"), "MarineAim");
                 add(out, Strings.get("battleDirectHelpKeyLmbHold"), "MarineFire");
                 add(out, "RMB", "MarineSecondary");
-                add(out, "E", "MarineShield");
+                add(out, "C", "MarineShield");
                 add(out, "G", "MarineSmoke");
                 add(out, "R", "MarineReload");
                 add(out, "Shift", "MarineSprint");
@@ -57,7 +57,7 @@ final class BattleDirectControlHelp {
                 add(out, Strings.get("battleDirectHelpKeyLmbHold"), "MechPrimary");
                 add(out, Strings.get("battleDirectHelpKeyRmbHold"), "MechSecondary");
                 add(out, "Q", "MechCycleLeft");
-                add(out, "C", "MechCycleRight");
+                add(out, "E", "MechCycleRight");
                 add(out, "1 2 3", "MechPick");
                 add(out, "", "MechFlux");
                 add(out, "", "MechIndirect");
@@ -80,7 +80,7 @@ final class BattleDirectControlHelp {
                 add(out, "2", "ShipDirector");
                 add(out, "3", "ShipPreset");
                 add(out, "4", "ShipPolicy");
-                add(out, "E", "ShipShield");
+                add(out, "C", "ShipShield");
                 add(out, "F", "ShipPass");
                 add(out, "Tab / Esc", "Leave");
                 add(out, "Space", "Pause");
@@ -99,7 +99,7 @@ final class BattleDirectControlHelp {
                 add(out, "1", "TenderOption");
                 add(out, "2 3 4", "TenderSoon");
                 add(out, "X", "TenderCancel");
-                add(out, "E", "ShipShield");
+                add(out, "C", "ShipShield");
                 add(out, "Tab / Esc", "TenderLeave");
                 add(out, "Space", "Pause");
                 add(out, "", "TenderSeen");

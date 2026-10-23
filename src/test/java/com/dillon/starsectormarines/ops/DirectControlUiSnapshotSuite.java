@@ -23,6 +23,8 @@ import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlAimLane;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlAimOrigins;
+import com.dillon.starsectormarines.battle.ui.panel.DirectControlPanel;
+import com.dillon.starsectormarines.battle.ui.panel.DirectControlScatter;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
@@ -44,6 +46,10 @@ import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import java.awt.BasicStroke;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
+import javax.imageio.ImageIO;
+import java.util.function.Consumer;
 import java.awt.geom.Line2D;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -186,26 +192,27 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         artifacts.add(new SnapshotArtifact("active-vehicle-ordnance-1920x1080-ui100.png",
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, ordnanceVehicle(),
                         vehiclePlate(context.modRoot()).document(), false)));
+        for (LauncherAim aim : LAUNCHER_AIMS) {
+            artifacts.add(new SnapshotArtifact("active-vehicle-lrm-" + aim.name() + "-1920x1080-ui100.png",
+                    launcherFrame(renderer, context.modRoot(), aim)));
+        }
         artifacts.add(new SnapshotArtifact("active-marine-pulse-rifle-1920x1080-ui100.png",
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, pulseRifle(),
                         marinePlate(context.modRoot(), true).document(), false)));
         artifacts.add(new SnapshotArtifact("marine-doll-states-1920x1080-ui100.png",
                 marineStates(renderer, context.modRoot())));
-        // The trigger-pick header looks for the picks page: a Bulwark on LINKED, then on one arm gun.
+        // A Bulwark's trigger headers on LINKED, then with one arm gun and one rack picked.
         var oneGun = new MechTriggerPicks(MechMountSlot.RIGHT_ARM.ordinal() + 1, MechMountSlot.LEFT_SHOULDER.ordinal() + 1);
-        for (var look : BattleDirectControlHudModel.PickLook.values()) {
-            String name = look.name().toLowerCase(Locale.ROOT);
-            artifacts.add(new SnapshotArtifact("pick-" + name + "-linked-1920x1080-ui100.png",
-                    activeComposite(renderer, context.modRoot(), 1920, 1080, 1f,
-                            BattleDirectControlHudTest.bulwark(MechTriggerPicks.LINKED),
-                            sectionPlate(context.modRoot(), new MechLoadoutComponent(MechVariant.BULWARK, null)).document(),
-                            false, false, look)));
-            artifacts.add(new SnapshotArtifact("pick-" + name + "-one-mount-1920x1080-ui100.png",
-                    activeComposite(renderer, context.modRoot(), 1920, 1080, 1f,
-                            BattleDirectControlHudTest.bulwark(oneGun),
-                            sectionPlate(context.modRoot(), new MechLoadoutComponent(MechVariant.BULWARK, null)).document(),
-                            false, false, look)));
-        }
+        artifacts.add(new SnapshotArtifact("pick-linked-1920x1080-ui100.png",
+                activeComposite(renderer, context.modRoot(), 1920, 1080, 1f,
+                        BattleDirectControlHudTest.bulwark(MechTriggerPicks.LINKED),
+                        sectionPlate(context.modRoot(), new MechLoadoutComponent(MechVariant.BULWARK, null)).document(),
+                        false)));
+        artifacts.add(new SnapshotArtifact("pick-one-mount-1920x1080-ui100.png",
+                activeComposite(renderer, context.modRoot(), 1920, 1080, 1f,
+                        BattleDirectControlHudTest.bulwark(oneGun),
+                        sectionPlate(context.modRoot(), new MechLoadoutComponent(MechVariant.BULWARK, null)).document(),
+                        false)));
         return artifacts;
     }
 
@@ -271,6 +278,83 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         var base = BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.VEHICLE, false);
         return new BattleDirectControlStatus.Snapshot(base.entityId(), "Breakthrough Tank",
                 BattleDirectControlStatus.Carrier.VEHICLE, base.durability(), weapons);
+    }
+
+    /** The LRM carrier's cursor {@code cells} from its turret ring, along a bearing up and to the right. */
+    private record LauncherAim(String name, float cells) { }
+
+    /** Inside range, past it (where the disk grows faster), and inside the minimum, where the trigger is refused. */
+    private static final List<LauncherAim> LAUNCHER_AIMS = List.of(
+            new LauncherAim("in-range", 24f), new LauncherAim("beyond-range", 46f),
+            new LauncherAim("too-close", 5f));
+
+    /** Pixels per cell for the launcher frames' world. */
+    private static final float LAUNCHER_CELL_PX = 24f;
+
+    /**
+     * The controlled LRM carrier with its cursor and scatter ring, and the HUD's launcher row for the same cursor.
+     * The ring and its colour are {@link DirectControlScatter#vehicle} and {@link DirectControlPanel#scatterColor},
+     * the production figures; the world beneath is a plain grid, and the strokes are Java2D copies of the panel's
+     * GL ring and crosshair.
+     */
+    private static BufferedImage launcherFrame(HeadlessUiRenderer renderer, Path modRoot, LauncherAim aim)
+            throws Exception {
+        VehicleType type = VehicleType.LRM_CARRIER;
+        var mount = type.turretStructure().mount;
+        var ring = DirectControlScatter.vehicle(mount.weapon, aim.cells());
+        var status = BattleDirectControlStatus.vehicleWeapon(new GroundTurret(mount.ammoCapacity), mount, aim.cells());
+        var base = BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.VEHICLE, false);
+        var snapshot = new BattleDirectControlStatus.Snapshot(base.entityId(), "LRM Carrier",
+                BattleDirectControlStatus.Carrier.VEHICLE, base.durability(), List.of(status));
+        var plate = new BattleDamageDollPlate(path -> Files.readString(modRoot.resolve(path)),
+                ModStrings.fromDisk(modRoot));
+        plate.updateVehicle(type, type.maxStructure, type.maxStructure, null, HullLocations.of(type, null));
+        BufferedImage sheet = ImageIO.read(modRoot.resolve(type.spritePath).toFile());
+        return activeComposite(renderer, modRoot, 1920, 1080, 1f, snapshot, plate.document(), false, false,
+                graphics -> drawLauncherWorld(graphics, sheet, type, ring, aim.cells()));
+    }
+
+    private static void drawLauncherWorld(Graphics2D graphics, BufferedImage sheet, VehicleType type,
+                                          DirectControlScatter.Ring ring, float cells) {
+        float px = LAUNCHER_CELL_PX;
+        double bearing = Math.atan2(-470.0, 1000.0);
+        float ringX = 420f;
+        float ringY = 800f;
+        float aimX = ringX + (float) (Math.cos(bearing) * cells * px);
+        float aimY = ringY + (float) (Math.sin(bearing) * cells * px);
+        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        // The sheet's four frames draw the nose to the left; the hull spans about 740 px of its frame, which is the
+        // type's visual length.
+        int frame = sheet.getWidth() / 4;
+        double scale = type.visualLengthCells * px / 740.0;
+        AffineTransform saved = graphics.getTransform();
+        graphics.translate(ringX, ringY);
+        graphics.rotate(bearing + Math.PI);
+        graphics.translate(type.turretMountX * px, 0);
+        graphics.scale(scale, scale);
+        graphics.drawImage(sheet.getSubimage(0, 0, frame, sheet.getHeight()), -frame / 2, -sheet.getHeight() / 2, null);
+        graphics.drawImage(sheet.getSubimage(frame, 0, frame, sheet.getHeight()), -frame / 2, -sheet.getHeight() / 2,
+                null);
+        graphics.setTransform(saved);
+        Color blue = DirectControlPanel.controlledColor();
+        float bracket = Math.max(9f, px * 1.35f);
+        graphics.setColor(blue);
+        graphics.setStroke(new BasicStroke(1f));
+        graphics.drawRect(Math.round(ringX - bracket), Math.round(ringY - bracket),
+                Math.round(bracket * 2f), Math.round(bracket * 2f));
+        float r = ring != null ? DirectControlPanel.scatterRingPx(ring, px) : -1f;
+        if (r >= 0f) {
+            Color c = DirectControlPanel.scatterColor(ring);
+            graphics.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), Math.round(255 * 0.8f)));
+            graphics.setStroke(new BasicStroke(1.5f));
+            graphics.draw(new Ellipse2D.Float(aimX - r, aimY - r, r * 2f, r * 2f));
+        }
+        graphics.setColor(blue);
+        graphics.fillRect(Math.round(aimX - 8f), Math.round(aimY - 1f), 5, 2);
+        graphics.fillRect(Math.round(aimX + 3f), Math.round(aimY - 1f), 5, 2);
+        graphics.fillRect(Math.round(aimX - 1f), Math.round(aimY - 8f), 2, 5);
+        graphics.fillRect(Math.round(aimX - 1f), Math.round(aimY + 3f), 2, 5);
+        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
     }
 
     /** A Marine on the pulse rifle, one bolt into its three-bolt burst. */
@@ -396,17 +480,16 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                                                   BattleDirectControlStatus.Snapshot snapshot,
                                                   UiDocument doll,
                                                   boolean paused, boolean wideStatus) throws Exception {
-        return activeComposite(renderer, modRoot, width, height, uiScale, snapshot, doll, paused, wideStatus,
-                BattleDirectControlHudModel.PickLook.KEYCAP);
+        return activeComposite(renderer, modRoot, width, height, uiScale, snapshot, doll, paused, wideStatus, null);
     }
 
-    /** {@code look}: how the trigger headers read their picks. */
+    /** {@code world}, when given, paints the battlefield over the backdrop and under the HUD. */
     private static BufferedImage activeComposite(HeadlessUiRenderer renderer, Path modRoot,
                                                   int width, int height, float uiScale,
                                                   BattleDirectControlStatus.Snapshot snapshot,
                                                   UiDocument doll,
                                                   boolean paused, boolean wideStatus,
-                                                  BattleDirectControlHudModel.PickLook look) throws Exception {
+                                                  Consumer<Graphics2D> world) throws Exception {
         var layout = BattleDirectControlOverlayTest.layout(width, height, uiScale);
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = image.createGraphics();
@@ -418,6 +501,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
             for (int y = 0; y < height; y += 48) graphics.drawLine(0, y, width, y);
             graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                     RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            if (world != null) world.accept(graphics);
             var objectiveReactor = new Reactor();
             var objectives = new BattleManualObjectiveModel(objectiveReactor);
             objectives.update(BattleManualObjectiveOverlayTest.preview());
@@ -426,7 +510,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 draw(graphics, renderer, markup, layout.manualObjectives(), layout.host(), uiScale);
             }
             try (var fixture = BattleDirectControlHudTest.fixture(modRoot,
-                    snapshot, 0, paused, ignored -> {}, () -> {}, () -> {}, look)) {
+                    snapshot, 0, paused, ignored -> {}, () -> {}, () -> {})) {
                 float[] measured = measure(renderer, fixture);
                 var status = BattleDirectControlOverlayTest.activeStatus(width, height, uiScale, measured[0], doll != null);
                 if (wideStatus) {

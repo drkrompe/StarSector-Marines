@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /** An energy weapon's charge cells, and which loads draw as cells at all. */
 class ChargeGaugeTest {
@@ -20,6 +21,17 @@ class ChargeGaugeTest {
         assertEquals(ChargeGauge.Cell.CHARGED, single.cell(1));
         assertEquals(ChargeGauge.Cell.CHARGING, single.cell(2));
         assertEquals(ChargeGauge.Cell.HELD, ChargeGauge.of(4, 0, 1f, true).cell(0));
+    }
+
+    @Test
+    void anUncountedGunShowsTheBurstAClickSendsAndRechambersIt() {
+        ChargeGauge firing = ChargeGauge.burst(6, 4, 0f);
+        assertEquals(6, firing.icons());
+        assertEquals("rifle", firing.iconKind());
+        assertEquals("live", firing.iconState(3));
+        assertEquals("spent", firing.iconState(4));
+        assertEquals("loading", ChargeGauge.burst(6, 0, .55f).iconState(3));
+        assertNull(ChargeGauge.burst(1, 0, 1f), "a single-shot gun has no burst to show");
     }
 
     @Test

@@ -107,7 +107,7 @@ class BattleDirectControlHudTest {
             assertEquals("LINKED", fixture.weapons.requireElement("direct-hud-group-lmb-name").text());
             assertEquals("[Q]", fixture.weapons.requireElement("direct-hud-group-lmb-hint").text());
             assertEquals("LINKED", fixture.weapons.requireElement("direct-hud-group-rmb-name").text());
-            assertEquals("[C]", fixture.weapons.requireElement("direct-hud-group-rmb-hint").text());
+            assertEquals("[E]", fixture.weapons.requireElement("direct-hud-group-rmb-hint").text());
             assertEquals("3", fixture.weapons.requireElement("direct-hud-weapon-RIGHT_ARM-key").text(),
                     "key 1 is LINKED, then each gun");
             for (String id : List.of("LEFT_ARM", "RIGHT_ARM", "LEFT_SHOULDER", "RIGHT_SHOULDER")) {
@@ -140,7 +140,7 @@ class BattleDirectControlHudTest {
                     false, ignored -> fail("Ability readouts cannot select weapons"), () -> {}, () -> {})) {
                 assertEquals(List.of("direct-hud-ability-SHIELD", "direct-hud-ability-SMOKE"),
                         rows(fixture.weapons, "direct-hud-group-abilities"));
-                assertEquals("E", fixture.weapons.requireElement("direct-hud-ability-SHIELD-key").text());
+                assertEquals("C", fixture.weapons.requireElement("direct-hud-ability-SHIELD-key").text());
                 assertEquals("G", fixture.weapons.requireElement("direct-hud-ability-SMOKE-key").text());
                 for (String id : List.of("direct-hud-ability-SHIELD", "direct-hud-ability-SMOKE")) {
                     var row = fixture.weapons.requireElement(id);
@@ -251,17 +251,8 @@ class BattleDirectControlHudTest {
     static Fixture fixture(Path modRoot, Snapshot snapshot, int selected, boolean paused,
                            BattleDirectControlHudModel.WeaponActions selection, Runnable exit, Runnable pause)
             throws Exception {
-        return fixture(modRoot, snapshot, selected, paused, selection, exit, pause,
-                BattleDirectControlHudModel.PickLook.KEYCAP);
-    }
-
-    /** As above, with trigger headers in {@code look}. */
-    static Fixture fixture(Path modRoot, Snapshot snapshot, int selected, boolean paused,
-                           BattleDirectControlHudModel.WeaponActions selection, Runnable exit, Runnable pause,
-                           BattleDirectControlHudModel.PickLook look) throws Exception {
         Reactor reactor = new Reactor();
         var model = new BattleDirectControlHudModel(reactor, selection, exit, pause, ModStrings.fromDisk(modRoot));
-        model.setPickLook(look);
         model.update(snapshot, selected, paused);
         var loader = new MarkupLoader(path -> Files.readString(modRoot.resolve(path)),
                 List.of(BattleDirectControlOverlay.STATUS_COMPONENT_PATH,

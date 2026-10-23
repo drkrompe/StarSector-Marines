@@ -2,9 +2,9 @@
 
 > Two buttons, two groups; each button cycles what it fires.
 
-Status: IN PROGRESS — steps 1 and 2 shipped; header look on the picks page (KEYCAP built meanwhile); steps 3-5 open
+Status: IN PROGRESS — steps 1 and 2 shipped (owner picked the keycap header look); steps 3-5 open
 Written: 2026-10-23
-Updated: 2026-10-23 — trigger model and HUD landed; the losing `PickLook` arms go when the owner picks
+Updated: 2026-10-23 — trigger model and HUD landed; keycap header chosen, the other looks removed
 
 Read `direct-control-nouns.md` first, in particular "Mouse buttons and weapon
 groups". This story extends that model, so the groups it describes stay true.
@@ -25,8 +25,9 @@ chooses what the button fires without a key per weapon.
   Bulwark's two arm chainguns fire together on LINKED, or one at a time
   (owner, 2026-10-23). After LINKED come the members one by one. LINKED is the
   default pick.
-- **Q** cycles the left trigger and **C** the right (both free in direct
-  control today). Number keys stay as direct jumps on the left trigger. The
+- **Q** cycles the left trigger and **E** the right, on every carrier (owner,
+  2026-10-23); the shield moved from E to C, and F stays the warship's low
+  pass. Number keys stay as direct jumps on the left trigger. The
   mouse wheel stays on zoom.
 - **A member that isn't picked holds fire** (owner, 2026-10-23). The exception
   is a **crewed defence**, a mount with its own gunner: a tank's active
@@ -59,7 +60,7 @@ chooses what the button fires without a key per weapon.
 - **Grenades are special** (owner, 2026-10-23). They are a throw, not a gun:
   they belong on the right trigger beside smoke, with an arcing throw to a
   range-clamped point under the smoke throw's committed-channel rules.
-- E and G stay as direct hotkeys for the shield and smoke.
+- C and G stay as direct hotkeys for the shield and smoke.
 
 ## HUD
 
@@ -74,13 +75,11 @@ chooses what the button fires without a key per weapon.
 ## Plan
 
 1. ~~Trigger model~~ (shipped): `MechFireGroups` lists and `MechTriggerPicks`,
-   Q/C in `BattleDirectControlInput`, number keys as left-trigger jumps; Marines
+   Q/E in `BattleDirectControlInput`, number keys as left-trigger jumps; Marines
    and vehicles have single-member lists.
 2. ~~HUD~~ (shipped): trigger headers and row wash/dim from the picks; frames
-   `pick-<look>-linked` and `pick-<look>-one-mount` in `direct-control-ui`. Open:
-   the owner's answer to the picks-page question `weapon-cycling-pick-look`;
-   then delete the losing `BattleDirectControlHudModel.PickLook` arms and their
-   frames.
+   `pick-linked` and `pick-one-mount` in `direct-control-ui`. The owner chose
+   the keycap header, `LMB  LINKED  [Q]` (picks page, 2026-10-23).
 3. Marine direct-fire specials: a manual contract for the rocket launcher and
    the anti-materiel rifle on the left trigger.
 4. Marine grenades: the manual throw on the right trigger.
@@ -91,7 +90,7 @@ chooses what the button fires without a key per weapon.
 ## Acceptance
 
 - A Bulwark fires both arm chainguns on LINKED and one alone after a Q press.
-  Its racks cycle on C.
+  Its racks cycle on E.
 - A Marine with a rocket launcher presses Q, fires one rocket at the cursor,
   presses Q again and is back on the rifle.
 - A Marine with grenades and smoke cycles the right trigger between them.
