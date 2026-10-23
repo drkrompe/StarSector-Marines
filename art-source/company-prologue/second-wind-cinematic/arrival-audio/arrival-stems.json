@@ -91,18 +91,18 @@
   },
   {
    "shot": "c2",
-   "t": 0.09,
+   "t": 0.089,
    "sound": "jangala_sfx_c2_legion_forward",
-   "gain_db": -12.1,
+   "gain_db": -19.2,
    "seconds": 14.91,
    "layer": "legion_forward"
   },
   {
    "shot": "c2",
-   "t": 0.114,
+   "t": 0.091,
    "sound": "jangala_sfx_c2_legion_drives",
-   "gain_db": -15.9,
-   "seconds": 14.88,
+   "gain_db": -17.8,
+   "seconds": 14.91,
    "layer": "legion_drives"
   },
   {
@@ -192,6 +192,14 @@
    "gain_db": -16.3,
    "seconds": 0.84,
    "layer": "c2_console_lean"
+  },
+  {
+   "shot": "c2",
+   "t": 7.156,
+   "sound": "jangala_sfx_c2_legion_burn",
+   "gain_db": -14.1,
+   "seconds": 7.84,
+   "layer": "legion_burn"
   },
   {
    "shot": "c2",

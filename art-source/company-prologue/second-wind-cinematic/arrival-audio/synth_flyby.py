@@ -168,10 +168,13 @@ FIGHTER = dict(HOUND, start=0.0, end=7.0, sound_speed=330.0, muffle_far=150.0, m
 FIGHTER = dict(FIGHTER, **SMALL)                       # Broadswords: small thrusters
 LEGION = dict(HOUND, start=0.0, end=15.0, sound_speed=340.0, muffle_far=60.0, muffle_near=380.0,
               bass=3.0, crackle=0.25, rush_gain=0.05, distance_power=1.4, pan="c2", pan_width=0.5)
-# The two ships trim to look at each other (c2_bridge_blockout): the Legion's attitude thrusters
-# fire in bursts along its hull while it closes and as it slows to the beam.
-LEGION_RCS = ((1.6, 0.5, 0.8), (3.4, 0.35, 0.6), (5.1, 0.8, 1.0), (6.3, 0.4, 0.7), (7.2, 1.1, 1.0),
-              (8.9, 0.45, 0.8), (10.4, 0.7, 0.9), (12.0, 0.5, 0.7))
+# The Legion's weight (owner, 2026-10-23: "HEAVY"): a dark muffle, a big sub, a low-mid body band
+# under it, a slow heave in the roar, and thrust swelling to the beam at C2_ABEAM_T and easing off.
+LEGION_HEAVY = dict(muffle_far=60.0, muffle_near=170.0, bass=8.0, body=1.1, heave=0.22, crackle=0.05,
+                    boom=2.2, boom_hz=46.0, boom_drive=4.0,
+                    rush_gain=0.0, distance_power=1.0,
+                    thrust=[(0.0, 0.5), (3.0, 0.62), (6.0, 0.85), (C2_ABEAM_T, 1.0), (10.0, 1.0), (15.0, 0.8)])
+LEGION_BURN_T = 7.15      # C2 seconds: the Legion's engine plume comes into view (see legion_drives)
 PASSES = {
     "hound_flyby_a": dict(HOUND, **SMALL),                # the customs Hound: a small thruster
     # Heavier and more muffled: more bass, a darker roar, a slower swell.
@@ -185,8 +188,20 @@ PASSES = {
     # C2. The Legion: main drives at its stern (it comes bow first, so they arrive last and
     # loudest just past the beam), a forward cluster, and attitude thrusters along the hull.
     # Its main drives: the generated single heavy thruster (c4_launch_burn_t02) flown along the hull.
-    "legion_drives": dict(LEGION, path=legion_at(-130.0), seed=21, source="c4_launch_burn_t02"),
-    "legion_forward": dict(LEGION, path=legion_at(90.0, up_m=-10.0), seed=22, rcs=LEGION_RCS, **HEAVY_RANGE),
+    # Its stern drives: the same heavy mass, and then the burn. Owner, 2026-10-23: "I want to hear a
+    # 'burn' once we see its engines. Everything before was the bass, then we get that deep fire
+    # burning burn of a rocket launch". The plume first shows at the window's right edge at 7.125 s
+    # and is clear by 7.25 (shipped c2.mp4), so the launch roar (legion_burn) lights at LEGION_BURN_T.
+    "legion_drives": dict(LEGION, path=legion_at(-130.0), seed=21, source="c4_launch_burn_t02", **LEGION_HEAVY),
+    # The burn alone, its own cue so its level is mixed apart from the bass: the drives' voice opened
+    # up to a broadband roar with hard crackle, lit over half a second from LEGION_BURN_T.
+    "legion_burn": dict(LEGION, path=legion_at(-130.0), seed=21, source="c4_launch_burn_t02",
+                        **dict(LEGION_HEAVY, boom=0.0, bass=5.5),      # the fire on top; the 808 is the bass stems
+                        burn=dict(t=LEGION_BURN_T, ramp=0.5, corner=2000.0, crackle=0.6, roar=2.2, drive=4.0, gain=1.0, alone=True)),
+    # Its forward cluster: the Legion's mass before its engines are in view (owner, 2026-10-23: "It
+    # should sound HEAVY"). A deep sustained roar, all sub and low-mid body, heaving slowly and
+    # swelling to the beam; no attitude-thruster hiss and next to no crackle, so it never turns airy.
+    "legion_forward": dict(LEGION, path=legion_at(90.0, up_m=-10.0), seed=22, **LEGION_HEAVY),
     # The fighters: two vics of three, a hard thruster roar each, abeam at 3.0 and 4.2 s.
     **{"fighter_%d%d" % (flight, n): dict(FIGHTER, path=fighter(t_pass + back / 160.0, out + dy, up + dz),
                                           seed=30 + 3 * flight + n)
@@ -330,7 +345,41 @@ def render(spec):
     crack = one_pole(one_pole(crack, crack_corner), crack_corner)
     crack *= spec["crackle"] / max(1e-9, np.abs(crack).max())
     engine = muffled / max(1e-9, np.abs(muffled).max()) + 0.45 * spec["bass"] * sub / max(1e-9, np.abs(sub).max())
+    if spec.get("body"):
+        # Low-mid body, 80-320 Hz: the size of the hull's roar, where a small speaker still hears weight.
+        body = one_pole(one_pole(one_pole(one_pole(voice, 320.0), 320.0), 320.0), 320.0)
+        body = body - one_pole(body, 80.0)
+        engine = engine + spec["body"] * body / max(1e-9, np.abs(body).max())
+    if spec.get("heave"):
+        # A huge mass under thrust: the whole roar heaves slowly, a breath every few seconds.
+        slow = one_pole(one_pole(coloured(len(t), rng, 2.0), 0.6), 0.6)
+        slow = slow - slow.mean()
+        engine = engine * (1.0 + spec["heave"] * slow / max(1e-9, np.abs(slow).max()))
     engine = engine / max(1e-9, np.abs(engine).max()) + 1.4 * crack * np.sqrt(near)
+    burn = spec.get("burn")
+    if burn:
+        # The launch burn once the engines are in sight (owner, 2026-10-23: the first burn had "too much
+        # 'high top' ... no bottom bass"). Its core is the drives' own 30-80 Hz rumble with the code-built
+        # roar's, driven hard so its harmonics fill 80-250 Hz and carry the weight; the fire is a dark
+        # 150-700 Hz combustion band under it and the crackle a faint texture inside, both rolled off
+        # above `corner` so nothing sits on top. Lit over `ramp` seconds from `t`.
+        roar2, pops2 = rocket(len(rumble), np.random.default_rng(spec["seed"] + 1000), 1.0)
+        roar = np.interp(at, grid, roar2)
+        core = one_pole(one_pole(voice, 80.0), 80.0) + one_pole(one_pole(roar, 80.0), 80.0)
+        core = core - one_pole(one_pole(core, 30.0), 30.0)
+        core = np.tanh(burn.get("drive", 4.0) * core / max(1e-9, np.abs(core).max()))
+        mid = one_pole(one_pole(roar, 700.0), 700.0)
+        mid = mid - one_pole(one_pole(mid, 150.0), 150.0)
+        fpops = np.interp(at, grid, pops2)
+        fpops = one_pole(one_pole(fpops, 1500.0), 1500.0)
+        fire = (core / max(1e-9, np.abs(core).max())
+                + burn.get("roar", 0.3) * mid / max(1e-9, np.abs(mid).max())
+                + burn["crackle"] * fpops / max(1e-9, np.abs(fpops).max()))
+        for _ in range(2):
+            fire = one_pole(fire, burn["corner"])
+        light = smoothstep(burn["t"], burn["t"] + burn["ramp"], t)
+        fire = burn["gain"] * light * fire / max(1e-9, np.abs(fire).max())
+        engine = fire if burn.get("alone") else engine + fire
     engine = np.tanh(1.6 * engine / max(1e-9, np.abs(engine).max()))
 
     noise = coloured(len(t), rng, 1.0)
@@ -343,6 +392,21 @@ def render(spec):
     if spec["thrust"]:
         points = np.array(spec["thrust"], float)
         mono = mono * np.interp(t, points[:, 0], points[:, 1])
+    if spec.get("boom"):
+        # Owner, 2026-10-23: "bass boosted like a 2010s high school kids trap playlist". An 808-style
+        # sub on purpose, not tasteful: a tone near 46 Hz drifting with the engine, under the voice's
+        # own 38-80 Hz band, following the engine's swell, then driven into saturation so its
+        # harmonics rattle a small speaker. The peak is held by the saturation, never by turning it down.
+        follow = one_pole(one_pole(np.abs(mono), 3.0), 3.0)
+        follow /= max(1e-9, follow.max())
+        drift = one_pole(coloured(len(t), rng, 2.0), 0.5)
+        drift /= max(1e-9, np.abs(drift).max())
+        tone = np.sin(2 * np.pi * np.cumsum(spec.get("boom_hz", 46.0) * (1.0 + 0.04 * drift)) / SR)
+        low = one_pole(one_pole(voice, 80.0), 80.0)
+        low = low - one_pole(one_pole(low, 38.0), 38.0)
+        boom = (tone + 0.8 * low / max(1e-9, np.abs(low).max())) * follow
+        mono = mono / max(1e-9, np.abs(mono).max()) + spec["boom"] * boom / max(1e-9, np.abs(boom).max())
+        mono = np.tanh(spec.get("boom_drive", 2.5) * mono / max(1e-9, np.abs(mono).max()))
     for when in spec["thumps"]:
         # Ignition: a deep, short hit under the engine as it lights.
         k = np.clip(t - when, 0, None)

@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, deployed APC, friendly Warship, and drone Tende
 
 Written: 2026-09-23
 
-Updated: 2026-10-23 — the ground aim reticle: a side tick per mouse button, coloured by what a click would do; the scatter ring takes its palette.
+Updated: 2026-10-23 — the ground aim reticle: a quiet side tick per mouse button, coloured and patterned by what a click would do; landing spread blooms the tick; no scatter ring.
 
 Direct control lets the player temporarily inhabit one of their ground units, or a
 friendly capital hovering over the battle, in
@@ -170,12 +170,15 @@ the aim point, the left tick for the left button and the right tick for the
 right (owner, 2026-10-23; side ticks chosen over split brackets and concentric
 rings). A button with nothing on it draws no mark. **White** fires well,
 inside optimal range; **yellow** fires with accuracy falling off, between
-optimal and maximum range; **red** fires but is wasted, past maximum range, and
-carries a short bar across its outer end; **grey** will not fire: too close
-(inside a manual minimum), out of the mount's alignment, barrel blocked, or out
-of ammunition. Grey is also drawn broken, so it does not rest on hue. Every tick
-sits on a dark outline, which keeps a grey tick from vanishing on busy or light
-ground. LINKED, or any
+optimal and maximum range; **red** fires but is wasted, past maximum range;
+**grey** will not fire: too close (inside a manual minimum), out of the mount's
+alignment, barrel blocked, or out of ammunition. The reticle stays quiet,
+because the player looks straight through it: thin ticks with no backing, no
+shadow and no end caps (owner, 2026-10-23). Pattern carries what hue does, so
+the marks read without colour: white and yellow are solid, red is dotted, and
+grey is two wide dashes. The ticks are also partly transparent (owner,
+2026-10-23): white at 80% opacity, yellow and red at 85% (a dotted or
+falling-off tick carries less ink), and grey lowest at 60%. LINKED, or any
 pick of several mounts, shows the best mark among them and is grey only when
 none would fire. Cooldown, reload, burst and flux never change a mark: those
 are clocks, and the panel's ammunition strips own them, so a Marine's empty
@@ -190,15 +193,17 @@ the chance is the share of the disk the body covers; a weapon that stays on
 target to maximum range has no yellow band. Warship and tender reticles are out
 of this model.
 
-When an armed mount's rounds burst where they are thrown (rockets and LRM
-racks), a **scatter ring** circles the cursor at the widest landing disk among
-them, in the reticle's palette: white inside every covered mount's optimal
-range, yellow past it, red past maximum range, where the disk grows faster than
-distance, and grey (broken) inside an arcing mount's minimum. A vehicle
-turret's launcher draws the same ring, measured from its turret ring. Guns draw
-no ring. A warning ring never draws smaller than the reticle it surrounds: close
-in, the disk is a fraction of a cell, and the warning would otherwise vanish.
-The ring is the clear-air figure; smoke on a rocket's lane widens it.
+There is no scatter ring (owner, 2026-10-23): a button's **landing spread** is
+carried in its own tick. When the mounts its pick fires burst where they are
+thrown (rockets and LRM racks), the tick **blooms**: it keeps its length and
+thickness and opens away from the dot so that its inner end sits on the widest
+landing disk among them, the way a shooter's crosshair opens, and it never
+opens further than 40 pixels. A vehicle turret's launcher blooms the same way,
+measured from its turret ring. Guns, which have no ground burst, keep the
+resting tick, and so does a grey tick, since a refused trigger lands nothing.
+The spread is the clear-air figure; smoke on a rocket's lane widens it. Bloom is
+built on while the owner chooses between it and a tick that grows longer
+instead (picks question `aim-reticle-spread`).
 A blocked body-to-barrel segment cannot masquerade as an open lane from a
 muzzle beyond the wall. The guide uses current continuous terrain and shared
 edge profiles, so opening or destroying structure changes the next preview.
@@ -521,8 +526,8 @@ autonomous fire does. A point nearer the chassis centre than eight cells (or the
 weapon's authored minimum, where larger) is **too close**: the rack's trigger is
 refused without spending ammunition, flux or its cycle, while the other mounts
 on the same button still fire. Its HUD row reads TOO CLOSE, the hint on the
-header of the button that fires it reads TOO CLOSE in red, and the scatter ring
-turns grey. Every mount keeps one clock and resource stream under the ordinary
+header of the button that fires it reads TOO CLOSE in red, and the button's
+tick turns grey. Every mount keeps one clock and resource stream under the ordinary
 heavy-weapon pass; manual control neither advances it twice nor applies an
 infantry training multiplier to Mech accuracy. The live cursor owns torso aim
 and each scheduled round of a manual Mech burst. A round still requires the

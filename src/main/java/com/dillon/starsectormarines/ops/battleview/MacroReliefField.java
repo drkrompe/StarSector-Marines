@@ -130,6 +130,10 @@ public final class MacroReliefField {
             return topology.isWindow(x, y) ? windowSillMeters : wallMeters;
         }
         if (roofed[topology.index(x, y)]) return roofMeters;
+        // Water is level with its bank wherever the shore's contour draws the
+        // waterline: sunken square cells would cast it back in steps, at the bank
+        // and again wherever open water meets the shore cells around it.
+        if (WaterShore.enabled() && topology.isWater(x, y)) return 0f;
         return mapping != null ? mapping.macroHeightMeters(topology.getGroundKind(x, y)) : 0f;
     }
 

@@ -34,6 +34,13 @@ final class CreepShading {
     static final float EDGE_NOISE = 0.30f, EDGE_FINE = 0.12f;
     /** Half-spacing of the coverage taps the gradient and softening use, in cells. */
     static final float TAP = 0.5f;
+    /**
+     * Over a cliff face or a ramp's wall (the owner's pick): the creep's coverage is pulled back by the face's
+     * cover, so its own beaded edge runs along the lip and the foot and the rock shows between; the wall-vein
+     * lattice at {@code FACE_VEIN} and a membrane film at {@code FACE_FILM} are laid back over the rock where creep
+     * stands round it, as creep climbing it.
+     */
+    static final float FACE_VEIN = 0.7f, FACE_FILM = 0.18f;
     /** Floor on the coverage gradient, so the distance estimate stays finite in the flat interior. */
     static final float GRADIENT_FLOOR = 0.35f;
     /** Pulse phase per cell of path distance and per second; positive both, so a crest walks toward the source. */
@@ -88,28 +95,6 @@ final class CreepShading {
         default float face(float cellX, float cellY) { return 0f; }
     }
 
-    /**
-     * What the creep does over a cliff face or a ramp's wall. {@code cut} pulls the creep's coverage back by the
-     * face's cover, so the creep's own beaded edge runs along the lip and the foot and the rock shows between;
-     * {@code vein} and {@code film} then lay the wall-vein lattice and a thin membrane back over the bare rock, as
-     * creep that is climbing it, where creep stands on either side.
-     */
-    enum CliffLook {
-        /** The faces bare: the creep stops at the lip and at the foot. */
-        BARE(1f, 0f, 0f),
-        /** The faces bare of the body, veined and lightly filmed: the creep climbing the rock. */
-        VEINED(1f, 0.7f, 0.18f),
-        /** The creep's body over the faces as over any ground; the faces disappear under it. */
-        OVER(0f, 0f, 0f);
-
-        final float cut, vein, film;
-
-        CliffLook(float cut, float vein, float film) {
-            this.cut = cut;
-            this.vein = vein;
-            this.film = film;
-        }
-    }
 
     /** The scene's sun, as the creep reads it: toward the sun on the map, rise per cell, shadow strength. */
     record Sun(float dirX, float dirY, float rise, float strength) { }
@@ -122,21 +107,14 @@ final class CreepShading {
      */
     static void shade(Field f, float x, float y, float cellPx, float time, CreepPalette pal, Sun sun,
                       Scratch tmp, float[] out) {
-        shade(f, x, y, cellPx, time, pal, sun, CliffLook.OVER, tmp, out);
-    }
-
-    /** As {@link #shade(Field, float, float, float, float, CreepPalette, Sun, Scratch, float[])}, over raised ground's faces as {@code cliffs} says. */
-    static void shade(Field f, float x, float y, float cellPx, float time, CreepPalette pal, Sun sun, CliffLook cliffs,
-                      Scratch tmp, float[] out) {
         float[] own = tmp.own, here = tmp.here, noise = tmp.noise, fine = tmp.fine, surf = tmp.surf, col = tmp.col, turned = tmp.turned;
         f.sample((float) Math.floor(x) + 0.5f, (float) Math.floor(y) + 0.5f, own);
         f.sample(x, y, here);
-        float cut = cliffs.cut;
-        float faceHere = cut > 0f || cliffs.vein > 0f ? f.face(x, y) : 0f;
+        float faceHere = f.face(x, y);
         float rawHere = here[0];
-        here[0] = Math.max(0f, here[0] - cut * faceHere);
-        float e = cov(f, x + TAP, y, cut), w = cov(f, x - TAP, y, cut);
-        float n = cov(f, x, y + TAP, cut), s = cov(f, x, y - TAP, cut);
+        here[0] = Math.max(0f, here[0] - faceHere);
+        float e = cov(f, x + TAP, y), w = cov(f, x - TAP, y);
+        float n = cov(f, x, y + TAP), s = cov(f, x, y - TAP);
         float soft = 0.4f * here[0] + 0.15f * (e + w + n + s);
         float gx = (e - w) / (2f * TAP), gy = (n - s) / (2f * TAP);
         float g = (float) Math.sqrt(gx * gx + gy * gy);
@@ -167,16 +145,16 @@ final class CreepShading {
                 }
             }
             // Bare rock is not grass: no wilt and no blight veins on the part of a face the creep stands back from.
-            float rock = 1f - cut * faceHere;
+            float rock = 1f - faceHere;
             wa *= rock;
             wv *= rock;
             // Creep climbing a face it has been pulled back from: veins and a thin film where it stands round it.
-            if (faceHere > 0f && (cliffs.vein > 0f || cliffs.film > 0f)) {
+            if (faceHere > 0f) {
                 float climb = faceHere * smoothstep(0.35f, 0.65f, rawHere + (noise[0] - 0.5f) * EDGE_NOISE);
                 if (climb > 0f) {
                     CreepSurface.sample(x * WALL_VEIN_SCALE, y * WALL_VEIN_SCALE, tpp * WALL_VEIN_SCALE, surf);
-                    fv = cliffs.vein * clamp01(surf[2] * 1.6f) * climb;
-                    film = cliffs.film * climb;
+                    fv = FACE_VEIN * clamp01(surf[2] * 1.6f) * climb;
+                    film = FACE_FILM * climb;
                 }
             }
             float d = (soft - 0.5f + lobes) / gl;
@@ -184,7 +162,7 @@ final class CreepShading {
             float shadow = 0f;
             if (a < 1f && sun.strength() > 0f) {
                 for (float t : SHADOW_STEPS) {
-                    float ds = (cov(f, x + sun.dirX() * t, y + sun.dirY() * t, cut) - 0.5f + lobes) / gl;
+                    float ds = (cov(f, x + sun.dirX() * t, y + sun.dirY() * t) - 0.5f + lobes) / gl;
                     if (ds <= 0f) continue;
                     float lip = PLATEAU + bump(Math.min(ds, 2f), LIP_AT, LIP_WIDTH) * (LIP_LOW + 0.5f * LIP_BLISTER);
                     shadow = Math.max(shadow, clamp01((lip - t * sun.rise()) / 0.04f));
@@ -259,10 +237,9 @@ final class CreepShading {
         out[3] = alpha;
     }
 
-    /** Coverage at a point with the faces' cover taken out of it, {@code cut} of the way. */
-    private static float cov(Field f, float x, float y, float cut) {
-        float c = f.coverage(x, y);
-        return cut > 0f ? Math.max(0f, c - cut * f.face(x, y)) : c;
+    /** Coverage at a point with the faces' cover taken out of it. */
+    private static float cov(Field f, float x, float y) {
+        return Math.max(0f, f.coverage(x, y) - f.face(x, y));
     }
 
     /** Per-thread working arrays for {@link #shade}. */
