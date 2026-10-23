@@ -459,7 +459,9 @@ Until `cordon-company-command.md`, the company's autonomous commander is the
 minimum the evidence needs: the company stands as the reserve behind the middle
 of the line, each squad goes to the calling redoubt nearest it, and returns to
 the reserve when no redoubt calls. It hears every call and knows where every
-redoubt stands; it sees the swarm only through its own squads.
+redoubt stands; it sees the swarm only through its own squads. How it should lean on the allies, and how
+the allied line command decides for its own machines, by density:
+`cordon-allied-command.md`.
 
 ### Evidence
 

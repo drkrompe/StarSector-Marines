@@ -1,0 +1,250 @@
+# The Cordon — how the commanders use the allies
+
+Status: DRAFT — three questions out to the owner (`cordon-answer-call`,
+`cordon-urban-hammer`, `cordon-beat-escort`), seen in `cordon-command-look`
+(opt-in `createSnapshots` suite); built on the recommended options meanwhile.
+
+Written: 2026-10-23
+
+Step 4 of the owner's plan for the Cordon: how the AI commanders use the
+allied forces and their tools. `cordon-nouns.md` is the model (*The allies
+hold, the company decides*); `cordon-allied-forces.md` is what the allies
+field at each density, over the shared catalogue (`allied-tools.md`);
+`allied-command.md` is how a machine carries out a task once it has one. This
+doc is the step between them: who decides what, on what they know, and how
+the company and the allies hand work to each other. Strikes at the bores and
+the line posture stay `cordon-company-command.md`'s.
+
+## The two commanders
+
+**The allied line command** decides where the allies' machines and squads go:
+which sector a hull or mech holds, which redoubt a carrier takes a squad to,
+which hulls escort a convoy or a beat's truck, where a walking column goes. It
+is the Cordon's, not `AlliedCommand`'s: the mission-neutral command only
+carries the decisions out (station, carry, a mech's station). Today the
+decisions are spread through `CordonArmour.advance`, `CordonLogistics.advance`,
+the columns' orders (`CordonLogistics.columnOrders`) and the beats that drive
+their own hulls (`GunsDryBeat`, `ClearRoadBeat`).
+
+**The company commander** (`CordonCommand`) stands in for the player in
+evidence. It commands only Marines, hears the allies' radio and sees the swarm
+through its own squads (`cordon-nouns.md`, Fair knowledge). Its job is to
+decide when to lean on the allies and when to act itself.
+
+**The player is better than this commander, and that is allowed.** A
+commander's failure in evidence is a commander fault to fix in the commander,
+never a reason to retune the allies, the swarm or the timetable. The rules
+below are what a careful player does, written so they can be tested one at a
+time; they are not tuned to make `cordon-line` evidence come out held.
+
+## What they do today, against the table
+
+The table (`cordon-allied-forces.md`) gives the company a role by density:
+**rural, the reserve; town, the hinge; urban, the hammer behind the mechs.**
+
+The allied side:
+
+- **Nothing reads the density.** Every Cordon fields the rural set: four cars
+  and technicals, one carrier, the shed's line of carriers and cars
+  (`CordonSetup.BASE_LINE`). A town's armour is not held to its streets, a
+  city's carriers drive into its blocks, and no Hound stands anywhere. The
+  table itself is step 3, built in parallel; this doc assumes it lands.
+- **The armour keeps sectors** (`CordonArmour.emptiest`: fewest hulls first,
+  calling then nearest breaking a tie), which is right.
+- **Escorts can strip a sector.** A convoy's three guard posts each take the
+  nearest hull from anywhere (`CordonArmour.escort`), with no cap per sector.
+  The gap's redoubts' hulls are nearest, and the gap is where the Road's tide
+  falls.
+- **Carriers chase calls.** Between carries a carrier goes to the nearest
+  calling redoubt (`CordonLogistics.support`), the very behaviour the armour's
+  sectors replaced because on a front hundreds of cells wide it spent the
+  battle driving.
+- **Nobody allied escorts a beat's hull.** L2's ammo truck and R1's dozer ask
+  the company for two squads (`GunsDryBeat.call`, `ClearRoadBeat.call`); the
+  armour beside the road they drive does not move.
+- **The radio says only "calling".** The company cannot tell a redoubt with
+  the swarm inside its wall from one that has bled half its garrison with a
+  carrier already bringing a squad, nor a redoubt whose sector lost its
+  armour or mechs.
+
+The company side:
+
+- **One reserve behind the middle at every density**, 24 cells back.
+- **A single call takes the whole company.** Every squad not on the road or a
+  beat attack-moves to the nearest calling redoubt, so one call on redoubt 2
+  sends all six squads, the reserve is empty, and a second call is answered
+  only by whoever happens to be nearer it.
+- **A relieved redoubt is left at once.** A redoubt stops calling the moment a
+  Marine reaches its gate (Relieved), so the squads turn back for the reserve
+  with the swarm still at the wall, and it calls again when a body is next
+  inside.
+- **No answer to the rear, a tide, or a lost sector.** The base being overrun,
+  the tide's beat and a sector losing its machines change nothing.
+- **No lift.** The company walks everywhere; nothing asks a free carrier.
+
+## The radio: what the company is told
+
+Everything the company acts on is something the allies would say over the
+radio, or something its own squads see. The call grows a reason and the
+allies say what they are already doing about it:
+
+| Radio item | Said when | Ends when |
+| --- | --- | --- |
+| **Breached** (redoubt N) | a swarm body is inside the wall | none is inside for the settle window |
+| **Bled** (redoubt N) | half the garrison is down | a column or carried squad joins it |
+| **Uncovered** (redoubt N) | its sector had armour or mechs and has none left | a machine stands on its post again |
+| **Help coming** (redoubt N) | a loaded carrier or a column is bound for it | it arrives or is lost |
+| **Base overrun** | the swarm is on the apron (`CordonLogistics` cannot send) | the apron is clear |
+| **Tide** | the tide's beat (heard, never foreseen) | the tide's length is over |
+| **Escorted** (a convoy, truck or dozer) | an armed allied hull is beside it | none is |
+
+Breached and Bled are the redoubt's existing Calling state split by its two
+causes; Uncovered is new. The company is never told what the swarm is doing
+beyond that.
+
+## The allied line command's rules
+
+Pure decisions over a frozen picture of the line (redoubts with state,
+standing garrison and the machines on their posts; hulls, mechs and carriers
+with where they are and what they are doing; squads waiting at the base;
+convoys and beat hulls on the road; the density), returning tasks the
+`AlliedCommand` carries out. In order:
+
+1. **Every manned redoubt keeps a floor of cover.** Rural and town: one hull
+   on its flank. Urban: its mech pair in its street mouths (pending the
+   owner's `cordon-urban-allies` pick). A new machine off the shed or gantry
+   goes to the redoubt furthest under its floor, an Uncovered one first, a
+   calling one breaking a tie (today's `emptiest`, with the floor added).
+2. **Sectors, never calls.** A hull, mech or carrier keeps its redoubt. It is
+   re-homed only when that redoubt falls or is given up. A carrier between
+   carries stands behind the redoubt it last fed, not the latest caller.
+3. **Escorts come out of the surplus.** A convoy first, then a beat's truck or
+   dozer, each takes the nearest hulls above their sector's floor, at most one
+   hull from any one sector, and never a calling redoubt's last hull. What it
+   cannot take that way it goes without, and says so (*Escorted* is false), so
+   the company knows to walk with it. The hulls go home when the escort ends.
+4. **Carriers lift allied squads first.** A waiting column squad goes to the
+   neediest redoubt (calling first, then fewest standing, today's `neediest`),
+   and while it is on its way that redoubt has *Help coming*. Only a carrier
+   with no allied squad waiting may take a Marine (the company's lift, below).
+5. **Density shapes the posts, not the rules.** Town: every post is moved to
+   the nearest street cell within reach (roadbound), and carriers set down at
+   the rear gate only. Urban: no carriers; columns walk to the redoubt with the
+   fewest standing; mechs stand in the street mouths the swarm comes through.
+6. **The allies never end the battle and never take the company's work.** They
+   do not clear a block, retake ground or walk out past their posts.
+
+## The company commander's rules
+
+Pure decisions over the frame (`CordonCommand.Frame`, grown by the radio
+items above), in priority order. A squad already on a duty keeps it while the
+duty stands, rather than being re-chosen each frame.
+
+1. **Squads the player or a lease owns stay theirs** (today's rule).
+2. **The Road's convoys.** Clear the road ahead of a halted convoy (two
+   squads); walk with a convoy that is not *Escorted* past the gap (three).
+   Unchanged: it is already "allies first, the company where they are not".
+3. **A breached redoubt: a relief detachment.** The two nearest free squads
+   go at once and fight in behind the rear wall. They **hold until the
+   redoubt is settled**: holding, nothing inside its wall and nothing in their
+   own sight within reach of it for twenty seconds. Then they go back. (Today
+   they turn back the moment one touches the gate.)
+4. **A bled redoubt: the allies' first.** With *Help coming* the company sends
+   nobody. Without it, it is answered as a breach.
+5. **An uncovered redoubt: hold the posts.** Two squads go to the sector's
+   posts (the flank in open country, the street mouths in a city) and hold
+   them until a machine is on its post again; this is the urban table's
+   "walks forward to a redoubt that lost its mechs", and it holds in every
+   density.
+6. **The optional objectives**, at most half the company (today's cap and
+   order). A beat whose hull is *Escorted* asks for nobody; one that is not
+   asks for its two squads, as today (pending `cordon-beat-escort`).
+7. **The base overrun** (rural and town, where the base feeds the line): two
+   squads go to the apron until it is clear.
+8. **The reserve keeps a floor.** Outside a tide at least a third of the
+   company (two of six squads) is left uncommitted by rules 3 to 7; a duty
+   that would break the floor waits, the most urgent first (breached, then
+   uncovered, then bled, then the rear). In a tide the floor is gone and every
+   squad may be sent.
+9. **Where the uncommitted wait, by density.** Rural: one reserve behind the
+   middle of the line (today). Town: the hinge, the village's gaps between
+   redoubts 2 and 3; in a tide the hinge squads move up into those gaps and
+   hold them, since armour held to the streets cannot. Urban: the hammer, two
+   halves of the company each behind a pair of redoubts (pending
+   `cordon-urban-hammer`).
+10. **The lift.** A duty more than a hundred cells' walk from a squad asks the
+    base for a lift, in rural and town country only. The base grants it with a
+    carrier that rule 4 of the allied command leaves free and that stands
+    nearer the squad than the duty does. The squad walks to it, rides, and is
+    set down behind the redoubt; no carrier, no lift, and the squad walks.
+
+### Handing work between them
+
+| What happens | The allies do | The company does | Handed back when |
+| --- | --- | --- | --- |
+| A redoubt bleeds | a carrier or column brings a squad (*Help coming*) | nothing while help comes | the help joins |
+| The swarm is inside a wall | the sector's machines fight from their posts | a two-squad relief | the redoubt is settled for twenty seconds |
+| A sector loses its machines | the next machine built goes there first | two squads hold its posts | a machine is on its post |
+| A convoy or a beat's hull is on the road | surplus hulls escort it | walks with it only where it is not *Escorted*; clears its road when halted | it is home, or an escort reaches it |
+| The base is overrun | sends nothing, its machines fight on | two squads to the apron | the apron is clear |
+| A tide | nothing new: sectors hold | the reserve's floor drops; the town's hinge moves into its gaps | the tide is over |
+
+## As pure decision functions
+
+Each rule above is a function of small records and is unit-tested on
+hand-built ones (under a second each, no map or battle):
+
+- **The radio** (`CordonRadio`, working name): redoubt states, garrisons and
+  the allies' tasks in, the items of the table above out. The one place the
+  company's knowledge is decided, so fair knowledge is tested where it is
+  made.
+- **Allied decisions**: `coverFloor(density)`, `nextPost(redoubts, cover)`
+  (where a new machine goes), `escorts(needs, hulls, floors)` (one per sector,
+  never a calling redoubt's last), `carrierDuty(waiting, lifts, carriers)`.
+- **Company decisions**: `duties(radio, beats, roadBlocks)` (the ordered list
+  of what wants squads and how many), `assign(duties, squads, floor, tide)`
+  (who goes, keeping a squad on its duty), `settled(redoubt, sightings,
+  since)`, `reservePosts(density, redoubts, squads)`, `liftWorth(squad,
+  duty, carrier)`.
+
+`CordonCommand.plan` and `CordonArmour.advance` / `CordonLogistics.advance`
+become thin shells that freeze the picture, call these and issue the orders.
+The lift needs one new seam: `AlliedCommand.carry` seats its riders back as a
+count through the mission's `Delivery`, which suits militia but not Marines,
+whose identity, kit and wounds must come back as they went; a Marine carry
+keeps the squad's members aside and restores them at the drop.
+
+## Evidence
+
+`commanderEvidence` on `cordon-line` and `cordon-road`, at each density once
+the pools exist, read rather than asserted: squads committed per call, time
+from a breach to the relief's arrival, how often the reserve fell under its
+floor outside a tide, sectors uncovered and for how long, lifts asked and
+granted, escorts taken per sector. The asserted mechanics stay the Cordon's
+own (`cordon-nouns.md`, Evidence). A rule is accepted on the unit test of its
+function; a battle reads whether the whole holds together, never whether the
+line held.
+
+## The owner's questions
+
+- **`cordon-answer-call`: how much of the company answers one call.** The
+  whole company (today); a two-squad relief while the reserve holds
+  (recommended); or the allies answer and the company waits unless the call
+  outlasts them.
+- **`cordon-urban-hammer`: where the company waits in a city.** One hammer
+  behind the middle; two hammers behind redoubts 1-2 and 3-4 (recommended); or
+  spread behind every redoubt.
+- **`cordon-beat-escort`: who escorts L2's truck and R1's dozer.** Two company
+  squads (today); the sector's armour, the company only where none is free
+  (recommended, the convoy's rule); or both.
+
+## Boundaries
+
+- Carrying an order out (routes, boarding, a mech's standable ground):
+  `allied-command.md`.
+- What the allies field at each density: `cordon-allied-forces.md`,
+  `allied-tools.md`.
+- Line posture, the readiness gate and strike detachments:
+  `cordon-company-command.md`, which builds the company's rules here.
+- The general allied column that replaces the scripted one:
+  `cordon-allied-columns.md`.
