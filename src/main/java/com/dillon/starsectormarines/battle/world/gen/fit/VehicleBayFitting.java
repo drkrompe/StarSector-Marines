@@ -276,7 +276,7 @@ public final class VehicleBayFitting implements RoomFitting {
      */
     @Override
     public boolean wholeDoorways() {
-        return !shipboard;
+        return installation;
     }
 
     /**
@@ -286,14 +286,14 @@ public final class VehicleBayFitting implements RoomFitting {
      */
     @Override
     public int[] outboard() {
-        return shipboard ? null : new int[]{1, 0};
+        return installation ? new int[]{1, 0} : null;
     }
 
     @Override
     public List<Hookup> hookups(RoomShape canonical) {
         int length = canonical.width();
         int depth = canonical.height();
-        if (!shipboard) {
+        if (installation) {
             Plan plan = Plan.of(length, depth, false);
             return List.of(
                     Hookup.of(Hookup.DoorSlot.run(-1, plan.laneFrom(), 1, plan.laneSpan())),

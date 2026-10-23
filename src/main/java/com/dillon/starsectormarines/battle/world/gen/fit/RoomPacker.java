@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.function.BiFunction;
 
 /**
  * Packs authored rooms into a buildable envelope, then cuts each room's access
@@ -280,6 +281,19 @@ public final class RoomPacker {
      *                    floor and claimed along with the ring around it, so no
      *                    room eats into it
      */
+    /**
+     * Which fitting a room of this purpose and shape is placed for: its doors, its outboard side and
+     * whether its doorways are cut whole. By default the room's ordinary fitting; a place that
+     * furnishes its rooms with other fittings says so, so the doors are cut for what is installed.
+     */
+    private BiFunction<RoomPurpose, RoomShape, RoomFitting> fittings;
+
+    /** Places rooms for these fittings rather than the ordinary ones ({@link RoomFittings#forInstallation}). */
+    public RoomPacker withFittings(BiFunction<RoomPurpose, RoomShape, RoomFitting> source) {
+        this.fittings = source;
+        return this;
+    }
+
     public RoomPacker(GenContext ctx, boolean[][] buildable, boolean[][] circulation,
                       Palette palette) {
         this(ctx, buildable, circulation, palette, Massing.WEDGED);
@@ -293,6 +307,7 @@ public final class RoomPacker {
     public RoomPacker(GenContext ctx, boolean[][] buildable, boolean[][] circulation,
                       Palette palette, Massing massing) {
         this.ctx = ctx;
+        this.fittings = (purpose, shape) -> RoomFittings.forRoom(ctx, purpose, shape);
         this.palette = palette;
         this.massing = massing;
         this.structure = new boolean[ctx.width + 2][ctx.height + 2];
@@ -351,7 +366,7 @@ public final class RoomPacker {
      * @param mayTunnel whether the room is worth cutting a fresh passage to
      */
     public Placed place(Request request, boolean mayTunnel) {
-        RoomFitting fitting = RoomFittings.forRoom(ctx, request.purpose(), request.shape());
+        RoomFitting fitting = fittings.apply(request.purpose(), request.shape());
         List<Hookup> hookups = fitting == null ? List.of() : fitting.hookups(request.shape());
         int[] outboard = fitting == null ? null : fitting.outboard();
         // A room that names its outboard side is orientation-sensitive by
@@ -811,7 +826,7 @@ public final class RoomPacker {
      *     "this room states nothing" rather than as "nowhere is permitted"
      */
     private Set<Long> authoredDoorCells(Placed room, RoomShape canonical) {
-        RoomFitting fitting = RoomFittings.forRoom(ctx, room.purpose(), canonical);
+        RoomFitting fitting = fittings.apply(room.purpose(), canonical);
         if (fitting == null) return Set.of();
         List<Hookup.DoorSlot> slots = new ArrayList<>(fitting.furtherDoors(canonical));
         for (Hookup hookup : fitting.hookups(canonical)) slots.addAll(hookup.slots());
@@ -1402,7 +1417,7 @@ public final class RoomPacker {
     private List<Doorway> commit(Candidate candidate,
                                                    RoomPurpose purpose, List<Access> accesses) {
         carveRoom(candidate, purpose);
-        RoomFitting fitting = RoomFittings.forRoom(ctx, purpose, candidate.shape());
+        RoomFitting fitting = fittings.apply(purpose, candidate.shape());
         boolean whole = fitting != null && fitting.wholeDoorways();
         List<Doorway> doors = new ArrayList<>();
         for (Access access : accesses) {
