@@ -244,7 +244,8 @@ LEDGER = [
 # hit whose `at` lies on the far side lands on the near face in line with it.
 SHOOTER_SIDE = {
     'hound-m@75.2:rake': (0.40, -0.61, 0.68), 'tarsus@69.6:he': (0.69, -0.72, -0.08),
-    'lasher-lead@106.9:rake': (-0.60, 0.63, -0.49), 'tarsus@70.5:breach': (0.85, -0.52, -0.07),
+    'lasher-lead@106.9:rake': (-0.70, -0.64, 0.31), 'wolf-p-a@95.8:he': (0.74, 0.61, -0.29),
+    'kite-p-b@96.5:he': (-0.81, -0.43, 0.39), 'tarsus@68.0:rake': (-0.09, -0.99, -0.10), 'tarsus@70.5:breach': (0.85, -0.52, -0.07),
     'lasher-lead@103.5:breach': (0.98, -0.17, -0.06), 'falcon-p@105.0:breach': (0.69, 0.55, 0.46),
     'colossus3@96.0:rake': (0.40, -0.91, -0.05), 'hound-m@75.5:breach': (0.62, -0.39, 0.68),
     'falcon-p@104.8:rake': (0.75, 0.51, 0.43), 'wolf-p-b@72.4:rake': (0.39, -0.36, -0.85),
