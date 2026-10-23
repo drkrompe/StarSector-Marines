@@ -1,11 +1,11 @@
 # Battle textures: what a battle loads, who owns it, and when it goes
 
-Status: ACTIVE — the ledger, the loading screen, the battle texture set, the release at
-battle exit, the company deck's preloaded lease with its own terrain set, and the Armory's and
-ops dialog's leases are built; filtering a battle's terrain sheets per map is next.
+Status: ACTIVE — the ledger, the loading screen, the battle texture set and its per-map terrain
+sheets, the release at battle exit, the company deck's preloaded lease with its own terrain set,
+and the Armory's and ops dialog's leases are built.
 
 Written: 2026-10-23
-Updated: 2026-10-23 — the deck preloads behind the dialog's other pages and never shows a load.
+Updated: 2026-10-23 — a battle loads only the catalog terrain sheets its map draws.
 
 The canonical model of the render pipeline is `battle-render-nouns.md`; this doc owns the
 texture lifecycle under it: which textures a battle owns, which it shares, and how they are
@@ -153,8 +153,9 @@ combat bridge backdrop, which alone stays on the session lease.
 `BattleTextureSet` is read from the simulation before its first tick, plus what its mission
 declares it can bring later. It names:
 
-- **infantry families**: every layered body and head on the field, riders included, and every
-  armour the ground roster can issue to reinforcements at any tier and risk;
+- **infantry families**: every layered body and head on the field, riders included, every
+  armour the ground roster can issue to reinforcements at any tier and risk, and the generic
+  militia roll where a colony breach raises militia posts during the battle;
 - **the swarm**: the three xeno families and the Rav Bloom's rigs, when a swarm is on the field,
   bores exist or swarm reinforcement is configured;
 - **mech sides**: a side with a mech on the field, a mech drop allowance, or a mech command
@@ -162,13 +163,37 @@ declares it can bring later. It names:
 - **vehicle lines**: convoy vehicles on the field, the heavy APC when a convoy can bring
   reinforcements, and the vehicles command powers deliver.
 
-What it does not filter, on purpose: **terrain sheets**, because the drain registers them at
-attach and a sheet loaded later would draw blank; **airframes, turret mounts and effects**,
-because they are small and the large structure art already loads lazily on first draw.
+Beside it, **the battle's terrain sheets** (`BattleTerrainSheets`) are the catalog sheets its
+generated map draws and the ones its fighting can bring on, read from the map before the first
+tick:
+
+- the mapped block of every ground kind on the map, with that kind's blast-damage block, plus the
+  rubble and indoor kinds a fallen wall uncovers;
+- the block of every surface the topology registered (rooms' walls and floors, pavement, cliffs
+  and terrain) and of every surface role, each **closed over its rubble, damage, window and door
+  blocks**, so a wall knocked down or a cell blasted draws art the loading screen already loaded;
+- pavement edges only where the map blends pavement by edge mask, which is a map with no road
+  surface; the ground feather on every map, since every pass draws it where materials meet;
+- every placed doodad, its **damaged and destroyed states** under the names the damage channels
+  look them up by (`<id>-damaged`, a cover run's `<family>damaged-<shape>`, a tree's shape), its
+  machine motion parts, and its **blight stages only where creep can spread**
+  (`BattleTextureSet.creepCanSpread`: creep already down, a colony breach, or a swarm on the
+  field or able to arrive); the damage states of rocks scattered as nature overlay; the
+  field-salvage art where the battle has caches.
+
+The core sheets every battle draws (indoor, road, floors, nature, water, the street sheet, the
+prop and parked-vehicle sheets, decals) still load whole; they are what the ground atlas packs.
+Each terrain sheet is a load-queue step of its own under the loading screen's "Loading terrain".
+
+What the set does not filter, on purpose: **airframes, turret mounts and effects**, because they
+are small and the large structure art already loads lazily on first draw.
 
 A miss is never a blank. The family, livery and vehicle maps load an entry the set did not name
 the first time it is asked for, under the battle's lease, and the dev build logs it as an
-unplanned load. `BattleTextureSetEvidence` (`generatedSpaceEvidence`) stands a small field up
+unplanned load. A catalog sheet the terrain set missed is loaded on first ask the same way
+(`BattleSprites.extraTerrainSheet`), the renderer registers its batch before the next drain, and a
+ground kind whose sheet was not loaded when the pass was built loads it the first time a cell of
+that kind is drawn rather than painting the kind's flat fill. `BattleTextureSetEvidence` (`generatedSpaceEvidence`) stands a small field up
 and checks that the set names its families and mech side and none of the swarm or vehicles.
 
 Since the deck gives its textures back when the player leaves for a battle, the set now
@@ -265,6 +290,22 @@ hull, a starting company, nothing fitted):
 | A battle naming every family, livery and line | 771.7 MB | 771.7 MB |
 | After the battle, dialog closed | 541.7 MB | 0.0 MB |
 
+`BattleTerrainGlEvidence` (in `shaderEvidence`) measures a battle's terrain filter on a real
+driver: each battle's queue run loading every catalog sheet, as battles did, and loading only its
+own, with megabytes held, loading-screen time and the longest single step. A measurement, not a
+gate; it plays nothing. Measured 2026-10-23 (the second of two runs of each, unfitted textures):
+
+| Battle | Catalog sheets | Held MB | Load ms | Longest step |
+|---|--:|--:|--:|---|
+| Small battle (40x30), all → own | 82 → 3 | 331.5 → 105.8 | 2,453 → 816 | 1,712 ms (all terrain) → 466 ms (infantry shared layers) |
+| Conquest (560x336) | 82 → 41 | 421.2 → 264.7 | 3,019 → 2,112 | 1,779 → 453 ms |
+| Colony (400x240) | 82 → 38 | 420.2 → 241.2 | 3,300 → 1,897 | 1,834 → 471 ms |
+| The Burn (400x240) | 82 → 32 | 417.3 → 267.5 | 4,951 → 2,132 | 3,092 → 554 ms |
+
+With every catalog sheet in one step, terrain was the longest step on every map; filtered, a
+terrain sheet is a step of its own and the longest step is the infantry's shared layers. None of
+the four loaded anything on first ask in their first frames.
+
 A deck screen's first frame takes 0 ms of loading. Preloading again after a battle, the
 longest frame was about 110 ms (a single 16 MB sheet) with the machine shared; the first visit
 after an install, surveying, has steps of several hundred milliseconds (the infantry's shared
@@ -273,7 +314,8 @@ into the second kind.
 
 ## Boundaries
 
-- A battle's terrain sheets are not filtered: it still loads every sheet the tile registry
-  names (`ensureTileSheet`). The deck's derivation, survey and late batches are the pieces a
-  battle's filter would reuse; that is the next step.
+- The terrain set is derived, not surveyed: a battle does not collect a throwaway frame to find
+  what the derivation missed, as the deck's first visit does, because a battle has a loading
+  screen to hide a late sheet behind only once and its fighting changes what is drawn. Its rules
+  are tested at their unit (`BattleTerrainSheetsTest`); a miss is a logged hitch, never a blank.
 - Shrinking each image is `texture-fit.md`'s; this doc only decides how long it is resident.

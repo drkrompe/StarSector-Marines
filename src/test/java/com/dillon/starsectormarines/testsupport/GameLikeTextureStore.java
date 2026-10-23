@@ -149,6 +149,8 @@ public final class GameLikeTextureStore {
     private static SpriteAPI sprite(Texture texture) {
         InvocationHandler handler = (proxy, method, args) -> switch (method.getName()) {
             case "getTextureId" -> texture == null ? 0 : texture.id();
+            // Binds its texture as the game's does: an atlas reads a sheet back from whatever is bound.
+            case "bindTexture" -> { glBindTexture(GL_TEXTURE_2D, texture == null ? 0 : texture.id()); yield null; }
             case "getWidth" -> texture == null ? 0f : (float) texture.width();
             case "getHeight" -> texture == null ? 0f : (float) texture.height();
             case "getTextureWidth" -> texture == null ? 0f : (float) texture.width() / texture.texWidth();

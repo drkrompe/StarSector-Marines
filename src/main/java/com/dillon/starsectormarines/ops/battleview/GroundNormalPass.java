@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import com.dillon.starsectormarines.render2d.ShaderProgram;
 import com.dillon.starsectormarines.render2d.SolidQuadBatch;
 
+import com.dillon.starsectormarines.render2d.texture.TextureLease;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -43,8 +44,17 @@ final class GroundNormalPass {
     private final ReliefFieldMesh mesh = new ReliefFieldMesh("normal");
     private final ResidentCells residentCells = new ResidentCells();
 
+    /** Whose lease the height and normal companions load under; null for the session's. */
+    private final TextureLease lease;
+
     GroundNormalPass(GroundMicroHeightSampler resolver) {
+        this(resolver, null);
+    }
+
+    /** @param lease the owner's lease, which releases the companion sheets with it; null for the session's */
+    GroundNormalPass(GroundMicroHeightSampler resolver, TextureLease lease) {
         this.resolver = resolver;
+        this.lease = lease;
     }
 
     void render(BattleCamera camera, NavigationGrid grid, CellTopology topology) {
@@ -58,7 +68,7 @@ final class GroundNormalPass {
                 float cy = camera.cellToScreenY(y + 0.5f);
                 GroundMicroHeightSampler.Sample sample = resolver.resolve(grid, topology, x, y);
                 AtlasBatch atlas = sample == null ? null : atlas(sample.normalSheetPath);
-                if (atlas == null || !atlas.ensureLoaded()) {
+                if (atlas == null || !atlas.ensureLoaded(lease)) {
                     appendFlat(cx, cy, cellPx);
                     continue;
                 }
@@ -109,7 +119,7 @@ final class GroundNormalPass {
         public void resolve(int gridX, int gridY, ReliefFieldMesh.CellSink sink) {
             GroundMicroHeightSampler.Sample sample = resolver.resolve(grid, topology, gridX, gridY);
             AtlasBatch atlas = sample == null ? null : atlas(sample.normalSheetPath);
-            if (atlas == null || !atlas.ensureLoaded()) {
+            if (atlas == null || !atlas.ensureLoaded(lease)) {
                 sink.solid(FLAT_R, FLAT_G, FLAT_B, 1f);
                 return;
             }
@@ -136,9 +146,10 @@ final class GroundNormalPass {
             this.texture = SheetTexture.grid(normalSheetPath);
         }
 
-        boolean ensureLoaded() {
+        boolean ensureLoaded(TextureLease lease) {
             if (batch != null) return true;
-            texture.ensureLoaded();
+            if (lease != null) texture.ensureLoaded(lease);
+            else texture.ensureLoaded();
             if (!texture.isLoaded()) return false;
             batch = new QuadBatch(texture.sprite(), texture.pxW(), texture.pxH(), 4096);
             return true;
