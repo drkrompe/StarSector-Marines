@@ -885,6 +885,25 @@ time, which is how a seven-thousand-tick swing in the Conquest matrix was once
 credited to a squad behaviour and turned out to be another session's
 reinforcement work arriving on a merge.
 
+**A switch added for an A/B is temporary** (owner, 2026-10-23). Switches pile
+up because nothing retires them: an audit that day found about 260 `-D` reads
+in `src/main`, most of them settled comparisons whose losing arm was still
+carried as dead code. So:
+
+- A new `-Dbattle.*` (or `-Dmarines.*`) switch is temporary unless you say
+  otherwise. Its property constant's Javadoc states its **removal condition**:
+  which comparison decides it and what reading settles it.
+- Every switch is listed in `switches.md` (`roadmap/switches.md`) with its kind,
+  date and removal condition. `SwitchRegistryTest` fails on a `battle.*` or
+  `marines.*` property read in `src/main` that the registry does not list, and
+  on a registry row whose switch no longer exists.
+- The session that added a switch removes it, together with the losing code
+  path and any tests of that arm, as soon as the comparison is decided. Do not
+  leave a hard-coded `true` behind.
+- A permanent lever (real configuration, a determinism or concurrency switch,
+  or a standing control that an evidence task or scene deliberately runs) needs
+  a stated reason in its registry row.
+
 A suite artifact is a PNG or, for a suite whose evidence is a played battle
 rather than a composition, an animated GIF built from a frame sequence. The
 runner writes both; a suite never writes files itself. Animated review frames

@@ -611,7 +611,7 @@ Belief only: how a place stands is an own-force fact about the side's own
 places, its holders are the hostile contacts the side believes near it, its
 losses are the side's own casualty memory there, and home's safety is the movers
 it believes near the keep. `-Dbattle.counterattack=false` is the same-build
-control (the old `-Dbattle.conquest.fortCounterattack=false` still works), and
+control, and
 the figures above are evidence knobs under the same prefix (`reserveShare`,
 `minStrength`, `commitShare`, `minPoolSquads`, `margin`, `lossWeight`,
 `informed` — off is the uninformed sizing from what is believed at the place
