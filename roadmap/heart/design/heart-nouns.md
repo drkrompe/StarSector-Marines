@@ -142,9 +142,14 @@ battlefield with the player's forces playing a more localized role"). Broad
 Front stays lanes into overgrowth; The Burn's front is a walking barrage with
 fire. In build behind `-Dbattle.heart.burnFront` (`heart-burn-front.md`).
 
-**Battlegroup** (The Burn). One allied sector's force: militia infantry with
-armour (an escort APC, a technical, a breakthrough tank and a Hound pair).
-It follows the barrage on its own line across the front, armour stepping with
+**Battlegroup** (The Burn). One allied sector's force: the planetary militia
+committed in strength (owner, 2026-10-22: "no need to be stingy with infantry
+and vehicles"). Its infantry comes in **waves**: the first steps off at the
+opening, one more as each of the barrage's first lines lifts, and more at a
+steady cadence once the barrage has ended, feeding the push on the mothers. A
+wave marches to wherever its lane is aimed now and joins the lane there. Its
+armour is an escort APC, two technicals, two breakthrough tanks and a Hound
+pair. It follows the barrage on its own line across the front, armour stepping with
 its infantry. Its armour is the allied commander's (`allied-command.md`):
 the mission names each machine's post and the commander drives and fights it, a
 machine the woods bar holding as far forward as it can drive. It owns its sector's satellites, then goes on to the

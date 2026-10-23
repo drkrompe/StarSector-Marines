@@ -127,8 +127,10 @@ public final class BloomHeartSetup {
         // -Dbattle.heart.followBarrage=false is the control: the company goes straight for its bore.
         BarrageScreen screen = barrage == null || !Boolean.parseBoolean(System.getProperty("battle.heart.followBarrage", "true"))
                 ? null : burnScreen(form, barrage.plan());
+        HeartLane companyLane = new HeartLane(form.advancesAlongY(), laneAcross, laneHalfWidth);
+        if (front) lanes.companySector(companyLane);
         sim.setAutonomousCommander(Faction.MARINE,
-                new HeartAssaultCommand(new HeartLane(form.advancesAlongY(), laneAcross, laneHalfWidth), screen),
+                new HeartAssaultCommand(companyLane, screen),
                 HeartAssaultCommand.DISCLOSURE);
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(HeartAssaultCommand.ISSUER, "Company support joins the push"));
         return sim;
@@ -167,6 +169,20 @@ public final class BloomHeartSetup {
     static final boolean HEAVY_ARMOUR = !"standard".equals(System.getProperty("battle.heart.burnFrontArmour", "heavy"));
     /** A battlegroup's sector: this share of the front's width either side of its lane. */
     static final float BATTLEGROUP_HALF_WIDTH = 0.09f;
+    /**
+     * The planetary militia committed in strength (owner, 2026-10-22: "no need to be stingy with infantry and
+     * vehicles"): teams in each wave of each battlegroup, and how many waves follow the first, one stepping off as
+     * each of the barrage's first lines lifts. {@code -Dbattle.heart.burnFrontTeams} and
+     * {@code -Dbattle.heart.burnFrontWaves} tune them.
+     */
+    static final int BATTLEGROUP_TEAMS = Integer.getInteger("battle.heart.burnFrontTeams", 4);
+    static final int BATTLEGROUP_WAVES = Integer.getInteger("battle.heart.burnFrontWaves", 3);
+    /**
+     * Once the barrage has ended the militia keeps feeding the front against the mothers: this many more waves,
+     * one every {@link #LATE_WAVE_SECONDS} ({@code -Dbattle.heart.burnFrontLateWaves}).
+     */
+    static final int BATTLEGROUP_LATE_WAVES = Integer.getInteger("battle.heart.burnFrontLateWaves", 8);
+    static final int LATE_WAVE_SECONDS = 60;
     /** Where a battlegroup's armour is set down: at the farmland's open front, short of where the front forms up. */
     static final float ARMOUR_DEPTH = 0.12f;
 
@@ -189,13 +205,23 @@ public final class BloomHeartSetup {
             grounds.add(new HeartLane(form.advancesAlongY(), form.advancesAlongY() ? foot[0] : foot[1], halfWidth));
             entries.add(foot);
         }
-        HeartLanes lanes = new HeartLanes(grounds, entries, RiskLevel.MEDIUM, seed ^ LANES_SALT).following(screen);
+        int[] lifts = screen.liftTick();
+        int early = Math.min(BATTLEGROUP_WAVES, lifts.length);
+        int[] waves = new int[1 + early + BATTLEGROUP_LATE_WAVES];
+        waves[0] = HeartLanes.STEP_OFF_SECONDS;
+        for (int w = 1; w <= early; w++) waves[w] = Math.round(lifts[w - 1] * BattleSimulation.TICK_DT);
+        int ended = Math.round(lifts[lifts.length - 1] * BattleSimulation.TICK_DT);
+        for (int w = 0; w < BATTLEGROUP_LATE_WAVES; w++) waves[1 + early + w] = ended + w * LATE_WAVE_SECONDS;
+        HeartLanes lanes = new HeartLanes(grounds, entries, BATTLEGROUP_TEAMS, waves, RiskLevel.MEDIUM, seed ^ LANES_SALT)
+                .following(screen);
         int axis = form.advancesAlongY() ? 1 : 0;
         float facing = form.advancesAlongY() ? (screen.sign() > 0 ? 90f : -90f) : (screen.sign() > 0 ? 0f : 180f);
         for (int i = 0; i < across.length; i++) {
             List<VehicleType> hulls = new ArrayList<>(List.of(VehicleType.ESCORT_APC, VehicleType.MILITIA_TECHNICAL));
             boolean inner = i == 1 || i == across.length - 2;
             if (inner || HEAVY_ARMOUR) hulls.add(VehicleType.BREAKTHROUGH_TANK);
+            // The heavy front brings a second tank and a second technical to every battlegroup.
+            if (HEAVY_ARMOUR) hulls.addAll(List.of(VehicleType.BREAKTHROUGH_TANK, VehicleType.MILITIA_TECHNICAL));
             int[] base = form.cellAt(ARMOUR_DEPTH, across[i]);
             int slot = 0;
             for (VehicleType type : hulls) {

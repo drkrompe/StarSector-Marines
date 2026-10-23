@@ -2,7 +2,7 @@ Status: IN PROGRESS (behind `-Dbattle.heart.burnFront=true`)
 
 Written: 2026-10-22
 
-Updated: 2026-10-22 — built behind the switch and measured; armour mix and sector width are with the owner (`heart-burn-front-armour`, `heart-burn-company-sector`); hulls and Hounds now stationed by the shared allied commander (`allied-command.md`).
+Updated: 2026-10-22 — owner picked heavy armour and the narrow sector; front scaled up (waves, more armour); first wins on 2 of 5 seeds.
 
 # The Burn's front
 
@@ -24,11 +24,12 @@ with allied armour.
 
 - **The front.** The whole approach is divided across into sectors. The
   company holds one, centred on its landing; allied battlegroups hold the rest.
-- **Battlegroups.** Each is militia infantry with armour: an escort APC, a
-  technical, a breakthrough tank and a Hound pair in every group (the heavy
-  mix, measured better; the standard mix keeps tanks beside the company and
-  Hounds on the outer flanks). Each owns its sector's
-  satellites, then goes on to the nearest mother.
+- **Battlegroups.** Each is militia infantry in waves (four teams a wave: one
+  at the opening, one as each of the first three lines lifts, then eight more
+  a minute apart once the barrage ends) with armour: an escort APC, two
+  technicals, two breakthrough tanks and a Hound pair (the owner's pick,
+  heavy; `-Dbattle.heart.burnFrontArmour=standard` is the lighter control).
+  Each owns its sector's satellites, then goes on to the nearest mother.
 - **Following the barrage.** Every battlegroup follows the guns exactly as the
   company does (`BarrageScreen`): it forms on the farmland until the first line
   lifts, then stands short of the firing line and comes up as each line lifts,
@@ -40,7 +41,7 @@ with allied armour.
   never touch the roster. Won when the heart is down, lost when the company is
   broken or the battery overrun, as today.
 
-Out of scope: allied waves landing behind lifted lines, the APC carrying and
+Out of scope: allied waves landing by air behind lifted lines, the APC carrying and
 deboarding its riflemen (they walk beside it), the general allied line
 commander of `cordon-allied-columns.md`.
 
@@ -60,7 +61,24 @@ times out. Heavy front: 3 satellites on 404, 1 on 202, 303 and 505; swarm
 killed nearly doubled. No mother is touched in any run. Heavy front with
 its armour stationed by the allied commander: satellites 1/0/2/2/2 (202-606),
 and on 606 the first mother down (the battle times out with four marines
-left). The next step is the company and the front reaching the mothers.
+left).
+
+Scaled front (waves and the heavier armour):
+- During the barrage only (four teams, three follow-on waves): satellites
+  1/2/2/1/2; the lanes all break by tick 17,000, after the barrage has ended
+  and while the mothers keep surging.
+- Eight more waves after the barrage: 14 of 15 satellites and 3 mothers down,
+  every seed times out with the company alive. Sixteen waves are no better,
+  so supply was not the limit.
+- A late column was marching to the hold it was given when it set out, or to
+  a fallen satellite. Re-aimed to its lane's current aim: **won on 202 and
+  606** (heart down at ticks 18,938 and 21,741); 303, 404 and 505 time out
+  with a mother or none down.
+- Walking the barrage onto the mothers (last line at 0.88 instead of 0.70)
+  measured worse (no wins) and was dropped.
+
+Next: 303, 404 and 505. Then turn the front on by default once most seeds
+win.
 
 ## Plan
 
