@@ -67,11 +67,12 @@ class SceneFx:
     only the rounds and strikes it can see are built (swfx_guns.fire_weapon's `only`)."""
 
     def __init__(self, scene, placed, build_of, muzzle_world, frame, log=print, span=None, cur=None,
-                 matrix_at=None):
+                 matrix_at=None, cam_at=None):
         self.scene, self.placed, self.build_of, self.muzzle_world = scene, placed, build_of, muzzle_world
         self.now, self.fps = frame, scene.render.fps / scene.render.fps_base
         self.span, self.cur = span, cur
         self.matrix_at = matrix_at      # (key, scene frame) -> that ship's world matrix then, metres
+        self.cam_at = cam_at            # scene frame -> (camera world location, horizontal fov rad)
         self.log = log
         self.m = _mods()
         self.rows = []
@@ -478,6 +479,10 @@ class SceneFx:
             n += 1
         if n:
             self.rows.append(f'world space: {n} of the projectiles {a} made held in the world from their fire frame')
+        if self.cam_at is not None and hasattr(swfx_guns, 'screen_clamp'):
+            # every round 1-3 px across on screen whatever the camera's distance (owner, 2026-10-23)
+            k = swfx_guns.screen_clamp(objs, self.cam_at, to_world=copy_at)
+            self.rows.append(f'screen clamp: {k} round frames held to the streak width band')
         return n
 
     @staticmethod

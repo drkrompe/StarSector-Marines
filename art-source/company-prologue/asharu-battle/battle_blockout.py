@@ -844,6 +844,8 @@ KEYFRAMES = {
         fx=[('tracer', 'manticore-p', 'lasher-lead'), ('tracer', 'falcon-p', 'lasher-lead'),
             ('tracer', 'falcon-p', 'lasher-b'), ('tracer', 'lasher-lead', 'manticore-p'),
             ('tracer', 'lasher-b', 'wolf-p-a'), ('missiles', 'manticore-p', 'phaeton'),
+            # the second salvo: the lead Lasher's 55.9 s breach is a Harpoon's (fire-control plan)
+            ('missiles', 'manticore-p', 'lasher-lead', 55.9),
             ('fire_on', 'lasher-a', (-20, 10, 6)),
             ('blast_on', 'lasher-lead', 14, (8, 6, 6))],
         cues={'lasher-lead': {'fire': 'all'}, 'lasher-b': {'fire': ['t3_1']},
@@ -2189,12 +2191,19 @@ def blender_main(cfg):
         return scene_fx.FAMILY.get(w, 'mg')
 
     def streak_radius(p, r_m):
-        cam = scene.camera
-        if cam is None:
-            return r_m
-        d = max(1.0, (cam.matrix_world.translation - p).length)
-        mpp = 2.0 * d * math.tan(cam.data.angle / 2) / 1920.0       # metres per pixel there
+        c = spec['camera']          # this frame's camera (the scene camera is aimed after the stand-ins)
+        d = max(1.0, (Vector(c['loc']) - p).length)
+        mpp = 2.0 * d * (18.0 / c['lens']) / 1920.0       # metres per pixel there (36 mm sensor, horizontal)
         return min(max(r_m, STREAK_PX[0] * mpp), STREAK_PX[1] * mpp)
+
+    def cam_at_of(spec):
+        """scene frame -> (camera world location, horizontal fov rad) along a span's camera path."""
+        path = spec['camera'].get('at')
+
+        def cam_at(f):
+            c = path(spec['key_t'] + (f - anchor) / fps_s) if path is not None else spec['camera']
+            return Vector(c['loc']), 2.0 * math.atan(18.0 / c['lens'])
+        return cam_at
 
     def missiles(a, b, n=5, muzzle=None):
         p0, p1 = muzzle_world(a, muzzle), at(b)
@@ -2841,7 +2850,8 @@ def blender_main(cfg):
                                                    for t_ in spec['shot_t']) if 'span_t' in spec else None,
                                         cur=anchor + round((spec['span_t'] - spec['key_t']) * fps_s)
                                         if 'span_t' in spec and not cfg.get('kit_once') else None,
-                                        matrix_at=ship_matrix_at(spec) if 'span_t' in spec else None)
+                                        matrix_at=ship_matrix_at(spec) if 'span_t' in spec else None,
+                                        cam_at=cam_at_of(spec) if 'span_t' in spec else None)
                 for key, sh in spec.get('shields', {}).items():
                     sfx_.shield(key, sh)
                 for i, fx in enumerate(spec.get('fx', ())):
@@ -2852,8 +2862,10 @@ def blender_main(cfg):
                     elif kind == 'missiles':
                         try:         # a salvo on a ship that breaks arrives on her break_frame (the cook-off)
                             bf = int(placed[fx[2]]['fx'].get('break_frame'))
-                        except (AttributeError, KeyError):
+                        except (AttributeError, KeyError, TypeError):
                             bf = None
+                        if len(fx) > 3:       # ('missiles', a, b, t): the salvo arrives at sequence time t
+                            bf = anchor + round((fx[3] - spec.get('key_t', fx[3])) * fps_s)
                         done = sfx_.missiles(fx[1], fx[2], arrive=bf)
                     elif kind == 'blast_on':
                         done = sfx_.blast_on(fx[1], fx[2], fx[3])
