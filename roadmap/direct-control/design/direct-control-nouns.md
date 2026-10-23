@@ -501,9 +501,11 @@ ballistics without turning the cursor into a target identity.
 The player may point at ground they can see without creating a squad belief
 or revealing an unseen enemy. A physically struck unknown body is resolved
 normally, but its identity is presented only when the player's observation
-rules allow it. Weapon families outside modeled ground direct fire, including
-indirect missiles, need their own ground-point targeting contract before they can be
-triggered manually. Mech mounts also retain their
+rules allow it. A mech's arcing racks have that ground-point contract: a pilot
+lobs a salvo at the cursor, scattered about the thrown point and refused inside
+a minimum range. A vehicle turret's point fire is still flat-trajectory only, so
+an arcing turret (the LRM carrier's launcher) stays under its crew's control and
+reads AI ONLY. Mech mounts also retain their
 hardpoint arcs and per-mount clocks; a vehicle turret retains its independent
 aim and fire authority.
 

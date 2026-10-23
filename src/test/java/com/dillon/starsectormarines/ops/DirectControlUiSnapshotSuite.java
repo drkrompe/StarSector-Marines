@@ -236,11 +236,11 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         return mount;
     }
 
-    /** Vehicle turrets on each long load: an LRM launcher in salvos, a heavy MG's belt, a burst laser. */
+    /** Vehicle turrets on each long load: an LRM launcher in salvos, a heavy MG's belt, a burst laser, a pulse emitter. */
     private static BattleDirectControlStatus.Snapshot ordnanceVehicle() {
         List<BattleDirectControlStatus.WeaponStatus> weapons = new ArrayList<>();
         String[][] turrets = {{"mount.vehicle-lrm", "37", "0"}, {"mount.turret-heavy-mg", "131", "0"},
-                {"mount.tank-burst-laser", "420", "2"}};
+                {"mount.tank-burst-laser", "420", "2"}, {"mount.hover-pulse", "160", "0"}};
         for (String[] turret : turrets) {
             var mount = TurretCatalogRegistry.requireMount(turret[0]);
             var ground = new GroundTurret(Integer.parseInt(turret[1]));
