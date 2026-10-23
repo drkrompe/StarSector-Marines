@@ -9,8 +9,10 @@ import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.CordonBattleFixture;
+import com.dillon.starsectormarines.battle.fabrication.FabricationService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import org.json.JSONArray;
@@ -43,6 +45,7 @@ class CordonCommandEvidenceTest {
 
     /** Cells from a calling redoubt's centre an allied hull counts as answering it. */
     private static final float ARMOUR_AT_CALL = 20f;
+    private static final String NL = "\n";
 
     /** The window and a minute over, so a held line finishes inside the budget. */
     private static final int DEFAULT_MAX_TICKS = 28_800;
@@ -217,6 +220,36 @@ class CordonCommandEvidenceTest {
         if (cordon.columns() != null) {
             out.append("- Allied columns joined: ").append(cordon.columns().joined()).append(" of ")
                     .append(cordon.timetable().columnSeconds().size()).append('\n');
+        }
+        if (cordon.logistics() != null) {
+            out.append("- Logistics base: ").append(cordon.logistics().built()).append(" machines built, ")
+                    .append(cordon.logistics().carried()).append(" squads carried up, ")
+                    .append(cordon.logistics().waiting()).append(" waiting at the base, ")
+                    .append(cordon.logistics().queued()).append(" machines waiting to leave the shed, ")
+                    .append(cordon.logistics().carriers().size()).append(" carriers and ")
+                    .append(cordon.armour() == null ? 0 : cordon.armour().command().hulls().size())
+                    .append(" allied hulls alive\n");
+            out.append("  - Machine door: ").append(cordon.logistics().doorX()).append(',')
+                    .append(cordon.logistics().doorY()).append("; apron muster ")
+                    .append(cordon.logistics().musterX()).append(',')
+                    .append(cordon.logistics().musterY()).append(NL);
+            for (long hull : cordon.armour().command().hulls()) {
+                GroundBody body = sim.convoy().body(hull);
+                VehicleMoveOrderService.RefusedOrder refused = sim.getVehicleMoveOrderService().refusal(hull);
+                out.append(String.format(Locale.ROOT, "  - Hull %d %s at %.0f,%.0f, structure %.0f/%.0f%s%s",
+                        hull, sim.convoy().vehicleType(hull), body.x, body.y, sim.world().hp(hull),
+                        sim.world().maxHp(hull), refused == null ? "" : ", refused " + refused.reason()
+                                + " to " + refused.requestedX() + "," + refused.requestedY(), NL));
+            }
+            if (sim.getFabrication() != null) {
+                for (FabricationService.Works bay : sim.getFabrication().bays()) {
+                    out.append("  - Shed bay ").append(bay.siteId).append(": ").append(bay.completed)
+                            .append(" finished, on the stocks ").append(bay.hasFrame()
+                                    ? String.format(Locale.ROOT, "%s at %.0f%%", bay.vehicle,
+                                    100f * sim.world().hp(bay.frameId) / sim.world().maxHp(bay.frameId)) : "nothing")
+                            .append('\n');
+                }
+            }
         }
         for (CordonRedoubt r : cordon.redoubts()) {
             out.append("- Redoubt ").append(r.number()).append(": cells ").append(r.left()).append(',').append(r.top())

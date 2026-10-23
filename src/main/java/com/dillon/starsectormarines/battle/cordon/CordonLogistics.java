@@ -1,0 +1,362 @@
+package com.dillon.starsectormarines.battle.cordon;
+
+import com.dillon.starsectormarines.battle.command.allied.AlliedCommand;
+import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
+import com.dillon.starsectormarines.ops.RiskLevel;
+
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.function.Consumer;
+
+/**
+ * The allies' logistics base behind the line ({@code cordon-nouns.md}, Logistics base): reinforcement
+ * squads walk in off the rear edge to its apron, its shed builds the allies' cars and carriers, and
+ * its carriers take waiting squads up to the redoubt that needs them most, where they join the
+ * garrison. A carrier stays at the redoubt it delivered to as support, and comes back to its own
+ * staging slot on the apron when squads are waiting for it.
+ *
+ * <p><b>Exits are controlled.</b> The apron is the ground outside the shed's machine door. A finished
+ * hull waits on its berth until the one before it has driven clear of the door, so two never meet in
+ * the lane; a carrier waits on its own slot, never in the doorway; and a car or technical leaves the
+ * apron for its home behind the line at once.
+ */
+public final class CordonLogistics {
+
+    /** Cells from a slot a column counts as at the base, and a carrier as home. */
+    static final int AT_BASE = 8;
+    /** Cells out from the machine door the apron's slots stand. */
+    static final int APRON_DEPTH = 7;
+    /** Cells between one staging slot and the next, across the door. */
+    static final int SLOT_PITCH = 4;
+    /** Staging slots on the apron. */
+    static final int SLOTS = 3;
+    /** Cells past the door a leaving hull must be before the next is let out. */
+    static final int DOOR_CLEAR = 5;
+    /** Ticks a leaving hull has to get clear of the door before the next is let out anyway. */
+    static final int EXIT_PATIENCE_TICKS = 60 * 45;
+    /** Cells out of the door a car or technical drives to before it goes on to its home. */
+    static final int THRESHOLD = 4;
+    /** Cells from the threshold that count as through it. */
+    static final int AT_THRESHOLD = 3;
+    /** Cells between the places carriers set down behind one redoubt. */
+    static final int DROP_SPACING = 5;
+    /** Cells of lane that must be clear of other hulls before a finished one is drawn into it. */
+    static final float LANE_CLEAR = 4f;
+    /** Doorway cells in a row that make a machine door rather than a hand door. */
+    static final int MACHINE_DOOR = 3;
+    /** Cells round the berths a shed's walls can stand: its vestibule and its shop. */
+    static final int SHED_MARGIN = 12;
+
+    private final CordonArmour armour;
+    private final int musterX, musterY;
+    private final int doorX, doorY;
+    private final List<int[]> slots;
+    private final List<int[]> armourHomes;
+    private final List<Long> carriers = new ArrayList<>();
+    private final Map<Long, int[]> carrierSlot = new HashMap<>();
+    private final Deque<Long> leaving = new ArrayDeque<>();
+    /** Cars and technicals on their way out to the threshold, and the home each goes on to. */
+    private final Map<Long, int[]> outbound = new HashMap<>();
+    private final int thresholdX, thresholdY;
+    private final Deque<Integer> waiting = new ArrayDeque<>();
+    private final RiskLevel risk;
+    private final Random rng;
+    private final List<String> landed = new ArrayList<>();
+    private long exiting;
+    private int exitingSince;
+    private int carried, built, homed;
+
+    private CordonLogistics(CordonArmour armour, int[] door, List<int[]> slots, List<int[]> armourHomes,
+                            RiskLevel risk, Random rng) {
+        this.armour = armour;
+        this.doorX = door[0];
+        this.doorY = door[1];
+        this.slots = List.copyOf(slots);
+        // The threshold: open ground a few cells out of the door, between it and the slots.
+        this.thresholdX = door[0] + door[2] * THRESHOLD;
+        this.thresholdY = door[1] + door[3] * THRESHOLD;
+        int[] middle = slots.get(slots.size() / 2);
+        this.musterX = middle[0];
+        this.musterY = middle[1];
+        this.armourHomes = List.copyOf(armourHomes);
+        this.risk = risk;
+        this.rng = rng;
+    }
+
+    /**
+     * The base whose shed holds these berths: its machine door found on the map, its apron of
+     * staging slots out in front of it. Where no machine door is found (a shed placed with only
+     * hand doors) the apron is the open ground nearest the fallback cell. {@code null} where there is
+     * no open ground at all.
+     *
+     * @param redoubts the line; cars and technicals off the stocks are posted behind its redoubts in turn
+     */
+    public static CordonLogistics at(BattleSimulation sim, CordonArmour armour, List<Gantry> berths,
+                                     int fallbackX, int fallbackY, List<CordonRedoubt> redoubts,
+                                     RiskLevel risk, Random rng) {
+        List<int[]> armourHomes = new ArrayList<>();
+        for (CordonRedoubt r : redoubts) armourHomes.add(armour.behind(r));
+        NavigationGrid grid = sim.getGrid();
+        int[] door = machineDoor(grid, berths);
+        List<int[]> slots = new ArrayList<>();
+        if (door != null) {
+            int outX = door[2], outY = door[3];
+            for (int i = 0; i < SLOTS; i++) {
+                int offset = (i - (SLOTS - 1) / 2) * SLOT_PITCH;
+                int[] cell = CordonGround.nearestWalkable(grid, door[0] + outX * APRON_DEPTH + outY * offset,
+                        door[1] + outY * APRON_DEPTH + outX * offset);
+                if (cell != null) slots.add(cell);
+            }
+        }
+        if (slots.isEmpty()) {
+            int[] cell = CordonGround.nearestWalkable(grid, fallbackX, fallbackY);
+            if (cell == null) return null;
+            slots.add(cell);
+            door = new int[]{cell[0], cell[1], 0, 0};
+        }
+        return new CordonLogistics(armour, door, slots, armourHomes, risk, rng);
+    }
+
+    /**
+     * The shed's machine door: the longest straight run of doorway cells on the ring round its
+     * berths, and which way out of the shed it faces, {@code [x, y, outX, outY]}, or {@code null}.
+     */
+    static int[] machineDoor(NavigationGrid grid, List<Gantry> berths) {
+        if (berths.isEmpty()) return null;
+        int left = Integer.MAX_VALUE, right = Integer.MIN_VALUE, bottom = Integer.MAX_VALUE, top = Integer.MIN_VALUE;
+        for (Gantry g : berths) {
+            left = Math.min(left, g.left());
+            right = Math.max(right, g.right());
+            bottom = Math.min(bottom, g.bottom());
+            top = Math.max(top, g.top());
+        }
+        float midX = (left + right) / 2f, midY = (bottom + top) / 2f;
+        int[] best = null;
+        int bestRun = MACHINE_DOOR - 1;
+        for (int x = left - SHED_MARGIN; x <= right + SHED_MARGIN; x++) {
+            for (int y = bottom - SHED_MARGIN; y <= top + SHED_MARGIN; y++) {
+                if (!grid.inBounds(x, y) || !grid.isDoorway(x, y)) continue;
+                for (int axis = 0; axis < 2; axis++) {
+                    int ax = axis == 0 ? 1 : 0, ay = 1 - ax;
+                    // Count each run once, from its first cell.
+                    if (grid.inBounds(x - ax, y - ay) && grid.isDoorway(x - ax, y - ay)) continue;
+                    int run = 0;
+                    while (grid.inBounds(x + ax * run, y + ay * run) && grid.isDoorway(x + ax * run, y + ay * run)) run++;
+                    if (run <= bestRun) continue;
+                    bestRun = run;
+                    float cx = x + ax * (run - 1) / 2f, cy = y + ay * (run - 1) / 2f;
+                    // Out of the shed is across the run, away from the berths.
+                    int outX = ay, outY = ax;
+                    if ((cx - midX) * outX + (cy - midY) * outY < 0) {
+                        outX = -outX;
+                        outY = -outY;
+                    }
+                    best = new int[]{Math.round(cx), Math.round(cy), outX, outY};
+                }
+            }
+        }
+        return best;
+    }
+
+    public int musterX() { return musterX; }
+    public int musterY() { return musterY; }
+    /** The middle of the shed's machine door. */
+    public int doorX() { return doorX; }
+    public int doorY() { return doorY; }
+    /** The apron's staging slots. */
+    public List<int[]> slots() { return slots; }
+    /** Squads carried up to the line so far. */
+    public int carried() { return carried; }
+    /** Machines the shed has finished so far. */
+    public int built() { return built; }
+    /** Squads standing at the base waiting for a carrier. */
+    public int waiting() { return waiting.size(); }
+    /** Finished machines still on their berth, waiting to be let out. */
+    public int queued() { return leaving.size(); }
+    /** Live carriers. */
+    public List<Long> carriers() { return List.copyOf(carriers); }
+
+    /** Puts a carrier standing on the field to work from the base, on a staging slot of its own. */
+    public void addCarrier(BattleSimulation sim, long hull) {
+        armour.command().enlist(sim, hull);
+        int[] slot = slots.get(carriers.size() % slots.size());
+        carrierSlot.put(hull, slot);
+        carriers.add(hull);
+        armour.command().station(sim, hull, slot[0], slot[1]);
+    }
+
+    /** A machine off the shed's stocks: it waits on its berth to be let out. */
+    public void rolledOut(BattleSimulation sim, long hull) {
+        built++;
+        leaving.add(hull);
+    }
+
+    /** The orders a column on the timetable marches under: to the base's apron, where it waits. */
+    public AlliedColumns.Orders columnOrders() {
+        return new AlliedColumns.Orders() {
+            @Override public int[] destination(BattleSimulation sim) {
+                return new int[]{musterX, musterY};
+            }
+
+            @Override public boolean stillNeeded(BattleSimulation sim, int x, int y) {
+                return true;
+            }
+
+            @Override public boolean arrived(int x, int y, int destX, int destY) {
+                return Math.abs(x - destX) <= AT_BASE && Math.abs(y - destY) <= AT_BASE;
+            }
+
+            @Override public void joined(BattleSimulation sim, int number, List<Integer> squads, int destX, int destY) {
+                waiting.addAll(squads);
+            }
+        };
+    }
+
+    /**
+     * One tick: lets the next finished machine out once the door is clear, loads a waiting squad
+     * into a carrier on its slot, and calls a carrier back to its slot when squads wait.
+     */
+    public void advance(BattleSimulation sim, List<CordonRedoubt> redoubts, Consumer<String> beat) {
+        AlliedCommand command = armour.command();
+        for (String told : landed) beat.accept(told);
+        landed.clear();
+        carriers.retainAll(command.hulls());
+        outbound.keySet().retainAll(command.hulls());
+        for (Map.Entry<Long, int[]> leg : new ArrayList<>(outbound.entrySet())) {
+            if (!near(sim.convoy().body(leg.getKey()), new int[]{thresholdX, thresholdY}, AT_THRESHOLD)) continue;
+            outbound.remove(leg.getKey());
+            armour.adopt(sim, leg.getKey(), leg.getValue()[0], leg.getValue()[1]);
+        }
+        letOut(sim);
+        if (sim.getSimTickIndex() % CordonArmour.REVIEW_TICKS != 0) return;
+        waiting.removeIf(squad -> sim.squadMemberCount(squad) == 0);
+        for (long hull : carriers) {
+            if (waiting.isEmpty()) break;
+            if (command.carrying(hull)) continue;
+            int[] slot = carrierSlot.get(hull);
+            if (!near(sim.convoy().body(hull), slot, AT_BASE)) {
+                command.station(sim, hull, slot[0], slot[1]);
+                continue;
+            }
+            CordonRedoubt to = neediest(sim, redoubts);
+            if (to == null) break;
+            int squad = waiting.poll();
+            int[] drop = armour.behind(to);
+            // Each carrier its own place behind the wall, so two sent to one redoubt do not stack.
+            int lane = carriers.indexOf(hull) - (slots.size() - 1) / 2;
+            int dropX = drop[0] + lane * DROP_SPACING, dropY = drop[1];
+            command.carry(sim, hull, squad, dropX, dropY, (s, riders, x, y) -> {
+                List<int[]> cells = CordonGround.cluster(s.getGrid(), s.getOccupancyMap(), x, y, riders);
+                if (cells.isEmpty()) return;
+                carried++;
+                int team = ColonyMilitia.seatTeam(s, cells, "Carried team " + carried, risk, rng);
+                CordonSequence.join(s, to, List.of(team));
+                // Told on the tick it lands, which is later than the tick it was ordered on.
+                landed.add("carried_" + carried);
+            });
+        }
+    }
+
+    /** One hull through the door at a time: the next goes once the last is clear of it, or gone. */
+    private void letOut(BattleSimulation sim) {
+        if (exiting != 0L) {
+            boolean gone = !sim.convoy().isVehicle(exiting) || sim.convoy().structure(exiting) <= 0f;
+            if (!gone && !near(sim.convoy().body(exiting), new int[]{doorX, doorY}, DOOR_CLEAR)
+                    && pastDoor(sim.convoy().body(exiting))) {
+                exiting = 0L;
+            } else if (gone || sim.getSimTickIndex() - exitingSince > EXIT_PATIENCE_TICKS) {
+                exiting = 0L;
+            } else {
+                return;
+            }
+        }
+        while (!leaving.isEmpty()) {
+            long hull = leaving.peek();
+            if (!sim.convoy().isVehicle(hull) || sim.convoy().structure(hull) <= 0f) {
+                leaving.poll();
+                continue;
+            }
+            if (!rollIntoLane(sim, hull)) return;
+            leaving.poll();
+            VehicleType type = sim.convoy().vehicleType(hull);
+            // A carrier works from a slot of its own; one more than there are slots fights with the armour.
+            if (type != null && type.capacity > 0 && carriers.size() < slots.size()) {
+                addCarrier(sim, hull);
+            } else {
+                // Out of the shed first, a short drive to the threshold; its home behind the line after.
+                int[] home = armourHomes.isEmpty() ? new int[]{musterX, musterY}
+                        : armourHomes.get(homed++ % armourHomes.size());
+                armour.command().enlist(sim, hull);
+                armour.command().station(sim, hull, thresholdX, thresholdY);
+                outbound.put(hull, home);
+            }
+            exiting = hull;
+            exitingSince = sim.getSimTickIndex();
+            return;
+        }
+    }
+
+    /**
+     * The shed's tug: a finished hull is drawn out of its berth into the service lane in front of
+     * it, turned to face the machine door. A berth is fitted round a machine standing in it, its
+     * mouth no wider than the hull, and a hull cannot turn out of it on its own; the lane is wide
+     * enough to drive down. Only when that stretch of lane is clear of every other hull, so a
+     * hull is never drawn out into another.
+     *
+     * @return whether it is in the lane now
+     */
+    private boolean rollIntoLane(BattleSimulation sim, long hull) {
+        if (doorX == musterX && doorY == musterY) return true;
+        GroundBody body = sim.convoy().body(hull);
+        int outX = Integer.signum(musterX - doorX), outY = Integer.signum(musterY - doorY);
+        // The lane runs out of the door, so its middle is the door's line across it.
+        float x = outX != 0 ? body.x : doorX + 0.5f;
+        float y = outX != 0 ? doorY + 0.5f : body.y;
+        VehicleType type = sim.convoy().vehicleType(hull);
+        int radius = VehicleClearance.radiusForWidth(type == null ? 1f : type.visualWidthCells);
+        if (!VehicleClearance.fitsAt(sim.getGrid(), (int) x, (int) y, radius)) return true;
+        for (long other : sim.convoy().entityIds()) {
+            if (other == hull || sim.convoy().structure(other) <= 0f) continue;
+            if (sim.convoy().body(other).distanceTo(x, y) < LANE_CLEAR) return false;
+        }
+        float heading = (float) Math.toDegrees(Math.atan2(outY, outX)) - 90f;
+        body.teleport(x, y, heading);
+        return true;
+    }
+
+    /** Whether a hull is on the apron's side of the door rather than still in the shed. */
+    private boolean pastDoor(GroundBody body) {
+        float outX = Integer.signum(musterX - doorX), outY = Integer.signum(musterY - doorY);
+        return (body.x - doorX) * outX + (body.y - doorY) * outY > 0f;
+    }
+
+    private static boolean near(GroundBody body, int[] cell, int reach) {
+        return Math.abs(body.x - cell[0]) <= reach && Math.abs(body.y - cell[1]) <= reach;
+    }
+
+    /** A calling redoubt first, then the one with the fewest standing; never a fallen one. */
+    private static CordonRedoubt neediest(BattleSimulation sim, List<CordonRedoubt> redoubts) {
+        CordonRedoubt best = null;
+        int bestScore = Integer.MAX_VALUE;
+        for (CordonRedoubt r : redoubts) {
+            if (r.state() == CordonRedoubt.State.FALLEN) continue;
+            int score = CordonSequence.standing(sim, r) - (r.state() == CordonRedoubt.State.CALLING ? 1000 : 0);
+            if (score < bestScore) {
+                bestScore = score;
+                best = r;
+            }
+        }
+        return best;
+    }
+}

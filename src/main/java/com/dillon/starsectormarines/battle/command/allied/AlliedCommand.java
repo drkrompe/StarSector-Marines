@@ -11,7 +11,6 @@ import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
-import com.dillon.starsectormarines.battle.vehicle.VehicleTransportService;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 import java.util.ArrayList;
@@ -36,11 +35,17 @@ import java.util.Map;
  */
 public final class AlliedCommand {
 
-    /** What the mission does with a squad a hull has set down. */
+    /**
+     * What the mission does with the riders a hull has brought: it sets that many down at the drop.
+     * They travel as a count, as a delivery convoy's do, not as units aboard: a squad that boards
+     * leaves the field and the mission seats its riders again where they get out.
+     */
     public interface Delivery {
-        void delivered(BattleSimulation sim, int squad, int x, int y);
+        void delivered(BattleSimulation sim, int riders, int x, int y);
     }
 
+    /** Cells from its hull a squad's members must all stand to board it. */
+    public static final float BOARDING_REACH = 5f;
     /** Cells a stationed hull may stray from its post, fighting, before it is driven back. */
     public static final float STATION_LEASH = 16f;
     /** Cells from its drop a carrier sets its riders down at, however its route ended. */
@@ -68,6 +73,7 @@ public final class AlliedCommand {
         int squad = -1;
         Delivery delivery;
         int boardingSince;
+        int riders;
     }
 
     /** A mech's post, and the standable point it was sent to. */
@@ -200,7 +206,6 @@ public final class AlliedCommand {
     public void advance(BattleSimulation sim) {
         mechs.keySet().removeIf(mech -> sim.resolveUnit(mech) == 0L || !sim.world().isAlive(mech));
         ConvoyService convoy = sim.convoy();
-        VehicleTransportService transport = sim.transport();
         for (Map.Entry<Long, Task> entry : new ArrayList<>(tasks.entrySet())) {
             long hull = entry.getKey();
             if (!alive(convoy, hull)) {
@@ -213,18 +218,21 @@ public final class AlliedCommand {
             switch (task.phase) {
                 case BOARDING -> {
                     boolean gone = sim.squadMemberCount(task.squad) == 0;
-                    boolean aboard = !gone && transport.mountSquad(hull, task.squad) > 0;
+                    boolean aboard = !gone && board(sim, hull, task);
                     boolean waited = sim.getSimTickIndex() - task.boardingSince > BOARDING_PATIENCE_TICKS;
                     if (aboard || gone || waited) {
-                        task.phase = gone || !aboard ? Phase.STATION : Phase.DRIVING;
+                        task.phase = aboard ? Phase.DRIVING : Phase.STATION;
                         drive(sim, hull, task);
                     }
                 }
                 case DRIVING -> {
                     if (within(convoy.body(hull), task.postX, task.postY, DROP_REACH) || stopped(sim, hull)) {
-                        transport.dismountAll(hull);
                         task.phase = Phase.STATION;
-                        if (task.delivery != null) task.delivery.delivered(sim, task.squad, task.postX, task.postY);
+                        if (task.delivery != null && task.riders > 0) {
+                            GroundBody body = convoy.body(hull);
+                            task.delivery.delivered(sim, task.riders, (int) body.x, (int) body.y);
+                        }
+                        task.riders = 0;
                     }
                 }
                 case STATION -> {
@@ -234,6 +242,28 @@ public final class AlliedCommand {
                 }
             }
         }
+    }
+
+    /**
+     * The squad boards when every member stands within reach of the hull and they fit: all of them
+     * leave the field and ride as a count. A squad strung out on the road waits for its stragglers.
+     */
+    private static boolean board(BattleSimulation sim, long hull, Task task) {
+        GroundBody body = sim.convoy().body(hull);
+        VehicleType type = sim.convoy().vehicleType(hull);
+        List<Long> near = new ArrayList<>();
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long unit = sim.liveUnitAt(i);
+            if (!sim.world().hasPosition(unit)) continue;
+            Squad squad = sim.squadOf(unit);
+            if (squad == null || squad.id != task.squad) continue;
+            if (body.distanceTo(sim.world().x(unit), sim.world().y(unit)) <= BOARDING_REACH) near.add(unit);
+        }
+        if (near.isEmpty() || near.size() < sim.squadMemberCount(task.squad)) return false;
+        if (type == null || near.size() > type.capacity) return false;
+        for (long unit : near) sim.takeOffTheField(unit);
+        task.riders = near.size();
+        return true;
     }
 
     private void drive(BattleSimulation sim, long hull, Task task) {
