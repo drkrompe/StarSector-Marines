@@ -5,15 +5,8 @@ import com.dillon.starsectormarines.ui.retained.CanvasBlend;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasProducer;
 import com.dillon.starsectormarines.ui.retained.CanvasSpriteRegion;
-import com.dillon.starsectormarines.ui.retained.UiImage;
-import com.dillon.starsectormarines.ui.retained.UiSpriteCache;
 
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
 import java.awt.Color;
-import java.io.File;
-import java.util.Iterator;
 
 /**
  * Static thumbnail of one vehicle hull and its turret, nose to the left as the sheet draws it,
@@ -29,12 +22,12 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
     private static final float NOSE_UP_DEGREES = 90f;
 
     private final VehicleType type;
-    private final float frameAspect;
+    /** Resolved on the first draw, from whichever host is drawing; NaN until then. */
+    private float frameAspect = Float.NaN;
 
     public VehiclePreviewCanvas(VehicleType type) {
         if (type == null) throw new IllegalArgumentException("vehicle type required");
         this.type = type;
-        this.frameAspect = frameAspect(type);
     }
 
     @Override
@@ -45,7 +38,8 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
         context.fillRect(0f, 0f, width, height, BACKGROUND);
         context.fillRect(inset, inset, width - inset * 2f, height - inset * 2f, PAD);
 
-        float hullWidth = Math.min((width - inset * 2f) * 0.92f, (height - inset * 2f) * 0.92f / frameAspect);
+        float aspect = frameAspect(context);
+        float hullWidth = Math.min((width - inset * 2f) * 0.92f, (height - inset * 2f) * 0.92f / aspect);
         drawAt(context, width * 0.5f, height * 0.5f, hullWidth / type.visualLengthCells, false, 1f);
     }
 
@@ -55,7 +49,8 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
      */
     void drawAt(CanvasContext context, float centerX, float centerY, float cellPx, boolean noseUp, float alpha) {
         float hullWidth = type.visualLengthCells * cellPx;
-        float hullHeight = hullWidth * frameAspect;
+        float aspect = frameAspect(context);
+        float hullHeight = hullWidth * aspect;
         float angle = noseUp ? NOSE_UP_DEGREES : 0f;
         float[] tint = type.hullTint();
         Color hullColor = tint == null ? new Color(1f, 1f, 1f, alpha)
@@ -67,7 +62,7 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
             // The chassis' forward (+Y) runs along the nose: left on the sheet, up when turned.
             float turretX = noseUp ? centerX + type.turretMountX * cellPx : centerX - type.turretMountY * cellPx;
             float turretY = noseUp ? centerY - type.turretMountY * cellPx : centerY - type.turretMountX * cellPx;
-            context.sprite(type.spritePath, null, turretX, turretY, turretWidth, turretWidth * frameAspect, angle,
+            context.sprite(type.spritePath, null, turretX, turretY, turretWidth, turretWidth * aspect, angle,
                     new Color(1f, 1f, 1f, alpha), CanvasSpriteRegion.frame(type.frameCount, 1, type.turretFrame),
                     CanvasBlend.NORMAL);
         }
@@ -77,28 +72,13 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
         return Math.max(0f, Math.min(1f, value));
     }
 
-    /** One frame's height over its width: the live sprite's size, else the PNG header off disk. */
-    private static float frameAspect(VehicleType type) {
-        try {
-            UiImage image = UiSpriteCache.shared().resolve(type.spritePath);
-            if (image != null && image.width() > 0f) return image.height() / (image.width() / type.frameCount);
-        } catch (RuntimeException | LinkageError ignored) {
-            // No Starsector runtime: read the sheet's header instead.
+    /** One frame's height over its width, as the drawing host sizes the sheet. */
+    private float frameAspect(CanvasContext context) {
+        if (Float.isNaN(frameAspect)) {
+            float[] size = context.imageSize(type.spritePath);
+            frameAspect = size != null && size[0] > 0f && size[1] > 0f
+                    ? size[1] / (size[0] / type.frameCount) : DEFAULT_FRAME_ASPECT;
         }
-        File sheet = new File("mod", type.spritePath);
-        if (!sheet.isFile()) return DEFAULT_FRAME_ASPECT;
-        try (ImageInputStream input = ImageIO.createImageInputStream(sheet)) {
-            Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
-            if (!readers.hasNext()) return DEFAULT_FRAME_ASPECT;
-            ImageReader reader = readers.next();
-            try {
-                reader.setInput(input);
-                return (float) reader.getHeight(0) / (reader.getWidth(0) / (float) type.frameCount);
-            } finally {
-                reader.dispose();
-            }
-        } catch (Exception ignored) {
-            return DEFAULT_FRAME_ASPECT;
-        }
+        return frameAspect;
     }
 }

@@ -758,6 +758,7 @@ class Runner:
         self.note = None
         self.last_status = None
         self.last_status_time = 0.0
+        self.last_sweep = 0.0
 
     # -- bookkeeping
     def save(self):
@@ -844,6 +845,12 @@ class Runner:
             best = self.pick(jobs, done)
             if best:
                 self.start_or_resume(best, jobs[best])
+        if not self.running_id() and time.time() - self.last_sweep > 600:
+            self.last_sweep = time.time()
+            try:
+                self.sweep_orphans(jobs, done)
+            except Exception:
+                self.log("sweep error: " + traceback.format_exc().replace("\n", " | "))
         self.set_awake(self.running_id() is not None)
         self.publish(jobs)
 
@@ -1271,8 +1278,52 @@ class Runner:
         self.log(f"{result} {jid}: {reason}; {len(copied)} file(s) copied")
         del self.state["active"][jid]
         self.save()
-        if result == "ok" and copied and not job.get("keep_checkout"):
+        if not job.get("keep_checkout"):
             self.cleanup_inputs(jid, job, rec)
+            if not copy_err:  # a failed output copy leaves the scratch to copy from by hand
+                self.remove_work(jid)
+
+    def remove_work(self, jid):
+        work = self.local / "work" / jid
+        if work.exists():
+            shutil.rmtree(work, ignore_errors=True)
+            if work.exists():
+                self.log(f"could not remove scratch {work}")
+
+    def sweep_orphans(self, jobs, done):
+        """Remove rq-* checkouts and work/ folders whose job is neither active here
+        nor queued (a job file with no done record), then prune dead worktree entries.
+        A job with keep_checkout is left alone on purpose."""
+        repo = self.settings.get("repo")
+        live = set(self.state["active"])
+        live |= {j for j in jobs if j not in done}
+        live |= {j for j, job in jobs.items() if job.get("keep_checkout")}
+        swept = 0
+        wt = Path(repo) / ".claude" / "worktrees" if repo else None
+        if wt and wt.is_dir():
+            for p in sorted(wt.glob("rq-*")):
+                jid = p.name[3:]
+                if jid in live:
+                    continue
+                r = run(["git", "-C", repo, "worktree", "remove", "--force", p], check=False)
+                if r.returncode != 0:
+                    self.log(f"could not remove checkout {p}: {r.stdout.strip()[:200]}")
+                if p.exists():
+                    shutil.rmtree(p, ignore_errors=True)
+                if p.exists():
+                    continue
+                run(["git", "-C", repo, "update-ref", "-d", f"refs/render-queue/{jid}"], check=False)
+                swept += 1
+        wk = self.local / "work"
+        if wk.is_dir():
+            for p in sorted(wk.iterdir()):
+                if p.is_dir() and p.name not in live:
+                    self.remove_work(p.name)
+                    swept += 1
+        if repo:
+            run(["git", "-C", repo, "worktree", "prune"], check=False)
+        if swept:
+            self.log(f"swept {swept} orphaned checkout/scratch folder(s)")
 
     def cleanup_inputs(self, jid, job, rec):
         repo = self.settings.get("repo")
