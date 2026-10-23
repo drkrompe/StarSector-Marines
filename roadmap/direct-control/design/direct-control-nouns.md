@@ -86,7 +86,7 @@ orange once it is gone, red as structure goes, dark red destroyed) with two flag
 beneath, CRIPPLED and SENSORS LOST for a Mech, IMMOBILE and GUN LOST for a vehicle.
 A hull's side plates are the cheeks either side of each view, so a side reads in
 both; a Mech's rear view drops the legs, which are thin and the same from behind.
-The locations are owned by `d5-located-armor.md`; see `damage-doll.md`. A Marine
+The locations are owned by `convoy-nouns.md` and `mechs-nouns.md`; see `damage-doll.md`. A Marine
 shows a **Marine doll** in the same place and size: one front figure, since a person
 has one armor pool and no back plate. Its head and torso read that pool and health on
 the machine doll's colours. Its arms and legs read only the limb wounds the
@@ -501,9 +501,11 @@ ballistics without turning the cursor into a target identity.
 The player may point at ground they can see without creating a squad belief
 or revealing an unseen enemy. A physically struck unknown body is resolved
 normally, but its identity is presented only when the player's observation
-rules allow it. Weapon families outside modeled ground direct fire, including
-indirect missiles, need their own ground-point targeting contract before they can be
-triggered manually. Mech mounts also retain their
+rules allow it. A mech's arcing racks have that ground-point contract: a pilot
+lobs a salvo at the cursor, scattered about the thrown point and refused inside
+a minimum range. A vehicle turret's point fire is still flat-trajectory only, so
+an arcing turret (the LRM carrier's launcher) stays under its crew's control and
+reads AI ONLY. Mech mounts also retain their
 hardpoint arcs and per-mount clocks; a vehicle turret retains its independent
 aim and fire authority.
 

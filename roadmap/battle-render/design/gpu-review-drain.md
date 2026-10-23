@@ -188,8 +188,11 @@ fire-heavy 1920x1080 frame GL is tens of times cheaper; on a small, plain view
 it is about even. `aircraft-crash` (six 600x414 views a frame) draws at about
 22 ms a frame on either backend once its renderers are kept, and the relief
 composite is most of the GL share there (25 ms a frame with it, 4 without).
-Starting the context and the GL sprite set costs about 15s once per run, which
-the whole catalog pays once and a one-suite run pays in full.
+Starting the context and the sprite set costs under 2s once per run. It was
+about 15s, nearly all of it decoding all 1,478 catalog images to read their
+sizes; the catalog now reads sizes from the PNG header (or the texture-fit
+manifest) and decodes only the images a run draws, which helps the Java2D
+drain as much.
 
 **Direct buffers must outlive the call.** The first broad GL run died with an
 access violation inside the driver, in `SpriteAtlas.build`'s

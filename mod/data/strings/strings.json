@@ -4976,7 +4976,7 @@
 		"battleDirectHudPACKET": "Volley",
 		"battleDirectHudTriggerSEMI": "Semi-auto",
 		"battleDirectHudTriggerAUTO": "Auto",
-		"battleDirectHudINDIRECT": "Indirect · AI only",
+		"battleDirectHudINDIRECT": "Indirect",
 		"battleDirectHudIndirect": "AI ONLY",
 		"battleDirectHudCYCLING": "CYCLING",
 		"battleDirectHudLOADED": "LOADED",
