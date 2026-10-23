@@ -14,6 +14,8 @@ import java.util.List;
  * The missile-carrier scene's frames, from the same run that produced its verdicts: all three loops at 1920x1080 and
  * 100% scale, whole map plus a full-size close view (the LRM carrier's on the carrier itself). Scene walls have no art, so the wall the LRM carrier fires over
  * and the building the SRM technical hides behind are drawn as marks, and each hull is labelled where it starts.
+ *
+ * <p>Those loops are verdict evidence. The owner is shown the carrier's look frames from {@code lrm-carrier-look}.
  */
 public final class MissileCarrierSceneSnapshotSuite extends BehaviorSceneSnapshotSuite {
 
