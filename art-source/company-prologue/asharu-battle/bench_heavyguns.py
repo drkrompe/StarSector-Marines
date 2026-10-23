@@ -36,7 +36,8 @@ def _manticore(bench, weapon, seconds):
     m = bench.ship('manticore', 'manticore-p', throttle=.3, own_hull=True)
     with m.kit() as (ctx, k):
         k.guns.arm(ctx, 1, weapon)
-        k.guns.fire_weapon(ctx, 1, 2, seconds)
+        recs = k.guns.fire_weapon(ctx, 1, 2, seconds)
+    print(f'BENCH {weapon} recoil', [(r['frame'], r.get('recoil')) for r in recs], flush=True)
     p, _ = muzzle(m, 1, 'barrel 1')
     return p
 

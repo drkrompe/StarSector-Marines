@@ -29,7 +29,7 @@ from mathutils import Vector
 
 EFFECT_WORDS = ('round', 'bolt', 'tracer', 'missile', 'motor', 'flare', 'burst', 'impact', 'flash', 'cloud',
                 'halo', 'charge', 'blast', 'flak', 'fireball', 'glow', 'shot', 'shell', 'warhead', 'pd ', 'ring',
-                'plume', 'trail')
+                'trail')        # not 'plume': an engine's exhaust volume is shaped by its shader, along the jet
 
 
 def quiet_lights(objects):

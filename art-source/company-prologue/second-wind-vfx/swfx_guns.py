@@ -851,8 +851,7 @@ def _ac(**kw):
              round=dict(speed=320, range=600, length=1.6, core=.14, corona=.22, fringe=(235, 255, 215),
                         hot=(240, 255, 230), glow=(120, 235, 150), core_gain=18, corona_gain=3.0,
                         trail=dict(length=5.0, radius=.08, gain=3.5, ember=(70, 150, 80), fleck_m=.8)),
-             heavy=dict(recoil=dict(m=.2, return_s=.2), ring=dict(r=(.25, 1.6), frames=3, peak=1.6),
-                        smoke=dict(r=(.4, 2.6), life_s=.8, heat_s=.12, density=.5, glow=1.0)),
+             heavy=dict(recoil=dict(m=.2, return_s=.2), smoke=dict(r=(.4, 2.6), life_s=.8, heat_s=.12, density=1.2, glow=1.0)),
              puff=False, brass=True)
     w.update(kw)
     return w
@@ -869,9 +868,10 @@ WEAPONS = {
                   cloud=dict(rgb=(255, 240, 165), r=(.3, .9), frames=3, peak=1.75),
                   round=dict(speed=480, range=300, length=7.0, core=.08, corona=.28, fringe=(240, 220, 180),
                              hot=(245, 245, 225), core_gain=22, corona_gain=1.6)),
-    # Cannons (owner, 2026-10-23): every shot an event, not a stream. A hard short flash, a
-    # pressure ring, smoke that glows going out and hangs, the barrel kicking back into its
-    # sleeve (heavy: recoil m / return_s, ring r m / frames, smoke r m / life_s / heat_s), and a
+    # Cannons (owner, 2026-10-23): every shot an event, not a stream. A hard short flash, smoke
+    # that glows going out and hangs, the barrel kicking back into its sleeve (heavy: recoil m /
+    # return_s, smoke r m / life_s / heat_s; the Hellbore also a squat shock of gas, ring: a thin
+    # ring read as a bar edge-on and a hoop face-on, bench 2026-10-23), and a
     # short thick hot slug, slower than a machine gun's streak, shedding an ember trail behind
     # it. Cadence is the game's (weapon_data.csv burst size, burst delay, chargedown).
     # Autocannons: green-white kinetic shells with a broad pale-green flash, one every 0.5 s.
@@ -883,8 +883,8 @@ WEAPONS = {
                    round=dict(speed=290, range=800, length=2.2, core=.22, corona=.34, fringe=(235, 255, 215),
                               hot=(240, 255, 230), glow=(120, 235, 150), core_gain=18, corona_gain=3.0,
                               trail=dict(length=8.0, radius=.11, gain=3.5, ember=(70, 150, 80), fleck_m=1.0)),
-                   heavy=dict(recoil=dict(m=.35, return_s=.25), ring=dict(r=(.35, 2.2), frames=3, peak=1.8),
-                              smoke=dict(r=(.6, 3.6), life_s=1.0, heat_s=.15, density=.5, glow=1.2))),
+                   heavy=dict(recoil=dict(m=.35, return_s=.25),
+                              smoke=dict(r=(.6, 3.6), life_s=1.0, heat_s=.15, density=1.2, glow=1.2))),
     # Mark IX: the four-round slam every 2 s.
     'mark9': _ac(name='Mark IX Autocannon', burst=4, burst_delay=.1, cooldown=2.0, flash=(1.0, .45, .12),
                  flash_size=(1.4, 1.5, 1.5), flash_light_gain=2.5,
@@ -892,8 +892,8 @@ WEAPONS = {
                  round=dict(speed=300, range=800, length=2.4, core=.24, corona=.36, fringe=(235, 255, 215),
                             hot=(240, 255, 230), glow=(120, 235, 150), core_gain=18, corona_gain=3.0,
                             trail=dict(length=9.0, radius=.12, gain=3.5, ember=(70, 150, 80), fleck_m=1.0)),
-                 heavy=dict(recoil=dict(m=.45, return_s=.2), ring=dict(r=(.4, 2.6), frames=3, peak=1.8),
-                            smoke=dict(r=(.7, 4.2), life_s=1.2, heat_s=.15, density=.5, glow=1.2))),
+                 heavy=dict(recoil=dict(m=.45, return_s=.2),
+                            smoke=dict(r=(.7, 4.2), life_s=1.2, heat_s=.15, density=1.2, glow=1.2))),
     # Hellbore: one heavy HE slug every 3 s, slow, orange-white; the game's biggest flash (255,120,50).
     # Here the blast is hard and short and the linger is its smoke, cooling from orange to grey.
     # No orbs (owner, 2026-10-23: S6's Manticore fired "an orb glowing blob"): the round is an
@@ -907,8 +907,8 @@ WEAPONS = {
                      round=dict(speed=150, range=900, length=6.0, core=.45, corona=.65, fringe=(255, 165, 30),
                                 hot=(255, 250, 240), core_gain=20, corona_gain=1.4, light=40000,
                                 trail=dict(length=14.0, radius=.28, gain=5.0, ember=(220, 60, 15), fleck_m=1.5)),
-                     heavy=dict(recoil=dict(m=1.2, return_s=.7), ring=dict(r=(.6, 5.5), frames=5, peak=2.5),
-                                smoke=dict(r=(1.5, 9.0), life_s=2.2, heat_s=.35, density=.6, glow=2.5, drift=.8)),
+                     heavy=dict(recoil=dict(m=1.8, return_s=.8), ring=dict(r=(.6, 3.2), frames=4, peak=1.0, thick=.5),
+                                smoke=dict(r=(1.5, 9.0), life_s=2.2, heat_s=.35, density=1.6, glow=2.5, drift=.8)),
                      puff=False, brass=False),
     # Light assault gun: orange HE shells every 0.25 s.
     'lightag': _ac(name='Light Assault Gun', cooldown=.25, flash=(1.0, .5, .18), flash_tint=(255, 155, 105),
@@ -917,8 +917,8 @@ WEAPONS = {
                    round=dict(speed=300, range=600, length=1.8, core=.15, corona=.24, fringe=(255, 200, 70),
                               hot=(255, 240, 220), core_gain=18, corona_gain=2.2,
                               trail=dict(length=6.0, radius=.08, gain=3.5, ember=(200, 60, 15), fleck_m=.8)),
-                   heavy=dict(recoil=dict(m=.2, return_s=.15), ring=dict(r=(.25, 1.5), frames=3, peak=1.6),
-                              smoke=dict(r=(.4, 2.4), life_s=.8, heat_s=.12, density=.5, glow=1.0))),
+                   heavy=dict(recoil=dict(m=.2, return_s=.15),
+                              smoke=dict(r=(.4, 2.4), life_s=.8, heat_s=.12, density=1.2, glow=1.0))),
     'chaingun': _mg(name='Assault Chaingun', burst=1, burst_delay=0, cooldown=.15, flash_size=(1.5, .8, .8),
                     cloud=dict(rgb=(255, 240, 165), r=(.5, 1.4), frames=4, peak=2),
                     round=dict(speed=420, range=450, length=5.0, core=.12, corona=.45, fringe=(255, 200, 70),
@@ -1998,7 +1998,7 @@ def _ring(ctx, coll, a, label, frame, spec, rgb):
         t = j / life
         e = 1 - (1 - t) ** 3.0
         R = (r0 + (r1 - r0) * e) / .72
-        thick = .18 * R + .1
+        thick = spec.get('thick', .18) * R + .1
         fr.append(frame + j)
         sc.append(swfx_core.units(R))
         th.append(swfx_core.units(thick))
