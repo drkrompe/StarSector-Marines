@@ -280,7 +280,7 @@
       "mount": "turret-mount",
       "catalog": { "displayName": "@gearCatalogWeaponTankPdLaserDisplayName", "modelName": "@gearCatalogWeaponTankPdLaserModelName", "designation": "PDL", "designationTiered": false },
       "sim": {
-        "range": 26.0, "damage": 6.0, "accuracy": 0.95, "cooldown": 0.35, "penetration": 2.0,
+        "range": 26.0, "damage": 7.0, "accuracy": 0.95, "cooldown": 0.35, "penetration": 2.0,
         "burstCount": 10, "burstSpacing": 0.1, "hitSpread": 0.12,
         "roundVelocity": 320.0, "flightSec": 0.05, "noiseMagnitude": 0.4
       },

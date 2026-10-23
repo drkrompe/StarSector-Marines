@@ -96,7 +96,8 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
 
     /**
      * The two laser tanks close up, every tick drawn: the burst laser's blue bursts beside the PD laser's held red
-     * lance, each on unarmed hulls, so the grain, the throb and the shutter can be read at play speed.
+     * lance, each on unarmed hulls, so the grain, the throb, the shutter and the flux haze (and the burst laser
+     * overloading and venting) can be read at play speed.
      */
     private static void lances(SnapshotContext context, List<SnapshotArtifact> artifacts) throws Exception {
         try (BattleSimulation sim = scene(40, 32)) {
@@ -112,13 +113,13 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
             List<BufferedImage> frames = new ArrayList<>();
             BufferedImage busiest = null;
             int busiestBeams = -1;
-            for (int tick = 0; tick < 150; tick++) {
+            for (int tick = 0; tick < 450; tick++) {
                 sim.advance(BattleSimulation.TICK_DT);
                 impacts.feed(sim);
                 // Hold the hulls still, as the lineup does: a deployed hull drifts, and only the guns are on review.
                 sim.convoy().body(burst).teleport(14, 10, 90);
                 sim.convoy().body(pd).teleport(26, 10, 90);
-                if (tick < 30) continue;
+                if (tick < 30 || tick % 2 != 0) continue;
                 ReviewAnnotations.Builder labels = ReviewAnnotations.builder();
                 var a = sim.convoy().body(burst);
                 var b = sim.convoy().body(pd);
@@ -126,7 +127,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
                 labels.label(b.x, b.y - 3.2f, "PD LASER TANK", ReviewStyle.NOTE);
                 BufferedImage frame = renderer.render(sim,
                         "Laser lances | burst PD laser (blue, bursts) beside PD laser (red, held, throbbing)"
-                                + " | every tick | 1920 x 1080, UI 100%", labels.build(), impacts);
+                                + " | flux haze on the rear vents, venting when overloaded | 1920 x 1080, UI 100%", labels.build(), impacts);
                 frames.add(frame);
                 int beams = sim.getActiveShots().size();
                 if (beams > busiestBeams) {
@@ -135,7 +136,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
                 }
             }
             artifacts.add(new SnapshotArtifact("lances.png", busiest));
-            artifacts.add(SnapshotArtifact.colorAnimation("lances.gif", frames, 33));
+            artifacts.add(SnapshotArtifact.colorAnimation("lances.gif", frames, 66));
         }
     }
 

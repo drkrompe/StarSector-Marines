@@ -147,11 +147,13 @@ public enum VehicleType {
         @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
         @Override public ArmorArcs.Profile armorArcs() { return arcs(TANK_ARCS); }
         @Override public int turretFiringFrame() { return 4; }
+        @Override public float fluxVentAftCells() { return LASER_VENT_AFT_CELLS; }
+        @Override public float fluxVentHalfSpanCells() { return LASER_VENT_HALF_SPAN_CELLS; }
     },
     /**
      * The laser tank's midline sibling: the same hull with the plain PD laser every frigate carries. It holds one
-     * steady red lance on a target, ten pulses a second, and never runs its bank dry, where the burst laser hits
-     * harder in bursts its charges ration. The fire-control radar and the three cells that feed it take less room
+     * steady red lance on a target, ten pulses a second, and runs cool, overloading only after a long held fight,
+     * where the burst laser hits harder in bursts and is a flux hog. The fire-control radar and the three cells that feed it take less room
      * than a capacitor pack, so the hull keeps the breakthrough tank's plate and pace. Its sheet is the same hull in
      * worn gunmetal with red running lamps, the radar over the rear deck, and the vanilla PD laser in its own red
      * (art-source/vehicles/tank-laser).
@@ -167,6 +169,8 @@ public enum VehicleType {
         @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
         @Override public ArmorArcs.Profile armorArcs() { return arcs(TANK_ARCS); }
         @Override public int turretFiringFrame() { return 4; }
+        @Override public float fluxVentAftCells() { return LASER_VENT_AFT_CELLS; }
+        @Override public float fluxVentHalfSpanCells() { return LASER_VENT_HALF_SPAN_CELLS; }
     },
     /**
      * Breaching sidegrade on the breakthrough hull: a dozer blade and the APC's twin MG instead of
@@ -549,7 +553,21 @@ public enum VehicleType {
      * The sheet frame the live turret draws while its gun is engaged (a target on the ground or in the air, or a
      * burst under way), or -1 for a turret drawn the same whether or not it fires.
      */
+    /** The laser hulls' radiator fins, aft of centre on the breakthrough master (art-source/vehicles/tank-laser). */
+    static final float LASER_VENT_AFT_CELLS = 1.8f;
+    static final float LASER_VENT_HALF_SPAN_CELLS = 0.55f;
+
     public int turretFiringFrame() { return -1; }
+
+    /**
+     * How far aft of the hull's centre, in cells, the vents its gun's flux haze rises from
+     * ({@code TurretMountDef#flux}), or zero for a hull that draws none. They span {@link #fluxVentHalfSpanCells}
+     * either side of the centre line.
+     */
+    public float fluxVentAftCells() { return 0f; }
+
+    /** Half the width of the flux vents across the hull, in cells ({@link #fluxVentAftCells}). */
+    public float fluxVentHalfSpanCells() { return 0f; }
 
     /** Keep authored vehicle bearings and live/wreck registration for every chassis. */
     public SpriteSheetFrames registeredSpriteFrames(SpriteSheetFrames detected) {
