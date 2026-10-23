@@ -86,7 +86,7 @@ orange once it is gone, red as structure goes, dark red destroyed) with two flag
 beneath, CRIPPLED and SENSORS LOST for a Mech, IMMOBILE and GUN LOST for a vehicle.
 A hull's side plates are the cheeks either side of each view, so a side reads in
 both; a Mech's rear view drops the legs, which are thin and the same from behind.
-The locations are owned by `d5-located-armor.md`; see `damage-doll.md`. A Marine
+The locations are owned by `convoy-nouns.md` and `mechs-nouns.md`; see `damage-doll.md`. A Marine
 shows a **Marine doll** in the same place and size: one front figure, since a person
 has one armor pool and no back plate. Its head and torso read that pool and health on
 the machine doll's colours. Its arms and legs read only the limb wounds the

@@ -337,8 +337,8 @@ class GroundVehicleTurretSystemTest {
         if (f.turret.section == null) return;
         DurabilityModel.Resolution scratch = new DurabilityModel.Resolution();
         HullTurretSection.Hit hit = new HullTurretSection.Hit();
-        f.turret.section.resolve(true, 10000f, 100f, f.type.armorRating,
-                f.type.maxArmor, f.type.maxStructure, scratch, hit);
+        f.turret.section.strike(10000f, 100f, f.type.armorRating, 1f, scratch, hit);
+
         assertTrue(f.turret.destroyed());
         assertFalse(f.roster.convoy().isArmed(f.id));
         assertEquals(0f, f.roster.convoy().weaponRange(f.id));

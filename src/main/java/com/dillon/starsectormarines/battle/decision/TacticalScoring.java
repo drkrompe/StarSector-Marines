@@ -1,4 +1,5 @@
 package com.dillon.starsectormarines.battle.decision;
+import com.dillon.starsectormarines.battle.combat.ArmorArcs;
 import com.dillon.starsectormarines.battle.combat.DurabilityModel;
 import com.dillon.starsectormarines.battle.combat.FiringLane;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
@@ -39,8 +40,12 @@ import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.sim.VisionService;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.HullLocations;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -1045,9 +1050,29 @@ public final class TacticalScoring {
         if (!world.hasSecondaryWeapon(shooter) || world.secondaryAmmo(shooter) <= 0) return false;
         if (!world.specialEquipment(shooter).isDirectFireWeapon()) return false;
         if (target == 0L || !roster.isAliveById(target)) return false;
-        float remainingDurability = world.hp(target)
-                + (world.hasArmor(target) ? world.armor(target) : 0f);
-        return projectedSpecialDamageOnTarget(shooter, target) < remainingDurability;
+        return projectedSpecialDamageOnTarget(shooter, target)
+                < remainingDurability(target, world.x(shooter), world.y(shooter));
+    }
+
+    /**
+     * What stands between a shot from {@code (sourceX, sourceY)} and {@code target}'s death: its structure and armor.
+     * A ground hull is read by location ({@link HullLocations}): the plate facing the source and the hull's own
+     * structure, since neither the other plates nor the turret's and drive's structure stop a kill from there. The
+     * summed columns would over-read both.
+     */
+    private float remainingDurability(long target, float sourceX, float sourceY) {
+        World world = roster.world();
+        ConvoyService convoy = roster.convoy();
+        HullLocations locations = convoy != null ? convoy.locations(target) : null;
+        GroundBody body = locations != null ? convoy.body(target) : null;
+        if (body != null) {
+            float dx = sourceX - world.x(target);
+            float dy = sourceY - world.y(target);
+            HullLocations.Plate plate = locations.plateFor(ArmorArcs.classify(body.facingDegrees, dx, dy),
+                    body.facingDegrees, dx, dy);
+            return locations.hullStructure(world.hp(target)) + locations.armor(plate);
+        }
+        return world.hp(target) + (world.hasArmor(target) ? world.armor(target) : 0f);
     }
 
     /** Compatibility name retained for focused rocket tests and older callers. */
@@ -1141,8 +1166,23 @@ public final class TacticalScoring {
         float mitigationSoak = roster.mitigations().soakAgainst(
                 target, world.x(target), world.y(target), sourceX, sourceY);
         DurabilityModel.Resolution result = new DurabilityModel.Resolution();
-        DurabilityModel.resolveInto(damage, penetration, mitigationSoak, armor, rating,
-                world.hp(target), result);
+        ConvoyService convoy = roster.convoy();
+        HullLocations locations = convoy != null ? convoy.locations(target) : null;
+        GroundBody body = locations != null ? convoy.body(target) : null;
+        VehicleType type = body != null ? convoy.vehicleType(target) : null;
+        if (type != null) {
+            // A hull meets the shot with the plate facing it and only its own structure behind that.
+            float dx = sourceX - world.x(target);
+            float dy = sourceY - world.y(target);
+            ArmorArcs.Profile arcs = type.armorArcs();
+            ArmorArcs.Arc arc = ArmorArcs.classify(body.facingDegrees, dx, dy);
+            HullLocations.Plate plate = locations.plateFor(arc, body.facingDegrees, dx, dy);
+            DurabilityModel.resolvePlatedInto(damage, penetration, mitigationSoak, locations.armor(plate),
+                    rating * arcs.rating(arc), arcs.plate(arc), locations.hullStructure(world.hp(target)), result);
+        } else {
+            DurabilityModel.resolveInto(damage, penetration, mitigationSoak, armor, rating,
+                    world.hp(target), result);
+        }
         return result.armorDamage() + result.structureDamage();
     }
 
