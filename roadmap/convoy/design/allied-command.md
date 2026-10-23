@@ -42,7 +42,17 @@ It gives two tasks:
   none). The hull drives it to a place and sets it down there, and the squad
   is handed back to the mission, which gives it its next order. The hull then
   stations where it set the squad down, as fire support. If the squad never
-  arrives, the hull gives up waiting and stations.
+  arrives, the hull gives up waiting and stations. The riders travel as a
+  count, off the field, and the mission seats them again at the drop.
+
+**A refused place is reached a leg at a time.** A hull that steers wide (an
+APC turns on about twice a car's circle) is refused a long route with one
+corner it cannot make in a single drive, though every leg of it is drivable on
+its own. A refused goal is therefore pulled back to the last corner of the way
+there and asked again; standing at that corner the hull turns on its own and is
+sent on to its post. Where no way is known at all the goal is pulled back a step
+along the straight line instead. Both are bounded, so a hull with nowhere to go
+stays where it is rather than asking for ever.
 
 An allied **mech** is stationed the same way: its squad attack-moves to ground
 the mech can stand on at the post, the post pulled back toward the mech a step

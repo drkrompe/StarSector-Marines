@@ -6,6 +6,12 @@ import com.dillon.starsectormarines.battle.command.objective.EliminateFactionObj
 import com.dillon.starsectormarines.battle.command.allied.AlliedCommand;
 import com.dillon.starsectormarines.battle.cordon.AlliedColumns;
 import com.dillon.starsectormarines.battle.cordon.CordonArmour;
+import com.dillon.starsectormarines.battle.cordon.CordonLogistics;
+import com.dillon.starsectormarines.battle.ambient.RoomSite;
+import com.dillon.starsectormarines.battle.ambient.WorksCrewService;
+import com.dillon.starsectormarines.battle.fabrication.FabricationService;
+import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.cordon.CordonCommand;
 import com.dillon.starsectormarines.battle.cordon.CordonRefugees;
@@ -36,6 +42,7 @@ import com.dillon.starsectormarines.ops.RiskLevel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -132,6 +139,43 @@ public final class CordonSetup {
     /** The allies' light armour behind the line, west to east ({@code cordon-nouns.md}, Allied armour). */
     static final List<VehicleType> ARMOUR = List.of(VehicleType.MILITIA_TECHNICAL, VehicleType.SCOUT_CAR,
             VehicleType.SCOUT_CAR, VehicleType.MILITIA_TECHNICAL);
+    /**
+     * The allies' logistics base ({@code cordon-nouns.md}, Logistics base): a muster yard at the
+     * base's seed with one carrier standing in it, and the base's shed manned by an allied crew and
+     * tooled for the allies' cars and carriers, each one put to work as it rolls out.
+     */
+    private static CordonLogistics logisticsBase(BattleSimulation sim, CordonMap cordon, CordonArmour armour,
+                                                 List<CordonRedoubt> redoubts) {
+        Precinct base = null;
+        for (Precinct p : cordon.plan().precincts()) if (p.name().equals(CordonPlan.BASE_PLACE)) base = p;
+        if (base == null) return null;
+        CordonLogistics logistics = CordonLogistics.at(sim, armour, cordon.map().gantries, base.seedX(), base.seedY(),
+                redoubts, GARRISON_RISK, new Random(cordon.battleSeed() ^ BASE_SALT));
+        if (logistics == null) return null;
+        int[] first = logistics.slots().get(0);
+        logistics.addCarrier(sim, armour.command().deploy(sim, VehicleType.HEAVY_APC, first[0], first[1], 0f));
+        MapResult map = cordon.map();
+        if (sim.getWorksCrews() == null) sim.setWorksCrews(new WorksCrewService(TraversalAxis.SOUTH_TO_NORTH));
+        List<RoomSite> rooms = RoomSite.findAll(map.topology, map.grid.getWidth(), map.grid.getHeight());
+        FabricationService works = new FabricationService(map.gantries, map.fixtureTasks, rooms);
+        if (works.isEmpty()) return logistics;
+        works.toolForVehicles(BASE_LINE);
+        works.setPace(BASE_PACE);
+        works.onRollOut(hull -> logistics.rolledOut(sim, hull));
+        sim.setFabrication(works);
+        StructureWatch.man(sim, Faction.ALLY, rooms, map.fixtureTasks, works.berthed(),
+                EnumSet.of(RoomPurpose.VEHICLE_BAY), BASE_CREW, sim.getWorksCrews());
+        return logistics;
+    }
+
+    /** What the base's shed builds, in order and round again: carriers between the cars and technicals. */
+    static final List<VehicleType> BASE_LINE = List.of(VehicleType.HEAVY_APC, VehicleType.SCOUT_CAR,
+            VehicleType.HEAVY_APC, VehicleType.MILITIA_TECHNICAL);
+    private static final long BASE_SALT = 0x4C4F474953544943L;
+    /** The base's shed is a production line, not a garrison's sideline (`FabricationService.setPace`). */
+    static final float BASE_PACE = 4f;
+    /** Technicians posted to the base's shed. */
+    static final int BASE_CREW = 3;
     /** Teams in each allied column. */
     static final int COLUMN_TEAMS = 2;
     /** How far along the rear edge a refugee or column looks for the road before taking open ground. */
@@ -189,6 +233,8 @@ public final class CordonSetup {
             armour.deploy(sim, ARMOUR.get(i), WIDTH * (i + 1) / (ARMOUR.size() + 1), reserveY);
         }
         sequence.attachArmour(armour);
+        CordonLogistics logistics = logisticsBase(sim, cordon, armour, redoubts);
+        if (logistics != null) sequence.attachLogistics(logistics);
         sim.setAutonomousCommander(Faction.MARINE, new CordonCommand(WIDTH / 2, reserveY),
                 CordonCommand.disclosure(sequence));
         return sim;

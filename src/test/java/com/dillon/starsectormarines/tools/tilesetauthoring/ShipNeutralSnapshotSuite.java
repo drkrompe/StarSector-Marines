@@ -4,10 +4,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
-import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.WallMasks;
-import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
-import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleMapRenderer;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
@@ -17,13 +14,11 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import java.util.List;
 
-/** Neutral rack palette and topology-owned bulkheads in the established review fixture. */
+/** Topology-owned neutral bulkheads around the warehouse rack review fixture. */
 public final class ShipNeutralSnapshotSuite implements SnapshotSuite {
     private static final String WALL = "ship.neutral-bulkhead";
-    private static final String[] PARTS = {"base", "frame", "cartons", "bins", "engine", "pipes", "picked-tray", "cases"};
     @Override public String id() { return "ship-neutral"; }
     @Override public String label() { return "Mech Lab neutral shelving and bulkheads"; }
 
@@ -39,7 +34,7 @@ public final class ShipNeutralSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("ship-neutral-room.png", renderer.renderView(after, 42, 16, 11.5f, 28, 21, 40)),
                 new SnapshotArtifact("ship-neutral-close.png", renderer.renderView(after, 42, 23.5f, 12, 11, 18, 40)),
                 new SnapshotArtifact("ship-neutral-comparison.png", pair(before, small,
-                        "BEFORE / blue-orange racks and legacy walls", "NEUTRAL / graphite racks and enamel bulkheads")),
+                        "BEFORE / legacy walls", "NEUTRAL / graphite racks and enamel bulkheads")),
                 new SnapshotArtifact("ship-neutral-wall-options.png", pair(small, alternate,
                         "NEW / neutral ship bulkhead", "ALTERNATIVE / existing colony ceramic wall")),
                 new SnapshotArtifact("ship-neutral-wall-joins.png", renderer.render(joins(), 42, 48)),
@@ -51,20 +46,7 @@ public final class ShipNeutralSnapshotSuite implements SnapshotSuite {
         for (int y=0; y<24; y++) for (int x=0; x<32; x++) {
             if (base.topology.isWall(x,y)) base.topology.setSurface(x,y,base.topology.surfaceIndex(wall));
         }
-        List<Doodad> objects = new ArrayList<>();
-        for (Doodad d : base.doodads) {
-            Doodad replacement = d;
-            for (String part : PARTS) {
-                DoodadDef old = TileRegistry.installed().doodad("warehouse-racks." + part);
-                if (d.sheetPath.equals(old.sheetPath) && d.tile.col==old.col && d.tile.row==old.row) {
-                    DoodadDef muted = TileRegistry.installed().doodad("warehouse-racks-muted." + part);
-                    replacement = new Doodad(d.cellX, d.cellY, muted, d.quarterTurns, d.mirrored);
-                    break;
-                }
-            }
-            objects.add(replacement);
-        }
-        return new MapResult(base.grid, base.topology, 4, 4, 5, 4, base.pointsOfInterest, objects);
+        return new MapResult(base.grid, base.topology, 4, 4, 5, 4, base.pointsOfInterest, base.doodads);
     }
 
     /** Long joins, all outer corners, exposed ends, a T, a pier and a solid 3x3 core. */

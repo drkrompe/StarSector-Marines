@@ -99,7 +99,7 @@ public final class SpecterLayerSnapshotSuite implements SnapshotSuite {
             text(g, labels[i], 70 + i * 375, 770, 17);
         }
         text(g, "Baked paint variants · shared geometry · magnified", 40, 825, 20);
-        String[] paints = {"slate", "olive", "oxide", "sand"};
+        String[] paints = {"slate", "olive"};
         for (int i = 0; i < paints.length; i++) {
             LayeredUnitAssets painted = i == 0 ? slate : assets(SPECTER + "paints/" + paints[i] + "/");
             actor(g, painted, LayeredArmorFamily.SPECTER_HEAVY,

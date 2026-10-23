@@ -12,6 +12,9 @@ from PIL import Image, ImageChops
 HERE = Path(__file__).resolve().parent
 REPOSITORY = HERE.parents[2]
 OUTPUT = REPOSITORY / "mod/graphics/battle/marine-modular-topdown/variants/armor/specter-heavy"
+# Paints drawn in play ship under OUTPUT/paints; the rest are kept outside mod/.
+SHIPPED_PAINTS = {"olive"}
+UNSHIPPED = HERE.parent / "unshipped-paints/specter-heavy"
 PALETTES = {
     "slate": ("#26333c", "#657f91", "#b5c4cb"),
     "olive": ("#282f24", "#697553", "#b9bda1"),
@@ -147,7 +150,8 @@ def export(source=HERE/"source.png",material=HERE/"material-id.png"):
         recolor(base,mask,PALETTES["slate"]).save(OUTPUT/f"{name}.png")
         for palette,colors in PALETTES.items():
             if palette=="slate": continue
-            directory=OUTPUT/"paints"/palette; directory.mkdir(parents=True,exist_ok=True)
+            directory=OUTPUT/"paints"/palette if palette in SHIPPED_PAINTS else UNSHIPPED/palette
+            directory.mkdir(parents=True,exist_ok=True)
             painted=recolor(base,mask,colors)
             if any(p!=q for p,q,w in zip(base.getdata(),painted.getdata(),mask.getdata()) if w==0):
                 raise ValueError(f"Protected hardware changed in {name}/{palette}")

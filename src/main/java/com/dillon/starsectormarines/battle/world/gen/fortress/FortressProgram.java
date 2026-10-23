@@ -187,6 +187,16 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
             2 * VehicleBayFitting.BAY_DEPTH + VehicleBayFitting.SERVICE_LANE);
 
     /**
+     * The same shed with the ground lane a hull is driven out down
+     * ({@link VehicleBayFitting#GROUND_SERVICE_LANE}): the shed of a base that builds vehicles. A
+     * garrison's shed keeps the mech lane, because what it builds walks out, and two more rows of
+     * depth do not fit every fortress ward.
+     */
+    private static final RoomShape MOTOR_SHED = RoomShape.rectangle(
+            VEHICLE_SHED.width(),
+            2 * VehicleBayFitting.BAY_DEPTH + VehicleBayFitting.GROUND_SERVICE_LANE);
+
+    /**
      * The keep. An L rather than a slab, because the inner corner is what gives
      * the last stand somewhere to be fought over instead of one room to rush.
      */
@@ -377,6 +387,24 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
                 new FortressBuilding(RoomPurpose.STOCKROOM, FIELD_STORE, Ward.YARD, 1)),
                 0, REDOUBT_YARD);
     }
+
+    /**
+     * The allies' logistics base behind a cordon ({@code cordon-nouns.md}, Logistics base): a
+     * vehicle shed whose bays build the allies' cars and carriers, stores and a mess round a muster
+     * yard where squads walking in form up to be carried forward. Like the field redoubt it owes
+     * nothing that publishes a defender's node; its crew is the allies', set up with the battle.
+     */
+    public static FortressProgram logisticsBase() {
+        return new FortressProgram(List.of(
+                new FortressBuilding(RoomPurpose.VEHICLE_BAY, MOTOR_SHED, Ward.FRONTAGE,
+                        RoomPacker.EdgeContact.ANY, 1),
+                new FortressBuilding(RoomPurpose.STOCKROOM, STORES, Ward.YARD, 2),
+                new FortressBuilding(RoomPurpose.MESS_HALL, MESS, Ward.REAR, 1)),
+                0, BASE_YARD);
+    }
+
+    /** Open ground inside the base's fence for squads to form up on and carriers to load. */
+    private static final int BASE_YARD = 420;
 
     private static final RoomShape BUNK_DUGOUT = RoomShape.rectangle(11, 7);
     private static final RoomShape AID_POST = RoomShape.rectangle(8, 6);

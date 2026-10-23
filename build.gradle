@@ -1206,7 +1206,11 @@ tasks.register('deployMod', Sync) {
     // manifest before Sync snapshots mod/, otherwise a newly-added sound ID
     // can deploy without its matching Ogg and make Starsector fail at startup.
     dependsOn tasks.named('shadowJar'), ':asset-pipeline:processAudio'
-    from modOutputDir
+    from(modOutputDir) {
+        // Authoring notes (art-folder READMEs, the generated tileset cards) sit
+        // beside the assets they describe; nothing in the game reads them.
+        exclude '**/*.md'
+    }
     into new File(starsectorModsDir, modName)
     preserve {
         // Saves and logs the user might drop in the mod folder while testing.
@@ -1232,7 +1236,7 @@ tasks.register('packageRelease', Zip) {
 
     into(modName) {
         from(modOutputDir) {
-            exclude 'jars/**', 'sounds/**', '**/.gitkeep'
+            exclude 'jars/**', 'sounds/**', '**/.gitkeep', '**/*.md'
         }
         into('jars') { from tasks.named('shadowJar') }
         into('sounds') { from releaseSounds }

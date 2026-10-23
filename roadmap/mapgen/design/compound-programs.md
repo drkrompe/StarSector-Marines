@@ -197,6 +197,19 @@ to look about right came out at fifteen by nine, which the fitting could only
 answer with a single shallow bay before the fill was rolled back for sealing
 itself. Shed dimensions are arithmetic over the module, so they follow it.
 
+**A shed that builds vehicles is driven out of, not only walked out of.** Its
+service lane is four cells (the logistics base's motor shed; a garrison's shed
+builds mechs, keeps the two-cell lane and fits wards two rows shallower), wide enough for a carrier's three-cell footprint and a cell
+to turn in, and its machine door is the lane's own end at the vestibule, cut as
+wide as the lane (`RoomFitting.wholeDoorways`): a finished hull drives down the
+lane and straight out without turning in the vestibule, where a two-cell door
+admitted a walking mech and no vehicle at all. The shop end is the shed's
+outboard side, against the compound's edge, so the machine door opens into the
+yard rather than onto the perimeter wall. A berth is still fitted round the
+machine standing in it, its mouth no wider than the hull; the mission draws a
+finished hull out into the lane (see `cordon-nouns.md`, Logistics base). A ship's
+bay keeps its mech-width lane and doors: nothing drives out of one.
+
 **A building's wall stands on ground, and the ward has to reserve it.** The
 envelope says where a floor may go, and the wall is the ring around that floor —
 ground the packing is told to leave alone rather than ground it asks for. A shed

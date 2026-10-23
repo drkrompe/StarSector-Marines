@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.function.BiFunction;
 
 /**
  * Packs authored rooms into a buildable envelope, then cuts each room's access
@@ -280,6 +281,19 @@ public final class RoomPacker {
      *                    floor and claimed along with the ring around it, so no
      *                    room eats into it
      */
+    /**
+     * Which fitting a room of this purpose and shape is placed for: its doors, its outboard side and
+     * whether its doorways are cut whole. By default the room's ordinary fitting; a place that
+     * furnishes its rooms with other fittings says so, so the doors are cut for what is installed.
+     */
+    private BiFunction<RoomPurpose, RoomShape, RoomFitting> fittings;
+
+    /** Places rooms for these fittings rather than the ordinary ones ({@link RoomFittings#forInstallation}). */
+    public RoomPacker withFittings(BiFunction<RoomPurpose, RoomShape, RoomFitting> source) {
+        this.fittings = source;
+        return this;
+    }
+
     public RoomPacker(GenContext ctx, boolean[][] buildable, boolean[][] circulation,
                       Palette palette) {
         this(ctx, buildable, circulation, palette, Massing.WEDGED);
@@ -293,6 +307,7 @@ public final class RoomPacker {
     public RoomPacker(GenContext ctx, boolean[][] buildable, boolean[][] circulation,
                       Palette palette, Massing massing) {
         this.ctx = ctx;
+        this.fittings = (purpose, shape) -> RoomFittings.forRoom(ctx, purpose, shape);
         this.palette = palette;
         this.massing = massing;
         this.structure = new boolean[ctx.width + 2][ctx.height + 2];
@@ -351,7 +366,7 @@ public final class RoomPacker {
      * @param mayTunnel whether the room is worth cutting a fresh passage to
      */
     public Placed place(Request request, boolean mayTunnel) {
-        RoomFitting fitting = RoomFittings.forRoom(ctx, request.purpose(), request.shape());
+        RoomFitting fitting = fittings.apply(request.purpose(), request.shape());
         List<Hookup> hookups = fitting == null ? List.of() : fitting.hookups(request.shape());
         int[] outboard = fitting == null ? null : fitting.outboard();
         // A room that names its outboard side is orientation-sensitive by
@@ -811,7 +826,7 @@ public final class RoomPacker {
      *     "this room states nothing" rather than as "nowhere is permitted"
      */
     private Set<Long> authoredDoorCells(Placed room, RoomShape canonical) {
-        RoomFitting fitting = RoomFittings.forRoom(ctx, room.purpose(), canonical);
+        RoomFitting fitting = fittings.apply(room.purpose(), canonical);
         if (fitting == null) return Set.of();
         List<Hookup.DoorSlot> slots = new ArrayList<>(fitting.furtherDoors(canonical));
         for (Hookup hookup : fitting.hookups(canonical)) slots.addAll(hookup.slots());
@@ -1402,9 +1417,11 @@ public final class RoomPacker {
     private List<Doorway> commit(Candidate candidate,
                                                    RoomPurpose purpose, List<Access> accesses) {
         carveRoom(candidate, purpose);
+        RoomFitting fitting = fittings.apply(purpose, candidate.shape());
+        boolean whole = fitting != null && fitting.wholeDoorways();
         List<Doorway> doors = new ArrayList<>();
         for (Access access : accesses) {
-            doors.addAll(cutDoor(candidate, access));
+            doors.addAll(cutDoor(candidate, access, whole));
         }
         rebuildSums();
         return List.copyOf(doors);
@@ -1436,7 +1453,7 @@ public final class RoomPacker {
 
     /** Cut one doorway and whatever passage was needed to reach it. */
     private List<Doorway> cutDoor(Candidate candidate,
-                                                     Access access) {
+                                                     Access access, boolean whole) {
         int[] anchor = null;
         for (int[] cell : access.passage()) {
             boolean crossing = claimed[cell[0] + 1][cell[1] + 1];
@@ -1448,9 +1465,49 @@ public final class RoomPacker {
         carveDoorway(access.doorX(), access.doorY());
         List<Doorway> doors = new ArrayList<>();
         doors.add(new Doorway(access.doorX(), access.doorY()));
+        if (whole && access.doorway() != null) {
+            doors.addAll(openWholeDoorway(candidate, access));
+            return doors;
+        }
         Doorway widened = widenDoorway(candidate, access);
         if (widened != null) doors.add(widened);
         return doors;
+    }
+
+    /**
+     * Take the door across its whole authored slot, both ways along the wall from the cell the
+     * access chose, as far as the slot runs and the room's own bulkhead opens onto floor outside
+     * ({@link RoomFitting#wholeDoorways}). The same tests as {@link #widenDoorway}, cell by cell.
+     */
+    private List<Doorway> openWholeDoorway(Candidate candidate, Access access) {
+        int perpX = access.dirY();
+        int perpY = access.dirX();
+        List<Doorway> opened = new ArrayList<>();
+        for (int side : new int[]{ 1, -1 }) {
+            for (int step = 1; ; step++) {
+                int nx = access.doorX() + perpX * side * step;
+                int ny = access.doorY() + perpY * side * step;
+                if (!inBounds(nx, ny) || floor[nx + 1][ny + 1]) break;
+                if (!permits(access.doorway(), nx, ny)) break;
+                if (backsOntoOtherRoom(candidate, nx, ny)) break;
+                int localX = nx - candidate.x();
+                int localY = ny - candidate.y();
+                if (candidate.shape().contains(localX, localY)) break;
+                if (!candidate.shape().contains(localX - access.dirX(), localY - access.dirY())) break;
+                int outsideX = nx + access.dirX();
+                int outsideY = ny + access.dirY();
+                if (!inBounds(outsideX, outsideY)) break;
+                // The ground outside is opened with the door: a machine door onto a strip of unbuilt
+                // ground is still a way out, and the yard beyond is what it opens onto.
+                if (!floor[outsideX + 1][outsideY + 1]) {
+                    if (claimed[outsideX + 1][outsideY + 1]) break;
+                    carveLane(outsideX, outsideY);
+                }
+                carveDoorway(nx, ny);
+                opened.add(new Doorway(nx, ny));
+            }
+        }
+        return opened;
     }
 
     /**
