@@ -608,11 +608,11 @@ K4_COLOSSUS_FLOWN = fly('colossus', K4_COLOSSUS, K4_T, [
 K4_MORROW_FLOWN = carried(held('morrow', K4_MORROW, K4_T, wobble=.8), K4_COLOSSUS_FLOWN)
 K4_SHIPS = {
     'colossus': K4_COLOSSUS_FLOWN, 'morrow': K4_MORROW_FLOWN,
-    # outboard of the pod, nose in; under its lip, nose up (each some 15 m off, its laser on the joint);
-    # out of Morrow's bay, climbing
-    'borer-a': carried(held('borer-a', near(K4_COLOSSUS, (-58, 70, 2), hd=-95, pt=8, rl=6, thr=.6), K4_T, wobble=.3),
+    # Borers fight; they are not repair craft (owner, 2026-10-23): the two off the shot-out pod both nose
+    # up at the Mk.III grappling down onto her, the bigger threat; two more out of Morrow's bay, climbing
+    'borer-a': carried(held('borer-a', near(K4_COLOSSUS, (-58, 70, 2), hd=-90, pt=75, rl=6, thr=.6), K4_T, wobble=.3),
                        K4_COLOSSUS_FLOWN),
-    'borer-b': carried(held('borer-b', near(K4_COLOSSUS, (-74, 38, -22), hd=-70, pt=40, rl=-10, thr=.6), K4_T, wobble=.3),
+    'borer-b': carried(held('borer-b', near(K4_COLOSSUS, (-74, 38, -22), hd=66, pt=80, rl=-10, thr=.6), K4_T, wobble=.3),
                        K4_COLOSSUS_FLOWN),
     'borer-c': carried(keyed('borer-c', near(K4_MORROW, (BORER_BAY_M[1][0], BORER_BAY_M[1][1], 18), hd=10, pt=30, thr=.8),
                              K4_T, [], v=2.5, wobble=0.0), K4_MORROW_FLOWN),
@@ -919,8 +919,8 @@ KEYFRAMES = {
         shot='S8-S9', title='She will not be taken',
         caption='The Colossus Mk.III closes from above to take the Colossus too. Her port drive pod is shot out, '
                 'but she fights: flares out, both turrets firing, a Kite (P) driven off. Morrow is under her keel '
-                'with her drives lit, holding her up, and her Borers are already out: two cut the burning pod '
-                'free with their mining lasers while two more launch from the bay and go for the attackers.',
+                'with her drives lit, holding her up, and her Borers are already out: two turn their mining lasers '
+                'up on the Mk.III, the bigger threat, while two more launch from the bay and go for the Wolf and the Kite.',
         # PULL BACK + ZOOM OUT: close on the shot-out pod, back to the wide, then wider for the Mk.III's scale
         camera=camera('k4', [dict(t=88, loc=(-190, 150, 30), target=(-62, 30, 0), lens=50),
                              dict(t=91, loc=(-260, 260, 60), target=(-50, 28, 6), lens=40),
@@ -942,9 +942,10 @@ KEYFRAMES = {
             # Harpoons (the Mk.III mounts no missiles), landing after the flares go out at 93.8 s,
             # one of them pulled off onto a flare
             ('missiles', 'wolf-p-a', 'colossus', 95.6, 1),
-            # two Borers cut the burning pod free, short beams onto its joint; two more, out of the bay,
-            # reach for the attackers with long beams that cut their hulls
-            ('mining', 'borer-a', 'colossus', (-56, 33, -1)), ('mining', 'borer-b', 'colossus', (-61, 29, -6)),
+            # every Borer's laser is on an attacker (owner, 2026-10-23: Borers are not repair ships): the two
+            # by the pod both on the Mk.III above her, the bigger threat; two more, out of the bay, on the Wolf
+            # and the Kite
+            ('mining', 'borer-a', 'colossus3'), ('mining', 'borer-b', 'colossus3'),
             ('mining', 'borer-c', 'wolf-p-a'), ('mining', 'borer-d', 'kite-p-b')],
         labels=['colossus', 'morrow', 'colossus3', 'kite-p-b', 'wolf-p-a']),
     'k4b': dict(

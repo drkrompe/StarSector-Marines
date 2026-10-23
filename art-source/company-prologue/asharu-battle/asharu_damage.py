@@ -266,8 +266,9 @@ CLEAN = ('phaeton', 'mule', 'buffalo-a', 'buffalo-b', 'dram', 'buffalo2-a', 'kit
          'hermes-p-a', 'hermes-p-b', 'hermes-p-c', 'borer-a', 'borer-b', 'borer-c', 'borer-d')
 
 
-# Shot fx on a ship that are not damage: Morrow's Borers cutting the Colossus's burning pod free.
-NOT_DAMAGE = {('mining', 'borer-a', 'colossus'), ('mining', 'borer-b', 'colossus')}
+# Shot fx on a ship that are not damage (none now: Morrow's Borers fight the attackers, they do not
+# cut at their own ship; owner, 2026-10-23).
+NOT_DAMAGE = set()
 
 
 def hits(ship, until=None, since=None):
