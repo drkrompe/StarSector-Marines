@@ -149,3 +149,4 @@ com.dillon.starsectormarines.battle.evacuation.RoadblockScene
 com.dillon.starsectormarines.battle.evacuation.SwarmPackCrowdScene
 com.dillon.starsectormarines.battle.world.gen.elevation.HighGroundScene
 com.dillon.starsectormarines.battle.world.gen.elevation.FiringDownScene
+com.dillon.starsectormarines.battle.command.allied.ScreenedAdvanceScene

@@ -176,6 +176,9 @@ public class BattleSprites {
     private SpriteAPI engineFlameSprite;
     private SpriteAPI engineGlowSprite;
     private SpriteAPI shadowBlobSprite;
+    /** The disc's size as loaded, before any draw resizes the sprite; see {@link UnitAtlas#offer}. */
+    private int shadowBlobPxW;
+    private int shadowBlobPxH;
     private boolean shadowBlobLoadAttempted;
     private boolean engineFxSpritesLoadAttempted;
 
@@ -295,6 +298,8 @@ public class BattleSprites {
     public SpriteAPI engineFlameSprite()           { return engineFlameSprite; }
     public SpriteAPI engineGlowSprite()            { return engineGlowSprite; }
     public SpriteAPI shadowBlobSprite()            { return shadowBlobSprite; }
+    public int shadowBlobPxW()                     { return shadowBlobPxW; }
+    public int shadowBlobPxH()                     { return shadowBlobPxH; }
     public SpriteAPI iconDanger()                  { return iconDanger; }
     public SpriteAPI iconStar()                    { return iconStar; }
     /** Authored pose authority; overridable by tooling that loads assets off disk. */
@@ -400,6 +405,10 @@ public class BattleSprites {
         if (shadowBlobLoadAttempted) return;
         shadowBlobLoadAttempted = true;
         shadowBlobSprite = loadEngineFxSpriteOrNull(SHADOW_BLOB_SPRITE);
+        if (shadowBlobSprite != null) {
+            shadowBlobPxW = Math.round(shadowBlobSprite.getWidth());
+            shadowBlobPxH = Math.round(shadowBlobSprite.getHeight());
+        }
     }
 
     public SpriteAPI loadEngineFxSpriteOrNull(String path) {

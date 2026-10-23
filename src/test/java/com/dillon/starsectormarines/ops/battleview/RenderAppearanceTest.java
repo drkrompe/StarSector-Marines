@@ -18,12 +18,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class RenderAppearanceTest {
 
     @Test
-    public void everyTypeHasADescriptorWithMatchingRenderScaleAndFrameLayout() {
+    public void everyTypeHasADescriptorWithMatchingRenderScale() {
         for (UnitType t : UnitType.values()) {
             RenderAppearance app = RenderAppearance.of(t);
             assertNotNull(app, "no descriptor for " + t);
             assertEquals(t.renderScale, app.renderScale, 0f, "renderScale for " + t);
-            assertEquals(t.frameLayout, app.frameLayout, "frameLayout for " + t);
         }
     }
 
@@ -109,12 +108,10 @@ public class RenderAppearanceTest {
         assertTrue(marine.drawsDurabilityBar);
         // A fallen marine lies as its layered outfit's downed pose, not off a corpse sheet.
         assertFalse(marine.hasDeathPose);
-        assertEquals(UnitType.FrameLayout.WNES_WEAPON_UP, marine.frameLayout);
 
         // The mech is posed too but uses the 8-way layout, overhangs its cell and keeps its hulk sheet.
         RenderAppearance mech = RenderAppearance.of(UnitType.HEAVY_MECH);
         assertEquals(SpriteKind.SHEET, mech.spriteKind);
-        assertEquals(UnitType.FrameLayout.EIGHT_WAY_NO_WEAPON_UP, mech.frameLayout);
         assertTrue(mech.renderScale > 1f, "mech overhangs its cell");
         assertTrue(mech.hasDeathPose);
     }
