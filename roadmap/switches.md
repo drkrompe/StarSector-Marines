@@ -59,7 +59,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.fire` | experiment | 2026-10-22 | Fire-system session: remove each with its losing path once the fire behaviour pass is accepted (fire-nouns.md). |
 | `battle.fire.creepFilm` | experiment | 2026-10-22 | Fire-system session: remove each with its losing path once the fire behaviour pass is accepted (fire-nouns.md). |
 | `battle.fire.laneDiscipline` | experiment | 2026-10-23 | Fire-system session: remove each with its losing path once the fire behaviour pass is accepted (fire-nouns.md). |
-| `battle.fire.lowSmoke` | experiment | 2026-10-22 | Fire-system session: remove each with its losing path once the fire behaviour pass is accepted (fire-nouns.md). |
 | `battle.fire.smoke` | experiment | 2026-10-22 | Fire-system session: remove each with its losing path once the fire behaviour pass is accepted (fire-nouns.md). |
 | `battle.fire.stepOut` | experiment | 2026-10-22 | Fire-system session: remove each with its losing path once the fire behaviour pass is accepted (fire-nouns.md). |
 | `battle.fire.throwSafety` | experiment | 2026-10-22 | Fire-system session: remove each with its losing path once the fire behaviour pass is accepted (fire-nouns.md). |
@@ -138,15 +137,11 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.render.domeShader` | control | 2026-10-13 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.doodadAtlas` | experiment | 2026-10-23 | Doodad decoration atlas: remove it with the per-cut bind path once renderEvidence has read the atlas against its control. |
 | `battle.render.fire` | experiment | 2026-10-22 | Fire-system session: remove once the owner's fire look is final (fire-nouns.md). |
-| `battle.render.fireLook` | experiment | 2026-10-22 | Fire-system session: remove once the owner's fire look is final (fire-nouns.md). |
 | `battle.render.groundFeathering` | control | 2026-10-22 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
-| `battle.render.nightCoarse` | experiment | 2026-10-22 | Night-shade session: remove once renderEvidence on the burn at night accepts the lever. |
 | `battle.render.nightFireFogClears` | experiment | 2026-10-23 | Night-shade session: remove once renderEvidence on the burn at night accepts the lever. |
 | `battle.render.nightFireThroughFog` | experiment | 2026-10-23 | Night-shade session: remove once renderEvidence on the burn at night accepts the lever. |
-| `battle.render.nightRuns` | experiment | 2026-10-22 | Night-shade session: remove once renderEvidence on the burn at night accepts the lever. |
 | `battle.render.nightUnseenTint` | experiment | 2026-10-23 | Night-shade session: remove once renderEvidence on the burn at night accepts the lever. |
 | `battle.render.settledBodyMesh` | control | 2026-10-22 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
-| `battle.render.smokeDensity` | tuning | 2026-10-22 | Fire-system session: fold into a constant once the smoke look is picked. |
 | `battle.sallyDoors` | experiment | 2026-10-20 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.sallyDoors.closable` | experiment | 2026-10-21 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.sallyDoors.derived` | experiment | 2026-10-20 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
