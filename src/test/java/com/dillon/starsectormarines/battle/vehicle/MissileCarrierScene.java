@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.scene.BehaviorScene;
 import com.dillon.starsectormarines.battle.scene.FrameSink;
+import com.dillon.starsectormarines.battle.scene.LookGround;
+import com.dillon.starsectormarines.battle.scene.LookReview;
 import com.dillon.starsectormarines.battle.scene.SceneBuilder;
 import com.dillon.starsectormarines.battle.scene.SceneReport;
 import com.dillon.starsectormarines.battle.scene.SceneRun;
@@ -160,6 +162,39 @@ public final class MissileCarrierScene implements BehaviorScene {
         run.run(LRM_TICKS);
         sim.close();
         return trace;
+    }
+
+    /**
+     * The LRM carrier mid-salvo for the owner's eye, on real ground: the carrier at the west of a 64x36 window, a
+     * pinned tank 36 cells east (inside the rack's 40), and a scout car beside the carrier, 38 cells from the
+     * tank and so outside its gun's 36, with the tank in sight, so the carrier is cleared to fire whatever the ground between them hides. Three
+     * views: the exchange at play zoom, the carrier close (launch smoke and the salvo leaving the tubes), the tank
+     * close (arrivals). A look shot asserts nothing; the verdict loops above do.
+     */
+    public static LookReview.Shot lrmSalvoLook() {
+        return LookReview.Shot.of("lrm-salvo", 64, 36, placement -> {
+            SceneWorld world = placement.holdouts(placement.builder()).build();
+            BattleSimulation sim = world.sim();
+            float[] carrierAt = placement.openNear(8.5f, 18.5f);
+            float[] tankAt = placement.openNear(44.5f, 18.5f);
+            float[] scoutAt = placement.openNear(6.5f, 26.5f);
+            long carrier = sim.convoy().spawn(VehicleType.LRM_CARRIER, Faction.MARINE,
+                    VehicleMission.deployed(carrierAt[0], carrierAt[1]));
+            sim.convoy().body(carrier).teleport(carrierAt[0], carrierAt[1], 0f);
+            long tank = sim.convoy().spawn(VehicleType.BREAKTHROUGH_TANK, Faction.DEFENDER,
+                    VehicleMission.deployed(tankAt[0], tankAt[1]));
+            sim.convoy().body(tank).teleport(tankAt[0], tankAt[1], 180f);
+            pin(sim, tank);
+            long car = sim.convoy().spawn(VehicleType.SCOUT_CAR, Faction.MARINE,
+                    VehicleMission.deployed(scoutAt[0], scoutAt[1]));
+            sim.convoy().body(car).teleport(scoutAt[0], scoutAt[1], 0f);
+            return sim;
+        }, placement -> {
+            LookGround.Site site = placement.site();
+            return List.of(LookReview.View.play(site.x(26.5f), site.y(18.5f)),
+                    LookReview.View.close("carrier", site.x(12.5f), site.y(18.5f), 24f),
+                    LookReview.View.close("target", site.x(44.5f), site.y(18.5f), 24f));
+        }, LRM_TICKS);
     }
 
     /** Holds a Defender hull where it stands: a paused authored route keeps engagement off it; its turret still works. */
