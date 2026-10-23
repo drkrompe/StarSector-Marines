@@ -77,6 +77,9 @@ public final class PrecinctWardStage implements GenStage {
             // no neighbour builds on it, and open.
             boolean square = precinct.fortification() != null && precinct.fortification().square();
             int[][] own = square ? glacis(claim, i, ctx.width, ctx.height) : claim;
+            if (square && precinct.isProgrammed()) {
+                reachIn(claim, own, road, i, precinct.fortification().gates(), ctx.width, ctx.height);
+            }
             // Its gates are where roads met the whole claim, carried across the strip to the wall.
             int[][] ownRoad = square ? acrossGlacis(claim, road, i, precinct.fortification(), ctx) : road;
             PrecinctFill.Masks masks = null;
@@ -485,7 +488,7 @@ public final class PrecinctWardStage implements GenStage {
         NavigationGrid grid = ctx.grid;
         CellTopology topology = ctx.topology;
         boolean[][] wall = PrecinctBoundary.wall(claim, road, who, ctx.width, ctx.height,
-                fortification.gates());
+                fortification.gates(), fortification.square() ? Fortification.SQUARE_GATE_WIDTH : Integer.MAX_VALUE);
         if (joined) PrecinctBoundary.joinDiagonalSteps(wall, claim, who, ctx.get(BspKeys.ROAD_RESERVATION));
         for (int x = 0; x < ctx.width; x++) {
             for (int y = 0; y < ctx.height; y++) {
@@ -535,6 +538,88 @@ public final class PrecinctWardStage implements GenStage {
             }
         }
         return out;
+    }
+
+    /**
+     * Gives a square place that no road reaches into an arm off the road running past it, one
+     * per gate it keeps, on the sides most of that road runs along: a road from the passing one,
+     * across the glacis and straight in from the middle of the side to the middle of the place,
+     * {@link PrecinctBoundary#DRIVABLE_GATE_WIDTH} wide. A place whose own arms never grew in (a
+     * street laid round it first) has no gate to leave by and no yard its buildings can open
+     * onto, so it would pack nothing and be walled shut. A place with any road of its own is left
+     * as it grew.
+     *
+     * @param claim the whole claim, glacis included; {@code own} is the part inside the glacis
+     */
+    static void reachIn(int[][] claim, int[][] own, int[][] road, int who, int gates, int width, int height) {
+        int l = Integer.MAX_VALUE, t = Integer.MAX_VALUE, r = -1, b = -1;
+        long sumX = 0, sumY = 0, count = 0;
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                if (own[x][y] != who) continue;
+                if (road[x][y] != GrownTrunkPlan.UNOWNED) return;
+                l = Math.min(l, x); t = Math.min(t, y); r = Math.max(r, x); b = Math.max(b, y);
+                sumX += x; sumY += y; count++;
+            }
+        }
+        if (count == 0) return;
+        int cx = (int) (sumX / count), cy = (int) (sumY / count);
+        int half = PrecinctBoundary.DRIVABLE_GATE_WIDTH / 2;
+        // Each side's road-facing stretch and the cell of it nearest the side's middle.
+        List<int[]> sides = new ArrayList<>();
+        for (int[] out : STEPS) {
+            int facing = 0;
+            int[] best = null;
+            int bestOff = Integer.MAX_VALUE;
+            for (int x = l; x <= r; x++) {
+                for (int y = t; y <= b; y++) {
+                    int steps = toRoad(claim, own, road, who, x, y, out, width, height);
+                    if (steps < 0) continue;
+                    facing++;
+                    boolean wide = true;
+                    for (int w = -half; w <= half && wide; w++) {
+                        wide = toRoad(claim, own, road, who, x + out[1] * w, y + out[0] * w, out, width, height) == steps;
+                    }
+                    int off = out[0] != 0 ? Math.abs(y - cy) : Math.abs(x - cx);
+                    if (wide && off < bestOff) {
+                        bestOff = off;
+                        best = new int[]{x + out[0] * steps, y + out[1] * steps};
+                    }
+                }
+            }
+            if (best != null) sides.add(new int[]{best[0], best[1], out[0], out[1], facing});
+        }
+        sides.sort((p, q) -> Integer.compare(q[4], p[4]));
+        for (int[] side : sides.subList(0, Math.min(gates, sides.size()))) {
+            int ox = side[2], oy = side[3];
+            int owner = road[side[0]][side[1]];
+            // From the last glacis cell before the passing road, in to the middle.
+            for (int x = side[0] - ox, y = side[1] - oy; ox != 0 ? x != cx - ox : y != cy - oy; x -= ox, y -= oy) {
+                for (int w = -half; w <= half; w++) {
+                    int ax = x + oy * w, ay = y + ox * w;
+                    if (ax >= 0 && ay >= 0 && ax < width && ay < height && claim[ax][ay] == who
+                            && road[ax][ay] == GrownTrunkPlan.UNOWNED) {
+                        road[ax][ay] = owner;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Steps out from {@code (x, y)}, an edge cell of the place, across its own glacis to a road
+     * running past, or -1 when there is none within the glacis or the cell is not on that edge.
+     */
+    private static int toRoad(int[][] claim, int[][] own, int[][] road, int who, int x, int y, int[] out,
+                              int width, int height) {
+        if (x < 0 || y < 0 || x >= width || y >= height || own[x][y] != who) return -1;
+        for (int d = 1; d <= Fortification.GLACIS + 1; d++) {
+            int nx = x + out[0] * d, ny = y + out[1] * d;
+            if (nx < 0 || ny < 0 || nx >= width || ny >= height || own[nx][ny] == who) return -1;
+            if (road[nx][ny] != GrownTrunkPlan.UNOWNED) return d;
+            if (claim[nx][ny] != who) return -1;
+        }
+        return -1;
     }
 
     /** Road ownership with each gate of the whole claim run inward across the glacis. */

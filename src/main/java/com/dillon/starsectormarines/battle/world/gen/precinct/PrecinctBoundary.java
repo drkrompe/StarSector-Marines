@@ -205,11 +205,104 @@ public final class PrecinctBoundary {
      */
     public static boolean[][] wall(int[][] claim, int[][] owner, int who,
                                    int width, int height, int maxGates) {
+        return wall(claim, owner, who, width, height, maxGates, Integer.MAX_VALUE);
+    }
+
+    /**
+     * The same, with no way through wider than {@code maxWidth}
+     * ({@link #narrowed}): the rest of a wider crossing is walled up.
+     */
+    public static boolean[][] wall(int[][] claim, int[][] owner, int who,
+                                   int width, int height, int maxGates, int maxWidth) {
         boolean[][] wall = outline(claim, who, width, height);
-        for (Gate gate : openGates(claim, owner, who, width, height, maxGates)) {
+        for (Gate gate : openGates(claim, owner, who, width, height, maxGates, maxWidth)) {
             for (int[] cell : gate.cells()) wall[cell[0]][cell[1]] = false;
         }
         return wall;
+    }
+
+    /** Cells outward a road is followed to tell a road leaving from one running past. */
+    private static final int OUTWARD_REACH = 12;
+
+    /**
+     * A crossing no wider than {@code maxWidth} and clear of the outline's
+     * corners: the cells where road runs on furthest out of the place, and
+     * those next to them along the outline. A width of
+     * {@link Integer#MAX_VALUE} leaves the crossing as it grew.
+     *
+     * <p>A road that runs along the inside of the outline rather than out
+     * through it puts road on every outline cell of that side with road beyond
+     * it, so the whole side reads as one crossing. What goes <em>out</em> is
+     * the street that leaves it, and that is where the road runs on longest
+     * outward; the stretch where it only ran past is walled.
+     */
+    static Gate narrowed(Gate gate, int[][] claim, int[][] owner, int who,
+                         int width, int height, int maxWidth) {
+        if (maxWidth == Integer.MAX_VALUE) return gate;
+        // A corner of the outline stays wall: open, it leaves the gate with no wall on its far side.
+        List<int[]> sides = new ArrayList<>();
+        for (int[] cell : gate.cells()) {
+            int out = 0;
+            for (int[] step : STEPS) {
+                int nx = cell[0] + step[0], ny = cell[1] + step[1];
+                if (nx < 0 || ny < 0 || nx >= width || ny >= height || claim[nx][ny] != who) out++;
+            }
+            if (out < 2) sides.add(cell);
+        }
+        if (!sides.isEmpty() && sides.size() < gate.width()) {
+            gate = new Gate(List.copyOf(sides), sides.size() >= DRIVABLE_GATE_WIDTH);
+        }
+        if (gate.width() <= maxWidth) return gate;
+        int[] depth = new int[gate.cells().size()];
+        int deepest = 0;
+        for (int i = 0; i < depth.length; i++) {
+            int[] cell = gate.cells().get(i);
+            for (int[] step : STEPS) {
+                int nx = cell[0] + step[0], ny = cell[1] + step[1];
+                if (nx < 0 || ny < 0 || nx >= width || ny >= height || claim[nx][ny] == who) continue;
+                int d = 0;
+                while (d < OUTWARD_REACH && nx >= 0 && ny >= 0 && nx < width && ny < height
+                        && owner[nx][ny] != GrownTrunkPlan.UNOWNED) {
+                    d++;
+                    nx += step[0];
+                    ny += step[1];
+                }
+                depth[i] = Math.max(depth[i], d);
+            }
+            deepest = Math.max(deepest, depth[i]);
+        }
+        // The middle of the deepest cells, then out from it along the run until the gate is full.
+        int middle = -1;
+        long middleSpread = Long.MAX_VALUE;
+        for (int i = 0; i < depth.length; i++) {
+            if (depth[i] != deepest) continue;
+            long spread = 0;
+            for (int j = 0; j < depth.length; j++) {
+                if (depth[j] != deepest) continue;
+                int[] a = gate.cells().get(i), b = gate.cells().get(j);
+                spread += Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
+            }
+            if (spread < middleSpread) {
+                middleSpread = spread;
+                middle = i;
+            }
+        }
+        List<int[]> kept = new ArrayList<>();
+        Deque<int[]> queue = new ArrayDeque<>();
+        boolean[] taken = new boolean[depth.length];
+        taken[middle] = true;
+        queue.add(gate.cells().get(middle));
+        while (!queue.isEmpty() && kept.size() < maxWidth) {
+            int[] at = queue.poll();
+            kept.add(at);
+            for (int i = 0; i < depth.length; i++) {
+                int[] c = gate.cells().get(i);
+                if (taken[i] || Math.abs(c[0] - at[0]) > 1 || Math.abs(c[1] - at[1]) > 1) continue;
+                taken[i] = true;
+                queue.add(c);
+            }
+        }
+        return new Gate(List.copyOf(kept), kept.size() >= DRIVABLE_GATE_WIDTH);
     }
 
     /** Join diagonal cell contacts on the interior side, retaining reserved gate width. */
@@ -238,7 +331,16 @@ public final class PrecinctBoundary {
      */
     public static List<Gate> openGates(int[][] claim, int[][] owner, int who,
                                        int width, int height, int maxGates) {
-        List<Gate> all = new ArrayList<>(gates(claim, owner, who, width, height));
+        return openGates(claim, owner, who, width, height, maxGates, Integer.MAX_VALUE);
+    }
+
+    /** The same, each crossing first {@link #narrowed} to {@code maxWidth}. */
+    public static List<Gate> openGates(int[][] claim, int[][] owner, int who,
+                                       int width, int height, int maxGates, int maxWidth) {
+        List<Gate> all = new ArrayList<>();
+        for (Gate gate : gates(claim, owner, who, width, height)) {
+            all.add(narrowed(gate, claim, owner, who, width, height, maxWidth));
+        }
         all.sort((a, b) -> Integer.compare(b.width(), a.width()));
         if (all.size() <= maxGates) return all;
 

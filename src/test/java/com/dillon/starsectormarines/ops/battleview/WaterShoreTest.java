@@ -98,6 +98,62 @@ class WaterShoreTest {
         assertTrue(WaterShore.isShoreWater(topology, 1, 1));
     }
 
+    /**
+     * A brook running north, five cells across between grass banks, with a
+     * ford of shallow water over stone along rows 2 to 8,
+     * longer along the water than across it, as a brook's fords are.
+     */
+    private static CellTopology ford() {
+        return ford(true);
+    }
+
+    private static CellTopology ford(boolean shallowFord) {
+        CellTopology topology = new CellTopology(9, 11);
+        for (int y = 0; y < 11; y++) {
+            for (int x = 0; x < 9; x++) {
+                boolean brook = x >= 2 && x <= 6;
+                boolean shallow = brook && y >= 2 && y <= 8;
+                if (!shallowFord) shallow = false;
+                topology.setGroundKind(x, y, brook && !shallow ? GroundKind.WATER
+                        : shallow ? GroundKind.STONE : GroundKind.GRASS);
+                if (shallow) topology.setTag(x, y, CellTopology.Tag.SHALLOW_WATER, true);
+            }
+        }
+        return topology;
+    }
+
+    @Test
+    void aFordIsShallowsWithNoOpenWaterAtItsCentres() {
+        CellTopology topology = ford();
+        for (int x = 2; x <= 6; x++) {
+            for (int t = 0; t < WaterShore.TRIANGLES; t++) {
+                assertTrue(hasCentre(WaterShore.patch(topology, x, 5, WaterShore.Band.SHALLOW, t)), "shallows at " + x);
+                float[] deep = WaterShore.patch(topology, x, 5, WaterShore.Band.WATER, t);
+                assertTrue(deep == null || !hasCentre(deep), "no open water at the ford's centre " + x);
+                assertTrue(hasCentre(WaterShore.bedPatch(topology, x, 5, t)), "the bed shows at " + x);
+            }
+        }
+        // Open water beside the ford keeps its centre, and shows no bed.
+        for (int t = 0; t < WaterShore.TRIANGLES; t++) {
+            assertTrue(hasCentre(WaterShore.patch(topology, 4, 0, WaterShore.Band.WATER, t)));
+            assertNull(WaterShore.bedPatch(topology, 4, 0, t));
+        }
+    }
+
+    @Test
+    void aFordsWaterlineMeetsItsBanksAsTheBrooksDoes() {
+        CellTopology topology = ford(), brook = ford(false);
+        // The wet field cannot tell a ford from water, so the banks run on through it unbroken.
+        for (int y = 0; y <= 11; y++) {
+            for (int x : new int[]{2, 7}) {
+                assertEquals(WaterShore.corner(brook, x, y), WaterShore.corner(topology, x, y), 1e-12, x + "," + y);
+            }
+        }
+        assertTrue(Math.abs(WaterShore.corner(topology, 2, 5)) < 1, "the ford's bank lies on its cell edge");
+        assertTrue(WaterShore.corner(topology, 4, 5) > 1, "inside the ford is wet");
+        assertTrue(WaterShore.corner(topology, 4, 5, true) < -1, "and not deep");
+    }
+
     @Test
     void theFieldIsItsSideAtEveryCentreAndItsCornerAtEveryCorner() {
         CellTopology topology = staircase();
@@ -153,7 +209,7 @@ class WaterShoreTest {
     }
 
     private static boolean hasCentre(float[] patch) {
-        return hasPoint(patch, .5f, .5f);
+        return patch != null && hasPoint(patch, .5f, .5f);
     }
 
     private static boolean hasPoint(float[] patch, float x, float y) {

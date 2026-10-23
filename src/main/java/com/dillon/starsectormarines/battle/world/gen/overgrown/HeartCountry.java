@@ -255,7 +255,8 @@ public final class HeartCountry {
      */
     static Landscape landscapeFor(Form form, long seed) {
         int w = form.scale.width, h = form.scale.height;
-        List<RidgePlanner.Band> ridges = List.of(ridge(form));
+        // The cordon ridge is the layout's (HeartLayout), raised before the works so the line is dug on its crest.
+        List<RidgePlanner.Band> ridges = List.of();
         List<Landscape.Track> tracks = new ArrayList<>();
         if (form == Form.BROAD_FRONT) {
             int top = Math.round(LANE_DEPTH * (h - 1));

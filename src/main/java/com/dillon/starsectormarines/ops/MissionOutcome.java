@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
 import com.dillon.starsectormarines.battle.salvage.SalvageCache;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveResult;
 import com.dillon.starsectormarines.battle.warship.ShipSupportResult;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.Rank;
@@ -62,6 +63,12 @@ public final class MissionOutcome {
     public final FreightRunProgress.Outcome freightOutcome;
     public final WaylineHoundRecovery.Report waylineHound;
     public final List<SalvageCache.Recovered> fieldSalvage;
+    /**
+     * The battle's optional objectives as they came out ({@code optional-objectives.md}), in roll order;
+     * empty when the mission rolled none. Credits and materials of the succeeded ones are paid at
+     * settlement; grants and costs are only recorded here, for the campaign arc to read.
+     */
+    public final List<ObjectiveResult> objectives;
     public final String officerAttemptId;
     public final List<OfficerMissionResult> officers;
     public final boolean        victory;
@@ -183,6 +190,13 @@ public final class MissionOutcome {
      */
     public final Map<String, CombatTelemetryRow> soldierTelemetry;
 
+    /** Credits the succeeded optional objectives pay, on top of the contract's payout. */
+    public int objectiveCredits() {
+        long total = 0L;
+        for (ObjectiveResult result : objectives) total += result.earned().credits();
+        return (int) Math.min(Integer.MAX_VALUE, total);
+    }
+
     /** @return a builder with every field defaulted to its "absent" value. */
     public static Builder builder() {
         return new Builder();
@@ -203,6 +217,7 @@ public final class MissionOutcome {
         this.freightOutcome = b.freightOutcome;
         this.waylineHound = b.waylineHound;
         this.fieldSalvage = List.copyOf(b.fieldSalvage);
+        this.objectives = List.copyOf(b.objectives);
         this.victory            = b.victory;
         this.officerAttemptId = b.officerAttemptId;
         this.officers = List.copyOf(b.officers);
@@ -309,6 +324,11 @@ public final class MissionOutcome {
         private WaylineHoundRecovery.Report waylineHound;
         private List<SalvageCache.Recovered> fieldSalvage = List.of();
         public Builder fieldSalvage(List<SalvageCache.Recovered> finds) { this.fieldSalvage = List.copyOf(finds); return this; }
+        private List<ObjectiveResult> objectives = List.of();
+        public Builder objectives(List<ObjectiveResult> results) {
+            this.objectives = results == null ? List.of() : List.copyOf(results);
+            return this;
+        }
         private boolean victory;
         private String missionId;
         private String missionName;

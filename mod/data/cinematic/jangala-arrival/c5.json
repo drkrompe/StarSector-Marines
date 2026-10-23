@@ -23,15 +23,6 @@
  "overlays": [],
  "cues": [
   {
-   "t": 0.0,
-   "sound": "jangala_arrival_ending_a",
-   "volume": 0.4955,
-   "until": 40.0,
-   "fade_in": 0.75,
-   "fade_out": 0.5,
-   "duck": 0.3981
-  },
-  {
    "t": 0.511,
    "sound": "jangala_sfx_c5_vehicles_arrive",
    "volume": 0.1161

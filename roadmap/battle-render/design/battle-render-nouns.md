@@ -116,13 +116,21 @@ Updated: 2026-10-23 — Texture leases: a battle, the company deck, the Armory p
   contour), and water stands level with its bank, because a sunken square cell
   casts the steps back. Built edges stay square — a pool, a quay, a road or a
   bridge has a made edge — so only water and the natural grounds take part.
+  **Shallow water** (a ford: walkable ground tagged `SHALLOW_WATER`) is water
+  to the waterline and ground to the open water, so the shore reads two
+  fields — wet and deep, the same field on a bank with no shallows — and a
+  ford is shallows from bank to bank with open water beginning beyond it. Its
+  bed shows through as pebbles on every ford cell, where the open water does
+  not cover it (art from `art-source/terrain/bake_water_ford.py`; the owner
+  chose the plain pebble bed over a line of stepping stones).
   Hive creep meets the same contour: it stands back from the shore's water and
   wet bank as from a cliff face (`ShoreWaterMask`, the field sampled
   continuously by `WaterShore.fieldAt`), so its edge runs along the wet band.
   The bands are resident sub-layers over the feathers and under road edges,
   raised terrain and decoration; their art is derived from the water tiles
-  (`art-source/terrain/bake_water_shore.py`). Comparison switch:
-  `-Dbattle.render.shore=organic|diagonal|square`.
+  (`art-source/terrain/bake_water_shore.py`). The owner chose this organic
+  contour, noise and all, over the same contour without its noise and over
+  the cells' own steps.
 - A **visible cell rectangle** is the camera-derived dense-world cull. It reduces work for cell-backed terrain passes; it does not replace the simulation's cell grid.
 - A **view cull** is the same idea for things that are not cells: the camera's
   viewport in cell space, asked whether a body's own drawn extent can land in

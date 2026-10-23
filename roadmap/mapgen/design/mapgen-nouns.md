@@ -878,8 +878,10 @@ map is generated. Existing disconnected ground is not repaired by this pass.
 A precinct plan may state its country through a **landscape** (`Landscape`):
 the share of wild ground that is wood (the stock city's is a little over half),
 **tracks** cleared to bare earth before the woods grow, and **brooks**, water
-meandering across the map with sand banks, crossed on foot at a sand ford at a
-fixed interval along their length. A track or brook is reserved from trees; a
+meandering across the map with sand banks, crossed on foot at a ford at a
+fixed interval along their length: a stony bed under **shallow water**, walked
+at a wade (`NavigationGrid.SHALLOW_WATER_SPEED`) and drawn as shallows with a
+pebble bed showing through, so what can be crossed reads at a glance. A track or brook is reserved from trees; a
 brook is unwalkable, see-through water that creep does not climb, so it is a
 natural firebreak and a creep line broken only at its fords and wherever a road
 or street crosses it. A landscape may also name **ridges**, bands of high

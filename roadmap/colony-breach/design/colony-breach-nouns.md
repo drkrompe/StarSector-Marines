@@ -494,8 +494,10 @@ militia make the rest of it when the battle is set up:
 
 - a squat **tower** on each outer corner of the wall;
 - a **gun tower** beside each gate: a heavy machine gun on the line of the
-  wall behind slits. Those guns are its whole armament: no layers, no bunkers,
-  no anti-air;
+  wall behind slits, a step further along the wall where a building stands
+  against it. A compound with one way in mounts its second gun on that gate's
+  other flank, so it always has two. Those guns are its whole armament: no
+  layers, no bunkers, no anti-air;
 - **firing slits** along the wall's straight runs;
 - a militia **wall team** standing behind the slits, holding the yard. Nothing
   is piled against the wall: the wall is the cover, so the compound has no
