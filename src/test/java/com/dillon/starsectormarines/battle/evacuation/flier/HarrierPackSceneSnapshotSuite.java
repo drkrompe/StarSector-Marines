@@ -14,7 +14,7 @@ import java.util.List;
  * The Harrier pack's frames: the {@code with-aa} and {@code no-aa} loops at 1920x1080 (verdict evidence, on a bare
  * arena), and for the owner one look recording per {@link HarrierLook}: the same gun line with its flak on real
  * generated ground, a pack of ten loitering out of reach and diving on it, at play zoom following the pack and close
- * on the line.
+ * on the line, plus the default look over the same line without its flak.
  */
 public final class HarrierPackSceneSnapshotSuite extends BehaviorSceneSnapshotSuite {
 
@@ -33,15 +33,21 @@ public final class HarrierPackSceneSnapshotSuite extends BehaviorSceneSnapshotSu
         List<LookReview.Shot> shots = new ArrayList<>();
         for (HarrierLook look : HarrierLook.values()) {
             shots.add(LookReview.Shot.of("harrier-" + look.name().toLowerCase().replace('_', '-'), 70, 40,
-                    placement -> stage(placement, look),
+                    placement -> stage(placement, look, true),
                     placement -> List.of(LookReview.View.followAtPlay(placement, "line", "pack"),
                             LookReview.View.follow("line", placement, 26f, "line")),
                     1200).withStills(STILLS));
         }
+        // The control for the default look: the same line with no flak, so a pack's dives can be watched both ways.
+        shots.add(LookReview.Shot.of("harrier-" + HarrierLook.DEFAULT.name().toLowerCase().replace('_', '-') + "-no-aa",
+                70, 40, placement -> stage(placement, HarrierLook.DEFAULT, false),
+                placement -> List.of(LookReview.View.followAtPlay(placement, "line", "pack"),
+                        LookReview.View.follow("line", placement, 26f, "line")),
+                1200).withStills(STILLS));
         return shots;
     }
 
-    private static BattleSimulation stage(LookReview.Placement placement, HarrierLook look) {
+    private static BattleSimulation stage(LookReview.Placement placement, HarrierLook look, boolean antiAir) {
         float[] line = placement.openNear(14f, 20f);
         int lx = (int) line[0], ly = (int) line[1];
         SceneBuilder builder = placement.builder();
@@ -50,7 +56,7 @@ public final class HarrierPackSceneSnapshotSuite extends BehaviorSceneSnapshotSu
                 .primary("weapon.field-rifle").stationary().done();
         SceneWorld world = builder.build();
         BattleSimulation sim = world.sim();
-        long[] guns = HarrierPackScene.spawnGuns(sim, lx, ly, true);
+        long[] guns = HarrierPackScene.spawnGuns(sim, lx, ly, antiAir);
         placement.subject("line", guns[1]);
         HarrierPack pack = sim.swarmFliers().release(sim, look, placement.site().x(54f), placement.site().y(20f),
                 HarrierPackScene.PACK, 0L);
