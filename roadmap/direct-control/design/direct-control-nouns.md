@@ -163,8 +163,12 @@ muzzles, and the Mech's trigger picks determine which flat-fire hardpoints appea
 an arcing rack flies over walls and draws no lane. When an armed mount's rounds
 burst where they are thrown (rockets and LRM racks), a **scatter ring** circles
 the cursor at the widest landing disk among them: orange inside every covered
-mount's range, red past it, where the disk grows faster than distance. Guns draw
-no ring. The ring is the clear-air figure; smoke on a rocket's lane widens it.
+mount's range, red past it, where the disk grows faster than distance, and red
+inside an arcing mount's minimum. A vehicle turret's launcher draws the same
+ring, measured from its turret ring. Guns draw no ring. A red ring never draws
+smaller than the crosshair it surrounds: close in, the disk is a fraction of a
+cell, and the warning would otherwise vanish. The ring is the clear-air figure;
+smoke on a rocket's lane widens it.
 A blocked body-to-barrel segment cannot masquerade as an open lane from a
 muzzle beyond the wall. The guide uses current continuous terrain and shared
 edge profiles, so opening or destroying structure changes the next preview.

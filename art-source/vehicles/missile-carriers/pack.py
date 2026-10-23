@@ -3,11 +3,12 @@
   mod/graphics/battle/vehicles/lrm-carrier.png   4 x 768x576: APC hull, LRM launcher, APC wreck, wrecked launcher
   mod/graphics/battle/vehicles/srm-technical.png 4 x 768x576: technical hull, SRM pod, technical wreck, wrecked pod
 
-LRM carrier: the heavy APC's live and wreck hulls verbatim (`army-apc.png`, slots 0 and 2), with a launcher of two
-of the mech LRM pods (`mech-modular-topdown/lrm-pod.png`) side by side on a turntable plate where the twin MG stood.
+LRM carrier: the heavy APC's live and wreck hulls verbatim (`army-apc.png`, slots 0 and 2), with one LRM-15 launcher
+box (`lrm15-master.png`, ImageGen's reskin of `lrm15-guide.png`; see README.md) on a turntable plate where the twin
+MG stood.
 SRM technical: the militia technical's hulls verbatim (`militia-technical.png`, slots 0 and 2) with the mech SRM pod
 (`mech-modular-topdown/srm-pod.png`) on a pintle plate. The pods are the same launchers a mech carries, which is
-what the hulls fire.
+what the SRM technical fires.
 
 Turret frames are drawn at the hull's own pixel scale, so each `VehicleType` sets turretVisualCells to its hull's
 visual length and the frame's centre is the turntable's pivot. Pods are drawn nose-up in their own sprites and
@@ -24,13 +25,16 @@ GRAPHICS = ROOT / "mod" / "graphics"
 VEHICLES = GRAPHICS / "battle" / "vehicles"
 APC = VEHICLES / "army-apc.png"
 TECHNICAL = VEHICLES / "militia-technical.png"
-LRM_POD = GRAPHICS / "battle" / "mech-modular-topdown" / "lrm-pod.png"
+LRM15_MASTER = HERE / "lrm15-master.png"
 SRM_POD = GRAPHICS / "battle" / "mech-modular-topdown" / "srm-pod.png"
 
 SLOT_W, SLOT_H = 768, 576
 LIVE, TURRET, WRECK, WRECK_TURRET = 0, 1, 2, 3
 APC_PX_PER_CELL = SLOT_W / 2.4
 TECHNICAL_PX_PER_CELL = SLOT_W / 3.0
+# The LRM-15 master is the guide's 1024 canvas returned at 1254; the guide's box is 780 px nose to tail.
+LRM15_MASTER_BOX_PX = 780 * 1254 / 1024
+LRM15_BOX_CELLS = 0.72
 
 
 def slot(sheet, index):
@@ -72,18 +76,34 @@ def plate(frame, center, radius, broken=False):
               outline=(34, 36, 32, 255), width=3)
 
 
+def clean_alpha(sprite):
+    """ImageGen returns its opaque pixels at alpha 250-253 and a faint haze around them: snap both ends."""
+    alpha = sprite.getchannel("A").point(lambda v: 0 if v < 6 else 255 if v > 240 else round((v - 6) * 255 / 234))
+    out = sprite.copy()
+    out.putalpha(alpha)
+    return out
+
+
+def lrm15_box():
+    """The LRM-15 box nose-left, centred where the master's canvas is centred, at the hull's pixel scale."""
+    src = clean_alpha(Image.open(LRM15_MASTER).convert("RGBA"))
+    scale = LRM15_BOX_CELLS * APC_PX_PER_CELL / LRM15_MASTER_BOX_PX
+    size = (round(src.width * scale), round(src.height * scale))
+    out = src.convert("RGBa").resize(size, Image.LANCZOS).convert("RGBA")
+    out = out.filter(ImageFilter.UnsharpMask(radius=1.5, percent=50, threshold=2))
+    return out.crop(out.getbbox()), (out.width / 2 - out.getbbox()[0], out.height / 2 - out.getbbox()[1])
+
+
 def lrm_launcher(broken=False):
     frame = Image.new("RGBA", (SLOT_W, SLOT_H), (0, 0, 0, 0))
     center = (SLOT_W // 2, SLOT_H // 2)
     plate(frame, center, round(0.36 * APC_PX_PER_CELL), broken)
-    one = pod(LRM_POD, round(0.64 * APC_PX_PER_CELL))
+    box, pivot = lrm15_box()
+    # Where the box's own centre sits relative to its cropped sprite's centre, so the canvas centre stays the pivot.
+    dx, dy = box.width / 2 - pivot[0], box.height / 2 - pivot[1]
     if broken:
-        one = char(one, 0.45)
-    gap = 6
-    for side in (-1, 1):
-        sprite = one.rotate(-11 * side, resample=Image.BICUBIC, expand=True) if broken and side > 0 else one
-        dy = side * (one.height + gap) / 2
-        shadowed(frame, sprite, (center[0], center[1] + dy))
+        box = char(box, 0.45).rotate(-9, resample=Image.BICUBIC, expand=True)
+    shadowed(frame, box, (center[0] + dx, center[1] + dy))
     return frame
 
 
