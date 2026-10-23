@@ -809,11 +809,21 @@ public final class BallisticResolver {
             // VICTIM's own extrapolated cell, floor(U(sEntry)) — a target
             // sprinting out from behind a parapet has left the covered cell
             // by contact time, and vice versa.
-            float contactX = fromX + dirX * rayDistAtEntry;
-            float contactY = fromY + dirY * rayDistAtEntry;
+            // A hull's circle decided the contact; its footprint says where on the hull the round lands, so a
+            // round into a long hull side-on ends on its side rather than out at the circle's rim.
+            float onHull = carrier != null ? hullContactDistance(fromX + dirX * rayDistAtEntry,
+                    fromY + dirY * rayDistAtEntry, dirX, dirY, ux + wx * sEntry, uy + wy * sEntry,
+                    carrier.hullFacingDegrees(candidateId), carrier.hullHalfLength(candidateId),
+                    carrier.hullHalfWidth(candidateId), 2f * r) : 0f;
+            onHull = Math.max(0f, Math.min(onHull, rayLen - rayDistAtEntry));
+            float contactDist = rayDistAtEntry + onHull;
+            float contactX = fromX + dirX * contactDist;
+            float contactY = fromY + dirY * contactDist;
+            if (onHull > 0f) contactZ = fromZ + zSlope * contactDist;
+            float sContact = sEntry + onHull / roundVelocity;
             int victimCellX = (int) Math.floor(ux + wx * sEntry);
             int victimCellY = (int) Math.floor(uy + wy * sEntry);
-            events.add(Event.unit(sEntry, contactX, contactY, contactZ,
+            events.add(Event.unit(sContact, contactX, contactY, contactZ,
                     candidateId, friendly, carrier != null, victimCellX, victimCellY));
         }
 
@@ -969,6 +979,49 @@ public final class BallisticResolver {
 
     private float targetHitHalfHeight(long id) {
         return roster.hitHalfHeight(id);
+    }
+
+    /**
+     * How much further along the round's line, from where it enters a hull's contact circle, it meets the hull's
+     * footprint: a {@code halfLength} by {@code halfWidth} rectangle about {@code (bodyX, bodyY)} along
+     * {@code facingDeg} (sprite convention). Zero for a body with no footprint or a round already inside it; a line
+     * that misses the footprint lands where it passes nearest the hull's centre. Never more than {@code chord}.
+     */
+    static float hullContactDistance(float px, float py, float dirX, float dirY, float bodyX, float bodyY,
+                                     float facingDeg, float halfLength, float halfWidth, float chord) {
+        if (!(halfLength > 0f) || !(halfWidth > 0f)) return 0f;
+        double rad = Math.toRadians(facingDeg);
+        float fwdX = (float) -Math.sin(rad);
+        float fwdY = (float) Math.cos(rad);
+        float sideX = (float) Math.cos(rad);
+        float sideY = (float) Math.sin(rad);
+        float relX = px - bodyX;
+        float relY = py - bodyY;
+        float lf = relX * fwdX + relY * fwdY;
+        float ls = relX * sideX + relY * sideY;
+        float df = dirX * fwdX + dirY * fwdY;
+        float ds = dirX * sideX + dirY * sideY;
+        float enter = 0f;
+        float exit = chord;
+        float[] slabF = slab(lf, df, halfLength);
+        float[] slabS = slab(ls, ds, halfWidth);
+        if (slabF != null && slabS != null) {
+            enter = Math.max(enter, Math.max(slabF[0], slabS[0]));
+            exit = Math.min(exit, Math.min(slabF[1], slabS[1]));
+            if (enter <= exit) return enter;
+        }
+        float nearest = -(relX * dirX + relY * dirY);
+        return Math.max(0f, Math.min(chord, nearest));
+    }
+
+    /** The interval of ray distance inside one slab {@code |l + d*u| <= half}, or null when the ray never is. */
+    private static float[] slab(float l, float d, float half) {
+        if (Math.abs(d) < 1e-6f) {
+            return Math.abs(l) <= half ? new float[]{Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY} : null;
+        }
+        float a = (-half - l) / d;
+        float b = (half - l) / d;
+        return a <= b ? new float[]{a, b} : new float[]{b, a};
     }
 
     /**
