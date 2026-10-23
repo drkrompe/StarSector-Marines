@@ -2158,25 +2158,40 @@ def blender_main(cfg):
     def tracer(a, b, local=None, n=6, muzzle=None):
         p0 = muzzle_world(a, muzzle)
         p1 = at(b, local or (0, 0, 0)) + Vector(rng.normal(0, 12, 3))
+        firing = True
+        if span_now.get('span'):     # in motion: bursts with gaps (owner: no long bursts at nothing)
+            import random as _random
+            r, t, firing = _random.Random(f'stand-in bursts|{a}|{b}'), -10.0 + _random.Random(a).uniform(0, 1.5), False
+            while t < 10.0 and not firing:
+                on = r.uniform(.8, 2.0)
+                firing = t <= span_dt() < t + on
+                t += on + r.uniform(1.0, 2.6)
         for i in range(n):
             f0 = .08 + (rng.uniform(0, .87) + span_dt() * 1200.0 / (p1 - p0).length) % .87   # rounds travel in a span
             f1 = min(1.0, f0 + 30.0 / (p1 - p0).length)
-            segment(p0.lerp(p1, f1), p0.lerp(p1, f0), .7, tracer_mat, 'Tracer')
+            if firing:
+                segment(p0.lerp(p1, f1), p0.lerp(p1, f0), .7, tracer_mat, 'Tracer')
 
     def missiles(a, b, n=5, muzzle=None):
         p0, p1 = muzzle_world(a, muzzle), at(b)
         for i in range(n):
             f = .3 + (rng.uniform(0, .6) + span_dt() * 250.0 / (p1 - p0).length) % .6
             p = p0.lerp(p1, f) + Vector(rng.normal(0, 60, 3))
-            obj('Missile', bead_me, missile_mat, Matrix.Translation(p) @ Matrix.Scale(2.2, 4))
             back = (p0 - p1).normalized()
-            segment(p, p + back * 140, 2.5, plume_mats['LOW_TECH'], 'Missile trail')
+            # no orbs (owner, 2026-10-23: "white orbs"): the body is a short streak along its flight
+            segment(p + back * 9, p, .9, missile_mat, 'Missile')
+            segment(p + back * 9, p + back * 140, 2.5, plume_mats['LOW_TECH'], 'Missile trail')
 
     def blast(p, radius):
-        obj('Blast', bead_me, blast_mat, Matrix.Translation(p) @ Matrix.Scale(radius * .55, 4))
-        for i in range(9):
-            o = Vector(rng.normal(0, radius * .45, 3))
-            obj('Blast lobe', bead_me, blast_mat, Matrix.Translation(p + o) @ Matrix.Scale(radius * rng.uniform(.2, .45), 4))
+        """No orbs: a torn, spiked burst (swfx_burst's jagged mesh), turned at random, in smoke."""
+        if str(PROLOGUE / 'second-wind-vfx') not in sys.path:
+            sys.path.insert(0, str(PROLOGUE / 'second-wind-vfx'))
+        import random as _random
+        import swfx_burst
+        me, _ = swfx_burst.lobed_mesh('Blast burst', blast_mat, _random.Random(int(rng.integers(1 << 30))),
+                                      lobes=(4, 7), spikes=(5, 9), lean=.3)
+        obj('Blast', me, blast_mat, Matrix.Translation(p) @ Euler(rng.uniform(0, 6.3, 3)).to_matrix().to_4x4()
+            @ Matrix.Scale(radius * .7, 4))
         obj('Blast smoke', bead_me, smoke_mat, Matrix.Translation(p) @ Matrix.Scale(radius * 1.15, 4))
 
     def debris(p, spread, n=40):
@@ -2198,10 +2213,26 @@ def blender_main(cfg):
             o = toward * (20 + 180 * f) + Vector(rng.normal(0, 6 + 20 * f, 3))
             obj('Smoke', bead_me, smoke_mat, Matrix.Translation(p + o) @ Matrix.Scale(5 + 14 * f, 4))
 
-    def flares(key):
+    def flares(key, life=1.6):
+        """Decoy flares (a stand-in for a ship the kit has no flare muzzles on). No orbs (owner,
+        2026-10-23: "white orbs around the hound"): each is thrown off her flank at its own moment
+        through the shot, a short hot streak along its motion with a smoke tail, slowing and fading,
+        and gone after `life` seconds; nothing is drawn before it is thrown or after it burns out."""
+        dt = span_dt()
         for i in range(10):
-            p = at(key, (rng.uniform(-60, 40), rng.choice((-1, 1)) * rng.uniform(50, 120), rng.uniform(-10, 40)))
-            obj('Flare', bead_me, flare_mat, Matrix.Translation(p) @ Matrix.Scale(1.6, 4))
+            side = rng.choice((-1, 1))
+            s0 = Vector((rng.uniform(-20, 10), side * rng.uniform(8, 15), rng.uniform(0, 8)))
+            out = Vector((rng.uniform(-60, 40), side * rng.uniform(50, 120), rng.uniform(-10, 40))).normalized()
+            thrown = rng.uniform(-2.0, 4.0)              # seconds from the key frame
+            age = dt - thrown
+            if not 0.0 <= age <= life:
+                continue
+            go = lambda a: s0 + out * 70.0 * (a - a * a / (2.2 * life))     # thrown hard, slowing
+            heat = 1.0 - age / life
+            head, tail = at(key, go(age)), at(key, go(max(0.0, age - .12)))
+            if (head - tail).length > .05:
+                segment(tail, head, .5 + .5 * heat, flare_mat, 'Flare')
+            segment(at(key, go(max(0.0, age - .6))), tail, 1.2 + 2.0 * (1 - heat), smoke_mat, 'Flare smoke')
 
     def entry_trails(labels3d):
         """Two entry trails 150-45 km up, 150-800 km downrange and heading north, from orbit: each
@@ -2670,6 +2701,15 @@ def blender_main(cfg):
                                        frame_meta(0, False, cfg.get('surface', SURFACE_DETAIL))]).encode())
         return h.hexdigest()[:16]
 
+    def ship_matrix_at(spec):
+        """(key, scene frame) -> that ship's world matrix (metres) at the frame's time in a motion span:
+        the kit's guns track their targets along both ships' flights (scene_fx.SceneFx.tracking)."""
+        def at(key, f):
+            sp = spec['ships'][key]
+            x, y, z, hd, pt, rl, _thr = sp.at(spec['key_t'] + (f - anchor) / fps_s) if hasattr(sp, 'at') else sp
+            return frame_of((x, y, z), hd, pt, rl)
+        return at
+
     labels = {}
     anchor = scene.frame_current      # every frame's effects are built at this frame (the key frame's instant)
     fps_s = scene.render.fps / scene.render.fps_base
@@ -2696,6 +2736,7 @@ def blender_main(cfg):
             spec = SHOTS[kf]
             rng = np.random.default_rng(7)     # every frame draws the same stand-ins: a span's do not flicker
             span_now['dt'] = spec['span_t'] - spec['key_t'] if 'span_t' in spec else 0.0
+            span_now['span'] = 'span_t' in spec
             for key, sp in spec['ships'].items():
                 place(key, sp, spec.get('states', {}).get(key))
             if not step:                     # the kit's build: once per run under --kit-once
@@ -2719,6 +2760,8 @@ def blender_main(cfg):
                         else:
                             placed[key]['lib']['ctl'][name] = val
                 for key, cue in spec.get('cues', {}).items() if cfg.get('swfx') else ():
+                    if 'span_t' in spec:     # in motion a gun flashes when it fires a round, not on cue
+                        cue = {k: v for k, v in cue.items() if k != 'fire'}
                     apply_cue(key, placed[key]['fx'], cue)
                 if ships_fx or any(lib.get('ctl') is not None for lib in library.values()):
                     ship_fx.refresh(scene)     # drivers read the knobs
@@ -2748,7 +2791,8 @@ def blender_main(cfg):
                                         span=tuple(anchor + round((t_ - spec['key_t']) * fps_s)
                                                    for t_ in spec['shot_t']) if 'span_t' in spec else None,
                                         cur=anchor + round((spec['span_t'] - spec['key_t']) * fps_s)
-                                        if 'span_t' in spec and not cfg.get('kit_once') else None)
+                                        if 'span_t' in spec and not cfg.get('kit_once') else None,
+                                        matrix_at=ship_matrix_at(spec) if 'span_t' in spec else None)
                 for key, sh in spec.get('shields', {}).items():
                     sfx_.shield(key, sh)
                 for i, fx in enumerate(spec.get('fx', ())):
