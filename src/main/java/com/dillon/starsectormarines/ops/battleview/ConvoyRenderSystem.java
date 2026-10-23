@@ -12,7 +12,6 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.render2d.BattleCamera;
-import com.fs.starfarer.api.graphics.SpriteAPI;
 
 /**
  * Emits the {@link RenderLayer#CONVOY} layer — ground convoy vehicles (supply
@@ -227,16 +226,9 @@ public final class ConvoyRenderSystem implements RenderSystem {
                 px, px, angleDeg, mask.decalPx * px, alpha);
     }
 
-    /** The haze over a hull's vents at full flux, and the vent plume of an overloaded gun: purple, then lavender. */
-    private static final float[] FLUX_HAZE = {0.58f, 0.30f, 1.00f};
-    private static final float[] FLUX_VENT = {0.82f, 0.68f, 1.00f};
-    /** Wisps rising off the vents; each rides its own phase of the drift. */
-    private static final int FLUX_WISPS = 4;
-
     /**
-     * The gun's flux made visible, as a starship shows it: a purple haze over the hull's vents that thickens as flux
-     * builds ({@code TurretMountDef#flux}), with wisps drifting aft off the vents, and a bright lavender plume while
-     * an overloaded gun vents. Drawn from simulation time alone, so a review frame shows it as the screen does.
+     * The gun's flux made visible ({@link FluxHaze}): a purple haze over the hull's vents that thickens as flux builds
+     * ({@code TurretMountDef#flux}), and a bright lavender plume while an overloaded gun vents.
      */
     private void collectFluxHaze(RenderContext ctx, VehicleType type, GroundTurret turret, GroundBody body,
                                  BattleCamera cam, float cellPx, float alphaMult, DrawList out) {
@@ -244,42 +236,15 @@ public final class ConvoyRenderSystem implements RenderSystem {
         StructureDef structure = type.turretStructure();
         if (structure == null || structure.mount.flux == null) return;
         float level = Math.min(1f, turret.flux / structure.mount.flux.capacity());
-        if (level <= 0.02f) return;
+        if (FluxHaze.strength(level, turret.overloaded) <= 0f) return;
         sprites.ensureEngineFxSprites();
-        SpriteAPI glow = sprites.engineGlowSprite();
-        if (glow == null) return;
-        boolean venting = turret.overloaded;
-        float[] colour = venting ? FLUX_VENT : FLUX_HAZE;
-        float strength = venting ? 0.55f + 0.45f * level : level * level;
-        float t = ctx.sim.getSimTickIndex() * BattleSimulation.TICK_DT;
         // Hull-local +Y is the nose (the turret mount's own transform); aft is -Y.
         float rad = (float) Math.toRadians(body.facingDegrees);
-        float fwdX = -(float) Math.sin(rad);
-        float fwdY = (float) Math.cos(rad);
-        float sideX = (float) Math.cos(rad);
-        float sideY = (float) Math.sin(rad);
-        float ventX = body.x - fwdX * type.fluxVentAftCells();
-        float ventY = body.y - fwdY * type.fluxVentAftCells();
-        float span = type.fluxVentHalfSpanCells();
-        for (int i = -1; i <= 1; i++) {
-            float flicker = 0.85f + 0.15f * (float) Math.sin(t * 9f + i * 2.1f);
-            float size = (venting ? 1.5f : 1.05f) * cellPx;
-            out.addAdditiveSprite(RenderLayer.CONVOY, glow,
-                    cam.cellToScreenX(ventX + sideX * span * 0.7f * i), cam.cellToScreenY(ventY + sideY * span * 0.7f * i),
-                    size, size, 0f, colour[0], colour[1], colour[2], 0.5f * strength * flicker * alphaMult);
-        }
-        float drift = venting ? 1.6f : 0.55f;
-        for (int w = 0; w < FLUX_WISPS; w++) {
-            float phase = (t * drift + w / (float) FLUX_WISPS) % 1f;
-            float lateral = span * (float) Math.sin(w * 2.4f + t * 0.7f) * 0.8f;
-            float aft = (venting ? 0.4f : 0.2f) + phase * (venting ? 1.8f : 0.9f);
-            float wx = ventX - fwdX * aft + sideX * lateral;
-            float wy = ventY - fwdY * aft + sideY * lateral;
-            float size = cellPx * (0.7f + phase * (venting ? 1.6f : 0.9f));
-            float fade = (1f - phase) * Math.min(1f, phase * 4f);
-            out.addAdditiveSprite(RenderLayer.CONVOY, glow, cam.cellToScreenX(wx), cam.cellToScreenY(wy),
-                    size, size, 0f, colour[0], colour[1], colour[2], 0.4f * strength * fade * alphaMult);
-        }
+        float ventX = body.x + (float) Math.sin(rad) * type.fluxVentAftCells();
+        float ventY = body.y - (float) Math.cos(rad) * type.fluxVentAftCells();
+        FluxHaze.collect(out, RenderLayer.CONVOY, sprites.engineGlowSprite(), cam, cellPx, ventX, ventY,
+                body.facingDegrees, type.fluxVentHalfSpanCells(), 1f, level, turret.overloaded,
+                ctx.sim.getSimTickIndex() * BattleSimulation.TICK_DT, alphaMult);
     }
 
     /** How much wider a raised rack draws per unit it shortens: its nose has come up toward the eye. */

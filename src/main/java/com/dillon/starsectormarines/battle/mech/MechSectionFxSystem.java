@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
+import com.dillon.starsectormarines.battle.combat.fx.FxHash;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
@@ -82,35 +83,23 @@ public final class MechSectionFxSystem {
                 seen |= bit;
                 // The moment it goes: a short flare and a puff off the section.
                 effects.emitFireBurst(ax, ay, 0.55f * hull);
-                effects.emitFireBurst(ax + 0.15f * hull * jitter(id, tick, SALT_BURST),
-                        ay + 0.15f * hull * jitter(id, tick, SALT_BURST + 1), 0.4f * hull);
+                effects.emitFireBurst(ax + 0.15f * hull * FxHash.jitter(id, tick, SALT_BURST),
+                        ay + 0.15f * hull * FxHash.jitter(id, tick, SALT_BURST + 1), 0.4f * hull);
                 effects.emitSmokePuff(ax, ay, 0.5f * hull);
             } else if (section != MechSection.LEGS
-                    && onCadence(id, tick, STUMP_SMOKE_PERIOD_TICKS, SALT_STUMP + section.ordinal())) {
+                    && FxHash.onCadence(id, tick, STUMP_SMOKE_PERIOD_TICKS, SALT_STUMP + section.ordinal())) {
                 // The stump smoulders thinly; the legs have their own, heavier smoke below.
-                effects.emitSmokePuff(ax + 0.08f * hull * jitter(id, tick, SALT_STUMP),
-                        ay + 0.08f * hull * jitter(id, tick, SALT_STUMP + 1),
-                        (0.22f + 0.06f * jitter(id, tick, SALT_STUMP + 2)) * hull);
+                effects.emitSmokePuff(ax + 0.08f * hull * FxHash.jitter(id, tick, SALT_STUMP),
+                        ay + 0.08f * hull * FxHash.jitter(id, tick, SALT_STUMP + 1),
+                        (0.22f + 0.06f * FxHash.jitter(id, tick, SALT_STUMP + 2)) * hull);
             }
         }
         if (seen != 0) burst.put(id, seen);
-        if (sections.crippled() && onCadence(id, tick, LEG_SMOKE_PERIOD_TICKS, SALT_LEGS)) {
-            effects.emitSmokePuff(x + 0.3f * hull * jitter(id, tick, SALT_LEGS),
-                    y + 0.3f * hull * jitter(id, tick, SALT_LEGS + 1),
-                    (0.42f + 0.08f * jitter(id, tick, SALT_LEGS + 2)) * hull);
+        if (sections.crippled() && FxHash.onCadence(id, tick, LEG_SMOKE_PERIOD_TICKS, SALT_LEGS)) {
+            effects.emitSmokePuff(x + 0.3f * hull * FxHash.jitter(id, tick, SALT_LEGS),
+                    y + 0.3f * hull * FxHash.jitter(id, tick, SALT_LEGS + 1),
+                    (0.42f + 0.08f * FxHash.jitter(id, tick, SALT_LEGS + 2)) * hull);
         }
-    }
-
-    /** Whether an emitter with this period puffs on {@code tick}; each mech and emitter has its own phase. */
-    static boolean onCadence(long id, int tick, int periodTicks, int salt) {
-        int phase = (int) Long.remainderUnsigned(mix(id * 0x9E3779B97F4A7C15L + salt), periodTicks);
-        return Math.floorMod(tick + phase, periodTicks) == 0;
-    }
-
-    /** A deterministic value in [-1, 1) for this mech, tick and use. */
-    static float jitter(long id, int tick, int salt) {
-        long h = mix(id * 0x9E3779B97F4A7C15L ^ ((long) tick << 20) ^ salt);
-        return ((h >>> 40) / (float) (1L << 24)) * 2f - 1f;
     }
 
     /** Where on the chassis a section sits, in cells from the body centre, in world x. */
@@ -148,11 +137,5 @@ public final class MechSectionFxSystem {
             case HEAD -> 0.12f;
             default -> 0f;
         };
-    }
-
-    private static long mix(long z) {
-        z = (z ^ (z >>> 30)) * 0xBF58476D1CE4E5B9L;
-        z = (z ^ (z >>> 27)) * 0x94D049BB133111EBL;
-        return z ^ (z >>> 31);
     }
 }

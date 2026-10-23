@@ -1414,6 +1414,15 @@ public final class UnitRenderService implements RenderSystem {
                             mechArms[r], mechLeftArm[r], mechRightArm[r],
                             mechLeftShoulder[r], mechRightShoulder[r], unitAlpha,
                             authoredPose, gaitPose);
+                    if (world.hasMechLoadout(entityId)) {
+                        sprites.ensureEngineFxSprites();
+                        FluxHaze.collectMech(out, sprites.engineGlowSprite(), cam, cam.cellPxSize(),
+                                rx[r] + (gait != null ? gait.waistOffsetX() : 0f),
+                                ry[r] + (gait != null ? gait.waistOffsetY() : 0f), mechFacing[r],
+                                LayeredMechAppearance.hullWidthCells(roster.renderScale(entityId)),
+                                world.mechLoadout(entityId).flux,
+                                ctx.sim.getSimTickIndex() * BattleSimulation.TICK_DT, unitAlpha);
+                    }
                     continue;
                 }
                 Object rig = ravRigs != null ? ravRigs[r] : null;
