@@ -51,9 +51,6 @@ def before_after(bench):
         cam.keyframe_insert('location', frame=f)
         cam.keyframe_insert('rotation_euler', frame=f)
         cam.data.keyframe_insert('lens', frame=f)
-    for fc in (cam.animation_data.action.fcurves if cam.animation_data and cam.animation_data.action else ()):
-        for kp in fc.keyframe_points:
-            kp.interpolation = 'CONSTANT'
     bench.scene.cycles.volume_step_rate = 2.0
     bench.scene.cycles.volume_max_steps = 256
 
