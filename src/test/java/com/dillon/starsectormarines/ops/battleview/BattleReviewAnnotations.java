@@ -13,8 +13,11 @@ import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.evacuation.ColonyLivingField;
 import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.evacuation.HeartSequence;
+import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
+import com.dillon.starsectormarines.battle.power.WalkingBarrage;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
 
 import java.util.ArrayList;
@@ -41,6 +44,7 @@ public final class BattleReviewAnnotations {
     public static ReviewAnnotations forBattle(BattleSimulation simulation) {
         if (simulation == null) return ReviewAnnotations.NONE;
         if (simulation.getColonyBreach() != null) return forColonyBreach(simulation);
+        if (simulation.getHeart() != null) return forHeart(simulation);
         ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
         // Routes first, so the compound boxes and their words draw over them
         // rather than under: a lane runs through the places it joins, and the
@@ -62,6 +66,72 @@ public final class BattleReviewAnnotations {
         }
         return marks.build();
     }
+
+    /**
+     * A heart frame: where the company landed, every bore (each mother by number,
+     * each satellite, and whether it is down), the reservoir yard the mothers
+     * stand in, each allied lane or sector, and on The Burn the gun line with how
+     * many guns still stand. Compounds are not drawn: the market town's buildings
+     * are ruins, and Conquest's keep-and-barracks words would say the wrong battle.
+     */
+    private static ReviewAnnotations forHeart(BattleSimulation simulation) {
+        ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
+        HeartSequence heart = simulation.getHeart();
+        HeartLanes lanes = heart.lanes();
+        if (lanes != null && lanes.companySector() != null) {
+            addHeartSectors(marks, simulation);
+        } else if (lanes != null) {
+            int width = simulation.getGrid().getWidth(), height = simulation.getGrid().getHeight();
+            List<HeartLane> grounds = lanes.grounds();
+            // The allied lanes come first; a ground past them is the company's own armour support.
+            int allied = HeartCountry.laneAcross().length;
+            for (int i = 0; i < grounds.size(); i++) addSector(marks, grounds.get(i), width, height,
+                    i < allied ? "LANE " + (i + 1) : "COMPANY LANE", i < allied ? ReviewStyle.ROUTE : ReviewStyle.LANDING);
+        }
+        int left = Integer.MAX_VALUE, top = Integer.MAX_VALUE, right = Integer.MIN_VALUE, bottom = Integer.MIN_VALUE;
+        for (SwarmBore bore : simulation.getSwarmBores()) {
+            String name = bore.mother() ? bore.beatKey().replace("mother-", "MOTHER ") : "SATELLITE " + bore.beatKey();
+            marks.box(bore.x() - BORE_HALF, bore.y() - BORE_HALF, bore.x() + BORE_HALF, bore.y() + BORE_HALF,
+                    bore.collapsed() ? name + " · down" : name, bore.collapsed() ? ReviewStyle.NOTE : ReviewStyle.KEEP);
+            if (!bore.mother()) continue;
+            left = Math.min(left, bore.x()); top = Math.min(top, bore.y());
+            right = Math.max(right, bore.x()); bottom = Math.max(bottom, bore.y());
+        }
+        float[] landing = addLandingZones(marks, simulation);
+        if (left <= right) {
+            marks.box(left - YARD_MARGIN, top - YARD_MARGIN, right + YARD_MARGIN, bottom + YARD_MARGIN,
+                    "RESERVOIR YARD", ReviewStyle.OBJECTIVE);
+            if (landing != null) {
+                marks.arrow(landing[0], landing[1], (left + right) / 2f + 0.5f, (top + bottom) / 2f + 0.5f,
+                        "to the heart", ReviewStyle.APPROACH);
+            }
+        }
+        addGunLine(marks, simulation, heart.barrage());
+        return marks.build();
+    }
+
+    /** The Burn's battery: one box round its guns, with how many are left standing. */
+    private static void addGunLine(ReviewAnnotations.Builder marks, BattleSimulation simulation, WalkingBarrage barrage) {
+        if (barrage == null) return;
+        long[] guns = barrage.guns();
+        if (guns.length == 0) return;
+        float left = Float.MAX_VALUE, top = Float.MAX_VALUE, right = -Float.MAX_VALUE, bottom = -Float.MAX_VALUE;
+        int standing = 0;
+        for (long gun : guns) {
+            if (simulation.resolveUnit(gun) == 0L || !simulation.world().isAlive(gun)) continue;
+            standing++;
+            float x = simulation.world().x(gun), y = simulation.world().y(gun);
+            left = Math.min(left, x); top = Math.min(top, y); right = Math.max(right, x); bottom = Math.max(bottom, y);
+        }
+        if (standing == 0) return;
+        marks.box((int) left - GUN_MARGIN, (int) top - GUN_MARGIN, (int) right + GUN_MARGIN, (int) bottom + GUN_MARGIN,
+                "GUN LINE · " + standing + "/" + guns.length + " guns", ReviewStyle.POSITION);
+    }
+
+    /** Cells the reservoir yard's box keeps round its mothers. */
+    private static final int YARD_MARGIN = 8;
+    /** Cells the gun line's box keeps round its guns. */
+    private static final int GUN_MARGIN = 3;
 
     /**
      * The Burn's front: each allied battlegroup's sector and the company's own,
