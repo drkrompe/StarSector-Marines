@@ -504,7 +504,8 @@ class SceneFx:
         Hound's gun must angle up to track). It sits on the pivot's train axis at the barrels'
         height and carries everything the pivot carried, so the whole head lifts. Only on a ship
         with her own hull copy (training a shared turret trains every copy). A stopgap until the
-        build has a joint of its own."""
+        build has a joint of its own: a guarded fallback that warns (every Hound build has a real
+        joint since 87356990e, which trainers() finds first)."""
         ship = self.ship(a)
         if ship is None or not ship.own_hull:
             return None
@@ -532,8 +533,10 @@ class SceneFx:
         for ch in [c for c in piv.children if c is not elev]:
             ch.parent = elev
             ch.matrix_parent_inverse = inv @ ch.matrix_parent_inverse
-        self.rows.append(f'elevation joint made for the {piv.name} of {a} at {z:.2f} u above its train axis '
-                         f'(the build has none)')
+        msg = (f'WARNING: elevation joint made for the {piv.name} of {a} at {z:.2f} u above its train '
+               f'axis: the build has none (the Hound builds have had one since 87356990e; update this build)')
+        self.rows.append(msg)
+        self.log(f'ASHARU kit {msg}')
         return elev
 
     def strikes_at(self, key, hits, kind):
