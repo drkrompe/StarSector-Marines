@@ -1311,6 +1311,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SeparationSystem separation;
     /** Moving and parked ground hulls push infantry out of their footprint and bow wave. See {@link VehicleRepulsionSystem}. */
     private final VehicleRepulsionSystem vehicleRepulsion;
+    /** Hulls keep out of each other, and the lighter yields. See {@link HullContactSystem}. */
+    private final HullContactSystem hullContact;
+    /** Walking mechs ram the other side. See {@link MechRamSystem}. */
+    private final MechRamSystem mechRam;
     /** Off-by-default, bounded quiet-infantry spreading/yielding experiment. */
     private final SquadTrafficSystem squadTraffic;
     /** Short-range allied-infantry steer away from hostile alien bodies. */
@@ -1537,6 +1541,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.separation = new SeparationSystem(rosterService, unitIndex, grid);
         separation.spareHeld(swarmHarvest::isCarried);
         this.vehicleRepulsion = new VehicleRepulsionSystem(rosterService, unitIndex, grid);
+        this.hullContact = new HullContactSystem(rosterService, grid);
+        this.mechRam = new MechRamSystem(rosterService, unitIndex);
         this.squadTraffic = new SquadTrafficSystem(grid, rosterService);
         this.mechCollisionEscape = new com.dillon.starsectormarines.battle.mech.MechCollisionEscapeSystem(
                 entityWorld, battleComponents);
@@ -1843,6 +1849,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Who is riding in what — the data owner for {@code RIDING}, and the gate a pass consults to skip a passenger. */
     public VehicleTransportService transport() { return transport; }
     public VehicleRepulsionSystem vehicleRepulsion() { return vehicleRepulsion; }
+    public HullContactSystem hullContact() { return hullContact; }
+    public MechRamSystem mechRam() { return mechRam; }
 
     @Override
     public boolean isRiding(long id) { return rosterService.isRiding(id); }
@@ -3462,6 +3470,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // Hulls win against bodies: after relaxation so a shove apart cannot
         // put somebody back under a truck.
         vehicleRepulsion.tick(TICK_DT);
+        // A walking mech that has reached a hostile body rams it.
+        mechRam.tick();
         mechCollisionEscape.tick(TICK_DT);
         if (directControl.unitActive()) {
             MitigationSystem.faceManual(directControl.activeUnitId(), rosterService.mitigations(),
@@ -3706,6 +3716,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 HullSlide.tick(body, convoy().vehicleType(hull), grid, rosterService.radius(hull), TICK_DT);
             }
         }
+        // Then hulls that drove into each other are parted, and whoever must yield brakes.
+        hullContact.tick();
         tickProfile.lap(TickProfile.Phase.GROUND_SYSTEM);
         // Ballistic-round impact clock — a resolved round's damage/hit-response
         // applies here, on its flight-time delay, rather than inline at fire

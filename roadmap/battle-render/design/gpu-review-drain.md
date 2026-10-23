@@ -167,8 +167,10 @@ of 89 suites that account for 83% of the catalog's time, including every
 behaviour scene and every commander-evidence GIF. Nothing is migrated suite by
 suite, because a suite never names its drain. The 39 other suites (deck props,
 elevation looks, armory sheets, tileset previews) have their own renderers and
-are out of scope; the largest two, `elevation-look` and `deck-props`, are 9%
-of the run between them.
+are out of scope; the largest two, `elevation-look` and `deck-props`, were 9%
+of the run between them and are now opt-in (`SnapshotSuite.inAll`): `all`
+leaves them out and `-Psnapshot=<id>` runs them, since they answer only a look
+question about their own art.
 
 **One thread owns the context.** A GL context is current on one thread, and a
 suite may render from any thread, so the drain runs every frame on its own
@@ -235,7 +237,7 @@ The backend switch adds no test and no task; `shaderEvidence` and
 ### Not done
 
 - The 39 suites with their own renderers (deck props, elevation looks, armory
-  sheets) still draw with Java2D; `elevation-look` and `deck-props` are the
-  only large ones.
+  sheets) still draw with Java2D; `elevation-look` and `deck-props`, the only
+  large ones, are opt-in rather than ported.
 - `commanderEvidence` and the other `Test`-task evidence keep the Java2D
   default; they can pass `-Dsnapshot.backend=gl` when a run wants it.

@@ -76,6 +76,7 @@ class SceneFx:
         self.log = log
         self.m = _mods()
         self.rows = []
+        self.flared = {}                # ship -> the swfx_pd.Flares she threw (flares), for a salvo to take
         self.before = set(bpy.data.objects)     # what the builds brought: projectile_check looks past it
         for pl in placed.values():
             if pl['fx'] is not None:
@@ -270,6 +271,10 @@ class SceneFx:
     # walks across and past her; a round hits only where its straight line meets her hull, and
     # the rest fly on past her and fade. WALK_R is the walk's reach as a share of her length.
     WALK_R = .3
+    # Each round leaves the bore a little off the gun's line, seeded per round (owner, 2026-10-23,
+    # S6: the rounds of a burst should fly roughly parallel, not all converge on one point): the
+    # aim point scatters by range x tan(SPREAD_DEG), so the spread grows with distance as a gun's does.
+    SPREAD_DEG = .25
 
     def planned(self, ctx, kit, a, b, turret, weapon, muzzle_l, hit_l, speed, feeder, track):
         """Fire turret on a at b over the whole shot as a gun would: returns the round records, or
@@ -354,8 +359,10 @@ class SceneFx:
                     ox, oy = c[0] + (e[0] - c[0]) * k, c[1] + (e[1] - c[1]) * k
                     break
             jr = random.Random(f'asharu-walk|{a}|{turret}|{b}|{f}')
-            ox += jr.gauss(0, reach * .08)
-            oy += jr.gauss(0, reach * .08)
+            spread = math.hypot(reach * .08, (Vector(hit_l) - mb.inverted() @ src).length
+                                * math.tan(math.radians(self.SPREAD_DEG)))
+            ox += jr.gauss(0, spread)
+            oy += jr.gauss(0, spread)
             aim_l = Vector(hit_l) + u * ox + v * oy
             got = imp.ray_to_hull(self.scene, bm, tuple(aim_l - line * reach * 4), tuple(aim_l))
             hit = None
@@ -592,7 +599,10 @@ class SceneFx:
         self.rows.append(f'strikes on {key}: {out}')
 
     # ------------------------------------------------------------------ missiles
-    def missiles(self, a, b, arrive=None):
+    def missiles(self, a, b, arrive=None, decoys=0):
+        """A Harpoon salvo from a's launchers at b, arriving on frame `arrive`. decoys: how many of
+        its seekers take one of b's flares instead (flares must already have been thrown by b in
+        this shot): the visible cause a flare needs (owner, 2026-10-23)."""
         shooter = self.ship(a)
         if shooter is None:
             return False
@@ -619,11 +629,48 @@ class SceneFx:
             target = mp.space_of(shooter) @ (launch.inverted() @ at_end)
             fl = mp.salvo('harpoon', starts, target, mp.space_of(shooter), frames=[f + shift for f in frames],
                           target_name=b, width=.18)
+        taken = self._decoy(a, b, fl, decoys) if decoys else []
         with self.fired(a), shooter.kit() as (ctx, kit):
             kit.guns.launch_flights(ctx, fl)
         self.rows.append(f'missiles {a} -> {b}: {len(fl)} Harpoons, launched {frames[0] + shift}, '
-                         f'arriving {[f.end["frame"] for f in fl if f.end]}')
+                         f'arriving {[f.end["frame"] for f in fl if f.end]}'
+                         + (f'; decoyed {taken}' if decoys else ''))
+        if decoys and not taken:
+            self.log(f'WARNING missiles {a} -> {b}: asked for {decoys} decoyed, none took a flare '
+                     f'({len(self.flared.get(b, ()))} flares thrown by {b} in this shot)')
         return True
+
+    def _decoy(self, a, b, flights, count):
+        """Divert up to `count` of a's planned flights onto flares b threw, about a second before
+        each would have hit: [(label, divert frame, decoy frame)]. The flights are in a's space as
+        it stood at the key (to_world holds them in the world from launch); a flare is in b's,
+        carried on b's velocity from its throw (to_world's INHERIT), so each flare's world path is
+        brought back into the space of the flight that chases it."""
+        flares = self.flared.get(b) or []
+        pa, pb = self.placed[a]['matrix'], self.placed[b]['matrix']
+
+        def flare_world(fr, k):
+            p = fr.at(k)
+            if self.matrix_at is None:
+                return p
+            f0 = fr.frame
+            v = (self.matrix_at(b, f0 + 1).translation - self.matrix_at(b, f0 - 1).translation) / 2
+            return v * (k - f0) + self.matrix_at(b, f0) @ (pb.inverted() @ p)
+        out = []
+        for fl in sorted((x for x in flights if x.end and x.end['kind'] == 'hit'), key=lambda x: x.end['frame']):
+            if len(out) >= count:
+                break
+            back = pa @ self.matrix_at(a, fl.frame).inverted() if self.matrix_at is not None else Matrix.Identity(4)
+            chase_of = lambda fr, back=back: (lambda k: back @ flare_world(fr, k))
+            fd = fl.end['frame'] - round(.9 * self.fps)
+            live = [fr for fr in flares if fr.frame + 3 < fd < fr.last - round(.8 * self.fps)]
+            if fd <= fl.ignite + 2 or not live:
+                continue
+            fr = min(live, key=lambda x: (chase_of(x)(fd) - fl.at(fd)).length)
+            fl.divert(fd, chase_of(fr), by='flare')
+            if fl.end['kind'] == 'decoy':
+                out.append((fl.label, fd, fl.end['frame']))
+        return out
 
     # ------------------------------------------------------------------ damage
     def outward(self, key, at):
@@ -668,6 +715,7 @@ class SceneFx:
         if not anchors:
             return False
         fl = pd.plan_flares(anchors, self.now - round(1.2 * self.fps))
+        self.flared[key] = fl
         with self.fired(key), ship.kit() as (ctx, kit):
             # small bright points with thin smoke (coordinator's default, 2026-10-23, pending the owner):
             # a glare of 0.6 m, a faint grey trail, a dimmer light

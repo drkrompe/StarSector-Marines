@@ -34,7 +34,7 @@ import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.detachment.Detachment;
 import com.dillon.starsectormarines.ops.detachment.DebugCompany;
 import com.dillon.starsectormarines.ops.detachment.DebugCompanyStage;
-import com.dillon.starsectormarines.ops.battleview.BattleSprites;
+import com.dillon.starsectormarines.render2d.texture.TextureLedger;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.loot.LootManifest;
 import com.dillon.starsectormarines.ops.loot.LootSettlementPlan;
@@ -200,16 +200,22 @@ public class MarineOpsContext {
             dressFromCondition(aboard);
             return companyDeck;
         }
-        if (companyDeck != null) companyDeck.dismiss();
+        CompanyDeck previous = companyDeck;
         companyDeckShipId = hull;
         companyDeckBoatsHeld = held;
         CompanyShip ship = CompanyShipResolver.read(aboard);
         companyDeck = ship == null ? null : CompanyDeck.home(ship,
                 CompanyShipDesignation.deckSeedFor(hull),
-                new BattleSprites(), MarineOpsContext::companyLance,
+                null, MarineOpsContext::companyLance,
                 MarineOpsContext::companyMarines,
                 MarineOpsContext::companyBoatsHeld, MarineOpsContext::companyBoatWrecks)
-                .groundedBoats(MarineOpsContext::companyBoatsGrounded);
+                .groundedBoats(MarineOpsContext::companyBoatsGrounded)
+                .leasedFrom(TextureLedger.shared());
+        // The deck laid out again keeps what is on the card rather than unloading it and loading it back.
+        if (previous != null) {
+            previous.handTexturesTo(companyDeck);
+            previous.dismiss();
+        }
         dressFromCondition(aboard);
         return companyDeck;
     }

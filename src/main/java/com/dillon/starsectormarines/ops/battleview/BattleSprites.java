@@ -46,6 +46,7 @@ import java.util.Set;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Asset/sprite-cache registry for the battle screen. Owns all loaded
@@ -373,6 +374,60 @@ public class BattleSprites {
     public SpriteAPI iconStar()                    { return iconStar; }
     /** Authored pose authority; overridable by tooling that loads assets off disk. */
     public UnitLayerLayouts unitLayerLayouts()     { return UnitLayerLayouts.get(); }
+
+
+    /**
+     * A battle's texture loads as load-queue steps ({@code battle-textures.md}): its terrain, then
+     * only the families, liveries and vehicle lines {@code set} names — every one shipped when it
+     * is null — a step per family, livery and line so no one step holds the GL thread long enough
+     * to stop the loading screen's spinner. {@code stage} turns a stage's string key into the line
+     * the loading screen shows. The battle screen appends its atlas step after these.
+     */
+    public List<TextureLoadQueue.Step> battleLoadSteps(BattleTextureSet set, Function<String, String> stage) {
+        List<TextureLoadQueue.Step> steps = new ArrayList<>();
+        steps.add(new TextureLoadQueue.Step(stage.apply("battleLoadingTerrain"), () -> {
+            ensureTileSheet();
+            ensureRoadSheet();
+            ensureFloorsSheet();
+            ensureNatureSheet();
+        }));
+        steps.add(new TextureLoadQueue.Step(stage.apply("battleLoadingTerrain"), () -> {
+            ensureWaterSheet();
+            ensureUrbanTile3Sheet();
+            ensureDoodadSheet();
+            ensureDecalSheet();
+        }));
+        // Only what this battle places, spawns and can bring in; a step per family, livery and
+        // vehicle line, so no one step holds the GL thread long enough to stop the spinner.
+        String loadingSprites = stage.apply("battleLoadingSprites");
+        steps.add(new TextureLoadQueue.Step(loadingSprites, () -> {
+            ensureUnitSheets();
+            ensureInfantryShared();
+        }));
+        for (LayeredArmorFamily family : set != null ? set.families() : EnumSet.allOf(LayeredArmorFamily.class)) {
+            steps.add(new TextureLoadQueue.Step(loadingSprites, () -> ensureLayeredFamily(family)));
+        }
+        if (set == null || set.ravRigs()) steps.add(new TextureLoadQueue.Step(loadingSprites, this::ensureRavRigs));
+        Set<MechLivery> liveries = set != null ? liveriesWornBy(set.mechSides()) : EnumSet.allOf(MechLivery.class);
+        steps.add(new TextureLoadQueue.Step(loadingSprites, () -> ensureLayeredMechSprites(Set.of())));
+        for (MechLivery livery : liveries) {
+            steps.add(new TextureLoadQueue.Step(loadingSprites, () -> ensureMechLivery(livery)));
+        }
+        steps.add(new TextureLoadQueue.Step(loadingSprites, this::ensureTurretSprites));
+        steps.add(new TextureLoadQueue.Step(loadingSprites, this::ensureMarineSecondarySprites));
+        steps.add(new TextureLoadQueue.Step(loadingSprites, () -> {
+            ensureAirframeSprites();
+            ensureDroneSprite();
+            ensureDroneHubSprite();
+            ensureEngineFxSprites();
+        }));
+        steps.add(new TextureLoadQueue.Step(loadingSprites, () -> ensureConvoySprites(Set.of())));
+        for (VehicleType type : set != null ? set.vehicles() : EnumSet.allOf(VehicleType.class)) {
+            steps.add(new TextureLoadQueue.Step(loadingSprites, () -> loadConvoySprite(type)));
+        }
+        steps.add(new TextureLoadQueue.Step(stage.apply("battleLoadingEffects"), this::ensureObjectiveIcons));
+        return steps;
+    }
 
     // =========================================================================
     // Ensure methods (moved verbatim from BattleScreen; batch lines deleted)
