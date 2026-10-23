@@ -1,6 +1,6 @@
 # Heart mission depth: from brawl to a thought-through battle
 
-Status: PLANNED. Blocked on the curated seed pools (`story-map-pools.md`): the heart's own seeds come first.
+Status: ACTIVE. Step 1: candidate beats in `heart-story-beats.md`, awaiting the owner's pick. Seeds: the pooled 2, 3 and 5 on every biome (`story-map-pools.md`).
 
 Written: 2026-10-23
 
