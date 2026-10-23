@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Direct scorer inputs; no battle simulation, tick, generation, or renderer. */
 class TargetScanBoundsTest {
-    @Test void boundKeepsBeliefAndMountRangeAndUnboundedControls() {
+    @Test void boundKeepsBeliefAndMountRange() {
         assertEquals(24f, TacticalScoring.targetScanLimit(Float.POSITIVE_INFINITY, 24, 0, true));
         assertEquals(160f, TacticalScoring.targetScanLimit(Float.POSITIVE_INFINITY, 24, 160, true));
         assertEquals(18f, TacticalScoring.targetScanLimit(18, 24, 160, true));
@@ -30,12 +30,9 @@ class TargetScanBoundsTest {
     @Test void emptySightDoesNotWalkToUnknownEnemiesAcrossTheMap() {
         try (Fixture f = new Fixture()) {
             f.enemy(180, 3);
-            assertEquals(0L, f.pick(f.control));
-            int controlRings = f.profile.countOf(TickInnerProfile.Bucket.TARGET_SCAN_RING);
-            int controlVisits = f.profile.countOf(TickInnerProfile.Bucket.TARGET_SCAN_VISIT);
-            assertEquals(0L, f.pick(f.bounded));
-            assertTrue(f.profile.countOf(TickInnerProfile.Bucket.TARGET_SCAN_RING) < controlRings / 2);
-            assertTrue(f.profile.countOf(TickInnerProfile.Bucket.TARGET_SCAN_VISIT) < controlVisits);
+            assertEquals(0L, f.pick(f.scoring));
+            assertEquals(0, f.profile.countOf(TickInnerProfile.Bucket.TARGET_SCAN_VISIT),
+                    "the scan stops at sight and never reaches the unknown enemy");
         }
     }
 
@@ -43,8 +40,7 @@ class TargetScanBoundsTest {
         try (Fixture f = new Fixture()) {
             long enemy = f.enemy(180, 3);
             SquadBeliefTestAccess.observeDirect(f.squad, enemy, 20, 3, 1);
-            assertEquals(enemy, f.pick(f.control));
-            assertEquals(enemy, f.pick(f.bounded));
+            assertEquals(enemy, f.pick(f.scoring));
         }
     }
 
@@ -52,8 +48,7 @@ class TargetScanBoundsTest {
         try (Fixture f = new Fixture()) {
             long first = f.enemy(29, 3);
             f.enemy(29, 3);
-            assertEquals(first, f.pick(f.control));
-            assertEquals(first, f.pick(f.bounded));
+            assertEquals(first, f.pick(f.scoring));
         }
     }
 
@@ -64,8 +59,7 @@ class TargetScanBoundsTest {
             // Snapshot is in the next bucket beyond sight; live position moved
             // into range. Without drift padding the ring would stop too soon.
             f.roster.world().setPos(enemy, 31.5f, 3.5f);
-            assertEquals(enemy, f.pick(f.control));
-            assertEquals(enemy, f.pick(f.bounded));
+            assertEquals(enemy, f.pick(f.scoring));
         }
     }
 
@@ -83,8 +77,7 @@ class TargetScanBoundsTest {
             assertTrue(f.roster.isAliveById(passenger));
             assertTrue(f.roster.isRiding(passenger));
             assertFalse(f.roster.world().hasPosition(passenger));
-            assertEquals(0L, f.pick(f.control));
-            assertEquals(0L, f.pick(f.bounded),
+            assertEquals(0L, f.pick(f.scoring),
                     "a remembered passenger is absent from spatial candidates and has no position to read");
         }
     }
@@ -92,7 +85,7 @@ class TargetScanBoundsTest {
     private static final class Fixture implements AutoCloseable {
         final NavigationService nav;
         final UnitRosterService roster;
-        final TacticalScoring bounded, control;
+        final TacticalScoring scoring;
         final Squad squad;
         final long self;
         final TickInnerProfile profile = new TickInnerProfile();
@@ -110,16 +103,7 @@ class TargetScanBoundsTest {
             self = roster.spawn(new EntitySpec("self", Faction.MARINE, UnitType.MARINE, 5, 3).squad(squadId));
             roster.vision().setVisionRange(self, 24);
             roster.world().setAttackRange(self, 24);
-            String key = "battle.targeting.boundKnownContactScan";
-            String old = System.getProperty(key);
-            try {
-                System.setProperty(key, "true");
-                bounded = new TacticalScoring(nav, roster, new AttackerIndexService(roster), null, null);
-                System.setProperty(key, "false");
-                control = new TacticalScoring(nav, roster, new AttackerIndexService(roster), null, null);
-            } finally {
-                if (old == null) System.clearProperty(key); else System.setProperty(key, old);
-            }
+            scoring = new TacticalScoring(nav, roster, new AttackerIndexService(roster), null, null);
             TickInnerProfile.setCurrent(profile);
         }
 

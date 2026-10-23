@@ -93,19 +93,8 @@ public final class TacticalScoring {
     public static final String SQUAD_FIRING_PROPERTY = "battle.targeting.squadFiringPositions";
     private final boolean squadFiringPositions = Boolean.parseBoolean(
             System.getProperty(SQUAD_FIRING_PROPERTY, "false"));
-    /** Same-build control for the discarded A* reachability proof. */
-    public static final String FIRING_REACHABILITY_COMPONENTS_PROPERTY =
-            "battle.targeting.firingReachabilityComponents";
-    private final boolean firingReachabilityComponents = Boolean.parseBoolean(
-            System.getProperty(FIRING_REACHABILITY_COMPONENTS_PROPERTY, "true"));
     private final FiringPositionRefreshBudget firingRefreshBudget = new FiringPositionRefreshBudget(8);
-    private final boolean retainFiringPositions = Boolean.parseBoolean(
-            System.getProperty("battle.targeting.retainFiringPositions", "true"));
     private final RetainedFiringPositions retainedFiringPositions = new RetainedFiringPositions(8192);
-    private final boolean boundTargetScans = Boolean.parseBoolean(
-            System.getProperty("battle.targeting.boundKnownContactScan", "true"));
-    private final boolean localFiringSpread = Boolean.parseBoolean(
-            System.getProperty("battle.targeting.localFiringSpread", "true"));
     private static final ThreadLocal<LocalFiringSpread> LOCAL_FIRING_SPREAD =
             ThreadLocal.withInitial(LocalFiringSpread::new);
 
@@ -702,8 +691,8 @@ public final class TacticalScoring {
 
     /** Unknown contacts beyond sight cannot win, but remembered contacts retain their full reach. */
     static float targetScanLimit(float maxRange, float perceptionRange, float farthestBelief,
-                                 boolean boundKnownContacts) {
-        return boundKnownContacts ? Math.min(maxRange, Math.max(perceptionRange, farthestBelief))
+                                 boolean perceptionGated) {
+        return perceptionGated ? Math.min(maxRange, Math.max(perceptionRange, farthestBelief))
                 : maxRange;
     }
 
@@ -838,7 +827,7 @@ public final class TacticalScoring {
                         // The existing scorer reads the live position of a believed identity.
                         // Use that same position only to bound enumeration, not last-seen cells
                         // (a remembered mover may already be far from its observation).
-                        if (scoring.boundTargetScans && PERCEPTION_GATED_TARGETS
+                        if (PERCEPTION_GATED_TARGETS
                                 && scoring.roster.isAliveById(contact.unitId())
                                 && !scoring.roster.isRiding(contact.unitId())) {
                             farthestBelief = Math.max(farthestBelief, cellDistance(selfX, selfY,
@@ -848,7 +837,7 @@ public final class TacticalScoring {
                 }
             }
             this.scanLimit = targetScanLimit(maxRange, perceptionRange, farthestBelief,
-                    scoring.boundTargetScans && PERCEPTION_GATED_TARGETS);
+                    PERCEPTION_GATED_TARGETS);
         }
 
         /**
@@ -1989,28 +1978,13 @@ public final class TacticalScoring {
         // cell that's walled off from self — in which case the vantage probe is
         // the real verdict on whether an approach exists at all.
         World world = roster.world();
-        if (isFiringPositionReachable(grid, world.cellX(self), world.cellY(self),
-                spot[0], spot[1], firingReachabilityComponents)) return spot;
+        // The proof asks only whether a route exists, not its cost or length: the
+        // ordinary infantry A* uses these same structural components and has no
+        // additional passability mask. The navigation owner warms the labels before
+        // unit dispatch and retires them on topology changes.
+        if (grid.arePathConnected(world.cellX(self), world.cellY(self), spot[0], spot[1],
+                GridPathfinder.USE_CARDINAL_NAVIGATION)) return spot;
         return pickReachableVantage(self, target);
-    }
-
-    public boolean firingReachabilityComponentsEnabled() {
-        return firingReachabilityComponents;
-    }
-
-    /**
-     * This proof asks only whether a route exists, not its cost or length. The
-     * ordinary infantry A* uses these same structural components and has no
-     * additional passability mask, so its discarded route adds no information.
-     * The navigation owner warms the labels before unit dispatch and retires
-     * them on topology changes; callers must not retain a second copy here.
-     */
-    static boolean isFiringPositionReachable(NavigationGrid grid, int startX, int startY,
-                                            int goalX, int goalY, boolean useComponents) {
-        return useComponents
-                ? grid.arePathConnected(startX, startY, goalX, goalY,
-                        GridPathfinder.USE_CARDINAL_NAVIGATION)
-                : GridPathfinder.findPath(grid, startX, startY, goalX, goalY).length > 0;
     }
 
     /**
@@ -2666,13 +2640,9 @@ public final class TacticalScoring {
 
     public FiringPositionSelection selectSquadFiringPositionWithin(long self, long target,
             Squad squad, int tick, int anchorX, int anchorY, float leash, int requiredZoneId) {
-        if (retainFiringPositions && !squadFiringPositions) {
+        if (!squadFiringPositions) {
             return new FiringPositionSelection(selectRetainedFiringPosition(self, target, squad, tick,
                     true, anchorX, anchorY, leash, requiredZoneId, false), false);
-        }
-        if (!squadFiringPositions) {
-            return new FiringPositionSelection(findFiringPositionWithin(self, target,
-                    anchorX, anchorY, leash, requiredZoneId), false);
         }
         long started = System.nanoTime();
         TickInnerProfile profile = TickInnerProfile.currentIfBound();
@@ -2733,13 +2703,9 @@ public final class TacticalScoring {
 
     /** Execution-only seam: eligibility probes keep using the fresh find methods. */
     public int[] selectFiringPosition(long self, long target, Squad squad, int tick, boolean reachable) {
-        if (!retainFiringPositions) return reachable
-                ? findReachableFiringPosition(self, target) : findFiringPosition(self, target);
         return selectRetainedFiringPosition(self, target, squad, tick,
                 false, 0, 0, 0f, ANY_ZONE, reachable);
     }
-
-    public boolean retainedFiringPositionsEnabled() { return retainFiringPositions; }
 
     /** A caller refused the actual approach: geometric validity is not route acceptance. */
     public void forgetFiringPosition(long member) { retainedFiringPositions.forget(member); }
@@ -3895,7 +3861,6 @@ public final class TacticalScoring {
 
     /** Reserve bounded worker scratch; zeroing and gathering wait for a scored cell. */
     private LocalFiringSpread prepareFiringSpread(int x0, int y0, int x1, int y1) {
-        if (!localFiringSpread) return null;
         LocalFiringSpread spread = LOCAL_FIRING_SPREAD.get();
         return spread.reset(Math.max(0, x0), Math.max(0, y0),
                 Math.min(grid.getWidth() - 1, x1), Math.min(grid.getHeight() - 1, y1)) ? spread : null;
