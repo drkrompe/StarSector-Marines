@@ -223,6 +223,24 @@ LEDGER = [
     H('hound-p-a', 76.9, 'kill', 4, (0, 0, 0), (0, 0, 1), by=('blast_on', 'debris'), src='S6d k3e blast_on + debris',
       note='killed at close range'),
 ]
+# Where the shooter really is (asharu_gunnery, 2026-10-23): the unit vector from the target toward
+# the shooter at the hit's time, target frame. A hit is cast onto the face that shooter sees, so a
+# hit whose `at` lies on the far side lands on the near face in line with it.
+SHOOTER_SIDE = {
+    'hound-m@75.2:rake': (0.40, -0.61, 0.68), 'tarsus@69.6:he': (0.69, -0.72, -0.08),
+    'lasher-lead@108.0:rake': (-0.60, 0.63, -0.49), 'tarsus@70.5:breach': (0.85, -0.52, -0.07),
+    'lasher-lead@103.5:breach': (0.98, -0.17, -0.06), 'falcon-p@105.0:breach': (0.69, 0.55, 0.46),
+    'colossus3@96.0:rake': (0.40, -0.91, -0.05), 'hound-m@75.5:breach': (0.62, -0.39, 0.68),
+    'falcon-p@104.8:rake': (0.75, 0.51, 0.43), 'wolf-p-b@71.2:rake': (0.39, -0.36, -0.85),
+    'hound-p-a@76.9:kill': (0.87, -0.45, 0.19), 'hound-p-a@75.0:rake': (0.97, 0.15, 0.18),
+    'tarsus@84.0:rake': (-0.27, 0.78, 0.57), 'lasher-b@55.0:rake': (-0.86, -0.45, -0.25),
+    'hound-p-c@60.0:rake': (0.92, 0.27, 0.30), 'lasher-lead@107.6:breach': (-0.83, 0.43, 0.36),
+    'hound-p-c@61.9:kill': (0.92, 0.12, 0.37), 'hound-p-c@61.0:rake': (0.89, 0.13, 0.44),
+    'lasher-lead@55.9:breach': (0.72, 0.70, -0.04), 'wolf-p-a@56.8:rake': (0.62, 0.55, -0.56),
+    'wolf-p-a@71.6:he': (-0.94, 0.18, 0.30),
+}
+for _h in LEDGER:
+    _h.frm = SHOOTER_SIDE.get(_h.id, _h.frm)
 LEDGER.sort(key=lambda h: (h.ship, h.t))
 
 # Ships the ledger leaves clean on purpose: the Phaeton (her wreck state carries its own cook-off),
@@ -284,7 +302,7 @@ def fire_drawn(h, on):
 
 # ======================================================================================= Blender
 
-def _cast(scene, matrix, ship_fx, p_m, frm, standoff=30.0):
+def _cast(scene, matrix, ship_fx, p_m, frm, standoff=70.0):
     """Where a hit at p_m coming from direction frm meets this ship's plating: (at_m, normal_m) in the
     ship's frame, or the authored point and frm when nothing is found. Casts from `standoff` metres out
     along frm, accepting only this ship's hull objects (a neighbour's hull, or any kit volume, is passed
@@ -298,7 +316,7 @@ def _cast(scene, matrix, ship_fx, p_m, frm, standoff=30.0):
     dg = bpy.context.evaluated_depsgraph_get()
     o = matrix @ (Vector(p_m) + d_l * standoff)
     d = (matrix.to_3x3() @ -d_l).normalized()
-    far = standoff * 2.5
+    far = standoff * 2.2
     gone = 0.0
     inv = matrix.inverted()
     for _ in range(48):

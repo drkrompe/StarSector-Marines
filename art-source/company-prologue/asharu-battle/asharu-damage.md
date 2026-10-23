@@ -15,6 +15,9 @@ ship, and an **apply** that rebuilds what a ship has taken so far on each shot's
   severity 0-4, a place on the hull (ship frame, metres: +X bow, +Y port, +Z dorsal) and the side
   it came from. Each hit is cast onto the plating along that side, so it lands on the real hull of
   whatever build is placed, and in the same place in every shot.
+- **Gunfire hits use the shooter's real side.** Their direction comes from the fire-control plan's
+  measured shooter direction (`SHOOTER_SIDE`). A hit whose place lies on the far side of the hull lands
+  on the face the shooter sees, in line with that place.
 - **Where hits come from.** Most come from the shots' own `fx` entries: a tracer's target, a
   `blast_on`, `fire_on`, `smoke`, `debris` or mining beam. Each such hit names the entry kind that
   draws it (`by`) and its shot (`src`). The rest are story hits, where the shot list says a ship is
