@@ -79,6 +79,13 @@ public class ShotFxTest {
         for (StructureDef structure : TurretCatalogRegistry.installed().structures()) {
             WeaponDef weapon = structure.mount.weapon;
             ShotFx fx = ShotFx.of(turretShot(structure));
+            if (weapon.hitscanBeam()) {
+                // A turret that authors a beam and no projectile art is a hitscan beam, as a mech's is.
+                assertInstanceOf(Tracer.class, fx.body(), "beam turret " + structure.id);
+                assertEquals(weapon.beamStyle(), ((Tracer) fx.body()).style(), "beam style for " + structure.id);
+                assertFalse(fx.travels(), "a beam impacts at fire time: " + structure.id);
+                continue;
+            }
             Sprite body = assertSprite(fx, "turret " + structure.id);
             assertEquals(weapon.projectileSpritePath, body.spritePath(), "sprite path for " + structure.id);
             assertEquals(weapon.projectileVisualCells, body.visualCells(), 0f, "visualCells for " + structure.id);
