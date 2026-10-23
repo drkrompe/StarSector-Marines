@@ -244,7 +244,16 @@ collapses a bore by fiat.
 1. **Step-off.** The company comes down by shuttle in the cordon's farmland at
    the middle of the start edge (`landfall`). Four allied columns stand on the
    start line, one at the foot of each lane, and go up their lanes together;
-   the company's own lane is the country road.
+   the company's own lane is the country road. Each lane is the planetary
+   militia in strength, as The Burn's battlegroups are: four teams a wave, a
+   wave a minute, an escort APC, a technical, a breakthrough tank and a Hound
+   pair, and a fresh tank and technical every two minutes. With no barrage to
+   wait for, the company holds its landing for its first two minutes, so it
+   goes for its satellite with the lanes up beside it rather than alone.
+   `-Dbattle.heart.broadStrength=false` and `-Dbattle.heart.broadFormUp=0` are
+   the controls. Measured on seeds 202-606: neither lever is enough alone
+   (0 and 1 win of 5); together they win 2. Sending the lanes across to the
+   company's satellite once their own fell measured worse.
 2. **Advance to contact.** The satellites surge on their own clocks from the
    start and hunt whatever they sense, so contact comes lane by lane. The
    mothers **sleep**: they grow, but send nothing.

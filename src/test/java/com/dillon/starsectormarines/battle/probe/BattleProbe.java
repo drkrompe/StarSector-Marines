@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.probe;
 
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.battle.creep.CreepField;
+import com.dillon.starsectormarines.battle.creep.CreepSnapshot;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
@@ -56,6 +58,7 @@ import java.util.Set;
  *   escort                                the rescue cohort's escort hold and progress
  *   route X0 Y0 X1 Y1                     cells on the walkable path between two cells (0 for none)
  *   places                                every compound: kind, box, holder, capture and who is present
+ *   creep                                 hive creep: cells creeped and dying, shares of the map, each source's reach
  * </pre>
  * Every command answers one JSON object.
  */
@@ -97,6 +100,7 @@ public final class BattleProbe {
                 .put("progress", String.valueOf(sim.getCivilianEvacuationProgress())));
         commands.put("places", this::places);
         commands.put("pads", this::pads);
+        commands.put("creep", a -> creep());
     }
 
     public BattleSimulation sim() {
@@ -114,6 +118,28 @@ public final class BattleProbe {
         } catch (Exception e) {
             return new JSONObject().put("error", e.getClass().getSimpleName() + ": " + e.getMessage());
         }
+    }
+
+    /** The creep field's reading: creeped and dying cells against the map and its walkable ground, and every living source's reach. */
+    private JSONObject creep() throws Exception {
+        CreepField field = sim.creepFieldIfPresent();
+        int cells = sim.getGrid().getWidth() * sim.getGrid().getHeight();
+        int walkable = 0, walkableCreeped = 0;
+        for (int y = 0; y < sim.getGrid().getHeight(); y++)
+            for (int x = 0; x < sim.getGrid().getWidth(); x++) {
+                if (!sim.getGrid().isWalkable(x, y)) continue;
+                walkable++;
+                if (field != null && field.isCreeped(x, y)) walkableCreeped++;
+            }
+        JSONObject out = new JSONObject().put("tick", sim.getSimTickIndex()).put("mapCells", cells).put("walkableCells", walkable);
+        if (field == null) return out.put("covered", 0).put("dying", 0).put("walkableCreeped", 0).put("sources", new JSONArray());
+        CreepSnapshot snapshot = field.snapshot();
+        JSONArray sources = new JSONArray();
+        for (CreepSnapshot.SourceView s : snapshot.sources())
+            sources.put(new JSONObject().put("id", s.id()).put("x", s.x()).put("y", s.y())
+                    .put("reach", s.reachCells()).put("max", s.maxReachCells()).put("claimed", s.claimedCells()).put("fed", s.fed()));
+        return out.put("covered", snapshot.coveredCells()).put("dying", snapshot.dyingCells())
+                .put("walkableCreeped", walkableCreeped).put("sources", sources);
     }
 
     // --- stepping ---
