@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
+import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 
@@ -88,15 +89,30 @@ public final class MissionLayoutStage implements GenStage {
                 for (int y = Math.max(0, site.y0()); y <= Math.min(ctx.height - 1, site.y1()); y++) held[x][y] = true;
             }
         }
-        // Ridges first, so the works resolved along them are dug on their crests.
+        // Ridges first, so the works resolved along them are dug on their crests. Every ridge goes up in one
+        // stamp, the landscape's own with them: elevation is stamped once, and a second stamp is refused.
         Map<String, List<int[]>> ridges = new HashMap<>();
         boolean closed = false;
         if (phase == Phase.WORKS) {
+            List<Ridge> layoutRidges = new ArrayList<>();
             for (Piece piece : pieces) {
-                if (!(piece instanceof Ridge ridge) || ridges.containsKey(ridge.name())) continue;
-                List<int[]> feet = OutdoorLandscapeStage.raiseRidges(ctx, List.of(ridge.band()), held);
-                ridges.put(ridge.name(), feet);
-                closed |= !feet.isEmpty();
+                if (piece instanceof Ridge ridge && layoutRidges.stream().noneMatch(r -> r.name().equals(ridge.name()))) {
+                    layoutRidges.add(ridge);
+                }
+            }
+            if (!layoutRidges.isEmpty()) {
+                List<RidgePlanner.Band> bands = new ArrayList<>();
+                for (Ridge ridge : layoutRidges) bands.add(ridge.band());
+                bands.addAll(OutdoorLandscapeStage.landscapeBands(ctx));
+                List<int[]> feet = OutdoorLandscapeStage.raiseRidges(ctx, bands, held);
+                closed = !feet.isEmpty();
+                // Each ramp's foot belongs to the ridge whose ground it stands on; the landscape's report none.
+                for (Ridge ridge : layoutRidges) {
+                    boolean[][] band = RidgePlanner.heldGround(List.of(ridge.band()), ctx.width, ctx.height, 1);
+                    List<int[]> own = new ArrayList<>();
+                    for (int[] foot : feet) if (band[foot[0]][foot[1]]) own.add(foot);
+                    ridges.put(ridge.name(), own);
+                }
             }
         }
         Set<String> names = new HashSet<>();

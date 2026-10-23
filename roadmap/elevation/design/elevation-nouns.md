@@ -248,7 +248,9 @@ Generators place plateaus where a mission wants them:
   the mission names. A segment is left out when it would not fit or would cut
   the host's ground apart, proved a segment at a time against the segments
   already kept. Nothing grows on a ridge's ramps, and no stock hill grows on
-  ground a ridge names.
+  ground a ridge names. Elevation is stamped once: when a mission layout has
+  ridges of its own, the landscape's ridges go up with them in the works phase
+  (`mission-layout.md`, Ridge); otherwise the landscape pass raises them.
 - **Held ground.** A ridge raised after generation fits only open country:
   among built places every stretch is broken. So a landscape may **hold** a
   ridge's ground before the places grow (`Landscape.held`,

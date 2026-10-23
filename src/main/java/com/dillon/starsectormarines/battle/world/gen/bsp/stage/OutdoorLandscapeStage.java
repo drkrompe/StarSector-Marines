@@ -65,9 +65,7 @@ public final class OutdoorLandscapeStage implements GenStage {
         for (int[] cell : brookCells) reserve(c, reserved, cell[0] - bank, cell[1] - bank, cell[0] + bank, cell[1] + bank);
         // Own substream: absent nature never moves facilities, force positions or later RNG draws.
         Random random = new Random(c.seed ^ 0x574f4f444c414e44L);
-        List<RidgePlanner.Band> ridges = new ArrayList<>(landscape.ridges());
-        ridges.addAll(landscape.held());
-        ridges.addAll(valleySides(c, landscape));
+        List<RidgePlanner.Band> ridges = landscapeBands(c, landscape);
         // No stock hill grows where the mission named high ground: it would be all the ridge found there.
         boolean[][] ridgeGround = ridges.isEmpty() ? null : RidgePlanner.heldGround(ridges, c.width, c.height, 0);
         if (c.topology.terrainSurface() == null) hills(c, surface, reserved, ridgeGround, random);
@@ -89,6 +87,22 @@ public final class OutdoorLandscapeStage implements GenStage {
      * so a line resolved along a ridge is dug on its crest. Returns the ramp feet of the segments raised, one per
      * segment, empty when none fitted or the map already has elevation.
      */
+    /**
+     * The landscape's own high ground: its ridges, the ridges it holds before growth, and each banked brook's valley
+     * sides. Raised in this pass, or with a layout's ridges when the layout has any, so elevation is stamped once.
+     */
+    public static List<RidgePlanner.Band> landscapeBands(GenContext c) {
+        PrecinctPlan plan = c.get(BspKeys.PRECINCTS);
+        return landscapeBands(c, plan == null ? Landscape.STOCK : plan.landscape());
+    }
+
+    private static List<RidgePlanner.Band> landscapeBands(GenContext c, Landscape landscape) {
+        List<RidgePlanner.Band> bands = new ArrayList<>(landscape.ridges());
+        bands.addAll(landscape.held());
+        bands.addAll(valleySides(c, landscape));
+        return bands;
+    }
+
     public static List<int[]> raiseRidges(GenContext c, List<RidgePlanner.Band> bands, boolean[][] also) {
         if (bands.isEmpty() || c.grid.elevation() != null || c.width < 32 || c.height < 32
                 || TileRegistry.installed() == null
@@ -96,6 +110,14 @@ public final class OutdoorLandscapeStage implements GenStage {
         // The access routes between the places are not reserved: the ridge's own access proof stands for them, and a
         // route along the line would otherwise break every stretch of it. The ways through are its passes and ramps.
         boolean[] reserved = reservations(c, new int[0], false);
+        // The landscape's tracks and brooks are laid after this, so their ground is kept for them now.
+        PrecinctPlan precincts = c.get(BspKeys.PRECINCTS);
+        Landscape landscape = precincts == null ? Landscape.STOCK : precincts.landscape();
+        reserveTracks(c, landscape, reserved);
+        for (Landscape.Brook brook : landscape.brooks()) {
+            int bank = brook.width() / 2 + 2;
+            for (int[] cell : brook.line()) reserve(c, reserved, cell[0] - bank, cell[1] - bank, cell[0] + bank, cell[1] + bank);
+        }
         List<Laid> raised = c.get(BspKeys.LAYOUT_STRUCTURES);
         if (raised != null) for (Laid piece : raised) {
             if (piece.kind() == Laid.Kind.STRUCTURE && piece.isLaid() && piece.cells().size() == 2) {
