@@ -1,0 +1,62 @@
+{
+  "version": 2,
+  "map": "cordon-road-town",
+  "biomes": {
+    "VERDANT": [
+      {
+        "seed": 1,
+        "note": "rear north; redoubt guns 2-1-2-2; corridor 254 cells, 64% on road"
+      },
+      {
+        "seed": 14,
+        "note": "rear north; redoubt guns 1-2-1-2; corridor 276 cells, 83% on road"
+      },
+      {
+        "seed": 15,
+        "note": "rear south; redoubt guns 1-1-1-2; corridor 266 cells, 97% on road"
+      }
+    ],
+    "ARID": [
+      {
+        "seed": 1,
+        "note": "rear north; redoubt guns 2-1-2-2; corridor 254 cells, 64% on road"
+      },
+      {
+        "seed": 8,
+        "note": "rear south; redoubt guns 1-2-2-2; corridor 455 cells, 85% on road"
+      },
+      {
+        "seed": 14,
+        "note": "rear north; redoubt guns 1-2-1-2; corridor 276 cells, 83% on road"
+      }
+    ],
+    "ROCK": [
+      {
+        "seed": 1,
+        "note": "rear north; redoubt guns 2-1-2-2; corridor 254 cells, 64% on road"
+      },
+      {
+        "seed": 14,
+        "note": "rear north; redoubt guns 1-2-1-2; corridor 276 cells, 83% on road"
+      },
+      {
+        "seed": 15,
+        "note": "rear south; redoubt guns 1-1-1-2; corridor 266 cells, 97% on road"
+      }
+    ],
+    "FROZEN": [
+      {
+        "seed": 1,
+        "note": "rear north; redoubt guns 2-1-2-2; corridor 254 cells, 64% on road"
+      },
+      {
+        "seed": 8,
+        "note": "rear south; redoubt guns 1-2-2-2; corridor 455 cells, 85% on road"
+      },
+      {
+        "seed": 14,
+        "note": "rear north; redoubt guns 1-2-1-2; corridor 276 cells, 83% on road"
+      }
+    ]
+  }
+}

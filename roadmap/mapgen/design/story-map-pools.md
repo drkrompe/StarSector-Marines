@@ -52,6 +52,12 @@ vetted per biome; the same seed pooled on several biomes keeps one layout
 under different ground, which makes the biome the only difference between
 those readings.
 
+**Density.** The Cordon is also laid out at its world's density (rural, town
+or urban, from the market size; `cordon-nouns.md`, Density), and each density
+is a story map of its own with its own pool: `cordon-line-town`,
+`cordon-road-urban` and so on. A density changes the whole map a seed names,
+so it is vetted as a biome is.
+
 A pool **seed** is the battle seed itself: the map it names on its biome
 passes the mission's acceptance on the first generation, with no re-roll. The
 note is for people: what the map is and why it is in.
