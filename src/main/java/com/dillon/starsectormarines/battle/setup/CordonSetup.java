@@ -76,17 +76,16 @@ public final class CordonSetup {
 
     private CordonSetup() {}
 
-    /** A generated Cordon map and the plan it was laid out from. */
-    public record CordonMap(MapResult map, PrecinctPlan plan, long battleSeed, List<int[]> corridor) { }
+    /** A generated Cordon map, the plan it was laid out from and the world biome it was grown on. */
+    public record CordonMap(MapResult map, PrecinctPlan plan, long battleSeed, List<int[]> corridor,
+                            SurfacePalette biome) { }
 
     /**
-     * The world the Cordon is fought on: green colony country whatever the
-     * event names, as the colony is laid out the same whatever market raised
-     * the call. A profile with a world of its own keeps it.
+     * The world the Cordon is fought on: the colony's country on a world of
+     * this biome, laid out the same whatever market raised the call.
      */
-    public static TargetProfile country(TargetProfile profile) {
-        if (profile != null && profile.surface() != SurfacePalette.ROCK) return profile;
-        return new TargetProfile(0, 0, 0, 0, "", Set.of(), SurfacePalette.VERDANT, SettlementLink.ROAD);
+    public static TargetProfile country(SurfacePalette biome) {
+        return new TargetProfile(0, 0, 0, 0, "", Set.of(), biome, SettlementLink.ROAD);
     }
 
     /** The story map a variant plays from ({@code story-map-pools.md}). */
@@ -95,29 +94,30 @@ public final class CordonSetup {
     }
 
     /**
-     * The map for {@code seed}: its pooled map, patch and all, when the
-     * variant's pool holds it, else the first map from it that carries the
-     * whole Cordon. The second is how a candidate is tried before it is pooled;
-     * the campaign reaches only the first ({@link #pooled}).
+     * The map for {@code seed} on a world of this biome: its pooled map, patch
+     * and all, when the variant's pool holds it for the biome, else the first
+     * map from it that carries the whole Cordon. The second is how a candidate
+     * is tried before it is pooled; the campaign reaches only the first
+     * ({@link #pooled}).
      */
-    public static CordonMap map(CordonVariant variant, long seed, TargetProfile profile) {
-        StoryMapPool.Entry entry = StoryMapPools.installed() ? StoryMapPools.pool(storyMap(variant)).entry(seed) : null;
-        if (entry != null) return map(variant, entry, profile);
-        profile = country(profile);
+    public static CordonMap map(CordonVariant variant, SurfacePalette biome, long seed) {
+        StoryMapPool.Entry entry = StoryMapPools.installed()
+                ? StoryMapPools.pool(storyMap(variant)).entry(biome, seed) : null;
+        if (entry != null) return map(variant, biome, entry);
         List<String> failures = new ArrayList<>();
         for (int attempt = 0; attempt < ATTEMPTS; attempt++) {
             long battleSeed = seed + attempt * 0x9E3779B97F4A7C15L;
-            Generated generated = generate(variant, battleSeed, MapPatch.NONE, profile);
+            Generated generated = generate(variant, biome, battleSeed, MapPatch.NONE);
             if (generated.missing() == null) return generated.cordon();
             failures.add("attempt " + attempt + ": " + generated.missing());
         }
-        throw new IllegalStateException("no Cordon map from seed " + seed + " in " + ATTEMPTS
+        throw new IllegalStateException("no " + biome + " Cordon map from seed " + seed + " in " + ATTEMPTS
                 + " attempts: " + String.join("; ", failures));
     }
 
-    /** The pooled map a campaign battle plays for a roll its event carries. */
-    public static CordonMap pooled(CordonVariant variant, long roll, TargetProfile profile) {
-        return map(variant, StoryMapPools.pool(storyMap(variant)).pick(roll), profile);
+    /** The pooled map a campaign battle plays on a world of this biome, for a roll its event carries. */
+    public static CordonMap pooled(CordonVariant variant, SurfacePalette biome, long roll) {
+        return map(variant, biome, StoryMapPools.pool(storyMap(variant)).pick(biome, roll));
     }
 
     /**
@@ -125,26 +125,26 @@ public final class CordonSetup {
      * re-rolled, and carrying its ruin to battle assembly. A pooled seed that no
      * longer carries the whole Cordon is a broken pool, not a map to roll past.
      */
-    public static CordonMap map(CordonVariant variant, StoryMapPool.Entry entry, TargetProfile profile) {
-        Generated generated = generate(variant, entry.seed(), entry.patch(), country(profile));
+    public static CordonMap map(CordonVariant variant, SurfacePalette biome, StoryMapPool.Entry entry) {
+        Generated generated = generate(variant, biome, entry.seed(), entry.patch());
         if (generated.missing() != null) {
-            throw new IllegalStateException(storyMap(variant).id + " seed " + entry.seed()
+            throw new IllegalStateException(storyMap(variant).id + " " + biome + " seed " + entry.seed()
                     + " does not carry the Cordon: " + generated.missing());
         }
         CordonMap cordon = generated.cordon();
         return new CordonMap(entry.patch().ruined(cordon.map(), entry.seed()), cordon.plan(), cordon.battleSeed(),
-                cordon.corridor());
+                cordon.corridor(), biome);
     }
 
     private record Generated(CordonMap cordon, String missing) { }
 
-    private static Generated generate(CordonVariant variant, long battleSeed, MapPatch patch, TargetProfile profile) {
+    private static Generated generate(CordonVariant variant, SurfacePalette biome, long battleSeed, MapPatch patch) {
         PrecinctPlan plan = patch.pinned(CordonPlan.planFor(variant, WIDTH, HEIGHT, battleSeed));
-        MapResult map = MAP_GEN.generate(WIDTH, HEIGHT, battleSeed, null, profile, plan);
+        MapResult map = MAP_GEN.generate(WIDTH, HEIGHT, battleSeed, null, country(biome), plan);
         String missing = missing(variant, map, plan);
         if (missing != null) return new Generated(null, missing);
         List<int[]> corridor = variant == CordonVariant.ROAD ? CordonCorridor.find(map.grid, map.topology, plan) : null;
-        return new Generated(new CordonMap(map, plan, battleSeed, corridor), null);
+        return new Generated(new CordonMap(map, plan, battleSeed, corridor, biome), null);
     }
 
     /** What this map lacks, or {@code null} when it carries the whole Cordon. */
@@ -261,9 +261,9 @@ public final class CordonSetup {
     private static final long GARRISON_SALT = 0x4741525249534F4EL;
 
     /** The Cordon battle on the briefing's timetable. */
-    public static BattleSimulation create(CordonVariant variant, long seed,
-                                          List<ShuttleAssignment> manifest, TargetProfile profile) {
-        return create(map(variant, seed, profile), variant, manifest, profile, CordonSequence.Timetable.STANDARD);
+    public static BattleSimulation create(CordonVariant variant, SurfacePalette biome, long seed,
+                                          List<ShuttleAssignment> manifest) {
+        return create(map(variant, biome, seed), variant, manifest, CordonSequence.Timetable.STANDARD);
     }
 
     /**
@@ -272,7 +272,7 @@ public final class CordonSetup {
      * story over it ({@code cordon-nouns.md}).
      */
     public static BattleSimulation create(CordonMap cordon, CordonVariant variant, List<ShuttleAssignment> manifest,
-                                          TargetProfile profile, CordonSequence.Timetable timetable) {
+                                          CordonSequence.Timetable timetable) {
         MapResult map = cordon.map();
         Random rng = new Random(cordon.battleSeed());
         List<Doodad> vehicles = BattleSetup.stampVehicles(map, rng, corridorClear(map, cordon.corridor()));
@@ -280,7 +280,7 @@ public final class CordonSetup {
         List<LandingPad> pads = LandingPadSelector.select(map, shuttles, BattleSetup.LZ_MIN_SEPARATION);
         BattleSimulation sim = BattleSetup.buildMap(map, vehicles, Collections.emptyList(),
                 Collections.emptyList(), cordon.battleSeed()).sim();
-        sim.setSurface(BattleSetup.surfaceOf(country(profile)));
+        sim.setSurface(BattleSetup.surfaceOf(country(cordon.biome())));
         BattleSetup.recordLzPads(sim, pads);
         BattleSetup.landCompany(sim, pads, manifest, rng,
                 SquadCommandClaim.mission(CordonCommand.ISSUER, "Cordon company lift"));

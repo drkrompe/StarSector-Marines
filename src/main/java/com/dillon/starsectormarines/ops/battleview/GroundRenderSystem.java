@@ -477,7 +477,8 @@ public final class GroundRenderSystem implements RenderSystem {
                 GridBlockDef b = tileReg.block(id);
                 if (b == null) continue; // a sliced-tile mapping (e.g. STREET) — special-cased below
                 kindBlock[k.ordinal()] = b;
-                kindSheet[k.ordinal()] = sheetFor(b.sheetPath);
+                // Not loaded here: a kind the map has none of would load a sheet nobody draws.
+                kindSheet[k.ordinal()] = loadedSheetFor(b.sheetPath);
                 if (b.fillRgb != null) kindFill[k.ordinal()] = new Color(b.fillRgb);
             }
 
@@ -1231,6 +1232,17 @@ public final class GroundRenderSystem implements RenderSystem {
     private Color blockFill(String blockId, Color fallback) {
         GridBlockDef b = (tileReg == null) ? null : tileReg.block(blockId);
         return (b != null && b.fillRgb != null) ? new Color(b.fillRgb) : fallback;
+    }
+
+    /** {@link #sheetFor} without loading a catalog sheet nobody has loaded. */
+    private SpriteAPI loadedSheetFor(String sheetPath) {
+        switch (sheetPath) {
+            case TileManifest.SHEET:        return urban;
+            case TileManifest.ROAD_SHEET:   return road;
+            case TileManifest.FLOORS_SHEET: return floors;
+            case TileManifest.WATER_SHEET:  return water;
+            default:                        return sprites.loadedTerrainSheet(sheetPath);
+        }
     }
 
     /** The loaded sheet for a tileset block's {@code sheetPath}, or {@code null} if that sheet isn't loaded (sliced urban3/nature sheets use their own frame paths, not this). */

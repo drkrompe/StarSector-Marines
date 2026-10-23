@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.battle.evacuation.HeartBores;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Every pooled story map, whole, one frame each ({@code story-map-pools.md}):
@@ -43,29 +44,33 @@ public final class StoryMapPoolSnapshotSuite implements SnapshotSuite {
         for (StoryMap map : StoryMap.values()) {
             if (!selected.isBlank() && !List.of(selected.split(",")).contains(map.id)) continue;
             int index = 1;
-            for (StoryMapPool.Entry entry : StoryMapPools.pool(map).entries()) {
-                String name = String.format("%s/%02d-seed%d.png", map.id, index++, entry.seed());
-                String head = map.id + " seed " + entry.seed() + (entry.note().isBlank() ? "" : " | " + entry.note());
-                out.add(new SnapshotArtifact(name, frame(whole, map, entry, head)));
+            for (SurfacePalette biome : SurfacePalette.values()) {
+                for (StoryMapPool.Entry entry : StoryMapPools.pool(map).entries(biome)) {
+                    String name = String.format("%s/%02d-%s-seed%d.png", map.id, index++,
+                            biome.name().toLowerCase(Locale.ROOT), entry.seed());
+                    String head = map.id + " " + biome.name().toLowerCase(Locale.ROOT) + " seed " + entry.seed()
+                            + (entry.note().isBlank() ? "" : " | " + entry.note());
+                    out.add(new SnapshotArtifact(name, frame(whole, map, biome, entry, head)));
+                }
             }
         }
         return out;
     }
 
-    private static BufferedImage frame(BattleReviewFrameRenderer whole, StoryMap map,
-                                                      StoryMapPool.Entry entry, String head) throws Exception {
+    private static BufferedImage frame(BattleReviewFrameRenderer whole, StoryMap map, SurfacePalette biome,
+                                       StoryMapPool.Entry entry, String head) throws Exception {
         switch (map) {
             case CORDON_LINE, CORDON_ROAD -> {
                 CordonVariant variant = map == StoryMap.CORDON_LINE ? CordonVariant.LINE : CordonVariant.ROAD;
-                CordonSetup.CordonMap cordon = CordonSetup.map(variant, entry, TargetProfile.NEUTRAL);
-                try (BattleSimulation sim = CordonSetup.create(cordon, variant, List.of(), TargetProfile.NEUTRAL,
+                CordonSetup.CordonMap cordon = CordonSetup.map(variant, biome, entry);
+                try (BattleSimulation sim = CordonSetup.create(cordon, variant, List.of(),
                         CordonSequence.Timetable.STANDARD)) {
                     return whole.render(sim, head, CordonMapgenSnapshotSuite.annotations(sim, cordon));
                 }
             }
             default -> {
                 Form form = map == StoryMap.HEART_BURN ? Form.THE_BURN : Form.BROAD_FRONT;
-                BloomHeartSetup.Built built = BloomHeartSetup.country(form, entry);
+                BloomHeartSetup.Built built = BloomHeartSetup.country(form, biome, entry);
                 try (BattleSimulation sim = built.sim()) {
                     ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
                     for (HeartBores.Site site : built.heart().sites()) {

@@ -373,6 +373,11 @@ public class BattleScreen implements Screen, BattleUiContext {
     boolean rangeFinished() { return rangeFinished; }
 
     @Override
+    public boolean releasesCompanyDeckTextures() {
+        return true;
+    }
+
+    @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
         if (rangeContext != null) ctx = rangeContext;
         BattleSimulation nextSimulation = ctx != null ? ctx.getBattleSimulation() : null;

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.vehicle.HullRam;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.mech.MechRole;
@@ -426,7 +427,7 @@ public class SeparationSystemTest {
      * assertions couldn't see.
      */
     @Test
-    public void mechOverlapDisplacesMarineFourTimesFartherAndFoldsIntoVelocity() {
+    public void mechOverlapDisplacesMarineByWeightAndFoldsIntoVelocity() {
         BattleSimulation sim = openArena(20, 20);
         SeparationSystem separation = separationFor(sim);
         long marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 10, 10));
@@ -445,8 +446,10 @@ public class SeparationSystemTest {
         float mechDispX = sim.world().x(mech) - mechX0;
 
         assertTrue(Math.abs(mechDispX) > 0f, "mech should have yielded some displacement");
-        assertEquals(4f * Math.abs(mechDispX), Math.abs(marineDispX), 1e-4f,
-                "marine displacement (" + marineDispX + ") should be ~4x the mech's (" + mechDispX + ")");
+        // A pair with a mech in it is weighed in tonnes (HullRam.bodyTonnes): each yields by the other's weight.
+        float ratio = HullRam.bodyTonnes(UnitType.HEAVY_MECH, null, 1f) / HullRam.bodyTonnes(UnitType.MARINE, null, 1f);
+        assertEquals(ratio * Math.abs(mechDispX), Math.abs(marineDispX), 1e-3f,
+                "marine displacement (" + marineDispX + ") should be " + ratio + "x the mech's (" + mechDispX + ")");
 
         EntityWorld entityWorld = sim.getEntityWorld();
         BattleComponents comps = sim.getBattleComponents();

@@ -236,12 +236,21 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
 
 #### Questions for the owner: the picks page
 
-**Every decision the owner has to make goes on the picks page as picture
+**Every decision the owner has to make goes on a picks page as picture
 cards, never only in chat** (owner, 2026-10-22). A question asked in a chat
 message is lost the moment the owner switches to another session; the page is
-the one place they answer from. The page is the Artifact
-`https://claude.ai/artifact/Q2unCoyCvyuFBFomsCxuDU` ("Rav Bloom picks"); each
-answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
+the one place they answer from.
+
+**One picks page per top-level parent session** (owner, 2026-10-23). The
+owner works session by session: each top-level session in the sidebar is a
+parent with its own bundle of child sessions, and each parent owns one picks
+page for its bundle's questions. Never post to another parent's page. A
+parent's page is an Artifact built from `tools/picks/template.html` with
+`python tools/picks/build.py --title "<parent> picks" questions.json out.html`,
+published with the `db` capability; each answer is a `db` document
+`picks/<question id>` holding `{choice, note, at}`. A parent that has no page
+yet creates one when it has its first question and adds a row to
+`tools/picks/pages.md` (parent session title, page URL) in its next commit.
 
 - **A question is an `options.json`**: `[{id, question, options:[{key, label,
   file, note}]}]`, with one 1920x1080 image per option rendered on the real
@@ -252,15 +261,16 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   (owner, 2026-10-22). A session started by another session never posts to the
   page or asks the owner itself: it sends its parent the `options.json` path,
   the image paths and what it is building on meanwhile. The parent passes it up
-  the same way until it reaches the top-level coordinating session, which
-  publishes the question, reads the answer from the `db` and sends it back down
+  the same way until it reaches the top-level parent session, which
+  publishes the question on its own page, reads the answer from the `db` and sends it back down
   to the session that asked. A parent that is itself the top relays straight
   away.
-- **A top-level session with no coordinator** posts its own question: read
-  the page (`Artifact` `read`), add its question to the page's `QUESTIONS`
-  array and its images under `media/<question id>/`, republish to the same
-  URL (merging, never overwriting, if the publish reports a newer version),
-  and read the answer from `picks/<question id>`.
+- **The top-level parent posts.** Read its own page (`Artifact` `read`), add
+  the question to the page's `QUESTIONS` array and its images under
+  `media/<question id>/`, republish to the same URL (merging, never
+  overwriting, if the publish reports a newer version), and read the answer
+  from `picks/<question id>`. Use JPEG for option images: a page holds at most
+  256 MiB across its versions.
 - **Don't wait on the answer.** Build on the recommended option meanwhile and
   switch if the owner picks otherwise. Tell the owner in one line that a
   question is up, and nothing more.
@@ -542,12 +552,12 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   fifteen seconds. Readings, not acceptance; opt-in and excluded from `test`.
 - `gradlew.bat storyMapPools` → the Rav Bloom story maps (Cordon Line and
   Road, The Burn, Broad Front) play only from their pools of vetted seeds,
-  `mod/data/world/pools/<map>.pool.json`, each seed with a note and an
-  optional patch (`story-map-pools.md`). This regenerates every pooled seed
+  three per world biome, `mod/data/world/pools/<map>.pool.json`, each seed with
+  a note and an optional patch (`story-map-pools.md`). This regenerates every pooled seed
   and fails when one no longer passes its mission's acceptance on the first
   generation: **run it after any mapgen change that may move a story map.**
-  `-Pcandidates=cordon-line:1-40,heart-burn:1-20` screens seeds that are not
-  pooled yet (reported, never failing). About 30 seconds; writes
+  `-Pcandidates=cordon-line:1-40,heart-burn/frozen:1-20` screens seeds that
+  are not pooled yet, on every biome or the one named (reported, never failing). About 30 seconds; writes
   `build/reports/story-map-pools/summary.md`. `commanderEvidence` on
   `cordon-line`, `cordon-road` and `heart` plays the whole pool by default, and
   `createSnapshots -Psnapshot=story-map-pools` renders every pooled map whole.

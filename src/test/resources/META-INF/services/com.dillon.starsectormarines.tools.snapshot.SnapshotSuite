@@ -274,3 +274,4 @@ com.dillon.starsectormarines.battle.command.allied.ScreenedAdvanceSceneSnapshotS
 com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPoolSnapshotSuite
 com.dillon.starsectormarines.ops.BattleLoadingSnapshotSuite
 com.dillon.starsectormarines.battle.infantry.MedicPoolSnapshotSuite
+com.dillon.starsectormarines.battle.vehicle.VehicleRamSceneSnapshotSuite

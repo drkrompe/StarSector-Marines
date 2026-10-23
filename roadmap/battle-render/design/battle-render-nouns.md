@@ -65,8 +65,9 @@ Updated: 2026-10-23 — Texture leases: a battle, the company deck, the Armory p
   **texture ledger**. A battle loads its **battle texture set** — what its map places, its
   roster wears and its mission can bring — under its own lease behind a loading screen, and
   releases the lease when it ends; the ledger unloads (and deletes on the card) only what no
-  other lease holds, so a screen that shares an image never loses it. The company deck holds
-  what its scene draws only while a screen that draws it is up, the Armory's previews hold the
+  other lease holds, so a screen that shares an image never loses it. The company deck preloads
+  what its scene draws behind the dialog's other pages and holds it until a battle or the
+  dialog's close, so its screens never show a load; the Armory's previews hold the
   families they show while the Armory is open, and the ops dialog's retained-UI images go when
   the dialog closes. What remains on the never-released session lease is small: fonts, crests,
   planets. `battle-textures.md` owns the model, the inventory and the laws.

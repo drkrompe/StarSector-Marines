@@ -679,11 +679,6 @@ public final class MechLabScreen implements Screen {
     }
 
     @Override
-    public boolean drawsCompanyDeck() {
-        return true;
-    }
-
-    @Override
     public void detach() {
         cancelDrag();
         if (document != null) document.deactivateInput();

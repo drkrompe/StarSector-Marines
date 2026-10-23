@@ -14,15 +14,21 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.render2d.texture.TextureLease;
 import com.dillon.starsectormarines.render2d.texture.TextureLedger;
+import com.dillon.starsectormarines.render2d.texture.ModTextures;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.SettingsAPI;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.ObjLongConsumer;
 import java.util.function.Supplier;
 
 /**
@@ -75,9 +81,6 @@ import java.util.function.Supplier;
  */
 public final class CompanyDeck {
 
-    /** A frame's share of the deck's texture loads; the battle screen's loading budget. */
-    private static final long LOAD_FRAME_BUDGET_NANOS = 12_000_000L;
-
     private final CompanyShip ship;
     private final long seed;
     /**
@@ -87,10 +90,28 @@ public final class CompanyDeck {
     private BattleSprites sprites;
     /** Where a leased deck takes its textures from; null when its sprites were handed in. */
     private TextureLedger ledger;
-    /** What the deck holds while a screen that draws her is up. @see #releaseTextures() */
+    /** What the deck holds while the dialog is open and no battle is. @see #releaseTextures() */
     private TextureLease lease;
-    /** The textures her scene draws, loaded a frame's budget at a time. @see #drawable() */
+    /** The textures her scene draws, preloaded a slice a frame. @see #preloadTextures */
     private TextureLoadQueue loading;
+    /**
+     * The files the company's deck held when she last gave her textures back: there is one company
+     * deck, and a deck laid out afresh in another dialog, or another game session, draws much the
+     * same art. Loaded back a texture a frame before her loaders run, so only the first visit after
+     * an install has to find out what she draws. Kept in {@link #HELD_FILE} in the game's common
+     * folder; null until read. GL thread only.
+     */
+    private static List<String> lastHeld;
+    static final String HELD_FILE = "marines_company_deck_textures.txt";
+    /** A preload step longer than this held a frame the player saw; logged in the dev build. */
+    private static final long SLOW_STEP_NANOS = 16_000_000L;
+    private long slowStepNanos = SLOW_STEP_NANOS;
+    private ObjLongConsumer<TextureLoadQueue.Step> slowStep = (step, nanos) -> {
+        if (DevConfig.DEV_MODE) {
+            Global.getLogger(CompanyDeck.class).info("company deck textures: preloading " + step.stage()
+                    + " held the frame " + nanos / 1_000_000L + " ms");
+        }
+    };
     private final Supplier<List<MechVariant>> lance;
     private final Supplier<List<MarineSoldier>> company;
     /** Which of her boat berths the company still has a boat for. @see #getReady() */
@@ -107,8 +128,8 @@ public final class CompanyDeck {
 
     /**
      * Owns her textures the way a battle does ({@code battle-textures.md}): a lease from
-     * {@code textures}, opened when a screen first draws her, loading only what her scene shows,
-     * and given back by {@link #releaseTextures()} when no screen that draws her is up.
+     * {@code textures}, loading only what her scene shows, preloaded while she is off screen and
+     * given back by {@link #releaseTextures()} when a battle starts or the dialog closes.
      */
     public CompanyDeck leasedFrom(TextureLedger textures) {
         if (sprites != null) throw new IllegalStateException("this deck draws with the sprites it was handed");
@@ -323,9 +344,9 @@ public final class CompanyDeck {
 
     /**
      * Her scene, ready to be drawn: crewed, and with every texture it paints on the card. Null
-     * while she is not live yet or her textures are still loading, which a screen draws as it
-     * draws a ship being got ready. A leased deck loads here, a frame's budget per call, so
-     * walking back aboard never freezes the frame on an upload.
+     * only while she is not live yet. A deck screen is never shown a blank or a loading screen:
+     * her art is normally preloaded by then ({@link #preloadTextures}), and whatever is left is
+     * finished here, at once.
      */
     public ShipDeckBattleScene drawable() {
         if (scene == null) return null;
@@ -333,30 +354,52 @@ public final class CompanyDeck {
             ensureSceneSprites();
             return scene;
         }
-        openTextures();
-        if (loading == null) loading = new TextureLoadQueue(sceneTextureSteps());
-        if (!loading.done()) {
-            loading.advance(LOAD_FRAME_BUDGET_NANOS);
-            if (!loading.done()) return null;
-            if (DevConfig.DEV_MODE) {
-                Global.getLogger(CompanyDeck.class).info("company deck textures: loaded; the deck holds "
-                        + megabytes(lease.bytesHeld()) + " MB, " + megabytes(ledger.residentBytes())
-                        + " MB of mod textures resident in all");
-            }
-        }
+        preloadTextures(Long.MAX_VALUE);
         scene.attachRenderer(sprites);
         return scene;
     }
 
     /**
-     * Gives back every texture her scene loaded, for when no screen that draws her is up or the
-     * dialog closes ({@code battle-textures.md}). Her renderer goes first, with every GL resource
-     * it made, and her sprite set with the lease; the ship herself keeps running. The next
-     * {@link #drawable()} opens a new lease and loads again.
+     * Loads her art for up to {@code budgetNanos}, for a frame on which she is not drawn: the
+     * panel calls this every frame the dialog is open outside a battle, so a deck screen opened
+     * later finds it on the card. Nothing to do before she is live, or once it is all loaded.
+     * A step is never split, so one larger than the budget runs alone in its frame.
+     */
+    public void preloadTextures(long budgetNanos) {
+        if (ledger == null || scene == null) return;
+        openTextures();
+        if (loading == null) loading = new TextureLoadQueue(sceneTextureSteps()).onSlowStep(slowStepNanos, slowStep);
+        if (loading.done()) return;
+        loading.advance(budgetNanos);
+        if (loading.done() && DevConfig.DEV_MODE) {
+            Global.getLogger(CompanyDeck.class).info("company deck textures: loaded; the deck holds "
+                    + megabytes(lease.bytesHeld()) + " MB, " + megabytes(ledger.residentBytes())
+                    + " MB of mod textures resident in all");
+        }
+    }
+
+    /** Reports every preload step longer than {@code thresholdNanos}: a frame the player would feel. */
+    public CompanyDeck onSlowLoadStep(long thresholdNanos, ObjLongConsumer<TextureLoadQueue.Step> listener) {
+        slowStepNanos = thresholdNanos;
+        slowStep = listener;
+        return this;
+    }
+
+    /** Whether her art is all on the card, so a deck screen opens without loading anything. */
+    public boolean texturesLoaded() {
+        return ledger == null || (loading != null && loading.done());
+    }
+
+    /**
+     * Gives back every texture her scene loaded, for when a battle starts or the dialog closes
+     * ({@code battle-textures.md}). Her renderer goes first, with every GL resource it made, and
+     * her sprite set with the lease; the ship herself keeps running. The next
+     * {@link #preloadTextures} or {@link #drawable()} opens a new lease and loads again.
      */
     public void releaseTextures() {
         if (lease == null) return;
         if (scene != null) scene.detachRenderer();
+        rememberHeld(lease.paths());
         TextureLedger.Release release = lease.release();
         lease = null;
         sprites = null;
@@ -388,6 +431,34 @@ public final class CompanyDeck {
     /** Whether a leased deck holds textures now. */
     public boolean holdsTextures() {
         return lease != null;
+    }
+
+    private static List<String> lastHeld() {
+        if (lastHeld == null) {
+            lastHeld = List.of();
+            try {
+                SettingsAPI settings = Global.getSettings();
+                if (settings != null && settings.fileExistsInCommon(HELD_FILE)) {
+                    List<String> read = new ArrayList<>();
+                    for (String line : settings.readTextFileFromCommon(HELD_FILE).split("\n")) {
+                        if (!line.isBlank()) read.add(line.trim());
+                    }
+                    lastHeld = List.copyOf(read);
+                }
+            } catch (Exception unreadable) {
+                // A first visit, then: she surveys what she draws.
+            }
+        }
+        return lastHeld;
+    }
+
+    private static void rememberHeld(Collection<String> paths) {
+        lastHeld = List.copyOf(paths);
+        try {
+            Global.getSettings().writeTextFileToCommon(HELD_FILE, String.join("\n", lastHeld));
+        } catch (Exception unwritable) {
+            // Remembered for this session only.
+        }
     }
 
     private void openTextures() {
@@ -534,32 +605,73 @@ public final class CompanyDeck {
         List<TextureLoadQueue.Step> steps = new ArrayList<>();
         if (s == null) return steps;
         BattleTextureSet set = scene != null ? BattleTextureSet.onField(scene.simulation()) : null;
-        steps.add(new TextureLoadQueue.Step(STAGE_TERRAIN, () -> {
-            s.ensureTileSheet();
-            s.ensureRoadSheet();
-            s.ensureDoodadSheet();
-        }));
-        steps.add(new TextureLoadQueue.Step(STAGE_SPRITES, s::ensureInfantryShared));
+        // What she held last time, a texture a step, so loading her again after a battle or in a
+        // dialog opened again costs no frame more than one texture; the loaders below then find
+        // it all on the card.
+        TextureLease held = lease;
+        List<String> lastHeld = lastHeld();
+        for (String path : lastHeld) {
+            steps.add(new TextureLoadQueue.Step("held " + path, () -> {
+                try {
+                    held.acquire(path);
+                } catch (IOException missing) {
+                    // The loaders below report it, as they would have the first time.
+                }
+            }));
+        }
+        steps.add(new TextureLoadQueue.Step("urban sheet", s::ensureUrbanSheet));
+        // Only the catalog sheets her deck places; another loads on its first draw.
+        Set<String> placed = scene != null ? scene.terrainSheets() : Set.of();
+        Set<String> heldBefore = new HashSet<>(lastHeld);
+        for (String path : s.terrainSheetPaths()) {
+            if (!placed.contains(path) && !heldBefore.contains(ModTextures.file(path))) continue;
+            steps.add(new TextureLoadQueue.Step("terrain " + path, () -> s.ensureTerrainSheet(path)));
+        }
+        steps.add(new TextureLoadQueue.Step("road sheet", s::ensureRoadSheet));
+        steps.add(new TextureLoadQueue.Step("doodad sheets", s::ensureDoodadSheet));
+        steps.add(new TextureLoadQueue.Step("infantry shared layers", s::ensureInfantryShared));
         if (set != null) {
             for (LayeredArmorFamily family : set.families()) {
-                steps.add(new TextureLoadQueue.Step(STAGE_SPRITES, () -> s.ensureLayeredFamily(family)));
+                steps.add(new TextureLoadQueue.Step("family " + family, () -> s.ensureLayeredFamily(family)));
             }
-            if (set.ravRigs()) steps.add(new TextureLoadQueue.Step(STAGE_SPRITES, s::ensureRavRigs));
+            if (set.ravRigs()) steps.add(new TextureLoadQueue.Step("rav rigs", s::ensureRavRigs));
             if (!set.vehicles().isEmpty()) {
-                steps.add(new TextureLoadQueue.Step(STAGE_SPRITES, () -> s.ensureConvoySprites(Set.of())));
+                steps.add(new TextureLoadQueue.Step("vehicles", () -> s.ensureConvoySprites(Set.of())));
                 for (VehicleType type : set.vehicles()) {
-                    steps.add(new TextureLoadQueue.Step(STAGE_SPRITES, () -> s.loadConvoySprite(type)));
+                    steps.add(new TextureLoadQueue.Step("vehicle " + type, () -> s.loadConvoySprite(type)));
                 }
             }
         }
-        steps.add(new TextureLoadQueue.Step(STAGE_SPRITES, () -> s.ensureLayeredMechSprites(Set.of())));
-        steps.add(new TextureLoadQueue.Step(STAGE_SPRITES, s::ensureMarineSecondarySprites));
-        steps.add(new TextureLoadQueue.Step(STAGE_SPRITES, s::ensureAirframeSprites));
+        steps.add(new TextureLoadQueue.Step("mech set", () -> s.ensureLayeredMechSprites(Set.of())));
+        steps.add(new TextureLoadQueue.Step("projectiles", s::ensureMarineSecondarySprites));
+        steps.add(new TextureLoadQueue.Step("aircraft", s::ensureAirframeSprites));
+        // Her renderer too, on a frame she is not drawn, so a deck screen's first frame is an
+        // ordinary one.
+        ShipDeckBattleScene drawn = scene;
+        if (ledger != null && drawn != null) {
+            List<TextureLoadQueue.Step> finish = List.of(
+                    new TextureLoadQueue.Step("renderer", () -> drawn.attachRenderer(s)),
+                    // Loads anything still missing before a deck screen can, which is nothing once
+                    // the survey or the last visit has named it.
+                    new TextureLoadQueue.Step("prewarm", drawn::prewarm));
+            if (!lastHeld.isEmpty()) {
+                steps.addAll(finish);
+            } else {
+                // Her first visit this session: what the whole ship would ask for that the set
+                // above did not name (damage variants, wear, dressing) is surveyed, then loaded a
+                // sheet a step, ahead of the renderer that draws her.
+                steps.add(new TextureLoadQueue.Step("survey", () -> {
+                    List<TextureLoadQueue.Step> more = new ArrayList<>();
+                    for (String path : drawn.surveyTerrain(s)) {
+                        more.add(new TextureLoadQueue.Step("surveyed " + path, () -> s.ensureTerrainSheet(path)));
+                    }
+                    more.addAll(finish);
+                    loading.append(more);
+                }));
+            }
+        }
         return steps;
     }
-
-    private static final String STAGE_TERRAIN = "terrain";
-    private static final String STAGE_SPRITES = "sprites";
 
     /**
      * Billet the company across every berthing the ship has, biggest first.

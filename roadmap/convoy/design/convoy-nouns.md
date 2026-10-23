@@ -160,16 +160,87 @@ overlapping body out along the shallower axis; in front of a moving hull it is
 always out to the side, carried forward with the bow while it goes, so a truck
 bulldozes a man aside rather than passing over him. A bow wave ahead of a moving
 hull pushes bodies off its centerline before contact, harder the faster the hull
-is going and the nearer they are. It is physical and faction-blind, deals no
-damage, and runs after separation so a shove apart cannot put anybody back under
-a hull. Mechs accept a reduced share; emplacements, aircraft, drones and other
-hulls do not take part. Every displacement passes the same topology guard as
-separation, so a body pinned against a wall stays where it is and the hull
-passes. The push is applied to positions, not plans: infantry still path as if
-hulls were absent, and a body walking into a parked hull is pushed out again
-each tick. `-Dbattle.vehicle.repulsion=false` is the control. Everything else the ECS skips by
-membership-narrowing — no `COMBAT`, no `MOVEMENT`, no `ROLE`, no `AI_STATE`,
-so the fire system, the mover, separation and the planner never see it.
+is going and the nearer they are. The shove is physical and faction-blind, and
+runs after separation so a shove apart cannot put anybody back under a hull.
+Emplacements, aircraft and drones do not take part. Every displacement passes
+the same topology guard as separation, so a body pinned against a wall stays
+where it is and the hull passes. The push is applied to positions, not plans:
+infantry still path as if hulls were absent, and a body walking into a parked
+hull is pushed out again each tick. `-Dbattle.vehicle.repulsion=false` is the
+control. Everything else the ECS skips by membership-narrowing — no `COMBAT`, no
+`MOVEMENT`, no `ROLE`, no `AI_STATE`, so the fire system, the mover, separation
+and the planner never see it.
+
+**Mass decides the shove, and the other side is rammed** (`HullRam`). Every hull
+and body has a mass in tonnes: a rifleman a tenth, a Runner less, a Brute three
+by its stage, a mech ten per unit of its variant's relative mass, a Matriarch
+forty, and the hulls from a hover scout's one and a half to a gun tank's
+forty-five. A body takes the share of a contact push its mass leaves it, and the
+rest comes back onto the hull through its own footprint sweep: a man goes almost
+the whole way, a mech meets an APC halfway, and a pickup is held up by a Brute
+or a Matriarch rather than driving into her. The bow wave is a courtesy to
+friends only. A hostile body on the bow of a moving hull is struck on the first
+tick it is there: the two exchange one impulse as point masses at the hull's own
+closing speed. A body running into the hull adds nothing, and a parked hull
+rams nobody; a Brute's charge into a hull is the charge's own exchange. Each is
+hurt by the velocity change it could not shed, past a safe one, through the
+shared armour law at a blunt penetration, and the damage grows with the square
+root of mass, because health in this game grows much slower than mass. So a
+tank through infantry or a Runner pack kills, a technical through the same pack
+kills almost as surely, and a technical into a Brute is brought up short and
+hurt while the Brute is barely bruised. The body is knocked down or staggered
+and the hull slowed and stalled by what each took. Friendly, allied and civilian
+bodies are shoved and never hurt. A parked hull's brakes hold it against
+anything lighter than itself, which then takes the whole push.
+
+**Mechs are machines on the same terms** (`MechRamSystem`). One mass model
+covers both, so a mech against a hull resolves by weight like any other pair: a
+Hound at eight tonnes yields to an APC, and a Bulwark at eighteen outweighs one.
+- **Rams.** A walking mech rams a hostile body it reaches on the first tick of
+  contact, by the same exchange. Between two machines, a mech and a hull or two
+  mechs, both drives close the gap, and a hostile mech meets a hull from any
+  side, not only on its bow.
+- **Shoving bodies.** The separation pass weighs any pair with a mech in it in
+  tonnes. What stands ahead of a walking mech is pushed off its line, not
+  carried down it: a man to the side he is already on, and dead ahead to the
+  mech's left. For two mechs head-on that is each one's own right, so they pass.
+- **Hulls.** A walking mech that meets a hull slides round its side and is held
+  off the end, instead of standing off the tail or shoving a parked hull down
+  the road.
+
+Mech against mech is still the soft separation, with the lighter machine
+yielding, plus the existing stall escape (`MechCollisionEscapeSystem`) as the
+deadlock backstop.
+
+**Hulls do not drive through each other** (`HullContact`, `HullContactSystem`).
+After the ground pass has driven them, every pair of visible, unwrecked hulls
+whose footprints come within a skin of each other is resolved. The choice
+between a soft separating force and a yield rule is not a choice; each fails
+alone. Separation alone is a spring: a column driving into the hull ahead of it
+shoves that hull along forever. A yield rule alone deadlocks a head-on meet:
+both hulls are closing, and both wait. So both run:
+- **Yield.** The closing speed is taken off whoever must yield. A follower takes
+  the pace of the hull ahead, a hull crossing another's bow keeps going while
+  that one waits, and head-on the lighter hull (on equal mass, the later
+  spawned) stops while the other comes on at a crawl.
+- **Separation.** What overlap remains is shoved apart along the contact by
+  mass, so the lighter hull goes most of the way.
+- **Passing.** Hulls nose to nose each pull to their own side at one pace,
+  whatever they weigh. Passing is two drivers steering, not a shove. A
+  mass-split sideways push puts the light hull against the wall, inside the
+  route planner's clearance, and from there its planner refuses to start and
+  the order is abandoned.
+
+Every shove is swept on the planner's padded footprint first and on the bare
+one only for what neither hull can take that way. The shove never touches a
+route: a hull that is held up falls through to the stall ladder like any other.
+Hostile hulls do not brake for each other: they close at full speed, ram on the
+first touch, and then can go no further. A wreck is not a hull here.
+A pair that stays in contact for six seconds without both hulls getting
+anywhere is jammed (a lane too narrow for the two plus the planner's clearance,
+a column backed into trucks coming out, a truck inching a parked car along a
+road it cannot leave): neither planner reverses out, so the pair is let through
+each other, as hulls drove before there was contact, until they are clear.
 
 A vehicle **is** an ordinary squad contact. It is believed in, it counts in the
 contact picture, it moves doctrine and it raises the alert level, because an APC

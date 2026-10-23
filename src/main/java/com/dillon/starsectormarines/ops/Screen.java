@@ -46,11 +46,12 @@ public interface Screen {
     default void detach() {}
 
     /**
-     * Whether this screen draws the company deck's scene. The deck's textures are held only
-     * while such a screen is up; moving to any other screen gives them back
-     * ({@code battle-textures.md}).
+     * Whether the company deck gives its textures back while this screen is up
+     * ({@code battle-textures.md}). True for a battle, which loads its own set and is the one
+     * screen worth the card; every other screen leaves the deck's art resident, so walking back
+     * aboard is instant.
      */
-    default boolean drawsCompanyDeck() {
+    default boolean releasesCompanyDeckTextures() {
         return false;
     }
 }

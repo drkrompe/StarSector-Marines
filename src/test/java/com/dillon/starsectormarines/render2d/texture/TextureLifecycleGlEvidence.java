@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.battleview.ArmoryPreviewAssets;
 import com.dillon.starsectormarines.ops.battleview.BattleTextureSet;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
+import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import com.dillon.starsectormarines.ops.battleview.TextureLoadQueue;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
@@ -118,7 +119,7 @@ class TextureLifecycleGlEvidence {
             roots.add(Path.of("mod").toAbsolutePath());
             String install = System.getProperty("starsectorDir");
             if (install != null) roots.add(Path.of(install, "starsector-core"));
-            GameLikeTextureStore store = new GameLikeTextureStore(roots);
+            GameLikeTextureStore store = new GameLikeTextureStore(roots).screen(64, 64);
             SettingsAPI previous = Global.getSettings();
             Global.setSettings(store.settings());
             try {
@@ -165,13 +166,16 @@ class TextureLifecycleGlEvidence {
         List<MarineSoldier> company = roster.soldiers();
         CompanyDeck deck = CompanyDeck.home(TestHulls.transport(), 42L, null, List::of, () -> company,
                 () -> new boolean[]{true}).leasedFrom(ledger);
+        List<String> slowSteps = new ArrayList<>();
+        deck.onSlowLoadStep(30_000_000L, (step, nanos) -> slowSteps.add(String.format("%n    %-72s %7.1f ms",
+                step.stage(), nanos / 1e6)));
         long deadline = System.currentTimeMillis() + READY_TIMEOUT_MS;
         while (!deck.ready()) {
             assertTrue(System.currentTimeMillis() < deadline, "the deck was never got ready");
             Thread.sleep(10L);
         }
         assertFalse(deck.holdsTextures(), "a deck nobody has drawn holds nothing");
-        int frames = drawAboard(deck);
+        Aboard first = goAboard(deck);
         long deckOpen = ledger.residentBytes();
         Set<String> deckPaths = new HashSet<>(deck.sprites().lease().paths());
         Map<String, Integer> deckIds = new LinkedHashMap<>();
@@ -205,6 +209,21 @@ class TextureLifecycleGlEvidence {
             assertFalse(glIsTexture(deckIds.get(path)), path + " is deleted on the card");
         }
         long betweenScreens = ledger.residentBytes();
+        // What each of the deck's textures costs to load on its own: the floor on a preload frame.
+        TextureLease timing = ledger.lease("timing");
+        Map<String, Double> loadMs = new LinkedHashMap<>();
+        for (String path : deckPaths) {
+            long start = System.nanoTime();
+            timing.acquire(path);
+            loadMs.put(path, (System.nanoTime() - start) / 1e6);
+        }
+        timing.release();
+        StringBuilder slowest = new StringBuilder(String.format("%n  load time, %.0f ms in all; the slowest:",
+                loadMs.values().stream().mapToDouble(Double::doubleValue).sum()));
+        loadMs.entrySet().stream().sorted((a, b) -> Double.compare(b.getValue(), a.getValue())).limit(15)
+                .forEach(e -> slowest.append(String.format("%n    %-72s %7.1f ms %6.1f MB", e.getKey(), e.getValue(),
+                        mb(sizes.get(e.getKey())))));
+        System.out.println("[shader-evidence] company deck" + slowest);
         assertEquals(closed, betweenScreens, "a deck no screen draws holds nothing");
         // A small battle, loaded the way the battle screen's queue loads it: only its own set.
         long inBattle;
@@ -232,8 +251,9 @@ class TextureLifecycleGlEvidence {
         assertEquals(closed, afterBattle, "a battle leaves nothing behind");
 
         // Back aboard: the same textures, loaded afresh, and a renderer drawing live ones.
-        int framesAgain = drawAboard(deck);
-        assertEquals(deckPaths, deck.sprites().lease().paths(), "back aboard loads the same set");
+        slowSteps.add(String.format("%n  -- back aboard --"));
+        Aboard again = goAboard(deck);
+        assertTrue(deck.sprites().lease().paths().containsAll(deckPaths), "back aboard loads the same set");
         for (String path : deckPaths) {
             GameLikeTextureStore.Texture texture = store.texture(path);
             assertTrue(glIsTexture(texture.id()), path + " has a live texture back aboard");
@@ -243,6 +263,7 @@ class TextureLifecycleGlEvidence {
                 "the deck's sprites are bound to the reloaded sheet, not the released one");
         long backAboard = ledger.residentBytes();
 
+        System.out.println("[shader-evidence] company deck preload steps over 30 ms:" + String.join("", slowSteps));
         // And the dialog closes.
         deck.dismiss();
         long dialogClosed = ledger.residentBytes();
@@ -258,23 +279,60 @@ class TextureLifecycleGlEvidence {
                 .limit(12)
                 .forEach(path -> folders.append(String.format("%n    %-72s %7.1f MB", path, mb(sizes.get(path)))));
         System.out.printf("[shader-evidence] company deck: %.1f MB of mod textures on the campaign map with the dialog closed,"
-                        + " %.1f with the deck drawn (%d textures, %d frames to load), %.1f with the Armory's previews,"
+                        + " %.1f with the deck drawn (%d textures; %s), %.1f with the Armory's previews,"
                         + " %.1f between screens, %.1f in a small battle (released %.1f MB; %.1f in a battle that names"
                         + " everything), %.1f after the battle,"
-                        + " %.1f back aboard (%d frames), %.1f with the dialog closed%n  the deck's textures by folder:%s%n",
-                mb(closed), mb(deckOpen), deckPaths.size(), frames, mb(armoryOpen), mb(betweenScreens), mb(inBattle),
-                mb(battleRelease.bytesFreed()), mb(inWorstBattle), mb(afterBattle), mb(backAboard), framesAgain, mb(dialogClosed), folders);
+                        + " %.1f back aboard (%s), %.1f with the dialog closed%n  the deck's textures by folder:%s%n",
+                mb(closed), mb(deckOpen), deckPaths.size(), first, mb(armoryOpen), mb(betweenScreens), mb(inBattle),
+                mb(battleRelease.bytesFreed()), mb(inWorstBattle), mb(afterBattle), mb(backAboard), again, mb(dialogClosed), folders);
     }
 
-    /** Draws the deck the way a canvas does, a frame at a time, until she can be drawn; the frames it took. */
-    private static int drawAboard(CompanyDeck deck) {
-        int frames = 1;
-        while (deck.drawable() == null) {
+    /** The panel's preload budget per frame, {@code MarineOpsPanelPlugin.DECK_PRELOAD_FRAME_NANOS}. */
+    private static final long PRELOAD_FRAME_NANOS = 4_000_000L;
+
+    /**
+     * How going aboard went: the frames the preload took, its longest frame, the first deck frame
+     * once she is drawable, collecting a whole-ship frame afterwards, and what the derived set
+     * missed (loaded by the preload's own prewarm rather than on a frame the player saw).
+     */
+    private record Aboard(int preloadFrames, double longestPreloadMs, double firstDrawMs,
+                          double firstRenderMs, List<String> unplanned) {
+        @Override
+        public String toString() {
+            return String.format("preloaded over %d frames, longest %.1f ms; first deck frame %.1f ms,"
+                            + " collecting the whole ship %.1f ms; the preload's set missed %d %s",
+                    preloadFrames, longestPreloadMs, firstDrawMs, firstRenderMs, unplanned.size(), unplanned);
+        }
+    }
+
+    /**
+     * What the panel does while the player reads another page, a frame at a time, then a deck
+     * screen's first draw. The deck screen must never come up blank.
+     */
+    private static Aboard goAboard(CompanyDeck deck) {
+        int frames = 0;
+        long longest = 0L;
+        while (!deck.texturesLoaded()) {
+            long start = System.nanoTime();
+            deck.preloadTextures(PRELOAD_FRAME_NANOS);
+            longest = Math.max(longest, System.nanoTime() - start);
             frames++;
             assertTrue(frames < 10_000, "the deck's textures never finished loading");
         }
-        assertTrue(deck.drawable().hasRenderer(), "a drawn deck has a renderer");
-        return frames;
+        long start = System.nanoTime();
+        ShipDeckBattleScene drawn = deck.drawable();
+        long firstDraw = System.nanoTime() - start;
+        assertNotNull(drawn, "a deck screen is never shown a blank deck");
+        assertTrue(drawn.hasRenderer(), "a drawn deck has a renderer");
+
+        // A whole-ship frame collected again, as a deck screen's first frame would: it must load nothing.
+        Set<String> before = new HashSet<>(deck.sprites().lease().paths());
+        start = System.nanoTime();
+        drawn.prewarm();
+        long render = System.nanoTime() - start;
+        assertEquals(before, new HashSet<>(deck.sprites().lease().paths()),
+                "a deck screen's first frame loads nothing the preload did not");
+        return new Aboard(frames, longest / 1e6, firstDraw / 1e6, render / 1e6, deck.sprites().unplannedLoads());
     }
 
     /** Bytes the texture holds on the card, padding included. */
