@@ -4,6 +4,8 @@ Status: DRAFT — the direction for growing the mech roster beyond the three fir
 
 Written: 2026-10-23
 
+Updated: 2026-10-23 — order of work set by the campaign's Hegemony, Independent and pirate focus.
+
 ## Where the roster stands
 
 The Hound, Warden and Bulwark are the first three chassis ever built, and they are
@@ -56,6 +58,20 @@ weights its own row up, much as vehicle rosters already favour the variants each
 is known for. Until a faction's row exists, its roster uses the stand-ins. Tri-Tachyon
 would field nothing but stand-ins until the high-tech row exists.
 
+## Order of work
+
+The campaign is set in Hegemony, Independent and pirate space for now (owner,
+2026-10-23). Those factions are low-tech, apart from the Independents' midline
+purchases, so the low-tech row comes first:
+
+1. **Low-tech medium and heavy.** The Hegemony and pirates get mechs of their own
+   family, and the Hound gets siblings.
+2. **Low-tech variants** across the row, including the field-rig and salvage
+   variants that pirates and Independents would build.
+3. **Midline light.** It completes the row that Independents buy into.
+4. **High-tech.** It waits until the campaign reaches Tri-Tachyon space. Until then,
+   Tri-Tachyon's stand-in Wardens are a known mismatch and are left alone.
+
 ## Laws
 
 1. Every line has a base chassis, art, sound and doctrine of its own. A line is never a
@@ -67,8 +83,7 @@ would field nothing but stand-ins until the high-tech row exists.
 
 ## Open
 
-- **Order of work.** Which cells to fill first. High-tech gives Tri-Tachyon its own
-  mechs, and low-tech heavy gives the Hegemony a heavy of its own family.
+- **Which low-tech cell first, medium or heavy**, and whether the Hound stays the light.
 - **Whether a stand-in is kept or replaced** when its line is designed.
 - **Art pipeline.** The modular top-down mech art (`art-source/`) was built for three
   chassis. A line needs its own parts kit in its family's visual language.
