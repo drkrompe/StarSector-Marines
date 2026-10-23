@@ -49,7 +49,7 @@ public final class CordonSequence implements Objective {
          * rear two minutes before each tide (a column takes about that to march
          * up), one redoubt may fall.
          */
-        public static final Timetable STANDARD = new Timetable(List.of(240, 480, 720), 60, 0.33f, 0.66f,
+        public static final Timetable STANDARD = new Timetable(List.of(240, 480, 720), 60, 0.2f, 0.66f,
                 List.of(360, 600), List.of(30, 150, 270, 390, 510, 630), List.of(120, 360, 600), 900, 1);
 
         public Timetable {
