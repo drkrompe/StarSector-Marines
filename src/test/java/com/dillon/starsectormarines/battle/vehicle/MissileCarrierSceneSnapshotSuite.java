@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * The missile-carrier scene's frames, from the same run that produced its verdicts: all three loops at 1920x1080 and
- * 100% scale, whole map plus a full-size close view. Scene walls have no art, so the wall the LRM carrier fires over
+ * 100% scale, whole map plus a full-size close view (the LRM carrier's on the carrier itself). Scene walls have no art, so the wall the LRM carrier fires over
  * and the building the SRM technical hides behind are drawn as marks, and each hull is labelled where it starts.
  */
 public final class MissileCarrierSceneSnapshotSuite extends BehaviorSceneSnapshotSuite {
@@ -29,8 +29,9 @@ public final class MissileCarrierSceneSnapshotSuite extends BehaviorSceneSnapsho
             // 64 cells across holds the technical, the building and the stretch of road it covers.
             return new float[] {40f, 27f, 64f};
         }
-        // 90 cells across is 50 tall: the infantry, the carrier, the wall, the scout and the tank in one frame.
-        return new float[] {44f, 29f, 90f};
+        // The whole map already holds the infantry, the scout, the wall and the tank; the close view is the carrier
+        // itself, 24 cells across, so its launcher box and the salvo leaving its tubes read.
+        return new float[] {MissileCarrierScene.CARRIER_X + 4f, MissileCarrierScene.CARRIER_Y, 24f};
     }
 
     @Override protected float closeViewScale() { return 1f; }

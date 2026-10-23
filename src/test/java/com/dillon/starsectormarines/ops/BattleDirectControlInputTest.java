@@ -160,7 +160,7 @@ class BattleDirectControlInputTest {
                 event(Kind.DOWN, 0, 0, Keyboard.KEY_TAB),
                 event(Kind.DOWN, 0, 0, Keyboard.KEY_TAB))), toggle, () -> {}, NO_CHROME);
         assertFalse(input.active(), "one fresh press exits; OS repeat cannot re-enter");
-        var oldShortcut = event(Kind.DOWN, 0, 0, Keyboard.KEY_C);
+        var oldShortcut = event(Kind.DOWN, 0, 0, Keyboard.KEY_V);
         input.process(BattleDirectControlInput.capture(List.of(oldShortcut)), toggle, () -> {}, NO_CHROME);
         assertFalse(input.active());
         assertFalse(oldShortcut.isConsumed());
@@ -232,11 +232,11 @@ class BattleDirectControlInputTest {
     }
 
     @Test
-    void qCyclesTheLeftTriggerAndCTheRightOncePerPressAndAnAcceptedCycleReleasesFire() {
+    void qCyclesTheLeftTriggerAndETheRightOncePerPressAndAnAcceptedCycleReleasesFire() {
         BattleDirectControlInput input = active();
         process(input, List.of(event(Kind.LEFT_DOWN, 70, 60, 0)));
         List<FireTrigger> asked = new ArrayList<>();
-        for (int key : new int[]{Keyboard.KEY_Q, Keyboard.KEY_Q, Keyboard.KEY_C}) {
+        for (int key : new int[]{Keyboard.KEY_Q, Keyboard.KEY_Q, Keyboard.KEY_E}) {
             var down = event(Kind.DOWN, 0, 0, key);
             input.process(BattleDirectControlInput.capture(List.of(down)), () -> {}, () -> {},
                     selection -> false, ability -> false, trigger -> { asked.add(trigger); return false; }, NO_CHROME);
@@ -293,8 +293,8 @@ class BattleDirectControlInputTest {
                 event(Kind.LEFT_DOWN, 70, 60, 0)));
         List<DirectControlAbility> requests = new ArrayList<>();
         Predicate<DirectControlAbility> accept = ability -> { requests.add(ability); return true; };
-        var presses = List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_E),
-                event(Kind.DOWN, 0, 0, Keyboard.KEY_E), event(Kind.DOWN, 0, 0, Keyboard.KEY_G),
+        var presses = List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_C),
+                event(Kind.DOWN, 0, 0, Keyboard.KEY_C), event(Kind.DOWN, 0, 0, Keyboard.KEY_G),
                 event(Kind.DOWN, 0, 0, Keyboard.KEY_G));
         input.process(BattleDirectControlInput.capture(presses), () -> {}, () -> {},
                 selection -> false, accept, NO_CHROME);
@@ -303,11 +303,11 @@ class BattleDirectControlInputTest {
         assertEquals(1f, input.intent(camera(), false, NO_CHROME).moveY());
         assertTrue(input.intent(camera(), false, NO_CHROME).firing());
 
-        var release = event(Kind.UP, 0, 0, Keyboard.KEY_E);
+        var release = event(Kind.UP, 0, 0, Keyboard.KEY_C);
         var captured = BattleDirectControlInput.capture(List.of(release));
         release.consume();
         input.process(captured, () -> {}, () -> {}, selection -> false, accept, NO_CHROME);
-        input.process(BattleDirectControlInput.capture(List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_E))),
+        input.process(BattleDirectControlInput.capture(List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_C))),
                 () -> {}, () -> {}, selection -> false, accept, NO_CHROME);
         assertEquals(List.of(DirectControlAbility.SHIELD, DirectControlAbility.SMOKE,
                 DirectControlAbility.SHIELD), requests);
@@ -370,12 +370,12 @@ class BattleDirectControlInputTest {
         BattleDirectControlInput input = new BattleDirectControlInput();
         int[] requests = {0};
         Predicate<DirectControlAbility> request = ability -> { requests[0]++; return true; };
-        var inactivePress = event(Kind.DOWN, 0, 0, Keyboard.KEY_E);
+        var inactivePress = event(Kind.DOWN, 0, 0, Keyboard.KEY_C);
         input.process(BattleDirectControlInput.capture(List.of(inactivePress)), () -> {}, () -> {},
                 selection -> false, request, NO_CHROME);
         assertFalse(inactivePress.isConsumed());
         input.enter(1f);
-        input.process(BattleDirectControlInput.capture(List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_E))),
+        input.process(BattleDirectControlInput.capture(List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_C))),
                 () -> {}, () -> {}, selection -> false, request, NO_CHROME);
         assertEquals(0, requests[0]);
 
@@ -399,12 +399,12 @@ class BattleDirectControlInputTest {
         BattleDirectControlInput input = active();
         List<DirectControlAbility> requests = new ArrayList<>();
         Predicate<DirectControlAbility> request = ability -> { requests.add(ability); return true; };
-        var held = List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_E),
+        var held = List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_C),
                 event(Kind.DOWN, 0, 0, Keyboard.KEY_G));
         input.process(BattleDirectControlInput.capture(held), () -> {}, () -> {},
                 selection -> false, request, NO_CHROME);
         input.reconcileAbilityKeyReleases(true, true);
-        input.process(BattleDirectControlInput.capture(List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_E),
+        input.process(BattleDirectControlInput.capture(List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_C),
                         event(Kind.DOWN, 0, 0, Keyboard.KEY_G))),
                 () -> {}, () -> {}, selection -> false, request, NO_CHROME);
         assertEquals(List.of(DirectControlAbility.SHIELD, DirectControlAbility.SMOKE), requests);
@@ -414,7 +414,7 @@ class BattleDirectControlInputTest {
         input.enter(1f);
         input.reconcileAbilityKeyReleases(false, false);
         assertEquals(2, requests.size(), "a release observation cannot activate equipment");
-        input.process(BattleDirectControlInput.capture(List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_E),
+        input.process(BattleDirectControlInput.capture(List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_C),
                         event(Kind.DOWN, 0, 0, Keyboard.KEY_G))),
                 () -> {}, () -> {}, selection -> false, request, NO_CHROME);
         assertEquals(List.of(DirectControlAbility.SHIELD, DirectControlAbility.SMOKE,

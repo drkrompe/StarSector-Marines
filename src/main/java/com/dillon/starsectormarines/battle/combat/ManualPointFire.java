@@ -45,6 +45,24 @@ public final class ManualPointFire {
         return Float.isFinite(distance) && distance < minRangeCells(weapon);
     }
 
+    /** A rocket with a warhead: a round a player throws at ground rather than along a bearing. */
+    public static boolean bursts(WeaponDef weapon) {
+        return weapon.interceptableProjectile && weapon.aoeRadius > 0f;
+    }
+
+    /**
+     * The radius, in cells, of the disk a player's round lands in when aimed {@code distance} cells from the
+     * shooter, with the shooter's own {@code accuracy}; a point nearer than {@code standoffCells} is thrown at that
+     * distance. Negative for a weapon whose rounds do not burst where they are thrown (a gun). Smoke on a rocket's
+     * lane widens its disk further when it fires; this is the clear-air figure.
+     */
+    public static float scatterRadiusCells(WeaponDef weapon, float accuracy, float distance, float standoffCells) {
+        if (!supportsPointFire(weapon) || !arcs(weapon) && !bursts(weapon)) return -1f;
+        float thrown = Math.min(Math.max(distance, standoffCells),
+                weapon.range * BallisticResolver.MAX_GROUND_BURST_RANGE_MULTIPLIER);
+        return GroundBurstAim.errorRadius(accuracy, weapon.hitSpread, weapon.range, thrown);
+    }
+
     /**
      * Where a thrown arcing round lands: the aim point, its distance from {@code (originX, originY)} clamped to
      * {@link BallisticResolver#MAX_GROUND_BURST_RANGE_MULTIPLIER} times the weapon's range, scattered about by

@@ -273,6 +273,18 @@ whole map with the redoubts buried in its streets. The colony's streets reach
 a twentieth to a ninth of the short side and a hamlet's less, so the map
 reads as country with places in it and the line stands in open ground.
 
+**Density.** How built-up the country is follows the bloomed world's market
+size (CordonPlan.Density; owner, 2026-10-23). **Rural** (size 4 and less) is
+the country above. **Town** (5 and 6) grows the rear hamlets and the front's
+places into small towns and puts a village on the line between the middle
+redoubts, with fields still between them. **Urban** (7 and up) is built across
+the whole width either side of the line: the redoubts stand as fortified blocks
+among streets and the front is suburbs. Density changes the country, not the
+places: the four redoubts, the base, the landing's country and, on the Road,
+the compound are where they are at every density. Dense country is ground for
+infantry and walkers more than for wheels, so the allies a city's Cordon fields
+should lean on mechs and walking columns rather than carriers (open work).
+
 The redoubts are programmed places (FortressProgram.fieldRedoubt, laid
 square), so they claim first and the rest grows round them. Their roads are
 short arms, and their gates are where roads cross their walls, so a road may
@@ -319,7 +331,7 @@ many bores and at what tiers will follow what Colony Breach left
 (cordon-campaign.md): bores it collapsed stay collapsed, and biomass it fed
 shows as higher tiers.
 
-**Each variant plays from its own pool of vetted maps** (`story-map-pools.md`):
+**Each variant plays from its own pool of vetted maps at each density** (`story-map-pools.md`; `cordon-line`, `cordon-line-town`, `cordon-line-urban` and the Road's three):
 a few seeds that pass every test above on their first generation, never
 re-rolled, each with a note and an optional patch. The re-roll loop is left
 only for trying a seed that is not pooled yet. `storyMapPools` regenerates

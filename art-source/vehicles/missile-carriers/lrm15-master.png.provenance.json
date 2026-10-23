@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a169eb-6244-7f93-ae61-438104a306ab",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a169eb-6244-7f93-ae61-438104a306ab\\exec-8f2342f0-a263-4ca2-961d-ad0b702c64c5.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\missile-carriers\\lrm15-master.png",
+    "sha256": "afca1c26568d1ddef4c17beaa8ef631718bb0e2eb8c8cc17737b95ec47cf1c58",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\missile-carriers\\lrm15.prompt.txt",
+  "promptSha256": "240c932079fc25dced1b3cfffbd5a43192858b31abdc214a870240a2323279b3",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: exact silhouette, part placement and canvas position; fill it in, never move it\nImage 2: Material/style only; not layout\n\nSketch-to-render reskin of a single top-down game sprite: one LRM-15 long-range missile launcher box, seen from directly overhead (true orthographic top-down, no perspective tilt, no visible side walls), facing LEFT.\n\nReference 1 is the exact geometry: keep its silhouette, size, position on the canvas, proportions and every part in place. The left half is the sunken tube face with FIFTEEN round missile tube mouths in a 3 deep by 5 across grid; each mouth shows the yellow-orange tip of a loaded missile inside a dark tube, like the mouths in reference 2. Right of the face is a raised armoured top cover with four corner bolts and a raised centre strap running nose to tail. Small side lifting lugs above and below; a darker trunnion block at the right (tail) edge. Plane brightness in the guide only indicates height; render them as real painted metal.\n\nReference 2 is material and style only, not layout: the existing mech LRM pod sprite. Match its worn olive-khaki military paint, chipped edges, fine dark outlines, small orange marker lights on the lugs, rivets, and its crisp hand-painted game-sprite look at a higher resolution.\n\nTrue transparent background including all space around the box; no ground, no cast shadow, no shadow slab, no border, no text, no turret plate under it, no vehicle. One object only.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\missile-carriers\\lrm15-guide.png",
+      "sha256": "329d62e7859ac4c33f32216f5104d68938a515637a16a885e83eabc15d108b25",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: exact silhouette, part placement and canvas position; fill it in, never move it"
+    },
+    {
+      "path": "mod\\graphics\\battle\\mech-modular-topdown\\lrm-pod.png",
+      "sha256": "4065f046c6fe83a295c559a95e8740311d16d4d44933ce2c720299fa7e36d717",
+      "dimensions": [
+        76,
+        96
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render one image, preserving Image 1’s exact layout and applying Image 2’s material style.\n"
+  ],
+  "usage": {
+    "input_tokens": 62953,
+    "cached_input_tokens": 52480,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 697,
+    "reasoning_output_tokens": 25
+  },
+  "elapsedSeconds": 75.3
+}

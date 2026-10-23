@@ -1,0 +1,62 @@
+{
+  "version": 2,
+  "map": "cordon-line-urban",
+  "biomes": {
+    "VERDANT": [
+      {
+        "seed": 6,
+        "note": "rear north; redoubt guns 2-1-0-2"
+      },
+      {
+        "seed": 1,
+        "note": "rear north; redoubt guns 0-2-0-2"
+      },
+      {
+        "seed": 10,
+        "note": "rear south; redoubt guns 2-0-0-2"
+      }
+    ],
+    "ARID": [
+      {
+        "seed": 6,
+        "note": "rear north; redoubt guns 2-2-0-2"
+      },
+      {
+        "seed": 11,
+        "note": "rear north; redoubt guns 2-2-0-2"
+      },
+      {
+        "seed": 1,
+        "note": "rear north; redoubt guns 0-2-0-2"
+      }
+    ],
+    "ROCK": [
+      {
+        "seed": 11,
+        "note": "rear north; redoubt guns 2-2-0-2"
+      },
+      {
+        "seed": 6,
+        "note": "rear north; redoubt guns 2-1-0-2"
+      },
+      {
+        "seed": 1,
+        "note": "rear north; redoubt guns 0-2-0-2"
+      }
+    ],
+    "FROZEN": [
+      {
+        "seed": 11,
+        "note": "rear north; redoubt guns 2-2-0-2"
+      },
+      {
+        "seed": 6,
+        "note": "rear north; redoubt guns 2-1-0-2"
+      },
+      {
+        "seed": 1,
+        "note": "rear north; redoubt guns 0-2-0-2"
+      }
+    ]
+  }
+}

@@ -226,13 +226,10 @@ public class HeavyWeapons {
      * gun). Smoke on the lane widens a rocket's disk further when it fires; this is the clear-air figure.
      */
     public static float manualScatterRadiusCells(MechLoadoutComponent loadout, MechWeaponMount mount, float distance) {
-        if (!supportsPointFire(mount)) return -1f;
+        if (mount == null) return -1f;
         WeaponDef weapon = mount.weaponDef();
-        if (firesFlat(mount) && !bursts(weapon)) return -1f;
-        float thrown = Math.min(Math.max(distance, standoffCells(loadout)),
-                weapon.range * BallisticResolver.MAX_GROUND_BURST_RANGE_MULTIPLIER);
-        return GroundBurstAim.errorRadius(weapon.accuracy * sensorAccuracy(loadout),
-                RangeFalloff.spread(weapon.hitSpread, weapon.range, weapon.range), weapon.range, thrown);
+        return ManualPointFire.scatterRadiusCells(weapon, weapon.accuracy * sensorAccuracy(loadout), distance,
+                standoffCells(loadout));
     }
 
     private static float standoffCells(MechLoadoutComponent loadout) {
@@ -590,7 +587,7 @@ public class HeavyWeapons {
 
     /** A rocket with a warhead: the rounds a pilot throws at ground rather than along a bearing. */
     private static boolean bursts(WeaponDef weapon) {
-        return weapon.interceptableProjectile && weapon.aoeRadius > 0f;
+        return ManualPointFire.bursts(weapon);
     }
 
     /** The aim point, pushed out along its bearing from the centre to at least {@code minimum} cells. */

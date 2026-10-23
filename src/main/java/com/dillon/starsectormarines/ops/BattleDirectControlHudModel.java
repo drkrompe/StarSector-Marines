@@ -410,7 +410,7 @@ final class BattleDirectControlHudModel {
                 : ability.cooldownSeconds() > 0f ? 1f - fraction(ability.cooldownSeconds(), ability.cooldownDurationSeconds())
                 : ability.ready() ? 1f : 0f;
         return new WeaponRow("direct-hud-ability-" + ability.ability().name(), "weapon ability",
-                rowStyle(false, 1f), true, shield ? "E" : "G", "key", label(shield ? "Shield" : "Smoke"),
+                rowStyle(false, 1f), true, shield ? "C" : "G", "key", label(shield ? "Shield" : "Smoke"),
                 detail, resource, state, "weapon-state" + (broken || empty ? " weapon-empty"
                 : !ability.ready() ? " weapon-busy" : ""), width(fill), () -> {});
     }
