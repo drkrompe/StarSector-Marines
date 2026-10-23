@@ -172,8 +172,8 @@ public final class ConvoyRenderSystem implements RenderSystem {
     private final ScuffMark scuffMark = new ScuffMark();
 
     /**
-     * Worn plate over the hull and its treads, under the turret ({@code body-scuffs.md}): each plate's marks from
-     * {@link VehicleScuffs}, laid in the hull's own frame and turned with it.
+     * Worn plate over the hull and its treads, under the turret ({@code combat-durability-nouns.md}): each plate's
+     * marks from {@link VehicleScuffs}, laid in the hull's own frame and turned with it.
      */
     private void collectHullScuffs(VehicleType type, UnitSpriteCache cache, SpriteSheetFrames.Frame f,
                                    HullLocations locations, long id, GroundBody body, float angleDeg,

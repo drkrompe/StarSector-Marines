@@ -5,9 +5,9 @@ import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.vehicle.HullLocations;
 
 /**
- * Draws a layered mech's parts and the worn plate on each ({@code body-scuffs.md}): every part sprite goes to the
- * draw list as {@link LayeredMechComposer} emits it, followed at once by the marks of the section it belongs to, laid
- * in that part's own frame. The torso, hips and arms turn independently, so a mark rides the part it is on, and a
+ * Draws a layered mech's parts and the worn plate on each ({@code combat-durability-nouns.md}): every part sprite goes
+ * to the draw list as {@link LayeredMechComposer} emits it, followed at once by the marks of the section it belongs to,
+ * laid in that part's own frame. The torso, hips and arms turn independently, so a mark rides the part it is on, and a
  * part drawn over another covers that one's marks as it covers its paint.
  *
  * <p>A section's wear is mostly its armour and partly its structure, so a stripped section is battered and a

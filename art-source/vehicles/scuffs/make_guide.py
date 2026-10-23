@@ -1,4 +1,4 @@
-"""Geometry guide for the vehicle scuff sheet (body-scuffs.md).
+"""Geometry guide for the vehicle scuff sheet (combat-durability-nouns.md, Worn plate).
 
 Four columns by three rows of 384 px cells on a transparent canvas. Each row is one stage of worn plate, and each
 column is one variant: row 0 scrapes and bullet pocks, row 1 scorch, row 2 gouges and dents. Each mark's footprint is

@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** The placement rule for worn plate ({@code body-scuffs.md}), on a synthetic hull. */
+/** The placement rule for worn plate ({@code combat-durability-nouns.md}), on a synthetic hull. */
 class VehicleScuffsTest {
 
     /** A 192x96 frame holding a 160x64 hull, nose to the image's left as the vehicle sheets draw it. */

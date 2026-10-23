@@ -1,6 +1,6 @@
 # Vehicle scuff sheet
 
-Worn-plate marks drawn over live ground hulls and turrets (`body-scuffs.md`), made with the geometry-first workflow
+Worn-plate marks drawn over live ground hulls and turrets (`combat-durability-nouns.md`, Worn plate), made with the geometry-first workflow
 (`geometry-first-imagegen.md`).
 
 - `make_guide.py` → `guide.png`: a 4 x 3 grid of 384 px cells, each mark's footprint in flat grey inside the middle

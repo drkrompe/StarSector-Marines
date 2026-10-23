@@ -110,8 +110,8 @@ public final class UnitAtlas extends SpriteAtlas {
         // UNIT_SHADOWS draws one per body, and out of the atlas each is a bind.
         consider(candidates, sprites.shadowBlobSprite(),
                 sprites.shadowBlobPxW(), sprites.shadowBlobPxH(), "shadow blob");
-        // Worn plate is drawn as cells of one sheet over every damaged mech part (body-scuffs.md): in here, a
-        // mark joins its part's run instead of breaking it twice. Over the cap, but one small sheet that every
+        // Worn plate is drawn as cells of one sheet over every damaged mech part (combat-durability-nouns.md): in here,
+        // a mark joins its part's run instead of breaking it twice. Over the cap, but one small sheet that every
         // damaged body samples is what the cap's own reasoning lets in.
         ShuttleSpriteCache scuffs = sprites.spriteByPath(VehicleScuffs.SHEET);
         if (scuffs != null && scuffs.pxW > 0 && scuffs.pxH > 0) {

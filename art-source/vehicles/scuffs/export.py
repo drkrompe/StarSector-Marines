@@ -1,4 +1,4 @@
-"""Exports the vehicle scuff sheet (body-scuffs.md) from its accepted master.
+"""Exports the vehicle scuff sheet (combat-durability-nouns.md, Worn plate) from its accepted master.
 
 The master is the guide's 4 x 3 grid as ImageGen returned it, at whatever size it came back. Each cell is cut on the
 grid mechanically, kept whole (no trim or recentre: the renderer turns a mark about its cell centre) and resampled to

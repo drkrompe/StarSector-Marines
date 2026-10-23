@@ -16,8 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Worn plate on live mechs ({@code body-scuffs.md}): a row of Hounds and a row of Bulwarks on real ground, every
- * section's armour at 100, 66, 33 and 10% (structure losing half as much), at play zoom and close. Owner-facing
+ * Worn plate on live mechs ({@code combat-durability-nouns.md}): a row of Hounds and a row of Bulwarks on real ground,
+ * every section's armour at 100, 66, 33 and 10% (structure losing half as much), at play zoom and close. Owner-facing
  * look frames only; there is no verdict.
  */
 public final class MechScuffsSnapshotSuite implements SnapshotSuite {

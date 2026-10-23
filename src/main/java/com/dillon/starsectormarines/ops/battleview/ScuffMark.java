@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 /**
- * Lays the marks {@link VehicleScuffs#place} hands over onto one drawn image ({@code body-scuffs.md}): a hull
- * frame, a turret or a mech part, centred on a screen point and turned with it. Source pixels map to screen pixels
+ * Lays the marks {@link VehicleScuffs#place} hands over onto one drawn image ({@code combat-durability-nouns.md}): a
+ * hull frame, a turret or a mech part, centred on a screen point and turned with it. Source pixels map to screen pixels
  * by the image's own scales; each mark is one cell of the scuff sheet, turned by its own spin on top of the image's
  * angle. Reused: {@link #begin} aims it at the next image.
  */

@@ -211,7 +211,7 @@ public final class UnitRenderService implements RenderSystem {
     }
 
     private final BattleSprites sprites;
-    /** Draws each layered mech's parts and the worn plate on them ({@code body-scuffs.md}). */
+    /** Draws each layered mech's parts and the worn plate on them ({@code combat-durability-nouns.md}). */
     private final MechScuffSink mechScuffs;
     private final SystemHaloComposer halo = new SystemHaloComposer();
     /**

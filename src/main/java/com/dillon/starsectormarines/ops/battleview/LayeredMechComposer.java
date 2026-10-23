@@ -26,7 +26,7 @@ final class LayeredMechComposer {
 
         /**
          * The section the parts that follow belong to, or null for parts that carry none (leg bones, muzzle
-         * flashes): what worn plate is drawn on them ({@code body-scuffs.md}).
+         * flashes): what worn plate is drawn on them ({@code combat-durability-nouns.md}).
          */
         default void section(MechSection section) { }
     }

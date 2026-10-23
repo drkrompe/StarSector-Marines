@@ -13,9 +13,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Worn plate drawn on a live ground hull ({@code body-scuffs.md}): which scrape, scorch and gouge marks a hull shows,
- * as a pure function of its plates' armour. Nothing is recorded per hit, so a re-plated side comes back clean and a
- * review frame draws what the screen does.
+ * Worn plate drawn on a live ground hull ({@code combat-durability-nouns.md}): which scrape, scorch and gouge marks a
+ * hull shows, as a pure function of its plates' armour. Nothing is recorded per hit, so a re-plated side comes back
+ * clean and a review frame draws what the screen does.
  *
  * <p>Each plate owns {@link #SLOTS} slots, each with a position, turn, kind and wear threshold hashed from the
  * body's id, the plate and the slot. A slot shows once the plate's wear passes its threshold and never moves after,
