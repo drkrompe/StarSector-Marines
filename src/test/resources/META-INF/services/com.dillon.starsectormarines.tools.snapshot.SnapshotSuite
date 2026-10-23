@@ -278,3 +278,4 @@ com.dillon.starsectormarines.battle.infantry.MedicPoolSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.VehicleRamSceneSnapshotSuite
 com.dillon.starsectormarines.battle.turret.RaisedGunSceneSnapshotSuite
 com.dillon.starsectormarines.ops.AimReticleSnapshotSuite
+com.dillon.starsectormarines.battle.vehicle.VehicleScuffsSnapshotSuite

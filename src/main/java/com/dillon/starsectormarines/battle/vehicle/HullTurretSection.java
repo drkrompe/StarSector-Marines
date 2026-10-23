@@ -86,6 +86,11 @@ public final class HullTurretSection {
         return maxStructure;
     }
 
+    /** Sets the armor to {@code share} of its maximum outside the damage path: for staging a look, never for play. */
+    void stageArmorShare(float share) {
+        armor = maxArmor * Math.max(0f, Math.min(1f, share));
+    }
+
     /**
      * Takes a hit on the turret alone: its armor, then its structure. Writes the turret's own armor and structure
      * loss and whether the gun went into {@code out} and returns the damage that goes on through
