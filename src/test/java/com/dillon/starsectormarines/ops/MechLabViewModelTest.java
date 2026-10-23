@@ -561,8 +561,8 @@ class MechLabViewModelTest {
             for (MechLabViewModel.CatalogRow row : rows) {
                 boolean subject = row.chassisPreview() != null || row.weaponPreview() != null;
                 if (subject) subjects++;
-                assertEquals(subject, binder.isBound(instance.requireElement(row.nameId())),
-                        row.nameId() + " is bound the wrong way round");
+                assertEquals(subject, binder.isBound(instance.requireElement(row.id())),
+                        row.id() + " is bound the wrong way round");
             }
             assertTrue(subjects > 0, "the catalog offered nothing to describe");
             assertEquals(subjects + viewModel.materialStock().get().size() + rows.stream().mapToInt(row -> row.materials().size()).sum(), binder.size());

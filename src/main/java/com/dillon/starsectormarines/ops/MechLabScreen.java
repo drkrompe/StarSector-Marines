@@ -294,17 +294,21 @@ public final class MechLabScreen implements Screen {
                             row.weaponPreview(), row.replenisherPreview(), row.internalPreview(),
                             this::previewMechs));
                 }
-                if (row.weaponPreview() != null || row.replenisherPreview() != null
-                        || row.internalPreview() != null
-                        && row.internalPreview().role != MechInternal.Role.PLATING) {
-                    canvas.onPointerDown(event -> beginCatalogDrag(event, row));
-                    canvas.onPointerMove(this::moveWeaponDrag);
-                    canvas.onPointerUp(this::finishWeaponDrag);
-                }
             }
+            // The whole row is the drag handle, not only its picture.
+            boolean draggable = row.weaponPreview() != null || row.replenisherPreview() != null
+                    || row.internalPreview() != null
+                    && row.internalPreview().role != MechInternal.Role.PLATING;
             UiElement card = instance.requireElement(row.id());
-            if (row.selectsOnClick()) card.onPointerDown(event -> row.action().run());
+            card.onPointerDown(event -> {
+                if (row.selectsOnClick()) row.action().run();
+                if (draggable) beginCatalogDrag(event, row);
+            });
             card.onPointerMove(event -> {
+                if (weaponDrag != null) {
+                    moveWeaponDrag(event);
+                    return;
+                }
                 if (row.weaponPreview() != null) {
                     viewModel.hoverWeapon(row.weaponPreview());
                     if (dollElement != null) target.canvases().invalidate(dollElement);
@@ -312,6 +316,7 @@ public final class MechLabScreen implements Screen {
                     viewModel.hoverInternal(row.internalPreview());
                 }
             });
+            card.onPointerUp(draggable ? this::finishWeaponDrag : null);
         }
         for (MechLabViewModel.SlotRow row : viewModel.selectedSlotRows().get()) {
             UiElement canvas = instance.requireElement(row.gridId());
@@ -413,6 +418,10 @@ public final class MechLabScreen implements Screen {
     /** Picks a spare up out of stores; a row with none to carry only offers its FAB button. */
     private void beginCatalogDrag(UiPointerEvent event, MechLabViewModel.CatalogRow row) {
         if (event.button() != PointerButton.PRIMARY) return;
+        // A press on the row's own FAB button is that button's click, not a pick-up.
+        for (UiElement e = event.target(); e != null && e != event.currentTarget(); e = e.parent()) {
+            if (e.clickable()) return;
+        }
         MechWeaponComponent weapon = row.weaponPreview();
         MechInternal internal = row.internalPreview();
         MissileReplenisherComponent loader = row.replenisherPreview();
