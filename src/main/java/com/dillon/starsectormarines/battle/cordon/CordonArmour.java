@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.cordon;
 import com.dillon.starsectormarines.battle.command.allied.AlliedCommand;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 import java.util.ArrayList;
@@ -21,6 +22,8 @@ public final class CordonArmour {
     static final int REVIEW_TICKS = 30;
     /** Cells behind a redoubt's rear wall a hull fights from. */
     static final int BEHIND_WALL = 4;
+    /** Cells a hull set down at setup may be moved to find open ground it fits on. */
+    static final int SET_DOWN_REACH = 24;
 
     private final AlliedCommand command;
     private final int frontward;
@@ -35,13 +38,39 @@ public final class CordonArmour {
 
     public AlliedCommand command() { return command; }
 
+    /**
+     * Takes a hull standing on the field under the allied command, with a home it goes back to
+     * between calls: a car or technical rolled out of the base's shed.
+     */
+    public void adopt(BattleSimulation sim, long hull, int homeX, int homeY) {
+        command.enlist(sim, hull);
+        home.put(hull, new int[]{homeX, homeY});
+    }
+
     /** Sets a hull down at the nearest open ground to a cell; that place is its home between calls. */
     public long deploy(BattleSimulation sim, VehicleType type, int x, int y) {
-        int[] cell = CordonGround.nearestWalkable(sim.getGrid(), x, y);
+        int[] cell = drivable(sim, type, x, y);
         if (cell == null) return 0L;
         long hull = command.deploy(sim, type, cell[0], cell[1], frontward > 0 ? 0f : 180f);
         home.put(hull, cell);
         return hull;
+    }
+
+    /** The nearest cell to {@code (x, y)} a hull of this type stands clear on, out to {@link #SET_DOWN_REACH}. */
+    static int[] drivable(BattleSimulation sim, VehicleType type, int x, int y) {
+        int radius = VehicleClearance.radiusForWidth(type.visualWidthCells);
+        for (int r = 0; r <= SET_DOWN_REACH; r++) {
+            for (int dx = -r; dx <= r; dx++) {
+                for (int dy = -r; dy <= r; dy++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                    int cx = x + dx, cy = y + dy;
+                    if (sim.getGrid().inBounds(cx, cy) && VehicleClearance.fitsAt(sim.getGrid(), cx, cy, radius)) {
+                        return new int[]{cx, cy};
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     /** One tick: sends each hull to the calling redoubt nearest it, or home when none calls. */
@@ -77,7 +106,8 @@ public final class CordonArmour {
         return best;
     }
 
-    private int[] behind(CordonRedoubt r) {
+    /** Where to fight from behind a redoubt: its rear wall's middle, a few cells back. */
+    int[] behind(CordonRedoubt r) {
         int y = frontward > 0 ? r.top() - BEHIND_WALL : r.bottom() + BEHIND_WALL;
         return new int[]{r.centreX(), y};
     }

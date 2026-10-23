@@ -12,6 +12,9 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
@@ -92,7 +95,10 @@ public final class FabricationSystem {
      */
     private static void forgetWhatWasDestroyed(BattleSimulation sim, FabricationService works) {
         for (FabricationService.Works bay : works.bays()) {
-            if (!bay.hasFrame() || sim.world().isAlive(bay.frameId)) continue;
+            if (!bay.hasFrame()) continue;
+            boolean standing = sim.world().isAlive(bay.frameId)
+                    && (bay.vehicle == null || sim.convoy().structure(bay.frameId) > 0f);
+            if (standing) continue;
             LOG.info("FabricationSystem: the machine on the stocks in bay "
                     + bay.siteId + " was destroyed before it was finished");
             works.clearStocks(bay.siteId);
@@ -116,20 +122,24 @@ public final class FabricationSystem {
                     sim.world().cellX(actor), sim.world().cellY(actor));
             if (siteId < 0) continue;
             FabricationService.Works bay = works.bay(siteId);
-            if (bay == null || bay.chassis == null) continue;
+            if (bay == null || !bay.tooled()) continue;
 
             works.setLastBuilder(sim.identity().faction(actor));
             if (!bay.hasFrame()) {
                 layKeel(sim, works, bay);
                 continue;
             }
-            put(sim, bay.frameId, dt * FabricationService.STRUCTURE_PER_HAND_SECOND);
+            put(sim, bay.frameId, dt * FabricationService.STRUCTURE_PER_HAND_SECOND * works.pace());
         }
     }
 
     /** Stand a new machine on a bay's stocks, as far along as a keel is. */
     private void layKeel(BattleSimulation sim, FabricationService works,
                          FabricationService.Works bay) {
+        if (bay.vehicle != null) {
+            layHull(sim, works, bay);
+            return;
+        }
         Gantry stocks = works.gantry(bay.stocks);
         MechVariant chassis = bay.chassis;
         if (!legalBerth(sim, stocks, chassis, 0L)) return;
@@ -152,6 +162,32 @@ public final class FabricationSystem {
         works.lay(bay.siteId, sim.spawn(frame));
     }
 
+    /**
+     * Stand a new vehicle on a bay's stocks: the hull itself, as far along as a keel is, with its gun
+     * empty. Finishing it is welding it whole; nothing is swapped out at the end, because a hull is
+     * already the thing it is going to be, and an empty gun is what keeps a half-built one quiet.
+     */
+    private void layHull(BattleSimulation sim, FabricationService works, FabricationService.Works bay) {
+        Gantry stocks = works.gantry(bay.stocks);
+        if (stocks.holds != Gantry.Holds.MACHINE) return;
+        float x = stocks.worldCenterX(), y = stocks.worldCenterY();
+        // The last one has to have driven off the stocks first: a hull is laid where the berth is clear.
+        for (long other : sim.convoy().entityIds()) {
+            if (sim.convoy().structure(other) <= 0f) continue;
+            GroundBody body = sim.convoy().body(other);
+            if (body.x >= stocks.left() && body.x <= stocks.right() + 1f
+                    && body.y >= stocks.bottom() && body.y <= stocks.top() + 1f) return;
+        }
+        long hull = sim.convoy().spawn(bay.vehicle, works.lastBuilder(), VehicleMission.deployed(x, y));
+        // Initial pose, before tick zero for this hull; later motion goes through the chassis controller.
+        sim.convoy().body(hull).teleport(x, y, stocks.facing.degrees());
+        GroundTurret turret = sim.convoy().turret(hull);
+        bay.frameAmmo = turret == null ? 0 : turret.ammo;
+        if (turret != null) turret.ammo = 0;
+        sim.world().setHp(hull, Math.max(1f, sim.world().maxHp(hull) * FabricationService.KEEL_FRACTION));
+        works.lay(bay.siteId, hull);
+    }
+
     /** Put structure on a machine, up to what a finished one has. */
     private static void put(BattleSimulation sim, long frameId, float structure) {
         float built = Math.min(sim.world().maxHp(frameId),
@@ -162,9 +198,23 @@ public final class FabricationSystem {
     /** Roll out every machine that is whole, and clear its gantry. */
     private void rollOutWhatIsFinished(BattleSimulation sim, FabricationService works) {
         for (FabricationService.Works bay : works.bays()) {
-            if (!bay.hasFrame() || bay.chassis == null) continue;
+            if (!bay.hasFrame() || !bay.tooled()) continue;
             if (sim.world().hp(bay.frameId) < sim.world().maxHp(bay.frameId)) continue;
-            if (driveOut(sim, works, bay)) works.rollOut(bay.siteId);
+            if (bay.vehicle != null) {
+                long hull = bay.frameId;
+                GroundTurret turret = sim.convoy().turret(hull);
+                if (turret != null) turret.ammo = bay.frameAmmo;
+                LOG.info("FabricationSystem: " + sim.convoy().faction(hull) + " " + bay.vehicle
+                        + " rolled out of bay " + bay.siteId);
+                works.rollOut(bay.siteId);
+                works.announce(hull);
+                continue;
+            }
+            long unit = driveOut(sim, works, bay);
+            if (unit != 0L) {
+                works.rollOut(bay.siteId);
+                works.announce(unit);
+            }
         }
     }
 
@@ -188,11 +238,11 @@ public final class FabricationSystem {
      * a shed under its own power is simply part of the garrison, and the side's
      * commander takes it like any other.
      */
-    private boolean driveOut(BattleSimulation sim, FabricationService works,
+    private long driveOut(BattleSimulation sim, FabricationService works,
                           FabricationService.Works bay) {
         Gantry stocks = works.gantry(bay.stocks);
         MechVariant chassis = bay.chassis;
-        if (!legalBerth(sim, stocks, chassis, bay.frameId)) return false;
+        if (!legalBerth(sim, stocks, chassis, bay.frameId)) return 0L;
         Faction builder = sim.identity().faction(bay.frameId);
         sim.takeOffTheField(bay.frameId);
 
@@ -220,7 +270,7 @@ public final class FabricationSystem {
                 chassis, chassis.defaultRole, works.factionId()));
         LOG.info("FabricationSystem: " + builder + " " + chassis.displayName()
                 + " rolled out of the bay at " + stocks.centerX + "," + stocks.centerY);
-        return true;
+        return unit;
     }
 
     private static boolean legalBerth(BattleSimulation sim, Gantry stocks,
