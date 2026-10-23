@@ -1214,7 +1214,12 @@ against its own control in `renderEvidence`.
   `battle-render-nouns.md`), so the creep's edge follows that contour instead:
   it runs over the corners the contour cuts to bank, stops short of those it
   floods, and leaves the wet band showing between it and the water
-  (`ShoreWaterMask`). Where the shore is drawn square, so is the creep's edge.
+  (`ShoreWaterMask`).
+  A ford is drawn as shallows over a stony bed, and the creep's body is kept
+  off it like the water's; where the creep holds a ford it lays only faint
+  veins and a thin film over the bed, as over a cliff face, while open water
+  takes nothing (owner). That is the picture alone: the ford is still a
+  firebreak.
 - **Trees die under it** (`CreepVegetation`). A tree whose crown living creep
   has held to the tree's own seeded share of about a minute and a half of
   climbing is dead, and stays dead if the creep later withers. A dead tree has
