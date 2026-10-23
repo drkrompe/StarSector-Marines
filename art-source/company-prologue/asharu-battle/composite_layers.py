@@ -206,7 +206,31 @@ def swap_plate(rgba, bg, cover, plate, png, scene):
         raise SystemExit(f'cannot write {png}: {buf.geterror()}')
 
 
-def compose_frame(exr, png, scene, plate=None, backdrop=None, log=print):
+def _box(a, r, axis):
+    """A box blur of radius r along one axis, the edges held."""
+    a = np.moveaxis(a, axis, 0)
+    p = np.concatenate([np.repeat(a[:1], r + 1, 0), a, np.repeat(a[-1:], r, 0)], 0)
+    c = np.cumsum(p, 0, dtype=np.float64)
+    return np.moveaxis(((c[2 * r + 1:] - c[:-2 * r - 1]) / (2 * r + 1)).astype(np.float32), 0, axis)
+
+
+def bloom(rgb, amount):
+    """The glow of what is brighter than the display holds (S12's entry plasma is light, and has to
+    bloom): the part of the effects layer above a soft threshold, blurred at three radii (three box
+    passes each, near enough a gaussian) and added back over the frame."""
+    hot = np.maximum(rgb - .8, 0.0)
+    w = rgb.shape[1]
+    out = np.zeros_like(hot)
+    for frac, weight in ((.003, .45), (.012, .35), (.04, .3)):
+        r = max(1, int(frac * w))
+        b = hot
+        for _ in range(3):
+            b = _box(_box(b, r, 0), r, 1)
+        out += weight * b
+    return out * amount
+
+
+def compose_frame(exr, png, scene, plate=None, backdrop=None, log=print, glow=0.0):
     """raw/<kf>.layers.exr -> the still. A backdrop the EXR rendered is cached at `backdrop` for the next
     frame with the same camera; one it did not render is read from there."""
     layers = read_layers(exr)
@@ -214,6 +238,9 @@ def compose_frame(exr, png, scene, plate=None, backdrop=None, log=print):
     if missing:
         raise SystemExit(f'{exr}: no {", ".join(missing)} layer (has {", ".join(layers)})')
     rgba, bg, cover, used = compose(layers, plate, backdrop)
+    if glow:            # a key frame's bloom (its spec's 'bloom'): from the effects layer, over everything
+        rgba = rgba.copy()
+        rgba[..., :3] += bloom(layers['effects']['Combined'][..., :3], glow)
     if 'backdrop' in layers and backdrop is not None:
         Path(backdrop).parent.mkdir(parents=True, exist_ok=True)
         write_rgba(backdrop, backdrop_of(layers))

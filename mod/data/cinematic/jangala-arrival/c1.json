@@ -523,12 +523,19 @@
    "duck": 0.3981
   },
   {
-   "t": 0.0,
-   "sound": "jangala_cabin_bed",
-   "volume": 1.0,
-   "until": 52.56,
-   "fade_in": 1.0,
-   "fade_out": 1.5
+   "t": 0.015,
+   "sound": "jangala_sfx_c1_cabin_bed",
+   "volume": 0.1259
+  },
+  {
+   "t": 0.5,
+   "sound": "jangala_sfx_c1_hull_creaks",
+   "volume": 0.2042
+  },
+  {
+   "t": 1.786,
+   "sound": "jangala_sfx_c1_second_wind_pass",
+   "volume": 0.4898
   },
   {
    "t": 3.0,
@@ -541,6 +548,16 @@
    "volume": 1.0
   },
   {
+   "t": 5.01,
+   "sound": "jangala_sfx_c1_rcs_puffs",
+   "volume": 0.2541
+  },
+  {
+   "t": 6.0,
+   "sound": "jangala_sfx_c1_sparks",
+   "volume": 0.0891
+  },
+  {
    "t": 11.8,
    "sound": "jangala_squelch_close",
    "volume": 1.0
@@ -549,6 +566,11 @@
    "t": 12.62,
    "sound": "jangala_arrival_hail_02",
    "volume": 1.0
+  },
+  {
+   "t": 21.502,
+   "sound": "jangala_sfx_c1_hound_flyby_a",
+   "volume": 0.1862
   },
   {
    "t": 23.7,
@@ -564,6 +586,11 @@
    "t": 31.7,
    "sound": "jangala_squelch_close",
    "volume": 1.0
+  },
+  {
+   "t": 32.2,
+   "sound": "jangala_sfx_c1_hull_creaks_2",
+   "volume": 0.2042
   },
   {
    "t": 32.52,

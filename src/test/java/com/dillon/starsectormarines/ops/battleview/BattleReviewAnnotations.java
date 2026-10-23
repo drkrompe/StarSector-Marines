@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.command.ConquestLaneChain;
+import com.dillon.starsectormarines.battle.command.HeartLane;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.objective.CivilianEvacuationObjective;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
@@ -10,6 +11,8 @@ import com.dillon.starsectormarines.battle.evacuation.CivilianRedoubt;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.evacuation.ColonyLivingField;
+import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
+import com.dillon.starsectormarines.battle.evacuation.HeartSequence;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
@@ -43,6 +46,7 @@ public final class BattleReviewAnnotations {
         // rather than under: a lane runs through the places it joins, and the
         // reader is judging the places.
         addLaneRoutes(marks, simulation);
+        addHeartSectors(marks, simulation);
         Ends ends = addCompounds(marks, simulation);
         // The landing place when the map has one, and the berths themselves
         // when it does not. A beachhead that is a compound is boxed by the
@@ -57,6 +61,28 @@ public final class BattleReviewAnnotations {
                     "approach", ReviewStyle.APPROACH);
         }
         return marks.build();
+    }
+
+    /**
+     * The Burn's front: each allied battlegroup's sector and the company's own,
+     * boxed across the whole approach so the reader sees who holds which band.
+     */
+    private static void addHeartSectors(ReviewAnnotations.Builder marks, BattleSimulation simulation) {
+        HeartSequence heart = simulation.getHeart();
+        HeartLanes lanes = heart == null ? null : heart.lanes();
+        if (lanes == null || lanes.companySector() == null) return;
+        int width = simulation.getGrid().getWidth(), height = simulation.getGrid().getHeight();
+        List<HeartLane> grounds = lanes.grounds();
+        for (int i = 0; i < grounds.size(); i++) addSector(marks, grounds.get(i), width, height,
+                "BATTLEGROUP " + (i + 1), ReviewStyle.ROUTE);
+        addSector(marks, lanes.companySector(), width, height, "COMPANY SECTOR", ReviewStyle.LANDING);
+    }
+
+    private static void addSector(ReviewAnnotations.Builder marks, HeartLane sector, int width, int height,
+                                  String text, ReviewStyle style) {
+        int low = sector.across() - sector.halfWidth(), high = sector.across() + sector.halfWidth();
+        if (sector.advancesAlongY()) marks.box(low, 1, high, height - 2, text, style);
+        else marks.box(1, low, width - 2, high, text, style);
     }
 
     /**

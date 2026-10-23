@@ -28,10 +28,19 @@ public final class GroundTurret {
     public long targetId;
     /** Rounds remaining in the magazine. Seeded from the authored mount capacity. */
     public int ammo;
+    /**
+     * Charges in the mount's capacitor bank, fractional while one refills ({@code TurretMountDef#charges}); zero and
+     * unread for a mount without a bank.
+     */
+    public float charge;
     /** Rounds left in the current burst (excluding the trigger-pull round). */
     public int burstRemaining;
     /** Sim-seconds until the next burst round fires. */
     public float burstTimer;
+    /** The aircraft the gun is on, or {@code 0L}; set only for a mount that engages air. */
+    public long airTargetId;
+    /** Whether the committed burst is going into the air at {@link #airTargetId} rather than at a ground target. */
+    public boolean burstAir;
     /** Entity id of the target locked when the current burst started. */
     public long burstTargetId;
     /** Sim-seconds until a missile launcher next looks for a new target. */
@@ -62,6 +71,8 @@ public final class GroundTurret {
     /** Releases queued work without refunding ammunition or resetting the fire clock. */
     public void clearQueuedFire() {
         targetId = 0L;
+        airTargetId = 0L;
+        burstAir = false;
         burstTargetId = 0L;
         burstPointAim = null;
         burstRemaining = 0;

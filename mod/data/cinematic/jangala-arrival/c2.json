@@ -23,9 +23,64 @@
  "overlays": [],
  "cues": [
   {
+   "t": 0.0,
+   "sound": "jangala_sfx_c2_c1_cabin_bed",
+   "volume": 0.0519
+  },
+  {
+   "t": 0.003,
+   "sound": "jangala_sfx_c2_bridge_bed",
+   "volume": 0.0944
+  },
+  {
+   "t": 0.007,
+   "sound": "jangala_sfx_c2_second_wind_interior",
+   "volume": 0.182
+  },
+  {
+   "t": 0.085,
+   "sound": "jangala_sfx_c2_console_beeps",
+   "volume": 0.1096
+  },
+  {
+   "t": 0.09,
+   "sound": "jangala_sfx_c2_legion_forward",
+   "volume": 0.2483
+  },
+  {
+   "t": 0.114,
+   "sound": "jangala_sfx_c2_legion_drives",
+   "volume": 0.1603
+  },
+  {
+   "t": 0.141,
+   "sound": "jangala_sfx_c2_fighter_02",
+   "volume": 0.3981
+  },
+  {
+   "t": 0.215,
+   "sound": "jangala_sfx_c2_fighter_00",
+   "volume": 0.4266
+  },
+  {
+   "t": 0.223,
+   "sound": "jangala_sfx_c2_fighter_10",
+   "volume": 0.2851
+  },
+  {
+   "t": 0.231,
+   "sound": "jangala_sfx_c2_fighter_12",
+   "volume": 0.2317
+  },
+  {
    "t": 0.3,
    "sound": "jangala_squelch_open",
    "volume": 1.0
+  },
+  {
+   "t": 0.362,
+   "sound": "jangala_sfx_c2_fighter_01",
+   "volume": 0.3126
   },
   {
    "t": 0.46,
@@ -33,14 +88,59 @@
    "volume": 1.0
   },
   {
+   "t": 0.516,
+   "sound": "jangala_sfx_c2_fighter_11",
+   "volume": 0.2163
+  },
+  {
+   "t": 1.47,
+   "sound": "jangala_sfx_c2_console_lean",
+   "volume": 0.1718
+  },
+  {
+   "t": 2.036,
+   "sound": "jangala_sfx_c2_console_beeps_2",
+   "volume": 0.1567
+  },
+  {
+   "t": 4.972,
+   "sound": "jangala_sfx_c2_steps",
+   "volume": 0.1462
+  },
+  {
+   "t": 5.33,
+   "sound": "jangala_sfx_c2_brush_past",
+   "volume": 0.123
+  },
+  {
+   "t": 6.57,
+   "sound": "jangala_sfx_c2_console_lean_2",
+   "volume": 0.1531
+  },
+  {
    "t": 8.94,
    "sound": "jangala_squelch_close",
    "volume": 1.0
   },
   {
+   "t": 9.534,
+   "sound": "jangala_sfx_c2_switch_clicks",
+   "volume": 0.3715
+  },
+  {
    "t": 9.76,
    "sound": "jangala_arrival_hail_08",
    "volume": 1.0
+  },
+  {
+   "t": 10.8,
+   "sound": "jangala_sfx_c2_c1_hull_creaks",
+   "volume": 0.2455
+  },
+  {
+   "t": 14.35,
+   "sound": "jangala_sfx_c2_switch_clicks_2",
+   "volume": 0.3589
   }
  ],
  "speakers": {

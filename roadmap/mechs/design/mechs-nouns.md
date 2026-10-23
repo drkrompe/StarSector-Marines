@@ -138,8 +138,8 @@ increasing an encounter's total armored threat.
   Medium lift) and fire-support APC (a heavy mortar where the troop bay was, no seats,
   Medium lift) are Advanced, as is the LRM carrier (two LRM-15 anti-armor racks
   where the troop bay was, no seats, Medium lift, spotted indirect fire;
-  `convoy-nouns.md`, the missile carriers); the breakthrough tank's heavy-gun tank and dozer
-  breacher are Prestige and Heavy lift. A variant earns its place by a trade —
+  `convoy-nouns.md`, the missile carriers); the breakthrough tank's variants (screened tank, laser tank,
+  dozer breacher) are Prestige and Heavy lift. A variant earns its place by a trade —
   among fabricable hulls on the same lift with the same gun, none is at least as good
   at everything — and costs more than the hull it improves on. A faction weights up
   the variant it is known for (Hegemony the up-armored APC and the LRM carrier, the Lion's Guard the
@@ -1146,8 +1146,13 @@ support sortie, subject only to practical runtime resources.
   vehicle-pattern catalog. **Choosing is not buying:** clicking a pattern selects it,
   stands it on the pad as a translucent preview at the scene's own scale (a mech in its
   standard fit, a vehicle nose-up) on the right of the view, and fills a build card floating over the
-  left of the scene with its name, kind, figures, lore and
-  bill; only the card's BUILD spends anything. With nothing chosen the first pattern
+  left of the scene with its maker's crest, name, procurement credit, kind, figures, lore and
+  bill; only the card's BUILD spends anything. Every chassis and vehicle pattern is
+  credited to a faction in the loadout cards' voice (`MechPatternCredits`: a square
+  faction crest and a procurement line such as the Ordnance Board heavy schedule), and
+  the credit must agree with which faction's markets weight the pattern up
+  (`MechPatternPicker`): a navy's issue is that navy's, and a pickup-based field rig is a
+  frontier or pirate workshop's. With nothing chosen the first pattern
   the filter shows is previewed. A successful cargo-backed BUILD puts one persistent
   standard-fit chassis, or one vehicle, onto that exact pad and immediately makes
   it part of the active lance. A gantry holding a vehicle is selectable and shows its

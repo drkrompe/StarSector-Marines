@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.battle.combat.UnguidedMissileAim;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.AirMissileSpec;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.vehicle.VehicleAirFire;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -155,6 +157,63 @@ public final class GroundAntiAirSystem {
                 AirAppearance.visualAltitudeOffsetCells(sim.world().altitudeT(target)), hit,
                 sim.identity().faction(id), flight, structure, null, null, null,
                 0f, hit, null, id));
+    }
+
+    /**
+     * The air layer as a vehicle gun that reaches the air sees it ({@link VehicleAirFire}): the same eligibility an
+     * emplacement's pick applies (airborne, on the map, hostile, in reach, a clear line up), and a round rolled and
+     * landed the way this pass lands an emplacement's flak.
+     */
+    public VehicleAirFire vehicleAirFire(BattleSimulation sim) {
+        return new VehicleAirFire() {
+            @Override
+            public long pick(Faction side, float x, float y, float range, long held) {
+                if (held != 0L && valid(side, x, y, range, held)) return held;
+                long best = 0L;
+                float nearest = range * range;
+                for (long craft : sim.getAirEntityIds()) {
+                    if (!valid(side, x, y, range, craft)) continue;
+                    float dx = sim.world().x(craft) - x, dy = sim.world().y(craft) - y;
+                    float distance = dx * dx + dy * dy;
+                    if (distance < nearest || distance == nearest && craft < best) {
+                        best = craft;
+                        nearest = distance;
+                    }
+                }
+                return best;
+            }
+
+            @Override
+            public boolean valid(Faction side, float x, float y, float range, long craft) {
+                if (!sim.world().isAlive(craft)) return false;
+                var mission = sim.world().mission(craft);
+                if (mission == null || mission.destroyed || !mission.isOnMap()
+                        || !AirLocomotion.of(mission.state).airborne()
+                        || !side.hostileTo(sim.world().airFaction(craft))) return false;
+                float dx = sim.world().x(craft) - x, dy = sim.world().y(craft) - y;
+                if (dx * dx + dy * dy > range * range) return false;
+                return TurretAim.summitAirFireLineClear(sim.getGrid(), sim.getTopology(), (int) Math.floor(x),
+                        (int) Math.floor(y), (int) sim.world().x(craft), (int) sim.world().y(craft), 4f);
+            }
+
+            @Override
+            public void fire(long shooter, Faction side, StructureDef structure, long craft,
+                             float muzzleX, float muzzleY) {
+                WeaponDef weapon = structure.mount.weapon;
+                boolean hit = sim.random().nextFloat() < weapon.accuracy;
+                float flight = weapon.flightSec > 0f ? weapon.flightSec : FLIGHT_SECONDS;
+                float x = sim.world().x(craft), y = sim.world().y(craft);
+                if (!hit) { x += 2f; y += 1f; }
+                sim.telemetry().recordRoundFired(shooter);
+                if (hit) {
+                    rounds.add(new Round(shooter, craft, weapon.damage, weapon.penetration,
+                            sim.getSimTickIndex() + Math.max(1, Math.round(flight / BattleSimulation.TICK_DT))));
+                }
+                sim.postShot(new ShotEvent(muzzleX, muzzleY, 0f, x, y,
+                        AirAppearance.visualAltitudeOffsetCells(sim.world().altitudeT(craft)), hit,
+                        side, flight, structure, null, null, null, 0f, hit, null, shooter));
+            }
+        };
     }
 
     /**
@@ -337,6 +396,8 @@ public final class GroundAntiAirSystem {
 
     private static void gatherGroundBlast(BattleSimulation sim, Missile missile, long id, List<BlastVictim> victims) {
         if (!sim.bodies().isTargetable(id)) return;
+        // A passenger is behind the hull, which is caught by the body pass.
+        if (sim.isRiding(id)) return;
         var carrier = sim.bodies().carrierOf(id);
         if (carrier != null && carrier.isAirborne(id)) return;
         var spec = missile.weapon.airMissile;

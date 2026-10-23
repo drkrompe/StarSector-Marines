@@ -103,23 +103,6 @@ public enum VehicleType {
         @Override public ArmorArcs.Profile armorArcs() { return arcs(TANK_ARCS); }
     },
     /**
-     * Breakthrough hull carrying one long heavy gun instead of the twin breach cannons:
-     * more reach and penetration per round, a slower cycle and a slower hull. The breakthrough
-     * hull art with its own long-gun turret frames (art-source/vehicles/tank-heavy-gun).
-     */
-    HEAVY_GUN_TANK("graphics/battle/vehicles/army-tank-heavy-gun.png", 0, 4, -90f,
-            0, 4.3f, 3.9f, 2.6f, .85f, 3.0f, .8f, 3.0f,
-            1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
-            TurretCatalogRegistry.TANK_HEAVY_GUN_STRUCTURE_ID, 700f, 600f, 20f, 1.4f, 1.1f) {
-        @Override public GroundBody createBody() {
-            return new BicycleBody(2.6f, 30f, 80f, accel, brakingAccel, maxSpeed, TANK_REVERSE_FRACTION);
-        }
-        @Override public float turretRecoilCells() { return .24f; }
-        @Override public float turretHitShare() { return TANK_TURRET_HIT_SHARE; }
-        @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
-        @Override public ArmorArcs.Profile armorArcs() { return arcs(TANK_ARCS); }
-    },
-    /**
      * The breakthrough tank with a hull interceptor system: the same hull, twin cannons and plate, plus active
      * protection that takes top-attack rounds coming down on it ({@link #activeProtectionStructureId}), paid for in
      * a little speed for the launcher boxes and their power. The tank
@@ -140,6 +123,28 @@ public enum VehicleType {
         @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
         @Override public ArmorArcs.Profile armorArcs() { return arcs(TANK_ARCS); }
         @Override public String activeProtectionStructureId() { return SCREENED_TANK_ACTIVE_PROTECTION; }
+    },
+    /**
+     * Breakthrough hull with a ship's burst laser where the twin cannons were. A ship mounts this emitter as
+     * point defence because it barely marks proper plate; at ground scale almost nothing is proper plate. It
+     * answers each target in a short burst a second, hits nearly where it aims and turns fast, so it clears
+     * infantry and drones far quicker than a cannon tank. It carries no blast and no wall damage, so it cannot open a
+     * building, and its low penetration leaves it chipping at armor. The power plant takes the shell stowage's
+     * room and weight, so the hull runs a little faster. Its turret is drawn from the mount's sprite until it has
+     * art of its own, and until then the variant is not offered as a card.
+     */
+    LASER_TANK("graphics/battle/vehicles/army-tank.png", 0, 4, -90f,
+            0, 4.3f, 3.9f, 3.3f, 1.05f, 3.0f, .8f, 3.0f,
+            -1, 0f, 0f, 0f, 0f, 0f, 0f,
+            TurretCatalogRegistry.TANK_BURST_LASER_STRUCTURE_ID, 750f, 500f, 18f, 1.4f, 1.1f) {
+        @Override public GroundBody createBody() {
+            return new BicycleBody(2.6f, 32f, 95f, accel, brakingAccel, maxSpeed, TANK_REVERSE_FRACTION);
+        }
+        @Override public float turretHitShare() { return TANK_TURRET_HIT_SHARE; }
+        @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
+        @Override public ArmorArcs.Profile armorArcs() { return arcs(TANK_ARCS); }
+        @Override public boolean turretArtFromMount() { return true; }
+        @Override public boolean presentationDeclared() { return false; }
     },
     /**
      * Breaching sidegrade on the breakthrough hull: a dozer blade and the APC's twin MG instead of
@@ -443,7 +448,8 @@ public enum VehicleType {
 
     /** The breakthrough hull and the variants built on it. */
     public boolean isTank() {
-        return this == BREAKTHROUGH_TANK || this == HEAVY_GUN_TANK || this == SCREENED_TANK || this == DOZER_BREACHER;
+        return this == BREAKTHROUGH_TANK || this == SCREENED_TANK || this == LASER_TANK
+                || this == DOZER_BREACHER;
     }
 
     /**
@@ -460,7 +466,9 @@ public enum VehicleType {
      * carriers and the dozer medium, the gun tanks heavy. Read only by a Brute's charge so far.
      */
     public Weight weight() {
-        if (this == BREAKTHROUGH_TANK || this == HEAVY_GUN_TANK || this == SCREENED_TANK) return Weight.HEAVY;
+        if (this == BREAKTHROUGH_TANK || this == SCREENED_TANK || this == LASER_TANK) {
+            return Weight.HEAVY;
+        }
         if (isApc() || this == SRM_TECHNICAL || this == DOZER_BREACHER) return Weight.MEDIUM;
         return Weight.LIGHT;
     }
@@ -651,7 +659,7 @@ public enum VehicleType {
             case HEAVY_APC, SUPPLY_TRUCK, SCOUT_CAR, HOVER_SCOUT, SRM_TECHNICAL -> LiftClass.LIGHT;
             case ESCORT_APC, MILITIA_TECHNICAL, UP_ARMORED_APC, FIRE_SUPPORT_APC, DRONE_SKIMMER,
                  LRM_CARRIER -> LiftClass.MEDIUM;
-            case BREAKTHROUGH_TANK, HEAVY_GUN_TANK, SCREENED_TANK, DOZER_BREACHER -> LiftClass.HEAVY;
+            case BREAKTHROUGH_TANK, SCREENED_TANK, LASER_TANK, DOZER_BREACHER -> LiftClass.HEAVY;
             case CARGO_CARRIER -> null;
         };
     }

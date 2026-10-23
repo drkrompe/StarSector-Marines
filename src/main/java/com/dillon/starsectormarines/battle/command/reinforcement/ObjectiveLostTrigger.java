@@ -42,6 +42,7 @@ public final class ObjectiveLostTrigger implements ReinforcementTrigger {
         Map<Integer, int[]> tally = new HashMap<>();
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long u = sim.liveUnitAt(i);
+            if (sim.isRiding(u)) continue;
             int zoneId = graph.zoneIdAt(sim.world().cellX(u), sim.world().cellY(u));
             if (zoneId < 0) continue;
             int[] counts = tally.computeIfAbsent(zoneId, k -> new int[2]);

@@ -45,6 +45,7 @@ public final class ResupplySystem {
         World world = roster.world();
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             long unit = roster.get(i);
+            if (roster.isRiding(unit)) continue;
             // Contested by whoever the cache's owner actually fights. A
             // friendly faction standing over it is not shutting it, and a
             // civilian never was.
@@ -63,6 +64,7 @@ public final class ResupplySystem {
         World world = roster.world();
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             long unit = roster.get(i);
+            if (roster.isRiding(unit)) continue;
             if (roster.identity().faction(unit) != cache.faction || !needsSupply(unit)) continue;
             float dx = world.x(unit) - cache.centerX();
             float dy = world.y(unit) - cache.centerY();

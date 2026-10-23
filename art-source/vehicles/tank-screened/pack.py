@@ -6,7 +6,7 @@ Turret frames come from the ImageGen raws (turret-only canvases in the breakthro
 coordinates, the interceptor fit painted over guide.py's blocks), then:
   * alphaFloor: generator haze at or below this alpha is cleared;
   * registration: the bearing lands on the frame center at the stated uniform scale
-    (Lanczos, premultiplied), exactly as art-source/vehicles/tank-heavy-gun/pack.py does.
+    (Lanczos, premultiplied).
 Run from anywhere: python art-source/vehicles/tank-screened/pack.py
 """
 import json

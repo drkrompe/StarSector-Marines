@@ -2632,6 +2632,7 @@ public class AirSystem {
         int found = 0;
         for (int i = 0, live = roster.liveCount(); i < live && found < gathered.length; i++) {
             long u = roster.get(i);
+            if (roster.isRiding(u)) continue;
             if (!roster.squad().hasSquad(u) || roster.squad().squadId(u) != mission.embarkSquadId) {
                 continue;
             }

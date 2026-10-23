@@ -39,7 +39,6 @@ class HullActiveProtectionTest {
         assertEquals(tank, live.get(0).entityId());
         assertNull(VehicleType.ESCORT_APC.activeProtectionStructureId());
         assertNull(VehicleType.BREAKTHROUGH_TANK.activeProtectionStructureId(), "a stock tank buys none");
-        assertNull(VehicleType.HEAVY_GUN_TANK.activeProtectionStructureId());
 
         GroundBody body = sim.convoy().body(tank);
         body.teleport(30.5f, 12.5f, 0f);

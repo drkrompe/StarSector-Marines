@@ -273,6 +273,8 @@ public final class UnitRenderService implements RenderSystem {
         boolean wantsBars = ctx.hostProfile.unitDecorationsVisible();
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
             long u = ctx.sim.liveUnitAt(i);
+            // A passenger is inside the hull, and the hull is what is drawn.
+            if (ctx.sim.isRiding(u)) continue;
             UnitType type = ctx.sim.identity().type(u);
             RenderAppearance appearance = RenderAppearance.of(type);
             if (appearance.drawsFootprint) footprints.add(u, i, type);

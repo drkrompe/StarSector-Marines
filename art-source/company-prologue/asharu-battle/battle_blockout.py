@@ -608,10 +608,11 @@ K4_COLOSSUS_FLOWN = fly('colossus', K4_COLOSSUS, K4_T, [
 K4_MORROW_FLOWN = carried(held('morrow', K4_MORROW, K4_T, wobble=.8), K4_COLOSSUS_FLOWN)
 K4_SHIPS = {
     'colossus': K4_COLOSSUS_FLOWN, 'morrow': K4_MORROW_FLOWN,
-    # outboard of the pod, nose in; under its lip, nose up; out of Morrow's bay, climbing
-    'borer-a': carried(held('borer-a', near(K4_COLOSSUS, (-60, 45, -4), hd=-95, pt=8, rl=6, thr=.25), K4_T, wobble=.3),
+    # outboard of the pod, nose in; under its lip, nose up (each some 15 m off, its laser on the joint);
+    # out of Morrow's bay, climbing
+    'borer-a': carried(held('borer-a', near(K4_COLOSSUS, (-58, 70, 2), hd=-95, pt=8, rl=6, thr=.6), K4_T, wobble=.3),
                        K4_COLOSSUS_FLOWN),
-    'borer-b': carried(held('borer-b', near(K4_COLOSSUS, (-70, 36, -13), hd=-70, pt=40, rl=-10, thr=.25), K4_T, wobble=.3),
+    'borer-b': carried(held('borer-b', near(K4_COLOSSUS, (-74, 38, -22), hd=-70, pt=40, rl=-10, thr=.6), K4_T, wobble=.3),
                        K4_COLOSSUS_FLOWN),
     'borer-c': carried(keyed('borer-c', near(K4_MORROW, (BORER_BAY_M[1][0], BORER_BAY_M[1][1], 18), hd=10, pt=30, thr=.8),
                              K4_T, [], v=2.5, wobble=0.0), K4_MORROW_FLOWN),
@@ -922,16 +923,21 @@ KEYFRAMES = {
                              dict(t=95, loc=(-420, 470, 120), target=(-40, 20, 20), lens=28),
                              dict(t=102, loc=(-480, 540, 160), target=(-30, 15, 40), lens=20)], K4_T, shake=.12,
                      kicks=[(90.3, .7), (95.3, .3)]),
-        knobs={'colossus3': {'grapples': 0.5},
-               'borer-a': {'beam_t_ws001': 1.0, 'beam_len_ws001': 30.0},      # 7.5 m to the pod's skin
-               'borer-b': {'beam_t_ws001': 1.0, 'beam_len_ws001': 34.0}},
+        # the kit's own beam stays dark: every Borer shares one build's knobs, so raising it for two lit all
+        # four (one of them a "tether" to Morrow), and it is a turret beam ending in orbs. The lasers
+        # are the 'mining' effects below (swfx_mining)
+        knobs={'colossus3': {'grapples': 0.5}},
         ships=K4_SHIPS,
         rakes=K4_RAKES,      # the sortie Borers' mining lasers swept along the attackers' hulls
         shields={'kite-p-b': dict(toward='colossus', flux=.85)},     # her omni shield nearly gone: she breaks off
         fx=[('blast_on', 'colossus', 12, (-62, 30, 0)), ('fire_on', 'colossus', (-55, 36, 4)),
             ('tracer', 'colossus3', 'colossus', (-60, 30, 6)), ('tracer', 'colossus', 'wolf-p-a'),
             ('tracer', 'colossus', 'kite-p-b'), ('tracer', 'colossus', 'colossus3'),
-            ('flares', 'colossus'), ('debris', 'colossus', 45, (-60, 34, 0))],
+            ('flares', 'colossus'), ('debris', 'colossus', 45, (-60, 34, 0)),
+            # two Borers cut the burning pod free, short beams onto its joint; two more, out of the bay,
+            # reach for the attackers with long beams that cut their hulls
+            ('mining', 'borer-a', 'colossus', (-56, 33, -1)), ('mining', 'borer-b', 'colossus', (-61, 29, -6)),
+            ('mining', 'borer-c', 'wolf-p-a'), ('mining', 'borer-d', 'kite-p-b')],
         labels=['colossus', 'morrow', 'colossus3', 'kite-p-b', 'wolf-p-a']),
     'k4b': dict(
         shot='S9b', title='The lead\'s last run',
@@ -1196,6 +1202,7 @@ KEYFRAMES['k6'].update(
                          dict(t=134, loc=_k6_cam, target=lambda t: _k6_aim(t, .5), lens=85)], K6_T),
     ships=K6_SHIPS,
     fx=[('entry_sheath', 'colossus'), ('entry_sheath', 'morrow'), ('wreckfall',)],
+    bloom=1.0,          # the plasma is light: it blooms in the composite (composite_layers.bloom)
     labels=['colossus', 'morrow'])
 # Coordinator, 2026-10-22: "one lit still of the Colossus alone, close enough to judge the plasma
 # conforming to the hull" before another span. The k6 camera's direction, 560 m off, at 50 mm.
@@ -1255,6 +1262,10 @@ BLOCKED = {
 }
 SHOTS = {**KEYFRAMES, **BLOCKED}
 SPAN = add_span(os.environ['ASHARU_SPAN']) if os.environ.get('ASHARU_SPAN') else []
+
+# Drawn larger than true in the shots, never on the roster sheets (which place hulls their own way):
+# coordinator on r10's k4 (2026-10-22), "the Borers can't be seen" - 3.6 m drones are 9 px at 28 mm.
+READABLE = {'borer': 2.5}
 
 ROSTER_SHEETS = ('r1', 'r2')   # top-down and broadside fleet sheets
 
@@ -1935,7 +1946,8 @@ def blender_main(cfg):
         e.instance_type = 'COLLECTION'
         e.instance_collection = sfx.hull if sfx is not None else lib['coll']
         mw = frame_of((x, y, z), hd, pt, rl)
-        e.matrix_world = mw @ Matrix.Scale(lib['mpu'], 4)
+        grow = READABLE.get(key.split('-')[0], 1.0)
+        e.matrix_world = mw @ Matrix.Scale(lib['mpu'] * grow, 4)
         link(e, stage_ships)
         if sfx is not None and sfx.fx is not None:
             e2 = bpy.data.objects.new('Ship fx | ' + key, None)
@@ -1943,7 +1955,7 @@ def blender_main(cfg):
             e2.instance_collection = sfx.fx
             e2.matrix_world = e.matrix_world
             link(e2, stage_fx)
-        placed[key] = dict(matrix=mw, mpu=lib['mpu'], length=lib['length_m'], lib=lib, fx=sfx, throttle=thr,
+        placed[key] = dict(matrix=mw, mpu=lib['mpu'] * grow, length=lib['length_m'] * grow, lib=lib, fx=sfx, throttle=thr,
                            build=m.get('finished') or m['game'])
         if sfx is not None:
             sfx.matrix = mw
@@ -1963,6 +1975,32 @@ def blender_main(cfg):
     def at(key, local=(0, 0, 0)):
         """A point on a placed ship, local in metres in its own frame."""
         return placed[key]['matrix'] @ Vector(local)
+
+    def mining(drone, target, local=None):
+        """A Borer's mining laser (swfx_mining) from her emitter onto the target's plating: aimed at
+        `local` on the target (metres, its frame) or at its middle, and landed where a ray from the
+        emitter meets the target's real hull, with that face's normal."""
+        if str(PROLOGUE / 'second-wind-vfx') not in sys.path:
+            sys.path.insert(0, str(PROLOGUE / 'second-wind-vfx'))
+        import swfx_mining
+        d = at(drone)
+        aim = at(target, local) if local is not None else at(target)
+        emit = d + (aim - d).normalized() * placed[drone]['length'] * .55
+        vl = next((v for v in scene.view_layers if v.name == 'ships'), bpy.context.view_layer)
+        vl.update()
+        ray, start, left = (aim - emit).normalized(), emit, (aim - emit).length * 1.5
+        for _ in range(12):     # past the drone's own body and any kit object (her dark kit beam is a rod)
+            hit, loc, nrm, _i, ob, _m = scene.ray_cast(vl.depsgraph, start, ray, distance=left)
+            if not hit or not ((loc - d).length < placed[drone]['length'] * .8 or ob.name.startswith('SWFX')):
+                break
+            left -= (loc - start).length + .05
+            start = loc + ray * .05
+        if not hit:             # past the hull: stop at the aim point, facing the drone
+            loc, nrm = aim, (emit - aim).normalized()
+        swfx_mining.laser(f'Mining {drone}', emit, loc, nrm, stage_fx, lights=stage_ships,
+                          seed=zlib.crc32(drone.encode()) % 997, width_m=.3)
+        print(f'ASHARU mining {drone} -> {target}: {(loc - emit).length:.0f} m, '
+              f'{"on her hull" if hit else "no hull hit, ends at the aim point"}', flush=True)
 
     def obj(name, me, mat, matrix, coll=None):
         o = bpy.data.objects.new(name, me)
@@ -2187,7 +2225,9 @@ def blender_main(cfg):
             return
         verts, faces = kit.hull_soup(e)
         kit.sheath('Entry ' + key, verts, faces, stage_fx, K6_WIND, SHIP_LENGTH[key], glow=1.0,
-                   streamers=90 if key == 'colossus' else 70, seed=len(key), grow=min(1.0, (t - 126.0) / 4.5))
+                   streamers=22 if key == 'colossus' else 16, seed=len(key), grow=min(1.0, (t - 126.0) / 4.5),
+                   lights=stage_ships,      # the sheath's glow on her own windward plates
+                   belly=e.matrix_world.to_3x3() @ Vector((0.0, 0.0, -1.0)))
 
     def wreckfall(t):
         """S12: the ships the battle lost coming down in pieces (WRECKFALL): each piece a short entry
@@ -2217,8 +2257,8 @@ def blender_main(cfg):
                                   stage_fx, turn=(t - K6_T) * rnd.uniform(.4, 1.2))
                 kit.sheath('Wreckfall %s %d' % (pc['name'], k), rv, rf, stage_fx, K6_WIND, size,
                            glow=(.5 if pc['kind'] == 'chunk' else .3) * flick * (1 if k == 0 else .8),
-                           streamers=10 if pc['kind'] == 'chunk' else 4, seed=pc['seed'] * 7 + k,
-                           grow=min(1.0, .3 + grown), voxel=size / 9.0, sparks=4 if pc['kind'] == 'chunk' else 0)
+                           streamers=4 if pc['kind'] == 'chunk' else 2, seed=pc['seed'] * 7 + k,
+                           grow=min(1.0, .3 + grown), voxel=size / 9.0)
 
     def field_matrix(piece, box, t, local=None):
         """A debris box's world matrix at time t: the wreck turning about its own axis (debris_field).
@@ -2723,6 +2763,8 @@ def blender_main(cfg):
                     blast(at(fx[1]), fx[2])
                 elif kind == 'blast_on':
                     blast(at(fx[1], fx[3]), fx[2])
+                elif kind == 'mining':
+                    mining(fx[1], fx[2], fx[3] if len(fx) > 3 else None)
                 elif kind == 'fire_on':     # optional 4th: the flame's direction in the hull frame (default aft and up)
                     d = fx[3] if len(fx) > 3 else (-1, .4, .3)
                     fire(at(fx[1], fx[2]), (placed[fx[1]]['matrix'].to_3x3() @ Vector(d)).normalized())
@@ -2810,7 +2852,8 @@ def blender_main(cfg):
             st.media_type = 'IMAGE'
             st.file_format, st.color_mode, st.color_depth = 'PNG', 'RGBA', '8'
             composite_layers.compose_frame(raw / f'{kf}.layers.exr', partial, scene, plate=plate, backdrop=cached,
-                                           log=lambda m: print(m, flush=True))
+                                           log=lambda m: print(m, flush=True),
+                                           glow=KEYFRAMES.get(kf, {}).get('bloom', 0.0))
         else:
             st.media_type = 'IMAGE'
             st.file_format, st.color_mode, st.color_depth = 'PNG', 'RGBA', '8'

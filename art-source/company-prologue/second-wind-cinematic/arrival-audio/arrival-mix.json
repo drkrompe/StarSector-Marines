@@ -30,10 +30,14 @@
  ],
  "shots": {
   "c1": {
-   "jangala_cabin_bed": {
-    "gain_db": 0.0,
-    "fade_in": 1.0,
-    "fade_out": 1.5
+   "jangala_sfx_c1_cabin_bed": {
+    "gain_db": -18.0
+   },
+   "jangala_sfx_c1_hull_creaks": {
+    "gain_db": -13.8
+   },
+   "jangala_sfx_c1_second_wind_pass": {
+    "gain_db": -6.2
    },
    "jangala_squelch_open": {
     "gain_db": 0.0
@@ -41,11 +45,20 @@
    "jangala_arrival_hail_01": {
     "gain_db": 0.0
    },
+   "jangala_sfx_c1_rcs_puffs": {
+    "gain_db": -11.9
+   },
+   "jangala_sfx_c1_sparks": {
+    "gain_db": -21.0
+   },
    "jangala_squelch_close": {
     "gain_db": 0.0
    },
    "jangala_arrival_hail_02": {
     "gain_db": 0.0
+   },
+   "jangala_sfx_c1_hound_flyby_a": {
+    "gain_db": -14.6
    },
    "jangala_squelch_open#2": {
     "gain_db": 0.0
@@ -56,106 +69,234 @@
    "jangala_squelch_close#2": {
     "gain_db": 0.0
    },
+   "jangala_sfx_c1_hull_creaks_2": {
+    "gain_db": -13.8
+   },
    "jangala_arrival_hail_04": {
     "gain_db": 0.0
    }
   },
   "c2": {
+   "jangala_sfx_c2_c1_cabin_bed": {
+    "gain_db": -25.7
+   },
+   "jangala_sfx_c2_bridge_bed": {
+    "gain_db": -20.5
+   },
+   "jangala_sfx_c2_second_wind_interior": {
+    "gain_db": -14.8
+   },
+   "jangala_sfx_c2_console_beeps": {
+    "gain_db": -19.2
+   },
+   "jangala_sfx_c2_legion_forward": {
+    "gain_db": -12.1
+   },
+   "jangala_sfx_c2_legion_drives": {
+    "gain_db": -15.9
+   },
+   "jangala_sfx_c2_fighter_02": {
+    "gain_db": -8.0
+   },
+   "jangala_sfx_c2_fighter_00": {
+    "gain_db": -7.4
+   },
+   "jangala_sfx_c2_fighter_10": {
+    "gain_db": -10.9
+   },
+   "jangala_sfx_c2_fighter_12": {
+    "gain_db": -12.7
+   },
    "jangala_squelch_open": {
     "gain_db": 0.0
+   },
+   "jangala_sfx_c2_fighter_01": {
+    "gain_db": -10.1
    },
    "jangala_arrival_hail_07": {
     "gain_db": 0.0
    },
+   "jangala_sfx_c2_fighter_11": {
+    "gain_db": -13.3
+   },
+   "jangala_sfx_c2_console_lean": {
+    "gain_db": -15.3
+   },
+   "jangala_sfx_c2_console_beeps_2": {
+    "gain_db": -16.1
+   },
+   "jangala_sfx_c2_steps": {
+    "gain_db": -16.7
+   },
+   "jangala_sfx_c2_brush_past": {
+    "gain_db": -18.2
+   },
+   "jangala_sfx_c2_console_lean_2": {
+    "gain_db": -16.3
+   },
    "jangala_squelch_close": {
     "gain_db": 0.0
    },
+   "jangala_sfx_c2_switch_clicks": {
+    "gain_db": -8.6
+   },
    "jangala_arrival_hail_08": {
     "gain_db": 0.0
+   },
+   "jangala_sfx_c2_c1_hull_creaks": {
+    "gain_db": -12.2
+   },
+   "jangala_sfx_c2_switch_clicks_2": {
+    "gain_db": -8.9
    }
   },
   "entry": {
+   "jangala_sfx_entry_second_wind_interior": {
+    "gain_db": -17.7
+   },
    "jangala_arrival_castle_planetside": {
     "gain_db": 0.0
    },
-   "jangala_arrival_wind": {
-    "gain_db": -6.9
+   "jangala_sfx_entry_buffet": {
+    "gain_db": -9.7
+   },
+   "jangala_sfx_entry_reentry_roar": {
+    "gain_db": -9.5
+   },
+   "jangala_sfx_entry_c1_hull_creaks": {
+    "gain_db": -8.2
    }
   },
   "c3": {
-   "jangala_arrival_cabin_bed": {
-    "gain_db": -5.2,
-    "fade_in": 0.0,
-    "fade_out": 0.0
+   "jangala_sfx_c3_entry_buffet": {
+    "gain_db": -26.0
    },
-   "jangala_arrival_wind": {
-    "gain_db": -1.9
+   "jangala_sfx_c3_entry_reentry_roar": {
+    "gain_db": -56.5
+   },
+   "jangala_sfx_c3_second_wind_interior": {
+    "gain_db": -20.8
+   },
+   "jangala_sfx_c3_wind_easing": {
+    "gain_db": -12.5
+   },
+   "jangala_sfx_c3_cabin_flight_bed": {
+    "gain_db": -21.3
+   },
+   "jangala_sfx_c3_nature_muffled": {
+    "gain_db": -21.8
+   },
+   "jangala_sfx_c3_river_muffled": {
+    "gain_db": -28.3
+   },
+   "jangala_sfx_c3_frame_settle": {
+    "gain_db": -12.6
    },
    "jangala_arrival_castle_reels": {
     "gain_db": 0.0
    }
   },
   "c4": {
-   "jangala_arrival_cabin_bed": {
-    "gain_db": -10.5,
-    "fade_in": 0.0,
-    "fade_out": 0.9
+   "jangala_sfx_c4_c3_cabin_flight_bed": {
+    "gain_db": -27.4
    },
-   "jangala_arrival_wind": {
-    "gain_db": -5.2
+   "jangala_sfx_c4_ground_distant": {
+    "gain_db": -24.5
+   },
+   "jangala_sfx_c4_high_wind_bed": {
+    "gain_db": -12.6
+   },
+   "jangala_sfx_c4_second_wind_c4_drive": {
+    "gain_db": -25.8
    },
    "jangala_arrival_castle_yard": {
     "gain_db": 0.0
    },
-   "jangala_arrival_wind#2": {
-    "gain_db": -9.1
+   "jangala_sfx_c4_freeway": {
+    "gain_db": -17.9
    },
-   "c5_yard_jungle_bed": {
-    "gain_db": -8.0,
-    "fade_in": 2.0,
-    "fade_out": 0.0
+   "jangala_sfx_c4_port_heavy": {
+    "gain_db": -8.1
+   },
+   "jangala_sfx_c4_port_ambience": {
+    "gain_db": -19.5
+   },
+   "jangala_sfx_c4_second_wind_c4_lift": {
+    "gain_db": -20.6
+   },
+   "jangala_sfx_c4_landing_grit": {
+    "gain_db": -17.4
+   },
+   "jangala_sfx_c4_landing_thump": {
+    "gain_db": 0.0
+   },
+   "jangala_sfx_c4_landing_spool": {
+    "gain_db": -7.8
+   },
+   "jangala_sfx_c4_landing_settle": {
+    "gain_db": -19.1
+   },
+   "jangala_sfx_c4_c5_yard_bed": {
+    "gain_db": -20.9
+   },
+   "jangala_sfx_c4_c5_vehicles_arrive": {
+    "gain_db": -16.7
+   },
+   "jangala_sfx_c4_c5_vehicles_arrive_2": {
+    "gain_db": -17.7
    }
   },
   "c5": {
-   "c5_yard_jungle_bed": {
-    "gain_db": -8.0,
-    "fade_in": 0.0,
-    "fade_out": 1.5
+   "jangala_sfx_c5_vehicles_arrive": {
+    "gain_db": -18.7
    },
-   "c5_yard_spool_down": {
-    "gain_db": -5.2
+   "jangala_sfx_c5_hull_ticks": {
+    "gain_db": -14.1
    },
-   "c5_yard_hull_ticks": {
-    "gain_db": -6.0
+   "jangala_sfx_c5_vehicles_arrive_2": {
+    "gain_db": -20.7
    },
-   "c5_yard_winch": {
-    "gain_db": -13.2
+   "jangala_sfx_c5_car_doors": {
+    "gain_db": -26.3
    },
-   "c5_yard_radio_chatter": {
-    "gain_db": -14.0
+   "jangala_sfx_c5_steam_vent": {
+    "gain_db": -22.4
    },
-   "c5_yard_crane_horn": {
-    "gain_db": -13.2
+   "jangala_sfx_c5_car_doors_2": {
+    "gain_db": -26.3
    },
-   "c5_yard_steam_vent": {
-    "gain_db": -6.9,
-    "fade_in": 0.4,
-    "fade_out": 6.0
-   },
-   "c5_yard_winch#2": {
-    "gain_db": -13.2
+   "jangala_sfx_c5_pa_click": {
+    "gain_db": -7.2
    },
    "jangala_arrival_castle_all_hands": {
     "gain_db": 0.0
    },
-   "c5_yard_hull_ticks#2": {
-    "gain_db": -9.1
+   "jangala_sfx_c5_car_doors_3": {
+    "gain_db": -26.3
    },
-   "c5_yard_winch#3": {
-    "gain_db": -14.9
+   "jangala_sfx_c5_ramp_drop": {
+    "gain_db": -13.2
    },
-   "c5_yard_radio_chatter#2": {
-    "gain_db": -15.9
+   "jangala_sfx_c5_car_doors_4": {
+    "gain_db": -17.2
+   },
+   "jangala_sfx_c5_steam_vent_2": {
+    "gain_db": -24.4
+   },
+   "jangala_sfx_c5_crowd_murmur": {
+    "gain_db": -28.6
+   },
+   "jangala_sfx_c5_colossus_lift": {
+    "gain_db": -17.6
+   },
+   "jangala_sfx_c5_pa_click_2": {
+    "gain_db": -7.2
+   },
+   "jangala_sfx_c5_port_wide": {
+    "gain_db": -10.1
+   },
+   "jangala_sfx_c5_colossus_mains": {
+    "gain_db": -11.3
    },
    "jangala_arrival_castle_own_way": {
     "gain_db": 0.0

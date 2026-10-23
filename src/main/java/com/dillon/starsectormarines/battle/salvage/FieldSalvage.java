@@ -42,6 +42,7 @@ public final class FieldSalvage {
             boolean nearby = false, hostile = false;
             if (visible) for (int i = 0; i < sim.liveUnitCount(); i++) {
                 long id = sim.liveUnitAt(i);
+                if (sim.isRiding(id)) continue;
                 var type = sim.identity().type(id);
                 if (!type.combatant) continue;
                 float x = sim.world().x(id), y = sim.world().y(id);

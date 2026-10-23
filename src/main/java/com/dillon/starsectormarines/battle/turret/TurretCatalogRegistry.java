@@ -48,8 +48,8 @@ public final class TurretCatalogRegistry {
     public static final String HEAVY_MG_STRUCTURE_ID = "structure.turret-heavy-mg";
 
     public static final String TANK_CANNON_STRUCTURE_ID = "structure.tank-twin-cannon";
-    /** The heavy-gun tank's single long gun: more reach and penetration, a slower cycle. */
-    public static final String TANK_HEAVY_GUN_STRUCTURE_ID = "structure.tank-heavy-gun";
+    /** The laser tank's burst laser: a starship's point-defence emitter turned on the ground. */
+    public static final String TANK_BURST_LASER_STRUCTURE_ID = "structure.tank-burst-laser";
     /** The hover scout's twin pulse emitter, a vehicle mount of the Wisp drone-emitter family. */
     public static final String HOVER_PULSE_STRUCTURE_ID = "structure.hover-pulse";
     /** The LRM carrier's twin rail launcher: the mech anti-armor LRM rack on a vehicle turntable. */

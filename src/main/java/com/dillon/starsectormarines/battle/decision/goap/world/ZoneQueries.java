@@ -129,6 +129,7 @@ public final class ZoneQueries {
         if (noHostileInTable(graph, zoneId, selfFaction, sim)) return true;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long u = sim.liveUnitAt(i);
+            if (sim.isRiding(u)) continue;
             if (!selfFaction.hostileTo(sim.identity().faction(u))) continue;
             int x = sim.world().cellX(u), y = sim.world().cellY(u);
             if (area != null && !area.contains(x, y)) continue;
@@ -168,6 +169,7 @@ public final class ZoneQueries {
         if (allClearInTable) return true;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);
+            if (sim.isRiding(unit)) continue;
             if (!selfFaction.hostileTo(sim.identity().faction(unit))) continue;
             if (held.contains(graph.zoneIdAt(sim.world().cellX(unit),
                     sim.world().cellY(unit)))) return false;

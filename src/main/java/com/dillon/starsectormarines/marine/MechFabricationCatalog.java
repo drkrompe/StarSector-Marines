@@ -70,11 +70,12 @@ public final class MechFabricationCatalog {
             // Variants cost more than the hull they improve on: plate in metals, guns in transplutonics.
             vehicle(VehicleType.UP_ARMORED_APC, "@gearFabricationMediumVehicleStandardFit", 227, 57, 8),
             vehicle(VehicleType.FIRE_SUPPORT_APC, "@gearFabricationMediumVehicleStandardFit", 202, 57, 11),
-            vehicle(VehicleType.HEAVY_GUN_TANK, "@gearFabricationHeavyVehicleStandardFit", 472, 143, 38),
             vehicle(VehicleType.DOZER_BREACHER, "@gearFabricationHeavyVehicleStandardFit", 498, 152, 24),
             // The screened tank is the breakthrough tank plus its interceptor system: launchers and their sensor
             // are machinery and transplutonics, not plate.
             vehicle(VehicleType.SCREENED_TANK, "@gearFabricationHeavyVehicleStandardFit", 448, 157, 44),
+            // The laser tank trades the shells for an emitter and the plant that feeds it: transplutonics, not plate.
+            vehicle(VehicleType.LASER_TANK, "@gearFabricationHeavyVehicleStandardFit", 430, 150, 48),
             // Field rigs are workshop pickups, not issue hulls: the supply pickup is mostly bodywork, the spotter's
             // bill the transplutonics in its salvaged sensor mast.
             vehicle(VehicleType.SUPPLY_TRUCK, "@gearFabricationFieldRig", 162, 43, 4),
