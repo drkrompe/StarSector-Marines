@@ -1,0 +1,17 @@
+{
+ "outputSize": [3840, 768],
+ "turretCells": 1.6,
+ "turretBodyCells": 1.25,
+ "frames": [
+  {"role": "hull", "source": "hull-raw-pd.png", "scale": 0.73, "sourceCenter": [508, 451],
+   "note": "Live hull, PD laser tank: hull-raw-b4 repainted in worn gunmetal with red lamps, a fire-control radar and a three-cell bank over the rear deck (hull-guide-pd), same canvas, so the master's registration holds."},
+  {"role": "turret", "source": "pd-skin-red-raw.png",
+   "note": "Live turret: the up-res vanilla PD laser, weathered, in its own red (skin 'red')."},
+  {"role": "hull", "source": "hull-wreck-pd-raw.png", "scale": 0.73, "sourceCenter": [508, 451],
+   "note": "Wreck hull, edited from hull-raw-pd.png on the same canvas."},
+  {"role": "turret", "source": "pd-skin-red-wreck-raw.png",
+   "note": "Wreck turret, edited from the live skin; ImageGen drew it about 1.3x, which the fit takes back out."},
+  {"role": "turret", "source": "pd-skin-red-open-raw.png",
+   "note": "Firing turret: the same skin with the dome's shutter open on its lens (VehicleType.turretFiringFrame)."}
+ ]
+}

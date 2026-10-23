@@ -76,6 +76,8 @@ public final class MechFabricationCatalog {
             vehicle(VehicleType.SCREENED_TANK, "@gearFabricationHeavyVehicleStandardFit", 448, 157, 44),
             // The laser tank trades the shells for an emitter and the plant that feeds it: transplutonics, not plate.
             vehicle(VehicleType.LASER_TANK, "@gearFabricationHeavyVehicleStandardFit", 430, 150, 48),
+            // The PD laser tank keeps the hull's plate and feeds a plainer emitter from three cells and a radar.
+            vehicle(VehicleType.PD_LASER_TANK, "@gearFabricationHeavyVehicleStandardFit", 445, 145, 36),
             // Field rigs are workshop pickups, not issue hulls: the supply pickup is mostly bodywork, the spotter's
             // bill the transplutonics in its salvaged sensor mast.
             vehicle(VehicleType.SUPPLY_TRUCK, "@gearFabricationFieldRig", 162, 43, 4),

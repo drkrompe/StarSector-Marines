@@ -257,22 +257,50 @@
         "roundVelocity": 320.0, "flightSec": 0.05, "noiseMagnitude": 0.5
       },
       "render": {
-        "tracerColor": "E4FBFF",
-        "beam": { "coreWidthPx": 2.5, "glowColor": "3FB0FF", "glowWidthPx": 9.0, "pulseCycles": 1.0, "lifetimeSec": 0.1 },
+        "tracerColor": "EEF2FF",
+        "beam": { "coreWidthPx": 2.5, "glowColor": "4A6BFF", "glowWidthPx": 13.0, "pulseCycles": 1.0, "lifetimeSec": 0.1,
+          "texture": { "texelCells": 0.5, "scrollCellsPerSec": 11.0, "roughness": 0.85, "throbHz": 0.0 } },
         "projectileSprite": null,
         "projectileVisualCells": 0.0
       },
       "fx": {
         "muzzle": [
-          { "kind": "glow", "radius": 0.6, "lifetime": 0.07, "color": "68D8FF" },
-          { "kind": "ring", "radius": 0.28, "lifetime": 0.09, "color": "D8FCFF" }
+          { "kind": "glow", "radius": 0.6, "lifetime": 0.07, "color": "7A8CFF" },
+          { "kind": "ring", "radius": 0.28, "lifetime": 0.09, "color": "DCE2FF" }
         ],
         "impact": [
-          { "kind": "glow", "radius": 0.4, "lifetime": 0.12, "color": "58C8FF" },
+          { "kind": "glow", "radius": 0.4, "lifetime": 0.12, "color": "6A7EFF" },
           { "kind": "dust", "radius": 0.2, "lifetime": 0.18 }
         ]
       },
       "audio": { "fireSound": "burst_pd_fire" }
+    },
+    {
+      "id": "weapon.tank-pd-laser",
+      "mount": "turret-mount",
+      "catalog": { "displayName": "@gearCatalogWeaponTankPdLaserDisplayName", "modelName": "@gearCatalogWeaponTankPdLaserModelName", "designation": "PDL", "designationTiered": false },
+      "sim": {
+        "range": 26.0, "damage": 6.0, "accuracy": 0.95, "cooldown": 0.35, "penetration": 2.0,
+        "burstCount": 10, "burstSpacing": 0.1, "hitSpread": 0.12,
+        "roundVelocity": 320.0, "flightSec": 0.05, "noiseMagnitude": 0.4
+      },
+      "render": {
+        "tracerColor": "FFF4F2",
+        "beam": { "coreWidthPx": 2.2, "glowColor": "E01A12", "glowWidthPx": 11.0, "lifetimeSec": 0.105,
+          "texture": { "texelCells": 0.45, "scrollCellsPerSec": 5.0, "roughness": 0.9, "throbHz": 6.0 } },
+        "projectileSprite": null,
+        "projectileVisualCells": 0.0
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.5, "lifetime": 0.12, "color": "FF6464" }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.36, "lifetime": 0.14, "color": "FF5A4A" },
+          { "kind": "dust", "radius": 0.16, "lifetime": 0.16 }
+        ]
+      },
+      "audio": { "fireSound": "laser_intro" }
     },
     {
       "id": "weapon.turret-vulcan",

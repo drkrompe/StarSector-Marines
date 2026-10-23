@@ -97,14 +97,18 @@ public final class ConvoyRenderSystem implements RenderSystem {
             if (type.turretArtFromMount()) {
                 collectMountTurret(type, convoy.turret(id), body, wrecked, cam, cellPx, alphaMult, out);
             } else if (type.turretFrame >= 0 && type.turretFrame < frames.frames.length) {
-                SpriteSheetFrames.Frame tf = frames.frames[wrecked ? type.wreckTurretFrame() : type.turretFrame];
+                // Gated on turretFrame (broader than hasTurretWeapon), so a decorative
+                // turret variant may have no GROUND_TURRET state — draw it facing 0.
+                GroundTurret turret = convoy.turret(id);
+                int turretFrame = wrecked ? type.wreckTurretFrame() : type.turretFrame;
+                if (!wrecked && type.turretFiringFrame() >= 0 && turret != null && engaged(turret)) {
+                    turretFrame = type.turretFiringFrame();
+                }
+                SpriteSheetFrames.Frame tf = frames.frames[turretFrame];
                 float turretAspect = (float) tf.w / (float) tf.h;
                 float tDrawLong = type.turretVisualCells * cellPx;
                 float tDrawShort = tDrawLong / turretAspect;
 
-                // Gated on turretFrame (broader than hasTurretWeapon), so a decorative
-                // turret variant may have no GROUND_TURRET state — draw it facing 0.
-                GroundTurret turret = convoy.turret(id);
                 float turretStateFacing = (turret != null) ? turret.facingDeg : 0f;
                 float turretFacingDeg = turretStateFacing + type.turretSpriteFacingOffsetDeg;
                 float cRad = (float) Math.toRadians(body.facingDegrees);
@@ -142,6 +146,11 @@ public final class ConvoyRenderSystem implements RenderSystem {
         if (ctx.hostProfile.unitDecorationsVisible()) {
             sweepDurabilityBars(ids, convoy, cam, cellPx, alphaMult, out);
         }
+    }
+
+    /** A gun with a target, ground or air, or a burst under way: what a firing frame is drawn for. */
+    private static boolean engaged(GroundTurret turret) {
+        return turret.targetId != 0L || turret.airTargetId != 0L || turret.burstRemaining > 0;
     }
 
     /**
