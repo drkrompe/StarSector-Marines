@@ -23,6 +23,9 @@ final class SecondSquadPreparation {
         if (!relevant(mission, roster) || roster.secondSquadPreparationSeen() && !replay) return null;
         int full = (int) roster.squads().stream().filter(s -> !s.reserve() && !s.stationed()
                 && roster.readyCount(s) == MarineSquad.CAPACITY).count();
+        // A company that already fields two full squads has nothing to prepare: say nothing unless replayed,
+        // and never quote a founding bill it does not need.
+        if (full >= 2 && !replay) return null;
         long formations = roster.squads().stream().filter(s -> !s.reserve() && !s.stationed()).count();
         int ready = roster.lineReadySoldiers().size();
         String requirements = LessonCopy.text(SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission) || DistrictEscortCampaign.isBattle(mission)
@@ -37,7 +40,8 @@ final class SecondSquadPreparation {
         }
         return new PreparationGuide.Lesson(3, LessonCopy.text("lessonSecondTitle"),
                 LessonCopy.text("lessonSecondSummary", MissionForceEnvelope.recommendedPersonnel(mission),
-                        requirements, full, ready, advice, costs.toString()),
+                        requirements, full, ready, advice,
+                        full >= 2 ? "" : LessonCopy.text("lessonSecondBill", costs.toString())),
                 List.of("mission-prepare-armory", "mission-prepare-barracks", "mission-briefing-back"),
                 LessonCopy.text("lessonUnderstood"), acknowledge, 480);
     }
