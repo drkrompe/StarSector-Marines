@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -95,6 +96,46 @@ class WaterShoreTest {
         // Water with no natural ground beside it keeps its own tile.
         assertFalse(WaterShore.isShoreWater(topology, 2, 1));
         assertTrue(WaterShore.isShoreWater(topology, 1, 1));
+    }
+
+    @Test
+    void theFieldIsItsSideAtEveryCentreAndItsCornerAtEveryCorner() {
+        CellTopology topology = staircase();
+        for (int y = 0; y < 10; y++) {
+            for (int x = 0; x < 10; x++) {
+                assertEquals(topology.isWater(x, y) ? 1 : -1, WaterShore.fieldAt(topology, x + .5, y + .5), 1e-9,
+                        "centre " + x + "," + y);
+                assertEquals(WaterShore.corner(topology, x, y), WaterShore.fieldAt(topology, x, y), 1e-9,
+                        "corner " + x + "," + y);
+            }
+        }
+    }
+
+    @Test
+    void theFieldIsContinuousAcrossCellEdges() {
+        CellTopology topology = staircase();
+        double e = 1e-7;
+        for (int y = 0; y < 10; y++) {
+            for (int x = 1; x < 10; x++) {
+                for (double s = 0.05; s < 1; s += 0.1) {
+                    assertEquals(WaterShore.fieldAt(topology, x - e, y + s), WaterShore.fieldAt(topology, x + e, y + s),
+                            1e-5, "vertical edge " + x + "," + (y + s));
+                    assertEquals(WaterShore.fieldAt(topology, y + s, x - e), WaterShore.fieldAt(topology, y + s, x + e),
+                            1e-5, "horizontal edge " + (y + s) + "," + x);
+                }
+            }
+        }
+    }
+
+    @Test
+    void theFieldCrossesTheShallowsWherePatchClipsThem() {
+        CellTopology topology = staircase();
+        // Land cell (3,2), north triangle: the shallows reach in from the flooded corner (3,3).
+        float[] p = WaterShore.patch(topology, 3, 2, WaterShore.Band.SHALLOW, 2);
+        assertNotNull(p);
+        for (int i = 0; i < 8; i += 2) {
+            assertTrue(WaterShore.fieldAt(topology, 3 + p[i], 2 + p[i + 1]) >= -1e-5, "patch vertex " + p[i] + "," + p[i + 1]);
+        }
     }
 
     /** Where the shallows' waterline crosses the edge {@code x = edgeX} of triangle {@code t} in cell (x,y). */
