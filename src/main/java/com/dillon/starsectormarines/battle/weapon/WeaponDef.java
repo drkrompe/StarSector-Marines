@@ -284,6 +284,14 @@ public final class WeaponDef {
         return interceptableProjectile ? roundVelocity : 0f;
     }
 
+    /**
+     * True for a hitscan beam: no projectile art, and an authored {@link BeamStyle}. A beam leaves along its mount's
+     * facing and drags onto its target as the mount tracks, rather than snapping to the target as a round does.
+     */
+    public boolean hitscanBeam() {
+        return projectileSpritePath == null && !BeamStyle.DEFAULT.equals(beamStyle);
+    }
+
     /** Modeled direct-fire speed; nearer impacts arrive sooner. */
     public float directRoundVelocity() {
         return flightSec > 0f ? range / flightSec : 60f;

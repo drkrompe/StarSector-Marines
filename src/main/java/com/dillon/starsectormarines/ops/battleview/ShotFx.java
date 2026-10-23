@@ -123,7 +123,7 @@ public record ShotFx(Body body, TracerTail tracerTail, float arcHeight, boolean 
         };
         // A turret weapon with no projectile art and an authored beam is a hitscan beam, as on a mech; with no
         // beam either it travels unseen (the colony's spines, heard only where they break out).
-        Body body = weapon.projectileSpritePath == null && !WeaponDef.BeamStyle.DEFAULT.equals(weapon.beamStyle)
+        Body body = weapon.hitscanBeam()
                 ? new Tracer(weapon.tracerColor, weapon.beamStyle)
                 : new Sprite(weapon.projectileSpritePath, weapon.projectileVisualCells);
         return new ShotFx(

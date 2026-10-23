@@ -178,8 +178,14 @@ public final class GroundVehicleTurretSystem {
             return;
         }
         long burstTarget = roster.isAliveById(turret.burstTargetId) ? turret.burstTargetId : 0L;
-        // Keep autonomous APC cadence: no cooldown or traverse tick during a committed burst.
+        // Keep autonomous APC cadence: no cooldown or traverse tick during a committed burst. A beam is the
+        // exception: its lance is held, so the turret tracks its target through it and the beam drags with it.
         if (turret.burstRemaining > 0) {
+            if (weapon.hitscanBeam() && burstTarget != 0L && world.isAlive(burstTarget)) {
+                turret.facingDeg = TurretAim.slewToward(turret.facingDeg,
+                        TurretAim.bearingTo(mountX, mountY, world.x(burstTarget), world.y(burstTarget)),
+                        mount.turnRateDegPerSec * dt);
+            }
             turret.burstTimer -= dt;
             int release = TurretMountGeometry.releaseIndex(weapon.burstCount, turret.burstRemaining);
             if (turret.burstTimer <= 0f && burstTarget != 0L && world.isAlive(burstTarget)
@@ -231,6 +237,7 @@ public final class GroundVehicleTurretSystem {
         aim.faction = convoy.faction(id);
         aim.facingDegrees = turret.facingDeg;
         aim.turnRateDegPerSec = mount.turnRateDegPerSec;
+        if (weapon.hitscanBeam()) aim.fireArcDeg = TurretAim.BEAM_OPEN_ARC_DEG;
         aim.attackRange = weapon.range;
         aim.minRange = weapon.minRange;
         // An empty bank holds the trigger the way a cooldown does, until the next charge is in.
