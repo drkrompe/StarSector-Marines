@@ -64,8 +64,14 @@ public final class DefensePostLayoutDef {
         return cellsByOffset.get(new Offset(offsetX, offsetY));
     }
 
+    /** The cells the post seals: every barrier and pad. An apron stays open ground. */
     public List<Offset> blockedOffsets() {
-        return cells.stream().map(cell -> cell.offset).toList();
+        return cells.stream().filter(cell -> cell.kind != CellKind.APRON).map(cell -> cell.offset).toList();
+    }
+
+    /** Whether the post lays a paved apron round itself ({@link CellKind#APRON}). */
+    public boolean hasApron() {
+        return cells.stream().anyMatch(cell -> cell.kind == CellKind.APRON);
     }
 
     public Offset droneHubOffset() {
@@ -242,7 +248,12 @@ public final class DefensePostLayoutDef {
                                   StructureDef structure) {}
 
     public enum CellKind {
-        BARRIER, PAD;
+        BARRIER, PAD,
+        /**
+         * Open ground the post paves: walkable, nothing sealed, the post's concrete laid over it, so a structure
+         * reads as built on its site and its own side has somewhere to stand round it.
+         */
+        APRON;
 
         static CellKind parse(String key, String id) throws JSONException {
             try {

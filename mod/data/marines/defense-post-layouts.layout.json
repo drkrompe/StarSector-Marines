@@ -4,11 +4,13 @@
       "id": "layout.defense-post-light", "tier": "light", "variant": "default",
       "anchor": [0, 0], "bounds": { "minOffset": [-1, -1], "maxOffset": [1, 1] },
       "cells": [
-        { "offset": [0, -1], "kind": "barrier", "appearance": "vent", "facing": [0, -1] },
-        { "offset": [0, 1], "kind": "barrier", "appearance": "vent", "facing": [0, 1] },
-        { "offset": [-1, 0], "kind": "barrier", "appearance": "vent", "facing": [-1, 0] },
-        { "offset": [1, 0], "kind": "barrier", "appearance": "vent", "facing": [1, 0] },
-        { "offset": [0, 0], "kind": "pad" }
+        { "offset": [0, -1], "kind": "barrier", "appearance": "concrete", "facing": [0, -1] },
+        { "offset": [0, 1], "kind": "barrier", "appearance": "concrete", "facing": [0, 1] },
+        { "offset": [-1, 0], "kind": "barrier", "appearance": "concrete", "facing": [-1, 0] },
+        { "offset": [1, 0], "kind": "barrier", "appearance": "concrete", "facing": [1, 0] },
+        { "offset": [0, 0], "kind": "pad" },
+        { "offset": [-1, -1], "kind": "apron" }, { "offset": [1, -1], "kind": "apron" },
+        { "offset": [-1, 1], "kind": "apron" }, { "offset": [1, 1], "kind": "apron" }
       ],
       "turrets": [
         { "offset": [0, 0], "structure": "structure.turret-vulcan" }
@@ -234,26 +236,31 @@
       "turrets": [{ "offset": [0, 0], "structure": "structure.aa-proximity" }]
     },
     {
-      "id": "layout.defense-post-artillery", "tier": "artillery", "variant": "default",
-      "anchor": [0, 0], "bounds": { "minOffset": [-2, -1], "maxOffset": [2, 1] },
+      "id": "layout.defense-post-large-hardpoint", "tier": "large", "variant": "hardpoint",
+      "anchor": [0, 0], "bounds": { "minOffset": [-2, -2], "maxOffset": [2, 2] },
       "cells": [
-        { "offset": [-2, 1], "kind": "barrier", "appearance": "concrete", "facing": [-1, 1] },
-        { "offset": [-1, 1], "kind": "barrier", "appearance": "concrete", "facing": [0, 1] },
-        { "offset": [0, 1], "kind": "barrier", "appearance": "concrete", "facing": [0, 1] },
-        { "offset": [1, 1], "kind": "barrier", "appearance": "concrete", "facing": [0, 1] },
-        { "offset": [2, 1], "kind": "barrier", "appearance": "concrete", "facing": [1, 1] },
-        { "offset": [-2, -1], "kind": "barrier", "appearance": "concrete", "facing": [-1, -1] },
-        { "offset": [-1, -1], "kind": "barrier", "appearance": "concrete", "facing": [0, -1] },
-        { "offset": [0, -1], "kind": "barrier", "appearance": "concrete", "facing": [0, -1] },
-        { "offset": [1, -1], "kind": "barrier", "appearance": "concrete", "facing": [0, -1] },
-        { "offset": [2, -1], "kind": "barrier", "appearance": "concrete", "facing": [1, -1] },
-        { "offset": [-2, 0], "kind": "barrier", "appearance": "concrete", "facing": [-1, 0] },
-        { "offset": [2, 0], "kind": "barrier", "appearance": "concrete", "facing": [1, 0] },
-        { "offset": [-1, 0], "kind": "pad" }, { "offset": [0, 0], "kind": "pad" }, { "offset": [1, 0], "kind": "pad" }
+        { "offset": [-2, -2], "kind": "apron" }, { "offset": [-1, -2], "kind": "apron" }, { "offset": [0, -2], "kind": "apron" }, { "offset": [1, -2], "kind": "apron" }, { "offset": [2, -2], "kind": "apron" },
+        { "offset": [-2, -1], "kind": "apron" }, { "offset": [-1, -1], "kind": "pad" }, { "offset": [0, -1], "kind": "pad" }, { "offset": [1, -1], "kind": "pad" }, { "offset": [2, -1], "kind": "apron" },
+        { "offset": [-2, 0], "kind": "apron" }, { "offset": [-1, 0], "kind": "pad" }, { "offset": [0, 0], "kind": "pad" }, { "offset": [1, 0], "kind": "pad" }, { "offset": [2, 0], "kind": "apron" },
+        { "offset": [-2, 1], "kind": "apron" }, { "offset": [-1, 1], "kind": "pad" }, { "offset": [0, 1], "kind": "pad" }, { "offset": [1, 1], "kind": "pad" }, { "offset": [2, 1], "kind": "apron" },
+        { "offset": [-2, 2], "kind": "apron" }, { "offset": [-1, 2], "kind": "apron" }, { "offset": [0, 2], "kind": "apron" }, { "offset": [1, 2], "kind": "apron" }, { "offset": [2, 2], "kind": "apron" }
       ],
       "turrets": [
-        { "offset": [-1, 0], "structure": "structure.turret-locust" },
-        { "offset": [1, 0], "structure": "structure.turret-locust" }
+        { "offset": [0, 0], "structure": "structure.hardpoint-cannon" }
+      ]
+    },
+    {
+      "id": "layout.defense-post-artillery", "tier": "artillery", "variant": "default",
+      "anchor": [0, 0], "bounds": { "minOffset": [-2, -2], "maxOffset": [2, 2] },
+      "cells": [
+        { "offset": [-2, -2], "kind": "apron" }, { "offset": [-1, -2], "kind": "apron" }, { "offset": [0, -2], "kind": "apron" }, { "offset": [1, -2], "kind": "apron" }, { "offset": [2, -2], "kind": "apron" },
+        { "offset": [-2, -1], "kind": "apron" }, { "offset": [-1, -1], "kind": "pad" }, { "offset": [0, -1], "kind": "pad" }, { "offset": [1, -1], "kind": "pad" }, { "offset": [2, -1], "kind": "apron" },
+        { "offset": [-2, 0], "kind": "apron" }, { "offset": [-1, 0], "kind": "pad" }, { "offset": [0, 0], "kind": "pad" }, { "offset": [1, 0], "kind": "pad" }, { "offset": [2, 0], "kind": "apron" },
+        { "offset": [-2, 1], "kind": "apron" }, { "offset": [-1, 1], "kind": "pad" }, { "offset": [0, 1], "kind": "pad" }, { "offset": [1, 1], "kind": "pad" }, { "offset": [2, 1], "kind": "apron" },
+        { "offset": [-2, 2], "kind": "apron" }, { "offset": [-1, 2], "kind": "apron" }, { "offset": [0, 2], "kind": "apron" }, { "offset": [1, 2], "kind": "apron" }, { "offset": [2, 2], "kind": "apron" }
+      ],
+      "turrets": [
+        { "offset": [0, 0], "structure": "structure.hardpoint-locust" }
       ]
     },
     {

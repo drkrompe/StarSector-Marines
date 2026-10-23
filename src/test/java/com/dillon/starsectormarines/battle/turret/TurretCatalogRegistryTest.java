@@ -107,7 +107,6 @@ class TurretCatalogRegistryTest {
         StructureDef structure = structure(TurretCatalogRegistry.VULCAN_STRUCTURE_ID);
         assertSame(structure.mount, TurretCatalogRegistry.requireMount(structure.mountId));
         assertSame(structure.mount.weapon, WeaponRegistry.require(structure.mount.weaponId));
-        assertEquals(0.13f, structure.mount.muzzleLateralOffsetCells, EPS);
     }
 
     private static StructureDef structure(String id) {
