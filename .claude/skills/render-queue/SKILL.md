@@ -38,7 +38,16 @@ The queue folder is `G:\My Drive\starsector\render-queue\` on Windows and
   python tools/render_queue.py hold <id>           # keep back (swaps it out if running)
   python tools/render_queue.py release <id>
   python tools/render_queue.py prioritize <id> 10  # overrides the job's own priority
+  python tools/render_queue.py prefer mac          # by day: renders go to the Mac first
+  python tools/render_queue.py prefer off          # at night: either machine, as before
   ```
+
+  Windows is the owner's daily development machine; the Mac is the render box.
+  With `prefer mac`, Windows leaves an unclaimed `any` job in the review and
+  final lanes to the Mac until it has waited 30 minutes (`--wait`), unless the
+  Mac's runner is down or its gate is paused. Light jobs and assemblies pinned
+  to Windows are unaffected. The coordinator turns it on when the owner says
+  good morning and off when they go to bed, alongside `preempt_min_run_seconds`.
 
 ## Lanes and the gate
 
