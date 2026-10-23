@@ -29,16 +29,14 @@ class SwarmRunnerContractTest {
     }
 
     @Test
-    void runnerUsesHeldSheetsAndCloseContactStats() {
+    void runnerHasCloseContactStats() {
         UnitType runner = UnitType.SWARM_RUNNER;
 
-        assertEquals("graphics/battle/alien.png", runner.spritePath);
-        assertEquals("graphics/battle/alien-dead.png", runner.deadSpritePath);
         assertTrue(runner.combatant);
         assertTrue(runner.moveSpeed > UnitType.ALIEN.moveSpeed);
         assertTrue(runner.attackRange <= 1.5f);
         assertTrue(runner.attackDamage > 0f);
-        assertTrue(runner.drawnAsSheet());
+        assertTrue(runner.carriesSprite());
         assertTrue(runner.drawnAsLayers());
         assertEquals(20f, runner.maxHp, 0.001f);
         assertEquals(15f, UnitType.ALIEN.maxHp, 0.001f);

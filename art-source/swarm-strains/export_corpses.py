@@ -21,8 +21,8 @@ PAD = 4
 # SpriteSheetSlicer: a run of this many empty columns ends a frame.
 SLICER_MIN_GAP = 4
 
+# The Brute bursts on its rig (RavBruteRig), so its corpse sheet no longer ships.
 TARGETS = {
-    "brute-corpse": "swarm-brute-dead.png",
     "spitter-corpse": "swarm-spitter-dead.png",
 }
 
