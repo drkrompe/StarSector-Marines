@@ -207,13 +207,13 @@ public final class ColonyLivingField {
         return Boolean.parseBoolean(System.getProperty("battle.colonyBreach.livingField", "true"));
     }
 
-    /** The density this battle carries; {@link Density#STANDARD} unless a property names another. */
+    /** The density this battle carries; {@link Density#DENSE} (the owner's pick) unless a property names another. */
     public static Density density() {
-        String named = System.getProperty("battle.colonyBreach.livingField.density", "standard");
+        String named = System.getProperty("battle.colonyBreach.livingField.density", "dense");
         try {
             return Density.valueOf(named.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
-            return Density.STANDARD;
+            return Density.DENSE;
         }
     }
 

@@ -42,6 +42,26 @@ public final class TurretMountDef {
      */
     public final boolean hardenedTargetsOnly;
 
+    /**
+     * Bursts a capacitor bank holds, or zero for a mount whose cadence is its cooldown alone. A mount with a bank
+     * starts full, spends one charge on each trigger pull, and refills one charge every
+     * {@link #chargeRechargeSeconds}. The bank sets what the gun can sustain, not what it carries: an empty bank
+     * leaves the magazine untouched, so the hull still reads as armed while it waits. A ship's burst laser works
+     * this way, and it is why the laser tank's turret clears a section at full rate and falls back to the
+     * recharge rate in a long fight against plate.
+     */
+    public final int charges;
+    /** Seconds to refill one charge; zero when the mount has no bank. */
+    public final float chargeRechargeSeconds;
+
+    /**
+     * Whether a vehicle carrying this mount also puts its gun on hostile aircraft: fighters, gunships and
+     * shuttles in the air within its reach, with a clear line up. The gun is the same gun, on the same magazine,
+     * cadence and bank, so a craft it takes is ground it leaves. Read by the vehicle turret pass only; an
+     * emplacement's air role is its structure's {@code targetRole}.
+     */
+    public final boolean engagesAir;
+
     /** Optional whole-texture mount body. Null lets a carrier own sheet-frame art. */
     public final String spritePath;
     /** Optional recoil/barrel layer paired with {@link #spritePath}. */
@@ -51,8 +71,12 @@ public final class TurretMountDef {
                            int ammoCapacity, float turnRateDegPerSec,
                            float visualCells, float muzzleOffsetCells,
                            float muzzleLateralOffsetCells, List<Muzzle> muzzles,
-                           boolean hardenedTargetsOnly, String spritePath, String recoilSpritePath) {
+                           boolean hardenedTargetsOnly, int charges, float chargeRechargeSeconds,
+                           boolean engagesAir, String spritePath, String recoilSpritePath) {
         this.id = id;
+        this.engagesAir = engagesAir;
+        this.charges = charges;
+        this.chargeRechargeSeconds = chargeRechargeSeconds;
         this.hardenedTargetsOnly = hardenedTargetsOnly;
         this.weaponId = weaponId;
         this.weapon = weapon;
@@ -81,6 +105,13 @@ public final class TurretMountDef {
         JSONObject render = json.optJSONObject("render");
         int ammoCapacity = sim.getInt("ammoCapacity");
         float turnRate = (float) sim.getDouble("turnRateDegPerSec");
+        int charges = sim.optInt("charges", 0);
+        float chargeRechargeSeconds = (float) sim.optDouble("chargeRechargeSec", 0.0);
+        if (charges < 0) throw new JSONException("Turret mount '" + id + "' charges cannot be negative");
+        if (charges > 0) requirePositiveFinite(chargeRechargeSeconds, id, "chargeRechargeSec");
+        else if (sim.has("chargeRechargeSec")) {
+            throw new JSONException("Turret mount '" + id + "' declares chargeRechargeSec without charges");
+        }
         float visualCells = render != null
                 ? (float) render.optDouble("visualCells", 0.0) : 0f;
         float muzzleOffsetCells = render != null
@@ -131,7 +162,7 @@ public final class TurretMountDef {
         return new TurretMountDef(
                 id, weaponId, weapon, ammoCapacity, turnRate, visualCells, muzzleOffsetCells,
                 muzzleLateralOffsetCells, muzzles, json.optBoolean("hardenedTargetsOnly", false),
-                sprite, recoilSprite);
+                charges, chargeRechargeSeconds, json.optBoolean("engagesAir", false), sprite, recoilSprite);
     }
 
     static String requireText(JSONObject json, String key) throws JSONException {
