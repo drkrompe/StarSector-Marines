@@ -134,7 +134,7 @@ def weapon_of(build, turret):
 # asks only for fire that planned() will let through, and the kit's ceiling (swfx_guns.MAX_FLIGHT_S:
 # no round is drawn flying longer). Change them with scene_fx. A story moment (force) may fly past
 # the execution gate up to the kit's ceiling; scene_fx must honour `force` for it to fire.
-EXEC_FLIGHT_S, EXEC_RANGE_M = 2.2, 3500.0
+EXEC_FLIGHT_S, EXEC_RANGE_M = 3.0, 3500.0
 KIT_FLIGHT_S = 6.0
 
 
@@ -437,7 +437,6 @@ def silent_from(key, turret=None):
 # gun did: hit id -> the ships whose decisive burst lands it. Hits with no `by` at all are the
 # ledger's own story hits and get no gun (its owner's call), so their rows here are inert.
 GUN_MADE = {
-    'lasher-lead@55.9:breach': ('manticore-p',),           # the Hellbore slug that turns her (S6)
     'hound-p-c@61.9:kill': ('lasher-b', 'wolf-m'),          # the Ammo Feeder burst breaks her up (S6b)
     'tarsus@70.5:breach': ('wolf-p-a', 'wolf-p-b'),         # the Wolves (P) shoot her drives out (S6c)
     'hound-m@75.5:breach': ('hound-p-b',),                  # drives hit (S6d)
@@ -668,10 +667,9 @@ def _attitude_span(sh, key, mount, tgt, aim, i0, i1):
 @lru_cache(maxsize=None)
 def _moment_reach(kf, key, turret):
     """The ledger moments this ship owes in this shot, as this mount sees them. The round must ARRIVE
-    at the ledger's time, so the gun fires a flight time earlier: the moment is deliverable if the
-    mount bears with a clear line, and the round can fly that far, at some step from 0.8 s before to
-    0.4 s after its fire time. The scaled range gate is waived (story wins); the kit's flight ceiling
-    is not."""
+    at the ledger's time, so the gun fires a flight time earlier: a step counts if the round it fires,
+    flown at the range it leaves at, lands within 0.4 s of the hit (0.9 s after, for a kill's
+    finishing burst), and the mount bears with a clear line and within the gate (force_reach_m)."""
     sh = _shot(kf)
     build = build_of(kf, key)
     mount = mounts_of(kf, key).get(turret) if turret is not None else None
@@ -681,24 +679,32 @@ def _moment_reach(kf, key, turret):
     for (t, shooter, target, at, to, hid) in moments():
         if shooter != key or target not in sh.ships or not (sh.times[0] <= t <= sh.t1 + .5):
             continue
-        j = sh.i(t)
-        d = math.dist(to_world(sh.fr[key][j], mount[0]), to_world(sh.fr[target][j], at))
-        flight = d / speed_of(weapon)
-        tf = t - flight
         late = .9 if hid.endswith(':kill') else .4      # a kill takes a finishing burst into the breaking wreck
-        steps = [i for i, tt in enumerate(sh.times) if tf - .8 <= tt <= tf + late and not _held(sh, key, turret, tt)]
-        good, why, miss = [], ('fires before the shot is simulated' if tf < sh.times[0] else 'held'), None
-        for i in steps:
+        good, why, miss, flight = [], 'held', None, None
+        for i, tt in enumerate(sh.times):
+            if tt > t or _held(sh, key, turret, tt):
+                continue
+            d = math.dist(to_world(sh.fr[key][i], mount[0]), to_world(sh.fr[target][i], at))
+            arrive = tt + d / speed_of(weapon)          # this step's round, flown at the range it left at
+            if not (t - .4 <= arrive <= t + late):
+                continue
             ok, _d, w = _valid(sh, key, turret, mount, weapon, target, i, at, force=True)
             m = bears(mount, to_local(sh.fr[key][i], to_world(sh.fr[target][i], at)))[1]
             miss = m if miss is None else min(miss, m)
             if ok:
                 good.append(i)
+                flight = d / speed_of(weapon) if flight is None else flight
             else:
                 why = w
-        if d > force_reach_m(weapon):
-            good, why = [], (f'{weapon} at {d:.0f} m: round flight {flight:.1f} s, past the execution gate '
-                             f'({force_reach_m(weapon):.0f} m)')
+        if flight is None:               # nothing lands on time: say how far it is at the hit time
+            j = sh.i(t)
+            d = math.dist(to_world(sh.fr[key][j], mount[0]), to_world(sh.fr[target][j], at))
+            flight = d / speed_of(weapon)
+            if why == 'held' and not any(t - .4 <= tt + flight <= t + late for tt in sh.times):
+                why = 'fires before the shot is simulated'
+            if d > force_reach_m(weapon) and why in ('held', 'fires before the shot is simulated'):
+                why = (f'{weapon} at {d:.0f} m: round flight {flight:.1f} s, past the execution gate '
+                       f'({force_reach_m(weapon):.0f} m)')
         out.append(dict(t=t, target=target, at=at, to=to, hid=hid, steps=frozenset(good), ok=bool(good),
                         why='' if good else why, miss=miss, flight=round(flight, 2)))
     return tuple(out)
@@ -973,20 +979,19 @@ def shot_plan(kf):
         engs += [x for x in (_clip(x, t0 - LEAD_IN, t1) for x in e)
                  if x and (x['end'] + x['flight_s'] > t0)]      # its rounds land inside the shot
         holds += [(key, turret) + x for x in h]
-    owed_rows = []
+    per = {}
     for key in bb.SHOTS[kf]['ships']:
-        turrets = sorted(mounts_of(kf, key))
-        if not turrets:
+        for tu in sorted(mounts_of(kf, key)):
+            for o in _moment_reach(kf, key, tu):
+                per.setdefault(o['hid'], []).append((key, tu, o))
+    owed_rows = []
+    for hid, rows in per.items():
+        got = [(k, tu) for k, tu, o in rows if o['ok']]
+        if got:
+            owed_rows.append((hid, True, ', '.join(f'{k} t{tu}' for k, tu in got)))
             continue
-        rows = [(tu, o) for tu in turrets for o in _moment_reach(kf, key, tu)]
-        for hid in dict.fromkeys(o['hid'] for _tu, o in rows):
-            mine = [(tu, o) for tu, o in rows if o['hid'] == hid]
-            got = sorted(assign_moments(kf, key).get(hid, ()))
-            if any(o['ok'] for _tu, o in mine):
-                owed_rows.append((hid, True, f'{key} ' + ', '.join(f't{tu}' for tu in got)))
-                continue
-            tu, o = min(mine, key=lambda r: (r[1]['miss'] is None, r[1]['miss'] or 0))
-            owed_rows.append((hid, False, f'{key} t{tu} nearest: {o["why"]}'))
+        k, tu, o = min(rows, key=lambda r: (r[2]['miss'] is None, r[2]['miss'] or 0))
+        owed_rows.append((hid, False, f'{k} t{tu} nearest: {o["why"]}'))
     return dict(engagements=sorted(engs, key=lambda e: (e['start'], e['shooter'], e['turret'])),
                 holds=holds, owed=owed_rows, opening=opening(kf), missiles=missiles(kf))
 
@@ -1026,6 +1031,33 @@ def opening(kf):
             out[key] = (None, near[1] if near else None, round(near[0]) if near else None)
         else:
             out[key] = best
+    return out
+
+
+def arrival_windows(kf, shooter, target, at):
+    """When the shooter's rounds can land on `at` (target frame, metres) in this shot: {turret:
+    [(first, last), ...]} sequence seconds of arrival, fired from a step where the mount bears with a
+    clear line within the gate. For the ledger, to time a gunfire hit the guns can deliver."""
+    kf = base_kf(kf)
+    sh = _shot(kf)
+    b = build_of(kf, shooter)
+    out = {}
+    for tu, m in sorted(mounts_of(kf, shooter).items()):
+        w = weapon_of(b, tu) if b in MOUNTS else 'lightmg'
+        arr = []
+        for i, tt in enumerate(sh.times):
+            if _held(sh, shooter, tu, tt):
+                continue
+            ok, d, _w = _valid(sh, shooter, tu, m, w, target, i, tuple(at), force=True)
+            if ok:
+                arr.append(round(tt + d / speed_of(w), 1))
+        runs = []
+        for a in sorted(arr):
+            if runs and a - runs[-1][1] <= .3:
+                runs[-1][1] = a
+            else:
+                runs.append([a, a])
+        out[tu] = [tuple(r) for r in runs]
     return out
 
 
