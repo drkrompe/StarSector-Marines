@@ -193,8 +193,8 @@ final class BattleDirectControlHudModel {
             else other.add(weapon);
         }
         List<WeaponGroup> result = new ArrayList<>();
-        result.add(triggerGroup(snapshot, FireTrigger.LEFT, left, unknown, selected));
-        if (!right.isEmpty()) result.add(triggerGroup(snapshot, FireTrigger.RIGHT, right, false, 0));
+        result.add(triggerGroup(snapshot, FireTrigger.LEFT, left, unknown, selected, true));
+        if (!right.isEmpty()) result.add(triggerGroup(snapshot, FireTrigger.RIGHT, right, false, 0, true));
         if (!other.isEmpty()) {
             List<WeaponRow> rows = new ArrayList<>();
             for (WeaponStatus weapon : other) rows.add(weaponRow(weapon, true, false, false, "", () -> { }));
@@ -205,11 +205,13 @@ final class BattleDirectControlHudModel {
     }
 
     /**
-     * One trigger's header and rows. Its list is LINKED and then each member, so a left member's
-     * number key is its place after key 1; a group of one has only key 1.
+     * One trigger's header and rows. A mech's list is LINKED and then each member, so a left member's
+     * number key is its place after key 1; a group of one has only key 1. A Marine's left list has no
+     * LINKED ({@code linkedFirst} false): the primary is key 1 and each special the next.
      */
     private WeaponGroup triggerGroup(BattleDirectControlStatus.Snapshot snapshot, FireTrigger trigger,
-                                     List<WeaponStatus> members, boolean unknown, int selected) {
+                                     List<WeaponStatus> members, boolean unknown, int selected,
+                                     boolean linkedFirst) {
         boolean leftButton = trigger == FireTrigger.LEFT;
         String letter = leftButton ? "L" : "R";
         List<Boolean> picked = new ArrayList<>(members.size());
@@ -233,7 +235,7 @@ final class BattleDirectControlHudModel {
         List<WeaponRow> rows = new ArrayList<>();
         for (int i = 0; i < members.size(); i++) {
             WeaponStatus weapon = members.get(i);
-            int keyIndex = cycles ? i + 1 : 0;
+            int keyIndex = cycles && linkedFirst ? i + 1 : i;
             String key = leftButton ? String.valueOf(keyIndex + 1) : "";
             Runnable action = leftButton ? () -> select.select(keyIndex)
                     : () -> select.pick(trigger, weapon.number());
@@ -277,13 +279,21 @@ final class BattleDirectControlHudModel {
     /** Single-weapon carriers: the left button's weapon, then keyed abilities or a ship's systems. */
     private List<WeaponGroup> otherGroups(BattleDirectControlStatus.Snapshot snapshot, boolean ship) {
         List<WeaponGroup> result = new ArrayList<>();
+        if (snapshot.carrier() == Carrier.MARINE && snapshot.weapons().size() > 1) {
+            // A Marine with a direct-fire special: Q cycles the left button from the primary to it.
+            result.add(triggerGroup(snapshot, FireTrigger.LEFT, snapshot.weapons(), false, 0, false));
+            addAbilities(snapshot, result);
+            return result;
+        }
         List<WeaponRow> fire = new ArrayList<>();
         for (WeaponStatus weapon : snapshot.weapons()) {
             fire.add(weaponRow(weapon, false, false, false, "", () -> select.select(weapon.number())));
         }
         if (!fire.isEmpty()) {
+            // One weapon on the button: the header names it, as a cycled pick's header does.
+            String name = snapshot.weapons().size() == 1 ? snapshot.weapons().get(0).name() : label("GroupFire");
             result.add(new WeaponGroup("direct-hud-group-lmb", label("BadgeLMB"), "badge badge-lmb",
-                    label("GroupFire"), "", "group-header", false, () -> {}, fire));
+                    name, "", "group-header", false, () -> {}, fire));
         }
         if (ship) {
             List<WeaponRow> systems = new ArrayList<>();
@@ -291,13 +301,22 @@ final class BattleDirectControlHudModel {
             result.add(new WeaponGroup("direct-hud-group-systems", "", "badge badge-none",
                     label("GroupSystems"), "", "group-header", false, () -> {}, systems));
         }
+        addAbilities(snapshot, result);
+        return result;
+    }
+
+    /** A Marine's right-button items under RMB; another body's keyed abilities under KEYS, when it has any. */
+    private void addAbilities(BattleDirectControlStatus.Snapshot snapshot, List<WeaponGroup> result) {
+        if (snapshot.carrier() == Carrier.MARINE) {
+            if (!snapshot.abilities().isEmpty()) result.add(marineRightGroup(snapshot.abilities()));
+            return;
+        }
         List<WeaponRow> abilities = new ArrayList<>();
-        for (var ability : snapshot.abilities()) abilities.add(abilityRow(ability));
+        for (var ability : snapshot.abilities()) abilities.add(abilityRow(ability, false, false, () -> {}));
         if (!abilities.isEmpty()) {
             result.add(new WeaponGroup("direct-hud-group-abilities", label("BadgeKeys"), "badge badge-keys",
                     label("GroupAbilities"), "", "group-header", false, () -> {}, abilities));
         }
-        return result;
     }
 
     /** {@code dimmed}: a member its trigger's pick leaves out, which holds fire. */
@@ -396,7 +415,41 @@ final class BattleDirectControlHudModel {
         return blocks;
     }
 
-    private WeaponRow abilityRow(BattleDirectControlStatus.AbilityStatus ability) {
+    /**
+     * A Marine's right button: its items in list order (smoke, a hand grenade, the shield) under a header that
+     * names the pick and, when there is more than one, the E that cycles it, as a mech's trigger does. The pick
+     * carries the wash. The others do not dim: G and C still use smoke and the shield whatever the pick is.
+     */
+    private WeaponGroup marineRightGroup(List<BattleDirectControlStatus.AbilityStatus> items) {
+        boolean cycles = items.size() > 1;
+        String pickName = abilityName(items.get(0));
+        List<WeaponRow> rows = new ArrayList<>();
+        for (int i = 0; i < items.size(); i++) {
+            var item = items.get(i);
+            if (item.picked()) pickName = abilityName(item);
+            int member = i;
+            rows.add(abilityRow(item, cycles && item.picked(), cycles,
+                    cycles ? () -> select.pick(FireTrigger.RIGHT, member) : () -> {}));
+        }
+        return new WeaponGroup("direct-hud-group-rmb", label("BadgeRMB"), "badge badge-rmb", pickName,
+                cycles ? label("KeyCycleRight") : "", HINT,
+                cycles ? "group-header group-header-action" : "group-header", !cycles,
+                () -> select.cycle(FireTrigger.RIGHT), rows);
+    }
+
+    /** Each item by its kind; a grenade's model ("Shattercap") goes on its row's second line. */
+    private String abilityName(BattleDirectControlStatus.AbilityStatus ability) {
+        return switch (ability.ability()) {
+            case SHIELD -> label("Shield");
+            case SMOKE -> label("Smoke");
+            case GRENADE -> label("Grenade");
+            default -> ability.name();
+        };
+    }
+
+    /** {@code picked}: the right button's pick, which carries the wash; {@code clickable} rows pick themselves through {@code action}. */
+    private WeaponRow abilityRow(BattleDirectControlStatus.AbilityStatus ability, boolean picked,
+                                 boolean clickable, Runnable action) {
         boolean shield = ability.ability() == DirectControlAbility.SHIELD;
         boolean active = ability.activeSeconds() > 0f;
         boolean broken = shield && ability.broken();
@@ -405,7 +458,9 @@ final class BattleDirectControlHudModel {
                 : empty ? label("EMPTY")
                 : ability.cooldownSeconds() > 0f ? seconds(ability.cooldownSeconds())
                 : label(ability.ready() ? "Ready" : "Busy");
-        String detail = active ? seconds(ability.activeSeconds()) : label(shield ? "Directional" : "CursorThrow");
+        String detail = active ? seconds(ability.activeSeconds())
+                : ability.ability() == DirectControlAbility.GRENADE ? ability.name()
+                : label(shield ? "Directional" : "CursorThrow");
         String resource = shield ? (active ? Math.round(ability.soakRemaining()) + " / "
                 + Math.round(ability.soakCapacity()) : "")
                 : ability.remaining() + " / " + ability.capacity();
@@ -413,10 +468,12 @@ final class BattleDirectControlHudModel {
                 : active ? 1f - fraction(ability.activeSeconds(), ability.durationSeconds())
                 : ability.cooldownSeconds() > 0f ? 1f - fraction(ability.cooldownSeconds(), ability.cooldownDurationSeconds())
                 : ability.ready() ? 1f : 0f;
-        return new WeaponRow("direct-hud-ability-" + ability.ability().name(), "weapon ability",
-                rowStyle(false, 1f), true, shield ? "C" : "G", "key", label(shield ? "Shield" : "Smoke"),
-                detail, resource, state, "weapon-state" + (broken || empty ? " weapon-empty"
-                : !ability.ready() ? " weapon-busy" : ""), width(fill), () -> {});
+        String key = shield ? "C" : ability.ability() == DirectControlAbility.SMOKE ? "G" : "";
+        return new WeaponRow("direct-hud-ability-" + ability.ability().name(),
+                "weapon ability" + (picked ? " weapon-selected selected" : ""),
+                rowStyle(picked, 1f), !clickable, key, key.isEmpty() ? "key key-none" : "key",
+                abilityName(ability), detail, resource, state, "weapon-state" + (broken || empty ? " weapon-empty"
+                : !ability.ready() ? " weapon-busy" : ""), width(fill), action);
     }
 
     /**

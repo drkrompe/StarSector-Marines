@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-23 — held racks chain their salvos; earlier: torso rear plate, torso arcs, missile warheads, duel range against armor.
+Updated: 2026-10-23 — a mech's flux shows as a haze on its vents; held racks chain their salvos; earlier: torso rear plate, torso arcs, missile warheads, duel range against armor.
 
 ## Purpose
 
@@ -438,7 +438,14 @@ increasing an encounter's total armored threat.
   it builds one into stores and fits nothing, and is dimmed while the materials are
   short. A row with a spare offers no build at all: the spare is what to drag, and
   stripping a part back to stores takes the offer away again. Plating is the one exception: it covers the whole frame and
-  has no mount to drop on, so a spare plate is fitted from its row. The fitting
+  has no mount to drop on, so a spare plate is fitted from its row. Internals
+  drag off like weapons, but a frame always holds an engine and a capacitor bank:
+  dragging either back to stores refits the stock part from stores in its place,
+  and is refused when the fitted part is already stock or no stock spare is held.
+  Only the vent array leaves its socket empty. The stores filters follow the
+  socket: a weapon mount sorts by hardpoint type, and every other socket offers
+  All and In stock. The whole stores row is the drag handle and the hover target
+  for its spec sheet. The fitting
   view has no call-sign or status bars: a BACK button returns to the lance
   overview, as the Mech Lab tab itself does.
 - A **fitting doll** is the asset-authored maintenance presentation of one mech
@@ -1354,6 +1361,12 @@ headroom; at 95 it vents until 55, with no damage or movement shutdown. A trigge
 waits for enough headroom even below that interlock. The HUD shows shared flux
 and per-mount flux holds separately from cycler/loader progress and pack
 supply. Mech Lab hover sheets expose both costs and dissipation time per burst.
+
+Flux shows on the body as a ground hull's gun shows it, in the same look
+(`FluxHaze`, `convoy-nouns.md`): a purple haze over the vents across the torso's
+back, turning with the torso, that thickens with the square of the reservoir's
+share, wisps drifting aft off it, and a bright lavender plume for as long as the
+mech vents. It is drawn from current flux and simulation time alone.
 
 Evidence: `hound-flux` compares held fire, paced bursts, autonomous dissipation and
 reverse/strafe motion; its snapshot suite overlays the live production HUD on

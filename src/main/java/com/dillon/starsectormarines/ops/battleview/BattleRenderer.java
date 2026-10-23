@@ -255,6 +255,8 @@ public class BattleRenderer {
 
     /** S3 render-side event lights consumed by the surface-relief composite. */
     private final GroundLightService groundLights = new GroundLightService();
+    /** Barrel smoke, ejected brass and damage smoke off map turrets; fed by the screen with the simulation's shots. */
+    private final TurretFx turretFx = new TurretFx(0x7A11E7L);
 
     /** S2/S3 ground FBO + parallax/bump-light composite. {@link DevConfig#SURFACE_RELIEF_PARALLAX}-gated. */
     private final SunLight sun = new SunLight();
@@ -621,6 +623,8 @@ public class BattleRenderer {
 
     /** Accessor for the host's combat-event presentation pass. */
     public GroundLightService getGroundLights() { return groundLights; }
+
+    public TurretFx getTurretFx() { return turretFx; }
 
     /**
      * Lights the ground composite from {@code lights} instead of this renderer's own; null restores its own. A

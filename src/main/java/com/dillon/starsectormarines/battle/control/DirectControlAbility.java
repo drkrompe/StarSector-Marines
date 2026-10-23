@@ -4,6 +4,8 @@ package com.dillon.starsectormarines.battle.control;
 public enum DirectControlAbility {
     SHIELD,
     SMOKE,
+    /** Throw the carried hand grenade at the cursor; the right button only, when it is the pick. */
+    GRENADE,
     /** A tender pilot's X key: withdraw every unfinished build site. */
     CANCEL_BUILDS,
     /** A warship pilot's F key: a fast, low pass from the hull to the cursor. */

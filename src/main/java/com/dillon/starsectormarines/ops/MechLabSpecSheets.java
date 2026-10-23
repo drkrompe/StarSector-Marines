@@ -48,7 +48,9 @@ final class MechLabSpecSheets {
                                 MechLabViewModel viewModel) {
         if (binder == null) return;
         for (MechLabViewModel.CatalogRow row : rows) {
-            UiElement name = markup.requireElement(row.nameId());
+            // The whole row answers hover, not only its name; its FAB button and material
+            // chips keep their own sheets because the deepest bound element wins.
+            UiElement name = markup.requireElement(row.id());
             if (binder.isBound(name)) continue;
             if (row.chassisPreview() != null) {
                 binder.bind(name, SpecSheets.mech(row.chassisPreview()));

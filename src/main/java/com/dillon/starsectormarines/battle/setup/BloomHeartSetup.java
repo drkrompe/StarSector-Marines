@@ -10,6 +10,11 @@ import com.dillon.starsectormarines.battle.command.objective.EliminateFactionObj
 import com.dillon.starsectormarines.battle.command.objective.HeartObjective;
 import com.dillon.starsectormarines.battle.evacuation.HeartBores;
 import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
+import com.dillon.starsectormarines.battle.evacuation.HeartObjectives;
+import com.dillon.starsectormarines.battle.evacuation.HeartSequence;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveContext;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRoll;
 import com.dillon.starsectormarines.battle.power.WalkingBarrage;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -179,6 +184,13 @@ public final class BloomHeartSetup {
         boolean front = barrage != null && burnFront();
         if (front) lanes = burnFront(sim, form, burnScreen(form, barrage.plan()), built.battleSeed());
         sim.installHeart(form, barrage, lanes, built.map().layout);
+        // The beats this battle runs: drawn from what its map laid, the same draw the briefing shows.
+        int[] count = HeartObjectives.count(density);
+        ObjectiveBoard objectives = new ObjectiveBoard(ObjectiveRoll.pick(HeartObjectives.pool(form),
+                built.map().layout, built.battleSeed(), count[0], count[1]),
+                ObjectiveContext.forBattle(sim, built.map().layout, built.battleSeed(), HeartSequence.BEAT_PREFIX));
+        sim.installOptionalObjectives(objectives);
+        objectives.start(0);
         Precinct landing = built.plan().landingPlace();
         int laneAcross = form.advancesAlongY() ? landing.seedX() : landing.seedY();
         int laneHalfWidth = form == Form.BROAD_FRONT

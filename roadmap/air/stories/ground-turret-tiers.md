@@ -78,6 +78,24 @@ A generated post takes its style from the defenders' market at generation
 defence level above one) build brutalist, the rest earthwork, and no market builds
 brutalist. An earthwork post's parapets are sandbags and it is not paved.
 
+## Turret effects
+
+Presentation only, so a battle plays the same with or without them:
+
+- **Recoil.** Each mount authors its barrel's kick (`render.recoil`: distance as a share of the
+  mount's size, and the seconds it takes to settle): autoguns chatter, cannons kick and settle
+  slowly, the hardpoint's barrel slides back a third of a cell.
+- **Muzzle blast.** The cannons' muzzle effects throw dust forward off the ground.
+- **Barrel smoke.** A turret's barrel smokes once a burst stops, longer after a long burst
+  (`TurretFx`, fed by the live screen and the review frames alike).
+- **Brass.** A mount with `render.casings` throws a glint of brass to its right on every round,
+  which lands as a casing decal beside the gun.
+- **Damage.** A turret below half its structure smokes, faster as it gets worse; below a quarter
+  it throws sparks too.
+- **Night light.** The muzzle flash already lights the ground around a turret in the live game.
+
+`createSnapshots -Psnapshot=ground-turret-look` plays a `firing-<style>` shot with all of it.
+
 ## Open
 
 - Incoming fire at a raised gun still meets the low cover round its plinth as if the
@@ -85,6 +103,7 @@ brutalist. An earthwork post's parapets are sandbags and it is not paved.
 - A plinth casts no shadow past its footprint; the renderer needs an overhang margin or a
   sun-offset shadow layer for it.
 - Missions choose the derelict style (nothing selects it yet).
+- A scorch mark on the ground in front of the heavy cannon: the decal sheet has no scorch frame yet.
 
 ## Acceptance
 
