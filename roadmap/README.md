@@ -162,8 +162,8 @@ and extension stories. Start with `ai-nouns.md`, `fog-of-war-nouns.md`,
 `ballistics-nouns.md`, `combat-durability-nouns.md`,
 `battle-render-nouns.md`, and `ecs-nouns.md`.
 `direct-control-nouns.md` owns the one-unit WASD and mouse mode, with physical
-point-aim fire and explicit AI handback. Marine, Mech, and deployed APC control
-are implemented. APCs share vehicle kinematics, turret authority, and
+point-aim fire and explicit AI handback. Marine, Mech, and owned-vehicle control
+are implemented. Vehicles share vehicle kinematics, turret authority, and
 suspended-order handback. Final live feel remains on the direct-control story board.
 Equipped Marine shields and smoke accept explicit manual activation through
 their existing equipment owners, with compact readouts beside the primary.

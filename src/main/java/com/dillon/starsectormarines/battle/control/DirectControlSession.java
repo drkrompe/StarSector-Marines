@@ -296,8 +296,10 @@ public final class DirectControlSession {
         if (roster.convoy().isVehicle(id)) {
             var convoy = roster.convoy();
             var mission = convoy.mission(id);
+            // Any hull the player owns, whatever its type: owning is the Marine faction. Every vehicle the
+            // player's force puts on the field (a bay drop, a granted drop, a works the company runs) is
+            // spawned Marine, and every hull it only escorts or fights beside is spawned Ally, enlisted or not.
             return convoy.faction(id) == Faction.MARINE && world.hp(id) > 0f
-                    && convoy.vehicleType(id) == VehicleType.HEAVY_APC
                     && convoy.body(id) instanceof BicycleBody && convoy.control(id) != null
                     && mission != null && mission.state == VehicleState.DEPLOYED
                     && !unavailable.test(id);

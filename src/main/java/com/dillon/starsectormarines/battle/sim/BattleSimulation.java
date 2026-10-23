@@ -37,6 +37,7 @@ import com.dillon.starsectormarines.battle.deployable.DeployedCoverService;
 import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
 import com.dillon.starsectormarines.battle.infantry.SquadSupportDeclaration;
 import com.dillon.starsectormarines.battle.deployable.PointDefenseService;
+import com.dillon.starsectormarines.battle.combat.SalvoChain;
 import com.dillon.starsectormarines.battle.drone.DroneBaySystem;
 import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
@@ -77,6 +78,7 @@ import com.dillon.starsectormarines.battle.tender.TenderSystem;
 import com.dillon.starsectormarines.battle.warship.MissionStance;
 import com.dillon.starsectormarines.battle.warship.ShipStationing;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.warship.WarshipSystem;
 import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
@@ -916,13 +918,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /**
      * Installs the heart's battle (`heart-nouns.md`) over its opened bores: the
      * mothers go to sleep and the heart's wake rules and beats take over.
+     * {@code places} is what the map's mission layout laid, by name.
      */
-    public void installHeart(Form form, WalkingBarrage barrage, HeartLanes lanes) {
+    public void installHeart(Form form, WalkingBarrage barrage, HeartLanes lanes, LaidLayout places) {
         if (simTickIndex != 0 || heart != null || colonyBreach != null)
             throw new IllegalStateException("Install the heart once at setup");
         if (!swarmReinforcements.isConfigured())
             throw new IllegalStateException("The heart needs a configured swarm director");
-        heart = new HeartSequence(form, storyBeats, barrage, lanes);
+        heart = new HeartSequence(form, storyBeats, barrage, lanes, places);
         heart.install(this);
     }
     /** Ends the swarm director's opening seepage; the breach has begun. Idempotent. */
@@ -1630,6 +1633,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         }
         groundSystem.setBlade(new DozerBlade(navigation, mapEditor, doodadService));
         groundSystem.setAirFire(groundAntiAir.vehicleAirFire(this));
+        groundSystem.setScreening(target -> SalvoChain.screened(this, target));
         groundSystem.setStall(id -> rosterService.stagger().isStaggered(id));
         groundSystem.setAssaultPlanner((vehicle, cellX, cellY) -> MachineAssaults.planVehicle(this, vehicle, cellX, cellY));
         groundSystem.setGuardPlanner((vehicle, cellX, cellY) -> MachineGuards.planVehicle(this, vehicle, cellX, cellY));
@@ -1648,7 +1652,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         });
         fogOfWar.init(grid, 256);
         this.directControl = new DirectControlSession(this, rosterService,
-                id -> transport.isRiding(id) || ambientTasks.isControlling(id), this::isComplete,
+                id -> transport.isRiding(id) || ambientTasks.isControlling(id)
+                        || fabrication != null && fabrication.onStocks(id), this::isComplete,
                 warships, tenders, (x, y) -> fogOfWar.isCellRevealed(x, y));
     }
 
