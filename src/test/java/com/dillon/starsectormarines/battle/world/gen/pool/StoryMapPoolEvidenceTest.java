@@ -2,12 +2,13 @@ package com.dillon.starsectormarines.battle.world.gen.pool;
 
 import com.dillon.starsectormarines.battle.cordon.CordonCorridor;
 import com.dillon.starsectormarines.battle.cordon.CordonPlan;
+import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import org.junit.jupiter.api.Tag;
@@ -41,7 +42,11 @@ class StoryMapPoolEvidenceTest {
         int parallelism = Integer.getInteger("storyMapPools.parallelism", 2);
         List<Job> jobs = new ArrayList<>();
         for (StoryMap map : StoryMap.values()) {
-            for (StoryMapPool.Entry entry : StoryMapPools.pool(map).entries()) jobs.add(new Job(map, entry, true));
+            for (SurfacePalette biome : SurfacePalette.values()) {
+                for (StoryMapPool.Entry entry : StoryMapPools.pool(map).entries(biome)) {
+                    jobs.add(new Job(map, biome, entry, true));
+                }
+            }
         }
         jobs.addAll(candidates(System.getProperty("storyMapPools.candidates", "")));
 
@@ -62,10 +67,10 @@ class StoryMapPoolEvidenceTest {
         }
     }
 
-    private record Job(StoryMap map, StoryMapPool.Entry entry, boolean pooled) { }
+    private record Job(StoryMap map, SurfacePalette biome, StoryMapPool.Entry entry, boolean pooled) { }
 
     private record Row(Job job, String failure, String detail, long millis) {
-        String label() { return job.map().id + " " + job.entry().seed(); }
+        String label() { return job.map().id + " " + job.biome() + " " + job.entry().seed(); }
     }
 
     private static Row check(Job job) {
@@ -73,10 +78,10 @@ class StoryMapPoolEvidenceTest {
         String failure = null, detail = "";
         try {
             switch (job.map()) {
-                case CORDON_LINE -> detail = cordon(CordonVariant.LINE, job.entry());
-                case CORDON_ROAD -> detail = cordon(CordonVariant.ROAD, job.entry());
-                case HEART_BURN -> detail = heart(Form.THE_BURN, job.entry());
-                case HEART_FRONT -> detail = heart(Form.BROAD_FRONT, job.entry());
+                case CORDON_LINE -> detail = cordon(CordonVariant.LINE, job.biome(), job.entry());
+                case CORDON_ROAD -> detail = cordon(CordonVariant.ROAD, job.biome(), job.entry());
+                case HEART_BURN -> detail = heart(Form.THE_BURN, job.biome(), job.entry());
+                case HEART_FRONT -> detail = heart(Form.BROAD_FRONT, job.biome(), job.entry());
             }
         } catch (Exception | AssertionError e) {
             failure = String.valueOf(e.getMessage());
@@ -85,8 +90,8 @@ class StoryMapPoolEvidenceTest {
     }
 
     /** Generates the pooled map (which throws on a failed acceptance), checks the line and stands the battle up. */
-    private static String cordon(CordonVariant variant, StoryMapPool.Entry entry) throws Exception {
-        CordonSetup.CordonMap cordon = CordonSetup.map(variant, entry, TargetProfile.NEUTRAL);
+    private static String cordon(CordonVariant variant, SurfacePalette biome, StoryMapPool.Entry entry) throws Exception {
+        CordonSetup.CordonMap cordon = CordonSetup.map(variant, biome, entry);
         List<Precinct> redoubts = CordonPlan.redoubts(cordon.plan());
         if (redoubts.size() != CordonPlan.REDOUBTS) throw new AssertionError(redoubts.size() + " redoubts");
         for (int i = 1; i < redoubts.size(); i++) {
@@ -104,35 +109,48 @@ class StoryMapPoolEvidenceTest {
             detail += String.format(Locale.ROOT, "; corridor %d cells, %.0f%% on road", cordon.corridor().size(),
                     100f * CordonCorridor.pavedShare(cordon.map().topology, cordon.corridor()));
         }
-        try (BattleSimulation sim = CordonSetup.create(cordon, variant, List.of(), TargetProfile.NEUTRAL,
-                CordonSequence.Timetable.STANDARD)) {
+        try (BattleSimulation sim = CordonSetup.create(cordon, variant, List.of(), CordonSequence.Timetable.STANDARD)) {
             if (sim.getCordon() == null) throw new AssertionError("the battle has no cordon");
+            StringBuilder guns = new StringBuilder();
+            for (CordonRedoubt r : sim.getCordon().redoubts()) guns.append(guns.length() == 0 ? "" : "-").append(r.guns().size());
+            detail += "; redoubt guns " + guns;
         }
         return detail;
     }
 
-    private static String heart(Form form, StoryMapPool.Entry entry) throws Exception {
-        BloomHeartSetup.Built built = BloomHeartSetup.country(form, entry);
+    private static String heart(Form form, SurfacePalette biome, StoryMapPool.Entry entry) throws Exception {
+        BloomHeartSetup.Built built = BloomHeartSetup.country(form, biome, entry);
         try (BattleSimulation sim = built.sim()) {
             return built.heart().sites().size() + " bores (" + built.heart().mothers().size() + " mothers); landing " + built.plan().landingPlace().seedX() + ","
                     + built.plan().landingPlace().seedY();
         }
     }
 
-    /** {@code cordon-line:1-40,heart-burn:3-9}: seeds screened as candidates, not pooled. */
+    /**
+     * {@code cordon-line:1-40,heart-burn/frozen:3-9}: seeds screened as candidates,
+     * not pooled, on the named biome or on every biome.
+     */
     private static List<Job> candidates(String spec) {
         List<Job> out = new ArrayList<>();
         if (spec == null || spec.isBlank()) return out;
         for (String part : spec.split(",")) {
             String[] mapAndRange = part.trim().split(":");
+            String[] mapAndBiome = mapAndRange[0].split("/");
             StoryMap map = null;
-            for (StoryMap m : StoryMap.values()) if (m.id.equals(mapAndRange[0])) map = m;
-            if (map == null) throw new IllegalArgumentException("no story map " + mapAndRange[0]);
+            for (StoryMap m : StoryMap.values()) if (m.id.equals(mapAndBiome[0])) map = m;
+            if (map == null) throw new IllegalArgumentException("no story map " + mapAndBiome[0]);
+            List<SurfacePalette> biomes = mapAndBiome.length > 1
+                    ? List.of(SurfacePalette.valueOf(mapAndBiome[1].toUpperCase(Locale.ROOT)))
+                    : List.of(SurfacePalette.values());
             String[] range = mapAndRange[1].split("-");
             long from = Long.parseLong(range[0]), to = range.length > 1 ? Long.parseLong(range[1]) : from;
             StoryMapPool pooled = StoryMapPools.pool(map);
-            for (long seed = from; seed <= to; seed++) {
-                if (pooled.entry(seed) == null) out.add(new Job(map, new StoryMapPool.Entry(seed, "", MapPatch.NONE), false));
+            for (SurfacePalette biome : biomes) {
+                for (long seed = from; seed <= to; seed++) {
+                    if (pooled.entry(biome, seed) == null) {
+                        out.add(new Job(map, biome, new StoryMapPool.Entry(seed, "", MapPatch.NONE), false));
+                    }
+                }
             }
         }
         return out;
@@ -142,9 +160,10 @@ class StoryMapPoolEvidenceTest {
         StringBuilder md = new StringBuilder("# Story map pools\n\n")
                 .append("Every pooled seed regenerated with its patch (`story-map-pools.md`). A pooled seed that fails ")
                 .append("fails the run; candidates are reported only.\n\n")
-                .append("| map | seed | pooled | verdict | detail | ms |\n|---|---|---|---|---|---|\n");
+                .append("| map | biome | seed | pooled | verdict | detail | ms |\n|---|---|---|---|---|---|---|\n");
         for (Row row : rows) {
-            md.append("| ").append(row.job().map().id).append(" | ").append(row.job().entry().seed()).append(" | ")
+            md.append("| ").append(row.job().map().id).append(" | ").append(row.job().biome()).append(" | ")
+                    .append(row.job().entry().seed()).append(" | ")
                     .append(row.job().pooled() ? "yes" : "candidate").append(" | ")
                     .append(row.failure() == null ? "PASS" : "FAIL: " + row.failure().replace('|', '/')).append(" | ")
                     .append(row.detail().replace('|', '/')).append(" | ").append(row.millis()).append(" |\n");

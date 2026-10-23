@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPool;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Tag;
@@ -268,9 +269,13 @@ class HeartEvidenceTest {
         }
         for (String template : MATRIX) {
             BloomHeartBattleFixture heart = (BloomHeartBattleFixture) loadFixture(template);
-            for (StoryMapPool.Entry entry : StoryMapPools.pool(BloomHeartSetup.storyMap(heart.form())).entries()) {
-                out.add(new Selected(new BloomHeartBattleFixture(entry.seed(), heart.form(), heart.manifest()),
-                        fixtureId(template) + "-seed" + entry.seed(), template + " at pooled seed " + entry.seed()));
+            for (SurfacePalette biome : SurfacePalette.values()) {
+                String b = biome.name().toLowerCase(Locale.ROOT);
+                for (StoryMapPool.Entry entry : StoryMapPools.pool(BloomHeartSetup.storyMap(heart.form())).entries(biome)) {
+                    out.add(new Selected(new BloomHeartBattleFixture(entry.seed(), heart.form(), biome, heart.manifest()),
+                            fixtureId(template) + "-" + b + "-seed" + entry.seed(),
+                            template + " at pooled " + b + " seed " + entry.seed()));
+                }
             }
         }
         return out;

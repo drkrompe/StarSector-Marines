@@ -250,9 +250,9 @@ people on the move, (c) a capable detachment exists.
 ## The map
 
 One plan for both variants (CordonPlan), 560x336, mission-owned, the long
-axis across the front. It is green colony country whatever world the event
-names (the VERDANT palette, as the colony is laid out the same whatever
-market raised the call). Every place is stated by its depth from the rear
+axis across the front. It is fought on the event world's own ground, its
+biome's palette (verdant, arid, rock or frozen), with the colony laid out the
+same whatever market raised the call; each biome has its own pooled maps. Every place is stated by its depth from the rear
 edge, which is the north or the south (the seed's choice), as a fraction of
 the ground the landing's country leaves:
 

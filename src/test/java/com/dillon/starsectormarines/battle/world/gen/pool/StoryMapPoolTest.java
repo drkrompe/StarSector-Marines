@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.pool;
 
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -36,21 +38,30 @@ class StoryMapPoolTest {
         assertThrows(IllegalArgumentException.class, () -> patch.pinned(plan));
     }
 
-    @Test
-    void aRollPicksTheSameEntryEveryTimeAndNegativeRollsWrap() throws Exception {
-        StoryMapPool pool = StoryMapPool.read(StoryMap.HEART_BURN, new JSONObject(
-                "{\"version\":1,\"map\":\"heart-burn\",\"seeds\":[{\"seed\":4},{\"seed\":9},{\"seed\":2}]}"));
-        assertEquals(9, pool.pick(1).seed());
-        assertEquals(9, pool.pick(4).seed());
-        assertEquals(2, pool.pick(-1).seed());
-        assertEquals(MapPatch.NONE, pool.entry(4).patch());
+    private static String pool(String map, String verdant) {
+        return "{\"version\":2,\"map\":\"" + map + "\",\"biomes\":{\"VERDANT\":" + verdant
+                + ",\"ROCK\":[{\"seed\":1}],\"ARID\":[{\"seed\":1}],\"FROZEN\":[{\"seed\":1}]}}";
     }
 
     @Test
-    void aPoolRefusesADuplicateSeedOrAnotherMapsFile() {
-        assertThrows(IllegalArgumentException.class, () -> StoryMapPool.read(StoryMap.HEART_BURN, new JSONObject(
-                "{\"version\":1,\"map\":\"heart-burn\",\"seeds\":[{\"seed\":4},{\"seed\":4}]}")));
-        assertThrows(Exception.class, () -> StoryMapPool.read(StoryMap.HEART_BURN, new JSONObject(
-                "{\"version\":1,\"map\":\"heart-front\",\"seeds\":[{\"seed\":4}]}")));
+    void aRollPicksTheSameEntryOfItsBiomeEveryTimeAndNegativeRollsWrap() throws Exception {
+        StoryMapPool pool = StoryMapPool.read(StoryMap.HEART_BURN,
+                new JSONObject(pool("heart-burn", "[{\"seed\":4},{\"seed\":9},{\"seed\":2}]")));
+        assertEquals(9, pool.pick(SurfacePalette.VERDANT, 1).seed());
+        assertEquals(9, pool.pick(SurfacePalette.VERDANT, 4).seed());
+        assertEquals(2, pool.pick(SurfacePalette.VERDANT, -1).seed());
+        assertEquals(1, pool.pick(SurfacePalette.FROZEN, 7).seed());
+        assertEquals(MapPatch.NONE, pool.entry(SurfacePalette.VERDANT, 4).patch());
+        assertNull(pool.entry(SurfacePalette.ROCK, 4));
+    }
+
+    @Test
+    void aPoolRefusesADuplicateSeedAMissingBiomeOrAnotherMapsFile() {
+        assertThrows(IllegalArgumentException.class, () -> StoryMapPool.read(StoryMap.HEART_BURN,
+                new JSONObject(pool("heart-burn", "[{\"seed\":4},{\"seed\":4}]"))));
+        assertThrows(IllegalArgumentException.class, () -> StoryMapPool.read(StoryMap.HEART_BURN,
+                new JSONObject(pool("heart-burn", "[]"))));
+        assertThrows(Exception.class, () -> StoryMapPool.read(StoryMap.HEART_BURN,
+                new JSONObject(pool("heart-front", "[{\"seed\":4}]"))));
     }
 }
