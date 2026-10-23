@@ -588,7 +588,7 @@ def _wake_volume(name, start, wind, span, r0, r1, coll, strength, cell_m, seed):
     rings = []
     for i in range(n + 1):
         u = i / n
-        r = (r0 + (r1 - r0) * u ** .7) * 1.5
+        r = (r0 + (r1 - r0) * u ** .7) * 1.5 + r1 * .6 * (.25 + u)     # room for the wander
         rings.append([bm.verts.new((u * span, r * math.cos(2 * math.pi * k / seg), r * math.sin(2 * math.pi * k / seg)))
                       for k in range(seg)])
     for i in range(n):
@@ -608,8 +608,22 @@ def _wake_volume(name, start, wind, span, r0, r1, coll, strength, cell_m, seed):
         sep = nt.nodes.new('ShaderNodeSeparateXYZ')
         nt.links.new(tc.outputs['Object'], sep.inputs[0])
         u = _math(nt, 'MINIMUM', _math(nt, 'MAXIMUM', _math(nt, 'DIVIDE', sep.outputs['X'], span), 0.0), 1.0)
-        rad = _math(nt, 'SQRT', _math(nt, 'ADD', _math(nt, 'MULTIPLY', sep.outputs['Y'], sep.outputs['Y']),
-                                      _math(nt, 'MULTIPLY', sep.outputs['Z'], sep.outputs['Z'])))
+        # coordinator on close still 3: "a solid beam, like a lightsaber". Its centre line wanders and its
+        # edge eddies: the radial measure is taken from a noise-warped line, more so further back
+        warp = nt.nodes.new('ShaderNodeTexNoise')
+        warp.inputs['Scale'].default_value = 1.0
+        warp.inputs['Detail'].default_value = 3.0
+        wsc = nt.nodes.new('ShaderNodeVectorMath')
+        wsc.operation = 'SCALE'
+        wsc.inputs['Scale'].default_value = 1.0 / (cell_m * 2.5)
+        nt.links.new(tc.outputs['Object'], wsc.inputs[0])
+        nt.links.new(wsc.outputs['Vector'], warp.inputs['Vector'])
+        wc = nt.nodes.new('ShaderNodeSeparateColor')
+        nt.links.new(warp.outputs['Color'], wc.inputs[0])
+        amp = _math(nt, 'MULTIPLY', _math(nt, 'ADD', .25, u), r1 * 1.1)
+        y = _math(nt, 'ADD', sep.outputs['Y'], _math(nt, 'MULTIPLY', _math(nt, 'SUBTRACT', wc.outputs[1], .5), amp))
+        z = _math(nt, 'ADD', sep.outputs['Z'], _math(nt, 'MULTIPLY', _math(nt, 'SUBTRACT', wc.outputs[2], .5), amp))
+        rad = _math(nt, 'SQRT', _math(nt, 'ADD', _math(nt, 'MULTIPLY', y, y), _math(nt, 'MULTIPLY', z, z)))
         rn = _math(nt, 'ADD', r0, _math(nt, 'MULTIPLY', _math(nt, 'POWER', u, .7), r1 - r0))
         radial = _math(nt, 'MAXIMUM', _math(nt, 'SUBTRACT', 1.0, _math(nt, 'POWER', _math(nt, 'DIVIDE', rad, rn), 2.0)), 0.0)
         nz, _ = _noise(nt, cell_m, detail=6.0)
@@ -695,17 +709,19 @@ def sheath(name, verts, faces, coll, wind, length, glow=1.0, streamers=22, seed=
     down = Vector(belly).normalized() if belly is not None else hot
     weights = [max(0.0, v.normal.dot(down)) + .12 for v in rim]       # most of them off the belly's edge
     for k in range(min(streamers, len(rim))):
-        v = rnd.choices(rim, weights)[0]
+        long_ = k < 5           # coordinator: a few visibly longer, streaming back along her flanks
+        v = rnd.choice(rim) if long_ else rnd.choices(rim, weights)[0]
         p0 = v.co + v.normal * length * .01
-        ln = length * rnd.uniform(.35, 1.4) * (.3 + .7 * grow)
+        ln = length * (rnd.uniform(1.5, 2.4) if long_ else rnd.uniform(.35, 1.4)) * (.3 + .7 * grow)
         rel = p0 - c
         perp = rel - W * rel.dot(W)
-        r0 = length * rnd.uniform(.0015, .004)
+        r0 = length * (rnd.uniform(.004, .007) if long_ else rnd.uniform(.0015, .004))
+        hug = .3 if long_ else .8          # a long flame keeps to her flank, then closes
         pts, us, radii = [], [], []
         for j in range(16):
             s = 1 - j / 15                                   # tail first: s 1 at the tail, 0 at the edge
             wob = noise.noise_vector(p0 / (length * .2) + Vector((s * 2.6, k * .37, 0))) * length * .06 * s
-            pts.append(p0 + W * ln * s - perp * .8 * (1 - math.exp(-5 * s)) + wob)
+            pts.append(p0 + W * ln * s - perp * hug * (1 - math.exp(-5 * s)) + wob)
             us.append(s)
             radii.append(r0 * (1 + 3.0 * s))
         tube = _ragged_tube(f'{name} flame {k}', pts, radii, us, coll,
