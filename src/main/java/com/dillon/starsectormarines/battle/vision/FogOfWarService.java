@@ -41,11 +41,12 @@ public final class FogOfWarService {
     public static final byte VIS_FADING  = 2;
 
     /**
-     * Which part of a hostile body must stand in a revealed cell for the player to see it. An open
-     * question for the owner (picks page, {@code fog-body-reveal}); the default is the old rule.
+     * Which part of a hostile body must stand in a revealed cell for the player to see it. The
+     * owner picked {@code footprint} (picks page, {@code fog-body-reveal}, 2026-10-22); the other
+     * two remain as controls.
      * <ul>
      *   <li>{@code centre}: the cell its position is in. A Matriarch half round a corner is unseen.</li>
-     *   <li>{@code footprint}: any cell within its sim radius: the ground it stands on.</li>
+     *   <li>{@code footprint} (default): any cell within its sim radius: the ground it stands on.</li>
      *   <li>{@code length}: any cell within half its drawn length: its head and shoulders too.</li>
      * </ul>
      * A body that fits inside its own cell reads the same under all three.
@@ -55,10 +56,10 @@ public final class FogOfWarService {
     enum BodyReveal { CENTRE, FOOTPRINT, LENGTH }
 
     static BodyReveal bodyReveal() {
-        String value = System.getProperty(BODY_REVEAL_PROPERTY, "centre");
-        if ("footprint".equalsIgnoreCase(value)) return BodyReveal.FOOTPRINT;
+        String value = System.getProperty(BODY_REVEAL_PROPERTY, "footprint");
+        if ("centre".equalsIgnoreCase(value)) return BodyReveal.CENTRE;
         if ("length".equalsIgnoreCase(value)) return BodyReveal.LENGTH;
-        return BodyReveal.CENTRE;
+        return BodyReveal.FOOTPRINT;
     }
 
     private static final int COHORT_COUNT = 6;

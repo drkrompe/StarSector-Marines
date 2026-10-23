@@ -730,7 +730,9 @@ retains the same existing cross-domain behavior as an autonomous hull.
   kited out of its own reach (`heavy-equipment-progression.md`, a tank against
   the heavy mech). A player
   order owns the chassis while it lasts and an arrived one hands back to this;
-  allied story columns, delivery legs, unarmed hulls, shot-away guns (which
+  allied hulls their scripts own (an allied hull a mission has *enlisted* under
+  allied command is not one, and fights as the player's do; `allied-command.md`),
+  delivery legs, unarmed hulls, shot-away guns (which
   withdraw instead) and empty magazines never engage, and infantry is not a duel target. A hull's **stance** adjusts the band
   (`VehicleType.Stance`): a dueller takes it as chosen; a **stand-off** hull holds
   beyond the target's reach where its gun out-reaches it and at the outer edge of

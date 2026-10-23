@@ -110,6 +110,7 @@ public class GroundSystem {
                 navigation.getGrid(), world, fireSink);
         this.turrets.setAssaults(moveOrders);
         this.engagement = new VehicleEngagement(convoy, roster, navigation, controlSystem);
+        engagement.setMoveOrders(moveOrders);
     }
 
     /** Who calls targets for the indirect-fire hulls: their turrets and their stand-off driving read the same eyes. */

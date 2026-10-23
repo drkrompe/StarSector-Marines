@@ -17,14 +17,29 @@
  "overlays": [],
  "cues": [
   {
+   "t": 0.0,
+   "sound": "jangala_sfx_entry_second_wind_interior",
+   "volume": 0.1303
+  },
+  {
    "t": 0.16,
    "sound": "jangala_arrival_castle_planetside",
    "volume": 1.0
   },
   {
-   "t": 0.35,
-   "sound": "jangala_arrival_wind",
-   "volume": 0.4519
+   "t": 0.605,
+   "sound": "jangala_sfx_entry_buffet",
+   "volume": 0.3273
+  },
+  {
+   "t": 1.202,
+   "sound": "jangala_sfx_entry_reentry_roar",
+   "volume": 0.335
+  },
+  {
+   "t": 3.6,
+   "sound": "jangala_sfx_entry_c1_hull_creaks",
+   "volume": 0.389
   }
  ],
  "speakers": {

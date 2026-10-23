@@ -22,14 +22,6 @@ public final class DirectControlPanel implements HudPanel {
     private static final Color MISSILES_AREA = new Color(0xFF, 0xA0, 0x50);
     private static final Color DANGER_AREA = new Color(0xFF, 0x5A, 0x4A);
     private static final int RING_SEGMENTS = 64;
-    /** The magazine ring beside the cursor: radius and pip width in screen pixels. */
-    private static final float AMMO_RING_RADIUS = 20f;
-    private static final float AMMO_PIP_WIDTH = 4f;
-    private static final Color ROUND_LIVE = new Color(0xEB, 0xF0, 0xF0);
-    private static final Color ROUND_LOW = new Color(0xF0, 0x5A, 0x4A);
-    private static final Color ROUND_SPENT = new Color(0x46, 0x4C, 0x50, 0xC0);
-    private static final Color ROUND_LOADING = new Color(0xFF, 0xC4, 0x46);
-    private static final Color RING_BACKING = new Color(0x0A, 0x0C, 0x0E, 0xB0);
     private final BattleUiContext context;
 
     public DirectControlPanel(BattleUiContext context) { this.context = context; }
@@ -71,32 +63,7 @@ public final class DirectControlPanel implements HudPanel {
                     camera.cellToScreenX(0f), camera.cellToScreenY(0f))) HudDraw.stroke(stroke, alpha);
         }
         scatterRing(sim, id, aim.aimX(), aim.aimY(), aimX, aimY, camera.cellPxSize(), alpha);
-        ammoRing(sim, id, aimX, aimY, alpha);
         crosshair(aimX, aimY, alpha);
-    }
-
-    /**
-     * The controlled Marine's magazine beside the cursor, where the eye already is: a pip per round round
-     * the crosshair's right side, spent pips dark, the last quarter red, and a reload sweeping amber.
-     */
-    private static void ammoRing(BattleSimulation sim, long id, float aimX, float aimY, float alpha) {
-        var combat = sim.combat();
-        if (!combat.has(id) || combat.primaryMagazine(id) == null) return;
-        MagazineGauge gauge = MagazineGauge.of(combat.primaryWeaponDef(id), combat.equipmentGrade(id),
-                combat.roundsLoaded(id), combat.reloadTimer(id), combat.reloadSeconds(id));
-        if (gauge == null || gauge.capacity() == 0) return;
-        float pip = gauge.pipStepDegrees() * (gauge.capacity() > 12 ? 0.62f : 0.72f);
-        float width = gauge.capacity() > 12 ? AMMO_PIP_WIDTH - 1f : AMMO_PIP_WIDTH;
-        for (int i = 0; i < gauge.capacity(); i++) {
-            float from = gauge.pipStartDegrees(i);
-            HudDraw.arc(aimX, aimY, AMMO_RING_RADIUS, width + 2f, from - 0.8f, from + pip + 0.8f, RING_BACKING, alpha);
-            Color color = switch (gauge.round(i)) {
-                case LIVE -> gauge.low() ? ROUND_LOW : ROUND_LIVE;
-                case LOADING -> ROUND_LOADING;
-                case SPENT -> ROUND_SPENT;
-            };
-            HudDraw.arc(aimX, aimY, AMMO_RING_RADIUS, width, from, from + pip, color, alpha);
-        }
     }
 
     /**

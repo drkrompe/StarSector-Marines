@@ -134,6 +134,26 @@ pits are what the swarm has to come through to reach the guns, and **a battery
 overrun, every gun of it dead before the heart is down, is a loss** (owner,
 2026-10-22): without guns there is no barrage to push the burn under.
 
+**Allied front** (The Burn). The battle's whole width of attack, divided
+across into **sectors**: the company holds one, allied battlegroups the rest,
+and the whole front follows the barrage together. The company's is a local
+task inside a larger push, not the push itself (owner, 2026-10-22: "a proper
+battlefield with the player's forces playing a more localized role"). Broad
+Front stays lanes into overgrowth; The Burn's front is a walking barrage with
+fire. In build behind `-Dbattle.heart.burnFront` (`heart-burn-front.md`).
+
+**Battlegroup** (The Burn). One allied sector's force: militia infantry with
+armour (an escort APC, a technical, a breakthrough tank and a Hound pair).
+It follows the barrage on its own line across the front, armour stepping with
+its infantry. Its armour is the allied commander's (`allied-command.md`):
+the mission names each machine's post and the commander drives and fights it, a
+machine the woods bar holding as far forward as it can drive. It owns its sector's satellites, then goes on to the
+nearest mother. It is `ALLY` (`ai-nouns.md`, Sides): it never ends the battle
+and never touches the roster.
+
+**Company sector** (The Burn). The band of the front the company holds,
+centred on its landing: its own satellite first, then the nearest mother.
+
 **Barrage plan** (The Burn). The battery's timetable, frozen at the
 briefing: a sequence of **barrage lines** across the approach, each a depth
 into the map, with the second it opens and the seconds it fires before it

@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.decision;
 import com.dillon.starsectormarines.battle.creep.CreepEffects;
 import com.dillon.starsectormarines.battle.fire.FireEffects;
 import com.dillon.starsectormarines.battle.creep.CreepField;
+import com.dillon.starsectormarines.battle.evacuation.ColonyLivingField;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -68,6 +69,16 @@ public final class FleeBehavior implements UnitBehavior {
 
     @Override
     public void update(long u, BattleSimulation sim) {
+        // A refugee walking out of the colony runs only from the swarm, and
+        // otherwise keeps to the walk the living field set it on.
+        ColonyLivingField field = sim.colonyLivingField();
+        if (field != null && field.isWalking(u)) {
+            long rav = ColonyLivingField.nearestSwarm(u, sim);
+            if (rav != 0L) updateFleeing(u, rav, sim);
+            else sim.movement().advanceAlongPath(sim.world(), u, BattleSimulation.TICK_DT,
+                    0f, 0f, ColonyLivingField.WALK_PACE);
+            return;
+        }
         long threat = findNearestThreat(u, sim);
         if (threat != 0L) {
             updateFleeing(u, threat, sim);
