@@ -34,14 +34,6 @@ class DirectControlFireMarksTest {
     }
 
     @Test
-    void theScatterRingIsGreyTooCloseAndRedPastRange() {
-        assertEquals(Mark.HELD, new DirectControlScatter.Ring(0.1f, false, true, false).mark());
-        assertEquals(Mark.WASTED, new DirectControlScatter.Ring(3f, true, false, true).mark());
-        assertEquals(Mark.FALLING_OFF, new DirectControlScatter.Ring(1f, false, false, true).mark());
-        assertEquals(Mark.GOOD, new DirectControlScatter.Ring(0.5f, false, false, false).mark());
-    }
-
-    @Test
     void optimalRangeKeepsEightyPercentOfPointBlankAgainstOneBody() {
         float range = 30f;
         float optimal = ManualPointFire.optimalRangeCells(range, 0.55f, 1.2f, 0.6f, PointAimDispersion.WEAPON);

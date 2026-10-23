@@ -5,8 +5,6 @@ import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
 import com.dillon.starsectormarines.battle.tender.Tender;
 import com.dillon.starsectormarines.battle.tender.TenderPilot;
-import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
-import com.dillon.starsectormarines.battle.vehicle.GroundVehicleTurretSystem;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipOrder;
 import com.dillon.starsectormarines.battle.warship.WarshipPilot;
@@ -17,7 +15,7 @@ import java.awt.Color;
 import java.util.List;
 
 /**
- * World-space point-aim cursor, aim lanes and scatter ring; the retained plate owns actions. A ground body draws no
+ * World-space point-aim reticle and aim lanes; the retained plate owns actions. A ground body draws no
  * bracket of its own: the action camera follows it, which already says which body is controlled.
  */
 public final class DirectControlPanel implements HudPanel {
@@ -47,7 +45,6 @@ public final class DirectControlPanel implements HudPanel {
             renderWarship(sim, camera, sim.directControl().controlledWarship(), alpha);
             return;
         }
-        long id = sim.directControl().activeUnitId();
         HudDraw.prepBlend();
         if (!context.directControlAimVisible()) return;
         var aim = sim.directControl().intent();
@@ -62,65 +59,12 @@ public final class DirectControlPanel implements HudPanel {
             for (var stroke : DirectControlAimLane.strokes(lane, camera.cellPxSize(),
                     camera.cellToScreenX(0f), camera.cellToScreenY(0f))) HudDraw.stroke(stroke, alpha);
         }
-        scatterRing(sim, id, aim.aimX(), aim.aimY(), aimX, aimY, camera.cellPxSize(), alpha);
-        for (var stroke : DirectControlReticle.strokes(DirectControlFireMarks.read(sim),
-                aimX, aimY, CONTROLLED)) HudDraw.stroke(stroke, alpha);
-    }
-
-    /**
-     * Where a thrown rocket or LRM salvo will land, in the reticle's palette: white inside every covered mount's
-     * optimal range, yellow past it, red past maximum range, where the disk grows faster than distance, and grey
-     * inside an arcing rack's minimum, where it will not fire.
-     * A mech's ring covers its armed mounts, measured from the chassis centre; a vehicle's is its turret's,
-     * measured from the turret ring, where the turret's own point fire measures.
-     */
-    private static void scatterRing(BattleSimulation sim, long id, float aimCellX, float aimCellY,
-                                    float aimX, float aimY, float cellPx, float alpha) {
-        DirectControlScatter.Ring ring;
-        if (sim.world().hasMechLoadout(id)) {
-            float distance = (float) Math.hypot(aimCellX - sim.world().renderX(id),
-                    aimCellY - sim.world().renderY(id));
-            ring = DirectControlScatter.mech(sim.world().mechLoadout(id), sim.directControl().mechPicks(),
-                    distance);
-        } else if (sim.directControl().controlledVehicleId() == id) {
-            var turret = sim.convoy().turret(id);
-            var type = sim.convoy().vehicleType(id);
-            var structure = type.turretStructure();
-            if (turret == null || structure == null || turret.destroyed()) return;
-            TurretMountGeometry.Point mount = GroundVehicleTurretSystem.mountPoint(type, sim.convoy().body(id));
-            ring = DirectControlScatter.vehicle(structure.mount.weapon,
-                    (float) Math.hypot(aimCellX - mount.x(), aimCellY - mount.y()));
-        } else {
-            return;
+        var spread = DirectControlScatter.read(sim);
+        float cellPx = camera.cellPxSize();
+        for (var stroke : DirectControlReticle.strokes(DirectControlReticle.LIVE, DirectControlFireMarks.read(sim),
+                spread.leftCells() * cellPx, spread.rightCells() * cellPx, aimX, aimY, CONTROLLED)) {
+            HudDraw.stroke(stroke, alpha);
         }
-        if (ring == null) return;
-        float r = scatterRingPx(ring, cellPx);
-        if (r < 0f) return;
-        for (var stroke : DirectControlReticle.scatterRing(ring.mark(), aimX, aimY, r)) {
-            HudDraw.stroke(stroke, alpha * 0.8f);
-        }
-    }
-
-    /** A disk smaller than this many pixels is not drawn: it would hide under the crosshair. */
-    static final float MIN_RING_PX = 4f;
-
-    /**
-     * A warning ring never draws smaller than this, so it clears the reticle: inside an arcing rack's minimum the
-     * disk is a fraction of a cell, and the grey that says the trigger is refused would otherwise be too small to
-     * see, or not drawn at all.
-     */
-    static final float MIN_WARNING_RING_PX = 18f;
-
-    /** The scatter ring's on-screen radius at {@code cellPx} pixels a cell, or a negative value for none. */
-    public static float scatterRingPx(DirectControlScatter.Ring ring, float cellPx) {
-        float r = ring.radiusCells() * cellPx;
-        if (ring.warning()) return Math.max(r, MIN_WARNING_RING_PX);
-        return r < MIN_RING_PX ? -1f : r;
-    }
-
-    /** The scatter ring's colour: the reticle's colour for the ring's mark. */
-    public static Color scatterColor(DirectControlScatter.Ring ring) {
-        return DirectControlReticle.color(ring.mark());
     }
 
     /** The cursor's crosshair colour, and the reticle's centre dot. */
