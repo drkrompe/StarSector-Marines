@@ -64,10 +64,12 @@ class SceneFx:
     only for the rounds in flight at the key instant. cur: the scene frame this span frame renders at;
     only the rounds and strikes it can see are built (swfx_guns.fire_weapon's `only`)."""
 
-    def __init__(self, scene, placed, build_of, muzzle_world, frame, log=print, span=None, cur=None):
+    def __init__(self, scene, placed, build_of, muzzle_world, frame, log=print, span=None, cur=None,
+                 matrix_at=None):
         self.scene, self.placed, self.build_of, self.muzzle_world = scene, placed, build_of, muzzle_world
         self.now, self.fps = frame, scene.render.fps / scene.render.fps_base
         self.span, self.cur = span, cur
+        self.matrix_at = matrix_at      # (key, scene frame) -> that ship's world matrix then, metres
         self.log = log
         self.m = _mods()
         self.rows = []
@@ -184,13 +186,19 @@ class SceneFx:
                 feeder = self.build_of(a) in FEEDER
                 if feeder:
                     kit.guns.feeder(ctx, turret, f0 - 6, end + 6)
+                aim_at = self.space(a).inverted() @ Vector(hit_w)
+                if self.span and self.matrix_at is not None and hit_l is not None:
+                    aim_at = self.tracking(a, b, self.local(a, mz), hit_l, speed)
                 only = None
                 if self.span and self.cur is not None:     # this frame's rounds: in flight, or just landed
                     only = (self.cur - round((dist / speed + 1.5) * self.fps), self.cur + 1)
                 recs = kit.guns.fire_weapon(ctx, turret, f0, window + 1.0 / self.fps, feeder=feeder,
-                                            target=self.space(a).inverted() @ Vector(hit_w),
-                                            train=shooter.own_hull, only=only)
+                                            target=aim_at, train=shooter.own_hull, only=only)
                 landed += [r['hit_frame'] for r in recs if r.get('hit_frame') is not None and r['hit_frame'] <= end]
+                aims = [r['aim'] for r in recs if r.get('aim')]
+                if aims:
+                    self.rows.append(f'aim {a} t{turret} -> {b}: traverse/elevation {aims[0]} .. {aims[-1]} '
+                                     f'over {len(aims)} rounds')
                 if recs:             # a degenerate gun fires nothing: the stand-in draws the shot
                     fired.append(f't{turret} {weapon} x{len(recs)}' + (' (feeder)' if feeder else ''))
         if not fired:
@@ -206,6 +214,20 @@ class SceneFx:
             self.strikes(b, landed if self.span else landed[-8:], hit_l, normal, 'he' if he else 'kinetic')
         self.rows.append(f'tracer {a} -> {b}: {", ".join(fired)}, {len(landed)} landed')
         return True
+
+    def tracking(self, a, b, muzzle_l, hit_l, speed):
+        """A moving target for a: frame -> the point on b's hull (hit_l, b's frame) where a round fired
+        then meets her, in a's copy space then. Both ships fly their own paths over the shot."""
+        mpu = self.placed[a]['mpu']
+
+        def at(f):
+            ms = self.matrix_at(a, f)
+            src = ms @ Vector(muzzle_l)
+            hit = self.matrix_at(b, f) @ Vector(hit_l)
+            fl = (hit - src).length / max(speed, 1.0) * self.fps
+            hit = self.matrix_at(b, f + fl) @ Vector(hit_l)
+            return (ms @ Matrix.Scale(mpu, 4)).inverted() @ hit
+        return at
 
     def strikes(self, key, frames, at_l, normal, kind):
         """Rounds arriving on key's hull (or shield) around at_l on these frames."""

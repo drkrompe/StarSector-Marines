@@ -2670,6 +2670,15 @@ def blender_main(cfg):
                                        frame_meta(0, False, cfg.get('surface', SURFACE_DETAIL))]).encode())
         return h.hexdigest()[:16]
 
+    def ship_matrix_at(spec):
+        """(key, scene frame) -> that ship's world matrix (metres) at the frame's time in a motion span:
+        the kit's guns track their targets along both ships' flights (scene_fx.SceneFx.tracking)."""
+        def at(key, f):
+            sp = spec['ships'][key]
+            x, y, z, hd, pt, rl, _thr = sp.at(spec['key_t'] + (f - anchor) / fps_s) if hasattr(sp, 'at') else sp
+            return frame_of((x, y, z), hd, pt, rl)
+        return at
+
     labels = {}
     anchor = scene.frame_current      # every frame's effects are built at this frame (the key frame's instant)
     fps_s = scene.render.fps / scene.render.fps_base
@@ -2748,7 +2757,8 @@ def blender_main(cfg):
                                         span=tuple(anchor + round((t_ - spec['key_t']) * fps_s)
                                                    for t_ in spec['shot_t']) if 'span_t' in spec else None,
                                         cur=anchor + round((spec['span_t'] - spec['key_t']) * fps_s)
-                                        if 'span_t' in spec and not cfg.get('kit_once') else None)
+                                        if 'span_t' in spec and not cfg.get('kit_once') else None,
+                                        matrix_at=ship_matrix_at(spec) if 'span_t' in spec else None)
                 for key, sh in spec.get('shields', {}).items():
                     sfx_.shield(key, sh)
                 for i, fx in enumerate(spec.get('fx', ())):

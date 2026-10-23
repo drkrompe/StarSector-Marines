@@ -1015,6 +1015,8 @@ def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, ta
     on a hit; None flies them down the bore to their range. With a target and `train`, the
     turret is trained onto it (aim()) before each round, so the flash points along the rounds.
     Returns one record per round, with 'hit_frame' when a target was given.
+    target may also be a function of the frame giving that point, for a target that moves against
+    the ship over the burst: each round flies to, and the turret trains onto, where it is then.
     only: (first, last) frames: rounds fired outside them are counted but not built. A motion span
     renders each frame from its own rebuild, so a frame builds only the rounds it can see, on the
     same cadence and the same per-round seeds as the whole burst."""
@@ -1028,7 +1030,9 @@ def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, ta
         raise ValueError(f'turret {turret} is not armed: call arm(ctx, {turret}, <weapon>) first')
     w = WEAPONS[weapon]
     fps = ctx.scene.render.fps or swfx_core.FPS
+    target_at = target if callable(target) else (lambda f, t=target: t)
     if target is not None:
+        target = target_at(start_frame)
         # A gun whose anchor is degenerate (its muzzle anchor missing) puts any target absurdly far
         # off in its own space; its rounds would fly the wrong way for minutes. It fires nothing, and
         # the caller draws the shot some other way.
@@ -1051,12 +1055,16 @@ def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, ta
             for g in pick:
                 _rig(ctx, g)['count'] += 1
             continue
-        if target is not None and train:
-            aim(ctx, turret, target, f, tag=tag, turn_rate=w.get('turn'))
+        tg = target_at(f) if target is not None else None
+        trained = None
+        if tg is not None and train:
+            trained = aim(ctx, turret, tg, f, tag=tag, turn_rate=w.get('turn'))
         for g in pick:
             if w.get('charge') and w.get('chargeup'):
                 _charge(ctx, g, f, int(round(w['chargeup'] * fps)), w)
-            out.append(_weapon_shot(ctx, g, f, lead=f - exact, target=target))
+            out.append(_weapon_shot(ctx, g, f, lead=f - exact, target=tg))
+            if trained is not None:
+                out[-1]['aim'] = trained
     return out
 
 
@@ -1501,6 +1509,11 @@ def aim(ctx, turret, target, frame, tag=None, slew_frames=None, turn_rate=None, 
     f0 = frame - dur
     if prev:
         f0 = max(f0, max(prev))
+        if swing > .05 and f0 > frame - 1.5:
+            # Owner, 2026-10-23: turrets "popping" instead of interpolating. A turret tracking a
+            # moving target re-aims every round, a few frames apart: too small a swing for its turn
+            # rate to stretch over a frame used to be keyed as a step. It swings on from its last key.
+            f0, dur = max(prev), max(dur, 1.0)
     if dur > 0 and swing > .05 and f0 < frame - .5:
         for ob, i in chans:
             _key_slew(ob, i, round(f0), start[ob.name], frame, ob.rotation_euler[i])
