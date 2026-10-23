@@ -1008,16 +1008,25 @@ def cadence(weapon, seconds, feeder=False):
     return out
 
 
-def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, tag=None, train=True, only=None):
+def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, tag=None, train=True, only=None,
+                allow=None, pose=None, after=None, passes=None):
     """Fire an armed mount for `seconds` from `start_frame` at the game's cadence (cadence()):
     barrels alternate per round ('alternating'), per burst ('alternating_burst') or fire together
     ('linked'). target: a point in the ship's own (copy) space the rounds fly to and stop at, as
     on a hit; None flies them down the bore to their range. With a target and `train`, the
     turret is trained onto it (aim()) before each round, so the flash points along the rounds.
     Returns one record per round, with 'hit_frame' when a target was given.
+    target may also be a function of the frame giving that point, for a target that moves against
+    the ship over the burst: each round flies to, and the turret trains onto, where it is then.
     only: (first, last) frames: rounds fired outside them are counted but not built. A motion span
     renders each frame from its own rebuild, so a frame builds only the rounds it can see, on the
-    same cadence and the same per-round seeds as the whole burst."""
+    same cadence and the same per-round seeds as the whole burst.
+    allow(frame) -> bool: a round on that frame fires only if it says so (counted either way, so
+    seeds and barrels stay in step). pose(frame): called before a round is built, to stand the
+    turret where a planned aim has it then (anchor_matrix reads the current pose, not the keys).
+    after(frame, objects): the unparented objects that round made (world_rounds' input).
+    passes(frame) -> bool: that round misses: it flies through its target point and on to its
+    range, fading, with no 'hit_frame' (a burst walked across a ship, most rounds going past)."""
     guns = [g for g in ctx.anchors.guns if g.turret == turret and getattr(g, 'kind', 'gun') != 'launcher'
             and (tag is None or g.tag == tag)]
     if not guns or not ctx.spec.get('guns', True):
@@ -1028,7 +1037,9 @@ def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, ta
         raise ValueError(f'turret {turret} is not armed: call arm(ctx, {turret}, <weapon>) first')
     w = WEAPONS[weapon]
     fps = ctx.scene.render.fps or swfx_core.FPS
+    target_at = target if callable(target) else (lambda f, t=target: t)
     if target is not None:
+        target = target_at(start_frame)
         # A gun whose anchor is degenerate (its muzzle anchor missing) puts any target absurdly far
         # off in its own space; its rounds would fly the wrong way for minutes. It fires nothing, and
         # the caller draws the shot some other way.
@@ -1038,6 +1049,17 @@ def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, ta
             far = float('inf')
         reach = swfx_core.units(w['round']['speed'] if w.get('round') else 1000.0) * MAX_FLIGHT_S
         if not math.isfinite(far) or far > reach:
+            chain, o = [], guns[0].empty
+            while o is not None:
+                b = o.matrix_basis
+                chain.append(f'{o.name} t={tuple(round(c, 3) for c in b.translation)} '
+                             f's={tuple(round(c, 4) for c in b.to_scale())}')
+                o = o.parent
+            lib = getattr(guns[0].empty, 'library', None)
+            print(f'SWFX guns: degenerate anchor chain for turret {turret}: {" <- ".join(chain)}; '
+                  f'anchor matrix det {anchor_matrix(guns[0].empty).determinant():.4g}; '
+                  f'library {lib.filepath if lib else None}; file {bpy.data.filepath!r}; target {tuple(round(c, 2) for c in target)}',
+                  flush=True)
             print(f'SWFX guns: turret {turret} cannot fire {weapon} at its target '
                   f'({far:.4g} u off in the space of its anchor, reach {reach:.4g} u): degenerate anchor', flush=True)
             return []
@@ -1047,16 +1069,27 @@ def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, ta
         f = int(round(exact))
         mode = w['barrels']
         pick = guns if mode == 'linked' else [guns[(k if mode == 'alternating_burst' else n) % len(guns)]]
-        if only is not None and not only[0] <= f <= only[1]:
+        if (only is not None and not only[0] <= f <= only[1]) or (allow is not None and not allow(f)):
             for g in pick:
                 _rig(ctx, g)['count'] += 1
             continue
-        if target is not None and train:
-            aim(ctx, turret, target, f, tag=tag, turn_rate=w.get('turn'))
+        if pose is not None:
+            pose(f)
+        before = set(ctx.collection(GROUP).objects.keys()) if after is not None else None
+        tg = target_at(f) if target is not None else None
+        trained = None
+        if tg is not None and train:
+            trained = aim(ctx, turret, tg, f, tag=tag, turn_rate=w.get('turn'))
         for g in pick:
             if w.get('charge') and w.get('chargeup'):
                 _charge(ctx, g, f, int(round(w['chargeup'] * fps)), w)
-            out.append(_weapon_shot(ctx, g, f, lead=f - exact, target=target))
+            out.append(_weapon_shot(ctx, g, f, lead=f - exact, target=tg,
+                                    through=passes is not None and tg is not None and passes(f)))
+            if trained is not None:
+                out[-1]['aim'] = trained
+        if after is not None:
+            objs = ctx.collection(GROUP).objects
+            after(f, [objs[n] for n in objs.keys() if n not in before and objs[n].parent is None])
     return out
 
 
@@ -1074,7 +1107,7 @@ def _key_flash(ctx, a, rig, label, frame, prof, gain, seed):
         _rebuild_visibility(box, lit)
 
 
-def _weapon_shot(ctx, a, frame, lead=0.0, target=None):
+def _weapon_shot(ctx, a, frame, lead=0.0, target=None, through=False):
     """One round of an armed mount at an integer frame. lead: frames by which the true firing
     instant precedes `frame` (the round has already flown that far)."""
     coll = ctx.collection(GROUP)
@@ -1089,7 +1122,7 @@ def _weapon_shot(ctx, a, frame, lead=0.0, target=None):
     rec = {'turret': a.turret, 'tag': a.tag, 'frame': frame, 'round': n, 'weapon': weapon,
            'flash_frames': len(w['flash'])}
     rec['cloud'] = _cloud(ctx, coll, a, label, frame, w['cloud'])
-    rec.update(_round(ctx, coll, a, label, frame, rnd, weapon, lead, target))
+    rec.update(_round(ctx, coll, a, label, frame, rnd, weapon, lead, target, through))
     if w.get('puff'):
         rec['puff'] = _puff(ctx, coll, a, label, frame, rnd)
     if w.get('brass') and _knob(ctx, 'gun_casings') >= .5:
@@ -1501,6 +1534,11 @@ def aim(ctx, turret, target, frame, tag=None, slew_frames=None, turn_rate=None, 
     f0 = frame - dur
     if prev:
         f0 = max(f0, max(prev))
+        if swing > .05 and f0 > frame - 1.5:
+            # Owner, 2026-10-23: turrets "popping" instead of interpolating. A turret tracking a
+            # moving target re-aims every round, a few frames apart: too small a swing for its turn
+            # rate to stretch over a frame used to be keyed as a step. It swings on from its last key.
+            f0, dur = max(prev), max(dur, 1.0)
     if dur > 0 and swing > .05 and f0 < frame - .5:
         for ob, i in chans:
             _key_slew(ob, i, round(f0), start[ob.name], frame, ob.rotation_euler[i])
@@ -1509,6 +1547,63 @@ def aim(ctx, turret, target, frame, tag=None, slew_frames=None, turn_rate=None, 
             _key_constant(ob, 'rotation_euler', i, frame)
     return (round(math.degrees(piv.rotation_euler.z), 2),
             round(math.degrees(elev.rotation_euler.y), 2) if elev is not None else None)
+
+
+def aim_solve(ctx, turret, target, tag=None, iterations=4):
+    """aim()'s solve without keying: the mount's pivot traversed and its elevation lifted until
+    the muzzle line passes through `target` (copy space, units), left standing there. Returns
+    (pivot, elevation, traverse rad, elevation rad); elevation None for a traverse-only mount;
+    None for a fixed hardpoint."""
+    guns = sorted((g for g in ctx.anchors.guns if g.turret == turret and (tag is None or g.tag == tag)),
+                  key=gun_index)
+    if not guns:
+        return None
+    a = guns[0]
+    piv, elev = trainers(a.empty)
+    if piv is None:
+        return None
+    T = Vector(target)
+    X, Y, Z = Vector((1, 0, 0)), Vector((0, 1, 0)), Vector((0, 0, 1))
+    for _ in range(iterations):
+        m = anchor_matrix(a.empty)
+        piv.rotation_euler.z += _signed_angle(m.to_3x3() @ X, T - m.translation,
+                                              (anchor_matrix(piv).to_3x3() @ Z).normalized())
+        if elev is not None:
+            m = anchor_matrix(a.empty)
+            elev.rotation_euler.y += _signed_angle(m.to_3x3() @ X, T - m.translation,
+                                                   (anchor_matrix(elev).to_3x3() @ Y).normalized())
+    return piv, elev, piv.rotation_euler.z, (elev.rotation_euler.y if elev is not None else None)
+
+
+def world_rounds(objs, delta_at):
+    """Make a round fly straight in the world while its ship moves on (owner, 2026-10-23: shells
+    "track while in flight onto moving targets"). The round was built in its ship's copy space as
+    the ship stood when it fired; delta_at(frame) is the matrix from that space to the copy space
+    on `frame`. A keyed mover gets location and rotation keys through it on each of its keyed
+    frames; a static object (one bolt strike, shown on one frame) is moved by its first shown
+    frame's delta. Parented objects (flash, cloud, puff, brass) ride the turret and are not passed."""
+    for ob in objs:
+        fcs = [swfx_core.find_fcurve(ob, 'location', i) for i in range(3)]
+        if all(fc is not None and len(fc.keyframe_points) for fc in fcs):
+            frames = [kp.co.x for kp in fcs[0].keyframe_points]
+            r0 = ob.rotation_euler.to_matrix()
+            locs, rots, prev = [], [], ob.rotation_euler.copy()
+            for f in frames:
+                d = delta_at(int(round(f)))
+                locs.append(d @ Vector([fc.evaluate(f) for fc in fcs]))
+                e = (d.to_3x3().normalized() @ r0).to_euler('XYZ', prev)
+                rots.append(e)
+                prev = e
+            for i in range(3):
+                _bake(ob, 'location', i, frames, [v[i] for v in locs])
+            if ob.type != 'LIGHT':
+                for i in range(3):
+                    _bake(ob, 'rotation_euler', i, frames, [e[i] for e in rots])
+            continue
+        vis = swfx_core.find_fcurve(ob, 'hide_render')
+        shown = [kp.co.x for kp in vis.keyframe_points if kp.co.y < .5] if vis is not None else []
+        if shown:
+            ob.matrix_basis = delta_at(int(round(min(shown)))) @ ob.matrix_basis
 
 
 def _braid_dir(a, converge_m):
@@ -1523,7 +1618,7 @@ def _braid_dir(a, converge_m):
     return Vector((swfx_core.units(converge_m), centre.y, centre.z)).normalized()
 
 
-def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target):
+def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target, through=False):
     """The round itself: core and corona rods (or a jagged bolt re-struck every frame), an
     optional glow halo and travelling light, flying from the muzzle to range or target."""
     w = WEAPONS[weapon]
@@ -1544,6 +1639,8 @@ def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target):
             stop = most
             if not all(math.isfinite(c) for c in d) or d.length < .5:
                 d = Vector((1, 0, 0))
+        if through:          # a miss: on past the target point to the round's range
+            stop = min(max(stop * 1.15, swfx_core.units(r['range'])), most)
     elif w.get('braid'):
         d = _braid_dir(a, w['braid'])
     yaw, pitch = rnd.gauss(0, w['spread']), rnd.gauss(0, w['spread'])
@@ -1563,9 +1660,10 @@ def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target):
         j += 1
     life = len(heads) - 1
     frames = [frame + j for j in range(life + 1)]
-    burn = [1.0 if target is not None else max(0.0, min(1.0, (1 - hh / stop) / .3)) for hh in heads]
+    hits = target is not None and not through
+    burn = [1.0 if hits else max(0.0, min(1.0, (1 - hh / stop) / .3)) for hh in heads]
     rec = {'flight_frames': life}
-    if target is not None:
+    if hits:
         rec['hit_frame'] = frame + life
 
     def mover(ob):
