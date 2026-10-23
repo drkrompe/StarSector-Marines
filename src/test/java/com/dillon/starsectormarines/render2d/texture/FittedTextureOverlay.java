@@ -1,10 +1,13 @@
 package com.dillon.starsectormarines.render2d.texture;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Iterator;
 
 /**
  * Headless frames drawn from the fitted build instead of the source art: the A/B half of the
@@ -36,6 +39,28 @@ public final class FittedTextureOverlay {
             return TextureFitManifest.parse(Files.readString(root.resolve(ModTextures.MANIFEST_PATH)));
         } catch (Exception e) {
             throw new IllegalStateException("marines.textureFit.overlay has no readable manifest under " + root, e);
+        }
+    }
+
+    /**
+     * {@code resourcePath}'s logical size, {@code {width, height}}, without decoding it: the manifest's for a fitted
+     * image, otherwise the PNG header's. A sprite catalog needs the size of every image and the pixels of the few it
+     * draws, and decoding all of them to read two numbers was eleven seconds of every headless run.
+     */
+    public static int[] size(String resourcePath, Path fallback) throws IOException {
+        TextureFitManifest.Entry entry = MANIFEST.entry(TextureUsage.normalize(resourcePath));
+        if (entry != null) return new int[]{entry.width(), entry.height()};
+        try (ImageInputStream in = ImageIO.createImageInputStream(fallback.toFile())) {
+            if (in == null) throw new IOException("Cannot open " + fallback);
+            Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
+            if (!readers.hasNext()) throw new IOException("Unsupported image " + fallback);
+            ImageReader reader = readers.next();
+            try {
+                reader.setInput(in, true, true);
+                return new int[]{reader.getWidth(0), reader.getHeight(0)};
+            } finally {
+                reader.dispose();
+            }
         }
     }
 
