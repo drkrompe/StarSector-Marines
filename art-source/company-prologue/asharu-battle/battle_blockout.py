@@ -1196,6 +1196,7 @@ KEYFRAMES['k6'].update(
                          dict(t=134, loc=_k6_cam, target=lambda t: _k6_aim(t, .5), lens=85)], K6_T),
     ships=K6_SHIPS,
     fx=[('entry_sheath', 'colossus'), ('entry_sheath', 'morrow'), ('wreckfall',)],
+    bloom=1.0,          # the plasma is light: it blooms in the composite (composite_layers.bloom)
     labels=['colossus', 'morrow'])
 # Coordinator, 2026-10-22: "one lit still of the Colossus alone, close enough to judge the plasma
 # conforming to the hull" before another span. The k6 camera's direction, 560 m off, at 50 mm.
@@ -2187,7 +2188,8 @@ def blender_main(cfg):
             return
         verts, faces = kit.hull_soup(e)
         kit.sheath('Entry ' + key, verts, faces, stage_fx, K6_WIND, SHIP_LENGTH[key], glow=1.0,
-                   streamers=90 if key == 'colossus' else 70, seed=len(key), grow=min(1.0, (t - 126.0) / 4.5))
+                   streamers=36 if key == 'colossus' else 28, seed=len(key), grow=min(1.0, (t - 126.0) / 4.5),
+                   lights=stage_ships)      # the sheath's glow on her own windward plates
 
     def wreckfall(t):
         """S12: the ships the battle lost coming down in pieces (WRECKFALL): each piece a short entry
@@ -2217,8 +2219,8 @@ def blender_main(cfg):
                                   stage_fx, turn=(t - K6_T) * rnd.uniform(.4, 1.2))
                 kit.sheath('Wreckfall %s %d' % (pc['name'], k), rv, rf, stage_fx, K6_WIND, size,
                            glow=(.5 if pc['kind'] == 'chunk' else .3) * flick * (1 if k == 0 else .8),
-                           streamers=10 if pc['kind'] == 'chunk' else 4, seed=pc['seed'] * 7 + k,
-                           grow=min(1.0, .3 + grown), voxel=size / 9.0, sparks=4 if pc['kind'] == 'chunk' else 0)
+                           streamers=6 if pc['kind'] == 'chunk' else 2, seed=pc['seed'] * 7 + k,
+                           grow=min(1.0, .3 + grown), voxel=size / 9.0)
 
     def field_matrix(piece, box, t, local=None):
         """A debris box's world matrix at time t: the wreck turning about its own axis (debris_field).
@@ -2810,7 +2812,8 @@ def blender_main(cfg):
             st.media_type = 'IMAGE'
             st.file_format, st.color_mode, st.color_depth = 'PNG', 'RGBA', '8'
             composite_layers.compose_frame(raw / f'{kf}.layers.exr', partial, scene, plate=plate, backdrop=cached,
-                                           log=lambda m: print(m, flush=True))
+                                           log=lambda m: print(m, flush=True),
+                                           glow=KEYFRAMES.get(kf, {}).get('bloom', 0.0))
         else:
             st.media_type = 'IMAGE'
             st.file_format, st.color_mode, st.color_depth = 'PNG', 'RGBA', '8'
