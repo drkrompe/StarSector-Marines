@@ -690,7 +690,8 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   order — so vanilla-sourced sprites such as aircraft hulls appear in headless
   frames. The install is already required to build at all (`starsectorDir`), and
   a suite degrades to not drawing those sprites if it is missing. Select
-  suites with `-Psnapshot=<id>[,<id>...]` (default `all`; ids in
+  suites with `-Psnapshot=<id>[,<id>...]` (default `all`, which leaves out
+  opt-in look studies such as `deck-props` and `elevation-look`; ids in
   `snapshot-suites.md`) and redirect the common output root with `-PsnapshotDir=<path>`.
   **The pixel work runs on workers** (`SnapshotWorkers`, half the processors;
   `-Dsnapshot.threads=1` runs it all on the calling thread): a review frame

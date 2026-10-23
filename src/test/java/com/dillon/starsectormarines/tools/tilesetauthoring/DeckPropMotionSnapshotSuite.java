@@ -50,6 +50,9 @@ public final class DeckPropMotionSnapshotSuite implements SnapshotSuite {
             RoomPurpose.ENGINE_ROOM, RoomPurpose.VEHICLE_BAY);
 
     @Override public String id() { return "deck-props"; }
+
+    /** A look study for its own art; minutes of CPU rendering, so it runs only when named. */
+    @Override public boolean inAll() { return false; }
     @Override public String label() { return "Moving deck props, gated by use and by power"; }
 
     @Override public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
