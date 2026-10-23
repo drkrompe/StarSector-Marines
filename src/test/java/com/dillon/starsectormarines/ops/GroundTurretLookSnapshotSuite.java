@@ -6,45 +6,36 @@ import com.dillon.starsectormarines.battle.scene.SceneBuilder;
 import com.dillon.starsectormarines.battle.scene.SceneRegistries;
 import com.dillon.starsectormarines.battle.scene.SceneWorld;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.turret.EmplacementStyle;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
-import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Opt-in look study for the ground turrets: the catalog's point emplacements ({@code structure.point-autogun},
- * {@code -cannon}, {@code -grenade}, {@code -pd}) and hardpoints ({@code structure.hardpoint-cannon}, {@code -locust})
- * stood on real generated ground through {@link LookReview}, with a marine squad beside them for scale, once per look.
- *
- * <p>{@code brutalist} is the catalog's default art. Every other look ({@code earthwork}, {@code derelict}) is read
- * from each structure's {@code looks} object in the turret catalog: until the runtime resolves a look itself, this
- * suite registers a copy of each structure and its mount with that look's {@code base}, {@code sprite} and
- * {@code recoilSprite} swapped in. {@code -Dsnapshot.groundTurrets.looks=} and {@code -Dsnapshot.groundTurrets.biomes=}
- * narrow the run.
+ * Opt-in look study for the ground turrets: the point emplacements the generator stands (the Vulcan, Arbalest and
+ * grenade-launcher structures, which carry the autogun, cannon and grenade art), the carried point-defence pod, and the
+ * hardpoints ({@code structure.hardpoint-cannon}, {@code -locust}) on real generated ground through {@link LookReview},
+ * with a marine squad beside them for scale, once per {@link EmplacementStyle}. Each turret is given the style the
+ * way a generated post's is, so the frame shows what the renderer resolves from the structure's {@code looks}.
+ * {@code -Dsnapshot.groundTurrets.looks=} and {@code -Dsnapshot.groundTurrets.biomes=} narrow the run.
  */
 public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
 
-    private static final String CATALOG = "data/marines/turret-emplacements.turret.json";
-    private static final String DEFAULT_LOOK = "brutalist";
     /** Role in the scene's layout to the catalog structure that fills it. */
     private static final Map<String, String> ROLES = Map.of(
             "heavy", "structure.hardpoint-cannon",
             "locust", "structure.hardpoint-locust",
-            "autogun", "structure.point-autogun",
-            "cannon", "structure.point-cannon",
-            "grenade", "structure.point-grenade",
-            "pd", "structure.point-pd");
+            "autogun", "structure.turret-vulcan",
+            "cannon", "structure.turret-arbalest",
+            "grenade", "structure.turret-grenade-launcher",
+            "pd", "structure.deployable-point-defence");
 
     @Override public String id() { return "ground-turret-look"; }
 
@@ -59,7 +50,6 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
         for (String look : System.getProperty("snapshot.groundTurrets.looks", "brutalist,earthwork,derelict").split(",")) {
             looks.add(look.trim());
         }
-        registerLooks(context, looks);
         List<SnapshotArtifact> artifacts = new ArrayList<>();
         for (String biome : System.getProperty("snapshot.groundTurrets.biomes", "verdant,arid,frozen").split(",")) {
             SurfacePalette surface = SurfacePalette.valueOf(biome.trim().toUpperCase());
@@ -70,52 +60,9 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
         return artifacts;
     }
 
-    private static String structureId(String look, String role) {
-        String id = ROLES.get(role);
-        return look.equals(DEFAULT_LOOK) ? id : id.replace("structure.", "structure.look-" + look + "-");
-    }
-
-    /** Copies of each ground-turret structure and its mount with a look's art swapped in. Idempotent within a JVM. */
-    private static void registerLooks(SnapshotContext context, List<String> looks) throws Exception {
-        TurretCatalogRegistry registry = TurretCatalogRegistry.installed();
-        JSONObject catalog = new JSONObject(Files.readString(context.modRoot().resolve(CATALOG)));
-        JSONArray mounts = new JSONArray();
-        JSONArray structures = new JSONArray();
-        for (String look : looks) {
-            if (look.equals(DEFAULT_LOOK) || registry.getStructure(structureId(look, "heavy")) != null) continue;
-            for (String role : ROLES.keySet()) {
-                JSONObject structure = find(catalog.getJSONArray("structures"), ROLES.get(role));
-                JSONObject override = structure.getJSONObject("looks").getJSONObject(look);
-                JSONObject mount = new JSONObject(find(catalog.getJSONArray("mounts"), structure.getString("mount")).toString());
-                String mountId = mount.getString("id").replace("mount.", "mount.look-" + look + "-");
-                mount.put("id", mountId);
-                JSONObject render = mount.getJSONObject("render");
-                if (override.has("sprite")) render.put("sprite", override.getString("sprite"));
-                if (override.has("recoilSprite")) render.put("recoilSprite", override.getString("recoilSprite"));
-                JSONObject copy = new JSONObject(structure.toString());
-                copy.remove("looks");
-                copy.put("id", structureId(look, role)).put("mount", mountId);
-                copy.getJSONObject("art").put("base", override.getString("base"));
-                mounts.put(mount);
-                structures.put(copy);
-            }
-        }
-        if (mounts.length() > 0) {
-            registry.ingest(new JSONObject().put("mounts", mounts).put("structures", structures),
-                    WeaponRegistry.installed());
-        }
-    }
-
-    private static JSONObject find(JSONArray entries, String id) throws Exception {
-        for (int i = 0; i < entries.length(); i++) {
-            if (entries.getJSONObject(i).getString("id").equals(id)) return entries.getJSONObject(i);
-        }
-        throw new IllegalStateException("No catalog entry " + id);
-    }
-
     /**
      * A 40x22 window: a heavy-cannon hardpoint and a Locust hardpoint side by side, four point emplacements (autogun,
-     * light cannon, grenade launcher, point-defence pod) round them, and a six-marine squad standing between the
+     * light cannon, grenade launcher, carried point-defence pod) round them, and a six-marine squad standing between the
      * hardpoints. The hardpoints' guns are laid away from their stairs. Only tick zero is drawn, so the heads hold
      * the bearings set here and no launch smoke covers them.
      */
@@ -139,8 +86,8 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
                 float[] at = placement.openNear((Float) spot[1], (Float) spot[2]);
                 int x = (int) at[0];
                 int y = (int) at[1];
-                long id = sim.spawn(MapTurret.create("gt" + i++, Faction.MARINE, structureId(look, (String) spot[0]),
-                        x, y));
+                long id = sim.spawn(MapTurret.create("gt" + i++, Faction.MARINE, ROLES.get((String) spot[0]), x, y));
+                sim.setStructureStyle(id, EmplacementStyle.valueOf(look.toUpperCase()));
                 sim.getGrid().setWalkable(x, y, false);
                 sim.turretState().setFacingDegrees(id, (Float) spot[3]);
             }
