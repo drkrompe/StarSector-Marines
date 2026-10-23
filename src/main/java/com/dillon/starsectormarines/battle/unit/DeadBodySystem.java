@@ -125,14 +125,6 @@ public final class DeadBodySystem {
         // off the corpse-remove mask), so the corpse already draws where it fell —
         // no post-release snapshot needed.
         world.setInt(id, c.SPRITE, BattleComponents.SPRITE_INDEX, event.deathPoseIdx());
-        // A sheet unit's live-authored selector/flip ride the row-move (a unit
-        // can die mid-secondary-aim with SHEET=1/FLIP_V=1) — corpses draw the
-        // base sheet unflipped, so re-assert the corpse invariant explicitly
-        // rather than relying on a fresh-row default that only holds for the
-        // non-sheet (turret/hub/drone) deaths that gain SPRITE here for the
-        // first time.
-        world.setInt(id, c.SPRITE, BattleComponents.SPRITE_SHEET, 0);
-        world.setInt(id, c.SPRITE, BattleComponents.SPRITE_FLIP_V, 0);
         if (firstDeath) {
             world.setFloat(id, c.CORPSE, BattleComponents.CORPSE_FACING_DEGREES, facing);
             world.setInt(id, c.CORPSE, BattleComponents.CORPSE_BODY_FAMILY, bodyFamily);
