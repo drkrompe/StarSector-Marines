@@ -52,7 +52,8 @@ final class ScuffMark implements VehicleScuffs.Sink {
         if (sheet == null || sheet.pxW <= 0) return;
         float lx = (x - imageW * 0.5f) * sx;
         float ly = (imageH * 0.5f - y) * sy;
-        out.addSheetQuad(layer, sheet.sprite, variant * VehicleScuffs.SHEET_CELL, kind * VehicleScuffs.SHEET_CELL,
+        out.addImageRegion(layer, sheet.sprite, sheet.pxW, sheet.pxH,
+                variant * VehicleScuffs.SHEET_CELL, kind * VehicleScuffs.SHEET_CELL,
                 VehicleScuffs.SHEET_CELL, VehicleScuffs.SHEET_CELL,
                 centreX + lx * cos - ly * sin, centreY + lx * sin + ly * cos, sizePx, sizePx,
                 angleDeg + spinDegrees, 1f, 1f, 1f, strength * alpha);

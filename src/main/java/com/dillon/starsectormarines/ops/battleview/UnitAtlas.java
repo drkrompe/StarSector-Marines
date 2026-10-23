@@ -110,6 +110,13 @@ public final class UnitAtlas extends SpriteAtlas {
         // UNIT_SHADOWS draws one per body, and out of the atlas each is a bind.
         consider(candidates, sprites.shadowBlobSprite(),
                 sprites.shadowBlobPxW(), sprites.shadowBlobPxH(), "shadow blob");
+        // Worn plate is drawn as cells of one sheet over every damaged mech part (body-scuffs.md): in here, a
+        // mark joins its part's run instead of breaking it twice. Over the cap, but one small sheet that every
+        // damaged body samples is what the cap's own reasoning lets in.
+        ShuttleSpriteCache scuffs = sprites.spriteByPath(VehicleScuffs.SHEET);
+        if (scuffs != null && scuffs.pxW > 0 && scuffs.pxH > 0) {
+            into(candidates, scuffs.sprite, scuffs.pxW, scuffs.pxH, "scuff sheet");
+        }
         // Two images is already two binds and an atlas of them saves one; the
         // point of the layout is a field of bodies, so a host that loaded almost
         // no unit art stays on the sprite path rather than paying for a copy.
@@ -149,6 +156,12 @@ public final class UnitAtlas extends SpriteAtlas {
      *
      * @return why the image was not offered, or null when it was (or there was none)
      */
+    /** Offers a whole image the cap does not apply to, at its shipped size. */
+    private static void into(List<Source> into, SpriteAPI sprite, int recordedW, int recordedH, String name) {
+        into.add(new Source(sprite, ModTextures.shippedWidth(sprite, recordedW),
+                ModTextures.shippedHeight(sprite, recordedH), name));
+    }
+
     static Exclusion offer(List<Source> into, SpriteAPI sprite, int recordedW, int recordedH) {
         return offer(into, sprite, recordedW, recordedH, null);
     }
