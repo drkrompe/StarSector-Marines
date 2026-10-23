@@ -70,8 +70,7 @@ final class NightLightingRenderSystem implements RenderSystem {
                 boolean fireDark = !burning || zero9(firePools, (2 * y) * width + 2 * x);
                 boolean unlit = lampDark && fireDark;
                 // Fog hides a lamp's light; a burn's is seen from anywhere (FireFogClearing).
-                boolean dimUniform = (hidden || lampDark)
-                        && (fireDark || hidden && !FireFogClearing.ENABLED), litUniform = unlit;
+                boolean dimUniform = (hidden || lampDark) && fireDark, litUniform = unlit;
                 float cellX0 = Math.round(camera.cellToScreenX(x)), cellX1 = Math.round(camera.cellToScreenX(x + 1f));
                 if (dimUniform) dimRun.extend(cellX0, cellX1, unlitColour); else dimRun.flush();
                 if (masked) { if (litUniform) litRun.extend(cellX0, cellX1, unlitColour); else litRun.flush(); }
@@ -84,7 +83,7 @@ final class NightLightingRenderSystem implements RenderSystem {
                     float y1=Math.round(camera.cellToScreenY(y+(sy+1f)/steps));
                     if (!dimUniform) {
                         float pool=hidden ? 0f : sample(pools,px,py);
-                        float firePool=!burning || hidden && !FireFogClearing.ENABLED ? 0f : sample(firePools,px,py);
+                        float firePool=burning ? sample(firePools,px,py) : 0f;
                         appendShade(dimMesh, night, pool, firePool, px, py, x0, y0, x1, y1, ctx.alphaMult);
                     }
                     if (masked && !litUniform) appendShade(pass.litShade(), night, sample(pools,px,py),

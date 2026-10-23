@@ -31,6 +31,15 @@ worker time per frame across its bands, in `fire-line` the scorch pass 6.7 s
 and the creep 3.5 s. `black-sluice` has no creep; its frames are sheet quads
 (70,000 floor tiles a frame) and its simulation is a larger share.
 
+**Both columns ran while another session's `createSnapshots` sweep shared the
+machine**, so absolute seconds are inflated, the Java2D drain's (which wants
+every core) most. The ratio is too large for contention to explain, but
+re-time on a quiet machine before quoting the seconds. The same goes for
+suites whose time is not drawing at all: with collection kept and the raster
+skipped entirely, `rural-mapgen` does not get faster (its time is map
+generation) and `tank` goes from 7.1s to 4.7s. Profile a suite before
+expecting the GPU to help it.
+
 **The same suites through the GPU backend**, same machine, same commit:
 
 | Suite | Suite render, Java2D | Suite render, GL | Frame, Java2D | Frame, GL (collect+drain / readback) | Writing, Java2D → GL |

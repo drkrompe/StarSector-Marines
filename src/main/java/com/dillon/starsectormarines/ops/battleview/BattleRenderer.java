@@ -722,9 +722,8 @@ public class BattleRenderer {
 
                 float sx = rc.camera.cellToScreenX(cx);
                 float sy = rc.camera.cellToScreenY(cy);
-                float[] colour = fireFogClearing.fogColour();
                 out.addSolidRect(RenderLayer.FOG, sx, sy, sx + cellPx, sy + cellPx,
-                        colour[0], colour[1], colour[2], fogAlpha * alphaMult);
+                        0f, 0f, 0f, fogAlpha * alphaMult);
             }
         }
     }
