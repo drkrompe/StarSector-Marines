@@ -208,6 +208,8 @@ test {
     inputs.dir('mod/data')
     // Opening localization checks catalog references in production code.
     inputs.dir('src/main/java')
+    // SwitchRegistryTest holds every -Dbattle.*/-Dmarines.* read against it.
+    inputs.file('roadmap/switches.md')
     inputs.file('asset-pipeline/src/tool/resources/audio/audio.json')
     inputs.dir('asset-pipeline/src/tool/resources/audio/wayline')
     inputs.dir('art-source/audio/shepherd')
