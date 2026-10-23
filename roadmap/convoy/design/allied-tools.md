@@ -127,10 +127,11 @@ first task. The Cordon's base becomes one configuration of it (the shed, the
 apron slots, the tug and exit control stay as the shed origin's own
 behaviour).
 
-**The seam the heart builds on now:** a small interface, `AlliedToolSource`
-("what comes on next, where and when"), which the heart's armour up the road
-implements first behind `HeartLanes`. The shared producer is the second
-implementation and slides under it; the heart's caller does not change.
+**The seam the heart builds on now:** `AlliedDepot`, one question: the cell
+a machine sets out from, or none while the depot cannot send (overrun, cut
+off). The heart's vehicle park answers it first (`HeartVehiclePark`, used by
+`HeartLanes.sentFrom`). The shared producer will implement `AlliedDepot` as
+well and slide under it; the heart's caller does not change.
 
 ## Boundaries
 
