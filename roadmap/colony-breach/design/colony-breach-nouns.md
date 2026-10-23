@@ -1201,10 +1201,10 @@ against its own control in `renderEvidence`.
   valley floors as over any ground, but it stands back from bare rock: a cliff
   face, a brook's bank or a ramp's cut walls (`CliffFaceMask`, the rock the cliff
   art draws). Its own beaded edge runs along the lip and the foot, the rock shows
-  between with no wilt on it, and by default the wall-vein lattice and a thin
-  membrane are laid back over the rock where creep stands on both sides, so the
-  face reads as rock the creep is climbing (`-Dbattle.render.creepCliffs`,
-  `veined`; `bare` and `over` are the owner's other two picks).
+  between with no wilt on it, and the wall-vein lattice and a thin membrane are
+  laid back over the rock where creep stands on both sides, so the face reads
+  as rock the creep is climbing (owner's pick, over bare rock and over creep
+  covering the face).
 - **Trees die under it** (`CreepVegetation`). A tree whose crown living creep
   has held to the tree's own seeded share of about a minute and a half of
   climbing is dead, and stays dead if the creep later withers. A dead tree has
