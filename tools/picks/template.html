@@ -76,13 +76,16 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 <script>
 const QUESTIONS = __QUESTIONS__;
 const picks = {};
+const pending = {};
+let order = null;
 let db = null, local = false;
 const $ = id => document.getElementById(id);
 const keysOf = c => String(c || "").split(",").filter(Boolean);
 const on = (p, k) => keysOf(p.choice).includes(k);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function render(){
-  $("list").innerHTML = QUESTIONS.length ? QUESTIONS.slice().sort((a, b) => (picks[a.id]?.choice ? 1 : 0) - (picks[b.id]?.choice ? 1 : 0)).map(q => {
+  if (!order) order = QUESTIONS.slice().sort((a, b) => (picks[a.id]?.choice ? 1 : 0) - (picks[b.id]?.choice ? 1 : 0));
+  $("list").innerHTML = QUESTIONS.length ? order.map(q => {
     const p = picks[q.id] || {};
     const chosen = q.options.filter(o => on(p, o.key));
     return `<section class="q" id="q-${q.id}">
@@ -104,13 +107,14 @@ const LKEY = "rav-picks";
 async function write(id){
   const v = picks[id];
   if (local || !db) { try { localStorage.setItem(LKEY, JSON.stringify(picks)); } catch {} return; }
+  pending[id] = (pending[id] || 0) + 1;
   try {
     const ref = db.doc("picks/" + id);
     if (v && (v.choice || v.note)) await ref.set({choice: v.choice || "", note: v.note || "", at: new Date().toISOString()});
     else await ref.delete();
   } catch (e) {
     $("store").textContent = e.code === "invalid_argument" ? "You can look, but only the owner's picks are saved." : "Couldn't save that pick. Check the connection and tap it again.";
-  }
+  } finally { pending[id]--; }
 }
 function openZoom(src, title){
   $("lb-img").src = src; $("lb-t").textContent = title; $("lb-view").className = "lb-view fit"; $("lb-size").textContent = "Actual size";
@@ -143,10 +147,13 @@ render();
   db = await (window.claude?.use?.("db") ?? null);
   if (!db) { local = true; $("store").textContent = "Saved picks aren't available in this view, so they stay in this browser only."; return; }
   for (const k of Object.keys(picks)) delete picks[k];
+  let first = true;
   db.collection("picks").onSnapshot(snap => {
     const editing = document.activeElement?.id?.startsWith("c-") ? document.activeElement.id.slice(2) : null;
-    for (const k of Object.keys(picks)) if (k !== editing) delete picks[k];
-    snap.docs.forEach(d => { if (d.id !== editing) picks[d.id] = d.data(); });
+    const keep = k => k === editing || pending[k] > 0;
+    for (const k of Object.keys(picks)) if (!keep(k)) delete picks[k];
+    snap.docs.forEach(d => { if (!keep(d.id)) picks[d.id] = d.data(); });
+    if (first) { first = false; order = null; }
     $("store").textContent = "Picks are saved and go back to the sessions.";
     if (!editing) render(); else { $("n-done").textContent = QUESTIONS.filter(q => picks[q.id]?.choice).length; }
   }, () => { $("store").textContent = "Lost the connection to saved picks. Reload the page to reconnect."; });
