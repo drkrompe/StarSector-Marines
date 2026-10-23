@@ -328,16 +328,15 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
     private static final float LAUNCHER_CELL_PX = 24f;
 
     /**
-     * The controlled LRM carrier with its cursor and scatter ring, and the HUD's launcher row for the same cursor.
-     * The ring and its colour are {@link DirectControlScatter#vehicle} and its mark, and the reticle is
-     * {@link DirectControlReticle}'s, the production figures; the world beneath is a plain grid, and the strokes
-     * are drawn through Java2D rather than the panel's GL.
+     * The controlled LRM carrier with its cursor reticle, and the HUD's launcher row for the same cursor. The tick's
+     * spread is {@link DirectControlScatter#vehicle} and the strokes {@link DirectControlReticle}'s, the production
+     * figures; the world beneath is a plain grid, and the strokes are drawn through Java2D rather than the panel's GL.
      */
     private static BufferedImage launcherFrame(HeadlessUiRenderer renderer, Path modRoot, LauncherAim aim)
             throws Exception {
         VehicleType type = VehicleType.LRM_CARRIER;
         var mount = type.turretStructure().mount;
-        var ring = DirectControlScatter.vehicle(mount.weapon, aim.cells());
+        float spread = DirectControlScatter.vehicle(mount.weapon, aim.cells());
         var status = BattleDirectControlStatus.vehicleWeapon(new GroundTurret(mount.ammoCapacity), mount, aim.cells());
         var base = BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.VEHICLE, false);
         var snapshot = new BattleDirectControlStatus.Snapshot(base.entityId(), "LRM Carrier",
@@ -347,11 +346,11 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         plate.updateVehicle(type, type.maxStructure, type.maxStructure, null, HullLocations.of(type, null));
         BufferedImage sheet = ImageIO.read(modRoot.resolve(type.spritePath).toFile());
         return activeComposite(renderer, modRoot, 1920, 1080, 1f, snapshot, plate.document(), false, false,
-                graphics -> drawLauncherWorld(graphics, sheet, type, ring, aim.cells()));
+                graphics -> drawLauncherWorld(graphics, sheet, type, spread, aim.cells()));
     }
 
     private static void drawLauncherWorld(Graphics2D graphics, BufferedImage sheet, VehicleType type,
-                                          DirectControlScatter.Ring ring, float cells) {
+                                          float spreadCells, float cells) {
         float px = LAUNCHER_CELL_PX;
         double bearing = Math.atan2(-470.0, 1000.0);
         float ringX = 420f;
@@ -372,14 +371,12 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         graphics.drawImage(sheet.getSubimage(frame, 0, frame, sheet.getHeight()), -frame / 2, -sheet.getHeight() / 2,
                 null);
         graphics.setTransform(saved);
-        float r = ring != null ? DirectControlPanel.scatterRingPx(ring, px) : -1f;
         List<DirectControlAimLane.Stroke> strokes = new ArrayList<>();
-        if (r >= 0f) strokes.addAll(DirectControlReticle.scatterRing(ring.mark(), aimX, aimY, r));
         WeaponDef weapon = type.turretStructure().mount.weapon;
         var marks = new DirectControlFireMarks.Marks(DirectControlFireMarks.of(!ManualPointFire.tooClose(weapon, cells),
                 cells, ManualPointFire.optimalRangeCells(weapon), weapon.range), DirectControlFireMarks.Mark.NONE);
-        strokes.addAll(DirectControlReticle.strokes(marks, aimX, aimY,
-                DirectControlPanel.controlledColor()));
+        strokes.addAll(DirectControlReticle.strokes(DirectControlReticle.LIVE, marks, spreadCells * px, -1f,
+                aimX, aimY, DirectControlPanel.controlledColor()));
         for (var stroke : strokes) {
             Color c = stroke.color();
             graphics.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), Math.round(c.getAlpha() * 0.8f)));

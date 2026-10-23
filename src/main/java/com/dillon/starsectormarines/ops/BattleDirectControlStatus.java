@@ -151,13 +151,22 @@ final class BattleDirectControlStatus {
      * picked or not ({@code L}, {@code R}, or empty); empty for a status built without groups, which
      * reads its group off {@code trigger}. {@code tooClose} is a cursor inside the mount's manual minimum range, where
      * its trigger is refused. {@code reloading} is a magazine being changed, in which case the cooldown
-     * and cycle fields carry the reload clock instead of the action's.
+     * and cycle fields carry the reload clock instead of the action's. {@code heldRounds} is what a held rack
+     * trigger has fired so far in this hold ({@code SalvoChain}), zero when its button is up.
      */
     record WeaponStatus(int number, String slotKey, String name, Behavior behavior,
                         boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
                         int burstRemaining, float burstSeconds, Ammo ammo,
                         boolean fluxBlocked, String mechanism, String trigger, boolean tooClose,
-                        boolean reloading, String group) {
+                        boolean reloading, String group, int heldRounds) {
+        WeaponStatus(int number, String slotKey, String name, Behavior behavior,
+                     boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
+                     int burstRemaining, float burstSeconds, Ammo ammo,
+                     boolean fluxBlocked, String mechanism, String trigger, boolean tooClose,
+                     boolean reloading, String group) {
+            this(number, slotKey, name, behavior, directEligible, cooldownSeconds, cycleDurationSeconds,
+                    burstRemaining, burstSeconds, ammo, fluxBlocked, mechanism, trigger, tooClose, reloading, group, 0);
+        }
         WeaponStatus(int number, String slotKey, String name, Behavior behavior,
                      boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
                      int burstRemaining, float burstSeconds, Ammo ammo,
@@ -363,9 +372,10 @@ final class BattleDirectControlStatus {
                     mount.burstRemaining, mount.burstTimer,
                     new Ammo(mount.ammo, mount.component.ammoCapacity, AmmoUnit.TRIGGER_PACKS,
                             mount.component.ammoCapacity < 0),
-                    !flux.permits(mount.component.fluxPerTrigger(), false), mount.component.cycleLabel(),
+                    !flux.permits(mount.triggerFlux(), false), mount.component.cycleLabel(),
                     MechFireGroups.badge(mounts, picks, mount),
-                    HeavyWeapons.tooClose(mount, aimDistance), false, MechFireGroups.group(mounts, mount)));
+                    HeavyWeapons.tooClose(mount, aimDistance), false, MechFireGroups.group(mounts, mount),
+                    mount.holdSalvos * mount.component.projectilesPerTrigger));
         }
         weapons.sort(Comparator.comparingInt(WeaponStatus::number));
         return List.copyOf(weapons);
@@ -415,7 +425,7 @@ final class BattleDirectControlStatus {
                 ManualPointFire.supportsPointFire(weapon),
                 turret.cooldownTimer, weapon.cooldown, turret.burstRemaining, turret.burstTimer,
                 new Ammo(turret.ammo, mount.ammoCapacity, AmmoUnit.ROUNDS, mount.ammoCapacity == 0),
-                false, "", "", ManualPointFire.tooClose(weapon, aimDistance));
+                false, "", "", ManualPointFire.tooClose(weapon, aimDistance), false, "", turret.holdRounds);
     }
 
     private static Behavior behavior(WeaponDef weapon, int releasesPerTrigger) {

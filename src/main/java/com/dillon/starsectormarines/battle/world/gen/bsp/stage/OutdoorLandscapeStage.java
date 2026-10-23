@@ -136,7 +136,7 @@ public final class OutdoorLandscapeStage implements GenStage {
         LaidLayout laid = c.get(BspKeys.MISSION_LAYOUT_LAID);
         if (laid != null) for (Laid piece : laid.pieces()) {
             if (piece.kind() == Laid.Kind.GROUND) continue;
-            if (piece.kind() == Laid.Kind.SITE && piece.cells().size() == 2) {
+            if ((piece.kind() == Laid.Kind.SITE || piece.kind() == Laid.Kind.STRUCTURE) && piece.cells().size() == 2) {
                 reserve(c, reserved, piece.cells().get(0)[0], piece.cells().get(0)[1], piece.cells().get(1)[0], piece.cells().get(1)[1]);
                 continue;
             }

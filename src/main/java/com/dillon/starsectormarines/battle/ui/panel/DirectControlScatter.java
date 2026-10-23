@@ -1,71 +1,72 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
+import com.dillon.starsectormarines.battle.combat.FireTrigger;
 import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
 import com.dillon.starsectormarines.battle.combat.ManualPointFire;
 import com.dillon.starsectormarines.battle.combat.MechFireGroups;
 import com.dillon.starsectormarines.battle.combat.MechTriggerPicks;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
+import com.dillon.starsectormarines.battle.vehicle.GroundVehicleTurretSystem;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 /**
- * The cursor ring a pilot reads before throwing rockets or an LRM salvo: the widest landing disk among the armed
- * mounts whose rounds burst where they are thrown, and whether the point lies past any of their rated ranges.
- * Guns have no ring; their rounds fly a lane, which {@link DirectControlAimLane} already draws.
+ * How widely a button's thrown rockets or LRM salvo would land at the cursor: the widest landing disk among the
+ * mounts its pick fires whose rounds burst where they are thrown. The reticle carries it in that button's tick.
+ * Guns have no spread here; their rounds fly a lane, which {@link DirectControlAimLane} already draws.
  */
 public final class DirectControlScatter {
     private DirectControlScatter() {}
 
-    /**
-     * {@code beyondRange} is true when the point lies past the nominal range of a mount the ring covers,
-     * {@code tooClose} when it lies inside the minimum of one (an arcing rack refuses such a point), and
-     * {@code pastOptimal} when it lies past the optimal range of one.
-     */
-    public record Ring(float radiusCells, boolean beyondRange, boolean tooClose, boolean pastOptimal) {
-        public Ring(float radiusCells, boolean beyondRange, boolean tooClose) {
-            this(radiusCells, beyondRange, tooClose, beyondRange);
-        }
-
-        /** Either condition draws the ring as a warning. */
-        public boolean warning() { return beyondRange || tooClose; }
-
-        /** The reticle's palette: grey inside a minimum, red past range, yellow past optimal, white within it. */
-        public DirectControlFireMarks.Mark mark() {
-            if (tooClose) return DirectControlFireMarks.Mark.HELD;
-            if (beyondRange) return DirectControlFireMarks.Mark.WASTED;
-            return pastOptimal ? DirectControlFireMarks.Mark.FALLING_OFF : DirectControlFireMarks.Mark.GOOD;
-        }
+    /** Landing-disk radii in cells for the two buttons; negative where the pick has no ground burst. */
+    public record Spread(float leftCells, float rightCells) {
+        public static final Spread NONE = new Spread(-1f, -1f);
+        public float of(FireTrigger trigger) { return trigger == FireTrigger.LEFT ? leftCells : rightCells; }
     }
 
-    /** The ring for a cursor {@code distance} cells from the chassis centre, or null when no armed mount bursts. */
-    public static Ring mech(MechLoadoutComponent loadout, MechTriggerPicks picks, float distance) {
+    /** The controlled ground body's spread at its cursor, or none for a Marine, a warship or no cursor. */
+    public static Spread read(BattleSimulation sim) {
+        if (sim == null || !sim.directControl().active() || sim.directControl().warshipControl()) return Spread.NONE;
+        var aim = sim.directControl().intent();
+        if (!Float.isFinite(aim.aimX()) || !Float.isFinite(aim.aimY())) return Spread.NONE;
+        long id = sim.directControl().activeUnitId();
+        if (sim.directControl().controlledVehicleId() == id) {
+            var turret = sim.convoy().turret(id);
+            var type = sim.convoy().vehicleType(id);
+            var structure = type != null ? type.turretStructure() : null;
+            if (turret == null || structure == null || turret.destroyed()) return Spread.NONE;
+            TurretMountGeometry.Point ring = GroundVehicleTurretSystem.mountPoint(type, sim.convoy().body(id));
+            return new Spread(vehicle(structure.mount.weapon,
+                    (float) Math.hypot(aim.aimX() - ring.x(), aim.aimY() - ring.y())), -1f);
+        }
+        if (!sim.world().hasMechLoadout(id)) return Spread.NONE;
+        float distance = (float) Math.hypot(aim.aimX() - sim.world().renderX(id), aim.aimY() - sim.world().renderY(id));
+        var loadout = sim.world().mechLoadout(id);
+        var picks = sim.directControl().mechPicks();
+        return new Spread(mech(loadout, picks, FireTrigger.LEFT, distance),
+                mech(loadout, picks, FireTrigger.RIGHT, distance));
+    }
+
+    /**
+     * The widest disk among the mounts {@code trigger}'s pick fires, for a cursor {@code distance} cells from the
+     * chassis centre, or a negative value when none of them bursts.
+     */
+    public static float mech(MechLoadoutComponent loadout, MechTriggerPicks picks, FireTrigger trigger,
+                             float distance) {
         MechWeaponMount[] mounts = loadout.mounts();
-        int armed = picks.firedMask(mounts);
+        int mask = trigger == FireTrigger.LEFT ? picks.leftMask(mounts) : picks.rightMask(mounts);
         float radius = -1f;
-        boolean beyond = false;
-        boolean close = false;
-        boolean pastOptimal = false;
         for (MechWeaponMount mount : mounts) {
-            if (mount == null || !MechFireGroups.contains(armed, mount)) continue;
-            float r = HeavyWeapons.manualScatterRadiusCells(loadout, mount, distance);
-            if (r < 0f) continue;
-            radius = Math.max(radius, r);
-            beyond |= distance > mount.weaponDef().range;
-            close |= HeavyWeapons.tooClose(mount, distance);
-            pastOptimal |= distance > HeavyWeapons.manualOptimalRangeCells(loadout, mount);
+            if (mount == null || !MechFireGroups.contains(mask, mount)) continue;
+            radius = Math.max(radius, HeavyWeapons.manualScatterRadiusCells(loadout, mount, distance));
         }
-        return radius < 0f ? null : new Ring(radius, beyond, close, pastOptimal);
+        return radius;
     }
 
-    /**
-     * The ring for a vehicle turret's weapon with the cursor {@code distance} cells from its turret ring, or null
-     * for a gun. The same rules as a mech rack's: the LRM carrier's launcher reads TOO CLOSE inside its minimum.
-     */
-    public static Ring vehicle(WeaponDef weapon, float distance) {
-        float radius = ManualPointFire.scatterRadiusCells(weapon, weapon.accuracy, distance, 0f);
-        float optimal = ManualPointFire.optimalRangeCells(weapon);
-        return radius < 0f ? null
-                : new Ring(radius, distance > weapon.range, ManualPointFire.tooClose(weapon, distance),
-                        distance > optimal);
+    /** A vehicle turret's disk with the cursor {@code distance} cells from its turret ring; negative for a gun. */
+    public static float vehicle(WeaponDef weapon, float distance) {
+        return ManualPointFire.scatterRadiusCells(weapon, weapon.accuracy, distance, 0f);
     }
 }

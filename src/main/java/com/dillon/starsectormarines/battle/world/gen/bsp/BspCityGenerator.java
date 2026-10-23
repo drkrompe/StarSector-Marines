@@ -56,6 +56,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OpeningOperationFacilityStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
 import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayoutStage;
+import com.dillon.starsectormarines.battle.world.gen.layout.Phase;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.RoadSurfaceStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FrontDepthStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InteriorAnchorFitStage;
@@ -653,15 +654,21 @@ public final class BspCityGenerator implements MapGenerator {
      */
     private static GenRecipe missionLayoutRecipe(GenRecipe base) {
         List<GenStage> stages = new ArrayList<>(base.stages().size() + 1);
-        boolean inserted = false;
+        boolean inserted = false, raised = false;
         for (GenStage stage : base.stages()) {
+            if (stage instanceof FinalizeStage && !raised) {
+                stages.add(new MissionLayoutStage(Phase.STRUCTURES));
+                raised = true;
+            }
             if (stage instanceof OutdoorLandscapeStage && !inserted) {
                 stages.add(new MissionLayoutStage());
                 inserted = true;
             }
             stages.add(stage);
         }
-        if (!inserted) throw new IllegalStateException("recipe " + base.name() + " has no landscape stage to lay a layout before");
+        if (!inserted || !raised) {
+            throw new IllegalStateException("recipe " + base.name() + " has no finalize or landscape stage to lay a layout before");
+        }
         return new GenRecipe(base.name(), stages);
     }
 

@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * The ground body's aim reticle as screen strokes: a short thin tick either side of a neutral centre dot on the aim
  * point, the left tick for the left mouse button and the right tick for the right, each in its {@link Mark}'s
- * colour. It stays quiet because the player looks straight through it: no backing and no end caps. Pattern carries
+ * colour. A tick also carries its button's landing spread, for the picks that throw rockets or salvos. It stays quiet because the player looks straight through it: no backing and no end caps. Pattern carries
  * what hue does, so the marks read without colour too: white and yellow are solid, red (past range) is dotted, and
  * grey (will not fire) is two wide dashes. The strokes are pure geometry, drawn by the GL panel and by review frames
  * alike.
@@ -50,42 +50,62 @@ public final class DirectControlReticle {
     private static final int DASHES = 2;
     private static final float DASH = 3.5f;
 
-    /** The strokes for {@code marks}, centred on screen point {@code (x, y)}. */
-    public static List<DirectControlAimLane.Stroke> strokes(Marks marks, float x, float y, Color centre) {
+    /**
+     * How a tick shows its button's landing spread, on trial for the owner's pick (picks question
+     * {@code aim-reticle-spread}); the look not chosen is removed with this enum.
+     */
+    public enum SpreadLook {
+        /** The tick grows outward with the landing radius, up to {@link #MAX_GROWTH_PX}. */
+        LONGER,
+        /** The tick keeps its length and opens away from the dot to the landing radius, up to {@link #MAX_BLOOM_PX}. */
+        BLOOM
+    }
+
+    /** The look the live screen draws. */
+    public static final SpreadLook LIVE = SpreadLook.BLOOM;
+
+    /** A blooming tick's inner end never sits further out than this, so a long throw cannot open it into noise. */
+    static final float MAX_BLOOM_PX = 40f;
+    /** A longer tick never grows by more than this. */
+    static final float MAX_GROWTH_PX = 16f;
+
+    /**
+     * The strokes for {@code marks}, each tick carrying its button's landing radius in screen pixels
+     * ({@code leftSpreadPx}, {@code rightSpreadPx}; negative for a pick with no ground burst, whose tick rests).
+     */
+    public static List<DirectControlAimLane.Stroke> strokes(SpreadLook look, Marks marks, float leftSpreadPx,
+                                                            float rightSpreadPx, float x, float y, Color centre) {
         List<DirectControlAimLane.Stroke> out = new ArrayList<>();
-        tick(out, marks.left(), x, y, -1f);
-        tick(out, marks.right(), x, y, 1f);
+        tick(out, look, marks.left(), leftSpreadPx, x, y, -1f);
+        tick(out, look, marks.right(), rightSpreadPx, x, y, 1f);
         out.add(new DirectControlAimLane.Stroke(x - 1.25f, y, x + 1.25f, y, 2.5f, centre));
         return out;
     }
 
-    /**
-     * The scatter ring at {@code radius} pixels in its mark's colour, broken into dashes when the mark is held so a
-     * refused rack reads without its hue.
-     */
-    public static List<DirectControlAimLane.Stroke> scatterRing(Mark mark, float x, float y, float radius) {
-        List<DirectControlAimLane.Stroke> out = new ArrayList<>();
-        Color color = color(mark);
-        if (color == null) return out;
-        int segments = 64;
-        for (int i = 0; i < segments; i++) {
-            if (mark == Mark.HELD && i % 4 >= 2) continue;
-            double a0 = Math.PI * 2.0 * i / segments;
-            double a1 = Math.PI * 2.0 * (i + 1) / segments;
-            out.add(new DirectControlAimLane.Stroke(x + (float) (Math.cos(a0) * radius), y + (float) (Math.sin(a0) * radius),
-                    x + (float) (Math.cos(a1) * radius), y + (float) (Math.sin(a1) * radius), 1.5f, color));
-        }
-        return out;
+    /** Where a tick runs, in pixels out from the dot: {@code [inner, outer]}. */
+    static float[] extent(SpreadLook look, float spreadPx) {
+        if (!(spreadPx > 0f)) return new float[]{INNER, OUTER};
+        return switch (look) {
+            case LONGER -> new float[]{INNER, OUTER + Math.min(spreadPx, MAX_GROWTH_PX)};
+            case BLOOM -> {
+                float inner = Math.max(INNER, Math.min(spreadPx, MAX_BLOOM_PX));
+                yield new float[]{inner, inner + OUTER - INNER};
+            }
+        };
     }
 
     /** {@code side} -1 draws the left button's tick, 1 the right's. */
-    private static void tick(List<DirectControlAimLane.Stroke> out, Mark mark, float x, float y, float side) {
+    private static void tick(List<DirectControlAimLane.Stroke> out, SpreadLook look, Mark mark, float spreadPx,
+                             float x, float y, float side) {
         Color color = color(mark);
         if (color == null) return;
-        float from = x + side * INNER;
-        float to = x + side * OUTER;
+        // A refused trigger lands nothing, so a grey tick rests whatever its rounds would have scattered.
+        float[] extent = extent(look, mark == Mark.HELD ? -1f : spreadPx);
+        float from = x + side * extent[0];
+        float to = x + side * extent[1];
         switch (mark) {
-            case WASTED -> pieces(out, from, to, y, DOTS, DOT, color);
+            case WASTED -> pieces(out, from, to, y, Math.max(DOTS, Math.round((extent[1] - extent[0]) / 3.5f)),
+                    DOT, color);
             case HELD -> pieces(out, from, to, y, DASHES, DASH, color);
             default -> out.add(new DirectControlAimLane.Stroke(from, y, to, y, WIDTH, color));
         }

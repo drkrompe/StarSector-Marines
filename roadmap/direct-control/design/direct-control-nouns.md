@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, deployed APC, friendly Warship, and drone Tende
 
 Written: 2026-09-23
 
-Updated: 2026-10-23 — the ground aim reticle: a quiet side tick per mouse button, coloured and patterned by what a click would do; the scatter ring takes its palette.
+Updated: 2026-10-23 — held racks chain salvos and the strip lights them; earlier: the ground aim reticle side ticks, landing spread blooming the tick, no scatter ring.
 
 Direct control lets the player temporarily inhabit one of their ground units, or a
 friendly capital hovering over the battle, in
@@ -126,7 +126,9 @@ the hopper whether it fires or not), and its row's cycle bar is the barrels' spi
 filling as they come up to speed and reading SPIN with the percentage. A rack or
 belt too long for the row folds to one icon per salvo or burst (several whole
 bursts per icon for a long belt) and then keeps its exact count beside it; a
-load too long even folded keeps only the number. Finite Mech stores count
+load too long even folded keeps only the number. While a rack's button is held, the missiles (or
+folded salvos) that hold has fired draw lit beside the live ones, so a chain is seen building
+salvo by salvo, and go back to spent when the button comes up. Finite Mech stores count
 trigger packs, while a vehicle turret counts individual rounds. In the Marine doll's kit column,
 a rocket or precision-rifle special with a short load draws it as missiles or
 cartridges in place of its count.
@@ -197,15 +199,17 @@ the chance is the share of the disk the body covers; a weapon that stays on
 target to maximum range has no yellow band. Warship and tender reticles are out
 of this model.
 
-When an armed mount's rounds burst where they are thrown (rockets and LRM
-racks), a **scatter ring** circles the cursor at the widest landing disk among
-them, in the reticle's palette: white inside every covered mount's optimal
-range, yellow past it, red past maximum range, where the disk grows faster than
-distance, and grey (broken) inside an arcing mount's minimum. A vehicle
-turret's launcher draws the same ring, measured from its turret ring. Guns draw
-no ring. A warning ring never draws smaller than the reticle it surrounds: close
-in, the disk is a fraction of a cell, and the warning would otherwise vanish.
-The ring is the clear-air figure; smoke on a rocket's lane widens it.
+There is no scatter ring (owner, 2026-10-23): a button's **landing spread** is
+carried in its own tick. When the mounts its pick fires burst where they are
+thrown (rockets and LRM racks), the tick **blooms**: it keeps its length and
+thickness and opens away from the dot so that its inner end sits on the widest
+landing disk among them, the way a shooter's crosshair opens, and it never
+opens further than 40 pixels. A vehicle turret's launcher blooms the same way,
+measured from its turret ring. Guns, which have no ground burst, keep the
+resting tick, and so does a grey tick, since a refused trigger lands nothing.
+The spread is the clear-air figure; smoke on a rocket's lane widens it. Bloom is
+built on while the owner chooses between it and a tick that grows longer
+instead (picks question `aim-reticle-spread`).
 A blocked body-to-barrel segment cannot masquerade as an open lane from a
 muzzle beyond the wall. The guide uses current continuous terrain and shared
 edge profiles, so opening or destroying structure changes the next preview.
@@ -522,6 +526,10 @@ has a manual contract (grenade launchers and satchels are autonomous), so a Mari
 carrying only those leaves the right button inert rather than inventing a new free
 action. C and G keep working.
 
+A held rack chains its salvos (`mechs-nouns.md`, `salvo-chain.md`): a click is one salvo, and a
+hold that has fired one keeps firing the next as soon as the last has gone, without the cycle, until
+release or an empty rack. A vehicle turret's launcher does the same under manual fire.
+
 An arcing LRM rack drops its salvo on the thrown point: the aim point, pulled in
 to twice its range if further, plus the same growing scatter disk a rocket's ground
 burst uses (`ballistics-nouns.md`), with no hit roll. It flies over walls as its
@@ -529,8 +537,8 @@ autonomous fire does. A point nearer the chassis centre than eight cells (or the
 weapon's authored minimum, where larger) is **too close**: the rack's trigger is
 refused without spending ammunition, flux or its cycle, while the other mounts
 on the same button still fire. Its HUD row reads TOO CLOSE, the hint on the
-header of the button that fires it reads TOO CLOSE in red, and the scatter ring
-turns grey. Every mount keeps one clock and resource stream under the ordinary
+header of the button that fires it reads TOO CLOSE in red, and the button's
+tick turns grey. Every mount keeps one clock and resource stream under the ordinary
 heavy-weapon pass; manual control neither advances it twice nor applies an
 infantry training multiplier to Mech accuracy. The live cursor owns torso aim
 and each scheduled round of a manual Mech burst. A round still requires the

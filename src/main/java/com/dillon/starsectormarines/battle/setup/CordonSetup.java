@@ -27,13 +27,19 @@ import com.dillon.starsectormarines.battle.cordon.CordonPlan;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
 import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapGenerator;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
+import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
+import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayout;
 import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayoutCheck;
+import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
+import com.dillon.starsectormarines.battle.world.gen.layout.Road;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -191,10 +197,41 @@ public final class CordonSetup {
     private static Generated generate(CordonVariant variant, CordonPlan.Density density, SurfacePalette biome,
                                       long battleSeed, MapPatch patch) {
         PrecinctPlan plan = patch.pinned(CordonPlan.planFor(variant, density, WIDTH, HEIGHT, battleSeed));
+        Generated whole = generate(variant, biome, battleSeed, plan, List.of(), null);
+        if (whole.missing() == null) return whole;
+        // A layout road moves the ground the places grow round, and a map can come out without the Cordon for it
+        // (a base whose shed faces a wall). An optional road is not worth the map: try the map without it.
+        List<String> roads = new ArrayList<>();
+        for (Piece piece : plan.layout().pieces()) if (piece instanceof Road && !piece.required()) roads.add(piece.name());
+        List<List<String>> fallbacks = new ArrayList<>();
+        if (roads.contains(CordonPlan.SECOND_ROAD)) fallbacks.add(List.of(CordonPlan.SECOND_ROAD));
+        if (!roads.isEmpty()) fallbacks.add(roads);
+        for (List<String> drop : fallbacks) {
+            Generated without = generate(variant, biome, battleSeed, plan, drop, whole.missing());
+            if (without.missing() == null) return without;
+        }
+        return whole;
+    }
+
+    /** The map from {@code plan} less the layout pieces named in {@code drop}, reported refused for {@code why}. */
+    private static Generated generate(CordonVariant variant, SurfacePalette biome, long battleSeed, PrecinctPlan plan,
+                                      List<String> drop, String why) {
+        if (!drop.isEmpty()) {
+            List<Piece> kept = new ArrayList<>();
+            for (Piece piece : plan.layout().pieces()) if (!drop.contains(piece.name())) kept.add(piece);
+            plan = plan.withLayout(new MissionLayout(kept));
+        }
         MapResult map = MAP_GEN.generate(WIDTH, HEIGHT, battleSeed, null, country(biome), plan);
+        if (!drop.isEmpty()) {
+            List<Laid> laid = new ArrayList<>(map.layout.pieces());
+            for (String name : drop) {
+                laid.add(Laid.refused(name, Laid.Kind.ROAD, false, "left out: with it, " + why));
+            }
+            map = map.withLayout(new LaidLayout(laid));
+        }
         String missing = missing(variant, map, plan);
         if (missing != null) return new Generated(null, missing);
-        List<int[]> corridor = variant == CordonVariant.ROAD ? CordonCorridor.find(map.grid, map.topology, plan) : null;
+        List<int[]> corridor = variant == CordonVariant.ROAD ? CordonCorridor.find(convoyGrid(map), map.topology, plan) : null;
         return new Generated(new CordonMap(map, plan, battleSeed, corridor, biome), null);
     }
 
@@ -223,13 +260,25 @@ public final class CordonSetup {
                     return "the town's compound has no wall";
                 }
             }
-            List<int[]> corridor = CordonCorridor.find(map.grid, map.topology, plan);
+            List<int[]> corridor = CordonCorridor.find(convoyGrid(map), map.topology, plan);
             if (corridor == null) return "no drivable way from the rear edge to the compound";
-            if (!CordonCorridor.truckReaches(map.grid, corridor)) {
+            if (!CordonCorridor.truckReaches(convoyGrid(map), corridor)) {
                 return "an edge wall cuts a truck's way from the rear edge to the compound";
             }
         }
         return null;
+    }
+
+    /**
+     * The ground a convoy's road is proved on: the map's, with the wreck across the corridor (beat R1) cleared, as
+     * the dozer will clear it. The wreck closes the road to trucks until then, so the corridor runs through it.
+     */
+    static NavigationGrid convoyGrid(MapResult map) {
+        Laid wreck = map.layout.find(CordonPlan.CORRIDOR_WRECK);
+        if (wreck == null || !wreck.isLaid() || wreck.kind() != Laid.Kind.BLOCK) return map.grid;
+        NavigationGrid copy = map.grid.copyRoutingTopology();
+        for (int[] c : wreck.cells()) copy.setWalkable(c[0], c[1], true);
+        return copy;
     }
 
     /** Cells from the base's seed a shed's berth must stand to be the base's. */
@@ -339,6 +388,7 @@ public final class CordonSetup {
                 SquadCommandClaim.mission(CordonCommand.ISSUER, "Cordon company lift"));
         List<CordonRedoubt> redoubts = CordonGarrisons.man(sim, cordon.plan(), GARRISON_RISK,
                 new Random(cordon.battleSeed() ^ GARRISON_SALT));
+        CordonGarrisons.manPickets(sim, map.layout);
         CordonFront.grow(sim, cordon.plan(), cordon.corridor(), CordonFront.DEFAULT_TIERS, cordon.battleSeed());
         if (!sim.configureSwarmFromBores(cordon.battleSeed())) {
             throw new IllegalStateException("Cordon swarm director configuration failed");

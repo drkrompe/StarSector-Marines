@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16a46-5bf8-7e33-a80c-6ac8f70a5ae1",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16a46-5bf8-7e33-a80c-6ac8f70a5ae1\\exec-d1f8a615-7a42-45c2-99f0-aafcf9e7a1a2.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\scuffs\\master.png",
+    "sha256": "e64f63e45e963945ea61ce6de0c84a67277bdf34e64087e803f8658cb993be90",
+    "dimensions": [
+      1448,
+      1086
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\scuffs\\prompt.txt",
+  "promptSha256": "6150a81468c929a15376d788c6654748beb18a8c328b6124c49629f83f4edaf8",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the exact grid, positions, sizes and outlines of the twelve decals\nImage 2: Material/style only; not layout\n\nA sheet of twelve battle-damage decals for overhead (straight top-down) military vehicle sprites: wear marks that\nare laid over a tank's painted armour plate as it takes hits. Painted, slightly gritty realistic game-art style,\nmatching the vehicle reference.\n\nLayout: reference 1 is the exact layout. It is a 4 x 3 grid of equal square cells on a transparent canvas, and each\nflat grey shape is the footprint of one decal. Fill every grey footprint with its decal, keeping its position, size,\noutline and orientation. Do not move, merge, add or remove marks. Keep every cell's empty space fully transparent.\n\nRows, top to bottom (each row is one stage of damage; the four columns are variants of it):\n1. Scrapes and bullet pocks. Scrapes are gouged lines where the paint is scraped off down to bright bare steel,\n   with a thin dark edge and a little torn paint at the ends. Pocks are small bullet strikes: a dark crater centre,\n   a ring of bright bare metal and chipped paint around it.\n2. Scorch. Soft, irregular soot and heat burns: sooty black centre fading out through brown and dark grey, a little\n   blistered paint at the edges, soft feathered alpha at the rim. No flames, no glow.\n3. Gouges and dents. Deep impact damage: torn, peeled-back armour plate with bright jagged metal lips, dark\n   shadowed cavities and a soot halo; the round shape is a deep concave dent with a dark lower lip and a bright upper\n   rim lit from the upper left.\n\nLighting from the upper left, matching the vehicle reference. Colours must work over any paint colour: bare metal is\na pale cool grey, soot near-black, cavities dark; never tint a mark with the tank's paint colour.\n\nOutput: a true transparent background, including every gap between and inside marks; no paint, no armour plate,\nno vehicle, no ground, no cast shadow slab, no grid lines, no border, no text or labels. Each decal must stay inside\nits own cell.\n\nReference 2 is material and style only: a wrecked tank from the same game, for the look of its torn metal, soot and\nscraped paint. Do not draw the tank or copy its layout.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\scuffs\\guide.png",
+      "sha256": "c3b2a5a2ae2ca5875433ad3d44e20a9f0ab03a7532498a488e6979228dbb70a5",
+      "dimensions": [
+        1536,
+        1152
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the exact grid, positions, sizes and outlines of the twelve decals"
+    },
+    {
+      "path": "art-source\\vehicles\\tank\\wreck-master.png",
+      "sha256": "5c7a8ef58442b67a5f7643af2d82a72832c37e5fc5e98da8a8b414c270291dd9",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent decal sheet using the first image’s exact layout and the second image’s material style."
+  ],
+  "usage": {
+    "input_tokens": 45882,
+    "cached_input_tokens": 34816,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 639,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 66.1
+}
