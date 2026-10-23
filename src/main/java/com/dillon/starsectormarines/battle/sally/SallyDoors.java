@@ -604,7 +604,8 @@ public final class SallyDoors {
     /** A body that fights on the ground: not an emplacement, drone or aircraft. */
     static boolean onFoot(BattleSimulation sim, long unit) {
         UnitType type = sim.identity().type(unit);
-        return !type.isStatic() && !type.isDrone() && !type.isBasedAircraft() && sim.identity().airframe(unit) == null;
+        return !type.isStatic() && !type.isDrone() && !type.isBasedAircraft() && sim.identity().airframe(unit) == null
+                && !sim.isRiding(unit);
     }
 
     /** Whether a hostile body on the ground stands within {@link #SAFE_CELLS} of the mouth. */

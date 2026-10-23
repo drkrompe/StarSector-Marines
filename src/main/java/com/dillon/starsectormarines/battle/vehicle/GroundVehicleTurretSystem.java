@@ -442,6 +442,7 @@ public final class GroundVehicleTurretSystem {
         }
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             long candidate = roster.get(i);
+            if (roster.isRiding(candidate)) continue;
             if (mount.hardenedTargetsOnly && !hardened(candidate)) continue;
             int sight = launcherSight(side, candidate, mountX, mountY, mount);
             if (sight == NO_SIGHT) continue;

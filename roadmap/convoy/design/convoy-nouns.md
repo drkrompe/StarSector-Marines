@@ -703,6 +703,17 @@ retains the same existing cross-domain behavior as an autonomous hull.
   component drops its values for good, so a passenger stripped of its combat
   data would come back disarmed — same identity, same squad, no weapon — which
   no test about the squad surviving the ride would notice.
+- **A passenger is somewhere, but not on the ground.** Asked where it is, a
+  passenger answers its vehicle's position: the squad in the APC is where the
+  APC is, so a camera, an order line, a squad's centre or a commander's
+  influence reads it there and nothing that asks the question can fail on it.
+  Asked whether it is standing here, it answers no: a passenger takes no
+  splash (the hull does, and what reaches the people inside is the wreck's to
+  decide), holds and contests no ground, is no one's target, casts no sight and
+  is not drawn. Every pass that asks the second question skips riders by
+  name; reading the position is not a substitute for asking it. A passenger
+  stays registered for sight while aboard and casts again the moment it is set
+  down.
 - A ride ends a squad's objective and leaves its command claim alone. The
   objective is a statement about a place, and a ride across the battlefield
   makes it stale by construction: a squad that kept it would dismount and walk

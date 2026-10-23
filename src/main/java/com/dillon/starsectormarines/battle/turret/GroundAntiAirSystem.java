@@ -396,6 +396,8 @@ public final class GroundAntiAirSystem {
 
     private static void gatherGroundBlast(BattleSimulation sim, Missile missile, long id, List<BlastVictim> victims) {
         if (!sim.bodies().isTargetable(id)) return;
+        // A passenger is behind the hull, which is caught by the body pass.
+        if (sim.isRiding(id)) return;
         var carrier = sim.bodies().carrierOf(id);
         if (carrier != null && carrier.isAirborne(id)) return;
         var spec = missile.weapon.airMissile;

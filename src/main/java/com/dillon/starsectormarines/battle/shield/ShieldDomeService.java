@@ -299,6 +299,7 @@ public final class ShieldDomeService {
         long[] live = roster.denseArray();
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             long u = live[i];
+            if (roster.isRiding(u)) continue;
             UnitType type = roster.identity().type(u);
             if (!type.combatant || type.isStatic() || type.isDrone()) continue;
             Faction faction = roster.identity().faction(u);

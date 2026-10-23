@@ -139,6 +139,7 @@ class ClearZoneTargetSelectionTest {
                         case "getZoneGraph" -> zones;
                         case "world" -> roster.world();
                         case "identity" -> roster.identity();
+                        case "isRiding" -> roster.isRiding((long) args[0]);
                         case "liveUnitCount" -> roster.liveCount();
                         case "liveUnitAt" -> { visits++; yield roster.get((int) args[0]); }
                         default -> throw new AssertionError("Unexpected query: " + method.getName());

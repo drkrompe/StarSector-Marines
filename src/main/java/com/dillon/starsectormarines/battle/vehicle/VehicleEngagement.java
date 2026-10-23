@@ -515,6 +515,7 @@ public final class VehicleEngagement {
         World world = roster.world();
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             long candidate = roster.get(i);
+            if (roster.isRiding(candidate)) continue;
             if (convoy.isVehicle(candidate) || !roster.isAliveById(candidate)) continue;
             if (!own.hostileTo(roster.identity().faction(candidate))) continue;
             float reach = roster.threatRange(candidate);

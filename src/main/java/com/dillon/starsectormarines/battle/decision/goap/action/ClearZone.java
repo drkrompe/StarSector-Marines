@@ -302,6 +302,7 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             if (work != null) work.visits++;
             long other = sim.liveUnitAt(i);
+            if (sim.isRiding(other)) continue;
             if (!selfFaction.hostileTo(sim.identity().faction(other))) continue;
             if (!sim.identity().type(other).combatant) continue;
             float distance = TacticalScoring.cellDistance(selfX, selfY,
@@ -330,6 +331,7 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             if (work != null) work.visits++;
             long other = sim.liveUnitAt(i);
+            if (sim.isRiding(other)) continue;
             if (!selfFaction.hostileTo(sim.identity().faction(other))) continue;
             if (!sim.identity().type(other).combatant) continue;
             if (!inTarget(sim.world().cellX(other), sim.world().cellY(other), sim)) continue;
