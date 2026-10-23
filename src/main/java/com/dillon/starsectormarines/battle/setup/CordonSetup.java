@@ -27,6 +27,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonPlan;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
 import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
@@ -230,7 +231,7 @@ public final class CordonSetup {
         }
         String missing = missing(variant, map, plan);
         if (missing != null) return new Generated(null, missing);
-        List<int[]> corridor = variant == CordonVariant.ROAD ? CordonCorridor.find(map.grid, map.topology, plan) : null;
+        List<int[]> corridor = variant == CordonVariant.ROAD ? CordonCorridor.find(convoyGrid(map), map.topology, plan) : null;
         return new Generated(new CordonMap(map, plan, battleSeed, corridor, biome), null);
     }
 
@@ -259,13 +260,25 @@ public final class CordonSetup {
                     return "the town's compound has no wall";
                 }
             }
-            List<int[]> corridor = CordonCorridor.find(map.grid, map.topology, plan);
+            List<int[]> corridor = CordonCorridor.find(convoyGrid(map), map.topology, plan);
             if (corridor == null) return "no drivable way from the rear edge to the compound";
-            if (!CordonCorridor.truckReaches(map.grid, corridor)) {
+            if (!CordonCorridor.truckReaches(convoyGrid(map), corridor)) {
                 return "an edge wall cuts a truck's way from the rear edge to the compound";
             }
         }
         return null;
+    }
+
+    /**
+     * The ground a convoy's road is proved on: the map's, with the wreck across the corridor (beat R1) cleared, as
+     * the dozer will clear it. The wreck closes the road to trucks until then, so the corridor runs through it.
+     */
+    static NavigationGrid convoyGrid(MapResult map) {
+        Laid wreck = map.layout.find(CordonPlan.CORRIDOR_WRECK);
+        if (wreck == null || !wreck.isLaid() || wreck.kind() != Laid.Kind.BLOCK) return map.grid;
+        NavigationGrid copy = map.grid.copyRoutingTopology();
+        for (int[] c : wreck.cells()) copy.setWalkable(c[0], c[1], true);
+        return copy;
     }
 
     /** Cells from the base's seed a shed's berth must stand to be the base's. */

@@ -124,6 +124,9 @@ public final class BspKeys {
     public static final GenKey<List<Laid>> LAYOUT_ROADS =
             GenKey.of("layoutRoads");
 
+    /** The layout's structures as the structures phase raised them; the works phase reports them with the rest. */
+    public static final GenKey<List<Laid>> LAYOUT_STRUCTURES = GenKey.of("layoutStructures");
+
     /**
      * Where a mission sited its forts as barriers, by kind and in declaration order: the ground reserved for each while
      * the town was still growing, slid off any place the plan programs. Present (possibly empty) once the reservation has

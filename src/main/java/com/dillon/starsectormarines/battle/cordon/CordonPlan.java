@@ -200,6 +200,15 @@ public final class CordonPlan {
     /** The switch line (beat L3), resolved behind the middle redoubt with the most room. */
     public static final String SWITCH = "switch";
     public static final String SWITCH_LINE = "switch-line";
+    /** The beats' structures (farmstead, ammo dump, bell square, granary, observation posts). */
+    public static final String SET_PIECES = "set-pieces";
+    /** The Road's pieces on its corridor (the wreck and the gap's sandbag positions). */
+    public static final String CORRIDOR_PIECES = "corridor-pieces";
+    /**
+     * The wreck across the Road's corridor past the gap (beat R1). The layout holds its ground; laid as a block it
+     * closes the road to trucks until a dozer clears it, which acceptance proves the corridor through.
+     */
+    public static final String CORRIDOR_WRECK = "corridor-wreck";
     /** The eruption site (beat L4), resolved behind the middle of the line. */
     public static final String ERUPTION = "eruption";
     public static final String ERUPTION_SITE = "eruption-site";
@@ -249,7 +258,14 @@ public final class CordonPlan {
         LineStyle fallback = density == Density.URBAN ? LineStyle.STREETS : LineStyle.TRENCH;
         boolean streets = density != Density.RURAL;
         // The eruption site before the works: it holds its ground against the works resolved after it.
+        // The beats' set pieces: structures raised before the map is finished, the Road's corridor pieces with
+        // the works.
+        pieces.add(new Deferred(SET_PIECES, Phase.STRUCTURES, ground -> CordonSetPieces.structures(ground, front[1]),
+                false));
         pieces.add(new Deferred(ERUPTION, Phase.WORKS, ground -> eruptionSite(ground, south), false));
+        if (variant == CordonVariant.ROAD) {
+            pieces.add(new Deferred(CORRIDOR_PIECES, Phase.WORKS, CordonSetPieces::corridorPieces, false));
+        }
         pieces.add(new Deferred(PICKETS, Phase.WORKS, ground -> pickets(ground, front, style, streets), false));
         pieces.add(new Deferred(SWITCH, Phase.WORKS, ground -> switchLine(ground, front, fallback, streets), false));
         return new MissionLayout(pieces);
@@ -310,8 +326,9 @@ public final class CordonPlan {
         int w = ground.width();
         int[] base = ground.claimBounds(BASE_PLACE);
         if (base == null) return List.of();
-        // The ground between the base's front edge and the nearest redoubt's rear edge.
-        int y0 = south ? base[3] + 1 : 0, y1 = south ? ground.height() - 1 : base[1] - 1;
+        // The ground behind the line as deep as the base reaches (the base's own ground is claimed and so ruled
+        // out), up to the nearest redoubt's rear edge: the supply roads cross the strip in front of the base.
+        int y0 = south ? base[1] : 0, y1 = south ? ground.height() - 1 : base[3];
         for (int n = 1; n <= REDOUBTS; n++) {
             int[] r = ground.claimBounds(REDOUBT_PLACE + n);
             if (r == null) continue;
@@ -322,7 +339,7 @@ public final class CordonPlan {
         int[] best = null;
         long bestDistance = Long.MAX_VALUE;
         for (int y = y0; y + ERUPTION_SIDE - 1 <= y1; y += 2) {
-            for (int x = Math.round(w * 0.3f); x + ERUPTION_SIDE - 1 <= Math.round(w * 0.7f); x += 2) {
+            for (int x = Math.round(w * 0.15f); x + ERUPTION_SIDE - 1 <= Math.round(w * 0.85f); x += 2) {
                 long d = (long) (x - cx) * (x - cx) + (long) (y - cy) * (y - cy);
                 if (d >= bestDistance || !open(ground, x, y)) continue;
                 best = new int[]{x, y};

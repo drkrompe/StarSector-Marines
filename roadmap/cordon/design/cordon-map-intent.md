@@ -83,6 +83,20 @@ which beats run.
 | R5 A maw on the road | A second drivable road through the line | Through redoubt 2's gap, rejoining the corridor |
 | R6 The gap falls | Sandbag positions either side of the road in the gap | In the gap |
 
+Built: the farmstead (L1), the ammo dump and supply roads (L2), the switch
+line (L3), the eruption site (L4), the square, its bell a placeholder marker
+(L5), the granary (L6), the second road (R5) and the gap's sandbag positions
+(R6), and an observation post forward of each flank redoubt. The farmstead
+and the posts need open country, so a city's map lacks them; the eruption
+site needs open ground behind the line, which a city does not leave. R1's
+wreck has its ground held but is not laid: laid at generation it closed the
+road to every convoy for the whole battle (`cordon-road` evidence,
+2026-10-23: a convoy stood at it from minute five to the end; one pool map in
+twelve held with it laid, four with its ground only held), and nothing
+clears it until the base fields a dozer. The beat lays
+it when it runs; the corridor is then proved through it, as a dozer will
+clear it. R2 to R4 need no new structure.
+
 ## Order of work
 
 1. The layout machinery, and the Cordon's line, picket courses, supply roads
@@ -96,7 +110,8 @@ which beats run.
    site as a placeholder open site. An optional road that would cost a pooled
    map its Cordon is left out of that map and reported.
 2. The authored ground (the ridge), from the heart's side of the machinery.
-3. The set pieces, one per beat, each checked on the pools.
+3. The set pieces, one per beat, each checked on the pools. Built, but R1's
+   wreck (above) and the dozer.
 4. Then the optional-objective mechanism, shared with the heart, which rolls
    beats against what the layout placed.
 

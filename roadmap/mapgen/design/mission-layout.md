@@ -1,7 +1,7 @@
 # Mission layout
 
-Status: ACTIVE — lines of works, sites and roads are built; structures and
-blocks are not.
+Status: ACTIVE — lines of works, sites, roads, structures and blocks are
+built.
 
 Written: 2026-10-23
 
@@ -44,6 +44,18 @@ optional (reported, and the map stands).
   country (that ground's own streets serve), and only where it joins the
   network: a stretch cut off is left out rather than welded across somebody's
   ground.
+- **Structure.** Something raised at a place the mission chose, by kind: a
+  farmstead (a farmhouse and a barn on a yard), a granary (a long store on a
+  yard), an ammo dump (a sandbag ring round stacked crates), an observation
+  post (a small sandbag ring), a square (open paving with a marker in the
+  middle). Its whole footprint must be open ground nobody built on, or it is
+  refused rather than squeezed; buildings come from their authored plans, so
+  they are buildings like any other. The square's marker stands in for a bell
+  until there is bell art.
+- **Block.** Cells closed or fortified by hand: a barricade (hedgehogs and
+  crates, which fire breaks and a dozer blade pushes), a wreck across a road
+  (closed to vehicles until a dozer clears it; laid as crate stacks until
+  there is wreck art), or sandbag positions facing a direction.
 - **Deferred.** Pieces that can only be stated once the ground exists — a line
   from one place's claimed edge to the next's. A deferred piece resolves at
   its **phase** against a read-only view of the grown ground (claims, roads,
@@ -57,19 +69,24 @@ optional (reported, and the map stands).
   anything grows: no road arm, claimed place, field or farm grows onto it.
 - **As the places grow.** Once the places have claimed their ground, their
   ways out are cut and the country is surveyed, roads are carved.
+- **Structures phase.** Once the places are built and before the map is
+  finished, structures are raised (deferred pieces of this phase resolve
+  first), so the finishing stages treat their buildings as buildings.
 - **Works phase.** Once the places, roads and lanes stand and before the
-  landscape grows round them, deferred pieces resolve and every line and site
-  is laid. The landscape then keeps clear of what was laid, except ground held
+  landscape grows round them, deferred pieces resolve and every line, block
+  and site is laid. The landscape then keeps clear of what was laid, except ground held
   for authored terrain.
 - A map whose plan states no layout runs none of this and is generated exactly
   as before.
 
 ## Laws
 
-- **Placements yield.** A work goes only on open ground that is not road: a
-  line through a town is broken by its buildings and reported **partial**.
-- **Never sealed.** Works never cut the walkable ground apart. Wire, nests and
-  barricades that would are not laid, and the line says so. A line that closes ground
+- **Placements yield.** A work goes only on open ground that is not road
+  (road includes the welds and roads the places' network holds in open
+  country): a line through a town is broken by its buildings and reported
+  **partial**.
+- **Never sealed.** Works never cut the walkable ground apart. Wire, nests,
+  barricades and blocks that would are not laid, and say so. A line that closes ground
   leaves at least one way through.
 - **Reported by name.** Every piece comes back as laid, partial or refused,
   with its cells, its ways through and its nests, on the finished map. A later
@@ -80,8 +97,9 @@ optional (reported, and the map stands).
 
 ## Not yet
 
-Structures (a farmstead, a granary) and authored blocks are further piece
-kinds, with the structures phase they need. A road changes what grows round
+A block that closes a road a mission's vehicles must use is a set piece for
+a beat to lay when it runs, not one to lay at generation: until a beat can
+clear it, the map only holds its ground. A road changes what grows round
 it, so on a vetted map a mission may have to leave an optional road out to
 keep the map (the Cordon does, and reports it refused). A nest is published as a light defence post; a mission that
 does not seat map posts seats its own guns in the nests it is reported (the

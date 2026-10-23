@@ -12,9 +12,9 @@ public record Laid(String name, Kind kind, Status status, String reason, boolean
 
     /**
      * A line of works, an open site, ground held for authored terrain ({@link SitePurpose}), or a road carved into
-     * the network (its {@code gaps} are its two ends).
+     * the network (its {@code gaps} are its two ends), a structure (its two corners, as a site's) or a block.
      */
-    public enum Kind { LINE, SITE, GROUND, ROAD }
+    public enum Kind { LINE, SITE, GROUND, ROAD, STRUCTURE, BLOCK }
 
     public enum Status {
         /** Laid as asked. */

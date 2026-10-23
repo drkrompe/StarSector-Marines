@@ -70,7 +70,12 @@ buildings stand across it, and barricaded street mouths. The garrison seats
 its own light gun (`ALLY`) in every nest of the picket, so the works between
 redoubts are covered from the first tick. Behind the middle of the line, the
 redoubt with the most room has an unmanned **switch line**, a shorter trench
-a garrison falls back to (beat L3). A
+a garrison falls back to (beat L3). The beats' other set pieces stand where the layout found
+room for them (`cordon-map-intent.md`): a farmstead in the near front, an
+ammo dump in the base, a square in the far rear hamlet, a granary on the
+colony's near side, an observation post forward of each flank redoubt and,
+on the Road, sandbag positions either side of the corridor where it crosses
+the line. A
 picket line is broken by gaps the roads pass through, so the line is a set of
 prepared positions, never a wall: routes through always exist, and works that
 would seal the ground are not laid. A picket line is optional: one the town

@@ -35,6 +35,21 @@ public final class MissionLayoutStage implements GenStage {
     static final int SEAL_SLACK = 48;
     private static final String NEST_STRUCTURE = "structure.turret-heavy-mg";
 
+    private final Phase phase;
+
+    /** The works phase: lines, sites and blocks, before the landscape. */
+    public MissionLayoutStage() {
+        this(Phase.WORKS);
+    }
+
+    /**
+     * The stage for one phase: {@link Phase#STRUCTURES} raises the structures before the map is finished,
+     * {@link Phase#WORKS} lays everything else and reports the whole layout.
+     */
+    public MissionLayoutStage(Phase phase) {
+        this.phase = phase;
+    }
+
     @Override
     public void run(GenContext ctx) {
         PrecinctPlan plan = ctx.get(BspKeys.PRECINCTS);
@@ -43,21 +58,22 @@ public final class MissionLayoutStage implements GenStage {
         LayoutGround ground = new LayoutGround(ctx);
         boolean[][] held = layout.keepClear(ctx.width, ctx.height);
         List<Piece> pieces = new ArrayList<>();
-        // Roads were carved as the places grew; they are reported here with the rest.
         List<Laid> out = new ArrayList<>();
-        List<Laid> roads = ctx.get(BspKeys.LAYOUT_ROADS);
-        if (roads != null) out.addAll(roads);
+        if (phase == Phase.WORKS) {
+            // Roads were carved as the places grew and structures raised before the map was finished; they are
+            // reported here with the rest.
+            List<Laid> roads = ctx.get(BspKeys.LAYOUT_ROADS);
+            if (roads != null) out.addAll(roads);
+            List<Laid> raised = ctx.get(BspKeys.LAYOUT_STRUCTURES);
+            if (raised != null) out.addAll(raised);
+        }
         for (Piece piece : layout.pieces()) {
             if (piece instanceof Road) continue;
             if (piece instanceof Deferred deferred) {
-                if (deferred.phase() != Phase.WORKS) {
-                    out.add(Laid.refused(deferred.name(), Laid.Kind.SITE, deferred.required(),
-                            "phase " + deferred.phase() + " is not run yet"));
-                    continue;
-                }
+                if (deferred.phase() != phase) continue;
                 List<Piece> resolved = deferred.resolve().apply(ground);
                 if (resolved != null) pieces.addAll(resolved);
-            } else {
+            } else if ((piece instanceof Structure) == (phase == Phase.STRUCTURES)) {
                 pieces.add(piece);
             }
         }
@@ -70,17 +86,32 @@ public final class MissionLayoutStage implements GenStage {
             }
         }
         Set<String> names = new HashSet<>();
+        for (Laid laid : out) names.add(laid.name());
         boolean closed = false;
         for (Piece piece : pieces) {
             if (!names.add(piece.name())) {
                 out.add(Laid.refused(piece.name(), Laid.Kind.SITE, false, "named twice"));
                 continue;
             }
-            if (piece instanceof Line line) {
+            if (piece instanceof Structure structure) {
+                if (phase != Phase.STRUCTURES) {
+                    out.add(Laid.refused(structure.name(), Laid.Kind.STRUCTURE, structure.required(),
+                            "a structure is raised in the structures phase"));
+                    continue;
+                }
+                out.add(LayoutStructures.raise(ctx, ground, structure, held));
+            } else if (phase == Phase.STRUCTURES) {
+                out.add(Laid.refused(piece.name(), Laid.Kind.SITE, piece.required(),
+                        "only structures are raised in the structures phase"));
+            } else if (piece instanceof Line line) {
                 Laid laid = lay(ctx, ground, line, held);
                 out.add(laid);
                 for (int[] c : laid.cells()) closed |= !ctx.grid.isWalkable(c[0], c[1]);
                 closed |= !laid.nests().isEmpty();
+            } else if (piece instanceof Block block) {
+                Laid laid = LayoutBlocks.lay(ctx, block, held);
+                out.add(laid);
+                for (int[] c : laid.cells()) closed |= !ctx.grid.isWalkable(c[0], c[1]);
             } else if (piece instanceof Site site) {
                 boolean inside = site.x0() >= 0 && site.y0() >= 0 && site.x1() < ctx.width && site.y1() < ctx.height;
                 Laid.Kind kind = site.purpose() == SitePurpose.GROUND ? Laid.Kind.GROUND : Laid.Kind.SITE;
@@ -92,7 +123,11 @@ public final class MissionLayoutStage implements GenStage {
                 out.add(Laid.refused(piece.name(), Laid.Kind.SITE, piece.required(), "a deferred piece resolved to another"));
             }
         }
-        // Wire and nests close cells after the regions were published: "non-walkable => region -1" must hold.
+        if (phase == Phase.STRUCTURES) {
+            ctx.put(BspKeys.LAYOUT_STRUCTURES, out);
+            return;
+        }
+        // Wire, nests and blocks close cells after the regions were published: "non-walkable => region -1" must hold.
         if (closed && ctx.get(BspKeys.TACTICAL_REGIONS) != null) {
             ctx.put(BspKeys.TACTICAL_REGIONS, TacticalRegionMap.build(ctx.grid, ctx.topology, ctx.get(BspKeys.AXIS)));
         }
@@ -177,9 +212,16 @@ public final class MissionLayoutStage implements GenStage {
             laidWorks = works.size();
             for (int[] c : lip) if (PreparedGround.sandbag(ctx, c[0], c[1], front, null)) laidCells.add(c);
         } else {
-            for (int[] c : works) if (PreparedGround.sandbag(ctx, c[0], c[1], front, null)) laidCells.add(c);
+            // Bags stand on turned earth, so a street line reads against lawns and paving alike.
+            for (int[] c : works) {
+                PreparedGround.workedGround(ctx, c[0], c[1]);
+                if (PreparedGround.sandbag(ctx, c[0], c[1], front, null)) laidCells.add(c);
+            }
             laidWorks = laidCells.size();
-            for (int[] c : fronts) if (PreparedGround.sandbag(ctx, c[0], c[1], front, null)) laidCells.add(c);
+            for (int[] c : fronts) {
+                PreparedGround.workedGround(ctx, c[0], c[1]);
+                if (PreparedGround.sandbag(ctx, c[0], c[1], front, null)) laidCells.add(c);
+            }
         }
         boolean horizontal = front[1] != 0;
         for (int[] c : closing) if (PreparedGround.fence(ctx, c[0], c[1], horizontal)) laidCells.add(c);
@@ -232,16 +274,16 @@ public final class MissionLayoutStage implements GenStage {
 
     /**
      * The turned earth round a line, which is what reads it from a distance: for a dug line, behind the trench and in
-     * front of the parapet up to the wire; for a street line, a step behind its bags.
+     * front of the parapet up to the wire; for a street line, two steps behind its bags.
      */
     private static void workGround(GenContext ctx, LayoutGround ground, boolean[][] held, Line line,
                                    List<int[]> works, List<int[]> nests, List<int[]> laid) {
         int[] front = line.frontward();
         Set<Long> worked = keys(laid);
         worked.addAll(keys(nests));
-        // A street line has no spoil to throw: only the ground its bags stand on and a step behind them is worked.
+        // A street line has no spoil to throw: only the ground its bags stand on and two steps behind them is worked.
         boolean dug = line.style().dug();
-        int back = dug ? line.depth() + 1 : 1;
+        int back = dug ? line.depth() + 1 : 2;
         int ahead = line.style() == LineStyle.TRENCH_WIRE ? LineCourse.PARAPET_WIRE_OFFSET - 1 : dug ? 2 : 0;
         List<int[]> course = new ArrayList<>(works);
         course.addAll(nests);
