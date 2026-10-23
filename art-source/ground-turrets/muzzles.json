@@ -1,0 +1,55 @@
+{
+  "autogun": {
+    "visualCells": 1.25,
+    "muzzles": [
+      [
+        -0.055,
+        0.57
+      ],
+      [
+        0.07,
+        0.57
+      ]
+    ]
+  },
+  "cannon": {
+    "visualCells": 1.25,
+    "muzzles": [
+      [
+        0.0,
+        0.586
+      ]
+    ]
+  },
+  "grenade": {
+    "visualCells": 1.25,
+    "muzzles": [
+      [
+        -0.082,
+        0.438
+      ],
+      [
+        0.082,
+        0.445
+      ]
+    ]
+  },
+  "pd": {
+    "visualCells": 1.25,
+    "muzzles": [
+      [
+        0.0,
+        0.367
+      ]
+    ]
+  },
+  "heavy": {
+    "visualCells": 3.0,
+    "muzzles": [
+      [
+        0.0,
+        1.414
+      ]
+    ]
+  }
+}

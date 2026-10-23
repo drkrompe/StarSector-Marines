@@ -26,14 +26,17 @@ import java.util.List;
  * autogun or light-cannon head) and hardpoints (3x3 raised plinth carrying a heavy cannon, and one carrying the
  * vanilla Locust) stood on real generated ground through {@link LookReview}, with a marine squad beside them for scale.
  *
- * <p>The candidate art is not shipped: {@code art-source/ground-turrets/export.py} cuts it from the retained raws into
- * {@code build/ground-turret-art/<direction>/}, and this suite registers throwaway mounts and structures that point
- * there. Directions whose art has not been exported are skipped. {@code -Dsnapshot.groundTurrets.directions=} and
- * {@code -Dsnapshot.groundTurrets.biomes=} narrow the run.
+ * <p>The default direction, {@code shipped}, stands the catalog's own structures ({@code structure.hardpoint-cannon},
+ * {@code structure.hardpoint-locust}, {@code structure.point-autogun}, {@code -cannon}, {@code -grenade},
+ * {@code -pd}). The phase-1 candidate directions ({@code brutalist}, {@code colony}, {@code earthwork}) are not shipped:
+ * {@code art-source/ground-turrets/export.py} cuts them into {@code build/ground-turret-art/<direction>/}, and this suite
+ * registers throwaway mounts and structures that point there (a candidate has no grenade or point-defence head, so
+ * those spots carry its autogun and cannon). Candidates whose art has not been exported are skipped.
+ * {@code -Dsnapshot.groundTurrets.directions=} and {@code -Dsnapshot.groundTurrets.biomes=} narrow the run.
  */
 public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
 
-    private static final List<String> DIRECTIONS = List.of("brutalist", "colony", "earthwork");
+    private static final String SHIPPED = "shipped";
     private static final String ART = "../build/ground-turret-art/";
 
     @Override public String id() { return "ground-turret-look"; }
@@ -46,8 +49,9 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         SceneRegistries.installArmoury(context.projectRoot());
         List<String> directions = new ArrayList<>();
-        for (String d : System.getProperty("snapshot.groundTurrets.directions", String.join(",", DIRECTIONS)).split(",")) {
-            if (Files.isRegularFile(context.modRoot().resolve(ART + d + "/plinth.png"))) directions.add(d.trim());
+        for (String d : System.getProperty("snapshot.groundTurrets.directions", SHIPPED).split(",")) {
+            if (d.trim().equals(SHIPPED)) directions.add(SHIPPED);
+            else if (Files.isRegularFile(context.modRoot().resolve(ART + d + "/plinth.png"))) directions.add(d.trim());
             else System.out.println("    [ground-turret-look] no exported art for " + d + ", skipped");
         }
         registerCandidates(directions);
@@ -67,6 +71,7 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
         JSONArray mounts = new JSONArray();
         JSONArray structures = new JSONArray();
         for (String d : directions) {
+            if (d.equals(SHIPPED)) continue;
             if (registry.getStructure(structureId(d, "autogun")) != null) continue;
             mounts.put(mount(d, "autogun", "weapon.turret-heavy-mg", 1.25f, ART + d + "/autogun.png"));
             mounts.put(mount(d, "cannon", "weapon.turret-hephaestus", 1.25f, ART + d + "/cannon.png"));
@@ -84,6 +89,13 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
     }
 
     private static String structureId(String direction, String role) {
+        if (direction.equals(SHIPPED)) {
+            if (role.equals("heavy")) return "structure.hardpoint-cannon";
+            if (role.equals("locust")) return "structure.hardpoint-locust";
+            return "structure.point-" + role;
+        }
+        if (role.equals("grenade")) role = "autogun";
+        if (role.equals("pd")) role = "cannon";
         return "structure.gt-" + direction + "-" + role;
     }
 
@@ -107,8 +119,8 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
     }
 
     /**
-     * A 40x22 window: a heavy-cannon hardpoint and a Locust hardpoint side by side, four point emplacements (two
-     * autoguns, two light cannons) round them, and a six-marine squad standing between the hardpoints. Only tick zero
+     * A 40x22 window: a heavy-cannon hardpoint and a Locust hardpoint side by side, four point emplacements (autogun,
+     * light cannon, grenade launcher, point-defence pod) round them, and a six-marine squad standing between the hardpoints. Only tick zero
      * is drawn, so the heads hold the bearings set here and no launch smoke covers them.
      */
     private static LookReview.Shot shot(String direction, String biome, SurfacePalette surface) {
@@ -125,8 +137,8 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
             int i = 0;
             Object[][] layout = {
                     {"heavy", 12f, 11f, 200f}, {"locust", 28f, 11f, 150f},
-                    {"autogun", 18f, 4f, 330f}, {"cannon", 22f, 18f, 120f},
-                    {"cannon", 5f, 6f, 290f}, {"autogun", 35f, 16f, 60f}};
+                    {"autogun", 17f, 4f, 330f}, {"cannon", 23f, 18f, 120f},
+                    {"grenade", 8f, 5f, 290f}, {"pd", 31f, 17f, 60f}};
             for (Object[] spot : layout) {
                 float[] at = placement.openNear((Float) spot[1], (Float) spot[2]);
                 int x = (int) at[0];

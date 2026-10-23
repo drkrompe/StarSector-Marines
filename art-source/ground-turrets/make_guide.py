@@ -246,6 +246,55 @@ def hardpoint_sheet(direction):
     return c
 
 
+def round_collar(c, cx, cy, ppc):
+    """Phase 2 second collar: a round poured ring with a lit north-west bevel and four lifting eyes."""
+    c.ellipse(cx, cy, 0.47 * ppc, g(110))
+    c.ellipse(cx - 0.02 * ppc, cy - 0.02 * ppc, 0.445 * ppc, g(170))
+    c.ellipse(cx, cy, 0.40 * ppc, g(140))
+    c.ellipse(cx, cy, 0.33 * ppc, g(95))
+    c.ellipse(cx, cy, 0.30 * ppc, g(45))
+    for i in range(4):
+        a = math.radians(90 * i)
+        c.rect(cx + 0.365 * ppc * math.cos(a) - 0.03 * ppc, cy + 0.365 * ppc * math.sin(a) - 0.03 * ppc,
+               cx + 0.365 * ppc * math.cos(a) + 0.03 * ppc, cy + 0.365 * ppc * math.sin(a) + 0.03 * ppc, g(80))
+
+
+def grenade_head(c, cx, cy, ppc):
+    """Twin short fat launcher tubes with flared mouths on a boxy body, drum magazine on the right. Ring 0.25."""
+    c.ellipse(cx, cy, 0.25 * ppc, g(85))
+    for sx in (-0.08, 0.08):
+        c.rect(cx + (sx - 0.045) * ppc, cy - 0.44 * ppc, cx + (sx + 0.045) * ppc, cy - 0.12 * ppc, g(95))
+        c.rect(cx + (sx - 0.058) * ppc, cy - 0.47 * ppc, cx + (sx + 0.058) * ppc, cy - 0.40 * ppc, g(70))
+        c.ellipse(cx + sx * ppc, cy - 0.435 * ppc, 0.03 * ppc, g(30))
+    c.rect(cx - 0.22 * ppc, cy - 0.18 * ppc, cx + 0.20 * ppc, cy + 0.24 * ppc, g(150), radius=0.04 * ppc)
+    c.rect(cx - 0.22 * ppc, cy - 0.18 * ppc, cx + 0.20 * ppc, cy - 0.10 * ppc, g(190))
+    c.rect(cx - 0.22 * ppc, cy - 0.10 * ppc, cx - 0.16 * ppc, cy + 0.24 * ppc, g(170))
+    c.ellipse(cx + 0.27 * ppc, cy + 0.04 * ppc, 0.10 * ppc, g(120))  # drum magazine
+    c.ellipse(cx + 0.27 * ppc, cy + 0.04 * ppc, 0.04 * ppc, g(90))
+    c.rect(cx - 0.10 * ppc, cy + 0.02 * ppc, cx + 0.08 * ppc, cy + 0.18 * ppc, g(130), radius=0.02 * ppc)
+
+
+def pd_head(c, cx, cy, ppc):
+    """Point-defence pod: a small round dome with a sensor lens and a short cluster of three thin tubes. Ring 0.21."""
+    c.ellipse(cx, cy, 0.21 * ppc, g(85))
+    for sx in (-0.035, 0.0, 0.035):
+        c.rect(cx + (sx - 0.012) * ppc, cy - 0.40 * ppc, cx + (sx + 0.012) * ppc, cy - 0.12 * ppc, g(75))
+    c.rect(cx - 0.06 * ppc, cy - 0.30 * ppc, cx + 0.06 * ppc, cy - 0.24 * ppc, g(110))  # barrel clamp
+    c.ellipse(cx, cy + 0.02 * ppc, 0.19 * ppc, g(150))
+    c.ellipse(cx - 0.04 * ppc, cy - 0.02 * ppc, 0.13 * ppc, g(185))  # lit dome crown
+    c.ellipse(cx + 0.10 * ppc, cy + 0.06 * ppc, 0.05 * ppc, g(40))  # sensor lens
+    c.ellipse(cx + 0.09 * ppc, cy + 0.05 * ppc, 0.02 * ppc, g(200))
+
+
+def extra_points_sheet():
+    c = Canvas()
+    ppc = 400
+    round_collar(c, 18 + 250, 512, ppc)
+    grenade_head(c, 18 + 750, 512, ppc)
+    pd_head(c, 18 + 1250, 512, ppc)
+    return c
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     for direction in DIRECTIONS:
@@ -256,6 +305,8 @@ def main():
     collar_only = Canvas()
     collar(collar_only, 268, 512, 400, "earthwork")
     collar_only.save(OUT / "earthwork-collar-guide.png")
+    # Phase 2 (brutalist): the second collar and the grenade-launcher and point-defence heads, same frames as points.
+    extra_points_sheet().save(OUT / "brutalist-points2-guide.png")
     print("wrote guides")
 
 

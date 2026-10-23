@@ -45,7 +45,7 @@ def contact_shadow(size, radius_frac, strength=110):
     return layer
 
 
-def fitted(raw, guide, box):
+def fitted(raw, guide, box, uniform=False):
     """The raw's object in this frame, moved and scaled so its opaque extent matches the guide's (per axis).
 
     Generations do not hold absolute scale for small pieces on a mostly empty canvas (the brutalist collar came back
@@ -55,6 +55,14 @@ def fitted(raw, guide, box):
     rb = r.getchannel("A").point(lambda v: 255 if v > 32 else 0).getbbox()
     out = Image.new("RGBA", r.size, (0, 0, 0, 0))
     if gb is None or rb is None:
+        return out
+    if uniform:
+        # One scale, from the width; centred across and standing on the guide's rear edge, so a head whose tubes came
+        # back shorter than drawn keeps its proportions and its turret ring stays on the pivot.
+        k = (gb[2] - gb[0]) / (rb[2] - rb[0])
+        w, h = gb[2] - gb[0], max(1, round((rb[3] - rb[1]) * k))
+        piece = r.crop(rb).resize((w, h), Image.LANCZOS)
+        out.alpha_composite(piece, (gb[0], gb[3] - h))
         return out
     piece = r.crop(rb).resize((gb[2] - gb[0], gb[3] - gb[1]), Image.LANCZOS)
     out.alpha_composite(piece, (gb[0], gb[1]))
