@@ -236,9 +236,8 @@ public final class HeartObjectives {
                     if (bore != null) {
                         float dx = bore.x() - middle[0], dy = bore.y() - middle[1];
                         float d = (float) Math.max(1.0, Math.sqrt(dx * dx + dy * dy)), r = Math.min(d, PACK_STANDOFF);
-                        if (raisePack(c.sim(), middle[0] + dx / d * r, middle[1] + dy / d * r)) {
-                            c.publish(tick, "battery_threatened");
-                        }
+                        c.publish(tick, raisePack(c.sim(), middle[0] + dx / d * r, middle[1] + dy / d * r)
+                                ? "battery_threatened" : "harriers_grounded");
                     }
                 }
                 for (long gun : guns) if (!standing(c.sim(), gun)) return Status.FAILED;
@@ -330,10 +329,15 @@ public final class HeartObjectives {
                         sprouted = true;
                         if (!standing(sim, colony)) continue;
                         standing = true;
-                        if (packs < SPORE_PACKS && tick >= nextPack && preyNear(sim, colony)
-                                && raisePack(sim, sim.world().x(colony), sim.world().y(colony))) {
-                            packs++;
-                            nextPack = tick + SPORE_PACK_SECONDS * TICKS_PER_SECOND;
+                        if (packs < SPORE_PACKS && tick >= nextPack && preyNear(sim, colony)) {
+                            if (raisePack(sim, sim.world().x(colony), sim.world().y(colony))) {
+                                packs++;
+                                nextPack = tick + SPORE_PACK_SECONDS * TICKS_PER_SECOND;
+                                c.publish(tick, "harrier_pack_" + packs);
+                            } else {
+                                // The colony would launch, but nothing on the company's side can answer a flier.
+                                c.publish(tick, "harriers_grounded");
+                            }
                         }
                     }
                 }
