@@ -254,6 +254,11 @@ public final class ShipViewScreen implements Screen {
     }
 
     @Override
+    public boolean drawsCompanyDeck() {
+        return true;
+    }
+
+    @Override
     public void detach() {
         if (document != null) document.deactivateInput();
         // A screen that stops receiving input never sees the key-up, and a

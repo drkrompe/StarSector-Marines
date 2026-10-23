@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.appearance.MechLivery;
 import com.dillon.starsectormarines.battle.world.gen.ship.TestHulls;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.SettingsAPI;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -35,8 +37,8 @@ class CompanyDeckSpritesTest {
             @Override public void ensureTileSheet() { }
             @Override public void ensureRoadSheet() { }
             @Override public void ensureDoodadSheet() { }
-            @Override public void ensureLayeredUnitSprites() { }
-            @Override public void ensureLayeredMechSprites() { }
+            @Override public void ensureInfantryShared() { }
+            @Override public void ensureLayeredMechSprites(Set<MechLivery> liveries) { }
             @Override public void ensureMarineSecondarySprites() { }
         };
         try {
