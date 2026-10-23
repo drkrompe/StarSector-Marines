@@ -95,8 +95,14 @@ Check it yourself before the owner sees it, and write the result down shot by sh
   bursts only while on target, in range and with a clear line, and never at empty space.
   Bursts may walk and miss around a ship (owner, 2026-10-23: "tasteful missing of burst fire
   weapons around a ship is good"); a hit lands where the round's line meets the hull.
-- **Rounds.** Ballistic rounds and bolts fly straight in the world; only seekers home.
-- **No orbs.** No round, bright disc or sphere anywhere, and no effect lingers past its life.
+- **Rounds.** Projectiles fly in world space, independent of the ship that fired them: once
+  out of the muzzle they neither turn nor move with her, and trails stay where they were laid.
+  Ballistic rounds and bolts fly straight; only seekers home.
+- **No orbs.** No round, bright disc or sphere anywhere, projectiles included: no near-isotropic
+  emissive head, glow or light larger than a few pixels. No effect lingers past its life.
+- **Nothing pops in or out.** Nothing appears or vanishes in frame: every craft enters and
+  exits by moving, a jump is a visible dash, and a shield grows on over its raise time
+  (owner, 2026-10-23, S6c's Wolf).
 - **Drives.** Every moving craft shows its drive (the `thrust_shots` guard).
 - **Solidity.** Nothing passes through a hull: rounds, debris, flares, other ships.
 - **Continuity.** No pops: turrets, ships, effects and cameras move smoothly frame to frame.

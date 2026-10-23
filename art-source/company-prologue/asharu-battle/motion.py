@@ -214,6 +214,9 @@ def _phase_at(phases, t, blend):
     return cur
 
 
+JUMP_S = .4
+
+
 def _hit_offsets(hits, jumps, tt):
     """Summed effect of hits and jumps at tt: battle-frame shove (m), body-frame turn (roll, pitch,
     yaw deg) and body-frame shove (m, fore/port/up). A hit with kick=True is transient: it peaks at
@@ -231,9 +234,13 @@ def _hit_offsets(hits, jumps, tt):
             ang[n] += h.get('spin', (0, 0, 0))[n] * k
             bdp[n] += h.get('bpush', (0, 0, 0))[n] * k
     for tj, off in jumps:
-        if tt >= tj:
+        # A Phase Skimmer jump is a dash, not a teleport (owner, 2026-10-23, S6c: a Wolf "pop in on
+        # the bottom of the screen, like it was culled"): she crosses the offset in JUMP_S, eased,
+        # so she streaks into frame rather than appearing in it.
+        if tt > tj:
+            k = _ease(min(1.0, (tt - tj) / JUMP_S))
             for n in range(3):
-                dp[n] += off[n]
+                dp[n] += off[n] * k
     return dp, ang, bdp
 
 

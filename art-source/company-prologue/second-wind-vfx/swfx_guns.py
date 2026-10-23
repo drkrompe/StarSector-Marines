@@ -1581,8 +1581,10 @@ def world_rounds(objs, delta_at):
     the ship stood when it fired; delta_at(frame) is the matrix from that space to the copy space
     on `frame`. A keyed mover gets location and rotation keys through it on each of its keyed
     frames; a static object (one bolt strike, shown on one frame) is moved by its first shown
-    frame's delta. Parented objects (flash, cloud, puff, brass) ride the turret and are not passed."""
+    frame's delta. Parented objects (flash, cloud, puff, brass) ride the turret and are not passed.
+    Each object passed is tagged 'world_space' so a later sweep (Asharu's SceneFx.to_world) skips it."""
     for ob in objs:
+        ob['world_space'] = True
         fcs = [swfx_core.find_fcurve(ob, 'location', i) for i in range(3)]
         if all(fc is not None and len(fc.keyframe_points) for fc in fcs):
             frames = [kp.co.x for kp in fcs[0].keyframe_points]

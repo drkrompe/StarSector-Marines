@@ -2818,8 +2818,11 @@ def blender_main(cfg):
                         done = sfx_.flares(fx[1])
                     if done:
                         kit_drew.add(i)
-                for row in sfx_.rows:
-                    print(f'ASHARU kit {kf} {row}', flush=True)
+                try:
+                    sfx_.projectile_check()
+                finally:
+                    for row in sfx_.rows:
+                        print(f'ASHARU kit {kf} {row}', flush=True)
                 ship_fx.refresh(scene)
                 bpy.context.view_layer.update()
             if not step:

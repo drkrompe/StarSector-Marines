@@ -87,9 +87,10 @@ could not show). The animatic is the finals' own pipeline cut down: the same lay
 composite, quarter size, 12 fps, at most 16 samples, one MP4 per shot plus the sequence joined.
 With it goes a self-QA writeup checked against the list in
 [motion previews](references/motion-preview.md#lit-animatic): turrets slew, elevate and fire
-only at targets; rounds fly straight and only seekers home; no orbs or discs, nothing lingering;
-every moving craft shows its drive; nothing passes through a hull; no pops; every effect in the
-right layer with correct occlusion. Finals start only after acceptance, at that exact commit.
+only at targets; projectiles fly in world space, straight, and only seekers home; no orbs or
+discs, projectiles included, and nothing lingering; nothing appears or vanishes in frame; every
+moving craft shows its drive; nothing passes through a hull; no pops; every effect in the right
+layer with correct occlusion. Finals start only after acceptance, at that exact commit.
 
 ## Plan render layers before the first final
 
