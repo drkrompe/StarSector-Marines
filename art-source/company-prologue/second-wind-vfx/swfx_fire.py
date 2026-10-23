@@ -235,7 +235,95 @@ def _flicker_light(ctx, name, coll, anchor, metre_watts, seed, colour=(1.0, .5, 
     return light
 
 
+def _stream_axes(anchor, sweep=.9):
+    """(S, E) unit vectors in the anchor's frame (+Z out of the hull): S the way a breach fire
+    streams, out of the hole and swept aft (the hull's -X) as the gas leaving her is left behind
+    her; E the breach edge it burns along, in the hull plane across the stream. A custom prop
+    'stream' (x, y, z in the hull's frame) overrides the sweep."""
+    from mathutils import Vector as V
+    R = anchor.matrix_world.to_3x3().normalized()
+    want = V(anchor['stream']) if 'stream' in anchor else V((-1.0, 0.0, 0.0))
+    t = R.transposed() @ want
+    t.z = 0.0
+    if t.length < 1e-6:
+        t = V((1.0, 0.0, 0.0))
+    S = (V((0.0, 0.0, 1.0)) + t.normalized() * (sweep if 'stream' not in anchor else 1.0)).normalized()
+    E = V((0.0, 0.0, 1.0)).cross(S).normalized()
+    return S, E
+
+
+def _stream_fire_material(ctx, name, seed, radius, length, edge):
+    """A breach flame streaming along its container's +X from the hull at x=0: tongues licking out
+    of an edge `edge` long (its container's Y) and thinning as they go `length` downstream, hottest
+    at the root (owner, 2026-10-23: no orbs or blobs; damage fire follows the burn, flame tongues
+    along the breach edge streaming with the flow). No distance from a point anywhere in it: the
+    body is the distance from the edge line, so it cannot read as a ball."""
+    m, nodes, links = node_material(name)
+    g = G(m.node_tree)
+    co = g.node('ShaderNodeTexCoord').outputs['Object']
+    t = value_node(ctx, nodes, 't', f'frame/{FPS}')
+    amount = value_node(ctx, nodes, 'amount', f'fir_fire*{_ramp_expr()}', ('fir_fire', 'fir_exp_frame', 'fir_ignite'))
+    # the flow: features carried downstream at about a flame length a second
+    flow = g.v('SUBTRACT', co, g.comb(g.m('MULTIPLY', t, length * 1.1), 0.0, 0.0))
+    warp = g.node('ShaderNodeTexNoise', noise_dimensions='4D')
+    g._in(warp.inputs['Vector'], g.v('MULTIPLY', flow, (.45, 1.0, 1.0)))
+    g._in(warp.inputs['W'], g.m('MULTIPLY_ADD', t, 1.4, seed * 1.3))
+    g._in(warp.inputs['Scale'], 1.2 / radius)
+    warp.inputs['Detail'].default_value = 3.0
+    warp.inputs['Roughness'].default_value = .6
+    off = g.v('MULTIPLY', g.v('SUBTRACT', warp.outputs['Color'], (.5, .5, .5)), (radius * .5, radius * 1.1, radius * 1.1))
+    p = g.v('ADD', co, off)
+    x, y, z = g.sep(p)
+    u = g.m('DIVIDE', x, length)                                    # 0 at the hull, 1 at the tips
+    ey = g.m('MAXIMUM', g.m('SUBTRACT', g.m('ABSOLUTE', y), edge * .5), 0.0)  # off the end of the edge
+    dp = g.m('SQRT', g.m('ADD', g.m('MULTIPLY', ey, ey), g.m('MULTIPLY', z, z)))
+    width = g.m('MULTIPLY_ADD', g.mr(u, 0.0, 1.0), -radius * .42, radius * .5)
+    body = g.m('SUBTRACT', 1.0, g.mr(g.m('DIVIDE', dp, g.m('MAXIMUM', width, radius * .04)), .15, 1.0))
+    along = g.m('MULTIPLY', g.mr(x, -radius * .15, radius * .1), g.m('SUBTRACT', 1.0, g.mr(u, .25, 1.0, smooth=True)))
+    # tongues: noise stretched along the flow (four times longer than wide), so the edge breaks
+    # into licks pulled downstream, not into round puffs
+    n = g.noise(g.v('MULTIPLY', flow, (.25, 1.0, 1.0)), g.m('MULTIPLY_ADD', t, 2.6, seed * 3.1), 2.4 / radius,
+                detail=4.0, rough=.62, distortion=.5)
+    n2 = g.noise(g.v('MULTIPLY', flow, (.4, 1.0, 1.0)), g.m('MULTIPLY_ADD', t, 4.1, seed), 6.0 / radius, detail=2.0)
+    licks = g.mr(g.m('MULTIPLY_ADD', n, 1.0, g.m('MULTIPLY', n2, .35)), g.m('MULTIPLY_ADD', u, .22, .5), .8)
+    shape = g.m('MULTIPLY', g.m('MULTIPLY', body, along), licks)
+    dens = g.m('MULTIPLY', g.m('MULTIPLY', shape, 2.5 / units(1.0)), amount)
+    temp = g.m('MULTIPLY_ADD', g.m('MULTIPLY', shape, g.m('MULTIPLY_ADD', u, -.6, 1.0)), 1700.0, 1000.0)
+    vol = volume_output(g, dens, (0.05, 0.03, 0.02, 1), (0.02, 0.02, 0.02, 1), .1,
+                        emission=g.m('MULTIPLY', g.m('MULTIPLY', shape, 24.0 / units(1.0)), amount))
+    _link_emission_color(g, vol, _blackbody(g, temp))
+    return m
+
+
+def _stream_smoke_material(ctx, name, seed, radius, length):
+    """The fire's smoke: a plume along +X from the flame, widening and thinning downstream."""
+    m, nodes, links = node_material(name)
+    g = G(m.node_tree)
+    co = g.node('ShaderNodeTexCoord').outputs['Object']
+    t = value_node(ctx, nodes, 't', f'frame/{FPS}')
+    amount = value_node(ctx, nodes, 'amount', f'fir_smoke*fir_fire*{_ramp_expr()}',
+                        ('fir_smoke', 'fir_fire', 'fir_exp_frame', 'fir_ignite'))
+    x, y, z = g.sep(co)
+    u = g.m('DIVIDE', x, length)
+    dp = g.m('SQRT', g.m('ADD', g.m('MULTIPLY', y, y), g.m('MULTIPLY', z, z)))
+    width = g.m('MULTIPLY_ADD', g.mr(u, 0.0, 1.0), radius * 1.4, radius * .5)
+    body = g.m('SUBTRACT', 1.0, g.mr(g.m('DIVIDE', dp, width), .2, 1.0))
+    along = g.m('MULTIPLY', g.mr(x, 0.0, radius * .6), g.m('SUBTRACT', 1.0, g.mr(u, .3, 1.0, smooth=True)))
+    flow = g.v('SUBTRACT', co, g.comb(g.m('MULTIPLY', t, length * .35), 0.0, 0.0))
+    n = g.noise(g.v('MULTIPLY', flow, (.5, 1.0, 1.0)), g.m('MULTIPLY_ADD', t, .25, seed * 1.7), 1.6 / radius,
+                detail=5.0, rough=.62, distortion=.3)
+    shape = g.m('MULTIPLY', g.m('MULTIPLY', body, along), g.mr(n, .38, .78))
+    dens = g.m('MULTIPLY', g.m('MULTIPLY', shape, .35 / units(1.0)), amount)
+    volume_output(g, dens, (0.06, 0.055, 0.05, 1), (0.6, 0.6, 0.62, 1), .3)
+    return m
+
+
 def build_fire(ctx, coll, anchor):
+    """A breach fire on anchor: its flame, smoke and flickering light. The anchor's prop 'flame':
+    'stream' builds the flame as tongues streaming off the breach edge (_stream_fire_material);
+    anything else the round churning volume of the accepted Phaeton wreck."""
+    if anchor.get('flame') == 'stream':
+        return _build_stream_fire(ctx, coll, anchor)
     seed = _seed(anchor)
     r = units(float(anchor.get('size_m', FIRE_M)))
     fire = _container(f'{PREFIX} flame | {anchor.name}', coll, anchor, r*1.7,
@@ -244,6 +332,28 @@ def build_fire(ctx, coll, anchor):
                        _smoke_material(ctx, f'{PREFIX} smoke {seed}', seed, r*3.0))
     smoke.location = (0, 0, r*.8)
     light = _flicker_light(ctx, f'{PREFIX} light | {anchor.name}', coll, anchor, 40000.0, seed)
+    return {'anchor': anchor.name, 'radius_units': round(r, 2), 'objects': [fire.name, smoke.name, light.name]}
+
+
+def _build_stream_fire(ctx, coll, anchor):
+    from mathutils import Matrix as M
+    seed = _seed(anchor)
+    r = units(float(anchor.get('size_m', FIRE_M)))
+    L, edge = r * 3.4, r * 1.6
+    S, E = _stream_axes(anchor)
+    turn = M((S, E, S.cross(E))).transposed().to_4x4()          # container +X along S, +Y along E
+    fire = box_mesh(f'{PREFIX} flame | {anchor.name}', coll, (-r * .3, -(edge * .5 + r * .9), -r * .9),
+                    (L + r * .4, edge * .5 + r * .9, r * .9),
+                    _stream_fire_material(ctx, f'{PREFIX} stream flame {seed}', seed, r, L, edge))
+    swfx_core.attach(fire, anchor)
+    fire.matrix_basis = turn
+    sl = L * 2.2
+    smoke = box_mesh(f'{PREFIX} smoke | {anchor.name}', coll, (0.0, -r * 2.2, -r * 2.2), (sl, r * 2.2, r * 2.2),
+                     _stream_smoke_material(ctx, f'{PREFIX} stream smoke {seed}', seed, r, sl))
+    swfx_core.attach(smoke, anchor)
+    smoke.matrix_basis = M.Translation(S * L * .45) @ turn
+    light = _flicker_light(ctx, f'{PREFIX} light | {anchor.name}', coll, anchor, 40000.0, seed)
+    light.location = S * r * .8
     return {'anchor': anchor.name, 'radius_units': round(r, 2), 'objects': [fire.name, smoke.name, light.name]}
 
 

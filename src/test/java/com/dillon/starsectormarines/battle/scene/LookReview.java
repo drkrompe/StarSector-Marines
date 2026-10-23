@@ -1,0 +1,291 @@
+package com.dillon.starsectormarines.battle.scene;
+
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
+import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
+import com.dillon.starsectormarines.ops.battleview.ReviewImpactFx;
+import com.dillon.starsectormarines.tools.snapshot.CompressedFrameList;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
+
+import java.awt.image.BufferedImage;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+
+/**
+ * Owner-facing look frames in one call: a subject stood on real generated ground ({@link LookGround}), played
+ * forward with every effect the review frame can draw, and framed through the
+ * {@link BattleReviewFrameRenderer#look look preset} at play zoom and close.
+ *
+ * <p><b>This is the picture to show the owner, never a verdict scene's arena frames.</b> A verdict frame is drawn
+ * on a bare grid with faction dots, labels and a caption band over it because it is evidence for a mechanism; a
+ * look frame answers "how does this look in a battle", which only the battle's own ground, props, smoke, contrails
+ * and shadows can.
+ *
+ * <p>A shot is written as {@code look/<shot>-<view>.gif} (full-colour palette, so smoke and glow are not banded)
+ * plus {@code look/<shot>-<view>-<n>.png} stills of that view's busiest moments: the recorded frames with the most
+ * effect particles (launch smoke, trails, blasts, dust) laid inside it, at least a second apart. A {@link BehaviorSceneSnapshotSuite} lists its shots in
+ * {@link BehaviorSceneSnapshotSuite#lookShots()} and gets them alongside its verdict loops; any other suite calls
+ * {@link #record}.
+ */
+public final class LookReview {
+
+    /** The owner's preview size: every look frame is 1920x1080 at 100% scale. */
+    public static final int WIDTH = 1920;
+    public static final int HEIGHT = 1080;
+
+    private LookReview() { }
+
+    /**
+     * Where a shot stands: the ground, the freshly generated map, and the window chosen on it; and the subjects the
+     * stage named ({@link #subject}), which a {@link View#follow following view} keeps in frame.
+     */
+    public record Placement(LookGround ground, MapResult map, LookGround.Site site, Map<String, Long> subjects) {
+
+        public Placement(LookGround ground, MapResult map, LookGround.Site site) {
+            this(ground, map, site, new LinkedHashMap<>());
+        }
+
+        /** Names a spawned unit or hull, so a following view can find it. Returns the id. */
+        public long subject(String key, long id) {
+            subjects.put(key, id);
+            return id;
+        }
+
+        /** A scene builder over this placement, taking coordinates local to the window. */
+        public SceneBuilder builder() {
+            return SceneBuilder.onTerrain(ground, map, site).missionCompletion(false);
+        }
+
+        /**
+         * One still, unarmed body a side, each 24 cells beyond the window's west and east edges, out of every view: the
+         * simulation stops ticking a side that has no body, and a look shot whose subjects are all hulls has none.
+         */
+        public SceneBuilder holdouts(SceneBuilder builder) {
+            float[] west = openNear(-24f, site.height() / 2f);
+            float[] east = openNear(site.width() + 24f, site.height() / 2f);
+            return builder
+                    .unit("look-marine-holdout", Faction.MARINE, UnitType.MARINE,
+                            (int) west[0] - site.x0(), (int) west[1] - site.y0(), spec -> spec.moveSpeed(0f))
+                    .unit("look-defender-holdout", Faction.DEFENDER, UnitType.MARINE,
+                            (int) east[0] - site.x0(), (int) east[1] - site.y0(), spec -> spec.moveSpeed(0f));
+        }
+
+        /**
+         * The centre of the open cell nearest the window-local point {@code (localX, localY)}, in map cells: where to
+         * set a hull down so it never lands in a building or a hedge the generator happened to put there.
+         */
+        public float[] openNear(float localX, float localY) {
+            int cx = (int) Math.floor(site.x(localX));
+            int cy = (int) Math.floor(site.y(localY));
+            for (int r = 0; r < 24; r++) {
+                for (int dy = -r; dy <= r; dy++) {
+                    for (int dx = -r; dx <= r; dx++) {
+                        if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                        int x = cx + dx;
+                        int y = cy + dy;
+                        if (!map.grid.inBounds(x, y) || LookGround.blocked(map.grid, map.topology, x, y)) continue;
+                        return new float[] {x + 0.5f, y + 0.5f};
+                    }
+                }
+            }
+            return new float[] {site.x(localX), site.y(localY)};
+        }
+    }
+
+    /**
+     * One camera on a shot: {@code focus} answers {@code {centreX, centreY, cellsAcross}} in map cells for the frame
+     * being drawn, so a view may follow its subject.
+     */
+    public record View(String name, Function<BattleSimulation, float[]> focus) {
+        public View {
+            Objects.requireNonNull(name, "name");
+            Objects.requireNonNull(focus, "focus");
+        }
+
+        /** A fixed camera at play zoom ({@link BattleReviewFrameRenderer#PLAY_ZOOM_CELLS} cells across). */
+        public static View play(float centreX, float centreY) {
+            return new View("play", sim -> new float[] {centreX, centreY, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS});
+        }
+
+        /** A fixed close camera {@code cellsAcross} wide. */
+        public static View close(String name, float centreX, float centreY, float cellsAcross) {
+            return new View(name, sim -> new float[] {centreX, centreY, cellsAcross});
+        }
+
+        /**
+         * A camera {@code cellsAcross} wide on the middle of the named subjects, unit or hull, as they move; one that
+         * has died or driven off stays where it was last seen, so the frame does not jump. Until the stage has named
+         * them it holds on the window's centre.
+         */
+        public static View follow(String name, Placement placement, float cellsAcross, String... keys) {
+            float[] last = new float[2 * keys.length];
+            Arrays.fill(last, Float.NaN);
+            return new View(name, sim -> {
+                float sumX = 0f;
+                float sumY = 0f;
+                int known = 0;
+                for (int i = 0; i < keys.length; i++) {
+                    Long id = placement.subjects().get(keys[i]);
+                    if (id != null) {
+                        float[] at = where(sim, id);
+                        if (at != null) {
+                            last[2 * i] = at[0];
+                            last[2 * i + 1] = at[1];
+                        }
+                    }
+                    if (Float.isNaN(last[2 * i])) continue;
+                    sumX += last[2 * i];
+                    sumY += last[2 * i + 1];
+                    known++;
+                }
+                if (known == 0) {
+                    return new float[] {placement.site().centreX(), placement.site().centreY(), cellsAcross};
+                }
+                return new float[] {sumX / known, sumY / known, cellsAcross};
+            });
+        }
+
+        /** A following camera at play zoom. */
+        public static View followAtPlay(Placement placement, String... keys) {
+            return follow("play", placement, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS, keys);
+        }
+
+        private static float[] where(BattleSimulation sim, long id) {
+            if (sim.convoy().isVehicle(id)) {
+                GroundBody body = sim.convoy().body(id);
+                return body == null ? null : new float[] {body.x, body.y};
+            }
+            if (!sim.world().isAlive(id)) return null;
+            return new float[] {sim.world().renderX(id), sim.world().renderY(id)};
+        }
+    }
+
+    /**
+     * One look recording.
+     *
+     * @param name       the shot's name in its file names
+     * @param ground     the ground it stands on
+     * @param footprintW width of the window the subject needs, in cells
+     * @param footprintH height of that window
+     * @param stage      stands the subject up on the placement and returns the simulation (built through
+     *                   {@link Placement#builder()}, then whatever the scene spawns itself)
+     * @param views      the cameras; given the placement, so a view can be written in the window's own coordinates
+     * @param ticks      ticks to play
+     * @param everyTicks a frame is recorded every this many ticks
+     * @param stills     how many stills of the busiest moments to keep per view
+     */
+    public record Shot(String name, LookGround ground, int footprintW, int footprintH,
+                       Function<Placement, BattleSimulation> stage, Function<Placement, List<View>> views,
+                       int ticks, int everyTicks, int stills) {
+        public Shot {
+            Objects.requireNonNull(name, "name");
+            Objects.requireNonNull(ground, "ground");
+            Objects.requireNonNull(stage, "stage");
+            Objects.requireNonNull(views, "views");
+            if (ticks <= 0 || everyTicks <= 0) throw new IllegalArgumentException("ticks and everyTicks must be positive");
+        }
+
+        /** A shot on {@link LookGround#verdant()} ground, a frame every 6 ticks, four stills a view. */
+        public static Shot of(String name, int footprintW, int footprintH, Function<Placement, BattleSimulation> stage,
+                              Function<Placement, List<View>> views, int ticks) {
+            return new Shot(name, LookGround.verdant(), footprintW, footprintH, stage, views, ticks, 6, 4);
+        }
+
+        public Shot on(LookGround other) {
+            return new Shot(name, other, footprintW, footprintH, stage, views, ticks, everyTicks, stills);
+        }
+    }
+
+    /** Plays {@code shot} once and returns its animations and stills, each {@link #WIDTH} x {@link #HEIGHT}. */
+    public static List<SnapshotArtifact> record(Path modRoot, Shot shot) throws Exception {
+        int width = WIDTH;
+        int height = HEIGHT;
+        MapResult map = shot.ground().generate();
+        LookGround.Site site = LookGround.openSite(map, shot.footprintW(), shot.footprintH());
+        Placement placement = new Placement(shot.ground(), map, site);
+        List<View> views = shot.views().apply(placement);
+        BattleSimulation sim = shot.stage().apply(placement);
+        try {
+            ReviewImpactFx fx = new ReviewImpactFx(modRoot);
+            List<BattleReviewFrameRenderer> renderers = new ArrayList<>(views.size());
+            List<List<BufferedImage>> frames = new ArrayList<>(views.size());
+            for (View view : views) {
+                float[] f = view.focus().apply(sim);
+                renderers.add(BattleReviewFrameRenderer.look(modRoot, width, height, f[0], f[1], f[2]));
+                frames.add(new CompressedFrameList());
+            }
+            List<List<Integer>> activity = new ArrayList<>();
+            for (int v = 0; v < views.size(); v++) activity.add(new ArrayList<>());
+            int fired = 0;
+            for (int tick = 0; tick <= shot.ticks(); tick++) {
+                if (tick > 0) {
+                    sim.advance(BattleSimulation.TICK_DT);
+                    fx.feed(sim);
+                    fired += sim.getShotsThisFrame().size();
+                }
+                if (tick % shot.everyTicks() != 0) continue;
+                for (int v = 0; v < views.size(); v++) {
+                    float[] f = views.get(v).focus().apply(sim);
+                    BattleReviewFrameRenderer renderer = renderers.get(v).refocus(f[0], f[1], f[2]);
+                    frames.get(v).add(renderer.render(sim, "", ReviewAnnotations.NONE, fx));
+                    // Launch smoke, trails, blasts and dust laid in this view: its busiest moments are its stills.
+                    activity.get(v).add(fx.lastPainted());
+                }
+            }
+            int gap = Math.max(1, Math.round(1f / (BattleSimulation.TICK_DT * shot.everyTicks())));
+            int delay = Math.max(20, Math.round(1000f * BattleSimulation.TICK_DT * shot.everyTicks()));
+            List<SnapshotArtifact> artifacts = new ArrayList<>();
+            StringBuilder stillsAt = new StringBuilder();
+            for (int v = 0; v < views.size(); v++) {
+                int[] picked = busiest(activity.get(v), shot.stills(), gap);
+                stillsAt.append(' ').append(views.get(v).name()).append(Arrays.toString(picked));
+                String stem = "look/" + shot.name() + "-" + views.get(v).name();
+                artifacts.add(SnapshotArtifact.colorAnimation(stem + ".gif", frames.get(v), delay));
+                for (int i = 0; i < picked.length; i++) {
+                    artifacts.add(new SnapshotArtifact(String.format("%s-%02d.png", stem, i + 1),
+                            frames.get(v).get(picked[i])));
+                }
+            }
+            System.out.printf("    [look/%s] window %d,%d %dx%d (%d blocked cells), %d frames, %d rounds fired,"
+                            + " stills at%s%n",
+                    shot.name(), site.x0(), site.y0(), site.width(), site.height(), site.blockedCells(),
+                    activity.get(0).size(), fired, stillsAt);
+            return artifacts;
+        } finally {
+            sim.close();
+        }
+    }
+
+    /**
+     * Indices of the {@code count} frames with the highest {@code activity}, no two closer than {@code gap} frames, in
+     * time order. Ties go to the earlier frame, so the pick is a pure function of the play.
+     */
+    static int[] busiest(List<Integer> activity, int count, int gap) {
+        List<Integer> chosen = new ArrayList<>();
+        boolean[] taken = new boolean[activity.size()];
+        while (chosen.size() < count) {
+            int best = -1;
+            for (int i = 0; i < activity.size(); i++) {
+                if (taken[i]) continue;
+                boolean near = false;
+                for (int c : chosen) near |= Math.abs(c - i) < gap;
+                if (near) continue;
+                if (best < 0 || activity.get(i) > activity.get(best)) best = i;
+            }
+            if (best < 0) break;
+            taken[best] = true;
+            chosen.add(best);
+        }
+        return chosen.stream().mapToInt(Integer::intValue).sorted().toArray();
+    }
+}
