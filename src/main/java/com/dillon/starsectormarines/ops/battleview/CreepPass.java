@@ -15,6 +15,7 @@ final class CreepPass implements Runnable {
     float timeSeconds;
     float alpha;
     CreepPalette palette;
+    CreepShading.CliffLook cliffs = CreepShading.CliffLook.OVER;
     CreepShading.Sun sun = new CreepShading.Sun(-0.7071f, 0.7071f, 0.78f, 0.75f);
 
     CreepPass(CreepLayer layer) {

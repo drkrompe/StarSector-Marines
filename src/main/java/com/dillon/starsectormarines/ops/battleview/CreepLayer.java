@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationLayout;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.GlStateBracket;
@@ -12,7 +13,10 @@ import org.lwjgl.BufferUtils;
 import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Locale;
 
+import static org.lwjgl.opengl.GL11.GL_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_ALPHA8;
 import static org.lwjgl.opengl.GL11.GL_CLIENT_PIXEL_STORE_BIT;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_CURRENT_BIT;
@@ -53,6 +57,7 @@ import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE1;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE2;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE3;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE4;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL14.GL_GENERATE_MIPMAP;
 
@@ -86,6 +91,11 @@ import static org.lwjgl.opengl.GL14.GL_GENERATE_MIPMAP;
  * fails, the layer falls back for good to flat cells in the palette's base
  * colour. Turn the layer off for a control run with
  * {@code -Dbattle.render.creep=false}.
+ *
+ * <p>Raised ground's cliff faces and ramp walls are drawn by {@link CliffArtLayer}
+ * under the creep, so creep over them would hide every ridge and bank in a bloom.
+ * The layer keeps the layout's {@link CliffFaceMask} beside the field and the
+ * creep stands back from the rock as {@link #CLIFFS_PROPERTY} says.
  */
 final class CreepLayer implements RenderSystem, CreepShading.Field {
 
@@ -93,6 +103,16 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
     static final String PROPERTY = "battle.render.creep";
 
     private static final boolean ENABLED = Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
+
+    /**
+     * What the creep does over cliff faces: {@code veined} (default), {@code bare} or {@code over}
+     * ({@link CreepShading.CliffLook}). Temporary: the owner picks one of the three on the picks page
+     * (question {@code creep-cliffs}); remove the switch and the losing looks once that is answered.
+     */
+    static final String CLIFFS_PROPERTY = "battle.render.creepCliffs";
+
+    private static final CreepShading.CliffLook CLIFFS = CreepShading.CliffLook.valueOf(
+            System.getProperty(CLIFFS_PROPERTY, "veined").trim().toUpperCase(Locale.ROOT));
 
     /** Whether creep is drawn at all; for evidence that reports which run it was. */
     static boolean enabled() { return ENABLED; }
@@ -136,7 +156,11 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
     private boolean wholeDirty;
     private int extentMinX = Integer.MAX_VALUE, extentMinY = Integer.MAX_VALUE, extentMaxX = -1, extentMaxY = -1;
 
-    private int fieldTexture, noiseTexture, surfaceTexture, groundTexture;
+    private int fieldTexture, noiseTexture, surfaceTexture, groundTexture, faceTexture;
+    /** The layout the face mask was made from, the mask (null with no raised ground), and whether it is on the GPU. */
+    private ElevationLayout faceLayout;
+    private CliffFaceMask faces;
+    private boolean facesUploaded;
     private CellTopology topology;
     private long topologySeen;
     private SunLight sun = new SunLight();
@@ -183,6 +207,7 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
         pass.timeSeconds = clockSeconds;
         pass.alpha = ctx.alphaMult;
         pass.palette = palette;
+        pass.cliffs = faces == null ? CreepShading.CliffLook.OVER : CLIFFS;
         pass.sun = new CreepShading.Sun(sun.dirX(), sun.dirY(), sun.risePerCell(), sun.casts() ? sun.shadowStrength() : 0f);
         out.addCustom(RenderLayer.CREEP, pass);
     }
@@ -200,6 +225,12 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
             bind(field);
             this.topology = topology;
             topologySeen = topology == null ? 0L : topology.changeCount();
+        }
+        ElevationLayout layout = topology == null ? null : topology.cliffArt();
+        if (layout != faceLayout) {
+            faceLayout = layout;
+            faces = layout == null || CLIFFS == CreepShading.CliffLook.OVER ? null : CliffFaceMask.of(layout);
+            facesUploaded = false;
         }
         long revision = field.revision();
         if (topology != null && topology.changeCount() != topologySeen) {
@@ -396,6 +427,9 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
     public float coverage(float cellX, float cellY) { return coverageAt(cellX, cellY); }
 
     @Override
+    public float face(float cellX, float cellY) { return faces == null ? 0f : faces.sample(cellX, cellY); }
+
+    @Override
     public void ground(float cellX, float cellY, float[] out) {
         float u = cellX - 0.5f, v = cellY - 0.5f;
         int x0 = (int) Math.floor(u), y0 = (int) Math.floor(v);
@@ -495,6 +529,9 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
             glActiveTexture(GL_TEXTURE3);
             glEnable(GL_TEXTURE_2D);
             glBindTexture(GL_TEXTURE_2D, groundTexture);
+            glActiveTexture(GL_TEXTURE4);
+            glEnable(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, faceTexture);
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, fieldTexture);
             if (!shader.begin(p, gridW, gridH)) return;
@@ -511,6 +548,8 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
             broken = true;
         } finally {
             ShaderProgram.useNone();
+            glActiveTexture(GL_TEXTURE4);
+            glBindTexture(GL_TEXTURE_2D, 0);
             glActiveTexture(GL_TEXTURE3);
             glBindTexture(GL_TEXTURE_2D, 0);
             glActiveTexture(GL_TEXTURE2);
@@ -549,6 +588,7 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, CreepSurface.SIZE, CreepSurface.SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, surface);
             Reference.reachabilityFence(surface);   // LWJGL 2 keeps only the address
         }
+        if (faceTexture == 0 || !facesUploaded) uploadFaces();
         if (fieldTexture == 0) {
             fieldTexture = glGenTextures();
             groundTexture = glGenTextures();
@@ -567,6 +607,30 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
         }
         Arrays.fill(dirtyTile, false);
         dirtyCount = 0;
+    }
+
+    /** The face mask, or one clear texel where there is none (the shader then cuts nothing). */
+    private void uploadFaces() {
+        if (faceTexture == 0) faceTexture = glGenTextures();
+        int w = faces == null ? 1 : faces.width(), h = faces == null ? 1 : faces.height();
+        ByteBuffer texels = BufferUtils.createByteBuffer(w * h);
+        if (faces != null) texels.put(faces.texels());
+        else texels.put((byte) 0);
+        texels.flip();
+        glBindTexture(GL_TEXTURE_2D, faceTexture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
+        try {
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA8, w, h, 0, GL_ALPHA, GL_UNSIGNED_BYTE, texels);
+            Reference.reachabilityFence(texels);   // LWJGL 2 keeps only the address
+        } finally {
+            glPopClientAttrib();
+        }
+        facesUploaded = true;
     }
 
     /** Uploads one per-cell picture, whole or the dirty tiles only. */
@@ -604,7 +668,9 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
         if (noiseTexture != 0) glDeleteTextures(noiseTexture);
         if (surfaceTexture != 0) glDeleteTextures(surfaceTexture);
         if (groundTexture != 0) glDeleteTextures(groundTexture);
-        fieldTexture = noiseTexture = surfaceTexture = groundTexture = 0;
+        if (faceTexture != 0) glDeleteTextures(faceTexture);
+        fieldTexture = noiseTexture = surfaceTexture = groundTexture = faceTexture = 0;
+        facesUploaded = false;
         shader.dispose();
         bound = null;
     }
