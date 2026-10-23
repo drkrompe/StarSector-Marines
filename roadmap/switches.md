@@ -73,10 +73,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.fort.restraint` | control | 2026-10-13 | Standing control: ShieldFortScene runs the off arm as its control loop. Retire it with that loop. |
 | `battle.garrison.envelopes` | experiment | 2026-10-20 | Garrisonables (garrisonables.md): remove once garrisonEvidence and the reactive-defence evidence accept it. |
 | `battle.garrison.stretches` | experiment | 2026-10-20 | Garrisonables (garrisonables.md): remove once garrisonEvidence and the reactive-defence evidence accept it. |
-| `battle.goap.clearZoneDecisionCadence` | experiment | 2026-09-26 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.goap.localBreachChecks` | experiment | 2026-09-26 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.goap.localHoldPositions` | experiment | 2026-09-26 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.goap.priorityOrderedEvaluation` | experiment | 2026-09-26 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.goap.retainFlankPlans` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.heart.broadCompanyArmour` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
 | `battle.heart.broadFallBack` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
@@ -96,7 +92,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.heart.holdBack` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
 | `battle.infantry.fightingPositions` | experiment | 2026-10-13 | Fighting positions (ai-nouns.md): remove once the defender fighting-position work is accepted. |
 | `battle.infantry.laneSidestep` | experiment | 2026-09-01 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.infantry.localGrenadeAvoidance` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.infantry.medicKeepMoving` | undecided | 2026-10-14 | Default off since 2026-10-14 (squad-medic.md). Ship it or delete the code. |
 | `battle.infantry.rejoin` | experiment | 2026-09-01 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.influence.async` | config | 2026-09-26 | Permanent: determinism. Test and evidence tasks force the synchronous arm, and the live game runs async. |
@@ -162,12 +157,10 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.pathfinding.squadRouteWorkPerRequest` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.pathfinding.squadRouteWorkPerSlice` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.pathfinding.squadRouteWorkPerTick` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.perception.filteredSquadAwareness` | experiment | 2026-09-27 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.power.armorDropCooldownSeconds` | tuning | 2026-10-18 | Heavy-equipment pass: fold into a constant once the cooldown is accepted. |
 | `battle.profile.commandFrameDetail` | config | 2026-09-27 | Permanent: opt-in profiling instrumentation, off in play. |
 | `battle.profile.commandTopologyCpu` | config | 2026-09-27 | Permanent: opt-in profiling instrumentation, off in play. |
 | `battle.profile.pathRequests` | config | 2026-08-24 | Permanent: opt-in profiling instrumentation, off in play. |
-| `battle.projectiles.phaseOwnedPublication` | experiment | 2026-09-26 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.render.cliffLook` | control | 2026-10-22 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.collectCulling` | control | 2026-09-03 | Standing control: the renderEvidence culled-vs-unculled pixel-identity check (CLAUDE.md). |
 | `battle.render.colonyThreat` | control | 2026-10-22 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
@@ -201,13 +194,12 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.squad.apertureSpread` | undecided | 2026-10-11 | Default off since 2026-10-11 (conquest-command.md). Ship it or delete the code. |
 | `battle.squad.contactDrill` | undecided | 2026-08-30 | Default off since 2026-08-30 (ai-nouns.md). Ship it or delete the code. |
 | `battle.squad.contactOnset` | experiment | 2026-08-30 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.squad.isolatedAdvanceThreat` | experiment | 2026-09-26 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.squad.objectiveFiringInZone` | experiment | 2026-09-01 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.squad.prosecutionFallThrough` | experiment | 2026-09-01 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.squad.roomCellSpread` | undecided | 2026-10-11 | Default off since 2026-10-11 (conquest-command.md). Ship it or delete the code. |
 | `battle.squad.routeCommitNeedsFreshContact` | experiment | 2026-10-13 | Squad zone actions (2026-10-13): remove once the squad zone-action evidence has been read against it. |
 | `battle.squad.traffic` | undecided | 2026-09-26 | Default off; SquadTrafficScene compares it. The owner decides whether to ship it (drop the switch, keep the code) or drop it (delete the code). |
-| `battle.squad.trafficYield` | experiment | 2026-09-26 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
+| `battle.squad.trafficYield` | experiment | 2026-09-26 | Part of the squad-traffic experiment (squad-traffic.md): its off arm isolates spreading from the speed preference. Remove it together with battle.squad.traffic. |
 | `battle.squad.transitSpacing` | experiment | 2026-10-11 | Conquest command (2026-10-11): remove once commanderEvidence -Pmission=conquest has been read against it. Its composed .cells/.maxHold knobs go with it. |
 | `battle.story.reactiveDefence` | experiment | 2026-10-21 | As battle.mission.reactiveDefence. Its composed .share knob goes with it. |
 | `battle.swarm.barricadeAssault` | experiment | 2026-10-22 | Swarm/Bloom sessions: remove each once colony-breach evidence accepts it (colony-breach-nouns.md). |
@@ -222,14 +214,9 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.swarm.packLeaders` | experiment | 2026-10-21 | Swarm/Bloom sessions: remove each once colony-breach evidence accepts it (colony-breach-nouns.md). |
 | `battle.swarm.packSplit` | experiment | 2026-10-22 | Swarm/Bloom sessions: remove each once colony-breach evidence accepts it (colony-breach-nouns.md). |
 | `battle.tail.replanCpu` | config | 2026-09-27 | Permanent: opt-in profileConquestTail instrumentation, off in play. |
-| `battle.targeting.boundKnownContactScan` | experiment | 2026-09-26 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.targeting.committedFire` | experiment | 2026-09-01 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.targeting.firingReachabilityComponents` | experiment | 2026-09-26 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.targeting.friendlyLanePenalty` | undecided | 2026-09-01 | Default off since 2026-09-01 (ai-nouns.md). Ship it or delete the code. |
-| `battle.targeting.localFiringSpread` | experiment | 2026-09-26 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.targeting.perceptionGated` | experiment | 2026-09-01 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.targeting.pruneClearZoneSelection` | experiment | 2026-09-26 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
-| `battle.targeting.retainFiringPositions` | experiment | 2026-09-26 | Remove with its losing path once the comparison it was added for is read; unowned in the 2026-10-23 audit, so the next session in this area decides. |
 | `battle.targeting.squadFiringPositions` | undecided | 2026-09-26 | Default off with its own profileSquadFiringPositions task (squad-firing-positions.md). Ship it, or delete the code together with that task. |
 | `battle.tender.fairThreat` | control | 2026-10-12 | Standing control: TenderBuildScene runs the off arm as its control loop. Retire it with that loop. |
 | `battle.thunderRun.reactiveColumn` | experiment | 2026-10-15 | Thunder Run: remove once commanderEvidence -Pmission=thunder-run accepts the reactive column. |
