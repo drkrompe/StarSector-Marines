@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
-import com.dillon.starsectormarines.ops.battleview.MedicMarkerRenderSystem;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
@@ -77,28 +76,18 @@ public final class MedicPoolSnapshotSuite implements SnapshotSuite {
             float fx = (ax + bx) / 2f, fy = (ay + by) / 2f;
             BattleReviewFrameRenderer near = new BattleReviewFrameRenderer(context.modRoot(), FRAME_W, FRAME_H,
                     fx, fy, PLAY_ZOOM_CELLS).withUnitShadows().withRoofs();
-            MedicMarkerRenderSystem.PoolStyle before = MedicMarkerRenderSystem.poolStyle;
-            try {
-                int n = 1;
-                for (MedicMarkerRenderSystem.PoolStyle style : MedicMarkerRenderSystem.PoolStyle.values()) {
-                    MedicMarkerRenderSystem.poolStyle = style;
-                    String name = style.name().toLowerCase(Locale.ROOT);
-                    BufferedImage frame = near.render(sim, String.format(Locale.ROOT,
-                            "medic pool: %s  |  Raid seed %d, play zoom (32 px/cell)  |  left inset %.0f/%.0f energy,"
-                                    + " right inset %.1f/%.0f (below start gate %.1f)",
-                            name, SEED, drained.medic.energy(), drained.medic.medicine.energyMax(),
-                            spent.medic.energy(), spent.medic.medicine.energyMax(),
-                            spent.medic.medicine.minStartEnergy()));
-                    int[] pa = screen(sim, fx, fy, ax, ay);
-                    int[] pb = screen(sim, fx, fy, bx, by);
-                    BufferedImage copy = copy(frame);
-                    inset(frame, copy, pa, FRAME_W - 2 * (INSET_SRC * INSET_ZOOM + 24), "pool 55%: can treat");
-                    inset(frame, copy, pb, FRAME_W - (INSET_SRC * INSET_ZOOM + 24), "pool 12%: below start gate");
-                    out.add(new SnapshotArtifact(String.format(Locale.ROOT, "%02d-%s.png", n++, name), frame));
-                }
-            } finally {
-                MedicMarkerRenderSystem.poolStyle = before;
-            }
+            BufferedImage frame = near.render(sim, String.format(Locale.ROOT,
+                    "medic pool  |  Raid seed %d, play zoom (32 px/cell)  |  left inset %.0f/%.0f energy,"
+                            + " right inset %.1f/%.0f (below start gate %.1f)",
+                    SEED, drained.medic.energy(), drained.medic.medicine.energyMax(),
+                    spent.medic.energy(), spent.medic.medicine.energyMax(),
+                    spent.medic.medicine.minStartEnergy()));
+            BufferedImage copy = copy(frame);
+            inset(frame, copy, screen(sim, fx, fy, ax, ay), FRAME_W - 2 * (INSET_SRC * INSET_ZOOM + 24),
+                    "pool 55%: can treat");
+            inset(frame, copy, screen(sim, fx, fy, bx, by), FRAME_W - (INSET_SRC * INSET_ZOOM + 24),
+                    "pool 12%: below start gate");
+            out.add(new SnapshotArtifact("medic-pool.png", frame));
         }
         return out;
     }
