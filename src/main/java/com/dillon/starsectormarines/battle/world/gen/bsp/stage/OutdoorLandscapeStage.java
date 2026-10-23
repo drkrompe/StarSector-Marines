@@ -226,7 +226,8 @@ public final class OutdoorLandscapeStage implements GenStage {
         if (!plan.strokes().isEmpty()) TerrainBrush.stamp(plan, c.grid, c.topology, reserved);
     }
 
-    private static int plateausWanted(GenContext c) {
+    /** How many plateaus the map asks for: the generation key, else the switch, else none. */
+    public static int plateausWanted(GenContext c) {
         Integer asked = c.get(BspKeys.PLATEAUS);
         return asked != null ? asked : Integer.getInteger("battle.mapgen.plateaus", 0);
     }
