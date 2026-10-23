@@ -2818,6 +2818,15 @@ def blender_main(cfg):
                         done = sfx_.flares(fx[1])
                     if done:
                         kit_drew.add(i)
+                # the battle's damage so far, and this shot's hits as they land (asharu_damage's ledger)
+                kt = spec.get('key_t', next((p_.t for p_ in spec['ships'].values() if hasattr(p_, 'at')), None))
+                if kt is not None:
+                    import asharu_damage
+                    t0_, t1_ = spec['shot_t'] if 'span_t' in spec else (kt, kt)
+                    asharu_damage.apply_all(placed, t0_, t1_, lambda t_, kt=kt: anchor + round((t_ - kt) * fps_s),
+                                            log=lambda t: print(t, flush=True), shot_fx=spec.get('fx'))
+                else:
+                    print(f'ASHARU damage {kf}: no key time (no flown ship), ledger not applied', flush=True)
                 try:
                     sfx_.projectile_check()
                 finally:
