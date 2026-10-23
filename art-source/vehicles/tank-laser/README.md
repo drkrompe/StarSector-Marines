@@ -47,3 +47,22 @@ python art-source/vehicles/tank-laser/pack.py
 ImageGen sometimes returns an edit at a different size (the red/white skin 1.32x, the wreck turret
 about 1.3x), so `pack.py` fits each turret source to `pd-upres-raw.png` by its alpha bounding box.
 The muzzle is the lens front, 0.62 cells forward on the axis (`mount.tank-burst-laser`).
+
+## Two variants (2026-10-23)
+
+The owner kept two turret skins and split the tank in two:
+
+- **Burst laser tank** (`LASER_TANK`, Tri-Tachyon): `registration.json` packs
+  `hull-raw-b4.png` with the `tt` skin (`pd-skin-tt-raw.png`, its open frame, and
+  `pd-skin-tt-wreck-raw.png`) into `mod/graphics/battle/vehicles/army-tank-laser.png`.
+- **PD laser tank** (`PD_LASER_TANK`, League): `registration-pd.json` packs
+  `hull-raw-pd.png` with the `red` skin into `army-tank-pd-laser.png`:
+  `python art-source/vehicles/tank-laser/pack.py registration-pd.json mod/graphics/battle/vehicles/army-tank-pd-laser.png`.
+
+`hull-raw-pd.png` is an edit of `hull-raw-b4.png` on the same canvas (so the
+master's registration and tread strips hold), with `hull_pd_guide.py` /
+`hull-guide-pd.png` blocking a fire-control radar and a three-cell bank over the
+capacitor pack's footprint (`hull-prompt-pd.txt`): worn gunmetal, red lamps, red
+hazard trim. `hull-wreck-pd-raw.png` wrecks it (`hull-wreck-pd-prompt.txt`), and
+`pd-skin-tt-wreck-raw.png` wrecks the `tt` turret (`pd-skin-tt-wreck-prompt.txt`).
+The third skin (red collar on white) was not kept and is deleted.

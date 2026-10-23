@@ -396,13 +396,33 @@ public final class WeaponDef {
         while (keys.hasNext()) {
             String key = String.valueOf(keys.next());
             if (!Set.of("coreWidthPx", "glowColor", "glowWidthPx", "pulseCycles",
-                    "lifetimeSec").contains(key)) {
+                    "lifetimeSec", "texture").contains(key)) {
                 throw new JSONException("Weapon '" + weaponId
                         + "' render.beam has unknown field '" + key + "'");
             }
         }
+        BeamTexture texture = null;
+        if (beam.has("texture") && !beam.isNull("texture")) {
+            JSONObject t = beam.getJSONObject("texture");
+            var textureKeys = t.keys();
+            while (textureKeys.hasNext()) {
+                String key = String.valueOf(textureKeys.next());
+                if (!Set.of("texelCells", "scrollCellsPerSec", "roughness", "throbHz").contains(key)) {
+                    throw new JSONException("Weapon '" + weaponId
+                            + "' render.beam.texture has unknown field '" + key + "'");
+                }
+            }
+            try {
+                texture = new BeamTexture((float) t.getDouble("texelCells"),
+                        (float) t.optDouble("scrollCellsPerSec", 0.0),
+                        (float) t.optDouble("roughness", 0.0),
+                        (float) t.optDouble("throbHz", 0.0));
+            } catch (IllegalArgumentException e) {
+                throw new JSONException("Invalid beam texture for weapon '" + weaponId + "': " + e.getMessage());
+            }
+        }
         try {
-            return new BeamStyle(coreWidth, glowColor, glowWidth, pulseCycles, lifetimeSec);
+            return new BeamStyle(coreWidth, glowColor, glowWidth, pulseCycles, lifetimeSec, texture);
         } catch (IllegalArgumentException e) {
             throw new JSONException("Invalid beam style for weapon '" + weaponId + "': " + e.getMessage());
         }
@@ -530,11 +550,13 @@ public final class WeaponDef {
 
     /**
      * Presentation-only style for a full-path hitscan beam. Widths are screen pixels so the beam
-     * remains readable at every camera zoom; pulse cycles are counted over the shot's visual life.
+     * remains readable at every camera zoom; pulse cycles are counted over the shot's visual life. A
+     * {@link BeamTexture}, when declared, runs knots of energy down the lance as a starship's beam is drawn, and
+     * needs a glow to carry them and a lingering lifetime to run over.
      */
     public record BeamStyle(float coreWidthPx, Color glowColor,
-                            float glowWidthPx, float pulseCycles, float lifetimeSec) {
-        public static final BeamStyle DEFAULT = new BeamStyle(2f, null, 0f, 0f, 0f);
+                            float glowWidthPx, float pulseCycles, float lifetimeSec, BeamTexture texture) {
+        public static final BeamStyle DEFAULT = new BeamStyle(2f, null, 0f, 0f, 0f, null);
 
         public BeamStyle {
             if (!(coreWidthPx > 0f) || !Float.isFinite(coreWidthPx)) {
@@ -551,6 +573,30 @@ public final class WeaponDef {
             }
             if (glowColor != null && glowWidthPx <= coreWidthPx) {
                 throw new IllegalArgumentException("glowWidthPx must exceed coreWidthPx");
+            }
+            if (texture != null && (glowColor == null || lifetimeSec <= 0f)) {
+                throw new IllegalArgumentException("a beam texture needs a glow and a positive lifetimeSec");
+            }
+        }
+    }
+
+    /**
+     * The grain of a starship beam, after the game's own ROUGH beam texture: knots of energy {@code texelCells}
+     * apart that ride from the muzzle toward the target at {@code scrollCellsPerSec}, each up to {@code roughness}
+     * brighter than the lance, while the whole lance swells and fades {@code throbHz} times a second with the power
+     * delivered to it. The knots run on one clock across successive shots, so a stream of short
+     * overlapping beams reads as one lance being fed rather than a string of restarts.
+     */
+    public record BeamTexture(float texelCells, float scrollCellsPerSec, float roughness, float throbHz) {
+        public BeamTexture {
+            if (!(texelCells > 0f) || !Float.isFinite(texelCells)) {
+                throw new IllegalArgumentException("texelCells must be finite and positive");
+            }
+            if (!Float.isFinite(scrollCellsPerSec) || !Float.isFinite(throbHz) || throbHz < 0f) {
+                throw new IllegalArgumentException("scrollCellsPerSec and throbHz must be finite, throbHz non-negative");
+            }
+            if (!(roughness >= 0f && roughness <= 1f)) {
+                throw new IllegalArgumentException("roughness must lie in [0, 1]");
             }
         }
     }

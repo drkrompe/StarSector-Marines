@@ -41,8 +41,10 @@ import java.util.Set;
  */
 public final class TankVariantsSnapshotSuite implements SnapshotSuite {
     private static final List<VehicleType> LINE = List.of(
-            VehicleType.BREAKTHROUGH_TANK, VehicleType.SCREENED_TANK, VehicleType.LASER_TANK, VehicleType.DOZER_BREACHER);
-    private static final List<String> NAMES = List.of("BREAKTHROUGH TANK", "SCREENED TANK", "LASER TANK", "DOZER BREACHER");
+            VehicleType.BREAKTHROUGH_TANK, VehicleType.SCREENED_TANK, VehicleType.LASER_TANK, VehicleType.PD_LASER_TANK,
+            VehicleType.DOZER_BREACHER);
+    private static final List<String> NAMES = List.of(
+            "BREAKTHROUGH TANK", "SCREENED TANK", "BURST LASER TANK", "PD LASER TANK", "DOZER BREACHER");
 
     @Override public String id() { return "tank-variants"; }
     @Override public String label() { return "Tank variants side by side, wrecks and a battle frame"; }
@@ -51,6 +53,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
         DiskRegistries.installMapGeneration(context.projectRoot());
         List<SnapshotArtifact> artifacts = new ArrayList<>();
         lineup(context, artifacts);
+        lances(context, artifacts);
         battle(context, artifacts);
         return List.copyOf(artifacts);
     }
@@ -63,7 +66,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
             List<Long> live = new ArrayList<>();
             List<Long> wrecks = new ArrayList<>();
             for (int i = 0; i < LINE.size(); i++) {
-                float x = 13 + i * 13;
+                float x = 10 + i * 11;
                 live.add(spawn(sim, LINE.get(i), Faction.MARINE, x, 26, 90, 90));
                 wrecks.add(spawn(sim, LINE.get(i), Faction.MARINE, x, 13, 90, 90));
                 labels.label(x, 21.5f, NAMES.get(i), ReviewStyle.NOTE);
@@ -75,7 +78,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
             for (int tick = 0; tick < 60; tick++) sim.advance(BattleSimulation.TICK_DT);
             // Re-seat the live row: a deployed hull drifts while the wrecks play out.
             for (int i = 0; i < live.size(); i++) {
-                sim.convoy().body(live.get(i)).teleport(13 + i * 13, 26, 90);
+                sim.convoy().body(live.get(i)).teleport(10 + i * 11, 26, 90);
                 sim.convoy().turret(live.get(i)).facingDeg = 90;
             }
             for (int i = 0; i < live.size(); i++) markMuzzle(sim, live.get(i), LINE.get(i), labels);
@@ -84,10 +87,55 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
             BattleReviewFrameRenderer renderer = new BattleReviewFrameRenderer(
                     context.modRoot(), 1920, 1080, 32.5f, 19.5f, 52);
             artifacts.add(new SnapshotArtifact("lineup.png", renderer.render(sim,
-                    "Tank variants | breakthrough, screened, laser, dozer / live and wrecked / crosses mark the ballistic muzzle"
+                    "Tank variants | breakthrough, screened, burst laser, PD laser, dozer / live and wrecked / crosses mark the ballistic muzzle"
                             + " | 1920 x 1080, UI 100%", labels.build())));
             artifacts.add(new SnapshotArtifact("lineup-battle-scale.png", renderer.refocus(32, 19.5f, 60).render(sim,
                     "Tank variants | battle-scale camera, 60 cells across | 1920 x 1080, UI 100%", labels.build())));
+        }
+    }
+
+    /**
+     * The two laser tanks close up, every tick drawn: the burst laser's blue bursts beside the PD laser's held red
+     * lance, each on unarmed hulls, so the grain, the throb and the shutter can be read at play speed.
+     */
+    private static void lances(SnapshotContext context, List<SnapshotArtifact> artifacts) throws Exception {
+        try (BattleSimulation sim = scene(40, 32)) {
+            sim.setMissionCompletionEnabled(false);
+            long burst = spawn(sim, VehicleType.LASER_TANK, Faction.MARINE, 14, 10, 90, 90);
+            long pd = spawn(sim, VehicleType.PD_LASER_TANK, Faction.MARINE, 26, 10, 90, 90);
+            for (int i = 0; i < 3; i++) {
+                spawn(sim, VehicleType.CARGO_CARRIER, Faction.DEFENDER, 12 + i * 8, 21, 270, 270);
+            }
+            ReviewImpactFx impacts = new ReviewImpactFx(context.modRoot());
+            BattleReviewFrameRenderer renderer = new BattleReviewFrameRenderer(
+                    context.modRoot(), 1920, 1080, 20, 15.5f, 30).withImpactEffects();
+            List<BufferedImage> frames = new ArrayList<>();
+            BufferedImage busiest = null;
+            int busiestBeams = -1;
+            for (int tick = 0; tick < 150; tick++) {
+                sim.advance(BattleSimulation.TICK_DT);
+                impacts.feed(sim);
+                // Hold the hulls still, as the lineup does: a deployed hull drifts, and only the guns are on review.
+                sim.convoy().body(burst).teleport(14, 10, 90);
+                sim.convoy().body(pd).teleport(26, 10, 90);
+                if (tick < 30) continue;
+                ReviewAnnotations.Builder labels = ReviewAnnotations.builder();
+                var a = sim.convoy().body(burst);
+                var b = sim.convoy().body(pd);
+                labels.label(a.x, a.y - 3.2f, "BURST LASER TANK", ReviewStyle.NOTE);
+                labels.label(b.x, b.y - 3.2f, "PD LASER TANK", ReviewStyle.NOTE);
+                BufferedImage frame = renderer.render(sim,
+                        "Laser lances | burst PD laser (blue, bursts) beside PD laser (red, held, throbbing)"
+                                + " | every tick | 1920 x 1080, UI 100%", labels.build(), impacts);
+                frames.add(frame);
+                int beams = sim.getActiveShots().size();
+                if (beams > busiestBeams) {
+                    busiestBeams = beams;
+                    busiest = frame;
+                }
+            }
+            artifacts.add(new SnapshotArtifact("lances.png", busiest));
+            artifacts.add(SnapshotArtifact.colorAnimation("lances.gif", frames, 33));
         }
     }
 
@@ -157,7 +205,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
                 }
                 BufferedImage frame = renderer.render(sim,
                         "Tank variants in battle | THUNDER RUN staging apron, seed 9301 | breakthrough, "
-                                + " screened, laser, dozer against unarmed hulls | autonomous fire | 1920 x 1080, UI 100%",
+                                + " screened, burst laser, PD laser, dozer against unarmed hulls | autonomous fire | 1920 x 1080, UI 100%",
                         labels.build(), impacts);
                 frames.add(frame);
                 int inFlight = sim.getActiveShots().size();

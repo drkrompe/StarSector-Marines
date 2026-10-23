@@ -11,6 +11,7 @@ Five 768x768 frames, all facing LEFT: live hull, live turret, wreck hull, wreck 
   * Generator alpha haze at or below 8 is cleared; resampling is Lanczos on premultiplied alpha.
 Prints the turret muzzle (the lens front) in cells for mount.tank-burst-laser.
 Run from anywhere: python art-source/vehicles/tank-laser/pack.py [registration.json] [out.png]
+(the burst laser tank; the PD laser tank is registration-pd.json into mod/graphics/battle/vehicles/army-tank-pd-laser.png)
 """
 import json
 import sys
