@@ -4,10 +4,11 @@ Status: SHIPPED — folded legacy AI implementation stories.
 
 Written: 2026-08-23
 
-Updated: 2026-10-23 — recorded the rejected squad-firing-positions experiment; earlier, folded party places, story garrisons, sally doors, reactive garrisons, the machine garrison assault, player reactive manning and the machine guard.
+Updated: 2026-10-23 — squad traffic shipped (both switches removed); recorded the rejected squad-firing-positions experiment; earlier, folded party places, story garrisons, sally doors, reactive garrisons, the machine garrison assault, player reactive manning and the machine guard.
 
 | Retired story | Ship date | Evidence | Fold destination |
 |---|---|---|---|
+| `squad-traffic.md` | 2026-10-23 | Shipped on the owner's decision: `battle.squad.traffic` and `battle.squad.trafficYield` removed, traffic always installed with yielding; `SquadTrafficSolverTest`, `SquadTrafficSystemTest`, `SquadTrafficMovementTest`; scene `squad-traffic` (open, passage, crossing) green, control loops dropped | `ai-nouns.md` (local traffic preference); `continuous-positions-nouns.md` |
 | `squad-firing-positions.md` | 2026-10-23 | Rejected, not shipped: off by default and stalled since 2026-09-26; code, `profileSquadFiringPositions` and `battle.targeting.squadFiringPositions` deleted | `ai-nouns.md` (one-line rejection under fighting positions) |
 | `party-places.md` | 2026-10-21 | `ca70645e8`, `83313925b` and the ship commit; `PlaceDirectivesTest`, `PartyPlacesTest`, `ThunderRunLocksTest`, `YardOwnersSitesTest`; scene `party-places` (11 verdicts); `commanderEvidence` on yard-owners, limited-warrant, thunder-run against `-Dbattle.party.places=false` | `garrisonables.md` (parties, place directives, locked positions, parties wired); `ai-nouns.md` (Sides); `mission-command-nouns.md`; `commander-evidence-missions.md` |
 | `story-garrisons.md` | 2026-10-21 | this change; `StoryGarrisonsTest`, `MissionGarrisonsTest` (holder cap); scene `story-defence` (5 verdicts) and the `mission-defence`, `mission-envelopes`, `machine-guard`, `sally-door`, `place-counterattack`, `reactive-belt` scenes green; `commanderEvidence` for Counterattack, Junction, Relay Nine, Thunder Run, Relief and Last Lift against `-Dbattle.story.reactiveDefence=false`: beat lists identical on every fixture | `garrisonables.md` (story commanders; open questions) |
