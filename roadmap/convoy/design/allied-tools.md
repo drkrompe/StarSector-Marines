@@ -97,17 +97,21 @@ supply road to a named **recipient**, and its arrival resupplies the
 recipient through a callback the mission supplies. A truck lost on the road
 delivers nothing.
 
-- One mission-neutral hook (proposed `SupplyDelivery`: recipient name, where
-  it stands, `arrived(sim)` callback). **The Cordon owns it.**
-- The Cordon's L2 (`GunsDryBeat`) is the first user: its truck's arrival
-  restores a redoubt's guns to their own rate. Today that is inlined in the
-  beat; it moves behind the hook.
+- One mission-neutral hook, `SupplyDelivery`: a recipient (its name, the
+  cell the truck drives to, when it counts as arrived, and an `arrived`
+  callback) and the `AlliedDepot` the truck sets out from. The delivery waits
+  while the depot cannot send; it is lost when the truck dies or the
+  recipient is gone first. **The Cordon owns it.**
+- The Cordon's L2 (`GunsDryBeat`) is the first user: the recipient is the
+  dry redoubt, and its truck's arrival restores the guns to their own rate.
 - The heart's B5 is the second: a truck's arrival adds rounds to the
   walking barrage (`WalkingBarrage`), through the same hook.
 
 ## Code seam (proposal only)
 
-Today the Cordon's `CordonLogistics` is one base shape: a shed building a
+The Cordon's `CordonLogistics` is an `AlliedDepot` (a machine sent from it
+sets out from the threshold outside the shed's machine door, and nothing is
+sent while the swarm is on the apron). It is still one base shape: a shed building a
 fixed line of hulls (`CordonSetup.BASE_LINE`, `FabricationService`), carriers
 staged on its apron, columns mustering in its yard. The heart schedules its
 armour separately (`HeartLanes.scheduleArmour`).

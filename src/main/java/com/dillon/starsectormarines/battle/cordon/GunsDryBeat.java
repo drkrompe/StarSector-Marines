@@ -1,9 +1,8 @@
 package com.dillon.starsectormarines.battle.cordon;
 
+import com.dillon.starsectormarines.battle.command.allied.SupplyDelivery;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRuntime.Status;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.vehicle.GroundBody;
-import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 
 import java.util.ArrayList;
@@ -16,7 +15,8 @@ import java.util.Random;
  * L2, The guns run dry ({@code cordon-nouns.md}, Optional objectives): after the first tide one redoubt's
  * gun towers run low and fire at a quarter of their rate; the base loads an ammo truck, which sets out
  * from the base's gate up that redoubt's supply road. When it reaches the redoubt the guns fire at their
- * own rate again. Fails when the truck is destroyed or the redoubt is lost first.
+ * own rate again. Fails when the truck is destroyed or the redoubt is lost first. The truck is a
+ * {@link SupplyDelivery} whose recipient is the redoubt.
  *
  * <p>Simplified: the truck appears at the base end of the supply road (the dump stands inside the base,
  * where a truck has no room to turn out), and "low" is a rationed rate of fire, not a counted magazine.
@@ -31,7 +31,7 @@ final class GunsDryBeat extends CordonBeat {
     private static final long SALT = 0x4755_4E53_4452_59L;
 
     private CordonRedoubt redoubt;
-    private long truck;
+    private SupplyDelivery delivery;
     private boolean started, arrived;
     private final Map<Long, Float> lastTimer = new HashMap<>();
 
@@ -59,19 +59,20 @@ final class GunsDryBeat extends CordonBeat {
                 base = gate;
                 gate = swap;
             }
-            truck = beats.deploy(sim, VehicleType.SUPPLY_TRUCK, base[0], base[1]);
-            if (truck == 0L) return Status.LAPSED;
-            beats.command().station(sim, truck, gate[0], gate[1]);
+            int[] from = base, to = gate;
+            CordonRedoubt r = redoubt;
+            delivery = SupplyDelivery.ammunition(new SupplyDelivery.Recipient() {
+                @Override public String name() { return "redoubt " + r.number(); }
+                @Override public int[] where(BattleSimulation s) { return r.manned() ? to : null; }
+                @Override public boolean reached(BattleSimulation s, float x, float y) {
+                    return r.contains((int) x, (int) y, ARRIVE);
+                }
+                @Override public void arrived(BattleSimulation s) { GunsDryBeat.this.arrived = true; }
+            }, s -> from);
         }
-        boolean alive = CordonBeats.alive(sim, truck);
-        if (alive) {
-            GroundBody body = sim.convoy().body(truck);
-            if (redoubt.contains((int) body.x, (int) body.y, ARRIVE)) {
-                arrived = true;
-                sim.convoy().despawn(truck);
-            }
-        }
-        return rule(arrived, alive, redoubt.manned());
+        SupplyDelivery.State state = delivery.advance(sim, beats.command());
+        if (state == SupplyDelivery.State.WAITING) return Status.LAPSED;
+        return rule(arrived, state != SupplyDelivery.State.LOST, redoubt.manned());
     }
 
     /** The guns stay rationed until the truck comes, whether or not it still can. */
@@ -118,15 +119,14 @@ final class GunsDryBeat extends CordonBeat {
     @Override
     String describe(BattleSimulation sim) {
         if (redoubt == null) return "";
-        String truckAt = CordonBeats.alive(sim, truck) ? (int) sim.convoy().body(truck).x + "," + (int) sim.convoy().body(truck).y
-                : arrived ? "arrived" : "gone";
+        int[] at = delivery == null ? null : delivery.truckCell(sim);
+        String truckAt = at != null ? at[0] + "," + at[1] : arrived ? "arrived" : "gone";
         return "redoubt " + redoubt.number() + ", truck " + truckAt;
     }
 
     @Override
     int[] call(BattleSimulation sim) {
-        if (!started || arrived || !CordonBeats.alive(sim, truck)) return null;
-        GroundBody body = sim.convoy().body(truck);
-        return new int[]{(int) body.x, (int) body.y, 2};
+        int[] at = delivery == null ? null : delivery.truckCell(sim);
+        return at == null ? null : new int[]{at[0], at[1], 2};
     }
 }
