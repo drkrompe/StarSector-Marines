@@ -1,6 +1,6 @@
 # The Heart — story beats (candidates)
 
-Status: ACTIVE. The owner picked every beat (2026-10-23); they become a pool of optional objectives once the maps hold their structures (`heart-mission-depth.md`). Nothing here is built.
+Status: ACTIVE. The owner picked every beat (2026-10-23). F1, F5, B2, B3 and B4 are in the heart's optional-objective pool (`HeartObjectives`); the rest wait on their machinery.
 
 Written: 2026-10-23
 
@@ -93,9 +93,23 @@ heart; the extra line stays short of it. Needs: a convoy on the farm road
 are the company's alone for the last stretch. It is a pacing beat, not a
 mechanic: the presentation marks it (`barrage_ended` already exists).
 
-## Open
+## As optional objectives
 
-Every beat is picked. Each becomes an optional objective that a battle may
-activate when its map holds the structure it needs, with a reward on success
-and a cost on failure (`heart-mission-depth.md`). The shared mechanism that
+Each beat becomes an optional objective (`optional-objectives.md`) that a
+battle may roll when its map laid the place it needs, with a reward on
+success and a cost on failure. A rural battle runs one or two, a town or city
+two or three, drawn from the battle seed over what the map laid.
+
+| Beat | Key | Needs | Succeeds | Fails | Reward / cost |
+| --- | --- | --- | --- | --- | --- |
+| F1 | `lost_column` | `holdout` | the company reaches it | seven minutes pass first | credits and supplies / one more satellite |
+| F5 | `linkup` | `reservoir-yard` | the company and an allied lane in the yard together | never; lapses | credits |
+| B2 | `village` | `village-holdout` | the company reaches it | the barrage's third line opens first | regard |
+| B3 | `guns_hold` | `gun-flank-1` | every gun standing at the end | the first gun lost | credits / the battery weakened |
+| B4 | `ford` | `company-ford` | the company at its ford | never; lapses | credits |
+
+Not in the pool yet: F2 and F4 need the commander and swarm-side behaviour
+they name, F3 needs close air support, F6 a satellite placed against the
+road, B5 the ammunition convoy, B1 and B6 are presentation. The lost column's
+survivors do not join a lane yet. The shared mechanism that
 rolls and runs them is `optional-objectives.md`.

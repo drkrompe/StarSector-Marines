@@ -8,7 +8,9 @@ import com.dillon.starsectormarines.battle.scene.SceneWorld;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.EmplacementStyle;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
@@ -25,6 +27,9 @@ import java.util.Map;
  * with a marine squad beside them for scale, once per {@link EmplacementStyle}. Each turret is given the style the
  * way a generated post's is, so the frame shows what the renderer resolves from the structure's {@code looks}.
  * {@code -Dsnapshot.groundTurrets.looks=} and {@code -Dsnapshot.groundTurrets.biomes=} narrow the run.
+ *
+ * <p>A {@code firing-<look>} shot per look plays the guns against targets for six seconds, so barrel recoil and
+ * muzzle effects can be judged in motion; {@code -Dsnapshot.groundTurrets.firing=false} leaves it out.
  */
 public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
 
@@ -56,6 +61,9 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
             for (String look : looks) {
                 artifacts.addAll(LookReview.record(context.modRoot(), shot(look, biome.trim(), surface)));
             }
+        }
+        if (Boolean.parseBoolean(System.getProperty("snapshot.groundTurrets.firing", "true"))) {
+            for (String look : looks) artifacts.addAll(LookReview.record(context.modRoot(), firing(look)));
         }
         return artifacts;
     }
@@ -96,5 +104,44 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
                 LookReview.View.play(placement.site().centreX(), placement.site().centreY()),
                 LookReview.View.close("close", placement.site().centreX(), placement.site().centreY(), 30f)),
                 1, 2, 1);
+    }
+
+    /** Seconds of fire a firing shot plays, at one frame a tick. */
+    private static final int FIRING_TICKS = 180;
+
+    /**
+     * A 40x22 window on arid ground: the autogun, cannon and grenade emplacements in a column at the west with the
+     * heavy-cannon hardpoint behind them, all defenders, and a line of marine targets sixteen cells east that outlast
+     * the run (bodies, not squads, so only the guns fire). Played for {@link #FIRING_TICKS} ticks at one frame a tick
+     * so a barrel's kick and a muzzle's flash land in the animation.
+     */
+    private static LookReview.Shot firing(String look) {
+        LookGround ground = LookGround.of(SurfacePalette.ARID, 7L);
+        return new LookReview.Shot("firing-" + look, ground, 40, 22, placement -> {
+            SceneBuilder builder = placement.builder();
+            placement.holdouts(builder);
+            BattleSimulation sim = builder.build().sim();
+            Object[][] guns = {{"autogun", 16f, 8f}, {"cannon", 16f, 11f}, {"grenade", 16f, 14f}, {"heavy", 11f, 11f}};
+            int i = 0;
+            for (Object[] gun : guns) {
+                float[] at = placement.openNear((Float) gun[1], (Float) gun[2]);
+                int x = (int) at[0];
+                int y = (int) at[1];
+                long id = sim.spawn(MapTurret.create("fire" + i++, Faction.DEFENDER, ROLES.get((String) gun[0]), x, y));
+                sim.setStructureStyle(id, EmplacementStyle.valueOf(look.toUpperCase()));
+                sim.getGrid().setWalkable(x, y, false);
+                sim.turretState().setFacingDegrees(id, 90f);
+            }
+            for (int t = 0; t < 5; t++) {
+                float[] at = placement.openNear(31f, 7f + t * 2f);
+                EntitySpec target = new EntitySpec("target" + t, Faction.MARINE, UnitType.MARINE, (int) at[0], (int) at[1]);
+                target.moveSpeed = 0f;
+                target.hp = target.maxHp = 4000f;
+                sim.spawn(target);
+            }
+            return sim;
+        }, placement -> List.of(
+                LookReview.View.close("close", placement.site().x(21f), placement.site().y(11f), 26f)),
+                FIRING_TICKS, 1, 3);
     }
 }

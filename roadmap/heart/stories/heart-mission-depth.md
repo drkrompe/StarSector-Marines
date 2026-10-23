@@ -26,7 +26,8 @@ activate per map (another way there is variation here)".
    beat's set piece that needs ground, and the town and city densities.
    Open: a full hollow, the knoll, a satellite placed against the supply
    road (F6), and pooling the denser maps.
-2. **Beats as optional objectives** (`heart-story-beats.md`). The beats are a
+2. **Beats as optional objectives** (`heart-story-beats.md`). Started: F1,
+   F5, B2, B3 and B4 are rolled and played on the shared board. The beats are a
    pool. Each battle activates a subset, and how many and which vary by map,
    seed and density. Each beat declares the structure it needs, so a beat that
    does not fit a map is never rolled there. Each beat carries a reward on

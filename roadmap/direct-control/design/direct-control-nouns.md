@@ -666,9 +666,10 @@ weapon-groups panel, titled SHIP SYSTEMS, holds read-only rows for the gun batte
 the automation (director, missile preset, ground-fire policy), each with its laid area
 or a no-area/auto note and a readiness fill. Armour is a rating in this model and is
 never spent down, so its line is shown whole. The camera frames the hull by its beam so
-the cursor can lead beyond the bow. The hull outline, the two laid rings and a
-crosshair are drawn in the world; there is no aim lane, since a ship fires on ground
-and not along a line. The F6-F11 debug keys of the debug mission still work outside
+the cursor can lead beyond the bow. The two laid rings and a crosshair are drawn
+in the world; there is no aim lane, since a ship fires on ground and not along a
+line, and no hull outline, since the camera is leashed to the piloted ship. Its
+selection circle belongs to the strategic view and stays there. The F6-F11 debug keys of the debug mission still work outside
 control and are hidden during it.
 
 ### Tender

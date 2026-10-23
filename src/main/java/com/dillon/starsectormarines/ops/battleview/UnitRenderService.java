@@ -460,8 +460,8 @@ public final class UnitRenderService implements RenderSystem {
 
             TurretLayerPose pose = TurretLayerPose.resolve(
                     cx, cy, facingDegrees, structure.mount.visualCells, cellPx,
-                    turretState.recoilTimer(id), BattleRenderer.RECOIL_DURATION,
-                    BattleRenderer.RECOIL_DISTANCE_FRAC);
+                    turretState.recoilTimer(id), structure.mount.recoil.seconds(),
+                    structure.mount.recoil.distanceFrac());
 
             ShuttleSpriteCache barrel = look != null && look.recoilSpritePath() != null
                     ? sprites.spriteByPath(look.recoilSpritePath()) : sprites.turretRecoilSprites().get(structure.id);
