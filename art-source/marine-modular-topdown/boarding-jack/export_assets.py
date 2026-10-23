@@ -12,8 +12,10 @@ is the raw rust-orange paint; the other palettes run the Specter v1 luminance ra
 mask, so every paint shares one silhouette and alpha.
 
   armor/boarding-jack/{body,shoulder-left,shoulder-right,head,foot}.png    rust-orange (default)
-  armor/boarding-jack/paints/<palette>/...                                  hull-grey, oxide-green, soot
   armor/boarding-jack/paints/pirate/...                                     soot weathered with crude red (own raws)
+  art-source/.../unshipped-paints/boarding-jack/<palette>/...               hull-grey, oxide-green, soot
+
+Only pirate is drawn in play, so the ramp palettes are written outside mod/ rather than shipped.
 """
 import hashlib
 import json
@@ -27,6 +29,7 @@ REPOSITORY = HERE.parents[2]
 TEMPLATES = REPOSITORY / "art-source/templates"
 VARIANTS = REPOSITORY / "mod/graphics/battle/marine-modular-topdown/variants"
 OUTPUT = VARIANTS / "armor/boarding-jack"
+UNSHIPPED = HERE.parent / "unshipped-paints/boarding-jack"
 EXPORT_NAMES = {"torso": "body.png", "left-shoulder": "shoulder-left.png",
                 "right-shoulder": "shoulder-right.png", "head": "head.png", "foot": "foot.png"}
 PALETTES = {
@@ -168,10 +171,10 @@ def export():
         outputs[OUTPUT / export_name] = part
         mask.save(HERE / "masks" / f"{name}-casing.png")
         for palette, ramp in PALETTES.items():
-            outputs[OUTPUT / "paints" / palette / export_name] = recolor(part, mask, ramp)
+            outputs[UNSHIPPED / palette / export_name] = recolor(part, mask, ramp)
         if (HERE / "raw" / f"pirate-{name}.raw.png").exists():
             pirate, pirate_record = pirate_part(geometry, windows, name, part,
-                                                outputs[OUTPUT / "paints" / "soot" / export_name])
+                                                outputs[UNSHIPPED / "soot" / export_name])
             outputs[OUTPUT / "paints" / "pirate" / export_name] = pirate
             record["pirate"] = pirate_record
     for path, image in outputs.items():

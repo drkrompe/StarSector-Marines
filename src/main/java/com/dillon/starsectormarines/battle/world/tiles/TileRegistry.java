@@ -91,7 +91,6 @@ public final class TileRegistry {
             "data/tilesets/terrain-blast.tileset.json",
             "data/tilesets/ship-bay.tileset.json",
             "data/tilesets/auto-shop.tileset.json",
-            "data/tilesets/warehouse-racks.tileset.json",
             "data/tilesets/warehouse-racks-muted.tileset.json",
             "data/tilesets/armory-workshop.tileset.json",
             "data/tilesets/barracks-bunks.tileset.json",
