@@ -175,6 +175,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.render.creepPalette` | experiment | 2026-10-21 | Bloom/creep sessions: remove once the creep look is accepted. |
 | `battle.render.deadAirHaze` | control | 2026-10-20 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.domeShader` | control | 2026-10-13 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
+| `battle.render.doodadAtlas` | experiment | 2026-10-23 | Doodad decoration atlas: remove it with the per-cut bind path once renderEvidence has read the atlas against its control. |
 | `battle.render.fire` | experiment | 2026-10-22 | Fire-system session: remove once the owner's fire look is final (fire-nouns.md). |
 | `battle.render.fireLook` | experiment | 2026-10-22 | Fire-system session: remove once the owner's fire look is final (fire-nouns.md). |
 | `battle.render.fogField` | control | 2026-09-02 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
@@ -182,7 +183,10 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.render.groundFeathering` | control | 2026-10-22 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.groundMesh` | control | 2026-09-02 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.nightCoarse` | experiment | 2026-10-22 | Night-shade session: remove once renderEvidence on the burn at night accepts the lever. |
+| `battle.render.nightFireFogClears` | experiment | 2026-10-23 | Night-shade session: remove once renderEvidence on the burn at night accepts the lever. |
+| `battle.render.nightFireThroughFog` | experiment | 2026-10-23 | Night-shade session: remove once renderEvidence on the burn at night accepts the lever. |
 | `battle.render.nightRuns` | experiment | 2026-10-22 | Night-shade session: remove once renderEvidence on the burn at night accepts the lever. |
+| `battle.render.nightUnseenTint` | experiment | 2026-10-23 | Night-shade session: remove once renderEvidence on the burn at night accepts the lever. |
 | `battle.render.residentDecoration` | control | 2026-09-03 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.residentRelief` | control | 2026-09-02 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.residentRoofs` | control | 2026-09-03 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
