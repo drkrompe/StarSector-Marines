@@ -337,11 +337,6 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 null);
         graphics.setTransform(saved);
         Color blue = DirectControlPanel.controlledColor();
-        float bracket = Math.max(9f, px * 1.35f);
-        graphics.setColor(blue);
-        graphics.setStroke(new BasicStroke(1f));
-        graphics.drawRect(Math.round(ringX - bracket), Math.round(ringY - bracket),
-                Math.round(bracket * 2f), Math.round(bracket * 2f));
         float r = ring != null ? DirectControlPanel.scatterRingPx(ring, px) : -1f;
         if (r >= 0f) {
             Color c = DirectControlPanel.scatterColor(ring);

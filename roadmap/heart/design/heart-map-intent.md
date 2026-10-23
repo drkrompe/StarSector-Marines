@@ -1,6 +1,6 @@
 # The Heart — maps with intent
 
-Status: DRAFT. Direction for step 2 of `heart-mission-depth.md`; nothing here is built.
+Status: ACTIVE. Direction for step 2 of `heart-mission-depth.md`. The owner picked the ridge layout for both forms (2026-10-23); the cordon ridge is built, the rest is not.
 
 Written: 2026-10-23
 

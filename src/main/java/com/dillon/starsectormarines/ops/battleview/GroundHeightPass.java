@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.render2d.ShaderProgram;
 import com.dillon.starsectormarines.render2d.SolidQuadBatch;
 
 import java.util.Arrays;
+import com.dillon.starsectormarines.render2d.texture.TextureLease;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -111,8 +112,17 @@ final class GroundHeightPass {
     private boolean meshTextured;
     private boolean meshTexturedKnown;
 
+    /** Whose lease the height and normal companions load under; null for the session's. */
+    private final TextureLease lease;
+
     GroundHeightPass(GroundMicroHeightSampler resolver) {
+        this(resolver, null);
+    }
+
+    /** @param lease the owner's lease, which releases the companion sheets with it; null for the session's */
+    GroundHeightPass(GroundMicroHeightSampler resolver, TextureLease lease) {
         this.resolver = resolver;
+        this.lease = lease;
     }
 
     /**
@@ -149,7 +159,7 @@ final class GroundHeightPass {
                 float cy = cam.cellToScreenY(y + 0.5f);
                 GroundMicroHeightSampler.Sample sample = textured ? resolver.resolve(grid, topology, x, y) : null;
                 AtlasBatch atlas = sample == null ? null : atlas(sample.heightSheetPath);
-                if (atlas == null || !atlas.ensureLoaded()) {
+                if (atlas == null || !atlas.ensureLoaded(lease)) {
                     appendMetadata(cx, cy, cellPx, macro, water, shore);
                     if (relief.hasRaisedGround()) {
                         solidBatch.setLastQuadRed(cornerMacro(relief, x, y, 0), cornerMacro(relief, x, y, 1),
@@ -268,7 +278,7 @@ final class GroundHeightPass {
                 sink.cornerRed(cornerMacro(relief, gridX, gridY, 0), cornerMacro(relief, gridX, gridY, 1),
                         cornerMacro(relief, gridX, gridY, 2), cornerMacro(relief, gridX, gridY, 3));
             }
-            if (atlas == null || !atlas.ensureLoaded()) {
+            if (atlas == null || !atlas.ensureLoaded(lease)) {
                 sink.solid(macro, 0.5f, water, shoreFactor);
                 return;
             }
@@ -390,9 +400,10 @@ final class GroundHeightPass {
             this.texture = SheetTexture.grid(heightSheetPath);
         }
 
-        boolean ensureLoaded() {
+        boolean ensureLoaded(TextureLease lease) {
             if (batch != null) return true;
-            texture.ensureLoaded();
+            if (lease != null) texture.ensureLoaded(lease);
+            else texture.ensureLoaded();
             if (!texture.isLoaded()) return false;
             batch = new QuadBatch(texture.sprite(), texture.pxW(), texture.pxH(), 4096);
             return true;

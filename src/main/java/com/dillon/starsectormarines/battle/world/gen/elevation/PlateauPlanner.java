@@ -117,7 +117,7 @@ public final class PlateauPlanner {
     }
 
     /** Every cell a layout touches or draws an apron on. */
-    private static boolean[] footprint(ElevationLayout layout) {
+    static boolean[] footprint(ElevationLayout layout) {
         int w = layout.width(), h = layout.height();
         double[] art = layout.artCorners(1);
         boolean[] out = new boolean[w * h];
@@ -133,7 +133,7 @@ public final class PlateauPlanner {
      * What the new plateau adds lies on free cells, at least two cells from
      * every plateau already placed, so plateaus never merge.
      */
-    private static boolean fits(boolean[] next, boolean[] before, int w, int h, IntPredicate free) {
+    static boolean fits(boolean[] next, boolean[] before, int w, int h, IntPredicate free) {
         for (int i = 0; i < next.length; i++) {
             if (!next[i] || before[i]) continue;
             if (!free.test(i) || near(before, w, h, i % w, i / w, 2)) return false;

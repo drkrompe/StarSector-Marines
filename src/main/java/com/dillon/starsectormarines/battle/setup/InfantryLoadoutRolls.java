@@ -18,6 +18,8 @@ import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
+import java.util.Set;
+import java.util.EnumSet;
 import java.util.Random;
 
 /** Deterministic doctrine rolls for family, equipment quality, and personnel. */
@@ -154,6 +156,15 @@ public final class InfantryLoadoutRolls {
             result[i] = defenderLoadout(roster, tier, risk, rng);
         }
         return result;
+    }
+
+    /** Every armor {@link #defenderArmor} can roll for {@code type}, at any risk: what a set must load for it. */
+    public static Set<MarineArmorPattern> defenderArmors(UnitType type) {
+        return type == UnitType.MILITIA
+                ? EnumSet.of(MarineArmorPattern.ARMORLESS, MarineArmorPattern.MILITIA,
+                        MarineArmorPattern.ARMY_GREEN, MarineArmorPattern.CHARCOAL)
+                : EnumSet.of(MarineArmorPattern.MILITIA, MarineArmorPattern.CHARCOAL,
+                        MarineArmorPattern.ARMY_GREEN, MarineArmorPattern.RED_ELITE);
     }
 
     /** Generic fallback armor for legacy/headless battles without a frozen faction roster. */

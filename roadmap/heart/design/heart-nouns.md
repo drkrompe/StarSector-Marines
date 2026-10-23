@@ -84,6 +84,13 @@ every tree it holds to a bone-pale skeleton and brought down every roof it
 stands under. Nothing is painted on. A bore collapsed in the battle withers its
 creep back as any bore does.
 
+**Cordon ridge.** The last high ground before the bloom, just past the
+farmland: a band of hill segments across the whole front, each climbed by a
+ramp from the cordon's side, with a pass wherever a road, a lane, a ride or a
+settlement crosses it (`elevation-nouns.md`, Ridges). The line was dug along
+it, and it looks down into the overgrowth. The Burn's village stands across most of its
+band, so The Burn's ridge is short.
+
 **Start line.** The near edge of the cordon's farmland, along the farm road the
 fields are worked from. Where the attack steps off and, in The Burn, the first
 firebreak behind the fire line.
