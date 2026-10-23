@@ -40,6 +40,7 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;
 
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Set;
@@ -736,6 +737,14 @@ public class BattleSprites {
         for (VehicleType type : types) loadConvoySprite(type);
     }
 
+    /**
+     * {@code path}'s pixels at its logical size, for art read as data rather than drawn (a hull's opaque footprint);
+     * null when it cannot be read. A headless host reads it off its own resource roots.
+     */
+    public BufferedImage readPixels(String path) throws IOException {
+        return ModTextures.readImage(path);
+    }
+
     /** One vehicle line's sheet, once. */
     public void loadConvoySprite(VehicleType type) {
         if (!vehiclesAttempted.add(type)) return;
@@ -745,7 +754,10 @@ public class BattleSprites {
             // sheet's logical size alone, so its pixels are never decoded or sliced.
             SpriteSheetFrames size = new SpriteSheetFrames(Math.round(sheet.getWidth()),
                     Math.round(sheet.getHeight()), new SpriteSheetFrames.Frame[0]);
-            convoySprites.put(type, new UnitSpriteCache(sheet, type.registeredSpriteFrames(size)));
+            UnitSpriteCache cache = new UnitSpriteCache(sheet, type.registeredSpriteFrames(size));
+            convoySprites.put(type, cache);
+            // Where worn plate may be drawn, read off the hull's pixels now rather than on the frame of its first hit.
+            VehicleScuffs.masks(this, type, cache.frames);
         } else {
             LOG.warn("convoy: failed to load sprite for " + type
                     + " (" + type.spritePath + ")");

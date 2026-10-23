@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
+import com.dillon.starsectormarines.battle.vehicle.HullLocations;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -95,6 +96,8 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     tint[0], tint[1], tint[2], alphaMult);
 
             if (type.hasAnimatedTreads() && !wrecked) VehicleTreadRender.collect(type, cache, body, cam, alphaMult, out);
+            HullLocations locations = wrecked ? null : convoy.locations(id);
+            if (locations != null) collectHullScuffs(type, cache, f, locations, id, body, chassisFacingDeg, cam, alphaMult, out);
             if (!wrecked && type.fluxVentAftCells() > 0f) {
                 collectFluxHaze(ctx, type, convoy.turret(id), body, cam, cellPx, alphaMult, out);
             }
@@ -144,12 +147,103 @@ public final class ConvoyRenderSystem implements RenderSystem {
                         cam.cellToScreenX(drawCellX), cam.cellToScreenY(drawCellY),
                         tDrawLong, tDrawShort, turretFacingDeg,
                         1f, 1f, 1f, alphaMult);
+                if (locations != null && locations.turret() != null) {
+                    VehicleScuffs.Mask mask = VehicleScuffs.turretMask(sprites, type, frames);
+                    float wear = VehicleScuffs.wear(locations.turret().armor(), locations.turret().maxArmor());
+                    if (mask != null && wear > 0f) {
+                        scuffSink.begin(out, cam, tf, drawCellX, drawCellY, turretFacingDeg,
+                                type.turretVisualCells / tf.w, mask, alphaMult);
+                        VehicleScuffs.place(mask, 0, wear, id ^ TURRET_SEED, scuffSink);
+                        scuffSink.out = null;
+                    }
+                }
             }
 
         }
 
         if (ctx.hostProfile.unitDecorationsVisible()) {
             sweepDurabilityBars(ids, convoy, cam, cellPx, alphaMult, out);
+        }
+    }
+
+    /** The base game's damage decals; one quarter of one is a mark. */
+    static final String[][] SCUFF_DECALS = {
+            {"graphics/damage/damage_burns48_0_base.png", "graphics/damage/damage_burns48_1_base.png"},
+            {"graphics/damage/damage_cracks48_0_base.png", "graphics/damage/damage_cracks48_1_base.png"},
+            {"graphics/damage/damage_holes48_0_base.png", "graphics/damage/damage_holes48_1_base.png"}};
+    /** How strongly each kind of mark is laid over the paint: scorch soft, holes whole. */
+    private static final float[] SCUFF_ALPHA = {0.85f, 0.9f, 1f};
+    /** Each kind's tint: the base set is drawn for a starship's grey, so scorch and cracks are darkened for paint. */
+    private static final float[] SCUFF_SHADE = {0.45f, 0.55f, 1f};
+    /** Mixed into a turret's seed, so it does not repeat its hull's front plate. */
+    private static final long TURRET_SEED = 0x5DEECE66DL;
+
+    private final ScuffSink scuffSink = new ScuffSink();
+
+    /**
+     * Worn plate over the hull and its treads, under the turret ({@code body-scuffs.md}): each plate's marks from
+     * {@link VehicleScuffs}, laid in the hull's own frame and turned with it.
+     */
+    private void collectHullScuffs(VehicleType type, UnitSpriteCache cache, SpriteSheetFrames.Frame f,
+                                   HullLocations locations, long id, GroundBody body, float angleDeg,
+                                   BattleCamera cam, float alphaMult, DrawList out) {
+        VehicleScuffs.Mask mask = VehicleScuffs.hullMask(sprites, type, cache.frames);
+        if (mask == null) return;
+        scuffSink.begin(out, cam, f, body.x, body.y, angleDeg, type.visualLengthCells / f.w, mask, alphaMult);
+        for (HullLocations.Plate plate : HullLocations.Plate.values()) {
+            float wear = VehicleScuffs.wear(locations.armor(plate), locations.maxArmor(plate));
+            if (wear > 0f) VehicleScuffs.place(mask, plate.ordinal(), wear, id, scuffSink);
+        }
+        scuffSink.out = null;
+    }
+
+    /** Lays one mark from {@link VehicleScuffs#place} on the frame it is being collected for; reused per frame. */
+    private final class ScuffSink implements VehicleScuffs.Sink {
+        DrawList out;
+        BattleCamera cam;
+        SpriteSheetFrames.Frame f;
+        float centreX;
+        float centreY;
+        float angleDeg;
+        float cellsPerPixel;
+        float cos;
+        float sin;
+        float sizePx;
+        float alpha;
+
+        /** Aims the sink at frame {@code f} drawn centred on cell {@code (x, y)}, turned {@code angleDeg}. */
+        void begin(DrawList out, BattleCamera cam, SpriteSheetFrames.Frame f, float x, float y, float angleDeg,
+                   float cellsPerPixel, VehicleScuffs.Mask mask, float alpha) {
+            this.out = out;
+            this.cam = cam;
+            this.f = f;
+            this.centreX = x;
+            this.centreY = y;
+            this.angleDeg = angleDeg;
+            this.cellsPerPixel = cellsPerPixel;
+            double rad = Math.toRadians(angleDeg);
+            this.cos = (float) Math.cos(rad);
+            this.sin = (float) Math.sin(rad);
+            this.sizePx = mask.decalPx * cellsPerPixel * cam.cellPxSize();
+            this.alpha = alpha;
+        }
+
+        @Override
+        public void mark(float x, float y, int kind, int variant, float spinDegrees, float strength) {
+            ShuttleSpriteCache decal = sprites.spriteByPath(SCUFF_DECALS[kind][variant & 1]);
+            if (decal == null || decal.pxW <= 0) return;
+            int qw = decal.pxW / 2;
+            int qh = decal.pxH / 2;
+            int qx = ((variant >> 1) & 1) * qw;
+            int qy = ((variant >> 2) & 1) * qh;
+            float lx = (x - f.w * 0.5f) * cellsPerPixel;
+            float ly = (f.h * 0.5f - y) * cellsPerPixel;
+            float wx = centreX + lx * cos - ly * sin;
+            float wy = centreY + lx * sin + ly * cos;
+            float shade = SCUFF_SHADE[kind];
+            out.addSheetQuad(RenderLayer.CONVOY, decal.sprite, qx, qy, qw, qh,
+                    cam.cellToScreenX(wx), cam.cellToScreenY(wy), sizePx, sizePx, angleDeg + spinDegrees,
+                    shade, shade, shade, SCUFF_ALPHA[kind] * strength * alpha);
         }
     }
 
