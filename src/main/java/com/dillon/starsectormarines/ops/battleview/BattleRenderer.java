@@ -244,6 +244,8 @@ public class BattleRenderer {
      * state.
      */
     private final FogField fogField = new FogField();
+    /** Where a night burn thins the fog over its own glow; see {@link FireFogClearing}. */
+    private final FireFogClearing fireFogClearing = new FireFogClearing();
     private final CreepLayer creep = new CreepLayer();
     /** Grass-topped raised ground, baked once per battle and drawn over the ground tiles. */
     private final CliffArtLayer cliffArt = new CliffArtLayer();
@@ -677,11 +679,13 @@ public class BattleRenderer {
         FogOfWarService vis = ctx.sim.getFogOfWar();
         if (!vis.isInitialized()) return;
 
+        fireFogClearing.update(FireRenderSystem.enabled() ? ctx.sim.fireFieldIfPresent() : null,
+                ctx.sim.getTopology().nightLighting() != null, vis.gridWidth(), vis.gridHeight());
         boolean resident = ctx.hostProfile.residentFogAllowed() && FogField.enabled();
         if (resident && fogField.isServing(vis)) {
             float alpha = ctx.alphaMult;
             out.addCustom(RenderLayer.FOG, () -> {
-                if (fogField.sync(vis)) fogField.draw(rc.camera, alpha);
+                if (fogField.sync(vis)) fogField.draw(rc.camera, alpha, fireFogClearing);
             });
             return;
         }
@@ -713,13 +717,14 @@ public class BattleRenderer {
                     if (cx < gw-1 && !revealed[idx + 1])  darkNeighbors++;
                 }
                 float fogAlpha = fogAlphaForCell(revealed[idx], darkNeighbors,
-                        vis.wouldBeRevealedWithoutTransientOpacity(cx, cy));
+                        vis.wouldBeRevealedWithoutTransientOpacity(cx, cy)) * fireFogClearing.keep(idx);
                 if (fogAlpha <= 0f) continue;
 
                 float sx = rc.camera.cellToScreenX(cx);
                 float sy = rc.camera.cellToScreenY(cy);
+                float[] colour = fireFogClearing.fogColour();
                 out.addSolidRect(RenderLayer.FOG, sx, sy, sx + cellPx, sy + cellPx,
-                        0f, 0f, 0f, fogAlpha * alphaMult);
+                        colour[0], colour[1], colour[2], fogAlpha * alphaMult);
             }
         }
     }

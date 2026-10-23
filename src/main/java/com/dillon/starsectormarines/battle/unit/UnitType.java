@@ -13,30 +13,21 @@ import com.dillon.starsectormarines.battle.turret.MapTurret;
  * depending on which side hired the pirates this mission.
  *
  * <p>Live bodies are drawn from modular art (layered infantry, layered mechs,
- * Rav rigs); the old single-sheet unit art is gone. The facing frame
- * {@code FacingSystem} authors still follows one of two conventions, selected by
- * {@link #frameLayout}:
- * <ul>
- *   <li>{@link FrameLayout#WNES_WEAPON_UP} (default) — 7 frames: 0=W idle, 1=N,
- *       2=E, 3=S, 4=W weapon-up, 5=E weapon-up, 6=N weapon-up (S reuses 6 +
- *       vertical flip).</li>
- *   <li>{@link FrameLayout#EIGHT_WAY_NO_WEAPON_UP} — 7 frames covering 7 of 8
- *       compass octants, no separate weapon-up pose (the heavy mech).</li>
- * </ul>
+ * Rav rigs); the old single-sheet unit art is gone.
  */
 public enum UnitType {
     /** Player faction's elite. Higher accuracy and HP than militia, expensive in lore. */
-    MARINE     (true, null,      true,  25f, 18.0f, 2.0f, 0.35f, 1.0f, 24.0f, 36.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f, 0.45f),
+    MARINE     (true, null,      true,  25f, 18.0f, 2.0f, 0.35f, 1.0f, 24.0f, 36.0f, 1.0f, 1.0f, 0.3f, 0.45f),
     /** Generic regular soldier of an aligned faction (e.g., friendly sector navy on a joint op). Stat-equal to MARINE; sprite differs. */
-    MARINE_BLUE(true, null, true,  25f, 18.0f, 2.0f, 0.35f, 1.0f, 24.0f, 36.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f, 0.45f),
+    MARINE_BLUE(true, null, true,  25f, 18.0f, 2.0f, 0.35f, 1.0f, 24.0f, 36.0f, 1.0f, 1.0f, 0.3f, 0.45f),
     /** Pirate / opposed-faction regular. Stat-equal to MARINE; sprite differs. Often on the DEFENDER side, occasionally allied. */
-    MARINE_RED (true, null,  true,  25f, 18.0f, 2.0f, 0.35f, 1.0f, 24.0f, 36.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f, 0.45f),
+    MARINE_RED (true, null,  true,  25f, 18.0f, 2.0f, 0.35f, 1.0f, 24.0f, 36.0f, 1.0f, 1.0f, 0.3f, 0.45f),
     /** Lightly armed local conscript. Less accurate, less HP, slower cooldown, shorter sight lanes than a regular. The bread-and-butter defender. Low morale impact — militia are not that intimidating to marines, so a squad can take a lot of militia fire before breaking. */
-    MILITIA    (true, null,     true,  15f, 13.5f, 2.0f, 0.22f, 1.2f, 18.0f, 28.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 0.4f, 0.3f, 0.45f),
+    MILITIA    (true, null,     true,  15f, 13.5f, 2.0f, 0.22f, 1.2f, 18.0f, 28.0f, 1.0f, 0.4f, 0.3f, 0.45f),
     /** Hostile fauna / xeno boarder. Aggressive glass-cannon brawler — low HP, high damage, slightly faster, mid accuracy. Above-baseline morale impact (animal panic). */
-    ALIEN      (true, null,       true, 15.0f, 3.0f, 2.2f, 0.32f, 1.1f, 22.0f, 34.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.2f, 0.3f, 0.45f),
+    ALIEN      (true, null,       true, 15.0f, 3.0f, 2.2f, 0.32f, 1.1f, 22.0f, 34.0f, 1.0f, 1.2f, 0.3f, 0.45f),
     /** Compatibility archetype for modular strider mechs. The persistent {@link com.dillon.starsectormarines.battle.mech.MechVariant} supplies each body's actual stats, geometry, and installed {@link MechLoadoutComponent}; an unspecified profile defaults to the stock heavy Bulwark. Defender mechs show up when the target planet produces or demands heavy armaments. */
-    HEAVY_MECH (true, "graphics/battle/heavy-mech-dead.png",  true,  550f, 36.0f, 1.15f, 0.40f, 0.6f, 40.0f, 55.0f, FrameLayout.EIGHT_WAY_NO_WEAPON_UP, 1.6f, 1.5f, 0.6f, 0.80f),
+    HEAVY_MECH (true, "graphics/battle/heavy-mech-dead.png",  true,  550f, 36.0f, 1.15f, 0.40f, 0.6f, 40.0f, 55.0f, 1.6f, 1.5f, 0.6f, 0.80f),
     /**
      * A machine on the stocks in a vehicle bay — the chassis a garrison's
      * technicians are building, standing in its berth while they build it.
@@ -67,11 +58,11 @@ public enum UnitType {
      * hulk there rather than a machine that vanishes.
      */
     MACHINE_FRAME(true, "graphics/battle/heavy-mech-dead.png",
-                                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    FrameLayout.EIGHT_WAY_NO_WEAPON_UP, 1.6f, 0f, 0.6f, 0.80f),
+                                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    1.6f, 0f, 0.6f, 0.80f),
     /** Random urban resident. Wanders the map and flees gunfire. Non-combatant; combat stats are unused but kept zero-safe. No corpse — civilian death just removes them from the map. */
-    CIVILIAN   (true, null,                                   false,  8f, 0f,   2.4f, 0f,    1f,   0f,    12.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f, 0.45f),
+    CIVILIAN   (true, null,                                   false,  8f, 0f,   2.4f, 0f,    1f,   0f,    12.0f, 1.0f, 1.0f, 0.3f, 0.45f),
     /** Maintenance / industrial worker. Same role as civilian — wanders, flees. */
-    ENGINEER   (true, null,                                   false, 10f, 0f,   2.2f, 0f,    1f,   0f,    12.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f, 0.45f),
+    ENGINEER   (true, null,                                   false, 10f, 0f,   2.2f, 0f,    1f,   0f,    12.0f, 1.0f, 1.0f, 0.3f, 0.45f),
     /**
      * A garrison's working trade with a sidearm on their hip — the technicians
      * a motor pool or an airfield is staffed with.
@@ -91,35 +82,35 @@ public enum UnitType {
      * civilians who vanish, and inventing a body for one trade would leave the
      * hangar's fallen drawn and the barracks' undrawn.
      */
-    TECHNICIAN (true, null,                                   true,  12f, 7.0f, 2.2f, 0.15f, 1.4f, 9.0f, 20.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 0.2f, 0.3f, 0.45f),
+    TECHNICIAN (true, null,                                   true,  12f, 7.0f, 2.2f, 0.15f, 1.4f, 9.0f, 20.0f, 1.0f, 0.2f, 0.3f, 0.45f),
     /** Lab tech. Same role as civilian — wanders, flees. Lower HP than engineer; same speed. */
-    SCIENTIST  (true, null,                                   false,  8f, 0f,   2.2f, 0f,    1f,   0f,    12.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f, 0.45f),
+    SCIENTIST  (true, null,                                   false,  8f, 0f,   2.2f, 0f,    1f,   0f,    12.0f, 1.0f, 1.0f, 0.3f, 0.45f),
     /** Invisible, simulation-only backstop used by authored live-fire tasks. It is targetable and static but never participates in a campaign roster or render pass. */
-    RANGE_TARGET(false, null,                                   true, 1_000_000f, 0f, 0f, 0f, 1f, 0f, 0f, FrameLayout.WNES_WEAPON_UP, 1f, 0f, 0.25f, 0.45f),
+    RANGE_TARGET(false, null,                                   true, 1_000_000f, 0f, 0f, 0f, 1f, 0f, 0f, 1f, 0f, 0.25f, 0.45f),
     /** Static ground turret. Combatant so it targets and gets targeted, but its sprite and stats come from the structure definition baked in at construction (see {@code MapTurret#create}); these values are zero placeholders overwritten by the factory. */
-    TURRET     (false, null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.45f, 0.60f),
+    TURRET     (false, null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    1.0f, 1.0f, 0.45f, 0.60f),
     /** Drone launch hub — a static structure that periodically deploys aerial drones (see {@link com.dillon.starsectormarines.battle.drone.DroneHub}). Combatant so marines target and damage it, but its role is {@link UnitRole#STRUCTURE} (no aim loop, no firing). Sprite path is empty because the hub uses a per-instance vanilla weapon sprite picked at construction, same convention as {@link #TURRET}. HP set on the instance, not here. */
-    DRONE_HUB_STRUCTURE (false, null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    8.0f,  FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.5f, 0.70f),
+    DRONE_HUB_STRUCTURE (false, null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    8.0f,  1.0f, 1.0f, 0.5f, 0.70f),
     /** Autonomous defensive drone launched from a {@link com.dillon.starsectormarines.battle.drone.DroneHub}. Combatant so marines target it, but the sprite path is empty because the drone uses a per-instance vanilla drone sprite (see {@link com.dillon.starsectormarines.battle.drone.Drone#SPRITE_PATH}), same convention as {@link #TURRET} / {@link #DRONE_HUB_STRUCTURE}. HP / speed are set on the instance, not here. */
-    DRONE      (false, null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.35f, 0.35f),
+    DRONE      (false, null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    1.0f, 1.0f, 0.35f, 0.35f),
     /** An aircraft standing on a garrison hardstand — the grid-unit half of a based aircraft (see {@link com.dillon.starsectormarines.battle.air.BasedAircraft}). Combatant so it is targeted and damaged where it stands, but its role is {@link UnitRole#STRUCTURE}: no aim loop, no firing. Sprite path is empty because it draws its own hull, the same convention as {@link #TURRET} / {@link #DRONE_HUB_STRUCTURE}; HP and armor are set on the instance from the hull it represents. */
-    BASED_AIRCRAFT (false, null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.5f, 0.70f),
+    BASED_AIRCRAFT (false, null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    1.0f, 1.0f, 0.5f, 0.70f),
     /** A convoy ground vehicle — the chassis itself, not its payload (see {@link com.dillon.starsectormarines.battle.sim.ConvoyService}). Combatant so it is seen, targeted, and damaged through the paths every other body uses; its role, structure, armor, and body geometry all come from the per-instance {@link com.dillon.starsectormarines.battle.vehicle.VehicleType}, the same convention as {@link #TURRET} / {@link #BASED_AIRCRAFT}. Sprite path is empty because it draws its own chassis. Not {@link #isStatic}: it moves, it simply does its moving through a {@code GroundBody} rather than the grid mover. */
-    GROUND_VEHICLE(false, null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    FrameLayout.WNES_WEAPON_UP, 1.0f, 1.3f, 1.5f, 0.90f),
+    GROUND_VEHICLE(false, null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    1.0f, 1.3f, 1.5f, 0.90f),
     /** Fast biological close-contact attacker for the civilian-rescue swarm payload. Append-only; legacy ALIEN remains the generic ranged-stat archetype. */
-    SWARM_RUNNER(true, null,       true,  20.0f, 5.0f, 3.2f, 1.0f, 0.7f, 1.5f, 20.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.3f, 0.3f, 0.30f),
+    SWARM_RUNNER(true, null,       true,  20.0f, 5.0f, 3.2f, 1.0f, 0.7f, 1.5f, 20.0f, 1.0f, 1.3f, 0.3f, 0.30f),
     /**
      * Slow, plated swarm strain that breaks into held buildings and goes for emplacements. Its plate is
      * issued at spawn ({@code SwarmStrains}), not here: 20 points at rating 10, which a DMR or rocket
      * goes straight through and an SMG barely scratches. Append-only.
      */
-    SWARM_BRUTE(true, null, true,  40.0f, 14.0f, 1.8f, 1.0f, 1.2f, 1.7f, 16.0f, FrameLayout.WNES_WEAPON_UP, 1.5f, 2.0f, 0.45f, 0.45f),
+    SWARM_BRUTE(true, null, true,  40.0f, 14.0f, 1.8f, 1.0f, 1.2f, 1.7f, 16.0f, 1.5f, 2.0f, 0.45f, 0.45f),
     /**
      * Fragile swarm strain that keeps its distance and lobs acid with a splash, at infantry or a low
      * flier. {@link #attackDamage} is the acid's direct hit; the splash and range live with its
      * behaviour. Append-only.
      */
-    SWARM_SPITTER(true, "graphics/battle/swarm-spitter-dead.png", true, 12.0f, 7.0f, 2.6f, 0.55f, 2.6f, 14.0f, 20.0f, FrameLayout.WNES_WEAPON_UP, 1.1f, 1.4f, 0.3f, 0.30f),
+    SWARM_SPITTER(true, "graphics/battle/swarm-spitter-dead.png", true, 12.0f, 7.0f, 2.6f, 0.55f, 2.6f, 14.0f, 20.0f, 1.1f, 1.4f, 0.3f, 0.30f),
     /**
      * The mother bore's heavy strain: one per mother at maw tier, a plated quadruped about four and a
      * half cells nose to tail. Slow and very durable; its scythes reap the infantry in front of it and its
@@ -127,7 +118,7 @@ public enum UnitType {
      * catches; the crown blow and the reap's arc live with its behaviour. {@link #renderScale} is its
      * length in cells, which sizes its corpse. Append-only.
      */
-    SWARM_MATRIARCH(true, "graphics/battle/rav-matriarch-dead.png", true, 1200.0f, 30.0f, 0.7f, 1.0f, 1.8f, 2.2f, 18.0f, FrameLayout.WNES_WEAPON_UP, 4.5f, 4.0f, 1.0f, 0.90f);
+    SWARM_MATRIARCH(true, "graphics/battle/rav-matriarch-dead.png", true, 1200.0f, 30.0f, 0.7f, 1.0f, 1.8f, 2.2f, 18.0f, 4.5f, 4.0f, 1.0f, 0.90f);
 
     /** Whether the body carries a {@code SPRITE} component: see {@link #carriesSprite()}. */
     private final boolean carriesSprite;
@@ -147,7 +138,6 @@ public enum UnitType {
     /** How far this unit can see, in cells. Strictly &ge; {@link #attackRange} so a unit always spots enemies before they enter weapon range. Drives the fog-of-war shadowcast radius; 0 means the unit inherits {@code attackRange} as its vision range (used by turrets whose range is set per-instance). */
     public final float visionRange;
     /** Frame indexing convention of the facing frame {@code FacingSystem} authors. */
-    public final FrameLayout frameLayout;
     /** Base multiplier on the renderer's per-cell sprite size; mech profiles override it per entity. */
     public final float renderScale;
     /** Base morale drain weight of outgoing fire; mech profiles override it per entity. */
@@ -175,7 +165,7 @@ public enum UnitType {
              float maxHp, float attackDamage, float moveSpeed,
              float accuracy, float attackCooldown, float attackRange,
              float visionRange,
-             FrameLayout frameLayout, float renderScale, float moraleImpact,
+             float renderScale, float moraleImpact,
              float radius, float hitHalfHeight) {
         this.carriesSprite = carriesSprite;
         this.deadSpritePath = deadSpritePath;
@@ -187,7 +177,6 @@ public enum UnitType {
         this.attackCooldown = attackCooldown;
         this.attackRange = attackRange;
         this.visionRange = visionRange;
-        this.frameLayout = frameLayout;
         this.renderScale = renderScale;
         this.moraleImpact = moraleImpact;
         this.radius = radius;
@@ -381,25 +370,4 @@ public enum UnitType {
 
     /** Whether this chassis has a modular true-overhead live composition. */
     public boolean drawnAsMechLayers() { return hasChassis(); }
-
-    /**
-     * Sprite-sheet frame indexing convention. Each layout names what indices 0..N
-     * represent on its source PNG. The renderer's facing→frame lookup branches on
-     * this; adding a new convention is "add an enum value + a switch arm."
-     */
-    public enum FrameLayout {
-        /**
-         * Standard marine convention used by every infantry sheet:
-         * 0=W idle, 1=N idle, 2=E idle, 3=S idle, 4=W weapon-up, 5=E weapon-up,
-         * 6=N weapon-up (S weapon-up reuses 6 + vertical flip). Seven frames total.
-         */
-        WNES_WEAPON_UP,
-        /**
-         * Heavy-mech convention — 8-way facing minus N (the mech sheet just doesn't
-         * have one), no separate weapon-up pose: 0=W, 1=NW, 2=SE, 3=S, 4=SW,
-         * 5=NE, 6=E. When the mech happens to face N, the renderer falls back to
-         * the closest neighbor (NW or NE) rather than synthesizing a missing frame.
-         */
-        EIGHT_WAY_NO_WEAPON_UP
-    }
 }
