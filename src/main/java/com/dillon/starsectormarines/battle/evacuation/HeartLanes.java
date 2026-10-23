@@ -129,6 +129,15 @@ public final class HeartLanes {
         return this;
     }
 
+    /**
+     * Adds armour-only ground beside the company: no columns of its own, so it raises no lane beats; its
+     * machines are stationed on its ground's target as any lane's are. Returns its index for {@link #addArmour}.
+     */
+    public int addSupport(HeartLane ground, int[] entry, long seed) {
+        lanes.add(new Lane(lanes.size() + 1, ground, entry[0], entry[1], 0, new int[0], RiskLevel.MEDIUM, new Random(seed)));
+        return lanes.size() - 1;
+    }
+
     /** Lanes that advance toward higher ({@code +1}) or lower ({@code -1}) cells, so armour without a barrage stands behind its aim. */
     public HeartLanes advancing(int sign) {
         advanceSign = sign;

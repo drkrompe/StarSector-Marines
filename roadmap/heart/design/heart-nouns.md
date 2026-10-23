@@ -249,11 +249,14 @@ collapses a bore by fiat.
    wave a minute, an escort APC, a technical, a breakthrough tank and a Hound
    pair, and a fresh tank and technical every two minutes. With no barrage to
    wait for, the company holds its landing for its first two minutes, so it
-   goes for its satellite with the lanes up beside it rather than alone.
-   `-Dbattle.heart.broadStrength=false` and `-Dbattle.heart.broadFormUp=0` are
-   the controls. Measured on seeds 202-606: neither lever is enough alone
-   (0 and 1 win of 5); together they win 2. Sending the lanes across to the
-   company's satellite once their own fell measured worse.
+   goes for its satellite with the lanes up beside it rather than alone. Its
+   own sector gets armour too, a breakthrough tank and a Hound pair stationed
+   on its target and a fresh tank every two minutes, so no part of the front
+   goes in without it. `-Dbattle.heart.broadStrength=false`,
+   `-Dbattle.heart.broadFormUp=0` and `-Dbattle.heart.broadCompanyArmour=false`
+   are the controls. Measured on seeds 202-606: the lanes' strength alone wins
+   1 of 5, with the form-up 2, with the company's armour 3. Sending the lanes
+   across to the company's satellite once their own fell measured worse.
 2. **Advance to contact.** The satellites surge on their own clocks from the
    start and hunt whatever they sense, so contact comes lane by lane. The
    mothers **sleep**: they grow, but send nothing.
