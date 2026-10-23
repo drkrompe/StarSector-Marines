@@ -433,17 +433,57 @@ def rejoin_start(t_light, t_next):
 
 
 def rejoined(key, f, t_light):
-    """A launch flight eased onto its REJOIN offset: positions only, her attitude is the launch's."""
+    """A launch flight eased onto its REJOIN offset. The offset moves her; her nose follows where
+    she is actually going, turned from the launch's attitude toward her track by the share of her
+    speed the offset gives her (none at either end of the ease, so every cut keeps its attitude).
+    It used to move positions only, and five S4 hulls crabbed sideways at 30-98 degrees off their
+    noses with their drives at full (owner, 2026-10-23: "ships flying sideways")."""
     if key not in REJOIN:
         return f
     t_next, d = REJOIN[key]
     ta = rejoin_start(t_light, t_next)
+    span = t_next - ta
+
+    def pos(t):
+        p = f.at(t)
+        u = min(1.0, max(0.0, (t - ta) / span))
+        w = u * u * (3 - 2 * u)
+        return p, (p[0] + w * d[0], p[1] + w * d[1], p[2] + w * d[2])
+
+    def want(t):
+        """The nose she should have at t: the launch's, turned toward her track."""
+        p, _ = pos(t)
+        hd0, pt0 = math.radians(p[3]), math.radians(p[4])
+        n0 = (math.cos(pt0) * math.cos(hd0), math.cos(pt0) * math.sin(hd0), math.sin(pt0))
+        u = (t - ta) / span
+        if not 0.0 < u < 1.0:
+            return n0
+        h = .05
+        v = [(pos(t + h)[1][i] - pos(t - h)[1][i]) / (2 * h) for i in range(3)]
+        sp = math.sqrt(sum(c * c for c in v))
+        if sp < 1.0:
+            return n0
+        vo = 6 * u * (1 - u) / span * math.sqrt(sum(c * c for c in d))   # the offset's share of her speed
+        s = min(1.0, vo / sp)
+        s = s * s * (3 - 2 * s)
+        return tuple(n0[i] * (1 - s) + v[i] / sp * s for i in range(3))
 
     def at(t):
-        p = f.at(t)
-        u = min(1.0, max(0.0, (t - ta) / (t_next - ta)))
-        w = u * u * (3 - 2 * u)
-        return (p[0] + w * d[0], p[1] + w * d[1], p[2] + w * d[2], *p[3:])
+        p, q = pos(t)
+        # Her nose comes round over the last 1.5 s of where she should point, not at once: a hull
+        # turns at a hull's rate (a destroyer swung 115 degrees in a second without it).
+        n = [0.0, 0.0, 0.0]
+        for k in range(11):
+            w = 11 - k
+            for i, c in enumerate(want(t - k * .15)):
+                n[i] += c * w
+        ln = math.sqrt(sum(c * c for c in n)) or 1.0
+        n = [c / ln for c in n]
+        if abs(n[2]) > .9999 or max(abs(c) for c in n) < 1e-9:
+            return (*q, *p[3:])
+        hd = _near(p[3], math.degrees(math.atan2(n[1], n[0])))
+        pt = math.degrees(math.asin(max(-1.0, min(1.0, n[2]))))
+        return (*q, hd, pt, *p[5:])
     return Pose(at(f.t), f.t, at)
 
 
