@@ -23,7 +23,7 @@ import java.util.function.IntConsumer;
 
 /**
  * Strategic entry above selection. During takeover the HUD follows the game's own combat HUD:
- * the body's status at bottom left (beside a mech's section doll), its weapon groups at bottom
+ * the body's status at bottom left (beside its doll), its weapon groups at bottom
  * right, and the session controls at top right. The centre stays clear for the fight.
  */
 final class BattleDirectControlOverlay {
@@ -84,6 +84,7 @@ final class BattleDirectControlOverlay {
     private float helpPointerX, helpPointerY;
     private boolean visible;
     private BattleDamageDollPlate sectionPlate;
+    private BattleMarineDollPlate marinePlate;
     private UiViewport sectionViewport;
 
     private boolean activeMode;
@@ -125,6 +126,7 @@ final class BattleDirectControlOverlay {
                     helpPlate.props());
             helpDocument = document(helpMarkup);
             sectionPlate = new BattleDamageDollPlate();
+            marinePlate = new BattleMarineDollPlate();
         }
         update(0f, sim, speedMultiplier);
     }
@@ -135,13 +137,13 @@ final class BattleDirectControlOverlay {
     }
 
     /**
-     * The status panel at bottom left, {@code documentHeight} tall. A mech's or vehicle's damage doll
-     * takes the corner itself and the status stands to its right, bottom edges level.
+     * The status panel at bottom left, {@code documentHeight} tall. The body's doll (a machine's damage
+     * doll or a Marine's) takes the corner itself and the status stands to its right, bottom edges level.
      */
-    static UiViewport statusViewport(PositionAPI position, float documentHeight, boolean mech) {
+    static UiViewport statusViewport(PositionAPI position, float documentHeight, boolean doll) {
         float scale = MarineOpsUiViewport.from(position).documentScale();
         float left = position.getX() + MARGIN
-                + (mech ? (BattleDamageDollPlate.DOCUMENT_WIDTH + BattleDamageDollPlate.GAP) * scale : 0f);
+                + (doll ? (BattleDamageDollPlate.DOCUMENT_WIDTH + BattleDamageDollPlate.GAP) * scale : 0f);
         float width = Math.max(0f, Math.min(STATUS_WIDTH * scale, position.getX() + position.getWidth() - MARGIN - left));
         return new UiViewport(left, position.getY() + MARGIN, width, documentHeight * scale, scale);
     }
@@ -230,6 +232,7 @@ final class BattleDirectControlOverlay {
             if (sectionPlate != null) updateDoll(sim, status);
         } else if (sectionPlate != null) {
             sectionPlate.clear();
+            marinePlate.clear();
         }
         updateHelp(dt, active);
         if (markup != null) markup.flush();
@@ -262,9 +265,15 @@ final class BattleDirectControlOverlay {
         }
     }
 
-    /** Shows the controlled machine on the damage doll: a mech's sections or a vehicle's hull. */
+    /** Shows the controlled body on its doll: a mech's sections, a vehicle's hull, or a Marine. */
     private void updateDoll(BattleSimulation sim, BattleDirectControlStatus.Snapshot status) {
         long id = status.entityId();
+        if (status.carrier() == Carrier.MARINE) {
+            sectionPlate.clear();
+            marinePlate.update(BattleMarineDollPlate.MarineDoll.read(sim, id, Strings::get));
+            return;
+        }
+        marinePlate.clear();
         if (status.carrier() == Carrier.MECH) {
             sectionPlate.update(sim.world().mechLoadout(id));
         } else if (status.carrier() == Carrier.VEHICLE) {
@@ -281,16 +290,16 @@ final class BattleDirectControlOverlay {
     /** Re-measures the panels when a row comes or goes, then keeps them in their corners. */
     private void updatePanels(float dt) {
         if (position == null || statusDocument == null || weaponsDocument == null) return;
-        boolean mech = actionModel.carrier() == Carrier.MECH || actionModel.carrier() == Carrier.VEHICLE;
+        boolean doll = hasDoll(actionModel.carrier());
         if (!actionModel.structureKey().equals(measuredStructure)) {
             measuredStructure = actionModel.structureKey();
             float status = naturalHeight(statusDocument, statusMarkup, "direct-status-spacer", STATUS_WIDTH);
-            statusHeight = mech ? Math.max(status, BattleDamageDollPlate.DOCUMENT_HEIGHT) : status;
+            statusHeight = doll ? Math.max(status, BattleDamageDollPlate.DOCUMENT_HEIGHT) : status;
             weaponsHeight = naturalHeight(weaponsDocument, weaponsMarkup, "direct-weapons-spacer", WEAPONS_WIDTH);
             statusViewport = null;
             weaponsViewport = null;
         }
-        UiViewport nextStatus = statusViewport(position, statusHeight, mech);
+        UiViewport nextStatus = statusViewport(position, statusHeight, doll);
         if (!nextStatus.equals(statusViewport)) {
             statusViewport = nextStatus;
             statusDocument.layout(nextStatus.documentWidth(), nextStatus.documentHeight());
@@ -302,10 +311,20 @@ final class BattleDirectControlOverlay {
             weaponsDocument.layout(nextWeapons.documentWidth(), nextWeapons.documentHeight());
             weaponsInput = new StarsectorUiInputAdapter(weaponsDocument, nextWeapons);
         }
-        sectionViewport = mech ? sectionsViewport(position) : null;
+        sectionViewport = doll ? sectionsViewport(position) : null;
         statusDocument.advance(dt);
         weaponsDocument.advance(dt);
         if (sectionPlate != null && sectionPlate.visible()) sectionPlate.document().advance(dt);
+        if (marinePlate != null && marinePlate.visible()) marinePlate.document().advance(dt);
+    }
+
+    /** Whether a carrier shows a doll in the corner: a machine's damage doll, or a Marine's. */
+    static boolean hasDoll(Carrier carrier) {
+        return carrier == Carrier.MECH || carrier == Carrier.VEHICLE || carrier == Carrier.MARINE;
+    }
+
+    private boolean dollVisible() {
+        return sectionPlate != null && sectionPlate.visible() || marinePlate != null && marinePlate.visible();
     }
 
     /** The help tab is hover-only: pointer events are observed here, never consumed or acted on. */
@@ -365,6 +384,7 @@ final class BattleDirectControlOverlay {
         }
         float statusAlpha = statusOccluding ? alpha * OCCLUDING_ALPHA : alpha;
         if (sectionPlate != null) sectionPlate.render(sectionViewport, statusAlpha);
+        if (marinePlate != null) marinePlate.render(sectionViewport, statusAlpha);
         if (statusDocument != null && statusViewport != null) statusDocument.render(statusViewport, statusAlpha);
         if (weaponsDocument != null && weaponsViewport != null) {
             weaponsDocument.render(weaponsViewport, weaponsOccluding ? alpha * OCCLUDING_ALPHA : alpha);
@@ -388,6 +408,10 @@ final class BattleDirectControlOverlay {
             BattleHudSurface sections = sectionPlate.surface(sectionViewport);
             if (sections != null) result.add(sections);
         }
+        if (marinePlate != null) {
+            BattleHudSurface marine = marinePlate.surface(sectionViewport);
+            if (marine != null) result.add(marine);
+        }
         return List.copyOf(result);
     }
 
@@ -398,7 +422,7 @@ final class BattleDirectControlOverlay {
         return contains(actionsViewport, x, y)
                 || !weaponsOccluding && contains(weaponsViewport, x, y)
                 || !statusOccluding && (contains(statusViewport, x, y)
-                || sectionPlate != null && sectionPlate.visible() && contains(sectionViewport, x, y))
+                || dollVisible() && contains(sectionViewport, x, y))
                 || helpLayout != null && helpHover.blocks(true, x, y, helpLayout);
     }
 
@@ -425,7 +449,7 @@ final class BattleDirectControlOverlay {
         if (!activeMode) return;
         float radius = Math.max(0f, screenRadius) + 8f;
         statusOccluding = overlaps(statusViewport, screenX, screenY, radius)
-                || sectionPlate != null && sectionPlate.visible() && overlaps(sectionViewport, screenX, screenY, radius);
+                || dollVisible() && overlaps(sectionViewport, screenX, screenY, radius);
         weaponsOccluding = overlaps(weaponsViewport, screenX, screenY, radius);
         if (weaponsOccluding && weaponsDocument != null) weaponsDocument.deactivateInput();
     }

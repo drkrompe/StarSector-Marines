@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
+import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.svg.SvgAsset;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -150,16 +151,28 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         artifacts.add(new SnapshotArtifact("active-apc-1920x1080-ui100.png",
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f,
                         BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.VEHICLE, false),
-                        vehiclePlate(context.modRoot()), false)));
+                        vehiclePlate(context.modRoot()).document(), false)));
         FlankedTank tank = flankedTank(context.modRoot());
         artifacts.add(new SnapshotArtifact("active-tank-flanked-1920x1080-ui100.png",
-                activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, tank.status(), tank.plate(), false)));
+                activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, tank.status(), tank.plate().document(), false)));
         artifacts.add(new SnapshotArtifact("mech-sections-states-1920x1080-ui100.png",
                 sectionStates(renderer, context.modRoot())));
         for (MagazineFrame frame : MAGAZINE_FRAMES) {
             artifacts.add(new SnapshotArtifact("active-marine-magazine-" + frame.name() + "-1920x1080-ui100.png",
-                    activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, frame.snapshot(), null, false)));
+                    activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, frame.snapshot(),
+                            marinePlate(context.modRoot(), true).document(), false)));
         }
+        var marine = BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.MARINE, false);
+        artifacts.add(new SnapshotArtifact("active-marine-doll-1920x1080-ui100.png",
+                activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, marine,
+                        marinePlate(context.modRoot(), true).document(), false)));
+        artifacts.add(new SnapshotArtifact("active-marine-doll-figure-only-1920x1080-ui100.png",
+                activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, marine,
+                        marinePlate(context.modRoot(), false).document(), false)));
+        artifacts.add(new SnapshotArtifact("active-marine-wide-status-1920x1080-ui100.png",
+                activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, marine, null, false, true)));
+        artifacts.add(new SnapshotArtifact("marine-doll-states-1920x1080-ui100.png",
+                marineStates(renderer, context.modRoot())));
         return artifacts;
     }
 
@@ -238,8 +251,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         renderer.render(fixture.weaponsDocument(), (int) BattleDirectControlOverlay.WEAPONS_WIDTH, 64);
         float status = BattleDirectControlOverlay.naturalHeight(fixture.statusDocument(), fixture.status(),
                 "direct-status-spacer", BattleDirectControlOverlay.STATUS_WIDTH);
-        if (fixture.model().carrier() == BattleDirectControlStatus.Carrier.MECH
-                || fixture.model().carrier() == BattleDirectControlStatus.Carrier.VEHICLE) {
+        if (BattleDirectControlOverlay.hasDoll(fixture.model().carrier())) {
             status = Math.max(status, BattleDamageDollPlate.DOCUMENT_HEIGHT);
         }
         float weapons = BattleDirectControlOverlay.naturalHeight(fixture.weaponsDocument(), fixture.weapons(),
@@ -253,7 +265,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                                                   boolean paused) throws Exception {
         MechLoadoutComponent hound = damagedHound();
         return activeComposite(renderer, modRoot, width, height, uiScale, houndSnapshot(hound),
-                sectionPlate(modRoot, hound), paused);
+                sectionPlate(modRoot, hound).document(), paused);
     }
 
     /**
@@ -287,8 +299,17 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
     private static BufferedImage activeComposite(HeadlessUiRenderer renderer, Path modRoot,
                                                   int width, int height, float uiScale,
                                                   BattleDirectControlStatus.Snapshot snapshot,
-                                                  BattleDamageDollPlate plate,
+                                                  UiDocument doll,
                                                   boolean paused) throws Exception {
+        return activeComposite(renderer, modRoot, width, height, uiScale, snapshot, doll, paused, false);
+    }
+
+    /** {@code wideStatus}: no doll, and the status panel as wide as the weapon groups instead. */
+    private static BufferedImage activeComposite(HeadlessUiRenderer renderer, Path modRoot,
+                                                  int width, int height, float uiScale,
+                                                  BattleDirectControlStatus.Snapshot snapshot,
+                                                  UiDocument doll,
+                                                  boolean paused, boolean wideStatus) throws Exception {
         var layout = BattleDirectControlOverlayTest.layout(width, height, uiScale);
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = image.createGraphics();
@@ -310,13 +331,21 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
             try (var fixture = BattleDirectControlHudTest.fixture(modRoot,
                     snapshot, 0, paused, ignored -> {}, () -> {}, () -> {})) {
                 float[] measured = measure(renderer, fixture);
-                var status = BattleDirectControlOverlayTest.activeStatus(width, height, uiScale, measured[0], plate != null);
+                var status = BattleDirectControlOverlayTest.activeStatus(width, height, uiScale, measured[0], doll != null);
+                if (wideStatus) {
+                    float scale = status.documentScale();
+                    float wide = BattleDirectControlOverlay.WEAPONS_WIDTH;
+                    renderer.render(fixture.statusDocument(), (int) wide, 64);
+                    float tall = BattleDirectControlOverlay.naturalHeight(fixture.statusDocument(), fixture.status(),
+                            "direct-status-spacer", wide);
+                    status = new UiViewport(status.screenX(), status.screenY(), wide * scale, tall * scale, scale);
+                }
                 var weapons = BattleDirectControlOverlayTest.activeWeapons(width, height, uiScale, measured[1]);
                 draw(graphics, renderer, fixture.status(), status, layout.host(), uiScale);
                 draw(graphics, renderer, fixture.weapons(), weapons, layout.host(), uiScale);
                 draw(graphics, renderer, fixture.actions(), layout.activeActions(), layout.host(), uiScale);
             }
-            if (plate != null) draw(graphics, renderer, plate, layout.activeSections(), layout.host(), uiScale);
+            if (doll != null) draw(graphics, renderer, doll, layout.activeSections(), layout.host(), uiScale);
         } finally {
             graphics.dispose();
         }
@@ -360,7 +389,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                     draw(graphics, renderer, markup, layout.mech(), layout.host(), uiScale);
                 }
                 var plate = sectionPlate(modRoot, new MechLoadoutComponent(MechVariant.BULWARK, null));
-                draw(graphics, renderer, plate, BattleDamageDollPlate.above(layout.mech()),
+                draw(graphics, renderer, plate.document(), BattleDamageDollPlate.above(layout.mech()),
                         layout.host(), uiScale);
             } else {
                 var model = new BattleSquadOverlayModel(reactor, () -> {});
@@ -425,6 +454,73 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
             int left = (1920 - pitch * 3 - width) / 2;
             for (int i = 0; i < mechs.size(); i++) {
                 var plate = sectionPlate(modRoot, mechs.get(i));
+                BufferedImage panel = renderer.render(plate.document(), width, height);
+                int x = left + i * pitch;
+                int y = (1080 - height) / 2;
+                graphics.drawImage(panel, x, y, null);
+                graphics.setColor(new Color(0xC5, 0xD6, 0xCB));
+                graphics.drawString(captions.get(i), x, y - 14);
+            }
+        } finally {
+            graphics.dispose();
+        }
+        return image;
+    }
+
+    /**
+     * A Marine for the doll: armor and health fractions and limb wounds, carrying (with {@code kit}) a
+     * rocket launcher with one round of two left, a breaching assist, and an emptied medic kit.
+     */
+    private static BattleMarineDollPlate.MarineDoll marine(Path modRoot, boolean suit, int arms, int legs,
+                                                          float armor, float health) {
+        var copy = ModStrings.fromDisk(modRoot);
+        List<BattleMarineDollPlate.Kit> items = List.of(
+                new BattleMarineDollPlate.Kit(copy.apply("gearCatalogSpecialRocketLauncherDisplayName"), "1/2", false),
+                new BattleMarineDollPlate.Kit(copy.apply("gearCatalogSystemBreacherAssistDisplayName"),
+                        copy.apply("battleMarineDollReady"), false),
+                new BattleMarineDollPlate.Kit(copy.apply("battleMarineDollMedic"), "0/3", true));
+        return new BattleMarineDollPlate.MarineDoll(suit, true, armor, health, arms, legs, items);
+    }
+
+    /** The preview Marine (74% health, armor 35 of 60, as its status panel reads) with a leg wound. */
+    private static BattleMarineDollPlate marinePlate(Path modRoot, boolean showKit) {
+        var plate = new BattleMarineDollPlate(path -> Files.readString(modRoot.resolve(path)),
+                ModStrings.fromDisk(modRoot), showKit);
+        plate.update(marine(modRoot, false, 0, 1, 35f / 60f, .74f));
+        return plate;
+    }
+
+    /**
+     * The Marine doll in five states on one 1920x1080 frame at 100%: whole, armor worn, armor gone and
+     * hurt with two leg wounds, an arm and a leg wounded to the floor, and a power suit.
+     */
+    private static BufferedImage marineStates(HeadlessUiRenderer renderer, Path modRoot) {
+        BufferedImage image = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = image.createGraphics();
+        try {
+            graphics.setColor(new Color(18, 25, 30));
+            graphics.fillRect(0, 0, 1920, 1080);
+            graphics.setColor(new Color(25, 34, 39));
+            for (int x = 0; x < 1920; x += 48) graphics.drawLine(x, 0, x, 1080);
+            for (int y = 0; y < 1080; y += 48) graphics.drawLine(0, y, 1920, y);
+            graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            graphics.setFont(graphics.getFont().deriveFont(14f));
+            List<BattleMarineDollPlate.MarineDoll> dolls = List.of(
+                    marine(modRoot, false, 0, 0, 1f, 1f),
+                    marine(modRoot, false, 0, 0, .45f, 1f),
+                    marine(modRoot, false, 0, 2, 0f, .55f),
+                    marine(modRoot, false, 4, 4, 0f, .2f),
+                    marine(modRoot, true, 0, 1, .8f, 1f));
+            List<String> captions = List.of("Whole", "Armor worn", "Armor gone, hurt, legs x2",
+                    "Arm and leg at the floor", "Power suit, leg wound");
+            int width = (int) BattleMarineDollPlate.DOCUMENT_WIDTH;
+            int height = (int) BattleMarineDollPlate.DOCUMENT_HEIGHT;
+            int pitch = 340;
+            int left = (1920 - pitch * 4 - width) / 2;
+            for (int i = 0; i < dolls.size(); i++) {
+                var plate = new BattleMarineDollPlate(path -> Files.readString(modRoot.resolve(path)),
+                        ModStrings.fromDisk(modRoot), true);
+                plate.update(dolls.get(i));
                 BufferedImage panel = renderer.render(plate.document(), width, height);
                 int x = left + i * pitch;
                 int y = (1080 - height) / 2;
@@ -523,9 +619,9 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         if (section.mount() != null && sections.destroyed(section)) mech.destroyMount(section.mount());
     }
 
-    private static void draw(Graphics2D graphics, HeadlessUiRenderer renderer, BattleDamageDollPlate plate,
+    private static void draw(Graphics2D graphics, HeadlessUiRenderer renderer, UiDocument doll,
                              UiViewport viewport, UiViewport host, float uiScale) {
-        BufferedImage panel = renderer.render(plate.document(),
+        BufferedImage panel = renderer.render(doll,
                 Math.round(viewport.documentWidth()), Math.round(viewport.documentHeight()));
         int x = Math.round((viewport.screenX() - host.screenX()) * uiScale);
         int y = Math.round((host.screenY() + host.height() - viewport.screenY() - viewport.height()) * uiScale);
