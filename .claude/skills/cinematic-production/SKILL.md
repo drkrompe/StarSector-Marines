@@ -78,6 +78,19 @@ into an MP4 at real speed. See [motion previews](references/motion-preview.md).
   field. Those wait for a lit still or a short lit span once motion is settled.
 - After a re-time, preview again before re-rendering lit frames.
 
+## A lit animatic gates every final
+
+No final frame renders until the owner has accepted a lit animatic of every final shot,
+rendered at the commit the finals will use (owner, 2026-10-23, after every Asharu final was
+scrapped for guns that did not train, rounds that homed and white orbs that a workbench preview
+could not show). The animatic is the finals' own pipeline cut down: the same layers and
+composite, quarter size, 12 fps, at most 16 samples, one MP4 per shot plus the sequence joined.
+With it goes a self-QA writeup checked against the list in
+[motion previews](references/motion-preview.md#lit-animatic): turrets slew, elevate and fire
+only at targets; rounds fly straight and only seekers home; no orbs or discs, nothing lingering;
+every moving craft shows its drive; nothing passes through a hull; no pops; every effect in the
+right layer with correct occlusion. Finals start only after acceptance, at that exact commit.
+
 ## Plan render layers before the first final
 
 Decide a shot's layers when it is blocked, not after a final comes back wrong.

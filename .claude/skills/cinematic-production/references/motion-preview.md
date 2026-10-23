@@ -78,3 +78,29 @@ Keep the hook small; put the shot's glue in its own file.
 
 `Preview.hide_effects` hides volumes, objects under thruster markers, effect-named objects and any
 materials a shot lists; a builder still hides its own stand-in effects by name.
+
+## Lit animatic
+
+The workbench preview settles motion; the lit animatic settles everything a final shows,
+before any final renders (owner, 2026-10-23). Render it as the finals are rendered, at the
+commit they will use, with the same flags apart from size, rate and samples: quarter size
+(`--percent 25`), 12 fps spans, at most 16 samples, the same layers and composite. One
+review-lane job per shot (a whole shot outlasts the light lane's 30-minute cap), each assembled
+to an MP4 at 12 fps, then the shots joined into one sequence. Estimate the GPU-hours before
+submitting.
+
+Check it yourself before the owner sees it, and write the result down shot by shot:
+
+- **Guns.** Every firing turret traverses and elevates onto its target at its turn rate, fires in
+  bursts only while on target, in range and with a clear line, and never at empty space.
+  Bursts may walk and miss around a ship (owner, 2026-10-23: "tasteful missing of burst fire
+  weapons around a ship is good"); a hit lands where the round's line meets the hull.
+- **Rounds.** Ballistic rounds and bolts fly straight in the world; only seekers home.
+- **No orbs.** No round, bright disc or sphere anywhere, and no effect lingers past its life.
+- **Drives.** Every moving craft shows its drive (the `thrust_shots` guard).
+- **Solidity.** Nothing passes through a hull: rounds, debris, flares, other ships.
+- **Continuity.** No pops: turrets, ships, effects and cameras move smoothly frame to frame.
+- **Layers.** Every effect is in the right layer and occluded correctly by the hulls in front.
+
+Then the coordinator shows the owner the MP4s with the writeup. Finals start only after the
+owner accepts, at exactly the animatic's commit.
