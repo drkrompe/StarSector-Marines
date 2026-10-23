@@ -578,7 +578,7 @@ def key_flares(ctx, flares, space, mpu=None, glare_m=3.5, trail=None, light_w=2.
     mpu = mpu or swfx_core.METRES_PER_UNIT
     mat = mp.glow_material(ctx, f'{PREFIX} flare glow', FLARE, strength=30.0, core=.9)
     trail_prof = dict(mp.PROFILES['harpoon'], trail=FLARE, trail_alpha=.5, trail_glow=1.5, trail_r_m=1.6,
-                      trail_spread=2.2, trail_life_s=1.0, ignite_s=0.0)
+                      trail_spread=2.2, trail_life_s=1.0, ignite_s=0.0, trail_broken=True)
     trail_prof.update(trail or {})
     for k, fr in enumerate(flares):
         rnd = random.Random(f'swfx-flare-key|{k}|{fr.frame}')
@@ -591,20 +591,8 @@ def key_flares(ctx, flares, space, mpu=None, glare_m=3.5, trail=None, light_w=2.
             swfx_guns._bake(ob, 'location', i, frames, [p[i] for p in locs])
         r = glare_m / mpu
         size = [r * (.6 + .4 * min(1, j / 3)) * (1 - .5 * (j / len(frames)) ** 3) for j in range(len(frames))]
-        # A burning flare streaks along its flight (owner, 2026-10-23: no orbs): its glare drawn out
-        # down its own velocity, turned onto it each frame.
-        prev = None
-        for j, f in enumerate(frames):
-            v = (locs[min(j + 1, len(locs) - 1)] - locs[max(j - 1, 0)]) if len(locs) > 1 else Vector((1, 0, 0))
-            if v.length < 1e-9:
-                v = Vector((1, 0, 0))
-            e = v.to_track_quat('X', 'Z').to_euler('XYZ', prev) if prev is not None else v.to_track_quat('X', 'Z').to_euler()
-            prev = e
-            ob.rotation_euler = e
-            ob.keyframe_insert('rotation_euler', frame=f)
-        swfx_guns._bake(ob, 'scale', 0, frames, [v * 2.8 for v in size])
-        for i in (1, 2):
-            swfx_guns._bake(ob, 'scale', i, frames, [v * .6 for v in size])
+        for i in range(3):
+            swfx_guns._bake(ob, 'scale', i, frames, size)
         flick = [(1.0 + .35 * math.sin(2.7 * j + 6.3 * fr.flicker) * rnd.uniform(.6, 1)) *
                  (1 - (j / len(frames)) ** 4) for j in range(len(frames))]
         swfx_guns._bake(ob, 'color', 0, frames, flick)
