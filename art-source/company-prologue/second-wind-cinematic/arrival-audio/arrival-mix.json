@@ -90,7 +90,7 @@
     "gain_db": -19.2
    },
    "jangala_sfx_c2_legion_forward": {
-    "gain_db": -15.4
+    "gain_db": -14.8
    },
    "jangala_sfx_c2_legion_drives": {
     "gain_db": -15.9
@@ -148,6 +148,9 @@
    },
    "jangala_sfx_c2_switch_clicks_2": {
     "gain_db": -8.9
+   },
+   "jangala_sfx_c2_legion_burn": {
+    "gain_db": -13.6
    }
   },
   "entry": {
