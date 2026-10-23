@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.SwingDoor;
 import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.dillon.starsectormarines.render2d.PolyMesh;
 import java.util.Arrays;
 
 /**
@@ -23,6 +24,12 @@ import java.util.Arrays;
  * <p>The doorway cells are found once per map. Map generation is the only
  * thing that tags a doorway, so a battle never adds one; what a battle does
  * change, a jamb blown down, is checked as each door is drawn.
+ *
+ * <p>Every door in view is one {@link PolyMesh}: its dark edge, its leaf and
+ * its hinge pin as three solid quads, door after door in the order they were
+ * always drawn. As two lines and a rect each they were three draws a door,
+ * because a line's width is per-flush state and the two lines differ in width;
+ * at the whole-map framing that was most of the layer's draw calls.
  */
 final class SwingDoorRenderSystem implements RenderSystem {
 
@@ -35,6 +42,8 @@ final class SwingDoorRenderSystem implements RenderSystem {
     /** Packed {@code y * width + x} of every one-cell doorway, sorted. */
     private int[] doors = new int[0];
     private final LongBucket near = new LongBucket();
+    /** This frame's doors, refilled every collect; the drain replays it once. */
+    private final PolyMesh mesh = new PolyMesh(256);
 
     @Override
     public RenderLayer layer() {
@@ -58,13 +67,15 @@ final class SwingDoorRenderSystem implements RenderSystem {
         int maxY = (int) Math.ceil(cam.screenToCellY(cam.vpY() + cam.vpH())) + 1;
         int from = Arrays.binarySearch(doors, Math.max(0, minY) * width);
         if (from < 0) from = -from - 1;
+        mesh.reset();
         for (int i = from; i < doors.length; i++) {
             int x = doors[i] % width, y = doors[i] / width;
             if (y > maxY) break;
             if (x < minX || x > maxX) continue;
             if (topology.isWall(x, y) || topology.isRubble(x, y) || !grid.isWalkable(x, y)) continue;
-            draw(ctx, out, topology, units, x, y);
+            draw(ctx, topology, units, x, y);
         }
+        if (!mesh.isEmpty()) out.addPoly(RenderLayer.DOODADS, mesh);
     }
 
     private void index(NavigationGrid grid) {
@@ -82,7 +93,7 @@ final class SwingDoorRenderSystem implements RenderSystem {
         doors = Arrays.copyOf(found, count);
     }
 
-    private void draw(RenderContext ctx, DrawList out, CellTopology topology, UnitSpatialIndex units, int x, int y) {
+    private void draw(RenderContext ctx, CellTopology topology, UnitSpatialIndex units, int x, int y) {
         Direction facing = OpeningTiles.doorFacing(topology, x, y);
         boolean spanX = facing == Direction.N || facing == Direction.S;
         float open = 0f;
@@ -113,13 +124,21 @@ final class SwingDoorRenderSystem implements RenderSystem {
         float a = ctx.alphaMult;
         float sx0 = cam.cellToScreenX(hx), sy0 = cam.cellToScreenY(hy);
         float sx1 = cam.cellToScreenX(tx), sy1 = cam.cellToScreenY(ty);
-        out.addLine(RenderLayer.DOODADS, sx0, sy0, sx1, sy1, Math.max(2f, px * (LEAF_WIDTH + 0.06f)),
-                EDGE[0], EDGE[1], EDGE[2], a);
-        out.addLine(RenderLayer.DOODADS, sx0, sy0, sx1, sy1, Math.max(1f, px * LEAF_WIDTH),
-                LEAF[0], LEAF[1], LEAF[2], a);
+        leaf(sx0, sy0, sx1, sy1, Math.max(2f, px * (LEAF_WIDTH + 0.06f)), EDGE, a);
+        leaf(sx0, sy0, sx1, sy1, Math.max(1f, px * LEAF_WIDTH), LEAF, a);
         float pin = Math.max(1.5f, px * 0.09f);
-        out.addSolidRect(RenderLayer.DOODADS, sx0 - pin, sy0 - pin, sx0 + pin, sy0 + pin,
+        mesh.appendQuad(sx0 - pin, sy0 - pin, sx0 + pin, sy0 - pin, sx0 + pin, sy0 + pin, sx0 - pin, sy0 + pin,
                 HINGE[0], HINGE[1], HINGE[2], a);
+    }
+
+    /** A bar {@code thickness} pixels across from hinge to tip, as one quad. */
+    private void leaf(float x0, float y0, float x1, float y1, float thickness, float[] rgb, float a) {
+        float dx = x1 - x0, dy = y1 - y0;
+        float length = (float) Math.sqrt(dx * dx + dy * dy);
+        if (length <= 0f) return;
+        float nx = -dy / length * thickness * 0.5f, ny = dx / length * thickness * 0.5f;
+        mesh.appendQuad(x0 + nx, y0 + ny, x1 + nx, y1 + ny, x1 - nx, y1 - ny, x0 - nx, y0 - ny,
+                rgb[0], rgb[1], rgb[2], a);
     }
 
     /** Inside a building; ground kind cannot say, since unset ground reads as indoor floor. */
