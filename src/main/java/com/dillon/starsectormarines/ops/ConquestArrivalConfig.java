@@ -5,15 +5,11 @@ package com.dillon.starsectormarines.ops;
  * Drop zones are physical beachheads; each player pair assigned to one of
  * those zones cycles until its share of the selected company has landed.
  *
- * <p><b>The shape is derived from the landing share unless a mission states
- * it.</b> {@link #dropZoneCount} and {@link #shuttlePairsPerZone} were fixed at
- * three and one, which is a lift that does not scale with the force: Full
- * Strength put 34 squads through the same three pairs Reinforced used for 17 and
- * landed its last squad with 449 ticks of the battle left. {@link #DERIVED}
- * leaves both to {@code OrbitalLift}, which sizes them from the committed seats
- * and the constant descent round trip so the force is down inside
- * {@link #landingShare} whatever its size. A stated value still wins outright —
- * a mission that wants one beachhead gets one.
+ * <p><b>The shape is the lift's unless a mission states it.</b>
+ * {@link #DERIVED} leaves {@link #dropZoneCount} and
+ * {@link #shuttlePairsPerZone} to {@code OrbitalLift}, which flies the ferry:
+ * three zones, one pair to each. A stated value wins outright — a mission that
+ * wants one beachhead gets one.
  */
 public record ConquestArrivalConfig(
         int dropZoneCount,

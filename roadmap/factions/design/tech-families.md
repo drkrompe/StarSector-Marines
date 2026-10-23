@@ -123,6 +123,9 @@ Correct it here when a pattern's lore says otherwise.
 
 ### Mechs
 
+The three chassis are stand-ins for a grid of mech lines, tech family by weight class
+(`mech-lines.md`).
+
 | Chassis | Family | Notes |
 |---|---|---|
 | Hound | Low-tech | Frontier survey walker on commodity running gear |
@@ -150,7 +153,8 @@ Low-tech exists. Midline and high-tech are open (`interior-tech-styles.md`).
   whose art doesn't yet read as anything in particular, carry it.
 - **The PD laser tank currently runs the high-tech turbine**, because no midline engine
   voice exists yet. By law 3 it should get the midline voice once that exists.
-- **There is no high-tech mech.** Tri-Tachyon fields Wardens.
+- **There is no high-tech mech.** Tri-Tachyon fields Wardens, a Sindrian hull that doesn't
+  read as Tri-Tachyon. Six of the nine mech lines are open (`mech-lines.md`).
 - **No mech or weapon sound varies by family.** Footsteps vary by chassis weight only, and
   there is one rifle voice for every faction.
 - **Vehicles carry no family of their own.** `VehicleType` has no family property, so the

@@ -47,21 +47,15 @@ public record ShuttleArrivalPlan(
     }
 
     /**
-     * The arrival shape with whatever the mission left to the lift filled in
-     * from the seats this manifest commits.
+     * The arrival shape with whatever the mission left to the lift filled in.
      *
      * <p>Asked before the map is generated, because the count of pairs is also
-     * the count of berthing areas the landing place has to seat; the map is then
-     * told what the lift wants rather than the lift being told what three drop
-     * zones can carry. Where the mission stated a shape this returns it
-     * unchanged.
+     * the count of berthing areas the landing place has to seat. Where the
+     * mission stated a shape this returns it unchanged.
      */
-    public ConquestArrivalConfig sizedConfigFor(List<ShuttleAssignment> manifest) {
+    public ConquestArrivalConfig sizedConfig() {
         if (!paired()) return arrivalConfig;
-        List<ShuttleAssignment> source = manifest != null ? manifest : List.of();
-        int employerEnd = Math.min(firstPlayerShuttle, source.size());
-        return OrbitalLift.resolve(arrivalConfig,
-                seatCapacity(source, employerEnd, source.size()));
+        return OrbitalLift.resolve(arrivalConfig);
     }
 
     public ShuttleType deliveryCraft(ShuttleType committedLift) {
@@ -99,8 +93,8 @@ public record ShuttleArrivalPlan(
         // mission left derived cannot collapse to one pair merely because a
         // caller resolved its manifest without asking the lift first.
         collapseSegment(source, employerEnd, source.size(), playerSeats,
-                OrbitalLift.resolve(arrivalConfig, playerSeats)
-                        .playerShuttlePairCount(), resolved);
+                OrbitalLift.resolve(arrivalConfig).playerShuttlePairCount(),
+                resolved);
         return new ResolvedManifest(resolved, resolvedEmployer);
     }
 
