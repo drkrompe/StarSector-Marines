@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.campaign.nexerelin.NexInvasionSettlement;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.air.AirLoss;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveResult;
 import com.dillon.starsectormarines.battle.warship.ShipSupportResult;
 import com.dillon.starsectormarines.battle.evacuation.PickupManifest;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
@@ -403,6 +405,7 @@ public final class MissionResolver {
                 .officers(sim.officerAttemptId(), officers)
                 .freightOutcome(sim.getThunderRun() == null ? null : sim.getThunderRun().outcome())
                 .fieldSalvage(sim.fieldSalvage().recovered())
+                .objectives(optionalObjectiveResults(sim))
                 .waylineHound(sim.getWaylineHound() == null ? null : sim.getWaylineHound().report(sim))
                 .lastLiftOutcome(sim.getLastLiftAttempt() == null ? null : sim.getLastLiftAttempt().outcome())
                 .mission(mission)
@@ -437,6 +440,18 @@ public final class MissionResolver {
                 .deployedFireteamIds(deployedFireteamIds)
                 .soldierTelemetry(soldierTelemetry)
                 .build();
+    }
+
+    /**
+     * The seam from a mission's optional objectives to the campaign: ends the battle's
+     * board (anything still running lapses, or ends as its runtime says) and reads its
+     * results. Empty when the mission rolled none.
+     */
+    static List<ObjectiveResult> optionalObjectiveResults(BattleSimulation sim) {
+        ObjectiveBoard board = sim.getOptionalObjectives();
+        if (board == null) return List.of();
+        board.end(sim.getSimTickIndex());
+        return board.results();
     }
 
     /** Retreat before the first landing supplies no casualties, not a wiped force. */
@@ -536,6 +551,13 @@ public final class MissionResolver {
         if (cargo != null) {
             if (outcome.payoutEarned > 0) {
                 cargo.getCredits().add(outcome.payoutEarned);
+            }
+            // Succeeded optional objectives pay their credits here and their materials
+            // through the recovery manifest (LootGenerator); grants and costs stay on the
+            // outcome for the campaign arc.
+            int objectiveCredits = outcome.objectiveCredits();
+            if (objectiveCredits > 0) {
+                cargo.getCredits().add(objectiveCredits);
             }
             // Named persistent marines left the generic cargo pool when enlisted;
             // their battlefield fate is written to the roster below, not charged

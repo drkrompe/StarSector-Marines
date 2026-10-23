@@ -218,9 +218,8 @@ landing disk among them, the way a shooter's crosshair opens, and it never
 opens further than 40 pixels. A vehicle turret's launcher blooms the same way,
 measured from its turret ring. Guns, which have no ground burst, keep the
 resting tick, and so does a grey tick, since a refused trigger lands nothing.
-The spread is the clear-air figure; smoke on a rocket's lane widens it. Bloom is
-built on while the owner chooses between it and a tick that grows longer
-instead (picks question `aim-reticle-spread`).
+The spread is the clear-air figure; smoke on a rocket's lane widens it. Bloom
+was chosen over a tick that grows longer instead (owner, 2026-10-23).
 A blocked body-to-barrel segment cannot masquerade as an open lane from a
 muzzle beyond the wall. The guide uses current continuous terrain and shared
 edge profiles, so opening or destroying structure changes the next preview.
