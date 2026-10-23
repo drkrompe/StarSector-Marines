@@ -1,0 +1,149 @@
+package com.dillon.starsectormarines.battle.cordon;
+
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRuntime.Status;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * R1, Clear the road ({@code cordon-nouns.md}, Optional objectives): a wreck lies across the corridor in
+ * the suburb, past the gap, and the base's dozer has to push it off before the first convoy needs the
+ * road. The wreck is laid only when this beat is rolled, at setup, on the ground the layout held for it
+ * (crate stacks, as {@code BlockKind.WRECK} is laid: there is no wreck art yet); with no dozer to clear it
+ * a laid wreck stopped every convoy. The dozer comes out of the base at the start and drives the corridor
+ * to the far side of the wreck, its blade opening the way, with an escort asked of the company. Succeeds
+ * when the road through the wreck is open before the first convoy's lead truck reaches it; fails when the
+ * dozer dies first, or the convoy reaches a wreck still across the road (the dozer keeps at it for the
+ * convoys after).
+ */
+final class ClearRoadBeat extends CordonBeat {
+
+    /** Cells either side of the road's middle that must be open for a truck. */
+    static final int ROAD_HALF = 2;
+    /** Corridor cells past the wreck the dozer is sent to. */
+    static final int PAST = 6;
+    /** Corridor cells short of the wreck a convoy's truck needs the road open. */
+    static final int NEEDED = 12;
+    private static final String CRATES = "doodad.industrial-crate-stack";
+
+    private final List<int[]> wreck = new ArrayList<>();
+    /** The wreck's cells across the road's middle a truck needs open. */
+    private final List<int[]> road = new ArrayList<>();
+    private int wreckIndex = -1;
+    private long dozer;
+    private boolean sent, cleared;
+
+    ClearRoadBeat(CordonBeats beats) {
+        super(beats);
+    }
+
+    /** The rule: open before the first convoy needs it; a dead dozer or a convoy at a shut road fails. */
+    static Status rule(boolean cleared, boolean dozerAlive, boolean convoyAtWreck) {
+        if (cleared) return Status.SUCCEEDED;
+        if (!dozerAlive || convoyAtWreck) return Status.FAILED;
+        return Status.ACTIVE;
+    }
+
+    /**
+     * Lays the wreck on its held ground, at setup: every open cell of the site closed to movement and open to
+     * sight, a crate stack on it the blade can push. Returns the cells laid.
+     */
+    static List<int[]> lay(BattleSimulation sim, int[] site) {
+        List<int[]> laid = new ArrayList<>();
+        TileRegistry registry = TileRegistry.installed();
+        DoodadDef def = registry == null ? null : registry.doodad(CRATES);
+        if (site == null || def == null) return laid;
+        NavigationGrid grid = sim.getGrid();
+        CellTopology topology = sim.getTopology();
+        for (int y = site[1]; y <= site[3]; y++) {
+            for (int x = site[0]; x <= site[2]; x++) {
+                if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || grid.isDoorway(x, y) || topology.isFixture(x, y)) continue;
+                grid.setWalkable(x, y, false);
+                grid.setSeeThrough(x, y, true);
+                topology.setWall(x, y, false);
+                topology.setFixture(x, y, true);
+                sim.addDoodad(new Doodad(x, y, def));
+                laid.add(new int[]{x, y});
+            }
+        }
+        for (int[] c : laid) {
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dx = -1; dx <= 1; dx++) {
+                    if (grid.inBounds(c[0] + dx, c[1] + dy)) grid.recomputeCoverAt(c[0] + dx, c[1] + dy);
+                }
+            }
+        }
+        return laid;
+    }
+
+    /** Lays the wreck and sets the dozer down at the base end of the road: at setup. */
+    void setUp(BattleSimulation sim) {
+        wreck.addAll(lay(sim, beats.bounds(CordonPlan.CORRIDOR_WRECK)));
+        List<int[]> corridor = beats.corridor();
+        if (wreck.isEmpty() || corridor == null) return;
+        int[] mid = beats.centre(CordonPlan.CORRIDOR_WRECK);
+        long bestD = Long.MAX_VALUE;
+        for (int i = 0; i < corridor.size(); i++) {
+            long dx = corridor.get(i)[0] - mid[0], dy = corridor.get(i)[1] - mid[1];
+            if (dx * dx + dy * dy < bestD) {
+                bestD = dx * dx + dy * dy;
+                wreckIndex = i;
+            }
+        }
+        int[] at = corridor.get(wreckIndex);
+        for (int[] c : wreck) {
+            if (Math.abs(c[0] - at[0]) <= ROAD_HALF && Math.abs(c[1] - at[1]) <= ROAD_HALF) road.add(c);
+        }
+    }
+
+    /** The wreck's cells as laid, for evidence. */
+    List<int[]> wreck() { return wreck; }
+
+    @Override
+    protected Status step(BattleSimulation sim, int tick) {
+        if (wreckIndex < 0 || road.isEmpty()) return Status.LAPSED;
+        CordonConvoys convoys = beats.sequence().convoys();
+        if (convoys == null) return Status.LAPSED;
+        List<int[]> corridor = beats.corridor();
+        if (!sent) {
+            sent = true;
+            int[] from = corridor.get(convoys.entry());
+            dozer = beats.deploy(sim, VehicleType.DOZER_BREACHER, from[0], from[1]);
+            if (dozer == 0L) return Status.LAPSED;
+            int[] past = corridor.get(Math.min(corridor.size() - 1, wreckIndex + PAST));
+            beats.command().station(sim, dozer, past[0], past[1]);
+        }
+        int[] lead = convoys.truck(sim, 1, 0);
+        boolean atWreck = lead != null && convoys.corridor() == corridor && lead[0] >= wreckIndex - NEEDED;
+        return rule(cleared, CordonBeats.alive(sim, dozer), atWreck);
+    }
+
+    /** The road through the wreck opened: the convoys' routes are laid again through it, even after a failure. */
+    @Override
+    void watch(BattleSimulation sim, int tick) {
+        if (cleared || road.isEmpty() || beats.sequence().convoys() == null) return;
+        for (int[] c : road) if (!sim.getGrid().isWalkable(c[0], c[1])) return;
+        cleared = true;
+        beats.sequence().convoys().relay(sim);
+    }
+
+    @Override
+    protected Status ended(BattleSimulation sim) {
+        return sent && dozer != 0L ? Status.FAILED : Status.LAPSED;
+    }
+
+    @Override
+    int[] call(BattleSimulation sim) {
+        if (!CordonBeats.alive(sim, dozer)) return null;
+        GroundBody body = sim.convoy().body(dozer);
+        return new int[]{(int) body.x, (int) body.y, 2};
+    }
+}

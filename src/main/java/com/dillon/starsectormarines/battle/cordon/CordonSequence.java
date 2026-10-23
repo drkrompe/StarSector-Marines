@@ -93,6 +93,12 @@ public final class CordonSequence implements Objective {
     /** The tick the running tide ebbs on, or -1 between tides. */
     private int ebb = -1;
     private boolean landed, contact;
+    /** The battle's optional objectives ({@code cordon-nouns.md}, Optional objectives), or {@code null}. */
+    private CordonBeats beats;
+    /** Bores the beats opened (L4, R5), numbered after the timetable's eruptions. */
+    private int beatBores;
+    /** What the next tide's pressure is scaled by: below one after the granary burns (beat L6). */
+    private float nextTideScale = 1f;
     private Outcome outcome = Outcome.RUNNING;
 
     public CordonSequence(CordonVariant variant, List<CordonRedoubt> redoubts, List<Integer> gap,
@@ -148,6 +154,40 @@ public final class CordonSequence implements Objective {
     }
     public Outcome outcome() { return outcome; }
 
+    /** Gives the battle its optional objectives; at setup, before the first tick. */
+    public void attachBeats(CordonBeats beats) {
+        this.beats = beats;
+    }
+
+    /** The battle's optional objectives, or {@code null}. */
+    public CordonBeats beats() { return beats; }
+
+    /**
+     * Opens a bore for a beat (L4, R5) through the ordinary seam, numbered after every eruption on the
+     * timetable so the two never share a number. Returns the number; the bore may open on a later tick
+     * when its ground is not clear yet.
+     */
+    public int openBeatBore(BattleSimulation sim, int x, int y) {
+        int number = firstEruptedNumber + timetable.eruptionSeconds().size() + beatBores++;
+        sim.swarmBores().open(sim, number, false, x, y);
+        return number;
+    }
+
+    /** The next tide comes at {@code scale} of the timetable's tide pressure (beat L6), never below the ordinary. */
+    public void weakenNextTide(float scale) {
+        nextTideScale = Math.min(nextTideScale, scale);
+    }
+
+    /**
+     * The allied command gives a redoubt up (beat L3): its garrison is ordered out and it no longer
+     * calls, falls or counts against the line. A fallen redoubt cannot be given up.
+     */
+    public boolean giveUp(CordonRedoubt redoubt) {
+        if (!redoubt.manned()) return false;
+        redoubt.setState(CordonRedoubt.State.GIVEN_UP);
+        return true;
+    }
+
     /** Redoubts fallen so far. */
     public int fallen() {
         int n = 0;
@@ -192,7 +232,8 @@ public final class CordonSequence implements Objective {
                 && tick >= ticks(timetable.tideSeconds().get(tides))) {
             tides++;
             sim.swarmBores().tide(tick);
-            sim.setSwarmPressureShare(timetable.tidePressure());
+            sim.setSwarmPressureShare(Math.max(timetable.ordinaryPressure(), timetable.tidePressure() * nextTideScale));
+            nextTideScale = 1f;
             ebb = tick + ticks(timetable.tideLengthSeconds());
             emit(tick, "tide_" + tides);
         }
@@ -215,6 +256,7 @@ public final class CordonSequence implements Objective {
         if (columns != null) columns.advance(sim, tick, orders, (beat, observer) ->
                 log.emitOnce(tick, "cordon." + beat, observer ? StoryBeatLog.Audience.OBSERVER_ONLY
                         : StoryBeatLog.Audience.PLAYER));
+        if (beats != null) beats.advance(sim, tick);
         if (ebb >= 0 && tick >= ebb) {
             ebb = -1;
             sim.setSwarmPressureShare(timetable.ordinaryPressure());
@@ -241,7 +283,7 @@ public final class CordonSequence implements Objective {
 
     /** One redoubt's state for this tick ({@code cordon-nouns.md}, Redoubt states). */
     private void step(BattleSimulation sim, int tick, CordonRedoubt redoubt, int swarmInside, boolean relief) {
-        if (redoubt.state() == CordonRedoubt.State.FALLEN) return;
+        if (!redoubt.manned()) return;
         int standing = standing(sim, redoubt);
         if (standing == 0 && swarmInside > 0) {
             redoubt.setState(CordonRedoubt.State.FALLEN);
@@ -279,7 +321,7 @@ public final class CordonSequence implements Objective {
             CordonRedoubt best = null;
             int bestStanding = Integer.MAX_VALUE;
             for (CordonRedoubt r : redoubts) {
-                if (r.state() == CordonRedoubt.State.FALLEN) continue;
+                if (!r.manned()) continue;
                 int standing = standing(sim, r);
                 if (standing < bestStanding) {
                     bestStanding = standing;
@@ -291,7 +333,7 @@ public final class CordonSequence implements Objective {
 
         @Override public boolean stillNeeded(BattleSimulation sim, int x, int y) {
             CordonRedoubt r = at(x, y);
-            return r != null && r.state() != CordonRedoubt.State.FALLEN;
+            return r != null && r.manned();
         }
 
         @Override public boolean arrived(int x, int y, int destX, int destY) {

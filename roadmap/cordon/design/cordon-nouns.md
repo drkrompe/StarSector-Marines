@@ -3,6 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
+Updated: 2026-10-23 — the twelve story beats run as optional objectives
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -111,7 +112,11 @@ wall once more. A relieved redoubt whose garrison is gone is held by the
 company while Marines stand in it. It has **fallen** when its garrison is dead
 and a swarm body is inside the wall. A
 fallen redoubt is not re-raised in the battle (see *Settled choices*). The line
-**breaks** when more redoubts have fallen than the briefing allows.
+**breaks** when more redoubts have fallen than the briefing allows. A redoubt
+is **given up** when the allied command orders its garrison out (beat L3): it
+no longer calls or falls, columns, carriers and armour no longer go to it, and
+it never counts against the line, so a beat's order cannot spend the player's
+allowance.
 
 **Tide.** The crisis the battle is timed round: every living bore's next
 surge brought forward to the same tick, and the swarm let out at the tide's
@@ -502,6 +507,67 @@ with the same keys.
 | `convoys_short` | the Road | PLAYER | The window closed with too few convoys out |
 | `line_broken` | both | PLAYER | More redoubts have fallen than the briefing allows |
 | `cordon_held` | both | PLAYER | The battle is won |
+| `objective_<key>_started` | both | PLAYER | A rolled optional objective starts (at setup) |
+| `objective_<key>_succeeded` / `_failed` / `_lapsed` | both | PLAYER | It goes final (*Optional objectives*) |
+
+## Optional objectives
+
+The owner's twelve story beats (six a variant) are the Cordon's pool of
+optional objectives (`optional-objectives.md`), keyed below. A battle rolls a
+few of them against the set pieces its layout laid (`cordon-map-intent.md`):
+two or three in rural and town country, one or two in a city, where fewer set
+pieces stand. The owner's recommended beats (L1 to L3, R1 to R3) weigh twice
+the others. The roll is the battle seed's own, so the briefing shows the set
+the battle will run (`CordonSetup.briefingObjectives`). The board starts at
+setup and steps with the sequence; a beat asks the company for squads at its
+place, and the company's commander gives the beats at most half its squads,
+after the convoys and before calling redoubts. A beat's hulls (the ammo truck,
+the dozer) are the allies', driven by their own command. Evidence forces a set
+with `-Dbattle.cordon.objectives=all|none|<keys or codes>`.
+
+| Code | Key | Needs | Runs | Succeeds | Fails |
+| --- | --- | --- | --- | --- | --- |
+| L1 | `stragglers` | farmstead | At 1:30 six people stand at the farmstead and wait for a Marine, then walk in through the nearest redoubt | The last is ten rows behind the line, someone alive | All die, or nobody came by the end |
+| L2 | `guns_dry` | ammo dump | At 5:00 one redoubt's towers (seeded, never the switch line's) fire at a quarter rate; an allied truck drives its supply road from the base gate | The truck reaches the redoubt: the guns fire at their rate again | The truck dies or the redoubt is lost first; the guns stay low |
+| L3 | `switch_line` | switch line | At the second tide the switch line's middle redoubt is given up and its garrison ordered back | Most of those who set out are in the switch line | Too few are left alive for most |
+| L4 | `bore_behind` | eruption site | At 9:00 a bore opens on the eruption site through the ordinary seam | Collapsed while a fissure | It grows to a bore (about three minutes) |
+| L5 | `last_hamlet` | bell square | At 7:00 six people gather at the bell and wait for a Marine, then walk to the rear edge | All out | Caught (the first death), or nobody came |
+| L6 | `burn_granary` | granary | From the start: a Marine holding it twenty seconds torches it, or any hand brings half its walls down | Burnt before the second tide: that tide comes at three quarters of its pressure | A Marine reached it and it stands at the second tide (lapses if none did) |
+| R1 | `clear_road` | the wreck's held ground | The wreck is laid at setup only when rolled; the dozer drives from the convoys' start to past it | The road through it opens before the first convoy's lead truck reaches it | The dozer dies, or the convoy reaches a shut road (the dozer keeps on; routes are laid again when it opens) |
+| R2 | `truck_down` | none | Convoy 1's second truck, loaded, breaks down halfway between town and gap; its people walk back through the gap | Four are behind the line | Fewer than four can be |
+| R3 | `last_loading` | none | The last convoy waits two minutes longer at the gate | It leaves loaded | It is lost first |
+| R4 | `militia` | none | When the last convoy is loaded the town militia go to the gap and hold it (allied, never the player's) | One reaches the gap | All die |
+| R5 | `maw_on_road` | second road | At 5:30 a bore opens sixteen cells off the corridor past the gap, on the second road's side | Collapsed while a fissure | It grows: the convoys that set out after drive a corridor found again round it |
+| R6 | `gap_falls` | gap positions | When a gap redoubt falls (the battle's own fall, not scripted) the company holds the gap | No convoy lost since the fall, to the last convoy or the end | A convoy lost since, or the gap closed |
+
+R1 excludes R5 (a wreck on a road the convoys leave). Each beat is the
+simplest faithful form of the owner's card: the ammo truck appears at the
+base's gate rather than the dump, and "low" is a rationed rate of fire, not a
+magazine; the granary is torched by bringing its walls down through the
+ordinary wall-damage path, not by fire; R2's broken truck is taken off the road
+rather than left as a wreck, so the convoys after it still drive; R4's militia
+stay allied; R6 waits for a natural fall, since a scripted one would spend the
+briefing's one allowed redoubt. A beat that never got its trigger lapses.
+
+**Rewards and costs.** Rewards are modest against a Cordon contract (a
+size-five world's pays about 25,000): credits and a little cargo. A failed
+beat's cost is a named key the Rav Bloom arc reads downstream; nothing here
+applies it.
+
+| Key | Reward | Cost on failure |
+| --- | --- | --- |
+| `stragglers` | 3,000 cr, 20 food | `bloom.cordon.refugees_lost` 6 |
+| `guns_dry` | 2,500 cr, 15 supplies | `bloom.cordon.redoubt_shaken` 1 |
+| `switch_line` | 3,000 cr, 5 heavy machinery | `bloom.cordon.garrison_lost` 1 |
+| `bore_behind` | 4,000 cr, 20 metals | `bloom.heart.satellites` 1 |
+| `last_hamlet` | 2,500 cr, 15 food | `bloom.cordon.refugees_lost` 6 |
+| `burn_granary` | 2,000 cr and the weaker tide | `bloom.heart.biomass` 1 |
+| `clear_road` | 3,000 cr, 5 heavy machinery | `bloom.cordon.road_delayed` 1 |
+| `truck_down` | 2,500 cr, 10 supplies | `bloom.cordon.townspeople_lost` 6 |
+| `last_loading` | 3,000 cr, 20 food | `bloom.cordon.townspeople_lost` 12 |
+| `militia` | 2,000 cr, grant `cordon.militia_joined` 1 | `bloom.cordon.militia_lost` 1 |
+| `maw_on_road` | 4,000 cr, 20 metals | `bloom.heart.satellites` 1 |
+| `gap_falls` | 3,500 cr, 20 supplies | `bloom.cordon.gap_lost` 1 |
 
 ## Laws
 

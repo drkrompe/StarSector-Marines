@@ -51,11 +51,14 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         final List<int[]> roadBlocks;
         /** On the Road, where each convoy on the road no allied armour is with wants its escort; empty otherwise. */
         final List<int[]> escorts;
-        Frame(CommandFrame base, List<Call> redoubts, List<int[]> roadBlocks, List<int[]> escorts) {
+        /** Where the battle's optional objectives want squads, {x, y, squads}; empty without any. */
+        final List<int[]> beats;
+        Frame(CommandFrame base, List<Call> redoubts, List<int[]> roadBlocks, List<int[]> escorts, List<int[]> beats) {
             super(base.tick(), base.perspective(), base.squads(), base.influence(), base.topology(), base.assignments());
             this.redoubts = redoubts;
             this.roadBlocks = roadBlocks;
             this.escorts = escorts;
+            this.beats = beats;
         }
     }
 
@@ -70,7 +73,9 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
             List<int[]> blocks = sequence.convoys() == null ? List.of() : sequence.convoys().roadBlocks();
             List<int[]> escorts = sequence.convoys() == null || !(view instanceof BattleSimulation sim)
                     ? List.of() : sequence.convoys().unguarded(sim);
-            return new Frame(base, List.copyOf(calls), blocks, escorts);
+            List<int[]> beats = sequence.beats() == null || !(view instanceof BattleSimulation sim)
+                    ? List.of() : sequence.beats().calls(sim);
+            return new Frame(base, List.copyOf(calls), blocks, escorts, beats);
         };
     }
 
@@ -104,13 +109,28 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
         Map<Integer, int[]> roadDuty = new HashMap<>();
         for (int[] block : frame.roadBlocks) take(owned, roadDuty, block, ROAD_SQUADS);
         for (int[] escort : frame.escorts) take(owned, roadDuty, escort, ESCORT_SQUADS);
+        // Then the optional objectives, never more than half the company: the line comes first.
+        Map<Integer, int[]> beatDuty = new HashMap<>();
+        int spare = owned.size() / 2;
+        for (int[] call : frame.beats) {
+            int want = Math.min(call[2], spare - beatDuty.size());
+            if (want <= 0) break;
+            List<CommandSquadState> free = new ArrayList<>();
+            for (CommandSquadState s : owned) if (!roadDuty.containsKey(s.squadId())) free.add(s);
+            take(free, beatDuty, call, want);
+        }
         for (int i = 0; i < owned.size(); i++) {
             CommandSquadState squad = owned.get(i);
             Call answer = nearestCall(frame.redoubts, squad.centroidX(), squad.centroidY());
             int[] road = roadDuty.get(squad.squadId());
+            int[] beat = beatDuty.get(squad.squadId());
             ObjectiveAssignment next;
             String reason;
-            if (road != null) {
+            if (beat != null && road == null) {
+                int[] cell = ground(frame, squad, beat[0], beat[1]);
+                next = ObjectiveAssignment.attackMove(squad.squadId(), cell[0], cell[1]);
+                reason = "CORDON_OBJECTIVE";
+            } else if (road != null) {
                 int[] cell = ground(frame, squad, road[0], road[1]);
                 next = ObjectiveAssignment.attackMove(squad.squadId(), cell[0], cell[1]);
                 reason = "CORDON_CLEAR_ROAD";

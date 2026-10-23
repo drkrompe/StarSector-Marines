@@ -47,6 +47,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.colonyBreach.strikes` | experiment | 2026-10-21 | Colony Breach / Bloom sessions: remove each once its colony-breach reading is accepted (colony-breach-nouns.md). |
 | `battle.command.conquest.balancedHomeTracks` | experiment | 2026-10-11 | Conquest command (2026-10-11): remove once commanderEvidence -Pmission=conquest has been read against it. |
 | `battle.conquest.attackerHoldsGround` | experiment | 2026-10-20 | Conquest command (2026-10-20): remove once commanderEvidence -Pmission=conquest accepts it. |
+| `battle.cordon.objectives` | control | 2026-10-23 | Permanent evidence lever: forces a Cordon battle's optional objectives (`all`, `none`, or keys / L1..R6) instead of rolling them, so commanderEvidence can exercise each beat on demand (cordon-nouns.md, Optional objectives). |
 | `battle.counterattack` | control | 2026-10-20 | Standing control: the commander-evidence counter-attack control (commander-evidence-missions.md). Its composed .<knob> evidence knobs (reserveShare, minStrength, ...) fold into constants when the counter-attack balance pass closes. |
 | `battle.creep.feedMultiplier` | tuning | 2026-10-22 | Creep-speed pass (owner picks 2026-10-23): fold into constants once the owner confirms the rates in play. |
 | `battle.creep.spreadScale` | tuning | 2026-10-22 | Creep-speed pass (owner picks 2026-10-23): fold into constants once the owner confirms the rates in play. |
