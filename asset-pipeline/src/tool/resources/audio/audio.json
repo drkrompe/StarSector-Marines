@@ -490,9 +490,7 @@
     { "id": "marines_engine_tracked_a", "source": "vehicle-engines/marines_engine_tracked_a.mp3", "kind": "positional", "out": "battle/engines" },
     { "id": "marines_engine_tracked_b", "source": "vehicle-engines/marines_engine_tracked_b.mp3", "kind": "positional", "out": "battle/engines" },
     { "id": "marines_engine_wheeled_a", "source": "vehicle-engines/marines_engine_wheeled_a.mp3", "kind": "positional", "out": "battle/engines" },
-    { "id": "marines_engine_wheeled_b", "source": "vehicle-engines/marines_engine_wheeled_b.mp3", "kind": "positional", "out": "battle/engines" },
     { "id": "marines_engine_hover_a", "source": "vehicle-engines/marines_engine_hover_a.mp3", "kind": "positional", "out": "battle/engines" },
-    { "id": "marines_engine_hover_b", "source": "vehicle-engines/marines_engine_hover_b.mp3", "kind": "positional", "out": "battle/engines" },
 
     // ----- marine death-line voice clips (positional, anchored to the dying marine's cell) -----
     { "id": "marines_voice_dead_01", "source": "voice-dead-lines/1.mp3",  "kind": "positional", "out": "battle/voice-dead" },

@@ -103,6 +103,11 @@ Check it yourself before the owner sees it, and write the result down shot by sh
 - **Nothing pops in or out.** Nothing appears or vanishes in frame: every craft enters and
   exits by moving, a jump is a visible dash, and a shield grows on over its raise time
   (owner, 2026-10-23, S6c's Wolf).
+- **Every effect has a visible cause.** Flares go out only against an inbound seeker on screen,
+  thrown as it closes (ideally decoying it); a ship with no missile-armed enemy in the shot drops
+  none (owner, 2026-10-23, S6d's Hound: a Hound mounts no missiles).
+- **Burst rounds fly roughly parallel.** Within a burst each round gets a small, seeded aim
+  spread; rounds converging on one point read as a laser (owner, 2026-10-23, S6).
 - **Drives.** Every moving craft shows its drive (the `thrust_shots` guard).
 - **Solidity.** Nothing passes through a hull: rounds, debris, flares, other ships.
 - **Continuity.** No pops: turrets, ships, effects and cameras move smoothly frame to frame.

@@ -1373,19 +1373,19 @@ is the same honesty rule rather than an exception to it — a member looking at 
 hostile right now is a stronger claim to have seen it than an aggregate still
 being assembled.
 
-**A contact drill — halting an advance because of an onset — is built, tested,
-and off.** The reasoning is sound and the measurement disagreed with it: against
+**A contact drill — halting an advance because of an onset — was tried and
+rejected.** The reasoning is sound and the measurement disagreed with it: against
 a control on the same tree, halting for a contact within knife range cost the
 reinforced-south fixture a capture and a compound and killed fewer defenders,
 and made full-strength-west fourteen percent longer. Squads that stop for
 whatever is nearest arrive later, and in a mission decided partly on a clock,
 later is fewer objectives. The gap is the trigger rather than the idea: range
 alone says nothing about what the contact is, whether it can be safely walked
-past, or whether somebody is already answering it. It stays behind
-`battle.squad.contactDrill` for the next attempt at that trigger.
+past, or whether somebody is already answering it, so the drill was removed
+and a next attempt starts from a better trigger.
 
-**Preferring a target you are not shooting your own man to reach is likewise
-built, measured, and off.** Nothing on the decision side had ever asked whether
+**Preferring a target you are not shooting your own man to reach was likewise
+tried and rejected.** Nothing on the decision side had ever asked whether
 a friendly stood in the lane — every line test bottoms out in the navigation
 grid, which holds terrain and no units — while the ballistic model had always
 answered from the round's side, giving a friendly met before the target about a
@@ -1404,9 +1404,9 @@ targets it reproduced almost the whole loss — so this is not a constant wantin
 tuning. What the measurement does not condemn is the lane test itself, and the
 answer tried next was a different verb: **step aside rather than switch**, which
 keeps the squad's fire concentrated and stops shooting its own man, where
-retargeting trades the second for the first. It stays behind
-`battle.targeting.friendlyLanePenalty`, and the geometry both verbs are built on
-is shared with the mech overwatch position search rather than restated.
+retargeting trades the second for the first. The retargeting penalty was
+removed; the lane geometry (`FiringLane`) stays, shared by stepping aside and the
+mech overwatch position search.
 
 **Stepping aside is built, measured, and off as well.** A masked marine moves a
 cell rather than firing through his own man: the individual-tier `LaneSidestep`
@@ -1795,16 +1795,10 @@ all consume that stronger result; a cell-visible but physically occluded squad
 therefore maneuvers instead of publishing coverage and repeatedly shooting a
 wall.
 
-An experimental **squad firing arrangement** shares local candidate geometry
-without choosing a target for the squad. Only requests with compatible targets,
-weapon reach, firing geometry and mission bounds share candidates; members keep
-individual, exclusive positions rather than all inheriting one best cell. Live
-firing legality and caller-owned travel bounds remain authoritative. A short
-staggered lifetime and displacement from the geometry's original anchors limit
-staleness; changed plan or topology retires obsolete arrangements. Refresh work
-is admitted under a battle-tick bound, and a deferred refresh is not proof that
-no firing position exists. This does not yet replace ordinary individual
-scoring by default; `squad-firing-positions.md` owns the adoption experiment.
+A shared **squad firing arrangement** (one bounded candidate pool per squad and
+target, with exclusive member reservations) was tried and dropped unadopted: it
+never showed a work saving that justified its staleness and refresh-deferral
+cases over each member's own retained firing position.
 
 In a coordinated flank, the fixing element does not remain passively parked
 once direct contact establishes the enemy line. It moves to reachable firing

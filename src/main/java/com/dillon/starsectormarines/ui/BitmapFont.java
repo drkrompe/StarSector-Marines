@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ui;
 
+import com.dillon.starsectormarines.render2d.texture.ModTextures;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;
@@ -71,8 +72,8 @@ public class BitmapFont {
         if (pageLoaded) return true;
         if (pageFailed || !ensureMetricsLoaded()) return false;
         try {
-            Global.getSettings().loadTexture(pagePath);
-            page = Global.getSettings().getSprite(pagePath);
+            ModTextures.loadTexture(pagePath);
+            page = ModTextures.sprite(pagePath);
             if (page == null) {
                 LOG.error("BitmapFont: page sprite missing for " + fntPath + " (" + pagePath + ")");
                 pageFailed = true;

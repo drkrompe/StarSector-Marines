@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.render2d.texture.TextureUsage;
+import com.dillon.starsectormarines.render2d.texture.TextureUsageCapture;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
+import java.util.ArrayList;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotCatalog;
@@ -32,6 +36,7 @@ public final class CreateSnapshotsCli {
 
         SnapshotCatalog catalog = SnapshotCatalog.discover();
         List<SnapshotSuite> suites = catalog.select(selector);
+        if (TextureUsageCapture.install("snapshots")) suites = labelled(suites);
         try (var strings = new HeadlessStrings(projectRoot.resolve("mod"))) {
             List<Path> outputs = new SnapshotRunner().create(
                     new SnapshotContext(projectRoot, starsectorCore),
@@ -39,5 +44,25 @@ public final class CreateSnapshotsCli {
             System.out.println("Created " + outputs.size() + " visual snapshots from "
                     + suites.size() + " suite(s) under " + outputRoot.toAbsolutePath());
         }
+    }
+
+    /**
+     * Each suite's draws recorded under its own id, so the usage record says which suite drew an
+     * image at the size that decided its fit. A suite's artifacts are written before the next
+     * suite renders, so the label holds for everything it draws.
+     */
+    private static List<SnapshotSuite> labelled(List<SnapshotSuite> suites) {
+        List<SnapshotSuite> out = new ArrayList<>(suites.size());
+        for (SnapshotSuite suite : suites) {
+            out.add(new SnapshotSuite() {
+                @Override public String id() { return suite.id(); }
+                @Override public String label() { return suite.label(); }
+                @Override public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
+                    TextureUsage.source("snapshot:" + suite.id());
+                    return suite.render(context);
+                }
+            });
+        }
+        return out;
     }
 }

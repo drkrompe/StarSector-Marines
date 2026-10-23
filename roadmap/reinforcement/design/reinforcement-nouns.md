@@ -6,8 +6,6 @@ Written: 2026-08-23
 
 Updated: 2026-10-13 — a commander-called mech drop is a paid delivery claimed for its caller, neither a means nor an arrival policy.
 
-Earlier 2026-09-03 — a derived lift is floored at the shape it replaces, so sizing it can never hand back less than the standing ferry.
-
 Earlier 2026-09-02 — a marine arrival policy is not a means: the marines' lift is orbital and descends onto its berths, while defender delivery stays planetary.
 
 Earlier 2026-09-01 — the front is a `FrontDepth` band, zero at the objective, rather than a biome; see `precincts.md`.
@@ -136,23 +134,10 @@ or across this map's edge, and holding that field is what a marine can take away
 from it. Two lifts, two origins, one air layer — `air-nouns.md` owns the bodies
 both fly.
 
-How much lift the marines get may be sized from what they committed: the seats,
-the seats a sortie carries and that constant round trip give the pairs that land
-the whole force inside a mission-stated **landing share**. That derivation is
-built and switchable and is off by default, because the Conquest matrix found
-that landing the force sooner takes fewer compounds rather than more;
-`conquest-nouns.md` owns the arrival policy's shape and the measurement behind
-it.
-
-**A derived lift never comes out below the shape it replaces.** The arithmetic
-only asks for more craft than the standing ferry above a few hundred seats, so
-for every smaller force the derivation was quietly handing back *less* lift than
-the policy it was written to improve on — a switch that exists to add lift
-removing a third of it. A sizing that can return less than its own fallback is
-not a sizing, so the fallback is its floor. For a force under that threshold the
-two shapes are then the same shape, and turning the derivation on is a battle
-identical to leaving it off, which is the honest answer for a force the ferry
-already carries.
+How much lift the marines get is the standing ferry's shape: a lift sized from
+the seats committed and a landing share was tried and lost to it in the
+Conquest matrix. `conquest-nouns.md` owns the arrival policy's shape and the
+measurement behind it.
 
 **A commander-called drop is neither a means nor an arrival policy.** A side's
 commander may call a mech lance down on its own authority, paid from a

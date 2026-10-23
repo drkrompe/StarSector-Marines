@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.mech.MechFlux;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
+import com.dillon.starsectormarines.battle.ui.panel.Ordnance;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.weapon.MagazineDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
@@ -120,10 +121,15 @@ final class BattleDirectControlStatus {
 
     /**
      * Scheduled releases and simultaneous packets are separate authored dimensions. {@code trigger} is a
-     * magazine-fed primary's trigger mode, {@code null} for a weapon that only cycles.
+     * magazine-fed primary's trigger mode, {@code null} for a weapon that only cycles. {@code ordnance}
+     * is what it throws, which decides how its load is drawn.
      */
     record Behavior(FireKind kind, int projectilesPerTrigger, float burstSpacingSeconds,
-                    int projectilesPerShot, MagazineDef.Trigger trigger) {
+                    int projectilesPerShot, MagazineDef.Trigger trigger, Ordnance ordnance) {
+        Behavior(FireKind kind, int projectilesPerTrigger, float burstSpacingSeconds,
+                 int projectilesPerShot, MagazineDef.Trigger trigger) {
+            this(kind, projectilesPerTrigger, burstSpacingSeconds, projectilesPerShot, trigger, Ordnance.BALLISTIC);
+        }
         Behavior(FireKind kind, int projectilesPerTrigger, float burstSpacingSeconds, int projectilesPerShot) {
             this(kind, projectilesPerTrigger, burstSpacingSeconds, projectilesPerShot, null);
         }
@@ -321,7 +327,8 @@ final class BattleDirectControlStatus {
             if (mount == null) continue;
             WeaponDef weapon = mount.weaponDef();
             weapons.add(new WeaponStatus(mount.slot.ordinal() + 1, mount.slot.name(),
-                    mount.component.displayName(), behavior(weapon, mount.component.projectilesPerTrigger),
+                    mount.component.displayName(), behavior(weapon, mount.component.projectilesPerTrigger,
+                            Ordnance.of(mount.component.hardpointType)),
                     HeavyWeapons.supportsPointFire(mount), mount.cycleRemaining, mount.component.cycleSeconds(),
                     mount.burstRemaining, mount.burstTimer,
                     new Ammo(mount.ammo, mount.component.ammoCapacity, AmmoUnit.TRIGGER_PACKS,
@@ -344,11 +351,15 @@ final class BattleDirectControlStatus {
     }
 
     private static Behavior behavior(WeaponDef weapon, int releasesPerTrigger) {
+        return behavior(weapon, releasesPerTrigger, Ordnance.of(weapon));
+    }
+
+    private static Behavior behavior(WeaponDef weapon, int releasesPerTrigger, Ordnance ordnance) {
         FireKind kind = weapon.indirectFire || weapon.arcHeight > 0f ? FireKind.INDIRECT
                 : releasesPerTrigger > 1 ? FireKind.BURST
                 : weapon.projectilesPerShot > 1 ? FireKind.PACKET : FireKind.SINGLE;
         return new Behavior(kind, releasesPerTrigger, weapon.burstSpacing, weapon.projectilesPerShot,
-                weapon.magazine() != null ? weapon.magazine().trigger() : null);
+                weapon.magazine() != null ? weapon.magazine().trigger() : null, ordnance);
     }
 
     private static float fraction(float value, float maximum) {

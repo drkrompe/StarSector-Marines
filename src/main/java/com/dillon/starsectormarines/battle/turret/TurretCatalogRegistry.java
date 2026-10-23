@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.turret;
 
+import com.dillon.starsectormarines.render2d.texture.ModTextures;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.fs.starfarer.api.Global;
@@ -181,7 +182,7 @@ public final class TurretCatalogRegistry {
 
     private static void validateAsset(String ownerId, String field, String path) {
         if (path == null) return;
-        try (InputStream ignored = Global.getSettings().openStream(path)) {
+        try (InputStream ignored = Global.getSettings().openStream(ModTextures.file(path))) {
             // Opening the stream is the load-time existence check; rendering remains lazy.
         } catch (Exception e) {
             throw new IllegalStateException("Definition '" + ownerId + "' field '" + field

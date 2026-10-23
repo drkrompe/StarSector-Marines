@@ -24,6 +24,7 @@ class MachineAudioTest {
     void eachHullClassSpeaksWithItsOwnEngine() {
         assertEquals(MachineAudio.ENGINE_TRACKED, MachineAudio.engineVoice(VehicleType.BREAKTHROUGH_TANK).soundId());
         assertEquals(MachineAudio.ENGINE_TRACKED, MachineAudio.engineVoice(VehicleType.HEAVY_APC).soundId());
+        assertEquals(MachineAudio.ENGINE_TURBINE, MachineAudio.engineVoice(VehicleType.LASER_TANK).soundId());
         assertEquals(MachineAudio.ENGINE_WHEELED, MachineAudio.engineVoice(VehicleType.MILITIA_TECHNICAL).soundId());
         assertEquals(MachineAudio.ENGINE_HOVER, MachineAudio.engineVoice(VehicleType.HOVER_SCOUT).soundId());
         MachineAudio.EngineVoice tank = MachineAudio.engineVoice(VehicleType.BREAKTHROUGH_TANK);

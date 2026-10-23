@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.render2d.texture.ModTextures;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.util.ArrayList;
@@ -155,8 +156,12 @@ public final class UnitAtlas extends SpriteAtlas {
     static Exclusion offer(List<Source> into, SpriteAPI sprite, int recordedW, int recordedH, String name) {
         if (sprite == null) return null;
         if (recordedW <= 0 || recordedH <= 0) return Exclusion.NO_SIZE;
-        if (recordedW > MAX_IMAGE_PX || recordedH > MAX_IMAGE_PX) return Exclusion.OVER_CAP;
-        into.add(new Source(sprite, recordedW, recordedH, name));
+        // A whole-image slot holds the texels the texture really has: a fitted image's slot is its
+        // shipped size (texture-fit.md), so the cap and the atlas both see the art as it ships.
+        int texW = ModTextures.shippedWidth(sprite, recordedW);
+        int texH = ModTextures.shippedHeight(sprite, recordedH);
+        if (texW > MAX_IMAGE_PX || texH > MAX_IMAGE_PX) return Exclusion.OVER_CAP;
+        into.add(new Source(sprite, texW, texH, name));
         return null;
     }
 }
