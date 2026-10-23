@@ -22,6 +22,9 @@ import numpy as np
 from PIL import Image
 
 
+CHANGED_ONLY = False
+
+
 def rgba(path):
     a = np.asarray(Image.open(path), dtype=np.float32)
     return a / (65535.0 if a.max() > 255 else 255.0)
@@ -30,7 +33,8 @@ def rgba(path):
 def fix(job):
     src, before, after, out = job
     if not (before.exists() and after.exists()):
-        shutil.copyfile(src, out)
+        if not CHANGED_ONLY:
+            shutil.copyfile(src, out)
         return 0
     old = np.asarray(Image.open(src).convert('RGB'), dtype=np.float32) / 255.0
     b, a = rgba(before), rgba(after)
@@ -44,6 +48,11 @@ def fix(job):
     return 1
 
 
+def _init(changed_only):
+    global CHANGED_ONLY
+    CHANGED_ONLY = changed_only
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--frames', required=True, type=Path)
@@ -51,14 +60,19 @@ def main():
     ap.add_argument('--after', required=True, type=Path)
     ap.add_argument('--out', required=True, type=Path)
     ap.add_argument('--only', help='a:b, frames to write (default all)')
+    ap.add_argument('--changed-only', action='store_true',
+                    help='write only the frames that get the corrected planet (a later Drive folder in '
+                         'cinematic_export.FINALS replaces just those)')
     o = ap.parse_args()
+    global CHANGED_ONLY
+    CHANGED_ONLY = o.changed_only
     o.out.mkdir(parents=True, exist_ok=True)
     names = sorted(p.name for p in o.frames.glob('*.png'))
     if o.only:
         a, b = (int(x) for x in o.only.split(':'))
         names = [n for n in names if a <= int(n[:-4]) <= b]
     jobs = [(o.frames / n, o.before / n, o.after / n, o.out / n) for n in names]
-    with ProcessPoolExecutor() as pool:
+    with ProcessPoolExecutor(initializer=_init, initargs=(o.changed_only,)) as pool:
         fixed = sum(pool.map(fix, jobs, chunksize=8))
     print('PLANET_FIX %d frames, %d with the corrected planet' % (len(jobs), fixed), flush=True)
     if not jobs:
