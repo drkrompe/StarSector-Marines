@@ -152,8 +152,11 @@ class CordonCommandEvidenceTest {
         }
         if ("BROKEN".equals(run.outcome()) && !(run.beatIds().contains("cordon.line_broken")
                 || run.beatIds().contains("cordon.gap_closed") || run.beatIds().contains("cordon.convoys_lost")
-                || run.beatIds().contains("cordon.convoys_short"))) {
+                || run.beatIds().contains("cordon.convoys_short") || run.beatIds().contains("cordon.company_lost"))) {
             broken.add(id + ": a broken cordon does not say how");
+        }
+        if (run.complete() && "RUNNING".equals(run.outcome())) {
+            broken.add(id + ": the battle ended with the cordon still running");
         }
         return broken;
     }
@@ -283,7 +286,8 @@ class CordonCommandEvidenceTest {
         StringBuilder out = new StringBuilder("# Cordon evidence: ").append(runId).append("\n\n")
                 .append("Forced-serial, zero-input production Cordon (").append(cordon.variant())
                 .append("). Outcomes are readings, not assertions.\n\n")
-                .append("- Outcome: ").append(cordon.outcome()).append('\n')
+                .append("- Outcome: ").append(cordon.outcome())
+                .append(cordon.endBeat() != null ? " (" + cordon.endBeat() + ")" : "").append('\n')
                 .append("- Winner: ").append(winner != null ? winner : "—").append('\n')
                 .append(String.format(Locale.ROOT, "- Ended: tick %d (%.1f min)%n", sim.getSimTickIndex(),
                         sim.getSimTickIndex() * BattleSimulation.TICK_DT / 60f))
