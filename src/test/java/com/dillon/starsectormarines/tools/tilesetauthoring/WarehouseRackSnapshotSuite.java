@@ -86,7 +86,7 @@ public final class WarehouseRackSnapshotSuite implements SnapshotSuite {
     }
 
     private static void add(List<Doodad> objects, int x, int y, String part) {
-        DoodadDef def = TileRegistry.installed().doodad("warehouse-racks." + part);
+        DoodadDef def = TileRegistry.installed().doodad("warehouse-racks-muted." + part);
         if (def == null) throw new IllegalStateException("Missing rack layer: " + part);
         objects.add(new Doodad(x, y, def));
     }

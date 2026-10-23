@@ -215,8 +215,12 @@ public final class FortressInterior {
         Bounds bounds = Bounds.of(ground, ctx.width, ctx.height);
         if (bounds == null) return new Result(List.of(), program.expanded());
 
+        // A shed is placed for the bay it is furnished with: its machine door is the installation's.
         RoomPacker packer = new RoomPacker(
-                ctx, footings(ctx, ground, muster), muster, PALETTE, MASSING);
+                ctx, footings(ctx, ground, muster), muster, PALETTE, MASSING)
+                .withFittings((purpose, shape) -> purpose == RoomPurpose.VEHICLE_BAY
+                        ? RoomFittings.forInstallation(purpose)
+                        : RoomFittings.forRoom(ctx, purpose, shape));
         List<RoomPacker.Placed> placed = new ArrayList<>();
         List<RoomShape> authored = new ArrayList<>();
         List<FortressBuilding> unplaced = new ArrayList<>();

@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
@@ -51,9 +52,18 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
                 case "suburb" -> "suburb";
                 case "rear-west", "rear-east" -> "rear hamlet";
                 case CivilDefenceCompound.PLACE -> "the town's compound";
+                case CordonPlan.BASE_PLACE -> "logistics base, " + cordon.map().gantries.size() + " berths";
                 default -> null;
             };
             if (text != null) marks.label(p.seedX(), p.seedY(), text, ReviewStyle.NOTE);
+        }
+        CordonLogistics base = sim.getCordon() == null ? null : sim.getCordon().logistics();
+        if (base != null) {
+            marks.box(base.doorX() - 2, base.doorY() - 2, base.doorX() + 2, base.doorY() + 2, "machine door",
+                    ReviewStyle.ROUTE);
+            for (int[] slot : base.slots()) {
+                marks.box(slot[0] - 1, slot[1] - 1, slot[0] + 1, slot[1] + 1, "staging", ReviewStyle.NOTE);
+            }
         }
         for (SwarmBore bore : sim.swarmBores().bores()) {
             marks.label(bore.x(), bore.y(), "bore " + bore.number() + " (" + bore.tier().name().toLowerCase() + ")", ReviewStyle.OBJECTIVE);
@@ -112,6 +122,23 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
                             near.refocus(p.seedX() + 0.5f, p.seedY() + 0.5f, PLAY_ZOOM_CELLS);
                             out.add(new SnapshotArtifact(tag + "05-play-zoom-compound.png",
                                     near.render(sim, "the " + name + ", seed " + seed + ", the town's compound, play zoom")));
+                        } else if (p.name().equals(CordonPlan.BASE_PLACE)) {
+                            // On the shed: the middle of its berths, where there are any.
+                            float fx = p.seedX() + 0.5f, fy = p.seedY() + 0.5f;
+                            if (!cordon.map().gantries.isEmpty()) {
+                                fx = 0f;
+                                fy = 0f;
+                                for (Gantry g : cordon.map().gantries) {
+                                    fx += g.worldCenterX();
+                                    fy += g.worldCenterY();
+                                }
+                                fx /= cordon.map().gantries.size();
+                                fy /= cordon.map().gantries.size();
+                            }
+                            near.refocus(fx, fy, PLAY_ZOOM_CELLS);
+                            out.add(new SnapshotArtifact(tag + "08-play-zoom-logistics-base.png",
+                                    near.render(sim, "the " + name + ", seed " + seed + ", the logistics base ("
+                                            + cordon.map().gantries.size() + " berths), play zoom", annotations(sim, cordon))));
                         } else if (p.name().equals("rear-west")) {
                             near.refocus(p.seedX() + 0.5f, p.seedY() + 0.5f, 120f);
                             out.add(new SnapshotArtifact(tag + "06-rear-hamlet.png",

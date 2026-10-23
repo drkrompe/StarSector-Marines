@@ -109,6 +109,8 @@ public final class HeartLanes {
 
     private final List<Lane> lanes = new ArrayList<>();
     private BarrageScreen screen;
+    /** Which way the lanes advance along their axis, +1 or -1, for armour that follows no barrage. */
+    private int advanceSign;
 
     /** Each lane's ground across the front, in lane order. */
     public List<HeartLane> grounds() {
@@ -124,6 +126,12 @@ public final class HeartLanes {
 
     public HeartLanes companySector(HeartLane sector) {
         companySector = sector;
+        return this;
+    }
+
+    /** Lanes that advance toward higher ({@code +1}) or lower ({@code -1}) cells, so armour without a barrage stands behind its aim. */
+    public HeartLanes advancing(int sign) {
+        advanceSign = sign;
         return this;
     }
 
@@ -169,6 +177,24 @@ public final class HeartLanes {
     public void tick(BattleSimulation sim, List<String> beats) {
         int tick = sim.getSimTickIndex();
         allied.advance(sim);
+        boolean refreshed = false;
+        for (var due = armourDue.iterator(); due.hasNext(); ) {
+            int[] a = due.next();
+            if (a[0] > tick) continue;
+            due.remove();
+            // Later armour keeps clear of the machines standing now, not of where the first ones were set down.
+            if (!refreshed) {
+                refreshed = true;
+                placed.clear();
+                for (Lane lane : lanes) {
+                    for (long hull : lane.hulls) if (sim.convoy().structure(hull) > 0f)
+                        placed.add(new float[]{sim.convoy().body(hull).x, sim.convoy().body(hull).y});
+                    for (long mech : lane.mechs) if (sim.resolveUnit(mech) != 0L && sim.world().isAlive(mech))
+                        placed.add(new float[]{sim.world().x(mech), sim.world().y(mech)});
+                }
+            }
+            addArmour(sim, a[1], a[2] < 0 ? null : VehicleType.values()[a[2]], a[3], a[4], a[5]);
+        }
         for (Lane lane : lanes) {
             if (tick % RETARGET_TICKS == 0) driveArmour(sim, lane);
             lane.column.advance(sim, tick, lane, (beat, observerOnly) -> {
@@ -199,6 +225,11 @@ public final class HeartLanes {
 
     /** Cells between neighbouring machines across a lane, and how far behind the lane's aim they stand. */
     static final int ARMOUR_SPACING = 5, ARMOUR_BEHIND = 4;
+
+    /** Brings a machine on at {@code tick} as {@link #addArmour} sets one down; one with no ground near is dropped. */
+    public void scheduleArmour(int tick, int index, VehicleType type, int x, int y, float facing) {
+        armourDue.add(new int[]{tick, index, type == null ? -1 : type.ordinal(), x, y, Math.round(facing)});
+    }
 
     /**
      * Sets a machine down on lane {@code index}'s ground near {@code (x, y)}, facing the advance: a hull
@@ -245,7 +276,7 @@ public final class HeartLanes {
         if (bore == null) return;
         int[] aim = aim(sim, lane.ground, bore);
         boolean alongY = lane.ground.advancesAlongY();
-        int toward = screen == null ? 0 : screen.sign();
+        int toward = screen == null ? advanceSign : screen.sign();
         int count = lane.hulls.size() + lane.mechs.size(), i = 0;
         // The allied command drives each machine to its post and fights it from there; it re-orders only
         // when a post has moved, and pulls a goal the woods bar back toward the machine.
@@ -278,6 +309,8 @@ public final class HeartLanes {
     /** Drives and fights the lanes' hulls (`allied-command.md`). */
     private final AlliedCommand allied = new AlliedCommand(ISSUER);
     private HeartLane companySector;
+    /** Armour still to come, in the order it was scheduled: {@code [tick, lane, type ordinal or -1 for a Hound, x, y, facing]}. */
+    private final List<int[]> armourDue = new ArrayList<>();
 
     private VehicleClearance clearance(BattleSimulation sim, VehicleType type) {
         int radius = VehicleClearance.radiusForWidth(type.visualWidthCells);

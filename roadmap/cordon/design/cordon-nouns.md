@@ -128,11 +128,42 @@ mission-neutral: the mission says where it enters, where it goes and what
 joining means), not commanded by an allied commander; the full allied column
 system (`marine-side-reinforcement.md` applied to `ALLY`) is a later story.
 
+**Logistics base.** The allies' depot behind the middle of the line: a
+fenced compound with a vehicle shed, stores and a muster yard
+(`FortressProgram.logisticsBase`). Its shed's berths build the allies' cars,
+technicals and carriers one at a time, at the pace its allied technicians weld
+them; the machine on the stocks is a real hull whose structure is how far
+built it is, gun empty until it is finished, so a swarm that reaches the base
+stops production by killing the crew or the hull. Allied columns walk in off
+the rear edge to the muster yard and wait there. A carrier free at the base
+takes a waiting squad up to the redoubt that needs it most (a calling one
+first, then the fewest standing), sets it down behind the rear wall to join
+the garrison. Between carries a carrier is **support**: it stays behind the
+redoubt it fed and answers the nearest call as the armour does, beside the
+armour rather than on it. When squads wait at the base, one carrier a squad
+goes back for them, the nearest first, and the rest stay on the line. A
+finished car or technical joins the allied armour with a post behind a
+redoubt as its home. The base opens with one carrier.
+
+The base controls its exits so nothing piles up in the shed. A finished
+machine waits on its berth until the one before it has driven clear of the
+machine door; it is then drawn out into the service lane in front of its
+berth facing the door (the shed's tug: a berth's mouth is no wider than the
+hull, and a hull cannot turn out of it alone) and driven out. A carrier waits
+on a **staging slot** of its own on the apron outside the door, never in the
+doorway, on ground its footprint fits; there are as many carriers as slots,
+and an APC beyond that fights with the armour. Every machine drives straight
+out to a **threshold** a few cells beyond the door first, then on to its slot
+or its post behind a redoubt: a carrier steers too wide to turn from the lane
+straight onto a slot. Two carriers sent to
+one redoubt set down side by side, not on one spot.
+
 **Allied armour.** The allies' cars and technicals behind the line, under the
 allies' own command (`allied-command.md`), not the player's. Between calls
 each stands at its home behind the line; when a redoubt calls, each goes to
 the calling redoubt nearest it and fights from behind its rear wall, and goes
-home when no redoubt calls. They are the start of the allies fighting their
+home when no redoubt calls. The base's shed adds to them through the battle.
+They are the start of the allies fighting their
 own war (*The allies hold, the company decides*).
 
 **Refugees (the Line). People walking out of the region behind the line to
@@ -329,7 +360,8 @@ with the same keys.
 | `redoubt_relieved_N` | both | PLAYER | A Marine reaches redoubt N's gate while it calls |
 | `redoubt_fell_N` | both | PLAYER | Redoubt N falls |
 | `column_entered_N` | the Line | OBSERVER_ONLY | The Nth allied column comes on at the rear edge |
-| `column_arrived_N` | the Line | PLAYER | The Nth allied column reaches its redoubt and joins it |
+| `column_arrived_N` | the Line | PLAYER | The Nth allied column reaches the logistics base (or, with no base, its redoubt) |
+| `carried_N` | both | PLAYER | The Nth squad a carrier took up from the base joins a redoubt |
 | `refugees_moving_N` | the Line | OBSERVER_ONLY | Refugee group N leaves its village |
 | `refugees_out_N` | the Line | OBSERVER_ONLY | Refugee group N is off the map |
 | `refugees_caught_N` | the Line | PLAYER | The swarm reaches refugee group N |
@@ -377,8 +409,9 @@ The owner's answers to the flow cards (2026-10-22):
   the map to it, APCs carry them up to the line and stay there as support,
   and the player's company is the backstop when a lane goes bad and the push
   that carries one through. The allies alone should hold the ordinary pressure
-  and sag in the later tides. The base, the shop and the deliveries are
-  being built; the armour behind the line is in.
+  and sag in the later tides. The base, its shed, the walk-in columns and the
+  carrier deliveries are in (*Logistics base*); balancing the swarm to that
+  standard is next.
 
 - **Where the Line's refugees walk:** out of the rear villages to the rear
   edge along the country road, behind the line.
