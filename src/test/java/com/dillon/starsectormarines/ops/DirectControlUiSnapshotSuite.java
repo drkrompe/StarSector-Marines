@@ -310,7 +310,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
             try (var fixture = BattleDirectControlHudTest.fixture(modRoot,
                     snapshot, 0, paused, ignored -> {}, () -> {}, () -> {})) {
                 float[] measured = measure(renderer, fixture);
-                var status = BattleDirectControlOverlayTest.activeStatus(width, height, uiScale, measured[0]);
+                var status = BattleDirectControlOverlayTest.activeStatus(width, height, uiScale, measured[0], plate != null);
                 var weapons = BattleDirectControlOverlayTest.activeWeapons(width, height, uiScale, measured[1]);
                 draw(graphics, renderer, fixture.status(), status, layout.host(), uiScale);
                 draw(graphics, renderer, fixture.weapons(), weapons, layout.host(), uiScale);

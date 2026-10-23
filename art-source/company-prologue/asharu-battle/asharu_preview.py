@@ -464,8 +464,8 @@ def shot(L, kf):
                         ln_ * (.08 + .17 * u), ln_ * (.25 + .9 * u))
             mp.cone(name, sheath, 'fire')
         elif kind == 'entry_sheath':
-            # S12: a falling hull's bow shock (a cone narrowing ahead of her along her fall) and the
-            # trail growing behind her since the shot began; proxies for swfx_entry
+            # S12: the wake growing behind a falling hull along the shot's airflow; a proxy for
+            # swfx_entry.sheath (the plasma on her windward faces is not drawn here)
             key = fx[1]
             ln_ = placed[key]['length']
 
@@ -475,9 +475,6 @@ def shot(L, kf):
             import __main__ as bb          # battle_blockout: the shot's authored airflow, K6_WIND
             wind = Vector(bb.K6_WIND)
 
-            def shock(t, key=key, ln_=ln_):        # hugging her, into the airflow
-                return pos(t) - wind * ln_ * .5, -wind, ln_ * .5, ln_ * 1.1
-            mp.cone(name, shock, 'fire')
             mp.line(name + ' trail', lambda t, ts=ts, ln_=ln_: (
                 pos(t), pos(t) + wind * ln_ * min(4.0, 1.0 + (t - 126.0) * .8)), 'fire', width_px=6.0)
         elif kind == 'wreckfall':
