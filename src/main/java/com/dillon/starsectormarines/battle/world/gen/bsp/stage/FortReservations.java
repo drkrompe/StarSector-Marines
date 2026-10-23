@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 import com.dillon.starsectormarines.battle.fort.FortKind;
 import com.dillon.starsectormarines.battle.world.gen.FortSitingPolicy;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
@@ -164,7 +166,8 @@ public final class FortReservations {
     /** Ground no road arm may grow into, or {@code null} when the mission reserved none. */
     static boolean[][] keepClear(GenContext ctx, PrecinctPlan plan) {
         List<int[]> boxes = boxes(ctx, plan);
-        if (boxes.isEmpty()) return null;
+        boolean[][] held = held(ctx, plan);
+        if (boxes.isEmpty() && held == null) return null;
         boolean[][] mask = new boolean[ctx.width][ctx.height];
         for (int[] box : boxes) {
             for (int x = Math.max(0, box[0] - box[2]); x <= Math.min(ctx.width - 1, box[0] + box[2]); x++) {
@@ -173,7 +176,34 @@ public final class FortReservations {
                 }
             }
         }
+        if (held != null) {
+            for (int x = 0; x < ctx.width; x++) {
+                for (int y = 0; y < ctx.height; y++) mask[x][y] |= held[x][y];
+            }
+        }
         return mask;
+    }
+
+    /** Cells kept round held ground for what the landscape pass reserves beside built things: a road's two and one over. */
+    static final int HELD_MARGIN = 3;
+
+    /**
+     * The ground the plan's landscape holds open before the places grow
+     * ({@link Landscape#held}), less the ground round each place's seed, which
+     * the place needs to start from; published under {@link BspKeys#HELD_GROUND}.
+     * {@code null} when the landscape holds none.
+     */
+    static boolean[][] held(GenContext ctx, PrecinctPlan plan) {
+        boolean[][] bound = ctx.get(BspKeys.HELD_GROUND);
+        if (bound != null) return bound;
+        List<RidgePlanner.Band> bands = plan.landscape().held();
+        if (bands.isEmpty()) return null;
+        boolean[][] held = RidgePlanner.heldGround(bands, ctx.width, ctx.height, HELD_MARGIN);
+        for (int x = 0; x < ctx.width; x++) {
+            for (int y = 0; y < ctx.height; y++) if (held[x][y] && nearASeed(plan, x, y)) held[x][y] = false;
+        }
+        ctx.put(BspKeys.HELD_GROUND, held);
+        return held;
     }
 
     /** Releases the town's claim on the reserved ground; changes nothing when the mission reserved none. */
@@ -188,8 +218,17 @@ public final class FortReservations {
                 }
             }
         }
+        boolean[][] held = held(ctx, plan);
+        if (held == null) return;
+        for (int x = 0; x < Math.min(claim.length, ctx.width); x++) {
+            for (int y = 0; y < Math.min(claim[x].length, ctx.height); y++) {
+                int owner = claim[x][y];
+                if (!held[x][y] || owner == GrownTrunkPlan.UNOWNED) continue;
+                if (plan.precincts().get(owner).isProgrammed()) continue;
+                claim[x][y] = GrownTrunkPlan.UNOWNED;
+            }
+        }
     }
-
     private static boolean nearASeed(PrecinctPlan plan, int x, int y) {
         for (Precinct p : plan.precincts()) {
             if (Math.abs(p.seedX() - x) <= SEED_CLEARANCE && Math.abs(p.seedY() - y) <= SEED_CLEARANCE) return true;

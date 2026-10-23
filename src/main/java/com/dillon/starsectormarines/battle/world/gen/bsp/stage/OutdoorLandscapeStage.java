@@ -60,11 +60,14 @@ public final class OutdoorLandscapeStage implements GenStage {
         for (int[] cell : brookCells) reserve(c, reserved, cell[0] - bank, cell[1] - bank, cell[0] + bank, cell[1] + bank);
         // Own substream: absent nature never moves facilities, force positions or later RNG draws.
         Random random = new Random(c.seed ^ 0x574f4f444c414e44L);
-        if (c.topology.terrainSurface() == null) hills(c, surface, reserved, random);
+        List<RidgePlanner.Band> ridges = new ArrayList<>(landscape.ridges());
+        ridges.addAll(landscape.held());
+        ridges.addAll(valleySides(c, landscape));
+        // No stock hill grows where the mission named high ground: it would be all the ridge found there.
+        boolean[][] ridgeGround = ridges.isEmpty() ? null : RidgePlanner.heldGround(ridges, c.width, c.height, 0);
+        if (c.topology.terrainSurface() == null) hills(c, surface, reserved, ridgeGround, random);
         int plateaus = plateausWanted(c);
         if (plateaus > 0) plateaus(c, reserved, plateaus, new Random(c.seed ^ 0x504c4154L));
-        List<RidgePlanner.Band> ridges = new ArrayList<>(landscape.ridges());
-        ridges.addAll(valleySides(c, landscape));
         if (!ridges.isEmpty() && c.grid.elevation() == null) ridges(c, reserved, ridges);
         if (surface == SurfacePalette.VERDANT) trees(c, reserved, landscape.woodland());
         else FormationBrush.scatter(c,surface,reserved);
@@ -131,7 +134,8 @@ public final class OutdoorLandscapeStage implements GenStage {
         return reserved;
     }
 
-    private static void hills(GenContext c, SurfacePalette surface, boolean[] reserved, Random random) {
+    private static void hills(GenContext c, SurfacePalette surface, boolean[] reserved, boolean[][] ridgeGround,
+                              Random random) {
         TerrainPlan plan = new TerrainPlan(c.width, c.height,
                 surface == SurfacePalette.VERDANT ? TerrainPlan.Finish.GRASS_TOP
                         : surface == SurfacePalette.FROZEN ? TerrainPlan.Finish.ICE : TerrainPlan.Finish.ROCK,
@@ -151,7 +155,8 @@ public final class OutdoorLandscapeStage implements GenStage {
             boolean fits = true;
             for (int yy = b; yy <= t && fits; yy++) for (int xx = l; xx <= r; xx++) {
                 if (field.maximum(xx, yy) < -.65) continue;
-                if (reserved[yy * c.width + xx] || occupied[yy * c.width + xx] || !openGround(c, xx, yy)) {
+                if (reserved[yy * c.width + xx] || occupied[yy * c.width + xx] || !openGround(c, xx, yy)
+                        || (ridgeGround != null && ridgeGround[xx][yy])) {
                     fits = false; break;
                 }
             }
@@ -191,9 +196,14 @@ public final class OutdoorLandscapeStage implements GenStage {
      */
     private static void ridges(GenContext c, boolean[] reserved, List<RidgePlanner.Band> bands) {
         int w = c.width;
+        // Proved a segment at a time: each new segment's faces in a box round
+        // them alone, with the faces already kept counted closed. One box round
+        // every ridge at once spans half the map, and any pocket in it refuses
+        // them all.
+        boolean[] kept = new boolean[c.width * c.height];
         ElevationPlan plan = RidgePlanner.plan(c.width, c.height, c.seed ^ 0x52494447L, bands,
                 i -> !reserved[i] && openGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
-                layout -> keepsAccess(c, layout));
+                layout -> keepsAccess(c, layout, kept));
         if (plan == null) return;
         ElevationBrush.stamp(plan, c.grid, c.topology, reserved);
         // A ridge's ramps are its only ways up: no tree may grow on one and close it.
@@ -267,6 +277,23 @@ public final class OutdoorLandscapeStage implements GenStage {
     }
 
     /** Whether the ground around a layout's faces stays one connected piece once they close. */
+    /**
+     * Whether the faces this layout adds to {@code kept} leave the ground round
+     * them connected; on yes, adds them to {@code kept}.
+     */
+    private static boolean keepsAccess(GenContext c, ElevationLayout layout, boolean[] kept) {
+        int l = c.width, b = c.height, r = -1, t = -1;
+        for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) {
+            if (!layout.isFace(x, y) || kept[y * c.width + x]) continue;
+            l = Math.min(l, x); r = Math.max(r, x); b = Math.min(b, y); t = Math.max(t, y);
+        }
+        if (r >= 0 && !LandscapeAccess.canClose(c.grid, kept, l, b, r, t, layout::isFace)) return false;
+        for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) {
+            if (layout.isFace(x, y)) kept[y * c.width + x] = true;
+        }
+        return true;
+    }
+
     private static boolean keepsAccess(GenContext c, ElevationLayout layout) {
         int l = c.width, b = c.height, r = -1, t = -1;
         for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) {
