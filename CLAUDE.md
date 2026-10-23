@@ -614,9 +614,7 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   (`-Dbattle.render.doodadAtlas=false`, `-Dbattle.render.creep=false`,
   `-Dbattle.render.cliffLook=false` (with `-PrenderMaps=overlook`),
   `-Dbattle.render.settledBodyMesh=false`,
-  `-Dbattle.render.collectCulling=false`,
-  `-Dbattle.render.nightFireThroughFog=false`
-  (with `-PrenderMaps=the burn at night`)), never against a number in a
+  `-Dbattle.render.collectCulling=false`), never against a number in a
   document — and never against a delta smaller than that spread.
   **The world it profiles has to be the same world every run**, which it was
   not: the harness plays 600 ticks before it draws, and under the production
