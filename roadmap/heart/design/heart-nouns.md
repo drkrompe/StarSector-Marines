@@ -140,7 +140,18 @@ and the whole front follows the barrage together. The company's is a local
 task inside a larger push, not the push itself (owner, 2026-10-22: "a proper
 battlefield with the player's forces playing a more localized role"). Broad
 Front stays lanes into overgrowth; The Burn's front is a walking barrage with
-fire. In build behind `-Dbattle.heart.burnFront` (`heart-burn-front.md`).
+fire. `-Dbattle.heart.burnFront=false` is the control: the company alone
+behind the barrage, which lost on every measured seed whatever single lever
+was tried (following the guns, frontage, forming on the farmland, more
+shuttles, calmer bores, weaker Spitters). The swarm's numbers beat 24 marines,
+not any one creature.
+
+The front is won by **sustained** strength, not an opening blow. Measured on
+seeds 202-606: a front committed only while the barrage walks breaks after
+it ends, while the mothers keep surging. Infantry waves after the barrage
+take the satellites, but the mothers fall only once fresh armour keeps coming
+up too. The barrage stays short of the mothers. Walking it onto them measured
+worse, because the front is held back behind the guns for longer.
 
 **Battlegroup** (The Burn). One allied sector's force: the planetary militia
 committed in strength (owner, 2026-10-22: "no need to be stingy with infantry
@@ -149,7 +160,8 @@ opening, one more as each of the barrage's first lines lifts, and more at a
 steady cadence once the barrage has ended, feeding the push on the mothers. A
 wave marches to wherever its lane is aimed now and joins the lane there. Its
 armour is an escort APC, two technicals, two breakthrough tanks and a Hound
-pair. It follows the barrage on its own line across the front, armour stepping with
+pair, with a fresh tank and technical coming up every two minutes once the
+barrage has ended. It follows the barrage on its own line across the front, armour stepping with
 its infantry. Its armour is the allied commander's (`allied-command.md`):
 the mission names each machine's post and the commander drives and fights it, a
 machine the woods bar holding as far forward as it can drive. It owns its sector's satellites, then goes on to the

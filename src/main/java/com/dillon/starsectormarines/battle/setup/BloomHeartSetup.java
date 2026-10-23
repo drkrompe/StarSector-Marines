@@ -154,9 +154,12 @@ public final class BloomHeartSetup {
         return new HeartLanes(grounds, entries, RiskLevel.MEDIUM, seed ^ LANES_SALT);
     }
 
-    /** {@code -Dbattle.heart.burnFront=true}: The Burn as an allied front (`heart-burn-front.md`). */
+    /**
+     * The Burn as an allied front (`heart-nouns.md`, Allied front); {@code -Dbattle.heart.burnFront=false} is the
+     * control, the company alone behind the barrage.
+     */
     static boolean burnFront() {
-        return Boolean.getBoolean("battle.heart.burnFront");
+        return Boolean.parseBoolean(System.getProperty("battle.heart.burnFront", "true"));
     }
 
     /** The company's sector on The Burn's front: this share of the front's width either side of its landing. */
@@ -183,6 +186,12 @@ public final class BloomHeartSetup {
      */
     static final int BATTLEGROUP_LATE_WAVES = Integer.getInteger("battle.heart.burnFrontLateWaves", 8);
     static final int LATE_WAVE_SECONDS = 60;
+    /**
+     * Fresh armour for every battlegroup after the barrage, a tank and a technical at a time, this many times,
+     * {@link #ARMOUR_WAVE_SECONDS} apart from the barrage's end ({@code -Dbattle.heart.burnFrontArmourWaves}).
+     */
+    static final int ARMOUR_WAVES = Integer.getInteger("battle.heart.burnFrontArmourWaves", 4);
+    static final int ARMOUR_WAVE_SECONDS = 120;
     /** Where a battlegroup's armour is set down: at the farmland's open front, short of where the front forms up. */
     static final float ARMOUR_DEPTH = 0.12f;
 
@@ -231,6 +240,12 @@ public final class BloomHeartSetup {
             for (int h = 0; (!inner || HEAVY_ARMOUR) && h < 2; h++) {
                 int[] at = offset(base, axis, slot++);
                 lanes.addArmour(sim, i, null, at[0], at[1], facing);
+            }
+            for (int w = 0; w < ARMOUR_WAVES; w++) {
+                int tick = Math.round((ended + w * ARMOUR_WAVE_SECONDS) / BattleSimulation.TICK_DT);
+                int[] tank = offset(base, axis, 0), technical = offset(base, axis, 1);
+                lanes.scheduleArmour(tick, i, VehicleType.BREAKTHROUGH_TANK, tank[0], tank[1], facing);
+                lanes.scheduleArmour(tick, i, VehicleType.MILITIA_TECHNICAL, technical[0], technical[1], facing);
             }
         }
         return lanes;
