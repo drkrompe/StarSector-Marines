@@ -103,7 +103,7 @@ public final class MedicMarkerRenderSystem implements RenderSystem {
         float cellPx = camera.cellPxSize();
         float sx = camera.cellToScreenX(px);
         float sy = camera.cellToScreenY(py);
-        float elapsed = medic.treatmentProgress() * medic.medicine.channelSeconds();
+        float elapsed = medic.treatmentSeconds();
         TreatmentParticles.emit(elapsed, patient, health, armor, tx, ty, SCREEN_UP_Y, body,
                 (kind, dx, dy, size, a) -> {
                     boolean dressing = kind == TreatmentParticles.Kind.DRESSING;

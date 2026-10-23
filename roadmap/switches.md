@@ -80,7 +80,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.heart.holdBack` | experiment | 2026-10-22 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
 | `battle.infantry.fightingPositions` | experiment | 2026-10-13 | Fighting positions (ai-nouns.md): remove once the defender fighting-position work is accepted. |
 | `battle.infantry.laneSidestep` | control | 2026-09-01 | Standing control: FiringLineScene runs the off arm as its control loop (behavior-scenes.md). Retire it with that loop. |
-| `battle.infantry.medicKeepMoving` | undecided | 2026-10-14 | Default off since 2026-10-14 (squad-medic.md). Ship it or delete the code. |
 | `battle.infantry.rejoin` | control | 2026-09-01 | Standing control: the control and contested-control loops of LateArrivalScene run the off arm. Retire it with those loops. |
 | `battle.influence.async` | config | 2026-09-26 | Permanent: determinism. Test and evidence tasks force the synchronous arm, and the live game runs async. |
 | `battle.junction.talonTwo` | experiment | 2026-10-15 | Junction (commander-evidence-missions.md): remove once commanderEvidence -Pmission=junction accepts Talon Two. |

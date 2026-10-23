@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.testsupport;
 
+import com.dillon.starsectormarines.battle.infantry.SquadMedicine;
 import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
@@ -47,6 +48,7 @@ public final class DiskRegistries {
         if (!DamageCatalog.installed()) DamageCatalog.loadBuiltins(path -> new JSONObject(Files.readString(mod.resolve(path))));
         if (!RoadCatalog.installed()) RoadCatalog.loadBuiltins(path -> new JSONObject(Files.readString(mod.resolve(path))));
         if (!TerrainCatalog.installed()) TerrainCatalog.loadBuiltins(path -> new JSONObject(Files.readString(mod.resolve(path))));
+        if (!SquadMedicine.installed()) SquadMedicine.loadBuiltins(path -> new JSONObject(Files.readString(mod.resolve(path))));
         if (TileRegistry.installed() == null) {
             TileRegistry tiles = new TileRegistry();
             for (String path : TileRegistry.BUILTIN_TILESETS) {

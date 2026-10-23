@@ -84,8 +84,9 @@ final class BattleMarineDollPlate {
             Squad squad = sim.squad().hasSquad(id) ? sim.getSquad(sim.squad().squadId(id)) : null;
             SquadMedic medic = squad != null ? squad.medic : null;
             if (medic != null && medic.medicId() == id) {
-                int left = medic.supplies();
-                kit.add(new Kit(copy.apply("battleMarineDollMedic"), left + "/" + medic.medicine.supplies(), left <= 0));
+                int left = (int) Math.floor(medic.energy());
+                kit.add(new Kit(copy.apply("battleMarineDollMedic"), left + "/" + Math.round(medic.medicine.energyMax()),
+                        left < medic.medicine.minStartEnergy()));
             }
             return new MarineDoll(sim.identity().armorClass(id) == ArmorClass.POWER_SUIT, armored,
                     armored ? fraction(world.armor(id), world.maxArmor(id)) : 0f,
