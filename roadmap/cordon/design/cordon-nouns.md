@@ -152,27 +152,40 @@ redoubts, and broke in the second tide. If that redoubt falls before the column 
 sent on to the next one. On arriving it joins the garrison as wall teams, so a
 redoubt a column reached stands with more than it started with. A column takes
 about two minutes to march up from the rear, so the timetable sends each one
-two minutes before a tide. The column is scripted (`AlliedColumns`, which is
+two minutes before a tide. Where the base has carriers forward (rural and town
+country) a column walks to the base's muster yard and is carried up from there
+(*Logistics base*); in a city it walks the whole way, in its two teams, to the
+redoubt that needs it most, a calling one first and then the one with the
+fewest standing. The column is scripted (`AlliedColumns`, which is
 mission-neutral: the mission says where it enters, where it goes and what
 joining means), not commanded by an allied commander; the full allied column
 system (`marine-side-reinforcement.md` applied to `ALLY`) is a later story.
 
 **Logistics base.** The allies' depot behind the middle of the line: a
 fenced compound with a vehicle shed, stores and a muster yard
-(`FortressProgram.logisticsBase`). Its shed's berths build the allies' cars,
-technicals and carriers one at a time, at the pace its allied technicians weld
-them; the machine on the stocks is a real hull whose structure is how far
-built it is, gun empty until it is finished, so a swarm that reaches the base
-stops production by killing the crew or the hull. Allied columns walk in off
+(`FortressProgram.logisticsBase`). Its shed's berths build what the density's
+allied table lists (`cordon-allied-forces.md`), one machine at a time and round
+again, at the pace its allied technicians weld them: cars, technicals and
+carriers in open country, technicals and carriers with every third machine a
+Hound in a town, Hounds alone in a city. The machine on the stocks is a real
+hull or mech frame whose structure is how far built it is, gun empty until it
+is finished, so a swarm that reaches the base stops production by killing the
+crew or the machine. A finished Hound walks out of the shed on its own and
+joins the allied mechs (*Allied armour*); a hull is never drawn out of its berth
+onto ground a mech is standing on, nor laid on a berth one still stands in. Allied columns walk in off
 the rear edge to the muster yard and wait there. A carrier free at the base
 takes a waiting squad up to the redoubt that needs it most (a calling one
 first, then the fewest standing), sets it down behind the rear wall to join
-the garrison. Between carries a carrier is **support**: it stays behind the
+the garrison. In a town carriers are roadbound: one sets down only outside the
+redoubt's **rear gate** (the gap in its rear wall nearest the wall's middle,
+where the street through it leaves) and waits there between carries, never on
+the flanks. A city sends no carrier forward: its base builds none and opens
+with none, and its columns walk. Between carries a carrier is **support**: it stays behind the
 redoubt it fed and answers the nearest call as the armour does, beside the
 armour rather than on it. When squads wait at the base, one carrier a squad
 goes back for them, the nearest first, and the rest stay on the line. A
 finished car or technical joins the allied armour with a post behind a
-redoubt as its home. The base opens with one carrier. **Supply roads** run from the
+redoubt as its home. Outside a city the base opens with one carrier. **Supply roads** run from the
 base's gate toward the line to each redoubt's rear gate across open country
 (`mission-layout.md`), so the line has a road behind it; across a town's or a
 city's ground its own streets are the supply road.
@@ -210,6 +223,18 @@ hundreds of cells wide a reserve sent to whichever redoubt called last spent
 the battle driving. The base's shed adds to them through the battle.
 They are the start of the allies fighting their
 own war (*The allies hold, the company decides*).
+
+**Allied mechs.** In a town and a city the allies field Hounds under the same
+command. A Hound's sector is a redoubt too, and it stands in that redoubt's
+**street mouths**: where the streets leave the ground in front of it toward the
+front, read along the row a few cells out from its front wall, nearest the
+redoubt's middle first (open ground where no street crosses that row, as in a
+town's fields). The redoubt with the fewest mechs gets the next, a calling one
+first, and a mech whose redoubt falls is given another. A city's line opens
+with a Hound pair in each redoubt's mouths and a walking rifle team behind
+them, holding the mouth (the owner's pick `cordon-urban-allies`, the mech
+lance); a town's Hounds come off the base's line. A mech pair holds a mouth
+but not every alley: the company clears a block the swarm has got into.
 What holds each sector, and what the base sends, by density:
 `cordon-allied-forces.md` (over the shared catalogue, `allied-tools.md`).
 
@@ -316,8 +341,9 @@ the whole width either side of the line: the redoubts stand as fortified blocks
 among streets and the front is suburbs. Density changes the country, not the
 places: the four redoubts, the base, the landing's country and, on the Road,
 the compound are where they are at every density. Dense country is ground for
-infantry and walkers more than for wheels, so the allies a city's Cordon fields
-should lean on mechs and walking columns rather than carriers (open work).
+infantry and walkers more than for wheels, so a town's allies keep their
+carriers to the streets and a city's Cordon fields mechs and walking columns
+and no carrier forward (`cordon-allied-forces.md`).
 
 The redoubts are programmed places (FortressProgram.fieldRedoubt, laid
 square), so they claim first and the rest grows round them. Their roads are

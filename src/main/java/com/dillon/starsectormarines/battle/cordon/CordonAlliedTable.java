@@ -1,0 +1,91 @@
+package com.dillon.starsectormarines.battle.cordon;
+
+import com.dillon.starsectormarines.battle.fabrication.FabricationService.Machine;
+import com.dillon.starsectormarines.battle.fabrication.FabricationService;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+
+import java.util.List;
+
+/**
+ * What the allies field beside the line and what their base sends, by density ({@code cordon-allied-forces.md},
+ * The table; {@code allied-tools.md}, The density rule): the Cordon's whole statement of its allied forces.
+ * Country decides what can move, so open country gets wheels, a town wheels kept to its streets with a Hound
+ * among them, and a city legs and mechs with no carrier forward.
+ *
+ * @param openingArmour   hulls set down behind the line at setup, spread west to east
+ * @param openingCarrier  whether the base opens with a carrier on its apron
+ * @param baseLine        what the base's shed builds, in order and round again
+ * @param basePace        how many times a garrison shed's pace the base's shed builds at
+ *                        ({@code FabricationService.setPace}): a production line, not a garrison's sideline
+ * @param carriersForward whether columns muster at the base for a carrier to lift them up; otherwise they walk the
+ *                        whole way to the redoubt that needs them most
+ * @param drop            where a carrier sets its squad down, and where it waits between carries
+ * @param mouthHounds     Hounds standing in each redoubt's street mouths at setup
+ * @param mouthRifleTeam  whether a walking rifle team stands behind each redoubt's Hounds at setup
+ */
+public record CordonAlliedTable(List<VehicleType> openingArmour, boolean openingCarrier, List<Machine> baseLine,
+                                float basePace, boolean carriersForward, CarrierDrop drop, int mouthHounds, boolean mouthRifleTeam) {
+
+    /** Where a carrier sets down at a redoubt. */
+    public enum CarrierDrop {
+        /** Anywhere behind the rear wall's middle, and between carries on the redoubt's flanks as support. */
+        BEHIND_WALL,
+        /** Roadbound: only outside the rear gate, where the street through the wall leaves it, and it waits there. */
+        REAR_GATE
+    }
+
+    public CordonAlliedTable {
+        openingArmour = List.copyOf(openingArmour);
+        baseLine = List.copyOf(baseLine);
+    }
+
+    /** The base's shed pace at every density, for now: a starting value to balance on evidence. */
+    static final float BASE_PACE = 4f;
+
+    /** Open country: cars and technicals on the redoubts' flanks, carriers built between them and lifting columns up. */
+    static final CordonAlliedTable RURAL = new CordonAlliedTable(
+            List.of(VehicleType.MILITIA_TECHNICAL, VehicleType.SCOUT_CAR, VehicleType.SCOUT_CAR,
+                    VehicleType.MILITIA_TECHNICAL),
+            true,
+            List.of(Machine.hull(VehicleType.HEAVY_APC), Machine.hull(VehicleType.SCOUT_CAR),
+                    Machine.hull(VehicleType.HEAVY_APC), Machine.hull(VehicleType.MILITIA_TECHNICAL)),
+            BASE_PACE, true, CarrierDrop.BEHIND_WALL, 0, false);
+
+    /** A town: technicals and carriers kept to the streets, every third machine off the line a Hound. */
+    static final CordonAlliedTable TOWN = new CordonAlliedTable(
+            List.of(VehicleType.MILITIA_TECHNICAL, VehicleType.MILITIA_TECHNICAL, VehicleType.MILITIA_TECHNICAL,
+                    VehicleType.MILITIA_TECHNICAL),
+            true,
+            List.of(Machine.hull(VehicleType.MILITIA_TECHNICAL), Machine.hull(VehicleType.HEAVY_APC),
+                    Machine.mech(MechVariant.HOUND)),
+            BASE_PACE, true, CarrierDrop.REAR_GATE, 0, false);
+
+    /**
+     * A city: the mech lance (the owner's pick {@code cordon-urban-allies}, option a). A Hound pair and a rifle team
+     * in each redoubt's street mouths, the base building Hounds one at a time, no carriers, columns walking up.
+     */
+    static final CordonAlliedTable URBAN = new CordonAlliedTable(
+            List.of(), false, List.of(Machine.mech(MechVariant.HOUND)),
+            BASE_PACE, false, CarrierDrop.BEHIND_WALL, 2, true);
+
+    /** The table for country as built-up as {@code density}. */
+    public static CordonAlliedTable of(CordonPlan.Density density) {
+        return switch (density) {
+            case RURAL -> RURAL;
+            case TOWN -> TOWN;
+            case URBAN -> URBAN;
+        };
+    }
+
+    /** The {@code n}th machine (from 0) the base's shed builds. */
+    public Machine machine(int n) {
+        return FabricationService.machineAt(baseLine, n);
+    }
+
+    /** Whether any machine off the base's line is a carrier. */
+    public boolean buildsCarriers() {
+        for (Machine m : baseLine) if (m.vehicle() != null && m.vehicle().capacity > 0) return true;
+        return false;
+    }
+}

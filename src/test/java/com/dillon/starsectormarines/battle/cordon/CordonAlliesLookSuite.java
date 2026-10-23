@@ -53,6 +53,11 @@ import java.util.Set;
  * mouth; {@code <option>-pick.png} is the still whose last few ticks the option's own units fired most in,
  * with all of them alive and the pack within {@link #CONTACT_CELLS} of them. {@code -Dsnapshot.cordonAllies.seed=3} picks the map. Opt-in: a design question, not part of
  * {@code all}.
+ *
+ * <p>{@code -Dsnapshot.cordonAllies.options=town,urban} renders the built table instead ({@link CordonAlliedTable}):
+ * nothing placed by hand, the setup's own allies at a redoubt, its street mouths and rear gate marked. {@code urban}
+ * frames redoubt 2 against the same pack; {@code town} plays on until the shed's first Hound has walked up to its
+ * redoubt and frames that redoubt. Both write {@code <option>-tNNNN.png} and {@code <option>-pick.png}.
  */
 public final class CordonAlliesLookSuite implements SnapshotSuite {
 
@@ -85,9 +90,17 @@ public final class CordonAlliesLookSuite implements SnapshotSuite {
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         SceneRegistries.installArmoury(context.projectRoot());
         long seed = Long.parseLong(System.getProperty("snapshot.cordonAllies.seed", "3").trim());
-        int[] mouth = mouth(seed);
+        List<String> options = List.of(System.getProperty("snapshot.cordonAllies.options", "mechs,infantry,boulevard")
+                .trim().split("\\s*,\\s*"));
         List<SnapshotArtifact> out = new ArrayList<>();
-        for (String option : List.of("mechs", "infantry", "boulevard")) {
+        for (String option : options) {
+            if (option.equals("town")) out.addAll(table(context, CordonPlan.Density.TOWN, seed));
+            if (option.equals("urban")) out.addAll(table(context, CordonPlan.Density.URBAN, seed));
+        }
+        if (!options.contains("mechs") && !options.contains("infantry") && !options.contains("boulevard")) return out;
+        int[] mouth = mouth(seed);
+        for (String option : options) {
+            if (option.equals("town") || option.equals("urban")) continue;
             CordonSetup.CordonMap cordon = CordonSetup.rolled(CordonVariant.LINE, CordonPlan.Density.URBAN,
                     SurfacePalette.VERDANT, seed);
             int f = CordonFront.frontward(cordon.plan());
@@ -208,14 +221,164 @@ public final class CordonAlliesLookSuite implements SnapshotSuite {
         return out;
     }
 
+    /** Ticks the town is played, at most, for its first Hound to come up to its redoubt. */
+    static final int TOWN_MAX_TICKS = 60 * 60 * 9;
+    /** Cells from a redoubt's wall a Hound counts as come to it: the town is framed from then on. */
+    static final float AT_POST = 12f;
+    /** Stills written for the built table, {@link #STILL_EVERY} ticks apart. */
+    static final int TABLE_STILLS = 10;
+
+    /**
+     * The density's own allies at a redoubt, as the setup fields them: framed on the redoubt with its mouths and rear
+     * gate marked and every allied machine and street team in the frame outlined and named.
+     */
+    private List<SnapshotArtifact> table(SnapshotContext context, CordonPlan.Density density, long seed) throws Exception {
+        String option = density.name().toLowerCase();
+        CordonSetup.CordonMap cordon = CordonSetup.rolled(CordonVariant.LINE, density, SurfacePalette.VERDANT, seed);
+        int f = CordonFront.frontward(cordon.plan());
+        List<SnapshotArtifact> out = new ArrayList<>();
+        try (BattleSimulation sim = CordonSetup.create(cordon, CordonVariant.LINE, List.of(),
+                CordonSequence.Timetable.STANDARD)) {
+            CordonArmour armour = sim.getCordon().armour();
+            CordonRedoubt r = sim.getCordon().redoubts().get(1);
+            int start = 0;
+            if (density == CordonPlan.Density.TOWN) {
+                // Play on until a Hound off the shed's line has come up to a redoubt.
+                CordonRedoubt at = null;
+                while (at == null && sim.getSimTickIndex() < TOWN_MAX_TICKS && !sim.isComplete()) {
+                    sim.advance(BattleSimulation.TICK_DT);
+                    if (sim.getSimTickIndex() % STILL_EVERY != 0) continue;
+                    if (sim.getSimTickIndex() % 1800 == 0) {
+                        System.out.printf("    [cordon-allies-look/%s] tick %d: %d built%n", option,
+                                sim.getSimTickIndex(), sim.getCordon().logistics().built());
+                        for (long mech : armour.mechs()) {
+                            System.out.printf("        Hound %d at %.0f,%.0f%n", mech, sim.world().x(mech), sim.world().y(mech));
+                        }
+                    }
+                    for (long mech : armour.mechs()) {
+                        for (CordonRedoubt red : sim.getCordon().redoubts()) {
+                            if (red.contains(Math.round(sim.world().x(mech)), Math.round(sim.world().y(mech)), (int) AT_POST)) at = red;
+                        }
+                    }
+                }
+                if (at != null) r = at;
+                start = sim.getSimTickIndex();
+                System.out.printf("    [cordon-allies-look/%s] tick %d: %d Hounds, %d built; framing redoubt %d%n",
+                        option, start, armour.mechs().size(), sim.getCordon().logistics().built(), r.number());
+            }
+            int frontY = frontY(r, f);
+            int packSquad = pack(sim, r.centreX(), frontY + f * PACK_OUT, r.centreX(), r.centreY());
+            List<int[]> mouths = armour.mouths(sim, r);
+            int[] gate = armour.rearGate(sim, r);
+            float x0 = r.left() - 6, x1 = r.right() + 6;
+            float y0 = Math.min(Math.min(r.top(), r.bottom()), Math.min(gate[1], mouths.get(0)[1])) - 4;
+            float y1 = Math.max(Math.max(r.top(), r.bottom()), Math.max(gate[1], mouths.get(0)[1])) + 4;
+            for (int[] m : mouths) {
+                x0 = Math.min(x0, m[0] - 4);
+                x1 = Math.max(x1, m[0] + 4);
+            }
+            float across = Math.max(FRAME_CELLS, Math.max(x1 - x0, (y1 - y0) * 16f / 9f));
+            float cx = (x0 + x1) / 2f, cy = (y0 + y1) / 2f;
+            BattleReviewFrameRenderer renderer = new BattleReviewFrameRenderer(context.modRoot(), W, H,
+                    cx, cy, across).withImpactEffects().withUnitShadows();
+            ReviewImpactFx fx = new ReviewImpactFx(context.modRoot());
+            BufferedImage best = null;
+            int bestFired = -1, bestTick = -1;
+            for (int still = 1; still <= TABLE_STILLS && !sim.isComplete(); still++) {
+                int fired = 0;
+                List<Placed> placed = List.of();
+                for (int t = 0; t < STILL_EVERY; t++) {
+                    sim.advance(BattleSimulation.TICK_DT);
+                    fx.feed(sim);
+                    placed = inFrame(sim, armour, cx, cy, across);
+                    Set<Long> own = new HashSet<>();
+                    for (Placed p : placed) own.addAll(p.ids());
+                    for (ShotEvent shot : sim.getShotsThisFrame()) if (own.contains(shot.shooterId)) fired++;
+                }
+                ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
+                CordonReviewAnnotations.add(marks, sim);
+                for (int[] m : mouths) marks.box(m[0] - 1, m[1] - 1, m[0] + 1, m[1] + 1, "street mouth", ReviewStyle.ROUTE);
+                marks.box(gate[0] - 1, gate[1] - 1, gate[0] + 1, gate[1] + 1, "rear gate drop", ReviewStyle.ROUTE);
+                boxes(marks, sim, placed);
+                int tick = sim.getSimTickIndex();
+                BufferedImage frame = renderer.render(sim, option + " cordon, seed " + seed + ", redoubt " + r.number()
+                        + ": the " + option + " table's allies, tick " + tick, marks.build(), fx);
+                out.add(new SnapshotArtifact(String.format("%s-t%04d.png", option, tick - start), frame));
+                float contact = contact(sim, placed, packSquad);
+                System.out.printf("    [cordon-allies-look/%s] tick %d: %d allied groups in frame, %d rounds, pack %.0f cells off%n",
+                        option, tick, placed.size(), fired, contact);
+                if (fired > bestFired) {
+                    bestFired = fired;
+                    bestTick = tick;
+                    best = frame;
+                }
+            }
+            if (best != null) {
+                out.add(new SnapshotArtifact(option + "-pick.png", best));
+                System.out.printf("    [cordon-allies-look/%s] pick: tick %d (%d rounds)%n", option, bestTick, bestFired);
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Every allied machine and street team standing in the frame, named: the Hounds, carriers and hulls under the
+     * allied command and the teams in the street mouths. The garrison's wall teams are left out: they are the redoubt.
+     */
+    private static List<Placed> inFrame(BattleSimulation sim, CordonArmour armour, float cx, float cy, float across) {
+        float half = across / 2f, halfY = across * 9f / 32f;
+        List<Placed> out = new ArrayList<>();
+        int n = 0;
+        for (long mech : armour.mechs()) {
+            float[] at = where(sim, mech);
+            if (at != null && Math.abs(at[0] - cx) <= half && Math.abs(at[1] - cy) <= halfY) {
+                out.add(new Placed("HOUND " + (++n), List.of(mech)));
+            }
+        }
+        List<Long> carriers = sim.getCordon().logistics() == null ? List.of() : sim.getCordon().logistics().carriers();
+        for (long hull : armour.command().hulls()) {
+            float[] at = where(sim, hull);
+            if (at == null || Math.abs(at[0] - cx) > half || Math.abs(at[1] - cy) > halfY) continue;
+            VehicleType type = sim.convoy().vehicleType(hull);
+            String name = carriers.contains(hull) ? "CARRIER" : type == null ? "HULL" : type.name().replace('_', ' ');
+            out.add(new Placed(name, List.of(hull)));
+        }
+        for (int squad : armour.streetTeams()) {
+            List<Long> members = new ArrayList<>();
+            for (int i = 0, c = sim.liveUnitCount(); i < c; i++) {
+                long unit = sim.liveUnitAt(i);
+                Squad s = sim.squadOf(unit);
+                if (s != null && s.id == squad) members.add(unit);
+            }
+            if (members.isEmpty()) continue;
+            float[] at = where(sim, members.get(0));
+            if (at != null && Math.abs(at[0] - cx) <= half && Math.abs(at[1] - cy) <= halfY) {
+                out.add(new Placed("RIFLE TEAM", members));
+            }
+        }
+        return out;
+    }
+
     private static int frontY(CordonRedoubt r, int f) {
         return f > 0 ? Math.max(r.top(), r.bottom()) : Math.min(r.top(), r.bottom());
     }
 
-    /** The sector's default armour off the field, so a frame shows only its option. */
+    /** The sector's default allies off the field (its armour, and the table's Hounds and street team), so a frame shows only its option. */
     private static void clearSector(BattleSimulation sim, CordonRedoubt r) {
-        for (long hull : sim.getCordon().armour().command().hulls()) {
+        CordonArmour armour = sim.getCordon().armour();
+        for (long hull : armour.command().hulls()) {
             if (sim.convoy().body(hull).distanceTo(r.centreX(), r.centreY()) < 60f) sim.convoy().despawn(hull);
+        }
+        List<Long> units = new ArrayList<>(armour.mechs());
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long unit = sim.liveUnitAt(i);
+            Squad s = sim.squadOf(unit);
+            if (s != null && armour.streetTeams().contains(s.id)) units.add(unit);
+        }
+        for (long unit : units) {
+            if (Math.hypot(sim.world().x(unit) - r.centreX(), sim.world().y(unit) - r.centreY()) < 60f) {
+                sim.takeOffTheField(unit);
+            }
         }
     }
 

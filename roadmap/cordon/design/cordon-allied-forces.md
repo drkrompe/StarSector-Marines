@@ -1,10 +1,12 @@
 # The Cordon — allied forces by density
 
-Status: DRAFT — the urban backbone is out to the owner (question
-`cordon-urban-allies`); air and guns wait on the shared `heart-allied-tool`
-pick.
+Status: ACTIVE — the table is built (`CordonAlliedTable`, read by
+`CordonSetup`); the urban backbone is built on the recommended option of the
+owner's open pick `cordon-urban-allies`; air and guns wait on the shared
+`heart-allied-tool` pick; the rows marked *not built* below are open.
 
 Written: 2026-10-23
+Updated: 2026-10-23 — the table built for every density; what is still open is marked.
 
 Step 3 of the owner's plan for the Cordon. `cordon-nouns.md` is the model
 (Allied armour, Logistics base, Allied column, Density); `allied-tools.md` is
@@ -23,16 +25,27 @@ sector beside the garrison is what changes with density.
 
 | | Rural | Town | Urban |
 | --- | --- | --- | --- |
-| Beside each redoubt | a car or technical on each flank, out past the side wall | a technical on the street through the redoubt, riflemen in the house fronts | **a mech pair in the street mouths and a walking rifle team** (recommended; see the question) |
-| Base | a fenced yard on the main road; the shed builds | the town's goods yard; the shed builds | a depot in a warehouse block; a mech gantry in place of the shed's berths |
-| Base produces | carriers and cars/technicals in turn (today's line), one every couple of minutes | technicals and carriers, every third machine a Hound | Hounds, one at a time at the gantry's pace; no carriers |
-| Columns | walk in to the muster yard; carriers lift them up | walk in; carriers lift them along the streets | walk the whole way up, two teams each |
-| Carriers forward | yes: lift, then stay behind the redoubt as support | yes, roadbound: set down at the rear gate only | no |
+| Beside each redoubt | a car or technical on each flank, out past the side wall | technicals on the flanks (built); *not built:* a technical on the street through the redoubt, riflemen in the house fronts | **a Hound pair in the street mouths and a walking rifle team** (built; the recommended option of `cordon-urban-allies`) |
+| Opening armour | two cars, two technicals | four technicals | none |
+| Base | a fenced yard on the main road; the shed builds | the base the map lays; the shed builds (*not built:* the town's goods yard) | the base the map lays; the shed's berths build the Hounds (*not built:* a depot in a warehouse block with a mech gantry) |
+| Base produces | carrier, car, carrier, technical, round again | technical, carrier, Hound, round again | Hounds, one at a time at the shed's pace; no carriers |
+| Opening carrier | one on the apron | one on the apron | none |
+| Columns | walk in to the muster yard; carriers lift them up | walk in to the muster yard; carriers lift them up | walk the whole way up, two teams each, to the redoubt that needs them most |
+| Carriers forward | yes: lift, then stay on the flanks of a calling redoubt as support | yes, roadbound: set down outside the rear gate only, and wait there | no |
 | Ammunition (L2) | truck up the supply road | truck through the town's streets | truck along the cleared street to the rear gate |
 | Air and guns | deferred to `heart-allied-tool` | deferred | deferred; matters most here |
 
 The pace, counts and lines are starting values to balance on `cordon-line`
-evidence at each density, not settled numbers.
+evidence at each density, not settled numbers. The table is one value per
+density (`CordonAlliedTable`): the opening armour, whether the base opens with
+a carrier, the shed's line and its pace, whether carriers go forward and where they set
+down, and the mechs and rifle team in each redoubt's mouths. Nothing fields an
+ally the table does not list, except a beat through the same producer (L2's
+truck).
+
+How the street mouths, the rear gate and a mech's sector are found is the
+standing model: `cordon-nouns.md`, Allied armour (Allied mechs) and Logistics
+base.
 
 ## The company's role by density
 
@@ -57,7 +70,11 @@ is in.
 ## Open
 
 - The owner's pick for the urban backbone (`cordon-urban-allies`): mech lance
-  (recommended), infantry and mortars, or armour held to the boulevard. Seen
-  in `cordon-allies-look` (opt-in `createSnapshots` suite).
-- The producer seam that lets the base build a Hound (`allied-tools.md`, Code
-  seam).
+  (recommended, built), infantry and mortars, or armour held to the boulevard.
+  Seen in `cordon-allies-look` (opt-in `createSnapshots` suite);
+  `-Dsnapshot.cordonAllies.options=town,urban` renders the built table at a
+  redoubt instead.
+- Town: a technical on the street through the redoubt and riflemen in the
+  house fronts; the town's technicals still take the flank posts.
+- The base's own ground by density: a town's goods yard, a city's depot and
+  mech gantry. The shed's berths build Hounds meanwhile.

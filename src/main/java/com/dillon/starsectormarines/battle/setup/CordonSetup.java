@@ -1,10 +1,13 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.command.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.command.allied.AlliedCommand;
 import com.dillon.starsectormarines.battle.cordon.AlliedColumns;
+import com.dillon.starsectormarines.battle.cordon.CordonAlliedTable;
 import com.dillon.starsectormarines.battle.cordon.CordonArmour;
 import com.dillon.starsectormarines.battle.cordon.CordonLogistics;
 import com.dillon.starsectormarines.battle.ambient.RoomSite;
@@ -328,31 +331,31 @@ public final class CordonSetup {
     static final RiskLevel GARRISON_RISK = RiskLevel.HIGH;
     /** The rear hamlets' names in the plan begin so. */
     private static final String REAR_PLACE = "rear-";
-    /** The allies' light armour behind the line, west to east ({@code cordon-nouns.md}, Allied armour). */
-    static final List<VehicleType> ARMOUR = List.of(VehicleType.MILITIA_TECHNICAL, VehicleType.SCOUT_CAR,
-            VehicleType.SCOUT_CAR, VehicleType.MILITIA_TECHNICAL);
     /**
      * The allies' logistics base ({@code cordon-nouns.md}, Logistics base): a muster yard at the
-     * base's seed with one carrier standing in it, and the base's shed manned by an allied crew and
-     * tooled for the allies' cars and carriers, each one put to work as it rolls out.
+     * base's seed, with one carrier standing in it where the density's table opens with one, and the
+     * base's shed manned by an allied crew and tooled for the table's line, each machine put to work as
+     * it rolls out ({@code cordon-allied-forces.md}).
      */
     private static CordonLogistics logisticsBase(BattleSimulation sim, CordonMap cordon, CordonArmour armour,
-                                                 List<CordonRedoubt> redoubts) {
+                                                 List<CordonRedoubt> redoubts, CordonAlliedTable table) {
         Precinct base = null;
         for (Precinct p : cordon.plan().precincts()) if (p.name().equals(CordonPlan.BASE_PLACE)) base = p;
         if (base == null) return null;
         CordonLogistics logistics = CordonLogistics.at(sim, armour, cordon.map().gantries, base.seedX(), base.seedY(),
-                redoubts, GARRISON_RISK, new Random(cordon.battleSeed() ^ BASE_SALT));
+                redoubts, table, GARRISON_RISK, new Random(cordon.battleSeed() ^ BASE_SALT));
         if (logistics == null) return null;
         int[] first = logistics.slots().get(0);
-        logistics.addCarrier(sim, armour.command().deploy(sim, VehicleType.HEAVY_APC, first[0], first[1], 0f));
+        if (table.openingCarrier()) {
+            logistics.addCarrier(sim, armour.command().deploy(sim, VehicleType.HEAVY_APC, first[0], first[1], 0f));
+        }
         MapResult map = cordon.map();
         if (sim.getWorksCrews() == null) sim.setWorksCrews(new WorksCrewService(TraversalAxis.SOUTH_TO_NORTH));
         List<RoomSite> rooms = RoomSite.findAll(map.topology, map.grid.getWidth(), map.grid.getHeight());
         FabricationService works = new FabricationService(map.gantries, map.fixtureTasks, rooms);
         if (works.isEmpty()) return logistics;
-        works.toolForVehicles(BASE_LINE);
-        works.setPace(BASE_PACE);
+        works.toolForLine(table.baseLine());
+        works.setPace(table.basePace());
         works.onRollOut(hull -> logistics.rolledOut(sim, hull));
         sim.setFabrication(works);
         StructureWatch.man(sim, Faction.ALLY, rooms, map.fixtureTasks, works.berthed(),
@@ -360,12 +363,7 @@ public final class CordonSetup {
         return logistics;
     }
 
-    /** What the base's shed builds, in order and round again: carriers between the cars and technicals. */
-    static final List<VehicleType> BASE_LINE = List.of(VehicleType.HEAVY_APC, VehicleType.SCOUT_CAR,
-            VehicleType.HEAVY_APC, VehicleType.MILITIA_TECHNICAL);
     private static final long BASE_SALT = 0x4C4F474953544943L;
-    /** The base's shed is a production line, not a garrison's sideline (`FabricationService.setPace`). */
-    static final float BASE_PACE = 4f;
     /** Technicians posted to the base's shed. */
     static final int BASE_CREW = 3;
     /** Teams in each allied column. */
@@ -423,11 +421,14 @@ public final class CordonSetup {
         int reserveY = Math.round(CordonFront.lineY(cordon.plan()) - CordonFront.frontward(cordon.plan()) * RESERVE_DEPTH);
         CordonArmour armour = new CordonArmour(new AlliedCommand(CordonGarrisons.ISSUER),
                 CordonFront.frontward(cordon.plan()));
-        for (int i = 0; i < ARMOUR.size(); i++) {
-            armour.deploy(sim, ARMOUR.get(i), WIDTH * (i + 1) / (ARMOUR.size() + 1), reserveY);
+        CordonAlliedTable table = CordonAlliedTable.of(cordon.density());
+        List<VehicleType> opening = table.openingArmour();
+        for (int i = 0; i < opening.size(); i++) {
+            armour.deploy(sim, opening.get(i), WIDTH * (i + 1) / (opening.size() + 1), reserveY);
         }
+        standMouths(sim, armour, redoubts, table, new Random(cordon.battleSeed() ^ MOUTH_SALT));
         sequence.attachArmour(armour);
-        CordonLogistics logistics = logisticsBase(sim, cordon, armour, redoubts);
+        CordonLogistics logistics = logisticsBase(sim, cordon, armour, redoubts, table);
         if (logistics != null) sequence.attachLogistics(logistics);
         if (variant == CordonVariant.ROAD && cordon.corridor() != null) {
             CordonConvoys convoys = convoys(sim, cordon, timetable, logistics);
@@ -440,6 +441,32 @@ public final class CordonSetup {
                 cordon.corridor(), cordon.battleSeed());
         return sim;
     }
+
+    /**
+     * Each redoubt's street mouths held as the density's table says ({@code cordon-allied-forces.md}, Urban): its
+     * Hounds in the mouths, and a walking rifle team behind them holding there.
+     */
+    static void standMouths(BattleSimulation sim, CordonArmour armour, List<CordonRedoubt> redoubts,
+                            CordonAlliedTable table, Random rng) {
+        for (CordonRedoubt r : redoubts) {
+            for (int i = 0; i < table.mouthHounds(); i++) {
+                armour.deployMech(sim, r, "Redoubt " + r.number() + " Hound " + (i + 1));
+            }
+            if (!table.mouthRifleTeam()) continue;
+            int[] post = armour.teamPost(sim, r);
+            List<int[]> cells = CordonGround.clusterNear(sim, post[0], post[1], ColonyMilitia.POST_SIZE);
+            if (cells.size() < ColonyMilitia.POST_SIZE) continue;
+            String name = "Redoubt " + r.number() + " street team";
+            int squad = ColonyMilitia.seatTeam(sim, cells, name, GARRISON_RISK, rng);
+            armour.addStreetTeam(squad);
+            sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad, cells.get(0)[0], cells.get(0)[1], MOUTH_TEAM_HOLD),
+                    CommandAuthority.GARRISON, CordonGarrisons.ISSUER, name + " holds the street mouth");
+        }
+    }
+
+    /** Cells round its post a mouth's rifle team holds. */
+    private static final int MOUTH_TEAM_HOLD = 4;
+    private static final long MOUTH_SALT = 0x4D4F555448534C54L;
 
     /**
      * Each refugee group's way out, in departure order: from the rear hamlets
