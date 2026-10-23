@@ -18,13 +18,11 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Direct scorer inputs; no battle simulation, tick, generation, or renderer. */
 class TargetScanBoundsTest {
     @Test void boundKeepsBeliefAndMountRange() {
-        assertEquals(24f, TacticalScoring.targetScanLimit(Float.POSITIVE_INFINITY, 24, 0, true));
-        assertEquals(160f, TacticalScoring.targetScanLimit(Float.POSITIVE_INFINITY, 24, 160, true));
-        assertEquals(18f, TacticalScoring.targetScanLimit(18, 24, 160, true));
+        assertEquals(24f, TacticalScoring.targetScanLimit(Float.POSITIVE_INFINITY, 24, 0));
+        assertEquals(160f, TacticalScoring.targetScanLimit(Float.POSITIVE_INFINITY, 24, 160));
+        assertEquals(18f, TacticalScoring.targetScanLimit(18, 24, 160));
         assertEquals(Float.POSITIVE_INFINITY,
-                TacticalScoring.targetScanLimit(Float.POSITIVE_INFINITY, 24, 0, false));
-        assertEquals(Float.POSITIVE_INFINITY,
-                TacticalScoring.targetScanLimit(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, 0, true));
+                TacticalScoring.targetScanLimit(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, 0));
     }
 
     @Test void emptySightDoesNotWalkToUnknownEnemiesAcrossTheMap() {

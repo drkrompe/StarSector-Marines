@@ -31,24 +31,8 @@ import com.dillon.starsectormarines.battle.world.gen.road.VehicleCorridorPlan;
  */
 public final class VehicleCorridorStage implements GenStage {
 
-    /**
-     * {@code -Dbattle.mapgen.vehicleCorridor=false} reserves nothing, leaving
-     * every later stamp exactly where it was before this stage existed. It is
-     * here because the only honest control for a map-gen change is the same
-     * seed generated with the change absent, and reaching that by checking out
-     * an older commit measures every other difference between the two trees at
-     * the same time — which is how a Conquest swing was once credited to a
-     * squad behaviour and turned out to be a sibling session's work arriving on
-     * a merge.
-     */
-    public static final String CORRIDOR_PROPERTY = "battle.mapgen.vehicleCorridor";
-
-    private static final boolean CORRIDOR_ENABLED = Boolean.parseBoolean(
-            System.getProperty(CORRIDOR_PROPERTY, "true"));
-
     @Override
     public void run(GenContext ctx) {
-        if (!CORRIDOR_ENABLED) return;
         TraversalAxis axis = ctx.get(BspKeys.AXIS);
         TrunkPlan.Plan plan = ctx.get(BspKeys.TRUNK_PLAN);
         VehicleCorridor corridor = VehicleCorridorPlan.forAxis(plan, axis);
