@@ -2,9 +2,9 @@
 
 > Two buttons, two groups; each button cycles what it fires.
 
-Status: IN PROGRESS — steps 1 and 2 shipped; header look on the picks page (KEYCAP built meanwhile); steps 3-5 open
+Status: IN PROGRESS — steps 1 and 2 shipped (owner picked the keycap header look); steps 3-5 open
 Written: 2026-10-23
-Updated: 2026-10-23 — trigger model and HUD landed; the losing `PickLook` arms go when the owner picks
+Updated: 2026-10-23 — trigger model and HUD landed; keycap header chosen, the other looks removed
 
 Read `direct-control-nouns.md` first, in particular "Mouse buttons and weapon
 groups". This story extends that model, so the groups it describes stay true.
@@ -77,10 +77,8 @@ chooses what the button fires without a key per weapon.
    Q/C in `BattleDirectControlInput`, number keys as left-trigger jumps; Marines
    and vehicles have single-member lists.
 2. ~~HUD~~ (shipped): trigger headers and row wash/dim from the picks; frames
-   `pick-<look>-linked` and `pick-<look>-one-mount` in `direct-control-ui`. Open:
-   the owner's answer to the picks-page question `weapon-cycling-pick-look`;
-   then delete the losing `BattleDirectControlHudModel.PickLook` arms and their
-   frames.
+   `pick-linked` and `pick-one-mount` in `direct-control-ui`. The owner chose
+   the keycap header, `LMB  LINKED  [Q]` (picks page, 2026-10-23).
 3. Marine direct-fire specials: a manual contract for the rocket launcher and
    the anti-materiel rifle on the left trigger.
 4. Marine grenades: the manual throw on the right trigger.

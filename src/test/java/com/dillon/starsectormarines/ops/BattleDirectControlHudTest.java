@@ -251,17 +251,8 @@ class BattleDirectControlHudTest {
     static Fixture fixture(Path modRoot, Snapshot snapshot, int selected, boolean paused,
                            BattleDirectControlHudModel.WeaponActions selection, Runnable exit, Runnable pause)
             throws Exception {
-        return fixture(modRoot, snapshot, selected, paused, selection, exit, pause,
-                BattleDirectControlHudModel.PickLook.KEYCAP);
-    }
-
-    /** As above, with trigger headers in {@code look}. */
-    static Fixture fixture(Path modRoot, Snapshot snapshot, int selected, boolean paused,
-                           BattleDirectControlHudModel.WeaponActions selection, Runnable exit, Runnable pause,
-                           BattleDirectControlHudModel.PickLook look) throws Exception {
         Reactor reactor = new Reactor();
         var model = new BattleDirectControlHudModel(reactor, selection, exit, pause, ModStrings.fromDisk(modRoot));
-        model.setPickLook(look);
         model.update(snapshot, selected, paused);
         var loader = new MarkupLoader(path -> Files.readString(modRoot.resolve(path)),
                 List.of(BattleDirectControlOverlay.STATUS_COMPONENT_PATH,
