@@ -116,7 +116,9 @@ the same way, by what they throw (`Ordnance`): a missile mount is a rack of
 missiles in salvos of one trigger pull, a vehicle's belt is cartridges in
 bursts, and an energy weapon counts nothing but shows charge cells, one per
 bolt of its burst (five for a single shot), emptying through the burst,
-refilling over the cycle and held violet when flux refuses the shot. A rack or
+refilling over the cycle and held violet when flux refuses the shot. A gun with nothing to count that
+fires in bursts (a mech's chaingun) shows the burst one click sends as
+cartridges, spent as the burst goes out and chambered again over the cycle. A rack or
 belt too long for the row folds to one icon per salvo or burst (several whole
 bursts per icon for a long belt) and then keeps its exact count beside it; a
 load too long even folded keeps only the number. Finite Mech stores count

@@ -370,7 +370,13 @@ final class BattleDirectControlHudModel {
                     weapon.cycleFraction(), weapon.fluxBlocked());
         }
         if (ammo.unit() == BattleDirectControlStatus.AmmoUnit.UNTRACKED || ammo.unlimited()
-                || ammo.capacity() <= 0) return null;
+                || ammo.capacity() <= 0) {
+            // A gun with nothing to count still shows the burst one click sends.
+            return behavior.ordnance() == Ordnance.BALLISTIC
+                    ? ChargeGauge.burst(behavior.projectilesPerTrigger(), weapon.burstRemaining(),
+                            weapon.cycleFraction())
+                    : null;
+        }
         MagazineGauge gauge;
         if (ammo.unit() == BattleDirectControlStatus.AmmoUnit.TRIGGER_PACKS) {
             int perPack = Math.max(1, behavior.projectilesPerTrigger());
