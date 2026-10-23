@@ -27,13 +27,20 @@ whole window), of engagements in start order, each a dict:
                the bursts were drawn from
     hit_share  0..1, the share of rounds that should strike the target (hull or shield)
     walk_m     metres: how far off the hull the misses pass; the burst walks within that ring
+    walk_r     scene_fx.planned's WALK_R (walk reach, share of her length) that lands hit_share
+               along this engagement's line of fire (walk_r() calibrates it against her hull)
+    elevation_deg, traverse_deg  (lo, hi) the mount's lay off its deck and keel over the engagement
+    flight_s   seconds a round takes at range_m (the kit's round speed)
+    arrive     for a story moment, the ledger time its rounds land (bursts are fired flight_s earlier)
     kind       'hull' or 'pd' (point defence on a drone or small craft)
     force      True for a story moment: the range gate is waived (arc and line still apply)
     ledger     the asharu_damage Hit id this engagement delivers, or None for incidental fire
+    ledgers    every Hit id its held burst delivers (two moments on one target can share a burst)
     why        the doctrine, in words: 'story: ...', 'closest threat', 'point defence', ...
     shooter, turret, weapon, range_m (median metres over the engagement)
 
-shot_plan(kf) is every engagement in a shot (for the damage ledger and the note's tables);
+track(...) (same arguments) is the mount's continuous lay for the slew: the target and aim it is
+on or swinging to, through the gaps. shot_plan(kf) is every engagement in a shot (for the damage ledger and the note's tables);
 expected_hits(eng) is rounds fired and expected hits from the weapon's cadence; check() lists
 what the plan cannot satisfy (ledger moments no mount can deliver). Plain Python, no Blender:
 
@@ -123,8 +130,27 @@ def weapon_of(build, turret):
     return (WEAPON_OF.get(build) or {}).get(turret) or DEFAULT_WEAPON.get(build) or 'lightmg'
 
 
+# The execution layer's own gate (scene_fx.SceneFx.MAX_FLIGHT_S, MAX_RANGE_M), mirrored so the plan
+# asks only for fire that planned() will let through, and the kit's ceiling (swfx_guns.MAX_FLIGHT_S:
+# no round is drawn flying longer). Change them with scene_fx. A story moment (force) may fly past
+# the execution gate up to the kit's ceiling; scene_fx must honour `force` for it to fire.
+EXEC_FLIGHT_S, EXEC_RANGE_M = 2.2, 3500.0
+KIT_FLIGHT_S = 6.0
+
+
+def speed_of(weapon):
+    return CADENCE.get(weapon, (1, 0, .5, 0, 400))[4]
+
+
 def reach_m(weapon):
-    return GAME.get(weapon, (400,))[0] * RANGE_SCALE
+    """How far doctrine fires this weapon: the game's range scaled, and no further than the round
+    may fly under scene_fx's gate."""
+    return min(GAME.get(weapon, (400,))[0] * RANGE_SCALE, speed_of(weapon) * EXEC_FLIGHT_S, EXEC_RANGE_M)
+
+
+def force_reach_m(weapon):
+    """How far a story moment may fire it: as far as the kit draws a round (a margin short of it)."""
+    return speed_of(weapon) * (KIT_FLIGHT_S - .3)
 
 
 def turn_rate(weapon):
@@ -401,7 +427,8 @@ def silent_from(key, turret=None):
 
 
 # Ledger hits the shots draw with a blast or a fire rather than a tracer, but which the story says a
-# gun did: hit id -> the ships whose decisive burst lands it.
+# gun did: hit id -> the ships whose decisive burst lands it. Hits with no `by` at all are the
+# ledger's own story hits and get no gun (its owner's call), so their rows here are inert.
 GUN_MADE = {
     'lasher-lead@55.9:breach': ('manticore-p',),           # the Hellbore slug that turns her (S6)
     'hound-p-c@61.9:kill': ('lasher-b', 'wolf-m'),          # the Ammo Feeder burst breaks her up (S6b)
@@ -427,6 +454,8 @@ def moments():
         return ()
     out = []
     for h in asharu_damage.LEDGER:
+        if not h.bys:                # a story hit the ledger keys itself (asharu_damage, 2026-10-23): no gun
+            continue
         m = re.search(r'tracer (\S+)', h.src) if 'tracer' in h.bys else None
         shooters = (m.group(1),) if m else GUN_MADE.get(h.id, ())
         for sh in shooters:
@@ -464,8 +493,10 @@ def _valid(sh, key, turret, mount, weapon, target, i, aim_l, force=False):
         return False, None, f'out of arc by {miss:.0f} deg'
     mz = to_world(fa, mount[0])
     d = math.dist(mz, aim_w)
-    if d > reach_m(weapon) and not force:
-        return False, d, f'out of range ({d:.0f} m > {reach_m(weapon):.0f})'
+    lim = force_reach_m(weapon) if force else reach_m(weapon)
+    if d > lim:
+        return False, d, (f'round flight {d / speed_of(weapon):.1f} s > the kit ceiling {KIT_FLIGHT_S:g} s' if force
+                          else f'out of range ({d:.0f} m > {lim:.0f})')
     others = [(k, sh.fr[k][i][0], .3 * length_m(k)) for k in sh.ships if k not in (key, target)]
     b = blocked(mz, aim_w, others)
     if b:
@@ -558,30 +589,112 @@ def _bursts(seed, start, end, fam, must=()):
 
 
 
+# ====================================================================================== walk calibration
+# scene_fx.planned walks each burst across the aim point: it opens reach x U(.9, 1.6) off to one side,
+# walks to reach x U(0, 1.3) on the far side (+-.8 rad), with gaussian jitter of .08 reach, and a round
+# hits only where its straight line meets the hull. reach = WALK_R x her length. walk_r() solves for
+# the WALK_R whose walk lands hit_share of the rounds, against an ellipsoid hull (half-axes
+# HULL_AXES x length) seen along the engagement's own line of fire, by the same walk drawn in 2D.
+HULL_AXES = (.5, .3, .1)
+
+
+def _walk_hits(walk_r, line, aim, L, n_bursts=8, per=16, seed='walk'):
+    a = [HULL_AXES[i] * L for i in range(3)]
+    d = line
+    u = (-d[1], d[0], 0.0) if abs(d[2]) < .9 else (0.0, -d[2], d[1])
+    nu = math.sqrt(sum(c * c for c in u)) or 1.0
+    u = [c / nu for c in u]
+    v = (d[1] * u[2] - d[2] * u[1], d[2] * u[0] - d[0] * u[2], d[0] * u[1] - d[1] * u[0])
+    reach = walk_r * L
+    rnd = random.Random(seed)
+    hits = total = 0
+    for _b in range(n_bursts):
+        th = rnd.uniform(0, 2 * math.pi)
+        r0 = reach * rnd.uniform(.9, 1.6)
+        ph = th + math.pi + rnd.uniform(-.8, .8)
+        r1 = reach * rnd.uniform(0, 1.3)
+        for k in range(per):
+            f = k / max(1, per - 1)
+            ox = math.cos(th) * r0 + (math.cos(ph) * r1 - math.cos(th) * r0) * f + rnd.gauss(0, .08 * reach)
+            oy = math.sin(th) * r0 + (math.sin(ph) * r1 - math.sin(th) * r0) * f + rnd.gauss(0, .08 * reach)
+            q = [aim[i] + u[i] * ox + v[i] * oy for i in range(3)]
+            qa = sum(q[i] * d[i] / a[i] ** 2 for i in range(3))
+            dd = sum(d[i] * d[i] / a[i] ** 2 for i in range(3))
+            qq = sum(q[i] * q[i] / a[i] ** 2 for i in range(3))
+            hits += qa * qa - dd * (qq - 1.0) >= 0
+            total += 1
+    return hits / total
+
+
+def walk_r(hit_share, line, aim, L, seed='walk'):
+    """The scene_fx WALK_R (share of her length) that lands hit_share of a planned walk's rounds."""
+    lo, hi = .02, 3.0
+    if _walk_hits(lo, line, aim, L, seed=seed) <= hit_share:
+        return lo
+    for _ in range(18):
+        mid = (lo + hi) / 2
+        if _walk_hits(mid, line, aim, L, seed=seed) > hit_share:
+            lo = mid
+        else:
+            hi = mid
+    return round((lo + hi) / 2, 3)
+
+
+def _attitude_span(sh, key, mount, tgt, aim, i0, i1):
+    """(elevation lo, hi), (traverse lo, hi) in degrees off the shooter's deck and keel, and the mean
+    line of fire in the target's frame (unit), over an engagement."""
+    els, azs, line = [], [], [0.0, 0.0, 0.0]
+    for i in range(i0, i1 + 1):
+        fa, fb = sh.fr[key][i], sh.fr[tgt][i]
+        w = to_world(fb, aim)
+        loc = to_local(fa, w)
+        vv = [loc[k] - mount[0][k] for k in range(3)]
+        els.append(math.degrees(math.atan2(vv[2], math.hypot(vv[0], vv[1]))))
+        azs.append(math.degrees(math.atan2(vv[1], vv[0])))
+        src = to_local(fb, to_world(fa, mount[0]))
+        dl = [aim[k] - src[k] for k in range(3)]
+        n = math.sqrt(sum(c * c for c in dl)) or 1.0
+        line = [line[k] + dl[k] / n for k in range(3)]
+    n = math.sqrt(sum(c * c for c in line)) or 1.0
+    return ((round(min(els), 1), round(max(els), 1)), (round(min(azs), 1), round(max(azs), 1)),
+            tuple(c / n for c in line))
+
+
 @lru_cache(maxsize=None)
 def _moment_reach(kf, key, turret):
-    """The ledger moments this ship owes in this shot, as this mount sees them: deliverable if it
-    bears with a clear line at some step from 0.8 s before the hit to 0.4 s after it (the range gate
-    is waived: story wins over the game's ranges)."""
+    """The ledger moments this ship owes in this shot, as this mount sees them. The round must ARRIVE
+    at the ledger's time, so the gun fires a flight time earlier: the moment is deliverable if the
+    mount bears with a clear line, and the round can fly that far, at some step from 0.8 s before to
+    0.4 s after its fire time. The scaled range gate is waived (story wins); the kit's flight ceiling
+    is not."""
     sh = _shot(kf)
+    build = build_of(kf, key)
     mount = mounts_of(kf, key).get(turret) if turret is not None else None
     mount = mount or ((0.0, 0.0, 0.0), 0, 360, T)
+    weapon = weapon_of(build, turret) if build in MOUNTS else 'lightmg'
     out = []
     for (t, shooter, target, at, to, hid) in moments():
         if shooter != key or target not in sh.ships or not (sh.times[0] <= t <= sh.t1 + .5):
             continue
-        steps = [i for i, tt in enumerate(sh.times) if t - .8 <= tt <= t + .4 and not _held(sh, key, turret, tt)]
-        good, why, miss = [], 'held', None
+        j = sh.i(t)
+        d = math.dist(to_world(sh.fr[key][j], mount[0]), to_world(sh.fr[target][j], at))
+        flight = d / speed_of(weapon)
+        tf = t - flight
+        late = .9 if hid.endswith(':kill') else .4      # a kill takes a finishing burst into the breaking wreck
+        steps = [i for i, tt in enumerate(sh.times) if tf - .8 <= tt <= tf + late and not _held(sh, key, turret, tt)]
+        good, why, miss = [], ('fires before the shot is simulated' if tf < sh.times[0] else 'held'), None
         for i in steps:
-            ok, d, w = _valid(sh, key, turret, mount, 'lightmg', target, i, at, force=True)
+            ok, _d, w = _valid(sh, key, turret, mount, weapon, target, i, at, force=True)
             m = bears(mount, to_local(sh.fr[key][i], to_world(sh.fr[target][i], at)))[1]
             miss = m if miss is None else min(miss, m)
             if ok:
                 good.append(i)
             else:
                 why = w
+        if flight > KIT_FLIGHT_S - .3:
+            good, why = [], f'{weapon} round flight {flight:.1f} s > the kit ceiling {KIT_FLIGHT_S:g} s'
         out.append(dict(t=t, target=target, at=at, to=to, hid=hid, steps=frozenset(good), ok=bool(good),
-                        why='' if good else why, miss=miss))
+                        why='' if good else why, miss=miss, flight=round(flight, 2)))
     return tuple(out)
 
 
@@ -596,11 +709,22 @@ def assign_moments(kf, key):
     able = {h: [tu for tu in turrets if reach[tu][h]['ok']] for h in hids}
     busy = {tu: [] for tu in turrets}
     out = {}
+    owner = {}                        # (turret, moment time) -> moment holding it
     for h in sorted(hids, key=lambda h: (len(able[h]), hids[h])):
         free = [tu for tu in able[h] if all(abs(hids[h] - t) > 1.2 for t in busy[tu])]
+        if not free:                 # take a mount from a clashing moment that has another to spare
+            for tu in able[h]:
+                clash = [owner[(tu, t)] for t in busy[tu] if abs(hids[h] - t) <= 1.2]
+                if clash and all(len(out[c]) > 1 for c in clash):
+                    for c in clash:
+                        out[c] = out[c] - {tu}
+                        busy[tu].remove(hids[c])
+                    free = [tu]
+                    break
         chosen = free or sorted(able[h], key=lambda tu: len(busy[tu]))[:1]
         for tu in chosen:
             busy[tu].append(hids[h])
+            owner[(tu, hids[h])] = h
         out[h] = frozenset(chosen)
     return out
 
@@ -629,7 +753,7 @@ def _turret_plan(kf, key, turret, weapon):
             reason.append(h)
             current = None
             continue
-        forced = min((o for o in owed if i in o['steps']), key=lambda o: abs(o['t'] - t), default=None)
+        forced = min((o for o in owed if i in o['steps']), key=lambda o: abs(o['t'] - o['flight'] - t), default=None)
         if forced:
             pick.append((forced['target'], forced['hid']))
             reason.append('')
@@ -704,12 +828,18 @@ def _turret_plan(kf, key, turret, weapon):
             if end - start < .3:
                 continue
             bursts = _bursts(f'asharu-gunnery|{kf}|{key}|{turret}|{tgt}|{i0}', start, end, fam)
+        el, az, line = _attitude_span(sh, key, mount, tgt, at, i0, i1)
         out.append(dict(shooter=key, turret=turret, weapon=weapon, target=tgt, region=region,
                         aim=tuple(round(c, 2) for c in at), walk_to=tuple(round(c, 2) for c in to) if to else None,
+                        walk_r=walk_r(hit, line, at, L, seed=f'{kf}|{key}|{turret}|{tgt}|{i0}'),
+                        elevation_deg=el, traverse_deg=az,
                         start=round(start, 2), end=round(end, 2), bursts=bursts,
                         burst_s=DISCIPLINE[fam][0], gap_s=DISCIPLINE[fam][1], hit_share=hit, walk_m=walk,
+                        flight_s=round(d / speed_of(weapon), 2), arrive=mom['t'] if mom else None,
                         kind='pd' if _pd_target(tgt) else 'hull', force=bool(mom),
-                        ledger=hid, why=_why(kf, key, tgt, hid, region, d, weapon), range_m=round(d)))
+                        ledger=hid, why=_why(kf, key, tgt, hid, region, d, weapon), range_m=round(d),
+                        ledgers=sorted({o['hid'] for o in owed if o['target'] == tgt and hid and
+                                        o['steps'] & set(range(i0, i1 + 1))})))
     merged = []                      # one engagement split by a step or two of something else is one
     for e in out:
         m = next((x for x in reversed(merged) if x['target'] == e['target'] and x['ledger'] == e['ledger']
@@ -719,13 +849,15 @@ def _turret_plan(kf, key, turret, weapon):
             m['end'] = e['end']
             continue
         merged.append(e)
+    merged = [e for e in merged if not (e['ledger'] and e['end'] - e['start'] < .25 and
+                                        sum(x['ledger'] == e['ledger'] for x in merged) > 1)]
     holds = _holds(sh, pick, reason)
     return tuple(merged), tuple(holds), tuple((o['hid'], o['ok'], o['why'], o['miss']) for o in owed)
 
 
 def _why(kf, key, tgt, hid, region, d, weapon):
     if hid:
-        return f'story: ledger {hid}' + (' - beyond game range, waived' if d > reach_m(weapon) else '')
+        return f'story: ledger {hid}, fired {d / speed_of(weapon):.1f} s ahead so it lands on time' + (', past the execution gate (force)' if d > reach_m(weapon) else '')
     if _pd_target(tgt):
         return 'point defence: a small craft inside 700 m'
     if INTENT.get(kf, {}).get((key, tgt)):
@@ -758,6 +890,25 @@ def _clip(e, t0, t1):
     if not bursts:
         return None
     return dict(e, start=max(e['start'], t0), end=min(e['end'], t1), bursts=bursts)
+
+
+def track(shot_kf, ship_key, turret, weapon, t0, t1):
+    """What the mount is laid on through the window, continuous, for scene_fx.planned's slew:
+    [(from, to, target, aim)] in sequence seconds, aim in the target's frame. Between engagements the
+    gun is already swinging onto its next target (or holds on its last), so it trains through the
+    gaps instead of snapping; None/[] as plan()."""
+    engs = plan(shot_kf, ship_key, turret, weapon, t0, t1)
+    if not engs:
+        return engs
+    out, t = [], t0
+    for e in engs:
+        if e['start'] > t:           # the gap before it: already on the way to it
+            out.append((t, e['start'], e['target'], e['aim']))
+        out.append((max(t, e['start']), e['end'], e['target'], e['aim']))
+        t = max(t, e['end'])
+    if t < t1:
+        out.append((t, t1, engs[-1]['target'], engs[-1]['aim']))
+    return [r for r in out if r[1] > r[0]]
 
 
 def plan(shot_kf, ship_key, turret, weapon, t0, t1):
@@ -799,7 +950,8 @@ def shot_plan(kf):
     t0, t1 = window(kf)
     for key, turret, weapon in armed(kf):
         e, h, o = _turret_plan(kf, key, turret, weapon)
-        engs += [x for x in (_clip(x, t0 - LEAD_IN, t1) for x in e) if x and x['end'] > t0]
+        engs += [x for x in (_clip(x, t0 - LEAD_IN, t1) for x in e)
+                 if x and (x['end'] + x['flight_s'] > t0)]      # its rounds land inside the shot
         holds += [(key, turret) + x for x in h]
     owed_rows = []
     for key in bb.SHOTS[kf]['ships']:
@@ -839,8 +991,8 @@ def check():
             if not ok:
                 rows.append(f'{kf}: ledger {hid} not deliverable ({why})')
     seen = {m[5] for m in moments()}
-    planned = {e['ledger'] for kf in bb.SHOTS if not bb.SHOTS[kf].get('span_of') and 'camera' in bb.SHOTS[kf]
-               for e in shot_plan(kf)['engagements']}
+    planned = {h for kf in bb.SHOTS if not bb.SHOTS[kf].get('span_of') and 'camera' in bb.SHOTS[kf]
+               for e in shot_plan(kf)['engagements'] for h in e['ledgers']}
     for hid in sorted(seen - planned):
         rows.append(f'ledger {hid}: no engagement delivers it')
     return rows
@@ -901,7 +1053,7 @@ def summary(kf):
         r['hits'].append(e['hit_share'])
         r['rds'] += expected_hits(e)['rounds']
         if e['ledger']:
-            r['ids'].add(e['ledger'])
+            r['ids'].update(e['ledgers'])
         else:
             r['whys'].add(e['why'].split(',')[0])
     lines += ['| ship | turrets | target | aim | window s | hit | rounds | intent |', '|---|---|---|---|---|---|---|---|']
