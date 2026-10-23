@@ -24,6 +24,7 @@ import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.marine.CampaignVehicle;
 import com.dillon.starsectormarines.marine.MechPattern;
+import com.dillon.starsectormarines.marine.MechPatternCredits;
 import com.dillon.starsectormarines.marine.MechBay;
 import com.dillon.starsectormarines.marine.MechFabricationCatalog;
 import com.dillon.starsectormarines.marine.MechFrameBudget;
@@ -515,11 +516,16 @@ public final class MechLabViewModel {
         props.put("buildKind", reactor.computed(() -> {
             MechFabricationCatalog.Recipe recipe = previewRecipe();
             if (recipe == null) return "";
-            return recipe.variant() != null
-                    ? Strings.join("separatorDot", recipe.provenance(), roleLabel(recipe.variant().defaultRole))
-                    : vehicleKind(recipe.vehicle());
+            return recipe.variant() != null ? chassisKind(recipe.variant()) : vehicleKind(recipe.vehicle());
         }));
         props.put("buildLore", reactor.computed(() -> lore(previewRecipe())));
+        props.put("buildCredit", reactor.computed(() -> credit(previewRecipe())));
+        props.put("buildCrest", reactor.computed(() -> {
+            MechPatternCredits.Credit credit = creditOf(previewRecipe());
+            return credit != null ? credit.crest() : NO_CREST;
+        }));
+        props.put("buildCrestClasses", reactor.computed(() -> creditOf(previewRecipe()) != null
+                ? "build-crest" : "hidden"));
         props.put("buildStats", reactor.computed(() -> {
             MechFabricationCatalog.Recipe recipe = previewRecipe();
             if (recipe == null) return "";
@@ -558,6 +564,32 @@ public final class MechLabViewModel {
         previewRecipeId.set(null);
         if (recipe.variant() != null) fabricateChassis(recipe.variant());
         else fabricateVehicle(recipe.vehicle());
+    }
+
+    /** A pattern nobody has credited draws no crest; the image is hidden, so any path will do. */
+    private static final String NO_CREST = "graphics/factions/neutral_traders.png";
+
+    private static MechPatternCredits.Credit creditOf(MechFabricationCatalog.Recipe recipe) {
+        if (recipe == null) return null;
+        return MechPatternCredits.of(recipe.variant() != null ? MechPattern.of(recipe.variant())
+                : recipe.vehicle() != null ? MechPattern.of(recipe.vehicle()) : null);
+    }
+
+    /** The procurement line a pattern comes off, in the loadout cards' voice; its provenance if uncredited. */
+    private static String credit(MechFabricationCatalog.Recipe recipe) {
+        MechPatternCredits.Credit credit = creditOf(recipe);
+        if (credit != null) return Strings.get(credit.provenanceKey());
+        return recipe != null ? recipe.provenance() : "";
+    }
+
+    private static String chassisKind(MechVariant variant) {
+        String weight = switch (MechPattern.of(variant).weightClass()) {
+            case LIGHT -> Strings.get("openingMechLabWeightClassLIGHT");
+            case MEDIUM -> Strings.get("openingMechLabWeightClassMEDIUM");
+            case HEAVY -> Strings.get("openingMechLabWeightClassHEAVY");
+        };
+        return Strings.join("separatorDot", Strings.format("openingMechLabWeightChassis", weight),
+                roleLabel(variant.defaultRole));
     }
 
     /** Chassis lore is the gear catalogue's; vehicle lore is the lab's own. */
@@ -1313,10 +1345,10 @@ public final class MechLabViewModel {
                     base + ":preview",
                     "catalog-preview", variant, null, null, null, null, patternClasses(recipe),
                     recipe.displayName(), Strings.get("openingMechLabChassis"), "catalog-badge chassis",
-                    recipe.provenance(),
+                    credit(recipe),
                     Strings.format("openingMechLabSpeedArmor", number(variant.moveSpeed), Math.round(variant.armorCapacity)),
                     "", "catalog-delta hidden",
-                    roleLabel(variant.defaultRole),
+                    chassisKind(variant),
                     "", Strings.get("openingMechLabSelectToPreview"),
                     false, materialRows(base, resources.quote(recipe.cost())), "material-costs",
                     () -> previewRecipeId.set(recipe.id())));
@@ -1340,7 +1372,7 @@ public final class MechLabViewModel {
                     base + ":preview",
                     "catalog-preview", null, null, null, null, type, patternClasses(recipe),
                     recipe.displayName(), Strings.get("openingMechLabVehicle"), "catalog-badge chassis",
-                    recipe.provenance(),
+                    credit(recipe),
                     Strings.format("openingMechLabSpeedArmor", number(type.maxSpeed), Math.round(type.maxArmor)),
                     "", "catalog-delta hidden",
                     vehicleKind(type),
