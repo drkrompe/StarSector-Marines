@@ -72,7 +72,7 @@ class VehicleScuffsTest {
     void aTurnedMarkNeverLeavesTheSilhouette() {
         BufferedImage image = hull();
         VehicleScuffs.Mask mask = mask(image);
-        float reach = mask.decalPx * 0.7072f;
+        float reach = mask.decalPx * VehicleScuffs.MARK_REACH;
         for (Plate plate : Plate.values()) {
             for (float[] m : marks(mask, plate, 1f)) {
                 for (int y = (int) (m[1] - reach); y <= m[1] + reach; y++) {

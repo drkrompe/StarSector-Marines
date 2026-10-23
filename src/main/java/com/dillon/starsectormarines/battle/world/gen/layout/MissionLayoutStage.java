@@ -6,13 +6,18 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
+import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -35,6 +40,21 @@ public final class MissionLayoutStage implements GenStage {
     static final int SEAL_SLACK = 48;
     private static final String NEST_STRUCTURE = "structure.turret-heavy-mg";
 
+    private final Phase phase;
+
+    /** The works phase: lines, sites and blocks, before the landscape. */
+    public MissionLayoutStage() {
+        this(Phase.WORKS);
+    }
+
+    /**
+     * The stage for one phase: {@link Phase#STRUCTURES} raises the structures before the map is finished,
+     * {@link Phase#WORKS} lays everything else and reports the whole layout.
+     */
+    public MissionLayoutStage(Phase phase) {
+        this.phase = phase;
+    }
+
     @Override
     public void run(GenContext ctx) {
         PrecinctPlan plan = ctx.get(BspKeys.PRECINCTS);
@@ -44,31 +64,77 @@ public final class MissionLayoutStage implements GenStage {
         boolean[][] held = layout.keepClear(ctx.width, ctx.height);
         List<Piece> pieces = new ArrayList<>();
         List<Laid> out = new ArrayList<>();
+        if (phase == Phase.WORKS) {
+            // Roads were carved as the places grew and structures raised before the map was finished; they are
+            // reported here with the rest.
+            List<Laid> roads = ctx.get(BspKeys.LAYOUT_ROADS);
+            if (roads != null) out.addAll(roads);
+            List<Laid> raised = ctx.get(BspKeys.LAYOUT_STRUCTURES);
+            if (raised != null) out.addAll(raised);
+        }
         for (Piece piece : layout.pieces()) {
+            if (piece instanceof Road) continue;
             if (piece instanceof Deferred deferred) {
-                if (deferred.phase() != Phase.WORKS) {
-                    out.add(Laid.refused(deferred.name(), Laid.Kind.SITE, deferred.required(),
-                            "phase " + deferred.phase() + " is not run yet"));
-                    continue;
-                }
+                if (deferred.phase() != phase) continue;
                 List<Piece> resolved = deferred.resolve().apply(ground);
                 if (resolved != null) pieces.addAll(resolved);
-            } else {
+            } else if ((piece instanceof Structure) == (phase == Phase.STRUCTURES)) {
                 pieces.add(piece);
             }
         }
-        Set<String> names = new HashSet<>();
+        // A site resolved with the works holds its ground against them as one stated up front does.
+        for (Piece piece : pieces) {
+            if (!(piece instanceof Site site)) continue;
+            if (held == null) held = new boolean[ctx.width][ctx.height];
+            for (int x = Math.max(0, site.x0()); x <= Math.min(ctx.width - 1, site.x1()); x++) {
+                for (int y = Math.max(0, site.y0()); y <= Math.min(ctx.height - 1, site.y1()); y++) held[x][y] = true;
+            }
+        }
+        // Ridges first, so the works resolved along them are dug on their crests.
+        Map<String, List<int[]>> ridges = new HashMap<>();
         boolean closed = false;
+        if (phase == Phase.WORKS) {
+            refuseSecondElevation(ctx, plan, pieces);
+            for (Piece piece : pieces) {
+                if (!(piece instanceof Ridge ridge) || ridges.containsKey(ridge.name())) continue;
+                List<int[]> feet = OutdoorLandscapeStage.raiseRidges(ctx, List.of(ridge.band()), held);
+                ridges.put(ridge.name(), feet);
+                closed |= !feet.isEmpty();
+            }
+        }
+        Set<String> names = new HashSet<>();
+        for (Laid laid : out) names.add(laid.name());
         for (Piece piece : pieces) {
             if (!names.add(piece.name())) {
                 out.add(Laid.refused(piece.name(), Laid.Kind.SITE, false, "named twice"));
                 continue;
             }
-            if (piece instanceof Line line) {
+            if (piece instanceof Structure structure) {
+                if (phase != Phase.STRUCTURES) {
+                    out.add(Laid.refused(structure.name(), Laid.Kind.STRUCTURE, structure.required(),
+                            "a structure is raised in the structures phase"));
+                    continue;
+                }
+                out.add(LayoutStructures.raise(ctx, ground, structure, held));
+            } else if (phase == Phase.STRUCTURES) {
+                out.add(Laid.refused(piece.name(), Laid.Kind.SITE, piece.required(),
+                        "only structures are raised in the structures phase"));
+            } else if (piece instanceof Ridge ridge) {
+                List<int[]> feet = ridges.getOrDefault(ridge.name(), List.of());
+                // Reported by its ramps' feet, the ways up: a ridge's cells are the elevation map's.
+                out.add(feet.isEmpty()
+                        ? Laid.refused(ridge.name(), Laid.Kind.GROUND, ridge.required(), "no stretch of its band fits")
+                        : new Laid(ridge.name(), Laid.Kind.GROUND, Laid.Status.LAID, feet.size() + " segments",
+                                ridge.required(), List.of(), feet, List.of()));
+            } else if (piece instanceof Line line) {
                 Laid laid = lay(ctx, ground, line, held);
                 out.add(laid);
                 for (int[] c : laid.cells()) closed |= !ctx.grid.isWalkable(c[0], c[1]);
                 closed |= !laid.nests().isEmpty();
+            } else if (piece instanceof Block block) {
+                Laid laid = LayoutBlocks.lay(ctx, block, held);
+                out.add(laid);
+                for (int[] c : laid.cells()) closed |= !ctx.grid.isWalkable(c[0], c[1]);
             } else if (piece instanceof Site site) {
                 boolean inside = site.x0() >= 0 && site.y0() >= 0 && site.x1() < ctx.width && site.y1() < ctx.height;
                 Laid.Kind kind = site.purpose() == SitePurpose.GROUND ? Laid.Kind.GROUND : Laid.Kind.SITE;
@@ -80,7 +146,11 @@ public final class MissionLayoutStage implements GenStage {
                 out.add(Laid.refused(piece.name(), Laid.Kind.SITE, piece.required(), "a deferred piece resolved to another"));
             }
         }
-        // Wire and nests close cells after the regions were published: "non-walkable => region -1" must hold.
+        if (phase == Phase.STRUCTURES) {
+            ctx.put(BspKeys.LAYOUT_STRUCTURES, out);
+            return;
+        }
+        // Wire, nests and blocks close cells after the regions were published: "non-walkable => region -1" must hold.
         if (closed && ctx.get(BspKeys.TACTICAL_REGIONS) != null) {
             ctx.put(BspKeys.TACTICAL_REGIONS, TacticalRegionMap.build(ctx.grid, ctx.topology, ctx.get(BspKeys.AXIS)));
         }
@@ -88,16 +158,28 @@ public final class MissionLayoutStage implements GenStage {
     }
 
     private static Laid lay(GenContext ctx, LayoutGround ground, Line line, boolean[][] held) {
+        boolean dug = line.style().dug();
         LineCourse.Course course = LineCourse.plan(line.path(), ground::isRoad, line.roadGap(), line.frontward(),
-                line.style() == LineStyle.TRENCH_WIRE ? line.funnelEvery() : 0);
+                line.style() == LineStyle.TRENCH_WIRE ? line.funnelEvery() : 0,
+                dug ? line.depth() : 1, dug, line.nestEvery());
+        int[] front = line.frontward();
         int planned = 0;
         List<int[]> works = new ArrayList<>();
+        List<int[]> blocked = new ArrayList<>();
         for (List<int[]> run : course.runs()) {
             planned += run.size();
-            for (int[] c : run) if (takes(ctx, ground, held, c)) works.add(c);
+            for (int[] c : run) {
+                if (takes(ctx, ground, held, c)) works.add(c);
+                else if (!ground.isRoad(c[0], c[1])) blocked.add(c);
+            }
         }
         if (planned == 0) return Laid.refused(line.name(), Laid.Kind.LINE, line.required(), "no course between roads");
-        if (works.isEmpty()) return Laid.refused(line.name(), Laid.Kind.LINE, line.required(), "no open ground on its course");
+        // A street line keeps to the house fronts its course runs into, so a course that is all houses is a line.
+        List<int[]> fronts = line.style() == LineStyle.STREETS ? houseFronts(ctx, ground, held, blocked, front)
+                : List.of();
+        if (works.isEmpty() && fronts.isEmpty()) {
+            return Laid.refused(line.name(), Laid.Kind.LINE, line.required(), "no open ground on its course");
+        }
 
         Set<Long> worksKeys = keys(works);
         List<int[]> closing = new ArrayList<>();
@@ -107,45 +189,82 @@ public final class MissionLayoutStage implements GenStage {
             }
         }
         List<int[]> nests = new ArrayList<>();
-        if (line.nestsAtEnds()) for (int[] c : course.nests()) if (takes(ctx, ground, held, c)) nests.add(c);
+        if (line.nestsAtEnds()) {
+            for (int[] c : course.nests()) {
+                if (!takes(ctx, ground, held, c)) continue;
+                // A street line is broken by every house, so its runs are short: one nest a stretch of street.
+                if (line.style() == LineStyle.STREETS && near(nests, c, STREET_NEST_SPACING)) continue;
+                nests.add(c);
+            }
+        }
+        List<int[]> barricades = line.barricadeGaps() ? barricades(ctx, ground, held, course.gaps()) : List.of();
         List<int[]> shut = new ArrayList<>(closing);
         shut.addAll(nests);
+        shut.addAll(barricades);
         String reason = "";
         if (!shut.isEmpty() && seals(ctx, shut)) {
             closing.clear();
             nests.clear();
-            reason = "wire and nests would seal the ground; works only";
+            barricades = List.of();
+            reason = "wire, nests and barricades would seal the ground; works only";
         }
 
+        List<int[]> rear = new ArrayList<>();
+        List<int[]> lip = new ArrayList<>();
+        if (dug) {
+            for (int[] c : course.rear()) if (takes(ctx, ground, held, c)) rear.add(c);
+            for (int[] c : course.parapet()) if (takes(ctx, ground, held, c)) lip.add(c);
+        }
         Set<Long> taken = keys(works);
+        taken.addAll(keys(rear));
+        taken.addAll(keys(lip));
+        taken.addAll(keys(fronts));
         taken.addAll(keys(closing));
         taken.addAll(keys(nests));
+        taken.addAll(keys(barricades));
         ctx.doodads.removeIf(d -> taken.contains(PreparedGround.key(d.cellX, d.cellY)));
 
         List<int[]> laidCells = new ArrayList<>();
-        if (line.style() == LineStyle.SANDBAG) {
-            for (int[] c : works) if (PreparedGround.sandbag(ctx, c[0], c[1], line.frontward(), null)) laidCells.add(c);
+        int laidWorks;
+        if (dug) {
+            // The course and the rows behind it are one trench; its nests stand in it.
+            List<int[]> trench = new ArrayList<>(works);
+            trench.addAll(rear);
+            PreparedGround.trenchLine(ctx, trench);
+            laidCells.addAll(trench);
+            laidWorks = works.size();
+            for (int[] c : lip) if (PreparedGround.sandbag(ctx, c[0], c[1], front, null)) laidCells.add(c);
         } else {
-            PreparedGround.trenchLine(ctx, works);
-            laidCells.addAll(works);
+            // Bags stand on turned earth, so a street line reads against lawns and paving alike.
+            for (int[] c : works) {
+                PreparedGround.workedGround(ctx, c[0], c[1]);
+                if (PreparedGround.sandbag(ctx, c[0], c[1], front, null)) laidCells.add(c);
+            }
+            laidWorks = laidCells.size();
+            for (int[] c : fronts) {
+                PreparedGround.workedGround(ctx, c[0], c[1]);
+                if (PreparedGround.sandbag(ctx, c[0], c[1], front, null)) laidCells.add(c);
+            }
         }
-        boolean horizontal = line.frontward()[1] != 0;
+        boolean horizontal = front[1] != 0;
         for (int[] c : closing) if (PreparedGround.fence(ctx, c[0], c[1], horizontal)) laidCells.add(c);
+        for (int i = 0; i < barricades.size(); i++) {
+            int[] c = barricades.get(i);
+            String piece = i % CRATE_EVERY == CRATE_EVERY - 1 ? CRATES : HEDGEHOG;
+            if (PreparedGround.obstacle(ctx, c[0], c[1], piece)) laidCells.add(c);
+        }
         for (int[] c : nests) {
             ctx.grid.setWalkable(c[0], c[1], false);
             ctx.defensePosts.add(new DefensePost(DefensePostKind.LIGHT, c[0], c[1],
                     List.of(new DefensePost.TurretSpec(NEST_STRUCTURE, c[0], c[1]))));
         }
+        List<int[]> worked = new ArrayList<>(works);
+        worked.addAll(fronts);
+        workGround(ctx, ground, held, line, worked, nests, laidCells);
 
         List<int[]> gaps = new ArrayList<>();
         for (List<int[]> gap : course.gaps()) {
-            int[] middle = null;
-            for (int[] c : gap) {
-                if (ground.isRoad(c[0], c[1]) && ctx.grid.inBounds(c[0], c[1]) && ctx.grid.isWalkable(c[0], c[1])) {
-                    middle = c;
-                    if (gap.indexOf(c) >= gap.size() / 2) break;
-                }
-            }
+            int[] middle = gapMiddle(ctx, ground, gap);
             if (middle != null) gaps.add(middle);
         }
         if (!closing.isEmpty()) {
@@ -153,10 +272,106 @@ public final class MissionLayoutStage implements GenStage {
                 if (ctx.grid.inBounds(c[0], c[1]) && ctx.grid.isWalkable(c[0], c[1])) gaps.add(c);
             }
         }
-        int laidWorks = line.style() == LineStyle.SANDBAG ? laidCells.size() - closing.size() : works.size();
-        Laid.Status status = laidWorks >= WHOLE * planned && reason.isEmpty() ? Laid.Status.LAID : Laid.Status.PARTIAL;
+        Laid.Status status = laidWorks + fronts.size() >= WHOLE * planned && reason.isEmpty()
+                ? Laid.Status.LAID : Laid.Status.PARTIAL;
         if (reason.isEmpty() && status == Laid.Status.PARTIAL) reason = "laid " + laidWorks + " of " + planned + " cells";
         return new Laid(line.name(), Laid.Kind.LINE, status, reason, line.required(), laidCells, gaps, nests);
+    }
+
+    /** The nearest two nests stand on a street line. */
+    static final int STREET_NEST_SPACING = 24;
+
+    private static boolean near(List<int[]> cells, int[] c, int distance) {
+        for (int[] o : cells) if (Math.abs(o[0] - c[0]) + Math.abs(o[1] - c[1]) < distance) return true;
+        return false;
+    }
+
+    /** Cells across a barricaded gap left open in its middle: a truck and room either side. */
+    static final int GAP_OPENING = 5;
+    /** Every this many barricade cells, a crate stack in place of a hedgehog. */
+    private static final int CRATE_EVERY = 4;
+    private static final String HEDGEHOG = "doodad.fort-hedgehog";
+    private static final String CRATES = "doodad.industrial-crate-stack";
+    /** How far in front of a course cell a house front is looked for. */
+    static final int HOUSE_REACH = 12;
+
+    /**
+     * The turned earth round a line, which is what reads it from a distance: for a dug line, behind the trench and in
+     * front of the parapet up to the wire; for a street line, two steps behind its bags.
+     */
+    private static void workGround(GenContext ctx, LayoutGround ground, boolean[][] held, Line line,
+                                   List<int[]> works, List<int[]> nests, List<int[]> laid) {
+        int[] front = line.frontward();
+        Set<Long> worked = keys(laid);
+        worked.addAll(keys(nests));
+        // A street line has no spoil to throw: only the ground its bags stand on and two steps behind them is worked.
+        boolean dug = line.style().dug();
+        int back = dug ? line.depth() + 1 : 2;
+        int ahead = line.style() == LineStyle.TRENCH_WIRE ? LineCourse.PARAPET_WIRE_OFFSET - 1 : dug ? 2 : 0;
+        List<int[]> course = new ArrayList<>(works);
+        course.addAll(nests);
+        for (int[] c : course) {
+            for (int k = -back; k <= ahead; k++) {
+                int x = c[0] + front[0] * k, y = c[1] + front[1] * k;
+                if (worked.contains(PreparedGround.key(x, y)) || ground.isRoad(x, y)) continue;
+                if (held != null && ctx.grid.inBounds(x, y) && held[x][y]) continue;
+                PreparedGround.workedGround(ctx, x, y);
+            }
+        }
+    }
+
+    /** The road cell nearest the middle of a gap that is open ground, or {@code null}. */
+    private static int[] gapMiddle(GenContext ctx, LayoutGround ground, List<int[]> gap) {
+        int[] middle = null;
+        for (int[] c : gap) {
+            if (ground.isRoad(c[0], c[1]) && ctx.grid.inBounds(c[0], c[1]) && ctx.grid.isWalkable(c[0], c[1])) {
+                middle = c;
+                if (gap.indexOf(c) >= gap.size() / 2) break;
+            }
+        }
+        return middle;
+    }
+
+    /**
+     * The barricade across each road gap: every open cell of the gap but the {@link #GAP_OPENING} cells round its
+     * middle, so the street is closed to all but one lane. A gap with less than two cells to close is left bare.
+     */
+    private static List<int[]> barricades(GenContext ctx, LayoutGround ground, boolean[][] held,
+                                          List<List<int[]>> gaps) {
+        List<int[]> out = new ArrayList<>();
+        for (List<int[]> gap : gaps) {
+            int[] middle = gapMiddle(ctx, ground, gap);
+            if (middle == null) continue;
+            int at = gap.indexOf(middle);
+            List<int[]> row = new ArrayList<>();
+            for (int i = 0; i < gap.size(); i++) {
+                if (Math.abs(i - at) <= GAP_OPENING / 2) continue;
+                int[] c = gap.get(i);
+                if (PreparedGround.open(ctx, c[0], c[1]) && (held == null || !held[c[0]][c[1]])) row.add(c);
+            }
+            if (row.size() >= 2) out.addAll(row);
+        }
+        return out;
+    }
+
+    /**
+     * Where a street line meets a house: the first open cell in front of it, for each course cell a house stands
+     * on, so the line runs on along the house's front.
+     */
+    private static List<int[]> houseFronts(GenContext ctx, LayoutGround ground, boolean[][] held, List<int[]> blocked,
+                                           int[] front) {
+        List<int[]> out = new ArrayList<>();
+        Set<Long> seen = new HashSet<>();
+        for (int[] c : blocked) {
+            for (int k = 1; k <= HOUSE_REACH; k++) {
+                int x = c[0] + front[0] * k, y = c[1] + front[1] * k;
+                if (!ctx.grid.inBounds(x, y) || ground.isRoad(x, y)) break;
+                if (!PreparedGround.open(ctx, x, y)) continue;
+                if ((held == null || !held[x][y]) && seen.add(PreparedGround.key(x, y))) out.add(new int[]{x, y});
+                break;
+            }
+        }
+        return out;
     }
 
     /** Whether the cell may take a work: open ground that is not road, nor held by a site the layout states up front. */
@@ -211,5 +426,35 @@ public final class MissionLayoutStage implements GenStage {
         Set<Long> out = new HashSet<>();
         for (int[] c : cells) out.add(PreparedGround.key(c[0], c[1]));
         return out;
+    }
+    /**
+     * Elevation is stamped once per map ({@code ElevationBrush}): whatever is raised first is the map's
+     * relief, and every later ridge or plateau pass finds elevation already there and does nothing. So a
+     * layout may raise at most one {@link Ridge}, and only on a map whose landscape asks for no ridges,
+     * held bands or plateaus of its own. A plan that asks for both is refused here, loudly, rather than
+     * losing the rest without a word.
+     */
+    private static void refuseSecondElevation(GenContext ctx, PrecinctPlan plan, List<Piece> pieces) {
+        String reason = secondElevation(pieces, plan == null ? null : plan.landscape(),
+                OutdoorLandscapeStage.plateausWanted(ctx));
+        if (reason != null) throw new IllegalStateException(reason);
+    }
+
+    /** Why this layout's ridges cannot be raised on this map, or null when they can. */
+    static String secondElevation(List<Piece> pieces, Landscape landscape, int plateaus) {
+        List<RidgePlanner.Band> raised = new ArrayList<>();
+        for (Piece piece : pieces) if (piece instanceof Ridge ridge) raised.add(ridge.band());
+        if (raised.isEmpty()) return null;
+        if (raised.size() > 1) {
+            return "a mission layout raises one Ridge: elevation is stamped once per map, and " + raised.size()
+                    + " were asked for";
+        }
+        // Held bands are a reservation first: with a layout Ridge they keep growth off the Ridge's ground and are
+        // not raised again (the Cordon holds its line's band so). Ridges the landscape asks to raise are relief.
+        if (landscape != null && !landscape.ridges().isEmpty()) {
+            return "a mission layout Ridge and the landscape's own ridges cannot share a map: elevation is stamped once";
+        }
+        if (plateaus > 0) return "a mission layout Ridge and plateaus cannot share a map: elevation is stamped once";
+        return null;
     }
 }

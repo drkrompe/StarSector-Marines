@@ -63,8 +63,19 @@ rather than walls, run from one redoubt's claimed edge to the next's at their
 depth and facing the front, with a nest at each end of every run
 (`fortified-lines.md`). The mission lays it through its layout
 (`mission-layout.md`) once the redoubts stand; what it is built of follows the
-density: a trench with wire in front, opened in funnels, across rural and town
-country, and a sandbag course in a city, where the buildings break it. A
+density: a trench two deep with a sandbag parapet and wire in front, opened in
+funnels, across rural and town country, its street mouths barricaded in a
+town; in a city a sandbag course that runs along the house fronts where the
+buildings stand across it, and barricaded street mouths. The garrison seats
+its own light gun (`ALLY`) in every nest of the picket, so the works between
+redoubts are covered from the first tick. Behind the middle of the line, the
+redoubt with the most room has an unmanned **switch line**, a shorter trench
+a garrison falls back to (beat L3). The beats' other set pieces stand where the layout found
+room for them (`cordon-map-intent.md`): a farmstead in the near front, an
+ammo dump in the base, a square in the far rear hamlet, a granary on the
+colony's near side, an observation post forward of each flank redoubt and,
+on the Road, sandbag positions either side of the corridor where it crosses
+the line. A
 picket line is broken by gaps the roads pass through, so the line is a set of
 prepared positions, never a wall: routes through always exist, and works that
 would seal the ground are not laid. A picket line is optional: one the town
@@ -154,7 +165,10 @@ redoubt it fed and answers the nearest call as the armour does, beside the
 armour rather than on it. When squads wait at the base, one carrier a squad
 goes back for them, the nearest first, and the rest stay on the line. A
 finished car or technical joins the allied armour with a post behind a
-redoubt as its home. The base opens with one carrier.
+redoubt as its home. The base opens with one carrier. **Supply roads** run from the
+base's gate toward the line to each redoubt's rear gate across open country
+(`mission-layout.md`), so the line has a road behind it; across a town's or a
+city's ground its own streets are the supply road.
 
 The base controls its exits so nothing piles up in the shed. A finished
 machine waits on its berth until the one before it has driven clear of the
@@ -247,6 +261,11 @@ base, trucks come on a few cells in from the rear edge, since a hull set down
 on the edge row has no route out of it. Nothing is parked within a few cells of
 the corridor.
 
+The Road also has a **second road** through the line, from the base's gate
+through the gap beside redoubt 2 to the compound's rear gate (beat R5),
+carved where the country is open; the corridor is still the cheapest way,
+whichever that is.
+
 **Line posture.** The briefing's choice of how far the company goes out, the
 Cordon's version of the hive posture (`colony-breach-nouns.md`, Hive posture),
 frozen at launch: **Hold** (the company only relieves and escorts),
@@ -302,6 +321,24 @@ redoubt (a base fenced too narrowly for a carrier kept every one it built
 standing on its apron, refused a route, with the shed's lane jammed behind).
 That proof keeps clear of walls along cell edges as well as walled cells, as a
 hull's body does.
+
+**The line stands on a ridge** (`cordon-map-intent.md`, The line on the high
+ground). A low ridge (`elevation-nouns.md`, Ridges) runs edge to edge along the
+line: through each redoubt at the depth of its middle and straight between
+neighbours, the course the picket lines are dug along, a cell to the front of
+it. It is a layout piece raised in the works phase before the lines are laid,
+so each picket trench, its parapet and its wire stand on the crest with the
+front's cliff just beyond the wire, and its ramps (wide enough for a tank)
+climb from the rear. Wherever a road, a redoubt, a structure or a place crosses
+the band it breaks into a pass, so the redoubts stand in the passes at their
+roads with the crest running off either side, and the swarm meets a cliff
+everywhere else. The redoubts themselves are on the low ground of their pass:
+a place is built before elevation goes down, and elevation never touches
+built ground. In open country the band's ground is held before the places grow
+(`Landscape.held`); in a town only the fields keep off it, since holding it
+from the town's growth cost five pooled town maps their Cordon, so a town's
+ridge rises only on the stretches its streets and houses leave open. A city's
+height is its buildings: an urban line has no ridge.
 
 The Road keeps the colony's civil-defence compound on the town's near side
 (depth 0.6 to 0.7). Its **corridor** (CordonCorridor) is found on the

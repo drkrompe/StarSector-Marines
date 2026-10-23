@@ -122,7 +122,11 @@ public final class MechLoadoutComponent {
 
     /** Release trigger work while preserving every mount's resources and current physical pose. */
     public void clearQueuedFire() {
-        for (MechWeaponMount mount : mounts) if (mount != null) mount.clearBurst();
+        for (MechWeaponMount mount : mounts) {
+            if (mount == null) continue;
+            mount.clearBurst();
+            mount.releaseChain();
+        }
         torsoAimTargetId = 0L;
         torsoOnTarget = false;
     }

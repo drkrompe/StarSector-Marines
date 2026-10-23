@@ -93,6 +93,9 @@ final class CreepShading {
 
         /** How much of the point is cliff face or ramp wall ({@link CliffFaceMask}), 0..1; 0 on flat ground. */
         default float face(float cellX, float cellY) { return 0f; }
+
+        /** How much of the point the shore draws as water or wet bank ({@link ShoreWaterMask}), 0..1; 0 inland. */
+        default float water(float cellX, float cellY) { return 0f; }
     }
 
 
@@ -111,8 +114,9 @@ final class CreepShading {
         f.sample((float) Math.floor(x) + 0.5f, (float) Math.floor(y) + 0.5f, own);
         f.sample(x, y, here);
         float faceHere = f.face(x, y);
+        float waterHere = f.water(x, y);
         float rawHere = here[0];
-        here[0] = Math.max(0f, here[0] - faceHere);
+        here[0] = Math.max(0f, here[0] - faceHere - waterHere);
         float e = cov(f, x + TAP, y), w = cov(f, x - TAP, y);
         float n = cov(f, x, y + TAP), s = cov(f, x, y - TAP);
         float soft = 0.4f * here[0] + 0.15f * (e + w + n + s);
@@ -145,7 +149,8 @@ final class CreepShading {
                 }
             }
             // Bare rock is not grass: no wilt and no blight veins on the part of a face the creep stands back from.
-            float rock = 1f - faceHere;
+            // Nor is water: the blight stops at the bank too.
+            float rock = (1f - faceHere) * (1f - waterHere);
             wa *= rock;
             wv *= rock;
             // Creep climbing a face it has been pulled back from: veins and a thin film where it stands round it.
@@ -237,9 +242,9 @@ final class CreepShading {
         out[3] = alpha;
     }
 
-    /** Coverage at a point with the faces' cover taken out of it. */
+    /** Coverage at a point with the faces' and the shore's water taken out of it. */
     private static float cov(Field f, float x, float y) {
-        return Math.max(0f, f.coverage(x, y) - f.face(x, y));
+        return Math.max(0f, f.coverage(x, y) - f.face(x, y) - f.water(x, y));
     }
 
     /** Per-thread working arrays for {@link #shade}. */

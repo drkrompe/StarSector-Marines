@@ -3,8 +3,11 @@ package com.dillon.starsectormarines.battle.cordon;
 import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationPlan;
+import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 import com.dillon.starsectormarines.battle.world.gen.layout.Deferred;
+import com.dillon.starsectormarines.battle.world.gen.layout.Endpoint;
 import com.dillon.starsectormarines.battle.world.gen.layout.LayoutGround;
 import com.dillon.starsectormarines.battle.world.gen.layout.Line;
 import com.dillon.starsectormarines.battle.world.gen.layout.LineCourse;
@@ -12,6 +15,9 @@ import com.dillon.starsectormarines.battle.world.gen.layout.LineStyle;
 import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayout;
 import com.dillon.starsectormarines.battle.world.gen.layout.Phase;
 import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
+import com.dillon.starsectormarines.battle.world.gen.layout.Ridge;
+import com.dillon.starsectormarines.battle.world.gen.layout.Road;
+import com.dillon.starsectormarines.battle.world.gen.layout.Side;
 import com.dillon.starsectormarines.battle.world.gen.layout.Site;
 import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
@@ -105,18 +111,24 @@ public final class CordonPlan {
      * infantry and walkers more than for wheels.
      */
     public enum Density {
-        RURAL(null, COLONY_GROWTH, HAMLET_GROWTH),
+        RURAL(null, COLONY_GROWTH, HAMLET_GROWTH, true),
         TOWN(new GrownTrunkPlan.Profile(5, 0.6f, 0.04f, 0.1f, 0.4f, 10, SettlementLink.ROAD),
                 new GrownTrunkPlan.Profile(10, 0.7f, 0.06f, 0.13f, 0.4f, 14, SettlementLink.ROAD),
-                new GrownTrunkPlan.Profile(6, 0.6f, 0.05f, 0.11f, 0.4f, 10, SettlementLink.ROAD)),
+                new GrownTrunkPlan.Profile(6, 0.6f, 0.05f, 0.11f, 0.4f, 10, SettlementLink.ROAD), true),
         URBAN(GrownTrunkPlan.Profile.city(),
                 GrownTrunkPlan.Profile.city(),
-                GrownTrunkPlan.Profile.of(0.9f, SettlementLink.ROAD));
+                GrownTrunkPlan.Profile.of(0.9f, SettlementLink.ROAD), false);
 
         /** Growth of the built ground the line runs through, or null where it runs through fields. */
         final GrownTrunkPlan.Profile lineGrowth;
         final GrownTrunkPlan.Profile colonyGrowth;
         final GrownTrunkPlan.Profile placeGrowth;
+        /**
+         * Whether the line stands on a ridge. A city's height is its buildings (`elevation-nouns.md`): an urban
+         * line is built across the whole width, every stretch of a ridge there would be broken, and ground held
+         * for one would gut the streets the line is fought in.
+         */
+        final boolean ridge;
 
         /** Smallest vanilla market size that is a town world, and a city. */
         static final int TOWN_SIZE = 5, URBAN_SIZE = 7;
@@ -127,10 +139,11 @@ public final class CordonPlan {
         }
 
         Density(GrownTrunkPlan.Profile lineGrowth, GrownTrunkPlan.Profile colonyGrowth,
-                GrownTrunkPlan.Profile placeGrowth) {
+                GrownTrunkPlan.Profile placeGrowth, boolean ridge) {
             this.lineGrowth = lineGrowth;
             this.colonyGrowth = colonyGrowth;
             this.placeGrowth = placeGrowth;
+            this.ridge = ridge;
         }
     }
 
@@ -186,39 +199,169 @@ public final class CordonPlan {
                     REDOUBT_GROWTH, FortressProgram.civilDefence(),
                     new Fortification(CivilDefenceCompound.GATES, CivilDefenceCompound.WALL_HP).laidSquare()));
         }
-        return PrecinctPlan.laidOut(places, south ? MapPlacement.SOUTH : MapPlacement.NORTH,
-                LandingKind.OPEN_FIELD, width, height, rng).withLayout(layout(south, density));
+        PrecinctPlan plan = PrecinctPlan.laidOut(places, south ? MapPlacement.SOUTH : MapPlacement.NORTH,
+                LandingKind.OPEN_FIELD, width, height, rng).withLayout(layout(south, density, variant));
+        if (!density.ridge) return plan;
+        List<int[]> seeds = new ArrayList<>();
+        for (Precinct r : redoubts(plan)) seeds.add(new int[]{r.seedX(), r.seedY(), r.seedX(), r.seedY()});
+        List<RidgePlanner.Band> held = heldBands(seeds, new int[]{0, south ? 1 : -1}, width);
+        // In open country the band is held from everything that grows; a town's places grow as they would and only
+        // its fields keep off (held from its growth, five of the pooled town maps lost their Cordon).
+        return plan.withLandscape(density == Density.RURAL ? plan.landscape().withHeld(held)
+                : plan.landscape().withUnploughed(held));
+    }
+
+    /** The ridge the line stands on ({@code cordon-map-intent.md}, The line on the high ground). */
+    public static final String RIDGE = "line-ridge";
+    /** Cells through the ridge, rear to front: room on its crest for the trench, its parapet and its wire. */
+    static final int RIDGE_THICKNESS = 16;
+    /**
+     * Cells the ridge's middle lies in front of the picket courses' line, so the trench and the ground worked
+     * behind it stand on the crest and the wire just behind its front edge.
+     */
+    static final int RIDGE_FORWARD = 1;
+    /** Cells across each ridge segment's ramp, climbed from the rear: wide enough for a tank. */
+    static final int RIDGE_RAMP_WIDTH = 9;
+    /** Cells through the ground held for the ridge before the places grow: the ridge's own, with room for a claim off its seed. */
+    static final int HELD_THICKNESS = 24;
+    /** Cells kept from the map's side edges by the ridge's path. */
+    static final int RIDGE_EDGE = 2;
+
+    /**
+     * The ridge along the line: from the map's west edge to its east, through
+     * each redoubt at the depth of its middle and straight between neighbours'
+     * facing edges, which is the course each picket line is dug along, lying
+     * {@link #RIDGE_FORWARD} cells to the front of it. Climbed from the rear.
+     * The redoubts and the roads through the line break it into passes when it
+     * is raised.
+     *
+     * @param bounds each redoubt's claimed ground west to east, {x0, y0, x1, y1} inclusive
+     * @param front  the unit step toward the front, {0, +1} or {0, -1}
+     */
+    static RidgePlanner.Band ridgeBand(List<int[]> bounds, int[] front, int width) {
+        return new RidgePlanner.Band(path(bounds, front, width), RIDGE_THICKNESS, -front[1], RIDGE_RAMP_WIDTH);
+    }
+
+    /**
+     * The ground held for the ridge before the places grow: the same course
+     * through the redoubts' seeds, thick enough that the ridge raised off their
+     * claims lies inside it. None unless every redoubt has its seed.
+     */
+    static List<RidgePlanner.Band> heldBands(List<int[]> seeds, int[] front, int width) {
+        if (seeds.size() != REDOUBTS) return List.of();
+        return List.of(new RidgePlanner.Band(path(seeds, front, width), HELD_THICKNESS, -front[1], RIDGE_RAMP_WIDTH));
+    }
+
+    /**
+     * West edge, each box's west and east edge at its middle depth, east edge;
+     * shifted {@link #RIDGE_FORWARD} cells to the front.
+     */
+    private static List<ElevationPlan.Point> path(List<int[]> bounds, int[] front, int width) {
+        List<ElevationPlan.Point> path = new ArrayList<>();
+        double shift = front[1] * (double) RIDGE_FORWARD;
+        int[] first = bounds.get(0), last = bounds.get(bounds.size() - 1);
+        path.add(new ElevationPlan.Point(RIDGE_EDGE, (first[1] + first[3]) / 2 + shift));
+        for (int[] b : bounds) {
+            double y = (b[1] + b[3]) / 2 + shift;
+            path.add(new ElevationPlan.Point(b[0] - 1, y));
+            path.add(new ElevationPlan.Point(b[2] + 1, y));
+        }
+        path.add(new ElevationPlan.Point(width - 1 - RIDGE_EDGE, (last[1] + last[3]) / 2 + shift));
+        return path;
+    }
+
+    /** The ridge resolved off the redoubts' claimed ground, or none when a redoubt has none. */
+    static List<Piece> ridge(LayoutGround ground, int[] front) {
+        List<int[]> bounds = new ArrayList<>();
+        for (int n = 1; n <= REDOUBTS; n++) {
+            int[] b = ground.claimBounds(REDOUBT_PLACE + n);
+            if (b == null) return List.of();
+            bounds.add(b);
+        }
+        return List.of(new Ridge(RIDGE, ridgeBand(bounds, front, ground.width()), false));
     }
 
     /** The layout's picket courses, resolved once the redoubts have claimed their ground. */
     public static final String PICKETS = "picket";
     /** The picket course between redoubts {@code n} and {@code n + 1} is this plus "n-(n+1)". */
     public static final String PICKET_LINE = "picket-";
+    /** The switch line (beat L3), resolved behind the middle redoubt with the most room. */
+    public static final String SWITCH = "switch";
+    public static final String SWITCH_LINE = "switch-line";
+    /** The beats' structures (farmstead, ammo dump, bell square, granary, observation posts). */
+    public static final String SET_PIECES = "set-pieces";
+    /** The Road's pieces on its corridor (the wreck and the gap's sandbag positions). */
+    public static final String CORRIDOR_PIECES = "corridor-pieces";
+    /**
+     * The wreck across the Road's corridor past the gap (beat R1). The layout holds its ground; laid as a block it
+     * closes the road to trucks until a dozer clears it, which acceptance proves the corridor through.
+     */
+    public static final String CORRIDOR_WRECK = "corridor-wreck";
     /** The eruption site (beat L4), resolved behind the middle of the line. */
     public static final String ERUPTION = "eruption";
     public static final String ERUPTION_SITE = "eruption-site";
+    /** The supply road from the base to redoubt {@code n} (beat L2) is this plus n. */
+    public static final String SUPPLY_ROAD = "supply-";
+    /** The Road's second drivable way through the line, beside redoubt 2 (beat R5). */
+    public static final String SECOND_ROAD = "second-road";
+    /** Cells wide a supply road and the second road are carved. */
+    static final int ROAD_WIDTH = 5;
+    /** Where the second road crosses the line: this far east of redoubt 2. */
+    static final int SECOND_ROAD_ASIDE = 12;
     /** Cells of road margin a picket course leaves open either side of a road it crosses. */
     static final int PICKET_ROAD_GAP = 2;
     /** Pitch of the funnels opened in a picket course's wire. */
     static final int PICKET_FUNNEL_EVERY = 14;
+    /** Rows a picket trench is dug, where the ground allows. */
+    static final int PICKET_DEPTH = 2;
+    /** Pitch of the nests along a picket run, between the ones at its ends. */
+    static final int PICKET_NEST_EVERY = 40;
+    /** Cells behind a middle redoubt's rear edge its switch line runs, and how far it reaches either side. */
+    static final int SWITCH_BACK = 16, SWITCH_HALF = 24;
     /** Side of the eruption site, in cells. */
     static final int ERUPTION_SIDE = 12;
 
     /**
      * What the Cordon lays over its country ({@code cordon-map-intent.md}): a
      * picket course between each pair of neighbouring redoubts, facing the
-     * front, and the open ground a bore may erupt on behind the line.
+     * front, a switch line behind the middle, and the open ground a bore may
+     * erupt on behind the line.
      */
-    static MissionLayout layout(boolean south, Density density) {
+    static MissionLayout layout(boolean south, Density density, CordonVariant variant) {
         int[] front = {0, south ? 1 : -1};
-        LineStyle style = density == Density.URBAN ? LineStyle.SANDBAG : LineStyle.TRENCH_WIRE;
-        return new MissionLayout(List.of(
-                new Deferred(PICKETS, Phase.WORKS, ground -> pickets(ground, front, style), false),
-                new Deferred(ERUPTION, Phase.WORKS, ground -> eruptionSite(ground, south), false)));
+        Side toward = south ? Side.NORTH : Side.SOUTH;
+        List<Piece> pieces = new ArrayList<>();
+        // Supply roads first: they are carved as the places grow, so the works resolved later see them as road.
+        for (int n = 1; n <= REDOUBTS; n++) {
+            pieces.add(new Road(SUPPLY_ROAD + n, Endpoint.gate(BASE_PLACE, toward),
+                    Endpoint.gate(REDOUBT_PLACE + n, toward.opposite()), ROAD_WIDTH, false));
+        }
+        if (variant == CordonVariant.ROAD) {
+            // From the base's own gate, so the base keeps the gates it had, through the line beside redoubt 2.
+            pieces.add(new Road(SECOND_ROAD, Endpoint.gate(BASE_PLACE, toward),
+                    Endpoint.beside(REDOUBT_PLACE + 2, Side.EAST, SECOND_ROAD_ASIDE, 0),
+                    Endpoint.gate(CivilDefenceCompound.PLACE, toward.opposite()), ROAD_WIDTH, false));
+        }
+        LineStyle style = density == Density.URBAN ? LineStyle.STREETS : LineStyle.TRENCH_WIRE;
+        LineStyle fallback = density == Density.URBAN ? LineStyle.STREETS : LineStyle.TRENCH;
+        boolean streets = density != Density.RURAL;
+        // The eruption site before the works: it holds its ground against the works resolved after it.
+        // The beats' set pieces: structures raised before the map is finished, the Road's corridor pieces with
+        // the works.
+        pieces.add(new Deferred(SET_PIECES, Phase.STRUCTURES, ground -> CordonSetPieces.structures(ground, front[1]),
+                false));
+        pieces.add(new Deferred(ERUPTION, Phase.WORKS, ground -> eruptionSite(ground, south), false));
+        if (variant == CordonVariant.ROAD) {
+            pieces.add(new Deferred(CORRIDOR_PIECES, Phase.WORKS, CordonSetPieces::corridorPieces, false));
+        }
+        if (density.ridge) pieces.add(new Deferred(RIDGE, Phase.WORKS, ground -> ridge(ground, front), false));
+        pieces.add(new Deferred(PICKETS, Phase.WORKS, ground -> pickets(ground, front, style, streets), false));
+        pieces.add(new Deferred(SWITCH, Phase.WORKS, ground -> switchLine(ground, front, fallback, streets), false));
+        return new MissionLayout(pieces);
     }
 
     /** A picket course from each redoubt's claimed edge to the next's, at their depths. */
-    static List<Piece> pickets(LayoutGround ground, int[] front, LineStyle style) {
+    static List<Piece> pickets(LayoutGround ground, int[] front, LineStyle style, boolean streets) {
         List<Piece> out = new ArrayList<>();
         for (int n = 1; n < REDOUBTS; n++) {
             int[] a = ground.claimBounds(REDOUBT_PLACE + n), b = ground.claimBounds(REDOUBT_PLACE + (n + 1));
@@ -226,9 +369,41 @@ public final class CordonPlan {
             int[] from = {a[2] + 1, (a[1] + a[3]) / 2}, to = {b[0] - 1, (b[1] + b[3]) / 2};
             if (to[0] - from[0] < LineCourse.MIN_RUN) continue;
             out.add(new Line(PICKET_LINE + n + "-" + (n + 1), List.of(from, to), style, front,
-                    PICKET_ROAD_GAP, PICKET_FUNNEL_EVERY, true, false));
+                    PICKET_ROAD_GAP, PICKET_FUNNEL_EVERY, true, false, PICKET_DEPTH, PICKET_NEST_EVERY, streets));
         }
         return out;
+    }
+
+    /**
+     * The switch line (beat L3): a shorter trench behind whichever middle
+     * redoubt has the most open ground behind it, unmanned, no wire and no
+     * nests, where a garrison falls back to.
+     */
+    static List<Piece> switchLine(LayoutGround ground, int[] front, LineStyle style, boolean streets) {
+        List<int[]> best = null;
+        int bestRoom = -1;
+        for (int n = 2; n <= REDOUBTS - 1; n++) {
+            int[] r = ground.claimBounds(REDOUBT_PLACE + n);
+            if (r == null) continue;
+            int cx = (r[0] + r[2]) / 2;
+            int y = front[1] > 0 ? r[1] - SWITCH_BACK : r[3] + SWITCH_BACK;
+            int x0 = Math.max(1, cx - SWITCH_HALF), x1 = Math.min(ground.width() - 2, cx + SWITCH_HALF);
+            if (y < 1 || y > ground.height() - 2 || x1 - x0 < LineCourse.MIN_NESTED_RUN) continue;
+            int room = 0;
+            for (int x = x0; x <= x1; x++) {
+                for (int row = 0; row < PICKET_DEPTH; row++) {
+                    int cy = y - front[1] * row;
+                    if (ground.walkable(x, cy) && !ground.isRoad(x, cy) && !ground.isClaimed(x, cy)) room++;
+                }
+            }
+            if (room > bestRoom) {
+                bestRoom = room;
+                best = List.of(new int[]{x0, y}, new int[]{x1, y});
+            }
+        }
+        if (best == null) return List.of();
+        return List.of(new Line(SWITCH_LINE, best, style, front, PICKET_ROAD_GAP, 0, false, false,
+                PICKET_DEPTH, 0, streets));
     }
 
     /**
@@ -240,8 +415,9 @@ public final class CordonPlan {
         int w = ground.width();
         int[] base = ground.claimBounds(BASE_PLACE);
         if (base == null) return List.of();
-        // The ground between the base's front edge and the nearest redoubt's rear edge.
-        int y0 = south ? base[3] + 1 : 0, y1 = south ? ground.height() - 1 : base[1] - 1;
+        // The ground behind the line as deep as the base reaches (the base's own ground is claimed and so ruled
+        // out), up to the nearest redoubt's rear edge: the supply roads cross the strip in front of the base.
+        int y0 = south ? base[1] : 0, y1 = south ? ground.height() - 1 : base[3];
         for (int n = 1; n <= REDOUBTS; n++) {
             int[] r = ground.claimBounds(REDOUBT_PLACE + n);
             if (r == null) continue;
@@ -252,7 +428,7 @@ public final class CordonPlan {
         int[] best = null;
         long bestDistance = Long.MAX_VALUE;
         for (int y = y0; y + ERUPTION_SIDE - 1 <= y1; y += 2) {
-            for (int x = Math.round(w * 0.3f); x + ERUPTION_SIDE - 1 <= Math.round(w * 0.7f); x += 2) {
+            for (int x = Math.round(w * 0.15f); x + ERUPTION_SIDE - 1 <= Math.round(w * 0.85f); x += 2) {
                 long d = (long) (x - cx) * (x - cx) + (long) (y - cy) * (y - cy);
                 if (d >= bestDistance || !open(ground, x, y)) continue;
                 best = new int[]{x, y};

@@ -15,7 +15,7 @@ import java.lang.reflect.Proxy;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** A convoy body can share ownership without acquiring infantry capabilities or clocks. */
+/** A convoy body the player owns, of any type, can share ownership without acquiring infantry capabilities or clocks. */
 class VehicleDirectControlSessionTest {
     private final NavigationGrid grid = new NavigationGrid(32, 24);
     private final UnitRosterService roster = new UnitRosterService(new UnitSpatialIndex(32, 24), null);
@@ -58,6 +58,18 @@ class VehicleDirectControlSessionTest {
         assertFalse(roster.combat().has(id));
         assertFalse(roster.world().hasAiState(id));
         assertFalse(roster.entityWorld().has(id, roster.components().POSITION));
+    }
+
+    @Test void everyTypeThePlayerOwnsEntersAndNoEscortedHullDoes() {
+        for (VehicleType type : VehicleType.values()) {
+            long owned = spawn(type, Faction.MARINE);
+            assertTrue(session.canEnter(owned), type.name());
+            // Scripted convoys, militia and allied armour are Ally, enlisted to take orders or not.
+            long escorted = spawn(type, Faction.ALLY);
+            assertFalse(session.canEnter(escorted), type.name());
+            roster.convoy().despawn(owned);
+            roster.convoy().despawn(escorted);
+        }
     }
 
     @Test void fullFootprintMustFitBeforeEntry() {
@@ -125,7 +137,11 @@ class VehicleDirectControlSessionTest {
     }
 
     private long spawn(Faction faction) {
-        long id = roster.convoy().spawn(VehicleType.HEAVY_APC, faction, VehicleMission.deployed(10f, 10f));
+        return spawn(VehicleType.HEAVY_APC, faction);
+    }
+
+    private long spawn(VehicleType type, Faction faction) {
+        long id = roster.convoy().spawn(type, faction, VehicleMission.deployed(10f, 10f));
         roster.convoy().body(id).facingDegrees = 0f;
         return id;
     }

@@ -12,7 +12,8 @@ import java.util.Locale;
  * on unit 1 and {@link CreepSurface} on unit 2, both repeating, the surface
  * mipmapped, and the ground under the creep (R blight, G vegetated) on unit 3,
  * sampled linearly as the field is, and {@link CliffFaceMask} on unit 4, its
- * texture coordinates the field's, so the creep can stand back from cliff faces.
+ * texture coordinates the field's, so the creep can stand back from cliff faces,
+ * and {@link ShoreWaterMask} on unit 5 the same way, so it stops at the shore.
  */
 final class CreepShader {
 
@@ -32,6 +33,7 @@ final class CreepShader {
             + "uniform sampler2D surface;\n"
             + "uniform sampler2D ground;\n"
             + "uniform sampler2D faces;\n"
+            + "uniform sampler2D shore;\n"
             + "uniform vec2 fieldSize;\n"
             + "uniform float time;\n"
             + "uniform float alpha;\n"
@@ -48,7 +50,8 @@ final class CreepShader {
             + "uniform vec3 wilt;\n"
             + "vec4 F(vec2 p) { return texture2D(field, p / fieldSize); }\n"
             + "float M(vec2 p) { return texture2D(faces, p / fieldSize).a; }\n"
-            + "float C(vec2 p) { return max(texture2D(field, p / fieldSize).r - M(p), 0.0); }\n"
+            + "float W(vec2 p) { return texture2D(shore, p / fieldSize).a; }\n"
+            + "float C(vec2 p) { return max(texture2D(field, p / fieldSize).r - M(p) - W(p), 0.0); }\n"
             + "vec4 S(vec2 p) { return texture2D(surface, p / " + lit(CreepSurface.CELLS) + "); }\n"
             + "float bump(float d, float c, float w) { float t = (d - c) / w; return exp(-t * t); }\n"
             + "vec2 BIG(vec2 p) { return p * " + lit(CreepShading.BIG_SCALE) + " + vec2(1.3, 0.7); }\n"
@@ -95,8 +98,9 @@ final class CreepShader {
             + "    vec4 own = F(floor(p) + vec2(0.5));\n"
             + "    vec4 here = F(p);\n"
             + "    float faceHere = M(p);\n"
+            + "    float waterHere = W(p);\n"
             + "    float rawHere = here.r;\n"
-            + "    here.r = max(here.r - faceHere, 0.0);\n"
+            + "    here.r = max(here.r - faceHere - waterHere, 0.0);\n"
             + "    float tap = " + lit(CreepShading.TAP) + ";\n"
             + "    float e = C(p + vec2(tap, 0.0)), w = C(p - vec2(tap, 0.0));\n"
             + "    float nn = C(p + vec2(0.0, tap)), ss = C(p - vec2(0.0, tap));\n"
@@ -125,7 +129,7 @@ final class CreepShader {
             + "            if (reachV > 0.0) wvb = 0.85 * clamp(S(p * " + lit(CreepShading.WALL_VEIN_SCALE)
             + ").b * 1.6, 0.0, 1.0) * reachV * gd.g;\n"
             + "        }\n"
-            + "        float rock = 1.0 - faceHere;\n"
+            + "        float rock = (1.0 - faceHere) * (1.0 - waterHere);\n"
             + "        wa *= rock;\n"
             + "        wvb *= rock;\n"
             + "        float fv = 0.0, film = 0.0;\n"
@@ -215,6 +219,7 @@ final class CreepShader {
         program.set1i("surface", 2);
         program.set1i("ground", 3);
         program.set1i("faces", 4);
+        program.set1i("shore", 5);
         program.set2f("fieldSize", fieldW, fieldH);
         program.set1f("time", pass.timeSeconds);
         program.set1f("alpha", pass.alpha);

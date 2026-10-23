@@ -156,7 +156,10 @@ class BattleDirectControlStatusTest {
     void unlimitedMechFeedAndFiniteApcRoundsRetainTheirDifferentResourceUnits() {
         var arms = new MechWeaponMount(MechMountSlot.ARMS, MechWeaponComponent.CHAINGUN);
         var mech = BattleDirectControlStatus.mechWeapons(new MechWeaponMount[]{arms}).get(0);
-        assertTrue(mech.ammo().unlimited());
+        // A chaingun's belt counts rounds; the hopper behind it is what never runs out.
+        assertFalse(mech.ammo().unlimited());
+        assertEquals(BattleDirectControlStatus.AmmoUnit.ROUNDS, mech.ammo().unit());
+        assertEquals(arms.rotary.def().belt(), mech.ammo().capacity());
         assertEquals(BattleDirectControlStatus.WeaponState.LOADED, mech.state());
         var mount = VehicleType.HEAVY_APC.turretStructure().mount;
         GroundTurret turret = new GroundTurret(mount.ammoCapacity - 4);

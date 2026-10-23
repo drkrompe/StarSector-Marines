@@ -100,6 +100,37 @@ Updated: 2026-10-23 — Texture leases: a battle, the company deck, the Armory p
   review drain draw the same picture. Surface relief stays per cell; the
   feather changes colour, not height. Control switch:
   `-Dbattle.render.groundFeathering=false`.
+- A **shore** is where natural water meets natural ground, drawn as a contour
+  instead of the cells' square steps. A field over the cells carries +1 at a
+  water cell's centre and -1 at a land cell's, and at each corner twice the
+  mean of the four cells' signs, nudged where water and land meet by a bounded
+  noise anchored on the corner; every cell is four triangles fanned from its
+  centre, and each band — a translucent wet film over the bank, the light
+  shallows, the open water — is a triangle clipped where the field passes its
+  level (`WaterShore`). A staircase reads as a slope and a straight bank
+  wanders a little about its cell edge. It may not lie about where a unit
+  can walk: a centre is always drawn as its own side, and the line moves only
+  about the corners and edges between water and land. Water cells on the shore
+  draw a neighbour's ground under their bands, so what the contour cuts away is
+  bank; the relief composite treats them as ground (no waves to tear the
+  contour), and water stands level with its bank, because a sunken square cell
+  casts the steps back. Built edges stay square — a pool, a quay, a road or a
+  bridge has a made edge — so only water and the natural grounds take part.
+  **Shallow water** (a ford: walkable ground tagged `SHALLOW_WATER`) is water
+  to the waterline and ground to the open water, so the shore reads two
+  fields — wet and deep, the same field on a bank with no shallows — and a
+  ford is shallows from bank to bank with open water beginning beyond it. Its
+  bed shows through: a pebble bed, and a line of stepping stones across its
+  middle, at right angles to the way the water runs (comparison switch
+  `-Dbattle.render.fordLook=pebbles|stones|both`; art from
+  `art-source/terrain/bake_water_ford.py`).
+  Hive creep meets the same contour: it stands back from the shore's water and
+  wet bank as from a cliff face (`ShoreWaterMask`, the field sampled
+  continuously by `WaterShore.fieldAt`), so its edge runs along the wet band.
+  The bands are resident sub-layers over the feathers and under road edges,
+  raised terrain and decoration; their art is derived from the water tiles
+  (`art-source/terrain/bake_water_shore.py`). Comparison switch:
+  `-Dbattle.render.shore=organic|diagonal|square`.
 - A **visible cell rectangle** is the camera-derived dense-world cull. It reduces work for cell-backed terrain passes; it does not replace the simulation's cell grid.
 - A **view cull** is the same idea for things that are not cells: the camera's
   viewport in cell space, asked whether a body's own drawn extent can land in

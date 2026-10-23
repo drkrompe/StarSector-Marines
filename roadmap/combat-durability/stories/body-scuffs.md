@@ -1,6 +1,6 @@
 # Story — Body scuffs: worn plate drawn on live hulls and mechs
 
-Status: ACTIVE — slices 1 (hull plates) and 2 (turret) built on base-game decals; the decal art and mechs open
+Status: ACTIVE — slices 1 (hull plates), 2 (turret) and 3 (scuff sheet) built; mechs open
 Written: 2026-10-23
 
 Read `combat-durability-nouns.md` (**Decisions, morale, evidence, and presentation**: presentation observes
@@ -41,22 +41,24 @@ plate shows down the left side.
 
 **A mark never spills off the silhouette.** At load, each hull frame's alpha is reduced to a coarse grid of opaque
 points, and each point records how far it sits from the nearest transparent pixel. A slot may only take a point
-whose inset is at least the decal's half-diagonal, so even a turned decal stays on the hull. This is computed once
+whose inset is at least the mark's reach (how far its paint lies from its centre), so even a turned mark stays
+on the hull. This is computed once
 per vehicle line, from the image alone.
 
 ## Slices
 
-1. **Hull plates, base-game decals (built).** `VehicleScuffs` holds the masks and the placement rule;
-   `ConvoyRenderSystem` draws the marks over the hull and its treads, under the turret. The marks use the base
-   game's `damage_{burns,cracks,holes}48` decals, one quarter of each per mark, darkened for paint. The look shot
+1. **Hull plates (built).** `VehicleScuffs` holds the masks and the placement rule; `ConvoyRenderSystem` draws
+   the marks over the hull and its treads, under the turret. The look shot
    `look/tank-scuffs-*` (suite `vehicle-scuffs`) shows a tank at 100, 66, 33 and 10% on every plate and its turret.
 2. **Turret (built).** The turret section's armour drawn the same way over the turret frame, as one region, under
    the turret's own transform. On the breakthrough tank the turret covers most of the hull from above, so without
    it the hull's wear barely shows. A turret drawn from its catalog mount (`turretArtFromMount`) has no sheet frame
    and shows none yet.
-3. **The decal art.** An owner pick between the base-game decals and a mod scuff sheet (scrapes, bullet pocks,
-   scorch, dents, smaller than the ship-scaled base set) made with the geometry-first ImageGen workflow
-   (`geometry-first-imagegen.md`).
+3. **The scuff sheet (built).** The mod's own marks, made with the geometry-first ImageGen workflow
+   (`geometry-first-imagegen.md`, sources in `art-source/vehicles/scuffs/`): a row per stage (scrapes and bullet
+   pocks, scorch, gouges and dents) and four variants of each, coloured to sit on any paint. The base game's
+   ship decals were tried first and read only as smudges on a tank. A mark is a hull-width share across
+   (`DECAL_SHARE`), 0.3: the owner picked it over 0.22 and 0.4 (2026-10-23).
 4. **Mechs.** Section wear drawn on the part sprite that carries the section (torso, each arm and shoulder, legs
    on the chassis), since the torso, hips and arms turn independently. Uses the same placement rule over each
    part's own mask.
@@ -67,12 +69,12 @@ per vehicle line, from the image alone.
 - Nothing is drawn on a wreck: the registered wreck art already shows it.
 - Mask building decodes each vehicle sheet once per process, when the sheet is loaded. It is not done on a frame.
   The pixels are read through `BattleSprites`, so a headless host reads them off its own roots.
-- A mark addresses a quarter of a decal image, so every decal needs a sheet batch in `BattleRenderer`. Without
+- A mark addresses a cell of the scuff sheet, so the sheet needs a batch in `BattleRenderer`. Without
   one, the GL drain silently drops the quad while the Java2D drain still draws it.
 
 ## Acceptance
 
 - The placement rule's laws hold on a synthetic mask (unit test): no marks at full plate; every mark's inset
-  covers its half-diagonal; marks at lower wear are a subset, in the same places, of marks at higher wear; a mark
+  covers its reach; marks at lower wear are a subset, in the same places, of marks at higher wear; a mark
   lies in its own plate's region.
 - The look shot reads as progressively battered at play zoom and close, with nothing hanging off the hull's edge.

@@ -1,0 +1,27 @@
+A sheet of twelve battle-damage decals for overhead (straight top-down) military vehicle sprites: wear marks that
+are laid over a tank's painted armour plate as it takes hits. Painted, slightly gritty realistic game-art style,
+matching the vehicle reference.
+
+Layout: reference 1 is the exact layout. It is a 4 x 3 grid of equal square cells on a transparent canvas, and each
+flat grey shape is the footprint of one decal. Fill every grey footprint with its decal, keeping its position, size,
+outline and orientation. Do not move, merge, add or remove marks. Keep every cell's empty space fully transparent.
+
+Rows, top to bottom (each row is one stage of damage; the four columns are variants of it):
+1. Scrapes and bullet pocks. Scrapes are gouged lines where the paint is scraped off down to bright bare steel,
+   with a thin dark edge and a little torn paint at the ends. Pocks are small bullet strikes: a dark crater centre,
+   a ring of bright bare metal and chipped paint around it.
+2. Scorch. Soft, irregular soot and heat burns: sooty black centre fading out through brown and dark grey, a little
+   blistered paint at the edges, soft feathered alpha at the rim. No flames, no glow.
+3. Gouges and dents. Deep impact damage: torn, peeled-back armour plate with bright jagged metal lips, dark
+   shadowed cavities and a soot halo; the round shape is a deep concave dent with a dark lower lip and a bright upper
+   rim lit from the upper left.
+
+Lighting from the upper left, matching the vehicle reference. Colours must work over any paint colour: bare metal is
+a pale cool grey, soot near-black, cavities dark; never tint a mark with the tank's paint colour.
+
+Output: a true transparent background, including every gap between and inside marks; no paint, no armour plate,
+no vehicle, no ground, no cast shadow slab, no grid lines, no border, no text or labels. Each decal must stay inside
+its own cell.
+
+Reference 2 is material and style only: a wrecked tank from the same game, for the look of its torn metal, soot and
+scraped paint. Do not draw the tank or copy its layout.

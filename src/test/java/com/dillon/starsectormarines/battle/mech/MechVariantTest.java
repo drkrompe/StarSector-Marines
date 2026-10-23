@@ -213,7 +213,7 @@ class MechVariantTest {
         hound.torsoOnTarget = true;
         MechCombatantBehavior.tryFireMechWeapons(houndId, hound, target, 10f, sim, true);
 
-        assertTrue(hound.mount(MechMountSlot.ARMS).cycleRemaining > 0f);
+        assertTrue(hound.mount(MechMountSlot.ARMS).rotary.leased(), "the nose chaingun takes its trigger");
         // The factory SRM-5 is the anti-armor rack: it holds its pack at a man.
         assertEquals(0f, hound.mount(MechMountSlot.LEFT_SHOULDER).cycleRemaining, 0.001f);
         assertNull(hound.mount(MechMountSlot.RIGHT_SHOULDER));

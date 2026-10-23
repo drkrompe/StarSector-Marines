@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.combat.SalvoChain;
 import com.dillon.starsectormarines.battle.ui.panel.SquadOrderTargetingPanel.Mode;
 
 import com.dillon.starsectormarines.battle.combat.ManualPointFire;
@@ -10,6 +11,7 @@ import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.marine.ArmorClass;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
@@ -191,6 +193,17 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, ordnanceMech(),
                         sectionPlate(context.modRoot(), new MechLoadoutComponent(MechVariant.BULWARK, null)).document(),
                         false)));
+        artifacts.add(new SnapshotArtifact("active-mech-chaingun-belt-1920x1080-ui100.png",
+                activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, chaingunBelts(),
+                        sectionPlate(context.modRoot(), new MechLoadoutComponent(MechVariant.BULWARK, null)).document(),
+                        false)));
+        // A held LRM-15 building its spike: each salvo the hold commits lights up in the strip (salvo-chain.md).
+        for (int salvos = 1; salvos <= MechWeaponComponent.LRM_15.ammoCapacity; salvos++) {
+            artifacts.add(new SnapshotArtifact("active-mech-lrm-hold-" + salvos + "-1920x1080-ui100.png",
+                    activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, holdingMech(salvos),
+                            sectionPlate(context.modRoot(), new MechLoadoutComponent(MechVariant.BULWARK, null))
+                                    .document(), false)));
+        }
         artifacts.add(new SnapshotArtifact("active-vehicle-ordnance-1920x1080-ui100.png",
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, ordnanceVehicle(),
                         vehiclePlate(context.modRoot()).document(), false)));
@@ -242,7 +255,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
 
     /**
      * A mech mid-fight on missile and energy mounts: an LRM-15 one salvo down, an SRM-5 part way
-     * through a salvo, a pulse laser two bolts into its burst and a chaingun that counts nothing.
+     * through a salvo, a pulse laser two bolts into its burst and a chaingun on a full belt.
      */
     private static BattleDirectControlStatus.Snapshot ordnanceMech() {
         MechWeaponMount[] mounts = {
@@ -254,6 +267,59 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         return new BattleDirectControlStatus.Snapshot(base.entityId(), "Bulwark Lead",
                 BattleDirectControlStatus.Carrier.MECH, base.durability(),
                 BattleDirectControlStatus.mechWeapons(mounts, new MechFlux()));
+    }
+
+    /**
+     * A Bulwark's two chainguns mid-fight, played through the feed's own rule rather than set: the left gun
+     * half spun up again on a belt it has already run down by half, the right gun at full speed on a belt
+     * held long enough to run low (the hopper keeps it from empty).
+     */
+    private static BattleDirectControlStatus.Snapshot chaingunBelts() {
+        MechWeaponMount left = new MechWeaponMount(MechMountSlot.LEFT_ARM, MechWeaponComponent.CHAINGUN);
+        MechWeaponMount right = new MechWeaponMount(MechMountSlot.RIGHT_ARM, MechWeaponComponent.CHAINGUN);
+        hold(left, true, 10f);
+        hold(left, false, 3f);
+        hold(left, true, 0.6f);
+        hold(right, true, 18f);
+        MechWeaponMount[] mounts = {left, right,
+                new MechWeaponMount(MechMountSlot.LEFT_SHOULDER, MechWeaponComponent.SRM_15),
+                new MechWeaponMount(MechMountSlot.RIGHT_SHOULDER, MechWeaponComponent.SRM_15)};
+        var base = BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.MECH, false);
+        return new BattleDirectControlStatus.Snapshot(base.entityId(), "Bulwark Lead",
+                BattleDirectControlStatus.Carrier.MECH, base.durability(),
+                BattleDirectControlStatus.mechWeapons(mounts, new MechFlux()));
+    }
+
+    /** Holds (or releases) a rotary mount's trigger for {@code seconds}, every round it asks for fired. */
+    private static void hold(MechWeaponMount mount, boolean held, float seconds) {
+        for (int i = 0; i < Math.round(seconds / BattleSimulation.TICK_DT); i++) {
+            int rounds = mount.rotary.advance(BattleSimulation.TICK_DT, held);
+            for (int r = 0; r < rounds; r++) mount.rotary.spend();
+        }
+    }
+
+    /**
+     * A Bulwark holding its right button on an LRM-15 with {@code salvos} of its three committed: the salvo in flight
+     * is part way out, and every salvo the hold has fired draws lit beside the ones still loaded.
+     */
+    private static BattleDirectControlStatus.Snapshot holdingMech(int salvos) {
+        MechWeaponMount lrm = mount(MechMountSlot.LEFT_SHOULDER, MechWeaponComponent.LRM_15,
+                MechWeaponComponent.LRM_15.ammoCapacity - salvos, 2);
+        lrm.holdSalvos = salvos;
+        lrm.cycleRemaining = lrm.component.cycleSeconds() - .2f;
+        MechWeaponMount[] mounts = {
+                lrm,
+                mount(MechMountSlot.RIGHT_SHOULDER, MechWeaponComponent.SRM_5, 6, 0),
+                mount(MechMountSlot.LEFT_ARM, MechWeaponComponent.CHAINGUN, -1, 0),
+                mount(MechMountSlot.RIGHT_ARM, MechWeaponComponent.CHAINGUN, -1, 0)};
+        MechFlux flux = new MechFlux();
+        flux.commit(SalvoChain.fluxCost(lrm.component.fluxPerTrigger(), false)
+                + (salvos - 1) * SalvoChain.fluxCost(lrm.component.fluxPerTrigger(), true));
+        var base = BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.MECH, false);
+        return new BattleDirectControlStatus.Snapshot(base.entityId(), "Bulwark Lead",
+                BattleDirectControlStatus.Carrier.MECH, base.durability(),
+                BattleDirectControlStatus.mechWeapons(mounts, flux), List.of(), MarineSprint.EMPTY,
+                new BattleDirectControlStatus.MechFluxStatus(flux.value(), flux.venting(), flux.capacity()));
     }
 
     private static MechWeaponMount mount(MechMountSlot slot, MechWeaponComponent component, int ammo, int burst) {
@@ -294,16 +360,15 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
     private static final float LAUNCHER_CELL_PX = 24f;
 
     /**
-     * The controlled LRM carrier with its cursor and scatter ring, and the HUD's launcher row for the same cursor.
-     * The ring and its colour are {@link DirectControlScatter#vehicle} and its mark, and the reticle is
-     * {@link DirectControlReticle}'s, the production figures; the world beneath is a plain grid, and the strokes
-     * are drawn through Java2D rather than the panel's GL.
+     * The controlled LRM carrier with its cursor reticle, and the HUD's launcher row for the same cursor. The tick's
+     * spread is {@link DirectControlScatter#vehicle} and the strokes {@link DirectControlReticle}'s, the production
+     * figures; the world beneath is a plain grid, and the strokes are drawn through Java2D rather than the panel's GL.
      */
     private static BufferedImage launcherFrame(HeadlessUiRenderer renderer, Path modRoot, LauncherAim aim)
             throws Exception {
         VehicleType type = VehicleType.LRM_CARRIER;
         var mount = type.turretStructure().mount;
-        var ring = DirectControlScatter.vehicle(mount.weapon, aim.cells());
+        float spread = DirectControlScatter.vehicle(mount.weapon, aim.cells());
         var status = BattleDirectControlStatus.vehicleWeapon(new GroundTurret(mount.ammoCapacity), mount, aim.cells());
         var base = BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.VEHICLE, false);
         var snapshot = new BattleDirectControlStatus.Snapshot(base.entityId(), "LRM Carrier",
@@ -313,11 +378,11 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         plate.updateVehicle(type, type.maxStructure, type.maxStructure, null, HullLocations.of(type, null));
         BufferedImage sheet = ImageIO.read(modRoot.resolve(type.spritePath).toFile());
         return activeComposite(renderer, modRoot, 1920, 1080, 1f, snapshot, plate.document(), false, false,
-                graphics -> drawLauncherWorld(graphics, sheet, type, ring, aim.cells()));
+                graphics -> drawLauncherWorld(graphics, sheet, type, spread, aim.cells()));
     }
 
     private static void drawLauncherWorld(Graphics2D graphics, BufferedImage sheet, VehicleType type,
-                                          DirectControlScatter.Ring ring, float cells) {
+                                          float spreadCells, float cells) {
         float px = LAUNCHER_CELL_PX;
         double bearing = Math.atan2(-470.0, 1000.0);
         float ringX = 420f;
@@ -338,14 +403,16 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         graphics.drawImage(sheet.getSubimage(frame, 0, frame, sheet.getHeight()), -frame / 2, -sheet.getHeight() / 2,
                 null);
         graphics.setTransform(saved);
-        float r = ring != null ? DirectControlPanel.scatterRingPx(ring, px) : -1f;
         List<DirectControlAimLane.Stroke> strokes = new ArrayList<>();
-        if (r >= 0f) strokes.addAll(DirectControlReticle.scatterRing(ring.mark(), aimX, aimY, r));
         WeaponDef weapon = type.turretStructure().mount.weapon;
         var marks = new DirectControlFireMarks.Marks(DirectControlFireMarks.of(!ManualPointFire.tooClose(weapon, cells),
                 cells, ManualPointFire.optimalRangeCells(weapon), weapon.range), DirectControlFireMarks.Mark.NONE);
-        strokes.addAll(DirectControlReticle.strokes(marks, aimX, aimY,
-                DirectControlPanel.controlledColor()));
+        // The reticle is laid out y up, as the GL panel draws; this frame is y down, so build it mirrored and flip back.
+        for (var stroke : DirectControlReticle.strokes(DirectControlReticle.LIVE, marks, spreadCells * px, -1f,
+                aimX, -aimY, aimX - ringX, ringY - aimY, DirectControlPanel.controlledColor())) {
+            strokes.add(new DirectControlAimLane.Stroke(stroke.x(), -stroke.y(), stroke.endX(), -stroke.endY(),
+                    stroke.width(), stroke.color()));
+        }
         for (var stroke : strokes) {
             Color c = stroke.color();
             graphics.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), Math.round(c.getAlpha() * 0.8f)));

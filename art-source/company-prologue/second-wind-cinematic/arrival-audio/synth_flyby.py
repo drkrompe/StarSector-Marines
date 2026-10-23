@@ -171,7 +171,7 @@ LEGION = dict(HOUND, start=0.0, end=15.0, sound_speed=340.0, muffle_far=60.0, mu
 # The Legion's weight (owner, 2026-10-23: "HEAVY"): a dark muffle, a big sub, a low-mid body band
 # under it, a slow heave in the roar, and thrust swelling to the beam at C2_ABEAM_T and easing off.
 LEGION_HEAVY = dict(muffle_far=60.0, muffle_near=170.0, bass=8.0, body=1.1, heave=0.22, crackle=0.05,
-                    boom=2.2, boom_hz=46.0, boom_drive=2.5,
+                    boom=2.2, boom_hz=46.0, boom_drive=4.0,
                     rush_gain=0.0, distance_power=1.0,
                     thrust=[(0.0, 0.5), (3.0, 0.62), (6.0, 0.85), (C2_ABEAM_T, 1.0), (10.0, 1.0), (15.0, 0.8)])
 LEGION_BURN_T = 7.15      # C2 seconds: the Legion's engine plume comes into view (see legion_drives)
@@ -197,7 +197,7 @@ PASSES = {
     # up to a broadband roar with hard crackle, lit over half a second from LEGION_BURN_T.
     "legion_burn": dict(LEGION, path=legion_at(-130.0), seed=21, source="c4_launch_burn_t02",
                         **dict(LEGION_HEAVY, boom=0.0, bass=5.5),      # the fire on top; the 808 is the bass stems
-                        burn=dict(t=LEGION_BURN_T, ramp=0.5, corner=3000.0, crackle=0.9, roar=1.3, gain=1.0, alone=True)),
+                        burn=dict(t=LEGION_BURN_T, ramp=0.5, corner=2000.0, crackle=0.6, roar=2.2, drive=4.0, gain=1.0, alone=True)),
     # Its forward cluster: the Legion's mass before its engines are in view (owner, 2026-10-23: "It
     # should sound HEAVY"). A deep sustained roar, all sub and low-mid body, heaving slowly and
     # swelling to the beam; no attitude-thruster hiss and next to no crackle, so it never turns airy.
@@ -358,19 +358,25 @@ def render(spec):
     engine = engine / max(1e-9, np.abs(engine).max()) + 1.4 * crack * np.sqrt(near)
     burn = spec.get("burn")
     if burn:
-        # The launch burn once the engines are in sight: the same voice opened up to a fiery,
-        # broadband roar with hard crackle, over the bass, lighting over `ramp` seconds.
-        fire = one_pole(one_pole(voice, burn["corner"]), burn["corner"])
-        fire = fire - one_pole(fire, 60.0)
+        # The launch burn once the engines are in sight (owner, 2026-10-23: the first burn had "too much
+        # 'high top' ... no bottom bass"). Its core is the drives' own 30-80 Hz rumble with the code-built
+        # roar's, driven hard so its harmonics fill 80-250 Hz and carry the weight; the fire is a dark
+        # 150-700 Hz combustion band under it and the crackle a faint texture inside, both rolled off
+        # above `corner` so nothing sits on top. Lit over `ramp` seconds from `t`.
         roar2, pops2 = rocket(len(rumble), np.random.default_rng(spec["seed"] + 1000), 1.0)
-        # Combustion: the code-built launch roar's 150 Hz-3 kHz band, the fire a take this dark lacks.
         roar = np.interp(at, grid, roar2)
-        roar = one_pole(one_pole(roar, burn["corner"]), burn["corner"])
-        roar = roar - one_pole(one_pole(roar, 150.0), 150.0)
-        fire = fire / max(1e-9, np.abs(fire).max()) + burn.get("roar", 1.0) * roar / max(1e-9, np.abs(roar).max())
+        core = one_pole(one_pole(voice, 80.0), 80.0) + one_pole(one_pole(roar, 80.0), 80.0)
+        core = core - one_pole(one_pole(core, 30.0), 30.0)
+        core = np.tanh(burn.get("drive", 4.0) * core / max(1e-9, np.abs(core).max()))
+        mid = one_pole(one_pole(roar, 700.0), 700.0)
+        mid = mid - one_pole(one_pole(mid, 150.0), 150.0)
         fpops = np.interp(at, grid, pops2)
-        fpops = one_pole(one_pole(fpops, 5000.0), 5000.0)
-        fire = fire / max(1e-9, np.abs(fire).max()) + burn["crackle"] * fpops / max(1e-9, np.abs(fpops).max())
+        fpops = one_pole(one_pole(fpops, 1500.0), 1500.0)
+        fire = (core / max(1e-9, np.abs(core).max())
+                + burn.get("roar", 0.3) * mid / max(1e-9, np.abs(mid).max())
+                + burn["crackle"] * fpops / max(1e-9, np.abs(fpops).max()))
+        for _ in range(2):
+            fire = one_pole(fire, burn["corner"])
         light = smoothstep(burn["t"], burn["t"] + burn["ramp"], t)
         fire = burn["gain"] * light * fire / max(1e-9, np.abs(fire).max())
         engine = fire if burn.get("alone") else engine + fire

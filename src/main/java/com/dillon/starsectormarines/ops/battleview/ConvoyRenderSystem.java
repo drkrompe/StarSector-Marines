@@ -166,15 +166,12 @@ public final class ConvoyRenderSystem implements RenderSystem {
         }
     }
 
-    /** The base game's damage decals; one quarter of one is a mark. */
-    static final String[][] SCUFF_DECALS = {
-            {"graphics/damage/damage_burns48_0_base.png", "graphics/damage/damage_burns48_1_base.png"},
-            {"graphics/damage/damage_cracks48_0_base.png", "graphics/damage/damage_cracks48_1_base.png"},
-            {"graphics/damage/damage_holes48_0_base.png", "graphics/damage/damage_holes48_1_base.png"}};
-    /** How strongly each kind of mark is laid over the paint: scorch soft, holes whole. */
-    private static final float[] SCUFF_ALPHA = {0.85f, 0.9f, 1f};
-    /** Each kind's tint: the base set is drawn for a starship's grey, so scorch and cracks are darkened for paint. */
-    private static final float[] SCUFF_SHADE = {0.45f, 0.55f, 1f};
+    /**
+     * The scuff sheet: one 128 px cell per mark, a row per stage (scrape, scorch, gouge) and a column per variant
+     * ({@code art-source/vehicles/scuffs/}).
+     */
+    static final String SCUFF_SHEET = "graphics/battle/vehicles/scuffs.png";
+    private static final int SCUFF_CELL = 128;
     /** Mixed into a turret's seed, so it does not repeat its hull's front plate. */
     private static final long TURRET_SEED = 0x5DEECE66DL;
 
@@ -230,20 +227,15 @@ public final class ConvoyRenderSystem implements RenderSystem {
 
         @Override
         public void mark(float x, float y, int kind, int variant, float spinDegrees, float strength) {
-            ShuttleSpriteCache decal = sprites.spriteByPath(SCUFF_DECALS[kind][variant & 1]);
-            if (decal == null || decal.pxW <= 0) return;
-            int qw = decal.pxW / 2;
-            int qh = decal.pxH / 2;
-            int qx = ((variant >> 1) & 1) * qw;
-            int qy = ((variant >> 2) & 1) * qh;
+            ShuttleSpriteCache sheet = sprites.spriteByPath(SCUFF_SHEET);
+            if (sheet == null || sheet.pxW <= 0) return;
             float lx = (x - f.w * 0.5f) * cellsPerPixel;
             float ly = (f.h * 0.5f - y) * cellsPerPixel;
             float wx = centreX + lx * cos - ly * sin;
             float wy = centreY + lx * sin + ly * cos;
-            float shade = SCUFF_SHADE[kind];
-            out.addSheetQuad(RenderLayer.CONVOY, decal.sprite, qx, qy, qw, qh,
-                    cam.cellToScreenX(wx), cam.cellToScreenY(wy), sizePx, sizePx, angleDeg + spinDegrees,
-                    shade, shade, shade, SCUFF_ALPHA[kind] * strength * alpha);
+            out.addSheetQuad(RenderLayer.CONVOY, sheet.sprite, variant * SCUFF_CELL, kind * SCUFF_CELL,
+                    SCUFF_CELL, SCUFF_CELL, cam.cellToScreenX(wx), cam.cellToScreenY(wy), sizePx, sizePx,
+                    angleDeg + spinDegrees, 1f, 1f, 1f, strength * alpha);
         }
     }
 
