@@ -41,6 +41,12 @@ final class CreepShading {
      * stands round it, as creep climbing it.
      */
     static final float FACE_VEIN = 0.7f, FACE_FILM = 0.18f;
+    /**
+     * Over a ford's bed (the owner's pick): the creep's body never stands in the water, but where it holds the ford
+     * it lays faint veins at {@code FORD_VEIN} and a film at {@code FORD_FILM} over the stones, as over a cliff face,
+     * fainter so the shallows still read. Open water takes nothing.
+     */
+    static final float FORD_VEIN = 0.5f, FORD_FILM = 0.13f;
     /** Floor on the coverage gradient, so the distance estimate stays finite in the flat interior. */
     static final float GRADIENT_FLOOR = 0.35f;
     /** Pulse phase per cell of path distance and per second; positive both, so a crest walks toward the source. */
@@ -96,6 +102,9 @@ final class CreepShading {
 
         /** How much of the point the shore draws as water or wet bank ({@link ShoreWaterMask}), 0..1; 0 inland. */
         default float water(float cellX, float cellY) { return 0f; }
+
+        /** How much of the point is a ford's bed ({@link ShoreWaterMask}), 0..1; 0 off every ford. */
+        default float ford(float cellX, float cellY) { return 0f; }
     }
 
 
@@ -153,13 +162,17 @@ final class CreepShading {
             float rock = (1f - faceHere) * (1f - waterHere);
             wa *= rock;
             wv *= rock;
-            // Creep climbing a face it has been pulled back from: veins and a thin film where it stands round it.
-            if (faceHere > 0f) {
-                float climb = faceHere * smoothstep(0.35f, 0.65f, rawHere + (noise[0] - 0.5f) * EDGE_NOISE);
-                if (climb > 0f) {
+            // Creep climbing a face it has been pulled back from, or holding a ford it does not stand in: veins and a
+            // thin film where it stands round it.
+            float fordHere = f.ford(x, y);
+            if (faceHere > 0f || fordHere > 0f) {
+                float held = smoothstep(0.35f, 0.65f, rawHere + (noise[0] - 0.5f) * EDGE_NOISE);
+                float climb = faceHere * held, wade = fordHere * held;
+                if (climb > 0f || wade > 0f) {
                     CreepSurface.sample(x * WALL_VEIN_SCALE, y * WALL_VEIN_SCALE, tpp * WALL_VEIN_SCALE, surf);
-                    fv = FACE_VEIN * clamp01(surf[2] * 1.6f) * climb;
-                    film = FACE_FILM * climb;
+                    float lattice = clamp01(surf[2] * 1.6f);
+                    fv = lattice * (FACE_VEIN * climb + FORD_VEIN * wade);
+                    film = FACE_FILM * climb + FORD_FILM * wade;
                 }
             }
             float d = (soft - 0.5f + lobes) / gl;
