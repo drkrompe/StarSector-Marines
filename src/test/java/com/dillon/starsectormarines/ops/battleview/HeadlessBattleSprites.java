@@ -327,6 +327,8 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public LayeredMechAssets layeredMechSprites() { return mech; }
     @Override public EnumMap<VehicleType, UnitSpriteCache> convoySprites() { return vehicles; }
     @Override public Map<Airframe, ShuttleSpriteCache> airframeSprites() { return airframes; }
+    /** Off the resource roots: the base class reads through {@code Global.getSettings().openStream}, a stub here. */
+    @Override public BufferedImage readPixels(String path) throws IOException { return read(path); }
     /**
      * The decal sheet, off the resource roots.
      *

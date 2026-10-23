@@ -92,13 +92,12 @@ public class TurretBehaviorTest {
         ShotEvent second = sim.getActiveShots().get(1);
 
         TurretMountDef mount = sim.turretState().structure(turret).mount;
-        assertEquals(sim.world().x(turret) - mount.muzzleLateralOffsetCells,
-                first.fromX, 1e-4f);
-        assertEquals(sim.world().x(turret) + mount.muzzleLateralOffsetCells,
-                second.fromX, 1e-4f);
-        assertEquals(sim.world().y(turret) + mount.muzzleOffsetCells,
-                first.fromY, 1e-4f);
-        assertEquals(first.fromY, second.fromY, 1e-4f);
+        TurretMountDef.Muzzle a = mount.muzzles.get(0);
+        TurretMountDef.Muzzle b = mount.muzzles.get(1);
+        assertEquals(Math.abs(b.lateral() - a.lateral()), Math.abs(second.fromX - first.fromX), 1e-4f,
+                "the second round leaves from the other barrel");
+        assertEquals(sim.world().y(turret) + a.forward(), first.fromY, 1e-4f);
+        assertEquals(sim.world().y(turret) + b.forward(), second.fromY, 1e-4f);
     }
 
     @Test
