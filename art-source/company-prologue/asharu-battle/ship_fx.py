@@ -485,6 +485,7 @@ class ShipFx:
             ctx.scene, ctx.state, ctx.records = scene, state, {}
             ctx.spec = core.STATES.get(state) or next(iter(core.STATES.values()))
             ctx.root, ctx.controls = self.fx, self.controls
+            ctx.own_hull = self.own_hull        # swfx_guns recoil keys the barrel only on a hull of its own
             ctx.anchors = self._anchors(anchors_mod)
             groups = self.groups
             ctx.collection = lambda group: groups.get(f'{ROOT} | {group}') or self.fx
