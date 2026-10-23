@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.setup.CordonSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
+import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
@@ -58,6 +59,18 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
                 default -> null;
             };
             if (text != null) marks.label(p.seedX(), p.seedY(), text, ReviewStyle.NOTE);
+        }
+        for (Laid laid : cordon.map().layout.pieces()) {
+            if (!laid.isLaid() || laid.cells().isEmpty()) continue;
+            int x0 = Integer.MAX_VALUE, y0 = Integer.MAX_VALUE, x1 = Integer.MIN_VALUE, y1 = Integer.MIN_VALUE;
+            for (int[] c : laid.cells()) {
+                x0 = Math.min(x0, c[0]);
+                y0 = Math.min(y0, c[1]);
+                x1 = Math.max(x1, c[0]);
+                y1 = Math.max(y1, c[1]);
+            }
+            String state = laid.status() == Laid.Status.LAID ? "" : " (" + laid.status().name().toLowerCase() + ")";
+            marks.box(x0, y0, x1, y1, laid.name() + state, laid.kind() == Laid.Kind.LINE ? ReviewStyle.ROUTE : ReviewStyle.NOTE);
         }
         CordonLogistics base = sim.getCordon() == null ? null : sim.getCordon().logistics();
         if (base != null) {

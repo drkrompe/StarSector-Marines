@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
+import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
@@ -172,6 +173,11 @@ public final class MapResult {
      * generation (parked vehicles stay off it).
      */
     public final FieldOfFire fieldOfFire;
+    /**
+     * What the plan's mission layout laid, by piece name ({@code mission-layout.md});
+     * {@link LaidLayout#EMPTY} on every map whose plan stated none.
+     */
+    public final LaidLayout layout;
 
     public MapResult(NavigationGrid grid, CellTopology topology,
                      int marineSpawnX, int marineSpawnY,
@@ -437,15 +443,21 @@ public final class MapResult {
         this.shelters = shelters == null ? Collections.emptyList() : List.copyOf(shelters);
         this.lanes = lanes == null ? Collections.emptyList() : List.copyOf(lanes);
         this.fieldOfFire = null;
+        this.layout = LaidLayout.EMPTY;
     }
 
     /** Keeps recipe output intact until the shared map-to-battle assembly consumes the layer. */
-    public MapResult withInitialDamage(DamagePlan damage) { return new MapResult(this, damage, fieldOfFire); }
+    public MapResult withInitialDamage(DamagePlan damage) { return new MapResult(this, damage, fieldOfFire, layout); }
 
     /** The same map, carrying the field of fire its landing promised. */
-    public MapResult withFieldOfFire(FieldOfFire field) { return new MapResult(this, initialDamage, field); }
+    public MapResult withFieldOfFire(FieldOfFire field) { return new MapResult(this, initialDamage, field, layout); }
 
-    private MapResult(MapResult base, DamagePlan damage, FieldOfFire field) {
+    /** The same map, carrying what its mission layout laid. */
+    public MapResult withLayout(LaidLayout laid) {
+        return new MapResult(this, initialDamage, fieldOfFire, laid == null ? LaidLayout.EMPTY : laid);
+    }
+
+    private MapResult(MapResult base, DamagePlan damage, FieldOfFire field, LaidLayout laid) {
         if (damage != null && (damage.width() > base.grid.getWidth() || damage.height() > base.grid.getHeight()))
             throw new IllegalArgumentException("Damage extent exceeds map");
         initialDamage = damage;
@@ -472,5 +484,6 @@ public final class MapResult {
         frontDepth = base.frontDepth;
         lanes = base.lanes;
         fieldOfFire = field;
+        layout = laid;
     }
 }
