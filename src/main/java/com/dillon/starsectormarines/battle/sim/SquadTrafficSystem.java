@@ -16,14 +16,12 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.util.Arrays;
 
 /**
- * Optional, quiet-infantry traffic hints. One serial snapshot owns negotiation;
+ * Quiet-infantry traffic hints, always installed. One serial snapshot owns negotiation;
  * workers only consume it at the ordinary objective-travel seam. No path search,
  * occupancy reservation, position write, or cross-squad lock occurs in prepare.
  * The existing movement owner validates and applies each requested displacement.
  */
 public final class SquadTrafficSystem {
-    public static final String PROPERTY = "battle.squad.traffic";
-    private final boolean yielding = Boolean.parseBoolean(System.getProperty("battle.squad.trafficYield", "true"));
     private static final int MAX_SQUADS = 4096;
     private static final int LOOKAHEAD_CELLS = 8;
     private final NavigationGrid grid;
@@ -293,7 +291,7 @@ public final class SquadTrafficSystem {
                 || squad.routingEpoch != state.epoch || goalX != state.goalX || goalY != state.goalY
                 || preparedPaths[index] == null || roster.movement().path(member) != preparedPaths[index]) return false;
         float offset = memberOffsets[index];
-        float speed = yielding ? speeds[slot] : 1f;
+        float speed = speeds[slot];
         // Zero preference still needs a legal join from a previously shifted
         // body. Never hand that return to the unswept legacy follower.
         long start = System.nanoTime();
