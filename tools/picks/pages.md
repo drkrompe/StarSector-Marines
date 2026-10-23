@@ -10,3 +10,4 @@ One picks page per top-level parent session (see "Questions for the owner" in
 | Asset shakeout (texture fit, battle loading) | https://claude.ai/artifact/RrGwLg54A9WL92XqXopwRa |
 | Battle HUD (glass command, ammo strips, weapon cycling) | https://claude.ai/artifact/T6H83hxxcdCfd3a1tnu2gd |
 | Ground turret tiers (point emplacements, raised hardpoints) | https://claude.ai/artifact/QvtkjhMfubgYbeVsffMkC8 |
+| Vehicle and mech scuff decals | https://claude.ai/artifact/G91JXyfyHTcjS5tYdYWKXR |
