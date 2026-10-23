@@ -35,7 +35,11 @@ def fix(job):
     old = np.asarray(Image.open(src).convert('RGB'), dtype=np.float32) / 255.0
     b, a = rgba(before), rgba(after)
     cover = b[..., 3:4]                      # the legacy ball's footprint; 0 on held-out craft
-    new = np.clip(old + cover * (a[..., :3] - b[..., :3]), 0.0, 1.0)
+    # What the shipped frame holds over the legacy ball: plumes and glows in front of the planet,
+    # craft it hides. All of it adds light, so only the positive part is kept; the negative part is
+    # the legacy ball's own grain where the before layer's noise differs from the shipped frame's.
+    over = np.maximum(old - cover * b[..., :3], 0.0)
+    new = np.clip(cover * a[..., :3] + over, 0.0, 1.0)
     Image.fromarray((new * 255.0 + 0.5).astype(np.uint8)).save(out, compress_level=3)
     return 1
 
