@@ -210,6 +210,8 @@ hundreds of cells wide a reserve sent to whichever redoubt called last spent
 the battle driving. The base's shed adds to them through the battle.
 They are the start of the allies fighting their
 own war (*The allies hold, the company decides*).
+What holds each sector, and what the base sends, by density:
+`cordon-allied-forces.md` (over the shared catalogue, `allied-tools.md`).
 
 **Refugees (the Line). People walking out of the region behind the line to
 the rear edge: groups of civilians leaving the rear villages on the

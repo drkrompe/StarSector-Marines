@@ -519,11 +519,17 @@ class SceneFx:
 
     def projectile_check(self):
         """Fail the build if a projectile still rides its ship: every top-level kit object named as
-        a round, bolt, missile, trail or flare must have been held in the world (to_world)."""
+        a round, bolt, missile, trail or flare must have been held in the world (to_world). Fail it
+        too if any gun had no muzzle (muzzle_world.missing): a round never leaves the hull centre."""
         bad = [o.name for o in bpy.data.objects if o not in self.before and o.parent is None
                and o.name.startswith('SWFX')
                and self.PROJECTILE.search(o.name) and not o.get('world_space')]
         self.rows.append(f'projectile check: {len(bad)} riding a ship')
+        missing = list(getattr(self.muzzle_world, 'missing', ()))
+        self.rows.append(f'muzzle check: {len(missing)} mounts with no muzzle')
+        if missing:      # coordinator, 2026-10-23: every turret fires from a real muzzle, never the hull centre
+            raise RuntimeError(f'{len(missing)} guns have no muzzle anchor and no barrel to take one from, '
+                               f'so they would fire from the hull centre: {missing[:6]}')
         if bad and self.matrix_at is not None and self.span:
             raise RuntimeError(f'{len(bad)} projectiles still in the space of the ship that fired them '
                                f'(owner, 2026-10-23: projectiles fly in world space), e.g. {bad[:6]}')
