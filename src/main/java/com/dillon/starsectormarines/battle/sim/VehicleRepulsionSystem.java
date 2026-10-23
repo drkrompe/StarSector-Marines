@@ -58,8 +58,6 @@ import java.util.Set;
  * into the hull closes the gap as the hull's drive does: one mass model, so a mech
  * against a tank resolves by weight like any other pair ({@link MechRamSystem} is
  * a mech against bodies). Friendly, allied and civilian bodies are shoved and never hurt.
- * With {@code -Dbattle.vehicle.ram=false} a mech takes a fixed {@link #MECH_SHARE}
- * and nothing else changes, which is the control.
  *
  * <p>Runs in the separation slot, after soft-collision relaxation, so it reads
  * the hulls where last tick's ground pass left them. Applied displacement is
@@ -86,8 +84,6 @@ public final class VehicleRepulsionSystem {
     static final float BASE_PUSH_SPEED = 2.5f;
     /** Additional push-speed ceiling per cell per second of hull speed. */
     static final float SPEED_PUSH_GAIN = 1.6f;
-    /** Fraction of the push a mech accepts when ramming is off; with it on, mass decides. */
-    static final float MECH_SHARE = 0.3f;
 
     private final UnitRosterService roster;
     private final ConvoyService convoy;
@@ -163,13 +159,13 @@ public final class VehicleRepulsionSystem {
                     || entityWorld.getInt(unit, components.ROLE, BattleComponents.ROLE_ORDINAL)
                     == UnitRole.STRUCTURE.ordinal()) continue;
             float radius = roster.radius(unit);
-            boolean hostile = HullRam.ENABLED && side != null && side.hostileTo(roster.identity().faction(unit));
+            boolean hostile = side != null && side.hostileTo(roster.identity().faction(unit));
             // A walking mech that meets a hull slides round its side rather than being stood off its end.
-            boolean slide = HullRam.ENABLED && unitType.isMech() && walking(unit);
+            boolean slide = unitType.isMech() && walking(unit);
             if (!displacement(body.x, body.y, body.facingDegrees, body.speed, halfL, halfW,
                     world.x(unit), world.y(unit), radius, dt, unit, !hostile, slide, push)) continue;
             boolean contact = push[2] != 0f;
-            float bodyMass = HullRam.ENABLED ? bodyTonnes(unit, unitType) : 0f;
+            float bodyMass = bodyTonnes(unit, unitType);
             // A machine meets a hull from any side; anything else is struck only by the bow.
             if (hostile && (push[3] != 0f || contact && unitType.isMech())) {
                 long pair = pairKey(vehicle, unit);
@@ -179,14 +175,13 @@ public final class VehicleRepulsionSystem {
             }
             // A parked hull's brakes hold it against anything lighter than itself: that body takes the whole push.
             boolean braked = Math.abs(body.speed) < MOVING_SPEED && bodyMass < hullMass;
-            float share = !HullRam.ENABLED ? (unitType.isMech() ? MECH_SHARE : 1f)
-                    : braked ? 1f : HullRam.shoveShare(hullMass, bodyMass);
+            float share = braked ? 1f : HullRam.shoveShare(hullMass, bodyMass);
             float px = push[0], py = push[1];
             float mag = (float) Math.hypot(px, py);
             if (mag > maxStep) { px *= maxStep / mag; py *= maxStep / mag; }
             if (apply(unit, unitType, radius, px * share, py * share, dt)) pushes++;
             // What the body did not give comes back onto the hull: a heavy one holds it up.
-            if (HullRam.ENABLED && contact && !braked) {
+            if (contact && !braked) {
                 backX -= px * (1f - share);
                 backY -= py * (1f - share);
             }

@@ -62,7 +62,6 @@ public final class MechRamSystem {
     public float damageTaken() { return damageTaken; }
 
     public void tick() {
-        if (!HullRam.ENABLED) return;
         for (ArchetypeTable table : entityWorld.matched(mechs)) {
             for (int row = 0, n = table.rowCount(); row < n; row++) {
                 long mech = table.entityAt(row);

@@ -23,13 +23,6 @@ package com.dillon.starsectormarines.battle.vehicle;
  */
 public final class HullContact {
 
-    /**
-     * {@code -Dbattle.vehicle.hullContact=false} is the control: hulls drive through each other as before. Remove
-     * once the coordinator has accepted the armour reading against its control ({@code convoy-nouns.md}).
-     */
-    public static final boolean ENABLED =
-            Boolean.parseBoolean(System.getProperty("battle.vehicle.hullContact", "true"));
-
     /** Gap a yielding hull keeps: it brakes this far short of touching. */
     public static final float SKIN = .3f;
     /** The pace the hull given way to comes on at, cells a second, while the two are in contact head-on. */

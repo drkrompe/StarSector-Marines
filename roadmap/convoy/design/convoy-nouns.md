@@ -210,9 +210,7 @@ Hound at eight tonnes yields to an APC, and a Bulwark at eighteen outweighs one.
 
 Mech against mech is still the soft separation, with the lighter machine
 yielding, plus the existing stall escape (`MechCollisionEscapeSystem`) as the
-deadlock backstop. `-Dbattle.vehicle.ram=false` is the control for all of it:
-a fixed mech share against hulls, radius-squared weights in separation, no
-off-the-line shove and no rams.
+deadlock backstop.
 
 **Hulls do not drive through each other** (`HullContact`, `HullContactSystem`).
 After the ground pass has driven them, every pair of visible, unwrecked hulls
@@ -238,9 +236,11 @@ one only for what neither hull can take that way. The shove never touches a
 route: a hull that is held up falls through to the stall ladder like any other.
 Hostile hulls do not brake for each other: they close at full speed, ram on the
 first touch, and then can go no further. A wreck is not a hull here.
-`-Dbattle.vehicle.hullContact=false` is the control. A lane too narrow for the
-two hulls (plus the planner's clearance) to pass is a stall, and the stall
-ladder does not yet resolve it: neither hull reverses out.
+A pair that stays in contact for six seconds without both hulls getting
+anywhere is jammed (a lane too narrow for the two plus the planner's clearance,
+a column backed into trucks coming out, a truck inching a parked car along a
+road it cannot leave): neither planner reverses out, so the pair is let through
+each other, as hulls drove before there was contact, until they are clear.
 
 A vehicle **is** an ordinary squad contact. It is believed in, it counts in the
 contact picture, it moves doctrine and it raises the alert level, because an APC

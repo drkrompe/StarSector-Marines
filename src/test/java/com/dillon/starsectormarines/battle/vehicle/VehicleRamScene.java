@@ -47,8 +47,7 @@ import java.util.Map;
  * <p>Verdicts are mechanics: friends are shoved and never hurt; hostile bodies on the bow are rammed; against the
  * same Brutes the heavy hull deals more a ram than the light one and the light one takes damage back where the
  * heavy one takes none; hulls never sit inside each other; and both hulls of a lane meet reach their goals. Who
- * dies, how many rams, the ram damage and the meet's time are readings. Against
- * {@code -Dbattle.vehicle.ram=false} and {@code -Dbattle.vehicle.hullContact=false} the same loops are the control.
+ * dies, how many rams, the ram damage and the meet's time are readings.
  */
 public final class VehicleRamScene implements BehaviorScene {
 

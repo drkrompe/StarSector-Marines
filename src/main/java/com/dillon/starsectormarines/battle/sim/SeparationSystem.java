@@ -433,7 +433,7 @@ public final class SeparationSystem {
                     dirX = dx / dist;
                     dirY = dy / dist;
                 }
-                if (HullRam.ENABLED && physicalOverlap > 0f && hasFlag(bFlags, MECH)) {
+                if (physicalOverlap > 0f && hasFlag(bFlags, MECH)) {
                     // Ahead of a walking mech, a body is shoved off its line, not carried down it: to the side it
                     // already stands on, or dead ahead to the mech's left, which for two mechs head-on is each one's own right.
                     float bvx = collisionVelX[j], bvy = collisionVelY[j];
@@ -457,7 +457,7 @@ public final class SeparationSystem {
                         + formationGap * FORMATION_STIFFNESS;
                 float weight = hasFlag(bFlags, IMMOVABLE)
                         ? 1f
-                        : HullRam.ENABLED && (hasFlag(aFlags, MECH) || hasFlag(bFlags, MECH))
+                        : hasFlag(aFlags, MECH) || hasFlag(bFlags, MECH)
                         ? collisionTonnes[j] / (collisionTonnes[i] + collisionTonnes[j])
                         : collisionMass[j]
                         / (collisionMass[i] + collisionMass[j]);

@@ -75,7 +75,7 @@ public final class HullContactSystem {
     public float worstOverlap() { return worstOverlap; }
 
     public void tick() {
-        if (!HullContact.ENABLED || convoy.vehicleCount() < 2) return;
+        if (convoy.vehicleCount() < 2) return;
         long[] ids = convoy.entityIds();
         for (int i = 0; i < ids.length; i++) {
             if (!live(ids[i])) continue;
@@ -114,7 +114,7 @@ public final class HullContactSystem {
         float aClosing = ba.speed * aInto, bClosing = bb.speed * bInto;
 
         Faction fa = convoy.faction(a), fb = convoy.faction(b);
-        boolean hostile = HullRam.ENABLED && fa != null && fa.hostileTo(fb);
+        boolean hostile = fa != null && fa.hostileTo(fb);
         // Nobody brakes for the enemy: hostile hulls close at full speed and ram, then can go no further.
         if (hostile && depth <= 0f) return;
         if (depth > 0f) {

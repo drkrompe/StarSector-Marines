@@ -23,13 +23,6 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  */
 public final class HullRam {
 
-    /**
-     * {@code -Dbattle.vehicle.ram=false} is the control: hulls shove bodies and each other as before, and nothing
-     * is hurt or slowed by it. Remove once the coordinator has accepted the armour reading against its control
-     * ({@code convoy-nouns.md}, ramming).
-     */
-    public static final boolean ENABLED = Boolean.parseBoolean(System.getProperty("battle.vehicle.ram", "true"));
-
     /** How much a ram bounces: low, a body is mostly carried off the bow rather than flung. */
     public static final float RESTITUTION = .1f;
     /** Cells a second of velocity change a body takes without harm: a hull nudging at a crawl hurts nobody. */
