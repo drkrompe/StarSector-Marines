@@ -290,8 +290,10 @@ final class BattleDirectControlHudModel {
             fire.add(weaponRow(weapon, false, false, false, "", () -> select.select(weapon.number())));
         }
         if (!fire.isEmpty()) {
+            // One weapon on the button: the header names it, as a cycled pick's header does.
+            String name = snapshot.weapons().size() == 1 ? snapshot.weapons().get(0).name() : label("GroupFire");
             result.add(new WeaponGroup("direct-hud-group-lmb", label("BadgeLMB"), "badge badge-lmb",
-                    label("GroupFire"), "", "group-header", false, () -> {}, fire));
+                    name, "", "group-header", false, () -> {}, fire));
         }
         if (ship) {
             List<WeaponRow> systems = new ArrayList<>();
