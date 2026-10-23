@@ -270,11 +270,16 @@ class SceneFx:
     # fire weapons around a ship is good"): each burst opens off to one side of the aim point and
     # walks across and past her; a round hits only where its straight line meets her hull, and
     # the rest fly on past her and fade. WALK_R is the walk's reach as a share of her length.
-    WALK_R = .3
+    # Wider than the hull (owner, 2026-10-23, S6b: "NONE of the bursts miss"): a walk opens off her,
+    # crosses her and leaves the far side, so a third to a half of a burst's rounds go wide.
+    WALK_R = .5
     # Each round leaves the bore a little off the gun's line, seeded per round (owner, 2026-10-23,
     # S6: the rounds of a burst should fly roughly parallel, not all converge on one point): the
     # aim point scatters by range x tan(SPREAD_DEG), so the spread grows with distance as a gun's does.
-    SPREAD_DEG = .25
+    SPREAD_DEG = .4
+    # A gunner's lead is a guess at where she will be: each burst leads by its own error (a share of
+    # the flight time), so a moving target slides out from under some bursts and into others.
+    LEAD_ERR = .12
 
     def planned(self, ctx, kit, a, b, turret, weapon, muzzle_l, hit_l, speed, feeder, track):
         """Fire turret on a at b over the whole shot as a gun would: returns the round records, or
@@ -332,10 +337,11 @@ class SceneFx:
         walks = []
         for t0, t1 in bursts:
             th = rnd.uniform(0, 2 * math.pi)
-            r0 = reach * rnd.uniform(.9, 1.6)
+            r0 = reach * rnd.uniform(.8, 1.5)
             ph = th + math.pi + rnd.uniform(-.8, .8)
-            r1 = reach * rnd.uniform(0, 1.3)
-            walks.append((t0, t1, (math.cos(th) * r0, math.sin(th) * r0), (math.cos(ph) * r1, math.sin(ph) * r1)))
+            r1 = reach * rnd.uniform(-.2, 1.0)
+            walks.append((t0, t1, (math.cos(th) * r0, math.sin(th) * r0), (math.cos(ph) * r1, math.sin(ph) * r1),
+                          rnd.gauss(0, self.LEAD_ERR)))
         imp = self.m['swfx_impacts']
         mpu = self.placed[a]['mpu']
         copy_at = lambda f: self.matrix_at(a, f) @ Matrix.Scale(mpu, 4)
@@ -348,28 +354,32 @@ class SceneFx:
             ma = self.matrix_at(a, f)
             src = ma @ Vector(muzzle_l)
             fl = (self.matrix_at(b, f) @ Vector(hit_l) - src).length / max(speed, 1.0) * fps
-            mb = self.matrix_at(b, f + fl)
+            jr = random.Random(f'asharu-walk|{a}|{turret}|{b}|{f}')
+            ox = oy = err = 0.0
+            for t0, t1, c, e, le in walks:
+                if t0 <= f < t1:
+                    k = (f - t0) / max(t1 - t0, 1.0)
+                    ox, oy, err = c[0] + (e[0] - c[0]) * k, c[1] + (e[1] - c[1]) * k, le
+                    break
+            mt = self.matrix_at(b, f + fl)                          # where she really is when it arrives
+            mb = self.matrix_at(b, f + fl * (1 + err + jr.gauss(0, .03)))   # where the gunner led her
             line = (Vector(hit_l) - mb.inverted() @ src).normalized()
             u = line.orthogonal().normalized()
             v = line.cross(u)
-            ox = oy = 0.0
-            for t0, t1, c, e in walks:
-                if t0 <= f < t1:
-                    k = (f - t0) / max(t1 - t0, 1.0)
-                    ox, oy = c[0] + (e[0] - c[0]) * k, c[1] + (e[1] - c[1]) * k
-                    break
-            jr = random.Random(f'asharu-walk|{a}|{turret}|{b}|{f}')
             spread = math.hypot(reach * .08, (Vector(hit_l) - mb.inverted() @ src).length
                                 * math.tan(math.radians(self.SPREAD_DEG)))
             ox += jr.gauss(0, spread)
             oy += jr.gauss(0, spread)
-            aim_l = Vector(hit_l) + u * ox + v * oy
-            got = imp.ray_to_hull(self.scene, bm, tuple(aim_l - line * reach * 4), tuple(aim_l))
+            aim_w = mb @ (Vector(hit_l) + u * ox + v * oy)          # the round's aim point, in the world
+            real = mt.inverted()                                    # ... in her frame as she really is then
+            aim_l, src_l = real @ aim_w, real @ src
+            ray = (aim_l - src_l).normalized()
+            got = imp.ray_to_hull(self.scene, bm, tuple(aim_l - ray * reach * 4), tuple(aim_l))
             hit = None
             if got is not None and (Vector(got[0]) - Vector(hit_l)).length < reach * 3:
                 hit = (Vector(got[0]), Vector(got[1]))
-                aim_l = hit[0]
-            shots[f] = ((ma @ Matrix.Scale(mpu, 4)).inverted() @ (mb @ aim_l), hit)
+                aim_w = mt @ hit[0]
+            shots[f] = ((ma @ Matrix.Scale(mpu, 4)).inverted() @ aim_w, hit)
             return shots[f]
         others = [k for k in self.placed if k not in (a, b)]
         clear = {}

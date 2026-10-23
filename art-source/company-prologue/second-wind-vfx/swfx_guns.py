@@ -1705,8 +1705,8 @@ def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target, through=False)
             stop = most
             if not all(math.isfinite(c) for c in d) or d.length < .5:
                 d = Vector((1, 0, 0))
-        if through:          # a miss: on past the target point to the round's range
-            stop = min(max(stop * 1.15, swfx_core.units(r['range'])), most)
+        if through:          # a miss flies on past her and out of the shot (owner, 2026-10-23, S6b: rounds that
+            stop = most      # vanish at her read as hits), burning out only at the end of its flight
     elif w.get('braid'):
         d = _braid_dir(a, w['braid'])
     yaw, pitch = rnd.gauss(0, w['spread']), rnd.gauss(0, w['spread'])
@@ -1727,7 +1727,7 @@ def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target, through=False)
     life = len(heads) - 1
     frames = [frame + j for j in range(life + 1)]
     hits = target is not None and not through
-    burn = [1.0 if hits else max(0.0, min(1.0, (1 - hh / stop) / .3)) for hh in heads]
+    burn = [1.0 if hits else max(0.0, min(1.0, (1 - hh / stop) / (.12 if through else .3))) for hh in heads]
     rec = {'flight_frames': life}
     if hits:
         rec['hit_frame'] = frame + life
