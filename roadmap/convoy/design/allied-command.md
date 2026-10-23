@@ -126,6 +126,13 @@ stands, or the main takes the lead with the screen's remnants and goes on as one
 element. Squads, hulls and mechs that die drop out of their element. A wave
 arriving late may join the screen, and machines may join the main.
 
+**Side tasks.** A battle whose advance meets something to deal with on the way
+(a satellite the barrage has already passed, a gap that needs holding) **suspends**
+the advance: it gives no orders and the mission's own orders stand. When it
+**resumes**, the screen is posted on its line again and the main behind it,
+wherever the side task left them. A large element closes up its spacing to fit a
+**frontage**, such as a lane's width.
+
 **Scripted per mission.** An authored battle declares the advance: its elements,
 its route, its bounds (a spacing, or explicit distances), a gate on any bound
 (for example, "the barrage has lifted off this line") and a trigger for the
