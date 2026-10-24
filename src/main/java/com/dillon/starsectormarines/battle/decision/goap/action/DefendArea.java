@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
 
 import java.util.List;
+import java.util.function.BiPredicate;
 
 /**
  * Holds a player-authored circle while reacting to the squad's own contact
@@ -42,10 +43,22 @@ public final class DefendArea implements Action {
     /** Quiet members stay well inside the edge so a flank is not the first thing outside the circle. */
     private static final float QUIET_MAX_RADIUS_SHARE = 0.7f;
     private static final double GOLDEN_ANGLE = Math.PI * (3d - Math.sqrt(5d));
+    private static final int STAND_QUIET = 0;
+    private static final int STAND_PREPARED = 1;
+    private static final int STAND_LINE = 2;
 
     private final int centerX;
     private final int centerY;
     private final int radius;
+
+    // The squad's stands as last settled by squadStand, and what they were settled for; guarded by this.
+    private int[] standCells;
+    private int standTick;
+    private int standKind;
+    private int standThreatX;
+    private int standThreatY;
+    private FrontageLine standLine;
+    private List<Long> standMembers = List.of();
 
     public DefendArea(int centerX, int centerY, int radius) {
         this.centerX = centerX;
@@ -191,13 +204,91 @@ public final class DefendArea implements Action {
         int[] claimed = claimedCell(member, sim);
         if (claimed != null) return claimed;
         FrontageLine line = squad == null ? null : sim.frontageLineOf(squad.id);
-        if (line != null) return linePosition(member, line, threatX, threatY, squad, sim);
-        int ordinal = memberOrdinal(member, squad, sim);
-        int count = squad != null ? Math.max(1, squad.autonomousMemberCount(sim)) : 1;
+        if (line != null) return squadStand(member, STAND_LINE, threatX, threatY, line, squad, sim);
+        if (threatX == centerX && threatY == centerY) return quietPosition(member, squad, sim);
+        return squadStand(member, STAND_PREPARED, threatX, threatY, null, squad, sim);
+    }
+
+    private int[] quietPosition(long member, Squad squad, BattleView sim) {
+        int[] claimed = claimedCell(member, sim);
+        if (claimed != null) return claimed;
+        FrontageLine line = squad == null ? null : sim.frontageLineOf(squad.id);
+        if (line != null) return squadStand(member, STAND_LINE, -1, -1, line, squad, sim);
+        return squadStand(member, STAND_QUIET, -1, -1, null, squad, sim);
+    }
+
+    /**
+     * Where {@code member} stands while he holds no position of his own, with every squadmate
+     * given a different cell: the squad's stands are settled together in ordinal order
+     * ({@link DistinctStands}), once per tick and kind of stand, so members whose shares search
+     * overlapping ground do not all walk to its one best cover cell and jostle round its centre
+     * without any of them ever arriving.
+     */
+    private int[] squadStand(long member, int kind, int threatX, int threatY, FrontageLine line,
+                             Squad squad, BattleView sim) {
+        if (squad == null) {
+            return standCell(kind, 0, 1, threatX, threatY, line, (x, y) -> false, sim);
+        }
+        List<Long> members = FightingPositionClaims.availableMembers(squad, sim);
+        int ordinal = members.indexOf(member);
+        if (ordinal < 0) {
+            return standCell(kind, 0, Math.max(1, members.size()), threatX, threatY, line,
+                    (x, y) -> claimedByOther(x, y, member, sim), sim);
+        }
+        int width = sim.getGrid().getWidth();
+        int[] cells;
+        synchronized (this) {
+            int tick = sim.getSimTickIndex();
+            if (standCells == null || standTick != tick || standKind != kind
+                    || standThreatX != threatX || standThreatY != threatY
+                    || standLine != line || !standMembers.equals(members)) {
+                int count = members.size();
+                standCells = DistinctStands.assign(count, width, (i, taken) -> {
+                    long candidate = members.get(i);
+                    if (claimedCell(candidate, sim) != null) return null;
+                    return standCell(kind, i, count, threatX, threatY, line,
+                            (x, y) -> taken.test(x, y) || claimedByOther(x, y, candidate, sim), sim);
+                });
+                standTick = tick;
+                standKind = kind;
+                standThreatX = threatX;
+                standThreatY = threatY;
+                standLine = line;
+                standMembers = members;
+            }
+            cells = standCells;
+        }
+        int cell = cells[ordinal];
+        if (cell == DistinctStands.NONE) {
+            return standCell(kind, ordinal, members.size(), threatX, threatY, line,
+                    (x, y) -> claimedByOther(x, y, member, sim), sim);
+        }
+        return new int[]{cell % width, cell / width};
+    }
+
+    /**
+     * Member {@code ordinal} of {@code count}'s stand of the given kind, avoiding every cell
+     * {@code taken} accepts while any other will do. On a drawn line it is his share settled into
+     * cover against the believed threat (or the line's front, {@code threatX < 0}); in a quiet
+     * circle his point of the sunflower; facing a threat in a circle, his slot of a line across
+     * the threat axis behind the centre, settled into the best cover near it.
+     */
+    private int[] standCell(int kind, int ordinal, int count, int threatX, int threatY,
+                            FrontageLine line, BiPredicate<Integer, Integer> taken, BattleView sim) {
+        if (kind == STAND_LINE) {
+            int[] covered = LinePlacement.coveredCell(line, ordinal, count, threatX, threatY, sim, taken);
+            if (covered != null) return covered;
+            int[] share = LinePlacement.share(line, ordinal, count);
+            return nearestWalkableInside(share[0], share[1], taken, sim);
+        }
+        if (kind == STAND_QUIET) {
+            float[] offset = quietOffset(ordinal, count, radius);
+            return nearestWalkableInside(Math.round(centerX + offset[0]),
+                    Math.round(centerY + offset[1]), taken, sim);
+        }
         float axisX = threatX - centerX;
         float axisY = threatY - centerY;
         float length = (float) Math.sqrt(axisX * axisX + axisY * axisY);
-        if (length < 0.001f) return quietPosition(member, squad, sim);
         axisX /= length;
         axisY /= length;
         float lateral = (ordinal - (count - 1) * 0.5f) * PREPARED_LINE_SPACING;
@@ -207,31 +298,9 @@ public final class DefendArea implements Action {
                 + axisX * lateral);
         int[] covered = sim.getTacticalScoring().bestCoverCell(
                 threatX, threatY, desiredX, desiredY,
-                PREPARED_POSITION_SEARCH_RADIUS);
-        if (covered != null && inside(covered[0], covered[1])
-                && !claimedByOther(covered[0], covered[1], member, sim)) {
-            return covered;
-        }
-        return nearestWalkableInside(desiredX, desiredY, sim);
-    }
-
-    /**
-     * Where a member holds a drawn line when no prepared position was his: his own share of the
-     * line, a cell behind it, settling into the best cover there against the believed threat or,
-     * with none, against the line's front. Shares are spaced evenly along the whole line, so a
-     * squad on open ground stands as a skirmish line across the ground the player drew.
-     *
-     * @param threatX the believed threat's cell, or -1 to cover against the front
-     */
-    private int[] linePosition(long member, FrontageLine line, int threatX, int threatY,
-                               Squad squad, BattleView sim) {
-        int ordinal = memberOrdinal(member, squad, sim);
-        int count = Math.max(1, squad.autonomousMemberCount(sim));
-        int[] covered = LinePlacement.coveredCell(line, ordinal, count, threatX, threatY, sim,
-                (x, y) -> claimedByOther(x, y, member, sim));
+                PREPARED_POSITION_SEARCH_RADIUS, (x, y) -> !inside(x, y) || taken.test(x, y));
         if (covered != null) return covered;
-        int[] share = LinePlacement.share(line, ordinal, count);
-        return nearestWalkableInside(share[0], share[1], sim);
+        return nearestWalkableInside(desiredX, desiredY, taken, sim);
     }
 
     /**
@@ -251,18 +320,6 @@ public final class DefendArea implements Action {
                 .isClaimedByOther(x, y, sim.getGrid().getWidth(), member);
     }
 
-    private int[] quietPosition(long member, Squad squad, BattleView sim) {
-        int[] claimed = claimedCell(member, sim);
-        if (claimed != null) return claimed;
-        FrontageLine line = squad == null ? null : sim.frontageLineOf(squad.id);
-        if (line != null) return linePosition(member, line, -1, -1, squad, sim);
-        int ordinal = memberOrdinal(member, squad, sim);
-        int count = squad != null ? Math.max(1, squad.autonomousMemberCount(sim)) : 1;
-        float[] offset = quietOffset(ordinal, count, radius);
-        return nearestWalkableInside(Math.round(centerX + offset[0]),
-                Math.round(centerY + offset[1]), sim);
-    }
-
     /**
      * Offset from the circle's centre for member {@code ordinal} of {@code count}
      * while no enemy is known: a sunflower spiral whose members sit about
@@ -278,13 +335,20 @@ public final class DefendArea implements Action {
         return new float[]{(float) (Math.cos(angle) * distance), (float) (Math.sin(angle) * distance)};
     }
 
-    private int[] nearestWalkableInside(int wantedX, int wantedY, BattleView sim) {
+    /**
+     * {@code wanted} if it is walkable, inside and not {@code taken}, else the nearest such cell of
+     * the circle; with every walkable cell of it taken, the nearest walkable one regardless.
+     */
+    private int[] nearestWalkableInside(int wantedX, int wantedY,
+                                        BiPredicate<Integer, Integer> taken, BattleView sim) {
         if (inside(wantedX, wantedY) && sim.getGrid().inBounds(wantedX, wantedY)
-                && sim.getGrid().isWalkable(wantedX, wantedY)) {
+                && sim.getGrid().isWalkable(wantedX, wantedY) && !taken.test(wantedX, wantedY)) {
             return new int[]{wantedX, wantedY};
         }
         int[] best = null;
         int bestDistance = Integer.MAX_VALUE;
+        int[] shared = null;
+        int sharedDistance = Integer.MAX_VALUE;
         for (int y = centerY - radius; y <= centerY + radius; y++) {
             for (int x = centerX - radius; x <= centerX + radius; x++) {
                 if (!inside(x, y) || !sim.getGrid().inBounds(x, y)
@@ -292,13 +356,19 @@ public final class DefendArea implements Action {
                 int dx = x - wantedX;
                 int dy = y - wantedY;
                 int distance = dx * dx + dy * dy;
-                if (distance < bestDistance) {
+                if (taken.test(x, y)) {
+                    if (distance < sharedDistance) {
+                        sharedDistance = distance;
+                        shared = new int[]{x, y};
+                    }
+                } else if (distance < bestDistance) {
                     bestDistance = distance;
                     best = new int[]{x, y};
                 }
             }
         }
-        return best != null ? best : new int[]{centerX, centerY};
+        if (best != null) return best;
+        return shared != null ? shared : new int[]{centerX, centerY};
     }
 
     private void moveToward(long member, int x, int y, BattleControl sim) {
@@ -357,18 +427,6 @@ public final class DefendArea implements Action {
         int dx = x - centerX;
         int dy = y - centerY;
         return dx * dx + dy * dy <= radius * radius;
-    }
-
-    private static int memberOrdinal(long member, Squad squad, BattleView sim) {
-        if (squad == null) return 0;
-        int ordinal = 0;
-        for (int i = 0, count = sim.squadMemberCount(squad.id); i < count; i++) {
-            long candidate = sim.squadMemberAt(squad.id, i);
-            if (!squad.availableToPlan(candidate, sim)) continue;
-            if (candidate == member) return ordinal;
-            ordinal++;
-        }
-        return 0;
     }
 
     @Override

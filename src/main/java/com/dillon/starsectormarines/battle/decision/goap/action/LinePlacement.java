@@ -42,8 +42,9 @@ public final class LinePlacement {
 
     /**
      * The covered cell near member {@code ordinal}'s share, judged against the believed threat or,
-     * with none ({@code threatX < 0}), against a point ahead of the line; {@code null} when no
-     * covered cell inside the band is free, and the caller falls back to the share itself.
+     * with none ({@code threatX < 0}), against a point ahead of the line, skipping every cell
+     * {@code taken} accepts (a position, or a squadmate's stand); {@code null} when no covered cell
+     * inside the band is free, and the caller falls back to the share itself.
      */
     static int[] coveredCell(FrontageLine line, int ordinal, int count, int threatX, int threatY,
                              BattleView sim, BiPredicate<Integer, Integer> taken) {
@@ -55,19 +56,16 @@ public final class LinePlacement {
             fromX = Math.round(front[0]);
             fromY = Math.round(front[1]);
         }
-        int[] covered = sim.getTacticalScoring().bestCoverCell(
-                fromX, fromY, desired[0], desired[1], COVER_SEARCH_RADIUS);
-        if (covered != null && line.covers(covered[0], covered[1])
-                && !taken.test(covered[0], covered[1])) {
-            return covered;
-        }
-        return null;
+        return sim.getTacticalScoring().bestCoverCell(
+                fromX, fromY, desired[0], desired[1], COVER_SEARCH_RADIUS,
+                (x, y) -> !line.covers(x, y) || taken.test(x, y));
     }
 
     /**
      * Where every member of {@code squad} available to plan would stand if given {@code line} now.
      * The positions are the claims' own dry run; the rest are placed as {@link DefendArea} places
-     * them, falling back to the nearest walkable cell of the band.
+     * them, in order, each avoiding the cells given before him, falling back to the nearest
+     * walkable cell of the band.
      */
     public static List<Place> preview(BattleView sim, Squad squad, FrontageLine line) {
         List<Long> members = FightingPositionClaims.availableMembers(squad, sim);
@@ -93,6 +91,7 @@ public final class LinePlacement {
                     (x, y) -> held.contains(y * width + x)
                             || sim.fightingPositionClaims().isClaimedByOther(x, y, width, member));
             if (cell == null) cell = nearestWalkable(line, share(line, i, count), sim.getGrid());
+            held.add(cell[1] * width + cell[0]);
             places.add(new Place(member, cell[0], cell[1], false));
         }
         return places;
