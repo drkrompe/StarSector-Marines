@@ -147,7 +147,9 @@ class TacticalSearchEquivalenceTest {
                 bestAny = other;
             }
             if (!visible && !allowNoLos) continue;
-            float score = scoring.scoreTargetCandidate(other, d, visible, selfFaction,
+            boolean shootable = visible && TacticalScoring.canShootPair(grid, selfX, selfY,
+                    sim.world().x(other), sim.world().y(other), 0f, sim.vision().airLosRadius(other));
+            float score = scoring.scoreTargetCandidate(other, d, shootable, selfFaction,
                     selfSquadId, exclude, selfCellX, selfCellY, ox, oy);
             if (score < bestScore) {
                 bestScore = score;
