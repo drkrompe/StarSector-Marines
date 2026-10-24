@@ -317,6 +317,15 @@
       "volume": 1.0
     },
     {
+      "id": "harrier_wingbeat",
+      "trimmedFrom": "runner_clatter",
+      "prompt": "The loudest 0.28 s of runner_clatter takes 1, 3 and 4, faded and levelled so one Harrier wingbeat is heard (owner, 2026-10-24); trimmed, not generated. Receipts name the source take.",
+      "durationSeconds": 0.28,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
       "id": "body_drag",
       "prompt": "A heavy sack being dragged slowly across dirt and loose gravel: a soft continuous scrape of rough cloth on earth, grit crunching and shifting under its weight, an occasional dull bump as it rolls over a stone, no voices, no music, seamless loop",
       "durationSeconds": 2.0,

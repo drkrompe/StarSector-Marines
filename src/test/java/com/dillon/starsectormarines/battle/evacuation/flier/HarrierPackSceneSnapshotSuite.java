@@ -97,12 +97,15 @@ public final class HarrierPackSceneSnapshotSuite extends BehaviorSceneSnapshotSu
      * {@link HarrierAudio} would start written as a JSON line per sound ({@code frame, id, x, y, pitch, volume,
      * listenerX, listenerY}), and the line's fire, to that file for the review's soundtrack. The listener is
      * the camera's centre, as it is the screen's in a battle. The throw chance is raised so a short clip hears one.
+     * {@code -Dsnapshot.harrierPack.soundPack=N} releases a pack of {@code N} in place of the scene's, so a lone flier
+     * can be heard against a pack.
      */
     private static LookReview.Shot soundShot(Path log) {
         String look = "harrier-" + HarrierLook.DEFAULT.name().toLowerCase().replace('_', '-');
         return new LookReview.Shot(look + "-sound", LookGround.verdant(), 70, 40,
                 placement -> {
-                    BattleSimulation sim = stage(placement, HarrierLook.DEFAULT, true);
+                    BattleSimulation sim = stage(placement, HarrierLook.DEFAULT, true,
+                            Integer.getInteger("snapshot.harrierPack.soundPack", HarrierPackScene.PACK));
                     sim.swarmFliers().liftChance = STRIKE_LIFT_CHANCE;
                     LookReview.View ear = LookReview.View.followAtPlay(placement, "line", "pack");
                     HarrierAudio.Mix mix = new HarrierAudio.Mix();
@@ -164,6 +167,10 @@ public final class HarrierPackSceneSnapshotSuite extends BehaviorSceneSnapshotSu
     static final int[] FLAK_STILLS = {90, 240, 390, 540, 690, 840};
 
     private static BattleSimulation stage(LookReview.Placement placement, HarrierLook look, boolean antiAir) {
+        return stage(placement, look, antiAir, HarrierPackScene.PACK);
+    }
+
+    private static BattleSimulation stage(LookReview.Placement placement, HarrierLook look, boolean antiAir, int fliers) {
         float[] line = placement.openNear(14f, 20f);
         int lx = (int) line[0], ly = (int) line[1];
         SceneBuilder builder = placement.builder();
@@ -175,7 +182,7 @@ public final class HarrierPackSceneSnapshotSuite extends BehaviorSceneSnapshotSu
         long[] guns = HarrierPackScene.spawnGuns(sim, lx, ly, antiAir);
         placement.subject("line", guns[1]);
         HarrierPack pack = sim.swarmFliers().release(sim, look, placement.site().x(54f), placement.site().y(20f),
-                HarrierPackScene.PACK, 0L);
+                fliers, 0L);
         placement.subject("pack", pack.members.get(0).id);
         return sim;
     }
