@@ -105,7 +105,7 @@ public class FlamerForestLookSuite implements SnapshotSuite {
                     .stationary().done();
             SceneWorld world = builder.build();
             long[] flamers = world.members("flamers");
-            int[] spent = {0, 0};
+            int[] spent = {0, 0, 0};
             placement.beforeTick(sim -> countSpent(sim, spent));
             placement.beforeTick(sim -> log(variant, sim, flamers, spent));
             return world.sim();
@@ -118,8 +118,9 @@ public class FlamerForestLookSuite implements SnapshotSuite {
     }
 
     /**
-     * Counts the flamer charges thrown last tick ({@code spent[0]}) and those whose landing cell had nothing left to
-     * catch, neither standing fuel nor fire ({@code spent[1]}): a charge spent on burnt or bare ground.
+     * Counts the flamer charges thrown last tick ({@code spent[0]}), those whose landing cell had nothing left to
+     * catch, neither standing fuel nor fire ({@code spent[1]}), and of those the ones with no enemy inside the blast
+     * ({@code spent[2]}): a charge on burnt ground that still catches a man in its blast is a blast throw, not waste.
      */
     private static void countSpent(BattleSimulation sim, int[] spent) {
         FireField fire = sim.fireField();
@@ -127,8 +128,23 @@ public class FlamerForestLookSuite implements SnapshotSuite {
             if (shot.specialEquipmentDef == null || !FLAMER.equals(shot.specialEquipmentDef.weaponId())) continue;
             spent[0]++;
             int x = (int) Math.floor(shot.toX), y = (int) Math.floor(shot.toY);
-            if (!fire.canBurn(x, y) && !fire.isBurning(x, y)) spent[1]++;
+            if (fire.canBurn(x, y) || fire.isBurning(x, y)) continue;
+            spent[1]++;
+            if (!enemyInBlast(sim, shot)) spent[2]++;
         }
+    }
+
+    /** Whether a defender stands inside the charge's blast where it lands, as a detonation reaches a body. */
+    private static boolean enemyInBlast(BattleSimulation sim, ShotEvent shot) {
+        float blast = shot.specialEquipmentDef.aoeRadius();
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long unit = sim.liveUnitAt(i);
+            if (sim.identity().faction(unit) != Faction.DEFENDER) continue;
+            float reach = blast + sim.identity().type(unit).radius;
+            float dx = sim.world().x(unit) - shot.toX, dy = sim.world().y(unit) - shot.toY;
+            if (dx * dx + dy * dy <= reach * reach) return true;
+        }
+        return false;
     }
 
     /** Every five seconds: charges left and thrown on spent ground, the fire's size, and the squad's health and distance from it. */
@@ -149,8 +165,8 @@ public class FlamerForestLookSuite implements SnapshotSuite {
                         Math.abs(idx / fire.width() - sim.world().cellY(id))));
             }
         }
-        System.out.printf("    [%s] t=%ds charges left %d (%d of %d thrown landed on spent ground), burning %d, burnt %d, flamers alive %d (health %.0f),"
-                        + " nearest fire %s%n", variant.name(), sim.getSimTickIndex() / 30, ammo, spent[1], spent[0], fire.burningCount(),
+        System.out.printf("    [%s] t=%ds charges left %d (%d of %d thrown landed on spent ground, %d of those with no enemy in the blast), burning %d, burnt %d, flamers alive %d (health %.0f),"
+                        + " nearest fire %s%n", variant.name(), sim.getSimTickIndex() / 30, ammo, spent[1], spent[0], spent[2], fire.burningCount(),
                 fire.burntCount(), alive, health, nearest == Integer.MAX_VALUE ? "none" : nearest + " cells");
     }
 
