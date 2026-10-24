@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierAltitude;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierFall;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierFlight;
+import com.dillon.starsectormarines.battle.evacuation.flier.HarrierLift;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierLook;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierPack;
 import com.dillon.starsectormarines.battle.evacuation.flier.SwarmFliers;
@@ -394,6 +395,9 @@ public final class UnitShadowRenderSystem implements RenderSystem {
                 // edge on the body's centre: nothing may lie between a body
                 // and the light that is casting it. See the class doc.
                 float anchor = lengthCells * 0.5f;
+                // A body a Harrier threw: its shadow stays on the ground, laid down-sun by how high it is.
+                HarrierLift thrown = ctx.sim.swarmFliers().lift(entityId);
+                if (thrown != null) anchor += sun.reachCells(thrown.height());
                 float shadowX = rx[r] - sun.dirX() * anchor;
                 float shadowY = ry[r] - sun.dirY() * anchor;
 
