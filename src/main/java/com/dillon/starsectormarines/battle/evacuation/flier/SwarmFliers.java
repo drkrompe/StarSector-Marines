@@ -180,6 +180,7 @@ public final class SwarmFliers {
             }
             if (alive) pack.prey(prey, world.x(prey), world.y(prey), sim.physicalRadius(prey));
             else pack.prey(0L, 0f, 0f, 0f);
+            if (pack.phase == HarrierPack.Phase.DIVE) followPrey(sim, pack);
             HarrierPack.Phase before = pack.phase;
             pack.advance(BattleSimulation.TICK_DT, (h, t) -> {
                 sim.applyDamage(t, h, HarrierRules.BITE_DAMAGE, HarrierRules.BITE_PENETRATION,
@@ -187,6 +188,11 @@ public final class SwarmFliers {
                 events.add(new Event(tick, Event.Kind.STRIKE, pack.id, h, t));
             });
             if (before == HarrierPack.Phase.LOITER && pack.phase == HarrierPack.Phase.DIVE) {
+                if (!candidatesBuilt) {
+                    buildCandidates(sim);
+                    candidatesBuilt = true;
+                }
+                spread(sim, pack);
                 events.add(new Event(tick, Event.Kind.COMMIT, pack.id, 0L, pack.target));
             } else if (before == HarrierPack.Phase.PULL_UP && pack.phase == HarrierPack.Phase.LOITER) {
                 events.add(new Event(tick, Event.Kind.PULL_UP_DONE, pack.id, 0L, pack.target));
@@ -274,6 +280,45 @@ public final class SwarmFliers {
             falls.remove(i);
         }
     }
+    /**
+     * Gives each member of a pack that has just committed its own prey near the body the pack chose
+     * ({@link HarrierTargeting#assign}), in slot order, so the pack spreads over the place it dives on rather than
+     * stacking on one body.
+     */
+    private void spread(BattleSimulation sim, HarrierPack pack) {
+        int n = pack.members.size();
+        float[] xs = new float[n], ys = new float[n];
+        for (int i = 0; i < n; i++) {
+            xs[i] = pack.members.get(i).body.x;
+            ys[i] = pack.members.get(i).body.y;
+        }
+        long[] picks = HarrierTargeting.assign(candidates, pack.targetX, pack.targetY, xs, ys);
+        World world = sim.world();
+        for (int i = 0; i < n; i++) {
+            HarrierFlight m = pack.members.get(i);
+            long prey = picks[i];
+            if (prey == 0L || !preyStands(sim, prey)) continue;
+            m.prey = prey;
+            m.preyX = world.x(prey);
+            m.preyY = world.y(prey);
+            m.preyRadius = sim.physicalRadius(prey);
+        }
+    }
+
+    /** Keeps each diver on its own prey as the prey moves; a diver whose prey is gone gives the dive up. */
+    private void followPrey(BattleSimulation sim, HarrierPack pack) {
+        World world = sim.world();
+        for (HarrierFlight m : pack.members) {
+            if (m.struck || m.prey == 0L) continue;
+            if (!preyStands(sim, m.prey)) {
+                m.struck = true;
+                continue;
+            }
+            m.preyX = world.x(m.prey);
+            m.preyY = world.y(m.prey);
+        }
+    }
+
     private boolean preyStands(BattleSimulation sim, long id) {
         if (sim.getRoster().convoy().isVehicle(id)) return sim.bodies().isTargetable(id);
         return sim.world().isAlive(id) && !sim.isRiding(id);

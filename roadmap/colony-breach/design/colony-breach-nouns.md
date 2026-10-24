@@ -1067,9 +1067,15 @@ not read in a soft shadow at play zoom.
     sense range, as every swarm body senses rather than knows.
   - **How a pack fights.** A pack **loiters** on a ring out of its prey's
     reach (past a rifle's, a machine gun's and a flak mount's), on its own side
-    of the prey. Once it has circled a while and gathered it **commits**: every
-    member dives on the one target, low and fast, each biting once as it
-    passes, then the pack **pulls up**, flying on and climbing, and loiters
+    of the prey. Once it has circled a while and gathered it **commits** to the
+    place round the body it chose, and **spreads** over it: each member takes
+    its own body there, the best one no packmate has claimed, and shares one
+    only when there are more divers than bodies (`HarrierTargeting.assign`).
+    The members go in **staggered**, each after its own seeded delay from
+    wherever on the ring it has reached, so a dive comes from several bearings
+    over a second or so rather than as one stack. Each dives low and fast and
+    bites once as it passes; one whose body is gone gives its dive up. Then the
+    pack **pulls up**, flying on and climbing, and loiters
     again on the far side. That is the trade it offers the ground: a committed
     pack is tight and low, so one anti-air burst catches several (a hit bursts
     among the packmates round it); a pack that lost a third of itself on a dive
