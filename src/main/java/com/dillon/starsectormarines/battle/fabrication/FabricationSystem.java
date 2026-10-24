@@ -178,6 +178,14 @@ public final class FabricationSystem {
             if (body.x >= stocks.left() && body.x <= stocks.right() + 1f
                     && body.y >= stocks.bottom() && body.y <= stocks.top() + 1f) return;
         }
+        // So does a mech finished there before it, on a line that builds both (`allied-tools.md`).
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long unit = sim.liveUnitAt(i);
+            if (sim.identity().type(unit) != UnitType.HEAVY_MECH || !sim.world().hasPosition(unit)) continue;
+            float ux = sim.world().x(unit), uy = sim.world().y(unit);
+            if (ux >= stocks.left() - 1f && ux <= stocks.right() + 2f
+                    && uy >= stocks.bottom() - 1f && uy <= stocks.top() + 2f) return;
+        }
         long hull = sim.convoy().spawn(bay.vehicle, works.lastBuilder(), VehicleMission.deployed(x, y));
         // Initial pose, before tick zero for this hull; later motion goes through the chassis controller.
         sim.convoy().body(hull).teleport(x, y, stocks.facing.degrees());

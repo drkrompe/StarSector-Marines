@@ -103,6 +103,7 @@ public final class TurretBehavior implements UnitBehavior {
             if (s.fireThisTick) {
                 if (sim.fieldMortars().friendlyUnderRound(tube, s.target, sim)) {
                     // The crew will not call a round onto their own; look again shortly.
+                    sim.fieldMortars().countRound(tube, true);
                     s.fireThisTick = false;
                     s.cooldownTimer = FRIENDLY_HOLD_SECONDS;
                     s.target = 0L;
@@ -112,6 +113,7 @@ public final class TurretBehavior implements UnitBehavior {
                     s.lastFireHadLos = sim.fieldMortars().spotted(tube, s.target, sim);
                     tube.loadRound(sim.fieldMortars().roundHeat(tube, s.target, sim));
                     tube.spendRound();
+                    sim.fieldMortars().countRound(tube, false);
                     if (s.target == tube.missionTarget()) tube.noteMissionRound();
                 }
             }

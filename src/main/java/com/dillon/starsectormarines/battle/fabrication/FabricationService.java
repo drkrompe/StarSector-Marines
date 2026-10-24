@@ -107,6 +107,8 @@ public final class FabricationService {
         public long frameId;
         /** How many machines this bay has put out. */
         public int completed;
+        /** Where this bay is on its production line ({@link #toolForLine}): the machine it is making now. */
+        int lineIndex;
 
         Works(int siteId, List<Integer> berths, int stocks, MechVariant chassis) {
             this.siteId = siteId;
@@ -131,7 +133,7 @@ public final class FabricationService {
     /** Standing cell of every berth-bound servicing point, to the bay it belongs to. */
     private final Map<Long, Integer> serviceCells = new HashMap<>();
     private final List<MechVariant> buildable;
-    private List<VehicleType> vehicleLine = List.of();
+    private List<Machine> line = List.of();
     private float pace = 1f;
     private LongConsumer rolledOut = id -> { };
     private final String factionId;
@@ -268,17 +270,44 @@ public final class FabricationService {
     }
 
     /**
-     * Tools every bay for vehicles instead of mechs, built in this order and round again
-     * ({@code allied-command.md}: the allies' shed behind a cordon builds their cars and carriers).
-     * A machine already on the stocks is finished as what it is.
+     * One machine on a production line: a hull or a mech chassis, exactly one of the two
+     * ({@code allied-tools.md}: a shed builds hulls at its berths, and a mech where its berth holds one).
      */
-    public void toolForVehicles(List<VehicleType> line) {
-        vehicleLine = List.copyOf(line);
+    public record Machine(VehicleType vehicle, MechVariant chassis) {
+        public Machine {
+            if ((vehicle == null) == (chassis == null)) {
+                throw new IllegalArgumentException("a machine is a hull or a chassis: " + vehicle + ", " + chassis);
+            }
+        }
+
+        public static Machine hull(VehicleType type) { return new Machine(type, null); }
+
+        public static Machine mech(MechVariant chassis) { return new Machine(null, chassis); }
+    }
+
+    /**
+     * Tools every bay for this production line instead of the doctrine's mechs: built in this order and
+     * round again ({@code allied-tools.md}: the allies' shed behind a cordon builds what its density's table
+     * lists). A machine already on the stocks is finished as what it is. The line is walked by position, so
+     * one kind may stand on it more than once (a carrier between each car and technical).
+     */
+    public void toolForLine(List<Machine> line) {
+        this.line = List.copyOf(line);
         for (Works works : bays.values()) {
             if (works.hasFrame()) continue;
-            works.chassis = null;
-            works.vehicle = vehicleLine.isEmpty() ? null : vehicleLine.get(0);
+            works.lineIndex = 0;
+            tool(works, this.line.isEmpty() ? null : this.line.get(0));
         }
+    }
+
+    /** The {@code n}th machine (from 0) a line builds, round again. */
+    public static Machine machineAt(List<Machine> line, int n) {
+        return line.get(Math.floorMod(n, line.size()));
+    }
+
+    private static void tool(Works works, Machine machine) {
+        works.vehicle = machine == null ? null : machine.vehicle();
+        works.chassis = machine == null ? null : machine.chassis();
     }
 
     /**
@@ -368,18 +397,12 @@ public final class FabricationService {
         if (works == null) return;
         works.frameId = 0L;
         works.completed++;
-        if (works.vehicle != null || !vehicleLine.isEmpty()) {
-            works.chassis = null;
-            works.vehicle = nextVehicle(works.vehicle);
+        if (!line.isEmpty()) {
+            works.lineIndex++;
+            tool(works, machineAt(line, works.lineIndex));
         } else {
             works.chassis = next(works.chassis);
         }
-    }
-
-    private VehicleType nextVehicle(VehicleType finished) {
-        if (vehicleLine.isEmpty()) return null;
-        int index = vehicleLine.indexOf(finished);
-        return vehicleLine.get(Math.floorMod(index + 1, vehicleLine.size()));
     }
 
     private MechVariant next(MechVariant finished) {
