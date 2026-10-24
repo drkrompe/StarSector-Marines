@@ -104,6 +104,14 @@ delivers nothing.
   recipient is gone first. **The Cordon owns it.**
 - The Cordon's L2 (`GunsDryBeat`) is the first user: the recipient is the
   dry redoubt, and its truck's arrival restores the guns to their own rate.
+- **What a truck rearms** (owner, 2026-10-23: trucks "might also rearm turrets
+  or other things at the bases"): any place's guns through a `GunStock`, the
+  rounds a place's gun towers, nests, turrets and field mortar tubes have on
+  hand. A shot spends a round; a dry gun fires rationed (four times its
+  cooldown) rather than not at all; a truck's arrival refills every gun and
+  tube there. A mission declares the stocks, sizes them and decides when a
+  place is low enough to ask its producer for a truck. L2 is a stock drained
+  on the beat's tick.
 - The heart's B5 is the second: a truck's arrival adds rounds to the
   walking barrage (`WalkingBarrage`), through the same hook.
 
@@ -111,10 +119,27 @@ delivers nothing.
 
 The Cordon's `CordonLogistics` is an `AlliedDepot` (a machine sent from it
 sets out from the threshold outside the shed's machine door, and nothing is
-sent while the swarm is on the apron). It is still one base shape: a shed building a
-fixed line of hulls (`CordonSetup.BASE_LINE`, `FabricationService`), carriers
-staged on its apron, columns mustering in its yard. The heart schedules its
+sent while the swarm is on the apron). It is still one base shape: a shed building its
+density's line (`CordonAlliedTable`), carriers staged on its apron, columns
+mustering in its yard. The shed's line is a list of machines, each a hull or a
+mech chassis (`FabricationService.Machine`), walked by position, so the same
+berths build a Hound where the table says (a town's every third machine, a
+city's every one); a finished Hound walks out under the allied command's
+mech station (`AlliedCommand.enlistMech`, `deployMech`). The heart schedules its
 armour separately (`HeartLanes.scheduleArmour`).
+
+The producer's seam is `AlliedProducer` (an `AlliedDepot` that also takes
+`request(AlliedRequest)`, a tool to a named place for a reason, and answers
+`onRoad(tool, place)`), so a commander draws on its stock by need rather than
+every machine coming on a timer. The heart's commander and the Cordon's both
+call it. `AlliedToolShed` is the producer: per tool a stock, a cap and a
+restock pace, an optional gate (a sortie behind the air gate), and a maker
+that sets one down at the depot's cell and sends it on; it refuses a request
+with none in stock, the gate shut or the depot unable to send, and counts what
+is on the road where until it arrives or is lost. `AlliedMakers` has the shared
+makers (an armour pair or more, a Hound lance, an ammunition truck as a
+`SupplyDelivery`); a mission with its own way of setting a tool down (a lane's
+ground, a shed's berths and tug) supplies its own maker.
 
 Proposed: one mission-neutral **producer** (working name `AlliedToolShed`)
 that takes a mission's table and a base found on the layout, and schedules
@@ -122,7 +147,7 @@ any tool kind from its own origin:
 
 - a hull from a shed's berth (what `CordonLogistics` does today);
 - a hull from a park, or a column, off the rear edge or a supply road;
-- a mech from a gantry;
+- a mech from a gantry (today, from the shed's berths: see above);
 - a sortie (a gunship orbit), behind the mission's air gate;
 - a delivery, through the hook above.
 

@@ -340,7 +340,7 @@
           "fullRate": 12.0,
           "belt": 200,
           "refill": 2.5,
-          "fluxPerRound": 0.75
+          "fluxPerRound": 1.25
         }
       },
       "render": {
@@ -392,7 +392,7 @@
           "fullRate": 12.0,
           "belt": 200,
           "refill": 3.5,
-          "fluxPerRound": 0.75
+          "fluxPerRound": 1.25
         }
       },
       "render": {
@@ -1578,17 +1578,28 @@
         "flightSec": 0.4,
         "aimDuration": 0.5,
         "aoeRadius": 1.3,
-        "arcHeight": 0.4,
+        "arcHeight": 0.12,
         "interceptableProjectile": false,
         "indirectFire": false,
         "incendiaryHeat": 2200
       },
       "render": {
         "tracerColor": "FF8030",
-        "projectileSprite": "graphics/ui/armory/special-frag-grenade.png",
-        "projectileVisualCells": 0.34
+        "projectileSprite": "graphics/battle/fx/flamer-jet-head.png",
+        "projectileVisualCells": 0.55
       },
       "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.28, "lifetime": 0.1, "color": "FFB050", "offsetForward": [0.5, 0.55],
+            "emissionDuration": 0.36, "emissionInterval": 0.06 },
+          { "kind": "fire", "radius": [0.22, 0.4], "lifetime": [0.32, 0.5], "count": [1, 2], "jitter": 0.06,
+            "offsetForward": [0.5, 0.65], "velocityForward": [9.0, 14.0], "velocityLateral": [-0.9, 0.9],
+            "emissionDuration": 0.36, "emissionInterval": 0.03 }
+        ],
+        "trail": [
+          { "kind": "fire", "radius": [0.28, 0.42], "lifetime": [0.25, 0.4], "jitter": 0.12 },
+          { "kind": "glow", "radius": 0.4, "lifetime": 0.14, "color": "FF9A40" }
+        ],
         "impact": [
           {
             "kind": "glow",

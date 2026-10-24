@@ -38,9 +38,16 @@ final class FireBuildingsStage {
                 if (!grid.isWalkable(x, y) && sim.getTopology().isWall(x, y)) grid.setWallHp(x, y, FORTIFIED_HP);
         this.fire = sim.fireField();
         fire.setWind(1f, 0f, 0.5f);
-        int lx = Math.max(0, Math.min(light[1], fortified[1]) - 12);
-        int ya = Math.max(0, Math.min(light[2], fortified[2]) - 10);
-        int yb = Math.min(grid.getHeight() - 1, Math.max(light[4], fortified[4]) + 10);
+        // A grass fire carries only a few cells (FireFuel.spread), so each house gets its own line, lit just
+        // upwind of its west wall, rather than one line a dozen cells off that would go out in the grass.
+        lightUpwindOf(grid, light);
+        lightUpwindOf(grid, fortified);
+    }
+
+    private void lightUpwindOf(NavigationGrid grid, int[] house) {
+        int lx = Math.max(0, house[1] - 2);
+        int ya = Math.max(0, house[2] - 3);
+        int yb = Math.min(grid.getHeight() - 1, house[4] + 3);
         for (int y = ya; y <= yb; y++) fire.addHeat(lx, y, 3000);
     }
 

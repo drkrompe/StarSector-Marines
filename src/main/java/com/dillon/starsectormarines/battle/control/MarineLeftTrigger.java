@@ -8,14 +8,15 @@ import java.util.List;
 
 /**
  * A controlled Marine's left button: the primary, then each carried direct-fire special in cycle
- * order (rocket launchers, then anti-materiel rifles). Q steps through the list and wraps to the
+ * order (rocket launchers, then anti-materiel rifles, then the flamer). Q steps through the list and wraps to the
  * primary; there is no LINKED, since one pair of hands fires one weapon.
  *
  * <p>A picked special is under a <b>manual contract</b>. Picking it readies it, which takes its
  * authored aim time; a press then fires one round at the cursor once the wind-up is over and the
  * special's own cooldown and ammunition allow it. A press made while it is not yet ready stays armed
  * for as long as the button is held, so a click that lands a moment early is not lost, and a held
- * button never fires twice. Sprinting lowers the weapon and readies it again afterwards. An empty
+ * button never fires twice. The flamer is the exception, a held stream: a held button keeps it firing,
+ * one charge each time its cooldown allows, until release or empty fuel. Sprinting lowers the weapon and readies it again afterwards. An empty
  * special keeps the pick: it never falls back to the primary on its own.
  *
  * <p>Pure state, stepped by {@link DirectControlSession}; the battle's equipment owners keep
@@ -35,18 +36,33 @@ public final class MarineLeftTrigger {
 
     /**
      * The specials the left button cycles through, in cycle order: direct-fire items that spend
-     * ammunition. A Marine's one special slot means this has at most one member today.
+     * ammunition, and the flamer's held stream. Only the hand holds one, so this has at most one member today.
      */
     public static List<SpecialEquipmentDef> specials(SpecialEquipmentDef carried) {
+        return specials(carried, null);
+    }
+
+    /**
+     * As {@link #specials(SpecialEquipmentDef)} over both special slots, the hand and the belt. The belt holds only
+     * throws, so a direct-fire item is on it only while a belt throw has borrowed the hand.
+     */
+    public static List<SpecialEquipmentDef> specials(SpecialEquipmentDef hand, SpecialEquipmentDef belt) {
         List<SpecialEquipmentDef> out = new ArrayList<>(1);
-        if (carried != null && carried.isDirectFireWeapon() && carried.usesAmmunition()) out.add(carried);
+        for (SpecialEquipmentDef carried : new SpecialEquipmentDef[]{hand, belt}) {
+            if (carried != null && (carried.isDirectFireWeapon() || carried.isHeldStream())
+                    && carried.usesAmmunition()) out.add(carried);
+        }
         out.sort((a, b) -> Integer.compare(order(a.activation()), order(b.activation())));
         return out;
     }
 
-    /** Rockets before precision rifles. */
+    /** Rockets, then precision rifles, then the flamer. */
     private static int order(SpecialActivation activation) {
-        return activation == SpecialActivation.DIRECT_EXPLOSIVE ? 0 : 1;
+        return switch (activation) {
+            case DIRECT_EXPLOSIVE -> 0;
+            case DIRECT_PRECISION -> 1;
+            default -> 2;
+        };
     }
 
     /** The member the button is on: {@link #PRIMARY}, or a special's place in {@link #specials} plus one. */
@@ -108,6 +124,14 @@ public final class MarineLeftTrigger {
      * and calls {@link #fired()} when it did.
      */
     public boolean tick(boolean down, boolean lowered, boolean canFire, float dt) {
+        return tick(down, lowered, canFire, false, dt);
+    }
+
+    /**
+     * As {@link #tick(boolean, boolean, boolean, float)}; {@code stream} keeps a held button armed after a
+     * round, so the next leaves as soon as {@code canFire} allows it.
+     */
+    public boolean tick(boolean down, boolean lowered, boolean canFire, boolean stream, float dt) {
         boolean pressed = down && !held;
         held = down;
         if (!onSpecial()) return false;
@@ -121,7 +145,7 @@ public final class MarineLeftTrigger {
         if (pressed) armed = true;
         if (!down) armed = false;
         if (!armed || windupRemaining > 0f || !canFire) return false;
-        armed = false;
+        armed = stream;
         return true;
     }
 

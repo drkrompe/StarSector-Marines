@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.evacuation.flier;
 
 import com.dillon.starsectormarines.battle.scene.BehaviorSceneSnapshotSuite;
+import com.dillon.starsectormarines.battle.scene.LookGround;
 import com.dillon.starsectormarines.battle.scene.LookReview;
 import com.dillon.starsectormarines.battle.scene.SceneBuilder;
 import com.dillon.starsectormarines.battle.scene.SceneWorld;
@@ -12,9 +13,11 @@ import java.util.List;
 
 /**
  * The Harrier pack's frames: the {@code with-aa} and {@code no-aa} loops at 1920x1080 (verdict evidence, on a bare
- * arena), and for the owner one look recording per {@link HarrierLook}: the same gun line with its flak on real
- * generated ground, a pack of ten loitering out of reach and diving on it, at play zoom following the pack and close
- * on the line, plus the default look over the same line without its flak.
+ * arena), and for the owner look recordings on real generated ground: per {@link HarrierLook}, a gun line with its
+ * flak and a pack of ten loitering out of reach and diving on it, at play zoom following the pack and close on the
+ * line; the default look over the same line without its flak; and a close camera riding the pack's lead flier at a
+ * frame every tick, so its wingbeat and its fold into the dive can be watched frame by frame; and the pack over the line
+ * with its flak at play zoom, also a frame every tick.
  */
 public final class HarrierPackSceneSnapshotSuite extends BehaviorSceneSnapshotSuite {
 
@@ -44,8 +47,30 @@ public final class HarrierPackSceneSnapshotSuite extends BehaviorSceneSnapshotSu
                 placement -> List.of(LookReview.View.followAtPlay(placement, "line", "pack"),
                         LookReview.View.follow("line", placement, 26f, "line")),
                 1200).withStills(STILLS));
+        // The animation close-up: no flak, so the lead lives through the loiter, a dive and the climb out.
+        shots.add(new LookReview.Shot("harrier-" + HarrierLook.DEFAULT.name().toLowerCase().replace('_', '-') + "-wings",
+                LookGround.verdant(), 70, 40,
+                placement -> stage(placement, HarrierLook.DEFAULT, false),
+                placement -> List.of(LookReview.View.follow("close", placement, WINGS_CELLS, "pack")),
+                WINGS_TICKS, 1, 4, WINGS_STILLS));
+        // The wingbeat at play zoom under flak, and close on the line where the shot fliers fall and lie: a frame
+        // every tick too, since a beat is a dozen ticks and the ordinary frame every six would alias it away.
+        shots.add(new LookReview.Shot("harrier-" + HarrierLook.DEFAULT.name().toLowerCase().replace('_', '-') + "-flak-beat",
+                LookGround.verdant(), 70, 40,
+                placement -> stage(placement, HarrierLook.DEFAULT, true),
+                placement -> List.of(LookReview.View.followAtPlay(placement, "line", "pack"),
+                        LookReview.View.follow("line", placement, 26f, "line")),
+                FLAK_TICKS, 1, 4, FLAK_STILLS));
         return shots;
     }
+
+    /** The wing close-up: cells across, ticks played, and its stills (frames are ticks here). */
+    static final float WINGS_CELLS = 9f;
+    static final int WINGS_TICKS = 720;
+    static final int[] WINGS_STILLS = {60, 150, 240, 330, 420, 510, 600};
+    /** The play-zoom wingbeat under flak: ticks played, and its stills (frames are ticks here). */
+    static final int FLAK_TICKS = 900;
+    static final int[] FLAK_STILLS = {90, 240, 390, 540, 690, 840};
 
     private static BattleSimulation stage(LookReview.Placement placement, HarrierLook look, boolean antiAir) {
         float[] line = placement.openNear(14f, 20f);

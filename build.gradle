@@ -659,7 +659,12 @@ tasks.register('commanderEvidence', Test) {
         if (!maxTicks.isBlank()) {
             systemProperty "${prefix}.maxTicks", maxTicks
         }
-        def repeat = providers.gradleProperty('repeat')
+        // -Pdensities=town,urban plays only those densities' pools (the Cordon); every density by default.
+        def densities = providers.gradleProperty('densities').getOrElse('').trim()
+        if (!densities.isBlank()) {
+            systemProperty "${prefix}.densities", densities
+        }
+        def repeat =providers.gradleProperty('repeat')
                 .orElse(providers.systemProperty('commander.evidence.repeat'))
                 .getOrElse('').trim()
         def parallelism = providers.gradleProperty('parallelism')

@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.infantry.FlameJet;
 import com.dillon.starsectormarines.battle.infantry.FragGrenadeTactics;
 import com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep;
 import com.dillon.starsectormarines.battle.infantry.SmokeTactics;
@@ -80,13 +81,6 @@ public final class DirectControlSession {
     private boolean secondaryHeld;
     /** Whether the left button was down on the previous Marine tick; a semi-automatic primary fires on a press. */
     private boolean primaryHeld;
-    /**
-     * Ticks a semi-automatic press stays armed while the action finishes its cycle, so a press that lands
-     * a moment early still fires instead of being lost to the cooldown. Zero means no press is armed.
-     */
-    private int semiPressTicks;
-    /** How long a semi-automatic press waits for the action, in ticks (about a fifth of a second). */
-    static final int SEMI_PRESS_BUFFER_TICKS = 6;
 
     /** The side the player flies for. */
     private static final Faction PLAYER_SIDE = Faction.MARINE;
@@ -168,7 +162,7 @@ public final class DirectControlSession {
                 || roster.identity().type(unitId) != UnitType.MARINE) return List.of();
         World world = roster.world();
         return MarineRightTrigger.members(world.hasSecondaryWeapon(unitId) ? world.specialEquipment(unitId) : null,
-                roster.integralSystems().spec(unitId));
+                world.hasBelt(unitId) ? world.beltEquipment(unitId) : null, roster.integralSystems().spec(unitId));
     }
 
     /** What the controlled Marine's right button uses now, or null when it has nothing on it. */
@@ -194,7 +188,9 @@ public final class DirectControlSession {
     public List<SpecialEquipmentDef> marineSpecials() {
         if (!controllingMarine()) return List.of();
         World world = roster.world();
-        return MarineLeftTrigger.specials(world.hasSecondaryWeapon(unitId) ? world.specialEquipment(unitId) : null);
+        // Both slots, so a launcher swapped onto the belt for a belt throw stays on the list.
+        return MarineLeftTrigger.specials(world.hasSecondaryWeapon(unitId) ? world.specialEquipment(unitId) : null,
+                world.hasBelt(unitId) ? world.beltEquipment(unitId) : null);
     }
 
     /** Puts a Marine's left button on {@code member}: the primary (0), or a special, which it readies. */
@@ -488,7 +484,6 @@ public final class DirectControlSession {
     /** Chrome, focus, and pause can neutralize input even when no simulation tick runs. */
     public void suspendInput() {
         pendingAbilities.clear();
-        semiPressTicks = 0;
         marineLeft.suspend();
         intent = intent.neutralized();
         if (ship != null) {
@@ -507,7 +502,6 @@ public final class DirectControlSession {
     public void exit() {
         secondaryHeld = false;
         primaryHeld = false;
-        semiPressTicks = 0;
         if (ship != null) {
             Warship released = ship;
             Tender releasedTender = tender;
@@ -711,50 +705,50 @@ public final class DirectControlSession {
 
     /**
      * The left button on a special: a press fires one round at the cursor through the special's own
-     * point-fire path once it is readied, off cooldown and loaded. The primary holds meanwhile.
+     * point-fire path once it is readied, off cooldown and loaded. The flamer is a held stream instead: while
+     * the button is down it sends a charge toward the cursor, short of the first wall and no further than its
+     * range, each time its cooldown allows. The primary holds meanwhile.
      */
     private void fireLeftSpecial(long id, ManualIntent input, boolean sprinting) {
         primaryHeld = input.firing();
-        semiPressTicks = 0;
         roster.combat().clearPrimaryFire(id);
         SpecialEquipmentDef special = leftSpecial();
         World world = roster.world();
-        boolean canFire = special != null && world.secondaryCooldownTimer(id) <= 0f
+        boolean canFire = special != null && world.specialEquipment(id) == special
+                && world.secondaryCooldownTimer(id) <= 0f
                 && world.secondaryAmmo(id) > 0 && Float.isFinite(input.aimX()) && Float.isFinite(input.aimY());
-        if (marineLeft.tick(input.firing(), sprinting, canFire, BattleSimulation.TICK_DT)
-                && battle.fireSecondaryAtPoint(id, input.aimX(), input.aimY())) {
-            world.setSecondaryCooldownTimer(id, special.cooldown());
-            marineLeft.fired();
+        boolean stream = special != null && special.isHeldStream();
+        float[] jet = canFire && stream ? FlameJet.point(battle.getGrid(), world.renderX(id), world.renderY(id),
+                input.aimX(), input.aimY(), special.range()) : null;
+        if (stream) canFire &= jet != null;
+        if (!marineLeft.tick(input.firing(), sprinting, canFire, stream, BattleSimulation.TICK_DT)) return;
+        if (stream) {
+            // The flamer's own release spends one charge of fuel; a held button sends the next on its cooldown.
+            int fuel = world.secondaryAmmo(id);
+            battle.throwFragmentationGrenade(id, jet[0], jet[1]);
+            if (world.secondaryAmmo(id) >= fuel) return;
+        } else if (!battle.fireSecondaryAtPoint(id, input.aimX(), input.aimY())) {
+            return;
         }
+        world.setSecondaryCooldownTimer(id, special.cooldown());
+        marineLeft.fired();
     }
 
     /**
      * Whether the controlled Marine's primary trigger asks for a round this tick. A held trigger asks
-     * every tick, and the firing gate paces it to the weapon's cycle. A semi-automatic magazine asks
-     * once per press instead: the press stays armed for {@link #SEMI_PRESS_BUFFER_TICKS} while the
-     * action cycles, and is dropped by a reload, so tapping fires as fast as the action allows and a
-     * held button fires a single round.
+     * every tick, and the firing gate paces it to the weapon's cycle. A semi-automatic magazine fires
+     * once per press with no cycle between rounds (owner, 2026-10-23): a press with a round loaded
+     * clears the action's cooldown, so the player's finger is the rate of fire. The magazine reloads
+     * on its own only when it runs dry, or on the reload key.
      */
     private boolean primaryTrigger(long id, boolean firing) {
         boolean pressed = firing && !primaryHeld;
         primaryHeld = firing;
-        MagazineDef magazine = roster.combat().primaryMagazine(id);
-        if (magazine == null || magazine.trigger() != MagazineDef.Trigger.SEMI) {
-            semiPressTicks = 0;
-            return firing;
-        }
         CombatService combat = roster.combat();
-        if (pressed) semiPressTicks = SEMI_PRESS_BUFFER_TICKS;
-        if (semiPressTicks == 0) return false;
-        if (combat.isReloading(id)) {
-            semiPressTicks = 0;
-            return false;
-        }
-        if (combat.cooldownTimer(id) <= 0f && combat.burstRemaining(id) == 0) {
-            semiPressTicks = 0;
-            return true;
-        }
-        semiPressTicks--;
-        return false;
+        MagazineDef magazine = combat.primaryMagazine(id);
+        if (magazine == null || magazine.trigger() != MagazineDef.Trigger.SEMI) return firing;
+        if (!pressed || !combat.mayFirePrimary(id) || combat.burstRemaining(id) > 0) return false;
+        combat.setCooldownTimer(id, 0f);
+        return true;
     }
 }

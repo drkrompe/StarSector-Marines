@@ -3,32 +3,28 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierFlight;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierLook;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierPack;
+import com.dillon.starsectormarines.battle.evacuation.flier.HarrierWingbeat;
 
 /**
- * Which of a Harrier's three drawings shows this frame, and how wide: the wings spread (glide), raised over the
- * back (flap) or folded into a dart (dive). A wingbeat is the glide drawing narrowing as the wings come up, the
- * flap drawing at the top, and the glide widening again on the downstroke. A loitering flier glides and beats in
- * short bursts; one climbing out of a dive beats hard; a diver is folded. Presentation only, off the flight's own
- * clock, so a replay draws the same.
+ * Which of a Harrier's drawings shows this frame. A wingbeat is {@link HarrierLook#BEAT_FRAMES} drawings, frame 0
+ * the glide with the wings spread, then the upstroke, the wings raised over the back, the downstroke and the
+ * recovery, at the stroke's phase ({@link HarrierWingbeat}). Going into a dive the wings fold through
+ * {@link HarrierLook#FOLD_FRAMES} drawings to the dive drawing, and open back through them climbing out
+ * ({@link HarrierFlight#fold}). Presentation only, off the flight's own clocks, so a replay draws the same.
  */
-record HarrierPose(String sprite, float widthScale) {
-
-    /** Seconds per wingbeat. */
-    static final float BEAT_SECONDS = 0.32f;
-    /** A loitering flier beats this long out of every {@link #GLIDE_CYCLE_SECONDS}. */
-    static final float LOITER_BEAT_SECONDS = 0.64f;
-    static final float GLIDE_CYCLE_SECONDS = 2.2f;
+record HarrierPose(String sprite) {
 
     static HarrierPose of(HarrierFlight flight, HarrierPack.Phase phase) {
         HarrierLook look = flight.look;
-        if (phase == HarrierPack.Phase.DIVE && !flight.struck) return new HarrierPose(look.dive(), 1f);
-        boolean beating = phase != HarrierPack.Phase.LOITER || flight.altitude < 0.95f
-                || flight.wingClock % GLIDE_CYCLE_SECONDS < LOITER_BEAT_SECONDS;
-        if (!beating) return new HarrierPose(look.glide(), 1f);
-        float f = (flight.wingClock % BEAT_SECONDS) / BEAT_SECONDS;
-        if (f < 0.25f) return new HarrierPose(look.glide(), 0.78f);
-        if (f < 0.5f) return new HarrierPose(look.flap(), 1f);
-        if (f < 0.75f) return new HarrierPose(look.glide(), 0.85f);
-        return new HarrierPose(look.glide(), 1f);
+        if (flight.fold >= 1f) return new HarrierPose(look.dive());
+        int fold = (int) (flight.fold * (HarrierLook.FOLD_FRAMES + 1));
+        if (fold > 0) return new HarrierPose(look.fold(fold));
+        return new HarrierPose(look.beat(beatFrame(flight, phase)));
+    }
+
+    /** The wingbeat frame, 0 (the glide) to {@link HarrierLook#BEAT_FRAMES} - 1. */
+    static int beatFrame(HarrierFlight flight, HarrierPack.Phase phase) {
+        float p = HarrierWingbeat.phase(flight, phase);
+        return p < 0f ? 0 : (int) (p * HarrierLook.BEAT_FRAMES) % HarrierLook.BEAT_FRAMES;
     }
 }

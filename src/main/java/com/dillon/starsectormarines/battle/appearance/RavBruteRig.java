@@ -208,9 +208,8 @@ public final class RavBruteRig {
         dx /= scale;
         dy /= scale;
         moved /= scale;
-        float yawRate = (((facing - facingDeg) % 360f + 540f) % 360f - 180f) / dt;
-        float bendTarget = Math.max(-MAX_BEND, Math.min(MAX_BEND, yawRate * BEND_PER_YAW_RATE));
-        bend += (bendTarget - bend) * Math.min(1f, dt / BEND_SECONDS);
+        float yawRate = SpineBend.yawRate(facingDeg, facing, dt);
+        bend = SpineBend.ease(bend, yawRate, BEND_PER_YAW_RATE, MAX_BEND, BEND_SECONDS, dt);
         facingDeg = facing;
         double rad = Math.toRadians(facing);
         float fwdX = (float) -Math.sin(rad), fwdY = (float) Math.cos(rad);

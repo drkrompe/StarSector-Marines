@@ -41,7 +41,7 @@ activate per map (another way there is variation here)".
    density: armour columns in the country, infantry and mech lances in the
    city. Close air support, and logistics bases that send up vehicles or call
    in CAS. Drafted with picture options in `heart-allied-forces.md`.
-4. **The allied commander using them** intelligently.
+4. **The allied commander using them** intelligently. Drafted in `heart-allied-commander.md`.
 
 Tuning win rates comes after these steps (owner: no overtuning yet).
 

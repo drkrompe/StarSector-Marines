@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.control;
 
+import com.dillon.starsectormarines.battle.combat.FireTrigger;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -10,6 +11,7 @@ import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Proxy;
@@ -26,12 +28,19 @@ class DirectControlSessionTest {
     private boolean unavailable;
     private boolean complete;
     private int pathsCleared;
+    private int flameCharges;
     private final BattleControl battle = (BattleControl) Proxy.newProxyInstance(
             BattleControl.class.getClassLoader(), new Class<?>[]{BattleControl.class},
             (proxy, method, args) -> switch (method.getName()) {
                 case "getGrid" -> grid;
                 case "physicalRadius" -> UnitType.MARINE.radius;
                 case "squadOf" -> null;
+                case "throwFragmentationGrenade" -> {
+                    long id = (long) args[0];
+                    roster.world().setSecondaryAmmo(id, roster.world().secondaryAmmo(id) - 1);
+                    flameCharges++;
+                    yield null;
+                }
                 case "clearPath" -> {
                     long id = (long) args[0];
                     roster.movement().setPathRef(id, new int[0]);
@@ -154,6 +163,29 @@ class DirectControlSessionTest {
         roster.world().setPos(marine, 5.95f, 5.5f);
         assertFalse(session.canEnter(marine));
         assertFalse(session.enter(marine));
+    }
+
+    @Test
+    void aHeldFlamerSendsAChargeOfFuelEachCooldownUntilReleased() {
+        var flamer = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FLAMER_ID);
+        EntitySpec spec = new EntitySpec("Marine", Faction.MARINE, UnitType.MARINE, 3, 5);
+        spec.primaryWeapon(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID));
+        spec.specialEquipment(flamer, 8);
+        long marine = roster.spawn(spec);
+        assertTrue(session.enter(marine));
+        assertTrue(session.cycle(FireTrigger.LEFT));
+        assertEquals(flamer, session.leftSpecial());
+        int ticks = Math.round((flamer.aimDuration() + 2.5f * flamer.cooldown()) / BattleSimulation.TICK_DT);
+        for (int i = 0; i < ticks; i++) {
+            session.submit(new ManualIntent(0, 0, 7.5f, 5.5f, true));
+            session.tick();
+        }
+        assertEquals(3, flameCharges, "a held button sends a charge when ready and on each cooldown after");
+        assertEquals(5, roster.world().secondaryAmmo(marine));
+        session.submit(new ManualIntent(0, 0, 7.5f, 5.5f, false));
+        roster.world().setSecondaryCooldownTimer(marine, 0f);
+        session.tick();
+        assertEquals(3, flameCharges, "released, it sends nothing");
     }
 
     private long spawn(Faction faction, UnitType type) {

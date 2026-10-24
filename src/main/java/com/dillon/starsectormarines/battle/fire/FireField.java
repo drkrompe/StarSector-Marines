@@ -34,14 +34,25 @@ public final class FireField {
     public static final float STEP_SECONDS = STEP_TICKS / 30f;
     /** Ticks a burnt cell refuses creep after it burns out: three minutes. */
     public static final int CREEP_REFUSAL_TICKS = 30 * 180;
-    /** Steps a caught cell takes to reach its peak. */
-    static final int RAMP_STEPS = 5;
+    /**
+     * Steps a caught cell takes to reach its peak: four seconds. It sets the front's pace (a grass front walks
+     * about 0.65 cells a second, a third of a marine's walk) without changing peak heat or reach, so breaks hold.
+     */
+    static final int RAMP_STEPS = 20;
     /** The share of a cell's load left when its fire starts to die down. */
     static final int TAIL_DIVISOR = 4;
     /** Heat a cell keeps each step, in 1/8: the rest cools away. */
     static final int KEEP_EIGHTHS = 7;
     /** Heat given to a ring, in 1/256 of the burning cell's intensity: ring 1, 2, 3, 4. */
     static final int[] RING_WEIGHT = {0, 64, 24, 16, 8};
+    /**
+     * Temporary A/B switch: a multiplier on every limited fuel's {@link FireFuel#spread}, and {@code 0} for the
+     * old unbounded spread. Remove it with its losing arm once the owner picks how far a grass fire runs
+     * (`fire-nouns.md`, Spread), folding the pick into {@link FireFuel}.
+     */
+    public static final String SPREAD_SCALE_PROPERTY = "battle.fire.spreadScale";
+    /** How many times its spread a fire carries in dry country ({@link #setTinder}). */
+    static final int TINDER_SPREAD = 3;
     /** Wind strength at or above which a fire reaches a ring further downwind. */
     static final float STRONG_WIND = 0.6f;
     /** Side of a change-tracking tile, in cells. */
@@ -61,12 +72,18 @@ public final class FireField {
     private final long seed;
     private final FireTerrain terrain;
     private final boolean enabled = !"false".equalsIgnoreCase(System.getProperty(PROPERTY));
+    private final float spreadScale = spreadScale(System.getProperty(SPREAD_SCALE_PROPERTY));
     private Listener listener = new Listener() { };
 
     private final int[] heat;
     private final byte[] state;
     private final short[] fuel, load;
     private final byte[] peak, age, intensity, mask, reach;
+    /**
+     * A burning cell's distance, in cells, from where its fire was lit ({@code 0} where it was lit and on fuel of
+     * {@link FireFuel#UNLIMITED} spread); for a warm cell, the nearest of the fires heating it, plus the way.
+     */
+    private final byte[] distance, heatDistance;
     private final int[] burntTick;
     /** Cells that stop heat passing over them, as of {@link #barrierRevision}; see {@link FireTerrain#blocksHeat}. */
     private final boolean[] barrier;
@@ -108,6 +125,8 @@ public final class FireField {
         this.intensity = new byte[cells];
         this.mask = new byte[cells];
         this.reach = new byte[cells];
+        this.distance = new byte[cells];
+        this.heatDistance = new byte[cells];
         this.burntTick = new int[cells];
         this.barrier = new boolean[cells];
         this.warm = new boolean[cells];
@@ -182,7 +201,7 @@ public final class FireField {
     /** Puts heat into one cell: an incendiary's touch, a shell's blast on it. */
     public void addHeat(int x, int y, int amount) {
         if (!enabled || amount <= 0 || x < 0 || y < 0 || x >= width || y >= height) return;
-        warmUp(y * width + x, amount);
+        warmUp(y * width + x, amount, 0);
     }
 
     /** Puts heat into every cell whose centre lies within a radius, full at the centre and half at the edge. */
@@ -197,7 +216,7 @@ public final class FireField {
                 float d2 = dx * dx + dy * dy;
                 if (d2 > r2) continue;
                 float falloff = r2 == 0f ? 1f : 1f - 0.5f * d2 / r2;
-                warmUp(y * width + x, Math.round(amount * falloff));
+                warmUp(y * width + x, Math.round(amount * falloff), 0);
             }
         }
     }
@@ -213,11 +232,14 @@ public final class FireField {
         igniters.add(new Igniter(id, y * width + x, heatPerStep, untilTick));
     }
 
-    private void warmUp(int idx, int amount) {
+    /** Heat into a cell from a fire {@code from} cells from where it was lit; an igniter's own heat is {@code 0}. */
+    private void warmUp(int idx, int amount, int from) {
         byte s = state[idx];
         if (s == BURNING) return;
         if (s == BURNT && !refusalOver(idx)) return;
         heat[idx] = (int) Math.min(Integer.MAX_VALUE / 2, (long) heat[idx] + amount);
+        int d = Math.min(FireFuel.UNLIMITED, from);
+        if (!warm[idx] || d < heatDistance[idx]) heatDistance[idx] = (byte) d;
         if (!warm[idx]) {
             warm[idx] = true;
             if (warmSize == warmList.length) warmList = Arrays.copyOf(warmList, warmSize * 2);
@@ -241,13 +263,13 @@ public final class FireField {
         for (int i = igniters.size() - 1; i >= 0; i--) {
             Igniter ig = igniters.get(i);
             if (now >= ig.untilTick) { igniters.remove(i); continue; }
-            emit(ig.idx, ig.heat, 1, false);
-            warmUp(ig.idx, ig.heat);
+            emit(ig.idx, ig.heat, 1, false, 0);
+            warmUp(ig.idx, ig.heat, 0);
         }
         // Heat goes out from every burning cell before anything is decided.
         for (int i = 0; i < burningSize; i++) {
             int idx = burning[i];
-            emit(idx, intensity[idx] & 0xFF, reach[idx], true);
+            emit(idx, intensity[idx] & 0xFF, reach[idx], true, distance[idx]);
         }
         burnDown();
         coolAndCatch();
@@ -257,7 +279,7 @@ public final class FireField {
         }
     }
 
-    private void emit(int idx, int power, int maxReach, boolean jitter) {
+    private void emit(int idx, int power, int maxReach, boolean jitter, int from) {
         if (power <= 0) return;
         int r = Math.max(1, Math.min(3, maxReach));
         if (r == 3 && windStrength >= STRONG_WIND) r = 4;
@@ -272,7 +294,7 @@ public final class FireField {
             int amount = power * wt[k];
             if (jitter) amount = (int) ((long) amount * (128 + jitter(n)) >> 8);
             amount >>= 8;
-            if (amount > 0) warmUp(n, amount);
+            if (amount > 0) warmUp(n, amount, from + Math.max(Math.abs(dx), Math.abs(dy)));
         }
     }
 
@@ -363,7 +385,7 @@ public final class FireField {
             if (h >= FireFuel.MIN_IGNITION) {
                 int m = terrain.fuelMask(idx);
                 if (s == BURNT) m &= FireFuel.CREEP.bit | FireFuel.DEAD_CREEP.bit;
-                if (m != 0 && h >= FireFuel.ignition(m)) {
+                if (m != 0 && h >= FireFuel.ignition(m) && heatDistance[idx] <= spreadLimit(m)) {
                     catchFire(idx, m);
                     heat[idx] = 0;
                     warm[idx] = false;
@@ -386,6 +408,7 @@ public final class FireField {
         fuel[idx] = (short) l;
         peak[idx] = (byte) FireFuel.peak(m);
         reach[idx] = (byte) FireFuel.reach(m);
+        distance[idx] = FireFuel.spread(m) >= FireFuel.UNLIMITED ? 0 : heatDistance[idx];
         age[idx] = 0;
         intensity[idx] = (byte) intensityFor(FireFuel.peak(m), l, l, 0);
         if (burningSize == burning.length) burning = Arrays.copyOf(burning, burningSize * 2);
@@ -393,6 +416,26 @@ public final class FireField {
         markDirty(idx);
         listener.ignited(idx, m);
     }
+
+    /** How far from its ignition a fire may be and still catch a cell of this fuel. */
+    int spreadLimit(int m) {
+        int spread = FireFuel.spread(m);
+        if (spread >= FireFuel.UNLIMITED || spreadScale <= 0f) return FireFuel.UNLIMITED;
+        float limit = spread * spreadScale * (tinder ? TINDER_SPREAD : 1);
+        return Math.min(FireFuel.UNLIMITED, Math.round(limit));
+    }
+
+    static float spreadScale(String value) {
+        if (value == null || value.isBlank()) return 1f;
+        try {
+            return Math.max(0f, Float.parseFloat(value.trim()));
+        } catch (NumberFormatException e) {
+            return 1f;
+        }
+    }
+
+    /** A burning cell's distance from where its fire was lit; see {@link FireFuel#spread}. */
+    public int distanceAt(int idx) { return distance[idx]; }
 
     private boolean refusalOver(int idx) { return now - burntTick[idx] >= CREEP_REFUSAL_TICKS; }
 

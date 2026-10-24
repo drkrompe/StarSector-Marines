@@ -119,6 +119,8 @@ public final class CordonSequence implements Objective {
     public List<Integer> gap() { return gap; }
     public Timetable timetable() { return timetable; }
     public int tides() { return tides; }
+    /** Whether a tide is running now (heard on the radio when it comes, never foreseen). */
+    public boolean inTide() { return ebb >= 0; }
     public int eruptions() { return eruptions; }
     /** The Line's refugees, or {@code null}. */
     public CordonRefugees refugees() { return refugees; }
@@ -254,7 +256,8 @@ public final class CordonSequence implements Objective {
         if (armour != null) armour.advance(sim, redoubts);
         if (logistics != null) logistics.advance(sim, redoubts, beat -> emit(tick, beat));
         if (convoys != null) convoys.advance(sim, tick, beat -> emit(tick, beat));
-        AlliedColumns.Orders orders = logistics != null ? logistics.columnOrders() : new ColumnOrders();
+        // Columns muster at the base where carriers lift them up; in a city they walk the whole way.
+        AlliedColumns.Orders orders = logistics != null && logistics.musters() ? logistics.columnOrders() : new ColumnOrders();
         if (columns != null) columns.advance(sim, tick, orders, (beat, observer) ->
                 log.emitOnce(tick, "cordon." + beat, observer ? StoryBeatLog.Audience.OBSERVER_ONLY
                         : StoryBeatLog.Audience.PLAYER));
@@ -312,6 +315,7 @@ public final class CordonSequence implements Objective {
 
     /** One redoubt's state for this tick ({@code cordon-nouns.md}, Redoubt states). */
     private void step(BattleSimulation sim, int tick, CordonRedoubt redoubt, int swarmInside, boolean relief) {
+        redoubt.observe(swarmInside, tick);
         if (!redoubt.manned()) return;
         int standing = standing(sim, redoubt);
         if (standing == 0 && swarmInside > 0) {
@@ -341,9 +345,8 @@ public final class CordonSequence implements Objective {
     }
 
     /**
-     * A column goes to the redoubt holding with the least garrison standing,
-     * and joins it as a wall team at its wall ({@code cordon-nouns.md}, Allied
-     * column).
+     * A column goes to the redoubt that needs it most, a calling one first and then the one with the least
+     * garrison standing, and joins it as a wall team at its wall ({@code cordon-nouns.md}, Allied column).
      */
     private final class ColumnOrders implements AlliedColumns.Orders {
         @Override public int[] destination(BattleSimulation sim) {
@@ -351,7 +354,7 @@ public final class CordonSequence implements Objective {
             int bestStanding = Integer.MAX_VALUE;
             for (CordonRedoubt r : redoubts) {
                 if (!r.manned()) continue;
-                int standing = standing(sim, r);
+                int standing = standing(sim, r) - (r.state() == CordonRedoubt.State.CALLING ? 1000 : 0);
                 if (standing < bestStanding) {
                     bestStanding = standing;
                     best = r;

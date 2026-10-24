@@ -1376,7 +1376,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         Rect box = subject.box().borderBox();
         document.pointerMoved(box.x() + box.width() / 2f, box.y() + box.height() / 2f);
         binder.update();
-        if (binder.openTarget() != subject) {
+        // The sheet may belong to the subject or to a row around it (a stores row owns its sheet).
+        boolean opened = false;
+        for (UiElement element = subject; element != null && !opened; element = element.parent()) {
+            opened = binder.openTarget() == element;
+        }
+        if (!opened) {
             throw new IllegalStateException("Spec sheet did not open for " + subject.id());
         }
         document.advance(0f);
@@ -2531,6 +2536,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "internal-engine")),
                 new SnapshotArtifact("mech-internal-plating-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "internal-plating")),
+                new SnapshotArtifact("mech-internal-empty-engine-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "internal-empty-engine")),
                 new SnapshotArtifact("mech-internal-capacitor-bank-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "internal-flux")),
                 // A refit Bulwark: better engine, bank and plate, and a shorter arm gun, so the stat
@@ -2657,6 +2664,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         if ("internal-flux".equals(materialHint)) {
             viewModel.gantryRows().get().get(0).select().run();
             viewModel.selectSlot(SocketId.CAPACITORS);
+        }
+        // The engine dragged back to stores: the empty, required socket warns on the doll, and
+        // the stores' engine category lists the engine that came out at full strength.
+        if ("internal-empty-engine".equals(materialHint)) {
+            viewModel.gantryRows().get().get(0).select().run();
+            viewModel.removeInstalledInternal(SocketId.CORE);
+            // The engine category: the stripped engine is a spare beside patterns with none.
+            viewModel.setFilter(MechLabViewModel.CategoryFilter.ENGINE);
         }
         if (selectVacant) viewModel.previousGantryAction().run();
         if (materialHint != null && materialHint.startsWith("preview-")) {
@@ -3351,6 +3366,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("closeAssetPicker", viewModel.closeAssetPickerAction());
         props.put("categoryFilterPills", viewModel.categoryFilterPills());
         props.put("categoryFilterClasses", viewModel.categoryFilterClasses());
+        props.put("allPartsClasses", viewModel.allPartsClasses());
+        props.put("showAllParts", (Runnable) viewModel::showAllParts);
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
                 MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { });

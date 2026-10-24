@@ -238,6 +238,12 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   delivering a set. A session started by another session gives its
   coordinating session the image paths, and the coordinator shows them.
   The folder path may follow as a footnote, never in place of the pictures.
+  **A finished-work preview that asks nothing (a GIF of a feature, a set of
+  stills) goes on the parent's picks page too** (owner, 2026-10-23), in its
+  Previews section: a `previews.json` of `[{id, area, date, title, note, lead?,
+  shots:[{file,label}]}]`, newest first, passed to `build.py --previews`, with
+  the media under `media/<preview id>/`. Sending it into the chat as well is
+  fine; the page is where the owner looks.
   Look and design choices go to the owner the same way: as labelled pictures
   (an `options.json` of `{id, question, options:[{key,label,file,note}]}`
   for the picks page), not as a description in words.
@@ -666,8 +672,13 @@ yet creates one when it has its first question and adds a row to
   the card landed in the next framing's median as noise several times the effect
   being measured.
   Where it stands: **nothing is submission-bound, and nothing collects more than
-  the camera shows.** `UNITS` is five draws across two binds at every framing on
-  either map, `ROOFS` is one custom pass and one command, and `GROUND` is three
+  the camera shows.** `UNITS` is one to nine draws at every framing on every
+  map it profiles (2026-10-23), because the unit atlas takes in whatever the unit
+  layers draw rather than a hand-kept list, an image too big to hold whole joins
+  as a copy at the size it is drawn at the closest zoom, and additive draws batch
+  beside the normal run; what still draws alone is big on screen too and named
+  in the **Atlases** section (the creep ooze and spray sheets on The Burn).
+  `ROOFS` is one custom pass and one command, and `GROUND` is three
   draws and **no texture binds at all**. Collectors now visit what is in view:
   at a compound framing on the 560x336 map `UNITS` collects 160 commands where
   it used to collect 527 at every framing alike, `COMPOUND` 6 against 98,

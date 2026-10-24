@@ -1,6 +1,6 @@
 # The Heart — story beats (candidates)
 
-Status: ACTIVE. The owner picked every beat (2026-10-23). Every beat but B5 is in the heart's optional-objective pool (`HeartObjectives`); B5 waits on the ammunition convoy.
+Status: ACTIVE. The owner picked every beat (2026-10-23). Every beat is in the heart's optional-objective pool (`HeartObjectives`).
 
 Written: 2026-10-23
 
@@ -112,6 +112,7 @@ two or three, drawn from the battle seed over what the map laid.
 | F4 | `matriarch_down` | nothing | the first Matriarchs out dead within 150 s | she lives longer | credits |
 | F6 | `road_open` | `supply-road` | the satellite nearest the road collapses | the battle ends first | credits |
 | B1 | `clear_of_the_walk` | nothing | the barrage ends without a gun holding its fire for the company | the first held round | credits |
+| B5 | `one_more_line` | `vehicle-park` | an ammunition truck reaches the guns before the last line lifts: the plan gains one more line | every truck lost, too late, or the battle ends first | credits |
 | B6 | `last_stretch` | nothing | every mother down within four minutes of the barrage's end | the four minutes pass | credits |
 
 The air beats bring the Harrier in under the flier's law (`colony-breach-nouns.md`,
@@ -125,8 +126,14 @@ ranging smoke is presentation, so its objective asks what the walk asks of
 the company: follow close, never close enough to stop a gun. B6's quiet is
 presentation too, so its objective is the finish inside it.
 
-Not in the pool yet:
-- B5 needs the ammunition convoy.
+B5's trucks are the shared supply delivery (`allied-tools.md`): two leave
+the vehicle park when the third line opens, waiting while the swarm is on
+the park, and drive whatever way the planner finds rather than the farm road.
+The extra line is as deep past the last as the plan steps, still short of the
+heart; the company's screen keeps to the plan it was given, so it does not
+follow the extra line.
+
+Not fully staged yet:
 - F2's re-aimed wave and F4's hull-seeking Matriarch need the commander and the swarm-side behaviour they name. Their objectives run without them.
 - F3's close air support is step 3.
 - The lost column's survivors do not join a lane yet.

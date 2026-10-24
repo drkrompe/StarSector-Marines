@@ -50,6 +50,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiPredicate;
 import java.util.function.LongUnaryOperator;
 
 /**
@@ -2889,6 +2890,12 @@ public final class TacticalScoring {
      */
     public int[] bestCoverCell(int threatX, int threatY,
                                int nearX, int nearY, int radius) {
+        return bestCoverCell(threatX, threatY, nearX, nearY, radius, null);
+    }
+
+    /** {@link #bestCoverCell(int, int, int, int, int)} skipping every cell {@code excluded} accepts (a squadmate's stand); {@code null} excludes none. */
+    public int[] bestCoverCell(int threatX, int threatY, int nearX, int nearY, int radius,
+                               BiPredicate<Integer, Integer> excluded) {
 
         int[] best = null;
         int bestCover = -1;
@@ -2900,6 +2907,7 @@ public final class TacticalScoring {
                 if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;
                 float d = (float) Math.sqrt(dx * dx + dy * dy);
                 if (d > radius) continue;
+                if (excluded != null && excluded.test(cx, cy)) continue;
                 if (!grid.hasLineOfFire(cx + 0.5f, cy + 0.5f,
                         threatX + 0.5f, threatY + 0.5f)) continue;
                 // Per-facing cover: cell-grid wall + doodad, each looked up

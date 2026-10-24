@@ -121,6 +121,66 @@
           ]
         },
         {
+          "id": "flamer", "label": "Flamer wand",
+          "animations": [
+            {
+              "id": "aiming", "label": "Raising the wand", "driver": "actionPhase", "loop": false,
+              "frames": [
+                { "id": "carry", "label": "Wand at the hip", "durationMs": 180, "layers": [
+                  { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+                  { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+                  { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.262857, -0.013512], "scale": [1.12, 1.12], "angleDegrees": 0.0, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.262857, -0.013512], "scale": [1.12, 1.12], "angleDegrees": 0.0, "pivot": [0.734694, 0.349876], "z": 32 },
+                  { "id": "handset", "sprite": "graphics/battle/fx/flamer-wand.png", "offset": [0.19, 0.05], "scale": [1.0, 1.0], "angleDegrees": 40.0, "pivot": [0.5, 0.82], "z": 36 },
+                  { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.0, 0.08], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
+                ] },
+                { "id": "aimed", "label": "Wand levelled", "durationMs": 120, "layers": [
+                  { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+                  { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+                  { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [0.8, 0.8], "angleDegrees": -21.579, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.192397, 0.108246], "scale": [1.12, 1.12], "angleDegrees": -26.579, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.276978, -0.134389], "scale": [1.12, 1.12], "angleDegrees": -15.579, "pivot": [0.734694, 0.349876], "z": 32 },
+                  { "id": "handset", "sprite": "graphics/battle/fx/flamer-wand.png", "offset": [0.19, 0.11], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.82], "z": 36 },
+                  { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.04758, 0.05438], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
+                ] }
+              ]
+            },
+            {
+              "id": "firing", "label": "Streaming", "driver": "actionPhase", "loop": false,
+              "frames": [
+                { "id": "stream-left", "label": "Stream, sweep left", "durationMs": 100, "layers": [
+                  { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+                  { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+                  { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [0.8, 0.8], "angleDegrees": -21.579, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.192397, 0.108246], "scale": [1.12, 1.12], "angleDegrees": -26.579, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.276978, -0.134389], "scale": [1.12, 1.12], "angleDegrees": -15.579, "pivot": [0.734694, 0.349876], "z": 32 },
+                  { "id": "handset", "sprite": "graphics/battle/fx/flamer-wand.png", "offset": [0.185, 0.11], "scale": [1.0, 1.0], "angleDegrees": -2.0, "pivot": [0.5, 0.82], "z": 36 },
+                  { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.04758, 0.05438], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
+                ] },
+                { "id": "stream-right", "label": "Stream, sweep right", "durationMs": 100, "layers": [
+                  { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+                  { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+                  { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.005, -0.12], "scale": [0.8, 0.8], "angleDegrees": -21.579, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.1874, 0.108246], "scale": [1.12, 1.12], "angleDegrees": -26.579, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.28198, -0.134389], "scale": [1.12, 1.12], "angleDegrees": -15.579, "pivot": [0.734694, 0.349876], "z": 32 },
+                  { "id": "handset", "sprite": "graphics/battle/fx/flamer-wand.png", "offset": [0.195, 0.105], "scale": [1.0, 1.0], "angleDegrees": 2.0, "pivot": [0.5, 0.82], "z": 36 },
+                  { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.05258, 0.05438], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
+                ] },
+                { "id": "stream-settle", "label": "Stream, settled", "durationMs": 100, "layers": [
+                  { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+                  { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+                  { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [0.8, 0.8], "angleDegrees": -21.579, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "left-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-left.png", "offset": [-0.192397, 0.108246], "scale": [1.12, 1.12], "angleDegrees": -26.579, "pivot": [0.265306, 0.349876], "z": 31 },
+                  { "id": "right-shoulder", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/shoulder-right.png", "offset": [0.276978, -0.134389], "scale": [1.12, 1.12], "angleDegrees": -15.579, "pivot": [0.734694, 0.349876], "z": 32 },
+                  { "id": "handset", "sprite": "graphics/battle/fx/flamer-wand.png", "offset": [0.19, 0.11], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.82], "z": 36 },
+                  { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.04758, 0.05438], "scale": [0.8, 0.8], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
+                ] }
+              ]
+            }
+          ]
+        },
+        {
           "id": "rocket", "label": "Rocket launcher loadout",
           "animations": [
             {

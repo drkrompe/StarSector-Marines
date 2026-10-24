@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16b42-0465-7533-9f25-c5d2f743b2b8",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16b42-0465-7533-9f25-c5d2f743b2b8\\exec-4b439c0f-c33f-483f-a8b9-ebe217bdf8fd.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\agent-aeee00069625b67f2\\art-source\\ground-turrets\\raw\\tritach-white-prepared-points.raw.png",
+    "sha256": "63e0240544e706a1beb41f5e3ee42ae42da1d06cf7a98661ebaedbfd858118bb",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\agent-aeee00069625b67f2\\art-source\\ground-turrets\\prompts\\tritach-white-prepared-points.prompt.txt",
+  "promptSha256": "545c4f2790e3a780a8cfd38d8cafa1f12a91071f9573a0cecff7a5b134323552",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target: keep every silhouette, position and size\nImage 2: Painting style and rendering finish only; not layout, not material colour\n\nUse case: sketch-to-render, game sprite sheet. Image 1 is the authoritative geometry guide and edit target: reskin it, keeping every shape exactly where and how big it is on the 1536x1024 canvas. It holds three separate objects for small sci-fi strategy-game building props (like a tabletop miniature terrain set), each seen from directly above: left, a flush seamless round disc collar with a glowing emitter ring round the well and three glowing nodes, sunk flush into the ground, with an empty dark circular socket in the middle (leave the well interior dark and plain: a separate housing sits over it); middle, a low smooth lozenge-shaped rotating machinery pod with a glowing spine strip, a small lens and two slim parallel pipes sticking straight up the image; right, a smooth teardrop-shaped rotating machinery pod with two swept rear fins and one long slim pipe with ring collars, sticking straight up the image. Material and style: Tri-Tachyon corporate high-tech: seamless white ceramic composite shells with smooth curves and no visible bolts, graphite-black underside bands and panel gaps, thin glowing cyan emitter seams and lenses where the guide shows the brightest lines and dots; pristine, precise, smooth satin finish; housings glossy white with graphite pipes and cyan light accents. Straight 90-degree overhead orthographic camera, top-down like a strategy-game map sprite, no perspective tilt. Sun from the upper left: keep the guide's lit and shaded faces exactly where they are. Hand-painted gritty science-fiction game-sprite look like Starsector, restrained palette, coarse readable detail that survives being shrunk to about 30 to 40 pixels per cell. No text, no letters, no numbers, no labels, no watermark, no UI, no ground or terrain, no grass, no cast shadow outside the objects, no extra slab, apron or border. Transparent background outside every silhouette (if transparency is impossible, a flat pure white background). Change only material, surface detail and subtle shading, never placement, size or silhouette.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\agent-aeee00069625b67f2\\art-source\\ground-turrets\\guides\\hightech-prepared-points-guide.png",
+      "sha256": "29ebcc84cef747e7fe72cade0f8befd4024ba50afc346d395dfd7d1015008884",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target: keep every silhouette, position and size"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\agent-aeee00069625b67f2\\mod\\graphics\\structures\\missile-aa-base.png",
+      "sha256": "c4fd9bbc087b3bcc64c613cc676461ab1f9b79c3bce36ae6d5ecc9c589ff176e",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Painting style and rendering finish only; not layout, not material colour"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use Image 1 as the fixed geometry guide and Image 2 only for the painted finish, generating one transparent sprite sheet."
+  ],
+  "usage": {
+    "input_tokens": 42255,
+    "cached_input_tokens": 32896,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 737,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 61.3
+}

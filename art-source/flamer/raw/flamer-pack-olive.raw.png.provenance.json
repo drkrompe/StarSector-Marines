@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16b80-0f3d-7381-b0dc-0fa31b97dea7",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16b80-0f3d-7381-b0dc-0fa31b97dea7\\exec-c7c201ae-22a5-49d4-8d66-f40e43c9e5e1.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\flamer\\raw\\flamer-pack-olive.raw.png",
+    "sha256": "ecd0ffed323159d8200886780c50c539c9d73169f480a6c4711dd1d907a45630",
+    "dimensions": [
+      1484,
+      1060
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\flamer\\flamer-pack-olive.prompt.txt",
+  "promptSha256": "58a108222c5274891029cc1aa4f8830270c1657b86e6e5a33dd92006a82ce459",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target: keep every silhouette and position\nImage 2: Material detail and finish level only (not colour, not layout)\n\nUse case: sketch-to-render. Asset: a flamethrower fuel pack worn on a soldier's back, seen from straight overhead, for a gritty military dark-science-fiction tactical game: a futuristic descendant of the WW2 backpack flamethrower. It is drawn as a layer over a marine's back and is only about 80 pixels wide in play over olive-green and blue-steel armour, so the olive drab must still separate from the armour by value: keep the tank walls lighter and warmer than dark olive armour, with crisp dark outlines and bright chipped edges. Image 1 is the authoritative geometry guide and edit target (1120x800). Reskin this exact object into a finished painted game sprite, preserving its silhouette and arrangement: the dark padded harness yoke along the top edge with its two strap roots, the two big upright fuel tanks side by side seen end-on from above as round domed armoured caps (each with a cream-yellow stencilled collar band, a dark central filler plug and short radial armour ribs), the smaller pale pressure bottle set between and behind them with its dark regulator, the frame spine below it, the short valve elbow and round dark hose coupling on the right tank's right flank, and the small amber pilot lamp on the yoke, all exactly where they are, with all transparent empty space around them. Material: a WW2-era finish carried into the future: olive-drab enamel tank walls, chipped to bare steel on every edge and weld seam, faded cream-yellow stencilled bands where the hazard collars are (with short dark warning chevrons, no lettering), brass and blackened-steel caps and filler plugs, matte black rubber hose coupling, dark ballistic nylon yoke with stitched webbing; the pilot lamp is a small warm amber glow. Straight overhead orthographic camera, no perspective, no cast shadow, no ground, no text, no labels, no watermark, no UI. Genuine transparent background outside the object silhouette. Hand-painted Starsector-like game sprite finish, utilitarian science fiction. Change only material, detail and subtle ambient shading, not placement or silhouette.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\flamer-pack-guide.png",
+      "sha256": "30eba87c59a44203085447db63c43e1464ff7744cb37252083a4d0ec2aabbcd6",
+      "dimensions": [
+        1120,
+        800
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target: keep every silhouette and position"
+    },
+    {
+      "path": "art-source\\flamer\\raw\\flamer-pack.raw.png",
+      "sha256": "a3245e3d6e2115ee03cb98202cfaa082dff09e1d65df3c542b634a3328cb8b23",
+      "dimensions": [
+        1484,
+        1060
+      ],
+      "mode": "RGBA",
+      "role": "Material detail and finish level only (not colour, not layout)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll render the pack with Image 1’s exact layout and silhouette, using Image 2 only for material detail and finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 43866,
+    "cached_input_tokens": 36992,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 645,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 68.9
+}

@@ -334,6 +334,35 @@ public final class World {
         setSmokeThrowCommit(id, null);
     }
 
+    // The belt: an OPTIONAL second special-item slot holding one stowed thrown item. Accessors are fail-loud
+    // without it, so gate on hasBelt. CarriedSpecials owns the swap between belt and hand.
+    public boolean hasBelt(long id) { return entityWorld.has(id, components.BELT); }
+    public SpecialEquipmentDef beltEquipment(long id) {
+        Object value = entityWorld.getObject(id, components.BELT, BattleComponents.BELT_SPEC);
+        return value instanceof SpecialEquipmentDef def ? def : null;
+    }
+    public int beltAmmo(long id) { return entityWorld.getInt(id, components.BELT, BattleComponents.BELT_AMMO); }
+    public void setBeltAmmo(long id, int v) { entityWorld.setInt(id, components.BELT, BattleComponents.BELT_AMMO, v); }
+    public float beltCooldownTimer(long id) { return entityWorld.getFloat(id, components.BELT, BattleComponents.BELT_COOLDOWN_TIMER); }
+    public void setBeltCooldownTimer(long id, float v) { entityWorld.setFloat(id, components.BELT, BattleComponents.BELT_COOLDOWN_TIMER, v); }
+
+    /**
+     * Exchanges the hand's item (spec, uses, cooldown) with the belt's. Field writes only, so it is safe inside a
+     * parallel unit update on the unit's own row. The caller checks the hand is idle.
+     */
+    public void swapBelt(long id) {
+        Object handSpec = entityWorld.getObject(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC);
+        int handAmmo = secondaryAmmo(id);
+        float handCooldown = secondaryCooldownTimer(id);
+        entityWorld.setObject(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC,
+                entityWorld.getObject(id, components.BELT, BattleComponents.BELT_SPEC));
+        setSecondaryAmmo(id, beltAmmo(id));
+        setSecondaryCooldownTimer(id, beltCooldownTimer(id));
+        entityWorld.setObject(id, components.BELT, BattleComponents.BELT_SPEC, handSpec);
+        setBeltAmmo(id, handAmmo);
+        setBeltCooldownTimer(id, handCooldown);
+    }
+
     // AI-cadence state lives in the entity world's OPTIONAL AI_STATE component,
     // narrowed to thinkers: a static emplacement (turret, drone hub) has no
     // decision cadence. hasAiState is the presence check; the field accessors are

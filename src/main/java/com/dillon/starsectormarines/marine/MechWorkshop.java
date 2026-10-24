@@ -125,12 +125,20 @@ public final class MechWorkshop {
         return Result.of(Status.FABRICATED);
     }
 
-    /** Empties the optional utility socket; nothing else on a frame can be left empty. */
+    /** Empties the optional utility socket. */
     public Result stripVentArray(String mechId) {
+        return stripInternal(mechId, MechInternal.Role.VENT_ARRAY);
+    }
+
+    /**
+     * Empties one socketed internal back to stores. Stripping an engine or capacitor bank is
+     * allowed and leaves the mech unable to drop until one is fitted ({@link MechBay#stripInternal}).
+     */
+    public Result stripInternal(String mechId, MechInternal.Role role) {
         CampaignMech mech = bay.mechById(mechId);
-        if (mech == null) return Result.of(Status.INVALID);
-        if (mech.internal(MechInternal.Role.VENT_ARRAY) == null) return Result.of(Status.ALREADY_STRIPPED);
-        return bay.stripVentArray(mechId) ? Result.of(Status.STRIPPED) : Result.of(Status.INVALID);
+        if (mech == null || role == null || role.socket() == null) return Result.of(Status.INVALID);
+        if (mech.internal(role) == null) return Result.of(Status.ALREADY_STRIPPED);
+        return bay.stripInternal(mechId, role) ? Result.of(Status.STRIPPED) : Result.of(Status.INVALID);
     }
 
     public Result stripWeapon(String mechId, MechMountSlot slot) {

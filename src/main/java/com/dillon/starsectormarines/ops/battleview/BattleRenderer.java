@@ -35,6 +35,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.model.SurfaceRole;
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.DrawCommand;
 import com.dillon.starsectormarines.render2d.DrawListRenderer;
 import com.dillon.starsectormarines.render2d.LineBatch;
@@ -344,13 +345,14 @@ public class BattleRenderer {
                 RenderSystem.of(RenderLayer.FOG, (ctx, out) -> collectFogOverlay(ctx, out)),
                 RenderSystem.of(RenderLayer.FOG, doodads::collectVisibleSurfaces),
                 // The unit atlas is built inside the layer it serves, the way
-                // the ground atlas is, and only until it is built: once it
-                // serves there is no custom pass here at all, so a settled frame
-                // does not close and reopen the drain's state bracket for a
-                // no-op. The bodies collected below still draw as whole sprites
-                // in the frame that bakes it.
+                // the ground atlas is, and only while it has GL work waiting (a
+                // texture to build, or images it took in to upload): a settled
+                // frame has no custom pass here at all, so it does not close and
+                // reopen the drain's state bracket for a no-op. The bodies
+                // collected below still draw as whole sprites in the frame that
+                // bakes them.
                 RenderSystem.of(RenderLayer.UNITS, (ctx, out) -> {
-                    if (unitAtlas.isPlanned() && !unitAtlas.isServing()) {
+                    if (unitAtlas.needsSync()) {
                         out.addCustom(RenderLayer.UNITS, unitAtlas::sync);
                     }
                 }),
@@ -598,6 +600,18 @@ public class BattleRenderer {
         registerSpriteSheetBatches(sprites.convoySprites().values());
         ShuttleSpriteCache scuffs = sprites.spriteByPath(VehicleScuffs.SHEET);
         if (scuffs != null) registerHullBatches(List.of(scuffs));
+    }
+
+    /**
+     * Takes into the unit atlas every image the last collect drew in its layers without finding it there. Before the
+     * collect, never between a collect and its drain, because a relayout moves every slot; a relayout is a texture of
+     * a new size, so the atlas's batch is built again.
+     */
+    private void growUnitAtlas() {
+        if (unitAtlas.grow() == SpriteAtlas.Growth.RELAID) {
+            registerBatch(unitAtlas.sheet(), new QuadBatch(unitAtlas.sheet(),
+                    unitAtlas.width(), unitAtlas.height(), 2048));
+        }
     }
 
     private void registerBatch(SpriteAPI sheet, QuadBatch batch) {
@@ -1347,7 +1361,10 @@ public class BattleRenderer {
             throw new IllegalArgumentException("render context and layers are required");
         }
         this.rc = rc;
+        growUnitAtlas();
         drawList.clear();
+        drawList.setClosestZoomFactor(rc.camera == null || !(rc.camera.zoom() > 0f)
+                ? Float.NaN : BattleCamera.MAX_ZOOM / rc.camera.zoom());
         if (TextureUsage.isEnabled() && rc.camera != null) {
             TextureUsage.beginWorld(rc.camera.cellPxSize(), rc.camera.worldCellsW(), rc.camera.worldCellsH());
         }

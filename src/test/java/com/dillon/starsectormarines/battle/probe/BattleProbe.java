@@ -13,9 +13,12 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -54,6 +57,8 @@ import java.util.Set;
  *   hits-by attacker|target [same filters]
  *                                         recorded hits grouped by the other side's label: count, damage, kills
  *   squads [label=TEXT]                   every squad with members alive: size, leader position, assignment
+ *   path ID [count=N]                     a unit's next N waypoints (default 6): cell, tags, step walkable
+ *   members SQUAD                         each member of a squad: position, cell, velocity, waypoints left
  *   beats [since=T] [text=TEXT]           story beats
  *   escort                                the rescue cohort's escort hold and progress
  *   route X0 Y0 X1 Y1                     cells on the walkable path between two cells (0 for none)
@@ -90,6 +95,8 @@ public final class BattleProbe {
         commands.put("hits", this::hits);
         commands.put("hits-by", this::hitsBy);
         commands.put("squads", this::squads);
+        commands.put("members", a -> members(a.intAt(0)));
+        commands.put("path", this::path);
         commands.put("beats", this::beats);
         commands.put("route", a -> {
             int[] path = GridPathfinder.findPath(sim.getGrid(), a.intAt(0), a.intAt(1), a.intAt(2), a.intAt(3));
@@ -146,7 +153,8 @@ public final class BattleProbe {
 
     private JSONObject status() throws Exception {
         return new JSONObject().put("tick", sim.getSimTickIndex()).put("complete", sim.isComplete())
-                .put("winner", sim.isComplete() ? String.valueOf(sim.getWinner()) : JSONObject.NULL);
+                .put("winner", sim.isComplete() ? String.valueOf(sim.getWinner()) : JSONObject.NULL)
+                .put("routeStalls", sim.movement().routeStalls());
     }
 
     private JSONObject step(int untilTick, String beat) throws Exception {
@@ -221,6 +229,20 @@ public final class BattleProbe {
                 vehicle.put("facing", round(body.facingDegrees)).put("speed", round(body.speed))
                         .put("immobilised", body.immobilised);
             }
+            VehicleMoveOrderService orders = sim.getVehicleMoveOrderService();
+            VehicleMoveOrderService.ActiveOrder order = orders.activeOrder(id);
+            if (order != null) {
+                vehicle.put("order", new JSONObject()
+                        .put("requested", new JSONArray(List.of(order.requestedX(), order.requestedY())))
+                        .put("destination", new JSONArray(List.of(round(order.destinationX()), round(order.destinationY()))))
+                        .put("routePoints", order.routeXs().length));
+            }
+            VehicleMoveOrderService.RefusedOrder refused = orders.refusal(id);
+            if (refused != null) {
+                vehicle.put("refused", new JSONObject().put("reason", String.valueOf(refused.reason()))
+                        .put("requested", new JSONArray(List.of(refused.requestedX(), refused.requestedY()))));
+            }
+            vehicle.put("pending", orders.pending(id)).put("enlisted", orders.isEnlisted(id));
             GroundTurret turret = convoy.turret(id);
             if (turret != null) {
                 JSONObject t = new JSONObject().put("facing", round(turret.facingDeg)).put("ammo", turret.ammo)
@@ -366,6 +388,48 @@ public final class BattleProbe {
             if (row.toString().contains(text)) rows.put(row);
         }
         return new JSONObject().put("tick", sim.getSimTickIndex()).put("count", rows.length()).put("squads", rows);
+    }
+
+    private JSONObject path(Args a) throws Exception {
+        long id = a.longAt(0);
+        int count = a.intOr("count", 6);
+        NavigationGrid grid = sim.getGrid();
+        int[] path = sim.movement().path(id);
+        int next = sim.movement().nextWaypointIndex(id);
+        JSONObject out = brief(id).put("tick", sim.getSimTickIndex()).put("next", next)
+                .put("waypoints", Paths.cellCount(path))
+                .put("velocity", new JSONArray(List.of(round(sim.movement().velX(id)), round(sim.movement().velY(id)))))
+                .put("speedMultiplier", round(grid.groundSpeedMultiplier(sim.world().x(id), sim.world().y(id))));
+        JSONArray cells = new JSONArray();
+        int px = sim.world().cellX(id), py = sim.world().cellY(id);
+        cells.put(cell(grid, px, py, px, py));
+        for (int i = Math.max(0, next - 1); i < Math.min(Paths.cellCount(path), next + count); i++) {
+            int x = Paths.cellX(path, i), y = Paths.cellY(path, i);
+            cells.put(cell(grid, x, y, px, py).put("index", i));
+            px = x;
+            py = y;
+        }
+        return out.put("cells", cells);
+    }
+
+    private static JSONObject cell(NavigationGrid grid, int x, int y, int fromX, int fromY) throws Exception {
+        JSONArray tags = new JSONArray();
+        for (CellTag tag : CellTag.values()) if (grid.hasTag(x, y, tag)) tags.put(tag.name());
+        return new JSONObject().put("cell", new JSONArray(List.of(x, y))).put("tags", tags)
+                .put("stepFromPrevious", grid.canTraverseCellStep(fromX, fromY, x, y));
+    }
+
+    private JSONObject members(int squadId) throws Exception {
+        JSONArray rows = new JSONArray();
+        for (int i = 0; i < sim.squadMemberCount(squadId); i++) {
+            long id = sim.squadMemberAt(squadId, i);
+            JSONObject row = brief(id);
+            put(row, "cell", () -> new JSONArray(List.of(sim.world().cellX(id), sim.world().cellY(id))));
+            put(row, "velocity", () -> new JSONArray(List.of(round(sim.movement().velX(id)), round(sim.movement().velY(id)))));
+            put(row, "waypointsLeft", () -> sim.movement().waypointCount(id) - sim.movement().nextWaypointIndex(id));
+            rows.put(row);
+        }
+        return new JSONObject().put("tick", sim.getSimTickIndex()).put("squad", squadId).put("members", rows);
     }
 
     private JSONObject beats(Args a) throws Exception {
