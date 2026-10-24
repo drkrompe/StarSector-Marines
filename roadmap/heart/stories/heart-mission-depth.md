@@ -3,7 +3,7 @@
 Status: ACTIVE. Beats, allied forces and the allied commander shipped; the maps' last pieces are left, then tuning. Seeds: the pooled 2, 3 and 5 on every biome (`story-map-pools.md`).
 
 Written: 2026-10-23
-Updated: 2026-10-24 — F6 road satellite, road cuts and F2 wave re-aiming in; the hollow, the knoll, pooling and tuning remain.
+Updated: 2026-10-24 — lanes no longer stall (stragglers, columns joining at the front, neighbour-only re-aims); the whole-pool reading added; the company wipe and gunship losses join the open list.
 
 ## Why
 
@@ -13,15 +13,32 @@ just tune it to work as a brawl"). The owner set the order: maps first, then
 the beats as optional objectives, then the allied forces, then the commander
 using them. The beats, the forces and the commander are built.
 
+## Reading (2026-10-24, the whole pool, main at 0ff5e8d43)
+
+Broad Front: none of 12 won. Five lost, the company wiped between ticks 9,500
+and 12,500 (seed 5 on every biome, seed 2 arid and frozen) with one or two
+satellites down. Seven timed out at 27,000 with four or five satellites down and
+at most one mother. The Burn: four of 12 won, one lost, seven timed out, most
+with one mother down. On Broad Front every tool was called (118 armour calls, 36
+sorties, 70 shoots, 25 road cuts, 67 re-aims, 52 gaps closed). The evidence does
+not record aircraft lost, so how many sorties were shot down is unread.
+
 ## What is left
 
-1. **Maps with intent** (`heart-map-intent.md`). Built: the cordon ridge, the
+Ranked by what it unblocks:
+
+1. **Broad Front's company wipe.** Five seeds lose the company at about the same
+   time, on every biome for seed 5: a consistent cause (landing, a surge, the
+   lanes leaving it alone), to find with `battleProbe` before any tuning.
+2. **Gunship losses in the evidence.** A beat when an allied aircraft is lost, so
+   the owner's gunship question can be read across the pool.
+3. **Maps with intent** (`heart-map-intent.md`). Built: the cordon ridge, the
    brook valley, the hollow's rim, the cordon's works, every beat's set piece
    that needs ground (F6's road satellite with it), and the town and city densities. Open:
    - a full hollow;
    - the knoll;
    - pooling the denser maps.
-2. **Tuning win rates**, only after the map work (owner: no overtuning yet).
+4. **Tuning win rates**, only after the map work (owner: no overtuning yet).
 
 ## Constraints
 
