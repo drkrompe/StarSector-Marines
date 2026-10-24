@@ -33,6 +33,8 @@ public final class MarineSoldier implements Serializable {
     private String secondary;
     /** Stable special-equipment identity; {@link #secondary} is legacy save input only. */
     private String specialEquipmentId;
+    /** The thrown item in the second special slot, the belt, or null; absent from older saves, which read null. */
+    private String beltEquipmentId;
     /** Legacy save input and built-in compatibility handle. */
     private MarineArmorPattern armor;
     /** Authoritative persisted armor catalog identity. */
@@ -81,6 +83,10 @@ public final class MarineSoldier implements Serializable {
     public SpecialEquipmentDef specialEquipmentDef() {
         return SpecialEquipmentRegistry.get(specialEquipmentId);
     }
+    public String beltEquipmentId() { return beltEquipmentId; }
+    public SpecialEquipmentDef beltEquipmentDef() {
+        return SpecialEquipmentRegistry.get(beltEquipmentId);
+    }
     public MarineArmorPattern armor() {
         MarineArmorPattern resolved = armorHandle(armorId);
         return resolved != null ? resolved : armor;
@@ -110,6 +116,9 @@ public final class MarineSoldier implements Serializable {
     void setSpecialEquipment(String value) {
         specialEquipmentId = value != null ? SpecialEquipmentRegistry.require(value).id() : null;
         secondary = null;
+    }
+    void setBeltEquipment(String value) {
+        beltEquipmentId = value != null ? SpecialEquipmentRegistry.require(value).id() : null;
     }
     void setArmor(MarineArmorPattern value) {
         setArmor(value != null ? value.id : MarineArmorPattern.ARMORLESS.id);

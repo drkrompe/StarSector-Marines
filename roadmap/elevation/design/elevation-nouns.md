@@ -133,7 +133,10 @@ for elevation's sake.
   is seen back from that height: sight and direct fire between it and lower
   ground are judged from its eye. The height is the gun's, not the ground's:
   the plinth's cells are not raised ground, nobody stands on them, and the
-  gun's death lowers its cell again (`NavigationGrid.setRaisedEye`).
+  gun's death lowers its cell again (`NavigationGrid.setRaisedEye`). To the
+  sun the plinth is a block over the whole footprint, standing until the
+  structure dies (`CellTopology.getPlinthTiers`), and it casts as a wall of
+  its height does.
 - Air observers (shuttles, flybys, recon) see every tier: their footprint is
   not limited by ground height, which is how a side without the high ground
   spots onto it.

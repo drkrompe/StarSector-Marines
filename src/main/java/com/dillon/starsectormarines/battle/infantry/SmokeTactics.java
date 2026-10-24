@@ -23,18 +23,18 @@ public final class SmokeTactics {
     /** Equipment availability only; tactical usefulness belongs to the requesting owner. */
     public static boolean canThrow(long carrier, BattleView sim) {
         World world = sim.world();
-        if (!world.isAlive(carrier) || !world.hasSecondaryWeapon(carrier)) return false;
-        SpecialEquipmentDef special = world.specialEquipment(carrier);
-        return special != null && special.activation() == SpecialActivation.UTILITY_SMOKE
-                && world.secondaryAmmo(carrier) > 0 && world.secondaryActionTimer(carrier) <= 0f
-                && world.secondaryCooldownTimer(carrier) <= 0f;
+        return world.isAlive(carrier) && CarriedSpecials.ready(world, carrier, SpecialEquipmentDef::isSmokeThrow);
     }
 
-    /** Commits the throw point and ordinary channel. Ammunition is spent only by the release procedure. */
+    /**
+     * Commits the throw point and ordinary channel, drawing the smoke out of the belt when it rides there.
+     * Ammunition is spent only by the release procedure.
+     */
     public static boolean beginThrow(long carrier, PointFireAim target, boolean manual, BattleControl sim) {
         if (target == null || !Float.isFinite(target.x()) || !Float.isFinite(target.y())
                 || !canThrow(carrier, sim)) return false;
         World world = sim.world();
+        if (!CarriedSpecials.draw(world, carrier, SpecialEquipmentDef::isSmokeThrow)) return false;
         SmokeGrenadeSpec spec = world.specialEquipment(carrier).smokeGrenadeSpec();
         float fromX = world.renderX(carrier);
         float fromY = world.renderY(carrier);
@@ -158,7 +158,7 @@ public final class SmokeTactics {
         }
         long carrier = sim.resolveUnit(squad.smokeCarrierId);
         if (carrier == 0L || !sim.world().hasSecondaryWeapon(carrier)
-                || sim.world().secondaryAmmo(carrier) <= 0
+                || CarriedSpecials.ammo(sim.world(), carrier, SpecialEquipmentDef::isSmokeThrow) <= 0
                 && sim.world().secondaryActionTimer(carrier) <= 0f
                 && !sim.smokeFields().hasThrowFrom(carrier)) {
             squad.clearSmokeReservation();
@@ -174,12 +174,9 @@ public final class SmokeTactics {
             long candidate = sim.liveUnitAt(i);
             if (!sim.squad().hasSquad(candidate) || sim.squad().squadId(candidate) != squad.id) continue;
             if (!squad.participatesInPlan(candidate)) continue;
-            if (!sim.world().hasSecondaryWeapon(candidate)) continue;
-            SpecialEquipmentDef special = sim.world().specialEquipment(candidate);
-            if (special.aiPolicy() != SpecialAiPolicy.SQUAD_SMOKE_SCREEN
-                    || sim.world().secondaryAmmo(candidate) <= 0
-                    || sim.world().secondaryActionTimer(candidate) > 0f
-                    || sim.world().secondaryCooldownTimer(candidate) > 0f) continue;
+            SpecialEquipmentDef special = CarriedSpecials.item(sim.world(), candidate, SpecialEquipmentDef::isSmokeThrow);
+            if (special == null || special.aiPolicy() != SpecialAiPolicy.SQUAD_SMOKE_SCREEN
+                    || !CarriedSpecials.ready(sim.world(), candidate, SpecialEquipmentDef::isSmokeThrow)) continue;
             SmokeGrenadeSpec spec = special.smokeGrenadeSpec();
             float dx = tx + 0.5f - sim.world().x(candidate);
             float dy = ty + 0.5f - sim.world().y(candidate);

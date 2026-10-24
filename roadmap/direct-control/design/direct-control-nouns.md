@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, any player-owned deployed vehicle, friendly War
 
 Written: 2026-09-23
 
-Updated: 2026-10-23 — a Marine's left button toggles into a direct-fire special on Q, its right button cycles smoke, a hand grenade and the shield on E; grenades are a committed manual throw.
+Updated: 2026-10-23 — the right button lists throws from both special slots, so one Marine can carry smoke and a frag.
 
 Direct control lets the player temporarily inhabit one of their ground units, or a
 friendly capital hovering over the battle, in
@@ -100,7 +100,8 @@ the machine doll's colours. Its arms and legs read only the limb wounds the
 simulation keeps (`WoundService`): green when sound, orange at the first wound, red
 once wounds stack to the floor. LEG WOUND (slowed) and ARM WOUND (aim) flags sit
 beneath. A power suit draws as a broader shell. Beside the figure a kit column
-lists what the Marine carries and what is left: special equipment with its rounds or
+lists what the Marine carries and what is left: special equipment in both slots (the
+belt's throw beside the special, in a fixed order whichever slot holds it) with its rounds or
 cooldown, the integral system's charges or cooldown, and the medic kit's supplies
 when this Marine is the squad medic. The doll invents no hit location: a head or
 torso hit only spends the shared pools. Filled lengths reflect the exact body's remaining fractions;
@@ -546,7 +547,7 @@ cooldown.
 
 A Marine's left button **toggles into a secondary weapon** (owner, 2026-10-23).
 Its list is the primary and then each direct-fire special the Marine carries that
-spends ammunition, rockets before anti-materiel rifles, with no LINKED: one pair
+spends ammunition, rockets before anti-materiel rifles before the flamer, with no LINKED: one pair
 of hands fires one weapon. Q steps through it and wraps to the primary; key 1 is
 the primary and key 2 the special. A picked special is under a **manual
 contract**. Picking it readies it over its authored aim time, and a press then
@@ -565,6 +566,20 @@ rifle in the hands: raised over the wind-up, through its firing clip for the
 follow-through after a round, and in its aim pose on walking feet while moving.
 Autonomous Marines use their specials through their AI policy as before.
 
+The **flamer is a held stream** rather than a single round. Picked, it readies over
+its aim time like the others; then for as long as the button is held it sends one
+charge of its own fuel each time its cooldown allows, and letting go stops it. Each
+charge flies toward the cursor, pulled in to the flamer's range and kept on the map,
+and stops short of the first wall on its bearing by the structural rule direct fire
+follows (smoke does not stop it); it lands and burns through the same release an
+autonomous flamer uses, with its accuracy scatter. A jet that could land only in the
+Marine's own cell, because the cursor is on the Marine or a wall is at the nozzle, is
+refused without spending fuel. Its row counts fuel as a tank of cells, one a charge,
+and its reticle tick is grey on an empty tank or a refused jet and red past its
+range, where the jet lands short. It has no held art of its own: the Marine stands
+in the primary's aim pose while it is picked and in the primary's firing clip while
+a charge is leaving.
+
 The right button holds the
 Marine's **thrown and utility items** (owner, 2026-10-23): grenades are a throw, not
 a gun, so they sit beside smoke and the shield. Its list is, in this order, carried
@@ -579,12 +594,15 @@ acts on the press and does not repeat while held, so a held button cannot spend 
 pouch of grenades; ammunition, cooldown and the committed throw are the equipment's
 own. The pick belongs to the control session, survives pause, and resets on takeover
 and handback. C and G keep working whatever the pick is, which is why the panel washes
-the picked row without dimming the others. A Marine carries one special item, so a
-list holds at most one throw beside the shield. **The flamer is not a throw**:
+the picked row without dimming the others. The list reads both special slots: a Marine
+with smoke and a frag on the belt (`progression-nouns.md`) lists smoke, the grenade and
+the shield. Using a belt throw swaps it into the hand for its channel, and a direct-fire
+special it displaced returns once the hand is idle, so neither list moves while it runs.
+**The flamer is not a throw**:
 it shares the grenades' arcing activation in data, but it sprays a short flat jet
 (its weapon is not indirect fire) and is aimed and held like a gun, so its manual
 contract belongs to the left button with the direct-fire specials. Items with no
-manual contract (grenade launchers, satchels, the flamer for now) stay autonomous
+manual contract (grenade launchers, satchels) stay autonomous
 and never join the list.
 
 A held rack chains its salvos (`mechs-nouns.md`, Flux): a click is one salvo, and a

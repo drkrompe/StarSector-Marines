@@ -9,6 +9,8 @@ import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.combat.RangeFalloff;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.control.MarineRightTrigger;
+import com.dillon.starsectormarines.battle.infantry.CarriedSpecials;
+import com.dillon.starsectormarines.battle.infantry.FlameJet;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.mech.MechHardpointGeometry;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
@@ -165,7 +167,12 @@ public final class DirectControlFireMarks {
         WeaponDef primary = combat.has(id) ? combat.primaryWeaponDef(id) : null;
         Mark left = Mark.NONE;
         SpecialEquipmentDef picked = sim.directControl().leftSpecial();
-        if (picked != null) {
+        if (picked != null && picked.isHeldStream()) {
+            // The flamer's jet reaches its range and no further, and a wall at the nozzle or an empty tank holds it.
+            boolean fires = world.secondaryAmmo(id) > 0 && FlameJet.point(sim.getGrid(), world.renderX(id),
+                    world.renderY(id), aimX, aimY, picked.range()) != null;
+            left = of(fires, distance, picked.range(), picked.range());
+        } else if (picked != null) {
             // The left button on a special reads the special: its reach, its accuracy, and grey once it is empty.
             WeaponDef weapon = picked.weaponDef();
             boolean fires = world.secondaryAmmo(id) > 0 && !ManualPointFire.tooClose(weapon, distance);
@@ -198,8 +205,11 @@ public final class DirectControlFireMarks {
             return systems.spec(id).usesAmmunition() && systems.ammo(id) <= 0 ? Mark.HELD : Mark.GOOD;
         }
         // A throw past its reach lands short, at its range: thrown, but not where the cursor is.
-        return world.secondaryAmmo(id) > 0 ? of(true, distance, throwReach(world.specialEquipment(id)),
-                throwReach(world.specialEquipment(id))) : Mark.HELD;
+        // The picked throw may ride in either special slot.
+        SpecialEquipmentDef item = CarriedSpecials.item(world, id, pick::is);
+        if (item == null) return Mark.NONE;
+        return CarriedSpecials.ammo(world, id, pick::is) > 0
+                ? of(true, distance, throwReach(item), throwReach(item)) : Mark.HELD;
     }
 
     /** How far a carried smoke canister or hand grenade can be thrown, in cells. */
