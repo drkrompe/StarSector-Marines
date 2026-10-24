@@ -45,7 +45,7 @@ enum StoryScene {
         if (id == null || source == null) return null;
         var debug = DebugMissionCatalog.scenario(id, source);
         if (debug != null) return switch (debug) {
-            case MISSILE_AA -> null;
+            case MISSILE_AA, CORDON_LINE, CORDON_ROAD, BROAD_FRONT, THE_BURN -> null;
             case RELIEF, MILITIA_RELIEF -> RELIEF;
             case COUNTERATTACK, DEPOT_CLEARANCE -> DEPOT;
             case JUNCTION -> JUNCTION;

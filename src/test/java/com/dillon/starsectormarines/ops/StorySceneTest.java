@@ -17,7 +17,7 @@ class StorySceneTest {
             return scenario.mission();
         String route = BrokenSupplyRouteProgress.PREFIX;
         String id = switch (scenario) {
-            case MISSILE_AA -> throw new IllegalArgumentException("Range has no campaign chapter");
+            case MISSILE_AA, CORDON_LINE, CORDON_ROAD, BROAD_FRONT, THE_BURN -> throw new IllegalArgumentException("No authored campaign chapter art");
             case RELIEF -> OpeningOperationKind.RELIEF.missionId;
             case COUNTERATTACK -> OpeningOperationKind.COUNTERATTACK.missionId;
             case JUNCTION -> route + "1_0_2";
@@ -45,7 +45,7 @@ class StorySceneTest {
         return Mission.builder(scenario.mission()).id(id).source(source).build();
     }
 
-    @ParameterizedTest @EnumSource(value = DebugMissionCatalog.Scenario.class, names = "MISSILE_AA", mode = EnumSource.Mode.EXCLUDE)
+    @ParameterizedTest @EnumSource(value = DebugMissionCatalog.Scenario.class, names = {"MISSILE_AA", "CORDON_LINE", "CORDON_ROAD", "BROAD_FRONT", "THE_BURN"}, mode = EnumSource.Mode.EXCLUDE)
     void authoredArtAgreesAcrossDebugBriefingAndBothResultStates(DebugMissionCatalog.Scenario scenario) {
         var mission = campaign(scenario);
         var scene = StoryScene.forMission(mission);
