@@ -2504,6 +2504,21 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         return String.valueOf(row.markupProperty("actionClasses")).contains("hidden") ? row.nameId() : row.actionId();
     }
 
+    /** The Boat Deck's refit board alone: its doll fitting and a hardpoint selected. */
+    static List<SnapshotArtifact> renderBoatConsole(SnapshotContext context) throws Exception {
+        HeadlessSvgAssets.install(context.modRoot());
+        HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
+        HeadlessUiRenderer boatRenderer = new HeadlessUiRenderer(
+                new HeadlessBattleSceneRenderer(context.modRoot(), true),
+                context.modRoot(), context.starsectorCore());
+        return List.of(
+                new SnapshotArtifact("boat-deck-fitting-wide.png",
+                        renderBoatDeck(context, boatRenderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
+                new SnapshotArtifact("boat-deck-hardpoint-wide.png",
+                        renderBoatDeck(context, boatRenderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false, NO_DEPARTURE, 0)));
+    }
+
     static List<SnapshotArtifact> renderMechConsole(SnapshotContext context) throws Exception {
         HeadlessSvgAssets.install(context.modRoot());
         HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());

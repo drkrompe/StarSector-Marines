@@ -104,9 +104,19 @@ final class BoatDollPanel {
         float centerX = width * 0.5f;
         float flankY = top + gunHeight + (gunHeight > 0f ? GAP_Y : 0f) + flankHeight * 0.5f;
 
-        CardTarget core = new CardTarget(null, centerX - CORE_WIDTH * 0.5f, flankY - CORE_HEIGHT * 0.5f,
+        // The drive is the board's centre, as the engine is on every machine's doll; the airframe's
+        // nameplate stands on the flank it leaves, or holds the centre on a boat with no drive.
+        CardTarget nameplate = new CardTarget(null, centerX - CORE_WIDTH * 0.5f, flankY - CORE_HEIGHT * 0.5f,
                 CORE_WIDTH, CORE_HEIGHT);
+        CardTarget core = nameplate;
         List<Placed> placed = new ArrayList<>();
+        if (drive != null) {
+            float w = width(drive.kind(), MIN_WIDTH), h = height(drive.kind());
+            core = new CardTarget(drive.key(), centerX - w * 0.5f, flankY - h * 0.5f, w, h);
+            placed.add(new Placed(drive, core));
+            nameplate = new CardTarget(null, core.right() + GAP_X, flankY - CORE_HEIGHT * 0.5f,
+                    CORE_WIDTH, CORE_HEIGHT);
+        }
         float room = width - MARGIN * 2f;
         float gunWidth = guns.isEmpty() ? 0f : Math.max(width(BoatDoll.Kind.HARDPOINT, 0f),
                 Math.min(WIDE, (room - GAP_X * (guns.size() - 1)) / guns.size()));
@@ -120,19 +130,16 @@ final class BoatDollPanel {
             placed.add(new Placed(plating, new CardTarget(plating.key(), core.left() - GAP_X - w,
                     flankY - h * 0.5f, w, h)));
         }
-        if (drive != null) {
-            float w = width(drive.kind(), MIN_WIDTH), h = height(drive.kind());
-            placed.add(new Placed(drive, new CardTarget(drive.key(), core.right() + GAP_X,
-                    flankY - h * 0.5f, w, h)));
-        }
         if (lift != null) {
             float w = width(lift.kind(), MIN_WIDTH), h = height(lift.kind());
             placed.add(new Placed(lift, new CardTarget(lift.key(), centerX - w * 0.5f,
                     core.bottom() + GAP_Y, w, h)));
         }
 
-        for (int i = 0; i < placed.size(); i++) wire(c, placed.get(i), core, seconds, i);
-        core(c, core, doll);
+        for (int i = 0; i < placed.size(); i++) {
+            if (placed.get(i).target() != core) wire(c, placed.get(i), core, seconds, i);
+        }
+        core(c, nameplate, doll);
         List<CardTarget> targets = new ArrayList<>(placed.size());
         for (Placed socket : placed) {
             console(c, socket.target(), socket.slot(), socket.slot().key().equals(hovered), seconds);

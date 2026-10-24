@@ -26,7 +26,7 @@ public final class RoofTiles {
     public static final String SHEET = "graphics/tilesets/roofs.png";
 
     /** Frames in a row of the sheet. */
-    public static final int COLUMNS = 10;
+    public static final int COLUMNS = 12;
     /** The swatch of field: columns {@code FIELD + i + 2j} hold its cell {@code (i, j)}, {@code j} counted north. */
     public static final int FIELD = 0;
     /** The trim along an eave's open edge, north-facing: its edge lies at {@link RoofCover#EAVE_DEPTH} up the cell. */
@@ -38,6 +38,10 @@ public final class RoofTiles {
     public static final int HOLED = 7;
     public static final int COLLAPSED = 8;
     public static final int BURNT = 9;
+    /** The eave trim at {@link RoofCover#DOOR_EAVE_DEPTH}, over an exterior door. */
+    public static final int TRIM_DOOR = 10;
+    /** The eave trim at {@link RoofCover#PANE_EAVE_DEPTH}, over a slit window. */
+    public static final int TRIM_PANE = 11;
 
     /** The most quads one cell draws: two rectangles of an inside corner and its trim. */
     public static final int MAX_QUADS = 3;
@@ -59,7 +63,7 @@ public final class RoofTiles {
         int cover = RoofCover.of(topology, x, y);
         RoofCover.Piece piece = RoofCover.piece(cover);
         if (piece == RoofCover.Piece.NONE) return;
-        float[][] rects = RoofCover.rects(cover, RoofCover.EAVE_DEPTH);
+        float[][] rects = RoofCover.rects(cover);
         int row = style.ordinal();
         RoofDamage damage = topology.getRoofDamage(x, y);
         if (damage.isOpen()) {
@@ -68,7 +72,7 @@ public final class RoofTiles {
         }
         int column = fieldColumn(x, y, grainTurns);
         for (float[] r : rects) sink.quad(column, row, grainTurns & 3, r[0], r[1], r[2], r[3]);
-        int trim = trimColumn(piece);
+        int trim = trimColumn(piece, RoofCover.edge(cover));
         if (trim >= 0) sink.quad(trim, row, RoofCover.facing(cover), 0f, 0f, 1f, 1f);
     }
 
@@ -135,9 +139,9 @@ public final class RoofTiles {
         }
     }
 
-    static int trimColumn(RoofCover.Piece piece) {
+    static int trimColumn(RoofCover.Piece piece, RoofCover.Edge edge) {
         switch (piece) {
-            case EAVE: return TRIM_EAVE;
+            case EAVE: return edge == RoofCover.Edge.DOOR ? TRIM_DOOR : edge == RoofCover.Edge.PANE ? TRIM_PANE : TRIM_EAVE;
             case CORNER: return TRIM_CORNER;
             case INNER: return TRIM_INNER;
             default: return -1;

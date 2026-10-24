@@ -9,13 +9,12 @@ package com.dillon.starsectormarines.battle.world.model;
  * an eave: it reaches {@link #EAVE_DEPTH} of the cell in from the building's side and leaves the rest bare, so an
  * exterior wall shows its material (brick, steel plate, sandbags) and a player can judge it as cover.
  *
- * <p>Windows and doorways are part of the wall they are in ({@link #isOpening}), so they notch no roof. An exterior
- * door the generator leaves out of the building is left bare, the roof running up to its inner edge, and a window
- * stamped as the building's own cell in the wall's line takes the wall's eave, so the eave runs straight along the
- * facade and every exterior door and window stays in view before a building is revealed. A door between rooms is
- * roofed over with them.
- * It is presentation only: a
- * roof over a wall shields nothing, and whether a floor cell's roof shields is {@link CellTopology#isRoofIntact}.
+ * <p>Windows and doorways are part of the wall they are in ({@link #isOpening}), so they notch no roof. Every eave stops
+ * just short of what is drawn in the cell it covers ({@link Edge}): a plain wall's and an edge window's at the window
+ * frame's inner edge, an exterior door's at its leaf, a slit window's at its pane, so every exterior door and window
+ * stays in view before a building is revealed, the roof flush against it. A door between rooms is roofed over with
+ * them. It is presentation only: a roof over a wall shields nothing, and whether a floor cell's roof shields is
+ * {@link CellTopology#isRoofIntact}.
  *
  * <p>Sides are numbered clockwise from north, {@code 0 = N (+y)}, {@code 1 = E (+x)}, {@code 2 = S}, {@code 3 = W},
  * and a piece is described as its north-facing shape turned {@link #facing} quarter turns clockwise.
@@ -28,6 +27,26 @@ public final class RoofCover {
      * window and leaves the frame and the outer strip of each wall in view.
      */
     public static final float EAVE_DEPTH = 0.7f;
+    /** An eave over an exterior door: up to the inner face of its leaf, which lies across the cell's middle. */
+    public static final float DOOR_EAVE_DEPTH = 0.4f;
+    /** An eave over a slit window in a wall cell: up to its pane, which takes the middle 0.38 of the cell. */
+    public static final float PANE_EAVE_DEPTH = 0.3f;
+
+    /** What an eave's cell holds, which sets how far the eave reaches over it. */
+    public enum Edge {
+        /** A wall, or a window on the building's edge: {@link #EAVE_DEPTH}. */
+        WALL(EAVE_DEPTH),
+        /** An exterior doorway: {@link #DOOR_EAVE_DEPTH}. */
+        DOOR(DOOR_EAVE_DEPTH),
+        /** A slit window in a wall cell: {@link #PANE_EAVE_DEPTH}. */
+        PANE(PANE_EAVE_DEPTH);
+
+        public final float depth;
+
+        Edge(float depth) {
+            this.depth = depth;
+        }
+    }
 
     /** The shape a roof takes over one cell. */
     public enum Piece {
@@ -50,22 +69,30 @@ public final class RoofCover {
     }
 
     private static final Piece[] PIECES = Piece.values();
+    private static final Edge[] EDGES = Edge.values();
     private static final int[] SIDE_DX = {0, 1, 0, -1};
     private static final int[] SIDE_DY = {1, 0, -1, 0};
 
     private RoofCover() { }
 
     /**
-     * The cover over {@code (x, y)}, packed as {@code piece.ordinal() | facing << 4}; read it with {@link #piece}
-     * and {@link #facing}.
+     * The cover over {@code (x, y)}, packed as {@code piece.ordinal() | facing << 4 | edge.ordinal() << 6}; read it
+     * with {@link #piece}, {@link #facing} and {@link #edge}.
      */
     public static int of(CellTopology topology, int x, int y) {
         if (owner(topology, x, y) == 0) return pack(Piece.NONE, 0);
-        // An exterior door or window is left bare and the roof stops at its inner edge, so it reads before a
-        // building is revealed; being wall, it still notches nothing round it. One between rooms is roofed over.
-        if ((topology.isWindow(x, y) || isOpening(topology, x, y)) && facesOutside(topology, x, y)) {
-            return pack(Piece.NONE, 0);
+        // An exterior door or slit window takes an eave of its own depth, stopping at its leaf or pane; one in any
+        // other place on the building's edge than a straight run of wall is left bare. One between rooms is roofed.
+        Edge edge = topology.isWindow(x, y) ? Edge.PANE : isOpening(topology, x, y) ? Edge.DOOR : Edge.WALL;
+        if (edge != Edge.WALL && facesOutside(topology, x, y)) {
+            int cover = shape(topology, x, y);
+            return piece(cover) == Piece.EAVE ? cover | edge.ordinal() << 6 : pack(Piece.NONE, 0);
         }
+        return shape(topology, x, y);
+    }
+
+    /** The piece over a roofed cell from where the outside touches it, as a wall would take it. */
+    private static int shape(CellTopology topology, int x, int y) {
         boolean[] out = new boolean[4];
         int outside = 0;
         for (int side = 0; side < 4; side++) {
@@ -112,6 +139,16 @@ public final class RoofCover {
     /** The side a packed cover faces: see {@link Piece}. */
     public static int facing(int cover) {
         return (cover >>> 4) & 3;
+    }
+
+    /** What a packed cover's cell holds, which sets how far an eave over it reaches. */
+    public static Edge edge(int cover) {
+        return EDGES[(cover >>> 6) & 3];
+    }
+
+    /** The rectangles a packed cover covers, at its own eave depth: see {@link #rects(int, float)}. */
+    public static float[][] rects(int cover) {
+        return rects(cover, edge(cover).depth);
     }
 
     /**

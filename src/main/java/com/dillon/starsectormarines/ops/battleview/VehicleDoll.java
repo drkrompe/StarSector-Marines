@@ -16,12 +16,12 @@ import java.util.List;
 
 /**
  * A vehicle's doll in the Mech Lab (mechs-nouns.md, vehicle kit): the mech schematic's shape with
- * the hull in the middle, the turret ahead, the bay and the systems either side and the kit rack
- * behind. Every card but the rack is sealed; it is derived from the hull's type, never authored, so
- * a new vehicle gets a doll by having a turret, seats or systems.
+ * the engine in the middle, as on every machine, the turret ahead, the bay and the systems either
+ * side and the kit rack behind. Every card but the rack is sealed; it is derived from the hull's
+ * type, never authored, so a new vehicle gets a doll by having a turret, seats or systems.
  *
  * <p>The cards reuse the mech socket ids for their places on the schematic: {@code CORE} is the
- * hull, {@code ARMS} the turret, the shoulders the bay and the systems, {@code AUXILIARY} the rack.</p>
+ * engine, {@code ARMS} the turret, the shoulders the bay and the systems, {@code AUXILIARY} the rack.</p>
  */
 final class VehicleDoll {
 
@@ -30,7 +30,8 @@ final class VehicleDoll {
     /** The cards a hull of {@code type} shows, the kit rack last. */
     static List<SocketDef> sockets(VehicleType type) {
         List<SocketDef> sockets = new ArrayList<>();
-        sockets.add(card(SocketId.CORE, SocketType.ENGINE, 2, "@vehicleDollHull"));
+        sockets.add(card(SocketId.CORE, SocketType.ENGINE, type.weight() == VehicleType.Weight.LIGHT ? 1 : 2,
+                "@gearSocketEngine"));
         if (type.hasTurretWeapon()) {
             Gun gun = Gun.of(type.turretStructureId);
             sockets.add(card(SocketId.ARMS, gun.hardpoint == HardpointType.MISSILE ? SocketType.MISSILE
@@ -51,10 +52,9 @@ final class VehicleDoll {
 
     /** What a sealed card holds, as its caption; the rack's caption is its fill. */
     static String caption(VehicleType type, SocketId card, List<VehicleKit> kits) {
-        VehicleKit.Effect effect = VehicleKit.Effect.of(kits);
         return switch (card) {
-            case CORE -> Strings.format("vehicleDollHullCaption", Math.round(type.maxArmor * effect.armorFactor()),
-                    Math.round(type.armorRating + effect.armorRatingBonus()));
+            case CORE -> Strings.get(type.isHover() ? "vehicleDollHover" : type.isTank() ? "vehicleDollTracked"
+                    : "vehicleDollWheeled");
             case ARMS -> turretName(type);
             case LEFT_SHOULDER -> bay(type);
             case RIGHT_SHOULDER -> String.join(Strings.get("separatorDot"), systems(type));
@@ -105,7 +105,7 @@ final class VehicleDoll {
 
     private static List<String> artStems() {
         List<String> stems = new ArrayList<>(List.of(
-                "vehicle-hull-tracked", "vehicle-hull-wheeled", "vehicle-hull-hover",
+                "engine-industrial", "engine-uprated", "engine-military",
                 "boat-hold-standard", "vehicle-bay-supply", "vehicle-bay-drones",
                 "vehicle-systems-blade", "vehicle-systems-aps", "vehicle-systems-mast", "vehicle-systems-secondary"));
         for (Gun gun : Gun.values()) if (!stems.contains(gun.art)) stems.add(gun.art);
@@ -113,7 +113,7 @@ final class VehicleDoll {
     }
 
     /**
-     * A card's colour in the lab's hardware language ({@link HardpointBricks}): the hull is the drive, so
+     * A card's colour in the lab's hardware language ({@link HardpointBricks}): the engine core is
      * engine blue; the turret its gun's hardpoint; the systems utility teal; the bay and the rack the
      * auxiliary compartment's steel, the rack's kits bringing their own colours.
      */
@@ -137,8 +137,11 @@ final class VehicleDoll {
      */
     static String art(VehicleType type, SocketId card) {
         return switch (card) {
-            case CORE -> type.isHover() ? "vehicle-hull-hover"
-                    : type.isTank() ? "vehicle-hull-tracked" : "vehicle-hull-wheeled";
+            case CORE -> switch (type.weight()) {
+                case LIGHT -> "engine-industrial";
+                case MEDIUM -> "engine-uprated";
+                case HEAVY -> "engine-military";
+            };
             case ARMS -> Gun.of(type.turretStructureId).art;
             case LEFT_SHOULDER -> type.capacity > 0 ? "boat-hold-standard"
                     : type.supplyStock() > 0 ? "vehicle-bay-supply" : "vehicle-bay-drones";
