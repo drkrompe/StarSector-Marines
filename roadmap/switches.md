@@ -65,7 +65,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.fort.restraint` | control | 2026-10-13 | Standing control: ShieldFortScene runs the off arm as its control loop. Retire it with that loop. |
 | `battle.garrison.envelopes` | experiment | 2026-10-20 | Garrisonables (garrisonables.md): remove once garrisonEvidence and the reactive-defence evidence accept it. |
 | `battle.garrison.stretches` | experiment | 2026-10-20 | Garrisonables (garrisonables.md): remove once garrisonEvidence and the reactive-defence evidence accept it. |
-| `battle.harrier.blood` | experiment | 2026-10-24 | Harrier sessions: remove with the losing modes once the owner answers the picks question harrier-blood (colony-breach-nouns.md, Harrier). |
 | `battle.heart.armourByNeed` | experiment | 2026-10-23 | Broad Front lanes call armour pairs from the vehicle park's tool shed by need, not on the waves' timetable (`heart-allied-commander.md`). Remove with the losing arm at the first played comparison once the owner answers `heart-allied-tool`; `false` is the control, the timetable. |
 | `battle.heart.broadArmourBehind` | experiment | 2026-10-23 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
 | `battle.heart.broadArmourWaves` | experiment | 2026-10-23 | Bloom mission 3 (Broad Front, The Burn): remove each once the owner's pick for that mission is settled (heart-nouns.md). Numeric ones fold into constants. |
@@ -143,6 +142,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.render.doodadAtlas` | experiment | 2026-10-23 | Doodad decoration atlas: remove it with the per-cut bind path once renderEvidence has read the atlas against its control. |
 | `battle.render.fire` | control | 2026-10-22 | Standing control: fire render cost control for renderEvidence, as for battle.fire. |
 | `battle.render.groundFeathering` | control | 2026-10-22 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
+| `battle.render.pagedBatch` | experiment | 2026-10-24 | Programmable quad batch (`programmable-quad-batch.md`): remove it with the fixed-function run path once renderEvidence and the paged-run GL evidence have read paged runs against it. The fixed-function fallback for a refused program stays. |
 | `battle.render.settledBodyMesh` | control | 2026-10-22 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.sallyDoors` | experiment | 2026-10-20 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.sallyDoors.closable` | experiment | 2026-10-21 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |

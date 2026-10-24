@@ -304,7 +304,7 @@ public final class MechLabScreen implements Screen {
                     && row.internalPreview().role != MechInternal.Role.PLATING;
             UiElement card = instance.requireElement(row.id());
             card.onPointerDown(event -> {
-                if (row.selectsOnClick()) row.action().run();
+                if (row.selectsOnClick()) row.select().run();
                 if (draggable) beginCatalogDrag(event, row);
             });
             card.onPointerMove(event -> {

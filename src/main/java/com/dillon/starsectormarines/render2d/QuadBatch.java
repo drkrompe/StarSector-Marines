@@ -449,6 +449,29 @@ public final class QuadBatch {
         quadCount = 0;
     }
 
+    /**
+     * Moves every queued quad into {@code run} as page {@code page} of it, in order, and empties this batch: how a
+     * paged run takes a sheet's quads while each one's texture coordinates are still worked out by the batch that
+     * knows its sheet.
+     */
+    void moveQueuedTo(PagedQuadRun run, int page) {
+        if (quadCount == 0) return;
+        run.ensureCapacity(quadCount);
+        int verts = quadCount * VERTS_PER_QUAD;
+        int base = run.quadCount * VERTS_PER_QUAD;
+        float z = page;
+        for (int v = 0; v < verts; v++) {
+            int to = (base + v) * 3;
+            run.posData[to] = posData[v * 2];
+            run.posData[to + 1] = posData[v * 2 + 1];
+            run.posData[to + 2] = z;
+        }
+        System.arraycopy(uvData, 0, run.uvData, base * 2, verts * 2);
+        System.arraycopy(colData, 0, run.colData, base * 4, verts * 4);
+        run.quadCount += quadCount;
+        quadCount = 0;
+    }
+
     private void ensureCapacity(int neededQuads) {
         if (posData.length >= neededQuads * POS_FLOATS_PER_QUAD) return;
         int newQuads = posData.length / POS_FLOATS_PER_QUAD;

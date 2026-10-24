@@ -64,11 +64,12 @@ public final class SwarmFliers {
 
     /**
      * Blood a bite left on the ground, at ({@code x},{@code y}) along the stroke ({@code facing}), from {@code tick}.
-     * Drawn as a small pool that spreads and then fades ({@link HarrierRules#STAIN_SECONDS}). Presentation only.
+     * Drawn as a spatter thrown along the stroke that spreads a little and then fades
+     * ({@link HarrierRules#STAIN_SECONDS}). Presentation only.
      */
     public record Stain(float x, float y, float facing, int tick) {}
 
-    /** The stains still on the ground; only under {@link HarrierBlood#STAIN}. */
+    /** The stains still on the ground. */
     public List<Stain> stains() { return Collections.unmodifiableList(stains); }
 
     private void stain(float x, float y, float dx, float dy, int tick) {
@@ -304,8 +305,8 @@ public final class SwarmFliers {
         World world = sim.world();
         float tx = world.x(target), ty = world.y(target);
         boolean infantry = BruteChargeSystem.isInfantry(target, sim);
-        sim.emitClawStrike(tx, ty, dx, dy, infantry ? HarrierBlood.MODE.weight : 0f);
-        if (infantry && HarrierBlood.MODE.stains) stain(tx + dx * .3f, ty + dy * .3f, dx, dy, tick);
+        sim.emitClawStrike(tx, ty, dx, dy, infantry ? 1f : 0f);
+        if (infantry) stain(tx + dx * .3f, ty + dy * .3f, dx, dy, tick);
         if (!infantry || !sim.getRoster().isAliveById(target) || lift(target) != null
                 || !HarrierLift.rolls(harrier, target, tick, liftChance)) return;
         NavigationGrid grid = sim.getGrid();
