@@ -291,6 +291,14 @@ public final class BattleComponents {
     public static final int MOVEMENT_OBJECTIVE_ROUTE_REFRESH = 10;
     /** Member-owned known-grenade escape witness; path replacement revokes it (OBJECT, nullable). */
     public static final int MOVEMENT_GRENADE_ESCAPE = 11;
+    /** {@link #MOVEMENT} field 12: route-stall watch, x where the mover last made progress, cells (FLOAT). See {@code MovementService.stalledOnRoute}. */
+    public static final int MOVEMENT_STALL_ANCHOR_X = 12;
+    /** {@link #MOVEMENT} field 13: route-stall watch, y where the mover last made progress, cells (FLOAT). */
+    public static final int MOVEMENT_STALL_ANCHOR_Y = 13;
+    /** {@link #MOVEMENT} field 14: route-stall watch, sim-clock time it last made progress (FLOAT). */
+    public static final int MOVEMENT_STALL_SINCE = 14;
+    /** {@link #MOVEMENT} field 15: route-stall watch, sim-clock time of its last route step (FLOAT); a gap restarts the watch. */
+    public static final int MOVEMENT_STALL_LAST_STEP = 15;
 
     /** {@link #AI_STATE} field 0: sim-seconds until the unit may next micro-reposition between shots (FLOAT). */
     public static final int AI_STATE_REPOSITION_COOLDOWN = 0;
@@ -1222,7 +1230,8 @@ public final class BattleComponents {
         MOVEMENT        = world.register(8, "Movement",
                 FieldKind.FLOAT, FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT,
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,
-                FieldKind.OBJECT, FieldKind.INT, FieldKind.INT, FieldKind.OBJECT);
+                FieldKind.OBJECT, FieldKind.INT, FieldKind.INT, FieldKind.OBJECT,
+                FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT);
         AI_STATE        = world.register(9, "AiState",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.FLOAT,
                 FieldKind.OBJECT, FieldKind.FLOAT);

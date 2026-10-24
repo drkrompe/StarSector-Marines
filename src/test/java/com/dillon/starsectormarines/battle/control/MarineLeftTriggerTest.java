@@ -24,6 +24,27 @@ class MarineLeftTriggerTest {
             var special = SpecialEquipmentRegistry.require(id);
             assertEquals(List.of(special), MarineLeftTrigger.specials(special), id);
         }
+        var flamer = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FLAMER_ID);
+        assertTrue(flamer.isHeldStream());
+        assertEquals(List.of(flamer), MarineLeftTrigger.specials(flamer));
+        assertFalse(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID).isHeldStream());
+    }
+
+    @Test
+    void aHeldStreamKeepsFiringEachTimeItCanUntilReleased() {
+        MarineLeftTrigger trigger = new MarineLeftTrigger();
+        trigger.pick(1, 2, 2 * DT);
+        int fired = 0;
+        for (int i = 0; i < 12; i++) {
+            // The flamer's own cooldown allows a charge on every fourth tick.
+            if (trigger.tick(true, false, i % 4 == 3, true, DT)) {
+                fired++;
+                trigger.fired();
+            }
+        }
+        assertEquals(3, fired);
+        assertFalse(trigger.tick(false, false, true, true, DT));
+        assertFalse(trigger.tick(false, false, true, true, DT), "a released button sends nothing more");
     }
 
     @Test
