@@ -230,7 +230,8 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
      * to the east, which the guns will not fire on; rounds credited to it raise the shields toward it and charge the
      * capacitors, so nothing in the frame is firing.
      * Styles whose builders fit no shield yet (the low and midline ones) are fitted one in orange for the study.
-     * Played half a second so the break's venting is in the frame; play and close views.
+     * Played a little over a second and stilled at one, so the break has played out and the third gun shows no shield,
+     * only its radiator venting; play and close views.
      */
     private static LookReview.Shot fluxHardware(String style) {
         LookGround ground = LookGround.of(SurfacePalette.ARID, 7L);
@@ -273,7 +274,7 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
         }, placement -> List.of(
                 LookReview.View.play(placement.site().x(18f), placement.site().y(11f)),
                 LookReview.View.close("close", placement.site().x(18f), placement.site().y(11f), 22f)),
-                15, 1, 1).withStills(12);
+                Math.round(1.2f / BattleSimulation.TICK_DT), 1, 1).withStills(Math.round(1f / BattleSimulation.TICK_DT));
     }
 
     /** A shield's view of where things are, read off {@code sim}'s world. */
