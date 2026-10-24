@@ -364,7 +364,10 @@ in the way.
 **Convoy (the Road).** An allied column of trucks that sets out from the
 logistics base where the corridor passes it, drives the corridor to the town,
 waits at the compound's gate while the townspeople board, and drives back to
-the base. It does not fight its way through: it stops when the road ahead is
+the base. Only a truck at the gate takes people aboard: a truck still on its
+way when the first arrives drives on to the gate, and the convoy waits for it
+(a loading's length past its own, then turns for home without it, the
+straggler driving back empty). It does not fight its way through: it stops when the road ahead is
 blocked by the swarm, and goes on when it is clear. Past the gap, in the
 swarm's country, it rolls only with an escort beside it: a convoy nobody
 escorts waits at the line. A convoy is **lost** when all its trucks are
@@ -393,8 +396,11 @@ beside it, the pair drives at the slower one's pace, and it holds whenever the
 escort falls behind; with no escort free, or one that never came, it goes
 alone for good, and the company walks with it. The radio's Escorted counts an
 armed hull, a Hound or a street team within reach. The company walks with a convoy only
-where no armed allied hull is with it, which is where the armour has not come
-or has died, and clears the road ahead of one the swarm has halted. One escort
+where the armour does not escort it: where its escort went short (a hull for
+every post, one of them alongside, or it is not escorted), has not come or has
+died; a sector's hull it passes at the gap is not its escort. It clears the
+road ahead of one the swarm has halted, and goes to one the swarm has reached
+where nothing lies ahead of it (at the gate while it loads, from the side). One escort
 is the convoy's: a hull or a marine near any of its trucks lets the whole
 column roll.
 

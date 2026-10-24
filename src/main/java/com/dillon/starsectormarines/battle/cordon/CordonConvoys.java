@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
+import java.util.function.IntFunction;
 
 /**
  * The Road's relief convoys ({@code cordon-nouns.md}, Convoy): columns of allied trucks that set out
@@ -82,6 +83,11 @@ public final class CordonConvoys {
     static final int STRETCH = 30;
     /** Ticks a truck may make no headway along an open route before it is given a way on again. */
     static final int STUCK_TICKS = 60 * 5;
+    /**
+     * Ticks past its loading a convoy waits at the gate for a truck still on its way there before it turns for home
+     * without it: the straggler is given none of the people and drives back empty.
+     */
+    static final int STRAGGLER_TICKS = LOADING_TICKS;
 
     private enum Phase { WAITING, INBOUND, LOADING, OUTBOUND, OUT, LOST }
 
@@ -96,6 +102,8 @@ public final class CordonConvoys {
         boolean halted;
         /** Held past the gap for want of an escort. */
         boolean unescorted;
+        /** At the compound's gate, where its people board. */
+        boolean atGate;
         /** Where the road ahead of a halted truck is blocked. */
         int blockX, blockY;
         /** The furthest corridor cell along its way it has reached, and the tick it last went further, was held or was given its route. */
@@ -113,6 +121,8 @@ public final class CordonConvoys {
         int extraLoading;
         int people;
         boolean throughGap, ambushed;
+        /** Where a swarm body stands on one of its trucks at the last look, or {@code null}. */
+        int[] reachedAt;
 
         Convoy(int number, int departTick) {
             this.number = number;
@@ -141,6 +151,10 @@ public final class CordonConvoys {
     private List<float[]> company = List.of();
     /** The allies' armed hulls at the last look. */
     private List<float[]> guards = List.of();
+    /** The armour's escort for the convoy whose posts came {@code i}th at its last look; {@code null} unwired. */
+    private IntFunction<int[]> armourEscort;
+    /** The convoys whose posts {@link #guardPosts} last gave the armour, by number, in that order. */
+    private final List<Integer> guardConvoys = new ArrayList<>();
 
     /**
      * @param corridor the relief road's cells in driving order, rear edge first
@@ -164,6 +178,14 @@ public final class CordonConvoys {
 
     /** The corridor the convoys drive now, rear edge first. */
     public List<int[]> corridor() { return corridor; }
+
+    /**
+     * Has the company read whether the armour escorts a convoy from the escort the armour gave it
+     * ({@link CordonAlliedRules#convoyEscorted}) rather than from any armed hull standing near a truck.
+     */
+    public void escortedBy(IntFunction<int[]> armourEscort) {
+        this.armourEscort = armourEscort;
+    }
 
     /** The town militia's squads, set at setup. */
     public List<Integer> townMilitia() { return townMilitia; }
@@ -354,12 +376,21 @@ public final class CordonConvoys {
                 continue;
             }
             if (!review) continue;
+            c.reachedAt = reachedAt(sim, c, swarm);
             switch (c.phase) {
                 case INBOUND -> inbound(sim, tick, c, swarm, beat);
                 case LOADING -> {
-                    if (tick - c.loadingSince < LOADING_TICKS + c.extraLoading) continue;
+                    int live = 0, atGate = 0;
                     for (Truck t : c.trucks) {
                         if (t.gone) continue;
+                        live++;
+                        if (!t.atGate) comeToGate(sim, c, t, swarm);
+                        if (t.atGate) atGate++;
+                    }
+                    if (!leaves(tick - c.loadingSince, LOADING_TICKS + c.extraLoading, live, atGate)) continue;
+                    // Only a truck at the gate takes people aboard; one still on its way turns back empty.
+                    for (Truck t : c.trucks) {
+                        if (t.gone || !t.atGate) continue;
                         t.people = Math.min(SEATS, town);
                         town -= t.people;
                     }
@@ -409,6 +440,8 @@ public final class CordonConvoys {
             }
             if (at >= end - AT_LEG) {
                 atGate = true;
+                t.atGate = true;
+                t.halted = t.unescorted = false;
                 sim.convoy().mission(t.hull).authoredRoutePaused = true;
                 continue;
             }
@@ -419,6 +452,34 @@ public final class CordonConvoys {
             c.loadingSince = tick;
             beat.accept("convoy_at_town_" + c.number);
         }
+    }
+
+    /**
+     * A truck of a loading convoy still on its way to the gate keeps driving there: it is not frozen where it stood
+     * when the first truck arrived (town Road, verdant 7: the second truck stood paused 45 cells short of the gate for
+     * the whole loading, and was then given six people who never boarded it).
+     */
+    private void comeToGate(BattleSimulation sim, Convoy c, Truck t, List<float[]> swarm) {
+        int at = nearestIndex(sim.convoy().body(t.hull));
+        if (at >= corridor.size() - 1 - AT_LEG) {
+            t.atGate = true;
+            t.halted = t.unescorted = false;
+            sim.convoy().mission(t.hull).authoredRoutePaused = true;
+            return;
+        }
+        drive(sim, c, t, at, +1, swarm);
+    }
+
+    /**
+     * Whether a loading convoy turns for home: its loading time is up and every live truck is at the gate, or a
+     * straggler has been waited for {@link #STRAGGLER_TICKS} past it.
+     *
+     * @param waited  ticks since the first truck reached the gate
+     * @param loading ticks its people take to board
+     */
+    static boolean leaves(int waited, int loading, int live, int atGate) {
+        if (live <= 0 || waited < loading) return false;
+        return atGate >= live || waited >= loading + STRAGGLER_TICKS;
     }
 
     private void outbound(BattleSimulation sim, Convoy c, List<float[]> swarm, Consumer<String> beat) {
@@ -495,11 +556,11 @@ public final class CordonConvoys {
     }
 
     /**
-     * Where each convoy on the road no armed allied hull is with wants its escort: a few cells ahead
+     * Where each convoy on the road the armour does not escort wants its escort: a few cells ahead
      * of its lead truck along the road in the way it is going, or at the gate while it loads. What
      * the company is asked to walk.
-     * The armour escorts first; the company is the backstop for a convoy whose armour has not come,
-     * or has died.
+     * The armour escorts first; the company is the backstop for a convoy whose armour went short, has
+     * not come, or has died ({@link CordonAlliedRules#convoyEscorted}).
      */
     public List<int[]> unguarded(BattleSimulation sim) {
         return escorts(sim, true, false);
@@ -512,7 +573,9 @@ public final class CordonConvoys {
      */
     public List<int[][]> guardPosts(BattleSimulation sim) {
         List<int[][]> out = new ArrayList<>();
+        guardConvoys.clear();
         for (int[] place : escorts(sim, false, true)) {
+            guardConvoys.add(place[4]);
             int at = place[2], direction = place[3];
             int ahead = Math.max(0, Math.min(corridor.size() - 1, at + direction * GUARD_POINT));
             out.add(new int[][]{beside(at, GUARD_SIDE), beside(at, -GUARD_SIDE), beside(ahead, GUARD_SIDE)});
@@ -531,8 +594,8 @@ public final class CordonConvoys {
 
 
     /**
-     * Each convoy's escort place as {x, y, corridor index, direction}: on the whole road, or only near
-     * and past the gap; and of every convoy, or only of those no armed allied hull is with.
+     * Each convoy's escort place as {x, y, corridor index, direction, convoy number}: on the whole road, or only
+     * near and past the gap; and of every convoy, or only of those the armour does not escort.
      */
     private List<int[]> escorts(BattleSimulation sim, boolean unguardedOnly, boolean wholeRoad) {
         List<int[]> out = new ArrayList<>();
@@ -548,15 +611,26 @@ public final class CordonConvoys {
                 int at = nearestIndex(body);
                 if (lead < 0 || (at - lead) * direction > 0) lead = at;
             }
-            if (unguardedOnly && guarded) continue;
+            if (unguardedOnly && escortedByArmour(c.number, guarded)) continue;
             if (lead < 0) continue;
             if (!wholeRoad && direction > 0 && lead < gapIndex - 2 * ESCORT_FROM) continue;
             if (!wholeRoad && direction < 0 && lead < gapIndex - ESCORT_FROM) continue;
             int ahead = Math.max(0, Math.min(corridor.size() - 1, lead + direction * ESCORT_LEAD));
             int[] cell = corridor.get(ahead);
-            out.add(new int[]{cell[0], cell[1], ahead, direction});
+            out.add(new int[]{cell[0], cell[1], ahead, direction, c.number});
         }
         return out;
+    }
+
+    /**
+     * Whether the armour escorts convoy {@code number}: the escort it was given is whole and one of it is alongside.
+     * Unwired, any armed hull alongside a truck.
+     */
+    private boolean escortedByArmour(int number, boolean alongside) {
+        if (armourEscort == null) return alongside;
+        int index = guardConvoys.indexOf(number);
+        int[] escort = index < 0 ? null : armourEscort.apply(index);
+        return escort != null && CordonAlliedRules.convoyEscorted(escort[0], escort[1], alongside);
     }
 
     /** Whether another truck of the convoy is on the road just ahead of this one. */
@@ -718,19 +792,64 @@ public final class CordonConvoys {
     }
 
     /**
-     * Where convoys stand halted with the road ahead blocked, one place a convoy: what the company
-     * is asked to clear ({@code cordon-nouns.md}, Flow, the Road).
+     * Where the company is asked to clear the road, one place a convoy ({@code cordon-nouns.md}, Flow, the Road):
+     * ahead of a convoy halted with the road ahead blocked, or else where the swarm is on one of its trucks
+     * ({@link #roadCall}).
      */
     public List<int[]> roadBlocks() {
         List<int[]> out = new ArrayList<>();
         for (Convoy c : convoys) {
+            if (c.phase != Phase.INBOUND && c.phase != Phase.LOADING && c.phase != Phase.OUTBOUND) continue;
+            int[] block = null;
             for (Truck t : c.trucks) {
                 if (t.gone || !t.halted) continue;
-                out.add(new int[]{t.blockX, t.blockY});
+                block = new int[]{t.blockX, t.blockY};
                 break;
+            }
+            int[] call = roadCall(block, c.reachedAt);
+            if (call != null) out.add(call);
+        }
+        return out;
+    }
+
+    /**
+     * Where a convoy calls the company to clear its road: the road ahead where the swarm blocks it, or, with the road
+     * ahead open, where the swarm has reached one of its trucks; {@code null} for neither. Only the road ahead used to
+     * call, so a truck the swarm caught where nothing lay ahead of it called nobody: at the compound's gate while it
+     * loaded, where it no longer looks ahead (town Road, arid 7: two brutes beat a loading truck to death in six
+     * seconds while the company stood at the hinge), or from the side or behind on the road.
+     */
+    static int[] roadCall(int[] blockedAhead, int[] reachedAt) {
+        return blockedAhead != null ? blockedAhead : reachedAt;
+    }
+
+    /**
+     * Where the swarm body nearest any of a convoy's trucks stands, if one is within {@link #BLOCK_REACH} of it:
+     * the swarm on the convoy itself.
+     */
+    static int[] swarmOn(List<float[]> trucks, List<float[]> swarm) {
+        float best = BLOCK_REACH;
+        int[] out = null;
+        for (float[] t : trucks) {
+            for (float[] s : swarm) {
+                float d = (float) Math.hypot(s[0] - t[0], s[1] - t[1]);
+                if (d <= best) {
+                    best = d;
+                    out = new int[]{(int) s[0], (int) s[1]};
+                }
             }
         }
         return out;
+    }
+
+    private int[] reachedAt(BattleSimulation sim, Convoy c, List<float[]> swarm) {
+        List<float[]> trucks = new ArrayList<>();
+        for (Truck t : c.trucks) {
+            if (t.gone) continue;
+            GroundBody body = sim.convoy().body(t.hull);
+            trucks.add(new float[]{body.x, body.y});
+        }
+        return swarmOn(trucks, swarm);
     }
 
     private boolean reached(BattleSimulation sim, Convoy c, List<float[]> swarm) {

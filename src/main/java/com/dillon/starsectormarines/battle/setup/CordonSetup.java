@@ -513,6 +513,7 @@ public final class CordonSetup {
             CordonConvoys convoys = convoys(sim, cordon, timetable, logistics);
             sequence.attachConvoys(convoys);
             armour.escortConvoys(convoys::guardPosts);
+            convoys.escortedBy(armour::convoyEscort);
         }
         sequence.attachLine(new CordonLineCommand(sim, sequence, armour, logistics, cordon.density(), table, pickets,
                 map.layout));
