@@ -4,58 +4,58 @@
   "biomes": {
     "VERDANT": [
       {
-        "seed": 1,
-        "note": "rear north; redoubt guns 2-1-2-2"
-      },
-      {
         "seed": 8,
-        "note": "rear south; redoubt guns 1-2-2-2"
+        "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"
       },
       {
-        "seed": 14,
-        "note": "rear north; redoubt guns 1-2-1-2"
+        "seed": 2,
+        "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"
+      },
+      {
+        "seed": 10,
+        "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"
       }
     ],
     "ARID": [
       {
-        "seed": 1,
-        "note": "rear north; redoubt guns 2-1-2-2"
-      },
-      {
         "seed": 14,
-        "note": "rear north; redoubt guns 1-2-1-2"
+        "note": "rear north; redoubt guns 2-2-2-2; every redoubt on the crest"
       },
       {
-        "seed": 15,
-        "note": "rear south; redoubt guns 1-1-1-2"
+        "seed": 2,
+        "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"
+      },
+      {
+        "seed": 8,
+        "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"
       }
     ],
     "ROCK": [
       {
-        "seed": 1,
-        "note": "rear north; redoubt guns 2-1-2-2"
-      },
-      {
         "seed": 8,
-        "note": "rear south; redoubt guns 1-2-2-2"
+        "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"
       },
       {
         "seed": 14,
-        "note": "rear north; redoubt guns 1-2-1-2"
+        "note": "rear north; redoubt guns 2-2-2-2; every redoubt on the crest"
+      },
+      {
+        "seed": 2,
+        "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"
       }
     ],
     "FROZEN": [
       {
-        "seed": 1,
-        "note": "rear north; redoubt guns 2-1-2-2"
-      },
-      {
         "seed": 14,
-        "note": "rear north; redoubt guns 1-2-1-2"
+        "note": "rear north; redoubt guns 2-2-2-2; every redoubt on the crest"
       },
       {
-        "seed": 15,
-        "note": "rear south; redoubt guns 1-1-1-2"
+        "seed": 8,
+        "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"
+      },
+      {
+        "seed": 10,
+        "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"
       }
     ]
   }

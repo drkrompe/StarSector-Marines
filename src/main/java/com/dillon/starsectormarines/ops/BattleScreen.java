@@ -733,7 +733,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             renderer.getImpactFx().spawnGroundDust(dust[0], dust[1], dust[2], dust[3], dust[4], (int) dust[5]);
         }
         for (float[] s : sim.getClawStrikesThisFrame()) {
-            renderer.getImpactFx().spawnClawStrike(s[0], s[1], s[2], s[3], s[4] > 0f);
+            renderer.getImpactFx().spawnClawStrike(s[0], s[1], s[2], s[3], s[4]);
         }
         for (float[] burst : sim.getFireBurstsThisFrame()) {
             renderer.getImpactFx().spawnAmbientFire(burst[0], burst[1], burst[2]);

@@ -43,12 +43,13 @@ public final class SwarmFliers {
 
     /** Something a pack did, kept for evidence. */
     public record Event(int tick, Kind kind, int pack, long harrier, long target) {
-        public enum Kind { COMMIT, STRIKE, PULL_UP_DONE, SPLIT, ESCORT_LOST }
+        public enum Kind { COMMIT, STRIKE, LIFT, PULL_UP_DONE, SPLIT, ESCORT_LOST }
     }
 
     private final List<HarrierPack> packs = new ArrayList<>();
     private final List<HarrierFall> falls = new ArrayList<>();
     private final List<HarrierLift> lifts = new ArrayList<>();
+    private final List<Stain> stains = new ArrayList<>();
     /** The share of strikes on a marine that lift it ({@link HarrierRules#LIFT_CHANCE}); a review raises it. */
     float liftChance = HarrierRules.LIFT_CHANCE;
     private final List<Event> events = new ArrayList<>();
@@ -60,6 +61,21 @@ public final class SwarmFliers {
     public List<HarrierPack> packs() { return Collections.unmodifiableList(packs); }
     public List<HarrierFall> falls() { return Collections.unmodifiableList(falls); }
     public List<HarrierLift> lifts() { return Collections.unmodifiableList(lifts); }
+
+    /**
+     * Blood a bite left on the ground, at ({@code x},{@code y}) along the stroke ({@code facing}), from {@code tick}.
+     * Drawn as a spatter thrown along the stroke that spreads a little and then fades
+     * ({@link HarrierRules#STAIN_SECONDS}). Presentation only.
+     */
+    public record Stain(float x, float y, float facing, int tick) {}
+
+    /** The stains still on the ground. */
+    public List<Stain> stains() { return Collections.unmodifiableList(stains); }
+
+    private void stain(float x, float y, float dx, float dy, int tick) {
+        if (stains.size() >= HarrierRules.MAX_STAINS) stains.remove(0);
+        stains.add(new Stain(x, y, (float) Math.toDegrees(Math.atan2(dy, dx)), tick));
+    }
 
     /** The throw {@code body} is in the air on, or {@code null} when it is on the ground. */
     public HarrierLift lift(long body) {
@@ -160,6 +176,8 @@ public final class SwarmFliers {
     public void tick(BattleSimulation sim) {
         ageFalls(sim);
         ageLifts(sim);
+        int stale = sim.getSimTickIndex() - Math.round(HarrierRules.STAIN_SECONDS / BattleSimulation.TICK_DT);
+        while (!stains.isEmpty() && stains.get(0).tick() < stale) stains.remove(0);
         if (packs.isEmpty()) return;
         int tick = sim.getSimTickIndex();
         World world = sim.world();
@@ -287,7 +305,8 @@ public final class SwarmFliers {
         World world = sim.world();
         float tx = world.x(target), ty = world.y(target);
         boolean infantry = BruteChargeSystem.isInfantry(target, sim);
-        sim.emitClawStrike(tx, ty, dx, dy, infantry);
+        sim.emitClawStrike(tx, ty, dx, dy, infantry ? 1f : 0f);
+        if (infantry) stain(tx + dx * .3f, ty + dy * .3f, dx, dy, tick);
         if (!infantry || !sim.getRoster().isAliveById(target) || lift(target) != null
                 || !HarrierLift.rolls(harrier, target, tick, liftChance)) return;
         NavigationGrid grid = sim.getGrid();
@@ -296,6 +315,7 @@ public final class SwarmFliers {
             float lx = tx + dx * cells, ly = ty + dy * cells;
             if (!ManualTerrainMotion.canStand(grid, lx, ly, sim.getRoster().radius(target))) continue;
             lifts.add(new HarrierLift(harrier, target, tx, ty, lx, ly));
+            events.add(new Event(tick, Event.Kind.LIFT, pack.id, harrier, target));
             sim.stagger().stagger(target, Math.round(HarrierRules.LIFT_SECONDS / BattleSimulation.TICK_DT) + 1,
                     StaggerService.Cause.KNOCKED_DOWN);
             sim.clearPath(target);

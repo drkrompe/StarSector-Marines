@@ -561,6 +561,14 @@ public class InfantryWeapons {
 
         float fromX = world.renderX(carrier);
         float fromY = world.renderY(carrier);
+        if (grenade.isHeldStream()) {
+            // A flamer's jet leaves the wand's nozzle, ahead of the Marine, unless a wall stands there.
+            float[] nozzle = FlameJet.nozzle(fromX, fromY, targetX, targetY);
+            if (grid.hasLineOfFire(fromX, fromY, nozzle[0], nozzle[1])) {
+                fromX = nozzle[0];
+                fromY = nozzle[1];
+            }
+        }
         float dx = targetX - fromX;
         float dy = targetY - fromY;
         float distance = (float) Math.sqrt(dx * dx + dy * dy);

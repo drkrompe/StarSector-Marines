@@ -5,14 +5,14 @@ package com.dillon.starsectormarines.battle.turret;
  * layers. A null path keeps the structure's own default ({@code art.base}, the mount's {@code sprite} and
  * {@code recoilSprite}), so a style may restyle the base alone.
  *
- * <p>{@code shieldCells}, when positive, draws a light flux shield over the gun, a bubble of that radius in cells that
- * flares where hostile rounds land and is down while the structure is badly hurt (the high-tech styles). It is drawn,
- * not simulated: rounds pass it and do their full damage, as for every other look.
+ * <p>{@code shield}, when not null, fits the structure's directional flux shield ({@code StructureDef.fluxShield}),
+ * drawn in that tint: the field-emitter styles' builders fit the generator, the others do not. It is the one thing a
+ * look decides that a battle reads; the shield's strength is the structure's.
  */
-public record StructureLook(String basePath, String spritePath, String recoilSpritePath, float shieldCells) {
+public record StructureLook(String basePath, String spritePath, String recoilSpritePath, ShieldTint shield) {
 
     /** A look with no shield. */
     public StructureLook(String basePath, String spritePath, String recoilSpritePath) {
-        this(basePath, spritePath, recoilSpritePath, 0f);
+        this(basePath, spritePath, recoilSpritePath, null);
     }
 }

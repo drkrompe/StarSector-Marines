@@ -24,14 +24,14 @@ class FireReachTest {
     @Test
     void aFireLitInTheMeadowYouStandInComesToYou() {
         FireReach reach = FireReach.of(grassWithBreak(-1, -1), 20, 10);
-        assertTrue(reach.threatens(14, 10));
+        assertTrue(reach.threatens(17, 10));
     }
 
     @Test
     void aMeadowFireComesNoFurtherThanGrassCarriesIt() {
-        // Lit two cells round, carried three more: reached to five, threatening six, and safe at seven.
+        // Lit two cells round, carried at most 115% of grass's two cells more: reached to under five, threatening six.
         FireReach reach = FireReach.of(grassWithBreak(-1, -1), 20, 10);
-        assertTrue(reach.threatens(14, 10));
+        assertTrue(reach.threatens(17, 10));
         assertFalse(reach.threatens(13, 10), "a flamer seven cells back from a meadow fire is out of its way");
     }
 
@@ -66,8 +66,12 @@ class FireReachTest {
 
     @Test
     void aGapHeatCrossesDoesNotShield() {
-        // Lit two cells round, so at 15; heat crosses the two bare cells to grass three cells further on.
-        FireReach reach = FireReach.of(grassWithBreak(13, 14), 17, 10);
+        // Dead creep carries a fire as far as it stands, so only the gap decides: lit two cells round, so at 15, heat
+        // crosses the two bare cells to the creep three cells further on.
+        int[] fuel = new int[W * H];
+        for (int y = 0; y < H; y++) for (int x = 0; x < W; x++)
+            fuel[y * W + x] = x == 13 || x == 14 ? 0 : FireFuel.DEAD_CREEP.bit;
+        FireReach reach = FireReach.of(new FireField(W, H, 1L, idx -> fuel[idx]), 17, 10);
         assertTrue(reach.threatens(11, 10));
     }
 

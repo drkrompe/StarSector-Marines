@@ -28,6 +28,8 @@ final class ShieldDomeShading {
     static final float RING_SPEED = 9.5f;
     /** Rim thickness on screen, in pixels. */
     static final float RIM_PX = 2.6f;
+    /** Half the width of a directional shield's soft side edge, in cosine of the angle off its facing. */
+    static final float ARC_SOFT = 0.05f;
 
     static final float[] AMBER = {1.00f, 0.75f, 0.47f};
     private static final float TWO_PI = 6.2831853f;
@@ -82,9 +84,9 @@ final class ShieldDomeShading {
         float[] tint = d.tint;
         float level = d.level;
         float amberMix = smoothstep(0.55f, 1f, level) * 0.65f;
-        float baseR = mix(tint[0], AMBER[0], amberMix);
-        float baseG = mix(tint[1], AMBER[1], amberMix);
-        float baseB = mix(tint[2], AMBER[2], amberMix);
+        float baseR = mix(tint[0], d.collapse[0], amberMix);
+        float baseG = mix(tint[1], d.collapse[1], amberMix);
+        float baseB = mix(tint[2], d.collapse[2], amberMix);
         float brightR = mix(baseR, 1f, 0.45f);
         float brightG = mix(baseG, 1f, 0.45f);
         float brightB = mix(baseB, 1f, 0.45f);
@@ -124,9 +126,9 @@ final class ShieldDomeShading {
             float ang = (float) Math.atan2(lx, -ly) / TWO_PI + 0.5f;
             float arc = ang <= recovered ? 1f : 0f;
             float mixBack = smoothstep(0.6f, 1f, recovered);
-            float dr = mix(AMBER[0], tint[0], mixBack);
-            float dg = mix(AMBER[1], tint[1], mixBack);
-            float db = mix(AMBER[2], tint[2], mixBack);
+            float dr = mix(d.collapse[0], tint[0], mixBack);
+            float dg = mix(d.collapse[1], tint[1], mixBack);
+            float db = mix(d.collapse[2], tint[2], mixBack);
             float dd = (ang - recovered) * TWO_PI * d.radiusCells;
             float head = (float) Math.exp(-dd * dd / 1.5f);
             float downRim = (rimIn * (0.10f + 0.55f * arc) + rimOut * 0.10f * arc
@@ -135,14 +137,14 @@ final class ShieldDomeShading {
             float reform = (ch <= recovered * 0.5f ? 1f : 0f) * hexEdge * 0.07f * inside * down;
             cr += dr * reform; cg += dg * reform; cb += db * reform; ca += reform * 0.4f;
             float shatter = (ch <= df ? 1f : 0f) * (hexEdge * 0.40f + 0.06f) * inside * df * down;
-            cr += AMBER[0] * shatter; cg += AMBER[1] * shatter; cb += AMBER[2] * shatter; ca += shatter * 0.4f;
+            cr += d.collapse[0] * shatter; cg += d.collapse[1] * shatter; cb += d.collapse[2] * shatter; ca += shatter * 0.4f;
         }
         if (df > 0f) {
             float spent = 1f - df;
             float ringR = 1f + 0.12f * spent;
             float dRing = (r - ringR) / (3.5f / d.radiusPx);
             float collapse = (float) Math.exp(-dRing * dRing) * df * 0.8f;
-            cr += AMBER[0] * collapse; cg += AMBER[1] * collapse; cb += AMBER[2] * collapse; ca += collapse * 0.5f;
+            cr += d.collapse[0] * collapse; cg += d.collapse[1] * collapse; cb += d.collapse[2] * collapse; ca += collapse * 0.5f;
         }
 
         // Impacts: a bright flash where the round landed, a ripple ring crossing
@@ -190,6 +192,12 @@ final class ShieldDomeShading {
             cr += lb; cg += lb; cb += lb; ca += lb * 0.4f;
         }
 
+        // A directional shield is the bubble cut to its arc, with a soft edge.
+        if (d.arcCos > -1f) {
+            float c = r > 1e-4f ? (lx / r) * d.arcDirX + (ly / r) * d.arcDirY : 1f;
+            float sector = smoothstep(d.arcCos - ARC_SOFT, d.arcCos + ARC_SOFT, c);
+            cr *= sector; cg *= sector; cb *= sector; ca *= sector;
+        }
         float a = d.alpha;
         out[0] = clamp01(cr) * a;
         out[1] = clamp01(cg) * a;

@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-24 — escorted means alongside; a city's streets are its supply road; town armour on the streets
+Updated: 2026-10-24 — the redoubts stand on the ridge's crest; escorted means alongside; a city's streets are its supply road
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -410,12 +410,18 @@ neighbours, the course the picket lines are dug along, a cell to the front of
 it. It is a layout piece raised in the works phase before the lines are laid,
 so each picket trench, its parapet and its wire stand on the crest with the
 front's cliff just beyond the wire, and its ramps (wide enough for a tank)
-climb from the rear. Wherever a road, a redoubt, a structure or a place crosses
-the band it breaks into a pass, so the redoubts stand in the passes at their
-roads with the crest running off either side, and the swarm meets a cliff
-everywhere else. The redoubts themselves are on the low ground of their pass:
-a place is built before elevation goes down, and elevation never touches
-built ground. In open country the band's ground is held before the places grow
+climb from the rear. **Each redoubt stands on the crest** as a terrace
+(`elevation-nouns.md`, Terraces): its walls, yard and gates on one flat top,
+the cliff a few cells beyond its lawn, and a ramp wherever a road crosses that
+cliff, so the supply road climbs to the rear gate and the line's road comes up
+from the front. The band runs on into each redoubt's top rather than breaking
+there, so the crest runs redoubt to redoubt and the picket courses are dug
+crest to crest. Wherever any other road, a structure or a place crosses the
+band it still breaks into a pass, and the swarm meets a cliff everywhere else.
+A map on which a redoubt cannot stand on the crest is not a Cordon map. The
+ground the terrace's cliff needs is kept from the other places before they
+grow (`Landscape.kept`, a box round each redoubt's seed), in town as in open
+country. In open country the band's ground is held before the places grow
 (`Landscape.held`); in a town only the fields keep off it, since holding it
 from the town's growth cost five pooled town maps their Cordon, so a town's
 ridge rises only on the stretches its streets and houses leave open. A city's
@@ -643,13 +649,19 @@ base's gate rather than the dump, and "low" is a rationed rate of fire, not a
 magazine (a truck the base cannot send yet is asked for again until one goes); the granary is torched by bringing its walls down through the
 ordinary wall-damage path, not by fire; R2's broken truck is taken off the road
 rather than left as a wreck, so the convoys after it still drive; the dozer starts behind the gap, not at the base (from
-the base it lost the race to the first convoy on every long corridor), and a
+the base it lost the race to the first convoy on every long corridor), at the
+nearest corridor cell there it can drive to the wreck from over the ground its
+blade opens, facing along that route (set down wherever the corridor lay, in
+town it stood where it could not turn onto the street, or in a yard walled all
+round, and never set out), and a
 dozer standing at a shut road cell pushes it at the blade's rate even where
 its move order stopped it short of the blade bearing; it pulls aside onto
 the first cell square to the road past the wreck, either side and further out
 in turn, that keeps six cells clear of the corridor and that it can drive to,
 and tries the next when its move order gives up on one or, still under way, it comes no
-nearer for eight seconds, four places at most (a fixed step off the road put it in a wall, and it stood
+nearer for eight seconds, four places at most; only where no such place is reached over
+open ground does it take one its blade pushes through to (in town none was, and it stood
+on a street one hull wide while the outbound convoys halted at it) (a fixed step off the road put it in a wall, and it stood
 wedged in the convoys' way); R4's militia
 stay allied; R6 waits for a natural fall, since a scripted one would spend the
 briefing's one allowed redoubt. A beat that never got its trigger lapses.

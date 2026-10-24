@@ -11,17 +11,17 @@ package com.dillon.starsectormarines.battle.fire;
  */
 public enum FireFuel {
     /** Grass ground: the fast carrier. */
-    GRASS(30, 150, 260, 2, 3),
+    GRASS(30, 150, 260, 2, 2),
     /** A plant on the nature overlay: shrubs, tufts, a hedge. */
-    BRUSH(60, 190, 300, 2, 4),
+    BRUSH(60, 190, 300, 2, 3),
     /** A standing tree's crown: slow to catch, long and hot, throws heat a ring further. */
-    CROWN(200, 255, 1100, 3, 5),
+    CROWN(200, 255, 1100, 3, 4),
     /** Living creep. */
     CREEP(75, 175, 520, 2, FireFuel.UNLIMITED),
     /** Creep that is dying back: dry husk. */
     DEAD_CREEP(40, 150, 260, 2, FireFuel.UNLIMITED),
     /** Timber and furniture rubble. */
-    DEBRIS(50, 170, 420, 2, 3),
+    DEBRIS(50, 170, 420, 2, 2),
     /**
      * A light wall or window: board and frame, slow to catch and long to burn.
      * A cell of it that burns through falls to rubble, opening the building.

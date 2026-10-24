@@ -237,7 +237,7 @@ public final class GroundSimPresentation {
             fx.spawnGroundDust(dust[0], dust[1], dust[2], dust[3], dust[4], (int) dust[5]);
         }
         for (float[] burst : sim.getFireBurstsThisFrame()) fx.spawnAmbientFire(burst[0], burst[1], burst[2]);
-        for (float[] s : sim.getClawStrikesThisFrame()) fx.spawnClawStrike(s[0], s[1], s[2], s[3], s[4] > 0f);
+        for (float[] s : sim.getClawStrikesThisFrame()) fx.spawnClawStrike(s[0], s[1], s[2], s[3], s[4]);
     }
 
     /**

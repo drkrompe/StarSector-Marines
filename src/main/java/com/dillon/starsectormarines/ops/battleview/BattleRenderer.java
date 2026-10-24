@@ -39,6 +39,7 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.DrawCommand;
 import com.dillon.starsectormarines.render2d.DrawListRenderer;
 import com.dillon.starsectormarines.render2d.LineBatch;
+import com.dillon.starsectormarines.render2d.PagedQuadRun;
 import com.dillon.starsectormarines.render2d.PolyMesh;
 import com.dillon.starsectormarines.render2d.PolyTess;
 import com.dillon.starsectormarines.render2d.QuadBatch;
@@ -169,6 +170,16 @@ public class BattleRenderer {
      * ordering with the textured batches.
      */
     private final SolidQuadBatch solidBatch = new SolidQuadBatch(256);
+
+    /**
+     * {@code -Dbattle.render.pagedBatch=false} drains one fixed-function run per sheet, the control for paged runs
+     * ({@code programmable-quad-batch.md}). Temporary: remove it with that path once renderEvidence and the
+     * paged-run GL evidence have read paged runs against it; the fallback for a context that cannot page stays.
+     */
+    static final String PAGED_BATCH_PROPERTY = "battle.render.pagedBatch";
+    /** One draw across several sheets where the context allows it; null under the control. */
+    private final PagedQuadRun pagedRun =
+            Boolean.parseBoolean(System.getProperty(PAGED_BATCH_PROPERTY, "true")) ? new PagedQuadRun() : null;
 
     /**
      * Shared line batch for {@code LINE} commands (hitscan tracers; later the
@@ -648,13 +659,17 @@ public class BattleRenderer {
         groundParallax.useLights(lights != null ? lights : groundLights);
     }
 
-    /** Releases night lighting targets, the aircraft's reflected-light shader and the creep's textures. */
+    /**
+     * Releases night lighting targets, the aircraft's reflected-light shader, the creep's textures and the paged
+     * run's program.
+     */
     public void disposeLighting() {
         creep.dispose();
         cliffArt.dispose();
         scorch.dispose();
         nightLighting.dispose();
         aircraft.disposeLighting();
+        if (pagedRun != null) pagedRun.dispose();
     }
 
     /**
@@ -1235,7 +1250,7 @@ public class BattleRenderer {
     private void drainLayer(RenderLayer layer, FrameCensus census) {
         DrawListRenderer.drain(drawList.buffer(layer), drawList.count(layer), batchBySheet, solidBatch,
                 lineBatch, contrailBatch, rc.camera,
-                census == null ? null : census.drain(layer));
+                census == null ? null : census.drain(layer), pagedRun);
     }
 
     // ---- main entry point ----------------------------------------------------
@@ -1304,7 +1319,7 @@ public class BattleRenderer {
             long started = census == null ? 0L : System.nanoTime();
             if (leading != null && leading.count(layer) > 0) {
                 DrawListRenderer.drain(leading.buffer(layer), leading.count(layer), batchBySheet, solidBatch,
-                        lineBatch, contrailBatch, rc.camera, null);
+                        lineBatch, contrailBatch, rc.camera, null, pagedRun);
             }
             if (layer == RenderLayer.GROUND && parallax) {
                 // S2/S3: redirect GROUND through the relief FBOs + composite instead

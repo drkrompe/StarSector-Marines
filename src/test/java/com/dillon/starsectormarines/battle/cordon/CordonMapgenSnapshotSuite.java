@@ -49,6 +49,7 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
         CordonPlan.Density density = CordonPlan.Density.valueOf(
                 System.getProperty("snapshot.cordonMapgen.density", "rural").trim().toUpperCase());
         String built = density == CordonPlan.Density.RURAL ? "" : density.name().toLowerCase() + "-";
+        boolean look = Boolean.getBoolean("snapshot.cordonMapgen.look");
         for (String v : System.getProperty("snapshot.cordonMapgen.variants", "line,road").split(",")) {
             CordonVariant variant = CordonVariant.valueOf(v.trim().toUpperCase());
             String name = variant.name().toLowerCase();
@@ -61,6 +62,10 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
                 PrecinctPlan plan = cordon.plan();
                 try (BattleSimulation sim = CordonSetup.create(cordon, variant, List.of(),
                         CordonSequence.Timetable.STANDARD)) {
+                    if (look) {
+                        out.addAll(look(context, sim, plan, tag));
+                        continue;
+                    }
                     out.add(new SnapshotArtifact(tag + "01-whole-map.png",
                             whole.render(sim, "the " + name + (built.isEmpty() ? "" : ", " + density.name().toLowerCase()) + ", seed " + seed + ", whole map", annotations(sim))));
                     List<Precinct> redoubts = CordonPlan.redoubts(plan);
@@ -119,6 +124,27 @@ public final class CordonMapgenSnapshotSuite implements SnapshotSuite {
                 }
             }
         }
+        return out;
+    }
+
+    /** Cells across the close look at a redoubt: the redoubt, the crest either side and the ground in front. */
+    private static final float REDOUBT_CLOSE_CELLS = 90f;
+
+    /**
+     * The look preset's frames ({@code -Dsnapshot.cordonMapgen.look=true}): the whole map and redoubt 2 close and at
+     * play zoom, on the real ground with nothing drawn over it, for the owner rather than for a verdict.
+     */
+    private static List<SnapshotArtifact> look(SnapshotContext context, BattleSimulation sim, PrecinctPlan plan,
+                                               String tag) throws Exception {
+        List<SnapshotArtifact> out = new ArrayList<>();
+        BattleReviewFrameRenderer renderer = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W, FRAME_H,
+                CordonSetup.WIDTH / 2f, CordonSetup.HEIGHT / 2f, CordonSetup.WIDTH);
+        out.add(new SnapshotArtifact("look/" + tag + "01-whole-map.png", renderer.render(sim, "")));
+        Precinct second = CordonPlan.redoubts(plan).get(1);
+        renderer.refocus(second.seedX() + 0.5f, second.seedY() + 0.5f, REDOUBT_CLOSE_CELLS);
+        out.add(new SnapshotArtifact("look/" + tag + "02-redoubt-2-close.png", renderer.render(sim, "")));
+        renderer.refocus(second.seedX() + 0.5f, second.seedY() + 0.5f, PLAY_ZOOM_CELLS);
+        out.add(new SnapshotArtifact("look/" + tag + "03-redoubt-2-play-zoom.png", renderer.render(sim, "")));
         return out;
     }
 }

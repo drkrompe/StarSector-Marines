@@ -1077,7 +1077,10 @@ not read in a soft shadow at play zoom.
     bites once as it passes; one whose body is gone gives its dive up. A bite
     kicks dust off the ground and strikes sparks off the plate, and on a body
     that bleeds throws blood on along the stroke (`ImpactFx.spawnClawStrike`,
-    queued by the sim as presentation). Rarely, a seeded share of bites on a
+    queued by the sim as presentation), and leaves a short-lived stain where it
+    landed: a spatter of fine droplets thrown on along the stroke, drawn from
+    the fallen-body pool art, that fades over twenty seconds (owner's pick).
+    Rarely, a seeded share of bites on a
     marine who lives through them (`HarrierRules.LIFT_CHANCE`), it **lifts** the
     marine off its feet and throws it a couple of cells on along the dive
     (`HarrierLift`): up and down again in under a second, turning over, its
@@ -1732,7 +1735,19 @@ no voice. The Matriarch is the biggest of the Runner's and Brute's family and
 sounds it: only her roar (out of the bore and at each moult) and the whoosh
 and cut of a reap are her own takes; her bellow on new quarry, hoof, crown,
 wall breaking, pain and death are the Brute's, played deeper, slower and
-further apart.
+further apart. The Harrier is the other way round, lighter and quicker, and
+owns no take at all (`HarrierAudio`): quiet chitin wingbeats on the downstroke
+of the few fliers nearest the listener, the Runner's cry as a screech the moment
+each member's wings fold for the dive, the Runner's strike as its bite and its
+impale as the snatch of a marine it lifts, the Brute's body-hit where the throw
+lands, the Runner's yelp when flak hurts it, a Spitter's death shriek played
+lower as it is killed, and a lightened Brute hoof where its fall reaches the
+ground. It is read off the pack and its falls and throws rather than posted by
+them, so the flier's simulation stays silent. A pack does everything together,
+so each of its sounds is spaced twice: within the pack, so a staggered dive is a
+staggered cry rather than five copies of one clip, and more closely across the
+battle. Its gaps and jitter run on simulation time and a seed, so a replay
+sounds the same and a review can mix its soundtrack from the same rules.
 
 **Reuse before new takes** (owner, 2026-10-22). The swarm is a minor faction
 and its sound is kept small: a strain's sound is an accepted take of a sibling

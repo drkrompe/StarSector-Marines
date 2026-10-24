@@ -72,13 +72,16 @@ final class ShieldDomeShader {
             + "uniform float dropFlash;\n"
             + "uniform float alpha;\n"
             + "uniform float time;\n"
+            + "uniform vec3 strainCol;\n"
+            + "uniform vec2 arcDir;\n"
+            + "uniform float arcCos;\n"
             + "uniform int impactCount;\n"
             + "uniform vec4 impact[" + ShieldDomeDraw.MAX_IMPACTS + "];\n"
             + "const float HEX_CELLS = " + literal(ShieldDomeShading.HEX_CELLS) + ";\n"
             + "const float RING_SPEED = " + literal(ShieldDomeShading.RING_SPEED) + ";\n"
             + "const float RIM_PX = " + literal(ShieldDomeShading.RIM_PX) + ";\n"
+            + "const float ARC_SOFT = " + literal(ShieldDomeShading.ARC_SOFT) + ";\n"
             + "const float IMPACT_LIFE = " + literal(ShieldDomeService.IMPACT_SECONDS) + ";\n"
-            + "const vec3 AMBER = vec3(1.0, 0.75, 0.47);\n"
             + "const float TWO_PI = 6.2831853;\n"
             + "float hash2(vec2 c) {\n"
             + "    vec3 p3 = fract(vec3(c.xyx) * 0.1031);\n"
@@ -117,7 +120,7 @@ final class ShieldDomeShader {
             + "            + 1.6 * sin(p.x * 0.21 + time * 0.31));\n"
             + "    float shimmer = 0.78 + 0.44 * flow;\n"
             + "    float amberMix = smoothstep(0.55, 1.0, level) * 0.65;\n"
-            + "    vec3 base = mix(tint, AMBER, amberMix);\n"
+            + "    vec3 base = mix(tint, strainCol, amberMix);\n"
             + "    vec3 bright = mix(base, vec3(1.0), 0.45);\n"
             + "    float u = 1.0 - overloaded;\n"
             + "    float down = overloaded;\n"
@@ -138,7 +141,7 @@ final class ShieldDomeShader {
             + "        float recovered = 1.0 - recovery;\n"
             + "        float ang = atan(q.x, -q.y) / TWO_PI + 0.5;\n"
             + "        float arc = ang <= recovered ? 1.0 : 0.0;\n"
-            + "        vec3 dcol = mix(AMBER, tint, smoothstep(0.6, 1.0, recovered));\n"
+            + "        vec3 dcol = mix(strainCol, tint, smoothstep(0.6, 1.0, recovered));\n"
             + "        float dd = (ang - recovered) * TWO_PI * radiusCells;\n"
             + "        float head = exp(-dd * dd / 1.5);\n"
             + "        float downRim = (rimIn * (0.10 + 0.55 * arc) + rimOut * 0.10 * arc\n"
@@ -147,13 +150,13 @@ final class ShieldDomeShader {
             + "        float reform = (ch <= recovered * 0.5 ? 1.0 : 0.0) * hexEdge * 0.07 * inside * down;\n"
             + "        col += dcol * reform; ca += reform * 0.4;\n"
             + "        float shatter = (ch <= dropFlash ? 1.0 : 0.0) * (hexEdge * 0.40 + 0.06) * inside * dropFlash * down;\n"
-            + "        col += AMBER * shatter; ca += shatter * 0.4;\n"
+            + "        col += strainCol * shatter; ca += shatter * 0.4;\n"
             + "    }\n"
             + "    if (dropFlash > 0.0) {\n"
             + "        float ringR = 1.0 + 0.12 * (1.0 - dropFlash);\n"
             + "        float dRing = (r - ringR) / (3.5 / radiusPx);\n"
             + "        float collapse = exp(-dRing * dRing) * dropFlash * 0.8;\n"
-            + "        col += AMBER * collapse; ca += collapse * 0.5;\n"
+            + "        col += strainCol * collapse; ca += collapse * 0.5;\n"
             + "    }\n"
             + "    if (impactCount > 0) {\n"
             + "        float flashGlow = 0.0;\n"
@@ -187,7 +190,12 @@ final class ShieldDomeShader {
             + "        float lb = lineBoost * hexEdge * 0.5 * within;\n"
             + "        col += vec3(lb); ca += lb * 0.4;\n"
             + "    }\n"
-            + "    gl_FragColor = vec4(clamp(col, 0.0, 1.0), clamp(ca, 0.0, 1.0)) * alpha;\n"
+            + "    float sector = 1.0;\n"
+            + "    if (arcCos > -1.0) {\n"
+            + "        float c = r > 1e-4 ? dot(q / r, arcDir) : 1.0;\n"
+            + "        sector = smoothstep(arcCos - ARC_SOFT, arcCos + ARC_SOFT, c);\n"
+            + "    }\n"
+            + "    gl_FragColor = vec4(clamp(col, 0.0, 1.0), clamp(ca, 0.0, 1.0)) * alpha * sector;\n"
             + "}\n";
 
     private final ShaderProgram program = new ShaderProgram("ShieldDome", VERTEX_SRC, FRAGMENT_SRC);
@@ -252,6 +260,9 @@ final class ShieldDomeShader {
         program.set1f("hitFlash", d.hitFlash);
         program.set1f("dropFlash", d.dropFlash);
         program.set1f("alpha", d.alpha);
+        program.set3f("strainCol", d.collapse[0], d.collapse[1], d.collapse[2]);
+        program.set2f("arcDir", d.arcDirX, d.arcDirY);
+        program.set1f("arcCos", d.arcCos);
         program.set1i("impactCount", d.impactCount);
         for (int i = 0; i < d.impactCount; i++) {
             int at = i * 4;

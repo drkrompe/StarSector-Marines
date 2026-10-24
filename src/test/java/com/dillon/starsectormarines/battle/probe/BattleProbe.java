@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.probe;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.allied.SupplyDelivery;
+import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
 import com.dillon.starsectormarines.battle.cordon.CordonLineCommand;
 import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
@@ -19,6 +20,7 @@ import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
+import com.dillon.starsectormarines.battle.vehicle.TurnAwareCorridor;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService;
 import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
@@ -129,6 +131,18 @@ public final class BattleProbe {
         commands.put("grid", this::grid);
         commands.put("drive", this::drive);
         commands.put("cordon", a -> cordon());
+        commands.put("corridor", a -> {
+            JSONObject out = new JSONObject().put("tick", sim.getSimTickIndex());
+            if (sim.getCordon() == null || sim.getCordon().convoys() == null) return out;
+            CordonConvoys convoys = sim.getCordon().convoys();
+            List<int[]> corridor = convoys.corridor();
+            JSONArray cells = new JSONArray();
+            int step = a.intOr("step", 1);
+            for (int i = Math.max(0, a.intAt(0)); i <= Math.min(corridor.size() - 1, a.intAt(1)); i += step)
+                cells.put(i + ":" + corridor.get(i)[0] + "," + corridor.get(i)[1]);
+            return out.put("entry", convoys.entry()).put("gap", convoys.gapIndex()).put("size", corridor.size())
+                    .put("cells", cells);
+        });
     }
 
     /**
@@ -166,6 +180,7 @@ public final class BattleProbe {
             out.put("trucks", trucks).put("readings", line.readings());
         }
         if (cordon.beats() != null) out.put("beats", new JSONArray(cordon.beats().describe(sim)));
+        if (cordon.convoys() != null) out.put("convoys", cordon.convoys().describe(sim));
         return out;
     }
 
@@ -178,16 +193,31 @@ public final class BattleProbe {
         int gx = a.intAt(1), gy = a.intAt(2);
         VehicleType type = sim.convoy().vehicleType(id);
         GroundBody body = sim.convoy().body(id);
-        NavigationGrid g = sim.getGrid();
+        // A bladed hull's move order is proved over the ground its blade can open.
+        NavigationGrid g = type.hasBlade() && sim.blade() != null ? sim.blade().planningGrid() : sim.getGrid();
         VehicleClearance clearance = VehicleClearance.erode(g, VehicleClearance.radiusForWidth(type.visualWidthCells));
         TerrainCostField cost = TerrainCostField.from(sim.getTopology());
-        int[] from = VehicleRoutePlanner.snapToMask(clearance, (int) Math.floor(body.x), (int) Math.floor(body.y), 6);
+        String fromOption = a.option("from", "");
+        int fx = (int) Math.floor(body.x), fy = (int) Math.floor(body.y);
+        if (!fromOption.isEmpty()) {
+            String[] parts = fromOption.split(",");
+            fx = Integer.parseInt(parts[0]);
+            fy = Integer.parseInt(parts[1]);
+        }
+        int[] from = VehicleRoutePlanner.snapToMask(clearance, fx, fy, 6);
         int[] to = VehicleRoutePlanner.snapToMask(clearance, gx, gy, 6);
         JSONObject out = new JSONObject().put("tick", sim.getSimTickIndex())
                 .put("from", from == null ? JSONObject.NULL : new JSONArray(from))
                 .put("to", to == null ? JSONObject.NULL : new JSONArray(to));
         if (from == null || to == null) return out;
-        out.put("way", polyline(VehicleRoutePlanner.route(from[0], from[1], to[0], to[1], g, cost, clearance)));
+        float[][] way = VehicleRoutePlanner.route(from[0], from[1], to[0], to[1], g, cost, clearance);
+        out.put("way", polyline(way));
+        out.put("setOut", TurnAwareCorridor.canSetOutFrom(from[0] + .5f, from[1] + .5f, type, g));
+        if (way != null) {
+            TurnAwareCorridor.Result refined = TurnAwareCorridor.refine(way, type, g);
+            if (refined.points() == null) out.put("refineFailed", new JSONArray(List.of(round(refined.failedX()),
+                    round(refined.failedY()))));
+        }
         out.put("drivable", polyline(VehicleRoutePlanner.routeDrivable(from[0], from[1], to[0], to[1], g, cost,
                 clearance, type)));
         return out;
