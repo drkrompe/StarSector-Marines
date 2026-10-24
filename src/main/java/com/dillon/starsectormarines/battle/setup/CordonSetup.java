@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonRefugees;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
 import com.dillon.starsectormarines.battle.cordon.CordonCorridor;
 import com.dillon.starsectormarines.battle.cordon.CordonGround;
+import com.dillon.starsectormarines.battle.cordon.CordonGapLaw;
 import com.dillon.starsectormarines.battle.cordon.CordonGarrisons;
 import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
@@ -287,6 +288,26 @@ public final class CordonSetup {
             }
         }
         return null;
+    }
+
+    /**
+     * The line's gaps, west to east ({@link CordonGapLaw}): each neighbouring pair of redoubts' gun towers as their
+     * walls will be dressed, with the picket course's nests between them. A reading, not part of {@link #missing}:
+     * on the maps as laid the law fails on most of them (the courses' nests stand forty cells apart and a road gap
+     * or a redoubt's wide lawn leaves a longer step), and closing it moves guns, which is a balance decision.
+     */
+    public static List<CordonGapLaw.Gap> gaps(MapResult map, PrecinctPlan plan) {
+        List<Precinct> redoubts = CordonPlan.redoubts(plan);
+        int front = CordonFront.frontward(plan);
+        List<List<int[]>> towers = new ArrayList<>();
+        for (Precinct r : redoubts) towers.add(CordonGarrisons.towers(map.grid, map.topology, map.doodads, r, front));
+        List<CordonGapLaw.Gap> out = new ArrayList<>();
+        for (int n = 1; n < redoubts.size(); n++) {
+            Laid picket = map.layout.find(CordonPlan.PICKET_LINE + n + "-" + (n + 1));
+            List<int[]> nests = picket == null || !picket.isLaid() ? List.of() : picket.nests();
+            out.add(CordonGapLaw.measure(n, n + 1, towers.get(n - 1), towers.get(n), nests));
+        }
+        return out;
     }
 
     /**

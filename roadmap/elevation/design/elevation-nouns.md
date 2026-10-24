@@ -4,7 +4,7 @@ Status: ACTIVE — StarCraft-style raised ground: a few discrete tiers, impassab
 
 Written: 2026-10-22
 
-Updated: 2026-10-23 — a layout ridge is raised under its works; ground may be held from the fields alone.
+Updated: 2026-10-24 — terraces stand built ground on a ridge's crest, its roads ramped down; kept ground.
 
 Read `stories.md` for open work.
 
@@ -218,7 +218,10 @@ Elevation is generation-time work in the terrain brush's family. An
 
 The brush preflights the whole footprint before writing anything, as the
 terrain brush does: plateaus never cover roads, buildings, doorways, fixtures
-or a host's reserved cells, and a refused plan leaves the map untouched. It then
+or a host's reserved cells, and a refused plan leaves the map untouched. The
+one exception is ground the plan names **built** (a terrace's, below): what
+stands there is raised with the top, though a face or a ramp is still refused
+on it. It then
 proves access: every plateau must have at least one ramp, every ramp must join
 one top to the tier below, and the host's required places must stay connected.
 
@@ -270,7 +273,26 @@ Generators place plateaus where a mission wants them:
 - **Under works.** A mission layout's ridge (`mission-layout.md`, Ridge) is
   raised before the layout's works are laid, so a trench resolved along it
   is dug on its crest (the Cordon's line). Places are built before it and stay
-  on the low ground of its passes.
+  on the low ground of its passes, unless the ridge carries them as terraces.
+- **Terraces.** Built ground stood on a crest (`TerracePlanner`): the place's
+  whole box goes onto one flat top, its cliff stands in open country a margin
+  beyond it, and wherever a road crosses that cliff a ramp at least a tank's
+  width carries the road down. A side whose outline a road runs along, or
+  whose cliff would land on built ground, is pushed out a cell at a time, so a
+  road beside the place runs on the top and is ramped where it leaves; a
+  terrace with no road over its edge has no way up and does not stand. The
+  terraces are planned first, each kept only when the whole map's ground stays
+  one body once its cliff closes (a terrace's top joins the low ground through
+  ramps that may lie far from any box round its faces, so the proof is the
+  whole map's, not a local one). The ridge's band then runs on into a
+  terrace's top and merges with it instead of breaking into a pass, never
+  cutting a ramp of its own into it. The brush raises whatever the place built
+  inside the terrace's outline (its **built** ground) and refuses a face or a
+  ramp on it as on any built ground. Room for the cliff is kept before the
+  places grow (`Landscape.kept`): boxes round the place's seed that the other
+  places' growth, claims, road arms and fields keep off whatever the held
+  ground says. A required terrace that cannot stand fails its map (the
+  Cordon's redoubts); an optional one leaves its place in a pass.
 - City blocks do not get plateaus; a city's height is its buildings. A city's
   countryside margin may.
 

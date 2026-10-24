@@ -9,20 +9,29 @@ import com.dillon.starsectormarines.battle.command.allied.AlliedTool;
 import com.dillon.starsectormarines.battle.command.allied.AlliedToolShed;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
+import com.dillon.starsectormarines.battle.squad.BeliefSource;
+import com.dillon.starsectormarines.battle.squad.BelievedContact;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * The Broad Front's gunship on call (`heart-allied-commander.md`): the lanes' commander asks the logistics base for
- * one sortie at a time, only onto something worth it ({@link #target}), and risks it as its {@link Policy} says. A
+ * one sortie at a time, only onto something worth it ({@link #target}), and flies it when called, losses accepted. A
  * sortie comes off station at half structure.
  *
- * <p>Where the policy wants the air cleared first, the base's guns shoot it open: a shoot sized to kill each spore
- * colony and outpost in the way, at most one every {@link #SHOOT_SECONDS}. Nothing else reaches those in a played
- * battle; the company and the lanes stop well short of the satellites.
+ * <p>Before a sortie the base's guns shell the spore anti-air it <b>knows</b> of on the way: colonies and outposts a
+ * friendly squad has seen in the last {@link #KNOWN_SECONDS}, within {@link #GUN_RANGE} of the base, whose reach
+ * covers the target or the way there ({@link #shellable}). A shoot is sized to kill each, at most one every
+ * {@link #SHOOT_SECONDS}. What nobody has seen, or lies past the guns, stays a threat, so sorties are sometimes lost
+ * (owner, 2026-10-24: "Things being lost is a feature").
  */
 public final class HeartGunship {
 
@@ -40,67 +49,28 @@ public final class HeartGunship {
     static final float SHELL_RADIUS = 2.5f, SHELL_DAMAGE = 80f, SHELL_PENETRATION = 20f, FIRST_FLIGHT = 3f;
     static final int SHELL_WALL_DAMAGE = 40;
 
-    /**
-     * How the commander risks its gunship, the owner's question {@code heart-gunship} (2026-10-24): every played
-     * sortie had been shot down by spore anti-air. Removal condition: the owner's pick of the four; the others go,
-     * with this switch.
-     */
-    public enum Policy {
-        /** (a) Sent only where no standing spore anti-air, any bore's, reaches its target or its way there. */
-        REACHABLE_ONLY,
-        /** (b) Sent once the approach is clear, losses accepted: the behaviour the first played sorties had. */
-        ACCEPT_LOSSES,
-        /** (c) The base's guns kill the spore anti-air reaching the target and the way there, then the sortie goes. */
-        CLEAR_PATH,
-        /** (d) As (b), with a sortie {@link #TOUGHER} times as hard to bring down. */
-        TOUGHER
-    }
-
-    /**
-     * The policy every heart battle starts with: {@code -Dbattle.heart.gunshipPolicy=<name>}, see {@link Policy}.
-     * {@link Policy#CLEAR_PATH} meanwhile: on the seed-2 town map to tick 16000 it flew three sorties and lost none,
-     * where (b) lost both of its two.
-     */
-    static final Policy DEFAULT_POLICY = Policy.valueOf(System.getProperty("battle.heart.gunshipPolicy", "CLEAR_PATH"));
-    /** How many times a sortie's structure and armour {@link Policy#TOUGHER} gives it. */
-    static final float TOUGHER = 3f;
+    /** Seconds a spotted spore colony or outpost stays known to the base after a friendly squad last saw it. */
+    static final float KNOWN_SECONDS = 120f;
+    static final int KNOWN_TICKS = Math.round(KNOWN_SECONDS / BattleSimulation.TICK_DT);
+    /** Cells from the base its guns reach: the middle of the field, not the mothers at its far side. */
+    static final float GUN_RANGE = 160f;
     /** Cells past a defence's own range the commander keeps its sortie. */
     static final float STANDOFF = 2f;
 
-    private Policy policy = DEFAULT_POLICY;
+    /** When a friendly squad last saw each spore colony and outpost, by id: what the base knows of. */
+    private final Map<Long, Integer> spotted = new HashMap<>();
     private HeartSupplyRoad road = new HeartSupplyRoad(List.of());
     private int sorties;
+    /** Sorties shot down; each is marked {@code gunship_lost_<n>} at the commander's next call. */
+    private int lost;
+    private int lostMarked;
     private int shoots;
     private int nextShoot;
-
-    /** Sets how the commander risks its gunship (the look suite pictures each). */
-    public HeartGunship policy(Policy policy) {
-        this.policy = policy;
-        return this;
-    }
-
-    public Policy policy() { return policy; }
 
     /** The supply road, whose satellite is rung 3 while it cuts the road (F6). */
     HeartGunship road(HeartSupplyRoad road) {
         this.road = road;
         return this;
-    }
-
-    /** The shed's gate on a sortie: the approach must be clear under (b) and (d); (a) and (c) judge each target instead. */
-    public boolean gate(BattleSimulation sim) {
-        return policy == Policy.REACHABLE_ONLY || policy == Policy.CLEAR_PATH || airOpen(sim);
-    }
-
-    /** Whether the air over the approach is open: no spore colony or outpost stands on the satellites nearest the company. */
-    public static boolean airOpen(BattleSimulation sim) {
-        for (SwarmBore bore : HeartObjectives.approachSatellites(sim)) {
-            if (bore.collapsed()) continue;
-            for (long colony : antiAir(bore)) {
-                if (standing(sim, colony)) return false;
-            }
-        }
-        return true;
     }
 
     /** Sets a sortie down over the request's cell, flying in and out over the depot; done once it is gone. */
@@ -112,14 +82,12 @@ public final class HeartGunship {
             ShuttleMission sortie = sim.world().mission(craft);
             if (sortie == null) return null;
             sortie.orbitSecondsLeft = ORBIT_SECONDS;
-            if (policy == Policy.TOUGHER) {
-                sim.world().setMaxHp(craft, sim.world().maxHp(craft) * TOUGHER);
-                sim.world().setHp(craft, sim.world().maxHp(craft));
-                sim.world().setMaxArmor(craft, sim.world().maxArmor(craft) * TOUGHER);
-                sim.world().setArmor(craft, sim.world().maxArmor(craft));
-            }
             return s -> {
-                if (sortie.destroyed || sortie.state == ShuttleState.GONE) return true;
+                if (sortie.destroyed) {
+                    lost++;
+                    return true;
+                }
+                if (sortie.state == ShuttleState.GONE) return true;
                 // Off station at half structure: it turns for home and the next sortie waits for the base.
                 if (s.world().hp(craft) < s.world().maxHp(craft) * .5f) sortie.orbitSecondsLeft = 0f;
                 return false;
@@ -133,28 +101,52 @@ public final class HeartGunship {
      * open instead ({@code air_shoot_<n>}).
      */
     void call(BattleSimulation sim, AlliedToolShed shed, HeartLanes lanes, List<String> beats) {
+        spot(sim);
+        // A sortie shot down since the last call: the evidence reads the owner's gunship question from these.
+        while (lostMarked < lost) beats.add("gunship_lost_" + ++lostMarked);
         if (shed.onRoad(AlliedTool.GUNSHIP, PLACE) > 0) return;
         int[] target = target(sim, lanes);
         if (target == null) return;
 
-        if (policy == Policy.REACHABLE_ONLY || policy == Policy.CLEAR_PATH) {
-            int[] from = shed.dispatchCell(sim);
-            if (from == null) return;
-            List<Long> reaching = reaching(sim, from, target);
-            // (a) waits for a target nothing standing covers; (c) has the base kill what covers this one.
-            if (!reaching.isEmpty()) {
-                if (policy == Policy.CLEAR_PATH) shoot(sim, reaching, beats);
-                return;
-            }
-        } else if (!airOpen(sim)) {
-            List<Long> approach = new ArrayList<>();
-            for (SwarmBore bore : HeartObjectives.approachSatellites(sim)) approach.addAll(antiAir(bore));
-            shoot(sim, approach, beats);
+        int[] from = shed.dispatchCell(sim);
+        if (from == null) return;
+        // The base shells what it knows of on the way first; the sortie goes once none of that stands.
+        int tick = sim.getSimTickIndex();
+        List<Long> known = new ArrayList<>();
+        for (long gun : reaching(sim, from, target)) {
+            Integer seen = spotted.get(gun);
+            float range = (float) Math.hypot(sim.world().x(gun) - from[0], sim.world().y(gun) - from[1]);
+            if (seen != null && shellable(tick, seen, range)) known.add(gun);
+        }
+        if (!known.isEmpty()) {
+            shoot(sim, known, beats);
             return;
         }
         if (!shed.request(sim, new AlliedRequest(AlliedTool.GUNSHIP, PLACE, target[0], target[1], "target"))) return;
         sorties++;
         beats.add("gunship_called_" + sorties);
+    }
+
+    /**
+     * Whether the base shells a spore gun it last saw at {@code spottedTick}, {@code range} cells from it: seen in the
+     * last {@link #KNOWN_SECONDS} and within {@link #GUN_RANGE}. The base knows only what the field has reported.
+     */
+    static boolean shellable(int tick, int spottedTick, float range) {
+        return tick - spottedTick <= KNOWN_TICKS && range <= GUN_RANGE;
+    }
+
+    /** Notes every spore colony and outpost a friendly squad (the company's or the allies') sees now. */
+    private void spot(BattleSimulation sim) {
+        Set<Long> guns = new HashSet<>();
+        for (SwarmBore bore : sim.swarmBores().bores()) guns.addAll(antiAir(bore));
+        if (guns.isEmpty()) return;
+        for (Squad squad : sim.getSquads()) {
+            if (squad.faction != Faction.ALLY && squad.faction != Faction.MARINE) continue;
+            for (BelievedContact seen : squad.believedContacts()) {
+                if (seen.source() != BeliefSource.DIRECT || !guns.contains(seen.unitId())) continue;
+                spotted.merge(seen.unitId(), seen.lastSeenTick(), Math::max);
+            }
+        }
     }
 
     /** One shoot on {@code targets} at most every {@link #SHOOT_SECONDS}, marked {@code air_shoot_<n>}. */

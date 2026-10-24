@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.turret.FortWorks;
+
 import com.dillon.starsectormarines.battle.mech.CompanyMechLedger;
 import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
@@ -2122,6 +2124,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         fogOfWar.setBuildings(buildings);
     }
     public void addDoodad(Doodad d) {
+        // A fortification lot's pieces wear its style's art; nothing else about them changes.
+        d = FortWorks.dress(d, topology, TileRegistry.installed());
         doodadService.addDoodad(d);
         if (d.hasFogSurface()) fogOfWar.registerSolidProp(d.cellX, d.cellY, d.footprintCellsX, d.footprintCellsY);
     }
@@ -2527,7 +2531,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         compoundService.initFrom(map);
     }
     /** Stamped defense posts (conquest only). Called once by {@code BattleSetup} right after construction; safe to pass null/empty for missions without posts. */
-    public void setDefensePosts(List<DefensePost> posts) { tactical.setDefensePosts(posts); }
+    public void setDefensePosts(List<DefensePost> posts) {
+        FortWorks.settle(topology, posts);
+        tactical.setDefensePosts(posts);
+    }
 
     /**
      * How far each cell is from the thing the battle is about, or {@code null}

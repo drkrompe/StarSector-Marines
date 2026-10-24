@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
+import com.dillon.starsectormarines.battle.cordon.CordonGapLaw;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -115,6 +116,12 @@ class StoryMapPoolEvidenceTest {
             works.append(works.length() == 0 ? "" : ", ").append(laid.name()).append(' ').append(laid.status().name().toLowerCase(Locale.ROOT));
         }
         detail += "; layout " + works;
+        StringBuilder gaps = new StringBuilder();
+        for (CordonGapLaw.Gap gap : CordonSetup.gaps(cordon.map(), cordon.plan())) {
+            gaps.append(gaps.length() == 0 ? "" : " ").append(String.format(Locale.ROOT, "%d-%d %.0f%s (towers %.0f)",
+                    gap.west(), gap.east(), gap.widestStep(), gap.holds() ? "" : "!", gap.towerToTower()));
+        }
+        detail += String.format(Locale.ROOT, "; gaps %s, law %.1f", gaps, CordonGapLaw.LIMIT);
         try (BattleSimulation sim = CordonSetup.create(cordon, variant, List.of(), CordonSequence.Timetable.STANDARD)) {
             if (sim.getCordon() == null) throw new AssertionError("the battle has no cordon");
             StringBuilder guns = new StringBuilder();

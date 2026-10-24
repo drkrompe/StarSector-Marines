@@ -1,0 +1,699 @@
+{
+  "alphaMin": 16,
+  "blocks": [{
+    "doorBlock": "installation.dark-concrete-door",
+    "id": "installation.dark-concrete-wall@earthwork",
+    "layout": "wall-faces-4x4",
+    "rubbleBlock": "installation.dark-concrete-rubble",
+    "windowBlock": "installation.dark-concrete-window"
+  }],
+  "cellPx": 128,
+  "entries": [
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-s@earthwork",
+      "included": true,
+      "note": "Parapet collar piece s, earthwork look.",
+      "rect": [
+        408,
+        39,
+        184,
+        183
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-n@earthwork",
+      "included": true,
+      "note": "Parapet collar piece n, earthwork look.",
+      "rect": [
+        408,
+        769,
+        184,
+        183
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-e@earthwork",
+      "included": true,
+      "note": "Parapet collar piece e, earthwork look.",
+      "rect": [
+        41,
+        404,
+        184,
+        183
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-w@earthwork",
+      "included": true,
+      "note": "Parapet collar piece w, earthwork look.",
+      "rect": [
+        775,
+        404,
+        184,
+        183
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-se@earthwork",
+      "included": true,
+      "note": "Parapet collar piece inner-se, earthwork look.",
+      "rect": [
+        41,
+        39,
+        184,
+        183
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-sw@earthwork",
+      "included": true,
+      "note": "Parapet collar piece inner-sw, earthwork look.",
+      "rect": [
+        775,
+        39,
+        184,
+        183
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-ne@earthwork",
+      "included": true,
+      "note": "Parapet collar piece inner-ne, earthwork look.",
+      "rect": [
+        41,
+        769,
+        184,
+        183
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-nw@earthwork",
+      "included": true,
+      "note": "Parapet collar piece inner-nw, earthwork look.",
+      "rect": [
+        775,
+        769,
+        184,
+        183
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-n@earthwork",
+      "included": true,
+      "note": "Barricade piece n, earthwork look.",
+      "rect": [
+        1165,
+        38,
+        167,
+        187
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-straight-n@earthwork",
+      "included": true,
+      "note": "Barricade piece n, earthwork look.",
+      "rect": [
+        1165,
+        38,
+        167,
+        187
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-s@earthwork",
+      "included": true,
+      "note": "Barricade piece s, earthwork look.",
+      "rect": [
+        1165,
+        413,
+        167,
+        187
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-straight-s@earthwork",
+      "included": true,
+      "note": "Barricade piece s, earthwork look.",
+      "rect": [
+        1165,
+        413,
+        167,
+        187
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-w@earthwork",
+      "included": true,
+      "note": "Barricade piece w, earthwork look.",
+      "rect": [
+        997,
+        225,
+        168,
+        188
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-straight-w@earthwork",
+      "included": true,
+      "note": "Barricade piece w, earthwork look.",
+      "rect": [
+        997,
+        225,
+        168,
+        188
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-e@earthwork",
+      "included": true,
+      "note": "Barricade piece e, earthwork look.",
+      "rect": [
+        1332,
+        225,
+        168,
+        188
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-straight-e@earthwork",
+      "included": true,
+      "note": "Barricade piece e, earthwork look.",
+      "rect": [
+        1332,
+        225,
+        168,
+        188
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-corner-nw@earthwork",
+      "included": true,
+      "note": "Barricade piece corner-nw, earthwork look.",
+      "rect": [
+        997,
+        38,
+        168,
+        187
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-corner-nw@earthwork",
+      "included": true,
+      "note": "Barricade piece corner-nw, earthwork look.",
+      "rect": [
+        997,
+        38,
+        168,
+        187
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-corner-ne@earthwork",
+      "included": true,
+      "note": "Barricade piece corner-ne, earthwork look.",
+      "rect": [
+        1332,
+        38,
+        168,
+        187
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-corner-ne@earthwork",
+      "included": true,
+      "note": "Barricade piece corner-ne, earthwork look.",
+      "rect": [
+        1332,
+        38,
+        168,
+        187
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-corner-sw@earthwork",
+      "included": true,
+      "note": "Barricade piece corner-sw, earthwork look.",
+      "rect": [
+        997,
+        413,
+        168,
+        187
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-corner-sw@earthwork",
+      "included": true,
+      "note": "Barricade piece corner-sw, earthwork look.",
+      "rect": [
+        997,
+        413,
+        168,
+        187
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-sandbag-corner-se@earthwork",
+      "included": true,
+      "note": "Barricade piece corner-se, earthwork look.",
+      "rect": [
+        1332,
+        413,
+        168,
+        187
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.sandbag-corner-se@earthwork",
+      "included": true,
+      "note": "Barricade piece corner-se, earthwork look.",
+      "rect": [
+        1332,
+        413,
+        168,
+        187
+      ]
+    },
+    {
+      "block": "installation.dark-concrete-wall@earthwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@earthwork.faces-0",
+      "included": true,
+      "rect": [
+        1029,
+        604,
+        82,
+        68
+      ],
+      "slot": "faces-0"
+    },
+    {
+      "block": "installation.dark-concrete-wall@earthwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@earthwork.faces-1",
+      "included": true,
+      "rect": [
+        1129,
+        604,
+        82,
+        68
+      ],
+      "slot": "faces-1"
+    },
+    {
+      "block": "installation.dark-concrete-wall@earthwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@earthwork.faces-2",
+      "included": true,
+      "rect": [
+        1230,
+        604,
+        83,
+        68
+      ],
+      "slot": "faces-2"
+    },
+    {
+      "block": "installation.dark-concrete-wall@earthwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@earthwork.faces-3",
+      "included": true,
+      "rect": [
+        1332,
+        604,
+        82,
+        68
+      ],
+      "slot": "faces-3"
+    },
+    {
+      "block": "installation.dark-concrete-wall@earthwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@earthwork.faces-4",
+      "included": true,
+      "rect": [
+        1029,
+        690,
+        82,
+        85
+      ],
+      "slot": "faces-4"
+    },
+    {
+      "block": "installation.dark-concrete-wall@earthwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@earthwork.faces-5",
+      "included": true,
+      "rect": [
+        1129,
+        690,
+        82,
+        85
+      ],
+      "slot": "faces-5"
+    },
+    {
+      "block": "installation.dark-concrete-wall@earthwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@earthwork.faces-6",
+      "included": true,
+      "rect": [
+        1230,
+        690,
+        83,
+        85
+      ],
+      "slot": "faces-6"
+    },
+    {
+      "block": "installation.dark-concrete-wall@earthwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@earthwork.faces-7",
+      "included": true,
+      "rect": [
+        1332,
+        690,
+        82,
+        85
+      ],
+      "slot": "faces-7"
+    },
+    {
+      "block": "installation.dark-concrete-wall@earthwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@earthwork.faces-8",
+      "included": true,
+      "rect": [
+        1029,
+        790,
+        82,
+        83
+      ],
+      "slot": "faces-8"
+    },
+    {
+      "block": "installation.dark-concrete-wall@earthwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@earthwork.faces-9",
+      "included": true,
+      "rect": [
+        1129,
+        790,
+        82,
+        83
+      ],
+      "slot": "faces-9"
+    },
+    {
+      "block": "installation.dark-concrete-wall@earthwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@earthwork.faces-10",
+      "included": true,
+      "rect": [
+        1230,
+        790,
+        83,
+        83
+      ],
+      "slot": "faces-10"
+    },
+    {
+      "block": "installation.dark-concrete-wall@earthwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@earthwork.faces-11",
+      "included": true,
+      "rect": [
+        1332,
+        790,
+        82,
+        83
+      ],
+      "slot": "faces-11"
+    },
+    {
+      "block": "installation.dark-concrete-wall@earthwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@earthwork.faces-12",
+      "included": true,
+      "rect": [
+        1029,
+        890,
+        82,
+        84
+      ],
+      "slot": "faces-12"
+    },
+    {
+      "block": "installation.dark-concrete-wall@earthwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@earthwork.faces-13",
+      "included": true,
+      "rect": [
+        1129,
+        890,
+        82,
+        84
+      ],
+      "slot": "faces-13"
+    },
+    {
+      "block": "installation.dark-concrete-wall@earthwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@earthwork.faces-14",
+      "included": true,
+      "rect": [
+        1230,
+        890,
+        83,
+        84
+      ],
+      "slot": "faces-14"
+    },
+    {
+      "block": "installation.dark-concrete-wall@earthwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.dark-concrete-wall@earthwork.faces-15",
+      "included": true,
+      "rect": [
+        1332,
+        890,
+        82,
+        84
+      ],
+      "slot": "faces-15"
+    }
+  ],
+  "gridCols": 12,
+  "gridRows": 8,
+  "idPrefix": "doodad",
+  "note": "Fortification works of the earthwork emplacement style, look 'earthwork': every piece a lot's walls, parapets and barricades are drawn from, painted in ONE ImageGen pass over art-source/fortworks/guides/works-guide.png (make_guide.py) with the style's turret plinth as material reference; prompt art-source/fortworks/prompts/earthwork.prompt.txt, raw retained unmodified. Cuts are measured from the raw (make_doc.py). Every id is a look <base id>@earthwork of a piece the generators lay: FortWorks dresses a piece on a lot built in this style with it, art only, so cover and blocking stay the base piece's (fort-works.md). One ring piece serves both barricade families.",
+  "sheet": "art-source/fortworks/raw/earthwork.raw.png",
+  "sheetName": "fortworks-earthwork"
+}

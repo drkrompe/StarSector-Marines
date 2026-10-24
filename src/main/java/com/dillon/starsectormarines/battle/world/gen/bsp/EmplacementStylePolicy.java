@@ -53,8 +53,10 @@ public final class EmplacementStylePolicy {
 
     /**
      * Every post in {@code posts}, in place, built in {@code style}: the hook a mission uses to theme its ground, called
-     * on the posts it hands to {@code BattleSetup.buildMap}. A militia style's sandbags are laid when a post is stamped,
-     * so restyling to one afterwards changes the guns and their bases but not the parapets.
+     * on the posts it hands to {@code BattleSetup.buildMap}. The lot each post stands in follows it, so its walls,
+     * parapets and barricades are drawn in the new style too ({@code FortWorks.settle}, `fort-works.md`). What a post
+     * is built of is still decided when it is stamped: a militia post's ring is a barricade and a prepared one's a
+     * parapet, so restyling between the two redraws the pieces it has rather than swapping one for the other.
      */
     public static void restyle(List<DefensePost> posts, EmplacementStyle style) {
         posts.replaceAll(post -> post.withStyle(style));
