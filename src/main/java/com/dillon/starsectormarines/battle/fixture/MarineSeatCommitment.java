@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.squad.HullWelfare;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
 import java.util.Objects;
@@ -37,7 +38,25 @@ public record MarineSeatCommitment(
         CommandGroupIdentity commandGroupIdentity,
         HullWelfare welfare,
         ArmorClass armorClass,
-        IntegralSystemDef integralSystem) {
+        IntegralSystemDef integralSystem,
+        String beltEquipmentId) {
+
+    /** A commitment with nothing on the belt, the second special slot, as every one saved before it was. */
+    public MarineSeatCommitment(String campaignSoldierId, String primaryWeaponId,
+            EquipmentGrade equipmentGrade, SoldierProfile soldierProfile,
+            String specialEquipmentId, LayeredArmorFamily armorFamily,
+            float armorCapacity, float armorRating, float armorMoveSpeedMult,
+            float armorIncomingAccuracyMult, String campaignSquadId,
+            String campaignSquadLabel, boolean campaignSquadLeader,
+            int campaignSquadStrength, int campaignFireTeamIndex,
+            CommandGroupIdentity commandGroupIdentity, HullWelfare welfare,
+            ArmorClass armorClass, IntegralSystemDef integralSystem) {
+        this(campaignSoldierId, primaryWeaponId, equipmentGrade, soldierProfile,
+                specialEquipmentId, armorFamily, armorCapacity, armorRating,
+                armorMoveSpeedMult, armorIncomingAccuracyMult, campaignSquadId,
+                campaignSquadLabel, campaignSquadLeader, campaignSquadStrength,
+                campaignFireTeamIndex, commandGroupIdentity, welfare, armorClass, integralSystem, null);
+    }
 
     /** A commitment that carries only the mess's figure, as every one saved before the facilities did. */
     public MarineSeatCommitment(String campaignSoldierId, String primaryWeaponId,
@@ -164,6 +183,7 @@ public record MarineSeatCommitment(
         if (specialEquipmentId != null) {
             SpecialEquipmentRegistry.require(specialEquipmentId);
         }
+        SpecialEquipmentDef belt = loadout.beltDef();
 
         CampaignSquadTag squad = loadout.campaignSquad;
         return new MarineSeatCommitment(
@@ -183,7 +203,8 @@ public record MarineSeatCommitment(
                 squad != null ? squad.strength : 0,
                 squad != null ? squad.fireTeamIndex : Squad.NO_FIRE_TEAM,
                 squad != null ? squad.commandGroupIdentity : null,
-                squad != null ? squad.welfare : HullWelfare.NEUTRAL, loadout.armorClass, loadout.integralSystem);
+                squad != null ? squad.welfare : HullWelfare.NEUTRAL, loadout.armorClass, loadout.integralSystem,
+                belt != null ? belt.id() : null);
     }
 
     /**
@@ -210,7 +231,9 @@ public record MarineSeatCommitment(
                 armorRating,
                 armorMoveSpeedMult,
                 armorIncomingAccuracyMult,
-                squad, integralSystem).withArmorClass(armorClass);
+                squad, integralSystem).withArmorClass(armorClass)
+                .withBelt(beltEquipmentId, beltEquipmentId != null
+                        ? SpecialEquipmentRegistry.require(beltEquipmentId).startingAmmo() : 0);
     }
 
     private static void requireFiniteNonNegative(float value, String field) {
