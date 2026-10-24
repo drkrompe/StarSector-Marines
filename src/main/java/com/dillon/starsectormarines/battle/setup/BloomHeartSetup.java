@@ -288,7 +288,7 @@ public final class BloomHeartSetup {
         for (int w = 1; w < waves.length; w++) waves[w] = HeartLanes.STEP_OFF_SECONDS + w * LATE_WAVE_SECONDS;
         int axis = form.advancesAlongY() ? 1 : 0;
         int sign = Integer.signum(form.cellAt(1f, 0.5f)[axis] - form.cellAt(0f, 0.5f)[axis]);
-        float facing = form.advancesAlongY() ? (sign > 0 ? 90f : -90f) : (sign > 0 ? 0f : 180f);
+        float facing = HeartLanes.advanceFacing(form.advancesAlongY(), sign);
         HeartLanes lanes = new HeartLanes(grounds, entries, BATTLEGROUP_TEAMS, waves, RiskLevel.MEDIUM, seed ^ LANES_SALT)
                 .advancing(sign).armourBehind(BROAD_ARMOUR_BEHIND);
         for (int i = 0; i < across.length; i++) {
@@ -345,7 +345,7 @@ public final class BloomHeartSetup {
     static void supportCompany(BattleSimulation sim, Form form, HeartLanes lanes, HeartLane companyLane, Precinct landing) {
         int axis = form.advancesAlongY() ? 1 : 0;
         int sign = Integer.signum(form.cellAt(1f, 0.5f)[axis] - form.cellAt(0f, 0.5f)[axis]);
-        float facing = form.advancesAlongY() ? (sign > 0 ? 90f : -90f) : (sign > 0 ? 0f : 180f);
+        float facing = HeartLanes.advanceFacing(form.advancesAlongY(), sign);
         int[] base = {landing.seedX(), landing.seedY()};
         int support = lanes.addSupport(companyLane, base, sim.getSimTickIndex() ^ LANES_SALT);
         int slot = 0;
@@ -469,7 +469,7 @@ public final class BloomHeartSetup {
         HeartLanes lanes = new HeartLanes(grounds, entries, BATTLEGROUP_TEAMS, waves, RiskLevel.MEDIUM, seed ^ LANES_SALT)
                 .following(screen).armourBehind(BURN_ARMOUR_BEHIND);
         int axis = form.advancesAlongY() ? 1 : 0;
-        float facing = form.advancesAlongY() ? (screen.sign() > 0 ? 90f : -90f) : (screen.sign() > 0 ? 0f : 180f);
+        float facing = HeartLanes.advanceFacing(form.advancesAlongY(), screen.sign());
         for (int i = 0; i < across.length; i++) {
             List<VehicleType> hulls = new ArrayList<>(List.of(VehicleType.ESCORT_APC, VehicleType.MILITIA_TECHNICAL));
             boolean inner = i == 1 || i == across.length - 2;

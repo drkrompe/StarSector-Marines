@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.allied.AdvanceRoute;
 import com.dillon.starsectormarines.battle.command.allied.AlliedDepot;
@@ -24,6 +25,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vehicle.TurnAwareCorridor;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
@@ -497,7 +499,7 @@ public final class HeartLanes {
             if (lane == null || from == null) return null;
             int index = lanes.indexOf(lane);
             int hulls = lane.hulls.size();
-            float facing = lane.ground.advancesAlongY() ? (advanceSign >= 0 ? 90f : -90f) : (advanceSign >= 0 ? 0f : 180f);
+            float facing = advanceFacing(lane.ground.advancesAlongY(), advanceSign);
             addArmour(sim, index, VehicleType.BREAKTHROUGH_TANK, from[0], from[1], facing);
             addArmour(sim, index, VehicleType.MILITIA_TECHNICAL, from[0], from[1], facing);
             if (lane.hulls.size() == hulls) return null;
@@ -576,6 +578,16 @@ public final class HeartLanes {
     /** Cells between neighbouring machines across a lane, and by default how far behind the lane's aim they stand. */
     static final int ARMOUR_SPACING = 5, ARMOUR_BEHIND = 4;
 
+    /**
+     * The chassis heading of the advance ({@code 0} is +Y, counter-clockwise): a hull is set down facing the way its
+     * lane goes. Taken as a math-frame angle it pointed a hull side-on, into the woods or the wall beside a narrow
+     * road, where a hull that turns on a car's circle has no room to come round.
+     */
+    public static float advanceFacing(boolean alongY, int sign) {
+        int s = sign >= 0 ? 1 : -1;
+        return alongY ? AirBody.facingToward(0f, s) : AirBody.facingToward(s, 0f);
+    }
+
     /** Brings a machine on at {@code tick} as {@link #addArmour} sets one down; one with no ground near is dropped. */
     public void scheduleArmour(int tick, int index, VehicleType type, int x, int y, float facing) {
         armourDue.add(new int[]{tick, index, type == null ? -1 : type.ordinal(), x, y, Math.round(facing)});
@@ -608,11 +620,15 @@ public final class HeartLanes {
             return true;
         }
         VehicleClearance clearance = clearance(sim, type);
+        // Ground it can set out from whichever way its route leaves; only where there is none near, ground it fits.
         int[] cell = null;
-        for (int r = 0; cell == null && r <= 10; r++)
-            for (int dy = -r; cell == null && dy <= r; dy++) for (int dx = -r; cell == null && dx <= r; dx++)
-                if (Math.max(Math.abs(dx), Math.abs(dy)) == r && clearance.isPassable(x + dx, y + dy)
-                        && clearOfArmour(x + dx + .5f, y + dy + .5f)) cell = new int[]{x + dx, y + dy};
+        for (int pass = 0; cell == null && pass < 2; pass++)
+            for (int r = 0; cell == null && r <= 10; r++)
+                for (int dy = -r; cell == null && dy <= r; dy++) for (int dx = -r; cell == null && dx <= r; dx++)
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) == r && clearance.isPassable(x + dx, y + dy)
+                            && clearOfArmour(x + dx + .5f, y + dy + .5f)
+                            && (pass == 1 || TurnAwareCorridor.canSetOutFrom(x + dx + .5f, y + dy + .5f, type, sim.getGrid())))
+                        cell = new int[]{x + dx, y + dy};
         if (cell == null) return false;
         placed.add(new float[]{cell[0] + .5f, cell[1] + .5f});
         lane.hulls.add(allied.deploy(sim, type, cell[0], cell[1], facing));

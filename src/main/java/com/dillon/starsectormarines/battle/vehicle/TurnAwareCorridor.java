@@ -29,13 +29,15 @@ public final class TurnAwareCorridor {
     private TurnAwareCorridor() {}
 
     public static Result refine(float[][] route, VehicleType type, NavigationGrid grid) {
-        float[] xs = route[0], ys = route[1];
-        int count = Math.min(xs.length, ys.length);
-        if (count < 2) return Result.failure(count == 0 ? 0f : xs[0], count == 0 ? 0f : ys[0]);
+        int given = Math.min(route[0].length, route[1].length);
+        if (given < 2) return Result.failure(given == 0 ? 0f : route[0][0], given == 0 ? 0f : route[1][0]);
 
         GroundBody body = type.createBody();
         if (!(body instanceof BicycleBody bicycle)) return Result.success(route);
         float radius = bicycle.minTurnRadiusCells();
+        float[][] bends = withoutStraightVertices(route[0], route[1], given);
+        float[] xs = bends[0], ys = bends[1];
+        int count = xs.length;
 
         Corner[] corners = new Corner[count];
         for (int i = 1; i < count - 1; i++) {
@@ -97,6 +99,48 @@ public final class TurnAwareCorridor {
             }
         }
         return Result.success(refined);
+    }
+
+    /**
+     * Whether a route can set out from {@code (x, y)} whichever way its first leg points: the footprint, with the
+     * slack {@link #refine} samples it at, clears the ground at every one of eight headings. A hull set down where
+     * this is false may have every route refused at its very first pose, the leg's heading swinging its tail into
+     * the trees beside it.
+     */
+    public static boolean canSetOutFrom(float x, float y, VehicleType type, NavigationGrid grid) {
+        float length = type.visualLengthCells + FOOTPRINT_SLACK_CELLS;
+        float width = type.visualWidthCells + FOOTPRINT_SLACK_CELLS;
+        for (int heading = 0; heading < 360; heading += 45) {
+            if (!VehicleFootprint.isPoseFeasible(x, y, heading, length, width, grid)) return false;
+        }
+        return true;
+    }
+
+    /**
+     * The route with every vertex it runs straight through removed (one whose bend is under
+     * {@link #STRAIGHT_ANGLE_EPS_DEG}, or that repeats its neighbour), so a corner's legs are measured to the
+     * corners either side of it. A string-pull can leave a vertex in the middle of a straight run; counted as a
+     * corner's end it cut the leg to a cell, too short for any fillet, and a plain bend at the end of a long
+     * diagonal was refused.
+     */
+    static float[][] withoutStraightVertices(float[] xs, float[] ys, int count) {
+        List<Float> outX = new ArrayList<>();
+        List<Float> outY = new ArrayList<>();
+        outX.add(xs[0]);
+        outY.add(ys[0]);
+        for (int i = 1; i < count - 1; i++) {
+            float px = outX.get(outX.size() - 1), py = outY.get(outY.size() - 1);
+            float inX = xs[i] - px, inY = ys[i] - py, outLegX = xs[i + 1] - xs[i], outLegY = ys[i + 1] - ys[i];
+            float inLength = (float) Math.hypot(inX, inY), outLength = (float) Math.hypot(outLegX, outLegY);
+            if (inLength < LENGTH_EPS || outLength < LENGTH_EPS) continue;
+            float dot = clamp((inX * outLegX + inY * outLegY) / (inLength * outLength), -1f, 1f);
+            if (Math.toDegrees(Math.acos(dot)) < STRAIGHT_ANGLE_EPS_DEG) continue;
+            outX.add(xs[i]);
+            outY.add(ys[i]);
+        }
+        outX.add(xs[count - 1]);
+        outY.add(ys[count - 1]);
+        return arrays(outX, outY);
     }
 
     private static Corner cornerAt(float[] xs, float[] ys, int i, float radius) {
