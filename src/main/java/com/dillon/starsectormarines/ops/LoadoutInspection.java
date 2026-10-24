@@ -38,6 +38,8 @@ final class LoadoutInspection {
 
     /** The lines of kit each marine's tile lists, in order. */
     static final int WEAPON = 0, ARMOR = 1, SPECIAL = 2, SYSTEM = 3, PARTS = 4;
+    /** Each line's kind as its class names it, taking the spec sheet's accent for that kind. */
+    private static final String[] PART_KINDS = {"weapon", "armor", "special", "system"};
 
     /** The numbers a tile compares: the weapon's three that matter most, and the suit's two. */
     private static final List<String> STATS = List.of("DPS", "RNG", "PEN", "ARMOR", "MOVE");
@@ -155,10 +157,14 @@ final class LoadoutInspection {
     }
 
     private static Map<String, Object> part(int index, int part, FireTeamBillet before, FireTeamBillet after) {
-        Map<String, Object> line = row(partId(index, part), "icon", "text", "now", "nextRow", "arrow", "next");
+        Map<String, Object> line = row(partId(index, part), "tick", "socket", "icon", "text", "now", "nextRow", "arrow", "next");
         SpecSheet now = sheet(before, part), next = sheet(after, part);
         boolean changes = after != null && !Objects.equals(now, next);
         String icon = icon(after != null ? after : before, part);
+        // Drawn as a Mech Lab mount: the slot's colour on a tick, the item in a sunk socket,
+        // an empty slot faded into the card and a changing one framed in brass.
+        line.put("classes", "loadout-part loadout-part-" + PART_KINDS[part]
+                + (changes ? " changes" : now == null && next == null ? " empty" : ""));
         line.put("icon", icon);
         line.put("iconClasses", icon.isEmpty() ? "loadout-part-icon loadout-part-icon-absent" : "loadout-part-icon");
         line.put("now", name(before, now, part));
