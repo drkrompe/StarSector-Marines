@@ -268,6 +268,12 @@ public final class SpecSheetLayer {
      * overlay never leaves the panel it belongs to.
      */
     public void show(SpecSheet sheet, UiElement anchor) {
+        Objects.requireNonNull(anchor, "anchor");
+        show(sheet, anchor.box().borderBox());
+    }
+
+    /** As {@link #show(SpecSheet, UiElement)}, beside a box in document pixels. */
+    public void show(SpecSheet sheet, Rect anchor) {
         Objects.requireNonNull(sheet, "sheet");
         Objects.requireNonNull(anchor, "anchor");
         fill(sheet);
@@ -277,7 +283,7 @@ public final class SpecSheetLayer {
         relayout();
         fitWrappedRows();
         relayout();
-        place(anchor.box().borderBox(), measuredHeight());
+        place(anchor, measuredHeight());
         relayout();
     }
 

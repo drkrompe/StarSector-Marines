@@ -4,18 +4,21 @@
   "chassis": [
     {
       "variant": "bulwark",
+      "factionLogo": "graphics/factions/persean_league.png",
       "designation": "BLW-9",
       "role": "@gearCatalogBulwarkRole",
       "description": "@gearCatalogBulwarkDescription"
     },
     {
       "variant": "hound",
+      "factionLogo": "graphics/factions/neutral_traders.png",
       "designation": "HND-3",
       "role": "@gearCatalogHoundRole",
       "description": "@gearCatalogHoundDescription"
     },
     {
       "variant": "warden",
+      "factionLogo": "graphics/factions/sindrian_diktat.png",
       "designation": "SRC-5",
       "role": "@gearCatalogWardenRole",
       "description": "@gearCatalogWardenDescription"
@@ -25,116 +28,139 @@
   "components": [
     {
       "component": "component.mech-chaingun",
+      "factionLogo": "graphics/factions/neutral_traders.png",
       "designation": "MCG",
       "description": "@gearCatalogComponentMechChaingunDescription"
     },
     {
       "component": "component.mech-nose-chaingun",
+      "factionLogo": "graphics/factions/neutral_traders.png",
       "designation": "MCG-N",
       "description": "@gearCatalogComponentMechNoseChaingunDescription"
     },
     {
       "component": "component.mech-chaingun-hf",
+      "factionLogo": "graphics/factions/neutral_traders.png",
       "designation": "MCG-H",
       "description": "@gearCatalogComponentMechChaingunHfDescription"
     },
     {
       "component": "component.mech-nose-chaingun-hf",
+      "factionLogo": "graphics/factions/neutral_traders.png",
       "designation": "MCG-HN",
       "description": "@gearCatalogComponentMechNoseChaingunHfDescription"
     },
     {
       "component": "component.mech-linear-cannon",
+      "factionLogo": "graphics/factions/tritachyon.png",
       "designation": "MLC",
       "description": "@gearCatalogComponentMechLinearCannonDescription"
     },
     {
       "component": "component.mech-heavy-cannon",
+      "factionLogo": "graphics/factions/hegemony.png",
       "designation": "MHC",
       "description": "@gearCatalogComponentMechHeavyCannonDescription"
     },
     {
       "component": "component.mech-pulse-laser",
+      "factionLogo": "graphics/factions/tritachyon.png",
       "designation": "MPL",
       "description": "@gearCatalogComponentMechPulseLaserDescription"
     },
     {
       "component": "component.mech-bastion-autocannon",
+      "factionLogo": "graphics/factions/persean_league.png",
       "designation": "BAC",
       "description": "@gearCatalogComponentMechBastionAutocannonDescription"
     },
     {
       "component": "component.mech-demolition-cannon",
+      "factionLogo": "graphics/factions/pirates.png",
       "designation": "FBR",
       "description": "@gearCatalogComponentMechDemolitionCannonDescription"
     },
     {
       "component": "component.mech-muster-autogun",
+      "factionLogo": "graphics/factions/neutral_traders.png",
       "designation": "CAG-6",
       "description": "@gearCatalogComponentMechMusterAutogunDescription"
     },
     {
       "component": "component.mech-nose-muster-autogun",
+      "factionLogo": "graphics/factions/neutral_traders.png",
       "designation": "CAG-6N",
       "description": "@gearCatalogComponentMechNoseMusterAutogunDescription"
     },
     {
       "component": "component.mech-quarry-breaker",
+      "factionLogo": "graphics/factions/neutral_traders.png",
       "designation": "QBC-2",
       "description": "@gearCatalogComponentMechQuarryBreakerDescription"
     },
     {
       "component": "component.mech-srm-5",
+      "factionLogo": "graphics/factions/neutral_traders.png",
       "designation": "SRM-5",
       "description": "@gearCatalogComponentMechSrm5Description"
     },
     {
       "component": "component.mech-srm-15",
+      "factionLogo": "graphics/factions/persean_league.png",
       "designation": "SRM-15",
       "description": "@gearCatalogComponentMechSrm15Description"
     },
     {
       "component": "component.mech-lrm-5",
+      "factionLogo": "graphics/factions/persean_league.png",
       "designation": "LRM-5",
       "description": "@gearCatalogComponentMechLrm5Description"
     },
     {
       "component": "component.mech-lrm-15",
+      "factionLogo": "graphics/factions/sindrian_diktat.png",
       "designation": "LRM-15",
       "description": "@gearCatalogComponentMechLrm15Description"
     },
     {
       "component": "component.mech-srm-5-frag",
+      "factionLogo": "graphics/factions/neutral_traders.png",
       "designation": "SRM-5-F",
       "description": "@gearCatalogComponentMechSrm5FragDescription"
     },
     {
       "component": "component.mech-srm-15-frag",
+      "factionLogo": "graphics/factions/persean_league.png",
       "designation": "SRM-15-F",
       "description": "@gearCatalogComponentMechSrm15FragDescription"
     },
     {
       "component": "component.mech-lrm-5-frag",
+      "factionLogo": "graphics/factions/persean_league.png",
       "designation": "LRM-5-F",
       "description": "@gearCatalogComponentMechLrm5FragDescription"
     },
     {
       "component": "component.mech-lrm-15-frag",
+      "factionLogo": "graphics/factions/sindrian_diktat.png",
       "designation": "LRM-15-F",
       "description": "@gearCatalogComponentMechLrm15FragDescription"
     },
     {
       "component": "component.mech-shoulder-laser",
+      "factionLogo": "graphics/factions/tritachyon.png",
       "designation": "SLC",
       "description": "@gearCatalogComponentMechShoulderLaserDescription"
     },
     {
       "component": "component.mech-thermal-lance",
+      "factionLogo": "graphics/factions/lg.png",
       "designation": "LBT",
       "description": "@gearCatalogComponentMechThermalLanceDescription"
     },
     {
       "component": "component.mech-pioneer-rocket",
+      "factionLogo": "graphics/factions/neutral_traders.png",
       "designation": "PRC-4",
       "description": "@gearCatalogComponentMechPioneerRocketDescription"
     }

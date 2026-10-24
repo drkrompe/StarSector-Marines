@@ -63,7 +63,7 @@ class MechCatalogTest {
                   "schemaVersion": 1,
                   "chassis": [
                     { "variant": "hound", "designation": "HND-3", "role": "Light",
-                      "description": "A light frame." }
+                      "description": "A light frame.", "factionLogo": "graphics/factions/neutral_traders.png" }
                   ],
                   "components": []
                 }

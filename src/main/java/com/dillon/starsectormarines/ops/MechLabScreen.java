@@ -186,6 +186,8 @@ public final class MechLabScreen implements Screen {
             built.canvases().set(ghostElement, dragGhost);
             candidateSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built));
             wireEquipmentPreviews(candidate, built, candidateSheets);
+            // A fitted part on the doll opens the sheet its stores card does, beside the part.
+            MechLabSpecSheets.bindDoll(candidateSheets, built, dollElement, dollCanvas, viewModel);
             dollElement.onPointerMove(this::moveOverDoll);
             dollElement.onPointerDown(this::pressDoll);
             dollElement.onPointerUp(this::releaseDoll);

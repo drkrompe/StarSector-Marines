@@ -10,14 +10,23 @@
         <div id="{tile.nameId}" class="spec-sheet-title">{tile.name}</div>
         <div id="{tile.metadataId}" class="spec-sheet-subtitle">{tile.metadata}</div>
       </div>
-      <div id="{tile.tierId}" class="loadout-card-tier" style="{tile.tierStyle}">
-        <img id="{tile.tierIconId}" class="loadout-card-tier-icon" src="{tile.tierIcon}" />
-      </div>
-      <button id="{tile.issueId}" class="{tile.issueButtonClasses}" disabled="{tile.issueDisabled}" onclick="{tile.issue}">
-        <div id="{tile.issueBoxId}" class="doctrine-issue-box">
-          <img id="{tile.issueCheckId}" class="{tile.issueCheckClasses}" src="graphics/ui/equipment/issue-check.svg" />
+      <!-- Centred by layout, not by padding sums: the row centres the chip and the box on the
+           heading, and a growing spacer above and below each symbol centres it in its frame,
+           whatever the sizes, resolution or UI scale. -->
+      <div id="{tile.controlsId}" class="loadout-card-controls">
+        <div id="{tile.tierId}" class="loadout-card-tier" style="{tile.tierStyle}">
+          <div id="{tile.tierTopId}" class="centre-spacer" />
+          <img id="{tile.tierIconId}" class="loadout-card-tier-icon" src="{tile.tierIcon}" />
+          <div id="{tile.tierBottomId}" class="centre-spacer" />
         </div>
-      </button>
+        <button id="{tile.issueId}" class="{tile.issueButtonClasses}" disabled="{tile.issueDisabled}" onclick="{tile.issue}">
+          <div id="{tile.issueBoxId}" class="doctrine-issue-box">
+            <div id="{tile.issueCheckTopId}" class="centre-spacer" />
+            <img id="{tile.issueCheckId}" class="{tile.issueCheckClasses}" src="graphics/ui/equipment/issue-check.svg" />
+            <div id="{tile.issueCheckBottomId}" class="centre-spacer" />
+          </div>
+        </button>
+      </div>
     </div>
     <div id="{tile.stampId}" class="{tile.stampClasses}">
       <div id="{tile.restrictionId}" class="{tile.restrictionClasses}">
@@ -75,16 +84,18 @@
   .loadout-card-team-rows { flex-direction: column; height: 116px; gap: 4px; }
   /* The card's tier as the filter strip draws it: its chevrons on the tier's tone. */
   /* The same chip as the tier filter's pill (fitting-filter-pill's .tier-pill), so the two match. */
-  .loadout-card-tier { flex-direction: column; align-items: center; width: 40px; height: 26px; padding: 1px 0px; pointer-events: none; }
+  .loadout-card-controls { flex-direction: row; align-items: center; width: 72px; gap: 8px; }
+  .centre-spacer { height: 0px; flex-grow: 1; pointer-events: none; }
+  .loadout-card-tier { flex-direction: column; align-items: center; width: 40px; height: 26px; pointer-events: none; }
   .loadout-card-tier-icon { width: 36px; height: 24px; pointer-events: none; }
   .loadout-card-lines { flex-direction: column; gap: 0px; }
   .loadout-card-line { height: 18px; white-space: normal; }
   .loadout-card-composition { color: #7fb2d8; }
   /* The card the squad wears is a ticked box, one ticked a kind; every other card's box is empty,
      and ticking it puts the squad in that card. No word: the box is the whole control. */
-  .doctrine-issue-button { flex-direction: column; align-items: center; width: 24px; height: 24px; padding: 3px; border-width: 0px; }
+  .doctrine-issue-button { flex-direction: column; align-items: center; width: 24px; height: 24px; padding: 0px; border-width: 0px; }
   .doctrine-issue-button:hover .doctrine-issue-box { border-color: #dfc588; }
-  .doctrine-issue-box { flex-direction: column; align-items: center; width: 18px; height: 18px; padding: 1px; border-width: 2px; border-color: #8b9aaf; background-color: #050709; pointer-events: none; }
+  .doctrine-issue-box { flex-direction: column; align-items: center; width: 20px; height: 20px; padding: 0px; border-width: 2px; border-color: #8b9aaf; background-color: #050709; pointer-events: none; }
   .doctrine-issue-button.issued .doctrine-issue-box { border-color: #78d494; background-color: #1d5a38; }
   .doctrine-issue-check { width: 12px; height: 12px; pointer-events: none; }
   .doctrine-issue-check.doctrine-issue-check-empty { opacity: 0; }
