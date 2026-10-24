@@ -679,6 +679,15 @@ public class BattleSprites {
      * first ask; a path that will not read is remembered as absent so it is not
      * retried every frame.
      */
+    /**
+     * Where {@code sprite} came from and its logical size, or null for a sprite this host did not load. A sprite's
+     * own width and height are display sizes the last whole-sprite draw set, so code holding only the sprite (an
+     * atlas taking in an image it was not told about) asks the host that loaded it instead.
+     */
+    public ModTextures.Loaded loadedImage(SpriteAPI sprite) {
+        return ModTextures.loaded(sprite);
+    }
+
     public ShuttleSpriteCache spriteByPath(String path) {
         if (path == null || path.isEmpty()) return null;
         if (pathSprites.containsKey(path)) return pathSprites.get(path);

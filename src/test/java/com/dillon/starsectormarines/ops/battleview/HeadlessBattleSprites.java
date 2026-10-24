@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.drone.Drone;
+import com.dillon.starsectormarines.render2d.texture.ModTextures;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
@@ -425,6 +426,11 @@ final class HeadlessBattleSprites extends BattleSprites {
                     asset.width() / (float) asset.height(), asset.width(), asset.height()));
         }
         return projectiles.get(path);
+    }
+
+    @Override public ModTextures.Loaded loadedImage(SpriteAPI sprite) {
+        Asset asset = sprite == null ? null : assets.get(sprite);
+        return asset == null ? null : new ModTextures.Loaded(asset.path(), asset.width(), asset.height());
     }
 
     Asset asset(SpriteAPI sprite) {

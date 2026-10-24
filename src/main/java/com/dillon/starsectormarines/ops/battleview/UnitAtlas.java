@@ -20,13 +20,21 @@ import java.util.List;
  * head and muzzle flash from separate PNGs. Thirty marines is two hundred binds
  * for thirty bodies.
  *
- * <p><b>What goes in.</b> The images that compose a unit: the modular infantry
- * families and every mech livery, the map turrets and their recoiling barrels,
- * the drone hub, and the airframes that stand on a hardstand. What stays out is
- * anything already drawn as a sub-rectangle of a shared sheet — the sprite-sheet
- * infantry, the corpse poses, the aim sheets — because those already coalesce,
- * and anything an atlas cannot express: an additive draw carries its own blend
- * and a batched quad does not.
+ * <p><b>What goes in.</b> Every whole image drawn in {@code UNITS} or
+ * {@code UNIT_SHADOWS} that is no larger than {@link #MAX_IMAGE_PX}, by
+ * whichever path it is drawn: a normal or additive sprite, a part of an image,
+ * a mesh, or a quad cut from a small sheet. The rule is the draw, not a list:
+ * {@link #plan} seeds the first frame from what the host has loaded (the
+ * modular infantry families and every mech livery, the map turrets and their
+ * recoiling barrels, the drone hub, the airframes that stand on a hardstand),
+ * and an image the seed does not name is noted by the {@link DrawList} the
+ * first time it misses and taken in by {@link #grow} before the next collect,
+ * into rows the plan reserved for it. That is what closed the turret collars
+ * and the downed poses falling out of the batch, and it closes the next image
+ * nobody adds to the seed: the only way out is over the cap, and that is
+ * reported. An additive draw of a held image is a quad of this sheet too,
+ * drained as its own run beside the normal one, so a shield screen's
+ * replayed silhouettes join the batch rather than each binding its body.
  *
  * <p><b>The redirect is one place.</b> {@link DrawList#addSprite} resolves a
  * sprite to its slot and emits a rotated sheet quad instead, so no composer
@@ -70,22 +78,73 @@ public final class UnitAtlas extends SpriteAtlas {
      */
     private static final int MAX_IMAGE_PX = 320;
 
+    /** The host the plan was seeded from: what sizes an image the atlas only saw drawn. */
+    private BattleSprites host;
+
     public UnitAtlas() {
         super("unit atlas", SIDES);
     }
 
+    @Override
+    public ModTextures.Loaded loadedImage(SpriteAPI image) {
+        return host != null ? host.loadedImage(image) : ModTextures.loaded(image);
+    }
+
+    /** The layers whose whole images this atlas takes in on sight. */
+    @Override
+    public boolean gathers(RenderLayer layer) {
+        return layer == RenderLayer.UNITS || layer == RenderLayer.UNIT_SHADOWS;
+    }
+
     /**
-     * Settles the layout from the unit images currently loaded.
+     * A quarter of the side, kept free below the seeded layout for images
+     * first drawn mid-battle: at 4096 that is a thousand rows, room for every
+     * turret look and any small image the seed forgot several times over, and
+     * each one placed there is a single upload rather than a rebuild of the
+     * atlas on the frame it is first drawn. The texture is then rounded up to a
+     * power-of-two height (see {@link SpriteAtlas#growthHeadroom}).
+     */
+    @Override
+    protected int growthHeadroom(int side) {
+        return side / 4;
+    }
+
+    /**
+     * Takes in every image the {@link DrawList} noted missing since the last
+     * call, as {@link #extend} does; each is sized by the host that loaded it
+     * ({@link BattleSprites#loadedImage}), because a sprite's own size is
+     * whatever the last draw set it to. Call before the
+     * collect. {@link Growth#RELAID} means the texture's size changed and its
+     * batch must be built again.
+     */
+    public Growth grow() {
+        List<SpriteAPI> images = takeMissed();
+        if (images.isEmpty()) return Growth.NONE;
+        List<Source> additions = new ArrayList<>();
+        for (SpriteAPI image : images) {
+            ModTextures.Loaded loaded = loadedImage(image);
+            if (loaded == null) {
+                exclude(Exclusion.NO_SIZE, "image its host cannot size");
+                continue;
+            }
+            consider(additions, image, loaded.width(), loaded.height(), loaded.path());
+        }
+        return extend(additions);
+    }
+
+    /**
+     * Seeds the layout from the unit images currently loaded.
      *
      * <p>Called at the same lifecycle seam that registers every other sheet's
-     * batch, after the host's {@code ensure*} loads. An image loaded later is
-     * simply not in the atlas and keeps drawing as a whole sprite, which is the
-     * behaviour this replaces rather than a failure.
+     * batch, after the host's {@code ensure*} loads. The seed only saves the
+     * first frames a rebuild: an image it leaves out, or one loaded later, joins
+     * through {@link #grow} the first time it is drawn.
      *
      * @return whether a layout exists at all
      */
     public boolean plan(BattleSprites sprites) {
         if (sprites == null) return isPlanned();
+        host = sprites;
         List<Source> candidates = new ArrayList<>();
         for (LayeredUnitAssets family : sprites.layeredUnitSprites().values()) {
             if (family != null) addLayers(candidates, family.layers());

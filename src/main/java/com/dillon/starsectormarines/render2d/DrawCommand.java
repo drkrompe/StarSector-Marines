@@ -71,7 +71,10 @@ public final class DrawCommand {
     float angleDeg;
     /** {@code SHEET_QUAD} only: sample the sub-rect mirrored vertically (the SOUTH-weapon-up flip). Always axis-aligned. */
     boolean flipV;
-    /** {@code SPRITE} only: draw with additive blend, for a glow that adds light instead of covering what is under it. */
+    /**
+     * {@code SPRITE} and {@code SHEET_QUAD}: draw with additive blend, for a glow that adds light instead of covering
+     * what is under it. An additive sheet quad is its own run in the drain, beside the normal run of the same sheet.
+     */
     boolean additive;
     float r, g, b, a;
     /** {@code RIBBON} only: the contrail sample history the drain expands. */
@@ -131,11 +134,20 @@ public final class DrawCommand {
         this.srcX = srcX; this.srcY = srcY; this.srcW = srcW; this.srcH = srcH;
         this.cx = cx; this.cy = cy; this.w = w; this.h = h; this.angleDeg = angleDeg;
         this.flipV = false;
+        this.additive = false;
         this.r = r; this.g = g; this.b = b; this.a = a;
         this.trail = null;
         this.poly = null;
         this.mesh = null;
         this.custom = null;
+    }
+
+    /** As the rotated {@link #setSheetQuad}, adding light rather than compositing over what is beneath it. */
+    public void setAdditiveSheetQuad(SpriteAPI sheet, int srcX, int srcY, int srcW, int srcH,
+                                     float cx, float cy, float w, float h, float angleDeg,
+                                     float r, float g, float b, float a) {
+        setSheetQuad(sheet, srcX, srcY, srcW, srcH, cx, cy, w, h, angleDeg, r, g, b, a);
+        this.additive = true;
     }
 
     /**

@@ -96,6 +96,17 @@ import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
  * image left out — over a subclass's size cap, refused by the layout, or lost
  * with a refused texture — is recorded as an {@link Exclusion}, and the whole
  * account is logged once per plan ({@link #report()}).
+ *
+ * <p><b>It can grow from what it is asked to draw.</b> A subclass that
+ * {@linkplain #gathers gathers} a layer is told about every image drawn there
+ * that it does not hold ({@link #noteMissed}), and {@link #extend} takes them in
+ * at the next frame boundary. A planned atlas reserves rows below its layout
+ * for that ({@link #growthHeadroom}), so an image first drawn in the middle of
+ * a battle is one upload into the texture that already exists rather than a
+ * rebuild of every image in it; only when the headroom is spent is the whole
+ * layout settled again. This is what keeps an atlas from depending on a list of
+ * its images being kept up to date: the list seeds the first frame, and
+ * anything it forgot joins the first time it is drawn.
  */
 public abstract class SpriteAtlas {
 
@@ -127,6 +138,16 @@ public abstract class SpriteAtlas {
      */
     public record Region(SpriteAPI sheet, int sheetW, int sheetH,
                          int srcX, int srcY, int width, int height, String name) { }
+
+    /** What {@link #extend} did with the images it was given. */
+    public enum Growth {
+        /** Nothing new to place. */
+        NONE,
+        /** Placed in the reserved rows; uploaded at the next {@link #sync()}, the texture and its size unchanged. */
+        APPENDED,
+        /** The whole layout settled again at a new size: the texture is rebuilt and its batch must be too. */
+        RELAID
+    }
 
     /** Why an image is not in the atlas. */
     public enum Exclusion {
@@ -177,8 +198,24 @@ public abstract class SpriteAtlas {
     private boolean broken;
     private boolean built;
     private int width;
+    /** Rows of the texture: the layout's own and the headroom reserved below it. */
     private int height;
+    /** Rows the layout fills, gutter included; where an appended image's shelf starts. */
+    private int usedHeight;
     private int texture;
+    /** Textures a relayout replaced, deleted at the next GL seam. */
+    private final List<Integer> retired = new ArrayList<>();
+
+    /** Images placed in the headroom whose texels are not uploaded yet, and where they will sit. */
+    private final List<Slot> pendingUploads = new ArrayList<>();
+    private final Map<SpriteAPI, Placement> pendingPlacements = new IdentityHashMap<>();
+    /** Replaced whenever a placement is added or moved, so a caller that cached addresses re-resolves them. */
+    private Object layoutToken = new Object();
+
+    /** Images drawn in a gathered layer that the atlas did not hold, in the order they were first drawn. */
+    private final List<SpriteAPI> missed = new ArrayList<>();
+    /** Every image already noted, offered or not: an image is judged once, not once per frame it is drawn. */
+    private final Set<SpriteAPI> judged = Collections.newSetFromMap(new IdentityHashMap<>());
 
     protected SpriteAtlas(String label, int... candidateSides) {
         this(label, true, candidateSides);
@@ -423,10 +460,171 @@ public abstract class SpriteAtlas {
                 }
             }
             width = side;
-            height = packedHeight;
+            usedHeight = packedHeight;
+            int headroom = growthHeadroom(side);
+            height = headroom <= 0 ? packedHeight
+                    : Math.min(side, Integer.highestOneBit(packedHeight + headroom - 1) << 1);
             return true;
         }
         return false;
+    }
+
+    /** Whether {@code candidates} would lay out at any of the atlas's sides; GL-free and changes nothing. */
+    private boolean fitsAnySide(List<Slot> candidates) {
+        int[] packW = new int[candidates.size()];
+        int[] packH = new int[candidates.size()];
+        for (int i = 0; i < candidates.size(); i++) {
+            packW[i] = candidates.get(i).w() + 2 * candidates.get(i).apron();
+            packH[i] = candidates.get(i).h() + 2 * candidates.get(i).apron();
+        }
+        for (int side : candidateSides) {
+            int[] packed = shelfPack(packW, packH, side);
+            if (packed != null && packed[packed.length - 1] <= side) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Rows a planned layout keeps free below itself for images first drawn
+     * after it was planned, given the side it settled at; zero, the default,
+     * for an atlas whose images are all known when it is planned.
+     *
+     * <p>An atlas that reserves any is given a power-of-two height that holds
+     * the layout and the headroom, up to its side. A power of two states every
+     * texel row's coordinate exactly where any other height rounds it, and the
+     * unit atlas's pixel evidence measured the difference: 194 pixels against
+     * the sprite path at 4096 rows, 976 at the 2652 the layout alone filled,
+     * 1393 at 3676.
+     */
+    protected int growthHeadroom(int side) {
+        return 0;
+    }
+
+    /**
+     * Whether whole images drawn in {@code layer} that the atlas does not hold
+     * should be offered to it. False by default: an atlas planned from a
+     * complete list has nothing to learn from its draws.
+     */
+    public boolean gathers(RenderLayer layer) {
+        return false;
+    }
+
+    /**
+     * Records that {@code image} was drawn in a layer this atlas
+     * {@linkplain #gathers gathers} and is not in it.
+     *
+     * <p>Called from the collect, so it is GL-free and costs one identity
+     * lookup once an image has been seen: an image the atlas has already
+     * judged (taken in, or turned away and recorded as an {@link Exclusion}) is
+     * not noted again. An atlas's own texture, or another atlas's, is not art
+     * and is never noted.
+     */
+    public final void noteMissed(SpriteAPI image) {
+        if (image == null || image instanceof AtlasSprite || !planned || broken) return;
+        if (judged.add(image)) missed.add(image);
+    }
+
+    /**
+     * Where {@code image} came from and its logical size, for an image the atlas was told about only by being drawn;
+     * null when nothing can say, the default for an atlas that takes nothing in on sight.
+     */
+    public ModTextures.Loaded loadedImage(SpriteAPI image) {
+        return null;
+    }
+
+    /** The images noted since the last call, oldest first; each is noted once for the atlas's life. */
+    protected final List<SpriteAPI> takeMissed() {
+        if (missed.isEmpty()) return Collections.emptyList();
+        List<SpriteAPI> out = new ArrayList<>(missed);
+        missed.clear();
+        return out;
+    }
+
+    /**
+     * Takes {@code additions} into a planned atlas. GL-free: call it between
+     * frames, before the collect, never between a collect and its drain.
+     *
+     * <p>Once the texture is built, additions that fit the reserved rows are
+     * placed there and uploaded by the next {@link #sync()}; until then they
+     * are not addressable, so nothing samples texels that are not there yet.
+     * Additions that do not fit settle the whole layout again, which the host
+     * answers by rebuilding the atlas's batch, because the texture's size
+     * changes. A set that fits no side at all is turned away as
+     * {@link Exclusion#NO_ROOM} and the atlas keeps serving what it has.
+     */
+    protected final Growth extend(List<Source> additions) {
+        if (!isPlanned() || additions == null) return Growth.NONE;
+        List<Slot> fresh = new ArrayList<>();
+        for (Source source : additions) {
+            if (source == null || source.sheet() == null) continue;
+            if (placementBySheet.containsKey(source.sheet()) || pendingPlacements.containsKey(source.sheet())) continue;
+            add(fresh, source);
+        }
+        if (fresh.isEmpty()) return Growth.NONE;
+        if (built && appendIntoHeadroom(fresh)) return Growth.APPENDED;
+
+        List<Slot> all = new ArrayList<>(slots.size() + pendingUploads.size() + fresh.size());
+        for (Slot slot : slots) all.add(slot.at(0, 0));
+        for (Slot slot : pendingUploads) all.add(slot.at(0, 0));
+        all.addAll(fresh);
+        if (!fitsAnySide(all)) {
+            List<String> names = excluded.computeIfAbsent(Exclusion.NO_ROOM, reason -> new ArrayList<>());
+            for (Slot slot : fresh) names.add(slotName(slot));
+            return Growth.NONE;
+        }
+        slots.clear();
+        placementBySheet.clear();
+        sheetIndex.clear();
+        pendingUploads.clear();
+        pendingPlacements.clear();
+        layOut(all);
+        if (texture != 0) retired.add(texture);
+        texture = 0;
+        built = false;
+        reported = false;
+        layoutToken = new Object();
+        return Growth.RELAID;
+    }
+
+    /** Shelves {@code fresh} in the rows below the layout, if they fit in what the texture already has. */
+    private boolean appendIntoHeadroom(List<Slot> fresh) {
+        int[] packW = new int[fresh.size()];
+        int[] packH = new int[fresh.size()];
+        for (int i = 0; i < fresh.size(); i++) {
+            packW[i] = fresh.get(i).w() + 2 * fresh.get(i).apron();
+            packH[i] = fresh.get(i).h() + 2 * fresh.get(i).apron();
+        }
+        int[] packed = shelfPack(packW, packH, width);
+        if (packed == null) return false;
+        // The layout's last gutter is the first gutter of the appended shelf.
+        int top = usedHeight - GUTTER_PX;
+        int packedHeight = packed[packed.length - 1];
+        if (top + packedHeight > height) return false;
+        for (int i = 0; i < fresh.size(); i++) {
+            Slot proposed = fresh.get(i);
+            Slot placed = proposed.at(packed[i * 2] + proposed.apron(), top + packed[i * 2 + 1] + proposed.apron());
+            pendingUploads.add(placed);
+            pendingPlacements.put(placed.sheet(), new Placement(placed.x(), placed.y(), placed.w(), placed.h()));
+        }
+        usedHeight = top + packedHeight;
+        return true;
+    }
+
+    /**
+     * An object that changes whenever a placement is added or moved; a caller
+     * that resolves addresses once and keeps them keys them on it.
+     */
+    public final Object layoutToken() {
+        return layoutToken;
+    }
+
+    /**
+     * Whether the atlas has GL work waiting: a texture to build, or images
+     * placed in its headroom to upload. A host puts {@link #sync()} in front of
+     * the layer it serves while this holds, and only then.
+     */
+    public final boolean needsSync() {
+        return isPlanned() && (!built || !pendingUploads.isEmpty());
     }
 
     /**
@@ -565,7 +763,11 @@ public abstract class SpriteAtlas {
      * @return whether the atlas can be addressed from the next frame
      */
     public final boolean sync() {
-        if (broken || built) return isServing();
+        if (broken) return false;
+        if (built) {
+            if (!pendingUploads.isEmpty()) uploadPending();
+            return isServing();
+        }
         if (!planned || slots.isEmpty()) return false;
         try {
             build();
@@ -581,7 +783,60 @@ public abstract class SpriteAtlas {
         return isServing();
     }
 
+    /** Uploads the images {@link #extend} placed in the headroom, and only then lets quads address them. */
+    private void uploadPending() {
+        List<Slot> uploading = new ArrayList<>(pendingUploads);
+        ByteBuffer scratch = null;
+        glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
+        try {
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            for (List<Slot> group : bySheet(uploading)) {
+                scratch = copy(group, scratch);
+                if (broken) break;
+            }
+        } catch (RuntimeException failure) {
+            broken = true;
+            if (refusal == null) refusal = failure.toString();
+        } finally {
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glPopClientAttrib();
+        }
+        if (broken) {
+            exclude(Exclusion.REFUSED, slots.size() + uploading.size() + " images ("
+                    + (refusal == null ? "unknown" : refusal) + ")");
+            logOnce();
+            return;
+        }
+        slots.addAll(uploading);
+        placementBySheet.putAll(pendingPlacements);
+        pendingUploads.clear();
+        pendingPlacements.clear();
+        layoutToken = new Object();
+    }
+
+    /** {@code group}'s slots by the image they are cut from, in first-seen order: each is read back once. */
+    private static List<List<Slot>> bySheet(List<Slot> group) {
+        Map<SpriteAPI, List<Slot>> bySheet = new IdentityHashMap<>();
+        List<List<Slot>> ordered = new ArrayList<>();
+        for (Slot slot : group) {
+            List<Slot> into = bySheet.get(slot.sheet());
+            if (into == null) {
+                into = new ArrayList<>();
+                bySheet.put(slot.sheet(), into);
+                ordered.add(into);
+            }
+            into.add(slot);
+        }
+        return ordered;
+    }
+
+    private void deleteRetired() {
+        for (int stale : retired) glDeleteTextures(stale);
+        retired.clear();
+    }
+
     private void build() {
+        deleteRetired();
         int driverMax = glGetInteger(GL_MAX_TEXTURE_SIZE);
         if (driverMax > 0 && (width > driverMax || height > driverMax)) {
             broken = true;
@@ -827,7 +1082,14 @@ public abstract class SpriteAtlas {
      */
     public final void dispose() {
         if (texture != 0) glDeleteTextures(texture);
+        deleteRetired();
         texture = 0;
+        usedHeight = 0;
+        pendingUploads.clear();
+        pendingPlacements.clear();
+        missed.clear();
+        judged.clear();
+        layoutToken = new Object();
         built = false;
         planned = false;
         broken = false;

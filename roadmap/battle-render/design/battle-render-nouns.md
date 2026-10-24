@@ -488,11 +488,22 @@ change the physical crash corridor.
     composer: a dozen emit sites that each had to remember the atlas is a dozen
     chances for one of them to disagree, and none of them should know it exists.
     Per-unit tint and fade ride the batch's vertex colour, which is where they
-    already were; an additive draw is left on the sprite path, because its blend
-    state is its own. And the set is **bounded by what an image is for** rather
+    already were; an additive draw of a held image is a quad of the same sheet
+    drained as its own run beside the normal one, since the blend is per run and
+    not per texture. And the set is **bounded by what an image is for** rather
     than by what will fit: an atlas pays where many of its images are on screen
     at once, which a composed body is and a vanilla aircraft hull is not, so an
     image past a stated size keeps drawing as a whole sprite.
+
+    **What the unit layers draw is what the unit atlas holds.** Its membership is
+    a rule over draws, not a list: any image drawn in `UNITS` or `UNIT_SHADOWS`
+    that the atlas lacks, by any emit path, is noted at the seam and taken in
+    before the next collect. The list the battle seeds it from only spares the
+    first frames a rebuild. A seed list kept by hand was how turret collars and
+    downed poses each came to cost a bind per body unnoticed; under the rule the
+    only way out is the size cap, and the atlas report names what it left out.
+    An image first drawn mid-battle goes into rows the plan kept free, so it costs
+    one upload rather than a rebuild on the frame a marine first falls.
 
     **A cut carries its neighbourhood.** A whole image's edge was always an
     edge, so a transparent gutter changes nothing there; a rectangle cut from a
