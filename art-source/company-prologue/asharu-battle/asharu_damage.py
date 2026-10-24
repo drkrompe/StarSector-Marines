@@ -839,7 +839,7 @@ def apply(ship_key, ship_fx, t_shot0, t_shot1, frame_of, matrix=None, log=print,
     for h in now:
         f = b.frame(h.t)
         tag = []
-        if impacts is not None and ('tracer' in h.bys or 'missile' in h.bys):
+        if impacts is not None and ({'tracer', 'missile', 'mining'} & set(h.bys)):
             got = drawn_impacts(h, f, impacts)
             if got and got[0][0] > LINK_M:      # where the drawn round met her, the burst's walk kept
                 import copy

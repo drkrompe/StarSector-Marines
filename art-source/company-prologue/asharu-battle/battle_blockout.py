@@ -1040,7 +1040,7 @@ KEYFRAMES = {
             # what her flares answer (owner, 2026-10-23: a flare needs a visible cause): the Wolf's
             # Harpoons (the Mk.III mounts no missiles), landing after the flares go out at 93.8 s,
             # one of them pulled off onto a flare
-            ('missiles', 'wolf-p-a', 'colossus', 95.6, 1),
+            ('missiles', 'wolf-p-a', 'colossus', 95.6, 1, (-62, 30, 0)),     # at her port pod
             # every Borer's laser is on an attacker (owner, 2026-10-23: Borers are not repair ships): the two
             # by the pod both on the Mk.III above her, the bigger threat; two more, out of the bay, on the Wolf
             # and the Kite
@@ -3116,8 +3116,10 @@ def blender_main(cfg):
                             bf = None
                         if len(fx) > 3:       # ('missiles', a, b, t): the salvo arrives at sequence time t
                             bf = anchor + round((fx[3] - spec.get('key_t', fx[3])) * fps_s)
-                        # ('missiles', a, b, t, n): n of its seekers take b's flares (thrown earlier in fx)
-                        done = sfx_.missiles(fx[1], fx[2], arrive=bf, decoys=fx[4] if len(fx) > 4 else 0)
+                        # ('missiles', a, b, t, n, aim): n of its seekers take b's flares (thrown earlier in
+                        # fx); aim, the point on b they seek (her frame, metres; default her centre)
+                        done = sfx_.missiles(fx[1], fx[2], arrive=bf, decoys=fx[4] if len(fx) > 4 else 0,
+                                             aim=fx[5] if len(fx) > 5 else (0, 0, 0))
                         if not done and len(fx) > 4:
                             print(f'ASHARU WARNING {kf} missiles {fx[1]} -> {fx[2]}: no launcher tubes on the '
                                   f'{fx[1]} build, so the flares of {fx[2]} have no seeker to answer', flush=True)
