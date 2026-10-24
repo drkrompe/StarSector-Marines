@@ -54,6 +54,12 @@ workbench's Snapshots tab share one catalog.
   frame whole). The simulation steps on one thread. `-Dsnapshot.profile=true` prints where a frame's time goes.
 - **Accept a renderer change on raw frames, never on GIFs**, whose palette hides and invents differences:
   `-PsnapshotRawFrames=<dir>` keeps every frame losslessly and `RawFrameDump.main` compares two runs.
+- **`-Dsnapshot.layoutLint=<dir>` lints every retained document the selected suites paint** (`LayoutLint`): each is
+  laid out again at 1744x938, 1920x1080 and 2560x1440 through the host's relative viewport (a panel painted at its
+  own size only at that size), checked for clipped text, boxes spilling a clipping ancestor and zero-size hides that
+  still take a `gap` slot, and restored. It writes `layout-lint.md` (spots and patterns per screen, worst rows) and
+  `layout-lint.csv` into `<dir>`. Pass absolute paths. It lints the page the suite built, so a suite that leaves out a
+  sheet the game installs lints a different page.
 - A suite artifact is a PNG, or an animated GIF for a suite whose evidence is a played battle. The runner writes
   both; a suite never writes files itself. Animated review frames come from `BattleReviewFrameRenderer`, shared
   with commander evidence. Frames are a pure function of simulation state: the effect feed's jitter is seeded and

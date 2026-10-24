@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ui.retained.headless;
 
+import com.dillon.starsectormarines.ops.MarineOpsUiViewport;
 import com.dillon.starsectormarines.render2d.texture.FittedTextureOverlay;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotWorkers;
 import com.dillon.starsectormarines.ui.BitmapFont;
@@ -11,6 +12,7 @@ import com.dillon.starsectormarines.ui.retained.CanvasProducer;
 import com.dillon.starsectormarines.ui.retained.CanvasHostPass;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 import com.dillon.starsectormarines.ui.retained.CanvasSpriteRegion;
+import com.dillon.starsectormarines.ui.retained.LayoutLint;
 import com.dillon.starsectormarines.ui.retained.Rect;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
@@ -207,7 +209,11 @@ public final class HeadlessUiRenderer {
     }
 
     public BufferedImage render(UiDocument document, int width, int height, float alphaMult) {
-        return render(document, width, height, width, height, 1f, alphaMult);
+        // A full-screen page painted 1:1 is the host's relative viewport at the shipping reference.
+        LayoutLint.Policy policy = width == 1920 && height == 1080
+                ? new LayoutLint.Policy(1f, MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT)
+                : null;
+        return render(document, width, height, width, height, 1f, alphaMult, policy);
     }
 
     /**
@@ -292,12 +298,12 @@ public final class HeadlessUiRenderer {
         float deviceScale = viewport.documentScale() * uiScale;
         return render(document, width, height,
                 viewport.documentWidth(), viewport.documentHeight(),
-                deviceScale, 1f);
+                deviceScale, 1f, new LayoutLint.Policy(uiScale, referenceWidth, referenceHeight));
     }
 
     private BufferedImage render(UiDocument document, int width, int height,
                                  float documentWidth, float documentHeight,
-                                 float deviceScale, float alphaMult) {
+                                 float deviceScale, float alphaMult, LayoutLint.Policy lintPolicy) {
         if (document == null) throw new IllegalArgumentException("document is required");
         if (width <= 0 || height <= 0) {
             throw new IllegalArgumentException("viewport dimensions must be positive");
@@ -314,6 +320,7 @@ public final class HeadlessUiRenderer {
         document.render(new RasterTarget(graphics, resources, hostPassRenderer,
                 deviceScale), alphaMult);
         graphics.dispose();
+        LayoutLint.observe(document, documentWidth, documentHeight, lintPolicy);
         return output;
     }
 
