@@ -192,6 +192,20 @@ public final class UiElement {
         return this;
     }
 
+    /**
+     * Sizes the drawing surface to the laid-out content box, one surface unit to one document
+     * pixel. A canvas whose box is shaped by the layout rather than by its surface would
+     * otherwise stretch everything drawn in it (glyphs, icons, cards) by the box's aspect.
+     * Call after layout; a canvas not yet laid out is left alone.
+     */
+    public void fitCanvasToBox() {
+        requireCanvas();
+        if (box() == null) return;
+        int width = Math.max(1, Math.round(box().contentBox().width()));
+        int height = Math.max(1, Math.round(box().contentBox().height()));
+        if (width != canvasWidth || height != canvasHeight) canvasSize(width, height);
+    }
+
     public int canvasWidth() {
         requireCanvas();
         return canvasWidth;

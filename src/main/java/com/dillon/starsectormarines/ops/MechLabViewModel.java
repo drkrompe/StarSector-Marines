@@ -33,6 +33,10 @@ import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.FabricationResources;
 import com.dillon.starsectormarines.marine.MechWorkshop;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.ops.fitting.FittingCard;
+import com.dillon.starsectormarines.ops.fitting.FittingFilterPill;
+import com.dillon.starsectormarines.ops.fitting.FittingMeter;
+import com.dillon.starsectormarines.ops.fitting.FittingSlotCard;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
@@ -94,7 +98,7 @@ public final class MechLabViewModel {
     private final ComputedSignal<String> shipRefitText;
     /** The company ship's refits, read live here; a launch freezes them into each deployment. */
     private final Supplier<ShipCondition> shipCondition;
-    private final ComputedSignal<List<FilterPill>> categoryFilterPills;
+    private final ComputedSignal<List<FittingFilterPill>> categoryFilterPills;
     private final ComputedSignal<String> categoryFilterClasses;
     private final ComputedSignal<String> allPartsClasses;
     private final ComputedSignal<String> labSummary;
@@ -108,7 +112,7 @@ public final class MechLabViewModel {
     private final ComputedSignal<Boolean> callSignRenameDisabled;
     private final ComputedSignal<String> selectedMechIdentity;
     private final ComputedSignal<String> selectedMechDoctrine;
-    private final ComputedSignal<List<PerformanceMeter>> performanceMeters;
+    private final ComputedSignal<List<FittingMeter>> performanceMeters;
     private final ComputedSignal<List<SlotRow>> leftSlotRows;
     private final ComputedSignal<List<SlotRow>> rightSlotRows;
     private final ComputedSignal<List<SlotRow>> slotRows;
@@ -256,7 +260,7 @@ public final class MechLabViewModel {
             if (mech == null) return fabricatingChassis() ? Strings.get("openingMechLabChassisForge") : Strings.get("openingMechLabDoctrineUnavailable");
             return Strings.join("separatorDot", roleLabel(mech.role()), doctrineAdvice(mech.role()));
         });
-        performanceMeters = reactor.computed(this::buildPerformanceMeters);
+        performanceMeters = reactor.computed(this::buildFittingMeters);
         budgetText = reactor.computed(this::buildBudgetText);
         budgetClasses = reactor.computed(() -> {
             CampaignMech mech = selectedMech();
@@ -436,7 +440,7 @@ public final class MechLabViewModel {
     public Signal<Boolean> callSignRenameDisabled() { return callSignRenameDisabled; }
     public Signal<String> selectedMechIdentity() { return selectedMechIdentity; }
     public Signal<String> selectedMechDoctrine() { return selectedMechDoctrine; }
-    public Signal<List<PerformanceMeter>> performanceMeters() { return performanceMeters; }
+    public Signal<List<FittingMeter>> performanceMeters() { return performanceMeters; }
     public Signal<List<SlotRow>> leftSlotRows() { return leftSlotRows; }
     public Signal<List<SlotRow>> rightSlotRows() { return rightSlotRows; }
     public Signal<List<SlotRow>> slotRows() { return slotRows; }
@@ -603,7 +607,7 @@ public final class MechLabViewModel {
      * each against the standard fit's mark so the gap to fill reads as a shortfall, or a
      * vehicle's hull figures.
      */
-    private List<PerformanceMeter> patternMeters(MechFabricationCatalog.Recipe recipe) {
+    private List<FittingMeter> patternMeters(MechFabricationCatalog.Recipe recipe) {
         if (recipe == null) return List.of();
         if (recipe.vehicle() != null) return vehicleMeters(recipe.vehicle(), "build-");
         // A bought chassis is a bare frame: no engine moves it and no bank holds flux, as on a
@@ -617,19 +621,19 @@ public final class MechLabViewModel {
         int missiles = finiteAmmo(frame.leftShoulder()) + finiteAmmo(frame.rightShoulder());
         return List.of(
                 meter("build-armor", Strings.get("openingMechLabArmor"), Strings.format("openingMechLabPlate", Math.round(armor)),
-                        armor, maximum(MechFrameBudget::refitArmorCapacity) * refit.armorMult(), armor, armor, PLATE_TONE),
+                        armor, maximum(MechFrameBudget::refitArmorCapacity) * refit.armorMult(), armor, armor, FittingMeter.PLATE_TONE),
                 meter("build-mobility", Strings.get("openingMechLabMobility"), Strings.format("openingMechLabCellsS", number(0f)),
-                        0f, maximum(MechFrameBudget::refitMoveSpeed), 0f, stock.moveSpeed(), ENGINE_TONE),
+                        0f, maximum(MechFrameBudget::refitMoveSpeed), 0f, stock.moveSpeed(), FittingMeter.ENGINE_TONE),
                 meter("build-flux", Strings.get("openingMechLabCapacitorBank"), Strings.format("openingMechLabFluxValue", number(0f)),
-                        0f, maximumFluxCapacity(), 0f, stock.fluxCapacity(), FLUX_TONE),
+                        0f, maximumFluxCapacity(), 0f, stock.fluxCapacity(), FittingMeter.FLUX_TONE),
                 meter("build-dissipation", Strings.get("openingMechLabDissipation"), Strings.format("openingMechLabDissipationValue", number(dissipation)),
                         dissipation, maximumDissipation() * refit.dissipationMult(), dissipation,
-                        stock.dissipationPerSecond() * refit.dissipationMult(), FLUX_TONE),
+                        stock.dissipationPerSecond() * refit.dissipationMult(), FittingMeter.FLUX_TONE),
                 meter("build-range", Strings.get("openingMechLabMaxRange"), Strings.format("openingMechLabCells", number(range)),
-                        range, maximumWeaponRange(), range, weaponRange(stock), WEAPON_TONE),
+                        range, maximumWeaponRange(), range, weaponRange(stock), FittingMeter.WEAPON_TONE),
                 meter("build-endurance", Strings.get("openingMechLabMissiles"), Strings.format("openingMechLabTriggers", missiles),
                         missiles, maximumMissileTriggers(), missiles,
-                        finiteAmmo(stock.leftShoulder()) + finiteAmmo(stock.rightShoulder()), MISSILE_TONE));
+                        finiteAmmo(stock.leftShoulder()) + finiteAmmo(stock.rightShoulder()), FittingMeter.MISSILE_TONE));
     }
 
     private void buildPreviewed() {
@@ -679,7 +683,7 @@ public final class MechLabViewModel {
     public Runnable renameCallSignAction() { return this::renameSelectedMech; }
     public Signal<String> categoryFilterClasses() { return categoryFilterClasses; }
     public Signal<String> allPartsClasses() { return allPartsClasses; }
-    public Signal<List<FilterPill>> categoryFilterPills() { return categoryFilterPills; }
+    public Signal<List<FittingFilterPill>> categoryFilterPills() { return categoryFilterPills; }
     public Signal<CategoryFilter> catalogFilter() { return catalogFilter; }
     /** Chooses a category, or clears it when it is already the one chosen. */
     public void setFilter(CategoryFilter filter) {
@@ -1144,7 +1148,7 @@ public final class MechLabViewModel {
         return List.copyOf(rows);
     }
 
-    private List<PerformanceMeter> buildPerformanceMeters() {
+    private List<FittingMeter> buildFittingMeters() {
         revision.get();
         CampaignVehicle vehicle = selectedVehicle();
         if (vehicle != null) return vehicleMeters(vehicle.type(), "");
@@ -1182,21 +1186,21 @@ public final class MechLabViewModel {
         return List.of(
                 meter("armor", Strings.get("openingMechLabArmor"), Strings.format("openingMechLabPlate", Math.round(armor)),
                         armor, maximum(MechFrameBudget::refitArmorCapacity) * refit.armorMult(),
-                        ghost.armorCapacity() * refit.armorMult(), stock.armorCapacity() * refit.armorMult(), PLATE_TONE),
+                        ghost.armorCapacity() * refit.armorMult(), stock.armorCapacity() * refit.armorMult(), FittingMeter.PLATE_TONE),
                 meter("mobility", Strings.get("openingMechLabMobility"), Strings.format("openingMechLabCellsS", number(speed)),
                         speed, maximum(MechFrameBudget::refitMoveSpeed), then.speed(ghost),
-                        stock.moveSpeed(), ENGINE_TONE),
+                        stock.moveSpeed(), FittingMeter.ENGINE_TONE),
                 meter("flux", Strings.get("openingMechLabCapacitorBank"), Strings.format("openingMechLabFluxValue", number(flux)),
-                        flux, maximumFluxCapacity(), then.flux(ghost), stock.fluxCapacity(), FLUX_TONE),
+                        flux, maximumFluxCapacity(), then.flux(ghost), stock.fluxCapacity(), FittingMeter.FLUX_TONE),
                 meter("dissipation", Strings.get("openingMechLabDissipation"), Strings.format("openingMechLabDissipationValue", number(dissipation)),
                         dissipation, maximumDissipation() * refit.dissipationMult(),
                         then.dissipation(ghost) * refit.dissipationMult(),
-                        stock.dissipationPerSecond() * refit.dissipationMult(), FLUX_TONE),
+                        stock.dissipationPerSecond() * refit.dissipationMult(), FittingMeter.FLUX_TONE),
                 meter("range", Strings.get("openingMechLabMaxRange"), Strings.format("openingMechLabCells", number(currentRange)),
-                        currentRange, maximumWeaponRange(), ghostRange, weaponRange(stock), WEAPON_TONE),
+                        currentRange, maximumWeaponRange(), ghostRange, weaponRange(stock), FittingMeter.WEAPON_TONE),
                 meter("endurance", Strings.get("openingMechLabMissiles"), Strings.format("openingMechLabTriggers", currentMissiles),
                         currentMissiles, maximumMissileTriggers(), ghostMissiles,
-                        finiteAmmo(stock.leftShoulder()) + finiteAmmo(stock.rightShoulder()), MISSILE_TONE));
+                        finiteAmmo(stock.leftShoulder()) + finiteAmmo(stock.rightShoulder()), FittingMeter.MISSILE_TONE));
     }
 
     /**
@@ -1315,17 +1319,14 @@ public final class MechLabViewModel {
             String stripClasses = canStrip ? "slot-strip-action" : "slot-strip-action hidden";
 
             String base = "mech-slot:" + slot.name().toLowerCase(Locale.ROOT);
-            rows.add(new SlotRow(base, base + ":content", base + ":select", base + ":strip",
-                    base + ":copy", base + ":header", base + ":name",
-                    base + ":badge", base + ":component", base + ":telemetry", base + ":type", base + ":grid",
-                    slot,
+            rows.add(new SlotRow(new FittingSlotCard(base,
                     slot == selectedSlot.get() && !platingSelected.get() && !browsingStores.get()
                             ? "doll-slot selected" : "doll-slot",
                     definition.label(), badge, badgeClasses,
                     slotComponent(mech, slot), telemetry, slotType(definition),
                     canStrip, stripClasses,
                     () -> selectSlot(slot),
-                    () -> stripWeapon(slot)));
+                    () -> stripWeapon(slot)), slot));
         }
         return List.copyOf(rows);
     }
@@ -1386,11 +1387,7 @@ public final class MechLabViewModel {
         boolean occupied = slotWeapon(mech, selectedSlot.get()) != null
                 || selectedSlot.get() == SocketId.CORE
                 || selectedSlot.get().compartment();
-        return List.of(new CatalogRow(base, base + ":copy", base + ":header", base + ":name", base + ":badge",
-                base + ":stock", base + ":telemetry", base + ":delta",
-                base + ":detail", base + ":action", base + ":materials", base + ":body",
-                base + ":preview",
-                "catalog-preview hidden", null, null, null, null, "catalog-row selected",
+        return List.of(catalogRow(base, "catalog-preview hidden", null, null, null, null, "catalog-row selected",
                 slotComponent(mech, selectedSlot.get()),
                 occupied ? Strings.get("openingMechLabInstalled") : Strings.get("openingMechLabEmpty"),
                 occupied ? "catalog-badge in-cargo" : "catalog-badge fabrication",
@@ -1486,11 +1483,7 @@ public final class MechLabViewModel {
             List<Row> materials = showMaterials ? materialRows(base, bill) : List.of();
             String materialsClasses = showMaterials ? "material-costs" : "material-costs hidden";
 
-            rows.add(new CatalogRow(base, base + ":copy", base + ":header", base + ":name", base + ":badge",
-                    base + ":stock", base + ":telemetry", base + ":delta",
-                    base + ":detail", base + ":action", base + ":materials", base + ":body",
-                    base + ":preview",
-                    "catalog-preview", null, component, null, null,
+            rows.add(catalogRow(base, "catalog-preview", null, component, null, null,
                     showMaterials ? "catalog-row requires-fabrication" : "catalog-row", component.displayName(),
                     badge, badgeClasses,
                     Strings.format("openingMechLabOwnFree", recipe.provenance(), spareCount(free)),
@@ -1515,11 +1508,7 @@ public final class MechLabViewModel {
             if (recipe.variant() == null) continue;
             MechVariant variant = recipe.variant();
             String base = "mech-catalog:" + recipe.id();
-            rows.add(new CatalogRow(base, base + ":copy", base + ":header", base + ":name", base + ":badge",
-                    base + ":stock", base + ":telemetry", base + ":delta",
-                    base + ":detail", base + ":action", base + ":materials", base + ":body",
-                    base + ":preview",
-                    "catalog-preview", variant, null, null, null, patternClasses(recipe),
+            rows.add(catalogRow(base, "catalog-preview", variant, null, null, null, patternClasses(recipe),
                     recipe.displayName(), Strings.get("openingMechLabChassis"), "catalog-badge fabrication",
                     Strings.upper(credit(recipe)),
                     Strings.format("openingMechLabFrameStats", Math.round(variant.armorCapacity), Math.round(variant.maxStructure)),
@@ -1547,11 +1536,7 @@ public final class MechLabViewModel {
             VehicleType type = recipe.vehicle();
             if (type == null) continue;
             String base = "mech-catalog:" + recipe.id();
-            rows.add(new CatalogRow(base, base + ":copy", base + ":header", base + ":name", base + ":badge",
-                    base + ":stock", base + ":telemetry", base + ":delta",
-                    base + ":detail", base + ":action", base + ":materials", base + ":body",
-                    base + ":preview",
-                    "catalog-preview", null, null, null, type, patternClasses(recipe),
+            rows.add(catalogRow(base, "catalog-preview", null, null, null, type, patternClasses(recipe),
                     recipe.displayName(), Strings.get("openingMechLabVehicle"), "catalog-badge fabrication",
                     Strings.upper(credit(recipe)),
                     Strings.format("openingMechLabSpeedArmor", number(type.maxSpeed), Math.round(type.maxArmor)),
@@ -1622,11 +1607,7 @@ public final class MechLabViewModel {
             String base = "mech-catalog:" + internal.id;
             boolean showMaterials = offerFab;
             List<Row> materials = showMaterials ? materialRows(base, resources.quote(recipe.cost())) : List.of();
-            rows.add(new CatalogRow(base, base + ":copy", base + ":header", base + ":name", base + ":badge",
-                    base + ":stock", base + ":telemetry", base + ":delta",
-                    base + ":detail", base + ":action", base + ":materials", base + ":body",
-                    base + ":preview",
-                    internal.role == MechInternal.Role.PLATING ? "catalog-preview hidden" : "catalog-preview",
+            rows.add(catalogRow(base, internal.role == MechInternal.Role.PLATING ? "catalog-preview hidden" : "catalog-preview",
                     null, null, internal, null,
                     showMaterials ? "catalog-row requires-fabrication" : "catalog-row", internal.displayName(),
                     badge, badgeClasses,
@@ -2380,7 +2361,7 @@ public final class MechLabViewModel {
 
     /** Read-only hull figures, scaled against the largest fabricable vehicle of each. */
     /** @param prefix keeps the pattern card's bars apart from the specifications' own ids */
-    private static List<PerformanceMeter> vehicleMeters(VehicleType type, String prefix) {
+    private static List<FittingMeter> vehicleMeters(VehicleType type, String prefix) {
         return List.of(
                 meter(prefix + "structure", Strings.get("openingMechLabStructure"), number(type.maxStructure),
                         type.maxStructure, vehicleMaximum(t -> t.maxStructure), type.maxStructure),
@@ -2535,14 +2516,14 @@ public final class MechLabViewModel {
         };
     }
 
-    private List<FilterPill> buildFilterPills() {
+    private List<FittingFilterPill> buildFilterPills() {
         if (!fabricatingChassis() && (selectedMech() == null || selectedVehicle() != null)) return List.of();
         CategoryFilter current = effectiveFilter();
-        List<FilterPill> pills = new ArrayList<>();
+        List<FittingFilterPill> pills = new ArrayList<>();
         for (CategoryFilter f : offeredFilters()) {
             String id = "mech-filter:" + f.name().toLowerCase(Locale.ROOT);
             String classes = f == current ? "catalog-filter-pill selected" : "catalog-filter-pill";
-            pills.add(new FilterPill(id, f.label(), f.icon(), f.tone(), classes, () -> setFilter(f)));
+            pills.add(new FittingFilterPill(id, f.label(), f.icon(), f.tone(), classes, () -> setFilter(f)));
         }
         if (fabricatingChassis()) pills.addAll(weightPills());
         return List.copyOf(pills);
@@ -2553,9 +2534,9 @@ public final class MechLabViewModel {
      * symbols are a weight block drawn small, middling and large on a danger ramp, pale to amber
      * to red, because weight is how much a machine can take and deal.
      */
-    private List<FilterPill> weightPills() {
+    private List<FittingFilterPill> weightPills() {
         MechPattern.WeightClass current = weightFilter.get();
-        List<FilterPill> pills = new ArrayList<>();
+        List<FittingFilterPill> pills = new ArrayList<>();
         for (MechPattern.WeightClass weight : MechPattern.WeightClass.values()) {
             String name = weight.name().toLowerCase(Locale.ROOT);
             String label = switch (weight) {
@@ -2563,7 +2544,7 @@ public final class MechLabViewModel {
                 case MEDIUM -> Strings.get("openingMechLabWeightClassMEDIUM");
                 case HEAVY -> Strings.get("openingMechLabWeightClassHEAVY");
             };
-            pills.add(new FilterPill("mech-weight:" + name, label, weightIcon(weight), weightTone(weight),
+            pills.add(new FittingFilterPill("mech-weight:" + name, label, weightIcon(weight), weightTone(weight),
                     weight == current ? "catalog-filter-pill selected" : "catalog-filter-pill",
                     () -> setWeightFilter(weight)));
         }
@@ -2596,22 +2577,11 @@ public final class MechLabViewModel {
         return offeredFilters().contains(current) ? current : CategoryFilter.ALL;
     }
 
-    /*
-     * Each stat bar wears the colour of the part that moves it, the hardpoint and socket tones the
-     * doll's bricks use: plate for armor, the engine's blue for mobility, flux purple for the
-     * capacitor bank and dissipation, a weapon's amber for reach and missile green for racks.
-     */
-    private static final String PLATE_TONE = "#b9b6a2";
-    private static final String ENGINE_TONE = "#5e96d2";
-    private static final String FLUX_TONE = "#a07edc";
-    private static final String WEAPON_TONE = "#e2c248";
-    private static final String MISSILE_TONE = "#6cc45e";
-    private static final String NEUTRAL_TONE = "#acae96";
 
     /** A bar with no stock reference: a vehicle's read-only hull figures. */
-    private static PerformanceMeter meter(String suffix, String label, String value,
+    private static FittingMeter meter(String suffix, String label, String value,
                                           float currentAmount, float maximum, float ghostAmount) {
-        return meter(suffix, label, value, currentAmount, maximum, ghostAmount, currentAmount, NEUTRAL_TONE);
+        return meter(suffix, label, value, currentAmount, maximum, ghostAmount, currentAmount, FittingMeter.NEUTRAL_TONE);
     }
 
     /**
@@ -2619,59 +2589,13 @@ public final class MechLabViewModel {
      * the part's colour, any gain past stock in the full colour, any shortfall below stock as a
      * deficit, a tick where stock stands, and the hovered candidate's change as a ghost on top.
      */
-    private static PerformanceMeter meter(String suffix, String label, String value,
+    private static FittingMeter meter(String suffix, String label, String value,
                                           float currentAmount, float maximum, float ghostAmount,
                                           float stockAmount, String tone) {
-        int current = percent(currentAmount, maximum);
-        int ghost = percent(ghostAmount, maximum);
-        int stock = percent(stockAmount, maximum);
-
-        String ghostStyle;
-        String ghostClasses;
-        if (ghost > current) {
-            ghostStyle = segment(current, ghost - current);
-            ghostClasses = "meter-ghost gain";
-        } else if (ghost < current) {
-            ghostStyle = segment(ghost, current - ghost);
-            ghostClasses = "meter-ghost loss";
-        } else {
-            ghostStyle = "";
-            ghostClasses = "meter-ghost hidden";
-        }
-        String fillStyle = segment(0, Math.min(current, stock)) + "background-color: " + dim(tone) + ";";
-        boolean gained = current > stock;
-        boolean fallsShort = current < stock;
-        String gainStyle = gained ? segment(stock, current - stock) + "background-color: " + tone + ";" : "";
-        String deficitStyle = fallsShort ? segment(current, stock - current) : "";
-        boolean stockShown = !NEUTRAL_TONE.equals(tone);
-
-        String base = "mech-meter:" + suffix;
-        return new PerformanceMeter(base, base + ":label", base + ":value",
-                base + ":track", base + ":fill", base + ":ghost", label, value,
-                fillStyle, ghostStyle, ghostClasses,
-                base + ":gain", gainStyle, gained ? "meter-gain" : "meter-gain hidden",
-                base + ":deficit", deficitStyle, fallsShort ? "meter-deficit" : "meter-deficit hidden",
-                base + ":stock", "left: " + stock + "%;", stockShown ? "meter-stock" : "meter-stock hidden");
+        return FittingMeter.of("mech-meter:" + suffix, label, value, currentAmount, maximum,
+                ghostAmount, stockAmount, tone);
     }
 
-    private static int percent(float amount, float maximum) {
-        int value = maximum > 0f ? Math.round(amount / maximum * 100f) : 0;
-        return Math.max(0, Math.min(100, value));
-    }
-
-    private static String segment(int left, int width) {
-        return "left: " + left + "%; width: " + width + "%;";
-    }
-
-    /** The part's colour sunk most of the way into the track, for the share stock already gives. */
-    static String dim(String tone) {
-        int rgb = Integer.parseInt(tone.substring(1), 16);
-        int track = 0x121719;
-        int r = Math.round(((rgb >> 16) & 0xff) * .5f + ((track >> 16) & 0xff) * .5f);
-        int g = Math.round(((rgb >> 8) & 0xff) * .5f + ((track >> 8) & 0xff) * .5f);
-        int b = Math.round((rgb & 0xff) * .5f + (track & 0xff) * .5f);
-        return String.format(Locale.ROOT, "#%02x%02x%02x", r, g, b);
-    }
 
     private static float maximum(VariantMetric metric) {
         float max = 0f;
@@ -2785,153 +2709,92 @@ public final class MechLabViewModel {
     }
 
     /** One category symbol; {@code label} names it for its hover sheet. */
-    public record FilterPill(String id, String label, String icon, String tone, String classes, Runnable select)
-            implements MarkupPropertySource {
-        @Override public Object markupProperty(String p) { return switch (p) {
-            case "id" -> id; case "label" -> label; case "classes" -> classes;
-            case "icon" -> icon == null ? "" : icon;
-            case "iconId" -> id + ":icon";
-            case "iconClasses" -> icon == null ? "hidden" : "catalog-filter-icon";
-            case "chipId" -> id + ":chip";
-            case "chipClasses" -> icon == null ? "hidden" : "catalog-filter-chip";
-            case "chipStyle" -> tone == null ? "" : "background-color: " + tone + ";";
-            case "textId" -> id + ":text";
-            case "text" -> icon == null ? label : "";
-            case "textClasses" -> icon == null ? "catalog-filter-text" : "hidden";
-            case "select" -> select; default -> throw unknown("mech-filter-pill", p);
-        }; }
+    /** A socket in the selected-mount list: the kit's slot card, and which socket it is. */
+    public record SlotRow(FittingSlotCard card, SocketId socketId) implements MarkupPropertySource {
+        public String id() { return card.id(); }
+        public String gridId() { return card.gridId(); }
+        public String classes() { return card.classes(); }
+        public String name() { return card.name(); }
+        public String badge() { return card.badge(); }
+        public String badgeClasses() { return card.badgeClasses(); }
+        public String component() { return card.component(); }
+        public String telemetry() { return card.telemetry(); }
+        public String type() { return card.type(); }
+        public boolean canStrip() { return card.canStrip(); }
+        public String stripClasses() { return card.stripClasses(); }
+        public Runnable select() { return card.select(); }
+        public Runnable stripAction() { return card.stripAction(); }
+
+        @Override public Object markupProperty(String p) { return card.markupProperty(p); }
     }
 
-    public record PerformanceMeter(String id, String labelId, String valueId, String trackId,
-                                   String fillId, String ghostId, String label, String value,
-                                   String fillStyle, String ghostStyle, String ghostClasses,
-                                   String gainId, String gainStyle, String gainClasses,
-                                   String deficitId, String deficitStyle, String deficitClasses,
-                                   String stockId, String stockStyle, String stockClasses)
-            implements MarkupPropertySource {
-        @Override public Object markupProperty(String p) { return switch (p) {
-            case "id" -> id; case "labelId" -> labelId; case "valueId" -> valueId;
-            case "trackId" -> trackId; case "fillId" -> fillId; case "ghostId" -> ghostId;
-            case "label" -> label; case "value" -> value; case "fillStyle" -> fillStyle;
-            case "ghostStyle" -> ghostStyle; case "ghostClasses" -> ghostClasses;
-            case "gainId" -> gainId; case "gainStyle" -> gainStyle; case "gainClasses" -> gainClasses;
-            case "deficitId" -> deficitId; case "deficitStyle" -> deficitStyle;
-            case "deficitClasses" -> deficitClasses;
-            case "stockId" -> stockId; case "stockStyle" -> stockStyle; case "stockClasses" -> stockClasses;
-            default -> throw unknown("mech-meter", p); }; }
-    }
-
-    public record SlotRow(String id, String contentId, String buttonId, String stripId, String copyId,
-                          String headerId, String nameId,
-                          String badgeId, String componentId, String telemetryId,
-                          String typeId, String gridId,
-                          SocketId socketId,
-                          String classes, String name, String badge, String badgeClasses,
-                          String component, String telemetry, String type,
-                          boolean canStrip, String stripClasses,
-                          Runnable select, Runnable stripAction) implements MarkupPropertySource {
-        @Override public Object markupProperty(String p) { return switch (p) {
-            case "id" -> id; case "contentId" -> contentId; case "buttonId" -> buttonId; case "stripId" -> stripId;
-            case "copyId" -> copyId; case "headerId" -> headerId; case "nameId" -> nameId; case "badgeId" -> badgeId;
-            case "componentId" -> componentId; case "telemetryId" -> telemetryId;
-            case "gridId" -> gridId; case "typeId" -> typeId; case "classes" -> classes;
-            case "hardwareId" -> id + ":hardware";
-            case "name" -> name; case "badge" -> badge; case "badgeClasses" -> badgeClasses;
-            case "component" -> component; case "telemetry" -> telemetry; case "type" -> type;
-            case "canStrip" -> canStrip; case "stripClasses" -> stripClasses;
-            case "stripDisabled" -> !canStrip;
-            case "select" -> select; case "stripAction" -> stripAction;
-            default -> throw unknown("mech-slot", p); }; }
-    }
-
-    public record CatalogRow(String id, String copyId, String headerId, String nameId, String badgeId,
-                             String stockId, String telemetryId, String deltaId,
-                             String detailId, String actionId, String materialsId, String bodyId,
-                             String previewId, String previewClasses,
-                             MechVariant chassisPreview,
+    /**
+     * A part in the stores: the card the fitting kit draws, and which of the lab's things it
+     * is, which the screen reads to draw the card's picture and to know what a drag carries.
+     */
+    public record CatalogRow(FittingCard card, MechVariant chassisPreview,
                              MechWeaponComponent weaponPreview,
-                             MechInternal internalPreview,
-                             VehicleType vehiclePreview,
-                             String classes, String name, String badge, String badgeClasses,
-                             String stock, String telemetry, String delta, String deltaClasses,
-                             String detail, String actionLabel, String actionHint,
-                             boolean actionDisabled, List<Row> materials,
-                             String materialsClasses,
-                             Runnable action, Runnable select)
+                             MechInternal internalPreview, VehicleType vehiclePreview, Runnable select)
             implements MarkupPropertySource {
-        /** A row whose card does nothing when clicked; only its button acts. */
-        public CatalogRow(String id, String copyId, String headerId, String nameId, String badgeId,
-                          String stockId, String telemetryId, String deltaId,
-                          String detailId, String actionId, String materialsId, String bodyId,
-                          String previewId, String previewClasses,
-                          MechVariant chassisPreview,
-                          MechWeaponComponent weaponPreview,
-                          MechInternal internalPreview,
-                          VehicleType vehiclePreview,
-                          String classes, String name, String badge, String badgeClasses,
-                          String stock, String telemetry, String delta, String deltaClasses,
-                          String detail, String actionLabel, String actionHint,
-                          boolean actionDisabled, List<Row> materials,
-                          String materialsClasses,
-                          Runnable action) {
-            this(id, copyId, headerId, nameId, badgeId, stockId, telemetryId, deltaId, detailId, actionId,
-                    materialsId, bodyId, previewId, previewClasses, chassisPreview, weaponPreview,
-                    internalPreview, vehiclePreview, classes, name, badge, badgeClasses,
-                    stock, telemetry, delta, deltaClasses, detail, actionLabel, actionHint, actionDisabled,
-                    materials, materialsClasses, action, null);
-        }
-
-        /** The row's button builds a spare (drawn as the fabricator icon) rather than fitting one. */
-        private boolean fabricates() { return Strings.get("openingMechLabFab").equals(actionLabel); }
-
-        private boolean hasAction() { return actionLabel != null && !actionLabel.isEmpty(); }
-
-        /** The build strip under the card: material costs and a wide BUY or FIT button. */
-        private boolean hasFooter() { return hasAction() || !materials.isEmpty(); }
+        public String id() { return card.id(); }
+        public String previewId() { return card.previewId(); }
+        public String actionId() { return card.actionId(); }
+        public String nameId() { return card.id() + ":name"; }
+        public String classes() { return card.classes(); }
+        public String previewClasses() { return card.previewClasses(); }
+        public String name() { return card.name(); }
+        public String badge() { return card.badge(); }
+        public String badgeClasses() { return card.badgeClasses(); }
+        public String stock() { return card.stock(); }
+        public String telemetry() { return card.telemetry(); }
+        public String delta() { return card.delta(); }
+        public String deltaClasses() { return card.deltaClasses(); }
+        public String detail() { return card.detail(); }
+        public String actionLabel() { return card.actionLabel(); }
+        public String actionHint() { return card.actionHint(); }
+        public boolean actionDisabled() { return card.actionDisabled(); }
+        public List<Row> materials() { return card.materials(); }
+        public String materialsClasses() { return card.materialsClasses(); }
+        public Runnable action() { return card.action(); }
 
         /** A chassis or vehicle pattern previews on the pad when its card is clicked. */
         public boolean selectsOnClick() { return select != null; }
 
-        @Override public Object markupProperty(String p) { return switch (p) {
-            case "id" -> id; case "copyId" -> copyId; case "headerId" -> headerId; case "nameId" -> nameId;
-            case "badgeId" -> badgeId;
-            case "stockId" -> stockId; case "telemetryId" -> telemetryId;
-            case "deltaId" -> deltaId; case "detailId" -> detailId; case "actionId" -> actionId;
-            case "materialsId" -> materialsId; case "bodyId" -> bodyId;
-            case "previewId" -> previewId;
-            case "previewClasses" -> previewClasses;
-            case "classes" -> classes; case "name" -> name;
-            case "badge" -> badge; case "badgeClasses" -> badgeClasses;
-            case "stock" -> stock; case "telemetry" -> telemetry;
-            case "delta" -> delta; case "deltaClasses" -> deltaClasses;
-            case "detail" -> detail; case "actionLabel" -> actionLabel;
-            case "actionDisabled" -> actionDisabled; case "materials" -> materials;
-            case "materialsStyle" -> CompanyResources.billHeight(materials);
-            case "cardStyle" -> hasFooter() ? "height: 130px;" : "height: 102px;";
-            case "footerId" -> id + ":footer";
-            case "footerClasses" -> hasFooter() ? "catalog-card-footer" : "hidden";
-            case "actionClasses" -> !hasAction() ? "hidden"
-                    : actionDisabled ? "catalog-fab console-action short" : "catalog-fab console-action";
-            case "actionIconId" -> actionId + ":icon";
-            case "actionTextId" -> actionId + ":text";
-            case "actionIconClasses" -> fabricates() ? "catalog-fab-icon" : "hidden";
-            case "actionText" -> actionLabel;
-            case "materialsClasses" -> materialsClasses;
-            case "action" -> action;
-            case "detailRowId" -> id + ":detail-row";
-            case "weightId" -> id + ":weight";
-            case "weightIconId" -> id + ":weight-icon";
-            case "weightChipId" -> id + ":weight-chip";
-            case "weightClasses" -> weightOf(chassisPreview, vehiclePreview) != null ? "weight-slot" : "hidden";
-            case "weightIcon" -> {
-                MechPattern.WeightClass weight = weightOf(chassisPreview, vehiclePreview);
-                yield weightIcon(weight != null ? weight : MechPattern.WeightClass.LIGHT);
-            }
-            case "weightStyle" -> {
-                MechPattern.WeightClass weight = weightOf(chassisPreview, vehiclePreview);
-                yield weight != null ? "background-color: " + weightTone(weight) + ";" : "";
-            }
-            default -> throw unknown("mech-catalog", p); }; }
+        @Override public Object markupProperty(String p) { return card.markupProperty(p); }
+    }
+
+    /** A row whose card does nothing when clicked; only its button acts. */
+    private static CatalogRow catalogRow(String base, String previewClasses, MechVariant chassis,
+                                         MechWeaponComponent weapon,
+                                         MechInternal internal, VehicleType vehicle,
+                                         String classes, String name, String badge, String badgeClasses,
+                                         String stock, String telemetry, String delta, String deltaClasses,
+                                         String detail, String actionLabel, String actionHint,
+                                         boolean actionDisabled, List<Row> materials, String materialsClasses,
+                                         Runnable action) {
+        return catalogRow(base, previewClasses, chassis, weapon, internal, vehicle, classes, name,
+                badge, badgeClasses, stock, telemetry, delta, deltaClasses, detail, actionLabel, actionHint,
+                actionDisabled, materials, materialsClasses, action, null);
+    }
+
+    /*
+     * A chassis or vehicle's weight class rides on its card as the weight block on the class
+     * tone, and its button builds a spare when it reads FAB, which wears the fabricator's cog.
+     */
+    private static CatalogRow catalogRow(String base, String previewClasses, MechVariant chassis,
+                                         MechWeaponComponent weapon,
+                                         MechInternal internal, VehicleType vehicle,
+                                         String classes, String name, String badge, String badgeClasses,
+                                         String stock, String telemetry, String delta, String deltaClasses,
+                                         String detail, String actionLabel, String actionHint,
+                                         boolean actionDisabled, List<Row> materials, String materialsClasses,
+                                         Runnable action, Runnable select) {
+        MechPattern.WeightClass weight = weightOf(chassis, vehicle);
+        FittingCard card = new FittingCard(base, classes, previewClasses, name, badge, badgeClasses,
+                stock, telemetry, delta, deltaClasses, detail, actionLabel, actionHint, actionDisabled,
+                Strings.get("openingMechLabFab").equals(actionLabel), materials, materialsClasses, action,
+                weight != null ? weightIcon(weight) : null, weight != null ? weightTone(weight) : null);
+        return new CatalogRow(card, chassis, weapon, internal, vehicle, select);
     }
 
     private static IllegalArgumentException unknown(String owner, String property) {

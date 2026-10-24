@@ -45,12 +45,12 @@ grass under a hedge under creep is three loads.
 | --- | --- | --- | --- | --- | --- | --- |
 | Grass | `GRASS` ground, a grass overlay tuft | 30 | 6 s | easily | 2 | The fast carrier, but green: a patch, not a meadow. |
 | Brush | a shrub or tuft on the nature overlay (a hedge) | 60 | 12 s | easily | 3 | Gone from the overlay once burnt. |
-| Crown | a standing tree's crown cells | 200 | 40 s | hard | 4 | Slow to catch from a grass fire, long and hot once it does, and throws heat a ring further (a crown fire). Each crown cell that burns out spends part of its tree's structure through `MapEditor.damageWall`, so a tree falls once three have, leaving its ordinary destroyed art and passable ground. |
+| Crown | a standing tree's crown: the cells of its footprint inside the round canopy the art draws, so a crown burns round; the square's corners burn as what lies under them | 200 | 40 s | hard | 4 | Slow to catch from a grass fire, long and hot once it does, and throws heat a ring further (a crown fire). Each crown cell that burns out spends part of its tree's structure through `MapEditor.damageWall`, so a tree falls once three have, leaving its ordinary destroyed art and passable ground. |
 | Living creep | `CreepField` coverage, alive | 75 | 15 s | moderately | all | Creep over a crown makes it catch as creep does: an overgrown tree goes up readily. |
 | Dead creep | creep dying back | 40 | 8 s | easily | all | Dry; the edge a source has abandoned goes up fast. |
 | Debris | a standing wooden prop: a crate or box, a pallet stack, wooden furniture (the props `EnvironmentMaterial` calls wood) | 50 | 10 s | moderately | 2 | The prop is destroyed when its cell burns out and stays as its destroyed art. Wire fences, drums, sandbags, hedgehogs, machinery and stone do not burn. |
-| Structure | a light wall or window: one of at most 100 hit points, in a structure that is not fortified | 120 | 24 s | hard | all | Catches only from fire held against it, so a passing grass front catches it some of the time; a cell that burns through falls to rubble (Buildings). |
-| Furnishing | a plain indoor or panelled floor (`INDOOR`, `TILE`) of a building that is not fortified | 80 | 16 s | moderately | all | A room's furniture and boards; a room that catches loses its roof. |
+| Structure | a light wall or window: one of at most 100 hit points, in a structure that is not fortified | 120 | 24 s | hard | 4 | Catches only from fire held against it, so a passing grass front catches it some of the time; a cell that burns through falls to rubble (Buildings). |
+| Furnishing | a plain indoor or panelled floor (`INDOOR`, `TILE`) of a building that is not fortified | 80 | 16 s | moderately | 3, then the room | A room's furniture and boards; a room half caught flashes over whole (Buildings), and a cell that catches loses its roof. |
 
 Fuels stack: grass under a hedge under creep burns for all three loads,
 at the hottest one's intensity, and catches as easily as the easiest.
@@ -107,12 +107,12 @@ and clumped in three-cell blocks; its ignition varies the same way, 85% to
 120%. So a burn is a ragged disc round where it was lit, never a box: a
 flamer sweep's patch fills about three quarters of its bounding box, where
 counting distance as rings filled all of it. Grass carries a fire two cells,
-brush three, a crown four, debris two; creep, living or dead, a
-light wall and a room's boards carry it as far as they stand, and a cell of
-such fuel is a fresh ignition for whatever it lights. So a flamer's burst in a
-meadow burns a patch about two cells round where it landed and goes out, a fire
-that reaches creep runs through all of it, and a house that catches burns room
-by room. Dry country (`FireField.setTinder`, a mission's word) carries a
+brush three, a crown four, debris two, a light wall four and a room's boards
+three; creep, living or dead, carries it as far as it stands, and a cell of
+creep is a fresh ignition for whatever it lights. So a flamer's burst in a
+meadow burns a patch about two cells round where it landed and goes out, and a
+fire that reaches creep runs through all of it. A room is the exception: once
+half of it has caught it flashes over (Buildings). Dry country (`FireField.setTinder`, a mission's word) carries a
 fire three times as far. Every igniter (an incendiary's splash, a burning
 wreck, a shell's blast on dry fuel) lights at distance nought, so a second
 burst further on starts a second patch. `-Dbattle.fire.spreadScale` scales
@@ -276,10 +276,29 @@ itself burns. A light wall held in a fire catches slowly; once it burns
 through it falls to rubble as a breach does (`MapEditor.damageWall`), opening
 the building to movement and sight, and its rubble is burnt ground.
 
-**Rooms burn one by one.** Fire that gets in catches the room's floor, spreads
-room to room as through a meadow, and burns through the roof above each cell
-that catches, so the burning is seen from above and the room is open to the
-sky. Burnt rooms char and ash as burnt ground does.
+**Rooms flash over.** A **room** is the furnished floor its walls close round,
+cut off at its doorways: a floor cell walled on both sides is a doorway, not
+part of either room. Fire that gets in catches a patch of the floor, carried
+three cells as through brush. Once half the room has caught, the rest of it
+**flashes over**: every cell left catches at once, and the room burns whole
+with its walls held in the heat of all of it. Floor joined without a doorway,
+an open-plan house's, is one room and goes at once. A floor of more than
+400 cells is a hall, not a room, and burns only as far as its boards carry.
+Each cell that catches burns through the roof above it, so the burning is seen
+from above and the room is open to the sky. Burnt rooms char and ash as burnt
+ground does.
+
+**A house burns as hard as it is hit.** Fire passes from a room to the next
+through a doorway or a wall that burns through. A flashed room keeps a single
+cell of carry beyond itself: it holds its walls in its heat, so they burn and
+fall, and scorches its doorways, but does not carry its fire on into the next
+room. So one flamer charge into a room of a light-walled house burns that room
+whole and leaves the rest standing, and a house burns down room by room only as
+fast as fire is put into it: charges into several rooms, a grass front against
+its walls, a firebomb. The
+flamer's throw gate (Starting fires) takes a building's floors and walls to
+burn as far as they stand, so it never throws into a room its squad stands in
+or beside.
 
 **What it costs.** Whether a cell stops heat is cached in the field and
 reread only on a step after the map's walls have changed, and a map with no

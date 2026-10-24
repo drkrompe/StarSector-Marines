@@ -126,6 +126,23 @@ public final class CompanyDeck {
         return this;
     }
 
+    /** The door guns on each of her boats, mount by mount; read on this thread, as she is adopted and on each {@link #refitDoorGuns()}. */
+    private Supplier<String[][]> doorGuns = () -> null;
+
+    public CompanyDeck doorGuns(Supplier<String[][]> guns) {
+        doorGuns = guns == null ? () -> null : guns;
+        return this;
+    }
+
+    /**
+     * Puts the company's door guns on her parked boats again, after a refit.
+     *
+     * <p>Nothing to do before she is ready: adopting her reads them.
+     */
+    public void refitDoorGuns() {
+        if (scene != null) scene.fitDoorGuns(doorGuns.get());
+    }
+
     /**
      * Owns her textures the way a battle does ({@code battle-textures.md}): a lease from
      * {@code textures}, loading only what her scene shows, preloaded while she is off screen and
@@ -565,6 +582,7 @@ public final class CompanyDeck {
         }
         if (dressing != null) scene.dress(dressing);
         scene.dress(facilities);
+        scene.fitDoorGuns(doorGuns.get());
     }
 
     /**
@@ -645,6 +663,8 @@ public final class CompanyDeck {
         steps.add(new TextureLoadQueue.Step("mech set", () -> s.ensureLayeredMechSprites(Set.of())));
         steps.add(new TextureLoadQueue.Step("projectiles", s::ensureMarineSecondarySprites));
         steps.add(new TextureLoadQueue.Step("aircraft", s::ensureAirframeSprites));
+        // The guns on her parked boats: a gun fitted at the Boat Deck stands on its hull.
+        steps.add(new TextureLoadQueue.Step("door guns", s::ensureTurretSprites));
         // Her renderer too, on a frame she is not drawn, so a deck screen's first frame is an
         // ordinary one.
         ShipDeckBattleScene drawn = scene;
