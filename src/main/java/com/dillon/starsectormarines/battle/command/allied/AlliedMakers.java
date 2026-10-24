@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -100,11 +101,21 @@ public final class AlliedMakers {
      * lost. The delivery is advanced here, from the shed's {@link AlliedToolShed#advance}, so nothing else need hold it.
      */
     public static Maker ammunition(AlliedCommand command, Function<AlliedRequest, SupplyDelivery.Recipient> recipient) {
+        return ammunition(command, recipient, delivery -> { });
+    }
+
+    /**
+     * As {@link #ammunition(AlliedCommand, Function)}, telling {@code sent} of each delivery that set out, so the mission
+     * can follow its truck (escort it, report it, read whether it came).
+     */
+    public static Maker ammunition(AlliedCommand command, Function<AlliedRequest, SupplyDelivery.Recipient> recipient,
+                                   Consumer<SupplyDelivery> sent) {
         return (sim, from, request) -> {
             SupplyDelivery.Recipient to = recipient.apply(request);
             if (to == null) return null;
             SupplyDelivery delivery = SupplyDelivery.ammunition(to, s -> from);
             if (delivery.advance(sim, command) == SupplyDelivery.State.WAITING) return null;
+            sent.accept(delivery);
             return s -> delivery.advance(s, command).done();
         };
     }

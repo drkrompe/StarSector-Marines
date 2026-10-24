@@ -27,8 +27,9 @@ import java.util.function.Consumer;
  * The allies' logistics base behind the line ({@code cordon-nouns.md}, Logistics base): reinforcement
  * squads walk in off the rear edge to its apron, its shed builds the allies' cars and carriers, and
  * its carriers take waiting squads up to the redoubt that needs them most, where they join the
- * garrison. Between carries a carrier is support: it stays behind the redoubt it delivered to and
- * answers the nearest call as the armour does, its gun on the swarm. When squads wait at the base,
+ * garrison. Between carries a carrier is support: it stays behind the redoubt it delivered to, its gun on the
+ * swarm, and is re-homed only when that redoubt falls or is given up ({@code cordon-allied-command.md}, rule 2:
+ * sectors, never calls). When squads wait at the base,
  * as many carriers as there are squads come back to their slots, the nearest first; the rest stay
  * on the line.
  *
@@ -80,8 +81,10 @@ public final class CordonLogistics implements AlliedDepot {
     private final List<Long> carriers = new ArrayList<>();
     private final Map<Long, int[]> carrierSlot = new HashMap<>();
     private final Deque<Long> leaving = new ArrayDeque<>();
-    /** The redoubt each carrier between carries is supporting, so a call is answered once. */
+    /** The redoubt each carrier last fed, which it stands behind between carries. */
     private final Map<Long, CordonRedoubt> supporting = new HashMap<>();
+    /** The redoubt each carrier now carrying a squad is bound for: that redoubt has help coming. */
+    private final Map<Long, CordonRedoubt> bound = new HashMap<>();
     /**
      * Hulls on their way out to the threshold, and where each goes on to: a car's or technical's home
      * behind the line, a carrier's staging slot.
@@ -276,6 +279,14 @@ public final class CordonLogistics implements AlliedDepot {
     /** Live carriers. */
     public List<Long> carriers() { return List.copyOf(carriers); }
 
+    /** Whether a carrier with a squad is bound for this redoubt now (the radio's Help coming). */
+    public boolean carryingTo(CordonRedoubt r) {
+        for (Map.Entry<Long, CordonRedoubt> e : bound.entrySet()) {
+            if (e.getValue() == r && armour.command().carrying(e.getKey())) return true;
+        }
+        return false;
+    }
+
     /** Puts a carrier standing on the field to work from the base, on a staging slot of its own. */
     public void addCarrier(BattleSimulation sim, long hull) {
         armour.command().enlist(sim, hull);
@@ -350,6 +361,8 @@ public final class CordonLogistics implements AlliedDepot {
         if (sim.getSimTickIndex() % CordonArmour.REVIEW_TICKS != 0) return;
         waiting.removeIf(squad -> sim.squadMemberCount(squad) == 0);
         supporting.keySet().retainAll(carriers);
+        bound.keySet().retainAll(carriers);
+        bound.keySet().removeIf(hull -> !command.carrying(hull));
         List<Long> recalled = recall(sim);
         for (long hull : carriers) {
             if (command.carrying(hull) || outbound.containsKey(hull)) continue;
@@ -363,8 +376,10 @@ public final class CordonLogistics implements AlliedDepot {
                 command.station(sim, hull, slot[0], slot[1]);
                 continue;
             }
-            CordonRedoubt to = neediest(sim, redoubts);
+            CordonRedoubt to = duty(sim, redoubts);
             if (to == null || waiting.isEmpty()) continue;
+            supporting.put(hull, to);
+            bound.put(hull, to);
             int squad = waiting.poll();
             int[] drop = dropAt(sim, to);
             // Each carrier its own place behind the wall, so two sent to one redoubt do not stack.
@@ -398,23 +413,23 @@ public final class CordonLogistics implements AlliedDepot {
     }
 
     /**
-     * A carrier between carries: to a flank of the nearest calling redoubt, behind the armour's
-     * places there; with no call it stays where it last stood, behind the redoubt it fed.
+     * A carrier between carries keeps its sector ({@code cordon-allied-command.md}, rule 2): it stands where it set its
+     * last squad down, behind the redoubt it fed, and does not chase calls. Only when that redoubt falls or is given up
+     * is it re-homed, to the redoubt a waiting squad would go to ({@link CordonAlliedRules#carrierDuty}): behind its
+     * rear wall, or roadbound outside its rear gate. A carrier that has fed nobody stays on its slot.
      */
     private void support(BattleSimulation sim, long hull, List<CordonRedoubt> redoubts) {
-        CordonRedoubt call = CordonArmour.nearestCalling(sim.convoy().body(hull), redoubts);
-        if (call == null || call == supporting.get(hull)) return;
-        supporting.put(hull, call);
-        if (table.drop() == CordonAlliedTable.CarrierDrop.REAR_GATE) {
-            // Roadbound: it answers at the calling redoubt's rear gate, beside any other carrier there.
-            int[] gate = dropAt(sim, call);
-            int lane = carriers.indexOf(hull) - (slots.size() - 1) / 2;
-            armour.command().station(sim, hull, gate[0] + lane * DROP_SPACING, gate[1]);
+        CordonRedoubt fed = supporting.get(hull);
+        if (fed == null || fed.manned()) return;
+        CordonRedoubt to = duty(sim, redoubts);
+        if (to == null) {
+            supporting.remove(hull);
             return;
         }
-        // Behind the first two armour places on each side, by its own rank among the carriers.
-        int[] post = armour.flank(call, 4 + carriers.indexOf(hull));
-        armour.command().station(sim, hull, post[0], post[1]);
+        supporting.put(hull, to);
+        int[] drop = dropAt(sim, to);
+        int lane = carriers.indexOf(hull) - (slots.size() - 1) / 2;
+        armour.command().station(sim, hull, drop[0] + lane * DROP_SPACING, drop[1]);
     }
 
     /** Where a carrier sets its squad down at a redoubt: behind its rear wall, or, roadbound, outside its rear gate. */
@@ -572,18 +587,15 @@ public final class CordonLogistics implements AlliedDepot {
         return Math.abs(body.x - cell[0]) <= reach && Math.abs(body.y - cell[1]) <= reach;
     }
 
-    /** A calling redoubt first, then the one with the fewest standing; never a fallen one. */
-    private static CordonRedoubt neediest(BattleSimulation sim, List<CordonRedoubt> redoubts) {
-        CordonRedoubt best = null;
-        int bestScore = Integer.MAX_VALUE;
+    /** Where a carrier takes a waiting squad ({@link CordonAlliedRules#carrierDuty}): calling first, then fewest standing. */
+    private static CordonRedoubt duty(BattleSimulation sim, List<CordonRedoubt> redoubts) {
+        List<CordonAlliedRules.Post> posts = new ArrayList<>();
         for (CordonRedoubt r : redoubts) {
-            if (!r.manned()) continue;
-            int score = CordonSequence.standing(sim, r) - (r.state() == CordonRedoubt.State.CALLING ? 1000 : 0);
-            if (score < bestScore) {
-                bestScore = score;
-                best = r;
-            }
+            posts.add(new CordonAlliedRules.Post(r.number(), r.manned(), r.state() == CordonRedoubt.State.CALLING,
+                    CordonSequence.standing(sim, r), 0, false));
         }
-        return best;
+        int number = CordonAlliedRules.carrierDuty(posts);
+        for (CordonRedoubt r : redoubts) if (r.number() == number) return r;
+        return null;
     }
 }

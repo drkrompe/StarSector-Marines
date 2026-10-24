@@ -67,11 +67,13 @@ public final class CordonCommand implements AutonomousMissionCommand<CordonComma
             CommandFrame base = CommandFrame.freeze(view, faction, topology, assignments);
             BattleSimulation sim = view instanceof BattleSimulation s ? s : null;
             List<CordonRadio> radio = new ArrayList<>();
+            CordonLineCommand line = sequence.line();
             for (CordonRedoubt r : sequence.redoubts()) {
                 int standing = sim == null ? r.garrison() : CordonSequence.standing(sim, r);
-                // Uncovered and help coming are the allied line command's to say; not wired yet.
+                // Uncovered and help coming are the allied line command's to say.
                 radio.add(CordonRadio.report(r.number(), r.centreX(), r.centreY(), r.manned(), r.swarmInside(),
-                        standing, r.garrison(), r.quietTicks(base.tick()), false, false));
+                        standing, r.garrison(), r.quietTicks(base.tick()), line != null && line.uncovered(r),
+                        line != null && line.helpComing(r)));
             }
             List<int[]> blocks = sequence.convoys() == null ? List.of() : sequence.convoys().roadBlocks();
             List<int[]> escorts = sequence.convoys() == null || sim == null ? List.of() : sequence.convoys().unguarded(sim);

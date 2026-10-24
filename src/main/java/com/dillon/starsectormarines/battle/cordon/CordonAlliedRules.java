@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.cordon;
 
+import com.dillon.starsectormarines.battle.command.allied.AlliedTool;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -9,8 +11,9 @@ import java.util.Map;
 /**
  * The allied line command's rules as pure decisions ({@code cordon-allied-command.md}, The allied line command's
  * rules): the cover each redoubt keeps, where the next machine goes, which hulls an escort may take, where a carrier
- * takes a waiting squad, and what the allies say over the radio about a sector. {@link CordonArmour} and
- * {@link CordonLogistics} freeze the line, call these and issue the orders.
+ * takes a waiting squad, what the allies say over the radio about a sector, and when the line asks its producer
+ * ({@code allied-tools.md}) for a tool. {@link CordonArmour}, {@link CordonLogistics} and {@link CordonLineCommand}
+ * freeze the line, call these and issue the orders.
  */
 public final class CordonAlliedRules {
 
@@ -97,5 +100,35 @@ public final class CordonAlliedRules {
                     || p.calling() == best.calling() && p.standing() < best.standing()) best = p;
         }
         return best == null ? -1 : best.number();
+    }
+
+    /** The tool an uncovered sector asks for: a Hound pair in a city, an armour pair of the density's hull elsewhere. */
+    static AlliedTool coverTool(CordonPlan.Density density) {
+        return density == CordonPlan.Density.URBAN ? AlliedTool.MECH_LANCE : AlliedTool.ARMOUR_PAIR;
+    }
+
+    /**
+     * Whether the line asks its producer for cover for a sector now: it is {@link #uncovered}, and nothing asked for
+     * it before is still on the road (at most one on the road per sector).
+     */
+    static boolean wantsCover(boolean uncovered, int onRoad) {
+        return uncovered && onRoad == 0;
+    }
+
+    /**
+     * Whether the line asks for an ammunition truck to a redoubt now: it is manned, a gun of its is dry (firing
+     * rationed) or the rounds its guns and tubes hold together have fallen under {@code threshold} of full, and no
+     * truck asked for it before is still on the road.
+     */
+    static boolean wantsAmmunition(boolean manned, float share, float threshold, int dryGuns, int onRoad) {
+        return manned && (share < threshold || dryGuns > 0) && onRoad == 0;
+    }
+
+    /**
+     * Whether a redoubt has help coming (the radio's Help coming): a carrier with a squad aboard bound for it, or an
+     * allied column marching to it.
+     */
+    static boolean helpComing(boolean carrierBound, boolean columnBound) {
+        return carrierBound || columnBound;
     }
 }

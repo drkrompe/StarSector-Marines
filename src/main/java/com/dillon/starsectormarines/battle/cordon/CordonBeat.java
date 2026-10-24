@@ -50,6 +50,13 @@ abstract class CordonBeat implements ObjectiveRuntime {
     /** What the beat is doing, in a line for evidence; empty when it has nothing to add to its status. */
     String describe(BattleSimulation sim) { return ""; }
 
+    /**
+     * A hull of the beat's own on the road that wants an allied escort beside it (R1's dozer), or {@code 0}. Asked only
+     * while active. The surplus armour takes it ({@code cordon-allied-command.md}, rule 3); the beat's {@link #call}
+     * asks the company only when no hull was free.
+     */
+    long escortHull(BattleSimulation sim) { return 0L; }
+
     /** Where the beat wants the company now, {x, y, squads}, or {@code null}. Asked only while active. */
     int[] call(BattleSimulation sim) { return null; }
 

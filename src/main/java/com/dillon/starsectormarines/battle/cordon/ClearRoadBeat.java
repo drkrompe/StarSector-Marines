@@ -22,7 +22,8 @@ import java.util.List;
  * road. The wreck is laid only when this beat is rolled, at setup, on the ground the layout held for it
  * (crate stacks, as {@code BlockKind.WRECK} is laid: there is no wreck art yet); with no dozer to clear it
  * a laid wreck stopped every convoy. The base's dozer starts moved up behind the gap and drives the corridor
- * to the far side of the wreck, its blade opening the way, with an escort asked of the company. Succeeds
+ * to the far side of the wreck, its blade opening the way, with an escort out of the allied armour's surplus, and the
+ * company asked only when no hull was free ({@code cordon-allied-command.md}, rule 3). Succeeds
  * when the road through the wreck is open before the first convoy's lead truck reaches it; fails when the
  * dozer dies first, or the convoy reaches a wreck still across the road (the dozer keeps at it for the
  * convoys after).
@@ -206,8 +207,13 @@ final class ClearRoadBeat extends CordonBeat {
     }
 
     @Override
+    long escortHull(BattleSimulation sim) {
+        return !cleared && CordonBeats.alive(sim, dozer) ? dozer : 0L;
+    }
+
+    @Override
     int[] call(BattleSimulation sim) {
-        if (!CordonBeats.alive(sim, dozer)) return null;
+        if (!CordonBeats.alive(sim, dozer) || beats.escorted(dozer)) return null;
         GroundBody body = sim.convoy().body(dozer);
         return new int[]{(int) body.x, (int) body.y, 2};
     }

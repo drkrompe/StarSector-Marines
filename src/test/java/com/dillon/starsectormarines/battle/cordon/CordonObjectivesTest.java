@@ -80,10 +80,10 @@ class CordonObjectivesTest {
 
     @Test
     void theAmmoTruckMustArriveBeforeItOrTheRedoubtIsLost() {
-        assertEquals(Status.SUCCEEDED, GunsDryBeat.rule(true, true, true));
-        assertEquals(Status.FAILED, GunsDryBeat.rule(false, false, true));
-        assertEquals(Status.FAILED, GunsDryBeat.rule(false, true, false));
-        assertEquals(Status.ACTIVE, GunsDryBeat.rule(false, true, true));
+        assertEquals(Status.SUCCEEDED, GunsDryBeat.rule(true, false, true));
+        assertEquals(Status.FAILED, GunsDryBeat.rule(false, true, true));
+        assertEquals(Status.FAILED, GunsDryBeat.rule(false, false, false));
+        assertEquals(Status.ACTIVE, GunsDryBeat.rule(false, false, true));
     }
 
     @Test

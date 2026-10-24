@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.cordon;
 
+import com.dillon.starsectormarines.battle.command.allied.AlliedTool;
 import com.dillon.starsectormarines.battle.cordon.CordonAlliedRules.Hull;
 import com.dillon.starsectormarines.battle.cordon.CordonAlliedRules.Post;
 import org.junit.jupiter.api.Test;
@@ -60,5 +61,30 @@ class CordonAlliedRulesTest {
                 new Post(3, false, true, 0, 0, true));
         assertEquals(2, CordonAlliedRules.carrierDuty(posts));
         assertEquals(1, CordonAlliedRules.carrierDuty(posts.subList(0, 1)));
+    }
+
+    @Test
+    void anUncoveredSectorAsksForCoverOnceAtATime() {
+        assertTrue(CordonAlliedRules.wantsCover(true, 0));
+        assertFalse(CordonAlliedRules.wantsCover(true, 1));
+        assertFalse(CordonAlliedRules.wantsCover(false, 0));
+        assertEquals(AlliedTool.MECH_LANCE, CordonAlliedRules.coverTool(CordonPlan.Density.URBAN));
+        assertEquals(AlliedTool.ARMOUR_PAIR, CordonAlliedRules.coverTool(CordonPlan.Density.TOWN));
+    }
+
+    @Test
+    void aLowRedoubtAsksForOneTruck() {
+        assertTrue(CordonAlliedRules.wantsAmmunition(true, 0.2f, 0.3f, 0, 0));
+        assertTrue(CordonAlliedRules.wantsAmmunition(true, 0.9f, 0.3f, 2, 0));
+        assertFalse(CordonAlliedRules.wantsAmmunition(true, 0.2f, 0.3f, 2, 1));
+        assertFalse(CordonAlliedRules.wantsAmmunition(true, 0.3f, 0.3f, 0, 0));
+        assertFalse(CordonAlliedRules.wantsAmmunition(false, 0f, 0.3f, 1, 0));
+    }
+
+    @Test
+    void helpComesByCarrierOrColumn() {
+        assertTrue(CordonAlliedRules.helpComing(true, false));
+        assertTrue(CordonAlliedRules.helpComing(false, true));
+        assertFalse(CordonAlliedRules.helpComing(false, false));
     }
 }

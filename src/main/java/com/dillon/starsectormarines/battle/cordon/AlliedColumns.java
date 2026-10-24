@@ -78,6 +78,13 @@ public final class AlliedColumns {
         return n;
     }
 
+    /** Where each column on the march is bound, {x, y}: entered, not yet joined, with someone left in it. */
+    public List<int[]> marching() {
+        List<int[]> out = new ArrayList<>();
+        for (Column c : columns) if (c.entered && !c.done && !c.squads.isEmpty()) out.add(new int[]{c.destX, c.destY});
+        return out;
+    }
+
     /** One tick: due columns come on, marching columns are checked for arrival and re-routed if needed. */
     public void advance(BattleSimulation sim, int tick, Orders orders, BeatSink beat) {
         for (Column column : columns) {
