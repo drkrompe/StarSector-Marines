@@ -162,7 +162,7 @@ public final class DirectControlSession {
                 || roster.identity().type(unitId) != UnitType.MARINE) return List.of();
         World world = roster.world();
         return MarineRightTrigger.members(world.hasSecondaryWeapon(unitId) ? world.specialEquipment(unitId) : null,
-                roster.integralSystems().spec(unitId));
+                world.hasBelt(unitId) ? world.beltEquipment(unitId) : null, roster.integralSystems().spec(unitId));
     }
 
     /** What the controlled Marine's right button uses now, or null when it has nothing on it. */
@@ -188,7 +188,9 @@ public final class DirectControlSession {
     public List<SpecialEquipmentDef> marineSpecials() {
         if (!controllingMarine()) return List.of();
         World world = roster.world();
-        return MarineLeftTrigger.specials(world.hasSecondaryWeapon(unitId) ? world.specialEquipment(unitId) : null);
+        // Both slots, so a launcher swapped onto the belt for a belt throw stays on the list.
+        return MarineLeftTrigger.specials(world.hasSecondaryWeapon(unitId) ? world.specialEquipment(unitId) : null,
+                world.hasBelt(unitId) ? world.beltEquipment(unitId) : null);
     }
 
     /** Puts a Marine's left button on {@code member}: the primary (0), or a special, which it readies. */
@@ -712,7 +714,8 @@ public final class DirectControlSession {
         roster.combat().clearPrimaryFire(id);
         SpecialEquipmentDef special = leftSpecial();
         World world = roster.world();
-        boolean canFire = special != null && world.secondaryCooldownTimer(id) <= 0f
+        boolean canFire = special != null && world.specialEquipment(id) == special
+                && world.secondaryCooldownTimer(id) <= 0f
                 && world.secondaryAmmo(id) > 0 && Float.isFinite(input.aimX()) && Float.isFinite(input.aimY());
         boolean stream = special != null && special.isHeldStream();
         float[] jet = canFire && stream ? FlameJet.point(battle.getGrid(), world.renderX(id), world.renderY(id),

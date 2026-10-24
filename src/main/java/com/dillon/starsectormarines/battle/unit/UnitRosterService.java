@@ -636,6 +636,8 @@ public final class UnitRosterService {
         boolean hasArmor = spec.maxArmor > 0f;
         boolean hasSecondary = spec.specialEquipment != null;
         boolean hasIntegralSystem = spec.integralSystem != null;
+        // BELT only beside SECONDARY_WEAPON: its item is swapped into that slot to be used.
+        boolean hasBelt = hasSecondary && spec.beltEquipment != null;
         // MITIGATION iff something the unit carries can raise a screen. Presence is
         // "can be screened", not "is screened right now" (the ARMOR shape rather
         // than the SECONDARY_WEAPON one): the damage path resolves the arc on every
@@ -693,7 +695,7 @@ public final class UnitRosterService {
                     || spec.type == UnitType.SWARM_MATRIARCH);
         ComponentType[] archetype = new ComponentType[
                 5 + (hasArmor ? 1 : 0) + (combatant ? 2 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)
-                  + (hasIntegralSystem ? 1 : 0) + (hasMitigation ? 1 : 0)
+                  + (hasBelt ? 1 : 0) + (hasIntegralSystem ? 1 : 0) + (hasMitigation ? 1 : 0)
                   + (hasSystemFx ? 1 : 0)
                   + (hasBody ? 1 : 0) + (inSquad ? 1 : 0) + (hasHome ? 1 : 0) + (hasTask ? 1 : 0)
                   + (posed ? 1 : 0) + (layerDrawn ? 1 : 0) + (mechLayerDrawn ? 3 : 0) + (ravRigged ? 1 : 0)
@@ -715,6 +717,7 @@ public final class UnitRosterService {
             archetype[c++] = components.AI_STATE;
         }
         if (hasSecondary) archetype[c++] = components.SECONDARY_WEAPON;
+        if (hasBelt) archetype[c++] = components.BELT;
         if (hasIntegralSystem) archetype[c++] = components.INTEGRAL_SYSTEM;
         if (hasMitigation) archetype[c++] = components.MITIGATION;
         if (hasSystemFx) archetype[c++] = components.SYSTEM_FX;
@@ -846,6 +849,10 @@ public final class UnitRosterService {
             entityWorld.setObject(id, components.SECONDARY_WEAPON,
                     BattleComponents.SECONDARY_WEAPON_SPEC, spec.specialEquipment);
             entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO, spec.secondaryAmmo);
+        }
+        if (hasBelt) {
+            entityWorld.setObject(id, components.BELT, BattleComponents.BELT_SPEC, spec.beltEquipment);
+            entityWorld.setInt(id, components.BELT, BattleComponents.BELT_AMMO, spec.beltAmmo);
         }
         if (hasIntegralSystem) {
             entityWorld.setObject(id, components.INTEGRAL_SYSTEM,
