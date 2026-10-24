@@ -554,6 +554,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             new com.dillon.starsectormarines.battle.command.objective.WinCheckSystem();
     /** Persistent {@link Doodad} list + per-cell/per-facing cover lookup the AI consults when scoring firing positions. Initialized in the constructor once {@link #grid} is available. */
     private final DoodadService doodadService;
+    /** The dozer's blade: what it pushes, and the view of the map a bladed hull's route proof reads. */
+    private DozerBlade blade;
     private final List<ParkedAircraft> parkedAircraft = new ArrayList<>();
     /**
      * Transient visual side-effects — persistent ground decals, smoking wrecks,
@@ -1665,7 +1667,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             turretFire.setLaneDiscipline(true);
             heavy.setLaneDiscipline(true);
         }
-        groundSystem.setBlade(new DozerBlade(navigation, mapEditor, doodadService));
+        blade = new DozerBlade(navigation, mapEditor, doodadService);
+        groundSystem.setBlade(blade);
         groundSystem.setAirFire(groundAntiAir.vehicleAirFire(this));
         groundSystem.setScreening(target -> SalvoChain.screened(this, target));
         groundSystem.setStall(id -> rosterService.stagger().isStaggered(id));
@@ -2625,6 +2628,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** The runtime map-modification ops: breaches, rubble, and opened sally doors. */
     public MapEditor mapEditor() { return mapEditor; }
+
+    /** The dozer's blade, whose {@link DozerBlade#planningGrid} is the map a bladed hull's move order is proved over. */
+    public DozerBlade blade() { return blade; }
 
     /** The battle's sally doors: forts' ports and the doors walled places have where their walls send a holder round. */
     public SallyDoors sallyDoors() { return sallyDoors; }
