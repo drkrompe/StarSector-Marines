@@ -49,10 +49,11 @@ public final class DirectControlScatter {
                     (float) Math.hypot(aim.aimX() - ring.x(), aim.aimY() - ring.y())), -1f);
         }
         if (!sim.world().hasMechLoadout(id)) {
-            // A Marine's left button blooms only with a rocket on it; a rifle's round flies a lane.
+            // A Marine's left button blooms with a rocket on it, and with the flamer's splash; a rifle's round flies a lane.
             SpecialEquipmentDef picked = sim.directControl().leftSpecial();
             float reach = (float) Math.hypot(aim.aimX() - sim.world().renderX(id), aim.aimY() - sim.world().renderY(id));
-            float left = picked == null ? -1f : ManualPointFire.scatterRadiusCells(picked.weaponDef(),
+            float left = picked == null ? -1f : picked.isHeldStream() ? picked.aoeRadius()
+                    : ManualPointFire.scatterRadiusCells(picked.weaponDef(),
                     DirectControlFireMarks.specialAccuracy(sim, id, picked), reach, 0f);
             SpecialEquipmentDef grenade = sim.directControl().marineRightPick() == MarineRightTrigger.Item.GRENADE
                     ? CarriedSpecials.item(sim.world(), id, SpecialEquipmentDef::isThrownGrenade) : null;

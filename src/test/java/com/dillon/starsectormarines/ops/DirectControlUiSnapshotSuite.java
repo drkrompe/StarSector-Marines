@@ -196,6 +196,8 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         artifacts.add(new SnapshotArtifact("active-marine-doll-figure-only-1920x1080-ui100.png",
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, marine,
                         marinePlate(context.modRoot(), false).document(), false)));
+        artifacts.add(new SnapshotArtifact("active-marine-flamer-1920x1080-ui100.png",
+                MarineLeftSpecialSnapshotSuite.flamerFrame(renderer, context)));
         artifacts.add(new SnapshotArtifact("active-marine-wide-status-1920x1080-ui100.png",
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, marine, null, false, true)));
         artifacts.add(new SnapshotArtifact("active-mech-ordnance-1920x1080-ui100.png",

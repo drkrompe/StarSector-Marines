@@ -41,10 +41,12 @@ final class BattleDirectControlStatus {
 
     enum Carrier { NONE, MARINE, MECH, VEHICLE, WARSHIP, TENDER }
     /** {@code ROTARY} fires while held, off a belt, at the rate its spin has reached. */
-    enum FireKind { SINGLE, BURST, PACKET, INDIRECT, ROTARY }
+    /** {@code STREAM}: a flamer, which sends a charge each time it can for as long as the button is held. */
+    enum FireKind { SINGLE, BURST, PACKET, INDIRECT, ROTARY, STREAM }
     /** {@code SPINNING}: a rotary gun's barrels turning, its cycle fields carrying the spin. */
     enum WeaponState { BURST, RELOADING, CYCLING, LOADED, EMPTY, TOO_CLOSE, SPINNING }
-    enum AmmoUnit { UNTRACKED, ROUNDS, TRIGGER_PACKS }
+    /** {@code FUEL} is a flamer's tank, counted in the charges a held button spends one at a time. */
+    enum AmmoUnit { UNTRACKED, ROUNDS, TRIGGER_PACKS, FUEL }
 
     record Snapshot(long entityId, String name, Carrier carrier, Durability durability,
                     List<WeaponStatus> weapons, List<AbilityStatus> abilities,
@@ -318,18 +320,20 @@ final class BattleDirectControlStatus {
 
     /**
      * A direct-fire special as a left-button row: its rounds left of what it was issued, and its clock, which
-     * is the readying while it is raised and its cooldown after a round.
+     * is the readying while it is raised and its cooldown after a round. The flamer counts fuel, not rounds.
      */
     static WeaponStatus marineSpecial(int number, SpecialEquipmentDef special, int ammo, float cooldown,
                                       float readiness, float aimDistance) {
         WeaponDef weapon = special.weaponDef();
         float windup = (1f - Math.max(0f, Math.min(1f, readiness))) * special.aimDuration();
         boolean readying = windup > cooldown;
+        boolean stream = special.isHeldStream();
         return new WeaponStatus(number, "SPECIAL" + (number - 2), special.displayName(),
-                behavior(weapon, 1), true,
+                stream ? new Behavior(FireKind.STREAM, 1, 0f, 1, null, Ordnance.of(weapon)) : behavior(weapon, 1), true,
                 readying ? windup : Math.max(0f, cooldown), readying ? special.aimDuration() : special.cooldown(),
-                0, 0f, new Ammo(ammo, special.startingAmmo(), AmmoUnit.ROUNDS, false),
-                false, "", "", ManualPointFire.tooClose(weapon, aimDistance), false);
+                0, 0f, new Ammo(ammo, special.startingAmmo(),
+                        special.isHeldStream() ? AmmoUnit.FUEL : AmmoUnit.ROUNDS, false),
+                false, "", "", !stream && ManualPointFire.tooClose(weapon, aimDistance), false);
     }
 
     static List<AbilityStatus> marineAbilities(UnitRosterService roster, long id,

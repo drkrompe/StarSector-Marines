@@ -523,6 +523,15 @@ public final class UnitRosterService {
         return carrier != null ? carrier.weaponRange(id) : 0f;
     }
 
+    /**
+     * Whether this body stands above the low cover around it: a gun on a plinth ({@code plinthTiers} above zero),
+     * whose head is a storey up, so sandbags and parapets at its foot hide none of it (`ground-turret-tiers.md`).
+     */
+    public boolean standsAboveLowCover(long id) {
+        return turretStateService.isTurret(id) && turretStateService.structureId(id) != null
+                && turretStateService.structure(id).plinthTiers > 0;
+    }
+
     /** Profile-aware target-plane half-height for ballistic contact. */
     public float hitHalfHeight(long id) {
         if (turretStateService.isTurret(id)) {
