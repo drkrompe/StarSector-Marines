@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.CampaignVehicle;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
+import com.dillon.starsectormarines.ops.battleview.BoatDoll;
+import com.dillon.starsectormarines.ops.fitting.FittingComponents;
 import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 import com.dillon.starsectormarines.i18n.Strings;
 
@@ -227,14 +229,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             "data/ui/components/armory/armory-loadout-card.mlx", "data/ui/components/armory/armory-squad-view.mlx", "data/ui/components/armory/armory-card-chip.mlx", "data/ui/components/armory/armory-squad-doctrine.mlx",
             "data/ui/components/armory/armory-refit-transaction.mlx",
             "data/ui/components/armory/armory-armor-comparison.mlx");
-    private static final List<String> MECH_LAB_COMPONENTS = List.of(
+    private static final List<String> MECH_LAB_COMPONENTS = FittingComponents.with(List.of(
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
-            "data/ui/components/mech-lab/mech-lab.mlx");
-    private static final List<String> BOAT_DECK_COMPONENTS = List.of(
+            "data/ui/components/mech-lab/mech-lab.mlx"));
+    private static final List<String> BOAT_DECK_COMPONENTS = FittingComponents.with(List.of(
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
-            "data/ui/components/boat-deck/boat-deck.mlx");
+            "data/ui/components/boat-deck/boat-deck.mlx"));
     private static final List<String> BATTLE_HUD_COMPONENTS =
             List.of(BattleHudOverlay.COMPONENT_PATH,
                     BattleSquadOverlay.COMPONENT_PATH,
@@ -2805,6 +2807,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         .findFirst().orElseThrow().id() : MechLabSpecSheets.firstSpecSheetAnchorId(rows);
                 openSpecSheet(document, binder, width, height, instance.requireElement(anchor));
             }
+            // Lay out once and fit the bay view's surface to its box, as the screen does each frame.
+            renderRelative(renderer, document, width, height, uiScale);
+            instance.requireElement("mech-doll-canvas").fitCanvasToBox();
             if (motionFrames != null) {
                 MechWeaponDragCanvas ghost = new MechWeaponDragCanvas(MechLabDollCanvas::headlessAssets);
                 UiElement ghostElement = instance.requireElement("mech-drag-ghost");
@@ -2950,8 +2955,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         if (hardpoint >= 0 && deck.berths() > 0 && deck.boats().get(0) != null) {
             workshop.fitGun(deck.boats().get(0).id(), hardpoint, BoatGun.ARBALEST.id());
         }
+        // The parked hulls wear what the yard put on them, as the room's refit hands them over.
+        ship.doorGuns(deck::doorGuns).refitDoorGuns();
         if (openBoat) viewModel.selectBoatAction(0).run();
-        if (hardpoint >= 0) viewModel.selectHardpointAction(hardpoint).run();
+        if (hardpoint >= 0) viewModel.selectDollSlot(BoatDoll.HARDPOINT_KEY + hardpoint);
         if (struck[0] >= 0) viewModel.selectBoatAction(struck[0]).run();
         DeckGraph.Compartment bay = hangars.isEmpty() ? null : hangars.get(0);
         if (departure == DOOR_OPENING) seekDoorOpening(ship, bay);
@@ -2971,7 +2978,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                             berth -> berth < 0 || berth >= deck.berths()
                                     || deck.boats().get(berth) != null)
                             .doll(() -> viewModel.doll().get(), () -> 0d));
-            BoatDeckScreen.wireCatalogPreviews(instance, document, viewModel.catalogRows().get());
+            BoatDeckScreen.wireCatalogPreviews(instance, document, viewModel.catalogRows().get(),
+                    viewModel.slotRows().get());
             return renderRelative(renderer, document, width, height, 1f);
         }
     }
@@ -3357,6 +3365,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
         props.put("catalogRows", viewModel.catalogRows());
         props.put("catalogClasses", viewModel.catalogClasses());
+        props.put("filterPills", viewModel.filterPills());
+        props.put("filterClasses", viewModel.filterClasses());
+        props.put("backClasses", viewModel.backClasses());
         props.put("stageTitle", viewModel.stageTitle());
         props.put("stageStatus", viewModel.stageStatus());
         props.put("overviewClasses", viewModel.overviewClasses());

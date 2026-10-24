@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ops.fitting.FittingComponents;
+import com.dillon.starsectormarines.ops.fitting.FittingFilterPill;
+import com.dillon.starsectormarines.ops.fitting.FittingMeter;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechRole;
@@ -54,9 +57,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class MechLabViewModelTest {
 
     private static final float EPSILON = 0.01f;
-    private static final List<String> COMPONENTS = List.of(
-            "mod/data/ui/components/company/company-resource-stock.mlx", "mod/data/ui/components/company/company-resource-cost.mlx", "mod/data/ui/components/marine-ops-page-nav.mlx",
-            "mod/data/ui/components/mech-lab/mech-lab.mlx");
+    private static final List<String> COMPONENTS = FittingComponents.with(List.of(
+            "data/ui/components/company/company-resource-stock.mlx", "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
+            "data/ui/components/mech-lab/mech-lab.mlx")).stream().map(path -> "mod/" + path).toList();
 
     @Test void compactWorkshopRejectsStaleFabricationAfterCapacityShrinks() {
         MechBay bay = MechBay.legacyStarterFixture();
@@ -352,7 +355,7 @@ class MechLabViewModelTest {
 
         assertFalse(viewModel.performanceClasses().get().contains("hidden"));
         List<String> meters = viewModel.performanceMeters().get().stream()
-                .map(MechLabViewModel.PerformanceMeter::label).toList();
+                .map(FittingMeter::label).toList();
         assertEquals(List.of("STRUCTURE", "ARMOR", "MOBILITY", "PASSENGERS"), meters);
         assertEquals(VehicleType.ESCORT_APC.capacity + " SEATS",
                 viewModel.performanceMeters().get().get(3).value());
@@ -700,7 +703,7 @@ class MechLabViewModelTest {
         assertNull(viewModel.selectedSocket(), "no mount is chosen while browsing");
         assertEquals(List.of("mech-filter:ballistic", "mech-filter:missile", "mech-filter:energy",
                         "mech-filter:engine", "mech-filter:capacitors", "mech-filter:utility"),
-                viewModel.categoryFilterPills().get().stream().map(MechLabViewModel.FilterPill::id).toList());
+                viewModel.categoryFilterPills().get().stream().map(FittingFilterPill::id).toList());
         List<MechLabViewModel.CatalogRow> everything = viewModel.catalogRows().get();
         assertTrue(everything.stream().anyMatch(row -> row.weaponPreview() != null));
         assertTrue(everything.stream().anyMatch(row -> row.internalPreview() != null
@@ -768,7 +771,7 @@ class MechLabViewModelTest {
         viewModel.gantryRows().get().get(0).select().run();
         viewModel.selectSlot(SocketId.LEFT_SHOULDER);
 
-        for (MechLabViewModel.PerformanceMeter meter : viewModel.performanceMeters().get()) {
+        for (FittingMeter meter : viewModel.performanceMeters().get()) {
             assertTrue(meter.ghostClasses().contains("hidden"));
         }
 
@@ -777,7 +780,7 @@ class MechLabViewModelTest {
 
         boolean foundGhostGain = false;
         boolean foundGhostLoss = false;
-        for (MechLabViewModel.PerformanceMeter meter : viewModel.performanceMeters().get()) {
+        for (FittingMeter meter : viewModel.performanceMeters().get()) {
             if (meter.label().equals("MAX RANGE") && meter.ghostClasses().contains("gain")) {
                 foundGhostGain = true;
             }
@@ -789,7 +792,7 @@ class MechLabViewModelTest {
         assertTrue(foundGhostLoss);
 
         viewModel.clearHoverWeapon();
-        for (MechLabViewModel.PerformanceMeter meter : viewModel.performanceMeters().get()) {
+        for (FittingMeter meter : viewModel.performanceMeters().get()) {
             assertTrue(meter.ghostClasses().contains("hidden"));
         }
     }
@@ -847,11 +850,11 @@ class MechLabViewModelTest {
         assertEquals(CampaignMech.Readiness.INCOMPLETE, mech.readiness(0f));
         assertFalse(viewModel.socketOccupied(SocketId.CORE));
         // The panel reports the gap rather than the stock engine the budget check stands in.
-        MechLabViewModel.PerformanceMeter mobility = viewModel.performanceMeters().get().stream()
+        FittingMeter mobility = viewModel.performanceMeters().get().stream()
                 .filter(meter -> meter.id().endsWith("mobility")).findFirst().orElseThrow();
         assertEquals("0 CELLS/S", mobility.value());
         assertTrue(mobility.fillStyle().contains("width: 0"), mobility.fillStyle());
-        MechLabViewModel.PerformanceMeter dissipation = viewModel.performanceMeters().get().stream()
+        FittingMeter dissipation = viewModel.performanceMeters().get().stream()
                 .filter(meter -> meter.id().endsWith("dissipation")).findFirst().orElseThrow();
         assertEquals("0 FLUX/S", dissipation.value(), "nothing powers the vents");
         assertTrue(viewModel.budgetText().get().endsWith("/ 0"), viewModel.budgetText().get());
@@ -899,7 +902,7 @@ class MechLabViewModelTest {
         assertTrue(viewModel.catalogRows().get().stream().allMatch(row ->
                 row.internalPreview() != null && row.internalPreview().role == MechInternal.Role.PLATING));
 
-        MechLabViewModel.PerformanceMeter armor = meter(viewModel, "mech-meter:armor");
+        FittingMeter armor = meter(viewModel, "mech-meter:armor");
         assertEquals(Math.round(mech.fit().armorCapacity()) + " PLATE", armor.value());
         assertTrue(armor.ghostClasses().contains("hidden"));
         viewModel.hoverInternal(MechInternal.HEAVY_PLATING);
@@ -1012,7 +1015,7 @@ class MechLabViewModelTest {
         assertTrue(bay.availableInternal(MechInternal.AUXILIARY_VENT_ARRAY.id) > 0);
     }
 
-    private static MechLabViewModel.PerformanceMeter meter(MechLabViewModel viewModel, String id) {
+    private static FittingMeter meter(MechLabViewModel viewModel, String id) {
         return viewModel.performanceMeters().get().stream()
                 .filter(meter -> meter.id().equals(id)).findFirst().orElse(null);
     }

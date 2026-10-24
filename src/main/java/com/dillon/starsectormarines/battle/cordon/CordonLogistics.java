@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.cordon;
 import com.dillon.starsectormarines.battle.command.allied.AlliedCommand;
 import com.dillon.starsectormarines.battle.command.allied.AlliedDepot;
 import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
+import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -159,7 +160,7 @@ public final class CordonLogistics implements AlliedDepot {
     /**
      * Whether a carrier set down on the apron outside the shed's machine door can drive to every
      * one of {@code places}: ground its footprint's clearance holds, joined to the apron's, within
-     * {@link #APRON_REACH} cells of each, stepping as the route planner steps. A base whose fence and lanes are too narrow for a carrier
+     * {@link #APRON_REACH} cells of each and on its level ({@link #at}), stepping as the route planner steps. A base whose fence and lanes are too narrow for a carrier
      * kept every one it built standing on its apron, refused a route to the line, and the shed's
      * lane jammed behind them. Off a map without a machine door it is {@code true}: such a base
      * builds nothing.
@@ -190,7 +191,7 @@ public final class CordonLogistics implements AlliedDepot {
         while (!open.isEmpty() && left > 0) {
             int idx = open.poll(), x = idx % w, y = idx / w;
             for (int i = 0; i < places.size(); i++) {
-                if (!reached[i] && Math.max(Math.abs(x - places.get(i)[0]), Math.abs(y - places.get(i)[1])) <= APRON_REACH) {
+                if (!reached[i] && at(grid.elevation(), x, y, places.get(i))) {
                     reached[i] = true;
                     left--;
                 }
@@ -207,6 +208,16 @@ public final class CordonLogistics implements AlliedDepot {
             }
         }
         return left == 0;
+    }
+
+    /**
+     * Whether a carrier at {@code (x, y)} has reached {@code place}: within {@link #APRON_REACH} cells of it and on
+     * its level. A redoubt on a terrace is reached on its top, never from the low ground under its cliff, which is
+     * within the same reach and from where nothing a carrier carries gets in.
+     */
+    static boolean at(ElevationMap elevation, int x, int y, int[] place) {
+        if (Math.max(Math.abs(x - place[0]), Math.abs(y - place[1])) > APRON_REACH) return false;
+        return elevation == null || elevation.tier(x, y) == elevation.tier(place[0], place[1]);
     }
 
     /**

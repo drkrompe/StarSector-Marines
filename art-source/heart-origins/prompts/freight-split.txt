@@ -1,0 +1,6 @@
+Sheet: the freight yard's telling object, a 40-foot REFRIGERATED shipping container, 4x2 cells, five states of ONE object, left to right then the next row: (1) clean, (2) grown, (3) swallowed, (4) damaged, (5) destroyed.
+(1) CLEAN: a closed reefer container from above: an insulated off-white ribbed steel shell, corner castings at the four corners, and at its east end the dark cooling unit with a louvred grille and a round fan. Ordinary chilled cargo, no lettering.
+(2) GROWN: the same reefer SPLIT OPEN FROM INSIDE: the middle of its roof and both long side walls burst OUTWARD, the white skin peeled back in jagged petals bent away from the box, the dark interior open, a few grey-blue seafood crates tumbled about inside the split. Creep spills out of the split and away to the south, its veins starting inside the box. It must read, without words, as "something grew inside this chilled box and broke out".
+(3) SWALLOWED: the same split reefer with the growth thickest: its west half drowned under a raised creep mound with plates and spurs, the east end and its cooling unit still clear.
+(4) DAMAGED: state (2) after a fight: scorched, holed, creep torn and burnt in patches.
+(5) DESTROYED: low separated off-white panels, dark steel frame pieces and grey-blue crate fragments, transparent between them, no slab beneath.

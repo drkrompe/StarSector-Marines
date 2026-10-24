@@ -152,6 +152,8 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     private final List<Gantry> gantries;
     private final List<FixtureTask> fixtureTasks;
     private final boolean[] occupiedBerths;
+    /** The berth registered for the company's k-th boat, or null where she has none. */
+    private final List<AirfieldService.Berth> boatBerths = new ArrayList<>();
     private final long[] berthedMachines;
     /**
      * Which of the deck's berths hold machines, by index into {@link #gantries}.
@@ -718,6 +720,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                     || boatsHeld[boatBerth];
             boolean wreck = !held && boatWrecks != null && boatBerth < boatWrecks.length && boatWrecks[boatBerth];
             boatBerth++;
+            boatBerths.add(null);
             if (wreck) {
                 // Dismantled starting hull, not an active aircraft or ambient servicing job.
                 // No terrain stamp: home layouts are cached and repair must leave clear deck.
@@ -730,6 +733,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             AirfieldService.Berth registered = bays.addBayBerth(berth, boats,
                     route == null ? null : new float[]{route.outside().x(), route.outside().y()});
             registered.shipRoute = route;
+            boatBerths.set(boatBerth - 1, registered);
             registered.grounded = groundedBoats != null && boatBerth - 1 < groundedBoats.length
                     && groundedBoats[boatBerth - 1];
             occupiedBerths[index] = true;
@@ -747,6 +751,21 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                     task.fixtureX(), task.fixtureY(), onTheField, task.inService()));
         }
         bays.installApronWork(servicing);
+    }
+
+    /**
+     * Puts the company's door guns on the boats in her bays, boat by boat in berth order, each
+     * mount by mount; a null boat, or one past the end, keeps the guns she has.
+     *
+     * <p>Presentation only: a refit at the Boat Deck shows on the parked hull at once rather
+     * than waiting for the ship to be laid out again.
+     */
+    public void fitDoorGuns(String[][] guns) {
+        if (guns == null) return;
+        for (int boat = 0; boat < boatBerths.size() && boat < guns.length; boat++) {
+            AirfieldService.Berth berth = boatBerths.get(boat);
+            if (berth != null && guns[boat] != null) berth.doorGuns = guns[boat].clone();
+        }
     }
 
     /**

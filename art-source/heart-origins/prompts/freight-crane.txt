@@ -1,0 +1,7 @@
+Sheet: the freight yard's gantry crane and the truck caught unloading. Three columns: GANTRY SPAN (7x3 cells), GANTRY LEG (1x3), UNLOADING TRUCK (3x2); four rows, one state each: row 1 clean, row 2 grown, row 3 damaged, row 4 destroyed.
+- GANTRY SPAN: the crane's overhead bridge seen from directly above: two long hazard-yellow box girders with black lattice bracing running the full width, and a grey trolley house straddling them a little east of centre, its hoist block in the middle.
+- GANTRY LEG: one end of the crane: a dark rail bogie with two wheel trucks, the yellow A-frame leg tapering up to it.
+- UNLOADING TRUCK: an overhead flatbed hauler, cab east (yellow cab, dark windscreen strip), grey flat deck, and a rust-red cargo box half slid off the deck's west end onto the ground: stopped mid-unload and abandoned.
+Row 2 GROWN: creep mat under each object as drawn, veins climbing over it, a few plates.
+Row 3 DAMAGED: row 2 after a fight: scorch, holes, torn creep; the truck's cab caved in.
+Row 4 DESTROYED: the span collapsed as two broken girder lengths lying low, the leg in pieces, the truck in low separated pieces; transparent between pieces, no slab beneath.

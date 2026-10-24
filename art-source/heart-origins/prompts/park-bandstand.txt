@@ -1,0 +1,6 @@
+Sheet: the park's telling object, an octagonal bandstand, 4x4 cells, five states of ONE object, left to right then the next row: (1) clean, (2) grown, (3) swallowed, (4) damaged, (5) destroyed.
+(1) CLEAN: a Victorian park bandstand from above: an octagonal sage-green painted metal roof in eight panels, cream ridge ribs to a small gilded finial at the centre, cream post caps at each corner, a short pale stone step on the south. Civic, cheerful, ordinary.
+(2) GROWN: the same bandstand standing in a creep pool, veins and a few plates climbing onto the roof's west side.
+(3) SWALLOWED: HALF SWALLOWED: a raised creep mound has risen over the whole west half of the roof, which sags into it, plates and spurs in the mound; the east half's green panels, ribs and the finial still clearly visible.
+(4) DAMAGED: state (2) after a fight: scorched holes through the roof panels, torn creep.
+(5) DESTROYED: the pale octagonal stone floor left, the roof's broken green panels and cream ribs thrown low around it, dark creep patches; transparent between pieces outside the floor.

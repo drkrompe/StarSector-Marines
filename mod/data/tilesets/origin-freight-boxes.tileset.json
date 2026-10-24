@@ -1,0 +1,200 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "name": "origin-freight.container-rust-clean",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "name": "origin-freight.container-rust",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "name": "origin-freight.container-rust-damaged",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "name": "origin-freight.container-rust-destroyed",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "origin-freight.container-blue-clean",
+      "row": 2
+    },
+    {
+      "col": 4,
+      "name": "origin-freight.container-blue",
+      "row": 2
+    },
+    {
+      "col": 8,
+      "name": "origin-freight.container-blue-damaged",
+      "row": 2
+    },
+    {
+      "col": 12,
+      "name": "origin-freight.container-blue-destroyed",
+      "row": 2
+    },
+    {
+      "col": 0,
+      "name": "origin-freight.seafood-crates-clean",
+      "row": 4
+    },
+    {
+      "col": 2,
+      "name": "origin-freight.seafood-crates",
+      "row": 4
+    },
+    {
+      "col": 4,
+      "name": "origin-freight.seafood-crates-damaged",
+      "row": 4
+    },
+    {
+      "col": 6,
+      "name": "origin-freight.seafood-crates-destroyed",
+      "row": 4
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 0,
+      "cover": "heavy",
+      "footprintCells": [
+        4,
+        2
+      ],
+      "id": "origin-freight.container-rust-clean",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 4,
+      "cover": "heavy",
+      "footprintCells": [
+        4,
+        2
+      ],
+      "id": "origin-freight.container-rust",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 8,
+      "cover": "heavy",
+      "footprintCells": [
+        4,
+        2
+      ],
+      "id": "origin-freight.container-rust-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 12,
+      "cover": "none",
+      "footprintCells": [
+        4,
+        2
+      ],
+      "id": "origin-freight.container-rust-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 0,
+      "cover": "heavy",
+      "footprintCells": [
+        4,
+        2
+      ],
+      "id": "origin-freight.container-blue-clean",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 4,
+      "cover": "heavy",
+      "footprintCells": [
+        4,
+        2
+      ],
+      "id": "origin-freight.container-blue",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 8,
+      "cover": "heavy",
+      "footprintCells": [
+        4,
+        2
+      ],
+      "id": "origin-freight.container-blue-damaged",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 12,
+      "cover": "none",
+      "footprintCells": [
+        4,
+        2
+      ],
+      "id": "origin-freight.container-blue-destroyed",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "origin-freight.seafood-crates-clean",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 2,
+      "cover": "med",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "origin-freight.seafood-crates",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 4,
+      "cover": "med",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "origin-freight.seafood-crates-damaged",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 6,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "origin-freight.seafood-crates-destroyed",
+      "row": 4
+    }
+  ],
+  "sheet": "graphics/doodads/origin-freight-boxes.png"
+}

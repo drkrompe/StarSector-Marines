@@ -1,0 +1,88 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "name": "origin-park.pond-clean",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "name": "origin-park.pond",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "name": "origin-park.pond-swallowed",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "name": "origin-park.pond-damaged",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "origin-park.pond-destroyed",
+      "row": 3
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.2,
+      "col": 0,
+      "cover": "light",
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "origin-park.pond-clean",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.2,
+      "col": 4,
+      "cover": "light",
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "origin-park.pond",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.2,
+      "col": 8,
+      "cover": "light",
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "origin-park.pond-swallowed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.2,
+      "col": 12,
+      "cover": "light",
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "origin-park.pond-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "origin-park.pond-destroyed",
+      "row": 3
+    }
+  ],
+  "sheet": "graphics/doodads/origin-park-pond.png"
+}

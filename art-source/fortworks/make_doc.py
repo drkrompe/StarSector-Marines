@@ -38,6 +38,9 @@ BARRICADES = [('doodad.fort-sandbag-%s', lambda shape: shape, 'heavy', 0.4),
               ('doodad.sandbag-%s', lambda shape: shape if shape.startswith('corner') else 'straight-' + shape,
                'heavy', 0.3)]
 WALL = 'installation.dark-concrete-wall'
+# The wall surfaces a lot's walls wear the look on, each with the openings and rubble of its own kind: the fort's
+# perimeter, and the walls of the buildings inside it, so a fort's rooms are built of the same stuff as its wall.
+WALLS = [(WALL, 'dark'), ('installation.light-concrete-wall', 'light')]
 
 
 def opaque_box(alpha, x0, y0, x1, y1):
@@ -98,17 +101,18 @@ def document(look, style, raw, state=None):
     blocks = []
     if state is None:
         cols, rows = runs(alpha, 976, 600, 1536, 1024)
-        for mask in range(16):
-            (x0, x1), (y0, y1) = cols[mask % 4], rows[mask // 4]
-            # ImageGen outlines each separate tile; cut inside it, or every joint between wall cells draws a dark seam.
-            box = [x0 + WALL_INSET, y0 + WALL_INSET, x1 - WALL_INSET, y1 - WALL_INSET]
-            entries.append({'id': '%s@%s.faces-%d' % (WALL, style, mask), 'block': '%s@%s' % (WALL, style),
-                            'slot': 'faces-%d' % mask, 'included': True, 'cover': 'none', 'footprintCells': [1, 1],
-                            'rect': [box[0], box[1], box[2] - box[0], box[3] - box[1]]})
-        blocks.append({'id': '%s@%s' % (WALL, style), 'layout': 'wall-faces-4x4',
-                       'windowBlock': 'installation.dark-concrete-window',
-                       'doorBlock': 'installation.dark-concrete-door',
-                       'rubbleBlock': 'installation.dark-concrete-rubble'})
+        for wall, kind in WALLS:
+            for mask in range(16):
+                (x0, x1), (y0, y1) = cols[mask % 4], rows[mask // 4]
+                # ImageGen outlines each separate tile; cut inside it, or every joint between wall cells draws a seam.
+                box = [x0 + WALL_INSET, y0 + WALL_INSET, x1 - WALL_INSET, y1 - WALL_INSET]
+                entries.append({'id': '%s@%s.faces-%d' % (wall, style, mask), 'block': '%s@%s' % (wall, style),
+                                'slot': 'faces-%d' % mask, 'included': True, 'cover': 'none', 'footprintCells': [1, 1],
+                                'rect': [box[0], box[1], box[2] - box[0], box[3] - box[1]]})
+            blocks.append({'id': '%s@%s' % (wall, style), 'layout': 'wall-faces-4x4',
+                           'windowBlock': 'installation.%s-concrete-window' % kind,
+                           'doorBlock': 'installation.%s-concrete-door' % kind,
+                           'rubbleBlock': 'installation.%s-concrete-rubble' % kind})
     name = look if state is None else look + '-' + state
     note = ("Fortification works of the %s emplacement style%s, look '%s': every piece a lot's walls, parapets and "
             "barricades are drawn from, painted in ONE ImageGen pass over art-source/fortworks/guides/works-guide.png "

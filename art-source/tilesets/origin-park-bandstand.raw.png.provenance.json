@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16eda-2305-7990-9849-d1ae884245c9",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16eda-2305-7990-9849-d1ae884245c9\\exec-7dec3ac1-9ff5-4203-87f4-739ec04dd89c.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\origin-park-bandstand.raw.png",
+    "sha256": "1f664781ca04431a997ae82a1dccae28e32d553bd301b4a564eb4e25dab17f57",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "build\\heart-origins\\prompts\\park-bandstand.prompt.txt",
+  "promptSha256": "fb1258263f7a62949a1ca2d7072cb5f5339474a8c3bae1e7db76d71eb79f8a3f",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry guide and edit target: exact slots, silhouettes, footprints, growth extent and transparent gaps; reskin it, never move, resize or drop a sprite\nImage 2: Material and style reference only for painted overhead props; not layout\nImage 3: Material reference for the alien growth only (chitin, sinew, ivory, amber); never its shape or layout\n\nUse case: sketch-to-render. Game sprite atlas, a geometry-first reskin for a top-down tactical battle map.\nImage 1 is the authoritative geometry guide and edit target: every sprite's slot, silhouette, footprint, position and the extent of the creature growth are fixed by it. Repaint it; never move, resize, add or drop a sprite.\nImage 2 is a MATERIAL STYLE reference only (worn, crisp, painted overhead industrial props from the same game); not layout.\nImage 3 is a MATERIAL reference for the alien growth only (the Rav Bloom: glossy violet-plum chitin plates, magenta sinew in the gaps, ivory spurs, rare small amber nodes); not layout, and do not copy its shape.\n\nCamera: straight-overhead orthographic, no perspective tilt, soft light from the top left, each object's own short contact shadow only inside its slot.\nOutput: true transparent background, including every gutter and every negative space between debris and between frame bars; no ground plane, floor slab, border, labels, text, numbers, logos or signage words.\n\nThe guide's flat colours are keys:\n- grey/beige = concrete; blue-grey = painted steel; dark grey = machinery shadow or iron; rust-red, steel-blue, yellow, green = paint as shown, chipped and weathered.\n- near-black = an open hole or dark interior; dark brown blots = scorch marks; thin black zigzags = tears and cracks.\n- dull violet-grey lobes = the creep mat: a thin, dull, desaturated violet-grey living film, wet-sheened, veined, with small bubbled nodules, flowing over and around things like slow wax. Keep it DULL and dark-ish (it is the dullest thing on the map), never saturated purple.\n- dark violet lines = raised ropey veins in the creep; small plum polygons with red edges = embedded chitin plates; ivory slivers = bone-ivory spurs.\nEvery slot keeps a clear transparent margin inside its edge: the creep mat ends in soft rounded lobes well inside the slot exactly where the guide's lobes end, and is never cut straight by the slot's edge or spread to fill the slot.\nRows or cells marked as states of the same object must keep the identical object identity, palette and placement; only the stated change differs.\nKeep every form broad and readable at 24 pixels per game cell. Surface detail may improve substantially within the guide's silhouettes.\n\nSheet: the park's telling object, an octagonal bandstand, 4x4 cells, five states of ONE object, left to right then the next row: (1) clean, (2) grown, (3) swallowed, (4) damaged, (5) destroyed.\n(1) CLEAN: a Victorian park bandstand from above: an octagonal sage-green painted metal roof in eight panels, cream ridge ribs to a small gilded finial at the centre, cream post caps at each corner, a short pale stone step on the south. Civic, cheerful, ordinary.\n(2) GROWN: the same bandstand standing in a creep pool, veins and a few plates climbing onto the roof's west side.\n(3) SWALLOWED: HALF SWALLOWED: a raised creep mound has risen over the whole west half of the roof, which sags into it, plates and spurs in the mound; the east half's green panels, ribs and the finial still clearly visible.\n(4) DAMAGED: state (2) after a fight: scorched holes through the roof panels, torn creep.\n(5) DESTROYED: the pale octagonal stone floor left, the roof's broken green panels and cream ribs thrown low around it, dark creep patches; transparent between pieces outside the floor.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\heart-park-bandstand-guide.png",
+      "sha256": "0d13bd90926a51b6ea873b13601da316b28b7faa8a3d28a7b5e4d7478dc63246",
+      "dimensions": [
+        1824,
+        1216
+      ],
+      "mode": "RGBA",
+      "role": "Geometry guide and edit target: exact slots, silhouettes, footprints, growth extent and transparent gaps; reskin it, never move, resize or drop a sprite"
+    },
+    {
+      "path": "art-source\\tilesets\\parked-vehicles.raw.png",
+      "sha256": "ad90cc1b0f96f35985225903ed4b609d7da5b6ebc23fd4802309e5e47cb595d4",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only for painted overhead props; not layout"
+    },
+    {
+      "path": "art-source\\swarm-bores\\raw\\bore-1.raw.png",
+      "sha256": "eafcfd8b37aa4d31e3d7f4875b5b4cd3e185f9820d69b1adf729ae279196b259",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material reference for the alien growth only (chitin, sinew, ivory, amber); never its shape or layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render one atlas, preserving the guide’s layout, silhouettes, and transparent gaps."
+  ],
+  "usage": {
+    "input_tokens": 91561,
+    "cached_input_tokens": 69120,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1080,
+    "reasoning_output_tokens": 19
+  },
+  "elapsedSeconds": 84.1
+}

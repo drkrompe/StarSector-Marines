@@ -70,6 +70,55 @@ class TerracePlannerTest {
         assertTrue(planned.refusal().contains("no road"), planned.refusal());
     }
 
+    /** The place supplied from the south, with {@code open} saying which ground a ramp may cover. */
+    static Planned supplied(IntPredicate road, IntPredicate open) {
+        Terrace place = new Terrace("place", PLACE.x0(), PLACE.y0(), PLACE.x1(), PLACE.y1(), true,
+                TerracePlanner.Edge.SOUTH);
+        return TerracePlanner.plan(W, H, SEED, place, road, open, i -> open.test(i) && !road.test(i), i -> true);
+    }
+
+    /** The ramps whose foot is below the south side. */
+    static long southRamps(Planned planned) {
+        return planned.ramps().stream().filter(r -> r.foot().y() < PLACE.y0() - TerracePlanner.MARGIN).count();
+    }
+
+    @Test void theSupplySideIsRampedWhereNoRoadCrossesIt() {
+        // The only road leaves by the east side; the place is supplied from the south.
+        IntPredicate road = cells((x, y) -> x >= 75 && y >= 49 && y <= 51);
+        Planned planned = supplied(road, i -> true);
+        assertOnTheTop(planned);
+        assertEquals(2, planned.ramps().size(), "the road's ramp and the supply side's");
+        assertEquals(1, southRamps(planned));
+        Ramp ramp = planned.ramps().stream().filter(r -> r.foot().y() < PLACE.y0()).findFirst().orElseThrow();
+        assertEquals(60, ramp.foot().x(), 1, "as near the side's middle as the ground allows");
+        assertTrue(ramp.width() >= TerracePlanner.MIN_RAMP_WIDTH, "a tank's width");
+    }
+
+    @Test void aSupplySideARoadAlreadyCrossesGetsNoSecondRamp() {
+        IntPredicate road = cells((x, y) -> x >= 59 && x <= 61 && y <= 45);
+        Planned planned = supplied(road, i -> true);
+        assertOnTheTop(planned);
+        assertEquals(1, planned.ramps().size());
+    }
+
+    @Test void aSupplyRampMovesAlongTheSideOffBuiltGround() {
+        IntPredicate road = cells((x, y) -> x >= 75 && y >= 49 && y <= 51);
+        // Built ground below the south side's cliff, under its middle.
+        IntPredicate open = cells((x, y) -> !(x >= 52 && x <= 58 && y < 33));
+        Planned planned = supplied(road, open);
+        assertOnTheTop(planned);
+        Ramp ramp = planned.ramps().stream().filter(r -> r.foot().y() < PLACE.y0()).findFirst().orElseThrow();
+        assertTrue(ramp.foot().x() - ramp.width() / 2 > 58, "moved clear of the built ground: " + ramp);
+    }
+
+    @Test void aSupplySideWithNoOpenGroundBelowItDoesNotStand() {
+        IntPredicate road = cells((x, y) -> x >= 75 && y >= 49 && y <= 51);
+        IntPredicate open = cells((x, y) -> y >= 38 || road.test(y * W + x));
+        Planned planned = supplied(road, open);
+        assertFalse(planned.stands());
+        assertTrue(planned.refusal().contains("south side"), planned.refusal());
+    }
+
     @Test void aCliffIsNeverStoodOnBuiltGround() {
         IntPredicate road = cells((x, y) -> x >= 59 && x <= 61 && y <= 45);
         // Built ground all round the place, out past every margin it could be pushed to.

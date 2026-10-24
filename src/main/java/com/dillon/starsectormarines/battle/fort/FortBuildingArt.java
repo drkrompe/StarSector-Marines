@@ -1,26 +1,19 @@
 package com.dillon.starsectormarines.battle.fort;
 
-import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
-import com.dillon.starsectormarines.battle.world.gen.fortress.FortRoom;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
- * How one kind of fort building is drawn, by function and by state: the roof art over the building's interior floor,
- * its damaged and destroyed pictures, a lights overlay, the parts that move, and where the holder's banner stands.
- * Authored on the structure that is the core of the building's aspect, so every fort kind that houses an aspect draws it
- * the same way and a new kind of building adds data, not code.
+ * What a fort building adds over the kit it is built from (`fort-works.md`): where the holder's banner stands, the blast
+ * door laid over its main door, and when it counts as hurt. The building itself (walls, doors, roof) is an ordinary kit
+ * building drawn in its lot's style. Authored on the structure that is the core of the building's aspect, so every fort
+ * kind that houses an aspect draws it the same way.
  *
- * <p>Every picture is authored for the building's interior rectangle in the fort's local frame and shares one
- * registration, so a change of state swaps the picture and moves nothing. Coordinates of rotors and the banner are
- * cells from that rectangle's top-left, in the same local frame; the renderer turns the lot with the fort.
+ * <p>The banner's coordinates are cells from the top-left of the building's floor in the fort's local frame, authored
+ * with the door on the edge {@link #doorOnTop} names; the renderer turns them with the fort.
  *
  * <p>Pure data and pure state laws: no sprite is touched here.
  */
@@ -30,108 +23,40 @@ public final class FortBuildingArt {
     public enum State {
         /** Standing and sound. */
         INTACT,
-        /** Standing but hurt: torn roof, scorch, slower machinery. */
+        /** Standing but hurt. */
         DAMAGED,
-        /** Wrecked: the roof is gone and what remains is a low wreck over the floor. */
+        /** Wrecked: the roof is gone. */
         WRECKED
     }
 
-    /** A part that turns on the roof. {@code damagedSpin} scales its speed while the building is damaged. */
-    public record Rotor(String spritePath, float x, float y, float cells, float spinDegPerSec, float damagedSpin) { }
-
-    /** A glow laid over the roof that pulses, and is dark while the building is not running. */
-    public record Lights(String spritePath, float pulseHz, float pulseDepth) { }
-
-    /**
-     * Roof art for one ante-room of the aspect's suite, named by the room's own art key ({@link FortRoom#art}). It is
-     * drawn over that room's floor in the fort's local frame, in the same state as the building and with the same
-     * registration across states, but carries no machinery of its own.
-     */
-    public record Annex(String room, String roof, String damaged, String wreck, Lights lights) {
-        /** The roof sprite of a standing room, or null when it is wrecked. */
-        public String roofFor(State state) {
-            return switch (state) {
-                case INTACT -> roof;
-                case DAMAGED -> damaged;
-                case WRECKED -> null;
-            };
-        }
-    }
-
-    /**
-     * A heavy door laid over the wall run at the aspect's main door: a piece three cells wide and one deep, authored
-     * with the wall along local x and the door facing the bottom edge, whose passage stays open. A hurt or wrecked
-     * building draws the damaged picture.
-     */
+    /** The blast door laid over the building's main door, intact and hurt. */
     public record BlastDoor(String sprite, String damaged) { }
 
-    /** Where the holder's banner stands and how big it is, in cells. */
+    /** Where the holder's banner stands, in cells from the floor's top-left, and how tall it is. */
     public record Banner(float x, float y, float cells) { }
 
-    /** Fraction of full durability below which a standing building is drawn damaged. */
+    /** A building is drawn damaged below this fraction of its core's durability unless its art says otherwise. */
     public static final float DEFAULT_DAMAGED_BELOW = 0.6f;
 
-    private final String roof;
-    private final String damaged;
-    private final String wreck;
-    private final Lights lights;
-    private final List<Rotor> rotors;
     private final Banner banner;
-    private final Map<String, Annex> annexes;
     private final BlastDoor blastDoor;
     private final float damagedBelow;
     private final boolean doorOnTop;
 
-    private FortBuildingArt(String roof, String damaged, String wreck, Lights lights, List<Rotor> rotors,
-                            Banner banner, Map<String, Annex> annexes, BlastDoor blastDoor, float damagedBelow,
-                            boolean doorOnTop) {
-        this.doorOnTop = doorOnTop;
-        this.annexes = Collections.unmodifiableMap(annexes);
-        this.blastDoor = blastDoor;
-        this.roof = roof;
-        this.damaged = damaged;
-        this.wreck = wreck;
-        this.lights = lights;
-        this.rotors = Collections.unmodifiableList(rotors);
+    private FortBuildingArt(Banner banner, BlastDoor blastDoor, float damagedBelow, boolean doorOnTop) {
         this.banner = banner;
+        this.blastDoor = blastDoor;
         this.damagedBelow = damagedBelow;
+        this.doorOnTop = doorOnTop;
     }
 
     public static FortBuildingArt parse(String structureId, JSONObject json) throws JSONException {
-        String roof = require(structureId, json, "roof");
-        String damaged = require(structureId, json, "damaged");
-        String wreck = require(structureId, json, "wreck");
-        Lights lights = parseLights(structureId, json);
-        List<Rotor> rotors = new ArrayList<>();
-        JSONArray array = json.optJSONArray("rotors");
-        for (int i = 0; array != null && i < array.length(); i++) {
-            JSONObject r = array.getJSONObject(i);
-            float cells = finite(structureId, "rotor cells", r.getDouble("cells"), 0f, 64f);
-            if (cells <= 0f) throw new JSONException("Structure '" + structureId + "' rotor " + i + " has no size");
-            rotors.add(new Rotor(require(structureId, r, "sprite"),
-                    finite(structureId, "rotor x", r.getDouble("x"), -64f, 64f),
-                    finite(structureId, "rotor y", r.getDouble("y"), -64f, 64f),
-                    cells,
-                    finite(structureId, "rotor spin", r.optDouble("spinDegPerSec", 0.0), -3600f, 3600f),
-                    finite(structureId, "rotor damagedSpin", r.optDouble("damagedSpin", 0.5), 0f, 1f)));
-        }
         Banner banner = null;
         JSONObject bannerJson = json.optJSONObject("banner");
         if (bannerJson != null) {
             float cells = finite(structureId, "banner cells", bannerJson.optDouble("cells", 1.4), 0f, 16f);
             banner = new Banner(finite(structureId, "banner x", bannerJson.getDouble("x"), -64f, 64f),
                     finite(structureId, "banner y", bannerJson.getDouble("y"), -64f, 64f), cells);
-        }
-        Map<String, Annex> annexes = new LinkedHashMap<>();
-        JSONArray annexArray = json.optJSONArray("annexes");
-        for (int i = 0; annexArray != null && i < annexArray.length(); i++) {
-            JSONObject a = annexArray.getJSONObject(i);
-            String room = require(structureId, a, "room");
-            Annex annex = new Annex(room, require(structureId, a, "roof"), require(structureId, a, "damaged"),
-                    require(structureId, a, "wreck"), parseLights(structureId, a));
-            if (annexes.put(room, annex) != null) {
-                throw new JSONException("Structure '" + structureId + "' building art names annex '" + room + "' twice");
-            }
         }
         BlastDoor blastDoor = null;
         JSONObject doorJson = json.optJSONObject("blastDoor");
@@ -144,30 +69,19 @@ public final class FortBuildingArt {
         if (!door.equals("top") && !door.equals("bottom")) {
             throw new JSONException("Structure '" + structureId + "' building art door must be 'top' or 'bottom'");
         }
-        return new FortBuildingArt(roof, damaged, wreck, lights, rotors, banner, annexes, blastDoor, below,
-                door.equals("top"));
-    }
-
-    private static Lights parseLights(String structureId, JSONObject json) throws JSONException {
-        JSONObject lightsJson = json.optJSONObject("lights");
-        if (lightsJson == null) return null;
-        return new Lights(require(structureId, lightsJson, "sprite"),
-                finite(structureId, "lights pulseHz", lightsJson.optDouble("pulseHz", 0.5), 0f, 20f),
-                finite(structureId, "lights pulseDepth", lightsJson.optDouble("pulseDepth", 0.3), 0f, 1f));
+        return new FortBuildingArt(banner, blastDoor, below, door.equals("top"));
     }
 
     private static String require(String structureId, JSONObject json, String key) throws JSONException {
         String value = json.optString(key, "").trim();
-        if (value.isEmpty()) {
-            throw new JSONException("Structure '" + structureId + "' building art is missing '" + key + "'");
-        }
+        if (value.isEmpty()) throw new JSONException("Structure '" + structureId + "' building art is missing '" + key + "'");
         return value;
     }
 
     private static float finite(String structureId, String what, double value, float min, float max)
             throws JSONException {
         if (!Double.isFinite(value) || value < min || value > max) {
-            throw new JSONException("Structure '" + structureId + "' building art " + what + " is out of range");
+            throw new JSONException("Structure '" + structureId + "' building art " + what + " out of range: " + value);
         }
         return (float) value;
     }
@@ -184,96 +98,33 @@ public final class FortBuildingArt {
         return durabilityFraction < damagedBelow ? State.DAMAGED : State.INTACT;
     }
 
-    /**
-     * Whether a power plant is running. A captured aspect works for its new holder, so the holder is deliberately not
-     * an input: a plant is stopped only while its point is contested or its battery is destroyed.
-     */
-    public static boolean plantRuns(boolean contested, boolean batteryDestroyed) {
-        return !contested && !batteryDestroyed;
-    }
-
-    /**
-     * How fast the building's machinery runs, 0 to 1. A wrecked building runs nothing, and a building whose power is
-     * not its holder's (cut, contested or taken from the plant that feeds it) runs nothing either; a hurt one runs at
-     * half speed.
-     */
-    public float activity(State state, boolean powered) {
-        if (state == State.WRECKED || !powered) return 0f;
-        return state == State.DAMAGED ? 0.5f : 1f;
-    }
-
-    /** The roof sprite to draw for a standing building, or null when the building is wrecked. */
-    public String roofFor(State state) {
-        return switch (state) {
-            case INTACT -> roof;
-            case DAMAGED -> damaged;
-            case WRECKED -> null;
-        };
-    }
-
-    /** The wreck sprite, drawn on the floor once the roof is gone. */
-    public String wreckPath() {
-        return wreck;
-    }
-
-    /** The lights overlay, or null when the building has none. */
-    public Lights lights() {
-        return lights;
-    }
-
-    public List<Rotor> rotors() {
-        return rotors;
-    }
-
     /** Where the holder's banner stands, or null for a building that flies none. */
     public Banner banner() {
         return banner;
     }
 
-    /** Whether the art is authored with the building's door on its top edge rather than its bottom edge. */
+    /** Whether the banner is authored with the building's door on its top edge rather than its bottom edge. */
     public boolean doorOnTop() {
         return doorOnTop;
     }
 
     /**
-     * Where a point of the art, given in cells from the top-left of the building floor, falls on the plan's floor in the
-     * same terms: unchanged, or through the centre when the art is turned half a revolution to put its door where the
-     * plan's is. Rotors, lights and the banner are registered to the plan's fixtures through this one law.
+     * Where a point given in cells from the top-left of the building floor falls on the plan's floor in the same terms:
+     * unchanged, or through the centre when the authored frame is turned half a revolution to put its door where the
+     * plan's is.
      */
     public static float[] registered(boolean halfTurned, float floorWidth, float floorHeight, float x, float y) {
         return halfTurned ? new float[]{floorWidth - x, floorHeight - y} : new float[]{x, y};
     }
 
-    /**
-     * Whether the art must be turned half a revolution to put its door where a plan's building has it, given whether
-     * that building's door is on the top edge of its floor. Registration is kept by turning the rotors and banner too.
-     */
+    /** Whether the authored frame must be turned half a revolution to put its door where a plan's building has it. */
     public boolean needsHalfTurn(boolean planDoorOnTop) {
         return doorOnTop != planDoorOnTop;
-    }
-
-    /** The roof art of the ante-room whose art key is {@code room}, or null when this building names none. */
-    public Annex annex(String room) {
-        return room == null ? null : annexes.get(room);
     }
 
     /** The heavy door laid over the main door, or null for a building without one. */
     public BlastDoor blastDoor() {
         return blastDoor;
-    }
-
-    /**
-     * The rooms of {@code aspect}'s suite this art draws as ante-rooms, in the plan's own order: every non-main room
-     * whose art key this building names. Only these are covered by roof art, so a suite's other rooms keep the ordinary
-     * roof.
-     */
-    public List<FortRoom> annexRooms(FortPlan plan, FortAspect aspect) {
-        List<FortRoom> rooms = new ArrayList<>();
-        if (annexes.isEmpty()) return rooms;
-        for (FortRoom room : plan.rooms()) {
-            if (room.aspect() == aspect && !room.main() && annexes.containsKey(room.art())) rooms.add(room);
-        }
-        return rooms;
     }
 
     public float damagedBelow() {
@@ -282,13 +133,7 @@ public final class FortBuildingArt {
 
     /** Every sprite path this art names, so a catalog check can prove each one exists. */
     public List<String> spritePaths() {
-        List<String> paths = new ArrayList<>(List.of(roof, damaged, wreck));
-        if (lights != null) paths.add(lights.spritePath());
-        for (Rotor rotor : rotors) paths.add(rotor.spritePath());
-        for (Annex annex : annexes.values()) {
-            paths.addAll(List.of(annex.roof(), annex.damaged(), annex.wreck()));
-            if (annex.lights() != null) paths.add(annex.lights().spritePath());
-        }
+        List<String> paths = new ArrayList<>();
         if (blastDoor != null) paths.addAll(List.of(blastDoor.sprite(), blastDoor.damaged()));
         return paths;
     }

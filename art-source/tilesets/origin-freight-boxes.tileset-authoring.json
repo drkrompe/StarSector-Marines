@@ -1,0 +1,205 @@
+{
+ "sheetName": "origin-freight-boxes",
+ "sheet": "art-source/tilesets/origin-freight-boxes.raw.png",
+ "cellPx": 128,
+ "gridCols": 1,
+ "gridRows": 1,
+ "idPrefix": "origin-freight-boxes",
+ "alphaMin": 40,
+ "outputSheet": "graphics/doodads/origin-freight-boxes.png",
+ "note": "Ordinary 40-foot shipping containers, rust-red and steel-blue, for the freight yard's stack, and a pallet of seafood crates (burst and empty once grown). Geometry-first ImageGen reskin of art-source/templates/heart-freight-boxes-guide.png (art-source/heart-origins/make_guide.py); the raw came back 1323x1189 against a 1568x1408 guide and every full placement frame is the guide slot scaled by that ratio, native alpha kept. Brief: art-source/heart-origins/prompts/common.txt + freight-boxes.txt. Produced only by art-source/heart-origins/export.py; see heart-origins.md.",
+ "entries": [
+  {
+   "rect": [
+    40,
+    41,
+    432,
+    216
+   ],
+   "id": "origin-freight.container-rust-clean",
+   "cover": "heavy",
+   "ballisticHalfHeight": 1.1,
+   "footprintCells": [
+    4,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    40,
+    338,
+    432,
+    216
+   ],
+   "id": "origin-freight.container-rust",
+   "cover": "heavy",
+   "ballisticHalfHeight": 1.1,
+   "footprintCells": [
+    4,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    40,
+    635,
+    432,
+    216
+   ],
+   "id": "origin-freight.container-rust-damaged",
+   "cover": "heavy",
+   "ballisticHalfHeight": 1.1,
+   "footprintCells": [
+    4,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    40,
+    932,
+    432,
+    216
+   ],
+   "id": "origin-freight.container-rust-destroyed",
+   "cover": "none",
+   "ballisticHalfHeight": 0.0,
+   "footprintCells": [
+    4,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    554,
+    41,
+    432,
+    216
+   ],
+   "id": "origin-freight.container-blue-clean",
+   "cover": "heavy",
+   "ballisticHalfHeight": 1.1,
+   "footprintCells": [
+    4,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    554,
+    338,
+    432,
+    216
+   ],
+   "id": "origin-freight.container-blue",
+   "cover": "heavy",
+   "ballisticHalfHeight": 1.1,
+   "footprintCells": [
+    4,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    554,
+    635,
+    432,
+    216
+   ],
+   "id": "origin-freight.container-blue-damaged",
+   "cover": "heavy",
+   "ballisticHalfHeight": 1.1,
+   "footprintCells": [
+    4,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    554,
+    932,
+    432,
+    216
+   ],
+   "id": "origin-freight.container-blue-destroyed",
+   "cover": "none",
+   "ballisticHalfHeight": 0.0,
+   "footprintCells": [
+    4,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    1066,
+    41,
+    216,
+    216
+   ],
+   "id": "origin-freight.seafood-crates-clean",
+   "cover": "med",
+   "ballisticHalfHeight": 0.5,
+   "footprintCells": [
+    2,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    1066,
+    338,
+    216,
+    216
+   ],
+   "id": "origin-freight.seafood-crates",
+   "cover": "med",
+   "ballisticHalfHeight": 0.5,
+   "footprintCells": [
+    2,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    1066,
+    635,
+    216,
+    216
+   ],
+   "id": "origin-freight.seafood-crates-damaged",
+   "cover": "med",
+   "ballisticHalfHeight": 0.5,
+   "footprintCells": [
+    2,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    1066,
+    932,
+    216,
+    216
+   ],
+   "id": "origin-freight.seafood-crates-destroyed",
+   "cover": "none",
+   "ballisticHalfHeight": 0.0,
+   "footprintCells": [
+    2,
+    2
+   ],
+   "included": true
+  }
+ ]
+}

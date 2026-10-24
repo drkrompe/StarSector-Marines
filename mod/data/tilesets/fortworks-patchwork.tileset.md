@@ -15,6 +15,7 @@ variant pool has no geometry and is picked by hashing the cell.
 | id | layout | note | tags |
 |---|---|---|---|
 | `installation.dark-concrete-wall@patchwork` | wall-faces-4x4 | — | — |
+| `installation.light-concrete-wall@patchwork` | wall-faces-4x4 | — | — |
 
 ## Doodads
 

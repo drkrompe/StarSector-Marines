@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16edf-a2ab-73c1-915d-fabc2dea9bcd",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16edf-a2ab-73c1-915d-fabc2dea9bcd\\exec-bd319915-a083-4399-8e21-1a48cb6caf1f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\origin-lab-kit.raw.png",
+    "sha256": "63d52f5faefd196d8b85931aa905982fc518d69e7aaba98723a2c42415802ff7",
+    "dimensions": [
+      1208,
+      1302
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "build\\heart-origins\\prompts\\lab-kit.prompt.txt",
+  "promptSha256": "42df718b40acd409e45c3145e80a5b69523043d242efe5470eb64f5def003072",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry guide and edit target: exact slots, silhouettes, footprints, growth extent and transparent gaps; reskin it, never move, resize or drop a sprite\nImage 2: Material and style reference only for painted overhead props; not layout\nImage 3: Material reference for the alien growth only (chitin, sinew, ivory, amber); never its shape or layout\n\nUse case: sketch-to-render. Game sprite atlas, a geometry-first reskin for a top-down tactical battle map.\nImage 1 is the authoritative geometry guide and edit target: every sprite's slot, silhouette, footprint, position and the extent of the creature growth are fixed by it. Repaint it; never move, resize, add or drop a sprite.\nImage 2 is a MATERIAL STYLE reference only (worn, crisp, painted overhead industrial props from the same game); not layout.\nImage 3 is a MATERIAL reference for the alien growth only (the Rav Bloom: glossy violet-plum chitin plates, magenta sinew in the gaps, ivory spurs, rare small amber nodes); not layout, and do not copy its shape.\n\nCamera: straight-overhead orthographic, no perspective tilt, soft light from the top left, each object's own short contact shadow only inside its slot.\nOutput: true transparent background, including every gutter and every negative space between debris and between frame bars; no ground plane, floor slab, border, labels, text, numbers, logos or signage words.\n\nThe guide's flat colours are keys:\n- grey/beige = concrete; blue-grey = painted steel; dark grey = machinery shadow or iron; rust-red, steel-blue, yellow, green = paint as shown, chipped and weathered.\n- near-black = an open hole or dark interior; dark brown blots = scorch marks; thin black zigzags = tears and cracks.\n- dull violet-grey lobes = the creep mat: a thin, dull, desaturated violet-grey living film, wet-sheened, veined, with small bubbled nodules, flowing over and around things like slow wax. Keep it DULL and dark-ish (it is the dullest thing on the map), never saturated purple.\n- dark violet lines = raised ropey veins in the creep; small plum polygons with red edges = embedded chitin plates; ivory slivers = bone-ivory spurs.\nEvery slot keeps a clear transparent margin inside its edge: the creep mat ends in soft rounded lobes well inside the slot exactly where the guide's lobes end, and is never cut straight by the slot's edge or spread to fill the slot.\nRows or cells marked as states of the same object must keep the identical object identity, palette and placement; only the stated change differs.\nKeep every form broad and readable at 24 pixels per game cell. Surface detail may improve substantially within the guide's silhouettes.\n\nSheet: the research site's equipment. Two columns, one object each; four rows, one state each: row 1 clean, row 2 grown, row 3 damaged, row 4 destroyed.\n- SPECIMEN TANK RACK, 3x1 cells: a dark steel frame holding three round water-filled specimen tanks seen from above, glass lids over teal water, and in each tank one dark red-brown crustacean (tail, body, two claws). Clinical, no labels.\n- SAMPLE FREEZER, 2x1: a white sealed sample freezer chest from above, a hazard-yellow band at its west end, two dark locking bars across the lid.\nRow 2 GROWN: the tanks' glass broken FROM INSIDE (dark holes, shards bent outward), the tanks drained and EMPTY, the freezer lid forced open from inside (dark gap); creep spreading from them, veins over the frame.\nRow 3 DAMAGED: row 2 after a fight: scorch, holes, torn creep.\nRow 4 DESTROYED: low separated frame, glass and white panel pieces, transparent between, no slab beneath.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\heart-lab-kit-guide.png",
+      "sha256": "6ec8ef5abd4d5ddee3077a51f0fc59a026f0e621f933260efdf4ff1645a7a091",
+      "dimensions": [
+        832,
+        896
+      ],
+      "mode": "RGBA",
+      "role": "Geometry guide and edit target: exact slots, silhouettes, footprints, growth extent and transparent gaps; reskin it, never move, resize or drop a sprite"
+    },
+    {
+      "path": "art-source\\tilesets\\parked-vehicles.raw.png",
+      "sha256": "ad90cc1b0f96f35985225903ed4b609d7da5b6ebc23fd4802309e5e47cb595d4",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only for painted overhead props; not layout"
+    },
+    {
+      "path": "art-source\\swarm-bores\\raw\\bore-1.raw.png",
+      "sha256": "eafcfd8b37aa4d31e3d7f4875b5b4cd3e185f9820d69b1adf729ae279196b259",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material reference for the alien growth only (chitin, sinew, ivory, amber); never its shape or layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one reskinned atlas, keeping Image 1’s geometry fixed and using the other references only for materials.\n"
+  ],
+  "usage": {
+    "input_tokens": 46534,
+    "cached_input_tokens": 35968,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 892,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 86.0
+}

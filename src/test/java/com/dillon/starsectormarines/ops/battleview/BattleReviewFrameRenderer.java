@@ -148,6 +148,12 @@ public final class BattleReviewFrameRenderer {
         return this;
     }
 
+    /** Takes the roof layer back off, for a look still that shows what stands under a building's roof. */
+    public BattleReviewFrameRenderer withoutRoofs() {
+        this.roofs = false;
+        return this;
+    }
+
     /**
      * Pins the presentation clock to {@code seconds} instead of {@link #REVIEW_CLOCK_SECONDS}, for a recording whose
      * subject is an animation driven by that clock (the creep's pulse). The frame stays a pure function of what it
