@@ -3092,6 +3092,18 @@ def blender_main(cfg):
                 for key, sp in spec['ships'].items():
                     place(key, sp, spec.get('states', {}).get(key))
                 bpy.context.view_layer.update()
+            if cfg.get('kit_once') and 'span_t' in spec:
+                # The kit's drives follow this frame's throttle, not the one the kit was built at: under
+                # --kit-once the build sets it once, at the shot's opening, and S3's pirates stayed dark
+                # through the whole shot although each lights her drives inside it (audit, 2026-10-23).
+                thr_ = {}
+                for key, pl in placed.items():
+                    if pl['fx'] is not None and pl['fx'].fx is not None and not pl['lib']['swfx']:
+                        pl['fx'].set('thr_throttle', pl['throttle'])
+                        thr_[key] = round(pl['throttle'], 2)
+                ship_fx.refresh(scene)
+                bpy.context.view_layer.update()
+                print(f'ASHARU throttle {kf}: {thr_}', flush=True)
             if not step:
                 built_for[0] = span_of
             else:
