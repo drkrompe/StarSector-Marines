@@ -238,7 +238,9 @@ redoubt furthest under its floor, a sector that lost its machines first, then
 a calling one, then the fewest, the nearest breaking a tie; a machine whose
 redoubt falls is given another the same way. In a town hulls are
 **roadbound**: each flank post is moved to the nearest street cell within
-reach, the street nearest where it would have stood. They do not chase calls: on a front
+reach, the street nearest where it would have stood; not on the Road, where
+the town's main street is the convoys' road and a hull parked beside it stood
+in their way. They do not chase calls: on a front
 hundreds of cells wide a reserve sent to whichever redoubt called last spent
 the battle driving. The base's shed adds to them through the battle.
 They are the start of the allies fighting their
@@ -306,8 +308,8 @@ home. An ammunition truck and R1's dozer are escorted the same way, one hull
 beside each, after the convoys, and only by an armed hull. **Escorted means
 alongside**: such a hull waits where it was set down until its escort is
 beside it, the pair drives at the slower one's pace, and it holds whenever the
-escort falls behind; with no escort free it sets out alone, and the company
-walks with it. The company walks with a convoy only
+escort falls behind; with no escort free, or one that never came, it goes
+alone for good, and the company walks with it. The company walks with a convoy only
 where no armed allied hull is with it, which is where the armour has not come
 or has died, and clears the road ahead of one the swarm has halted. One escort
 is the convoy's: a hull or a marine near any of its trucks lets the whole

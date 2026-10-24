@@ -110,7 +110,8 @@ delivers nothing.
   slower one's pace (a little under it, so the escort can close up), and the
   truck holds whenever the escort falls more than fourteen cells behind. A
   truck the mission has no escort for sets out alone; one whose escort never
-  comes goes on without it (ninety seconds waiting, thirty holding). The
+  comes goes on without it (ninety seconds waiting, thirty holding), and is
+  offered no escort after (`EscortPace.alone`). The
   decision is one pure rule (`EscortPace.rule`), applied through the hull's
   speed cap, so any road hull can be paced: the Cordon paces its trucks and
   R1's dozer, and the heart's trucks can take the same seam.

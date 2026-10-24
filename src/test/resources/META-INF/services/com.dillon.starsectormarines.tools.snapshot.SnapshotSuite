@@ -295,3 +295,4 @@ com.dillon.starsectormarines.battle.evacuation.HeartCommanderLookSuite
 com.dillon.starsectormarines.battle.command.allied.HeartLaneFormationLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonAlliesLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonCommandLookSuite
+com.dillon.starsectormarines.battle.cordon.CordonEscortLookSuite

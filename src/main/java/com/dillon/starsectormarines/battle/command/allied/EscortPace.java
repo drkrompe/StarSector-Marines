@@ -12,7 +12,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
  * on without it after a while rather than standing on the road all battle.
  *
  * <p>The decision is {@link #rule}, a pure function; this holds the little state it needs (set out yet, holding,
- * since when, an escort given up on) and applies it through the hull's {@link VehicleMission#speedCap}, the brake a
+ * since when, gone on alone) and applies it through the hull's {@link VehicleMission#speedCap}, the brake a
  * mission driver already has. Mission-neutral: who escorts is the mission's (an {@link SupplyDelivery.Escort}); the
  * Cordon's ammunition trucks and R1's dozer are paced by it, and the heart's trucks can be.
  */
@@ -81,7 +81,7 @@ public final class EscortPace {
     private boolean setOut;
     private boolean holding;
     private int since;
-    private long dropped;
+    private boolean alone;
     private Pace last = Pace.WAIT;
 
     /** @param startTick the tick the hull was set down */
@@ -96,7 +96,7 @@ public final class EscortPace {
      */
     public Pace step(BattleSimulation sim, long hull, long escort) {
         int tick = sim.getSimTickIndex();
-        boolean with = escort != 0L && escort != dropped && alive(sim, escort);
+        boolean with = !alone && escort != 0L && alive(sim, escort);
         float distance = with ? sim.convoy().body(hull).distanceTo(sim.convoy().body(escort).x,
                 sim.convoy().body(escort).y) : Float.MAX_VALUE;
         Pace pace = rule(setOut, holding, with, distance, tick - (setOut ? since : startTick));
@@ -115,7 +115,7 @@ public final class EscortPace {
                         : Float.POSITIVE_INFINITY;
             }
             case ALONE -> {
-                if (with) dropped = escort;
+                alone = true;
                 setOut = true;
                 holding = false;
                 mission.speedCap = Float.POSITIVE_INFINITY;
@@ -136,6 +136,12 @@ public final class EscortPace {
 
     /** Whether the hull has set out. */
     public boolean setOut() { return setOut; }
+
+    /**
+     * Whether the hull has gone on without an escort: final, so it is offered none again. Offered a fresh one at the
+     * next look, a truck that had given up on one waited, or held, for the next in turn while its guns stood dry.
+     */
+    public boolean alone() { return alone; }
 
     /** The pace decided at the last step. */
     public Pace last() { return last; }

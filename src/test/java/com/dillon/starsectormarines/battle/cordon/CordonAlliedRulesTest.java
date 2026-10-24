@@ -90,9 +90,10 @@ class CordonAlliedRulesTest {
     }
 
     @Test
-    void onlyATownsHullsKeepToTheStreets() {
-        assertTrue(CordonAlliedRules.roadbound(CordonPlan.Density.TOWN));
-        assertFalse(CordonAlliedRules.roadbound(CordonPlan.Density.RURAL));
-        assertFalse(CordonAlliedRules.roadbound(CordonPlan.Density.URBAN));
+    void onlyATownsHullsKeepToTheStreetsAndNotWhereTheyAreTheConvoysRoad() {
+        assertTrue(CordonAlliedRules.roadbound(CordonPlan.Density.TOWN, CordonVariant.LINE));
+        assertFalse(CordonAlliedRules.roadbound(CordonPlan.Density.RURAL, CordonVariant.LINE));
+        assertFalse(CordonAlliedRules.roadbound(CordonPlan.Density.URBAN, CordonVariant.LINE));
+        assertFalse(CordonAlliedRules.roadbound(CordonPlan.Density.TOWN, CordonVariant.ROAD));
     }
 }

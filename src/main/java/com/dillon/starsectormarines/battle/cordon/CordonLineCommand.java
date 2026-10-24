@@ -81,7 +81,7 @@ public final class CordonLineCommand {
         this.density = density;
         this.reserve = table.reserve();
         armour.setCoverFloor(CordonAlliedRules.coverFloor(density));
-        armour.setRoadbound(CordonAlliedRules.roadbound(density));
+        armour.setRoadbound(CordonAlliedRules.roadbound(density, sequence.variant()));
         List<CordonRedoubt> redoubts = sequence.redoubts();
         for (CordonRedoubt r : redoubts) {
             GunStock stock = new GunStock(place(r), reserve.roundsPerGun());
@@ -250,7 +250,9 @@ public final class CordonLineCommand {
     /** The road hulls that want an armed escort: trucks on the road, then the beats' hulls (a dozer). */
     private List<Long> roadHulls(BattleSimulation sim) {
         List<Long> out = new ArrayList<>();
-        for (SupplyDelivery d : deliveries.keySet()) if (d.truckCell(sim) != null) out.add(d.truck());
+        for (SupplyDelivery d : deliveries.keySet()) {
+            if (d.truckCell(sim) != null && (d.pace() == null || !d.pace().alone())) out.add(d.truck());
+        }
         if (sequence.beats() != null) out.addAll(sequence.beats().escortHulls(sim));
         return out;
     }

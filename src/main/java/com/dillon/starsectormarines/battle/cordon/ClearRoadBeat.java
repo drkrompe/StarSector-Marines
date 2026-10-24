@@ -24,7 +24,7 @@ import java.util.List;
  * (crate stacks, as {@code BlockKind.WRECK} is laid: there is no wreck art yet); with no dozer to clear it
  * a laid wreck stopped every convoy. The base's dozer starts moved up behind the gap and drives the corridor
  * to the far side of the wreck, its blade opening the way, with an escort out of the allied armour's surplus that it
- * waits for and keeps to ({@link EscortPace}), and the company asked only when no hull was free ({@code cordon-allied-command.md}, rule 3). Succeeds
+ * keeps to once under way ({@link EscortPace}), and the company asked only when no hull was free ({@code cordon-allied-command.md}, rule 3). Succeeds
  * when the road through the wreck is open before the first convoy's lead truck reaches it; fails when the
  * dozer dies first, or the convoy reaches a wreck still across the road (the dozer keeps at it for the
  * convoys after).
@@ -55,7 +55,7 @@ final class ClearRoadBeat extends CordonBeat {
     private int[] target;
     /** Blade push not yet spent as whole structure points. */
     private float push;
-    /** How the dozer keeps to its escort: it waits for it where it was set down, and holds when it falls behind. */
+    /** How the dozer keeps to its escort once under way: it holds when the escort falls behind. */
     private EscortPace pace;
 
     ClearRoadBeat(CordonBeats beats) {
@@ -137,21 +137,23 @@ final class ClearRoadBeat extends CordonBeat {
             int[] from = corridor.get(Math.max(convoys.entry(), convoys.gapIndex() - FORWARD));
             dozer = beats.deploy(sim, VehicleType.DOZER_BREACHER, from[0], from[1]);
             if (dozer == 0L) return Status.LAPSED;
+            // It sets out at once and keeps to its escort only once under way: staged forward to beat the first convoy
+            // to the wreck, it lost that race in town, where no hull is ever free to escort it, by waiting the two
+            // seconds a truck at the base gives the armour to offer one.
             pace = new EscortPace(tick);
+            pace.release(sim, dozer);
+            setOut(sim);
         }
-        if (!cleared && CordonBeats.alive(sim, dozer)) {
-            boolean out = pace.setOut();
-            pace.step(sim, dozer, beats.escortOf(dozer));
-            // Onto the wreck's own middle, which only the blade's view of the ground opens: sent past it, the dozer
-            // drove round the wreck through the fields and pushed nothing.
-            if (!out && pace.setOut()) setOut(sim);
-        }
+        if (!cleared && CordonBeats.alive(sim, dozer)) pace.step(sim, dozer, beats.escortOf(dozer));
         int[] lead = convoys.truck(sim, 1, 0);
         boolean atWreck = lead != null && !convoys.detoured() && lead[0] >= wreckIndex - NEEDED;
         return rule(cleared, CordonBeats.alive(sim, dozer), atWreck);
     }
 
-    /** Sends the dozer from where it waited for its escort onto the wreck. */
+    /**
+     * Sends the dozer onto the wreck's own middle, which only the blade's view of the ground opens: sent past it, the
+     * dozer drove round the wreck through the fields and pushed nothing.
+     */
     private void setOut(BattleSimulation sim) {
         int[] at = beats.corridor().get(wreckIndex);
         beats.command().station(sim, dozer, at[0], at[1]);
@@ -162,7 +164,6 @@ final class ClearRoadBeat extends CordonBeat {
     void watch(BattleSimulation sim, int tick) {
         if (pace != null && !active() && CordonBeats.alive(sim, dozer)) {
             // Its escort ends with the beat; the dozer keeps at the wreck for the convoys after, on its own.
-            if (!pace.setOut()) setOut(sim);
             pace.release(sim, dozer);
         }
         if (cleared || road.isEmpty() || beats.sequence().convoys() == null) return;
@@ -227,7 +228,7 @@ final class ClearRoadBeat extends CordonBeat {
 
     @Override
     long escortHull(BattleSimulation sim) {
-        return !cleared && CordonBeats.alive(sim, dozer) ? dozer : 0L;
+        return !cleared && CordonBeats.alive(sim, dozer) && (pace == null || !pace.alone()) ? dozer : 0L;
     }
 
     @Override
