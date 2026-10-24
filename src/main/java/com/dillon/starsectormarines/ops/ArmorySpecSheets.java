@@ -84,6 +84,13 @@ final class ArmorySpecSheets {
                                   Signal<List<FleetArmoryViewModel.DoctrineTile>> tiles) {
         if (binder == null) return;
         for (FleetArmoryViewModel.DoctrineTile tile : tiles.get()) {
+            // The card itself opens its field note; a seat or line inside it is deeper, so it
+            // still opens its own sheet.
+            UiElement card = markup.requireElement(tile.id());
+            if (!binder.isBound(card)) {
+                String cardId = tile.id();
+                binder.bind(card, () -> loreSheetOf(tiles, cardId));
+            }
             bindSpans(binder, markup, tiles, tile.id(), tile.distributionSpans(),
                     FleetArmoryViewModel.DoctrineTile::distributionSpans);
             bindSpans(binder, markup, tiles, tile.id(), tile.carriesSpans(),
@@ -102,6 +109,13 @@ final class ArmorySpecSheets {
     /** The element a loadout card paints its {@code index}th seat on. */
     static String seatId(String tileId, int index) {
         return tileId + ":seat-" + index;
+    }
+
+    private static SpecSheet loreSheetOf(Signal<List<FleetArmoryViewModel.DoctrineTile>> tiles, String tileId) {
+        for (FleetArmoryViewModel.DoctrineTile tile : tiles.get()) {
+            if (tile.id().equals(tileId)) return tile.loreSheet();
+        }
+        return null;
     }
 
     private static SpecSheet seatSheetAt(Signal<List<FleetArmoryViewModel.DoctrineTile>> tiles,

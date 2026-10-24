@@ -1,4 +1,4 @@
-<template props="weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,weaponPickerTabClasses,armorPickerTabClasses,weaponPickerPanelClasses,armorPickerPanelClasses,showWeaponPicker,showArmorPicker,loadoutFilters,loadoutBrowserSummary,showArmorComparison,transactionSummary,transactionClasses,issueCargoRows,issueCargoClasses">
+<template props="weaponDoctrineTiles,armorDoctrineTiles,weaponPickerTabClasses,armorPickerTabClasses,weaponPickerPanelClasses,armorPickerPanelClasses,showWeaponPicker,showArmorPicker,loadoutFilters,loadoutBrowserSummary,transactionSummary,transactionClasses,issueCargoRows,issueCargoClasses">
   <div id="squad-doctrine-strip" class="panel squad-doctrine-strip">
     <div id="equipment-picker-tabs">
       <div id="equipment-picker-heading" class="label heading tone-edge">{i18n.openingUiArmorySquadDoctrineLoadouts}</div>
@@ -12,21 +12,16 @@
     </div>
 
     <div id="loadout-filter-list">
-      <button each="filter in loadoutFilters" key="{filter.id}" id="{filter.id}" class="{filter.classes}" onclick="{filter.select}">{filter.label}</button>
+      <fitting-filter-pill each="filter in loadoutFilters" key="{filter.id}" pill="{filter}" />
     </div>
 
     <div id="weapon-doctrine-slot" class="{weaponPickerPanelClasses}">
-      <div id="weapon-doctrine-summary" class="label surface-dark tone-edge">{weaponDoctrineSummary}</div>
       <div id="weapon-doctrine-list" class="doctrine-list">
         <armory-loadout-card each="tile in weaponDoctrineTiles" key="{tile.id}" tile="{tile}" />
       </div>
     </div>
 
     <div id="armor-doctrine-slot" class="{armorPickerPanelClasses}">
-      <div id="armor-doctrine-summary-row">
-        <div id="armor-doctrine-summary" class="label surface-dark tone-edge">{armorDoctrineSummary}</div>
-        <button id="compare-armor-patterns" class="spec-tab" onclick="{showArmorComparison}">{i18n.openingUiArmorySquadDoctrineComparePatterns}</button>
-      </div>
       <div id="armor-doctrine-list" class="doctrine-list">
         <armory-loadout-card each="tile in armorDoctrineTiles" key="{tile.id}" tile="{tile}" />
       </div>
@@ -53,17 +48,13 @@
   #loadout-browser-tools { flex-direction: row; height: 26px; gap: 5px; }
   #loadout-browser-summary { width: 84px; padding: 4px 2px; }
   #loadout-browser-order { width: 0px; flex-grow: 1; padding: 4px 2px; }
-  #loadout-filter-list { flex-direction: row; height: 28px; gap: 3px; }
-  .loadout-filter { width: 0px; height: 26px; flex-grow: 1; padding: 5px 3px; }
+  /* The tiers as the Mech Lab's stores filter them: a pill each, its chevrons on the tier's tone. */
+  #loadout-filter-list { flex-direction: row; height: 34px; gap: 3px; }
   .supply-filter { width: 132px; height: 26px; padding: 4px 3px; border-width: 1px; font-family: body; text-align: center; }
   .supply-filter.selected { background-color: #35433f; border-color: #a5c6bc; color: #d5deea; }
 
   .doctrine-slot { flex-direction: column; height: 0px; flex-grow: 1; padding: 0px; gap: 5px; border-width: 0px; overflow: hidden; }
   .picker-hidden { width: 0px; height: 0px; flex-grow: 0; padding: 0px; gap: 0px; border-width: 0px; opacity: 0; overflow: hidden; }
-  #weapon-doctrine-summary { height: 20px; padding: 2px 5px; }
-  #armor-doctrine-summary-row { flex-direction: row; height: 20px; gap: 5px; }
-  #armor-doctrine-summary { width: 0px; flex-grow: 1; height: 20px; padding: 2px 5px; }
-  #compare-armor-patterns { width: 130px; height: 20px; padding: 2px 4px; }
   /* The catalogue is stores, as the Mech Lab keeps them: a black pit sunk into the panel, its lip
      in shadow at the top and left and lit at the bottom and right, the floor darkening under the
      top lip, and the cards standing proud of it with black showing on every side. */

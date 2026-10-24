@@ -189,9 +189,9 @@ crossing behind the best protection anyone has, rather than reading as a
 twelve-percent movement boost.
 
 A suit's system is legible before it is issued. The tactic sheet's hover badges
-each seat's suit with its system icon, and the armour comparison tile spends its one non-meter line
-on the system's mechanics, because the four scalars beneath it cannot express
-what makes a late pattern worth wanting. The fire-team card carries a system
+each seat's suit with its system icon, and that suit's own sheet states the
+system's mechanics, because protection and mobility numbers cannot express what
+makes a late pattern worth wanting. The fire-team card carries a system
 line level with the billet's carried special item, so the screen shows at a
 glance that the two are separate issues, and hovering it gives the authored
 prose. What those screens quote is what the simulation applies, not what the

@@ -27,11 +27,9 @@ import com.dillon.starsectormarines.campaign.systems.DebugContractOfferSpawner;
 import com.dillon.starsectormarines.campaign.systems.DebugCivilianRescueSpawner;
 import com.dillon.starsectormarines.campaign.systems.DebugDefectorAsylumSpawner;
 import com.dillon.starsectormarines.campaign.systems.DebugKingmakerTestamentSpawner;
-import com.dillon.starsectormarines.campaign.systems.DebugSilentColonySpawner;
 import com.dillon.starsectormarines.campaign.systems.DebugVanillaRaidSpawnerFleetGroup;
 import com.dillon.starsectormarines.campaign.systems.DebugVanillaRaidSpawnerRaidIntel;
 import com.dillon.starsectormarines.campaign.systems.DebugVanillaRaidSpawnerTargets;
-import com.dillon.starsectormarines.campaign.systems.SilentColonySpawnSystem;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.LocationAPI;
@@ -88,7 +86,6 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
     private static final String BTN_SPAWN_CADRE    = "spawn-local-cadre";
     private static final String BTN_SPAWN_ASSAULT  = "spawn-local-assault";
     private static final String BTN_SPAWN_RESCUE   = "spawn-local-rescue";
-    private static final String BTN_SPAWN_COLONY   = "spawn-local-silent-colony";
     private static final String BTN_SPAWN_DEFECTOR = "spawn-defector-asylum";
     private static final String BTN_SPAWN_TESTAMENT = "spawn-kingmaker-testament";
     private static final String BTN_ADVANCE_DEFECTOR = "advance-defector-followup";
@@ -221,7 +218,6 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         ui.addButton("Spawn local Cadre offers", BTN_SPAWN_CADRE, 320f, 24f, 8f);
         ui.addButton("Spawn local Planetary Assault offers", BTN_SPAWN_ASSAULT, 320f, 24f, 8f);
         ui.addButton("Spawn local civilian rescue", BTN_SPAWN_RESCUE, 320f, 24f, 8f);
-        ui.addButton("Spawn local Silent Colony", BTN_SPAWN_COLONY, 320f, 24f, 8f);
         ui.addButton("Spawn discovered-chain defector", BTN_SPAWN_DEFECTOR,
                 320f, 24f, 8f);
         ui.addButton("Spawn kingmaker testament", BTN_SPAWN_TESTAMENT,
@@ -535,8 +531,6 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
             spawnOffersForLocalPatrons(s, ContractType.PLANETARY_ASSAULT);
         } else if (BTN_SPAWN_RESCUE.equals(buttonId)) {
             spawnLocalRescue(s);
-        } else if (BTN_SPAWN_COLONY.equals(buttonId)) {
-            spawnSilentColony(s);
         } else if (BTN_SPAWN_DEFECTOR.equals(buttonId)) {
             spawnDefector(s);
         } else if (BTN_SPAWN_TESTAMENT.equals(buttonId)) {
@@ -697,35 +691,6 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         int day = CampaignClock.day();
         DebugCivilianRescueSpawner.spawn(
                 state, selectedSlot, selectedMarket.getSize(), day);
-    }
-
-    private static void spawnSilentColony(CampaignState state) {
-        StarSystemAPI system = currentPlayerSystem();
-        if (system == null || Global.getSector() == null
-                || Global.getSector().getEconomy() == null) {
-            return;
-        }
-        MarketAPI selected = null;
-        int selectedTier = 0;
-        for (MarketAPI market
-                : Global.getSector().getEconomy().getMarketsCopy()) {
-            int tier = SilentColonySpawnSystem.eligibleTier(market);
-            if (tier == 0 || market.getPrimaryEntity() == null
-                    || market.getPrimaryEntity().getContainingLocation()
-                        != system) {
-                continue;
-            }
-            if (selected == null
-                    || market.getId().compareTo(selected.getId()) < 0) {
-                selected = market;
-                selectedTier = tier;
-            }
-        }
-        if (selected == null) return;
-        int marketSlot = state.marketRegistry.intern(selected.getId());
-        int day = CampaignClock.day();
-        DebugSilentColonySpawner.spawn(
-                state, marketSlot, selectedTier, day);
     }
 
     private static void spawnDefector(CampaignState state) {

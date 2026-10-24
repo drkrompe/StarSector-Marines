@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
+import com.dillon.starsectormarines.battle.story.TermsOfProtectionProgress;
 import com.dillon.starsectormarines.battle.fixture.BloomHeartBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.CordonBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.RaidBattleFixture;
@@ -60,6 +61,12 @@ public final class DebugMissionCatalog {
         SALVAGE_RIGHTS("A Working Ship", "Salvage Rights", "Night recovery: secure the camp, hand the workshop to militia and cover Morrow's inspection.", 2, false),
         COLD_START("A Working Ship", "Cold Start", "Escort repair cargo, restore yard power and build Morrow's first road gun.", 2, false),
         WORKING_PASSAGE("A Working Ship", "Working Passage", "Escort Morrow through the basin with service pulse rifles and starting Ward armor; build road defenses and secure physical climb-out.", 2, false),
+        WATER_UNDER_SEAL("Agreus", "Water Under Seal", "Escort the technicians and repair loads to the Agreus water works and hold it.", 3, false),
+        LIMITED_WARRANT("Agreus", "Limited Warrant", "Raid the calibration works under the warrant's limits.", 3, false),
+        YARD_OWNERS("Agreus", "Yard Owners", "Take the yard from the pirates who hold it and secure its tooling.", 3, false),
+        TERMS_OF_PROTECTION("Agreus", "Terms of Protection", "Escort the representatives and records on the house custody route.", 3, false),
+        SMALL_WAR("Agreus", "A Small War", "Defend the custodians and fuel works on the house custody route.", 3, false),
+        DISTRICT_ESCORT("Agreus", "District Escort", "Link up with the party, deliver the consignment and withdraw.", 3, false),
         CORDON_LINE("Rav Bloom", "Cordon Line", "Hold the mobile reserve behind the redoubts while refugees walk out. Density, biome and seed are chosen on the launcher.", 3, false),
         CORDON_ROAD("Rav Bloom", "Cordon Road", "Guard the relief road through the gap to the cut-off town while convoys bring its people out. Density, biome and seed are chosen on the launcher.", 3, false),
         BROAD_FRONT("Rav Bloom", "Broad Front", "Push north on the wide front to the heart and collapse every mother. Density, biome and seed are chosen on the launcher.", 3, false),
@@ -80,6 +87,18 @@ public final class DebugMissionCatalog {
             };
         }
         /** The four Rav Bloom missions, whose density, biome and seed come from {@link RavBloomDebugChoice}. */
+        /** Whether the picker lists it: the campaign's story and repeatable work, and the Rav Bloom missions. */
+        public boolean offered() {
+            return switch (this) {
+                case LAST_LIFT, CREW_RECOVERY, RELAY_NINE, MISSILE_AA, SILENT_COLONY -> false;
+                default -> true;
+            };
+        }
+        /** The Agreus arc's chapters and its escort work, each standing in for its campaign offer. */
+        public boolean agreus() {
+            return this == WATER_UNDER_SEAL || this == LIMITED_WARRANT || this == YARD_OWNERS
+                    || this == TERMS_OF_PROTECTION || this == SMALL_WAR || this == DISTRICT_ESCORT;
+        }
         public boolean ravBloom() { return this == CORDON_LINE || this == CORDON_ROAD || this == BROAD_FRONT || this == THE_BURN; }
         StoryMap poolMap() {
             CordonVariant variant = this == CORDON_ROAD ? CordonVariant.ROAD : CordonVariant.LINE;
@@ -95,6 +114,12 @@ public final class DebugMissionCatalog {
         public String sequence() {
             return switch (this) {
                 case MISSILE_AA -> "AA";
+                case WATER_UNDER_SEAL -> "01";
+                case LIMITED_WARRANT -> "02";
+                case YARD_OWNERS -> "03";
+                case TERMS_OF_PROTECTION -> "04";
+                case SMALL_WAR -> "05";
+                case DISTRICT_ESCORT -> "ESC";
                 case CORDON_LINE -> "RB1";
                 case CORDON_ROAD -> "RB2";
                 case BROAD_FRONT -> "RB3";
@@ -120,6 +145,7 @@ public final class DebugMissionCatalog {
         public String location() {
             if (this == MISSILE_AA) return Strings.get("missileAaTestLocation");
             if (ravBloom()) return "Bloomed world";
+            if (agreus()) return "Agreus";
             if(this==SALVAGE_RIGHTS || this==COLD_START || this==WORKING_PASSAGE)return "Asharu";
             if (corvus() != null) return corvus().planetName;
             return this == VETERANS_JOB || this == SILENT_COLONY || this == LAST_LIFT || this == CREW_RECOVERY ? "Unfixed site" : "Jangala";
@@ -127,6 +153,12 @@ public final class DebugMissionCatalog {
         public String sequenceHint() {
             return switch (this) {
                 case MISSILE_AA -> Strings.get("missileAaTestHint");
+                case WATER_UNDER_SEAL -> "Agreus arc 1 of 5 / After Asharu 04";
+                case LIMITED_WARRANT -> "Agreus arc 2 of 5 / After Water Under Seal";
+                case YARD_OWNERS -> "Agreus arc 3 of 5 / After Limited Warrant";
+                case TERMS_OF_PROTECTION -> "Agreus arc 4 of 5 / After Yard Owners";
+                case SMALL_WAR -> "Agreus arc 5 of 5 / After Terms of Protection";
+                case DISTRICT_ESCORT -> "Repeatable work / Opens after A Small War";
                 case CORDON_LINE, CORDON_ROAD -> "Rav Bloom / The Cordon / " + RavBloomDebugChoice.label();
                 case BROAD_FRONT, THE_BURN -> "Rav Bloom / The heart / " + RavBloomDebugChoice.label();
                 case RELIEF -> "Wayline introduction";
@@ -197,8 +229,8 @@ public final class DebugMissionCatalog {
     }
     public static List<Mission> missions(PlanetAPI planet) {
         List<Mission> result = new ArrayList<>();
-        for (Scenario scenario : Scenario.values()) result.add(scenario.mission());
-        result.addAll(MissionGenerator.generateDebugGrid(planet, client()));
+        for (Scenario scenario : Scenario.values()) if (scenario.offered()) result.add(scenario.mission());
+        for (Mission m : MissionGenerator.generateDebugGrid(planet, client())) if (m.type == MissionType.CONQUEST) result.add(m);
         return List.copyOf(result);
     }
     public static Client client() { return new Client(MarineOpsContext.DEBUG_CLIENT_FACTION_ID, "DEBUG Missions", null, RepLevel.NEUTRAL, false, null); }
@@ -245,6 +277,14 @@ public final class DebugMissionCatalog {
             case LAST_LIFT, CREW_RECOVERY -> BattleSetup.createLastLift(seed, manifest, profile, new LastLiftProgress("debug-rill").previewAttempt());
             case RELAY_NINE, ROUTE_SECURITY -> BattleSetup.createRelayNine(seed, manifest, profile);
             case THUNDER_RUN -> BattleSetup.createThunderRun(seed, manifest, profile, new FreightRunProgress("debug-freight").previewAttempt(), 0);
+            case WATER_UNDER_SEAL -> BattleSetup.createWaterUnderSeal(seed, manifest, profile);
+            case LIMITED_WARRANT -> BattleSetup.createLimitedWarrant(seed, manifest, profile, false);
+            case YARD_OWNERS -> BattleSetup.createYardOwners(seed, manifest, profile);
+            case TERMS_OF_PROTECTION -> BattleSetup.createTermsOfProtection(seed, manifest, profile,
+                    TermsOfProtectionProgress.Route.HOUSE_CUSTODY);
+            case SMALL_WAR -> BattleSetup.createSmallWar(seed, manifest, profile, true);
+            case DISTRICT_ESCORT -> BattleSetup.createDistrictEscort(seed, manifest, profile,
+                    DistrictEscortCampaign.Letterhead.RUSK_OFFICE.partyName());
             case CORDON_LINE -> new CordonBattleFixture(seed, CordonVariant.LINE, RavBloomDebugChoice.biome(),
                     RavBloomDebugChoice.cordonDensity(), manifest).build();
             case CORDON_ROAD -> new CordonBattleFixture(seed, CordonVariant.ROAD, RavBloomDebugChoice.biome(),

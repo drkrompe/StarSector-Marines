@@ -1,7 +1,8 @@
 <template props="tile">
   <!-- One loadout card, drawn as a licence: the same heading, stamp, rating meter and
        fire-team seats as the spec sheet a card shows on hover elsewhere, from the
-       spec sheet's own stylesheet (SpecSheetLayer), so the two cannot drift apart. -->
+       spec sheet's own stylesheet (SpecSheetLayer), so the two cannot drift apart.
+       Its field note is not printed: hovering the card shows it (DoctrineTile.loreSheet). -->
   <button id="{tile.id}" class="{tile.cardClasses}" onclick="{tile.select}" style="{tile.cardStyle}">
     <div id="{tile.headerId}" class="spec-sheet-heading">
       <img id="{tile.factionLogoId}" class="{tile.crestClasses}" src="{tile.factionLogo}" />
@@ -9,7 +10,14 @@
         <div id="{tile.nameId}" class="spec-sheet-title">{tile.name}</div>
         <div id="{tile.metadataId}" class="spec-sheet-subtitle">{tile.metadata}</div>
       </div>
-      <button id="{tile.issueId}" class="{tile.issueButtonClasses}" disabled="{tile.issueDisabled}" onclick="{tile.issue}">{tile.issueLabel}</button>
+      <div id="{tile.tierId}" class="loadout-card-tier" style="{tile.tierStyle}">
+        <img id="{tile.tierIconId}" class="loadout-card-tier-icon" src="{tile.tierIcon}" />
+      </div>
+      <button id="{tile.issueId}" class="{tile.issueButtonClasses}" disabled="{tile.issueDisabled}" onclick="{tile.issue}">
+        <div id="{tile.issueBoxId}" class="doctrine-issue-box">
+          <img id="{tile.issueCheckId}" class="{tile.issueCheckClasses}" src="graphics/ui/equipment/issue-check.svg" />
+        </div>
+      </button>
     </div>
     <div id="{tile.stampId}" class="{tile.stampClasses}">
       <div id="{tile.restrictionId}" class="{tile.restrictionClasses}">
@@ -40,6 +48,9 @@
         </div>
       </div>
     </div>
+    <!-- The card's lines, of which some are alternatives and some optional: a hidden line takes no
+         room because the lines share no gap, and each shown line spaces itself from the one above. -->
+    <div id="{tile.linesId}" class="loadout-card-lines">
     <div id="{tile.compositionId}" class="loadout-card-line loadout-card-composition">{tile.compositionLine}</div>
     <div id="{tile.distributionId}" class="{tile.distributionClasses}">{tile.distributionLine}</div>
     <div id="{tile.distributionRowId}" class="{tile.distributionRowClasses}" style="{tile.distributionStyle}">
@@ -54,25 +65,34 @@
         <div each="span in tile.carriesSpans" key="{span.id}" id="{span.id}" class="doctrine-span doctrine-carries-span label">{span.label}</div>
       </div>
     </div>
-    <div id="{tile.descriptionId}" class="spec-sheet-note loadout-card-lore">{tile.description}</div>
     <div id="{tile.issueReasonId}" class="{tile.issueReasonClasses}">{tile.issueReason}</div>
+    </div>
   </button>
 </template>
 <style>
   /* The card's frame and colours are the spec sheet's (.spec-card in SpecSheetLayer and the
      theme); what is here is only the lines a whole card has and a hover sheet does not. */
   .loadout-card-team-rows { flex-direction: column; height: 116px; gap: 4px; }
+  /* The card's tier as the filter strip draws it: its chevrons on the tier's tone. */
+  .loadout-card-tier { flex-direction: column; align-items: center; width: 36px; height: 24px; padding: 1px 0px; pointer-events: none; }
+  .loadout-card-tier-icon { width: 33px; height: 22px; pointer-events: none; }
+  .loadout-card-lines { flex-direction: column; gap: 0px; }
   .loadout-card-line { height: 18px; white-space: normal; }
   .loadout-card-composition { color: #7fb2d8; }
-  .loadout-card-lore { color: #8b9aaf; }
-  .doctrine-issue-button { width: 84px; height: 24px; padding: 2px 6px; border-width: 1px; font-family: body; text-align: center; }
-  .doctrine-issue-button.issued { color: #8fd6a6; border-color: #4f9c6b; }
+  /* The card the squad wears is a ticked box, one ticked a kind; every other card's box is empty,
+     and ticking it puts the squad in that card. No word: the box is the whole control. */
+  .doctrine-issue-button { flex-direction: column; align-items: center; width: 24px; height: 24px; padding: 3px; border-width: 0px; }
+  .doctrine-issue-button:hover .doctrine-issue-box { border-color: #dfc588; }
+  .doctrine-issue-box { flex-direction: column; align-items: center; width: 18px; height: 18px; padding: 1px; border-width: 2px; border-color: #8b9aaf; background-color: #050709; pointer-events: none; }
+  .doctrine-issue-button.issued .doctrine-issue-box { border-color: #78d494; background-color: #1d5a38; }
+  .doctrine-issue-check { width: 12px; height: 12px; pointer-events: none; }
+  .doctrine-issue-check.doctrine-issue-check-empty { opacity: 0; }
   .doctrine-issue-button-hidden { width: 0px; height: 0px; opacity: 0; overflow: hidden; }
-  .doctrine-issue-reason { height: 20px; padding: 2px 4px; white-space: normal; overflow: hidden; }
-  .doctrine-issue-reason-empty { width: 0px; height: 0px; opacity: 0; overflow: hidden; }
-  .doctrine-distribution { height: 18px; color: #d8bd67; white-space: normal; }
-  .doctrine-carries { height: 18px; color: #8fd6a6; }
-  .doctrine-span-row { flex-direction: row; gap: 6px; overflow: hidden; }
+  .doctrine-issue-reason { height: 20px; padding: 8px 4px 2px 4px; white-space: normal; overflow: hidden; }
+  .doctrine-issue-reason-empty { width: 0px; height: 0px; padding: 0px; opacity: 0; overflow: hidden; }
+  .doctrine-distribution { height: 18px; padding-top: 6px; color: #d8bd67; white-space: normal; }
+  .doctrine-carries { height: 18px; padding-top: 6px; color: #8fd6a6; }
+  .doctrine-span-row { flex-direction: row; gap: 6px; padding-top: 6px; overflow: hidden; }
   .doctrine-distribution-row { height: 96px; }
   .doctrine-carries-row { height: 18px; }
   .doctrine-line-tag { width: 58px; padding: 1px 0px; color: #7d8ea1; }

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100">
+  <!-- A tier as rank chevrons, one a tier. Dark detail over the chip's tone, as the weight blocks are. -->
+    <polygon points="40,38.5 75,16.5 110,38.5 110,49.5 75,27.5 40,49.5" fill="#000000" fill-opacity="0.66"/>
+    <polygon points="40,55.5 75,33.5 110,55.5 110,66.5 75,44.5 40,66.5" fill="#000000" fill-opacity="0.66"/>
+    <polygon points="40,72.5 75,50.5 110,72.5 110,83.5 75,61.5 40,83.5" fill="#000000" fill-opacity="0.66"/>
+</svg>
