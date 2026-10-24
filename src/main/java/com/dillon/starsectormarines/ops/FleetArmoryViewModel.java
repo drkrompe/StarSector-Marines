@@ -717,7 +717,7 @@ public final class FleetArmoryViewModel {
         for (LoadoutFilter filter : LoadoutFilter.values()) {
             String id = "loadout-filter:" + filter.name().toLowerCase(Locale.ROOT);
             filters.add(new FittingFilterPill(id, filter.label(), filter.icon(), filter.tone(),
-                    FittingFilterPill.classes(filter == selected), showLoadoutFilterAction(filter)));
+                    FittingFilterPill.classes(filter == selected) + " tier-pill", showLoadoutFilterAction(filter)));
         }
         return List.copyOf(filters);
     }

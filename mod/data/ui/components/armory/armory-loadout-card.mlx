@@ -74,8 +74,9 @@
      theme); what is here is only the lines a whole card has and a hover sheet does not. */
   .loadout-card-team-rows { flex-direction: column; height: 116px; gap: 4px; }
   /* The card's tier as the filter strip draws it: its chevrons on the tier's tone. */
-  .loadout-card-tier { flex-direction: column; align-items: center; width: 36px; height: 24px; padding: 1px 0px; pointer-events: none; }
-  .loadout-card-tier-icon { width: 33px; height: 22px; pointer-events: none; }
+  /* The same chip as the tier filter's pill (fitting-filter-pill's .tier-pill), so the two match. */
+  .loadout-card-tier { flex-direction: column; align-items: center; width: 40px; height: 26px; padding: 1px 0px; pointer-events: none; }
+  .loadout-card-tier-icon { width: 36px; height: 24px; pointer-events: none; }
   .loadout-card-lines { flex-direction: column; gap: 0px; }
   .loadout-card-line { height: 18px; white-space: normal; }
   .loadout-card-composition { color: #7fb2d8; }
