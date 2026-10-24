@@ -126,6 +126,9 @@ public final class BoatDeckCanvas implements CanvasProducer {
     private DoubleSupplier seconds = () -> 0d;
     private List<BoatDollPanel.CardTarget> cards = List.of();
     private String hoveredCard;
+    /** Where the pointer was last seen on the canvas, for the board tooltip. */
+    private float pointerX = Float.NaN;
+    private float pointerY = Float.NaN;
     private BoatDollPanel.Drop drop;
 
     /** Lights the socket a carried catalog piece is over: green where it would fit, red where not. */
@@ -322,7 +325,8 @@ public final class BoatDeckCanvas implements CanvasProducer {
         BoatDoll shown = doll.get();
         if (shown != null && focused != null && focus > 0.5f) {
             markTurrets(context, projection, focused, shown);
-            cards = BoatDollPanel.draw(context, shown, width, height, hoveredCard, drop, seconds.getAsDouble());
+            cards = BoatDollPanel.draw(context, shown, width, height, hoveredCard, drop, pointerX, pointerY,
+                    seconds.getAsDouble());
             recoveryTargets = List.of();
         } else {
             cards = List.of();
@@ -529,6 +533,8 @@ public final class BoatDeckCanvas implements CanvasProducer {
 
     /** Records hover over the berths drawn during the last frame. */
     public void pointAt(float canvasX, float canvasY) {
+        pointerX = canvasX;
+        pointerY = canvasY;
         hoveredCard = slotAt(canvasX, canvasY);
         hovered = hoveredCard != null ? -1 : localBerthAt(canvasX, canvasY);
     }

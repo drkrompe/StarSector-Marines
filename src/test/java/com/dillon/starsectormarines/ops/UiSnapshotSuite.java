@@ -3009,6 +3009,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                             .doll(() -> viewModel.doll().get(), () -> 0d));
             BoatDeckScreen.wireCatalogPreviews(instance, document, viewModel.catalogRows().get(),
                     viewModel.slotRows().get());
+            // As the room does each frame: the bay draws one surface unit to a pixel, not stretched.
+            document.layout(width, height);
+            BoatDeckCanvas.fitSurface(instance.requireElement("boat-deck-canvas"));
             return renderRelative(renderer, document, width, height, 1f);
         }
     }
