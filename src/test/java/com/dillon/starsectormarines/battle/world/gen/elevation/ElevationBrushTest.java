@@ -82,6 +82,29 @@ class ElevationBrushTest {
         assertTrue(map.isRamp(18, 15));
     }
 
+    @Test void builtGroundUnderTheTopIsRaisedButNeverUnderAFace() {
+        boolean[] reserved = new boolean[40 * 30];
+        reserved[15 * 40 + 24] = true;
+        CellTopology topology = new CellTopology(40, 30);
+        assertThrows(IllegalArgumentException.class,
+                () -> ElevationBrush.stamp(hill(3), field(topology), topology, reserved), "reserved ground is refused");
+
+        boolean[] built = new boolean[40 * 30];
+        built[15 * 40 + 24] = true;
+        CellTopology raised = new CellTopology(40, 30);
+        ElevationMap map = ElevationBrush.stamp(hill(3), field(raised), raised, reserved, built);
+        assertEquals(1, map.tier(24, 15), "built ground the plan puts on the top is raised with it");
+
+        ElevationLayout layout = ElevationLayout.resolve(hill(3));
+        int faceX = layout.isFace(31, 15) ? 31 : 32;
+        boolean[] underFace = new boolean[40 * 30];
+        underFace[15 * 40 + faceX] = true;
+        CellTopology faced = new CellTopology(40, 30);
+        assertThrows(IllegalArgumentException.class,
+                () -> ElevationBrush.stamp(hill(3), field(faced), faced, underFace, underFace),
+                "a face on built ground is refused however it is marked");
+    }
+
     @Test void aPlateauWithoutARampIsRefusedAndTheMapLeftUntouched() {
         CellTopology topology = new CellTopology(40, 30);
         NavigationGrid grid = field(topology);

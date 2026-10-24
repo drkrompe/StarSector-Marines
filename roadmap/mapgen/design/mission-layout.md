@@ -5,6 +5,8 @@ built.
 
 Written: 2026-10-23
 
+Updated: 2026-10-24 — a Ridge may carry terraces, places stood on its crest.
+
 `mapgen-nouns.md` is the model this sits in. A mission that needs a structure
 at a place it chose (a picket line, a set piece for a beat, ground held for a
 ridge) states it in its plan's **mission layout**, and generation lays it over
@@ -69,7 +71,12 @@ optional (reported, and the map stands).
   banks kept for them; a band held for a layout Ridge is raised once.
   Plateaus are planned apart, so a plan asking for plateaus beside a Ridge is
   refused at generation rather than losing them silently. The Cordon's line
-  and the heart's forward line stand on one.
+  and the heart's forward line stand on one. A Ridge may carry **terraces**
+  (`elevation-nouns.md`, Terraces): places' boxes stood on its crest, their
+  roads ramped down, which the band runs on into rather than breaking at.
+  Each is reported as a ground piece of its own under its name (its box's
+  corners, its ramps' feet as the ways up), and a required one that cannot
+  stand fails the layout check like any required piece.
 - **Deferred.** Pieces that can only be stated once the ground exists — a line
   from one place's claimed edge to the next's. A deferred piece resolves at
   its **phase** against a read-only view of the grown ground (claims, roads,

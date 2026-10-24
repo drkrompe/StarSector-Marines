@@ -1,8 +1,10 @@
 # The Cordon: maps with intent
 
-Status: DRAFT. Direction for the Cordon's controlled maps (step 2). Built: the layout machinery, the picket courses as fieldworks with the garrison's guns in their nests, the switch line, the supply roads, the Road's second road, a placeholder eruption site, the ridge the line stands on (rural and town; the redoubts stand in its passes, not on its crest), and the beats as optional objectives over the set pieces.
+Status: DRAFT. Direction for the Cordon's controlled maps (step 2). Built: the layout machinery, the picket courses as fieldworks with the garrison's guns in their nests, the switch line, the supply roads, the Road's second road, a placeholder eruption site, the ridge the line stands on with every redoubt on its crest (rural and town), and the beats as optional objectives over the set pieces.
 
 Written: 2026-10-23
+
+Updated: 2026-10-24 — the redoubts stand on the crest; the gap law is a reading.
 
 `cordon-nouns.md` is the model. Today the Cordon's map is generated country
 with four redoubts and a base dropped into fixed bands. Nothing on it says
@@ -37,7 +39,15 @@ A line drawn across country by someone who has had weeks to choose:
   the allies move.
 - **Redoubts where roads cross.** Each redoubt guards a road through the line.
   The gaps between them are covered from both sides, never wider than two
-  redoubts' guns can reach.
+  redoubts' guns can reach. Measured (`CordonGapLaw`) gun to gun along the
+  line, a redoubt's towers through the picket nests to the next redoubt's,
+  against twice the heavy machine gun's range plus its spread and splash at
+  each end (53.6 cells). Redoubts stand a quarter of the map apart, a hundred
+  and more cells, so the towers alone never meet and the nests carry the law.
+  It is a reading in the pools' report, not acceptance: on the maps as laid
+  most lines break it somewhere (a road gap or a long redoubt lawn leaves a
+  step of 55 to 100 cells), and closing it means more guns or closer redoubts,
+  which is a balance decision for the owner.
 - **A picket line between them.** A trench with wire in front runs redoubt to
   redoubt along the crest, broken where roads pass (the gaps). Nests stand at
   each end of a course.
@@ -111,9 +121,11 @@ corridor is proved through its ground. R2 to R4 need no new structure.
    map its Cordon is left out of that map and reported.
 2. The authored ground (the ridge), from the heart's side of the machinery.
    Built (`cordon-nouns.md`, The map): a layout ridge raised before the works,
-   so the picket lines are dug on its crest; the redoubts stand in its passes
-   at their roads, on the low ground, because a place is built before
-   elevation goes down. Rural and town; an urban line has none.
+   so the picket lines are dug on its crest, and every redoubt stood on the
+   crest at its road as a terrace (`elevation-nouns.md`, Terraces), its roads
+   ramped down to the rear and the front falling away. A map on which a
+   redoubt cannot stand so is not a Cordon map. Rural and town; an urban line
+   has none.
 3. The set pieces, one per beat, each checked on the pools. Built; R1's
    wreck is laid by its beat (above).
 4. Then the optional-objective mechanism, shared with the heart, which rolls

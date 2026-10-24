@@ -37,9 +37,15 @@ import java.util.List;
  *                 ground as well as their fields; false holds it from the
  *                 fields alone, so the places grow exactly as they would have
  *                 and only ploughing yields to the ridge
+ * @param kept     boxes held open round places that will stand on high ground
+ *                 (a terrace, {@code elevation-nouns.md}): kept from the other
+ *                 places' growth, claims, road arms and fields whatever
+ *                 {@code heldFromGrowth} says, so the cliff round the place has
+ *                 open country to stand in. Never raised themselves.
  */
 public record Landscape(float woodland, List<Track> tracks, List<Brook> brooks, int raggedMargin,
-                        List<RidgePlanner.Band> ridges, List<RidgePlanner.Band> held, boolean heldFromGrowth) {
+                        List<RidgePlanner.Band> ridges, List<RidgePlanner.Band> held, boolean heldFromGrowth,
+                        List<Track> kept) {
 
     /** The groves' share of wild ground in the stock landscape pass. */
     public static final float STOCK_WOODLAND = 0.58f;
@@ -60,12 +66,12 @@ public record Landscape(float woodland, List<Track> tracks, List<Brook> brooks, 
     /** A landscape with no held ground. */
     public Landscape(float woodland, List<Track> tracks, List<Brook> brooks, int raggedMargin,
                      List<RidgePlanner.Band> ridges) {
-        this(woodland, tracks, brooks, raggedMargin, ridges, List.of(), true);
+        this(woodland, tracks, brooks, raggedMargin, ridges, List.of(), true, List.of());
     }
 
     /** This landscape with these ridges held open before the places grow. */
     public Landscape withHeld(List<RidgePlanner.Band> held) {
-        return new Landscape(woodland, tracks, brooks, raggedMargin, ridges, held, true);
+        return new Landscape(woodland, tracks, brooks, raggedMargin, ridges, held, true, kept);
     }
 
     /**
@@ -73,7 +79,12 @@ public record Landscape(float woodland, List<Track> tracks, List<Brook> brooks, 
      * grow and claim as they would have, and no field is ploughed on the band.
      */
     public Landscape withUnploughed(List<RidgePlanner.Band> held) {
-        return new Landscape(woodland, tracks, brooks, raggedMargin, ridges, held, false);
+        return new Landscape(woodland, tracks, brooks, raggedMargin, ridges, held, false, kept);
+    }
+
+    /** This landscape with these boxes kept open round places that will stand high ({@link #kept}). */
+    public Landscape withKept(List<Track> kept) {
+        return new Landscape(woodland, tracks, brooks, raggedMargin, ridges, held, heldFromGrowth, kept);
     }
 
     public Landscape {
@@ -83,6 +94,7 @@ public record Landscape(float woodland, List<Track> tracks, List<Brook> brooks, 
         brooks = brooks == null ? List.of() : List.copyOf(brooks);
         ridges = ridges == null ? List.of() : List.copyOf(ridges);
         held = held == null ? List.of() : List.copyOf(held);
+        kept = kept == null ? List.of() : List.copyOf(kept);
     }
 
     /**
