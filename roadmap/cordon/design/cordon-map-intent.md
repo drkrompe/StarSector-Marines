@@ -4,7 +4,7 @@ Status: DRAFT. Direction for the Cordon's controlled maps (step 2). Built: the l
 
 Written: 2026-10-23
 
-Updated: 2026-10-24 — the redoubts stand on the crest; the gap law is a reading.
+Updated: 2026-10-24 — town and city redoubts and the city base are built from a mix of constructions.
 
 `cordon-nouns.md` is the model. Today the Cordon's map is generated country
 with four redoubts and a base dropped into fixed bands. Nothing on it says
@@ -62,15 +62,19 @@ A line drawn across country by someone who has had weeks to choose:
 ## By density
 
 The same works at each density (`cordon-nouns.md`, Density). Density changes
-what they are built from:
+what they are built from. The owner asked for a mix rather than one look per
+density (2026-10-24): the compound is the professional post, the farm, school,
+walled-up block and tenement are troops making do, and a line that mixes them
+reads as a front thrown up in a hurry. Each is picked per redoubt from the seed
+(`cordon-nouns.md`, Construction):
 
 | | Rural | Town | Urban |
 | --- | --- | --- | --- |
-| Redoubt | Earth-and-timber work on the crest at a crossroads | A fortified farm or school at the village's edge | A fortified block: the buildings round a crossroads walled up |
+| Redoubt | Earth-and-timber work on the crest at a crossroads | A mix: the compound, a fortified farm, a fortified school | A mix: the compound, the buildings round a crossroads walled up, a fortified tenement |
 | Picket line | Trench and wire across fields | Trench across fields, barricades across streets | Barricaded street mouths and loopholed houses; no trench |
 | Switch line | A trench behind the middle | A trench and a barricaded street | A second row of barricaded blocks |
 | Supply road | Farm tracks to each rear gate | The town's streets | Cleared streets; armour held to the boulevard |
-| Base | A fenced yard on the main road | The town's goods yard | A depot in a car park or a warehouse block |
+| Base | A fenced yard on the main road | A fenced yard on the main road (*not built:* the town's goods yard) | One of the fenced yard and shed, a warehouse depot or a car-park depot, the depots with open-air mech gantries |
 
 ## The beats' set pieces
 

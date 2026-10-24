@@ -99,30 +99,6 @@ public final class FortService {
         fort(fortId).addNest(nestId);
     }
 
-    /**
-     * Whether a fort's own roof art covers this cell, so the ordinary roof must not be drawn over it. Only buildings
-     * whose core names building art are covered; the answer is fixed once the fort is stamped.
-     */
-    public boolean roofArtCovers(int x, int y, TurretCatalogRegistry catalog) {
-        for (Fort fort : forts) {
-            FortFrame frame = fort.frame();
-            if (frame == null) continue;
-            for (Fort.Place place : fort.places()) {
-                if (place.structureId() == null) continue;
-                StructureDef def = catalog.getStructure(place.structureId());
-                if (def == null || def.buildingArt == null) continue;
-                int[] b = place.floorBounds(frame);
-                if (x >= b[0] && x <= b[2] && y >= b[1] && y <= b[3]) return true;
-                for (FortRoom room : def.buildingArt.annexRooms(frame.plan(), place.aspect())) {
-                    int[] f = room.floor();
-                    int[] a = frame.bounds(f[0], f[1], f[2], f[3]);
-                    if (x >= a[0] && x <= a[2] && y >= a[1] && y <= a[3]) return true;
-                }
-            }
-        }
-        return false;
-    }
-
     public List<Fort> forts() {
         return view;
     }

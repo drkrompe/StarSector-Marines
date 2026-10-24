@@ -1,0 +1,6 @@
+Sheet: the park's pond, where the first mother can open, 4x3 cells, five states of ONE object, left to right then the next row: (1) clean, (2) grown, (3) swallowed, (4) damaged, (5) destroyed.
+(1) CLEAN: an ornamental park pond from above: a pale cut-stone rim round an oval of clear dark teal water, three green lily pads. Quiet, municipal, pretty.
+(2) GROWN: the same pond DRAINED: the stone rim intact, the bed bare brown mud, and in the middle the bed torn open into a black hole from below; thick old creep wells up out of it and spills over the rim to the east and south. It must read, wordlessly, as "it came up through the pond".
+(3) SWALLOWED: the drained, torn pond with the growth thickest: its west half drowned under a raised creep mound with plates and spurs, the east rim stones still showing.
+(4) DAMAGED: state (2) after a fight: scorch, cracked rim stones, creep torn and burnt.
+(5) DESTROYED: the dark muddy hollow and black hole left, the rim's cut stones thrown low round it, transparent between pieces outside the hollow.

@@ -21,9 +21,9 @@ final class MechSocketConsole {
     private static final Color FITS = new Color(0xc8eef4);
     private static final Color RED = new Color(0xe98b83);
 
-    /** One brick's height on the doll; every socket uses it, so card size follows capacity. */
-    static final float BRICK_HEIGHT = 46f;
-    static final float BRICK_GAP = 2f;
+    /** @see HardpointBricks#BOARD_BRICK_HEIGHT */
+    static final float BRICK_HEIGHT = HardpointBricks.BOARD_BRICK_HEIGHT;
+    static final float BRICK_GAP = HardpointBricks.BOARD_BRICK_GAP;
     private static final float HEADER = 22f;
     private static final float CAPTION = 22f;
     private static final float SIDE = 12f;
@@ -57,8 +57,8 @@ final class MechSocketConsole {
      *
      * @param internal the engine fitted in the core, drawn as its footprint on the socket grid and
      *                 named in the caption; null otherwise
-     * @param parts    the auxiliary compartment's parts at their packed places; null for any other
-     *                 socket
+     * @param parts    the whole auxiliary compartment's parts at their packed places, across every
+     *                 bay (the card draws those in its own bay); null for any other socket
      */
     static void draw(CanvasContext c, MechLabDollCanvas.SocketDropTarget t,
                      SocketDef socket, MechWeaponComponent installed,
@@ -69,9 +69,10 @@ final class MechSocketConsole {
         boolean fixed = socket.factoryLocked();
         Color accent = rejected ? RED : compatible ? FITS : selected ? AMBER : MUTED;
         Color socketTone = HardpointBricks.tone(socket.type());
-        boolean compartment = socket.id() == SocketId.AUXILIARY;
+        boolean compartment = socket.id().compartment();
+        List<MechCompartment.Placement> here = compartment ? MechCompartment.in(parts, socket.id()) : null;
         boolean empty = installed == null && preview == null && internal == null
-                && (parts == null || parts.isEmpty());
+                && (here == null || here.isEmpty());
         // An empty engine well, or a compartment with no capacitor bank, keeps the mech off the
         // drop manifest; it warns.
         boolean missing = !fixed && (socket.id() == SocketId.CORE ? empty
@@ -110,8 +111,8 @@ final class MechSocketConsole {
                 HardwareArt.draw(c, internal, bricks.left(), bricks.top(),
                         bricks.span(footprint[0], bricks.brickWidth()),
                         bricks.span(footprint[1], bricks.brickHeight()), 255);
-            } else if (parts != null) {
-                for (MechCompartment.Placement part : parts) {
+            } else if (here != null) {
+                for (MechCompartment.Placement part : here) {
                     HardpointBricks.drawFilled(c, bricks, part.column(), part.row(), part.columns(), part.rows(),
                             HardpointBricks.tone(part.part().role));
                     HardwareArt.draw(c, part.part(), bricks.brickX(part.column()), bricks.brickY(part.row()),
@@ -134,7 +135,7 @@ final class MechSocketConsole {
             String caption = draggingHere ? rejected ? "CANNOT FIT" : "RELEASE TO FIT"
                     : missing ? Strings.get("mechLabSocketRequired")
                     : internal != null ? internal.displayName()
-                    : compartment ? Strings.format("mechLabCompartmentUsed", used(parts), socket.capacity())
+                    : compartment ? Strings.format("mechLabCompartmentUsed", used(here), socket.capacity())
                     : installed != null ? installed.displayName() : socket.type().label() + " / "
                     + socket.gridColumns() + "x" + socket.gridRows();
             c.text(Fonts.ORBITRON_12_BOLD, fit(caption, w - 20), x + 10,

@@ -73,7 +73,20 @@ public final class DrawList {
             buf[c] = cmd;
         }
         counts[li] = c + 1;
+        cmd.setFlash(flash);
         return cmd;
+    }
+
+    /** The hit flash stamped on every command added until it is set again; see {@link #setFlash}. */
+    private float flash;
+
+    /**
+     * Stamps every command added from now on with a hit flash of {@code amount}, the share of white in its colour
+     * (law 27), until set again: a unit's collector sets it before emitting the unit and zero after. Paged runs draw
+     * it; the per-sheet path and the Java2D drain do not.
+     */
+    public void setFlash(float amount) {
+        flash = amount;
     }
 
     public void addSheetQuad(RenderLayer layer, SpriteAPI sheet,
@@ -375,5 +388,6 @@ public final class DrawList {
     /** Resets every layer's count to 0, retaining the pooled command objects. Call once per frame. */
     public void clear() {
         Arrays.fill(counts, 0);
+        flash = 0f;
     }
 }

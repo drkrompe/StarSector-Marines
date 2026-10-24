@@ -26,13 +26,16 @@ public enum FireFuel {
      * A light wall or window: board and frame, slow to catch and long to burn.
      * A cell of it that burns through falls to rubble, opening the building.
      */
-    STRUCTURE(120, 210, 650, 2, FireFuel.UNLIMITED),
-    /** A furnished room's floor: furniture, fittings and boards, room by room. */
-    FURNISHING(80, 200, 420, 2, FireFuel.UNLIMITED);
+    STRUCTURE(120, 210, 650, 2, 4),
+    /**
+     * A furnished room's floor: furniture, fittings and boards. A patch of it burns as brush does; a room enough of
+     * which has caught flashes over, all of it at once ({@link FireField}, `fire-nouns.md`, Buildings).
+     */
+    FURNISHING(80, 200, 420, 2, 3);
 
     /**
      * A spread no fire outruns: the fuel carries a fire as far as it goes. Creep, living or dead, is the swarm's
-     * own overgrowth and the fuel a burn is lit to clear; a building's boards and rooms are held by its walls.
+     * own overgrowth and the fuel a burn is lit to clear.
      */
     public static final int UNLIMITED = 127;
 

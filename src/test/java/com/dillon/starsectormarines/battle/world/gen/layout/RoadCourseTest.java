@@ -56,10 +56,23 @@ class RoadCourseTest {
         List<int[]> carved = List.of(new int[]{1, 1}, new int[]{2, 1}, new int[]{3, 1}, new int[]{4, 1},
                 new int[]{7, 1}, new int[]{8, 1}, new int[]{9, 1});
         for (int[] c : carved) owner[c[0]][c[1]] = 0;
-        List<int[]> kept = LayoutRoads.connected(owner, carved, 12, 3);
+        List<int[]> kept = LayoutRoads.connected(owner, carved, List.of(), 12, 3);
         assertEquals(4, kept.size());
         assertEquals(GrownTrunkPlan.UNOWNED, owner[8][1]);
         assertEquals(0, owner[3][1]);
+    }
+
+    @Test
+    void aStretchThatReachesAWalledPlacesGateIsKeptWithNoOtherRoadNear() {
+        int[][] owner = new int[12][3];
+        for (int[] column : owner) Arrays.fill(column, GrownTrunkPlan.UNOWNED);
+        // Open country between two walled places, no road anywhere: the stretch's ends are on their outlines.
+        List<int[]> carved = List.of(new int[]{1, 1}, new int[]{2, 1}, new int[]{3, 1}, new int[]{4, 1},
+                new int[]{5, 1});
+        for (int[] c : carved) owner[c[0]][c[1]] = 0;
+        List<int[]> kept = LayoutRoads.connected(owner, carved, List.of(carved.get(4)), 12, 3);
+        assertEquals(5, kept.size(), "the gate the road makes is where it joins");
+        assertEquals(0, owner[1][1]);
     }
 
     private static String flat(List<int[]> path) {

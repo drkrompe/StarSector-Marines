@@ -513,12 +513,6 @@ def internals(f):
 
 # --- boat hardware --------------------------------------------------------------------------
 
-def upright1(art):
-    """The 1x2 form of ``upright``: side-on art on a 200x75 canvas, muzzle right, turned a
-    quarter left into the 75x200 piece a door gun on a pintle stands in."""
-    return f'<g transform="translate(0 200) rotate(-90)">\n{art}</g>\n'
-
-
 def armour_plate(layers):
     """A boat's plating as a 3x1 piece: riveted plates, one per layer, stepped so each skin
     laid over the last shows its edge; heavier plating is more of them, thicker."""
@@ -568,8 +562,9 @@ def grenade_launcher(y, x0, x1, s):
 
 def boats(f):
     """Door guns, plating and holds for the Boat Deck's doll; its drives are the lab's engines."""
-    f['boat-door-heavy-mg'] = banded(75, 200, upright1(autogun(37.5, 8, 192, 20)), 'MG')
-    f['boat-door-grenade'] = banded(75, 200, upright1(grenade_launcher(37.5, 8, 192, 18)), 'GL')
+    # The light door guns lie in a 2x1 piece, side-on and muzzle right, as the lab's engines do.
+    f['boat-door-heavy-mg'] = banded(150, 100, autogun(50, 8, 142, 20), 'MG')
+    f['boat-door-grenade'] = banded(150, 100, grenade_launcher(50, 8, 142, 16), 'GL')
     f['boat-door-arbalest'] = banded(150, 200, upright2(autogun(75, 10, 190, 38, drum=True)), 'AC')
     b = autogun(75, 10, 178, 48)
     b += block(178, 75 - 24, 192, 75 + 24, 4) + rect(182, 75 - 18, 3, 36, L)

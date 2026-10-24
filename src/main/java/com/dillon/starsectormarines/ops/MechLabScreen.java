@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ops.fitting.FittingComponents;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.campaign.CampaignClock;
@@ -52,10 +53,10 @@ import java.util.Set;
 public final class MechLabScreen implements Screen {
 
     private static final String ROOT_COMPONENT = "mech-lab";
-    private static final List<String> COMPONENT_PATHS = List.of(
+    private static final List<String> COMPONENT_PATHS = FittingComponents.with(List.of(
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
-            "data/ui/components/mech-lab/mech-lab.mlx");
+            "data/ui/components/mech-lab/mech-lab.mlx"));
 
     private final Reactor reactor = new Reactor();
     private final MutableSignal<String> bayContextLabel = reactor.signal("");
@@ -325,7 +326,7 @@ public final class MechLabScreen implements Screen {
                 target.canvases().set(canvas, new MechEquipmentGridCanvas(
                         () -> viewModel.socketDefinition(row.socketId()),
                         () -> viewModel.installedWeapon(row.socketId()),
-                        () -> row.socketId() == SocketId.AUXILIARY ? viewModel.installedCompartment() : List.of(),
+                        () -> viewModel.compartmentPlacements(row.socketId()),
                         () -> viewModel.installedInternal(row.socketId()),
                         () -> viewModel.socketOccupied(row.socketId()),
                         this::previewMechs));
@@ -385,7 +386,7 @@ public final class MechLabScreen implements Screen {
             return;
         }
         // A compartment part is lifted by itself; the engine is the core's only part.
-        MechInternal internal = socket == SocketId.AUXILIARY ? dollCanvas.partAt(point.x(), point.y())
+        MechInternal internal = socket != null && socket.compartment() ? dollCanvas.partAt(point.x(), point.y())
                 : socket != null ? viewModel.installedInternal(socket) : null;
         if (internal != null) {
             weaponDrag = new WeaponDrag(null, internal, socket, event.x(), event.y());
@@ -492,7 +493,7 @@ public final class MechLabScreen implements Screen {
             if (drag.source() != null) viewModel.selectSocket(drag.source());
         } else if (drag.source() != null && drag.component() == null) {
             if (overInventory(event)) {
-                if (drag.source() == SocketId.AUXILIARY) viewModel.removeCompartmentPart(drag.internal());
+                if (drag.source() != null && drag.source().compartment()) viewModel.removeCompartmentPart(drag.internal());
                 else viewModel.removeInstalledInternal(drag.source());
             }
             else if (target == drag.source()) viewModel.selectSocket(target);
@@ -663,7 +664,12 @@ public final class MechLabScreen implements Screen {
         if (specSheets != null) specSheets.update();
         if (document != null) {
             document.advance(dt);
-            if (dollElement != null) document.canvases().invalidate(dollElement);
+            // The bay view's box changes shape between the lance overview and the fitting view;
+            // its surface follows, so the build mark, pad letters and schematic never stretch.
+            if (dollElement != null) {
+                dollElement.fitCanvasToBox();
+                document.canvases().invalidate(dollElement);
+            }
             if (preparationGuide != null) preparationGuide.update();
         }
     }

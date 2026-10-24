@@ -1,12 +1,21 @@
 {
   "alphaMin": 16,
-  "blocks": [{
-    "doorBlock": "installation.dark-concrete-door",
-    "id": "installation.dark-concrete-wall@derelict",
-    "layout": "wall-faces-4x4",
-    "rubbleBlock": "installation.dark-concrete-rubble",
-    "windowBlock": "installation.dark-concrete-window"
-  }],
+  "blocks": [
+    {
+      "doorBlock": "installation.dark-concrete-door",
+      "id": "installation.dark-concrete-wall@derelict",
+      "layout": "wall-faces-4x4",
+      "rubbleBlock": "installation.dark-concrete-rubble",
+      "windowBlock": "installation.dark-concrete-window"
+    },
+    {
+      "doorBlock": "installation.light-concrete-door",
+      "id": "installation.light-concrete-wall@derelict",
+      "layout": "wall-faces-4x4",
+      "rubbleBlock": "installation.light-concrete-rubble",
+      "windowBlock": "installation.light-concrete-window"
+    }
+  ],
   "cellPx": 128,
   "entries": [
     {
@@ -688,12 +697,284 @@
         76
       ],
       "slot": "faces-15"
+    },
+    {
+      "block": "installation.light-concrete-wall@derelict",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@derelict.faces-0",
+      "included": true,
+      "rect": [
+        1022,
+        614,
+        76,
+        76
+      ],
+      "slot": "faces-0"
+    },
+    {
+      "block": "installation.light-concrete-wall@derelict",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@derelict.faces-1",
+      "included": true,
+      "rect": [
+        1118,
+        614,
+        76,
+        76
+      ],
+      "slot": "faces-1"
+    },
+    {
+      "block": "installation.light-concrete-wall@derelict",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@derelict.faces-2",
+      "included": true,
+      "rect": [
+        1214,
+        614,
+        76,
+        76
+      ],
+      "slot": "faces-2"
+    },
+    {
+      "block": "installation.light-concrete-wall@derelict",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@derelict.faces-3",
+      "included": true,
+      "rect": [
+        1310,
+        614,
+        75,
+        76
+      ],
+      "slot": "faces-3"
+    },
+    {
+      "block": "installation.light-concrete-wall@derelict",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@derelict.faces-4",
+      "included": true,
+      "rect": [
+        1022,
+        709,
+        76,
+        77
+      ],
+      "slot": "faces-4"
+    },
+    {
+      "block": "installation.light-concrete-wall@derelict",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@derelict.faces-5",
+      "included": true,
+      "rect": [
+        1118,
+        709,
+        76,
+        77
+      ],
+      "slot": "faces-5"
+    },
+    {
+      "block": "installation.light-concrete-wall@derelict",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@derelict.faces-6",
+      "included": true,
+      "rect": [
+        1214,
+        709,
+        76,
+        77
+      ],
+      "slot": "faces-6"
+    },
+    {
+      "block": "installation.light-concrete-wall@derelict",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@derelict.faces-7",
+      "included": true,
+      "rect": [
+        1310,
+        709,
+        75,
+        77
+      ],
+      "slot": "faces-7"
+    },
+    {
+      "block": "installation.light-concrete-wall@derelict",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@derelict.faces-8",
+      "included": true,
+      "rect": [
+        1022,
+        805,
+        76,
+        76
+      ],
+      "slot": "faces-8"
+    },
+    {
+      "block": "installation.light-concrete-wall@derelict",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@derelict.faces-9",
+      "included": true,
+      "rect": [
+        1118,
+        805,
+        76,
+        76
+      ],
+      "slot": "faces-9"
+    },
+    {
+      "block": "installation.light-concrete-wall@derelict",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@derelict.faces-10",
+      "included": true,
+      "rect": [
+        1214,
+        805,
+        76,
+        76
+      ],
+      "slot": "faces-10"
+    },
+    {
+      "block": "installation.light-concrete-wall@derelict",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@derelict.faces-11",
+      "included": true,
+      "rect": [
+        1310,
+        805,
+        75,
+        76
+      ],
+      "slot": "faces-11"
+    },
+    {
+      "block": "installation.light-concrete-wall@derelict",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@derelict.faces-12",
+      "included": true,
+      "rect": [
+        1022,
+        901,
+        76,
+        76
+      ],
+      "slot": "faces-12"
+    },
+    {
+      "block": "installation.light-concrete-wall@derelict",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@derelict.faces-13",
+      "included": true,
+      "rect": [
+        1118,
+        901,
+        76,
+        76
+      ],
+      "slot": "faces-13"
+    },
+    {
+      "block": "installation.light-concrete-wall@derelict",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@derelict.faces-14",
+      "included": true,
+      "rect": [
+        1214,
+        901,
+        76,
+        76
+      ],
+      "slot": "faces-14"
+    },
+    {
+      "block": "installation.light-concrete-wall@derelict",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@derelict.faces-15",
+      "included": true,
+      "rect": [
+        1310,
+        901,
+        75,
+        76
+      ],
+      "slot": "faces-15"
     }
   ],
   "gridCols": 12,
   "gridRows": 8,
   "idPrefix": "doodad",
-  "note": "Fortification works of the derelict emplacement style, look 'derelict-colony-steel': every piece a lot's walls, parapets and barricades are drawn from, painted in ONE ImageGen pass over art-source/fortworks/guides/works-guide.png (make_guide.py) with the style's turret plinth as material reference; prompt art-source/fortworks/prompts/derelict-colony-steel.prompt.txt, raw retained unmodified. Cuts are measured from the raw (make_doc.py). Every id is a look <base id>@derelict of a piece the generators lay: FortWorks dresses a piece on a lot built in this style with it, art only, so cover and blocking stay the base piece's (fort-works.md). One ring piece serves both barricade families.",
+  "note": "Fortification works of the derelict emplacement style, look 'derelict-colony-steel': every piece a lot's walls, parapets and barricades are drawn from, painted in ONE ImageGen pass over art-source/fortworks/guides/works-guide.png (make_guide.py) with the style's turret plinth as material reference; prompt art-source/fortworks/prompts/derelict-colony-steel.prompt.txt, raw retained unmodified. Cuts are measured from the intact raw (make_doc.py). Every id is a look <base id>@derelict of a piece the generators lay: FortWorks dresses a piece on a lot built in this style with it, art only, so cover and blocking stay the base piece's (fort-works.md). One ring piece serves both barricade families.",
   "sheet": "art-source/fortworks/raw/derelict-colony-steel.raw.png",
   "sheetName": "fortworks-derelict"
 }

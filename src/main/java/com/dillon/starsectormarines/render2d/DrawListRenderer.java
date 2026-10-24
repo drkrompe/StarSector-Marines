@@ -121,13 +121,13 @@ public final class DrawListRenderer {
                     } else if (c.poly != null) {
                         c.poly.appendTo(solidBatch);
                     }
-                    solidBatch.moveQueuedTo(paged, page, 0.5f, 0.5f);
+                    solidBatch.moveQueuedTo(paged, PagedQuadRun.lane(page, false, c.flash), 0.5f, 0.5f);
                     pagedPending = true;
                     continue;
                 }
                 if (c.kind == DrawCommand.Kind.SPRITE) {
                     appendPagedSprite(paged, census, c.sprite, c.cx, c.cy, c.w, c.h, c.angleDeg,
-                            c.r, c.g, c.b, c.a, c.additive);
+                            c.r, c.g, c.b, c.a, c.additive, c.flash);
                     pagedPending = true;
                     continue;
                 }
@@ -137,7 +137,7 @@ public final class DrawListRenderer {
                     for (int q = 0, n = m.size(); q < n; q++) {
                         appendPagedSprite(paged, census, m.image(q), c.cx + m.centerX(q) * c.w,
                                 c.cy + m.centerY(q) * c.w, m.width(q) * c.w, m.height(q) * c.w, m.angleDegrees(q),
-                                m.red(q), m.green(q), m.blue(q), m.alpha(q) * c.a, false);
+                                m.red(q), m.green(q), m.blue(q), m.alpha(q) * c.a, false, c.flash);
                     }
                     if (census != null) census.recordMeshQuads(m.size(), true);
                     if (m.size() > 0) pagedPending = true;
@@ -156,7 +156,8 @@ public final class DrawListRenderer {
                 } else {
                     appendSheetQuad(batch, c);
                 }
-                batch.moveQueuedTo(paged, PagedQuadRun.lane(page, c.kind == DrawCommand.Kind.SHEET_QUAD && c.additive));
+                batch.moveQueuedTo(paged,
+                        PagedQuadRun.lane(page, c.kind == DrawCommand.Kind.SHEET_QUAD && c.additive, c.flash));
                 pagedPending = true;
                 continue;
             }
@@ -341,13 +342,13 @@ public final class DrawListRenderer {
      */
     private static void appendPagedSprite(PagedQuadRun run, DrawCensus census, SpriteAPI sprite,
                                           float cx, float cy, float w, float h, float angleDeg,
-                                          float r, float g, float b, float a, boolean additive) {
+                                          float r, float g, float b, float a, boolean additive, float flash) {
         int page = run.pageOf(sprite);
         if (page < 0) {
             flushPaged(run, census);
             page = run.pageOf(sprite);
         }
-        run.appendSprite(sprite, PagedQuadRun.lane(page, additive), cx, cy, w, h, angleDeg, r, g, b, a);
+        run.appendSprite(sprite, PagedQuadRun.lane(page, additive, flash), cx, cy, w, h, angleDeg, r, g, b, a);
     }
 
     /** Draws the open paged run, recording one draw and a bind per page it used. */

@@ -155,15 +155,15 @@ class GroundAtlasGlEvidence {
                     byte[] throughAtlas = draw(target[0], renderer, camera, sim, atlasCounts);
                     System.out.println("[shader-evidence] ground binds: per-sheet "
                             + perSheetCounts.textureBinds() + ", atlas "
-                            + atlasCounts.textureBinds());
-                    // Not one, and not a number of sheets either: through the
-                    // atlas a run of quads is broken only where a solid fill
-                    // interrupts it — the crosswalk band and the window panes —
-                    // so what is left is a handful whatever the sheets do.
-                    assertTrue(atlasCounts.textureBinds() <= 3,
-                            "a ground layer through the atlas binds once per solid-fill "
-                                    + "interruption, not once per sheet; got "
-                                    + atlasCounts.textureBinds());
+                            + atlasCounts.textureBinds() + " over " + atlasCounts.drawCalls() + " draws");
+                    // Not a number of sheets: through the atlas the quads and the
+                    // solid fills between them (the crosswalk band, the window
+                    // panes) are one paged run (law 27), binding the atlas, the
+                    // white texel a fill samples and any sheet the atlas left out
+                    // as pages of the same draw.
+                    assertTrue(atlasCounts.drawCalls() <= 3,
+                            "a ground layer through the atlas is a handful of draws, not one per sheet; got "
+                                    + atlasCounts.drawCalls());
                     assertTrue(atlasCounts.textureBinds() < perSheetCounts.textureBinds(),
                             "and fewer than the per-sheet path took");
                     assertEquals(perSheetCounts.sheetQuads(), atlasCounts.sheetQuads(),

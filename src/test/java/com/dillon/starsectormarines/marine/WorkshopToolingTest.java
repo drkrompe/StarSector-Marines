@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.ops.battleview.BoatDoll;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.ops.BoatDeckViewModel;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
@@ -37,14 +38,15 @@ class WorkshopToolingTest {
         var model = new BoatDeckViewModel(new Reactor(), deck, resources, "Second Wind");
         model.selectBoatAction(0).run();
         var row = model.catalogRows().get().stream().filter(r -> r.id().endsWith("reinforced_plating")).findFirst().orElseThrow();
-        assertFalse(row.actionDisabled());
+        assertTrue(model.canDropOnSocket(row.kind(), row.itemId(), BoatDoll.slotKey(BoatFittingSlot.PLATING)));
         assertTrue(row.materials().stream().anyMatch(r -> r.id().endsWith("supplies") && r.required() == 8 && r.shortfall() == 0));
         equipped[0] = false;
-        row.action().run(); // A stale favorable preview cannot underpay after moving hull.
+        // A stale favorable preview cannot underpay after moving hull.
+        model.dropOnSocket(row.kind(), row.itemId(), BoatDoll.slotKey(BoatFittingSlot.PLATING));
         assertEquals(8, stock.get("supplies"));
         assertSame(BoatFitting.STANDARD_PLATING, deck.boats().get(0).plating());
         equipped[0] = true;
-        row.action().run();
+        model.dropOnSocket(row.kind(), row.itemId(), BoatDoll.slotKey(BoatFittingSlot.PLATING));
         assertEquals(0, stock.get("supplies"));
         assertEquals(0, stock.get("metals"));
         assertSame(BoatFitting.REINFORCED_PLATING, deck.boats().get(0).plating());

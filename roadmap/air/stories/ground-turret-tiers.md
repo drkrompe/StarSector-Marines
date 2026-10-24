@@ -142,7 +142,7 @@ flank, through a raise, blocks, a break and the shield's return.
 A generated post takes its style from the defenders' market at generation
 (`EmplacementStylePolicy`): the faction's tech family picks the language (the Persean
 League builds League standard, the Diktat and Lion's Guard Diktat export, Tri-Tachyon the
-field emitter, everyone else low-tech, pirates derelict), and prepared defences (ground defences, heavy batteries or a defence level
+field emitter, everyone else low-tech, pirates patchwork: old works patched with scrap, on derelict guns), and prepared defences (ground defences, heavy batteries or a defence level
 above one) pick its prepared style, the rest its militia one; no market builds brutalist.
 A militia post's parapets are sandbags and it is not paved.
 
@@ -187,7 +187,7 @@ Presentation only, so a battle plays the same with or without them:
   `createSnapshots -Psnapshot=ground-turret-family-draft`.
 
 Settled: a raised gun takes no low cover at its foot (`UnitRosterService.standsAboveLowCover`);
-pirate worlds build derelict, and a mission picks derelict for an old work through
+pirate worlds build patchwork, and a mission picks derelict for an old work through
 `EmplacementStylePolicy.restyle`; a hardpoint's plinth casts a sun shadow from its height.
 
 ## Acceptance

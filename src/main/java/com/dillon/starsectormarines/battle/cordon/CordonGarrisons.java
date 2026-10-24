@@ -4,8 +4,11 @@ import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
 import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationWalls;
 import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
@@ -21,11 +24,14 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Mans the line ({@code cordon-nouns.md}, Field redoubt, Garrison): every
- * field redoubt's wall is dressed the way the colony's civil-defence compound
- * is (a gun tower beside each gate, slits along the runs, floodlights), and
- * three allied wall teams under garrison authority stand at the slits, the
- * wall that faces the front first.
+ * Mans the line ({@code cordon-nouns.md}, Field redoubt, Garrison): a redoubt
+ * built as the allies' compound has its wall dressed the way the colony's
+ * civil-defence compound is (a gun tower beside each gate, slits along the
+ * runs, floodlights); one built from what the country had standing
+ * ({@link CordonConstruction}) has a gun seated in each nest its builder
+ * recorded, and its posts are its loopholes (the windows its buildings face
+ * out of) and its sandbags. Either way three allied wall teams under garrison
+ * authority stand at the posts, the side that faces the front first.
  */
 public final class CordonGarrisons {
 
@@ -41,24 +47,38 @@ public final class CordonGarrisons {
     private CordonGarrisons() {}
 
     /** Mans every redoubt of the plan, west to east; a redoubt with no wall found is left out. */
-    public static List<CordonRedoubt> man(BattleSimulation sim, PrecinctPlan plan, RiskLevel risk, Random rng) {
+    public static List<CordonRedoubt> man(BattleSimulation sim, MapResult map, PrecinctPlan plan, RiskLevel risk,
+                                          Random rng) {
         List<CordonRedoubt> out = new ArrayList<>();
         List<Precinct> redoubts = CordonPlan.redoubts(plan);
         int front = CordonFront.frontward(plan);
         for (int i = 0; i < redoubts.size(); i++) {
-            CordonRedoubt redoubt = man(sim, redoubts.get(i), i + 1, front, risk, rng);
+            CordonConstruction built = CordonConstructions.redoubt(map.layout, i + 1);
+            CordonRedoubt redoubt = built.generated()
+                    ? man(sim, redoubts.get(i), i + 1, front, risk, rng)
+                    : manWorks(sim, map, i + 1, built, front, risk, rng);
             if (redoubt != null) out.add(redoubt);
         }
         return out;
     }
 
     /**
-     * Where redoubt {@code place}'s gun towers will stand once its wall is dressed, read off the generated map
-     * before the battle: the plan {@link #man} dresses it by. Empty when no closed wall stands there.
+     * Where redoubt {@code number}'s guns will stand, read off the generated map before the battle: a compound's gun
+     * towers once its wall is dressed (the plan {@link #man} dresses it by), or the nests a built redoubt's builder
+     * recorded. Empty when neither stands there.
      */
-    public static List<int[]> towers(NavigationGrid grid, CellTopology topology, List<Doodad> doodads, Precinct place,
-                                     int front) {
-        int[] box = wallBox(topology, place);
+    public static List<int[]> towers(MapResult map, Precinct place, int number, int front) {
+        CordonConstruction built = CordonConstructions.redoubt(map.layout, number);
+        if (!built.generated()) {
+            Laid works = map.layout.find(CordonConstructions.WORKS + number);
+            return works == null ? List.of() : works.nests();
+        }
+        return towers(map.grid, map.topology, map.doodads, place, front);
+    }
+
+    private static List<int[]> towers(NavigationGrid grid, CellTopology topology, List<Doodad> doodads, Precinct place,
+                                      int front) {
+        int[] box = perimeterBox(topology, place);
         if (box == null) return List.of();
         int centreX = (box[0] + box[2]) / 2, centreY = (box[1] + box[3]) / 2;
         int[] yard = nearestOpen(grid, centreX, centreY, box[0] + 1, box[1] + 1, box[2] - 1, box[3] - 1);
@@ -69,7 +89,7 @@ public final class CordonGarrisons {
 
     private static CordonRedoubt man(BattleSimulation sim, Precinct place, int number, int front,
                                      RiskLevel risk, Random rng) {
-        int[] box = wallBox(sim.getTopology(), place);
+        int[] box = perimeterBox(sim.getTopology(), place);
         if (box == null) return null;
         NavigationGrid grid = sim.getGrid();
         int centreX = (box[0] + box[2]) / 2, centreY = (box[1] + box[3]) / 2;
@@ -116,6 +136,90 @@ public final class CordonGarrisons {
     }
 
     /**
+     * Mans a redoubt built from what the country had standing: a gun seated in each nest its builder recorded, and
+     * three wall teams at its posts ({@link #worksPosts}), the side facing the front first, the rest of the seats in
+     * its yard as for a short wall.
+     */
+    private static CordonRedoubt manWorks(BattleSimulation sim, MapResult map, int number, CordonConstruction built,
+                                          int front, RiskLevel risk, Random rng) {
+        Laid works = map.layout.find(CordonConstructions.WORKS + number);
+        if (works == null || works.cells().size() != 2) return null;
+        NavigationGrid grid = sim.getGrid();
+        int left = works.cells().get(0)[0], top = works.cells().get(0)[1];
+        int right = works.cells().get(1)[0], bottom = works.cells().get(1)[1];
+        int centreX = (left + right) / 2, centreY = (top + bottom) / 2;
+        List<Long> guns = new ArrayList<>();
+        for (int[] gun : works.nests()) {
+            if (!grid.isWalkable(gun[0], gun[1])) continue;
+            guns.add(ColonyMilitia.seatEmplacement(sim, gun, "Redoubt " + number + " gun " + (guns.size() + 1)));
+        }
+        int seats = TEAMS * ColonyMilitia.POST_SIZE;
+        List<int[]> posts = worksPosts(grid, map.doodads, works.nests(), left, top, right, bottom, front, seats);
+        if (posts.size() < seats) return null;
+        List<Integer> teams = new ArrayList<>();
+        int radius = Math.max(right - left, bottom - top) / 2 + 2;
+        for (int t = 0; t < TEAMS; t++) {
+            // Interleaved, so each team holds the whole front rather than one end of it.
+            List<int[]> cells = new ArrayList<>();
+            for (int k = t; k < seats; k += TEAMS) cells.add(posts.get(k));
+            int squad = ColonyMilitia.seatTeam(sim, cells, "Redoubt " + number + " wall team " + (t + 1), risk, rng);
+            sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad, centreX, centreY, radius),
+                    CommandAuthority.GARRISON, ISSUER, "hold redoubt " + number);
+            teams.add(squad);
+        }
+        return new CordonRedoubt(number, left, top, right, bottom, teams, guns, seats, built);
+    }
+
+    /** The prefix of the sandbag pieces' doodad ids: a cell holding one is a post behind cover. */
+    static final String SANDBAG = "doodad.fort-sandbag-";
+
+    /**
+     * A built redoubt's wall-team posts, at most {@code seats}: every open cell inside its bounds a window looks out of,
+     * and every one inside them or the ring round them a sandbag piece stands on (a firing step along the pavement in
+     * front of a block), a gun's own cell aside, nearest the front first; then,
+     * while seats remain, the open ground inside, from the front row back. Pure over the grid and the props.
+     *
+     * @param front +1 where the front is north (high y), -1 where it is south
+     */
+    static List<int[]> worksPosts(NavigationGrid grid, List<Doodad> doodads, List<int[]> guns,
+                                  int left, int top, int right, int bottom, int front, int seats) {
+        List<int[]> posts = new ArrayList<>();
+        // Loopholes inside the bounds: the cell outside a window is the street it looks out on.
+        for (int y = top; y <= bottom; y++) {
+            for (int x = left; x <= right; x++) {
+                if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || grid.isDoorway(x, y) || taken(guns, x, y)) continue;
+                for (Direction side : Direction.CARDINALS) {
+                    SharedEdgeBarrier edge = grid.getEdgeBarrier(x, y, side);
+                    if (edge != null && edge.kind() == SharedEdgeBarrier.Kind.WINDOW) {
+                        posts.add(new int[]{x, y});
+                        break;
+                    }
+                }
+            }
+        }
+        for (Doodad d : doodads) {
+            if (d.definitionId() == null || !d.definitionId().startsWith(SANDBAG)) continue;
+            int x = d.cellX, y = d.cellY;
+            if (x < left - 1 || x > right + 1 || y < top - 1 || y > bottom + 1) continue;
+            if (!grid.isWalkable(x, y) || taken(posts, x, y) || taken(guns, x, y)) continue;
+            posts.add(new int[]{x, y});
+        }
+        int frontRow = front > 0 ? bottom : top, centreX = (left + right) / 2;
+        posts.sort(Comparator.<int[]>comparingInt(c -> Math.abs(c[1] - frontRow))
+                .thenComparingInt(c -> Math.abs(c[0] - centreX)).thenComparingInt(c -> c[1]).thenComparingInt(c -> c[0]));
+        if (posts.size() > seats) posts = new ArrayList<>(posts.subList(0, seats));
+        for (int row = 0; row <= bottom - top && posts.size() < seats; row++) {
+            int y = front > 0 ? bottom - row : top + row;
+            for (int x = left; x <= right && posts.size() < seats; x++) {
+                if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || grid.isDoorway(x, y) || taken(posts, x, y)
+                        || taken(guns, x, y)) continue;
+                posts.add(new int[]{x, y});
+            }
+        }
+        return posts;
+    }
+
+    /**
      * Seats an allied gun in every nest the picket courses laid
      * ({@code cordon-nouns.md}, Picket line): the garrison's own light guns,
      * not the map's. Returns the guns, west to east by course.
@@ -133,8 +237,8 @@ public final class CordonGarrisons {
         return guns;
     }
 
-    /** The bounds of a redoubt's perimeter wall, {@code [left, top, right, bottom]}, or {@code null}. */
-    static int[] wallBox(CellTopology topology, Precinct place) {
+    /** The bounds of a redoubt's perimeter wall as generated, {@code [left, top, right, bottom]}, or {@code null}. */
+    static int[] perimeterBox(CellTopology topology, Precinct place) {
         int left = Integer.MAX_VALUE, top = Integer.MAX_VALUE, right = Integer.MIN_VALUE, bottom = Integer.MIN_VALUE;
         for (int y = Math.max(0, place.seedY() - WALL_REACH);
              y <= Math.min(topology.getHeight() - 1, place.seedY() + WALL_REACH); y++) {

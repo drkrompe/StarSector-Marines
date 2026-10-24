@@ -9,7 +9,8 @@ import java.util.Set;
 
 /**
  * The one place a generated map decides how its defenders' posts are built (`ground-turret-tiers.md`). A pirate
- * world holds old works rather than building its own, so its posts are {@link EmplacementStyle#DERELICT}. Otherwise
+ * world holds old works patched with scrap rather than building its own, so its posts are
+ * {@link EmplacementStyle#PATCHWORK}. Otherwise
  * the defenders build in their faction's tech family (`tech-families.md`): the Persean League builds midline in
  * League standard, the Diktat and the Lion's Guard midline in Diktat export grade, Tri-Tachyon high-tech, everyone
  * else low-tech. Within the family a garrison on a world with no prepared
@@ -27,7 +28,7 @@ public final class EmplacementStylePolicy {
 
     private EmplacementStylePolicy() {}
 
-    /** The faction whose worlds are squatted old works. */
+    /** The faction whose worlds are squatted old works, patched with scrap. */
     static final String PIRATES = "pirates";
 
     /** The faction whose works are midline in League coalition standards. */
@@ -42,7 +43,7 @@ public final class EmplacementStylePolicy {
     public static EmplacementStyle forDefenders(TargetProfile profile) {
         if (profile == null || profile.marketSize() <= 0) return EmplacementStyle.BRUTALIST;
         String faction = profile.factionId();
-        if (PIRATES.equals(faction)) return EmplacementStyle.DERELICT;
+        if (PIRATES.equals(faction)) return EmplacementStyle.PATCHWORK;
         boolean prepared = profile.groundDefences() || profile.heavyBatteries()
                 || profile.defenseLevel() > MILITIA_MAX_DEFENSE_LEVEL;
         if (LEAGUE.contains(faction)) return prepared ? EmplacementStyle.MODULAR : EmplacementStyle.BARRIER;

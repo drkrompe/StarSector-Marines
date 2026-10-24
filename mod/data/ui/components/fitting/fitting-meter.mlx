@@ -1,0 +1,30 @@
+<template props="meter">
+  <div id="{meter.id}" class="performance-meter">
+    <div id="{meter.labelId}" class="label heading tone-muted meter-label">{meter.label}</div>
+    <div id="{meter.trackId}" class="meter-track">
+      <div id="{meter.fillId}" class="meter-fill" style="{meter.fillStyle}" />
+      <div id="{meter.gainId}" class="{meter.gainClasses}" style="{meter.gainStyle}" />
+      <div id="{meter.deficitId}" class="{meter.deficitClasses}" style="{meter.deficitStyle}" />
+      <div id="{meter.stockId}" class="{meter.stockClasses}" style="{meter.stockStyle}" />
+      <div id="{meter.ghostId}" class="{meter.ghostClasses}" style="{meter.ghostStyle}" />
+    </div>
+    <div id="{meter.valueId}" class="label heading tone-edge meter-value">{meter.value}</div>
+  </div>
+</template>
+<style>
+  .performance-meter { flex-direction: row; align-items: center; width: 100%; height: 25px; padding: 0px 2px; gap: 4px; }
+  .meter-label { width: 94px; height: 16px; }
+  .meter-value { width: 120px; height: 16px; text-align: right; }
+  .meter-track { flex-direction: row; width: 0px; flex-grow: 1; height: 10px; padding: 0px; background-color: #121719; border-width: 1px; }
+  .meter-fill { position: absolute; top: 0px; height: 100%; background-color: #acae96; }
+  .meter-gain { position: absolute; top: 0px; height: 100%; }
+  .meter-deficit { position: absolute; top: 0px; height: 100%; background-color: #5a2424; }
+  .meter-stock { position: absolute; top: 0px; width: 2px; height: 100%; background-color: #e8e4cc; }
+  .meter-ghost { position: absolute; top: 0px; height: 100%; }
+  .meter-ghost.gain { background-color: #f2f0dc; opacity: 0.55; }
+  .meter-ghost.loss { background-color: #ff5a4a; opacity: 0.75; }
+  /* A page's own rules do not reach inside a component, so each carries the utilities it uses. */
+  .label { overflow: hidden; }
+  .heading { font-family: heading; }
+  .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
+</style>
