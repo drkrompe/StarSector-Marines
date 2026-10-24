@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16b81-b636-7ab2-a3ad-33aa7eaa5017",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16b81-b636-7ab2-a3ad-33aa7eaa5017\\exec-d340d98f-ddcd-4bba-b615-d03b96f6325d.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\flamer\\raw\\flamer-wand-olive.raw.png",
+    "sha256": "850a6f0195df177842a67d93ef753e988381a043c6a23058d9c81b19c1302300",
+    "dimensions": [
+      725,
+      2170
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\flamer\\flamer-wand-olive.prompt.txt",
+  "promptSha256": "1ff599bbe11a9016b157138691855a64518116937a314ae89093c789e271c3eb",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target: keep every silhouette and position\nImage 2: Material detail and finish level only (not colour, not layout)\n\nUse case: sketch-to-render. Asset: a handheld industrial fuel spray lance (the wand of a backpack fuel sprayer), seen from straight overhead and pointing straight up the image, for a science-fiction strategy game sprite: a retro-futuristic 1940s-style tool. It is held at a figure's hip and is only about 12 by 45 pixels in play over olive-green and blue-steel suits, so it must read at a glance: bold, high contrast, clear shapes. Image 1 is the authoritative geometry guide and edit target (320x1240). Reskin this exact object into a finished painted game sprite, preserving its silhouette and arrangement: the dark nozzle with its black mouth at the top, the small igniter block with an amber glow to the right of the nozzle, the long barrel, the wide perforated heat shroud with its row of dark vents, the dark fore grip, the valve and trigger housing with its alloy valve body, the dark rear grip and the hose fitting at the bottom end, all exactly where they are, with all transparent empty space around them. Material: a WW2-era finish carried into the future: olive-drab enamel and blackened steel with worn bright edges, a scorched and heat-tinted shroud and nozzle (bronze and blue temper colours near the tip), faded cream-yellow enamel where the guide shows orange, brass fittings, ribbed black rubber grips, brushed alloy valve. Straight overhead orthographic camera, no perspective, no cast shadow, no ground, no flame, no text, no labels, no watermark, no UI. Genuine transparent background outside the object silhouette. Hand-painted Starsector-like game sprite finish, utilitarian science fiction. Change only material, detail and subtle ambient shading, not placement or silhouette.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\flamer-wand-guide.png",
+      "sha256": "163ebc41a02d13290a181c9292a472a71eb0607d99ba47b09213759d2cfbd315",
+      "dimensions": [
+        320,
+        1240
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target: keep every silhouette and position"
+    },
+    {
+      "path": "art-source\\flamer\\raw\\flamer-wand.raw.png",
+      "sha256": "e3eb282010dec03c6354d545f1e83751efaa4ef6fc00c36ae653130677968780",
+      "dimensions": [
+        725,
+        2170
+      ],
+      "mode": "RGBA",
+      "role": "Material detail and finish level only (not colour, not layout)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use Image 1 for the exact geometry and Image 2 only for material detail, and generate one transparent sprite."
+  ],
+  "usage": {
+    "input_tokens": 40751,
+    "cached_input_tokens": 28416,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 444,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 55.0
+}

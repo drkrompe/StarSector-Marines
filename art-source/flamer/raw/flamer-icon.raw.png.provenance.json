@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16b79-046f-70c2-9898-84f2912183b2",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16b79-046f-70c2-9898-84f2912183b2\\exec-09170cfc-a977-4e51-bb57-d7870ad28fad.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\flamer\\raw\\flamer-icon.raw.png",
+    "sha256": "885f27c78b23c30d1c76158b14f66c00d797c40bfed8f1f7a2f06b3eb143ba38",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\flamer\\flamer-icon.prompt.txt",
+  "promptSha256": "d68e8ec4d1f73e6d551558ea71116466a7569e48707bc2546faf0087b0e9bfd8",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target: keep every silhouette and position\n\nUse case: sketch-to-render. Asset: an inventory icon of a flamethrower kit for a gritty military dark-science-fiction tactical game: a futuristic descendant of the WW2 backpack flamethrower, seen in side profile, upright. Image 1 is the authoritative geometry guide and edit target (1024x1024). Reskin this exact arrangement into a finished painted game icon, preserving its silhouette and layout: the dark carrying frame on the left, the two tall upright fuel tanks side by side with hazard-orange bands near top and bottom and dark filler plugs on top, the slimmer pale pressure bottle between them, the manifold across their feet, the black armoured hose looping from the manifold to the rear of the wand, and the wand lying diagonally across the lower right with its nozzle up to the right (rear grip, pistol grip, hazard-orange valve housing, perforated heat shroud, nozzle), all exactly where they are, with all transparent empty space around them. Material: dark gunmetal and blue-grey armoured steel tanks with worn bright edges and weld seams, hazard-orange enamel bands with chipped paint and short black warning chevrons, brushed alloy fittings, ribbed black rubber hose and grips, a scorched heat-tinted nozzle, a tiny amber pilot glow at the nozzle. Soft studio light from the upper left. No flame, no ground, no cast shadow, no text, no labels, no watermark, no UI. Genuine transparent background outside the objects. Hand-painted Starsector-like game icon finish, utilitarian science fiction. Change only material, detail and shading, not placement or silhouette.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\flamer-icon-guide.png",
+      "sha256": "b46e6553c1e9e4fb3c5c497e71293aad77eb0ebce825cdfa471aee4d25a67a59",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target: keep every silhouette and position"
+    }
+  ],
+  "agentMessages": [
+    "I’ll render one image using the reference’s exact layout and silhouettes, with a transparent background.\n"
+  ],
+  "usage": {
+    "input_tokens": 39883,
+    "cached_input_tokens": 31872,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 498,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 63.6
+}

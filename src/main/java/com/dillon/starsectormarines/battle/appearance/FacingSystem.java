@@ -556,11 +556,11 @@ public final class FacingSystem {
             }
         } else if (held != null && !sprinting && secondarySpec[row] instanceof SpecialEquipmentDef special
                 && special.isHeldStream()) {
-            // The flamer has no held art of its own: the Marine stands in the primary's aim, raised over the
-            // wind-up, and in its firing clip while a charge of the jet is leaving. The jet is the flash.
+            // The flamer's wand in place of the primary, through the item's own clips: raised from the hip over
+            // the wind-up, and in its firing clip while a charge of the jet is leaving. The jet is the flash.
             float followThrough = Math.max(TICK_FLOOR, special.weaponDef().flightSec);
             boolean streaming = held.sinceFired() <= followThrough;
-            authoredPose = streaming ? LayeredAppearance.POSE_FIRING : LayeredAppearance.POSE_AIMED;
+            authoredPose = streaming ? LayeredAppearance.POSE_AMR_FIRE : LayeredAppearance.POSE_AMR_AIM;
             authoredPhase = streaming ? clamp01(held.sinceFired() / followThrough) : clamp01(held.readiness());
         } else if (treating && !moving) {
             // Kneeling over the patient. A medic following a moving patient

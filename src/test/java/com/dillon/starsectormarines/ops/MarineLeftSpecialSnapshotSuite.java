@@ -55,6 +55,8 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
     private static final int HEIGHT = 1080;
     /** Close enough to read what the Marine holds, wide enough to keep the cursor in frame. */
     private static final float CELLS_ACROSS = 14f;
+    /** A close framing, for reading the carried art itself: the Marine is about a sixth of the frame across. */
+    private static final float CLOSE_CELLS_ACROSS = 5f;
 
     /**
      * One frame: the special the Marine carries (null for a rifleman), its rounds, how many Q presses, whether the
@@ -77,6 +79,12 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
             new Case("flamer-walking", SpecialEquipmentRegistry.FLAMER_ID, 8, 1, true, false),
             FLAMER_STREAMING);
 
+    /** The flamer's pack, wand and hose at the close framing: walking, held at the aim, streaming. */
+    private static final List<Case> CLOSE_CASES = List.of(
+            new Case("flamer-walking-close", SpecialEquipmentRegistry.FLAMER_ID, 8, 1, true, false),
+            new Case("flamer-held-close", SpecialEquipmentRegistry.FLAMER_ID, 8, 1, false, false),
+            new Case("flamer-streaming-close", SpecialEquipmentRegistry.FLAMER_ID, 8, 1, false, true));
+
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         SvgAsset.Source previous = SvgAsset.setSource(path -> Files.readString(context.modRoot().resolve(path)));
@@ -87,7 +95,11 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
             List<SnapshotArtifact> artifacts = new ArrayList<>();
             for (Case c : CASES) {
                 artifacts.add(new SnapshotArtifact(c.name() + "-1920x1080-ui100.png",
-                        frame(renderer, context.modRoot(), c)));
+                        frame(renderer, context.modRoot(), c, CELLS_ACROSS)));
+            }
+            for (Case c : CLOSE_CASES) {
+                artifacts.add(new SnapshotArtifact(c.name() + "-1920x1080-ui100.png",
+                        frame(renderer, context.modRoot(), c, CLOSE_CELLS_ACROSS)));
             }
             artifacts.add(flamerSweep(renderer, context.modRoot()));
             return artifacts;
@@ -100,10 +112,11 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
     static BufferedImage flamerFrame(HeadlessUiRenderer renderer, SnapshotContext context) throws Exception {
         HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
         SceneRegistries.installArmoury(context.projectRoot());
-        return frame(renderer, context.modRoot(), FLAMER_STREAMING);
+        return frame(renderer, context.modRoot(), FLAMER_STREAMING, CELLS_ACROSS);
     }
 
-    private static BufferedImage frame(HeadlessUiRenderer renderer, Path modRoot, Case c) throws Exception {
+    private static BufferedImage frame(HeadlessUiRenderer renderer, Path modRoot, Case c, float cellsAcross)
+            throws Exception {
         LookGround ground = LookGround.verdant();
         MapResult map = ground.generate();
         LookGround.Site site = LookGround.openSite(map, 40, 24);
@@ -137,8 +150,10 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
                 sim.advance(BattleSimulation.TICK_DT);
                 fx.feed(sim);
             }
+            float lead = cellsAcross < CELLS_ACROSS ? 0.6f : 2.5f;
             return compose(renderer, modRoot, sim, marine, aimX, aimY, fx,
-                    sim.world().renderX(marine) + 2.5f, sim.world().renderY(marine) + 0.5f);
+                    sim.world().renderX(marine) + lead, sim.world().renderY(marine) + 0.5f * lead / 2.5f,
+                    cellsAcross);
         }
     }
 
@@ -190,7 +205,8 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
                 fx.feed(sim);
                 if (!sim.world().isAlive(marine)) break;
                 if (tick % SWEEP_FRAME_TICKS == 0) {
-                    frames.add(compose(renderer, modRoot, sim, marine, aimX, aimY, fx, focusX, focusY));
+                    frames.add(compose(renderer, modRoot, sim, marine, aimX, aimY, fx, focusX, focusY,
+                            CELLS_ACROSS));
                 }
             }
         }
@@ -201,11 +217,11 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
     /** The battle through the look preset with the aim drawn over it, under the production HUD and doll. */
     private static BufferedImage compose(HeadlessUiRenderer renderer, Path modRoot, BattleSimulation sim, long marine,
                                          float cursorX, float cursorY, ReviewImpactFx fx,
-                                         float focusX, float focusY) throws Exception {
-        BufferedImage battle = BattleReviewFrameRenderer.look(modRoot, WIDTH, HEIGHT, focusX, focusY, CELLS_ACROSS)
+                                         float focusX, float focusY, float cellsAcross) throws Exception {
+        BufferedImage battle = BattleReviewFrameRenderer.look(modRoot, WIDTH, HEIGHT, focusX, focusY, cellsAcross)
                 .render(sim, "", ReviewAnnotations.NONE, fx);
         BattleCamera camera = new BattleCamera(sim.getGrid().getWidth(), sim.getGrid().getHeight());
-        camera.setViewport(0, 0, WIDTH, HEIGHT, (float) Math.floor(WIDTH / CELLS_ACROSS));
+        camera.setViewport(0, 0, WIDTH, HEIGHT, (float) Math.floor(WIDTH / cellsAcross));
         camera.centerOn(focusX, focusY);
         var snapshot = BattleDirectControlStatus.snapshot(sim);
         var copy = ModStrings.fromDisk(modRoot);

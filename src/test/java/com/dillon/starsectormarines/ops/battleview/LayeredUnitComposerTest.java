@@ -331,7 +331,7 @@ class LayeredUnitComposerTest {
         EquipmentLayerDef carrier = new EquipmentLayerDef("pack", .4f, .42f, .5f, .5f,
                 state, state, 0f, null, true, false, EquipmentLayerDef.Attachment.BODY);
         HandsetLayer handset = new HandsetLayer("handset", "cord", .16f, .4f, .05f,
-                .5f, .99f, .07f, .37f);
+                .5f, .99f, .07f, .37f, false);
         SpecialEquipmentPresentationDef presentation = new SpecialEquipmentPresentationDef(
                 null, SpecialUsePose.PLANT, carrier, null, null, null, null, null, handset);
         SpecialEquipmentDef radio = new SpecialEquipmentDef("radio", "Radio", null,
