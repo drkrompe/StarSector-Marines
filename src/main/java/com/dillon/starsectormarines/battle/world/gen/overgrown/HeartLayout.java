@@ -53,6 +53,8 @@ public final class HeartLayout {
     public static final String ORIGIN_DRESSING = "origin-dressing";
     /** Clear cells kept round each dressing group, and the step its anchors are tried at. */
     static final int DRESS_MARGIN = 2, DRESS_STEP = 2;
+    /** An open green's reach round its pond: its things stand inside this, its edge of trees on a ring just out. */
+    static final int GREEN_RADIUS = 18, EDGE_RADIUS = 24, EDGE_PITCH = 8;
     /** The forward line's runs, one between each pair of lane gaps: this plus 1, 2, ... */
     public static final String FORWARD_LINE = "forward-line-";
     /** The observation posts forward of the line: this plus 1 and 2. */
@@ -169,6 +171,7 @@ public final class HeartLayout {
                 for (int x = claim[0]; x + group.width <= claim[2]; x += DRESS_STEP) {
                     if (!fits(ground, x, y, group, taken)) continue;
                     int[] mid = {x + group.width / 2, y + group.height / 2};
+                    if (!origin.fenced && dist2(mid, near) > (long) GREEN_RADIUS * GREEN_RADIUS) continue;
                     long score;
                     if (taken.isEmpty()) {
                         score = -dist2(mid, near);
@@ -185,7 +188,26 @@ public final class HeartLayout {
                 out.add(new Props.Placement(part.doodad(), best[0] + part.dx(), best[1] + part.dy(), 0));
             }
         }
+        if (!origin.fenced) out.addAll(edge(near));
         return out.isEmpty() ? List.of() : List.of(new Props(ORIGIN_DRESSING, out, false));
+    }
+
+    /**
+     * An open green's edge, where a facility has its fence: a ring of trees round it at an even pitch, each planted
+     * where its ground lets it (the stage refuses one over a road or a house), so the paths in stay open.
+     */
+    static List<Props.Placement> edge(int[] centre) {
+        List<Props.Placement> out = new ArrayList<>();
+        TreeCanopy[] kinds = {TreeCanopy.OAK, TreeCanopy.BIRCH, TreeCanopy.OAK_SMALL};
+        int count = (int) Math.round(2 * Math.PI * EDGE_RADIUS / EDGE_PITCH);
+        for (int i = 0; i < count; i++) {
+            double a = 2 * Math.PI * i / count;
+            TreeCanopy kind = kinds[i % kinds.length];
+            int x = (int) Math.round(centre[0] + Math.cos(a) * EDGE_RADIUS) - kind.width / 2;
+            int y = (int) Math.round(centre[1] + Math.sin(a) * EDGE_RADIUS) - kind.height / 2;
+            out.add(new Props.Placement(kind.id, x, y, 0));
+        }
+        return out;
     }
 
     /** Whether a group's box, with its margin, is open yard nobody holds and clear of the groups already taken. */
@@ -278,10 +300,8 @@ public final class HeartLayout {
                         part(OriginProp.BENCH, 3, 0));
                 DressingGroup grove = DressingGroup.of(tree(TreeCanopy.OAK, 0, 0), tree(TreeCanopy.OAK_SMALL, 6, 1),
                         tree(TreeCanopy.BIRCH, 2, 6));
-                // The lawn's trees: a grove, then single trees spread to the rails.
-                yield List.of(pondside, bandstand, playground, grove, benches, DressingGroup.of(tree(TreeCanopy.OAK, 0, 0)),
-                        DressingGroup.of(tree(TreeCanopy.BIRCH, 0, 0)), DressingGroup.of(tree(TreeCanopy.OAK_SMALL, 0, 0)),
-                        DressingGroup.of(tree(TreeCanopy.OAK, 0, 0)), DressingGroup.of(tree(TreeCanopy.BIRCH, 0, 0)));
+                // A grove on the lawn; the edge's ring of trees is planted after the groups.
+                yield List.of(pondside, bandstand, playground, grove, benches);
             }
         };
     }

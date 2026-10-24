@@ -51,14 +51,15 @@ public enum HeartOrigin {
                     RoomPacker.EdgeContact.ANY, 1)), 0, 220)),
 
     /**
-     * Nobody's fault, the colony built over it: a railed green with its café pavilion and groundskeeper's shed on a
-     * wide lawn. The first mother opens at the pond, not in a building.
+     * Nobody's fault, the colony built over it: an open green with its café pavilion, groundskeeper's shed and toilet
+     * block on a wide lawn, no wall round it. The first mother opens at the pond, not in a building.
      */
     PARK(RoomPurpose.SHOP_FLOOR, new FortressProgram(List.of(
             new FortressBuilding(RoomPurpose.SHOP_FLOOR, RoomShape.rectangle(9, 6), Ward.FRONTAGE,
                     RoomPacker.EdgeContact.ANY, 1),
-            new FortressBuilding(RoomPurpose.STOCKROOM, RoomShape.rectangle(6, 5), Ward.YARD, 1)), 0, 900),
-            OriginProp.POND);
+            new FortressBuilding(RoomPurpose.STOCKROOM, RoomShape.rectangle(6, 5), Ward.YARD, 1),
+            new FortressBuilding(RoomPurpose.WASHROOM, RoomShape.rectangle(5, 4), Ward.YARD, 1)), 0, 900),
+            OriginProp.POND, false);
 
     /** The building the first mother came up against, or the park's pavilion. */
     public final RoomPurpose core;
@@ -66,15 +67,18 @@ public enum HeartOrigin {
     public final FortressProgram program;
     /** The prop in the yard the first mother opens at instead of the core building, or {@code null}. */
     public final OriginProp opensAt;
+    /** Whether the place stands inside {@link #FENCE}; the park does not. */
+    public final boolean fenced;
 
     HeartOrigin(RoomPurpose core, FortressProgram program) {
-        this(core, program, null);
+        this(core, program, null, true);
     }
 
-    HeartOrigin(RoomPurpose core, FortressProgram program, OriginProp opensAt) {
+    HeartOrigin(RoomPurpose core, FortressProgram program, OriginProp opensAt, boolean fenced) {
         this.core = core;
         this.program = program;
         this.opensAt = opensAt;
+        this.fenced = fenced;
     }
 
     /** A light fence round the facility, two gates: a works fence, not a fort's wall. */

@@ -77,8 +77,8 @@ in the middle of the map; The Burn's village near the start, at the infection's
 edge), and the **origin** against the far edge, where the mothers stand: the
 facility the bloom came up in, drawn from the seed stepped by form and density
 (`HeartOrigin`, `heart-origins.md`): the reservoir's pump station, a freight
-terminal, a research compound or a railed park, fenced, its yard dressed with
-the clean props of what it was, and its core building (the park's pond) broken
+terminal or a research compound, fenced, or an open park, its yard dressed
+with the clean props of what it was, and its core building (the park's pond) broken
 open by the authored damage layer from the side the first mother came up on.
 
 **Matured bloom.** The heart's creep is the bores' own, grown to full reach at

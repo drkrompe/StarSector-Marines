@@ -210,8 +210,15 @@ public final class HeartCountry {
                 town ? TOWN_KNOLL_HALF_H : KNOLL_HALF_H, List.of(Direction.S, Direction.E, Direction.W), false);
     }
 
-    /** The far place as its origin's facility: a fenced, programmed place on the heart's edge (`heart-origins.md`). */
+    /**
+     * The far place as its origin's facility: a fenced, programmed place on the heart's edge (`heart-origins.md`); the
+     * park is open ground, a green with no wall, since nobody was keeping anything in.
+     */
     static PrecinctBrief origin(Form form, HeartOrigin origin) {
+        if (!origin.fenced) {
+            return new PrecinctBrief(WORKINGS, form.heartEdge, WORKINGS_GROWTH, origin.program, Precinct.Boundary.OPEN,
+                    null, null);
+        }
         return PrecinctBrief.garrison(WORKINGS, form.heartEdge, WORKINGS_GROWTH, origin.program,
                 HeartOrigin.FENCE.laidSquare());
     }
