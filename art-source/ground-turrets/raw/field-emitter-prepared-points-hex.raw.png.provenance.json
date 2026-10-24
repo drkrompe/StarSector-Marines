@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16e1f-ec60-7a21-8c26-e28fde8be481",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16e1f-ec60-7a21-8c26-e28fde8be481\\exec-f0705ac8-e1d9-4958-9212-87e1bbd226f8.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\agent-aeee00069625b67f2\\art-source\\ground-turrets\\raw\\field-emitter-prepared-points-hex.raw.png",
+    "sha256": "55ae09e1e973278bf446076b16683b4f3ee0f1ee9d139b5082c5c36716680d85",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\agent-aeee00069625b67f2\\art-source\\ground-turrets\\prompts\\field-emitter-prepared-points-hex.prompt.txt",
+  "promptSha256": "3e97f669ae27eb2414e9bd54bf1564506b7b068fec4711cdfc8ec9acc069d1ec",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target: keep every silhouette, position and size\nImage 2: Painting style and rendering finish only; not layout, not material colour\nImage 3: Hex reference: the hexagonal armour-plate surface pattern only; not layout, not shapes, not colour\n\nUse case: sketch-to-render, game sprite sheet. Image 1 is the authoritative geometry guide and edit target: reskin it, keeping every shape exactly where and how big it is on the 1536x1024 canvas. It holds three separate objects for small sci-fi strategy-game building props (like a tabletop miniature terrain set), each seen from directly above: left, a flush seamless round disc collar with a glowing emitter ring round the well and three glowing nodes, sunk flush into the ground, with an empty dark circular socket in the middle (leave the well interior dark and plain: a separate housing sits over it); middle, a low smooth lozenge-shaped rotating machinery pod with a glowing spine strip, a small lens and two slim parallel pipes sticking straight up the image; right, a smooth teardrop-shaped rotating machinery pod with two swept rear fins and one long slim pipe with ring collars, sticking straight up the image. Material and style: Hard-light field high-tech: pale pearl-grey composite with smooth curves, translucent blue-tinted glass canopies on the housings, and bright pale-blue glowing field-projector rings and emitter nodes where the guide shows the brightest lines and dots, with a faint luminous haze over them; graphite pipes with glowing blue coil rings; luminous, clean, otherworldly. Surface: every composite shell, housing and deck is armoured in a fine regular pattern of small hexagonal ceramic plates with thin dark seams, as on the hex-armoured warship hull in the hex reference image: one continuous honeycomb across each surface, plates a few pixels across at sprite size, slightly crowned, a little paler on lit faces; glass, glowing rings and pipes stay smooth. Straight 90-degree overhead orthographic camera, top-down like a strategy-game map sprite, no perspective tilt. Sun from the upper left: keep the guide's lit and shaded faces exactly where they are. Hand-painted gritty science-fiction game-sprite look like Starsector, restrained palette, coarse readable detail that survives being shrunk to about 30 to 40 pixels per cell. No text, no letters, no numbers, no labels, no watermark, no UI, no ground or terrain, no grass, no cast shadow outside the objects, no extra slab, apron or border. Transparent background outside every silhouette (if transparency is impossible, a flat pure white background). Change only material, surface detail and subtle shading, never placement, size or silhouette.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\agent-aeee00069625b67f2\\art-source\\ground-turrets\\guides\\hightech-prepared-points-guide.png",
+      "sha256": "29ebcc84cef747e7fe72cade0f8befd4024ba50afc346d395dfd7d1015008884",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target: keep every silhouette, position and size"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\agent-aeee00069625b67f2\\mod\\graphics\\structures\\missile-aa-base.png",
+      "sha256": "c4fd9bbc087b3bcc64c613cc676461ab1f9b79c3bce36ae6d5ecc9c589ff176e",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Painting style and rendering finish only; not layout, not material colour"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\agent-aeee00069625b67f2\\art-source\\ground-turrets\\guides\\paragon-hex-reference.png",
+      "sha256": "17f8f3e237b78ef5db9880be2df31b54fb7ceda45870a3ef8ffa38bd9ed6bd00",
+      "dimensions": [
+        1200,
+        276
+      ],
+      "mode": "RGB",
+      "role": "Hex reference: the hexagonal armour-plate surface pattern only; not layout, not shapes, not colour"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the imagegen skill, preserving Image 1’s geometry and applying the requested materials and finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 79031,
+    "cached_input_tokens": 60928,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 915,
+    "reasoning_output_tokens": 38
+  },
+  "elapsedSeconds": 79.6
+}

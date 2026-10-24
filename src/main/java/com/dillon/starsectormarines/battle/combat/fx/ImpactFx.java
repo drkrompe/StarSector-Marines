@@ -290,6 +290,74 @@ public final class ImpactFx {
         particles.add(p);
     }
 
+    /**
+     * A claw or bite raked across a body at ({@code x},{@code y}) on its way along ({@code dirX},{@code dirY}): a fan
+     * of dust kicked off the ground behind it, a few sparks struck off its plate and thrown on along the stroke, and
+     * a spray of blood flung the same way with a faint red mist where it opened, {@code blood} heavy (0 for a body
+     * that does not bleed). Small and quick, because a pack's dive lands several in a second and each must still
+     * read on its own.
+     */
+    public void spawnClawStrike(float x, float y, float dirX, float dirY, float blood) {
+        if (glowSprite == null) return;
+        float sideX = -dirY, sideY = dirX;
+        for (int i = 0; i < 5; i++) {
+            float across = (i - 2) * .5f + (rng.nextFloat() - .5f) * .3f;
+            float speed = 1.6f + rng.nextFloat() * 1.2f;
+            float vx = (dirX + sideX * across) * speed, vy = (dirY + sideY * across) * speed;
+            spawnGroundDust(x - dirX * .15f, y - dirY * .15f, vx, vy, .2f + rng.nextFloat() * .12f,
+                    EffectsService.DUST_WHEEL);
+        }
+        spawnSparkFlash(x, y, .26f, .07f, SPARK_COLOR);
+        for (int i = 0; i < 4; i++) {
+            float across = (rng.nextFloat() - .5f) * 1.4f;
+            float speed = 4f + rng.nextFloat() * 3f;
+            Particle p = streak(x, y, (dirX + sideX * across) * speed, (dirY + sideY * across) * speed);
+            p.dragPerSecond = 9f;
+            p.lifetimeRemaining = p.lifetimeMax = .14f + rng.nextFloat() * .08f;
+            p.radiusCells = .07f;
+            p.aspectRatio = .22f;
+            p.color = SPARK_COLOR;
+            p.additive = true;
+        }
+        if (blood <= 0f) return;
+        Particle mist = streak(x, y, dirX * .6f, dirY * .6f);
+        mist.lifetimeRemaining = mist.lifetimeMax = .45f * (float) Math.sqrt(blood);
+        mist.radiusCells = .2f * (float) Math.sqrt(blood);
+        mist.radiusGrowthPerSec = .35f;
+        mist.color = BLOOD_MIST_COLOR;
+        mist.alpha = .45f;
+        mist.angleDeg = rng.nextFloat() * 360f;
+        // Fine droplets, most of them small and a few heavier, flung at different speeds so they string out.
+        for (int i = 0, n = Math.round(10 * blood); i < n; i++) {
+            float across = (rng.nextFloat() - .5f) * 1.2f;
+            float speed = 1.4f + rng.nextFloat() * rng.nextFloat() * 4f;
+            Particle p = streak(x, y, (dirX + sideX * across) * speed, (dirY + sideY * across) * speed);
+            p.dragPerSecond = 5f + rng.nextFloat() * 3f;
+            p.lifetimeRemaining = p.lifetimeMax = .3f + rng.nextFloat() * .35f;
+            float heft = rng.nextFloat();
+            p.radiusCells = (.025f + .06f * heft * heft) * (float) Math.sqrt(blood);
+            p.aspectRatio = .3f + rng.nextFloat() * .45f;
+            p.color = BLOOD_COLOR;
+            p.alpha = .8f + .2f * heft;
+        }
+    }
+
+    /** A glow-sprite particle at ({@code x},{@code y}) moving at ({@code vx},{@code vy}), drawn along its motion. */
+    private Particle streak(float x, float y, float vx, float vy) {
+        Particle p = new Particle();
+        p.x = x;
+        p.y = y;
+        p.vx = vx;
+        p.vy = vy;
+        p.angleDeg = (float) Math.toDegrees(Math.atan2(-vx, vy));
+        p.sprite = glowSprite;
+        particles.add(p);
+        return p;
+    }
+
+    private static final Color BLOOD_COLOR = new Color(0x8A, 0x10, 0x0C);
+    private static final Color BLOOD_MIST_COLOR = new Color(0x70, 0x14, 0x10);
+
     private static final float CASING_GLINT_SECONDS = .32f;
     private static final Color CASING_COLOR = new Color(0xF0, 0xC8, 0x6A);
 

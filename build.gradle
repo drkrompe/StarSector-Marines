@@ -544,12 +544,36 @@ tasks.register('renderEvidence', Test) {
     }
     if (project.hasProperty('renderMaps')) {
         systemProperty 'render.evidence.maps', project.property('renderMaps')
+        // A map selection is a question for the budget run alone; the creep look evidence
+        // shares the tag and would add its own half minute to a one-map comparison.
+        filter.includeTestsMatching 'com.dillon.starsectormarines.ops.battleview.RenderBudgetEvidence'
     }
     if (project.hasProperty('renderBurnSeconds')) {
         systemProperty 'render.evidence.burnSeconds', project.property('renderBurnSeconds')
     }
     if (project.hasProperty('renderPileBodies')) {
         systemProperty 'render.evidence.pileBodies', project.property('renderPileBodies')
+    }
+    // The same run, replayable without Gradle: `build/nsys/render-evidence.cmd` changes
+    // into the project and starts this fork's JVM directly (`RenderEvidenceMain`), with
+    // this run's classpath, heap and properties. It is what goes under Nsight Systems --
+    // a Gradle launch under nsys injects into every JVM Gradle forks, and its toolchain
+    // probe hung there.
+    doFirst {
+        File dir = file('build/nsys')
+        dir.mkdirs()
+        // An argfile reads a backslash inside quotes as an escape, so every path goes in with forward slashes.
+        def slash = { Object path -> path.toString().replace(File.separator, '/') }
+        List<String> args = []
+        args.addAll(allJvmArgs)
+        args.add('-cp')
+        args.add(classpath.files.collect { slash(it) }.join(File.pathSeparator))
+        args.add('com.dillon.starsectormarines.ops.battleview.RenderEvidenceMain')
+        File argFile = new File(dir, 'render-evidence.args')
+        argFile.setText(args.collect { '"' + slash(it) + '"' }.join('\n') + '\n', 'UTF-8')
+        new File(dir, 'render-evidence.cmd').setText(
+                "@echo off\r\ncd /d \"${projectDir}\"\r\n"
+                        + "\"${javaLauncher.get().executablePath.asFile}\" %* @\"${argFile}\"\r\n", 'UTF-8')
     }
     testLogging {
         showStandardStreams = true

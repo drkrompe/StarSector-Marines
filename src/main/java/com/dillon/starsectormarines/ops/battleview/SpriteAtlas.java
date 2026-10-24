@@ -84,11 +84,19 @@ import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
  * tap that reaches past the rectangle reads what it read on the sheet rather
  * than the gutter's transparency.
  *
- * <p><b>Slots carry a gutter</b> of {@link #GUTTER_PX} transparent texels.
+ * <p><b>Slots carry a gutter</b> of {@link #gutterPx()} transparent texels.
  * Bilinear filtering reaches one texel past the rectangle it samples, and inside
  * one image that neighbour is the art it has always been; only at an image's
  * outer boundary does the atlas change what is next door, and the gutter is what
  * keeps that from being somebody else's art.
+ *
+ * <p><b>A whole image may be held trimmed</b> to the part of it that is not
+ * transparent ({@link Source#trimW}): its alpha bounds and one texel of the
+ * image's own transparent texels around them. Every texel left out is
+ * transparent and at least a texel from anything that is not, so no bilinear
+ * tap that can colour a pixel reads one of them; a draw of the whole image is
+ * then a draw of the held rectangle over the matching part of its destination
+ * ({@link Placement#trimX}), which paints the same pixels.
  *
  * <p><b>It fails soft, and says so.</b> No texture object, a layout that will
  * not fit the driver's maximum, a read-back that errors — {@link #isServing()}
@@ -112,7 +120,8 @@ import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 public abstract class SpriteAtlas {
 
     /**
-     * Transparent texels between one image's content and the next.
+     * Transparent texels between one image's content and the next, unless a subclass says otherwise
+     * ({@link #gutterPx()}).
      *
      * <p>Bilinear reaches one texel; eight is that with room for a future
      * filter that reaches further, and it costs a few thousand texels on an
@@ -120,8 +129,23 @@ public abstract class SpriteAtlas {
      */
     static final int GUTTER_PX = 8;
 
-    /** One source image and where its content sits in the atlas. */
-    public record Placement(int x, int y, int width, int height) { }
+    /**
+     * One source image and where its content sits in the atlas.
+     *
+     * <p>{@code x, y, width, height} are the texels the atlas holds. For an image held trimmed they are a part of
+     * it: the image is {@code fullW x fullH} slot texels, and what is held starts {@code trimX, trimY} into it
+     * ({@code y} down from the top). An untrimmed image's held rectangle is all of it.
+     */
+    public record Placement(int x, int y, int width, int height, int trimX, int trimY, int fullW, int fullH) {
+        public Placement(int x, int y, int width, int height) {
+            this(x, y, width, height, 0, 0, width, height);
+        }
+
+        /** Whether only part of the image is held. */
+        public boolean trimmed() {
+            return trimX != 0 || trimY != 0 || width != fullW || height != fullH;
+        }
+    }
 
     /**
      * One image offered to the layout, with the content size its slot holds.
@@ -131,14 +155,30 @@ public abstract class SpriteAtlas {
      * the slot's size once, at upload: the form an image too large to hold whole takes when it is never drawn larger
      * than that ({@link UnitAtlas}). Callers address it in the image's own pixels as they always did, since every
      * redirect already scales those into the slot.
+     *
+     * <p>{@code trimX, trimY, trimW x trimH} is the part of the {@code contentW x contentH} slot the atlas holds, in
+     * slot texels with {@code y} down from the top; a {@code trimW} of zero, the usual case, holds all of it. Every
+     * texel outside it must be transparent and at least one texel from one that is not.
      */
-    public record Source(SpriteAPI sheet, int contentW, int contentH, String name, int imageW, int imageH) {
+    public record Source(SpriteAPI sheet, int contentW, int contentH, String name, int imageW, int imageH,
+                         int trimX, int trimY, int trimW, int trimH) {
         public Source(SpriteAPI sheet, int contentW, int contentH) {
             this(sheet, contentW, contentH, null);
         }
 
         public Source(SpriteAPI sheet, int contentW, int contentH, String name) {
             this(sheet, contentW, contentH, name, 0, 0);
+        }
+
+        public Source(SpriteAPI sheet, int contentW, int contentH, String name, int imageW, int imageH) {
+            this(sheet, contentW, contentH, name, imageW, imageH, 0, 0, 0, 0);
+        }
+
+        /** This source holding only {@code x, y, w x h} of its slot; itself when that is all of it or out of it. */
+        public Source trimmedTo(int x, int y, int w, int h) {
+            if (w <= 0 || h <= 0 || x < 0 || y < 0 || x + w > contentW || y + h > contentH) return this;
+            if (x == 0 && y == 0 && w == contentW && h == contentH) return this;
+            return new Source(sheet, contentW, contentH, name, imageW, imageH, x, y, w, h);
         }
     }
 
@@ -252,17 +292,23 @@ public abstract class SpriteAtlas {
      * One slot: the rectangle {@code srcX, srcY, w, h} of {@code sheet}, whose
      * content is {@code sheetW x sheetH}, copied with {@code apron} texels of its
      * surroundings and its content placed at {@code x, y} in the atlas. A whole
-     * image is the rectangle that is all of it, with no apron. {@code imageW x imageH}
-     * is the image texture's own texel size when the slot holds a smaller copy of it, else zero.
+     * image is the rectangle that is all of it, with no apron, or, held trimmed, the part of it that is not
+     * transparent; {@code image} says the slot is addressed by its image rather than as a rectangle of a sheet.
+     * {@code imageW x imageH} is the image texture's own texel size when the slot holds a smaller copy of it, else
+     * zero.
      */
     private record Slot(SpriteAPI sheet, int sheetW, int sheetH, int srcX, int srcY,
-                        int w, int h, int apron, int x, int y, String name, int imageW, int imageH) {
+                        int w, int h, int apron, int x, int y, String name, int imageW, int imageH, boolean image) {
         Slot at(int px, int py) {
-            return new Slot(sheet, sheetW, sheetH, srcX, srcY, w, h, apron, px, py, name, imageW, imageH);
+            return new Slot(sheet, sheetW, sheetH, srcX, srcY, w, h, apron, px, py, name, imageW, imageH, image);
         }
 
         boolean wholeImage() {
-            return srcX == 0 && srcY == 0 && w == sheetW && h == sheetH && apron == 0;
+            return image || (srcX == 0 && srcY == 0 && w == sheetW && h == sheetH && apron == 0);
+        }
+
+        Placement placement() {
+            return new Placement(x, y, w, h, srcX, srcY, sheetW, sheetH);
         }
     }
 
@@ -308,7 +354,7 @@ public abstract class SpriteAtlas {
                     region.width(), region.height()))) continue;
             distinct.add(new Slot(region.sheet(), region.sheetW(), region.sheetH(),
                     region.srcX(), region.srcY(), region.width(), region.height(),
-                    Math.max(0, apronPx), 0, 0, region.name(), 0, 0));
+                    Math.max(0, apronPx), 0, 0, region.name(), 0, 0, false));
         }
         return settle(distinct, minimumRegions);
     }
@@ -365,14 +411,26 @@ public abstract class SpriteAtlas {
         else out.append("not planned");
         if (enabled && !slots.isEmpty()) {
             long content = 0;
+            int trimmed = 0;
+            long trimmedHeld = 0;
+            long trimmedWhole = 0;
             for (Slot slot : slots) {
                 content += (long) (slot.w() + 2 * slot.apron()) * (slot.h() + 2 * slot.apron());
+                if (slot.image() && slot.placement().trimmed()) {
+                    trimmed++;
+                    trimmedHeld += (long) slot.w() * slot.h();
+                    trimmedWhole += (long) slot.sheetW() * slot.sheetH();
+                }
             }
             out.append(", ").append(slots.size()).append(" images in ")
                     .append(width).append('x').append(height)
-                    .append(String.format(Locale.ROOT, " (%.0f%% filled, %.1f MB)",
+                    .append(String.format(Locale.ROOT, " (%.0f%% filled, %.1f MB, %d rows laid out)",
                             100.0 * content / Math.max(1L, (long) width * height),
-                            width * (double) height * 4 / (1 << 20)));
+                            width * (double) height * 4 / (1 << 20), usedHeight));
+            if (trimmed > 0) {
+                out.append(String.format(Locale.ROOT, ", %d trimmed to their art (%d of %d texels held)",
+                        trimmed, trimmedHeld, trimmedWhole));
+            }
         }
         String detail = detail();
         if (detail != null) out.append(", ").append(detail);
@@ -429,7 +487,7 @@ public abstract class SpriteAtlas {
         for (Slot slot : candidates) {
             int w = slot.w() + 2 * slot.apron();
             int h = slot.h() + 2 * slot.apron();
-            area += (long) (w + GUTTER_PX) * (h + GUTTER_PX);
+            area += (long) (w + gutterPx()) * (h + gutterPx());
             widest = Math.max(widest, w);
             tallest = Math.max(tallest, h);
         }
@@ -445,9 +503,12 @@ public abstract class SpriteAtlas {
             return;
         }
         for (Slot existing : into) if (existing.sheet() == source.sheet()) return;
-        into.add(new Slot(source.sheet(), source.contentW(), source.contentH(), 0, 0,
-                source.contentW(), source.contentH(), 0, 0, 0, source.name(),
-                Math.max(0, source.imageW()), Math.max(0, source.imageH())));
+        boolean trimmed = source.trimW() > 0 && source.trimH() > 0;
+        into.add(new Slot(source.sheet(), source.contentW(), source.contentH(),
+                trimmed ? source.trimX() : 0, trimmed ? source.trimY() : 0,
+                trimmed ? source.trimW() : source.contentW(), trimmed ? source.trimH() : source.contentH(),
+                0, 0, 0, source.name(),
+                Math.max(0, source.imageW()), Math.max(0, source.imageH()), true));
     }
 
     private boolean layOut(List<Slot> candidates) {
@@ -459,7 +520,7 @@ public abstract class SpriteAtlas {
             packH[i] = slot.h() + 2 * slot.apron();
         }
         for (int side : candidateSides) {
-            int[] packed = shelfPack(packW, packH, side);
+            int[] packed = shelfPack(packW, packH, side, gutterPx());
             if (packed == null) continue;
             int packedHeight = packed[packed.length - 1];
             if (packedHeight > side) continue;
@@ -470,8 +531,7 @@ public abstract class SpriteAtlas {
                 int y = packed[i * 2 + 1] + proposed.apron();
                 slots.add(proposed.at(x, y));
                 if (proposed.wholeImage()) {
-                    placementBySheet.put(proposed.sheet(),
-                            new Placement(x, y, proposed.w(), proposed.h()));
+                    placementBySheet.put(proposed.sheet(), proposed.at(x, y).placement());
                 } else {
                     Integer index = sheetIndex.get(proposed.sheet());
                     if (index == null) {
@@ -501,7 +561,7 @@ public abstract class SpriteAtlas {
             packH[i] = candidates.get(i).h() + 2 * candidates.get(i).apron();
         }
         for (int side : candidateSides) {
-            int[] packed = shelfPack(packW, packH, side);
+            int[] packed = shelfPack(packW, packH, side, gutterPx());
             if (packed != null && packed[packed.length - 1] <= side) return true;
         }
         return false;
@@ -521,6 +581,14 @@ public abstract class SpriteAtlas {
      */
     protected int growthHeadroom(int side) {
         return 0;
+    }
+
+    /**
+     * Transparent texels around every slot: {@link #GUTTER_PX} unless a subclass knows nothing samples it further
+     * than bilinear's one texel past a slot. Asked at every layout, so it must not change over an atlas's life.
+     */
+    protected int gutterPx() {
+        return GUTTER_PX;
     }
 
     /**
@@ -650,17 +718,17 @@ public abstract class SpriteAtlas {
             packW[i] = fresh.get(i).w() + 2 * fresh.get(i).apron();
             packH[i] = fresh.get(i).h() + 2 * fresh.get(i).apron();
         }
-        int[] packed = shelfPack(packW, packH, width);
+        int[] packed = shelfPack(packW, packH, width, gutterPx());
         if (packed == null) return false;
         // The layout's last gutter is the first gutter of the appended shelf.
-        int top = usedHeight - GUTTER_PX;
+        int top = usedHeight - gutterPx();
         int packedHeight = packed[packed.length - 1];
         if (top + packedHeight > height) return false;
         for (int i = 0; i < fresh.size(); i++) {
             Slot proposed = fresh.get(i);
             Slot placed = proposed.at(packed[i * 2] + proposed.apron(), top + packed[i * 2 + 1] + proposed.apron());
             pendingUploads.add(placed);
-            pendingPlacements.put(placed.sheet(), new Placement(placed.x(), placed.y(), placed.w(), placed.h()));
+            pendingPlacements.put(placed.sheet(), placed.placement());
         }
         usedHeight = top + packedHeight;
         return true;
@@ -700,6 +768,11 @@ public abstract class SpriteAtlas {
      *         atlas height; null when it will not fit
      */
     static int[] shelfPack(int[] contentW, int[] contentH, int side) {
+        return shelfPack(contentW, contentH, side, GUTTER_PX);
+    }
+
+    /** {@link #shelfPack(int[], int[], int)} with a {@code gutter} other than {@link #GUTTER_PX}. */
+    static int[] shelfPack(int[] contentW, int[] contentH, int side, int gutter) {
         int count = contentW.length;
         Integer[] order = new Integer[count];
         for (int i = 0; i < count; i++) order[i] = i;
@@ -708,22 +781,22 @@ public abstract class SpriteAtlas {
             return byHeight != 0 ? byHeight : Integer.compare(contentW[b], contentW[a]);
         });
         int[] out = new int[count * 2 + 1];
-        int penX = GUTTER_PX;
-        int penY = GUTTER_PX;
+        int penX = gutter;
+        int penY = gutter;
         int shelfH = 0;
         for (int slot : order) {
-            if (contentW[slot] + 2 * GUTTER_PX > side) return null;
-            if (penX + contentW[slot] + GUTTER_PX > side) {
-                penX = GUTTER_PX;
-                penY += shelfH + GUTTER_PX;
+            if (contentW[slot] + 2 * gutter > side) return null;
+            if (penX + contentW[slot] + gutter > side) {
+                penX = gutter;
+                penY += shelfH + gutter;
                 shelfH = 0;
             }
             out[slot * 2] = penX;
             out[slot * 2 + 1] = penY;
-            penX += contentW[slot] + GUTTER_PX;
+            penX += contentW[slot] + gutter;
             shelfH = Math.max(shelfH, contentH[slot]);
         }
-        int height = penY + shelfH + GUTTER_PX;
+        int height = penY + shelfH + gutter;
         if (height > side) return null;
         out[count * 2] = height;
         return out;
@@ -1013,6 +1086,7 @@ public abstract class SpriteAtlas {
         }
         glBindTexture(GL_TEXTURE_2D, texture);
         for (Slot slot : group) {
+            if (slot.image() && slot.placement().trimmed()) checkTrim(slot, buffer, paddedW);
             if (slot.apron() == 0) uploadDirect(slot, buffer, paddedW);
             else uploadWithApron(slot, buffer, paddedW);
             if (GlErrors.check("glTexSubImage2D (" + label + " slot)")) {
@@ -1113,6 +1187,29 @@ public abstract class SpriteAtlas {
         }
         out.limit(outW * outH * 4);
         return out;
+    }
+
+    /**
+     * Warns when a trimmed slot left out a texel that is not transparent: the trim was planned from the image's
+     * file before any GL ran, and this is the first time the texels the texture really holds can be asked. A miss
+     * is a piece of art the atlas would not draw, so it is said, never silent; the slot is uploaded as planned.
+     */
+    private void checkTrim(Slot slot, ByteBuffer sheet, int paddedW) {
+        int x1 = slot.srcX() + slot.w();
+        int y1 = slot.srcY() + slot.h();
+        for (int topDown = 0; topDown < slot.sheetH(); topDown++) {
+            boolean insideRows = topDown >= slot.srcY() && topDown < y1;
+            int rowBase = (slot.sheetH() - 1 - topDown) * paddedW * 4;
+            for (int col = 0; col < slot.sheetW(); col++) {
+                if (insideRows && col >= slot.srcX() && col < x1) continue;
+                if (sheet.get(rowBase + col * 4 + 3) != 0) {
+                    LOG.warn(label + ": " + slotName(slot) + " has art at " + col + "," + topDown
+                            + " outside its trim " + slot.srcX() + "," + slot.srcY() + " " + slot.w() + "x"
+                            + slot.h() + " of " + slot.sheetW() + "x" + slot.sheetH());
+                    return;
+                }
+            }
+        }
     }
 
     /**

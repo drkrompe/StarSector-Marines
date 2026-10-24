@@ -82,6 +82,12 @@ public final class DrawCensus {
         textureBinds++;
     }
 
+    /** One paged draw ({@link PagedQuadRun}), which bound {@code pages} textures first. */
+    void recordPagedDraw(int pages) {
+        drawCalls++;
+        textureBinds += pages;
+    }
+
     /** One batched draw of untextured geometry. */
     void recordUntexturedDraw() {
         drawCalls++;

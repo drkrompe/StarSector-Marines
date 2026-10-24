@@ -177,6 +177,76 @@ public final class QuadBatch {
     }
 
     /**
+     * The part {@code x0..x1} across and {@code y0..y1} down (fractions, {@code y} from the source's top) of the
+     * quad {@link #appendRotated} would queue for {@code dstCx, dstCy, dstW x dstH} at {@code rotationDeg}, sampling
+     * the {@code srcX, srcY, srcW x srcH} rectangle: what an atlas that holds an image without its transparent margin
+     * draws of a whole-image quad ({@code SpriteAtlas}).
+     *
+     * <p>Its corners are interpolated from the whole quad's, worked out exactly as {@link #appendRotated} works them,
+     * and the interpolation returns an end exactly at a fraction of 0 or 1. So an edge the part shares with the whole
+     * quad is the same edge to the last bit, and a pixel the whole quad's edge left out stays out.
+     */
+    public void appendRotatedPart(int srcX, int srcY, int srcW, int srcH,
+                                  float dstCx, float dstCy, float dstW, float dstH,
+                                  float rotationDeg, boolean flipV, float x0, float x1, float y0, float y1,
+                                  float r, float g, float b, float a) {
+        ensureCapacity(quadCount + 1);
+        float halfW = dstW * 0.5f;
+        float halfH = dstH * 0.5f;
+        double rad = Math.toRadians(rotationDeg);
+        float cos = (float) Math.cos(rad);
+        float sin = (float) Math.sin(rad);
+        float[] whole = partScratch;
+        whole[0] = dstCx + (-halfW) * cos - (-halfH) * sin;
+        whole[1] = dstCy + (-halfW) * sin + (-halfH) * cos;
+        whole[2] = dstCx + ( halfW) * cos - (-halfH) * sin;
+        whole[3] = dstCy + ( halfW) * sin + (-halfH) * cos;
+        whole[4] = dstCx + ( halfW) * cos - ( halfH) * sin;
+        whole[5] = dstCy + ( halfW) * sin + ( halfH) * cos;
+        whole[6] = dstCx + (-halfW) * cos - ( halfH) * sin;
+        whole[7] = dstCy + (-halfW) * sin + ( halfH) * cos;
+        partCorners(whole, 0, posData, quadCount * POS_FLOATS_PER_QUAD, x0, x1, y0, y1, flipV);
+
+        float texU = sheet.getTextureWidth();
+        float texV = sheet.getTextureHeight();
+        float u0 = ((float) srcX           / sheetPxW) * texU;
+        float u1 = ((float) (srcX + srcW)  / sheetPxW) * texU;
+        float v0 = texV - ((float) srcY           / sheetPxH) * texV;
+        float v1 = texV - ((float) (srcY + srcH)  / sheetPxH) * texV;
+        if (flipV) { float swap = v0; v0 = v1; v1 = swap; }
+        writeQuadUv(u0, v1, u1, v1, u1, v0, u0, v0);
+        writeQuadColor(r, g, b, a);
+        quadCount++;
+    }
+
+    private final float[] partScratch = new float[8];
+
+    /**
+     * The corners (BL BR TR TL) of the part {@code x0..x1} across and {@code y0..y1} down ({@code y} from the
+     * source's top, which is the quad's top edge unless {@code flipV}) of the quad whose corners are
+     * {@code whole[at..at+8)}, into {@code out[outAt..outAt+8)}. Each corner is a blend {@code a * (1 - t) + b * t}
+     * of the whole quad's, which is exactly {@code a} at 0 and exactly {@code b} at 1.
+     */
+    static void partCorners(float[] whole, int at, float[] out, int outAt,
+                            float x0, float x1, float y0, float y1, boolean flipV) {
+        // Up from the quad's bottom edge.
+        float b0 = flipV ? y0 : 1f - y1;
+        float b1 = flipV ? y1 : 1f - y0;
+        corner(whole, at, out, outAt, x0, b0);
+        corner(whole, at, out, outAt + 2, x1, b0);
+        corner(whole, at, out, outAt + 4, x1, b1);
+        corner(whole, at, out, outAt + 6, x0, b1);
+    }
+
+    private static void corner(float[] whole, int at, float[] out, int outAt, float across, float up) {
+        for (int axis = 0; axis < 2; axis++) {
+            float bottom = whole[at + axis] * (1f - across) + whole[at + 2 + axis] * across;
+            float top = whole[at + 6 + axis] * (1f - across) + whole[at + 4 + axis] * across;
+            out[outAt + axis] = bottom * (1f - up) + top * up;
+        }
+    }
+
+    /**
      * Queue one textured quad. Source rect is in sheet-image-pixel space
      * (top-down). Destination is a center + size in screen-space units.
      * Per-vertex color/alpha is applied to all four corners.
@@ -376,6 +446,29 @@ public final class QuadBatch {
         glDrawArrays(GL_QUADS, 0, verts);
         glPopClientAttrib();
 
+        quadCount = 0;
+    }
+
+    /**
+     * Moves every queued quad into {@code run} as page {@code page} of it, in order, and empties this batch: how a
+     * paged run takes a sheet's quads while each one's texture coordinates are still worked out by the batch that
+     * knows its sheet.
+     */
+    void moveQueuedTo(PagedQuadRun run, int page) {
+        if (quadCount == 0) return;
+        run.ensureCapacity(quadCount);
+        int verts = quadCount * VERTS_PER_QUAD;
+        int base = run.quadCount * VERTS_PER_QUAD;
+        float z = page;
+        for (int v = 0; v < verts; v++) {
+            int to = (base + v) * 3;
+            run.posData[to] = posData[v * 2];
+            run.posData[to + 1] = posData[v * 2 + 1];
+            run.posData[to + 2] = z;
+        }
+        System.arraycopy(uvData, 0, run.uvData, base * 2, verts * 2);
+        System.arraycopy(colData, 0, run.colData, base * 4, verts * 4);
+        run.quadCount += quadCount;
         quadCount = 0;
     }
 

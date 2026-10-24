@@ -60,6 +60,11 @@ public final class StructureDef {
     public final FortGatehouseArt gatehouseArt;
     /** Art for each {@link EmplacementStyle} other than the default, by style key; empty for a structure with one look. */
     public final Map<String, StructureLook> looks;
+    /**
+     * The directional flux shield this structure's generator projects where a look fits one
+     * ({@link StructureLook#shield}), or null for a structure that never carries one.
+     */
+    public final FluxShieldSpec fluxShield;
 
     private StructureDef(String id, String displayName,
                          float maxStructure, float armorCapacity, float armorRating,
@@ -69,8 +74,9 @@ public final class StructureDef {
                          String batteryLoadoutId, float fireControlRadius, DomeSpec dome,
                          StructureArt art, TurretRole targetRole, FortAspect fortAspect,
                          FortBuildingArt buildingArt, FortGatehouseArt gatehouseArt,
-                         Map<String, StructureLook> looks) {
+                         Map<String, StructureLook> looks, FluxShieldSpec fluxShield) {
         this.looks = Map.copyOf(looks);
+        this.fluxShield = fluxShield;
         this.buildingArt = buildingArt;
         this.gatehouseArt = gatehouseArt;
         this.targetRole = targetRole;
@@ -125,6 +131,13 @@ public final class StructureDef {
         if (height <= 0f || mount.maxDepressionDeg >= 90f) return own;
         float underTheGuns = height / (float) Math.tan(Math.toRadians(mount.maxDepressionDeg));
         return Math.max(own, underTheGuns);
+    }
+
+    /** The flux shield this structure carries when built in {@code style}, or null when that look fits none. */
+    public FluxShieldSpec fluxShieldIn(EmplacementStyle style) {
+        if (fluxShield == null) return null;
+        StructureLook look = look(style);
+        return look != null && look.shield() != null ? fluxShield : null;
     }
 
     /** This structure's art in {@code style}, or null where it has none and is drawn with its default art. */
@@ -206,8 +219,20 @@ public final class StructureDef {
                 for (EmplacementStyle style : EmplacementStyle.values()) known |= style.key.equals(key);
                 if (!known) throw new JSONException("Structure '" + id + "' has a look for unknown style '" + key + "'");
                 JSONObject look = looksJson.getJSONObject(key);
+                ShieldTint shield = null;
+                if (look.has("shield")) {
+                    shield = ShieldTint.byKey(look.getString("shield"));
+                    if (shield == null) {
+                        throw new JSONException("Structure '" + id + "' look '" + key + "' has an unknown shield");
+                    }
+                    if (!json.has("fluxShield")) {
+                        throw new JSONException("Structure '" + id + "' look '" + key
+                                + "' fits a shield the structure does not define (fluxShield)");
+                    }
+                }
                 looks.put(key, new StructureLook(TurretMountDef.optionalText(look, "base"),
-                        TurretMountDef.optionalText(look, "sprite"), TurretMountDef.optionalText(look, "recoilSprite")));
+                        TurretMountDef.optionalText(look, "sprite"), TurretMountDef.optionalText(look, "recoilSprite"),
+                        shield));
             }
         }
         TurretRole role = TurretRole.valueOf(json.optString("targetRole", "A2G"));
@@ -220,6 +245,7 @@ public final class StructureDef {
                 batteryLoadoutId, fireControlRadius, dome, art,
                 role,
                 json.has("fortAspect") ? FortAspect.valueOf(json.getString("fortAspect")) : null,
-                buildingArt, gatehouseArt, looks);
+                buildingArt, gatehouseArt, looks,
+                json.has("fluxShield") ? FluxShieldSpec.parse(id, json.getJSONObject("fluxShield")) : null);
     }
 }
