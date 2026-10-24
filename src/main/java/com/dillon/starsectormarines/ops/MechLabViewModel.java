@@ -35,6 +35,7 @@ import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.FabricationResources;
 import com.dillon.starsectormarines.marine.MechWorkshop;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.ops.fitting.FittedBadge;
 import com.dillon.starsectormarines.ops.fitting.FittingCard;
 import com.dillon.starsectormarines.ops.fitting.FittingFilterPill;
 import com.dillon.starsectormarines.ops.fitting.FittingMeter;
@@ -1405,8 +1406,7 @@ public final class MechLabViewModel {
                 || selectedSlot.get().compartment();
         return List.of(catalogRow(base, "catalog-preview hidden", null, null, null, null, "catalog-row selected",
                 slotComponent(mech, selectedSlot.get()),
-                occupied ? Strings.get("openingMechLabInstalled") : Strings.get("openingMechLabEmpty"),
-                occupied ? "catalog-badge in-cargo" : "catalog-badge fabrication",
+                FittedBadge.label(occupied), FittedBadge.classes(occupied),
                 occupied ? Strings.get("openingMechLabInstalledAssembly") : Strings.get("openingMechLabEmptySocket"),
                 "", "", "catalog-delta hidden",
                 buildSelectedSlotRule(), definition != null && definition.factoryLocked()
@@ -1463,8 +1463,8 @@ public final class MechLabViewModel {
             FabricationCost bill = workshop.weaponQuote(component);
             boolean affordable = bill != null && resources.canAfford(bill);
             boolean locked = !bay.canFabricate(component);
-            String badge = stockBadge(free);
-            String badgeClasses = inCargo ? "catalog-badge in-cargo" : "catalog-badge fabrication";
+            String badge = FittedBadge.label(component == current);
+            String badgeClasses = FittedBadge.classes(component == current);
 
             // Telemetry
             WeaponDef def = component.weaponDef();
@@ -1591,8 +1591,8 @@ public final class MechLabViewModel {
             boolean disabled = installed || !fits || !withinBudget || !inCargo && (locked || !affordable);
 
             boolean plating = role == MechInternal.Role.PLATING;
-            String badge = stockBadge(free);
-            String badgeClasses = inCargo ? "catalog-badge in-cargo" : "catalog-badge fabrication";
+            String badge = FittedBadge.label(installed);
+            String badgeClasses = FittedBadge.classes(installed);
 
             float mass = MechFrameBudget.mass(internal, mech.variant());
             String detail = role.socket() == null
@@ -1668,8 +1668,7 @@ public final class MechLabViewModel {
             List<Row> materials = offerFab ? materialRows(base, resources.quote(recipe.cost())) : List.of();
             rows.add(catalogRow(base, "catalog-preview hidden", null, null, null, null,
                     offerFab ? "catalog-row requires-fabrication" : "catalog-row", kit.displayName(),
-                    installed ? Strings.get("openingMechLabFitted") : stockBadge(free),
-                    inCargo || installed ? "catalog-badge in-cargo" : "catalog-badge fabrication",
+                    FittedBadge.label(installed), FittedBadge.classes(installed),
                     Strings.format("openingMechLabOwnFree", recipe.provenance(), spareCount(free)),
                     Strings.get("vehicleKitEffect" + kit.name()), "", "catalog-delta hidden",
                     Strings.get("openingMechLabKitDetail"), actionLabel, actionHint,
@@ -1719,10 +1718,6 @@ public final class MechLabViewModel {
 
     /** Spares in stores, or that the row is a known pattern with none built. */
     /** A spare in stores or a pattern to build; how many spares is the row's x-count. */
-    private static String stockBadge(int free) {
-        return free > 0 ? Strings.get("openingMechLabInStores") : Strings.get("openingMechLabPattern");
-    }
-
     /** Spares in stores as a compact x-count, x0 to x99; a larger store still reads x99. */
     static String spareCount(int free) {
         return Strings.format("openingMechLabSpareCount", Math.max(0, Math.min(99, free)));

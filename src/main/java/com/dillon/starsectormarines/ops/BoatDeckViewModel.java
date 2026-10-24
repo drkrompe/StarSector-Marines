@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ops.fitting.FittedBadge;
 import com.dillon.starsectormarines.ops.fitting.FittingCard;
 import com.dillon.starsectormarines.ops.fitting.FittingFilterPill;
 import com.dillon.starsectormarines.ops.fitting.FittingMeter;
@@ -581,18 +582,14 @@ public final class BoatDeckViewModel {
     private CatalogRow card(BoatDoll.Kind kind, String itemId, String id, String name, int tier,
                             String effect, String delta, boolean fitted, boolean held, boolean free,
                             FabricationCost bill) {
-        boolean affordable = free || bill == null || resources.canAfford(bill);
-        String badge = fitted ? Strings.get("openingMechLabInstalled") : free ? Strings.get("boatDeckBadgeStandard")
-                : affordable ? Strings.get("boatDeckBadgeYard") : Strings.get("boatDeckBadgeShort");
-        String badgeClasses = fitted ? "catalog-badge in-cargo" : free ? "catalog-badge chassis"
-                : affordable ? "catalog-badge fabrication" : "catalog-badge unavailable";
+        // None on hand is a greyed card with its bill; a bill the hold cannot meet is its red chips.
         String classes = "catalog-row" + (held ? " selected" : "")
-                + (!fitted && !affordable ? " requires-fabrication" : "");
+                + (!fitted && !free ? " requires-fabrication" : "");
         int[] footprint = BoatHardware.footprint(kind, itemId);
         String detail = Strings.format("boatDeckGrid", footprint[0], footprint[1]);
-        if (!fitted && !affordable) detail += "  ·  " + Strings.format("openingBoatDeckShort", shortest(bill));
         List<Row> materials = fitted || free ? List.of() : materialRows(id, bill);
-        FittingCard card = new FittingCard(id, classes, "catalog-preview", name, badge, badgeClasses,
+        FittingCard card = new FittingCard(id, classes, "catalog-preview", name,
+                FittedBadge.label(fitted), FittedBadge.classes(fitted),
                 kindLine(tier, kind), effect, delta,
                 delta.isEmpty() ? "catalog-delta neutral" : fitted ? "label heading catalog-delta neutral"
                         : delta.startsWith("-") ? "label heading catalog-delta negative"
@@ -931,7 +928,6 @@ public final class BoatDeckViewModel {
     }
 
     private static String effect(BoatFitting fitting) {
-        if (fitting.standard()) return Strings.get("openingBoatDeckYardStandard");
         if (fitting.slot() == BoatFittingSlot.PLATING) {
             return Strings.format("openingBoatDeckHull2", factor(fitting.hullFactor()));
         }

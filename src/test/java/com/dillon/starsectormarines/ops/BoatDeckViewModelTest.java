@@ -184,7 +184,9 @@ class BoatDeckViewModelTest {
                 BoatFitting.REINFORCED_PLATING.id());
         String plating = BoatDoll.slotKey(BoatFittingSlot.PLATING);
         assertFalse(viewModel.canDropOnSocket(reinforced.kind(), reinforced.itemId(), plating));
-        assertTrue(reinforced.detail().contains("SHORT METALS"), reinforced.detail());
+        // The card says which line is short by that line's own chip, not by a word.
+        assertTrue(reinforced.materials().stream()
+                .anyMatch(line -> line.id().endsWith(Commodities.METALS) && line.shortfall() > 0));
 
         viewModel.dropOnSocket(reinforced.kind(), reinforced.itemId(), plating);
 
