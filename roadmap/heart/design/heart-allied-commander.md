@@ -3,7 +3,7 @@
 Status: SHIPPED. The owner's list is built: all four tools, chosen by need. Open: how the gunship is risked (the owner's question).
 
 Written: 2026-10-23
-Updated: 2026-10-23 — company-in-the-gap and stalled-bore rules built; the standing model folded into `heart-nouns.md` (Allied commander).
+Updated: 2026-10-24 — stuck members straggle out of a lane's formation; waves join a standing lane.
 
 The lanes' commander is the heart's
 mission, carrying out its choices through the shared machinery:
@@ -25,7 +25,9 @@ its next bore, re-routed when that bore falls.
   as it leaves the farmland.
 - **Fighting advance on contact:** the formation turns to the threat, and
   pushes through at the cap, because the swarm never lets up.
-- **Late waves** from the vehicle park join the main where they catch it up.
+- **Late waves** from the vehicle park join the main where they catch it up,
+  and a machine or squad stuck short of its slot is a straggler the formation
+  leaves behind (`allied-command.md`, The slowest sets the pace).
 - **A broken screen** hands the lead to the main.
 
 Behind `battle.heart.laneFormation`: a lane forms only once it has armour, and

@@ -68,6 +68,7 @@ import java.util.Set;
  *   beats [since=T] [text=TEXT]           story beats
  *   escort                                the rescue cohort's escort hold and progress
  *   route X0 Y0 X1 Y1                     cells on the walkable path between two cells (0 for none)
+ *   lanes                                 the heart's lanes: aim, militia, formation, marching columns
  *   bores                                 every swarm bore: cell, collapsed, each spore colony alive with its hp
  *   places                                every compound: kind, box, holder, capture and who is present
  *   creep                                 hive creep: cells creeped and dying, shares of the map, each source's reach
@@ -116,6 +117,8 @@ public final class BattleProbe {
                 .put("progress", String.valueOf(sim.getCivilianEvacuationProgress())));
         commands.put("places", this::places);
         commands.put("bores", a -> bores());
+        commands.put("lanes", a -> new JSONObject().put("tick", sim.getSimTickIndex()).put("lanes",
+                sim.getHeart() == null ? new JSONArray() : new JSONArray(sim.getHeart().lanes().describe(sim))));
         commands.put("pads", this::pads);
         commands.put("creep", a -> creep());
         commands.put("grid", this::grid);

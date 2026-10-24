@@ -149,7 +149,11 @@ with the least garrison standing when it sets out, on either line; the Road's
 convoys are a different thing, sent for the town's people, not the line. A
 Road without columns had nothing to make good what each tide took from its
 redoubts, and broke in the second tide. If that redoubt falls before the column gets there, it is
-sent on to the next one. On arriving it joins the garrison as wall teams, so a
+sent on to the next one. A column that has come no cell nearer its
+destination for thirty seconds is asked whether it has **reached the front**.
+The mission says what counts: the Cordon says none has, so its columns go on to
+their redoubts; Broad Front says a column engaged on its own lane's ground has,
+and it joins its lane there. On arriving it joins the garrison as wall teams, so a
 redoubt a column reached stands with more than it started with. A column takes
 about two minutes to march up from the rear, so the timetable sends each one
 two minutes before a tide. Where the base has carriers forward (rural and town
