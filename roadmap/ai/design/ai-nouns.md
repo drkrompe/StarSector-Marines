@@ -2139,8 +2139,13 @@ MISSION plan keeps every prepared position, firing-position search, and target
 response inside the circle. It reads the squad's own contact picture: as a
 believed threat bearing moves, the squad rotates a spaced firing line and
 claims directional cover facing that report; direct targets are engaged from
-bounded cover without losing moving fire. Broken fire teams still peel under
-cohesion law, and a new player order or hard withdrawal supersedes the defense.
+bounded cover without losing moving fire. Every member without a claimed
+position is given a stand no squadmate has: the circle's stands (quiet or
+prepared line) are settled together in member order, each skipping the cells
+given before it, as the claims settle a drawn line's open cells, because one
+good cover cell inside reach of several slots would otherwise be every one's
+destination, and bodies that separation keeps off a shared cell centre never
+count as arrived. Broken fire teams still peel under cohesion law, and a new player order or hard withdrawal supersedes the defense.
 
 ### Crew-served fire support (the field mortar)
 
