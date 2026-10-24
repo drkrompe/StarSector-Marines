@@ -1,4 +1,4 @@
-<template props="inspection,feedbackText,feedbackClasses,testLoadout,rangeDisabled,rangeHint">
+<template props="firstRefitClasses,openFirstRefit,inspection,feedbackText,feedbackClasses,testLoadout,rangeDisabled,rangeHint">
   <!-- The squad, whole: the cards it is issued now, then the shared squad view
        (armory-squad-view), the same one First Refit shows. -->
   <div id="refit-transaction" class="loadout-workspace">
@@ -11,6 +11,7 @@
           <div class="loadout-heading heading" id="loadout-selected-name">{inspection.title}</div>
           <div id="armory-range-hint" class="loadout-range-hint tone-muted">{rangeHint}</div>
         </div>
+        <button id="armory-first-refit" class="{firstRefitClasses}" onclick="{openFirstRefit}">{i18n.openingUiFleetArmoryAProperIssueResumeCastleSTwo}</button>
         <button id="armory-test-loadout" class="loadout-range-action spec-action" disabled="{rangeDisabled}" onclick="{testLoadout}">{i18n.armoryRangeTestLoadout}</button>
       </div>
       <div class="loadout-hint tone-muted" id="loadout-roll-hint">{inspection.scope}</div>
@@ -22,12 +23,15 @@
 <style>
   .loadout-workspace { flex-direction: column; width: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
   .loadout-workspace-body { flex-direction: column; height: 0px; flex-grow: 1; padding: 8px; gap: 6px; overflow: hidden; }
-  .loadout-squad-head { flex-direction: row; height: 56px; gap: 18px; align-items: center; }
+  .loadout-squad-head { flex-direction: row; height: 56px; gap: 12px; align-items: center; }
   .loadout-squad-cards { flex-direction: row; width: 584px; height: 54px; gap: 8px; }
   .loadout-inspection { flex-direction: column; width: 0px; flex-grow: 1; gap: 2px; overflow: hidden; }
   .loadout-heading { height: 22px; padding: 3px 0px; }
   .loadout-range-hint { height: 30px; white-space: normal; }
   .loadout-range-action { width: 132px; height: 30px; padding: 7px 8px; }
   .loadout-hint { height: 18px; }
+  /* Castle's first proper issue, resumable from the squad's own head while it is offered. */
+  #armory-first-refit { width: 340px; height: 30px; padding: 7px 8px; text-align: center; }
+  .hidden { width: 0px; height: 0px; flex-grow: 0; padding: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
   .loadout-feedback { height: 20px; overflow: hidden; }
 </style>

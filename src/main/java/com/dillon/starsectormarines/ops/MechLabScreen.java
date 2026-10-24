@@ -473,11 +473,14 @@ public final class MechLabScreen implements Screen {
         if (!weaponDragMoved && dx * dx + dy * dy < DRAG_THRESHOLD_SQUARED) return;
         weaponDragMoved = true;
         WeaponDrag drag = weaponDrag;
-        if (drag.component() != null) dragGhost.show(drag.component(), event.x(), event.y());
-        else dragGhost.show(drag.internal(), event.x(), event.y());
-        document.canvases().invalidate(ghostElement);
         CanvasPoint point = canvasPoint(event);
         SocketId target = point != null ? dollCanvas.socketAt(point.x(), point.y()) : null;
+        // Over a socket the socket itself answers (the part drawn in it, or lit as a fit or a
+        // refusal); the ghost hanging off the pointer would only cover it.
+        if (target != null) dragGhost.clear();
+        else if (drag.component() != null) dragGhost.show(drag.component(), event.x(), event.y());
+        else dragGhost.show(drag.internal(), event.x(), event.y());
+        document.canvases().invalidate(ghostElement);
         // An installed internal has only its own socket; it can go back to stores and nowhere else.
         boolean valid = target != null && (drag.source() != null
                 ? drag.component() != null && viewModel.canMoveInstalledWeapon(drag.source(), target)

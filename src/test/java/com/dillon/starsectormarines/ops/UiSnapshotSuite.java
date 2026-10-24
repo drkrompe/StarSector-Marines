@@ -3219,6 +3219,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("openFirstRefit", (Runnable) () -> { });
         props.put("companySummary", viewModel.companySummary());
         props.put("selectedSquadName", viewModel.selectedSquadName());
+        props.put("contextLabel", viewModel.issueContextLabel());
         props.put("fireTeamOverviews", viewModel.fireTeamOverviews());
         props.put("squadRows", viewModel.squadRows());
         props.put("teamRows", viewModel.teamRows());

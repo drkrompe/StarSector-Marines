@@ -22,9 +22,9 @@ final class MechSocketConsole {
     private static final Color FITS = new Color(0xc8eef4);
     private static final Color RED = new Color(0xe98b83);
 
-    /** @see HardpointBricks#BOARD_BRICK_HEIGHT */
-    static final float BRICK_HEIGHT = HardpointBricks.BOARD_BRICK_HEIGHT;
-    static final float BRICK_GAP = HardpointBricks.BOARD_BRICK_GAP;
+    /** @see HardpointBricks#BRICK_HEIGHT */
+    static final float BRICK_HEIGHT = HardpointBricks.BRICK_HEIGHT;
+    static final float BRICK_GAP = HardpointBricks.BRICK_GAP;
     private static final float HEADER = 22f;
     private static final float CAPTION = 22f;
     private static final float SIDE = 12f;
