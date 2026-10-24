@@ -2519,13 +2519,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return id;
     }
 
-    /** A gun on a plinth sees from its height for as long as it stands; its death lowers the cell again. */
+    /** A gun on a plinth sees from its height, and its plinth stands, for as long as it does; its death lowers both. */
     private void raisePlinthEye(long id, EntitySpec spec) {
         if (spec.turretStructureId == null) return;
         StructureDef structure = TurretCatalogRegistry.requireStructure(spec.turretStructureId);
         if (structure.plinthTiers <= 0) return;
         mapEditor.setRaisedEye(spec.cellX, spec.cellY, structure.plinthTiers);
-        turretDemolition.registerPlinth(id);
+        // The block itself stands over the whole footprint, which is what casts its sun shadow.
+        mapEditor.setPlinth(StructureFootprint.minX(structure, spec.cellX), StructureFootprint.minY(structure, spec.cellY),
+                structure.footprintCellsX, structure.footprintCellsY, structure.plinthTiers);
+        turretDemolition.registerPlinth(id, structure);
     }
 
     /** A shield generator's dome comes into being with it, for whichever side spawned it. */

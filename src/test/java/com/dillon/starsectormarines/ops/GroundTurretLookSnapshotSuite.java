@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +31,9 @@ import java.util.Map;
  *
  * <p>A {@code firing-<look>} shot per look plays the guns against targets for six seconds, so barrel recoil and
  * muzzle effects can be judged in motion; {@code -Dsnapshot.groundTurrets.firing=false} leaves it out.
+ * {@code -Dsnapshot.groundTurrets.firingSeconds=} plays it longer (the heavy cannon fires about once in five seconds,
+ * so its muzzle scorch only builds up over half a minute), and {@code -Dsnapshot.groundTurrets.firingStills=}
+ * keeps those recorded frames as its stills instead of the busiest moments.
  */
 public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
 
@@ -106,13 +110,16 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
                 1, 2, 1);
     }
 
-    /** Seconds of fire a firing shot plays, at one frame a tick. */
-    private static final int FIRING_TICKS = 180;
+    /** Ticks of fire a firing shot plays, at one frame a tick: six seconds unless asked for longer. */
+    private static int firingTicks() {
+        float seconds = Float.parseFloat(System.getProperty("snapshot.groundTurrets.firingSeconds", "6"));
+        return Math.round(seconds / BattleSimulation.TICK_DT);
+    }
 
     /**
      * A 40x22 window on arid ground: the autogun, cannon and grenade emplacements in a column at the west with the
      * heavy-cannon hardpoint behind them, all defenders, and a line of marine targets sixteen cells east that outlast
-     * the run (bodies, not squads, so only the guns fire). Two of the guns start hurt, for their damage smoke. Played for {@link #FIRING_TICKS} ticks at one frame a tick
+     * the run (bodies, not squads, so only the guns fire). Two of the guns start hurt, for their damage smoke. Played for {@link #firingTicks()} ticks at one frame a tick
      * so a barrel's kick and a muzzle's flash land in the animation.
      */
     private static LookReview.Shot firing(String look) {
@@ -146,6 +153,13 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
             return sim;
         }, placement -> List.of(
                 LookReview.View.close("close", placement.site().x(21f), placement.site().y(11f), 26f)),
-                FIRING_TICKS, 1, 3);
+                firingTicks(), 1, 3).withStills(firingStills());
+    }
+
+    /** The recorded frames {@code -Dsnapshot.groundTurrets.firingStills} asks for; none keeps the busiest. */
+    private static int[] firingStills() {
+        String frames = System.getProperty("snapshot.groundTurrets.firingStills", "").trim();
+        if (frames.isEmpty()) return new int[0];
+        return Arrays.stream(frames.split(",")).mapToInt(frame -> Integer.parseInt(frame.trim())).toArray();
     }
 }

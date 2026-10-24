@@ -182,6 +182,21 @@ class MacroReliefFieldTest {
         assertTrue(relief.tallestMeters() >= GenMappingRegistry.installed().roofMacroHeightMeters());
     }
 
+    /** A hardpoint's plinth casts as a block of its tiers, sizes the march, and is gone once cleared. */
+    @Test
+    void aPlinthStandsItsTiersHighUntilItIsCleared() {
+        CellTopology topology = walledBox();
+        float ground = field(topology, roofOverInterior(topology)).metersAt(6, 6);
+        topology.setPlinthTiers(6, 6, 1);
+        MacroReliefField raised = field(topology, roofOverInterior(topology));
+        assertEquals(MacroReliefField.TIER_RISE_METERS, raised.metersAt(6, 6), 1e-4f);
+        assertTrue(raised.tallestMeters() >= MacroReliefField.TIER_RISE_METERS,
+                "a plinth taller than every wall still has to be inside the sun's march");
+
+        topology.setPlinthTiers(6, 6, 0);
+        assertEquals(ground, field(topology, roofOverInterior(topology)).metersAt(6, 6), 1e-4f);
+    }
+
     // ------------------------------------------------------------------------
 
     private static MacroReliefField field(CellTopology topology, Buildings buildings) {
