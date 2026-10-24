@@ -76,7 +76,7 @@ public final class FragGrenadeTactics {
 
             int softTargets = countSoftContacts(squad, targetX, targetY,
                     grenade.aoeRadius(), sim);
-            if (softTargets < (inFuel ? 1 : MIN_SOFT_TARGETS)) continue;
+            if (!worthThrowing(inFuel, softTargets)) continue;
             if (!friendlyFootprintClear(carrier, targetX, targetY, grenade, sim)) continue;
             if (fire != null && FireReach.reachesSide(fire, cellX, cellY, lit,
                     sim.identity().faction(carrier), sim)) continue;
@@ -117,6 +117,15 @@ public final class FragGrenadeTactics {
             }
         }
         return best;
+    }
+
+    /**
+     * Whether a throw at a point is worth its charge: one soft target standing in fuel that can still catch, since
+     * the fire does the rest; otherwise the blast must do the work alone, and it wants two. A carrier that finds no
+     * such point keeps its charge and looks again on its next turn.
+     */
+    static boolean worthThrowing(boolean inFuel, int softTargets) {
+        return softTargets >= (inFuel ? 1 : MIN_SOFT_TARGETS);
     }
 
     /** Equipment availability for a player's throw: a hand grenade, in hand or on the belt, with one left and the hand free. */

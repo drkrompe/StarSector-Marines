@@ -54,4 +54,12 @@ class IncendiaryAimTest {
         assertNotNull(cell);
         assertTrue(f.canBurn(cell[0], cell[1]), "aimed at unburnt fuel: " + Arrays.toString(cell));
     }
+
+    @Test
+    void withNothingLeftToCatchTheBlastMustDoTheWorkAlone() {
+        assertTrue(FragGrenadeTactics.worthThrowing(true, 1), "one man in fuel: the fire does the rest");
+        assertFalse(FragGrenadeTactics.worthThrowing(false, 1), "one man on burnt ground: hold the charge");
+        assertTrue(FragGrenadeTactics.worthThrowing(false, 2), "two in the blast: a blast throw");
+        assertFalse(FragGrenadeTactics.worthThrowing(false, 0));
+    }
 }
