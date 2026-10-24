@@ -1076,9 +1076,11 @@ KEYFRAMES = {
             ('fire_on', 'lasher-lead', (38, -2, 6), (-.4, .4, 1), 105 - 105.5),
             ('fire_on', 'lasher-lead', (27, 2, 6), (-.4, .4, 1), 105 - 106.2),
             ('fire_on', 'lasher-lead', (16, 4, 6), (-.4, .4, 1), 105 - 106.9),
-            ('blast_on', 'lasher-lead', 8, (40, -3, 5), 105.9),
-            ('blast_on', 'lasher-lead', 8, (28, 1, 6), 106.6),
-            ('blast_on', 'lasher-lead', 9, (17, 3, 6), 107.2),
+            # each pop a third smaller than the break-up's cook-off, with its own spray of plating, so it
+            # reads at the crop as a burst rather than a brighter patch of the fire (24 fps check, 2026-10-24)
+            ('blast_on', 'lasher-lead', 11, (40, -3, 5), 105.9), ('debris', 'lasher-lead', 10, (40, -3, 5), 105.9),
+            ('blast_on', 'lasher-lead', 11, (28, 1, 6), 106.6), ('debris', 'lasher-lead', 10, (28, 1, 6), 106.6),
+            ('blast_on', 'lasher-lead', 12, (17, 3, 6), 107.2), ('debris', 'lasher-lead', 12, (17, 3, 6), 107.2),
             ('blast_on', 'lasher-lead', 16, (8, 4, 6), 107.6), ('debris', 'lasher-lead', 40, (8, 4, 6), 107.6)],
         labels=['falcon-p', 'lasher-lead']),
     'k5': dict(
