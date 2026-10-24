@@ -79,6 +79,7 @@ class SceneFx:
         self.m = _mods()
         self.rows = []
         self.flared = {}                # ship -> the swfx_pd.Flares she threw (flares), for a salvo to take
+        self.riding = {}                # (flight label, launch frame) -> (ship it hit, hit frame): to_world
         self.before = set(bpy.data.objects)     # what the builds brought: projectile_check looks past it
         for pl in placed.values():
             if pl['fx'] is not None:
@@ -523,6 +524,7 @@ class SceneFx:
     # (the ship's motion at the fire instant is in that line: it was aimed at where the target
     # would be); a laid trail stays laid. Impacts belong to the target and ride her.
     INHERIT = re.compile(r'flare|puff|casing')
+    RIDE = re.compile(r' missile (?:hit|shield) (\S+) f(-?\d+)\b')
     PROJECTILE = re.compile(r' (round|bolt|tracer|missile|motor|glare|contrail|flare|canister|puff|casing)\b')
 
     @contextlib.contextmanager
@@ -550,7 +552,17 @@ class SceneFx:
             if f0 is None:
                 continue
             base = copy_at(f0)
-            if self.INHERIT.search(ob.name):
+            hit = self.RIDE.search(ob.name)
+            hit = self.riding.get((hit.group(1), int(hit.group(2)))) if hit else None
+            if hit is not None and hit[0] in self.placed:
+                # a warhead's burst on a ship: held in the world until it meets her, then carried on
+                # with her, so the fires and smoke it leaves burn on her hull (S6 audit, 2026-10-23:
+                # held in the world, they burned 110-200 m behind a Lasher doing 190 m/s)
+                b, fh = hit
+                on = self.matrix_at(b, fh).inverted()
+                delta = lambda k, base=base, b=b, fh=fh, on=on: (copy_at(k).inverted() @ self.matrix_at(b, max(k, fh))
+                                                                  @ on @ base)
+            elif self.INHERIT.search(ob.name):
                 # thrown, not aimed (a flare, a puff, a casing): it keeps the ship's velocity at the
                 # instant it left her (owner, 2026-10-23: flares "stay in relation to the hound")
                 v = (self.matrix_at(a, f0 + 1).translation - self.matrix_at(a, f0 - 1).translation) / 2
@@ -780,6 +792,9 @@ class SceneFx:
                 out += one
             fl = out
         taken = self._decoy(a, b, fl, decoys) if decoys else []
+        for f in fl:         # each warhead that meets her rides her from its hit on (to_world)
+            if f.end and f.end['kind'] == 'hit':
+                self.riding[(f.label, int(f.frame))] = (b, int(f.end['frame']))
         with self.fired(a), shooter.kit() as (ctx, kit):
             kit.guns.launch_flights(ctx, fl)
         self.rows.append(f'missiles {a} -> {b}: {len(fl)} Harpoons, launched {frames[0] + shift}, '

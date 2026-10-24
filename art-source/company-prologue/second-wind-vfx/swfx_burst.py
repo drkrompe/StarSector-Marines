@@ -484,6 +484,9 @@ def warhead(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, core_m, axis=None, ton
         for fi, e in keys:
             lt.data.energy = e
             lt.data.keyframe_insert('energy', frame=fi)
+        # shown only while it burns (dark either side): a light shown from the shot's first frame
+        # read to the motion audit as born there, wherever its ship then was
+        swfx_guns._visible_between(lt, f, f + span)
         extra.append(lt)
     for ob in extra:
         ob['swfx_burst_t0'] = int(f)
