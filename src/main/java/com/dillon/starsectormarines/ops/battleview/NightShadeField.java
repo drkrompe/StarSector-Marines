@@ -34,6 +34,9 @@ import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL11.glDeleteTextures;
 import static org.lwjgl.opengl.GL11.glEnd;
 import static org.lwjgl.opengl.GL11.glGenTextures;
+import static org.lwjgl.opengl.GL11.glGetTexLevelParameteri;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_ALPHA_SIZE;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_LUMINANCE_SIZE;
 import static org.lwjgl.opengl.GL11.glPixelStorei;
 import static org.lwjgl.opengl.GL11.glPopClientAttrib;
 import static org.lwjgl.opengl.GL11.glPushClientAttrib;
@@ -48,7 +51,7 @@ import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 
 /**
- * The night shade computed per pixel on the card instead of built as quads ({@code gpu-night-shade.md}).
+ * The night shade computed per pixel on the card instead of built as quads ({@code battle-render-nouns.md}, night lighting).
  *
  * <p>The shade is a function of light pools sampled bilinearly at half-cell resolution
  * ({@link NightLightingRenderSystem}): the lamps' pools and colours, baked once per map, and fire's pools, refilled
@@ -67,14 +70,6 @@ import static org.lwjgl.opengl.GL20.glUseProgram;
  */
 final class NightShadeField {
     private static final Logger LOG = Global.getLogger(NightShadeField.class);
-
-    /**
-     * {@code -Dbattle.render.gpuNightShade=false} builds the night shade as quads on the CPU, the control for this
-     * pass. Temporary: remove it with the quad path for GL hosts once stills and renderEvidence have read the field
-     * against it; the quad path itself stays for Java2D hosts.
-     */
-    static final String GPU_PROPERTY = "battle.render.gpuNightShade";
-    static final boolean ENABLED = Boolean.parseBoolean(System.getProperty(GPU_PROPERTY, "true"));
 
     /** What a stored pool of one full unit reads as; pools above it are clamped. */
     static final float RANGE = 16f;
@@ -115,6 +110,10 @@ final class NightShadeField {
     private int lampTexture, fireTexture, cellTexture;
     private int fireTexW, fireTexH, cellTexW, cellTexH;
     private boolean broken;
+    /** Bits per channel the driver actually stored the pools at; zero until the first upload. */
+    private int storedBits;
+    /** Fewer bits than this band the soft edge of a pool, so the field gives way to the quads. */
+    static final int MIN_BITS = 12;
 
     private ShortBuffer lampTexels;
     private int lampW, lampH;
@@ -130,6 +129,9 @@ final class NightShadeField {
 
     /** Whether a draw has failed, after which the caller builds quads again. */
     boolean broken() { return broken; }
+
+    /** Bits per channel the driver stored the pools at, the lesser of the lamps' and fire's; zero before a draw. */
+    int storedBits() { return storedBits; }
 
     /** Takes the lamps' baked pools; uploaded on the next draw. */
     void bakeLamps(float[] pools, float[] reds, float[] greens, float[] blues, int width, int height) {
@@ -240,6 +242,23 @@ final class NightShadeField {
                 glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, cellW, cellH, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, cellTexels);
             }
             glActiveTexture(GL_TEXTURE0);
+            if (storedBits == 0) {
+                // A sized format is a request: a driver may keep RGBA16 at eight bits, which would band the shade.
+                glBindTexture(GL_TEXTURE_2D, lampTexture);
+                int lampBits = glGetTexLevelParameteri(GL_TEXTURE_2D, 0, GL_TEXTURE_ALPHA_SIZE);
+                storedBits = lampBits;
+                if (fireTexW > 0) {
+                    glActiveTexture(GL_TEXTURE0 + 1);
+                    storedBits = Math.min(lampBits, glGetTexLevelParameteri(GL_TEXTURE_2D, 0, GL_TEXTURE_LUMINANCE_SIZE));
+                    glActiveTexture(GL_TEXTURE0);
+                }
+                if (storedBits < MIN_BITS) {
+                    broken = true;
+                    LOG.warn("Night shade field: the driver stores pools at " + storedBits
+                            + " bits; building the shade as quads");
+                    return false;
+                }
+            }
         } finally {
             glPopClientAttrib();
         }
@@ -287,6 +306,7 @@ final class NightShadeField {
         fireTexW = fireTexH = cellTexW = cellTexH = 0;
         lampDirty = lampTexels != null;
         broken = false;
+        storedBits = 0;
         glUseProgram(0);
     }
 

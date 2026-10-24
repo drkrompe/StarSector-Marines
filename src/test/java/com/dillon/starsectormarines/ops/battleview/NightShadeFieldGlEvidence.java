@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.render2d.BattleCamera;
-import com.dillon.starsectormarines.testsupport.HeadlessGl;
+import com.dillon.starsectormarines.testsupport.GlSurface;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.lwjgl.BufferUtils;
@@ -48,11 +48,12 @@ class NightShadeFieldGlEvidence {
 
     @Test
     void theFieldDrawsTheShadeFunctionAtEveryPixel() {
-        try (HeadlessGl gl = HeadlessGl.createOrNull(SIZE, SIZE)) {
+        try (GlSurface gl = GlSurface.createOrNull(SIZE, SIZE)) {
             if (gl == null) {
-                System.out.println("[shader-evidence] SKIPPED: " + HeadlessGl.unavailableReason());
+                System.out.println("[shader-evidence] SKIPPED: " + GlSurface.unavailableReason());
                 return;
             }
+            System.out.println("[shader-evidence] context: " + gl.rendererDescription());
             int w = CELLS * 2 + 1;
             float[] pools = new float[w * w], reds = new float[w * w], greens = new float[w * w],
                     blues = new float[w * w], fire = new float[w * w];
@@ -112,7 +113,10 @@ class NightShadeFieldGlEvidence {
                     }
                 }
                 System.out.println("[shader-evidence] night shade field: " + shaded + " of " + SIZE * SIZE
-                        + " pixels shaded, worst channel " + worst + " levels from the CPU shade");
+                        + " pixels shaded, worst channel " + worst + " levels from the CPU shade; pools stored at "
+                        + field.storedBits() + " bits");
+                assertTrue(field.storedBits() >= NightShadeField.MIN_BITS,
+                        "this driver keeps the pools at " + field.storedBits() + " bits, which bands the shade");
                 assertTrue(shaded > SIZE * SIZE / 2, "the frame has to be shaded to say anything");
                 assertTrue(worst <= TOLERANCE, "the field draws the CPU shade function; worst " + worst);
                 assertTrue(!field.broken(), "and it drew without a GL error");
