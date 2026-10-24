@@ -170,7 +170,7 @@ public final class MechWorkshop {
         if (recipe == null || !resources.spend(resources.quote(recipe.cost()))) {
             return Result.of(Status.INSUFFICIENT_MATERIALS);
         }
-        CampaignMech mech = bay.fabricateChassis(squadId, variant);
+        CampaignMech mech = bay.fabricateFrame(squadId, variant);
         if (mech == null) {
             throw new IllegalStateException("validated chassis could not enter its vacant gantry");
         }

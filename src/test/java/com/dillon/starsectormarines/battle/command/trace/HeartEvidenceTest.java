@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
+import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Density;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPool;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -294,14 +295,29 @@ class HeartEvidenceTest {
         }
         for (String template : MATRIX) {
             BloomHeartBattleFixture heart = (BloomHeartBattleFixture) loadFixture(template);
-            for (SurfacePalette biome : SurfacePalette.values()) {
-                String b = biome.name().toLowerCase(Locale.ROOT);
-                for (StoryMapPool.Entry entry : StoryMapPools.pool(BloomHeartSetup.storyMap(heart.form())).entries(biome)) {
-                    out.add(new Selected(new BloomHeartBattleFixture(entry.seed(), heart.form(), biome, heart.manifest()),
-                            fixtureId(template) + "-" + b + "-seed" + entry.seed(),
-                            template + " at pooled " + b + " seed " + entry.seed()));
+            for (Density density : densities()) {
+                String d = density == Density.RURAL ? "" : "-" + density.name().toLowerCase(Locale.ROOT);
+                for (SurfacePalette biome : SurfacePalette.values()) {
+                    String b = biome.name().toLowerCase(Locale.ROOT);
+                    for (StoryMapPool.Entry entry : StoryMapPools.pool(BloomHeartSetup.storyMap(heart.form(), density)).entries(biome)) {
+                        out.add(new Selected(new BloomHeartBattleFixture(entry.seed(), heart.form(), biome, density, heart.manifest()),
+                                fixtureId(template) + d + "-" + b + "-seed" + entry.seed(),
+                                template + " at pooled " + density.name().toLowerCase(Locale.ROOT) + " " + b + " seed " + entry.seed()));
+                    }
                 }
             }
+        }
+        return out;
+    }
+
+    /** {@code -Pdensities=town,city} plays only those densities' pools; every density by default. */
+    private static List<Density> densities() {
+        String named = System.getProperty(PREFIX + "densities", "").trim();
+        if (named.isBlank()) return List.of(Density.values());
+        List<Density> out = new ArrayList<>();
+        for (String d : named.split(",")) {
+            String n = d.trim().toUpperCase(Locale.ROOT);
+            out.add(Density.valueOf(n.equals("URBAN") ? "CITY" : n));
         }
         return out;
     }

@@ -1,8 +1,11 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
+import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
+import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.PatchField;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -12,12 +15,14 @@ import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationLayout;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationPlan;
 import com.dillon.starsectormarines.battle.world.gen.elevation.PlateauPlanner;
 import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
+import com.dillon.starsectormarines.battle.world.gen.elevation.TerracePlanner;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestBrush;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestField;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestPlan;
 import com.dillon.starsectormarines.battle.world.gen.forest.LandscapeAccess;
 import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
+import com.dillon.starsectormarines.battle.world.gen.layout.LayoutGround;
 import com.dillon.starsectormarines.battle.world.gen.nature.FormationBrush;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
@@ -71,7 +76,9 @@ public final class OutdoorLandscapeStage implements GenStage {
         if (c.topology.terrainSurface() == null) hills(c, surface, reserved, ridgeGround, random);
         int plateaus = plateausWanted(c);
         if (plateaus > 0) plateaus(c, reserved, plateaus, new Random(c.seed ^ 0x504c4154L));
-        if (!ridges.isEmpty() && c.grid.elevation() == null) ridges(c, reserved, ridges, false);
+        if (!ridges.isEmpty() && c.grid.elevation() == null) {
+            ridges(c, reserved, ridges, false, List.of(), new boolean[c.width * c.height]);
+        }
         if (surface == SurfacePalette.VERDANT) trees(c, reserved, landscape.woodland());
         else FormationBrush.scatter(c,surface,reserved);
         // Hills, trees and formations turn cells non-walkable after TacticalRegionStage
@@ -104,12 +111,107 @@ public final class OutdoorLandscapeStage implements GenStage {
     }
 
     public static List<int[]> raiseRidges(GenContext c, List<RidgePlanner.Band> bands, boolean[][] also) {
+        return raiseRidges(c, bands, also, List.of()).feet();
+    }
+
+    /**
+     * What {@link #raiseRidges(GenContext, List, boolean[][], List)} raised: the ridges' ramp feet, one per segment,
+     * and each terrace as planned, standing or refused with its reason.
+     */
+    public record Raised(List<int[]> feet, List<TerracePlanner.Planned> terraces) { }
+
+    /**
+     * The layout's ridges with built ground standing on their crests ({@link TerracePlanner}): each terrace is
+     * planned first, against the same reservations, kept when its faces keep the ground connected, and the ridges
+     * then run on through it. A refused terrace leaves its place in a pass, as before.
+     */
+    public static Raised raiseRidges(GenContext c, List<RidgePlanner.Band> bands, boolean[][] also,
+                                     List<TerracePlanner.Terrace> terraces) {
         if (bands.isEmpty() || c.grid.elevation() != null || c.width < 32 || c.height < 32
                 || TileRegistry.installed() == null
-                || !Boolean.parseBoolean(System.getProperty("battle.mapgen.outdoorLandscape", "true"))) return List.of();
-        // The access routes between the places are not reserved: the ridge's own access proof stands for them, and a
-        // route along the line would otherwise break every stretch of it. The ways through are its passes and ramps.
-        boolean[] reserved = reservations(c, new int[0], false);
+                || !Boolean.parseBoolean(System.getProperty("battle.mapgen.outdoorLandscape", "true"))) {
+            List<TerracePlanner.Planned> refused = new ArrayList<>();
+            for (TerracePlanner.Terrace t : terraces) refused.add(refusedTerrace(t, "no ridge was raised on this map"));
+            return new Raised(List.of(), refused);
+        }
+        boolean[] reserved = ridgeReservations(c, also, null);
+        // A terrace's place does not keep its own cliff off: the margin round built ground is for a cliff that would
+        // stand beside it, and a terrace's stands round it. Everything else is reserved as for any ridge.
+        boolean[] own = null;
+        if (!terraces.isEmpty()) {
+            own = new boolean[c.width * c.height];
+            for (TerracePlanner.Terrace t : terraces) {
+                for (int y = Math.max(0, t.y0()); y <= Math.min(c.height - 1, t.y1()); y++) {
+                    for (int x = Math.max(0, t.x0()); x <= Math.min(c.width - 1, t.x1()); x++) own[y * c.width + x] = true;
+                }
+            }
+        }
+        boolean[] reservedRound = own == null ? reserved : ridgeReservations(c, also, own);
+        int w = c.width;
+        boolean[] kept = new boolean[c.width * c.height];
+        long seed = c.seed ^ RIDGE_SALT;
+        // Road as the layout reads it (reserved, painted, or a place's own road in open country), and any paving a
+        // road surface dresses: a place's arms out through its gates are what its ramps carry.
+        LayoutGround ground = new LayoutGround(c);
+        IntPredicate road = i -> ground.isRoad(i % w, i / w)
+                || (c.topology.roadSurface() != null && c.topology.roadSurface().underlay(i % w, i / w) != null)
+                || c.topology.getGroundKind(i % w, i / w) == GroundKind.STREET;
+        IntPredicate open = i -> PreparedGround.open(c, i % w, i / w) && c.topology.getBuildingId(i % w, i / w) == 0;
+        IntPredicate free = ridgeFree(c, reservedRound, true);
+        List<TerracePlanner.Planned> planned = new ArrayList<>(), standing = new ArrayList<>();
+        boolean[] taken = new boolean[c.width * c.height];
+        boolean[] main = terraces.isEmpty() ? null : mainBody(c);
+        for (TerracePlanner.Terrace terrace : terraces) {
+            TerracePlanner.Planned p = TerracePlanner.plan(c.width, c.height, seed, terrace, road, open, free,
+                    i -> c.topology.getBuildingId(i % w, i / w) == 0 && !c.topology.isWall(i % w, i / w));
+            if (p.stands()) p = keptTerrace(c, p, standing, taken, main, seed);
+            planned.add(p);
+            if (!p.stands()) continue;
+            standing.add(p);
+            for (int i = 0; i < taken.length; i++) taken[i] |= p.zone()[i] || p.built()[i];
+        }
+        // The ridges are held to their place only round the terraces that stand: a refused terrace's place is
+        // ordinary built ground again, kept off by the ordinary margins, and a standing terrace's place is its own
+        // top, on which no ridge face may land.
+        boolean[] ridgeReserved = reserved, stamped = reserved;
+        if (!standing.isEmpty()) {
+            boolean[] ownStanding = new boolean[c.width * c.height];
+            for (TerracePlanner.Planned p : standing) {
+                TerracePlanner.Terrace t = p.terrace();
+                for (int y = Math.max(0, t.y0()); y <= Math.min(c.height - 1, t.y1()); y++) {
+                    for (int x = Math.max(0, t.x0()); x <= Math.min(c.width - 1, t.x1()); x++) {
+                        ownStanding[y * c.width + x] = true;
+                    }
+                }
+            }
+            stamped = ridgeReservations(c, also, ownStanding);
+            ridgeReserved = reserved.clone();
+            for (int i = 0; i < ridgeReserved.length; i++) ridgeReserved[i] |= ownStanding[i];
+        }
+        ElevationPlan plan = ridges(c, ridgeReserved, stamped, bands, true, standing, kept, main);
+        if (plan == null) return new Raised(List.of(), planned);
+        List<ElevationPlan.Ramp> terraceRamps = new ArrayList<>();
+        for (TerracePlanner.Planned p : standing) terraceRamps.addAll(p.ramps());
+        List<int[]> feet = new ArrayList<>();
+        for (ElevationPlan.Ramp ramp : plan.ramps()) {
+            if (terraceRamps.contains(ramp)) continue;
+            feet.add(new int[]{(int) Math.round(ramp.foot().x()), (int) Math.round(ramp.foot().y())});
+        }
+        return new Raised(feet, planned);
+    }
+
+    private static final long RIDGE_SALT = 0x52494447L;
+
+    /**
+     * What a layout's ridge keeps off: the landscape's reservations without the access routes (the ridge's own
+     * access proof stands for them, and a route along the line would break every stretch of it; the ways through
+     * are its passes and ramps), the landscape's tracks and brooks to come, the structures already raised and
+     * {@code also}. {@code own} is ground whose built things reserve nothing round themselves.
+     */
+    private static boolean[] ridgeReservations(GenContext c, boolean[][] also, boolean[] own) {
+        // Round a terrace a cliff may stand a cell off a road rather than two: the road beside a place is often
+        // close behind it, and a cell of open ground keeps a vehicle's way along the road as wide as the road.
+        boolean[] reserved = reservations(c, new int[0], false, own, own == null ? 2 : 1);
         // The landscape's tracks and brooks are laid after this, so their ground is kept for them now.
         PrecinctPlan precincts = c.get(BspKeys.PRECINCTS);
         Landscape landscape = precincts == null ? Landscape.STOCK : precincts.landscape();
@@ -128,13 +230,47 @@ public final class OutdoorLandscapeStage implements GenStage {
         if (also != null) for (int x = 0; x < c.width; x++) for (int y = 0; y < c.height; y++) {
             if (also[x][y]) reserve(c, reserved, x - 2, y - 2, x + 2, y + 2);
         }
-        ElevationPlan plan = ridges(c, reserved, bands, true);
-        if (plan == null) return List.of();
-        List<int[]> feet = new ArrayList<>();
-        for (ElevationPlan.Ramp ramp : plan.ramps()) {
-            feet.add(new int[]{(int) Math.round(ramp.foot().x()), (int) Math.round(ramp.foot().y())});
+        return reserved;
+    }
+
+    private static TerracePlanner.Planned refusedTerrace(TerracePlanner.Terrace terrace, String why) {
+        return new TerracePlanner.Planned(terrace, List.of(), List.of(), null, null, why);
+    }
+
+    /**
+     * The terrace, if it stands clear of the terraces already kept and its faces keep the ground round it
+     * connected (adding them to {@code kept}); else refused, saying which.
+     */
+    private static TerracePlanner.Planned keptTerrace(GenContext c, TerracePlanner.Planned p,
+                                                      List<TerracePlanner.Planned> standing, boolean[] taken,
+                                                      boolean[] main, long seed) {
+        for (int i = 0; i < taken.length; i++) {
+            if (taken[i] && (p.zone()[i] || p.built()[i])) return refusedTerrace(p.terrace(), "it runs into another terrace");
         }
-        return feet;
+        List<ElevationPlan.Plateau> plateaus = new ArrayList<>();
+        List<ElevationPlan.Ramp> ramps = new ArrayList<>();
+        for (TerracePlanner.Planned s : standing) {
+            plateaus.addAll(s.plateaus());
+            ramps.addAll(s.ramps());
+        }
+        plateaus.addAll(p.plateaus());
+        ramps.addAll(p.ramps());
+        ElevationLayout layout;
+        try {
+            layout = ElevationLayout.resolve(new ElevationPlan(c.width, c.height, PlateauPlanner.FACE_WIDTH,
+                    PlateauPlanner.SOUTH_FACE, .6, seed, plateaus, ramps));
+        } catch (IllegalArgumentException refused) {
+            return refusedTerrace(p.terrace(), "it does not resolve beside the others: " + refused.getMessage());
+        }
+        if (!keepsWholeAccess(c, layout, main)) return refusedTerrace(p.terrace(), "its cliff would cut the ground apart");
+        return p;
+    }
+
+    /** Cells a ridge, its faces and its apron may cover: open natural ground nothing reserves. */
+    private static IntPredicate ridgeFree(GenContext c, boolean[] reserved, boolean overLawns) {
+        int w = c.width;
+        return i -> !reserved[i] && (openGround(c, i % w, i / w) || overLawns && lawn(c, i % w, i / w))
+                && !terrainVisible(c, i % w, i / w);
     }
 
     /** Ramps already on the map (a layout's ridges, raised before this pass) stay clear: they are the only ways up. */
@@ -147,13 +283,27 @@ public final class OutdoorLandscapeStage implements GenStage {
     }
 
     private static boolean[] reservations(GenContext c, int[] hostAnchors, boolean routes) {
+        return reservations(c, hostAnchors, routes, null, 2);
+    }
+
+    /**
+     * @param own cells whose made ground, doors, points of interest, nodes and props reserve only themselves rather
+     *            than a margin round them (a terrace's place), or null
+     */
+    private static boolean[] reservations(GenContext c, int[] hostAnchors, boolean routes, boolean[] own,
+                                          int roadMargin) {
         boolean[] reserved = new boolean[c.width * c.height];
         boolean[][] roads = c.get(BspKeys.ROAD_RESERVATION), roadCells = c.get(BspKeys.ROAD_CELLS);
         for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) {
+            if (own != null && own[y * c.width + x]) {
+                reserved[y * c.width + x] = true;
+                continue;
+            }
             if (x < 4 || y < 4 || x >= c.width - 4 || y >= c.height - 4
-                    || c.isMadeGround(x, y) || c.grid.isDoorway(x, y)
-                    || (roads != null && roads[x][y]) || (roadCells != null && roadCells[x][y]))
+                    || c.isMadeGround(x, y) || c.grid.isDoorway(x, y))
                 reserve(c, reserved, x - 2, y - 2, x + 2, y + 2);
+            else if ((roads != null && roads[x][y]) || (roadCells != null && roadCells[x][y]))
+                reserve(c, reserved, x - roadMargin, y - roadMargin, x + roadMargin, y + roadMargin);
         }
         List<int[]> anchors = new ArrayList<>();
         for (var key : List.of(BspKeys.MARINE_SPAWN, BspKeys.DEFENDER_SPAWN)) {
@@ -173,17 +323,27 @@ public final class OutdoorLandscapeStage implements GenStage {
             reserve(c, reserved, l, b, r, t);
         }
         for (var poi : c.pois) {
+            if (ownCell(c, own, poi.interiorAnchorX, poi.interiorAnchorY)) {
+                reserve(c, reserved, poi.left, poi.top, poi.right, poi.bottom);
+                continue;
+            }
             reserve(c, reserved, poi.left - 3, poi.top - 3, poi.right + 3, poi.bottom + 3);
             anchors.add(new int[]{poi.interiorAnchorX, poi.interiorAnchorY});
             anchors.add(new int[]{poi.anchorCellX, poi.anchorCellY});
         }
         for (var node : c.tactical) {
+            if (ownCell(c, own, node.anchorX, node.anchorY)) {
+                reserve(c, reserved, node.left, node.top, node.right, node.bottom);
+                continue;
+            }
             reserve(c, reserved, node.left - 3, node.top - 3, node.right + 3, node.bottom + 3);
             anchors.add(new int[]{node.anchorX, node.anchorY});
         }
-        for (var prop : c.doodads)
-            reserve(c, reserved, prop.cellX - 1, prop.cellY - 1,
-                    prop.cellX + prop.footprintCellsX, prop.cellY + prop.footprintCellsY);
+        for (var prop : c.doodads) {
+            int margin = ownCell(c, own, prop.cellX, prop.cellY) ? 0 : 1;
+            reserve(c, reserved, prop.cellX - margin, prop.cellY - margin,
+                    prop.cellX + prop.footprintCellsX - 1 + margin, prop.cellY + prop.footprintCellsY - 1 + margin);
+        }
         // An open-field landing keeps its whole disc clear: a grove or a hill
         // there is cover for whatever comes at the berths.
         FieldOfFire field = FieldOfFire.of(c.get(BspKeys.PRECINCTS));
@@ -212,6 +372,10 @@ public final class OutdoorLandscapeStage implements GenStage {
         for (int[] point : anchors) reserve(c, reserved, point[0] - 5, point[1] - 5, point[0] + 5, point[1] + 5);
         if (routes) LandscapeAccess.reserveRoutes(c.grid, anchors, reserved);
         return reserved;
+    }
+
+    private static boolean ownCell(GenContext c, boolean[] own, int x, int y) {
+        return own != null && x >= 0 && y >= 0 && x < c.width && y < c.height && own[y * c.width + x];
     }
 
     private static void hills(GenContext c, SurfacePalette surface, boolean[] reserved, boolean[][] ridgeGround,
@@ -281,25 +445,43 @@ public final class OutdoorLandscapeStage implements GenStage {
      *                  a place is. The ridge's top takes the map's own ground there.
      */
     private static ElevationPlan ridges(GenContext c, boolean[] reserved, List<RidgePlanner.Band> bands,
-                                        boolean overLawns) {
-        int w = c.width;
+                                        boolean overLawns, List<TerracePlanner.Planned> terraces, boolean[] kept) {
+        return ridges(c, reserved, reserved, bands, overLawns, terraces, kept, null);
+    }
+
+    /**
+     * @param stamped the reservations the brush is held to: {@code reserved} less the margins round the terraces'
+     *                own built ground, which their cliffs may stand in
+     * @param main    with terraces, the map's main body, and every segment is proved over the whole map
+     *                ({@link #keepsWholeAccess}); null proves each segment's faces locally, as ever
+     */
+    private static ElevationPlan ridges(GenContext c, boolean[] reserved, boolean[] stamped,
+                                        List<RidgePlanner.Band> bands, boolean overLawns,
+                                        List<TerracePlanner.Planned> terraces, boolean[] kept, boolean[] main) {
         // Proved a segment at a time: each new segment's faces in a box round
         // them alone, with the faces already kept counted closed. One box round
         // every ridge at once spans half the map, and any pocket in it refuses
-        // them all.
-        boolean[] kept = new boolean[c.width * c.height];
-        ElevationPlan plan = RidgePlanner.plan(c.width, c.height, c.seed ^ 0x52494447L, bands,
-                i -> !reserved[i] && (openGround(c, i % w, i / w) || overLawns && lawn(c, i % w, i / w))
-                        && !terrainVisible(c, i % w, i / w),
-                layout -> keepsAccess(c, layout, kept));
+        // them all. A terrace's faces are already kept.
+        ElevationPlan plan = RidgePlanner.plan(c.width, c.height, c.seed ^ RIDGE_SALT, bands,
+                ridgeFree(c, reserved, overLawns),
+                layout -> main == null ? keepsAccess(c, layout, kept) : keepsWholeAccess(c, layout, main), terraces);
         if (plan == null) return null;
+        boolean[] built = null;
+        if (!terraces.isEmpty()) {
+            built = new boolean[c.width * c.height];
+            for (TerracePlanner.Planned terrace : terraces) {
+                for (int i = 0; i < built.length; i++) built[i] |= terrace.built()[i];
+            }
+        }
         if (overLawns) {
+            // A lawn the ridge rises over takes the map's own ground; a terrace keeps what its place laid.
             ElevationLayout raised = ElevationLayout.resolve(plan);
             for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) {
+                if (built != null && built[y * c.width + x] && !raised.isFace(x, y)) continue;
                 if (raised.touched(x, y) && lawn(c, x, y)) c.topology.setSurface(x, y, 0);
             }
         }
-        ElevationBrush.stamp(plan, c.grid, c.topology, reserved);
+        ElevationBrush.stamp(plan, c.grid, c.topology, stamped, built);
         // A ridge's ramps are its only ways up: no tree may grow on one and close it.
         ElevationLayout layout = ElevationLayout.resolve(plan);
         for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) {
@@ -373,6 +555,78 @@ public final class OutdoorLandscapeStage implements GenStage {
             if (layout.isFace(x, y)) kept[y * c.width + x] = true;
         }
         return true;
+    }
+
+    /**
+     * Whether the ground the map's main walkable body holds stays one body once this layout's faces close and its
+     * tiers part, proved over the whole map: a terrace's top joins the low ground only through its ramps, often far
+     * outside any box round the faces a candidate adds, so a local proof reads every terrace as an island.
+     *
+     * @param main the main body before any elevation ({@link #mainBody})
+     */
+    static boolean keepsWholeAccess(GenContext c, ElevationLayout layout, boolean[] main) {
+        int w = c.width, h = c.height;
+        ElevationMap map = layout.toMap(ElevationMap.SightRule.configured());
+        int start = -1, want = 0;
+        for (int i = 0; i < main.length; i++) {
+            if (!main[i] || layout.isFace(i % w, i / w)) continue;
+            want++;
+            if (start < 0) start = i;
+        }
+        if (start < 0) return true;
+        boolean[] seen = new boolean[w * h];
+        int[] queue = new int[w * h];
+        int head = 0, tail = 0, reached = 0;
+        queue[tail++] = start;
+        seen[start] = true;
+        while (head < tail) {
+            int i = queue[head++], x = i % w, y = i / w;
+            if (main[i]) reached++;
+            for (Direction d : Direction.CARDINALS) {
+                int nx = x + d.dx, ny = y + d.dy;
+                if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+                int n = ny * w + nx;
+                if (seen[n] || !c.grid.isWalkable(nx, ny) || layout.isFace(nx, ny)) continue;
+                if (!c.grid.isEdgePassable(x, y, d) || !c.grid.isEdgePassable(nx, ny, d.opposite())) continue;
+                if (map.separates(i, n)) continue;
+                seen[n] = true;
+                queue[tail++] = n;
+            }
+        }
+        return reached == want;
+    }
+
+    /** The largest 4-connected body of walkable ground on the map as it stands. */
+    static boolean[] mainBody(GenContext c) {
+        int w = c.width, h = c.height;
+        int[] label = new int[w * h];
+        int[] queue = new int[w * h];
+        int best = 0, bestSize = 0, next = 0;
+        for (int s0 = 0; s0 < w * h; s0++) {
+            if (label[s0] != 0 || !c.grid.isWalkable(s0 % w, s0 / w)) continue;
+            int id = ++next, head = 0, tail = 0;
+            queue[tail++] = s0;
+            label[s0] = id;
+            while (head < tail) {
+                int i = queue[head++], x = i % w, y = i / w;
+                for (Direction d : Direction.CARDINALS) {
+                    int nx = x + d.dx, ny = y + d.dy;
+                    if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+                    int n = ny * w + nx;
+                    if (label[n] != 0 || !c.grid.isWalkable(nx, ny)) continue;
+                    if (!c.grid.isEdgePassable(x, y, d) || !c.grid.isEdgePassable(nx, ny, d.opposite())) continue;
+                    label[n] = id;
+                    queue[tail++] = n;
+                }
+            }
+            if (tail > bestSize) {
+                bestSize = tail;
+                best = id;
+            }
+        }
+        boolean[] main = new boolean[w * h];
+        for (int i = 0; i < main.length; i++) main[i] = best != 0 && label[i] == best;
+        return main;
     }
 
     private static boolean keepsAccess(GenContext c, ElevationLayout layout) {

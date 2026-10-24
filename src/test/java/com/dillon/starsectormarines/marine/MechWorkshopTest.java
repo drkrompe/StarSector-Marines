@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -145,7 +146,10 @@ class MechWorkshopTest {
         assertTrue(hound.succeeded());
         assertNotNull(hound.mech());
         assertEquals(MechVariant.HOUND, hound.mech().variant());
-        assertEquals(MechWeaponComponent.NOSE_CHAINGUN, hound.mech().arms());
+        // Bought as a bare frame: no nose gun, no engine, held in its gantry until fitted.
+        assertNull(hound.mech().arms());
+        assertEquals(List.of(MechInternal.Role.ENGINE, MechInternal.Role.CAPACITOR_BANK),
+                hound.mech().missingInternals());
         assertTrue(workshop.fabricateChassis(MechBay.STARTER_SQUAD_ID,
                 MechVariant.HOUND).succeeded());
         assertTrue(workshop.fabricateChassis(MechBay.STARTER_SQUAD_ID,

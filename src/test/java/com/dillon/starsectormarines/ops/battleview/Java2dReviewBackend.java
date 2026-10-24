@@ -12,7 +12,7 @@ import java.nio.file.Path;
 /**
  * The CPU review drain: the production layers collected and replayed through Java2D by
  * {@link HeadlessBattleSceneRenderer}, in fixed bands so every machine draws the same pixels. GL-only custom passes
- * are drawn by its CPU models or not at all; see the table in CLAUDE.md under "What a review frame draws".
+ * are drawn by its CPU models or not at all; see the table in {@code snapshot-suites.md} under "What a Java2D review frame draws".
  */
 final class Java2dReviewBackend implements ReviewSceneBackend {
 

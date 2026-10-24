@@ -1,0 +1,62 @@
+{
+  "version": 2,
+  "map": "heart-burn-city",
+  "biomes": {
+    "VERDANT": [
+      {
+        "seed": 2,
+        "note": "two mothers; landing 30,119"
+      },
+      {
+        "seed": 3,
+        "note": "two mothers; landing 30,119"
+      },
+      {
+        "seed": 5,
+        "note": "two mothers; landing 30,119"
+      }
+    ],
+    "ARID": [
+      {
+        "seed": 2,
+        "note": "two mothers; landing 30,119"
+      },
+      {
+        "seed": 3,
+        "note": "two mothers; landing 30,119"
+      },
+      {
+        "seed": 5,
+        "note": "two mothers; landing 30,119"
+      }
+    ],
+    "ROCK": [
+      {
+        "seed": 2,
+        "note": "two mothers; landing 30,119"
+      },
+      {
+        "seed": 3,
+        "note": "two mothers; landing 30,119"
+      },
+      {
+        "seed": 5,
+        "note": "two mothers; landing 30,119"
+      }
+    ],
+    "FROZEN": [
+      {
+        "seed": 2,
+        "note": "two mothers; landing 30,119"
+      },
+      {
+        "seed": 3,
+        "note": "two mothers; landing 30,119"
+      },
+      {
+        "seed": 5,
+        "note": "two mothers; landing 30,119"
+      }
+    ]
+  }
+}

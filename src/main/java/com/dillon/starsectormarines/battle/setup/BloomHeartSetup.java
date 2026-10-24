@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
+import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
+import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
+import com.dillon.starsectormarines.battle.cordon.CordonSupplyStreets;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.command.BarrageScreen;
 import com.dillon.starsectormarines.battle.command.HeartAssaultCommand;
@@ -76,9 +80,35 @@ public final class BloomHeartSetup {
         return new TargetProfile(0, 0, 0, 0, "", Set.of(), biome, SettlementLink.ROAD);
     }
 
-    /** The story map a form plays from ({@code story-map-pools.md}). */
+    /** The story map a form plays from in open country ({@code story-map-pools.md}). */
     public static StoryMap storyMap(Form form) {
-        return form == Form.THE_BURN ? StoryMap.HEART_BURN : StoryMap.HEART_FRONT;
+        return storyMap(form, Density.RURAL);
+    }
+
+    /** The story map a form plays from in country as built-up as {@code density}: one pool each. */
+    public static StoryMap storyMap(Form form, Density density) {
+        boolean burn = form == Form.THE_BURN;
+        return switch (density) {
+            case RURAL -> burn ? StoryMap.HEART_BURN : StoryMap.HEART_FRONT;
+            case TOWN -> burn ? StoryMap.HEART_BURN_TOWN : StoryMap.HEART_FRONT_TOWN;
+            case CITY -> burn ? StoryMap.HEART_BURN_CITY : StoryMap.HEART_FRONT_CITY;
+        };
+    }
+
+    /** The form a heart story map is, or null for another mission's map. */
+    public static Form formOf(StoryMap map) {
+        for (Form form : Form.values()) for (Density density : Density.values()) {
+            if (storyMap(form, density) == map) return form;
+        }
+        return null;
+    }
+
+    /** The density a heart story map is laid out at; rural for any other map. */
+    public static Density densityOf(StoryMap map) {
+        for (Form form : Form.values()) for (Density density : Density.values()) {
+            if (storyMap(form, density) == map) return density;
+        }
+        return Density.RURAL;
     }
 
     /**
@@ -93,13 +123,12 @@ public final class BloomHeartSetup {
 
     /**
      * As {@link #country(Form, SurfacePalette, long)} in country as built-up as
-     * {@code density}. The pools hold open-country maps, so a town or city
-     * country is the first from the seed whose bores seat.
+     * {@code density}, from that density's pool.
      */
     public static Built country(Form form, SurfacePalette biome, Density density, long seed) {
-        StoryMapPool.Entry entry = density == Density.RURAL && StoryMapPools.installed()
-                ? StoryMapPools.pool(storyMap(form)).entry(biome, seed) : null;
-        if (entry != null) return country(form, biome, entry);
+        StoryMapPool.Entry entry = StoryMapPools.installed()
+                ? StoryMapPools.pool(storyMap(form, density)).entry(biome, seed) : null;
+        if (entry != null) return country(form, biome, density, entry);
         for (int attempt = 0; attempt < ATTEMPTS; attempt++) {
             Built built = build(form, biome, density, seed + attempt * 0x9E3779B97F4A7C15L, MapPatch.NONE);
             if (built != null) return built;
@@ -110,9 +139,14 @@ public final class BloomHeartSetup {
 
     /** A pooled heart country: never re-rolled, so a pooled seed whose bores no longer seat is a broken pool. */
     public static Built country(Form form, SurfacePalette biome, StoryMapPool.Entry entry) {
-        Built built = build(form, biome, Density.RURAL, entry.seed(), entry.patch());
+        return country(form, biome, Density.RURAL, entry);
+    }
+
+    /** As {@link #country(Form, SurfacePalette, StoryMapPool.Entry)}, from the pool of a density. */
+    public static Built country(Form form, SurfacePalette biome, Density density, StoryMapPool.Entry entry) {
+        Built built = build(form, biome, density, entry.seed(), entry.patch());
         if (built == null) {
-            throw new IllegalStateException(storyMap(form).id + " " + biome + " seed " + entry.seed()
+            throw new IllegalStateException(storyMap(form, density).id + " " + biome + " seed " + entry.seed()
                     + " does not seat its bores");
         }
         return built;
@@ -123,13 +157,50 @@ public final class BloomHeartSetup {
         Precinct landing = plan.landingPlace();
         return HeartBores.plan(map.grid, map.topology, form,
                 new int[]{workings.seedX(), workings.seedY()},
-                new int[]{landing.seedX(), landing.seedY()}, supplyRoad(map), battleSeed ^ BORE_SALT);
+                new int[]{landing.seedX(), landing.seedY()}, supplyRoad(map, plan), battleSeed ^ BORE_SALT);
     }
 
-    /** The supply road's cells as the map laid them, or none. */
-    private static List<int[]> supplyRoad(MapResult map) {
+    /**
+     * The supply road's cells as the map laid them; where none could be laid (a city's ground, every pooled city map),
+     * the streets are the supply road, as the Cordon's are (`cordon-nouns.md`, Logistics base): the way a truck drives
+     * from the landing to the settlement, over the ground as the vehicle router prices it, a street cheapest, widened
+     * to a laid road's width. None where a truck has no way at all.
+     */
+    public static List<int[]> supplyRoad(MapResult map, PrecinctPlan plan) {
         Laid road = map.layout.find(HeartLayout.SUPPLY_ROAD);
-        return road == null || !road.isLaid() ? List.of() : road.cells();
+        if (road != null && road.isLaid()) return road.cells();
+        Precinct landing = plan.landingPlace();
+        Precinct settlement = HeartCountry.place(plan, HeartCountry.SETTLEMENT);
+        if (settlement == null) return List.of();
+        VehicleClearance truck = VehicleClearance.erode(map.grid,
+                VehicleClearance.radiusForWidth(VehicleType.SUPPLY_TRUCK.visualWidthCells));
+        int[] a = VehicleRoutePlanner.snapToMask(truck, landing.seedX(), landing.seedY(), STREET_SNAP);
+        int[] b = VehicleRoutePlanner.snapToMask(truck, settlement.seedX(), settlement.seedY(), STREET_SNAP);
+        if (a == null || b == null) return List.of();
+        float[][] route = VehicleRoutePlanner.route(a[0], a[1], b[0], b[1], map.grid, TerrainCostField.from(map.topology), truck);
+        if (route == null) return List.of();
+        return widened(CordonSupplyStreets.cells(route[0], route[1]), STREET_ROAD_REACH,
+                map.grid.getWidth(), map.grid.getHeight());
+    }
+
+    /** Cells round a way's ends a truck's footprint is looked for. */
+    static final int STREET_SNAP = 8;
+    /** Cells either side of a street way the supply road takes in: a laid road's half width. */
+    static final int STREET_ROAD_REACH = 2;
+
+    /** Every in-bounds cell within {@code reach} (Chebyshev) of a cell of {@code way}, each once, in way order. */
+    static List<int[]> widened(List<int[]> way, int reach, int width, int height) {
+        boolean[] seen = new boolean[width * height];
+        List<int[]> out = new ArrayList<>();
+        for (int[] c : way) {
+            for (int dy = -reach; dy <= reach; dy++) for (int dx = -reach; dx <= reach; dx++) {
+                int x = c[0] + dx, y = c[1] + dy;
+                if (x < 0 || y < 0 || x >= width || y >= height || seen[y * width + x]) continue;
+                seen[y * width + x] = true;
+                out.add(new int[]{x, y});
+            }
+        }
+        return out;
     }
 
     /** The country from one seed with its patch, or {@code null} when its bores do not seat. */
@@ -148,10 +219,14 @@ public final class BloomHeartSetup {
         return new Built(sim, map, plan, heart, battleSeed);
     }
 
-    /** The heart as a campaign battle: the pooled map of the world's biome for a roll its event carries. */
-    public static BattleSimulation pooledMission(Form form, SurfacePalette biome, long roll,
+    /**
+     * The heart as a campaign battle: the pooled map of the world's biome and market size for a roll its event
+     * carries, a frontier world's farmland, a settled world's towns or a core world's city.
+     */
+    public static BattleSimulation pooledMission(Form form, SurfacePalette biome, int marketSize, long roll,
                                                  List<ShuttleAssignment> manifest) {
-        return mission(form, biome, StoryMapPools.pool(storyMap(form)).pick(biome, roll).seed(), manifest);
+        Density density = Density.of(marketSize);
+        return mission(form, biome, density, StoryMapPools.pool(storyMap(form, density)).pick(biome, roll).seed(), manifest);
     }
 
     /** Broad Front's company lane: satellites this share of the map's width either side of its landing are its own. */
@@ -217,15 +292,14 @@ public final class BloomHeartSetup {
         HeartVehiclePark park = HeartVehiclePark.of(built.map().layout);
         if (lanes != null && park != null) {
             lanes.sentFrom(park);
-            lanes.road(supplyRoad(built.map()));
+            lanes.road(supplyRoad(built.map(), built.plan()));
             // The park is the lanes' base: a pair a lane ready at the opening, restocked at the waves' pace.
             int n = lanes.grounds().size();
             // The base offers every tool (owner, 2026-10-23); the lanes' commander picks by need.
             AlliedToolShed shed = new AlliedToolShed(park)
                     .stock(AlliedTool.ARMOUR_PAIR, lanes.armourMaker(), n, 2 * n,
                             Math.round(ARMOUR_WAVE_SECONDS / (float) n / BattleSimulation.TICK_DT))
-                    .stock(AlliedTool.GUNSHIP, lanes.gunship().maker(), 1, 1, Math.round(GUNSHIP_RESTOCK_SECONDS / BattleSimulation.TICK_DT))
-                    .gated(AlliedTool.GUNSHIP, lanes.gunship()::gate);
+                    .stock(AlliedTool.GUNSHIP, lanes.gunship().maker(), 1, 1, Math.round(GUNSHIP_RESTOCK_SECONDS / BattleSimulation.TICK_DT));
             if (density != Density.RURAL) shed.stock(AlliedTool.MECH_LANCE, lanes.mechMaker(), 1, n,
                     Math.round(2 * ARMOUR_WAVE_SECONDS / (float) n / BattleSimulation.TICK_DT));
             lanes.calledFrom(shed).mechsFirst(density != Density.RURAL);
@@ -270,6 +344,7 @@ public final class BloomHeartSetup {
         if (form == Form.BROAD_FRONT && lanes != null && BROAD_COMPANY_ARMOUR) supportCompany(sim, form, lanes, companyLane, landing);
         if (front) lanes.companySector(companyLane);
         HeartAssaultCommand company = new HeartAssaultCommand(companyLane, screen);
+        if (form == Form.BROAD_FRONT && lanes != null) company.alongside(lanes.waveGrounds());
         if (form == Form.BROAD_FRONT && BROAD_WAIT_FOR_LANES) {
             if (BROAD_FALL_BACK) company.waitingForSatellites(landing.seedX(), landing.seedY());
             else company.waitingForSatellites();

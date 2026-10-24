@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
+import com.dillon.starsectormarines.battle.turret.EmplacementStyle;
+import com.dillon.starsectormarines.battle.turret.FortWorks;
+
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.fort.FortAspect;
@@ -653,6 +656,15 @@ public final class FortStage implements GenStage {
         // The glacis is open ground: nothing of the country's scatter stands in front of the works.
         levelRocks(ctx, (x, y) -> ctx.grid.inBounds(x, y) && cleared[x][y]);
         ctx.doodads.removeIf(d -> ctx.grid.inBounds(d.cellX, d.cellY) && cleared[d.cellX][d.cellY]);
+
+        // The fort is one lot, belt included: its wall, parapets and barricades draw in its guns' style.
+        EmplacementStyle style = EmplacementStylePolicy.forDefenders(ctx.get(BspKeys.MARKET_PROFILE));
+        for (int lx = 0; lx < w; lx++) {
+            for (int ly = 0; ly < h; ly++) {
+                int[] cell = at.cell(lx, ly);
+                FortWorks.mark(topology, cell[0], cell[1], style);
+            }
+        }
 
         // The ground: every cell of the works starts as bare earth; aprons and lanes are paved over it below.
         for (int lx = 0; lx < w; lx++) {

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# CLAUDE.md integration step 6 for one session branch, with a hard stop on any failure.
+# CLAUDE.md's integration step for one session branch, with a hard stop on any failure.
 #
 #   tools/integrate.sh session/<name> [repo-path]
 #

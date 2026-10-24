@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  CLAUDE.md integration step 6 for one session branch, with a hard stop on any failure.
+  CLAUDE.md's integration step for one session branch, with a hard stop on any failure.
 
 .DESCRIPTION
   From the main workspace: require `main` checked out and clean, fetch origin,

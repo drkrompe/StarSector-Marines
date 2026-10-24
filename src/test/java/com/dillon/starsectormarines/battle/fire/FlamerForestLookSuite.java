@@ -25,8 +25,8 @@ import org.json.JSONObject;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A flamer squad burning brush in a wood (`fire-nouns.md`, Spread), in the look preset: four marines with flamers at
@@ -35,8 +35,7 @@ import java.util.Map;
  * fuel carries it. Play zoom on the squad and the fire together, and close on the ground between them.
  *
  * <p>{@code fire-flamer-forest} stands the squad on open grass at the wood's edge. {@code fire-flamer-woods} stands it
- * among the trees, once per answer to the owner's fire-flamer-woods pick: as things are, with crowns carrying a fire
- * a cell less ({@code -Dbattle.fire.spread.crown=4}), and with a longer flamer.
+ * among the trees. A variant may lengthen the flamer, for a question about its reach.
  */
 public class FlamerForestLookSuite implements SnapshotSuite {
 
@@ -45,18 +44,17 @@ public class FlamerForestLookSuite implements SnapshotSuite {
     private static final String FLAMER = "weapon.flamer";
 
     /**
-     * One way of playing the shot: where the squad stands (window cells from the west edge, and whether among trees),
-     * which fuels carry a fire how far in place of their own
-     * ({@link FireField#SPREAD_PROPERTY_PREFIX}), and how far the flamer reaches.
+     * One way of playing the shot: where the squad stands (window cells from the west edge, and whether among trees)
+     * and how far the flamer reaches.
      */
-    record Variant(String name, int squadX, boolean amongTrees, Map<String, Integer> spread, float flamerRange) { }
+    record Variant(String name, int squadX, boolean amongTrees, float flamerRange) { }
 
     @Override public String id() { return "fire-flamer-forest"; }
 
     @Override public String label() { return "Look: a flamer squad burns brush at a forest edge without the wood running away"; }
 
     List<Variant> variants() {
-        return List.of(new Variant("flamer-forest", 8, false, Map.of(), 7f));
+        return List.of(new Variant("flamer-forest", 8, false, 8f));
     }
 
     @Override
@@ -74,12 +72,9 @@ public class FlamerForestLookSuite implements SnapshotSuite {
             if (variant.flamerRange() != stockRange) {
                 WeaponRegistry.install(withFlamerRange(context.projectRoot(), variant.flamerRange()));
             }
-            variant.spread().forEach((fuel, cells) ->
-                    System.setProperty(FireField.SPREAD_PROPERTY_PREFIX + fuel, cells.toString()));
             return LookReview.record(context.modRoot(), shot(variant));
         } finally {
             WeaponRegistry.install(weapons);
-            variant.spread().keySet().forEach(fuel -> System.clearProperty(FireField.SPREAD_PROPERTY_PREFIX + fuel));
         }
     }
 
@@ -98,23 +93,24 @@ public class FlamerForestLookSuite implements SnapshotSuite {
                     .health(400f).stationary().done();
             // Each picket man stands in a flamer's own row, at the flamer's range exactly: one row off is out of reach.
             // The picket still fights back with what militia carry; the flamers are made hard enough to outlast it,
-            // so the picture is the fire's and not a firefight's. The picket is hard enough to outlast the squad's
-            // rifles, so the flamers have a target in the brush to throw at.
+            // so the picture is the fire's and not a firefight's. The picket wears plate the squad's rifles and the
+            // flamer's blast cannot get through, so it stands until the fire, which can, reaches it.
             builder.squad("picket").faction(Faction.DEFENDER).type(UnitType.MILITIA).size(4)
-                    .at(picket[0], picket[1]).inFile(picket[0], squad[1] - 3, 0, 2).health(20000f).unarmed()
+                    .at(picket[0], picket[1]).inFile(picket[0], squad[1] - 3, 0, 2).armor(60f, 8f).unarmed()
                     .stationary().done();
             SceneWorld world = builder.build();
             long[] flamers = world.members("flamers");
             int[] spent = {0, 0, 0};
             placement.beforeTick(sim -> countSpent(sim, spent));
-            placement.beforeTick(sim -> log(variant, sim, flamers, spent));
+            long[] pickets = world.members("picket");
+            placement.beforeTick(sim -> log(variant, sim, flamers, pickets, spent));
             return world.sim();
         }, placement -> {
             LookGround.Site site = placement.site();
             float midY = site.y(WINDOW_H / 2f);
             return List.of(LookReview.View.play(site.x(variant.squadX() + 12f), midY),
                     LookReview.View.close("close", site.x(variant.squadX() + range / 2f), midY, 22f));
-        }, 30 * SECONDS, 2, 3);
+        }, 30 * SECONDS, 6, 3);
     }
 
     /**
@@ -148,7 +144,7 @@ public class FlamerForestLookSuite implements SnapshotSuite {
     }
 
     /** Every five seconds: charges left and thrown on spent ground, the fire's size, and the squad's health and distance from it. */
-    private static void log(Variant variant, BattleSimulation sim, long[] flamers, int[] spent) {
+    private static void log(Variant variant, BattleSimulation sim, long[] flamers, long[] picket, int[] spent) {
         if (sim.getSimTickIndex() % 150 != 0) return;
         int ammo = 0, alive = 0;
         float health = 0f;
@@ -166,8 +162,9 @@ public class FlamerForestLookSuite implements SnapshotSuite {
             }
         }
         System.out.printf("    [%s] t=%ds charges left %d (%d of %d thrown landed on spent ground, %d of those with no enemy in the blast), burning %d, burnt %d, flamers alive %d (health %.0f),"
-                        + " nearest fire %s%n", variant.name(), sim.getSimTickIndex() / 30, ammo, spent[1], spent[0], spent[2], fire.burningCount(),
-                fire.burntCount(), alive, health, nearest == Integer.MAX_VALUE ? "none" : nearest + " cells");
+                        + " nearest fire %s, picket standing %d%n", variant.name(), sim.getSimTickIndex() / 30, ammo, spent[1], spent[0], spent[2], fire.burningCount(),
+                fire.burntCount(), alive, health, nearest == Integer.MAX_VALUE ? "none" : nearest + " cells",
+                Arrays.stream(picket).filter(sim.world()::isAlive).count());
     }
 
     /** The bundled weapon catalogs with the flamer's reach set to {@code range}. */
@@ -242,13 +239,10 @@ public class FlamerForestLookSuite implements SnapshotSuite {
     public static final class Woods extends FlamerForestLookSuite {
         @Override public String id() { return "fire-flamer-woods"; }
 
-        @Override public String label() { return "Look: a flamer squad among trees, once per answer to the fire-flamer-woods pick"; }
+        @Override public String label() { return "Look: a flamer squad among trees burning brush at its full reach"; }
 
         @Override List<Variant> variants() {
-            return List.of(new Variant("woods-as-now", 10, true, Map.of(), 7f),
-                    new Variant("woods-crowns-4", 10, true, Map.of("crown", 4), 7f),
-                    new Variant("woods-range-8", 10, true, Map.of(), 8f),
-                    new Variant("woods-range-9", 10, true, Map.of(), 9f));
+            return List.of(new Variant("woods", 10, true, 8f));
         }
     }
 }

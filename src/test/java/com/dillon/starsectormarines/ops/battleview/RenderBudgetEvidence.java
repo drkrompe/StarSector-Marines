@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.render2d.PagedQuadRun;
 import com.dillon.starsectormarines.battle.creep.ColonyCreep;
 import com.dillon.starsectormarines.battle.creep.CreepVegetationSnapshotSuite;
 import com.dillon.starsectormarines.battle.creep.CreepField;
@@ -56,6 +57,7 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.IdentityHashMap;
@@ -1007,15 +1009,20 @@ class RenderBudgetEvidence {
 
     // ---- where a layer's runs break -------------------------------------------
 
-    /** The layers whose runs are reported: the props, and the two that draw bodies. */
+    /** The layers whose runs are reported: the props, the two that draw bodies, and fire. */
     private static final List<RenderLayer> RUN_LAYERS =
-            List.of(RenderLayer.DOODADS, RenderLayer.UNIT_SHADOWS, RenderLayer.UNITS);
+            List.of(RenderLayer.DOODADS, RenderLayer.UNIT_SHADOWS, RenderLayer.UNITS, RenderLayer.HAZARDS);
+
+    /** Whether this run drains paged runs ({@code BattleRenderer.PAGED_BATCH_PROPERTY}), which the breakdown models. */
+    private static final boolean PAGED =
+            Boolean.parseBoolean(System.getProperty(BattleRenderer.PAGED_BATCH_PROPERTY, "true"));
 
     /**
      * What one layer's command stream is made of: each texture with the quads drawn from it, how many times the
-     * run broke and on what, and every whole sprite by image. A run breaks wherever the drain must flush — a
-     * different sheet, a solid fill or line between quads, a sprite drawn through its own call — and the binds
-     * column cannot say which of those it was.
+     * run broke and on what, and every whole sprite by image. A run breaks wherever the drain must flush, and the
+     * binds column cannot say which of those it was. Under paged runs (law 27) a sheet change and a fill are not
+     * breaks; a blend change, a line, a ribbon, a whole sprite, a custom pass and a ninth page are. With the
+     * control on, every sheet change and fill is one, as the per-sheet drain flushes them.
      */
     private static String runBreakdown(DrawList list, RenderLayer layer, BattleRenderer renderer) {
         DrawCommand[] buffer = list.buffer(layer);
@@ -1025,23 +1032,35 @@ class RenderBudgetEvidence {
         Map<String, Integer> breaks = new TreeMap<>();
         Map<String, Integer> sprites = new TreeMap<>();
         Object previous = null;
+        Object paged = "paged run";
+        Set<Object> pages = new HashSet<>();
         for (int i = 0; i < count; i++) {
             DrawCommand c = buffer[i];
             Object key;
             String reason;
+            Object page = null;
             switch (c.kind()) {
                 case SHEET_QUAD -> {
-                    key = c.sprite();
-                    reason = "sheet change";
-                    quadsBySheet.merge(sheetName(c.sprite(), renderer), 1, Integer::sum);
+                    boolean inRun = PAGED;
+                    key = inRun ? paged : c.additive() ? "additive@" + System.identityHashCode(c.sprite()) : c.sprite();
+                    reason = c.additive() ? "additive quad" : "sheet change";
+                    if (inRun) page = c.sprite();
+                    quadsBySheet.merge(sheetName(c.sprite(), renderer) + (c.additive() ? " (additive)" : ""),
+                            1, Integer::sum);
                 }
                 case MESH -> {
-                    key = c.sprite() != null ? c.sprite() : c.mesh();
+                    boolean inRun = PAGED && c.sprite() != null;
+                    key = inRun ? paged : c.sprite() != null ? c.sprite() : c.mesh();
                     reason = "mesh";
+                    if (inRun) page = c.sprite();
                     quadsBySheet.merge(c.sprite() != null ? sheetName(c.sprite(), renderer) : "(mesh images)",
                             1, Integer::sum);
                 }
-                case SOLID_RECT, POLY -> { key = "solid"; reason = "solid fill"; }
+                case SOLID_RECT, POLY -> {
+                    key = PAGED ? paged : "solid";
+                    reason = "solid fill";
+                    if (PAGED) page = "white";
+                }
                 case LINE -> { key = "line@" + c.angleDegrees(); reason = "line"; }
                 case RIBBON -> { key = "ribbon"; reason = "ribbon"; }
                 case SPRITE -> {
@@ -1053,6 +1072,12 @@ class RenderBudgetEvidence {
                 default -> { key = new Object(); reason = "custom"; }
             }
             if (previous != null && !key.equals(previous)) breaks.merge(reason, 1, Integer::sum);
+            if (key != paged) pages.clear();
+            else if (page != null && pages.add(page) && pages.size() > PagedQuadRun.MAX_PAGES) {
+                breaks.merge("page table full", 1, Integer::sum);
+                pages.clear();
+                pages.add(page);
+            }
             previous = key;
         }
         StringBuilder out = new StringBuilder();

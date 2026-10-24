@@ -265,6 +265,8 @@ public class CellTopology {
     private byte[] plinthTiers;
     /** The tallest plinth ever raised on this map, in tiers; never lowered, because it sizes the sun's march. */
     private int highestPlinthTiers;
+    /** Each cell's fortification works style, by {@link #getWorksStyle}; null until a lot is marked. */
+    private byte[] worksStyle;
 
     public String getWallGroundSurfaceId(int x, int y) {
         return inBounds(x, y) ? wallGroundSurfaces.get(y * width + x) : null;
@@ -635,6 +637,32 @@ public class CellTopology {
     /** The tallest plinth ever raised on this map, in tiers; zero on a map that never had one. */
     public int highestPlinthTiers() {
         return highestPlinthTiers;
+    }
+
+    // ----- Works style -----
+
+    /**
+     * Which emplacement style the fortification works on this cell were built in, as
+     * {@code EmplacementStyle.ordinal() + 1}, or zero for a cell that is no fortification lot's.
+     * Presentation only: {@code FortWorks} reads it to draw a lot's walls, parapets and
+     * barricades in its guns' family, and no rule reads it.
+     */
+    public int getWorksStyle(int x, int y) {
+        if (worksStyle == null || !inBounds(x, y)) return 0;
+        return worksStyle[index(x, y)];
+    }
+
+    /** Sets the cell's works style; see {@link #getWorksStyle}. */
+    public void setWorksStyle(int x, int y, int style) {
+        if (!inBounds(x, y)) return;
+        if (worksStyle == null) {
+            if (style == 0) return;
+            worksStyle = new byte[width * height];
+        }
+        int idx = index(x, y);
+        if (worksStyle[idx] == style) return;
+        worksStyle[idx] = (byte) style;
+        markChanged(idx);
     }
 
     /**

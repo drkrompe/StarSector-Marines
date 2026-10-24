@@ -229,3 +229,33 @@ binding is preview-only and is never exported.
 All three pages validate before replacement; the Turrets page prepares every
 linked target before replacing files atomically and rolls back earlier files
 if a later replacement fails.
+
+## Headless tools and launchers
+
+`tools/authoring.sh <tool> [json]` (or `tools/authoring.cmd`) calls one authoring tool and exits, with no workbench
+window and nothing to start first: list what can be a wall, list, measure, read, write, slice, fit, split or export
+a tileset, move one piece's cut, declare or dissolve an autotile block, render a map-preview comparison, run the
+snapshot catalog. `--list` names the tools, `--describe <tool>` prints a schema, `--json` returns the structured
+result. Arguments are one JSON object, inline, as `@file`, or `-` for stdin; from PowerShell quote the `@file` or use
+`-`, because a bare `@token` is its splatting operator. Exit status is 1 when the tool reports a failure, 2 on a usage
+mistake, and 3 when the freshness build failed, in which case nothing was called. See the `authoring-tools` skill.
+
+**Always go through `tools/`, never through `build/authoring/`.** The generated launchers run whatever was compiled
+last. Each wrapper runs `installAuthoringTools` first (about 0.7 s against a warm daemon), so a call cannot use
+classes older than the working tree, and refuses to call anything if that build fails: a stale call once destroyed
+a hand-cut tileset by running a safety guard's pre-guard classes. Build chatter goes to stderr; stdout stays the
+tool result.
+
+`gradlew.bat installAuthoringTools` writes the launchers under `build/authoring/` (they embed an absolute classpath,
+so they are generated, not checked in) and prints the `.mcp.json` snippet that registers the same tools as an MCP
+stdio server. Register `tools/authoring-mcp.cmd`, not the launcher it execs. An MCP server holds its classes for a
+whole session, so after changing tool code restart it or use `tools/authoring.sh`, which rebuilds per call; prefer
+the shell wrapper unless a session already has the server. Both are separate front doors onto the same domain code,
+never an embedded server: an editor holding unsaved changes and a tool writing the same document would be two
+writers (`authoring-entry-points.md`).
+
+The workbench discovers top-level pages through `AuthoringPageProvider` services on the tool runtime classpath. Keep
+the generic host in `:layer-authoring` and mod-domain pages (Turrets) in root tool/test sources, so the shipped jar
+and the generic module do not acquire each other's dependencies. Its Snapshots tab runs the shared catalog in
+process, off the Swing thread, confirms before replacing PNGs, and refuses `layers` evidence while the authoring
+document has unsaved changes.

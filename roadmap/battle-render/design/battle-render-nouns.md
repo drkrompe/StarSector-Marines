@@ -608,10 +608,16 @@ change the physical crash corridor.
     program (`PagedQuadRun`): a run binds up to eight textures as **pages**, each
     vertex names its page, and a fill is a quad of one opaque white texel on a
     page of its own, so a flame and the ember over it, or a body on the unit
-    atlas and a prop on another sheet, are one draw. Painter order is untouched;
-    what still closes a run is a blend change, a line, a ribbon, a whole sprite
-    or a custom pass, and a full page table. The shader is fixed-function
-    `GL_MODULATE`, accepted on pixel equality against the per-sheet path
+    atlas and a prop on another sheet, are one draw. An additive quad shares the
+    run too: every run draws premultiplied (`ONE, ONE_MINUS_SRC_ALPHA`),
+    where an additive quad is one whose alpha is zero, so a disc and the glow
+    over it are one draw. The alpha channel keeps the normal blend's factors, so
+    the destination alpha a normal quad writes is unchanged, because the ground
+    composite blends by its target's alpha; an additive quad leaves the alpha
+    under it alone. Painter order is untouched; what still closes a run is a
+    line, a ribbon, a whole sprite or a custom pass, and a full page table. The
+    shader is fixed-function `GL_MODULATE`, premultiplied, accepted on colour within
+    three levels (the premultiplied rounding) against the per-sheet path
     (`PagedQuadRunGlEvidence`), and a context that cannot build it or offers
     fewer than two units drains one run per sheet, as before. GL 2.1 with no
     extension, because that is the Mac's floor; a texture array would need more.

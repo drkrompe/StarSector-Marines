@@ -70,7 +70,8 @@ class MechBayVehicleTest {
                 workshop.fabricateVehicle(SQUAD, VehicleType.BREAKTHROUGH_TANK).status());
         assertEquals(MechWorkshop.Status.LANCE_FULL,
                 workshop.fabricateChassis(SQUAD, MechVariant.HOUND).status());
-        assertEquals(2, bay.activeDeployment().size());
+        // The bought Hound is a bare frame and stays in its gantry; the starter walker drops.
+        assertEquals(1, bay.activeDeployment().size());
         assertEquals(2, bay.activeVehicleDeployment().size());
     }
 

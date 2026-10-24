@@ -8,7 +8,6 @@ import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
-import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
@@ -69,8 +68,8 @@ public final class StoryMapPoolSnapshotSuite implements SnapshotSuite {
                 }
             }
             default -> {
-                Form form = map == StoryMap.HEART_BURN ? Form.THE_BURN : Form.BROAD_FRONT;
-                BloomHeartSetup.Built built = BloomHeartSetup.country(form, biome, entry);
+                BloomHeartSetup.Built built = BloomHeartSetup.country(BloomHeartSetup.formOf(map), biome,
+                        BloomHeartSetup.densityOf(map), entry);
                 try (BattleSimulation sim = built.sim()) {
                     ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
                     for (HeartBores.Site site : built.heart().sites()) {

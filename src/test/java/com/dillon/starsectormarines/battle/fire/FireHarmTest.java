@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.fire;
 
 import com.dillon.starsectormarines.battle.nav.RouteCostField;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.marine.ArmorClass;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -55,5 +57,21 @@ class FireHarmTest {
         assertTrue(FireEffects.refusedAsRefuge(f, 6, 5));
         assertFalse(FireEffects.refusedAsRefuge(f, 8, 5));
         assertFalse(FireEffects.refusedAsRefuge(null, 5, 5));
+    }
+
+    @Test
+    void fireBurnsTheSoftThroughTheirArmourAndTheSealedAndHullsOnIt() {
+        assertTrue(FireHarm.throughArmor(UnitType.MARINE_BLUE, ArmorClass.STANDARD), "a marine in ordinary armour");
+        assertTrue(FireHarm.throughArmor(UnitType.SWARM_BRUTE, ArmorClass.STANDARD), "the swarm");
+        assertFalse(FireHarm.throughArmor(UnitType.MARINE_BLUE, ArmorClass.POWER_SUIT), "a sealed suit");
+        assertFalse(FireHarm.throughArmor(UnitType.GROUND_VEHICLE, ArmorClass.STANDARD), "a hull");
+        assertFalse(FireHarm.throughArmor(UnitType.MACHINE_FRAME, ArmorClass.STANDARD), "a frame");
+    }
+
+    @Test
+    void theSwarmBurnsHotterAndAHullCooler() {
+        assertEquals(1f, FireHarm.bodyShare(UnitType.MARINE_BLUE));
+        assertEquals(FireHarm.SWARM_SHARE, FireHarm.bodyShare(UnitType.SWARM_MATRIARCH));
+        assertEquals(FireHarm.HULL_SHARE, FireHarm.bodyShare(UnitType.GROUND_VEHICLE));
     }
 }

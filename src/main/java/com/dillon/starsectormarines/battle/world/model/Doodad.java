@@ -39,6 +39,8 @@ public final class Doodad {
     private String definitionId;
     private List<String> fogSurface = List.of();
     private FightingPositionRole fightingPosition = FightingPositionRole.NONE;
+    /** The works style whose art this placement wears ({@link #dressedAs}), or null for its own. */
+    private String look;
 
     /** Prepared-ground role declared by the catalog definition; {@link FightingPositionRole#NONE} for everything else. */
     public FightingPositionRole fightingPosition() { return fightingPosition; }
@@ -233,7 +235,31 @@ public final class Doodad {
         copy.definitionId = definitionId;
         copy.fogSurface = fogSurface;
         copy.fightingPosition = fightingPosition;
+        copy.look = look;
         return copy;
+    }
+
+    /**
+     * This placement wearing {@code art}'s picture: the same catalog identity, cover, catch band, footprint, fog
+     * surface and turn, drawn from {@code art}'s sheet cell. Only the picture is taken from {@code art}, so a
+     * fortification lot built in another style plays exactly as it would in its own (`fort-works.md`).
+     *
+     * @param look the works style key the art belongs to, kept so a damage state can be dressed the same way
+     */
+    public Doodad dressedAs(DoodadDef art, String look) {
+        Doodad copy = new Doodad(cellX, cellY, new TileManifest.TileFrame(art.col, art.row), art.sheetPath, cover,
+                ballisticHalfHeight, sourceCellsX, sourceCellsY, footprintCellsX,
+                footprintCellsY, preferredWallSide, art.sourceCellPx, quarterTurns, mirrored);
+        copy.definitionId = definitionId;
+        copy.fogSurface = fogSurface;
+        copy.fightingPosition = fightingPosition;
+        copy.look = look;
+        return copy;
+    }
+
+    /** The works style key whose art this placement wears, or null when it wears its own. */
+    public String look() {
+        return look;
     }
 
     public boolean occupiesCell(int x, int y) {

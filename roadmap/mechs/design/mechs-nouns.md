@@ -1183,9 +1183,17 @@ support sortie, subject only to practical runtime resources.
   buying:** it stands the pattern on the pad as a translucent preview at the scene's own
   scale (a mech in its standard fit, a vehicle nose-up) and fills the PATTERN card in
   the right-hand column, where an occupied pad shows its specifications, with the
-  maker's crest, name, procurement credit and kind, the standard fit's doll (the fitting
-  schematic, read-only; a vehicle shows its hull), its figures as the specifications' own
-  bars, its lore and its bill. Only a BUY,
+  maker's crest, name, procurement credit and kind, its figures as the specifications'
+  own bars, its lore and its bill. A previewed chassis's doll stands where a built mech's
+  does, on the left of the view: the fitting schematic as the frame is bought, read-only.
+- **A chassis is bought as a bare frame.** Its plating and any factory-locked hardware
+  are the frame; every other weapon, the engine and the capacitor bank are parts the
+  player fits from stores, so a new walker stands INCOMPLETE in its gantry until it has
+  an engine and a capacitor bank. Its bill is the standard-fit machine's less those
+  parts' own prices (`MechFabricationCatalog`), and the pattern card's bars read the
+  frame against the standard fit's marks. Nothing stripped from a new frame was ever in
+  stores, so building one makes no spares. A vehicle is still bought whole: it has no
+  sockets to fill. Only a BUY,
   on the row or the card's BUILD, spends anything. Every chassis and vehicle pattern is
   credited to a faction in the loadout cards' voice (`MechPatternCredits`: a square
   faction crest and a procurement line such as the Ordnance Board heavy schedule), and
@@ -1193,14 +1201,16 @@ support sortie, subject only to practical runtime resources.
   (`MechPatternPicker`): a navy's issue is that navy's, and a pickup-based field rig is a
   frontier or pirate workshop's. With nothing chosen the first pattern
   the filter shows is previewed. A successful cargo-backed BUILD puts one persistent
-  standard-fit chassis, or one vehicle, onto that exact pad and immediately makes
+  chassis, or one vehicle, onto that exact pad and immediately makes
   it part of the active lance. A gantry holding a vehicle is selectable and shows its
   callsign, hull, weight class and read-only hull stats (structure, armour, mobility,
   passengers, turret); it exposes no sockets, catalog or doll, and its pad is never
   drawn as vacant. The build catalog filters on two axes at once, as symbols in
   the strip the parts catalog uses: kind (walkers or vehicles) and weight class (light,
   medium, heavy: rank chevrons on a danger ramp, since weight is how the player reads a
-  machine's threat). Each axis toggles on its own; none chosen lists everything. Gantries order mechs first, then vehicles.
+  machine's threat). Each axis toggles on its own; none chosen lists everything. A pattern's weight class
+  is shown by the same block wherever the pattern is (its catalog row, the pattern card),
+  never as a word. Gantries order mechs first, then vehicles.
 - **Scrapping frees a pad.** An occupied pad's heading carries SCRAP, which takes two
   presses: the first arms it and says what comes back, the second breaks the machine
   up. Nothing fitted is lost (weapons, internals and the replenisher stay owned and are

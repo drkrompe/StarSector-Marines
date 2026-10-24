@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
 import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
+import com.dillon.starsectormarines.battle.world.gen.elevation.TerracePlanner;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 
@@ -103,13 +104,22 @@ public final class MissionLayoutStage implements GenStage {
             }
             if (!layoutRidges.isEmpty()) {
                 List<RidgePlanner.Band> bands = new ArrayList<>();
-                for (Ridge ridge : layoutRidges) bands.add(ridge.band());
+                List<TerracePlanner.Terrace> terraces = new ArrayList<>();
+                for (Ridge ridge : layoutRidges) {
+                    bands.add(ridge.band());
+                    terraces.addAll(ridge.terraces());
+                }
                 // A band the landscape holds for a layout Ridge (the Cordon holds its line's) is the same ground once.
                 for (RidgePlanner.Band band : OutdoorLandscapeStage.landscapeBands(ctx)) {
                     if (!bands.contains(band)) bands.add(band);
                 }
-                List<int[]> feet = OutdoorLandscapeStage.raiseRidges(ctx, bands, held);
+                OutdoorLandscapeStage.Raised raised = OutdoorLandscapeStage.raiseRidges(ctx, bands, held, terraces);
+                List<int[]> feet = raised.feet();
                 closed = !feet.isEmpty();
+                for (TerracePlanner.Planned terrace : raised.terraces()) {
+                    closed |= terrace.stands();
+                    out.add(terraceLaid(terrace));
+                }
                 // Each ramp's foot belongs to the ridge whose ground it stands on; the landscape's report none.
                 for (Ridge ridge : layoutRidges) {
                     boolean[][] band = RidgePlanner.heldGround(List.of(ridge.band()), ctx.width, ctx.height, 1);
@@ -172,6 +182,16 @@ public final class MissionLayoutStage implements GenStage {
             ctx.put(BspKeys.TACTICAL_REGIONS, TacticalRegionMap.build(ctx.grid, ctx.topology, ctx.get(BspKeys.AXIS)));
         }
         ctx.put(BspKeys.MISSION_LAYOUT_LAID, new LaidLayout(out));
+    }
+
+    /**
+     * A terrace as reported: its place's ground by its corners, its ramps' feet as the ways up, or refused with why.
+     */
+    static Laid terraceLaid(TerracePlanner.Planned planned) {
+        TerracePlanner.Terrace t = planned.terrace();
+        if (!planned.stands()) return Laid.refused(t.name(), Laid.Kind.GROUND, t.required(), planned.refusal());
+        return new Laid(t.name(), Laid.Kind.GROUND, Laid.Status.LAID, planned.ramps().size() + " ramps", t.required(),
+                List.of(new int[]{t.x0(), t.y0()}, new int[]{t.x1(), t.y1()}), planned.feet(), List.of());
     }
 
     private static Laid lay(GenContext ctx, LayoutGround ground, Line line, boolean[][] held) {
