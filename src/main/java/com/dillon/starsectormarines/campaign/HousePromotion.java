@@ -85,8 +85,8 @@ public final class HousePromotion {
      *       relationship seam remains an explicit no-op until
      *       {@code house-disposition.md}
      *       defines visibility-gated edges.</li>
-     *   <li><b>Contract-type unlock</b> — pull-based: {@code ContractGenerator}
-     *       reads {@code houseRank} live each tick, so there's nothing to push.</li>
+     *   <li><b>Contract-type unlock</b> — none: the campaign no longer generates
+     *       patron offers ({@code contracts-nouns.md}).</li>
      *   <li><b>TIER_4 → faction flip</b> — the T3 endgame hand-off; that thread
      *       owns the only write-back to vanilla state, so this stays a log line.</li>
      * </ul>

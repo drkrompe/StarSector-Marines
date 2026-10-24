@@ -1060,11 +1060,9 @@ public final class MissionResolver {
      * on contract state.
      *
      * <p>The contested ground is the <em>target's</em> market + the struck
-     * industry: patron and target are picked sector-wide by {@code ContractGenerator}
+     * industry: patron and target of an older save's contract were picked sector-wide
      * and usually sit on different markets, so the patron expands into the rival's
-     * turf rather than consolidating a shared one. Market-local targeting (so
-     * transfers contest a single market) is a {@code ContractGenerator} refinement
-     * tracked for a later slice.
+     * turf rather than consolidating a shared one.
      *
      * <p>Mechanism lives in {@link StakeLedger#seizeShare} and
      * {@link HousePromotion#addProgressAndPromote}; the magnitudes are policy here
