@@ -1,0 +1,93 @@
+{
+ "sheetName": "origin-park-pond",
+ "sheet": "art-source/tilesets/origin-park-pond.raw.png",
+ "cellPx": 128,
+ "gridCols": 1,
+ "gridRows": 1,
+ "idPrefix": "origin-park-pond",
+ "alphaMin": 40,
+ "outputSheet": "graphics/doodads/origin-park-pond.png",
+ "note": "The park's pond, drained and torn open from below: the park origin's other telling object. Geometry-first ImageGen reskin of art-source/templates/heart-park-pond-guide.png (art-source/heart-origins/make_guide.py); the raw came back 1728x910 against a 1824x960 guide and every full placement frame is the guide slot scaled by that ratio, native alpha kept. Brief: art-source/heart-origins/prompts/common.txt + park-pond.txt. Produced only by art-source/heart-origins/export.py; see heart-origins.md.",
+ "entries": [
+  {
+   "rect": [
+    45,
+    46,
+    485,
+    364
+   ],
+   "id": "origin-park.pond-clean",
+   "cover": "light",
+   "ballisticHalfHeight": 0.2,
+   "footprintCells": [
+    4,
+    3
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    621,
+    46,
+    485,
+    364
+   ],
+   "id": "origin-park.pond",
+   "cover": "light",
+   "ballisticHalfHeight": 0.2,
+   "footprintCells": [
+    4,
+    3
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    1197,
+    46,
+    485,
+    364
+   ],
+   "id": "origin-park.pond-swallowed",
+   "cover": "light",
+   "ballisticHalfHeight": 0.2,
+   "footprintCells": [
+    4,
+    3
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    45,
+    500,
+    485,
+    364
+   ],
+   "id": "origin-park.pond-damaged",
+   "cover": "light",
+   "ballisticHalfHeight": 0.2,
+   "footprintCells": [
+    4,
+    3
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    621,
+    500,
+    485,
+    364
+   ],
+   "id": "origin-park.pond-destroyed",
+   "cover": "none",
+   "ballisticHalfHeight": 0.0,
+   "footprintCells": [
+    4,
+    3
+   ],
+   "included": true
+  }
+ ]
+}

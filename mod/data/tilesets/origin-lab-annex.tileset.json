@@ -1,0 +1,88 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "name": "origin-lab.annex-clean",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "name": "origin-lab.annex",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "name": "origin-lab.annex-swallowed",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "origin-lab.annex-damaged",
+      "row": 4
+    },
+    {
+      "col": 5,
+      "name": "origin-lab.annex-destroyed",
+      "row": 4
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 0,
+      "cover": "heavy",
+      "footprintCells": [
+        5,
+        4
+      ],
+      "id": "origin-lab.annex-clean",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 5,
+      "cover": "heavy",
+      "footprintCells": [
+        5,
+        4
+      ],
+      "id": "origin-lab.annex",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 10,
+      "cover": "heavy",
+      "footprintCells": [
+        5,
+        4
+      ],
+      "id": "origin-lab.annex-swallowed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 0,
+      "cover": "heavy",
+      "footprintCells": [
+        5,
+        4
+      ],
+      "id": "origin-lab.annex-damaged",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 5,
+      "cover": "none",
+      "footprintCells": [
+        5,
+        4
+      ],
+      "id": "origin-lab.annex-destroyed",
+      "row": 4
+    }
+  ],
+  "sheet": "graphics/doodads/origin-lab-annex.png"
+}

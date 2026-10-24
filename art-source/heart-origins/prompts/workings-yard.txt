@@ -1,0 +1,9 @@
+Sheet: the reservoir workings' yard kit. Four columns, one object each; four rows, one state each, the same in every column: row 1 clean, row 2 grown, row 3 damaged, row 4 destroyed.
+Columns, left to right:
+- PUMP SHED, 3x2 cells: a small corrugated-steel pump house seen from above, ridge line along its length, a round roof vent, a door slab on the south side, a pipe stub out of the west wall. Sage-grey painted corrugations.
+- PIPE RUN, 3x1: a heavy insulated steel pipeline lying on low concrete saddles, three flanged collars.
+- PIPE ELBOW, 2x2: the same pipe turning a quarter circle, flanged at both ends.
+- PIPE MOUTH, 2x1: the same pipe running into the ground, ending in a ragged concrete collar round a dark hole in the earth.
+Row 2 GROWN: weeks of creep: the mat spreading on the ground under and round each object as drawn, ropey veins climbing over it, a few plates and spurs. On the pipe mouth the growth comes UP out of the hole and runs back along the pipe.
+Row 3 DAMAGED: row 2 after a fight: scorch, holes, torn sheet, burnt creep.
+Row 4 DESTROYED: low separated fragments of each object as drawn, transparent between them, no slab beneath.

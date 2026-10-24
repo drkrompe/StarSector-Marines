@@ -1,0 +1,88 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "name": "origin-workings.shaft-clean",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "name": "origin-workings.shaft",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "name": "origin-workings.shaft-swallowed",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "name": "origin-workings.shaft-damaged",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "name": "origin-workings.shaft-destroyed",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 0,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "origin-workings.shaft-clean",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 3,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "origin-workings.shaft",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 6,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "origin-workings.shaft-swallowed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 9,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "origin-workings.shaft-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 12,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "origin-workings.shaft-destroyed",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/doodads/origin-workings-shaft.png"
+}

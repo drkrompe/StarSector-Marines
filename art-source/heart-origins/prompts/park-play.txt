@@ -1,0 +1,9 @@
+Sheet: the park's playground and seating. Five columns, one object each; four rows, one state each: row 1 clean, row 2 grown, row 3 damaged, row 4 destroyed.
+- SWINGS, 3x2 cells: a red tubular A-frame swing set seen from above, the top bar across, two wooden seats hanging on chains below it.
+- SLIDE, 3x1: a blue ladder platform at the west end and a long yellow slide chute running east.
+- CLIMBING FRAME, 2x2: a green domed lattice of bars seen from above, concentric rings and spokes, a small timber platform at its crown.
+- ROUNDABOUT, 2x2: a playground roundabout disc, red and yellow segments, dark grab bars to the centre hub (rows 2-4 turned a little, left where it stopped).
+- BENCH, 2x1: a park bench, four timber slats on two black iron ends.
+Row 2 GROWN: creep mat under and round each object as drawn, veins climbing onto it, a few plates. Ordinary children's things in the middle of the bloom.
+Row 3 DAMAGED: row 2 after a fight: scorch, broken slats, bent bars, torn creep.
+Row 4 DESTROYED: low separated pieces of each in its own colours, transparent between, no slab beneath.

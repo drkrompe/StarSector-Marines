@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16edf-99f6-7910-bbe7-8b001328eb91",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16edf-99f6-7910-bbe7-8b001328eb91\\exec-64071ea0-c0ee-468b-8717-465c7a2f57f7.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\origin-freight-boxes.raw.png",
+    "sha256": "b68bac9f85541b5fd68371c2671d67d8cfd20be899f292e20c7faca75feafac8",
+    "dimensions": [
+      1323,
+      1189
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "build\\heart-origins\\prompts\\freight-boxes.prompt.txt",
+  "promptSha256": "ca1d5482f0c16b41626697bc44010b0a6b8537c70b1f4c7d130a0bebfff75505",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry guide and edit target: exact slots, silhouettes, footprints, growth extent and transparent gaps; reskin it, never move, resize or drop a sprite\nImage 2: Material and style reference only for painted overhead props; not layout\nImage 3: Material reference for the alien growth only (chitin, sinew, ivory, amber); never its shape or layout\n\nUse case: sketch-to-render. Game sprite atlas, a geometry-first reskin for a top-down tactical battle map.\nImage 1 is the authoritative geometry guide and edit target: every sprite's slot, silhouette, footprint, position and the extent of the creature growth are fixed by it. Repaint it; never move, resize, add or drop a sprite.\nImage 2 is a MATERIAL STYLE reference only (worn, crisp, painted overhead industrial props from the same game); not layout.\nImage 3 is a MATERIAL reference for the alien growth only (the Rav Bloom: glossy violet-plum chitin plates, magenta sinew in the gaps, ivory spurs, rare small amber nodes); not layout, and do not copy its shape.\n\nCamera: straight-overhead orthographic, no perspective tilt, soft light from the top left, each object's own short contact shadow only inside its slot.\nOutput: true transparent background, including every gutter and every negative space between debris and between frame bars; no ground plane, floor slab, border, labels, text, numbers, logos or signage words.\n\nThe guide's flat colours are keys:\n- grey/beige = concrete; blue-grey = painted steel; dark grey = machinery shadow or iron; rust-red, steel-blue, yellow, green = paint as shown, chipped and weathered.\n- near-black = an open hole or dark interior; dark brown blots = scorch marks; thin black zigzags = tears and cracks.\n- dull violet-grey lobes = the creep mat: a thin, dull, desaturated violet-grey living film, wet-sheened, veined, with small bubbled nodules, flowing over and around things like slow wax. Keep it DULL and dark-ish (it is the dullest thing on the map), never saturated purple.\n- dark violet lines = raised ropey veins in the creep; small plum polygons with red edges = embedded chitin plates; ivory slivers = bone-ivory spurs.\nEvery slot keeps a clear transparent margin inside its edge: the creep mat ends in soft rounded lobes well inside the slot exactly where the guide's lobes end, and is never cut straight by the slot's edge or spread to fill the slot.\nRows or cells marked as states of the same object must keep the identical object identity, palette and placement; only the stated change differs.\nKeep every form broad and readable at 24 pixels per game cell. Surface detail may improve substantially within the guide's silhouettes.\n\nSheet: the freight yard's stack. Three columns, one object each: a rust-red container, a steel-blue container, and a pallet of seafood crates; four rows, one state each: row 1 clean, row 2 grown, row 3 damaged, row 4 destroyed.\n- CONTAINERS (4x2 cells): a closed 40-foot corrugated steel shipping container from above, corner castings at the four corners, roof corrugations across its width, darker end frames, weathered paint, closed and intact.\n- SEAFOOD CRATES (2x2): a timber pallet carrying four shallow grey-blue plastic seafood crates seen from above, each packed with crushed ice and a pair of dark red-brown crustaceans (tail, body, two claws). Plain crates, no logos, no lettering.\nRow 2 GROWN: the containers intact, creep from the ground climbed over one corner, veins over the roof, a few plates. The seafood crates burst and EMPTY: no ice, nothing alive, only a few pale cast shells left in the dark crate bottoms, creep spreading from the pallet.\nRow 3 DAMAGED: row 2 after a fight: dents, bullet holes, scorch, torn creep.\nRow 4 DESTROYED: low separated pieces in each object's own colours, transparent between, no slab beneath.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\heart-freight-boxes-guide.png",
+      "sha256": "ce67226d3a9bb62929dcb7a3b884c36d11d399cbbac1c131e2f8495a8a7e742c",
+      "dimensions": [
+        1568,
+        1408
+      ],
+      "mode": "RGBA",
+      "role": "Geometry guide and edit target: exact slots, silhouettes, footprints, growth extent and transparent gaps; reskin it, never move, resize or drop a sprite"
+    },
+    {
+      "path": "art-source\\tilesets\\parked-vehicles.raw.png",
+      "sha256": "ad90cc1b0f96f35985225903ed4b609d7da5b6ebc23fd4802309e5e47cb595d4",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only for painted overhead props; not layout"
+    },
+    {
+      "path": "art-source\\swarm-bores\\raw\\bore-1.raw.png",
+      "sha256": "eafcfd8b37aa4d31e3d7f4875b5b4cd3e185f9820d69b1adf729ae279196b259",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material reference for the alien growth only (chitin, sinew, ivory, amber); never its shape or layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll reskin the guide into one transparent atlas, keeping every sprite’s placement, silhouette, and growth extent fixed."
+  ],
+  "usage": {
+    "input_tokens": 51960,
+    "cached_input_tokens": 41344,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 938,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 83.4
+}

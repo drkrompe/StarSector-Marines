@@ -1,0 +1,93 @@
+{
+ "sheetName": "origin-freight-split",
+ "sheet": "art-source/tilesets/origin-freight-split.raw.png",
+ "cellPx": 128,
+ "gridCols": 1,
+ "gridRows": 1,
+ "idPrefix": "origin-freight-split",
+ "alphaMin": 40,
+ "outputSheet": "graphics/doodads/origin-freight-split.png",
+ "note": "A refrigerated container split open from inside: the freight yard origin's telling object. Geometry-first ImageGen reskin of art-source/templates/heart-freight-split-guide.png (art-source/heart-origins/make_guide.py); the raw came back 2019x779 against a 1824x704 guide and every full placement frame is the guide slot scaled by that ratio, native alpha kept. Brief: art-source/heart-origins/prompts/common.txt + freight-split.txt. Produced only by art-source/heart-origins/export.py; see heart-origins.md.",
+ "entries": [
+  {
+   "rect": [
+    53,
+    53,
+    567,
+    283
+   ],
+   "id": "origin-freight.split-container-clean",
+   "cover": "heavy",
+   "ballisticHalfHeight": 1.1,
+   "footprintCells": [
+    4,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    726,
+    53,
+    567,
+    283
+   ],
+   "id": "origin-freight.split-container",
+   "cover": "heavy",
+   "ballisticHalfHeight": 1.1,
+   "footprintCells": [
+    4,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    1399,
+    53,
+    567,
+    283
+   ],
+   "id": "origin-freight.split-container-swallowed",
+   "cover": "heavy",
+   "ballisticHalfHeight": 1.1,
+   "footprintCells": [
+    4,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    53,
+    443,
+    567,
+    283
+   ],
+   "id": "origin-freight.split-container-damaged",
+   "cover": "heavy",
+   "ballisticHalfHeight": 1.1,
+   "footprintCells": [
+    4,
+    2
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    726,
+    443,
+    567,
+    283
+   ],
+   "id": "origin-freight.split-container-destroyed",
+   "cover": "none",
+   "ballisticHalfHeight": 0.0,
+   "footprintCells": [
+    4,
+    2
+   ],
+   "included": true
+  }
+ ]
+}
