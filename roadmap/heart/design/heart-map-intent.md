@@ -110,7 +110,12 @@ open.
 
 The knoll under Broad Front's town is not built. Held ground keeps places off
 it; a knoll wants the place on top of it, growing on the plateau with only the
-faces and ramps kept clear, which is a different reservation.
+faces and ramps kept clear, which is a different reservation. A terrace over
+the town's claimed box (the Cordon's redoubt terraces, `elevation-nouns.md`,
+Terraces) was tried and stood on none of the 24 rural and town maps: the claim
+runs to the map's edge, or the cliff lands on built ground just outside it. So
+the town has to grow inside the knoll's top, which is a growth bound mapgen
+does not have yet.
 
 ## The cordon's works (both forms)
 
