@@ -111,8 +111,10 @@
                   </div>
                 </div>
                 <div id="mech-build-kind-row" class="catalog-detail-row">
-                  <div id="mech-build-weight" class="{buildWeightClasses}" style="{buildWeightStyle}">
-                    <img id="mech-build-weight-icon" class="weight-chip-icon" src="{buildWeightIcon}" />
+                  <div id="mech-build-weight" class="{buildWeightClasses}">
+                    <div id="mech-build-weight-chip" class="weight-chip" style="{buildWeightStyle}">
+                      <img id="mech-build-weight-icon" class="weight-chip-icon" src="{buildWeightIcon}" />
+                    </div>
                   </div>
                   <div id="mech-build-kind" class="label heading tone-edge build-kind">{buildKind}</div>
                 </div>
@@ -248,7 +250,9 @@
   .slot-copy { height: 20px; }
   .slot-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 4px; overflow: scroll; }
   /* The build card lays its kind line, weight block and bill out the way a stores card does. */
-  .catalog-detail-row { flex-direction: row; align-items: center; width: 100%; height: 16px; gap: 4px; }
+  /* No gap on the row: a hidden slot would still leave one, indenting a part's line. */
+  .catalog-detail-row { flex-direction: row; align-items: center; width: 100%; height: 16px; gap: 0px; }
+  .weight-slot { flex-direction: row; width: 28px; height: 16px; pointer-events: none; }
   .weight-chip { flex-direction: column; align-items: center; width: 24px; height: 16px; padding: 1px 0px; pointer-events: none; }
   .weight-chip-icon { width: 21px; height: 14px; pointer-events: none; }
   .material-costs { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 24px; gap: 3px; overflow: hidden; }

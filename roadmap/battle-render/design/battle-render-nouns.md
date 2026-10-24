@@ -279,6 +279,23 @@ combine coverage without applying the lighting twice. The final night pass
 changes shading only, never repainting scenery over actors, roofs or aircraft.
 Coverage grants neither observation nor an illuminated patch of unseen ground.
 
+The shade itself is one function of the light pools, sampled bilinearly at
+half-cell resolution: the lamps' pools baked once per map, fire's refilled each
+frame. A host that can run a custom pass owning its own GL evaluates it on the
+card, per pixel, with the pools as textures (`NightShadeField`); a Java2D host
+builds it as tinted quads at a grid of points in each cell. Both evaluate the
+same function (`NightLightingRenderSystem.shade`), which the field's GL evidence
+holds it to, so the two differ only in where they sample, and the field is the
+smoother of the two zoomed out. The field's textures cover the whole map and
+stay resident: fire's pools and the cell mask take only the box that changed
+since their last upload (the boxes fire's lights cleared and filled, the cells in
+the topology's change log, the reveal log's rectangles), so a whole-map view of a
+burn repacks the burn, not the map. Filling fire's pools is still CPU work each
+frame, bounded by the lights in view. A field that fails, or a driver that stores its
+pools at fewer than twelve bits (which would band the shade), logs once and the
+next frame builds quads. Real-driver evidence reads the stored precision on
+Windows and on the Mac's GL 2.1 context.
+
 The headless drain rasterizes those same commands and shade meshes and performs
 the same pixel composition. Real-driver evidence checks corners, internal gaps,
 partial alpha, overlap and transforms. If the graphics targets or shaders fail,
@@ -614,8 +631,12 @@ change the physical crash corridor.
     over it are one draw. The alpha channel keeps the normal blend's factors, so
     the destination alpha a normal quad writes is unchanged, because the ground
     composite blends by its target's alpha; an additive quad leaves the alpha
-    under it alone. Painter order is untouched; what still closes a run is a
-    line, a ribbon, a whole sprite or a custom pass, and a full page table. The
+    under it alone. A whole sprite, and each image of a mesh drawn without an
+    atlas, is a quad of its own texture on a page: the quad `renderAtCenter`
+    draws, its texture rectangle (its padded extent) upright, turned about its
+    middle, its colour rounded to bytes as the engine sends it. Painter order is
+    untouched; what still closes a run is a line, a ribbon or a custom pass, and
+    a full page table. The
     shader is fixed-function `GL_MODULATE`, premultiplied, accepted on colour within
     three levels (the premultiplied rounding) against the per-sheet path
     (`PagedQuadRunGlEvidence`), and a context that cannot build it or offers

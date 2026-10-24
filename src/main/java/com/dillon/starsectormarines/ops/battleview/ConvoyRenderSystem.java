@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
+import com.dillon.starsectormarines.battle.vehicle.MountedGun;
 import com.dillon.starsectormarines.battle.vehicle.HullLocations;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
@@ -102,6 +103,14 @@ public final class ConvoyRenderSystem implements RenderSystem {
                 collectFluxHaze(ctx, type, convoy.turret(id), body, cam, cellPx, alphaMult, out);
             }
 
+            // A hull's second guns stand under its main turret, each drawn from its own catalog mount.
+            GroundTurret mainTurret = convoy.turret(id);
+            if (mainTurret != null) {
+                for (MountedGun gun : mainTurret.secondaries) {
+                    collectMountTurret(gun.mount().structure(), gun.turret().facingDeg, gun.mount().mountX(),
+                            gun.mount().mountY(), body, wrecked, cam, cellPx, alphaMult, out);
+                }
+            }
             if (type.turretArtFromMount()) {
                 collectMountTurret(type, convoy.turret(id), body, wrecked, cam, cellPx, alphaMult, out);
             } else if (type.turretFrame >= 0 && type.turretFrame < frames.frames.length) {
@@ -319,17 +328,22 @@ public final class ConvoyRenderSystem implements RenderSystem {
      */
     private void collectMountTurret(VehicleType type, GroundTurret turret, GroundBody body, boolean wrecked,
                                     BattleCamera cam, float cellPx, float alphaMult, DrawList out) {
-        StructureDef structure = type.turretStructure();
+        collectMountTurret(type.turretStructure(), turret != null ? turret.facingDeg : body.facingDegrees,
+                type.turretMountX, type.turretMountY, body, wrecked, cam, cellPx, alphaMult, out);
+    }
+
+    /** A catalog mount's sprite standing {@code localX, localY} cells from the hull's centre, facing {@code facing}. */
+    private void collectMountTurret(StructureDef structure, float facing, float localX, float localY, GroundBody body,
+                                    boolean wrecked, BattleCamera cam, float cellPx, float alphaMult, DrawList out) {
         if (structure == null) return;
         ShuttleSpriteCache base = sprites.turretSprites().get(structure.id);
         if (base == null) return;
         ShuttleSpriteCache barrel = sprites.turretRecoilSprites().get(structure.id);
-        float facing = turret != null ? turret.facingDeg : body.facingDegrees;
         float cRad = (float) Math.toRadians(body.facingDegrees);
         float cc = (float) Math.cos(cRad);
         float cs = (float) Math.sin(cRad);
-        float mountX = body.x + type.turretMountX * cc - type.turretMountY * cs;
-        float mountY = body.y + type.turretMountX * cs + type.turretMountY * cc;
+        float mountX = body.x + localX * cc - localY * cs;
+        float mountY = body.y + localX * cs + localY * cc;
         float heightPx = structure.mount.visualCells * cellPx;
         float shade = wrecked ? .35f : 1f;
         float sx = cam.cellToScreenX(mountX);

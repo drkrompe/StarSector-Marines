@@ -140,9 +140,16 @@ public final class StructureDef {
         return look != null && look.shield() != null ? fluxShield : null;
     }
 
-    /** This structure's art in {@code style}, or null where it has none and is drawn with its default art. */
+    /**
+     * This structure's art in {@code style}: its own look, else the look of the style's {@link EmplacementStyle#basis},
+     * or null where it has neither and is drawn with its default art.
+     */
     public StructureLook look(EmplacementStyle style) {
-        return style == null ? null : looks.get(style.key);
+        for (EmplacementStyle s = style; s != null; s = s.basis) {
+            StructureLook look = looks.get(s.key);
+            if (look != null) return look;
+        }
+        return null;
     }
 
     /** Whether this structure stands on more than its anchor cell. */
@@ -232,7 +239,7 @@ public final class StructureDef {
                 }
                 looks.put(key, new StructureLook(TurretMountDef.optionalText(look, "base"),
                         TurretMountDef.optionalText(look, "sprite"), TurretMountDef.optionalText(look, "recoilSprite"),
-                        shield));
+                        shield, TurretMountDef.optionalText(look, "fluxDevice")));
             }
         }
         TurretRole role = TurretRole.valueOf(json.optString("targetRole", "A2G"));

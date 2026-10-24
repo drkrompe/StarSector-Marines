@@ -70,7 +70,8 @@ public record FittingCard(String id, String classes, String previewClasses,
         case "detailRowId" -> id + ":detail-row";
         case "chipId" -> id + ":weight";
         case "chipIconId" -> id + ":weight-icon";
-        case "chipClasses" -> chipIcon != null ? "weight-chip" : "hidden";
+        case "chipBlockId" -> id + ":weight-chip";
+        case "chipClasses" -> chipIcon != null ? "weight-slot" : "hidden";
         case "chipIcon" -> chipIcon != null ? chipIcon : "";
         case "chipStyle" -> chipTone != null ? "background-color: " + chipTone + ";" : "";
         default -> throw new IllegalArgumentException("Unknown fitting-card property: " + p); }; }

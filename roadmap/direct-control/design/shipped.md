@@ -16,3 +16,4 @@ Written: 2026-09-26
 | `click-weapon-groups` | 2026-10-12 | this commit | `direct-control-nouns.md` — mouse buttons and weapon groups (Mech primary/secondary groups, Marine secondary equipment) |
 | `aim-reticle.md` | 2026-10-23 | this commit | `direct-control-nouns.md` — the aim reticle and scatter ring paragraphs (side ticks, marks, derived optimal range) |
 | `aim-reticle-spread.md` | 2026-10-23 | this commit | `direct-control-nouns.md` — the aim reticle paragraphs (no scatter ring; landing spread blooms the tick) |
+| `weapon-cycling.md` | 2026-10-24 | this commit; frames in `direct-control-ui`, `marine-left-special`, `marine-right-button` | `direct-control-nouns.md` — mouse buttons and weapon groups (triggers, LINKED, Q/E sub-cycles, crewed defences, the shared sorter, Marine left specials and flamer stream, right-button items, held and walking carry art) |

@@ -21,6 +21,7 @@ public final class CampaignMech implements Serializable {
     private String displayName;
     private final MechVariant variant;
     private MechRole role;
+    /** Migration input only: the loader a save from before the compartment carried. */
     private String missileReplenisherId;
     private String armsComponentId;
     private String leftArmComponentId;
@@ -31,8 +32,14 @@ public final class CampaignMech implements Serializable {
     // mech migrates onto the stock frame without a rewrite. The vent array's stock is empty.
     private String engineId;
     private String platingId;
+    // Migration input only, like missileReplenisherId: the compartment holds these now.
     private String capacitorBankId;
     private String ventArrayId;
+    /**
+     * The auxiliary compartment's parts by {@link MechInternal#id}, in the order fitted. Null in
+     * saves from before the compartment, which {@link #compartmentIds} migrates on first read.
+     */
+    private List<String> auxiliaryIds;
     // Absent in saves from before section damage: null damage and a zero clock read as a whole,
     // ready mech, so an existing save needs no rewrite.
     /** What the last battle left needing repair; null when whole or once a repair is ordered. */
@@ -51,8 +58,10 @@ public final class CampaignMech implements Serializable {
         this.displayName = displayName;
         this.variant = variant;
         this.role = role != null ? role : variant.defaultRole;
-        this.missileReplenisherId = MissileReplenisherComponent.resolve(
-                missileReplenisherId).id();
+        auxiliaryIds = new ArrayList<>();
+        auxiliaryIds.add(MechInternal.FACTORY_CAPACITOR_BANK.id);
+        MechInternal loader = MechInternal.loaderFor(MissileReplenisherComponent.resolve(missileReplenisherId).id());
+        if (loader != null) auxiliaryIds.add(loader.id);
         armsComponentId = idOf(variant.arms);
         leftArmComponentId = idOf(variant.leftArm);
         rightArmComponentId = idOf(variant.rightArm);
@@ -73,13 +82,13 @@ public final class CampaignMech implements Serializable {
         return mech;
     }
 
-    /** Takes off every weapon that is not factory-locked, the engine and the capacitor bank. */
+    /** Takes off every weapon that is not factory-locked, the engine and the whole compartment. */
     void stripToFrame() {
         for (MechMountSlot slot : MechMountSlot.values()) {
             if (weaponAt(slot) != null && !MechFrameBudget.integral(variant, slot)) installWeapon(slot, null);
         }
         installInternal(MechInternal.Role.ENGINE, null);
-        installInternal(MechInternal.Role.CAPACITOR_BANK, null);
+        compartmentIds().clear();
     }
 
     /** Acquisition preserves the recovered fit, including deliberately empty mounts. */
@@ -128,11 +137,50 @@ public final class CampaignMech implements Serializable {
     public MechVariant variant() { return variant; }
     public MechRole role() { return role != null ? role : variant.defaultRole; }
     public String missileReplenisherId() {
-        return MissileReplenisherComponent.resolve(missileReplenisherId).id();
+        return missileReplenisher().id();
     }
 
+    /** The fitted loader's cadence, or {@link MissileReplenisherComponent#NONE} without one. */
     public MissileReplenisherComponent missileReplenisher() {
-        return MissileReplenisherComponent.resolve(missileReplenisherId);
+        MechInternal loader = internal(MechInternal.Role.LOADER);
+        return loader != null ? loader.replenisher() : MissileReplenisherComponent.NONE;
+    }
+
+    /** What the auxiliary compartment holds, in the order fitted. */
+    public List<MechInternal> compartment() {
+        List<MechInternal> parts = new ArrayList<>();
+        for (String partId : compartmentIds()) {
+            MechInternal part = MechInternal.findById(partId);
+            if (part != null && part.role.compartment()) parts.add(part);
+        }
+        return List.copyOf(parts);
+    }
+
+    /**
+     * The compartment's ids, migrated on first read from a save that kept a capacitor bank, a vent
+     * array and a replenisher apart: the bank (a missing id is the factory bank, an emptied one
+     * stays empty), its loader, then the vent. What no longer packs leaves the vent first, then the
+     * loader; the bay still owns them, so they are spares.
+     */
+    private List<String> compartmentIds() {
+        if (auxiliaryIds != null) return auxiliaryIds;
+        List<MechInternal> parts = new ArrayList<>();
+        if (!EMPTY_COMPONENT_ID.equals(capacitorBankId)) {
+            MechInternal bank = MechInternal.findById(capacitorBankId);
+            parts.add(bank != null && bank.role == MechInternal.Role.CAPACITOR_BANK
+                    ? bank : MechInternal.FACTORY_CAPACITOR_BANK);
+        }
+        MechInternal loader = MechInternal.loaderFor(MissileReplenisherComponent.resolve(missileReplenisherId).id());
+        if (loader != null) parts.add(loader);
+        MechInternal vent = MechInternal.findById(ventArrayId);
+        if (vent != null && vent.role == MechInternal.Role.VENT_ARRAY) parts.add(vent);
+        for (MechInternal.Role dropFirst : List.of(MechInternal.Role.VENT_ARRAY, MechInternal.Role.LOADER)) {
+            if (MechCompartment.fits(variant, parts)) break;
+            parts.removeIf(part -> part.role == dropFirst);
+        }
+        auxiliaryIds = new ArrayList<>();
+        for (MechInternal part : parts) auxiliaryIds.add(part.id);
+        return auxiliaryIds;
     }
 
     public MechWeaponComponent arms() {
@@ -172,10 +220,14 @@ public final class CampaignMech implements Serializable {
 
     /**
      * The installed part in {@code role}: the stock part when none was ever fitted, and null
-     * when the socket is empty (an engine or capacitor bank stripped back to stores, or no
-     * vent array).
+     * when it is empty (an engine stripped back to stores, or no such part in the compartment).
+     * Vent arrays stack; this is the first.
      */
     public MechInternal internal(MechInternal.Role role) {
+        if (role.compartment()) {
+            for (MechInternal part : compartment()) if (part.role == role) return part;
+            return null;
+        }
         String installed = internalId(role);
         if (EMPTY_COMPONENT_ID.equals(installed)) return null;
         MechInternal internal = MechInternal.findById(installed);
@@ -243,45 +295,57 @@ public final class CampaignMech implements Serializable {
         return switch (role) {
             case ENGINE -> engineId;
             case PLATING -> platingId;
-            case CAPACITOR_BANK -> capacitorBankId;
-            case VENT_ARRAY -> ventArrayId;
+            default -> null;
         };
     }
 
     /**
      * The roles this frame must fill before it can drop and has left empty: an engine and a
-     * capacitor bank. A missing vent array is an option, not a gap.
+     * capacitor bank. A missing vent array or loader is an option, not a gap.
      */
     public List<MechInternal.Role> missingInternals() {
         List<MechInternal.Role> missing = new ArrayList<>();
         for (MechInternal.Role role : REQUIRED_INTERNALS) {
-            if (EMPTY_COMPONENT_ID.equals(internalId(role))) missing.add(role);
+            if (internal(role) == null) missing.add(role);
         }
         return missing;
     }
 
-    /** The socketed roles a frame cannot drop without. Plating is frame-wide and never stripped. */
+    /** The roles a frame cannot drop without. Plating is frame-wide and never stripped. */
     public static final List<MechInternal.Role> REQUIRED_INTERNALS =
             List.of(MechInternal.Role.ENGINE, MechInternal.Role.CAPACITOR_BANK);
 
     /**
-     * Fits {@code internal} in {@code role}, or empties it on null. An empty engine or capacitor
-     * socket is stored as {@link #EMPTY_COMPONENT_ID}, because a missing id still reads as the
-     * stock part for frames from before internals existed.
+     * Fits {@code internal} in {@code role}, or empties it on null. An empty engine is stored as
+     * {@link #EMPTY_COMPONENT_ID}, because a missing id still reads as the stock part for frames
+     * from before internals existed. In the compartment a capacitor bank or loader replaces the
+     * one there, a vent array goes in beside the others, and null takes out every part of the
+     * role. The caller has checked that the result packs ({@link MechCompartment}).
      */
     void installInternal(MechInternal.Role role, MechInternal internal) {
+        if (role.compartment()) {
+            List<String> ids = compartmentIds();
+            if (internal == null || MechCompartment.limit(role) == 1) {
+                ids.removeIf(partId -> {
+                    MechInternal part = MechInternal.findById(partId);
+                    return part == null || part.role == role;
+                });
+            }
+            if (internal != null) ids.add(internal.id);
+            return;
+        }
         String internalId = internal != null ? internal.id
-                : REQUIRED_INTERNALS.contains(role) ? EMPTY_COMPONENT_ID : null;
+                : role == MechInternal.Role.ENGINE ? EMPTY_COMPONENT_ID : null;
         switch (role) {
             case ENGINE -> engineId = internalId;
             case PLATING -> platingId = internalId;
-            case CAPACITOR_BANK -> capacitorBankId = internalId;
-            case VENT_ARRAY -> ventArrayId = internalId;
+            default -> { }
         }
     }
 
-    void installMissileReplenisher(String componentId) {
-        missileReplenisherId = componentId;
+    /** Takes one {@code part} out of the compartment; false when none is there. */
+    boolean removePart(MechInternal part) {
+        return part != null && compartmentIds().remove(part.id);
     }
 
     void installWeapon(MechMountSlot slot, MechWeaponComponent component) {

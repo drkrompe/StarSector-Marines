@@ -1,10 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
-import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
@@ -83,9 +83,8 @@ class ShipLossSettlementTest {
         MarineRoster roster = company();
         assertNotNull(roster.mechBay().fabricateChassis(
                 roster.mechBay().activeSquad().id(), MechVariant.BULWARK));
-        roster.mechBay().addReplenisher(MissileReplenisherComponent.STANDARD.id(), 4);
-        roster.mechBay().addReplenisher(
-                MissileReplenisherComponent.ACCELERATED_FEED.id(), 1);
+        roster.mechBay().addInternal(MechInternal.STANDARD_LOADER.id, 4);
+        roster.mechBay().addInternal(MechInternal.ACCELERATED_LOADER.id, 1);
         int designs = roster.armory().ownedEquipmentTemplateIds().size();
         int machines = roster.mechBay().squads().get(0).mechs().size();
         int doctrines = roster.armory().weaponDoctrines().size();
@@ -102,11 +101,9 @@ class ShipLossSettlementTest {
 
         // The bay held five spares on its shelf and one bolted into the walker.
         assertEquals(5, toll.sparesLost());
-        assertEquals(1, roster.mechBay().ownedReplenisher(
-                        MissileReplenisherComponent.STANDARD.id()),
+        assertEquals(1, roster.mechBay().ownedInternal(MechInternal.STANDARD_LOADER.id),
                 "what is carrying the machine is carried by it");
-        assertEquals(0, roster.mechBay().ownedReplenisher(
-                        MissileReplenisherComponent.ACCELERATED_FEED.id()),
+        assertEquals(0, roster.mechBay().ownedInternal(MechInternal.ACCELERATED_LOADER.id),
                 "a spare nothing is holding is a spare on a shelf that sank");
     }
 

@@ -137,7 +137,8 @@ class StoryMapPoolEvidenceTest {
             for (Laid piece : built.map().layout.pieces()) {
                 pieces++;
                 if (piece.isLaid()) laid++;
-                else missing.append(missing.length() == 0 ? "" : ", ").append(piece.name());
+                else missing.append(missing.length() == 0 ? "" : ", ").append(piece.name())
+                        .append(piece.reason().isBlank() ? "" : ": " + piece.reason());
             }
             return built.heart().sites().size() + " bores (" + built.heart().mothers().size() + " mothers); landing " + built.plan().landingPlace().seedX() + ","
                     + built.plan().landingPlace().seedY() + "; layout " + laid + " of " + pieces + " laid"

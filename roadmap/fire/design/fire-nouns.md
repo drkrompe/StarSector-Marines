@@ -126,6 +126,24 @@ had half a cell to throw in from any fuel. An eight-charge sweep at full
 reach burns about 85 cells of meadow, 100 of brush or 120 of wood, and its
 nearest flame stays five, four or three cells from the squad.
 
+**Blazes.** A fire big enough becomes a **blaze** (`FireField.isBlaze`): a
+burning cell with 96 or more of the 168 cells in the 13-cell square round it
+burning too. A blaze is lit afresh where it stands with twice its fuel's carry
+onward, and throws its heat a ring further, so a big fire runs on through fuel
+a burst further than a small one would. Nothing a blaze lights, nor anything
+those cells light in turn, can become a blaze itself, so a blaze is one burst
+outward that dies down inside the fuel, not a chain across every wood. One
+flamer charge never sets enough burning at once to blaze (about 70 cells at
+most, in forest), nor does a sweep of charges through meadow or brush. A sweep
+through forest does, and so does a firebomb stick
+(`AirOrdnance.INCENDIARY_BOMBS`, the napalm strike: six rounds, each lighting a
+disc four cells round) into brush or wood. A forest sweep that would burn about
+200 cells burns about 780. Dry country needs no lower bar: its fires carry three
+times as far and grow to a blaze sooner. A break still holds against a blaze if it
+is up to a cell wider than one that stops the same fire unblazed (a crown blaze
+reaches a fourth ring only in a strong wind, downwind, as a crown fire does). A flamer's throw gate (Starting fires) does not
+foresee a blaze, because one throw never makes one.
+
 **Burnt ground.** Scorched, fuel-less, walkable where it was walkable, and a
 firebreak by definition. It stays scorched for the battle (it does not
 regrow); what it refuses, it refuses for a while (Firebreak).

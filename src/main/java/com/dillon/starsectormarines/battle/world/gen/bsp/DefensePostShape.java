@@ -15,8 +15,6 @@ import java.util.Random;
  *       for a post oriented perpendicular to a N/S attack axis.</li>
  *   <li>{@link #LINE_V} — rotated 90°: 2 turrets N/S, 3×5 footprint. Visually
  *       distinct from LINE_H, useful flavor for any attack axis.</li>
- *   <li>{@link #TRAPEZOID} — narrower south, wider north, 2 turrets E/W of
- *       center, protruding toward the kill zone.</li>
  *   <li>{@link #TRIANGLE_FORMATION} — three turrets arranged in a spearhead
  *       (2 back, 1 forward apex) with minimal flanking walls. Concentrates
  *       firepower at a single placement rather than spreading it along an
@@ -31,7 +29,6 @@ public enum DefensePostShape {
 
     LINE_H            ("line-h"),
     LINE_V            ("line-v"),
-    TRAPEZOID         ("trapezoid"),
     TRIANGLE_FORMATION("triangle-formation"),
     /** One raised gun on a 3x3 plinth with a paved apron round it ({@code ground-turret-tiers.md}). */
     HARDPOINT         ("hardpoint");

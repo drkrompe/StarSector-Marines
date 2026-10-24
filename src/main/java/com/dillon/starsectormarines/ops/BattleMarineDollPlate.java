@@ -61,11 +61,17 @@ final class BattleMarineDollPlate {
     /**
      * One item a Marine carries: its name and what is left of it ({@code "2/3"}, {@code "ready"},
      * {@code "12s"}). {@code round} names the icon a short load draws, one a round ({@code missile} for
-     * a rocket, {@code rifle} for a precision rifle's cartridges), or is null for a load kept as a count.
+     * a rocket, {@code rifle} for a precision rifle's cartridges, {@code grenade} and {@code smoke} for
+     * throws), or is null for a load kept as a count. A cooldown item with an icon ({@code shield}) draws
+     * it once, beside its clock: lit when ready ({@code left} 1), dimmed while it recharges.
      */
-    record Kit(String name, String count, boolean spent, String round, int left, int capacity) {
+    record Kit(String name, String count, boolean spent, String round, int left, int capacity, boolean clocked) {
         Kit(String name, String count, boolean spent) {
-            this(name, count, spent, null, 0, 0);
+            this(name, count, spent, null, 0, 0, false);
+        }
+
+        Kit(String name, String count, boolean spent, String round, int left, int capacity) {
+            this(name, count, spent, round, left, capacity, false);
         }
 
         /** Whether the row draws its load as icons. */
@@ -73,9 +79,17 @@ final class BattleMarineDollPlate {
             return round != null && capacity > 0 && capacity <= MAX_KIT_ROUNDS;
         }
 
-        /** The icon a special's load is drawn with: rockets as missiles, a precision rifle's cartridges. */
+        /** Whether the row keeps its text: a load not drawn, or a clock beside its icon. */
+        boolean showsCount() {
+            return clocked || !drawsRounds();
+        }
+
+        /** The icon a special's load is drawn with: rockets as missiles, a precision rifle's cartridges, throws as themselves. */
         static String round(SpecialEquipmentDef special) {
-            if (!special.usesAmmunition() || !special.isDirectFireWeapon()) return null;
+            if (!special.usesAmmunition()) return null;
+            if (special.isThrownGrenade()) return "grenade";
+            if (special.isSmokeThrow()) return "smoke";
+            if (!special.isDirectFireWeapon()) return null;
             if (Ordnance.of(special.weaponDef()) == Ordnance.MISSILE) return "missile";
             return special.activation() == SpecialActivation.DIRECT_PRECISION ? "rifle" : null;
         }
@@ -108,9 +122,12 @@ final class BattleMarineDollPlate {
             IntegralSystemDef system = systems.has(id) ? systems.spec(id) : null;
             if (system != null) {
                 int left = systems.ammo(id);
+                float cooldown = systems.cooldownRemaining(id);
                 kit.add(system.usesAmmunition()
                         ? new Kit(system.displayName(), left + "/" + system.startingAmmo(), left <= 0)
-                        : new Kit(system.displayName(), clock(systems.cooldownRemaining(id), copy), false));
+                        : system.grantsMitigation()
+                        ? new Kit(system.displayName(), clock(cooldown, copy), false, "shield", cooldown > 0f ? 0 : 1, 1, true)
+                        : new Kit(system.displayName(), clock(cooldown, copy), false));
             }
             Squad squad = sim.squad().hasSquad(id) ? sim.getSquad(sim.squad().squadId(id)) : null;
             SquadMedic medic = squad != null ? squad.medic : null;
@@ -218,7 +235,7 @@ final class BattleMarineDollPlate {
             rowClasses.get(i).set(kit == null ? ROW_HIDDEN : kit.spent() ? ROW_SPENT : ROW);
             rowNames.get(i).set(kit == null ? "" : kit.name());
             boolean icons = kit != null && kit.drawsRounds();
-            rowCounts.get(i).set(kit == null || icons ? "" : kit.count());
+            rowCounts.get(i).set(kit == null || !kit.showsCount() ? "" : kit.count());
             rowRounds.get(i).set(icons ? rounds(i, kit) : List.of());
             rowRoundsStyles.get(i).set(icons ? roundsStyle(kit.capacity(), width(kit.round())) : roundsStyle(0, 0));
         }
@@ -227,18 +244,24 @@ final class BattleMarineDollPlate {
         markup.flush();
     }
 
-    /** A row's load, first to leave on the left, spent rounds as outlines. */
+    /** A row's load, first to leave on the left, spent rounds as outlines; a clocked item recharging dimmed. */
     private static List<RoundIcon> rounds(int row, Kit kit) {
         List<RoundIcon> rounds = new ArrayList<>(kit.capacity());
         for (int i = 0; i < kit.capacity(); i++) {
-            String state = i < kit.left() ? "live" : "spent";
+            String state = i < kit.left() ? "live" : kit.clocked() ? "loading" : "spent";
             rounds.add(new RoundIcon("marine-doll-kit-" + row + "-round-" + i, "kit-round kit-round-" + kit.round(),
                     "graphics/ui/direct-control/round-" + kit.round() + "-" + state + ".svg"));
         }
         return rounds;
     }
 
-    private static int width(String round) { return "missile".equals(round) ? MISSILE_WIDTH : RIFLE_WIDTH; }
+    private static int width(String round) {
+        return switch (round) {
+            case "missile" -> MISSILE_WIDTH;
+            case "rifle" -> RIFLE_WIDTH;
+            default -> BattleDirectControlHudModel.itemWidth(round);
+        };
+    }
 
     // This layout sizes a row to its own width rather than its children's, so the strip is told it.
     private static String roundsStyle(int count, int width) {
