@@ -357,8 +357,8 @@ public final class CordonGapLookSuite implements SnapshotSuite {
         MapResult map = cordon.map();
         List<Precinct> redoubts = CordonPlan.redoubts(cordon.plan());
         int front = CordonFront.frontward(cordon.plan());
-        List<int[]> west = towersOf(map, redoubts.get(pair.west() - 1), front);
-        List<int[]> east = towersOf(map, redoubts.get(pair.east() - 1), front);
+        List<int[]> west = towersOf(map, redoubts, pair.west(), front);
+        List<int[]> east = towersOf(map, redoubts, pair.east(), front);
         List<int[]> nests = courseNests(map, pair.west());
         // Which redoubt goes: {@code -Dsnapshot.cordonGap.move=east} (the default) or {@code west}, or {@code auto} for the
         // shorter move.
@@ -374,7 +374,7 @@ public final class CordonGapLookSuite implements SnapshotSuite {
         if (bestWhich < 0) throw new IllegalStateException("no move of either redoubt closes pair " + pair.west());
         int dx = bestWhich == pair.east() ? -bestShift : bestShift;
         Precinct moving = redoubts.get(bestWhich - 1);
-        int[] box = CordonGarrisons.wallBox(map.topology, moving);
+        int[] box = CordonGarrisons.perimeterBox(map.topology, moving);
         if (box == null) throw new IllegalStateException("redoubt " + bestWhich + " has no wall");
         int m = 2;
         int x0 = box[0] - m, y0 = box[1] - m, x1 = box[2] + m, y1 = box[3] + m;
@@ -487,8 +487,8 @@ public final class CordonGapLookSuite implements SnapshotSuite {
         MapResult map = cordon.map();
         List<Precinct> redoubts = CordonPlan.redoubts(cordon.plan());
         int front = CordonFront.frontward(cordon.plan());
-        List<int[]> chain = chain(towersOf(map, redoubts.get(chosen.west() - 1), front),
-                towersOf(map, redoubts.get(chosen.east() - 1), front), courseNests(map, chosen.west()));
+        List<int[]> chain = chain(towersOf(map, redoubts, chosen.west(), front),
+                towersOf(map, redoubts, chosen.east(), front), courseNests(map, chosen.west()));
         int widestFrom = 0;
         double widest = -1;
         for (int i = 0; i + 1 < chain.size(); i++) {
@@ -539,8 +539,8 @@ public final class CordonGapLookSuite implements SnapshotSuite {
         throw new IllegalStateException("no chain of guns between the pair");
     }
 
-    private static List<int[]> towersOf(MapResult map, Precinct redoubt, int front) {
-        return CordonGarrisons.towers(map.grid, map.topology, map.doodads, redoubt, front);
+    private static List<int[]> towersOf(MapResult map, List<Precinct> redoubts, int number, int front) {
+        return CordonGarrisons.towers(map, redoubts.get(number - 1), number, front);
     }
 
     private static List<int[]> courseNests(MapResult map, int west) {
@@ -554,7 +554,7 @@ public final class CordonGapLookSuite implements SnapshotSuite {
         int front = CordonFront.frontward(cordon.plan());
         List<int[]> out = new ArrayList<>();
         List<Precinct> redoubts = CordonPlan.redoubts(cordon.plan());
-        for (Precinct r : redoubts) out.addAll(towersOf(map, r, front));
+        for (int n = 1; n <= redoubts.size(); n++) out.addAll(towersOf(map, redoubts, n, front));
         for (int n = 1; n < redoubts.size(); n++) out.addAll(courseNests(map, n));
         return out;
     }
@@ -562,8 +562,8 @@ public final class CordonGapLookSuite implements SnapshotSuite {
     /** The middle of the pair's ground and the cells across that show both redoubts whole. */
     static float[] pairSpan(CordonSetup.CordonMap cordon, Pair pair) {
         List<Precinct> redoubts = CordonPlan.redoubts(cordon.plan());
-        int[] w = CordonGarrisons.wallBox(cordon.map().topology, redoubts.get(pair.west() - 1));
-        int[] e = CordonGarrisons.wallBox(cordon.map().topology, redoubts.get(pair.east() - 1));
+        int[] w = CordonGarrisons.perimeterBox(cordon.map().topology, redoubts.get(pair.west() - 1));
+        int[] e = CordonGarrisons.perimeterBox(cordon.map().topology, redoubts.get(pair.east() - 1));
         int lx = Math.min(w[0], e[0]), hx = Math.max(w[2], e[2]);
         int ly = Math.min(w[1], e[1]), hy = Math.max(w[3], e[3]);
         float across = Math.max(hx - lx + 40, (hy - ly + 40) * W / (float) H);

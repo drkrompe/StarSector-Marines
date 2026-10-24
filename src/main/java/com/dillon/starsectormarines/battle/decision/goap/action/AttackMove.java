@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.SquadRouteGoalProvider;
+import com.dillon.starsectormarines.battle.infantry.LaneSidestep;
 import com.dillon.starsectormarines.battle.infantry.ReinforceContact;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
@@ -428,7 +429,7 @@ public final class AttackMove extends AbstractZoneAction implements SquadRouteGo
                 sim.world().x(contact), sim.world().y(contact));
         boolean clearShot = sim.getTacticalScoring().hasClearShot(member, contact);
         if (distance <= sim.world().attackRange(member) && clearShot) {
-            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+            LaneSidestep.holdGround(member, sim);
             sim.combat().setFireIntent(member, contact, FireStance.STANCED, true);
             return;
         }
@@ -436,7 +437,7 @@ public final class AttackMove extends AbstractZoneAction implements SquadRouteGo
                 member, contact, sim.world().cellX(member), sim.world().cellY(member),
                 BASE_OF_FIRE_LEASH);
         if (firingPos == null) {
-            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+            LaneSidestep.holdGround(member, sim);
             return;
         }
         // A fixing squad that cannot walk to the better position plants where
@@ -444,7 +445,7 @@ public final class AttackMove extends AbstractZoneAction implements SquadRouteGo
         // attention is the job, and it is done from here or not at all.
         if (advanceToReachableFiringPosition(member, sim, firingPos)
                 != FiringApproach.MOVED) {
-            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+            LaneSidestep.holdGround(member, sim);
         }
     }
 

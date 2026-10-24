@@ -4,6 +4,8 @@ Status: PLANNED
 
 Written: 2026-10-24
 
+Updated: 2026-10-24 — origins are real facilities broken open by the damage layer, not scattered story props (owner).
+
 `heart-nouns.md` is the model, `heart-map-intent.md` the map direction and
 `swarm-lore-guide.md` the lore this stays inside.
 
@@ -31,16 +33,34 @@ on cargo with people who did not know they carried it. Proposed origins:
 | **Research site** | Intentional: someone was studying it | A fenced compound, a sealed annex blown outward, the fence wired and sandbagged facing in; the mother rising from the annex |
 | **Park** | Nobody's fault: the colony built over it | A green with paths, benches and a playground, a bandstand half swallowed; the mothers among ordinary things |
 
+**A place, not a scatter** (owner, 2026-10-24): a first pass laid each
+origin as a handful of story objects round the mother, with the creep painted
+into the sprites, and read as "toyish": "We're not building up a larger ruined
+facility for instance or a warehouse and having damage to break open walls /
+rooms." So an origin is a whole facility built from the generator's ordinary
+buildings, rooms and walls (a warehouse and its yard, a research compound, the
+pump station, a park with its pavilion), and the story is told the way a ruin
+tells it: by what is broken and from which side. The mother comes up inside
+the building that matters, and the authored damage layer (`mapgen-nouns.md`,
+Authored damage layers) breaks that building open from there: walls breached
+outward round the core room, roofs fallen in a ring, the rest of the facility
+battered by weeks of the swarm. A few props are accents inside it, never the
+story on their own.
+
+**The existing design language holds** (owner): the creep is the live creep
+layer, drawn under every prop, spreading from the bores and withering when they
+fall. No prop has creep painted into it.
+
 The mothers still stand at least twenty-two cells apart round the origin
 (`heart-nouns.md`, Mother bore), so the origin is where the cluster centres,
-and one mother, the first, opens at the telling object itself.
+and the first mother opens in its core building.
 
 ## Constraints
 
-- Composed from what generation has: the places' growth and characters, the
-  park, industrial-yard and medical-campus fillers, the layout's structures and
-  blocks (`mission-layout.md`), wrecks and props. A new structure kind only
-  where nothing fits.
+- Composed from what generation has: fortress programs (buildings and rooms
+  on a claim), the places' characters, the park, industrial-yard and
+  medical-campus fillers, and the authored damage layer. A new program only
+  where no existing one fits; props are accents.
 - Every origin works on every form, biome and density; a city's origin is
   built-up ground, a rural one may stand in fields.
 - The pools keep their seeds. The origin is drawn from the seed, so each pool's
@@ -61,7 +81,11 @@ and one mother, the first, opens at the telling object itself.
 ## Plan
 
 1. The origin as a plan choice: `HeartCountry` picks it from the seed and
-   gives the far place its growth and character.
-2. Each origin's set piece in `HeartLayout`, named, so review frames box it.
-3. The first mother seated at the set piece (`HeartBores`), the rest round it.
-4. Look shots and the owner's pick; pool notes.
+   gives the far place a facility (a program or character) instead of the
+   workings' sheds.
+2. A damage plan per origin, centred on its core building, so the facility is
+   broken open from where the mother came up.
+3. The first mother seated in the core building (`HeartBores`), the rest round
+   it.
+4. Look shots of each facility and the owner's pick; the accents the props
+   session keeps; pool notes.
