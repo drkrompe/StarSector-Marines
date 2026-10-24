@@ -449,7 +449,7 @@ instead in The Burn when the lost battle's guns are all dead).
 | `landfall` | both | the first Marine is on the ground |
 | `heart_surge` | Broad Front | the first satellite falls and the mothers wake |
 | `lane_arrived_N` | Broad Front | lane N's column reaches its first bore |
-| `lane_broken_N` | Broad Front | lane N's column below a third of its strength |
+| `lane_broken_N` | Broad Front | lane N below a third of the militia its waves arrived with, counted as each came in |
 | `line_lit` | The Burn | the fire line takes |
 | `barrage_line_N`, `barrage_lifted_N` | The Burn | a line opens (after its warning); it lifts |
 | `breakout_<bore>` | The Burn | a hurt bore surges (observer-only, recurring) |

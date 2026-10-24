@@ -73,7 +73,7 @@ public final class HeartLanes {
         final int entryX, entryY;
         final AlliedColumns column;
         List<Integer> squads;
-        /** The militia the lane's arrived waves were raised with: what "broken" is measured against. */
+        /** The militia standing in the lane's waves as each arrived: what "broken" is measured against. */
         int joinedMembers;
         final int teams;
         int targetX = -1, targetY = -1;
@@ -195,7 +195,8 @@ public final class HeartLanes {
                 targetY = destY;
             }
             squads.addAll(joined);
-            joinedMembers += teams * ColonyMilitia.POST_SIZE;
+            // Measured as the wave came in, not as it was raised: a column that fought its way up arrives short.
+            for (int squad : joined) joinedMembers += sim.squadMemberCount(squad);
             // A wave that joined the lane where it stands goes on with it to its aim (a formation gives it a slot).
             if (targetX != destX || targetY != destY) {
                 for (int squad : joined) {
@@ -395,7 +396,7 @@ public final class HeartLanes {
             lane.squads.removeIf(squad -> sim.squadMemberCount(squad) == 0);
             int alive = 0;
             for (int squad : lane.squads) alive += sim.squadMemberCount(squad);
-            if (!lane.broken && alive * 3 < lane.joinedMembers) {
+            if (!lane.broken && broken(alive, lane.joinedMembers)) {
                 lane.broken = true;
                 beats.add("lane_broken_" + lane.number);
             }
@@ -772,6 +773,7 @@ public final class HeartLanes {
             Lane nearest = null;
             for (Lane lane : lanes) {
                 if (lane == gap || lane.broken || lane.reaimedTo != null || lane.column.remaining() == 0) continue;
+                if (!neighbours(acrossOf(), wavesOf(), lanes.indexOf(lane), lanes.indexOf(gap))) continue;
                 if (nearest == null || entryDistance(lane, gap) < entryDistance(nearest, gap)) nearest = lane;
             }
             if (nearest == null) continue;
@@ -782,6 +784,41 @@ public final class HeartLanes {
         }
         for (String closed : closedGaps) beats.add("gap_closed_" + closed);
         closedGaps.clear();
+    }
+
+    /**
+     * Whether a lane standing at {@code alive} militia is broken: below a third of the {@code arrivedWith} its waves
+     * brought in, counted as each arrived.
+     */
+    static boolean broken(int alive, int arrivedWith) {
+        return alive * 3 < arrivedWith;
+    }
+
+    /** Where each lane lies across the front, in lane order. */
+    private int[] acrossOf() {
+        int[] out = new int[lanes.size()];
+        for (int i = 0; i < out.length; i++) out[i] = lanes.get(i).ground.across();
+        return out;
+    }
+
+    /** Whether each lane takes waves, in lane order: armour-only support ground ({@link #addSupport}) does not. */
+    private boolean[] wavesOf() {
+        boolean[] out = new boolean[lanes.size()];
+        for (int i = 0; i < out.length; i++) out[i] = lanes.get(i).teams > 0;
+        return out;
+    }
+
+    /**
+     * Whether lane {@code from} is a neighbour of lane {@code gap} across the front: no other lane that takes waves
+     * lies between them (support ground beside the company does not count). Only a neighbour's wave is re-aimed at
+     * a gap; past it, the gap waits for the company or the next call, rather than a wave marching across the map.
+     */
+    static boolean neighbours(int[] across, boolean[] takesWaves, int from, int gap) {
+        int low = Math.min(across[from], across[gap]), high = Math.max(across[from], across[gap]);
+        for (int i = 0; i < across.length; i++) {
+            if (i != from && i != gap && takesWaves[i] && across[i] > low && across[i] < high) return false;
+        }
+        return true;
     }
 
     /** How far {@code from}'s waves step off from {@code gap}'s aim. */
