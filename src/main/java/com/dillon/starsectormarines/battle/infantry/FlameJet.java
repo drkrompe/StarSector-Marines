@@ -11,7 +11,31 @@ public final class FlameJet {
     /** How finely the jet's bearing is walked out from the nozzle, in cells. */
     static final float STEP_CELLS = 0.25f;
 
+    /**
+     * Where the wand's nozzle is, in cells from the Marine's centre: ahead along the jet's bearing and out to the
+     * right hip. Read off the flamer layout's firing clip (the wand's tip at 0.62 shoulder widths ahead and 0.19
+     * right, a shoulder width being 0.6 of a cell, measured on the firing pose at 0.42 and 0.11), so the jet leaves the wand rather than the Marine's chest.
+     */
+    static final float NOZZLE_FORWARD_CELLS = 0.42f;
+    static final float NOZZLE_RIGHT_CELLS = 0.11f;
+
     private FlameJet() {
+    }
+
+    /**
+     * The wand's nozzle for a Marine at {@code (bodyX, bodyY)} sending a jet toward {@code (aimX, aimY)}: where
+     * the launch, the trail and the first flame start. The body itself when the aim is on the Marine.
+     */
+    public static float[] nozzle(float bodyX, float bodyY, float aimX, float aimY) {
+        float dx = aimX - bodyX;
+        float dy = aimY - bodyY;
+        float length = (float) Math.hypot(dx, dy);
+        if (!(length > 1e-4f)) return new float[]{bodyX, bodyY};
+        float ux = dx / length;
+        float uy = dy / length;
+        // Right of the bearing, the grid's y running north: (uy, -ux).
+        return new float[]{bodyX + ux * NOZZLE_FORWARD_CELLS + uy * NOZZLE_RIGHT_CELLS,
+                bodyY + uy * NOZZLE_FORWARD_CELLS - ux * NOZZLE_RIGHT_CELLS};
     }
 
     /**
