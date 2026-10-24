@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 75 200">
+  <g transform="translate(4.5 12) scale(0.88)">
+<g transform="translate(0 200) rotate(-90)">
+  <ellipse cx="27.8" cy="37.5" rx="18.9" ry="18.9" fill="#000000" fill-opacity="0.58"/>
+  <ellipse cx="27.8" cy="37.5" rx="7.2" ry="7.2" fill="#ffffff" fill-opacity="0.5"/>
+  <polygon points="49.8,27.6 70.6,27.6 72.8,29.8 72.8,45.2 70.6,47.4 49.8,47.4 47.6,45.2 47.6,29.8" fill="#000000" fill-opacity="0.58"/>
+  <rect x="72.8" y="31.2" width="119.2" height="12.6" rx="3" fill="#000000" fill-opacity="0.58"/>
+  <rect x="76.4" y="32.1" width="112" height="2.2" fill="#ffffff" fill-opacity="0.3"/>
+  <rect x="186" y="29.4" width="6" height="16.2" rx="1" fill="#000000" fill-opacity="0.58"/>
+</g>
+  </g>
+  <polygon points="12.9,150.6 62.1,150.6 67,155.5 67,187.2 62.1,192 12.9,192 8,187.2 8,155.5" fill="#000000" fill-opacity="0.58"/>
+  <rect x="12.4" y="188.9" width="50.2" height="2" fill="#ffffff" fill-opacity="0.3"/>
+  <rect x="16" y="153.8" width="20.9" height="7.7" fill="#0d100e"/>
+  <rect x="11.6" y="158.2" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="11.6" y="162.6" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="11.6" y="167" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="20.4" y="167" width="16.5" height="7.7" fill="#0d100e"/>
+  <rect x="11.6" y="171.4" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="29.2" y="171.4" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="11.6" y="175.8" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="29.2" y="175.8" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="16" y="180.2" width="16.5" height="7.7" fill="#0d100e"/>
+  <rect x="38" y="153.8" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="38" y="158.2" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="38" y="162.6" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="38" y="167" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="38" y="171.4" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="38" y="175.8" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="38" y="180.2" width="25.3" height="7.7" fill="#0d100e"/>
+  <rect x="17.7" y="155.2" width="17.6" height="4.9" fill="#d9dcd2"/>
+  <rect x="13.3" y="159.6" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="13.3" y="164" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="13.3" y="168.4" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="22.1" y="168.4" width="13.2" height="4.9" fill="#d9dcd2"/>
+  <rect x="13.3" y="172.8" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="30.9" y="172.8" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="13.3" y="177.2" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="30.9" y="177.2" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="17.7" y="181.6" width="13.2" height="4.9" fill="#d9dcd2"/>
+  <rect x="39.7" y="155.2" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="39.7" y="159.6" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="39.7" y="164" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="39.7" y="168.4" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="39.7" y="172.8" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="39.7" y="177.2" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="39.7" y="181.6" width="22" height="4.9" fill="#d9dcd2"/>
+  <rect x="17.7" y="158.4" width="17.6" height="1.8" fill="#9ea397"/>
+  <rect x="13.3" y="162.8" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="13.3" y="167.2" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="13.3" y="171.6" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="22.1" y="171.6" width="13.2" height="1.8" fill="#9ea397"/>
+  <rect x="13.3" y="176" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="30.9" y="176" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="13.3" y="180.4" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="30.9" y="180.4" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="17.7" y="184.8" width="13.2" height="1.8" fill="#9ea397"/>
+  <rect x="39.7" y="158.4" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="39.7" y="162.8" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="39.7" y="167.2" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="39.7" y="171.6" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="39.7" y="176" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="39.7" y="180.4" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="39.7" y="184.8" width="22" height="1.8" fill="#9ea397"/>
+</svg>

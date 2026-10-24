@@ -55,6 +55,28 @@ public final class BoatWorkshop {
     }
 
     /**
+     * Puts one door gun on one of a boat's hardpoints.
+     *
+     * <p>The same commit as {@link #fit}: checked, paid in full, then
+     * installed. Putting the hardpoint's own yard gun back is free, the way a
+     * standard fitting is.
+     */
+    public Result fitGun(String boatId, int hardpoint, String gunId) {
+        CampaignBoat boat = deck.boatById(boatId);
+        if (boat == null) return Result.of(Status.UNKNOWN_BOAT);
+        BoatGun gun = BoatGun.findById(gunId);
+        if (gun == null) return Result.of(Status.UNKNOWN_FITTING);
+        BoatGun current = boat.gunOn(hardpoint);
+        if (current == null) return new Result(Status.UNKNOWN_HARDPOINT, boat);
+        if (current == gun) return new Result(Status.ALREADY_FITTED, boat);
+        if (!gun.supports(boat.pattern())) return new Result(Status.INCOMPATIBLE_FITTING, boat);
+        FabricationCost bill = gun.standardOn(boat.pattern(), hardpoint) ? null : resources.quote(gun.bill());
+        if (bill != null && !resources.spend(bill)) return new Result(Status.CANNOT_AFFORD, boat);
+        boat.installGun(hardpoint, gun);
+        return new Result(Status.FITTED, boat);
+    }
+
+    /**
      * Builds the hull's own pattern into one empty berth, at standard fit.
      *
      * <p>What the deck carries is not the player's choice — it is what her bays
@@ -121,6 +143,7 @@ public final class BoatWorkshop {
         STALE_REPAIR,
         UNKNOWN_BOAT,
         UNKNOWN_FITTING,
+        UNKNOWN_HARDPOINT,
         INCOMPATIBLE_FITTING,
         ALREADY_FITTED,
         CANNOT_AFFORD,

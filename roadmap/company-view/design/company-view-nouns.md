@@ -586,7 +586,17 @@ personnel deployment: campaign objects do not enter battle.
 The Boat Deck is the Mech Lab's grammar over a different noun: the room shows
 the hull's hangar as it actually is with the boats standing on their berths, an
 overview card per berth, and — once a berth is chosen — that boat's slots and a
-catalog scoped to the selected one. Selecting the already-open `BOATS` route
+catalog scoped to the selected one. Choosing a boat moves the camera, the way
+choosing a pad does in the lab: it eases in on her berth and stands her right of
+a drafting board, the **boat doll**, while the yard catalog takes the left of the
+room and her condition, specifications and slot list the right. The doll is the
+lab's socket schematic, not a picture of the boat: each slot is a socket of
+bricks with the fitted piece drawn over them in its socket's colour, wired to an
+airframe core — door guns across the top, port to starboard, plating and drive on
+its flanks and the hold beneath — and the catalog shows each part on its own
+bricks. Where a gun sits is shown on the boat herself: each hardpoint is ringed on
+the berthed boat where her hull's weapon slot puts it, with its traverse as a
+wedge. A socket, a slot row and the spot it names on the boat are one selection. Selecting the already-open `BOATS` route
 puts the deck back rather than acting as a dead control, the way the lab's own
 route does. A hull with more than one hangar gets the same fore-to-aft pager,
 and one with none shows the route greyed, exactly as a hull with no vehicle bay
@@ -693,8 +703,18 @@ strip for the shared fabrication materials, separate from the selected fitting's
 or boat's cost rows. Material badges resolve through the same shared commodity
 presentation the Fleet Armory and the Mech Lab use.
 
+**A hardpoint carries a door gun, fitted per hardpoint.** A boat has as many
+hardpoints as its pattern and each holds one gun from the yard's door-gun catalog;
+hardpoints are fitted by index, not as a fourth slot. A hardpoint nobody has refitted
+carries the gun an air-to-ground sortie kit gives that mount, so a boat from before
+hardpoints were refittable flies exactly as it did, and putting that yard gun back
+is free. Any other gun is installed work with a bill, like a fitting. The gun stands
+on the hull's turret slots before its fixed hardpoints, so the place the doll rings
+is the place the battle mounts and fires it from. The fitted guns replace the kit
+only for an air-to-ground sortie; other roles still arm by role.
+
 **The Hermes is a dead-end courier design.** Repair and replacement retain its
-standard fit, but the workshop refuses plating and drive upgrades before charging.
+standard fit, but the workshop refuses plating, drive and door-gun upgrades before charging.
 Its slots are inspection-only in Boat Deck; better lift comes from replacing the
 airframe. Aeroshuttles retain their fitting progression. Already-installed fittings
 in older saves remain intact, without allowing further Hermes upgrades.
@@ -1728,9 +1748,8 @@ and a sector contract board. Each extension must preserve the canonical
 company organization and frozen deployment identities rather than persisting
 a second presentation-owned roster.
 
-Boat fittings may later be authored in data rather than in a code catalog and
-gain a hardpoint slot — each of those extends the same campaign authority rather
-than adding a second one, and none of them makes the room the owner of what the
+Boat fittings and door guns may later be authored in data rather than in a code
+catalog — that extends the same campaign authority rather than adding a second one, and none of them makes the room the owner of what the
 company has. Recovering a downed boat's hull or crew is deliberately not on that
 list: a lost boat is lost.
 

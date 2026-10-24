@@ -72,7 +72,8 @@ public final class WeaponSlotParser {
             float vy = (float) loc.getDouble(1);
             String type = slot.optString("type", "");
             float angle = (float) slot.optDouble("angle", 0.0);
-            out.add(new WeaponSlot(-vy * k, vx * k, type, angle));
+            out.add(new WeaponSlot(-vy * k, vx * k, type, angle,
+                    slot.optString("mount", ""), (float) slot.optDouble("arc", 0.0)));
         }
         return out;
     }
