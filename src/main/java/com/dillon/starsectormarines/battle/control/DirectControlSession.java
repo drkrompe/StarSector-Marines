@@ -10,7 +10,6 @@ import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
-import com.dillon.starsectormarines.battle.infantry.FlameJet;
 import com.dillon.starsectormarines.battle.infantry.FragGrenadeTactics;
 import com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep;
 import com.dillon.starsectormarines.battle.infantry.SmokeTactics;
@@ -705,9 +704,7 @@ public final class DirectControlSession {
 
     /**
      * The left button on a special: a press fires one round at the cursor through the special's own
-     * point-fire path once it is readied, off cooldown and loaded. The flamer is a held stream instead: while
-     * the button is down it sends a charge toward the cursor, short of the first wall and no further than its
-     * range, each time its cooldown allows. The primary holds meanwhile.
+     * point-fire path once it is readied, off cooldown and loaded. The primary holds meanwhile.
      */
     private void fireLeftSpecial(long id, ManualIntent input, boolean sprinting) {
         primaryHeld = input.firing();
@@ -717,21 +714,11 @@ public final class DirectControlSession {
         boolean canFire = special != null && world.specialEquipment(id) == special
                 && world.secondaryCooldownTimer(id) <= 0f
                 && world.secondaryAmmo(id) > 0 && Float.isFinite(input.aimX()) && Float.isFinite(input.aimY());
-        boolean stream = special != null && special.isHeldStream();
-        float[] jet = canFire && stream ? FlameJet.point(battle.getGrid(), world.renderX(id), world.renderY(id),
-                input.aimX(), input.aimY(), special.range()) : null;
-        if (stream) canFire &= jet != null;
-        if (!marineLeft.tick(input.firing(), sprinting, canFire, stream, BattleSimulation.TICK_DT)) return;
-        if (stream) {
-            // The flamer's own release spends one charge of fuel; a held button sends the next on its cooldown.
-            int fuel = world.secondaryAmmo(id);
-            battle.throwFragmentationGrenade(id, jet[0], jet[1]);
-            if (world.secondaryAmmo(id) >= fuel) return;
-        } else if (!battle.fireSecondaryAtPoint(id, input.aimX(), input.aimY())) {
-            return;
+        if (marineLeft.tick(input.firing(), sprinting, canFire, BattleSimulation.TICK_DT)
+                && battle.fireSecondaryAtPoint(id, input.aimX(), input.aimY())) {
+            world.setSecondaryCooldownTimer(id, special.cooldown());
+            marineLeft.fired();
         }
-        world.setSecondaryCooldownTimer(id, special.cooldown());
-        marineLeft.fired();
     }
 
     /**

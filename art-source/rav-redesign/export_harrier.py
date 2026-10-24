@@ -1,8 +1,8 @@
-"""Export the Harrier (Rav flier) looks from their round-1 concept sheets into mod/graphics/battle/rav-harrier/.
+"""Export the Harrier (Rav flier) look from its round-1 concept sheet into mod/graphics/battle/rav-harrier/.
 
 python art-source/rav-redesign/export_harrier.py
 
-Each look's sheet (three poses on grey: glide, flap, dive) is cut by exploration/flier/cut_flier.py, then all three
+The look's sheet (three poses on grey: glide, flap, dive) is cut by exploration/flier/cut_flier.py, then all three
 poses are scaled by one factor, the one that makes the glide drawing `span` cells wide at PX_PER_CELL (the
 renderer's `HarrierLook.PX_PER_CELL`), so the body keeps one size from pose to pose. Each pose is then padded so the
 centroid of its spine strip (the middle sixth of its width) sits at the image centre: the renderer turns a sprite
@@ -23,7 +23,8 @@ SHEETS = HERE / "exploration" / "flier" / "round-1" / "raw"
 OUT = ROOT / "mod" / "graphics" / "battle" / "rav-harrier"
 PX_PER_CELL = 64
 # folder, sheet, span in cells: HarrierLook's values.
-LOOKS = [("lilac", "a.png", 2.4), ("manta", "b.png", 2.2), ("scythe", "c.png", 2.3)]
+# The owner picked A, the lilac glider (2026-10-23); sheets b and c stay in raw/ as the round's record.
+LOOKS = [("lilac", "a.png", 2.4)]
 
 
 def poses(sheet):
