@@ -30,6 +30,14 @@ public final class CordonAlliedRules {
         return density == CordonPlan.Density.URBAN ? 2 : 1;
     }
 
+    /**
+     * Whether the line's hulls keep to the streets (rule 5): in a town, where armour cannot leave them. Open country
+     * is driven anywhere, and a city's sectors are held by mechs.
+     */
+    static boolean roadbound(CordonPlan.Density density) {
+        return density == CordonPlan.Density.TOWN;
+    }
+
     /** A sector had machines and has none left: the radio's Uncovered. */
     static boolean uncovered(Post post) {
         return post.manned() && post.hadMachines() && post.machines() == 0;
@@ -116,12 +124,14 @@ public final class CordonAlliedRules {
     }
 
     /**
-     * Whether the line asks for an ammunition truck to a redoubt now: it is manned, a gun of its is dry (firing
-     * rationed) or the rounds its guns and tubes hold together have fallen under {@code threshold} of full, and no
-     * truck asked for it before is still on the road.
+     * Whether the line asks for an ammunition truck to a redoubt now: it is manned, a truck has a way to it (a supply
+     * road, or a way through the streets, that a truck can drive), a gun of its is dry (firing rationed) or the rounds
+     * its guns and tubes hold together have fallen under {@code threshold} of full, and no truck asked for it before
+     * is still on the road. A truck sent where none can drive stood where its way ran out, delivering nothing.
      */
-    static boolean wantsAmmunition(boolean manned, float share, float threshold, int dryGuns, int onRoad) {
-        return manned && (share < threshold || dryGuns > 0) && onRoad == 0;
+    static boolean wantsAmmunition(boolean manned, boolean reachable, float share, float threshold, int dryGuns,
+                                   int onRoad) {
+        return manned && reachable && (share < threshold || dryGuns > 0) && onRoad == 0;
     }
 
     /**

@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.command.allied.GunStock;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRuntime.Status;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
-import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,8 +17,9 @@ import java.util.Random;
  * the redoubt's supply road with an escort out of the armour's surplus. When it reaches the redoubt the guns
  * fire at their own rate again. Fails when a truck bound there is lost or the redoubt is lost first.
  *
- * <p>Simplified: the truck appears at the base's end of the supply road (the dump stands inside the base, where a truck
- * has no room to turn out), and "dry" is a rationed rate of fire, not an empty magazine.
+ * <p>Simplified: the truck appears at the base's end of the supply road, or of its way through a city's streets (the
+ * dump stands inside the base, where a truck has no room to turn out), and "dry" is a rationed rate of fire, not an
+ * empty magazine.
  */
 final class GunsDryBeat extends CordonBeat {
 
@@ -49,7 +49,7 @@ final class GunsDryBeat extends CordonBeat {
         if (!started) {
             if (tick < CordonSequence.ticks(DRY_SECONDS)) return Status.ACTIVE;
             started = true;
-            if (line == null || line.shed() == null || choose() == null) return Status.LAPSED;
+            if (line == null || line.shed() == null || choose(line) == null) return Status.LAPSED;
             stock = line.stock(redoubt);
             stock.drain(redoubt.guns());
             refillsAtDrain = stock.refills();
@@ -59,15 +59,15 @@ final class GunsDryBeat extends CordonBeat {
     }
 
     /**
-     * A manned redoubt with a supply road for the truck to drive, drawn from the battle seed; never the switch line's.
-     * A city lays none, so there the beat lapses.
+     * A manned redoubt a truck can be sent to, drawn from the battle seed; never the switch line's. A truck drives
+     * its supply road, or in a city, which lays none, its way through the streets
+     * ({@link CordonLineCommand#supplied}); with neither anywhere the beat lapses.
      */
-    private CordonRedoubt choose() {
+    private CordonRedoubt choose(CordonLineCommand line) {
         List<CordonRedoubt> open = new ArrayList<>();
         CordonRedoubt switched = SwitchLineBeat.switchRedoubt(beats);
         for (CordonRedoubt r : beats.sequence().redoubts()) {
-            Laid road = beats.laid().find(CordonPlan.SUPPLY_ROAD + r.number());
-            if (r.manned() && road != null && road.isLaid() && road.gaps().size() >= 2 && r != switched) open.add(r);
+            if (r.manned() && line.supplied(r) && r != switched) open.add(r);
         }
         if (open.isEmpty()) return null;
         redoubt = open.get(new Random(beats.battleSeed() ^ SALT).nextInt(open.size()));
@@ -101,7 +101,7 @@ final class GunsDryBeat extends CordonBeat {
     @Override
     int[] call(BattleSimulation sim) {
         long truck = truck();
-        if (truck == 0L || beats.escorted(truck)) return null;
+        if (truck == 0L || beats.covered(truck)) return null;
         GroundBody body = sim.convoy().body(truck);
         return new int[]{(int) body.x, (int) body.y, 2};
     }

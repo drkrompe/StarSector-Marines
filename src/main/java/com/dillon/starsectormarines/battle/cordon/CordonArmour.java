@@ -1,9 +1,11 @@
 package com.dillon.starsectormarines.battle.cordon;
 
 import com.dillon.starsectormarines.battle.command.allied.AlliedCommand;
+import com.dillon.starsectormarines.battle.command.allied.EscortPace;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -87,13 +89,17 @@ public final class CordonArmour {
     private Function<BattleSimulation, List<Long>> hullEscorts;
     /** Machines each manned redoubt keeps on its posts ({@link CordonAlliedRules#coverFloor}). */
     private int floor = 1;
+    /** Whether hulls keep to the streets (a town): every flank post moved to the nearest street cell in reach. */
+    private boolean roadbound;
+    /** Street ground a footprint of each clearance radius fits on and can drive away from, found once. */
+    private final Map<Integer, boolean[]> streetGround = new HashMap<>();
     /** Redoubts whose sector has had a machine at some look: the radio's Uncovered needs a sector that had cover. */
     private final Set<CordonRedoubt> everCovered = new HashSet<>();
     /** Each redoubt's Uncovered at the last look. */
     private final Set<CordonRedoubt> uncoveredNow = new HashSet<>();
     /** Ticks each redoubt has stood uncovered, by number, for evidence. */
     private final Map<Integer, Integer> uncoveredTicks = new LinkedHashMap<>();
-    /** The road hulls that had an escort hull at the last look. */
+    /** The road hulls an armed allied hull stood alongside at the last look (the radio's Escorted). */
     private final Set<Long> escortedHulls = new HashSet<>();
     /** Each escort hull sent beside a road hull at the last look, and the road hull it is with. */
     private final Map<Long, Long> escortOf = new LinkedHashMap<>();
@@ -101,6 +107,12 @@ public final class CordonArmour {
     private final Set<Long> hullsWanting = new HashSet<>(), hullsEscorted = new HashSet<>();
     /** Escort places a look filled and left short, summed over looks, for evidence. */
     private long escortLooksTaken, escortLooksShort;
+    /** Looks a road hull had an armed allied hull alongside, and looks it had none, for evidence. */
+    private long alongsideLooks, aloneLooks;
+    /** Each escort on its way to a road hull, and how it is closing on it. */
+    private final Map<Long, Closing> closing = new HashMap<>();
+    /** Hulls that were sent to escort and did not close on their road hull, and the tick they may be sent again. */
+    private final Map<Long, Integer> benched = new HashMap<>();
 
     /** @param frontward which way the front lies from the line: +1 toward high y, -1 toward low */
     public CordonArmour(AlliedCommand command, int frontward) {
@@ -125,9 +137,29 @@ public final class CordonArmour {
         this.floor = floor;
     }
 
-    /** Whether a road hull had an armed allied hull sent beside it at the last look (the radio's Escorted). */
+    /**
+     * Holds the hulls to the streets ({@code cordon-allied-command.md}, rule 5: a town's): each flank post is moved to
+     * the nearest street cell within {@link #STREET_REACH} its hull fits on, and stays where it was where none is.
+     */
+    public void setRoadbound(boolean roadbound) {
+        this.roadbound = roadbound;
+    }
+
+    /**
+     * Whether an armed allied hull stood within {@link #ESCORTED_REACH} of a road hull at the last look: the radio's
+     * Escorted. Alongside, not merely assigned: an escort still driving to its truck does not make it escorted.
+     */
     public boolean escorted(long hull) {
         return escortedHulls.contains(hull);
+    }
+
+    /**
+     * The hull sent to escort a road hull at the last look, or {@code 0} where none was free: what the road hull keeps
+     * to ({@link EscortPace}), and why the company need not walk with it while that escort comes.
+     */
+    public long escortOf(long roadHull) {
+        for (Map.Entry<Long, Long> e : escortOf.entrySet()) if (e.getValue() == roadHull) return e.getKey();
+        return 0L;
     }
 
     /** Each hull escorting a road hull at the last look, and the road hull it is with, for review frames. */
@@ -148,13 +180,14 @@ public final class CordonArmour {
     }
 
     /**
-     * Escorts for evidence: {@code [road hulls that wanted one, road hulls that had one, hull-seconds of escort taken,
-     * hull-seconds gone short]}, the seconds summed over convoys' posts and road hulls alike.
+     * Escorts for evidence: {@code [road hulls that wanted one, road hulls that ever had one alongside, hull-seconds of
+     * escort taken, hull-seconds gone short, road-hull seconds with an escort alongside, road-hull seconds with none]},
+     * the third and fourth summed over convoys' posts and road hulls alike.
      */
     public float[] escortReadings() {
         float perLook = REVIEW_TICKS * BattleSimulation.TICK_DT;
         return new float[]{hullsWanting.size(), hullsEscorted.size(), escortLooksTaken * perLook,
-                escortLooksShort * perLook};
+                escortLooksShort * perLook, alongsideLooks * perLook, aloneLooks * perLook};
     }
 
     /**
@@ -302,7 +335,7 @@ public final class CordonArmour {
         for (long hull : hulls) {
             if (command.carrying(hull) || !home.containsKey(hull) || escorting.contains(hull)) continue;
             CordonRedoubt sector = answering.get(hull);
-            int[] post = sector == null ? home.get(hull) : flank(sector, rankIn(hull, sector));
+            int[] post = sector == null ? home.get(hull) : post(sim, hull, sector, rankIn(hull, sector));
             command.station(sim, hull, post[0], post[1]);
         }
     }
@@ -338,33 +371,42 @@ public final class CordonArmour {
                              Map<CordonRedoubt, Integer> count) {
         Set<Long> sent = new HashSet<>();
         escortedHulls.clear();
+        // A road hull keeps its escort while that one is still free to take: re-picked every look, the nearest
+        // changed hands as hulls moved, and the road hull waited or held for each new one in turn.
+        Map<Long, Long> kept = new HashMap<>();
+        for (Map.Entry<Long, Long> e : escortOf.entrySet()) kept.put(e.getValue(), e.getKey());
         escortOf.clear();
         if (escorts == null && hullEscorts == null) return sent;
         List<int[][]> needs = new ArrayList<>(escorts == null ? List.of() : escorts.apply(sim));
         int convoyNeeds = needs.size();
         List<Long> roadHulls = hullEscorts == null ? List.of() : hullEscorts.apply(sim);
-        for (long h : roadHulls) {
-            GroundBody body = sim.convoy().body(h);
-            needs.add(new int[][]{{(int) body.x + ESCORT_BESIDE, (int) body.y}});
-        }
+        for (long h : roadHulls) needs.add(new int[][]{beside(sim.convoy().body(h))});
         Map<CordonRedoubt, Integer> left = new HashMap<>(count);
         for (int n = 0; n < needs.size(); n++) {
             int[][] posts = needs.get(n);
             if (posts.length == 0) continue;
             List<CordonAlliedRules.Hull> free = new ArrayList<>();
             for (long h : hulls) {
-                if (command.carrying(h) || !home.containsKey(h) || sent.contains(h)) continue;
+                if (command.carrying(h) || !home.containsKey(h) || sent.contains(h) || !sim.convoy().isArmed(h)
+                        || benched.getOrDefault(h, 0) > sim.getSimTickIndex()) continue;
                 CordonRedoubt sector = answering.get(h);
                 GroundBody body = sim.convoy().body(h);
                 free.add(new CordonAlliedRules.Hull(h, body.x, body.y, sector == null ? -1 : sector.number()));
             }
             List<CordonAlliedRules.Post> lines = new ArrayList<>();
             for (CordonRedoubt r : redoubts) lines.add(post(sim, r, left));
-            List<CordonAlliedRules.Hull> got = CordonAlliedRules.escorts(posts[0][0], posts[0][1], posts.length, free,
-                    lines, floor);
+            long wanting = n >= convoyNeeds ? roadHulls.get(n - convoyNeeds) : 0L;
+            List<CordonAlliedRules.Hull> got = List.of();
+            long had = kept.getOrDefault(wanting, 0L);
+            for (CordonAlliedRules.Hull h : free) {
+                if (wanting != 0L && h.id() == had) got = CordonAlliedRules.escorts(posts[0][0], posts[0][1], 1,
+                        List.of(h), lines, floor);
+            }
+            if (got.isEmpty()) {
+                got = CordonAlliedRules.escorts(posts[0][0], posts[0][1], posts.length, free, lines, floor);
+            }
             escortLooksTaken += got.size();
             escortLooksShort += posts.length - got.size();
-            long wanting = n >= convoyNeeds ? roadHulls.get(n - convoyNeeds) : 0L;
             if (wanting != 0L) hullsWanting.add(wanting);
             List<CordonAlliedRules.Hull> unplaced = new ArrayList<>(got);
             for (int[] post : posts) {
@@ -383,16 +425,98 @@ public final class CordonArmour {
                 CordonRedoubt sector = answering.get(nearest.id());
                 if (sector != null) left.merge(sector, -1, Integer::sum);
             }
-            if (wanting != 0L && !got.isEmpty()) {
-                escortedHulls.add(wanting);
-                hullsEscorted.add(wanting);
+        }
+        closing(sim);
+        for (long h : roadHulls) {
+            if (alongside(sim, h)) {
+                escortedHulls.add(h);
+                hullsEscorted.add(h);
+                alongsideLooks++;
+            } else {
+                aloneLooks++;
             }
         }
         return sent;
     }
 
+    /**
+     * Benches an escort that is not closing on its road hull: still farther than {@link EscortPace#ALONGSIDE} and no
+     * {@link #ESCORT_PROGRESS} cells nearer in {@link #ESCORT_STALL_TICKS}. It goes back to its sector for
+     * {@link #ESCORT_BENCH_TICKS}, and the road hull is given the next one, or none. A hull boxed in at the base's door
+     * was the nearest free one at every look, and its truck waited for it.
+     */
+    private void closing(BattleSimulation sim) {
+        int tick = sim.getSimTickIndex();
+        closing.keySet().retainAll(escortOf.keySet());
+        for (Map.Entry<Long, Long> e : escortOf.entrySet()) {
+            long escort = e.getKey(), road = e.getValue();
+            GroundBody a = sim.convoy().body(escort), b = sim.convoy().body(road);
+            float d = a.distanceTo(b.x, b.y);
+            Closing c = closing.get(escort);
+            if (c == null || c.road != road) {
+                closing.put(escort, new Closing(road, d, tick));
+            } else if (d <= EscortPace.ALONGSIDE || d < c.nearest - ESCORT_PROGRESS) {
+                c.nearest = d;
+                c.since = tick;
+            } else if (tick - c.since >= ESCORT_STALL_TICKS) {
+                benched.put(escort, tick + ESCORT_BENCH_TICKS);
+                closing.remove(escort);
+            }
+        }
+    }
+
+    /** An escort on its way to a road hull: the nearest it has come, and when. */
+    private static final class Closing {
+        final long road;
+        float nearest;
+        int since;
+
+        Closing(long road, float nearest, int since) {
+            this.road = road;
+            this.nearest = nearest;
+            this.since = since;
+        }
+    }
+
+    /** Cells nearer its road hull an escort must come to count as closing. */
+    static final float ESCORT_PROGRESS = 4f;
+    /** Ticks an escort may go without closing on its road hull before it is benched. */
+    static final int ESCORT_STALL_TICKS = Math.round(20f / BattleSimulation.TICK_DT);
+    /** Ticks a benched escort is not sent to escort again. */
+    static final int ESCORT_BENCH_TICKS = Math.round(120f / BattleSimulation.TICK_DT);
+
+    /** Whether an armed allied hull stands within {@link #ESCORTED_REACH} of a road hull. */
+    private static boolean alongside(BattleSimulation sim, long roadHull) {
+        GroundBody body = sim.convoy().body(roadHull);
+        for (int i = 0, n = sim.convoy().vehicleCount(); i < n; i++) {
+            long hull = sim.convoy().vehicleAt(i);
+            if (hull == roadHull || sim.convoy().faction(hull) != Faction.ALLY || !sim.convoy().isArmed(hull)
+                    || sim.convoy().structure(hull) <= 0f) continue;
+            GroundBody other = sim.convoy().body(hull);
+            if (body.distanceTo(other.x, other.y) <= ESCORTED_REACH) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Where a road hull's escort keeps: {@link #ESCORT_BESIDE} cells to its right and {@link #ESCORT_LEAD} ahead, by
+     * its heading. Beside it as it turns, rather than a fixed step east of it, which put the escort ahead of a truck
+     * driving east and behind one driving west.
+     */
+    static int[] beside(GroundBody body) {
+        double rad = Math.toRadians(body.facingDegrees);
+        // Forward is (-sin, cos) for a hull's facing; its right is (cos, sin).
+        double fx = -Math.sin(rad), fy = Math.cos(rad);
+        return new int[]{(int) Math.round(body.x + Math.cos(rad) * ESCORT_BESIDE + fx * ESCORT_LEAD),
+                (int) Math.round(body.y + Math.sin(rad) * ESCORT_BESIDE + fy * ESCORT_LEAD)};
+    }
+
     /** Cells to the side of a road hull its escort keeps. */
     static final int ESCORT_BESIDE = 4;
+    /** Cells ahead of a road hull its escort keeps, so it closes up rather than trailing. */
+    static final int ESCORT_LEAD = 2;
+    /** Cells from a road hull an armed allied hull is alongside it: the radio's Escorted. */
+    static final float ESCORTED_REACH = EscortPace.FALLEN_BEHIND;
 
     /**
      * Takes an allied mech standing on the field under the allied command (one the base's shed has finished): it is
@@ -415,7 +539,8 @@ public final class CordonArmour {
             long hull = command.deploy(sim, type, cell[0], cell[1], frontward > 0 ? 0f : 180f);
             home.put(hull, behind(to));
             answering.put(hull, to);
-            command.station(sim, hull, flank(to, rankIn(hull, to))[0], flank(to, rankIn(hull, to))[1]);
+            int[] post = post(sim, hull, to, rankIn(hull, to));
+            command.station(sim, hull, post[0], post[1]);
             out.add(hull);
         }
         return out;
@@ -657,6 +782,39 @@ public final class CordonArmour {
         }
         return best;
     }
+
+    /**
+     * Where a hull holds its sector: the {@code rank}th place on the redoubt's flanks ({@link #flank}), moved onto the
+     * nearest street its footprint fits where hulls are roadbound.
+     */
+    int[] post(BattleSimulation sim, long hull, CordonRedoubt r, int rank) {
+        int[] flank = flank(r, rank);
+        if (!roadbound) return flank;
+        VehicleType type = sim.convoy().vehicleType(hull);
+        if (type == null) return flank;
+        int radius = VehicleClearance.radiusForWidth(type.visualWidthCells);
+        boolean[] street = streetGround.computeIfAbsent(radius, k -> {
+            boolean[] main = mainGround.computeIfAbsent(k, m -> mainGround(sim.getGrid(), m));
+            return streets(sim.getTopology(), main, sim.getGrid().getWidth(), sim.getGrid().getHeight());
+        });
+        int[] cell = nearest(sim.getGrid(), street, flank[0], flank[1], STREET_REACH);
+        return cell == null ? flank : cell;
+    }
+
+    /** The cells of {@code ground} that are street. */
+    static boolean[] streets(CellTopology topology, boolean[] ground, int width, int height) {
+        boolean[] out = new boolean[ground.length];
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                out[y * width + x] = ground[y * width + x]
+                        && topology.getGroundKind(x, y) == CellTopology.GroundKind.STREET;
+            }
+        }
+        return out;
+    }
+
+    /** Cells from its flank place a roadbound hull's post may be moved to reach a street. */
+    static final int STREET_REACH = 16;
 
     /**
      * The {@code rank}th place on a redoubt's flanks: out past one side wall, a few cells back from

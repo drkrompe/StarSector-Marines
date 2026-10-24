@@ -352,6 +352,11 @@ class ShipFx:
     def get(self, name):
         return self._ctl_for(name)[name]
 
+    def keyed(self, name):
+        """Whether the kit animates this knob itself (keys on it: a shield overload's lamp stutter)."""
+        import swfx_core
+        return swfx_core.find_fcurve(self._ctl_for(name), f'["{name}"]') is not None
+
     def set(self, name, value):
         """Set one knob of this ship only (an SWFX knob, or a hull knob such as gear_down)."""
         c = self._ctl_for(name)
