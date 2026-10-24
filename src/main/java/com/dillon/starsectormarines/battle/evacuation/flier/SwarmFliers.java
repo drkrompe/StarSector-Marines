@@ -245,7 +245,7 @@ public final class SwarmFliers {
         for (int i = pack.members.size() - 1; i >= 0; i--) {
             HarrierFlight m = pack.members.get(i);
             if (sim.world().isAlive(m.id)) continue;
-            falls.add(new HarrierFall(m.id, m.look, m.body, m.altitude));
+            falls.add(new HarrierFall(m.id, m.look, m.body, m.shownAltitude));
             pack.members.remove(i);
             lost = true;
         }

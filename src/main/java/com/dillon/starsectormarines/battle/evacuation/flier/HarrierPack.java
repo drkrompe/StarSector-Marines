@@ -142,6 +142,7 @@ public final class HarrierPack {
             float lookX = ownPrey ? m.preyX : target != 0L ? targetX : Float.NaN;
             float lookY = ownPrey ? m.preyY : target != 0L ? targetY : Float.NaN;
             m.rig.advance(m, HarrierWingbeat.phase(m, phase), lookX, lookY, diving, dt);
+            HarrierAltitude.follow(m, dt);
         }
     }
 
