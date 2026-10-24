@@ -66,6 +66,8 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
     /** Where the company is holding, fixed when it starts to, so the order does not follow its own drift. */
     private int holdX = Integer.MIN_VALUE, holdY;
     private int fallBackX = Integer.MIN_VALUE, fallBackY;
+    /** The allied lanes beside the company's: a satellite one of them lies nearer is that lane's work, not the company's. */
+    private List<HeartLane> alongside = List.of();
 
     /** @param lane the company's own lane */
     public HeartAssaultCommand(HeartLane lane) {
@@ -96,6 +98,41 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
         fallBackX = x;
         fallBackY = y;
         return this;
+    }
+
+    /**
+     * Broad Front: the allied lanes either side of the company's. The bands overlap, and a satellite that lies nearer
+     * an allied lane's line than the company's is that lane's (`heart-nouns.md`, Broad Front): the company leaves it
+     * to them and holds once its own is down, rather than going on to a satellite beside the mothers alone.
+     */
+    public HeartAssaultCommand alongside(List<HeartLane> lanes) {
+        alongside = List.copyOf(lanes);
+        return this;
+    }
+
+    /** Whether {@code bore} is an allied lane's satellite: inside that lane's band and nearer its line than {@code own}'s. */
+    static boolean theirs(KnownBore bore, HeartLane own, List<HeartLane> others) {
+        if (bore.mother()) return false;
+        int across = own.advancesAlongY() ? bore.x() : bore.y();
+        int mine = Math.abs(across - own.across());
+        for (HeartLane other : others) {
+            int theirs = Math.abs(across - other.across());
+            if (theirs <= other.halfWidth() && theirs < mine) return true;
+        }
+        return false;
+    }
+
+    /** Cells from where the company holds within which a squad has fallen back and holds. */
+    static final int FALL_BACK_REACH = 12;
+
+    /**
+     * Whether a squad at {@code (x, y)} is still on its way back to where the company holds: further than
+     * {@link #FALL_BACK_REACH}. A squad told to defend a cell far behind it fights where it stands instead (Broad Front
+     * seed 5, 2026-10-24: the company stood 170 cells forward for six thousand ticks and lost half its marines there),
+     * so one still on its way withdraws.
+     */
+    static boolean stillFallingBack(float x, float y, int holdX, int holdY) {
+        return Math.hypot(x - holdX, y - holdY) > FALL_BACK_REACH;
     }
 
     /** Whether any satellite still stands. */
@@ -144,7 +181,10 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
             if (target == null) {
                 next = ObjectiveAssignment.defendArea(squad.squadId(), Math.round(squad.centroidX()), Math.round(squad.centroidY()));
             } else if (waiting) {
-                next = ObjectiveAssignment.defendArea(squad.squadId(), holdX, holdY);
+                // Falling back, a squad breaks off and goes; there, it holds.
+                next = stillFallingBack(squad.centroidX(), squad.centroidY(), holdX, holdY)
+                        ? ObjectiveAssignment.withdraw(squad.squadId(), holdX, holdY)
+                        : ObjectiveAssignment.defendArea(squad.squadId(), holdX, holdY);
             } else {
                 int offset = FRONTAGE ? Math.round((i - (company.size() - 1) / 2f) * FRONTAGE_SPACING) : 0;
                 int along = held ? screen.holdAlong(tick) : along(target) - sign * ASSAULT_STANDOFF;
@@ -195,7 +235,10 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
 
     /** The bore the company goes for from {@code (x, y)}: its lane's next, or none. */
     KnownBore target(List<KnownBore> bores, float x, float y) {
-        return lane.target(bores, x, y);
+        if (alongside.isEmpty()) return lane.target(bores, x, y);
+        List<KnownBore> mine = new ArrayList<>(bores.size());
+        for (KnownBore bore : bores) if (!theirs(bore, lane, alongside)) mine.add(bore);
+        return lane.target(mine, x, y);
     }
 
     /** Squads this command landed, or whose player lease has run out. */

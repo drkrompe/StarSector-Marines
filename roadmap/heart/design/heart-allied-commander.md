@@ -1,9 +1,9 @@
 # The Heart — the allied commander
 
-Status: SHIPPED. The owner's list is built: all four tools, chosen by need. Open: how the gunship is risked (the owner's question).
+Status: SHIPPED. The owner's list is built: all four tools, chosen by need. The gunship is risked as the owner answered: flown when called, the known anti-air shelled first.
 
 Written: 2026-10-23
-Updated: 2026-10-24 — stuck members straggle out of a lane's formation; waves join a standing lane; re-aims only from a neighbour.
+Updated: 2026-10-24 — the gunship flies when called, the known anti-air shelled first (the owner's answer); stragglers, standing lanes, neighbour re-aims.
 
 The lanes' commander is the heart's
 mission, carrying out its choices through the shared machinery:
@@ -59,16 +59,22 @@ calls its next machines, and `heart.armour_called_<lane>_<n>` marks each call.
 4. the bore the most lanes are stalled on.
 
 It comes off station at half structure, and the next sortie waits for the
-base. The air gate sits inside the base's `request`, so the commander may ask
-and be refused. Built (`HeartGunship`): all four; rung 2 is the bore the broken lane
+base. Built (`HeartGunship`): all four; rung 2 is the bore the broken lane
 is on, rung 3 the satellite F6 places beside the supply road while a swarm body
 stands on the road (a satellite merely beside it is the company's objective; an
-earlier rung 3 that struck it at once had it down inside ninety seconds). The gate is the
-colonies of the approach satellites. Nothing in play
-reaches those colonies: the company and the lanes stop well short of the
-satellites. So while the commander wants a sortie and the air is shut, the
-base shoots the air open, a shoot on the living colonies at most every ninety
-seconds (`heart.air_shoot_<n>`), and the sortie follows once they are dead.
+earlier rung 3 that struck it at once had it down inside ninety seconds).
+
+**Risking the gunship** (owner, 2026-10-24: "Things being lost is a feature.
+Invincible shuttles flying only safe missions are not fun", and a commander
+would not know where every anti-air of a growing mass is). The gunship flies
+when called and losses are accepted. Before a sortie the base shells only the
+spore anti-air it **knows** of: colonies and outposts a friendly squad, the
+company's or the allies', has seen in the last two minutes, within the base
+guns' reach of the middle of the field, whose own reach covers the target or the
+way there. One shoot at most every ninety seconds (`heart.air_shoot_<n>`), sized
+to kill each, and the sortie goes once none of what it knows stands. What
+nobody has seen, or stands past the guns, is still there, so a sortie is
+sometimes shot down (`heart.gunship_lost_<n>`).
 
 **Where the company stands in it.** The company is not under this commander.
 The commander reads the company's position as one more fact:
@@ -93,15 +99,3 @@ walks into. Once that wave is in, its teams
 are the broken lane's and the lane is whole again, measured from what stands now
 (`heart.gap_closed_<lane>_<n>`). If the company goes into the gap first, the wave is
 called back to its own lane (`heart.wave_recalled_<lane>_<n>`).
-
-## Open
-
-- Every played sortie so far was shot down by spore anti-air, three hits each
-  against 60 structure and 30 armour. The first flew into bore 4's outposts
-  (which is why the gate counts outposts now); the second, with the approach
-  clear, flew into mother-1's colonies, which the gate does not look at. How
-  the commander risks it is the owner's question `heart-gunship`: (a) only where
-  no standing anti-air of any bore reaches the target or the way there, (b) as
-  before, losses accepted, (c) the base's guns clear what reaches the way first,
-  (d) a sortie three times as hard to bring down. `HeartGunship.Policy` holds all
-  four behind `-Dbattle.heart.gunshipPolicy` until the pick.
