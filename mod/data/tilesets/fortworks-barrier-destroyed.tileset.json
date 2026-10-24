@@ -1,0 +1,320 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "description": "Parapet collar piece s, barrier look, destroyed.",
+      "name": "doodad.fort-emplacement-destroyed-s@barrier",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "Parapet collar piece n, barrier look, destroyed.",
+      "name": "doodad.fort-emplacement-destroyed-n@barrier",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "Parapet collar piece e, barrier look, destroyed.",
+      "name": "doodad.fort-emplacement-destroyed-e@barrier",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "Parapet collar piece w, barrier look, destroyed.",
+      "name": "doodad.fort-emplacement-destroyed-w@barrier",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "Parapet collar piece inner-se, barrier look, destroyed.",
+      "name": "doodad.fort-emplacement-destroyed-inner-se@barrier",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "Parapet collar piece inner-sw, barrier look, destroyed.",
+      "name": "doodad.fort-emplacement-destroyed-inner-sw@barrier",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "Parapet collar piece inner-ne, barrier look, destroyed.",
+      "name": "doodad.fort-emplacement-destroyed-inner-ne@barrier",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "Parapet collar piece inner-nw, barrier look, destroyed.",
+      "name": "doodad.fort-emplacement-destroyed-inner-nw@barrier",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "description": "Barricade piece n, barrier look, destroyed.",
+      "name": "doodad.fort-sandbag-destroyed-n@barrier",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "description": "Barricade piece n, barrier look, destroyed.",
+      "name": "doodad.sandbag-destroyed-straight-n@barrier",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "description": "Barricade piece s, barrier look, destroyed.",
+      "name": "doodad.fort-sandbag-destroyed-s@barrier",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "description": "Barricade piece s, barrier look, destroyed.",
+      "name": "doodad.sandbag-destroyed-straight-s@barrier",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "description": "Barricade piece w, barrier look, destroyed.",
+      "name": "doodad.fort-sandbag-destroyed-w@barrier",
+      "row": 0
+    },
+    {
+      "col": 13,
+      "description": "Barricade piece w, barrier look, destroyed.",
+      "name": "doodad.sandbag-destroyed-straight-w@barrier",
+      "row": 0
+    },
+    {
+      "col": 14,
+      "description": "Barricade piece e, barrier look, destroyed.",
+      "name": "doodad.fort-sandbag-destroyed-e@barrier",
+      "row": 0
+    },
+    {
+      "col": 15,
+      "description": "Barricade piece e, barrier look, destroyed.",
+      "name": "doodad.sandbag-destroyed-straight-e@barrier",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "description": "Barricade piece corner-nw, barrier look, destroyed.",
+      "name": "doodad.fort-sandbag-destroyed-corner-nw@barrier",
+      "row": 1
+    },
+    {
+      "col": 1,
+      "description": "Barricade piece corner-nw, barrier look, destroyed.",
+      "name": "doodad.sandbag-destroyed-corner-nw@barrier",
+      "row": 1
+    },
+    {
+      "col": 2,
+      "description": "Barricade piece corner-ne, barrier look, destroyed.",
+      "name": "doodad.fort-sandbag-destroyed-corner-ne@barrier",
+      "row": 1
+    },
+    {
+      "col": 3,
+      "description": "Barricade piece corner-ne, barrier look, destroyed.",
+      "name": "doodad.sandbag-destroyed-corner-ne@barrier",
+      "row": 1
+    },
+    {
+      "col": 4,
+      "description": "Barricade piece corner-sw, barrier look, destroyed.",
+      "name": "doodad.fort-sandbag-destroyed-corner-sw@barrier",
+      "row": 1
+    },
+    {
+      "col": 5,
+      "description": "Barricade piece corner-sw, barrier look, destroyed.",
+      "name": "doodad.sandbag-destroyed-corner-sw@barrier",
+      "row": 1
+    },
+    {
+      "col": 6,
+      "description": "Barricade piece corner-se, barrier look, destroyed.",
+      "name": "doodad.fort-sandbag-destroyed-corner-se@barrier",
+      "row": 1
+    },
+    {
+      "col": 7,
+      "description": "Barricade piece corner-se, barrier look, destroyed.",
+      "name": "doodad.sandbag-destroyed-corner-se@barrier",
+      "row": 1
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.1,
+      "col": 0,
+      "cover": "none",
+      "id": "doodad.fort-emplacement-destroyed-s@barrier",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.1,
+      "col": 1,
+      "cover": "none",
+      "id": "doodad.fort-emplacement-destroyed-n@barrier",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.1,
+      "col": 2,
+      "cover": "none",
+      "id": "doodad.fort-emplacement-destroyed-e@barrier",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.1,
+      "col": 3,
+      "cover": "none",
+      "id": "doodad.fort-emplacement-destroyed-w@barrier",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.1,
+      "col": 4,
+      "cover": "none",
+      "id": "doodad.fort-emplacement-destroyed-inner-se@barrier",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.1,
+      "col": 5,
+      "cover": "none",
+      "id": "doodad.fort-emplacement-destroyed-inner-sw@barrier",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.1,
+      "col": 6,
+      "cover": "none",
+      "id": "doodad.fort-emplacement-destroyed-inner-ne@barrier",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.1,
+      "col": 7,
+      "cover": "none",
+      "id": "doodad.fort-emplacement-destroyed-inner-nw@barrier",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 8,
+      "cover": "none",
+      "id": "doodad.fort-sandbag-destroyed-n@barrier",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 9,
+      "cover": "none",
+      "id": "doodad.sandbag-destroyed-straight-n@barrier",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 10,
+      "cover": "none",
+      "id": "doodad.fort-sandbag-destroyed-s@barrier",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 11,
+      "cover": "none",
+      "id": "doodad.sandbag-destroyed-straight-s@barrier",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 12,
+      "cover": "none",
+      "id": "doodad.fort-sandbag-destroyed-w@barrier",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 13,
+      "cover": "none",
+      "id": "doodad.sandbag-destroyed-straight-w@barrier",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 14,
+      "cover": "none",
+      "id": "doodad.fort-sandbag-destroyed-e@barrier",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 15,
+      "cover": "none",
+      "id": "doodad.sandbag-destroyed-straight-e@barrier",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "id": "doodad.fort-sandbag-destroyed-corner-nw@barrier",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 1,
+      "cover": "none",
+      "id": "doodad.sandbag-destroyed-corner-nw@barrier",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 2,
+      "cover": "none",
+      "id": "doodad.fort-sandbag-destroyed-corner-ne@barrier",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "id": "doodad.sandbag-destroyed-corner-ne@barrier",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 4,
+      "cover": "none",
+      "id": "doodad.fort-sandbag-destroyed-corner-sw@barrier",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 5,
+      "cover": "none",
+      "id": "doodad.sandbag-destroyed-corner-sw@barrier",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 6,
+      "cover": "none",
+      "id": "doodad.fort-sandbag-destroyed-corner-se@barrier",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 7,
+      "cover": "none",
+      "id": "doodad.sandbag-destroyed-corner-se@barrier",
+      "row": 1
+    }
+  ],
+  "sheet": "graphics/doodads/fortworks-barrier-destroyed.png"
+}

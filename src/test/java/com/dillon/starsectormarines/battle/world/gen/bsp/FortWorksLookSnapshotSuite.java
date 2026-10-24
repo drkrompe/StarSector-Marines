@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
+import com.dillon.starsectormarines.battle.fort.Fort;
+import com.dillon.starsectormarines.battle.fort.FortFrame;
 import com.dillon.starsectormarines.battle.fort.FortKind;
 import com.dillon.starsectormarines.battle.scene.LookGround;
 import com.dillon.starsectormarines.battle.scene.SceneRegistries;
@@ -14,7 +16,9 @@ import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.CoverPropDamage;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
@@ -26,6 +30,7 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
 
@@ -108,8 +113,12 @@ public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
                 gunsX += gun.cellX + 0.5f;
                 gunsY += gun.cellY + 0.5f;
             }
-            artifacts.add(still(context, sim, fx, style.key + "-post-close", gunsX / alone.turrets.size(),
-                    gunsY / alone.turrets.size(), 22f));
+            float postX = gunsX / alone.turrets.size(), postY = gunsY / alone.turrets.size();
+            artifacts.add(still(context, sim, fx, style.key + "-post-close", postX, postY, 22f));
+            float[] gate = gateCentre(sim);
+            if (gate != null) artifacts.add(still(context, sim, fx, style.key + "-gate-close", gate[0], gate[1], 18f));
+            wear(sim, postX, postY, 9f);
+            artifacts.add(still(context, sim, fx, style.key + "-post-worn", postX, postY, 22f));
             System.out.printf("    [fort-works-look/%s] %d posts, fort %s%n", style.key, posts.size(),
                     fort == null ? "none" : String.format("at %.0f,%.0f", fort[0], fort[1]));
             return artifacts;
@@ -123,6 +132,39 @@ public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
         BattleReviewFrameRenderer renderer = BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, x, y,
                 cellsAcross);
         return new SnapshotArtifact("look/" + name + ".png", renderer.render(sim, "", ReviewAnnotations.NONE, fx));
+    }
+
+    /** The middle of the fort's first gate, between its towers; null when no fort stood. */
+    private static float[] gateCentre(BattleSimulation sim) {
+        for (Fort fort : sim.forts().forts()) {
+            FortFrame frame = fort.frame();
+            if (frame == null) continue;
+            for (FortPlan.Piece piece : frame.plan().gatehouse()) {
+                if (piece.kind() != FortPlan.PieceKind.GATE) continue;
+                int[] b = frame.bounds(piece.x(), piece.y(), piece.width(), piece.height());
+                return new float[]{(b[0] + b[2] + 1) * 0.5f, (b[1] + b[3] + 1) * 0.5f};
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Battle-worn works within {@code radius} of a point, for the damage-state look: every parapet and barricade piece
+     * there is hit, alternately to its damaged state and through it to its remains.
+     */
+    private static void wear(BattleSimulation sim, float x, float y, float radius) {
+        int width = sim.getGrid().getWidth();
+        int n = 0;
+        for (Doodad doodad : new ArrayList<>(sim.getDoodads())) {
+            String id = doodad.definitionId();
+            if (id == null || !(id.startsWith("doodad.fort-emplacement-") || id.contains("sandbag-"))) continue;
+            float dx = doodad.cellX + 0.5f - x, dy = doodad.cellY + 0.5f - y;
+            if (dx * dx + dy * dy > radius * radius) continue;
+            BitSet cell = new BitSet();
+            cell.set(doodad.cellY * width + doodad.cellX);
+            sim.mapEditor().damageSelectedCells(cell, n++ % 3 == 2 ? 2 * CoverPropDamage.STARTING_HP
+                    : CoverPropDamage.STARTING_HP / 2);
+        }
     }
 
     /**

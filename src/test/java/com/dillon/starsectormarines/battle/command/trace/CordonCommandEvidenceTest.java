@@ -146,7 +146,7 @@ class CordonCommandEvidenceTest {
         assertTrue(broken.isEmpty(), String.join("; ", broken));
     }
 
-    /** Mechanics, not outcomes (CLAUDE.md, Behavior scenes): what one run broke, if anything. */
+    /** Mechanics, not outcomes (behavior-scenes.md, Writing a scene): what one run broke, if anything. */
     private static List<String> mechanics(String id, RunResult run) {
         List<String> broken = new ArrayList<>();
         if (!run.beatIds().contains("cordon.landfall")) broken.add(id + ": the company never came down");

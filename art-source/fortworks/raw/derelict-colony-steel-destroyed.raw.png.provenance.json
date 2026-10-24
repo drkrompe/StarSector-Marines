@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16e6d-1665-7423-8a5f-0882e4e94dd8",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16e6d-1665-7423-8a5f-0882e4e94dd8\\exec-44f322fc-ff6b-456e-8422-d6b560ecf892.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\derelict-colony-steel-destroyed.raw.png",
+    "sha256": "25a14521cafbfb09ce7f8aa0a730d249c31fcbc05ee364b1f1497533fd6d5c4e",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\prompts\\derelict-colony-steel-destroyed.prompt.txt",
+  "promptSha256": "005a5e89c1d8519b38600828688f6b33f5af45a95b39f35b874305b47352b800",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: The intact sheet: geometry authority and edit target; change only the surface\n\nUse case: image edit of a finished sprite sheet. Image 1 is this set's INTACT sheet and the authoritative edit target: keep EVERYTHING about its geometry exactly where it is: the same 1536x1024 canvas, the same three groups at the same positions and sizes, the same empty transparent canvas round and between them and inside the barricade ring, so that every cell of this image can replace the same cell of image 1. Keep the same materials, colours, painting finish and north-west lighting as image 1. Paint the parapet and the barricade shattered by repeated hits: the parapet band broken into low jagged stumps and gaps down to the flat hard-standing, its debris and broken pieces lying where they fell, thick black scorch, blast pits on the flat hard-standing, the plate's outer edge still a clean edge; the barricade ring knocked down into low wreckage and spilled debris lying inside the band's own footprint, with gaps of transparent background where it is gone, nothing outside the band; the wall tiles cracked and scorched. Spread the wreck evenly so every side and corner reads alike, every cell's wreckage kept inside its own cell, no pile crossing a cell boundary. Material and style: an abandoned colony fortification of industrial colony steel, long derelict: riveted dark gunmetal and galvanised plate laid over a steel frame, heavy rust blooms and streaks, flaking sun-faded yellow-and-black hazard striping along the parapet top and the wall rims, dented and buckled panels, grime and rain streaks, the barricade a run of rusted steel plate barriers bolted to posts. Straight 90-degree overhead orthographic camera, no perspective. No fire, no smoke, no text, no letters, no labels, no watermark, no grid lines, no UI. Transparent background exactly where image 1 has it, plus the gaps described.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\fortworks\\art-source\\fortworks\\raw\\derelict-colony-steel.raw.png",
+      "sha256": "a2552dd9e9d81276e7896c31690f12126c71b5e5f672119b3b133ffe2792c520",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "The intact sheet: geometry authority and edit target; change only the surface"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one edited sheet, preserving the layout and keeping the damage within each piece’s footprint.\n"
+  ],
+  "usage": {
+    "input_tokens": 60215,
+    "cached_input_tokens": 45568,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 564,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 77.8
+}

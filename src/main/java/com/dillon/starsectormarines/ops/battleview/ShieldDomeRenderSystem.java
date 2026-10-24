@@ -97,16 +97,18 @@ public final class ShieldDomeRenderSystem implements RenderSystem {
             PolyTess.appendAnnulus(mesh, sx, sy, radius, radius + 2.5f, MARK_SEGMENTS,
                     1f, 1f, 1f, 0.85f * fade);
         }
-        if (shaded) collectTurretShields(ctx, camera, cellPx);
+        collectTurretShields(ctx, camera, cellPx, shaded);
         if (!pass.isEmpty()) out.addCustom(RenderLayer.HAZARDS, pass);
         if (!mesh.isEmpty()) out.addPoly(RenderLayer.HAZARDS, mesh);
     }
 
     /**
-     * The directional flux shield of every live hardpoint that has one ({@code TurretShieldService}). Drawn by the dome
-     * shader only; where it is off the shields still work and go undrawn.
+     * The directional flux shield of every live hardpoint that has one ({@code TurretShieldService}), and the
+     * capacitors on its plinth ({@link TurretFluxCapacitors}). The arc is drawn by the dome shader only; where it is
+     * off the shields still work, their capacitors still show their charge, and the arc goes undrawn.
      */
-    private void collectTurretShields(RenderContext ctx, BattleCamera camera, float cellPx) {
+    private void collectTurretShields(RenderContext ctx, BattleCamera camera, float cellPx, boolean shaded) {
+        long tick = ctx.sim.getSimTickIndex();
         World world = ctx.sim.world();
         TurretShieldService shields = ctx.sim.turretShields();
         for (int i = 0, n = shields.size(); i < n; i++) {
@@ -116,10 +118,12 @@ public final class ShieldDomeRenderSystem implements RenderSystem {
             float x = world.renderX(id);
             float y = world.renderY(id);
             if (!isKnown(ctx, ctx.sim.identity().faction(id), x, y)) continue;
+            TurretFluxCapacitors.append(mesh, id, x, y, fitted.shield, camera, cellPx, tick, ctx.alphaMult);
+            if (!shaded) continue;
             int slot = pass.draws().size();
             while (drawPool.size() <= slot) drawPool.add(new ShieldDomeDraw());
-            if (TurretShieldField.describe(drawPool.get(slot), x, y, fitted.shield, fitted.tint,
-                    camera, cellPx, ctx.alphaMult)) {
+            if (TurretShieldField.describe(drawPool.get(slot), id, x, y, fitted.shield, fitted.tint,
+                    camera, cellPx, tick, ctx.alphaMult)) {
                 pass.add(drawPool.get(slot));
             }
         }

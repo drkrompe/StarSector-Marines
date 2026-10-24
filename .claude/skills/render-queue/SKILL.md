@@ -154,7 +154,7 @@ Jobs run at low CPU priority (Windows below-normal, Mac nice 10).
   copied as they land; the rest is copied at completion. Without `to`, output
   lands in `render-queue/out/<id>/<machine>/`. Finals go to Drive
   `builds/<shot>-frames/<commit>/`. Review sets go to a run folder under
-  `review/<asset>/`, with `{machine}` in its name (see CLAUDE.md); write its
+  `review/<asset>/`, with `{machine}` in its name (see `owner-review.md`); write its
   `NOTES.md` yourself once the job is done.
 - `frames`: completion is decided by counting non-empty files matching `glob`
   in `dir`. The exit status does not decide it. Without `frames`, exit status

@@ -14,7 +14,7 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
  *   <li><b>Raise and lower.</b> The arc grows out from its facing as the shield rises and folds back into it as it
  *   lowers; folded away, nothing is drawn.</li>
  *   <li><b>Strain.</b> The capacitors' fill is the dome's flux level: the field brightens and whitens toward
- *   overload.</li>
+ *   overload, and near it the arc stutters with the capacitors ({@link TurretFluxCapacitors}).</li>
  *   <li><b>Blocks.</b> Each round the shield stopped lights the rim where it came from.</li>
  *   <li><b>Break.</b> On overload the arc shatters, its cells flickering out in the shield's own pale colour, and
  *   for the rest of the overload a ghost rim re-forms across the arc as the capacitors vent.</li>
@@ -50,8 +50,8 @@ final class TurretShieldField {
      * Fills {@code draw} for {@code shield}, fitted to a gun at ({@code x}, {@code y}) in {@code tint}. False, with
      * {@code draw} untouched, when there is nothing to draw: the shield folded away and no break still showing.
      */
-    static boolean describe(ShieldDomeDraw draw, float x, float y, FluxShield shield, ShieldTint tint,
-                            BattleCamera camera, float cellPx, float alpha) {
+    static boolean describe(ShieldDomeDraw draw, long id, float x, float y, FluxShield shield, ShieldTint tint,
+                            BattleCamera camera, float cellPx, long tick, float alpha) {
         boolean overloaded = shield.overloaded();
         if (!overloaded && shield.extent() <= 0f) return false;
         FluxShieldSpec spec = shield.spec();
@@ -68,7 +68,9 @@ final class TurretShieldField {
         draw.overloaded = overloaded;
         draw.recovery = overloaded ? shield.overloadShare() : 0f;
         draw.dropFlash = shatter(shield.sinceBreak());
-        draw.alpha = alpha * PRESENCE;
+        // Near breaking the arc stutters with its capacitors, on the same beat as their flicker.
+        float stutter = TurretFluxCapacitors.strain(shield);
+        draw.alpha = alpha * PRESENCE * (1f - 0.4f * stutter * TurretFluxCapacitors.hash01(id, tick, 1));
 
         // The arc, in the dome's local frame: a broken shield keeps its full width so its break fills the arc it held.
         float halfArc = overloaded ? 0.5f * spec.arcDegrees() : shield.halfArcDegrees();
