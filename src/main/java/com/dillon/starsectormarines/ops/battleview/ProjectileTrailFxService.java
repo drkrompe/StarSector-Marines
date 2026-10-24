@@ -67,8 +67,12 @@ public final class ProjectileTrailFxService {
             float radians = (float) Math.toRadians(pose.bearing());
             while (cursor.next <= age + 1e-6f) {
                 float t = Math.max(0f, Math.min(1f, (cursor.next - cursor.age) / (age - cursor.age)));
-                float x = cursor.x + (pose.x() - cursor.x) * t + (float) Math.sin(radians) * tail;
-                float y = cursor.y + (pose.y() - cursor.y) * t - (float) Math.cos(radians) * tail;
+                float bodyX = cursor.x + (pose.x() - cursor.x) * t;
+                float bodyY = cursor.y + (pose.y() - cursor.y) * t;
+                // Never behind the launch point: a round just out of the muzzle has no tail behind the shooter yet.
+                float back = Math.min(tail, (float) Math.hypot(bodyX - shot.fromX, bodyY - shot.visualFromY()));
+                float x = bodyX + (float) Math.sin(radians) * back;
+                float y = bodyY - (float) Math.cos(radians) * back;
                 sink.accept(new Emission(shot, x, y, pose.bearing()));
                 cursor.next += INTERVAL;
             }

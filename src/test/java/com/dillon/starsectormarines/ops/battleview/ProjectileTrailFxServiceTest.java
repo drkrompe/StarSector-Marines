@@ -93,6 +93,13 @@ class ProjectileTrailFxServiceTest {
         }
     }
 
+    @Test void noTrailSampleLandsBehindTheLaunchPoint() {
+        // Westbound from x = 0: anything east of the muzzle would be drawn behind the shooter.
+        for (var emission : samples(144)) {
+            assertTrue(emission.x() <= 1e-4f, "a trail sample behind the shooter at x=" + emission.x());
+        }
+    }
+
     @Test void pausedAndResolvedShotsDoNotEmitAndTailRemainsBehindWestboundBody() {
         var service = new ProjectileTrailFxService();
         var shot = shot();
