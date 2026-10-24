@@ -508,6 +508,8 @@ public final class BoatDeckScreen implements Screen {
         if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.BOAT_DECK, context::roomAboard, CompanyNotices.current());
         if (document != null) document.advance(dt);
         if (bayElement != null) BoatDeckCanvas.fitSurface(bayElement);
+        // A dragged part is drawn at the board's brick size only on a surface the screen's size.
+        if (ghostElement != null) ghostElement.fitCanvasToBox();
         // The doll's wires pulse and the camera eases, so the bay is redrawn every frame it is open on a boat.
         if (bayCanvas != null && (bayCanvas.advance(dt) || viewModel.fittingFocused())) invalidateBay();
         if (preparationGuide != null) preparationGuide.update();

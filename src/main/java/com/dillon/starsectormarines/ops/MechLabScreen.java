@@ -691,6 +691,9 @@ public final class MechLabScreen implements Screen {
                 dollElement.fitCanvasToBox();
                 document.canvases().invalidate(dollElement);
             }
+            // The drag ghost covers the screen at whatever resolution the game runs; one surface
+            // pixel per document pixel keeps a dragged part the size of the socket it fits.
+            if (ghostElement != null) ghostElement.fitCanvasToBox();
             if (preparationGuide != null) preparationGuide.update();
         }
     }
