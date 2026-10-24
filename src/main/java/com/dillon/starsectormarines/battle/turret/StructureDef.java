@@ -232,7 +232,7 @@ public final class StructureDef {
                 }
                 looks.put(key, new StructureLook(TurretMountDef.optionalText(look, "base"),
                         TurretMountDef.optionalText(look, "sprite"), TurretMountDef.optionalText(look, "recoilSprite"),
-                        shield, TurretMountDef.optionalText(look, "fluxBank")));
+                        shield, TurretMountDef.optionalText(look, "fluxDevice")));
             }
         }
         TurretRole role = TurretRole.valueOf(json.optString("targetRole", "A2G"));

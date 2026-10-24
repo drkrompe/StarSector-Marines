@@ -130,21 +130,17 @@ class MechLabViewModelTest {
         CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
         viewModel.gantryRows().get().get(0).select().run();
 
-        MechLabViewModel.CatalogRow accelerated = viewModel.catalogRows().get()
-                .stream()
-                .filter(row -> row.id().endsWith(
-                        MissileReplenisherComponent.ACCELERATED_FEED.id()))
-                .findFirst()
-                .orElseThrow();
-        assertFalse(accelerated.actionDisabled());
-        accelerated.action().run();
+        // A loader is an ordinary part: the spare drags into the compartment and replaces the fitted one.
+        viewModel.selectSlot(SocketId.AUXILIARY);
+        assertTrue(viewModel.catalogRows().get().stream()
+                .anyMatch(row -> row.internalPreview() == MechInternal.ACCELERATED_LOADER));
+        assertTrue(viewModel.canDropCatalogInternal(MechInternal.ACCELERATED_LOADER, SocketId.AUXILIARY));
+        assertTrue(viewModel.dropCatalogInternal(MechInternal.ACCELERATED_LOADER, SocketId.AUXILIARY));
 
         assertEquals(MissileReplenisherComponent.ACCELERATED_FEED.id(),
                 mech.missileReplenisherId());
-        assertEquals(1, bay.availableReplenisher(
-                MissileReplenisherComponent.STANDARD.id()));
-        assertEquals(0, bay.availableReplenisher(
-                MissileReplenisherComponent.ACCELERATED_FEED.id()));
+        assertEquals(1, bay.availableInternal(MechInternal.STANDARD_LOADER.id));
+        assertEquals(0, bay.availableInternal(MechInternal.ACCELERATED_LOADER.id));
         assertTrue(viewModel.feedbackText().get().contains("installed"));
     }
 
@@ -807,7 +803,7 @@ class MechLabViewModelTest {
         CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
         bay.learnPattern(MechPattern.of(MechInternal.UPRATED_ENGINE).id());
 
-        for (SocketId socket : List.of(SocketId.CORE, SocketId.CAPACITORS, SocketId.MINI_FAB)) {
+        for (SocketId socket : List.of(SocketId.CORE, SocketId.AUXILIARY)) {
             assertFalse(viewModel.socketDefinition(socket).factoryLocked(), socket + " is still sealed");
             assertFalse(viewModel.canDropCatalogWeapon(MechWeaponComponent.SRM_5, socket),
                     "a weapon must never drop into " + socket);
@@ -833,7 +829,7 @@ class MechLabViewModelTest {
         assertFalse(viewModel.canDropCatalogInternal(MechInternal.UPRATED_ENGINE, SocketId.CORE));
         uprated.action().run();
         assertEquals(1, bay.availableInternal(MechInternal.UPRATED_ENGINE.id));
-        assertFalse(viewModel.canDropCatalogInternal(MechInternal.UPRATED_ENGINE, SocketId.CAPACITORS));
+        assertFalse(viewModel.canDropCatalogInternal(MechInternal.UPRATED_ENGINE, SocketId.AUXILIARY));
         assertTrue(viewModel.dropCatalogInternal(MechInternal.UPRATED_ENGINE, SocketId.CORE));
         assertEquals(MechInternal.UPRATED_ENGINE, mech.internal(MechInternal.Role.ENGINE));
         assertEquals(2, changes.get());
@@ -864,9 +860,9 @@ class MechLabViewModelTest {
         assertTrue(viewModel.dropCatalogInternal(MechInternal.UPRATED_ENGINE, SocketId.CORE));
         assertEquals(CampaignMech.Readiness.READY, mech.readiness(0f));
 
-        viewModel.selectSlot(SocketId.CAPACITORS);
+        viewModel.selectSlot(SocketId.AUXILIARY);
         assertTrue(viewModel.catalogRows().get().stream().allMatch(row ->
-                row.internalPreview() != null && row.internalPreview().role == MechInternal.Role.CAPACITOR_BANK));
+                row.internalPreview() != null && row.internalPreview().role.compartment()));
     }
 
     @Test
@@ -935,8 +931,8 @@ class MechLabViewModelTest {
         MechFrameBudget.Fit heavy = new MechFrameBudget.Fit(MechVariant.HOUND,
                 MechWeaponComponent.SINGLE_HEAVY_CANNON, MechWeaponComponent.LRM_15,
                 MechWeaponComponent.LRM_15, MechInternal.INDUSTRIAL_ENGINE,
-                MechInternal.HEAVY_PLATING, MechInternal.MILITARY_CAPACITOR_BANK,
-                MechInternal.AUXILIARY_VENT_ARRAY);
+                MechInternal.HEAVY_PLATING,
+                List.of(MechInternal.MILITARY_CAPACITOR_BANK, MechInternal.AUXILIARY_VENT_ARRAY));
         assertTrue(heavy.overBudget(), "fixture fit is expected to exceed a Hound's engine");
         String message = MechLabViewModel.overBudgetFeedback(heavy);
         assertTrue(message.contains(Math.round(heavy.output()) + ""), message);
@@ -961,32 +957,33 @@ class MechLabViewModelTest {
     }
 
     @Test
-    void utilityVentArrayFitsAndStripsBackToEmpty() {
+    void compartmentTakesAVentArrayBesideBankAndLoaderAndGivesItBack() {
         MechBay bay = MechBay.legacyStarterFixture();
         MechLabViewModel viewModel = new MechLabViewModel(
                 new Reactor(), bay, TestResources.stocked(2_000));
         viewModel.gantryRows().get().get(0).select().run();
         CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
         bay.learnPattern(MechPattern.of(MechInternal.AUXILIARY_VENT_ARRAY).id());
-        viewModel.selectSlot(SocketId.MINI_FAB);
-        assertNull(viewModel.installedInternal(SocketId.MINI_FAB));
+        viewModel.selectSlot(SocketId.AUXILIARY);
+        assertNull(viewModel.installedInternal(SocketId.AUXILIARY), "the compartment shows its parts, not one");
 
         MechLabViewModel.CatalogRow ventArray = viewModel.catalogRows().get().stream()
                 .filter(row -> row.internalPreview() == MechInternal.AUXILIARY_VENT_ARRAY)
                 .findFirst().orElseThrow();
-        assertTrue(viewModel.catalogRows().get().stream().anyMatch(row -> row.replenisherPreview() != null),
-                "the utility socket still lists missile loaders");
+        assertTrue(viewModel.catalogRows().get().stream()
+                        .anyMatch(row -> row.internalPreview() == MechInternal.STANDARD_LOADER),
+                "the compartment lists missile loaders beside the vents");
         assertFalse(ventArray.actionDisabled(), ventArray.actionHint());
         ventArray.action().run();
-        assertTrue(viewModel.dropCatalogInternal(MechInternal.AUXILIARY_VENT_ARRAY, SocketId.MINI_FAB));
-        assertEquals(MechInternal.AUXILIARY_VENT_ARRAY, mech.internal(MechInternal.Role.VENT_ARRAY));
-        assertEquals(MechInternal.AUXILIARY_VENT_ARRAY, viewModel.installedInternal(SocketId.MINI_FAB));
+        assertTrue(viewModel.dropCatalogInternal(MechInternal.AUXILIARY_VENT_ARRAY, SocketId.AUXILIARY));
+        assertEquals(List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.STANDARD_LOADER,
+                MechInternal.AUXILIARY_VENT_ARRAY), viewModel.installedCompartment());
 
-        MechLabViewModel.SlotRow utility = viewModel.slotRows().get().stream()
-                .filter(row -> row.socketId() == SocketId.MINI_FAB).findFirst().orElseThrow();
-        assertTrue(utility.canStrip());
-        assertEquals(MechInternal.AUXILIARY_VENT_ARRAY.displayName(), utility.component());
-        utility.stripAction().run();
+        MechLabViewModel.SlotRow compartment = viewModel.slotRows().get().stream()
+                .filter(row -> row.socketId() == SocketId.AUXILIARY).findFirst().orElseThrow();
+        assertFalse(compartment.canStrip(), "parts come out one at a time, from their own X");
+        assertTrue(compartment.component().contains(MechInternal.AUXILIARY_VENT_ARRAY.displayName()));
+        assertTrue(viewModel.removeCompartmentPart(MechInternal.AUXILIARY_VENT_ARRAY));
         assertNull(mech.internal(MechInternal.Role.VENT_ARRAY));
         assertTrue(bay.availableInternal(MechInternal.AUXILIARY_VENT_ARRAY.id) > 0);
     }

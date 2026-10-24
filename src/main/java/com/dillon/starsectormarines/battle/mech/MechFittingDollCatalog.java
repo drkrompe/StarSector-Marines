@@ -144,7 +144,7 @@ public final class MechFittingDollCatalog {
     private static MechFittingDollCatalog loadDefaultFallback() {
         Map<MechVariant, DollDef> dolls = new EnumMap<>(MechVariant.class);
 
-        // Hound (Light mech: 4 sockets)
+        // Hound (Light mech: 4 sockets, a 2x2 compartment)
         dolls.put(MechVariant.HOUND, new DollDef(180f, List.of(
                 new SocketDef(SocketId.CORE, SocketType.ENGINE, 2, 2,
                         0.0f, 0.0f, 0.0f, -1.45f, 1.36f, 0.68f, false, "ENGINE CORE"),
@@ -152,11 +152,11 @@ public final class MechFittingDollCatalog {
                         0.0f, 0.24f, 0.0f, 1.45f, 1.36f, 0.68f, false, "NOSE MOUNT"),
                 new SocketDef(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 2, 2,
                         0.0f, -0.16f, -1.34f, -0.46f, 1.36f, 0.68f, false, "SHOULDER"),
-                new SocketDef(SocketId.CAPACITORS, SocketType.FLUX, 2, 1,
-                        0.0f, -0.26f, -1.34f, 0.68f, 1.36f, 0.38f, false, "CAPACITORS")
+                new SocketDef(SocketId.AUXILIARY, SocketType.AUXILIARY, 2, 2,
+                        0.0f, -0.26f, 0.0f, 0.68f, 1.36f, 0.68f, false, "AUXILIARY")
         )));
 
-        // Warden (6 sockets)
+        // Warden (5 sockets, a 3x2 compartment)
         dolls.put(MechVariant.WARDEN, new DollDef(180f, List.of(
                 new SocketDef(SocketId.CORE, SocketType.ENGINE, 2, 2,
                         0.0f, 0.0f, 0.0f, -1.45f, 1.36f, 0.68f, false, "ENGINE CORE"),
@@ -166,13 +166,11 @@ public final class MechFittingDollCatalog {
                         -0.36f, -0.15f, -1.34f, -0.46f, 1.36f, 0.68f, false, "L. SHOULDER"),
                 new SocketDef(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 2, 3,
                         0.36f, -0.15f, 1.34f, -0.46f, 1.36f, 0.68f, false, "R. SHOULDER"),
-                new SocketDef(SocketId.CAPACITORS, SocketType.FLUX, 2, 2,
-                        0.0f, -0.26f, -1.34f, 0.68f, 1.36f, 0.68f, false, "CAPACITORS"),
-                new SocketDef(SocketId.MINI_FAB, SocketType.UTILITY, 2, 1,
-                        0.0f, -0.36f, 1.34f, 0.68f, 0.80f, 0.44f, false, "MINI-FAB")
+                new SocketDef(SocketId.AUXILIARY, SocketType.AUXILIARY, 3, 2,
+                        0.0f, -0.26f, 0.0f, 0.68f, 1.36f, 0.68f, false, "AUXILIARY")
         )));
 
-        // Bulwark (7 sockets: a gun on each arm)
+        // Bulwark (6 sockets: a gun on each arm, a 3x3 compartment)
         dolls.put(MechVariant.BULWARK, new DollDef(180f, List.of(
                 new SocketDef(SocketId.CORE, SocketType.ENGINE, 2, 2,
                         0.0f, 0.03f, 0.0f, -1.50f, 1.70f, 0.68f, false, "ENGINE CORE"),
@@ -184,10 +182,8 @@ public final class MechFittingDollCatalog {
                         -0.36f, -0.12f, -1.38f, -0.48f, 1.40f, 0.68f, false, "L. SHOULDER"),
                 new SocketDef(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 2, 3,
                         0.36f, -0.12f, 1.38f, -0.48f, 1.40f, 0.68f, false, "R. SHOULDER"),
-                new SocketDef(SocketId.CAPACITORS, SocketType.FLUX, 2, 2,
-                        0.0f, -0.26f, -1.38f, 0.72f, 1.40f, 0.72f, false, "CAPACITORS"),
-                new SocketDef(SocketId.MINI_FAB, SocketType.UTILITY, 2, 1,
-                        0.0f, -0.36f, 1.38f, 0.72f, 0.80f, 0.44f, false, "MINI-FAB")
+                new SocketDef(SocketId.AUXILIARY, SocketType.AUXILIARY, 3, 3,
+                        0.0f, -0.26f, 0.0f, 0.72f, 1.40f, 0.72f, false, "AUXILIARY")
         )));
 
         return new MechFittingDollCatalog(dolls);

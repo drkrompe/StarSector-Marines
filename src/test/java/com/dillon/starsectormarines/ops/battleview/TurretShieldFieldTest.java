@@ -54,7 +54,7 @@ class TurretShieldFieldTest {
     }
 
     @Test
-    void aBrokenShieldShattersAcrossTheArcItHeldThenFlickersOut() {
+    void aBrokenShieldShattersAcrossTheArcItHeldThenDrawsNothing() {
         FluxShield shield = raisedFacingWest();
         shield.absorb(180f, 500f);
         ShieldDomeDraw draw = new ShieldDomeDraw();
@@ -63,5 +63,8 @@ class TurretShieldFieldTest {
         assertTrue(draw.dropFlash > 0.9f);
         assertEquals((float) Math.cos(Math.toRadians(60)), draw.arcCos, 1e-4f);
         assertEquals(0f, TurretShieldField.shatter(TurretShieldField.SHATTER_SECONDS));
+        shield.tick(TurretShieldField.SHATTER_SECONDS, Float.NaN);
+        assertTrue(shield.overloaded());
+        assertFalse(describe(shield, new ShieldDomeDraw()));
     }
 }

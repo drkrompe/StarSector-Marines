@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-23 — a mech's flux shows as a haze on its vents; held racks chain their salvos; earlier: torso rear plate, torso arcs, missile warheads, duel range against armor.
+Updated: 2026-10-24 — capacitor banks, vent arrays and loaders share one auxiliary compartment; loaders are inventory parts.
 
 ## Purpose
 
@@ -56,8 +56,9 @@ increasing an encounter's total armored threat.
 - A **missile replenisher** is an installed onboard subsystem. It owns how
   quickly finite SRM and LRM mounts regain trigger packs, independently of
   their mechanical trigger cycle and ready-ammunition capacity. Replenishment repeats
-  for the life of the mech; the installed component is the future item-upgrade
-  seam for changing that cadence.
+  for the life of the mech. In the campaign it is the **loader** part in the
+  auxiliary compartment; a deployment frozen without one carries `no_loader`,
+  whose cadence never completes.
 - A **rotary gun** (the chainguns) has no trigger pull. It fires while its
   trigger is held: its **spin** ramps from a first-turn rate to its full rate over
   the spin-up time, the barrels **coast** at speed for a moment after release, so a
@@ -217,15 +218,45 @@ increasing an encounter's total armored threat.
   against owned quantity; a refit transaction returns the target mech's
   current component before evaluating the replacement.
 - An **internal** is a non-weapon fitting that changes the frame (`MechInternal`):
-  an **engine** in the CORE socket, a **capacitor bank** in CAPACITORS, an optional
-  **vent array** in MINI_FAB, and **plating**, which covers the whole frame and has no
-  socket. The **stock frame** is the industrial engine, factory plating and factory
-  capacitor bank, with the utility socket empty; every fabricated, recovered or migrated
-  chassis carries it, and an existing mech with no recorded internals resolves to
-  it. Each internal replaces one stock part; none multiplies the chassis.
-- The **loader** is the missile replenisher. The standard one is integral; a
-  faster one takes the MINI_FAB socket, so a loader and a vent array never share a
-  frame, and a chassis without that socket (the Hound) takes neither.
+  an **engine** in the CORE socket, **plating**, which covers the whole frame and has
+  no socket, and the parts that share the auxiliary compartment: **capacitor banks**,
+  **vent arrays** and **missile loaders**. The **stock frame** is the industrial
+  engine, factory plating, and a factory capacitor bank and standard loader in the
+  compartment; an existing mech with no recorded internals resolves to it. Each
+  internal replaces or adds one part; none multiplies the chassis.
+- The **auxiliary compartment** (`AUXILIARY`) is one shared well per chassis: a grid
+  of limited space the player fills from stores, trading room to tune the design.
+  It replaced the separate capacitor and mini-fab sockets (2026-10-24). Capacity is
+  per chassis: the Hound 2x2, the Warden 3x2, the Bulwark 3x3. Every part that goes
+  in it is 2x1 (columns x rows, a quarter-turn allowed as everywhere) except the
+  military capacitor bank, 2x2: the factory and double banks, a vent array, and
+  the standard and accelerated loaders. A fit is legal only when every part in the
+  compartment **packs**: each footprint placed whole on the grid with no overlap
+  (`MechCompartment`). The arrangement is computed, not stored: the doll draws the
+  packing the rule finds, largest pieces first, so a refit never leaves a hole the
+  player has to shuffle around. Exactly one capacitor bank goes in (it is the
+  reservoir) and at most one loader; vent arrays stack, each adding its
+  dissipation and its mass. So a stock Hound's compartment is full, bank and
+  loader, and a Hound that wants the military bank or a vent array gives up its
+  loader; a Warden has room for a vent beside bank and loader; a Bulwark carries
+  the big bank and two more parts, or a small bank and three. Further equipment
+  joins by taking a role and a footprint, never a socket of its own.
+- The **loader** is the missile replenisher, an ordinary inventory part: built from
+  its pattern, held in stores, dragged in and out of the compartment, lost with the
+  chassis and spared by a scrap like any internal. The standard loader is a stock
+  part every company knows; the accelerated loader is Advanced and heavier. A mech
+  with no loader fights with the racks it launched with and never refills them;
+  that is a choice, not a gap, so it does not hold the mech back.
+- **What is required to drop**: an engine in CORE and a capacitor bank in the
+  compartment. A mech missing either is `INCOMPLETE`. A bare frame's compartment is
+  empty, so it brings no loader either.
+- **Save compatibility.** A mech saved before the compartment carries a capacitor
+  bank id, a vent array id and a replenisher id. On first read they become its
+  compartment in that order (an `empty` bank stays empty, a missing bank id is the
+  factory bank, the replenisher id becomes its loader part). If that set does not
+  pack, the vent array and then the loader leave the mech and are spares in stores,
+  so nothing owned is lost. The bay's old replenisher stock becomes loader stock;
+  the old fields are kept only as migration input.
 - The **engine budget** is the engine's output against the fitted mass of every
   weapon and internal (`MechFrameBudget`). Output is the chassis's rated output
   times the engine's factor; a weapon's mass is its footprint plus the weight of
@@ -242,8 +273,10 @@ increasing an encounter's total armored threat.
   (`MechFrame`): armor capacity, move speed, flux capacity and dissipation. Engine and
   plating move speed and armor capacity along the chassis's own band, from its
   stock value to its refit ceiling (roughly the pre-cut value), so no fit makes
-  one chassis another. The capacitor bank sets the reservoir and base dissipation, a vent array
-  adds to it, and an uprated engine runs hotter. Battle reads only these values;
+  one chassis another. The capacitor bank sets the reservoir and base dissipation, each vent array
+  adds to it, and an uprated engine runs hotter. The budget reads the whole compartment's mass;
+  an empty compartment reads as the factory bank for frame values, the stand-in a bare frame's
+  card shows. Battle reads only these values;
   internals, mass and budget stay campaign authority.
 - A **ship refit** is what the company ship's Mech Lab is worth to an owned
   mech (`MechRefit`; `second-wind-refit-tree.md`): an armor and a dissipation
@@ -398,8 +431,9 @@ increasing an encounter's total armored threat.
   draws the sockets as a **schematic**, not as docks around the machine: the
   engine core in the middle of a drafting panel on the left, the arm mount
   ahead of it (on a two-armed chassis, an arm card ahead-left and one
-  ahead-right), a shoulder either side, the capacitors and mini-fab behind, each
-  wired back to the core in its hardpoint colour. The fitting camera stands the
+  ahead-right), a shoulder either side, and the auxiliary compartment behind, each
+  wired back to the core in its hardpoint colour. The compartment card draws every
+  part it holds at its packed place, each with its own X. The fitting camera stands the
   machine itself in the right of the view, beside the schematic.
   Presentation may enforce a minimum pointer hit area for usability without
   changing that grid or making the asset physically larger. Inactive cells remain
@@ -411,11 +445,9 @@ increasing an encounter's total armored threat.
 - **Hardpoint language** (after MechWarrior 4's lab). Colour names the
   compatibility type everywhere hardware or a socket is drawn: energy red-orange,
   missile green, ballistic yellow, omni grey. The frame's own mounts have their
-  own colours: the engine socket blue, the capacitor (flux) socket violet and the
-  mini-fab utility socket teal, and an engine, capacitor bank, vent array or
-  missile loader is a brick piece in its socket's colour like any weapon. Every
-  chassis has an engine and a capacitor bank: those sockets only take a
-  replacement and are never left empty. Size reads from shape, not text: every
+  own colours: the engine socket blue and the auxiliary compartment steel; an
+  engine is a blue piece, a capacitor bank flux violet, and a vent array or
+  missile loader utility teal, each a brick piece like any weapon. Size reads from shape, not text: every
   grid cell is a chamfered brick narrower than it is tall, and a footprint is its
   bricks stacked, so a 2x3 rack is visibly a taller stack than a 2x2. On the doll
   every brick is the same size, so a socket's card grows with its capacity and a
@@ -435,7 +467,8 @@ increasing an encounter's total armored threat.
   dragging one lights the mounts that take it; selecting a mount narrows the
   list to what fits there, and ALL PARTS returns to everything. Stores are
   sorted by **category toggles** drawn as part symbols on their brick colours
-  (ballistic, missile, energy, engine, capacitor, utility): none chosen lists
+  (ballistic, missile, energy, engine, capacitor, utility; the last two are both
+  compartment parts): none chosen lists
   everything, and a mount whose socket already decides the kind offers none. A fitted part is on the mech, not in that list. Fitting is a drag from a
   spare onto a mount, and taking a part off is a drag back to stores (or the X);
   there is no install button. A known pattern with no spare in stores carries a
@@ -444,7 +477,7 @@ increasing an encounter's total armored threat.
   short. A row with a spare offers no build at all: the spare is what to drag, and
   stripping a part back to stores takes the offer away again. Plating is the one exception: it covers the whole frame and
   has no mount to drop on, so a spare plate is fitted from its row. Internals
-  drag off like weapons (or come off by the X) and leave their socket empty. An
+  drag off like weapons (or come off by their X) and leave their room empty. An
   engine and a capacitor bank are **required**: a mech missing either is
   `INCOMPLETE`, a readiness beside damaged and under repair, and stays off the
   drop manifest until both are fitted; its empty sockets warn on the doll and in
@@ -1086,7 +1119,7 @@ support sortie, subject only to practical runtime resources.
   capability and passes further damage to the torso; section pools always sum to
   the frame's armor capacity and the chassis structure.
 - Missile weapon hardware owns capacity and projectile behavior; the installed
-  replenisher owns refill cadence. Upgrade content changes the subsystem rather
+  loader owns refill cadence. Upgrade content changes the subsystem rather
   than encoding reload speed in a chassis, role, or weapon definition.
 - A rotary gun's belt and hopper belong to the gun: a better feed is a better gun,
   never a chassis or role value. One rule advances spin and belt for the pilot and
@@ -1119,8 +1152,8 @@ support sortie, subject only to practical runtime resources.
 - Socket overlays consume the selected asset's authored fitting layout. Recessed
   metal equipment wells frame the actual weapon art around the physical doll;
   quiet internal grids retain the socket's authored dimensions. Empty mounts show
-  a hardware silhouette and compatibility label. The CORE, CAPACITORS and
-  MINI_FAB wells host internals rather than weapons, and the workspace shows the
+  a hardware silhouette and compatibility label. The CORE and AUXILIARY
+  wells host internals rather than weapons, and the workspace shows the
   engine budget beside them.
   Amber corners identify selection; green alignment scans and a release prompt
   identify an accepted proposed drop, and red corners explicitly reject one.
@@ -1213,7 +1246,7 @@ support sortie, subject only to practical runtime resources.
   never as a word. Gantries order mechs first, then vehicles.
 - **Scrapping frees a pad.** An occupied pad's heading carries SCRAP, which takes two
   presses: the first arms it and says what comes back, the second breaks the machine
-  up. Nothing fitted is lost (weapons, internals and the replenisher stay owned and are
+  up. Nothing fitted is lost (weapons, internals and the loader stay owned and are
   spares in stores again) and half the chassis or vehicle bill, rounded down, returns
   to the ship's hold, never to a depot it may leave behind. This is the opposite of a
   battle loss, which takes the fitted parts with the frame (`MechWorkshop.scrapMech`).
@@ -1247,8 +1280,8 @@ support sortie, subject only to practical runtime resources.
 - A weapon commit uses a free owned assembly when available. Otherwise it rechecks the
   complete material bill, consumes it atomically, creates one finite owned assembly,
   and installs it; the outgoing assembly becomes free stock. A chassis commit performs
-  the same recheck before creating identity, default doctrine, standard replenisher,
-  and the variant's standard roll-out weapons. Failed compatibility, capacity, cargo,
+  the same recheck before creating identity and default doctrine, and builds the bare
+  frame. Failed compatibility, capacity, cargo,
   or gantry checks change neither cargo nor campaign hardware.
 - The active home-deck gantries reproject the campaign loadouts after every successful
   commit. Weapon layers and newly fabricated chassis therefore change in the physical

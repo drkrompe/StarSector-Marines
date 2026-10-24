@@ -4,7 +4,7 @@
 
 Status: IN PROGRESS — steps 1-4 shipped (keycap header; Marine left-button specials and the flamer; Marine right button with grenades); step 5 open
 Written: 2026-10-23
-Updated: 2026-10-23 — the flamer joins the left button as a held stream (step 3); a second special slot (the belt) puts smoke and a grenade on one Marine; held-weapon art question open
+Updated: 2026-10-24 — the launcher and the anti-materiel rifle walk in carry clips of their own; which carry each uses is with the owner
 
 Read `direct-control-nouns.md` first, in particular "Mouse buttons and weapon
 groups". This story extends that model, so the groups it describes stay true.
@@ -82,9 +82,8 @@ chooses what the button fires without a key per weapon.
    the keycap header, `LMB  LINKED  [Q]` (picks page, 2026-10-23).
 3. ~~Marine direct-fire specials~~ (shipped): `MarineLeftTrigger` in the
    session, the special's own point-fire path, the reticle and HUD rows, and
-   the held pose from the existing aim and firing clips over walking feet;
-   frames in `marine-left-special`. Open: whether the owner wants dedicated
-   carry-and-walk art for the launcher and the rifle (see the art note below).
+   the held pose from the existing aim and firing clips, and a walking carry
+   clip per special (see the art note below); frames in `marine-left-special`.
    The flamer joined as a held stream (`FlameJet`, a fuel tank of cells on its
    row); frames `flamer-walking`, `flamer-streaming` and the `flamer-sweep` GIF in `marine-left-special`
    and `active-marine-flamer` in `direct-control-ui`.
@@ -110,14 +109,21 @@ ones); the wand is drawn under the helmet (`underHead`). The armoury icon is the
 kit in profile. Frames `flamer-*-close` in `marine-left-special` show it at a
 close framing.
 
-The held special reuses art that already exists: the launcher and anti-materiel
-rifle sprites and their `aiming` and `firing` clips in the `rocket` and
-`anti-materiel` variants of `unit-layer-layouts`, with the rifle's walking
-feet under them while the Marine moves. Nothing new was drawn. What is missing,
-if the owner wants it, is a **walking clip per special**: the launcher carried at
-the shoulder or at port and the rifle at low ready, with the arms and shoulders
-moving in the stride, so a Marine walking with the special is not frozen in its
-firing stance from the waist up.
+The launcher and the anti-materiel rifle use their existing sprites and the
+`aiming` and `firing` clips of the `rocket` and `anti-materiel` variants of
+`unit-layer-layouts`. Each also has a **walking carry**, named by its item's
+`layerClips.walking`: a looping clip on the stride whose `special` layer places
+the item in the hands (whatever the item is attached to) while the arms and
+shoulders move with the step. Readied and walking, the Marine carries it; while
+readying or standing it is in the aim clip, and after a round in the firing clip.
+Going between the carry and the aim takes 0.2 s each way (`FLAG_SPECIAL_CARRIED`,
+whose phase is how far it is carried), and a round snaps it to the aim.
+
+Open, with the owner on the picks page (2026-10-24): the launcher on the shoulder
+(shipped, recommended) or at port, and the rifle at low ready (shipped,
+recommended) or slung across the back. All four clips are in the variants; the
+`carry-option-*` frames in `marine-left-special` draw each, and the losing clips
+and their frames go once the owner picks.
 
 ## Acceptance
 
