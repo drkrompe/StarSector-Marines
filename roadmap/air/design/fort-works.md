@@ -3,7 +3,7 @@
 Status: ACTIVE
 
 Written: 2026-10-24
-Updated: 2026-10-24 — damage states for every look; the fort gatehouse drawn in its lot's style
+Updated: 2026-10-24 — pirates build in their own patchwork style; derelict is colony steel
 
 Read `ground-turret-tiers.md` (emplacement styles) and `tech-families.md` (the families) first;
 `forts.md` is the fort these works belong to.
@@ -80,7 +80,8 @@ style's works sheet as its material reference (`generate.py <look> --gatehouse`,
 |---|---|
 | Brutalist | Board-formed pale concrete; precast barrier blocks for barricades |
 | Earthwork | Sandbagged earth berms, gabion walls, timber revetting; sandbag barricades |
-| Derelict | Riveted rusted colony steel with faded hazard striping (`derelict-colony-steel`); drafts `derelict-ai-war` and `derelict-pirate` are retained raws |
+| Derelict | Riveted rusted colony steel with faded hazard striping (`derelict-colony-steel`, the owner's pick); the `derelict-ai-war` draft is a retained raw |
+| Patchwork | Pirate works: the colony steel patched with odd-coloured scrap plate, drums and tarps (`derelict-pirate`); its guns are the derelict guns |
 | Modular | League slate blue-grey pressed panels with strip lamps; modular barrier panels |
 | Barrier | League earth-filled mesh barrier bins, tarps and cases |
 | Export | Diktat sand-ochre ceramic-steel with red unit bands |
@@ -90,8 +91,6 @@ style's works sheet as its material reference (`generate.py <look> --gatehouse`,
 
 ## Open
 
-- The owner's pick between the three derelict drafts (the turret overhaul picks page); colony steel
-  stands until they answer.
 - Pieces still drawn in the base art on every lot: the light post's vent ring (road-sheet
   frames with no catalog id), the fort's building shells (bunker, magazine, power plant and
   their annexes), door and window openings, wall rubble, hedgehogs, trench and fence.
