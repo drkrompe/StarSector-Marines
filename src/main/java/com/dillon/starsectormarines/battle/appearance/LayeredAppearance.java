@@ -36,6 +36,12 @@ public final class LayeredAppearance {
      */
     public static final int FLAG_AT_STATION = 1 << 5;
     /**
+     * A readied launcher or anti-materiel rifle carried rather than aimed: the controlled Marine is walking with
+     * it, or settling back to the aim after a walk. The phase is then how far it is carried, 0 at the aim and 1
+     * in the item's walking clip, not the aim clip's phase.
+     */
+    public static final int FLAG_SPECIAL_CARRIED = 1 << 6;
+    /**
      * Bits 8-15 of the flags carry a {@link WorkMotion} ordinal: which work the
      * station arms (or the carried prop) are doing. Packed here rather than given
      * a field of their own because a motion is a refinement of the station flag

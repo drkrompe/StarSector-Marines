@@ -22,7 +22,8 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
  *       {@code r/g/b/a}. Batched per-sheet through a {@link QuadBatch}.</li>
  *   <li>{@code SPRITE} — {@code sprite} = whole-texture sprite; {@code cx/cy} =
  *       center, {@code w/h} = size, {@code angleDeg} = rotation; tint
- *       {@code r/g/b/a}. Drawn via {@code renderAtCenter} (no batching win).</li>
+ *       {@code r/g/b/a}. A quad of its own texture in the paged run; drawn alone via
+ *       {@code renderAtCenter} where the context cannot page.</li>
  *   <li>{@code SOLID_RECT} — untextured fill; {@code cx/cy} reused as corner
  *       {@code (x0,y0)} and {@code w/h} as the opposing corner {@code (x1,y1)};
  *       color {@code r/g/b/a}. Batched through a {@link SolidQuadBatch}.</li>

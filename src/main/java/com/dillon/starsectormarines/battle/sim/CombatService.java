@@ -278,10 +278,17 @@ public final class CombatService {
      * Selects the unit's current threat and starts its experience-scaled
      * registration delay when that threat is new. Reasserting the same threat
      * is free, so per-tick target maintenance never restarts the clock.
+     *
+     * <p>"New" is measured against the pursuit target, not against whatever
+     * the reflex is registering. A unit closing on a target it cannot yet shoot
+     * fires on an opportunity threat meanwhile ({@link #registerThreat}); if
+     * reasserting the unchanged pursuit target re-registered it, the two would
+     * restart each other's delay every tick and neither would ever be shot.
      */
     public void setTargetId(long id, long v) {
+        long previous = entityWorld.getLong(id, components.COMBAT, BattleComponents.COMBAT_TARGET_ID);
         entityWorld.setLong(id, components.COMBAT, BattleComponents.COMBAT_TARGET_ID, v);
-        registerThreat(id, v);
+        if (v != previous) registerThreat(id, v);
     }
 
     public long reflexTargetId(long id) {

@@ -6,7 +6,7 @@ speak about it.
 
 Written: 2026-10-21
 
-Updated: 2026-10-22 — spores travel on cargo (owner); 2026-10-21 owner settled the name (the Rav Bloom); added the
+Updated: 2026-10-24 — the lobster thread, provisional and open (owner); 2026-10-22 spores travel on cargo (owner); 2026-10-21 owner settled the name (the Rav Bloom); added the
 whispered-reputation, sporeship-rumour and red-tide direction.
 
 Read `faction-lore-nouns.md` for evidence rules and shared setting laws, and
@@ -239,6 +239,36 @@ Speculation each voice is allowed to carry:
 - **Scientists:** something older or stranger than the records admit, offered
   as a question, never a revelation. Do not pay this off into an alien
   precursor.
+
+### The lobster thread (provisional, open)
+
+**Provisional and open** (owner, 2026-10-24: "Yes, provisionally"). Behind the
+cargo route above, the authors carry one hidden thread: Volturnian lobster, the
+luxury shipped from Volturn to every market in the Sector, is somehow the
+Ravs' stock. It is not settled which reading is true, and none is to be chosen
+in text:
+
+- **Larval form:** the lobster is the Ravs' larval stage.
+- **Locust phase:** the lobster is the solitary phase, and crowding (a colony
+  dense enough to feed it, as in the life cycle above) flips it into the
+  swarming one.
+- **Weapon stock:** an ordinary lobster stock bio-engineered into a weapon
+  during the AI Wars.
+
+Each reading explains why blooms surface anywhere goods travel and why they
+break out only sometimes. Rules while it stays open:
+
+- **Never stated.** No briefing, radio, intel, codex or item text links the
+  lobster to the Ravs, and no voice in the maker list above names it. It does
+  not replace the cargo line or the maker speculation; it sits under them.
+- **Set dressing only.** It may be carried by what a place holds: lobster
+  crates in a freight yard where a heart came up, tanks in a research annex,
+  a market's tanks under the creep (`heart-origins.md`). Most factions have
+  plainly not connected the dots; a research site that had is one of the
+  heart's origins.
+- **Art is not changed for it.** A faint crustacean resemblance is welcome in
+  new swarm art but never required, and accepted strain art (the Runner, the
+  Brute, the Matriarch and the rest) is not reworked to show it (owner).
 
 ### Tone and vocabulary
 

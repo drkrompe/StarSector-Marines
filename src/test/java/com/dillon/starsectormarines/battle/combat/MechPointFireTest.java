@@ -68,7 +68,7 @@ class MechPointFireTest {
         var lrm = f.loadout.mount(MechMountSlot.RIGHT_SHOULDER);
         arms.cycleRemaining = 1f;
         int ammo = srm.ammo;
-        var srmPicked = new MechTriggerPicks(MechFireGroups.LINKED, LEFT_SHOULDER_KEY);
+        var srmPicked = new TriggerPicks(MechFireGroups.LINKED, LEFT_SHOULDER_KEY);
         f.weapons.tick(f.shooter, NORTH, true, true, srmPicked);
         assertEquals(1, f.shots.getActiveShots().size());
         assertEquals(0, arms.burstRemaining);
@@ -84,7 +84,7 @@ class MechPointFireTest {
         assertEquals(ammo - 1, srm.ammo, "a pick does not split or reprice the authored trigger pack");
 
         Fixture invalid = new Fixture(MechWeaponComponent.MUSTER_AUTOGUN, null, null);
-        invalid.weapons.tick(invalid.shooter, NORTH, true, false, new MechTriggerPicks(9, MechFireGroups.LINKED));
+        invalid.weapons.tick(invalid.shooter, NORTH, true, false, new TriggerPicks(9, MechFireGroups.LINKED));
         assertTrue(invalid.shots.getActiveShots().isEmpty());
     }
 
@@ -389,11 +389,11 @@ class MechPointFireTest {
         MechWeaponMount arms = f.loadout.mount(MechMountSlot.ARMS);
         MechWeaponMount left = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
         MechWeaponMount right = f.loadout.mount(MechMountSlot.RIGHT_SHOULDER);
-        f.weapons.tick(f.shooter, NORTH, true, false, MechTriggerPicks.LINKED);
+        f.weapons.tick(f.shooter, NORTH, true, false, TriggerPicks.LINKED);
         assertEquals(arms.component.cycleSeconds() - BattleSimulation.TICK_DT, arms.cycleRemaining, 0.00001f);
         assertEquals(0f, left.cycleRemaining, "the left button leaves the rockets alone");
         assertEquals(left.component.ammoCapacity, left.ammo);
-        f.weapons.tick(f.shooter, NORTH, false, true, MechTriggerPicks.LINKED);
+        f.weapons.tick(f.shooter, NORTH, false, true, TriggerPicks.LINKED);
         assertEquals(left.component.ammoCapacity - 1, left.ammo);
         assertEquals(right.component.ammoCapacity - 1, right.ammo);
         assertEquals(arms.component.ammoCapacity, arms.ammo);
@@ -404,11 +404,11 @@ class MechPointFireTest {
         Fixture f = new Fixture(MechWeaponComponent.NOSE_MUSTER_AUTOGUN, MechWeaponComponent.SRM_5, null);
         MechWeaponMount arms = f.loadout.mount(MechMountSlot.ARMS);
         MechWeaponMount srm = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
-        f.weapons.tick(f.shooter, NORTH, false, true, MechTriggerPicks.LINKED);
+        f.weapons.tick(f.shooter, NORTH, false, true, TriggerPicks.LINKED);
         assertEquals(0f, arms.cycleRemaining);
         assertEquals(srm.component.ammoCapacity - 1, srm.ammo);
         Fixture both = new Fixture(MechWeaponComponent.NOSE_MUSTER_AUTOGUN, MechWeaponComponent.SRM_5, null);
-        both.weapons.tick(both.shooter, NORTH, true, true, MechTriggerPicks.LINKED);
+        both.weapons.tick(both.shooter, NORTH, true, true, TriggerPicks.LINKED);
         assertTrue(both.loadout.mount(MechMountSlot.ARMS).cycleRemaining > 0f);
         assertTrue(both.loadout.mount(MechMountSlot.LEFT_SHOULDER).cycleRemaining > 0f);
     }
@@ -416,12 +416,12 @@ class MechPointFireTest {
     @Test
     void linkedFiresBothArmGunsAndAOneMountPickHoldsTheOther() {
         Fixture linked = Fixture.bulwark(MechWeaponComponent.MUSTER_AUTOGUN, null, null);
-        linked.weapons.tick(linked.shooter, NORTH, true, false, MechTriggerPicks.LINKED);
+        linked.weapons.tick(linked.shooter, NORTH, true, false, TriggerPicks.LINKED);
         assertTrue(linked.loadout.mount(MechMountSlot.LEFT_ARM).cycleRemaining > 0f);
         assertTrue(linked.loadout.mount(MechMountSlot.RIGHT_ARM).cycleRemaining > 0f);
 
         Fixture one = Fixture.bulwark(MechWeaponComponent.MUSTER_AUTOGUN, null, null);
-        var leftArm = new MechTriggerPicks(MechMountSlot.LEFT_ARM.ordinal() + 1, MechFireGroups.LINKED);
+        var leftArm = new TriggerPicks(MechMountSlot.LEFT_ARM.ordinal() + 1, MechFireGroups.LINKED);
         one.weapons.tick(one.shooter, NORTH, true, false, leftArm);
         assertTrue(one.loadout.mount(MechMountSlot.LEFT_ARM).cycleRemaining > 0f);
         assertEquals(0f, one.loadout.mount(MechMountSlot.RIGHT_ARM).cycleRemaining, "the unpicked arm holds fire");
@@ -431,7 +431,7 @@ class MechPointFireTest {
     @Test
     void aSingleGroupChassisLeavesTheRightButtonIdle() {
         Fixture f = new Fixture(MechWeaponComponent.NOSE_MUSTER_AUTOGUN, null, null);
-        f.weapons.tick(f.shooter, NORTH, false, true, MechTriggerPicks.LINKED);
+        f.weapons.tick(f.shooter, NORTH, false, true, TriggerPicks.LINKED);
         assertTrue(f.shots.getActiveShots().isEmpty());
         assertEquals(0f, f.loadout.mount(MechMountSlot.ARMS).cycleRemaining);
     }
@@ -440,10 +440,10 @@ class MechPointFireTest {
     void releasingAGroupButtonLetsItsQueuedBurstFinishButAnotherSelectionDropsIt() {
         Fixture f = new Fixture(MechWeaponComponent.MUSTER_AUTOGUN, MechWeaponComponent.SRM_5, null);
         MechWeaponMount srm = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
-        f.weapons.tick(f.shooter, NORTH, false, true, MechTriggerPicks.LINKED);
+        f.weapons.tick(f.shooter, NORTH, false, true, TriggerPicks.LINKED);
         assertEquals(1, srm.burstRemaining);
-        f.weapons.tick(f.shooter, NORTH, false, false, MechTriggerPicks.LINKED);
-        for (int i = 0; i < 12; i++) f.weapons.tick(f.shooter, NORTH, false, false, MechTriggerPicks.LINKED);
+        f.weapons.tick(f.shooter, NORTH, false, false, TriggerPicks.LINKED);
+        for (int i = 0; i < 12; i++) f.weapons.tick(f.shooter, NORTH, false, false, TriggerPicks.LINKED);
         assertEquals(srm.component.projectilesPerTrigger, f.shots.getActiveShots().size());
     }
 
@@ -452,11 +452,11 @@ class MechPointFireTest {
         Fixture f = new Fixture(MechWeaponComponent.NOSE_CHAINGUN, null, null);
         MechWeaponMount arms = f.loadout.mount(MechMountSlot.ARMS);
         int belt = arms.rotary.beltRounds();
-        f.weapons.tick(f.shooter, NORTH, true, false, MechTriggerPicks.LINKED);
+        f.weapons.tick(f.shooter, NORTH, true, false, TriggerPicks.LINKED);
         assertEquals(1, f.shots.getActiveShots().size(), "the first round leaves on the press");
         assertEquals(arms.component.fluxPerRound(), f.loadout.flux.value(), .001f,
                 "each round commits its own flux, not a burst's");
-        for (int i = 1; i < 60; i++) f.weapons.tick(f.shooter, NORTH, true, false, MechTriggerPicks.LINKED);
+        for (int i = 1; i < 60; i++) f.weapons.tick(f.shooter, NORTH, true, false, TriggerPicks.LINKED);
         int held = f.shots.getActiveShots().size();
         assertTrue(held > 6, "two seconds held is more than one old burst: " + held);
         assertEquals(1f, arms.rotary.spin(), 1e-5f);
@@ -465,7 +465,7 @@ class MechPointFireTest {
         assertTrue(arms.rotary.beltRounds() > belt - held, "while the hopper was refilling it");
 
         f.shots.getActiveShots().clear();
-        for (int i = 0; i < 10; i++) f.weapons.tick(f.shooter, NORTH, false, false, MechTriggerPicks.LINKED);
+        for (int i = 0; i < 10; i++) f.weapons.tick(f.shooter, NORTH, false, false, TriggerPicks.LINKED);
         assertTrue(f.shots.getActiveShots().isEmpty(), "released, it stops");
         assertEquals(1f, arms.rotary.spin(), 1e-5f, "and coasts at speed for a moment");
     }
@@ -475,7 +475,7 @@ class MechPointFireTest {
         Fixture f = new Fixture(MechWeaponComponent.NOSE_CHAINGUN, MechWeaponComponent.SRM_5, null);
         MechWeaponMount arms = f.loadout.mount(MechMountSlot.ARMS);
         int belt = arms.rotary.beltRounds();
-        var srmAlone = new MechTriggerPicks(LEFT_SHOULDER_KEY, MechFireGroups.LINKED);
+        var srmAlone = new TriggerPicks(LEFT_SHOULDER_KEY, MechFireGroups.LINKED);
         for (int i = 0; i < 10; i++) f.weapons.tick(f.shooter, NORTH, true, false, srmAlone);
         assertEquals(belt, arms.rotary.beltRounds(), "the unpicked chaingun holds fire");
         assertEquals(0f, arms.rotary.spin());
@@ -494,9 +494,9 @@ class MechPointFireTest {
         Fixture f = new Fixture(null, null, MechWeaponComponent.LRM_15);
         MechWeaponMount lrm = f.loadout.mount(MechMountSlot.RIGHT_SHOULDER);
         int perSalvo = lrm.component.projectilesPerTrigger;
-        f.weapons.tick(f.shooter, NORTH, true, false, MechTriggerPicks.LINKED);
+        f.weapons.tick(f.shooter, NORTH, true, false, TriggerPicks.LINKED);
         assertEquals(1, lrm.holdSalvos, "the press commits one salvo");
-        for (int i = 0; i < 120; i++) f.weapons.tick(f.shooter, NORTH, false, false, MechTriggerPicks.LINKED);
+        for (int i = 0; i < 120; i++) f.weapons.tick(f.shooter, NORTH, false, false, TriggerPicks.LINKED);
         assertEquals(perSalvo, f.roster.telemetry().roundsFired(f.shooter), "a click is one salvo");
         assertEquals(lrm.component.ammoCapacity - 1, lrm.ammo);
         assertEquals(0, lrm.holdSalvos, "the button is up");
@@ -506,12 +506,12 @@ class MechPointFireTest {
         float salvoSeconds = perSalvo * rack.weaponDef().burstSpacing;
         int ticks = (int) Math.ceil(rack.component.ammoCapacity * (salvoSeconds + 0.1f) / BattleSimulation.TICK_DT);
         assertTrue(ticks * BattleSimulation.TICK_DT < rack.component.cycleSeconds(), "well inside one cycle");
-        for (int i = 0; i < ticks; i++) held.weapons.tick(held.shooter, NORTH, true, false, MechTriggerPicks.LINKED);
+        for (int i = 0; i < ticks; i++) held.weapons.tick(held.shooter, NORTH, true, false, TriggerPicks.LINKED);
         assertEquals(perSalvo * rack.component.ammoCapacity, held.roster.telemetry().roundsFired(held.shooter),
                 "a long hold empties the rack");
         assertEquals(0, rack.ammo);
         assertEquals(rack.component.ammoCapacity, rack.holdSalvos);
-        for (int i = 0; i < 60; i++) held.weapons.tick(held.shooter, NORTH, true, false, MechTriggerPicks.LINKED);
+        for (int i = 0; i < 60; i++) held.weapons.tick(held.shooter, NORTH, true, false, TriggerPicks.LINKED);
         assertEquals(perSalvo * rack.component.ammoCapacity, held.roster.telemetry().roundsFired(held.shooter),
                 "the chain caps at the load");
         float chainedFlux = SalvoChain.fluxCost(rack.component.fluxPerTrigger(), true);
@@ -526,17 +526,17 @@ class MechPointFireTest {
         int perSalvo = lrm.component.projectilesPerTrigger;
         int guard = 400;
         while (f.roster.telemetry().roundsFired(f.shooter) <= perSalvo && guard-- > 0) {
-            f.weapons.tick(f.shooter, NORTH, true, false, MechTriggerPicks.LINKED);
+            f.weapons.tick(f.shooter, NORTH, true, false, TriggerPicks.LINKED);
         }
         assertEquals(2, lrm.holdSalvos, "a short hold has committed the second salvo");
         float cycleAtSecond = lrm.cycleRemaining;
-        for (int i = 0; i < 120; i++) f.weapons.tick(f.shooter, NORTH, false, false, MechTriggerPicks.LINKED);
+        for (int i = 0; i < 120; i++) f.weapons.tick(f.shooter, NORTH, false, false, TriggerPicks.LINKED);
         assertEquals(2 * perSalvo, f.roster.telemetry().roundsFired(f.shooter), "a short hold is two salvos");
         assertEquals(lrm.component.ammoCapacity - 2, lrm.ammo);
         assertEquals(0, lrm.chainSalvos);
         assertEquals(cycleAtSecond - 120 * BattleSimulation.TICK_DT, lrm.cycleRemaining, 1e-4f,
                 "the cycle counts from the second salvo");
-        f.weapons.tick(f.shooter, NORTH, true, false, MechTriggerPicks.LINKED);
+        f.weapons.tick(f.shooter, NORTH, true, false, TriggerPicks.LINKED);
         assertEquals(2 * perSalvo, f.roster.telemetry().roundsFired(f.shooter),
                 "a fresh press after release waits out the cycle");
     }
@@ -551,7 +551,7 @@ class MechPointFireTest {
         assertEquals(1, lrm.ammo, "one salvo comes back per cadence, not the whole rack");
         lrm.advanceReplenishment(cadence * 0.5f, f.loadout.missileReplenisher());
         assertEquals(1, lrm.ammo);
-        for (int i = 0; i < 240; i++) f.weapons.tick(f.shooter, NORTH, true, false, MechTriggerPicks.LINKED);
+        for (int i = 0; i < 240; i++) f.weapons.tick(f.shooter, NORTH, true, false, TriggerPicks.LINKED);
         assertEquals(lrm.component.projectilesPerTrigger, f.roster.telemetry().roundsFired(f.shooter),
                 "a hold on a part-loaded rack fires only the salvos it holds");
     }
@@ -629,6 +629,6 @@ class MechPointFireTest {
         }
 
         /** Both mouse buttons down: every point-fire mount is triggered. */
-        void fire(PointFireAim aim) { weapons.tick(shooter, aim, true, true, MechTriggerPicks.LINKED); }
+        void fire(PointFireAim aim) { weapons.tick(shooter, aim, true, true, TriggerPicks.LINKED); }
     }
 }
