@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16ea4-5786-7a33-b0f6-dab649c8b067",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16ea4-5786-7a33-b0f6-dab649c8b067\\exec-caa398e8-296e-4d5f-9d6e-930d484c5b57.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-4\\raw\\s2-v2.png",
+    "sha256": "2bb51e5aa34ef5ef8264ad5dbd767698e9e7befdd6bb0fc8b34304fafa7d8068",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\rounds\\spitter-4\\prompts\\s2-v2.prompt.txt",
+  "promptSha256": "e54bc341d3eb8f290fda3a7d5bf522707318a7dabb54b96c7bff0b93b8ae0237",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity authority: this exact creature seen from above; keep its design, colours and organ; draw it from the side as a two-legged animal\nImage 2: Colour, plates and the glob only; WRONG body plan (four legs): redraw it on two legs with folded forelimbs\n\nConcept side view for a tactical game: the SPITTER creature in reference image 1 (the same design, same colours, same plates, same acid organ and tube or vent), now seen in strict SIDE PROFILE, facing RIGHT, at the moment it FIRES.\n\nIT IS A BIPED. It stands on exactly TWO big muscled legs, like a theropod or a large flightless bird: both legs come down from the hips directly UNDER the middle of its body, knees bent forward, hocks back, big clawed feet. Its body is balanced over the hips, horizontal, with the head forward and a heavy armoured tail behind as a counterweight. Its two small clawed FORELIMBS are folded up against its chest and do NOT touch the ground. The tail tip is pressed onto the ground behind as a third prop, bracing it for the shot. Only two feet and the tail tip touch the ground.\n\nThe acid organ on its back has just contracted, and ONE big glob of deep dark venom-green acid is leaving the bone tube (or vent), flying UP and FORWARD in a high mortar arc over its head, trailing a thin strand of acid. Beast first: armour plates over muscled flesh, sinew in the gaps, small amber eyes, ivory claws.\n\nPlain flat light grey background (#b4b4b4), no ground line, no shadow, no text, no border. The whole creature and the glob in frame, filling most of a landscape canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-4\\raw\\c2.png",
+      "sha256": "82099f28790523d8782cd97278114002baede980673e817faf7ef1c58ca3c025",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Identity authority: this exact creature seen from above; keep its design, colours and organ; draw it from the side as a two-legged animal"
+    },
+    {
+      "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-4\\raw\\s2.png",
+      "sha256": "81ab30fc7bbe31dba4a21938c8bd4efbc5406294790e5e9557f9a8ede3859501",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Colour, plates and the glob only; WRONG body plan (four legs): redraw it on two legs with folded forelimbs"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one side-profile image, keeping the first reference’s design and the two-legged firing stance."
+  ],
+  "usage": {
+    "input_tokens": 45070,
+    "cached_input_tokens": 36992,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 638,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 66.4
+}

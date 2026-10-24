@@ -865,7 +865,10 @@ public final class CordonArmour {
                 // The rear wall's band: a row inside the ground to two outside it.
                 for (int d = -1; d <= 2 && !wall[i]; d++) {
                     int y = rear - frontward * d;
-                    wall[i] = topology.isWall(x, y) && InstallationWalls.PERIMETER.equals(topology.getSurfaceId(x, y));
+                    // A compound's rear wall is its perimeter; a redoubt built from what stood there is walled by
+                    // its buildings and whatever its builders raised between them.
+                    wall[i] = topology.isWall(x, y) && (!r.construction().generated()
+                            || InstallationWalls.PERIMETER.equals(topology.getSurfaceId(x, y)));
                 }
             }
             int gate = gateAlong(wall, r.centreX() - (r.left() - 1));

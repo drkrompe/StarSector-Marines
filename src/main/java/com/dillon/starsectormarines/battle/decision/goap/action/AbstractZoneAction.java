@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Posture;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.infantry.ApproachBound;
+import com.dillon.starsectormarines.battle.infantry.LaneSidestep;
 import com.dillon.starsectormarines.battle.infantry.SmokeTactics;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -438,13 +439,13 @@ abstract class AbstractZoneAction implements Action {
                 case MOVED -> { return; }
                 case NO_POSITION -> {
                     if (!prosecutionFallThrough || !prosecutionOnly) {
-                        if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+                        LaneSidestep.holdGround(member, sim);
                         return;
                     }
                     // fall through to the objective
                 }
                 case UNREACHABLE -> {
-                    if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+                    LaneSidestep.holdGround(member, sim);
                     return;
                 }
                 case NOT_WORTH_THE_WALK -> { /* fall through to the objective */ }
@@ -457,7 +458,7 @@ abstract class AbstractZoneAction implements Action {
         // silently resuming the objective path; opportunity fire above still
         // answers any target that becomes legal.
         if (doctrineHold) {
-            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+            LaneSidestep.holdGround(member, sim);
             return;
         }
 
@@ -905,7 +906,7 @@ abstract class AbstractZoneAction implements Action {
     }
 
     private static void holdOverwatch(long member, long threat, BattleControl sim) {
-        if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+        LaneSidestep.holdGround(member, sim);
         if (canFireAt(member, threat, sim)) {
             sim.world().setTargetId(member, threat);
             sim.combat().setFireIntent(member, threat, FireStance.STANCED, false);

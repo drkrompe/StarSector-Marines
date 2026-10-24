@@ -891,7 +891,13 @@ built places is **held**: its ground is kept clear before the places grow, by
 the same mask that keeps a mission's fort sites open
 (`FortReservations.keepClear`), and published as `BspKeys.HELD_GROUND`
 (`elevation-nouns.md`, Held ground). The heart's country is the first plan to
-state one (`heart-nouns.md`).
+state one (`heart-nouns.md`). A held ridge may be **sealed**, gone round as
+well by everything generation routes (welds, access routes, tracks, a
+landing's approach, layout roads), so a ring of bands is crossed only at its
+passes (`BspKeys.SEALED_GROUND`). And a place may stand on a **knoll**: grown
+inside a box round its seed, with a ring of open country kept round it and its
+roads leaving by gates, raised as a terrace of its own (`KnollGround`,
+`BspKeys.KNOLLS`; `elevation-nouns.md`, Sealed ground and Knolls).
 
 Open countryside can gain small cliff-backed hills where their entire visible
 footprint fits, using the same terrain brush as authored hills. A map with an

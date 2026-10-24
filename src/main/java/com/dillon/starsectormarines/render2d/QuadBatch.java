@@ -454,19 +454,23 @@ public final class QuadBatch {
      * paged run takes a sheet's quads while each one's texture coordinates are still worked out by the batch that
      * knows its sheet.
      */
-    void moveQueuedTo(PagedQuadRun run, float lane) {
+    void moveQueuedTo(PagedQuadRun run, float lane, float light, float lightAngle, float wear) {
         if (quadCount == 0) return;
         run.ensureCapacity(quadCount);
         int verts = quadCount * VERTS_PER_QUAD;
         int base = run.quadCount * VERTS_PER_QUAD;
         float z = lane;
         for (int v = 0; v < verts; v++) {
-            int to = (base + v) * 3;
+            int to = (base + v) * 4;
             run.posData[to] = posData[v * 2];
             run.posData[to + 1] = posData[v * 2 + 1];
             run.posData[to + 2] = z;
+            run.posData[to + 3] = light;
+            run.uvData[to] = uvData[v * 2];
+            run.uvData[to + 1] = uvData[v * 2 + 1];
+            run.uvData[to + 2] = lightAngle;
+            run.uvData[to + 3] = wear;
         }
-        System.arraycopy(uvData, 0, run.uvData, base * 2, verts * 2);
         System.arraycopy(colData, 0, run.colData, base * 4, verts * 4);
         run.quadCount += quadCount;
         quadCount = 0;

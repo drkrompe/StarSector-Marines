@@ -12,6 +12,15 @@ public final class LandscapeAccess {
 
     /** Retain a five-cell-wide tree of existing routes between required places in each component. */
     public static void reserveRoutes(NavigationGrid grid, List<int[]> anchors, boolean[] reserved) {
+        reserveRoutes(grid, anchors, reserved, null);
+    }
+
+    /**
+     * As above, with ground the routes go round ({@code avoid}, or null for none): sealed ground, crossed only at
+     * the gaps between its bands. An anchor reached only across it keeps no route there; the ridges raised on it
+     * prove their own access.
+     */
+    public static void reserveRoutes(NavigationGrid grid, List<int[]> anchors, boolean[] reserved, boolean[] avoid) {
         int w = grid.getWidth(), h = grid.getHeight();
         int[] parent = new int[w * h], queue = new int[w * h];
         Arrays.fill(parent, -1);
@@ -28,7 +37,7 @@ public final class LandscapeAccess {
                         int nx = ax + d.dx, ny = ay + d.dy;
                         if (!grid.inBounds(nx, ny) || !grid.isWalkable(nx, ny) || !open(grid, ax, ay, d)) continue;
                         int next = ny * w + nx;
-                        if (parent[next] >= 0) continue;
+                        if (parent[next] >= 0 || (avoid != null && avoid[next])) continue;
                         parent[next] = at; queue[tail++] = next;
                     }
                 }

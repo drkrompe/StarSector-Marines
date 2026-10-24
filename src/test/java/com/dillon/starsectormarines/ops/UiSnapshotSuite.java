@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.marine.CampaignVehicle;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.ops.battleview.BoatDoll;
 import com.dillon.starsectormarines.ops.fitting.FittingComponents;
 import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
@@ -2539,6 +2542,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("mech-long-callsign-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, true, false, false, false, null, "long-name")),
                 new SnapshotArtifact("mech-fitting-bulwark-1920x1080.png", heavy),
+                new SnapshotArtifact("mech-vehicle-kits-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "vehicle-kits")),
+                new SnapshotArtifact("mech-vehicle-apc-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "vehicle-apc")),
                 new SnapshotArtifact("mech-fitting-1920x1080.png", idle),
                 new SnapshotArtifact("mech-internal-engine-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "internal-engine")),
@@ -2669,6 +2676,28 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             viewModel.gantryRows().get().get(0).select().run();
             viewModel.selectSlot(SocketId.CORE);
         }
+        // A tank on the fourth pad with two kits bolted on and a third spare in stores: the sealed doll
+        // and the kit rack, with the stores listing the kits.
+        if ("vehicle-kits".equals(materialHint)) {
+            CampaignVehicle tank = new CampaignVehicle("support_vehicle_04", "Breaker 04", VehicleType.BREAKTHROUGH_TANK);
+            bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank);
+            for (VehicleKit kit : VehicleKit.values()) bay.learnPattern(MechPattern.of(kit).id());
+            bay.addKit(VehicleKit.APPLIQUE_PLATE.id, 1);
+            bay.addKit(VehicleKit.SPACED_SKIRTS.id, 1);
+            bay.addKit(VehicleKit.READY_RACK.id, 1);
+            bay.fitKit(tank.id(), VehicleKit.APPLIQUE_PLATE);
+            bay.fitKit(tank.id(), VehicleKit.SPACED_SKIRTS);
+            viewModel.gantryRows().get().get(3).select().run();
+        }
+        // An up-armoured APC with a spall liner: the seats bay card beside the turret and hull.
+        if ("vehicle-apc".equals(materialHint)) {
+            CampaignVehicle apc = new CampaignVehicle("support_vehicle_04", "Bastion 04", VehicleType.UP_ARMORED_APC);
+            bay.addVehicle(MechBay.STARTER_SQUAD_ID, apc);
+            bay.learnPattern(MechPattern.of(VehicleKit.SPALL_LINER).id());
+            bay.addKit(VehicleKit.SPALL_LINER.id, 1);
+            bay.fitKit(apc.id(), VehicleKit.SPALL_LINER);
+            viewModel.gantryRows().get().get(3).select().run();
+        }
         if ("internal-flux".equals(materialHint)) {
             viewModel.gantryRows().get().get(0).select().run();
             viewModel.selectSlot(SocketId.AUXILIARY);
@@ -2721,10 +2750,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                             () -> ship.scene().berthsIn(vehicleBay), vehicleBay::id,
                             () -> seconds[0],
                             viewModel::hoveredWeapon)
+                    .withOccupiedGantries(viewModel::occupiedGantries)
                     .withSideShift(() -> camera.pose().sideShift())
                     .withPadPreview(viewModel::padPreview);
             fittingCanvas.installedInternals(viewModel::installedInternal);
             fittingCanvas.installedCompartment(viewModel::installedCompartment);
+            fittingCanvas.selectedVehicle(viewModel::selectedVehicleType);
+            fittingCanvas.installedKits(viewModel::installedKits);
             document.canvases().set(instance.requireElement("mech-doll-canvas"), fittingCanvas);
             for (MechLabViewModel.SquadRow squad : viewModel.squadRows().get()) {
                 for (MechLabViewModel.LanceSlot slot : squad.slots()) {
@@ -2770,7 +2802,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             if (specSheet || materialHint != null && !"long-name".equals(materialHint)
                     && !materialHint.startsWith("lesson-") && !materialHint.startsWith("resource-")
                     && !materialHint.startsWith("internal-") && !materialHint.startsWith("chassis-")
-                    && !materialHint.startsWith("refit-") && !materialHint.startsWith("preview-")) {
+                    && !materialHint.startsWith("refit-") && !materialHint.startsWith("preview-")
+                    && !materialHint.startsWith("vehicle-")) {
                 SpecSheetBinder binder = new SpecSheetBinder(
                         document, SpecSheetLayer.install(document));
                 List<MechLabViewModel.CatalogRow> rows = viewModel.catalogRows().get();

@@ -1,0 +1,10 @@
+Top-down concept for a tactical game. ONE creature, the SPITTER: the Rav Bloom swarm's ranged strain (Starsector mod: Marines against an engineered biological weapon). It hangs back behind the melee Runners and spits arcing globs of deep dark venom-green acid that splash infantry. Original design in the spirit of a classic sci-fi serpent warrior-beast, NOT a copy of any existing game creature.
+
+BODY PLAN: UPRIGHT and SERPENTINE. A long, thick, armoured snake-like lower body that coils or curls on the ground behind it as its base, rising into a raised, reared upper body with a broad chest, a menacing head, and two scything bone forelimbs held ready. Bilaterally symmetric upper body. Same engineered organism as the Runner (reference image 1): glossy armour plates over muscled flesh, sinew visible in every gap, ivory bone claws and spines, small amber eyes. Beast first, never insect-like: no wings, no antennae, no thin waist.
+
+It must look clearly different from the Runner (reference image 1, a pale lilac hound with arm spikes) at a glance from far above: its own colours, and a long coiled serpent outline instead of a four-legged hound.
+
+COLOURS: OCHRE-BONE: pale yellowed bone plates over deep crimson sinew, dark umber shadows between plates, venom-green acid.
+LAUNCHER: a swollen translucent THROAT and chest sac glowing venom-green under ribbed plates; two long bone spines curve back from the head like horns. It rears back and the throat sac heaves the glob out of its gaping jaws.
+
+Strict overhead orthographic view, camera looking straight down from above, the reared upper body and head toward the TOP of the frame, the coiled serpent body below it, centred, filling about two thirds of the frame, light from the upper left. Plain flat light grey background (#b4b4b4), no shadow, no ground, no projectile, no text, no border.

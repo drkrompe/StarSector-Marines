@@ -27,28 +27,35 @@ committed.
 The rigs stand in for motion and silhouette only. Production art follows
 `geometry-first-imagegen.md` once the owner picks a direction.
 
-## Spitter (PARKED 2026-10-21)
+## Spitter (design settled 2026-10-24)
 
-The owner parked the Spitter ("thinking about dropping the spitters for now") after three
-concept rounds. Review sets are on Drive under `review/rav-spitter/`. The sources here are
-`exploration/rounds/spitter-1..3/`, made with `exploration/spitter_round.py`:
-- the default mode draws the concept sheet;
-- `--fire` adds the side views caught firing;
-- `--pack` puts two Spitters behind five Runners.
+Five concept rounds. Review sets are on Drive under `review/rav-spitter/`; the sources are
+`exploration/rounds/spitter-1..5/` (rounds 1 to 3 drawn by `exploration/spitter_round.py`).
+Rounds 1 to 3 explored legged firers (a domed vent or mortar mass on the back, legs under the
+body), after which the owner parked the strain. Round 4 tried bipeds with a dome; the owner
+rejected all of them and asked for something "more hydralisk like".
 
-What the owner settled before parking:
-- **Acid:** a dark venom green, darker than round 1 #6's lime.
-- **Body:** symmetric, never lopsided, on two or three legs (round 2).
-- **Firing:** must be legible. Round 2 and 3 plates carry a side view of the lob.
-- **Palette:** its own, not the Runner's lilac. Round 2's lilac read as "too visually and palette close to the
-  swarmer".
-- **Read from above:** what separates a firer from a Runner is a round mass on the back, a mortar tube or a domed
-  vent.
-- **Legs** sit under the body like a hound's or a pig's, swinging forward and back, never sprawled like an
-  alligator's. That rule came after round 3, whose splayed tripods and toad break it.
+Round 5 settled it: **the cobra hood in indigo-black**, a "vertical" creature. It is an upright
+serpent seen from above:
+- a haunched back is reared up on the tail;
+- the tail curls from under the chest, shows at one hip, and trails out behind; it slithers
+  when the creature moves;
+- two arms each end in a single short hooked talon (the owner's call over the round 5 scythes);
+- a hood stays folded at rest and pops open, venom-green inside, to fire.
 
-Round 3's strongest reads were #4 indigo, #6 inside-out magenta and #2 bone-white. The owner had not picked one.
-To resume, start from round 3, put the legs under the body, and widen the stance only for the brace when it fires.
+The acid stays a dark venom green.
+
+It is built from separate parts, the way infantry are. Production sources are in `spitter/`:
+- `raw/hero-open-v2.png` is the whole creature with talon arms (over round 5's `hero-open.png`);
+- `guides/part-*.png` are that plate with only one part left, the geometry guide for each part;
+- `raw/part-back.png`, `part-tail.png`, `part-arm.png` and `part-head-open.png` were each
+  generated over their guide, and `part-head-shut.png` over the flared head;
+- `raw/acid.png` is the acid sheet: the glob, two splashes and a pool.
+
+Each has its prompt and provenance. `export_spitter_rig.py` exports the parts into
+`mod/graphics/battle/rav-spitter/`, cuts the straight tail into short slices, and appends the
+splashes and the pool to the decal strip. `RavSpitterRig` and `RavSpitterComposer` animate the
+parts, and the `rav-spitter-motion` snapshot suite shows the lob.
 
 ## Matriarch (design settled 2026-10-21)
 

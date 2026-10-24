@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16eeb-740f-7af2-a395-91d999e67af0",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16eeb-740f-7af2-a395-91d999e67af0\\exec-cebc310c-5330-4a31-a614-97e56e9169bb.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\spitter\\raw\\part-arm.png",
+    "sha256": "2652c3369d4e85813b89c47c2f90435b29f2a27634d9ce70798b6a17f90f7cf6",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\spitter\\prompts\\part-arm.prompt.txt",
+  "promptSha256": "b9a0892c1df640a754106c9bf00a1d88d85911d0046e6775f334ced951e26d38",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: the part's exact position, outline and scale on the canvas; complete it in place\nImage 2: Identity, colours and plate finish only; not layout\n\nA single sprite LAYER for a top-down tactical game: the LEFT ARM of the Rav Bloom Spitter, an upright serpentine beast, as its own separate part. Reference image 1 shows the part's exact position, outline and scale: complete it in place. Reference image 2 is the whole creature, for identity, colours and plate finish only (near-black indigo carapace with blue-violet plate edges, dark wine-red sinew in every gap, pale ivory bone).\n\nThe part is ONLY the whole left arm: a rounded armoured shoulder ball at its inner end (closed off, it tucks under the body's shoulder), the plated upper arm and forearm reaching out to the left and a little forward, and at its end a SINGLE short hooked ivory bone TALON claw, about as long as the head, hooking forward and inward. No body, no head, no tail.\n\nStrict overhead orthographic view, light from the upper left, on the same 1024x1536 portrait canvas as reference image 1, the part in exactly the position and at exactly the scale it occupies there. Plain flat light grey background (#afafaf), no shadow, no ground, no other body parts, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\spitter\\guides\\part-arm.png",
+      "sha256": "6573f317825a40cc0e004db2ed7c59ae90c4fec0e8db839f63ef2613256d192f",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Geometry authority: the part's exact position, outline and scale on the canvas; complete it in place"
+    },
+    {
+      "path": "art-source\\rav-redesign\\spitter\\raw\\hero-open-v2.png",
+      "sha256": "673858130927ba736a49ff960e44573698507819acc925abcdac579c5bfda968",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Identity, colours and plate finish only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image, keeping the arm’s placement and scale from Image 1 and the finish from Image 2.\n"
+  ],
+  "usage": {
+    "input_tokens": 44761,
+    "cached_input_tokens": 37504,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 516,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 45.1
+}

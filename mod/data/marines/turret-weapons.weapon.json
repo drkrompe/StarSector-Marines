@@ -789,20 +789,22 @@
         "aoeRadius": 1.3, "arcHeight": 2.2, "indirectFire": true
       },
       "render": {
-        "tracerColor": "B8E040",
-        "tracerTailCells": 0.6,
-        "projectileSprite": "graphics/missiles/shell_medium_green.png",
-        "projectileVisualCells": 0.3
+        "tracerColor": "3F8F1E",
+        "tracerTailCells": 0.5,
+        "projectileSprite": "graphics/battle/rav-spitter/acid-glob.png",
+        "projectileVisualCells": 0.42,
+        "impactDecal": "ACID_SPLASH"
       },
       "fx": {
         "muzzle": [
-          { "kind": "glow", "radius": 0.3, "lifetime": 0.12, "color": "B8E040" }
+          { "kind": "glow", "radius": 0.32, "lifetime": 0.14, "color": "4FA82A" }
         ],
         "impact": [
-          { "kind": "glow", "radius": 0.9, "lifetime": 0.35, "color": "B8E040" },
-          { "kind": "dust", "radius": 0.4, "lifetime": 0.25 }
+          { "kind": "glow", "radius": 0.7, "lifetime": 0.35, "color": "5CB82E" }
         ],
-        "aftermath": [ { "kind": "smoke", "radius": 0.6, "lifetime": 1.2 } ]
+        "aftermath": [
+          { "kind": "glow", "radius": [0.35, 0.5], "lifetime": [0.6, 0.9], "jitter": 0.4, "delay": 0.15, "emissionDuration": 0.6, "emissionInterval": 0.3, "color": "3F8F1E" }
+        ]
       }
     },
     {

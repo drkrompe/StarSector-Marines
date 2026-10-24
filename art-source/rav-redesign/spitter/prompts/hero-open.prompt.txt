@@ -1,0 +1,12 @@
+Production top-down sprite plate for a tactical game: the Rav Bloom SPITTER, an upright serpentine beast seen from directly above. Combine the two references exactly: the BODY PLAN and the COBRA HOOD of reference image 1, in the COLOURS and plate finish of reference image 2 (near-black indigo carapace, blue-violet only on the plate edges, dark wine-red sinew in every gap, pale steel-grey/ivory bone spines and claws, small amber eyes). Its acid is a deep dark venom green, glowing from the hood's inner membrane.
+
+POSE (strict, this plate will be cut into layers):
+- The creature is a VERTICAL figure, perfectly bilaterally symmetric about the vertical centre line.
+- Head at the top, facing UP, jaws slightly open.
+- The cobra HOOD is fully FLARED open around the head and neck, wide and round, ribbed with bone spines, its inner membrane glowing venom green.
+- Below the hood: a broad armoured chest and shoulders.
+- Two long scything bone FORELIMBS held out to the left and right of the chest, clearly separated from the body by background, blades curving forward and inward, mirror images of each other.
+- The serpent TAIL hangs STRAIGHT DOWN from the waist to the bottom of the frame, a long tapering armoured column with no coil, no curve and no loop, ending in a bone spike.
+- Nothing overlaps: hood, forelimbs and tail each stand apart from the body's outline.
+
+Strict overhead orthographic view, light from the upper left, centred, the figure filling most of the frame height. Plain flat light grey background (#b4b4b4), no shadow, no ground, no projectile, no text, no border.
