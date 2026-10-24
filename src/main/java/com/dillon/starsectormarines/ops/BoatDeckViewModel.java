@@ -6,11 +6,15 @@ import com.dillon.starsectormarines.ops.battleview.BoatDeckCanvas.RecoveryMarker
 import com.dillon.starsectormarines.ops.CompanyResources.Row;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
+import com.dillon.starsectormarines.battle.air.engine.WeaponSlot;
 import com.dillon.starsectormarines.marine.BoatDeck;
 import com.dillon.starsectormarines.marine.BoatFabricationCatalog;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatFittingSlot;
+import com.dillon.starsectormarines.marine.BoatGun;
 import com.dillon.starsectormarines.marine.BoatWorkshop;
+import com.dillon.starsectormarines.ops.battleview.BoatDoll;
 import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.FabricationResources;
@@ -47,6 +51,8 @@ public final class BoatDeckViewModel {
 
     /** No berth selected: the room is showing its overview rather than a boat. */
     private static final int NO_BERTH = -1;
+    /** No hardpoint selected: the selected slot is one of the boat's fittings. */
+    private static final int NO_HARDPOINT = -1;
 
     private final BoatDeck deck;
     private final DoubleSupplier campaignDay;
@@ -60,6 +66,8 @@ public final class BoatDeckViewModel {
     private final MutableSignal<Integer> revision;
     private final MutableSignal<Integer> selectedBerth;
     private final MutableSignal<BoatFittingSlot> selectedSlot;
+    /** The hardpoint whose door gun the room is opened on, or {@link #NO_HARDPOINT} while a fitting slot is. */
+    private final MutableSignal<Integer> selectedHardpoint;
     private final MutableSignal<String> feedbackText;
     private final MutableSignal<String> feedbackClasses;
     private final ComputedSignal<String> deckSummary;
@@ -71,6 +79,7 @@ public final class BoatDeckViewModel {
     private final ComputedSignal<String> selectedSlotTitle;
     private final ComputedSignal<String> selectedSlotCopy;
     private final ComputedSignal<List<CatalogRow>> catalogRows;
+    private final ComputedSignal<BoatDoll> doll;
     private final ComputedSignal<String> overviewClasses;
     private final ComputedSignal<String> fittingClasses;
     private final ComputedSignal<String> fabricationClasses;
@@ -121,6 +130,7 @@ public final class BoatDeckViewModel {
         revision = reactor.signal(0);
         selectedBerth = reactor.signal(NO_BERTH);
         selectedSlot = reactor.signal(BoatFittingSlot.PLATING);
+        selectedHardpoint = reactor.signal(NO_HARDPOINT);
         feedbackText = reactor.signal(
                 Strings.get("openingBoatDeckSelectABerthToInspectTheBoat"));
         feedbackClasses = reactor.signal("boat-deck-feedback tone-muted surface-dark");
@@ -138,15 +148,21 @@ public final class BoatDeckViewModel {
         });
         performanceMeters = reactor.computed(this::buildPerformanceMeters);
         slotRows = reactor.computed(this::buildSlotRows);
-        selectedSlotTitle = reactor.computed(() -> slotLabel(selectedSlot.get()));
+        selectedSlotTitle = reactor.computed(() -> selectedHardpoint.get() != NO_HARDPOINT
+                ? hardpointLabel(selectedHardpoint.get()) : slotLabel(selectedSlot.get()));
         selectedSlotCopy = reactor.computed(() -> {
             revision.get();
             CampaignBoat boat = selectedBoat();
-            return boat != null && boat.pattern() == ShuttleType.HERMES
-                    ? Strings.get("openingBoatDeckTheHermesIsAPatchedCourierWith")
+            boolean hermes = boat != null && boat.pattern() == ShuttleType.HERMES;
+            if (selectedHardpoint.get() != NO_HARDPOINT) {
+                return Strings.get(hermes ? "boatDeckHardpointHermes" : "boatDeckHardpointCopy");
+            }
+            return hermes ? Strings.get("openingBoatDeckTheHermesIsAPatchedCourierWith")
                     : slotCopy(selectedSlot.get());
         });
-        catalogRows = reactor.computed(this::buildCatalogRows);
+        catalogRows = reactor.computed(() -> selectedHardpoint.get() != NO_HARDPOINT
+                ? buildGunRows() : buildCatalogRows());
+        doll = reactor.computed(this::buildDoll);
         overviewClasses = reactor.computed(() -> fittingFocused() || fabricationFocused()
                 ? "boat-overview panel hidden" : "boat-overview panel");
         fittingClasses = reactor.computed(() -> fittingFocused()
@@ -249,7 +265,17 @@ public final class BoatDeckViewModel {
     public Signal<String> selectedSlotTitle() { return selectedSlotTitle; }
     public Signal<String> selectedSlotCopy() { return selectedSlotCopy; }
     public Signal<List<CatalogRow>> catalogRows() { return catalogRows; }
+    /** The selected boat as the doll draws her, or null while the room is not opened on one. */
+    public Signal<BoatDoll> doll() { return doll; }
     public Signal<String> overviewClasses() { return overviewClasses; }
+    /** The yard's catalog stands left of the bay while the room is opened on a boat, as the lab's stores do. */
+    public Signal<String> catalogClasses() { return selectedBerth.map(berth -> fittingFocused()
+            ? "panel catalog-panel" : "hidden"); }
+    public Signal<String> stageTitle() { return selectedBerth.map(berth -> { revision.get(); return fittingFocused()
+            ? Strings.format("boatDeckStageBerth", berthLabel(berth))
+            : Strings.get("openingUiBoatDeckBoatBayBerths"); }); }
+    public Signal<String> stageStatus() { return selectedBerth.map(berth -> { revision.get(); return fittingFocused()
+            ? Strings.get("boatDeckSelectSlot") : Strings.get("openingUiBoatDeckDeckCrewOnWatch"); }); }
     public Signal<String> fittingClasses() { return fittingClasses; }
     public Signal<String> fabricationClasses() { return fabricationClasses; }
     public Signal<String> fabricationBerthLabel() { return fabricationBerthLabel; }
@@ -266,6 +292,21 @@ public final class BoatDeckViewModel {
 
     public Runnable selectBoatAction(int berthIndex) { return () -> selectBoat(berthIndex); }
     public Runnable selectSlotAction(BoatFittingSlot slot) { return () -> selectSlot(slot); }
+    public Runnable selectHardpointAction(int hardpoint) { return () -> selectHardpoint(hardpoint); }
+    public Runnable fitGunAction(int hardpoint, String gunId) { return () -> fitGun(hardpoint, gunId); }
+
+    /** Selects whichever slot a doll card names; see {@link BoatDoll.Slot#key}. */
+    public void selectDollSlot(String key) {
+        if (key == null) return;
+        int hardpoint = BoatDoll.hardpointOf(key);
+        if (hardpoint >= 0) {
+            selectHardpoint(hardpoint);
+            return;
+        }
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) {
+            if (BoatDoll.slotKey(slot).equals(key)) selectSlot(slot);
+        }
+    }
     public Runnable fitAction(String fittingId) { return () -> fit(fittingId); }
     public Runnable backToDeckAction() { return this::showDeckOverview; }
 
@@ -306,6 +347,7 @@ public final class BoatDeckViewModel {
     public void refresh() {
         selectedBerth.set(NO_BERTH);
         selectedSlot.set(BoatFittingSlot.PLATING);
+        selectedHardpoint.set(NO_HARDPOINT);
         revision.update(value -> value + 1);
     }
 
@@ -399,11 +441,88 @@ public final class BoatDeckViewModel {
             BoatFitting fitting = boat.fittingIn(slot);
             String base = "boat-slot:" + slot.name().toLowerCase(Locale.ROOT);
             rows.add(new SlotRow(base, base + ":name", base + ":fitting", base + ":tier",
-                    slot == selectedSlot.get() ? "boat-slot selected" : "boat-slot",
+                    slot == selectedSlot.get() && selectedHardpoint.get() == NO_HARDPOINT
+                            ? "boat-slot selected" : "boat-slot",
                     slotLabel(slot), fitting.displayName(), tierLabel(fitting),
                     () -> selectSlot(slot)));
         }
+        for (int index = 0; index < boat.pattern().hardpoints(); index++) {
+            BoatGun gun = boat.gunOn(index);
+            if (gun == null) continue;
+            String base = "boat-slot:hardpoint-" + index;
+            int hardpoint = index;
+            rows.add(new SlotRow(base, base + ":name", base + ":fitting", base + ":tier",
+                    index == selectedHardpoint.get() ? "boat-slot selected" : "boat-slot",
+                    hardpointLabel(index), gun.displayName(), gunTier(boat, index, gun),
+                    () -> selectHardpoint(hardpoint)));
+        }
         return List.copyOf(rows);
+    }
+
+    /**
+     * The door guns the yard can put on the selected hardpoint.
+     *
+     * <p>The hardpoint's own yard gun is always listed and costs nothing to put
+     * back; every other gun is a bill, the way a non-standard fitting is.
+     */
+    private List<CatalogRow> buildGunRows() {
+        revision.get();
+        CampaignBoat boat = selectedBoat();
+        int hardpoint = selectedHardpoint.get();
+        BoatGun installed = boat == null ? null : boat.gunOn(hardpoint);
+        if (installed == null) return List.of();
+        List<CatalogRow> rows = new ArrayList<>();
+        for (BoatGun gun : BoatGun.catalog()) {
+            boolean fitted = gun == installed;
+            boolean standard = gun.standardOn(boat.pattern(), hardpoint);
+            if (!fitted && !gun.supports(boat.pattern())) continue;
+            FabricationCost bill = standard ? null : resources.quote(gun.bill());
+            boolean affordable = bill == null || resources.canAfford(bill);
+            String base = "boat-catalog:gun-" + hardpoint + ":" + gun.id();
+            rows.add(new CatalogRow(base, base + ":copy", base + ":name", base + ":line",
+                    base + ":tier", base + ":effect", base + ":provenance", base + ":reason",
+                    base + ":action", base + ":materials",
+                    fitted ? "catalog-row selected" : "catalog-row",
+                    gun.displayName(), Strings.format("openingBoatDeckTier", gun.tier()), gun.effect(), gun.provenance(),
+                    fitted ? boat.pattern() == ShuttleType.HERMES ? Strings.get("openingBoatDeckFittedNoUpgrades")
+                            : Strings.get("openingBoatDeckFitted")
+                            : affordable ? "" : Strings.format("openingBoatDeckShort", shortest(bill)),
+                    Strings.get("openingBoatDeckFit"),
+                    fitted || !affordable,
+                    fitted ? List.of() : materialRows(base, bill),
+                    () -> fitGun(hardpoint, gun.id()), base + ":preview", BoatDoll.Kind.HARDPOINT, gun.id()));
+        }
+        return List.copyOf(rows);
+    }
+
+    /**
+     * The selected boat as the doll draws her: her sprite, and every slot she
+     * has with where it sits. A hardpoint stands where her hull's weapon slot
+     * is, read off the same spec the battle mounts her guns from, so the spot
+     * on the doll is the spot the gun fires from.
+     */
+    private BoatDoll buildDoll() {
+        revision.get();
+        CampaignBoat boat = selectedBoat();
+        if (boat == null) return null;
+        ShuttleType pattern = boat.pattern();
+        int hardpoint = selectedHardpoint.get();
+        List<BoatDoll.Slot> slots = new ArrayList<>();
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) {
+            if (slot == BoatFittingSlot.LIFT && !liftable(pattern)) continue;
+            BoatFitting fitting = boat.fittingIn(slot);
+            slots.add(BoatDoll.Slot.fitting(slot, fitting.id(), slotLabel(slot), fitting.displayName(),
+                    tierLabel(fitting), hardpoint == NO_HARDPOINT && slot == selectedSlot.get()));
+        }
+        List<WeaponSlot> mounts = TurretSlotResolver.mounts(pattern.renderHullId());
+        for (int index = 0; index < pattern.hardpoints(); index++) {
+            BoatGun gun = boat.gunOn(index);
+            if (gun == null) continue;
+            WeaponSlot mount = index < mounts.size() ? mounts.get(index) : null;
+            slots.add(BoatDoll.Slot.hardpoint(index, gun.id(), hardpointLabel(index), gun.displayName(),
+                    gunTier(boat, index, gun), index == hardpoint, mount));
+        }
+        return new BoatDoll(pattern, boat.displayName(), pattern.displayName(), List.copyOf(slots));
     }
 
     private List<CatalogRow> buildCatalogRows() {
@@ -435,7 +554,7 @@ public final class BoatDeckViewModel {
                     Strings.get("openingBoatDeckFit"),
                     installed || !affordable,
                     installed ? List.of() : materialRows(base, resources.quote(fitting.bill())),
-                    () -> fit(fitting.id())));
+                    () -> fit(fitting.id()), base + ":preview", dollKind(slot), fitting.id()));
         }
         return List.copyOf(rows);
     }
@@ -465,6 +584,7 @@ public final class BoatDeckViewModel {
         CampaignBoat boat = berths.get(berthIndex);
         selectedBerth.set(berthIndex);
         selectedSlot.set(BoatFittingSlot.PLATING);
+        selectedHardpoint.set(NO_HARDPOINT);
         feedbackText.set(boat != null
                 ? Strings.format("openingBoatDeckInspectingNothingHasBeenRefitted", boat.displayName())
                 : deck.wreckInBerth(berthIndex) ? Strings.format("openingBoatDeckAnOriginalHermesWreckAwaitsRepairIn", berthLabel(berthIndex))
@@ -477,10 +597,40 @@ public final class BoatDeckViewModel {
     private void selectSlot(BoatFittingSlot slot) {
         if (slot == null || selectedBoat() == null) return;
         selectedSlot.set(slot);
+        selectedHardpoint.set(NO_HARDPOINT);
         feedbackText.set(selectedBoat().pattern() == ShuttleType.HERMES
                 ? Strings.get("openingBoatDeckHermesFittingsAreInspectionOnlyReplaceThe")
                 : Strings.format("openingBoatDeckSelectedEverythingTheYardCanPutHere", slotLabel(slot)));
         feedbackClasses.set("boat-deck-feedback tone-muted surface-dark");
+    }
+
+    private void selectHardpoint(int hardpoint) {
+        CampaignBoat boat = selectedBoat();
+        if (boat == null || boat.gunOn(hardpoint) == null) return;
+        selectedHardpoint.set(hardpoint);
+        feedbackText.set(boat.pattern() == ShuttleType.HERMES
+                ? Strings.get("boatDeckHardpointHermes")
+                : Strings.format("openingBoatDeckSelectedEverythingTheYardCanPutHere", hardpointLabel(hardpoint)));
+        feedbackClasses.set("boat-deck-feedback tone-muted surface-dark");
+    }
+
+    private void fitGun(int hardpoint, String gunId) {
+        CampaignBoat boat = selectedBoat();
+        BoatGun gun = BoatGun.findById(gunId);
+        if (boat == null || gun == null) return;
+        BoatWorkshop.Result result = workshop.fitGun(boat.id(), hardpoint, gunId);
+        feedbackText.set(switch (result.status()) {
+            case FITTED -> Strings.format("boatDeckGunFitted", gun.displayName(), hardpointLabel(hardpoint), boat.displayName());
+            case ALREADY_FITTED -> Strings.format("openingBoatDeckIsAlreadyFittedTo", gun.displayName(), boat.displayName());
+            case CANNOT_AFFORD -> Strings.get("openingBoatDeckRefitBlockedRequiredFleetMaterialsAreShort");
+            case INCOMPATIBLE_FITTING -> Strings.get("boatDeckHardpointHermes");
+            default -> Strings.get("openingBoatDeckRefitBlockedNothingAboardWasChanged");
+        });
+        feedbackClasses.set(result.succeeded()
+                ? "boat-deck-feedback tone-good surface-dark"
+                : "boat-deck-feedback tone-danger surface-dark");
+        revision.update(value -> value + 1);
+        if (result.succeeded()) deckChanged.run();
     }
 
     private void showDeckOverview() {
@@ -534,6 +684,7 @@ public final class BoatDeckViewModel {
         if (result.status() == BoatWorkshop.Status.FABRICATED) {
             selectedBerth.set(berthIndex);
             selectedSlot.set(BoatFittingSlot.PLATING);
+            selectedHardpoint.set(NO_HARDPOINT);
         }
         revision.update(value -> value + 1);
         if (result.succeeded()) deckChanged.run();
@@ -626,6 +777,25 @@ public final class BoatDeckViewModel {
         };
     }
 
+    private static BoatDoll.Kind dollKind(BoatFittingSlot slot) {
+        return switch (slot) {
+            case PLATING -> BoatDoll.Kind.PLATING;
+            case DRIVE -> BoatDoll.Kind.DRIVE;
+            case LIFT -> BoatDoll.Kind.LIFT;
+        };
+    }
+
+    private static String hardpointLabel(int hardpoint) {
+        return Strings.format("boatDeckHardpoint", hardpoint + 1);
+    }
+
+    /** A yard gun reads as yard issue rather than a tier, so a refit reads as one. */
+    private static String gunTier(CampaignBoat boat, int hardpoint, BoatGun gun) {
+        return gun.standardOn(boat.pattern(), hardpoint)
+                ? Strings.format("openingBoatDeckTier", gun.tier()) + "  ·  " + Strings.get("boatDeckGunStandard")
+                : Strings.format("openingBoatDeckTier", gun.tier());
+    }
+
     private static String slotCopy(BoatFittingSlot slot) {
         return switch (slot) {
             case DRIVE -> Strings.get("openingBoatDeckWhatGetsHerOffTheDeckAnd");
@@ -704,7 +874,8 @@ public final class BoatDeckViewModel {
                              String classes, String name, String tier, String effect,
                              String provenance, String reason, String actionLabel,
                              boolean actionDisabled, List<Row> materials,
-                             Runnable action) implements MarkupPropertySource {
+                             Runnable action, String previewId, BoatDoll.Kind kind, String itemId)
+            implements MarkupPropertySource {
         @Override public Object markupProperty(String p) { return switch (p) {
             case "id" -> id; case "copyId" -> copyId; case "nameId" -> nameId;
             case "lineId" -> lineId;
@@ -716,9 +887,11 @@ public final class BoatDeckViewModel {
             case "reason" -> reason; case "actionLabel" -> actionLabel;
             case "actionDisabled" -> actionDisabled; case "materials" -> materials;
             case "materialsStyle" -> CompanyResources.billHeight(materials);
-            case "copyStyle" -> "height: " + (110 + materials.size() * 36) + "px;";
-            case "cardStyle" -> "height: " + (190 + materials.size() * 36) + "px;";
+            case "copyStyle" -> "height: " + (128 + materials.size() * 36) + "px;";
+            case "cardStyle" -> "height: " + (208 + materials.size() * 36) + "px;";
             case "action" -> action;
+            case "previewId" -> previewId;
+            case "bodyId" -> id + ":body";
             default -> throw unknown("boat-catalog", p); }; }
     }
 
