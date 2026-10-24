@@ -66,8 +66,11 @@ public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
     private static final long SEED = 11L;
     /** Ticks played before the still, so smoke and the guns' first turn have settled. */
     private static final int SETTLE_TICKS = 30;
-    /** The free-standing post's layout: a line of guns behind its parapet or barricade. */
-    private static final String POST_VARIANT = "line-h";
+    /**
+     * The free-standing post's layout: a line of guns behind its parapet or barricade, or the large layout named by
+     * {@code -Dsnapshot.fortWorks.postVariant} (e.g. {@code hardpoint}, to frame a style's plinth).
+     */
+    private static final String POST_VARIANT = System.getProperty("snapshot.fortWorks.postVariant", "line-h");
     /** How long a gate tower's garrison has to walk in and open fire before it is framed. */
     private static final int GARRISON_TICKS = 300;
 
