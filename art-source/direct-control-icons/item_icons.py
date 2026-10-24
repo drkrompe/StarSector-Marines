@@ -8,8 +8,8 @@ because the flamer's tank is drawn through the same gauge.
 
     python art-source/direct-control-icons/item_icons.py [--style colour|steel|glyph] [--out DIR]
 
-`colour` is the shipped style. The others were the alternatives put to the owner
-(2026-10-24); they stay here so the comparison can be rendered again.
+`steel` is the shipped style (owner, 2026-10-24); the others were the alternatives
+put to the owner and stay here so the comparison can be rendered again.
 """
 import argparse
 import pathlib
@@ -126,7 +126,7 @@ def write(style, out):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--style", choices=sorted(STYLES), default="colour")
+    parser.add_argument("--style", choices=sorted(STYLES), default="steel")
     parser.add_argument("--out", type=pathlib.Path, default=DEFAULT_OUT)
     args = parser.parse_args()
     for name in write(args.style, args.out):
