@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.cordon;
 
 import com.dillon.starsectormarines.battle.command.allied.AlliedRequest;
+import com.dillon.starsectormarines.battle.command.allied.AlliedTool;
 import com.dillon.starsectormarines.battle.command.allied.AlliedToolShed;
 import com.dillon.starsectormarines.battle.command.allied.GunStock;
 import com.dillon.starsectormarines.battle.command.allied.SupplyDelivery;
@@ -134,12 +135,20 @@ public final class CordonReviewAnnotations {
         AlliedToolShed shed = line.shed();
         CordonLogistics base = cordon.logistics();
         if (shed == null || base == null) return;
+        for (AlliedToolShed.Dispatch d : shed.pending()) {
+            AlliedRequest r = d.request();
+            if (r.tool() == AlliedTool.AMMO_TRUCK) continue;
+            marks.label(r.x(), r.y() - 4, r.tool().name().toLowerCase(Locale.ROOT).replace('_', ' ')
+                    + " on its way (" + r.reason() + ")", ReviewStyle.ALLY);
+        }
         int shown = 0;
         int since = sim.getSimTickIndex() - Math.round(REQUEST_SHOWN_SECONDS / BattleSimulation.TICK_DT);
         for (AlliedToolShed.Dispatch d : shed.granted()) {
             if (d.tick() < since) continue;
             AlliedRequest r = d.request();
-            marks.label(base.doorX(), base.doorY() - 6 - 3 * shown++, String.format(Locale.ROOT,
+            // Between the base and where it was asked for, so a frame on either end shows it.
+            float mx = (base.doorX() + r.x()) / 2f, my = (base.doorY() + r.y()) / 2f + 3 * shown++;
+            marks.label(mx, my, String.format(Locale.ROOT,
                     "REQUEST %s to %s (%s): sent at %d:%02d", r.tool().name().toLowerCase(Locale.ROOT).replace('_', ' '),
                     r.toPlace(), r.reason(), (int) (d.tick() * BattleSimulation.TICK_DT) / 60,
                     (int) (d.tick() * BattleSimulation.TICK_DT) % 60), ReviewStyle.ALLY);
