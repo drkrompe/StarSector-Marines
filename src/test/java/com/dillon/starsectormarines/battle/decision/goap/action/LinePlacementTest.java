@@ -55,7 +55,7 @@ class LinePlacementTest {
     private static int[] place(FrontageLine line, int count, Probe probe, Set<Integer> taken) {
         int[] cells = new int[count];
         Arrays.fill(cells, -1);
-        return LinePlacement.openCells(line, count, cells, null, W, probe, taken);
+        return LinePlacement.openCells(line, count, cells, null, W, probe, taken, -1, -1);
     }
 
     @Test
@@ -107,5 +107,53 @@ class LinePlacementTest {
         FrontageLine line = northFacing();
         int[] open = place(line, 1, new Field(), new HashSet<>());
         assertEquals(21 * W + 20, open[0]);
+    }
+    private static int[] placeUnderFire(FrontageLine line, Probe probe, int[] previous, int threatX, int threatY) {
+        return LinePlacement.openCells(line, 1, new int[]{-1}, previous, W, probe, new HashSet<>(), threatX, threatY);
+    }
+
+    @Test
+    void aFlankChargeOnBareCoverMovesHimBehindRealCoverAgainstIt() {
+        FrontageLine line = northFacing();
+        Field field = new Field()
+                .cover(20, 21, 0, -1, 2)   // his place: sandbags against the front only
+                .cover(22, 21, 1, 0, 3);   // a wall against the east
+        int[] open = placeUnderFire(line, field, null, 36, 21);
+        assertEquals(21 * W + 22, open[0], "nothing between him and the charge, so he takes the wall");
+
+        int[] held = placeUnderFire(line, field, open, 36, 21);
+        assertEquals(open[0], held[0], "and keeps it while the charge stands");
+        assertEquals(21 * W + 20, placeUnderFire(line, field, open, -1, -1)[0],
+                "and goes back to the front's cover once it is gone");
+    }
+
+    @Test
+    void anyCoverAgainstTheFireKeepsThePlayersPlace() {
+        FrontageLine line = northFacing();
+        Field field = new Field()
+                .cover(20, 21, 0, -1, 2)
+                .cover(20, 21, 1, 0, 1)    // a little against the east already
+                .cover(22, 21, 1, 0, 3);
+        assertEquals(21 * W + 20, placeUnderFire(line, field, null, 36, 21)[0],
+                "a better sidegrade is not reason enough to break the line");
+    }
+
+    @Test
+    void lightCoverIsNotWorthLeavingTheLineFor() {
+        FrontageLine line = northFacing();
+        Field field = new Field()
+                .cover(20, 21, 0, -1, 2)
+                .cover(22, 21, 1, 0, 1);
+        assertEquals(21 * W + 20, placeUnderFire(line, field, null, 36, 21)[0]);
+    }
+
+    @Test
+    void coverHeCannotShootTheChargeFromIsNoAnswerToIt() {
+        FrontageLine line = northFacing();
+        Field field = new Field()
+                .cover(20, 21, 0, -1, 2)
+                .cover(22, 21, 1, 0, 3);
+        field.blind.add(21 * W + 22);
+        assertEquals(21 * W + 20, placeUnderFire(line, field, null, 36, 21)[0]);
     }
 }
