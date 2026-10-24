@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.command.allied.AlliedRequest;
 import com.dillon.starsectormarines.battle.command.allied.AlliedTool;
 import com.dillon.starsectormarines.battle.command.allied.AlliedToolShed;
 import com.dillon.starsectormarines.battle.command.allied.GunStock;
+import com.dillon.starsectormarines.battle.command.allied.SupplyDelivery;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 
 import java.util.ArrayList;
@@ -45,6 +46,8 @@ public final class HeartGuns {
     private record Place(GunStock stock, int[] cell, List<Long> guns) { }
 
     private final Map<String, Place> places = new LinkedHashMap<>();
+    /** Beats' own errands by place: where their trucks go and what arrival does. */
+    private final Map<String, SupplyDelivery.Recipient> errands = new LinkedHashMap<>();
     private final AlliedCommand command = new AlliedCommand(ISSUER);
     private AlliedToolShed shed;
     private boolean advancesShed;
@@ -75,9 +78,33 @@ public final class HeartGuns {
         return this;
     }
 
+    /**
+     * Sends a truck from the shed on a beat's errand: to {@code to}, under {@code place}, a name of the errand's own.
+     * Returns false when there is no shed, no truck in stock, the depot cannot send or the recipient is gone.
+     */
+    public boolean send(BattleSimulation sim, String place, SupplyDelivery.Recipient to, String reason) {
+        if (shed == null) return false;
+        int[] at = to.where(sim);
+        if (at == null) return false;
+        errands.put(place, to);
+        if (shed.request(sim, new AlliedRequest(AlliedTool.AMMO_TRUCK, place, at[0], at[1], reason))) return true;
+        errands.remove(place);
+        return false;
+    }
+
+    /** Whether trucks can be sent at all: the guns have a shed to call them from. */
+    public boolean sends() { return shed != null; }
+
+    /** Trucks bound for {@code place} still on the road. */
+    public int onRoad(String place) {
+        return shed == null ? 0 : shed.onRoad(AlliedTool.AMMO_TRUCK, place);
+    }
+
     /** An ammunition truck to the place a request names, refilling it on arrival; none for a place with no gun standing. */
     public AlliedToolShed.Maker truckMaker() {
         return AlliedMakers.ammunition(command, request -> {
+            SupplyDelivery.Recipient errand = errands.get(request.toPlace());
+            if (errand != null) return errand;
             Place p = places.get(request.toPlace());
             return p == null ? null : p.stock().recipient(p.cell(), () -> true);
         });

@@ -126,9 +126,10 @@ ranging smoke is presentation, so its objective asks what the walk asks of
 the company: follow close, never close enough to stop a gun. B6's quiet is
 presentation too, so its objective is the finish inside it.
 
-B5's trucks are the shared supply delivery (`allied-tools.md`): two leave
-the vehicle park when the third line opens, waiting while the swarm is on
-the park, and drive whatever way the planner finds rather than the farm road.
+B5's trucks are the shared supply delivery (`allied-tools.md`), sent from
+the vehicle park's tool shed with the guns' own trucks: two are sent when the
+third line opens, waiting while the shed has none in stock or the swarm is on
+the park, and the first through refills the battery as well, and drive whatever way the planner finds rather than the farm road.
 The extra line is as deep past the last as the plan steps, still short of the
 heart; the company's screen keeps to the plan it was given, so it does not
 follow the extra line.

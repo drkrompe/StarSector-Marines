@@ -58,8 +58,11 @@ calls its next machines, and `heart.armour_called_<lane>_<n>` marks each call.
 It comes off station at half structure, and the next sortie waits for the
 base. The air gate sits inside the base's `request`, so the commander may ask
 and be refused. Built (`HeartGunship`) for the first rung and for a broken
-lane's bore, gated on the colonies of the approach satellites. In the first
-played Broad town run they never died, so no sortie was called.
+lane's bore, gated on the colonies of the approach satellites. Nothing in play
+reaches those colonies: the company and the lanes stop well short of the
+satellites. So while the commander wants a sortie and the air is shut, the
+base shoots the air open, a shoot on the living colonies at most every ninety
+seconds (`heart.air_shoot_<n>`), and the sortie follows once they are dead.
 
 **Where the company stands in it.** The company is not under this commander.
 The commander reads the company's position as one more fact:
@@ -68,7 +71,6 @@ The commander reads the company's position as one more fact:
 
 ## Open
 
-- B5's trucks still run on their own, beside the guns' trucks (`heart-allied-forces.md`).
 - Whether the commander should also re-aim the next infantry wave (F2's "the
   allied commander re-aims the next wave to close it"), which needs the
   militia column to accept a new target mid-march.

@@ -254,7 +254,7 @@ public final class HeartLanes {
             shed.advance(sim);
             if (tick % RETARGET_TICKS == 0) {
                 for (Lane lane : lanes) callArmour(sim, lane, beats);
-                sorties = HeartGunship.call(sim, shed, this, beats, sorties);
+                gunship.call(sim, shed, this, beats);
             }
         }
         for (Lane lane : lanes) {
@@ -415,8 +415,8 @@ public final class HeartLanes {
     private AlliedToolShed shed;
     /** Whether an uncovered lane asks for a mech lance before an armour pair: built-up country, where hulls are roadbound. */
     private boolean mechsFirst;
-    /** Gunship sorties the commander has called. */
-    private int sorties;
+    /** The commander's gunship on call, and the shoots that open the air for it. */
+    private final HeartGunship gunship = new HeartGunship();
 
     /** In built-up country an uncovered lane asks the base for a mech lance first, and an armour pair if none is free. */
     public HeartLanes mechsFirst(boolean first) {
