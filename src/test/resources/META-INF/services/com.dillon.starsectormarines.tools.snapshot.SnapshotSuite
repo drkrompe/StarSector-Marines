@@ -267,6 +267,7 @@ com.dillon.starsectormarines.battle.fire.FireBurnSnapshotSuite
 com.dillon.starsectormarines.battle.fire.FlamerForestLookSuite
 com.dillon.starsectormarines.battle.fire.FlamerForestLookSuite$Woods
 com.dillon.starsectormarines.battle.fire.FireBlazeLookSuite
+com.dillon.starsectormarines.battle.fire.FireFlashoverLookSuite
 com.dillon.starsectormarines.battle.fire.FireBuildingsSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmPackCrowdSceneSnapshotSuite
 com.dillon.starsectormarines.battle.cordon.CordonMapgenSnapshotSuite
