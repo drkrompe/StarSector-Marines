@@ -10,8 +10,9 @@ import java.util.Set;
 /**
  * The one place a generated map decides how its defenders' posts are built (`ground-turret-tiers.md`). A pirate
  * world holds old works rather than building its own, so its posts are {@link EmplacementStyle#DERELICT}. Otherwise
- * the defenders build in their faction's tech family (`tech-families.md`): the Persean League and the Diktat lean
- * midline, Tri-Tachyon high-tech, everyone else low-tech. Within the family a garrison on a world with no prepared
+ * the defenders build in their faction's tech family (`tech-families.md`): the Persean League builds midline in
+ * League standard, the Diktat and the Lion's Guard midline in Diktat export grade, Tri-Tachyon high-tech, everyone
+ * else low-tech. Within the family a garrison on a world with no prepared
  * defences (no Ground Defenses or heavy batteries, a defence rating of one or less) puts up the militia style, and
  * every other garrison the prepared one; a battle with no market at all pours concrete. A first-pass reading of the
  * profile, to be moved by play.
@@ -29,8 +30,11 @@ public final class EmplacementStylePolicy {
     /** The faction whose worlds are squatted old works. */
     static final String PIRATES = "pirates";
 
-    /** Factions whose works are midline: League coalition standards, Diktat export grade. */
-    static final Set<String> MIDLINE = Set.of("persean", "sindrian_diktat", "lions_guard");
+    /** The faction whose works are midline in League coalition standards. */
+    static final Set<String> LEAGUE = Set.of("persean");
+
+    /** Factions whose works are midline in Diktat export grade. */
+    static final Set<String> DIKTAT = Set.of("sindrian_diktat", "lions_guard");
 
     /** Factions whose works are high-tech. */
     static final Set<String> HIGH_TECH = Set.of("tritachyon");
@@ -41,7 +45,8 @@ public final class EmplacementStylePolicy {
         if (PIRATES.equals(faction)) return EmplacementStyle.DERELICT;
         boolean prepared = profile.groundDefences() || profile.heavyBatteries()
                 || profile.defenseLevel() > MILITIA_MAX_DEFENSE_LEVEL;
-        if (MIDLINE.contains(faction)) return prepared ? EmplacementStyle.MODULAR : EmplacementStyle.BARRIER;
+        if (LEAGUE.contains(faction)) return prepared ? EmplacementStyle.MODULAR : EmplacementStyle.BARRIER;
+        if (DIKTAT.contains(faction)) return prepared ? EmplacementStyle.EXPORT : EmplacementStyle.BLOCKWORK;
         if (HIGH_TECH.contains(faction)) return prepared ? EmplacementStyle.COMPOSITE : EmplacementStyle.DEPLOYED;
         return prepared ? EmplacementStyle.BRUTALIST : EmplacementStyle.EARTHWORK;
     }

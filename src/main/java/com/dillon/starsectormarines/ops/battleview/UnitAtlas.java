@@ -103,6 +103,19 @@ public final class UnitAtlas extends SpriteAtlas {
      */
     static final int MAX_COPY_PX = 512;
 
+    /**
+     * Transparent texels kept around an image's art when it is held trimmed: one, the reach of a bilinear tap, so
+     * every tap that can colour a pixel reads the image's own texels.
+     */
+    private static final int TRIM_BORDER_PX = 1;
+
+    /**
+     * Two texels between slots where {@link SpriteAtlas#GUTTER_PX} is eight. Nothing samples this texture further
+     * than bilinear's one texel past a slot, since every quad drawn from it is a plain textured quad with no
+     * mipmaps and no offset taps, and eight a side was about a ninth of the packed area.
+     */
+    private static final int GUTTER = 2;
+
     /** The host the plan was seeded from: what sizes an image the atlas only saw drawn. */
     private BattleSprites host;
 
@@ -134,6 +147,11 @@ public final class UnitAtlas extends SpriteAtlas {
         return side / 4;
     }
 
+    @Override
+    protected int gutterPx() {
+        return GUTTER;
+    }
+
     /**
      * Takes in every image the {@link DrawList} noted missing since the last
      * call, as {@link #extend} does; each is sized by the host that loaded it
@@ -163,7 +181,7 @@ public final class UnitAtlas extends SpriteAtlas {
                                 : ""));
             }
         }
-        return extend(additions);
+        return extend(trimmed(additions));
     }
 
     /**
@@ -213,7 +231,55 @@ public final class UnitAtlas extends SpriteAtlas {
         // Two images is already two binds and an atlas of them saves one; the
         // point of the layout is a field of bodies, so a host that loaded almost
         // no unit art stays on the sprite path rather than paying for a copy.
-        return plan(candidates, 4);
+        return plan(trimmed(candidates), 4);
+    }
+
+    /**
+     * Each source held only as far as its art reaches: its alpha bounds ({@link BattleSprites#alphaBounds}) taken
+     * into slot texels, rounded outward, and one texel more on every side, so the transparent texels a bilinear tap
+     * at the art's edge reads are the image's own. A body PNG is drawn on a canvas sized for every pose, and the
+     * margins around a station arm or a shadow are most of its texels. A source the host cannot bound is held whole.
+     *
+     * <p><b>A side is trimmed only while the two sides across from it hold no art at the image's edge.</b> Trimming
+     * a side moves the ends of the two edges that meet it, and an edge drawn between other ends is rasterized along
+     * a line a fraction of a subpixel away: a pixel whose centre sits on that line can fall the other side of it.
+     * Along an edge in a transparent border such a pixel reads nothing and the change cannot be seen; along an edge
+     * the art reaches, it is a pixel the sprite path left out drawn faintly, or one it drew left out. So a rifle whose
+     * barrel runs the image's full height keeps its side columns, and a station arm with margin all round loses all
+     * four.
+     */
+    private List<Source> trimmed(List<Source> sources) {
+        if (host == null) return sources;
+        List<Source> out = new ArrayList<>(sources.size());
+        for (Source source : sources) out.add(trimmed(source));
+        return out;
+    }
+
+    private Source trimmed(Source source) {
+        ModTextures.Loaded loaded = loadedImage(source.sheet());
+        int[] bounds = host.alphaBounds(source.sheet());
+        if (loaded == null || bounds == null || loaded.width() <= 0 || loaded.height() <= 0) return source;
+        int[] held = trimRect(source.contentW(), source.contentH(), loaded.width(), loaded.height(), bounds);
+        return source.trimmedTo(held[0], held[1], held[2], held[3]);
+    }
+
+    /**
+     * The part {@code {x, y, w, h}} of a {@code w x h} slot to hold, for an image of {@code imageW x imageH} logical
+     * pixels whose art is {@code bounds} ({@link BattleSprites#alphaBounds}); all of it when nothing can go.
+     */
+    static int[] trimRect(int w, int h, int imageW, int imageH, int[] bounds) {
+        // The art's bounds in slot texels, rounded outward: a copy filtered down covers every texel a bound touches.
+        int artX0 = (int) Math.floor(bounds[0] * (w / (double) imageW));
+        int artY0 = (int) Math.floor(bounds[1] * (h / (double) imageH));
+        int artX1 = Math.min(w, (int) Math.ceil(bounds[2] * (w / (double) imageW)));
+        int artY1 = Math.min(h, (int) Math.ceil(bounds[3] * (h / (double) imageH)));
+        boolean topAndBottomClear = artY0 > 0 && artY1 < h;
+        boolean leftAndRightClear = artX0 > 0 && artX1 < w;
+        int x0 = topAndBottomClear ? Math.max(0, artX0 - TRIM_BORDER_PX) : 0;
+        int x1 = topAndBottomClear ? Math.min(w, artX1 + TRIM_BORDER_PX) : w;
+        int y0 = leftAndRightClear ? Math.max(0, artY0 - TRIM_BORDER_PX) : 0;
+        int y1 = leftAndRightClear ? Math.min(h, artY1 + TRIM_BORDER_PX) : h;
+        return new int[]{x0, y0, x1 - x0, y1 - y0};
     }
 
     private void addLayers(List<Source> into, List<LayeredSpriteCache> layers) {

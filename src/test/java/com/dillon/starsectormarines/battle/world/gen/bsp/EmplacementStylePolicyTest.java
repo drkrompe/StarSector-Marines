@@ -28,7 +28,9 @@ class EmplacementStylePolicyTest {
 
     @Test void factionsBuildInTheirTechFamily() {
         assertEquals(EmplacementStyle.MODULAR, EmplacementStylePolicy.forDefenders(world("persean", 3)));
-        assertEquals(EmplacementStyle.BARRIER, EmplacementStylePolicy.forDefenders(world("sindrian_diktat", 1)));
+        assertEquals(EmplacementStyle.BARRIER, EmplacementStylePolicy.forDefenders(world("persean", 1)));
+        assertEquals(EmplacementStyle.EXPORT, EmplacementStylePolicy.forDefenders(world("sindrian_diktat", 3)));
+        assertEquals(EmplacementStyle.BLOCKWORK, EmplacementStylePolicy.forDefenders(world("lions_guard", 1)));
         assertEquals(EmplacementStyle.COMPOSITE, EmplacementStylePolicy.forDefenders(world("tritachyon", 3)));
         assertEquals(EmplacementStyle.DEPLOYED, EmplacementStylePolicy.forDefenders(world("tritachyon", 1)));
         assertEquals(EmplacementStyle.BRUTALIST, EmplacementStylePolicy.forDefenders(world("hegemony", 3)), "low-tech");
