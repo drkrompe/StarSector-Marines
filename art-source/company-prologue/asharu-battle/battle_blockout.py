@@ -216,8 +216,10 @@ TOWARD_CONVOY = debris_field.unit(to_platform((0.0, 0.0, 0.0)))
 HIDES = {
     'manticore-p': dict(at=(110, -52, -40), hd=-90, pt=0, rl=4),            # the station's south hangar
     'colossus3': dict(at=(-70, -45, -72), hd=180, pt=-6, rl=175),            # under its big hull, inverted
-    'falcon-p': dict(at=(-950, -420, -180), hd=-30, pt=-4, rl=12, cover='hulk', cover_size=(230, 201, 112),
-                     peek=-.75),     # her stern and drive block clear of the hulk: S3's lamps, then drives
+    # her stern and drive block clear of the hulk, turned three-quarters stern-on to S3's camera so her
+    # plume reads along her flank at the crash zoom (coordinator, 2026-10-23: was hd -30, nose-on)
+    'falcon-p': dict(at=(-950, -420, -180), hd=30, pt=-4, rl=12, cover='hulk', cover_size=(230, 201, 112),
+                     peek=-.75),
     'buffalo2-a': dict(at=(480, -520, -260), hd=150, pt=6, rl=-8, cover='block'),
     'hound-p-c': dict(at=(1080, -160, 90), hd=-20, pt=8, rl=35, cover='hulk', peek=.75),
     'wolf-p-a': dict(at=(-1180, 140, 130), hd=160, pt=-5, rl=-20, cover='slab'),
@@ -371,6 +373,7 @@ K3B_SEATS = {'hermes-p-a': (2.0, -4.0, 6.43), 'hermes-p-b': (-22.0, 3.0, 8.0), '
 K1B_T = 34
 K2_T = 40
 LAMPS_LEAD_S = 1.6      # a pirate's lamps wake this long before her drives light (S3's beat), over 0.3 s
+LAMPS_GAIN = {'falcon-p': 3.0}     # the crash zoom's subject: her lamps read at 300 mm before her drives
 LAUNCH = {'falcon-p': 33.8, 'manticore-p': 35.0, 'colossus3': 35.6, 'kite-p-a': 36.0, 'wolf-p-a': 36.3,
           'hound-p-a': 36.6, 'wolf-p-b': 35.4, 'kite-p-b': 37.2, 'hound-p-b': 37.5, 'buffalo2-a': 37.8,
           'hound-p-c': 38.2}
@@ -411,7 +414,7 @@ PIRATE_LAUNCH = {k: launch(k, PIRATES_MOORED[k], LAUNCH[k], PIRATES_RISING[k]) f
 REJOIN = {
     'manticore-p': (44.0, (-29.3, -565.0, 622.2)),
     'colossus3': (88.0, (-6730.2, -5615.4, -3326.8)),
-    'falcon-p': (50.0, (-452.3, -1837.3, 930.3)),
+    'falcon-p': (50.0, (-673.7, -2003.1, 930.3)),
     'buffalo2-a': (50.0, (-1075.1, -147.2, 1026.1)),
     'hound-p-c': (58.0, (-2472.7, 524.4, 100.3)),
     'wolf-p-a': (50.0, (413.2, -2007.3, 1033.5)),
@@ -853,6 +856,8 @@ KEYFRAMES = {
                                    lens=122)], K1B_T, shake=.05),
         ships=K1B_SHIPS,
         platform=PLATFORM, platform_t=K1B_T,
+        # her drives light the hulk and bay behind her orange as they come up (a light, no bloom disc)
+        knobs={'falcon-p': {'thr_glow': 4.0}},
         labels=['platform', 'falcon-p', 'colossus3', 'manticore-p']),
     'k2': dict(
         shot='S4', title='First contact',
@@ -3116,7 +3121,7 @@ def blender_main(cfg):
                             print(f'ASHARU state {kf}: {key} has no ship lamps to wake', flush=True)
                         else:
                             wake_ = (spec['span_t'] - (LAUNCH[key] - LAMPS_LEAD_S)) / .3
-                            state_plan_[(key, 'lit_ship_master')] = min(1.0, max(0.0, wake_))
+                            state_plan_[(key, 'lit_ship_master')] = min(1.0, max(0.0, wake_)) * LAMPS_GAIN.get(key, 1.0)
                 for key, sh in spec.get('shields', {}).items():
                     if key in placed and sh.get('toward') in placed and placed[key]['fx'] is not None:
                         d_ = placed[key]['matrix'].inverted() @ placed[sh['toward']]['matrix'].translation
