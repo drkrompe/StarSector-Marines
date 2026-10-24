@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.MapEditor;
+import com.dillon.starsectormarines.battle.world.model.RoofDamage;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
@@ -222,8 +223,12 @@ public final class BattleFire implements FireTerrain, FireField.Listener {
         CreepField c = creep.get();
         if (c != null && (FireFuel.CREEP.in(fuelMask) || FireFuel.DEAD_CREEP.in(fuelMask))) c.scorch(idx);
         smoke.ignited(idx, fuelMask, field.windX(), field.windY(), field.windStrength());
-        // A room on fire burns through its roof: the fire is seen, and the room is open to the sky.
-        if (FireFuel.FURNISHING.in(fuelMask) && mapEditor != null) mapEditor.destroyRoof(idx % width, idx / width);
+        // A room on fire burns through its roof: the fire is seen, and the room is open to the sky. A wall alight
+        // (a flashed-over room's) burns the eave it carries.
+        boolean wallAlight = FireFuel.STRUCTURE.in(fuelMask) && topology.getBuildingId(idx % width, idx / width) == 0;
+        if ((FireFuel.FURNISHING.in(fuelMask) || wallAlight) && mapEditor != null) {
+            mapEditor.destroyRoof(idx % width, idx / width, RoofDamage.BURNT);
+        }
     }
 
     @Override

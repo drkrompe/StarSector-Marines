@@ -107,6 +107,7 @@ public class GroundSceneBackdrop implements CombatLayeredRenderingPlugin {
         sprites.ensureTileSheet();
         sprites.ensureRoadSheet();
         sprites.ensureFloorsSheet();
+        sprites.ensureRoofSheet();
         sprites.ensureNatureSheet();
         sprites.ensureWaterSheet();
         sprites.ensureUrbanTile3Sheet();
