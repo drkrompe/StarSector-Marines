@@ -174,8 +174,10 @@ def flash_material(ctx, rgb):
     ray.inputs[1].default_value = (2.0, 2.0, 2.0)
     links.new(tc.outputs['Object'], ray.inputs[2])
     n = g.noise(ray.outputs[0], g.mul(info.outputs['Random'], 40.0), 1.7, 4.0, .65)
-    keep = g.clamp01(g.mul(g.sub(n, g.add(g.mul(tear, .42), .22)), 5.0))
-    holes = g.clamp01(g.sub(1.0, g.mul(tear, g.sub(1.0, keep))))
+    # Torn (tear near 1) the cut is clean: what the noise drops goes to nothing, not to a dim glow
+    # that keeps the body's outline (bench, 2026-10-23: a big burst's +1 read as a brown plate).
+    keep = g.clamp01(g.mul(g.sub(n, g.add(g.mul(tear, .3), .2)), 5.0))
+    holes = g.clamp01(g.sub(1.0, g.mul(g.mul(tear, 1.6), g.sub(1.0, keep))))
     ramp = nodes.new('ShaderNodeValToRGB')
     els = ramp.color_ramp.elements
     rim = tuple(.5 * a + .5 * b for a, b in zip((1.0, .30, .05), rgb))   # orange leaning to the blast colour
