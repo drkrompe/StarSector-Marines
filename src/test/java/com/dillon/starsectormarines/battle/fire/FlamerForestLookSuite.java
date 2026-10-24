@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.fire;
 
+import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.scene.LookGround;
 import com.dillon.starsectormarines.battle.scene.LookReview;
 import com.dillon.starsectormarines.battle.scene.SceneBuilder;
@@ -104,7 +105,9 @@ public class FlamerForestLookSuite implements SnapshotSuite {
                     .stationary().done();
             SceneWorld world = builder.build();
             long[] flamers = world.members("flamers");
-            placement.beforeTick(sim -> log(variant, sim, flamers));
+            int[] spent = {0, 0};
+            placement.beforeTick(sim -> countSpent(sim, spent));
+            placement.beforeTick(sim -> log(variant, sim, flamers, spent));
             return world.sim();
         }, placement -> {
             LookGround.Site site = placement.site();
@@ -114,8 +117,22 @@ public class FlamerForestLookSuite implements SnapshotSuite {
         }, 30 * SECONDS, 2, 3);
     }
 
-    /** Every five seconds: charges left, the fire's size, the squad's health and the nearest fire to it. */
-    private static void log(Variant variant, BattleSimulation sim, long[] flamers) {
+    /**
+     * Counts the flamer charges thrown last tick ({@code spent[0]}) and those whose landing cell had nothing left to
+     * catch, neither standing fuel nor fire ({@code spent[1]}): a charge spent on burnt or bare ground.
+     */
+    private static void countSpent(BattleSimulation sim, int[] spent) {
+        FireField fire = sim.fireField();
+        for (ShotEvent shot : sim.getShotsThisFrame()) {
+            if (shot.specialEquipmentDef == null || !FLAMER.equals(shot.specialEquipmentDef.weaponId())) continue;
+            spent[0]++;
+            int x = (int) Math.floor(shot.toX), y = (int) Math.floor(shot.toY);
+            if (!fire.canBurn(x, y) && !fire.isBurning(x, y)) spent[1]++;
+        }
+    }
+
+    /** Every five seconds: charges left and thrown on spent ground, the fire's size, and the squad's health and distance from it. */
+    private static void log(Variant variant, BattleSimulation sim, long[] flamers, int[] spent) {
         if (sim.getSimTickIndex() % 150 != 0) return;
         int ammo = 0, alive = 0;
         float health = 0f;
@@ -132,8 +149,8 @@ public class FlamerForestLookSuite implements SnapshotSuite {
                         Math.abs(idx / fire.width() - sim.world().cellY(id))));
             }
         }
-        System.out.printf("    [%s] t=%ds charges left %d, burning %d, burnt %d, flamers alive %d (health %.0f),"
-                        + " nearest fire %s%n", variant.name(), sim.getSimTickIndex() / 30, ammo, fire.burningCount(),
+        System.out.printf("    [%s] t=%ds charges left %d (%d of %d thrown landed on spent ground), burning %d, burnt %d, flamers alive %d (health %.0f),"
+                        + " nearest fire %s%n", variant.name(), sim.getSimTickIndex() / 30, ammo, spent[1], spent[0], fire.burningCount(),
                 fire.burntCount(), alive, health, nearest == Integer.MAX_VALUE ? "none" : nearest + " cells");
     }
 
