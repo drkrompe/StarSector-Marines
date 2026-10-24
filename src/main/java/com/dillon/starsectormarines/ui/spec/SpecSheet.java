@@ -95,12 +95,18 @@ public record SpecSheet(String title,
      * @param label the stat's name as shown
      * @param value the value as shown, already formatted
      * @param fill  meter fill in 0..1, or negative for a row with no meter
+     * @param symbol the {@link RatingSymbols} symbol the meter is drawn as, a row of
+     *               them lit in quarters; null for a plain bar
      */
-    public record Stat(String id, String label, String value, float fill) {
+    public record Stat(String id, String label, String value, float fill, String symbol) {
 
         /** Literal rows remain supported; comparable translated rows supply an explicit id. */
         public Stat(String label, String value, float fill) {
             this(label, label, value, fill);
+        }
+
+        public Stat(String id, String label, String value, float fill) {
+            this(id, label, value, fill, null);
         }
 
         public static final float NO_METER = -1f;
@@ -111,6 +117,7 @@ public record SpecSheet(String title,
             value = value == null ? "" : value;
             if (fill > 1f) fill = 1f;
             if (fill < 0f) fill = NO_METER;
+            if (symbol != null && symbol.isBlank()) symbol = null;
         }
 
         public static Stat of(String label, String value) {
