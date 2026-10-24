@@ -27,4 +27,23 @@ class HeartLanesTest {
         assertTrue(HeartLanes.inBand(lane, 115, 40));
         assertFalse(HeartLanes.inBand(lane, 125, 40));
     }
+
+    @Test
+    void onlyANeighbourAcrossTheFrontSendsAWaveToAGap() {
+        // Broad Front's four lanes at x 84, 184, 370, 475, and the company's support ground at 280 between the middle two.
+        int[] across = {84, 184, 370, 475, 280};
+        boolean[] waves = {true, true, true, true, false};
+        assertTrue(HeartLanes.neighbours(across, waves, 1, 2), "the support ground takes no waves and does not part them");
+        assertTrue(HeartLanes.neighbours(across, waves, 3, 2));
+        assertFalse(HeartLanes.neighbours(across, waves, 0, 2), "lane 1's wave would cross lane 2 to reach lane 3's gap");
+        assertFalse(HeartLanes.neighbours(across, waves, 0, 3));
+    }
+
+    @Test
+    void aLaneIsBrokenAgainstTheStrengthItsWavesArrivedWith() {
+        // A column of sixteen that fought its way up and came in six strong is a whole lane of six, not a broken one.
+        assertFalse(HeartLanes.broken(6, 6));
+        assertFalse(HeartLanes.broken(2, 6));
+        assertTrue(HeartLanes.broken(1, 6));
+    }
 }
