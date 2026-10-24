@@ -138,7 +138,7 @@ final class VehicleDoll {
     static String art(VehicleType type, SocketId card) {
         return switch (card) {
             case CORE -> type.isHover() ? "vehicle-hull-hover"
-                    : type.hasAnimatedTreads() ? "vehicle-hull-tracked" : "vehicle-hull-wheeled";
+                    : type.isTank() ? "vehicle-hull-tracked" : "vehicle-hull-wheeled";
             case ARMS -> Gun.of(type.turretStructureId).art;
             case LEFT_SHOULDER -> type.capacity > 0 ? "boat-hold-standard"
                     : type.supplyStock() > 0 ? "vehicle-bay-supply" : "vehicle-bay-drones";
