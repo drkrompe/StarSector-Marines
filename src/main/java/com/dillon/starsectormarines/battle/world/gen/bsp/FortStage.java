@@ -41,6 +41,7 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.FortRoom;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortRoomFurnisher;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressInterior;
 import com.dillon.starsectormarines.battle.world.gen.fortress.GateTowers;
+import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationFloors;
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationGround;
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationWalls;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
@@ -716,7 +717,6 @@ public final class FortStage implements GenStage {
         }
 
         stampWall(ctx, plan, at);
-        cutSlits(ctx, plan, at);
 
         // The ground: compacted yard inside the wall with concrete aprons round every building, and paving only on
         // the lanes vehicles actually drive. Marked as made ground once dressed so the landscape stages leave it alone.
@@ -753,6 +753,8 @@ public final class FortStage implements GenStage {
         paveGates(ctx, plan, at);
         if (air) stampAirMounts(ctx, plan, at, fortId);
         dressInterior(ctx, plan, at, lane, air);
+        // The slits are cut once the yard is dressed, which would otherwise take an open slit for yard.
+        cutSlits(ctx, plan, at);
         garrisonRooms(ctx, specs, at);
         stampBelt(ctx, plan, at, fortId, ground);
     }
@@ -792,15 +794,20 @@ public final class FortStage implements GenStage {
 
     /**
      * Cuts each gate tower's slits ({@link GateTowers#slits}): windows like any building's, each a barrier on its outward
-     * edge that the garrison shoots through and nobody walks through. Cut once the wall stands, since a slit looks past it.
+     * edge that the garrison shoots through and nobody walks through. Cut once the wall stands and the yard is dressed.
+     * The ring was already made wall, so each slit is then laid as an ordinary building's window is: no wall left in the
+     * cell and the tower's floor under it, so whoever stands at the slit stands on floor with the wall either side.
      */
     private static void cutSlits(GenContext ctx, FortPlan plan, CompoundLayout.Placement at) {
         for (FortRoom tower : plan.towers()) {
+            int floor = ctx.topology.surfaceIndex(InstallationFloors.material(tower.purpose()));
             for (int[] slit : GateTowers.slits(tower, plan::isWorks)) {
                 int[] cell = at.cell(slit[0], slit[1]);
                 int[] outside = at.cell(slit[0] + slit[2], slit[1] + slit[3]);
                 Direction outward = cardinal(outside[0] - cell[0], outside[1] - cell[1]);
                 FortressInterior.openWindow(ctx, cell[0], cell[1], outward);
+                ctx.topology.setWall(cell[0], cell[1], false);
+                ctx.topology.setSurface(cell[0], cell[1], floor);
             }
         }
     }

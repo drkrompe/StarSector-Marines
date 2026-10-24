@@ -164,7 +164,8 @@ public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
 
     /**
      * A squad holding the main gate's first tower and firing out of its slits at a file of targets on the approach
-     * ({@link GateTowerGarrison}), framed roofed and with the roofs lifted. Played last: the battle moves on from here.
+     * ({@link GateTowerGarrison}), framed roofed and with the roofs lifted, and close on the slit down the approach.
+     * Played last: the battle moves on from here.
      */
     private static List<SnapshotArtifact> garrisonStills(SnapshotContext context, BattleSimulation sim,
                                                          ReviewImpactFx fx, EmplacementStyle style) throws Exception {
@@ -177,8 +178,17 @@ public final class FortWorksLookSnapshotSuite implements SnapshotSuite {
         }
         int[] floor = manned.floor().get(manned.floor().size() / 2);
         float x = (floor[0] + manned.aim()[0]) * 0.5f + 0.5f, y = (floor[1] + manned.aim()[1]) * 0.5f + 0.5f;
+        // The slit straight down the approach: the one beside the middle stand.
+        int[] middle = manned.stands().get(manned.stands().size() / 2);
+        int[] slit = manned.slits().get(0);
+        for (int[] c : manned.slits()) {
+            if (Math.abs(c[0] - middle[0]) + Math.abs(c[1] - middle[1])
+                    < Math.abs(slit[0] - middle[0]) + Math.abs(slit[1] - middle[1])) slit = c;
+        }
         return List.of(still(context, sim, fx, style.key + "-gate-tower-garrison", x, y, 20f, false),
-                still(context, sim, fx, style.key + "-gate-tower-garrison-open", x, y, 20f, true));
+                still(context, sim, fx, style.key + "-gate-tower-garrison-open", x, y, 20f, true),
+                still(context, sim, fx, style.key + "-gate-tower-slit", slit[0] + 0.5f, slit[1] + 0.5f, 7f, false),
+                still(context, sim, fx, style.key + "-gate-tower-slit-open", slit[0] + 0.5f, slit[1] + 0.5f, 7f, true));
     }
 
     /**
