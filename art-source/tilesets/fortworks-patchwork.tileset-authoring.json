@@ -1,12 +1,21 @@
 {
   "alphaMin": 16,
-  "blocks": [{
-    "doorBlock": "installation.dark-concrete-door",
-    "id": "installation.dark-concrete-wall@patchwork",
-    "layout": "wall-faces-4x4",
-    "rubbleBlock": "installation.dark-concrete-rubble",
-    "windowBlock": "installation.dark-concrete-window"
-  }],
+  "blocks": [
+    {
+      "doorBlock": "installation.dark-concrete-door",
+      "id": "installation.dark-concrete-wall@patchwork",
+      "layout": "wall-faces-4x4",
+      "rubbleBlock": "installation.dark-concrete-rubble",
+      "windowBlock": "installation.dark-concrete-window"
+    },
+    {
+      "doorBlock": "installation.light-concrete-door",
+      "id": "installation.light-concrete-wall@patchwork",
+      "layout": "wall-faces-4x4",
+      "rubbleBlock": "installation.light-concrete-rubble",
+      "windowBlock": "installation.light-concrete-window"
+    }
+  ],
   "cellPx": 128,
   "entries": [
     {
@@ -680,6 +689,278 @@
         1
       ],
       "id": "installation.dark-concrete-wall@patchwork.faces-15",
+      "included": true,
+      "rect": [
+        1303,
+        899,
+        78,
+        77
+      ],
+      "slot": "faces-15"
+    },
+    {
+      "block": "installation.light-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@patchwork.faces-0",
+      "included": true,
+      "rect": [
+        1017,
+        616,
+        77,
+        79
+      ],
+      "slot": "faces-0"
+    },
+    {
+      "block": "installation.light-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@patchwork.faces-1",
+      "included": true,
+      "rect": [
+        1112,
+        616,
+        79,
+        79
+      ],
+      "slot": "faces-1"
+    },
+    {
+      "block": "installation.light-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@patchwork.faces-2",
+      "included": true,
+      "rect": [
+        1208,
+        616,
+        77,
+        79
+      ],
+      "slot": "faces-2"
+    },
+    {
+      "block": "installation.light-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@patchwork.faces-3",
+      "included": true,
+      "rect": [
+        1303,
+        616,
+        78,
+        79
+      ],
+      "slot": "faces-3"
+    },
+    {
+      "block": "installation.light-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@patchwork.faces-4",
+      "included": true,
+      "rect": [
+        1017,
+        712,
+        77,
+        77
+      ],
+      "slot": "faces-4"
+    },
+    {
+      "block": "installation.light-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@patchwork.faces-5",
+      "included": true,
+      "rect": [
+        1112,
+        712,
+        79,
+        77
+      ],
+      "slot": "faces-5"
+    },
+    {
+      "block": "installation.light-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@patchwork.faces-6",
+      "included": true,
+      "rect": [
+        1208,
+        712,
+        77,
+        77
+      ],
+      "slot": "faces-6"
+    },
+    {
+      "block": "installation.light-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@patchwork.faces-7",
+      "included": true,
+      "rect": [
+        1303,
+        712,
+        78,
+        77
+      ],
+      "slot": "faces-7"
+    },
+    {
+      "block": "installation.light-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@patchwork.faces-8",
+      "included": true,
+      "rect": [
+        1017,
+        807,
+        77,
+        75
+      ],
+      "slot": "faces-8"
+    },
+    {
+      "block": "installation.light-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@patchwork.faces-9",
+      "included": true,
+      "rect": [
+        1112,
+        807,
+        79,
+        75
+      ],
+      "slot": "faces-9"
+    },
+    {
+      "block": "installation.light-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@patchwork.faces-10",
+      "included": true,
+      "rect": [
+        1208,
+        807,
+        77,
+        75
+      ],
+      "slot": "faces-10"
+    },
+    {
+      "block": "installation.light-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@patchwork.faces-11",
+      "included": true,
+      "rect": [
+        1303,
+        807,
+        78,
+        75
+      ],
+      "slot": "faces-11"
+    },
+    {
+      "block": "installation.light-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@patchwork.faces-12",
+      "included": true,
+      "rect": [
+        1017,
+        899,
+        77,
+        77
+      ],
+      "slot": "faces-12"
+    },
+    {
+      "block": "installation.light-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@patchwork.faces-13",
+      "included": true,
+      "rect": [
+        1112,
+        899,
+        79,
+        77
+      ],
+      "slot": "faces-13"
+    },
+    {
+      "block": "installation.light-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@patchwork.faces-14",
+      "included": true,
+      "rect": [
+        1208,
+        899,
+        77,
+        77
+      ],
+      "slot": "faces-14"
+    },
+    {
+      "block": "installation.light-concrete-wall@patchwork",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "installation.light-concrete-wall@patchwork.faces-15",
       "included": true,
       "rect": [
         1303,

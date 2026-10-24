@@ -5,7 +5,7 @@ vehicles in the mech bay, heavy lift and the drop choice have shipped; vehicle
 variants are planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-23 — crossfire: a tank crew hit by two machines from 90° apart shoots at a moving shooter's accuracy, and two Hounds in a pincer beat the burst laser tank 25 / 7 against 13 / 18 from one approach (readings under Facing); side plates drawing on the front pool rejected by the owner (a pincer pays through attention, not shared armor); located plates ship: a held flank pays, a free tank in a pincer outlasts the one pool (readings under Facing); earlier: one front for the worst known threat and a gun that shakes while its hull turns: two fire-support APCs from opposite sides take 0.50 of their fights against a tank against 0.17-0.33 from one approach, and the lone flanker stays modest (readings below); a stalled hold in band moves to a clear lane (street undecided fights 227 to 141 of 828, facing gains untouched); keeping the front: a flanked tank turns onto its target (backing out to 120° off the nose, a forward turn beyond, rehearsed first and never off a berm), which takes the escort APC's side-on and rear-on wins against a tank from 0.42-0.46 to 0.12 and 0.08; a gunless tank backing out of reach nose on was measured and rejected (readings below); balance is not parity (a law: read rows against bill and tier), and the dozer's and SRM technical's facing rows retuned to it; facing: a hull's plate, and a mech torso's, depend on the arc they are hit on (readings below; the matchup harness now sets hulls down facing the enemy, which re-baselines the street rows); earlier: the AT LRM against a tank: the screened tank, a tank-line rung with top-attack active protection (fit 0.78 to 0.66), rack levers measured and rejected; a tank that loses its gun withdraws (readings below); earlier: missile carriers: the LRM carrier (APC line) and the SRM technical (field rig), bills hull plus racks; a tank's gun can be shot away (readings below); anti-armor racks close on a tie in mech duels; tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and flux 28, pulse laser flux 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, flux 34, Warden rated 39); earlier: engines carry mass, military capacitors 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
+Updated: 2026-10-24 — vehicles: variants and kits (a sealed doll, a rack of bolt-on kits); the earlier crossfire, facing and missile-carrier readings stand below.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -649,7 +649,7 @@ being a tank-only gap.
   coming down on its own hull. It stays a rung rather than a fitting: one fixed
   system with one tuning gives the player the same choice a fitting would (pay
   for it or not), without a socket, a save field or a balance surface per hull,
-  which is what *Vehicles: variants, not fittings* refuses. The stock tanks carry
+  which is what *Vehicles: variants and kits* keeps out of the kit rack. The stock tanks carry
   none. Readings are Bulwark-side shares, three grounds, eight seeds, both roles,
   a timeout read by integrity; the breakthrough tank is the screened tank's
   control:
@@ -1138,17 +1138,22 @@ than about 80 cells is paced by its own round trip at either setting, so the
 cooldown matters only for shallow drops and a heavy carrier fed piecemeal.
 Better boats still mean more armor on the ground, never faster calls.
 
-## Vehicles: variants, not fittings
+## Vehicles: variants and kits
 
 Mechs are the customization system; vehicles are a short chain of fixed
 variants. A second fitting system would double the lab, the save model and the
 balance surface while making the two kinds the same decision in different art.
+So a vehicle's gun, plate, drive and bay are sealed. What a company may add is a
+**kit** (owner, 2026-10-24; `mechs-nouns.md`, vehicle kit): a few bolt-on parts in
+a fixed rack, each a number changed at the drop and nothing else, so a kit is
+a small top-up to the hull rather than a second build. A change that needs a
+system of its own (active protection, a blade, a mortar) stays a variant.
 The split gives the player a real choice instead:
 
 - **A mech is flexible and demanding.** Sockets, flux, an engine budget, a build
   to plan and parts to lose.
 - **A vehicle is cheap, sturdy and good at one job.** No flux, no sockets, no
-  build. It costs less material and lift for the armor it brings, and it does
+  build beyond a kit or two. It costs less material and lift for the armor it brings, and it does
   things no mech does: an APC carries marines.
 
 Progression on a vehicle line is learning a better **variant**, each its own
@@ -1283,5 +1288,5 @@ then internals, then lift; vehicles in the bay and the drop choice follow lift.
   is a planted mech.
 - Castle's introduction of each internal needs no recorded dialogue until a live
   pass confirms the ladder.
-- Vehicle fitting (turret swaps) is out of scope until a vehicle doll exists;
-  `mech-lab-data-authored-dolls.md` is the shared seam.
+- Vehicle weapon swaps stay out: the doll is sealed, and kits are the only fitting.
+  Whether a kit should cost lift (appliqué plate on a Light hull) is unmeasured.

@@ -42,6 +42,12 @@ class FireReachTest {
     }
 
     @Test
+    void aRoomIsTakenToBurnWholeSinceItFlashesOver() {
+        FireReach reach = FireReach.of(field(FireFuel.FURNISHING.bit), 20, 10);
+        assertTrue(reach.threatens(20 + FireReach.RADIUS, 10));
+    }
+
+    @Test
     void theReachCoversEveryCellTheFireBurns() {
         for (int fuel : new int[]{FireFuel.GRASS.bit, FireFuel.GRASS.bit | FireFuel.BRUSH.bit,
                 FireFuel.GRASS.bit | FireFuel.CROWN.bit}) {

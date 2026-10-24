@@ -1,0 +1,93 @@
+{
+ "sheetName": "origin-park-bandstand",
+ "sheet": "art-source/tilesets/origin-park-bandstand.raw.png",
+ "cellPx": 128,
+ "gridCols": 1,
+ "gridRows": 1,
+ "idPrefix": "origin-park-bandstand",
+ "alphaMin": 40,
+ "outputSheet": "graphics/doodads/origin-park-bandstand.png",
+ "note": "An octagonal park bandstand, half swallowed: the park origin's telling object. Geometry-first ImageGen reskin of art-source/templates/heart-park-bandstand-guide.png (art-source/heart-origins/make_guide.py); the raw came back 1536x1024 against a 1824x1216 guide and every full placement frame is the guide slot scaled by that ratio, native alpha kept. Brief: art-source/heart-origins/prompts/common.txt + park-bandstand.txt. Produced only by art-source/heart-origins/export.py; see heart-origins.md.",
+ "entries": [
+  {
+   "rect": [
+    40,
+    40,
+    431,
+    431
+   ],
+   "id": "origin-park.bandstand-clean",
+   "cover": "heavy",
+   "ballisticHalfHeight": 1.1,
+   "footprintCells": [
+    4,
+    4
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    552,
+    40,
+    431,
+    431
+   ],
+   "id": "origin-park.bandstand",
+   "cover": "heavy",
+   "ballisticHalfHeight": 1.1,
+   "footprintCells": [
+    4,
+    4
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    1064,
+    40,
+    431,
+    431
+   ],
+   "id": "origin-park.bandstand-swallowed",
+   "cover": "heavy",
+   "ballisticHalfHeight": 1.1,
+   "footprintCells": [
+    4,
+    4
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    40,
+    552,
+    431,
+    431
+   ],
+   "id": "origin-park.bandstand-damaged",
+   "cover": "heavy",
+   "ballisticHalfHeight": 1.1,
+   "footprintCells": [
+    4,
+    4
+   ],
+   "included": true
+  },
+  {
+   "rect": [
+    552,
+    552,
+    431,
+    431
+   ],
+   "id": "origin-park.bandstand-destroyed",
+   "cover": "none",
+   "ballisticHalfHeight": 0.0,
+   "footprintCells": [
+    4,
+    4
+   ],
+   "included": true
+  }
+ ]
+}

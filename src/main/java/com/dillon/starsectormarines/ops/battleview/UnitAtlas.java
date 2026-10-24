@@ -210,6 +210,8 @@ public final class UnitAtlas extends SpriteAtlas {
         if (ravBrute != null) addLayers(candidates, ravBrute.layers());
         RavMatriarchAssets ravMatriarch = sprites.ravMatriarchSprites();
         if (ravMatriarch != null) addLayers(candidates, ravMatriarch.layers());
+        RavSpitterAssets ravSpitter = sprites.ravSpitterSprites();
+        if (ravSpitter != null) addLayers(candidates, ravSpitter.layers());
         addLayers(candidates, sprites.bloodPools());
         LayeredMechAssets baseMech = sprites.layeredMechSprites();
         if (baseMech != null) addLayers(candidates, baseMech.layers());

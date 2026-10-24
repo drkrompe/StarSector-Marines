@@ -1,15 +1,28 @@
 {
-  "blocks": [{
-    "doorBlock": "installation.dark-concrete-door",
-    "id": "installation.dark-concrete-wall@patchwork",
-    "layout": "wall-faces-4x4",
-    "origin": [
-      8,
-      1
-    ],
-    "rubbleBlock": "installation.dark-concrete-rubble",
-    "windowBlock": "installation.dark-concrete-window"
-  }],
+  "blocks": [
+    {
+      "doorBlock": "installation.dark-concrete-door",
+      "id": "installation.dark-concrete-wall@patchwork",
+      "layout": "wall-faces-4x4",
+      "origin": [
+        8,
+        1
+      ],
+      "rubbleBlock": "installation.dark-concrete-rubble",
+      "windowBlock": "installation.dark-concrete-window"
+    },
+    {
+      "doorBlock": "installation.light-concrete-door",
+      "id": "installation.light-concrete-wall@patchwork",
+      "layout": "wall-faces-4x4",
+      "origin": [
+        12,
+        1
+      ],
+      "rubbleBlock": "installation.light-concrete-rubble",
+      "windowBlock": "installation.light-concrete-window"
+    }
+  ],
   "cellPx": 128,
   "cells": [
     {
@@ -250,6 +263,102 @@
       "col": 11,
       "description": "wall cap exposed on north and east and south and west",
       "name": "installation.dark-concrete-wall@patchwork faces-15",
+      "row": 4
+    },
+    {
+      "col": 12,
+      "description": "solid cap \u2014 no exposed faces",
+      "name": "installation.light-concrete-wall@patchwork faces-0",
+      "row": 1
+    },
+    {
+      "col": 13,
+      "description": "wall cap exposed on north",
+      "name": "installation.light-concrete-wall@patchwork faces-1",
+      "row": 1
+    },
+    {
+      "col": 14,
+      "description": "wall cap exposed on east",
+      "name": "installation.light-concrete-wall@patchwork faces-2",
+      "row": 1
+    },
+    {
+      "col": 15,
+      "description": "wall cap exposed on north and east",
+      "name": "installation.light-concrete-wall@patchwork faces-3",
+      "row": 1
+    },
+    {
+      "col": 12,
+      "description": "wall cap exposed on south",
+      "name": "installation.light-concrete-wall@patchwork faces-4",
+      "row": 2
+    },
+    {
+      "col": 13,
+      "description": "wall cap exposed on north and south",
+      "name": "installation.light-concrete-wall@patchwork faces-5",
+      "row": 2
+    },
+    {
+      "col": 14,
+      "description": "wall cap exposed on east and south",
+      "name": "installation.light-concrete-wall@patchwork faces-6",
+      "row": 2
+    },
+    {
+      "col": 15,
+      "description": "wall cap exposed on north and east and south",
+      "name": "installation.light-concrete-wall@patchwork faces-7",
+      "row": 2
+    },
+    {
+      "col": 12,
+      "description": "wall cap exposed on west",
+      "name": "installation.light-concrete-wall@patchwork faces-8",
+      "row": 3
+    },
+    {
+      "col": 13,
+      "description": "wall cap exposed on north and west",
+      "name": "installation.light-concrete-wall@patchwork faces-9",
+      "row": 3
+    },
+    {
+      "col": 14,
+      "description": "wall cap exposed on east and west",
+      "name": "installation.light-concrete-wall@patchwork faces-10",
+      "row": 3
+    },
+    {
+      "col": 15,
+      "description": "wall cap exposed on north and east and west",
+      "name": "installation.light-concrete-wall@patchwork faces-11",
+      "row": 3
+    },
+    {
+      "col": 12,
+      "description": "wall cap exposed on south and west",
+      "name": "installation.light-concrete-wall@patchwork faces-12",
+      "row": 4
+    },
+    {
+      "col": 13,
+      "description": "wall cap exposed on north and south and west",
+      "name": "installation.light-concrete-wall@patchwork faces-13",
+      "row": 4
+    },
+    {
+      "col": 14,
+      "description": "wall cap exposed on east and south and west",
+      "name": "installation.light-concrete-wall@patchwork faces-14",
+      "row": 4
+    },
+    {
+      "col": 15,
+      "description": "wall cap exposed on north and east and south and west",
+      "name": "installation.light-concrete-wall@patchwork faces-15",
       "row": 4
     }
   ],

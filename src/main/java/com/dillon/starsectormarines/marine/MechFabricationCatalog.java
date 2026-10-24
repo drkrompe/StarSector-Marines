@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
@@ -66,6 +67,13 @@ public final class MechFabricationCatalog {
             internal(MechInternal.STANDARD_LOADER, "@gearFabricationStandardIssue"),
             internal(MechInternal.ACCELERATED_LOADER, "@gearFabricationMilitaryPattern"));
 
+    /** Bolt-on vehicle kits; bills are derived like a part's. */
+    private static final List<Recipe> KITS = List.of(
+            kit(VehicleKit.APPLIQUE_PLATE, "@gearFabricationStandardIssue"),
+            kit(VehicleKit.SPALL_LINER, "@gearFabricationStandardIssue"),
+            kit(VehicleKit.READY_RACK, "@gearFabricationStandardIssue"),
+            kit(VehicleKit.SPACED_SKIRTS, "@gearFabricationMilitaryPattern"));
+
     /**
      * Bills sit beside the chassis of the same weight class: a hull is cheaper than a walker, and at base commodity
      * prices brings at least as much structure plus armor per credit as the class's mech (see
@@ -119,6 +127,15 @@ public final class MechFabricationCatalog {
 
     public static List<Recipe> internals() { return INTERNALS; }
 
+    public static List<Recipe> kits() { return KITS; }
+
+    public static Recipe kit(VehicleKit kit) {
+        for (Recipe recipe : KITS) {
+            if (recipe.kit() == kit) return recipe;
+        }
+        return null;
+    }
+
     public static Recipe internal(MechInternal internal) {
         for (Recipe recipe : INTERNALS) {
             if (recipe.internal() == internal) return recipe;
@@ -150,12 +167,12 @@ public final class MechFabricationCatalog {
 
     private static Recipe weapon(MechWeaponComponent component, String provenance) {
         return new Recipe("recipe." + component.id, null, provenance,
-                component, null, null, null, weaponCost(component));
+                component, null, null, null, null, weaponCost(component));
     }
 
     private static Recipe internal(MechInternal internal, String provenance) {
         return new Recipe("recipe." + internal.id, null, provenance,
-                null, null, internal, null, internalCost(internal));
+                null, null, internal, null, null, internalCost(internal));
     }
 
     /**
@@ -175,7 +192,7 @@ public final class MechFabricationCatalog {
         less(bill, internalCost(stock.engine()));
         for (MechInternal part : stock.compartment()) less(bill, internalCost(part));
         return new Recipe("recipe.chassis." + variant.id, null,
-                provenance, null, variant, null, null, cost(bill[0], bill[1], bill[2]));
+                provenance, null, variant, null, null, null, cost(bill[0], bill[1], bill[2]));
     }
 
     /** Takes a part's bill off a frame's, never below one unit of any material. */
@@ -193,7 +210,24 @@ public final class MechFabricationCatalog {
     private static Recipe vehicle(VehicleType type, String provenance,
                                   int metals, int machinery, int transplutonics) {
         return new Recipe("recipe.vehicle." + type.name().toLowerCase(Locale.ROOT), null,
-                provenance, null, null, null, type, cost(metals, machinery, transplutonics));
+                provenance, null, null, null, type, null, cost(metals, machinery, transplutonics));
+    }
+
+    private static Recipe kit(VehicleKit kit, String provenance) {
+        return new Recipe("recipe." + kit.id, null, provenance, null, null, null, null, kit, kitCost(kit));
+    }
+
+    /**
+     * A kit is priced like a part: its tier's worth, in what it is made of. Plate and skirts are mostly
+     * metal, a liner is woven and bonded, a ready rack is racking and feed.
+     */
+    private static FabricationCost kitCost(VehicleKit kit) {
+        float value = kitValue(kit);
+        return switch (kit) {
+            case APPLIQUE_PLATE, SPACED_SKIRTS -> split(value, .70f, .20f, .10f);
+            case SPALL_LINER -> split(value, .45f, .30f, .25f);
+            case READY_RACK -> split(value, .40f, .45f, .15f);
+        };
     }
 
     /*
@@ -243,6 +277,11 @@ public final class MechFabricationCatalog {
         return base * tierMultiplier(internal.tier);
     }
 
+    /** A kit's worth in credits: a common bolt-on's, times its tier. */
+    public static float kitValue(VehicleKit kit) {
+        return 900f * tierMultiplier(MechPattern.of(kit).accessTier());
+    }
+
     private static FabricationCost weaponCost(MechWeaponComponent component) {
         float value = weaponValue(component);
         return switch (component.hardpointType) {
@@ -284,10 +323,11 @@ public final class MechFabricationCatalog {
 
     public record Recipe(String id, String displayName, String provenance,
                          MechWeaponComponent component, MechVariant variant,
-                         MechInternal internal, VehicleType vehicle, FabricationCost cost) {
+                         MechInternal internal, VehicleType vehicle, VehicleKit kit, FabricationCost cost) {
         public String displayName() {
             if (displayName != null) return Strings.resolve(displayName);
             if (internal != null) return internal.displayName();
+            if (kit != null) return kit.displayName();
             if (vehicle != null) return CampaignVehicle.typeName(vehicle);
             return component != null ? component.displayName()
                     : Strings.format("gearChassisName", variant.displayName());
@@ -297,7 +337,7 @@ public final class MechFabricationCatalog {
 
         public Recipe {
             int targets = (component != null ? 1 : 0) + (variant != null ? 1 : 0)
-                    + (internal != null ? 1 : 0) + (vehicle != null ? 1 : 0);
+                    + (internal != null ? 1 : 0) + (vehicle != null ? 1 : 0) + (kit != null ? 1 : 0);
             if (targets != 1) {
                 throw new IllegalArgumentException("recipe requires one fabrication target");
             }

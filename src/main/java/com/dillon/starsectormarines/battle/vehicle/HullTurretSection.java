@@ -54,10 +54,16 @@ public final class HullTurretSection {
 
     /** The section a hull of {@code type} deploys with, or null when it authors none or the control is off. */
     public static HullTurretSection forHull(VehicleType type) {
+        return forHull(type, VehicleKit.Effect.NONE);
+    }
+
+    /** As above, its share taken of the plate and structure the hull's kits give it ({@link VehicleKit}). */
+    public static HullTurretSection forHull(VehicleType type, VehicleKit.Effect kits) {
         if (!ENABLED || !type.hasTurretWeapon() || type.turretPoolShare() <= 0f) return null;
         float hit = Float.isNaN(HIT_SHARE_OVERRIDE) ? type.turretHitShare() : HIT_SHARE_OVERRIDE;
         float pool = Float.isNaN(POOL_SHARE_OVERRIDE) ? type.turretPoolShare() : POOL_SHARE_OVERRIDE;
-        return new HullTurretSection(hit, pool, type.maxStructure, type.maxArmor);
+        return new HullTurretSection(hit, pool, type.maxStructure * kits.structureFactor(),
+                type.maxArmor * kits.armorFactor());
     }
 
     /** Whether a hit whose roll is {@code roll} in [0, 1) lands on the turret. */

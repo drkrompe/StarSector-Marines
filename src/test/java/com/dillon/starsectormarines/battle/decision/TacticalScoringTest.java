@@ -369,6 +369,40 @@ public class TacticalScoringTest {
     }
 
     @Test
+    public void seenButOccludedTargetLosesToAShootableOne() {
+        BattleSimulation sim = openArena(20, 15);
+        NavigationGrid grid = sim.getGrid();
+        grid.setWalkable(6, 6, false);
+        long marine = unit(sim, Faction.MARINE, 5, 5);
+        sim.world().setPos(marine, 5.1f, 5.9f);
+        sim.world().setAttackRange(marine, 10f);
+        long pastTheCorner = unit(sim, Faction.DEFENDER, 7, 6);
+        sim.world().setPos(pastTheCorner, 7.9f, 6.9f);
+        long shootable = unit(sim, Faction.DEFENDER, 5, 1);
+
+        assertTrue(grid.hasLineOfSight(5, 5, 7, 6), "the cell-centre sight lane misses the wall");
+        assertFalse(sim.getTacticalScoring().hasClearShot(marine, pastTheCorner),
+                "the point-to-point firing line crosses it");
+
+        assertEquals(shootable, sim.getTacticalScoring().findBestTarget(marine),
+                "a target the marine sees but cannot hit from where it stands must not beat one it can");
+    }
+
+    @Test
+    public void seenButOccludedTargetIsStillPickedWhenNothingElseIs() {
+        BattleSimulation sim = openArena(20, 15);
+        sim.getGrid().setWalkable(6, 6, false);
+        long marine = unit(sim, Faction.MARINE, 5, 5);
+        sim.world().setPos(marine, 5.1f, 5.9f);
+        sim.world().setAttackRange(marine, 10f);
+        long pastTheCorner = unit(sim, Faction.DEFENDER, 7, 6);
+        sim.world().setPos(pastTheCorner, 7.9f, 6.9f);
+
+        assertEquals(pastTheCorner, sim.getTacticalScoring().findBestTarget(marine),
+                "a seen hostile stays a target, so the marine moves to a firing position for it");
+    }
+
+    @Test
     public void inZoneTargetBeatsSlightlyCloserAcrossZoneTarget() {
         // Marine at (5, 10), in-zone enemy at (9, 10) (dist 4), across-zone
         // enemy at (11, 10) (dist 6). Old (distance-only) scoring would pick

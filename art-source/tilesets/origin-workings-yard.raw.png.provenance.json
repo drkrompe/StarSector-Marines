@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16edb-7074-76e3-9258-f2285446033e",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16edb-7074-76e3-9258-f2285446033e\\exec-db13353b-c8b5-4dcf-94fc-c5163ff2875e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\origin-workings-yard.raw.png",
+    "sha256": "47a7469de5371807c0253cb82dc8fe6de9ae0606ce0b3e5b6971b209f0f6428f",
+    "dimensions": [
+      1363,
+      1154
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "build\\heart-origins\\prompts\\workings-yard.prompt.txt",
+  "promptSha256": "7cd020c1b0b732029e0589758b6d4aafb7c6c0362a91584adc3f7425a8f81463",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry guide and edit target: exact slots, silhouettes, footprints, growth extent and transparent gaps; reskin it, never move, resize or drop a sprite\nImage 2: Material and style reference only for painted overhead props; not layout\nImage 3: Material reference for the alien growth only (chitin, sinew, ivory, amber); never its shape or layout\n\nUse case: sketch-to-render. Game sprite atlas, a geometry-first reskin for a top-down tactical battle map.\nImage 1 is the authoritative geometry guide and edit target: every sprite's slot, silhouette, footprint, position and the extent of the creature growth are fixed by it. Repaint it; never move, resize, add or drop a sprite.\nImage 2 is a MATERIAL STYLE reference only (worn, crisp, painted overhead industrial props from the same game); not layout.\nImage 3 is a MATERIAL reference for the alien growth only (the Rav Bloom: glossy violet-plum chitin plates, magenta sinew in the gaps, ivory spurs, rare small amber nodes); not layout, and do not copy its shape.\n\nCamera: straight-overhead orthographic, no perspective tilt, soft light from the top left, each object's own short contact shadow only inside its slot.\nOutput: true transparent background, including every gutter and every negative space between debris and between frame bars; no ground plane, floor slab, border, labels, text, numbers, logos or signage words.\n\nThe guide's flat colours are keys:\n- grey/beige = concrete; blue-grey = painted steel; dark grey = machinery shadow or iron; rust-red, steel-blue, yellow, green = paint as shown, chipped and weathered.\n- near-black = an open hole or dark interior; dark brown blots = scorch marks; thin black zigzags = tears and cracks.\n- dull violet-grey lobes = the creep mat: a thin, dull, desaturated violet-grey living film, wet-sheened, veined, with small bubbled nodules, flowing over and around things like slow wax. Keep it DULL and dark-ish (it is the dullest thing on the map), never saturated purple.\n- dark violet lines = raised ropey veins in the creep; small plum polygons with red edges = embedded chitin plates; ivory slivers = bone-ivory spurs.\nEvery slot keeps a clear transparent margin inside its edge: the creep mat ends in soft rounded lobes well inside the slot exactly where the guide's lobes end, and is never cut straight by the slot's edge or spread to fill the slot.\nRows or cells marked as states of the same object must keep the identical object identity, palette and placement; only the stated change differs.\nKeep every form broad and readable at 24 pixels per game cell. Surface detail may improve substantially within the guide's silhouettes.\n\nSheet: the reservoir workings' yard kit. Four columns, one object each; four rows, one state each, the same in every column: row 1 clean, row 2 grown, row 3 damaged, row 4 destroyed.\nColumns, left to right:\n- PUMP SHED, 3x2 cells: a small corrugated-steel pump house seen from above, ridge line along its length, a round roof vent, a door slab on the south side, a pipe stub out of the west wall. Sage-grey painted corrugations.\n- PIPE RUN, 3x1: a heavy insulated steel pipeline lying on low concrete saddles, three flanged collars.\n- PIPE ELBOW, 2x2: the same pipe turning a quarter circle, flanged at both ends.\n- PIPE MOUTH, 2x1: the same pipe running into the ground, ending in a ragged concrete collar round a dark hole in the earth.\nRow 2 GROWN: weeks of creep: the mat spreading on the ground under and round each object as drawn, ropey veins climbing over it, a few plates and spurs. On the pipe mouth the growth comes UP out of the hole and runs back along the pipe.\nRow 3 DAMAGED: row 2 after a fight: scorch, holes, torn sheet, burnt creep.\nRow 4 DESTROYED: low separated fragments of each object as drawn, transparent between them, no slab beneath.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\heart-workings-yard-guide.png",
+      "sha256": "84fbd669d0aeab9efa823a9ad996757b6306e4db5530a77e0e15db05ec5a50c9",
+      "dimensions": [
+        1664,
+        1408
+      ],
+      "mode": "RGBA",
+      "role": "Geometry guide and edit target: exact slots, silhouettes, footprints, growth extent and transparent gaps; reskin it, never move, resize or drop a sprite"
+    },
+    {
+      "path": "art-source\\tilesets\\parked-vehicles.raw.png",
+      "sha256": "ad90cc1b0f96f35985225903ed4b609d7da5b6ebc23fd4802309e5e47cb595d4",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only for painted overhead props; not layout"
+    },
+    {
+      "path": "art-source\\swarm-bores\\raw\\bore-1.raw.png",
+      "sha256": "eafcfd8b37aa4d31e3d7f4875b5b4cd3e185f9820d69b1adf729ae279196b259",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material reference for the alien growth only (chitin, sinew, ivory, amber); never its shape or layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll reskin the guide while preserving every sprite’s placement, silhouette, and transparent gap."
+  ],
+  "usage": {
+    "input_tokens": 52202,
+    "cached_input_tokens": 38656,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 822,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 88.9
+}

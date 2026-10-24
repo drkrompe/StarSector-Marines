@@ -1,0 +1,16 @@
+Use case: sketch-to-render. Game sprite atlas, a geometry-first reskin for a top-down tactical battle map.
+Image 1 is the authoritative geometry guide and edit target: every sprite's slot, silhouette, footprint, position and the extent of the creature growth are fixed by it. Repaint it; never move, resize, add or drop a sprite.
+Image 2 is a MATERIAL STYLE reference only (worn, crisp, painted overhead industrial props from the same game); not layout.
+Image 3 is a MATERIAL reference for the alien growth only (the Rav Bloom: glossy violet-plum chitin plates, magenta sinew in the gaps, ivory spurs, rare small amber nodes); not layout, and do not copy its shape.
+
+Camera: straight-overhead orthographic, no perspective tilt, soft light from the top left, each object's own short contact shadow only inside its slot.
+Output: true transparent background, including every gutter and every negative space between debris and between frame bars; no ground plane, floor slab, border, labels, text, numbers, logos or signage words.
+
+The guide's flat colours are keys:
+- grey/beige = concrete; blue-grey = painted steel; dark grey = machinery shadow or iron; rust-red, steel-blue, yellow, green = paint as shown, chipped and weathered.
+- near-black = an open hole or dark interior; dark brown blots = scorch marks; thin black zigzags = tears and cracks.
+- dull violet-grey lobes = the creep mat: a thin, dull, desaturated violet-grey living film, wet-sheened, veined, with small bubbled nodules, flowing over and around things like slow wax. Keep it DULL and dark-ish (it is the dullest thing on the map), never saturated purple.
+- dark violet lines = raised ropey veins in the creep; small plum polygons with red edges = embedded chitin plates; ivory slivers = bone-ivory spurs.
+Every slot keeps a clear transparent margin inside its edge: the creep mat ends in soft rounded lobes well inside the slot exactly where the guide's lobes end, and is never cut straight by the slot's edge or spread to fill the slot.
+Rows or cells marked as states of the same object must keep the identical object identity, palette and placement; only the stated change differs.
+Keep every form broad and readable at 24 pixels per game cell. Surface detail may improve substantially within the guide's silhouettes.

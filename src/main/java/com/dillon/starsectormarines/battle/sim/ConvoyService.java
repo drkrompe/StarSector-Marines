@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.HullLocations;
 import com.dillon.starsectormarines.battle.vehicle.HullTurretSection;
 import com.dillon.starsectormarines.battle.vehicle.MountedGun;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMount;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
@@ -88,6 +89,12 @@ public final class ConvoyService implements BodyCarrier {
      * {@code mission} (single-use — one mission, one spawn), the air-spawn shape.
      */
     public long spawn(VehicleType type, Faction faction, VehicleMission mission) {
+        return spawn(type, List.of(), faction, mission);
+    }
+
+    /** As above, set down with what the kits on its rack make of it ({@link VehicleKit}). */
+    public long spawn(VehicleType type, List<VehicleKit> kits, Faction faction, VehicleMission mission) {
+        VehicleKit.Effect fitted = VehicleKit.Effect.of(kits);
         BattleComponents c = roster.components();
         EntityWorld world = roster.entityWorld();
 
@@ -97,8 +104,9 @@ public final class ConvoyService implements BodyCarrier {
         float nextX = mission.inboundX[1], nextY = mission.inboundY[1];
         body.teleport(spawnX, spawnY, AirBody.facingToward(nextX - spawnX, nextY - spawnY));
         GroundTurret turret = type.hasTurretWeapon()
-                ? new GroundTurret(type.turretStructure().mount.ammoCapacity, HullTurretSection.forHull(type)) : null;
-        HullLocations locations = HullLocations.of(type, turret != null ? turret.section : null);
+                ? new GroundTurret(Math.round(type.turretStructure().mount.ammoCapacity * fitted.ammoFactor()),
+                        HullTurretSection.forHull(type, fitted)) : null;
+        HullLocations locations = HullLocations.of(type, turret != null ? turret.section : null, fitted);
         if (turret != null) {
             for (VehicleMount mount : type.secondaryMounts()) turret.secondaries.add(MountedGun.of(mount));
         }
@@ -123,7 +131,7 @@ public final class ConvoyService implements BodyCarrier {
         world.setObject(id, c.VEHICLE_MISSION, BattleComponents.VEHICLE_MISSION_STATE, mission);
         world.setObject(id, c.VEHICLE_CONTROL, BattleComponents.VEHICLE_CONTROL_STATE, new VehicleControlComponent());
         // Located damage holds the drive and the side and rear plates on top of the hull's own pools.
-        float structure = type.maxStructure + locations.maxDrive();
+        float structure = type.maxStructure * fitted.structureFactor() + locations.maxDrive();
         float armor = locations.maxTotalArmor();
         world.setFloat(id, c.HEALTH, BattleComponents.HEALTH_HP, structure);
         world.setFloat(id, c.HEALTH, BattleComponents.HEALTH_MAX_HP, structure);
@@ -132,7 +140,7 @@ public final class ConvoyService implements BodyCarrier {
                 type.incomingAccuracyMult);
         world.setFloat(id, c.ARMOR, BattleComponents.ARMOR_CURRENT, armor);
         world.setFloat(id, c.ARMOR, BattleComponents.ARMOR_MAX, armor);
-        world.setFloat(id, c.ARMOR, BattleComponents.ARMOR_RATING, type.armorRating);
+        world.setFloat(id, c.ARMOR, BattleComponents.ARMOR_RATING, type.armorRating + fitted.armorRatingBonus());
         if (turret != null) {
             world.setObject(id, c.GROUND_TURRET, BattleComponents.GROUND_TURRET_STATE, turret);
         }

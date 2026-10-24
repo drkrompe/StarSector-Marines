@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.RavBruteRig;
 import com.dillon.starsectormarines.battle.appearance.RavMatriarchRig;
 import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
+import com.dillon.starsectormarines.battle.appearance.RavSpitterRig;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.appearance.WorkMotion;
@@ -15,9 +16,11 @@ import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.Animation
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.air.AirAppearance;
+import com.dillon.starsectormarines.battle.air.AirArmament;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.air.GroundWreck;
+import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullPivotResolver;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
@@ -44,6 +47,7 @@ import com.dillon.starsectormarines.battle.turret.TurretShieldService;
 import com.dillon.starsectormarines.battle.turret.FluxShield;
 import com.dillon.starsectormarines.battle.turret.ShieldTint;
 import com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem;
+import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.SwarmStage;
@@ -242,6 +246,8 @@ public final class UnitRenderService implements RenderSystem {
      * the wreck exists.
      */
     private final Map<Object, HullBreakup> wrecks = new IdentityHashMap<>();
+    /** The guns on each parked hull, kept per berth while its kit stays the same. */
+    private final Map<AirfieldService.Berth, ParkedGuns> parkedGuns = new IdentityHashMap<>();
     /** The burst Rav dead that have stopped moving, each drawn from the mesh it was recorded into once. */
     private final SettledBodyMeshes settledBodies = new SettledBodyMeshes();
     /** The light and wear each body is stamped with as it is emitted (law 27). */
@@ -820,6 +826,7 @@ public final class UnitRenderService implements RenderSystem {
                 continue;
             emitHull(out, cam, berth.airframe, berth.facingDegrees, world.renderX(u), world.renderY(u),
                     cellPx, 1f, 1f, 1f, alphaMult);
+            emitParkedGuns(out, cam, berth, world.renderX(u), world.renderY(u), cellPx, alphaMult);
         }
         for (AirfieldService.Berth berth : airfield.berths()) {
             if (!berth.wreckOnPad) continue;
@@ -1041,6 +1048,40 @@ public final class UnitRenderService implements RenderSystem {
         return HullFootprintResolver.visualLengthCells(airframe.renderHullId())
                 * AirAppearance.GROUND_SCALE * AUTHORED_EXTENT_SLACK;
     }
+
+    /**
+     * Draws the guns on a parked hull, on its weapon slots and trained along its nose, at the
+     * ground scale its hull is drawn at: the same guns, in the same places, that it lifts with.
+     *
+     * <p>A berth a yard has refitted carries its own {@link AirfieldService.Berth#doorGuns};
+     * any other carries its airframe's kit. Worked out again only when that kit changes.
+     */
+    private void emitParkedGuns(DrawList out, BattleCamera cam, AirfieldService.Berth berth,
+                                float centerCellX, float centerCellY, float cellPx, float alphaMult) {
+        String[] kit = berth.doorGuns != null ? berth.doorGuns : berth.airframe.kitFor(TurretRole.A2G);
+        ParkedGuns guns = parkedGuns.get(berth);
+        if (guns == null || !Arrays.equals(guns.kit(), kit)) {
+            guns = new ParkedGuns(kit.clone(), AirArmament.mounts(kit, berth.airframe.renderHullId(),
+                    berth.facingDegrees));
+            parkedGuns.put(berth, guns);
+        }
+        if (guns.mounts().length == 0) return;
+        float rad = (float) Math.toRadians(berth.facingDegrees);
+        float c = (float) Math.cos(rad);
+        float sn = (float) Math.sin(rad);
+        float scale = AirAppearance.GROUND_SCALE;
+        for (MountedTurret mt : guns.mounts()) {
+            float lx = mt.mount.localOffsetX * scale;
+            float ly = mt.mount.localOffsetY * scale;
+            float screenX = cam.cellToScreenX(centerCellX + lx * c - ly * sn);
+            float screenY = cam.cellToScreenY(centerCellY + lx * sn + ly * c);
+            ShuttleRenderSystem.emitTurret(out, RenderLayer.UNITS, sprites, mt, screenX, screenY, scale,
+                    cellPx, alphaMult);
+        }
+    }
+
+    /** The guns drawn on one parked hull, and the kit they were laid out from. */
+    private record ParkedGuns(String[] kit, MountedTurret[] mounts) {}
 
     private void emitHull(DrawList out, BattleCamera cam, Airframe airframe, float facingDegrees,
                           float centerCellX, float centerCellY, float cellPx,
@@ -1283,8 +1324,9 @@ public final class UnitRenderService implements RenderSystem {
             int[] corpseFamily = t.ints(c.CORPSE, BattleComponents.CORPSE_BODY_FAMILY).array();
             RavRunnerAssets ravArt = sprites.ravRunnerSprites();
             RavBruteAssets deadBruteArt = sprites.ravBruteSprites();
-            Object[] ravRigs = (ravArt != null || deadBruteArt != null) && t.has(c.RAV_RIG)
-                    ? t.objects(c.RAV_RIG, BattleComponents.RAV_RIG_STATE).array() : null;
+            RavSpitterAssets deadSpitterArt = sprites.ravSpitterSprites();
+            Object[] ravRigs = (ravArt != null || deadBruteArt != null || deadSpitterArt != null)
+                    && t.has(c.RAV_RIG) ? t.objects(c.RAV_RIG, BattleComponents.RAV_RIG_STATE).array() : null;
             for (int r = 0, n = t.rowCount(); r < n; r++) {
                 if (poseIdx[r] < 0) continue;
                 if ((rx[r] < cullMinX || rx[r] > cullMaxX || ry[r] < cullMinY || ry[r] > cullMaxY)
@@ -1320,6 +1362,12 @@ public final class UnitRenderService implements RenderSystem {
                     QuadMesh settled = settledBodies.brute(deadBrute, bruteArt, splat, drop);
                     if (settled != null) out.addMesh(RenderLayer.UNITS, settled, bx, by, ppc, alpha);
                     else RavBruteComposer.emitDead(out, bruteArt, splat, drop, deadBrute, bx, by, ppc, alpha);
+                    continue;
+                }
+                if (deadSpitterArt != null && ravRigs != null && ravRigs[r] instanceof RavSpitterRig deadSpitter) {
+                    // A dead Spitter lies dulled where it fell, in the acid its burst dome spilled.
+                    RavSpitterComposer.emitDead(out, deadSpitterArt, cam.cellToScreenX(rx[r]),
+                            cam.cellToScreenY(ry[r]), corpseFacing[r], cam.cellPxSize() * deadSpitter.scale() * shrink, alpha);
                     continue;
                 }
                 RavRunnerRig ravRig = ravArt != null && ravRigs != null && ravRigs[r] instanceof RavRunnerRig dead
@@ -1491,7 +1539,9 @@ public final class UnitRenderService implements RenderSystem {
             RavRunnerAssets ravArt = sprites.ravRunnerSprites();
             RavBruteAssets bruteArt = sprites.ravBruteSprites();
             RavMatriarchAssets matriarchArt = sprites.ravMatriarchSprites();
-            Object[] ravRigs = (ravArt != null || bruteArt != null || matriarchArt != null) && t.has(c.RAV_RIG)
+            RavSpitterAssets spitterArt = sprites.ravSpitterSprites();
+            Object[] ravRigs = (ravArt != null || bruteArt != null || matriarchArt != null || spitterArt != null)
+                    && t.has(c.RAV_RIG)
                     ? t.objects(c.RAV_RIG, BattleComponents.RAV_RIG_STATE).array() : null;
             Object[] secSpec = hasSecondary
                     ? t.objects(c.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC).array() : null;
@@ -1627,6 +1677,13 @@ public final class UnitRenderService implements RenderSystem {
                     RavBruteComposer.emit(out, bruteArt.forStage(bruteRig.stage()), bruteRig,
                             cam.cellToScreenX(bruteRig.bodyX()), cam.cellToScreenY(bruteRig.bodyY()),
                             cam.cellPxSize() * bruteRig.scale(), unitAlpha);
+                    continue;
+                }
+                if (spitterArt != null && rig instanceof RavSpitterRig spitterRig && spitterRig.posed()) {
+                    // The Spitter too, sized in cells like the Brute.
+                    RavSpitterComposer.emit(out, spitterArt, spitterRig,
+                            cam.cellToScreenX(spitterRig.bodyX()), cam.cellToScreenY(spitterRig.bodyY()),
+                            cam.cellPxSize() * spitterRig.scale(), unitAlpha);
                     continue;
                 }
                 if (matriarchArt != null && rig instanceof RavMatriarchRig matriarchRig && matriarchRig.posed()) {

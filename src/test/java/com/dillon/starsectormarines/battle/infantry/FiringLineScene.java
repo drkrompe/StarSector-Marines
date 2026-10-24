@@ -45,10 +45,10 @@ import java.util.Map;
  *
  * <p><b>It is five cells wide, and the first version was three.</b> Three looks
  * right — a file down the middle with a lane either side of it — and it
- * recorded not one sidestep in nine hundred ticks. A firing lane is
- * {@link com.dillon.starsectormarines.battle.combat.FiringLane#CLEARANCE_CELLS}
- * of half-width, so leaving one takes more than a cell of lateral movement, and
- * a three-cell corridor offers exactly one. The arena was answering the
+ * recorded not one sidestep in nine hundred ticks. A firing lane was then a
+ * cell and a half of half-width (it is now the firing gate's own, a body's
+ * radius and a quarter), so leaving one took more than a cell of lateral
+ * movement, and a three-cell corridor offers exactly one. The arena was answering the
  * question by removing the option, and the reading — no sidesteps, friendly
  * fire identical in both loops — was indistinguishable from a reflex that did
  * not work. Five cells is the narrowest passage in which stepping aside is a

@@ -1,0 +1,9 @@
+Game effect sprites for a top-down tactical game, seen strictly from directly above, light from the upper left. The acid of the Rav Bloom Spitter (reference image 1 shows the creature and its acid organ: match that acid's colour and translucent glow, but make it DARKER and more venomous, a deep dark venom green, not lime and not yellow).
+
+Draw FOUR separate items on one canvas, well apart from each other in a 2 by 2 grid, each centred in its quarter, none touching:
+1 (top left): ONE glob of acid in flight: a thick round viscous drop, glossy, dark venom-green, translucent with a brighter green core and one small white specular highlight, a short wet tail behind it. Compact, no trail longer than the glob.
+2 (top right): an acid SPLASH on the ground just after impact: an irregular star-shaped spatter of dark venom-green liquid with thick droplets flung outward, glossy, translucent at its thin edges.
+3 (bottom left): a different acid splash spatter, more elongated, as if it landed at an angle.
+4 (bottom right): a small settled acid POOL eating into the ground: dark green liquid with a few bubbles and a darker scorched rim, irregular round shape.
+
+Plain flat light grey background (#b4b4b4) everywhere around and between the items; no ground texture, no shadow slab, no text, no labels, no border.

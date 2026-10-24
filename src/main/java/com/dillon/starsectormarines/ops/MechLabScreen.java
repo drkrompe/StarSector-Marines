@@ -1,9 +1,11 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ops.fitting.FittingComponents;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.refit.ShipRefits;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -52,10 +54,10 @@ import java.util.Set;
 public final class MechLabScreen implements Screen {
 
     private static final String ROOT_COMPONENT = "mech-lab";
-    private static final List<String> COMPONENT_PATHS = List.of(
+    private static final List<String> COMPONENT_PATHS = FittingComponents.with(List.of(
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
-            "data/ui/components/mech-lab/mech-lab.mlx");
+            "data/ui/components/mech-lab/mech-lab.mlx"));
 
     private final Reactor reactor = new Reactor();
     private final MutableSignal<String> bayContextLabel = reactor.signal("");
@@ -167,7 +169,9 @@ public final class MechLabScreen implements Screen {
                     .withSideShift(() -> cameraController.pose().sideShift())
                     .withPadPreview(viewModel::padPreview);
             dollCanvas.installedInternals(viewModel::installedInternal);
-        dollCanvas.installedCompartment(viewModel::installedCompartment);
+            dollCanvas.installedCompartment(viewModel::installedCompartment);
+            dollCanvas.selectedVehicle(viewModel::selectedVehicleType);
+            dollCanvas.installedKits(viewModel::installedKits);
             built.canvases().set(dollElement, dollCanvas);
             inventoryDropElement = candidate.requireElement("mech-component-catalog");
             returnDropNote = candidate.requireElement("mech-drag-drop-note");
@@ -368,6 +372,13 @@ public final class MechLabScreen implements Screen {
         if (event.button() != PointerButton.PRIMARY) return;
         CanvasPoint point = canvasPoint(event);
         if (point == null) return;
+        VehicleKit stripKit = dollCanvas.stripKitAt(point.x(), point.y());
+        if (stripKit != null) {
+            viewModel.removeKit(stripKit);
+            document.canvases().invalidate(dollElement);
+            event.preventDefault();
+            return;
+        }
         MechInternal stripPart = dollCanvas.stripPartAt(point.x(), point.y());
         SocketId strip = dollCanvas.stripAt(point.x(), point.y());
         if (strip != null) {
@@ -663,7 +674,12 @@ public final class MechLabScreen implements Screen {
         if (specSheets != null) specSheets.update();
         if (document != null) {
             document.advance(dt);
-            if (dollElement != null) document.canvases().invalidate(dollElement);
+            // The bay view's box changes shape between the lance overview and the fitting view;
+            // its surface follows, so the build mark, pad letters and schematic never stretch.
+            if (dollElement != null) {
+                dollElement.fitCanvasToBox();
+                document.canvases().invalidate(dollElement);
+            }
             if (preparationGuide != null) preparationGuide.update();
         }
     }

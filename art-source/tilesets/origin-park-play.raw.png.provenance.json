@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16edc-d737-7c72-b35f-18edd720b9d4",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16edc-d737-7c72-b35f-18edd720b9d4\\exec-2aae559c-2669-4fe7-95eb-d8de7aace5d9.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\origin-park-play.raw.png",
+    "sha256": "2cc6a272e596ff47551fed9a33002b548e8ee184553a669d2d4a90ddd16e13cd",
+    "dimensions": [
+      1501,
+      1048
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "build\\heart-origins\\prompts\\park-play.prompt.txt",
+  "promptSha256": "07ec6e0e9e398cb046d89a60ddfe5492789a7ba8ca435bfa1b686a6bff6afebf",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry guide and edit target: exact slots, silhouettes, footprints, growth extent and transparent gaps; reskin it, never move, resize or drop a sprite\nImage 2: Material and style reference only for painted overhead props; not layout\nImage 3: Material reference for the alien growth only (chitin, sinew, ivory, amber); never its shape or layout\n\nUse case: sketch-to-render. Game sprite atlas, a geometry-first reskin for a top-down tactical battle map.\nImage 1 is the authoritative geometry guide and edit target: every sprite's slot, silhouette, footprint, position and the extent of the creature growth are fixed by it. Repaint it; never move, resize, add or drop a sprite.\nImage 2 is a MATERIAL STYLE reference only (worn, crisp, painted overhead industrial props from the same game); not layout.\nImage 3 is a MATERIAL reference for the alien growth only (the Rav Bloom: glossy violet-plum chitin plates, magenta sinew in the gaps, ivory spurs, rare small amber nodes); not layout, and do not copy its shape.\n\nCamera: straight-overhead orthographic, no perspective tilt, soft light from the top left, each object's own short contact shadow only inside its slot.\nOutput: true transparent background, including every gutter and every negative space between debris and between frame bars; no ground plane, floor slab, border, labels, text, numbers, logos or signage words.\n\nThe guide's flat colours are keys:\n- grey/beige = concrete; blue-grey = painted steel; dark grey = machinery shadow or iron; rust-red, steel-blue, yellow, green = paint as shown, chipped and weathered.\n- near-black = an open hole or dark interior; dark brown blots = scorch marks; thin black zigzags = tears and cracks.\n- dull violet-grey lobes = the creep mat: a thin, dull, desaturated violet-grey living film, wet-sheened, veined, with small bubbled nodules, flowing over and around things like slow wax. Keep it DULL and dark-ish (it is the dullest thing on the map), never saturated purple.\n- dark violet lines = raised ropey veins in the creep; small plum polygons with red edges = embedded chitin plates; ivory slivers = bone-ivory spurs.\nEvery slot keeps a clear transparent margin inside its edge: the creep mat ends in soft rounded lobes well inside the slot exactly where the guide's lobes end, and is never cut straight by the slot's edge or spread to fill the slot.\nRows or cells marked as states of the same object must keep the identical object identity, palette and placement; only the stated change differs.\nKeep every form broad and readable at 24 pixels per game cell. Surface detail may improve substantially within the guide's silhouettes.\n\nSheet: the park's playground and seating. Five columns, one object each; four rows, one state each: row 1 clean, row 2 grown, row 3 damaged, row 4 destroyed.\n- SWINGS, 3x2 cells: a red tubular A-frame swing set seen from above, the top bar across, two wooden seats hanging on chains below it.\n- SLIDE, 3x1: a blue ladder platform at the west end and a long yellow slide chute running east.\n- CLIMBING FRAME, 2x2: a green domed lattice of bars seen from above, concentric rings and spokes, a small timber platform at its crown.\n- ROUNDABOUT, 2x2: a playground roundabout disc, red and yellow segments, dark grab bars to the centre hub (rows 2-4 turned a little, left where it stopped).\n- BENCH, 2x1: a park bench, four timber slats on two black iron ends.\nRow 2 GROWN: creep mat under and round each object as drawn, veins climbing onto it, a few plates. Ordinary children's things in the middle of the bloom.\nRow 3 DAMAGED: row 2 after a fight: scorch, broken slats, bent bars, torn creep.\nRow 4 DESTROYED: low separated pieces of each in its own colours, transparent between, no slab beneath.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\heart-park-play-guide.png",
+      "sha256": "19ee1d5906743f682f88e9918968135745741c8f1d50311aa94a6ca88ad4c886",
+      "dimensions": [
+        2016,
+        1408
+      ],
+      "mode": "RGBA",
+      "role": "Geometry guide and edit target: exact slots, silhouettes, footprints, growth extent and transparent gaps; reskin it, never move, resize or drop a sprite"
+    },
+    {
+      "path": "art-source\\tilesets\\parked-vehicles.raw.png",
+      "sha256": "ad90cc1b0f96f35985225903ed4b609d7da5b6ebc23fd4802309e5e47cb595d4",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only for painted overhead props; not layout"
+    },
+    {
+      "path": "art-source\\swarm-bores\\raw\\bore-1.raw.png",
+      "sha256": "eafcfd8b37aa4d31e3d7f4875b5b4cd3e185f9820d69b1adf729ae279196b259",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material reference for the alien growth only (chitin, sinew, ivory, amber); never its shape or layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to repaint the guide, preserving every sprite’s placement, silhouette, and transparent gap."
+  ],
+  "usage": {
+    "input_tokens": 50626,
+    "cached_input_tokens": 37888,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 812,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 81.9
+}

@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16ed9-b244-7cf3-aacf-f7a1f31bd2d6",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16ed9-b244-7cf3-aacf-f7a1f31bd2d6\\exec-42d78720-999f-4666-a651-4cda0c3eee78.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\spitter\\raw\\hero-closed.png",
+    "sha256": "a2c0b465348dc0f5a7e009489743676f27457f050db08a9a4fd3eb850da36647",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\spitter\\prompts\\hero-closed.prompt.txt",
+  "promptSha256": "e94a7905f043500fea802b793672b9102f79e622e81e4b59af3e2b4d6d129514",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry, layout and identity authority: keep everything identical except the hood, folded shut, and the jaws, closed\n\nThe SAME image as reference image 1, pixel for pixel in every part (same creature, same scale, same position, same chest, forelimbs, tail, colours, lighting and background), with ONE change: the cobra HOOD is FOLDED SHUT. The hood's ribs lie flat and close along the sides of the neck, so the neck is narrow, about as wide as the head; the glowing green membrane is hidden, showing only a thin dark green seam between the folded ribs. The jaws are CLOSED. Head still at the top, facing up.\n\nStrict overhead orthographic view, light from the upper left. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\spitter\\raw\\hero-open.png",
+      "sha256": "872805a94de80585c0752cb70d9b3fe009b23c64aa7a8193498be98f76ab0047",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Geometry, layout and identity authority: keep everything identical except the hood, folded shut, and the jaws, closed"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the image generation tool to fold the hood shut and close the jaws, preserving the rest of the reference as closely as possible.\n"
+  ],
+  "usage": {
+    "input_tokens": 40581,
+    "cached_input_tokens": 35328,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 357,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 45.9
+}

@@ -117,6 +117,7 @@ public class BattleSprites {
     private RavRunnerAssets ravRunner;
     private RavBruteAssets ravBrute;
     private RavMatriarchAssets ravMatriarch;
+    private RavSpitterAssets ravSpitter;
     /** Loaded families; asking for one not loaded loads it, once the shared layers have been. */
     private final java.util.EnumMap<LayeredArmorFamily, LayeredUnitAssets> layeredUnitSprites =
             new java.util.EnumMap<>(LayeredArmorFamily.class) {
@@ -271,6 +272,8 @@ public class BattleSprites {
     public RavBruteAssets ravBruteSprites() { return ravBrute; }
     /** The Matriarch's rig sprites, or null when incomplete (it then wears the Brute's layered art). */
     public RavMatriarchAssets ravMatriarchSprites() { return ravMatriarch; }
+    /** The Spitter's rig sprites, or null when incomplete (the Spitter then keeps its layered art). */
+    public RavSpitterAssets ravSpitterSprites() { return ravSpitter; }
     public LayeredMechAssets layeredMechSprites() { return layeredMechSprites; }
     /** Pools under fallen layered bodies; empty when the art did not load. */
     public List<LayeredSpriteCache> bloodPools() { return bloodPools; }
@@ -1207,7 +1210,7 @@ public class BattleSprites {
                 shared.masterworkDmr());
     }
 
-    /** The Rav Bloom's Runner, Brute and Matriarch rigs. */
+    /** The Rav Bloom's Runner, Brute, Spitter and Matriarch rigs. */
     public void ensureRavRigs() {
         if (ravRigsAttempted) return;
         ravRigsAttempted = true;
@@ -1218,6 +1221,10 @@ public class BattleSprites {
         ravBrute = RavBruteAssets.load(this::loadLayeredSprite);
         if (ravBrute == null) {
             LOG.warn("BattleSprites: Rav Brute rig sprites incomplete; the Brute keeps its layered art");
+        }
+        ravSpitter = RavSpitterAssets.load(this::loadLayeredSprite);
+        if (ravSpitter == null) {
+            LOG.warn("BattleSprites: Rav Spitter rig sprites incomplete; the Spitter keeps its layered art");
         }
         ravMatriarch = RavMatriarchAssets.load(this::loadLayeredSprite);
         if (ravMatriarch == null) {

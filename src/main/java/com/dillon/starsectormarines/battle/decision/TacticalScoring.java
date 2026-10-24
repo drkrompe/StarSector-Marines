@@ -219,6 +219,8 @@ public final class TacticalScoring {
      * at the same distance, but a meaningfully closer blind target still wins
      * over a far visible one. Without this, an artillery battery would acquire
      * targets blindly regardless of whether a visible candidate was available.
+     * A target seen but with no clear shot from the asker's point pays it too,
+     * so one the unit can hit from where it stands wins at a similar distance.
      */
     public static final float TARGET_NO_LOS_COST = 10f;
 
@@ -593,7 +595,7 @@ public final class TacticalScoring {
 
     /**
      * Score of one target candidate: its distance, plus the crowding, threat
-     * density, zone-mismatch and no-line-of-sight costs, minus the weapon
+     * density, zone-mismatch and no-clear-shot costs, minus the weapon
      * affinity bonus. Only affinity can subtract, and never by more than
      * {@link #MAX_TARGET_SCORE_BONUS} — the bound
      * {@link #findBestTargetImpl} prunes with.
@@ -810,7 +812,15 @@ public final class TacticalScoring {
                         && d <= perceptionRange;
             }
             if (!visible && !allowNoLos) return;
-            float score = scoring.scoreTargetCandidate(id, d, visible, selfFaction,
+            // Sight settles whether a hostile is known; the score asks whether
+            // it can be shot from where the asker stands. The two traces differ
+            // (cell centres against exact points), so a hostile just past a
+            // wall corner is seen but not shootable, and scored as visible it
+            // beat a target the unit could actually hit. It stays eligible, so
+            // a unit with nothing better still pursues it to a firing position.
+            boolean shootable = visible && canShootPair(scoring.grid, selfX, selfY,
+                    world.x(id), world.y(id), shooterAirRadius, vision.targetAirLosRadius(id));
+            float score = scoring.scoreTargetCandidate(id, d, shootable, selfFaction,
                     selfSquadId, excludeFromCrowding, selfCellX, selfCellY, ox, oy);
             if (score < bestScore
                     || (score == bestScore && best != 0L && earlierInRoster(id, best))) {

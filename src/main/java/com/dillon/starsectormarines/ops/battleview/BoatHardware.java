@@ -16,7 +16,7 @@ import java.util.Map;
  * covers and what it looks like are this class's, so a boat socket reads the
  * way a mech's does without the boat model acquiring a grid.
  */
-final class BoatHardware {
+public final class BoatHardware {
 
     private static final String ROOT = "graphics/ui/mech-hardware/";
     private static final Map<String, SvgAsset> ART = new HashMap<>();
@@ -26,12 +26,54 @@ final class BoatHardware {
 
     private BoatHardware() { }
 
+    /** The piece's drawing, for a card or a filter chip that shows it outside its bricks; null for none. */
+    public static String iconPath(BoatDoll.Kind kind, String itemId) {
+        String art = piece(kind, itemId).art();
+        return art == null ? null : ROOT + art + ".svg";
+    }
+
+    /** The socket kind's colour as the stores' markup names it. */
+    public static String toneHex(BoatDoll.Kind kind) {
+        Color tone = tone(kind);
+        return String.format("#%02x%02x%02x", tone.getRed(), tone.getGreen(), tone.getBlue());
+    }
+
+    /** Columns and rows of bricks the piece covers. */
+    public static int[] footprint(BoatDoll.Kind kind, String itemId) {
+        Piece piece = piece(kind, itemId);
+        return new int[]{piece.columns(), piece.rows()};
+    }
+
+    /** Columns and rows of bricks a socket of this kind holds. */
+    public static int[] socket(BoatDoll.Kind kind) {
+        return capacity(kind);
+    }
+
+    /** Draws a carried piece with its top-left at the point, at the size it has in its socket. */
+    public static void drawCarried(CanvasContext c, BoatDoll.Kind kind, String itemId, float x, float y) {
+        Piece piece = piece(kind, itemId);
+        HardpointBricks.Layout bricks = HardpointBricks.at(x, y, piece.columns(), piece.rows(),
+                BoatDollPanel.BRICK_HEIGHT, BoatDollPanel.BRICK_GAP);
+        draw(c, bricks, piece, 255);
+    }
+
     /** The bricks a socket of this kind holds. */
     static int[] capacity(BoatDoll.Kind kind) {
         return switch (kind) {
             case HARDPOINT, DRIVE, LIFT -> new int[]{2, 2};
             case PLATING -> new int[]{3, 1};
         };
+    }
+
+    /** Columns and rows of the largest socket of any kind: the scale every stores picture shares. */
+    static int[] largestSocket() {
+        int columns = 1, rows = 1;
+        for (BoatDoll.Kind kind : BoatDoll.Kind.values()) {
+            int[] capacity = capacity(kind);
+            columns = Math.max(columns, capacity[0]);
+            rows = Math.max(rows, capacity[1]);
+        }
+        return new int[]{columns, rows};
     }
 
     static Color tone(BoatDoll.Kind kind) {
@@ -48,8 +90,8 @@ final class BoatHardware {
         Color tone = tone(kind);
         String id = itemId == null ? "" : itemId;
         return switch (id) {
-            case "door_heavy_mg" -> new Piece("boat-door-heavy-mg", 1, 2, tone);
-            case "door_grenade_launcher" -> new Piece("boat-door-grenade", 1, 2, tone);
+            case "door_heavy_mg" -> new Piece("boat-door-heavy-mg", 2, 1, tone);
+            case "door_grenade_launcher" -> new Piece("boat-door-grenade", 2, 1, tone);
             case "door_arbalest" -> new Piece("boat-door-arbalest", 2, 2, tone);
             case "door_hephaestus" -> new Piece("boat-door-hephaestus", 2, 2, tone);
             case "standard_plating" -> new Piece("boat-plating-standard", 3, 1, tone);
