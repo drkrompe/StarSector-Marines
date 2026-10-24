@@ -8,25 +8,25 @@
   "lines": [
     {
       "id": "marines_management_muster",
-      "synthesisText": "[warm, conversational voice] Come in, Commander. Let's get everyone ready for the next job. Barracks is where we look after the company: people and assignments. A squad's kit is its two cards, weapons and tactic sheet. Open Equipment here to compare and design them, or choose Loadout on a squad's card to change that squad's. If we're starting from nothing, Raise Squad opens the founding desk.",
+      "synthesisText": "[warm, conversational voice] Barracks is where we look after our people. Loadout on a squad's card changes its kit; Raise Squad musters a new squad under the selected officer.",
       "titleKey": "marines_management_musterTitle",
       "textKey": "marines_management_musterText"
     },
     {
       "id": "marines_management_wounded",
-      "synthesisText": "[gentle, reassuring voice] Each card separates ready, wounded, and vacant places. The wounded still belong to their squads and keep their billets; a day aboard ship puts them back on duty, and the clock at the top of Barracks shows when everyone is fit. If we can't wait, select the squads you want to bring back up to strength and fill their empty places.",
+      "synthesisText": "[gentle, reassuring voice] Each card shows ready, wounded and vacant places. The wounded keep their billets and are back on duty after a day aboard; the clock at the top says when.",
       "titleKey": "marines_management_woundedTitle",
       "textKey": "marines_management_woundedText"
     },
     {
       "id": "marines_management_replenish",
-      "synthesisText": "[encouraging, matter-of-fact voice] For the places still empty, use the wrench: on a squad's card it fills that squad, and beside Select All it fills every squad you've selected. I'll draw from our ready reserves first, then enlist Marines from fleet cargo. Hover a wrench to see how many recruits we'll need and what will remain unfilled. New hands take the kit their squad's cards issue their seat. If we run short, we can prepare fewer squads or bring more Marines aboard.",
+      "synthesisText": "[encouraging, matter-of-fact voice] The wrench fills empty places: on a card for that squad, beside Select All for every selected squad. I draw from reserves first, then enlist Marines from cargo. Hover a wrench to see what it needs.",
       "titleKey": "marines_management_replenishTitle",
       "textKey": "marines_management_replenishText"
     },
     {
       "id": "marines_management_ready",
-      "synthesisText": "[warm, confident voice] Check the muster once more before you commit to another job. Wounded people need time. Missions takes you back to local work when you've come here after an operation. From the campaign, Return takes you outside. If you need me, Company Guide opens this walkthrough again.",
+      "synthesisText": "[warm, confident voice] Check the muster before the next job. Missions takes you back to work; Return leaves the ship. Company Guide opens this walkthrough again.",
       "titleKey": "marines_management_readyTitle",
       "textKey": "marines_management_readyText"
     }
