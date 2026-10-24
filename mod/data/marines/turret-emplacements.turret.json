@@ -91,7 +91,7 @@
     { "id": "mount.hardpoint-laser", "weapon": "weapon.tank-pd-laser",
       "engagesAir": true,
       "sim": { "ammoCapacity": 1200, "turnRateDegPerSec": 60.0, "maxDepressionDeg": 15.0 },
-      "render": { "visualCells": 3.0, "muzzleOffsetCells": 0.9, "muzzles": [[0.0, 0.9]], "sprite": "graphics/structures/ground-turrets/laser/heavy-laser-head.png" } },
+      "render": { "visualCells": 3.0, "muzzleOffsetCells": 0.72, "muzzles": [[0.0, 0.72]], "sprite": "graphics/structures/ground-turrets/laser/heavy-laser-head.png" } },
     { "id": "mount.hardpoint-locust", "weapon": "weapon.turret-locust",
       "sim": { "ammoCapacity": 30, "turnRateDegPerSec": 50.0 },
       "render": { "visualCells": 2.4, "muzzleOffsetCells": 0.7, "sprite": "graphics/weapons/locust_turret.png" } },

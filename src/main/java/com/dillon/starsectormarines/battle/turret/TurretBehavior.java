@@ -93,6 +93,9 @@ public final class TurretBehavior implements UnitBehavior {
         s.target = sim.targetOf(u);
         s.indirectFire = weapon.indirectFire;
         s.tracksFliers = weapon.tracksFliers();
+        // A beam opens off target, as a tank's lance does: it lands short and rakes across onto its target as the
+        // mount comes round, striking and scorching what it crosses (TurretFireSystem.fireBeam).
+        if (weapon.hitscanBeam()) s.fireArcDeg = TurretAim.BEAM_OPEN_ARC_DEG;
         if (tube != null) {
             // A tube fires for the squad that serves it: what that squad believes, and
             // nothing it has not been shown. A lone gunner works it at a slower cycle.
