@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.battle.infantry.CarriedSpecials;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
@@ -250,10 +251,21 @@ final class BattleSquadOverlayModel {
         WeaponDef primary = sim.combat().primaryWeaponDef(unit);
         EquipmentGrade grade = sim.combat().equipmentGrade(unit);
         SoldierProfile profile = sim.combat().soldierProfile(unit);
-        boolean hasSpecial = sim.world().hasSecondaryWeapon(unit);
-        SpecialEquipmentDef special = hasSpecial ? sim.world().specialEquipment(unit) : null;
-        int specialAmmo = hasSpecial ? sim.world().secondaryAmmo(unit) : 0;
-        float specialCooldown = hasSpecial ? sim.world().secondaryCooldownTimer(unit) : 0f;
+        // Both special slots, in the doll's fixed order: the badge names the first, the tip lists each.
+        List<CarriedSpecials.Slot> slots = BattleMarineDollPlate.MarineDoll.specialOrder(sim.world(), unit);
+        SpecialEquipmentDef special = slots.isEmpty() ? null : CarriedSpecials.spec(sim.world(), unit, slots.get(0));
+        StringBuilder specialNames = new StringBuilder();
+        StringBuilder specialStatuses = new StringBuilder();
+        for (CarriedSpecials.Slot slot : slots) {
+            SpecialEquipmentDef item = CarriedSpecials.spec(sim.world(), unit, slot);
+            if (specialNames.length() > 0) {
+                specialNames.append(" + ");
+                specialStatuses.append(" + ");
+            }
+            specialNames.append(item.displayName());
+            specialStatuses.append(specialStatus(item, CarriedSpecials.ammo(sim.world(), unit, slot),
+                    CarriedSpecials.cooldown(sim.world(), unit, slot)));
+        }
         IntegralSystemService systems = sim.integralSystems();
         IntegralSystemDef system = systems.spec(unit);
         boolean hasArmor = sim.world().hasArmor(unit);
@@ -264,9 +276,9 @@ final class BattleSquadOverlayModel {
                 hasArmor ? sim.world().armorRating(unit) : 0f,
                 primary != null ? primary.catalogName(grade) : Strings.get("battleSquadFieldRifle"),
                 WeaponSymbols.primaryAbbrev(primary, grade), WeaponSymbols.primaryColor(primary),
-                special != null ? special.displayName() : null,
+                special != null ? specialNames.toString() : null,
                 special != null ? WeaponSymbols.specialAbbrev(special) : null,
-                specialStatus(special, specialAmmo, specialCooldown),
+                specialStatuses.toString(),
                 system != null ? system.displayName() : null,
                 systemStatus(systems, system, unit),
                 profile.experienceTier().displayName,

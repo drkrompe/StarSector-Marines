@@ -37,6 +37,12 @@ public final class DrawList {
     private SpriteAtlas spriteAtlas;
     /** By layer ordinal: whether {@link #spriteAtlas} takes in what is drawn there and not yet held. */
     private final boolean[] gathered = new boolean[RenderLayer.values().length];
+    /**
+     * The camera's closest zoom over its zoom this frame: what turns a draw's size into the largest it can be drawn
+     * at, which is how big a slot an image too large to hold whole needs ({@link UnitAtlas}). NaN when no camera
+     * said, and then such an image stays on its own texture.
+     */
+    private float closestZoomFactor = Float.NaN;
     /** {@link #spriteAtlas}'s rectangles, as a mesh resolves them once. */
     private final QuadMesh.AtlasAddress atlasAddress = image -> {
         SpriteAtlas.Placement at = spriteAtlas.placement(image);
@@ -85,7 +91,7 @@ public final class DrawList {
     private boolean cutIntoAtlas(RenderLayer layer, SpriteAPI sheet, int srcX, int srcY, int srcW, int srcH,
                                  float cx, float cy, float w, float h, float angleDeg, boolean flipV,
                                  float r, float g, float b, float a) {
-        SpriteAtlas.Placement at = held(layer, sheet);
+        SpriteAtlas.Placement at = heldCut(layer, sheet, w, h, srcW, srcH);
         if (at == null) return false;
         ModTextures.Loaded loaded = spriteAtlas.loadedImage(sheet);
         if (loaded == null || loaded.width() <= 0 || loaded.height() <= 0) return false;
@@ -130,7 +136,9 @@ public final class DrawList {
                                int srcX, int srcY, int srcW, int srcH,
                                float cx, float cy, float w, float h, float angleDeg,
                                float r, float g, float b, float a) {
-        SpriteAtlas.Placement at = held(layer, image);
+        SpriteAtlas.Placement at = srcW > 0 && srcH > 0
+                ? held(layer, image, w * imageW / (float) srcW, h * imageH / (float) srcH)
+                : held(layer, image, Float.NaN, Float.NaN);
         TextureUsage.sheet(image, srcW, srcH, w, h);
         if (at != null) {
             // A fitted image's slot is its shipped size, so logical pixels scale into it.
@@ -184,7 +192,7 @@ public final class DrawList {
                           float cx, float cy, float w, float h, float angleDeg,
                           float r, float g, float b, float a) {
         TextureUsage.sprite(sprite, w, h);
-        SpriteAtlas.Placement at = held(layer, sprite);
+        SpriteAtlas.Placement at = held(layer, sprite, w, h);
         if (at != null) {
             slot(layer).setSheetQuad(spriteAtlas.sheet(),
                     at.x(), at.y(), at.width(), at.height(),
@@ -196,16 +204,41 @@ public final class DrawList {
 
     /**
      * {@code image}'s slot while the atlas is serving and holds it, else null; an image drawn in a layer the atlas
-     * {@linkplain SpriteAtlas#gathers gathers} that the atlas does not hold is noted for it on the way.
+     * {@linkplain SpriteAtlas#gathers gathers} that the atlas does not hold is noted for it on the way, with the
+     * size this draw gives the whole image, {@code drawnW x drawnH} screen pixels, taken to the closest zoom.
      */
-    private SpriteAtlas.Placement held(RenderLayer layer, SpriteAPI image) {
+    private SpriteAtlas.Placement held(RenderLayer layer, SpriteAPI image, float drawnW, float drawnH) {
         if (spriteAtlas == null) return null;
         SpriteAtlas.Placement at = spriteAtlas.placement(image);
         if (at == null) {
-            if (gathered[layer.ordinal()]) spriteAtlas.noteMissed(image);
+            if (gathered[layer.ordinal()]) {
+                spriteAtlas.noteMissed(image, Math.abs(drawnW) * closestZoomFactor,
+                        Math.abs(drawnH) * closestZoomFactor);
+            }
             return null;
         }
         return spriteAtlas.isServing() ? at : null;
+    }
+
+    /**
+     * {@link #held} for the {@code srcW x srcH} cut of {@code sheet} drawn at {@code w x h}: the whole sheet's
+     * drawn size is worked out only while the atlas still has the sheet to judge.
+     */
+    private SpriteAtlas.Placement heldCut(RenderLayer layer, SpriteAPI sheet, float w, float h, int srcW, int srcH) {
+        if (spriteAtlas == null) return null;
+        SpriteAtlas.Placement at = spriteAtlas.placement(sheet);
+        if (at != null) return spriteAtlas.isServing() ? at : null;
+        if (!gathered[layer.ordinal()] || !spriteAtlas.awaitsJudgement(sheet)) return null;
+        float drawnW = Float.NaN;
+        float drawnH = Float.NaN;
+        ModTextures.Loaded loaded = srcW > 0 && srcH > 0 && closestZoomFactor > 0f
+                ? spriteAtlas.loadedImage(sheet) : null;
+        if (loaded != null && loaded.width() > 0 && loaded.height() > 0) {
+            drawnW = Math.abs(w) * loaded.width() / srcW * closestZoomFactor;
+            drawnH = Math.abs(h) * loaded.height() / srcH * closestZoomFactor;
+        }
+        spriteAtlas.noteMissed(sheet, drawnW, drawnH);
+        return null;
     }
 
     /**
@@ -228,7 +261,9 @@ public final class DrawList {
                     && mesh.addressAtlas(spriteAtlas.layoutToken(), spriteAtlas.sheet(), atlasAddress)) {
                 sheet = spriteAtlas.sheet();
             } else if (gathered[layer.ordinal()]) {
-                for (int i = 0; i < mesh.size(); i++) held(layer, mesh.image(i));
+                for (int i = 0; i < mesh.size(); i++) {
+                    held(layer, mesh.image(i), mesh.width(i) * scale, mesh.height(i) * scale);
+                }
             }
         }
         slot(layer).setMesh(mesh, sheet, x, y, scale, alphaMult);
@@ -249,6 +284,14 @@ public final class DrawList {
     }
 
     /**
+     * The camera's closest zoom over its zoom, for the frame about to be collected; a value not above zero (or NaN)
+     * when nothing can say, and then an image too large to hold whole is never given a slot.
+     */
+    public void setClosestZoomFactor(float factor) {
+        this.closestZoomFactor = factor > 0f ? factor : Float.NaN;
+    }
+
+    /**
      * As {@link #addSprite}, but the sprite adds light instead of compositing over what is beneath it. The atlas rule
      * is the same: a held image is an additive quad of the atlas sheet, which the drain runs beside the normal ones.
      */
@@ -256,7 +299,7 @@ public final class DrawList {
                                   float cx, float cy, float w, float h, float angleDeg,
                                   float r, float g, float b, float a) {
         TextureUsage.sprite(sprite, w, h);
-        SpriteAtlas.Placement at = held(layer, sprite);
+        SpriteAtlas.Placement at = held(layer, sprite, w, h);
         if (at != null) {
             slot(layer).setAdditiveSheetQuad(spriteAtlas.sheet(),
                     at.x(), at.y(), at.width(), at.height(),

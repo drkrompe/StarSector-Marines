@@ -1097,8 +1097,14 @@ not read in a soft shadow at play zoom.
     steadily, faster, as it climbs out; two frames sweeping the wings back into
     the dive as it goes down, and the same two opening them again as it pulls
     up. The dive keeps its wings showing, swept back along the flanks and still
-    open (owner). Every frame carries the glide's body to the pixel and only the
-    wings move. Drawn over the roofs, larger the higher it flies, with its own
+    open (owner). The wing frames carry only the thorax; the rest of the body is
+    laid on in segments that move with the flight (`HarrierBodyRig`): the waist
+    bends through a turn by the same spine law as a Runner's or a Brute's back
+    (`SpineBend`), three tail segments trail it, each lagging the one before and
+    swaying with the stroke, the head scans about the prey while it circles and
+    locks on what it dives at, and the whole body pumps a few percent with each
+    stroke, settling on the upstroke and lifting on the downstroke, its shadow
+    standing further off as it lifts. Drawn over the roofs, larger the higher it flies, with its own
     silhouette cast down-sun as its shadow, nearer under it as it dives.
   - **How it dies.** A shot flier falls (`HarrierFall`): carried on the way it
     was flying while its speed bleeds off, dropping faster as it goes, tumbling

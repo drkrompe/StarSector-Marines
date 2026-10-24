@@ -44,12 +44,33 @@ class UnitAtlasGrowthTest {
         }
 
         List<SpriteAPI> missed() {
+            List<SpriteAPI> images = new ArrayList<>();
+            for (Missed missed : takeMissed()) images.add(missed.image());
+            return images;
+        }
+
+        List<Missed> missedWithSizes() {
             return takeMissed();
         }
 
         Growth add(List<Source> sources) {
             return extend(sources);
         }
+    }
+
+    @Test
+    void aMissedImageCarriesTheLargestSizeItWasDrawnAtTakenToTheClosestZoom() {
+        Fixture atlas = seeded();
+        DrawList out = new DrawList();
+        out.setSpriteAtlas(atlas);
+        out.setClosestZoomFactor(4f);
+        SpriteAPI body = sprite();
+        out.addSprite(RenderLayer.UNITS, body, 0, 0, 10, 20, 0, 1, 1, 1, 1);
+        out.addSprite(RenderLayer.UNITS, body, 0, 0, 12, 18, 0, 1, 1, 1, 1);
+        List<SpriteAtlas.Missed> missed = atlas.missedWithSizes();
+        assertEquals(1, missed.size());
+        assertEquals(48f, missed.get(0).closestW());
+        assertEquals(80f, missed.get(0).closestH());
     }
 
     @Test

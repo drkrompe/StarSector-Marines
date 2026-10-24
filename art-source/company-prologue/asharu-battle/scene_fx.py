@@ -26,6 +26,7 @@ import contextlib
 import importlib
 import math
 import random
+import os
 import re
 
 import bpy
@@ -115,15 +116,56 @@ class SceneFx:
 
     def hit_point(self, target, from_world, aim_world):
         """Where a round from from_world toward aim_world meets the target's hull, in the target's
-        frame (metres), with the surface normal; the aim point and an outward normal on a miss."""
+        frame (metres), with the surface normal. On a miss, the point on her hull nearest the aim
+        point (coordinator, 2026-10-23: every planned impact lands on metal, never in the air)."""
         imp = self.m['swfx_impacts']
         a, b = self.local(target, from_world), self.local(target, aim_world)
         start = b + (a - b).normalized() * 60.0          # cast from just outside her, not from the shooter
         got = imp.ray_to_hull(self.scene, self.placed[target]['matrix'], tuple(start), tuple(b))
+        if got and Vector(got[0]).length > .75 * self.placed[target]['length']:
+            got = None       # it met something else: a boat on her deck, a ship alongside; not her hull
         if got:
             return Vector(got[0]), Vector(got[1])
+        near = self.nearest_on_hull(target, b)
+        if near is not None:
+            self.rows.append(f'hit point on {target}: the line missed her; snapped {(near[0] - b).length:.1f} m '
+                             f'from the aim point onto her hull')
+            return near
+        self.rows.append(f'hit point on {target}: the line missed her and she has no hull mesh to snap to')
         n = (a - b).normalized()
         return b, n
+
+    def nearest_on_hull(self, target, p_m):
+        """(point, normal) on the target's hull meshes nearest p_m, both in her frame (metres), or None.
+        Her copy's objects are in copy space (her matrix x mpu); each mesh is searched in its own space."""
+        pl = self.placed[target]
+        s = pl['fx']
+        hull = getattr(s, 'hull', None) if s is not None else None
+        if hull is None:
+            return None
+        mpu = pl['mpu']
+        p_copy = Vector(p_m) / mpu
+        best = None
+        for o in hull.all_objects:
+            if o.type != 'MESH' or o.name.startswith('SWFX') or not len(o.data.polygons):
+                continue
+            m, par, n_ = o.matrix_basis.copy(), o.parent, o
+            while par is not None:
+                m = par.matrix_basis @ n_.matrix_parent_inverse @ m
+                n_, par = par, par.parent
+            try:
+                ok, loc, nrm, _i = o.closest_point_on_mesh(m.inverted() @ p_copy)
+            except (RuntimeError, ValueError):
+                continue
+            if not ok:
+                continue
+            w = m @ loc
+            d = (w - p_copy).length
+            if best is None or d < best[0]:
+                best = (d, w, (m.to_3x3() @ nrm).normalized())
+        if best is None:
+            return None
+        return best[1] * mpu, best[2]
 
     # ------------------------------------------------------------------ shields
     def shield(self, key, s):
@@ -169,7 +211,7 @@ class SceneFx:
             if target is not None and hit_l is not None:
                 self.strikes(b, [self.now - k * 3 for k in range(4)], hit_l, normal, 'kinetic')
             return False
-        landed, fired, placed_hits = [], [], []
+        landed, fired, placed_hits, planned_any = [], [], [], False
         with self.fired(a), shooter.kit() as (ctx, kit):
             turrets = []
             for m in muzzles:
@@ -198,6 +240,7 @@ class SceneFx:
                         recs = self.planned(ctx, kit, a, b, turret, weapon, self.local(a, mz), hit_l, speed,
                                             feeder, aim_at)
                         if recs is not None:
+                            planned_any = True       # the plan owns this gun, firing or holding
                             placed_hits += [(r['hit_frame'], r['hit_l'], r['hit_n']) for r in recs
                                             if r.get('hit_frame') is not None and r.get('hit_l') is not None]
                             if recs:
@@ -216,7 +259,11 @@ class SceneFx:
                 if recs:             # a degenerate gun fires nothing: the stand-in draws the shot
                     fired.append(f't{turret} {weapon} x{len(recs)}' + (' (feeder)' if feeder else ''))
         if not fired:
-            return False
+            # a planned gun that holds fire draws nothing; it never falls back to the blockout's
+            # stand-in streaks, which are a still picture of a stream (owner, 2026-10-23, S7)
+            if planned_any:
+                self.rows.append(f'tracer {a} -> {b}: planned, no round on target in this shot')
+            return planned_any
         if placed_hits:      # planned rounds: each strike where its own straight line met her hull
             he = self.hit_kind(a, fired)
             placed_hits = [h for h in sorted(placed_hits, key=lambda h: h[0])
@@ -270,11 +317,17 @@ class SceneFx:
     # fire weapons around a ship is good"): each burst opens off to one side of the aim point and
     # walks across and past her; a round hits only where its straight line meets her hull, and
     # the rest fly on past her and fade. WALK_R is the walk's reach as a share of her length.
-    WALK_R = .3
+    # Wider than the hull (owner, 2026-10-23, S6b: "NONE of the bursts miss"): a walk opens off her,
+    # crosses her and leaves the far side, so a third to a half of a burst's rounds go wide.
+    WALK_R = .5
     # Each round leaves the bore a little off the gun's line, seeded per round (owner, 2026-10-23,
     # S6: the rounds of a burst should fly roughly parallel, not all converge on one point): the
     # aim point scatters by range x tan(SPREAD_DEG), so the spread grows with distance as a gun's does.
-    SPREAD_DEG = .25
+    SPREAD_DEG = .3
+    # A gunner's lead is a guess at where she will be: each burst leads by its own error (a share of
+    # the flight time), so a moving target slides out from under some bursts and into others.
+    # .12 missed 69% of S6b's rounds (verify12); the owner's mark is a third to a half.
+    LEAD_ERR = .07
 
     def planned(self, ctx, kit, a, b, turret, weapon, muzzle_l, hit_l, speed, feeder, track):
         """Fire turret on a at b over the whole shot as a gun would: returns the round records, or
@@ -332,10 +385,11 @@ class SceneFx:
         walks = []
         for t0, t1 in bursts:
             th = rnd.uniform(0, 2 * math.pi)
-            r0 = reach * rnd.uniform(.9, 1.6)
+            r0 = reach * rnd.uniform(.8, 1.5)
             ph = th + math.pi + rnd.uniform(-.8, .8)
-            r1 = reach * rnd.uniform(0, 1.3)
-            walks.append((t0, t1, (math.cos(th) * r0, math.sin(th) * r0), (math.cos(ph) * r1, math.sin(ph) * r1)))
+            r1 = reach * rnd.uniform(-.2, .6)
+            walks.append((t0, t1, (math.cos(th) * r0, math.sin(th) * r0), (math.cos(ph) * r1, math.sin(ph) * r1),
+                          rnd.gauss(0, self.LEAD_ERR)))
         imp = self.m['swfx_impacts']
         mpu = self.placed[a]['mpu']
         copy_at = lambda f: self.matrix_at(a, f) @ Matrix.Scale(mpu, 4)
@@ -348,28 +402,32 @@ class SceneFx:
             ma = self.matrix_at(a, f)
             src = ma @ Vector(muzzle_l)
             fl = (self.matrix_at(b, f) @ Vector(hit_l) - src).length / max(speed, 1.0) * fps
-            mb = self.matrix_at(b, f + fl)
+            jr = random.Random(f'asharu-walk|{a}|{turret}|{b}|{f}')
+            ox = oy = err = 0.0
+            for t0, t1, c, e, le in walks:
+                if t0 <= f < t1:
+                    k = (f - t0) / max(t1 - t0, 1.0)
+                    ox, oy, err = c[0] + (e[0] - c[0]) * k, c[1] + (e[1] - c[1]) * k, le
+                    break
+            mt = self.matrix_at(b, f + fl)                          # where she really is when it arrives
+            mb = self.matrix_at(b, f + fl * (1 + err + jr.gauss(0, .03)))   # where the gunner led her
             line = (Vector(hit_l) - mb.inverted() @ src).normalized()
             u = line.orthogonal().normalized()
             v = line.cross(u)
-            ox = oy = 0.0
-            for t0, t1, c, e in walks:
-                if t0 <= f < t1:
-                    k = (f - t0) / max(t1 - t0, 1.0)
-                    ox, oy = c[0] + (e[0] - c[0]) * k, c[1] + (e[1] - c[1]) * k
-                    break
-            jr = random.Random(f'asharu-walk|{a}|{turret}|{b}|{f}')
             spread = math.hypot(reach * .08, (Vector(hit_l) - mb.inverted() @ src).length
                                 * math.tan(math.radians(self.SPREAD_DEG)))
             ox += jr.gauss(0, spread)
             oy += jr.gauss(0, spread)
-            aim_l = Vector(hit_l) + u * ox + v * oy
-            got = imp.ray_to_hull(self.scene, bm, tuple(aim_l - line * reach * 4), tuple(aim_l))
+            aim_w = mb @ (Vector(hit_l) + u * ox + v * oy)          # the round's aim point, in the world
+            real = mt.inverted()                                    # ... in her frame as she really is then
+            aim_l, src_l = real @ aim_w, real @ src
+            ray = (aim_l - src_l).normalized()
+            got = imp.ray_to_hull(self.scene, bm, tuple(aim_l - ray * reach * 4), tuple(aim_l))
             hit = None
             if got is not None and (Vector(got[0]) - Vector(hit_l)).length < reach * 3:
                 hit = (Vector(got[0]), Vector(got[1]))
-                aim_l = hit[0]
-            shots[f] = ((ma @ Matrix.Scale(mpu, 4)).inverted() @ (mb @ aim_l), hit)
+                aim_w = mt @ hit[0]
+            shots[f] = ((ma @ Matrix.Scale(mpu, 4)).inverted() @ aim_w, hit)
             return shots[f]
         others = [k for k in self.placed if k not in (a, b)]
         clear = {}
@@ -410,6 +468,18 @@ class SceneFx:
         recs = g.fire_weapon(ctx, turret, F0, (F1 - F0) / fps, feeder=feeder, target=lambda f: shot(f)[0],
                              train=False, allow=allow, pose=pose, passes=lambda f: shot(f)[1] is None,
                              after=lambda f, objs: g.world_rounds(objs, lambda k, f=f: copy_at(k).inverted() @ copy_at(f)))
+        if not recs and not any(stats.values()):
+            # fire_weapon refused the gun before a single round was asked about (its degenerate-
+            # anchor guard): a broken plan, not a gun holding fire (2026-10-23, S7's Wolf (P))
+            ma = self.matrix_at(a, F0)
+            src = ma @ Vector(muzzle_l)
+            hit_w = self.matrix_at(b, F0) @ Vector(hit_l)
+            raise RuntimeError(
+                f'planned {a} t{turret} -> {b}: fire_weapon refused the gun. At F0={F0}: muzzle_l '
+                f'{tuple(round(c, 1) for c in muzzle_l)} (m, her frame), src {tuple(round(c, 1) for c in src)}, '
+                f'hit_l {tuple(round(c, 1) for c in hit_l)} (m, {b} frame), hit {tuple(round(c, 1) for c in hit_w)}, '
+                f'{a} at {tuple(round(c, 1) for c in ma.translation)}, mpu {mpu}, speed {speed}, '
+                f'target (copy) {tuple(round(c, 1) for c in shot(F0)[0])}')
         hits = 0
         for r in recs:
             got = shots.get(r['frame'], (None, None))[1]
@@ -533,7 +603,56 @@ class SceneFx:
         if bad and self.matrix_at is not None and self.span:
             raise RuntimeError(f'{len(bad)} projectiles still in the space of the ship that fired them '
                                f'(owner, 2026-10-23: projectiles fly in world space), e.g. {bad[:6]}')
+        if self.span and self.cur is None:      # the whole shot's rounds, built once (--kit-once)
+            flight, checked = self.flight_check()
+            self.rows.append(f'flight check: {checked} rounds checked, {len(flight)} pop in, freeze or blink')
+            if flight and not os.environ.get('ASHARU_AUDIT_SOFT'):
+                raise RuntimeError(f'{len(flight)} rounds do not fly from the muzzle onward every frame '
+                                   f'(owner, 2026-10-23, S7: streaks held still for ten frames): {flight[:6]}')
         return bad
+
+    # The round bodies themselves: a round's corona and core, a tracer. Not its halo or light, which
+    # sit at the muzzle for the first frames by design, nor an ion bolt's one-frame jag pieces (the
+    # bolt's corona round carries its flight).
+    MOVERS = re.compile(r' (round(?! halo| light)|tracer) .* f-?\d{3,}$')
+
+    def flight_check(self):
+        """Every round in a shot flies: it shows first on the frame it was fired (or on the shot's
+        first frame, if it was fired before the cut), shows on every frame until it is gone, and
+        moves on every one of them. Anything else is a streak that pops in mid-flight, holds still
+        or blinks."""
+        import swfx_core
+        f_lo, f_hi = self.span
+        bad, checked = [], 0
+        for o in bpy.data.objects:
+            if o in self.before or o.parent is not None or not o.name.startswith('SWFX') or not self.MOVERS.search(o.name):
+                continue
+            fcs = [swfx_core.find_fcurve(o, 'location', i) for i in range(3)]
+            vis = swfx_core.find_fcurve(o, 'hide_render')
+            if vis is None or not len(vis.keyframe_points):
+                continue
+            keys = [kp.co.x for kp in vis.keyframe_points]
+            lo, hi = max(f_lo, int(min(keys))), min(f_hi, int(max(keys)) + 1)
+            shown = [f for f in range(lo, hi + 1) if vis.evaluate(f) < .5]
+            if not shown:
+                continue
+            checked += 1
+            birth = self._birth(o, swfx_core)
+            if birth is not None and shown[0] > max(birth, f_lo) + 1:
+                bad.append(f'{o.name}: first shown f{shown[0]}, fired f{birth}')
+                continue
+            if shown[-1] - shown[0] + 1 != len(shown):
+                bad.append(f'{o.name}: blinks between f{shown[0]} and f{shown[-1]}')
+                continue
+            if len(shown) > 1 and not all(fc is not None and len(fc.keyframe_points) for fc in fcs):
+                bad.append(f'{o.name}: shown {len(shown)} frames with no flight keys')
+                continue
+            for f in shown[1:]:
+                d = sum((fc.evaluate(f) - fc.evaluate(f - 1)) ** 2 for fc in fcs) ** .5
+                if d < 1e-3:
+                    bad.append(f'{o.name}: holds still at f{f}')
+                    break
+        return bad, checked
 
     def add_elevation(self, a, piv, guns):
         """A mount the build gave only a traverse pivot (the Hound's WS 002): an elevation joint made

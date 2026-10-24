@@ -22,6 +22,13 @@ public enum HarrierLook {
     public static final int FALL_FRAMES = 4;
     /** Drawings of a dead flier on the ground. */
     public static final int CORPSE_VARIANTS = 2;
+    /**
+     * Where the body's segments hinge, in exported pixels behind the canvas centre (negative: ahead of it): the
+     * neck, the waist, and the tail's root and two joints. Every segment shares the frames' canvas, so its centre
+     * is the body's anchor; {@code export_harrier.py} prints these.
+     */
+    public static final float NECK_PX = -21.62f, WAIST_PX = 3.52f;
+    public static final float[] TAIL_PX = {28.66f, 39.12f, 49.30f};
 
     private final String folder;
     /** Wingspan in cells with the wings spread: the glide drawing's width, which the exporter scales it to. */
@@ -44,6 +51,12 @@ public enum HarrierLook {
      * canvas and pivot, and its body to the pixel: only the wings move.
      */
     public String beat(int i) { return i == 0 ? glide() : ROOT + folder + "/beat-" + i + ".png"; }
+
+    /** The body's segments, which the live frames leave off: only the thorax rides with the wings. */
+    public String head() { return ROOT + folder + "/head.png"; }
+    public String abdomen() { return ROOT + folder + "/abdomen.png"; }
+    /** Tail segment {@code i}, 1 (at the root) to 3 (the tip). */
+    public String tail(int i) { return ROOT + folder + "/tail-" + i + ".png"; }
 
     /** Fold frame {@code i}, 1 to {@link #FOLD_FRAMES}: the wings part way from the glide to the dive. */
     public String fold(int i) { return ROOT + folder + "/fold-" + i + ".png"; }

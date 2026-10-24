@@ -99,10 +99,16 @@ chooses what the button fires without a key per weapon.
 
 The flamer's charge flies as a flame jet (a puff cropped from the fire sheet by
 `art-source/fx/flamer-jet/export.py`, a fire-and-glow trail, and a nozzle
-emitter spraying fire forward for the length of each charge), but it has no
-carried or firing art: its carried prop and armoury icon still name the frag
-grenade, and the Marine holds the primary's aim and firing clips while it is
-picked. A held flamer wand and a firing clip are part of the same art question.
+emitter spraying fire forward for the length of each charge). Its carried art is
+its own (`art-source/flamer/`): a fuel pack of twin tanks and a pressure bottle
+worn on the back as the carrier layer, always visible, and a wand drawn as the
+item's handset layer, corded to the pack by a stretched hose the way the comms
+radio's handset is corded to its pack. Picked, the Marine holds the wand at the
+hip in place of the primary through the `flamer` variant's `aiming` and
+`firing` clips (`usePose` `braced-rifle`, so the poses are the held-special
+ones); the wand is drawn under the helmet (`underHead`). The armoury icon is the
+kit in profile. Frames `flamer-*-close` in `marine-left-special` show it at a
+close framing.
 
 The held special reuses art that already exists: the launcher and anti-materiel
 rifle sprites and their `aiming` and `firing` clips in the `rocket` and

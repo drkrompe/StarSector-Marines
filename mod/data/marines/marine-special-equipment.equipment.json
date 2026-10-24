@@ -893,32 +893,36 @@
         "policy": "soft-cluster-indirect"
       },
       "presentation": {
-        "armoryIcon": "graphics/ui/armory/special-frag-grenade.png",
-        "usePose": "throw",
+        "armoryIcon": "graphics/ui/armory/special-flamer.png",
+        "usePose": "braced-rifle",
         "carrierLayer": {
-          "sprite": "graphics/ui/armory/special-frag-grenade.png",
-          "widthShoulders": 0.2,
-          "heightShoulders": 0.2,
-          "pivot": [
-            0.5,
-            0.5
-          ],
+          "sprite": "graphics/battle/fx/flamer-pack.png",
+          "attachment": "body",
+          "widthShoulders": 0.7,
+          "heightShoulders": 0.5,
+          "pivot": [0.5, 0.5],
           "carried": {
-            "offsetShoulders": [
-              -0.16,
-              0.02
-            ],
-            "angleDegrees": -30.0,
+            "offsetShoulders": [0.0, -0.27],
+            "angleDegrees": 0.0,
             "occlusion": "over-body"
           },
           "using": {
-            "offsetShoulders": [
-              0.0,
-              0.32
-            ],
+            "offsetShoulders": [0.0, -0.27],
             "angleDegrees": 0.0,
             "occlusion": "over-body"
-          }
+          },
+          "visibleWhileCarried": true,
+          "replacePrimaryWhileUsing": true
+        },
+        "handsetLayer": {
+          "sprite": "graphics/battle/fx/flamer-wand.png",
+          "cordSprite": "graphics/battle/fx/flamer-hose.png",
+          "widthShoulders": 0.16,
+          "heightShoulders": 0.62,
+          "cordWidthShoulders": 0.07,
+          "port": [0.5, 0.99],
+          "packPort": [0.96, 0.51],
+          "underHead": true
         },
         "thrown": {
           "sprite": "graphics/ui/armory/special-frag-grenade.png",
@@ -926,12 +930,13 @@
           "heightCells": 0.34
         },
         "layerClips": {
-          "variant": "smoke",
-          "using": "throwing"
+          "variant": "flamer",
+          "using": "aiming",
+          "firing": "firing"
         },
         "preview": {
           "state": "using",
-          "phase": 0.6
+          "phase": 1.0
         }
       }
     }

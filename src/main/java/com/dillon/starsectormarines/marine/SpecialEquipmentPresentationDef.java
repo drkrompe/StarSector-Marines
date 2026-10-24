@@ -48,13 +48,15 @@ public record SpecialEquipmentPresentationDef(
      * layer by a cord. Its placement per frame is the clip's {@code handset} layer;
      * this record owns the art, its true size in shoulder widths, and the two cord
      * ports in normalized sprite coordinates (origin top-left): where the cord leaves
-     * the handset and where it enters the carried layer.
+     * the handset and where it enters the carried layer. A handset raised to the helmet is drawn over the
+     * head; one held lower, like the flamer's wand at the hip, is {@code underHead}.
      */
     public record HandsetLayer(String spritePath, String cordSpritePath,
                                float widthShoulders, float heightShoulders,
                                float cordWidthShoulders,
                                float portX, float portY,
-                               float packPortX, float packPortY) implements Serializable {
+                               float packPortX, float packPortY,
+                               boolean underHead) implements Serializable {
 
         /** Key under which the handset art is registered beside the carried layer. */
         public static String assetKey(String equipmentId) {
@@ -182,7 +184,8 @@ public record SpecialEquipmentPresentationDef(
                 unit((float) port.getDouble(0), equipmentId),
                 unit((float) port.getDouble(1), equipmentId),
                 unit((float) packPort.getDouble(0), equipmentId),
-                unit((float) packPort.getDouble(1), equipmentId));
+                unit((float) packPort.getDouble(1), equipmentId),
+                json.optBoolean("underHead", false));
     }
 
     private static Field parseField(JSONObject json, String equipmentId)

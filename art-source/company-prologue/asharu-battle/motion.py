@@ -98,8 +98,55 @@ def drift(key, station, t, scale=1.0):
 
 
 def fleet_at(ships, t, scale=1.0, keep=()):
-    """Every ship of a dict at time t, except those named in keep (authored poses left as posed)."""
-    return {k: (v if k in keep else drift(k, v, t, scale)) for k, v in ships.items()}
+    """Every ship of a dict at time t (live(): her pose at t, and her motion through a shot around
+    it), except those named in keep (authored poses left as posed)."""
+    return {k: (v if k in keep else live(k, v, t, scale)) for k, v in ships.items()}
+
+
+# No ship holds a fixed spot (owner, 2026-10-23, S6), and none flies sideways (S4). A fleet ship
+# through a shot steers her weave: drift()'s heading, pitch, bank and throttle, played livelier for the
+# heavy hulls (LIVE_GAIN), and she moves only along her own nose, at her class's CREEP seeded per ship
+# (0.6 to 1.4 of it, so a formation shifts against itself) and surging with her throttle. drift()'s
+# own position weave is a convoy-frame offset that reads as crabbing in a still frame, so it is used
+# at the key time only: there she is exactly where drift() puts her, and every still keeps its framing.
+CREEP = {'frigate': 18.0, 'destroyer': 12.0, 'cruiser': 8.0, 'freighter': 5.0}
+LIVE_GAIN = {'frigate': 1.0, 'destroyer': 1.5, 'cruiser': 2.5, 'freighter': 3.0}
+LIVE_DT = .05
+
+
+def live(key, st, t_key, scale=1.0):
+    cls = mass_class(key)
+    g = LIVE_GAIN[cls]
+    k = .6 + .8 * (zlib.crc32(f'{key}|creep'.encode()) % 1000) / 999.0
+    creep = CREEP[cls] * k if st[6] > 0 else 0.0     # dead drives: she drifts, she does not creep
+    base = drift(key, st, t_key, scale)
+    memo = {}
+
+    def att(tt):
+        d = drift(key, st, tt, scale)
+        thr = max(d[6], .3) if creep else d[6]       # her drives show while she creeps
+        return (base[3] + (d[3] - base[3]) * g, base[4] + (d[4] - base[4]) * g, base[5] + (d[5] - base[5]) * g, thr)
+
+    def vel(tt):
+        hd, pt, _, thr = att(tt)
+        s = creep * (.7 + .6 * thr)
+        hr, pr = math.radians(hd), math.radians(pt)
+        return (s * math.cos(pr) * math.cos(hr), s * math.cos(pr) * math.sin(hr), s * math.sin(pr))
+
+    def at(tt):
+        n = int(round((tt - t_key) / LIVE_DT))
+        if n not in memo:
+            step = 1 if n >= 0 else -1
+            m = max((q for q in memo if (q - n) * step <= 0 and q * step >= 0), key=abs, default=0)
+            pos = memo.get(m, base[:3])
+            for q in range(m, n, step):                  # midpoint steps along her own heading
+                v = vel(t_key + (q + .5 * step) * LIVE_DT)
+                pos = tuple(pos[c] + v[c] * LIVE_DT * step for c in range(3))
+                memo[q + step] = pos
+            memo[n] = pos
+        x, y, z = memo[n]
+        return (x, y, z, *att(tt))
+    return Pose(at(t_key), t_key, at)
 
 
 def _bez(p, s):
@@ -111,7 +158,7 @@ def _bez(p, s):
     return pos, der
 
 
-def boarding_run(launch, leave, seat, arrive, seated, t0, t1, t):
+def boarding_run(launch, leave, seat, arrive, seated, t0, t1, t, hold=0.0):
     """A boarding boat t seconds in, on its run from its mother craft to the prize (owner, 2026-10-22).
 
     launch: the point it leaves from, out of the camera's sight (under or behind its mother craft);
@@ -121,7 +168,48 @@ def boarding_run(launch, leave, seat, arrive, seated, t0, t1, t):
     burn, coast and brake: it burns out along the curve for the first 30%, coasts, yaws end for end
     (from 58% to 70%) and burns against its motion for the last 30%, so it arrives tail first, nose to
     the way it came, which is the way it sits down (seated's heading). Before t0 it is at the launch
-    point, at rest; from t1 it is seated."""
+    point, at rest; from t1 it is seated.
+
+    hold (seconds): the boat settles before it sets down (owner, 2026-10-23, S7: "somewhat still
+    navigating into a stable position near their target"). The run then brakes to rest at a hold
+    point HOLD_ASTERN m astern of the seat and HOLD_UP m above it, keeps station there for hold
+    seconds (sub-metre drift, a degree of attitude, short RCS pulses on the throttle), and eases down
+    onto the seat over SETTLE_S."""
+    if hold <= 0.0:
+        return _run(launch, leave, seat, arrive, seated, t0, t1, t)
+    t_hold = t1 - SETTLE_S - hold
+    over = [seat[i] - arrive[i] * HOLD_ASTERN + (HOLD_UP if i == 2 else 0.0) for i in range(3)]
+    if t < t_hold:
+        return _run(launch, leave, over, arrive, (*over, seated[3], seated[4], 0.0, .2), t0, t_hold, t)
+    if t >= t1:
+        return seated
+    import random
+    rnd = random.Random('boarding hold|%.1f|%.1f' % (launch[0], launch[1]))
+    ph = [rnd.uniform(0, 6.3) for _ in range(6)]
+    per = [rnd.uniform(2.0, 4.0) for _ in range(6)]
+    amp = [rnd.uniform(.3, .8) for _ in range(3)]
+    if t < t1 - SETTLE_S:
+        u, base = 0.0, over
+    else:
+        u = (t - (t1 - SETTLE_S)) / SETTLE_S
+        u = u * u * (3 - 2 * u)
+        base = [over[i] + (seat[i] - over[i]) * u for i in range(3)]
+    still = 1.0 - u                                              # the drift dies as she sets down
+    pos = [base[i] + amp[i] * still * math.sin(2 * math.pi * t / per[i] + ph[i]) for i in range(3)]
+    hd = seated[3] + 1.2 * still * math.sin(2 * math.pi * t / per[3] + ph[3])
+    pt = seated[4] + .8 * still * math.sin(2 * math.pi * t / per[4] + ph[4])
+    rl = .8 * still * math.sin(2 * math.pi * t / per[5] + ph[5])
+    # RCS: a short pulse every second or so, corrections against the drift
+    k = int(t * 1.3)
+    pulse = random.Random('rcs|%d|%.1f' % (k, launch[0])).uniform(.1, .45) if (t * 1.3 - k) < .25 else 0.0
+    return (pos[0], pos[1], pos[2], hd, pt, rl, .1 + pulse * still + .2 * u)
+
+
+HOLD_ASTERN, HOLD_UP, SETTLE_S = 14.0, 6.0, 3.0
+
+
+def _run(launch, leave, seat, arrive, seated, t0, t1, t):
+    """boarding_run's run itself: the cubic from launch to seat, burn, coast, flip and brake."""
     u = max(0.0, min(1.0, (t - t0) / (t1 - t0)))
     if u >= 1.0:
         return seated
@@ -154,6 +242,20 @@ class Pose(tuple):
         o = tuple.__new__(cls, pose)
         o.t, o.at = t, at
         return o
+
+
+def _orthonormal(m):
+    """Rows of a near-rotation 3x3 (a blend of two close ones) made a rotation again, columns
+    Gram-Schmidt in order: forward, then left, then up as their cross product."""
+    c = [[m[r][k] for r in range(3)] for k in range(3)]
+    def norm(v):
+        n = math.sqrt(sum(x * x for x in v)) or 1.0
+        return [x / n for x in v]
+    f = norm(c[0])
+    d = sum(c[1][i] * f[i] for i in range(3))
+    l = norm([c[1][i] - d * f[i] for i in range(3)])
+    u = [f[1] * l[2] - f[2] * l[1], f[2] * l[0] - f[0] * l[2], f[0] * l[1] - f[1] * l[0]]
+    return [[f[r], l[r], u[r]] for r in range(3)]
 
 
 def _rot(hd, pt, rl):
@@ -221,7 +323,9 @@ def _hit_offsets(hits, jumps, tt):
     """Summed effect of hits and jumps at tt: battle-frame shove (m), body-frame turn (roll, pitch,
     yaw deg) and body-frame shove (m, fore/port/up). A hit with kick=True is transient: it peaks at
     its push/spin/bpush values decay seconds after t and dies away (a gun's recoil); otherwise it is
-    a lasting shove that builds over decay seconds (spin and push in deg/s and m/s)."""
+    a lasting shove that builds over decay seconds (spin and push in deg/s and m/s). held=True: the
+    spin is a tumble that keeps its rate (vacuum has no drag to stop it), reached over the quarter
+    second the impulse takes; push still builds over decay (owner, 2026-10-23, S9b: no pinwheel)."""
     dp, ang, bdp = [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]
     for h in hits:
         if tt <= h['t']:
@@ -229,9 +333,10 @@ def _hit_offsets(hits, jumps, tt):
         tau = h.get('decay', 2.0)
         x = tt - h['t']
         k = (x / tau) * math.exp(1 - x / tau) if h.get('kick') else tau * (1 - math.exp(-x / tau))
+        ks = x - .25 * (1 - math.exp(-x / .25)) if h.get('held') else k
         for n in range(3):
             dp[n] += h.get('push', (0, 0, 0))[n] * k
-            ang[n] += h.get('spin', (0, 0, 0))[n] * k
+            ang[n] += h.get('spin', (0, 0, 0))[n] * ks
             bdp[n] += h.get('bpush', (0, 0, 0))[n] * k
     for tj, off in jumps:
         # A Phase Skimmer jump is a dash, not a teleport (owner, 2026-10-23, S6c: a Wolf "pop in on
@@ -362,8 +467,25 @@ class Flight:
             self.samples[j] = (p, m)
         return p, m
 
+    def _between(self, t):
+        """Position and attitude at t, between the integrated steps either side of it (2026-10-23:
+        taking the nearest step put a fast ship a whole step, 3.5 m at 210 m/s, off her own planned
+        pose whenever a frame's time fell a hair either side of a half step, which at 24 fps is every
+        other frame, and moved her in uneven two- and three-step strides)."""
+        x = (t - self.t_key) / self.DT
+        i0 = math.floor(x)
+        f = x - i0
+        p0, m0 = self._state(i0)
+        if f < 1e-9:
+            return p0, m0
+        p1, m1 = self._state(i0 + 1)
+        p = tuple(p0[k] + (p1[k] - p0[k]) * f for k in range(3))
+        if m0 is None or m1 is None:
+            return p, m0 if m1 is None else m1
+        return p, _orthonormal([[m0[r][c] + (m1[r][c] - m0[r][c]) * f for c in range(3)] for r in range(3)])
+
     def __call__(self, t):
-        p, m = self._state(round((t - self.t_key) / self.DT))
+        p, m = self._between(t)
         p, m = _apply(p, m, self.hits, self.jumps, t, self.t_key)
         m = _body_step(m, self._bank(t) - self._bank(self.t_key), 0.0, 0.0)
         w = [0.0, 0.0, 0.0]
@@ -442,7 +564,7 @@ class Keyed(Flight):
         return p, None
 
     def __call__(self, t):
-        p, _ = self._state(round((t - self.t_key) / self.DT))
+        p, _ = self._between(t)
         hd, pt, rl, v, thr = self.attitude(t)
         if self.thrust:      # the drives burn with the acceleration: speeding up, and hauling round a turn
             thr = max(IDLE, min(1.0, IDLE + (abs(self._accel(t)) + .5 * abs(v) * self._turn(t)) / self.thrust))

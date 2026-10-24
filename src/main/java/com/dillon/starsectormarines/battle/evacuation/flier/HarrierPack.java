@@ -137,6 +137,11 @@ public final class HarrierPack {
             // Folding is for going in: a member still circling out its stagger keeps its wings spread.
             boolean diving = phase == Phase.DIVE && !m.struck && phaseSeconds >= m.diveDelay;
             m.fold = diving ? Math.min(1f, m.fold + folding) : Math.max(0f, m.fold - folding);
+            // The head locks on what it is diving at, and otherwise looks about the prey the pack has in mind.
+            boolean ownPrey = m.prey != 0L;
+            float lookX = ownPrey ? m.preyX : target != 0L ? targetX : Float.NaN;
+            float lookY = ownPrey ? m.preyY : target != 0L ? targetY : Float.NaN;
+            m.rig.advance(m, HarrierWingbeat.phase(m, phase), lookX, lookY, diving, dt);
         }
     }
 

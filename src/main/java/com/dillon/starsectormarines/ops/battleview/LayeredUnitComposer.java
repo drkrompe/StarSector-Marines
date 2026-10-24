@@ -395,6 +395,12 @@ final class LayeredUnitComposer {
             emitSprite(out, weapon, wt.cx, wt.cy, pxPerSw, wt.angleDeg, alpha);
         }
 
+        // A handset held low, like the flamer's wand at the hip, is under the helmet.
+        boolean handsetUnderHead = handsetPlacement != null && handsetDef.underHead();
+        if (handsetUnderHead) {
+            emitEquipmentLayer(out, handsetSprite, handsetPlacement, alpha);
+        }
+
         LayerTransform headTransform = layer(authoredPose, "head");
         if (headTransform != null) {
             emitAuthored(out, head, headTransform, actorX, actorY, pxPerSw,
@@ -405,8 +411,8 @@ final class LayeredUnitComposer {
                     facingDeg + headLookDeg, alpha);
         }
 
-        // The handset is raised to the helmet, so it is the last thing drawn over the head.
-        if (handsetPlacement != null) {
+        // A handset raised to the helmet is the last thing drawn, over the head.
+        if (handsetPlacement != null && !handsetUnderHead) {
             emitEquipmentLayer(out, handsetSprite, handsetPlacement, alpha);
         }
 
@@ -417,7 +423,10 @@ final class LayeredUnitComposer {
         }
 
         if ((flags & LayeredAppearance.FLAG_MUZZLE_FLASH) != 0) {
-            if (specialPlacement != null && specialFiring) {
+            if (handsetPlacement != null && specialFiring) {
+                // A corded item fires from what is in the hand, not from the pack.
+                emitEquipmentFlash(out, assets.muzzleFlash, handsetPlacement, pxPerSw, alpha);
+            } else if (specialPlacement != null && specialFiring) {
                 emitEquipmentFlash(out, assets.muzzleFlash, specialPlacement, pxPerSw, alpha);
             } else if (drawPrimaryLayers) {
                 emitFlash(out, assets.muzzleFlash, wt, weapon, pxPerSw, alpha);

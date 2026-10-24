@@ -148,6 +148,8 @@ public final class UnitShadowRenderSystem implements RenderSystem {
      * just over the rooftops, and its shadow should sit a wingspan or two off it, not across the street.
      */
     private static final float FLIER_SHADOW_HEIGHT_CELLS = 4f;
+    /** How much further a flier's shadow stands off per share its body has pumped up with the stroke. */
+    private static final float FLIER_SHADOW_PUMP_GAIN = 4f;
 
     /**
      * The altitude, in cells, an aircraft at full height casts from.
@@ -231,7 +233,8 @@ public final class UnitShadowRenderSystem implements RenderSystem {
      * Rav fliers: each casts its own drawing, in the pose it is drawn in, laid down-sun by the height it flies at,
      * so a loitering pack's shadows stand off it and a diver's close in under it as it comes down. The ground size,
      * not the drawn one: the body grows with height as it nears the camera, its shadow does not. A shot flier's
-     * shadow closes in under it as it falls, and meets it on the ground.
+     * shadow closes in under it as it falls, and meets it on the ground. As the stroke pumps the body up its
+     * shadow stands further off and shrinks a little.
      */
     private void collectFliers(RenderContext ctx, DrawList out) {
         SwarmFliers fliers = ctx.sim.swarmFliers();
@@ -257,16 +260,16 @@ public final class UnitShadowRenderSystem implements RenderSystem {
                 float seen = HarrierRenderSystem.visibility(ctx, vis, m.id);
                 if (seen <= 0f) continue;
                 HarrierPose pose = HarrierPose.of(m, pack.phase());
-                ShuttleSpriteCache cache = sprites.spriteByPath(pose.sprite());
-                if (cache == null) continue;
-                float reach = sun.reachCells(FLIER_SHADOW_HEIGHT_CELLS * m.altitude);
+                // A pump that lifts the body throws its shadow further off and draws it smaller.
+                float lift = (m.rig.pump - 1f) * FLIER_SHADOW_PUMP_GAIN;
+                float reach = sun.reachCells(FLIER_SHADOW_HEIGHT_CELLS * m.altitude * (1f + lift));
                 float x = m.body.x - sun.dirX() * reach;
                 float y = m.body.y - sun.dirY() * reach;
                 if (!view.visible(x, y, 3f)) continue;
-                emit(out, cache.sprite, cam, x, y,
-                        cache.pxW / HarrierLook.PX_PER_CELL * cellPx,
-                        cache.pxH / HarrierLook.PX_PER_CELL * cellPx,
-                        m.body.facingDegrees, alpha * seen);
+                float a = alpha * seen;
+                HarrierBodyComposer.compose(sprites, m, pose.sprite(), x, y, 1f / (m.rig.pump * m.rig.pump),
+                        (part, px, py, degrees, w, h) -> emit(out, part.sprite, cam, px, py, w * cellPx, h * cellPx,
+                                degrees, a));
             }
         }
     }
