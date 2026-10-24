@@ -562,7 +562,7 @@ K3_SHIPS = {
 }
 
 # S6b: Lasher B rolls over to starboard (150) and the merchant Wolf to port (-140), both onto the
-# climbing raiders, guns down; the Hound (P) soaks the burst, then breaks up as Lasher B's lands (62.9 s)
+# climbing raiders, guns down; the Hound (P) soaks the burst, then breaks up as Lasher B's lands (62.83 s)
 K3C_T = 62
 K3C_SHIPS = {
     'lasher-b': fly('lasher-b', (-1300, 450, -150, -175, -15, 150, 1), K3C_T, [
@@ -577,7 +577,7 @@ K3C_SHIPS = {
         dict(t=58, hd=3, pt=14, rl=4, thr=1.0), dict(t=60.8, hd=4, pt=13, rl=0, thr=1.0),
         dict(t=63, v=120), dict(t=66, hd=15, pt=0, rl=-60, v=50)], v=200,     # the wreck slows, tumbling
         hits=[dict(t=61.0, spin=(25, 6, 10), push=(2, 0, -3), decay=1.0, thr=.4),
-              dict(t=62.9, spin=(90, 30, 50), push=(-10, 8, 6), decay=2.0, thr=0.0)]),
+              dict(t=62.9, spin=(90, 30, 50), push=(-10, 8, 6), decay=2.0, thr=0.0)]),     # 2 frames after the cook-off
     'buffalo2-a': jinking('buffalo2-a', (-4200, -1200, -1500, 3, 10, 3, 1), K3C_T, 58, 66,
                           hits=recoil([59.0], kick=.2, shove=.3, every=.5, until=66)),
     'manticore-p': jinking('manticore-p', (-3000, -800, -900, 8, 6, 4, 1), K3C_T, 58, 66),
@@ -907,17 +907,17 @@ KEYFRAMES = {
         # CHASE: behind Lasher B over her roll, looking down past her; jolted as the Hound (P) breaks up
         camera=camera('k3c', [dict(t=t, loc=track(K3C_SHIPS['lasher-b'], (-900, 700, 150), .9, .2),
                                    target=track(K3C_SHIPS['lasher-b'], (-1600, 300, -350), .8, .1), lens=lens)
-                              for t, lens in ((58, 40), (62, 50), (66, 60))], K3C_T, shake=.3, kicks=[(62.9, .6)]),
+                              for t, lens in ((58, 40), (62, 50), (66, 60))], K3C_T, shake=.3, kicks=[(62.83, .6)]),
         ships=K3C_SHIPS,
         # the Buffalo Mk.II no longer fires on Lasher B: a stand-in hull has no kit guns to draw it, and
         # no hit lands without a visible shooter (coordinator, 2026-10-23; kit rounds from stand-ins is open)
         # Lasher B's Ammo Feeder burst kills her: it is in flight about a second at this range, so both
-        # guns cease at 62.0 s and she breaks up at 62.9 s as its last rounds land (S6b audit12: her kill
+        # guns cease at 62.0 s and she breaks up at 62.83 s as its last rounds land (S6b audit12: her kill
         # at 61.9 came before any of them, and the guns fired on into the wreck). walk .35: the killing
         # burst lands on her rather than walking past
         fx=[('tracer', 'lasher-b', 'hound-p-c', (0, 0, 0), dict(cease_t=62.0, walk=.35)),
             ('tracer', 'wolf-m', 'hound-p-c', (0, 0, 0), dict(cease_t=62.0)),
-            ('blast_on', 'hound-p-c', 18, (0, 0, 0), 62.9), ('debris', 'hound-p-c', 50, (0, 0, 0), 62.9)],
+            ('blast_on', 'hound-p-c', 18, (0, 0, 0), 62.83), ('debris', 'hound-p-c', 50, (0, 0, 0), 62.83)],
         labels=['lasher-b', 'wolf-m', 'hound-p-c', 'buffalo2-a']),
     'k3d': dict(
         shot='S6c', title='The column is cut',
@@ -934,12 +934,15 @@ KEYFRAMES = {
         # Mule, a stand-in with no kit guns, no longer fires: coordinator, 2026-10-23)
         shields={'wolf-p-b': dict(toward='colossus', flux=.6), 'wolf-p-a': dict(toward='wolf-m', flux=.45),
                  'wolf-m': dict(toward='wolf-p-a', flux=.2)},
-        fx=[('tracer', 'wolf-p-a', 'tarsus'), ('tracer', 'wolf-p-b', 'tarsus'),
+        # the lead Wolf (P)'s guns on the Tarsus's drives, held tight: the round that opens them lands at
+        # 70.5 s on her starboard quarter, the face she shows the Wolves (the fire between it and the
+        # one S7 carries on)
+        fx=[('tracer', 'wolf-p-a', 'tarsus', (-40, 0, 6), dict(walk=.2, bursts_t=[(67.4, 68.6), (69.2, 70.4)])), ('tracer', 'wolf-p-b', 'tarsus'),
             ('tracer', 'wolf-m', 'wolf-p-a'),
             # the Colossus's guns on the raiders as they close inside 1.35 km (owner, 2026-10-23: "why are none
             # of the Colossus turrets taking shots at those Wolfs"): her 360-degree mounts bear on both
             ('tracer', 'colossus', 'wolf-p-a'), ('tracer', 'colossus', 'wolf-p-b'),
-            ('fire_on', 'tarsus', (-40, 0, 6), (-.2, .5, 1))],
+            ('fire_on', 'tarsus', (-37, -2, 6), (-.2, .5, 1))],
         labels=['wolf-p-a', 'wolf-p-b', 'tarsus', 'wolf-m', 'colossus']),
     'k3e': dict(
         shot='S6d', title='The rear guard',

@@ -27,6 +27,7 @@ runs in Blender only and imports bpy inside its functions.
                         placed[key]['matrix'], log=print, shot_fx=spec.get('fx', ()))
 """
 import math
+import os
 import random
 import sys
 import zlib
@@ -166,12 +167,10 @@ LEDGER = [
     # ---- CARAVEL TWO, the Tarsus: drives shot out in S6c, boarded, taken
     H('tarsus', 68.0, 'rake', 1, (-30, -8, 4), (-.3, -1, .5), to=(-44, -6, 3), by='tracer',
       src='S6c k3d tracer wolf-p-a', note='the Wolves (P) rake aft toward her drives as they pass'),
-    H('tarsus', 69.6, 'he', 2, (-44, 5, 2), (-1, .4, .4), by='tracer', src='S6c k3d tracer wolf-p-b',
-      note='a drive bell holed'),
-    H('tarsus', 70.5, 'breach', 3, (-40, 0, 6), (-.2, .5, 1), by='fire_on', src='S6c k3d fire_on',
+    H('tarsus', 70.5, 'breach', 3, (-33, -7, 6), (-.2, .5, 1), by='fire_on', src='S6c k3d tracer wolf-p-a + fire_on',
       burn_until=102.0, note='drives shot out: fire burns up out of the breach (continuity), out before S10'),
-    H('tarsus', 84.0, 'rake', 1, (36, -4, 9), (.2, -.3, 1), to=(24, 4, 10), by='tracer',
-      src='S7 k3b tracer wolf-p-b', note="the covering Wolf (P)'s inverted gun run scores her forward deck"),
+    H('tarsus', 81.42, 'rake', 1, (36, -4, 9), (.2, -.3, 1), to=(24, 4, 10), by='tracer',
+      src='S7 k3b tracer wolf-p-b', note="the covering Wolf (P)'s inverted gun run scores her deck"),
 
     # ---- CARAVEL, the Colossus: port pod shot out in S8, the other failing, she falls
     H('colossus', 89.0, 'rake', 1, (-40, 26, 8), (0, .5, 1), to=(-58, 30, 6),
@@ -210,7 +209,7 @@ LEDGER = [
     H('wolf-p-a', 95.8, 'he', 1, (-15, -9, 3), (0, -1, .3), by='tracer', src='S8-S9 k4 tracer colossus'),
 
     # ---- Wolf (P) B: a graze through her shield
-    H('wolf-p-b', 72.4, 'rake', 0, (8, -8, 3), (0, -1, .2), to=(-4, -8, 3), by='tracer',
+    H('wolf-p-b', 72.67, 'rake', 0, (8, -8, 3), (0, -1, .2), to=(-4, -8, 3), by='tracer',
       src='S6c k3d tracer colossus', note="the Colossus's guns, mostly on her shield"),
 
     # ---- Kite (P) B: driven off by the Colossus in S9
@@ -230,7 +229,7 @@ LEDGER = [
       src='S6b k3c tracer wolf-m', note="bare armour soaks the merchant Wolf's first rounds to land"),
     H('hound-p-c', 61.6, 'rake', 1, (-5, -8, 4), (0, -.3, 1), to=(10, -8, 4), by='tracer',
       src='S6b k3c tracer wolf-m'),
-    H('hound-p-c', 62.9, 'kill', 4, (0, 0, 0), (0, 0, 1), by=('blast_on', 'debris'), src='S6b k3c blast_on + debris',
+    H('hound-p-c', 62.83, 'kill', 4, (0, 0, 0), (0, 0, 1), by=('blast_on', 'debris'), src='S6b k3c blast_on + debris',
       note="Lasher B's Ammo Feeder burst lands and breaks her up"),
     H('hound-p-a', 75.75, 'rake', 1, (6, 5, 3), (0, .4, 1), to=(-8, 6, 3), by='tracer',
       src='S6d k3e tracer hound-m', note="the convoy Hound's first rounds to reach her"),
@@ -241,16 +240,16 @@ LEDGER = [
 # the shooter at the hit's time, target frame. A hit is cast onto the face that shooter sees, so a
 # hit whose `at` lies on the far side lands on the near face in line with it.
 SHOOTER_SIDE = {
-    'hound-m@76.2:rake': (0.96, 0.04, -0.27), 'tarsus@69.6:he': (0.69, -0.72, -0.08),
+    'hound-m@76.2:rake': (0.96, 0.04, -0.27),
     'lasher-lead@106.9:rake': (-0.70, -0.64, 0.31), 'wolf-p-a@95.8:he': (0.74, 0.61, -0.29),
     'kite-p-b@96.5:he': (-0.81, -0.43, 0.39), 'tarsus@68.0:rake': (-0.09, -0.99, -0.10), 'tarsus@70.5:breach': (0.85, -0.52, -0.07),
     'lasher-lead@103.5:breach': (0.98, -0.17, -0.06), 'falcon-p@105.0:breach': (0.69, 0.55, 0.46),
     'colossus3@96.0:rake': (0.40, -0.91, -0.05), 'hound-m@76.5:breach': (0.94, 0.01, -0.33),
-    'falcon-p@104.8:rake': (0.75, 0.51, 0.43), 'wolf-p-b@72.4:rake': (0.39, -0.36, -0.85),
+    'falcon-p@104.8:rake': (0.75, 0.51, 0.43), 'wolf-p-b@72.7:rake': (0.39, -0.36, -0.85),
     'hound-p-a@76.8:kill': (0.87, -0.45, 0.19), 'hound-p-a@75.8:rake': (0.99, -0.08, 0.12), 'hound-m@77.2:he': (0.73, -0.22, -0.65),
-    'tarsus@84.0:rake': (-0.27, 0.78, 0.57),
+    'tarsus@81.4:rake': (-0.27, 0.78, 0.57),
     'hound-p-c@61.1:rake': (0.89, 0.14, 0.44), 'lasher-lead@107.6:breach': (-0.83, 0.43, 0.36),
-    'hound-p-c@62.9:kill': (0.71, 0.31, 0.64), 'hound-p-c@61.6:rake': (0.89, 0.13, 0.44),
+    'hound-p-c@62.8:kill': (0.71, 0.31, 0.64), 'hound-p-c@61.6:rake': (0.89, 0.13, 0.44),
     'lasher-lead@55.9:breach': (0.72, 0.70, -0.04), 'wolf-p-a@57.5:rake': (0.62, 0.55, -0.56),
     'wolf-p-a@71.6:he': (-0.94, 0.18, 0.30),
 }
@@ -753,6 +752,9 @@ def link_check(events, impacts, fps=FPS):
                    else f'no drawn impact on her within {LINK_S:g} s; nearest on her '
                         + (f'{mine[0][0] / fps:.2f} s off at {mine[0][1][1] / fps:+.2f} s from the key ({mine[0][1][4]})'
                            if mine else 'none in the shot'))
+            if os.environ.get('ASHARU_LINK_LIST'):     # every drawn impact on her, to retime a hit onto
+                why += '; on her: ' + ', '.join(f'{im[1] / fps:+.2f} s ' + '({:.0f}, {:.0f}, {:.0f})'.format(*im[3])
+                                                for im in sorted(impacts, key=lambda im: im[1]) if im[0] == h.ship)
             fails.append(f'{h.id} ({h.src}): {why}')
     return rows, fails
 
@@ -834,7 +836,7 @@ def apply(ship_key, ship_fx, t_shot0, t_shot1, frame_of, matrix=None, log=print,
                 h0, h = h, copy.copy(h)
                 h.at = tuple(got[0][1][3])
                 h.to = tuple(Vector(h0.to) + d_) if h0.to else None
-                tag.append(f'placed on a drawn round {d_.length:.0f} m from its authored point')
+                tag.append(f'placed on a drawn round {d_.length:.0f} m from its authored point, at ' + '({:.0f}, {:.0f}, {:.0f})'.format(*h.at))
         at, n = b.scars(h, f)
         events.append(dict(hit=h, frame=f))
         if 'missile' in h.bys:
