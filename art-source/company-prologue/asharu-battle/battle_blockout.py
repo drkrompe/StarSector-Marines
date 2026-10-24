@@ -3042,13 +3042,13 @@ def blender_main(cfg):
                         raise RuntimeError(f'{kf}: the motion audit failed {len(fails_)} effects, e.g. {fails_[:4]}')
                 if os.environ.get('ASHARU_DIAG_HIDE'):
                     # diagnosis only: which effect a picture shows, by rendering without it
+                    import swfx_core as swfx_core_
                     rx_ = re.compile(os.environ['ASHARU_DIAG_HIDE'])
                     hid_ = [o for o in bpy.data.objects if o.name.startswith('SWFX') and rx_.search(o.name)]
                     for o in hid_:
-                        fc_ = o.animation_data.action.fcurves.find('hide_render') if (
-                            o.animation_data and o.animation_data.action) else None
+                        fc_ = swfx_core_.find_fcurve(o, 'hide_render')
                         if fc_ is not None:
-                            o.animation_data.action.fcurves.remove(fc_)
+                            fc_.mute = True
                         o.hide_render = True
                     print(f'ASHARU DIAG hid {len(hid_)} objects matching {rx_.pattern!r}: '
                           f'{sorted({ship_fx.base_name(o.name)[:40] for o in hid_})[:30]}', flush=True)

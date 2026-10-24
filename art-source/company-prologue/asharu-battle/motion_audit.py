@@ -64,19 +64,27 @@ def shown_frames(core, o, lo, hi):
 
 
 def animated(core, o):
-    """Anything about it that changes while it shows: its own keys, its data's or its materials'."""
-    if o.animation_data and (o.animation_data.action or len(o.animation_data.drivers)):
-        if any(fc.data_path != 'hide_render' and fc.data_path != 'hide_viewport'
-               for fc in (o.animation_data.action.fcurves if o.animation_data.action else [])):
+    """Anything about it that changes while it shows: keys or drivers on it, its data, its materials
+    or their node trees (Blender 5 layered actions, through swfx_guns._fcurves), or a geometry-nodes
+    modifier that reads the scene time."""
+    import swfx_guns
+
+    def live(idb):
+        ad = getattr(idb, 'animation_data', None)
+        if not ad:
+            return False
+        if len(ad.drivers):
             return True
-        if len(o.animation_data.drivers):
-            return True
-    ids = [getattr(o, 'data', None)]
-    ids += [s.material for s in getattr(o, 'material_slots', ()) if s.material is not None]
-    ids += [m.node_tree for m in ids[1:] if getattr(m, 'node_tree', None) is not None]
-    for d in ids:
-        ad = getattr(d, 'animation_data', None)
-        if ad and (ad.action or len(ad.drivers)):
+        return any(fc.data_path not in ('hide_render', 'hide_viewport') for fc in swfx_guns._fcurves(idb))
+    if live(o):
+        return True
+    mats = [s.material for s in getattr(o, 'material_slots', ()) if s.material is not None]
+    ids = [getattr(o, 'data', None)] + mats + [m.node_tree for m in mats if getattr(m, 'node_tree', None)]
+    if any(live(d) for d in ids if d is not None):
+        return True
+    for md in getattr(o, 'modifiers', ()):
+        ng = getattr(md, 'node_group', None)
+        if ng is not None and (live(ng) or any(n.bl_idname == 'GeometryNodeInputSceneTime' for n in ng.nodes)):
             return True
     return False
 

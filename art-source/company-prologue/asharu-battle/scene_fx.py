@@ -427,6 +427,18 @@ class SceneFx:
         recs = g.fire_weapon(ctx, turret, F0, (F1 - F0) / fps, feeder=feeder, target=lambda f: shot(f)[0],
                              train=False, allow=allow, pose=pose, passes=lambda f: shot(f)[1] is None,
                              after=lambda f, objs: g.world_rounds(objs, lambda k, f=f: copy_at(k).inverted() @ copy_at(f)))
+        if not recs and not any(stats.values()):
+            # fire_weapon refused the gun before a single round was asked about (its degenerate-
+            # anchor guard): a broken plan, not a gun holding fire (2026-10-23, S7's Wolf (P))
+            ma = self.matrix_at(a, F0)
+            src = ma @ Vector(muzzle_l)
+            hit_w = self.matrix_at(b, F0) @ Vector(hit_l)
+            raise RuntimeError(
+                f'planned {a} t{turret} -> {b}: fire_weapon refused the gun. At F0={F0}: muzzle_l '
+                f'{tuple(round(c, 1) for c in muzzle_l)} (m, her frame), src {tuple(round(c, 1) for c in src)}, '
+                f'hit_l {tuple(round(c, 1) for c in hit_l)} (m, {b} frame), hit {tuple(round(c, 1) for c in hit_w)}, '
+                f'{a} at {tuple(round(c, 1) for c in ma.translation)}, mpu {mpu}, speed {speed}, '
+                f'target (copy) {tuple(round(c, 1) for c in shot(F0)[0])}')
         hits = 0
         for r in recs:
             got = shots.get(r['frame'], (None, None))[1]
