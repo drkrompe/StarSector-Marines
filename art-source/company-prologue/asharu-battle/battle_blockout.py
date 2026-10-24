@@ -611,14 +611,15 @@ K3E_SHIPS = {
         # (owner, 2026-10-23: "I don't see any shots coming out of our hero Hound")
         dict(t=72, hd=0, pt=2, rl=5, v=160), dict(t=74, hd=-150, pt=-18, rl=95),
         dict(t=78.5, hd=-170, pt=-18, rl=125, v=120), dict(t=80, hd=-176, pt=-8, rl=145, v=60)],
-        hits=recoil([75.8], every=.2, until=77.4) + [dict(t=77.4, push=(6, -4, 3), spin=(25, 10, -15), decay=1.5, thr=.25)]),
+        # her gun's kick while her burst runs (74.0-76.2 s), then the drive hit at 77.25 s
+        hits=recoil([74.0], every=.2, until=76.2) + [dict(t=77.25, push=(6, -4, 3), spin=(25, 10, -15), decay=1.5, thr=.25)]),
     'hound-p-a': fly('hound-p-a', (-1700, -50, -20, 10, 20, 0, .4), K3E_T, [
         dict(t=74, hd=8, pt=21, rl=-10, thr=1.0), dict(t=76, hd=9, pt=20, rl=0, thr=1.0), dict(t=79, v=50)], v=200,
         hits=[dict(t=76.3, spin=(15, 4, 6), decay=.8, thr=.4),
               dict(t=77.0, spin=(110, 40, 70), push=(-15, 8, 10), decay=2.0, thr=0.0)]),
     'hound-p-b': fly('hound-p-b', (-1680, -380, 20, 30, 16, 0, 1), K3E_T, [
         dict(t=74, hd=22, pt=18, rl=10), dict(t=78.5, hd=45, pt=14, rl=-30), dict(t=80, hd=70, pt=8, rl=-60)], v=200,
-        hits=recoil([75.0], every=.2, until=78.5)),
+        hits=recoil([74.6], every=.2, until=76.7) + recoil([79.0], every=.2, until=80.0)),     # her two bursts
 }
 
 # S7: the Tarsus adrift, rolling slowly; the Kites (P) hold alongside; the boats come over and the one
@@ -944,13 +945,15 @@ KEYFRAMES = {
         # HANDHELD CHASE: close behind the Hound, rolled over and firing, jolted by her kill and her hit
         camera=camera('k3e', [dict(t=t, loc=track(K3E_SHIPS['hound-m'], (-1450, 120, 160), .95, .15),
                                    target=track(K3E_SHIPS['hound-m'], (-1650, -180, 20), .8, .05), lens=lens)
-                              for t, lens in ((74, 30), (77, 35), (80, 40))], K3E_T, shake=.45, kicks=[(77.0, .7), (77.4, 1.0)]),
+                              for t, lens in ((74, 30), (77, 35), (80, 40))], K3E_T, shake=.45, kicks=[(77.0, .7), (77.25, 1.0)]),
         ships=K3E_SHIPS,
-        fx=[('tracer', 'hound-m', 'hound-p-a'), ('tracer', 'hound-p-b', 'hound-m'),
+        # the hero shot (owner): her turret on the first Hound (P) through the shot, already trained on her
+        # as it opens (she rolled over onto them at 72-74 s), walking bursts on until she dies at 76.9 s
+        fx=[('tracer', 'hound-m', 'hound-p-a', (0, 0, 0), dict(trained=True, cease_t=76.9)), ('tracer', 'hound-p-b', 'hound-m'),
             ('blast_on', 'hound-p-a', 14, (0, 0, 0)), ('debris', 'hound-p-a', 40, (0, 0, 0)),
             # no flares: a Hound mounts no missiles, so nothing here is a seeker for them to answer (owner,
             # 2026-10-23: flares need a visible cause, an inbound seeker on screen)
-            ('fire_on', 'hound-m', (-12, 4, 3))],
+            ('fire_on', 'hound-m', (-12, 4, 3), (-1, .4, .3), .5)],     # lit at 76.5 s, as the breach lands
         cues={'hound-m': {'fire': 'all'}, 'hound-p-b': {'fire': 'all'}},
         labels=['hound-m', 'hound-p-a', 'hound-p-b']),
     'k3b': dict(
@@ -3030,8 +3033,13 @@ def blender_main(cfg):
                 for i, fx in enumerate(spec.get('fx', ())):
                     kind, done = fx[0], False
                     if kind == 'tracer':
+                        # ('tracer', a, b, aim, opts): opts trained=True (on b when the shot opens) and
+                        # cease_t (sequence time b dies; no round after it)
+                        opts = dict(fx[4]) if len(fx) > 4 else {}
+                        if 'cease_t' in opts:
+                            opts['cease'] = anchor + round((opts.pop('cease_t') - spec['key_t']) * fps_s)
                         done = sfx_.tracer(fx[1], fx[2], fx[3] if len(fx) > 3 else None,
-                                           muzzles=CLEAR_GUNS.get(fx[:3]) or [muzzles.get(fx[:3])])
+                                           muzzles=CLEAR_GUNS.get(fx[:3]) or [muzzles.get(fx[:3])], **opts)
                     elif kind == 'missiles':
                         try:         # a salvo on a ship that breaks arrives on her break_frame (the cook-off)
                             bf = int(placed[fx[2]]['fx'].get('break_frame'))
@@ -3049,7 +3057,9 @@ def blender_main(cfg):
                     elif kind == 'debris':
                         done = sfx_.debris(fx[1], fx[2], fx[3] if len(fx) > 3 else (0, 0, 0))
                     elif kind == 'fire_on':
-                        done = sfx_.breach(fx[1], fx[2], fx[3] if len(fx) > 3 else (-1, .4, .3), 1.5, vent=True)
+                        # optional 5th: how long before the key time it was lit (default 1.5 s)
+                        done = sfx_.breach(fx[1], fx[2], fx[3] if len(fx) > 3 else (-1, .4, .3),
+                                           fx[4] if len(fx) > 4 else 1.5, vent=True)
                     elif kind == 'smoke':
                         done = sfx_.breach(fx[1], fx[2], fx[3] if len(fx) > 3 else (-1, .2, .5), 5.0, vent=False)
                     elif kind == 'flares':

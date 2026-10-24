@@ -156,12 +156,13 @@ LEDGER = [
       note='a blaster graze as she chases the Wolves (P) through the gap'),
 
     # ---- WARDEN FIVE, the convoy's Hound: crippled in S6d
-    H('hound-m', 75.2, 'rake', 1, (8, 6, -2), (0, .6, -1), to=(-6, 7, -2), by='tracer',
-      src='S6d k3e tracer hound-p-b', note="the second Hound (P)'s chaingun from below as she rolls"),
-    H('hound-m', 75.5, 'breach', 3, (-12, 4, 3), (-.6, .3, .7), by='fire_on', src='S6d k3e fire_on',
+    # timed to the second Hound (P)'s drawn rounds: her first burst lands on her from 76.2 to 77.25 s
+    H('hound-m', 76.2, 'rake', 1, (8, 6, -2), (0, .6, -1), to=(-6, 7, -2), by='tracer',
+      src='S6d k3e tracer hound-p-b', note="the second Hound (P)'s guns from below as she rolls"),
+    H('hound-m', 76.5, 'breach', 3, (-12, 4, 3), (-.6, .3, .7), by='fire_on', src='S6d k3e fire_on',
       note='drives hit: her drive deck burns'),
-    H('hound-m', 77.4, 'he', 2, (-24, -3, 1), (-1, 0, .2), src='story (S6d)', vent_s=20.0,
-      note='a second round in the drive cluster: she loses thrust, venting (the camera kick at 77.4)'),
+    H('hound-m', 77.25, 'he', 2, (-24, -3, 1), (-1, 0, .2), by='tracer', src='S6d k3e tracer hound-p-b', vent_s=20.0,
+      note='the last of that burst in her drive cluster: she loses thrust, venting (the camera kick at 77.25)'),
 
     # ---- CARAVEL TWO, the Tarsus: drives shot out in S6c, boarded, taken
     H('tarsus', 68.0, 'rake', 1, (-30, -8, 4), (-.3, -1, .5), to=(-44, -6, 3), by='tracer',
@@ -233,10 +234,10 @@ LEDGER = [
       src='S6b k3c tracer wolf-m'),
     H('hound-p-c', 61.9, 'kill', 4, (0, 0, 0), (0, 0, 1), by=('blast_on', 'debris'), src='S6b k3c blast_on + debris',
       note='the Ammo Feeder burst breaks her up'),
-    H('hound-p-a', 75.0, 'rake', 1, (6, 5, 3), (0, .4, 1), to=(-8, 6, 3), by='tracer',
-      src='S6d k3e tracer hound-m'),
+    H('hound-p-a', 75.75, 'rake', 1, (6, 5, 3), (0, .4, 1), to=(-8, 6, 3), by='tracer',
+      src='S6d k3e tracer hound-m', note="the convoy Hound's first rounds to reach her"),
     H('hound-p-a', 76.9, 'kill', 4, (0, 0, 0), (0, 0, 1), by=('blast_on', 'debris'), src='S6d k3e blast_on + debris',
-      note='killed at close range'),
+      note="killed at close range by the convoy Hound's burst: she cooks off"),
 ]
 # Where the shooter really is (asharu_gunnery, 2026-10-23): the unit vector from the target toward
 # the shooter at the hit's time, target frame. A hit is cast onto the face that shooter sees, so a
