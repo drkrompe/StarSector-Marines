@@ -5079,6 +5079,8 @@
 		"battleDirectHudSideRIGHT_ARM": "R arm",
 		"battleDirectHudSideLEFT_SHOULDER": "L shoulder",
 		"battleDirectHudSideRIGHT_SHOULDER": "R shoulder",
+		"battleDirectHudSideTURRET": "main",
+		"battleDirectHudSideMOUNT": "deck",
 		"battleDirectHudKeyCycleLeft": "[Q]",
 		"battleDirectHudKeyCycleRight": "[E]",
 		"battleDirectHudGroupOther": "OTHER MOUNTS",

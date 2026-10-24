@@ -45,6 +45,14 @@ public final class ManualPointFire {
         return Float.isFinite(distance) && distance < minRangeCells(weapon);
     }
 
+    /**
+     * A missile, a rocket or an arcing round: what a controlled machine's right button carries
+     * ({@link FireGroups}), as against a gun firing along a bearing.
+     */
+    public static boolean ordnance(WeaponDef weapon) {
+        return weapon.interceptableProjectile || arcs(weapon);
+    }
+
     /** A rocket with a warhead: a round a player throws at ground rather than along a bearing. */
     public static boolean bursts(WeaponDef weapon) {
         return weapon.interceptableProjectile && weapon.aoeRadius > 0f;

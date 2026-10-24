@@ -1,9 +1,10 @@
 package com.dillon.starsectormarines.battle.control;
 
 import com.dillon.starsectormarines.battle.combat.FireStance;
+import com.dillon.starsectormarines.battle.combat.FireGroups;
 import com.dillon.starsectormarines.battle.combat.FireTrigger;
 import com.dillon.starsectormarines.battle.combat.MechFireGroups;
-import com.dillon.starsectormarines.battle.combat.MechTriggerPicks;
+import com.dillon.starsectormarines.battle.combat.TriggerPicks;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.combat.MitigationSystem;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
@@ -30,6 +31,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.vehicle.BicycleBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.VehicleFireGroups;
 import com.dillon.starsectormarines.battle.vehicle.VehicleFootprint;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -63,8 +65,8 @@ public final class DirectControlSession {
     private ManualIntent intent = ManualIntent.NEUTRAL;
     /** A tender's chosen build option, by number key; nothing else keeps a number-key choice. */
     private int selectedWeapon;
-    /** What each of a mech's triggers is on; a Marine's and a vehicle's lists have one member and never move. */
-    private MechTriggerPicks picks = MechTriggerPicks.LINKED;
+    /** What each of a mech's or a vehicle's triggers is on; a Marine's buttons keep their own picks below. */
+    private TriggerPicks picks = TriggerPicks.LINKED;
     /** A Marine's right-button pick; null is its list's first item. */
     private MarineRightTrigger.Item marineRight;
     /**
@@ -147,8 +149,21 @@ public final class DirectControlSession {
     /** A tender's selected number key; 0 for every other carrier. */
     public int selectedWeapon() { return selectedWeapon; }
 
-    /** What each trigger of the controlled mech is on; LINKED on both for every other carrier. */
-    public MechTriggerPicks mechPicks() { return picks; }
+    /** What each trigger of the controlled mech or vehicle is on; LINKED on both for every other carrier. */
+    public TriggerPicks triggerPicks() { return picks; }
+
+    /**
+     * The controlled machine's weapon mounts ({@link FireGroups}): a mech's hardpoints or a hull's turrets. Null
+     * for a Marine, a warship, or nothing under control.
+     */
+    private FireGroups.Mount[] machineMounts() {
+        if (!unitActive() || !roster.isAliveById(unitId)) return null;
+        if (vehicleControl) {
+            return VehicleFireGroups.mounts(roster.convoy().vehicleType(unitId), roster.convoy().turret(unitId));
+        }
+        return roster.world().hasMechLoadout(unitId)
+                ? MechFireGroups.mounts(roster.world().mechLoadout(unitId).mounts()) : null;
+    }
 
     /** Changes whenever any trigger or number-key choice does, so the host knows to release held fire. */
     public int selectionKey() {
@@ -224,8 +239,8 @@ public final class DirectControlSession {
         // Key 1 is the left trigger's first member, LINKED; a single-member list has nothing else.
         if (selection == 0) return true;
         if (controllingMarine()) return selection > 0 && selection <= marineSpecials().size();
-        if (!roster.world().hasMechLoadout(unitId)) return false;
-        return MechFireGroups.member(roster.world().mechLoadout(unitId).mounts(), FireTrigger.LEFT, selection) >= 0;
+        FireGroups.Mount[] mounts = machineMounts();
+        return mounts != null && FireGroups.member(mounts, FireTrigger.LEFT, selection) >= 0;
     }
 
     /**
@@ -240,8 +255,9 @@ public final class DirectControlSession {
         }
         if (ship != null) return WarshipPilot.command(ship, WARSHIP_COMMANDS[selection]);
         if (controllingMarine()) return pickMarineLeft(selection);
-        if (!roster.world().hasMechLoadout(unitId)) return true;
-        int member = MechFireGroups.member(roster.world().mechLoadout(unitId).mounts(), FireTrigger.LEFT, selection);
+        FireGroups.Mount[] mounts = machineMounts();
+        if (mounts == null) return true;
+        int member = FireGroups.member(mounts, FireTrigger.LEFT, selection);
         return member >= 0 && pick(FireTrigger.LEFT, member);
     }
 
@@ -263,15 +279,14 @@ public final class DirectControlSession {
             if (specials.isEmpty()) return false;
             return pickMarineLeft((marineLeft.pick() + 1) % (specials.size() + 1));
         }
-        if (trigger == null || !unitActive() || !roster.isAliveById(unitId)
-                || !roster.world().hasMechLoadout(unitId)) return false;
-        var mounts = roster.world().mechLoadout(unitId).mounts();
-        if (MechFireGroups.members(mounts, trigger).length < 2) return false;
-        return pick(trigger, MechFireGroups.next(mounts, trigger, picks.pick(trigger)));
+        FireGroups.Mount[] mounts = machineMounts();
+        if (trigger == null || mounts == null || FireGroups.members(mounts, trigger).length < 2) return false;
+        return pick(trigger, FireGroups.next(mounts, trigger, picks.pick(trigger)));
     }
 
     /**
-     * Puts a trigger on one member of its list: LINKED, or a hardpoint ({@code slot.ordinal() + 1}) of its group.
+     * Puts a trigger on one member of its list: LINKED, or a mount of its group: a mech hardpoint
+     * ({@code slot.ordinal() + 1}) or a hull's mount ({@link VehicleFireGroups}).
      * A Marine's right button takes the index of an item in {@link #marineRightMembers()}.
      */
     public boolean pick(FireTrigger trigger, int member) {
@@ -284,9 +299,8 @@ public final class DirectControlSession {
             return true;
         }
         if (trigger == FireTrigger.LEFT && controllingMarine()) return pickMarineLeft(member);
-        if (trigger == null || !unitActive() || !roster.isAliveById(unitId)
-                || !roster.world().hasMechLoadout(unitId)
-                || !MechFireGroups.isMember(roster.world().mechLoadout(unitId).mounts(), trigger, member)) return false;
+        FireGroups.Mount[] mounts = machineMounts();
+        if (trigger == null || mounts == null || !FireGroups.isMember(mounts, trigger, member)) return false;
         if (picks.pick(trigger) == member) return true;
         picks = picks.with(trigger, member);
         releaseSelectedFire();
@@ -296,6 +310,7 @@ public final class DirectControlSession {
     private void releaseSelectedFire() {
         intent = new ManualIntent(intent.moveX(), intent.moveY(), intent.aimX(), intent.aimY(), false);
         if (roster.world().hasMechLoadout(unitId)) roster.world().mechLoadout(unitId).clearQueuedFire();
+        if (vehicleControl) battle.suspendVehicleDirectInput(unitId);
     }
     public long controlledMechId() {
         return unitActive() && roster.world().hasMechLoadout(unitId) ? unitId : 0L;
@@ -435,7 +450,7 @@ public final class DirectControlSession {
         if (vehicle && !battle.beginVehicleDirectControl(id)) return false;
         unitId = id;
         selectedWeapon = 0;
-        picks = MechTriggerPicks.LINKED;
+        picks = TriggerPicks.LINKED;
         marineRight = null;
         manualGrenade = false;
         marineLeft.reset();
@@ -520,7 +535,7 @@ public final class DirectControlSession {
         boolean vehicle = vehicleControl;
         unitId = 0L;
         selectedWeapon = 0;
-        picks = MechTriggerPicks.LINKED;
+        picks = TriggerPicks.LINKED;
         marineRight = null;
         manualGrenade = false;
         marineLeft.reset();
@@ -586,13 +601,13 @@ public final class DirectControlSession {
             marineLeft.reset();
             releaseSelectedFire();
         }
-        // A picked hardpoint that was destroyed, or moved groups with it, returns its trigger to LINKED.
-        if (unitActive() && roster.world().hasMechLoadout(unitId)) {
-            var mounts = roster.world().mechLoadout(unitId).mounts();
+        // A picked mount that was destroyed, or moved groups with it, returns its trigger to LINKED.
+        FireGroups.Mount[] mounts = machineMounts();
+        if (mounts != null) {
             for (FireTrigger trigger : FireTrigger.values()) {
-                if (picks.pick(trigger) != MechFireGroups.LINKED
-                        && !MechFireGroups.isMember(mounts, trigger, picks.pick(trigger))) {
-                    picks = picks.with(trigger, MechFireGroups.LINKED);
+                if (picks.pick(trigger) != FireGroups.LINKED
+                        && !FireGroups.isMember(mounts, trigger, picks.pick(trigger))) {
+                    picks = picks.with(trigger, FireGroups.LINKED);
                     releaseSelectedFire();
                 }
             }

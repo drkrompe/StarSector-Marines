@@ -2,7 +2,7 @@
 
 > Two buttons, two groups; each button cycles what it fires.
 
-Status: IN PROGRESS — steps 1-4 shipped (keycap header; Marine left-button specials and the flamer; Marine right button with grenades); step 5 open
+Status: IN PROGRESS — steps 1-5 shipped (keycap header; Marine left-button specials and the flamer; Marine right button with grenades; vehicles' right button through the shared sorter); held-weapon art question open
 Written: 2026-10-23
 Updated: 2026-10-24 — the launcher and the anti-materiel rifle walk in carry clips of their own; which carry each uses is with the owner
 
@@ -90,9 +90,10 @@ chooses what the button fires without a key per weapon.
 4. ~~Marine grenades~~ (shipped): the right button's list (smoke, a hand grenade,
    the shield) on E, and the grenade's committed manual throw; the flamer is a
    left-button weapon, not a throw. Frames in `marine-right-button`.
-5. Vehicles: wire the right trigger to a second weapon when a hull gains one;
-   add data for crewed defensive mounts if one appears outside the
-   point-defence service.
+5. ~~Vehicles~~ (shipped): one carrier-neutral sorter (`FireGroups`) for mechs and
+   hulls; a hull's secondary mounts (`VehicleMount`, crewed in data) sit on the right
+   button and cycle on E. No shipped hull carries one yet; frame
+   `active-vehicle-two-guns` in `direct-control-ui`.
 
 ## Art note (step 3)
 

@@ -2,8 +2,10 @@ package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.assault.MachineAssault;
 import com.dillon.starsectormarines.battle.assault.MachineGuard;
+import com.dillon.starsectormarines.battle.combat.FireGroups;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.combat.SalvoChain;
+import com.dillon.starsectormarines.battle.combat.TriggerPicks;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.mech.MechTargeting;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -80,10 +82,23 @@ public final class GroundVehicleTurretSystem {
     public void cancelQueuedFire(long id) {
         if (!convoy.isVehicle(id)) return;
         GroundTurret turret = convoy.turret(id);
-        if (turret != null) turret.clearQueuedFire();
+        if (turret == null) return;
+        turret.clearQueuedFire();
+        for (MountedGun gun : turret.secondaries) gun.turret().clearQueuedFire();
     }
 
+    /** One tick with the controlled hull's left button only, on LINKED. */
     public void tick(float dt, long controlledId, PointFireAim point, boolean trigger) {
+        tick(dt, controlledId, point, trigger, false, TriggerPicks.LINKED);
+    }
+
+    /**
+     * One tick of every armed hull's guns. On the controlled hull the left button fires what its pick names in the
+     * left group and the right button what its pick names in the right ({@link VehicleFireGroups}); a mount neither
+     * names holds fire, and a crewed mount keeps its own gunner.
+     */
+    public void tick(float dt, long controlledId, PointFireAim point, boolean primary, boolean secondary,
+                     TriggerPicks picks) {
         if (!Float.isFinite(dt) || dt <= 0f) return;
         for (long id : convoy.entityIds()) {
             if (!convoy.isTargetable(id)) continue;
@@ -91,12 +106,15 @@ public final class GroundVehicleTurretSystem {
             if (!type.hasTurretWeapon()) continue;
             GroundTurret turret = convoy.turret(id);
             turret.crossfire.advance(dt);
+            GroundBody body = convoy.body(id);
+            int held = id == controlledId
+                    ? picks.heldMask(VehicleFireGroups.mounts(type, turret), primary, secondary) : 0;
+            tickSecondaries(id, turret, body, dt, id == controlledId, point, held);
             if (turret.destroyed()) {
                 // A shot-away gun neither fires nor traverses; it stays where it last pointed.
                 turret.clearQueuedFire();
                 continue;
             }
-            GroundBody body = convoy.body(id);
             StructureDef structure = type.turretStructure();
             TurretMountGeometry.Point mount = mountPoint(type, body);
             float mountX = mount.x();
@@ -105,7 +123,8 @@ public final class GroundVehicleTurretSystem {
             if (turret.chainGap > 0f) turret.chainGap -= dt;
             if (turret.overloaded && turret.burstRemaining > 0) turret.clearQueuedFire();
             if (id == controlledId) {
-                tickManual(id, turret, body, structure, mountX, mountY, dt, point, trigger);
+                tickManual(id, turret, body, structure, mountX, mountY, dt, point,
+                        FireGroups.contains(held, VehicleFireGroups.MAIN));
             } else {
                 if (turret.burstPointAim != null) turret.clearQueuedFire();
                 tickAutonomous(id, turret, body, structure, mountX, mountY, dt);
@@ -118,15 +137,45 @@ public final class GroundVehicleTurretSystem {
     }
 
     /**
+     * The hull's secondary mounts ({@link GroundTurret#secondaries}), each a turret of its own on the same aim,
+     * magazine and cadence rules as the main gun. On the controlled hull a mount is the driver's unless it is
+     * crewed, and fires while {@code held} names it ({@code index + 1}).
+     */
+    private void tickSecondaries(long id, GroundTurret main, GroundBody body, float dt, boolean controlled,
+                                 PointFireAim point, int held) {
+        for (int i = 0; i < main.secondaries.size(); i++) {
+            MountedGun gun = main.secondaries.get(i);
+            GroundTurret turret = gun.turret();
+            StructureDef structure = gun.mount().structure();
+            TurretMountGeometry.Point at = mountPoint(body, gun.mount().mountX(), gun.mount().mountY());
+            dissipate(turret, structure.mount, dt);
+            if (turret.chainGap > 0f) turret.chainGap -= dt;
+            if (turret.overloaded && turret.burstRemaining > 0) turret.clearQueuedFire();
+            if (controlled && !gun.mount().crewed()) {
+                tickManual(id, turret, body, structure, at.x(), at.y(), dt, point,
+                        FireGroups.contains(held, i + 1));
+            } else {
+                if (turret.burstPointAim != null) turret.clearQueuedFire();
+                tickAutonomous(id, turret, body, structure, at.x(), at.y(), dt);
+            }
+        }
+    }
+
+    /**
      * Where a hull's turret ring stands in the world: the type's mount offset turned by the hull's heading. A
      * player's point fire is measured from here, so the HUD's minimum-range reading reads the same point.
      */
     public static TurretMountGeometry.Point mountPoint(VehicleType type, GroundBody body) {
+        return mountPoint(body, type.turretMountX, type.turretMountY);
+    }
+
+    /** Where a mount {@code localX, localY} cells from the hull's centre stands in the world. */
+    public static TurretMountGeometry.Point mountPoint(GroundBody body, float localX, float localY) {
         float radians = (float) Math.toRadians(body.facingDegrees);
         float cos = (float) Math.cos(radians);
         float sin = (float) Math.sin(radians);
-        return new TurretMountGeometry.Point(body.x + type.turretMountX * cos - type.turretMountY * sin,
-                body.y + type.turretMountX * sin + type.turretMountY * cos);
+        return new TurretMountGeometry.Point(body.x + localX * cos - localY * sin,
+                body.y + localX * sin + localY * cos);
     }
 
     /** Remembers how far off a launcher's aim is ({@link GroundTurret#raiseRangeCells}); kept when it has none. */
