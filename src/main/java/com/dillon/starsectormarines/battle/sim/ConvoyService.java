@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.HullLocations;
 import com.dillon.starsectormarines.battle.vehicle.HullTurretSection;
+import com.dillon.starsectormarines.battle.vehicle.MountedGun;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMount;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -97,6 +99,9 @@ public final class ConvoyService implements BodyCarrier {
         GroundTurret turret = type.hasTurretWeapon()
                 ? new GroundTurret(type.turretStructure().mount.ammoCapacity, HullTurretSection.forHull(type)) : null;
         HullLocations locations = HullLocations.of(type, turret != null ? turret.section : null);
+        if (turret != null) {
+            for (VehicleMount mount : type.secondaryMounts()) turret.secondaries.add(MountedGun.of(mount));
+        }
 
         // VEHICLE_MISSION (mission bag) + VEHICLE_CONTROL (motion-control bag) are universal;
         // GROUND_TURRET is present only when armed; HULL_LOCATIONS on every hull.

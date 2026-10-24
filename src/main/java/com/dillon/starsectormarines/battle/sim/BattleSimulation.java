@@ -3647,7 +3647,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // LRM) come from CombatantBehavior. (The dead-mech smoking wreck now
         // fires off the MechWreckSystem death handler, not this pass.)
         heavy.tick(directControl.controlledMechId(), directControl.pointAim(), directControl.intent().firing(),
-                directControl.intent().secondary(), directControl.mechPicks());
+                directControl.intent().secondary(), directControl.triggerPicks());
         tickProfile.lap(TickProfile.Phase.HEAVY_TICK);
         // Squads told to open a wall spend what their ordinary firing left on it.
         wallBreach.tick(this);
@@ -3843,7 +3843,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // Standing assaults on garrisonables end or aim their turrets, from the side's beliefs, first.
         MachineAssaults.tickVehicles(this);
         MachineGuards.tickVehicles(this);
-        groundSystem.tick(TICK_DT, directControl.controlledVehicleId(), directControl.intent());
+        groundSystem.tick(TICK_DT, directControl.controlledVehicleId(), directControl.intent(), directControl.triggerPicks());
         // A hull a Brute ran into slides and rocks on top of its own drive (HullSlide).
         for (long hull : convoy().entityIds()) {
             GroundBody body = convoy().body(hull);

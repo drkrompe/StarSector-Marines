@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.combat.FireTrigger;
 import com.dillon.starsectormarines.battle.combat.MechFireGroups;
-import com.dillon.starsectormarines.battle.combat.MechTriggerPicks;
+import com.dillon.starsectormarines.battle.combat.TriggerPicks;
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
 import com.dillon.starsectormarines.battle.control.MarineSprint;
 import com.dillon.starsectormarines.battle.mech.MechFlux;
@@ -97,7 +97,7 @@ class BattleDirectControlHudTest {
             @Override public void cycle(FireTrigger trigger) { asked.add("cycle " + trigger); }
             @Override public void pick(FireTrigger trigger, int member) { asked.add("pick " + trigger + " " + member); }
         };
-        try (Fixture fixture = fixture(Path.of("mod"), bulwark(MechTriggerPicks.LINKED), 0, false,
+        try (Fixture fixture = fixture(Path.of("mod"), bulwark(TriggerPicks.LINKED), 0, false,
                 actions, () -> {}, () -> {})) {
             assertEquals("WEAPON GROUPS", fixture.weapons.requireElement("direct-weapons-title").text());
             assertEquals(List.of("direct-hud-weapon-LEFT_ARM", "direct-hud-weapon-RIGHT_ARM"),
@@ -120,7 +120,7 @@ class BattleDirectControlHudTest {
             click(fixture.weapons, fixture.weaponsDocument, "direct-hud-weapon-RIGHT_SHOULDER");
             assertEquals(List.of("cycle LEFT", "pick RIGHT " + (MechMountSlot.RIGHT_SHOULDER.ordinal() + 1)), asked);
         }
-        var rightArm = new MechTriggerPicks(MechMountSlot.RIGHT_ARM.ordinal() + 1, MechFireGroups.LINKED);
+        var rightArm = new TriggerPicks(MechMountSlot.RIGHT_ARM.ordinal() + 1, MechFireGroups.LINKED);
         try (Fixture fixture = fixture(Path.of("mod"), bulwark(rightArm), 0, false, actions, () -> {}, () -> {})) {
             var picked = fixture.weapons.requireElement("direct-hud-weapon-RIGHT_ARM");
             var held = fixture.weapons.requireElement("direct-hud-weapon-LEFT_ARM");
@@ -381,7 +381,7 @@ class BattleDirectControlHudTest {
     }
 
     /** A Bulwark with a chaingun on each arm and an SRM-5 on each shoulder, on {@code picks}. */
-    static Snapshot bulwark(MechTriggerPicks picks) {
+    static Snapshot bulwark(TriggerPicks picks) {
         MechWeaponMount[] mounts = new MechWeaponMount[MechMountSlot.values().length];
         mounts[MechMountSlot.LEFT_ARM.ordinal()] = new MechWeaponMount(MechMountSlot.LEFT_ARM, MechWeaponComponent.CHAINGUN);
         mounts[MechMountSlot.RIGHT_ARM.ordinal()] = new MechWeaponMount(MechMountSlot.RIGHT_ARM, MechWeaponComponent.CHAINGUN);

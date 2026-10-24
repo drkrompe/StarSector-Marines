@@ -136,7 +136,9 @@ final class BattleDirectControlHudModel {
             set("exitLabel", copy.apply(exitLabelKey));
             set("pauseLabel", label(paused ? "Paused" : "Pause"));
             set("pauseClasses", paused ? "action action-pause action-paused" : "action action-pause");
-            List<WeaponGroup> next = mech ? mechGroups(snapshot, selected) : otherGroups(snapshot, ship);
+            // A hull with more than one gun has a mech's two buttons.
+            boolean groupedHull = carrier == Carrier.VEHICLE && snapshot.weapons().size() > 1;
+            List<WeaponGroup> next = mech || groupedHull ? mechGroups(snapshot, selected) : otherGroups(snapshot, ship);
             groups.set(List.copyOf(next));
             StringBuilder key = new StringBuilder(carrier.name()).append(armored).append(stamina)
                     .append(text.get("fluxRowClasses").get()).append(text.get("fluxStateClasses").get().contains("hidden"));
@@ -179,7 +181,7 @@ final class BattleDirectControlHudModel {
     }
 
     /**
-     * A mech's mounts under the button whose list they are in: the left button's guns, the right
+     * A mech's (or a many-gunned hull's) mounts under the button whose list they are in: the left button's guns, the right
      * button's racks, and whatever neither lists. Each header names its trigger's pick and the key
      * that cycles it; the picked rows carry the wash and the rest, which hold fire, dim.
      */
