@@ -3545,6 +3545,7 @@
     "openingBarracksCommandUnavailableForNewFieldCommand": " / unavailable for new field command",
     "openingBarracksCommandColonelHighestCommandRank": "Colonel / highest command rank",
     "openingBarracksCommandXpTo": "{0} / {1} XP to {2}",
+    "openingBarracksCommandLevel": "LV {0}",
     "openingBarracksCommandPoint": "1 POINT",
     "openingBarracksCommandBackgroundNoRecordedTraits": "Background: no recorded traits.",
     "openingBarracksCommandNaturalLeaderOfficerMissionXp": "Natural Leader (+50% officer mission XP)",

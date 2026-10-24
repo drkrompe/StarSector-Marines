@@ -26,7 +26,14 @@
         <div id="barracks-command-list" class="command-list">
           <div each="group in command.commands" key="{group.id}" id="{group.cardId}" class="command-entry" style="{group.cardStyle}">
           <button id="{group.id}" class="{group.classes}" onclick="{group.select}">
-            <img id="{group.commanderportraitId}" class="commander-portrait" src="{group.portrait}" />
+            <div id="{group.commanderbadgeId}" class="commander-badge">
+              <div id="{group.portraitframeId}" class="commander-portrait-frame">
+                <img id="{group.commanderportraitId}" class="commander-portrait" src="{group.portrait}" />
+                <img id="{group.pointId}" class="{group.pointClasses}" src="graphics/ui/officers/training-point.svg" />
+              </div>
+              <div id="{group.levelId}" class="{group.levelClasses}">{group.level}</div>
+              <div id="{group.xpTrackId}" class="{group.xpTrackClasses}"><div id="{group.xpFillId}" class="xp-fill" style="{group.xpStyle}" /></div>
+            </div>
             <div id="{group.commandercopyId}" class="commander-copy">
               <div id="{group.commandnameId}" class="label heading wrap command-name">{group.name}</div>
               <div id="{group.commandsummaryId}" class="label warm wrap command-summary">{group.summary}</div>
@@ -40,11 +47,18 @@
       </div>
       <div id="officer-dossier" class="{command.dossierClasses}">
         <div id="officer-header" class="officer-header">
-          <img id="officer-portrait" class="officer-portrait" src="{command.officerPortrait}" />
+          <div id="officer-portrait-frame" class="officer-portrait-frame">
+            <img id="officer-portrait" class="officer-portrait" src="{command.officerPortrait}" />
+            <img id="officer-training-point" class="{command.officerPointClasses}" src="graphics/ui/officers/training-point.svg" />
+          </div>
           <div id="officer-identity" class="officer-identity">
             <div id="officer-name" class="label heading warm wrap officer-line">{command.officerName}</div>
             <div id="officer-status" class="label muted wrap officer-line">{command.officerStatus}</div>
-            <div id="officer-progress" class="label heading warm officer-line">{command.officerProgress}</div>
+            <div id="officer-progress-row" class="officer-progress-row">
+              <div id="officer-level" class="label heading warm officer-level">{command.officerLevel}</div>
+              <div id="officer-progress" class="label heading warm officer-progress">{command.officerProgress}</div>
+            </div>
+            <div id="officer-xp" class="xp-track officer-xp"><div id="officer-xp-fill" class="xp-fill" style="{command.officerXpStyle}" /></div>
             <div id="officer-service" class="label officer-line">{command.officerService}</div>
           </div>
           <button id="officer-formations" class="flow-button console-action" onclick="{command.closeDossier}">{i18n.openingUiShipboardBarracksViewFormations}</button>
@@ -245,7 +259,15 @@
   .command-card { flex-direction: row; width: 100%; height: 108px; gap: 8px; padding: 8px; border-width: 1px; text-align: left; background-color: #242b28; border-color: #60685c; }
   .command-card.selected, .formation.selected { background-color: #393b2e; border-color: #dfc588; }
   .command-card:hover { border-color: #dfc588; }
-  .commander-portrait { width: 58px; height: 58px; }
+  .commander-badge { flex-direction: column; align-items: center; width: 62px; height: 92px; gap: 4px; pointer-events: none; }
+  .commander-portrait-frame { width: 62px; height: 62px; }
+  .commander-portrait { position: absolute; left: 0px; top: 4px; width: 58px; height: 58px; }
+  /* An unspent training point: a gold diamond pinned to the portrait's corner. */
+  .training-point { position: absolute; left: 38px; top: 0px; width: 24px; height: 24px; pointer-events: none; }
+  .commander-level { width: 62px; height: 16px; text-align: center; font-family: compact; }
+  .xp-track { flex-direction: row; height: 6px; border-width: 1px; border-color: #586154; background-color: #101512; }
+  .xp-fill { height: 100%; background-color: #dfc588; }
+  .commander-xp { width: 58px; }
   .commander-copy { flex-direction: column; width: 0px; height: 92px; flex-grow: 1; gap: 4px; }
   .command-name { height: 34px; } .command-summary { height: 30px; } .command-capacity { height: 30px; }
   .formation-board { flex-direction: column; width: 0px; flex-grow: 1; padding: 10px; gap: 7px; border-width: 1px; overflow: hidden; }
@@ -322,8 +344,14 @@
   .recruit-label { width: 172px; height: 20px; pointer-events: none; }
   .command-feedback { height: 30px; padding: 6px 9px; color: #c3cbbf; background-color: #111914; }
   .officer-dossier { flex-direction: column; width: 0px; flex-grow: 1; padding: 14px; gap: 12px; border-width: 1px; overflow: hidden; }
-  .officer-header { flex-direction: row; align-items: start; height: 112px; gap: 16px; }
-  .officer-portrait { width: 100px; height: 100px; }
+  .officer-header { flex-direction: row; align-items: start; height: 124px; gap: 16px; }
+  .officer-portrait-frame { width: 110px; height: 108px; }
+  .officer-portrait { position: absolute; left: 0px; top: 8px; width: 100px; height: 100px; }
+  .officer-point { left: 80px; top: 0px; width: 30px; height: 30px; }
+  .officer-progress-row { flex-direction: row; align-items: center; height: 23px; gap: 10px; }
+  .officer-level { width: 56px; height: 23px; }
+  .officer-progress { width: 0px; flex-grow: 1; height: 23px; }
+  .officer-xp { width: 420px; height: 8px; }
   .officer-identity { flex-direction: column; width: 0px; flex-grow: 1; gap: 5px; }
   .officer-line { height: 23px; }
   .officer-scroll { flex-direction: column; height: 0px; flex-grow: 1; gap: 12px; overflow: scroll; }

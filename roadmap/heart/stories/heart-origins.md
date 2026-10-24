@@ -97,17 +97,21 @@ out, the pump yard a shed and its pipeline. The first group sits nearest the
 core and the rest spread across the yard. A first lattice of single props read as a
 placed grid and was dropped. Every pooled map is dressed.
 
-The park is the fourth origin: a railed green whose program is a café
-pavilion and a groundskeeper's shed on a wide lawn, its yard dressed with the
+The park is the fourth origin: an open green, no wall round it (owner: a
+compound wall says somebody kept something in, and nobody did here), whose
+program is a café pavilion, a groundskeeper's shed and a toilet block on a
+wide lawn, its yard dressed with the
 pond and its benches (set down at the place's seed), the bandstand, a
 playground and more benches. The first mother opens at the pond, not in a
 building (`HeartOrigin.opensAt`). With four origins a seed-only draw gave every
 pool the same two, so the origin is drawn from the seed stepped by form and
 density, and read back from the far place's program where only the plan is
 at hand. Every pool shows three origins and each form shows all four. The
-owner kept all four. The park's lawn read bare under the creep, so trees now stand
-inside its rails, a grove and single trees planted on grass beds, withered
-by the bloom like the woods. Next:
+owner kept all four. The park's lawn read bare under the creep, so a grove
+stands on it, and its edge is a ring of trees planted round the green where
+its ground allows (never on a road or a house, so the paths in stay open),
+its things kept inside the ring. Under the creep the ring half blends into the
+woods; a clearer edge (a path ring, hedges) waits on art. Next:
 the annex's inner fence; damaged states of the clean props without creep, if the
 dressing stays.
 

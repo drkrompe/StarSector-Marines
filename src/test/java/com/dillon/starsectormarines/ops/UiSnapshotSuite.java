@@ -1785,6 +1785,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             roster.add(captain);
             MarineCaptain second = new MarineCaptain("Rafael Kade", "graphics/portraits/portrait_mercenary04.png", Rank.CAPTAIN, 0f);
             roster.add(second);
+            // Part-way to promotion each; Kade has spent his points, so only Vale's card wears the badge.
+            captain.addXp(2600);
+            second.addXp(1450);
+            second.train(OfficerSpecialty.TACTICAL_COVER);
+            second.train(OfficerSpecialty.FIELD_MEDICINE);
             var squads = roster.squads().stream().filter(q -> !q.reserve()).toList();
             for (int i = 0; i < squads.size(); i++) {
                 if (i < 8) roster.assignCaptainToSquad(captain.id(), squads.get(i).id());
