@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
 import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
 import com.dillon.starsectormarines.battle.world.gen.elevation.TerracePlanner;
+import com.dillon.starsectormarines.battle.world.gen.precinct.KnollGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 
@@ -25,8 +26,9 @@ import java.util.Set;
  * lanes, before the landscape grows round them ({@link Phase#WORKS}), and
  * binds what it made under {@link BspKeys#MISSION_LAYOUT_LAID}.
  *
- * <p>Only ever in a recipe whose plan states a layout, so a map without one is
- * generated exactly as before. Every placement yields to what is there: a cell
+ * <p>Only ever in a recipe whose plan states a layout or stands a place on a
+ * knoll (raised and reported here with the layout's ridges), so a map without
+ * either is generated exactly as before. Every placement yields to what is there: a cell
  * that is not open ground, or is road, is skipped, so a line through a town is
  * broken by its buildings and reported {@link Laid.Status#PARTIAL}. A line is
  * never allowed to seal the map: wire and nests that would cut the walkable
@@ -59,7 +61,7 @@ public final class MissionLayoutStage implements GenStage {
     public void run(GenContext ctx) {
         PrecinctPlan plan = ctx.get(BspKeys.PRECINCTS);
         MissionLayout layout = plan == null ? MissionLayout.NONE : plan.layout();
-        if (layout.isEmpty()) return;
+        if (layout.isEmpty() && (plan == null || plan.landscape().knolls().isEmpty())) return;
         LayoutGround ground = new LayoutGround(ctx);
         boolean[][] held = layout.keepClear(ctx.width, ctx.height);
         List<Piece> pieces = new ArrayList<>();
@@ -102,9 +104,20 @@ public final class MissionLayoutStage implements GenStage {
                     layoutRidges.add(ridge);
                 }
             }
-            if (!layoutRidges.isEmpty()) {
+            // A knoll is a terrace of its own, raised with the ridges; one refused before growth is reported so.
+            List<TerracePlanner.Terrace> knolls = new ArrayList<>();
+            for (KnollGround.Resolved knoll : knolls(ctx, plan)) {
+                if (knoll.stands()) {
+                    knolls.add(new TerracePlanner.Terrace(knoll.knoll().name(), knoll.x0(), knoll.y0(), knoll.x1(),
+                            knoll.y1(), knoll.knoll().required()));
+                } else {
+                    out.add(Laid.refused(knoll.knoll().name(), Laid.Kind.GROUND, knoll.knoll().required(),
+                            knoll.refusal()));
+                }
+            }
+            if (!layoutRidges.isEmpty() || !knolls.isEmpty()) {
                 List<RidgePlanner.Band> bands = new ArrayList<>();
-                List<TerracePlanner.Terrace> terraces = new ArrayList<>();
+                List<TerracePlanner.Terrace> terraces = new ArrayList<>(knolls);
                 for (Ridge ridge : layoutRidges) {
                     bands.add(ridge.band());
                     terraces.addAll(ridge.terraces());
@@ -182,6 +195,13 @@ public final class MissionLayoutStage implements GenStage {
             ctx.put(BspKeys.TACTICAL_REGIONS, TacticalRegionMap.build(ctx.grid, ctx.topology, ctx.get(BspKeys.AXIS)));
         }
         ctx.put(BspKeys.MISSION_LAYOUT_LAID, new LaidLayout(out));
+    }
+
+    /** The plan's knolls as the places' growth read them, or worked out again where nothing bound them. */
+    private static List<KnollGround.Resolved> knolls(GenContext ctx, PrecinctPlan plan) {
+        if (plan.landscape().knolls().isEmpty()) return List.of();
+        List<KnollGround.Resolved> bound = ctx.get(BspKeys.KNOLLS);
+        return bound != null ? bound : KnollGround.resolve(plan, ctx.width, ctx.height);
     }
 
     /**

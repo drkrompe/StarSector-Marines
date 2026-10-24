@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16eeb-740f-7c82-a34c-85423c6ada90",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16eeb-740f-7c82-a34c-85423c6ada90\\exec-77047368-7d0d-4a46-a962-4aa5f560b964.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\spitter\\raw\\part-back.png",
+    "sha256": "030fce95f4747b0f6fa247887e0be8abb7cdefb84819f523cabcc275c69828a5",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\spitter\\prompts\\part-back.prompt.txt",
+  "promptSha256": "0dd43de5cc6462d79bf1c101f8fe80cdbbd8ff128cb3b92c1281f8285cc205b8",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: the part's exact position, outline and scale on the canvas; complete it in place\nImage 2: Identity, colours and plate finish only; not layout\n\nA single sprite LAYER for a top-down tactical game: the HAUNCHED BACK of the Rav Bloom Spitter, an upright serpentine beast, as its own separate part. Reference image 1 shows the part's exact position, outline and scale: complete it in place. Reference image 2 is the whole creature, for identity, colours and plate finish only (near-black indigo carapace with blue-violet plate edges, dark wine-red sinew in every gap, pale ivory bone spines).\n\nThe part is ONLY the hunched armoured back, chest and shoulders, seen from above, rearing forward:\n- at the top, the neck ends in a short rounded stump of sinew just below where the head and hood will sit;\n- at each side, a rounded armoured shoulder joint, closed off, where an arm will attach;\n- at the bottom, the body rounds off into a heavy haunch, closed, where the tail coils beneath it.\nNO head, NO hood, NO arms, NO claws, NO tail.\n\nStrict overhead orthographic view, light from the upper left, on the same 1024x1536 portrait canvas as reference image 1, the part in exactly the position and at exactly the scale it occupies there. Plain flat light grey background (#afafaf), no shadow, no ground, no other body parts, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\spitter\\guides\\part-back.png",
+      "sha256": "30216644227c3dad02f6d815648c106acc10fbf5f3ce5504cde7b46b6fa3b97c",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Geometry authority: the part's exact position, outline and scale on the canvas; complete it in place"
+    },
+    {
+      "path": "art-source\\rav-redesign\\spitter\\raw\\hero-open-v2.png",
+      "sha256": "673858130927ba736a49ff960e44573698507819acc925abcdac579c5bfda968",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Identity, colours and plate finish only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one back-layer sprite, keeping Image 1’s placement and scale and using Image 2 for its finish and colours."
+  ],
+  "usage": {
+    "input_tokens": 44796,
+    "cached_input_tokens": 37504,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 485,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 48.7
+}

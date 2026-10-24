@@ -176,7 +176,7 @@ public final class HeartCountry {
         List<PrecinctBrief> places = new ArrayList<>(List.of(
                 PrecinctBrief.settlement(SETTLEMENT, broad ? MapPlacement.CENTRE : VILLAGE_PLACE,
                         settlementGrowth, PrecinctCharacter.TOWN),
-                PrecinctBrief.settlement(WORKINGS, form.heartEdge, WORKINGS_GROWTH, PrecinctCharacter.DEPOT)));
+                origin(form, HeartOrigin.of(seed))));
         // Rural places stay first and alone, so an open-country plan draws exactly what it always drew.
         if (density == Density.TOWN) {
             places.add(PrecinctBrief.settlement(SECOND_TOWN, placement(form, 0.35f, 0.6f, 0.7f, 0.92f),
@@ -191,6 +191,12 @@ public final class HeartCountry {
         Landscape landscape = landscapeFor(form, seed);
         if (workings != null) landscape = landscape.withHeld(hollow(form, workings.seedX(), workings.seedY()));
         return plan.withLandscape(landscape).withLayout(HeartLayout.layout(form, density, seed));
+    }
+
+    /** The far place as its origin's facility: a fenced, programmed place on the heart's edge (`heart-origins.md`). */
+    static PrecinctBrief origin(Form form, HeartOrigin origin) {
+        return PrecinctBrief.garrison(WORKINGS, form.heartEdge, WORKINGS_GROWTH, origin.program,
+                HeartOrigin.FENCE.laidSquare());
     }
 
     /** A placement given as depth and across shares, whichever way the form advances. */

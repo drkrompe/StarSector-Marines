@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16eaf-42c6-7b90-8527-78943d527298",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16eaf-42c6-7b90-8527-78943d527298\\exec-d6485b1c-4b3b-4d86-9ba7-a74ea7963f8f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\spitter\\raw\\acid.png",
+    "sha256": "66cd35c3059f671239e4385826d25633f3ea3865809db2674b9243d17eed3903",
+    "dimensions": [
+      1230,
+      1278
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\spitter\\prompts\\acid.prompt.txt",
+  "promptSha256": "9a536a960069391b9abc942c0fbcc885674544e2986d333427e9d845bd023f72",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: The creature whose acid this is: colour and material of the acid organ only\n\nGame effect sprites for a top-down tactical game, seen strictly from directly above, light from the upper left. The acid of the Rav Bloom Spitter (reference image 1 shows the creature and its acid organ: match that acid's colour and translucent glow, but make it DARKER and more venomous, a deep dark venom green, not lime and not yellow).\n\nDraw FOUR separate items on one canvas, well apart from each other in a 2 by 2 grid, each centred in its quarter, none touching:\n1 (top left): ONE glob of acid in flight: a thick round viscous drop, glossy, dark venom-green, translucent with a brighter green core and one small white specular highlight, a short wet tail behind it. Compact, no trail longer than the glob.\n2 (top right): an acid SPLASH on the ground just after impact: an irregular star-shaped spatter of dark venom-green liquid with thick droplets flung outward, glossy, translucent at its thin edges.\n3 (bottom left): a different acid splash spatter, more elongated, as if it landed at an angle.\n4 (bottom right): a small settled acid POOL eating into the ground: dark green liquid with a few bubbles and a darker scorched rim, irregular round shape.\n\nPlain flat light grey background (#b4b4b4) everywhere around and between the items; no ground texture, no shadow slab, no text, no labels, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-4\\raw\\c1.png",
+      "sha256": "592cf45830225425f3da0118d38236480c94a336b27c303b102c66d2d1ec35ea",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "The creature whose acid this is: colour and material of the acid organ only"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image with four separate acid effects, matching the organ’s translucency in a darker venom green.\n"
+  ],
+  "usage": {
+    "input_tokens": 40962,
+    "cached_input_tokens": 35584,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 416,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 66.1
+}

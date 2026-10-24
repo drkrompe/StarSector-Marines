@@ -112,4 +112,32 @@ class PrecinctInterconnectTest {
                 + " cells to bridge a fourteen-cell gap, so the link is wandering rather "
                 + "than crossing at the nearest point");
     }
+
+    /**
+     * A weld goes round ground it is told to keep off and reaches what lies beyond through the gap left in it,
+     * so sealed ground and a knoll's ring are crossed only where the mission left a way.
+     */
+    @Test
+    void aWeldGoesRoundBlockedGroundThroughItsGap() {
+        int[][] owner = twoBars(14);
+        boolean[][] blocked = new boolean[W][H];
+        // A wall between the bars, open only far below them.
+        for (int y = 10; y < H; y++) for (int x = 35; x <= 38; x++) blocked[x][y] = true;
+        PrecinctInterconnect.weld(owner, W, H, blocked);
+        assertEquals(1, PrecinctInterconnect.components(owner, W, H));
+        for (int x = 0; x < W; x++) for (int y = 0; y < H; y++) {
+            assertTrue(!blocked[x][y] || owner[x][y] == GrownTrunkPlan.UNOWNED, "a weld was cut across blocked ground at " + x + "," + y);
+        }
+    }
+
+    /** Networks that can be joined only across blocked ground are still joined: the map is always one network. */
+    @Test
+    void networksWalledApartAreStillJoined() {
+        int[][] owner = twoBars(14);
+        boolean[][] blocked = new boolean[W][H];
+        for (int y = 0; y < H; y++) for (int x = 35; x <= 38; x++) blocked[x][y] = true;
+        PrecinctInterconnect.Result result = PrecinctInterconnect.weld(owner, W, H, blocked);
+        assertEquals(1, result.componentsAfter());
+        assertEquals(1, PrecinctInterconnect.components(owner, W, H));
+    }
 }

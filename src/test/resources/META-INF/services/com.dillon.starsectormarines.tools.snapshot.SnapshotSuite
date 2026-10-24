@@ -233,6 +233,7 @@ com.dillon.starsectormarines.ops.battleview.SwarmStrainLayerSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.RavRunnerMotionSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.RavShadowSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.RavBruteMotionSnapshotSuite
+com.dillon.starsectormarines.ops.battleview.RavSpitterMotionSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.DeckPropMotionSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmChokepointSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmPackSceneSnapshotSuite
@@ -304,3 +305,4 @@ com.dillon.starsectormarines.battle.cordon.CordonEscortLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonGapLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonStructureLookSuite
 com.dillon.starsectormarines.battle.world.gen.overgrown.OriginPropsLookSuite
+com.dillon.starsectormarines.battle.world.gen.overgrown.HeartOriginLookSuite
