@@ -120,8 +120,7 @@ dependencies {
 // Raised from 2g to 6g (owner, 2026-10-22): long framed evidence runs - The Burn's
 // review frames at 1920x1080 - kept dying of OutOfMemoryError. The machine has 32 GB;
 // this is a cap, not a reservation. -PtestHeap=<size> overrides it per run.
-// What actually held the memory was measured afterwards (CLAUDE.md, "Memory
-// budget"): the headless sprite tokens kept every decoded sheet resident, 1.3 GB
+// What actually held the memory was measured afterwards (evidence-tasks.md, "Memory"): the headless sprite tokens kept every decoded sheet resident, 1.3 GB
 // before a battle began. With that fixed The Burn's whole framed run fits in 2g.
 def evidenceHeap = (findProperty('testHeap') ?: '6g').toString()
 // -PtestJvmArgs="<args>" adds JVM flags to an evidence fork for one run - a flight

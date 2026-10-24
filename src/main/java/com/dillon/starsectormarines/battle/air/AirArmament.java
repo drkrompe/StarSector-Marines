@@ -65,7 +65,7 @@ public final class AirArmament {
     public static MountedTurret[] mounts(Airframe airframe, TurretRole role, float noseFacing) {
         if (airframe == null || airframe.hardpoints() <= 0) return new MountedTurret[0];
         // Zip kind[i] with slot[i]; clamp to whichever runs out first.
-        String[] kit = ShuttleType.kitFor(role, airframe.hardpoints());
+        String[] kit = airframe.kitFor(role);
         float[][] slots = TurretSlotResolver.resolve(airframe.renderHullId());
         int fitted = Math.min(kit.length, slots.length);
         MountedTurret[] turrets = new MountedTurret[Math.max(0, fitted)];

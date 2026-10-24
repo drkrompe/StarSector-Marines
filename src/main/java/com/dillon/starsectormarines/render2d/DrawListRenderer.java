@@ -65,10 +65,10 @@ public final class DrawListRenderer {
 
     /**
      * As {@link #drain(DrawCommand[], int, Map, SolidQuadBatch, LineBatch, RibbonBatch, BattleCamera, DrawCensus)},
-     * keeping normal-blend sheet quads and atlas meshes in one {@code paged} run across changes of sheet when the
-     * context can page ({@link PagedQuadRun#ready()}); null, or a context that cannot, drains one run per sheet.
-     * Painter order is the same either way: a paged run closes wherever a run per sheet would have closed for any
-     * reason but the sheet.
+     * keeping sheet quads of either blend, atlas meshes and solid fills in one {@code paged} run across changes of
+     * sheet and blend when the context can page ({@link PagedQuadRun#ready()}); null, or a context that cannot,
+     * drains one run per sheet and blend. Painter order is the same either way: a paged run closes wherever a run
+     * per sheet would have closed for any reason but the sheet, the blend or a fill.
      */
     public static void drain(DrawCommand[] buf, int count,
                              Map<SpriteAPI, QuadBatch> batchBySheet, SolidQuadBatch solidBatch,
@@ -96,7 +96,7 @@ public final class DrawListRenderer {
             DrawCommand c = buf[i];
             if (census != null) census.recordCommand(c.kind);
             boolean fill = c.kind == DrawCommand.Kind.SOLID_RECT || c.kind == DrawCommand.Kind.POLY;
-            boolean pagedQuad = paging && ((c.kind == DrawCommand.Kind.SHEET_QUAD && !c.additive)
+            boolean pagedQuad = paging && (c.kind == DrawCommand.Kind.SHEET_QUAD
                     || (c.kind == DrawCommand.Kind.MESH && c.mesh != null && c.sprite != null)
                     || fill);
             if (pagedPending && !pagedQuad) { flushPaged(paged, census); pagedPending = false; }
@@ -136,7 +136,7 @@ public final class DrawListRenderer {
                 } else {
                     appendSheetQuad(batch, c);
                 }
-                batch.moveQueuedTo(paged, page);
+                batch.moveQueuedTo(paged, PagedQuadRun.lane(page, c.kind == DrawCommand.Kind.SHEET_QUAD && c.additive));
                 pagedPending = true;
                 continue;
             }

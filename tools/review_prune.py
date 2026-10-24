@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Prune old review runs on the shared Drive folder.
 
-Layout (CLAUDE.md "Review sets for the owner"):
+Layout (owner-review.md, "Review sets"):
     <drive>/starsector/review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
 
 Per asset, the newest KEEP_RUNS run folders stay, plus any run the owner

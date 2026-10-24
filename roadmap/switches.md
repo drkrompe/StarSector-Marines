@@ -122,7 +122,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.pathfinding.asyncDefendTrack` | config | 2026-09-22 | Permanent: determinism, as for battle.influence.async. |
 | `battle.pathfinding.asyncDefendTrack.queueCapacity` | config | 2026-09-22 | Permanent: the capacity of the async route queue. |
 | `battle.pathfinding.asyncDefendTrack.workers` | config | 2026-09-22 | Permanent: the size of the async route worker pool. |
-| `battle.pathfinding.casualtyRouteCost` | control | 2026-08-30 | Standing control: the CLAUDE.md worked example of a control run (killing-ground). Retire it when the example moves to another switch. |
+| `battle.pathfinding.casualtyRouteCost` | control | 2026-08-30 | Standing control: the worked example of a control run (killing-ground) in `snapshot-suites.md`. Retire it when the example moves to another switch. |
 | `battle.pathfinding.clearanceFailureBackoff` | experiment | 2026-10-14 | Mech clearance routing (mechs-nouns.md, 2026-10-14): remove once profileConvoyRoute has been read against it. |
 | `battle.pathfinding.fireRouteCost` | control | 2026-10-22 | Standing control: FireFearScene and FireHarmScene compare against the off arm. Fire-system session; retire with those loops. |
 | `battle.pathfinding.shareExhaustedFlood` | experiment | 2026-10-14 | As clearanceFailureBackoff. |
@@ -130,18 +130,18 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.profile.commandFrameDetail` | config | 2026-09-27 | Permanent: opt-in profiling instrumentation, off in play. |
 | `battle.profile.commandTopologyCpu` | config | 2026-09-27 | Permanent: opt-in profiling instrumentation, off in play. |
 | `battle.profile.pathRequests` | config | 2026-08-24 | Permanent: opt-in profiling instrumentation, off in play. |
-| `battle.render.cliffLook` | control | 2026-10-22 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
-| `battle.render.collectCulling` | control | 2026-09-03 | Standing control: the renderEvidence culled-vs-unculled pixel-identity check (CLAUDE.md). |
-| `battle.render.colonyThreat` | control | 2026-10-22 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
+| `battle.render.cliffLook` | control | 2026-10-22 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
+| `battle.render.collectCulling` | control | 2026-09-03 | Standing control: the renderEvidence culled-vs-unculled pixel-identity check (`render-evidence.md`). |
+| `battle.render.colonyThreat` | control | 2026-10-22 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.creep` | experiment | 2026-10-21 | Bloom/creep sessions: remove once the creep look is accepted. |
 | `battle.render.creepPalette` | experiment | 2026-10-21 | Bloom/creep sessions: remove once the creep look is accepted. |
-| `battle.render.deadAirHaze` | control | 2026-10-20 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
-| `battle.render.domeShader` | control | 2026-10-13 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
+| `battle.render.deadAirHaze` | control | 2026-10-20 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
+| `battle.render.domeShader` | control | 2026-10-13 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.doodadAtlas` | experiment | 2026-10-23 | Doodad decoration atlas: remove it with the per-cut bind path once renderEvidence has read the atlas against its control. |
 | `battle.render.fire` | control | 2026-10-22 | Standing control: fire render cost control for renderEvidence, as for battle.fire. |
-| `battle.render.groundFeathering` | control | 2026-10-22 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
+| `battle.render.groundFeathering` | control | 2026-10-22 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.pagedBatch` | experiment | 2026-10-24 | Programmable quad batch (`programmable-quad-batch.md`): remove it with the fixed-function run path once renderEvidence and the paged-run GL evidence have read paged runs against it. The fixed-function fallback for a refused program stays. |
-| `battle.render.settledBodyMesh` | control | 2026-10-22 | renderEvidence control lever (CLAUDE.md). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
+| `battle.render.settledBodyMesh` | control | 2026-10-22 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.sallyDoors` | experiment | 2026-10-20 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.sallyDoors.closable` | experiment | 2026-10-21 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.sallyDoors.derived` | experiment | 2026-10-20 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
@@ -168,7 +168,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.unitUpdate.minimumParallelUnits` | config | 2026-08-24 | Permanent: determinism. Evidence tasks force the serial unit update with it. |
 | `battle.unitUpdate.parallelism` | config | 2026-09-26 | Permanent: an explicit unit-worker count for profiling runs. |
 | `battle.vehicle.activeProtection` | experiment | 2026-10-19 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
-| `battle.vehicle.armorArcs` | control | 2026-10-19 | Standing control: the armorMatchup facing-dependent armour question (CLAUDE.md). Retire once facing is accepted in the vehicle balance pass. |
+| `battle.vehicle.armorArcs` | control | 2026-10-19 | Standing control: the armorMatchup facing-dependent armour question (`evidence-tasks.md`). Retire once facing is accepted in the vehicle balance pass. |
 | `battle.vehicle.backingTurnDegrees` | experiment | 2026-10-19 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |
 | `battle.vehicle.crossfire` | experiment | 2026-10-23 | Crossfire (convoy-nouns.md): keep the rule and drop the switch if, against it as the control, two Hounds in a pincer beat the single approach against the laser, breakthrough and screened tanks (32 seeds) while the default ladder's one-on-one rows hold within noise; remove the class otherwise. |
 | `battle.vehicle.disarmedWithdraw` | experiment | 2026-10-19 | Vehicle sessions (convoy-nouns.md): remove each with its losing path once armorMatchup or the convoy evidence has been read against it. Numeric ones fold into constants. |

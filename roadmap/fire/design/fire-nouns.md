@@ -176,9 +176,21 @@ is gone when the fire is. `-Dbattle.fire.smoke=false` is the control.
 (`FireHarm`). Every fire step a unit in a burning cell takes damage scaled by
 the cell's intensity (8 hit points a second at full heat, so a marine dies in
 about three seconds in a crown fire and a few more in a grass fire); a unit
-beside a burning cell takes a tenth of its hottest neighbour's. Fire damage
-passes through armour that stops rifle rounds; a mech's or vehicle's hull
-takes a tenth of it, so armour can drive through a grass fire.
+beside a burning cell takes a tenth of its hottest neighbour's.
+
+**What fire does depends on what is burning, not on what stops bullets.**
+Plate that turns a rifle round does not keep heat off the body inside it, so
+fire is judged by the kind of target rather than by its armour pool:
+
+- **Soft bodies** (infantry in ordinary armour, militia, civilians) take fire
+  straight to health, their armour untouched. A marine in full flame is dead
+  in about three seconds.
+- **The swarm** is flesh with nothing over it and takes half as much again: a
+  brute dies in about three seconds, a matriarch in about a minute and a half.
+- **Sealed power suits** are the armour that does keep heat out: their armour
+  soaks fire as it soaks a round, and a suit lasts several times as long.
+- **Hulls** (mechs, machine frames, vehicles) take a tenth, so armour can drive
+  through a grass fire.
 
 **Morale.** Fire damage carries morale as being hit does, so a team standing
 in fire drains toward breaking as one under fire would; fire near a team that

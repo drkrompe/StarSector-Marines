@@ -809,6 +809,9 @@
     // Colony Breach (tools/generate_colony_breach_audio.py)
     {"id": "marines_breach_harrier_wingbeat_1", "source": "colony-breach/sfx/marines_breach_harrier_wingbeat_1.mp3", "kind": "positional", "out": "battle/colony-breach"},
     {"id": "marines_breach_harrier_wingbeat_2", "source": "colony-breach/sfx/marines_breach_harrier_wingbeat_2.mp3", "kind": "positional", "out": "battle/colony-breach"},
-    {"id": "marines_breach_harrier_wingbeat_3", "source": "colony-breach/sfx/marines_breach_harrier_wingbeat_3.mp3", "kind": "positional", "out": "battle/colony-breach"}
+    {"id": "marines_breach_harrier_wingbeat_3", "source": "colony-breach/sfx/marines_breach_harrier_wingbeat_3.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    // Colony Breach (tools/generate_colony_breach_audio.py)
+    {"id": "marines_breach_body_thud_1", "source": "colony-breach/sfx/marines_breach_body_thud_1.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    {"id": "marines_breach_body_thud_3", "source": "colony-breach/sfx/marines_breach_body_thud_3.mp3", "kind": "positional", "out": "battle/colony-breach"}
   ]
 }

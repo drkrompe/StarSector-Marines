@@ -1,6 +1,6 @@
-Status: IN PROGRESS — stages A and B landed (law 27); C and D open
+Status: IN PROGRESS — stages A to C landed (law 27); D open
 Written: 2026-10-24
-Updated: 2026-10-24 — paged runs and fills in the run landed, pixel-equal on `PagedQuadRunGlEvidence`
+Updated: 2026-10-24 — normal and additive quads share a run, colour within three levels on `PagedQuadRunGlEvidence`
 
 # Programmable quad batch
 
@@ -38,8 +38,10 @@ whole image can be one, with no repacking.
 order; it only stops flushing when the texture changes.
 
 **Same pixels.** The fragment shader is `GL_MODULATE`: texel times vertex
-colour, which is what the fixed-function path computes. Acceptance is pixel
-parity against that path.
+colour, which is what the fixed-function path computes, premultiplied since
+stage C. Acceptance is colour within three levels of that path: the shader
+rounds colour times alpha once where the blend unit multiplied, and stacked
+translucent quads carry that rounding up.
 
 **It fails soft.** No program (compile or link refused, fewer than two units)
 leaves the drain on today's fixed-function path, unchanged. A control switch
@@ -55,11 +57,18 @@ leaves the drain on today's fixed-function path, unchanged. A control switch
 - **B. Fills in the run. Landed for rects and polys.** A solid rect becomes a quad sampling one opaque white
   texel on a reserved page, so the flame and ember interleave is one run. Lines,
   polys and ribbons follow if their geometry fits a quad stream.
-- **C. Blends in the run.** Premultiplied output with `ONE, ONE_MINUS_SRC_ALPHA`
-  makes an additive quad a quad whose alpha is zero, so normal and additive
-  quads share a draw. The destination alpha this writes differs from the
-  `SRC_ALPHA` path's, so it needs an answer on who reads destination alpha (the
-  evidence compares all four channels) before it lands.
+- **C. Blends in the run. Landed.** Every paged run draws
+  premultiplied with `ONE, ONE_MINUS_SRC_ALPHA` for colour and the normal
+  blend's factors for alpha, so an additive quad writes alpha zero and normal
+  quads write the destination alpha they always did. Who reads destination
+  alpha: nothing blends by `DST_ALPHA`, but the ground composite blends its
+  relief target by that target's alpha, which is why normal alpha stays exact.
+  An additive quad leaves the alpha under it unchanged where the fixed-function
+  path added its own squared; on an opaque target that is the same value. It
+  premultiplies every run, not only one holding an additive quad: switching per
+  run made a quad's rounding depend on what shared its run, and
+  `renderEvidence`'s culled-against-unculled check caught a one-level
+  difference where culling had changed a run's company.
 - **D. Effects.** Per-quad parameters as vertex attributes: hit flash, dissolve,
   outline, faction mask recolour, lit units. Each is its own story once A to C
   have settled the stream.

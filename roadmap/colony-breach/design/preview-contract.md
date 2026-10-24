@@ -12,7 +12,7 @@ contract is what a producer writes and what the orchestrator reads.
 ## Where media goes
 
 Each producer writes **one new run folder** on the shared Drive, following the
-one-run-one-writer rule in `CLAUDE.md` (never add to, rename or delete another
+one-run-one-writer rule in `owner-review.md` (never add to, rename or delete another
 run; a re-render is a new run):
 
 ```
