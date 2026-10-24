@@ -490,8 +490,11 @@ public final class FieldMortarService {
     public int roundHeat(Tube tube, long target, BattleControl sim) {
         FireMission mission = missionOf(tube.squadId);
         if (mission == null || !mission.incendiary() || target == 0L || target != tube.missionTarget) return 0;
+        WeaponDef weapon = tube.structure.mount.weapon;
         if (FireReach.enabled() && FireReach.reachesSide(sim.fireField(), sim.world().cellX(target),
-                sim.world().cellY(target), tube.faction, sim)) return 0;
+                sim.world().cellY(target), FireReach.litCells(weapon.aoeRadius, weapon.hitSpread), tube.faction, sim)) {
+            return 0;
+        }
         return INCENDIARY_ROUND_HEAT;
     }
 
