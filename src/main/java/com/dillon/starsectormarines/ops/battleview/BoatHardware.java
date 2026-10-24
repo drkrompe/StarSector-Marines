@@ -65,6 +65,17 @@ public final class BoatHardware {
         };
     }
 
+    /** Columns and rows of the largest socket of any kind: the scale every stores picture shares. */
+    static int[] largestSocket() {
+        int columns = 1, rows = 1;
+        for (BoatDoll.Kind kind : BoatDoll.Kind.values()) {
+            int[] capacity = capacity(kind);
+            columns = Math.max(columns, capacity[0]);
+            rows = Math.max(rows, capacity[1]);
+        }
+        return new int[]{columns, rows};
+    }
+
     static Color tone(BoatDoll.Kind kind) {
         return switch (kind) {
             case HARDPOINT -> HardpointBricks.BALLISTIC;

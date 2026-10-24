@@ -7,8 +7,8 @@ import java.util.Objects;
 
 /**
  * One boat fitting or door gun as a catalog thumbnail: its piece on its own
- * bricks, at whatever size the row gives it, the way the Mech Lab's stores
- * show a part before it is fitted.
+ * bricks, at the one brick size every part shares, the way the Mech Lab's
+ * stores show a part before it is fitted.
  */
 public final class BoatHardwareCanvas implements CanvasProducer {
 
@@ -33,8 +33,10 @@ public final class BoatHardwareCanvas implements CanvasProducer {
         float width = context.metrics().surfaceWidth();
         float height = context.metrics().surfaceHeight();
         BoatHardware.Piece piece = BoatHardware.piece(kind, itemId);
-        HardpointBricks.Layout bricks = HardpointBricks.fit(4f, 4f, width - 8f, height - 8f,
-                piece.columns(), piece.rows(), BRICK_GAP);
+        // One brick size for every part, as on the board: a 2x1 is half a 2x2, not the same box.
+        int[] scale = BoatHardware.largestSocket();
+        HardpointBricks.Layout bricks = HardpointBricks.fitAtScaleOf(4f, 4f, width - 8f, height - 8f,
+                piece.columns(), piece.rows(), scale[0], scale[1], BRICK_GAP);
         BoatHardware.draw(context, bricks, piece, 255);
     }
 }
