@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16ede-4589-7492-8025-ae1d4272995e",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16ede-4589-7492-8025-ae1d4272995e\\exec-89c1eeef-ffb7-4e65-be03-7207afa408bc.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\origin-freight-split.raw.png",
+    "sha256": "cad48e4357086ce17eae678dac6ed127bd45a922c0218d6cbefb220ff5eaf17b",
+    "dimensions": [
+      2019,
+      779
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "build\\heart-origins\\prompts\\freight-split.prompt.txt",
+  "promptSha256": "9849cfe43b5ce8c30ee616e71d9a306de5cd4e2645ed7221f2cae5618fb2c451",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry guide and edit target: exact slots, silhouettes, footprints, growth extent and transparent gaps; reskin it, never move, resize or drop a sprite\nImage 2: Material and style reference only for painted overhead props; not layout\nImage 3: Material reference for the alien growth only (chitin, sinew, ivory, amber); never its shape or layout\n\nUse case: sketch-to-render. Game sprite atlas, a geometry-first reskin for a top-down tactical battle map.\nImage 1 is the authoritative geometry guide and edit target: every sprite's slot, silhouette, footprint, position and the extent of the creature growth are fixed by it. Repaint it; never move, resize, add or drop a sprite.\nImage 2 is a MATERIAL STYLE reference only (worn, crisp, painted overhead industrial props from the same game); not layout.\nImage 3 is a MATERIAL reference for the alien growth only (the Rav Bloom: glossy violet-plum chitin plates, magenta sinew in the gaps, ivory spurs, rare small amber nodes); not layout, and do not copy its shape.\n\nCamera: straight-overhead orthographic, no perspective tilt, soft light from the top left, each object's own short contact shadow only inside its slot.\nOutput: true transparent background, including every gutter and every negative space between debris and between frame bars; no ground plane, floor slab, border, labels, text, numbers, logos or signage words.\n\nThe guide's flat colours are keys:\n- grey/beige = concrete; blue-grey = painted steel; dark grey = machinery shadow or iron; rust-red, steel-blue, yellow, green = paint as shown, chipped and weathered.\n- near-black = an open hole or dark interior; dark brown blots = scorch marks; thin black zigzags = tears and cracks.\n- dull violet-grey lobes = the creep mat: a thin, dull, desaturated violet-grey living film, wet-sheened, veined, with small bubbled nodules, flowing over and around things like slow wax. Keep it DULL and dark-ish (it is the dullest thing on the map), never saturated purple.\n- dark violet lines = raised ropey veins in the creep; small plum polygons with red edges = embedded chitin plates; ivory slivers = bone-ivory spurs.\nEvery slot keeps a clear transparent margin inside its edge: the creep mat ends in soft rounded lobes well inside the slot exactly where the guide's lobes end, and is never cut straight by the slot's edge or spread to fill the slot.\nRows or cells marked as states of the same object must keep the identical object identity, palette and placement; only the stated change differs.\nKeep every form broad and readable at 24 pixels per game cell. Surface detail may improve substantially within the guide's silhouettes.\n\nSheet: the freight yard's telling object, a 40-foot REFRIGERATED shipping container, 4x2 cells, five states of ONE object, left to right then the next row: (1) clean, (2) grown, (3) swallowed, (4) damaged, (5) destroyed.\n(1) CLEAN: a closed reefer container from above: an insulated off-white ribbed steel shell, corner castings at the four corners, and at its east end the dark cooling unit with a louvred grille and a round fan. Ordinary chilled cargo, no lettering.\n(2) GROWN: the same reefer SPLIT OPEN FROM INSIDE: the middle of its roof and both long side walls burst OUTWARD, the white skin peeled back in jagged petals bent away from the box, the dark interior open, a few grey-blue seafood crates tumbled about inside the split. Creep spills out of the split and away to the south, its veins starting inside the box. It must read, without words, as \"something grew inside this chilled box and broke out\".\n(3) SWALLOWED: the same split reefer with the growth thickest: its west half drowned under a raised creep mound with plates and spurs, the east end and its cooling unit still clear.\n(4) DAMAGED: state (2) after a fight: scorched, holed, creep torn and burnt in patches.\n(5) DESTROYED: low separated off-white panels, dark steel frame pieces and grey-blue crate fragments, transparent between them, no slab beneath.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\heart-freight-split-guide.png",
+      "sha256": "86b525105b3a064930524a1223c5eb735c7fc8f538a3f372db86e2a12b3f84e4",
+      "dimensions": [
+        1824,
+        704
+      ],
+      "mode": "RGBA",
+      "role": "Geometry guide and edit target: exact slots, silhouettes, footprints, growth extent and transparent gaps; reskin it, never move, resize or drop a sprite"
+    },
+    {
+      "path": "art-source\\tilesets\\parked-vehicles.raw.png",
+      "sha256": "ad90cc1b0f96f35985225903ed4b609d7da5b6ebc23fd4802309e5e47cb595d4",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only for painted overhead props; not layout"
+    },
+    {
+      "path": "art-source\\swarm-bores\\raw\\bore-1.raw.png",
+      "sha256": "eafcfd8b37aa4d31e3d7f4875b5b4cd3e185f9820d69b1adf729ae279196b259",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material reference for the alien growth only (chitin, sinew, ivory, amber); never its shape or layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to make one transparent atlas, preserving the guide’s layout and silhouettes.\n"
+  ],
+  "usage": {
+    "input_tokens": 123909,
+    "cached_input_tokens": 103808,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1210,
+    "reasoning_output_tokens": 65
+  },
+  "elapsedSeconds": 87.0
+}

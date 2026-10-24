@@ -302,3 +302,4 @@ com.dillon.starsectormarines.battle.cordon.CordonCommandLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonEscortLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonGapLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonStructureLookSuite
+com.dillon.starsectormarines.battle.world.gen.overgrown.OriginPropsLookSuite
