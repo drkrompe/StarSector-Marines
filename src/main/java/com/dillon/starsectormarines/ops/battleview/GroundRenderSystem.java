@@ -695,7 +695,8 @@ public final class GroundRenderSystem implements RenderSystem {
             // of" means.
             CellTopology.WallRemnant remnant = topology.isRubble(x, y) ? topology.getWallRemnant(x, y) : null;
             GridBlockDef rubble = remnant == null ? null
-                    : RubbleTiles.skin(tileReg, remnant, wallBlock == null ? null : wallBlock.id);
+                    : RubbleTiles.skin(tileReg, remnant, wallBlock == null ? null : wallBlock.id,
+                            FortWorks.lookAt(topology, x, y));
             if (rubble == null || sheetFor(rubble.sheetPath) == null) remnant = null;
             GridBlockDef floorBlock = remnant != null
                     ? tileReg.block(remnant.groundSurfaceId())
@@ -1143,7 +1144,8 @@ public final class GroundRenderSystem implements RenderSystem {
             if (tileReg == null || topology.isWall(x, y)) return;
             if (topology.isRubble(x, y)) {
                 CellTopology.WallRemnant remnant = topology.getWallRemnant(x, y);
-                GridBlockDef skin = RubbleTiles.skin(tileReg, remnant, surfaceBlockId(SurfaceRole.WALL));
+                GridBlockDef skin = RubbleTiles.skin(tileReg, remnant, surfaceBlockId(SurfaceRole.WALL),
+                        FortWorks.lookAt(topology, x, y));
                 SpriteAPI sheet = skin == null ? null : sheetFor(skin.sheetPath);
                 if (sheet != null) {
                     int[] cell = RubbleTiles.cell(skin, remnant);

@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.refit.ShipRefits;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -581,7 +583,13 @@ public final class MechLabScreen implements Screen {
 
     private void syncGantryScene() {
         if (deck == null || viewModel == null) return;
-        deck.scene().syncGantries(viewModel.gantryDeployments());
+        List<MechDeploymentSpec> mechs = viewModel.gantryDeployments();
+        List<VehicleDeploymentSpec> vehicles = viewModel.gantryVehicles();
+        deck.scene().syncGantries(mechs);
+        deck.scene().parkVehicles(mechs.size(), vehicles);
+        // A hull built since the deck mustered is a line her sprites have not loaded yet.
+        BattleSprites sprites = previewSprites();
+        if (sprites != null) for (VehicleDeploymentSpec vehicle : vehicles) sprites.loadConvoySprite(vehicle.type());
     }
 
     /** The berths standing in that bay, in the order the deck authored them. */
