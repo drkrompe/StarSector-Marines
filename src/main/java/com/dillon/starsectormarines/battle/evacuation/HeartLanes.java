@@ -350,6 +350,9 @@ public final class HeartLanes {
             lane.column.advance(sim, tick, lane, (beat, observerOnly) -> {
                 if (beat.equals("column_arrived_1")) beats.add("lane_arrived_" + lane.number);
             });
+            // A column stepping off for a gap says so the tick it does.
+            beats.addAll(laneBeats);
+            laneBeats.clear();
             if (lane.squads == null) continue;
             lane.squads.removeIf(squad -> sim.squadMemberCount(squad) == 0);
             int alive = 0;
@@ -518,6 +521,12 @@ public final class HeartLanes {
     }
 
     public HeartSupplyRoad road() { return road; }
+
+    /** Where lane {@code number}'s waves step off, or {@code null} for no such lane. */
+    public int[] entry(int number) {
+        for (Lane lane : lanes) if (lane.number == number) return new int[]{lane.entryX, lane.entryY};
+        return null;
+    }
 
     /** In built-up country an uncovered lane asks the base for a mech lance first, and an armour pair if none is free. */
     public HeartLanes mechsFirst(boolean first) {
@@ -721,8 +730,6 @@ public final class HeartLanes {
         }
         for (String closed : closedGaps) beats.add("gap_closed_" + closed);
         closedGaps.clear();
-        beats.addAll(laneBeats);
-        laneBeats.clear();
     }
 
     /** How far {@code from}'s waves step off from {@code gap}'s aim. */
